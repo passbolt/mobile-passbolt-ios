@@ -47,32 +47,36 @@ internal struct SessionState {
   internal var pendingAuthorization: @SessionActor () -> PendingAuthorization?
 
   /// Update with new session data.
-  internal var createdSession: @SessionActor (
-    Account,
-    Passphrase,
-    SessionAccessToken,
-    SessionRefreshToken,
-    SessionMFAToken?,
-    Array<SessionMFAProvider> // if not empty MFA is required
-  ) -> Void
+  internal var createdSession:
+    @SessionActor (
+      Account,
+      Passphrase,
+      SessionAccessToken,
+      SessionRefreshToken,
+      SessionMFAToken?,
+      Array<SessionMFAProvider>  // if not empty MFA is required
+    ) -> Void
   /// Update with refreshed session data.
-  internal var refreshedSession: @SessionActor (
-    Account,
-    Passphrase?, // extend expire time if provided, ignore otherwise
-    SessionAccessToken,
-    SessionRefreshToken,
-    SessionMFAToken?
-  ) throws -> Void
+  internal var refreshedSession:
+    @SessionActor (
+      Account,
+      Passphrase?,  // extend expire time if provided, ignore otherwise
+      SessionAccessToken,
+      SessionRefreshToken,
+      SessionMFAToken?
+    ) throws -> Void
   /// Update with refreshed session data.
-  internal var passphraseProvided: @SessionActor (
-    Account,
-    Passphrase
-  ) throws -> Void
+  internal var passphraseProvided:
+    @SessionActor (
+      Account,
+      Passphrase
+    ) throws -> Void
   /// Update with refreshed session data.
-  internal var mfaProvided: @SessionActor (
-    Account,
-    SessionMFAToken
-  ) throws -> Void
+  internal var mfaProvided:
+    @SessionActor (
+      Account,
+      SessionMFAToken
+    ) throws -> Void
   /// Update with authorization request.
   internal var authorizationRequested: @SessionActor (SessionAuthorizationRequest) throws -> Void
   /// Clear current passphrase data if any.
@@ -232,8 +236,9 @@ extension SessionState {
     ) throws {
       guard currentAccount == account
       else {
-        throw SessionClosed
-        .error(account: account)
+        throw
+          SessionClosed
+          .error(account: account)
       }
       if let passphrase: Passphrase = passphrase {
         // extend passphrase cache expire time if provided
@@ -246,7 +251,7 @@ extension SessionState {
 
       switch currentPendingAuthorization {
       case .none, .mfa:
-        return // NOP - ignore
+        return  // NOP - ignore
 
       case .passphrase:
         currentPendingAuthorization = .none
@@ -264,14 +269,15 @@ extension SessionState {
     ) throws {
       guard currentAccount == account
       else {
-        throw SessionClosed
-        .error(account: account)
+        throw
+          SessionClosed
+          .error(account: account)
       }
       currentPassphrase = passphrase
       currentPassphraseExpiration = osTime.timestamp() + passphraseExpirationTime
       switch currentPendingAuthorization {
       case .none, .mfa:
-        return // NOP - ignore
+        return  // NOP - ignore
 
       case .passphrase:
         currentPendingAuthorization = .none
@@ -289,13 +295,14 @@ extension SessionState {
     ) throws {
       guard currentAccount == account
       else {
-        throw SessionClosed
-        .error(account: account)
+        throw
+          SessionClosed
+          .error(account: account)
       }
       currentMFAToken = mfaToken
       switch currentPendingAuthorization {
       case .none, .passphrase:
-        return // NOP - ignore
+        return  // NOP - ignore
 
       case .mfa:
         currentPendingAuthorization = .none
@@ -312,12 +319,13 @@ extension SessionState {
     ) throws {
       guard let currentAccount: Account = currentAccount
       else {
-        throw SessionClosed
-        .error(account: request.account)
+        throw
+          SessionClosed
+          .error(account: request.account)
       }
 
       switch currentPendingAuthorization {
-        // new request when there is none
+      // new request when there is none
       case .none:
         switch request {
         case .passphrase(currentAccount):
@@ -332,55 +340,56 @@ extension SessionState {
           updatesSequenceSource.sendUpdate()
 
         case .passphrase, .mfa:
-          throw SessionClosed
-          .error(account: request.account)
-//          .asAssertionFailure(message: "Can't use closed session.")
+          throw
+            SessionClosed
+            .error(account: request.account)
         }
 
-        // alerady requested passphrase
+      // already requested passphrase
       case .passphrase(currentAccount):
         switch request {
         case .passphrase(currentAccount):
-          return // NOP - ignore
+          return  // NOP - ignore
 
         case let .mfa(account, mfaProviders)
-          where account == currentAccount:
+        where account == currentAccount:
           currentMFAToken = .none
           currentPendingAuthorization = .passphraseWithMFA(for: account, providers: mfaProviders)
           updatesSequenceSource.sendUpdate()
 
         case .passphrase, .mfa:
-          throw SessionClosed
-          .error(account: request.account)
-//          .asAssertionFailure(message: "Can't use closed session.")
+          throw
+            SessionClosed
+            .error(account: request.account)
         }
 
-        // alerady requested mfa
+      // already requested mfa
       case .mfa(currentAccount, let mfaProviders):
         switch request {
         case let .passphrase(account)
-          where account == currentAccount:
+        where account == currentAccount:
           currentPassphrase = .none
           currentPassphraseExpiration = 0
           currentPendingAuthorization = .passphraseWithMFA(for: account, providers: mfaProviders)
           updatesSequenceSource.sendUpdate()
 
         case .mfa(currentAccount, mfaProviders):
-          return // NOP - ignore (refined providers?)
+          return  // NOP - ignore (refined providers?)
 
         case .passphrase, .mfa:
-          throw SessionClosed
-          .error(account: request.account)
-//          .asAssertionFailure(message: "Can't use closed session.")
+          throw
+            SessionClosed
+            .error(account: request.account)
         }
 
-        // alerady requested passphrase and MFA
+      // already requested passphrase and MFA
       case .passphraseWithMFA(currentAccount, _):
-        return // NOP - ignore (refined providers?)
+        return  // NOP - ignore (refined providers?)
 
       case .passphrase, .mfa, .passphraseWithMFA:
-        throw SessionClosed
-        .error(account: request.account)
+        throw
+          SessionClosed
+          .error(account: request.account)
       }
     }
 

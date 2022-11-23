@@ -71,7 +71,7 @@ final class SessionLockingTests: LoadableFeatureTestCase<SessionLocking> {
     )
     patch(
       \SessionState.passphraseWipe,
-       with: always(self.executed())
+      with: always(self.executed())
     )
     withTestedInstanceExecuted(
       context: Account.mock_ada

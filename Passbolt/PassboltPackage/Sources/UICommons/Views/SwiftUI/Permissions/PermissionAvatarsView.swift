@@ -40,19 +40,19 @@ public struct PermissionAvatarsView: View {
   public var body: some View {
     VStack(spacing: 8) {
       Text(displayable: self.title)
-      .text(
-        font: .inter(
-          ofSize: 12,
-          weight: .medium
-        ),
-        color: Color.passboltPrimaryText
-      )
-      .multilineTextAlignment(.leading)
-      .lineLimit(1)
-      .frame(
-        maxWidth: .infinity,
-        alignment: .leading
-      )
+        .text(
+          font: .inter(
+            ofSize: 12,
+            weight: .medium
+          ),
+          color: Color.passboltPrimaryText
+        )
+        .multilineTextAlignment(.leading)
+        .lineLimit(1)
+        .frame(
+          maxWidth: .infinity,
+          alignment: .leading
+        )
 
       OverlappingAvatarStackView(self.items)
         .frame(

@@ -23,4 +23,10 @@
 
 import CommonModels
 
-public typealias UsersListFetchDatabaseOperation = DatabaseOperation<UsersDatabaseFilter, Array<UserDetailsDSV>>
+public typealias UsersListFetchDatabaseOperation = DatabaseOperation<UsersListFetchDatabaseOperationDescription>
+
+public enum UsersListFetchDatabaseOperationDescription: DatabaseOperationDescription {
+
+  public typealias Input = UsersDatabaseFilter
+  public typealias Output = Array<UserDetailsDSV>
+}

@@ -28,69 +28,48 @@ import Session
 
 extension ResourceTagDetailsFetchDatabaseOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let sessionDatabase: SessionDatabase = try await features.instance()
-
-    nonisolated func execute(
-      _ input: ResourceTag.ID,
-      connection: SQLiteConnection
-    ) throws -> ResourceTagDSV {
-      let statement: SQLiteStatement = .statement(
-        """
-        SELECT
-          id,
-          slug,
-          shared
-        FROM
-          resourceTags
-        WHERE
-          id == ?1;
-        """,
-        arguments: input
-      )
-
-      return
-        try connection
-        .fetchFirst(using: statement) { dataRow -> ResourceTagDSV in
-          guard
-            let id: ResourceTag.ID = dataRow.id.flatMap(ResourceTag.ID.init(rawValue:)),
-            let slug: ResourceTag.Slug = dataRow.slug.flatMap(ResourceTag.Slug.init(rawValue:)),
-            let shared: Bool = dataRow.shared
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseDataInvalid
-                  .error(for: ResourceTagListItemDSV.self)
-              )
-              .recording(dataRow, for: "dataRow")
-          }
-
-          return ResourceTagDSV(
-            id: id,
-            slug: slug,
-            shared: shared
-          )
-        }
-    }
-
-    nonisolated func executeAsync(
-      _ input: ResourceTag.ID
-    ) async throws -> ResourceTagDSV {
-      try await execute(
-        input,
-        connection: sessionDatabase.connection()
-      )
-    }
-
-    return Self(
-      execute: executeAsync(_:)
+  @Sendable fileprivate static func execute(
+    _ input: ResourceTag.ID,
+    connection: SQLiteConnection
+  ) throws -> ResourceTagDSV {
+    let statement: SQLiteStatement = .statement(
+      """
+      SELECT
+        id,
+        slug,
+        shared
+      FROM
+        resourceTags
+      WHERE
+        id == ?1;
+      """,
+      arguments: input
     )
+
+    return
+      try connection
+      .fetchFirst(using: statement) { dataRow -> ResourceTagDSV in
+        guard
+          let id: ResourceTag.ID = dataRow.id.flatMap(ResourceTag.ID.init(rawValue:)),
+          let slug: ResourceTag.Slug = dataRow.slug.flatMap(ResourceTag.Slug.init(rawValue:)),
+          let shared: Bool = dataRow.shared
+        else {
+          throw
+            DatabaseIssue
+            .error(
+              underlyingError:
+                DatabaseDataInvalid
+                .error(for: ResourceTagListItemDSV.self)
+            )
+            .recording(dataRow, for: "dataRow")
+        }
+
+        return ResourceTagDSV(
+          id: id,
+          slug: slug,
+          shared: shared
+        )
+      }
   }
 }
 
@@ -98,10 +77,9 @@ extension FeatureFactory {
 
   internal func usePassboltResourceTagDetailsFetchDatabaseOperation() {
     self.use(
-      .disposable(
-        ResourceTagDetailsFetchDatabaseOperation.self,
-        load: ResourceTagDetailsFetchDatabaseOperation
-          .load(features:)
+      FeatureLoader.databaseOperation(
+        of: ResourceTagDetailsFetchDatabaseOperation.self,
+        execute: ResourceTagDetailsFetchDatabaseOperation.execute(_:connection:)
       )
     )
   }

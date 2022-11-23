@@ -28,237 +28,216 @@ import Session
 
 extension ResourceFolderDetailsFetchDatabaseOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  @Sendable fileprivate static func execute(
+    _ input: ResourceFolder.ID,
+    connection: SQLiteConnection
+  ) throws -> ResourceFolderDetailsDSV {
+    let selectFolderStatement: SQLiteStatement =
+      .statement(
+        """
+        				SELECT
+        					resourceFolders.id AS id,
+        					resourceFolders.name AS name,
+        					resourceFolders.permissionType AS permissionType,
+        					resourceFolders.shared AS shared,
+        					resourceFolders.parentFolderID AS parentFolderID
+        				FROM
+        					resourceFolders
+        				WHERE
+        					resourceFolders.id == ?;
+        				""",
+        arguments: input
+      )
 
-    let sessionDatabase: SessionDatabase = try await features.instance()
+    let selectResourceFolderLocationStatement: SQLiteStatement =
+      .statement(
+        """
+        				WITH RECURSIVE
+        					location(
+        						id,
+        						name,
+        						shared,
+        						parentID
+        					)
+        				AS
+        				(
+        					SELECT
+        						resourceFolders.id AS id,
+        						resourceFolders.name AS name,
+        						resourceFolders.shared AS shared,
+        						resourceFolders.parentFolderID AS parentID
+        					FROM
+        						resourceFolders
+        					WHERE
+        						resourceFolders.id == ?
 
-    nonisolated func execute(
-      _ input: ResourceFolder.ID,
-      connection: SQLiteConnection
-    ) throws -> ResourceFolderDetailsDSV {
-      let selectFolderStatement: SQLiteStatement =
-        .statement(
-          """
-          SELECT
-            resourceFolders.id AS id,
-            resourceFolders.name AS name,
-            resourceFolders.permissionType AS permissionType,
-            resourceFolders.shared AS shared,
-            resourceFolders.parentFolderID AS parentFolderID
-          FROM
-            resourceFolders
-          WHERE
-            resourceFolders.id == ?;
-          """,
-          arguments: input
-        )
+        					UNION
 
-      let selectResourceFolderLocationStatement: SQLiteStatement =
-        .statement(
-          """
-          WITH RECURSIVE
-            location(
-              id,
-              name,
-              shared,
-              parentID
+        					SELECT
+        						resourceFolders.id AS id,
+        						resourceFolders.name AS name,
+        						resourceFolders.shared AS shared,
+        						resourceFolders.parentFolderID AS parentID
+        					FROM
+        						resourceFolders,
+        						location
+        					WHERE
+        						resourceFolders.id == location.parentID
+        				)
+        				SELECT
+        					location.id,
+        					location.shared,
+        					location.name AS name
+        				FROM
+        					location;
+        				"""
+      )
+
+    let selectFolderUsersPermissionsStatement: SQLiteStatement =
+      .statement(
+        """
+        				SELECT
+        					usersResourceFolders.userID AS userID,
+        					usersResourceFolders.resourceFolderID AS folderID,
+        					usersResourceFolders.permissionType AS permissionType,
+        					usersResourceFolders.permissionID AS permissionID
+        				FROM
+        					usersResourceFolders
+        				WHERE
+        					usersResourceFolders.resourceFolderID == ?;
+        				""",
+        arguments: input
+      )
+
+    let selectFolderUserGroupsPermissionsStatement: SQLiteStatement =
+      .statement(
+        """
+        				SELECT
+        					userGroupsResourceFolders.userGroupID AS userGroupID,
+        					userGroupsResourceFolders.resourceFolderID AS folderID,
+        					userGroupsResourceFolders.permissionType AS permissionType,
+        					userGroupsResourceFolders.permissionID AS permissionID
+        				FROM
+        					userGroupsResourceFolders
+        				WHERE
+        					userGroupsResourceFolders.resourceFolderID == ?;
+        				""",
+        arguments: input
+      )
+
+    return
+      try connection
+      .fetchFirst(using: selectFolderStatement) { dataRow in
+        guard
+          let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
+          let name: String = dataRow.name,
+          let shared: Bool = dataRow.shared,
+          let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:))
+        else {
+          throw
+            DatabaseIssue
+            .error(
+              underlyingError:
+                DatabaseDataInvalid
+                .error(for: ResourceFolderDetailsDSV.self)
             )
-          AS
-          (
-            SELECT
-              resourceFolders.id AS id,
-              resourceFolders.name AS name,
-              resourceFolders.shared AS shared,
-              resourceFolders.parentFolderID AS parentID
-            FROM
-              resourceFolders
-            WHERE
-              resourceFolders.id == ?
+            .recording(dataRow, for: "dataRow")
+        }
 
-            UNION
-
-            SELECT
-              resourceFolders.id AS id,
-              resourceFolders.name AS name,
-              resourceFolders.shared AS shared,
-              resourceFolders.parentFolderID AS parentID
-            FROM
-              resourceFolders,
-              location
-            WHERE
-              resourceFolders.id == location.parentID
-          )
-          SELECT
-            location.id,
-            location.shared,
-            location.name AS name
-          FROM
-            location;
-          """
-        )
-
-      let selectFolderUsersPermissionsStatement: SQLiteStatement =
-        .statement(
-          """
-          SELECT
-            usersResourceFolders.userID AS userID,
-            usersResourceFolders.resourceFolderID AS folderID,
-            usersResourceFolders.permissionType AS permissionType,
-            usersResourceFolders.permissionID AS permissionID
-          FROM
-            usersResourceFolders
-          WHERE
-            usersResourceFolders.resourceFolderID == ?;
-          """,
-          arguments: input
-        )
-
-      let selectFolderUserGroupsPermissionsStatement: SQLiteStatement =
-        .statement(
-          """
-          SELECT
-            userGroupsResourceFolders.userGroupID AS userGroupID,
-            userGroupsResourceFolders.resourceFolderID AS folderID,
-            userGroupsResourceFolders.permissionType AS permissionType,
-            userGroupsResourceFolders.permissionID AS permissionID
-          FROM
-            userGroupsResourceFolders
-          WHERE
-            userGroupsResourceFolders.resourceFolderID == ?;
-          """,
-          arguments: input
-        )
-
-      return
-        try connection
-        .fetchFirst(using: selectFolderStatement) { dataRow in
+        let usersPermissions: Array<ResourceFolderPermissionDSV> = try connection.fetch(
+          using: selectFolderUsersPermissionsStatement
+        ) {
+          dataRow in
           guard
-            let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
-            let name: String = dataRow.name,
-            let shared: Bool = dataRow.shared,
-            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:))
+            let userID: User.ID = dataRow.userID.flatMap(User.ID.init(rawValue:)),
+            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
+            let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
           else {
             throw
               DatabaseIssue
               .error(
                 underlyingError:
                   DatabaseDataInvalid
-                  .error(for: ResourceFolderDetailsDSV.self)
+                  .error(for: PermissionTypeDSV.self)
               )
-              .recording(dataRow, for: "dataRow")
           }
 
-          let usersPermissions: Array<ResourceFolderPermissionDSV> = try connection.fetch(
-            using: selectFolderUsersPermissionsStatement
-          ) {
-            dataRow in
-            guard
-              let userID: User.ID = dataRow.userID.flatMap(User.ID.init(rawValue:)),
-              let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
-              let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
-            else {
-              throw
-                DatabaseIssue
-                .error(
-                  underlyingError:
-                    DatabaseDataInvalid
-                    .error(for: PermissionTypeDSV.self)
-                )
-            }
-
-            return .user(
-              id: userID,
-              type: permissionType,
-              permissionID: permissionID
-            )
-          }
-
-          let userGroupsPermissions: Array<ResourceFolderPermissionDSV> = try connection.fetch(
-            using: selectFolderUserGroupsPermissionsStatement
-          ) { dataRow in
-            guard
-              let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(rawValue:)),
-              let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
-              let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
-            else {
-              throw
-                DatabaseIssue
-                .error(
-                  underlyingError:
-                    DatabaseDataInvalid
-                    .error(for: PermissionDSV.self)
-                )
-            }
-
-            return .userGroup(
-              id: userGroupID,
-              type: permissionType,
-              permissionID: permissionID
-            )
-          }
-
-          let parentFolderID: ResourceFolder.ID? = dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:))
-
-          let location: Array<ResourceFolderLocationItemDSV>
-          if let parentFolderID: ResourceFolder.ID = parentFolderID {
-            location = try connection.fetch(
-              using:
-                selectResourceFolderLocationStatement
-                .appendingArgument(parentFolderID)
-            ) { dataRow in
-              guard
-                let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
-                let name: String = dataRow.name,
-                let shared: Bool = dataRow.shared
-              else {
-                throw
-                  DatabaseIssue
-                  .error(
-                    underlyingError:
-                      DatabaseDataInvalid
-                      .error(for: ResourceFolderLocationItemDSV.self)
-                  )
-              }
-
-              return ResourceFolderLocationItemDSV(
-                folderID: id,
-                folderName: name,
-                folderShared: shared
-              )
-            }
-            .reversed()
-          }
-          else {
-            location = .init()
-          }
-
-          return ResourceFolderDetailsDSV(
-            id: id,
-            name: name,
-            permissionType: permissionType,
-            shared: shared,
-            parentFolderID: parentFolderID,
-            location: location,
-            permissions: OrderedSet(usersPermissions + userGroupsPermissions)
+          return .user(
+            id: userID,
+            type: permissionType,
+            permissionID: permissionID
           )
         }
-    }
 
-    nonisolated func executeAsync(
-      _ input: ResourceFolder.ID
-    ) async throws -> ResourceFolderDetailsDSV {
-      try await execute(
-        input,
-        connection: sessionDatabase.connection()
-      )
-    }
+        let userGroupsPermissions: Array<ResourceFolderPermissionDSV> = try connection.fetch(
+          using: selectFolderUserGroupsPermissionsStatement
+        ) { dataRow in
+          guard
+            let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(rawValue:)),
+            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
+            let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
+          else {
+            throw
+              DatabaseIssue
+              .error(
+                underlyingError:
+                  DatabaseDataInvalid
+                  .error(for: PermissionDSV.self)
+              )
+          }
 
-    return Self(
-      execute: executeAsync(_:)
-    )
+          return .userGroup(
+            id: userGroupID,
+            type: permissionType,
+            permissionID: permissionID
+          )
+        }
+
+        let parentFolderID: ResourceFolder.ID? = dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:))
+
+        let location: Array<ResourceFolderLocationItemDSV>
+        if let parentFolderID: ResourceFolder.ID = parentFolderID {
+          location = try connection.fetch(
+            using:
+              selectResourceFolderLocationStatement
+              .appendingArgument(parentFolderID)
+          ) { dataRow in
+            guard
+              let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
+              let name: String = dataRow.name,
+              let shared: Bool = dataRow.shared
+            else {
+              throw
+                DatabaseIssue
+                .error(
+                  underlyingError:
+                    DatabaseDataInvalid
+                    .error(for: ResourceFolderLocationItemDSV.self)
+                )
+            }
+
+            return ResourceFolderLocationItemDSV(
+              folderID: id,
+              folderName: name,
+              folderShared: shared
+            )
+          }
+          .reversed()
+        }
+        else {
+          location = .init()
+        }
+
+        return ResourceFolderDetailsDSV(
+          id: id,
+          name: name,
+          permissionType: permissionType,
+          shared: shared,
+          parentFolderID: parentFolderID,
+          location: location,
+          permissions: OrderedSet(usersPermissions + userGroupsPermissions)
+        )
+      }
   }
 }
 
@@ -266,10 +245,9 @@ extension FeatureFactory {
 
   internal func usePassboltResourceFolderDetailsFetchDatabaseOperation() {
     self.use(
-      .disposable(
-        ResourceFolderDetailsFetchDatabaseOperation.self,
-        load: ResourceFolderDetailsFetchDatabaseOperation
-          .load(features:)
+      FeatureLoader.databaseOperation(
+        of: ResourceFolderDetailsFetchDatabaseOperation.self,
+        execute: ResourceFolderDetailsFetchDatabaseOperation.execute(_:connection:)
       )
     )
   }

@@ -24,5 +24,11 @@
 import CommonModels
 
 public typealias ResourceUserGroupPermissionsDetailsFetchDatabaseOperation = DatabaseOperation<
-  Resource.ID, Array<UserGroupPermissionDetailsDSV>
+  ResourceUserGroupPermissionsDetailsFetchDatabaseOperationDescription
 >
+
+public enum ResourceUserGroupPermissionsDetailsFetchDatabaseOperationDescription: DatabaseOperationDescription {
+
+  public typealias Input = Resource.ID
+  public typealias Output = Array<UserGroupPermissionDetailsDSV>
+}

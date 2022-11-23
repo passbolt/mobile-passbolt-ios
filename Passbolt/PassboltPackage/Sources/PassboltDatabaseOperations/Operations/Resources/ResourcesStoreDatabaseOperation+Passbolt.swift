@@ -28,80 +28,50 @@ import Session
 
 extension ResourcesStoreDatabaseOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  @Sendable fileprivate static func execute(
+    _ input: Array<ResourceDSO>,
+    connection: SQLiteConnection
+  ) throws {
+    // We have to remove all previously stored data before updating
+    // due to lack of ability to get information about deleted parts.
+    // Until data diffing endpoint becomes implemented we are replacing
+    // whole data set with the new one as an update.
+    // We are getting all possible results anyway until diffing becomes implemented.
+    // Please remove later on when diffing becomes available or other method of
+    // deleting records selecively becomes implemented.
 
-    let sessionDatabase: SessionDatabase = try await features.instance()
+    // Delete currently stored resources
+    try connection.execute("DELETE FROM resources;")
+    // Delete currently stored resource tags
+    try connection.execute("DELETE FROM resourceTags;")
 
-    nonisolated func execute(
-      _ input: Array<ResourceDSO>,
-      connection: SQLiteConnection
-    ) throws {
-      // We have to remove all previously stored data before updating
-      // due to lack of ability to get information about deleted parts.
-      // Until data diffing endpoint becomes implemented we are replacing
-      // whole data set with the new one as an update.
-      // We are getting all possible results anyway until diffing becomes implemented.
-      // Please remove later on when diffing becomes available or other method of
-      // deleting records selecively becomes implemented.
-
-      // Delete currently stored resources
-      try connection.execute("DELETE FROM resources;")
-      // Delete currently stored resource tags
-      try connection.execute("DELETE FROM resourceTags;")
-
-      // Insert or update all new resource
-      for resource in input {
-        try connection.execute(
-          .statement(
-            """
-            INSERT INTO
-              resources(
-                id,
-                name,
-                url,
-                username,
-                typeID,
-                description,
-                parentFolderID,
-                favoriteID,
-                permissionType,
-                modified
-              )
-            VALUES
+    // Insert or update all new resource
+    for resource in input {
+      try connection.execute(
+        .statement(
+          """
+          INSERT INTO
+            resources(
+              id,
+              name,
+              url,
+              username,
+              typeID,
+              description,
+              parentFolderID,
+              favoriteID,
+              permissionType,
+              modified
+            )
+          VALUES
+            (
+              ?1,
+              ?2,
+              ?3,
+              ?4,
+              ?5,
+              ?6,
               (
-                ?1,
-                ?2,
-                ?3,
-                ?4,
-                ?5,
-                ?6,
-                (
-                  SELECT
-                    id
-                  FROM
-                    resourceFolders
-                  WHERE
-                    id == ?7
-                  LIMIT 1
-                ),
-                ?8,
-                ?9,
-                ?10
-              )
-            ON CONFLICT
-              (
-                id
-              )
-            DO UPDATE SET
-              name=?2,
-              url=?3,
-              username=?4,
-              typeID=?5,
-              description=?6,
-              parentFolderID=(
                 SELECT
                   id
                 FROM
@@ -110,107 +80,112 @@ extension ResourcesStoreDatabaseOperation {
                   id == ?7
                 LIMIT 1
               ),
-              favoriteID=?8,
-              permissionType=?9,
-              modified=?10
-            ;
-            """,
-            arguments: resource.id,
-            resource.name,
-            resource.url,
-            resource.username,
-            resource.typeID,
-            resource.description,
-            resource.parentFolderID,
-            resource.favoriteID,
-            resource.permissionType.rawValue,
-            resource.modified
-          )
+              ?8,
+              ?9,
+              ?10
+            )
+          ON CONFLICT
+            (
+              id
+            )
+          DO UPDATE SET
+            name=?2,
+            url=?3,
+            username=?4,
+            typeID=?5,
+            description=?6,
+            parentFolderID=(
+              SELECT
+                id
+              FROM
+                resourceFolders
+              WHERE
+                id == ?7
+              LIMIT 1
+            ),
+            favoriteID=?8,
+            permissionType=?9,
+            modified=?10
+          ;
+          """,
+          arguments: resource.id,
+          resource.name,
+          resource.url,
+          resource.username,
+          resource.typeID,
+          resource.description,
+          resource.parentFolderID,
+          resource.favoriteID,
+          resource.permissionType.rawValue,
+          resource.modified
         )
+      )
 
-        for resourceTag in resource.tags {
-          try connection
-            .execute(
-              .statement(
-                """
-                INSERT INTO
-                  resourceTags(
-                    id,
-                    slug,
-                    shared
-                  )
-                VALUES
-                  (
-                    ?1,
-                    ?2,
-                    ?3
-                  )
-                ON CONFLICT
-                  (
-                    id
-                  )
-                DO UPDATE SET
-                  slug=?2,
-                  shared=?3
-                ;
-                """,
-                arguments: resourceTag.id,
-                resourceTag.slug,
-                resourceTag.shared
-              )
+      for resourceTag in resource.tags {
+        try connection
+          .execute(
+            .statement(
+              """
+              INSERT INTO
+                resourceTags(
+                  id,
+                  slug,
+                  shared
+                )
+              VALUES
+                (
+                  ?1,
+                  ?2,
+                  ?3
+                )
+              ON CONFLICT
+                (
+                  id
+                )
+              DO UPDATE SET
+                slug=?2,
+                shared=?3
+              ;
+              """,
+              arguments: resourceTag.id,
+              resourceTag.slug,
+              resourceTag.shared
             )
-
-          try connection
-            .execute(
-              .statement(
-                """
-                INSERT INTO
-                  resourcesTags(
-                    resourceID,
-                    resourceTagID
-                  )
-                SELECT
-                  resources.id,
-                  resourceTags.id
-                FROM
-                  resources,
-                  resourceTags
-                WHERE
-                  resources.id == ?1
-                AND
-                  resourceTags.id == ?2
-                ;
-                """,
-                arguments: resource.id,
-                resourceTag.id
-              )
-            )
-        }
-
-        for permission in resource.permissions {
-          try connection.execute(
-            permission.storeStatement
           )
-        }
+
+        try connection
+          .execute(
+            .statement(
+              """
+              INSERT INTO
+                resourcesTags(
+                  resourceID,
+                  resourceTagID
+                )
+              SELECT
+                resources.id,
+                resourceTags.id
+              FROM
+                resources,
+                resourceTags
+              WHERE
+                resources.id == ?1
+              AND
+                resourceTags.id == ?2
+              ;
+              """,
+              arguments: resource.id,
+              resourceTag.id
+            )
+          )
+      }
+
+      for permission in resource.permissions {
+        try connection.execute(
+          permission.storeStatement
+        )
       }
     }
-
-    nonisolated func executeAsync(
-      _ input: Array<ResourceDSO>
-    ) async throws {
-      try await sessionDatabase
-        .connection()
-        .withTransaction { connection in
-          try execute(
-            input,
-            connection: connection
-          )
-        }
-    }
-
-    return Self(
-      execute: executeAsync(_:)
-    )
   }
 }
 
@@ -218,10 +193,9 @@ extension FeatureFactory {
 
   internal func usePassboltResourcesStoreDatabaseOperation() {
     self.use(
-      .disposable(
-        ResourcesStoreDatabaseOperation.self,
-        load: ResourcesStoreDatabaseOperation
-          .load(features:)
+      FeatureLoader.databaseOperationWithTransaction(
+        of: ResourcesStoreDatabaseOperation.self,
+        execute: ResourcesStoreDatabaseOperation.execute(_:connection:)
       )
     )
   }

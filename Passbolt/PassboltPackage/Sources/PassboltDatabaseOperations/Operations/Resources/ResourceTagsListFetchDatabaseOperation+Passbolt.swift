@@ -28,92 +28,71 @@ import Session
 
 extension ResourceTagsListFetchDatabaseOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  @Sendable fileprivate static func execute(
+    _ input: String,
+    connection: SQLiteConnection
+  ) throws -> Array<ResourceTagListItemDSV> {
+    var statement: SQLiteStatement = """
+      SELECT
+        id,
+        slug,
+        shared,
+        (
+          SELECT
+            count(*)
+          FROM
+            resourcesTags
+          WHERE
+            resourceTagID IS id
+        ) AS contentCount
+      FROM
+        resourceTags
+      WHERE
+        1 -- equivalent of true, used to simplify dynamic query building
+      """
 
-    let sessionDatabase: SessionDatabase = try await features.instance()
+    if !input.isEmpty {
+      statement
+        .append(
+          """
+          AND
+            slug LIKE '%' || ? || '%'
+          """
+        )
+      statement.appendArgument(input)
+    }
+    else {
+      /* NOP */
+    }
 
-    nonisolated func execute(
-      _ input: String,
-      connection: SQLiteConnection
-    ) throws -> Array<ResourceTagListItemDSV> {
-      var statement: SQLiteStatement = """
-        SELECT
-          id,
-          slug,
-          shared,
-          (
-            SELECT
-              count(*)
-            FROM
-              resourcesTags
-            WHERE
-              resourceTagID IS id
-          ) AS contentCount
-        FROM
-          resourceTags
-        WHERE
-          1 -- equivalent of true, used to simplify dynamic query building
-        """
+    statement.append("ORDER BY slug COLLATE NOCASE ASC;")
 
-      if !input.isEmpty {
-        statement
-          .append(
-            """
-            AND
-              slug LIKE '%' || ? || '%'
-            """
-          )
-        statement.appendArgument(input)
-      }
-      else {
-        /* NOP */
-      }
-
-      statement.append("ORDER BY slug COLLATE NOCASE ASC;")
-
-      return
-        try connection
-        .fetch(using: statement) { dataRow -> ResourceTagListItemDSV in
-          guard
-            let id: ResourceTag.ID = dataRow.id.flatMap(ResourceTag.ID.init(rawValue:)),
-            let slug: ResourceTag.Slug = dataRow.slug.flatMap(ResourceTag.Slug.init(rawValue:)),
-            let shared: Bool = dataRow.shared,
-            let contentCount: Int = dataRow.contentCount
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseDataInvalid
-                  .error(for: ResourceTagListItemDSV.self)
-              )
-              .recording(dataRow, for: "dataRow")
-          }
-
-          return ResourceTagListItemDSV(
-            id: id,
-            slug: slug,
-            shared: shared,
-            contentCount: contentCount
-          )
+    return
+      try connection
+      .fetch(using: statement) { dataRow -> ResourceTagListItemDSV in
+        guard
+          let id: ResourceTag.ID = dataRow.id.flatMap(ResourceTag.ID.init(rawValue:)),
+          let slug: ResourceTag.Slug = dataRow.slug.flatMap(ResourceTag.Slug.init(rawValue:)),
+          let shared: Bool = dataRow.shared,
+          let contentCount: Int = dataRow.contentCount
+        else {
+          throw
+            DatabaseIssue
+            .error(
+              underlyingError:
+                DatabaseDataInvalid
+                .error(for: ResourceTagListItemDSV.self)
+            )
+            .recording(dataRow, for: "dataRow")
         }
-    }
 
-    nonisolated func executeAsync(
-      _ input: String
-    ) async throws -> Array<ResourceTagListItemDSV> {
-      try await execute(
-        input,
-        connection: sessionDatabase.connection()
-      )
-    }
-
-    return Self(
-      execute: executeAsync(_:)
-    )
+        return ResourceTagListItemDSV(
+          id: id,
+          slug: slug,
+          shared: shared,
+          contentCount: contentCount
+        )
+      }
   }
 }
 
@@ -121,10 +100,9 @@ extension FeatureFactory {
 
   internal func usePassboltResourceTagsListFetchDatabaseOperation() {
     self.use(
-      .disposable(
-        ResourceTagsListFetchDatabaseOperation.self,
-        load: ResourceTagsListFetchDatabaseOperation
-          .load(features:)
+      FeatureLoader.databaseOperation(
+        of: ResourceTagsListFetchDatabaseOperation.self,
+        execute: ResourceTagsListFetchDatabaseOperation.execute(_:connection:)
       )
     )
   }

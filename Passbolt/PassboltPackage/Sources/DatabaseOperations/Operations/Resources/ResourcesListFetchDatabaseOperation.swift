@@ -23,6 +23,10 @@
 
 import CommonModels
 
-public typealias ResourcesListFetchDatabaseOperation = DatabaseOperation<
-  ResourcesDatabaseFilter, Array<ResourceListItemDSV>
->
+public typealias ResourcesListFetchDatabaseOperation = DatabaseOperation<ResourcesListFetchDatabaseOperationDescription>
+
+public enum ResourcesListFetchDatabaseOperationDescription: DatabaseOperationDescription {
+
+  public typealias Input = ResourcesDatabaseFilter
+  public typealias Output = Array<ResourceListItemDSV>
+}

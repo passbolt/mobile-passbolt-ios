@@ -28,63 +28,42 @@ import Session
 
 extension UserGroupMembersFetchDatabaseOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let sessionDatabase: SessionDatabase = try await features.instance()
-
-    nonisolated func execute(
-      _ input: UserGroup.ID,
-      connection: SQLiteConnection
-    ) throws -> Array<User.ID> {
-      let statement: SQLiteStatement =
-        .statement(
-          """
-          SELECT
-            usersGroups.userID AS id
-          FROM
-            usersGroups
-          WHERE
-            usersGroups.userGroupID == ?1
-          ;
-          """,
-          arguments: input
-        )
-
-      return
-        try connection
-        .fetch(using: statement) { dataRow -> User.ID in
-          guard
-            let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:))
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseDataInvalid
-                  .error(for: ResourceUserGroupListItemDSV.self)
-              )
-              .recording(dataRow, for: "dataRow")
-          }
-
-          return id
-        }
-    }
-
-    nonisolated func executeAsync(
-      _ input: UserGroup.ID
-    ) async throws -> Array<User.ID> {
-      try await execute(
-        input,
-        connection: sessionDatabase.connection()
+  @Sendable fileprivate static func execute(
+    _ input: UserGroup.ID,
+    connection: SQLiteConnection
+  ) throws -> Array<User.ID> {
+    let statement: SQLiteStatement =
+      .statement(
+        """
+        SELECT
+          usersGroups.userID AS id
+        FROM
+          usersGroups
+        WHERE
+          usersGroups.userGroupID == ?1
+        ;
+        """,
+        arguments: input
       )
-    }
 
-    return Self(
-      execute: executeAsync(_:)
-    )
+    return
+      try connection
+      .fetch(using: statement) { dataRow -> User.ID in
+        guard
+          let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:))
+        else {
+          throw
+            DatabaseIssue
+            .error(
+              underlyingError:
+                DatabaseDataInvalid
+                .error(for: ResourceUserGroupListItemDSV.self)
+            )
+            .recording(dataRow, for: "dataRow")
+        }
+
+        return id
+      }
   }
 }
 
@@ -92,10 +71,9 @@ extension FeatureFactory {
 
   internal func usePassboltUserGroupMembersFetchDatabaseOperation() {
     self.use(
-      .disposable(
-        UserGroupMembersFetchDatabaseOperation.self,
-        load: UserGroupMembersFetchDatabaseOperation
-          .load(features:)
+      FeatureLoader.databaseOperation(
+        of: UserGroupMembersFetchDatabaseOperation.self,
+        execute: UserGroupMembersFetchDatabaseOperation.execute(_:connection:)
       )
     )
   }

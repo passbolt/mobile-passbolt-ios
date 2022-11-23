@@ -28,220 +28,199 @@ import Session
 
 extension ResourceFoldersListFetchDatabaseOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  @Sendable fileprivate static func execute(
+    _ input: ResourceFoldersDatabaseFilter,
+    connection: SQLiteConnection
+  ) throws -> Array<ResourceFolderListItemDSV> {
+    var statement: SQLiteStatement
 
-    let sessionDatabase: SessionDatabase = try await features.instance()
+    // note that current filters application is not optimal,
+    // it should be more performant if applied on recursive
+    // select but it might be less readable
+    // unless there is any performance issue it is preferred
+    // to be left in this way
 
-    nonisolated func execute(
-      _ input: ResourceFoldersDatabaseFilter,
-      connection: SQLiteConnection
-    ) throws -> Array<ResourceFolderListItemDSV> {
-      var statement: SQLiteStatement
+    if input.flattenContent {
+      statement = """
+        					WITH RECURSIVE
+        						flattenedResourceFolders(
+        							id,
+        							name,
+        							permissionType,
+        							parentFolderID,
+        							shared
+        						)
+        					AS
+        						(
+        							SELECT
+        								resourceFolders.id,
+        								resourceFolders.name,
+        								resourceFolders.permissionType,
+        								resourceFolders.parentFolderID,
+        								resourceFolders.shared
+        							FROM
+        								resourceFolders
+        							WHERE
+        								resourceFolders.parentFolderID IS ?
 
-      // note that current filters application is not optimal,
-      // it should be more performant if applied on recursive
-      // select but it might be less readable
-      // unless there is any performance issue it is preferred
-      // to be left in this way
+        							UNION
 
-      if input.flattenContent {
-        statement = """
-          WITH RECURSIVE
-            flattenedResourceFolders(
-              id,
-              name,
-              permissionType,
-              parentFolderID,
-              shared
-            )
-          AS
-            (
-              SELECT
-                resourceFolders.id,
-                resourceFolders.name,
-                resourceFolders.permissionType,
-                resourceFolders.parentFolderID,
-                resourceFolders.shared
-              FROM
-                resourceFolders
-              WHERE
-                resourceFolders.parentFolderID IS ?
-
-              UNION
-
-              SELECT
-                resourceFolders.id,
-                resourceFolders.name,
-                resourceFolders.permissionType,
-                resourceFolders.parentFolderID,
-                resourceFolders.shared
-              FROM
-                resourceFolders,
-                flattenedResourceFolders
-              WHERE
-                resourceFolders.parentFolderID IS flattenedResourceFolders.id
-            )
-          SELECT DISTINCT
-            flattenedResourceFolders.id AS id,
-            flattenedResourceFolders.name AS name,
-            flattenedResourceFolders.permissionType AS permissionType,
-            flattenedResourceFolders.parentFolderID AS parentFolderID,
-            flattenedResourceFolders.shared AS shared,
-            (
-              SELECT
-              (
-                (
-                  SELECT
-                    COUNT(*)
-                  FROM
-                    resources
-                  WHERE
-                    resources.parentFolderID IS flattenedResourceFolders.id
-                )
-              +
-                (
-                  SELECT
-                    COUNT(*)
-                  FROM
-                    resourceFolders
-                  WHERE
-                    resourceFolders.parentFolderID IS flattenedResourceFolders.id
-                )
-              )
-            ) AS contentCount
-          FROM
-            flattenedResourceFolders
-          WHERE
-            1 -- equivalent of true, used to simplify dynamic query building
-          """
-        statement.appendArgument(input.folderID)
-      }
-      else {
-        statement = """
-          SELECT
-            resourceFolders.id AS id,
-            resourceFolders.name AS name,
-            resourceFolders.permissionType AS permissionType,
-            resourceFolders.parentFolderID AS parentFolderID,
-            resourceFolders.shared AS shared,
-            (
-              SELECT
-              (
-                (
-                  SELECT
-                    COUNT(*)
-                  FROM
-                    resources
-                  WHERE
-                    resources.parentFolderID IS resourceFolders.id
-                )
-              +
-                (
-                  SELECT
-                    COUNT(*)
-                  FROM
-                    resourceFolders AS folders
-                  WHERE
-                    folders.parentFolderID IS resourceFolders.id
-                )
-              )
-            ) AS contentCount
-          FROM
-            resourceFolders
-          WHERE
-            resourceFolders.parentFolderID IS ?
-          """
-        statement.appendArgument(input.folderID)
-      }
-
-      if !input.text.isEmpty {
-        statement
-          .append(
-            """
-            AND name LIKE '%' || ? || '%'
-            """
-          )
-        statement.appendArgument(input.text)
-      }
-      else {
-        /* NOP */
-      }
-
-      // since we cannot use array in query directly
-      // we are preparing it manually as argument for each element
-      if input.permissions.count > 1 {
-        statement.append("AND permissionType IN (")
-        for index in input.permissions.indices {
-          if index == input.permissions.startIndex {
-            statement.append("?")
-          }
-          else {
-            statement.append(", ?")
-          }
-          statement.appendArgument(input.permissions[index])
-        }
-        statement.append(") ")
-      }
-      else if let permission: PermissionType = input.permissions.first {
-        statement.append("AND permissionType == ? ")
-        statement.appendArgument(permission)
-      }
-      else {
-        /* NOP */
-      }
-
-      switch input.sorting {
-      case .nameAlphabetically:
-        statement.append("ORDER BY name COLLATE NOCASE ASC")
-      }
-
-      // end query
-      statement.append(";")
-
-      return
-        try connection.fetch(using: statement) { dataRow -> ResourceFolderListItemDSV in
-          guard
-            let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
-            let name: String = dataRow.name,
-            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
-            let shared: Bool = dataRow.shared
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseDataInvalid
-                  .error(for: ResourceFolderListItemDSV.self)
-              )
-              .recording(dataRow, for: "dataRow")
-          }
-
-          return ResourceFolderListItemDSV(
-            id: id,
-            name: name,
-            permissionType: permissionType,
-            shared: shared,
-            parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:)),
-            contentCount: dataRow.contentCount ?? 0
-          )
-        }
+        							SELECT
+        								resourceFolders.id,
+        								resourceFolders.name,
+        								resourceFolders.permissionType,
+        								resourceFolders.parentFolderID,
+        								resourceFolders.shared
+        							FROM
+        								resourceFolders,
+        								flattenedResourceFolders
+        							WHERE
+        								resourceFolders.parentFolderID IS flattenedResourceFolders.id
+        						)
+        					SELECT DISTINCT
+        						flattenedResourceFolders.id AS id,
+        						flattenedResourceFolders.name AS name,
+        						flattenedResourceFolders.permissionType AS permissionType,
+        						flattenedResourceFolders.parentFolderID AS parentFolderID,
+        						flattenedResourceFolders.shared AS shared,
+        						(
+        							SELECT
+        							(
+        								(
+        									SELECT
+        										COUNT(*)
+        									FROM
+        										resources
+        									WHERE
+        										resources.parentFolderID IS flattenedResourceFolders.id
+        								)
+        							+
+        								(
+        									SELECT
+        										COUNT(*)
+        									FROM
+        										resourceFolders
+        									WHERE
+        										resourceFolders.parentFolderID IS flattenedResourceFolders.id
+        								)
+        							)
+        						) AS contentCount
+        					FROM
+        						flattenedResourceFolders
+        					WHERE
+        						1 -- equivalent of true, used to simplify dynamic query building
+        					"""
+      statement.appendArgument(input.folderID)
+    }
+    else {
+      statement = """
+        					SELECT
+        						resourceFolders.id AS id,
+        						resourceFolders.name AS name,
+        						resourceFolders.permissionType AS permissionType,
+        						resourceFolders.parentFolderID AS parentFolderID,
+        						resourceFolders.shared AS shared,
+        						(
+        							SELECT
+        							(
+        								(
+        									SELECT
+        										COUNT(*)
+        									FROM
+        										resources
+        									WHERE
+        										resources.parentFolderID IS resourceFolders.id
+        								)
+        							+
+        								(
+        									SELECT
+        										COUNT(*)
+        									FROM
+        										resourceFolders AS folders
+        									WHERE
+        										folders.parentFolderID IS resourceFolders.id
+        								)
+        							)
+        						) AS contentCount
+        					FROM
+        						resourceFolders
+        					WHERE
+        						resourceFolders.parentFolderID IS ?
+        					"""
+      statement.appendArgument(input.folderID)
     }
 
-    nonisolated func executeAsync(
-      _ input: ResourceFoldersDatabaseFilter
-    ) async throws -> Array<ResourceFolderListItemDSV> {
-      try await execute(
-        input,
-        connection: sessionDatabase.connection()
-      )
+    if !input.text.isEmpty {
+      statement
+        .append(
+          """
+          						AND name LIKE '%' || ? || '%'
+          						"""
+        )
+      statement.appendArgument(input.text)
+    }
+    else {
+      /* NOP */
     }
 
-    return Self(
-      execute: executeAsync(_:)
-    )
+    // since we cannot use array in query directly
+    // we are preparing it manually as argument for each element
+    if input.permissions.count > 1 {
+      statement.append("AND permissionType IN (")
+      for index in input.permissions.indices {
+        if index == input.permissions.startIndex {
+          statement.append("?")
+        }
+        else {
+          statement.append(", ?")
+        }
+        statement.appendArgument(input.permissions[index])
+      }
+      statement.append(") ")
+    }
+    else if let permission: PermissionType = input.permissions.first {
+      statement.append("AND permissionType == ? ")
+      statement.appendArgument(permission)
+    }
+    else {
+      /* NOP */
+    }
+
+    switch input.sorting {
+    case .nameAlphabetically:
+      statement.append("ORDER BY name COLLATE NOCASE ASC")
+    }
+
+    // end query
+    statement.append(";")
+
+    return
+      try connection.fetch(using: statement) { dataRow -> ResourceFolderListItemDSV in
+        guard
+          let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
+          let name: String = dataRow.name,
+          let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
+          let shared: Bool = dataRow.shared
+        else {
+          throw
+            DatabaseIssue
+            .error(
+              underlyingError:
+                DatabaseDataInvalid
+                .error(for: ResourceFolderListItemDSV.self)
+            )
+            .recording(dataRow, for: "dataRow")
+        }
+
+        return ResourceFolderListItemDSV(
+          id: id,
+          name: name,
+          permissionType: permissionType,
+          shared: shared,
+          parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:)),
+          contentCount: dataRow.contentCount ?? 0
+        )
+      }
   }
 }
 
@@ -249,10 +228,9 @@ extension FeatureFactory {
 
   internal func usePassboltResourceFoldersListFetchDatabaseOperation() {
     self.use(
-      .disposable(
-        ResourceFoldersListFetchDatabaseOperation.self,
-        load: ResourceFoldersListFetchDatabaseOperation
-          .load(features:)
+      FeatureLoader.databaseOperation(
+        of: ResourceFoldersListFetchDatabaseOperation.self,
+        execute: ResourceFoldersListFetchDatabaseOperation.execute(_:connection:)
       )
     )
   }

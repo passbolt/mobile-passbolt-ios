@@ -28,102 +28,81 @@ import Session
 
 extension UsersListFetchDatabaseOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  @Sendable fileprivate static func execute(
+    _ input: UsersDatabaseFilter,
+    connection: SQLiteConnection
+  ) throws -> Array<UserDetailsDSV> {
+    var statement: SQLiteStatement =
+      .statement(
+        """
+        SELECT
+          users.id AS id,
+          users.username AS username,
+          users.firstName AS firstName,
+          users.lastName AS lastName,
+          users.publicPGPKeyFingerprint AS fingerprint,
+          users.avatarImageURL AS avatarImageURL
+        FROM
+          users
+        WHERE
+          1 -- equivalent of true, used to simplify dynamic query building
+        """
+      )
 
-    let sessionDatabase: SessionDatabase = try await features.instance()
-
-    nonisolated func execute(
-      _ input: UsersDatabaseFilter,
-      connection: SQLiteConnection
-    ) throws -> Array<UserDetailsDSV> {
-      var statement: SQLiteStatement =
-        .statement(
+    if !input.text.isEmpty {
+      statement
+        .append(
           """
-          SELECT
-            users.id AS id,
-            users.username AS username,
-            users.firstName AS firstName,
-            users.lastName AS lastName,
-            users.publicPGPKeyFingerprint AS fingerprint,
-            users.avatarImageURL AS avatarImageURL
-          FROM
-            users
-          WHERE
-            1 -- equivalent of true, used to simplify dynamic query building
+          AND
+          (
+             users.username LIKE '%' || ? || '%'
+          OR users.firstName LIKE '%' || ? || '%'
+          OR users.lastName LIKE '%' || ? || '%'
+          )
+
           """
         )
+      // adding multiple times since we can't count args when using dynamic query
+      // and argument has to be used multiple times
+      statement.appendArgument(input.text)
+      statement.appendArgument(input.text)
+      statement.appendArgument(input.text)
+    }
+    else { /* NOP */
+    }
 
-      if !input.text.isEmpty {
-        statement
-          .append(
-            """
-            AND
-            (
-               users.username LIKE '%' || ? || '%'
-            OR users.firstName LIKE '%' || ? || '%'
-            OR users.lastName LIKE '%' || ? || '%'
+    statement.append(";")
+
+    return
+      try connection
+      .fetch(using: statement) { dataRow -> UserDetailsDSV in
+        guard
+          let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:)),
+          let username: String = dataRow.username,
+          let firstName: String = dataRow.firstName,
+          let lastName: String = dataRow.lastName,
+          let fingerprint: Fingerprint = dataRow.fingerprint.flatMap(Fingerprint.init(rawValue:)),
+          let avatarImageURL: URLString = dataRow.avatarImageURL.flatMap(URLString.init(rawValue:))
+        else {
+          throw
+            DatabaseIssue
+            .error(
+              underlyingError:
+                DatabaseDataInvalid
+                .error(for: ResourceUserGroupListItemDSV.self)
             )
-
-            """
-          )
-        // adding multiple times since we can't count args when using dynamic query
-        // and argument has to be used multiple times
-        statement.appendArgument(input.text)
-        statement.appendArgument(input.text)
-        statement.appendArgument(input.text)
-      }
-      else { /* NOP */
-      }
-
-      statement.append(";")
-
-      return
-        try connection
-        .fetch(using: statement) { dataRow -> UserDetailsDSV in
-          guard
-            let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:)),
-            let username: String = dataRow.username,
-            let firstName: String = dataRow.firstName,
-            let lastName: String = dataRow.lastName,
-            let fingerprint: Fingerprint = dataRow.fingerprint.flatMap(Fingerprint.init(rawValue:)),
-            let avatarImageURL: URLString = dataRow.avatarImageURL.flatMap(URLString.init(rawValue:))
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseDataInvalid
-                  .error(for: ResourceUserGroupListItemDSV.self)
-              )
-              .recording(dataRow, for: "dataRow")
-          }
-
-          return UserDetailsDSV(
-            id: id,
-            username: username,
-            firstName: firstName,
-            lastName: lastName,
-            fingerprint: fingerprint,
-            avatarImageURL: avatarImageURL
-          )
+            .recording(dataRow, for: "dataRow")
         }
-    }
 
-    nonisolated func executeAsync(
-      _ input: UsersDatabaseFilter
-    ) async throws -> Array<UserDetailsDSV> {
-      try await execute(
-        input,
-        connection: sessionDatabase.connection()
-      )
-    }
-
-    return Self(
-      execute: executeAsync(_:)
-    )
+        return UserDetailsDSV(
+          id: id,
+          username: username,
+          firstName: firstName,
+          lastName: lastName,
+          fingerprint: fingerprint,
+          avatarImageURL: avatarImageURL
+        )
+      }
   }
 }
 
@@ -131,10 +110,9 @@ extension FeatureFactory {
 
   internal func usePassboltUsersListFetchDatabaseOperation() {
     self.use(
-      .disposable(
-        UsersListFetchDatabaseOperation.self,
-        load: UsersListFetchDatabaseOperation
-          .load(features:)
+      FeatureLoader.databaseOperation(
+        of: UsersListFetchDatabaseOperation.self,
+        execute: UsersListFetchDatabaseOperation.execute(_:connection:)
       )
     )
   }

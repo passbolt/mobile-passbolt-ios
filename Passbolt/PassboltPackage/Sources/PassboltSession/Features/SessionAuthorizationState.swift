@@ -117,7 +117,7 @@ extension SessionAuthorizationState {
           }
 
           if  // check conditions only for MFA
-            case .passphrase = request,
+          case .passphrase = request,
             case .none = sessionState.passphrase(),
             case .mfa = sessionState.pendingAuthorization()
           {
@@ -227,7 +227,7 @@ extension SessionAuthorizationState {
       case is CancellationError, is Cancelled:
         // don't clear ongoing authorization on cancel
         // there can be another authorization ongoing
-        return // nothing more to do, make sure no updates apply
+        return  // nothing more to do, make sure no updates apply
 
       case let mfaRequired as SessionMFAAuthorizationRequired:
         do {
@@ -244,27 +244,27 @@ extension SessionAuthorizationState {
             .asTheError()
             .asAssertionFailure()
         }
-        break // continue execution
+        break  // continue execution
 
       case .some, .none:
-        break // continue execution
+        break  // continue execution
       }
 
       ongoingAuthorization = .none
 
       switch sessionState.pendingAuthorization() {
-      case .none: // nothing pending -> resume all
+      case .none:  // nothing pending -> resume all
         mfaAuthorizationAwaiterGroup.resumeAll()
         passphraseAuthorizationAwaiterGroup.resumeAll()
 
-      case .passphrase: // mfa not pending -> resume mfa
+      case .passphrase:  // mfa not pending -> resume mfa
         mfaAuthorizationAwaiterGroup.resumeAll()
 
-      case .mfa: // passphrase not pending -> resume passphrase
+      case .mfa:  // passphrase not pending -> resume passphrase
         passphraseAuthorizationAwaiterGroup.resumeAll()
 
-      case .passphraseWithMFA: // all pending -> resume none
-          break // NOP - ignore
+      case .passphraseWithMFA:  // all pending -> resume none
+        break  // NOP - ignore
       }
     }
 
@@ -291,8 +291,8 @@ extension SessionAuthorizationState {
           }  // else NOP
 
           let authorizationTask: Task<Void, Error> = .init { @SessionActor in
-              try Task.checkCancellation()
-              try await authorization()
+            try Task.checkCancellation()
+            try await authorization()
           }
 
           ongoingAuthorization = .init(

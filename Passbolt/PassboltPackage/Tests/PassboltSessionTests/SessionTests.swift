@@ -68,7 +68,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
 
     patch(
       \SessionState.pendingAuthorization,
-       with: always(self.pendingAuthorization)
+      with: always(self.pendingAuthorization)
     )
 
     withTestedInstanceReturnsNone { (testedInstance: Session) in
@@ -76,7 +76,8 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
     }
 
     self.pendingAuthorization = SessionState.PendingAuthorization.passphrase(for: Account.mock_ada)
-    withTestedInstanceReturnsEqual(SessionAuthorizationRequest.passphrase(Account.mock_ada)) { (testedInstance: Session) in
+    withTestedInstanceReturnsEqual(SessionAuthorizationRequest.passphrase(Account.mock_ada)) {
+      (testedInstance: Session) in
       return await testedInstance.pendingAuthorization()
     }
   }

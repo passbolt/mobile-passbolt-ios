@@ -23,4 +23,12 @@
 
 import CommonModels
 
-public typealias ResourceTagDetailsFetchDatabaseOperation = DatabaseOperation<ResourceTag.ID, ResourceTagDSV>
+public typealias ResourceTagDetailsFetchDatabaseOperation = DatabaseOperation<
+  ResourceTagDetailsFetchDatabaseOperationDescription
+>
+
+public enum ResourceTagDetailsFetchDatabaseOperationDescription: DatabaseOperationDescription {
+
+  public typealias Input = ResourceTag.ID
+  public typealias Output = ResourceTagDSV
+}

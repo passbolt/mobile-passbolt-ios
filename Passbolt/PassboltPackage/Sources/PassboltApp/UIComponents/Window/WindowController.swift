@@ -78,30 +78,30 @@ extension WindowController: UIController {
           switch (try? await currentAccount, await currentAuthorizationRequest, lastDisposition.get(\.self)) {
 
           case  // fully authorized after prompting
-            let (.some(account), .none, .requestPassphrase),
+          let (.some(account), .none, .requestPassphrase),
             let (.some(account), .none, .requestMFA):
             return .useCachedScreenState(for: account)
 
           case  // fully authorized initially
-            let (.some(account), .none, .useCachedScreenState),
+          let (.some(account), .none, .useCachedScreenState),
             let (.some(account), .none, .useInitialScreenState),
             let (.some(account), .none, .none):
             return .useInitialScreenState(for: account)
 
           case  // passphrase required
-            let (.some, .passphrase(account), _):
+          let (.some, .passphrase(account), _):
             return .requestPassphrase(account, message: .none)
 
           case  // mfa required
-            let (.some, .mfa(account, providers), _):
+          let (.some, .mfa(account, providers), _):
             return .requestMFA(account, providers: providers)
 
-          case // initial with some account
-            (.none, .none, .useInitialScreenState(.some(let account))):
-             return .useInitialScreenState(for: account)
+          case  // initial with some account
+          (.none, .none, .useInitialScreenState(.some(let account))):
+            return .useInitialScreenState(for: account)
 
           case  // signed out
-            (.none, _, _):
+          (.none, _, _):
             return .useInitialScreenState(for: .none)
           }
         }

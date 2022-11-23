@@ -23,4 +23,12 @@
 
 import CommonModels
 
-public typealias UsersPublicKeysFetchDatabaseOperation = DatabaseOperation<Array<User.ID>, Array<UserPublicKeyDSV>>
+public typealias UsersPublicKeysFetchDatabaseOperation = DatabaseOperation<
+  UsersPublicKeysFetchDatabaseOperationDescription
+>
+
+public enum UsersPublicKeysFetchDatabaseOperationDescription: DatabaseOperationDescription {
+
+  public typealias Input = Array<User.ID>
+  public typealias Output = Array<UserPublicKeyDSV>
+}

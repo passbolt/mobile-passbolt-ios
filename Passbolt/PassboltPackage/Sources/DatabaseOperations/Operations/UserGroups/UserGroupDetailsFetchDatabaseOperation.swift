@@ -23,4 +23,12 @@
 
 import CommonModels
 
-public typealias UserGroupDetailsFetchDatabaseOperation = DatabaseOperation<UserGroup.ID, UserGroupDetailsDSV>
+public typealias UserGroupDetailsFetchDatabaseOperation = DatabaseOperation<
+  UserGroupDetailsFetchDatabaseOperationDescription
+>
+
+public enum UserGroupDetailsFetchDatabaseOperationDescription: DatabaseOperationDescription {
+
+  public typealias Input = UserGroup.ID
+  public typealias Output = UserGroupDetailsDSV
+}

@@ -23,7 +23,14 @@
 
 import CommonModels
 
-public typealias ResourceSetFavoriteDatabaseOperation = DatabaseOperation<ResourceSetFavoriteDatabaseOperationDSO, Void>
+public typealias ResourceSetFavoriteDatabaseOperation = DatabaseOperation<
+  ResourceSetFavoriteDatabaseOperationDescription
+>
+
+public enum ResourceSetFavoriteDatabaseOperationDescription: DatabaseOperationDescription {
+
+  public typealias Input = ResourceSetFavoriteDatabaseOperationDSO
+}
 
 public struct ResourceSetFavoriteDatabaseOperationDSO {
 

@@ -55,7 +55,7 @@ public struct FormTextFieldView: View {
       if !title.isEmpty {
         Group {
           Text(title)
-          + Text(self.mandatory ? " *" : "")
+            + Text(self.mandatory ? " *" : "")
             .foregroundColor(Color.passboltSecondaryRed)
         }
         .text(

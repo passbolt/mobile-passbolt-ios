@@ -47,39 +47,22 @@ internal final class Window {
     self.cancellables = cancellables
     self.window.rootViewController = rootViewController
 
-    cancellables.executeAsync { @MainActor [weak self] in
+    cancellables.executeAsync { @MainActor[weak self] in
       let controller: WindowController = await lazyController()
-      for await disposition in controller
-        .screenStateDispositionSequence() {
-          guard let self = self else { return }
-          switch disposition {
-          // Use last state for same session after authorization.
-          case let .useCachedScreenState(account):
-            if let cachedScreen: AnyUIComponent = self.screenStateCache {
-              self.screenStateCache = nil
-              self.replaceRoot(with: cachedScreen)
-            }
-            else {
-              // fallback to initial screen state if there is none cached
-              guard !self.isSplashScreenDisplayed || self.isErrorDisplayed
-              else { return }
-              try await self.replaceRoot(
-                with: self.components
-                  .instance(
-                    of: SplashScreenViewController.self,
-                    in: account
-                  )
-              )
-            }
-
-          // Go to initial screen state (through Splash)
-          // which will be one of:
-          // - welcome (no accounts)
-          // - home (for authorized)
-          // - account selection (for unauthorized)
-          case let .useInitialScreenState(account):
+      for await disposition
+        in controller
+        .screenStateDispositionSequence()
+      {
+        guard let self = self else { return }
+        switch disposition {
+        // Use last state for same session after authorization.
+        case let .useCachedScreenState(account):
+          if let cachedScreen: AnyUIComponent = self.screenStateCache {
             self.screenStateCache = nil
-
+            self.replaceRoot(with: cachedScreen)
+          }
+          else {
+            // fallback to initial screen state if there is none cached
             guard !self.isSplashScreenDisplayed || self.isErrorDisplayed
             else { return }
             try await self.replaceRoot(
@@ -89,109 +72,128 @@ internal final class Window {
                   in: account
                 )
             )
+          }
 
-          // Prompt user with authorization screen if it is not already displayed.
-          case let .requestPassphrase(account, message):
-            guard
-              !self.isSplashScreenDisplayed,
-              !self.isAuthorizationDisplayed
-            else { return }
+        // Go to initial screen state (through Splash)
+        // which will be one of:
+        // - welcome (no accounts)
+        // - home (for authorized)
+        // - account selection (for unauthorized)
+        case let .useInitialScreenState(account):
+          self.screenStateCache = nil
 
-            if !self.isMFAPromptDisplayed {
-              assert(
-                self.screenStateCache == nil,
-                "Cannot replace screen state cache, it has to be empty"
+          guard !self.isSplashScreenDisplayed || self.isErrorDisplayed
+          else { return }
+          try await self.replaceRoot(
+            with: self.components
+              .instance(
+                of: SplashScreenViewController.self,
+                in: account
               )
-              guard let rootComponent: AnyUIComponent = self.window.rootViewController as? AnyUIComponent
-              else { unreachable("Window root has to be an instance of UIComponent") }
-              self.screenStateCache = rootComponent
+          )
+
+        // Prompt user with authorization screen if it is not already displayed.
+        case let .requestPassphrase(account, message):
+          guard
+            !self.isSplashScreenDisplayed,
+            !self.isAuthorizationDisplayed
+          else { return }
+
+          if !self.isMFAPromptDisplayed {
+            assert(
+              self.screenStateCache == nil,
+              "Cannot replace screen state cache, it has to be empty"
+            )
+            guard let rootComponent: AnyUIComponent = self.window.rootViewController as? AnyUIComponent
+            else { unreachable("Window root has to be an instance of UIComponent") }
+            self.screenStateCache = rootComponent
+          }
+          else {
+            /* NOP - reuse previous cache if any if previous screen was mfa prompt */
+          }
+
+          try await self.replaceRoot(
+            with: self.components
+              .instance(
+                of: AuthorizationNavigationViewController.self,
+                in: (account: account, message: message)
+              )
+          )
+
+        // Prompt user with mfa screen if it is not already displayed.
+        case let .requestMFA(_, providers):
+          guard
+            !self.isSplashScreenDisplayed,
+            !self.isMFAPromptDisplayed
+          else { return }
+
+          if let authorizationNavigation = self.window.rootViewController
+            as? AuthorizationNavigationViewController
+          {
+            if providers.isEmpty {
+              try await self.replaceRoot(
+                with: self.components
+                  .instance(
+                    of: PlainNavigationViewController<UnsupportedMFAViewController>.self
+                  )
+              )
             }
             else {
-              /* NOP - reuse previous cache if any if previous screen was mfa prompt */
+              await authorizationNavigation
+                .push(
+                  MFARootViewController.self,
+                  in: providers
+                )
             }
-
-            try await self.replaceRoot(
-              with: self.components
-                .instance(
-                  of: AuthorizationNavigationViewController.self,
-                  in: (account: account, message: message)
+          }
+          else if let welcomeNavigation = self.window.rootViewController
+            as? WelcomeNavigationViewController
+          {
+            if providers.isEmpty {
+              try await self.replaceRoot(
+                with: self.components
+                  .instance(
+                    of: PlainNavigationViewController<UnsupportedMFAViewController>.self
+                  )
+              )
+            }
+            else {
+              await welcomeNavigation
+                .push(
+                  MFARootViewController.self,
+                  in: providers
                 )
+            }
+          }
+          else {
+            assert(
+              self.screenStateCache == nil,
+              "Cannot replace screen state cache, it has to be empty"
             )
+            guard let rootComponent: AnyUIComponent = self.window.rootViewController as? AnyUIComponent
+            else { unreachable("Window root has to be an instance of UIComponent") }
+            self.screenStateCache = rootComponent
 
-          // Prompt user with mfa screen if it is not already displayed.
-          case let .requestMFA(_, providers):
-            guard
-              !self.isSplashScreenDisplayed,
-              !self.isMFAPromptDisplayed
-            else { return }
-
-            if let authorizationNavigation = self.window.rootViewController
-              as? AuthorizationNavigationViewController
-            {
-              if providers.isEmpty {
-                try await self.replaceRoot(
-                  with: self.components
-                    .instance(
-                      of: PlainNavigationViewController<UnsupportedMFAViewController>.self
-                    )
-                )
-              }
-              else {
-                await authorizationNavigation
-                  .push(
-                    MFARootViewController.self,
+            if providers.isEmpty {
+              try await self.replaceRoot(
+                with: self.components
+                  .instance(
+                    of: PlainNavigationViewController<UnsupportedMFAViewController>.self
+                  )
+              )
+            }
+            else {
+              try await self.replaceRoot(
+                with: self.components
+                  .instance(
+                    of: PlainNavigationViewController<MFARootViewController>.self,
                     in: providers
                   )
-              }
-            }
-            else if let welcomeNavigation = self.window.rootViewController
-                      as? WelcomeNavigationViewController
-                    {
-                      if providers.isEmpty {
-                        try await self.replaceRoot(
-                          with: self.components
-                            .instance(
-                              of: PlainNavigationViewController<UnsupportedMFAViewController>.self
-                            )
-                        )
-                      }
-                      else {
-                        await welcomeNavigation
-                          .push(
-                            MFARootViewController.self,
-                            in: providers
-                          )
-                      }
-                    }
-            else {
-              assert(
-                self.screenStateCache == nil,
-                "Cannot replace screen state cache, it has to be empty"
               )
-              guard let rootComponent: AnyUIComponent = self.window.rootViewController as? AnyUIComponent
-              else { unreachable("Window root has to be an instance of UIComponent") }
-              self.screenStateCache = rootComponent
-
-              if providers.isEmpty {
-                try await self.replaceRoot(
-                  with: self.components
-                    .instance(
-                      of: PlainNavigationViewController<UnsupportedMFAViewController>.self
-                    )
-                )
-              }
-              else {
-                try await self.replaceRoot(
-                  with: self.components
-                    .instance(
-                      of: PlainNavigationViewController<MFARootViewController>.self,
-                      in: providers
-                    )
-                )
-              }
             }
           }
         }
+      }
     }
   }
 }

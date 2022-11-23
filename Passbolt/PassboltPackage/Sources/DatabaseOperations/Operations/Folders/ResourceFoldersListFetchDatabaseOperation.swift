@@ -24,5 +24,11 @@
 import CommonModels
 
 public typealias ResourceFoldersListFetchDatabaseOperation = DatabaseOperation<
-  ResourceFoldersDatabaseFilter, Array<ResourceFolderListItemDSV>
+  ResourceFoldersListFetchDatabaseOperationDescription
 >
+
+public enum ResourceFoldersListFetchDatabaseOperationDescription: DatabaseOperationDescription {
+
+  public typealias Input = ResourceFoldersDatabaseFilter
+  public typealias Output = Array<ResourceFolderListItemDSV>
+}

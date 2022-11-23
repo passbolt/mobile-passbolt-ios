@@ -27,111 +27,89 @@ import Session
 // MARK: - Implementation
 
 extension ResourceFolderPermissionsFetchDatabaseOperation {
-
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let sessionDatabase: SessionDatabase = try await features.instance()
-
-    nonisolated func execute(
-      _ input: ResourceFolder.ID,
-      connection: SQLiteConnection
-    ) throws -> Array<ResourceFolderPermissionDSV> {
-      let usersPermissionsStatement: SQLiteStatement =
-        .statement(
-          """
-          SELECT
-            usersResourceFolders.userID AS userID,
-            usersResourceFolders.permissionType AS permissionType,
-            usersResourceFolders.permissionID AS permissionID
-          FROM
-            usersResourceFolders
-          WHERE
-            usersResourceFolders.resourceFolderID == ?1;
-          """,
-          arguments: input
-        )
-
-      let userGroupsPermissionsStatement: SQLiteStatement =
-        .statement(
-          """
-          SELECT
-            userGroupsResourceFolders.userGroupID AS userGroupID,
-            userGroupsResourceFolders.permissionType AS permissionType,
-            userGroupsResourceFolders.permissionID AS permissionID
-          FROM
-            userGroupsResourceFolders
-          WHERE
-            userGroupsResourceFolders.resourceFolderID == ?1;
-          """,
-          arguments: input
-        )
-
-      let usersPermissions: Array<ResourceFolderPermissionDSV> =
-        try connection
-        .fetch(using: usersPermissionsStatement) { dataRow -> ResourceFolderPermissionDSV in
-          guard
-            let userID: User.ID = dataRow.userID.flatMap(User.ID.init(rawValue:)),
-            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
-            let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseDataInvalid
-                  .error(for: ResourceUserGroupListItemDSV.self)
-              )
-          }
-
-          return .user(
-            id: userID,
-            type: permissionType,
-            permissionID: permissionID
-          )
-        }
-
-      let userGroupsPermissions: Array<ResourceFolderPermissionDSV> =
-        try connection
-        .fetch(using: userGroupsPermissionsStatement) { dataRow -> ResourceFolderPermissionDSV in
-          guard
-            let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(rawValue:)),
-            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
-            let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseDataInvalid
-                  .error(for: ResourceUserGroupListItemDSV.self)
-              )
-          }
-
-          return .userGroup(
-            id: userGroupID,
-            type: permissionType,
-            permissionID: permissionID
-          )
-        }
-
-      return usersPermissions + userGroupsPermissions
-    }
-
-    nonisolated func executeAsync(
-      _ input: ResourceFolder.ID
-    ) async throws -> Array<ResourceFolderPermissionDSV> {
-      try await execute(
-        input,
-        connection: sessionDatabase.connection()
+  @Sendable fileprivate static func execute(
+    _ input: ResourceFolder.ID,
+    connection: SQLiteConnection
+  ) throws -> Array<ResourceFolderPermissionDSV> {
+    let usersPermissionsStatement: SQLiteStatement =
+      .statement(
+        """
+        SELECT
+          usersResourceFolders.userID AS userID,
+          usersResourceFolders.permissionType AS permissionType,
+          usersResourceFolders.permissionID AS permissionID
+        FROM
+          usersResourceFolders
+        WHERE
+          usersResourceFolders.resourceFolderID == ?1;
+        """,
+        arguments: input
       )
-    }
 
-    return Self(
-      execute: executeAsync(_:)
-    )
+    let userGroupsPermissionsStatement: SQLiteStatement =
+      .statement(
+        """
+        SELECT
+          userGroupsResourceFolders.userGroupID AS userGroupID,
+          userGroupsResourceFolders.permissionType AS permissionType,
+          userGroupsResourceFolders.permissionID AS permissionID
+        FROM
+          userGroupsResourceFolders
+        WHERE
+          userGroupsResourceFolders.resourceFolderID == ?1;
+        """,
+        arguments: input
+      )
+
+    let usersPermissions: Array<ResourceFolderPermissionDSV> =
+      try connection
+      .fetch(using: usersPermissionsStatement) { dataRow -> ResourceFolderPermissionDSV in
+        guard
+          let userID: User.ID = dataRow.userID.flatMap(User.ID.init(rawValue:)),
+          let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
+          let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
+        else {
+          throw
+            DatabaseIssue
+            .error(
+              underlyingError:
+                DatabaseDataInvalid
+                .error(for: ResourceUserGroupListItemDSV.self)
+            )
+        }
+
+        return .user(
+          id: userID,
+          type: permissionType,
+          permissionID: permissionID
+        )
+      }
+
+    let userGroupsPermissions: Array<ResourceFolderPermissionDSV> =
+      try connection
+      .fetch(using: userGroupsPermissionsStatement) { dataRow -> ResourceFolderPermissionDSV in
+        guard
+          let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(rawValue:)),
+          let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
+          let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
+        else {
+          throw
+            DatabaseIssue
+            .error(
+              underlyingError:
+                DatabaseDataInvalid
+                .error(for: ResourceUserGroupListItemDSV.self)
+            )
+        }
+
+        return .userGroup(
+          id: userGroupID,
+          type: permissionType,
+          permissionID: permissionID
+        )
+      }
+
+    return usersPermissions + userGroupsPermissions
   }
 }
 
@@ -139,10 +117,9 @@ extension FeatureFactory {
 
   internal func usePassboltResourceFolderPermissionsFetchDatabaseOperation() {
     self.use(
-      .disposable(
-        ResourceFolderPermissionsFetchDatabaseOperation.self,
-        load: ResourceFolderPermissionsFetchDatabaseOperation
-          .load(features:)
+      FeatureLoader.databaseOperation(
+        of: ResourceFolderPermissionsFetchDatabaseOperation.self,
+        execute: ResourceFolderPermissionsFetchDatabaseOperation.execute(_:connection:)
       )
     )
   }

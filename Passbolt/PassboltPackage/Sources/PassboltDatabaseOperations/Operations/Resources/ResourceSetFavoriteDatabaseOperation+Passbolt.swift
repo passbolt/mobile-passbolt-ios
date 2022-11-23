@@ -28,48 +28,23 @@ import Session
 
 extension ResourceSetFavoriteDatabaseOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let sessionDatabase: SessionDatabase = try await features.instance()
-
-    nonisolated func execute(
-      _ input: ResourceSetFavoriteDatabaseOperationDSO,
-      connection: SQLiteConnection
-    ) throws {
-      // cleanup existing types as preparation for update
-      try connection.execute(
-        .init(
-          """
-          UPDATE
-            resources
-          SET
-            favoriteID = ?1
-          WHERE
-            id = ?2;
-          """,
-          arguments: [input.favoriteID?.rawValue, input.resourceID.rawValue]
-        )
+  @Sendable fileprivate static func execute(
+    _ input: ResourceSetFavoriteDatabaseOperationDSO,
+    connection: SQLiteConnection
+  ) throws {
+    // cleanup existing types as preparation for update
+    try connection.execute(
+      .init(
+        """
+        UPDATE
+          resources
+        SET
+          favoriteID = ?1
+        WHERE
+          id = ?2;
+        """,
+        arguments: [input.favoriteID?.rawValue, input.resourceID.rawValue]
       )
-    }
-
-    nonisolated func executeAsync(
-      _ input: ResourceSetFavoriteDatabaseOperationDSO
-    ) async throws {
-      try await sessionDatabase
-        .connection()
-        .withTransaction { connection in
-          try execute(
-            input,
-            connection: connection
-          )
-        }
-    }
-
-    return Self(
-      execute: executeAsync(_:)
     )
   }
 }
@@ -78,10 +53,9 @@ extension FeatureFactory {
 
   internal func usePassboltResourceSetFavoriteDatabaseOperation() {
     self.use(
-      .disposable(
-        ResourceSetFavoriteDatabaseOperation.self,
-        load: ResourceSetFavoriteDatabaseOperation
-          .load(features:)
+      FeatureLoader.databaseOperationWithTransaction(
+        of: ResourceSetFavoriteDatabaseOperation.self,
+        execute: ResourceSetFavoriteDatabaseOperation.execute(_:connection:)
       )
     )
   }

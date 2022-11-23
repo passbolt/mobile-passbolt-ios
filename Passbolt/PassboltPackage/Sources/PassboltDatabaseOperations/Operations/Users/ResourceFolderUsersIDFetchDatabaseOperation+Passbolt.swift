@@ -28,79 +28,58 @@ import Session
 
 extension ResourceFolderUsersIDFetchDatabaseOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  @Sendable fileprivate static func execute(
+    _ input: ResourceFolder.ID,
+    connection: SQLiteConnection
+  ) throws -> Array<User.ID> {
+    var statement: SQLiteStatement =
+      .statement(
+        """
+        SELECT DISTINCT
+          id
+        FROM (
+          SELECT
+            usersResourceFolders.userID AS id
+          FROM
+            usersResourceFolders
+          WHERE
+            usersResourceFolders.resourceFolderID == ?1
 
-    let sessionDatabase: SessionDatabase = try await features.instance()
+          UNION
 
-    nonisolated func execute(
-      _ input: ResourceFolder.ID,
-      connection: SQLiteConnection
-    ) throws -> Array<User.ID> {
-      var statement: SQLiteStatement =
-        .statement(
-          """
           SELECT DISTINCT
-            id
-          FROM (
-            SELECT
-              usersResourceFolders.userID AS id
-            FROM
-              usersResourceFolders
-            WHERE
-              usersResourceFolders.resourceFolderID == ?1
-
-            UNION
-
-            SELECT DISTINCT
-              usersGroups.userID AS id
-            FROM
-              userGroupsResourceFolders
-            INNER JOIN
-              usersGroups
-            ON
-              usersGroups.userGroupID == userGroupsResourceFolders.userGroupID
-            WHERE
-              userGroupsResourceFolders.resourceFolderID == ?1
-          )
-          ;
-          """,
-          arguments: input
+            usersGroups.userID AS id
+          FROM
+            userGroupsResourceFolders
+          INNER JOIN
+            usersGroups
+          ON
+            usersGroups.userGroupID == userGroupsResourceFolders.userGroupID
+          WHERE
+            userGroupsResourceFolders.resourceFolderID == ?1
         )
-
-      return
-        try connection
-        .fetch(using: statement) { dataRow -> User.ID in
-          guard
-            let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:))
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseDataInvalid
-                  .error(for: ResourceUserGroupListItemDSV.self)
-              )
-          }
-
-          return id
-        }
-    }
-
-    nonisolated func executeAsync(
-      _ input: ResourceFolder.ID
-    ) async throws -> Array<User.ID> {
-      try await execute(
-        input,
-        connection: sessionDatabase.connection()
+        ;
+        """,
+        arguments: input
       )
-    }
 
-    return Self(
-      execute: executeAsync(_:)
-    )
+    return
+      try connection
+      .fetch(using: statement) { dataRow -> User.ID in
+        guard
+          let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:))
+        else {
+          throw
+            DatabaseIssue
+            .error(
+              underlyingError:
+                DatabaseDataInvalid
+                .error(for: ResourceUserGroupListItemDSV.self)
+            )
+        }
+
+        return id
+      }
   }
 }
 
@@ -108,10 +87,9 @@ extension FeatureFactory {
 
   internal func usePassboltResourceFolderUsersIDFetchDatabaseOperation() {
     self.use(
-      .disposable(
-        ResourceFolderUsersIDFetchDatabaseOperation.self,
-        load: ResourceFolderUsersIDFetchDatabaseOperation
-          .load(features:)
+      FeatureLoader.databaseOperation(
+        of: ResourceFolderUsersIDFetchDatabaseOperation.self,
+        execute: ResourceFolderUsersIDFetchDatabaseOperation.execute(_:connection:)
       )
     )
   }

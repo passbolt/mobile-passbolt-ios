@@ -24,5 +24,11 @@
 import CommonModels
 
 public typealias ResourceUserGroupsListFetchDatabaseOperation = DatabaseOperation<
-  UserGroupsDatabaseFilter, Array<ResourceUserGroupListItemDSV>
+  ResourceUserGroupsListFetchDatabaseOperationDescription
 >
+
+public enum ResourceUserGroupsListFetchDatabaseOperationDescription: DatabaseOperationDescription {
+
+  public typealias Input = UserGroupsDatabaseFilter
+  public typealias Output = Array<ResourceUserGroupListItemDSV>
+}

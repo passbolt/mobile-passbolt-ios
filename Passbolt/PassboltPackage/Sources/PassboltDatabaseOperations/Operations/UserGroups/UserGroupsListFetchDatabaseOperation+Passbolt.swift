@@ -28,137 +28,116 @@ import Session
 
 extension UserGroupsListFetchDatabaseOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  @Sendable fileprivate static func execute(
+    _ input: UserGroupsDatabaseFilter,
+    connection: SQLiteConnection
+  ) throws -> Array<UserGroupDetailsDSV> {
+    var groupSelectStatement: SQLiteStatement =
+      .statement(
+        """
+        SELECT
+          userGroups.id AS id,
+          userGroups.name AS name
+        FROM
+          userGroups
+        WHERE
+          1 -- equivalent of true, used to simplify dynamic query building
+        """
+      )
 
-    let sessionDatabase: SessionDatabase = try await features.instance()
-
-    nonisolated func execute(
-      _ input: UserGroupsDatabaseFilter,
-      connection: SQLiteConnection
-    ) throws -> Array<UserGroupDetailsDSV> {
-      var groupSelectStatement: SQLiteStatement =
-        .statement(
+    if !input.text.isEmpty {
+      groupSelectStatement
+        .append(
           """
-          SELECT
-            userGroups.id AS id,
-            userGroups.name AS name
-          FROM
-            userGroups
-          WHERE
-            1 -- equivalent of true, used to simplify dynamic query building
-          """
-        )
-
-      if !input.text.isEmpty {
-        groupSelectStatement
-          .append(
-            """
-            AND
-              userGroups.name LIKE '%' || ? || '%'
-            """
-          )
-        groupSelectStatement.appendArgument(input.text)
-      }
-      else { /* NOP */
-      }
-
-      let membersSelectStatement: SQLiteStatement =
-        .statement(
-          """
-          SELECT DISTINCT
-            users.id AS id,
-            users.username AS username,
-            users.firstName AS firstName,
-            users.lastName AS lastName,
-            users.publicPGPKeyFingerprint AS fingerprint,
-            users.avatarImageURL AS avatarImageURL
-          FROM
-            users
-          INNER JOIN
-            usersGroups
-          ON
-            users.id == usersGroups.userID
-          WHERE
-            usersGroups.userGroupID == ?1
-          ;
+          AND
+            userGroups.name LIKE '%' || ? || '%'
           """
         )
+      groupSelectStatement.appendArgument(input.text)
+    }
+    else { /* NOP */
+    }
 
-      return
-        try connection
-        .fetch(
-          using: groupSelectStatement
-        ) { dataRow -> UserGroupDetailsDSV in
-          guard
-            let id: UserGroup.ID = dataRow.id.flatMap(UserGroup.ID.init(rawValue:)),
-            let name: String = dataRow.name
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseDataInvalid
-                  .error(for: UserGroupDetailsDSV.self)
-              )
-              .recording(dataRow, for: "dataRow")
-          }
+    let membersSelectStatement: SQLiteStatement =
+      .statement(
+        """
+        SELECT DISTINCT
+          users.id AS id,
+          users.username AS username,
+          users.firstName AS firstName,
+          users.lastName AS lastName,
+          users.publicPGPKeyFingerprint AS fingerprint,
+          users.avatarImageURL AS avatarImageURL
+        FROM
+          users
+        INNER JOIN
+          usersGroups
+        ON
+          users.id == usersGroups.userID
+        WHERE
+          usersGroups.userGroupID == ?1
+        ;
+        """
+      )
 
-          var groupMembersSelectStatement: SQLiteStatement = membersSelectStatement
-          groupMembersSelectStatement.appendArgument(id)
+    return
+      try connection
+      .fetch(
+        using: groupSelectStatement
+      ) { dataRow -> UserGroupDetailsDSV in
+        guard
+          let id: UserGroup.ID = dataRow.id.flatMap(UserGroup.ID.init(rawValue:)),
+          let name: String = dataRow.name
+        else {
+          throw
+            DatabaseIssue
+            .error(
+              underlyingError:
+                DatabaseDataInvalid
+                .error(for: UserGroupDetailsDSV.self)
+            )
+            .recording(dataRow, for: "dataRow")
+        }
 
-          let groupMembers: Array<UserDetailsDSV> =
-            try connection
-            .fetch(using: groupMembersSelectStatement) { dataRow -> UserDetailsDSV in
-              guard
-                let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:)),
-                let username: String = dataRow.username,
-                let firstName: String = dataRow.firstName,
-                let lastName: String = dataRow.lastName,
-                let fingerprint: Fingerprint = dataRow.fingerprint.flatMap(Fingerprint.init(rawValue:)),
-                let avatarImageURL: URLString = dataRow.avatarImageURL.flatMap(URLString.init(rawValue:))
-              else {
-                throw
-                  DatabaseIssue
-                  .error(
-                    underlyingError:
-                      DatabaseDataInvalid
-                      .error(for: UserDetailsDSV.self)
-                  )
-              }
+        var groupMembersSelectStatement: SQLiteStatement = membersSelectStatement
+        groupMembersSelectStatement.appendArgument(id)
 
-              return UserDetailsDSV(
-                id: id,
-                username: username,
-                firstName: firstName,
-                lastName: lastName,
-                fingerprint: fingerprint,
-                avatarImageURL: avatarImageURL
-              )
+        let groupMembers: Array<UserDetailsDSV> =
+          try connection
+          .fetch(using: groupMembersSelectStatement) { dataRow -> UserDetailsDSV in
+            guard
+              let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:)),
+              let username: String = dataRow.username,
+              let firstName: String = dataRow.firstName,
+              let lastName: String = dataRow.lastName,
+              let fingerprint: Fingerprint = dataRow.fingerprint.flatMap(Fingerprint.init(rawValue:)),
+              let avatarImageURL: URLString = dataRow.avatarImageURL.flatMap(URLString.init(rawValue:))
+            else {
+              throw
+                DatabaseIssue
+                .error(
+                  underlyingError:
+                    DatabaseDataInvalid
+                    .error(for: UserDetailsDSV.self)
+                )
             }
 
-          return UserGroupDetailsDSV(
-            id: id,
-            name: name,
-            members: OrderedSet(groupMembers)
-          )
-        }
-    }
+            return UserDetailsDSV(
+              id: id,
+              username: username,
+              firstName: firstName,
+              lastName: lastName,
+              fingerprint: fingerprint,
+              avatarImageURL: avatarImageURL
+            )
+          }
 
-    nonisolated func executeAsync(
-      _ input: UserGroupsDatabaseFilter
-    ) async throws -> Array<UserGroupDetailsDSV> {
-      try await execute(
-        input,
-        connection: sessionDatabase.connection()
-      )
-    }
-
-    return Self(
-      execute: executeAsync(_:)
-    )
+        return UserGroupDetailsDSV(
+          id: id,
+          name: name,
+          members: OrderedSet(groupMembers)
+        )
+      }
   }
 }
 
@@ -166,10 +145,9 @@ extension FeatureFactory {
 
   internal func usePassboltUserGroupsListFetchDatabaseOperation() {
     self.use(
-      .disposable(
-        UserGroupsListFetchDatabaseOperation.self,
-        load: UserGroupsListFetchDatabaseOperation
-          .load(features:)
+      FeatureLoader.databaseOperation(
+        of: UserGroupsListFetchDatabaseOperation.self,
+        execute: UserGroupsListFetchDatabaseOperation.execute(_:connection:)
       )
     )
   }

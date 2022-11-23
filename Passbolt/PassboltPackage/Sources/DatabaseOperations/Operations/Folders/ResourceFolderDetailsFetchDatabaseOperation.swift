@@ -24,5 +24,11 @@
 import CommonModels
 
 public typealias ResourceFolderDetailsFetchDatabaseOperation = DatabaseOperation<
-  ResourceFolder.ID, ResourceFolderDetailsDSV
+  ResourceFolderDetailsFetchDatabaseOperationDescription
 >
+
+public enum ResourceFolderDetailsFetchDatabaseOperationDescription: DatabaseOperationDescription {
+
+  public typealias Input = ResourceFolder.ID
+  public typealias Output = ResourceFolderDetailsDSV
+}

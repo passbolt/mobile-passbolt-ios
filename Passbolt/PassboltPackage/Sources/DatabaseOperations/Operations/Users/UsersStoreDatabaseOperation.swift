@@ -23,4 +23,9 @@
 
 import CommonModels
 
-public typealias UsersStoreDatabaseOperation = DatabaseOperation<Array<UserDSO>, Void>
+public typealias UsersStoreDatabaseOperation = DatabaseOperation<UsersStoreDatabaseOperationDescription>
+
+public enum UsersStoreDatabaseOperationDescription: DatabaseOperationDescription {
+
+  public typealias Input = Array<UserDSO>
+}

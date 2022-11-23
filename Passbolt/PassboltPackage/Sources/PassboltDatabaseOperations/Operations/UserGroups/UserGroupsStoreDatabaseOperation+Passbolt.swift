@@ -28,96 +28,71 @@ import Session
 
 extension UserGroupsStoreDatabaseOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  @Sendable fileprivate static func execute(
+    _ input: Array<UserGroupDSO>,
+    connection: SQLiteConnection
+  ) throws {
+    // We have to remove all previously stored data before updating
+    // due to lack of ability to get information about deleted parts.
+    // Until data diffing endpoint becomes implemented we are replacing
+    // whole data set with the new one as an update.
+    // We are getting all possible results anyway until diffing becomes implemented.
+    // Please remove later on when diffing becomes available or other method of
+    // deleting records selecively becomes implemented.
+    //
+    // Delete currently stored userGroups
+    // associations are removed by cascade triggers
+    try connection.execute("DELETE FROM userGroups;")
 
-    let sessionDatabase: SessionDatabase = try await features.instance()
+    for userGroup in input {
+      try connection.execute(
+        .statement(
+          """
+          INSERT INTO
+            userGroups(
+              id,
+              name
+            )
+          VALUES
+            (
+              ?1,
+              ?2
+            )
+          ON CONFLICT
+            (
+              id
+            )
+          DO UPDATE SET
+            name=?2
+          ;
+          """,
+          arguments: userGroup.id,
+          userGroup.name
+        )
+      )
 
-    nonisolated func execute(
-      _ input: Array<UserGroupDSO>,
-      connection: SQLiteConnection
-    ) throws {
-      // We have to remove all previously stored data before updating
-      // due to lack of ability to get information about deleted parts.
-      // Until data diffing endpoint becomes implemented we are replacing
-      // whole data set with the new one as an update.
-      // We are getting all possible results anyway until diffing becomes implemented.
-      // Please remove later on when diffing becomes available or other method of
-      // deleting records selecively becomes implemented.
-      //
-      // Delete currently stored userGroups
-      // associations are removed by cascade triggers
-      try connection.execute("DELETE FROM userGroups;")
-
-      for userGroup in input {
+      for userReference in userGroup.userReferences {
         try connection.execute(
           .statement(
             """
             INSERT INTO
-              userGroups(
-                id,
-                name
+              usersGroups(
+                userID,
+                userGroupID
               )
             VALUES
               (
                 ?1,
                 ?2
               )
-            ON CONFLICT
-              (
-                id
-              )
-            DO UPDATE SET
-              name=?2
             ;
             """,
-            arguments: userGroup.id,
-            userGroup.name
+            arguments: userReference.id,
+            userGroup.id
           )
         )
-
-        for userReference in userGroup.userReferences {
-          try connection.execute(
-            .statement(
-              """
-              INSERT INTO
-                usersGroups(
-                  userID,
-                  userGroupID
-                )
-              VALUES
-                (
-                  ?1,
-                  ?2
-                )
-              ;
-              """,
-              arguments: userReference.id,
-              userGroup.id
-            )
-          )
-        }
       }
     }
-
-    nonisolated func executeAsync(
-      _ input: Array<UserGroupDSO>
-    ) async throws {
-      try await sessionDatabase
-        .connection()
-        .withTransaction { connection in
-          try execute(
-            input,
-            connection: connection
-          )
-        }
-    }
-
-    return Self(
-      execute: executeAsync(_:)
-    )
   }
 }
 
@@ -125,10 +100,9 @@ extension FeatureFactory {
 
   internal func usePassboltUserGroupsStoreDatabaseOperation() {
     self.use(
-      .disposable(
-        UserGroupsStoreDatabaseOperation.self,
-        load: UserGroupsStoreDatabaseOperation
-          .load(features:)
+      FeatureLoader.databaseOperationWithTransaction(
+        of: UserGroupsStoreDatabaseOperation.self,
+        execute: UserGroupsStoreDatabaseOperation.execute(_:connection:)
       )
     )
   }

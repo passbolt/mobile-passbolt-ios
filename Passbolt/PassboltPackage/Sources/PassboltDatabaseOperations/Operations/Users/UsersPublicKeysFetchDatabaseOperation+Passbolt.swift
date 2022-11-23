@@ -28,100 +28,79 @@ import Session
 
 extension UsersPublicKeysFetchDatabaseOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let sessionDatabase: SessionDatabase = try await features.instance()
-
-    nonisolated func execute(
-      _ input: Array<User.ID>,
-      connection: SQLiteConnection
-    ) throws -> Array<UserPublicKeyDSV> {
-      var statement: SQLiteStatement =
-        .statement(
-          """
-          SELECT
-            id AS id,
-            armoredPublicPGPKey AS publicKey
-          FROM
-            users
-          """
-        )
-
-      // since we cannot use array in query directly
-      // we are preparing it manually as argument for each element
-      if input.count > 1 {
-        statement.append(
-          """
-          WHERE
-            users.id
-          IN (
-          """
-        )
-        for index in input.indices {
-          if index == input.startIndex {
-            statement.append("?")
-          }
-          else {
-            statement.append(", ?")
-          }
-          statement.appendArgument(input[index])
-        }
-        statement.append(")")
-      }
-      else if let userID: User.ID = input.first {
-        statement.append(
-          """
-          WHERE
-            users.id == ?
-          """
-        )
-        statement.appendArgument(userID)
-      }
-      else {
-        /* NOP */
-      }
-
-      statement.append(";")
-
-      return
-        try connection
-        .fetch(using: statement) { dataRow -> UserPublicKeyDSV in
-          guard
-            let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:)),
-            let publicKey: ArmoredPGPPublicKey = dataRow.publicKey.flatMap(ArmoredPGPPublicKey.init(rawValue:))
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseDataInvalid
-                  .error(for: ResourceUserGroupListItemDSV.self)
-              )
-              .recording(dataRow, for: "dataRow")
-          }
-
-          return UserPublicKeyDSV(
-            userID: id,
-            publicKey: publicKey
-          )
-        }
-    }
-
-    nonisolated func executeAsync(
-      _ input: Array<User.ID>
-    ) async throws -> Array<UserPublicKeyDSV> {
-      try await execute(
-        input,
-        connection: sessionDatabase.connection()
+  @Sendable fileprivate static func execute(
+    _ input: Array<User.ID>,
+    connection: SQLiteConnection
+  ) throws -> Array<UserPublicKeyDSV> {
+    var statement: SQLiteStatement =
+      .statement(
+        """
+        SELECT
+          id AS id,
+          armoredPublicPGPKey AS publicKey
+        FROM
+          users
+        """
       )
+
+    // since we cannot use array in query directly
+    // we are preparing it manually as argument for each element
+    if input.count > 1 {
+      statement.append(
+        """
+        WHERE
+          users.id
+        IN (
+        """
+      )
+      for index in input.indices {
+        if index == input.startIndex {
+          statement.append("?")
+        }
+        else {
+          statement.append(", ?")
+        }
+        statement.appendArgument(input[index])
+      }
+      statement.append(")")
+    }
+    else if let userID: User.ID = input.first {
+      statement.append(
+        """
+        WHERE
+          users.id == ?
+        """
+      )
+      statement.appendArgument(userID)
+    }
+    else {
+      /* NOP */
     }
 
-    return Self(
-      execute: executeAsync(_:)
-    )
+    statement.append(";")
+
+    return
+      try connection
+      .fetch(using: statement) { dataRow -> UserPublicKeyDSV in
+        guard
+          let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:)),
+          let publicKey: ArmoredPGPPublicKey = dataRow.publicKey.flatMap(ArmoredPGPPublicKey.init(rawValue:))
+        else {
+          throw
+            DatabaseIssue
+            .error(
+              underlyingError:
+                DatabaseDataInvalid
+                .error(for: ResourceUserGroupListItemDSV.self)
+            )
+            .recording(dataRow, for: "dataRow")
+        }
+
+        return UserPublicKeyDSV(
+          userID: id,
+          publicKey: publicKey
+        )
+      }
   }
 }
 
@@ -129,10 +108,9 @@ extension FeatureFactory {
 
   internal func usePassboltUsersPublicKeysFetchDatabaseOperation() {
     self.use(
-      .disposable(
-        UsersPublicKeysFetchDatabaseOperation.self,
-        load: UsersPublicKeysFetchDatabaseOperation
-          .load(features:)
+      FeatureLoader.databaseOperation(
+        of: UsersPublicKeysFetchDatabaseOperation.self,
+        execute: UsersPublicKeysFetchDatabaseOperation.execute(_:connection:)
       )
     )
   }

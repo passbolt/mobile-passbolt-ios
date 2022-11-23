@@ -28,113 +28,92 @@ import Session
 
 extension ResourceUserGroupsListFetchDatabaseOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  @Sendable fileprivate static func execute(
+    _ input: UserGroupsDatabaseFilter,
+    connection: SQLiteConnection
+  ) throws -> Array<ResourceUserGroupListItemDSV> {
+    var statement: SQLiteStatement = """
+      SELECT
+        id,
+        name,
+        (
+          SELECT
+            count(*)
+          FROM
+            userGroupsResources
+          WHERE
+            userGroupsResources.userGroupID == userGroups.id
+        ) AS contentCount
+      FROM
+        userGroups
+      WHERE
+        1 -- equivalent of true, used to simplify dynamic query building
+      """
 
-    let sessionDatabase: SessionDatabase = try await features.instance()
+    if !input.text.isEmpty {
+      statement
+        .append(
+          """
+          AND
+            userGroups.name LIKE '%' || ? || '%'
+          """
+        )
+      statement.appendArgument(input.text)
+    }
+    else {
+      /* NOP */
+    }
 
-    nonisolated func execute(
-      _ input: UserGroupsDatabaseFilter,
-      connection: SQLiteConnection
-    ) async throws -> Array<ResourceUserGroupListItemDSV> {
-      var statement: SQLiteStatement = """
-        SELECT
-          id,
-          name,
-          (
-            SELECT
-              count(*)
-            FROM
-              userGroupsResources
-            WHERE
-              userGroupsResources.userGroupID == userGroups.id
-          ) AS contentCount
-        FROM
-          userGroups
-        WHERE
-          1 -- equivalent of true, used to simplify dynamic query building
-        """
+    if let userID: User.ID = input.userID {
+      statement
+        .append(
+          """
+          AND
+            (
+              SELECT
+                1
+              FROM
+                usersGroups
+              WHERE
+                usersGroups.userID == ?
+              AND
+                usersGroups.userGroupID == userGroups.id
+              LIMIT 1
+            )
+          """
+        )
+      statement.appendArgument(userID)
+    }
+    else {
+      /* NOP */
+    }
 
-      if !input.text.isEmpty {
-        statement
-          .append(
-            """
-            AND
-              userGroups.name LIKE '%' || ? || '%'
-            """
-          )
-        statement.appendArgument(input.text)
-      }
-      else {
-        /* NOP */
-      }
+    statement.append("ORDER BY name COLLATE NOCASE ASC;")
 
-      if let userID: User.ID = input.userID {
-        statement
-          .append(
-            """
-            AND
-              (
-                SELECT
-                  1
-                FROM
-                  usersGroups
-                WHERE
-                  usersGroups.userID == ?
-                AND
-                  usersGroups.userGroupID == userGroups.id
-                LIMIT 1
-              )
-            """
-          )
-        statement.appendArgument(userID)
-      }
-      else {
-        /* NOP */
-      }
-
-      statement.append("ORDER BY name COLLATE NOCASE ASC;")
-
-      return
-        try connection
-        .fetch(using: statement) { dataRow -> ResourceUserGroupListItemDSV in
-          guard
-            let id: UserGroup.ID = dataRow.id.map(UserGroup.ID.init(rawValue:)),
-            let name: String = dataRow.name,
-            let contentCount: Int = dataRow.contentCount
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseDataInvalid
-                  .error(for: ResourceUserGroupListItemDSV.self)
-              )
-              .recording(dataRow, for: "dataRow")
-          }
-
-          return ResourceUserGroupListItemDSV(
-            id: id,
-            name: name,
-            contentCount: contentCount
-          )
+    return
+      try connection
+      .fetch(using: statement) { dataRow -> ResourceUserGroupListItemDSV in
+        guard
+          let id: UserGroup.ID = dataRow.id.map(UserGroup.ID.init(rawValue:)),
+          let name: String = dataRow.name,
+          let contentCount: Int = dataRow.contentCount
+        else {
+          throw
+            DatabaseIssue
+            .error(
+              underlyingError:
+                DatabaseDataInvalid
+                .error(for: ResourceUserGroupListItemDSV.self)
+            )
+            .recording(dataRow, for: "dataRow")
         }
-    }
 
-    nonisolated func executeAsync(
-      _ input: UserGroupsDatabaseFilter
-    ) async throws -> Array<ResourceUserGroupListItemDSV> {
-      try await execute(
-        input,
-        connection: sessionDatabase.connection()
-      )
-    }
-
-    return Self(
-      execute: executeAsync(_:)
-    )
+        return ResourceUserGroupListItemDSV(
+          id: id,
+          name: name,
+          contentCount: contentCount
+        )
+      }
   }
 }
 
@@ -142,10 +121,9 @@ extension FeatureFactory {
 
   internal func usePassboltResourceUserGroupsListFetchDatabaseOperation() {
     self.use(
-      .disposable(
-        ResourceUserGroupsListFetchDatabaseOperation.self,
-        load: ResourceUserGroupsListFetchDatabaseOperation
-          .load(features:)
+      FeatureLoader.databaseOperation(
+        of: ResourceUserGroupsListFetchDatabaseOperation.self,
+        execute: ResourceUserGroupsListFetchDatabaseOperation.execute(_:connection:)
       )
     )
   }

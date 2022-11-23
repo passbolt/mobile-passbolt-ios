@@ -23,4 +23,9 @@
 
 import CommonModels
 
-public typealias ResourceTypesStoreDatabaseOperation = DatabaseOperation<Array<ResourceTypeDSO>, Void>
+public typealias ResourceTypesStoreDatabaseOperation = DatabaseOperation<ResourceTypesStoreDatabaseOperationDescription>
+
+public enum ResourceTypesStoreDatabaseOperationDescription: DatabaseOperationDescription {
+
+  public typealias Input = Array<ResourceTypeDSO>
+}

@@ -28,66 +28,45 @@ import Session
 
 extension ResourceTypesFetchDatabaseOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let sessionDatabase: SessionDatabase = try await features.instance()
-
-    nonisolated func execute(
-      _ input: Void,
-      connection: SQLiteConnection
-    ) throws -> Array<ResourceTypeDSV> {
-      try connection
-        .fetch(
-          using: """
-            SELECT
-              id,
-              slug,
-              name,
-              fields
-            FROM
-              resourceTypesView;
-            """
-        ) { dataRow in
-          guard
-            let id: ResourceType.ID = dataRow.id.flatMap(ResourceType.ID.init(rawValue:)),
-            let slug: ResourceType.Slug = dataRow.slug.flatMap(ResourceType.Slug.init(rawValue:)),
-            let name: String = dataRow.name,
-            let rawFields: String = dataRow.fields
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseDataInvalid
-                  .error(for: ResourceTypeDSV.self)
-              )
-              .recording(dataRow, for: "dataRow")
-          }
-
-          return ResourceTypeDSV(
-            id: id,
-            slug: slug,
-            name: name,
-            fields: ResourceFieldDSV.decodeArrayFrom(rawString: rawFields)
-          )
+  @Sendable fileprivate static func execute(
+    _ input: Void,
+    connection: SQLiteConnection
+  ) throws -> Array<ResourceTypeDSV> {
+    try connection
+      .fetch(
+        using: """
+          SELECT
+            id,
+            slug,
+            name,
+            fields
+          FROM
+            resourceTypesView;
+          """
+      ) { dataRow in
+        guard
+          let id: ResourceType.ID = dataRow.id.flatMap(ResourceType.ID.init(rawValue:)),
+          let slug: ResourceType.Slug = dataRow.slug.flatMap(ResourceType.Slug.init(rawValue:)),
+          let name: String = dataRow.name,
+          let rawFields: String = dataRow.fields
+        else {
+          throw
+            DatabaseIssue
+            .error(
+              underlyingError:
+                DatabaseDataInvalid
+                .error(for: ResourceTypeDSV.self)
+            )
+            .recording(dataRow, for: "dataRow")
         }
-    }
 
-    nonisolated func executeAsync(
-      _ input: Void
-    ) async throws -> Array<ResourceTypeDSV> {
-      try await execute(
-        input,
-        connection: sessionDatabase.connection()
-      )
-    }
-
-    return Self(
-      execute: executeAsync(_:)
-    )
+        return ResourceTypeDSV(
+          id: id,
+          slug: slug,
+          name: name,
+          fields: ResourceFieldDSV.decodeArrayFrom(rawString: rawFields)
+        )
+      }
   }
 }
 
@@ -95,10 +74,9 @@ extension FeatureFactory {
 
   internal func usePassboltResourceTypesFetchDatabaseOperation() {
     self.use(
-      .disposable(
-        ResourceTypesFetchDatabaseOperation.self,
-        load: ResourceTypesFetchDatabaseOperation
-          .load(features:)
+      FeatureLoader.databaseOperation(
+        of: ResourceTypesFetchDatabaseOperation.self,
+        execute: ResourceTypesFetchDatabaseOperation.execute(_:connection:)
       )
     )
   }

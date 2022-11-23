@@ -259,7 +259,6 @@ final class SessionStateTests: LoadableFeatureTestCase<SessionState> {
         "mfa_update"
       )
 
-
       await XCTAssertValue(equal: .none) {
         await testedInstance.pendingAuthorization()
       }
@@ -290,7 +289,6 @@ final class SessionStateTests: LoadableFeatureTestCase<SessionState> {
         "token_update",
         "mfa_update"
       )
-
 
       await XCTAssertValue(equal: .mfa(for: .mock_ada, providers: .init())) {
         await testedInstance.pendingAuthorization()
@@ -325,7 +323,6 @@ final class SessionStateTests: LoadableFeatureTestCase<SessionState> {
         "passphrase_update"
       )
 
-
       await XCTAssertValue(equal: "passphrase_update") {
         await testedInstance.passphrase()
       }
@@ -354,7 +351,6 @@ final class SessionStateTests: LoadableFeatureTestCase<SessionState> {
         "passphrase_update"
       )
 
-
       await XCTAssertValue(equal: .none) {
         await testedInstance.pendingAuthorization()
       }
@@ -382,7 +378,6 @@ final class SessionStateTests: LoadableFeatureTestCase<SessionState> {
         .mock_ada,
         "passphrase_update"
       )
-
 
       await XCTAssertValue(equal: .mfa(for: .mock_ada, providers: .init())) {
         await testedInstance.pendingAuthorization()
@@ -416,7 +411,6 @@ final class SessionStateTests: LoadableFeatureTestCase<SessionState> {
         .mock_ada,
         "mfa_update"
       )
-
 
       await XCTAssertValue(equal: "mfa_update") {
         await testedInstance.mfaToken()
@@ -473,7 +467,6 @@ final class SessionStateTests: LoadableFeatureTestCase<SessionState> {
         .mock_ada,
         "mfa_update"
       )
-
 
       await XCTAssertValue(equal: .passphrase(for: .mock_ada)) {
         await testedInstance.pendingAuthorization()

@@ -26,7 +26,12 @@ import Features
 // MARK: - Interface
 
 /// Database operation.
-public struct DatabaseOperation<Input, Output> {
+public struct DatabaseOperation<Description>
+where Description: DatabaseOperationDescription {
+
+  public typealias Input = Description.Input
+  public typealias Output = Description.Output
+
   /// Execute operation for current account database.
   /// Throws if there is no session.
   public var execute: (Input) async throws -> Output

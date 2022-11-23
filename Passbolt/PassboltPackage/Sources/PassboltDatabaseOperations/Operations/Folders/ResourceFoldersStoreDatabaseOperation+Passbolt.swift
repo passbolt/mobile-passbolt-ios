@@ -28,106 +28,81 @@ import Session
 
 extension ResourceFoldersStoreDatabaseOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  @Sendable fileprivate static func execute(
+    _ input: Array<ResourceFolderDSO>,
+    connection: SQLiteConnection
+  ) throws {
+    // We have to remove all previously stored data before updating
+    // due to lack of ability to get information about deleted parts.
+    // Until data diffing endpoint becomes implemented we are replacing
+    // whole data set with the new one as an update.
+    // We are getting all possible results anyway until diffing becomes implemented.
+    // Please remove later on when diffing becomes available or other method of
+    // deleting records selecively becomes implemented.
+    //
+    // Delete currently stored folders
+    try connection
+      .execute("DELETE FROM resourceFolders;")
 
-    let sessionDatabase: SessionDatabase = try await features.instance()
+    // Since Folders make tree like structure and
+    // tree integrity is verified by database foreign
+    // key constraints it has to be inserted in a valid
+    // order for operation to succeed (from root to leaf)
+    var inputReminder: Array<ResourceFolderDTO> = input
+    var sortedFolders: Array<ResourceFolderDTO> = .init()
 
-    nonisolated func execute(
-      _ input: Array<ResourceFolderDSO>,
-      connection: SQLiteConnection
-    ) throws {
-      // We have to remove all previously stored data before updating
-      // due to lack of ability to get information about deleted parts.
-      // Until data diffing endpoint becomes implemented we are replacing
-      // whole data set with the new one as an update.
-      // We are getting all possible results anyway until diffing becomes implemented.
-      // Please remove later on when diffing becomes available or other method of
-      // deleting records selecively becomes implemented.
-      //
-      // Delete currently stored folders
-      try connection
-        .execute("DELETE FROM resourceFolders;")
+    func isValidFolder(_ folder: ResourceFolderDTO) -> Bool {
+      folder.parentFolderID == nil
+        || sortedFolders.contains(where: { $0.id == folder.parentFolderID })
+    }
 
-      // Since Folders make tree like structure and
-      // tree integrity is verified by database foreign
-      // key constraints it has to be inserted in a valid
-      // order for operation to succeed (from root to leaf)
-      var inputReminder: Array<ResourceFolderDTO> = input
-      var sortedFolders: Array<ResourceFolderDTO> = .init()
+    while let index: Array<ResourceFolderDTO>.Index = inputReminder.firstIndex(where: isValidFolder(_:)) {
+      sortedFolders.append(inputReminder.remove(at: index))
+    }
 
-      func isValidFolder(_ folder: ResourceFolderDTO) -> Bool {
-        folder.parentFolderID == nil
-          || sortedFolders.contains(where: { $0.id == folder.parentFolderID })
-      }
-
-      while let index: Array<ResourceFolderDTO>.Index = inputReminder.firstIndex(where: isValidFolder(_:)) {
-        sortedFolders.append(inputReminder.remove(at: index))
-      }
-
-      for folder in sortedFolders {
-        try connection.execute(
-          .statement(
-            """
-            INSERT INTO
-              resourceFolders(
-                id,
-                name,
-                permissionType,
-                shared,
-                parentFolderID
-              )
-            VALUES
-              (
-                ?1,
-                ?2,
-                ?3,
-                ?4,
-                ?5
-              )
-            ON CONFLICT
-              (
-                id
-              )
-            DO UPDATE SET
-              name=?2,
-              permissionType=?3,
-              shared=?4,
-              parentFolderID=?5
-            ;
-            """,
-            arguments: folder.id,
-            folder.name,
-            folder.permissionType.rawValue,
-            folder.shared,
-            folder.parentFolderID
-          )
+    for folder in sortedFolders {
+      try connection.execute(
+        .statement(
+          """
+          INSERT INTO
+            resourceFolders(
+              id,
+              name,
+              permissionType,
+              shared,
+              parentFolderID
+            )
+          VALUES
+            (
+              ?1,
+              ?2,
+              ?3,
+              ?4,
+              ?5
+            )
+          ON CONFLICT
+            (
+              id
+            )
+          DO UPDATE SET
+            name=?2,
+            permissionType=?3,
+            shared=?4,
+            parentFolderID=?5
+          ;
+          """,
+          arguments: folder.id,
+          folder.name,
+          folder.permissionType.rawValue,
+          folder.shared,
+          folder.parentFolderID
         )
+      )
 
-        for permission in folder.permissions {
-          try connection.execute(permission.storeStatement)
-        }
+      for permission in folder.permissions {
+        try connection.execute(permission.storeStatement)
       }
     }
-
-    nonisolated func executeAsync(
-      _ input: Array<ResourceFolderDSO>
-    ) async throws {
-      try await sessionDatabase
-        .connection()
-        .withTransaction { connection in
-          try execute(
-            input,
-            connection: connection
-          )
-        }
-    }
-
-    return Self(
-      execute: executeAsync(_:)
-    )
   }
 }
 
@@ -135,10 +110,9 @@ extension FeatureFactory {
 
   internal func usePassboltResourceFoldersStoreDatabaseOperation() {
     self.use(
-      .disposable(
-        ResourceFoldersStoreDatabaseOperation.self,
-        load: ResourceFoldersStoreDatabaseOperation
-          .load(features:)
+      FeatureLoader.databaseOperationWithTransaction(
+        of: ResourceFoldersStoreDatabaseOperation.self,
+        execute: ResourceFoldersStoreDatabaseOperation.execute(_:connection:)
       )
     )
   }

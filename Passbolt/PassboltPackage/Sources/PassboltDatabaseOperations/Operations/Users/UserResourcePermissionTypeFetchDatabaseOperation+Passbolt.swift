@@ -28,66 +28,45 @@ import Session
 
 extension UserResourcePermissionTypeFetchDatabaseOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let sessionDatabase: SessionDatabase = try await features.instance()
-
-    nonisolated func execute(
-      _ input: (userID: User.ID, resourceID: Resource.ID),
-      connection: SQLiteConnection
-    ) throws -> PermissionTypeDSV? {
-      let statement: SQLiteStatement =
-        .statement(
-          """
-          SELECT
-            usersResources.permissionType AS permissionType
-          FROM
-            usersResources
-          WHERE
-            usersResources.userID == ?1
-          AND
-            usersResources.resourceID == ?2
-          ;
-          """,
-          arguments: input.userID,
-          input.resourceID
-        )
-
-      return
-        try connection
-        .fetchFirst(using: statement) { dataRow -> PermissionTypeDSV in
-          guard
-            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:))
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseDataInvalid
-                  .error(for: PermissionTypeDSV.self)
-              )
-              .recording(dataRow, for: "dataRow")
-          }
-
-          return permissionType
-        }
-    }
-
-    nonisolated func executeAsync(
-      _ input: (userID: User.ID, resourceID: Resource.ID)
-    ) async throws -> PermissionTypeDSV? {
-      try await execute(
-        input,
-        connection: sessionDatabase.connection()
+  @Sendable fileprivate static func execute(
+    _ input: (userID: User.ID, resourceID: Resource.ID),
+    connection: SQLiteConnection
+  ) throws -> PermissionTypeDSV? {
+    let statement: SQLiteStatement =
+      .statement(
+        """
+        SELECT
+          usersResources.permissionType AS permissionType
+        FROM
+          usersResources
+        WHERE
+          usersResources.userID == ?1
+        AND
+          usersResources.resourceID == ?2
+        ;
+        """,
+        arguments: input.userID,
+        input.resourceID
       )
-    }
 
-    return Self(
-      execute: executeAsync(_:)
-    )
+    return
+      try connection
+      .fetchFirst(using: statement) { dataRow -> PermissionTypeDSV in
+        guard
+          let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:))
+        else {
+          throw
+            DatabaseIssue
+            .error(
+              underlyingError:
+                DatabaseDataInvalid
+                .error(for: PermissionTypeDSV.self)
+            )
+            .recording(dataRow, for: "dataRow")
+        }
+
+        return permissionType
+      }
   }
 }
 
@@ -95,10 +74,9 @@ extension FeatureFactory {
 
   internal func usePassboltUserResourcePermissionTypeFetchDatabaseOperation() {
     self.use(
-      .disposable(
-        UserResourcePermissionTypeFetchDatabaseOperation.self,
-        load: UserResourcePermissionTypeFetchDatabaseOperation
-          .load(features:)
+      FeatureLoader.databaseOperation(
+        of: UserResourcePermissionTypeFetchDatabaseOperation.self,
+        execute: UserResourcePermissionTypeFetchDatabaseOperation.execute(_:connection:)
       )
     )
   }

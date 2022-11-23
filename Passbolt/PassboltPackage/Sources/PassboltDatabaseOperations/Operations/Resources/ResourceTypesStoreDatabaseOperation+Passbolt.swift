@@ -28,134 +28,109 @@ import Session
 
 extension ResourceTypesStoreDatabaseOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  @Sendable fileprivate static func execute(
+    _ input: Array<ResourceTypeDSO>,
+    connection: SQLiteConnection
+  ) throws {
+    // cleanup existing types as preparation for update
+    try connection.execute("DELETE FROM resourceFields;")
 
-    let sessionDatabase: SessionDatabase = try await features.instance()
-
-    nonisolated func execute(
-      _ input: Array<ResourceTypeDSO>,
-      connection: SQLiteConnection
-    ) throws {
-      // cleanup existing types as preparation for update
-      try connection.execute("DELETE FROM resourceFields;")
-
-      for resourceType in input {
-        try connection.execute(
-          .statement(
-            """
-            INSERT INTO
-              resourceTypes(
-                id,
-                slug,
-                name
-              )
-            VALUES
-              (
-                ?1,
-                ?2,
-                ?3
-              )
-            ON CONFLICT
-              (
-                id
-              )
-            DO UPDATE SET
-              slug=?2,
-              name=?3
-            ;
-            """,
-            arguments: resourceType.id,
-            resourceType.slug,
-            resourceType.name
-          )
+    for resourceType in input {
+      try connection.execute(
+        .statement(
+          """
+          INSERT INTO
+            resourceTypes(
+              id,
+              slug,
+              name
+            )
+          VALUES
+            (
+              ?1,
+              ?2,
+              ?3
+            )
+          ON CONFLICT
+            (
+              id
+            )
+          DO UPDATE SET
+            slug=?2,
+            name=?3
+          ;
+          """,
+          arguments: resourceType.id,
+          resourceType.slug,
+          resourceType.name
         )
+      )
 
-        for field in resourceType.fields {
-          let resourceFieldID: Int? =
-            try connection.fetchFirst(
-              using: .statement(
-                """
-                INSERT INTO
-                  resourceFields(
-                    name,
-                    valueType,
-                    required,
-                    encrypted,
-                    maxLength
-                  )
-                VALUES
-                  (
-                    ?1,
-                    ?2,
-                    ?3,
-                    ?4,
-                    ?5
-                  )
-                RETURNING
-                  id AS id
-                ;
-                """,
-                arguments: field.name.rawValue,
-                field.valueType.rawValue,
-                field.required,
-                field.encrypted,
-                field.maxLength
-              )
-            )?
-            .id
-
-          guard let resourceFieldID: Int = resourceFieldID
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseResultInvalid
-                  .error("Failed to get inserted resource field id")
-              )
-          }
-          try connection.execute(
-            .statement(
+      for field in resourceType.fields {
+        let resourceFieldID: Int? =
+          try connection.fetchFirst(
+            using: .statement(
               """
               INSERT INTO
-                resourceTypesFields(
-                  resourceTypeID,
-                  resourceFieldID
+                resourceFields(
+                  name,
+                  valueType,
+                  required,
+                  encrypted,
+                  maxLength
                 )
               VALUES
                 (
                   ?1,
-                  ?2
+                  ?2,
+                  ?3,
+                  ?4,
+                  ?5
                 )
+              RETURNING
+                id AS id
               ;
               """,
-              arguments: resourceType.id,
-              resourceFieldID
+              arguments: field.name.rawValue,
+              field.valueType.rawValue,
+              field.required,
+              field.encrypted,
+              field.maxLength
             )
-          )
+          )?
+          .id
+
+        guard let resourceFieldID: Int = resourceFieldID
+        else {
+          throw
+            DatabaseIssue
+            .error(
+              underlyingError:
+                DatabaseResultInvalid
+                .error("Failed to get inserted resource field id")
+            )
         }
+        try connection.execute(
+          .statement(
+            """
+            INSERT INTO
+              resourceTypesFields(
+                resourceTypeID,
+                resourceFieldID
+              )
+            VALUES
+              (
+                ?1,
+                ?2
+              )
+            ;
+            """,
+            arguments: resourceType.id,
+            resourceFieldID
+          )
+        )
       }
     }
-
-    nonisolated func executeAsync(
-      _ input: Array<ResourceTypeDSO>
-    ) async throws {
-      try await sessionDatabase
-        .connection()
-        .withTransaction { connection in
-          try execute(
-            input,
-            connection: connection
-          )
-        }
-    }
-
-    return Self(
-      execute: executeAsync(_:)
-    )
   }
 }
 
@@ -163,10 +138,9 @@ extension FeatureFactory {
 
   internal func usePassboltResourceTypesStoreDatabaseOperation() {
     self.use(
-      .disposable(
-        ResourceTypesStoreDatabaseOperation.self,
-        load: ResourceTypesStoreDatabaseOperation
-          .load(features:)
+      FeatureLoader.databaseOperationWithTransaction(
+        of: ResourceTypesStoreDatabaseOperation.self,
+        execute: ResourceTypesStoreDatabaseOperation.execute(_:connection:)
       )
     )
   }

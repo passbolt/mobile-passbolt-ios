@@ -23,4 +23,9 @@
 
 import CommonModels
 
-public typealias ResourceTypesFetchDatabaseOperation = DatabaseOperation<Void, Array<ResourceTypeDSV>>
+public typealias ResourceTypesFetchDatabaseOperation = DatabaseOperation<ResourceTypesFetchDatabaseOperationDescription>
+
+public enum ResourceTypesFetchDatabaseOperationDescription: DatabaseOperationDescription {
+
+  public typealias Output = Array<ResourceTypeDSV>
+}

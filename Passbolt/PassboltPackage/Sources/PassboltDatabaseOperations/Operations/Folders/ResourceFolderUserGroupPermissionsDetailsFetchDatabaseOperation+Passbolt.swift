@@ -28,131 +28,110 @@ import Session
 
 extension ResourceFolderUserGroupPermissionsDetailsFetchDatabaseOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  @Sendable fileprivate static func execute(
+    _ input: ResourceFolder.ID,
+    connection: SQLiteConnection
+  ) throws -> Array<UserGroupPermissionDetailsDSV> {
+    let groupsSelectStatement: SQLiteStatement =
+      .statement(
+        """
+        SELECT
+          userGroups.id AS id,
+          userGroups.name AS name,
+          userGroupsResourceFolders.permissionType AS permissionType
+        FROM
+          userGroupsResourceFolders
+        INNER JOIN
+          userGroups
+        ON
+          userGroups.id == userGroupsResourceFolders.userGroupID
+        WHERE
+          userGroupsResourceFolders.resourceFolderID == ?1
+        ;
+        """,
+        arguments: input
+      )
 
-    let sessionDatabase: SessionDatabase = try await features.instance()
+    let membersSelectStatement: SQLiteStatement =
+      .statement(
+        """
+        SELECT DISTINCT
+          users.id AS id,
+          users.username AS username,
+          users.firstName AS firstName,
+          users.lastName AS lastName,
+          users.publicPGPKeyFingerprint AS fingerprint,
+          users.avatarImageURL AS avatarImageURL
+        FROM
+          users
+        INNER JOIN
+          usersGroups
+        ON
+          users.id == usersGroups.userID
+        WHERE
+          usersGroups.userGroupID == ?1
+        ;
+        """
+      )
 
-    nonisolated func execute(
-      _ input: ResourceFolder.ID,
-      connection: SQLiteConnection
-    ) throws -> Array<UserGroupPermissionDetailsDSV> {
-      let groupsSelectStatement: SQLiteStatement =
-        .statement(
-          """
-          SELECT
-            userGroups.id AS id,
-            userGroups.name AS name,
-            userGroupsResourceFolders.permissionType AS permissionType
-          FROM
-            userGroupsResourceFolders
-          INNER JOIN
-            userGroups
-          ON
-            userGroups.id == userGroupsResourceFolders.userGroupID
-          WHERE
-            userGroupsResourceFolders.resourceFolderID == ?1
-          ;
-          """,
-          arguments: input
-        )
+    return
+      try connection
+      .fetch(using: groupsSelectStatement) { dataRow -> UserGroupPermissionDetailsDSV in
+        guard
+          let id: UserGroup.ID = dataRow.id.flatMap(UserGroup.ID.init(rawValue:)),
+          let name: String = dataRow.name,
+          let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:))
+        else {
+          throw
+            DatabaseIssue
+            .error(
+              underlyingError:
+                DatabaseDataInvalid
+                .error(for: ResourceUserGroupListItemDSV.self)
+            )
+            .recording(dataRow, for: "dataRow")
+        }
 
-      let membersSelectStatement: SQLiteStatement =
-        .statement(
-          """
-          SELECT DISTINCT
-            users.id AS id,
-            users.username AS username,
-            users.firstName AS firstName,
-            users.lastName AS lastName,
-            users.publicPGPKeyFingerprint AS fingerprint,
-            users.avatarImageURL AS avatarImageURL
-          FROM
-            users
-          INNER JOIN
-            usersGroups
-          ON
-            users.id == usersGroups.userID
-          WHERE
-            usersGroups.userGroupID == ?1
-          ;
-          """
-        )
+        var groupMembersSelectStatement: SQLiteStatement = membersSelectStatement
+        groupMembersSelectStatement.appendArgument(id)
 
-      return
-        try connection
-        .fetch(using: groupsSelectStatement) { dataRow -> UserGroupPermissionDetailsDSV in
-          guard
-            let id: UserGroup.ID = dataRow.id.flatMap(UserGroup.ID.init(rawValue:)),
-            let name: String = dataRow.name,
-            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:))
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseDataInvalid
-                  .error(for: ResourceUserGroupListItemDSV.self)
-              )
-              .recording(dataRow, for: "dataRow")
-          }
-
-          var groupMembersSelectStatement: SQLiteStatement = membersSelectStatement
-          groupMembersSelectStatement.appendArgument(id)
-
-          let groupMembers: Array<UserDetailsDSV> =
-            try connection
-            .fetch(using: groupMembersSelectStatement) { dataRow -> UserDetailsDSV in
-              guard
-                let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:)),
-                let username: String = dataRow.username,
-                let firstName: String = dataRow.firstName,
-                let lastName: String = dataRow.lastName,
-                let fingerprint: Fingerprint = dataRow.fingerprint.flatMap(Fingerprint.init(rawValue:)),
-                let avatarImageURL: URLString = dataRow.avatarImageURL.flatMap(URLString.init(rawValue:))
-              else {
-                throw
-                  DatabaseIssue
-                  .error(
-                    underlyingError:
-                      DatabaseDataInvalid
-                      .error(for: ResourceUserGroupListItemDSV.self)
-                  )
-              }
-
-              return UserDetailsDSV(
-                id: id,
-                username: username,
-                firstName: firstName,
-                lastName: lastName,
-                fingerprint: fingerprint,
-                avatarImageURL: avatarImageURL
-              )
+        let groupMembers: Array<UserDetailsDSV> =
+          try connection
+          .fetch(using: groupMembersSelectStatement) { dataRow -> UserDetailsDSV in
+            guard
+              let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:)),
+              let username: String = dataRow.username,
+              let firstName: String = dataRow.firstName,
+              let lastName: String = dataRow.lastName,
+              let fingerprint: Fingerprint = dataRow.fingerprint.flatMap(Fingerprint.init(rawValue:)),
+              let avatarImageURL: URLString = dataRow.avatarImageURL.flatMap(URLString.init(rawValue:))
+            else {
+              throw
+                DatabaseIssue
+                .error(
+                  underlyingError:
+                    DatabaseDataInvalid
+                    .error(for: ResourceUserGroupListItemDSV.self)
+                )
             }
 
-          return UserGroupPermissionDetailsDSV(
-            id: id,
-            name: name,
-            permissionType: permissionType,
-            members: OrderedSet(groupMembers)
-          )
-        }
-    }
+            return UserDetailsDSV(
+              id: id,
+              username: username,
+              firstName: firstName,
+              lastName: lastName,
+              fingerprint: fingerprint,
+              avatarImageURL: avatarImageURL
+            )
+          }
 
-    nonisolated func executeAsync(
-      _ input: ResourceFolder.ID
-    ) async throws -> Array<UserGroupPermissionDetailsDSV> {
-      try await execute(
-        input,
-        connection: sessionDatabase.connection()
-      )
-    }
-
-    return Self(
-      execute: executeAsync(_:)
-    )
+        return UserGroupPermissionDetailsDSV(
+          id: id,
+          name: name,
+          permissionType: permissionType,
+          members: OrderedSet(groupMembers)
+        )
+      }
   }
 }
 
@@ -160,10 +139,9 @@ extension FeatureFactory {
 
   internal func usePassboltResourceFolderUserGroupPermissionsDetailsFetchDatabaseOperation() {
     self.use(
-      .disposable(
-        ResourceFolderUserGroupPermissionsDetailsFetchDatabaseOperation.self,
-        load: ResourceFolderUserGroupPermissionsDetailsFetchDatabaseOperation
-          .load(features:)
+      FeatureLoader.databaseOperation(
+        of: ResourceFolderUserGroupPermissionsDetailsFetchDatabaseOperation.self,
+        execute: ResourceFolderUserGroupPermissionsDetailsFetchDatabaseOperation.execute(_:connection:)
       )
     )
   }

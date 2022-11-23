@@ -91,7 +91,7 @@ final class SettingsScreenTests: MainActorTestCase {
 
     let controller: SettingsController = try await testController()
     var result: SettingsController.BiometricsState? =
-    try? await controller
+      try? await controller
       .biometricsPublisher()
       .asAsyncValue()
 
@@ -119,7 +119,7 @@ final class SettingsScreenTests: MainActorTestCase {
 
     let controller: SettingsController = try await testController()
     var result: SettingsController.BiometricsState? =
-    try? await controller
+      try? await controller
       .biometricsPublisher()
       .asAsyncValue()
 
@@ -140,7 +140,7 @@ final class SettingsScreenTests: MainActorTestCase {
 
     let controller: SettingsController = try await testController()
     var result: SettingsController.BiometricsState? =
-    try? await controller
+      try? await controller
       .biometricsPublisher()
       .asAsyncValue()
 
@@ -167,7 +167,7 @@ final class SettingsScreenTests: MainActorTestCase {
     let controller: SettingsController = try await testController()
 
     var result: SettingsController.BiometricsState? =
-    try? await controller
+      try? await controller
       .biometricsPublisher()
       .asAsyncValue()
 
@@ -188,7 +188,7 @@ final class SettingsScreenTests: MainActorTestCase {
 
     let controller: SettingsController = try await testController()
     var result: SettingsController.BiometricsState? =
-    try? await controller
+      try? await controller
       .biometricsPublisher()
       .asAsyncValue()
 

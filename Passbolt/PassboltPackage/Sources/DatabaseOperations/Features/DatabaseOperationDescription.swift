@@ -21,14 +21,8 @@
 // @since         v1.0
 //
 
-import CommonModels
+public protocol DatabaseOperationDescription {
 
-public typealias UserResourcePermissionTypeFetchDatabaseOperation = DatabaseOperation<
-  UserResourcePermissionTypeFetchDatabaseOperationDescription
->
-
-public enum UserResourcePermissionTypeFetchDatabaseOperationDescription: DatabaseOperationDescription {
-
-  public typealias Input = (userID: User.ID, resourceID: Resource.ID)
-  public typealias Output = PermissionTypeDSV?
+  associatedtype Input = Void
+  associatedtype Output = Void
 }

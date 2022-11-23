@@ -23,4 +23,12 @@
 
 import CommonModels
 
-public typealias ResourceFolderUsersIDFetchDatabaseOperation = DatabaseOperation<ResourceFolder.ID, Array<User.ID>>
+public typealias ResourceFolderUsersIDFetchDatabaseOperation = DatabaseOperation<
+  ResourceFolderUsersIDFetchDatabaseOperationDescription
+>
+
+public enum ResourceFolderUsersIDFetchDatabaseOperationDescription: DatabaseOperationDescription {
+
+  public typealias Input = ResourceFolder.ID
+  public typealias Output = Array<User.ID>
+}

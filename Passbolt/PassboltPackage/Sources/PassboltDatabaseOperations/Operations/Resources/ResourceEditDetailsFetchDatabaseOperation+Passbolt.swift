@@ -28,89 +28,68 @@ import Session
 
 extension ResourceEditDetailsFetchDatabaseOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  @Sendable fileprivate static func execute(
+    _ input: Resource.ID,
+    connection: SQLiteConnection
+  ) throws -> ResourceEditDetailsDSV {
+    var statement: SQLiteStatement = """
+      SELECT
+        resourceEditView.id AS id,
+        resourceEditView.name AS name,
+        resourceEditView.url AS url,
+        resourceEditView.username AS username,
+        resourceEditView.description AS description,
+        resourceEditView.typeID AS typeID,
+        resourceEditView.typeSlug AS typeSlug,
+        resourceEditView.typeName AS typeName,
+        resourceEditView.fields AS fields
+      FROM
+        resourceEditView
+      WHERE
+        resourceEditView.id == ?1
+      LIMIT
+        1;
+      """
+    statement.appendArgument(input)
 
-    let sessionDatabase: SessionDatabase = try await features.instance()
-
-    nonisolated func execute(
-      _ input: Resource.ID,
-      connection: SQLiteConnection
-    ) throws -> ResourceEditDetailsDSV {
-      var statement: SQLiteStatement = """
-        SELECT
-          resourceEditView.id AS id,
-          resourceEditView.name AS name,
-          resourceEditView.url AS url,
-          resourceEditView.username AS username,
-          resourceEditView.description AS description,
-          resourceEditView.typeID AS typeID,
-          resourceEditView.typeSlug AS typeSlug,
-          resourceEditView.typeName AS typeName,
-          resourceEditView.fields AS fields
-        FROM
-          resourceEditView
-        WHERE
-          resourceEditView.id == ?1
-        LIMIT
-          1;
-        """
-      statement.appendArgument(input)
-
-      return
-        try connection
-        .fetchFirst(using: statement) { dataRow -> ResourceEditDetailsDSV in
-          guard
-            let id: Resource.ID = dataRow.id.flatMap(Resource.ID.init(rawValue:)),
-            let name: String = dataRow.name,
-            let resourceTypeID: ResourceType.ID = dataRow.typeID.flatMap(ResourceType.ID.init(rawValue:)),
-            let resourceTypeSlug: ResourceType.Slug = dataRow.typeSlug.flatMap(
-              ResourceType.Slug.init(rawValue:)
-            ),
-            let resourceTypeName: String = dataRow.typeName,
-            let rawFields: String = dataRow.fields
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseDataInvalid
-                  .error(for: ResourceEditDetailsDSV.self)
-              )
-              .recording(dataRow, for: "dataRow")
-          }
-
-          return ResourceEditDetailsDSV(
-            id: id,
-            type: .init(
-              id: resourceTypeID,
-              slug: resourceTypeSlug,
-              name: resourceTypeName,
-              fields: ResourceFieldDSV.decodeArrayFrom(rawString: rawFields)
-            ),
-            parentFolderID: dataRow.parentFolderID.map(ResourceFolder.ID.init(rawValue:)),
-            name: name,
-            url: dataRow.url,
-            username: dataRow.username,
-            description: dataRow.description
-          )
+    return
+      try connection
+      .fetchFirst(using: statement) { dataRow -> ResourceEditDetailsDSV in
+        guard
+          let id: Resource.ID = dataRow.id.flatMap(Resource.ID.init(rawValue:)),
+          let name: String = dataRow.name,
+          let resourceTypeID: ResourceType.ID = dataRow.typeID.flatMap(ResourceType.ID.init(rawValue:)),
+          let resourceTypeSlug: ResourceType.Slug = dataRow.typeSlug.flatMap(
+            ResourceType.Slug.init(rawValue:)
+          ),
+          let resourceTypeName: String = dataRow.typeName,
+          let rawFields: String = dataRow.fields
+        else {
+          throw
+            DatabaseIssue
+            .error(
+              underlyingError:
+                DatabaseDataInvalid
+                .error(for: ResourceEditDetailsDSV.self)
+            )
+            .recording(dataRow, for: "dataRow")
         }
-    }
 
-    nonisolated func executeAsync(
-      _ input: Resource.ID
-    ) async throws -> ResourceEditDetailsDSV {
-      try await execute(
-        input,
-        connection: sessionDatabase.connection()
-      )
-    }
-
-    return Self(
-      execute: executeAsync(_:)
-    )
+        return ResourceEditDetailsDSV(
+          id: id,
+          type: .init(
+            id: resourceTypeID,
+            slug: resourceTypeSlug,
+            name: resourceTypeName,
+            fields: ResourceFieldDSV.decodeArrayFrom(rawString: rawFields)
+          ),
+          parentFolderID: dataRow.parentFolderID.map(ResourceFolder.ID.init(rawValue:)),
+          name: name,
+          url: dataRow.url,
+          username: dataRow.username,
+          description: dataRow.description
+        )
+      }
   }
 }
 
@@ -118,10 +97,9 @@ extension FeatureFactory {
 
   internal func usePassboltResourceEditDetailsFetchDatabaseOperation() {
     self.use(
-      .disposable(
-        ResourceEditDetailsFetchDatabaseOperation.self,
-        load: ResourceEditDetailsFetchDatabaseOperation
-          .load(features:)
+      FeatureLoader.databaseOperation(
+        of: ResourceEditDetailsFetchDatabaseOperation.self,
+        execute: ResourceEditDetailsFetchDatabaseOperation.execute(_:connection:)
       )
     )
   }
