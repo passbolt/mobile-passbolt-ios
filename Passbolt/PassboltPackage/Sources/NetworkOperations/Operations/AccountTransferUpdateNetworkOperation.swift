@@ -26,7 +26,13 @@ import Features
 // MARK: - Interface
 
 public typealias AccountTransferUpdateNetworkOperation =
-  NetworkOperation<AccountTransferUpdateNetworkOperationVariable, AccountTransferUpdateNetworkOperationResult>
+  NetworkOperation<AccountTransferUpdateNetworkOperationDescription>
+
+public enum AccountTransferUpdateNetworkOperationDescription: NetworkOperationDescription {
+
+  public typealias Input = AccountTransferUpdateNetworkOperationVariable
+  public typealias Output = AccountTransferUpdateNetworkOperationResult
+}
 
 public struct AccountTransferUpdateNetworkOperationVariable {
 

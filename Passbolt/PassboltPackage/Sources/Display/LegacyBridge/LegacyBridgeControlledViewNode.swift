@@ -58,29 +58,29 @@ where Component: UIComponent {
 
   internal var body: some View {
     legacyBridge
-    .navigationViewStyle(.stack)
-    .navigationBarTitleDisplayMode(.inline)
-    .navigationTitle(legacyBridge.title)
-    .toolbar {
-      ToolbarItem(placement: .principal) {
-        Text(legacyBridge.title)
-          .font(
-            .inter(
-              ofSize: 16,
-              weight: .semibold
+      .navigationViewStyle(.stack)
+      .navigationBarTitleDisplayMode(.inline)
+      .navigationTitle(legacyBridge.title)
+      .toolbar {
+        ToolbarItem(placement: .principal) {
+          Text(legacyBridge.title)
+            .font(
+              .inter(
+                ofSize: 16,
+                weight: .semibold
+              )
             )
-          )
-          .foregroundColor(.passboltPrimaryText)
-          .frame(
-            maxWidth: .infinity,
-            alignment: .center
-          )
+            .foregroundColor(.passboltPrimaryText)
+            .frame(
+              maxWidth: .infinity,
+              alignment: .center
+            )
+        }
+        ToolbarItem(placement: .navigationBarTrailing) {
+          legacyBridge.trailingBarButton
+            .frame(maxWidth: 60, alignment: .trailing)
+        }
       }
-      ToolbarItem(placement: .navigationBarTrailing) {
-        legacyBridge.trailingBarButton
-          .frame(maxWidth: 60, alignment: .trailing)
-      }
-    }
-    .backgroundColor(.passboltBackground)
+      .backgroundColor(.passboltBackground)
   }
 }

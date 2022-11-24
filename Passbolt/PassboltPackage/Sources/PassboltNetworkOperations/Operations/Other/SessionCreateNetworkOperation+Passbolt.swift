@@ -27,94 +27,67 @@ import NetworkOperations
 
 extension SessionCreateNetworkOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  @Sendable fileprivate static func requestPreparation(
+    _ input: Input
+  ) -> Mutation<HTTPRequest> {
+    .combined(
+      .url(string: input.domain.rawValue),
+      .pathSuffix("/auth/jwt/login.json"),
+      .method(.post),
+      .whenSome(
+        input.mfaToken,
+        then: { mfaToken in
+          .header("Cookie", value: "passbolt_mfa=\(mfaToken)")
+        }
+      ),
+      .jsonBody(from: input.requestBody)
+    )
+  }
 
-    let requestExecutor: NetworkRequestExecutor = try await features.instance()
-
-    @Sendable nonisolated func prepareRequest(
-      _ input: Input
-    ) throws -> HTTPRequest {
-      Mutation<HTTPRequest>
-        .combined(
-          .url(string: input.domain.rawValue),
-          .pathSuffix("/auth/jwt/login.json"),
-          .method(.post),
-          .whenSome(
-            input.mfaToken,
-            then: { mfaToken in
-              .header("Cookie", value: "passbolt_mfa=\(mfaToken)")
-            }
-          ),
-          .jsonBody(from: input.requestBody)
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    let mfaTokenIsValid: Bool
+    if let mfaToken: SessionMFAToken = input.mfaToken {
+      if let cookieHeaderValue: String = response.headers["Set-Cookie"],
+        let mfaCookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")
+      {
+        let mfaCookieValue: String = .init(
+          cookieHeaderValue[mfaCookieBounds.upperBound...]
+            .prefix(
+              while: { !$0.isWhitespace && $0 != "," && $0 != ";" }
+            )
         )
-        .instantiate()
-    }
-
-    let responseDecoder: NetworkResponseDecoder<Input, CommonNetworkResponse<ResponseBody>> = .bodyAsJSON()
-    @Sendable nonisolated func decodeResponse(
-      _ input: Input,
-      _ request: HTTPRequest,
-      _ response: HTTPResponse
-    ) throws -> Output {
-      let mfaTokenIsValid: Bool
-      if let mfaToken: SessionMFAToken = input.mfaToken {
-        if let cookieHeaderValue: String = response.headers["Set-Cookie"],
-          let mfaCookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")
-        {
-          let mfaCookieValue: String = .init(
-            cookieHeaderValue[mfaCookieBounds.upperBound...]
-              .prefix(
-                while: { !$0.isWhitespace && $0 != "," && $0 != ";" }
-              )
-          )
-          if mfaToken.rawValue == mfaCookieValue {
-            mfaTokenIsValid = true  // it was sent and server responded with same value - valid
-          }
-          else {
-            mfaTokenIsValid = false  // it was sent but server responded with different value - invalid
-          }
+        if mfaToken.rawValue == mfaCookieValue {
+          mfaTokenIsValid = true  // it was sent and server responded with same value - valid
         }
         else {
-          mfaTokenIsValid = false  // it was sent but server responded with no value - invalid
+          mfaTokenIsValid = false  // it was sent but server responded with different value - invalid
         }
       }
       else {
-        mfaTokenIsValid = false  // it was not sent so it is not valid (but that does not matter if it is not required)
+        mfaTokenIsValid = false  // it was sent but server responded with no value - invalid
       }
-
-      let decodedBody: ResponseBody =
-        try responseDecoder
-        .decode(
-          input,
-          response
-        )
-        .body
-
-      return Output(
-        mfaTokenIsValid: mfaTokenIsValid,
-        challenge: .init(
-          rawValue: decodedBody.challenge
-        )
-      )
+    }
+    else {
+      mfaTokenIsValid = false  // it was not sent so it is not valid (but that does not matter if it is not required)
     }
 
-    @Sendable nonisolated func execute(
-      _ input: Input
-    ) async throws -> Output {
-      let request: HTTPRequest = try prepareRequest(input)
-      return try await decodeResponse(
+    let decodedBody: ResponseBody =
+      try NetworkResponseDecoder<Input, CommonNetworkResponse<ResponseBody>>
+      .bodyAsJSON()
+      .decode(
         input,
-        request,
-        requestExecutor
-          .execute(request)
+        response
       )
-    }
+      .body
 
-    return Self(
-      execute: execute(_:)
+    return Output(
+      mfaTokenIsValid: mfaTokenIsValid,
+      challenge: .init(
+        rawValue: decodedBody.challenge
+      )
     )
   }
 }
@@ -123,9 +96,10 @@ extension FeatureFactory {
 
   internal func usePassboltSessionCreateNetworkOperation() {
     self.use(
-      .disposable(
-        SessionCreateNetworkOperation.self,
-        load: SessionCreateNetworkOperation.load(features:)
+      FeatureLoader.networkOperation(
+        of: SessionCreateNetworkOperation.self,
+        requestPreparation: SessionCreateNetworkOperation.requestPreparation(_:),
+        responseDecoding: SessionCreateNetworkOperation.responseDecoder(_:_:)
       )
     )
   }

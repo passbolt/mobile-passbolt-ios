@@ -27,7 +27,13 @@ import Session
 // MARK: - Interface
 
 public typealias YubiKeyAuthorizationNetworkOperation =
-  NetworkOperation<YubiKeyAuthorizationNetworkOperationVariable, YubiKeyAuthorizationNetworkOperationResult>
+  NetworkOperation<YubiKeyAuthorizationNetworkOperationDescription>
+
+public enum YubiKeyAuthorizationNetworkOperationDescription: NetworkOperationDescription {
+
+  public typealias Input = YubiKeyAuthorizationNetworkOperationVariable
+  public typealias Output = YubiKeyAuthorizationNetworkOperationResult
+}
 
 public struct YubiKeyAuthorizationNetworkOperationVariable {
 

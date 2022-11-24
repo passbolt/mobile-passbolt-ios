@@ -27,46 +27,22 @@ import NetworkOperations
 
 extension SessionCloseNetworkOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let requestExecutor: NetworkRequestExecutor = try await features.instance()
-
-    @Sendable nonisolated func prepareRequest(
-      _ input: Input
-    ) -> HTTPRequest {
-      Mutation<HTTPRequest>
-        .combined(
-          .url(string: input.domain.rawValue),
-          .pathSuffix("/auth/jwt/logout.json"),
-          .method(.post),
-          .jsonBody(from: input)
-        )
-        .instantiate()
-    }
-
-    @Sendable nonisolated func decodeResponse(
-      _ input: Input,
-      _ response: HTTPResponse
-    ) throws -> Output {
-      Void()
-    }
-
-    @Sendable nonisolated func execute(
-      _ input: Input
-    ) async throws -> Output {
-      try await decodeResponse(
-        input,
-        requestExecutor
-          .execute(prepareRequest(input))
-      )
-    }
-
-    return Self(
-      execute: execute(_:)
+  @Sendable fileprivate static func requestPreparation(
+    _ input: Input
+  ) -> Mutation<HTTPRequest> {
+    .combined(
+      .url(string: input.domain.rawValue),
+      .pathSuffix("/auth/jwt/logout.json"),
+      .method(.post),
+      .jsonBody(from: input)
     )
+  }
+
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    Void()
   }
 }
 
@@ -74,9 +50,10 @@ extension FeatureFactory {
 
   internal func usePassboltSessionCloseNetworkOperation() {
     self.use(
-      .disposable(
-        SessionCloseNetworkOperation.self,
-        load: SessionCloseNetworkOperation.load(features:)
+      FeatureLoader.networkOperation(
+        of: SessionCloseNetworkOperation.self,
+        requestPreparation: SessionCloseNetworkOperation.requestPreparation(_:),
+        responseDecoding: SessionCloseNetworkOperation.responseDecoder(_:_:)
       )
     )
   }

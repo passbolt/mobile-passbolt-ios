@@ -26,7 +26,12 @@ import Features
 // MARK: - Interface
 
 public typealias ResourceDeleteNetworkOperation =
-  NetworkOperation<ResourceDeleteNetworkOperationVariable, ResourceDeleteNetworkOperationResult>
+  NetworkOperation<ResourceDeleteNetworkOperationDescription>
+
+public enum ResourceDeleteNetworkOperationDescription: NetworkOperationDescription {
+
+  public typealias Input = ResourceDeleteNetworkOperationVariable
+}
 
 public struct ResourceDeleteNetworkOperationVariable {
 
@@ -38,5 +43,3 @@ public struct ResourceDeleteNetworkOperationVariable {
     self.resourceID = resourceID
   }
 }
-
-public typealias ResourceDeleteNetworkOperationResult = Void

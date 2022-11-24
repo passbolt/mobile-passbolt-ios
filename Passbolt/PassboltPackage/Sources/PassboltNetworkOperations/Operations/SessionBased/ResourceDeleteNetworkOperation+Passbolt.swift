@@ -27,38 +27,20 @@ import NetworkOperations
 
 extension ResourceDeleteNetworkOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let sessionRequestExecutor: SessionNetworkRequestExecutor = try await features.instance()
-
-    @Sendable nonisolated func decodeResponse(
-      _ input: Input,
-      _ response: HTTPResponse
-    ) throws -> Output {
-      Void()
-    }
-
-    @SessionActor @Sendable func execute(
-      _ input: Input
-    ) async throws -> Output {
-      try await decodeResponse(
-        input,
-        sessionRequestExecutor
-          .execute(
-            .combined(
-              .pathSuffix("/resources/\(input.resourceID).json"),
-              .method(.delete)
-            )
-          )
-      )
-    }
-
-    return Self(
-      execute: execute(_:)
+  @Sendable fileprivate static func requestPreparation(
+    _ input: Input
+  ) -> Mutation<HTTPRequest> {
+    .combined(
+      .pathSuffix("/resources/\(input.resourceID).json"),
+      .method(.delete)
     )
+  }
+
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    Void()
   }
 }
 
@@ -66,9 +48,10 @@ extension FeatureFactory {
 
   internal func usePassboltResourceDeleteNetworkOperation() {
     self.use(
-      .disposable(
-        ResourceDeleteNetworkOperation.self,
-        load: ResourceDeleteNetworkOperation.load(features:)
+      .networkOperationWithSession(
+        of: ResourceDeleteNetworkOperation.self,
+        requestPreparation: ResourceDeleteNetworkOperation.requestPreparation(_:),
+        responseDecoding: ResourceDeleteNetworkOperation.responseDecoder(_:_:)
       )
     )
   }

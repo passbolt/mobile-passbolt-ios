@@ -27,7 +27,12 @@ import Session
 // MARK: - Interface
 
 public typealias SessionCloseNetworkOperation =
-  NetworkOperation<SessionCloseNetworkOperationVariable, SessionCloseNetworkOperationResult>
+  NetworkOperation<SessionCloseNetworkOperationDescription>
+
+public enum SessionCloseNetworkOperationDescription: NetworkOperationDescription {
+
+  public typealias Input = SessionCloseNetworkOperationVariable
+}
 
 public struct SessionCloseNetworkOperationVariable: Encodable {
 
@@ -46,5 +51,3 @@ public struct SessionCloseNetworkOperationVariable: Encodable {
     self.refreshToken = refreshToken
   }
 }
-
-public typealias SessionCloseNetworkOperationResult = Void

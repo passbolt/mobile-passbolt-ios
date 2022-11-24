@@ -27,51 +27,27 @@ import NetworkOperations
 
 extension AppVersionsFetchNetworkOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let requestExecutor: NetworkRequestExecutor = try await features.instance()
-
-    @Sendable nonisolated func prepareRequest(
-      _ input: Input
-    ) -> HTTPRequest {
-      Mutation<HTTPRequest>
-        .combined(
-          .url(string: "https://itunes.apple.com/lookup"),
-          .method(.get),
-          .queryItem("bundleId", value: "com.passbolt.mobile"),
-          .queryItem("limit", value: "1")
-        )
-        .instantiate()
-    }
-
-    let responseDecoder: NetworkResponseDecoder<Input, Output> = .bodyAsJSON()
-    @Sendable nonisolated func decodeResponse(
-      _ input: Input,
-      _ response: HTTPResponse
-    ) throws -> Output {
-      try responseDecoder
-        .decode(
-          input,
-          response
-        )
-    }
-
-    @Sendable nonisolated func execute(
-      _ input: Input
-    ) async throws -> Output {
-      try await decodeResponse(
-        input,
-        requestExecutor
-          .execute(prepareRequest(input))
-      )
-    }
-
-    return Self(
-      execute: execute(_:)
+  @Sendable fileprivate static func requestPreparation(
+    _ input: Input
+  ) -> Mutation<HTTPRequest> {
+    .combined(
+      .url(string: "https://itunes.apple.com/lookup"),
+      .method(.get),
+      .queryItem("bundleId", value: "com.passbolt.mobile"),
+      .queryItem("limit", value: "1")
     )
+  }
+
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    try NetworkResponseDecoder<Input, Output>
+      .bodyAsJSON()
+      .decode(
+        input,
+        response
+      )
   }
 }
 
@@ -79,9 +55,10 @@ extension FeatureFactory {
 
   internal func usePassboltAppVersionsFetchNetworkOperation() {
     self.use(
-      .disposable(
-        AppVersionsFetchNetworkOperation.self,
-        load: AppVersionsFetchNetworkOperation.load(features:)
+      FeatureLoader.networkOperation(
+        of: AppVersionsFetchNetworkOperation.self,
+        requestPreparation: AppVersionsFetchNetworkOperation.requestPreparation(_:),
+        responseDecoding: AppVersionsFetchNetworkOperation.responseDecoder(_:_:)
       )
     )
   }

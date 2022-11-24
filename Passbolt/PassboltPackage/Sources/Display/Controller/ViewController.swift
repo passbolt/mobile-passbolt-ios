@@ -47,7 +47,7 @@ extension ViewController /* Hashable */ {
     lhs.id == rhs.id
   }
 
-  public func equal (
+  public func equal(
     to other: any ViewController
   ) -> Bool {
     func equal<LHS: ViewController>(
@@ -122,7 +122,9 @@ public enum Controlled {
     or _: ControlledViewC.Type,
     @ViewBuilder orDefault defaultView: () -> DefaultView
   ) -> some View
-  where ControlledViewA: ControlledView, ControlledViewB: ControlledView, ControlledViewC: ControlledView, DefaultView: View {
+  where
+    ControlledViewA: ControlledView, ControlledViewB: ControlledView, ControlledViewC: ControlledView, DefaultView: View
+  {
     switch controller {
     case let controller as ControlledViewA.Controller:
       ControlledViewA(controller: controller)
@@ -149,7 +151,10 @@ public enum Controlled {
     or _: ControlledViewD.Type,
     @ViewBuilder orDefault defaultView: () -> DefaultView
   ) -> some View
-  where ControlledViewA: ControlledView, ControlledViewB: ControlledView, ControlledViewC: ControlledView, ControlledViewD: ControlledView,  DefaultView: View {
+  where
+    ControlledViewA: ControlledView, ControlledViewB: ControlledView, ControlledViewC: ControlledView,
+    ControlledViewD: ControlledView, DefaultView: View
+  {
     switch controller {
     case let controller as ControlledViewA.Controller:
       ControlledViewA(controller: controller)
@@ -172,7 +177,15 @@ public enum Controlled {
     }
   }
 
-  @ViewBuilder public static func by<ControlledViewA, ControlledViewB, ControlledViewC, ControlledViewD, ControlledViewE, DefaultView>(
+  @ViewBuilder
+  public static func by<
+    ControlledViewA,
+    ControlledViewB,
+    ControlledViewC,
+    ControlledViewD,
+    ControlledViewE,
+    DefaultView
+  >(
     _ controller: any ViewController,
     view: ControlledViewA.Type,
     or _: ControlledViewB.Type,
@@ -181,7 +194,10 @@ public enum Controlled {
     or _: ControlledViewE.Type,
     @ViewBuilder orDefault defaultView: () -> DefaultView
   ) -> some View
-  where ControlledViewA: ControlledView, ControlledViewB: ControlledView, ControlledViewC: ControlledView, ControlledViewD: ControlledView, ControlledViewE: ControlledView, DefaultView: View {
+  where
+    ControlledViewA: ControlledView, ControlledViewB: ControlledView, ControlledViewC: ControlledView,
+    ControlledViewD: ControlledView, ControlledViewE: ControlledView, DefaultView: View
+  {
     switch controller {
     case let controller as ControlledViewA.Controller:
       ControlledViewA(controller: controller)

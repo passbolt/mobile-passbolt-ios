@@ -27,44 +27,20 @@ import NetworkOperations
 
 extension MediaDownloadNetworkOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let requestExecutor: NetworkRequestExecutor = try await features.instance()
-
-    @Sendable nonisolated func prepareRequest(
-      _ input: Input
-    ) throws -> HTTPRequest {
-      Mutation<HTTPRequest>
-        .combined(
-          .url(string: input.rawValue),
-          .method(.get)
-        )
-        .instantiate()
-    }
-
-    @Sendable nonisolated func decodeResponse(
-      _ input: Input,
-      _ response: HTTPResponse
-    ) throws -> Output {
-      response.body
-    }
-
-    @Sendable nonisolated func execute(
-      _ input: Input
-    ) async throws -> Output {
-      try await decodeResponse(
-        input,
-        requestExecutor
-          .execute(prepareRequest(input))
-      )
-    }
-
-    return Self(
-      execute: execute(_:)
+  @Sendable fileprivate static func requestPreparation(
+    _ input: Input
+  ) -> Mutation<HTTPRequest> {
+    .combined(
+      .url(string: input.rawValue),
+      .method(.get)
     )
+  }
+
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    response.body
   }
 }
 
@@ -72,9 +48,10 @@ extension FeatureFactory {
 
   internal func usePassboltMediaDownloadNetworkOperation() {
     self.use(
-      .disposable(
-        MediaDownloadNetworkOperation.self,
-        load: MediaDownloadNetworkOperation.load(features:)
+      .networkOperation(
+        of: MediaDownloadNetworkOperation.self,
+        requestPreparation: MediaDownloadNetworkOperation.requestPreparation(_:),
+        responseDecoding: MediaDownloadNetworkOperation.responseDecoder(_:_:)
       )
     )
   }

@@ -27,54 +27,27 @@ import NetworkOperations
 
 extension ServerRSAPublicKeyFetchNetworkOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let requestExecutor: NetworkRequestExecutor = try await features.instance()
-
-    @Sendable nonisolated func prepareRequest(
-      _ input: Input
-    ) throws -> HTTPRequest {
-      Mutation<HTTPRequest>
-        .combined(
-          .url(string: input.domain.rawValue),
-          .pathSuffix("/auth/jwt/rsa.json"),
-          .method(.get)
-        )
-        .instantiate()
-    }
-
-    let responseDecoder: NetworkResponseDecoder<Input, CommonNetworkResponse<Output>> = .bodyAsJSON()
-    @Sendable nonisolated func decodeResponse(
-      _ input: Input,
-      _ request: HTTPRequest,
-      _ response: HTTPResponse
-    ) throws -> Output {
-      try responseDecoder
-        .decode(
-          input,
-          response
-        )
-        .body
-    }
-
-    @Sendable nonisolated func execute(
-      _ input: Input
-    ) async throws -> Output {
-      let request: HTTPRequest = try prepareRequest(input)
-      return try await decodeResponse(
-        input,
-        request,
-        requestExecutor
-          .execute(request)
-      )
-    }
-
-    return Self(
-      execute: execute(_:)
+  @Sendable fileprivate static func requestPreparation(
+    _ input: Input
+  ) -> Mutation<HTTPRequest> {
+    .combined(
+      .url(string: input.domain.rawValue),
+      .pathSuffix("/auth/jwt/rsa.json"),
+      .method(.get)
     )
+  }
+
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    try NetworkResponseDecoder<Input, CommonNetworkResponse<Output>>
+      .bodyAsJSON()
+      .decode(
+        input,
+        response
+      )
+      .body
   }
 }
 
@@ -82,9 +55,10 @@ extension FeatureFactory {
 
   internal func usePassboltServerRSAPublicKeyFetchNetworkOperation() {
     self.use(
-      .disposable(
-        ServerRSAPublicKeyFetchNetworkOperation.self,
-        load: ServerRSAPublicKeyFetchNetworkOperation.load(features:)
+      FeatureLoader.networkOperation(
+        of: ServerRSAPublicKeyFetchNetworkOperation.self,
+        requestPreparation: ServerRSAPublicKeyFetchNetworkOperation.requestPreparation(_:),
+        responseDecoding: ServerRSAPublicKeyFetchNetworkOperation.responseDecoder(_:_:)
       )
     )
   }

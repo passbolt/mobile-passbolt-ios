@@ -55,7 +55,7 @@ public struct Cancellables {
           state.cleanups = .init()
         }
         return state
-    }
+      }
     state.cancellations.forEach { $0() }
     state.cleanups.forEach { $0() }
   }

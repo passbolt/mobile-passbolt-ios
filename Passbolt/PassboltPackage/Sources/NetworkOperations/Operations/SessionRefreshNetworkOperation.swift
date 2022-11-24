@@ -27,7 +27,13 @@ import Session
 // MARK: - Interface
 
 public typealias SessionRefreshNetworkOperation =
-  NetworkOperation<SessionRefreshNetworkOperationVariable, SessionRefreshNetworkOperationResult>
+  NetworkOperation<SessionRefreshNetworkOperationDescription>
+
+public enum SessionRefreshNetworkOperationDescription: NetworkOperationDescription {
+
+  public typealias Input = SessionRefreshNetworkOperationVariable
+  public typealias Output = SessionRefreshNetworkOperationResult
+}
 
 public struct SessionRefreshNetworkOperationVariable {
 

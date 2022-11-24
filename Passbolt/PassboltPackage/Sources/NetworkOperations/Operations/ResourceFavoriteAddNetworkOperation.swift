@@ -26,7 +26,13 @@ import Features
 // MARK: - Interface
 
 public typealias ResourceFavoriteAddNetworkOperation =
-  NetworkOperation<ResourceFavoriteAddNetworkOperationVariable, ResourceFavoriteAddNetworkOperationResult>
+  NetworkOperation<ResourceFavoriteAddNetworkOperationDescription>
+
+public enum ResourceFavoriteAddNetworkOperationDescription: NetworkOperationDescription {
+
+  public typealias Input = ResourceFavoriteAddNetworkOperationVariable
+  public typealias Output = ResourceFavoriteAddNetworkOperationResult
+}
 
 public struct ResourceFavoriteAddNetworkOperationVariable {
 

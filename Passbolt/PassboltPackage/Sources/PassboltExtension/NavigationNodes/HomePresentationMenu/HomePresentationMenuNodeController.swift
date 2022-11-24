@@ -70,7 +70,7 @@ extension HomePresentationMenuNodeController {
         availableModes: homePresentation.availableModes()
       )
     )
-    viewState.cancellables.addCleanup( asyncExecutor.clearTasks)
+    viewState.cancellables.addCleanup(asyncExecutor.clearTasks)
 
     homePresentation
       .currentMode
@@ -84,7 +84,7 @@ extension HomePresentationMenuNodeController {
     ) {
       homePresentation.currentMode.set(to: mode)
       asyncExecutor.schedule(.reuse) {
-       await navigationTree.dismiss(nodeID)
+        await navigationTree.dismiss(nodeID)
       }
     }
 

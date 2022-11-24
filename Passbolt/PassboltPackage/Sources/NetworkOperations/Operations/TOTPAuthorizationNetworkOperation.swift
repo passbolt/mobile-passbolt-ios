@@ -27,7 +27,13 @@ import Session
 // MARK: - Interface
 
 public typealias TOTPAuthorizationNetworkOperation =
-  NetworkOperation<TOTPAuthorizationNetworkOperationVariable, TOTPAuthorizationNetworkOperationResult>
+  NetworkOperation<TOTPAuthorizationNetworkOperationDescription>
+
+public enum TOTPAuthorizationNetworkOperationDescription: NetworkOperationDescription {
+
+  public typealias Input = TOTPAuthorizationNetworkOperationVariable
+  public typealias Output = TOTPAuthorizationNetworkOperationResult
+}
 
 public struct TOTPAuthorizationNetworkOperationVariable {
 

@@ -26,7 +26,12 @@ import Features
 // MARK: - Interface
 
 /// Network based operation.
-public struct NetworkOperation<Input, Output> {
+public struct NetworkOperation<Description>
+where Description: NetworkOperationDescription {
+
+  public typealias Input = Description.Input
+  public typealias Output = Description.Output
+
   /// Execute operation optionally using current session.
   /// Throws if there is no session and session was required.
   public var execute: @Sendable (Input) async throws -> Output

@@ -27,7 +27,7 @@ import SwiftUI
 public final class ViewStateView<Value>: ObservableObject
 where Value: Hashable {
 
-#if DEBUG
+  #if DEBUG
   public nonisolated static var placeholder: Self {
     .init(
       read: unimplemented(),
@@ -45,7 +45,7 @@ where Value: Hashable {
       objectDidChange: .init()
     )
   }
-#endif
+  #endif
 
   public nonisolated let cancellables: Cancellables
   public nonisolated let objectWillChange: ObservableObjectPublisher

@@ -26,7 +26,13 @@ import Features
 // MARK: - Interface
 
 public typealias ResourceSecretFetchNetworkOperation =
-  NetworkOperation<ResourceSecretFetchNetworkOperationVariable, ResourceSecretFetchNetworkOperationResult>
+  NetworkOperation<ResourceSecretFetchNetworkOperationDescription>
+
+public enum ResourceSecretFetchNetworkOperationDescription: NetworkOperationDescription {
+
+  public typealias Input = ResourceSecretFetchNetworkOperationVariable
+  public typealias Output = ResourceSecretFetchNetworkOperationResult
+}
 
 public struct ResourceSecretFetchNetworkOperationVariable {
 

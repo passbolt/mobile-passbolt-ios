@@ -27,38 +27,20 @@ import NetworkOperations
 
 extension ResourceFavoriteDeleteNetworkOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let sessionRequestExecutor: SessionNetworkRequestExecutor = try await features.instance()
-
-    @Sendable nonisolated func decodeResponse(
-      _ input: Input,
-      _ response: HTTPResponse
-    ) throws -> Output {
-      Void()
-    }
-
-    @SessionActor @Sendable func execute(
-      _ input: Input
-    ) async throws -> Output {
-      try await decodeResponse(
-        input,
-        sessionRequestExecutor
-          .execute(
-            .combined(
-              .pathSuffix("/favorites/\(input.favoriteID.rawValue).json"),
-              .method(.delete)
-            )
-          )
-      )
-    }
-
-    return Self(
-      execute: execute(_:)
+  @Sendable fileprivate static func requestPreparation(
+    _ input: Input
+  ) -> Mutation<HTTPRequest> {
+    .combined(
+      .pathSuffix("/favorites/\(input.favoriteID.rawValue).json"),
+      .method(.delete)
     )
+  }
+
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    Void()
   }
 }
 
@@ -66,9 +48,10 @@ extension FeatureFactory {
 
   internal func usePassboltResourceFavoriteDeleteNetworkOperation() {
     self.use(
-      .disposable(
-        ResourceFavoriteDeleteNetworkOperation.self,
-        load: ResourceFavoriteDeleteNetworkOperation.load(features:)
+      .networkOperationWithSession(
+        of: ResourceFavoriteDeleteNetworkOperation.self,
+        requestPreparation: ResourceFavoriteDeleteNetworkOperation.requestPreparation(_:),
+        responseDecoding: ResourceFavoriteDeleteNetworkOperation.responseDecoder(_:_:)
       )
     )
   }

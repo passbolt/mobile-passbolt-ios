@@ -64,7 +64,8 @@ public struct StateBinding<Value> {
         guard updated else { return }
         updatesSubject.send(newValue)
       },
-      updatesPublisher: updatesSubject
+      updatesPublisher:
+        updatesSubject
         .eraseToAnyPublisher()
     )
   }
@@ -81,7 +82,8 @@ public struct StateBinding<Value> {
         write(newValue)
         updatesSubject.send(newValue)
       },
-      updatesPublisher: updatesSubject
+      updatesPublisher:
+        updatesSubject
         .eraseToAnyPublisher()
     )
   }

@@ -27,44 +27,26 @@ import NetworkOperations
 
 extension ResourceFavoriteAddNetworkOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let sessionRequestExecutor: SessionNetworkRequestExecutor = try await features.instance()
-
-    let responseDecoder: NetworkResponseDecoder<Input, CommonNetworkResponse<Output>> = .bodyAsJSON()
-    @Sendable nonisolated func decodeResponse(
-      _ input: Input,
-      _ response: HTTPResponse
-    ) throws -> Output {
-      try responseDecoder
-        .decode(
-          input,
-          response
-        )
-        .body
-    }
-
-    @SessionActor @Sendable func execute(
-      _ input: Input
-    ) async throws -> Output {
-      try await decodeResponse(
-        input,
-        sessionRequestExecutor
-          .execute(
-            .combined(
-              .pathSuffix("/favorites/resource/\(input.resourceID.rawValue).json"),
-              .method(.post)
-            )
-          )
-      )
-    }
-
-    return Self(
-      execute: execute(_:)
+  @Sendable fileprivate static func requestPreparation(
+    _ input: Input
+  ) -> Mutation<HTTPRequest> {
+    .combined(
+      .pathSuffix("/favorites/resource/\(input.resourceID.rawValue).json"),
+      .method(.post)
     )
+  }
+
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    try NetworkResponseDecoder<Input, CommonNetworkResponse<Output>>
+      .bodyAsJSON()
+      .decode(
+        input,
+        response
+      )
+      .body
   }
 }
 
@@ -72,9 +54,10 @@ extension FeatureFactory {
 
   internal func usePassboltResourceFavoriteAddNetworkOperation() {
     self.use(
-      .disposable(
-        ResourceFavoriteAddNetworkOperation.self,
-        load: ResourceFavoriteAddNetworkOperation.load(features:)
+      .networkOperationWithSession(
+        of: ResourceFavoriteAddNetworkOperation.self,
+        requestPreparation: ResourceFavoriteAddNetworkOperation.requestPreparation(_:),
+        responseDecoding: ResourceFavoriteAddNetworkOperation.responseDecoder(_:_:)
       )
     )
   }

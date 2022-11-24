@@ -27,50 +27,32 @@ import NetworkOperations
 
 extension UserDetailsFetchNetworkOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let sessionRequestExecutor: SessionNetworkRequestExecutor = try await features.instance()
-
-    let responseDecoder: NetworkResponseDecoder<Input, CommonNetworkResponse<Output>> = .bodyAsJSON()
-    @Sendable nonisolated func decodeResponse(
-      _ input: Input,
-      _ response: HTTPResponse
-    ) throws -> Output {
-      try responseDecoder
-        .decode(
-          input,
-          response
-        )
-        .body
-    }
-
-    @SessionActor @Sendable func execute(
-      _ input: Input
-    ) async throws -> Output {
-      try await decodeResponse(
-        input,
-        sessionRequestExecutor
-          .execute(
-            .combined(
-              .whenSome(
-                input.userID,
-                then: { userID in
-                  .pathSuffix("/users/\(userID).json")
-                },
-                else: .pathSuffix("/users/me.json")
-              ),
-              .method(.get)
-            )
-          )
-      )
-    }
-
-    return Self(
-      execute: execute(_:)
+  @Sendable fileprivate static func requestPreparation(
+    _ input: Input
+  ) -> Mutation<HTTPRequest> {
+    .combined(
+      .whenSome(
+        input.userID,
+        then: { userID in
+          .pathSuffix("/users/\(userID).json")
+        },
+        else: .pathSuffix("/users/me.json")
+      ),
+      .method(.get)
     )
+  }
+
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    try NetworkResponseDecoder<Input, CommonNetworkResponse<Output>>
+      .bodyAsJSON()
+      .decode(
+        input,
+        response
+      )
+      .body
   }
 }
 
@@ -78,9 +60,10 @@ extension FeatureFactory {
 
   internal func usePassboltUserDetailsFetchNetworkOperation() {
     self.use(
-      .disposable(
-        UserDetailsFetchNetworkOperation.self,
-        load: UserDetailsFetchNetworkOperation.load(features:)
+      .networkOperationWithSession(
+        of: UserDetailsFetchNetworkOperation.self,
+        requestPreparation: UserDetailsFetchNetworkOperation.requestPreparation(_:),
+        responseDecoding: UserDetailsFetchNetworkOperation.responseDecoder(_:_:)
       )
     )
   }

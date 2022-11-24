@@ -27,92 +27,68 @@ import NetworkOperations
 
 extension SessionRefreshNetworkOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let requestExecutor: NetworkRequestExecutor = try await features.instance()
-
-    @Sendable nonisolated func prepareRequest(
-      _ input: Input
-    ) -> HTTPRequest {
-      Mutation<HTTPRequest>
-        .combined(
-          .url(string: input.domain.rawValue),
-          .pathSuffix("/auth/jwt/refresh.json"),
-          .method(.post),
-          .jsonBody(
-            from: RequestBody(
-              userID: input.userID,
-              refreshToken: input.refreshToken
-            )
-          ),
-          .whenSome(
-            input.mfaToken,
-            then: { mfaToken in
-              .header("Cookie", value: "passbolt_mfa=\(mfaToken)")
-            }
-          )
+  @Sendable fileprivate static func requestPreparation(
+    _ input: Input
+  ) -> Mutation<HTTPRequest> {
+    .combined(
+      .url(string: input.domain.rawValue),
+      .pathSuffix("/auth/jwt/refresh.json"),
+      .method(.post),
+      .jsonBody(
+        from: RequestBody(
+          userID: input.userID,
+          refreshToken: input.refreshToken
         )
-        .instantiate()
-    }
-
-    let responseDecoder: NetworkResponseDecoder<Input, CommonNetworkResponse<ResponseBody>> = .bodyAsJSON()
-    @Sendable nonisolated func decodeResponse(
-      _ input: Input,
-      _ response: HTTPResponse
-    ) throws -> Output {
-      let decodedBody: ResponseBody =
-        try responseDecoder
-        .decode(
-          input,
-          response
-        )
-        .body
-
-      guard
-        let cookieHeaderValue: String = response.headers["Set-Cookie"],
-        let refreshTokenBounds: Range<String.Index> = cookieHeaderValue.range(of: "refresh_token=")
-      else {
-        throw
-          NetworkResponseInvalid
-          .error(
-            "Session refresh response does not contain refresh token",
-            response: response
-          )
-      }
-      let refreshToken: String = .init(
-        cookieHeaderValue[refreshTokenBounds.upperBound...]
-          .prefix(
-            while: { !$0.isWhitespace && $0 != "," && $0 != ";" }
-          )
+      ),
+      .whenSome(
+        input.mfaToken,
+        then: { mfaToken in
+          .header("Cookie", value: "passbolt_mfa=\(mfaToken)")
+        }
       )
-      let accessToken: SessionAccessToken =
-        try SessionAccessToken
-        .from(
-          rawValue: decodedBody.accessToken
-        )
-        .get()
+    )
+  }
 
-      return Output(
-        accessToken: accessToken,
-        refreshToken: .init(rawValue: refreshToken)
-      )
-    }
-
-    @Sendable nonisolated func execute(
-      _ input: Input
-    ) async throws -> Output {
-      try await decodeResponse(
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    let decodedBody: ResponseBody =
+      try NetworkResponseDecoder<Input, CommonNetworkResponse<ResponseBody>>
+      .bodyAsJSON()
+      .decode(
         input,
-        requestExecutor
-          .execute(prepareRequest(input))
+        response
       )
-    }
+      .body
 
-    return Self(
-      execute: execute(_:)
+    guard
+      let cookieHeaderValue: String = response.headers["Set-Cookie"],
+      let refreshTokenBounds: Range<String.Index> = cookieHeaderValue.range(of: "refresh_token=")
+    else {
+      throw
+        NetworkResponseInvalid
+        .error(
+          "Session refresh response does not contain refresh token",
+          response: response
+        )
+    }
+    let refreshToken: String = .init(
+      cookieHeaderValue[refreshTokenBounds.upperBound...]
+        .prefix(
+          while: { !$0.isWhitespace && $0 != "," && $0 != ";" }
+        )
+    )
+    let accessToken: SessionAccessToken =
+      try SessionAccessToken
+      .from(
+        rawValue: decodedBody.accessToken
+      )
+      .get()
+
+    return Output(
+      accessToken: accessToken,
+      refreshToken: .init(rawValue: refreshToken)
     )
   }
 }
@@ -121,9 +97,10 @@ extension FeatureFactory {
 
   internal func usePassboltSessionRefreshNetworkOperation() {
     self.use(
-      .disposable(
-        SessionRefreshNetworkOperation.self,
-        load: SessionRefreshNetworkOperation.load(features:)
+      .networkOperation(
+        of: SessionRefreshNetworkOperation.self,
+        requestPreparation: SessionRefreshNetworkOperation.requestPreparation(_:),
+        responseDecoding: SessionRefreshNetworkOperation.responseDecoder(_:_:)
       )
     )
   }

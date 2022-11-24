@@ -27,39 +27,21 @@ import NetworkOperations
 
 extension ResourceShareNetworkOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let sessionRequestExecutor: SessionNetworkRequestExecutor = try await features.instance()
-
-    @Sendable nonisolated func decodeResponse(
-      _ input: Input,
-      _ response: HTTPResponse
-    ) throws -> Output {
-      Void()
-    }
-
-    @SessionActor @Sendable func execute(
-      _ input: Input
-    ) async throws -> Output {
-      try await decodeResponse(
-        input,
-        sessionRequestExecutor
-          .execute(
-            .combined(
-              .pathSuffix("/share/resource/\(input.resourceID).json"),
-              .method(.put),
-              .jsonBody(from: input.body)
-            )
-          )
-      )
-    }
-
-    return Self(
-      execute: execute(_:)
+  @Sendable fileprivate static func requestPreparation(
+    _ input: Input
+  ) -> Mutation<HTTPRequest> {
+    .combined(
+      .pathSuffix("/share/resource/\(input.resourceID).json"),
+      .method(.put),
+      .jsonBody(from: input.body)
     )
+  }
+
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    Void()
   }
 }
 
@@ -67,9 +49,10 @@ extension FeatureFactory {
 
   internal func usePassboltResourceShareNetworkOperation() {
     self.use(
-      .disposable(
-        ResourceShareNetworkOperation.self,
-        load: ResourceShareNetworkOperation.load(features:)
+      .networkOperationWithSession(
+        of: ResourceShareNetworkOperation.self,
+        requestPreparation: ResourceShareNetworkOperation.requestPreparation(_:),
+        responseDecoding: ResourceShareNetworkOperation.responseDecoder(_:_:)
       )
     )
   }

@@ -26,9 +26,12 @@ import Features
 // MARK: - Interface
 
 public typealias ConfigurationFetchNetworkOperation =
-  NetworkOperation<ConfigurationFetchNetworkOperationVariable, ConfigurationFetchNetworkOperationResult>
+  NetworkOperation<ConfigurationFetchNetworkOperationDescription>
 
-public typealias ConfigurationFetchNetworkOperationVariable = Void
+public enum ConfigurationFetchNetworkOperationDescription: NetworkOperationDescription {
+
+  public typealias Output = ConfigurationFetchNetworkOperationResult
+}
 
 public struct ConfigurationFetchNetworkOperationResult: Decodable {
 

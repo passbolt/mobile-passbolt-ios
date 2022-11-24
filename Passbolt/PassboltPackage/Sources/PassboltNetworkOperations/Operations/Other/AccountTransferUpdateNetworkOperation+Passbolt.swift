@@ -27,61 +27,37 @@ import NetworkOperations
 
 extension AccountTransferUpdateNetworkOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let requestExecutor: NetworkRequestExecutor = try await features.instance()
-
-    @Sendable nonisolated func prepareRequest(
-      _ input: Input
-    ) -> HTTPRequest {
-      Mutation<HTTPRequest>
-        .combined(
-          .url(string: input.domain.rawValue),
-          .pathSuffix("/mobile/transfers/\(input.transferID)/\(input.authenticationToken).json"),
-          .method(.post),
-          .when(
-            input.requestUserProfile,
-            then: .queryItem("contain[user.profile]", value: "1")
-          ),
-          .jsonBody(
-            from: RequestBody(
-              currentPage: input.currentPage,
-              status: input.status
-            )
-          )
+  @Sendable fileprivate static func requestPreparation(
+    _ input: Input
+  ) -> Mutation<HTTPRequest> {
+    .combined(
+      .url(string: input.domain.rawValue),
+      .pathSuffix("/mobile/transfers/\(input.transferID)/\(input.authenticationToken).json"),
+      .method(.post),
+      .when(
+        input.requestUserProfile,
+        then: .queryItem("contain[user.profile]", value: "1")
+      ),
+      .jsonBody(
+        from: RequestBody(
+          currentPage: input.currentPage,
+          status: input.status
         )
-        .instantiate()
-    }
-
-    let responseDecoder: NetworkResponseDecoder<Input, CommonNetworkResponse<Output>> = .bodyAsJSON()
-    @Sendable nonisolated func decodeResponse(
-      _ input: Input,
-      _ response: HTTPResponse
-    ) throws -> Output {
-      try responseDecoder
-        .decode(
-          input,
-          response
-        )
-        .body
-    }
-
-    @Sendable nonisolated func execute(
-      _ input: Input
-    ) async throws -> Output {
-      try await decodeResponse(
-        input,
-        requestExecutor
-          .execute(prepareRequest(input))
       )
-    }
-
-    return Self(
-      execute: execute(_:)
     )
+  }
+
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    try NetworkResponseDecoder<Input, CommonNetworkResponse<Output>>
+      .bodyAsJSON()
+      .decode(
+        input,
+        response
+      )
+      .body
   }
 }
 
@@ -89,9 +65,10 @@ extension FeatureFactory {
 
   internal func usePassboltAccountTransferUpdateNetworkOperation() {
     self.use(
-      .disposable(
-        AccountTransferUpdateNetworkOperation.self,
-        load: AccountTransferUpdateNetworkOperation.load(features:)
+      FeatureLoader.networkOperation(
+        of: AccountTransferUpdateNetworkOperation.self,
+        requestPreparation: AccountTransferUpdateNetworkOperation.requestPreparation(_:),
+        responseDecoding: AccountTransferUpdateNetworkOperation.responseDecoder(_:_:)
       )
     )
   }

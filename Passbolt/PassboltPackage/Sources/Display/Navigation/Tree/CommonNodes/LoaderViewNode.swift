@@ -37,7 +37,7 @@ public struct LoaderViewNode: ControlledViewNode {
     #endif
   }
 
-  public static func instance () -> Self {
+  public static func instance() -> Self {
     .init(controller: .init())
   }
 

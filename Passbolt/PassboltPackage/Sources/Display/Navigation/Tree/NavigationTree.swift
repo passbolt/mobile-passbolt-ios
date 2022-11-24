@@ -32,13 +32,13 @@ public struct NavigationTree {
 
 extension NavigationTree: StaticFeature {
 
-#if DEBUG
+  #if DEBUG
   public static var placeholder: Self {
     return .init(
       state: .placeholder
     )
   }
-#endif
+  #endif
 }
 
 extension NavigationTree {
@@ -179,11 +179,11 @@ extension NavigationTree {
         treeRoot = .just(
           id: nodeID,
           view: LegacyBridgeControlledViewNode(
-              for: LegacyNavigationNodeBridgeView<Component>(
-                features: features,
-                controller: controller,
-                cancellables: cancellables
-              )
+            for: LegacyNavigationNodeBridgeView<Component>(
+              features: features,
+              controller: controller,
+              cancellables: cancellables
+            )
           )
         )
       }
@@ -214,18 +214,17 @@ extension NavigationTree {
         .asFatalError(message: "Cannot instantiate UIComponent")
     }
 
-
     self.state.wrappedValue
       .mutate { (treeRoot: inout NavigationTreeNode) in
         treeRoot = .stack(
           .element(
             id: nodeID,
             view: LegacyBridgeControlledViewNode(
-                for: LegacyNavigationNodeBridgeView<Component>(
-                  features: features,
-                  controller: controller,
-                  cancellables: cancellables
-                )
+              for: LegacyNavigationNodeBridgeView<Component>(
+                features: features,
+                controller: controller,
+                cancellables: cancellables
+              )
             ),
             next: .none
           )
@@ -260,14 +259,15 @@ extension NavigationTree {
 
     self.state.wrappedValue
       .mutate { (treeRoot: inout NavigationTreeNode) in
-        treeRoot = treeRoot
+        treeRoot =
+          treeRoot
           .pushing(
             LegacyBridgeControlledViewNode(
-                for: LegacyNavigationNodeBridgeView<Component>(
-                  features: features,
-                  controller: controller,
-                  cancellables: cancellables
-                )
+              for: LegacyNavigationNodeBridgeView<Component>(
+                features: features,
+                controller: controller,
+                cancellables: cancellables
+              )
             ),
             withID: nodeID
           )
@@ -302,14 +302,15 @@ extension NavigationTree {
 
     self.state.wrappedValue
       .mutate { (treeRoot: inout NavigationTreeNode) in
-        treeRoot = treeRoot
+        treeRoot =
+          treeRoot
           .presenting(
             LegacyBridgeControlledViewNode(
-                for: LegacyNavigationNodeBridgeView<Component>(
-                  features: features,
-                  controller: controller,
-                  cancellables: cancellables
-                )
+              for: LegacyNavigationNodeBridgeView<Component>(
+                features: features,
+                controller: controller,
+                cancellables: cancellables
+              )
             ),
             withID: nodeID,
             presentation
@@ -345,13 +346,14 @@ extension NavigationTree {
 
     self.state.wrappedValue
       .mutate { (treeRoot: inout NavigationTreeNode) in
-        treeRoot = treeRoot
+        treeRoot =
+          treeRoot
           .presenting(
             pushed: LegacyBridgeControlledViewNode(
-                for: LegacyNavigationNodeBridgeView<Component>(
-                  features: features,
-                  controller: controller,
-                  cancellables: cancellables
+              for: LegacyNavigationNodeBridgeView<Component>(
+                features: features,
+                controller: controller,
+                cancellables: cancellables
               )
             ),
             withID: nodeID,
@@ -374,7 +376,7 @@ extension NavigationTree {
         initial: .init(
           root: .just(
             id: initializationViewNodeController.nodeID,
-            view:  InitializationViewNode(
+            view: InitializationViewNode(
               controller: initializationViewNodeController
             )
           )

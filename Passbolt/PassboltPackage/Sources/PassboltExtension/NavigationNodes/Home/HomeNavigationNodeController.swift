@@ -104,7 +104,8 @@ extension HomeNavigationNodeController {
       do {
         switch mode {
         case .plainResourcesList:
-          return try await features
+          return
+            try await features
             .instance(
               of: ResourcesListNodeController.self,
               context: .init(
@@ -117,7 +118,8 @@ extension HomeNavigationNodeController {
             )
 
         case .modifiedResourcesList:
-          return try await features
+          return
+            try await features
             .instance(
               of: ResourcesListNodeController.self,
               context: .init(
@@ -130,7 +132,8 @@ extension HomeNavigationNodeController {
             )
 
         case .favoriteResourcesList:
-          return try await features
+          return
+            try await features
             .instance(
               of: ResourcesListNodeController.self,
               context: .init(
@@ -144,7 +147,8 @@ extension HomeNavigationNodeController {
             )
 
         case .sharedResourcesList:
-          return try await features
+          return
+            try await features
             .instance(
               of: ResourcesListNodeController.self,
               context: .init(
@@ -158,7 +162,8 @@ extension HomeNavigationNodeController {
             )
 
         case .ownedResourcesList:
-          return try await features
+          return
+            try await features
             .instance(
               of: ResourcesListNodeController.self,
               context: .init(
@@ -172,7 +177,8 @@ extension HomeNavigationNodeController {
             )
 
         case .tagsExplorer:
-          return try await features
+          return
+            try await features
             .instance(
               of: ResourceTagsListNodeController.self,
               context: .init(
@@ -182,7 +188,8 @@ extension HomeNavigationNodeController {
             )
 
         case .resourceUserGroupsExplorer:
-          return try await features
+          return
+            try await features
             .instance(
               of: ResourceUserGroupsListNodeController.self,
               context: .init(
@@ -192,7 +199,8 @@ extension HomeNavigationNodeController {
             )
 
         case .foldersExplorer:
-          return try await features
+          return
+            try await features
             .instance(
               of: ResourceFolderContentNodeController.self,
               context: .init(

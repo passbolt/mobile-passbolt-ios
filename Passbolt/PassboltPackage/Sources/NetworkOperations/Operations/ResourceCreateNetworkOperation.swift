@@ -26,7 +26,13 @@ import Features
 // MARK: - Interface
 
 public typealias ResourceCreateNetworkOperation =
-  NetworkOperation<ResourceCreateNetworkOperationVariable, ResourceCreateNetworkOperationResult>
+  NetworkOperation<ResourceCreateNetworkOperationDescription>
+
+public enum ResourceCreateNetworkOperationDescription: NetworkOperationDescription {
+
+  public typealias Input = ResourceCreateNetworkOperationVariable
+  public typealias Output = ResourceCreateNetworkOperationResult
+}
 
 public struct ResourceCreateNetworkOperationVariable: Encodable {
 

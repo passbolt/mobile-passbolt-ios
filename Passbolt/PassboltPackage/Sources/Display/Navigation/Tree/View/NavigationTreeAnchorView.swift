@@ -42,7 +42,6 @@ internal struct NavigationTreeAnchorView: View {
         .erased()
         .id(id)
 
-
     case let .stack(stackNode), let .overlay(_, covering: .stack(stackNode)):
       if #available(iOS 16.0, *) {
         #warning("TODO: use NavigationStack")

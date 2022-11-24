@@ -27,46 +27,28 @@ import NetworkOperations
 
 extension ResourceCreateNetworkOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let sessionRequestExecutor: SessionNetworkRequestExecutor = try await features.instance()
-
-    let responseDecoder: NetworkResponseDecoder<Input, CommonNetworkResponse<Output>> = .bodyAsJSON()
-    @Sendable nonisolated func decodeResponse(
-      _ input: Input,
-      _ response: HTTPResponse
-    ) throws -> Output {
-      try responseDecoder
-        .decode(
-          input,
-          response
-        )
-        .body
-    }
-
-    @SessionActor @Sendable func execute(
-      _ input: Input
-    ) async throws -> Output {
-      try await decodeResponse(
-        input,
-        sessionRequestExecutor
-          .execute(
-            .combined(
-              .pathSuffix("/resources.json"),
-              .queryItem("contain[permission]", value: "1"),
-              .method(.post),
-              .jsonBody(from: input)
-            )
-          )
-      )
-    }
-
-    return Self(
-      execute: execute(_:)
+  @Sendable fileprivate static func requestPreparation(
+    _ input: Input
+  ) -> Mutation<HTTPRequest> {
+    .combined(
+      .pathSuffix("/resources.json"),
+      .queryItem("contain[permission]", value: "1"),
+      .method(.post),
+      .jsonBody(from: input)
     )
+  }
+
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    try NetworkResponseDecoder<Input, CommonNetworkResponse<Output>>
+      .bodyAsJSON()
+      .decode(
+        input,
+        response
+      )
+      .body
   }
 }
 
@@ -74,9 +56,10 @@ extension FeatureFactory {
 
   internal func usePassboltResourceCreateNetworkOperation() {
     self.use(
-      .disposable(
-        ResourceCreateNetworkOperation.self,
-        load: ResourceCreateNetworkOperation.load(features:)
+      .networkOperationWithSession(
+        of: ResourceCreateNetworkOperation.self,
+        requestPreparation: ResourceCreateNetworkOperation.requestPreparation(_:),
+        responseDecoding: ResourceCreateNetworkOperation.responseDecoder(_:_:)
       )
     )
   }

@@ -26,7 +26,12 @@ import Features
 // MARK: - Interface
 
 public typealias ResourceFavoriteDeleteNetworkOperation =
-  NetworkOperation<ResourceFavoriteDeleteNetworkOperationVariable, ResourceFavoriteDeleteNetworkOperationResult>
+  NetworkOperation<ResourceFavoriteDeleteNetworkOperationDescription>
+
+public enum ResourceFavoriteDeleteNetworkOperationDescription: NetworkOperationDescription {
+
+  public typealias Input = ResourceFavoriteDeleteNetworkOperationVariable
+}
 
 public struct ResourceFavoriteDeleteNetworkOperationVariable {
 
@@ -38,5 +43,3 @@ public struct ResourceFavoriteDeleteNetworkOperationVariable {
     self.favoriteID = favoriteID
   }
 }
-
-public typealias ResourceFavoriteDeleteNetworkOperationResult = Void

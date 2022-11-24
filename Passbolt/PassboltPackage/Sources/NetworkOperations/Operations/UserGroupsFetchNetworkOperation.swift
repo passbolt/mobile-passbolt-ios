@@ -26,8 +26,11 @@ import Features
 // MARK: - Interface
 
 public typealias UserGroupsFetchNetworkOperation =
-  NetworkOperation<UserGroupsFetchNetworkOperationVariable, UserGroupsFetchNetworkOperationResult>
+  NetworkOperation<UserGroupsFetchNetworkOperationDescription>
 
-public typealias UserGroupsFetchNetworkOperationVariable = Void
+public enum UserGroupsFetchNetworkOperationDescription: NetworkOperationDescription {
+
+  public typealias Output = UserGroupsFetchNetworkOperationResult
+}
 
 public typealias UserGroupsFetchNetworkOperationResult = Array<UserGroupDTO>

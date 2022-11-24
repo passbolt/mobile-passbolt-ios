@@ -27,65 +27,47 @@ import NetworkOperations
 
 extension TOTPAuthorizationNetworkOperation {
 
-  @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  @Sendable fileprivate static func requestPreparation(
+    _ input: Input
+  ) -> Mutation<HTTPRequest> {
+    .combined(
+      .pathSuffix("/mfa/verify/totp.json"),
+      .method(.post),
+      .jsonBody(
+        from: RequestBody(
+          totp: input.totp,
+          remember: input.remember
+        )
+      )
+    )
+  }
 
-    let sessionRequestExecutor: SessionNetworkRequestExecutor = try await features.instance()
-
-    @Sendable nonisolated func decodeResponse(
-      _ input: Input,
-      _ response: HTTPResponse
-    ) throws -> Output {
-      if let cookieHeaderValue: String = response.headers["Set-Cookie"],
-        let mfaCookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")
-      {
-        return .init(
-          mfaToken: .init(
-            rawValue: String(
-              cookieHeaderValue[mfaCookieBounds.upperBound...]
-                .prefix(
-                  while: { !$0.isWhitespace && $0 != "," && $0 != ";" }
-                )
-            )
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    if let cookieHeaderValue: String = response.headers["Set-Cookie"],
+      let mfaCookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")
+    {
+      return .init(
+        mfaToken: .init(
+          rawValue: String(
+            cookieHeaderValue[mfaCookieBounds.upperBound...]
+              .prefix(
+                while: { !$0.isWhitespace && $0 != "," && $0 != ";" }
+              )
           )
         )
-      }
-      else {
-        throw
-          NetworkResponseDecodingFailure
-          .error(
-            "Failed to decode MFA response cookie",
-            response: response
-          )
-      }
-    }
-
-    @SessionActor @Sendable func execute(
-      _ input: Input
-    ) async throws -> Output {
-      try await decodeResponse(
-        input,
-        sessionRequestExecutor
-          .execute(
-            .combined(
-              .pathSuffix("/mfa/verify/totp.json"),
-              .method(.post),
-              .jsonBody(
-                from: RequestBody(
-                  totp: input.totp,
-                  remember: input.remember
-                )
-              )
-            )
-          )
       )
     }
-
-    return Self(
-      execute: execute(_:)
-    )
+    else {
+      throw
+        NetworkResponseDecodingFailure
+        .error(
+          "Failed to decode MFA response cookie",
+          response: response
+        )
+    }
   }
 }
 
@@ -93,9 +75,10 @@ extension FeatureFactory {
 
   internal func usePassboltTOTPAuthorizationNetworkOperation() {
     self.use(
-      .disposable(
-        TOTPAuthorizationNetworkOperation.self,
-        load: TOTPAuthorizationNetworkOperation.load(features:)
+      .networkOperationWithSession(
+        of: TOTPAuthorizationNetworkOperation.self,
+        requestPreparation: TOTPAuthorizationNetworkOperation.requestPreparation(_:),
+        responseDecoding: TOTPAuthorizationNetworkOperation.responseDecoder(_:_:)
       )
     )
   }

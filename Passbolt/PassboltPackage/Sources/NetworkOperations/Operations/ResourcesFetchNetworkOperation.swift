@@ -26,8 +26,11 @@ import Features
 // MARK: - Interface
 
 public typealias ResourcesFetchNetworkOperation =
-  NetworkOperation<ResourcesFetchNetworkOperationVariable, ResourcesFetchNetworkOperationResult>
+  NetworkOperation<ResourcesFetchNetworkOperationDescription>
 
-public typealias ResourcesFetchNetworkOperationVariable = Void
+public enum ResourcesFetchNetworkOperationDescription: NetworkOperationDescription {
+
+  public typealias Output = ResourcesFetchNetworkOperationResult
+}
 
 public typealias ResourcesFetchNetworkOperationResult = Array<ResourceDTO>

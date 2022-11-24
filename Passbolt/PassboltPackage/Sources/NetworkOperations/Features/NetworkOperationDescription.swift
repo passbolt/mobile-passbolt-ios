@@ -21,39 +21,8 @@
 // @since         v1.0
 //
 
-import NetworkOperations
+public protocol NetworkOperationDescription {
 
-// MARK: Implementation
-
-extension ResourceFolderShareNetworkOperation {
-
-  @Sendable fileprivate static func requestPreparation(
-    _ input: Input
-  ) -> Mutation<HTTPRequest> {
-    .combined(
-      .pathSuffix("/share/folder/\(input.resourceFolderID).json"),
-      .method(.put),
-      .jsonBody(from: input.body)
-    )
-  }
-
-  @Sendable fileprivate static func responseDecoder(
-    _ input: Input,
-    _ response: HTTPResponse
-  ) throws -> Output {
-    Void()
-  }
-}
-
-extension FeatureFactory {
-
-  internal func usePassboltResourceFolderShareNetworkOperation() {
-    self.use(
-      .networkOperationWithSession(
-        of: ResourceFolderShareNetworkOperation.self,
-        requestPreparation: ResourceFolderShareNetworkOperation.requestPreparation(_:),
-        responseDecoding: ResourceFolderShareNetworkOperation.responseDecoder(_:_:)
-      )
-    )
-  }
+  associatedtype Input = Void
+  associatedtype Output = Void
 }

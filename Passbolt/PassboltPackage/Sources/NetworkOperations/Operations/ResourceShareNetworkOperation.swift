@@ -26,7 +26,12 @@ import Features
 // MARK: - Interface
 
 public typealias ResourceShareNetworkOperation =
-  NetworkOperation<ResourceShareNetworkOperationVariable, ResourceShareNetworkOperationResult>
+  NetworkOperation<ResourceShareNetworkOperationDescription>
+
+public enum ResourceShareNetworkOperationDescription: NetworkOperationDescription {
+
+  public typealias Input = ResourceShareNetworkOperationVariable
+}
 
 public struct ResourceShareNetworkOperationVariable {
 
@@ -511,5 +516,3 @@ extension ResourceShareNetworkOperationVariable.RequestBody: Encodable {
     }
   }
 }
-
-public typealias ResourceShareNetworkOperationResult = Void

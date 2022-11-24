@@ -115,13 +115,13 @@ extension ResourceFolderContentDisplayController {
       .store(in: viewState.cancellables)
 
     @Sendable nonisolated func activate() async {
-			await sessionData
-				.updatesSequence
-				.forEach {
-					await updateDisplayedItems(
-						context.filter.wrappedValue
-					)
-				}
+      await sessionData
+        .updatesSequence
+        .forEach {
+          await updateDisplayedItems(
+            context.filter.wrappedValue
+          )
+        }
     }
 
     @Sendable nonisolated func refresh() async {

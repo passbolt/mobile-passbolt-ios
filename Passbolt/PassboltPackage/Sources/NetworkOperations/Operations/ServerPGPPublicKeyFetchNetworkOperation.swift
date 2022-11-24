@@ -26,7 +26,13 @@ import Features
 // MARK: - Interface
 
 public typealias ServerPGPPublicKeyFetchNetworkOperation =
-  NetworkOperation<ServerPGPPublicKeyFetchNetworkOperationVariable, ServerPGPPublicKeyFetchNetworkOperationResult>
+  NetworkOperation<ServerPGPPublicKeyFetchNetworkOperationDescription>
+
+public enum ServerPGPPublicKeyFetchNetworkOperationDescription: NetworkOperationDescription {
+
+  public typealias Input = ServerPGPPublicKeyFetchNetworkOperationVariable
+  public typealias Output = ServerPGPPublicKeyFetchNetworkOperationResult
+}
 
 public struct ServerPGPPublicKeyFetchNetworkOperationVariable {
 

@@ -26,7 +26,13 @@ import Features
 // MARK: - Interface
 
 public typealias ServerRSAPublicKeyFetchNetworkOperation =
-  NetworkOperation<ServerRSAPublicKeyFetchNetworkOperationVariable, ServerRSAPublicKeyFetchNetworkOperationResult>
+  NetworkOperation<ServerRSAPublicKeyFetchNetworkOperationDescription>
+
+public enum ServerRSAPublicKeyFetchNetworkOperationDescription: NetworkOperationDescription {
+
+  public typealias Input = ServerRSAPublicKeyFetchNetworkOperationVariable
+  public typealias Output = ServerRSAPublicKeyFetchNetworkOperationResult
+}
 
 public struct ServerRSAPublicKeyFetchNetworkOperationVariable {
 

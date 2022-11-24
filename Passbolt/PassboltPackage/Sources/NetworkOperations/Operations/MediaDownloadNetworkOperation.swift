@@ -26,4 +26,10 @@ import Features
 // MARK: - Interface
 
 public typealias MediaDownloadNetworkOperation =
-  NetworkOperation<URLString, Data>
+  NetworkOperation<MediaDownloadNetworkOperationDescription>
+
+public enum MediaDownloadNetworkOperationDescription: NetworkOperationDescription {
+
+  public typealias Input = URLString
+  public typealias Output = Data
+}
