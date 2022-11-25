@@ -21,6 +21,28 @@
 // @since         v1.0
 //
 
-@_exported import CommonModels
-@_exported import Commons
-@_exported import Features
+import Features
+
+// MARK: - Interface
+
+public struct AccountInjection {
+
+  public var injectPreconfiguredAccounts: @Sendable () throws -> Void
+
+  public init(
+    injectPreconfiguredAccounts: @escaping @Sendable () throws -> Void
+  ) {
+    self.injectPreconfiguredAccounts = injectPreconfiguredAccounts
+  }
+}
+
+extension AccountInjection: LoadableFeature {
+
+  #if DEBUG
+  public nonisolated static var placeholder: Self {
+    .init(
+      injectPreconfiguredAccounts: unimplemented()
+    )
+  }
+  #endif
+}

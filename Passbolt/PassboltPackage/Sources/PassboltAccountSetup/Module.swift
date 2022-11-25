@@ -21,6 +21,12 @@
 // @since         v1.0
 //
 
-@_exported import CommonModels
-@_exported import Commons
-@_exported import Features
+import Features
+
+extension FeatureFactory {
+
+  public func usePassboltAccountSetupModule() {
+    self.usePassboltAccountTransfer()
+    self.usePassboltAccountInjection()
+  }
+}

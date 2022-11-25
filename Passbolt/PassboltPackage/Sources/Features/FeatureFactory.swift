@@ -595,6 +595,7 @@ extension FeatureFactory {
 
 extension FeatureFactory {
 
+  @available(*, deprecated, message: "Please switch to `LoadableFeature`")
   @MainActor public func instance<Feature>(
     of feature: Feature.Type = Feature.self
   ) async throws -> Feature
@@ -696,6 +697,7 @@ extension FeatureFactory {
     }
   }
 
+  @available(*, deprecated, message: "Please switch to `LoadableFeature`")
   @MainActor public func unload<F>(
     _ feature: F.Type
   ) async throws where F: LegacyFeature {
@@ -709,6 +711,7 @@ extension FeatureFactory {
     )
   }
 
+  @available(*, deprecated, message: "Please switch to `LoadableFeature`")
   @MainActor public func isLoaded<F>(
     _ feature: F.Type
   ) -> Bool where F: LegacyFeature {
@@ -721,12 +724,41 @@ extension FeatureFactory {
     ) != nil
   }
 
+  @available(*, deprecated, message: "Please avoid checking feature loading state.")
+  @MainActor public func isLoaded<F>(
+    _ feature: F.Type
+  ) -> Bool where F: LoadableFeature, F.Context == ContextlessFeatureContext {
+    #warning("TODO: to check if we should not check for pending instances also")
+    return self.cacheItem(
+      for: .init(
+        featureTypeIdentifier: feature.typeIdentifier,
+        featureContextIdentifier: ContextlessFeatureContext.instance.identifier
+      )
+    ) != nil
+  }
+
+  @available(*, deprecated, message: "Please avoid checking feature loading state.")
+  @MainActor public func isLoaded<F>(
+    _ feature: F.Type,
+    context: F.Context
+  ) -> Bool where F: LoadableFeature {
+    #warning("TODO: to check if we should not check for pending instances also")
+    return self.cacheItem(
+      for: .init(
+        featureTypeIdentifier: feature.typeIdentifier,
+        featureContextIdentifier: context.identifier
+      )
+    ) != nil
+  }
+
+  @available(*, deprecated, message: "Please switch to `LoadableFeature`")
   @MainActor public func loadIfNeeded<F>(
     _ feature: F.Type = F.self
   ) async throws where F: LegacyFeature {
     _ = try await instance(of: F.self)
   }
 
+  @available(*, deprecated, message: "Please switch to `LoadableFeature`")
   @MainActor public func use<F>(
     _ feature: F,
     cancellables: Cancellables = .init()
@@ -872,6 +904,7 @@ extension FeatureFactory {
     }
   }
 
+  @available(*, deprecated, message: "Please switch to `LoadableFeature`")
   @MainActor public func usePlaceholder<F>(
     for featureType: F.Type
   ) where F: LegacyFeature {
@@ -882,6 +915,7 @@ extension FeatureFactory {
     )
   }
 
+  @available(*, deprecated, message: "Please switch to `LoadableFeature`")
   @MainActor public func patch<F, P>(
     _ keyPath: WritableKeyPath<F, P>,
     with updated: P

@@ -25,6 +25,12 @@ import XCTest
 
 final class PassboltApplicationLaunchTests: UITestCase {
 
+	override var initialAccounts: Array<MockAccount> {
+		[
+			.edithClarke
+		]
+	}
+
   func test_launch_succeeds() throws {
     self.makeScreenshotAttachment()
   }

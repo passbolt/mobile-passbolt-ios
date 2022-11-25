@@ -388,6 +388,7 @@ extension AccountsDataStore {
           for: .lastUsedAccount
         )
         .flatMap { accountID in
+          guard !accountID.rawValue.isEmpty else { return .none }
           let keychainResult: Result<Account?, Error> = environment
             .keychain
             .loadFirst(

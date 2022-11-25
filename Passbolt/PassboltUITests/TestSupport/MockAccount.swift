@@ -21,6 +21,21 @@
 // @since         v1.0
 //
 
-@_exported import CommonModels
-@_exported import Commons
-@_exported import Features
+internal struct MockAccount: Encodable {
+
+	internal let userID: String
+	internal let domain: String
+	internal let username: String
+	internal let firstName: String
+	internal let lastName: String
+	internal let avatarImageURL: String
+	internal let fingerprint: String
+	internal let armoredKey: String
+}
+
+extension MockAccount {
+
+	internal var plistArgsEncoded: String {
+		"<dict><key>userID</key><string>\(self.userID)</string><key>domain</key><string>\(self.domain)</string><key>username</key><string>\(self.username)</string><key>firstName</key><string>\(self.firstName)</string><key>lastName</key><string>\(self.lastName)</string><key>avatarImageURL</key><string>\(self.avatarImageURL)</string><key>fingerprint</key><string>\(self.fingerprint)</string><key>armoredKey</key><string>\(self.armoredKey)</string></dict>"
+	}
+}

@@ -29,11 +29,29 @@ internal class UITestCase: XCTestCase {
 
   internal final lazy var application: XCUIApplication = {
     let application: XCUIApplication = .init()
+		var launchArguments: Array<String> = .init()
+		if !self.initialAccounts.isEmpty {
+			let encodedAccounts: String = self.initialAccounts.reduce(into: "") { $0.append($1.plistArgsEncoded)}
+			launchArguments.append("-com.apple.configuration.managed")
+			launchArguments.append("<dict><key>accounts</key><array>\(encodedAccounts)</array></dict>")
+			launchArguments.append("-lastUsedAccount")
+			launchArguments.append("\(self.lastUsedAccountID ?? "")")
+		}
+		else {
+			launchArguments.append("-com.apple.configuration.managed")
+			launchArguments.append("<dict><key>accounts</key><array></array></dict>")
+			launchArguments.append("-accountsList")
+			launchArguments.append("<array></array>")
+			launchArguments.append("-lastUsedAccount")
+			launchArguments.append("")
+		}
+		application.launchArguments = launchArguments
     self.applicationSetup(application: application)
     application.launch()
     return application
   }()
 
+	/// Prepare ``XCUIApplication``
   internal func applicationSetup(
     application: XCUIApplication
   ) {
@@ -49,6 +67,9 @@ internal class UITestCase: XCTestCase {
   }
 
   // MARK: Test support
+
+	internal var initialAccounts: Array<MockAccount> { .init() }
+	internal var lastUsedAccountID: String? { .none }
 
   internal final func makeScreenshotAttachment(
     _ lifetime: XCTAttachment.Lifetime = .deleteOnSuccess,

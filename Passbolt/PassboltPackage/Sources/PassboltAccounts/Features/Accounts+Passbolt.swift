@@ -35,7 +35,6 @@ extension Accounts {
   ) async throws -> Self {
     let environment: AppEnvironment = try await features.instance(of: EnvironmentLegacyBridge.self).environment
     let uuidGenerator: UUIDGenerator = environment.uuidGenerator
-    let pgp: PGP = environment.pgp
     let diagnostics: Diagnostics = features.instance()
     let session: Session = try await features.instance()
     let dataStore: AccountsDataStore = try await features.instance()
@@ -54,37 +53,16 @@ extension Accounts {
       dataStore.loadLastUsedAccount()
     }
 
-    @Sendable nonisolated func transferAccount(
-      domain: URLString,
-      userID: User.ID,
-      username: String,
-      firstName: String,
-      lastName: String,
-      avatarImageURL: URLString,
-      fingerprint: Fingerprint,
-      armoredKey: ArmoredPGPPrivateKey,
-      passphrase: Passphrase
-    ) async throws -> Account {
-      // verify passphrase
-      switch pgp.verifyPassphrase(armoredKey, passphrase) {
-      case .success:
-        break  // continue process
-
-      case let .failure(error):
-        diagnostics.log(diagnostic: "...invalid passphrase!")
-        throw
-          error
-          .asTheError()
-          .pushing(.message("Invalid passphrase used for account transfer"))
-      }
-
+    @Sendable nonisolated func addAccount(
+      _ transferedAccount: TransferedAccount
+    ) throws -> Account {
       let storedAccount: Account? =
         dataStore
         .loadAccounts()
         .first(
           where: { stored in
-            stored.userID.rawValue == userID
-              && stored.domain == domain
+            stored.userID.rawValue == transferedAccount.userID
+              && stored.domain == transferedAccount.domain
           }
         )
 
@@ -96,22 +74,22 @@ extension Accounts {
         let accountID: Account.LocalID = .init(rawValue: uuidGenerator().uuidString)
         account = .init(
           localID: accountID,
-          domain: domain,
-          userID: userID,
-          fingerprint: fingerprint
+          domain: transferedAccount.domain,
+          userID: transferedAccount.userID,
+          fingerprint: transferedAccount.fingerprint
         )
         let accountProfile: AccountProfile = .init(
           accountID: accountID,
-          label: "\(firstName) \(lastName)",  // initial label
-          username: username,
-          firstName: firstName,
-          lastName: lastName,
-          avatarImageURL: avatarImageURL
+          label: "\(transferedAccount.firstName) \(transferedAccount.lastName)",  // initial label
+          username: transferedAccount.username,
+          firstName: transferedAccount.firstName,
+          lastName: transferedAccount.lastName,
+          avatarImageURL: transferedAccount.avatarImageURL
         )
 
         do {
           try dataStore
-            .storeAccount(account, accountProfile, armoredKey)
+            .storeAccount(account, accountProfile, transferedAccount.armoredKey)
           updatesSequenceSource.sendUpdate()
         }
         catch {
@@ -122,11 +100,6 @@ extension Accounts {
           throw error
         }
       }
-      _ =
-        try await session
-        .authorize(
-          .adHoc(account, passphrase, armoredKey)
-        )
       return account
     }
 
@@ -148,17 +121,7 @@ extension Accounts {
       verifyDataIntegrity: verifyAccountsDataIntegrity,
       storedAccounts: storedAccounts,
       lastUsedAccount: lastUsedAccount,
-      transferAccount: transferAccount(
-        domain:
-        userID:
-        username:
-        firstName:
-        lastName:
-        avatarImageURL:
-        fingerprint:
-        armoredKey:
-        passphrase:
-      ),
+      addAccount: addAccount(_:),
       removeAccount: remove(account:)
     )
   }

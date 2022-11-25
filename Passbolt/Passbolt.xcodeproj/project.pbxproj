@@ -27,6 +27,8 @@
 		425A58272925109000C19E05 /* UITestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 425A58262925109000C19E05 /* UITestCase.swift */; };
 		425A582A292550AF00C19E05 /* WelcomeScreenUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 425A5829292550AF00C19E05 /* WelcomeScreenUITests.swift */; };
 		426DDBD6267CA83000EEF4F9 /* ApplicationExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 426DDBD5267CA83000EEF4F9 /* ApplicationExtension.swift */; };
+		428BD13C293615CB0040EE57 /* MockAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 428BD13B293615CB0040EE57 /* MockAccount.swift */; };
+		428BD13E293633E00040EE57 /* MockAccount+Mocks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 428BD13D293633E00040EE57 /* MockAccount+Mocks.swift */; };
 		DD38F942261746C400A6C627 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD38F941261746C400A6C627 /* AppDelegate.swift */; };
 		DD38F944261746C400A6C627 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD38F943261746C400A6C627 /* SceneDelegate.swift */; };
 		DD38F94B261746C500A6C627 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DD38F94A261746C500A6C627 /* Assets.xcassets */; };
@@ -80,6 +82,8 @@
 		425A58282925147700C19E05 /* UITestPlan.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = UITestPlan.xctestplan; sourceTree = "<group>"; };
 		425A5829292550AF00C19E05 /* WelcomeScreenUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeScreenUITests.swift; sourceTree = "<group>"; };
 		426DDBD5267CA83000EEF4F9 /* ApplicationExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationExtension.swift; sourceTree = "<group>"; };
+		428BD13B293615CB0040EE57 /* MockAccount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockAccount.swift; sourceTree = "<group>"; };
+		428BD13D293633E00040EE57 /* MockAccount+Mocks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MockAccount+Mocks.swift"; sourceTree = "<group>"; };
 		42F3883128C9DB4100B832CA /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		DD38F93E261746C400A6C627 /* Passbolt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Passbolt.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD38F941261746C400A6C627 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -142,6 +146,8 @@
 			isa = PBXGroup;
 			children = (
 				425A58262925109000C19E05 /* UITestCase.swift */,
+				428BD13B293615CB0040EE57 /* MockAccount.swift */,
+				428BD13D293633E00040EE57 /* MockAccount+Mocks.swift */,
 			);
 			path = TestSupport;
 			sourceTree = "<group>";
@@ -424,7 +430,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				425A581F29250FB700C19E05 /* PassboltApplicationLaunchTests.swift in Sources */,
+				428BD13C293615CB0040EE57 /* MockAccount.swift in Sources */,
 				425A582A292550AF00C19E05 /* WelcomeScreenUITests.swift in Sources */,
+				428BD13E293633E00040EE57 /* MockAccount+Mocks.swift in Sources */,
 				425A58272925109000C19E05 /* UITestCase.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

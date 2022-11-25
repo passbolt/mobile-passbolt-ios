@@ -24,29 +24,13 @@
 import CommonModels
 import Environment
 
+@available(*, deprecated, message: "Please switch to `MDMConfiguration`")
 public struct MDMSupport {
 
   #if DEBUG  // disabled in prod for now, it might be enabled in future
   public var transferedAccount: () -> TransferedAccount?
   #endif
 }
-
-#if DEBUG  // disabled in prod for now, it might be enabled in future
-extension MDMSupport {
-
-  public struct TransferedAccount: Decodable {
-
-    public let userID: User.ID
-    public let domain: URLString
-    public let username: String
-    public let firstName: String
-    public let lastName: String
-    public let avatarImageURL: URLString
-    public let fingerprint: Fingerprint
-    public let armoredKey: ArmoredPGPPrivateKey
-  }
-}
-#endif
 
 extension MDMSupport: LegacyFeature {
 

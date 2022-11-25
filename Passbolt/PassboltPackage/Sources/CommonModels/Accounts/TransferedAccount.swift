@@ -21,6 +21,34 @@
 // @since         v1.0
 //
 
-@_exported import CommonModels
-@_exported import Commons
-@_exported import Features
+public struct TransferedAccount: Decodable {
+
+  public let userID: User.ID
+  public let domain: URLString
+  public let username: String
+  public let firstName: String
+  public let lastName: String
+  public let avatarImageURL: URLString
+  public let fingerprint: Fingerprint
+  public let armoredKey: ArmoredPGPPrivateKey
+
+  public init(
+    userID: User.ID,
+    domain: URLString,
+    username: String,
+    firstName: String,
+    lastName: String,
+    avatarImageURL: URLString,
+    fingerprint: Fingerprint,
+    armoredKey: ArmoredPGPPrivateKey
+  ) {
+    self.userID = userID
+    self.domain = domain
+    self.username = username
+    self.firstName = firstName
+    self.lastName = lastName
+    self.avatarImageURL = avatarImageURL
+    self.fingerprint = fingerprint
+    self.armoredKey = armoredKey
+  }
+}

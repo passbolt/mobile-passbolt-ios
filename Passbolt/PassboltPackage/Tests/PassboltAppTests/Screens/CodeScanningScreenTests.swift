@@ -35,14 +35,14 @@ import XCTest
 final class CodeScanningScreenTests: MainActorTestCase {
 
   func test_exitConfirmation_isPresented_whenCallingPresent() async throws {
-    var accountTransfer: AccountTransfer = .placeholder
-    accountTransfer.progressPublisher = always(
-      Just(.configuration)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    features.patch(
+      \AccountTransfer.progressPublisher,
+      with: always(
+        Just(.configuration)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
     )
-
-    await features.use(accountTransfer)
     let controller: CodeScanningController = try await testController()
     var result: Bool!
 
@@ -59,13 +59,14 @@ final class CodeScanningScreenTests: MainActorTestCase {
   }
 
   func test_help_isPresented_whenCallingPresent() async throws {
-    var accountTransfer: AccountTransfer = .placeholder
-    accountTransfer.progressPublisher = always(
-      Just(.configuration)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    features.patch(
+      \AccountTransfer.progressPublisher,
+      with: always(
+        Just(.configuration)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(accountTransfer)
     let controller: CodeScanningController = try await testController()
     var result: Bool!
 
@@ -82,13 +83,14 @@ final class CodeScanningScreenTests: MainActorTestCase {
   }
 
   func test_initialProgress_isEmpty() async throws {
-    var accountTransfer: AccountTransfer = .placeholder
-    accountTransfer.progressPublisher = always(
-      Just(.configuration)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    features.patch(
+      \AccountTransfer.progressPublisher,
+      with: always(
+        Just(.configuration)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(accountTransfer)
     let controller: CodeScanningController = try await testController()
     var result: Double!
 

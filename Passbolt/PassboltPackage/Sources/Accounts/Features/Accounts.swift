@@ -40,20 +40,8 @@ public struct Accounts {
   public var storedAccounts: @Sendable () -> Array<Account>
   /// Last used account if any and still stored.
   public var lastUsedAccount: @Sendable () -> Account?
-  /// Saves account data locally if authorization
-  /// succeeds and creates session.
-  public var transferAccount:
-    @Sendable (
-      _ domain: URLString,
-      _ userID: User.ID,
-      _ username: String,
-      _ firstName: String,
-      _ lastName: String,
-      _ avatarImageURL: URLString,
-      _ fingerprint: Fingerprint,
-      _ armoredKey: ArmoredPGPPrivateKey,
-      _ passphrase: Passphrase
-    ) async throws -> Account
+  /// Saves account data locally.
+  public var addAccount: @Sendable (TransferedAccount) throws -> Account
   /// Delete locally stored data for given account.
   /// Closes the session for that account if needed.
   public var removeAccount: @Sendable (Account) throws -> Void
@@ -63,25 +51,14 @@ public struct Accounts {
     verifyDataIntegrity: @escaping @Sendable () throws -> Void,
     storedAccounts: @escaping @Sendable () -> Array<Account>,
     lastUsedAccount: @escaping @Sendable () -> Account?,
-    transferAccount:
-      @escaping @Sendable (
-        _ domain: URLString,
-        _ userID: User.ID,
-        _ username: String,
-        _ firstName: String,
-        _ lastName: String,
-        _ avatarImageURL: URLString,
-        _ fingerprint: Fingerprint,
-        _ armoredKey: ArmoredPGPPrivateKey,
-        _ passphrase: Passphrase
-      ) async throws -> Account,
+    addAccount: @escaping @Sendable (TransferedAccount) throws -> Account,
     removeAccount: @escaping @Sendable (Account) throws -> Void
   ) {
     self.updates = updates
     self.verifyDataIntegrity = verifyDataIntegrity
     self.storedAccounts = storedAccounts
     self.lastUsedAccount = lastUsedAccount
-    self.transferAccount = transferAccount
+    self.addAccount = addAccount
     self.removeAccount = removeAccount
   }
 }
@@ -95,7 +72,7 @@ extension Accounts: LoadableContextlessFeature {
       verifyDataIntegrity: unimplemented(),
       storedAccounts: unimplemented(),
       lastUsedAccount: unimplemented(),
-      transferAccount: unimplemented(),
+      addAccount: unimplemented(),
       removeAccount: unimplemented()
     )
   }

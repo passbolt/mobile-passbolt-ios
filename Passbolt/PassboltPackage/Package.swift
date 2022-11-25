@@ -84,6 +84,10 @@ let package = Package(
       targets: ["PassboltAccounts"]
     ),
     .library(
+      name: "PassboltAccountSetup",
+      targets: ["PassboltAccountSetup"]
+    ),
+    .library(
       name: "PassboltSession",
       targets: ["PassboltSession"]
     ),
@@ -134,26 +138,6 @@ let package = Package(
   ],
   targets: [
     // MARK: - Legacy
-    .target(
-      name: "AccountSetup",
-      dependencies: [
-        "Accounts",
-        "Commons",
-        "CommonModels",
-        "Crypto",
-        "Features",
-        "NetworkOperations",
-        "DatabaseOperations",
-        "Session",
-      ]
-    ),
-    .testTarget(
-      name: "AccountSetupTests",
-      dependencies: [
-        "AccountSetup",
-        "TestExtensions",
-      ]
-    ),
     .target(
       name: "Crypto",
       dependencies: [
@@ -239,7 +223,6 @@ let package = Package(
       name: "PassboltApp",
       dependencies: [
         // Legacy
-        "AccountSetup",
         "UIComponents",
         "Environment",
         "SharedUIComponents",
@@ -255,6 +238,7 @@ let package = Package(
         "OSFeatures",
         // Modules
         "PassboltAccounts",
+        "PassboltAccountSetup",
         "PassboltSession",
         "PassboltSessionData",
         "PassboltNetworkOperations",
@@ -472,6 +456,33 @@ let package = Package(
         "Accounts",
         "Session",
         "NetworkOperations",
+      ]
+    ),
+    .target(
+      name: "AccountSetup",
+      dependencies: [
+        // Base
+        "Commons",
+        "CommonModels",
+        "Features",
+      ]
+    ),
+    .target(
+      name: "PassboltAccountSetup",
+      dependencies: [
+        // Legacy
+        "Crypto",
+        // Base
+        "Commons",
+        "CommonModels",
+        "Features",
+        "OSFeatures",
+        // Modules
+        "Accounts",
+        "AccountSetup",
+        "NetworkOperations",
+        "DatabaseOperations",
+        "Session",
       ]
     ),
     .target(
@@ -706,6 +717,13 @@ let package = Package(
       name: "PassboltAccountsTests",
       dependencies: [
         "PassboltAccounts",
+        "TestExtensions",
+      ]
+    ),
+    .testTarget(
+      name: "PassboltAccountSetupTests",
+      dependencies: [
+        "PassboltAccountSetup",
         "TestExtensions",
       ]
     ),

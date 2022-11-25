@@ -23,6 +23,7 @@
 
 import Display
 import Features
+import PassboltAccountSetup
 import PassboltAccounts
 import PassboltDatabaseOperations
 import PassboltNetworkOperations
@@ -44,6 +45,7 @@ extension FeatureFactory {
 
     self.usePassboltNetworkModule()
     self.usePassboltAccountsModule()
+    self.usePassboltAccountSetupModule()
     self.usePassboltDatabaseOperationsModule()
     self.usePassboltNetworkOperationsModule()
     self.usePassboltResourcesModule()

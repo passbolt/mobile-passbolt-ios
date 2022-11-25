@@ -35,14 +35,15 @@ import XCTest
 final class CodeReaderScreenTests: MainActorTestCase {
 
   func test_processPayload_passesPayloadToAccountTransfer() async throws {
-    var accountTransfer: AccountTransfer = .placeholder
     var result: String?
-    accountTransfer.processPayload = { payload in
-      result = payload
-      return Empty<Never, Error>()
-        .eraseToAnyPublisher()
-    }
-    await features.use(accountTransfer)
+    features.patch(
+      \AccountTransfer.processPayload,
+      with: { payload in
+        result = payload
+        return Empty<Never, Error>()
+          .eraseToAnyPublisher()
+      }
+    )
     let controller: CodeReaderController = try await testController()
 
     _ =

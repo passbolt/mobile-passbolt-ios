@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import AccountSetup
 import Accounts
 import Features
 import UICommons
@@ -46,6 +47,14 @@ extension Initialization: LegacyFeature {
       defer { diagnostics.log(diagnostic: "...app initialization completed!") }
       // initialize application extension features here
       analytics()
+      // insert preconfigured accounts
+      let accountInjection: AccountInjection = try await features.instance()
+      do {
+        try accountInjection.injectPreconfiguredAccounts()
+      }
+      catch {
+        diagnostics.log(error: error)
+      }
       // load features that require root scope
       try await features.loadIfNeeded(Executors.self)
       try await features.loadIfNeeded(UpdateCheck.self)
@@ -54,7 +63,6 @@ extension Initialization: LegacyFeature {
       try await features.loadIfNeeded(Pasteboard.self)
       try await features.loadIfNeeded(MDMSupport.self)
       try await features.loadIfNeeded(AutoFill.self)
-
       try await features.unload(Initialization.self)
     }
 

@@ -78,7 +78,7 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
     XCTAssertNotNil(result)
   }
 
-  func test_storeTransferedAccount_storesDataInAccountsDataStore() async throws {
+  func test_addAccount_storesDataInAccountsDataStore() async throws {
     let expectedResult: AccountWithProfile = .init(
       localID: .init(rawValue: UUID.test.uuidString),
       userID: .init(rawValue: UUID.test.uuidString),
@@ -122,17 +122,18 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
     let accounts: Accounts = try await testedInstance()
 
     _ =
-      try await accounts
-      .transferAccount(
-        expectedResult.domain,
-        expectedResult.userID,
-        expectedResult.username,
-        expectedResult.firstName,
-        expectedResult.lastName,
-        expectedResult.avatarImageURL,
-        expectedResult.fingerprint,
-        validPrivateKey,
-        validPassphrase
+      try accounts
+      .addAccount(
+        .init(
+          userID: expectedResult.userID,
+          domain: expectedResult.domain,
+          username: expectedResult.username,
+          firstName: expectedResult.firstName,
+          lastName: expectedResult.lastName,
+          avatarImageURL: expectedResult.avatarImageURL,
+          fingerprint: expectedResult.fingerprint,
+          armoredKey: validPrivateKey
+        )
       )
 
     XCTAssertEqual(result?.account, expectedResult.account)
@@ -140,7 +141,7 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
     XCTAssertEqual(result?.armoredKey, validPrivateKey)
   }
 
-  func test_storeTransferedAccount_continuesWithoutStoring_whenAccountAlreadyStored() async throws {
+  func test_addAccount_continuesWithoutStoring_whenAccountAlreadyStored() async throws {
     patch(
       \Session.authorize,
       with: always(Void())
@@ -163,17 +164,18 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
     var result: Error?
     do {
       _ =
-        try await accounts
-        .transferAccount(
-          AccountWithProfile.mock_ada.domain,
-          AccountWithProfile.mock_ada.userID,
-          AccountWithProfile.mock_ada.username,
-          AccountWithProfile.mock_ada.firstName,
-          AccountWithProfile.mock_ada.lastName,
-          AccountWithProfile.mock_ada.avatarImageURL,
-          AccountWithProfile.mock_ada.fingerprint,
-          validPrivateKey,
-          validPassphrase
+        try accounts
+        .addAccount(
+          .init(
+            userID: AccountWithProfile.mock_ada.userID,
+            domain: AccountWithProfile.mock_ada.domain,
+            username: AccountWithProfile.mock_ada.username,
+            firstName: AccountWithProfile.mock_ada.firstName,
+            lastName: AccountWithProfile.mock_ada.lastName,
+            avatarImageURL: AccountWithProfile.mock_ada.avatarImageURL,
+            fingerprint: AccountWithProfile.mock_ada.fingerprint,
+            armoredKey: validPrivateKey
+          )
         )
     }
     catch {
@@ -181,41 +183,6 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
     }
 
     XCTAssertNil(result)
-  }
-
-  func test_storeTransferedAccount_fails_withInvalidPassphrase() async throws {
-    patch(
-      \AccountsDataStore.loadAccounts,
-      with: always([])
-    )
-    patch(
-      environment: \.pgp.verifyPassphrase,
-      with: always(.failure(MockIssue.error()))
-    )
-
-    let accounts: Accounts = try await testedInstance()
-
-    var result: Error?
-    do {
-      _ =
-        try await accounts
-        .transferAccount(
-          AccountWithProfile.mock_ada.domain,
-          AccountWithProfile.mock_ada.userID,
-          AccountWithProfile.mock_ada.username,
-          AccountWithProfile.mock_ada.firstName,
-          AccountWithProfile.mock_ada.lastName,
-          AccountWithProfile.mock_ada.avatarImageURL,
-          AccountWithProfile.mock_ada.fingerprint,
-          validPrivateKey,
-          validPassphrase
-        )
-    }
-    catch {
-      result = error
-    }
-
-    XCTAssertError(result, matches: MockIssue.self)
   }
 
   func test_removeAccount_removesDataFromAccountsDataStore() async throws {
