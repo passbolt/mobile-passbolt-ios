@@ -26,8 +26,7 @@ import Commons
 // MARK: - Interface
 
 @dynamicMemberLookup
-public struct StoredProperty<Value> {
-
+public struct StoredProperty<Value>: Sendable where Value: Sendable {
   public var binding: StateBinding<Value?>
 }
 
@@ -43,13 +42,13 @@ extension StoredProperty {
     set { self.binding.set(to: newValue) }
   }
 
-  public func set(
+  @Sendable public func set(
     to newValue: Value?
   ) {
     self.binding.set(to: newValue)
   }
 
-  public func get(
+  @Sendable public func get(
     withDefault value: Value
   ) -> Value {
     self.binding.get() ?? value

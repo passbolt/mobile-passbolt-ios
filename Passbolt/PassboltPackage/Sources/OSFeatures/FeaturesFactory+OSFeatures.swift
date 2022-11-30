@@ -30,6 +30,7 @@ extension FeatureFactory {
     self.useOSFiles()
     self.useOSBiometry()
     self.useOSExtensions()
+    self.useOSRateApp()
     self.useMDMConfiguration()
   }
 }

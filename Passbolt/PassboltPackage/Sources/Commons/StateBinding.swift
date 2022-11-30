@@ -116,17 +116,17 @@ public struct StateBinding<Value> {
 
 extension StateBinding {
 
-  public func get<Property>(
+  @Sendable public func get<Property>(
     _ keyPath: KeyPath<Value, Property>
   ) -> Property {
     self.read()[keyPath: keyPath]
   }
 
-  public func get() -> Value {
+  @Sendable public func get() -> Value {
     self.read()
   }
 
-  public func set<Property>(
+  @Sendable public func set<Property>(
     _ keyPath: WritableKeyPath<Value, Property>,
     to newValue: Property
   ) {
@@ -135,7 +135,7 @@ extension StateBinding {
     }
   }
 
-  public func set(
+  @Sendable public func set(
     to newValue: Value
   ) {
     self.mutate { (value: inout Value) in
@@ -144,7 +144,7 @@ extension StateBinding {
   }
 
   // mutate without triggering observers multiple times
-  public func mutate<Returned>(
+  @Sendable public func mutate<Returned>(
     _ mutation: (inout Value) throws -> Returned
   ) rethrows -> Returned {
     var value = self.read()

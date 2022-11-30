@@ -27,8 +27,7 @@ import UIComponents
 internal struct HomeTabNavigationController {
 
   internal var currentHomePresentationModePublisher: @MainActor () -> AnyPublisher<HomePresentationMode, Never>
-  internal var presentHomePresentationMenu: @MainActor () -> Void
-  internal var homePresentationMenuPresentationPublisher: @MainActor () -> AnyPublisher<HomePresentationMode, Never>
+  internal var presentApplicationRateDialogIfRequired: @MainActor () -> Void
 }
 extension HomeTabNavigationController: UIController {
 
@@ -40,32 +39,19 @@ extension HomeTabNavigationController: UIController {
     cancellables: Cancellables
   ) async throws -> Self {
     let homePresentation: HomePresentation = try await features.instance()
-
-    let homePresentationMenuPresentationSubject: PassthroughSubject<Void, Never> = .init()
+    let applicationRate: ApplicationRating = try await features.instance()
 
     func currentHomePresentationModePublisher() -> AnyPublisher<HomePresentationMode, Never> {
       homePresentation.currentPresentationModePublisher()
     }
 
-    func presentHomePresentationMenu() {
-      homePresentationMenuPresentationSubject.send()
-    }
-
-    func homePresentationMenuPresentationPublisher() -> AnyPublisher<HomePresentationMode, Never> {
-      homePresentation
-        .currentPresentationModePublisher()
-        .map { mode in
-          homePresentationMenuPresentationSubject
-            .map { mode }
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
+    func presentApplicationRateDialog() {
+      applicationRate.showApplicationRatingIfRequired()
     }
 
     return Self(
       currentHomePresentationModePublisher: currentHomePresentationModePublisher,
-      presentHomePresentationMenu: presentHomePresentationMenu,
-      homePresentationMenuPresentationPublisher: homePresentationMenuPresentationPublisher
+      presentApplicationRateDialogIfRequired: presentApplicationRateDialog
     )
   }
 }

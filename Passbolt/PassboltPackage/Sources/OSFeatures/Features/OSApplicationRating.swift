@@ -21,39 +21,59 @@
 // @since         v1.0
 //
 
-import Display
 import Features
-import PassboltAccountSetup
-import PassboltAccounts
-import PassboltDatabaseOperations
-import PassboltNetworkOperations
-import PassboltResources
-import PassboltSession
-import PassboltSessionData
-import PassboltUsers
+import Foundation
+import StoreKit
+import UIKit
+
+// MARK: - Interface
+
+public struct OSApplicationRating {
+  public var requestApplicationRating: @MainActor () -> Void
+}
+
+extension OSApplicationRating: StaticFeature {
+
+  #if DEBUG
+  nonisolated public static var placeholder: Self {
+    Self(
+      requestApplicationRating: unimplemented()
+    )
+  }
+  #endif
+}
+
+// MARK: - Implementation
+
+extension OSApplicationRating {
+
+  fileprivate static var live: Self {
+    @MainActor func requestRateApp() {
+      guard
+        let scene = UIApplication
+          .shared
+          .connectedScenes
+          .filter({ $0.activationState == .foregroundActive })
+          .compactMap({ $0 as? UIWindowScene })
+          .first
+      else {
+        assertionFailure("UIApplication has no foreground window active")
+        return
+      }
+      SKStoreReviewController.requestReview(in: scene)
+    }
+
+    return Self(
+      requestApplicationRating: requestRateApp
+    )
+  }
+}
 
 extension FeatureFactory {
 
-  @MainActor public func usePassboltFeatures() {
-    self.useOSDiagnostics()
-    self.useOSFeatures()
-
-    self.useLiveDisplay()
-
-    self.usePassboltCommonStaticFeatures()
-    self.usePassboltCommonLoadableFeatures()
-
-    self.usePassboltNetworkModule()
-    self.usePassboltAccountsModule()
-    self.usePassboltAccountSetupModule()
-    self.usePassboltDatabaseOperationsModule()
-    self.usePassboltNetworkOperationsModule()
-    self.usePassboltResourcesModule()
-    self.usePassboltSessionModule()
-    self.usePassboltSessionDataModule()
-    self.usePassboltUsersModule()
-    self.usePassboltApplicationRatingFeature()
-
-    self.useLiveScreenControllers()
+  internal func useOSRateApp() {
+    self.use(
+      OSApplicationRating.live
+    )
   }
 }
