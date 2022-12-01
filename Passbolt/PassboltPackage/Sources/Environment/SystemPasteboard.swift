@@ -68,21 +68,3 @@ extension SystemPasteboard {
   }
 }
 #endif
-
-extension TheErrorLegacy {
-
-  public static func invalidPasteValue(
-    underlyingError: Error? = nil
-  ) -> Self {
-    .init(
-      identifier: .invalidPasteValue,
-      underlyingError: underlyingError,
-      extensions: [:]
-    )
-  }
-}
-
-extension TheErrorLegacy.ID {
-
-  public static let invalidPasteValue: Self = "invalidPasteValue"
-}

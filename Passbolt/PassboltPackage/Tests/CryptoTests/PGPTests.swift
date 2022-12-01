@@ -56,6 +56,12 @@ final class PGPTests: XCTestCase {
       privateKey,
       publicKey
     )
+    do {
+      try output.get()
+    }
+    catch {
+      print(type(of: (error as? PGPIssue)?.underlyingError))
+    }
 
     XCTAssertFailureUnderlyingError(
       output,

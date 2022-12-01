@@ -180,7 +180,7 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
               )
               await self?.popAll(Self.self, animated: false)
 
-            case let .failure(error) where (error is Cancelled || error.asLegacy.identifier == .canceled):
+            case let .failure(error) where error is Cancelled:
               switch self?.navigationController {
               case .some(_ as WelcomeNavigationViewController):
                 await self?.popToRoot()
@@ -200,7 +200,7 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
                 await self?.dismiss(Self.self)
               }
 
-            case let .failure(error) where error.asLegacy.legacyBridge is AccountDuplicate:
+            case let .failure(error) where error is AccountDuplicate:
               await self?.push(
                 CodeScanningDuplicateViewController.self
               )

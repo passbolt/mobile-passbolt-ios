@@ -170,12 +170,14 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
               )
             }
           )
-          .handleErrors(
-            ([.canceled], handler: { _ in return true }),
-            defaultHandler: { [weak self] error in
+          .handleErrors { [weak self] error in
+            switch error {
+            case is Cancelled:
+              return /* NOP */
+            case _:
               self?.presentErrorSnackbar(error.displayableMessage)
             }
-          )
+          }
           .mapToVoid()
           .replaceError(with: Void())
       }
@@ -230,12 +232,14 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
               assertionFailure("Undefined field: \(name)")
             }
           })
-          .handleErrors(
-            ([.canceled], handler: { _ in true /* NOP */ }),
-            defaultHandler: { [weak self] error in
+          .handleErrors { [weak self] error in
+            switch error {
+            case is Cancelled:
+              return /* NOP */
+            case _:
               self?.presentErrorSnackbar(error.displayableMessage)
             }
-          )
+          }
           .mapToVoid()
           .replaceError(with: Void())
           .eraseToAnyPublisher()
@@ -305,15 +309,14 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                     )
                   )
                 }
-                .handleErrors(
-                  (
-                    [.canceled],
-                    handler: { _ in true /* NOP */ }
-                  ),
-                  defaultHandler: { [weak self] error in
+                .handleErrors { [weak self] error in
+                  switch error {
+                  case is Cancelled:
+                    return /* NOP */
+                  case _:
                     self?.presentErrorSnackbar(error.displayableMessage)
                   }
-                )
+                }
                 .handleEnd { [weak self] ending in
                   self?.resourceDetailsCancellable = nil
 

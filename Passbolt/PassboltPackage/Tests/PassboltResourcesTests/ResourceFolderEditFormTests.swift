@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import SessionData
 import TestExtensions
 
 @testable import PassboltResources

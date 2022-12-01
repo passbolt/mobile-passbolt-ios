@@ -82,8 +82,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
 
     XCTAssertError(
       result,
-      matches: TheErrorLegacy.self,
-      verification: { $0.identifier == .invalidOrMissingResourceType }
+      matches: InvalidResourceType.self
     )
   }
 
@@ -111,8 +110,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
 
     XCTAssertError(
       result,
-      matches: TheErrorLegacy.self,
-      verification: { $0.identifier == .invalidOrMissingResourceType }
+      matches: InvalidResourceType.self
     )
   }
 
@@ -265,8 +263,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
 
     XCTAssertError(
       result,
-      matches: TheErrorLegacy.self,
-      verification: { $0.identifier == .invalidOrMissingResourceType }
+      matches: InvalidResourceType.self
     )
   }
 

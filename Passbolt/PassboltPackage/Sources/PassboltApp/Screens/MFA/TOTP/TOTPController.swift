@@ -122,7 +122,7 @@ extension TOTPController: UIController {
         otpSubject.value = pasted
       }
       else {
-        statusChangeSubject.send(.error(TheErrorLegacy.invalidPasteValue()))
+        statusChangeSubject.send(.error(InvalidPasteValue.error()))
       }
     }
 

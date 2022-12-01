@@ -198,53 +198,42 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
               self?.dismissOverlay()
             }
           )
-          .handleErrors(
-            (
-              [.canceled],
-              handler: { _ in true /* NOP */ }
-            ),
-            defaultHandler: { [weak self] error in
+          .handleErrors { [weak self] error in
+            switch error {
+            case is Cancelled:
+              return /* NOP */
+
+            case let serverError as ServerConnectionIssue:
               self?.cancellables.executeOnMainActor { [weak self] in
-                if let theError: TheError = error.asLegacy.legacyBridge {
-                  if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
-                    await self?.present(
-                      ServerNotReachableAlertViewController.self,
-                      in: serverError.serverURL
-                    )
-                  }
-                  else if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
-                    await self?.present(
-                      ServerNotReachableAlertViewController.self,
-                      in: serverError.serverURL
-                    )
-                  }
-                  else if let serverError: ServerResponseTimeout = theError as? ServerResponseTimeout {
-                    await self?.present(
-                      ServerNotReachableAlertViewController.self,
-                      in: serverError.serverURL
-                    )
-                  }
-                  else if theError is AccountBiometryDataChanged {
-                    self?.presentErrorSnackbar(
-                      .localized(
-                        key: "sign.in.error.biometrics.changed.message"
-                      ),
-                      hideAfter: 5
-                    )
-                  }
-                  else if theError is SessionMFAAuthorizationRequired {
-                    // ignore, handled by window controller
-                  }
-                  else {
-                    self?.presentErrorSnackbar(theError.displayableMessage)
-                  }
-                }
-                else {
-                  self?.presentErrorSnackbar(error.displayableMessage)
-                }
+                await self?.present(
+                  ServerNotReachableAlertViewController.self,
+                  in: serverError.serverURL
+                )
               }
+
+            case let serverError as ServerConnectionIssue:
+              self?.cancellables.executeOnMainActor { [weak self] in
+                await self?.present(
+                  ServerNotReachableAlertViewController.self,
+                  in: serverError.serverURL
+                )
+              }
+
+            case let serverError as ServerResponseTimeout:
+              self?.cancellables.executeOnMainActor { [weak self] in
+                await self?.present(
+                  ServerNotReachableAlertViewController.self,
+                  in: serverError.serverURL
+                )
+              }
+
+            case is SessionMFAAuthorizationRequired:
+              return  // ignore, handled by window controller
+
+            case _:
+              self?.presentErrorSnackbar(error.displayableMessage)
             }
-          )
+          }
           .sinkDrop()
           .store(in: self.cancellables)
       }

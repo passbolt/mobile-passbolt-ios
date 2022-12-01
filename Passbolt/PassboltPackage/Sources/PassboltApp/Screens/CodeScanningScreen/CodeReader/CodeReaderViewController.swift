@@ -151,55 +151,41 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
         )
       })
       .receive(on: RunLoop.main)
-      .handleErrors(
-        ([.canceled], handler: { _ in true /* NOP */ }),
-        (
-          [.accountTransferScanningRecoverableError],
-          handler: { [weak self] error in
-            guard error.context?.contains("invalid-version-or-code") ?? false
-            else { return false }
-            self?.present(
-              snackbar: Mutation<UICommons.PlainView>
-                .snackBarErrorMessage(.localized("code.scanning.processing.invalid.code"))
-                .instantiate(),
-              hideAfter: 3
+      .handleErrors { [weak self] error in
+        switch error {
+        case is Cancelled:
+          return /* NOP */
+
+        case let serverError as ServerConnectionIssue:
+          Task {
+            await self?.present(
+              ServerNotReachableAlertViewController.self,
+              in: serverError.serverURL
             )
-            return true
           }
-        ),
-        defaultHandler: { [weak self] error in
-          self?.cancellables.executeOnMainActor { [weak self] in
-            if let theError: TheError = error.asLegacy.legacyBridge {
-              if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
-                await self?.present(
-                  ServerNotReachableAlertViewController.self,
-                  in: serverError.serverURL
-                )
-              }
-              else if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
-                await self?.present(
-                  ServerNotReachableAlertViewController.self,
-                  in: serverError.serverURL
-                )
-              }
-              else if let serverError: ServerResponseTimeout = theError as? ServerResponseTimeout {
-                await self?.present(
-                  ServerNotReachableAlertViewController.self,
-                  in: serverError.serverURL
-                )
-              }
-              else {
-                self?.presentErrorSnackbar(theError.displayableMessage)
-              }
-            }
-            else {
-              self?.presentErrorSnackbar(error.displayableMessage)
-            }
+
+        case let serverError as ServerConnectionIssue:
+          Task {
+            await self?.present(
+              ServerNotReachableAlertViewController.self,
+              in: serverError.serverURL
+            )
           }
+
+        case let serverError as ServerResponseTimeout:
+          Task {
+            await self?.present(
+              ServerNotReachableAlertViewController.self,
+              in: serverError.serverURL
+            )
+          }
+
+        case _:
+          self?.presentErrorSnackbar(error.displayableMessage)
         }
-      )
+      }
       .handleEnd { [weak self] ending in
-        if case let .failed(error) = ending, (error as? TheErrorLegacy)?.identifier != .canceled {
+        if case let .failed(error) = ending, !(error is Cancelled) {
           // Delay unlocking QRCode processing until error message becomes visible for some time.
           // It will blink rapidly otherwise if camera is still pointing into invalid QRCode.
           self?.captureMetadataQueue.asyncAfter(deadline: .now() + 1.5) { [weak self] in

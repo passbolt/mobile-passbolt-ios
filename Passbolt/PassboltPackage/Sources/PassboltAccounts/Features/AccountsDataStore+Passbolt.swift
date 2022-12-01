@@ -278,6 +278,7 @@ extension AccountsDataStore {
           diagnostics.log(diagnostic: "Failed to delete stored passphrases")
           throw
             error
+            .asTheError()
             .pushing(.message("Failed to delete stored passphrases"))
         }
       }

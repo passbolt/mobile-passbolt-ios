@@ -24,6 +24,8 @@
 import DatabaseOperations
 import Users
 
+import struct Foundation.Data
+
 // MARK: - Implementation
 
 extension Users {

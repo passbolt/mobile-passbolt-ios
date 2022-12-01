@@ -177,21 +177,3 @@ extension Biometrics {
   }
 }
 #endif
-
-extension TheErrorLegacy {
-
-  public static func biometricsUnavailable(
-    underlyingError: Error? = nil
-  ) -> Self {
-    .init(
-      identifier: .biometricsUnavailable,
-      underlyingError: underlyingError,
-      extensions: .init()
-    )
-  }
-}
-
-extension TheErrorLegacy.ID {
-
-  public static var biometricsUnavailable: Self { "biometricsUnavailable" }
-}

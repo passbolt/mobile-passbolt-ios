@@ -48,7 +48,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
     )
     withTestedInstanceThrows(
       SessionMissing.self,
-      context: Account.mock_ada
+      context: .init(account: Account.mock_ada)
     ) { (testedInstance: SessionPassphrase) in
       try await testedInstance.storeWithBiometry(true)
     }
@@ -65,7 +65,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
     )
     withTestedInstanceThrows(
       MockIssue.self,
-      context: Account.mock_ada
+      context: .init(account: Account.mock_ada)
     ) { (testedInstance: SessionPassphrase) in
       try await testedInstance.storeWithBiometry(true)
     }
@@ -86,7 +86,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
     )
     withTestedInstanceThrows(
       MockIssue.self,
-      context: Account.mock_ada
+      context: .init(account: Account.mock_ada)
     ) { (testedInstance: SessionPassphrase) in
       try await testedInstance.storeWithBiometry(true)
     }
@@ -106,7 +106,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
       with: always(Void())
     )
     withTestedInstanceNotThrows(
-      context: Account.mock_ada
+      context: .init(account: Account.mock_ada)
     ) { (testedInstance: SessionPassphrase) in
       try await testedInstance.storeWithBiometry(true)
     }
@@ -122,7 +122,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
       with: always(Void())
     )
     withTestedInstanceNotThrows(
-      context: Account.mock_ada
+      context: .init(account: Account.mock_ada)
     ) { (testedInstance: SessionPassphrase) in
       try await testedInstance.storeWithBiometry(false)
     }
@@ -139,7 +139,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
     )
     withTestedInstanceThrows(
       MockIssue.self,
-      context: Account.mock_ada
+      context: .init(account: Account.mock_ada)
     ) { (testedInstance: SessionPassphrase) in
       try await testedInstance.storeWithBiometry(false)
     }

@@ -142,12 +142,14 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
               }
             }
           })
-          .handleErrors(
-            ([.canceled], handler: { _ in true /* NOP */ }),
-            defaultHandler: { [weak self] error in
+          .handleErrors { [weak self] error in
+            switch error {
+            case is Cancelled:
+              return /* NOP */
+            case _:
               self?.presentErrorSnackbar(error.displayableMessage)
             }
-          )
+          }
           .mapToVoid()
           .replaceError(with: Void())
           .eraseToAnyPublisher()

@@ -82,7 +82,7 @@ final class ErrorViewController: PlainViewController, UIComponent {
         catch {
           self.dismissOverlay()
           self.presentErrorSnackbar(
-            error.displayableMessage
+            error.asTheError().displayableMessage
           )
         }
       }

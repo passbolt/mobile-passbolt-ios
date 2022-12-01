@@ -344,7 +344,7 @@ extension SessionNetworkAuthorization {
       }
 
       guard
-        let signature: Data = accessToken.signature.base64DecodeFromURLEncoded(),
+        let signature: Data = accessToken.signature.rawValue.base64DecodeFromURLEncoded(),
         let signedData: Data = accessToken.signedPayload.data(using: .utf8)
       else {
         throw

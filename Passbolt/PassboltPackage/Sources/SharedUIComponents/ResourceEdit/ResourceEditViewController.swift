@@ -114,18 +114,17 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
     controller
       .resourcePropertiesPublisher()
       .receive(on: RunLoop.main)
-      .handleErrors(
-        (
-          [.canceled],
-          handler: { _ in true }
-        ),
-        defaultHandler: { [weak self] error in
+      .handleErrors { [weak self] error in
+        switch error {
+        case is Cancelled:
+          return /* NOP */
+        case _:
           self?.cancellables.executeOnMainActor { [weak self] in
             self?.presentErrorSnackbar(error.displayableMessage)
             await self?.pop(if: Self.self)
           }
         }
-      )
+      }
       .sink(
         receiveCompletion: { _ in /* NOP */ },
         receiveValue: { [weak self] fields in
@@ -159,15 +158,14 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
               )
             )
           }
-          .handleErrors(
-            (
-              [.canceled],
-              handler: { _ in true /* NOP */ }
-            ),
-            defaultHandler: { [weak self] error in
+          .handleErrors { [weak self] error in
+            switch error {
+            case is Cancelled:
+              return /* NOP */
+            case _:
               self?.presentErrorSnackbar(error.displayableMessage)
             }
-          )
+          }
           .handleEnd { [weak self] ending in
             self?.cancellables.executeOnMainActor { [weak self] in
               self?.dismissOverlay()

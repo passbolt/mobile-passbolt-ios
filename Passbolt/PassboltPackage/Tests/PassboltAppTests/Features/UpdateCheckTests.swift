@@ -71,7 +71,7 @@ final class UpdateCheckTests: MainActorTestCase {
     catch {
       result = error
     }
-    XCTAssertError(result, matches: TheErrorLegacy.self, verification: { $0.identifier == .versionCheckFailed })
+    XCTAssertError(result, matches: ApplicationVersionOutdated.self)
   }
 
   func test_updateAvailable_throws_whenFetchedAvailableVersionIsInvalid() async throws {
@@ -99,7 +99,7 @@ final class UpdateCheckTests: MainActorTestCase {
     catch {
       result = error
     }
-    XCTAssertError(result, matches: TheErrorLegacy.self, verification: { $0.identifier == .versionCheckFailed })
+    XCTAssertError(result, matches: ApplicationVersionOutdated.self)
   }
 
   func test_updateAvailable_throws_whenFetchedAvailableVersionIsNotFullyValid() async throws {
@@ -127,7 +127,7 @@ final class UpdateCheckTests: MainActorTestCase {
     catch {
       result = error
     }
-    XCTAssertError(result, matches: TheErrorLegacy.self, verification: { $0.identifier == .versionCheckFailed })
+    XCTAssertError(result, matches: ApplicationVersionOutdated.self)
   }
 
   func test_updateAvailable_throws_whenAppMetaVersionIsInvalid() async throws {
@@ -155,7 +155,7 @@ final class UpdateCheckTests: MainActorTestCase {
     catch {
       result = error
     }
-    XCTAssertError(result, matches: TheErrorLegacy.self, verification: { $0.identifier == .versionCheckFailed })
+    XCTAssertError(result, matches: ApplicationVersionOutdated.self)
   }
 
   func test_checkRequired_returnsTrue_whenNotCheckedYet() async throws {

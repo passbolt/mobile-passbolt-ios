@@ -237,7 +237,7 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
                 .sink { [weak self] completion in
                   guard
                     case let .failure(error) = completion,
-                    !(error.asLegacy.legacyBridge is SessionAuthorizationRequired)
+                    !(error is SessionAuthorizationRequired)
                   else { return }
                   guard let self = self else { return }
 
@@ -265,7 +265,7 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
           .sink { [weak self] completion in
             guard
               case let .failure(error) = completion,
-              !(error.asLegacy.legacyBridge is SessionAuthorizationRequired)
+              !(error is SessionAuthorizationRequired)
             else { return }
             guard let self = self else { return }
 

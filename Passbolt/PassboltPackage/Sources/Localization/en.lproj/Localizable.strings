@@ -436,6 +436,7 @@ Contact your administrator for more information.";
 "error.account.data.missing" = "Account data missing.";
 "error.account.biometry.data.changed" = "Biometrics data has changed.";
 "error.users.list.empty" = "Users list can't be empty.";
+"error.user.public.key.invalid" = "Invalid user public key.";
 "error.user.public.key.missing" = "Missing user public key.";
 "error.user.secret.missing" = "Missing user secret.";
 "error.session.closed" = "Session closed.";
@@ -450,3 +451,4 @@ Contact your administrator for more information.";
 "error.validation.permissions.owner.required" = "There have to be at least one owner.";
 
 "error.validation.form.invalid" = "Form is not valid.";
+"error.biometrics.unavailable.message" = "Biometrics unavailable";

@@ -360,9 +360,25 @@ public func XCTAssertFailureUnderlyingError<Value, Failure, ExpectedRootError, E
       line: line
     )
   }
+  guard let rootError: ExpectedRootError = error as? ExpectedRootError
+  else {
+    return XCTFail(
+      message() ?? "\(type(of: error)) is not matching expected root error",
+      file: file,
+      line: line
+    )
+  }
+  guard let expectedError: ExpectedError = rootError.underlyingError as? ExpectedError
+  else {
+    return XCTFail(
+      message() ?? "\(type(of: rootError.underlyingError)) is not matching expected error",
+      file: file,
+      line: line
+    )
+  }
   XCTAssert(
-    ((error as? ExpectedRootError)?.underlyingError as? ExpectedError).map(verification) ?? false,
-    message() ?? "\(type(of: (error as? TheErrorWrapper)?.underlyingError)) is not matching \(ExpectedError.self)",
+    verification(expectedError),
+    message() ?? "\(expectedError) is not passing verification",
     file: file,
     line: line
   )

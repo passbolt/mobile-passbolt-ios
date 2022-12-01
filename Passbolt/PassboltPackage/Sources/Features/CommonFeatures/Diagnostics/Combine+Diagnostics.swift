@@ -24,29 +24,6 @@
 import CommonModels
 import Environment
 
-extension Publisher where Failure == TheErrorLegacy {
-
-  public func collectErrorLog(
-    withPrefix prefix: StaticString = "",
-    using diagnostics: Diagnostics
-  ) -> Publishers.HandleEvents<Self> {
-    handleEvents(receiveCompletion: { completion in
-      switch completion {
-      case .finished, .failure(.canceled):
-        break
-
-      case let .failure(error):
-        if let theError: TheError = error.legacyBridge {
-          diagnostics.log(error: theError)
-        }
-        else {
-          diagnostics.log(error: error)
-        }
-      }
-    })
-  }
-}
-
 extension Publisher {
 
   public func collectErrorLog(
@@ -65,17 +42,6 @@ extension Publisher {
         case let .failure(error)
         where error is CancellationError:
           break
-
-        // TODO: remove after migrating to TheError
-        case let .failure(error as TheErrorLegacy):
-          guard error.identifier != .canceled
-          else { return }
-          if let theError: TheError = error.legacyBridge {
-            diagnostics.log(error: theError)
-          }
-          else {
-            diagnostics.log(error: error)
-          }
 
         case let .failure(error):
           diagnostics.log(error: error)

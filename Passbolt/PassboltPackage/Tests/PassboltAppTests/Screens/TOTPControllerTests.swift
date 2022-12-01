@@ -178,7 +178,7 @@ final class TOTPControllerTests: MainActorTestCase {
 
     guard case let .error(error) = result
     else { return XCTFail() }
-    XCTAssertError(error, matches: TheErrorLegacy.self, verification: { $0.identifier == .invalidPasteValue })
+    XCTAssertError(error, matches: InvalidPasteValue.self)
   }
 
   func test_statusChangePublisher_publishError_whenPastingTooLongOTP() async throws {
@@ -206,7 +206,7 @@ final class TOTPControllerTests: MainActorTestCase {
 
     guard case let .error(error) = result
     else { return XCTFail() }
-    XCTAssertError(error, matches: TheErrorLegacy.self, verification: { $0.identifier == .invalidPasteValue })
+    XCTAssertError(error, matches: InvalidPasteValue.self)
   }
 
   func test_setOTP_doesNotStartProcessing_whenOTPIsShorterThanRequired() async throws {

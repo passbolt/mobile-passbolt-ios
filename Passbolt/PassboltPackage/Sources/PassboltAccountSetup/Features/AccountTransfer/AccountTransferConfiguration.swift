@@ -54,8 +54,8 @@ extension AccountTransferConfiguration {
     }
     catch {
       return .failure(
-        TheErrorLegacy.accountTransferScanningError(context: "configuration-decoding-invalid-json")
-          .appending(logMessage: "Invalid QRCode data - not a valid configuration json")
+        AccountTransferScanningContentIssue.error()
+          .pushing(.message("Invalid QRCode data - not a valid configuration json"))
       )
     }
 
@@ -67,8 +67,8 @@ extension AccountTransferConfiguration {
     }
     else {
       return .failure(
-        TheErrorLegacy.accountTransferScanningError(context: "configuration-decoding-invalid-domain")
-          .appending(logMessage: "Invalid QRCode data - not a valid configuration domain")
+        AccountTransferScanningDomainIssue.error()
+          .pushing(.message("Invalid QRCode data - not a valid configuration domain"))
       )
     }
   }

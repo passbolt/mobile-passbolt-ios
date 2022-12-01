@@ -172,21 +172,14 @@ extension AuthorizationController: UIController {
           }
         }
         .collectErrorLog(using: diagnostics)
-        .handleErrors(
-          (
-            [.legacyBridge],
-            handler: { error in
-              if error.isLegacyBridge(for: HTTPNotFound.self) {
-                accountNotFoundScreenPresentationSubject.send(context)
-                return true
-              }
-              else {
-                return false
-              }
-            }
-          ),
-          defaultHandler: { _ in /* NOP */ }
-        )
+        .handleErrors { error in
+          switch error {
+          case is HTTPNotFound:
+            accountNotFoundScreenPresentationSubject.send(context)
+          case _:
+            return /* NOP */
+          }
+        }
         .eraseToAnyPublisher()
     }
 
@@ -216,21 +209,14 @@ extension AuthorizationController: UIController {
         }
       }
       .collectErrorLog(using: diagnostics)
-      .handleErrors(
-        (
-          [.legacyBridge],
-          handler: { error in
-            if error.isLegacyBridge(for: HTTPNotFound.self) {
-              accountNotFoundScreenPresentationSubject.send(context)
-              return true
-            }
-            else {
-              return false
-            }
-          }
-        ),
-        defaultHandler: { _ in /* NOP */ }
-      )
+      .handleErrors { error in
+        switch error {
+        case is HTTPNotFound:
+          accountNotFoundScreenPresentationSubject.send(context)
+        case _:
+          return /* NOP */
+        }
+      }
       .eraseToAnyPublisher()
     }
 

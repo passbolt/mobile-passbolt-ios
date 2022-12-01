@@ -21,7 +21,8 @@
 // @since         v1.0
 //
 
-import Features
+@_exported import AccountSetup
+@_exported import Features
 
 extension FeatureFactory {
 

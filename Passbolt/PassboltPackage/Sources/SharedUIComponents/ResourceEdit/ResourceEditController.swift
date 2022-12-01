@@ -140,8 +140,10 @@ extension ResourceEditController: UIController {
         .map { properties -> AnyPublisher<Void, Error> in
           guard let property: ResourceFieldDSV = properties.first(where: { $0.name == fieldName })
           else {
-            return Fail(error: TheErrorLegacy.invalidOrMissingResourceType())
-              .eraseToAnyPublisher()
+            return Fail(
+              error: InvalidResourceType.error()
+            )
+            .eraseToAnyPublisher()
           }
 
           return

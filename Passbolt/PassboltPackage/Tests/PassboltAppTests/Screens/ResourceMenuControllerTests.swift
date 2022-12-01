@@ -237,7 +237,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertError(result, matches: TheErrorLegacy.self, verification: { $0.identifier == .failedToOpenURL })
+    XCTAssertError(result, matches: URLOpeningFailure.self)
   }
 
   func test_performAction_copiesUsernameToPasteboard_forCopyUsernameAction() async throws {

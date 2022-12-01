@@ -73,8 +73,10 @@ extension ResourceEditForm {
             .eraseToAnyPublisher()
         }
         else {
-          return Fail(error: TheErrorLegacy.invalidOrMissingResourceType())
-            .eraseToAnyPublisher()
+          return Fail(
+            error: InvalidResourceType.error()
+          )
+          .eraseToAnyPublisher()
         }
       }
       .switchToLatest()
@@ -279,7 +281,7 @@ extension ResourceEditForm {
               .eraseToAnyPublisher()
           }
           else {
-            return Fail(error: TheErrorLegacy.invalidOrMissingResourceType())
+            return Fail(error: InvalidResourceType.error())
               .eraseToAnyPublisher()
           }
         }
@@ -375,13 +377,13 @@ extension ResourceEditForm {
           }
         }
         catch {
-          return Fail(error: TheErrorLegacy.invalidResourceData(underlyingError: error))
+          return Fail(error: InvalidResourceData.error(underlyingError: error))
             .eraseToAnyPublisher()
         }
 
         guard let encodedSecret: String = encodedSecret
         else {
-          return Fail(error: TheErrorLegacy.invalidResourceData())
+          return Fail(error: InvalidResourceData.error())
             .eraseToAnyPublisher()
         }
 
@@ -401,8 +403,7 @@ extension ResourceEditForm {
         guard let name: String = fieldValues[.name]?.stringValue
         else {
           throw
-            TheErrorLegacy
-            .invalidOrMissingResourceType()
+            InvalidResourceType.error()
         }
         let parentFolderID: ResourceFolder.ID? = resourceParentFolderIDSubject.value
 

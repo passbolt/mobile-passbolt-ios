@@ -68,15 +68,14 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
           .handleEnd { [weak self] _ in
             self?.contentView.finishDataRefresh()
           }
-          .handleErrors(
-            (
-              [.canceled],
-              handler: { _ in true /* NOP */ }
-            ),
-            defaultHandler: { [weak self] error in
+          .handleErrors { [weak self] error in
+            switch error {
+            case is Cancelled:
+              return /* NOP */
+            case _:
               self?.presentErrorSnackbar(error.displayableMessage)
             }
-          )
+          }
           .mapToVoid()
           .replaceError(with: Void())
           .eraseToAnyPublisher()
@@ -235,15 +234,14 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
                     )
                   )
                 }
-                .handleErrors(
-                  (
-                    [.canceled],
-                    handler: { _ in true /* NOP */ }
-                  ),
-                  defaultHandler: { [weak self] error in
+                .handleErrors { [weak self] error in
+                  switch error {
+                  case is Cancelled:
+                    return /* NOP */
+                  case _:
                     self?.presentErrorSnackbar(error.displayableMessage)
                   }
-                )
+                }
                 .handleEnd { [weak self] ending in
                   self?.dismissOverlay()
 

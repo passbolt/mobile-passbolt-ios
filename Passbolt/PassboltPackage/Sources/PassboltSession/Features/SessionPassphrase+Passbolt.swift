@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Accounts
 import Session
 
 // MARK: - Implementation
@@ -29,7 +30,7 @@ extension SessionPassphrase {
 
   @MainActor fileprivate static func load(
     features: FeatureFactory,
-    context account: Account
+    context: Context
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
 
@@ -43,16 +44,16 @@ extension SessionPassphrase {
       guard let currentAccount: Account = sessionState.account()
       else { throw SessionMissing.error() }
 
-      guard currentAccount == account
-      else { throw SessionClosed.error(account: account) }
+      guard currentAccount == context.account
+      else { throw SessionClosed.error(account: context.account) }
 
       if store {
-        let passphrase: Passphrase = try await sessionStateEnsurance.passphrase(account)
+        let passphrase: Passphrase = try await sessionStateEnsurance.passphrase(context.account)
 
-        return try accountsDataStore.storeAccountPassphrase(account.localID, passphrase)
+        return try accountsDataStore.storeAccountPassphrase(context.account.localID, passphrase)
       }
       else {
-        return try accountsDataStore.deleteAccountPassphrase(account.localID)
+        return try accountsDataStore.deleteAccountPassphrase(context.account.localID)
       }
     }
 

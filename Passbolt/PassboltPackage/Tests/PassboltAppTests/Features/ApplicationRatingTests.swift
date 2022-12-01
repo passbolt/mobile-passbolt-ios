@@ -98,11 +98,11 @@ final class ApplicationRatingTests: LoadableFeatureTestCase<ApplicationRating> {
       context: "loginCount",
       with: variable
     )
-      patch(
-        \StoredProperty<Int>.binding,
-        context: "lastAppRateCheckTimestamp",
-        with: .variable(initial: 0)
-      )
+    patch(
+      \StoredProperty<Int>.binding,
+      context: "lastAppRateCheckTimestamp",
+      with: .variable(initial: 0)
+    )
 
     withTestedInstanceReturnsEqual(
       1,

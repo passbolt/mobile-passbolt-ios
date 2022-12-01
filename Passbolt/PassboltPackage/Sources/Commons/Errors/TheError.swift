@@ -42,6 +42,10 @@ public protocol TheError: Error, CustomDebugStringConvertible {
 
 extension TheError {
 
+  public var displayableMessage: DisplayableString {
+    .localized(key: "generic.error")
+  }
+
   public var diagnosticMessages: Array<StaticString> {
     self.context.infoStack.map(\.message)
   }

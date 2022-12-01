@@ -59,21 +59,3 @@ extension LinkOpener: LegacyFeature {
   }
   #endif
 }
-
-extension TheErrorLegacy {
-
-  public static func failedToOpenURL(
-    underlyingError: Error? = nil
-  ) -> Self {
-    .init(
-      identifier: .failedToOpenURL,
-      underlyingError: underlyingError,
-      extensions: .init()
-    )
-  }
-}
-
-extension TheErrorLegacy.ID {
-
-  public static let failedToOpenURL: Self = "failedToOpenURL"
-}

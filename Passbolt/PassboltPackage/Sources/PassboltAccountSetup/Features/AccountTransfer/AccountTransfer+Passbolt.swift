@@ -218,9 +218,7 @@ extension AccountTransfer {
             transferState
               .send(
                 completion: .failure(
-                  TheErrorLegacy.accountTransferScanningError(
-                    context: "account-transfer-complete-missing-profile"
-                  )
+                  AccountTransferScanningFailure.error()
                 )
               )
             cancellables.executeOnMainActor {
@@ -267,14 +265,15 @@ extension AccountTransfer {
           .eraseToAnyPublisher()
         }
       case let .failure(error)
-      where error.asLegacy.identifier == .canceled:
+      where error is Cancelled:
         diagnostics.log(diagnostic: "...processing canceled!")
         return Fail<Never, Error>(error: error)
           .collectErrorLog(using: diagnostics)
           .eraseToAnyPublisher()
 
       case let .failure(error)
-      where error.asLegacy.identifier == .accountTransferScanningRecoverableError:
+      where error is AccountTransferScanningIssue || error is AccountTransferScanningContentIssue
+        || error is AccountTransferScanningDomainIssue:
         diagnostics.log(diagnostic: "...processing failed, recoverable!")
         return Fail<Never, Error>(error: error)
           .collectErrorLog(using: diagnostics)
@@ -326,9 +325,7 @@ extension AccountTransfer {
       else {
         diagnostics.log(diagnostic: "...missing required data!")
         return Fail<Never, Error>(
-          error: TheErrorLegacy.accountTransferScanningRecoverableError(
-            context: "account-transfer-complete-invalid-state"
-          )
+          error: AccountTransferScanningFailure.error()
         )
         .eraseToAnyPublisher()
       }
@@ -416,7 +413,7 @@ extension AccountTransfer {
       }
       transferState.send(
         completion: .failure(
-          TheErrorLegacy.canceled.appending(context: "account-transfer-scanning-cancel")
+          Cancelled.error()
         )
       )
       cancellables.executeOnMainActor {
@@ -452,9 +449,8 @@ private func processQRCodePayload(
   guard let expectedPage: Int = state.nextScanningPage
   else {
     return .failure(
-      TheErrorLegacy.canceled
-        .appending(context: "account-transfer-scanning-unexpected-page")
-        .appending(logMessage: "Processing unexpected page - ignored")
+      Cancelled.error()
+        .pushing(.message("Unexpected QRCode page"))
     )
   }
 
@@ -479,23 +475,14 @@ private func decodeQRCodePart(
     else if part.page == expectedPage - 1 {
       // if we still get previous page we ignore it
       return .failure(
-        TheErrorLegacy.canceled
-          .appending(
-            context: "account-transfer-scanning-repeated-page"
-          )
-          .appending(
-            logMessage: "Repeated QRCode page number"
-          )
+        Cancelled.error()
+          .pushing(.message("Duplicate QRCode page"))
       )
     }
     else {
       return .failure(
-        TheErrorLegacy.accountTransferScanningError(
-          context: "decoding-invalid-page"
-        )
-        .appending(
-          logMessage: "Invalid QRCode page"
-        )
+        AccountTransferScanningFailure.error()
+          .pushing(.message("Invalid QRCode page"))
       )
     }
     return .success(part)
@@ -526,8 +513,8 @@ private func updated(
       guard let hash = state.configuration?.hash, !hash.isEmpty
       else {
         return .failure(
-          TheErrorLegacy.accountTransferScanningError(context: "missing-configuration-or-hash")
-            .appending(logMessage: "Missing verification hash")
+          AccountTransferScanningFailure.error()
+            .pushing(.message("Missing verification hash"))
         )
       }
       switch AccountTransferAccount.from(
@@ -554,8 +541,8 @@ private func requestNextPage(
   guard let configuration: AccountTransferConfiguration = state.configuration
   else {
     return Fail<Never, Error>(
-      error: TheErrorLegacy.accountTransferScanningError(context: "next-page-request-missing-configuration")
-        .appending(logMessage: "Missing account transfer configuration")
+      error: AccountTransferScanningFailure.error()
+        .pushing(.message("Missing transfer configuration"))
     )
     .eraseToAnyPublisher()
   }
@@ -576,7 +563,6 @@ private func requestNextPage(
       )
     }
     .ignoreOutput()
-    .mapError { $0.asLegacy.appending(context: "next-page-request") }
     .eraseToAnyPublisher()
 }
 
@@ -587,8 +573,8 @@ private func requestNextPageWithUserProfile(
   guard let configuration: AccountTransferConfiguration = state.configuration
   else {
     return Fail<AccountTransferUpdateNetworkOperationResult.User, Error>(
-      error: TheErrorLegacy.accountTransferScanningError(context: "next-page-request-missing-configuration")
-        .appending(logMessage: "Missing account transfer configuration")
+      error: AccountTransferScanningFailure.error()
+        .pushing(.message("Missing transfer configuration"))
     )
     .eraseToAnyPublisher()
   }
@@ -613,11 +599,10 @@ private func requestNextPageWithUserProfile(
         return user
       }
       else {
-        throw TheErrorLegacy.accountTransferScanningError(context: "next-page-request-missing-user-profile")
-          .appending(logMessage: "Missing user profile data")
+        throw AccountTransferScanningFailure.error()
+          .pushing(.message("Missing account profile"))
       }
     }
-    .mapError { $0.asLegacy.appending(context: "next-page-request") }
     .eraseToAnyPublisher()
 }
 
@@ -656,9 +641,6 @@ private func requestCancelation(
     return
       responsePublisher
       .ignoreOutput()
-      .mapError { error in
-        error.asLegacy.appending(context: "account-transfer-scanning-cancelation-request")
-      }
       .eraseToAnyPublisher()
   }
 }

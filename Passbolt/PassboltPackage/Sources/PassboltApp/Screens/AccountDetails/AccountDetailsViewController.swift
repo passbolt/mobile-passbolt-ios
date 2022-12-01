@@ -99,15 +99,10 @@ internal final class AccountDetailsViewController: PlainViewController, UICompon
         self.controller
           .saveChanges()
           .receive(on: RunLoop.main)
-          .handleErrors(
-            (
-              [.canceled],
-              handler: { _ in /* NOP */ true }
-            ),
-            defaultHandler: { [weak self] error in
-              self?.presentErrorSnackbar(error.displayableMessage)
-            }
-          )
+          .handleErrors { [weak self] error in
+            guard !(error is Cancelled) else { return }
+            self?.presentErrorSnackbar(error.displayableMessage)
+          }
           .handleEnd { [weak self] ending in
             guard case .finished = ending else { return }
             self?.cancellables.executeOnMainActor { [weak self] in

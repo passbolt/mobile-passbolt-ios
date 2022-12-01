@@ -52,12 +52,8 @@ extension AccountTransferAccount {
     guard verificationHash == computedHash
     else {
       return .failure(
-        TheErrorLegacy.accountTransferScanningError(
-          context: "account-decoding-invalid-hash"
-        )
-        .appending(
-          logMessage: "Data validation fail - invalid account data hash"
-        )
+        AccountTransferScanningFailure.error()
+          .pushing(.message("Data validation fail - invalid account data hash"))
       )
     }
     let jsonDecoder: JSONDecoder = .init()
@@ -72,8 +68,8 @@ extension AccountTransferAccount {
     }
     catch {
       return .failure(
-        TheErrorLegacy.accountTransferScanningError(context: "account-decoding-invalid-json")
-          .appending(logMessage: "Invalid QRCode data - not a valid configuration json")
+        AccountTransferScanningFailure.error()
+          .pushing(.message("Invalid QRCode data - not a valid configuration json"))
       )
     }
   }

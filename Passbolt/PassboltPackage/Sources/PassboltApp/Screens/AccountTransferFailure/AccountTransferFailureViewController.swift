@@ -67,7 +67,7 @@ internal final class AccountTransferFailureViewController: PlainViewController, 
       )
 
     switch controller.failureReason() {
-    case let error where (error is Cancelled || error.asLegacy.identifier == .canceled):
+    case is Cancelled:
       contentView
         .applyOn(
           title: .text(displayable: .localized(key: "transfer.account.result.canceled.title"))

@@ -294,7 +294,7 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
       .handleEvents(receiveCompletion: { [weak self] completion in
         guard case let .failure(error) = completion
         else { return }
-        guard let theError = error.asLegacy.legacyBridge as? ServerPGPFingeprintInvalid
+        guard let theError = error as? ServerPGPFingeprintInvalid
         else {
           return
         }
@@ -319,62 +319,39 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
           )
         )
       }
-      .handleErrors(
-        (
-          [.canceled],
-          handler: { _ in true /* NOP */ }
-        ),
-        (
-          [.invalidPassphraseError],
-          handler: { [weak self] _ in
-            self?.presentErrorSnackbar(
-              .localized(
-                key: "sign.in.error.passphrase.invalid.message"
-              ),
-              hideAfter: 5
-            )
-            return true
-          }
-        ),
-        defaultHandler: { [weak self] error in
+      .handleErrors { [weak self] error in
+        switch error {
+        case is Cancelled:
+          return /* NOP */
+
+        case let serverError as ServerConnectionIssue:
           self?.cancellables.executeOnMainActor { [weak self] in
-            if let theError: TheError = error.asLegacy.legacyBridge {
-              if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
-                await self?.present(
-                  ServerNotReachableAlertViewController.self,
-                  in: serverError.serverURL
-                )
-              }
-              else if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
-                await self?.present(
-                  ServerNotReachableAlertViewController.self,
-                  in: serverError.serverURL
-                )
-              }
-              else if let serverError: ServerResponseTimeout = theError as? ServerResponseTimeout {
-                await self?.present(
-                  ServerNotReachableAlertViewController.self,
-                  in: serverError.serverURL
-                )
-              }
-              else if theError is AccountBiometryDataChanged {
-                await self?.presentErrorSnackbar(
-                  .localized(
-                    key: "sign.in.error.biometrics.changed.message"
-                  ),
-                  hideAfter: 5
-                )
-              }
-              else {
-                await self?.presentErrorSnackbar(theError.displayableMessage)
-              }
-            }
-            else {
-              await self?.presentErrorSnackbar(error.displayableMessage)
-            }
+            await self?.present(
+              ServerNotReachableAlertViewController.self,
+              in: serverError.serverURL
+            )
           }
+
+        case let serverError as ServerConnectionIssue:
+          self?.cancellables.executeOnMainActor { [weak self] in
+            await self?.present(
+              ServerNotReachableAlertViewController.self,
+              in: serverError.serverURL
+            )
+          }
+
+        case let serverError as ServerResponseTimeout:
+          self?.cancellables.executeOnMainActor { [weak self] in
+            await self?.present(
+              ServerNotReachableAlertViewController.self,
+              in: serverError.serverURL
+            )
+          }
+
+        case _:
+          self?.presentErrorSnackbar(error.displayableMessage)
         }
-      )
+      }
       .handleEnd { [weak self] ending in
         if case .canceled = ending {
           /* NOP */

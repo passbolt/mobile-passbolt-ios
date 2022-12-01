@@ -167,7 +167,7 @@ extension ResourceDetailsController: UIController {
               .fields
               .first(where: { $0.name == .uri })
           else {
-            return Fail<Void, Error>(error: TheErrorLegacy.invalidResourceData())
+            return Fail<Void, Error>(error: InvalidResourceData.error())
               .eraseToAnyPublisher()
           }
 
@@ -187,7 +187,7 @@ extension ResourceDetailsController: UIController {
                       .eraseToAnyPublisher()
                   }
                   else {
-                    return Fail(error: TheErrorLegacy.invalidResourceSecret())
+                    return Fail(error: InvalidResourceSecret.error())
                       .eraseToAnyPublisher()
                   }
                 }
@@ -209,7 +209,7 @@ extension ResourceDetailsController: UIController {
               .eraseToAnyPublisher()
           }
           else {
-            return Fail(error: TheErrorLegacy.missingResourceData())
+            return Fail(error: MissingResourceData.error())
               .eraseToAnyPublisher()
           }
         }
@@ -227,7 +227,7 @@ extension ResourceDetailsController: UIController {
               .fields
               .first(where: { $0.name == .password })
           else {
-            return Fail<Void, Error>(error: TheErrorLegacy.invalidResourceData())
+            return Fail<Void, Error>(error: InvalidResourceData.error())
               .eraseToAnyPublisher()
           }
 
@@ -247,7 +247,7 @@ extension ResourceDetailsController: UIController {
                       .eraseToAnyPublisher()
                   }
                   else {
-                    return Fail(error: TheErrorLegacy.invalidResourceSecret())
+                    return Fail(error: InvalidResourceSecret.error())
                       .eraseToAnyPublisher()
                   }
                 }
@@ -261,7 +261,7 @@ extension ResourceDetailsController: UIController {
             .eraseToAnyPublisher()
           }
           else {
-            return Fail(error: TheErrorLegacy.missingResourceData())
+            return Fail(error: MissingResourceData.error())
               .eraseToAnyPublisher()
           }
         }
@@ -279,7 +279,7 @@ extension ResourceDetailsController: UIController {
               .fields
               .first(where: { $0.name == .username })
           else {
-            return Fail<Void, Error>(error: TheErrorLegacy.invalidResourceData())
+            return Fail<Void, Error>(error: InvalidResourceData.error())
               .eraseToAnyPublisher()
           }
 
@@ -299,7 +299,7 @@ extension ResourceDetailsController: UIController {
                       .eraseToAnyPublisher()
                   }
                   else {
-                    return Fail(error: TheErrorLegacy.invalidResourceSecret())
+                    return Fail(error: InvalidResourceSecret.error())
                       .eraseToAnyPublisher()
                   }
                 }
@@ -321,7 +321,7 @@ extension ResourceDetailsController: UIController {
               .eraseToAnyPublisher()
           }
           else {
-            return Fail(error: TheErrorLegacy.missingResourceData())
+            return Fail(error: InvalidResourceData.error())
               .eraseToAnyPublisher()
           }
         }
@@ -339,7 +339,7 @@ extension ResourceDetailsController: UIController {
               .fields
               .first(where: { $0.name == .description })
           else {
-            return Fail<Void, Error>(error: TheErrorLegacy.invalidResourceData())
+            return Fail<Void, Error>(error: InvalidResourceData.error())
               .eraseToAnyPublisher()
           }
 
@@ -359,7 +359,7 @@ extension ResourceDetailsController: UIController {
                       .eraseToAnyPublisher()
                   }
                   else {
-                    return Fail(error: TheErrorLegacy.invalidResourceSecret())
+                    return Fail(error: InvalidResourceSecret.error())
                       .eraseToAnyPublisher()
                   }
                 }
@@ -381,7 +381,7 @@ extension ResourceDetailsController: UIController {
               .eraseToAnyPublisher()
           }
           else {
-            return Fail(error: TheErrorLegacy.missingResourceData())
+            return Fail(error: InvalidResourceData.error())
               .eraseToAnyPublisher()
           }
         }
@@ -407,7 +407,7 @@ extension ResourceDetailsController: UIController {
 
       case _:
         assertionFailure("Unhandled resource field - \(fieldName)")
-        return Fail(error: TheErrorLegacy.invalidResourceData())
+        return Fail(error: InvalidResourceData.error())
           .eraseToAnyPublisher()
       }
     }

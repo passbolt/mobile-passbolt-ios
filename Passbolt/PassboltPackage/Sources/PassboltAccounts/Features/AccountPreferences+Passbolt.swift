@@ -37,7 +37,7 @@ extension AccountPreferences {
 
     let accountData: AccountData = try await features.instance(context: account)
     let accountsDataStore: AccountsDataStore = try await features.instance()
-    let sessionPassphrase: SessionPassphrase = try await features.instance(context: account)
+    let sessionPassphrase: SessionPassphrase = try await features.instance(context: .init(account: account))
 
     @Sendable nonisolated func setLocalAccountLabel(
       _ label: String

@@ -61,22 +61,26 @@ extension UpdateCheck: LegacyFeature {
   #endif
 }
 
-extension TheErrorLegacy.ID {
+public struct ApplicationVersionOutdated: TheError {
 
-  public static var versionCheckFailed: Self { "versionCheckFailed" }
-}
-
-extension TheErrorLegacy {
-
-  public static func versionCheckFailed(
-    underlyingError: Error? = nil
+  public static func error(
+    underlyingError: Error? = .none,
+    file: StaticString = #fileID,
+    line: UInt = #line
   ) -> Self {
-    .init(
-      identifier: .versionCheckFailed,
-      underlyingError: underlyingError,
-      extensions: [:]
+    Self(
+      context: .context(
+        .message(
+          "ApplicationVersionOutdated",
+          file: file,
+          line: line
+        )
+      )
     )
   }
+
+  public var context: DiagnosticsContext
+  public var displayableMessage: DisplayableString = .localized(key: "update.available.message")
 }
 
 fileprivate actor UpdateChecker {
@@ -172,9 +176,7 @@ fileprivate actor UpdateChecker {
       return version
     }
     else {
-      throw
-        TheErrorLegacy
-        .versionCheckFailed()
+      throw ApplicationVersionOutdated.error()
     }
   }
 
@@ -200,7 +202,7 @@ fileprivate actor UpdateChecker {
       let latestPatch: Int = latestVersionParts.popLast(),
       let latestMinor: Int = latestVersionParts.popLast(),
       let latestMajor: Int = latestVersionParts.popLast()
-    else { throw TheErrorLegacy.versionCheckFailed() }
+    else { throw ApplicationVersionOutdated.error() }
 
     guard currentMajor == latestMajor
     else { return currentMajor < latestMajor }

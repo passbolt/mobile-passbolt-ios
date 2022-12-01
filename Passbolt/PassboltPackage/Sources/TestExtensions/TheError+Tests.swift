@@ -46,25 +46,6 @@ public struct MockIssue: TheError {
   public var displayableMessage: DisplayableString
 }
 
-extension TheErrorLegacy {
-
-  public static func testError(
-    underlyingError: Error? = nil,
-    extensions: Dictionary<Extension, Any> = [:]
-  ) -> Self {
-    Self(
-      identifier: .testError,
-      underlyingError: underlyingError,
-      extensions: extensions
-    )
-  }
-}
-
-extension TheErrorLegacy.ID {
-
-  public static var testError: Self { "testError" }
-}
-
 extension TheError {
 
   public static func mock(

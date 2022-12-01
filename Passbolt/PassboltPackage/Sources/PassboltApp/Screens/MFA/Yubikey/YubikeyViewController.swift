@@ -86,7 +86,7 @@ internal final class YubiKeyViewController: PlainViewController, UIComponent {
             guard case let .failure(error) = completion
             else { return }
 
-            self?.parent?.presentErrorSnackbar(error.displayableMessage)
+            self?.parent?.presentErrorSnackbar(error.asTheError().displayableMessage)
           })
           .replaceError(with: ())
           .eraseToAnyPublisher()
