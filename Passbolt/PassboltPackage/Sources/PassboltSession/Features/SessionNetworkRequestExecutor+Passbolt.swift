@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-import Network
+import OSFeatures
 import Session
 
 import class Foundation.JSONDecoder

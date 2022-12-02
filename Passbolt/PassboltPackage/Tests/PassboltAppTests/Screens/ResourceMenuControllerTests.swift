@@ -38,8 +38,8 @@ import XCTest
 final class ResourceMenuControllerTests: MainActorTestCase {
 
   override func mainActorSetUp() {
-    features.usePlaceholder(for: Pasteboard.self)
-    features.usePlaceholder(for: LinkOpener.self)
+    features.usePlaceholder(for: OSPasteboard.self)
+    features.usePlaceholder(for: OSLinkOpener.self)
     features.usePlaceholder(for: SessionConfiguration.self)
     features.patch(
       \Resources.resourceDetailsPublisher,
@@ -58,7 +58,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       )
     )
     features.patch(
-      \LinkOpener.openLink,
+      \OSLinkOpener.openURL,
       with: always(
         Just(true)
           .eraseToAnyPublisher()
@@ -127,7 +127,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
   func test_performAction_copiesSecretToPasteboard_forCopyPasswordAction() async throws {
     var result: String? = nil
     features.patch(
-      \Pasteboard.put,
+      \OSPasteboard.put,
       with: {
         result = $0
       }
@@ -155,7 +155,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
   func test_performAction_copiesURLToPasteboard_forCopyURLAction() async throws {
     var result: String? = nil
     features.patch(
-      \Pasteboard.put,
+      \OSPasteboard.put,
       with: {
         result = $0
       }
@@ -181,7 +181,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
   func test_performAction_opensURL_forOpenURLAction() async throws {
     var result: URL? = nil
     features.patch(
-      \LinkOpener.openLink,
+      \OSLinkOpener.openURL,
       with: {
         result = $0
         return Just(true)
@@ -208,7 +208,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
 
   func test_performAction_fails_forOpenURLAction_whenOpeningFails() async throws {
     features.patch(
-      \LinkOpener.openLink,
+      \OSLinkOpener.openURL,
       with: always(
         Just(false)
           .eraseToAnyPublisher()
@@ -243,7 +243,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
   func test_performAction_copiesUsernameToPasteboard_forCopyUsernameAction() async throws {
     var result: String? = nil
     features.patch(
-      \Pasteboard.put,
+      \OSPasteboard.put,
       with: {
         result = $0
       }
@@ -271,7 +271,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
   {
     var result: String? = nil
     features.patch(
-      \Pasteboard.put,
+      \OSPasteboard.put,
       with: {
         result = $0
       }
@@ -307,7 +307,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
 
     var result: String? = nil
     features.patch(
-      \Pasteboard.put,
+      \OSPasteboard.put,
       with: {
         result = $0
       }

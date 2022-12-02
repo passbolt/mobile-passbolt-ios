@@ -35,7 +35,7 @@ extension AccountInjection {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
     let mdmConfiguration: MDMConfiguration = features.instance()
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let accounts: Accounts = try await features.instance()
 
     @Sendable nonisolated func injectPreconfiguredAccounts() throws {

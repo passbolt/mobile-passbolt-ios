@@ -32,12 +32,9 @@ public final class FeatureFactory {
     fileprivate var cancellables: Cancellables
   }
 
-  #if DEBUG  // debug builds allow change and access to environment for mocking and debug
-  public var environment: AppEnvironment
+  #if DEBUG
   public let autoLoadFeatures: Bool
   public let allowScopes: Bool
-  #else  // production builds cannot access environment directly
-  private nonisolated let environment: AppEnvironment
   #endif
   private var featureLoaders: Dictionary<FeatureTypeIdentifier, FeatureLoader> = .init()
   private var rootFeaturesCache: Dictionary<FeatureIdentifier, FeatureCacheItem> = .init()
@@ -51,22 +48,11 @@ public final class FeatureFactory {
 
   #if DEBUG
   nonisolated public init(
-    environment: AppEnvironment,
     autoLoadFeatures: Bool = true,
     allowScopes: Bool = true
   ) {
-    self.environment = environment
     self.autoLoadFeatures = autoLoadFeatures
     self.allowScopes = allowScopes
-    // Legacy Bridge, to be removed with AppEnvironment
-    self.staticFeatures[
-      FeatureIdentifier(
-        featureTypeIdentifier: EnvironmentLegacyBridge.typeIdentifier,
-        featureContextIdentifier: ContextlessFeatureContext.instance.identifier
-      )
-    ] = EnvironmentLegacyBridge(
-      environment: environment
-    )
   }
   #else
   nonisolated public init(
@@ -625,7 +611,6 @@ extension FeatureFactory {
       if self.isRoot {
         pendingLoad = Task<FeatureCacheItem, Error> { @MainActor in
           let loaded: Feature = try await .load(
-            in: self.environment,
             using: self,
             cancellables: featureCancellables
           )
@@ -657,7 +642,6 @@ extension FeatureFactory {
         let scopeIndex: Int = self.scopeStack.index(before: self.scopeStack.endIndex)
         pendingLoad = Task<FeatureCacheItem, Error> { @MainActor in
           let loaded: Feature = try await .load(
-            in: self.environment,
             using: self,
             cancellables: featureCancellables
           )

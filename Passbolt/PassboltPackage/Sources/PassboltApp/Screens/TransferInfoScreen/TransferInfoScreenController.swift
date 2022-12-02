@@ -22,6 +22,7 @@
 //
 
 import Features
+import OSFeatures
 import UIComponents
 
 internal struct TransferInfoScreenController {
@@ -40,7 +41,8 @@ extension TransferInfoScreenController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> TransferInfoScreenController {
-    let permissions: OSPermissions = try await features.instance()
+    let asyncExecutor: AsyncExecutor = try await features.instance()
+    let camera: OSCamera = features.instance()
     let presentNoCameraPermissionAlertSubject: PassthroughSubject<Bool, Never> = .init()
 
     func presentNoCameraPermissionAlert() {
@@ -48,11 +50,18 @@ extension TransferInfoScreenController: UIController {
     }
 
     func requestOrNavigatePublisher() -> AnyPublisher<Bool, Never> {
-      permissions
-        .ensureCameraPermission()
-        .map { true }
-        .replaceError(with: false)
-        .eraseToAnyPublisher()
+      Future<Bool, Never> { completion in
+        asyncExecutor.schedule {
+          do {
+            try await camera.ensurePermission()
+            completion(.success(true))
+          }
+          catch {
+            completion(.success(false))
+          }
+        }
+      }
+      .eraseToAnyPublisher()
     }
 
     func presentNoCameraPermissionAlertPublisher() -> AnyPublisher<Bool, Never> {

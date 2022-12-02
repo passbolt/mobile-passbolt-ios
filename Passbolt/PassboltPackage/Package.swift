@@ -28,12 +28,6 @@ let package = Package(
       name: "UIComponents",
       targets: ["UIComponents"]
     ),
-    .library(
-      name: "Environment",
-      targets: [
-        "Environment"
-      ]
-    ),
     // MARK: - Entrypoints
     .library(
       name: "PassboltApp",
@@ -144,6 +138,8 @@ let package = Package(
         "CommonModels",
         "Commons",
         "Gopenpgp",
+        "OSFeatures",
+        "Features",
       ]
     ),
     .testTarget(
@@ -158,29 +154,13 @@ let package = Package(
       dependencies: [
         "Commons",
         "CommonModels",
+        "Features",
       ]
     ),
     .testTarget(
       name: "NFCTests",
       dependencies: [
         "NFC",
-        "TestExtensions",
-      ]
-    ),
-    .target(
-      name: "Environment",
-      dependencies: [
-        .product(name: "Aegithalos", package: "Aegithalos"),
-        "Commons",
-        "CommonModels",
-        "Crypto",
-        "SQLCipher",
-      ]
-    ),
-    .testTarget(
-      name: "EnvironmentTests",
-      dependencies: [
-        "Environment",
         "TestExtensions",
       ]
     ),
@@ -224,7 +204,6 @@ let package = Package(
       dependencies: [
         // Legacy
         "UIComponents",
-        "Environment",
         "SharedUIComponents",
         "NFC",
         "Crypto",
@@ -252,7 +231,6 @@ let package = Package(
       dependencies: [
         // Legacy
         "UIComponents",
-        "Environment",
         "SharedUIComponents",
         "Crypto",
         // Base
@@ -304,8 +282,6 @@ let package = Package(
     .target(
       name: "Features",
       dependencies: [
-        // Legacy
-        "Environment",
         // Base
         "Commons",
         "CommonModels",
@@ -364,20 +340,6 @@ let package = Package(
         "SQLCipher",
       ]
     ),
-    .target(
-      name: "Network",
-      dependencies: [
-        // Base
-        "Commons",
-        "CommonModels",
-        "Features",
-        // External
-        .product(
-          name: "Aegithalos",
-          package: "Aegithalos"
-        ),
-      ]
-    ),
     // MARK: - Vendor
     .binaryTarget(
       name: "Gopenpgp",
@@ -431,6 +393,11 @@ let package = Package(
         // Base
         "Commons",
         "Features",
+        // External
+        .product(
+          name: "Aegithalos",
+          package: "Aegithalos"
+        ),
       ]
     ),
     // MARK: - Modules
@@ -495,9 +462,13 @@ let package = Package(
         "CommonModels",
         "Features",
         "Database",
-        "Network",
         // Modules
         "Accounts",
+        // External
+        .product(
+          name: "Aegithalos",
+          package: "Aegithalos"
+        ),
       ]
     ),
     .target(
@@ -505,14 +476,14 @@ let package = Package(
       dependencies: [
         // Legacy
         "Crypto",
+        "NFC",
         // Base
         "Commons",
         "CommonModels",
         "Features",
         "Database",
-        "Network",
-        // Modules
         "OSFeatures",
+        // Modules
         "Accounts",
         "Session",
         "DatabaseOperations",
@@ -525,10 +496,14 @@ let package = Package(
         // Base
         "Commons",
         "CommonModels",
-        "Network",
         // Modules
         "Accounts",
         "Session",
+        // External
+        .product(
+          name: "Aegithalos",
+          package: "Aegithalos"
+        ),
       ]
     ),
     .target(
@@ -537,7 +512,7 @@ let package = Package(
         // Base
         "Commons",
         "CommonModels",
-        "Network",
+        "OSFeatures",
         // Modules
         "Accounts",
         "Session",
@@ -588,7 +563,6 @@ let package = Package(
         "CommonModels",
         "Features",
         "Database",
-        "Network",
         // Modules
         "Accounts",
         "Session",
@@ -671,7 +645,6 @@ let package = Package(
         "CommonModels",
         "Features",
         "Database",
-        "Network",
         "OSFeatures",
         // Modules
         "Accounts",

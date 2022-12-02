@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
+import Aegithalos
 import Features
-import Network
 
 // MARK: - Interface
 

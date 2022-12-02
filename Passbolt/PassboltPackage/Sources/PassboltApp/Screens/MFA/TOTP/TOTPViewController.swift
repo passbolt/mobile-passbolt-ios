@@ -22,7 +22,6 @@
 //
 
 import CommonModels
-import Network
 import UIComponents
 
 internal final class TOTPViewController: PlainViewController, UIComponent {

@@ -24,6 +24,7 @@
 import DatabaseOperations
 import Features
 import NetworkOperations
+import OSFeatures
 import SessionData
 
 extension SessionData {
@@ -34,7 +35,7 @@ extension SessionData {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
 
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let sessionConfiguration: SessionConfiguration = try await features.instance()
     let usersStoreDatabaseOperation: UsersStoreDatabaseOperation = try await features.instance()
     let userGroupsStoreDatabaseOperation: UserGroupsStoreDatabaseOperation = try await features.instance()

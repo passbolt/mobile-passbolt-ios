@@ -40,7 +40,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
   var updates: UpdatesSequenceSource!
 
   override func mainActorSetUp() {
-    features.usePlaceholder(for: Pasteboard.self)
+    features.usePlaceholder(for: OSPasteboard.self)
     features.usePlaceholder(for: SessionConfiguration.self)
     updates = .init()
     features.patch(
@@ -319,7 +319,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
     )
     var pasteboardContent: String? = nil
     features.patch(
-      \Pasteboard.put,
+      \OSPasteboard.put,
       with: {
         pasteboardContent = $0
       }
@@ -362,7 +362,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
     )
     var pasteboardContent: String? = nil
     features.patch(
-      \Pasteboard.put,
+      \OSPasteboard.put,
       with: {
         pasteboardContent = $0
       }
@@ -405,7 +405,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
     )
     var pasteboardContent: String? = nil
     features.patch(
-      \Pasteboard.put,
+      \OSPasteboard.put,
       with: {
         pasteboardContent = $0
       }
@@ -448,7 +448,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
     )
     var pasteboardContent: String? = nil
     features.patch(
-      \Pasteboard.put,
+      \OSPasteboard.put,
       with: {
         pasteboardContent = $0
       }
@@ -491,7 +491,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
     )
     var pasteboardContent: String? = nil
     features.patch(
-      \Pasteboard.put,
+      \OSPasteboard.put,
       with: {
         pasteboardContent = $0
       }

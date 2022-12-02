@@ -38,15 +38,12 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     use(SessionNetworkAuthorization.placeholder)
     use(AccountsDataStore.placeholder)
     use(OSTime.placeholder)
-    patch(
-      environment: \.pgp,
-      with: .placeholder
-    )
+    use(PGP.placeholder)
   }
 
   func test_authorize_adHoc_throws_whenVerifyingPassphraseFails() {
     patch(
-      environment: \.pgp.verifyPassphrase,
+      \PGP.verifyPassphrase,
       with: always(.failure(MockIssue.error()))
     )
 
@@ -76,7 +73,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always("private_key")
     )
     patch(
-      environment: \.pgp.verifyPassphrase,
+      \PGP.verifyPassphrase,
       with: always(.failure(MockIssue.error()))
     )
 
@@ -127,7 +124,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always("private_key")
     )
     patch(
-      environment: \.pgp.verifyPassphrase,
+      \PGP.verifyPassphrase,
       with: always(.failure(MockIssue.error()))
     )
 
@@ -148,7 +145,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always("private_key")
     )
     patch(
-      environment: \.pgp.verifyPassphrase,
+      \PGP.verifyPassphrase,
       with: always(.success(Void()))
     )
     patch(
@@ -181,7 +178,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always("private_key")
     )
     patch(
-      environment: \.pgp.verifyPassphrase,
+      \PGP.verifyPassphrase,
       with: always(.success(Void()))
     )
     patch(
@@ -233,7 +230,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always("private_key")
     )
     patch(
-      environment: \.pgp.verifyPassphrase,
+      \PGP.verifyPassphrase,
       with: always(.success(Void()))
     )
     patch(
@@ -289,7 +286,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always("private_key")
     )
     patch(
-      environment: \.pgp.verifyPassphrase,
+      \PGP.verifyPassphrase,
       with: always(.success(Void()))
     )
     patch(
@@ -368,7 +365,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always("private_key")
     )
     patch(
-      environment: \.pgp.verifyPassphrase,
+      \PGP.verifyPassphrase,
       with: always(.success(Void()))
     )
     patch(
@@ -420,7 +417,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always("private_key")
     )
     patch(
-      environment: \.pgp.verifyPassphrase,
+      \PGP.verifyPassphrase,
       with: always(.success(Void()))
     )
     patch(
@@ -466,7 +463,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always("private_key")
     )
     patch(
-      environment: \.pgp.verifyPassphrase,
+      \PGP.verifyPassphrase,
       with: always(.success(Void()))
     )
     patch(
@@ -513,7 +510,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always("private_key")
     )
     patch(
-      environment: \.pgp.verifyPassphrase,
+      \PGP.verifyPassphrase,
       with: always(.success(Void()))
     )
     patch(
@@ -568,7 +565,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always("private_key")
     )
     patch(
-      environment: \.pgp.verifyPassphrase,
+      \PGP.verifyPassphrase,
       with: always(.success(Void()))
     )
     patch(
@@ -624,7 +621,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always("private_key")
     )
     patch(
-      environment: \.pgp.verifyPassphrase,
+      \PGP.verifyPassphrase,
       with: always(.success(Void()))
     )
     patch(
@@ -696,7 +693,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always("private_key")
     )
     patch(
-      environment: \.pgp.verifyPassphrase,
+      \PGP.verifyPassphrase,
       with: always(.success(Void()))
     )
     patch(
@@ -769,7 +766,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always("private_key")
     )
     patch(
-      environment: \.pgp.verifyPassphrase,
+      \PGP.verifyPassphrase,
       with: always(.success(Void()))
     )
     patch(
@@ -798,7 +795,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always("private_key")
     )
     patch(
-      environment: \.pgp.verifyPassphrase,
+      \PGP.verifyPassphrase,
       with: always(.success(Void()))
     )
     patch(
@@ -827,7 +824,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always("private_key")
     )
     patch(
-      environment: \.pgp.verifyPassphrase,
+      \PGP.verifyPassphrase,
       with: always(.success(Void()))
     )
     patch(
@@ -901,7 +898,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always("private_key")
     )
     patch(
-      environment: \.pgp.verifyPassphrase,
+      \PGP.verifyPassphrase,
       with: always(.success(Void()))
     )
     patch(

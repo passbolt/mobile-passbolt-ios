@@ -23,31 +23,23 @@
 
 import Localization
 
-public struct SystemFeatureUnavailable: TheErrorWrapper {
+public struct SystemFeatureUnavailable: TheError {
 
   public static func error(
     _ message: StaticString = "SystemFeatureUnavailable",
-    underlyingError: TheError,
     file: StaticString = #fileID,
     line: UInt = #line
   ) -> Self {
     Self(
-      context: .merging(
-        underlyingError.context,
-        .context(
-          .message(
-            message,
-            file: file,
-            line: line
-          )
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
         )
-      ),
-      displayableMessage: underlyingError.displayableMessage,
-      underlyingError: underlyingError
+      )
     )
   }
 
   public var context: DiagnosticsContext
-  public var displayableMessage: DisplayableString
-  public var underlyingError: TheError
 }

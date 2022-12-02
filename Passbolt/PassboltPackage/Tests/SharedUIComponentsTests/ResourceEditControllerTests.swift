@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Crypto
 import SessionData
 import TestExtensions
 import UIComponents

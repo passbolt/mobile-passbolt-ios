@@ -47,9 +47,9 @@ final class SessionLockingTests: LoadableFeatureTestCase<SessionLocking> {
 
   func test_ensureAutolock_doesNotAffectAnythingByItsOwn() {
     patch(
-      environment: \.appLifeCycle.lifeCyclePublisher,
+      \ApplicationLifecycle.lifecyclePublisher,
       with: always(
-        Empty<AppLifeCycle.Transition, Never>()
+        Empty<ApplicationLifecycle.Transition, Never>()
           .eraseToAnyPublisher()
       )
     )
@@ -63,9 +63,9 @@ final class SessionLockingTests: LoadableFeatureTestCase<SessionLocking> {
 
   func test_ensureAutolock_clearsPassphrase_whenEnteringBackground() {
     patch(
-      environment: \.appLifeCycle.lifeCyclePublisher,
+      \ApplicationLifecycle.lifecyclePublisher,
       with: always(
-        CurrentValueSubject(AppLifeCycle.Transition.didEnterBackground)
+        CurrentValueSubject(ApplicationLifecycle.Transition.didEnterBackground)
           .eraseToAnyPublisher()
       )
     )
@@ -84,9 +84,9 @@ final class SessionLockingTests: LoadableFeatureTestCase<SessionLocking> {
 
   func test_ensureAutolock_clearsPassphrase_whenEnteringForeground() {
     patch(
-      environment: \.appLifeCycle.lifeCyclePublisher,
+      \ApplicationLifecycle.lifecyclePublisher,
       with: always(
-        CurrentValueSubject(AppLifeCycle.Transition.willEnterForeground)
+        CurrentValueSubject(ApplicationLifecycle.Transition.willEnterForeground)
           .eraseToAnyPublisher()
       )
     )

@@ -32,7 +32,7 @@ import XCTest
 final class SignatureVerificationTests: XCTestCase {
 
   func test_verification_withExistingToken_Succeeds() {
-    let verification: SignatureVerfication = .rssha256()
+    let verification: SignatureVerification = .rssha256()
 
     var components: Array<String> = validToken.components(separatedBy: ".")
 
@@ -56,7 +56,7 @@ final class SignatureVerificationTests: XCTestCase {
   }
 
   func test_verification_withToken_InvalidSignature_Fails() {
-    let verification: SignatureVerfication = .rssha256()
+    let verification: SignatureVerification = .rssha256()
 
     var components: Array<String> = tokenWithInvalidSignature.components(separatedBy: ".")
 
@@ -83,7 +83,7 @@ final class SignatureVerificationTests: XCTestCase {
   }
 
   func test_verification_withToken_MissingSignature_Fails() {
-    let verification: SignatureVerfication = .rssha256()
+    let verification: SignatureVerification = .rssha256()
 
     var components: Array<String> = tokenWithNoSignature.components(separatedBy: ".")
 
@@ -110,7 +110,7 @@ final class SignatureVerificationTests: XCTestCase {
   }
 
   func test_verification_withExistingToken_andServerRSAPublicKey_Succeeds() {
-    let verification: SignatureVerfication = .rssha256()
+    let verification: SignatureVerification = .rssha256()
 
     var components: Array<String> = shortJwt.components(separatedBy: ".")
 
@@ -132,7 +132,7 @@ final class SignatureVerificationTests: XCTestCase {
   }
 
   func test_verification_withExistingToken_andLongerServerRSAPublicKey_Succeeds() {
-    let verification: SignatureVerfication = .rssha256()
+    let verification: SignatureVerification = .rssha256()
 
     var components: Array<String> = longJwt.components(separatedBy: ".")
 

@@ -25,7 +25,6 @@ import Accounts
 import CommonModels
 import Crypto
 import Foundation
-import Network
 import UIComponents
 
 public final class AuthorizationViewController: PlainViewController, UIComponent {

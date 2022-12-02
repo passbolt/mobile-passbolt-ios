@@ -38,6 +38,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
     use(SessionStateEnsurance.placeholder)
     use(SessionAuthorizationState.placeholder)
     use(AccountsDataStore.placeholder)
+    use(PGP.placeholder)
   }
 
   func test_decryptMessage_returnsDecryptedAndVerifiedMessage_whenAllOperationsSucceed_withPublicKey() {
@@ -54,7 +55,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
       with: always("privatePGPKey")
     )
     patch(
-      environment: \.pgp.decryptAndVerify,
+      \PGP.decryptAndVerify,
       with: always(.success("plainMessage"))
     )
 
@@ -77,7 +78,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
       with: always("privatePGPKey")
     )
     patch(
-      environment: \.pgp.decrypt,
+      \PGP.decrypt,
       with: always(.success("plainMessage"))
     )
 
@@ -100,7 +101,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
       with: always("privatePGPKey")
     )
     patch(
-      environment: \.pgp.decrypt,
+      \PGP.decrypt,
       with: always(.failure(MockIssue.error()))
     )
 
@@ -168,7 +169,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
       with: always("privatePGPKey")
     )
     patch(
-      environment: \.pgp.encryptAndSign,
+      \PGP.encryptAndSign,
       with: always(.success("encryptedMessage"))
     )
 
@@ -191,12 +192,12 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
       with: always("privatePGPKey")
     )
     patch(
-      environment: \.pgp.decrypt,
+      \PGP.decrypt,
       with: always(.failure(MockIssue.error()))
     )
 
     patch(
-      environment: \.pgp.encryptAndSign,
+      \PGP.encryptAndSign,
       with: always(.failure(MockIssue.error()))
     )
 

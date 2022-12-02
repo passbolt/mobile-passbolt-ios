@@ -23,6 +23,7 @@
 
 import Accounts
 import Display
+import OSFeatures
 import Session
 import SessionData
 import UIComponents
@@ -65,11 +66,12 @@ extension SettingsController: UIController {
   ) async throws -> SettingsController {
     let session: Session = try await features.instance()
     let accountDetails: AccountDetails = try await features.instance(context: session.currentAccount())
+    let applicationLifecycle: ApplicationLifecycle = features.instance()
     let accountPreferences: AccountPreferences = try await features.instance(context: session.currentAccount())
-    let autoFill: AutoFill = try await features.instance()
-    let biometry: Biometry = try await features.instance()
+    let biometry: OSBiometry = features.instance()
     let sessionConfiguration: SessionConfiguration = try await features.instance()
-    let linkOpener: LinkOpener = try await features.instance()
+    let linkOpener: OSLinkOpener = features.instance()
+    let extensions: OSExtensions = features.instance()
     let displayNavigation: DisplayNavigation = try await features.instance()
 
     let legal: FeatureFlags.Legal = await sessionConfiguration.configuration()
@@ -94,29 +96,21 @@ extension SettingsController: UIController {
     let presentLogsViewerSubject: PassthroughSubject<Bool, Never> = .init()
 
     func biometricsStatePublisher() -> AnyPublisher<BiometricsState, Never> {
-      Publishers.CombineLatest(
-        biometry
-          .biometricsStatePublisher(),
-        accountPreferences
-          .updates
-          .map {
-            accountPreferences.isPassphraseStored()
+      accountPreferences
+        .updates
+        .map { () -> BiometricsState in
+          switch biometry.availability() {
+          case .unavailable, .unconfigured:
+            return .none
+
+          case .touchID:
+            return .touchID(enabled: accountPreferences.isPassphraseStored())
+
+          case .faceID:
+            return .faceID(enabled: accountPreferences.isPassphraseStored())
           }
-          .asPublisher()
-      )
-      .map { biometricsState, passphraseStored in
-        switch biometricsState {
-        case .unavailable, .unconfigured:
-          return .none
-
-        case .configuredTouchID:
-          return .touchID(enabled: passphraseStored)
-
-        case .configuredFaceID:
-          return .faceID(enabled: passphraseStored)
         }
-      }
-      .eraseToAnyPublisher()
+        .asPublisher()
     }
 
     func toggleBiometrics() -> AnyPublisher<Never, Error> {
@@ -141,7 +135,7 @@ extension SettingsController: UIController {
         return Just(false).eraseToAnyPublisher()
       }
 
-      return linkOpener.openLink(url)
+      return linkOpener.openURL(url)
     }
 
     func openPrivacyPolicy() -> AnyPublisher<Bool, Never> {
@@ -151,7 +145,7 @@ extension SettingsController: UIController {
         return Just(false).eraseToAnyPublisher()
       }
 
-      return linkOpener.openLink(url)
+      return linkOpener.openURL(url)
     }
 
     func openLogsViewer() {
@@ -171,7 +165,19 @@ extension SettingsController: UIController {
     }
 
     func autoFillEnabledPublisher() -> AnyPublisher<Bool, Never> {
-      autoFill.extensionEnabledStatePublisher()
+      applicationLifecycle
+        .lifecyclePublisher()
+        .asyncMap { (transition: ApplicationLifecycle.Transition) -> Bool? in
+          if case .didBecomeActive = transition {
+            return .none
+          }
+          else {
+            return await extensions.autofillExtensionEnabled()
+          }
+        }
+        .filterMapOptional()
+        .removeDuplicates()
+        .eraseToAnyPublisher()
     }
 
     func termsEnabled() -> Bool {

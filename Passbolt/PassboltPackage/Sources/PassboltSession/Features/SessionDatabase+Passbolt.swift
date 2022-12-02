@@ -23,6 +23,7 @@
 
 import CryptoKit
 import DatabaseOperations
+import OSFeatures
 import Session
 
 // MARK: - Implementation
@@ -35,7 +36,7 @@ extension SessionDatabase {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
 
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let session: Session = try await features.instance()
     let sessionState: SessionState = try await features.instance()
     let sessionStateEnsurance: SessionStateEnsurance = try await features.instance()

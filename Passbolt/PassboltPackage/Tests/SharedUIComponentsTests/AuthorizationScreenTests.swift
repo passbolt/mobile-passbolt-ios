@@ -40,7 +40,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
   override func mainActorSetUp() {
     features.usePlaceholder(for: Session.self)
     features.usePlaceholder(for: Accounts.self)
-    features.usePlaceholder(for: Biometry.self)
+    features.usePlaceholder(for: OSBiometry.self)
     features.patch(
       \AccountDetails.profile,
       context: .mock_ada,
@@ -282,11 +282,8 @@ final class AuthorizationScreenTests: MainActorTestCase {
       with: always(Void())
     )
     features.patch(
-      \Biometry.biometricsStatePublisher,
-      with: always(
-        CurrentValueSubject(.unavailable)
-          .eraseToAnyPublisher()
-      )
+      \OSBiometry.availability,
+      with: always(.unavailable)
     )
 
     let controller: AuthorizationController = try await testController(
@@ -316,11 +313,8 @@ final class AuthorizationScreenTests: MainActorTestCase {
       with: always(false)
     )
     features.patch(
-      \Biometry.biometricsStatePublisher,
-      with: always(
-        CurrentValueSubject(.configuredFaceID)
-          .eraseToAnyPublisher()
-      )
+      \OSBiometry.availability,
+      with: always(.faceID)
     )
 
     let controller: AuthorizationController = try await testController(
@@ -344,11 +338,8 @@ final class AuthorizationScreenTests: MainActorTestCase {
       with: always(Void())
     )
     features.patch(
-      \Biometry.biometricsStatePublisher,
-      with: always(
-        CurrentValueSubject(.configuredFaceID)
-          .eraseToAnyPublisher()
-      )
+      \OSBiometry.availability,
+      with: always(.faceID)
     )
 
     let controller: AuthorizationController = try await testController(
@@ -372,11 +363,8 @@ final class AuthorizationScreenTests: MainActorTestCase {
       with: always(Void())
     )
     features.patch(
-      \Biometry.biometricsStatePublisher,
-      with: always(
-        CurrentValueSubject(.configuredTouchID)
-          .eraseToAnyPublisher()
-      )
+      \OSBiometry.availability,
+      with: always(.touchID)
     )
     features.patch(
       \AccountPreferences.isPassphraseStored,

@@ -23,6 +23,7 @@
 
 import Accounts
 import Display
+import OSFeatures
 import Resources
 import Session
 import SessionData
@@ -75,9 +76,9 @@ extension ResourceSearchDisplayController {
     features: FeatureFactory,
     context: Context
   ) async throws -> Self {
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let navigationTree: NavigationTree = features.instance()
-    let asyncExecutor: AsyncExecutor = features.instance(of: AsyncExecutor.self).detach()
+    let asyncExecutor: AsyncExecutor = try await features.instance()
     let session: Session = try await features.instance()
     let currentAccount: Account = try await session.currentAccount()
     let accountDetails: AccountDetails = try await features.instance(context: currentAccount)

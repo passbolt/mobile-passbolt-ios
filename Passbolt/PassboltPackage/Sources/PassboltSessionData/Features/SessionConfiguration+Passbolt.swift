@@ -23,6 +23,7 @@
 
 import Features
 import NetworkOperations
+import OSFeatures
 import Session
 import SessionData
 
@@ -36,7 +37,7 @@ extension SessionConfiguration {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
 
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let session: Session = try await features.instance()
     let configurationFetchNetworkOperation: ConfigurationFetchNetworkOperation = try await features.instance()
 

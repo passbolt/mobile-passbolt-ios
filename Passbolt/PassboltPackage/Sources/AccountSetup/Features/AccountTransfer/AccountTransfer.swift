@@ -88,16 +88,15 @@ extension AccountTransfer {
 extension AccountTransfer: LoadableFeature {
 
   #if DEBUG
-  // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      progressPublisher: unimplemented("You have to provide mocks for used methods"),
-      accountDetailsPublisher: unimplemented("You have to provide mocks for used methods"),
-      processPayload: unimplemented("You have to provide mocks for used methods"),
-      completeTransfer: unimplemented("You have to provide mocks for used methods"),
-      avatarPublisher: unimplemented("You have to provide mocks for used methods"),
-      cancelTransfer: unimplemented("You have to provide mocks for used methods"),
-      featureUnload: unimplemented("You have to provide mocks for used methods")
+      progressPublisher: unimplemented(),
+      accountDetailsPublisher: unimplemented(),
+      processPayload: unimplemented(),
+      completeTransfer: unimplemented(),
+      avatarPublisher: unimplemented(),
+      cancelTransfer: unimplemented(),
+      featureUnload: unimplemented()
     )
   }
   #endif

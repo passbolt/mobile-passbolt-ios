@@ -34,29 +34,8 @@ internal struct Application {
   internal let ui: UI
   private let features: FeatureFactory
   
-  internal init(
-    environment: AppEnvironment = AppEnvironment(
-      Time.live,
-      UUIDGenerator.live,
-      Preferences.sharedUserDefaults(),
-      Keychain.live(),
-      Biometrics.live,
-      Camera.live(),
-      ExternalURLOpener.live(),
-      AppLifeCycle.application(),
-      PGP.gopenPGP(),
-      SignatureVerfication.rssha256(),
-      MDMConfig.live,
-      Files.live,
-      AutoFillExtension.live(),
-      SystemPasteboard.uiPasteboard(),
-      YubiKey.live(),
-      Randomness.system(),
-      AsyncExecutors.libDispatch(),
-      AppMeta.live
-    )
-  ) {
-    let features: FeatureFactory = .init(environment: environment)
+  internal init() {
+    let features: FeatureFactory = .init()
     // register features implementations
     features.usePassboltFeatures()
     self.ui = UI(features: features)

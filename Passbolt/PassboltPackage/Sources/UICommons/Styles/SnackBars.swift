@@ -50,6 +50,7 @@ extension Mutation where Subject: PlainView {
       .custom { (subject: Subject) in
         Mutation<Label>
           .combined(
+            .accessibilityIdentifier("snackbar.message"),
             .numberOfLines(0),
             .lineBreakMode(.byWordWrapping),
             .font(.inter(ofSize: 14, weight: .regular)),

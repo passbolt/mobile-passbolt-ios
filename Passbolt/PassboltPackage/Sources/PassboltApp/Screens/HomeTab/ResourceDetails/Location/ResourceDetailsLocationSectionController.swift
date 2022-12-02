@@ -26,6 +26,7 @@ import Display
 import Resources
 import UIComponents
 import Users
+import OSFeatures
 
 internal struct ResourceDetailsLocationSectionController {
 
@@ -45,8 +46,7 @@ extension ResourceDetailsLocationSectionController: ComponentController {
     cancellables: Cancellables
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
-    let asyncExecutor: AsyncExecutor = features.instance(of: AsyncExecutor.self)
-      .detach()
+    let asyncExecutor: AsyncExecutor = try await features.instance()
     let navigation: DisplayNavigation = try await features.instance()
     let resourceDetails: ResourceDetails = try await features.instance(context: context)
 

@@ -56,12 +56,11 @@ extension SessionAuthorization {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
 
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let sessionState: SessionState = try await features.instance()
-    let sessionAuthorizationState: SessionAuthorizationState = try await features.instance()
     let sessionNetworkAuthorization: SessionNetworkAuthorization = try await features.instance()
     let accountsData: AccountsDataStore = try await features.instance()
-    let pgp: PGP = features.instance(of: EnvironmentLegacyBridge.self).environment.pgp
+    let pgp: PGP = features.instance()
     let osTime: OSTime = features.instance()
 
     @Sendable nonisolated func validatedAuthorizationData(

@@ -32,18 +32,21 @@ import XCTest
 @MainActor
 final class LogsViewerControllerTests: MainActorTestCase {
 
+  var asyncExecutorMockControl: AsyncExecutor.MockExecutionControl!
+
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
+    asyncExecutorMockControl = .init()
     features.patch(
-      \Executors.newBackgroundExecutor,
-      with: AsyncExecutors.immediate.newBackgroundExecutor
+      \AsyncExecutor.self,
+      with: AsyncExecutor.mock(asyncExecutorMockControl)
     )
   }
 
   func test_refreshLogs_triggersDiagnosticLogsRead() async throws {
     var result: Void?
     features.patch(
-      \Diagnostics.diagnosticsInfo,
+      \OSDiagnostics.diagnosticsInfo,
       with: { () -> Array<String> in
         result = Void()
         return []
@@ -54,6 +57,7 @@ final class LogsViewerControllerTests: MainActorTestCase {
 
     controller
       .refreshLogs()
+    await asyncExecutorMockControl.executeAll()
 
     XCTAssertNotNil(result)
   }
@@ -74,13 +78,14 @@ final class LogsViewerControllerTests: MainActorTestCase {
 
   func test_logsPublisher_publishesCachedValue_afterRefreshingLogs() async throws {
     features.patch(
-      \Diagnostics.diagnosticsInfo,
+      \OSDiagnostics.diagnosticsInfo,
       with: always([])
     )
 
     let controller: LogsViewerController = try await testController()
 
     controller.refreshLogs()
+    await asyncExecutorMockControl.executeAll()
 
     var result: Array<String>?
     controller
@@ -129,7 +134,7 @@ final class LogsViewerControllerTests: MainActorTestCase {
     async throws
   {
     features.patch(
-      \Diagnostics.diagnosticsInfo,
+      \OSDiagnostics.diagnosticsInfo,
       with: always(["test", "another"])
     )
 
@@ -144,6 +149,7 @@ final class LogsViewerControllerTests: MainActorTestCase {
       .store(in: cancellables)
 
     controller.refreshLogs()
+    await asyncExecutorMockControl.executeAll()
     controller.presentShareMenu()
 
     XCTAssertEqual(result, "Passbolt:\ntest\nanother")

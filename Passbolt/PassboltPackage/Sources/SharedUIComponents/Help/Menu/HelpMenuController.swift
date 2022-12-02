@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import OSFeatures
 import UIComponents
 
 public struct HelpMenuController {
@@ -59,7 +60,7 @@ extension HelpMenuController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let linkOpener: LinkOpener = try await features.instance()
+    let linkOpener: OSLinkOpener = features.instance()
 
     let logsPresentationSubject: PassthroughSubject<Void, Never> = .init()
     let websiteHelpPresentationSubject: PassthroughSubject<Void, Never> = .init()
@@ -95,7 +96,7 @@ extension HelpMenuController: UIController {
       websiteHelpPresentationSubject
         .map { _ -> AnyPublisher<Void, Never> in
           linkOpener
-            .openLink(URL(string: "https://help.passbolt.com")!)
+            .openURL(URL(string: "https://help.passbolt.com")!)
             .mapToVoid()
             .eraseToAnyPublisher()
         }

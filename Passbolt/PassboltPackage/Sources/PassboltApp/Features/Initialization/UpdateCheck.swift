@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-import Environment
 import Features
 import NetworkOperations
 
@@ -36,12 +35,11 @@ public struct UpdateCheck {
 extension UpdateCheck: LegacyFeature {
 
   public static func load(
-    in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
     let updateChecker: UpdateChecker = try await .init(
-      appMeta: environment.appMeta,
+      applicationMeta: features.instance(),
       appVersionsFetchNetworkOperation: features.instance()
     )
 
@@ -54,8 +52,8 @@ extension UpdateCheck: LegacyFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      checkRequired: unimplemented("You have to provide mocks for used methods"),
-      updateAvailable: unimplemented("You have to provide mocks for used methods")
+      checkRequired: unimplemented(),
+      updateAvailable: unimplemented()
     )
   }
   #endif
@@ -92,16 +90,16 @@ fileprivate actor UpdateChecker {
     case checking(Task<Bool, Error>)
   }
 
-  private let appMeta: AppMeta
+  private let applicationMeta: ApplicationMeta
   private let appVersionsFetchNetworkOperation: AppVersionsFetchNetworkOperation
   private let cancellables: Cancellables = .init()
   private var status: Status = .unknown
 
   fileprivate init(
-    appMeta: AppMeta,
+    applicationMeta: ApplicationMeta,
     appVersionsFetchNetworkOperation: AppVersionsFetchNetworkOperation
   ) {
-    self.appMeta = appMeta
+    self.applicationMeta = applicationMeta
     self.appVersionsFetchNetworkOperation = appVersionsFetchNetworkOperation
   }
 
@@ -162,11 +160,10 @@ fileprivate actor UpdateChecker {
     case let .checking(task):
       return try await task.value
     }
-
   }
 
   private func currentAppVersion() -> String {
-    appMeta.version()
+    self.applicationMeta.applicationVersion()
   }
 
   private func latestAppVersion() async throws -> String {

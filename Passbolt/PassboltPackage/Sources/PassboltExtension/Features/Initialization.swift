@@ -23,6 +23,7 @@
 
 import Accounts
 import Features
+import OSFeatures
 import Session
 import UICommons
 
@@ -52,11 +53,10 @@ extension Initialization {
     features: FeatureFactory
   ) -> Self {
     unowned let features: FeatureFactory = features
-    features.useOSDiagnostics()
     features.useOSFeatures()
     features.useLiveDisplay()
 
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
 
     @MainActor func initialize() {
       diagnostics.log(diagnostic: "Initializing the app extension...")
@@ -65,13 +65,6 @@ extension Initialization {
       setupApplicationAppearance()
       features.usePassboltFeatures()
       analytics()
-
-      Task {
-        // preload features that require root scope
-        try await features.loadIfNeeded(Executors.self)
-        try await features.loadIfNeeded(LinkOpener.self)
-        try await features.loadIfNeeded(OSPermissions.self)
-      }
     }
 
     return Self(

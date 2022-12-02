@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import OSFeatures
 import Session
 import UIComponents
 
@@ -43,8 +44,9 @@ extension ExtensionSetupController: UIController {
   ) async throws -> Self {
     let currentAccount: Account = try await features.instance(of: Session.self).currentAccount()
     let accountInitialSetup: AccountInitialSetup = try await features.instance(context: currentAccount)
-    let autoFill: AutoFill = try await features.instance()
-    let linkOpener: LinkOpener = try await features.instance()
+    let extensions: OSExtensions = features.instance()
+    let applicationLifecycle: ApplicationLifecycle = features.instance()
+    let linkOpener: OSLinkOpener = features.instance()
     let continueSetupPresentationSubject: CurrentValueSubject<Void?, Never> = .init(nil)
 
     func continueSetupPresentationPublisher() -> AnyPublisher<Void, Never> {
@@ -57,8 +59,10 @@ extension ExtensionSetupController: UIController {
       linkOpener
         .openSystemSettings()
         .map { (_: Bool) -> AnyPublisher<Bool, Never> in
-          autoFill
-            .extensionEnabledStatePublisher()
+          applicationLifecycle.lifecyclePublisher()
+            .asyncMap { _ in
+              await extensions.autofillExtensionEnabled()
+            }
             .eraseToAnyPublisher()
         }
         .switchToLatest()

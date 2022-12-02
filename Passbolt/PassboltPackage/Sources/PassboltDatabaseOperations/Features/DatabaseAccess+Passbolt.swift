@@ -36,7 +36,7 @@ extension DatabaseAccess {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
 
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let osFiles: OSFiles = features.instance()
 
     nonisolated func databaseLocation(

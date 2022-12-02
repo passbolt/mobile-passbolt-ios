@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import OSFeatures
 import UIComponents
 import Users
 
@@ -42,7 +43,7 @@ extension UserPermissionDetailsController: ComponentController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let users: Users = try await features.instance()
 
     func userAvatarImageFetch(

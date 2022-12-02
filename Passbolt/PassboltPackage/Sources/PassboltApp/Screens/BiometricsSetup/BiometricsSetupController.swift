@@ -22,13 +22,14 @@
 //
 
 import Accounts
+import OSFeatures
 import Session
 import UIComponents
 
 internal struct BiometricsSetupController {
 
   internal var destinationPresentationPublisher: @MainActor () -> AnyPublisher<Destination, Never>
-  internal var biometricsStatePublisher: @MainActor () -> AnyPublisher<Biometrics.State, Never>
+  internal var biometricsStatePublisher: @MainActor () -> AnyPublisher<OSBiometry.Availability, Never>
   internal var setupBiometrics: @MainActor () -> AnyPublisher<Never, Error>
   internal var skipSetup: @MainActor () -> Void
 }
@@ -52,11 +53,12 @@ extension BiometricsSetupController: UIController {
   ) async throws -> Self {
     let currentAccount: Account = try await features.instance(of: Session.self).currentAccount()
     let accountInitialSetup: AccountInitialSetup = try await features.instance(context: currentAccount)
-    let autoFill: AutoFill = try await features.instance()
-    let diagnostics: Diagnostics = features.instance()
+    let extensions: OSExtensions = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
+    let applicationLifecycle: ApplicationLifecycle = features.instance()
     let session: Session = try await features.instance()
     let accountPreferences: AccountPreferences = try await features.instance(context: session.currentAccount())
-    let biometry: Biometry = try await features.instance()
+    let biometry: OSBiometry = try await features.instance()
 
     let destinationPresentationSubject: PassthroughSubject<Destination, Never> = .init()
 
@@ -64,46 +66,56 @@ extension BiometricsSetupController: UIController {
       destinationPresentationSubject.eraseToAnyPublisher()
     }
 
-    func biometricsStatePublisher() -> AnyPublisher<Biometrics.State, Never> {
-      biometry.biometricsStatePublisher()
+    func biometricsStatePublisher() -> AnyPublisher<OSBiometry.Availability, Never> {
+      applicationLifecycle
+        .lifecyclePublisher()
+        .compactMap { (transition: ApplicationLifecycle.Transition) -> OSBiometry.Availability? in
+          if case .didBecomeActive = transition {
+            return .none
+          }
+          else {
+            return biometry.availability()
+          }
+        }
+        .removeDuplicates()
+        .eraseToAnyPublisher()
     }
 
     func setupBiometrics() -> AnyPublisher<Never, Error> {
       accountInitialSetup.completeSetup(.biometrics)
-      return Just(Void())
-        .eraseErrorType()
-        .asyncMap {
-          try await accountPreferences.storePassphrase(true)
-        }
-        .map { autoFill.extensionEnabledStatePublisher().eraseErrorType() }
-        .switchToLatest()
-        .handleEvents(receiveOutput: { enabled in
-          if enabled {
+
+      return Future<Void, Error> { promise in
+        Task {
+          do {
+            try await accountPreferences.storePassphrase(true)
+          }
+          catch {
+            diagnostics.log(error: error)
+            return promise(.failure(error))
+          }
+          if await extensions.autofillExtensionEnabled() {
             destinationPresentationSubject.send(.finish)
           }
           else {
             destinationPresentationSubject.send(.extensionSetup)
           }
-        })
-        .ignoreOutput()
-        .collectErrorLog(using: diagnostics)
-        .eraseToAnyPublisher()
+          promise(.success)
+        }
+      }
+      .ignoreOutput()
+      .eraseToAnyPublisher()
     }
 
     func skipSetup() {
       accountInitialSetup.completeSetup(.biometrics)
-      autoFill
-        .extensionEnabledStatePublisher()
-        .first()
-        .sink { enabled in
-          if enabled {
-            destinationPresentationSubject.send(.finish)
-          }
-          else {
-            destinationPresentationSubject.send(.extensionSetup)
-          }
+      Task {
+        if await extensions.autofillExtensionEnabled() {
+          destinationPresentationSubject.send(.finish)
         }
-        .store(in: cancellables)
+        else {
+          destinationPresentationSubject.send(.extensionSetup)
+        }
+      }
     }
 
     return Self(

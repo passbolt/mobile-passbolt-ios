@@ -39,6 +39,10 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
       \Session.close,
       with: always(Void())
     )
+    patch(
+      \UUIDGenerator.uuid,
+      with: always(UUID.test.uuidString)
+    )
   }
 
   func test_storedAccounts_returnsAccountsFromAccountsDataStore() async throws {
@@ -111,11 +115,11 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
       with: always(Void())
     )
     patch(
-      environment: \.uuidGenerator.uuid,
-      with: always(.test)
+      \UUIDGenerator.uuid,
+      with: always(UUID.test.uuidString)
     )
     patch(
-      environment: \.pgp.verifyPassphrase,
+      \PGP.verifyPassphrase,
       with: always(.success)
     )
 
@@ -151,11 +155,11 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
       with: always([.mock_ada])
     )
     patch(
-      environment: \.uuidGenerator.uuid,
-      with: always(.test)
+      \UUIDGenerator.uuid,
+      with: always(UUID.test.uuidString)
     )
     patch(
-      environment: \.pgp.verifyPassphrase,
+      \PGP.verifyPassphrase,
       with: always(.success)
     )
 

@@ -32,11 +32,11 @@ import UIComponents
 @MainActor
 final class ExtensionSetupScreenTests: MainActorTestCase {
 
-  var autoFill: AutoFill!
-  var linkOpener: LinkOpener!
+  var extensions: OSExtensions!
+  var linkOpener: OSLinkOpener!
 
   override func mainActorSetUp() {
-    autoFill = .placeholder
+    extensions = .placeholder
     linkOpener = .placeholder
     features.patch(
       \Session.currentAccount,
@@ -46,15 +46,16 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
       for: AccountInitialSetup.self,
       context: Account.mock_ada
     )
+    features.usePlaceholder(for: ApplicationLifecycle.self)
   }
 
   override func mainActorTearDown() {
-    autoFill = nil
+    extensions = nil
     linkOpener = nil
   }
 
   func test_continueSetupPresentationPublisher_doesNotPublishInitially() async throws {
-    await features.use(autoFill)
+    await features.use(extensions)
     await features.use(linkOpener)
     let controller: ExtensionSetupController = try await testController()
 
@@ -67,7 +68,7 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
   }
 
   func test_continueSetupPresentationPublisher_publish_afterSkip() async throws {
-    features.use(autoFill)
+    features.use(extensions)
     features.use(linkOpener)
     features.patch(
       \AccountInitialSetup.completeSetup,
@@ -88,15 +89,23 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
   }
 
   func test_continueSetupPresentationPublisher_publishes_afterEnablingExtensionInSettings() async throws {
-    autoFill.extensionEnabledStatePublisher = always(Just(true).eraseToAnyPublisher())
-    await features.use(autoFill)
+    extensions.autofillExtensionEnabled = always(true)
+    features.use(extensions)
     linkOpener.openSystemSettings = always(Just(true).eraseToAnyPublisher())
-    await features.use(linkOpener)
+    features.use(linkOpener)
+    features.patch(
+      \ApplicationLifecycle.lifecyclePublisher,
+      with: always(
+        Just(.didBecomeActive)
+          .eraseToAnyPublisher()
+      )
+    )
 
     let controller: ExtensionSetupController = try await testController()
 
-    var result: Void!
-    controller.continueSetupPresentationPublisher()
+    var result: Void?
+    controller
+      .continueSetupPresentationPublisher()
       .sink { result = $0 }
       .store(in: cancellables)
 
@@ -105,14 +114,24 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
       .sink { _ in }
       .store(in: cancellables)
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+
     XCTAssertNotNil(result)
   }
 
   func test_continueSetupPresentationPublisher_doesNotPublish_afterExtensionIsNotEnabledInSettings() async throws {
-    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
-    await features.use(autoFill)
+    extensions.autofillExtensionEnabled = always(false)
+    features.use(extensions)
     linkOpener.openSystemSettings = always(Just(true).eraseToAnyPublisher())
-    await features.use(linkOpener)
+    features.use(linkOpener)
+    features.patch(
+      \ApplicationLifecycle.lifecyclePublisher,
+      with: always(
+        Just(.didBecomeActive)
+          .eraseToAnyPublisher()
+      )
+    )
 
     let controller: ExtensionSetupController = try await testController()
 
@@ -130,14 +149,21 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
   }
 
   func test_setupExtension_opensSystemSettings() async throws {
-    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
-    await features.use(autoFill)
+    extensions.autofillExtensionEnabled = always(false)
+    features.use(extensions)
     var result: Void!
     linkOpener.openSystemSettings = {
       result = Void()
       return Just(true).eraseToAnyPublisher()
     }
-    await features.use(linkOpener)
+    features.use(linkOpener)
+    features.patch(
+      \ApplicationLifecycle.lifecyclePublisher,
+      with: always(
+        Just(.didBecomeActive)
+          .eraseToAnyPublisher()
+      )
+    )
 
     let controller: ExtensionSetupController = try await testController()
 

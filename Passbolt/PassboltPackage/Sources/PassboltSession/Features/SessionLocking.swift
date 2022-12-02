@@ -22,6 +22,7 @@
 //
 
 import Features
+import OSFeatures
 
 // MARK: - Interface
 
@@ -52,15 +53,13 @@ extension SessionLocking {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
     await features.assertScope(identifier: account)
-    let asyncExecutor: AsyncExecutor = features.instance(of: AsyncExecutor.self)
-      .detach()
-    let environmentBridge: EnvironmentLegacyBridge = features.instance()
-    let appLifeCycle: AppLifeCycle = environmentBridge.environment.appLifeCycle
+    let asyncExecutor: AsyncExecutor = try await features.instance()
+    let appLifecycle: ApplicationLifecycle = features.instance()
     let sesionState: SessionState = try await features.instance()
 
     let observationStart: Once = .init {
-      appLifeCycle
-        .lifeCyclePublisher()
+      appLifecycle
+        .lifecyclePublisher()
         .sink { transition in
           asyncExecutor.schedule(.replace) { @SessionActor in
             switch transition {

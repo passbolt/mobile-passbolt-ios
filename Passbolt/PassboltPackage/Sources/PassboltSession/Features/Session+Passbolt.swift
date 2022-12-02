@@ -22,6 +22,7 @@
 //
 
 import NetworkOperations
+import OSFeatures
 import Session
 
 // MARK: - Implementation
@@ -34,7 +35,7 @@ extension Session {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
 
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let sessionState: SessionState = try await features.instance()
     let sessionAuthorizationState: SessionAuthorizationState = try await features.instance()
     let sessionAuthorization: SessionAuthorization = try await features.instance()

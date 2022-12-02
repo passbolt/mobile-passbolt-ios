@@ -24,11 +24,12 @@
 @_exported import Accounts
 @_exported import CommonModels
 @_exported import Commons
+@_exported import Crypto
 @_exported import Database
 @_exported import DatabaseOperations
 @_exported import Foundation
 @_exported import MockData
-@_exported import Network
+@_exported import NFC
 @_exported import NetworkOperations
 @_exported import OSFeatures
 @_exported import Resources

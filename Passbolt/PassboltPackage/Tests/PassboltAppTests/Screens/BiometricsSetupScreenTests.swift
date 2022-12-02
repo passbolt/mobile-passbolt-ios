@@ -36,7 +36,8 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
   var preferencesUpdates: UpdatesSequenceSource!
 
   override func mainActorSetUp() {
-    features.usePlaceholder(for: Biometry.self)
+    features.usePlaceholder(for: OSBiometry.self)
+    features.usePlaceholder(for: ApplicationLifecycle.self)
     preferencesUpdates = .init()
     features.patch(
       \Session.currentAccount,
@@ -60,11 +61,8 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
 
   func test_destinationPresentationPublisher_doesNotPublishInitially() async throws {
     features.patch(
-      \AutoFill.extensionEnabledStatePublisher,
-      with: always(
-        Just(false)
-          .eraseToAnyPublisher()
-      )
+      \OSExtensions.autofillExtensionEnabled,
+      with: always(false)
     )
 
     let controller: BiometricsSetupController = try await testController()
@@ -79,21 +77,22 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
 
   func test_destinationPresentationPublisher_publishesFinish_WhenSkipping_andExtensionIsEnabled() async throws {
     features.patch(
-      \AutoFill.extensionEnabledStatePublisher,
-      with: always(
-        Just(true)
-          .eraseToAnyPublisher()
-      )
+      \OSExtensions.autofillExtensionEnabled,
+      with: always(true)
     )
 
     let controller: BiometricsSetupController = try await testController()
 
     var result: BiometricsSetupController.Destination!
-    controller.destinationPresentationPublisher()
+    controller
+      .destinationPresentationPublisher()
       .sink { result = $0 }
       .store(in: cancellables)
 
     controller.skipSetup()
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result, .finish)
   }
@@ -101,21 +100,22 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
   func test_destinationPresentationPublisher_publishesExtensionSetup_WhenSkipping_andExtensionIsDisabled() async throws
   {
     features.patch(
-      \AutoFill.extensionEnabledStatePublisher,
-      with: always(
-        Just(false)
-          .eraseToAnyPublisher()
-      )
+      \OSExtensions.autofillExtensionEnabled,
+      with: always(false)
     )
 
     let controller: BiometricsSetupController = try await testController()
 
     var result: BiometricsSetupController.Destination!
-    controller.destinationPresentationPublisher()
+    controller
+      .destinationPresentationPublisher()
       .sink { result = $0 }
       .store(in: cancellables)
 
     controller.skipSetup()
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result, .extensionSetup)
   }
@@ -127,11 +127,8 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
       with: always(Void())
     )
     features.patch(
-      \AutoFill.extensionEnabledStatePublisher,
-      with: always(
-        Just(true)
-          .eraseToAnyPublisher()
-      )
+      \OSExtensions.autofillExtensionEnabled,
+      with: always(true)
     )
 
     let controller: BiometricsSetupController = try await testController()
@@ -156,11 +153,8 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
       with: always(Void())
     )
     features.patch(
-      \AutoFill.extensionEnabledStatePublisher,
-      with: always(
-        Just(false)
-          .eraseToAnyPublisher()
-      )
+      \OSExtensions.autofillExtensionEnabled,
+      with: always(false)
     )
 
     let controller: BiometricsSetupController = try await testController()
@@ -190,11 +184,8 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
       }
     )
     features.patch(
-      \AutoFill.extensionEnabledStatePublisher,
-      with: always(
-        Just(true)
-          .eraseToAnyPublisher()
-      )
+      \OSExtensions.autofillExtensionEnabled,
+      with: always(true)
     )
 
     let controller: BiometricsSetupController = try await testController()
@@ -213,11 +204,8 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
       with: alwaysThrow(MockIssue.error())
     )
     features.patch(
-      \AutoFill.extensionEnabledStatePublisher,
-      with: always(
-        Just(false)
-          .eraseToAnyPublisher()
-      )
+      \OSExtensions.autofillExtensionEnabled,
+      with: always(false)
     )
 
     let controller: BiometricsSetupController = try await testController()

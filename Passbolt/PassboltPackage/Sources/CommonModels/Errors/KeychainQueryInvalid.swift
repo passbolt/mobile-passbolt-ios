@@ -23,7 +23,7 @@
 
 import Commons
 
-public struct KeychainQueryInvalid: TheError {
+public struct OSKeychainQueryInvalid: TheError {
 
   public static func error(
     _ message: StaticString = "KeychainQueryInvalid",

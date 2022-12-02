@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import OSFeatures
 
 import struct Foundation.Data
 import struct Foundation.URL
@@ -34,14 +35,12 @@ extension AccountsDataStore {
     features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let environment: AppEnvironment = features.instance(of: EnvironmentLegacyBridge.self).environment
-    let files: Files = environment.files
-    let preferences: Preferences = environment.preferences
-    let keychain: Keychain = environment.keychain
+    let keychain: OSKeychain = features.instance()
+    let files: OSFiles = features.instance()
+    let preferences: OSPreferences = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
 
-    let diagnostics: Diagnostics = features.instance()
-
-    @Sendable func forceDelete(matching query: KeychainQuery) {
+    @Sendable func forceDelete(matching query: OSKeychainQuery) {
       diagnostics.debugLog("Purging data for \(query.key)")
       switch keychain.delete(matching: query) {
       case .success:
@@ -139,7 +138,7 @@ extension AccountsDataStore {
 
       // storedAccountKeys - keychain accounts private keys
       let storedAccountKeys: Array<Account.LocalID>
-      let armoredKeysQuery: KeychainQuery = .init(
+      let armoredKeysQuery: OSKeychainQuery = .init(
         key: "accountArmoredKey",
         tag: nil,
         requiresBiometrics: false
@@ -170,8 +169,7 @@ extension AccountsDataStore {
             && storedAccountsProfiles.contains($0)
             && storedAccountKeys.contains($0)
         }
-      environment
-        .preferences
+      preferences
         .save(updatedAccountsList, for: .accountsList)
       diagnostics.debugLog("Updated accounts list: \(updatedAccountsList)")
 
@@ -286,43 +284,20 @@ extension AccountsDataStore {
         /* We can't delete passphrases selectively due to biometrics */
       }
 
-      let applicationDataDirectory: URL
-      switch files.applicationDataDirectory() {
-      case let .success(url):
-        applicationDataDirectory = url
+      let applicationDataDirectory: URL = try files.applicationDataDirectory()
 
-      case let .failure(error):
-        diagnostics.log(diagnostic: "Failed to access application data directory")
-        throw error
-      }
-
-      let storedDatabasesResult: Result<Array<Account.LocalID>, Error> =
-        files
+      let storedDatabases: Array<Account.LocalID> =
+        try files
         .contentsOfDirectory(applicationDataDirectory)
-        .map { contents -> Array<Account.LocalID> in
-          contents
-            .filter { fileName in
-              fileName.hasSuffix(".sqlite")
-            }
-            .map { fileName -> Account.LocalID in
-              var fileName = fileName
-              fileName.removeLast(".sqlite".count)
-              return .init(rawValue: fileName)
-            }
+        .filter { fileName in
+          fileName.hasSuffix(".sqlite")
+        }
+        .map { fileName -> Account.LocalID in
+          var fileName = fileName
+          fileName.removeLast(".sqlite".count)
+          return .init(rawValue: fileName)
         }
 
-      let storedDatabases: Array<Account.LocalID>
-      switch storedDatabasesResult {
-      case let .success(databases):
-        storedDatabases = databases
-
-      case let .failure(error):
-        diagnostics.log(
-          diagnostic:
-            "Failed to check database files"
-        )
-        throw error
-      }
       diagnostics.debugLog("Stored databases: \(storedDatabases)")
 
       let databasesToRemove: Array<Account.LocalID> =
@@ -330,26 +305,12 @@ extension AccountsDataStore {
         .filter { !updatedAccountsList.contains($0) }
 
       for accountID in databasesToRemove {
-        let fileDeletionResult: Result<Void, Error> =
+        try files.deleteFile(
           files
-          .applicationDataDirectory()
-          .map { dir in
-            dir.appendingPathComponent(accountID.rawValue)
-              .appendingPathExtension("sqlite")
-          }
-          .flatMap(files.deleteFile)
-
-        switch fileDeletionResult {
-        case .success:
-          break
-        case let .failure(error):
-          diagnostics.log(diagnostic: "Failed to delete database")
-          throw
-            error
-            .asTheError()
-            .pushing(.message("Failed to delete accoiunt database"))
-            .recording(accountID, for: "accountID")
-        }
+            .applicationDataDirectory()
+            .appendingPathComponent(accountID.rawValue)
+            .appendingPathExtension("sqlite")
+        )
       }
 
       diagnostics.debugLog("Deleted account databases: \(databasesToRemove)")
@@ -362,8 +323,8 @@ extension AccountsDataStore {
     }
 
     @Sendable func loadAccounts() -> Array<Account> {
-      let keychainLoadResult: Result<Array<Account>, Error> = environment
-        .keychain
+      let keychainLoadResult: Result<Array<Account>, Error> =
+        keychain
         .loadAll(
           Account.self,
           matching: .accountsQuery
@@ -382,16 +343,16 @@ extension AccountsDataStore {
     }
 
     @Sendable func loadLastUsedAccount() -> Account? {
-      return environment
-        .preferences
+      return
+        preferences
         .load(
           Account.LocalID.self,
           for: .lastUsedAccount
         )
         .flatMap { accountID in
           guard !accountID.rawValue.isEmpty else { return .none }
-          let keychainResult: Result<Account?, Error> = environment
-            .keychain
+          let keychainResult: Result<Account?, Error> =
+            keychain
             .loadFirst(
               Account.self,
               matching: .accountQuery(for: accountID)
@@ -431,23 +392,20 @@ extension AccountsDataStore {
         }
       }
 
-      try environment
-        .keychain
+      try keychain
         .save(profile, for: .accountProfileQuery(for: account.localID))
         .get()
-      try environment
-        .keychain
+      try keychain
         .save(account, for: .accountQuery(for: account.localID))
         .get()
-      try environment
-        .keychain
+      try keychain
         .save(
           armoredKey,
           for: .accountArmoredKeyQuery(for: account.localID)
         )
         .get()
-      var accountIdentifiers: Array<Account.LocalID> = environment
-        .preferences
+      var accountIdentifiers: Array<Account.LocalID> =
+        preferences
         .load(Array<Account.LocalID>.self, for: .accountsList)
       accountIdentifiers.append(account.localID)
       preferences.save(accountIdentifiers, for: .accountsList)
@@ -458,8 +416,7 @@ extension AccountsDataStore {
     ) throws -> ArmoredPGPPrivateKey {
       guard
         let key: ArmoredPGPPrivateKey =
-          try environment
-          .keychain
+          try keychain
           .loadFirst(
             ArmoredPGPPrivateKey.self,
             matching: .accountArmoredKeyQuery(for: accountID)
@@ -478,8 +435,7 @@ extension AccountsDataStore {
     @Sendable nonisolated func isPassphraseStored(
       for accountID: Account.LocalID
     ) -> Bool {
-      environment
-        .keychain
+      keychain
         .checkIfExists(
           matching: .accountPassphraseQuery(for: accountID)
         )
@@ -489,8 +445,7 @@ extension AccountsDataStore {
       for accountID: Account.LocalID,
       passphrase: Passphrase
     ) throws {
-      try environment
-        .keychain
+      try keychain
         .save(
           passphrase,
           for: .accountPassphraseQuery(for: accountID)
@@ -505,8 +460,7 @@ extension AccountsDataStore {
       do {
         guard
           let passphrase: Passphrase =
-            try environment
-            .keychain
+            try keychain
             .loadFirst(
               Passphrase.self,
               matching: .accountPassphraseQuery(for: accountID)
@@ -536,8 +490,7 @@ extension AccountsDataStore {
     @Sendable nonisolated func deletePassphrase(
       for accountID: Account.LocalID
     ) throws {
-      try environment
-        .keychain
+      try keychain
         .delete(matching: .accountPassphraseDeleteQuery(for: accountID))
         .get()
     }
@@ -546,8 +499,7 @@ extension AccountsDataStore {
       accountID: Account.LocalID,
       token: String
     ) throws {
-      try environment
-        .keychain
+      try keychain
         .save(token, for: .accountMFATokenQuery(for: accountID))
         .get()
     }
@@ -555,8 +507,7 @@ extension AccountsDataStore {
     @Sendable func loadAccountMFAToken(
       accountID: Account.LocalID
     ) throws -> String? {
-      try environment
-        .keychain
+      try keychain
         .loadFirst(matching: .accountMFATokenQuery(for: accountID))
         .get()
     }
@@ -564,8 +515,7 @@ extension AccountsDataStore {
     @Sendable func deleteAccountMFAToken(
       accountID: Account.LocalID
     ) throws {
-      try environment
-        .keychain
+      try keychain
         .delete(matching: .accountMFATokenQuery(for: accountID))
         .get()
     }
@@ -575,8 +525,7 @@ extension AccountsDataStore {
     ) throws -> AccountProfile {
       guard
         let profile: AccountProfile =
-          try environment
-          .keychain
+          try keychain
           .loadFirst(AccountProfile.self, matching: .accountProfileQuery(for: accountID))
           .get()
       else {
@@ -592,8 +541,8 @@ extension AccountsDataStore {
     @Sendable func update(
       accountProfile: AccountProfile
     ) throws {
-      let accountsList: Array<Account.LocalID> = environment
-        .preferences
+      let accountsList: Array<Account.LocalID> =
+        preferences
         .load(Array<Account.LocalID>.self, for: .accountsList)
       guard accountsList.contains(accountProfile.accountID)
       else {
@@ -602,8 +551,7 @@ extension AccountsDataStore {
           .error("Failed to update account profile")
           .recording(accountProfile.accountID, for: "accountID")
       }
-      try environment
-        .keychain
+      try keychain
         .save(accountProfile, for: .accountProfileQuery(for: accountProfile.accountID))
         .get()
     }
@@ -624,22 +572,21 @@ extension AccountsDataStore {
         }
       }
 
-      var accountIdentifiers: Array<Account.LocalID> = environment
-        .preferences
+      var accountIdentifiers: Array<Account.LocalID> =
+        preferences
         .load(Array<Account.LocalID>.self, for: .accountsList)
 
       accountIdentifiers.removeAll(where: { $0 == accountID })
       preferences.save(accountIdentifiers, for: .accountsList)
-      let lastUsedAccount: Account.LocalID? = environment
-        .preferences
+      let lastUsedAccount: Account.LocalID? =
+        preferences
         .load(
           Account.LocalID.self,
           for: .lastUsedAccount
         )
 
       if lastUsedAccount == accountID {
-        environment
-          .preferences
+        preferences
           .deleteValue(
             for: .lastUsedAccount
           )
@@ -648,28 +595,23 @@ extension AccountsDataStore {
         /* */
       }
       do {
-        try environment
-          .keychain
+        try keychain
           .delete(matching: .accountPassphraseQuery(for: accountID))
           .get()
 
-        try environment
-          .keychain
+        try keychain
           .delete(matching: .accountArmoredKeyQuery(for: accountID))
           .get()
 
-        try environment
-          .keychain
+        try keychain
           .delete(matching: .accountMFATokenQuery(for: accountID))
           .get()
 
-        try environment
-          .keychain
+        try keychain
           .delete(matching: .accountQuery(for: accountID))
           .get()
 
-        try environment
-          .keychain
+        try keychain
           .delete(matching: .accountProfileQuery(for: accountID))
           .get()
 
@@ -695,18 +637,8 @@ extension AccountsDataStore {
       forAccountWithID accountID: Account.LocalID
     ) throws -> URL {
       try files
-        .applicationDataDirectory()
-        .map { dir in
-          dir
-            .appendingPathComponent(accountID.rawValue)
-            .appendingPathExtension("sqlite")
-        }
-        .mapError { error in
-          error
-            .asUnidentified()
-            .pushing(.message("Cannot access database file"))
-        }
-        .get()
+        .applicationDataDirectory().appendingPathComponent(accountID.rawValue)
+        .appendingPathExtension("sqlite")
     }
 
     @Sendable func storeServerFingerprint(
@@ -747,13 +679,13 @@ extension AccountsDataStore {
   }
 }
 
-extension Preferences.Key {
+extension OSPreferences.Key {
 
   fileprivate static var accountsList: Self { "accountsList" }
   fileprivate static var lastUsedAccount: Self { "lastUsedAccount" }
 }
 
-extension KeychainQuery {
+extension OSKeychainQuery {
 
   fileprivate static var accountsQuery: Self {
     Self(
@@ -859,7 +791,7 @@ extension KeychainQuery {
     )
     return Self(
       key: "accountMFAToken",
-      tag: (identifier?.rawValue).map(KeychainQuery.Tag.init(rawValue:)),
+      tag: (identifier?.rawValue).map(OSKeychainQuery.Tag.init(rawValue:)),
       requiresBiometrics: false
     )
   }
@@ -873,7 +805,7 @@ extension KeychainQuery {
     )
     return Self(
       key: "serverFingerprint",
-      tag: (identifier?.rawValue).map(KeychainQuery.Tag.init(rawValue:)),
+      tag: (identifier?.rawValue).map(OSKeychainQuery.Tag.init(rawValue:)),
       requiresBiometrics: false
     )
   }

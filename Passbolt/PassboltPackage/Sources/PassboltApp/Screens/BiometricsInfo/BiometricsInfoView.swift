@@ -24,7 +24,7 @@
 import CommonModels
 import UICommons
 
-import struct Environment.Biometrics
+import struct OSFeatures.OSBiometry
 
 internal final class BiometricsInfoView: ScrolledStackView {
 

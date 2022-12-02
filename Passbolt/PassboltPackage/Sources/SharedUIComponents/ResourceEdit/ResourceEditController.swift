@@ -23,6 +23,8 @@
 
 import Accounts
 import CommonModels
+import Crypto
+import OSFeatures
 import Resources
 import SessionData
 import UIComponents
@@ -61,7 +63,7 @@ extension ResourceEditController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let sessionData: SessionData = try await features.instance()
     let resourceForm: ResourceEditForm = try await features.instance()
     let randomGenerator: RandomStringGenerator = try await features.instance()

@@ -66,7 +66,7 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
     use(ResourceTags.placeholder)
     use(UserGroups.placeholder)
     patch(
-      environment: \.time.timestamp,
+      \OSTime.timestamp,
       with: always(100)
     )
     patch(

@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-import Network
 import Session
 import SharedUIComponents
 import UICommons

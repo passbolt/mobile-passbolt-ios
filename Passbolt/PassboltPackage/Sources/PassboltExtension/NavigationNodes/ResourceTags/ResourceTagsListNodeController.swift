@@ -22,6 +22,7 @@
 //
 
 import Display
+import OSFeatures
 import Resources
 import Session
 import SessionData
@@ -73,8 +74,8 @@ extension ResourceTagsListNodeController {
     features: FeatureFactory,
     context: Context
   ) async throws -> Self {
-    let diagnostics: Diagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = features.instance(of: AsyncExecutor.self).detach()
+    let diagnostics: OSDiagnostics = features.instance()
+    let asyncExecutor: AsyncExecutor = try await features.instance()
     let navigationTree: NavigationTree = features.instance()
     let autofillContext: AutofillExtensionContext = features.instance()
     let resourceTags: ResourceTags = try await features.instance()

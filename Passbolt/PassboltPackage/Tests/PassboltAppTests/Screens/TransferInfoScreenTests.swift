@@ -23,7 +23,6 @@
 
 import AccountSetup
 import Combine
-import Environment
 import Features
 import TestExtensions
 import UIComponents
@@ -35,10 +34,18 @@ import XCTest
 @MainActor
 final class TransferInfoScreenTests: MainActorTestCase {
 
+
+  var asyncExecutorMockControl: AsyncExecutor.MockExecutionControl!
+
+  override func mainActorSetUp() {
+    self.asyncExecutorMockControl = .init()
+    self.features.patch(\AsyncExecutor.self, with: .mock(self.asyncExecutorMockControl))
+  }
+
   func test_noCameraPermissionAlert_isPresented_whenCallingPresent() async throws {
-    var permissions: OSPermissions = .placeholder
-    permissions.ensureCameraPermission = always(Just(Void()).eraseErrorType().eraseToAnyPublisher())
-    await features.use(permissions)
+    var permissions: OSCamera = .placeholder
+    permissions.ensurePermission = always(Void())
+    features.use(permissions)
     let controller: TransferInfoScreenController = try await testController()
     var result: Bool!
 
@@ -56,7 +63,7 @@ final class TransferInfoScreenTests: MainActorTestCase {
 
   func test_showSettings_isTriggered_whenCallingShowSettings() async throws {
     var result: Void?
-    var linkOpener: LinkOpener = .placeholder
+    var linkOpener: OSLinkOpener = .placeholder
     linkOpener.openAppSettings = {
       result = Void()
       return Just(true).eraseToAnyPublisher()
@@ -71,12 +78,14 @@ final class TransferInfoScreenTests: MainActorTestCase {
 
   func test_requestOrNavigatePublisher_requestsCameraPermission() async throws {
     var result: Void?
-    var appPermissions: OSPermissions = .placeholder
-    appPermissions.ensureCameraPermission = {
-      result = Void()
-      return Fail(error: MockIssue.error()).eraseToAnyPublisher()
-    }
-    await features.use(appPermissions)
+    self.features.patch(
+      \OSCamera.ensurePermission,
+       with: {
+         result = Void()
+         throw MockIssue.error()
+       }
+    )
+
     let controller: TransferInfoScreenController = try await testController()
 
     controller.requestOrNavigatePublisher()
@@ -84,25 +93,29 @@ final class TransferInfoScreenTests: MainActorTestCase {
       .sink { _ in }
       .store(in: cancellables)
 
+    await self.asyncExecutorMockControl.executeAll()
+
     XCTAssertNotNil(result)
   }
 
   func test_requestOrNavigatePublisher_passesPermissionState() async throws {
-    var appPermissions: OSPermissions = .placeholder
-    appPermissions.ensureCameraPermission = always(
-      Just(Void()).eraseErrorType().eraseToAnyPublisher()
+    features.patch(
+      \OSCamera.ensurePermission,
+       with: always(Void())
     )
-    await features.use(appPermissions)
 
     let controller: TransferInfoScreenController = try await testController()
-    var result: Bool!
+    var result: Bool?
 
-    controller.requestOrNavigatePublisher()
+    controller
+      .requestOrNavigatePublisher()
       .receive(on: ImmediateScheduler.shared)
       .sink { granted in
         result = granted
       }
       .store(in: cancellables)
+
+    await self.asyncExecutorMockControl.executeAll()
 
     XCTAssertTrue(result)
   }

@@ -39,7 +39,7 @@ final class TOTPControllerTests: MainActorTestCase {
       \Session.currentAccount,
       with: always(Account.mock_ada)
     )
-    features.usePlaceholder(for: Pasteboard.self)
+    features.usePlaceholder(for: OSPasteboard.self)
   }
 
   func test_statusChangePublisher_doesNotPublish_initially() async throws {
@@ -155,7 +155,7 @@ final class TOTPControllerTests: MainActorTestCase {
 
   func test_statusChangePublisher_publishError_whenPastingOTPWithInvalidCharacters() async throws {
     features.patch(
-      \Pasteboard.get,
+      \OSPasteboard.get,
       with: always("123abc")
     )
 
@@ -183,7 +183,7 @@ final class TOTPControllerTests: MainActorTestCase {
 
   func test_statusChangePublisher_publishError_whenPastingTooLongOTP() async throws {
     features.patch(
-      \Pasteboard.get,
+      \OSPasteboard.get,
       with: always("123456789")
     )
 
@@ -254,7 +254,7 @@ final class TOTPControllerTests: MainActorTestCase {
 
   func test_pasteOTP_doesNotStartProcessing_whenPastedOTPIsShorterThanRequired() async throws {
     features.patch(
-      \Pasteboard.get,
+      \OSPasteboard.get,
       with: always("12345")
     )
 
@@ -279,7 +279,7 @@ final class TOTPControllerTests: MainActorTestCase {
 
   func test_pasteOTP_startsProcessing_whenPastedOTPMeetsRequirements() async throws {
     features.patch(
-      \Pasteboard.get,
+      \OSPasteboard.get,
       with: always("123456")
     )
 
@@ -307,7 +307,7 @@ final class TOTPControllerTests: MainActorTestCase {
 
   func test_pasteOTP_doesNotChangeOTP_whenPastedOTPHasInvalidCharacters() async throws {
     features.patch(
-      \Pasteboard.get,
+      \OSPasteboard.get,
       with: always("123abc")
     )
     features.patch(
@@ -332,7 +332,7 @@ final class TOTPControllerTests: MainActorTestCase {
 
   func test_pasteOTP_doesNotChangeOTP_whenPastedOTPIsTooLong() async throws {
     features.patch(
-      \Pasteboard.get,
+      \OSPasteboard.get,
       with: always("123456789")
     )
 

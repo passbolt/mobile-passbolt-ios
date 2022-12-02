@@ -23,13 +23,11 @@
 
 import Combine
 import CommonModels
-import Environment
 
 @available(*, deprecated, message: "Replaced by LoadableFeature")
 public protocol LegacyFeature: AnyFeature {
 
   @MainActor static func load(
-    in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self
@@ -37,7 +35,6 @@ public protocol LegacyFeature: AnyFeature {
   nonisolated var featureUnload: @MainActor () async throws -> Void { get }
 
   #if DEBUG
-  // placeholder implementation for mocking and testing, unavailable in release
   nonisolated static var placeholder: Self { get }
   #endif
 }

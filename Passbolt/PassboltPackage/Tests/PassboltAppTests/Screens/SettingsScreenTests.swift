@@ -40,9 +40,10 @@ final class SettingsScreenTests: MainActorTestCase {
 
   override func mainActorSetUp() {
     features.usePlaceholder(for: DisplayNavigation.self)
-    features.usePlaceholder(for: AutoFill.self)
-    features.usePlaceholder(for: Biometry.self)
-    features.usePlaceholder(for: LinkOpener.self)
+    features.usePlaceholder(for: OSExtensions.self)
+    features.usePlaceholder(for: OSBiometry.self)
+    features.usePlaceholder(for: OSLinkOpener.self)
+    features.usePlaceholder(for: ApplicationLifecycle.self)
     features.patch(
       \SessionConfiguration.configuration,
       with: always(.none)
@@ -82,11 +83,8 @@ final class SettingsScreenTests: MainActorTestCase {
     async throws
   {
     features.patch(
-      \Biometry.biometricsStatePublisher,
-      with: always(
-        CurrentValueSubject(.unconfigured)
-          .eraseToAnyPublisher()
-      )
+      \OSBiometry.availability,
+      with: always(.unconfigured)
     )
 
     let controller: SettingsController = try await testController()
@@ -110,11 +108,8 @@ final class SettingsScreenTests: MainActorTestCase {
       with: always(true)
     )
     features.patch(
-      \Biometry.biometricsStatePublisher,
-      with: always(
-        CurrentValueSubject(.configuredFaceID)
-          .eraseToAnyPublisher()
-      )
+      \OSBiometry.availability,
+      with: always(.faceID)
     )
 
     let controller: SettingsController = try await testController()
@@ -131,11 +126,8 @@ final class SettingsScreenTests: MainActorTestCase {
     async throws
   {
     features.patch(
-      \Biometry.biometricsStatePublisher,
-      with: always(
-        CurrentValueSubject(.configuredFaceID)
-          .eraseToAnyPublisher()
-      )
+      \OSBiometry.availability,
+      with: always(.faceID)
     )
 
     let controller: SettingsController = try await testController()
@@ -157,11 +149,8 @@ final class SettingsScreenTests: MainActorTestCase {
       with: always(true)
     )
     features.patch(
-      \Biometry.biometricsStatePublisher,
-      with: always(
-        CurrentValueSubject(.configuredTouchID)
-          .eraseToAnyPublisher()
-      )
+      \OSBiometry.availability,
+      with: always(.touchID)
     )
 
     let controller: SettingsController = try await testController()
@@ -179,11 +168,8 @@ final class SettingsScreenTests: MainActorTestCase {
     async throws
   {
     features.patch(
-      \Biometry.biometricsStatePublisher,
-      with: always(
-        CurrentValueSubject(.configuredTouchID)
-          .eraseToAnyPublisher()
-      )
+      \OSBiometry.availability,
+      with: always(.touchID)
     )
 
     let controller: SettingsController = try await testController()
@@ -203,11 +189,8 @@ final class SettingsScreenTests: MainActorTestCase {
       with: always(enabled)
     )
     features.patch(
-      \Biometry.biometricsStatePublisher,
-      with: always(
-        CurrentValueSubject(.configuredFaceID)
-          .eraseToAnyPublisher()
-      )
+      \OSBiometry.availability,
+      with: always(.faceID)
     )
 
     let controller: SettingsController = try await testController()
@@ -236,11 +219,8 @@ final class SettingsScreenTests: MainActorTestCase {
       with: always(enabled)
     )
     features.patch(
-      \Biometry.biometricsStatePublisher,
-      with: always(
-        CurrentValueSubject(.configuredFaceID)
-          .eraseToAnyPublisher()
-      )
+      \OSBiometry.availability,
+      with: always(.faceID)
     )
 
     let controller: SettingsController = try await testController()
@@ -264,14 +244,11 @@ final class SettingsScreenTests: MainActorTestCase {
 
   func test_openTerms_withValidURL_Succeeds() async throws {
     features.patch(
-      \Biometry.biometricsStatePublisher,
-      with: always(
-        CurrentValueSubject(.unconfigured)
-          .eraseToAnyPublisher()
-      )
+      \OSBiometry.availability,
+      with: always(.unconfigured)
     )
     features.patch(
-      \LinkOpener.openLink,
+      \OSLinkOpener.openURL,
       with: always(
         Just(true)
           .eraseToAnyPublisher()
@@ -301,14 +278,11 @@ final class SettingsScreenTests: MainActorTestCase {
 
   func test_openTerms_withInvalidURL_Fails() async throws {
     features.patch(
-      \Biometry.biometricsStatePublisher,
-      with: always(
-        CurrentValueSubject(.unconfigured)
-          .eraseToAnyPublisher()
-      )
+      \OSBiometry.availability,
+      with: always(.unconfigured)
     )
     features.patch(
-      \LinkOpener.openLink,
+      \OSLinkOpener.openURL,
       with: always(
         Just(true)
           .eraseToAnyPublisher()
@@ -335,14 +309,11 @@ final class SettingsScreenTests: MainActorTestCase {
 
   func test_openPrivacyPolicy_withValidURL_Succeeds() async throws {
     features.patch(
-      \Biometry.biometricsStatePublisher,
-      with: always(
-        CurrentValueSubject(.unconfigured)
-          .eraseToAnyPublisher()
-      )
+      \OSBiometry.availability,
+      with: always(.unconfigured)
     )
     features.patch(
-      \LinkOpener.openLink,
+      \OSLinkOpener.openURL,
       with: always(
         Just(true)
           .eraseToAnyPublisher()
@@ -371,14 +342,11 @@ final class SettingsScreenTests: MainActorTestCase {
 
   func test_openPrivacyPolicy_withInvalidURL_Fails() async throws {
     features.patch(
-      \Biometry.biometricsStatePublisher,
-      with: always(
-        CurrentValueSubject(.unconfigured)
-          .eraseToAnyPublisher()
-      )
+      \OSBiometry.availability,
+      with: always(.unconfigured)
     )
     features.patch(
-      \LinkOpener.openLink,
+      \OSLinkOpener.openURL,
       with: always(
         Just(true)
           .eraseToAnyPublisher()
@@ -403,11 +371,8 @@ final class SettingsScreenTests: MainActorTestCase {
 
   func test_signOutAlertPresentationPublisherPublishes_whenPresentSignOutAlertCalled() async throws {
     features.patch(
-      \Biometry.biometricsStatePublisher,
-      with: always(
-        CurrentValueSubject(.unconfigured)
-          .eraseToAnyPublisher()
-      )
+      \OSBiometry.availability,
+      with: always(.unconfigured)
     )
 
     let controller: SettingsController = try await testController()
@@ -426,9 +391,13 @@ final class SettingsScreenTests: MainActorTestCase {
 
   func test_autoFillPublisher_publishesTrue_whenAutoFill_isEnabled() async throws {
     features.patch(
-      \AutoFill.extensionEnabledStatePublisher,
+      \OSExtensions.autofillExtensionEnabled,
+      with: always(true)
+    )
+    features.patch(
+      \ApplicationLifecycle.lifecyclePublisher,
       with: always(
-        Just(true)
+        Just(.didEnterBackground)
           .eraseToAnyPublisher()
       )
     )
@@ -436,20 +405,28 @@ final class SettingsScreenTests: MainActorTestCase {
     let controller: SettingsController = try await testController()
     var result: Bool?
 
-    controller.autoFillEnabledPublisher()
+    controller
+      .autoFillEnabledPublisher()
       .sink { enabled in
         result = enabled
       }
       .store(in: cancellables)
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result, true)
   }
 
   func test_autoFillPublisher_publishesFalse_whenAutoFill_isDisabled() async throws {
     features.patch(
-      \AutoFill.extensionEnabledStatePublisher,
+      \OSExtensions.autofillExtensionEnabled,
+      with: always(false)
+    )
+    features.patch(
+      \ApplicationLifecycle.lifecyclePublisher,
       with: always(
-        Just(false)
+        Just(.didEnterBackground)
           .eraseToAnyPublisher()
       )
     )
@@ -457,11 +434,15 @@ final class SettingsScreenTests: MainActorTestCase {
     let controller: SettingsController = try await testController()
     var result: Bool?
 
-    controller.autoFillEnabledPublisher()
+    controller
+      .autoFillEnabledPublisher()
       .sink { enabled in
         result = enabled
       }
       .store(in: cancellables)
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result, false)
   }

@@ -22,6 +22,7 @@
 //
 
 import CommonModels
+import Features
 import Foundation
 import Gopenpgp
 
@@ -89,6 +90,25 @@ public struct PGP {
     (
       _ publicKey: ArmoredPGPPublicKey
     ) -> Result<Fingerprint, Error>
+}
+
+extension PGP: StaticFeature {
+
+  #if DEBUG
+  public static var placeholder: Self {
+    Self(
+      encryptAndSign: unimplemented(),
+      decryptAndVerify: unimplemented(),
+      encrypt: unimplemented(),
+      decrypt: unimplemented(),
+      signMessage: unimplemented(),
+      verifyMessage: unimplemented(),
+      verifyPassphrase: unimplemented(),
+      verifyPublicKeyFingerprint: unimplemented(),
+      extractFingerprint: unimplemented()
+    )
+  }
+  #endif
 }
 
 extension PGP {
@@ -549,21 +569,11 @@ extension PGP {
   }
 }
 
-#if DEBUG
-extension PGP {
+extension FeatureFactory {
 
-  public static var placeholder: Self {
-    Self(
-      encryptAndSign: unimplemented("You have to provide mocks for used methods"),
-      decryptAndVerify: unimplemented("You have to provide mocks for used methods"),
-      encrypt: unimplemented("You have to provide mocks for used methods"),
-      decrypt: unimplemented("You have to provide mocks for used methods"),
-      signMessage: unimplemented("You have to provide mocks for used methods"),
-      verifyMessage: unimplemented("You have to provide mocks for used methods"),
-      verifyPassphrase: unimplemented("You have to provide mocks for used methods"),
-      verifyPublicKeyFingerprint: unimplemented("You have to provide mocks for used methods"),
-      extractFingerprint: unimplemented("You have to provide mocks for used methods")
+  internal func usePGP() {
+    self.use(
+      PGP.gopenPGP()
     )
   }
 }
-#endif

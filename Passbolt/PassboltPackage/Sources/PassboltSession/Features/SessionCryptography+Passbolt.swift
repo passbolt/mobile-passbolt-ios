@@ -38,7 +38,7 @@ extension SessionCryptography {
     let accountsDataStore: AccountsDataStore = try await features.instance()
     let session: Session = try await features.instance()
     let sessionStateEnsurance: SessionStateEnsurance = try await features.instance()
-    let pgp: PGP = try await features.instance(of: EnvironmentLegacyBridge.self).environment.pgp
+    let pgp: PGP = try await features.instance()
 
     @SessionActor func decryptMessage(
       _ encryptedMessage: ArmoredPGPMessage,

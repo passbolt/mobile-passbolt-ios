@@ -21,8 +21,6 @@
 // @since         v1.0
 //
 
-import Environment
-
 extension ResourceFieldDSV {
 
   internal static func decodeArrayFrom(

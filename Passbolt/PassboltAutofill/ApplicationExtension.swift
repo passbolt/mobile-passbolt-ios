@@ -40,25 +40,7 @@ internal final class ApplicationExtension {
   @MainActor internal init(
     rootViewController: ASCredentialProviderViewController
   ) {
-    let environment: AppEnvironment = AppEnvironment(
-      Time.live,
-      UUIDGenerator.live,
-      Preferences.sharedUserDefaults(),
-      Keychain.live(),
-      Biometrics.live,
-      PGP.gopenPGP(),
-      SignatureVerfication.rssha256(),
-      MDMConfig.live,
-      Files.live,
-      AppLifeCycle.autoFillExtension(),
-      Camera.live(),
-      ExternalURLOpener.live(),
-      YubiKey.unavailable(),
-      Randomness.system(),
-      AsyncExecutors.libDispatch(),
-      AppMeta.live
-    )
-    let features: FeatureFactory = .init(environment: environment)
+    let features: FeatureFactory = .init()
     // register features implementations
     features.usePassboltInitialization()
     features.useLiveNavigationTree(

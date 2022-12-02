@@ -24,6 +24,7 @@
 import AccountSetup
 import Accounts
 import Features
+import OSFeatures
 import UICommons
 
 public struct Initialization {
@@ -35,11 +36,10 @@ public struct Initialization {
 extension Initialization: LegacyFeature {
 
   public static func load(
-    in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Initialization {
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
 
     // swift-format-ignore: NoLeadingUnderscores
     @MainActor func _initialize(with features: FeatureFactory) async throws {
@@ -56,13 +56,8 @@ extension Initialization: LegacyFeature {
         diagnostics.log(error: error)
       }
       // load features that require root scope
-      try await features.loadIfNeeded(Executors.self)
       try await features.loadIfNeeded(UpdateCheck.self)
-      try await features.loadIfNeeded(LinkOpener.self)
-      try await features.loadIfNeeded(OSPermissions.self)
-      try await features.loadIfNeeded(Pasteboard.self)
-      try await features.loadIfNeeded(MDMSupport.self)
-      try await features.loadIfNeeded(AutoFill.self)
+
       try await features.unload(Initialization.self)
     }
 
@@ -84,11 +79,10 @@ extension Initialization: LegacyFeature {
   }
 
   #if DEBUG
-  // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      initialize: unimplemented("You have to provide mocks for used methods"),
-      featureUnload: unimplemented("You have to provide mocks for used methods")
+      initialize: unimplemented(),
+      featureUnload: unimplemented()
     )
   }
   #endif

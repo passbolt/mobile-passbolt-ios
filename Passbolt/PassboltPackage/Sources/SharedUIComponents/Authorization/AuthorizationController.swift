@@ -24,7 +24,7 @@
 import Accounts
 import CommonModels
 import Crypto
-import Network
+import OSFeatures
 import Session
 import UIComponents
 
@@ -66,8 +66,8 @@ extension AuthorizationController: UIController {
     let accountDetails: AccountDetails = try await features.instance(context: context)
     let accountPreferences: AccountPreferences = try await features.instance(context: context)
     let session: Session = try await features.instance()
-    let biometry: Biometry = try await features.instance()
-    let diagnostics: Diagnostics = features.instance()
+    let biometry: OSBiometry = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
 
     let passphraseSubject: CurrentValueSubject<String, Never> = .init("")
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
@@ -116,29 +116,21 @@ extension AuthorizationController: UIController {
     }
 
     func biometricStatePublisher() -> AnyPublisher<BiometricsState, Never> {
-      Publishers.CombineLatest(
-        biometry
-          .biometricsStatePublisher(),
-        accountPreferences
-          .updates
-          .map {
-            accountPreferences.isPassphraseStored()
+      accountPreferences
+        .updates
+        .map { () -> BiometricsState in
+          switch (biometry.availability(), accountPreferences.isPassphraseStored()) {
+          case (.unavailable, _), (.unconfigured, _), (.touchID, false), (.faceID, false):
+            return .unavailable
+
+          case (.touchID, true):
+            return .touchID
+
+          case (.faceID, true):
+            return .faceID
           }
-          .asPublisher()
-      )
-      .map { biometricsState, passphraseStored in
-        switch (biometricsState, passphraseStored) {
-        case (.unavailable, _), (.unconfigured, _), (.configuredTouchID, false), (.configuredFaceID, false):
-          return .unavailable
-
-        case (.configuredTouchID, true):
-          return .touchID
-
-        case (.configuredFaceID, true):
-          return .faceID
         }
-      }
-      .eraseToAnyPublisher()
+        .asPublisher()
     }
 
     func performSignIn() -> AnyPublisher<Bool, Error> {

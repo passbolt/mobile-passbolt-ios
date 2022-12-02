@@ -22,6 +22,7 @@
 //
 
 import Display
+import OSFeatures
 import Resources
 import SessionData
 import Users
@@ -70,8 +71,8 @@ extension ResourceFolderDetailsController {
     unowned let features: FeatureFactory = features
     let popFeaturesScope: () async -> Void = await features.pushScope(.resourceFolderDetails)
 
-    let diagnostics: Diagnostics = await features.instance()
-    let asyncExecutor: AsyncExecutor = await features.instance(of: AsyncExecutor.self).detach()
+    let diagnostics: OSDiagnostics = await features.instance()
+    let asyncExecutor: AsyncExecutor = try await features.instance()
     let sessionData: SessionData = try await features.instance()
     let navigation: DisplayNavigation = try await features.instance()
     let users: Users = try await features.instance()

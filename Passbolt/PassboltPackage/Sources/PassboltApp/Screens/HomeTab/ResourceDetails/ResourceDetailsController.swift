@@ -23,6 +23,7 @@
 
 import Accounts
 import CommonModels
+import OSFeatures
 import Resources
 import SessionData
 import UIComponents
@@ -65,9 +66,9 @@ extension ResourceDetailsController: UIController {
     cancellables.addCleanup(
       features.pushScope(.resourceDetails)
     )
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let resources: Resources = try await features.instance()
-    let pasteboard: Pasteboard = try await features.instance()
+    let pasteboard: OSPasteboard = features.instance()
     let sessionConfiguration: SessionConfiguration = try await features.instance()
 
     var revealedFields: Set<ResourceFieldNameDSV> = .init()

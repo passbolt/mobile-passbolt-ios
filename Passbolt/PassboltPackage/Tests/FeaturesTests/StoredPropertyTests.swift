@@ -37,7 +37,7 @@ final class StoredPropertyTests: TestCase {
   func test_get_fetchesPropertyWithExpectedValue() async throws {
     let expectedResult: Int = 42
     self.features.patch(
-      \StoredProperties.fetch,
+      \OSStoredProperties.fetch,
       with: { _ in
         expectedResult
       }
@@ -52,10 +52,10 @@ final class StoredPropertyTests: TestCase {
   }
 
   func test_get_fetchesPropertyWithExpectedKey() async throws {
-    let expectedResult: StoredPropertyKey = "test"
-    let result: CriticalState<StoredPropertyKey?> = .init(.none)
+    let expectedResult: OSStoredPropertyKey = "test"
+    let result: CriticalState<OSStoredPropertyKey?> = .init(.none)
     self.features.patch(
-      \StoredProperties.fetch,
+      \OSStoredProperties.fetch,
       with: { key in
         result.set(\.self, key)
         return 0
@@ -76,11 +76,11 @@ final class StoredPropertyTests: TestCase {
     let expectedResult: Int = 42
     let result: CriticalState<Int?> = .init(.none)
     self.features.patch(
-      \StoredProperties.fetch,
+      \OSStoredProperties.fetch,
       with: always(result.get(\.self))
     )
     self.features.patch(
-      \StoredProperties.store,
+      \OSStoredProperties.store,
       with: { _, value in
         result.set(\.self, value as? Int)
       }
@@ -97,14 +97,14 @@ final class StoredPropertyTests: TestCase {
   }
 
   func test_set_storesPropertyWithExpectedKey() async throws {
-    let expectedResult: StoredPropertyKey = "test"
-    let result: CriticalState<StoredPropertyKey?> = .init(.none)
+    let expectedResult: OSStoredPropertyKey = "test"
+    let result: CriticalState<OSStoredPropertyKey?> = .init(.none)
     self.features.patch(
-      \StoredProperties.fetch,
+      \OSStoredProperties.fetch,
       with: always(result.get(\.self))
     )
     self.features.patch(
-      \StoredProperties.store,
+      \OSStoredProperties.store,
       with: { key, _ in
         result.set(\.self, key)
       }

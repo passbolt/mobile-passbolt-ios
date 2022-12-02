@@ -79,13 +79,12 @@ extension SessionNetworkAuthorization {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
 
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let accountData: AccountsDataStore = try await features.instance()
     let time: OSTime = features.instance()
-    let environmentBridge: EnvironmentLegacyBridge = features.instance()
-    let pgp: PGP = environmentBridge.environment.pgp
-    let uuidGenerator: UUIDGenerator = environmentBridge.environment.uuidGenerator
-    let signatureVerification: SignatureVerfication = environmentBridge.environment.signatureVerfication
+    let pgp: PGP = features.instance()
+    let uuidGenerator: UUIDGenerator = features.instance()
+    let signatureVerification: SignatureVerification = features.instance()
     let serverPGPPublicKeyFetchNetworkOperation: ServerPGPPublicKeyFetchNetworkOperation = try await features.instance()
     let serverRSAPublicKeyFetchNetworkOperation: ServerRSAPublicKeyFetchNetworkOperation = try await features.instance()
     let sessionCreateNetworkOperation: SessionCreateNetworkOperation = try await features.instance()
@@ -390,7 +389,7 @@ extension SessionNetworkAuthorization {
       tokens: SessionTokens,
       requiredMFAProviders: Array<SessionMFAProvider>
     ) {
-      let verificationToken: String = uuidGenerator().uuidString
+      let verificationToken: String = uuidGenerator.uuid()
       // 120s is verification token's lifetime
       let challengeExpiration: Int = time.timestamp().rawValue + 120
 

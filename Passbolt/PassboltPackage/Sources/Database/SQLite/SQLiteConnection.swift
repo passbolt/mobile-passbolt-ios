@@ -229,11 +229,11 @@ extension SQLiteConnection {
 
   public static var placeholder: Self {
     Self(
-      execute: unimplemented("You have to provide mocks for used methods"),
-      fetch: unimplemented("You have to provide mocks for used methods"),
-      beginTransaction: unimplemented("You have to provide mocks for used methods"),
-      rollbackTransaction: unimplemented("You have to provide mocks for used methods"),
-      endTransaction: unimplemented("You have to provide mocks for used methods")
+      execute: unimplemented(),
+      fetch: unimplemented(),
+      beginTransaction: unimplemented(),
+      rollbackTransaction: unimplemented(),
+      endTransaction: unimplemented()
     )
   }
 }

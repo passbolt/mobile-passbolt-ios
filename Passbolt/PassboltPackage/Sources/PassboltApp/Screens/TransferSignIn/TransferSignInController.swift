@@ -25,6 +25,7 @@ import AccountSetup
 import Accounts
 import CommonModels
 import Crypto
+import OSFeatures
 import UIComponents
 
 import struct Foundation.Data
@@ -53,7 +54,7 @@ extension TransferSignInController: UIController {
     cancellables: Cancellables
   ) async throws -> Self {
     let accountTransfer: AccountTransfer = try await features.instance()
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
 
     let passphraseSubject: CurrentValueSubject<String, Never> = .init("")
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()

@@ -28,7 +28,6 @@ public protocol LoadableFeature: AnyFeature {
   associatedtype Context: LoadableFeatureContext = ContextlessFeatureContext
 
   #if DEBUG
-  // placeholder implementation for mocking and testing, unavailable in release
   nonisolated static var placeholder: Self { get }
   #endif
 }

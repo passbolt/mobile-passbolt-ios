@@ -21,8 +21,10 @@
 // @since         v1.0
 //
 
+import Crypto
 import Display
 import Features
+import NFC
 import PassboltAccounts
 import PassboltDatabaseOperations
 import PassboltNetworkOperations
@@ -34,9 +36,8 @@ import PassboltUsers
 extension FeatureFactory {
 
   @MainActor internal func usePassboltFeatures() {
-    self.usePassboltCommonStaticFeatures()
-    self.usePassboltCommonLoadableFeatures()
-    self.usePassboltNetworkModule()
+    self.useNFCFeatures()
+    self.useCrypto()
     self.usePassboltAccountsModule()
     self.usePassboltDatabaseOperationsModule()
     self.usePassboltNetworkOperationsModule()

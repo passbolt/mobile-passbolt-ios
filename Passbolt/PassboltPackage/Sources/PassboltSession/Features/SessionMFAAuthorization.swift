@@ -22,7 +22,9 @@
 //
 
 import Features
+import NFC
 import NetworkOperations
+import OSFeatures
 import Session
 
 // MARK: - Interface
@@ -52,10 +54,10 @@ extension SessionMFAAuthorization {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
 
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let sessionState: SessionState = try await features.instance()
     let accountsData: AccountsDataStore = try await features.instance()
-    let yubiKey: YubiKey = try await features.instance(of: EnvironmentLegacyBridge.self).environment.yubiKey
+    let yubiKey: YubiKey = features.instance()
     let totpAuthorizationNetworkOperation: TOTPAuthorizationNetworkOperation = try await features.instance()
     let yubiKeyAuthorizationNetworkOperation: YubiKeyAuthorizationNetworkOperation = try await features.instance()
 
@@ -64,7 +66,7 @@ extension SessionMFAAuthorization {
     ) async throws -> SessionMFAToken {
       let otp: String =
         try await yubiKey
-        .readNFC()
+        .read()
         .asAsyncValue()
       return try await yubiKeyAuthorizationNetworkOperation(
         .init(

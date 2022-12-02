@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import OSFeatures
 import Resources
 import UIComponents
 import Users
@@ -46,7 +47,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let resourceShareForm: ResourceShareForm = try await features.instance(context: context)
     let users: Users = try await features.instance()
     let userGroups: UserGroups = try await features.instance()

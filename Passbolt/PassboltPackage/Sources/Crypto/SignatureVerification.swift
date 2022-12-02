@@ -22,10 +22,11 @@
 //
 
 import CommonModels
+import Features
 import Foundation
 import Security
 
-public struct SignatureVerfication {
+public struct SignatureVerification {
 
   // Verify message signature
   public var verify:
@@ -36,7 +37,18 @@ public struct SignatureVerfication {
     ) -> Result<Void, Error>
 }
 
-extension SignatureVerfication {
+extension SignatureVerification: StaticFeature {
+
+  #if DEBUG
+  public nonisolated static var placeholder: Self {
+    .init(
+      verify: unimplemented()
+    )
+  }
+  #endif
+}
+
+extension SignatureVerification {
 
   public static func rssha256() -> Self {
     Self { input, signature, pemKey in
@@ -149,14 +161,11 @@ extension SignatureVerfication {
   }
 }
 
-#if DEBUG
-extension SignatureVerfication {
+extension FeatureFactory {
 
-  public static var placeholder: Self {
-    Self(
-      verify: unimplemented("You have to provide mocks for used methods")
+  internal func useSignatureVerification() {
+    self.use(
+      SignatureVerification.rssha256()
     )
   }
 }
-
-#endif

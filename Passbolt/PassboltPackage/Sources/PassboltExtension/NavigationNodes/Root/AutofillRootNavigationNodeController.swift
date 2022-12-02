@@ -23,6 +23,7 @@
 
 import Accounts
 import Display
+import OSFeatures
 import Session
 import SharedUIComponents
 
@@ -49,9 +50,9 @@ extension AutofillRootNavigationNodeController {
   @MainActor fileprivate static func load(
     features: FeatureFactory
   ) async throws -> Self {
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let navigationTree: NavigationTree = features.instance()
-    let asyncExecutor: AsyncExecutor = features.instance(of: AsyncExecutor.self)
+    let asyncExecutor: AsyncExecutor = try await features.instance()
     let accounts: Accounts = try await features.instance()
     let session: Session = try await features.instance()
     let authorizationPromptRecoveryTreeState: CriticalState<(account: Account, tree: NavigationTreeState)?> = .init(

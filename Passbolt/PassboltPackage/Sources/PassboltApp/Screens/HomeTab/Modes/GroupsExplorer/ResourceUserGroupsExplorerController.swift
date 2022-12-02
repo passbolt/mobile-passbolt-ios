@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import OSFeatures
 import Resources
 import Session
 import SessionData
@@ -53,7 +54,7 @@ extension ResourceUserGroupsExplorerController: ComponentController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let session: Session = try await features.instance()
     let accountDetails: AccountDetails = try await features.instance(context: session.currentAccount())
     let resources: Resources = try await features.instance()

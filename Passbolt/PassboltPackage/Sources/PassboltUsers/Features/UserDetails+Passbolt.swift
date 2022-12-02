@@ -23,6 +23,7 @@
 
 import DatabaseOperations
 import NetworkOperations
+import OSFeatures
 import SessionData
 import Users
 
@@ -35,7 +36,7 @@ extension UserDetails {
     context userID: Context,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let sessionData: SessionData = try await features.instance()
     let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try await features.instance()
     let userDetailsFetchDatabaseOperation: UserDetailsFetchDatabaseOperation = try await features.instance()

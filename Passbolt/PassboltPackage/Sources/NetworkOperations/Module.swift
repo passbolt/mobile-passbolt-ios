@@ -22,8 +22,10 @@
 //
 
 @_exported import Accounts
+@_exported import Aegithalos
 @_exported import CommonModels
 @_exported import Commons
 @_exported import Features
 @_exported import Network
+@_exported import OSFeatures
 @_exported import Session

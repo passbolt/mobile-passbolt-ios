@@ -27,6 +27,7 @@ import Session
 import SessionData
 import SharedUIComponents
 import Users
+import OSFeatures
 
 internal struct HomeNavigationNodeController {
 
@@ -71,7 +72,7 @@ extension HomeNavigationNodeController {
     features: FeatureFactory
   ) async throws -> Self {
     let nodeID: NavigationNodeID = .init()
-    let asyncExecutor: AsyncExecutor = features.instance(of: AsyncExecutor.self).detach()
+    let asyncExecutor: AsyncExecutor = try await features.instance()
     let navigationTree: NavigationTree = features.instance()
     let homePresentation: HomePresentation = try await features.instance()
 

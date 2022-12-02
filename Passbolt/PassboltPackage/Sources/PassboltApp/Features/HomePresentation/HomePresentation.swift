@@ -36,7 +36,6 @@ internal struct HomePresentation {
 extension HomePresentation: LegacyFeature {
 
   internal static func load(
-    in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
@@ -136,9 +135,9 @@ extension HomePresentation {
 
   static var placeholder: Self {
     Self(
-      currentPresentationModePublisher: unimplemented("You have to provide mocks for used methods"),
-      setPresentationMode: unimplemented("You have to provide mocks for used methods"),
-      availableHomePresentationModes: unimplemented("You have to provide mocks for used methods")
+      currentPresentationModePublisher: unimplemented(),
+      setPresentationMode: unimplemented(),
+      availableHomePresentationModes: unimplemented()
     )
   }
 }

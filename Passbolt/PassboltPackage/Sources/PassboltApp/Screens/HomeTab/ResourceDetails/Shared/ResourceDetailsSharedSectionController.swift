@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import OSFeatures
 import Resources
 import UIComponents
 import Users
@@ -43,7 +44,7 @@ extension ResourceDetailsSharedSectionController: ComponentController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let resourceDetails: ResourceDetails = try await features.instance(context: context)
     let users: Users = try await features.instance()
 

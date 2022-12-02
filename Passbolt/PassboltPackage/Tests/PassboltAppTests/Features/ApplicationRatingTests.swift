@@ -42,6 +42,7 @@ final class ApplicationRatingTests: LoadableFeatureTestCase<ApplicationRating> {
     use(OSApplicationRating.placeholder)
     use(StoredProperty<Int>.placeholder, context: "loginCount")
     use(StoredProperty<Int>.placeholder, context: "lastAppRateCheckTimestamp")
+    use(ApplicationLifecycle.placeholder)
   }
 
   func test_applicationRating_shouldTrigger_whenCriteria_areMet() {

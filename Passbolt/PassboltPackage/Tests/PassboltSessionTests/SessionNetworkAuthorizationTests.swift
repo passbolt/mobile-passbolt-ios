@@ -40,17 +40,11 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     use(SessionRefreshNetworkOperation.placeholder)
     use(SessionCloseNetworkOperation.placeholder)
     use(OSTime.placeholder)
+    use(PGP.placeholder)
+    use(SignatureVerification.placeholder)
     patch(
-      environment: \.pgp,
-      with: .placeholder
-    )
-    patch(
-      environment: \.signatureVerfication,
-      with: .placeholder
-    )
-    patch(
-      environment: \.uuidGenerator.uuid,
-      with: always(.test)
+      \UUIDGenerator.uuid,
+      with: always(UUID.test.uuidString)
     )
   }
 
@@ -95,7 +89,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.init(keyData: "key"))
     )
     patch(
-      environment: \.pgp.extractFingerprint,
+      \PGP.extractFingerprint,
       with: always(.failure(MockIssue.error()))
     )
 
@@ -127,7 +121,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.init(keyData: "key"))
     )
     patch(
-      environment: \.pgp.extractFingerprint,
+      \PGP.extractFingerprint,
       with: always(.success("fingerprint"))
     )
     patch(
@@ -135,7 +129,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always("other")
     )
     patch(
-      environment: \.pgp.verifyPublicKeyFingerprint,
+      \PGP.verifyPublicKeyFingerprint,
       with: always(.failure(MockIssue.error()))
     )
 
@@ -167,7 +161,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.init(keyData: "key"))
     )
     patch(
-      environment: \.pgp.extractFingerprint,
+      \PGP.extractFingerprint,
       with: always(.success("fingerprint"))
     )
     patch(
@@ -175,7 +169,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always("other")
     )
     patch(
-      environment: \.pgp.verifyPublicKeyFingerprint,
+      \PGP.verifyPublicKeyFingerprint,
       with: always(.success(false))
     )
 
@@ -207,7 +201,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.init(keyData: "key"))
     )
     patch(
-      environment: \.pgp.extractFingerprint,
+      \PGP.extractFingerprint,
       with: always(.success("fingerprint"))
     )
     patch(
@@ -215,7 +209,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always("other")
     )
     patch(
-      environment: \.pgp.verifyPublicKeyFingerprint,
+      \PGP.verifyPublicKeyFingerprint,
       with: always(self.executed(returning: .failure(MockIssue.error())))
     )
 
@@ -246,7 +240,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.init(keyData: "key"))
     )
     patch(
-      environment: \.pgp.extractFingerprint,
+      \PGP.extractFingerprint,
       with: always(.success("fingerprint"))
     )
     patch(
@@ -254,11 +248,11 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always("other")
     )
     patch(
-      environment: \.pgp.verifyPublicKeyFingerprint,
+      \PGP.verifyPublicKeyFingerprint,
       with: always(.success(true))
     )
     patch(
-      environment: \.pgp.encryptAndSign,
+      \PGP.encryptAndSign,
       with: always(.failure(MockIssue.error()))
     )
 
@@ -290,7 +284,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.init(keyData: "key"))
     )
     patch(
-      environment: \.pgp.extractFingerprint,
+      \PGP.extractFingerprint,
       with: always(.success("fingerprint"))
     )
     patch(
@@ -298,11 +292,11 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always("other")
     )
     patch(
-      environment: \.pgp.verifyPublicKeyFingerprint,
+      \PGP.verifyPublicKeyFingerprint,
       with: always(.success(true))
     )
     patch(
-      environment: \.pgp.encryptAndSign,
+      \PGP.encryptAndSign,
       with: always(.success("encrypted"))
     )
     patch(
@@ -338,7 +332,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.init(keyData: "key"))
     )
     patch(
-      environment: \.pgp.extractFingerprint,
+      \PGP.extractFingerprint,
       with: always(.success("fingerprint"))
     )
     patch(
@@ -346,11 +340,11 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always("other")
     )
     patch(
-      environment: \.pgp.verifyPublicKeyFingerprint,
+      \PGP.verifyPublicKeyFingerprint,
       with: always(.success(true))
     )
     patch(
-      environment: \.pgp.encryptAndSign,
+      \PGP.encryptAndSign,
       with: always(.success("encrypted"))
     )
     patch(
@@ -363,7 +357,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       )
     )
     patch(
-      environment: \.pgp.decryptAndVerify,
+      \PGP.decryptAndVerify,
       with: always(.failure(MockIssue.error()))
     )
 
@@ -395,7 +389,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.init(keyData: "key"))
     )
     patch(
-      environment: \.pgp.extractFingerprint,
+      \PGP.extractFingerprint,
       with: always(.success("fingerprint"))
     )
     patch(
@@ -403,11 +397,11 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always("other")
     )
     patch(
-      environment: \.pgp.verifyPublicKeyFingerprint,
+      \PGP.verifyPublicKeyFingerprint,
       with: always(.success(true))
     )
     patch(
-      environment: \.pgp.encryptAndSign,
+      \PGP.encryptAndSign,
       with: always(.success("encrypted"))
     )
     patch(
@@ -420,7 +414,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       )
     )
     patch(
-      environment: \.pgp.decryptAndVerify,
+      \PGP.decryptAndVerify,
       with: always(.success("wrong"))
     )
 
@@ -452,7 +446,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.init(keyData: "key"))
     )
     patch(
-      environment: \.pgp.extractFingerprint,
+      \PGP.extractFingerprint,
       with: always(.success("fingerprint"))
     )
     patch(
@@ -460,11 +454,11 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always("other")
     )
     patch(
-      environment: \.pgp.verifyPublicKeyFingerprint,
+      \PGP.verifyPublicKeyFingerprint,
       with: always(.success(true))
     )
     patch(
-      environment: \.pgp.encryptAndSign,
+      \PGP.encryptAndSign,
       with: always(.success("encrypted"))
     )
     patch(
@@ -477,7 +471,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       )
     )
     patch(
-      environment: \.pgp.decryptAndVerify,
+      \PGP.decryptAndVerify,
       with: always(
         .success(
           """
@@ -508,7 +502,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     }
   }
 
-  func test_createSessionTokens_throws_whenSignatureVerficationFails() {
+  func test_createSessionTokens_throws_whenSignatureVerificationFails() {
     patch(
       \OSTime.timestamp,
       with: always(0)
@@ -522,7 +516,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.init(keyData: "key"))
     )
     patch(
-      environment: \.pgp.extractFingerprint,
+      \PGP.extractFingerprint,
       with: always(.success("fingerprint"))
     )
     patch(
@@ -530,11 +524,11 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always("other")
     )
     patch(
-      environment: \.pgp.verifyPublicKeyFingerprint,
+      \PGP.verifyPublicKeyFingerprint,
       with: always(.success(true))
     )
     patch(
-      environment: \.pgp.encryptAndSign,
+      \PGP.encryptAndSign,
       with: always(.success("encrypted"))
     )
     patch(
@@ -547,7 +541,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       )
     )
     patch(
-      environment: \.pgp.decryptAndVerify,
+      \PGP.decryptAndVerify,
       with: always(
         .success(
           """
@@ -564,7 +558,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       )
     )
     patch(
-      environment: \.signatureVerfication.verify,
+      \SignatureVerification.verify,
       with: always(.failure(MockIssue.error()))
     )
 
@@ -596,7 +590,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.init(keyData: "key"))
     )
     patch(
-      environment: \.pgp.extractFingerprint,
+      \PGP.extractFingerprint,
       with: always(.success("fingerprint"))
     )
     patch(
@@ -604,11 +598,11 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always("other")
     )
     patch(
-      environment: \.pgp.verifyPublicKeyFingerprint,
+      \PGP.verifyPublicKeyFingerprint,
       with: always(.success(true))
     )
     patch(
-      environment: \.pgp.encryptAndSign,
+      \PGP.encryptAndSign,
       with: always(.success("encrypted"))
     )
     patch(
@@ -621,7 +615,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       )
     )
     patch(
-      environment: \.pgp.decryptAndVerify,
+      \PGP.decryptAndVerify,
       with: always(
         .success(
           """
@@ -638,7 +632,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       )
     )
     patch(
-      environment: \.signatureVerfication.verify,
+      \SignatureVerification.verify,
       with: always(.success(Void()))
     )
 
@@ -670,7 +664,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.init(keyData: "key"))
     )
     patch(
-      environment: \.pgp.extractFingerprint,
+      \PGP.extractFingerprint,
       with: always(.success("fingerprint"))
     )
     patch(
@@ -678,11 +672,11 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always("other")
     )
     patch(
-      environment: \.pgp.verifyPublicKeyFingerprint,
+      \PGP.verifyPublicKeyFingerprint,
       with: always(.success(true))
     )
     patch(
-      environment: \.pgp.encryptAndSign,
+      \PGP.encryptAndSign,
       with: always(.success("encrypted"))
     )
     patch(
@@ -695,7 +689,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       )
     )
     patch(
-      environment: \.pgp.decryptAndVerify,
+      \PGP.decryptAndVerify,
       with: always(
         .success(
           """
@@ -712,7 +706,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       )
     )
     patch(
-      environment: \.signatureVerfication.verify,
+      \SignatureVerification.verify,
       with: always(.success(Void()))
     )
 
@@ -743,7 +737,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.init(keyData: "key"))
     )
     patch(
-      environment: \.pgp.extractFingerprint,
+      \PGP.extractFingerprint,
       with: always(.success("fingerprint"))
     )
     patch(
@@ -751,11 +745,11 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always("other")
     )
     patch(
-      environment: \.pgp.verifyPublicKeyFingerprint,
+      \PGP.verifyPublicKeyFingerprint,
       with: always(.success(true))
     )
     patch(
-      environment: \.pgp.encryptAndSign,
+      \PGP.encryptAndSign,
       with: always(.success("encrypted"))
     )
     patch(
@@ -768,7 +762,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       )
     )
     patch(
-      environment: \.pgp.decryptAndVerify,
+      \PGP.decryptAndVerify,
       with: always(
         .success(
           """
@@ -785,7 +779,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       )
     )
     patch(
-      environment: \.signatureVerfication.verify,
+      \SignatureVerification.verify,
       with: always(.success(Void()))
     )
 
@@ -816,7 +810,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.init(keyData: "key"))
     )
     patch(
-      environment: \.pgp.extractFingerprint,
+      \PGP.extractFingerprint,
       with: always(.success("fingerprint"))
     )
     patch(
@@ -824,11 +818,11 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always("other")
     )
     patch(
-      environment: \.pgp.verifyPublicKeyFingerprint,
+      \PGP.verifyPublicKeyFingerprint,
       with: always(.success(true))
     )
     patch(
-      environment: \.pgp.encryptAndSign,
+      \PGP.encryptAndSign,
       with: always(.success("encrypted"))
     )
     patch(

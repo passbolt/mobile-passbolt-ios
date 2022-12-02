@@ -24,6 +24,7 @@
 import Accounts
 import Display
 import UIComponents
+import OSFeatures
 
 import class AuthenticationServices.ASPasswordCredentialIdentity
 
@@ -45,8 +46,7 @@ public final class UI {
 extension UI {
 
   @MainActor public func prepareCredentialList() {
-    self.features.instance(of: AsyncExecutor.self)
-      .schedule(.reuse) { @MainActor[weak self] in
+    Task { @MainActor[weak self] in
         do {
           guard let self = self
           else {
@@ -70,8 +70,7 @@ extension UI {
   }
 
   @MainActor public func prepareInterfaceForExtensionConfiguration() {
-    self.features.instance(of: AsyncExecutor.self)
-      .schedule(.reuse) { @MainActor[weak self] in
+    Task { @MainActor[weak self] in
         do {
           guard let self = self
           else {

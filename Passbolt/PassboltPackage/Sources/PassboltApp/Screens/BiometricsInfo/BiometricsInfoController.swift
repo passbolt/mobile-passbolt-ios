@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import OSFeatures
 import Session
 import UIComponents
 
@@ -53,9 +54,10 @@ extension BiometricsInfoController: UIController {
   ) async throws -> Self {
     let currentAccount: Account = try await features.instance(of: Session.self).currentAccount()
     let accountInitialSetup: AccountInitialSetup = try await features.instance(context: currentAccount)
-    let autoFill: AutoFill = try await features.instance()
-    let linkOpener: LinkOpener = try await features.instance()
-    let biometry: Biometry = try await features.instance()
+    let extensions: OSExtensions = features.instance()
+    let linkOpener: OSLinkOpener = features.instance()
+    let biometry: OSBiometry = features.instance()
+    let applicationLifecycle: ApplicationLifecycle = features.instance()
 
     let presentationDestinationSubject: PassthroughSubject<Destination, Never> = .init()
 
@@ -74,23 +76,22 @@ extension BiometricsInfoController: UIController {
         .map { opened -> AnyPublisher<Bool, Never> in
           guard opened
           else { return Empty().eraseToAnyPublisher() }
-          return
-            biometry
-            .biometricsStatePublisher()
-            .dropFirst()
-            .map { (state: Biometrics.State) -> Bool in
-              switch state {
+
+          return applicationLifecycle.lifecyclePublisher()
+            .map { (_: ApplicationLifecycle.Transition) -> Bool in
+              switch biometry.availability() {
               case .unavailable, .unconfigured:
                 return false
 
-              case .configuredTouchID, .configuredFaceID:
+              case .faceID, .touchID:
                 return true
               }
             }
+            .removeDuplicates()
+            .filter { $0 }
             .eraseToAnyPublisher()
         }
         .switchToLatest()
-        .filter { $0 }
         .sink { _ in
           presentationDestinationSubject.send(.biometricsSetup)
         }
@@ -98,18 +99,14 @@ extension BiometricsInfoController: UIController {
 
     func skipSetup() {
       accountInitialSetup.completeSetup(.biometrics)
-      autoFill
-        .extensionEnabledStatePublisher()
-        .first()
-        .sink { enabled in
-          if enabled {
-            presentationDestinationSubject.send(.finish)
-          }
-          else {
-            presentationDestinationSubject.send(.extensionSetup)
-          }
+      Task {
+        if await extensions.autofillExtensionEnabled() {
+          presentationDestinationSubject.send(.finish)
         }
-        .store(in: cancellables)
+        else {
+          presentationDestinationSubject.send(.extensionSetup)
+        }
+      }
     }
 
     return Self(

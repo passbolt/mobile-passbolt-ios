@@ -37,10 +37,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
     use(AccountsDataStore.placeholder)
     use(TOTPAuthorizationNetworkOperation.placeholder)
     use(YubiKeyAuthorizationNetworkOperation.placeholder)
-    patch(
-      environment: \.yubiKey,
-      with: .placeholder
-    )
+    use(YubiKey.placeholder)
   }
 
   func test_authorizeMFA_totp_throws_withoutSession() {
@@ -153,7 +150,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       with: always(.mock_ada)
     )
     patch(
-      environment: \.yubiKey.readNFC,
+      \YubiKey.read,
       with: always(
         Fail(error: MockIssue.error())
           .eraseToAnyPublisher()
@@ -172,7 +169,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       with: always(.mock_ada)
     )
     patch(
-      environment: \.yubiKey.readNFC,
+      \YubiKey.read,
       with: always(
         Just("otp")
           .eraseErrorType()
@@ -196,7 +193,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       with: always(.mock_ada)
     )
     patch(
-      environment: \.yubiKey.readNFC,
+      \YubiKey.read,
       with: always(
         Just("otp")
           .eraseErrorType()
@@ -222,7 +219,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       with: always(.mock_ada)
     )
     patch(
-      environment: \.yubiKey.readNFC,
+      \YubiKey.read,
       with: always(
         Just("otp")
           .eraseErrorType()
@@ -254,7 +251,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       with: always(.mock_ada)
     )
     patch(
-      environment: \.yubiKey.readNFC,
+      \YubiKey.read,
       with: always(
         Just("otp")
           .eraseErrorType()

@@ -23,6 +23,7 @@
 
 import Display
 import Features
+import NFC
 import PassboltAccountSetup
 import PassboltAccounts
 import PassboltDatabaseOperations
@@ -35,15 +36,12 @@ import PassboltUsers
 extension FeatureFactory {
 
   @MainActor public func usePassboltFeatures() {
-    self.useOSDiagnostics()
     self.useOSFeatures()
 
     self.useLiveDisplay()
 
-    self.usePassboltCommonStaticFeatures()
-    self.usePassboltCommonLoadableFeatures()
-
-    self.usePassboltNetworkModule()
+    self.useNFCFeatures()
+    self.useCrypto()
     self.usePassboltAccountsModule()
     self.usePassboltAccountSetupModule()
     self.usePassboltDatabaseOperationsModule()

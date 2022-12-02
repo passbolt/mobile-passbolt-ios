@@ -22,6 +22,7 @@
 //
 
 import DatabaseOperations
+import OSFeatures
 import Session
 import SessionData
 import Users
@@ -33,7 +34,7 @@ extension UserGroups {
     cancellables: Cancellables
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let session: Session = try await features.instance()
     let sessionData: SessionData = try await features.instance()
     let resourceUserGroupsListFetchDatabaseOperation: ResourceUserGroupsListFetchDatabaseOperation =

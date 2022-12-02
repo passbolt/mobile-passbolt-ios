@@ -21,6 +21,37 @@
 // @since         v1.0
 //
 
+@_exported import Aegithalos
 @_exported import CommonModels
 @_exported import Commons
 @_exported import Features
+
+extension FeatureFactory {
+
+  public func useOSFeatures() {
+    self.useOSTime()
+    self.useOSFiles()
+    self.useOSCamera()
+    self.useOSBiometry()
+    self.useOSExtensions()
+    self.useOSApplicationRating()
+    self.useOSPasteboard()
+    self.useOSRandomness()
+    self.useOSPreferences()
+    self.useOSDiagnostics()
+    self.useUUIDGenerator()
+    self.useOSLinkOpener()
+    self.useOSKeychain()
+    self.useApplicationLifecycle()
+    self.useApplicationMeta()
+    self.useMDMConfiguration()
+    self.usePassboltNetworkRequestExecutor()
+    self.usePassboltStoredProperty(Bool.self)
+    self.usePassboltStoredProperty(Int.self)
+    self.usePassboltStoredProperty(String.self)
+    self.usePassboltStoredProperty(Array<String>.self)
+    self.usePassboltStoredProperty(Set<String>.self)
+    self.usePassboltSharedOSStoredProperties()
+    self.usePassboltAsyncExecutor()
+  }
+}

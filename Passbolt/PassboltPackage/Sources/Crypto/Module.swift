@@ -23,3 +23,12 @@
 
 @_exported import CommonModels
 @_exported import Commons
+@_exported import Features
+
+extension FeatureFactory {
+
+  public func useCrypto() {
+    self.useSignatureVerification()
+    self.usePGP()
+  }
+}

@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import OSFeatures
 import UICommons
 import UIComponents
 
@@ -38,7 +39,7 @@ extension SettingsAutoFillController: UIController {
     cancellables: Cancellables
   ) async throws -> SettingsAutoFillController {
 
-    let linkOpener: LinkOpener = try await features.instance()
+    let linkOpener: OSLinkOpener = try await features.instance()
 
     func openSystemSettings() {
       linkOpener.openSystemSettings()

@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-import Crypto
 import Features
 
 // MARK: - Interface

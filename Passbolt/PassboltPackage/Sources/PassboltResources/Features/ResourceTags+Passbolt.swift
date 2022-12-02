@@ -22,6 +22,7 @@
 //
 
 import DatabaseOperations
+import OSFeatures
 import Resources
 import SessionData
 
@@ -33,7 +34,7 @@ extension ResourceTags {
     features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let sessionData: SessionData = try await features.instance()
     let resourceTagsListFetchDatabaseOperation: ResourceTagsListFetchDatabaseOperation = try await features.instance()
     let resourceTagDetailsFetchDatabaseOperation: ResourceTagDetailsFetchDatabaseOperation =

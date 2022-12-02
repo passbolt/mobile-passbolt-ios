@@ -24,7 +24,7 @@
 import CommonModels
 import UICommons
 
-import struct Environment.Biometrics
+import struct OSFeatures.OSBiometry
 
 internal final class BiometricsSetupView: ScrolledStackView {
 
@@ -113,7 +113,7 @@ internal final class BiometricsSetupView: ScrolledStackView {
     }
   }
 
-  internal func update(for bimetryState: Biometrics.State) {
+  internal func update(for bimetryState: OSBiometry.Availability) {
     switch bimetryState {
     case .unavailable:
       unreachable("Cannot setup biometrics for devices which does not support it")
@@ -121,7 +121,7 @@ internal final class BiometricsSetupView: ScrolledStackView {
     case .unconfigured:
       unreachable("Cannot setup biometrics if it is not configured")
 
-    case .configuredTouchID:
+    case .touchID:
       mut(imageView) {
         .image(named: .touchIDSetup, from: .uiCommons)
       }
@@ -132,7 +132,7 @@ internal final class BiometricsSetupView: ScrolledStackView {
         .text(displayable: .localized(key: "biometrics.setup.setup.button.finger"))
       }
 
-    case .configuredFaceID:
+    case .faceID:
       mut(imageView) {
         .image(named: .faceIDSetup, from: .uiCommons)
       }

@@ -24,6 +24,7 @@
 import Accounts
 import CommonModels
 import Crypto
+import OSFeatures
 import UIComponents
 
 public struct LogsViewerController {
@@ -43,14 +44,14 @@ extension LogsViewerController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = features.instance()
-    let logsFetchExecutor: AsyncExecutorLegacy = try await features.instance(of: Executors.self).newBackgroundExecutor()
+    let diagnostics: OSDiagnostics = features.instance()
+    let executor: AsyncExecutor = try await features.instance()
 
     let diagnosticsInfoCacheSubject: CurrentValueSubject<Array<String>?, Never> = .init(nil)
     let shareMenuPresentationSubject: PassthroughSubject<String?, Never> = .init()
 
     func refreshLogs() {
-      logsFetchExecutor {
+      executor.schedule {
         diagnosticsInfoCacheSubject.send(diagnostics.diagnosticsInfo())
       }
     }

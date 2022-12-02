@@ -22,6 +22,7 @@
 //
 
 import Display
+import OSFeatures
 import Resources
 import SessionData
 
@@ -79,8 +80,8 @@ extension ResourcesListDisplayController {
     features: FeatureFactory,
     context: Context
   ) async throws -> Self {
-    let diagnostics: Diagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = features.instance(of: AsyncExecutor.self).detach()
+    let diagnostics: OSDiagnostics = features.instance()
+    let asyncExecutor: AsyncExecutor = try await features.instance()
     let sessionData: SessionData = try await features.instance()
     let resources: Resources = try await features.instance()
 

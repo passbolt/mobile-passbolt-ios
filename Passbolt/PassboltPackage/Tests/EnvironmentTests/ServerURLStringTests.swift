@@ -26,8 +26,6 @@ import TestExtensions
 import UIComponents
 import XCTest
 
-@testable import Environment
-
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ServerURLStringTests: MainActorTestCase {
 

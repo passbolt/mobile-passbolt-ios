@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import OSFeatures
 import UIComponents
 
 internal final class TransferInfoCameraRequiredAlertViewController:
@@ -61,7 +62,7 @@ extension TransferInfoCameraRequiredAlertController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let linkOpener: LinkOpener = try await features.instance()
+    let linkOpener: OSLinkOpener = try await features.instance()
     var cancellable: AnyCancellable?
     _ = cancellable  // silence warning
 

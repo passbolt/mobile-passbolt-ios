@@ -41,7 +41,6 @@ where Feature: LoadableFeature {
 
   private var mockedStaticFeatures: Dictionary<FeatureIdentifier, AnyFeature>!
   private var mockedDynamicFeatures: Dictionary<FeatureIdentifier, AnyFeature>!
-  private var mockedEnvironment: AppEnvironment!
   private var featuresContainer: FeatureFactory!
   private var testedInstance: Feature!
   private var testedInstanceContextIdentifier: AnyHashable!
@@ -56,13 +55,11 @@ where Feature: LoadableFeature {
     await Task { @MainActor in
       self.mockedStaticFeatures = [
         FeatureIdentifier(
-          featureTypeIdentifier: Diagnostics.typeIdentifier,
+          featureTypeIdentifier: OSDiagnostics.typeIdentifier,
           featureContextIdentifier: ContextlessFeatureContext.instance.identifier
-        ): Diagnostics.disabled
+        ): OSDiagnostics.disabled
       ]
       self.mockedDynamicFeatures = .init()
-      self.mockedEnvironment = testEnvironment()
-      self.mockedEnvironment.asyncExecutors = .immediate
       do {
         try self.prepare()
       }
@@ -88,7 +85,6 @@ where Feature: LoadableFeature {
       }
       self.mockedStaticFeatures = .none
       self.mockedDynamicFeatures = .none
-      self.mockedEnvironment = .none
       self.featuresContainer = .none
       self.testedInstance = .none
       self.testedInstanceContextIdentifier = .none
@@ -260,15 +256,6 @@ extension LoadableFeatureTestCase {
     self.mockedDynamicFeatures[identifier] = instance
   }
 
-  public final func patch<Value>(
-    environment keyPath: WritableKeyPath<AppEnvironment, Value>,
-    with value: Value
-  ) {
-    guard case .none = self.testedInstance
-    else { fatalError("Cannot patch environment after creating tested feature instance") }
-    self.mockedEnvironment[keyPath: keyPath] = value
-  }
-
   public func patch<MockFeature, Value>(
     _ keyPath: WritableKeyPath<MockFeature, Value>,
     context: MockFeature.Context,
@@ -375,17 +362,11 @@ extension LoadableFeatureTestCase {
     }
     else {
       let instance: FeatureFactory = .init(
-        environment: self.mockedEnvironment,
         autoLoadFeatures: false,
         allowScopes: false
       )
       instance.set(staticFeatures: self.mockedStaticFeatures)
       instance.set(dynamicFeatures: self.mockedDynamicFeatures)
-      instance.use(  // overriden by mocked features, has to add it again
-        EnvironmentLegacyBridge(
-          environment: self.mockedEnvironment
-        )
-      )
 
       if let testedImplementation: FeatureLoader = Self.testedImplementation {
         instance.use(testedImplementation)

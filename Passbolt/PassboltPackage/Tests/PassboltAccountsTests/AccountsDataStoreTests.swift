@@ -32,13 +32,13 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     FeatureFactory.usePassboltAccountsDataStore
   }
 
-  var mockPreferencesStore: Dictionary<Preferences.Key, Any>!
-  var mockKeychainStore: Array<(data: Data, query: KeychainQuery)>!
+  var mockPreferencesStore: Dictionary<OSPreferences.Key, Any>!
+  var mockKeychainStore: Array<(data: Data, query: OSKeychainQuery)>!
 
   override func prepare() throws {
     mockKeychainStore = .init()
     patch(
-      environment: \.keychain.load,
+      \OSKeychain.load,
       with: { [unowned self] query in
         return .success(
           self.mockKeychainStore
@@ -52,13 +52,13 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       }
     )
     patch(
-      environment: \.keychain.loadMeta,
+      \OSKeychain.loadMeta,
       with: { [unowned self] query in
         return .success(
           self.mockKeychainStore
             .filter { $0.query.key == query.key && ($0.query.tag == query.tag || query.tag == nil) }
             .map {
-              KeychainItemMetadata(
+              OSKeychainItemMetadata(
                 key: .init(rawValue: $0.query.key.rawValue),
                 tag: $0.query.tag.map { .init(rawValue: $0.rawValue) }
               )
@@ -67,7 +67,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       }
     )
     patch(
-      environment: \.keychain.save,
+      \OSKeychain.save,
       with: { [unowned self] data, query in
         self.mockKeychainStore.removeAll(
           where: {
@@ -80,7 +80,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       }
     )
     patch(
-      environment: \.keychain.delete,
+      \OSKeychain.delete,
       with: { [unowned self] query in
         self.mockKeychainStore.removeAll(
           where: {
@@ -94,25 +94,25 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
 
     mockPreferencesStore = .init()
     patch(
-      environment: \.preferences.load,
+      \OSPreferences.load,
       with: { [unowned self] key in
         self.mockPreferencesStore[key]
       }
     )
     patch(
-      environment: \.preferences.save,
+      \OSPreferences.save,
       with: { [unowned self] data, key in
         self.mockPreferencesStore[key] = data
       }
     )
 
     patch(
-      environment: \.files.applicationDataDirectory,
-      with: always(.success(URL(string: "file:///test")!))
+      \OSFiles.applicationDataDirectory,
+      with: always(URL(string: "file:///test")!)
     )
     patch(
-      environment: \.files.contentsOfDirectory,
-      with: always(.success([]))
+      \OSFiles.contentsOfDirectory,
+      with: always([])
     )
   }
 
@@ -123,107 +123,107 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
 
   func test_loadAccounts_loadsItemsStoredInKeychain() async throws {
     patch(
-      environment: \.keychain.load,
+      \OSKeychain.load,
       with: always(.success([validAccountKeychainData]))
     )
 
     let dataStore: AccountsDataStore = try await testedInstance()
 
-    let result: Array<Account> = await dataStore.loadAccounts()
+    let result: Array<Account> = dataStore.loadAccounts()
 
     XCTAssertEqual(result, [.mock_ada])
   }
 
   func test_loadAccounts_loadsEmptyIfKeychainContainsInvalidItems() async throws {
     patch(
-      environment: \.keychain.load,
+      \OSKeychain.load,
       with: always(.success([Data([65, 66, 67]), validAccountKeychainData]))
     )
 
     let dataStore: AccountsDataStore = try await testedInstance()
 
-    let result: Array<Account> = await dataStore.loadAccounts()
+    let result: Array<Account> = dataStore.loadAccounts()
 
     XCTAssertEqual(result, [])
   }
 
   func test_loadAccounts_loadsEmptyIfKeychainLoadFails() async throws {
     patch(
-      environment: \.keychain.load,
+      \OSKeychain.load,
       with: always(.failure(MockIssue.error()))
     )
 
     let dataStore: AccountsDataStore = try await testedInstance()
 
-    let result: Array<Account> = await dataStore.loadAccounts()
+    let result: Array<Account> = dataStore.loadAccounts()
 
     XCTAssertEqual(result, [])
   }
 
   func test_loadLastUsedAccount_loadsStoredLastAccount() async throws {
     patch(
-      environment: \.keychain.load,
+      \OSKeychain.load,
       with: always(.success([validAccountKeychainData]))
     )
     patch(
-      environment: \.preferences.load,
+      \OSPreferences.load,
       with: always(Account.mock_ada.localID.rawValue)
     )
 
     let dataStore: AccountsDataStore = try await testedInstance()
 
-    let result: Account? = await dataStore.loadLastUsedAccount()
+    let result: Account? = dataStore.loadLastUsedAccount()
 
     XCTAssertEqual(result, Account.mock_ada)
   }
 
   func test_loadLastUsedAccount_loadsNoneIfKeychainDataIsMissing() async throws {
     patch(
-      environment: \.keychain.load,
+      \OSKeychain.load,
       with: always(.success([]))
     )
     patch(
-      environment: \.preferences.load,
+      \OSPreferences.load,
       with: always(Account.mock_ada.localID.rawValue)
     )
 
     let dataStore: AccountsDataStore = try await testedInstance()
 
-    let result: Account? = await dataStore.loadLastUsedAccount()
+    let result: Account? = dataStore.loadLastUsedAccount()
 
     XCTAssertNil(result)
   }
 
   func test_loadLastUsedAccount_loadsNoneIfKeychainLoadFails() async throws {
     patch(
-      environment: \.keychain.load,
+      \OSKeychain.load,
       with: always(.failure(MockIssue.error()))
     )
     patch(
-      environment: \.preferences.load,
+      \OSPreferences.load,
       with: always(Account.mock_ada.localID.rawValue)
     )
 
     let dataStore: AccountsDataStore = try await testedInstance()
 
-    let result: Account? = await dataStore.loadLastUsedAccount()
+    let result: Account? = dataStore.loadLastUsedAccount()
 
     XCTAssertNil(result)
   }
 
   func test_loadLastUsedAccount_loadsNoneIfNoAccountIDSaved() async throws {
     patch(
-      environment: \.keychain.load,
+      \OSKeychain.load,
       with: always(.success([validAccountKeychainData]))
     )
     patch(
-      environment: \.preferences.load,
+      \OSPreferences.load,
       with: always(nil)
     )
 
     let dataStore: AccountsDataStore = try await testedInstance()
 
-    let result: Account? = await dataStore.loadLastUsedAccount()
+    let result: Account? = dataStore.loadLastUsedAccount()
 
     XCTAssertNil(result)
   }
@@ -231,7 +231,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
   func test_saveLastUsedAccount_savesAccountID() async throws {
     var result: String?
     patch(
-      environment: \.preferences.save,
+      \OSPreferences.save,
       with: { value, _ in
         result = value as? String
       }
@@ -239,7 +239,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
 
     let dataStore: AccountsDataStore = try await testedInstance()
 
-    await dataStore.storeLastUsedAccount(Account.mock_ada.localID)
+    dataStore.storeLastUsedAccount(Account.mock_ada.localID)
 
     XCTAssertEqual(
       result,
@@ -251,7 +251,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     let dataStore: AccountsDataStore = try await testedInstance()
 
     let result: Result<Void, Error> = await .async {
-      try await dataStore.storeAccount(
+      try dataStore.storeAccount(
         Account.mock_ada,
         AccountProfile.mock_ada,
         validPrivateKey
@@ -271,14 +271,14 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
 
   func test_storeAccount_failsIfKeychainSaveFails() async throws {
     patch(
-      environment: \.keychain.save,
+      \OSKeychain.save,
       with: always(.failure(MockIssue.error()))
     )
 
     let dataStore: AccountsDataStore = try await testedInstance()
 
     let result: Result<Void, Error> = await .async {
-      try await dataStore.storeAccount(
+      try dataStore.storeAccount(
         Account.mock_ada,
         AccountProfile.mock_ada,
         validPrivateKey
@@ -290,13 +290,13 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
 
   func test_storeAccount_dataIsNotSavedIfKeychainSaveFails() async throws {
     patch(
-      environment: \.keychain.save,
+      \OSKeychain.save,
       with: always(.failure(MockIssue.error()))
     )
 
     let dataStore: AccountsDataStore = try await testedInstance()
 
-    _ = try? await dataStore.storeAccount(Account.mock_ada, AccountProfile.mock_ada, validPrivateKey)
+    _ = try? dataStore.storeAccount(Account.mock_ada, AccountProfile.mock_ada, validPrivateKey)
 
     XCTAssertEqual(
       mockPreferencesStore["accountsList"] as? Array<String>,
@@ -310,8 +310,8 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
 
   func test_deleteAccount_removesAccountData() async throws {
     patch(
-      environment: \.files.deleteFile,
-      with: always(.success)
+      \OSFiles.deleteFile,
+      with: always(Void())
     )
     mockPreferencesStore["accountsList"] = [Account.mock_ada.localID.rawValue]
     mockKeychainStore = [
@@ -335,7 +335,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
 
     let dataStore: AccountsDataStore = try await testedInstance()
 
-    await dataStore.deleteAccount(Account.mock_ada.localID)
+    dataStore.deleteAccount(Account.mock_ada.localID)
 
     XCTAssertEqual(
       mockPreferencesStore["accountsList"] as? Array<String>,
@@ -350,10 +350,9 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
   func test_deleteAccount_removesAccountDatabase() async throws {
     var result: URL!
     patch(
-      environment: \.files.deleteFile,
+      \OSFiles.deleteFile,
       with: { url in
         result = url
-        return .success
       }
     )
     mockPreferencesStore["accountsList"] = [Account.mock_ada.localID.rawValue]
@@ -389,7 +388,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
   func test_storeServerFingerprint_savesDataProperly() async throws {
     var result: Void?
     patch(
-      environment: \.keychain.save,
+      \OSKeychain.save,
       with: { _, _ in
         result = Void()
         return .success
@@ -398,21 +397,21 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
 
     let dataStore: AccountsDataStore = try await testedInstance()
 
-    _ = try? await dataStore.storeServerFingerprint(Account.mock_ada.localID, serverFingerprint)
+    _ = try? dataStore.storeServerFingerprint(Account.mock_ada.localID, serverFingerprint)
 
     XCTAssertNotNil(result)
   }
 
   func test_storeServerFingerprint_failsIfKeychainSaveFails() async throws {
     patch(
-      environment: \.keychain.save,
+      \OSKeychain.save,
       with: always(.failure(MockIssue.error()))
     )
 
     let dataStore: AccountsDataStore = try await testedInstance()
 
     let result: Result<Void, Error> = await .async {
-      try await dataStore.storeServerFingerprint(Account.mock_ada.localID, serverFingerprint)
+      try dataStore.storeServerFingerprint(Account.mock_ada.localID, serverFingerprint)
     }
 
     XCTAssertFailure(result)
@@ -422,7 +421,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     let dataStore: AccountsDataStore = try await testedInstance()
 
     let result: Result<Void, Error> = await .async {
-      try await dataStore.verifyDataIntegrity()
+      try dataStore.verifyDataIntegrity()
     }
 
     XCTAssertSuccess(result)
@@ -451,7 +450,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     let dataStore: AccountsDataStore = try await testedInstance()
 
     let result: Result<Void, Error> = await .async {
-      try await dataStore.verifyDataIntegrity()
+      try dataStore.verifyDataIntegrity()
     }
 
     XCTAssertSuccess(result)
@@ -487,7 +486,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     ]
     let dataStore: AccountsDataStore = try await testedInstance()
 
-    _ = try? await dataStore.verifyDataIntegrity()
+    _ = try? dataStore.verifyDataIntegrity()
 
     XCTAssertEqual(
       mockPreferencesStore["accountsList"] as? Array<String>,
@@ -522,7 +521,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     let dataStore: AccountsDataStore = try await testedInstance()
 
     let result: Result<Void, Error> = await .async {
-      try await dataStore.verifyDataIntegrity()
+      try dataStore.verifyDataIntegrity()
     }
 
     XCTAssertSuccess(result)
@@ -582,7 +581,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     let dataStore: AccountsDataStore = try await testedInstance()
 
     let result: Result<Void, Error> = await .async {
-      try await dataStore.verifyDataIntegrity()
+      try dataStore.verifyDataIntegrity()
     }
 
     XCTAssertSuccess(result)
@@ -599,14 +598,13 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
   func test_verifyDataIntegrity_removesAccountsDatabase_whenAccountIDIsNotInListAndDatabaseFileExists() async throws {
     var result: URL?
     patch(
-      environment: \.files.contentsOfDirectory,
-      with: always(.success(["\(Account.mock_ada.localID).sqlite"]))
+      \OSFiles.contentsOfDirectory,
+      with: always(["\(Account.mock_ada.localID).sqlite"])
     )
     patch(
-      environment: \.files.deleteFile,
+      \OSFiles.deleteFile,
       with: { url in
         result = url
-        return .success
       }
     )
     mockPreferencesStore["accountsList"] = []
@@ -630,7 +628,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     ]
     let dataStore: AccountsDataStore = try await testedInstance()
 
-    _ = try? await dataStore.verifyDataIntegrity()
+    _ = try? dataStore.verifyDataIntegrity()
 
     XCTAssertEqual(
       result?.lastPathComponent,
@@ -652,7 +650,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     let dataStore: AccountsDataStore = try await testedInstance()
 
     let result: Result<Void, Error> = await .async {
-      try await dataStore.verifyDataIntegrity()
+      try dataStore.verifyDataIntegrity()
     }
 
     XCTAssertSuccess(result)

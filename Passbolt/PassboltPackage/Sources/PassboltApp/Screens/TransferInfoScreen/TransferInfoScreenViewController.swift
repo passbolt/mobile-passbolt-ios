@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-import Environment
 import UIComponents
 
 internal final class TransferInfoScreenViewController: PlainViewController, UIComponent {

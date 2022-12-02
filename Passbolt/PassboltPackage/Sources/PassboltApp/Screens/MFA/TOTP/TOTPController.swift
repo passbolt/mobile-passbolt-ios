@@ -23,6 +23,7 @@
 
 import Accounts
 import Commons
+import OSFeatures
 import Session
 import UIComponents
 
@@ -57,7 +58,7 @@ extension TOTPController: UIController {
     cancellables: Cancellables
   ) async throws -> Self {
     let session: Session = try await features.instance()
-    let pasteboard: Pasteboard = try await features.instance()
+    let pasteboard: OSPasteboard = features.instance()
 
     let statusChangeSubject: PassthroughSubject<StatusChange, Never> = .init()
     let otpSubject: CurrentValueSubject<String, Never> = .init("")

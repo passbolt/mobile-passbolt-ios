@@ -23,6 +23,7 @@
 
 import Accounts
 import NetworkOperations
+import OSFeatures
 
 // MARK: - Implementation
 
@@ -35,7 +36,7 @@ extension AccountDetails {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
 
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let accountsDataStore: AccountsDataStore = try await features.instance()
     let accountData: AccountData = try await features.instance(context: account)
     let userDetailsFetchNetworkOperation: UserDetailsFetchNetworkOperation = try await features.instance()

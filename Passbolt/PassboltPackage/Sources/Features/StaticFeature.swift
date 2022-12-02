@@ -26,7 +26,6 @@ import Commons
 public protocol StaticFeature: AnyFeature {
 
   #if DEBUG
-  // placeholder implementation for mocking and testing, unavailable in release
   nonisolated static var placeholder: Self { get }
   #endif
 }

@@ -32,7 +32,7 @@ public protocol TheError: Error, CustomDebugStringConvertible {
 
   /// String which can be desplayed to the user when presenting this error on screen.
   var displayableMessage: DisplayableString { get }
-  /// Diagnostics context containing additional informations related with error.
+  /// OSDiagnostics context containing additional informations related with error.
   /// Used to prepare diagnostic messages for logger.
   var context: DiagnosticsContext { get set }
   /// Stack of diagnostic messages to be used with diagnostic log.

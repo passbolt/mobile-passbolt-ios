@@ -34,10 +34,6 @@ open class TestCase: AsyncTestCase {
 
   public var features: FeatureFactory!
   public var cancellables: Cancellables!
-  public var environment: AppEnvironment {
-    get { features.environment }
-    set { features.environment = newValue }
-  }
 
   final override public class func setUp() {
     super.setUp()
@@ -57,12 +53,10 @@ open class TestCase: AsyncTestCase {
 
   open func featuresActorSetUp() async throws {
     self.features = .init(
-      environment: testEnvironment(),
       autoLoadFeatures: false,
       allowScopes: false
     )
-    self.features.use(Diagnostics.disabled)
-    self.features.environment.asyncExecutors = .immediate
+    self.features.use(OSDiagnostics.disabled)
     self.cancellables = .init()
   }
 
@@ -87,7 +81,6 @@ open class TestCase: AsyncTestCase {
     _ type: F.Type = F.self
   ) async throws -> F {
     try await F.load(
-      in: environment,
       using: features,
       cancellables: cancellables
     )

@@ -23,6 +23,7 @@
 
 import Accounts
 import Crypto
+import OSFeatures
 import Session
 
 // MARK: - Implementation (Legacy)
@@ -33,9 +34,8 @@ extension Accounts {
     features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let environment: AppEnvironment = try await features.instance(of: EnvironmentLegacyBridge.self).environment
-    let uuidGenerator: UUIDGenerator = environment.uuidGenerator
-    let diagnostics: Diagnostics = features.instance()
+    let uuidGenerator: UUIDGenerator = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     let session: Session = try await features.instance()
     let dataStore: AccountsDataStore = try await features.instance()
 
@@ -71,7 +71,7 @@ extension Accounts {
         account = storedAccount
       }
       else {
-        let accountID: Account.LocalID = .init(rawValue: uuidGenerator().uuidString)
+        let accountID: Account.LocalID = .init(rawValue: uuidGenerator.uuid())
         account = .init(
           localID: accountID,
           domain: transferedAccount.domain,

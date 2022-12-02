@@ -24,6 +24,7 @@
 import Accounts
 import DatabaseOperations
 import Display
+import OSFeatures
 import Resources
 import UIComponents
 import Users
@@ -64,8 +65,8 @@ extension ResourceFolderPermissionListController {
     features: FeatureFactory,
     context: Context
   ) async throws -> Self {
-    let diagnostics: Diagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = features.instance(of: AsyncExecutor.self).detach()
+    let diagnostics: OSDiagnostics = features.instance()
+    let asyncExecutor: AsyncExecutor = try await features.instance()
     let navigation: DisplayNavigation = try await features.instance()
     let users: Users = try await features.instance()
     let resourceFolderDetails: ResourceFolderDetails = try await features.instance(context: context)

@@ -25,6 +25,7 @@ import AccountSetup
 import Accounts
 import Crypto
 import NetworkOperations
+import OSFeatures
 import Session
 
 #if DEBUG
@@ -39,12 +40,12 @@ extension AccountTransfer {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
     #warning("Legacy implementation, to be split and refined...")
-    let diagnostics: Diagnostics = features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
     diagnostics.log(diagnostic: "Beginning new account transfer...")
     #if DEBUG
-    let mdmSupport: MDMSupport = try await features.instance()
+    let mdmConfiguration: MDMConfiguration = try await features.instance()
     #endif
-    let pgp: PGP = try await features.instance(of: EnvironmentLegacyBridge.self).environment.pgp
+    let pgp: PGP = features.instance()
     let session: Session = try await features.instance()
     let accountTransferUpdateNetworkOperation: AccountTransferUpdateNetworkOperation = try await features.instance()
     let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try await features.instance()
@@ -54,7 +55,7 @@ extension AccountTransfer {
     _ = transferCancelationCancellable  // silence warning
 
     #if DEBUG
-    if let mdmTransferedAccount: TransferedAccount = mdmSupport.transferedAccount() {
+    if let mdmTransferedAccount: TransferedAccount = mdmConfiguration.preconfiguredAccounts().first {
       let accountAlreadyStored: Bool =
         accounts
         .storedAccounts()

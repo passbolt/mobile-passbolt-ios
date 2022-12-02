@@ -22,6 +22,7 @@
 //
 
 import Display
+import OSFeatures
 import Resources
 import Users
 
@@ -69,8 +70,8 @@ extension ResourceFolderEditController {
     unowned let features: FeatureFactory = features
     let popFeaturesScope: () async -> Void = features.pushScope(.resourceFolderEdit)
 
-    let diagnostics: Diagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = features.instance(of: AsyncExecutor.self).detach()
+    let diagnostics: OSDiagnostics = features.instance()
+    let asyncExecutor: AsyncExecutor = try await features.instance()
     let navigation: DisplayNavigation = try await features.instance()
     let users: Users = try await features.instance()
     let resourceFolderEditForm: ResourceFolderEditForm = try await features.instance(context: context)

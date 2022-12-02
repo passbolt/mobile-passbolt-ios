@@ -21,8 +21,6 @@
 // @since         v1.0
 //
 
-import Network
-
 import class Foundation.JSONDecoder
 import class Foundation.JSONSerialization
 import struct Foundation.URL

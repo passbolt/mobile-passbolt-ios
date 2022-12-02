@@ -22,6 +22,7 @@
 //
 
 import Display
+import OSFeatures
 import SharedUIComponents
 
 // MARK: - Interface
@@ -65,9 +66,8 @@ extension ResourceFolderMenuController {
     features: FeatureFactory,
     context: Context
   ) async throws -> Self {
-    let diagnostics: Diagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = features.instance(of: AsyncExecutor.self)
-      .detach()
+    let diagnostics: OSDiagnostics = features.instance()
+    let asyncExecutor: AsyncExecutor = try await features.instance()
     let navigation: DisplayNavigation = try await features.instance()
 
     nonisolated func openDetails() {

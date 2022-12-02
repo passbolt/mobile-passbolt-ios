@@ -24,6 +24,7 @@
 import Accounts
 import CommonModels
 import NetworkOperations
+import OSFeatures
 import Resources
 import SessionData
 import UIComponents
@@ -73,10 +74,10 @@ extension ResourceMenuController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = features.instance()
-    let linkOpener: LinkOpener = try await features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
+    let linkOpener: OSLinkOpener = features.instance()
     let resources: Resources = try await features.instance()
-    let pasteboard: Pasteboard = try await features.instance()
+    let pasteboard: OSPasteboard = features.instance()
     let resourceFavorites: ResourceFavorites = try await features.instance(context: context.resourceID)
 
     let currentDetailsSubject: CurrentValueSubject<ResourceDetailsDSV?, Error> = .init(
@@ -202,7 +203,7 @@ extension ResourceMenuController: UIController {
 
                   return
                     linkOpener
-                    .openLink(url)
+                    .openURL(url)
                     .map { opened -> AnyPublisher<Void, Error> in
                       if opened {
                         return Just(Void())
@@ -239,7 +240,7 @@ extension ResourceMenuController: UIController {
 
             return
               linkOpener
-              .openLink(url)
+              .openURL(url)
               .map { opened -> AnyPublisher<Void, Error> in
                 if opened {
                   return Just(Void())
