@@ -254,7 +254,7 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
                 .map { fieldValuePublisher.first() }
                 .switchToLatest()
             )
-            .receive(on: RunLoop.main)
+            .removeDuplicates()
             .sink(receiveValue: { [weak self] validated in
               self?.contentView.update(
                 validated: validated,
