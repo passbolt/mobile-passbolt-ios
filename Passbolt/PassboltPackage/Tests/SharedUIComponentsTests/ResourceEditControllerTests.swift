@@ -188,7 +188,7 @@ final class ResourceEditControllerTests: MainActorTestCase {
         \ResourceEditForm.setFieldValue,
         with: { value, field in
           if field == .password {
-            uncheckedSendableResultPassword.variable = value
+            uncheckedSendableResultPassword.variable = .string(value)
           }
           else {
             /* NOP */

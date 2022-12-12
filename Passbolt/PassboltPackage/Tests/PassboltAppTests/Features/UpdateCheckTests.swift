@@ -209,7 +209,7 @@ final class UpdateCheckTests: MainActorTestCase {
     features
       .patch(
         \AppVersionsFetchNetworkOperation.execute,
-         with: always(
+        with: always(
           .init(
             results: [
               .init(
@@ -217,7 +217,7 @@ final class UpdateCheckTests: MainActorTestCase {
               )
             ]
           )
-         )
+        )
       )
 
     let feature: UpdateCheck = try await testedInstance()

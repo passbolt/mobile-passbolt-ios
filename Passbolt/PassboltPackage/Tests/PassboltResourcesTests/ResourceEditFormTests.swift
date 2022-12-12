@@ -202,7 +202,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       .store(in: cancellables)
 
     try? await feature
-      .setFieldValue(.string("updated"), .name)
+      .setFieldValue("updated", .name)
       .asAsyncValue()
 
     XCTAssertEqual(result?.value, .string("updated"))
@@ -234,7 +234,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     XCTAssert(!(result?.isValid ?? false))
 
     try? await feature
-      .setFieldValue(.string("updated"), .name)
+      .setFieldValue("updated", .name)
       .asAsyncValue()
 
     XCTAssert(result?.isValid ?? false)
@@ -254,7 +254,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     var result: Error?
     do {
       try await feature
-        .setFieldValue(.string("updated"), .undefined(name: "unavailable"))
+        .setFieldValue("updated", .undefined(name: "unavailable"))
         .asAsyncValue()
     }
     catch {
@@ -280,7 +280,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
 
     let result: Void? =
       try? await feature
-      .setFieldValue(.string("updated"), .name)
+      .setFieldValue("updated", .name)
       .asAsyncValue()
 
     XCTAssertNotNil(result)
@@ -352,7 +352,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     try? await feature
-      .setFieldValue(.string(name), .name)
+      .setFieldValue(name, .name)
       .asAsyncValue()
 
     var result: Error?
@@ -389,7 +389,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     try? await feature
-      .setFieldValue(.string(name), .name)
+      .setFieldValue(name, .name)
       .asAsyncValue()
 
     var result: Error?
@@ -437,7 +437,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     try? await feature
-      .setFieldValue(.string("name"), .name)
+      .setFieldValue("name", .name)
       .asAsyncValue()
 
     var result: Error?
@@ -485,7 +485,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     try await feature
-      .setFieldValue(.string("name"), .name)
+      .setFieldValue("name", .name)
       .asAsyncValue()
 
     let result: Resource.ID? =

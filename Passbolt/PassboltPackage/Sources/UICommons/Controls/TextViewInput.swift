@@ -194,7 +194,6 @@ public class TextViewInput: PlainView {
       mut(placeholderLabel) {
         .hidden(true)
       }
-      textSubject.value = validated.value
       textView.text = validated.value
     }
 

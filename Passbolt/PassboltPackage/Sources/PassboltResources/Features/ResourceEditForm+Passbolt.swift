@@ -270,13 +270,13 @@ extension ResourceEditForm {
     }
 
     @Sendable nonisolated func setFieldValue(
-      _ value: ResourceFieldValue,
+      _ value: String,
       fieldName: ResourceFieldName
     ) -> AnyPublisher<Void, Error> {
       resourceTypePublisher
         .map { resourceType -> AnyPublisher<Validated<ResourceFieldValue>, Error> in
           if let field: ResourceFieldDSV = resourceType.fields.first(where: { $0.name == fieldName }) {
-            return Just(propertyValidator(for: field).validate(value))
+            return Just(propertyValidator(for: field).validate(.init(fromString: value, forType: field.valueType)))
               .eraseErrorType()
               .eraseToAnyPublisher()
           }

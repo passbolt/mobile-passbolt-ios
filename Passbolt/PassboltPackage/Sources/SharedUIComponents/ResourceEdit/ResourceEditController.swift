@@ -75,7 +75,7 @@ extension ResourceEditController: UIController {
     switch context.editing {
     case let .existing(resourceID):
       createsNewResource = false
-      await resourceForm
+      resourceForm
         .editResource(resourceID)
         .sink(
           receiveCompletion: { completion in
@@ -95,7 +95,7 @@ extension ResourceEditController: UIController {
       resourceForm.setEnclosingFolder(enclosingFolder)
       if let urlString: URLString = url {
         resourceForm
-          .setFieldValue(.string(urlString.rawValue), .uri)
+          .setFieldValue(urlString.rawValue, .uri)
           .sinkDrop()
           .store(in: cancellables)
       }
@@ -138,21 +138,8 @@ extension ResourceEditController: UIController {
       _ value: String,
       for fieldName: ResourceFieldNameDSV
     ) -> AnyPublisher<Void, Error> {
-      resourcePropertiesPublisher()
-        .map { properties -> AnyPublisher<Void, Error> in
-          guard let property: ResourceFieldDSV = properties.first(where: { $0.name == fieldName })
-          else {
-            return Fail(
-              error: InvalidResourceType.error()
-            )
-            .eraseToAnyPublisher()
-          }
-
-          return
-            resourceForm
-            .setFieldValue(.init(fromString: value, forType: property.valueType), fieldName)
-        }
-        .switchToLatest()
+      resourceForm
+        .setFieldValue(value, fieldName)
         .collectErrorLog(using: diagnostics)
         .eraseToAnyPublisher()
     }
@@ -207,7 +194,7 @@ extension ResourceEditController: UIController {
       )
 
       resourceForm
-        .setFieldValue(.string(password), .password)
+        .setFieldValue(password, .password)
         .sinkDrop()
         .store(in: cancellables)
     }

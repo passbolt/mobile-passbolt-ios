@@ -34,7 +34,6 @@ import XCTest
 @MainActor
 final class TransferInfoScreenTests: MainActorTestCase {
 
-
   var asyncExecutorMockControl: AsyncExecutor.MockExecutionControl!
 
   override func mainActorSetUp() {
@@ -80,10 +79,10 @@ final class TransferInfoScreenTests: MainActorTestCase {
     var result: Void?
     self.features.patch(
       \OSCamera.ensurePermission,
-       with: {
-         result = Void()
-         throw MockIssue.error()
-       }
+      with: {
+        result = Void()
+        throw MockIssue.error()
+      }
     )
 
     let controller: TransferInfoScreenController = try await testController()
@@ -101,7 +100,7 @@ final class TransferInfoScreenTests: MainActorTestCase {
   func test_requestOrNavigatePublisher_passesPermissionState() async throws {
     features.patch(
       \OSCamera.ensurePermission,
-       with: always(Void())
+      with: always(Void())
     )
 
     let controller: TransferInfoScreenController = try await testController()

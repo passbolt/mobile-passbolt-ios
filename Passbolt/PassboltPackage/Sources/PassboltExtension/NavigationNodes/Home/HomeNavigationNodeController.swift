@@ -22,12 +22,12 @@
 //
 
 import Display
+import OSFeatures
 import Resources
 import Session
 import SessionData
 import SharedUIComponents
 import Users
-import OSFeatures
 
 internal struct HomeNavigationNodeController {
 

@@ -129,7 +129,7 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
         receiveCompletion: { _ in /* NOP */ },
         receiveValue: { [weak self] fields in
           self?.contentView.update(with: fields)
-          self?.setupFieldSubscriptions()
+          self?.setupFieldSubscriptions(with: fields)
         }
       )
       .store(in: cancellables)
@@ -226,55 +226,51 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
       .store(in: cancellables)
   }
 
-  private func setupFieldSubscriptions() {
+  private func setupFieldSubscriptions(
+    with fields: Array<ResourceFieldDSV>
+  ) {
     fieldCancellables = .init()
+    for field in fields {
+      let fieldValuePublisher = self.controller
+        .fieldValuePublisher(field.name)
 
-    controller
-      .resourcePropertiesPublisher()
-      .first()
-      .receive(on: RunLoop.main)
-      .handleEvents(receiveOutput: { [weak self] resourceProperties in
-        _ = resourceProperties.map { resourceField in
-          guard let self = self
-          else { return }
-          let fieldValuePublisher = self.controller.fieldValuePublisher(resourceField.name)
-
-          fieldValuePublisher
-            .first()  // skipping error just to update intial value
-            .map { Validated.valid($0.value) }
-            .merge(
-              with:
-                fieldValuePublisher
-                .dropFirst()
-            )
-            .merge(
-              with:
-                // the subject is used as a trigger for showing error on the form, initially no errors are shown
-                self.showErrorSubject
-                .map { fieldValuePublisher.first() }
-                .switchToLatest()
-            )
-            .removeDuplicates()
-            .sink(receiveValue: { [weak self] validated in
-              self?.contentView.update(
-                validated: validated,
-                for: resourceField.name
-              )
-            })
-            .store(in: self.fieldCancellables)
-
-          self.contentView
-            .fieldValuePublisher(for: resourceField.name)
-            .removeDuplicates()
-            .map { [unowned self] value -> AnyPublisher<Void, Error> in
-              self.controller.setValue(value, resourceField.name)
-            }
+      fieldValuePublisher
+        .first()  // skipping error just to update intial value
+        .map { Validated.valid($0.value) }
+        .merge(
+          with:
+            fieldValuePublisher
+            .dropFirst()
+        )
+        .merge(
+          with:
+            // the subject is used as a trigger for showing error on the form, initially no errors are shown
+            self.showErrorSubject
+            .map { fieldValuePublisher.first() }
             .switchToLatest()
-            .sinkDrop()
-            .store(in: self.fieldCancellables)
+        )
+        .removeDuplicates()
+        .receive(on: RunLoop.main)
+        .sink(receiveValue: { [weak self] validated in
+          self?.contentView.update(
+            validated: validated,
+            for: field.name
+          )
+        })
+        .store(in: self.fieldCancellables)
+
+      self.contentView
+        .fieldValuePublisher(for: field.name)
+        .receive(on: RunLoop.main)
+        .removeDuplicates()
+        .map { [weak self] value in
+          self?.controller
+            .setValue(value, field.name)
+            ?? Empty().eraseToAnyPublisher()
         }
-      })
-      .sinkDrop()
-      .store(in: fieldCancellables)
+        .switchToLatest()
+        .sinkDrop()
+        .store(in: self.fieldCancellables)
+    }
   }
 }

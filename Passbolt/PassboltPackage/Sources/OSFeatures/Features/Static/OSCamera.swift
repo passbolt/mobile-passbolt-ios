@@ -21,9 +21,10 @@
 // @since         v1.0
 //
 
-import class AVFoundation.AVCaptureDevice
-import enum AVFoundation.AVAuthorizationStatus
 import CommonModels
+
+import enum AVFoundation.AVAuthorizationStatus
+import class AVFoundation.AVCaptureDevice
 
 // MARK: - Interface
 

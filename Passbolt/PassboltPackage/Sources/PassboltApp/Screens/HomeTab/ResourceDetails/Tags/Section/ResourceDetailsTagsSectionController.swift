@@ -23,10 +23,10 @@
 
 import Accounts
 import Display
+import OSFeatures
 import Resources
 import UIComponents
 import Users
-import OSFeatures
 
 internal struct ResourceDetailsTagsSectionController {
 

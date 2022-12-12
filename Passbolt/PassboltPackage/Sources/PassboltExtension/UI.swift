@@ -23,8 +23,8 @@
 
 import Accounts
 import Display
-import UIComponents
 import OSFeatures
+import UIComponents
 
 import class AuthenticationServices.ASPasswordCredentialIdentity
 
@@ -47,48 +47,48 @@ extension UI {
 
   @MainActor public func prepareCredentialList() {
     Task { @MainActor[weak self] in
-        do {
-          guard let self = self
-          else {
-            throw
-              InternalInconsistency
-              .error("Reference to UI lost.")
-          }
-          try await self.features
-            .instance(of: NavigationTree.self)
-            .replaceRoot(
-              with: AutofillRootNavigationNodeView.self,
-              controller: self.features.instance()
-            )
+      do {
+        guard let self = self
+        else {
+          throw
+            InternalInconsistency
+            .error("Reference to UI lost.")
         }
-        catch {
-          error
-            .asTheError()
-            .asFatalError(message: "Failed to prepare credentials list.")
-        }
+        try await self.features
+          .instance(of: NavigationTree.self)
+          .replaceRoot(
+            with: AutofillRootNavigationNodeView.self,
+            controller: self.features.instance()
+          )
       }
+      catch {
+        error
+          .asTheError()
+          .asFatalError(message: "Failed to prepare credentials list.")
+      }
+    }
   }
 
   @MainActor public func prepareInterfaceForExtensionConfiguration() {
     Task { @MainActor[weak self] in
-        do {
-          guard let self = self
-          else {
-            throw
-              InternalInconsistency
-              .error("Reference to UI lost.")
-          }
-          try await self.setRootContent(
-            UIComponentFactory(features: self.features)
-              .instance(of: ExtensionSetupViewController.self)
-          )
+      do {
+        guard let self = self
+        else {
+          throw
+            InternalInconsistency
+            .error("Reference to UI lost.")
         }
-        catch {
-          error
-            .asTheError()
-            .asFatalError(message: "Failed to prepare extension configuration.")
-        }
+        try await self.setRootContent(
+          UIComponentFactory(features: self.features)
+            .instance(of: ExtensionSetupViewController.self)
+        )
       }
+      catch {
+        error
+          .asTheError()
+          .asFatalError(message: "Failed to prepare extension configuration.")
+      }
+    }
   }
 
   @MainActor private func setRootContent(

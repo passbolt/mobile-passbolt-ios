@@ -176,7 +176,7 @@ final class BiometricsInfoScreenTests: MainActorTestCase {
     )
     features.patch(
       \OSBiometry.availability,
-       with: always(.touchID)
+      with: always(.touchID)
     )
     features.patch(
       \OSExtensions.autofillExtensionEnabled,

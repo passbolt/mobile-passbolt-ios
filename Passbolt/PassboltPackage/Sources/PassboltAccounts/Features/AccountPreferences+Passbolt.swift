@@ -22,8 +22,8 @@
 //
 
 import Accounts
-import Session
 import OSFeatures
+import Session
 
 // MARK: - Implementation
 

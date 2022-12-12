@@ -36,7 +36,7 @@ public struct ResourceEditForm {
   // initial version supports only one type of resource type, so there is no method to change it
   public var resourceTypePublisher: () -> AnyPublisher<ResourceTypeDSV, Error>
   // since currently the only field value is String we are not allowing other value types
-  public var setFieldValue: @Sendable (ResourceFieldValue, ResourceFieldName) -> AnyPublisher<Void, Error>
+  public var setFieldValue: @Sendable (String, ResourceFieldName) -> AnyPublisher<Void, Error>
   // prepare publisher for given field, publisher will complete when field will be no longer available
   public var fieldValuePublisher: (ResourceFieldName) -> AnyPublisher<Validated<ResourceFieldValue>, Never>
   // send the form and create resource on server
@@ -46,7 +46,7 @@ public struct ResourceEditForm {
     editResource: @escaping @Sendable (Resource.ID) -> AnyPublisher<Void, Error>,
     setEnclosingFolder: @escaping @Sendable (ResourceFolder.ID?) -> Void,
     resourceTypePublisher: @escaping () -> AnyPublisher<ResourceTypeDSV, Error>,
-    setFieldValue: @escaping @Sendable (ResourceFieldValue, ResourceFieldName) -> AnyPublisher<Void, Error>,
+    setFieldValue: @escaping @Sendable (String, ResourceFieldName) -> AnyPublisher<Void, Error>,
     fieldValuePublisher: @escaping (ResourceFieldName) -> AnyPublisher<Validated<ResourceFieldValue>, Never>,
     sendForm: @escaping @Sendable () -> AnyPublisher<Resource.ID, Error>
   ) {
