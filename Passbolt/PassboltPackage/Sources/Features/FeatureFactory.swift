@@ -56,19 +56,7 @@ public final class FeatureFactory {
   }
   #else
   nonisolated public init(
-    environment: AppEnvironment
-  ) {
-    self.environment = environment
-    // Legacy Bridge, to be removed with AppEnvironment
-    self.staticFeatures[
-      FeatureIdentifier(
-        featureTypeIdentifier: EnvironmentLegacyBridge.typeIdentifier,
-        featureContextIdentifier: ContextlessFeatureContext.instance.identifier
-      )
-    ] = EnvironmentLegacyBridge(
-      environment: environment
-    )
-  }
+  ) {}
   #endif
 
   @MainActor private var currentScope: FeaturesScope {
