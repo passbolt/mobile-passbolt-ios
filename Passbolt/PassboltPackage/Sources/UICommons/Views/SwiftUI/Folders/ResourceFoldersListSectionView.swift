@@ -72,6 +72,7 @@ public struct ResourceFoldersListSectionView: View {
             name: item.name,
             shared: item.shared,
             contentCount: item.contentCount,
+            locationString: item.location,
             action: {
               self.tapAction(item.id)
             }

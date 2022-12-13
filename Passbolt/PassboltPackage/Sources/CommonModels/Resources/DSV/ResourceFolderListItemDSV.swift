@@ -32,6 +32,7 @@ public struct ResourceFolderListItemDSV {
   public var permissionType: PermissionTypeDSV
   public var shared: Bool
   public var parentFolderID: ResourceFolder.ID?
+  public var location: String
   public var contentCount: Int
 
   public init(
@@ -40,6 +41,7 @@ public struct ResourceFolderListItemDSV {
     permissionType: PermissionTypeDSV,
     shared: Bool,
     parentFolderID: ResourceFolder.ID?,
+    location: String,
     contentCount: Int
   ) {
     self.id = id
@@ -47,6 +49,7 @@ public struct ResourceFolderListItemDSV {
     self.permissionType = permissionType
     self.shared = shared
     self.parentFolderID = parentFolderID
+    self.location = location
     self.contentCount = contentCount
   }
 }

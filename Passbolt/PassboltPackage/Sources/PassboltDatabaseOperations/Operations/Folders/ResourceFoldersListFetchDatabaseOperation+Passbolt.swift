@@ -42,111 +42,196 @@ extension ResourceFoldersListFetchDatabaseOperation {
 
     if input.flattenContent {
       statement = """
-        					WITH RECURSIVE
-        						flattenedResourceFolders(
-        							id,
-        							name,
-        							permissionType,
-        							parentFolderID,
-        							shared
-        						)
-        					AS
-        						(
-        							SELECT
-        								resourceFolders.id,
-        								resourceFolders.name,
-        								resourceFolders.permissionType,
-        								resourceFolders.parentFolderID,
-        								resourceFolders.shared
-        							FROM
-        								resourceFolders
-        							WHERE
-        								resourceFolders.parentFolderID IS ?
+        WITH RECURSIVE
+          flattenedResourceFolders(
+            id,
+            name,
+            permissionType,
+            parentFolderID,
+            shared
+          ) AS (
+            SELECT
+              resourceFolders.id,
+              resourceFolders.name,
+              resourceFolders.permissionType,
+              resourceFolders.parentFolderID,
+              resourceFolders.shared
+            FROM
+              resourceFolders
+            WHERE
+              resourceFolders.parentFolderID IS ?
 
-        							UNION
+            UNION
 
-        							SELECT
-        								resourceFolders.id,
-        								resourceFolders.name,
-        								resourceFolders.permissionType,
-        								resourceFolders.parentFolderID,
-        								resourceFolders.shared
-        							FROM
-        								resourceFolders,
-        								flattenedResourceFolders
-        							WHERE
-        								resourceFolders.parentFolderID IS flattenedResourceFolders.id
-        						)
-        					SELECT DISTINCT
-        						flattenedResourceFolders.id AS id,
-        						flattenedResourceFolders.name AS name,
-        						flattenedResourceFolders.permissionType AS permissionType,
-        						flattenedResourceFolders.parentFolderID AS parentFolderID,
-        						flattenedResourceFolders.shared AS shared,
-        						(
-        							SELECT
-        							(
-        								(
-        									SELECT
-        										COUNT(*)
-        									FROM
-        										resources
-        									WHERE
-        										resources.parentFolderID IS flattenedResourceFolders.id
-        								)
-        							+
-        								(
-        									SELECT
-        										COUNT(*)
-        									FROM
-        										resourceFolders
-        									WHERE
-        										resourceFolders.parentFolderID IS flattenedResourceFolders.id
-        								)
-        							)
-        						) AS contentCount
-        					FROM
-        						flattenedResourceFolders
-        					WHERE
-        						1 -- equivalent of true, used to simplify dynamic query building
-        					"""
+            SELECT
+              resourceFolders.id,
+              resourceFolders.name,
+              resourceFolders.permissionType,
+              resourceFolders.parentFolderID,
+              resourceFolders.shared
+            FROM
+              resourceFolders,
+              flattenedResourceFolders
+            WHERE
+              resourceFolders.parentFolderID IS flattenedResourceFolders.id
+          )
+          SELECT DISTINCT
+            flattenedResourceFolders.id AS id,
+            flattenedResourceFolders.name AS name,
+            flattenedResourceFolders.permissionType AS permissionType,
+            flattenedResourceFolders.parentFolderID AS parentFolderID,
+            flattenedResourceFolders.shared AS shared,
+            (
+              SELECT
+                (
+                  (
+                    SELECT
+                      COUNT(*)
+                    FROM
+                      resources
+                    WHERE
+                      resources.parentFolderID IS flattenedResourceFolders.id
+                  )
+                  +
+                  (
+                    SELECT
+                      COUNT(*)
+                    FROM
+                      resourceFolders
+                    WHERE
+                      resourceFolders.parentFolderID IS flattenedResourceFolders.id
+                  )
+                )
+            ) AS contentCount,
+            (
+              SELECT
+                GROUP_CONCAT(name, ' > ') as fullLocation
+              FROM
+                (
+                  WITH RECURSIVE
+                    location(
+                      id,
+                      name,
+                      parentID,
+                      depth
+                    ) AS (
+                      SELECT
+                        resourceFolders.id AS id,
+                        resourceFolders.name AS name,
+                        resourceFolders.parentFolderID AS parentID,
+                        1 as depth
+                      FROM
+                        resourceFolders
+                      WHERE
+                        resourceFolders.id == flattenedResourceFolders.parentFolderID
+
+                      UNION
+
+                      SELECT
+                        resourceFolders.id AS id,
+                        resourceFolders.name AS name,
+                        resourceFolders.parentFolderID AS parentID,
+                        location.depth + 1
+                      FROM
+                        resourceFolders,
+                        location
+                      WHERE
+                        resourceFolders.id == location.parentID
+                    )
+                    SELECT
+                      location.name
+                    FROM
+                      location
+                    ORDER BY
+                      location.depth DESC
+              )
+            ) as fullLocation
+          FROM
+            flattenedResourceFolders
+          WHERE
+            1 -- equivalent of true, used to simplify dynamic query building
+        """
       statement.appendArgument(input.folderID)
     }
     else {
       statement = """
-        					SELECT
-        						resourceFolders.id AS id,
-        						resourceFolders.name AS name,
-        						resourceFolders.permissionType AS permissionType,
-        						resourceFolders.parentFolderID AS parentFolderID,
-        						resourceFolders.shared AS shared,
-        						(
-        							SELECT
-        							(
-        								(
-        									SELECT
-        										COUNT(*)
-        									FROM
-        										resources
-        									WHERE
-        										resources.parentFolderID IS resourceFolders.id
-        								)
-        							+
-        								(
-        									SELECT
-        										COUNT(*)
-        									FROM
-        										resourceFolders AS folders
-        									WHERE
-        										folders.parentFolderID IS resourceFolders.id
-        								)
-        							)
-        						) AS contentCount
-        					FROM
-        						resourceFolders
-        					WHERE
-        						resourceFolders.parentFolderID IS ?
-        					"""
+        SELECT
+          resourceFolders.id AS id,
+          resourceFolders.name AS name,
+          resourceFolders.permissionType AS permissionType,
+          resourceFolders.parentFolderID AS parentFolderID,
+          resourceFolders.shared AS shared,
+          (
+            SELECT
+              (
+                (
+                  SELECT
+                    COUNT(*)
+                  FROM
+                    resources
+                  WHERE
+                    resources.parentFolderID IS resourceFolders.id
+                )
+                +
+                (
+                  SELECT
+                    COUNT(*)
+                  FROM
+                    resourceFolders AS folders
+                  WHERE
+                    folders.parentFolderID IS resourceFolders.id
+                )
+              )
+          ) AS contentCount,
+          (
+            SELECT
+              GROUP_CONCAT(name, ' > ') as fullLocation
+            FROM
+              (
+                WITH RECURSIVE
+                  location(
+                    id,
+                    name,
+                    parentID,
+                    depth
+                  ) AS (
+                    SELECT
+                      resourceFolders.id AS id,
+                      resourceFolders.name AS name,
+                      resourceFolders.parentFolderID AS parentID,
+                      1 as depth
+                    FROM
+                      resourceFolders
+                    WHERE
+                      resourceFolders.id == ?
+
+                    UNION
+
+                    SELECT
+                      resourceFolders.id AS id,
+                      resourceFolders.name AS name,
+                      resourceFolders.parentFolderID AS parentID,
+                      location.depth + 1
+                    FROM
+                      resourceFolders,
+                      location
+                    WHERE
+                      resourceFolders.id == location.parentID
+                  )
+                  SELECT
+                    location.name
+                  FROM
+                    location
+                  ORDER BY
+                    location.depth DESC
+              )
+          ) as fullLocation
+        FROM
+          resourceFolders
+        WHERE
+          resourceFolders.parentFolderID IS ?
+        """
+      statement.appendArgument(input.folderID)
       statement.appendArgument(input.folderID)
     }
 
@@ -154,8 +239,8 @@ extension ResourceFoldersListFetchDatabaseOperation {
       statement
         .append(
           """
-          						AND name LIKE '%' || ? || '%'
-          						"""
+          AND name LIKE '%' || ? || '%'
+          """
         )
       statement.appendArgument(input.text)
     }
@@ -194,33 +279,33 @@ extension ResourceFoldersListFetchDatabaseOperation {
     // end query
     statement.append(";")
 
-    return
-      try connection.fetch(using: statement) { dataRow -> ResourceFolderListItemDSV in
-        guard
-          let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
-          let name: String = dataRow.name,
-          let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
-          let shared: Bool = dataRow.shared
-        else {
-          throw
-            DatabaseIssue
-            .error(
-              underlyingError:
-                DatabaseDataInvalid
-                .error(for: ResourceFolderListItemDSV.self)
-            )
-            .recording(dataRow, for: "dataRow")
-        }
-
-        return ResourceFolderListItemDSV(
-          id: id,
-          name: name,
-          permissionType: permissionType,
-          shared: shared,
-          parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:)),
-          contentCount: dataRow.contentCount ?? 0
-        )
+    return try connection.fetch(using: statement) { dataRow -> ResourceFolderListItemDSV in
+      guard
+        let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
+        let name: String = dataRow.name,
+        let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
+        let shared: Bool = dataRow.shared
+      else {
+        throw
+          DatabaseIssue
+          .error(
+            underlyingError:
+              DatabaseDataInvalid
+              .error(for: ResourceFolderListItemDSV.self)
+          )
+          .recording(dataRow, for: "dataRow")
       }
+      let fullLocation: String = dataRow.fullLocation ?? ""
+      return ResourceFolderListItemDSV(
+        id: id,
+        name: name,
+        permissionType: permissionType,
+        shared: shared,
+        parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:)),
+        location: fullLocation,
+        contentCount: dataRow.contentCount ?? 0
+      )
+    }
   }
 }
 

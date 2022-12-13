@@ -31,6 +31,7 @@ extension ResourceFolderListItemDSV {
     permissionType: .owner,
     shared: false,
     parentFolderID: .none,
+    location: "mockLocation",
     contentCount: 1
   )
 }

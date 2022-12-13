@@ -129,6 +129,7 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
           permissionType: .owner,
           shared: false,
           parentFolderID: nil,
+          location: "mockLocation",
           contentCount: 0
         )
       )

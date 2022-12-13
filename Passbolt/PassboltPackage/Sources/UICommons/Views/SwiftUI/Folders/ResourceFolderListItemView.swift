@@ -29,17 +29,30 @@ public struct ResourceFolderListItemView: View {
   private let name: String
   private let shared: Bool
   private let contentCount: Int
+  private let locationString: String
   private let action: @MainActor () -> Void
+
+  private var locationDisplayable: String {
+    let root: DisplayableString = .localized(key: "folder.root.name")
+    if locationString.isEmpty {
+      return root.string()
+    }
+    else {
+      return root.string() + " > " + locationString
+    }
+  }
 
   public init(
     name: String,
     shared: Bool,
     contentCount: Int,
+    locationString: String,
     action: @escaping () -> Void
   ) {
     self.name = name
     self.shared = shared
     self.contentCount = contentCount
+    self.locationString = locationString
     self.action = action
   }
 
@@ -60,9 +73,14 @@ public struct ResourceFolderListItemView: View {
       },
       contentAction: self.action,
       content: {
-        Text(self.name)
-          .font(.inter(ofSize: 14, weight: .semibold))
-          .foregroundColor(Color.passboltPrimaryText)
+        VStack(alignment: .leading) {
+          Text(self.name)
+            .font(.inter(ofSize: 14, weight: .semibold))
+            .foregroundColor(Color.passboltPrimaryText)
+          Text(self.locationDisplayable)
+            .font(.inter(ofSize: 12, weight: .regular))
+            .foregroundColor(Color.passboltSecondaryText)
+        }
       },
       rightAccessory: {
         Text("\(self.contentCount)")
@@ -87,6 +105,7 @@ internal struct FolderListItemView_Previews: PreviewProvider {
       name: "Folder",
       shared: false,
       contentCount: 0,
+      locationString: "Folder location",
       action: {
         // action
       }

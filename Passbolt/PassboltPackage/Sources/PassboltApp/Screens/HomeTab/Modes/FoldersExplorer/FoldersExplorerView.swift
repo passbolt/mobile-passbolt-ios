@@ -268,6 +268,7 @@ internal struct FoldersExplorerView: ComponentView {
           name: folder.name,
           shared: folder.shared,
           contentCount: folder.contentCount,
+          locationString: folder.location,
           action: {
             self.controller.presentFolderContent(folder)
           }
@@ -316,6 +317,7 @@ internal struct FoldersExplorerView: ComponentView {
           name: folder.name,
           shared: folder.shared,
           contentCount: folder.contentCount,
+          locationString: folder.location,
           action: {
             self.controller.presentFolderContent(folder)
           }
