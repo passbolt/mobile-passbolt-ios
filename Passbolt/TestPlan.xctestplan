@@ -41,25 +41,10 @@
       }
     },
     {
-      "parallelizable" : true,
-      "target" : {
-        "containerPath" : "container:PassboltPackage",
-        "identifier" : "AccountSetupTests",
-        "name" : "AccountSetupTests"
-      }
-    },
-    {
       "target" : {
         "containerPath" : "container:PassboltPackage",
         "identifier" : "CommonsTests",
         "name" : "CommonsTests"
-      }
-    },
-    {
-      "target" : {
-        "containerPath" : "container:PassboltPackage",
-        "identifier" : "EnvironmentTests",
-        "name" : "EnvironmentTests"
       }
     },
     {
@@ -116,6 +101,13 @@
         "containerPath" : "container:PassboltPackage",
         "identifier" : "PassboltUsersTests",
         "name" : "PassboltUsersTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "PassboltAccountSetupTests",
+        "name" : "PassboltAccountSetupTests"
       }
     }
   ],

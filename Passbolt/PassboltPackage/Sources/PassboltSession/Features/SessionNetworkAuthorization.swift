@@ -27,6 +27,7 @@ import NetworkOperations
 import OSFeatures
 import Session
 
+import struct Foundation.Data
 import class Foundation.JSONDecoder
 import class Foundation.JSONEncoder
 

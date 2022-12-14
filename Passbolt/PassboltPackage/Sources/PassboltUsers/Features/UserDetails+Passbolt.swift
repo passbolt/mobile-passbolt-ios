@@ -26,6 +26,7 @@ import NetworkOperations
 import OSFeatures
 import SessionData
 import Users
+import struct Foundation.Data
 
 // MARK: - Implementation
 

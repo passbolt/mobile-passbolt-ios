@@ -25,25 +25,32 @@ import Features
 import TestExtensions
 import XCTest
 
-@testable import AccountSetup
+@testable import PassboltAccountSetup
 @testable import NetworkOperations
 
-final class AccountTransferTests: TestCase {
+final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
 
-  override func featuresActorSetUp() async throws {
-    try await super.featuresActorSetUp()
-    #if DEBUG
-    var mdmSupport: MDMSupport = .placeholder
-    mdmSupport.transferedAccount = always(nil)
-    features.use(mdmSupport)
-    #endif
-    features.usePlaceholder(for: MediaDownloadNetworkOperation.self)
-    features.usePlaceholder(for: AccountTransferUpdateNetworkOperation.self)
-    features.usePlaceholder(for: Accounts.self)
+  override class var testedImplementationRegister: (FeatureFactory) -> @MainActor () -> Void {
+    FeatureFactory.usePassboltAccountTransfer
+  }
+
+  let cancellables: Cancellables = .init()
+
+  override func prepare() throws {
+    use(MDMConfiguration.placeholder)
+    patch(
+      \MDMConfiguration.preconfiguredAccounts,
+       with: always([])
+    )
+    use(PGP.placeholder)
+    use(MediaDownloadNetworkOperation.placeholder)
+    use(AccountTransferUpdateNetworkOperation.placeholder)
+    use(Accounts.placeholder)
+    use(Session.placeholder)
   }
 
   func test_scanningProgressPublisher_publishesConfigurationValue_initially() async throws {
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -70,11 +77,11 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_scanningProgressPublisher_publishesProgressValue_afterProcessingFirstPart() async throws {
-    features.patch(
+    patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: always(accountTransferUpdateResponse)
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -103,11 +110,11 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_scanningProgressPublisher_publishesFinishedValue_afterProcessingAllParts() async throws {
-    features.patch(
+    patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: always(accountTransferUpdateResponse)
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -145,11 +152,11 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_scanningProgressPublisher_completes_afterCancelation() async throws {
-    features.patch(
+    patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: always(accountTransferUpdateResponse)
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -177,12 +184,12 @@ final class AccountTransferTests: TestCase {
     XCTAssertError(result, matches: Cancelled.self)
   }
 
-  func test_scanningProgressPublisher_completesWithError_afterProcessingInvalidPart() async throws {
-    features.patch(
+  func test_scanningProgressPublisher_ignoresInvalidPart() async throws {
+    patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: always(accountTransferUpdateResponse)
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -194,6 +201,9 @@ final class AccountTransferTests: TestCase {
     var result: Error?
     accountTransfer
       .progressPublisher()
+      .handleErrors({ error in
+        result = error
+      })
       .sink(
         receiveCompletion: { completion in
           guard case let .failure(error) = completion
@@ -204,18 +214,18 @@ final class AccountTransferTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertError(
-      result,
-      matches: AccountTransferScanningContentIssue.self
-    )
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+
+    XCTAssertNil(result)
   }
 
   func test_processPayload_fails_withInvalidContent() async throws {
-    features.patch(
+    patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: always(accountTransferUpdateResponse)
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -242,11 +252,11 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withValidContentAndNetworkResponseFailure() async throws {
-    features.patch(
+    patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: alwaysThrow(MockIssue.error())
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -268,11 +278,11 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_succeeds_withValidContent() async throws {
-    features.patch(
+    patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: always(accountTransferUpdateResponse)
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -280,7 +290,7 @@ final class AccountTransferTests: TestCase {
     var result: Void?
     let accountTransfer: AccountTransfer = try await testedInstance()
 
-    await accountTransfer
+    accountTransfer
       .processPayload(qrCodePart0)
       .sink(
         receiveCompletion: { completion in
@@ -304,14 +314,14 @@ final class AccountTransferTests: TestCase {
       get: { result },
       set: { result = $0 }
     )
-    features.patch(
+    patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: { (input) async throws in
         uncheckedSendableResult.variable = input
         return accountTransferUpdateResponse
       }
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -327,20 +337,20 @@ final class AccountTransferTests: TestCase {
     XCTAssertEqual(result?.status, .inProgress)
   }
 
-  func test_processPayload_sendsErrorStatus_withInvalidContentAndValidConfiguration() async throws {
+  func test_processPayload_ignoresInvalidContentInTheMiddleWithValidConfiguration() async throws {
     var result: AccountTransferUpdateNetworkOperationVariable?
     let uncheckedSendableResult: UncheckedSendable<AccountTransferUpdateNetworkOperationVariable?> = .init(
       get: { result },
       set: { result = $0 }
     )
-    features.patch(
+    patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: { (input) async throws in
         uncheckedSendableResult.variable = input
         return accountTransferUpdateResponse
       }
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -354,12 +364,12 @@ final class AccountTransferTests: TestCase {
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
-    XCTAssertEqual(result?.currentPage, 0)
-    XCTAssertEqual(result?.status, .error)
+    XCTAssertEqual(result?.currentPage, 1)
+    XCTAssertEqual(result?.status, .inProgress)
   }
 
   func test_processPayload_fails_withInvalidVersionByte() async throws {
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -367,7 +377,7 @@ final class AccountTransferTests: TestCase {
     let accountTransfer: AccountTransfer = try await testedInstance()
     var result: Error?
 
-    await accountTransfer
+    accountTransfer
       .processPayload(qrCodePartInvalidVersionByte)
       .sink(
         receiveCompletion: { completion in
@@ -386,7 +396,7 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withInvalidPageBytes() async throws {
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -394,7 +404,7 @@ final class AccountTransferTests: TestCase {
     let accountTransfer: AccountTransfer = try await testedInstance()
     var result: Error?
 
-    await accountTransfer
+    accountTransfer
       .processPayload(qrCodePartInvalidPageBytes)
       .sink(
         receiveCompletion: { completion in
@@ -413,7 +423,7 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withInvalidPageNumber() async throws {
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -440,7 +450,7 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withInvalidConfigurationPart() async throws {
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -448,7 +458,7 @@ final class AccountTransferTests: TestCase {
     let accountTransfer: AccountTransfer = try await testedInstance()
     var result: Error?
 
-    await accountTransfer
+    accountTransfer
       .processPayload(qrCodePart0InvalidConfiguration)
       .sink(
         receiveCompletion: { completion in
@@ -467,7 +477,7 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withInvalidJSONInConfigurationPart() async throws {
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -494,11 +504,11 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withInvalidConfigurationDomain() async throws {
-    features.patch(
+    patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: always(accountTransferUpdateResponse)
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -525,11 +535,11 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withInvalidConfigurationHash() async throws {
-    features.patch(
+    patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: always(accountTransferUpdateResponse)
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -560,11 +570,11 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withInvalidMiddlePart() async throws {
-    features.patch(
+    patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: always(accountTransferUpdateResponse)
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -595,11 +605,11 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withInvalidJSONInMiddlePart() async throws {
-    features.patch(
+    patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: always(accountTransferUpdateResponse)
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -630,11 +640,11 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withNoHashInConfig() async throws {
-    features.patch(
+    patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: always(accountTransferUpdateResponse)
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -665,11 +675,11 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withInvalidContentHash() async throws {
-    features.patch(
+    patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: always(accountTransferUpdateResponse)
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -708,14 +718,14 @@ final class AccountTransferTests: TestCase {
       get: { result },
       set: { result = $0 }
     )
-    features.patch(
+    patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: { (input) async throws in
         uncheckedSendableResult.variable = input
         return accountTransferUpdateResponse
       }
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -733,32 +743,12 @@ final class AccountTransferTests: TestCase {
     XCTAssertEqual(result?.status, .cancel)
   }
 
-  func test_cancelTransfer_unloadsFeature() async throws {
-    features.patch(
-      \Accounts.storedAccounts,
-      with: always([])
-    )
-
-    let accountTransfer: AccountTransfer = try await testedInstance()
-    features.use(accountTransfer)
-    var isLoaded = features.isLoaded(AccountTransfer.self)
-    XCTAssertTrue(isLoaded)
-
-    accountTransfer.cancelTransfer()
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    isLoaded = features.isLoaded(AccountTransfer.self)
-    XCTAssertFalse(isLoaded)
-  }
-
   func test_processPayload_fails_withUnexpectedPage() async throws {
-    features.patch(
+    patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: always(accountTransferUpdateResponse)
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -787,11 +777,11 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withRepeatedPage() async throws {
-    features.patch(
+    patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: always(accountTransferUpdateResponse)
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
@@ -819,11 +809,11 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withDuplicateAccount() async throws {
-    features.patch(
+    patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: always(accountTransferUpdateResponse)
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([transferedAccount])
     )
@@ -854,14 +844,14 @@ final class AccountTransferTests: TestCase {
       get: { result },
       set: { result = $0 }
     )
-    features.patch(
+    patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: { (input) async throws in
         uncheckedSendableResult.variable = input
         return accountTransferUpdateResponse
       }
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([transferedAccount])
     )
@@ -878,11 +868,11 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_finishesTransferWithDuplicateError_withDuplicateAccount() async throws {
-    features.patch(
+    patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: always(accountTransferUpdateResponse)
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([transferedAccount])
     )

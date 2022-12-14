@@ -24,6 +24,7 @@
 import class Foundation.JSONDecoder
 import class Foundation.JSONSerialization
 import struct Foundation.URL
+import struct Foundation.Data
 
 internal struct NetworkResponseDecoder<Variable, Response> {
 

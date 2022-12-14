@@ -27,6 +27,7 @@ import Crypto
 import NetworkOperations
 import OSFeatures
 import Session
+import struct Foundation.Data
 
 #if DEBUG
 import Dispatch
@@ -43,7 +44,7 @@ extension AccountTransfer {
     let diagnostics: OSDiagnostics = features.instance()
     diagnostics.log(diagnostic: "Beginning new account transfer...")
     #if DEBUG
-    let mdmConfiguration: MDMConfiguration = try await features.instance()
+    let mdmConfiguration: MDMConfiguration = features.instance()
     #endif
     let pgp: PGP = features.instance()
     let session: Session = try await features.instance()
