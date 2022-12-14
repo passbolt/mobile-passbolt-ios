@@ -22,6 +22,7 @@
 //
 
 import Features
+import struct Foundation.Data
 
 // MARK: - Interface
 
