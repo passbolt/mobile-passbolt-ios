@@ -66,7 +66,7 @@ internal final class HomeTabNavigationViewController: NavigationViewController, 
     setupSubscriptions()
   }
 
-  internal func setupView() {
+  internal func activate() {
     controller.presentApplicationRateDialogIfRequired()
   }
 

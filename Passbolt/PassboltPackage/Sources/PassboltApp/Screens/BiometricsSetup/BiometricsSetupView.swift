@@ -50,7 +50,6 @@ internal final class BiometricsSetupView: ScrolledStackView {
     mut(imageView) {
       .combined(
         .subview(of: imageContainer),
-        .image(named: .accountsSkeleton, from: .uiCommons),
         .contentMode(.scaleAspectFit),
         .topAnchor(.equalTo, imageContainer.topAnchor),
         .bottomAnchor(.equalTo, imageContainer.bottomAnchor),
@@ -82,8 +81,7 @@ internal final class BiometricsSetupView: ScrolledStackView {
     mut(setupButton) {
       .combined(
         .primaryStyle(),
-        .text(displayable: .localized(key: "biometrics.setup.setup.button")),
-        .accessibilityIdentifier("biometrics.setup.setup..button")
+        .accessibilityIdentifier("biometrics.setup.setup.button")
       )
     }
 

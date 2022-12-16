@@ -67,17 +67,20 @@ extension BiometricsSetupController: UIController {
     }
 
     func biometricsStatePublisher() -> AnyPublisher<OSBiometry.Availability, Never> {
-      applicationLifecycle
-        .lifecyclePublisher()
-        .compactMap { (transition: ApplicationLifecycle.Transition) -> OSBiometry.Availability? in
-          if case .didBecomeActive = transition {
-            return .none
+      Publishers.Merge(
+        Just(biometry.availability()),
+        applicationLifecycle
+          .lifecyclePublisher()
+          .compactMap { (transition: ApplicationLifecycle.Transition) -> OSBiometry.Availability? in
+            if case .didBecomeActive = transition {
+              return .none
+            }
+            else {
+              return biometry.availability()
+            }
           }
-          else {
-            return biometry.availability()
-          }
-        }
-        .removeDuplicates()
+          .removeDuplicates()
+      )
         .eraseToAnyPublisher()
     }
 

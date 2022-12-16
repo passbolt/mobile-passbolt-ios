@@ -409,6 +409,10 @@ extension AccountsDataStore {
         .load(Array<Account.LocalID>.self, for: .accountsList)
       accountIdentifiers.append(account.localID)
       preferences.save(accountIdentifiers, for: .accountsList)
+      preferences.save(account.localID, for: .lastUsedAccount)
+      // workaround to ensure that AccountInitialSetup is set up properly for new account
+      // it should be changed when refactoring AccountsDataStore
+      preferences.save(AccountInitialSetup.SetupElement.allCases, for: "unfinishedSetup-\(account.localID)")
     }
 
     @Sendable func loadAccountPrivateKey(

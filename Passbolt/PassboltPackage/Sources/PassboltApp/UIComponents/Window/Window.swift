@@ -233,9 +233,6 @@ extension Window {
     return navigation.viewControllers.contains { (vc: UIViewController) -> Bool in
       vc is TransferSignInViewController
         || vc is TransferInfoScreenViewController
-        || vc is BiometricsInfoViewController
-        || vc is BiometricsSetupViewController
-        || vc is ExtensionSetupViewController
     }
   }
 

@@ -359,23 +359,13 @@ extension AccountTransfer {
                 armoredKey: account.armoredKey
               )
             )
+
           // create new session for transferred account
           _ =
             try await session
             .authorize(
               .adHoc(addedAccount, passphrase, account.armoredKey)
             )
-          do {
-            try await features?.instance(
-              of: AccountInitialSetup.self,
-              context: addedAccount
-            )
-            .requestSetup()
-          }
-          catch {
-            diagnostics.log(error: error)
-            diagnostics.log(diagnostic: "...failed to prepare account initial setup...")
-          }
 
           diagnostics.log(diagnostic: "...account transfer succeeded!")
           transferState.send(completion: .finished)
@@ -385,6 +375,12 @@ extension AccountTransfer {
           diagnostics.log(error: error)
           diagnostics.log(diagnostic: "...account transfer failed!")
           transferState.send(completion: .failure(error))
+          try await features?.unload(Self.self)
+        }
+        catch let error as SessionMFAAuthorizationRequired {
+          diagnostics.log(error: error)
+          diagnostics.log(diagnostic: "...account transfer finished, requesting MFA...")
+          transferState.send(completion: .finished)
           try await features?.unload(Self.self)
         }
         catch {

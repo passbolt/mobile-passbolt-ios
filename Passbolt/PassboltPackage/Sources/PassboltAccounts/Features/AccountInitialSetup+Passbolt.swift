@@ -42,17 +42,6 @@ extension AccountInitialSetup {
     let osExtensions: OSExtensions = features.instance()
     let osBiometry: OSBiometry = features.instance()
 
-    @Sendable func requestSetup() {
-      unfinishedSetupElementsProperty
-        .set(
-          to: [
-            SetupElement.biometrics,
-            .autofill,
-          ]
-          .map(\.rawValue)
-        )
-    }
-
     @Sendable func unfinishedSetupElements() async -> Set<SetupElement> {
       var unfinishedElements: Set<SetupElement> =
         unfinishedSetupElementsProperty
@@ -102,7 +91,6 @@ extension AccountInitialSetup {
     }
 
     return .init(
-      requestSetup: requestSetup,
       unfinishedSetupElements: unfinishedSetupElements,
       completeSetup: completeSetup(of:)
     )

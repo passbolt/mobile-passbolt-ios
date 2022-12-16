@@ -59,9 +59,6 @@ internal final class BiometricsInfoViewController: PlainViewController, UICompon
   }
 
   internal func setupView() {
-    mut(navigationItem) {
-      .hidesBackButton(true)
-    }
     setupSubscriptions()
   }
 
