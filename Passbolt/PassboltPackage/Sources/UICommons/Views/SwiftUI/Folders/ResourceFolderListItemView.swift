@@ -80,6 +80,7 @@ public struct ResourceFolderListItemView: View {
           Text(self.locationDisplayable)
             .font(.inter(ofSize: 12, weight: .regular))
             .foregroundColor(Color.passboltSecondaryText)
+            .truncationMode(.middle)
         }
       },
       rightAccessory: {
