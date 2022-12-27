@@ -28,18 +28,15 @@ public struct AsyncExecutor {
   public let clearTasks: @Sendable () -> Void
   private let execute:
     @Sendable (ExecutionIdentifier, OngoingExecutionBehavior, @escaping @Sendable () async -> Void) -> Execution
-  private let detached: @Sendable () -> Self
-
 }
 
-extension AsyncExecutor: StaticFeature {
+extension AsyncExecutor: LoadableFeature {
 
   #if DEBUG
   public nonisolated static var placeholder: AsyncExecutor {
     .init(
       clearTasks: unimplemented(),
-      execute: unimplemented(),
-      detached: unimplemented()
+      execute: unimplemented()
     )
   }
   #endif
@@ -73,10 +70,6 @@ extension AsyncExecutor {
       behavior,
       task
     )
-  }
-
-  public func detach() -> Self {
-    self.detached()
   }
 }
 
@@ -171,8 +164,7 @@ extension AsyncExecutor {
           }
         }
       },
-      execute: execute(_:behavior:task:),
-      detached: { .executor(executeTask) }
+      execute: execute(_:behavior:task:)
     )
   }
 }
@@ -340,7 +332,12 @@ extension FeatureFactory {
 
   @MainActor public func usePassboltAsyncExecutor() {
     self.use(
-      AsyncExecutor.system()
+      .disposable(
+        AsyncExecutor.self,
+        load: { (_: FeatureFactory) in
+          AsyncExecutor.system()
+        }
+      )
     )
   }
 }

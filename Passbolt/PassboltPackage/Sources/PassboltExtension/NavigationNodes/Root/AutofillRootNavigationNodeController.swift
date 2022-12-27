@@ -99,9 +99,10 @@ extension AutofillRootNavigationNodeController {
         }  // else NOP
       }
 
-      asyncExecutor.schedule(.reuse) {
+      asyncExecutor.schedule(.unmanaged) {
+        // FIXME should be .reuse, but in that case task is cancelled before execution - investigate why
         do {
-          try await session.updatesSequence
+          await session.updatesSequence
             .dropFirst()
             .forEach { @SessionActor in
               do {
@@ -182,11 +183,6 @@ extension AutofillRootNavigationNodeController {
                   )
               }
             }
-        }
-        catch {
-          error
-            .asTheError()
-            .asFatalError(message: "Session monitoring broken.")
         }
       }
     }
