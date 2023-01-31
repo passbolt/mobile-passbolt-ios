@@ -73,6 +73,7 @@ internal struct HomePresentationMenuView: ComponentView {
               },
               isSelected: mode == self.state.currentMode
             )
+            .accessibilityIdentifier(mode.rawValue)
           }
         }
       }

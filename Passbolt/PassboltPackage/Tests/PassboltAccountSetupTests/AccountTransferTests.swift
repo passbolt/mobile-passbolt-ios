@@ -25,8 +25,8 @@ import Features
 import TestExtensions
 import XCTest
 
-@testable import PassboltAccountSetup
 @testable import NetworkOperations
+@testable import PassboltAccountSetup
 
 final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
 
@@ -40,7 +40,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
     use(MDMConfiguration.placeholder)
     patch(
       \MDMConfiguration.preconfiguredAccounts,
-       with: always([])
+      with: always([])
     )
     use(PGP.placeholder)
     use(MediaDownloadNetworkOperation.placeholder)

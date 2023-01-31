@@ -76,6 +76,7 @@ internal struct HomePresentationMenuNodeView: ControlledViewNode {
               },
               isSelected: mode == state.currentMode
             )
+            .accessibilityIdentifier(mode.rawValue)
           }
         }
       }

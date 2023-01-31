@@ -21,25 +21,42 @@
 // @since         v1.0
 //
 
-import XCTest
+import Foundation
 
-final class PassboltApplicationLaunchTests: UITestCase {
-
+final class CreateFolderScenario: UITestCase {
   override var initialAccounts: Array<MockAccount> {
     [
       .automation
     ]
   }
 
-  func test_launch_succeeds() throws {
-    self.makeScreenshotAttachment()
+  override func beforeEachTestCase() {
+    // in case this tests starts with already set up single account, we mark it as optional
+    selectCollectionViewItem(identifier: "account.selection.collectionview", at: 0, required: false)
+    typeTo("input", text: MockAccount.automation.username)
+    tap("button.signin.passphrase")
+    tap("biometrics.info.later.button", required: false, timeout: 2.0)
+    tap("biometrics.setup.later.button", required: false, timeout: 2.0)
+    tap("extension.setup.later.button", required: false, timeout: 2.0)
+    tap("search.view.menu", timeout: 5.0)
+    tap("foldersExplorer")
+    tap("folder.explore.create.new")
+    tap("resource.folders.add.folder")
   }
 
-  func testLaunchPerformance() throws {
-    measure(
-      metrics: [XCTApplicationLaunchMetric(waitUntilResponsive: true)]
-    ) {
-      XCUIApplication().launch()
-    }
+  func test_folderCannotBeCreated_withInvalidname() {
+    waitForElementExist("folder.edit.form.button")
+    tap("folder.edit.form.button")
+    assertExists("form.textfield.error")
+    assert("form.textfield.error", textMatches: "Folder name cannot be empty.")
+    assertPresentsString(matching: "Form is not valid.")
   }
+
+  func test_folderIsCreated_whenNameProvided() {
+    waitForElementExist("form.textfield.text")
+    typeTo("form.textfield.text", text: "Automation test folder")
+    tap("folder.edit.form.button")
+    assertNotExists("form.textfield.error")
+  }
+
 }

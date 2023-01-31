@@ -85,6 +85,7 @@ internal struct ResourceFolderEditView: ControlledView {
         ),
         action: self.controller.saveChanges
       )
+      .accessibilityIdentifier("folder.edit.form.button")
     }
     .padding(16)
   }

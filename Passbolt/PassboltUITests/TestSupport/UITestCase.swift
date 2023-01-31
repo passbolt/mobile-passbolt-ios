@@ -20,7 +20,6 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 //
-
 import XCTest
 
 internal class UITestCase: XCTestCase {
@@ -29,33 +28,49 @@ internal class UITestCase: XCTestCase {
 
   internal final lazy var application: XCUIApplication = {
     let application: XCUIApplication = .init()
-		var launchArguments: Array<String> = .init()
-		if !self.initialAccounts.isEmpty {
-			let encodedAccounts: String = self.initialAccounts.reduce(into: "") { $0.append($1.plistArgsEncoded)}
-			launchArguments.append("-com.apple.configuration.managed")
-			launchArguments.append("<dict><key>accounts</key><array>\(encodedAccounts)</array></dict>")
-			launchArguments.append("-lastUsedAccount")
-			launchArguments.append("\(self.lastUsedAccountID ?? "")")
-		}
-		else {
-			launchArguments.append("-com.apple.configuration.managed")
-			launchArguments.append("<dict><key>accounts</key><array></array></dict>")
-			launchArguments.append("-accountsList")
-			launchArguments.append("<array></array>")
-			launchArguments.append("-lastUsedAccount")
-			launchArguments.append("")
-		}
-		application.launchArguments = launchArguments
+    var launchArguments: Array<String> = .init()
+    if !self.initialAccounts.isEmpty {
+      let encodedAccounts: String = self.initialAccounts.reduce(into: "") { $0.append($1.plistArgsEncoded) }
+      launchArguments.append("-com.apple.configuration.managed")
+      launchArguments.append("<dict><key>accounts</key><array>\(encodedAccounts)</array></dict>")
+      launchArguments.append("-lastUsedAccount")
+      launchArguments.append("\(self.lastUsedAccountID ?? "")")
+    }
+    else {
+      launchArguments.append("-com.apple.configuration.managed")
+      launchArguments.append("<dict><key>accounts</key><array></array></dict>")
+      launchArguments.append("-accountsList")
+      launchArguments.append("<array></array>")
+      launchArguments.append("-lastUsedAccount")
+      launchArguments.append("")
+    }
+    application.launchArguments = launchArguments
     self.applicationSetup(application: application)
     application.launch()
     return application
   }()
 
-	/// Prepare ``XCUIApplication``
+  /// Prepare ``XCUIApplication``
   internal func applicationSetup(
     application: XCUIApplication
   ) {
     // to be overriden
+  }
+
+  internal func beforeEachTestCase() {
+    // to be overriden
+  }
+
+  internal func afterEachTestCase() {
+    // to be overriden
+  }
+
+  override final func setUp() {
+    beforeEachTestCase()
+  }
+
+  override final func tearDown() {
+    afterEachTestCase()
   }
 
   // MARK: Device
@@ -68,8 +83,8 @@ internal class UITestCase: XCTestCase {
 
   // MARK: Test support
 
-	internal var initialAccounts: Array<MockAccount> { .init() }
-	internal var lastUsedAccountID: String? { .none }
+  internal var initialAccounts: Array<MockAccount> { .init() }
+  internal var lastUsedAccountID: String? { .none }
 
   internal final func makeScreenshotAttachment(
     _ lifetime: XCTAttachment.Lifetime = .deleteOnSuccess,
@@ -83,79 +98,168 @@ internal class UITestCase: XCTestCase {
     self.add(attachment)
   }
 
-  internal final func element(
+  internal final func waitForElementExist(
     _ identifier: String,
+    required: Bool = true,
+    timeout: TimeInterval = 5.0,
     file: StaticString = #file,
     line: UInt = #line
-  ) -> XCUIElement {
+  ) {
     let element: XCUIElement = self.application
       .descendants(matching: .any)
       .element(
         matching: .any,
         identifier: identifier
       )
-    XCTAssertTrue(
-      element.exists,
-      "\(identifier) does not exist.",
-      file: file,
-      line: line
-    )
-    return element
+    let result: Bool = element.waitForExistence(timeout: timeout)
+    if required {
+      XCTAssertTrue(
+        result,
+        "Failed to wait for the \(identifier).",
+        file: file,
+        line: line
+      )
+    }
+    else if !result {
+      print(
+        "Failed to wait for the existence of element \(identifier), but element marked as not required, so skipping assert"
+      )
+    }
+  }
+
+  internal final func element(
+    _ identifier: String,
+    required: Bool = true,
+    file: StaticString = #file,
+    line: UInt = #line
+  ) -> XCUIElement? {
+    let element: XCUIElement = self.application
+      .descendants(matching: .any)
+      .element(
+        matching: .any,
+        identifier: identifier
+      )
+    let exists: Bool = element.exists
+    if required {
+      XCTAssertTrue(
+        exists,
+        "\(identifier) does not exist.",
+        file: file,
+        line: line
+      )
+    }
+    return exists ? element : nil
   }
 
   // MARK: Interactions
-
-  internal func tap(
-    _ identifier: String,
+  internal func selectCollectionViewItem(
+    identifier: String,
+    at index: Int,
+    required: Bool = true,
+    timeout: Double = .zero,
     file: StaticString = #file,
     line: UInt = #line
   ) {
-    self.element(
+    waitForElementExist(identifier, required: required, timeout: timeout)
+    element(
       identifier,
+      required: required,
       file: file,
       line: line
-    )
+    )?
+    .children(matching: .cell)
+    .element(boundBy: 0)
+    .tap()
+  }
+
+  internal func tap(
+    _ identifier: String,
+    required: Bool = true,
+    timeout: Double = .zero,
+    file: StaticString = #file,
+    line: UInt = #line
+  ) {
+    waitForElementExist(identifier, required: required, timeout: timeout)
+    self.element(
+      identifier,
+      required: required,
+      file: file,
+      line: line
+    )?
+    .tap()
+  }
+
+  internal func tapAccessoryView(
+    of identifier: String,
+    index: Int,
+    required: Bool = true,
+    timeout: Double = .zero,
+    file: StaticString = #file,
+    line: UInt = #line
+  ) {
+    waitForElementExist(identifier, required: required, timeout: timeout)
+    self.element(
+      identifier,
+      required: required,
+      file: file,
+      line: line
+    )?
+    .children(matching: .button)
+    .element(boundBy: index)
     .tap()
   }
 
   internal func swipeUp(
     _ identifier: String,
+    required: Bool = true,
+    timeout: Double = .zero,
     file: StaticString = #file,
     line: UInt = #line
   ) {
+    waitForElementExist(identifier, required: required, timeout: timeout)
     self.element(
       identifier,
+      required: required,
       file: file,
       line: line
-    )
+    )?
     .swipeUp()
   }
 
   internal func swipeDown(
     _ identifier: String,
+    required: Bool = true,
+    timeout: Double = .zero,
     file: StaticString = #file,
     line: UInt = #line
   ) {
+    waitForElementExist(identifier, required: required, timeout: timeout)
     self.element(
       identifier,
+      required: required,
       file: file,
       line: line
-    )
+    )?
     .swipeUp()
   }
 
   internal func typeTo(
     _ identifier: String,
     text value: String,
+    required: Bool = true,
+    timeout: Double = .zero,
     file: StaticString = #file,
     line: UInt = #line
   ) {
-    self.element(
+    waitForElementExist(identifier, required: required, timeout: timeout)
+    let element: XCUIElement? = self.element(
       identifier,
+      required: required,
       file: file,
       line: line
     )
-    .typeText(value)
+    element?.tap()  // to gain focus
+    element?.typeText(value)
   }
 
   // MARK: Verify
@@ -163,19 +267,23 @@ internal class UITestCase: XCTestCase {
   internal func assert(
     _ identifier: String,
     textMatches text: String,
+    required: Bool = true,
+    timeout: Double = .zero,
     file: StaticString = #file,
     line: UInt = #line
   ) {
-    let label: String = self.element(
-        identifier,
-        file: file,
-        line: line
-      )
-      .label
+    waitForElementExist(identifier, required: required, timeout: timeout)
+    let label: String? = self.element(
+      identifier,
+      required: required,
+      file: file,
+      line: line
+    )?
+    .label
     XCTAssertEqual(
       label,
       text,
-      "\(identifier) text (\(label)) does not match expected (\(text)).",
+      "\(identifier) text (\(String(describing: label))) does not match expected (\(text)).",
       file: file,
       line: line
     )
@@ -193,17 +301,41 @@ internal class UITestCase: XCTestCase {
     )
   }
 
-  internal func assertInteractive(
+  internal func assertNotExists(
     _ identifier: String,
     file: StaticString = #file,
     line: UInt = #line
   ) {
-    let enabled: Bool = self.element(
+    let element: XCUIElement = self.application
+      .descendants(matching: .any)
+      .element(
+        matching: .any,
+        identifier: identifier
+      )
+    XCTAssertFalse(
+      element.exists,
+      "\(identifier) does not exist.",
+      file: file,
+      line: line
+    )
+  }
+
+  internal func assertInteractive(
+    _ identifier: String,
+    required: Bool = true,
+    timeout: Double = .zero,
+    file: StaticString = #file,
+    line: UInt = #line
+  ) {
+    waitForElementExist(identifier, required: required, timeout: timeout)
+    let enabled: Bool =
+      self.element(
         identifier,
+        required: required,
         file: file,
         line: line
-      )
-      .isEnabled
+      )?
+      .isEnabled ?? false
     XCTAssertTrue(
       enabled,
       "\(identifier) is not interactive.",
@@ -217,7 +349,8 @@ internal class UITestCase: XCTestCase {
     file: StaticString = #file,
     line: UInt = #line
   ) {
-    let exists: Bool = self.application
+    let exists: Bool =
+      self.application
       .descendants(matching: .staticText)
       .containing(
         NSPredicate(

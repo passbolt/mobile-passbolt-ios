@@ -21,10 +21,10 @@
 // @since         v1.0
 //
 
+import struct Foundation.Data
 import class Foundation.JSONDecoder
 import class Foundation.JSONSerialization
 import struct Foundation.URL
-import struct Foundation.Data
 
 internal struct NetworkResponseDecoder<Variable, Response> {
 

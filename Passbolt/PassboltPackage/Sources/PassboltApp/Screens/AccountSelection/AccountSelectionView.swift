@@ -132,7 +132,8 @@ internal final class AccountSelectionView: PlainView {
         .bottomAnchor(.equalTo, buttonStack.topAnchor, constant: -20),
         .custom { (subject: CollectionView) in
           subject.dynamicBackgroundColor = .background
-        }
+        },
+        .accessibilityIdentifier("account.selection.collectionview")
       )
     }
 

@@ -42,7 +42,8 @@ internal final class HomeSearchView: PlainView {
         .contentMode(.scaleAspectFit),
         .backgroundColor(.clear),
         .widthAnchor(.equalTo, constant: 24),
-        .heightAnchor(.equalTo, constant: 24)
+        .heightAnchor(.equalTo, constant: 24),
+        .accessibilityIdentifier("search.view.menu")
       )
     }
     mut(accountMenuButton) {

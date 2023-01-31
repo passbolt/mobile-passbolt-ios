@@ -153,6 +153,7 @@ internal struct FoldersExplorerView: ComponentView {
           ResourceListAddView {
             self.controller.presentAddNew(self.state.folderID)
           }
+          .accessibilityIdentifier("folder.explore.create.new")
         }  // else { /* NOP */ }
 
         if self.state.directFolders.isEmpty,

@@ -176,7 +176,8 @@ public final class TextSearchView: PlainView {
         .leadingAnchor(.equalTo, self.leadingAnchor, constant: 12),
         .topAnchor(.equalTo, self.topAnchor, constant: 12),
         .bottomAnchor(.equalTo, self.bottomAnchor, constant: -12),
-        .trailingAnchor(.equalTo, self.trailingAnchor, constant: -12)
+        .trailingAnchor(.equalTo, self.trailingAnchor, constant: -12),
+        .accessibilityIdentifier("search.view.input")
       )
     }
 

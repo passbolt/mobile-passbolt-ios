@@ -81,7 +81,7 @@ extension BiometricsSetupController: UIController {
           }
           .removeDuplicates()
       )
-        .eraseToAnyPublisher()
+      .eraseToAnyPublisher()
     }
 
     func setupBiometrics() -> AnyPublisher<Never, Error> {

@@ -55,8 +55,7 @@ public final class FeatureFactory {
     self.allowScopes = allowScopes
   }
   #else
-  nonisolated public init(
-  ) {}
+  nonisolated public init() {}
   #endif
 
   @MainActor private var currentScope: FeaturesScope {

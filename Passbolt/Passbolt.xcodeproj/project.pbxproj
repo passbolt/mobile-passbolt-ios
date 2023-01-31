@@ -41,6 +41,7 @@
 		DD673CFB26F0B58C0051EEB5 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = DD673CFD26F0B58C0051EEB5 /* InfoPlist.strings */; };
 		DD8979C6270F13E600D95978 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = DD8979C5270F13E600D95978 /* Settings.bundle */; };
 		DDB2A675263B09500014C895 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DDB2A674263B09500014C895 /* Launch Screen.storyboard */; };
+		EBD1A3E9297ACBF900125727 /* CreateFolderScenario.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBD1A3E8297ACBF900125727 /* CreateFolderScenario.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -101,6 +102,7 @@
 		DD87927E262983CF006ECC0A /* TestPlan.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TestPlan.xctestplan; sourceTree = "<group>"; };
 		DD8979C5270F13E600D95978 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		DDB2A674263B09500014C895 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
+		EBD1A3E8297ACBF900125727 /* CreateFolderScenario.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateFolderScenario.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -135,6 +137,7 @@
 		425A581B29250FB700C19E05 /* PassboltUITests */ = {
 			isa = PBXGroup;
 			children = (
+				EBD1A3E7297ACBEA00125727 /* Scenarios */,
 				425A58252925107C00C19E05 /* TestSupport */,
 				425A581E29250FB700C19E05 /* PassboltApplicationLaunchTests.swift */,
 				425A5829292550AF00C19E05 /* WelcomeScreenUITests.swift */,
@@ -209,6 +212,14 @@
 				426DDBD5267CA83000EEF4F9 /* ApplicationExtension.swift */,
 			);
 			path = PassboltAutofill;
+			sourceTree = "<group>";
+		};
+		EBD1A3E7297ACBEA00125727 /* Scenarios */ = {
+			isa = PBXGroup;
+			children = (
+				EBD1A3E8297ACBF900125727 /* CreateFolderScenario.swift */,
+			);
+			path = Scenarios;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -366,7 +377,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "swift run --configuration release --package-path ../Tools/formatter --build-path ~/tmp/passbolt -- swift-format format --configuration ../Tools/code-format.json --in-place --parallel --recursive ./PassboltPackage/Package.swift ./PassboltPackage/Sources ./PassboltPackage/Tests\n";
+			shellScript = "swift run --configuration release --package-path ../Tools/formatter --build-path ~/tmp/passbolt -- swift-format format --configuration ../Tools/code-format.json --in-place --parallel --recursive ./PassboltPackage/Package.swift ./PassboltPackage/Sources ./PassboltPackage/Tests ./PassboltUITests\n";
 		};
 		4205C51C269844C400F2434D /* Run Linter */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -434,6 +445,7 @@
 				425A582A292550AF00C19E05 /* WelcomeScreenUITests.swift in Sources */,
 				428BD13E293633E00040EE57 /* MockAccount+Mocks.swift in Sources */,
 				425A58272925109000C19E05 /* UITestCase.swift in Sources */,
+				EBD1A3E9297ACBF900125727 /* CreateFolderScenario.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

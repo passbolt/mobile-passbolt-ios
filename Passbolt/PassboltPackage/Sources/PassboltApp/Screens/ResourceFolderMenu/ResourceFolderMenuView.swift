@@ -59,6 +59,7 @@ internal struct ResourceFolderMenuView: ControlledView {
                 Image(named: .zoom)
               }
             )
+            .accessibilityIdentifier("resource.folder.open.details")
           }
         }
       )

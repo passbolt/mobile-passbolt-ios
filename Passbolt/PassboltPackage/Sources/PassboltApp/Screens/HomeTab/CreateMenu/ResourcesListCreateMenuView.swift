@@ -63,6 +63,7 @@ internal struct ResourcesListCreateMenuView: ControlledView {
                 Image(named: .key)
               }
             )
+            .accessibilityIdentifier("resource.folders.add.password")
 
             DrawerMenuItemView(
               action: {
@@ -79,6 +80,7 @@ internal struct ResourcesListCreateMenuView: ControlledView {
                 Image(named: .folder)
               }
             )
+            .accessibilityIdentifier("resource.folders.add.folder")
           }
         }
       )

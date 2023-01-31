@@ -33,7 +33,8 @@ final class WelcomeScreenUITests: UITestCase {
 
     self.assert(
       "label.description",
-      textMatches: "You need an existing account to get started. Sign in with your existing account on the desktop browser extension to connect it with the mobile device."
+      textMatches:
+        "You need an existing account to get started. Sign in with your existing account on the desktop browser extension to connect it with the mobile device."
     )
 
     self.assertExists(
@@ -51,7 +52,8 @@ final class WelcomeScreenUITests: UITestCase {
     )
 
     self.assertPresentsString(
-      matching: "It is currently not possible to create an account using the mobile app. First you will need create an account using your desktop browser extension."
+      matching:
+        "It is currently not possible to create an account using the mobile app. First you will need create an account using your desktop browser extension."
     )
   }
 }

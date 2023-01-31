@@ -96,6 +96,7 @@ where LeftAccessoryView: View, RightAccessoryView: View {
       bottom: 8
     )
     .frame(maxWidth: .infinity, maxHeight: 48)
+    .accessibilityIdentifier("search.view.input")
   }
 
   @ViewBuilder private var leadingAccessoryView: some View {
@@ -106,6 +107,7 @@ where LeftAccessoryView: View, RightAccessoryView: View {
           bottom: 8
         )
         .frame(maxWidth: 48, maxHeight: 48)
+        .accessibilityIdentifier("search.view.search")
     }
     else {
       leftAccessory()
@@ -115,6 +117,7 @@ where LeftAccessoryView: View, RightAccessoryView: View {
           bottom: 8
         )
         .frame(maxWidth: 48, maxHeight: 48)
+        .accessibilityIdentifier("search.view.menu")
     }
   }
 
@@ -126,6 +129,7 @@ where LeftAccessoryView: View, RightAccessoryView: View {
           bottom: 8
         )
         .frame(maxWidth: 48, maxHeight: 48)
+        .accessibilityIdentifier("search.view.cancel")
     }
     else {
       Button(
@@ -145,7 +149,7 @@ where LeftAccessoryView: View, RightAccessoryView: View {
           .aspectRatio(1, contentMode: .fit)
           .frame(maxWidth: 48, maxHeight: 48)
         }
-      )
+      ).accessibilityIdentifier("search.view.account")
     }
   }
 }

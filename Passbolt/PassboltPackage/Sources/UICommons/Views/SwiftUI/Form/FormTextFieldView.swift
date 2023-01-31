@@ -127,6 +127,7 @@ public struct FormTextFieldView: View {
       .onTapGesture {
         self.focused = true
       }
+      .accessibilityIdentifier("form.textfield.text")
 
       if let errorMessage: DisplayableString = self.text.errors.first?.displayableMessage {
         Text(displayable: errorMessage)
@@ -142,6 +143,7 @@ public struct FormTextFieldView: View {
             top: 4,
             bottom: 4
           )
+          .accessibilityIdentifier("form.textfield.error")
       }  // else no view
     }
     .frame(maxWidth: .infinity)
