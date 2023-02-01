@@ -59,6 +59,14 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
 
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
+    features
+      .set(
+        SessionScope.self,
+        context: .init(
+          account: .mock_ada,
+          configuration: .mock_1
+        )
+      )
     features.patch(
       \ResourceFolders.filteredFolderContent,
       with: always(
@@ -90,7 +98,7 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
     )
 
     let controller: FoldersExplorerController = try await testController(
-      context: .ignored(with: nil)
+      context: nil
     )
 
     await controller.refreshIfNeeded()
@@ -101,7 +109,7 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
   func test_refreshIfNeeded_finishesWithoutError_whenRefreshingSucceeds() async throws {
 
     let controller: FoldersExplorerController = try await testController(
-      context: .ignored(with: nil)
+      context: nil
     )
 
     await controller.refreshIfNeeded()
@@ -111,7 +119,7 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
 
   func test_initally_viewStateTitle_isDefaultString_forRootFolder() async throws {
     let controller: FoldersExplorerController = try await testController(
-      context: .ignored(with: nil)
+      context: nil
     )
 
     XCTAssertEqual(
@@ -122,16 +130,14 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
 
   func test_initally_viewStateTitle_isFolderName_forNonRootFolder() async throws {
     let controller: FoldersExplorerController = try await testController(
-      context: .ignored(
-        with: .init(
-          id: "folder",
-          name: "folder",
-          permissionType: .owner,
-          shared: false,
-          parentFolderID: nil,
-          location: "mockLocation",
-          contentCount: 0
-        )
+      context: .init(
+        id: "folder",
+        name: "folder",
+        permissionType: .owner,
+        shared: false,
+        parentFolderID: nil,
+        location: "mockLocation",
+        contentCount: 0
       )
     )
 

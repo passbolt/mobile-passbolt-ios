@@ -71,9 +71,9 @@ extension TOTPAuthorizationNetworkOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltTOTPAuthorizationNetworkOperation() {
+  internal mutating func usePassboltTOTPAuthorizationNetworkOperation() {
     self.use(
       .networkOperationWithSession(
         of: TOTPAuthorizationNetworkOperation.self,

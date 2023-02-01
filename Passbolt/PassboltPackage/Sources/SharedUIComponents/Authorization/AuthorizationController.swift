@@ -60,12 +60,12 @@ extension AuthorizationController: UIController {
 
   public static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let accountDetails: AccountDetails = try await features.instance(context: context)
-    let accountPreferences: AccountPreferences = try await features.instance(context: context)
-    let session: Session = try await features.instance()
+  ) throws -> Self {
+    let accountDetails: AccountDetails = try features.instance(context: context)
+    let accountPreferences: AccountPreferences = try features.instance(context: context)
+    let session: Session = try features.instance()
     let biometry: OSBiometry = features.instance()
     let diagnostics: OSDiagnostics = features.instance()
 

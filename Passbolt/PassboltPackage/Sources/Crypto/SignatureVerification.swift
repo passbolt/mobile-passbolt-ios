@@ -161,9 +161,9 @@ extension SignatureVerification {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useSignatureVerification() {
+  internal mutating func useSignatureVerification() {
     self.use(
       SignatureVerification.rssha256()
     )

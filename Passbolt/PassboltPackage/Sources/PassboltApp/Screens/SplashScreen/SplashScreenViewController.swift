@@ -88,7 +88,9 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
       .store(in: cancellables)
   }
 
-  private func navigate(to destination: Controller.Destination) {
+  private func navigate(
+    to destination: Controller.Destination
+  ) {
     showFeedbackAlertIfNeeded(presentationAnchor: self) { [weak self] in
       self?.cancellables.executeOnMainActor {
         switch destination {
@@ -111,9 +113,10 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
             with: PlainNavigationViewController<LogsViewerViewController>.self
           )
 
-        case .home:
+        case .home(let sessionContext):
           await self?.replaceWindowRoot(
-            with: MainTabsViewController.self
+            with: MainTabsViewController.self,
+            in: sessionContext
           )
 
         case let .mfaAuthorization(mfaProviders):

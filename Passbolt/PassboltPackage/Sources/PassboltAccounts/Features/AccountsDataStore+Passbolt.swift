@@ -32,9 +32,9 @@ import struct Foundation.URL
 extension AccountsDataStore {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
     let keychain: OSKeychain = features.instance()
     let files: OSFiles = features.instance()
     let preferences: OSPreferences = features.instance()
@@ -815,9 +815,9 @@ extension OSKeychainQuery {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltAccountsDataStore() {
+  public mutating func usePassboltAccountsDataStore() {
     self.use(
       .lazyLoaded(
         AccountsDataStore.self,

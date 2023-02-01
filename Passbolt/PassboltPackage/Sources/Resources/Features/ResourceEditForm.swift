@@ -61,7 +61,7 @@ public struct ResourceEditForm {
 
 // TODO: convert to LoadableFeature with
 // resource ID (and folder ID?) as a context
-extension ResourceEditForm: LoadableContextlessFeature {
+extension ResourceEditForm: LoadableFeature {
 
   #if DEBUG
   public static var placeholder: ResourceEditForm {

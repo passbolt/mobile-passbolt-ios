@@ -30,60 +30,54 @@ import UICommons
 public struct Initialization {
 
   public var initialize: @MainActor () -> Void
-  public var featureUnload: @MainActor () async throws -> Void
 }
 
-extension Initialization: LegacyFeature {
+extension Initialization: LoadableFeature {
 
-  public static func load(
-    using features: FeatureFactory,
-    cancellables: Cancellables
-  ) async throws -> Initialization {
+  @MainActor public static func load(
+    using features: Features
+  ) throws -> Initialization {
     let diagnostics: OSDiagnostics = features.instance()
 
     // swift-format-ignore: NoLeadingUnderscores
-    @MainActor func _initialize(with features: FeatureFactory) async throws {
+    @MainActor func initialize() {
       diagnostics.log(diagnostic: "Initializing the app...")
       defer { diagnostics.log(diagnostic: "...app initialization completed!") }
+      setupApplicationAppearance()
       // initialize application extension features here
       analytics()
-      // insert preconfigured accounts
-      let accountInjection: AccountInjection = try await features.instance()
       do {
+        // insert preconfigured accounts
+        let accountInjection: AccountInjection = try features.instance()
         try accountInjection.injectPreconfiguredAccounts()
       }
       catch {
         diagnostics.log(error: error)
       }
-      // load features that require root scope
-      try await features.loadIfNeeded(UpdateCheck.self)
-
-      try await features.unload(Initialization.self)
-    }
-
-    let initialize: @MainActor () -> Void = { [unowned features] in
-      setupApplicationAppearance()
-      cancellables.executeOnMainActor {
-        try await _initialize(with: features)
-      }
-    }
-
-    @MainActor func featureUnload() async throws {
-      // always succeeds
     }
 
     return Self(
-      initialize: initialize,
-      featureUnload: featureUnload
+      initialize: initialize
     )
   }
 
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      initialize: unimplemented(),
-      featureUnload: unimplemented()
+      initialize: unimplemented()
     )
   }
   #endif
+}
+
+extension FeaturesRegistry {
+
+  public mutating func usePassboltInitialization() {
+    self.use(
+      .disposable(
+        Initialization.self,
+        load: Initialization.load(using:)
+      )
+    )
+  }
 }

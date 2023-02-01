@@ -38,10 +38,11 @@ extension TransferInfoScreenController: UIController {
 
   internal static func instance(
     in context: Void,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> TransferInfoScreenController {
-    let asyncExecutor: AsyncExecutor = try await features.instance()
+  ) throws -> TransferInfoScreenController {
+		features = features.branch(scope: AccountTransferScope.self)
+    let asyncExecutor: AsyncExecutor = try features.instance()
     let camera: OSCamera = features.instance()
     let presentNoCameraPermissionAlertSubject: PassthroughSubject<Bool, Never> = .init()
 

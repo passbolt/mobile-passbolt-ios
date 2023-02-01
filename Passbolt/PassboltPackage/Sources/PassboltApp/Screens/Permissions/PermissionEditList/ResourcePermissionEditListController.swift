@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import Display
 import OSFeatures
 import Resources
 import UIComponents
@@ -40,20 +41,23 @@ internal struct ResourcePermissionEditListController {
 extension ResourcePermissionEditListController: ComponentController {
 
   internal typealias ControlledView = ResourcePermissionEditListView
-  internal typealias NavigationContext = Resource.ID
+  internal typealias Context = Resource.ID
 
   @MainActor static func instance(
-    context: NavigationContext,
-    navigation: ComponentNavigation<NavigationContext>,
-    with features: FeatureFactory,
+    in context: Context,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-    await cancellables.addCleanup(
-      features.pushScope(.resourceShare)
-    )
+  ) throws -> Self {
+    features =
+      features
+      .branch(
+        scope: ResourceShareScope.self,
+        context: context
+      )
+    let features: Features = features
+    let navigation: DisplayNavigation = try features.instance()
     let diagnostics: OSDiagnostics = features.instance()
-    let resourceShareForm: ResourceShareForm = try await features.instance(context: context)
+    let resourceShareForm: ResourceShareForm = try features.instance(context: context)
 
     let viewState: ObservableValue<ViewState>
 
@@ -134,8 +138,8 @@ extension ResourcePermissionEditListController: ComponentController {
       cancellables.executeOnMainActor {
         await navigation
           .push(
-            PermissionUsersAndGroupsSearchView.self,
-            in: context
+            legacy: PermissionUsersAndGroupsSearchView.self,
+            context: context
           )
       }
     }
@@ -145,8 +149,8 @@ extension ResourcePermissionEditListController: ComponentController {
     ) {
       cancellables.executeOnMainActor {
         await navigation.push(
-          UserPermissionEditView.self,
-          in: (
+          legacy: UserPermissionEditView.self,
+          context: (
             resourceID: context,
             permissionDetails: details
           )
@@ -159,8 +163,8 @@ extension ResourcePermissionEditListController: ComponentController {
     ) {
       cancellables.executeOnMainActor {
         await navigation.push(
-          UserGroupPermissionEditView.self,
-          in: (
+          legacy: UserGroupPermissionEditView.self,
+          context: (
             resourceID: context,
             permissionDetails: details
           )
@@ -201,12 +205,5 @@ extension ResourcePermissionEditListController: ComponentController {
       saveChanges: saveChanges,
       navigateBack: navigateBack
     )
-  }
-}
-
-extension FeaturesScope {
-
-  internal static var resourceShare: Self {
-    .init(identifier: #function)
   }
 }

@@ -35,10 +35,9 @@ extension FeatureLoader {
   where Description: DatabaseOperationDescription {
     .disposable(
       DatabaseOperation<Description>.self,
-      load: { (features: FeatureFactory) -> DatabaseOperation<Description> in
-        unowned let features: FeatureFactory = features
+      load: { (features: Features) -> DatabaseOperation<Description> in
 
-        let sessionDatabase: SessionDatabase = try await features.instance()
+        let sessionDatabase: SessionDatabase = try features.instance()
 
         nonisolated func executeAsync(
           _ input: Description.Input
@@ -63,10 +62,9 @@ extension FeatureLoader {
   where Description: DatabaseOperationDescription {
     .disposable(
       DatabaseOperation<Description>.self,
-      load: { (features: FeatureFactory) -> DatabaseOperation<Description> in
-        unowned let features: FeatureFactory = features
+      load: { (features: Features) -> DatabaseOperation<Description> in
 
-        let sessionDatabase: SessionDatabase = try await features.instance()
+        let sessionDatabase: SessionDatabase = try features.instance()
 
         nonisolated func executeAsync(
           _ input: Description.Input

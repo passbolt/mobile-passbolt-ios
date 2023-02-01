@@ -27,15 +27,17 @@ import Users
 
 extension UsersPGPMessages {
 
-  public static func load(
-    features: FeatureFactory,
+  @MainActor public static func load(
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let sessionCryptography: SessionCryptography = try await features.instance()
-    let usersPublicKeysFetchDatabaseOperation: UsersPublicKeysFetchDatabaseOperation = try await features.instance()
-    let resourceUsersIDFetchDatabaseOperation: ResourceUsersIDFetchDatabaseOperation = try await features.instance()
+  ) throws -> Self {
+    try features.ensureScope(SessionScope.self)
+
+    let sessionCryptography: SessionCryptography = try features.instance()
+    let usersPublicKeysFetchDatabaseOperation: UsersPublicKeysFetchDatabaseOperation = try features.instance()
+    let resourceUsersIDFetchDatabaseOperation: ResourceUsersIDFetchDatabaseOperation = try features.instance()
     let resourceFolderUsersIDFetchDatabaseOperation: ResourceFolderUsersIDFetchDatabaseOperation =
-      try await features.instance()
+      try features.instance()
 
     @Sendable nonisolated func encryptMessageForUsers(
       _ users: OrderedSet<User.ID>,
@@ -113,14 +115,15 @@ extension UsersPGPMessages {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor internal func usePassboltUserPGPMessages() {
+  internal mutating func usePassboltUserPGPMessages() {
     self.use(
       .lazyLoaded(
         UsersPGPMessages.self,
         load: UsersPGPMessages.load(features:cancellables:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

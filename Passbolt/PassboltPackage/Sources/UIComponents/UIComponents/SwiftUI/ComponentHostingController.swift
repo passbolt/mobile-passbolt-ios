@@ -23,24 +23,24 @@
 
 @available(*, deprecated)
 @MainActor
-public struct ComponentHostingController<Context>: UIController {
+public struct ComponentHostingController<Controller>: UIController
+where Controller: ComponentController {
 
-  internal let context: Context
+  internal let hostedController: Controller
 
   @MainActor public static func instance(
-    in context: Context,
-    with features: FeatureFactory,
+    in context: Controller.Context,
+    with features: inout Features,
     cancellables: Cancellables
-  ) -> Self {
-    Self(context: context)
-  }
-
-  @MainActor internal func componentNavigation(
-    using componentViewController: AnyUIComponent
-  ) -> ComponentNavigation<Context> {
-    ComponentNavigation(
-      context: self.context,
-      sourceComponent: componentViewController
+  ) throws -> Self {
+    try Self(
+      hostedController:
+        Controller
+        .instance(
+          in: context,
+          with: &features,
+          cancellables: cancellables
+        )
     )
   }
 }

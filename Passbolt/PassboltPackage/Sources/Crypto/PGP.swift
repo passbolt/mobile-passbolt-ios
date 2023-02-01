@@ -569,9 +569,9 @@ extension PGP {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePGP() {
+  internal mutating func usePGP() {
     self.use(
       PGP.gopenPGP()
     )

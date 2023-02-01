@@ -23,11 +23,25 @@
 
 import Commons
 
-public protocol AnyFeature {}
+public protocol LoadableFeatureContext {
 
-extension AnyFeature {
+  var identifier: AnyHashable { get }
+}
 
-  internal static var typeIdentifier: FeatureTypeIdentifier {
-    ObjectIdentifier(Self.self)
+extension LoadableFeatureContext
+where Self: Hashable {
+
+  public var identifier: AnyHashable {
+    self as AnyHashable
   }
+}
+
+extension Tagged: LoadableFeatureContext
+where RawValue: Hashable {}
+
+public struct ContextlessFeatureContext: Hashable, LoadableFeatureContext {
+
+  internal static let instance: Self = .init()
+
+  private init() {}
 }

@@ -31,15 +31,17 @@ import SessionData
 extension ResourceFavorites {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context resourceID: Context,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let sessionData: SessionData = try await features.instance()
-    let resourceDetails: ResourceDetails = try await features.instance(context: resourceID)
-    let resourceFavoriteAddNetworkOperation: ResourceFavoriteAddNetworkOperation = try await features.instance()
-    let resourceFavoriteDeleteNetworkOperation: ResourceFavoriteDeleteNetworkOperation = try await features.instance()
-    let resourceSetFavoriteDatabaseOperation: ResourceSetFavoriteDatabaseOperation = try await features.instance()
+  ) throws -> Self {
+    try features.ensureScope(SessionScope.self)
+
+    let sessionData: SessionData = try features.instance()
+    let resourceDetails: ResourceDetails = try features.instance(context: resourceID)
+    let resourceFavoriteAddNetworkOperation: ResourceFavoriteAddNetworkOperation = try features.instance()
+    let resourceFavoriteDeleteNetworkOperation: ResourceFavoriteDeleteNetworkOperation = try features.instance()
+    let resourceSetFavoriteDatabaseOperation: ResourceSetFavoriteDatabaseOperation = try features.instance()
 
     @Sendable func toggleFavorite() async throws {
       if let favoriteID: Resource.FavoriteID = try await resourceDetails.details().favoriteID {
@@ -64,14 +66,15 @@ extension ResourceFavorites {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceFavorites() {
+  internal mutating func usePassboltResourceFavorites() {
     self.use(
       .lazyLoaded(
         ResourceFavorites.self,
         load: ResourceFavorites.load(features:context:cancellables:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

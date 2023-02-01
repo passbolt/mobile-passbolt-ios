@@ -28,8 +28,10 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class SessionLockingTests: LoadableFeatureTestCase<SessionLocking> {
 
-  override class var testedImplementationRegister: (FeatureFactory) -> @MainActor () -> Void {
-    FeatureFactory.usePassboltSessionLocking
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.usePassboltSessionLocking()
   }
 
   var executionMockControl: AsyncExecutor.MockExecutionControl!

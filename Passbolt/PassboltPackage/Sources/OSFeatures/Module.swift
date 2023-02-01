@@ -26,9 +26,9 @@
 @_exported import Commons
 @_exported import Features
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  public func useOSFeatures() {
+  public mutating func useOSFeatures() {
     self.useOSTime()
     self.useOSFiles()
     self.useOSCamera()

@@ -37,6 +37,14 @@ final class HomeSearchControllerTests: MainActorTestCase {
   var detailsUpdates: UpdatesSequenceSource!
 
   override func mainActorSetUp() {
+    features
+      .set(
+        SessionScope.self,
+        context: .init(
+          account: .mock_ada,
+          configuration: .mock_1
+        )
+      )
     features.patch(
       \Session.currentAccount,
       with: always(Account.mock_ada)

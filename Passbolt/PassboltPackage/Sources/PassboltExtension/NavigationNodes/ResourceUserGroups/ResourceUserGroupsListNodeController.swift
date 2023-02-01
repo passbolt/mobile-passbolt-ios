@@ -73,15 +73,14 @@ extension ResourceUserGroupsListNodeController: ViewNodeController {
 extension ResourceUserGroupsListNodeController {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context: Context
-  ) async throws -> Self {
+  ) throws -> Self {
     let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try await features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
     let navigationTree: NavigationTree = features.instance()
     let autofillContext: AutofillExtensionContext = features.instance()
-    let session: Session = try await features.instance()
-    let currentAccount: Account = try await session.currentAccount()
+    let currentAccount: Account = try features.sessionAccount()
 
     let viewState: ViewStateBinding<ViewState> = .init(
       initial: .init(
@@ -91,7 +90,7 @@ extension ResourceUserGroupsListNodeController {
       )
     )
 
-    let searchController: ResourceSearchDisplayController = try await features.instance(
+    let searchController: ResourceSearchDisplayController = try features.instance(
       context: .init(
         searchPrompt: context.searchPrompt,
         showMessage: { (message: SnackBarMessage?) in
@@ -102,7 +101,7 @@ extension ResourceUserGroupsListNodeController {
       )
     )
 
-    let contentController: ResourceUserGroupsListDisplayController = try await features.instance(
+    let contentController: ResourceUserGroupsListDisplayController = try features.instance(
       context: .init(
         filter: searchController
           .searchText
@@ -178,14 +177,15 @@ extension ResourceUserGroupsListNodeController {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltResourceUserGroupsListNodeController() {
+  public mutating func usePassboltResourceUserGroupsListNodeController() {
     self.use(
       .disposable(
         ResourceUserGroupsListNodeController.self,
         load: ResourceUserGroupsListNodeController.load(features:context:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

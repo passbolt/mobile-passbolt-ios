@@ -91,14 +91,15 @@ extension ResourceUserPermissionsDetailsFetchDatabaseOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceUserPermissionsDetailsFetchDatabaseOperation() {
+  internal mutating func usePassboltResourceUserPermissionsDetailsFetchDatabaseOperation() {
     self.use(
       FeatureLoader.databaseOperation(
         of: ResourceUserPermissionsDetailsFetchDatabaseOperation.self,
         execute: ResourceUserPermissionsDetailsFetchDatabaseOperation.execute(_:connection:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

@@ -43,7 +43,7 @@ where Description: NetworkOperationDescription {
   }
 }
 
-extension NetworkOperation: LoadableContextlessFeature {
+extension NetworkOperation: LoadableFeature {
 
   #if DEBUG
   public nonisolated static var placeholder: Self {

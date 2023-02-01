@@ -852,9 +852,9 @@ private func deleteKeychainKeyQuery(
   return .success(query as CFDictionary)
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useOSKeychain() {
+  internal mutating func useOSKeychain() {
     self.use(
       OSKeychain.live
     )

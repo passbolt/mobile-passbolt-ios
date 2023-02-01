@@ -79,10 +79,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
 
   func test_currentAccountWithProfile_isEqualToProvidedInContext() async throws {
     let controller: AccountMenuController = try await testController(
-      context: (
-        accountWithProfile: .mock_ada,
-        navigation: ComponentNavigation.ignored(with: Void())
-      )
+      context: .mock_ada
     )
 
     XCTAssertEqual(controller.currentAccountWithProfile, .mock_ada)
@@ -97,10 +94,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
     )
 
     let controller: AccountMenuController = try await testController(
-      context: (
-        accountWithProfile: .mock_ada,
-        navigation: ComponentNavigation.ignored(with: Void())
-      )
+      context: .mock_ada
     )
 
     var result:
@@ -131,10 +125,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
     )
 
     let controller: AccountMenuController = try await testController(
-      context: (
-        accountWithProfile: .mock_ada,
-        navigation: ComponentNavigation.ignored(with: Void())
-      )
+      context: .mock_ada
     )
 
     storedAccounts = [.mock_ada, .mock_frances]
@@ -159,10 +150,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
 
   func test_accountDetailsPresentationPublisher_doesNotPublishInitially() async throws {
     let controller: AccountMenuController = try await testController(
-      context: (
-        accountWithProfile: .mock_ada,
-        navigation: ComponentNavigation.ignored(with: Void())
-      )
+      context: .mock_ada
     )
 
     var result: Void?
@@ -178,10 +166,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
 
   func test_accountDetailsPresentationPublisher_publishesCurrentAccountAfterCallingPresent() async throws {
     let controller: AccountMenuController = try await testController(
-      context: (
-        accountWithProfile: .mock_ada,
-        navigation: ComponentNavigation.ignored(with: Void())
-      )
+      context: .mock_ada
     )
 
     var result: AccountWithProfile?
@@ -199,10 +184,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
 
   func test_accountSwitchPresentationPublisher_doesNotPublishInitially() async throws {
     let controller: AccountMenuController = try await testController(
-      context: (
-        accountWithProfile: .mock_ada,
-        navigation: ComponentNavigation.ignored(with: Void())
-      )
+      context: .mock_ada
     )
 
     var result: Void?
@@ -218,10 +200,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
 
   func test_accountSwitchPresentationPublisher_publishesSelectedAccountAfterCallingPresent() async throws {
     let controller: AccountMenuController = try await testController(
-      context: (
-        accountWithProfile: .mock_ada,
-        navigation: ComponentNavigation.ignored(with: Void())
-      )
+      context: .mock_ada
     )
 
     var result: Account?
@@ -239,10 +218,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
 
   func test_dismissPublisher_doesNotPublishInitially() async throws {
     let controller: AccountMenuController = try await testController(
-      context: (
-        accountWithProfile: .mock_ada,
-        navigation: ComponentNavigation.ignored(with: Void())
-      )
+      context: .mock_ada
     )
 
     var result: Void?
@@ -258,10 +234,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
 
   func test_manageAccountsPresentationPublisher_doesNotPublishInitially() async throws {
     let controller: AccountMenuController = try await testController(
-      context: (
-        accountWithProfile: .mock_ada,
-        navigation: ComponentNavigation.ignored(with: Void())
-      )
+      context: .mock_ada
     )
 
     var result: Void?
@@ -277,10 +250,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
 
   func test_manageAccountsPresentationPublisher_publishesAfterCallingPresent() async throws {
     let controller: AccountMenuController = try await testController(
-      context: (
-        accountWithProfile: .mock_ada,
-        navigation: ComponentNavigation.ignored(with: Void())
-      )
+      context: .mock_ada
     )
 
     var result: Void?
@@ -309,10 +279,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
       }
     )
     let controller: AccountMenuController = try await testController(
-      context: (
-        accountWithProfile: .mock_ada,
-        navigation: ComponentNavigation.ignored(with: Void())
-      )
+      context: .mock_ada
     )
 
     controller.signOut()

@@ -23,6 +23,7 @@
 
 import Accounts
 import Display
+import OSFeatures
 import Session
 
 internal struct DefaultPresentationModeSettingsController {
@@ -56,14 +57,15 @@ extension DefaultPresentationModeSettingsController: ViewController {
 
 extension DefaultPresentationModeSettingsController {
 
-  fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-    let navigation: DisplayNavigation = try await features.instance()
-    let session: Session = try await features.instance()
-    let accountPreferences: AccountPreferences = try await features.instance(context: session.currentAccount())
-    let homePresentation: HomePresentation = try await features.instance()
+  @MainActor fileprivate static func load(
+    features: Features
+  ) throws -> Self {
+    let currentAccount: Account = try features.sessionAccount()
+
+    let executor: AsyncExecutor = try features.instance()
+    let navigation: DisplayNavigation = try features.instance()
+    let accountPreferences: AccountPreferences = try features.instance(context: currentAccount)
+    let homePresentation: HomePresentation = try features.instance()
 
     let useLastUsedHomePresentationAsDefault: StateBinding<Bool> = accountPreferences
       .useLastHomePresentationAsDefault
@@ -74,14 +76,21 @@ extension DefaultPresentationModeSettingsController {
         selectedMode: useLastUsedHomePresentationAsDefault.get(\.self)
           ? .none
           : defaultHomePresentation.get(\.self),
-        availableModes: await homePresentation.availableHomePresentationModes()
+        availableModes: .init()
       )
     )
+
+    executor.schedule {
+      let availableModes = await homePresentation.availableHomePresentationModes()
+      await viewState.mutate { state in
+        state.availableModes = availableModes
+      }
+    }
 
     nonisolated func selectMode(
       _ mode: HomePresentationMode?
     ) {
-      Task {
+      executor.schedule(.replace) {
         await viewState.mutate { viewState in
           viewState.selectedMode = mode
         }
@@ -97,7 +106,7 @@ extension DefaultPresentationModeSettingsController {
     }
 
     nonisolated func navigateBack() {
-      Task {
+      executor.schedule(.reuse) {
         await navigation.pop(DefaultPresentationModeSettingsView.self)
       }
     }
@@ -109,14 +118,15 @@ extension DefaultPresentationModeSettingsController {
     )
   }
 }
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useLiveDefaultPresentationModeSettingsController() {
+  internal mutating func useLiveDefaultPresentationModeSettingsController() {
     self.use(
       .disposable(
         DefaultPresentationModeSettingsController.self,
         load: DefaultPresentationModeSettingsController.load(features:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

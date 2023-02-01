@@ -34,16 +34,16 @@ import struct Foundation.Data
 extension UserDetails {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context userID: Context,
     cancellables: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
     let diagnostics: OSDiagnostics = features.instance()
-    let sessionData: SessionData = try await features.instance()
-    let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try await features.instance()
-    let userDetailsFetchDatabaseOperation: UserDetailsFetchDatabaseOperation = try await features.instance()
+    let sessionData: SessionData = try features.instance()
+    let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
+    let userDetailsFetchDatabaseOperation: UserDetailsFetchDatabaseOperation = try features.instance()
     let userResourcePermissionTypeFetchDatabaseOperation: UserResourcePermissionTypeFetchDatabaseOperation =
-      try await features.instance()
+      try features.instance()
 
     @Sendable nonisolated func fetchUserDetails() async throws -> UserDetailsDSV {
       try await userDetailsFetchDatabaseOperation(userID)
@@ -101,14 +101,15 @@ extension UserDetails {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor internal func usePassboltUserDetails() {
+  internal mutating func usePassboltUserDetails() {
     self.use(
       .lazyLoaded(
         UserDetails.self,
         load: UserDetails.load(features:context:cancellables:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

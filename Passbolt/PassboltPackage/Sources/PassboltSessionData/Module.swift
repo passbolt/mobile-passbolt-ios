@@ -22,3 +22,11 @@
 //
 
 @_exported import SessionData
+
+extension FeaturesRegistry {
+
+  public mutating func usePassboltSessionDataModule() {
+    self.usePassboltSessionData()
+    self.usePassboltSessionConfigurationLoader()
+  }
+}

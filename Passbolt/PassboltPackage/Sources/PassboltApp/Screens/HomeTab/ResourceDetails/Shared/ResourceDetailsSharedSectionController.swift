@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import Display
 import OSFeatures
 import Resources
 import UIComponents
@@ -36,17 +37,18 @@ internal struct ResourceDetailsSharedSectionController {
 extension ResourceDetailsSharedSectionController: ComponentController {
 
   internal typealias ControlledView = ResourceDetailsSharedSectionView
-  internal typealias NavigationContext = Resource.ID
+  internal typealias Context = Resource.ID
 
   @MainActor static func instance(
-    context: NavigationContext,
-    navigation: ComponentNavigation<NavigationContext>,
-    with features: FeatureFactory,
+    in context: Context,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
     let diagnostics: OSDiagnostics = features.instance()
-    let resourceDetails: ResourceDetails = try await features.instance(context: context)
-    let users: Users = try await features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
+    let navigation: DisplayNavigation = try features.instance()
+    let resourceDetails: ResourceDetails = try features.instance(context: context)
+    let users: Users = try features.instance()
 
     func userAvatarImageFetch(
       _ userID: User.ID
@@ -64,7 +66,13 @@ extension ResourceDetailsSharedSectionController: ComponentController {
 
     let viewState: ObservableValue<ViewState> = .init(
       initial: .init(
-        items:
+        items: .init()
+      )
+    )
+
+    asyncExecutor.schedule { @MainActor in
+      do {
+        viewState.items =
           try await resourceDetails
           .details()
           .permissions
@@ -81,13 +89,16 @@ extension ResourceDetailsSharedSectionController: ComponentController {
               return nil
             }
           }
-      )
-    )
+      }
+      catch {
+        diagnostics.log(error: error)
+      }
+    }
 
     @MainActor func showResourcePermissionList() async {
       await navigation.push(
-        ResourcePermissionListView.self,
-        in: context
+        legacy: ResourcePermissionListView.self,
+        context: context
       )
     }
 

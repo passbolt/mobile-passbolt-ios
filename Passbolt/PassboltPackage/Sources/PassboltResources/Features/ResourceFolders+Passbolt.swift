@@ -30,12 +30,14 @@ import SessionData
 extension ResourceFolders {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
+    try features.ensureScope(SessionScope.self)
+
     let resourceFoldersListFetchDatabaseOperation: ResourceFoldersListFetchDatabaseOperation =
-      try await features.instance()
-    let resourcesListFetchDatabaseOperation: ResourcesListFetchDatabaseOperation = try await features.instance()
+      try features.instance()
+    let resourcesListFetchDatabaseOperation: ResourcesListFetchDatabaseOperation = try features.instance()
 
     @Sendable nonisolated func details(
       _ folderID: ResourceFolder.ID
@@ -92,14 +94,15 @@ extension ResourceFolders {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceFolders() {
+  internal mutating func usePassboltResourceFolders() {
     self.use(
       .lazyLoaded(
         ResourceFolders.self,
         load: ResourceFolders.load(features:cancellables:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

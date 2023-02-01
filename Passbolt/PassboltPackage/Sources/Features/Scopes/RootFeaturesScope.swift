@@ -21,10 +21,7 @@
 // @since         v1.0
 //
 
-internal struct FeatureIdentifier {
+public enum RootFeaturesScope: FeaturesScope {
 
-  internal let featureTypeIdentifier: FeatureTypeIdentifier
-  internal let featureContextIdentifier: AnyHashable
+  public typealias Context = Never
 }
-
-extension FeatureIdentifier: Hashable {}

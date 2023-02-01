@@ -28,8 +28,10 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class SessionStateEnsuranceTests: LoadableFeatureTestCase<SessionStateEnsurance> {
 
-  override class var testedImplementationRegister: (FeatureFactory) -> @MainActor () -> Void {
-    FeatureFactory.usePassboltSessionStateEnsurance
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.usePassboltSessionStateEnsurance()
   }
 
   override func prepare() throws {

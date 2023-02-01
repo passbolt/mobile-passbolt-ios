@@ -31,13 +31,25 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ResourcesTests: LoadableFeatureTestCase<Resources> {
 
-  override class var testedImplementationRegister: (FeatureFactory) -> @MainActor () -> Void {
-    FeatureFactory.usePassboltResources
+  override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
+
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.usePassboltResources()
   }
 
   var updatesSequence: UpdatesSequenceSource!
 
   override func prepare() throws {
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1
+      )
+    )
+
     updatesSequence = .init()
     patch(
       \Session.currentAccount,
@@ -96,7 +108,7 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
       }
     )
 
-    let _: Resources = try await testedInstance()
+    let _: Resources = try testedInstance()
 
     // wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -110,7 +122,7 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
       with: always(.testResources)
     )
 
-    let feature: Resources = try await testedInstance()
+    let feature: Resources = try testedInstance()
 
     let filterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(testFilter)
 
@@ -136,7 +148,7 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
       }
     )
 
-    let feature: Resources = try await testedInstance()
+    let feature: Resources = try testedInstance()
 
     let filterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(testFilter)
 
@@ -155,7 +167,7 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
       with: always(resources)
     )
 
-    let feature: Resources = try await testedInstance()
+    let feature: Resources = try testedInstance()
 
     let filterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(testFilter)
 
@@ -182,7 +194,7 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: Resources = try await testedInstance()
+    let feature: Resources = try testedInstance()
 
     let filterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(testFilter)
 
@@ -211,7 +223,7 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
       with: always(Void())
     )
 
-    let feature: Resources = try await testedInstance()
+    let feature: Resources = try testedInstance()
 
     try await feature
       .deleteResource(.init(rawValue: "test"))

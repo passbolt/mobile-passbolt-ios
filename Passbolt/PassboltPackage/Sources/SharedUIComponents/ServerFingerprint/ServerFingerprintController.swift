@@ -43,11 +43,10 @@ extension ServerFingerprintController: UIController {
 
   public static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> ServerFingerprintController {
-
-    let accountsData: AccountsDataStore = try await features.instance()
+  ) throws -> ServerFingerprintController {
+    let accountsData: AccountsDataStore = try features.instance()
 
     let fingerprintMarkedAsCheckedSubject: CurrentValueSubject<Bool, Never> = .init(false)
 

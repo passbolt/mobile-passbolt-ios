@@ -44,9 +44,9 @@ extension MediaDownloadNetworkOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltMediaDownloadNetworkOperation() {
+  internal mutating func usePassboltMediaDownloadNetworkOperation() {
     self.use(
       .networkOperation(
         of: MediaDownloadNetworkOperation.self,

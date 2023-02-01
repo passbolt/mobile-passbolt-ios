@@ -81,7 +81,6 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
                 .backStyle(),
                 .action { [weak self] in
                   self?.cancellables.executeOnMainActor { [weak self] in
-                    self?.controller.cleanup()
                     await self?.pop(if: Self.self)
                   }
                 }
@@ -212,7 +211,6 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
               ResourceEditExitConfirmationAlert.self,
               in: { [weak self] in
                 self?.cancellables.executeOnMainActor { [weak self] in
-                  self?.controller.cleanup()
                   await self?.pop(if: Self.self)
                 }
               }

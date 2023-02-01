@@ -30,7 +30,7 @@ internal struct LegacyNavigationBridge {
   internal let bridgeComponent: () async -> AnyUIComponent?
 }
 
-extension LegacyNavigationBridge: LoadableContextlessFeature {
+extension LegacyNavigationBridge: LoadableFeature {
 
   #if DEBUG
   internal static var placeholder: Self {
@@ -41,9 +41,9 @@ extension LegacyNavigationBridge: LoadableContextlessFeature {
   #endif
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useLiveLegacyNavigationBridge() {
+  internal mutating func useLiveLegacyNavigationBridge() {
     self.use(
       .lazyLoaded(
         LegacyNavigationBridge.self,

@@ -26,17 +26,9 @@ import UICommons
 @available(*, deprecated, message: "Please switch to `ViewController`")
 @MainActor
 public protocol ComponentController: UIController
-where Context == ComponentNavigation<NavigationContext>, ControlledView: ComponentView {
+where ControlledView: ComponentView {
 
   associatedtype ControlledView where ControlledView.Controller == Self
-  associatedtype NavigationContext
-
-  @MainActor static func instance(
-    context: NavigationContext,
-    navigation: ComponentNavigation<NavigationContext>,
-    with features: FeatureFactory,
-    cancellables: Cancellables
-  ) async throws -> Self
 
   var viewState: ObservableValue<ViewState> { get }
 }
@@ -44,17 +36,4 @@ where Context == ComponentNavigation<NavigationContext>, ControlledView: Compone
 extension ComponentController {
 
   public typealias ViewState = ControlledView.ViewState
-
-  @MainActor public static func instance(
-    in context: Context,
-    with features: FeatureFactory,
-    cancellables: Cancellables
-  ) async throws -> Self {
-    try await Self.instance(
-      context: context.context,
-      navigation: context,
-      with: features,
-      cancellables: cancellables
-    )
-  }
 }

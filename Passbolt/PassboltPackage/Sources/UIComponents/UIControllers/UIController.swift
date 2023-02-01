@@ -26,24 +26,24 @@ import Features
 @MainActor
 public protocol UIController {
 
-  associatedtype Context
+  associatedtype Context = Void
 
   @MainActor static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self
+  ) throws -> Self
 }
 
 extension UIController where Context == Void {
 
   @MainActor public static func instance(
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    try await instance(
+  ) throws -> Self {
+    try instance(
       in: Context(),
-      with: features,
+      with: &features,
       cancellables: cancellables
     )
   }

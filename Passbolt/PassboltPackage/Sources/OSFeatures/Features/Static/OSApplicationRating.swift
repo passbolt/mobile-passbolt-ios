@@ -71,9 +71,9 @@ extension OSApplicationRating {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useOSApplicationRating() {
+  internal mutating func useOSApplicationRating() {
     self.use(
       OSApplicationRating.live
     )

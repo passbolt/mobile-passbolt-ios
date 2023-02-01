@@ -59,18 +59,22 @@ extension ResourceDetailsController: UIController {
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-    cancellables.addCleanup(
-      features.pushScope(.resourceDetails)
-    )
-    let diagnostics: OSDiagnostics = features.instance()
-    let resources: Resources = try await features.instance()
-    let pasteboard: OSPasteboard = features.instance()
-    let sessionConfiguration: SessionConfiguration = try await features.instance()
+  ) throws -> Self {
+    features =
+      features
+      .branch(
+        scope: ResourceDetailsScope.self,
+        context: context
+      )
+    let features: Features = features
 
+    let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
+
+    let diagnostics: OSDiagnostics = features.instance()
+    let resources: Resources = try features.instance()
+    let pasteboard: OSPasteboard = features.instance()
     var revealedFields: Set<ResourceFieldNameDSV> = .init()
 
     let resourceMenuPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
@@ -84,19 +88,10 @@ extension ResourceDetailsController: UIController {
       .asyncMap { resourceDetails in
         var resourceDetails: ResourceDetailsDSV = resourceDetails
         resourceDetails.fields = resourceDetails.fields.sorted(by: { $0.name < $1.name })
-        let previewPassword: FeatureFlags.PreviewPassword = await sessionConfiguration.configuration()
-        let previewPasswordEnabled: Bool = {
-          switch previewPassword {
-          case .enabled:
-            return true
-          case .disabled:
-            return false
-          }
-        }()
 
         return .init(
           resourceDetails: resourceDetails,
-          revealPasswordEnabled: previewPasswordEnabled
+          revealPasswordEnabled: sessionConfiguration.passwordPreviewEnabled
         )
       }
       .sink(
@@ -461,12 +456,5 @@ extension ResourceDetailsController: UIController {
       resourceDeletionPublisher: resourceDeletionPublisher(resourceID:),
       copyFieldValue: copyField(_:)
     )
-  }
-}
-
-extension FeaturesScope {
-
-  internal static var resourceDetails: Self {
-    .init(identifier: #function)
   }
 }

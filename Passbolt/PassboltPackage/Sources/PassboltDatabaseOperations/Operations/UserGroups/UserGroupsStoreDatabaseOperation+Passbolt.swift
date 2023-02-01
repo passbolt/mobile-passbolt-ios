@@ -96,14 +96,15 @@ extension UserGroupsStoreDatabaseOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltUserGroupsStoreDatabaseOperation() {
+  internal mutating func usePassboltUserGroupsStoreDatabaseOperation() {
     self.use(
       FeatureLoader.databaseOperationWithTransaction(
         of: UserGroupsStoreDatabaseOperation.self,
         execute: UserGroupsStoreDatabaseOperation.execute(_:connection:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import Display
 import OSFeatures
 import UIComponents
 import Users
@@ -36,16 +37,16 @@ internal struct UserGroupPermissionDetailsController {
 extension UserGroupPermissionDetailsController: ComponentController {
 
   internal typealias ControlledView = UserGroupPermissionDetailsView
-  internal typealias NavigationContext = UserGroupPermissionDetailsDSV
+  internal typealias Context = UserGroupPermissionDetailsDSV
 
   @MainActor static func instance(
-    context: NavigationContext,
-    navigation: ComponentNavigation<NavigationContext>,
-    with features: FeatureFactory,
+    in context: Context,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
     let diagnostics: OSDiagnostics = features.instance()
-    let users: Users = try await features.instance()
+    let navigation: DisplayNavigation = try features.instance()
+    let users: Users = try features.instance()
 
     func userAvatarImageFetch(
       _ userID: User.ID
@@ -78,8 +79,8 @@ extension UserGroupPermissionDetailsController: ComponentController {
     func showGroupMembers() async {
       await navigation
         .push(
-          UserGroupMembersListView.self,
-          in: context.asUserGroupDetails
+          legacy: UserGroupMembersListView.self,
+          context: context.asUserGroupDetails
         )
     }
 

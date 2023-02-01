@@ -174,9 +174,9 @@ extension OSBiometry {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useOSBiometry() {
+  internal mutating func useOSBiometry() {
     self.use(
       OSBiometry.live
     )

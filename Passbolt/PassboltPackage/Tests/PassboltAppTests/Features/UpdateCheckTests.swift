@@ -29,19 +29,25 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class UpdateCheckTests: MainActorTestCase {
+final class UpdateCheckTests: LoadableFeatureTestCase<UpdateCheck> {
+
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.usePassboltUpdateCheck()
+  }
 
   func test_updateAvailable_throws_whenFetchingAvailableVersionFails() async throws {
-    features.patch(
+    patch(
       \ApplicationMeta.applicationVersion,
       with: always("")
     )
-    features.patch(
+    patch(
       \AppVersionsFetchNetworkOperation.execute,
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: UpdateCheck = try await testedInstance()
+    let feature: UpdateCheck = try testedInstance()
     var result: Error?
     do {
       try await feature.updateAvailable()
@@ -54,11 +60,11 @@ final class UpdateCheckTests: MainActorTestCase {
   }
 
   func test_updateAvailable_throws_whenFetchedAvailableVersionIsMissing() async throws {
-    features.patch(
+    patch(
       \ApplicationMeta.applicationVersion,
       with: always("")
     )
-    features.patch(
+    patch(
       \AppVersionsFetchNetworkOperation.execute,
       with: always(
         .init(
@@ -67,7 +73,7 @@ final class UpdateCheckTests: MainActorTestCase {
       )
     )
 
-    let feature: UpdateCheck = try await testedInstance()
+    let feature: UpdateCheck = try testedInstance()
 
     var result: Error?
     do {
@@ -81,11 +87,11 @@ final class UpdateCheckTests: MainActorTestCase {
   }
 
   func test_updateAvailable_throws_whenFetchedAvailableVersionIsInvalid() async throws {
-    features.patch(
+    patch(
       \ApplicationMeta.applicationVersion,
       with: always("")
     )
-    features.patch(
+    patch(
       \AppVersionsFetchNetworkOperation.execute,
       with: always(
         .init(
@@ -98,7 +104,7 @@ final class UpdateCheckTests: MainActorTestCase {
       )
     )
 
-    let feature: UpdateCheck = try await testedInstance()
+    let feature: UpdateCheck = try testedInstance()
 
     var result: Error?
     do {
@@ -112,11 +118,11 @@ final class UpdateCheckTests: MainActorTestCase {
   }
 
   func test_updateAvailable_throws_whenFetchedAvailableVersionIsNotFullyValid() async throws {
-    features.patch(
+    patch(
       \ApplicationMeta.applicationVersion,
       with: always("")
     )
-    features.patch(
+    patch(
       \AppVersionsFetchNetworkOperation.execute,
       with: always(
         .init(
@@ -129,7 +135,7 @@ final class UpdateCheckTests: MainActorTestCase {
       )
     )
 
-    let feature: UpdateCheck = try await testedInstance()
+    let feature: UpdateCheck = try testedInstance()
 
     var result: Error?
     do {
@@ -143,11 +149,11 @@ final class UpdateCheckTests: MainActorTestCase {
   }
 
   func test_updateAvailable_throws_whenAppMetaVersionIsInvalid() async throws {
-    features.patch(
+    patch(
       \ApplicationMeta.applicationVersion,
       with: always("")
     )
-    features.patch(
+    patch(
       \AppVersionsFetchNetworkOperation.execute,
       with: always(
         .init(
@@ -160,7 +166,7 @@ final class UpdateCheckTests: MainActorTestCase {
       )
     )
 
-    let feature: UpdateCheck = try await testedInstance()
+    let feature: UpdateCheck = try testedInstance()
 
     var result: Error?
     do {
@@ -174,26 +180,26 @@ final class UpdateCheckTests: MainActorTestCase {
   }
 
   func test_checkRequired_returnsTrue_whenNotCheckedYet() async throws {
-    features.usePlaceholder(for: ApplicationMeta.self)
-    features.usePlaceholder(for: AppVersionsFetchNetworkOperation.self)
+    usePlaceholder(for: ApplicationMeta.self)
+    usePlaceholder(for: AppVersionsFetchNetworkOperation.self)
 
-    let feature: UpdateCheck = try await testedInstance()
+    let feature: UpdateCheck = try testedInstance()
 
     let result = await feature.checkRequired()
     XCTAssertTrue(result)
   }
 
   func test_checkRequired_returnsTrue_whenCheckingFails() async throws {
-    features.patch(
+    patch(
       \ApplicationMeta.applicationVersion,
       with: always("")
     )
-    features.patch(
+    patch(
       \AppVersionsFetchNetworkOperation.execute,
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: UpdateCheck = try await testedInstance()
+    let feature: UpdateCheck = try testedInstance()
 
     _ = try? await feature.updateAvailable()
 
@@ -202,25 +208,24 @@ final class UpdateCheckTests: MainActorTestCase {
   }
 
   func test_checkRequired_returnsFalse_whenCheckingSucceeds() async throws {
-    features.patch(
+    patch(
       \ApplicationMeta.applicationVersion,
       with: always("1.2.3")
     )
-    features
-      .patch(
-        \AppVersionsFetchNetworkOperation.execute,
-        with: always(
-          .init(
-            results: [
-              .init(
-                version: "1.2.3"
-              )
-            ]
-          )
+    patch(
+      \AppVersionsFetchNetworkOperation.execute,
+      with: always(
+        .init(
+          results: [
+            .init(
+              version: "1.2.3"
+            )
+          ]
         )
       )
+    )
 
-    let feature: UpdateCheck = try await testedInstance()
+    let feature: UpdateCheck = try testedInstance()
 
     _ = try await feature.updateAvailable()
     let result = await feature.checkRequired()

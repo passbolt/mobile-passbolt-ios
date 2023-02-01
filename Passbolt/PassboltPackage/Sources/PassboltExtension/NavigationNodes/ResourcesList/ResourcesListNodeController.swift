@@ -72,12 +72,12 @@ extension ResourcesListNodeController: ViewNodeController {
 extension ResourcesListNodeController {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context: Context
-  ) async throws -> Self {
+  ) throws -> Self {
     let diagnostics: OSDiagnostics = features.instance()
     let navigationTree: NavigationTree = features.instance()
-    let asyncExecutor: AsyncExecutor = try await features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
     let autofillContext: AutofillExtensionContext = features.instance()
 
     let requestedServiceIdentifiers: Array<AutofillExtensionContext.ServiceIdentifier> =
@@ -91,7 +91,7 @@ extension ResourcesListNodeController {
       )
     )
 
-    let searchController: ResourceSearchDisplayController = try await features.instance(
+    let searchController: ResourceSearchDisplayController = try features.instance(
       context: .init(
         searchPrompt: context.searchPrompt,
         showMessage: { (message: SnackBarMessage?) in
@@ -102,7 +102,7 @@ extension ResourcesListNodeController {
       )
     )
 
-    let contentController: ResourcesListDisplayController = try await features.instance(
+    let contentController: ResourcesListDisplayController = try features.instance(
       context: .init(
         filter: searchController
           .searchText
@@ -193,14 +193,15 @@ extension ResourcesListNodeController {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltResourcesListNodeController() {
+  public mutating func usePassboltResourcesListNodeController() {
     self.use(
       .disposable(
         ResourcesListNodeController.self,
         load: ResourcesListNodeController.load(features:context:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

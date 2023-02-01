@@ -25,9 +25,9 @@
 @_exported import Commons
 @_exported import Features
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  public func useNFCFeatures() {
+  public mutating func useNFCFeatures() {
     self.useYubiKey()
   }
 }

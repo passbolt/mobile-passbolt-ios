@@ -40,7 +40,7 @@ public struct ResourceTags {
   }
 }
 
-extension ResourceTags: LoadableContextlessFeature {
+extension ResourceTags: LoadableFeature {
 
   #if DEBUG
   public static var placeholder: Self {

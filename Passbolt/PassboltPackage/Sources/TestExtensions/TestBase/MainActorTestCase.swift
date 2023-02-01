@@ -25,10 +25,7 @@ import Features
 import UIComponents
 import XCTest
 
-/// Base class for preparing tests for UIController instances
-/// which require MainActor isolation.
-/// For setUp and tearDown use mainActorSetUp and mainActorTearDown
-/// instead of default methods which operate on nonisolated context.
+@available(*, deprecated, message: "Please switch to `LoadableFeatureTestCase`")
 @MainActor
 open class MainActorTestCase: TestCase {
 
@@ -53,21 +50,23 @@ open class MainActorTestCase: TestCase {
   public final func testController<Controller: UIController>(
     _ type: Controller.Type = Controller.self,
     context: Controller.Context
-  ) async throws -> Controller {
-    try await Controller.instance(
+  ) throws -> Controller {
+    var features: Features = self.features
+    return try Controller.instance(
       in: context,
-      with: features,
+      with: &features,
       cancellables: cancellables
     )
   }
 
   public final func testController<Controller: UIController>(
     _ type: Controller.Type = Controller.self
-  ) async throws -> Controller
+  ) throws -> Controller
   where Controller.Context == Void {
-    try await Controller.instance(
+    var features: Features = self.features
+    return try Controller.instance(
       in: Void(),
-      with: features,
+      with: &features,
       cancellables: cancellables
     )
   }

@@ -51,9 +51,9 @@ extension ServerPGPPublicKeyFetchNetworkOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltServerPGPPublicKeyFetchNetworkOperation() {
+  internal mutating func usePassboltServerPGPPublicKeyFetchNetworkOperation() {
     self.use(
       FeatureLoader.networkOperation(
         of: ServerPGPPublicKeyFetchNetworkOperation.self,

@@ -36,20 +36,23 @@ import class Foundation.JSONEncoder
 extension ResourceEditForm {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let usersPGPMessages: UsersPGPMessages = try await features.instance()
-    let resources: Resources = try await features.instance()
-    let resourceTypesFetchDatabaseOperation: ResourceTypesFetchDatabaseOperation = try await features.instance()
+  ) throws -> Self {
+    try features.ensureScope(SessionScope.self)
+    try features.ensureScope(ResourceEditScope.self)
+
+    let usersPGPMessages: UsersPGPMessages = try features.instance()
+    let resources: Resources = try features.instance()
+    let resourceTypesFetchDatabaseOperation: ResourceTypesFetchDatabaseOperation = try features.instance()
     let resourceEditDetailsFetchDatabaseOperation: ResourceEditDetailsFetchDatabaseOperation =
-      try await features.instance()
-    let resourceEditNetworkOperation: ResourceEditNetworkOperation = try await features.instance()
-    let resourceCreateNetworkOperation: ResourceCreateNetworkOperation = try await features.instance()
-    let resourceShareNetworkOperation: ResourceShareNetworkOperation = try await features.instance()
-    let session: Session = try await features.instance()
+      try features.instance()
+    let resourceEditNetworkOperation: ResourceEditNetworkOperation = try features.instance()
+    let resourceCreateNetworkOperation: ResourceCreateNetworkOperation = try features.instance()
+    let resourceShareNetworkOperation: ResourceShareNetworkOperation = try features.instance()
+    let session: Session = try features.instance()
     let resourceFolderPermissionsFetchDatabaseOperation: ResourceFolderPermissionsFetchDatabaseOperation =
-      try await features.instance()
+      try features.instance()
 
     let resourceIDSubject: CurrentValueSubject<Resource.ID?, Never> = .init(nil)
     let resourceParentFolderIDSubject: CurrentValueSubject<ResourceFolder.ID?, Never> = .init(nil)
@@ -558,14 +561,15 @@ extension ResourceEditForm {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceEditForm() {
+  internal mutating func usePassboltResourceEditForm() {
     self.use(
       .lazyLoaded(
         ResourceEditForm.self,
         load: ResourceEditForm.load(features:cancellables:)
-      )
+      ),
+      in: ResourceEditScope.self
     )
   }
 }

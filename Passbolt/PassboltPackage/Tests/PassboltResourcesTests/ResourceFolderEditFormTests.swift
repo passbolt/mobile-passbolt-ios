@@ -29,11 +29,29 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderEditForm> {
 
-  override class var testedImplementationRegister: (FeatureFactory) -> @MainActor () -> Void {
-    FeatureFactory.usePassboltResourceFolderEditForm
+  override class var testedImplementationScope: any FeaturesScope.Type { ResourceFolderEditScope.self }
+
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.usePassboltResourceFolderEditForm()
   }
 
   override func prepare() throws {
+    set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1
+      )
+    )
+    set(
+      ResourceFolderEditScope.self,
+      context: .mock_1
+    )
+
+    set(ResourceFolderEditScope.self, context: .mock_1)
+    set(SessionScope.self, context: .init(account: .mock_ada, configuration: .mock_1))
     patch(
       \Session.currentAccount,
       with: always(.mock_ada)
@@ -58,7 +76,8 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
       ),
       context: .create(containingFolderID: .none)
     ) { (tested: ResourceFolderEditForm) in
-      tested.formState()
+      await self.mockExecutionControl.executeAll()
+      return tested.formState()
     }
   }
 
@@ -104,7 +123,8 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
       ),
       context: .create(containingFolderID: containingFolderID)
     ) { (tested: ResourceFolderEditForm) in
-      tested.formState()
+      await self.mockExecutionControl.executeAll()
+      return tested.formState()
     }
   }
 
@@ -160,7 +180,8 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
       ),
       context: .create(containingFolderID: containingFolderID)
     ) { (tested: ResourceFolderEditForm) in
-      tested.formState()
+      await self.mockExecutionControl.executeAll()
+      return tested.formState()
     }
   }
 
@@ -216,7 +237,8 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
       ),
       context: .create(containingFolderID: containingFolderID)
     ) { (tested: ResourceFolderEditForm) in
-      tested.formState()
+      await self.mockExecutionControl.executeAll()
+      return tested.formState()
     }
   }
 
@@ -272,7 +294,8 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
       ),
       context: .create(containingFolderID: containingFolderID)
     ) { (tested: ResourceFolderEditForm) in
-      tested.formState()
+      await self.mockExecutionControl.executeAll()
+      return tested.formState()
     }
   }
 
@@ -353,8 +376,9 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
       MockIssue.self,
       context: .create(containingFolderID: .none)
     ) { (tested: ResourceFolderEditForm) in
+      await self.mockExecutionControl.executeAll()
       tested.setFolderName("valid")
-      try await tested.sendForm()
+      return try await tested.sendForm()
     }
   }
 
@@ -371,6 +395,7 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
       MockIssue.self,
       context: .create(containingFolderID: .none)
     ) { (tested: ResourceFolderEditForm) in
+      await self.mockExecutionControl.executeAll()
       tested.setFolderName("valid")
       try await tested.sendForm()
     }
@@ -416,6 +441,7 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
       MockIssue.self,
       context: .create(containingFolderID: containingFolderID)
     ) { (tested: ResourceFolderEditForm) in
+      await self.mockExecutionControl.executeAll()
       tested.setFolderName("valid")
       try await tested.sendForm()
     }

@@ -50,9 +50,9 @@ extension ResourceTypesFetchNetworkOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceTypesFetchNetworkOperation() {
+  internal mutating func usePassboltResourceTypesFetchNetworkOperation() {
     self.use(
       .networkOperationWithSession(
         of: ResourceTypesFetchNetworkOperation.self,

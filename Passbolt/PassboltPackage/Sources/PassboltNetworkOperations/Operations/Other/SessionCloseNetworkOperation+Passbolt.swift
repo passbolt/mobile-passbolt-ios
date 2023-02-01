@@ -46,9 +46,9 @@ extension SessionCloseNetworkOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltSessionCloseNetworkOperation() {
+  internal mutating func usePassboltSessionCloseNetworkOperation() {
     self.use(
       FeatureLoader.networkOperation(
         of: SessionCloseNetworkOperation.self,

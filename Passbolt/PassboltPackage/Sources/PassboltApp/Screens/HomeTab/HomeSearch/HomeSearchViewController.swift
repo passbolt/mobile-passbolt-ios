@@ -127,10 +127,7 @@ internal final class HomeSearchViewController: PlainViewController, UIComponent 
           self.view.endEditing(true)
           await self.presentSheetMenu(
             AccountMenuViewController.self,
-            in: (
-              accountWithProfile: accountWithProfile,
-              navigation: self.asComponentNavigation()
-            )
+            in: accountWithProfile
           )
         }
       }

@@ -29,14 +29,12 @@ import Session
 extension SessionPassphrase {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context: Context
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let sessionState: SessionState = try await features.instance()
-    let sessionStateEnsurance: SessionStateEnsurance = try await features.instance()
-    let accountsDataStore: AccountsDataStore = try await features.instance()
+  ) throws -> Self {
+    let sessionState: SessionState = try features.instance()
+    let sessionStateEnsurance: SessionStateEnsurance = try features.instance()
+    let accountsDataStore: AccountsDataStore = try features.instance()
 
     @SessionActor @Sendable func storeWithBiometry(
       _ store: Bool
@@ -63,9 +61,9 @@ extension SessionPassphrase {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltSessionPassphrase() {
+  internal mutating func usePassboltSessionPassphrase() {
     self.use(
       .disposable(
         SessionPassphrase.self,

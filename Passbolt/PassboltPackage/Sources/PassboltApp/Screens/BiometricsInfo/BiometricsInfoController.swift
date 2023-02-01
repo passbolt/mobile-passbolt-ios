@@ -45,15 +45,16 @@ extension BiometricsInfoController {
 
 extension BiometricsInfoController: UIController {
 
-  internal typealias Context = Void
+  public typealias Context = Void
 
-  internal static func instance(
+  @MainActor internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let currentAccount: Account = try await features.instance(of: Session.self).currentAccount()
-    let accountInitialSetup: AccountInitialSetup = try await features.instance(context: currentAccount)
+  ) throws -> Self {
+    let currentAccount: Account = try features.sessionAccount()
+
+    let accountInitialSetup: AccountInitialSetup = try features.instance(context: currentAccount)
     let extensions: OSExtensions = features.instance()
     let linkOpener: OSLinkOpener = features.instance()
     let biometry: OSBiometry = features.instance()

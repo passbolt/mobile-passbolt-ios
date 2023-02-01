@@ -51,9 +51,9 @@ extension ConfigurationFetchNetworkOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltConfigurationFetchNetworkOperation() {
+  internal mutating func usePassboltConfigurationFetchNetworkOperation() {
     self.use(
       .networkOperationWithSession(
         of: ConfigurationFetchNetworkOperation.self,

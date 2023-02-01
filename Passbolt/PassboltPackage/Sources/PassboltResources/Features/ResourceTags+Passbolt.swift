@@ -31,14 +31,16 @@ import SessionData
 extension ResourceTags {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
+    try features.ensureScope(SessionScope.self)
+
     let diagnostics: OSDiagnostics = features.instance()
-    let sessionData: SessionData = try await features.instance()
-    let resourceTagsListFetchDatabaseOperation: ResourceTagsListFetchDatabaseOperation = try await features.instance()
+    let sessionData: SessionData = try features.instance()
+    let resourceTagsListFetchDatabaseOperation: ResourceTagsListFetchDatabaseOperation = try features.instance()
     let resourceTagDetailsFetchDatabaseOperation: ResourceTagDetailsFetchDatabaseOperation =
-      try await features.instance()
+      try features.instance()
 
     @Sendable nonisolated func filteredTagsList(
       filter: String
@@ -59,14 +61,15 @@ extension ResourceTags {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceTags() {
+  internal mutating func usePassboltResourceTags() {
     self.use(
       .lazyLoaded(
         ResourceTags.self,
         load: ResourceTags.load(features:cancellables:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

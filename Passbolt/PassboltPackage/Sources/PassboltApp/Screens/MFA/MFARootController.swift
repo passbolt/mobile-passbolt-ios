@@ -40,10 +40,10 @@ extension MFARootController: UIController {
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> MFARootController {
-    let session: Session = try await features.instance()
+  ) throws -> MFARootController {
+    let session: Session = try features.instance()
     let mfaProviderSubject: CurrentValueSubject<SessionMFAProvider?, Error> = .init(context.first)
 
     func mfaProviderPublisher() -> AnyPublisher<SessionMFAProvider, Error> {

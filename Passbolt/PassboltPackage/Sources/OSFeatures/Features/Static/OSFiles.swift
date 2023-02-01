@@ -129,9 +129,9 @@ extension OSFiles {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useOSFiles() {
+  internal mutating func useOSFiles() {
     self.use(
       OSFiles.live
     )

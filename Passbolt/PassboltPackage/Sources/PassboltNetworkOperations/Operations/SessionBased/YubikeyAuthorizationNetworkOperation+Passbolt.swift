@@ -71,9 +71,9 @@ extension YubiKeyAuthorizationNetworkOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltYubiKeyAuthorizationNetworkOperation() {
+  internal mutating func usePassboltYubiKeyAuthorizationNetworkOperation() {
     self.use(
       .networkOperationWithSession(
         of: YubiKeyAuthorizationNetworkOperation.self,

@@ -30,14 +30,15 @@ internal struct ApplicationRating {
 }
 
 extension ApplicationRating {
+
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    var lastAppRateCheckTimestamp: StoredProperty<Int> = try await features.instance(
+  ) throws -> Self {
+    var lastAppRateCheckTimestamp: StoredProperty<Int> = try features.instance(
       context: "lastAppRateCheckTimestamp"
     )
-    let loginCount: StoredProperty<Int> = try await features.instance(context: "loginCount")
+    let loginCount: StoredProperty<Int> = try features.instance(context: "loginCount")
     let timeProvider: OSTime = features.instance()
     let rateAppFeature: OSApplicationRating = features.instance()
 
@@ -74,7 +75,7 @@ extension ApplicationRating {
   }
 }
 
-extension ApplicationRating: LoadableContextlessFeature {
+extension ApplicationRating: LoadableFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(
@@ -84,8 +85,9 @@ extension ApplicationRating: LoadableContextlessFeature {
   #endif
 }
 
-extension FeatureFactory {
-  internal func usePassboltApplicationRatingFeature() {
+extension FeaturesRegistry {
+
+  internal mutating func usePassboltApplicationRatingFeature() {
     self.use(
       .lazyLoaded(
         ApplicationRating.self,

@@ -29,8 +29,10 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
 
-  override class var testedImplementationRegister: (FeatureFactory) -> @MainActor () -> Void {
-    FeatureFactory.usePassboltAccounts
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.usePassboltAccounts()
   }
 
   override func prepare() throws {
@@ -51,7 +53,7 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
       with: always([.mock_ada])
     )
 
-    let accounts: Accounts = try await testedInstance()
+    let accounts: Accounts = try testedInstance()
 
     let result: Array<Account> = accounts.storedAccounts()
 
@@ -75,7 +77,7 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
       with: always([.mock_ada])
     )
 
-    let accounts: Accounts = try await testedInstance()
+    let accounts: Accounts = try testedInstance()
 
     _ = try? accounts.verifyDataIntegrity()
 
@@ -123,7 +125,7 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
       with: always(.success)
     )
 
-    let accounts: Accounts = try await testedInstance()
+    let accounts: Accounts = try testedInstance()
 
     _ =
       try accounts
@@ -163,7 +165,7 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
       with: always(.success)
     )
 
-    let accounts: Accounts = try await testedInstance()
+    let accounts: Accounts = try testedInstance()
 
     var result: Error?
     do {
@@ -206,7 +208,7 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
       with: always([.mock_ada])
     )
 
-    let accounts: Accounts = try await testedInstance()
+    let accounts: Accounts = try testedInstance()
 
     _ = try? await accounts.removeAccount(Account.mock_ada)
 

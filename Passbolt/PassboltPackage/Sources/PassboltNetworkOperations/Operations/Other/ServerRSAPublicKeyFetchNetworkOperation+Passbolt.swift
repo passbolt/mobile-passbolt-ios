@@ -51,9 +51,9 @@ extension ServerRSAPublicKeyFetchNetworkOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltServerRSAPublicKeyFetchNetworkOperation() {
+  internal mutating func usePassboltServerRSAPublicKeyFetchNetworkOperation() {
     self.use(
       FeatureLoader.networkOperation(
         of: ServerRSAPublicKeyFetchNetworkOperation.self,

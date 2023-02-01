@@ -35,11 +35,11 @@ extension SettingsAutoFillController: UIController {
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> SettingsAutoFillController {
+  ) throws -> SettingsAutoFillController {
 
-    let linkOpener: OSLinkOpener = try await features.instance()
+    let linkOpener: OSLinkOpener = try features.instance()
 
     func openSystemSettings() {
       linkOpener.openSystemSettings()

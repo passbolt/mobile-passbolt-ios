@@ -21,41 +21,7 @@
 // @since         v1.0
 //
 
-import Features
+public enum ResourceShareScope: FeaturesScope {
 
-public struct SessionConfiguration {
-
-  public var fetchIfNeeded: @Sendable () async throws -> Void
-  public var configuration: @Sendable (FeatureConfigItem.Type) async -> FeatureConfigItem?
-
-  public init(
-    fetchIfNeeded: @escaping @Sendable () async throws -> Void,
-    configuration: @escaping @Sendable (FeatureConfigItem.Type) async -> FeatureConfigItem?
-  ) {
-    self.fetchIfNeeded = fetchIfNeeded
-    self.configuration = configuration
-  }
-}
-
-extension SessionConfiguration: LoadableContextlessFeature {
-
-  #if DEBUG
-  nonisolated public static var placeholder: Self {
-    Self(
-      fetchIfNeeded: unimplemented(),
-      configuration: unimplemented()
-    )
-  }
-  #endif
-}
-
-extension SessionConfiguration {
-
-  @Sendable public func configuration<Item>(
-    for _: Item.Type = Item.self
-  ) async -> Item
-  where Item: FeatureConfigItem {
-    await self.configuration(Item.self) as? Item
-      ?? .default
-  }
+  public typealias Context = Resource.ID
 }

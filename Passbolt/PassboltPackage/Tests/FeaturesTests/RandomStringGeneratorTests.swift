@@ -27,12 +27,18 @@ import TestExtensions
 @testable import Features
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class RandomStringGeneratorTests: MainActorTestCase {
+final class RandomStringGeneratorTests: LoadableFeatureTestCase<RandomStringGenerator> {
 
-  override func mainActorSetUp() {
-    self.features.patch(
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.useRandomStringGenerator()
+  }
+
+  override func prepare() throws {
+    self.patch(
       \OSRandomness.nextValue,
-      with: {
+      with: { () -> UInt64 in
         var rng: SystemRandomNumberGenerator = .init()
         return rng.next()
       }
@@ -40,9 +46,8 @@ final class RandomStringGeneratorTests: MainActorTestCase {
   }
 
   func test_generate_shortString_succeeds() async throws {
-
     let alphabet: Set<Set<Character>> = [.init("ABC")]
-    let generator: RandomStringGenerator = try await testedInstance()
+    let generator: RandomStringGenerator = try testedInstance()
     let result: String = generator.generate(
       alphabet,
       3,
@@ -56,7 +61,7 @@ final class RandomStringGeneratorTests: MainActorTestCase {
   func test_generate_alphanumericString_succeeds() async throws {
 
     let alphabet: Set<Set<Character>> = CharacterSets.alphanumeric
-    let generator: RandomStringGenerator = try await testedInstance()
+    let generator: RandomStringGenerator = try testedInstance()
     let result: String = generator.generate(
       alphabet,
       18,
@@ -70,7 +75,7 @@ final class RandomStringGeneratorTests: MainActorTestCase {
   func test_generate_stringWithAllAvailableCharacters_succeeds() async throws {
 
     let alphabet: Set<Set<Character>> = CharacterSets.all
-    let generator: RandomStringGenerator = try await testedInstance()
+    let generator: RandomStringGenerator = try testedInstance()
     let result: String = generator.generate(
       alphabet,
       75,
@@ -88,7 +93,7 @@ final class RandomStringGeneratorTests: MainActorTestCase {
       CharacterSets.digits,
     ]
 
-    let generator: RandomStringGenerator = try await testedInstance()
+    let generator: RandomStringGenerator = try testedInstance()
     let result: String = generator.generate(
       alphabet,
       18,
@@ -109,7 +114,7 @@ final class RandomStringGeneratorTests: MainActorTestCase {
       CharacterSets.digits,
     ]
 
-    let generator: RandomStringGenerator = try await testedInstance()
+    let generator: RandomStringGenerator = try testedInstance()
     let result: String = generator.generate(
       alphabet,
       50,
@@ -123,7 +128,7 @@ final class RandomStringGeneratorTests: MainActorTestCase {
   func test_entropy_forEmptyString() async throws {
 
     let alphabet: Set<Set<Character>> = [.init("ABC")]
-    let generator: RandomStringGenerator = try await testedInstance()
+    let generator: RandomStringGenerator = try testedInstance()
     let result: Entropy = generator.entropy(
       "",
       alphabet
@@ -135,7 +140,7 @@ final class RandomStringGeneratorTests: MainActorTestCase {
   func test_entropy_forEmptyAlphabet() async throws {
 
     let alphabet: Set<Set<Character>> = [.init()]
-    let generator: RandomStringGenerator = try await testedInstance()
+    let generator: RandomStringGenerator = try testedInstance()
     let result: Entropy = generator.entropy(
       "ABC",
       alphabet
@@ -147,7 +152,7 @@ final class RandomStringGeneratorTests: MainActorTestCase {
   func test_entropy_forShortString_generated_fromShortCharacterSet() async throws {
 
     let alphabet: Set<Set<Character>> = [.init("ABC")]
-    let generator: RandomStringGenerator = try await testedInstance()
+    let generator: RandomStringGenerator = try testedInstance()
     let result: Entropy = generator.entropy(
       "ABC",
       alphabet
@@ -160,7 +165,7 @@ final class RandomStringGeneratorTests: MainActorTestCase {
   func test_entropy_forShortString_generated_fromAllCharacters() async throws {
 
     let alphabet: Set<Set<Character>> = CharacterSets.all
-    let generator: RandomStringGenerator = try await testedInstance()
+    let generator: RandomStringGenerator = try testedInstance()
     let result: Entropy = generator.entropy(
       "ABC",
       alphabet
@@ -173,7 +178,7 @@ final class RandomStringGeneratorTests: MainActorTestCase {
   func test_entropy_forLongerAlphanumericString() async throws {
 
     let alphabet: Set<Set<Character>> = CharacterSets.alphanumeric
-    let generator: RandomStringGenerator = try await testedInstance()
+    let generator: RandomStringGenerator = try testedInstance()
     let result: Entropy = generator.entropy(
       "oIabpwLaCaTYE3yOZheQ",
       alphabet
@@ -186,7 +191,7 @@ final class RandomStringGeneratorTests: MainActorTestCase {
   func test_entropy_forLongString_withAllAvailableCharacters() async throws {
 
     let alphabet: Set<Set<Character>> = CharacterSets.all
-    let generator: RandomStringGenerator = try await testedInstance()
+    let generator: RandomStringGenerator = try testedInstance()
     let result: Entropy = generator.entropy(
       ###"@L./Jfc^J&7{1cIs_W172Bir5qm"b:Lkd%3oY.\!]X#j(gi;B<Y"'SWOPX')_KGMZO.[/3:P!ibyJa?x\$gN#$dT~QOXF?.y9^AH?[teQDbkGsBTs[-ZQ8au/~@+ag$uFJ9D72uew?i!q!*J01[w:``_g"###,
       alphabet
@@ -199,7 +204,7 @@ final class RandomStringGeneratorTests: MainActorTestCase {
   func test_entropyForString_withLatinAlphabet_andAdditionalKoreanCharacters() async throws {
 
     let alphabet: Set<Set<Character>> = CharacterSets.all
-    let generator: RandomStringGenerator = try await testedInstance()
+    let generator: RandomStringGenerator = try testedInstance()
     let result: Entropy = generator.entropy(
       "2!wㅎl;piwㅝWQca]영",
       alphabet
@@ -217,7 +222,7 @@ final class RandomStringGeneratorTests: MainActorTestCase {
       CharacterSets.koreanCharacters,
       CharacterSets.koreanDigits,
     ]
-    let generator: RandomStringGenerator = try await testedInstance()
+    let generator: RandomStringGenerator = try testedInstance()
     let result: Entropy = generator.entropy(
       "ㄸㅉ삼공육ㄴㅌ오ㅡㅎㅁㅣ이ㄲ륙삼ㅁㅇㅋ육ㄱ팔삼",
       alphabet
@@ -229,7 +234,7 @@ final class RandomStringGeneratorTests: MainActorTestCase {
 
   func test_generate_shortString_requestsRandomNumber_forEachCharacter() async throws {
     var calls: Int = 0
-    self.features.patch(
+    self.patch(
       \OSRandomness.nextValue,
       with: {
         var rng: SystemRandomNumberGenerator = .init()
@@ -239,7 +244,7 @@ final class RandomStringGeneratorTests: MainActorTestCase {
     )
 
     let alphabet: Set<Set<Character>> = [.init("ABC")]
-    let generator: RandomStringGenerator = try await testedInstance()
+    let generator: RandomStringGenerator = try testedInstance()
     let result: String = generator.generate(
       alphabet,
       3,

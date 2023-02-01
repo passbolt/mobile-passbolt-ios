@@ -29,11 +29,23 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptography> {
 
-  override class var testedImplementationRegister: (FeatureFactory) -> @MainActor () -> Void {
-    FeatureFactory.usePassboltSessionCryptography
+  override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
+
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.usePassboltSessionCryptography()
   }
 
   override func prepare() throws {
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1
+      )
+    )
+
     use(Session.placeholder)
     use(SessionStateEnsurance.placeholder)
     use(SessionAuthorizationState.placeholder)

@@ -22,13 +22,14 @@
 //
 
 import Accounts
+import Display
 import Session
 import UIComponents
 
 internal struct AccountMenuController {
 
   internal let currentAccountWithProfile: AccountWithProfile
-  internal let navigation: ComponentNavigation<Void>
+  internal let navigation: DisplayNavigation
   internal var currentAcountAvatarImagePublisher: @MainActor () -> AnyPublisher<Data?, Never>
   internal var accountsListPublisher:
     () -> AnyPublisher<
@@ -46,19 +47,18 @@ internal struct AccountMenuController {
 
 extension AccountMenuController: UIController {
 
-  internal typealias Context = (
-    accountWithProfile: AccountWithProfile,
-    navigation: ComponentNavigation<Void>
-  )
+  internal typealias Context = AccountWithProfile
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let accounts: Accounts = try await features.instance()
-    let session: Session = try await features.instance()
-    let currentAccountDetails: AccountDetails = try await features.instance(context: context.accountWithProfile.account)
+  ) throws -> Self {
+    let features: Features = features
+    let accounts: Accounts = try features.instance()
+    let session: Session = try features.instance()
+    let currentAccountDetails: AccountDetails = try features.instance(context: context.account)
+    let navigation: DisplayNavigation = try features.instance()
 
     typealias AccountsListItem = (
       accountWithProfile: AccountWithProfile, avatarImagePublisher: AnyPublisher<Data?, Never>
@@ -73,7 +73,7 @@ extension AccountMenuController: UIController {
 
           for storedAccount in accounts.storedAccounts() {
             guard
-              storedAccount != context.accountWithProfile.account,
+              storedAccount != context.account,
               let accountDetails: AccountDetails = try? await features.instance(context: storedAccount),
               let accountWithProfile: AccountWithProfile = try? accountDetails.profile()
             else { continue }  // skip current account
@@ -115,7 +115,7 @@ extension AccountMenuController: UIController {
     let accountDetailsPresentationSubject: PassthroughSubject<AccountWithProfile, Never> = .init()
     func presentAccountDetails() {
       accountDetailsPresentationSubject
-        .send(context.accountWithProfile)
+        .send(context)
     }
 
     func accountDetailsPresentationPublisher() -> AnyPublisher<AccountWithProfile, Never> {
@@ -148,8 +148,8 @@ extension AccountMenuController: UIController {
     }
 
     return Self(
-      currentAccountWithProfile: context.accountWithProfile,
-      navigation: context.navigation,
+      currentAccountWithProfile: context,
+      navigation: navigation,
       currentAcountAvatarImagePublisher: currentAcountAvatarImagePublisher,
       accountsListPublisher: accountsListPublisher,
       dismissPublisher: dismissPublisher,

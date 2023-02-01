@@ -34,7 +34,6 @@ public struct AccountTransfer {
   public var completeTransfer: (Passphrase) -> AnyPublisher<Never, Error>
   public var avatarPublisher: () -> AnyPublisher<Data, Error>
   public var cancelTransfer: () -> Void
-  public var featureUnload: @MainActor () async throws -> Void
 
   public init(
     progressPublisher: @escaping () -> AnyPublisher<Progress, Error>,
@@ -42,8 +41,7 @@ public struct AccountTransfer {
     processPayload: @escaping (String) -> AnyPublisher<Never, Error>,
     completeTransfer: @escaping (Passphrase) -> AnyPublisher<Never, Error>,
     avatarPublisher: @escaping () -> AnyPublisher<Data, Error>,
-    cancelTransfer: @escaping () -> Void,
-    featureUnload: @MainActor @escaping () async throws -> Void
+    cancelTransfer: @escaping () -> Void
   ) {
     self.progressPublisher = progressPublisher
     self.accountDetailsPublisher = accountDetailsPublisher
@@ -51,7 +49,6 @@ public struct AccountTransfer {
     self.completeTransfer = completeTransfer
     self.avatarPublisher = avatarPublisher
     self.cancelTransfer = cancelTransfer
-    self.featureUnload = featureUnload
   }
 }
 
@@ -95,8 +92,7 @@ extension AccountTransfer: LoadableFeature {
       processPayload: unimplemented(),
       completeTransfer: unimplemented(),
       avatarPublisher: unimplemented(),
-      cancelTransfer: unimplemented(),
-      featureUnload: unimplemented()
+      cancelTransfer: unimplemented()
     )
   }
   #endif

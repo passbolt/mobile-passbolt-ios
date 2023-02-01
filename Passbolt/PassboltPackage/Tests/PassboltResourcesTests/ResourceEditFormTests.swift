@@ -35,14 +35,24 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
 
-  override class var testedImplementationRegister: (FeatureFactory) -> @MainActor () -> Void {
-    FeatureFactory.usePassboltResourceEditForm
+  override class var testedImplementationScope: any FeaturesScope.Type { ResourceEditScope.self }
+
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.usePassboltResourceEditForm()
   }
 
-  var cancellables: Cancellables!
-
   override func prepare() throws {
-    self.cancellables = .init()
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1
+      )
+    )
+
+    set(ResourceEditScope.self, context: .mock_1)
     use(Session.placeholder)
     use(Resources.placeholder)
     use(UsersPGPMessages.placeholder)
@@ -54,17 +64,13 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     use(ResourceFolderPermissionsFetchDatabaseOperation.placeholder)
   }
 
-  override func cleanup() throws {
-    self.cancellables = .none
-  }
-
   func test_resourceTypePublisher_fails_whenNoResourceTypesAvailable() async throws {
     patch(
       \ResourceTypesFetchDatabaseOperation.execute,
       with: always([])
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -92,7 +98,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([emptyResourceType])
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -120,7 +126,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -139,7 +145,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -166,7 +172,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -185,7 +191,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -215,7 +221,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -246,7 +252,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -273,7 +279,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -292,7 +298,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -317,7 +323,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -346,7 +352,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultShrinkedResourceType])
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -383,7 +389,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -431,7 +437,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -479,7 +485,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always(.init(resourceID: "resource-id", ownerPermissionID: "permission-id"))
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -506,7 +512,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -541,7 +547,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always(.mock_default)
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -582,7 +588,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       )
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -618,7 +624,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       )
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -659,7 +665,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       )
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -730,7 +736,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       }
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -792,7 +798,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: ResourceEditForm = try await testedInstance()
+    let feature: ResourceEditForm = try testedInstance()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)

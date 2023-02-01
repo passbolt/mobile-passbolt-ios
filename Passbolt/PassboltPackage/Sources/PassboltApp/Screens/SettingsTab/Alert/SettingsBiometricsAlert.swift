@@ -62,7 +62,7 @@ extension DisableBiometricsAlertController: UIController {
 
   internal static func instance(
     in context: @escaping Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
   ) -> DisableBiometricsAlertController {
     Self(

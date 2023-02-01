@@ -23,6 +23,7 @@
 
 import Accounts
 import Display
+import OSFeatures
 import Resources
 import Session
 
@@ -56,39 +57,50 @@ extension ResourceDetailsTagsListController: ViewController {
 
 extension ResourceDetailsTagsListController {
 
-  fileprivate static func load(
-    features: FeatureFactory,
+  @MainActor fileprivate static func load(
+    features: Features,
     context: Resource.ID
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-    let navigation: DisplayNavigation = try await features.instance()
-    let resourceDetails: ResourceDetailsDSV = try await features.instance(
-      of: ResourceDetails.self,
-      context: context
-    )
-    .details()
+  ) throws -> Self {
+    let diagnostics: OSDiagnostics = features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
+
+    let navigation: DisplayNavigation = try features.instance()
+    let resourceDetails: ResourceDetails = try features.instance(context: context)
 
     let viewState: ViewStateBinding<ViewState> = .init(
       initial: .init(
-        resourceName: resourceDetails.name,
-        resourceFavorite: resourceDetails.favorite,
-        tags: resourceDetails.tags
+        resourceName: .init(),
+        resourceFavorite: .init(),
+        tags: .init()
       )
     )
+
+    asyncExecutor.schedule { @MainActor in
+      do {
+        let resourceDetails: ResourceDetailsDSV = try await resourceDetails.details()
+        viewState.resourceName = resourceDetails.name
+        viewState.resourceFavorite = resourceDetails.favorite
+        viewState.tags = resourceDetails.tags
+      }
+      catch {
+        diagnostics.log(error: error)
+      }
+    }
 
     return Self(
       viewState: viewState
     )
   }
 }
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useLiveResourceDetailsTagsListController() {
+  internal mutating func useLiveResourceDetailsTagsListController() {
     self.use(
       .disposable(
         ResourceDetailsTagsListController.self,
         load: ResourceDetailsTagsListController.load(features:context:)
-      )
+      ),
+      in: ResourceDetailsScope.self
     )
   }
 }

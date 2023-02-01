@@ -94,9 +94,9 @@ extension ApplicationLifecycle {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useApplicationLifecycle() {
+  internal mutating func useApplicationLifecycle() {
     self.use(
       ApplicationLifecycle.live
     )

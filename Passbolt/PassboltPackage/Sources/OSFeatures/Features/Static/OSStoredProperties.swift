@@ -103,9 +103,9 @@ private let supportedTypes: Set<ObjectIdentifier> = [
 ]
 #endif
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltSharedOSStoredProperties() {
+  public mutating func usePassboltSharedOSStoredProperties() {
     self.use(
       OSStoredProperties.sharedUserDefaults(suiteName: "group.com.passbolt.mobile")
     )

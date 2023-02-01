@@ -93,7 +93,7 @@ public struct AccountsDataStore {
   }
 }
 
-extension AccountsDataStore: LoadableContextlessFeature {
+extension AccountsDataStore: LoadableFeature {
 
   #if DEBUG
   public static var placeholder: Self {

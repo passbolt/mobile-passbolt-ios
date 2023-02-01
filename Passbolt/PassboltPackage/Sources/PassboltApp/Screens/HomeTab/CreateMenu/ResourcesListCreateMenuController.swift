@@ -61,12 +61,12 @@ extension ResourcesListCreateMenuController: ViewController {
 extension ResourcesListCreateMenuController {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context: Context
-  ) async throws -> Self {
+  ) throws -> Self {
     let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try await features.instance()
-    let navigation: DisplayNavigation = try await features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
+    let navigation: DisplayNavigation = try features.instance()
 
     nonisolated func close() {
       asyncExecutor.schedule(.reuse) { @MainActor in
@@ -127,14 +127,15 @@ extension ResourcesListCreateMenuController {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltResourcesListCreateMenuController() {
+  public mutating func usePassboltResourcesListCreateMenuController() {
     self.use(
       .disposable(
         ResourcesListCreateMenuController.self,
         load: ResourcesListCreateMenuController.load(features:context:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

@@ -30,11 +30,22 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class UsersTests: LoadableFeatureTestCase<Users> {
 
-  override class var testedImplementationRegister: (FeatureFactory) -> @MainActor () -> Void {
-    FeatureFactory.usePassboltUsers
+  override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
+
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.usePassboltUsers()
   }
 
   override func prepare() throws {
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1
+      )
+    )
     use(UserDetailsFetchDatabaseOperation.placeholder)
     use(UsersListFetchDatabaseOperation.placeholder)
   }
@@ -46,7 +57,7 @@ final class UsersTests: LoadableFeatureTestCase<Users> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: Users = try await testedInstance()
+    let feature: Users = try testedInstance()
 
     var result: Error?
     do {
@@ -67,7 +78,7 @@ final class UsersTests: LoadableFeatureTestCase<Users> {
       with: always(expectedResult)
     )
 
-    let feature: Users = try await testedInstance()
+    let feature: Users = try testedInstance()
 
     var result: UserDetailsDSV?
     do {

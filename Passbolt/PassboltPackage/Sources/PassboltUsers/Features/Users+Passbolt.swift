@@ -31,11 +31,12 @@ import struct Foundation.Data
 extension Users {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-    let usersListFetchDatabaseOperation: UsersListFetchDatabaseOperation = try await features.instance()
+  ) throws -> Self {
+    try features.ensureScope(SessionScope.self)
+
+    let usersListFetchDatabaseOperation: UsersListFetchDatabaseOperation = try features.instance()
 
     @Sendable nonisolated func filteredUsers(
       _ filter: UsersFilter
@@ -87,14 +88,15 @@ extension Users {
     )
   }
 }
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltUsers() {
+  public mutating func usePassboltUsers() {
     self.use(
       .lazyLoaded(
         Users.self,
         load: Users.load(features:cancellables:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

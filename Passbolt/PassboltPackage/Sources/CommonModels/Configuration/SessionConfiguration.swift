@@ -21,4 +21,25 @@
 // @since         v1.0
 //
 
-internal typealias FeatureTypeIdentifier = AnyHashable
+public struct SessionConfiguration: Hashable {
+
+  public let foldersEnabled: Bool
+  public let tagsEnabled: Bool
+  public let passwordPreviewEnabled: Bool
+  public let termsURL: URLString?
+  public let privacyPolicyURL: URLString?
+
+  public init(
+    foldersEnabled: Bool,
+    tagsEnabled: Bool,
+    passwordPreviewEnabled: Bool,
+    termsURL: URLString?,
+    privacyPolicyURL: URLString?
+  ) {
+    self.foldersEnabled = foldersEnabled
+    self.tagsEnabled = tagsEnabled
+    self.passwordPreviewEnabled = passwordPreviewEnabled
+    self.termsURL = termsURL
+    self.privacyPolicyURL = privacyPolicyURL
+  }
+}

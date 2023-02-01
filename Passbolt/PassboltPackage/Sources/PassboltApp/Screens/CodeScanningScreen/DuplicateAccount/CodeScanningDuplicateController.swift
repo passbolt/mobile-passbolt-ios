@@ -36,7 +36,7 @@ extension CodeScanningDuplicateController: UIController {
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
   ) -> Self {
     let accountListPresentationSubject: PassthroughSubject<Never, Never> = .init()

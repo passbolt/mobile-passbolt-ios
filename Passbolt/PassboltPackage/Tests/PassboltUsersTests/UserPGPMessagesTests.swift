@@ -31,11 +31,22 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
 
-  override class var testedImplementationRegister: (FeatureFactory) -> @MainActor () -> Void {
-    FeatureFactory.usePassboltUserPGPMessages
+  override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
+
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.usePassboltUserPGPMessages()
   }
 
   override func prepare() throws {
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1
+      )
+    )
     use(Session.placeholder)
     use(SessionCryptography.placeholder)
     use(UsersPublicKeysFetchDatabaseOperation.placeholder)

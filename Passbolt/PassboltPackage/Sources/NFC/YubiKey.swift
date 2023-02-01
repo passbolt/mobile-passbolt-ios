@@ -89,9 +89,9 @@ extension YubiKey {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useYubiKey() {
+  internal mutating func useYubiKey() {
     self.use(
       YubiKey.live
     )

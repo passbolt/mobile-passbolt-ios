@@ -96,14 +96,15 @@ extension ResourceTagsListFetchDatabaseOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceTagsListFetchDatabaseOperation() {
+  internal mutating func usePassboltResourceTagsListFetchDatabaseOperation() {
     self.use(
       FeatureLoader.databaseOperation(
         of: ResourceTagsListFetchDatabaseOperation.self,
         execute: ResourceTagsListFetchDatabaseOperation.execute(_:connection:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

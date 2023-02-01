@@ -62,7 +62,7 @@ public struct Accounts {
   }
 }
 
-extension Accounts: LoadableContextlessFeature {
+extension Accounts: LoadableFeature {
 
   #if DEBUG
   nonisolated public static var placeholder: Self {

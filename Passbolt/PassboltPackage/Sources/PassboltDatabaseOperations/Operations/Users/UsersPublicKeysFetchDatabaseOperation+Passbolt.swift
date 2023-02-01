@@ -104,14 +104,15 @@ extension UsersPublicKeysFetchDatabaseOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltUsersPublicKeysFetchDatabaseOperation() {
+  internal mutating func usePassboltUsersPublicKeysFetchDatabaseOperation() {
     self.use(
       FeatureLoader.databaseOperation(
         of: UsersPublicKeysFetchDatabaseOperation.self,
         execute: UsersPublicKeysFetchDatabaseOperation.execute(_:connection:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

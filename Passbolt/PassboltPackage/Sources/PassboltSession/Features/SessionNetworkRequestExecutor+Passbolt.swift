@@ -31,15 +31,13 @@ import class Foundation.JSONDecoder
 extension SessionNetworkRequestExecutor {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let sessionState: SessionState = try await features.instance()
-    let sessionStateEnsurance: SessionStateEnsurance = try await features.instance()
-    let sessionAuthorizationState: SessionAuthorizationState = try await features.instance()
-    let networkRequestExecutor: NetworkRequestExecutor = try await features.instance()
+  ) throws -> Self {
+    let sessionState: SessionState = try features.instance()
+    let sessionStateEnsurance: SessionStateEnsurance = try features.instance()
+    let sessionAuthorizationState: SessionAuthorizationState = try features.instance()
+    let networkRequestExecutor: NetworkRequestExecutor = try features.instance()
     let jsonDecoder: JSONDecoder = .init()
 
     @SessionActor @Sendable func prepareRequest(
@@ -219,9 +217,9 @@ extension SessionNetworkRequestExecutor {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltSessionNetworkRequestExecutor() {
+  internal mutating func usePassboltSessionNetworkRequestExecutor() {
     self.use(
       .lazyLoaded(
         SessionNetworkRequestExecutor.self,

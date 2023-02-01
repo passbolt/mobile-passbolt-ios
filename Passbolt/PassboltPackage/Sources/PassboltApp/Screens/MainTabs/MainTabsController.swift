@@ -48,23 +48,31 @@ extension MainTabsController {
 
 extension MainTabsController: UIController {
 
-  internal typealias Context = Void
+  internal typealias Context = SessionScope.Context
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let currentAccount: Account = try await features.instance(of: Session.self).currentAccount()
-    let accountInitialSetup: AccountInitialSetup = try await features.instance(context: currentAccount)
+  ) throws -> Self {
+    features =
+      features
+      .branch(
+        scope: SessionScope.self,
+        context: context
+      )
+    let features: Features = features
+    let currentAccount: Account = try features.sessionAccount()
+
+    let accountInitialSetup: AccountInitialSetup = try features.instance(context: currentAccount)
     let osBiometry: OSBiometry = features.instance()
 
     let activeTabSubject: CurrentValueSubject<MainTab, Never> = .init(.home)
     // temporary solution to avoid blinking after authorization
     // preload tabs so after presenting view all will be in place
     let tabs: Array<AnyUIComponent> = [
-      try await UIComponentFactory(features: features).instance(of: HomeTabNavigationViewController.self),
-      try await UIComponentFactory(features: features).instance(of: SettingsTabViewController.self),
+      try UIComponentFactory(features: features).instance(of: HomeTabNavigationViewController.self),
+      try UIComponentFactory(features: features).instance(of: SettingsTabViewController.self),
     ]
 
     func setActiveTab(_ tab: MainTab) {

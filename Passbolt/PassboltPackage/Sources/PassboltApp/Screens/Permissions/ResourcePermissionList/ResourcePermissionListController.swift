@@ -23,6 +23,7 @@
 
 import Accounts
 import DatabaseOperations
+import Display
 import OSFeatures
 import Resources
 import UIComponents
@@ -40,21 +41,22 @@ internal struct ResourcePermissionListController {
 extension ResourcePermissionListController: ComponentController {
 
   internal typealias ControlledView = ResourcePermissionListView
-  internal typealias NavigationContext = Resource.ID
+  internal typealias Context = Resource.ID
 
   @MainActor static func instance(
-    context: NavigationContext,
-    navigation: ComponentNavigation<NavigationContext>,
-    with features: FeatureFactory,
+    in context: Context,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
     let diagnostics: OSDiagnostics = features.instance()
-    let users: Users = try await features.instance()
-    let resourceDetails: ResourceDetails = try await features.instance(context: context)
+    let navigation: DisplayNavigation = try features.instance()
+    let executor: AsyncExecutor = try features.instance()
+    let users: Users = try features.instance()
+    let resourceDetails: ResourceDetails = try features.instance(context: context)
     let resourceUserPermissionsDetailsFetch: ResourceUserPermissionsDetailsFetchDatabaseOperation =
-      try await features.instance()
+      try features.instance()
     let resourceUserGroupPermissionsDetailsFetch: ResourceUserGroupPermissionsDetailsFetchDatabaseOperation =
-      try await features.instance()
+      try features.instance()
 
     func userAvatarImageFetch(
       _ userID: User.ID
@@ -70,40 +72,39 @@ extension ResourcePermissionListController: ComponentController {
       }
     }
 
-    let viewState: ObservableValue<ViewState>
-
-    do {
-      let userGroupPermissionsDetails: Array<PermissionListRowItem> =
-        try await resourceUserGroupPermissionsDetailsFetch(context)
-        .map { details in
-          .userGroup(details: details)
-        }
-
-      let userPermissionsDetails: Array<PermissionListRowItem> =
-        try await resourceUserPermissionsDetailsFetch(context)
-        .map { details in
-          .user(
-            details: details,
-            imageData: userAvatarImageFetch(details.id)
-          )
-        }
-
-      viewState = .init(
-        initial: .init(
-          permissionListItems: userGroupPermissionsDetails + userPermissionsDetails,
-          editable: try await resourceDetails.details().permissionType.canShare
-        )
+    let viewState: ObservableValue<ViewState> = .init(
+      initial: .init(
+        permissionListItems: [],
+        editable: false,
+        snackBarMessage: .none
       )
-    }
-    catch {
-      viewState = .init(
-        initial: .init(
-          permissionListItems: [],
-          editable: false,
-          snackBarMessage: .error(error)
-        )
-      )
-      await navigation.pop(if: ControlledView.self)
+    )
+
+    executor.schedule { @MainActor in
+      do {
+        let userGroupPermissionsDetails: Array<PermissionListRowItem> =
+          try await resourceUserGroupPermissionsDetailsFetch(context)
+          .map { details in
+            .userGroup(details: details)
+          }
+
+        let userPermissionsDetails: Array<PermissionListRowItem> =
+          try await resourceUserPermissionsDetailsFetch(context)
+          .map { details in
+            .user(
+              details: details,
+              imageData: userAvatarImageFetch(details.id)
+            )
+          }
+        let canEdit: Bool = try await resourceDetails.details().permissionType.canShare
+
+        viewState.permissionListItems = userGroupPermissionsDetails + userPermissionsDetails
+        viewState.editable = canEdit
+      }
+      catch {
+        viewState.snackBarMessage = .error(error.asTheError().displayableMessage)
+        await navigation.pop(if: ControlledView.self)
+      }
     }
 
     nonisolated func showUserPermissionDetails(
@@ -111,8 +112,8 @@ extension ResourcePermissionListController: ComponentController {
     ) {
       cancellables.executeOnMainActor {
         await navigation.push(
-          UserPermissionDetailsView.self,
-          in: details
+          legacy: UserPermissionDetailsView.self,
+          context: details
         )
       }
     }
@@ -122,8 +123,8 @@ extension ResourcePermissionListController: ComponentController {
     ) {
       cancellables.executeOnMainActor {
         await navigation.push(
-          UserGroupPermissionDetailsView.self,
-          in: details
+          legacy: UserGroupPermissionDetailsView.self,
+          context: details
         )
       }
     }

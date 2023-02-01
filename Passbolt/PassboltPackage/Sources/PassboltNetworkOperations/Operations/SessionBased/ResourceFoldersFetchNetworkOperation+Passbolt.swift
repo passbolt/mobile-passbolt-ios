@@ -52,9 +52,9 @@ extension ResourceFoldersFetchNetworkOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceFoldersFetchNetworkOperation() {
+  internal mutating func usePassboltResourceFoldersFetchNetworkOperation() {
     self.use(
       .networkOperationWithSession(
         of: ResourceFoldersFetchNetworkOperation.self,

@@ -33,22 +33,20 @@ internal struct HomePresentation {
   internal var availableHomePresentationModes: @MainActor () -> OrderedSet<HomePresentationMode>
 }
 
-extension HomePresentation: LegacyFeature {
+extension HomePresentation: LoadableFeature {
 
-  internal static func load(
-    using features: FeatureFactory,
+  @MainActor internal static func load(
+    using features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let sessionConfiguration: SessionConfiguration = try await features.instance()
-    let session: Session = try await features.instance()
-    let accountPreferences: AccountPreferences = try await features.instance(context: session.currentAccount())
+  ) throws -> Self {
+    let currentAccount: Account = try features.sessionAccount()
+    let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
+
+    let accountPreferences: AccountPreferences = try features.instance(context: currentAccount)
 
     var useLastUsedHomePresentationAsDefault: StateBinding<Bool> = accountPreferences
       .useLastHomePresentationAsDefault
     var defaultHomePresentation: StateBinding<HomePresentationMode> = accountPreferences.defaultHomePresentation
-
-    let foldersConfig: FeatureFlags.Folders = await sessionConfiguration.configuration(for: FeatureFlags.Folders.self)
-    let tagsConfig: FeatureFlags.Tags = await sessionConfiguration.configuration(for: FeatureFlags.Tags.self)
 
     let availablePresentationModes: OrderedSet<HomePresentationMode> = {
       // order is preserved on display
@@ -60,21 +58,13 @@ extension HomePresentation: LegacyFeature {
         .ownedResourcesList,
       ]
 
-      switch foldersConfig {
-      case .disabled:
-        break  // skip
-
-      case .enabled:
+      if sessionConfiguration.foldersEnabled {
         availableModes.append(.foldersExplorer)
-      }
+      }  // else NOP
 
-      switch tagsConfig {
-      case .disabled:
-        break  // skip
-
-      case .enabled:
+      if sessionConfiguration.tagsEnabled {
         availableModes.append(.tagsExplorer)
-      }
+      }  // else NOP
 
       availableModes.append(.resourceUserGroupsExplorer)
 
@@ -142,3 +132,16 @@ extension HomePresentation {
   }
 }
 #endif
+
+extension FeaturesRegistry {
+
+  public mutating func usePassboltHomePresentation() {
+    self.use(
+      .lazyLoaded(
+        HomePresentation.self,
+        load: HomePresentation.load(using:cancellables:)
+      ),
+      in: SessionScope.self
+    )
+  }
+}

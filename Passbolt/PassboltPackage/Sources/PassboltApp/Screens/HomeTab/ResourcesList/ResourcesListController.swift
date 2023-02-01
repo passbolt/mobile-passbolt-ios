@@ -52,11 +52,11 @@ extension ResourcesListController: UIController {
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let sessionData: SessionData = try await features.instance()
-    let resources: Resources = try await features.instance()
+  ) throws -> Self {
+    let sessionData: SessionData = try features.instance()
+    let resources: Resources = try features.instance()
 
     let resourceDetailsIDSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceMenuIDSubject: PassthroughSubject<Resource.ID, Never> = .init()

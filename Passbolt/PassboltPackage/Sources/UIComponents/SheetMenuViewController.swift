@@ -154,7 +154,7 @@ extension SheetMenuController: UIController {
 
   public static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
   ) -> SheetMenuController<Context> {
     Self(

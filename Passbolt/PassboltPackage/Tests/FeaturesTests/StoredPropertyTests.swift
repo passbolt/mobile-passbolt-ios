@@ -27,23 +27,24 @@ import XCTest
 @testable import Features
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class StoredPropertyTests: TestCase {
+final class StoredPropertyTests: LoadableFeatureTestCase<StoredProperty<Int>> {
 
-  override func featuresActorSetUp() async throws {
-    try await super.featuresActorSetUp()
-    self.features.usePassboltStoredProperty(Int.self)
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.usePassboltStoredProperty(Int.self)
   }
 
   func test_get_fetchesPropertyWithExpectedValue() async throws {
     let expectedResult: Int = 42
-    self.features.patch(
+    self.patch(
       \OSStoredProperties.fetch,
       with: { _ in
         expectedResult
       }
     )
 
-    let instance: StoredProperty<Int> = try await self.testedInstance(context: "test")
+    let instance: StoredProperty<Int> = try self.testedInstance(context: "test")
 
     XCTAssertEqual(
       instance.value,
@@ -54,7 +55,7 @@ final class StoredPropertyTests: TestCase {
   func test_get_fetchesPropertyWithExpectedKey() async throws {
     let expectedResult: OSStoredPropertyKey = "test"
     let result: CriticalState<OSStoredPropertyKey?> = .init(.none)
-    self.features.patch(
+    self.patch(
       \OSStoredProperties.fetch,
       with: { key in
         result.set(\.self, key)
@@ -62,7 +63,7 @@ final class StoredPropertyTests: TestCase {
       }
     )
 
-    let instance: StoredProperty<Int> = try await self.testedInstance(context: expectedResult)
+    let instance: StoredProperty<Int> = try self.testedInstance(context: expectedResult)
 
     _ = instance.value
 
@@ -75,18 +76,18 @@ final class StoredPropertyTests: TestCase {
   func test_set_storesPropertyWithExpectedValue() async throws {
     let expectedResult: Int = 42
     let result: CriticalState<Int?> = .init(.none)
-    self.features.patch(
+    self.patch(
       \OSStoredProperties.fetch,
       with: always(result.get(\.self))
     )
-    self.features.patch(
+    self.patch(
       \OSStoredProperties.store,
       with: { _, value in
         result.set(\.self, value as? Int)
       }
     )
 
-    var instance: StoredProperty<Int> = try await self.testedInstance(context: "test")
+    var instance: StoredProperty<Int> = try self.testedInstance(context: "test")
 
     instance.value = expectedResult
 
@@ -99,18 +100,18 @@ final class StoredPropertyTests: TestCase {
   func test_set_storesPropertyWithExpectedKey() async throws {
     let expectedResult: OSStoredPropertyKey = "test"
     let result: CriticalState<OSStoredPropertyKey?> = .init(.none)
-    self.features.patch(
+    self.patch(
       \OSStoredProperties.fetch,
       with: always(result.get(\.self))
     )
-    self.features.patch(
+    self.patch(
       \OSStoredProperties.store,
       with: { key, _ in
         result.set(\.self, key)
       }
     )
 
-    var instance: StoredProperty<Int> = try await self.testedInstance(context: "test")
+    var instance: StoredProperty<Int> = try self.testedInstance(context: "test")
 
     instance.value = 0
 

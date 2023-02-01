@@ -30,13 +30,16 @@ import XCTest
 
 final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
 
-  override class var testedImplementationRegister: (FeatureFactory) -> @MainActor () -> Void {
-    FeatureFactory.usePassboltAccountTransfer
+	override class var testedImplementationScope: any FeaturesScope.Type { AccountTransferScope.self }
+
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.usePassboltAccountTransfer()
   }
 
-  let cancellables: Cancellables = .init()
-
   override func prepare() throws {
+    set(AccountTransferScope.self)
     use(MDMConfiguration.placeholder)
     patch(
       \MDMConfiguration.preconfiguredAccounts,
@@ -55,7 +58,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
 
     var result: AccountTransfer.Progress?
     accountTransfer
@@ -86,7 +89,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
 
     var result: AccountTransfer.Progress?
     accountTransfer
@@ -119,7 +122,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
 
     var result: AccountTransfer.Progress?
     accountTransfer
@@ -161,7 +164,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
 
     var result: Error?
     accountTransfer
@@ -194,7 +197,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
 
     try? await processPart(qrCodePartInvalidPageBytes, using: accountTransfer)
 
@@ -230,7 +233,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
 
     var result: Error?
     accountTransfer
@@ -261,7 +264,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
 
     var result: Error?
     do {
@@ -288,7 +291,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
     )
 
     var result: Void?
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
 
     accountTransfer
       .processPayload(qrCodePart0)
@@ -326,7 +329,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
 
     try? await processPart(qrCodePart0, using: accountTransfer)
 
@@ -355,7 +358,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
 
     // we have to get configuration before
     try? await processPart(qrCodePart0, using: accountTransfer)
@@ -374,7 +377,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
     var result: Error?
 
     accountTransfer
@@ -401,7 +404,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
     var result: Error?
 
     accountTransfer
@@ -428,7 +431,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
     var result: Error?
 
     accountTransfer
@@ -455,7 +458,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
     var result: Error?
 
     accountTransfer
@@ -482,7 +485,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
     var result: Error?
 
     accountTransfer
@@ -513,7 +516,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
     var result: Error?
 
     accountTransfer
@@ -544,7 +547,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
 
     try? await processPart(qrCodePart0InvalidHash, using: accountTransfer)
     try? await processPart(qrCodePart1, using: accountTransfer)
@@ -579,7 +582,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
 
     try? await processPart(qrCodePart0, using: accountTransfer)
     try? await processPart(qrCodePart1Invalid, using: accountTransfer)
@@ -614,7 +617,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
 
     try? await processPart(qrCodePart0, using: accountTransfer)
     try? await processPart(qrCodePart1, using: accountTransfer)
@@ -649,7 +652,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
 
     try? await processPart(qrCodePart0NoHash, using: accountTransfer)
     try? await processPart(qrCodePart1, using: accountTransfer)
@@ -684,7 +687,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
 
     try? await processPart(qrCodePart0, using: accountTransfer)
     try? await processPart(qrCodePart1Modified, using: accountTransfer)
@@ -730,7 +733,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
 
     try? await processPart(qrCodePart0, using: accountTransfer)
 
@@ -753,7 +756,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
 
     try? await processPart(qrCodePart0, using: accountTransfer)
     try? await processPart(qrCodePart1, using: accountTransfer)
@@ -786,7 +789,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
 
     try? await processPart(qrCodePart0, using: accountTransfer)
     var result: Error?
@@ -817,7 +820,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       \Accounts.storedAccounts,
       with: always([transferedAccount])
     )
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
     var result: Error?
 
     accountTransfer
@@ -856,7 +859,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([transferedAccount])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
 
     try? await processPart(qrCodePart0, using: accountTransfer)
 
@@ -877,7 +880,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountTransfer> {
       with: always([transferedAccount])
     )
 
-    let accountTransfer: AccountTransfer = try await testedInstance()
+    let accountTransfer: AccountTransfer = try testedInstance()
 
     var result: Error?
     accountTransfer

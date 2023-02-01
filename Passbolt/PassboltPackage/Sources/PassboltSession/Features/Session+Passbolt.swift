@@ -30,17 +30,16 @@ import Session
 extension Session {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
+  ) throws -> Self {
     let diagnostics: OSDiagnostics = features.instance()
-    let sessionState: SessionState = try await features.instance()
-    let sessionAuthorizationState: SessionAuthorizationState = try await features.instance()
-    let sessionAuthorization: SessionAuthorization = try await features.instance()
-    let sessionMFAAuthorization: SessionMFAAuthorization = try await features.instance()
-    let sessionNetworkAuthorization: SessionNetworkAuthorization = try await features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
+    let sessionState: SessionState = try features.instance()
+    let sessionAuthorizationState: SessionAuthorizationState = try features.instance()
+    let sessionAuthorization: SessionAuthorization = try features.instance()
+    let sessionMFAAuthorization: SessionMFAAuthorization = try features.instance()
+    let sessionNetworkAuthorization: SessionNetworkAuthorization = try features.instance()
 
     @SessionActor func pendingAuthorization() -> SessionAuthorizationRequest? {
       switch sessionState.pendingAuthorization() {
@@ -104,7 +103,8 @@ extension Session {
       sessionAuthorizationState.cancelAuthorization()
       // if we have refresh token, invalidate session
       if let refreshToken: SessionRefreshToken = sessionState.refreshToken() {
-        Task.detached {  // don't wait for the result
+        // don't wait for the result
+        asyncExecutor.schedule(.unmanaged) {
           do {
             try await sessionNetworkAuthorization
               .invalidateSessionTokens(
@@ -120,9 +120,6 @@ extension Session {
       }  // else NOP
       // clear all session data
       sessionState.closedSession()
-      // clear features scope
-      // executed last to postpone any corutine suspend
-      await features.clearScope()
     }
 
     return Self(
@@ -136,9 +133,9 @@ extension Session {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltSession() {
+  internal mutating func usePassboltSession() {
     self.use(
       .lazyLoaded(
         Session.self,

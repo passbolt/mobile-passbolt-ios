@@ -93,14 +93,15 @@ extension ResourceEditDetailsFetchDatabaseOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceEditDetailsFetchDatabaseOperation() {
+  internal mutating func usePassboltResourceEditDetailsFetchDatabaseOperation() {
     self.use(
       FeatureLoader.databaseOperation(
         of: ResourceEditDetailsFetchDatabaseOperation.self,
         execute: ResourceEditDetailsFetchDatabaseOperation.execute(_:connection:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

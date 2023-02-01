@@ -31,16 +31,15 @@ import Session
 extension SessionDatabase {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  ) throws -> Self {
 
     let diagnostics: OSDiagnostics = features.instance()
-    let session: Session = try await features.instance()
-    let sessionState: SessionState = try await features.instance()
-    let sessionStateEnsurance: SessionStateEnsurance = try await features.instance()
-    let databaseAccess: DatabaseAccess = try await features.instance()
+    let session: Session = try features.instance()
+    let sessionState: SessionState = try features.instance()
+    let sessionStateEnsurance: SessionStateEnsurance = try features.instance()
+    let databaseAccess: DatabaseAccess = try features.instance()
 
     @Sendable nonisolated func databaseKey(
       from passphrase: Passphrase
@@ -104,9 +103,9 @@ extension SessionDatabase {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltSessionDatabase() {
+  internal mutating func usePassboltSessionDatabase() {
     self.use(
       .lazyLoaded(
         SessionDatabase.self,

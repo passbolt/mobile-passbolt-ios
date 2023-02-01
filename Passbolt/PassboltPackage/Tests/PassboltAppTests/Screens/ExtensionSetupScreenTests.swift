@@ -36,8 +36,16 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
   var linkOpener: OSLinkOpener!
 
   override func mainActorSetUp() {
-    extensions = .placeholder
-    linkOpener = .placeholder
+    features
+      .set(
+        SessionScope.self,
+        context: .init(
+          account: .mock_ada,
+          configuration: .mock_1
+        )
+      )
+    features.usePlaceholder(for: OSExtensions.self)
+    features.usePlaceholder(for: OSLinkOpener.self)
     features.patch(
       \Session.currentAccount,
       with: always(.mock_ada)
@@ -55,8 +63,6 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
   }
 
   func test_continueSetupPresentationPublisher_doesNotPublishInitially() async throws {
-    await features.use(extensions)
-    await features.use(linkOpener)
     let controller: ExtensionSetupController = try await testController()
 
     var result: Void!
@@ -68,8 +74,6 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
   }
 
   func test_continueSetupPresentationPublisher_publish_afterSkip() async throws {
-    features.use(extensions)
-    features.use(linkOpener)
     features.patch(
       \AccountInitialSetup.completeSetup,
       context: Account.mock_ada,
@@ -89,10 +93,16 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
   }
 
   func test_continueSetupPresentationPublisher_publishes_afterEnablingExtensionInSettings() async throws {
-    extensions.autofillExtensionEnabled = always(true)
-    features.use(extensions)
-    linkOpener.openSystemSettings = always(Just(true).eraseToAnyPublisher())
-    features.use(linkOpener)
+    features
+      .patch(
+        \OSExtensions.autofillExtensionEnabled,
+        with: always(true)
+      )
+    features
+      .patch(
+        \OSLinkOpener.openSystemSettings,
+        with: always(Just(true).eraseToAnyPublisher())
+      )
     features.patch(
       \ApplicationLifecycle.lifecyclePublisher,
       with: always(
@@ -121,10 +131,16 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
   }
 
   func test_continueSetupPresentationPublisher_doesNotPublish_afterExtensionIsNotEnabledInSettings() async throws {
-    extensions.autofillExtensionEnabled = always(false)
-    features.use(extensions)
-    linkOpener.openSystemSettings = always(Just(true).eraseToAnyPublisher())
-    features.use(linkOpener)
+    features
+      .patch(
+        \OSExtensions.autofillExtensionEnabled,
+        with: always(false)
+      )
+    features
+      .patch(
+        \OSLinkOpener.openSystemSettings,
+        with: always(Just(true).eraseToAnyPublisher())
+      )
     features.patch(
       \ApplicationLifecycle.lifecyclePublisher,
       with: always(
@@ -149,14 +165,20 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
   }
 
   func test_setupExtension_opensSystemSettings() async throws {
-    extensions.autofillExtensionEnabled = always(false)
-    features.use(extensions)
+    features
+      .patch(
+        \OSExtensions.autofillExtensionEnabled,
+        with: always(false)
+      )
     var result: Void!
-    linkOpener.openSystemSettings = {
-      result = Void()
-      return Just(true).eraseToAnyPublisher()
-    }
-    features.use(linkOpener)
+    features
+      .patch(
+        \OSLinkOpener.openSystemSettings,
+        with: {
+          result = Void()
+          return Just(true).eraseToAnyPublisher()
+        }
+      )
     features.patch(
       \ApplicationLifecycle.lifecyclePublisher,
       with: always(

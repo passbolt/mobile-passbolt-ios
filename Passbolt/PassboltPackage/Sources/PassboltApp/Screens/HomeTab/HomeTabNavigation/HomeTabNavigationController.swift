@@ -35,11 +35,11 @@ extension HomeTabNavigationController: UIController {
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let homePresentation: HomePresentation = try await features.instance()
-    let applicationRate: ApplicationRating = try await features.instance()
+  ) throws -> Self {
+    let homePresentation: HomePresentation = try features.instance()
+    let applicationRate: ApplicationRating = try features.instance()
 
     func currentHomePresentationModePublisher() -> AnyPublisher<HomePresentationMode, Never> {
       homePresentation.currentPresentationModePublisher()

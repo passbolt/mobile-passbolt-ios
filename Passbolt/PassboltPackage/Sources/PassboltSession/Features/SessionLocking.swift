@@ -47,16 +47,14 @@ extension SessionLocking: LoadableFeature {
 extension SessionLocking {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context account: Account,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-    await features.assertScope(identifier: account)
-    let asyncExecutor: AsyncExecutor = try await features.instance()
+  ) throws -> Self {
+    let asyncExecutor: AsyncExecutor = try features.instance()
     let appLifecycle: ApplicationLifecycle = features.instance()
-    let sesionState: SessionState = try await features.instance()
-
+    let sesionState: SessionState = try features.instance()
+    #warning("TODO: FIXME: scopes! - it should be only in session scope but it is trigerred from authorization, it has to be adjusting to session state")
     let observationStart: Once = .init {
       appLifecycle
         .lifecyclePublisher()
@@ -96,9 +94,9 @@ extension SessionLocking {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltSessionLocking() {
+  internal mutating func usePassboltSessionLocking() {
     self.use(
       .lazyLoaded(
         SessionLocking.self,

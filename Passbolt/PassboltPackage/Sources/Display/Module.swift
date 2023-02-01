@@ -27,9 +27,9 @@
 @_exported import SwiftUI
 @_exported import UIComponents  // LegacyBridge only
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  public func useLiveDisplay() {
+  public mutating func useLiveDisplay() {
     self.useLiveLegacyNavigationBridge()
     self.useLiveDisplayNavigation()
   }

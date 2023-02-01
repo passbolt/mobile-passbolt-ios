@@ -38,10 +38,10 @@ extension YubiKeyController: UIController {
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> YubiKeyController {
-    let session: Session = try await features.instance()
+  ) throws -> YubiKeyController {
+    let session: Session = try features.instance()
     let rememberDeviceSubject: CurrentValueSubject<Bool, Never> = .init(true)
 
     func toggleRememberDevice() {

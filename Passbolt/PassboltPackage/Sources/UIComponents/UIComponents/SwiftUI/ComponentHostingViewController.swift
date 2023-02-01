@@ -28,7 +28,7 @@ import UICommons
 public final class ComponentHostingViewController<HostedView>: UIViewController, SwiftUIComponent
 where HostedView: ComponentView {
 
-  public typealias Controller = ComponentHostingController<HostedView.Controller.NavigationContext>
+  public typealias Controller = ComponentHostingController<HostedView.Controller>
 
   @MainActor public static func instance(
     using controller: Controller,
@@ -71,21 +71,7 @@ where HostedView: ComponentView {
       .backgroundColor(.passboltBackground)
     }
     self.cancellables.executeOnMainActor {
-      let controller: HostedView.Controller
-      do {
-        controller = try await self.components
-          .controller(
-            HostedView.Controller.self,
-            context: self.controller.componentNavigation(using: self),
-            cancellables: self.cancellables
-          )
-      }
-      catch {
-        error
-          .asTheError()
-          .asAssertionFailure()
-        return await self.pop(if: Self.self)
-      }
+      let controller: HostedView.Controller = self.controller.hostedController
 
       let hostingController: UIHostingController<HostedView> = .init(
         rootView: HostedView(

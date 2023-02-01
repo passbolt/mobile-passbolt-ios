@@ -22,3 +22,21 @@
 //
 
 @_exported import Session
+
+extension FeaturesRegistry {
+
+  public mutating func usePassboltSessionModule() {
+    self.usePassboltSessionState()
+    self.usePassboltSessionAuthorizationState()
+    self.usePassboltSessionStateEnsurance()
+    self.usePassboltSessionPassphrase()
+    self.usePassboltSessionNetworkRequestExecutor()
+    self.usePassboltSessionDatabase()
+    self.usePassboltSessionCryptography()
+    self.usePassboltSession()
+    self.usePassboltSessionAuthorization()
+    self.usePassboltSessionNetworkAuthorization()
+    self.usePassboltSessionMFAAuthorization()
+    self.usePassboltSessionLocking()
+  }
+}

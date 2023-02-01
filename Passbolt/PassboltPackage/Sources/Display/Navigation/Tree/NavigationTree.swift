@@ -155,16 +155,17 @@ extension NavigationTree {
   @MainActor public func replaceRoot<Component>(
     with componentType: Component.Type,
     context: Component.Controller.Context,
-    using features: FeatureFactory
+    using features: Features
   ) async -> NavigationNodeID
   where Component: UIComponent {
     let nodeID: NavigationNodeID = .init()
     let cancellables: Cancellables = .init()
     let controller: Component.Controller
+    var features: Features = features
     do {
       controller = try await .instance(
         in: context,
-        with: features,
+        with: &features,
         cancellables: cancellables
       )
     }
@@ -195,16 +196,17 @@ extension NavigationTree {
   @MainActor public func replaceRoot<Component>(
     pushing componentType: Component.Type,
     context: Component.Controller.Context,
-    using features: FeatureFactory
+    using features: Features
   ) async -> NavigationNodeID
   where Component: UIComponent {
     let nodeID: NavigationNodeID = .init()
     let cancellables: Cancellables = .init()
     let controller: Component.Controller
+    var features: Features = features
     do {
       controller = try await .instance(
         in: context,
-        with: features,
+        with: &features,
         cancellables: cancellables
       )
     }
@@ -238,16 +240,17 @@ extension NavigationTree {
   @MainActor public func push<Component>(
     _ componentType: Component.Type,
     context: Component.Controller.Context,
-    using features: FeatureFactory
+    using features: Features
   ) async -> NavigationNodeID
   where Component: UIComponent {
     let nodeID: NavigationNodeID = .init()
     let cancellables: Cancellables = .init()
     let controller: Component.Controller
+    var features: Features = features
     do {
       controller = try await .instance(
         in: context,
-        with: features,
+        with: &features,
         cancellables: cancellables
       )
     }
@@ -281,16 +284,17 @@ extension NavigationTree {
     _ presentation: NavigationTreeOverlayPresentation = .sheet,
     _ componentType: Component.Type,
     context: Component.Controller.Context,
-    using features: FeatureFactory
+    using features: Features
   ) async -> NavigationNodeID
   where Component: UIComponent {
     let nodeID: NavigationNodeID = .init()
     let cancellables: Cancellables = .init()
     let controller: Component.Controller
+    var features: Features = features
     do {
       controller = try await .instance(
         in: context,
-        with: features,
+        with: &features,
         cancellables: cancellables
       )
     }
@@ -325,16 +329,17 @@ extension NavigationTree {
     _ presentation: NavigationTreeOverlayPresentation = .sheet,
     pushing componentType: Component.Type,
     context: Component.Controller.Context,
-    using features: FeatureFactory
+    using features: Features
   ) async -> NavigationNodeID
   where Component: UIComponent {
     let nodeID: NavigationNodeID = .init()
     let cancellables: Cancellables = .init()
     let controller: Component.Controller
+    var features: Features = features
     do {
       controller = try await .instance(
         in: context,
-        with: features,
+        with: &features,
         cancellables: cancellables
       )
     }
@@ -367,7 +372,7 @@ extension NavigationTree {
 
 extension NavigationTree {
 
-  @MainActor fileprivate static func liveNavigationTree(
+  fileprivate static func liveNavigationTree(
     from root: NavigationTreeRootViewAnchor
   ) -> Self {
     let initializationViewNodeController: InitializationViewNode.Controller = .init()
@@ -384,19 +389,21 @@ extension NavigationTree {
       )
     )
 
-    root.setRoot(
-      NavigationTreeRootView(
-        navigationTree: navigationTree
+    Task { @MainActor in
+      root.setRoot(
+        NavigationTreeRootView(
+          navigationTree: navigationTree
+        )
       )
-    )
+    }
 
     return navigationTree
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func useLiveNavigationTree(
+  public mutating func useLiveNavigationTree(
     from root: NavigationTreeRootViewAnchor
   ) {
     self.use(

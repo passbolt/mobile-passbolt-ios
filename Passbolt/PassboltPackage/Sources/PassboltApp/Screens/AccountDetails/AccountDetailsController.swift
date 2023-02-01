@@ -41,12 +41,13 @@ extension AccountDetailsController: UIController {
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    await features.assertScope(identifier: context.account)
-    let accountDetails: AccountDetails = try await features.instance(context: context.account)
-    let accountPreferences: AccountPreferences = try await features.instance(context: context.account)
+  ) throws -> Self {
+    try features.ensureScope(SessionScope.self)
+
+    let accountDetails: AccountDetails = try features.instance(context: context.account)
+    let accountPreferences: AccountPreferences = try features.instance(context: context.account)
 
     let accountLabelValidator: Validator<String> =
       .maxLength(

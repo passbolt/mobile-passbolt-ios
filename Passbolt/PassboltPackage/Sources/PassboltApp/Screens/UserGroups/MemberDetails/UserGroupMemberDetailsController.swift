@@ -34,16 +34,15 @@ internal struct UserGroupMemberDetailsController {
 extension UserGroupMemberDetailsController: ComponentController {
 
   internal typealias ControlledView = UserGroupMemberDetailsView
-  internal typealias NavigationContext = UserDetailsDSV
+  internal typealias Context = UserDetailsDSV
 
   @MainActor static func instance(
-    context: NavigationContext,
-    navigation: ComponentNavigation<NavigationContext>,
-    with features: FeatureFactory,
+    in context: Context,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
     let diagnostics: OSDiagnostics = features.instance()
-    let users: Users = try await features.instance()
+    let users: Users = try features.instance()
 
     func userAvatarImageFetch(
       _ userID: User.ID

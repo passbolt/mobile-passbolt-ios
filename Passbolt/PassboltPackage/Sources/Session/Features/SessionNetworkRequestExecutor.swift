@@ -45,7 +45,7 @@ public struct SessionNetworkRequestExecutor {
   }
 }
 
-extension SessionNetworkRequestExecutor: LoadableContextlessFeature {
+extension SessionNetworkRequestExecutor: LoadableFeature {
 
   #if DEBUG
   public nonisolated static var placeholder: Self {

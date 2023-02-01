@@ -32,12 +32,12 @@ import PassboltApp
 internal struct Application {
   
   internal let ui: UI
-  private let features: FeatureFactory
+  private let features: Features
   
   internal init() {
-    let features: FeatureFactory = .init()
-    // register features implementations
-    features.usePassboltFeatures()
+		let features: Features = FeaturesFactory { (registry: inout FeaturesRegistry) in
+			registry.usePassboltFeatures()
+		}
     self.ui = UI(features: features)
     self.features = features
   }
@@ -46,16 +46,14 @@ internal struct Application {
 extension Application {
   
   internal func initialize() -> Bool {
-    Task { @MainActor in
-      do {
-      try await features.instance(of: Initialization.self).initialize()
-      }
-      catch {
-        error
-          .asTheError()
-          .asFatalError()
-      }
-    }
+		do {
+			try features.instance(of: Initialization.self).initialize()
+		}
+		catch {
+			error
+				.asTheError()
+				.asFatalError()
+		}
     return true
   }
 }

@@ -35,7 +35,6 @@ public struct ResourceShareForm {
   public var setUserGroupPermission: @Sendable (UserGroup.ID, PermissionType) async -> Void
   public var deleteUserGroupPermission: @Sendable (UserGroup.ID) async -> Void
   public var sendForm: @Sendable () async throws -> Void
-  public var cancelForm: @Sendable () async -> Void
 
   public init(
     permissionsSequence: @escaping () -> AnyAsyncSequence<OrderedSet<ResourceShareFormPermission>>,
@@ -44,8 +43,7 @@ public struct ResourceShareForm {
     deleteUserPermission: @escaping @Sendable (User.ID) async -> Void,
     setUserGroupPermission: @escaping @Sendable (UserGroup.ID, PermissionType) async -> Void,
     deleteUserGroupPermission: @escaping @Sendable (UserGroup.ID) async -> Void,
-    sendForm: @escaping @Sendable () async throws -> Void,
-    cancelForm: @escaping @Sendable () async -> Void
+    sendForm: @escaping @Sendable () async throws -> Void
   ) {
     self.permissionsSequence = permissionsSequence
     self.currentPermissions = currentPermissions
@@ -54,7 +52,6 @@ public struct ResourceShareForm {
     self.setUserGroupPermission = setUserGroupPermission
     self.deleteUserGroupPermission = deleteUserGroupPermission
     self.sendForm = sendForm
-    self.cancelForm = cancelForm
   }
 }
 
@@ -72,8 +69,7 @@ extension ResourceShareForm: LoadableFeature {
       deleteUserPermission: unimplemented(),
       setUserGroupPermission: unimplemented(),
       deleteUserGroupPermission: unimplemented(),
-      sendForm: unimplemented(),
-      cancelForm: unimplemented()
+      sendForm: unimplemented()
     )
   }
   #endif

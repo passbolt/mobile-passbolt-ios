@@ -49,14 +49,15 @@ extension ResourceSetFavoriteDatabaseOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceSetFavoriteDatabaseOperation() {
+  internal mutating func usePassboltResourceSetFavoriteDatabaseOperation() {
     self.use(
       FeatureLoader.databaseOperationWithTransaction(
         of: ResourceSetFavoriteDatabaseOperation.self,
         execute: ResourceSetFavoriteDatabaseOperation.execute(_:connection:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

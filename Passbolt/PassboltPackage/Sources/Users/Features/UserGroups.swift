@@ -54,7 +54,7 @@ public struct UserGroups {
   }
 }
 
-extension UserGroups: LoadableContextlessFeature {
+extension UserGroups: LoadableFeature {
 
   #if DEBUG
 

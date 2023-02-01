@@ -52,9 +52,9 @@ extension ResourceCreateNetworkOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceCreateNetworkOperation() {
+  internal mutating func usePassboltResourceCreateNetworkOperation() {
     self.use(
       .networkOperationWithSession(
         of: ResourceCreateNetworkOperation.self,

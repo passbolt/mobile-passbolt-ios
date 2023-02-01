@@ -39,11 +39,11 @@ extension ExtensionSetupController: UIController {
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let currentAccount: Account = try await features.instance(of: Session.self).currentAccount()
-    let accountInitialSetup: AccountInitialSetup = try await features.instance(context: currentAccount)
+  ) throws -> Self {
+    let currentAccount: Account = try features.sessionAccount()
+    let accountInitialSetup: AccountInitialSetup = try features.instance(context: currentAccount)
     let extensions: OSExtensions = features.instance()
     let applicationLifecycle: ApplicationLifecycle = features.instance()
     let linkOpener: OSLinkOpener = features.instance()

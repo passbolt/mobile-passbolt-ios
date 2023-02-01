@@ -29,7 +29,7 @@ public struct DisplayNavigation {
   internal var legacyBridge: LegacyNavigationBridge
 }
 
-extension DisplayNavigation: LoadableContextlessFeature {
+extension DisplayNavigation: LoadableFeature {
 
   #if DEBUG
   public static var placeholder: Self {
@@ -68,7 +68,7 @@ extension DisplayNavigation {
 
   @MainActor public func push<PushedLegacyComponent>(
     legacy type: PushedLegacyComponent.Type,
-    context: PushedLegacyComponent.Controller.NavigationContext
+    context: PushedLegacyComponent.Controller.Context
   ) async where PushedLegacyComponent: ComponentView {
     await self.legacyBridge
       .bridgeComponent()?
@@ -134,8 +134,8 @@ extension DisplayNavigation {
   ) async where DisplayComponent: ControlledView {
     await self.legacyBridge
       .bridgeComponent()?
-      .dismiss(
-        SheetViewController<DisplayViewBridge<DisplayComponent>>.self,
+      .dismissSheet(
+        DisplayComponent.self,
         animated: animated
       )
   }
@@ -151,16 +151,178 @@ extension DisplayNavigation {
         with: arguments
       )
   }
+
+  @MainActor public func dismiss<Component>(
+    _ type: Component.Type,
+    animated: Bool = true
+  ) async where Component: UIComponent {
+    await self.legacyBridge
+      .bridgeComponent()?
+      .dismiss(
+        Component.self,
+        animated: animated
+      )
+  }
+
+  @MainActor public func dismiss<Component>(
+    _ type: Component.Type,
+    animated: Bool = true
+  ) async where Component: ComponentView {
+    await self.legacyBridge
+      .bridgeComponent()?
+      .dismiss(
+        Component.self,
+        animated: animated
+      )
+  }
+
+  @MainActor public func pop<Component>(
+    if type: Component.Type,
+    animated: Bool = true
+  ) async where Component: ComponentView {
+    await self.legacyBridge
+      .bridgeComponent()?
+      .pop(
+        if: Component.self,
+        animated: animated
+      )
+  }
+
+  @MainActor public func pop<Component>(
+    if type: Component.Type,
+    animated: Bool = true
+  ) async where Component: UIComponent {
+    await self.legacyBridge
+      .bridgeComponent()?
+      .pop(
+        if: Component.self,
+        animated: animated
+      )
+  }
+
+  @MainActor public func presentSheetMenu<Component>(
+    _ type: Component.Type,
+    in context: SheetMenuViewController<Component>.Controller.Context,
+    animated: Bool = true
+  ) async where Component: UIComponent {
+    await self.legacyBridge
+      .bridgeComponent()?
+      .presentSheetMenu(
+        type,
+        in: context,
+        animated: animated
+      )
+  }
+
+  @MainActor public func presentSheetMenu<Component>(
+    _ type: Component.Type,
+    in context: SheetMenuViewController<Component>.Controller.Context,
+    animated: Bool = true
+  ) async where Component: ComponentView {
+    await self.legacyBridge
+      .bridgeComponent()?
+      .presentSheetMenu(
+        type,
+        in: context,
+        animated: animated
+      )
+  }
+
+  @MainActor public func presentSheet<DisplayComponent>(
+    _ type: DisplayComponent.Type,
+    controller: DisplayComponent.Controller,
+    animated: Bool = true
+  ) async where DisplayComponent: ControlledView {
+    await self.legacyBridge
+      .bridgeComponent()?
+      .presentSheet(
+        type,
+        controller: controller,
+        animated: animated
+      )
+  }
+
+  @MainActor public func present<Component>(
+    _ type: Component.Type,
+    in context: Component.Controller.Context,
+    animated: Bool = true
+  ) async where Component: UIComponent {
+    await self.legacyBridge
+      .bridgeComponent()?
+      .present(
+        type,
+        in: context,
+        animated: animated
+      )
+  }
+
+  @MainActor public func present<Component>(
+    _ type: Component.Type,
+    in context: Component.Controller.Context,
+    animated: Bool = true
+  ) async where Component: ComponentView {
+    await self.legacyBridge
+      .bridgeComponent()?
+      .present(
+        type,
+        in: context,
+        animated: animated
+      )
+  }
+
+  @MainActor public func presentSheet<Component>(
+    _ type: Component.Type,
+    in context: Component.Controller.Context,
+    animated: Bool = true
+  ) async where Component: ComponentView {
+    await self.legacyBridge
+      .bridgeComponent()?
+      .presentSheet(
+        type,
+        in: context,
+        animated: animated
+      )
+  }
+
+  @MainActor public func presentSheet<Component>(
+    _ type: Component.Type,
+    in context: Component.Controller.Context,
+    animated: Bool = true
+  ) async where Component: UIComponent {
+    await self.legacyBridge
+      .bridgeComponent()?
+      .presentSheet(
+        type,
+        in: context,
+        animated: animated
+      )
+  }
+
+  @MainActor public func replace<Component, ReplacedComponent>(
+    _: ReplacedComponent.Type,
+    pushing type: Component.Type,
+    in context: Component.Controller.Context,
+    animated: Bool = true
+  ) async where Component: ComponentView, ReplacedComponent: ComponentView {
+    await self.legacyBridge
+      .bridgeComponent()?
+      .replace(
+        ReplacedComponent.self,
+        pushing: type,
+        in: context,
+        animated: animated
+      )
+  }
 }
 
 extension DisplayNavigation {
 
-  fileprivate static func load(
-    features: FeatureFactory,
+  @MainActor fileprivate static func load(
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-    let legacyBridge: LegacyNavigationBridge = try await features.instance()
+  ) throws -> Self {
+
+    let legacyBridge: LegacyNavigationBridge = try features.instance()
 
     return DisplayNavigation(
       legacyBridge: legacyBridge
@@ -168,9 +330,9 @@ extension DisplayNavigation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useLiveDisplayNavigation() {
+  internal mutating func useLiveDisplayNavigation() {
     self.use(
       .lazyLoaded(
         DisplayNavigation.self,

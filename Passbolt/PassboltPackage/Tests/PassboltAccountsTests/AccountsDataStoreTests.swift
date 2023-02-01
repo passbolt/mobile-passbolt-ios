@@ -28,8 +28,10 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
 
-  override class var testedImplementationRegister: (FeatureFactory) -> @MainActor () -> Void {
-    FeatureFactory.usePassboltAccountsDataStore
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.usePassboltAccountsDataStore()
   }
 
   var mockPreferencesStore: Dictionary<OSPreferences.Key, Any>!
@@ -127,7 +129,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       with: always(.success([validAccountKeychainData]))
     )
 
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     let result: Array<Account> = dataStore.loadAccounts()
 
@@ -140,7 +142,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       with: always(.success([Data([65, 66, 67]), validAccountKeychainData]))
     )
 
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     let result: Array<Account> = dataStore.loadAccounts()
 
@@ -153,7 +155,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       with: always(.failure(MockIssue.error()))
     )
 
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     let result: Array<Account> = dataStore.loadAccounts()
 
@@ -170,7 +172,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       with: always(Account.mock_ada.localID.rawValue)
     )
 
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     let result: Account? = dataStore.loadLastUsedAccount()
 
@@ -187,7 +189,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       with: always(Account.mock_ada.localID.rawValue)
     )
 
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     let result: Account? = dataStore.loadLastUsedAccount()
 
@@ -204,7 +206,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       with: always(Account.mock_ada.localID.rawValue)
     )
 
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     let result: Account? = dataStore.loadLastUsedAccount()
 
@@ -221,7 +223,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       with: always(nil)
     )
 
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     let result: Account? = dataStore.loadLastUsedAccount()
 
@@ -237,7 +239,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       }
     )
 
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     dataStore.storeLastUsedAccount(Account.mock_ada.localID)
 
@@ -248,7 +250,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
   }
 
   func test_storeAccount_savesDataProperly() async throws {
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     let result: Result<Void, Error> = await .async {
       try dataStore.storeAccount(
@@ -275,7 +277,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       with: always(.failure(MockIssue.error()))
     )
 
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     let result: Result<Void, Error> = await .async {
       try dataStore.storeAccount(
@@ -294,7 +296,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       with: always(.failure(MockIssue.error()))
     )
 
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     _ = try? dataStore.storeAccount(Account.mock_ada, AccountProfile.mock_ada, validPrivateKey)
 
@@ -333,7 +335,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       ),
     ]
 
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     dataStore.deleteAccount(Account.mock_ada.localID)
 
@@ -375,7 +377,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       ),
     ]
 
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     dataStore.deleteAccount(Account.mock_ada.localID)
 
@@ -395,7 +397,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       }
     )
 
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     _ = try? dataStore.storeServerFingerprint(Account.mock_ada.localID, serverFingerprint)
 
@@ -408,7 +410,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       with: always(.failure(MockIssue.error()))
     )
 
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     let result: Result<Void, Error> = await .async {
       try dataStore.storeServerFingerprint(Account.mock_ada.localID, serverFingerprint)
@@ -418,7 +420,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
   }
 
   func test_verifyDataIntegrity_succeedsWithNoData() async throws {
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     let result: Result<Void, Error> = await .async {
       try dataStore.verifyDataIntegrity()
@@ -447,7 +449,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
         )
       ),
     ]
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     let result: Result<Void, Error> = await .async {
       try dataStore.verifyDataIntegrity()
@@ -484,7 +486,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
         )
       ),
     ]
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     _ = try? dataStore.verifyDataIntegrity()
 
@@ -518,7 +520,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
         )
       ),
     ]
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     let result: Result<Void, Error> = await .async {
       try dataStore.verifyDataIntegrity()
@@ -548,7 +550,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       )
     ]
 
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     let result: Result<Void, Error> = await .async {
       try await dataStore.verifyDataIntegrity()
@@ -578,7 +580,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       )
     ]
 
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     let result: Result<Void, Error> = await .async {
       try dataStore.verifyDataIntegrity()
@@ -626,7 +628,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
         )
       ),
     ]
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     _ = try? dataStore.verifyDataIntegrity()
 
@@ -647,7 +649,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
         )
       )
     ]
-    let dataStore: AccountsDataStore = try await testedInstance()
+    let dataStore: AccountsDataStore = try testedInstance()
 
     let result: Result<Void, Error> = await .async {
       try dataStore.verifyDataIntegrity()

@@ -31,11 +31,9 @@ import struct Foundation.URL
 extension DatabaseAccess {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
+  ) throws -> Self {
     let diagnostics: OSDiagnostics = features.instance()
     let osFiles: OSFiles = features.instance()
 
@@ -120,9 +118,9 @@ extension DatabaseAccess {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltDatabaseAccess() {
+  internal mutating func usePassboltDatabaseAccess() {
     self.use(
       .lazyLoaded(
         DatabaseAccess.self,

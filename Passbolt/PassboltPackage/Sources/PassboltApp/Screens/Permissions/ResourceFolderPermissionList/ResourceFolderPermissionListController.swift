@@ -62,19 +62,19 @@ extension ResourceFolderPermissionListController: ViewController {
 extension ResourceFolderPermissionListController {
 
   @MainActor static func load(
-    features: FeatureFactory,
+    features: Features,
     context: Context
-  ) async throws -> Self {
+  ) throws -> Self {
     let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try await features.instance()
-    let navigation: DisplayNavigation = try await features.instance()
-    let users: Users = try await features.instance()
-    let resourceFolderDetails: ResourceFolderDetails = try await features.instance(context: context)
+    let asyncExecutor: AsyncExecutor = try features.instance()
+    let navigation: DisplayNavigation = try features.instance()
+    let users: Users = try features.instance()
+    let resourceFolderDetails: ResourceFolderDetails = try features.instance(context: context)
     let resourceFolderUserPermissionsDetailsFetch: ResourceFolderUserPermissionsDetailsFetchDatabaseOperation =
-      try await features.instance()
+      try features.instance()
     let resourceFolderUserGroupPermissionsDetailsFetch:
       ResourceFolderUserGroupPermissionsDetailsFetchDatabaseOperation =
-        try await features.instance()
+        try features.instance()
 
     func userAvatarImageFetch(
       _ userID: User.ID
@@ -90,42 +90,36 @@ extension ResourceFolderPermissionListController {
       }
     }
 
-    let viewState: ViewStateBinding<ViewState>
-
-    do {
-      let userGroupPermissionsDetails: Array<PermissionListRowItem> =
-        try await resourceFolderUserGroupPermissionsDetailsFetch(context)
-        .map { details in
-          .userGroup(details: details)
-        }
-
-      let userPermissionsDetails: Array<PermissionListRowItem> =
-        try await resourceFolderUserPermissionsDetailsFetch(context)
-        .map { details in
-          .user(
-            details: details,
-            imageData: userAvatarImageFetch(details.id)
-          )
-        }
-
-      viewState = .init(
-        initial: .init(
-          permissionListItems: userGroupPermissionsDetails + userPermissionsDetails
-        )
+    let viewState: ViewStateBinding<ViewState> = .init(
+      initial: .init(
+        permissionListItems: [],
+        snackBarMessage: .none
       )
-    }
-    catch {
-      viewState = .init(
-        initial: .init(
-          permissionListItems: [],
-          snackBarMessage: .error(error)
-        )
-      )
-      diagnostics.log(error: error)
-      await navigation.pop(ResourceFolderPermissionListView.self)
-    }
-    viewState.cancellables.addCleanup {
-      asyncExecutor.clearTasks()
+    )
+
+    asyncExecutor.schedule { @MainActor in
+      do {
+        let userGroupPermissionsDetails: Array<PermissionListRowItem> =
+          try await resourceFolderUserGroupPermissionsDetailsFetch(context)
+          .map { details in
+            .userGroup(details: details)
+          }
+
+        let userPermissionsDetails: Array<PermissionListRowItem> =
+          try await resourceFolderUserPermissionsDetailsFetch(context)
+          .map { details in
+            .user(
+              details: details,
+              imageData: userAvatarImageFetch(details.id)
+            )
+          }
+
+        viewState.permissionListItems = userGroupPermissionsDetails + userPermissionsDetails
+      }
+      catch {
+        diagnostics.log(error: error)
+        await navigation.pop(ResourceFolderPermissionListView.self)
+      }
     }
 
     nonisolated func showUserPermissionDetails(
@@ -165,14 +159,15 @@ extension ResourceFolderPermissionListController {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltResourceFolderPermissionListController() {
+  public mutating func usePassboltResourceFolderPermissionListController() {
     self.use(
       .disposable(
         ResourceFolderPermissionListController.self,
         load: ResourceFolderPermissionListController.load(features:context:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

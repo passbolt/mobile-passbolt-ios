@@ -77,6 +77,16 @@ extension ResourceFolderEditForm: LoadableFeature {
 
     case create(containingFolderID: ResourceFolder.ID?)
     case modify(folderID: ResourceFolder.ID)
+
+    public var editedFolderID: ResourceFolder.ID? {
+      switch self {
+      case .modify(let folderID):
+        return folderID
+
+      case .create:
+        return .none
+      }
+    }
   }
 
   #if DEBUG

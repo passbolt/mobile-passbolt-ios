@@ -29,13 +29,13 @@ import OSFeatures
 extension AccountInitialSetup {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context: Context
-  ) async throws -> Self {
-    let accountPreferences: AccountPreferences = try await features.instance(context: context)
+  ) throws -> Self {
+    let accountPreferences: AccountPreferences = try features.instance(context: context)
 
     #warning("TODO: refine with account related storage")
-    let unfinishedSetupElementsProperty: StoredProperty<Array<String>> = try await features.instance(
+    let unfinishedSetupElementsProperty: StoredProperty<Array<String>> = try features.instance(
       context: "unfinishedSetup-\(context.localID)"
     )
 
@@ -97,14 +97,15 @@ extension AccountInitialSetup {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltAccountInitialSetup() {
+  public mutating func usePassboltAccountInitialSetup() {
     self.use(
       .disposable(
         AccountInitialSetup.self,
         load: AccountInitialSetup.load(features:context:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

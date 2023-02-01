@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import Display
 import OSFeatures
 import Resources
 import UIComponents
@@ -40,20 +41,20 @@ internal struct UserGroupPermissionEditController {
 extension UserGroupPermissionEditController: ComponentController {
 
   internal typealias ControlledView = UserGroupPermissionEditView
-  internal typealias NavigationContext = (
+  internal typealias Context = (
     resourceID: Resource.ID,
     permissionDetails: UserGroupPermissionDetailsDSV
   )
 
   @MainActor static func instance(
-    context: NavigationContext,
-    navigation: ComponentNavigation<NavigationContext>,
-    with features: FeatureFactory,
+    in context: Context,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
     let diagnostics: OSDiagnostics = features.instance()
-    let users: Users = try await features.instance()
-    let resourceShareForm: ResourceShareForm = try await features.instance(context: context.resourceID)
+    let navigation: DisplayNavigation = try features.instance()
+    let users: Users = try features.instance()
+    let resourceShareForm: ResourceShareForm = try features.instance(context: context.resourceID)
 
     nonisolated func userAvatarImageFetch(
       _ userID: User.ID
@@ -89,8 +90,8 @@ extension UserGroupPermissionEditController: ComponentController {
       cancellables.executeOnMainActor {
         await navigation
           .push(
-            UserGroupMembersListView.self,
-            in: context.permissionDetails.asUserGroupDetails
+            legacy: UserGroupMembersListView.self,
+            context: context.permissionDetails.asUserGroupDetails
           )
       }
     }

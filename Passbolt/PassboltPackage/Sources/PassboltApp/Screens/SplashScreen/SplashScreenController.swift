@@ -40,7 +40,7 @@ extension SplashScreenController {
     case accountSetup
     case accountSelection(Account?, message: DisplayableString?)
     case diagnostics
-    case home
+    case home(SessionScope.Context)
     case mfaAuthorization(Array<SessionMFAProvider>)
     case featureConfigFetchError
   }
@@ -52,13 +52,13 @@ extension SplashScreenController: UIController {
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let accounts: Accounts = try await features.instance()
-    let session: Session = try await features.instance()
-    let sessionConfiguration: SessionConfiguration = try await features.instance()
-    let updateCheck: UpdateCheck = try await features.instance()
+  ) throws -> Self {
+    let accounts: Accounts = try features.instance()
+    let session: Session = try features.instance()
+    let sessionConfigurationLoader: SessionConfigurationLoader = try features.instance()
+    let updateCheck: UpdateCheck = try features.instance()
 
     let destinationSubject: CurrentValueSubject<Destination?, Never> = .init(nil)
 
@@ -93,8 +93,15 @@ extension SplashScreenController: UIController {
         switch await session.pendingAuthorization() {
         case .none:
           return
-            destinationSubject
-            .send(.home)
+            await destinationSubject
+            .send(
+              .home(
+                .init(
+                  account: try session.currentAccount(),
+                  configuration: sessionConfigurationLoader.sessionConfiguration()
+                )
+              )
+            )
 
         case let .mfa(_, mfaProviders):
           return
@@ -125,12 +132,20 @@ extension SplashScreenController: UIController {
     }
 
     @Sendable nonisolated func fetchConfiguration() async throws {
-      try await sessionConfiguration.fetchIfNeeded()
+      try await sessionConfigurationLoader.fetchIfNeeded()
     }
 
     @Sendable nonisolated func retryFetchConfiguration() async throws {
       try await fetchConfiguration()
-      destinationSubject.send(.home)
+      await destinationSubject
+        .send(
+          .home(
+            .init(
+              account: try session.currentAccount(),
+              configuration: sessionConfigurationLoader.sessionConfiguration()
+            )
+          )
+        )
     }
 
     func destinationPublisher() -> AnyPublisher<Destination, Never> {

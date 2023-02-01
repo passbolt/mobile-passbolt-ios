@@ -30,13 +30,13 @@ import OSFeatures
 extension AccountInjection {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  ) throws -> Self {
+
     let mdmConfiguration: MDMConfiguration = features.instance()
     let diagnostics: OSDiagnostics = features.instance()
-    let accounts: Accounts = try await features.instance()
+    let accounts: Accounts = try features.instance()
 
     @Sendable nonisolated func injectPreconfiguredAccounts() throws {
       let preconfiguredAccounts: Array<TransferedAccount> = mdmConfiguration.preconfiguredAccounts()
@@ -64,9 +64,9 @@ extension AccountInjection {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltAccountInjection() {
+  internal mutating func usePassboltAccountInjection() {
     self.use(
       .lazyLoaded(
         AccountInjection.self,

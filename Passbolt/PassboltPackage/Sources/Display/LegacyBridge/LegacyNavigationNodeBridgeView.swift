@@ -34,7 +34,7 @@ where Component: UIComponent {
   internal let rightBarButton: UIBarButtonItem?
 
   @MainActor internal init(
-    features: FeatureFactory,
+    features: Features,
     controller: Component.Controller,
     cancellables: Cancellables
   ) {

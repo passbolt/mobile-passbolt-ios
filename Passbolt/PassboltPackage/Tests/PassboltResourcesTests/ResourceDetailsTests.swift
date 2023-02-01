@@ -32,13 +32,24 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ResourceDetailsTests: LoadableFeatureTestCase<ResourceDetails> {
 
-  override class var testedImplementationRegister: (FeatureFactory) -> @MainActor () -> Void {
-    FeatureFactory.usePassboltResourceDetails
+  override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
+
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.usePassboltResourceDetails()
   }
 
   private var updatesSequence: UpdatesSequenceSource!
 
   override func prepare() throws {
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1
+      )
+    )
     use(Session.placeholder)
     use(SessionData.placeholder)
     use(SessionCryptography.placeholder)

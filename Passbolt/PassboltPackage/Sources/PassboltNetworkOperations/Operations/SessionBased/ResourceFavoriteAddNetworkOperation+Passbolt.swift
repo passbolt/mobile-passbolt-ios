@@ -50,9 +50,9 @@ extension ResourceFavoriteAddNetworkOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceFavoriteAddNetworkOperation() {
+  internal mutating func usePassboltResourceFavoriteAddNetworkOperation() {
     self.use(
       .networkOperationWithSession(
         of: ResourceFavoriteAddNetworkOperation.self,

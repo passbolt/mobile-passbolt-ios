@@ -34,7 +34,7 @@ public struct Initialization {
   public var initialize: @MainActor () -> Void
 }
 
-extension Initialization: StaticFeature {
+extension Initialization: LoadableFeature {
 
   #if DEBUG
   public static var placeholder: Self {
@@ -50,12 +50,8 @@ extension Initialization: StaticFeature {
 extension Initialization {
 
   @MainActor fileprivate static func passbolt(
-    features: FeatureFactory
+    features: Features
   ) -> Self {
-    unowned let features: FeatureFactory = features
-    features.useOSFeatures()
-    features.useLiveDisplay()
-
     let diagnostics: OSDiagnostics = features.instance()
 
     @MainActor func initialize() {
@@ -63,7 +59,6 @@ extension Initialization {
       defer { diagnostics.log(diagnostic: "...app extension initialization completed!") }
 
       setupApplicationAppearance()
-      features.usePassboltFeatures()
       analytics()
     }
 
@@ -73,11 +68,14 @@ extension Initialization {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltInitialization() {
+  public mutating func usePassboltInitialization() {
     self.use(
-      Initialization.passbolt(features: self)
+      .disposable(
+        Initialization.self,
+        load: Initialization.passbolt
+      )
     )
   }
 }

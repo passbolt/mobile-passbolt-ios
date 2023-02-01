@@ -30,51 +30,56 @@ import SessionData
 
 extension ResourceFolderEditForm {
 
-  fileprivate static func load(
-    features: FeatureFactory,
+  @MainActor fileprivate static func load(
+    features: Features,
     context: Context,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let currentUserID: User.ID = try await features.instance(of: Session.self).currentAccount().userID
-    let sessionData: SessionData = try await features.instance()
-    let resourceFolderCreateNetworkOperation: ResourceFolderCreateNetworkOperation = try await features.instance()
-    let resourceFolderShareNetworkOperation: ResourceFolderShareNetworkOperation = try await features.instance()
+  ) throws -> Self {
+    try features.ensureScope(SessionScope.self)
+    try features.ensureScope(ResourceFolderEditScope.self)
 
-    let initialFormState: ResourceFolderEditFormState
-    switch context {
-    case .create(.none):
-      let currentUserID: User.ID =
-        try await features
-        .instance(
-          of: Session.self
-        )
-        .currentAccount()
-        .userID
+    let currentAccount: Account = try features.sessionAccount()
 
-      initialFormState = .init(
-        name: .valid(""),
+    let diagnostics: OSDiagnostics = features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
+
+    let sessionData: SessionData = try features.instance()
+    let resourceFolderCreateNetworkOperation: ResourceFolderCreateNetworkOperation = try features.instance()
+    let resourceFolderShareNetworkOperation: ResourceFolderShareNetworkOperation = try features.instance()
+
+    let formUpdates: UpdatesSequenceSource = .init()
+    let formState: CriticalState<ResourceFolderEditFormState> = .init(
+      .init(
+        name: .valid(.init()),
         location: .valid(.init()),
-        permissions: .valid(
-          [
-            .user(
-              id: currentUserID,
-              type: .owner,
-              permissionID: .none
-            )
-          ]
-        )
+        permissions: .valid(.init())
       )
+    )
 
-    case let .create(.some(enclosingFolderID)):
-      let enclosingFolderDetails: ResourceFolderDetailsDSV = try await features.instance(
-        of: ResourceFolderDetails.self,
-        context: enclosingFolderID
-      ).details()
+    asyncExecutor.schedule { @MainActor in
+      do {
+        switch context {
+        case .create(.none):
+          formState.access { state in
+            state.permissions = .valid(
+              [
+                .user(
+                  id: currentAccount.userID,
+                  type: .owner,
+                  permissionID: .none
+                )
+              ]
+            )
+          }
 
-      initialFormState = .init(
-        name: .valid(""),
-        location: .valid(
-          enclosingFolderDetails.location
+        case let .create(.some(enclosingFolderID)):
+          let enclosingFolderDetails: ResourceFolderDetailsDSV = try await features.instance(
+            of: ResourceFolderDetails.self,
+            context: enclosingFolderID
+          ).details()
+
+          let location =
+            enclosingFolderDetails.location
             .map { (item: ResourceFolderLocationItemDSV) -> ResourceFolderLocationItem in
               ResourceFolderLocationItem(
                 folderID: item.folderID,
@@ -87,9 +92,8 @@ extension ResourceFolderEditForm {
                 folderName: enclosingFolderDetails.name
               )
             ]
-        ),
-        permissions: .valid(
-          enclosingFolderDetails
+
+          let permissions = enclosingFolderDetails
             .permissions
             .map { (permission: ResourceFolderPermissionDSV) -> ResourceFolderPermissionDSV in
               switch permission {
@@ -109,36 +113,38 @@ extension ResourceFolderEditForm {
               }
             }
             .asOrderedSet()
-        )
-      )
 
-    case let .modify(folderID):
-      let folderDetails: ResourceFolderDetailsDSV = try await features.instance(
-        of: ResourceFolderDetails.self,
-        context: folderID
-      ).details()
+          formState.access { state in
+            state.location = .valid(location)
+            state.permissions = .valid(permissions)
+          }
 
-      initialFormState = .init(
-        name: .valid(folderDetails.name),
-        location: .valid(
-          folderDetails.location
+        case let .modify(folderID):
+          let folderDetails: ResourceFolderDetailsDSV = try await features.instance(
+            of: ResourceFolderDetails.self,
+            context: folderID
+          ).details()
+
+          let location = folderDetails.location
             .map { (item: ResourceFolderLocationItemDSV) -> ResourceFolderLocationItem in
               ResourceFolderLocationItem(
                 folderID: item.folderID,
                 folderName: item.folderName
               )
             }
-        ),
-        permissions: .valid(
-          folderDetails.permissions
-        )
-      )
-    }
 
-    let formUpdates: UpdatesSequenceSource = .init()
-    let formState: CriticalState<ResourceFolderEditFormState> = .init(
-      initialFormState
-    )
+          formState.access { state in
+            state.name = .valid(folderDetails.name)
+            state.location = .valid(location)
+            state.permissions = .valid(folderDetails.permissions)
+          }
+        }
+        formUpdates.sendUpdate()
+      }
+      catch {
+        diagnostics.log(error: error)
+      }
+    }
 
     let nameValidator: Validator<String> = zip(
       .nonEmpty(
@@ -217,7 +223,7 @@ extension ResourceFolderEditForm {
           .compactMap { (permission: ResourceFolderPermissionDSV) -> NewPermissionDTO? in
             switch permission {
             case let .user(id, type, _):
-              guard id != currentUserID
+              guard id != currentAccount.userID
               else { return .none }
               return .userToFolder(
                 userID: id,
@@ -236,10 +242,10 @@ extension ResourceFolderEditForm {
 
         let updatedPermissions: OrderedSet<PermissionDTO> = formState.permissions.value
           .compactMap { (permission: ResourceFolderPermissionDSV) -> PermissionDTO? in
-            if case .user(currentUserID, let type, _) = permission, type != .owner {
+            if case .user(currentAccount.userID, let type, _) = permission, type != .owner {
               return .userToFolder(
                 id: createdFolderResult.ownerPermissionID,
-                userID: currentUserID,
+                userID: currentAccount.userID,
                 folderID: createdFolderResult.resourceFolderID,
                 type: type
               )
@@ -252,7 +258,7 @@ extension ResourceFolderEditForm {
 
         let deletedPermissions: OrderedSet<PermissionDTO>
         if !formState.permissions.value.contains(where: { (permission: ResourceFolderPermissionDSV) -> Bool in
-          if case .user(currentUserID, _, _) = permission {
+          if case .user(currentAccount.userID, _, _) = permission {
             return true
           }
           else {
@@ -262,7 +268,7 @@ extension ResourceFolderEditForm {
           deletedPermissions = [
             .userToFolder(
               id: createdFolderResult.ownerPermissionID,
-              userID: currentUserID,
+              userID: currentAccount.userID,
               folderID: createdFolderResult.resourceFolderID,
               type: .owner
             )
@@ -303,14 +309,15 @@ extension ResourceFolderEditForm {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceFolderEditForm() {
+  internal mutating func usePassboltResourceFolderEditForm() {
     self.use(
       .lazyLoaded(
         ResourceFolderEditForm.self,
         load: ResourceFolderEditForm.load(features:context:cancellables:)
-      )
+      ),
+      in: ResourceFolderEditScope.self
     )
   }
 }

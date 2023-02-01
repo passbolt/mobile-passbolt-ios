@@ -43,15 +43,14 @@ extension HomeSearchController: UIController {
 
   internal typealias Context = (String) -> Void
 
-  internal static func instance(
+  @MainActor internal static func instance(
     in context: @escaping Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let session: Session = try await features.instance()
-    let currentAccount: Account = try await session.currentAccount()
-    let accountDetails: AccountDetails = try await features.instance(context: currentAccount)
-    let homePresentation: HomePresentation = try await features.instance()
+  ) throws -> Self {
+    let currentAccount: Account = try features.sessionAccount()
+    let accountDetails: AccountDetails = try features.instance(context: currentAccount)
+    let homePresentation: HomePresentation = try features.instance()
 
     let searchTextSubject: CurrentValueSubject<String, Never> = .init("")
     let homePresentationMenuPresentationSubject: PassthroughSubject<Void, Never> = .init()

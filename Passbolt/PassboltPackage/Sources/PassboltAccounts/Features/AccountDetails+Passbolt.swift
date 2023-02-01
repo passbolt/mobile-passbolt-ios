@@ -32,17 +32,16 @@ import struct Foundation.Data
 extension AccountDetails {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context account: Account,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  ) throws -> Self {
 
     let diagnostics: OSDiagnostics = features.instance()
-    let accountsDataStore: AccountsDataStore = try await features.instance()
-    let accountData: AccountData = try await features.instance(context: account)
-    let userDetailsFetchNetworkOperation: UserDetailsFetchNetworkOperation = try await features.instance()
-    let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try await features.instance()
+    let accountsDataStore: AccountsDataStore = try features.instance()
+    let accountData: AccountData = try features.instance(context: account)
+    let userDetailsFetchNetworkOperation: UserDetailsFetchNetworkOperation = try features.instance()
+    let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
 
     @Sendable nonisolated func profile() throws -> AccountWithProfile {
       try AccountWithProfile(
@@ -111,9 +110,9 @@ extension AccountDetails {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor internal func usePassboltAccountDetails() {
+  internal mutating func usePassboltAccountDetails() {
     self.use(
       .lazyLoaded(
         AccountDetails.self,

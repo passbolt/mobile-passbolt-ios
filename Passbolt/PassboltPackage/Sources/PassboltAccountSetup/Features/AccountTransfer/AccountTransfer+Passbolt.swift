@@ -37,10 +37,11 @@ import Dispatch
 extension AccountTransfer {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  ) throws -> Self {
+		try features.ensureScope(AccountTransferScope.self)
+
     #warning("Legacy implementation, to be split and refined...")
     let diagnostics: OSDiagnostics = features.instance()
     diagnostics.log(diagnostic: "Beginning new account transfer...")
@@ -48,10 +49,10 @@ extension AccountTransfer {
     let mdmConfiguration: MDMConfiguration = features.instance()
     #endif
     let pgp: PGP = features.instance()
-    let session: Session = try await features.instance()
-    let accountTransferUpdateNetworkOperation: AccountTransferUpdateNetworkOperation = try await features.instance()
-    let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try await features.instance()
-    let accounts: Accounts = try await features.instance()
+    let session: Session = try features.instance()
+    let accountTransferUpdateNetworkOperation: AccountTransferUpdateNetworkOperation = try features.instance()
+    let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
+    let accounts: Accounts = try features.instance()
     let transferState: CurrentValueSubject<AccountTransferState, Error> = .init(.init())
     var transferCancelationCancellable: AnyCancellable?
     _ = transferCancelationCancellable  // silence warning
@@ -154,9 +155,8 @@ extension AccountTransfer {
       .eraseToAnyPublisher()
 
     // swift-format-ignore: NoLeadingUnderscores
-    func _processPayload(
-      _ payload: String,
-      using features: FeatureFactory
+    nonisolated func processPayload(
+      _ payload: String
     ) -> AnyPublisher<Never, Error> {
       diagnostics.log(diagnostic: "Processing QR code payload...")
       switch processQRCodePayload(payload, in: transferState.value) {
@@ -198,9 +198,6 @@ extension AccountTransfer {
                     .recording(configuration, for: "configuration")
                 )
               )
-              cancellables.executeOnMainActor {
-                try await features.unload(Self.self)
-              }
             })
             .ignoreOutput()
             .sink(receiveCompletion: { _ in })
@@ -224,9 +221,6 @@ extension AccountTransfer {
                   AccountTransferScanningFailure.error()
                 )
               )
-            cancellables.executeOnMainActor {
-              try await features.unload(Self.self)
-            }
             return Empty<Never, Error>()
               .eraseToAnyPublisher()
           }
@@ -295,9 +289,6 @@ extension AccountTransfer {
             guard case let .failure(error) = completion
             else { unreachable("Cannot complete without an error when processing error") }
             transferState.send(completion: .failure(error))
-            cancellables.executeOnMainActor {
-              try await features.unload(Self.self)
-            }
           })
           .ignoreOutput()  // we care only about completion or failure
           .collectErrorLog(using: diagnostics)
@@ -305,18 +296,11 @@ extension AccountTransfer {
         }
         else {  // we can't cancel if we don't have configuration yet
           transferState.send(completion: .failure(error))
-          cancellables.executeOnMainActor {
-            try await features.unload(Self.self)
-          }
           return Fail<Never, Error>(error: error)
             .collectErrorLog(using: diagnostics)
             .eraseToAnyPublisher()
         }
       }
-    }
-
-    let processPayload: (String) -> AnyPublisher<Never, Error> = { [unowned features] payload in
-      _processPayload(payload, using: features)
     }
 
     nonisolated func completeTransfer(_ passphrase: Passphrase) -> AnyPublisher<Never, Error> {
@@ -332,7 +316,7 @@ extension AccountTransfer {
         )
         .eraseToAnyPublisher()
       }
-      return cancellables.executeAsyncWithPublisher { [weak features] in
+      return cancellables.executeAsyncWithPublisher {
         do {
           // verify passphrase
           switch pgp.verifyPassphrase(account.armoredKey, passphrase) {
@@ -370,19 +354,16 @@ extension AccountTransfer {
 
           diagnostics.log(diagnostic: "...account transfer succeeded!")
           transferState.send(completion: .finished)
-          try await features?.unload(Self.self)
         }
         catch let error as AccountDuplicate {
           diagnostics.log(error: error)
           diagnostics.log(diagnostic: "...account transfer failed!")
           transferState.send(completion: .failure(error))
-          try await features?.unload(Self.self)
         }
         catch let error as SessionMFAAuthorizationRequired {
           diagnostics.log(error: error)
           diagnostics.log(diagnostic: "...account transfer finished, requesting MFA...")
           transferState.send(completion: .finished)
-          try await features?.unload(Self.self)
         }
         catch {
           diagnostics.log(error: error)
@@ -394,8 +375,7 @@ extension AccountTransfer {
       .eraseToAnyPublisher()
     }
 
-    // swift-format-ignore: NoLeadingUnderscores
-    func _cancelTransfer(using features: FeatureFactory) {
+    nonisolated func cancelTransfer() {
       if let configuration: AccountTransferConfiguration = transferState.value.configuration,
         !transferState.value.scanningFinished
       {
@@ -415,27 +395,15 @@ extension AccountTransfer {
           Cancelled.error()
         )
       )
-      cancellables.executeOnMainActor {
-        try await features.unload(Self.self)
-      }
-    }
-    let cancelTransfer: () -> Void = { [unowned features] in
-      _cancelTransfer(using: features)
     }
 
-    @MainActor func featureUnload() async throws {
-      diagnostics.log(diagnostic: "...account transfer process closed!")
-      // we should unload this feature after use and it always succeeds
-    }
-
-    return Self(
+    return .init(
       progressPublisher: { progressPublisher },
       accountDetailsPublisher: { accountDetailsPublisher },
-      processPayload: processPayload,
-      completeTransfer: completeTransfer,
+      processPayload: processPayload(_:),
+      completeTransfer: completeTransfer(_:),
       avatarPublisher: { mediaPublisher },
-      cancelTransfer: cancelTransfer,
-      featureUnload: featureUnload
+      cancelTransfer: cancelTransfer
     )
   }
 }
@@ -644,15 +612,16 @@ private func requestCancelation(
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltAccountTransfer() {
+  internal mutating func usePassboltAccountTransfer() {
     self.use(
       .lazyLoaded(
         AccountTransfer.self,
         load: AccountTransfer
           .load(features:cancellables:)
-      )
+      ),
+			in: AccountTransferScope.self
     )
   }
 }

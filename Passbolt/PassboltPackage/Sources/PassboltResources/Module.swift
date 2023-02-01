@@ -22,3 +22,18 @@
 //
 
 @_exported import Resources
+
+extension FeaturesRegistry {
+
+  public mutating func usePassboltResourcesModule() {
+    self.usePassboltResourceDetails()
+    self.usePassboltResourceShareForm()
+    self.usePassboltResourceEditForm()
+    self.usePassboltResourceFolders()
+    self.usePassboltResources()
+    self.usePassboltResourceTags()
+    self.usePassboltResourceFavorites()
+    self.usePassboltResourceFolderDetails()
+    self.usePassboltResourceFolderEditForm()
+  }
+}

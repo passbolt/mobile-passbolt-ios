@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import Display
 import OSFeatures
 import Resources
 import UIComponents
@@ -39,20 +40,22 @@ internal struct UserPermissionEditController {
 extension UserPermissionEditController: ComponentController {
 
   internal typealias ControlledView = UserPermissionEditView
-  internal typealias NavigationContext = (
+  internal typealias Context = (
     resourceID: Resource.ID,
     permissionDetails: UserPermissionDetailsDSV
   )
 
   @MainActor static func instance(
-    context: NavigationContext,
-    navigation: ComponentNavigation<NavigationContext>,
-    with features: FeatureFactory,
+    in context: Context,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
+    let features: Features = features
+
     let diagnostics: OSDiagnostics = features.instance()
-    let userDetails: UserDetails = try await features.instance(context: context.permissionDetails.id)
-    let resourceShareForm: ResourceShareForm = try await features.instance(context: context.resourceID)
+    let navigation: DisplayNavigation = try features.instance()
+    let userDetails: UserDetails = try features.instance(context: context.permissionDetails.id)
+    let resourceShareForm: ResourceShareForm = try features.instance(context: context.resourceID)
 
     let viewState: ObservableValue<ViewState> = .init(
       initial: .init(

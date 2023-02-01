@@ -34,84 +34,96 @@ import UIComponents
 internal final class ApplicationExtension {
   
   private let ui: UI
-  private let features: FeatureFactory
-  private var requestedServiceIdentifiers: Array<AutofillExtensionContext.ServiceIdentifier> = .init()
+  private let features: Features
+  private let requestedServiceIdentifiers: CriticalState< Array<AutofillExtensionContext.ServiceIdentifier>>
   
   @MainActor internal init(
     rootViewController: ASCredentialProviderViewController
   ) {
-    let features: FeatureFactory = .init()
-    // register features implementations
-    features.usePassboltInitialization()
-    features.useLiveNavigationTree(
-      from: rootViewController
-    )
+		let requestedServiceIdentifiers: CriticalState< Array<AutofillExtensionContext.ServiceIdentifier>> = .init(.init())
+		let features: Features = FeaturesFactory { (registry: inout FeaturesRegistry) in
+			registry.usePassboltFeatures()
+			registry.usePassboltInitialization()
+			registry.useLiveNavigationTree(
+				from: rootViewController
+			)
+			registry.use(
+				ConfigurationExtensionContext(
+					completeExtensionConfiguration: {
+						rootViewController
+							.extensionContext
+							.completeExtensionConfigurationRequest()
+					}
+				)
+			)
+			registry.use(
+				AutofillExtensionContext(
+					completeWithCredential: { credential in
+						rootViewController
+							.extensionContext
+							.completeRequest(
+								withSelectedCredential: .init(
+									user: credential.user,
+									password: credential.password
+								),
+								completionHandler: nil
+							)
+					},
+					completeWithError: { error in
+						rootViewController
+							.extensionContext
+							.cancelRequest(withError: error)
+					},
+					cancelAndCloseExtension: {
+						rootViewController
+							.extensionContext
+							.cancelRequest(withError: ASExtensionError(.userCanceled))
+					},
+					requestedServiceIdentifiers: {
+						requestedServiceIdentifiers.get(\.self)
+					}
+				)
+			)
+		}
     self.ui = UI(
       rootViewController: rootViewController,
       features: features
     )
     self.features = features
-    features.use(
-      ConfigurationExtensionContext(
-        completeExtensionConfiguration: {
-          rootViewController
-            .extensionContext
-            .completeExtensionConfigurationRequest()
-        }
-      )
-    )
-    features.use(
-      AutofillExtensionContext(
-        completeWithCredential: { credential in
-          rootViewController
-            .extensionContext
-            .completeRequest(
-              withSelectedCredential: .init(
-                user: credential.user,
-                password: credential.password
-              ),
-              completionHandler: nil
-            )
-        },
-        completeWithError: { error in
-          rootViewController
-            .extensionContext
-            .cancelRequest(withError: error)
-        },
-        cancelAndCloseExtension: {
-          rootViewController
-            .extensionContext
-            .cancelRequest(withError: ASExtensionError(.userCanceled))
-        },
-        requestedServiceIdentifiers: { [weak self] in
-          self?.requestedServiceIdentifiers ?? .init()
-        }
-      )
-    )
+		self.requestedServiceIdentifiers = requestedServiceIdentifiers
   }
 }
 
 extension ApplicationExtension {
   
   @MainActor internal func initialize() {
-    self.features
-      .instance(of: Initialization.self)
-      .initialize()
+		do {
+			try self.features
+				.instance(of: Initialization.self)
+				.initialize()
+		}
+		catch {
+			error
+				.asTheError()
+				.asFatalError()
+		}
   }
   
   internal func requestSuggestions(
     for identifiers: Array<ASCredentialServiceIdentifier>
   ) {
-    assert(
-      self.requestedServiceIdentifiers.isEmpty,
-      "Requested suggestions should not change during extension lifetime"
-    )
-    self.requestedServiceIdentifiers = identifiers
-      .map { identifier in
-        AutofillExtensionContext.ServiceIdentifier(
-          rawValue: identifier.identifier
-        )
-      }
+		self.requestedServiceIdentifiers.access { requestedIdentifiers in
+			assert(
+				requestedIdentifiers.isEmpty,
+				"Requested suggestions should not change during extension lifetime"
+			)
+			requestedIdentifiers = identifiers
+				.map { identifier in
+					AutofillExtensionContext.ServiceIdentifier(
+						rawValue: identifier.identifier
+					)
+				}
+		}
   }
 
   internal func prepareCredentialList() {

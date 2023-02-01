@@ -49,11 +49,11 @@ extension WindowController: UIController {
 
   internal static func instance(
     in context: Void,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let session: Session = try await features.instance()
-    let accounts: Accounts = try await features.instance()
+  ) throws -> Self {
+    let session: Session = try features.instance()
+    let accounts: Accounts = try features.instance()
 
     let storedAccounts: Array<Account> = accounts.storedAccounts()
     let initialAccount: Account?

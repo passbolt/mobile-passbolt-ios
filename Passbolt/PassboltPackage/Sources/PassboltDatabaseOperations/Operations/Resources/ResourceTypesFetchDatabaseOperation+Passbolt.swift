@@ -70,14 +70,15 @@ extension ResourceTypesFetchDatabaseOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceTypesFetchDatabaseOperation() {
+  internal mutating func usePassboltResourceTypesFetchDatabaseOperation() {
     self.use(
       FeatureLoader.databaseOperation(
         of: ResourceTypesFetchDatabaseOperation.self,
         execute: ResourceTypesFetchDatabaseOperation.execute(_:connection:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

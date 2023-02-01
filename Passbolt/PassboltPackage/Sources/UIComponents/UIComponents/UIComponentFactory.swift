@@ -27,9 +27,9 @@ import ObjectiveC
 @MainActor
 public struct UIComponentFactory {
 
-  private let features: FeatureFactory
+  private let features: Features
 
-  public init(features: FeatureFactory) {
+  public init(features: Features) {
     self.features = features
   }
 }
@@ -39,17 +39,18 @@ extension UIComponentFactory {
   @MainActor public func instance<Component>(
     of component: Component.Type = Component.self,
     in context: Component.Controller.Context
-  ) async throws -> Component
+  ) throws -> Component
   where Component: UIComponent {
     let cancellables: Cancellables = .init()
+    var features: Features = self.features
     let component: Component =
-      try await .instance(
+      try .instance(
         using: .instance(
           in: context,
-          with: features,
+          with: &features,
           cancellables: cancellables
         ),
-        with: self,
+        with: .init(features: features),
         cancellables: cancellables
       )
     return component
@@ -57,16 +58,17 @@ extension UIComponentFactory {
 
   @MainActor public func instance<Component>(
     of component: Component.Type = Component.self
-  ) async throws -> Component
+  ) throws -> Component
   where Component: UIComponent, Component.Controller.Context == Void {
     let cancellables: Cancellables = .init()
+    var features: Features = self.features
     let component: Component =
-      try await .instance(
+      try .instance(
         using: .instance(
-          with: features,
+          with: &features,
           cancellables: cancellables
         ),
-        with: self,
+        with: .init(features: features),
         cancellables: cancellables
       )
     return component
@@ -79,11 +81,12 @@ extension UIComponentFactory {
     _: Controller.Type = Controller.self,
     context: Controller.Context,
     cancellables: Cancellables
-  ) async throws -> Controller
+  ) throws -> Controller
   where Controller: UIController {
-    return try await .instance(
+    var features: Features = self.features
+    return try .instance(
       in: context,
-      with: features,
+      with: &features,
       cancellables: cancellables
     )
   }

@@ -39,7 +39,7 @@ extension SharedResourcesListController: UIController {
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
   ) -> Self {
     let resourcesFilterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(

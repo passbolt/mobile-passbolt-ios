@@ -36,12 +36,12 @@ extension AuthorizationNavigationController: UIController {
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let accounts: Accounts = try await features.instance()
+  ) throws -> Self {
+    let accounts: Accounts = try features.instance()
 
-    if let account = context.account, await accounts.storedAccounts().contains(account) {
+    if let account = context.account, accounts.storedAccounts().contains(account) {
       return Self(
         selectedAccount: context.account,
         message: context.message

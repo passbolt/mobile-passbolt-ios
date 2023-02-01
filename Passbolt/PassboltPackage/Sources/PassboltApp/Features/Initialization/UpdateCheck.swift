@@ -32,13 +32,12 @@ public struct UpdateCheck {
   public var updateAvailable: @MainActor () async throws -> Bool
 }
 
-extension UpdateCheck: LegacyFeature {
+extension UpdateCheck: LoadableFeature {
 
-  public static func load(
-    using features: FeatureFactory,
-    cancellables: Cancellables
-  ) async throws -> Self {
-    let updateChecker: UpdateChecker = try await .init(
+  @MainActor public static func load(
+    using features: Features
+  ) throws -> Self {
+    let updateChecker: UpdateChecker = try .init(
       applicationMeta: features.instance(),
       appVersionsFetchNetworkOperation: features.instance()
     )
@@ -57,6 +56,18 @@ extension UpdateCheck: LegacyFeature {
     )
   }
   #endif
+}
+
+extension FeaturesRegistry {
+
+  internal mutating func usePassboltUpdateCheck() {
+    self.use(
+      .disposable(
+        UpdateCheck.self,
+        load: UpdateCheck.load(using:)
+      )
+    )
+  }
 }
 
 public struct ApplicationVersionOutdated: TheError {

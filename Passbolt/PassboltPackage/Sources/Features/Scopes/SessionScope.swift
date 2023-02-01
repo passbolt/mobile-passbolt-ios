@@ -21,42 +21,70 @@
 // @since         v1.0
 //
 
-import Combine
 import CommonModels
 
-@available(*, deprecated, message: "Replaced by LoadableFeature")
-public protocol LegacyFeature: AnyFeature {
+public enum SessionScope: FeaturesScope {
 
-  @MainActor static func load(
-    using features: FeatureFactory,
-    cancellables: Cancellables
-  ) async throws -> Self
+  public struct Context: Hashable, LoadableFeatureContext {
 
-  nonisolated var featureUnload: @MainActor () async throws -> Void { get }
+    public let account: Account
+    public let configuration: SessionConfiguration
 
-  #if DEBUG
-  nonisolated static var placeholder: Self { get }
-  #endif
-}
-
-extension LegacyFeature {
-
-  public nonisolated var featureUnload: @MainActor () async throws -> Void {
-    {
-      throw
-        Unimplemented
-        .error("Unloading not supported")
-        .recording(Self.self, for: "feature")
+    public init(
+      account: Account,
+      configuration: SessionConfiguration
+    ) {
+      self.account = account
+      self.configuration = configuration
     }
   }
 }
 
-extension AnyFeature {
+extension Features {
 
-  internal static var identifier: FeatureIdentifier {
-    .init(
-      featureTypeIdentifier: self.typeIdentifier,
-      featureContextIdentifier: ContextlessFeatureContext.instance.identifier
-    )
+  public func sessionAccount(
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) throws -> Account {
+    do {
+      return try self.context(
+        of: SessionScope.self,
+        file: file,
+        line: line
+      )
+      .account
+    }
+    catch {
+      throw
+        SessionMissing
+        .error(
+          file: file,
+          line: line
+        )
+        .recording(error, for: "error")
+    }
+  }
+
+  public func sessionConfiguration(
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) throws -> SessionConfiguration {
+    do {
+      return try self.context(
+        of: SessionScope.self,
+        file: file,
+        line: line
+      )
+      .configuration
+    }
+    catch {
+      throw
+        SessionMissing
+        .error(
+          file: file,
+          line: line
+        )
+        .recording(error, for: "error")
+    }
   }
 }

@@ -43,7 +43,7 @@ where Description: DatabaseOperationDescription {
   }
 }
 
-extension DatabaseOperation: LoadableContextlessFeature {
+extension DatabaseOperation: LoadableFeature {
 
   #if DEBUG
   public nonisolated static var placeholder: Self {

@@ -99,7 +99,7 @@ extension SessionState {
   }
 }
 
-extension SessionState: LoadableContextlessFeature {
+extension SessionState: LoadableFeature {
 
   #if DEBUG
   nonisolated static var placeholder: Self {
@@ -130,10 +130,9 @@ extension SessionState: LoadableContextlessFeature {
 extension SessionState {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  ) throws -> Self {
 
     let osTime: OSTime = features.instance()
 
@@ -440,9 +439,9 @@ extension SessionState {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltSessionState() {
+  internal mutating func usePassboltSessionState() {
     self.use(
       .lazyLoaded(
         SessionState.self,

@@ -106,14 +106,15 @@ extension ResourceFoldersStoreDatabaseOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceFoldersStoreDatabaseOperation() {
+  internal mutating func usePassboltResourceFoldersStoreDatabaseOperation() {
     self.use(
       FeatureLoader.databaseOperationWithTransaction(
         of: ResourceFoldersStoreDatabaseOperation.self,
         execute: ResourceFoldersStoreDatabaseOperation.execute(_:connection:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

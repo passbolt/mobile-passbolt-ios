@@ -97,9 +97,9 @@ extension OSCamera {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useOSCamera() {
+  internal mutating func useOSCamera() {
     self.use(
       OSCamera.live
     )

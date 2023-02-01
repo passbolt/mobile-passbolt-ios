@@ -59,9 +59,9 @@ extension UUIDGenerator {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useUUIDGenerator() {
+  internal mutating func useUUIDGenerator() {
     self.use(
       UUIDGenerator.live
     )

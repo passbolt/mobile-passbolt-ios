@@ -31,13 +31,13 @@ import Session
 extension Accounts {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
     let uuidGenerator: UUIDGenerator = features.instance()
     let diagnostics: OSDiagnostics = features.instance()
-    let session: Session = try await features.instance()
-    let dataStore: AccountsDataStore = try await features.instance()
+    let session: Session = try features.instance()
+    let dataStore: AccountsDataStore = try features.instance()
 
     let updatesSequenceSource: UpdatesSequenceSource = .init()
 
@@ -127,9 +127,9 @@ extension Accounts {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltAccounts() {
+  public mutating func usePassboltAccounts() {
     self.use(
       .lazyLoaded(
         Accounts.self,

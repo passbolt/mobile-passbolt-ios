@@ -28,8 +28,10 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class SessionTests: LoadableFeatureTestCase<Session> {
 
-  override class var testedImplementationRegister: (FeatureFactory) -> @MainActor () -> Void {
-    FeatureFactory.usePassboltSession
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.usePassboltSession()
   }
 
   override func prepare() throws {
@@ -311,11 +313,13 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
     self.refreshToken = Optional<SessionRefreshToken>.none
     withTestedInstanceNotExecuted { (testedInstance: Session) in
       await testedInstance.close(.none)
+      await self.mockExecutionControl.executeAll()
     }
 
     self.refreshToken = "SessionRefreshToken" as SessionRefreshToken
     withTestedInstanceExecuted { (testedInstance: Session) in
       await testedInstance.close(.none)
+      await self.mockExecutionControl.executeAll()
     }
   }
 }

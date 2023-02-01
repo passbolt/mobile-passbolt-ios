@@ -30,16 +30,17 @@ import Users
 extension UserGroups {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  ) throws -> Self {
+    try features.ensureScope(SessionScope.self)
+
     let diagnostics: OSDiagnostics = features.instance()
-    let session: Session = try await features.instance()
-    let sessionData: SessionData = try await features.instance()
+    let session: Session = try features.instance()
+    let sessionData: SessionData = try features.instance()
     let resourceUserGroupsListFetchDatabaseOperation: ResourceUserGroupsListFetchDatabaseOperation =
-      try await features.instance()
-    let userGroupsListFetchDatabaseOperation: UserGroupsListFetchDatabaseOperation = try await features.instance()
+      try features.instance()
+    let userGroupsListFetchDatabaseOperation: UserGroupsListFetchDatabaseOperation = try features.instance()
 
     @Sendable nonisolated func filteredResourceUserGroupList(
       filters: AnyAsyncSequence<String>
@@ -99,10 +100,6 @@ extension UserGroups {
         .members
     }
 
-    @MainActor func featureUnload() async throws {
-      // always succeed
-    }
-
     return Self(
       filteredResourceUserGroupList: filteredResourceUserGroupList(filters:),
       filteredResourceUserGroups: filteredResourceUserGroups(_:),
@@ -112,14 +109,15 @@ extension UserGroups {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor internal func usePassboltUserGroups() {
+  internal mutating func usePassboltUserGroups() {
     self.use(
       .lazyLoaded(
         UserGroups.self,
         load: UserGroups.load(features:cancellables:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

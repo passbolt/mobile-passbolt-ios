@@ -62,9 +62,9 @@ extension OSPasteboard {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useOSPasteboard() {
+  internal mutating func useOSPasteboard() {
     self.use(
       OSPasteboard.live
     )

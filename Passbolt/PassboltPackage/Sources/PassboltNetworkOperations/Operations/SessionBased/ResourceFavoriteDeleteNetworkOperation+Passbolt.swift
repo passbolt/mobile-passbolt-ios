@@ -44,9 +44,9 @@ extension ResourceFavoriteDeleteNetworkOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceFavoriteDeleteNetworkOperation() {
+  internal mutating func usePassboltResourceFavoriteDeleteNetworkOperation() {
     self.use(
       .networkOperationWithSession(
         of: ResourceFavoriteDeleteNetworkOperation.self,

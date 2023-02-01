@@ -40,10 +40,10 @@ extension CodeScanningController: UIController {
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let accountTransfer: AccountTransfer = try await features.instance()
+  ) throws -> Self {
+    let accountTransfer: AccountTransfer = try features.instance()
     let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()
     let helpPresentationSubject: PassthroughSubject<Bool, Never> = .init()
     let resultPresentationSubject: PassthroughSubject<Never, Error> = .init()

@@ -48,7 +48,7 @@ extension AnyUIComponent {
     let currentView: UIView? = window.rootViewController?.view
     do {
       window.rootViewController =
-        try await self.components
+        try self.components
         .instance(
           of: Component.self,
           in: context
@@ -90,7 +90,7 @@ extension AnyUIComponent {
   @MainActor public func replaceNavigationRoot<Component>(
     with type: Component.Type,
     animated: Bool = true
-  ) async where Component: ComponentView, Component.Controller.NavigationContext == Void {
+  ) async where Component: ComponentView, Component.Controller.Context == Void {
     await self.replaceNavigationRoot(
       with: type,
       in: Void(),
@@ -112,7 +112,7 @@ extension AnyUIComponent {
     let component: Component
     do {
       component =
-        try await self.components
+        try self.components
         .instance(
           of: Component.self,
           in: context
@@ -141,7 +141,7 @@ extension AnyUIComponent {
 
   @MainActor public func replaceNavigationRoot<Component>(
     with type: Component.Type,
-    in context: Component.Controller.NavigationContext,
+    in context: Component.Controller.Context,
     animated: Bool = true
   ) async where Component: ComponentView {
     await self.replaceNavigationRoot(
@@ -154,7 +154,7 @@ extension AnyUIComponent {
   @MainActor public func present<Component>(
     _ type: Component.Type,
     animated: Bool = true
-  ) async where Component: ComponentView, Component.Controller.NavigationContext == Void {
+  ) async where Component: ComponentView, Component.Controller.Context == Void {
     await self.present(
       ComponentHostingViewController<Component>.self,
       animated: animated
@@ -174,7 +174,7 @@ extension AnyUIComponent {
 
   @MainActor public func present<Component>(
     _ type: Component.Type,
-    in context: Component.Controller.NavigationContext,
+    in context: Component.Controller.Context,
     animated: Bool = true
   ) async where Component: ComponentView {
     await self.present(
@@ -224,7 +224,7 @@ extension AnyUIComponent {
   @MainActor public func presentSheet<Component>(
     _ type: Component.Type,
     animated: Bool = true
-  ) async where Component: ComponentView, Component.Controller.NavigationContext == Void {
+  ) async where Component: ComponentView, Component.Controller.Context == Void {
     await self.presentSheet(
       ComponentHostingViewController<Component>.self,
       in: Void(),
@@ -234,7 +234,7 @@ extension AnyUIComponent {
 
   @MainActor public func presentSheet<Component>(
     _ type: Component.Type,
-    in context: Component.Controller.NavigationContext,
+    in context: Component.Controller.Context,
     animated: Bool = true
   ) async where Component: ComponentView {
     await self.presentSheet(
@@ -279,7 +279,7 @@ extension AnyUIComponent {
   }
 
   @MainActor public func dismiss<Component>(
-    _ type: Component.Type,
+    _: Component.Type,
     animated: Bool = true
   ) async where Component: UIComponent {
     var current: UIViewController = self
@@ -311,7 +311,7 @@ extension AnyUIComponent {
   @MainActor public func push<Component>(
     _ type: Component.Type,
     animated: Bool = true
-  ) async where Component: ComponentView, Component.Controller.NavigationContext == Void {
+  ) async where Component: ComponentView, Component.Controller.Context == Void {
     await self.push(
       ComponentHostingViewController<Component>.self,
       animated: animated
@@ -331,7 +331,7 @@ extension AnyUIComponent {
 
   @MainActor public func push<Component>(
     _ type: Component.Type,
-    in context: Component.Controller.NavigationContext,
+    in context: Component.Controller.Context,
     animated: Bool = true
   ) async where Component: ComponentView {
     await self.push(
@@ -354,7 +354,7 @@ extension AnyUIComponent {
     let component: Component
     do {
       component =
-        try await self.components
+        try self.components
         .instance(
           of: Component.self,
           in: context
@@ -386,7 +386,7 @@ extension AnyUIComponent {
     pushing type: Component.Type,
     animated: Bool = true
   ) async
-  where Component: ComponentView, Component.Controller.NavigationContext == Void, ReplacedComponent: ComponentView {
+  where Component: ComponentView, Component.Controller.Context == Void, ReplacedComponent: ComponentView {
     await self.replace(
       ReplacedComponent.self,
       pushing: Component.self,
@@ -398,7 +398,7 @@ extension AnyUIComponent {
   @MainActor public func replace<Component, ReplacedComponent>(
     _: ReplacedComponent.Type,
     pushing type: Component.Type,
-    in context: Component.Controller.NavigationContext,
+    in context: Component.Controller.Context,
     animated: Bool = true
   ) async where Component: ComponentView, ReplacedComponent: ComponentView {
     guard
@@ -680,7 +680,7 @@ extension UIComponent {
 
   @MainActor public func addChild<Component>(
     _ type: Component.Type,
-    in context: Component.Controller.NavigationContext,
+    in context: Component.Controller.Context,
     viewSetup: @escaping (_ parent: Self.ContentView, _ child: ComponentHostingViewController<Component>.ContentView) ->
       Void,
     animations: (

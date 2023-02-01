@@ -64,19 +64,22 @@ extension ResourceFolderDetailsController: ViewController {
 
 extension ResourceFolderDetailsController {
 
-  fileprivate static func load(
-    features: FeatureFactory,
+  @MainActor fileprivate static func load(
+    features: Features,
     context: Context
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-    let popFeaturesScope: () async -> Void = await features.pushScope(.resourceFolderDetails)
-
-    let diagnostics: OSDiagnostics = await features.instance()
-    let asyncExecutor: AsyncExecutor = try await features.instance()
-    let sessionData: SessionData = try await features.instance()
-    let navigation: DisplayNavigation = try await features.instance()
-    let users: Users = try await features.instance()
-    let folderDetails: ResourceFolderDetails = try await features.instance(context: context)
+  ) throws -> Self {
+    let features: Features =
+      features
+      .branch(
+        scope: ResourceFolderDetailsScope.self,
+        context: context
+      )
+    let diagnostics: OSDiagnostics = features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
+    let sessionData: SessionData = try features.instance()
+    let navigation: DisplayNavigation = try features.instance()
+    let users: Users = try features.instance()
+    let folderDetails: ResourceFolderDetails = try features.instance(context: context)
 
     @Sendable func userAvatarImage(
       for userID: User.ID
@@ -125,29 +128,22 @@ extension ResourceFolderDetailsController {
         folderShared: false
       )
     )
-    viewState.cancellables.addCleanup {
-      Task { await popFeaturesScope() }
-      asyncExecutor.clearTasks()
-    }
 
-    asyncExecutor.schedule(.reuse) { [weak viewState] in
+    asyncExecutor.schedule(.reuse) {
       for await _ in sessionData.updatesSequence {
-        if let viewState: ViewStateBinding<ViewState> = viewState {
-          do {
-            let details: ResourceFolderDetailsDSV = try await folderDetails.details()
-            await viewState.mutate { viewState in
-              update(
-                viewState: &viewState,
-                using: details
-              )
-            }
+        do {
+          let details: ResourceFolderDetailsDSV = try await folderDetails.details()
+          await viewState.mutate { viewState in
+            update(
+              viewState: &viewState,
+              using: details
+            )
           }
-          catch {
-            diagnostics.log(error: error)
-          }
-        }  // break
-      }
-      diagnostics.log(diagnostic: "Resource folder details updates ended.")
+        }
+        catch {
+          diagnostics.log(error: error)
+        }
+      }  // break
     }
 
     func openLocationDetails() {
@@ -192,21 +188,15 @@ extension ResourceFolderDetailsController {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltResourceFolderDetailsController() {
+  public mutating func usePassboltResourceFolderDetailsController() {
     self.use(
       .disposable(
         ResourceFolderDetailsController.self,
         load: ResourceFolderDetailsController.load(features:context:)
-      )
+      ),
+      in: SessionScope.self
     )
-  }
-}
-
-extension FeaturesScope {
-
-  internal static var resourceFolderDetails: Self {
-    .init(identifier: #function)
   }
 }

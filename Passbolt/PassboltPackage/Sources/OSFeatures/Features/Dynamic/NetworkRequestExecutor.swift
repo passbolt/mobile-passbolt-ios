@@ -53,7 +53,7 @@ public struct NetworkRequestExecutor {
   }
 }
 
-extension NetworkRequestExecutor: LoadableContextlessFeature {
+extension NetworkRequestExecutor: LoadableFeature {
 
   #if DEBUG
   public nonisolated static var placeholder: Self {
@@ -69,9 +69,9 @@ extension NetworkRequestExecutor: LoadableContextlessFeature {
 extension NetworkRequestExecutor {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables _: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
     let diagnostics: OSDiagnostics = features.instance()
 
     let urlSessionConfiguration: URLSessionConfiguration = .ephemeral
@@ -191,9 +191,9 @@ extension NetworkRequestExecutor {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltNetworkRequestExecutor() {
+  internal mutating func usePassboltNetworkRequestExecutor() {
     self.use(
       .lazyLoaded(
         NetworkRequestExecutor.self,

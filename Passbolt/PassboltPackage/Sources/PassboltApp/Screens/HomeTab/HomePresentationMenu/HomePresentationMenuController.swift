@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Display
 import UIComponents
 
 @MainActor
@@ -34,15 +35,15 @@ internal struct HomePresentationMenuController {
 extension HomePresentationMenuController: ComponentController {
 
   internal typealias ControlledView = HomePresentationMenuView
-  internal typealias NavigationContext = HomePresentationMode
+  internal typealias Context = HomePresentationMode
 
   static func instance(
-    context: NavigationContext,
-    navigation: ComponentNavigation<NavigationContext>,
-    with features: FeatureFactory,
+    in context: Context,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let homePresentation: HomePresentation = try await features.instance()
+  ) throws -> Self {
+    let homePresentation: HomePresentation = try features.instance()
+    let navigation: DisplayNavigation = try features.instance()
 
     let viewState: ObservableValue<ViewState> = .init(
       initial: .init(
@@ -63,13 +64,13 @@ extension HomePresentationMenuController: ComponentController {
     ) {
       homePresentation.setPresentationMode(mode)
       cancellables.executeOnMainActor {
-        await navigation.dismiss(ControlledView.self)
+        await navigation.dismiss(SheetViewController<ComponentHostingViewController<ControlledView>>.self)
       }
     }
 
     @MainActor func dismissView() {
       cancellables.executeOnMainActor {
-        await navigation.dismiss(ControlledView.self)
+        await navigation.dismiss(SheetViewController<ComponentHostingViewController<ControlledView>>.self)
       }
     }
 

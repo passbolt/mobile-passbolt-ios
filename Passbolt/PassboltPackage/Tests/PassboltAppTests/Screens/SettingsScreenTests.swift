@@ -39,13 +39,21 @@ final class SettingsScreenTests: MainActorTestCase {
   var preferencesUpdates: UpdatesSequenceSource!
 
   override func mainActorSetUp() {
+    features
+      .set(
+        SessionScope.self,
+        context: .init(
+          account: .mock_ada,
+          configuration: .mock_1
+        )
+      )
     features.usePlaceholder(for: DisplayNavigation.self)
     features.usePlaceholder(for: OSExtensions.self)
     features.usePlaceholder(for: OSBiometry.self)
     features.usePlaceholder(for: OSLinkOpener.self)
     features.usePlaceholder(for: ApplicationLifecycle.self)
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(.none)
     )
     features.patch(
@@ -255,7 +263,7 @@ final class SettingsScreenTests: MainActorTestCase {
       )
     )
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(
         FeatureFlags.Legal.both(
           termsURL: .init(string: "https://passbolt.com/terms")!,
@@ -277,6 +285,14 @@ final class SettingsScreenTests: MainActorTestCase {
   }
 
   func test_openTerms_withInvalidURL_Fails() async throws {
+    features
+      .set(
+        SessionScope.self,
+        context: .init(
+          account: .mock_ada,
+          configuration: .mock_default
+        )
+      )
     features.patch(
       \OSBiometry.availability,
       with: always(.unconfigured)
@@ -289,7 +305,7 @@ final class SettingsScreenTests: MainActorTestCase {
       )
     )
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(
         FeatureFlags.Legal.none
       )
@@ -320,7 +336,7 @@ final class SettingsScreenTests: MainActorTestCase {
       )
     )
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(
         FeatureFlags.Legal.privacyPolicy(
           .init(string: "https://passbolt.com/privacy")!
@@ -341,6 +357,14 @@ final class SettingsScreenTests: MainActorTestCase {
   }
 
   func test_openPrivacyPolicy_withInvalidURL_Fails() async throws {
+    features
+      .set(
+        SessionScope.self,
+        context: .init(
+          account: .mock_ada,
+          configuration: .mock_default
+        )
+      )
     features.patch(
       \OSBiometry.availability,
       with: always(.unconfigured)
@@ -353,7 +377,7 @@ final class SettingsScreenTests: MainActorTestCase {
       )
     )
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(FeatureFlags.Legal.none)
     )
 
@@ -449,7 +473,7 @@ final class SettingsScreenTests: MainActorTestCase {
 
   func test_termsEnabled_whenLegalPresent_andContainsValidUrl() async throws {
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(
         FeatureFlags.Legal.terms(.init(string: "https://passbolt.com/terms")!)
       )
@@ -463,7 +487,7 @@ final class SettingsScreenTests: MainActorTestCase {
 
   func test_privacyPolicyEnabled_whenLegalPresent_andContainsValidUrl() async throws {
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(
         FeatureFlags.Legal.privacyPolicy(.init(string: "https://passbolt.com/privacy")!)
       )
@@ -476,8 +500,16 @@ final class SettingsScreenTests: MainActorTestCase {
   }
 
   func test_termsDisabled_whenLegalPresent_andContainsInValidUrl() async throws {
+    features
+      .set(
+        SessionScope.self,
+        context: .init(
+          account: .mock_ada,
+          configuration: .mock_default
+        )
+      )
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(FeatureFlags.Legal.none)
     )
 
@@ -488,8 +520,16 @@ final class SettingsScreenTests: MainActorTestCase {
   }
 
   func test_privacyPolicyDisabled_whenLegalPresent_andContainsInValidUrl() async throws {
+    features
+      .set(
+        SessionScope.self,
+        context: .init(
+          account: .mock_ada,
+          configuration: .mock_default
+        )
+      )
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(FeatureFlags.Legal.none)
     )
 

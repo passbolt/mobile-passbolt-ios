@@ -30,15 +30,15 @@ import Session
 extension SessionCryptography {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  ) throws -> Self {
+    try features.ensureScope(SessionScope.self)
 
-    let accountsDataStore: AccountsDataStore = try await features.instance()
-    let session: Session = try await features.instance()
-    let sessionStateEnsurance: SessionStateEnsurance = try await features.instance()
-    let pgp: PGP = try await features.instance()
+    let accountsDataStore: AccountsDataStore = try features.instance()
+    let session: Session = try features.instance()
+    let sessionStateEnsurance: SessionStateEnsurance = try features.instance()
+    let pgp: PGP = features.instance()
 
     @SessionActor func decryptMessage(
       _ encryptedMessage: ArmoredPGPMessage,
@@ -96,15 +96,16 @@ extension SessionCryptography {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltSessionCryptography() {
+  internal mutating func usePassboltSessionCryptography() {
     self.use(
       .lazyLoaded(
         SessionCryptography.self,
         load: SessionCryptography
           .load(features:cancellables:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

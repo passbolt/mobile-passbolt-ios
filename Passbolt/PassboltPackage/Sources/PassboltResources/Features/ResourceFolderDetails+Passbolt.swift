@@ -31,13 +31,13 @@ import SessionData
 extension ResourceFolderDetails {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context resourceFolderID: Context,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let sessionData: SessionData = try await features.instance()
+  ) throws -> Self {
+    let sessionData: SessionData = try features.instance()
     let resourceFolderDetailsFetchDatabaseOperation: ResourceFolderDetailsFetchDatabaseOperation =
-      try await features.instance()
+      try features.instance()
 
     @Sendable nonisolated func fetchResourceFolderDetails() async throws -> ResourceFolderDetailsDSV {
       try await resourceFolderDetailsFetchDatabaseOperation(
@@ -62,14 +62,15 @@ extension ResourceFolderDetails {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceFolderDetails() {
+  internal mutating func usePassboltResourceFolderDetails() {
     self.use(
       .lazyLoaded(
         ResourceFolderDetails.self,
         load: ResourceFolderDetails.load(features:context:cancellables:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

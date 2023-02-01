@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import Display
 import OSFeatures
 import Resources
 import Session
@@ -46,20 +47,21 @@ internal struct ResourceUserGroupsExplorerController {
 extension ResourceUserGroupsExplorerController: ComponentController {
 
   internal typealias ControlledView = ResourceUserGroupsExplorerView
-  internal typealias NavigationContext = ResourceUserGroupListItemDSV?
+  internal typealias Context = ResourceUserGroupListItemDSV?
 
-  internal static func instance(
-    context: NavigationContext,
-    navigation: ComponentNavigation<NavigationContext>,
-    with features: FeatureFactory,
+  @MainActor internal static func instance(
+    in context: Context,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
+    let currentAccount: Account = try features.sessionAccount()
+
     let diagnostics: OSDiagnostics = features.instance()
-    let session: Session = try await features.instance()
-    let accountDetails: AccountDetails = try await features.instance(context: session.currentAccount())
-    let resources: Resources = try await features.instance()
-    let userGroups: UserGroups = try await features.instance()
-    let sessionData: SessionData = try await features.instance()
+    let navigation: DisplayNavigation = try features.instance()
+    let accountDetails: AccountDetails = try features.instance(context: currentAccount)
+    let resources: Resources = try features.instance()
+    let userGroups: UserGroups = try features.instance()
+    let sessionData: SessionData = try features.instance()
 
     let viewState: ObservableValue<ViewState>
 
@@ -147,8 +149,8 @@ extension ResourceUserGroupsExplorerController: ComponentController {
     @MainActor func presentGroupContent(_ userGroup: ResourceUserGroupListItemDSV) {
       cancellables.executeOnMainActor {
         await navigation.push(
-          ResourceUserGroupsExplorerView.self,
-          in: userGroup
+          legacy: ResourceUserGroupsExplorerView.self,
+          context: userGroup
         )
       }
     }
@@ -162,8 +164,8 @@ extension ResourceUserGroupsExplorerController: ComponentController {
     ) {
       cancellables.executeOnMainActor {
         await navigation.push(
-          ResourcePermissionEditListView.self,
-          in: resourceID
+          legacy: ResourcePermissionEditListView.self,
+          context: resourceID
         )
       }
     }
@@ -173,8 +175,8 @@ extension ResourceUserGroupsExplorerController: ComponentController {
     ) {
       cancellables.executeOnMainActor {
         await navigation.push(
-          ResourceEditViewController.self,
-          in: (
+          legacy: ResourceEditViewController.self,
+          context: (
             context,
             completion: { _ in
               viewState.snackBarMessage = .info(
@@ -191,8 +193,8 @@ extension ResourceUserGroupsExplorerController: ComponentController {
     @MainActor func presentResourceDetails(_ resourceID: Resource.ID) {
       cancellables.executeOnMainActor {
         await navigation.push(
-          ResourceDetailsViewController.self,
-          in: resourceID
+          legacy: ResourceDetailsViewController.self,
+          context: resourceID
         )
       }
     }
@@ -265,12 +267,9 @@ extension ResourceUserGroupsExplorerController: ComponentController {
             try accountDetails
             .profile()
 
-          await navigation.presentSheet(
+          await navigation.presentSheetMenu(
             AccountMenuViewController.self,
-            in: (
-              accountWithProfile: accountWithProfile,
-              navigation: navigation.asContextlessNavigation()
-            )
+            in: accountWithProfile
           )
         }
         catch {

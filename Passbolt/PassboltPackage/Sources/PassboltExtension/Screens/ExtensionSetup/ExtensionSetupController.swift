@@ -35,9 +35,9 @@ extension ExtensionSetupController: UIController {
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
     let configurationExtensionContext: ConfigurationExtensionContext = features.instance()
 
     func closeConfiguration() {

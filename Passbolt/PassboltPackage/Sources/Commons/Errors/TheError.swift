@@ -23,12 +23,14 @@
 
 import Localization
 
+import protocol Foundation.LocalizedError
+
 /// Common protocol for error instances.
 ///
 /// Inspired by: https://github.com/miquido/MQ-iOS
 ///
 /// "One Error to rule them all, One Error to handle them, One Error to bring them all, and on the screen bind them."
-public protocol TheError: Error, CustomDebugStringConvertible {
+public protocol TheError: Error, LocalizedError, CustomDebugStringConvertible {
 
   /// String which can be desplayed to the user when presenting this error on screen.
   var displayableMessage: DisplayableString { get }
@@ -52,6 +54,13 @@ extension TheError {
 
   public var localizedDescription: String {
     self.displayableMessage.string()
+  }
+}
+
+extension TheError /* LocalizedError */ {
+
+  public var errorDescription: String {
+    self.localizedDescription
   }
 }
 

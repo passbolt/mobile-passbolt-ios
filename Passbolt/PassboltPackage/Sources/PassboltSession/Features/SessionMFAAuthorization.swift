@@ -34,7 +34,7 @@ internal struct SessionMFAAuthorization {
   internal var authorizeMFA: @SessionActor (SessionMFAAuthorizationMethod) async throws -> Void
 }
 
-extension SessionMFAAuthorization: LoadableContextlessFeature {
+extension SessionMFAAuthorization: LoadableFeature {
 
   #if DEBUG
   nonisolated internal static var placeholder: Self {
@@ -50,16 +50,15 @@ extension SessionMFAAuthorization: LoadableContextlessFeature {
 extension SessionMFAAuthorization {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+    features: Features
+  ) throws -> Self {
 
     let diagnostics: OSDiagnostics = features.instance()
-    let sessionState: SessionState = try await features.instance()
-    let accountsData: AccountsDataStore = try await features.instance()
+    let sessionState: SessionState = try features.instance()
+    let accountsData: AccountsDataStore = try features.instance()
     let yubiKey: YubiKey = features.instance()
-    let totpAuthorizationNetworkOperation: TOTPAuthorizationNetworkOperation = try await features.instance()
-    let yubiKeyAuthorizationNetworkOperation: YubiKeyAuthorizationNetworkOperation = try await features.instance()
+    let totpAuthorizationNetworkOperation: TOTPAuthorizationNetworkOperation = try features.instance()
+    let yubiKeyAuthorizationNetworkOperation: YubiKeyAuthorizationNetworkOperation = try features.instance()
 
     @SessionActor func authorizeMFAWithYubiKey(
       saveLocally: Bool
@@ -158,9 +157,9 @@ extension SessionMFAAuthorization {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltSessionMFAAuthorization() {
+  internal mutating func usePassboltSessionMFAAuthorization() {
     self.use(
       .disposable(
         SessionMFAAuthorization.self,

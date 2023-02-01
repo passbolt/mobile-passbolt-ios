@@ -26,7 +26,8 @@ import Commons
 // MARK: - Interface
 
 @dynamicMemberLookup
-public struct StoredProperty<Value>: Sendable where Value: Sendable {
+public struct StoredProperty<Value>: Sendable
+where Value: Sendable {
   public var binding: StateBinding<Value?>
 }
 
@@ -71,12 +72,11 @@ extension StoredProperty {
 extension StoredProperty {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context key: OSStoredPropertyKey,
     removeDuplicates: @escaping (Value?, Value?) -> Bool,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  ) throws -> Self {
     let storedProperties: OSStoredProperties = features.instance()
 
     @Sendable nonisolated func fetch() -> Value? {
@@ -100,9 +100,9 @@ extension StoredProperty {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltStoredProperty<Property: Equatable>(
+  public mutating func usePassboltStoredProperty<Property: Equatable>(
     _: Property.Type
   ) {
     self.usePassboltStoredProperty(
@@ -111,7 +111,7 @@ extension FeatureFactory {
     )
   }
 
-  @MainActor public func usePassboltStoredProperty<Property>(
+  public mutating func usePassboltStoredProperty<Property>(
     _: Property.Type,
     removeDuplicates: @escaping (Property?, Property?) -> Bool
   ) {
@@ -119,8 +119,8 @@ extension FeatureFactory {
       .lazyLoaded(
         StoredProperty<Property>.self,
         load: {
-          (features: FeatureFactory, context: StoredProperty.Context, cancellables: Cancellables) -> StoredProperty in
-          try await StoredProperty<Property>.load(
+          (features: Features, context: StoredProperty.Context, cancellables: Cancellables) -> StoredProperty in
+          try StoredProperty<Property>.load(
             features: features,
             context: context,
             removeDuplicates: removeDuplicates,

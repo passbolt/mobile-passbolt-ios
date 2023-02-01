@@ -65,11 +65,11 @@ extension SignOutAlertController: UIController {
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
 
-    let session: Session = try await features.instance()
+    let session: Session = try features.instance()
 
     func close() {
       cancellables.executeAsync {

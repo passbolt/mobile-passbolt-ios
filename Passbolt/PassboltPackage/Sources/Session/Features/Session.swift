@@ -71,7 +71,7 @@ public struct Session {
   }
 }
 
-extension Session: LoadableContextlessFeature {
+extension Session: LoadableFeature {
 
   #if DEBUG
   public nonisolated static var placeholder: Self {

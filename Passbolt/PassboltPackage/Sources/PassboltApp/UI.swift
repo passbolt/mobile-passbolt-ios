@@ -27,11 +27,11 @@ import UIComponents
 public final class UI {
 
   private var windows: Dictionary<String, Window> = .init()
-  private let features: FeatureFactory
+  private let features: Features
   private let components: UIComponentFactory
 
   public init(
-    features: FeatureFactory
+    features: Features
   ) {
     self.features = features
     self.components = UIComponentFactory(features: features)
@@ -93,8 +93,9 @@ extension UI {
       in: scene,
       using: {
         do {
-          return try await WindowController.instance(
-            with: self.features,
+          var features: Features = self.features
+          return try WindowController.instance(
+            with: &features,
             cancellables: cancellables
           )
         }

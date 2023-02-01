@@ -61,9 +61,9 @@ extension AccountTransferUpdateNetworkOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltAccountTransferUpdateNetworkOperation() {
+  internal mutating func usePassboltAccountTransferUpdateNetworkOperation() {
     self.use(
       FeatureLoader.networkOperation(
         of: AccountTransferUpdateNetworkOperation.self,

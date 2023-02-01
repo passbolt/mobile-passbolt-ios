@@ -68,9 +68,9 @@ extension OSRandomness {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useOSRandomness() {
+  internal mutating func useOSRandomness() {
     self.use(
       OSRandomness.live
     )

@@ -293,47 +293,6 @@ final class ResourceEditControllerTests: MainActorTestCase {
     XCTAssertEqual(result, .veryStrongPassword)
   }
 
-  func test_createResource_unloadsResourceEditForm_whenSendingFormSucceeds() async throws {
-    features
-      .patch(
-        \ResourceEditForm.resourceTypePublisher,
-        with: always(
-          CurrentValueSubject(defaultResourceType)
-            .eraseToAnyPublisher()
-        )
-      )
-    features
-      .patch(
-        \ResourceEditForm.sendForm,
-        with: always(
-          Just("1")
-            .eraseErrorType()
-            .eraseToAnyPublisher()
-        )
-      )
-    features.patch(
-      \SessionData.refreshIfNeeded,
-      with: always(Void())
-    )
-
-    let controller: ResourceEditController = try await testController(
-      context: (
-        .new(in: nil, url: .none),
-        completion: { _ in /* NOP */ }
-      )
-    )
-
-    try await controller
-      .sendForm()
-      .asAsyncValue()
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    let isLoaded = features.isCached(ResourceEditForm.self)
-    XCTAssertFalse(isLoaded)
-  }
-
   func test_createResource_triggersRefreshIfNeeded_whenSendingFormSucceeds() async throws {
     var result: Void?
     let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
@@ -414,32 +373,6 @@ final class ResourceEditControllerTests: MainActorTestCase {
       .asAsyncValue()
 
     XCTAssertEqual(result, "1")
-  }
-
-  func test_resourceForm_isUnloaded_whenCleanupCalled() async throws {
-    features
-      .patch(
-        \ResourceEditForm.resourceTypePublisher,
-        with: always(
-          CurrentValueSubject(defaultResourceType)
-            .eraseToAnyPublisher()
-        )
-      )
-
-    let controller: ResourceEditController = try await testController(
-      context: (
-        .new(in: nil, url: .none),
-        completion: { _ in /* NOP */ }
-      )
-    )
-
-    controller.cleanup()
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    let isLoaded = features.isCached(ResourceEditForm.self)
-    XCTAssertFalse(isLoaded)
   }
 }
 

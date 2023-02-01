@@ -64,17 +64,19 @@ extension ResourceFolderEditController: ViewController {
 extension ResourceFolderEditController {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context: Context
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-    let popFeaturesScope: () async -> Void = features.pushScope(.resourceFolderEdit)
+  ) throws -> Self {
+    let features: FeaturesContainer = features.branch(
+      scope: ResourceFolderEditScope.self,
+      context: context.editedFolderID
+    )
 
     let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try await features.instance()
-    let navigation: DisplayNavigation = try await features.instance()
-    let users: Users = try await features.instance()
-    let resourceFolderEditForm: ResourceFolderEditForm = try await features.instance(context: context)
+    let asyncExecutor: AsyncExecutor = try features.instance()
+    let navigation: DisplayNavigation = try features.instance()
+    let users: Users = try features.instance()
+    let resourceFolderEditForm: ResourceFolderEditForm = try features.instance(context: context)
 
     @Sendable nonisolated func userAvatarImage(
       for userID: User.ID
@@ -126,11 +128,9 @@ extension ResourceFolderEditController {
       using: resourceFolderEditForm.formState()
     )
     let viewState: ViewStateBinding<ViewState> = .init(
-      initial: initialState
+      initial: initialState,
+      extendingLifetimeOf: features
     )
-    viewState.cancellables.addCleanup {
-      Task { await popFeaturesScope() }
-    }
 
     asyncExecutor.schedule(.reuse) { [weak viewState] in
       for await _ in resourceFolderEditForm.formUpdates {
@@ -183,21 +183,15 @@ extension ResourceFolderEditController {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltResourceFolderEditController() {
+  public mutating func usePassboltResourceFolderEditController() {
     self.use(
       .disposable(
         ResourceFolderEditController.self,
         load: ResourceFolderEditController.load(features:context:)
-      )
+      ),
+      in: SessionScope.self
     )
-  }
-}
-
-extension FeaturesScope {
-
-  internal static var resourceFolderEdit: Self {
-    .init(identifier: #function)
   }
 }

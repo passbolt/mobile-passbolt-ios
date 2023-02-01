@@ -69,13 +69,15 @@ extension ResourceTagsListDisplayController: ViewController {
 extension ResourceTagsListDisplayController {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context: Context
-  ) async throws -> Self {
+  ) throws -> Self {
+    try features.ensureScope(SessionScope.self)
+
     let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try await features.instance()
-    let sessionData: SessionData = try await features.instance()
-    let resourceTags: ResourceTags = try await features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
+    let sessionData: SessionData = try features.instance()
+    let resourceTags: ResourceTags = try features.instance()
 
     let viewState: ViewStateBinding<ViewState> = .init(
       initial: .init(
@@ -151,14 +153,15 @@ extension ResourceTagsListDisplayController {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltResourceTagsListDisplayController() {
+  public mutating func usePassboltResourceTagsListDisplayController() {
     self.use(
       .disposable(
         ResourceTagsListDisplayController.self,
         load: ResourceTagsListDisplayController.load(features:context:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

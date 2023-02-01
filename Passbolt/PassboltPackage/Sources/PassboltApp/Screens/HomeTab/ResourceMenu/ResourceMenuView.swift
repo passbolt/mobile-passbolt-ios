@@ -55,14 +55,17 @@ internal final class ResourceMenuView: PlainView {
     }
   }
 
-  internal func update(operations: Array<ResourceMenuController.Action>) {
+  internal func update(
+    operations: Array<ResourceMenuController.Action>
+  ) {
     stack.removeAllArrangedSubviews()
 
     let menuItems: Array<ResourceMenuItemView> = operations.map { operation in
       let item: ResourceMenuItemView = .init(operation: operation)
 
       mut(item) {
-        .action { [weak self] in self?.itemTappedSubject.send(item.operation) }
+        .action { [weak self] in self?.itemTappedSubject.send(item.operation)
+        }
       }
 
       switch item.operation {
@@ -212,7 +215,9 @@ internal final class ResourceMenuItemView: PlainButton {
     unreachable(#function)
   }
 
-  internal init(operation: ResourceMenuController.Action) {
+  internal init(
+    operation: ResourceMenuController.Action
+  ) {
     self.operation = operation
     super.init()
 

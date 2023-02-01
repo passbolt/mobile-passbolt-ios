@@ -23,9 +23,11 @@
 
 import Features
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useLiveScreenControllers() {
+  internal mutating func useLiveScreenControllers() {
+    self.usePassboltHomePresentation()
+
     self.useLiveDefaultPresentationModeSettingsController()
     self.useLiveResourceDetailsTagsListController()
 

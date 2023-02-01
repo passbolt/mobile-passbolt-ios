@@ -134,14 +134,15 @@ extension ResourceTypesStoreDatabaseOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceTypesStoreDatabaseOperation() {
+  internal mutating func usePassboltResourceTypesStoreDatabaseOperation() {
     self.use(
       FeatureLoader.databaseOperationWithTransaction(
         of: ResourceTypesStoreDatabaseOperation.self,
         execute: ResourceTypesStoreDatabaseOperation.execute(_:connection:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

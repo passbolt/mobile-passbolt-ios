@@ -70,13 +70,15 @@ extension ResourceUserGroupsListDisplayController: ViewController {
 extension ResourceUserGroupsListDisplayController {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context: Context
-  ) async throws -> Self {
+  ) throws -> Self {
+    try features.ensureScope(SessionScope.self)
+
     let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try await features.instance()
-    let sessionData: SessionData = try await features.instance()
-    let userGroups: UserGroups = try await features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
+    let sessionData: SessionData = try features.instance()
+    let userGroups: UserGroups = try features.instance()
 
     let viewState: ViewStateBinding<ViewState> = .init(
       initial: .init(
@@ -152,14 +154,15 @@ extension ResourceUserGroupsListDisplayController {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltResourceUserGroupsListDisplayController() {
+  public mutating func usePassboltResourceUserGroupsListDisplayController() {
     self.use(
       .disposable(
         ResourceUserGroupsListDisplayController.self,
         load: ResourceUserGroupsListDisplayController.load(features:context:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

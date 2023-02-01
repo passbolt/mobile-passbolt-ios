@@ -23,9 +23,9 @@
 
 import Features
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  public func usePassboltAccountsModule() {
+  public mutating func usePassboltAccountsModule() {
     self.usePassboltAccountData()
     self.usePassboltAccountDetails()
     self.usePassboltAccountPreferences()

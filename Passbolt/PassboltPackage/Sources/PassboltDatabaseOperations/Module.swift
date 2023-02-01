@@ -22,3 +22,40 @@
 //
 
 @_exported import DatabaseOperations
+
+extension FeaturesRegistry {
+
+  public mutating func usePassboltDatabaseOperationsModule() {
+    self.usePassboltDatabaseAccess()
+    // operations
+    self.usePassboltResourceFoldersStoreDatabaseOperation()
+    self.usePassboltResourceFolderDetailsFetchDatabaseOperation()
+    self.usePassboltResourceFoldersListFetchDatabaseOperation()
+    self.usePassboltResourceDetailsFetchDatabaseOperation()
+    self.usePassboltResourceEditDetailsFetchDatabaseOperation()
+    self.usePassboltResourcesListFetchDatabaseOperation()
+    self.usePassboltResourcesStoreDatabaseOperation()
+    self.usePassboltResourceTagsListFetchDatabaseOperation()
+    self.usePassboltResourceTypesFetchDatabaseOperation()
+    self.usePassboltResourceUserGroupPermissionsDetailsFetchDatabaseOperation()
+    self.usePassboltResourceUserPermissionsDetailsFetchDatabaseOperation()
+    self.usePassboltResourceTypesStoreDatabaseOperation()
+    self.usePassboltResourceUserGroupsListFetchDatabaseOperation()
+    self.usePassboltResourceUsersIDFetchDatabaseOperation()
+    self.usePassboltUserResourcePermissionTypeFetchDatabaseOperation()
+    self.usePassboltUserGroupsStoreDatabaseOperation()
+    self.usePassboltUsersStoreDatabaseOperation()
+    self.usePassboltUserDetailsFetchDatabaseOperation()
+    self.usePassboltUserGroupDetailsFetchDatabaseOperation()
+    self.usePassboltUserGroupMembersFetchDatabaseOperation()
+    self.usePassboltUserGroupsListFetchDatabaseOperation()
+    self.usePassboltUsersListFetchDatabaseOperation()
+    self.usePassboltUsersPublicKeysFetchDatabaseOperation()
+    self.usePassboltResourceTagDetailsFetchDatabaseOperation()
+    self.usePassboltResourceFolderUsersIDFetchDatabaseOperation()
+    self.usePassboltResourceFolderPermissionsFetchDatabaseOperation()
+    self.usePassboltResourceSetFavoriteDatabaseOperation()
+    self.usePassboltResourceFolderUserPermissionsDetailsFetchDatabaseOperation()
+    self.usePassboltResourceFolderUserGroupPermissionsDetailsFetchDatabaseOperation()
+  }
+}

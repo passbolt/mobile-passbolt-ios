@@ -40,8 +40,16 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
   var updates: UpdatesSequenceSource!
 
   override func mainActorSetUp() {
+    features
+      .set(
+        SessionScope.self,
+        context: .init(
+          account: .mock_ada,
+          configuration: .mock_1
+        )
+      )
     features.usePlaceholder(for: OSPasteboard.self)
-    features.usePlaceholder(for: SessionConfiguration.self)
+    features.usePlaceholder(for: SessionConfigurationLoader.self)
     updates = .init()
     features.patch(
       \SessionData.updatesSequence,
@@ -63,7 +71,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
 
   func test_loadResourceDetails_succeeds_whenAvailable() async throws {
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(FeatureFlags.PreviewPassword.enabled)
     )
     features.patch(
@@ -87,7 +95,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
 
   func test_loadResourceDetails_succeeds_withSortedFields_whenAvailable() async throws {
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(FeatureFlags.PreviewPassword.enabled)
     )
     var detailsViewResourceWithReorderedFields: ResourceDetailsDSV = detailsViewResource
@@ -122,7 +130,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
 
   func test_loadResourceDetails_fails_whenErrorOnFetch() async throws {
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(FeatureFlags.PreviewPassword.enabled)
     )
     features.patch(
@@ -150,7 +158,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
 
   func test_toggleDecrypt_publishes_whenResourceFetch_succeeds() async throws {
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(FeatureFlags.PreviewPassword.enabled)
     )
     features.patch(
@@ -184,7 +192,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
 
   func test_toggleDecrypt_publishesError_whenResourceFetch_fails() async throws {
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(FeatureFlags.PreviewPassword.enabled)
     )
     features.patch(
@@ -221,7 +229,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
 
   func test_toggleDecrypt_publishesNil_whenTryingToDecryptAlreadyDecrypted() async throws {
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(FeatureFlags.PreviewPassword.enabled)
     )
     features.patch(
@@ -261,7 +269,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
 
   func test_resourceMenuPresentationPublisher_publishesResourceID_whenPresentResourceMenuCalled() async throws {
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(FeatureFlags.PreviewPassword.enabled)
     )
     features.patch(
@@ -298,7 +306,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
 
   func test_copyFieldUsername_succeeds() async throws {
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(FeatureFlags.PreviewPassword.enabled)
     )
     features.patch(
@@ -341,7 +349,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
 
   func test_copyFieldDescription_succeeds() async throws {
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(FeatureFlags.PreviewPassword.enabled)
     )
     features.patch(
@@ -384,7 +392,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
 
   func test_copyFieldEncryptedDescription_succeeds() async throws {
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(FeatureFlags.PreviewPassword.enabled)
     )
     features.patch(
@@ -427,7 +435,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
 
   func test_copyFieldURI_succeeds() async throws {
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(FeatureFlags.PreviewPassword.enabled)
     )
     features.patch(
@@ -470,7 +478,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
 
   func test_copyFieldPassword_succeeds() async throws {
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(FeatureFlags.PreviewPassword.enabled)
     )
     features.patch(
@@ -515,7 +523,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
     async throws
   {
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(FeatureFlags.PreviewPassword.enabled)
     )
     features.patch(

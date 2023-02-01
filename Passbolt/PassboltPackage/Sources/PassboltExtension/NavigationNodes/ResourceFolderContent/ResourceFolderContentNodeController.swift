@@ -71,14 +71,14 @@ extension ResourceFolderContentNodeController: ViewNodeController {
 extension ResourceFolderContentNodeController {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context: Context
-  ) async throws -> Self {
+  ) throws -> Self {
     let diagnostics: OSDiagnostics = features.instance()
     let navigationTree: NavigationTree = features.instance()
-    let asyncExecutor: AsyncExecutor = try await features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
     let autofillContext: AutofillExtensionContext = features.instance()
-    let resourceFolders: ResourceFolders = try await features.instance()
+    let resourceFolders: ResourceFolders = try features.instance()
 
     let requestedServiceIdentifiers: Array<AutofillExtensionContext.ServiceIdentifier> =
       autofillContext.requestedServiceIdentifiers()
@@ -95,7 +95,7 @@ extension ResourceFolderContentNodeController {
       )
     )
 
-    let searchController: ResourceSearchDisplayController = try await features.instance(
+    let searchController: ResourceSearchDisplayController = try features.instance(
       context: .init(
         searchPrompt: context.searchPrompt,
         showMessage: { (message: SnackBarMessage?) in
@@ -106,7 +106,7 @@ extension ResourceFolderContentNodeController {
       )
     )
 
-    let contentController: ResourceFolderContentDisplayController = try await features.instance(
+    let contentController: ResourceFolderContentDisplayController = try features.instance(
       context: .init(
         folderName: folderName,
         filter: searchController
@@ -125,8 +125,8 @@ extension ResourceFolderContentNodeController {
         },
         createFolder: .none,
         createResource: context.folderDetails?.permissionType != .read  // root or owned / write
-          ? .none
-          : createResource,
+          ? createResource
+          : .none,
         selectFolder: selectFolder(_:),
         selectResource: selectResource(_:),
         openResourceMenu: .none,
@@ -242,14 +242,15 @@ extension ResourceFolderContentNodeController {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltFolderContentNodeController() {
+  public mutating func usePassboltFolderContentNodeController() {
     self.use(
       .disposable(
         ResourceFolderContentNodeController.self,
         load: ResourceFolderContentNodeController.load(features:context:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

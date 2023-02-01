@@ -25,15 +25,13 @@ import Features
 import UIComponents
 import XCTest
 
-/// Base class for preparing unit tests.
-/// For testing UIComponents or other items
-/// that require MainActor isolation please
-/// use MainActorTestCase instead.
+@available(*, deprecated, message: "Please switch to `LoadableFeatureTestCase`")
 @MainActor
 open class TestCase: AsyncTestCase {
 
-  public var features: FeatureFactory!
+  public var features: TestFeaturesContainer!
   public var cancellables: Cancellables!
+  public var mockExecutionControl: AsyncExecutor.MockExecutionControl!
 
   final override public class func setUp() {
     super.setUp()
@@ -52,11 +50,18 @@ open class TestCase: AsyncTestCase {
   }
 
   open func featuresActorSetUp() async throws {
-    self.features = .init(
-      autoLoadFeatures: false,
-      allowScopes: false
-    )
-    self.features.use(OSDiagnostics.disabled)
+    self.mockExecutionControl = .init()
+    self.features = .init()
+    self.features
+      .patch(
+        \AsyncExecutor.self,
+        with: .mock(self.mockExecutionControl)
+      )
+    self.features
+      .patch(
+        \OSDiagnostics.self,
+        with: .disabled
+      )
     self.cancellables = .init()
   }
 
@@ -75,23 +80,15 @@ open class TestCase: AsyncTestCase {
   open func featuresActorTearDown() async throws {
     self.features = nil
     self.cancellables = nil
-  }
-
-  public final func testedInstance<F: LegacyFeature>(
-    _ type: F.Type = F.self
-  ) async throws -> F {
-    try await F.load(
-      using: features,
-      cancellables: cancellables
-    )
+    self.mockExecutionControl = nil
   }
 
   public final func testedInstance<Feature>(
     _ featureType: Feature.Type = Feature.self,
     context: Feature.Context
-  ) async throws -> Feature
+  ) throws -> Feature
   where Feature: LoadableFeature {
-    try await features
+    try features
       .instance(
         of: featureType,
         context: context
@@ -100,9 +97,9 @@ open class TestCase: AsyncTestCase {
 
   public final func testedInstance<Feature>(
     _ featureType: Feature.Type = Feature.self
-  ) async throws -> Feature
+  ) throws -> Feature
   where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {
-    try await features
+    try features
       .instance(
         of: featureType
       )

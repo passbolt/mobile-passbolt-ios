@@ -29,17 +29,15 @@ import SessionData
 
 import struct Foundation.URL
 
-extension SessionConfiguration {
+extension SessionConfigurationLoader {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
+  ) throws -> Self {
     let diagnostics: OSDiagnostics = features.instance()
-    let session: Session = try await features.instance()
-    let configurationFetchNetworkOperation: ConfigurationFetchNetworkOperation = try await features.instance()
+    let session: Session = try features.instance()
+    let configurationFetchNetworkOperation: ConfigurationFetchNetworkOperation = try features.instance()
 
     let configuration: UpdatableValue<Dictionary<AnyHashable, FeatureConfigItem>> = .init(
       // TODO: we should update only on account changes
@@ -142,13 +140,13 @@ extension SessionConfiguration {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltSessionConfiguration() {
+  internal mutating func usePassboltSessionConfigurationLoader() {
     self.use(
       .lazyLoaded(
-        SessionConfiguration.self,
-        load: SessionConfiguration.load(features:cancellables:)
+        SessionConfigurationLoader.self,
+        load: SessionConfigurationLoader.load(features:cancellables:)
       )
     )
   }

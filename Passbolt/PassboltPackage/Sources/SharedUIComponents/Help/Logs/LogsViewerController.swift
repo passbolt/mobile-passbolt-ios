@@ -41,11 +41,11 @@ extension LogsViewerController: UIController {
 
   public static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
     let diagnostics: OSDiagnostics = features.instance()
-    let executor: AsyncExecutor = try await features.instance()
+    let executor: AsyncExecutor = try features.instance()
 
     let diagnosticsInfoCacheSubject: CurrentValueSubject<Array<String>?, Never> = .init(nil)
     let shareMenuPresentationSubject: PassthroughSubject<String?, Never> = .init()

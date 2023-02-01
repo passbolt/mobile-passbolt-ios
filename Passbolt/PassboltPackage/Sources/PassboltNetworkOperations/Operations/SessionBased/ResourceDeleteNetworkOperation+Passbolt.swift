@@ -44,9 +44,9 @@ extension ResourceDeleteNetworkOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceDeleteNetworkOperation() {
+  internal mutating func usePassboltResourceDeleteNetworkOperation() {
     self.use(
       .networkOperationWithSession(
         of: ResourceDeleteNetworkOperation.self,

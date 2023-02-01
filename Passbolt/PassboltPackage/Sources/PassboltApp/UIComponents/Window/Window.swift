@@ -37,7 +37,7 @@ internal final class Window {
 
   internal init(
     in scene: UIWindowScene,
-    using lazyController: @escaping () async -> WindowController,
+    using lazyController: @escaping () -> WindowController,
     within components: UIComponentFactory,
     rootViewController: UIViewController,
     cancellables: Cancellables
@@ -48,7 +48,7 @@ internal final class Window {
     self.window.rootViewController = rootViewController
 
     cancellables.executeAsync { @MainActor[weak self] in
-      let controller: WindowController = await lazyController()
+      let controller: WindowController = lazyController()
       for await disposition
         in controller
         .screenStateDispositionSequence()
@@ -65,7 +65,7 @@ internal final class Window {
             // fallback to initial screen state if there is none cached
             guard !self.isSplashScreenDisplayed || self.isErrorDisplayed
             else { return }
-            try await self.replaceRoot(
+            try self.replaceRoot(
               with: self.components
                 .instance(
                   of: SplashScreenViewController.self,
@@ -84,7 +84,7 @@ internal final class Window {
 
           guard !self.isSplashScreenDisplayed || self.isErrorDisplayed
           else { return }
-          try await self.replaceRoot(
+          try self.replaceRoot(
             with: self.components
               .instance(
                 of: SplashScreenViewController.self,
@@ -112,7 +112,7 @@ internal final class Window {
             /* NOP - reuse previous cache if any if previous screen was mfa prompt */
           }
 
-          try await self.replaceRoot(
+          try self.replaceRoot(
             with: self.components
               .instance(
                 of: AuthorizationNavigationViewController.self,
@@ -131,7 +131,7 @@ internal final class Window {
             as? AuthorizationNavigationViewController
           {
             if providers.isEmpty {
-              try await self.replaceRoot(
+              try self.replaceRoot(
                 with: self.components
                   .instance(
                     of: PlainNavigationViewController<UnsupportedMFAViewController>.self
@@ -150,7 +150,7 @@ internal final class Window {
             as? WelcomeNavigationViewController
           {
             if providers.isEmpty {
-              try await self.replaceRoot(
+              try self.replaceRoot(
                 with: self.components
                   .instance(
                     of: PlainNavigationViewController<UnsupportedMFAViewController>.self
@@ -175,7 +175,7 @@ internal final class Window {
             self.screenStateCache = rootComponent
 
             if providers.isEmpty {
-              try await self.replaceRoot(
+              try self.replaceRoot(
                 with: self.components
                   .instance(
                     of: PlainNavigationViewController<UnsupportedMFAViewController>.self
@@ -183,7 +183,7 @@ internal final class Window {
               )
             }
             else {
-              try await self.replaceRoot(
+              try self.replaceRoot(
                 with: self.components
                   .instance(
                     of: PlainNavigationViewController<MFARootViewController>.self,

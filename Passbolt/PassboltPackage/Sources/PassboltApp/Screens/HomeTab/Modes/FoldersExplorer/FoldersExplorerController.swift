@@ -47,20 +47,22 @@ internal struct FoldersExplorerController {
 extension FoldersExplorerController: ComponentController {
 
   internal typealias ControlledView = FoldersExplorerView
-  internal typealias NavigationContext = ResourceFolderListItemDSV?
+  internal typealias Context = ResourceFolderListItemDSV?
 
   internal static func instance(
-    context: NavigationContext,
-    navigation: ComponentNavigation<NavigationContext>,
-    with features: FeatureFactory,
+    in context: Context,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
+    let features: Features = features
+
     let diagnostics: OSDiagnostics = features.instance()
-    let session: Session = try await features.instance()
-    let accountDetails: AccountDetails = try await features.instance(context: session.currentAccount())
-    let resources: Resources = try await features.instance()
-    let sessionData: SessionData = try await features.instance()
-    let folders: ResourceFolders = try await features.instance()
+    let navigation: DisplayNavigation = try features.instance()
+    let currentAccount: Account = try features.sessionAccount()
+    let accountDetails: AccountDetails = try features.instance(context: currentAccount)
+    let resources: Resources = try features.instance()
+    let sessionData: SessionData = try features.instance()
+    let folders: ResourceFolders = try features.instance()
 
     let viewState: ObservableValue<ViewState>
 
@@ -153,8 +155,8 @@ extension FoldersExplorerController: ComponentController {
     @MainActor func presentFolderContent(_ folder: ResourceFolderListItemDSV) {
       cancellables.executeOnMainActor {
         await navigation.push(
-          FoldersExplorerView.self,
-          in: folder
+          legacy: FoldersExplorerView.self,
+          context: folder
         )
       }
     }
@@ -188,8 +190,8 @@ extension FoldersExplorerController: ComponentController {
     ) {
       cancellables.executeOnMainActor {
         await navigation.push(
-          ResourcePermissionEditListView.self,
-          in: resourceID
+          legacy: ResourcePermissionEditListView.self,
+          context: resourceID
         )
       }
     }
@@ -199,8 +201,8 @@ extension FoldersExplorerController: ComponentController {
     ) {
       cancellables.executeOnMainActor {
         await navigation.push(
-          ResourceEditViewController.self,
-          in: (
+          legacy: ResourceEditViewController.self,
+          context: (
             context,
             completion: { _ in
               viewState.snackBarMessage = .info(
@@ -217,8 +219,8 @@ extension FoldersExplorerController: ComponentController {
     @MainActor func presentResourceDetails(_ resourceID: Resource.ID) {
       cancellables.executeOnMainActor {
         await navigation.push(
-          ResourceDetailsViewController.self,
-          in: resourceID
+          legacy: ResourceDetailsViewController.self,
+          context: resourceID
         )
       }
     }
@@ -291,12 +293,9 @@ extension FoldersExplorerController: ComponentController {
             try accountDetails
             .profile()
 
-          await navigation.presentSheet(
+          await navigation.presentSheetMenu(
             AccountMenuViewController.self,
-            in: (
-              accountWithProfile: accountWithProfile,
-              navigation: navigation.asContextlessNavigation()
-            )
+            in: accountWithProfile
           )
         }
         catch {

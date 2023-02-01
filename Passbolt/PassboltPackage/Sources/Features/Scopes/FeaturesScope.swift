@@ -21,14 +21,20 @@
 // @since         v1.0
 //
 
-public protocol LoadableContextlessFeature: LoadableFeature
-where Context == ContextlessFeatureContext {}
+public protocol FeaturesScope {
 
-public struct ContextlessFeatureContext: LoadableFeatureContext {
+  associatedtype Context = Void
+}
 
-  internal static let instance: Self = .init()
+internal typealias FeaturesScopeIdentifier = ObjectIdentifier
 
-  public var identifier: AnyHashable {
+extension FeaturesScope {
+
+  internal var identifier: FeaturesScopeIdentifier {
+    ObjectIdentifier(Self.self)
+  }
+
+  internal static var identifier: FeaturesScopeIdentifier {
     ObjectIdentifier(Self.self)
   }
 }

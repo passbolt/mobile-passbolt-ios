@@ -50,13 +50,15 @@ extension AccountSelectionController: UIController {
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> AccountSelectionController {
+  ) throws -> AccountSelectionController {
+    let features: Features = features
+
     let navigationTree: NavigationTree = features.instance()
     let autofillContext: AutofillExtensionContext = features.instance()
-    let accounts: Accounts = try await features.instance()
-    let session: Session = try await features.instance()
+    let accounts: Accounts = try features.instance()
+    let session: Session = try features.instance()
 
     func accountsPublisher() -> AnyPublisher<Array<AccountSelectionListItem>, Never> {
       accounts

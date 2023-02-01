@@ -21,20 +21,4 @@
 // @since         v1.0
 //
 
-public struct FeaturesScope {
-
-  private let identifier: AnyHashable
-
-  public init<Identifier>(
-    identifier: Identifier
-  ) where Identifier: Hashable {
-    self.identifier = identifier
-  }
-}
-
-extension FeaturesScope: Hashable {}
-
-extension FeaturesScope {
-
-  internal static let root: Self = .init(identifier: ObjectIdentifier(Self.self))
-}
+public protocol FeaturesContainer: Features & AnyObject {}

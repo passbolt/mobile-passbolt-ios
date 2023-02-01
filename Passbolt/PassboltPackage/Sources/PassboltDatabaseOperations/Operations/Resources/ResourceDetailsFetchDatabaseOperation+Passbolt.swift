@@ -305,14 +305,15 @@ extension ResourceDetailsFetchDatabaseOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceDetailsFetchDatabaseOperation() {
+  internal mutating func usePassboltResourceDetailsFetchDatabaseOperation() {
     self.use(
       FeatureLoader.databaseOperation(
         of: ResourceDetailsFetchDatabaseOperation.self,
         execute: ResourceDetailsFetchDatabaseOperation.execute(_:connection:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

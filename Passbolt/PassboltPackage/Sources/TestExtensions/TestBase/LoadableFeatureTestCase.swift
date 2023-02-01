@@ -31,19 +31,55 @@ import XCTest
 open class LoadableFeatureTestCase<Feature>: AsyncTestCase
 where Feature: LoadableFeature {
 
+  open class var testedImplementationScope: any FeaturesScope.Type {
+    RootFeaturesScope.self
+  }
+
   open class var testedImplementation: FeatureLoader? {
     .none
   }
 
-  open class var testedImplementationRegister: (FeatureFactory) -> @MainActor () -> Void {
+  open class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
     fatalError("You have to override either `testedImplementation` or `testedImplementationRegister`")
   }
 
-  private var mockedStaticFeatures: Dictionary<FeatureIdentifier, AnyFeature>!
-  private var mockedDynamicFeatures: Dictionary<FeatureIdentifier, AnyFeature>!
-  private var featuresContainer: FeatureFactory!
-  private var testedInstance: Feature!
-  private var testedInstanceContextIdentifier: AnyHashable!
+  public private(set) var mockExecutionControl: AsyncExecutor.MockExecutionControl!
+  private var features: TestFeaturesContainer!
+  private var instance: Feature!
+  private var contextIdentifier: AnyHashable!
+  public private(set) var cancellables: Cancellables!
+
+  private lazy var testedImplementation: FeatureLoader = {
+    if let implementation: FeatureLoader = Self.testedImplementation {
+      return implementation
+    }
+    else {
+      var registry: FeaturesRegistry = .init()
+      Self.testedImplementationRegister(&registry)
+      if let loader: FeatureLoader = registry.featureLoader(
+        for: Feature.self,
+        in: Self.testedImplementationScope
+      ) {
+        return loader
+      }
+      else {
+        return .init(
+          identifier: Feature.identifier,
+          cache: false,
+          load: { _, _, _ in
+            throw
+              FeatureUndefined
+              .error(
+                "Tested feature is not defined, most likely its loader is using custom Scope, please define required scope by overriding `testedImplementationScope`",
+                featureName: "\(Feature.self)"
+              )
+          }
+        )
+      }
+    }
+  }()
 
   open func prepare() throws {
     // to override
@@ -52,22 +88,27 @@ where Feature: LoadableFeature {
   // prevent overriding
   public final override func setUp() async throws {
     try await super.setUp()
-    await Task { @MainActor in
-      self.mockedStaticFeatures = [
-        FeatureIdentifier(
-          featureTypeIdentifier: OSDiagnostics.typeIdentifier,
-          featureContextIdentifier: ContextlessFeatureContext.instance.identifier
-        ): OSDiagnostics.disabled
-      ]
-      self.mockedDynamicFeatures = .init()
-      do {
-        try self.prepare()
-      }
-      catch {
-        XCTFail("\(error)")
-      }
+
+    self.mockExecutionControl = .init()
+    self.features = .init()
+    self.features
+      .patch(
+        \OSDiagnostics.self,
+        with: OSDiagnostics.disabled
+      )
+
+    self.features
+      .patch(
+        \AsyncExecutor.self,
+        with: .mock(self.mockExecutionControl)
+      )
+    self.cancellables = .init()
+    do {
+      try self.prepare()
     }
-    .waitForCompletion()
+    catch {
+      XCTFail("\(error)")
+    }
   }
 
   open func cleanup() throws {
@@ -76,20 +117,17 @@ where Feature: LoadableFeature {
 
   // prevent overriding
   public final override func tearDown() async throws {
-    await Task { @MainActor in
-      do {
-        try self.cleanup()
-      }
-      catch {
-        XCTFail("\(error)")
-      }
-      self.mockedStaticFeatures = .none
-      self.mockedDynamicFeatures = .none
-      self.featuresContainer = .none
-      self.testedInstance = .none
-      self.testedInstanceContextIdentifier = .none
+    do {
+      try self.cleanup()
     }
-    .waitForCompletion()
+    catch {
+      XCTFail("\(error)")
+    }
+    self.mockExecutionControl = .none
+    self.features = .none
+    self.instance = .none
+    self.contextIdentifier = .none
+    self.cancellables = .none
     try await super.tearDown()
   }
 
@@ -111,33 +149,98 @@ where Feature: LoadableFeature {
 
 extension LoadableFeatureTestCase {
 
+  @available(*, deprecated, message: "UIController should be migrated to a proper feature")
+  public final func testController<Controller: UIController>(
+    _ type: Controller.Type = Controller.self,
+    context: Controller.Context
+  ) throws -> Controller {
+    var features: Features = self.features
+    return try Controller.instance(
+      in: context,
+      with: &features,
+      cancellables: cancellables
+    )
+  }
+
+  @available(*, deprecated, message: "UIController should be migrated to a proper feature")
+  public final func testController<Controller: UIController>(
+    _ type: Controller.Type = Controller.self
+  ) throws -> Controller
+  where Controller.Context == Void {
+    var features: Features = self.features
+    return try Controller.instance(
+      in: Void(),
+      with: &features,
+      cancellables: cancellables
+    )
+  }
+
   public final func testedInstance(
     context: Feature.Context
-  ) async throws -> Feature {
-    if let instance: Feature = self.testedInstance {
+  ) throws -> Feature {
+    if let instance: Feature = self.instance {
       precondition(
-        self.testedInstanceContextIdentifier == context.identifier,
+        self.contextIdentifier == context.identifier,
         "Cannot use more than one context in a single test."
       )
       return instance
     }
     else {
-      let instance: Feature = try await self.features
-        .instance(
-          of: Feature.self,
-          context: context
-        )
-      self.testedInstance = instance
-      self.testedInstanceContextIdentifier = context.identifier
+      let instance: Feature = try self.testedImplementation.load(self.features, context, self.cancellables) as! Feature
+      self.instance = instance
+      self.contextIdentifier = context.identifier
       return instance
     }
   }
 
-  public final func testedInstance() async throws -> Feature
+  public final func testedInstance() throws -> Feature
   where Feature.Context == ContextlessFeatureContext {
-    try await self.testedInstance(
+    try self.testedInstance(
       context: ContextlessFeatureContext.instance
     )
+  }
+
+  public func set<Scope>(
+    _ scope: Scope.Type,
+    context: Scope.Context
+  ) where Scope: FeaturesScope {
+    self.features
+      .set(
+        scope,
+        context: context
+      )
+  }
+
+  public func set<Scope>(
+    _ scope: Scope.Type
+  ) where Scope: FeaturesScope, Scope.Context == Void {
+    self.features
+      .set(scope)
+  }
+
+  public func usePlaceholder<Feature>(
+    for _: Feature.Type,
+    context: Feature.Context
+  ) where Feature: LoadableFeature {
+    self.features
+      .usePlaceholder(
+        for: Feature.self,
+        context: context
+      )
+  }
+
+  public func usePlaceholder<Feature>(
+    for featureType: Feature.Type
+  ) where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {
+    self.features
+      .usePlaceholder(for: Feature.self)
+  }
+
+  public func usePlaceholder<Feature>(
+    for featureType: Feature.Type
+  ) where Feature: StaticFeature {
+    self.features
+      .usePlaceholder(for: Feature.self)
   }
 
   public final func set<Value>(
@@ -214,46 +317,36 @@ extension LoadableFeatureTestCase {
     _ instance: MockFeature,
     context: MockFeature.Context
   ) where MockFeature: LoadableFeature {
-    guard case .none = self.testedInstance
+    guard case .none = self.instance
     else { fatalError("Cannot modify features after creating tested feature instance") }
-    let identifier: FeatureIdentifier = .init(
-      featureTypeIdentifier: MockFeature.typeIdentifier,
-      featureContextIdentifier: context.identifier
-    )
-    self.mockedDynamicFeatures[identifier] = instance
+    self.features
+      .patch(
+        \MockFeature.self,
+        context: context,
+        with: instance
+      )
   }
 
   public final func use<MockFeature>(
     _ instance: MockFeature
   ) where MockFeature: LoadableFeature, MockFeature.Context == ContextlessFeatureContext {
-    self.use(
-      instance,
-      context: .instance
-    )
+    self.features
+      .patch(
+        \MockFeature.self,
+        with: instance
+      )
   }
 
   public final func use<MockFeature>(
     _ instance: MockFeature
   ) where MockFeature: StaticFeature {
-    guard case .none = self.testedInstance
+    guard case .none = self.instance
     else { fatalError("Cannot modify features after creating tested feature instance") }
-    let identifier: FeatureIdentifier = .init(
-      featureTypeIdentifier: MockFeature.typeIdentifier,
-      featureContextIdentifier: ContextlessFeatureContext.instance.identifier
-    )
-    self.mockedStaticFeatures[identifier] = instance
-  }
-
-  public final func use<MockFeature>(
-    _ instance: MockFeature
-  ) where MockFeature: LegacyFeature {
-    guard case .none = self.testedInstance
-    else { fatalError("Cannot modify features after creating tested feature instance") }
-    let identifier: FeatureIdentifier = .init(
-      featureTypeIdentifier: MockFeature.typeIdentifier,
-      featureContextIdentifier: ContextlessFeatureContext.instance.identifier
-    )
-    self.mockedDynamicFeatures[identifier] = instance
+    self.features
+      .patch(
+        \MockFeature.self,
+        with: instance
+      )
   }
 
   public func patch<MockFeature, Value>(
@@ -261,124 +354,42 @@ extension LoadableFeatureTestCase {
     context: MockFeature.Context,
     with value: Value
   ) where MockFeature: LoadableFeature {
-    guard case .none = self.testedInstance
+    guard case .none = self.instance
     else { fatalError("Cannot patch feature after creating tested feature instance") }
-    let identifier: FeatureIdentifier = .init(
-      featureTypeIdentifier: MockFeature.typeIdentifier,
-      featureContextIdentifier: context.identifier
-    )
-    var instance: MockFeature
-    if let current: MockFeature = self.mockedDynamicFeatures[identifier] as? MockFeature {
-      instance = current
-    }
-    else {
-      instance = .placeholder
-    }
-    instance[keyPath: keyPath] = value
-    self.mockedDynamicFeatures[identifier] = instance
+    self.features
+      .patch(
+        keyPath,
+        context: context,
+        with: value
+      )
   }
 
   public func patch<MockFeature, Value>(
     _ keyPath: WritableKeyPath<MockFeature, Value>,
     with value: Value
   ) where MockFeature: LoadableFeature, MockFeature.Context == ContextlessFeatureContext {
-    self.patch(
-      keyPath,
-      context: .instance,
-      with: value
-    )
-  }
-
-  public func patch<MockFeature, Value>(
-    _ keyPath: WritableKeyPath<MockFeature, Value>,
-    with value: Value
-  ) where MockFeature: LegacyFeature {
-    guard case .none = self.testedInstance
-    else { fatalError("Cannot patch feature after creating tested feature instance") }
-    let identifier: FeatureIdentifier = .init(
-      featureTypeIdentifier: MockFeature.typeIdentifier,
-      featureContextIdentifier: ContextlessFeatureContext.instance.identifier
-    )
-    var instance: MockFeature
-    if let current: MockFeature = self.mockedDynamicFeatures[identifier] as? MockFeature {
-      instance = current
-    }
-    else {
-      instance = .placeholder
-    }
-    instance[keyPath: keyPath] = value
-    self.mockedDynamicFeatures[identifier] = instance
+    self.features
+      .patch(
+        keyPath,
+        with: value
+      )
   }
 
   public func patch<MockFeature, Value>(
     _ keyPath: WritableKeyPath<MockFeature, Value>,
     with value: Value
   ) where MockFeature: StaticFeature {
-    guard case .none = self.testedInstance
+    guard case .none = self.instance
     else { fatalError("Cannot patch feature after creating tested feature instance") }
-    let identifier: FeatureIdentifier = .init(
-      featureTypeIdentifier: MockFeature.typeIdentifier,
-      featureContextIdentifier: ContextlessFeatureContext.instance.identifier
-    )
-    var instance: MockFeature
-    if let current: MockFeature = self.mockedStaticFeatures[identifier] as? MockFeature {
-      instance = current
-    }
-    else {
-      instance = .placeholder
-    }
-    instance[keyPath: keyPath] = value
-    self.mockedStaticFeatures[identifier] = instance
-  }
-
-  public func isCached<Feature>(
-    _ featureType: Feature.Type,
-    context: Feature.Context
-  ) -> Bool
-  where Feature: LoadableFeature {
     self.features
-      .isCached(
-        featureType,
-        context: context
+      .patch(
+        keyPath,
+        with: value
       )
-  }
-
-  public func isCached<Feature>(
-    _ featureType: Feature.Type
-  ) -> Bool
-  where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {
-    self.isCached(
-      featureType,
-      context: .instance
-    )
   }
 }
 
 extension LoadableFeatureTestCase {
-
-  @MainActor private var features: FeatureFactory {
-    if let instance: FeatureFactory = self.featuresContainer {
-      return instance
-    }
-    else {
-      let instance: FeatureFactory = .init(
-        autoLoadFeatures: false,
-        allowScopes: false
-      )
-      instance.set(staticFeatures: self.mockedStaticFeatures)
-      instance.set(dynamicFeatures: self.mockedDynamicFeatures)
-
-      if let testedImplementation: FeatureLoader = Self.testedImplementation {
-        instance.use(testedImplementation)
-      }
-      else {
-        Self.testedImplementationRegister(instance)()
-      }
-
-      self.featuresContainer = instance
-      return instance
-    }
-  }
 
   public func withTestedInstance(
     timeout: TimeInterval = 0.3,
@@ -540,6 +551,7 @@ extension LoadableFeatureTestCase {
         !self.variables.contains(\.executed, of: (@Sendable () -> Void).self),
         "Cannot execute concurrently"
       )
+      self.executed = executed
       _ = try await test(
         self.testedInstance(context: context)
       )

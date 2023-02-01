@@ -62,12 +62,11 @@ final class ResourcePermissionListControllerTests: MainActorTestCase {
       with: always([UserGroupPermissionDetailsDSV.mock_1])
     )
 
-    let controller: ResourcePermissionListController = try await testController(
-      context: .ignored(
-        with: resourceID
-      )
+    let controller: ResourcePermissionListController = try testController(
+      context: resourceID
     )
 
+    await mockExecutionControl.executeAll()
     XCTAssertFalse(controller.viewState.permissionListItems.isEmpty)
     XCTAssertNil(controller.viewState.snackBarMessage)
   }
@@ -87,12 +86,11 @@ final class ResourcePermissionListControllerTests: MainActorTestCase {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let controller: ResourcePermissionListController = try await testController(
-      context: .ignored(
-        with: resourceID
-      )
+    let controller: ResourcePermissionListController = try testController(
+      context: resourceID
     )
 
+    await mockExecutionControl.executeAll()
     XCTAssertTrue(controller.viewState.permissionListItems.isEmpty)
     XCTAssertNotNil(controller.viewState.snackBarMessage)
   }

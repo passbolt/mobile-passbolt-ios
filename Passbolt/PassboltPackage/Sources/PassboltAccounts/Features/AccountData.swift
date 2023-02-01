@@ -49,11 +49,10 @@ extension AccountData: LoadableFeature {
 extension AccountData {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context account: Account,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  ) throws -> Self {
 
     let updatesSequenceSource: UpdatesSequenceSource = .init()
 
@@ -64,9 +63,9 @@ extension AccountData {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor internal func usePassboltAccountData() {
+  internal mutating func usePassboltAccountData() {
     self.use(
       .lazyLoaded(
         AccountData.self,

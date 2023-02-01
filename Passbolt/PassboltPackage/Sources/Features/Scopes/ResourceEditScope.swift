@@ -21,16 +21,9 @@
 // @since         v1.0
 //
 
-import Features
+import CommonModels
 
-extension FeatureFactory {
+public enum ResourceEditScope: FeaturesScope {
 
-  public func usePassboltUsersModule() {
-    self.usePassboltUsers()
-    self.usePassboltUserDetails()
-    self.usePassboltUsers()
-    self.usePassboltUserGroupDetails()
-    self.usePassboltUserGroups()
-    self.usePassboltUserPGPMessages()
-  }
+  public typealias Context = Resource.ID?
 }

@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import Display
 import OSFeatures
 import Resources
 import UIComponents
@@ -39,39 +40,45 @@ internal struct PermissionUsersAndGroupsSearchController {
 extension PermissionUsersAndGroupsSearchController: ComponentController {
 
   internal typealias ControlledView = PermissionUsersAndGroupsSearchView
-  internal typealias NavigationContext = Resource.ID
+  internal typealias Context = Resource.ID
 
   @MainActor static func instance(
-    context: NavigationContext,
-    navigation: ComponentNavigation<NavigationContext>,
-    with features: FeatureFactory,
+    in context: Context,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
     let diagnostics: OSDiagnostics = features.instance()
-    let resourceShareForm: ResourceShareForm = try await features.instance(context: context)
-    let users: Users = try await features.instance()
-    let userGroups: UserGroups = try await features.instance()
-    let existingPermissions: OrderedSet<ResourceShareFormPermission> =
-      await resourceShareForm
-      .currentPermissions()
+    let navigation: DisplayNavigation = try features.instance()
+    let executor: AsyncExecutor = try features.instance()
+    let resourceShareForm: ResourceShareForm = try features.instance(context: context)
+    let users: Users = try features.instance()
+    let userGroups: UserGroups = try features.instance()
 
     let viewState: ObservableValue<ViewState> = .init(
       initial: .init(
         searchText: "",
-        selectedItems:
-          existingPermissions
-          .map { permission in
-            switch permission {
-            case let .user(userID, _):
-              return .user(userID, avatarImage: userAvatarImageFetch(userID))
-            case let .userGroup(userGroupID, _):
-              return .userGroup(userGroupID)
-            }
-          },
+        selectedItems: .init(),
         listSelectionRowViewModels: .init(),
         listExistingRowViewModels: .init()
       )
     )
+
+    executor.schedule { @MainActor in
+      let existingPermissions: OrderedSet<ResourceShareFormPermission> =
+        await resourceShareForm
+        .currentPermissions()
+      let selectedItems: Array<OverlappingAvatarStackView.Item> =
+        existingPermissions
+        .map { permission in
+          switch permission {
+          case let .user(userID, _):
+            return .user(userID, avatarImage: userAvatarImageFetch(userID))
+          case let .userGroup(userGroupID, _):
+            return .userGroup(userGroupID)
+          }
+        }
+      viewState.value.selectedItems = selectedItems
+    }
 
     func userAvatarImageFetch(
       _ userID: User.ID
@@ -114,6 +121,9 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
             )
             continue
           }
+          let existingPermissions: OrderedSet<ResourceShareFormPermission> =
+            await resourceShareForm
+            .currentPermissions()
 
           let selectableUsersAndGroups: Array<ControlledView.SelectionRowViewModel> =
             matchingUserGroups
@@ -255,6 +265,9 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
 
     @MainActor func saveSelection() {
       cancellables.executeOnMainActor {
+        let existingPermissions: OrderedSet<ResourceShareFormPermission> =
+          await resourceShareForm
+          .currentPermissions()
         let newSelections =
           viewState
           .selectedItems

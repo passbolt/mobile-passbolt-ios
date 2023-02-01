@@ -73,15 +73,18 @@ extension ResourceSearchDisplayController: ViewNodeController {
 extension ResourceSearchDisplayController {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context: Context
-  ) async throws -> Self {
+  ) throws -> Self {
+    try features.ensureScope(SessionScope.self)
+
+    let currentAccount: Account = try features.sessionAccount()
+
     let diagnostics: OSDiagnostics = features.instance()
     let navigationTree: NavigationTree = features.instance()
-    let asyncExecutor: AsyncExecutor = try await features.instance()
-    let session: Session = try await features.instance()
-    let currentAccount: Account = try await session.currentAccount()
-    let accountDetails: AccountDetails = try await features.instance(context: currentAccount)
+    let asyncExecutor: AsyncExecutor = try features.instance()
+    let session: Session = try features.instance()
+    let accountDetails: AccountDetails = try features.instance(context: currentAccount)
 
     let viewState: ViewStateBinding<ViewState> = .init(
       initial: .init(
@@ -147,14 +150,15 @@ extension ResourceSearchDisplayController {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltResourceSearchDisplayController() {
+  public mutating func usePassboltResourceSearchDisplayController() {
     self.use(
       .disposable(
         ResourceSearchDisplayController.self,
         load: ResourceSearchDisplayController.load(features:context:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

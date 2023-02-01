@@ -411,15 +411,15 @@ extension OSDiagnostics.Trace {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor internal func useOSDiagnostics() {
+  internal mutating func useOSDiagnostics() {
     self.use(
       OSDiagnostics.live
     )
   }
 
-  @MainActor public func useDisabledOSDiagnostics() {
+  internal mutating func useDisabledOSDiagnostics() {
     self.use(
       OSDiagnostics.disabled
     )

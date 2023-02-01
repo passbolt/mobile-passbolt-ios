@@ -30,24 +30,42 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class HomePresentationTests: TestCase {
+final class HomePresentationTests: LoadableFeatureTestCase<HomePresentation> {
+
+  override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
+
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.usePassboltHomePresentation()
+  }
+
+  override func prepare() throws {
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1
+      )
+    )
+  }
 
   func test_currentPresentationModePublisher_publishesDefault_initially() async throws {
-    await features.patch(
+    await patch(
       \Session.currentAccount,
       with: always(Account.mock_ada)
     )
-    await features.patch(
+    await patch(
       \AccountPreferences.defaultHomePresentation,
       context: Account.mock_ada,
       with: .variable(initial: HomePresentationMode.ownedResourcesList)
     )
-    await features.patch(
-      \SessionConfiguration.configuration,
+    await patch(
+      \SessionConfigurationLoader.configuration,
       with: always(FeatureFlags.Folders.disabled)
     )
 
-    let feature: HomePresentation = try await testedInstance()
+    let feature: HomePresentation = try testedInstance()
 
     var result: HomePresentationMode?
     await feature
@@ -55,7 +73,7 @@ final class HomePresentationTests: TestCase {
       .sink { mode in
         result = mode
       }
-      .store(in: cancellables)
+      .store(in: self.cancellables)
 
     XCTAssertEqual(result, .ownedResourcesList)
   }

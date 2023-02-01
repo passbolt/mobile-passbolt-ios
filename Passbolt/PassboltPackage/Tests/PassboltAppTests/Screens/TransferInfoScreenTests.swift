@@ -42,9 +42,11 @@ final class TransferInfoScreenTests: MainActorTestCase {
   }
 
   func test_noCameraPermissionAlert_isPresented_whenCallingPresent() async throws {
-    var permissions: OSCamera = .placeholder
-    permissions.ensurePermission = always(Void())
-    features.use(permissions)
+    features
+      .patch(
+        \OSCamera.ensurePermission,
+        with: always(Void())
+      )
     let controller: TransferInfoScreenController = try await testController()
     var result: Bool!
 
@@ -62,12 +64,14 @@ final class TransferInfoScreenTests: MainActorTestCase {
 
   func test_showSettings_isTriggered_whenCallingShowSettings() async throws {
     var result: Void?
-    var linkOpener: OSLinkOpener = .placeholder
-    linkOpener.openAppSettings = {
-      result = Void()
-      return Just(true).eraseToAnyPublisher()
-    }
-    await features.use(linkOpener)
+    features
+      .patch(
+        \OSLinkOpener.openAppSettings,
+        with: {
+          result = Void()
+          return Just(true).eraseToAnyPublisher()
+        }
+      )
     let controller: TransferInfoCameraRequiredAlertController = try await testController()
 
     controller.showSettings()

@@ -30,15 +30,14 @@ import Session
 extension AccountPreferences {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context account: Account,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  ) throws -> Self {
 
-    let accountData: AccountData = try await features.instance(context: account)
-    let accountsDataStore: AccountsDataStore = try await features.instance()
-    let sessionPassphrase: SessionPassphrase = try await features.instance(context: .init(account: account))
+    let accountData: AccountData = try features.instance(context: account)
+    let accountsDataStore: AccountsDataStore = try features.instance()
+    let sessionPassphrase: SessionPassphrase = try features.instance(context: .init(account: account))
 
     @Sendable nonisolated func setLocalAccountLabel(
       _ label: String
@@ -64,7 +63,7 @@ extension AccountPreferences {
     }
 
     let useLastHomePresentationAsDefaultProperty: StoredProperty<Bool> =
-      try await features
+      try features
       .instance(
         context: "UseLastUsedHomePresentationAsDefault-\(account)"
       )
@@ -76,7 +75,7 @@ extension AccountPreferences {
       )
 
     let defaultHomePresentationProperty: StoredProperty<String> =
-      try await features
+      try features
       .instance(
         context: "DefaultHomePresentationProperty-\(account)"
       )
@@ -104,9 +103,9 @@ extension AccountPreferences {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor internal func usePassboltAccountPreferences() {
+  internal mutating func usePassboltAccountPreferences() {
     self.use(
       .lazyLoaded(
         AccountPreferences.self,

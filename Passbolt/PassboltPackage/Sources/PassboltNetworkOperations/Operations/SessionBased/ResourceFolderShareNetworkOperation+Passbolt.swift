@@ -45,9 +45,9 @@ extension ResourceFolderShareNetworkOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceFolderShareNetworkOperation() {
+  internal mutating func usePassboltResourceFolderShareNetworkOperation() {
     self.use(
       .networkOperationWithSession(
         of: ResourceFolderShareNetworkOperation.self,

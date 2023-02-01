@@ -21,10 +21,9 @@
 // @since         v1.0
 //
 
-extension FeatureFactory {
+import CommonModels
 
-  public func usePassboltSessionDataModule() {
-    self.usePassboltSessionData()
-    self.usePassboltSessionConfiguration()
-  }
+public enum ResourceScope: FeaturesScope {
+
+  public typealias Context = Resource.ID
 }

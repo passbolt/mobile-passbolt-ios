@@ -35,13 +35,29 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
 
-  override class var testedImplementationRegister: (FeatureFactory) -> @MainActor () -> Void {
-    FeatureFactory.usePassboltResourceShareForm
+  override class var testedImplementationScope: any FeaturesScope.Type { ResourceShareScope.self }
+
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.usePassboltResourceShareForm()
   }
 
   var resource: ResourceDetailsDSV!
 
   override func prepare() throws {
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1
+      )
+    )
+    self.set(
+      ResourceShareScope.self,
+      context: .mock_1
+    )
+
     self.resource = .mock_1
     use(UserGroups.placeholder)
     use(UsersPGPMessages.placeholder)
@@ -59,21 +75,6 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
 
   override func cleanup() throws {
     self.resource = .none
-  }
-
-  func test_loading_fails_whenAccessingDetailsFail() async throws {
-    patch(
-      \ResourceDetails.details,
-      context: resource.id,
-      with: alwaysThrow(
-        MockIssue.error()
-      )
-    )
-    await XCTAssertError(
-      matches: MockIssue.self
-    ) {
-      try await self.testedInstance(context: resource.id)
-    }
   }
 
   func test_permissionsSequence_providesCurrentPermissionsInitially() async throws {
@@ -219,27 +220,6 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ) {
       await permissionsSequence.first()
     }
-  }
-
-  func test_cancelForm_unloadsFeature() async throws {
-    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
-
-    var loaded: Bool =
-      isCached(
-        ResourceShareForm.self,
-        context: resource.id
-      )
-    XCTAssertTrue(loaded)
-
-    await feature.cancelForm()
-
-    loaded =
-      isCached(
-        ResourceShareForm.self,
-        context: resource.id
-      )
-
-    XCTAssertFalse(loaded)
   }
 
   func test_sendForm_fails_withoutOwnerPermission() async throws {
@@ -516,40 +496,6 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     await XCTAssertNoError {
       try await feature.sendForm()
     }
-  }
-
-  func test_sendForm_unloadsFeature_whenSucceeds() async throws {
-    self.resource.permissions = [
-      .userToResource(
-        id: .mock_1,
-        userID: .mock_1,
-        resourceID: self.resource.id,
-        type: .owner
-      )
-    ]
-    patch(
-      \ResourceShareNetworkOperation.execute,
-      with: always(Void())
-    )
-
-    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
-
-    var loaded: Bool =
-      isCached(
-        ResourceShareForm.self,
-        context: resource.id
-      )
-    XCTAssertTrue(loaded)
-
-    try await feature.sendForm()
-
-    loaded =
-      isCached(
-        ResourceShareForm.self,
-        context: resource.id
-      )
-
-    XCTAssertFalse(loaded)
   }
 
   func test_setUserPermission_addsNewPermission_whenGivenUserHasNoPermissionYet() async throws {

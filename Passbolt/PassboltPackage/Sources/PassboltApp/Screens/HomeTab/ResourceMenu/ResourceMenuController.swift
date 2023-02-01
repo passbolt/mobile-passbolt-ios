@@ -71,14 +71,14 @@ extension ResourceMenuController: UIController {
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
     let diagnostics: OSDiagnostics = features.instance()
     let linkOpener: OSLinkOpener = features.instance()
-    let resources: Resources = try await features.instance()
+    let resources: Resources = try features.instance()
     let pasteboard: OSPasteboard = features.instance()
-    let resourceFavorites: ResourceFavorites = try await features.instance(context: context.resourceID)
+    let resourceFavorites: ResourceFavorites = try features.instance(context: context.resourceID)
 
     let currentDetailsSubject: CurrentValueSubject<ResourceDetailsDSV?, Error> = .init(
       nil

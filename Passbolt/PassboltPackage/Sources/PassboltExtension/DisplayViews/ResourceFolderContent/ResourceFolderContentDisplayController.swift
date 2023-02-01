@@ -87,13 +87,15 @@ extension ResourceFolderContentDisplayController: ViewController {
 extension ResourceFolderContentDisplayController {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context: Context
-  ) async throws -> Self {
+  ) throws -> Self {
+    try features.ensureScope(SessionScope.self)
+
     let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try await features.instance()
-    let sessionData: SessionData = try await features.instance()
-    let resourceFolders: ResourceFolders = try await features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
+    let sessionData: SessionData = try features.instance()
+    let resourceFolders: ResourceFolders = try features.instance()
 
     let viewState: ViewStateBinding<ViewState> = .init(
       initial: .init(
@@ -189,14 +191,15 @@ extension ResourceFolderContentDisplayController {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltResourceFolderContentDisplayController() {
+  public mutating func usePassboltResourceFolderContentDisplayController() {
     self.use(
       .disposable(
         ResourceFolderContentDisplayController.self,
         load: ResourceFolderContentDisplayController.load(features:context:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

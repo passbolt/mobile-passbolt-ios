@@ -59,7 +59,7 @@ internal struct SessionAuthorizationState {
   internal var cancelAuthorization: @SessionActor () -> Void
 }
 
-extension SessionAuthorizationState: LoadableContextlessFeature {
+extension SessionAuthorizationState: LoadableFeature {
 
   #if DEBUG
   nonisolated static var placeholder: Self {
@@ -79,12 +79,10 @@ extension SessionAuthorizationState {
   @TaskLocal private static var authorizationIID: IID? = .none
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-
-    let sessionState: SessionState = try await features.instance()
+  ) throws -> Self {
+    let sessionState: SessionState = try features.instance()
 
     struct OngoingAuthorization {
 
@@ -337,9 +335,9 @@ extension SessionAuthorizationState {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltSessionAuthorizationState() {
+  internal mutating func usePassboltSessionAuthorizationState() {
     self.use(
       .lazyLoaded(
         SessionAuthorizationState.self,

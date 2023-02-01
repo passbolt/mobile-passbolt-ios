@@ -40,7 +40,6 @@ public struct ResourceEditController {
   internal var generatePassword: @MainActor () -> Void
   internal var presentExitConfirmation: @MainActor () -> Void
   internal var exitConfirmationPresentationPublisher: @MainActor () -> AnyPublisher<Bool, Never>
-  internal var cleanup: @MainActor () -> Void
 }
 
 extension ResourceEditController {
@@ -48,6 +47,16 @@ extension ResourceEditController {
   public enum EditingContext {
     case new(in: ResourceFolder.ID?, url: URLString?)
     case existing(Resource.ID)
+
+    fileprivate var resourceID: Resource.ID? {
+      switch self {
+      case .new:
+        return .none
+
+      case .existing(let id):
+        return id
+      }
+    }
   }
 }
 
@@ -60,13 +69,17 @@ extension ResourceEditController: UIController {
 
   public static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
+    features = features.branch(
+      scope: ResourceEditScope.self,
+      context: context.editing.resourceID
+    )
     let diagnostics: OSDiagnostics = features.instance()
-    let sessionData: SessionData = try await features.instance()
-    let resourceForm: ResourceEditForm = try await features.instance()
-    let randomGenerator: RandomStringGenerator = try await features.instance()
+    let sessionData: SessionData = try features.instance()
+    let resourceForm: ResourceEditForm = try features.instance()
+    let randomGenerator: RandomStringGenerator = try features.instance()
 
     let resourcePropertiesSubject: CurrentValueSubject<Array<ResourceFieldDSV>, Error> = .init([])
     let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()
@@ -79,9 +92,6 @@ extension ResourceEditController: UIController {
         .editResource(resourceID)
         .sink(
           receiveCompletion: { completion in
-            cancellables.executeOnMainActor {
-              try await features.unload(ResourceEditForm.self)
-            }
             guard case let .failure(error) = completion else { return }
 
             resourcePropertiesSubject.send(completion: .failure(error))
@@ -106,9 +116,6 @@ extension ResourceEditController: UIController {
       .map(\.fields)
       .sink(
         receiveCompletion: { completion in
-          cancellables.executeOnMainActor {
-            try await features.unload(ResourceEditForm.self)
-          }
           resourcePropertiesSubject.send(completion: completion)
         },
         receiveValue: { properties in
@@ -168,14 +175,6 @@ extension ResourceEditController: UIController {
           .handleEvents(
             receiveOutput: { resourceID in
               context.completion(resourceID)
-            },
-            receiveCompletion: { completion in
-              guard case .finished = completion
-              else { return }
-
-              cancellables.executeOnMainActor {
-                cleanup()
-              }
             }
           )
           .mapToVoid()
@@ -207,12 +206,6 @@ extension ResourceEditController: UIController {
       exitConfirmationPresentationSubject.eraseToAnyPublisher()
     }
 
-    func cleanup() {
-      cancellables.executeOnMainActor {
-        try await features.unload(ResourceEditForm.self)
-      }
-    }
-
     return Self(
       createsNewResource: createsNewResource,
       resourcePropertiesPublisher: resourcePropertiesPublisher,
@@ -222,8 +215,7 @@ extension ResourceEditController: UIController {
       setValue: setValue(_:for:),
       generatePassword: generatePassword,
       presentExitConfirmation: presentExitConfirmation,
-      exitConfirmationPresentationPublisher: exitConfirmationPresentationPublisher,
-      cleanup: cleanup
+      exitConfirmationPresentationPublisher: exitConfirmationPresentationPublisher
     )
   }
 }

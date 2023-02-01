@@ -32,13 +32,15 @@ import SessionData
 extension Resources {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
+    try features.ensureScope(SessionScope.self)
+
     let diagnostics: OSDiagnostics = features.instance()
-    let sessionData: SessionData = try await features.instance()
-    let resourcesListFetchDatabaseOperation: ResourcesListFetchDatabaseOperation = try await features.instance()
-    let resourceDeleteNetworkOperation: ResourceDeleteNetworkOperation = try await features.instance()
+    let sessionData: SessionData = try features.instance()
+    let resourcesListFetchDatabaseOperation: ResourcesListFetchDatabaseOperation = try features.instance()
+    let resourceDeleteNetworkOperation: ResourceDeleteNetworkOperation = try features.instance()
 
     // initial refresh after loading
     // TODO: move to more appropriate place
@@ -158,14 +160,15 @@ extension Resources {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResources() {
+  internal mutating func usePassboltResources() {
     self.use(
       .lazyLoaded(
         Resources.self,
         load: Resources.load(features:cancellables:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

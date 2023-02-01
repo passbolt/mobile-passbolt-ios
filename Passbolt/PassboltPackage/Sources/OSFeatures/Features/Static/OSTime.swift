@@ -67,9 +67,9 @@ extension OSTime {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useOSTime() {
+  internal mutating func useOSTime() {
     self.use(
       OSTime.live
     )

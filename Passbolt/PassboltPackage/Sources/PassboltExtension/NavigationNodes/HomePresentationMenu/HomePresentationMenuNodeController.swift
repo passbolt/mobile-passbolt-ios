@@ -58,12 +58,12 @@ extension HomePresentationMenuNodeController: ViewNodeController {
 extension HomePresentationMenuNodeController {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
+    features: Features
+  ) throws -> Self {
     let nodeID: NavigationNodeID = .init()
-    let asyncExecutor: AsyncExecutor = try await features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
     let navigationTree: NavigationTree = features.instance()
-    let homePresentation: HomePresentation = try await features.instance()
+    let homePresentation: HomePresentation = try features.instance()
 
     let viewState: ViewStateBinding<ViewState> = .init(
       initial: .init(
@@ -104,14 +104,15 @@ extension HomePresentationMenuNodeController {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltHomePresentationMenuNodeController() {
+  public mutating func usePassboltHomePresentationMenuNodeController() {
     self.use(
       .disposable(
         HomePresentationMenuNodeController.self,
         load: HomePresentationMenuNodeController.load(features:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

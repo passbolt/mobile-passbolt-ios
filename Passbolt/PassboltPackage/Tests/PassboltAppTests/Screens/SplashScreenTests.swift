@@ -53,11 +53,11 @@ final class SplashScreenTests: MainActorTestCase {
     )
     features.usePlaceholder(for: UpdateCheck.self)
     features.patch(
-      \SessionConfiguration.configuration,
+      \SessionConfigurationLoader.configuration,
       with: always(.none)
     )
     features.patch(
-      \SessionConfiguration.fetchIfNeeded,
+      \SessionConfigurationLoader.fetchIfNeeded,
       with: always(Void())
     )
     features.patch(
@@ -174,7 +174,7 @@ final class SplashScreenTests: MainActorTestCase {
       with: always(Account.mock_ada)
     )
     features.patch(
-      \SessionConfiguration.fetchIfNeeded,
+      \SessionConfigurationLoader.fetchIfNeeded,
       with: always(Void())
     )
 
@@ -190,7 +190,7 @@ final class SplashScreenTests: MainActorTestCase {
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
-    XCTAssertEqual(result, .home)
+    XCTAssertEqual(result, .home(.init(account: .mock_ada, configuration: .mock_default)))
   }
 
   func test_navigateToFeatureFlagsFetchError_whenAuthorized_andFeatureFlagsDownloadFails() async throws {
@@ -199,7 +199,7 @@ final class SplashScreenTests: MainActorTestCase {
       with: always(Account.mock_ada)
     )
     features.patch(
-      \SessionConfiguration.fetchIfNeeded,
+      \SessionConfigurationLoader.fetchIfNeeded,
       with: alwaysThrow(MockIssue.error())
     )
 
@@ -225,7 +225,7 @@ final class SplashScreenTests: MainActorTestCase {
     )
     let uncheckedSendableIndex: UncheckedSendable<Int> = .init(0)
     features.patch(
-      \SessionConfiguration.fetchIfNeeded,
+      \SessionConfigurationLoader.fetchIfNeeded,
       with: always(Void())
     )
 
@@ -245,7 +245,7 @@ final class SplashScreenTests: MainActorTestCase {
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
-    XCTAssertEqual(destination, .home)
+    XCTAssertEqual(destination, .home(.init(account: .mock_ada, configuration: .mock_default)))
   }
 
   func test_navigationDestinationPublisher_doesNotPublish_whenRetryFetchConfigurationFails() async throws {
@@ -254,7 +254,7 @@ final class SplashScreenTests: MainActorTestCase {
       with: always(Account.mock_ada)
     )
     features.patch(
-      \SessionConfiguration.fetchIfNeeded,
+      \SessionConfigurationLoader.fetchIfNeeded,
       with: alwaysThrow(MockIssue.error())
     )
 

@@ -22,6 +22,7 @@
 //
 
 import Display
+import OSFeatures
 import Resources
 import Users
 
@@ -55,38 +56,51 @@ extension ResourceLocationDetailsController: ViewController {
 
 extension ResourceLocationDetailsController {
 
-  fileprivate static func load(
-    features: FeatureFactory,
+  @MainActor fileprivate static func load(
+    features: Features,
     context: Context
-  ) async throws -> Self {
-    let resourceDetails: ResourceDetails = try await features.instance(context: context)
+  ) throws -> Self {
+    let diagnostics: OSDiagnostics = features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
 
-    let details: ResourceDetailsDSV = try await resourceDetails.details()
+    let resourceDetails: ResourceDetails = try features.instance(context: context)
+
     let viewState: ViewStateBinding<ViewState> = .init(
       initial: .init(
-        resourceName: details.name,
-        resourceLocation: {
-          var location: FolderLocationTreeView.Node = details.location.reduce(
-            into: FolderLocationTreeView.Node.root()
-          ) { (partialResult: inout FolderLocationTreeView.Node, item: ResourceFolderLocationItemDSV) in
-            partialResult.append(
-              child: .node(
-                id: item.folderID,
-                name: item.folderName,
-                shared: item.folderShared
-              )
-            )
-          }
-          location.append(
-            child: .leaf(
-              id: details.id,
-              name: details.name
-            )
-          )
-          return location
-        }()
+        resourceName: .init(),
+        resourceLocation: .root()
       )
     )
+
+    asyncExecutor.schedule {
+      do {
+        let details: ResourceDetailsDSV! = try await resourceDetails.details()
+        var location: FolderLocationTreeView.Node = details.location.reduce(
+          into: FolderLocationTreeView.Node.root()
+        ) { (partialResult: inout FolderLocationTreeView.Node, item: ResourceFolderLocationItemDSV) in
+          partialResult.append(
+            child: .node(
+              id: item.folderID,
+              name: item.folderName,
+              shared: item.folderShared
+            )
+          )
+        }
+        location.append(
+          child: .leaf(
+            id: details.id,
+            name: details.name
+          )
+        )
+        await viewState.mutate { viewState in
+          viewState.resourceName = details.name
+          viewState.resourceLocation = location
+        }
+      }
+      catch {
+        diagnostics.log(error: error)
+      }
+    }
 
     return .init(
       viewState: viewState
@@ -94,14 +108,15 @@ extension ResourceLocationDetailsController {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltResourceLocationDetailsController() {
+  public mutating func usePassboltResourceLocationDetailsController() {
     self.use(
       .disposable(
         ResourceLocationDetailsController.self,
         load: ResourceLocationDetailsController.load(features:context:)
-      )
+      ),
+      in: ResourceDetailsScope.self
     )
   }
 }

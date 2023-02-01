@@ -36,7 +36,7 @@ extension ErrorController: UIController {
 
   internal static func instance(
     in context: @escaping Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
   ) -> ErrorController {
     let signOutPresentationSubject: PassthroughSubject<Void, Never> = .init()

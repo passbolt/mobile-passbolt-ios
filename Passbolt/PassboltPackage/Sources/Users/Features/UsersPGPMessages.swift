@@ -74,7 +74,7 @@ public struct UsersPGPMessages {
   }
 }
 
-extension UsersPGPMessages: LoadableContextlessFeature {
+extension UsersPGPMessages: LoadableFeature {
 
   #if DEBUG
 

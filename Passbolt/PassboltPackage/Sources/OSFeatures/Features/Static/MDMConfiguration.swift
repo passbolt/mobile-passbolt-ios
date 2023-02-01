@@ -121,9 +121,9 @@ extension MDMConfiguration {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useMDMConfiguration() {
+  internal mutating func useMDMConfiguration() {
     self.use(
       MDMConfiguration.live
     )

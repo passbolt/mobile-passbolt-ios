@@ -78,7 +78,7 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
       .dismissPublisher()
       .sink { [weak self] in
         self?.cancellables.executeOnMainActor { [weak self] in
-          await self?.dismiss(AccountMenuViewController.self)
+          await self?.dismiss(SheetMenuViewController<AccountMenuViewController>.self)
         }
       }
       .store(in: cancellables)
@@ -107,8 +107,8 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
           )
           await self.controller.navigation
             .push(
-              AccountDetailsViewController.self,
-              in: accountWithProfile
+              legacy: AccountDetailsViewController.self,
+              context: accountWithProfile
             )
         }
       }
@@ -132,8 +132,8 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
           )
           await self.controller.navigation
             .push(
-              AuthorizationViewController.self,
-              in: account
+              legacy: AuthorizationViewController.self,
+              context: account
             )
         }
       }
@@ -157,8 +157,8 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
           )
           await self.controller.navigation
             .push(
-              AccountSelectionViewController.self,
-              in: .init(value: true)
+              legacy: AccountSelectionViewController.self,
+              context: .init(value: true)
             )
         }
       }

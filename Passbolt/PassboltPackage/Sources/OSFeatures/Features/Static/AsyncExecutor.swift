@@ -55,7 +55,7 @@ extension AsyncExecutor {
 
   @discardableResult
   public func schedule(
-    _ behavior: OngoingExecutionBehavior = .unmanaged,
+    _ behavior: OngoingExecutionBehavior = .concurrent,
     function: StaticString = #function,
     file: StaticString = #fileID,
     line: UInt = #line,
@@ -151,6 +151,13 @@ extension AsyncExecutor {
 
       case .unmanaged:
         execution = executeTask(task)
+
+      case .concurrent:
+        execution = schedulerState.access { state in
+          let execution: Execution = executeTask(task)
+          state[.unique()] = execution
+          return execution
+        }
       }
 
       return execution
@@ -174,11 +181,10 @@ extension AsyncExecutor {
   public enum OngoingExecutionBehavior {
 
     case unmanaged  // execute task concurrently without tracking
-    case replace  // cancel and replace current and pending tasks
+    case replace  // cancel and replace current and pending taskscase concurrent // execute task concurrently
     case reuse  // reuse current task instead (ignore queue)
+    case concurrent  // execute task concurrently
 
-    // to be done:
-    // case concurrent // execute task concurrently
     // case enqueue // push a task on queue to be executed
   }
 
@@ -193,6 +199,12 @@ extension AsyncExecutor {
     ) -> Self {
       .init(
         identifier: "\(file):\(function):\(line)"
+      )
+    }
+
+    public static func unique() -> Self {
+      .init(
+        identifier: IID()
       )
     }
   }
@@ -226,6 +238,24 @@ extension AsyncExecutor.ExecutionIdentifier: ExpressibleByStringInterpolation {
 
 #if DEBUG
 extension AsyncExecutor {
+
+  public func updates(
+    using sequence: UpdatesSequence,
+    update: @escaping @Sendable () async throws -> Void,
+    finish: @escaping @Sendable (TheError?) -> Void = { _ in /* NOP */ }
+  ) {
+    self.schedule {
+      do {
+        for try await _ in sequence {
+          try await update()
+        }
+        finish(.none)
+      }
+      catch {
+        finish(error.asTheError())
+      }
+    }
+  }
 
   public struct MockExecutionControl: Sendable {
 
@@ -328,13 +358,13 @@ extension AsyncExecutor {
 }
 #endif
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltAsyncExecutor() {
+  public mutating func usePassboltAsyncExecutor() {
     self.use(
       .disposable(
         AsyncExecutor.self,
-        load: { (_: FeatureFactory) in
+        load: { (_: Features) in
           AsyncExecutor.system()
         }
       )

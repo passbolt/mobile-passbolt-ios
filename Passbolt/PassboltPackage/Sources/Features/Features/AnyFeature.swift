@@ -23,18 +23,17 @@
 
 import Commons
 
-public protocol LoadableFeatureContext {
+public protocol AnyFeature {}
 
-  var identifier: AnyHashable { get }
-}
+internal typealias FeatureIdentifier = ObjectIdentifier
 
-extension LoadableFeatureContext
-where Self: Hashable {
+extension AnyFeature {
 
-  public var identifier: AnyHashable {
-    self as AnyHashable
+  internal var identifier: FeatureIdentifier {
+    ObjectIdentifier(Self.self)
+  }
+
+  internal static var identifier: FeatureIdentifier {
+    ObjectIdentifier(Self.self)
   }
 }
-
-extension Tagged: LoadableFeatureContext
-where RawValue: Hashable {}

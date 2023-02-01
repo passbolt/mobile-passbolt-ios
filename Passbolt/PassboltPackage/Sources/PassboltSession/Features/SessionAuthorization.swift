@@ -35,7 +35,7 @@ internal struct SessionAuthorization {
   internal var refreshTokens: @SessionActor (Account, Passphrase) async throws -> Void
 }
 
-extension SessionAuthorization: LoadableContextlessFeature {
+extension SessionAuthorization: LoadableFeature {
 
   #if DEBUG
   nonisolated internal static var placeholder: Self {
@@ -52,14 +52,13 @@ extension SessionAuthorization: LoadableContextlessFeature {
 extension SessionAuthorization {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+    features: Features
+  ) throws -> Self {
 
     let diagnostics: OSDiagnostics = features.instance()
-    let sessionState: SessionState = try await features.instance()
-    let sessionNetworkAuthorization: SessionNetworkAuthorization = try await features.instance()
-    let accountsData: AccountsDataStore = try await features.instance()
+    let sessionState: SessionState = try features.instance()
+    let sessionNetworkAuthorization: SessionNetworkAuthorization = try features.instance()
+    let accountsData: AccountsDataStore = try features.instance()
     let pgp: PGP = features.instance()
     let osTime: OSTime = features.instance()
 
@@ -201,8 +200,6 @@ extension SessionAuthorization {
       mfaToken: SessionMFAToken?,
       mfaRequiredWithProviders mfaProviders: Array<SessionMFAProvider>
     ) async {
-      await features
-        .ensureScope(identifier: account)
       accountsData
         .storeLastUsedAccount(account.localID)
       sessionState.createdSession(
@@ -216,7 +213,10 @@ extension SessionAuthorization {
 
       do {
         try await features
-          .instance(of: SessionLocking.self, context: account)
+          .instance(
+            of: SessionLocking.self,
+            context: account
+          )
           .ensureAutolock()
       }
       catch {
@@ -504,9 +504,9 @@ extension SessionAuthorization {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltSessionAuthorization() {
+  internal mutating func usePassboltSessionAuthorization() {
     self.use(
       .disposable(
         SessionAuthorization.self,

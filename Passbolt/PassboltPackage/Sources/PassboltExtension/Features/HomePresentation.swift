@@ -36,7 +36,7 @@ internal struct HomePresentation {
   internal var availableModes: @Sendable () -> OrderedSet<HomePresentationMode>
 }
 
-extension HomePresentation: LoadableContextlessFeature {
+extension HomePresentation: LoadableFeature {
 
   #if DEBUG
   internal nonisolated static var placeholder: Self {
@@ -53,19 +53,17 @@ extension HomePresentation: LoadableContextlessFeature {
 extension HomePresentation {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let sessionConfiguration: SessionConfiguration = try await features.instance()
-    let session: Session = try await features.instance()
-    let accountPreferences: AccountPreferences = try await features.instance(context: session.currentAccount())
+  ) throws -> Self {
+    let currentAccount: Account = try features.sessionAccount()
+    let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
+
+    let accountPreferences: AccountPreferences = try features.instance(context: currentAccount)
 
     let useLastUsedHomePresentationAsDefault: StateBinding<Bool> = accountPreferences
       .useLastHomePresentationAsDefault
     let defaultHomePresentation: StateBinding<HomePresentationMode> = accountPreferences.defaultHomePresentation
-
-    let foldersConfig: FeatureFlags.Folders = await sessionConfiguration.configuration(for: FeatureFlags.Folders.self)
-    let tagsConfig: FeatureFlags.Tags = await sessionConfiguration.configuration(for: FeatureFlags.Tags.self)
 
     let availablePresentationModes: OrderedSet<HomePresentationMode> = {
       // order is preserved on display
@@ -77,21 +75,13 @@ extension HomePresentation {
         .ownedResourcesList,
       ]
 
-      switch foldersConfig {
-      case .disabled:
-        break  // skip
-
-      case .enabled:
+      if sessionConfiguration.foldersEnabled {
         availableModes.append(.foldersExplorer)
-      }
+      }  // else NOP
 
-      switch tagsConfig {
-      case .disabled:
-        break  // skip
-
-      case .enabled:
+      if sessionConfiguration.tagsEnabled {
         availableModes.append(.tagsExplorer)
-      }
+      }  // else NOP
 
       availableModes.append(.resourceUserGroupsExplorer)
 
@@ -132,14 +122,15 @@ extension HomePresentation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltHomePresentation() {
+  public mutating func usePassboltHomePresentation() {
     self.use(
       .lazyLoaded(
         HomePresentation.self,
         load: HomePresentation.load(features:cancellables:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

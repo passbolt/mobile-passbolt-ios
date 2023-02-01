@@ -33,6 +33,14 @@ import UIComponents
 final class BiometricsInfoScreenTests: MainActorTestCase {
 
   override func mainActorSetUp() {
+    features
+      .set(
+        SessionScope.self,
+        context: .init(
+          account: .mock_ada,
+          configuration: .mock_1
+        )
+      )
     features.usePlaceholder(for: OSBiometry.self)
     features.usePlaceholder(for: OSLinkOpener.self)
     features.patch(

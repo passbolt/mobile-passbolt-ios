@@ -40,7 +40,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
   override func mainActorSetUp() {
     features.usePlaceholder(for: OSPasteboard.self)
     features.usePlaceholder(for: OSLinkOpener.self)
-    features.usePlaceholder(for: SessionConfiguration.self)
+    features.usePlaceholder(for: SessionConfigurationLoader.self)
     features.patch(
       \Resources.resourceDetailsPublisher,
       with: always(

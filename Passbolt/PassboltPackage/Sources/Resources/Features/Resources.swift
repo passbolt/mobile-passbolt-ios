@@ -52,7 +52,7 @@ public struct Resources {
   }
 }
 
-extension Resources: LoadableContextlessFeature {
+extension Resources: LoadableFeature {
 
   #if DEBUG
   public static var placeholder: Resources {

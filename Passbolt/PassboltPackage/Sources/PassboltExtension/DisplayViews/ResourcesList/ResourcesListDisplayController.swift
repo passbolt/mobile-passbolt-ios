@@ -77,13 +77,15 @@ extension ResourcesListDisplayController: ViewController {
 extension ResourcesListDisplayController {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context: Context
-  ) async throws -> Self {
+  ) throws -> Self {
+    try features.ensureScope(SessionScope.self)
+
     let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try await features.instance()
-    let sessionData: SessionData = try await features.instance()
-    let resources: Resources = try await features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
+    let sessionData: SessionData = try features.instance()
+    let resources: Resources = try features.instance()
 
     let viewState: ViewStateBinding<ViewState> = .init(
       initial: .init(
@@ -163,14 +165,15 @@ extension ResourcesListDisplayController {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltResourcesListDisplayController() {
+  public mutating func usePassboltResourcesListDisplayController() {
     self.use(
       .disposable(
         ResourcesListDisplayController.self,
         load: ResourcesListDisplayController.load(features:context:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

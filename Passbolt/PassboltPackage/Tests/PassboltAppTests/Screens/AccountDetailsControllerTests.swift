@@ -36,6 +36,14 @@ final class AccountDetailsControllerTests: MainActorTestCase {
   var preferencesUpdates: UpdatesSequenceSource!
 
   override func mainActorSetUp() {
+    features
+      .set(
+        SessionScope.self,
+        context: .init(
+          account: .mock_ada,
+          configuration: .mock_1
+        )
+      )
     detailsUpdates = .init()
     features.patch(
       \AccountDetails.updates,

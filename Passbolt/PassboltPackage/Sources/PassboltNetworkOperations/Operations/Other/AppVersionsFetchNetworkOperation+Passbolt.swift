@@ -51,9 +51,9 @@ extension AppVersionsFetchNetworkOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltAppVersionsFetchNetworkOperation() {
+  internal mutating func usePassboltAppVersionsFetchNetworkOperation() {
     self.use(
       FeatureLoader.networkOperation(
         of: AppVersionsFetchNetworkOperation.self,

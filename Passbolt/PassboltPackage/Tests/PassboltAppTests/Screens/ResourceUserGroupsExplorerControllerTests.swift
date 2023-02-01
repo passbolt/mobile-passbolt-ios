@@ -40,6 +40,14 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
   var updates: UpdatesSequenceSource!
 
   override func mainActorSetUp() {
+    features
+      .set(
+        SessionScope.self,
+        context: .init(
+          account: .mock_ada,
+          configuration: .mock_1
+        )
+      )
     updates = .init()
     features.patch(
       \SessionData.updatesSequence,
@@ -84,7 +92,7 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
     )
 
     let controller: ResourceUserGroupsExplorerController = try await testController(
-      context: .ignored(with: nil)
+      context: nil
     )
 
     await controller.refreshIfNeeded()
@@ -95,7 +103,7 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
   func test_refreshIfNeeded_finishesWithoutError_whenRefreshingSucceeds() async throws {
 
     let controller: ResourceUserGroupsExplorerController = try await testController(
-      context: .ignored(with: nil)
+      context: nil
     )
 
     await controller.refreshIfNeeded()
@@ -105,7 +113,7 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
 
   func test_initally_viewStateTitle_isDefaultString_forTags() async throws {
     let controller: ResourceUserGroupsExplorerController = try await testController(
-      context: .ignored(with: nil)
+      context: nil
     )
 
     XCTAssertEqual(
@@ -124,12 +132,10 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
     )
 
     let controller: ResourceUserGroupsExplorerController = try await testController(
-      context: .ignored(
-        with: .init(
-          id: "groupID",
-          name: "group",
-          contentCount: 0
-        )
+      context: .init(
+        id: "groupID",
+        name: "group",
+        contentCount: 0
       )
     )
 

@@ -38,6 +38,8 @@ internal struct HomeNavigationNodeController {
 
 extension HomeNavigationNodeController: ViewNodeController {
 
+  internal typealias Context = SessionScope.Context
+
   internal struct ViewState: Hashable {
 
     internal var contentController: any ViewController
@@ -69,14 +71,21 @@ extension HomeNavigationNodeController: ViewNodeController {
 extension HomeNavigationNodeController {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
+    features: Features,
+    context: Context
+  ) throws -> Self {
+    let features: Features =
+      features
+      .branch(
+        scope: SessionScope.self,
+        context: context
+      )
     let nodeID: NavigationNodeID = .init()
-    let asyncExecutor: AsyncExecutor = try await features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
     let navigationTree: NavigationTree = features.instance()
-    let homePresentation: HomePresentation = try await features.instance()
+    let homePresentation: HomePresentation = try features.instance()
 
-    let viewState: ViewStateBinding<ViewState> = await .init(
+    let viewState: ViewStateBinding<ViewState> = .init(
       initial: .init(
         contentController: contentRoot(
           for: homePresentation.currentMode.get()
@@ -99,14 +108,14 @@ extension HomeNavigationNodeController {
       }
     }
 
-    @Sendable nonisolated func contentRoot(
+    @MainActor func contentRoot(
       for mode: HomePresentationMode
-    ) async -> any ViewController {
+    ) -> any ViewController {
       do {
         switch mode {
         case .plainResourcesList:
           return
-            try await features
+            try features
             .instance(
               of: ResourcesListNodeController.self,
               context: .init(
@@ -120,7 +129,7 @@ extension HomeNavigationNodeController {
 
         case .modifiedResourcesList:
           return
-            try await features
+            try features
             .instance(
               of: ResourcesListNodeController.self,
               context: .init(
@@ -134,7 +143,7 @@ extension HomeNavigationNodeController {
 
         case .favoriteResourcesList:
           return
-            try await features
+            try features
             .instance(
               of: ResourcesListNodeController.self,
               context: .init(
@@ -149,7 +158,7 @@ extension HomeNavigationNodeController {
 
         case .sharedResourcesList:
           return
-            try await features
+            try features
             .instance(
               of: ResourcesListNodeController.self,
               context: .init(
@@ -164,7 +173,7 @@ extension HomeNavigationNodeController {
 
         case .ownedResourcesList:
           return
-            try await features
+            try features
             .instance(
               of: ResourcesListNodeController.self,
               context: .init(
@@ -179,7 +188,7 @@ extension HomeNavigationNodeController {
 
         case .tagsExplorer:
           return
-            try await features
+            try features
             .instance(
               of: ResourceTagsListNodeController.self,
               context: .init(
@@ -190,7 +199,7 @@ extension HomeNavigationNodeController {
 
         case .resourceUserGroupsExplorer:
           return
-            try await features
+            try features
             .instance(
               of: ResourceUserGroupsListNodeController.self,
               context: .init(
@@ -201,7 +210,7 @@ extension HomeNavigationNodeController {
 
         case .foldersExplorer:
           return
-            try await features
+            try features
             .instance(
               of: ResourceFolderContentNodeController.self,
               context: .init(
@@ -225,13 +234,13 @@ extension HomeNavigationNodeController {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltHomeNavigationNodeController() {
+  public mutating func usePassboltHomeNavigationNodeController() {
     self.use(
       .disposable(
         HomeNavigationNodeController.self,
-        load: HomeNavigationNodeController.load(features:)
+        load: HomeNavigationNodeController.load(features:context:)
       )
     )
   }

@@ -28,7 +28,7 @@ public struct EmptyController<Context>: UIController {
 
   public static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
   ) -> EmptyController<Context> {
     Self(

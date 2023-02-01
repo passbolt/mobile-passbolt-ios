@@ -62,10 +62,10 @@ extension CodeScanningExitConfirmationController: UIController {
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let accountTransfer: AccountTransfer = try await features.instance()
+  ) throws -> Self {
+    let accountTransfer: AccountTransfer = try features.instance()
 
     func exit() {
       cancellables.executeAsync {

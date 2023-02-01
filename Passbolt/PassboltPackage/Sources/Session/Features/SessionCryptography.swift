@@ -62,7 +62,7 @@ public struct SessionCryptography {
   }
 }
 
-extension SessionCryptography: LoadableContextlessFeature {
+extension SessionCryptography: LoadableFeature {
 
   #if DEBUG
   public nonisolated static var placeholder: Self {

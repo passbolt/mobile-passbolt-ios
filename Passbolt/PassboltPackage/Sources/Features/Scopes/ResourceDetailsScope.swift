@@ -21,22 +21,9 @@
 // @since         v1.0
 //
 
-import Features
+import CommonModels
 
-extension FeatureFactory {
+public enum ResourceDetailsScope: FeaturesScope {
 
-  public func usePassboltSessionModule() {
-    self.usePassboltSessionState()
-    self.usePassboltSessionAuthorizationState()
-    self.usePassboltSessionStateEnsurance()
-    self.usePassboltSessionPassphrase()
-    self.usePassboltSessionNetworkRequestExecutor()
-    self.usePassboltSessionDatabase()
-    self.usePassboltSessionCryptography()
-    self.usePassboltSession()
-    self.usePassboltSessionAuthorization()
-    self.usePassboltSessionNetworkAuthorization()
-    self.usePassboltSessionMFAAuthorization()
-    self.usePassboltSessionLocking()
-  }
+  public typealias Context = Resource.ID
 }

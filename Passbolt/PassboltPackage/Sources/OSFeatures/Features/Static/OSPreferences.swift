@@ -189,9 +189,9 @@ extension OSPreferences {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useOSPreferences() {
+  internal mutating func useOSPreferences() {
     self.use(
       OSPreferences.sharedUserDefaults()
     )

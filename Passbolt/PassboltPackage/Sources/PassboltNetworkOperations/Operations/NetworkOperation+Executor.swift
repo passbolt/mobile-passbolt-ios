@@ -35,10 +35,9 @@ extension FeatureLoader {
   where Description: NetworkOperationDescription {
     .disposable(
       NetworkOperation<Description>.self,
-      load: { (features: FeatureFactory) -> NetworkOperation<Description> in
-        unowned let features: FeatureFactory = features
+      load: { (features: Features) -> NetworkOperation<Description> in
 
-        let requestExecutor: NetworkRequestExecutor = try await features.instance()
+        let requestExecutor: NetworkRequestExecutor = try features.instance()
 
         @Sendable nonisolated func execute(
           _ input: Description.Input
@@ -68,10 +67,9 @@ extension FeatureLoader {
   where Description: NetworkOperationDescription {
     .disposable(
       NetworkOperation<Description>.self,
-      load: { (features: FeatureFactory) -> NetworkOperation<Description> in
-        unowned let features: FeatureFactory = features
+      load: { (features: Features) -> NetworkOperation<Description> in
 
-        let sessionRequestExecutor: SessionNetworkRequestExecutor = try await features.instance()
+        let sessionRequestExecutor: SessionNetworkRequestExecutor = try features.instance()
 
         @Sendable nonisolated func execute(
           _ input: Description.Input

@@ -39,6 +39,14 @@ final class TagsExplorerControllerTests: MainActorTestCase {
   var updates: UpdatesSequenceSource!
 
   override func mainActorSetUp() {
+    features
+      .set(
+        SessionScope.self,
+        context: .init(
+          account: .mock_ada,
+          configuration: .mock_1
+        )
+      )
     updates = .init()
     features.patch(
       \SessionData.updatesSequence,
@@ -81,7 +89,7 @@ final class TagsExplorerControllerTests: MainActorTestCase {
     )
 
     let controller: TagsExplorerController = try await testController(
-      context: .ignored(with: nil)
+      context: nil
     )
 
     await controller.refreshIfNeeded()
@@ -92,7 +100,7 @@ final class TagsExplorerControllerTests: MainActorTestCase {
   func test_refreshIfNeeded_finishesWithoutError_whenRefreshingSucceeds() async throws {
 
     let controller: TagsExplorerController = try await testController(
-      context: .ignored(with: nil)
+      context: nil
     )
 
     await controller.refreshIfNeeded()
@@ -102,7 +110,7 @@ final class TagsExplorerControllerTests: MainActorTestCase {
 
   func test_initally_viewStateTitle_isDefaultString_forTags() async throws {
     let controller: TagsExplorerController = try await testController(
-      context: .ignored(with: nil)
+      context: nil
     )
 
     XCTAssertEqual(
@@ -121,12 +129,10 @@ final class TagsExplorerControllerTests: MainActorTestCase {
     )
 
     let controller: TagsExplorerController = try await testController(
-      context: .ignored(
-        with: .init(
-          id: "tagID",
-          slug: "tag",
-          shared: false
-        )
+      context: .init(
+        id: "tagID",
+        slug: "tag",
+        shared: false
       )
     )
 

@@ -36,7 +36,7 @@ where HostedView: ControlledView {
 
     internal static func instance(
       in context: HostedView.Controller,
-      with features: FeatureFactory,
+      with features: inout Features,
       cancellables: Cancellables
     ) -> Self {
       Self(

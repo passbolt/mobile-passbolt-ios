@@ -55,11 +55,11 @@ extension HelpMenuController: UIController {
 
   public typealias Context = Array<Action>
 
-  public static func instance(
+  @MainActor public static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
+  ) throws -> Self {
     let linkOpener: OSLinkOpener = features.instance()
 
     let logsPresentationSubject: PassthroughSubject<Void, Never> = .init()

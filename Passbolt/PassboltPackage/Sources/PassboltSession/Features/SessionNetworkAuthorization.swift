@@ -58,7 +58,7 @@ internal struct SessionNetworkAuthorization {
     ) async throws -> Void
 }
 
-extension SessionNetworkAuthorization: LoadableContextlessFeature {
+extension SessionNetworkAuthorization: LoadableFeature {
 
   #if DEBUG
   nonisolated internal static var placeholder: Self {
@@ -76,21 +76,20 @@ extension SessionNetworkAuthorization: LoadableContextlessFeature {
 extension SessionNetworkAuthorization {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+    features: Features
+  ) throws -> Self {
 
     let diagnostics: OSDiagnostics = features.instance()
-    let accountData: AccountsDataStore = try await features.instance()
+    let accountData: AccountsDataStore = try features.instance()
     let time: OSTime = features.instance()
     let pgp: PGP = features.instance()
     let uuidGenerator: UUIDGenerator = features.instance()
     let signatureVerification: SignatureVerification = features.instance()
-    let serverPGPPublicKeyFetchNetworkOperation: ServerPGPPublicKeyFetchNetworkOperation = try await features.instance()
-    let serverRSAPublicKeyFetchNetworkOperation: ServerRSAPublicKeyFetchNetworkOperation = try await features.instance()
-    let sessionCreateNetworkOperation: SessionCreateNetworkOperation = try await features.instance()
-    let sessionRefreshNetworkOperation: SessionRefreshNetworkOperation = try await features.instance()
-    let sessionCloseNetworkOperation: SessionCloseNetworkOperation = try await features.instance()
+    let serverPGPPublicKeyFetchNetworkOperation: ServerPGPPublicKeyFetchNetworkOperation = try features.instance()
+    let serverRSAPublicKeyFetchNetworkOperation: ServerRSAPublicKeyFetchNetworkOperation = try features.instance()
+    let sessionCreateNetworkOperation: SessionCreateNetworkOperation = try features.instance()
+    let sessionRefreshNetworkOperation: SessionRefreshNetworkOperation = try features.instance()
+    let sessionCloseNetworkOperation: SessionCloseNetworkOperation = try features.instance()
 
     let jsonEncoder: JSONEncoder = .init()
     let jsonDecoder: JSONDecoder = .init()
@@ -488,9 +487,9 @@ extension SessionNetworkAuthorization {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltSessionNetworkAuthorization() {
+  internal mutating func usePassboltSessionNetworkAuthorization() {
     self.use(
       .disposable(
         SessionNetworkAuthorization.self,

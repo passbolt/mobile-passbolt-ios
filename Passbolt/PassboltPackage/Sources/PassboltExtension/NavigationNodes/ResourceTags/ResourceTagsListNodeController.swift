@@ -71,14 +71,14 @@ extension ResourceTagsListNodeController: ViewNodeController {
 extension ResourceTagsListNodeController {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context: Context
-  ) async throws -> Self {
+  ) throws -> Self {
     let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try await features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
     let navigationTree: NavigationTree = features.instance()
     let autofillContext: AutofillExtensionContext = features.instance()
-    let resourceTags: ResourceTags = try await features.instance()
+    let resourceTags: ResourceTags = try features.instance()
 
     let viewState: ViewStateBinding<ViewState> = .init(
       initial: .init(
@@ -88,7 +88,7 @@ extension ResourceTagsListNodeController {
       )
     )
 
-    let searchController: ResourceSearchDisplayController = try await features.instance(
+    let searchController: ResourceSearchDisplayController = try features.instance(
       context: .init(
         searchPrompt: context.searchPrompt,
         showMessage: { (message: SnackBarMessage?) in
@@ -99,7 +99,7 @@ extension ResourceTagsListNodeController {
       )
     )
 
-    let contentController: ResourceTagsListDisplayController = try await features.instance(
+    let contentController: ResourceTagsListDisplayController = try features.instance(
       context: .init(
         filter: searchController.searchText,
         selectTag: selectResourceTag(_:),
@@ -166,14 +166,15 @@ extension ResourceTagsListNodeController {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltResourceTagsListNodeController() {
+  public mutating func usePassboltResourceTagsListNodeController() {
     self.use(
       .disposable(
         ResourceTagsListNodeController.self,
         load: ResourceTagsListNodeController.load(features:context:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

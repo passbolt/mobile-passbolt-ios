@@ -25,6 +25,7 @@ import Accounts
 import Display
 import OSFeatures
 import Session
+import SessionData
 import SharedUIComponents
 
 internal struct AutofillRootNavigationNodeController {
@@ -48,13 +49,14 @@ extension AutofillRootNavigationNodeController: ViewNodeController {
 extension AutofillRootNavigationNodeController {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory
-  ) async throws -> Self {
+    features: Features
+  ) throws -> Self {
     let diagnostics: OSDiagnostics = features.instance()
     let navigationTree: NavigationTree = features.instance()
-    let asyncExecutor: AsyncExecutor = try await features.instance()
-    let accounts: Accounts = try await features.instance()
-    let session: Session = try await features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
+    let accounts: Accounts = try features.instance()
+    let session: Session = try features.instance()
+    let sessionConfigurationLoader: SessionConfigurationLoader = try features.instance()
     let authorizationPromptRecoveryTreeState: CriticalState<(account: Account, tree: NavigationTreeState)?> = .init(
       .none
     )
@@ -99,7 +101,7 @@ extension AutofillRootNavigationNodeController {
         }  // else NOP
       }
 
-      asyncExecutor.schedule(.reuse) {
+      asyncExecutor.schedule(.unmanaged) {
         do {
           try await session.updatesSequence
             .dropFirst()
@@ -123,9 +125,16 @@ extension AutofillRootNavigationNodeController {
                     await navigationTree.set(treeState: tree)
                   }
                   else {
+                    #warning("FIXME: application has a dedicated screen for configuration load fail, this should not break the extension so ignoring the error for now using fallback to defaults")
+                    try? await sessionConfigurationLoader.fetchIfNeeded()
                     try await navigationTree.replaceRoot(
                       pushing: HomeNavigationNodeView.self,
-                      controller: features.instance()
+                      controller: features.instance(
+                        context: .init(
+                          account: currentAccount,
+                          configuration: sessionConfigurationLoader.sessionConfiguration()
+                        )
+                      )
                     )
                   }
 
@@ -197,9 +206,9 @@ extension AutofillRootNavigationNodeController {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltAutofillRootNavigationNodeController() {
+  public mutating func usePassboltAutofillRootNavigationNodeController() {
     self.use(
       .disposable(
         AutofillRootNavigationNodeController.self,

@@ -94,7 +94,7 @@ extension SheetController: UIController {
 
   public static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
   ) -> SheetController<ContentContext> {
     Self(

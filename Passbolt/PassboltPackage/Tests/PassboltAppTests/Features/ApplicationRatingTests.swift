@@ -30,8 +30,10 @@ import XCTest
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ApplicationRatingTests: LoadableFeatureTestCase<ApplicationRating> {
-  override class var testedImplementationRegister: (FeatureFactory) -> @MainActor () -> Void {
-    FeatureFactory.usePassboltApplicationRatingFeature
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.usePassboltApplicationRatingFeature()
   }
 
   override func prepare() throws {

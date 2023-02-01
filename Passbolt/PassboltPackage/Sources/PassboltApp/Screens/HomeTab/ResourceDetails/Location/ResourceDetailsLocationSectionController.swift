@@ -37,28 +37,39 @@ internal struct ResourceDetailsLocationSectionController {
 extension ResourceDetailsLocationSectionController: ComponentController {
 
   internal typealias ControlledView = ResourceDetailsLocationSectionView
-  internal typealias NavigationContext = Resource.ID
+  internal typealias Context = Resource.ID
 
   @MainActor static func instance(
-    context: NavigationContext,
-    navigation: ComponentNavigation<NavigationContext>,
-    with features: FeatureFactory,
+    in context: Context,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
-    let asyncExecutor: AsyncExecutor = try await features.instance()
-    let navigation: DisplayNavigation = try await features.instance()
-    let resourceDetails: ResourceDetails = try await features.instance(context: context)
+  ) throws -> Self {
+    let features: Features = features
+
+    let diagnostics: OSDiagnostics = features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
+
+    let navigation: DisplayNavigation = try features.instance()
+    let resourceDetails: ResourceDetails = try features.instance(context: context)
 
     let viewState: ObservableValue<ViewState> = .init(
       initial: .init(
-        location:
+        location: .init()
+      )
+    )
+
+    asyncExecutor.schedule { @MainActor in
+      do {
+        viewState.location =
           try await resourceDetails
           .details()
           .location
           .map(\.folderName)
-      )
-    )
+      }
+      catch {
+        diagnostics.log(error: error)
+      }
+    }
 
     nonisolated func showResourceLocationDetails() {
       asyncExecutor.schedule(.reuse) {

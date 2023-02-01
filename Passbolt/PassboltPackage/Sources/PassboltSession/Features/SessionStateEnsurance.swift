@@ -37,7 +37,7 @@ internal struct SessionStateEnsurance {
   internal var accessToken: @SessionActor @Sendable (Account) async throws -> SessionAccessToken
 }
 
-extension SessionStateEnsurance: LoadableContextlessFeature {
+extension SessionStateEnsurance: LoadableFeature {
 
   #if DEBUG
   nonisolated internal static var placeholder: Self {
@@ -54,14 +54,13 @@ extension SessionStateEnsurance: LoadableContextlessFeature {
 extension SessionStateEnsurance {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  ) throws -> Self {
 
-    let sessionState: SessionState = try await features.instance()
-    let sessionAuthorization: SessionAuthorization = try await features.instance()
-    let sessionAuthorizationState: SessionAuthorizationState = try await features.instance()
+    let sessionState: SessionState = try features.instance()
+    let sessionAuthorization: SessionAuthorization = try features.instance()
+    let sessionAuthorizationState: SessionAuthorizationState = try features.instance()
 
     @SessionActor @Sendable func passphrase(
       _ account: Account
@@ -118,9 +117,9 @@ extension SessionStateEnsurance {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltSessionStateEnsurance() {
+  internal mutating func usePassboltSessionStateEnsurance() {
     self.use(
       .lazyLoaded(
         SessionStateEnsurance.self,

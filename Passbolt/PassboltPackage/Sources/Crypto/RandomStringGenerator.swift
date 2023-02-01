@@ -43,11 +43,10 @@ public struct RandomStringGenerator {
     ) -> Entropy
 }
 
-extension RandomStringGenerator: LegacyFeature {
+extension RandomStringGenerator: LoadableFeature {
 
-  public static func load(
-    using features: FeatureFactory,
-    cancellables: Cancellables
+  @MainActor public static func load(
+    using features: Features
   ) -> RandomStringGenerator {
     // RNG `next` is mutating due to protocol, using var
     // instead of let just because of that
@@ -124,3 +123,15 @@ extension RandomStringGenerator {
   }
 }
 #endif
+
+extension FeaturesRegistry {
+
+  internal mutating func useRandomStringGenerator() {
+    self.use(
+      .disposable(
+        RandomStringGenerator.self,
+        load: RandomStringGenerator.load(using:)
+      )
+    )
+  }
+}

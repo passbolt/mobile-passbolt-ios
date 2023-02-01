@@ -22,3 +22,15 @@
 //
 
 @_exported import Users
+
+extension FeaturesRegistry {
+
+  public mutating func usePassboltUsersModule() {
+    self.usePassboltUsers()
+    self.usePassboltUserDetails()
+    self.usePassboltUsers()
+    self.usePassboltUserGroupDetails()
+    self.usePassboltUserGroups()
+    self.usePassboltUserPGPMessages()
+  }
+}

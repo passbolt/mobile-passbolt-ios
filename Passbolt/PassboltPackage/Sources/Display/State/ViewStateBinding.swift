@@ -22,6 +22,7 @@
 //
 
 import Commons
+import Features
 
 @MainActor @propertyWrapper @dynamicMemberLookup
 public final class ViewStateBinding<Value>: ObservableObject
@@ -31,45 +32,67 @@ where Value: Hashable {
   public nonisolated static var placeholder: Self {
     .init(
       read: unimplemented(),
-      write: unimplemented()
+      write: unimplemented(),
+      extendingLifetimeOf: .none
     )
   }
 
   public static func constant(
-    _ value: Value
+    _ value: Value,
+    extendingLifetimeOf container: FeaturesContainer? = .none
   ) -> Self {
     .init(
       read: { value },
-      write: { _ in }
+      write: { _ in },
+      extendingLifetimeOf: container
     )
   }
   #endif
 
+  public nonisolated let objectWillChange: ObservableObjectPublisher
   public nonisolated let objectDidChange: ObservableObjectPublisher
   public nonisolated let cancellables: Cancellables
-  private let read: @MainActor () -> Value
-  private let write: @MainActor (Value) -> Void
+  private let read: () -> Value
+  private let write: (Value) -> Void
+  // Features are stored here to bind reference
+  // with a screen when branching. Losing reference
+  // to FeaturesContainer after branching closes that
+  // branch. Easiest way to ensure proper lifetime of
+  // a branch is to bind it to a view that begins
+  // given branch. Since most of the code is out of
+  // class/structure and cannot hold any reference
+  // longer than the scope of load functions
+  // it can be stored in ViewStateBinding which
+  // lifetime directly corresponds to the view lifetime.
+  private let featuresContainer: FeaturesContainer?
 
   public nonisolated convenience init(
-    initial: Value
+    initial: Value,
+    extendingLifetimeOf container: FeaturesContainer? = .none
   ) {
     var value: Value = initial
     self.init(
       read: { value },
       write: { (newValue: Value) in
         value = newValue
-      }
+      },
+      extendingLifetimeOf: container
     )
   }
 
   private nonisolated init(
-    read: @escaping @MainActor () -> Value,
-    write: @escaping @MainActor (Value) -> Void
+    read: @escaping () -> Value,
+    write: @escaping (Value) -> Void,
+    extendingLifetimeOf container: FeaturesContainer?
   ) {
     self.read = read
     self.write = write
-    self.objectDidChange = .init()
+    let objectWillChangePublisher: ObservableObjectPublisher = .init()
+    self.objectWillChange = objectWillChangePublisher
+    let objectDidChangePublisher: ObservableObjectPublisher = .init()
+    self.objectDidChange = objectDidChangePublisher
     self.cancellables = .init()
+    self.featuresContainer = container
   }
 
   public var wrappedValue: Value {
@@ -157,7 +180,8 @@ where Value == Never {
       read: { unreachable("Cannot read from Never") },
       write: { (_: Value) in
         unreachable("Cannot write to Never")
-      }
+      },
+      extendingLifetimeOf: .none
     )
   }
 }

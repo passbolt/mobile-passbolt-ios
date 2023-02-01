@@ -30,32 +30,22 @@ import SessionData
 extension SessionData {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    unowned let features: FeatureFactory = features
+  ) throws -> Self {
+    let configuration: SessionConfiguration = try features.sessionConfiguration()
 
     let diagnostics: OSDiagnostics = features.instance()
-    let sessionConfiguration: SessionConfiguration = try await features.instance()
-    let usersStoreDatabaseOperation: UsersStoreDatabaseOperation = try await features.instance()
-    let userGroupsStoreDatabaseOperation: UserGroupsStoreDatabaseOperation = try await features.instance()
-    let resourcesStoreDatabaseOperation: ResourcesStoreDatabaseOperation = try await features.instance()
-    let resourceTypesStoreDatabaseOperation: ResourceTypesStoreDatabaseOperation = try await features.instance()
-    let resourceFoldersStoreDatabaseOperation: ResourceFoldersStoreDatabaseOperation = try await features.instance()
-    let usersFetchNetworkOperation: UsersFetchNetworkOperation = try await features.instance()
-    let userGroupsFetchNetworkOperation: UserGroupsFetchNetworkOperation = try await features.instance()
-    let resourcesFetchNetworkOperation: ResourcesFetchNetworkOperation = try await features.instance()
-    let resourceTypesFetchNetworkOperation: ResourceTypesFetchNetworkOperation = try await features.instance()
-    let resourceFoldersFetchNetworkOperation: ResourceFoldersFetchNetworkOperation = try await features.instance()
-
-    let foldersEnabled: Bool
-    switch await sessionConfiguration.configuration(for: FeatureFlags.Folders.self) {
-    case .disabled:
-      foldersEnabled = false
-
-    case .enabled:
-      foldersEnabled = true
-    }
+    let usersStoreDatabaseOperation: UsersStoreDatabaseOperation = try features.instance()
+    let userGroupsStoreDatabaseOperation: UserGroupsStoreDatabaseOperation = try features.instance()
+    let resourcesStoreDatabaseOperation: ResourcesStoreDatabaseOperation = try features.instance()
+    let resourceTypesStoreDatabaseOperation: ResourceTypesStoreDatabaseOperation = try features.instance()
+    let resourceFoldersStoreDatabaseOperation: ResourceFoldersStoreDatabaseOperation = try features.instance()
+    let usersFetchNetworkOperation: UsersFetchNetworkOperation = try features.instance()
+    let userGroupsFetchNetworkOperation: UserGroupsFetchNetworkOperation = try features.instance()
+    let resourcesFetchNetworkOperation: ResourcesFetchNetworkOperation = try features.instance()
+    let resourceTypesFetchNetworkOperation: ResourceTypesFetchNetworkOperation = try features.instance()
+    let resourceFoldersFetchNetworkOperation: ResourceFoldersFetchNetworkOperation = try features.instance()
 
     let updatesSequenceSource: UpdatesSequenceSource = .init()
 
@@ -104,7 +94,7 @@ extension SessionData {
     }
 
     @Sendable nonisolated func refreshFolders() async throws {
-      guard foldersEnabled
+      guard configuration.foldersEnabled
       else {
         return diagnostics.log(diagnostic: "Refreshing folders skipped, feature disabled!")
       }
@@ -183,14 +173,15 @@ extension SessionData {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltSessionData() {
+  internal mutating func usePassboltSessionData() {
     self.use(
       .lazyLoaded(
         SessionData.self,
         load: SessionData.load(features:cancellables:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

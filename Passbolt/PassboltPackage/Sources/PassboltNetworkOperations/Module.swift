@@ -22,3 +22,35 @@
 //
 
 @_exported import NetworkOperations
+
+extension FeaturesRegistry {
+
+  public mutating func usePassboltNetworkOperationsModule() {
+    self.usePassboltAccountTransferUpdateNetworkOperation()
+    self.usePassboltAppVersionsFetchNetworkOperation()
+    self.usePassboltMediaDownloadNetworkOperation()
+    self.usePassboltServerPGPPublicKeyFetchNetworkOperation()
+    self.usePassboltServerRSAPublicKeyFetchNetworkOperation()
+    self.usePassboltSessionCloseNetworkOperation()
+    self.usePassboltSessionCreateNetworkOperation()
+    self.usePassboltSessionRefreshNetworkOperation()
+    self.usePassboltConfigurationFetchNetworkOperation()
+    self.usePassboltResourceCreateNetworkOperation()
+    self.usePassboltResourceDeleteNetworkOperation()
+    self.usePassboltResourceEditNetworkOperation()
+    self.usePassboltResourceFoldersFetchNetworkOperation()
+    self.usePassboltResourceSecretFetchNetworkOperation()
+    self.usePassboltResourcesFetchNetworkOperation()
+    self.usePassboltResourceShareNetworkOperation()
+    self.usePassboltResourceTypesFetchNetworkOperation()
+    self.usePassboltTOTPAuthorizationNetworkOperation()
+    self.usePassboltUserGroupsFetchNetworkOperation()
+    self.usePassboltUserDetailsFetchNetworkOperation()
+    self.usePassboltUsersFetchNetworkOperation()
+    self.usePassboltYubiKeyAuthorizationNetworkOperation()
+    self.usePassboltResourceFavoriteDeleteNetworkOperation()
+    self.usePassboltResourceFavoriteAddNetworkOperation()
+    self.usePassboltResourceFolderCreateNetworkOperation()
+    self.usePassboltResourceFolderShareNetworkOperation()
+  }
+}

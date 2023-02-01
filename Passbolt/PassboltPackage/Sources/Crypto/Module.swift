@@ -25,10 +25,11 @@
 @_exported import Commons
 @_exported import Features
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  public func useCrypto() {
+  public mutating func useCrypto() {
     self.useSignatureVerification()
     self.usePGP()
+    self.useRandomStringGenerator()
   }
 }

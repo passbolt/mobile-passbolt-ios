@@ -50,10 +50,10 @@ extension TransferSignInController: UIController {
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let accountTransfer: AccountTransfer = try await features.instance()
+  ) throws -> Self {
+    let accountTransfer: AccountTransfer = try features.instance()
     let diagnostics: OSDiagnostics = features.instance()
 
     let passphraseSubject: CurrentValueSubject<String, Never> = .init("")

@@ -32,13 +32,24 @@ import Users
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ResourceFolderEditControllerTests: LoadableFeatureTestCase<ResourceFolderEditController> {
 
-  override class var testedImplementationRegister: (FeatureFactory) -> @MainActor () -> Void {
-    FeatureFactory.usePassboltResourceFolderEditController
+  override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
+
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.usePassboltResourceFolderEditController()
   }
 
   var executionMockControl: AsyncExecutor.MockExecutionControl!
 
   override func prepare() throws {
+    set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1
+      )
+    )
     executionMockControl = .init()
     use(AsyncExecutor.mock(executionMockControl))
     use(DisplayNavigation.placeholder)

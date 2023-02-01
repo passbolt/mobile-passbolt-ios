@@ -21,19 +21,9 @@
 // @since         v1.0
 //
 
-import Features
+import CommonModels
 
-extension FeatureFactory {
+public enum ResourceFolderDetailsScope: FeaturesScope {
 
-  public func usePassboltResourcesModule() {
-    self.usePassboltResourceDetails()
-    self.usePassboltResourceShareForm()
-    self.usePassboltResourceEditForm()
-    self.usePassboltResourceFolders()
-    self.usePassboltResources()
-    self.usePassboltResourceTags()
-    self.usePassboltResourceFavorites()
-    self.usePassboltResourceFolderDetails()
-    self.usePassboltResourceFolderEditForm()
-  }
+  public typealias Context = ResourceFolder.ID
 }

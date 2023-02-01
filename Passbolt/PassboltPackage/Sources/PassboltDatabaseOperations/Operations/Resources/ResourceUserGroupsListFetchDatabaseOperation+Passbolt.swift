@@ -117,14 +117,15 @@ extension ResourceUserGroupsListFetchDatabaseOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceUserGroupsListFetchDatabaseOperation() {
+  internal mutating func usePassboltResourceUserGroupsListFetchDatabaseOperation() {
     self.use(
       FeatureLoader.databaseOperation(
         of: ResourceUserGroupsListFetchDatabaseOperation.self,
         execute: ResourceUserGroupsListFetchDatabaseOperation.execute(_:connection:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

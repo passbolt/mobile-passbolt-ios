@@ -62,9 +62,9 @@ extension OSExtensions {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useOSExtensions() {
+  internal mutating func useOSExtensions() {
     self.use(
       OSExtensions.live
     )

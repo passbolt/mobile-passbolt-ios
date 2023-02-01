@@ -41,7 +41,7 @@ public struct SessionData {
   }
 }
 
-extension SessionData: LoadableContextlessFeature {
+extension SessionData: LoadableFeature {
 
   #if DEBUG
   nonisolated public static var placeholder: Self {

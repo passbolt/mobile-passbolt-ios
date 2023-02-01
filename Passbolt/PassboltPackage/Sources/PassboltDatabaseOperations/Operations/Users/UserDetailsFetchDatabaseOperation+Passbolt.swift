@@ -84,14 +84,15 @@ extension UserDetailsFetchDatabaseOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltUserDetailsFetchDatabaseOperation() {
+  internal mutating func usePassboltUserDetailsFetchDatabaseOperation() {
     self.use(
       FeatureLoader.databaseOperation(
         of: UserDetailsFetchDatabaseOperation.self,
         execute: UserDetailsFetchDatabaseOperation.execute(_:connection:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

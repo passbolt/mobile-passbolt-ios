@@ -94,9 +94,9 @@ extension SessionRefreshNetworkOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltSessionRefreshNetworkOperation() {
+  internal mutating func usePassboltSessionRefreshNetworkOperation() {
     self.use(
       .networkOperation(
         of: SessionRefreshNetworkOperation.self,

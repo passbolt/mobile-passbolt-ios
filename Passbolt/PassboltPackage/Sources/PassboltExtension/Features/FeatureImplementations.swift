@@ -33,9 +33,10 @@ import PassboltSession
 import PassboltSessionData
 import PassboltUsers
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor internal func usePassboltFeatures() {
+  public mutating func usePassboltFeatures() {
+    self.useOSFeatures()
     self.useNFCFeatures()
     self.useCrypto()
     self.usePassboltAccountsModule()

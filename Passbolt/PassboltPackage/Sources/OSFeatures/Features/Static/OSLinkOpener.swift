@@ -85,9 +85,9 @@ extension OSLinkOpener {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useOSLinkOpener() {
+  internal mutating func useOSLinkOpener() {
     self.use(
       OSLinkOpener.live
     )

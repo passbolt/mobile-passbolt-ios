@@ -71,8 +71,8 @@ final class AccountSelectionControllerTests: MainActorTestCase {
       \Session.currentAccount,
       with: always(Account.mock_ada)
     )
-    features.use(NavigationTree.placeholder)
-    features.use(AutofillExtensionContext.placeholder)
+    features.usePlaceholder(for: NavigationTree.self)
+    features.usePlaceholder(for: AutofillExtensionContext.self)
   }
 
   override func mainActorTearDown() {

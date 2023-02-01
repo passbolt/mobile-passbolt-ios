@@ -51,9 +51,9 @@ extension ResourceEditNetworkOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceEditNetworkOperation() {
+  internal mutating func usePassboltResourceEditNetworkOperation() {
     self.use(
       .networkOperationWithSession(
         of: ResourceEditNetworkOperation.self,

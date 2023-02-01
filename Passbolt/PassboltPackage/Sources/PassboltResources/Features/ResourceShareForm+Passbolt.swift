@@ -38,15 +38,19 @@ extension ResourceShareForm {
   }
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context resourceID: Context,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let sessionData: SessionData = try await features.instance()
-    let resourceDetails: ResourceDetails = try await features.instance(context: resourceID)
-    let usersPGPMessages: UsersPGPMessages = try await features.instance()
-    let userGroups: UserGroups = try await features.instance()
-    let resourceShareNetworkOperation: ResourceShareNetworkOperation = try await features.instance()
+  ) throws -> Self {
+    try features.ensureScope(SessionScope.self)
+    try features.ensureScope(ResourceShareScope.self)
+
+    let diagnostics: OSDiagnostics = features.instance()
+    let sessionData: SessionData = try features.instance()
+    let resourceDetails: ResourceDetails = try features.instance(context: resourceID)
+    let usersPGPMessages: UsersPGPMessages = try features.instance()
+    let userGroups: UserGroups = try features.instance()
+    let resourceShareNetworkOperation: ResourceShareNetworkOperation = try features.instance()
 
     let formState: AsyncVariable<FormState> = .init(
       initial: .init(
@@ -56,12 +60,21 @@ extension ResourceShareForm {
       )
     )
 
-    let existingPermissions: OrderedSet<PermissionDTO> = try await resourceDetails.details().permissions
+    func existingPermissions() async -> OrderedSet<PermissionDTO> {
+      do {
+        return try await resourceDetails.details().permissions
+      }
+      catch {
+        diagnostics.log(error: error)
+        return .init()
+      }
+    }
 
     nonisolated func permissionsSequence() -> AnyAsyncSequence<OrderedSet<ResourceShareFormPermission>> {
       formState
         .removeDuplicates()
         .map { (formState: FormState) -> OrderedSet<ResourceShareFormPermission> in
+          let existingPermissions: OrderedSet<PermissionDTO> = await existingPermissions()
           let existingPermissionsList: Array<ResourceShareFormPermission> =
             existingPermissions
             .compactMap { (permission: PermissionDSV) -> ResourceShareFormPermission? in
@@ -138,7 +151,7 @@ extension ResourceShareForm {
 
     @Sendable nonisolated func currentPermissions() async -> OrderedSet<ResourceShareFormPermission> {
       let formState: FormState = formState.value
-
+      let existingPermissions: OrderedSet<PermissionDTO> = await existingPermissions()
       let existingPermissionsList: Array<ResourceShareFormPermission> =
         existingPermissions
         .compactMap { (permission: PermissionDSV) -> ResourceShareFormPermission? in
@@ -215,12 +228,13 @@ extension ResourceShareForm {
       _ userID: User.ID,
       permissionType: PermissionType
     ) async {
+      let existingPermissions: OrderedSet<PermissionDTO> = await existingPermissions()
       let curentPermission: PermissionDTO? = existingPermissions.first { (permission: PermissionDTO) in
         permission.userID == userID
       }
 
       return
-        await formState
+        formState
         .withValue { (state: inout FormState) in
           state
             .newPermissions
@@ -269,7 +283,8 @@ extension ResourceShareForm {
     @Sendable nonisolated func deleteUserPermission(
       _ userID: User.ID
     ) async {
-      await formState
+      let existingPermissions: OrderedSet<PermissionDTO> = await existingPermissions()
+      formState
         .withValue { (state: inout FormState) in
           state
             .newPermissions
@@ -297,7 +312,8 @@ extension ResourceShareForm {
       _ userGroupID: UserGroup.ID,
       permissionType: PermissionType
     ) async {
-      await formState
+      let existingPermissions: OrderedSet<PermissionDTO> = await existingPermissions()
+      formState
         .withValue { (state: inout FormState) in
           state
             .newPermissions
@@ -350,7 +366,8 @@ extension ResourceShareForm {
     @Sendable nonisolated func deleteUserGroupPermission(
       _ userGroupID: UserGroup.ID
     ) async {
-      await formState
+      let existingPermissions: OrderedSet<PermissionDTO> = await existingPermissions()
+      formState
         .withValue { (state: inout FormState) in
           state
             .newPermissions
@@ -376,7 +393,8 @@ extension ResourceShareForm {
 
     @Sendable nonisolated func validate(
       formState: FormState
-    ) throws {
+    ) async throws {
+      let existingPermissions: OrderedSet<PermissionDTO> = await existingPermissions()
       let newPermissionsHasOwner: Bool =
         formState
         .newPermissions
@@ -472,24 +490,10 @@ extension ResourceShareForm {
         )
     }
 
-    @Sendable nonisolated func close() async {
-      do {
-        try await features.unload(
-          Self.self,
-          context: resourceID
-        )
-      }
-      catch {
-        error
-          .asTheError()
-          .asAssertionFailure()
-      }
-    }
-
     @Sendable nonisolated func sendForm() async throws {
-      let formState: FormState = await formState.value
+      let formState: FormState = formState.value
 
-      try validate(formState: formState)
+      try await validate(formState: formState)
 
       let newSecrets: OrderedSet<EncryptedMessage> = try await encryptSecret(for: formState.newPermissions)
 
@@ -506,12 +510,6 @@ extension ResourceShareForm {
       )
 
       try await sessionData.refreshIfNeeded()
-
-      await close()
-    }
-
-    @Sendable nonisolated func cancelForm() async {
-      await close()
     }
 
     return Self(
@@ -521,20 +519,20 @@ extension ResourceShareForm {
       deleteUserPermission: deleteUserPermission(_:),
       setUserGroupPermission: setUserGroupPermission(_:permissionType:),
       deleteUserGroupPermission: deleteUserGroupPermission(_:),
-      sendForm: sendForm,
-      cancelForm: cancelForm
+      sendForm: sendForm
     )
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor internal func usePassboltResourceShareForm() {
+  internal mutating func usePassboltResourceShareForm() {
     self.use(
       .lazyLoaded(
         ResourceShareForm.self,
         load: ResourceShareForm.load(features:context:cancellables:)
-      )
+      ),
+      in: ResourceShareScope.self
     )
   }
 }

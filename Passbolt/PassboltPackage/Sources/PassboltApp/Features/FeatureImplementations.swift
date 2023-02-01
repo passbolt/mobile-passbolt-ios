@@ -33,9 +33,9 @@ import PassboltSession
 import PassboltSessionData
 import PassboltUsers
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor public func usePassboltFeatures() {
+  public mutating func usePassboltFeatures() {
     self.useOSFeatures()
 
     self.useLiveDisplay()
@@ -53,5 +53,8 @@ extension FeatureFactory {
     self.usePassboltApplicationRatingFeature()
 
     self.useLiveScreenControllers()
+
+    self.usePassboltInitialization()
+    self.usePassboltUpdateCheck()
   }
 }

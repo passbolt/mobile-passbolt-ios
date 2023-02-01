@@ -24,9 +24,9 @@
 @_exported import AccountSetup
 @_exported import Features
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  public func usePassboltAccountSetupModule() {
+  public mutating func usePassboltAccountSetupModule() {
     self.usePassboltAccountTransfer()
     self.usePassboltAccountInjection()
   }

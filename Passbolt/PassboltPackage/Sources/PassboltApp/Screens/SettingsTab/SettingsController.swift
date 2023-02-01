@@ -59,37 +59,22 @@ extension SettingsController: UIController {
 
   internal typealias Context = Void
 
-  static func instance(
+  @MainActor static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> SettingsController {
-    let session: Session = try await features.instance()
-    let accountDetails: AccountDetails = try await features.instance(context: session.currentAccount())
+  ) throws -> SettingsController {
+    let features: Features = features
+    let sessionAccount: Account = try features.sessionAccount()
+    let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
+
+    let accountDetails: AccountDetails = try features.instance(context: sessionAccount)
     let applicationLifecycle: ApplicationLifecycle = features.instance()
-    let accountPreferences: AccountPreferences = try await features.instance(context: session.currentAccount())
+    let accountPreferences: AccountPreferences = try features.instance(context: sessionAccount)
     let biometry: OSBiometry = features.instance()
-    let sessionConfiguration: SessionConfiguration = try await features.instance()
     let linkOpener: OSLinkOpener = features.instance()
     let extensions: OSExtensions = features.instance()
-    let displayNavigation: DisplayNavigation = try await features.instance()
-
-    let legal: FeatureFlags.Legal = await sessionConfiguration.configuration()
-    var termsURL: URL?
-    var privacyPolicyURL: URL?
-
-    (termsURL, privacyPolicyURL) = {
-      switch legal {
-      case .none:
-        return (.none, .none)
-      case let .terms(url):
-        return (url, .none)
-      case let .privacyPolicy(url):
-        return (.none, url)
-      case let .both(termsURL, privacyPolicyURL):
-        return (termsURL, privacyPolicyURL)
-      }
-    }()
+    let displayNavigation: DisplayNavigation = try features.instance()
 
     let presentBiometricsAlertSubject: PassthroughSubject<Void, Never> = .init()
     let presentSignOutAlertSubject: PassthroughSubject<Void, Never> = .init()
@@ -130,7 +115,7 @@ extension SettingsController: UIController {
 
     func openTerms() -> AnyPublisher<Bool, Never> {
       guard
-        let url = termsURL
+        let url = (sessionConfiguration.termsURL?.rawValue).flatMap(URL.init(string:))
       else {
         return Just(false).eraseToAnyPublisher()
       }
@@ -140,7 +125,7 @@ extension SettingsController: UIController {
 
     func openPrivacyPolicy() -> AnyPublisher<Bool, Never> {
       guard
-        let url = privacyPolicyURL
+        let url = (sessionConfiguration.privacyPolicyURL?.rawValue).flatMap(URL.init(string:))
       else {
         return Just(false).eraseToAnyPublisher()
       }
@@ -181,11 +166,11 @@ extension SettingsController: UIController {
     }
 
     func termsEnabled() -> Bool {
-      termsURL != nil
+      sessionConfiguration.termsURL != nil
     }
 
     func privacyPolicyEnabled() -> Bool {
-      privacyPolicyURL != nil
+      sessionConfiguration.privacyPolicyURL != nil
     }
 
     nonisolated func openDefaultHomeModeSettings() {

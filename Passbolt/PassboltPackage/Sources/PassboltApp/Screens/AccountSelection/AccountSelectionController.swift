@@ -54,11 +54,12 @@ extension AccountSelectionController: UIController {
 
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory,
+    with features: inout Features,
     cancellables: Cancellables
-  ) async throws -> AccountSelectionController {
-    let accounts: Accounts = try await features.instance()
-    let session: Session = try await features.instance()
+  ) throws -> AccountSelectionController {
+    let features: Features = features
+    let accounts: Accounts = try features.instance()
+    let session: Session = try features.instance()
 
     let listModeSubject: CurrentValueSubject<AccountSelectionListMode, Never> = .init(.selection)
     let removeAccountAlertPresentationSubject: PassthroughSubject<Void, Never> = .init()
@@ -71,7 +72,7 @@ extension AccountSelectionController: UIController {
           let currentAccount: Account? = try? await session.currentAccount()
           var listItems: Array<AccountSelectionListItem> = .init()
           for storedAccount in accounts.storedAccounts() {
-            let accountDetails: AccountDetails = try await features.instance(context: storedAccount)
+            let accountDetails: AccountDetails = try features.instance(context: storedAccount)
             let accountWithProfile: AccountWithProfile = try accountDetails.profile()
 
             let item: AccountSelectionCellItem = AccountSelectionCellItem(
@@ -130,7 +131,8 @@ extension AccountSelectionController: UIController {
 
     func addAccount() {
       cancellables.executeOnMainActor {
-        addAccountPresentationSubject.send(features.isLoaded(AccountTransfer.self))
+        #warning("FIXME: find a way to know when account transfer is already in progress to make it unavailable to perform again")
+        addAccountPresentationSubject.send(false)
       }
     }
 

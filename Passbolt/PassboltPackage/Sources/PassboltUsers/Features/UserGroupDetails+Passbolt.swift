@@ -30,12 +30,12 @@ import Users
 extension UserGroupDetails {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context userGroupID: Context,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let sessionData: SessionData = try await features.instance()
-    let userGroupDetailsFetchDatabaseOperation: UserGroupDetailsFetchDatabaseOperation = try await features.instance()
+  ) throws -> Self {
+    let sessionData: SessionData = try features.instance()
+    let userGroupDetailsFetchDatabaseOperation: UserGroupDetailsFetchDatabaseOperation = try features.instance()
 
     @Sendable nonisolated func fetchUserGroupDetails() async throws -> UserGroupDetailsDSV {
       try await userGroupDetailsFetchDatabaseOperation(userGroupID)
@@ -58,14 +58,15 @@ extension UserGroupDetails {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  @MainActor internal func usePassboltUserGroupDetails() {
+  internal mutating func usePassboltUserGroupDetails() {
     self.use(
       .lazyLoaded(
         UserGroupDetails.self,
         load: UserGroupDetails.load(features:context:cancellables:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

@@ -106,14 +106,15 @@ extension UsersListFetchDatabaseOperation {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltUsersListFetchDatabaseOperation() {
+  internal mutating func usePassboltUsersListFetchDatabaseOperation() {
     self.use(
       FeatureLoader.databaseOperation(
         of: UsersListFetchDatabaseOperation.self,
         execute: UsersListFetchDatabaseOperation.execute(_:connection:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

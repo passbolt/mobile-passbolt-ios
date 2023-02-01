@@ -31,14 +31,16 @@ import SessionData
 extension ResourceDetails {
 
   @MainActor fileprivate static func load(
-    features: FeatureFactory,
+    features: Features,
     context resourceID: Context,
     cancellables: Cancellables
-  ) async throws -> Self {
-    let sessionData: SessionData = try await features.instance()
-    let sessionCryptography: SessionCryptography = try await features.instance()
-    let resourceDetailsFetchDatabaseOperation: ResourceDetailsFetchDatabaseOperation = try await features.instance()
-    let resourceSecretFetchNetworkOperation: ResourceSecretFetchNetworkOperation = try await features.instance()
+  ) throws -> Self {
+    try features.ensureScope(SessionScope.self)
+
+    let sessionData: SessionData = try features.instance()
+    let sessionCryptography: SessionCryptography = try features.instance()
+    let resourceDetailsFetchDatabaseOperation: ResourceDetailsFetchDatabaseOperation = try features.instance()
+    let resourceSecretFetchNetworkOperation: ResourceSecretFetchNetworkOperation = try features.instance()
 
     @Sendable nonisolated func fetchResourceDetails() async throws -> ResourceDetailsDSV {
       try await resourceDetailsFetchDatabaseOperation(
@@ -83,14 +85,15 @@ extension ResourceDetails {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func usePassboltResourceDetails() {
+  internal mutating func usePassboltResourceDetails() {
     self.use(
       .lazyLoaded(
         ResourceDetails.self,
         load: ResourceDetails.load(features:context:cancellables:)
-      )
+      ),
+      in: SessionScope.self
     )
   }
 }

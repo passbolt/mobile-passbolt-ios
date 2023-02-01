@@ -62,9 +62,9 @@ extension ApplicationMeta {
   }
 }
 
-extension FeatureFactory {
+extension FeaturesRegistry {
 
-  internal func useApplicationMeta() {
+  internal mutating func useApplicationMeta() {
     self.use(
       ApplicationMeta.live
     )
