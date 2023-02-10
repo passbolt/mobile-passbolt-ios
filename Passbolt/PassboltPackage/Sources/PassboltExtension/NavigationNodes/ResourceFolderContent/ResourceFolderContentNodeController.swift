@@ -125,8 +125,8 @@ extension ResourceFolderContentNodeController {
         },
         createFolder: .none,
         createResource: context.folderDetails?.permissionType != .read  // root or owned / write
-          ? .none
-          : createResource,
+          ? createResource
+          : .none,
         selectFolder: selectFolder(_:),
         selectResource: selectResource(_:),
         openResourceMenu: .none,
