@@ -25,6 +25,7 @@ import Display
 
 internal struct AccountQRCodeExportView: ControlledView {
 
+	@EnvironmentObject var displayViewBridgeHandle: DisplayViewBridgeHandle<Self>
   private let controller: AccountQRCodeExportController
 
   internal init(
@@ -42,6 +43,9 @@ internal struct AccountQRCodeExportView: ControlledView {
         }
       )
     }
+		.onAppear {
+			self.displayViewBridgeHandle.setNavigationBackButton(hidden: true)
+		}
   }
 
   @ViewBuilder @MainActor private func contentView(

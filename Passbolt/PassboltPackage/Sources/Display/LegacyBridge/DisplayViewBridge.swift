@@ -24,8 +24,20 @@
 import UICommons
 import UIComponents
 
+public final class DisplayViewBridgeHandle<HostedView>: ObservableObject
+where HostedView: ControlledView {
+
+	fileprivate var instance: DisplayViewBridge<HostedView>?
+
+	fileprivate init() {}
+
+	public func setNavigationBackButton(hidden: Bool) {
+		self.instance?.navigationItem.hidesBackButton = hidden
+	}
+}
+
 @MainActor
-internal final class DisplayViewBridge<HostedView>: UIHostingController<HostedView>, UIComponent
+internal final class DisplayViewBridge<HostedView>: UIHostingController<ModifiedContent<HostedView, _EnvironmentKeyWritingModifier<DisplayViewBridgeHandle<HostedView>?>>>, UIComponent
 where HostedView: ControlledView {
 
   internal typealias ContentView = UIView
@@ -50,13 +62,19 @@ where HostedView: ControlledView {
     with components: UIComponentFactory,
     cancellables: Cancellables
   ) -> Self {
+		let handle: DisplayViewBridgeHandle<HostedView> = .init()
     let instance: Self = .init(
       rootView: HostedView(
         controller: controller.hostedController
       )
+			// this force cast always succeeds - it is actual
+			// type returned but not picked by compiler
+			// due to opaque result type usage here
+			.environmentObject(handle) as! ModifiedContent<HostedView, _EnvironmentKeyWritingModifier<DisplayViewBridgeHandle<HostedView>?>>
     )
     instance._components = components
     instance._cancellables = cancellables
+		handle.instance = instance
     return instance
   }
 
@@ -95,4 +113,18 @@ where HostedView: ControlledView {
       }
     )
   }
+}
+
+// module placement required by dependency tree
+private struct DisplayViewBridgeBackVisibilityEnvironmentKey: EnvironmentKey {
+
+	static let defaultValue: (Bool) -> Void = unimplemented()
+}
+
+extension EnvironmentValues {
+
+	public var displayViewBridgeBackVisibility: (Bool) -> Void {
+		get { self[DisplayViewBridgeBackVisibilityEnvironmentKey.self] }
+		set { self[DisplayViewBridgeBackVisibilityEnvironmentKey.self] = newValue }
+	}
 }
