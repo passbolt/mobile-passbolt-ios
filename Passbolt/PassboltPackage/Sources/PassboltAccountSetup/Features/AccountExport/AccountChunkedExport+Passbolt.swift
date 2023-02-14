@@ -27,6 +27,7 @@ import OSFeatures
 
 import struct CryptoKit.SHA512
 import class Foundation.JSONEncoder
+import struct Foundation.Data
 
 // MARK: - Implementation
 
