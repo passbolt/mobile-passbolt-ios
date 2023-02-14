@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import AccountSetup
 import Accounts
 import UIComponents
 
@@ -48,7 +49,6 @@ extension HomeTabNavigationController: UIController {
     func presentApplicationRateDialog() {
       applicationRate.showApplicationRatingIfRequired()
     }
-
     return Self(
       currentHomePresentationModePublisher: currentHomePresentationModePublisher,
       presentApplicationRateDialogIfRequired: presentApplicationRateDialog

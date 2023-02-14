@@ -40,7 +40,7 @@ public struct Accounts {
   /// Last used account if any and still stored.
   public var lastUsedAccount: @Sendable () -> Account?
   /// Saves account data locally.
-  public var addAccount: @Sendable (TransferedAccount) throws -> Account
+  public var addAccount: @Sendable (AccountTransferData) throws -> Account
   /// Delete locally stored data for given account.
   /// Closes the session for that account if needed.
   public var removeAccount: @Sendable (Account) throws -> Void
@@ -50,7 +50,7 @@ public struct Accounts {
     verifyDataIntegrity: @escaping @Sendable () throws -> Void,
     storedAccounts: @escaping @Sendable () -> Array<Account>,
     lastUsedAccount: @escaping @Sendable () -> Account?,
-    addAccount: @escaping @Sendable (TransferedAccount) throws -> Account,
+    addAccount: @escaping @Sendable (AccountTransferData) throws -> Account,
     removeAccount: @escaping @Sendable (Account) throws -> Void
   ) {
     self.updates = updates

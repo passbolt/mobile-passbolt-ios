@@ -62,8 +62,9 @@ public struct AccountTransferUpdateNetworkOperationVariable {
 
 extension AccountTransferUpdateNetworkOperationVariable {
 
-  public enum Status: String, Encodable {
+  public enum Status: String, Codable {
 
+    case start = "start"
     case inProgress = "in progress"
     case complete = "complete"
     case error = "error"

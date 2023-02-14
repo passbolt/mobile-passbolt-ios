@@ -359,7 +359,7 @@ final class AccountSelectionScreenTests: MainActorTestCase {
 
   func test_addAccountPresentationPublisher_publishesTrue_whenAddAccountCalledAndAccountTransferIsLoaded() async throws
   {
-    features.usePlaceholder(for: AccountTransfer.self)
+    features.usePlaceholder(for: AccountImport.self)
     features.patch(
       \Accounts.storedAccounts,
       with: always([])

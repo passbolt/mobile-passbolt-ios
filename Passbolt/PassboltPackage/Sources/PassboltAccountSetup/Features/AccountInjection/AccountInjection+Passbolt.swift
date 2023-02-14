@@ -39,9 +39,9 @@ extension AccountInjection {
     let accounts: Accounts = try features.instance()
 
     @Sendable nonisolated func injectPreconfiguredAccounts() throws {
-      let preconfiguredAccounts: Array<TransferedAccount> = mdmConfiguration.preconfiguredAccounts()
+      let preconfiguredAccounts: Array<AccountTransferData> = mdmConfiguration.preconfiguredAccounts()
       guard !preconfiguredAccounts.isEmpty else { return }
-      for account: TransferedAccount in preconfiguredAccounts {
+      for account: AccountTransferData in preconfiguredAccounts {
         do {
           _ = try accounts.addAccount(account)
         }

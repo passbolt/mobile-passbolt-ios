@@ -36,6 +36,17 @@ public struct Validated<Value> {
     self.errors = errors
   }
 
+  public var validValue: Value {
+    get throws {
+      if let error: Error = self.errors.first {
+        throw error
+      }
+      else {
+        return self.value
+      }
+    }
+  }
+
   public var isValid: Bool { errors.isEmpty }
 
   public var displayableErrorMessage: DisplayableString? {
@@ -133,3 +144,15 @@ where Value: Equatable {}
 
 extension Validated: Hashable
 where Value: Hashable {}
+
+extension Validated {
+
+  public func map<NewValue>(
+    _ transform: @escaping (Value) -> NewValue
+  ) -> Validated<NewValue> {
+    .init(
+      value: transform(self.value),
+      errors: self.errors
+    )
+  }
+}

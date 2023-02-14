@@ -40,6 +40,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
     use(SessionAuthorization.placeholder)
     use(SessionMFAAuthorization.placeholder)
     use(SessionNetworkAuthorization.placeholder)
+    use(AccountsDataStore.placeholder)
   }
 
   func test_currentAccount_throwsSessionMissing_whenSessionStateHoldsNoAccount() {

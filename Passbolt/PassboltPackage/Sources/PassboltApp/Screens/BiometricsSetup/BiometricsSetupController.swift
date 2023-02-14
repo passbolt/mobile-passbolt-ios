@@ -29,7 +29,7 @@ import UIComponents
 internal struct BiometricsSetupController {
 
   internal var destinationPresentationPublisher: @MainActor () -> AnyPublisher<Destination, Never>
-  internal var biometricsStatePublisher: @MainActor () -> AnyPublisher<OSBiometry.Availability, Never>
+  internal var biometricsStatePublisher: @MainActor () -> AnyPublisher<OSBiometryAvailability, Never>
   internal var setupBiometrics: @MainActor () -> AnyPublisher<Never, Error>
   internal var skipSetup: @MainActor () -> Void
 }
@@ -66,12 +66,12 @@ extension BiometricsSetupController: UIController {
       destinationPresentationSubject.eraseToAnyPublisher()
     }
 
-    func biometricsStatePublisher() -> AnyPublisher<OSBiometry.Availability, Never> {
+    func biometricsStatePublisher() -> AnyPublisher<OSBiometryAvailability, Never> {
       Publishers.Merge(
         Just(biometry.availability()),
         applicationLifecycle
           .lifecyclePublisher()
-          .compactMap { (transition: ApplicationLifecycle.Transition) -> OSBiometry.Availability? in
+          .compactMap { (transition: ApplicationLifecycle.Transition) -> OSBiometryAvailability? in
             if case .didBecomeActive = transition {
               return .none
             }

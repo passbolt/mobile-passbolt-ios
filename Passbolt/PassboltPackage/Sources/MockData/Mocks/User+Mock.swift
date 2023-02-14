@@ -25,13 +25,13 @@ import CommonModels
 
 extension User.ID {
 
-  public static let mock_1: Self = .init(rawValue: UUID().uuidString)
+  public static let mock_1: Self = .init(rawValue: "68A2680B-9800-4086-A9F9-30A4D5D7D94F")
 
-  public static let mock_2: Self = .init(rawValue: UUID().uuidString)
+  public static let mock_2: Self = .init(rawValue: "EF4E3D5C-A89B-4FB3-A1B6-81C28DCDCDBA")
 
-  public static let mock_ada: Self = .init(rawValue: UUID().uuidString)
+  public static let mock_ada: Self = .init(rawValue: "48BE7822-20EB-4BB7-8E6B-4F506D880C56")
 
-  public static let mock_frances: Self = .init(rawValue: UUID().uuidString)
+  public static let mock_frances: Self = .init(rawValue: "4E061203-116F-4C36-9CFC-8020675453F9")
 }
 
 extension UserDTO {

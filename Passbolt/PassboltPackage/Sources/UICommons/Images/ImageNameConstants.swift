@@ -76,6 +76,7 @@ extension ImageNameConstant {
   public static var chevronRight: Self { "ChevronRight" }
   public static var circleSelected: Self { "CircleSelected" }
   public static var circleUnselected: Self { "CircleUnselected" }
+  public static var mobileTransfer: Self { "MobileTransfer" }
 
   // Dynamic images - rendered according to interface (Light/Dark)
   public static var accountsSkeleton: Self { "AccountsSkeleton" }

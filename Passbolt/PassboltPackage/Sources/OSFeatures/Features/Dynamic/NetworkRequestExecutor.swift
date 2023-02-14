@@ -263,7 +263,7 @@ private func mapURLErrors(
   case .cancelled:
     return
       Cancelled
-      .error("HTTP request cancelled")
+      .error()
 
   case .badURL, .unsupportedURL:
     return

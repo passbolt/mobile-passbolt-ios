@@ -38,5 +38,7 @@ extension FeaturesRegistry {
     self.usePassboltResourceFolderLocationDetailsController()
     self.usePassboltResourceLocationDetailsController()
     self.usePassboltResourceFolderPermissionListController()
+    self.useAccountQRCodeExportController()
+    self.useAccountExportAuthorizationController()
   }
 }

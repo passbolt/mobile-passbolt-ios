@@ -35,8 +35,16 @@ public struct Validator<Value> {
 
 extension Validator {
 
-  public func callAsFunction(_ value: Value) -> Validated<Value> {
+  public func callAsFunction(
+    _ value: Value
+  ) -> Validated<Value> {
     validate(value)
+  }
+
+  public func callAsFunction(
+    _ validated: Validated<Value>
+  ) -> Validated<Value> {
+    validate(validated.value)
   }
 }
 

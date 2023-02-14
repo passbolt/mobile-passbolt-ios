@@ -25,9 +25,9 @@ import CommonModels
 
 extension ResourceType.ID {
 
-  public static let mock_1: Self = .init(rawValue: UUID().uuidString)
+  public static let mock_1: Self = .init(rawValue: "F9B39DCA-CD93-4CD4-B91D-8AAE7B7AA813")
 
-  public static let mock_2: Self = .init(rawValue: UUID().uuidString)
+  public static let mock_2: Self = .init(rawValue: "59C8F6AE-AEE8-4905-983B-795A675EE0E2")
 }
 
 extension ResourceType.Slug {

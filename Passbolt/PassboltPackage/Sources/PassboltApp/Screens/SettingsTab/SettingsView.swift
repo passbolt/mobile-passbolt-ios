@@ -29,6 +29,7 @@ internal final class SettingsView: ScrolledStackView {
   internal var defaultHomeModeTapPublisher: AnyPublisher<Void, Never> { defaultHomeModeItem.tapPublisher }
   internal var manageAccountsTapPublisher: AnyPublisher<Void, Never> { manageAccountsItem.tapPublisher }
   internal var termsTapPublisher: AnyPublisher<Void, Never> { termsItem.tapPublisher }
+  internal var transferAccountTapPublisher: AnyPublisher<Void, Never> { transferAccountItem.tapPublisher }
   internal var privacyPolicyTapPublisher: AnyPublisher<Void, Never> { privacyPolicyItem.tapPublisher }
   internal var signOutTapPublisher: AnyPublisher<Void, Never> { signOutItem.tapPublisher }
   internal var biometricsTapPublisher: AnyPublisher<Void, Never> { biometricsToggle.tapPublisher }
@@ -40,6 +41,7 @@ internal final class SettingsView: ScrolledStackView {
   private let autoFillItem: SettingsItemView = .init()
   private let defaultHomeModeItem: SettingsItemView = .init()
   private let manageAccountsItem: SettingsItemView = .init()
+  private let transferAccountItem: SettingsItemView = .init()
   private let termsItem: SettingsItemView = .init()
   private let privacyPolicyItem: SettingsItemView = .init()
   private let logsItem: SettingsItemView = .init()
@@ -116,6 +118,17 @@ internal final class SettingsView: ScrolledStackView {
       )
     }
 
+    mut(transferAccountItem) {
+      .combined(
+        .backgroundColor(dynamic: .background),
+        .custom { (subject: SettingsItemView) in
+          subject.applyOn(icon: .image(named: .mobileTransfer, from: .uiCommons))
+          subject.applyOn(label: .text(displayable: .localized(key: "account.settings.export.mobile")))
+          subject.addDisclosureIndicator()
+        }
+      )
+    }
+
     mut(termsItem) {
       .combined(
         .backgroundColor(dynamic: .background),
@@ -169,6 +182,7 @@ internal final class SettingsView: ScrolledStackView {
         .append(autoFillItem),
         .append(defaultHomeModeItem),
         .append(manageAccountsItem),
+        .append(transferAccountItem),
         .when(
           !termsHidden,
           then: .append(termsItem)

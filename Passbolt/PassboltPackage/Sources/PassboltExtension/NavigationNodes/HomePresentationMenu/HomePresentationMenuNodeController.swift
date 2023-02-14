@@ -71,7 +71,7 @@ extension HomePresentationMenuNodeController {
         availableModes: homePresentation.availableModes()
       )
     )
-    viewState.cancellables.addCleanup(asyncExecutor.clearTasks)
+    viewState.cancellables.addCleanup(asyncExecutor.cancelTasks)
 
     homePresentation
       .currentMode

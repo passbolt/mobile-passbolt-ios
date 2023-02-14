@@ -29,15 +29,18 @@ public struct PrimaryButton: View {
 
   private let icon: Image?
   private let title: DisplayableString
+  private let style: Style
   private let action: () -> Void
 
   public init(
     title: DisplayableString,
     iconName: ImageNameConstant? = .none,
+    style: Style = .regular,
     action: @escaping () -> Void
   ) {
     self.icon = iconName.map(Image.init(named:))
     self.title = title
+    self.style = style
     self.action = action
   }
 
@@ -71,7 +74,7 @@ public struct PrimaryButton: View {
       }
     )
     .foregroundColor(.passboltPrimaryButtonText)
-    .backgroundColor(.passboltPrimaryBlue)
+    .backgroundColor(self.style.backgroundColor)
     .frame(height: 56)
     .cornerRadius(4)
   }
@@ -84,6 +87,28 @@ public struct PrimaryButton: View {
           weight: .medium
         )
       )
+  }
+}
+
+extension PrimaryButton {
+
+  public enum Style {
+
+    case regular
+    case destructive
+  }
+}
+
+extension PrimaryButton.Style {
+
+  fileprivate var backgroundColor: Color {
+    switch self {
+    case .regular:
+      return .passboltPrimaryBlue
+
+    case .destructive:
+      return .passboltSecondaryRed
+    }
   }
 }
 

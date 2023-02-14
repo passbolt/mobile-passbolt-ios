@@ -83,8 +83,16 @@ extension UpdatesSequence {
   }
 
   @Sendable internal func endSequence() {
-    self.state
-      .set(\.active, false)
+    self.state.access { state in
+      guard state.active else { return }
+      state.active = false
+      for awaiter: Awaiter in state.awaiters {
+        awaiter
+          .resume(returning: .none)
+      }
+      state.awaiters
+        .removeAll(keepingCapacity: true)
+    }
   }
 }
 

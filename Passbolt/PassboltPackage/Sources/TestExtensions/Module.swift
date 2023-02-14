@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+@_exported import AccountSetup
 @_exported import Accounts
 @_exported import CommonModels
 @_exported import Commons
@@ -34,5 +35,6 @@
 @_exported import OSFeatures
 @_exported import Resources
 @_exported import Session
+@_exported import UICommons
 @_exported import Users
 @_exported import XCTest

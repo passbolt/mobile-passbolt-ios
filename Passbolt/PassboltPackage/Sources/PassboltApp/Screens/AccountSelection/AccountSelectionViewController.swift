@@ -204,7 +204,10 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
             )
           }
           else {
-            await self?.push(TransferInfoScreenViewController.self)
+            await self?.push(
+              TransferInfoScreenViewController.self,
+              in: .import
+            )
           }
         }
       }

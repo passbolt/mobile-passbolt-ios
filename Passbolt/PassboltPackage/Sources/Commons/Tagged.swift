@@ -286,3 +286,45 @@ where RawValue: Numeric {
 
 extension Tagged: SignedNumeric
 where RawValue: SignedNumeric {}
+
+extension Tagged: Sequence
+where RawValue: Sequence {
+
+  public typealias Element = RawValue.Element
+  public typealias Iterator = RawValue.Iterator
+
+  public var underestimatedCount: Int { self.rawValue.underestimatedCount }
+
+  public func makeIterator() -> Iterator {
+    self.rawValue.makeIterator()
+  }
+}
+
+extension Tagged: Collection
+where RawValue: Collection {
+
+  public typealias Index = RawValue.Index
+  public typealias Indices = RawValue.Indices
+
+  public var isEmpty: Bool { self.rawValue.isEmpty }
+  public var count: Int { self.rawValue.count }
+
+  public var startIndex: Index { self.rawValue.startIndex }
+  public var endIndex: Index { self.rawValue.endIndex }
+
+  public var indices: Indices { self.rawValue.indices }
+
+  public func index(
+    after idx: Index
+  ) -> Index {
+    self.rawValue.index(after: idx)
+  }
+
+  public subscript(
+    position: Index
+  ) -> Element {
+    _read {
+      yield self.rawValue[position]
+    }
+  }
+}

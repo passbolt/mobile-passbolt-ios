@@ -113,7 +113,10 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
     controller.pushTransferInfoPublisher()
       .sink { [weak self] in
         self?.cancellables.executeOnMainActor { [weak self] in
-          await self?.push(TransferInfoScreenViewController.self)
+          await self?.push(
+            TransferInfoScreenViewController.self,
+            in: .import
+          )
         }
       }
       .store(in: cancellables)

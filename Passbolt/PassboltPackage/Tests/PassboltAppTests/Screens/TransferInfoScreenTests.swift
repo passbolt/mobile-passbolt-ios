@@ -47,7 +47,7 @@ final class TransferInfoScreenTests: MainActorTestCase {
         \OSCamera.ensurePermission,
         with: always(Void())
       )
-    let controller: TransferInfoScreenController = try await testController()
+    let controller: TransferInfoScreenController = try await testController(context: .import)
     var result: Bool!
 
     controller.presentNoCameraPermissionAlertPublisher()
@@ -89,7 +89,7 @@ final class TransferInfoScreenTests: MainActorTestCase {
       }
     )
 
-    let controller: TransferInfoScreenController = try await testController()
+    let controller: TransferInfoScreenController = try await testController(context: .import)
 
     controller.requestOrNavigatePublisher()
       .receive(on: ImmediateScheduler.shared)
@@ -107,7 +107,7 @@ final class TransferInfoScreenTests: MainActorTestCase {
       with: always(Void())
     )
 
-    let controller: TransferInfoScreenController = try await testController()
+    let controller: TransferInfoScreenController = try await testController(context: .import)
     var result: Bool?
 
     controller

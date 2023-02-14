@@ -25,7 +25,7 @@ import Commons
 
 public struct AsyncExecutor {
 
-  public let clearTasks: @Sendable () -> Void
+  public let cancelTasks: @Sendable () -> Void
   private let execute:
     @Sendable (ExecutionIdentifier, OngoingExecutionBehavior, @escaping @Sendable () async -> Void) -> Execution
 }
@@ -35,7 +35,7 @@ extension AsyncExecutor: LoadableFeature {
   #if DEBUG
   public nonisolated static var placeholder: AsyncExecutor {
     .init(
-      clearTasks: unimplemented(),
+      cancelTasks: unimplemented(),
       execute: unimplemented()
     )
   }
@@ -164,7 +164,7 @@ extension AsyncExecutor {
     }
 
     return .init(
-      clearTasks: {
+      cancelTasks: {
         schedulerState.access { state in
           state.values.forEach { item in
             item.cancel()
@@ -304,12 +304,18 @@ extension AsyncExecutor {
     }
 
     @Sendable public func executeAll() async {
-      while let next: @Sendable () async -> Void = self.nextTask() {
-        await next()
+      await withTaskGroup(of: Void.self) { group in
+        while let next: @Sendable () async -> Void = self.nextTask() {
+          group.addTask {
+            await next()
+          }
+        }
+        await group.waitForAll()
       }
     }
 
-    @Sendable fileprivate func addTask(
+    @discardableResult
+    @Sendable public func addTask(
       _ task: @escaping @Sendable () async -> Void
     ) -> Execution {
       let completion: AsyncVariable<Void?> = .init(initial: .none)

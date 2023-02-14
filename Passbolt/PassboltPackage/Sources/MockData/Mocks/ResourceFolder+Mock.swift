@@ -25,7 +25,7 @@ import CommonModels
 
 extension ResourceFolder.ID {
 
-  public static let mock_1: Self = .init(rawValue: UUID().uuidString)
+  public static let mock_1: Self = .init(rawValue: "45F90157-EE77-42E8-8CB8-50E73C6819F8")
 
-  public static let mock_2: Self = .init(rawValue: UUID().uuidString)
+  public static let mock_2: Self = .init(rawValue: "3D45BDEE-11E5-4664-8D5C-62C9816303E2")
 }

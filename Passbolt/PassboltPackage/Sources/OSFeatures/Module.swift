@@ -53,5 +53,6 @@ extension FeaturesRegistry {
     self.usePassboltStoredProperty(Set<String>.self)
     self.usePassboltSharedOSStoredProperties()
     self.usePassboltAsyncExecutor()
+    self.useQRCodeGenerator()
   }
 }

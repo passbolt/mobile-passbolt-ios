@@ -38,13 +38,20 @@ extension Account {
     userID: .mock_frances,
     fingerprint: "FINGERPRINT_MOCK_FRANCES"
   )
+
+  public static let mock_static: Self = .init(
+    localID: "3EDBC019-BFF4-49AF-B8DF-DD283423E8F3",
+    domain: .mock_passbolt_alt,
+    userID: "F8B8F377-8045-49A1-BAAA-D04270406675",
+    fingerprint: "FINGERPRINT_MOCK_FRANCES"
+  )
 }
 
 extension Account.LocalID {
 
-  public static let mock_ada: Self = .init(rawValue: UUID().uuidString)
+  public static let mock_ada: Self = .init(rawValue: "9514E95F-1A1F-40E1-965D-B596AF797F82")
 
-  public static let mock_frances: Self = .init(rawValue: UUID().uuidString)
+  public static let mock_frances: Self = .init(rawValue: "9AF7F1CC-8443-4D36-AFF3-431AA8347488")
 
-  public static let mock_1: Self = .init(rawValue: UUID().uuidString)
+  public static let mock_1: Self = .init(rawValue: "611A8428-13DA-4EEF-87FC-6567C73CE4FC")
 }

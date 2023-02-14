@@ -52,5 +52,7 @@ extension FeaturesRegistry {
     self.usePassboltResourceFavoriteAddNetworkOperation()
     self.usePassboltResourceFolderCreateNetworkOperation()
     self.usePassboltResourceFolderShareNetworkOperation()
+    self.useAccountChunkedExportInitializeNetworkOperation()
+    self.usePassboltAccountChunkedExportStatusNetworkOperation()
   }
 }

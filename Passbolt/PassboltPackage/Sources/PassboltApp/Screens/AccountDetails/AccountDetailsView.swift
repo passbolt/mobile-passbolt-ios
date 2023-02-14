@@ -30,6 +30,7 @@ internal final class AccountDetailsView: KeyboardAwareView {
     labelTextInput.textPublisher
   }
   internal let saveChangesPublisher: AnyPublisher<Void, Never>
+  internal let transferAccountPublisher: AnyPublisher<Void, Never>
   private let avatarImageView: ImageView = .init()
   private let labelTextInput: TextInput = .init()
   private let cancellables: Cancellables = .init()
@@ -39,6 +40,8 @@ internal final class AccountDetailsView: KeyboardAwareView {
   ) {
     let saveChangesSubject: PassthroughSubject<Void, Never> = .init()
     self.saveChangesPublisher = saveChangesSubject.eraseToAnyPublisher()
+    let transferAccountSubject: PassthroughSubject<Void, Never> = .init()
+    self.transferAccountPublisher = transferAccountSubject.eraseToAnyPublisher()
     super.init()
 
     mut(self) {
@@ -101,6 +104,15 @@ internal final class AccountDetailsView: KeyboardAwareView {
         .text(displayable: .localized(key: "account.details.button.save.title")),
         .primaryStyle(),
         .action { saveChangesSubject.send() }
+      )
+    }
+
+    let transferAccountButton: TextButton = .init()
+    mut(transferAccountButton) {
+      .combined(
+        .text(displayable: .localized(key: "account.settings.export.mobile")),
+        .linkStyle(),
+        .action { transferAccountSubject.send() }
       )
     }
 
@@ -170,7 +182,8 @@ internal final class AccountDetailsView: KeyboardAwareView {
             .instantiate()
         ),
         .appendFiller(minSize: 12),
-        .append(saveChangesButton)
+        .append(saveChangesButton),
+        .append(transferAccountButton)
       )
     }
 

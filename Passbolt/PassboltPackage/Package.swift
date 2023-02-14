@@ -1,4 +1,4 @@
-// swift-tools-version:5.6
+// swift-tools-version:5.7
 
 import PackageDescription
 
@@ -123,7 +123,7 @@ let package = Package(
     ),
     .package(
       url: "https://github.com/apple/swift-collections.git",
-      .upToNextMajor(from: "1.0.0")
+      .upToNextMajor(from: "1.0.4")
     ),
     .package(
       url: "https://github.com/apple/swift-async-algorithms.git",
@@ -632,7 +632,16 @@ let package = Package(
         "Commons",
         "CommonModels",
         // Modules
-        "Accounts",
+        "PassboltAccounts",
+        "PassboltAccountSetup",
+        "PassboltApp",
+        "PassboltDatabaseOperations",
+        "PassboltExtension",
+        "PassboltNetworkOperations",
+        "PassboltResources",
+        "PassboltSession",
+        "PassboltSessionData",
+        "PassboltUsers",
       ]
     ),
     .target(

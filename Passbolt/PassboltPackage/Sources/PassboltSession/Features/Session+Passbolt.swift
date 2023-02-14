@@ -21,9 +21,13 @@
 // @since         v1.0
 //
 
+import CryptoKit
 import NetworkOperations
 import OSFeatures
 import Session
+
+import struct Foundation.Data
+import class Foundation.JSONEncoder
 
 // MARK: - Implementation
 

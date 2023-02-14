@@ -37,7 +37,7 @@ final class CodeReaderScreenTests: MainActorTestCase {
   func test_processPayload_passesPayloadToAccountTransfer() async throws {
     var result: String?
     features.patch(
-      \AccountTransfer.processPayload,
+      \AccountImport.processPayload,
       with: { payload in
         result = payload
         return Empty<Never, Error>()

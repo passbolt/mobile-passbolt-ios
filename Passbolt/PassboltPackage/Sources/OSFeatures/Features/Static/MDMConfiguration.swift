@@ -28,7 +28,7 @@ import class Foundation.UserDefaults
 public struct MDMConfiguration {
 
   public var clear: @Sendable () -> Void
-  public var preconfiguredAccounts: @Sendable () -> Array<TransferedAccount>
+  public var preconfiguredAccounts: @Sendable () -> Array<AccountTransferData>
 }
 
 extension MDMConfiguration: StaticFeature {
@@ -68,15 +68,15 @@ extension MDMConfiguration {
         )
     }
 
-    @Sendable func preconfiguredAccounts() -> Array<TransferedAccount> {
+    @Sendable func preconfiguredAccounts() -> Array<AccountTransferData> {
       let configuration: Dictionary<String, Any> = configuration()
       let accountsConfiguration: Array<Dictionary<String, Any>> =
         configuration[MDMConfiguration.configurationAccountsKey]
         as? Array<Dictionary<String, Any>> ?? .init()
 
-      let accounts: Array<TransferedAccount> =
+      let accounts: Array<AccountTransferData> =
         accountsConfiguration
-        .compactMap { (configuration: Dictionary<String, Any>) -> TransferedAccount? in
+        .compactMap { (configuration: Dictionary<String, Any>) -> AccountTransferData? in
           guard
             let userID: String = configuration["userID"] as? String,
             let domain: String = configuration["domain"] as? String,
@@ -99,7 +99,7 @@ extension MDMConfiguration {
             "-----BEGIN PGP PRIVATE KEY BLOCK-----"
             + flattenedArmoredKey.replacingOccurrences(of: "\\n", with: "\r\n")
             + "-----END PGP PRIVATE KEY BLOCK-----"
-          return TransferedAccount(
+          return AccountTransferData(
             userID: .init(rawValue: userID),
             domain: .init(rawValue: domain),
             username: username,

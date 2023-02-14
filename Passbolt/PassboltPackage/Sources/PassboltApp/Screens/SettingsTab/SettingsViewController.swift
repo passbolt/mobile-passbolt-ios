@@ -139,6 +139,15 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
       .store(in: cancellables)
 
     contentView
+      .transferAccountTapPublisher
+      .sink { [weak self] in
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.push(TransferInfoScreenViewController.self, in: .export)
+        }
+      }
+      .store(in: cancellables)
+
+    contentView
       .termsTapPublisher
       .map { [weak self] () -> AnyPublisher<Void, Never> in
         guard let self = self

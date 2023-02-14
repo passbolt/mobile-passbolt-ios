@@ -36,7 +36,7 @@ final class CodeScanningScreenTests: MainActorTestCase {
 
   func test_exitConfirmation_isPresented_whenCallingPresent() async throws {
     features.patch(
-      \AccountTransfer.progressPublisher,
+      \AccountImport.progressPublisher,
       with: always(
         Just(.configuration)
           .eraseErrorType()
@@ -60,7 +60,7 @@ final class CodeScanningScreenTests: MainActorTestCase {
 
   func test_help_isPresented_whenCallingPresent() async throws {
     features.patch(
-      \AccountTransfer.progressPublisher,
+      \AccountImport.progressPublisher,
       with: always(
         Just(.configuration)
           .eraseErrorType()
@@ -84,7 +84,7 @@ final class CodeScanningScreenTests: MainActorTestCase {
 
   func test_initialProgress_isEmpty() async throws {
     features.patch(
-      \AccountTransfer.progressPublisher,
+      \AccountImport.progressPublisher,
       with: always(
         Just(.configuration)
           .eraseErrorType()

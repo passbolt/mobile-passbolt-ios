@@ -53,6 +53,22 @@ extension Mutation where Subject: TextButton {
       .heightAnchor(.equalTo, constant: 56)
     )
   }
+
+  public static func destructiveStyle() -> Self {
+    .combined(
+      .backgroundColor(dynamic: .secondaryRed),
+      .pressedBackgroundColor(dynamic: .secondaryDarkRed),
+      .disabledBackgroundColor(dynamic: .secondaryGray),
+      .cornerRadius(4, masksToBounds: true),
+      .heightAnchor(.equalTo, constant: 56),
+      .textColor(dynamic: .primaryButtonText),
+      .pressedTextColor(dynamic: .primaryButtonText),
+      .disabledTextColor(dynamic: .primaryButtonText),
+      .font(.inter(ofSize: 14, weight: .medium)),
+      .textAlignment(.center),
+      .textInsets(.init(top: 4, leading: 8, bottom: -4, trailing: -8))
+    )
+  }
 }
 
 extension Mutation where Subject: UIBarButtonItem {

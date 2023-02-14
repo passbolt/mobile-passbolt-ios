@@ -24,7 +24,8 @@
 import Foundation
 import Localization
 
-extension Validator where Value: Collection {
+extension Validator
+where Value: Collection {
 
   public static func nonEmpty(
     displayable: DisplayableString,

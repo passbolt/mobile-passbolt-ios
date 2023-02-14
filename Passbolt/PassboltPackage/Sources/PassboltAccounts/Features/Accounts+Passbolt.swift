@@ -54,7 +54,7 @@ extension Accounts {
     }
 
     @Sendable nonisolated func addAccount(
-      _ transferedAccount: TransferedAccount
+      _ transferedAccount: AccountTransferData
     ) throws -> Account {
       let storedAccount: Account? =
         dataStore

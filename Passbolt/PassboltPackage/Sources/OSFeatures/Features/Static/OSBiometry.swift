@@ -28,19 +28,8 @@ import LocalAuthentication
 
 public struct OSBiometry {
 
-  public var availability: @Sendable () -> Availability
+  public var availability: @Sendable () -> OSBiometryAvailability
   public var ensurePermission: () async throws -> Void
-}
-
-extension OSBiometry {
-
-  public enum Availability {
-
-    case unavailable
-    case unconfigured
-    case touchID
-    case faceID
-  }
 }
 
 extension OSBiometry: StaticFeature {
@@ -60,7 +49,7 @@ extension OSBiometry: StaticFeature {
 extension OSBiometry {
 
   fileprivate static var live: Self {
-    @Sendable func availability() -> Availability {
+    @Sendable func availability() -> OSBiometryAvailability {
       let laContext: LAContext = .init()
 
       var errorPtr: NSError?

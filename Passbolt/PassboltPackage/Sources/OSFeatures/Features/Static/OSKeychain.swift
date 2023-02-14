@@ -321,9 +321,7 @@ private func loadKeychainData(
       case errSecUserCanceled:
         return .failure(
           Cancelled
-            .error("Keychain access cancelled")
-            .recording(key, for: "key")
-            .recording(tag as Any, for: "tag")
+            .error()
         )
 
       case _:
@@ -407,9 +405,7 @@ private func loadKeychainMeta(
       case errSecUserCanceled:
         return .failure(
           Cancelled
-            .error("Keychain access cancelled")
-            .recording(key, for: "key")
-            .recording(tag as Any, for: "tag")
+            .error()
         )
 
       case _:

@@ -25,7 +25,7 @@ import CommonModels
 
 extension ResourceTag.ID {
 
-  public static let mock_1: Self = .init(rawValue: UUID().uuidString)
+  public static let mock_1: Self = .init(rawValue: "B8F19D78-41E1-4E71-AB42-C5B5D18EAAC0")
 
-  public static let mock_2: Self = .init(rawValue: UUID().uuidString)
+  public static let mock_2: Self = .init(rawValue: "A6626564-8CE2-4FC0-870C-5C299F04AB0C")
 }

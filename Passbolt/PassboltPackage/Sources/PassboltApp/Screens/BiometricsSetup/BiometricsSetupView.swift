@@ -111,7 +111,7 @@ internal final class BiometricsSetupView: ScrolledStackView {
     }
   }
 
-  internal func update(for bimetryState: OSBiometry.Availability) {
+  internal func update(for bimetryState: OSBiometryAvailability) {
     switch bimetryState {
     case .unavailable:
       unreachable("Cannot setup biometrics for devices which does not support it")

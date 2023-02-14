@@ -56,6 +56,7 @@
 "account.selection.account.removed" = "The account has been removed from this device.";
 
 "authorization.button.title" = "Sign In";
+"authorization.reverification.button.title" = "Confirm passphrase";
 "authorization.forgot.passphrase.button.title" = "I forgot my passphrase";
 "authorization.forgot.passphrase.alert.title" = "Did you forgot your passphrase?";
 "authorization.forgot.passphrase.alert.message" = "Unfortunately you cannot access your data if you do not remember your passphrase. Please contact your administrator to unlock your account.";
@@ -146,14 +147,21 @@
 
 
 "transfer.account.title" = "Transfer account details";
-"transfer.account.description" = "Scan QR codes to transfer your account details";
-"transfer.account.info.step.first" = "Sign in using the browser extension";
-"transfer.account.info.step.second" = "Go to the Profile page";
-"transfer.account.info.step.second.distinct" = "Profile";
-"transfer.account.info.step.third" = "Go to the Mobile section";
-"transfer.account.info.step.third.distinct" = "Mobile";
-"transfer.account.info.step.fourth" = "Scan the qr codes sequence";
-"transfer.account.scan.qr.button" = "Scan QR codes";
+"transfer.account.import.description" = "Scan QR codes to transfer your account details";
+"transfer.account.import.info.step.first" = "Sign in using the browser extension";
+"transfer.account.import.info.step.second" = "Go to the Profile page";
+"transfer.account.import.info.step.second.distinct" = "Profile";
+"transfer.account.import.info.step.third" = "Go to the Mobile section";
+"transfer.account.import.info.step.third.distinct" = "Mobile";
+"transfer.account.import.info.step.fourth" = "Scan the qr codes sequence";
+"transfer.account.import.scan.qr.button" = "Scan QR codes";
+"transfer.account.export.description" = "Show QR codes to transfer your account details";
+"transfer.account.export.info.step.first" = "Install the app on another mobile";
+"transfer.account.export.info.step.second" = "Launch the app";
+"transfer.account.export.info.step.third" = "Select “Connect to an existing account”";
+"transfer.account.export.info.step.fourth" = "Scan the qr codes sequence";
+"transfer.account.export.scan.qr.button" = "Start transfer";
+"transfer.account.export.cancel.button" = "Cancel transfer";
 "transfer.account.camera.access.alert.title" = "Camera access required";
 "transfer.account.camera.access.alert.text" = "Go to Settings/Privacy/Camera to enable access to your Camera.";
 "transfer.account.result.success.title" = "Your information has been transferred!";
@@ -162,6 +170,13 @@
 
 "transfer.account.exit.confirmation.title" = "Are you sure?";
 "transfer.account.exit.confirmation.message" = "If you leave, you will need to scan QR codes again.";
+"transfer.account.import.exit.confirmation.cancel.button.title" = "Continue setup";
+"transfer.account.import.exit.confirmation.confirm.button.title" = "Cancel setup";
+"transfer.account.export.exit.confirmation.confirm.button.title" = "Stop transfer";
+"transfer.account.export.exit.success.button" = "Go back";
+"transfer.account.export.exit.failure.button" = "Try again";
+"transfer.account.export.failure.message" = "The transfer couldn’t be completed.";
+"transfer.account.export.cancelled" = "The transfer was cancelled";
 "transfer.account.exit.confirmation.cancel.button.title" = "Continue setup";
 "transfer.account.exit.confirmation.confirm.button.title" = "Cancel setup";
 
@@ -205,6 +220,7 @@
 "account.settings.default.home.mode.title" = "Default filter";
 "account.settings.default.home.mode.option.last.used" = "Latest used (default)";
 "account.settings.manage.accounts" = "Manage accounts";
+"account.settings.export.mobile" = "Transfer account to another device";
 "account.settings.terms" = "Terms & Conditions";
 "account.settings.privacy.policy" = "Privacy policy";
 "account.settings.logs" = "Access the logs";
@@ -452,3 +468,5 @@ Contact your administrator for more information.";
 
 "error.validation.form.invalid" = "Form is not valid.";
 "error.biometrics.unavailable.message" = "Biometrics unavailable";
+
+"error.qrcode.generation.generic" = "QRCode could not be generated from provided data";

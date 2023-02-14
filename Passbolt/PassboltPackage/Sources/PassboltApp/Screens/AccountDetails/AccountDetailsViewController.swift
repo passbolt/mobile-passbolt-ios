@@ -114,5 +114,17 @@ internal final class AccountDetailsViewController: PlainViewController, UICompon
       .switchToLatest()
       .sinkDrop()
       .store(in: cancellables)
+
+    contentView
+      .transferAccountPublisher
+      .sink { [weak self] in
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.push(
+            TransferInfoScreenViewController.self,
+            in: .export
+          )
+        }
+      }
+      .store(in: cancellables)
   }
 }

@@ -25,9 +25,9 @@ import CommonModels
 
 extension UserGroup.ID {
 
-  public static let mock_1: Self = .init(rawValue: UUID().uuidString)
+  public static let mock_1: Self = .init(rawValue: "E4FCF981-0AC1-4D93-8282-C946CCCA28B5")
 
-  public static let mock_2: Self = .init(rawValue: UUID().uuidString)
+  public static let mock_2: Self = .init(rawValue: "B88BBDF3-FD5D-428E-AA22-D187C1F1C2EB")
 
-  public static let mock_3: Self = .init(rawValue: UUID().uuidString)
+  public static let mock_3: Self = .init(rawValue: "87A00508-6576-4355-92DA-58BE3F2D0181")
 }

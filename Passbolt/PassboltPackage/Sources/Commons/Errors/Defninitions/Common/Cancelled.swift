@@ -23,25 +23,19 @@
 
 import Localization
 
-public struct Cancelled: TheError {
+public typealias Cancelled = CancellationError
 
-  public static func error(
-    _ message: StaticString = "Cancelled",
-    file: StaticString = #fileID,
-    line: UInt = #line
-  ) -> Self {
-    Self(
-      context: .context(
-        .message(
-          message,
-          file: file,
-          line: line
-        )
-      ),
-      displayableMessage: .localized(key: .genericErrorCancelled)
-    )
+extension CancellationError: TheError {
+
+  public static func error() -> Self {
+    .init()
   }
 
-  public var context: DiagnosticsContext
-  public var displayableMessage: DisplayableString
+  public var context: DiagnosticsContext {
+    get { .context(.message("Cancelled")) }
+    set { /* unsupported */  }
+  }
+  public var displayableMessage: DisplayableString {
+    .localized(key: .genericErrorCancelled)
+  }
 }
