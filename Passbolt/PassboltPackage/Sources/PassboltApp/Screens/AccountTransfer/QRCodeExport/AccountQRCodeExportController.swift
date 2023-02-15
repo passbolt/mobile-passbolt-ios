@@ -27,7 +27,7 @@ import OSFeatures
 
 internal struct AccountQRCodeExportController {
 
-  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewState: MutableViewState<ViewState>
 
   internal var showCancelConfirmation: () -> Void
   internal var cancelTransfer: () -> Void
@@ -44,7 +44,7 @@ extension AccountQRCodeExportController: ViewController {
   #if DEBUG
   internal nonisolated static var placeholder: Self {
     .init(
-      viewState: .placeholder,
+      viewState: .placeholder(),
       showCancelConfirmation: unimplemented(),
       cancelTransfer: unimplemented()
     )
@@ -67,7 +67,7 @@ extension AccountQRCodeExportController {
     let accountExport: AccountChunkedExport = try features.instance()
     let qrCodeGenerator: QRCodeGenerator = features.instance()
 
-    let viewState: ViewStateBinding<ViewState> = .init(
+    let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
         currentQRcode: .init(),
         exitConfirmationAlertPresented: false
@@ -80,7 +80,7 @@ extension AccountQRCodeExportController {
         case .part(_, let content):
           do {
             let qrCodePart: Data = try await qrCodeGenerator.generateQRCode(content)
-            await viewState.mutate { state in
+            await viewState.update { state in
               state.currentQRcode = qrCodePart
             }
           }
@@ -122,7 +122,7 @@ extension AccountQRCodeExportController {
 
     nonisolated func showCancelConfirmation() {
       asyncExecutor.schedule(.reuse) {
-        await viewState.mutate { (state: inout ViewState) in
+        await viewState.update { (state: inout ViewState) in
           state.exitConfirmationAlertPresented = true
         }
       }

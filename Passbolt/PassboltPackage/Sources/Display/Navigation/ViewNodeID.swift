@@ -21,34 +21,7 @@
 // @since         v1.0
 //
 
-@propertyWrapper
-public struct NavigationNodeID {
+import Commons
 
-  public var wrappedValue: NavigationNodeID { self }
-  private let identifier: ObjectIdentifier
-
-  public init() {
-    final class ID {}
-    self.identifier = .init(ID())
-  }
-}
-
-extension NavigationNodeID: Sendable {}
-
-extension NavigationNodeID: Equatable {
-
-  public static func == (
-    _ lhs: NavigationNodeID,
-    _ rhs: NavigationNodeID
-  ) -> Bool {
-    lhs.identifier == rhs.identifier
-  }
-}
-extension NavigationNodeID: Hashable {
-
-  public func hash(
-    into hasher: inout Hasher
-  ) {
-    hasher.combine(self.identifier)
-  }
-}
+public enum ViewNodeIDTag {}
+public typealias ViewNodeID = Tagged<ObjectIdentifier, ViewNodeIDTag>

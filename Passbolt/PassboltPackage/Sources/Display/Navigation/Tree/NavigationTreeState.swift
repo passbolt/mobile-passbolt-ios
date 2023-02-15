@@ -31,7 +31,7 @@ extension NavigationTreeState: Hashable {}
 extension NavigationTreeState {
 
   public func contains(
-    _ nodeID: NavigationNodeID
+    _ nodeID: ViewNodeID
   ) -> Bool {
     self.root.contains(nodeID)
   }
@@ -40,46 +40,46 @@ extension NavigationTreeState {
   public mutating func replaceRoot<ViewNode>(
     with _: ViewNode.Type,
     controller: ViewNode.Controller
-  ) -> NavigationNodeID
-  where ViewNode: ControlledViewNode {
+  ) -> ViewNodeID
+  where ViewNode: ControlledView {
     self.root = .just(
-      id: controller.nodeID,
+      id: controller.viewNodeID,
       view: ViewNode(controller: controller)
     )
 
-    return controller.nodeID
+    return controller.viewNodeID
   }
 
   @discardableResult
   public mutating func replaceRoot<ViewNode>(
     withOnStack _: ViewNode.Type,
     controller: ViewNode.Controller
-  ) -> NavigationNodeID
-  where ViewNode: ControlledViewNode {
+  ) -> ViewNodeID
+  where ViewNode: ControlledView {
     self.root = .stack(
       .element(
-        id: controller.nodeID,
+        id: controller.viewNodeID,
         view: ViewNode(controller: controller),
         next: .none
       )
     )
 
-    return controller.nodeID
+    return controller.viewNodeID
   }
 
   @discardableResult
   public mutating func push<ViewNode>(
     _: ViewNode.Type,
     controller: ViewNode.Controller
-  ) -> NavigationNodeID
-  where ViewNode: ControlledViewNode {
+  ) -> ViewNodeID
+  where ViewNode: ControlledView {
     self.root = self.root
       .pushing(
         ViewNode(controller: controller),
-        withID: controller.nodeID
+        withID: controller.viewNodeID
       )
 
-    return controller.nodeID
+    return controller.viewNodeID
   }
 
   @discardableResult
@@ -87,16 +87,16 @@ extension NavigationTreeState {
     _ presentation: NavigationTreeOverlayPresentation = .sheet,
     _: ViewNode.Type,
     controller: ViewNode.Controller
-  ) -> NavigationNodeID
-  where ViewNode: ControlledViewNode {
+  ) -> ViewNodeID
+  where ViewNode: ControlledView {
     self.root = self.root
       .presenting(
         ViewNode(controller: controller),
-        withID: controller.nodeID,
+        withID: controller.viewNodeID,
         presentation
       )
 
-    return controller.nodeID
+    return controller.viewNodeID
   }
 
   @discardableResult
@@ -104,20 +104,20 @@ extension NavigationTreeState {
     _ presentation: NavigationTreeOverlayPresentation = .sheet,
     onStack _: ViewNode.Type,
     controller: ViewNode.Controller
-  ) -> NavigationNodeID
-  where ViewNode: ControlledViewNode {
+  ) -> ViewNodeID
+  where ViewNode: ControlledView {
     self.root = self.root
       .presenting(
         pushed: ViewNode(controller: controller),
-        withID: controller.nodeID,
+        withID: controller.viewNodeID,
         presentation
       )
 
-    return controller.nodeID
+    return controller.viewNodeID
   }
 
   public mutating func dismiss(
-    _ nodeID: NavigationNodeID
+    _ nodeID: ViewNodeID
   ) {
     if let subtree: NavigationTreeNode = self.root.removing(nodeID) {
       self.root = subtree
@@ -130,7 +130,7 @@ extension NavigationTreeState {
   }
 
   public mutating func dismiss(
-    upTo nodeID: NavigationNodeID
+    upTo nodeID: ViewNodeID
   ) {
     self.root = self.root.removing(upTo: nodeID)
   }

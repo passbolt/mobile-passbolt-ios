@@ -28,13 +28,12 @@ import OSFeatures
 
 internal struct HomePresentationMenuNodeController {
 
-  @NavigationNodeID public var nodeID
-  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewState: MutableViewState<ViewState>
   internal var selectMode: (HomePresentationMode) -> Void
   internal var dismissView: () -> Void
 }
 
-extension HomePresentationMenuNodeController: ViewNodeController {
+extension HomePresentationMenuNodeController: ViewController {
 
   internal struct ViewState: Hashable {
 
@@ -45,7 +44,7 @@ extension HomePresentationMenuNodeController: ViewNodeController {
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
-      viewState: .placeholder,
+      viewState: .placeholder(),
       selectMode: { _ in unimplemented() },
       dismissView: { unimplemented() }
     )
@@ -60,12 +59,11 @@ extension HomePresentationMenuNodeController {
   @MainActor fileprivate static func load(
     features: Features
   ) throws -> Self {
-    let nodeID: NavigationNodeID = .init()
     let asyncExecutor: AsyncExecutor = try features.instance()
     let navigationTree: NavigationTree = features.instance()
     let homePresentation: HomePresentation = try features.instance()
 
-    let viewState: ViewStateBinding<ViewState> = .init(
+    let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
         currentMode: homePresentation.currentMode.wrappedValue,
         availableModes: homePresentation.availableModes()
@@ -76,7 +74,7 @@ extension HomePresentationMenuNodeController {
     homePresentation
       .currentMode
       .sink { (mode: HomePresentationMode) in
-        viewState.currentMode = mode
+        viewState.update(\.currentMode, to: mode)
       }
       .store(in: viewState.cancellables)
 
@@ -85,18 +83,17 @@ extension HomePresentationMenuNodeController {
     ) {
       homePresentation.currentMode.set(to: mode)
       asyncExecutor.schedule(.reuse) {
-        await navigationTree.dismiss(nodeID)
+        await navigationTree.dismiss(viewState.viewNodeID)
       }
     }
 
     nonisolated func dismissView() {
       asyncExecutor.schedule(.reuse) {
-        await navigationTree.dismiss(nodeID)
+        await navigationTree.dismiss(viewState.viewNodeID)
       }
     }
 
     return .init(
-      nodeID: nodeID,
       viewState: viewState,
       selectMode: selectMode(_:),
       dismissView: dismissView

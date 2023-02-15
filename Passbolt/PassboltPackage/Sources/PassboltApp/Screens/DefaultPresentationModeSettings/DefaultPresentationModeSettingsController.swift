@@ -28,7 +28,7 @@ import Session
 
 internal struct DefaultPresentationModeSettingsController {
 
-  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewState: MutableViewState<ViewState>
   internal var selectMode: (HomePresentationMode?) -> Void
   internal var navigateBack: () -> Void
 }
@@ -47,7 +47,7 @@ extension DefaultPresentationModeSettingsController: ViewController {
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
-      viewState: .placeholder,
+      viewState: .placeholder(),
       selectMode: { _ in unimplemented() },
       navigateBack: { unimplemented() }
     )
@@ -71,7 +71,7 @@ extension DefaultPresentationModeSettingsController {
       .useLastHomePresentationAsDefault
     let defaultHomePresentation: StateBinding<HomePresentationMode> = accountPreferences.defaultHomePresentation
 
-    let viewState: ViewStateBinding<ViewState> = .init(
+    let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
         selectedMode: useLastUsedHomePresentationAsDefault.get(\.self)
           ? .none
@@ -82,7 +82,7 @@ extension DefaultPresentationModeSettingsController {
 
     executor.schedule {
       let availableModes = await homePresentation.availableHomePresentationModes()
-      await viewState.mutate { state in
+      await viewState.update { state in
         state.availableModes = availableModes
       }
     }
@@ -91,7 +91,7 @@ extension DefaultPresentationModeSettingsController {
       _ mode: HomePresentationMode?
     ) {
       executor.schedule(.replace) {
-        await viewState.mutate { viewState in
+        await viewState.update { viewState in
           viewState.selectedMode = mode
         }
         if let mode: HomePresentationMode = mode {

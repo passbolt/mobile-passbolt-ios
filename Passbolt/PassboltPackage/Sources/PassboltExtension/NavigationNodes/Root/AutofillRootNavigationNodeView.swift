@@ -24,7 +24,7 @@
 import Display
 import SharedUIComponents
 
-internal struct AutofillRootNavigationNodeView: ControlledViewNode {
+internal struct AutofillRootNavigationNodeView: ControlledView {
 
   internal typealias Controller = AutofillRootNavigationNodeController
 

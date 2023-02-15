@@ -30,7 +30,7 @@ import SessionData
 
 internal struct ResourceFolderContentDisplayController {
 
-  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewState: MutableViewState<ViewState>
   internal var activate: @Sendable () async -> Void
   internal var refresh: @Sendable () async -> Void
   internal var create: (() -> Void)?
@@ -46,7 +46,7 @@ extension ResourceFolderContentDisplayController: ViewController {
     internal let identifier: AnyHashable = IID()
 
     internal var folderName: DisplayableString
-    internal var filter: ViewStateView<ResourceFoldersFilter>
+    internal var filter: ObservableViewState<ResourceFoldersFilter>
     internal var suggestionFilter: (ResourceListItemDSV) -> Bool
     internal var createFolder: (() -> Void)?
     internal var createResource: (() -> Void)?
@@ -70,7 +70,7 @@ extension ResourceFolderContentDisplayController: ViewController {
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
-      viewState: .placeholder,
+      viewState: .placeholder(),
       activate: { unimplemented() },
       refresh: { unimplemented() },
       create: { unimplemented() },
@@ -97,7 +97,7 @@ extension ResourceFolderContentDisplayController {
     let sessionData: SessionData = try features.instance()
     let resourceFolders: ResourceFolders = try features.instance()
 
-    let viewState: ViewStateBinding<ViewState> = .init(
+    let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
         folderName: context.folderName,
         isSearchResult: false,
@@ -122,7 +122,7 @@ extension ResourceFolderContentDisplayController {
         .updatesSequence
         .forEach {
           await updateDisplayedItems(
-            context.filter.wrappedValue
+            context.filter.value
           )
         }
     }
@@ -154,7 +154,7 @@ extension ResourceFolderContentDisplayController {
 
           try Task.checkCancellation()
 
-          await viewState.mutate { (viewState: inout ViewState) in
+          await viewState.update { (viewState: inout ViewState) in
             viewState.isSearchResult = !filter.text.isEmpty
             viewState.suggestedResources = filteredResourceFolderContent.resources.filter(context.suggestionFilter)
             viewState.directFolders = filteredResourceFolderContent.subfolders

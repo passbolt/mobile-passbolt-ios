@@ -24,17 +24,19 @@
 import Features
 import UIComponents
 
+// Same instance should not be reused between multiple
+// views - it should uniquely identify a view on display.
 public protocol ViewController: Hashable, LoadableFeature {
 
-  associatedtype ViewState: Hashable = Stateless
+  associatedtype ViewState: Equatable = Stateless
 
-  var viewState: ViewStateBinding<ViewState> { get }
+  var viewState: MutableViewState<ViewState> { get }
 }
 
 extension ViewController {
 
-  public var id: ObjectIdentifier {
-    ObjectIdentifier(self.viewState)
+  public var viewNodeID: ViewNodeID {
+    self.viewState.viewNodeID
   }
 }
 
@@ -44,7 +46,7 @@ extension ViewController /* Hashable */ {
     _ lhs: Self,
     _ rhs: Self
   ) -> Bool {
-    lhs.id == rhs.id
+    lhs.viewNodeID == rhs.viewNodeID
   }
 
   public func equal(
@@ -54,7 +56,7 @@ extension ViewController /* Hashable */ {
       _ lhs: LHS,
       _ rhs: any ViewController
     ) -> Bool {
-      lhs.id == (rhs as? LHS)?.id
+      lhs.viewNodeID == (rhs as? LHS)?.viewNodeID
     }
 
     return equal(self, other)
@@ -63,7 +65,7 @@ extension ViewController /* Hashable */ {
   public func hash(
     into hasher: inout Hasher
   ) {
-    hasher.combine(self.id)
+    hasher.combine(self.viewNodeID)
   }
 }
 
@@ -87,7 +89,7 @@ public enum Controlled {
     switch controller {
     case let controller as ControlledViewA.Controller:
       ControlledViewA(controller: controller)
-        .id(controller.id)
+        .id(controller.viewNodeID)
 
     case _:
       defaultView()
@@ -104,11 +106,11 @@ public enum Controlled {
     switch controller {
     case let controller as ControlledViewA.Controller:
       ControlledViewA(controller: controller)
-        .id(controller.id)
+        .id(controller.viewNodeID)
 
     case let controller as ControlledViewB.Controller:
       ControlledViewB(controller: controller)
-        .id(controller.id)
+        .id(controller.viewNodeID)
 
     case _:
       defaultView()
@@ -128,15 +130,15 @@ public enum Controlled {
     switch controller {
     case let controller as ControlledViewA.Controller:
       ControlledViewA(controller: controller)
-        .id(controller.id)
+        .id(controller.viewNodeID)
 
     case let controller as ControlledViewB.Controller:
       ControlledViewB(controller: controller)
-        .id(controller.id)
+        .id(controller.viewNodeID)
 
     case let controller as ControlledViewC.Controller:
       ControlledViewC(controller: controller)
-        .id(controller.id)
+        .id(controller.viewNodeID)
 
     case _:
       defaultView()
@@ -158,19 +160,19 @@ public enum Controlled {
     switch controller {
     case let controller as ControlledViewA.Controller:
       ControlledViewA(controller: controller)
-        .id(controller.id)
+        .id(controller.viewNodeID)
 
     case let controller as ControlledViewB.Controller:
       ControlledViewB(controller: controller)
-        .id(controller.id)
+        .id(controller.viewNodeID)
 
     case let controller as ControlledViewC.Controller:
       ControlledViewC(controller: controller)
-        .id(controller.id)
+        .id(controller.viewNodeID)
 
     case let controller as ControlledViewD.Controller:
       ControlledViewD(controller: controller)
-        .id(controller.id)
+        .id(controller.viewNodeID)
 
     case _:
       defaultView()
@@ -201,23 +203,23 @@ public enum Controlled {
     switch controller {
     case let controller as ControlledViewA.Controller:
       ControlledViewA(controller: controller)
-        .id(controller.id)
+        .id(controller.viewNodeID)
 
     case let controller as ControlledViewB.Controller:
       ControlledViewB(controller: controller)
-        .id(controller.id)
+        .id(controller.viewNodeID)
 
     case let controller as ControlledViewC.Controller:
       ControlledViewC(controller: controller)
-        .id(controller.id)
+        .id(controller.viewNodeID)
 
     case let controller as ControlledViewD.Controller:
       ControlledViewD(controller: controller)
-        .id(controller.id)
+        .id(controller.viewNodeID)
 
     case let controller as ControlledViewE.Controller:
       ControlledViewE(controller: controller)
-        .id(controller.id)
+        .id(controller.viewNodeID)
 
     case _:
       defaultView()

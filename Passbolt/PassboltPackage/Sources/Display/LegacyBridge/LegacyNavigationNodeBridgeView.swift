@@ -48,6 +48,10 @@ where Component: UIComponent {
     self.rightBarButton = component.navigationItem.rightBarButtonItem
   }
 
+  internal var viewNodeID: ViewNodeID {
+    .init(rawValue: .init(self.component))
+  }
+
   internal func makeUIViewController(
     context: Context
   ) -> Component {

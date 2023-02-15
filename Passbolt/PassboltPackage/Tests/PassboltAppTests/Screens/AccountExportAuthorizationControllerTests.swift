@@ -79,7 +79,7 @@ final class AccountExportAuthorizationControllerTests: LoadableFeatureTestCase<A
         snackBarMessage: .none
       )
     ) { feature in
-      await feature.viewState.wrappedValue
+      await feature.viewState.value
     }
   }
 
@@ -97,7 +97,7 @@ final class AccountExportAuthorizationControllerTests: LoadableFeatureTestCase<A
     withTestedInstanceReturnsEqual(
       .unavailable
     ) { feature in
-      await feature.viewState.biometricsAvailability
+      await feature.viewState.value.biometricsAvailability
     }
   }
 
@@ -115,7 +115,7 @@ final class AccountExportAuthorizationControllerTests: LoadableFeatureTestCase<A
     withTestedInstanceReturnsEqual(
       .faceID
     ) { feature in
-      await feature.viewState.biometricsAvailability
+      await feature.viewState.value.biometricsAvailability
     }
   }
 
@@ -124,7 +124,7 @@ final class AccountExportAuthorizationControllerTests: LoadableFeatureTestCase<A
       "updated_passphrase"
     ) { feature in
       await feature.setPassphrase("updated_passphrase")
-      return await feature.viewState.passphrase.value.rawValue
+      return await feature.viewState.value.passphrase.value.rawValue
     }
   }
 
@@ -133,7 +133,7 @@ final class AccountExportAuthorizationControllerTests: LoadableFeatureTestCase<A
       Validated<Passphrase>.valid("valid_passphrase")
     ) { feature in
       await feature.setPassphrase("valid_passphrase")
-      return await feature.viewState.passphrase
+      return await feature.viewState.value.passphrase
     }
 
     withTestedInstanceReturnsEqual(
@@ -151,7 +151,7 @@ final class AccountExportAuthorizationControllerTests: LoadableFeatureTestCase<A
         )
     ) { feature in
       await feature.setPassphrase("")
-      return await feature.viewState.passphrase
+      return await feature.viewState.value.passphrase
     }
   }
 
@@ -166,7 +166,7 @@ final class AccountExportAuthorizationControllerTests: LoadableFeatureTestCase<A
     ) { feature in
       feature.authorizeWithBiometrics()
       await self.mockExecutionControl.executeAll()
-      return await feature.viewState.snackBarMessage
+      return await feature.viewState.value.snackBarMessage
     }
   }
 
@@ -180,7 +180,7 @@ final class AccountExportAuthorizationControllerTests: LoadableFeatureTestCase<A
     withTestedInstanceReturnsNone { feature in
       feature.authorizeWithBiometrics()
       await self.mockExecutionControl.executeAll()
-      return await feature.viewState.snackBarMessage
+      return await feature.viewState.value.snackBarMessage
     }
   }
 
@@ -200,7 +200,7 @@ final class AccountExportAuthorizationControllerTests: LoadableFeatureTestCase<A
     ) { feature in
       feature.authorizeWithPassphrase()
       await self.mockExecutionControl.executeAll()
-      return await feature.viewState.snackBarMessage
+      return await feature.viewState.value.snackBarMessage
     }
   }
 
@@ -216,7 +216,7 @@ final class AccountExportAuthorizationControllerTests: LoadableFeatureTestCase<A
       await feature.setPassphrase("valid_passphrase")
       feature.authorizeWithPassphrase()
       await self.mockExecutionControl.executeAll()
-      return await feature.viewState.snackBarMessage
+      return await feature.viewState.value.snackBarMessage
     }
   }
 
@@ -231,7 +231,7 @@ final class AccountExportAuthorizationControllerTests: LoadableFeatureTestCase<A
       await feature.setPassphrase("valid_passphrase")
       feature.authorizeWithBiometrics()
       await self.mockExecutionControl.executeAll()
-      return await feature.viewState.snackBarMessage
+      return await feature.viewState.value.snackBarMessage
     }
   }
 }

@@ -30,7 +30,7 @@ import SessionData
 
 internal struct ResourcesListDisplayController {
 
-  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewState: MutableViewState<ViewState>
   internal var activate: @Sendable () async -> Void
   internal var refresh: @Sendable () async -> Void
   internal var createResource: (() -> Void)?
@@ -44,7 +44,7 @@ extension ResourcesListDisplayController: ViewController {
     // feature is disposable, we don't care about ID
     internal let identifier: AnyHashable = IID()
 
-    internal var filter: ViewStateView<ResourcesFilter>
+    internal var filter: ObservableViewState<ResourcesFilter>
     internal var suggestionFilter: (ResourceListItemDSV) -> Bool
     internal var createResource: (() -> Void)?
     internal var selectResource: (Resource.ID) -> Void
@@ -61,7 +61,7 @@ extension ResourcesListDisplayController: ViewController {
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
-      viewState: .placeholder,
+      viewState: .placeholder(),
       activate: { unimplemented() },
       refresh: { unimplemented() },
       createResource: { unimplemented() },
@@ -87,7 +87,7 @@ extension ResourcesListDisplayController {
     let sessionData: SessionData = try features.instance()
     let resources: Resources = try features.instance()
 
-    let viewState: ViewStateBinding<ViewState> = .init(
+    let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
         suggested: .init(),
         resources: .init()
@@ -106,7 +106,7 @@ extension ResourcesListDisplayController {
       await sessionData
         .updatesSequence
         .forEach {
-          await updateDisplayedResources(context.filter.wrappedValue)
+          await updateDisplayedResources(context.filter.value)
         }
     }
 
@@ -137,7 +137,7 @@ extension ResourcesListDisplayController {
 
           try Task.checkCancellation()
 
-          await viewState.mutate { (viewState: inout ViewState) in
+          await viewState.update { (viewState: inout ViewState) in
             viewState.suggested = filteredResources.filter(context.suggestionFilter)
             viewState.resources = filteredResources
           }

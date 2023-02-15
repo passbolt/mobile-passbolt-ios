@@ -31,14 +31,13 @@ import Users
 
 internal struct ResourceFolderContentNodeController {
 
-  @NavigationNodeID public var nodeID
-  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewState: MutableViewState<ViewState>
   internal var closeExtension: () -> Void
   internal var searchController: ResourceSearchDisplayController
   internal var contentController: ResourceFolderContentDisplayController
 }
 
-extension ResourceFolderContentNodeController: ViewNodeController {
+extension ResourceFolderContentNodeController: ViewController {
 
   internal struct Context: LoadableFeatureContext {
     // feature is disposable, we don't care about ID
@@ -59,7 +58,7 @@ extension ResourceFolderContentNodeController: ViewNodeController {
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
-      viewState: .placeholder,
+      viewState: .placeholder(),
       closeExtension: { unimplemented() },
       searchController: .placeholder,
       contentController: .placeholder
@@ -87,7 +86,7 @@ extension ResourceFolderContentNodeController {
       context.folderDetails.map { .raw($0.name) }
       ?? .localized("home.presentation.mode.folders.explorer.title")
 
-    let viewState: ViewStateBinding<ViewState> = .init(
+    let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
         folderName: folderName,
         folderShared: context.folderDetails?.shared ?? false,
@@ -99,7 +98,7 @@ extension ResourceFolderContentNodeController {
       context: .init(
         searchPrompt: context.searchPrompt,
         showMessage: { (message: SnackBarMessage?) in
-          viewState.mutate { viewState in
+          viewState.update { viewState in
             viewState.snackBarMessage = message
           }
         }
@@ -131,7 +130,7 @@ extension ResourceFolderContentNodeController {
         selectResource: selectResource(_:),
         openResourceMenu: .none,
         showMessage: { (message: SnackBarMessage?) in
-          viewState.mutate { viewState in
+          viewState.update { viewState in
             viewState.snackBarMessage = message
           }
         }
@@ -187,7 +186,7 @@ extension ResourceFolderContentNodeController {
               "Failed to handle resource selection."
             )
           )
-          await viewState.mutate { viewState in
+          await viewState.update { viewState in
             viewState.snackBarMessage = .error(error)
           }
         }
@@ -220,7 +219,7 @@ extension ResourceFolderContentNodeController {
               "Failed to handle resource folder selection."
             )
           )
-          await viewState.mutate { viewState in
+          await viewState.update { viewState in
             viewState.snackBarMessage = .error(error)
           }
         }

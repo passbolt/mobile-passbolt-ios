@@ -34,7 +34,7 @@ internal struct ResourcesListDisplayView: ControlledView {
   }
 
   internal var body: some View {
-    WithViewState(self.controller) { state in
+    WithViewState(from: self.controller) { state in
       ResourcesListView(
         suggestedResources: state.suggested,
         resources: state.resources,

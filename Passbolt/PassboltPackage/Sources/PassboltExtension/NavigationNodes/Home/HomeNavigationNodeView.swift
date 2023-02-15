@@ -23,7 +23,7 @@
 
 import Display
 
-internal struct HomeNavigationNodeView: ControlledViewNode {
+internal struct HomeNavigationNodeView: ControlledView {
 
   private let controller: HomeNavigationNodeController
 
@@ -34,7 +34,7 @@ internal struct HomeNavigationNodeView: ControlledViewNode {
   }
 
   internal var body: some View {
-    WithViewState(self.controller) { state in
+    WithViewState(from: self.controller) { state in
       self.bodyView(with: state)
     }
     .task(self.controller.activate)

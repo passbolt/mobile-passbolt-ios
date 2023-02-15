@@ -96,7 +96,7 @@ internal struct NavigationTreeAnchorView: View {
         item: .init(
           get: { overlay?.overFullScreenNode },
           set: { _ in
-            guard let overlayNodeID: NavigationNodeID = overlay?.nodeID
+            guard let overlayNodeID: ViewNodeID = overlay?.nodeID
             else { return }
             self.dismissNode?(overlayNodeID)
           }
@@ -111,7 +111,7 @@ internal struct NavigationTreeAnchorView: View {
         item: .init(
           get: { overlay?.sheetNode },
           set: { _ in
-            guard let overlayNodeID: NavigationNodeID = overlay?.nodeID
+            guard let overlayNodeID: ViewNodeID = overlay?.nodeID
             else { return }
             self.dismissNode?(overlayNodeID)
           }
@@ -138,7 +138,7 @@ internal struct NavigationStackAnchorView: View {
           get: { self.nextNode != .none },
           set: { active in
             assert(!active)
-            guard let nodeID: NavigationNodeID = self.nextNode?.nodeID
+            guard let nodeID: ViewNodeID = self.nextNode?.nodeID
             else { return }
             self.dismissNode?(nodeID)
           }

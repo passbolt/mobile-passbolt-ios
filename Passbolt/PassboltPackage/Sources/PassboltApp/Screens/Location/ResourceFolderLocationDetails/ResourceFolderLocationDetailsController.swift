@@ -30,7 +30,7 @@ import Users
 
 internal struct ResourceFolderLocationDetailsController {
 
-  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewState: MutableViewState<ViewState>
 }
 
 extension ResourceFolderLocationDetailsController: ViewController {
@@ -47,7 +47,7 @@ extension ResourceFolderLocationDetailsController: ViewController {
   #if DEBUG
   static var placeholder: Self {
     .init(
-      viewState: .placeholder
+      viewState: .placeholder()
     )
   }
   #endif
@@ -65,7 +65,7 @@ extension ResourceFolderLocationDetailsController {
     let executor: AsyncExecutor = try features.instance()
     let folderDetails: ResourceFolderDetails = try features.instance(context: context)
 
-    let viewState: ViewStateBinding<ViewState> = .init(
+    let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
         folderName: "",
         folderLocation: .root(),
@@ -94,7 +94,7 @@ extension ResourceFolderLocationDetailsController {
             shared: details.shared
           )
         )
-        await viewState.mutate { (state: inout ViewState) in
+        await viewState.update { (state: inout ViewState) in
           state.folderName = details.name
           state.folderLocation = location
           state.folderShared = details.shared

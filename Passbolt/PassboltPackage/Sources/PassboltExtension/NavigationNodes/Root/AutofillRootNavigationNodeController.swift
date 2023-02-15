@@ -30,12 +30,11 @@ import SharedUIComponents
 
 internal struct AutofillRootNavigationNodeController {
 
-  @NavigationNodeID public var nodeID
   @Stateless public var viewState
   internal var activate: @Sendable () async -> Void
 }
 
-extension AutofillRootNavigationNodeController: ViewNodeController {
+extension AutofillRootNavigationNodeController: ViewController {
 
   #if DEBUG
   nonisolated static var placeholder: Self {

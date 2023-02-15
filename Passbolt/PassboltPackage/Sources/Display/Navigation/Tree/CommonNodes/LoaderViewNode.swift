@@ -23,11 +23,10 @@
 
 import SwiftUI
 
-public struct LoaderViewNode: ControlledViewNode {
+public struct LoaderViewNode: ControlledView {
 
-  public struct Controller: ViewNodeController {
+  public struct Controller: ViewController {
 
-    @NavigationNodeID public var nodeID
     @Stateless public var viewState
 
     #if DEBUG

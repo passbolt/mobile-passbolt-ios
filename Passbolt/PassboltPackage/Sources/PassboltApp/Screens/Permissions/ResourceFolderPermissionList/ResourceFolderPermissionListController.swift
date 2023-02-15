@@ -31,7 +31,7 @@ import Users
 
 internal struct ResourceFolderPermissionListController {
 
-  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewState: MutableViewState<ViewState>
   internal var showUserPermissionDetails: (UserPermissionDetailsDSV) -> Void
   internal var showUserGroupPermissionDetails: (UserGroupPermissionDetailsDSV) -> Void
   internal var navigateBack: () -> Void
@@ -50,7 +50,7 @@ extension ResourceFolderPermissionListController: ViewController {
   #if DEBUG
   static var placeholder: Self {
     .init(
-      viewState: .placeholder,
+      viewState: .placeholder(),
       showUserPermissionDetails: unimplemented(),
       showUserGroupPermissionDetails: unimplemented(),
       navigateBack: unimplemented()
@@ -90,7 +90,7 @@ extension ResourceFolderPermissionListController {
       }
     }
 
-    let viewState: ViewStateBinding<ViewState> = .init(
+    let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
         permissionListItems: [],
         snackBarMessage: .none
@@ -114,7 +114,11 @@ extension ResourceFolderPermissionListController {
             )
           }
 
-        viewState.permissionListItems = userGroupPermissionsDetails + userPermissionsDetails
+        viewState
+          .update(
+            \.permissionListItems,
+            to: userGroupPermissionsDetails + userPermissionsDetails
+          )
       }
       catch {
         diagnostics.log(error: error)

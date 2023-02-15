@@ -29,7 +29,7 @@ private struct NavigationTreeDismissEnvironmentKey: EnvironmentKey {
   static let defaultValue: NavigationTreeDismiss? = .none
 }
 
-public typealias NavigationTreeDismiss = @MainActor (NavigationNodeID) -> Void
+public typealias NavigationTreeDismiss = @MainActor (ViewNodeID) -> Void
 
 extension EnvironmentValues {
 

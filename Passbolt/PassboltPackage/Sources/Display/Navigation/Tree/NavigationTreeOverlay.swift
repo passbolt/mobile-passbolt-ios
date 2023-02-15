@@ -39,7 +39,7 @@ extension NavigationTreeOverlay: Hashable {}
 
 extension NavigationTreeOverlay {
 
-  internal var nodeID: NavigationNodeID {
+  internal var nodeID: ViewNodeID {
     switch self {
     case let .sheet(node):
       return node.nodeID

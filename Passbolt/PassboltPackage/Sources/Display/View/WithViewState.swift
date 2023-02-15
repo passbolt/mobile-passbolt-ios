@@ -24,28 +24,51 @@
 import SwiftUI
 
 public struct WithViewState<State, ContentView>: View
-where State: Hashable, ContentView: View {
+where State: Equatable, ContentView: View {
 
-  @StateObject private var viewState: ViewStateBinding<State>
+  @StateObject private var viewState: ObservableViewState<State>
   private let content: (State) -> ContentView
 
   internal init(
-    _ viewState: ViewStateBinding<State>,
+    _ viewState: MutableViewState<State>,
     @ViewBuilder content: @escaping (State) -> ContentView
   ) {
-    self._viewState = .init(wrappedValue: viewState)
+    self._viewState = .init(
+      wrappedValue: .init(
+        from: viewState,
+        at: \.self
+      )
+    )
     self.content = content
   }
 
   public init<Controller>(
-    _ controller: Controller,
+    from controller: Controller,
+    at keyPath: KeyPath<Controller.ViewState, State>,
+    @ViewBuilder content: @escaping (State) -> ContentView
+  ) where Controller: ViewController {
+    self._viewState = .init(
+      wrappedValue: .init(
+        from: controller.viewState,
+        at: keyPath
+      )
+    )
+    self.content = content
+  }
+
+  public init<Controller>(
+    from controller: Controller,
     @ViewBuilder content: @escaping (State) -> ContentView
   ) where Controller: ViewController, Controller.ViewState == State {
-    self._viewState = .init(wrappedValue: controller.viewState)
+    self._viewState = .init(
+      wrappedValue: .init(
+        from: controller.viewState
+      )
+    )
     self.content = content
   }
 
   public var body: some View {
-    self.content(self.viewState.wrappedValue)
+    self.content(self.viewState.value)
   }
 }

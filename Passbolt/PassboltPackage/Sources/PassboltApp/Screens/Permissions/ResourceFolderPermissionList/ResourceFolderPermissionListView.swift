@@ -47,7 +47,7 @@ internal struct ResourceFolderPermissionListView: ControlledView {
 
   @ViewBuilder private var contentView: some View {
     VStack(spacing: 0) {
-      WithViewState(self.controller) { viewState in
+      WithViewState(from: self.controller) { viewState in
         List(
           content: {
             ForEach(

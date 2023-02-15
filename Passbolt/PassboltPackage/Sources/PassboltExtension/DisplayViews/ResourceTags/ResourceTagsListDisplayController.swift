@@ -30,7 +30,7 @@ import SessionData
 
 internal struct ResourceTagsListDisplayController {
 
-  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewState: MutableViewState<ViewState>
   internal var activate: @Sendable () async -> Void
   internal var refresh: @Sendable () async -> Void
   internal var selectTag: (ResourceTag.ID) -> Void
@@ -42,7 +42,7 @@ extension ResourceTagsListDisplayController: ViewController {
     // feature is disposable, we don't care about ID
     internal let identifier: AnyHashable = IID()
 
-    internal var filter: ViewStateView<String>
+    internal var filter: ObservableViewState<String>
     internal var selectTag: (ResourceTag.ID) -> Void
     internal var showMessage: (SnackBarMessage?) -> Void
   }
@@ -55,7 +55,7 @@ extension ResourceTagsListDisplayController: ViewController {
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
-      viewState: .placeholder,
+      viewState: .placeholder(),
       activate: { unimplemented() },
       refresh: { unimplemented() },
       selectTag: { _ in unimplemented() }
@@ -79,7 +79,7 @@ extension ResourceTagsListDisplayController {
     let sessionData: SessionData = try features.instance()
     let resourceTags: ResourceTags = try features.instance()
 
-    let viewState: ViewStateBinding<ViewState> = .init(
+    let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
         resourceTags: .init()
       )
@@ -97,7 +97,7 @@ extension ResourceTagsListDisplayController {
       await sessionData
         .updatesSequence
         .forEach {
-          await updateDisplayedResourceTags(context.filter.wrappedValue)
+          await updateDisplayedResourceTags(context.filter.value)
         }
     }
 
@@ -128,7 +128,7 @@ extension ResourceTagsListDisplayController {
 
           try Task.checkCancellation()
 
-          await viewState.mutate { viewState in
+          await viewState.update { viewState in
             viewState.resourceTags = filteredResourceTags
           }
         }

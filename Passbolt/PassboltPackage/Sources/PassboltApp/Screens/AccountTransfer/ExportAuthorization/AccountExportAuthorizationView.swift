@@ -34,7 +34,7 @@ internal struct AccountExportAuthorizationView: ControlledView {
   }
 
   var body: some View {
-    WithViewState(controller) { (state: ViewState) in
+    WithViewState(from: self.controller) { (state: ViewState) in
       ScreenView(
         title: .localized(key: "authorization.title"),
         snackBarMessage: self.controller.binding(to: \.snackBarMessage),

@@ -27,7 +27,7 @@ import UIComponents
 internal indirect enum NavigationTreeNode {
 
   case just(
-    id: NavigationNodeID,
+    id: ViewNodeID,
     view: any View
   )
   case stack(NavigationStackNode)
@@ -39,11 +39,11 @@ internal indirect enum NavigationTreeNode {
 
 extension NavigationTreeNode: Identifiable {
 
-  internal var id: NavigationNodeID {
+  internal var id: ViewNodeID {
     self.nodeID
   }
 
-  internal var nodeID: NavigationNodeID {
+  internal var nodeID: ViewNodeID {
     switch self {
     case let .just(id, _):
       return id
@@ -101,7 +101,7 @@ extension NavigationTreeNode {
   @discardableResult
   internal func pushing(
     _ nodeView: any View,
-    withID id: NavigationNodeID
+    withID id: ViewNodeID
   ) -> NavigationTreeNode {
     switch self {
     case let .just(currentNodeID, currentNodeView):
@@ -155,7 +155,7 @@ extension NavigationTreeNode {
   @discardableResult
   internal func presenting(
     _ nodeView: any View,
-    withID id: NavigationNodeID,
+    withID id: ViewNodeID,
     _ presentation: NavigationTreeOverlayPresentation
   ) -> NavigationTreeNode {
     switch presentation {
@@ -185,7 +185,7 @@ extension NavigationTreeNode {
   @discardableResult
   internal func presenting(
     pushed nodeView: any View,
-    withID id: NavigationNodeID,
+    withID id: ViewNodeID,
     _ presentation: NavigationTreeOverlayPresentation
   ) -> NavigationTreeNode {
     switch presentation {
@@ -219,7 +219,7 @@ extension NavigationTreeNode {
   }
 
   internal func removing(
-    _ nodeID: NavigationNodeID
+    _ nodeID: ViewNodeID
   ) -> Self? {
     switch self {
     case let .just(id, _):
@@ -267,7 +267,7 @@ extension NavigationTreeNode {
   }
 
   internal func removing(
-    upTo nodeID: NavigationNodeID
+    upTo nodeID: ViewNodeID
   ) -> Self {
     switch self {
     case .just:
@@ -305,7 +305,7 @@ extension NavigationTreeNode {
   }
 
   internal func contains(
-    _ nodeID: NavigationNodeID
+    _ nodeID: ViewNodeID
   ) -> Bool {
     switch self {
     case let .just(id, _):

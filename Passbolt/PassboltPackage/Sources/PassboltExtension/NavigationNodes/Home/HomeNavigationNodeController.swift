@@ -31,12 +31,11 @@ import Users
 
 internal struct HomeNavigationNodeController {
 
-  @NavigationNodeID public var nodeID
-  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewState: MutableViewState<ViewState>
   internal var activate: @Sendable () async -> Void
 }
 
-extension HomeNavigationNodeController: ViewNodeController {
+extension HomeNavigationNodeController: ViewController {
 
   internal typealias Context = SessionScope.Context
 
@@ -61,7 +60,7 @@ extension HomeNavigationNodeController: ViewNodeController {
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
-      viewState: .placeholder,
+      viewState: .placeholder(),
       activate: unimplemented()
     )
   }
@@ -80,12 +79,11 @@ extension HomeNavigationNodeController {
         scope: SessionScope.self,
         context: context
       )
-    let nodeID: NavigationNodeID = .init()
     let asyncExecutor: AsyncExecutor = try features.instance()
     let navigationTree: NavigationTree = features.instance()
     let homePresentation: HomePresentation = try features.instance()
 
-    let viewState: ViewStateBinding<ViewState> = .init(
+    let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
         contentController: contentRoot(
           for: homePresentation.currentMode.get()
@@ -100,10 +98,10 @@ extension HomeNavigationNodeController {
           .asAnyAsyncSequence()
           .forEach { (mode: HomePresentationMode) in
             let contentController = await contentRoot(for: mode)
-            await viewState.mutate { viewState in
+            await viewState.update { viewState in
               viewState.contentController = contentController
             }
-            await navigationTree.dismiss(upTo: nodeID)
+            await navigationTree.dismiss(upTo: viewState.viewNodeID)
           }
       }
     }
@@ -227,7 +225,6 @@ extension HomeNavigationNodeController {
     }
 
     return .init(
-      nodeID: nodeID,
       viewState: viewState,
       activate: activate
     )

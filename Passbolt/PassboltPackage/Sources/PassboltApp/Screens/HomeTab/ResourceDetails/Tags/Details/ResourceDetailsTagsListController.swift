@@ -29,7 +29,7 @@ import Session
 
 internal struct ResourceDetailsTagsListController {
 
-  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewState: MutableViewState<ViewState>
 }
 
 extension ResourceDetailsTagsListController {
@@ -49,7 +49,7 @@ extension ResourceDetailsTagsListController: ViewController {
   #if DEBUG
   nonisolated internal static var placeholder: Self {
     .init(
-      viewState: .placeholder
+      viewState: .placeholder()
     )
   }
   #endif
@@ -67,7 +67,7 @@ extension ResourceDetailsTagsListController {
     let navigation: DisplayNavigation = try features.instance()
     let resourceDetails: ResourceDetails = try features.instance(context: context)
 
-    let viewState: ViewStateBinding<ViewState> = .init(
+    let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
         resourceName: .init(),
         resourceFavorite: .init(),
@@ -78,9 +78,11 @@ extension ResourceDetailsTagsListController {
     asyncExecutor.schedule { @MainActor in
       do {
         let resourceDetails: ResourceDetailsDSV = try await resourceDetails.details()
-        viewState.resourceName = resourceDetails.name
-        viewState.resourceFavorite = resourceDetails.favorite
-        viewState.tags = resourceDetails.tags
+        viewState.update { (state: inout ViewState) in
+          state.resourceName = resourceDetails.name
+          state.resourceFavorite = resourceDetails.favorite
+          state.tags = resourceDetails.tags
+        }
       }
       catch {
         diagnostics.log(error: error)

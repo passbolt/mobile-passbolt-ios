@@ -32,15 +32,14 @@ import Users
 
 internal struct ResourceSearchDisplayController {
 
-  @NavigationNodeID public var nodeID
-  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewState: MutableViewState<ViewState>
   internal var activate: @Sendable () async -> Void
   internal var showPresentationMenu: () -> Void
   internal var signOut: () -> Void
-  internal var searchText: ViewStateView<String>
+  internal var searchText: ObservableViewState<String>
 }
 
-extension ResourceSearchDisplayController: ViewNodeController {
+extension ResourceSearchDisplayController: ViewController {
 
   internal struct Context: LoadableFeatureContext {
     // feature is disposable, we don't care about ID
@@ -60,11 +59,11 @@ extension ResourceSearchDisplayController: ViewNodeController {
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
-      viewState: .placeholder,
+      viewState: .placeholder(),
       activate: { unimplemented() },
       showPresentationMenu: { unimplemented() },
       signOut: { unimplemented() },
-      searchText: .placeholder
+      searchText: .placeholder()
     )
   }
   #endif
@@ -86,7 +85,7 @@ extension ResourceSearchDisplayController {
     let session: Session = try features.instance()
     let accountDetails: AccountDetails = try features.instance(context: currentAccount)
 
-    let viewState: ViewStateBinding<ViewState> = .init(
+    let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
         searchPrompt: context.searchPrompt,
         accountAvatar: .none,
@@ -98,7 +97,7 @@ extension ResourceSearchDisplayController {
       asyncExecutor.schedule(.reuse) {
         do {
           let avatar: Data? = try await accountDetails.avatarImage()
-          await viewState.mutate { state in
+          await viewState.update { state in
             state.accountAvatar = avatar
           }
         }
@@ -145,7 +144,7 @@ extension ResourceSearchDisplayController {
       activate: activate,
       showPresentationMenu: showPresentationMenu,
       signOut: signOut,
-      searchText: viewState.view(at: \.searchText)
+      searchText: .init(from: viewState, at: \.searchText)
     )
   }
 }

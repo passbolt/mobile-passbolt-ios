@@ -29,7 +29,7 @@ import Session
 
 struct AccountExportAuthorizationController {
 
-  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewState: MutableViewState<ViewState>
 
   internal var setPassphrase: @MainActor (Passphrase) -> Void
   internal var authorizeWithPassphrase: () -> Void
@@ -52,7 +52,7 @@ extension AccountExportAuthorizationController: ViewController {
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
-      viewState: .placeholder,
+      viewState: .placeholder(),
       setPassphrase: unimplemented(),
       authorizeWithPassphrase: unimplemented(),
       authorizeWithBiometrics: unimplemented()
@@ -103,7 +103,7 @@ extension AccountExportAuthorizationController {
       }
     }()
 
-    let viewState: ViewStateBinding<ViewState> = .init(
+    let viewState: MutableViewState<ViewState> = .init(
       initial:
         .init(
           accountLabel: accountWithProfile.label,
@@ -118,7 +118,7 @@ extension AccountExportAuthorizationController {
     asyncExecutor.schedule {
       do {
         let avatarImage: Data? = try await accountDetails.avatarImage()
-        await viewState.mutate { (state: inout ViewState) in
+        await viewState.update { (state: inout ViewState) in
           state.accountAvatarImage = avatarImage
         }
       }
@@ -130,12 +130,12 @@ extension AccountExportAuthorizationController {
     @MainActor func setPassphrase(
       _ passphrase: Passphrase
     ) {
-      viewState.passphrase = passphraseValidator(passphrase)
+      viewState.update(\.passphrase, to: passphraseValidator(passphrase))
     }
 
     nonisolated func authorizeWithPassphrase() {
       asyncExecutor.schedule(.reuse) {
-        let validatedPassphrase: Validated<Passphrase> = await passphraseValidator(viewState.passphrase)
+        let validatedPassphrase: Validated<Passphrase> = await passphraseValidator(viewState.value.passphrase)
         do {
           let passphrase: Passphrase = try validatedPassphrase.validValue
           try await accountExport.authorize(.passphrase(passphrase))
@@ -145,7 +145,7 @@ extension AccountExportAuthorizationController {
           )
         }
         catch {
-          await viewState.mutate { (state: inout ViewState) in
+          await viewState.update { (state: inout ViewState) in
             state.passphrase = validatedPassphrase
             state.snackBarMessage = .error(error)
           }
@@ -164,7 +164,7 @@ extension AccountExportAuthorizationController {
           )
         }
         catch {
-          await viewState.mutate { (state: inout ViewState) in
+          await viewState.update { (state: inout ViewState) in
             state.snackBarMessage = .error(error)
           }
           diagnostics.log(error: error)

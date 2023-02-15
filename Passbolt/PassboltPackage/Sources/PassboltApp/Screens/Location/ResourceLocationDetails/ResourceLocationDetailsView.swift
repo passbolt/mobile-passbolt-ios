@@ -34,7 +34,7 @@ internal struct ResourceLocationDetailsView: ControlledView {
   }
 
   internal var body: some View {
-    WithViewState(self.controller) { (state: ViewState) in
+    WithViewState(from: self.controller) { (state: ViewState) in
       ScreenView(
         title: "",
         contentView: {

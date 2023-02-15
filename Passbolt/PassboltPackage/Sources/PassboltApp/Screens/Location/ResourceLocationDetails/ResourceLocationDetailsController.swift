@@ -30,7 +30,7 @@ import Users
 
 internal struct ResourceLocationDetailsController {
 
-  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewState: MutableViewState<ViewState>
 }
 
 extension ResourceLocationDetailsController: ViewController {
@@ -46,7 +46,7 @@ extension ResourceLocationDetailsController: ViewController {
   #if DEBUG
   static var placeholder: Self {
     .init(
-      viewState: .placeholder
+      viewState: .placeholder()
     )
   }
   #endif
@@ -65,7 +65,7 @@ extension ResourceLocationDetailsController {
 
     let resourceDetails: ResourceDetails = try features.instance(context: context)
 
-    let viewState: ViewStateBinding<ViewState> = .init(
+    let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
         resourceName: .init(),
         resourceLocation: .root()
@@ -92,7 +92,7 @@ extension ResourceLocationDetailsController {
             name: details.name
           )
         )
-        await viewState.mutate { viewState in
+        await viewState.update { viewState in
           viewState.resourceName = details.name
           viewState.resourceLocation = location
         }

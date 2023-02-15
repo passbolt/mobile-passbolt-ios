@@ -23,7 +23,7 @@
 
 import Display
 
-internal struct ResourceSearchDisplayView: ControlledViewNode {
+internal struct ResourceSearchDisplayView: ControlledView {
 
   internal typealias Controller = ResourceSearchDisplayController
 
@@ -36,7 +36,7 @@ internal struct ResourceSearchDisplayView: ControlledViewNode {
   }
 
   internal var body: some View {
-    WithViewState(self.controller) { state in
+    WithViewState(from: self.controller) { state in
       self.bodyView(with: state)
     }
     .task(self.controller.activate)

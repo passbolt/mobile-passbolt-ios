@@ -49,7 +49,7 @@ final class AccountQRCodeExportControllerTests: LoadableFeatureTestCase<AccountQ
         exitConfirmationAlertPresented: false
       )
     ) { feature in
-      await feature.viewState.wrappedValue
+      await feature.viewState.value
     }
   }
 
@@ -79,7 +79,7 @@ final class AccountQRCodeExportControllerTests: LoadableFeatureTestCase<AccountQ
         updatesSource.endUpdates()
       }
       await self.mockExecutionControl.executeAll()
-      return await feature.viewState.wrappedValue
+      return await feature.viewState.value
     }
   }
 

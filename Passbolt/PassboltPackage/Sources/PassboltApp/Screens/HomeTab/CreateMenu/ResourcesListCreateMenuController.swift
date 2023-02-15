@@ -29,7 +29,7 @@ import SharedUIComponents
 
 internal struct ResourcesListCreateMenuController {
 
-  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewState: MutableViewState<ViewState>
   internal var createResource: () -> Void
   internal var createFolder: () -> Void
   internal var close: () -> Void
@@ -47,7 +47,7 @@ extension ResourcesListCreateMenuController: ViewController {
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
-      viewState: .placeholder,
+      viewState: .placeholder(),
       createResource: unimplemented(),
       createFolder: unimplemented(),
       close: unimplemented()

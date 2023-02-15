@@ -24,23 +24,17 @@
 @propertyWrapper
 public struct Stateless {
 
-  public var wrappedValue: ViewStateBinding<Never> = .init()
+  public var wrappedValue: MutableViewState<Never> = .init()
 
   public init() {}
 }
 
-extension Stateless: Hashable {
+extension Stateless: Equatable {
 
   public static func == (
     _ lhs: Self,
     _ rhs: Self
   ) -> Bool {
     lhs.wrappedValue === rhs.wrappedValue
-  }
-
-  public func hash(
-    into hasher: inout Hasher
-  ) {
-    hasher.combine(ObjectIdentifier(self.wrappedValue))
   }
 }

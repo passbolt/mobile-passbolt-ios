@@ -30,7 +30,7 @@ import Users
 
 internal struct ResourceFolderEditController {
 
-  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewState: MutableViewState<ViewState>
   internal var setFolderName: (String) -> Void
   internal var saveChanges: () -> Void
 }
@@ -51,7 +51,7 @@ extension ResourceFolderEditController: ViewController {
   #if DEBUG
   static var placeholder: Self {
     .init(
-      viewState: .placeholder,
+      viewState: .placeholder(),
       setFolderName: unimplemented(),
       saveChanges: unimplemented()
     )
@@ -127,15 +127,15 @@ extension ResourceFolderEditController {
       viewState: &initialState,
       using: resourceFolderEditForm.formState()
     )
-    let viewState: ViewStateBinding<ViewState> = .init(
+    let viewState: MutableViewState<ViewState> = .init(
       initial: initialState,
       extendingLifetimeOf: features
     )
 
     asyncExecutor.schedule(.reuse) { [weak viewState] in
       for await _ in resourceFolderEditForm.formUpdates {
-        if let viewState: ViewStateBinding<ViewState> = viewState {
-          await viewState.mutate { viewState in
+        if let viewState: MutableViewState<ViewState> = viewState {
+          await viewState.update { viewState in
             update(
               viewState: &viewState,
               using: resourceFolderEditForm.formState()
@@ -156,18 +156,18 @@ extension ResourceFolderEditController {
 
     nonisolated func saveChanges() {
       asyncExecutor.schedule(.reuse) {
-        await viewState.mutate { viewState in
+        await viewState.update { viewState in
           viewState.loading = true
         }
         do {
           try await resourceFolderEditForm.sendForm()
           await navigation.pop(ResourceFolderEditView.self)
-          await viewState.mutate { viewState in
+          await viewState.update { viewState in
             viewState.loading = false
           }
         }
         catch {
-          await viewState.mutate { viewState in
+          await viewState.update { viewState in
             viewState.loading = false
             viewState.snackBarMessage = .error(error)
           }

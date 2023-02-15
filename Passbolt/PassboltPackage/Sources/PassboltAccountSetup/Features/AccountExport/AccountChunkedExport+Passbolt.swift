@@ -26,8 +26,8 @@ import NetworkOperations
 import OSFeatures
 
 import struct CryptoKit.SHA512
-import class Foundation.JSONEncoder
 import struct Foundation.Data
+import class Foundation.JSONEncoder
 
 // MARK: - Implementation
 

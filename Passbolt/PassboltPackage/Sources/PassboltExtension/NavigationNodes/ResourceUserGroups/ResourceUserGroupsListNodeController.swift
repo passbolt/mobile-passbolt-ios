@@ -31,14 +31,13 @@ import Users
 
 internal struct ResourceUserGroupsListNodeController {
 
-  @NavigationNodeID public var nodeID
-  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewState: MutableViewState<ViewState>
   internal var closeExtension: () -> Void
   internal var searchController: ResourceSearchDisplayController
   internal var contentController: ResourceUserGroupsListDisplayController
 }
 
-extension ResourceUserGroupsListNodeController: ViewNodeController {
+extension ResourceUserGroupsListNodeController: ViewController {
 
   internal struct Context: LoadableFeatureContext {
     // feature is disposable, we don't care about ID
@@ -61,7 +60,7 @@ extension ResourceUserGroupsListNodeController: ViewNodeController {
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
-      viewState: .placeholder,
+      viewState: .placeholder(),
       closeExtension: { unimplemented() },
       searchController: .placeholder,
       contentController: .placeholder
@@ -82,7 +81,7 @@ extension ResourceUserGroupsListNodeController {
     let autofillContext: AutofillExtensionContext = features.instance()
     let currentAccount: Account = try features.sessionAccount()
 
-    let viewState: ViewStateBinding<ViewState> = .init(
+    let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
         title: context.title,
         titleIconName: context.titleIconName,
@@ -94,7 +93,7 @@ extension ResourceUserGroupsListNodeController {
       context: .init(
         searchPrompt: context.searchPrompt,
         showMessage: { (message: SnackBarMessage?) in
-          viewState.mutate { viewState in
+          viewState.update { viewState in
             viewState.snackBarMessage = message
           }
         }
@@ -113,7 +112,7 @@ extension ResourceUserGroupsListNodeController {
           },
         selectGroup: selectUserGroup(_:),
         showMessage: { (message: SnackBarMessage?) in
-          viewState.mutate { viewState in
+          viewState.update { viewState in
             viewState.snackBarMessage = message
           }
         }
@@ -155,7 +154,7 @@ extension ResourceUserGroupsListNodeController {
               "Failed to handle user group selection."
             )
           )
-          await viewState.mutate { viewState in
+          await viewState.update { viewState in
             viewState.snackBarMessage = .error(error)
           }
         }

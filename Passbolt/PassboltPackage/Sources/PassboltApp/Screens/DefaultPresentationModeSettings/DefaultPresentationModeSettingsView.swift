@@ -40,7 +40,7 @@ internal struct DefaultPresentationModeSettingsView: ControlledView {
         key: "account.settings.default.home.mode.title"
       ),
       contentView: {
-        WithViewState(self.controller) { (state) in
+        WithViewState(from: self.controller) { (state) in
           List {
             ListRowView(
               title: .localized(

@@ -24,7 +24,7 @@
 internal indirect enum NavigationStackNode {
 
   case element(
-    id: NavigationNodeID,
+    id: ViewNodeID,
     view: any View,
     next: NavigationStackNode?
   )
@@ -54,7 +54,7 @@ extension NavigationStackNode: Hashable {
 
 extension NavigationStackNode {
 
-  internal var nodeID: NavigationNodeID {
+  internal var nodeID: ViewNodeID {
     switch self {
     case let .element(id, _, _):
       return id
@@ -117,7 +117,7 @@ extension NavigationStackNode {
 
   internal func appending(
     _ view: any View,
-    withID id: NavigationNodeID
+    withID id: ViewNodeID
   ) -> Self {
     var copy: Self = self
     copy.last = .element(
@@ -129,7 +129,7 @@ extension NavigationStackNode {
   }
 
   internal func prefix(
-    to nodeID: NavigationNodeID
+    to nodeID: ViewNodeID
   ) -> NavigationStackNode? {
     guard self.nodeID != nodeID
     else { return .none }
@@ -159,7 +159,7 @@ extension NavigationStackNode {
   }
 
   internal func prefix(
-    including nodeID: NavigationNodeID
+    including nodeID: ViewNodeID
   ) -> NavigationStackNode {
     var stackPrefix: NavigationStackNode = .element(
       id: self.nodeID,
@@ -186,7 +186,7 @@ extension NavigationStackNode {
   }
 
   internal func contains(
-    _ nodeID: NavigationNodeID
+    _ nodeID: ViewNodeID
   ) -> Bool {
     if self.nodeID == nodeID {
       return true

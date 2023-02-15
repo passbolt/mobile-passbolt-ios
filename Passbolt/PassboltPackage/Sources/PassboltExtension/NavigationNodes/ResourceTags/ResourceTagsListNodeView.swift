@@ -23,7 +23,7 @@
 
 import Display
 
-internal struct ResourceTagsListNodeView: ControlledViewNode {
+internal struct ResourceTagsListNodeView: ControlledView {
 
   private let controller: ResourceTagsListNodeController
 
@@ -34,7 +34,7 @@ internal struct ResourceTagsListNodeView: ControlledViewNode {
   }
 
   internal var body: some View {
-    WithViewState(self.controller) { state in
+    WithViewState(from: self.controller) { state in
       self.bodyView(with: state)
     }
   }

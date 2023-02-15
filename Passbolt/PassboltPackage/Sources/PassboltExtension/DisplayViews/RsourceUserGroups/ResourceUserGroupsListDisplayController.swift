@@ -31,7 +31,7 @@ import Users
 
 internal struct ResourceUserGroupsListDisplayController {
 
-  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewState: MutableViewState<ViewState>
   internal var activate: @Sendable () async -> Void
   internal var refresh: @Sendable () async -> Void
   internal var selectGroup: (UserGroup.ID) -> Void
@@ -43,7 +43,7 @@ extension ResourceUserGroupsListDisplayController: ViewController {
     // feature is disposable, we don't care about ID
     internal let identifier: AnyHashable = IID()
 
-    internal var filter: ViewStateView<UserGroupsFilter>
+    internal var filter: ObservableViewState<UserGroupsFilter>
     internal var selectGroup: (UserGroup.ID) -> Void
     internal var showMessage: (SnackBarMessage?) -> Void
   }
@@ -56,7 +56,7 @@ extension ResourceUserGroupsListDisplayController: ViewController {
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
-      viewState: .placeholder,
+      viewState: .placeholder(),
       activate: { unimplemented() },
       refresh: { unimplemented() },
       selectGroup: { _ in unimplemented() }
@@ -80,7 +80,7 @@ extension ResourceUserGroupsListDisplayController {
     let sessionData: SessionData = try features.instance()
     let userGroups: UserGroups = try features.instance()
 
-    let viewState: ViewStateBinding<ViewState> = .init(
+    let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
         userGroups: .init()
       )
@@ -98,7 +98,7 @@ extension ResourceUserGroupsListDisplayController {
       await sessionData
         .updatesSequence
         .forEach {
-          await updateDisplayedUserGroups(context.filter.wrappedValue)
+          await updateDisplayedUserGroups(context.filter.value)
         }
     }
 
@@ -129,7 +129,7 @@ extension ResourceUserGroupsListDisplayController {
 
           try Task.checkCancellation()
 
-          await viewState.mutate { viewState in
+          await viewState.update { viewState in
             viewState.userGroups = filteredUserGroups
           }
         }

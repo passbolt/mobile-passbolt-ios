@@ -31,7 +31,7 @@ import Users
 
 internal struct ResourceFolderDetailsController {
 
-  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewState: MutableViewState<ViewState>
   internal var openLocationDetails: () -> Void
   internal var openPermissionDetails: () -> Void
 }
@@ -52,7 +52,7 @@ extension ResourceFolderDetailsController: ViewController {
   #if DEBUG
   static var placeholder: Self {
     .init(
-      viewState: .placeholder,
+      viewState: .placeholder(),
       openLocationDetails: unimplemented(),
       openPermissionDetails: unimplemented()
     )
@@ -120,7 +120,7 @@ extension ResourceFolderDetailsController {
       viewState.folderShared = details.shared
     }
 
-    let viewState: ViewStateBinding<ViewState> = .init(
+    let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
         folderName: "",
         folderLocation: .init(),
@@ -133,7 +133,7 @@ extension ResourceFolderDetailsController {
       for await _ in sessionData.updatesSequence {
         do {
           let details: ResourceFolderDetailsDSV = try await folderDetails.details()
-          await viewState.mutate { viewState in
+          await viewState.update { viewState in
             update(
               viewState: &viewState,
               using: details

@@ -34,7 +34,7 @@ internal struct ResourceTagsListDisplayView: ControlledView {
   }
 
   internal var body: some View {
-    WithViewState(self.controller) { state in
+    WithViewState(from: self.controller) { state in
       ResourceTagsListView(
         tags: state.resourceTags,
         refreshAction: self.controller.refresh,

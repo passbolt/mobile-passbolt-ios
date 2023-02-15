@@ -23,12 +23,11 @@
 
 import UIKit
 
-internal struct LegacyBridgeControlledViewNode<Component>: ControlledViewNode
+internal struct LegacyBridgeControlledView<Component>: ControlledView
 where Component: UIComponent {
 
-  internal struct Controller: ViewNodeController {
+  internal struct Controller: ViewController {
 
-    @NavigationNodeID public var nodeID
     @Stateless internal var viewState
 
     internal init() {

@@ -117,7 +117,7 @@ final class ResourceFolderEditControllerTests: LoadableFeatureTestCase<ResourceF
       test: { (tested: ResourceFolderEditController) in
         tested.saveChanges()
         await self.executionMockControl.executeAll()
-        return await tested.viewState.snackBarMessage
+        return await tested.viewState.value.snackBarMessage
       }
     )
   }
@@ -147,7 +147,7 @@ final class ResourceFolderEditControllerTests: LoadableFeatureTestCase<ResourceF
 
         // wait for detached task to execute
         try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
-        let initialFolderName: Validated<String> = await tested.viewState.folderName
+        let initialFolderName: Validated<String> = await tested.viewState.value.folderName
 
         self.formState = ResourceFolderEditFormState(
           name: .valid("edited"),
@@ -159,7 +159,7 @@ final class ResourceFolderEditControllerTests: LoadableFeatureTestCase<ResourceF
         // wait for detached task to execute
         try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
 
-        let updatedFolderName: Validated<String> = await tested.viewState.folderName
+        let updatedFolderName: Validated<String> = await tested.viewState.value.folderName
 
         updatesSource.endUpdates()
 
