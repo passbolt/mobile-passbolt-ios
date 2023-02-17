@@ -42,7 +42,7 @@ extension HomePresentation: LoadableFeature {
   internal nonisolated static var placeholder: Self {
     .init(
       currentMode: .placeholder,
-      availableModes: unimplemented()
+      availableModes: unimplemented0()
     )
   }
   #endif

@@ -117,8 +117,8 @@ extension RandomStringGenerator {
 
   public static var placeholder: RandomStringGenerator {
     Self(
-      generate: unimplemented(),
-      entropy: unimplemented()
+      generate: unimplemented3(),
+      entropy: unimplemented2()
     )
   }
 }

@@ -36,7 +36,7 @@ extension OSExtensions: StaticFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(
-      autofillExtensionEnabled: unimplemented()
+      autofillExtensionEnabled: unimplemented0()
     )
   }
   #endif

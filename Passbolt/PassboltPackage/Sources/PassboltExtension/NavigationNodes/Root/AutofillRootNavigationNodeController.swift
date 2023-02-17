@@ -39,7 +39,7 @@ extension AutofillRootNavigationNodeController: ViewController {
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
-      activate: unimplemented()
+      activate: unimplemented0()
     )
   }
   #endif

@@ -37,8 +37,8 @@ extension OSBiometry: StaticFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(
-      availability: unimplemented(),
-      ensurePermission: unimplemented()
+      availability: unimplemented0(),
+      ensurePermission: unimplemented0()
     )
   }
   #endif

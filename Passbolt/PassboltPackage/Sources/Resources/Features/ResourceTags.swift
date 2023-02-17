@@ -45,8 +45,8 @@ extension ResourceTags: LoadableFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      filteredTagsList: unimplemented(),
-      details: unimplemented()
+      filteredTagsList: unimplemented1(),
+      details: unimplemented1()
     )
   }
   #endif

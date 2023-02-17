@@ -87,12 +87,12 @@ extension AccountImport: LoadableFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      progressPublisher: unimplemented(),
-      accountDetailsPublisher: unimplemented(),
-      processPayload: unimplemented(),
-      completeTransfer: unimplemented(),
-      avatarPublisher: unimplemented(),
-      cancelTransfer: unimplemented()
+      progressPublisher: unimplemented0(),
+      accountDetailsPublisher: unimplemented0(),
+      processPayload: unimplemented1(),
+      completeTransfer: unimplemented1(),
+      avatarPublisher: unimplemented0(),
+      cancelTransfer: unimplemented0()
     )
   }
   #endif

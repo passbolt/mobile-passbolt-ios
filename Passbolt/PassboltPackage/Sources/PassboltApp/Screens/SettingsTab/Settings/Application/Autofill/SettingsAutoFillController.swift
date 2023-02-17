@@ -31,6 +31,7 @@ internal struct SettingsAutoFillController {
 }
 
 extension SettingsAutoFillController: UIController {
+
   internal typealias Context = Void
 
   internal static func instance(
@@ -38,13 +39,23 @@ extension SettingsAutoFillController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> SettingsAutoFillController {
+    try features.ensureScope(SettingsScope.self)
+    try features.ensureScope(SessionScope.self)
 
-    let linkOpener: OSLinkOpener = try features.instance()
+    let diagnostics: OSDiagnostics = features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
+    let linkOpener: OSLinkOpener = features.instance()
 
     func openSystemSettings() {
-      linkOpener.openSystemSettings()
-        .sink { _ in /* */ }
-        .store(in: cancellables)
+      asyncExecutor.schedule(.reuse) {
+        do {
+          try await linkOpener
+            .openSystemSettings()
+        }
+        catch {
+          diagnostics.log(error: error)
+        }
+      }
     }
 
     return Self(

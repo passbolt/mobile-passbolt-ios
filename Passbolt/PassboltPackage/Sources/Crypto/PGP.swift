@@ -97,15 +97,15 @@ extension PGP: StaticFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      encryptAndSign: unimplemented(),
-      decryptAndVerify: unimplemented(),
-      encrypt: unimplemented(),
-      decrypt: unimplemented(),
-      signMessage: unimplemented(),
-      verifyMessage: unimplemented(),
-      verifyPassphrase: unimplemented(),
-      verifyPublicKeyFingerprint: unimplemented(),
-      extractFingerprint: unimplemented()
+      encryptAndSign: unimplemented4(),
+      decryptAndVerify: unimplemented4(),
+      encrypt: unimplemented2(),
+      decrypt: unimplemented3(),
+      signMessage: unimplemented3(),
+      verifyMessage: unimplemented3(),
+      verifyPassphrase: unimplemented2(),
+      verifyPublicKeyFingerprint: unimplemented2(),
+      extractFingerprint: unimplemented1()
     )
   }
   #endif

@@ -40,8 +40,8 @@ extension SessionAuthorization: LoadableFeature {
   #if DEBUG
   nonisolated internal static var placeholder: Self {
     Self(
-      authorize: unimplemented(),
-      refreshTokens: unimplemented()
+      authorize: unimplemented1(),
+      refreshTokens: unimplemented2()
     )
   }
   #endif

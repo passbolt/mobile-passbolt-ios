@@ -42,9 +42,9 @@ extension OSFiles: StaticFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(
-      deleteFile: unimplemented(),
-      contentsOfDirectory: unimplemented(),
-      applicationDataDirectory: unimplemented()
+      deleteFile: unimplemented1(),
+      contentsOfDirectory: unimplemented1(),
+      applicationDataDirectory: unimplemented0()
     )
   }
   #endif

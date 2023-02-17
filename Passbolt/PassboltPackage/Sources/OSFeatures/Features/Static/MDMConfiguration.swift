@@ -36,8 +36,8 @@ extension MDMConfiguration: StaticFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(
-      clear: unimplemented(),
-      preconfiguredAccounts: unimplemented()
+      clear: unimplemented0(),
+      preconfiguredAccounts: unimplemented0()
     )
   }
   #endif

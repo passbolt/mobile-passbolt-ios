@@ -229,11 +229,11 @@ extension SQLiteConnection {
 
   public static var placeholder: Self {
     Self(
-      execute: unimplemented(),
-      fetch: unimplemented(),
-      beginTransaction: unimplemented(),
-      rollbackTransaction: unimplemented(),
-      endTransaction: unimplemented()
+      execute: unimplemented1(),
+      fetch: unimplemented1(),
+      beginTransaction: unimplemented0(),
+      rollbackTransaction: unimplemented0(),
+      endTransaction: unimplemented0()
     )
   }
 }

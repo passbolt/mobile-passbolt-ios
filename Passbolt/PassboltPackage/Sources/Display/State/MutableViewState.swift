@@ -67,7 +67,7 @@ where State: Equatable & Sendable {
     extendingLifetimeOf container: FeaturesContainer? = .none,
     cleanup: @escaping () -> Void = { /* NOP */  }
   )
-  where State == Never {
+  where State == Stateless {
     self.read = { fatalError("Can't read Never") }
     self.write = { _ in /* NOP */ }
     self.stateWillChange = Empty<State, Never>().eraseToAnyPublisher()
@@ -81,11 +81,11 @@ where State: Equatable & Sendable {
     file: StaticString,
     line: UInt
   ) {
-    self.read = unimplemented(
+    self.read = unimplemented0(
       file: file,
       line: line
     )
-    self.write = unimplemented(
+    self.write = unimplemented1(
       file: file,
       line: line
     )

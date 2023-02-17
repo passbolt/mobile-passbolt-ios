@@ -38,7 +38,7 @@ extension OSCamera: StaticFeature {
   #if DEBUG
   public nonisolated static var placeholder: Self {
     Self(
-      ensurePermission: unimplemented()
+      ensurePermission: unimplemented0()
     )
   }
   #endif

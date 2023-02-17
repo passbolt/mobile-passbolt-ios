@@ -37,7 +37,7 @@ extension UUIDGenerator: StaticFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(
-      uuid: unimplemented()
+      uuid: unimplemented0()
     )
   }
   #endif

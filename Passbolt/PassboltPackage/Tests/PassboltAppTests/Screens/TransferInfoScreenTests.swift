@@ -34,13 +34,6 @@ import XCTest
 @MainActor
 final class TransferInfoScreenTests: MainActorTestCase {
 
-  var asyncExecutorMockControl: AsyncExecutor.MockExecutionControl!
-
-  override func mainActorSetUp() {
-    self.asyncExecutorMockControl = .init()
-    self.features.patch(\AsyncExecutor.self, with: .mock(self.asyncExecutorMockControl))
-  }
-
   func test_noCameraPermissionAlert_isPresented_whenCallingPresent() async throws {
     features
       .patch(
@@ -66,15 +59,16 @@ final class TransferInfoScreenTests: MainActorTestCase {
     var result: Void?
     features
       .patch(
-        \OSLinkOpener.openAppSettings,
-        with: {
+        \OSLinkOpener.openApplicationSettings,
+        with: { () async throws -> Void in
           result = Void()
-          return Just(true).eraseToAnyPublisher()
         }
       )
     let controller: TransferInfoCameraRequiredAlertController = try await testController()
 
     controller.showSettings()
+
+    await self.mockExecutionControl.executeAll()
 
     XCTAssertNotNil(result)
   }
@@ -96,7 +90,7 @@ final class TransferInfoScreenTests: MainActorTestCase {
       .sink { _ in }
       .store(in: cancellables)
 
-    await self.asyncExecutorMockControl.executeAll()
+    await self.mockExecutionControl.executeAll()
 
     XCTAssertNotNil(result)
   }
@@ -118,7 +112,7 @@ final class TransferInfoScreenTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    await self.asyncExecutorMockControl.executeAll()
+    await self.mockExecutionControl.executeAll()
 
     XCTAssertTrue(result)
   }

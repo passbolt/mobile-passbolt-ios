@@ -52,8 +52,8 @@ extension ResourceFolderEditController: ViewController {
   static var placeholder: Self {
     .init(
       viewState: .placeholder(),
-      setFolderName: unimplemented(),
-      saveChanges: unimplemented()
+      setFolderName: unimplemented1(),
+      saveChanges: unimplemented0()
     )
   }
   #endif

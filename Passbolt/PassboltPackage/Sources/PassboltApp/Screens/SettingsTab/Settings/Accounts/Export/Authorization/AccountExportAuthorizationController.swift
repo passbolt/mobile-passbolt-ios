@@ -53,9 +53,9 @@ extension AccountExportAuthorizationController: ViewController {
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder(),
-      setPassphrase: unimplemented(),
-      authorizeWithPassphrase: unimplemented(),
-      authorizeWithBiometrics: unimplemented()
+      setPassphrase: unimplemented1(),
+      authorizeWithPassphrase: unimplemented0(),
+      authorizeWithBiometrics: unimplemented0()
     )
   }
   #endif

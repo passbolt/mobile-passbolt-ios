@@ -51,8 +51,8 @@ extension UpdateCheck: LoadableFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      checkRequired: unimplemented(),
-      updateAvailable: unimplemented()
+      checkRequired: unimplemented0(),
+      updateAvailable: unimplemented0()
     )
   }
   #endif

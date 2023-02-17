@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+@available(*, deprecated, message: "Please switch to `NavigationTo`")
 public enum NavigationTreeOverlayPresentation {
 
   case sheet

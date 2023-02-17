@@ -53,8 +53,8 @@ extension ResourceFolderDetailsController: ViewController {
   static var placeholder: Self {
     .init(
       viewState: .placeholder(),
-      openLocationDetails: unimplemented(),
-      openPermissionDetails: unimplemented()
+      openLocationDetails: unimplemented0(),
+      openPermissionDetails: unimplemented0()
     )
   }
   #endif

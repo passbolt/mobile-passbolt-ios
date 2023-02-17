@@ -49,7 +49,7 @@ extension UserGroupDetails: LoadableFeature {
 
   public static var placeholder: Self {
     Self(
-      details: unimplemented()
+      details: unimplemented0()
     )
   }
   #endif

@@ -63,9 +63,9 @@ extension AccountDetails: LoadableFeature {
   public static var placeholder: Self {
     Self(
       updates: .placeholder,
-      profile: unimplemented(),
-      updateProfile: unimplemented(),
-      avatarImage: unimplemented()
+      profile: unimplemented0(),
+      updateProfile: unimplemented0(),
+      avatarImage: unimplemented0()
     )
   }
   #endif

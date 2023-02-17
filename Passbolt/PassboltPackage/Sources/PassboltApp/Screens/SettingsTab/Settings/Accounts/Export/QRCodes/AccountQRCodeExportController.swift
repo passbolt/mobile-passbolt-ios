@@ -45,8 +45,8 @@ extension AccountQRCodeExportController: ViewController {
   internal nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder(),
-      showCancelConfirmation: unimplemented(),
-      cancelTransfer: unimplemented()
+      showCancelConfirmation: unimplemented0(),
+      cancelTransfer: unimplemented0()
     )
   }
   #endif

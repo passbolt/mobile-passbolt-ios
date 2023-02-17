@@ -54,6 +54,8 @@ extension BiometricsInfoController: UIController {
   ) throws -> Self {
     let currentAccount: Account = try features.sessionAccount()
 
+    let diagnostics: OSDiagnostics = features.instance()
+
     let accountInitialSetup: AccountInitialSetup = try features.instance(context: currentAccount)
     let extensions: OSExtensions = features.instance()
     let linkOpener: OSLinkOpener = features.instance()
@@ -72,12 +74,17 @@ extension BiometricsInfoController: UIController {
     func setupBiometrics() {
       accountInitialSetup.completeSetup(.biometrics)
       setupBiometricsCancellable =
-        linkOpener
-        .openSystemSettings()
+        Just(Void())
+        .asyncMap {
+          do {
+            try await linkOpener
+              .openSystemSettings()
+          }
+          catch {
+            diagnostics.log(error: error)
+          }
+        }
         .map { opened -> AnyPublisher<Bool, Never> in
-          guard opened
-          else { return Empty().eraseToAnyPublisher() }
-
           return applicationLifecycle.lifecyclePublisher()
             .map { (_: ApplicationLifecycle.Transition) -> Bool in
               switch biometry.availability() {

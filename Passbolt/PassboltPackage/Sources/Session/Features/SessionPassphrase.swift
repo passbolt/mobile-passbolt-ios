@@ -63,7 +63,7 @@ extension SessionPassphrase: LoadableFeature {
   #if DEBUG
   public nonisolated static var placeholder: Self {
     Self(
-      storeWithBiometry: unimplemented()
+      storeWithBiometry: unimplemented1()
     )
   }
   #endif

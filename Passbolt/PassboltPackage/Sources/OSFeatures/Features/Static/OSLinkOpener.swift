@@ -29,9 +29,9 @@ import struct Foundation.URL
 
 public struct OSLinkOpener {
 
-  public var openURL: (URL) -> AnyPublisher<Bool, Never>
-  public var openAppSettings: () -> AnyPublisher<Bool, Never>
-  public var openSystemSettings: () -> AnyPublisher<Bool, Never>
+  public var openURL: (URLString) async throws -> Void
+  public var openApplicationSettings: () async throws -> Void
+  public var openSystemSettings: () async throws -> Void
 }
 
 extension OSLinkOpener: StaticFeature {
@@ -39,9 +39,9 @@ extension OSLinkOpener: StaticFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      openURL: unimplemented(),
-      openAppSettings: unimplemented(),
-      openSystemSettings: unimplemented()
+      openURL: unimplemented1(),
+      openApplicationSettings: unimplemented0(),
+      openSystemSettings: unimplemented0()
     )
   }
   #endif
@@ -51,35 +51,51 @@ extension OSLinkOpener {
 
   // Legacy implementation
   fileprivate static var live: Self {
-    func open(url: URL) -> AnyPublisher<Bool, Never> {
-      let openResultSubject: PassthroughSubject<Bool, Never> = .init()
-      DispatchQueue.main.async {
-        if UIApplication.shared.canOpenURL(url) {
-          UIApplication.shared.open(
-            url,
-            completionHandler: { success in
-              openResultSubject.send(success)
-              openResultSubject.send(completion: .finished)
-            }
-          )
-        }
-        else {
-          openResultSubject.send(false)
-          openResultSubject.send(completion: .finished)
-        }
+
+    @MainActor func open(
+      url: URLString
+    ) async throws {
+      guard let url: URL = .init(string: url.rawValue)
+      else {
+        throw InvalidInputData.error()
       }
-      return openResultSubject.eraseToAnyPublisher()
+      guard UIApplication.shared.canOpenURL(url)
+      else {
+        throw URLOpeningFailed.error()
+      }
+
+      return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+        UIApplication.shared.open(
+          url,
+          completionHandler: { success in
+            if success {
+              continuation.resume()
+            }
+            else {
+              continuation
+                .resume(
+                  throwing:
+                    URLOpeningFailed
+                    .error()
+                )
+            }
+          }
+        )
+      }
     }
 
     return Self(
       openURL: open(url:),
-      openAppSettings: {
-        // swift-format-ignore: NeverForceUnwrap
-        open(url: URL(string: UIApplication.openSettingsURLString)!)
+      openApplicationSettings: {
+        try await open(
+          url: .init(
+            rawValue: UIApplication
+              .openSettingsURLString
+          )
+        )
       },
       openSystemSettings: {
-        // swift-format-ignore: NeverForceUnwrap
-        open(url: URL(string: "App-prefs:")!)
+        try await open(url: "App-prefs:")
       }
     )
   }

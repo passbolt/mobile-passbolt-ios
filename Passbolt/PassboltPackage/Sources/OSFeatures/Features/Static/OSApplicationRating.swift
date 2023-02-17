@@ -38,7 +38,7 @@ extension OSApplicationRating: StaticFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(
-      requestApplicationRating: unimplemented()
+      requestApplicationRating: unimplemented0()
     )
   }
   #endif

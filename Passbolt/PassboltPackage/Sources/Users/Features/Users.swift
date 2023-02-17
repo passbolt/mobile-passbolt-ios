@@ -60,10 +60,10 @@ extension Users: LoadableFeature {
 
   public nonisolated static var placeholder: Self {
     Self(
-      filteredUsers: unimplemented(),
-      userDetails: unimplemented(),
-      userPermissionToResource: unimplemented(),
-      userAvatarImage: unimplemented()
+      filteredUsers: unimplemented1(),
+      userDetails: unimplemented1(),
+      userPermissionToResource: unimplemented2(),
+      userAvatarImage: unimplemented1()
     )
   }
   #endif

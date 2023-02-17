@@ -60,10 +60,10 @@ extension UserGroups: LoadableFeature {
 
   public static var placeholder: Self {
     Self(
-      filteredResourceUserGroupList: unimplemented(),
-      filteredResourceUserGroups: unimplemented(),
-      filteredUserGroups: unimplemented(),
-      groupMembers: unimplemented()
+      filteredResourceUserGroupList: unimplemented1(),
+      filteredResourceUserGroups: unimplemented1(),
+      filteredUserGroups: unimplemented1(),
+      groupMembers: unimplemented1()
     )
   }
   #endif

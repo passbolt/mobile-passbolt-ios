@@ -240,8 +240,8 @@ extension StateBinding {
   #if DEBUG
   public static var placeholder: Self {
     .init(
-      read: unimplemented(),
-      write: unimplemented(),
+      read: unimplemented0(),
+      write: unimplemented1(),
       updatesPublisher: Empty()
         .eraseToAnyPublisher()
     )

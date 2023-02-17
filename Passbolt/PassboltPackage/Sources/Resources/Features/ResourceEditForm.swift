@@ -66,12 +66,12 @@ extension ResourceEditForm: LoadableFeature {
   #if DEBUG
   public static var placeholder: ResourceEditForm {
     Self(
-      editResource: unimplemented(),
-      setEnclosingFolder: unimplemented(),
-      resourceTypePublisher: unimplemented(),
-      setFieldValue: unimplemented(),
-      fieldValuePublisher: unimplemented(),
-      sendForm: unimplemented()
+      editResource: unimplemented1(),
+      setEnclosingFolder: unimplemented1(),
+      resourceTypePublisher: unimplemented0(),
+      setFieldValue: unimplemented2(),
+      fieldValuePublisher: unimplemented1(),
+      sendForm: unimplemented0()
     )
   }
   #endif

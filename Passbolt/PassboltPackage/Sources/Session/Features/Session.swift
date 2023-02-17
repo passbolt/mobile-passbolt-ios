@@ -87,11 +87,11 @@ extension Session: LoadableFeature {
   public nonisolated static var placeholder: Self {
     Self(
       updatesSequence: .placeholder,
-      pendingAuthorization: unimplemented(),
-      currentAccount: unimplemented(),
-      authorize: unimplemented(),
-      authorizeMFA: unimplemented(),
-      close: unimplemented()
+      pendingAuthorization: unimplemented0(),
+      currentAccount: unimplemented0(),
+      authorize: unimplemented1(),
+      authorizeMFA: unimplemented1(),
+      close: unimplemented1()
     )
   }
   #endif

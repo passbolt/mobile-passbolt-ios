@@ -78,7 +78,7 @@ public final class ObservableViewState<State: Equatable>: ObservableObject {
     file: StaticString,
     line: UInt
   ) {
-    self.read = unimplemented(
+    self.read = unimplemented0(
       file: file,
       line: line
     )

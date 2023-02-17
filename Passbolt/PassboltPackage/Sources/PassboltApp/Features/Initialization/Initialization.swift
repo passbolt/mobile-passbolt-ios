@@ -64,7 +64,7 @@ extension Initialization: LoadableFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      initialize: unimplemented()
+      initialize: unimplemented0()
     )
   }
   #endif

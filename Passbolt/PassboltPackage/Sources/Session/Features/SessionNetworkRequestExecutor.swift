@@ -50,7 +50,7 @@ extension SessionNetworkRequestExecutor: LoadableFeature {
   #if DEBUG
   public nonisolated static var placeholder: Self {
     Self(
-      execute: unimplemented()
+      execute: unimplemented1()
     )
   }
   #endif

@@ -64,9 +64,9 @@ extension SessionAuthorizationState: LoadableFeature {
   #if DEBUG
   nonisolated static var placeholder: Self {
     Self(
-      waitForAuthorizationIfNeeded: unimplemented(),
-      performAuthorization: unimplemented(),
-      cancelAuthorization: unimplemented()
+      waitForAuthorizationIfNeeded: unimplemented1(),
+      performAuthorization: unimplemented2(),
+      cancelAuthorization: unimplemented0()
     )
   }
   #endif

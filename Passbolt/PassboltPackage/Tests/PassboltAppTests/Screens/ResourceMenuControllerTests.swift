@@ -57,13 +57,6 @@ final class ResourceMenuControllerTests: MainActorTestCase {
           .eraseToAnyPublisher()
       )
     )
-    features.patch(
-      \OSLinkOpener.openURL,
-      with: always(
-        Just(true)
-          .eraseToAnyPublisher()
-      )
-    )
     features.usePlaceholder(
       for: ResourceFavorites.self,
       context: detailsViewResource.id
@@ -179,13 +172,11 @@ final class ResourceMenuControllerTests: MainActorTestCase {
   }
 
   func test_performAction_opensURL_forOpenURLAction() async throws {
-    var result: URL? = nil
+    var result: URLString? = nil
     features.patch(
       \OSLinkOpener.openURL,
-      with: {
-        result = $0
-        return Just(true)
-          .eraseToAnyPublisher()
+      with: { (url) async throws -> Void in
+        result = url
       }
     )
 
@@ -203,16 +194,18 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.absoluteString, detailsViewResource.url)
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+
+    XCTAssertEqual(result?.rawValue, detailsViewResource.url)
   }
 
   func test_performAction_fails_forOpenURLAction_whenOpeningFails() async throws {
     features.patch(
       \OSLinkOpener.openURL,
-      with: always(
-        Just(false)
-          .eraseToAnyPublisher()
-      )
+      with: { (_) async throws -> Void in
+        throw MockIssue.error()
+      }
     )
 
     let controller: ResourceMenuController = try await testController(
@@ -237,7 +230,10 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertError(result, matches: URLOpeningFailure.self)
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
   func test_performAction_copiesUsernameToPasteboard_forCopyUsernameAction() async throws {

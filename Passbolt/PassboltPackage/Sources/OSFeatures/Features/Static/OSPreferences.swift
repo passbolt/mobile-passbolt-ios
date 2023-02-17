@@ -42,9 +42,9 @@ extension OSPreferences: StaticFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      load: unimplemented(),
-      save: unimplemented(),
-      delete: unimplemented()
+      load: unimplemented1(),
+      save: unimplemented2(),
+      delete: unimplemented1()
     )
   }
   #endif

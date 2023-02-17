@@ -24,6 +24,7 @@
 import Commons
 import SwiftUI
 
+@available(*, deprecated, message: "Please switch to `NavigationTo`")
 public struct NavigationTreeRootView: View {
 
   private let navigationTree: NavigationTree

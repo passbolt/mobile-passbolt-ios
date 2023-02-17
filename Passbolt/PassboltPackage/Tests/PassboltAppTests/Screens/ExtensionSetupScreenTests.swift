@@ -101,7 +101,7 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
     features
       .patch(
         \OSLinkOpener.openSystemSettings,
-        with: always(Just(true).eraseToAnyPublisher())
+        with: { () async throws -> Void in }
       )
     features.patch(
       \ApplicationLifecycle.lifecyclePublisher,
@@ -139,7 +139,7 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
     features
       .patch(
         \OSLinkOpener.openSystemSettings,
-        with: always(Just(true).eraseToAnyPublisher())
+        with: { () async throws -> Void in }
       )
     features.patch(
       \ApplicationLifecycle.lifecyclePublisher,
@@ -174,9 +174,8 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
     features
       .patch(
         \OSLinkOpener.openSystemSettings,
-        with: {
+        with: { () async throws -> Void in
           result = Void()
-          return Just(true).eraseToAnyPublisher()
         }
       )
     features.patch(
@@ -193,6 +192,9 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
       .setupExtension()
       .sink { _ in }
       .store(in: cancellables)
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertNotNil(result)
   }

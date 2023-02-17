@@ -65,11 +65,11 @@ extension OSDiagnostics: StaticFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      trace: unimplemented(),
-      debugLog: unimplemented(),
-      diagnosticLog: unimplemented(),
-      diagnosticsInfo: unimplemented(),
-      breakpoint: unimplemented()
+      trace: unimplemented0(),
+      debugLog: unimplemented1(),
+      diagnosticLog: unimplemented2(),
+      diagnosticsInfo: unimplemented0(),
+      breakpoint: unimplemented0()
     )
   }
   #endif

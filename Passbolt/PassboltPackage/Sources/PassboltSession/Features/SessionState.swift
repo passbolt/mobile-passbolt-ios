@@ -105,21 +105,21 @@ extension SessionState: LoadableFeature {
   nonisolated static var placeholder: Self {
     Self(
       updatesSequence: .placeholder,
-      account: unimplemented(),
-      passphrase: unimplemented(),
-      validAccessToken: unimplemented(),
-      refreshToken: unimplemented(),
-      mfaToken: unimplemented(),
-      pendingAuthorization: unimplemented(),
-      createdSession: unimplemented(),
-      refreshedSession: unimplemented(),
-      passphraseProvided: unimplemented(),
-      mfaProvided: unimplemented(),
-      authorizationRequested: unimplemented(),
-      passphraseWipe: unimplemented(),
-      accessTokenInvalidate: unimplemented(),
-      mfaTokenInvalidate: unimplemented(),
-      closedSession: unimplemented()
+      account: unimplemented0(),
+      passphrase: unimplemented0(),
+      validAccessToken: unimplemented0(),
+      refreshToken: unimplemented0(),
+      mfaToken: unimplemented0(),
+      pendingAuthorization: unimplemented0(),
+      createdSession: unimplemented6(),
+      refreshedSession: unimplemented5(),
+      passphraseProvided: unimplemented2(),
+      mfaProvided: unimplemented2(),
+      authorizationRequested: unimplemented1(),
+      passphraseWipe: unimplemented0(),
+      accessTokenInvalidate: unimplemented0(),
+      mfaTokenInvalidate: unimplemented0(),
+      closedSession: unimplemented0()
     )
   }
   #endif

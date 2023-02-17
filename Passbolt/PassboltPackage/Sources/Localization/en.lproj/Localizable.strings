@@ -211,25 +211,6 @@
 "tab.home" = "Home";
 "tab.settings" = "Settings";
 
-"account.settings.title" = "Settings";
-"account.settings.biometrics.face.id" = "FaceID";
-"account.settings.biometrics.touch.id" = "TouchID";
-"account.settings.biometrics.unavailable" = "Biometrics unavailable";
-"account.settings.autofill" = "Autofill";
-"account.settings.default.home.mode" = "Default filter";
-"account.settings.default.home.mode.title" = "Default filter";
-"account.settings.default.home.mode.option.last.used" = "Latest used (default)";
-"account.settings.manage.accounts" = "Manage accounts";
-"account.settings.export.mobile" = "Transfer account to another device";
-"account.settings.terms" = "Terms & Conditions";
-"account.settings.privacy.policy" = "Privacy policy";
-"account.settings.logs" = "Access the logs";
-"account.settings.sign.out" = "Sign out";
-
-"account.settings.alert.title" = "Are you sure?";
-"account.settings.biometrics.alert.message" = "After disabling Face ID you will need to login by using your passphrase.";
-"account.settings.signout.alert.message" = "If you sign out you will need to set up your account again on this device.";
-
 "authorization.prompt.refresh.session.reason" = "Please authenticate to refresh session";
 "authorization.prompt.biometrics.set.reason" = "Please authenticate to enable biometrics.";
 
@@ -392,6 +373,67 @@ Contact your administrator for more information.";
 "home.presentation.mode.folders.explorer.search.nested.results" = "in subfolders:";
 "home.presentation.mode.tags.explorer.title" = "Tags";
 "home.presentation.mode.resource.user.groups.explorer.title" = "Groups";
+
+
+// Settings - Main
+
+"settings.main.title" = "Settings";
+"settings.main.item.application.title" = "App settings";
+"settings.main.item.accounts.title" = "Accounts";
+"settings.main.item.terms.and.licenses.title" = "Terms & licenses";
+"settings.main.item.troubleshooting.title" = "Debug, logs";
+"settings.main.item.sign.out.title" = "Sign out";
+
+// Settings - Application
+
+"settings.application.title" = "App settings";
+"settings.application.item.autofill.title" = "Autofill";
+"settings.application.item.default.mode.title" = "Default filter";
+
+// Settings - Accounts
+
+"settings.accounts.title" = "Accounts";
+"settings.accounts.item.manage.title" = "Manage accounts";
+"settings.accounts.item.export.title" = "Transfer account to another device";
+
+// Settings - Terms & Licenses
+
+"settings.terms.and.licenses.title" = "Terms & licenses";
+"settings.terms.and.licenses.item.terms.title" = "Terms & conditions";
+"settings.terms.and.licenses.item.privacy.title" = "Privacy policy";
+"settings.terms.and.licenses.item.licenses.title" = "Open source licenses";
+
+// Settings - Troubleshooting
+
+"settings.troubleshooting.title" = "Debug, logs";
+"settings.troubleshooting.item.logs.title" = "Access the debug logs";
+"settings.troubleshooting.item.help.site.title" = "Visit help site";
+
+// Settings - Default presentation mode
+
+"settings.application.default.mode.title" = "Default filter";
+"settings.application.default.mode.option.last.used.title" = "Latest used (default)";
+
+// Settings - Disable biometrics alert
+
+"settings.application.biometrics.disable.alert.title" = "Are you sure?";
+"settings.application.biometrics.disable.alert.message" = "After disabling %@ you will need to login by using your passphrase.";
+"settings.application.biometrics.disable.alert.confirm.title" = "Disable biometrics";
+"settings.application.biometrics.disable.alert.cancel.title" = "Keep";
+
+// Settings - Sign out alert
+
+"settings.main.sign.out.alert.title" = "Are you sure?";
+"settings.main.sign.out.alert.message" = "If you sign out you will be logged out of your account on this device.";
+"settings.main.sign.out.alert.confirm.title" = "Sign out";
+
+// Biometric authorization availability
+
+"biometric.authorization.availability.unavailable" = "Unavailable";
+"biometric.authorization.availability.face.id" = "FaceID";
+"biometric.authorization.availability.touch.id" = "TouchID";
+
+// Errors
 
 "error.internal.inconsistency" = "Internal inconsistency, please report a bug.";
 "error.feature.unavailable" = "Feature unavailable.";

@@ -54,8 +54,8 @@ extension AccountInitialSetup: LoadableFeature {
   #if DEBUG
   public nonisolated static var placeholder: Self {
     .init(
-      unfinishedSetupElements: unimplemented(),
-      completeSetup: unimplemented()
+      unfinishedSetupElements: unimplemented0(),
+      completeSetup: unimplemented1()
     )
   }
   #endif

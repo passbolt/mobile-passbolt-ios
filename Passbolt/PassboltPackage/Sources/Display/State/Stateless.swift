@@ -24,7 +24,7 @@
 @propertyWrapper
 public struct Stateless {
 
-  public var wrappedValue: MutableViewState<Never> = .init()
+  public var wrappedValue: MutableViewState<Stateless> = .init()
 
   public init() {}
 }

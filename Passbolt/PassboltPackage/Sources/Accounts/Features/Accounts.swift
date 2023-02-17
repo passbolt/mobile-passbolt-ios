@@ -68,11 +68,11 @@ extension Accounts: LoadableFeature {
   nonisolated public static var placeholder: Self {
     Self(
       updates: .placeholder,
-      verifyDataIntegrity: unimplemented(),
-      storedAccounts: unimplemented(),
-      lastUsedAccount: unimplemented(),
-      addAccount: unimplemented(),
-      removeAccount: unimplemented()
+      verifyDataIntegrity: unimplemented0(),
+      storedAccounts: unimplemented0(),
+      lastUsedAccount: unimplemented0(),
+      addAccount: unimplemented1(),
+      removeAccount: unimplemented1()
     )
   }
   #endif

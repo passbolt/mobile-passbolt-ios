@@ -42,8 +42,8 @@ extension SessionConfigurationLoader: LoadableFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(
-      fetchIfNeeded: unimplemented(),
-      configuration: unimplemented()
+      fetchIfNeeded: unimplemented0(),
+      configuration: unimplemented1()
     )
   }
   #endif

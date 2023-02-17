@@ -63,13 +63,13 @@ extension ResourceShareForm: LoadableFeature {
 
   public static var placeholder: Self {
     Self(
-      permissionsSequence: unimplemented(),
-      currentPermissions: unimplemented(),
-      setUserPermission: unimplemented(),
-      deleteUserPermission: unimplemented(),
-      setUserGroupPermission: unimplemented(),
-      deleteUserGroupPermission: unimplemented(),
-      sendForm: unimplemented()
+      permissionsSequence: unimplemented0(),
+      currentPermissions: unimplemented0(),
+      setUserPermission: unimplemented2(),
+      deleteUserPermission: unimplemented1(),
+      setUserGroupPermission: unimplemented2(),
+      deleteUserGroupPermission: unimplemented1(),
+      sendForm: unimplemented0()
     )
   }
   #endif

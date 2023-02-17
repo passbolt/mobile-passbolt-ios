@@ -51,8 +51,8 @@ extension ResourceFolderMenuController: ViewController {
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder(),
-      openDetails: unimplemented(),
-      close: unimplemented()
+      openDetails: unimplemented0(),
+      close: unimplemented0()
     )
   }
   #endif

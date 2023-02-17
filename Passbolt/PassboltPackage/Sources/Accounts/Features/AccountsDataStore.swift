@@ -98,24 +98,24 @@ extension AccountsDataStore: LoadableFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      verifyDataIntegrity: unimplemented(),
-      loadAccounts: unimplemented(),
-      loadLastUsedAccount: unimplemented(),
-      storeLastUsedAccount: unimplemented(),
-      storeAccount: unimplemented(),
-      loadAccountPrivateKey: unimplemented(),
-      isAccountPassphraseStored: unimplemented(),
-      storeAccountPassphrase: unimplemented(),
-      loadAccountPassphrase: unimplemented(),
-      deleteAccountPassphrase: unimplemented(),
-      storeAccountMFAToken: unimplemented(),
-      loadAccountMFAToken: unimplemented(),
-      deleteAccountMFAToken: unimplemented(),
-      loadAccountProfile: unimplemented(),
-      updateAccountProfile: unimplemented(),
-      deleteAccount: unimplemented(),
-      storeServerFingerprint: unimplemented(),
-      loadServerFingerprint: unimplemented()
+      verifyDataIntegrity: unimplemented0(),
+      loadAccounts: unimplemented0(),
+      loadLastUsedAccount: unimplemented0(),
+      storeLastUsedAccount: unimplemented1(),
+      storeAccount: unimplemented3(),
+      loadAccountPrivateKey: unimplemented1(),
+      isAccountPassphraseStored: unimplemented1(),
+      storeAccountPassphrase: unimplemented2(),
+      loadAccountPassphrase: unimplemented1(),
+      deleteAccountPassphrase: unimplemented1(),
+      storeAccountMFAToken: unimplemented2(),
+      loadAccountMFAToken: unimplemented1(),
+      deleteAccountMFAToken: unimplemented1(),
+      loadAccountProfile: unimplemented1(),
+      updateAccountProfile: unimplemented1(),
+      deleteAccount: unimplemented1(),
+      storeServerFingerprint: unimplemented2(),
+      loadServerFingerprint: unimplemented1()
     )
   }
   #endif

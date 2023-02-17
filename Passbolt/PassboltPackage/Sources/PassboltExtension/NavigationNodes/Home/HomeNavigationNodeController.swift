@@ -61,7 +61,7 @@ extension HomeNavigationNodeController: ViewController {
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder(),
-      activate: unimplemented()
+      activate: unimplemented0()
     )
   }
   #endif

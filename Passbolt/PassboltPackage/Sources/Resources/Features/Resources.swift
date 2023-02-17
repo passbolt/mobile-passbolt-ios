@@ -57,11 +57,11 @@ extension Resources: LoadableFeature {
   #if DEBUG
   public static var placeholder: Resources {
     Self(
-      filteredResourcesListPublisher: unimplemented(),
-      filteredResourcesList: unimplemented(),
-      loadResourceSecret: unimplemented(),
-      resourceDetailsPublisher: unimplemented(),
-      deleteResource: unimplemented()
+      filteredResourcesListPublisher: unimplemented1(),
+      filteredResourcesList: unimplemented1(),
+      loadResourceSecret: unimplemented1(),
+      resourceDetailsPublisher: unimplemented1(),
+      deleteResource: unimplemented1()
     )
   }
   #endif

@@ -57,9 +57,9 @@ extension UserDetails: LoadableFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      details: unimplemented(),
-      permissionToResource: unimplemented(),
-      avatarImage: unimplemented()
+      details: unimplemented0(),
+      permissionToResource: unimplemented1(),
+      avatarImage: unimplemented0()
     )
   }
   #endif

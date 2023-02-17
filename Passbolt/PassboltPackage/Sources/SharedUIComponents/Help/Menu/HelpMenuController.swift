@@ -60,6 +60,7 @@ extension HelpMenuController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
+    let diagnostics: OSDiagnostics = features.instance()
     let linkOpener: OSLinkOpener = features.instance()
 
     let logsPresentationSubject: PassthroughSubject<Void, Never> = .init()
@@ -94,13 +95,15 @@ extension HelpMenuController: UIController {
     // swift-format-ignore: NeverForceUnwrap
     func websiteHelpPresentationPublisher() -> AnyPublisher<Void, Never> {
       websiteHelpPresentationSubject
-        .map { _ -> AnyPublisher<Void, Never> in
-          linkOpener
-            .openURL(URL(string: "https://help.passbolt.com")!)
-            .mapToVoid()
-            .eraseToAnyPublisher()
+        .asyncMap { _ -> Void in
+          do {
+            try await linkOpener
+              .openURL("https://help.passbolt.com")
+          }
+          catch {
+            diagnostics.log(error: error)
+          }
         }
-        .switchToLatest()
         .eraseToAnyPublisher()
     }
 

@@ -37,14 +37,14 @@ internal struct DefaultPresentationModeSettingsView: ControlledView {
     ScreenView(
       titleIcon: .filter,
       title: .localized(
-        key: "account.settings.default.home.mode.title"
+        key: "settings.application.default.mode.title"
       ),
       contentView: {
         WithViewState(from: self.controller) { (state) in
           List {
             ListRowView(
               title: .localized(
-                key: "account.settings.default.home.mode.option.last.used"
+                key: "settings.application.default.mode.option.last.used.title"
               ),
               leftAccessory: {
                 Image(named: .filter)

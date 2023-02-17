@@ -24,7 +24,6 @@
 import Commons
 import SwiftUI
 
-@MainActor
 public struct ListRowView<LeftAccessoryView, ContentView, RightAccessoryView>: View
 where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
 
@@ -59,9 +58,7 @@ where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
       if let leftAction: @MainActor () -> Void = self.leftAction {
         Button(
           action: {
-            MainActor.execute(priority: .userInitiated) {
-              leftAction()
-            }
+            leftAction()
           },
           label: {
             self.leftAccessory()
@@ -79,9 +76,7 @@ where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
         if let rightAction: @MainActor () -> Void = self.rightAction {
           Button(
             action: {
-              MainActor.execute(priority: .userInitiated) {
-                self.contentAction()
-              }
+              self.contentAction()
             },
             label: {
               self.content()
@@ -100,9 +95,7 @@ where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
 
           Button(
             action: {
-              MainActor.execute(priority: .userInitiated) {
-                rightAction()
-              }
+              rightAction()
             },
             label: {
               self.rightAccessory()
@@ -120,9 +113,7 @@ where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
         else {
           Button(
             action: {
-              MainActor.execute(priority: .userInitiated) {
-                self.contentAction()
-              }
+              self.contentAction()
             },
             label: {
               HStack(spacing: 0) {
@@ -151,9 +142,7 @@ where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
       else if let rightAction: @MainActor () -> Void = self.rightAction {
         Button(
           action: {
-            MainActor.execute(priority: .userInitiated) {
-              self.contentAction()
-            }
+            self.contentAction()
           },
           label: {
             HStack(spacing: 0) {
@@ -184,9 +173,7 @@ where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
 
         Button(
           action: {
-            MainActor.execute(priority: .userInitiated) {
-              rightAction()
-            }
+            rightAction()
           },
           label: {
             self.rightAccessory()
@@ -204,9 +191,7 @@ where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
       else {
         Button(
           action: {
-            MainActor.execute(priority: .userInitiated) {
-              self.contentAction()
-            }
+            self.contentAction()
           },
           label: {
             HStack(spacing: 0) {
@@ -253,7 +238,7 @@ where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
             bottom: 12,
             trailing: 0
           )
-      }  // else { /* NOP */ }
+      }  // else no additional view
     }
     .foregroundColor(.passboltPrimaryText)
     .padding(

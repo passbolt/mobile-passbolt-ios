@@ -38,7 +38,7 @@ extension SessionLocking: LoadableFeature {
   #if DEBUG
   internal nonisolated static var placeholder: Self {
     Self(
-      ensureAutolock: unimplemented()
+      ensureAutolock: unimplemented0()
     )
   }
   #endif

@@ -40,5 +40,24 @@ extension FeaturesRegistry {
     self.usePassboltResourceFolderPermissionListController()
     self.useAccountQRCodeExportController()
     self.useAccountExportAuthorizationController()
+
+    // MARK: - Global
+    self.useLiveNavigationToLogs()
+
+    // MARK: - Settings
+    self.useLiveMainSettingsController()
+    self.useLiveTroubleshootingSettingsController()
+    self.useLiveNavigationToTroubleshootingSettings()
+    self.useLiveTermsAndLicensesSettingsController()
+    self.useLiveNavigationToTermsAndLicensesSettings()
+    self.useLiveApplicationSettingsController()
+    self.useLiveNavigationToApplicationSettings()
+    self.useLiveDefaultPresentationModeSettingsController()
+    self.useLiveNavigationToDefaultPresentationModeSettings()
+    self.useLiveNavigationToAutofillSettings()
+    self.useLiveAccountsSettingsController()
+    self.useLiveNavigationToAccountsSettings()
+    self.useLiveNavigationToManageAccounts()
+    self.useLiveNavigationToAccountExport()
   }
 }

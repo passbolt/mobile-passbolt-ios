@@ -60,10 +60,14 @@ extension DefaultPresentationModeSettingsController {
   @MainActor fileprivate static func load(
     features: Features
   ) throws -> Self {
+    try features.ensureScope(SettingsScope.self)
+    try features.ensureScope(SessionScope.self)
+
     let currentAccount: Account = try features.sessionAccount()
 
+    let diagnostics: OSDiagnostics = features.instance()
     let executor: AsyncExecutor = try features.instance()
-    let navigation: DisplayNavigation = try features.instance()
+    let navigationToSelf: NavigationToDefaultPresentationModeSettings = try features.instance()
     let accountPreferences: AccountPreferences = try features.instance(context: currentAccount)
     let homePresentation: HomePresentation = try features.instance()
 
@@ -101,13 +105,39 @@ extension DefaultPresentationModeSettingsController {
         else {
           useLastUsedHomePresentationAsDefault.set(to: true)
         }
-        await navigation.pop(DefaultPresentationModeSettingsView.self)
+        do {
+          try await navigationToSelf.revert()
+        }
+        catch {
+          diagnostics
+            .log(
+              error:
+                error
+                .asTheError()
+                .pushing(
+                  .message("Navigation to back from default presentation mode failed!")
+                )
+            )
+        }
       }
     }
 
     nonisolated func navigateBack() {
       executor.schedule(.reuse) {
-        await navigation.pop(DefaultPresentationModeSettingsView.self)
+        do {
+          try await navigationToSelf.revert()
+        }
+        catch {
+          diagnostics
+            .log(
+              error:
+                error
+                .asTheError()
+                .pushing(
+                  .message("Navigation to back from default presentation mode failed!")
+                )
+            )
+        }
       }
     }
 
@@ -118,6 +148,7 @@ extension DefaultPresentationModeSettingsController {
     )
   }
 }
+
 extension FeaturesRegistry {
 
   internal mutating func useLiveDefaultPresentationModeSettingsController() {
@@ -126,7 +157,7 @@ extension FeaturesRegistry {
         DefaultPresentationModeSettingsController.self,
         load: DefaultPresentationModeSettingsController.load(features:)
       ),
-      in: SessionScope.self
+      in: SettingsScope.self
     )
   }
 }

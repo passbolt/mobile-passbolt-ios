@@ -62,13 +62,20 @@ extension TransferInfoCameraRequiredAlertController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let linkOpener: OSLinkOpener = try features.instance()
-    var cancellable: AnyCancellable?
-    _ = cancellable  // silence warning
+    let diagnostics: OSDiagnostics = features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
+    let linkOpener: OSLinkOpener = features.instance()
 
     return Self(
       showSettings: {
-        cancellable = linkOpener.openAppSettings().sink { _ in }
+        asyncExecutor.schedule(.reuse) {
+          do {
+            try await linkOpener.openApplicationSettings()
+          }
+          catch {
+            diagnostics.log(error: error)
+          }
+        }
       }
     )
   }

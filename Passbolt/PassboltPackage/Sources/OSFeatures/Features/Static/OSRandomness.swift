@@ -45,7 +45,7 @@ extension OSRandomness: StaticFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(
-      nextValue: unimplemented()
+      nextValue: unimplemented0()
     )
   }
   #endif

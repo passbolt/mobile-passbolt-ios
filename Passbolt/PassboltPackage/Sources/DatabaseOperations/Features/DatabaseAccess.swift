@@ -50,8 +50,8 @@ extension DatabaseAccess: LoadableFeature {
   #if DEBUG
   public nonisolated static var placeholder: Self {
     Self(
-      openConnection: unimplemented(),
-      delete: unimplemented()
+      openConnection: unimplemented2(),
+      delete: unimplemented1()
     )
   }
   #endif

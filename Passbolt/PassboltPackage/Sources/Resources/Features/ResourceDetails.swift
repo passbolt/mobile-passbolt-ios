@@ -48,8 +48,8 @@ extension ResourceDetails: LoadableFeature {
 
   public static var placeholder: Self {
     Self(
-      details: unimplemented(),
-      secret: unimplemented()
+      details: unimplemented0(),
+      secret: unimplemented0()
     )
   }
   #endif

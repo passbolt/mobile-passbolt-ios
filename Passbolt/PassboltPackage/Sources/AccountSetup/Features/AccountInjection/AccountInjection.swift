@@ -41,7 +41,7 @@ extension AccountInjection: LoadableFeature {
   #if DEBUG
   public nonisolated static var placeholder: Self {
     .init(
-      injectPreconfiguredAccounts: unimplemented()
+      injectPreconfiguredAccounts: unimplemented0()
     )
   }
   #endif

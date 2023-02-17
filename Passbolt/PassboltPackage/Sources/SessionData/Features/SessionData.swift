@@ -47,8 +47,8 @@ extension SessionData: LoadableFeature {
   nonisolated public static var placeholder: Self {
     .init(
       updatesSequence: .placeholder,
-      refreshIfNeeded: unimplemented(),
-      withLocalUpdate: unimplemented()
+      refreshIfNeeded: unimplemented0(),
+      withLocalUpdate: unimplemented1()
     )
   }
   #endif

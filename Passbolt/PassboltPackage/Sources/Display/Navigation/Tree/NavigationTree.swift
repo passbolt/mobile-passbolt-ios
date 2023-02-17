@@ -25,6 +25,7 @@ import Commons
 import Features
 import UIKit
 
+@available(*, deprecated, message: "Please switch to `NavigationTo`")
 public struct NavigationTree {
 
   internal var state: MutableViewState<NavigationTreeState>

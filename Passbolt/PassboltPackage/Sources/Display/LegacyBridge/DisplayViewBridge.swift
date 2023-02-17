@@ -121,7 +121,7 @@ where HostedView: ControlledView {
 // module placement required by dependency tree
 private struct DisplayViewBridgeBackVisibilityEnvironmentKey: EnvironmentKey {
 
-  static let defaultValue: (Bool) -> Void = unimplemented()
+  static let defaultValue: (Bool) -> Void = unimplemented1()
 }
 
 extension EnvironmentValues {

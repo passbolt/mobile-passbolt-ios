@@ -43,7 +43,7 @@ extension ConfigurationExtensionContext: StaticFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      completeExtensionConfiguration: unimplemented()
+      completeExtensionConfiguration: unimplemented0()
     )
   }
   #endif

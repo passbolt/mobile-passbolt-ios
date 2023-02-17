@@ -42,8 +42,8 @@ extension SessionStateEnsurance: LoadableFeature {
   #if DEBUG
   nonisolated internal static var placeholder: Self {
     Self(
-      passphrase: unimplemented(),
-      accessToken: unimplemented()
+      passphrase: unimplemented1(),
+      accessToken: unimplemented1()
     )
   }
   #endif

@@ -195,27 +195,12 @@ extension ResourceMenuController: UIController {
               .loadResourceSecret(resourceDetails.id)
               .map { resourceSecret -> AnyPublisher<Void, Error> in
                 if let secret: String = resourceSecret[dynamicMember: field.name.rawValue] {
-                  guard let url: URL = URL(string: secret)
-                  else {
-                    return Fail<Void, Error>(error: InvalidResourceData.error())
-                      .eraseToAnyPublisher()
-                  }
-
-                  return
-                    linkOpener
-                    .openURL(url)
-                    .map { opened -> AnyPublisher<Void, Error> in
-                      if opened {
-                        return Just(Void())
-                          .eraseErrorType()
-                          .eraseToAnyPublisher()
-                      }
-                      else {
-                        return Fail(error: URLOpeningFailure.error())
-                          .eraseToAnyPublisher()
-                      }
+                  return Just(Void())
+                    .setFailureType(to: Error.self)
+                    .asyncMap {
+                      try await linkOpener
+                        .openURL(.init(rawValue: secret))
                     }
-                    .switchToLatest()
                     .eraseToAnyPublisher()
                 }
                 else if !field.required {
@@ -232,27 +217,13 @@ extension ResourceMenuController: UIController {
               .eraseToAnyPublisher()
           }
           else if let value: String = resourceDetails.url {
-            guard let url: URL = URL(string: value)
-            else {
-              return Fail<Void, Error>(error: InvalidResourceData.error())
-                .eraseToAnyPublisher()
-            }
 
-            return
-              linkOpener
-              .openURL(url)
-              .map { opened -> AnyPublisher<Void, Error> in
-                if opened {
-                  return Just(Void())
-                    .eraseErrorType()
-                    .eraseToAnyPublisher()
-                }
-                else {
-                  return Fail<Void, Error>(error: URLOpeningFailure.error())
-                    .eraseToAnyPublisher()
-                }
+            return Just(Void())
+              .setFailureType(to: Error.self)
+              .asyncMap {
+                try await linkOpener
+                  .openURL(.init(rawValue: value))
               }
-              .switchToLatest()
               .eraseToAnyPublisher()
           }
           else {

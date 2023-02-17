@@ -90,9 +90,9 @@ extension AccountChunkedExport: LoadableFeature {
   public static var placeholder: Self {
     .init(
       updates: .placeholder,
-      status: unimplemented(),
-      authorize: unimplemented(),
-      cancel: unimplemented()
+      status: unimplemented0(),
+      authorize: unimplemented1(),
+      cancel: unimplemented0()
     )
   }
   #endif

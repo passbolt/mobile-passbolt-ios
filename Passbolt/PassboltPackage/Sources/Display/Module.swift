@@ -32,5 +32,6 @@ extension FeaturesRegistry {
   public mutating func useLiveDisplay() {
     self.useLiveLegacyNavigationBridge()
     self.useLiveDisplayNavigation()
+    self.useLiveNavigationResolver()
   }
 }

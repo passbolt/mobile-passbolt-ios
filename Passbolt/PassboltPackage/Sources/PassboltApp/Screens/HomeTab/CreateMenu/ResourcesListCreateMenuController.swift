@@ -48,9 +48,9 @@ extension ResourcesListCreateMenuController: ViewController {
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder(),
-      createResource: unimplemented(),
-      createFolder: unimplemented(),
-      close: unimplemented()
+      createResource: unimplemented0(),
+      createFolder: unimplemented0(),
+      close: unimplemented0()
     )
   }
   #endif

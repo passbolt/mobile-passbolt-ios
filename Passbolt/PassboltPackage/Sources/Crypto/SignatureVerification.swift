@@ -42,7 +42,7 @@ extension SignatureVerification: StaticFeature {
   #if DEBUG
   public nonisolated static var placeholder: Self {
     .init(
-      verify: unimplemented()
+      verify: unimplemented3()
     )
   }
   #endif

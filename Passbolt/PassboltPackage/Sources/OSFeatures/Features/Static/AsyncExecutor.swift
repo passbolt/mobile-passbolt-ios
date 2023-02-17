@@ -35,8 +35,8 @@ extension AsyncExecutor: LoadableFeature {
   #if DEBUG
   public nonisolated static var placeholder: AsyncExecutor {
     .init(
-      cancelTasks: unimplemented(),
-      execute: unimplemented()
+      cancelTasks: unimplemented0(),
+      execute: unimplemented3()
     )
   }
   #endif

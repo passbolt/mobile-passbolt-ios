@@ -118,8 +118,8 @@ extension OSStoredProperties {
 
   public static var placeholder: Self {
     Self(
-      fetch: unimplemented(),
-      store: unimplemented()
+      fetch: unimplemented1(),
+      store: unimplemented2()
     )
   }
 }

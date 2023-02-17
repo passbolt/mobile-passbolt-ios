@@ -45,7 +45,7 @@ extension ResourceFavorites: LoadableFeature {
 
   public static var placeholder: Self {
     Self(
-      toggleFavorite: unimplemented()
+      toggleFavorite: unimplemented0()
     )
   }
   #endif

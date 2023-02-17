@@ -21,52 +21,27 @@
 // @since         v1.0
 //
 
-import Accounts
-import UICommons
-import UIComponents
+import Commons
 
-internal final class DisableBiometricsAlertViewController:
-  AlertViewController<DisableBiometricsAlertController>, UIComponent
-{
+public struct URLOpeningFailed: TheError {
 
-  internal func setup() {
-    mut(self) {
-      .combined(
-        .title(.localized(key: "account.settings.alert.title")),
-        .message(.localized(key: "account.settings.biometrics.alert.message")),
-        .action(
-          .localized(key: .cancel),
-          style: .cancel,
-          accessibilityIdentifier: "alert.button.cancel",
-          handler: {}
-        ),
-        .action(
-          .localized(key: .disable),
-          style: .destructive,
-          accessibilityIdentifier: "alert.button.confirm",
-          handler: controller.disable
-        )
-      )
-    }
-  }
-}
-
-internal struct DisableBiometricsAlertController {
-
-  internal var disable: () -> Void
-}
-
-extension DisableBiometricsAlertController: UIController {
-
-  internal typealias Context = () -> Void
-
-  internal static func instance(
-    in context: @escaping Context,
-    with features: inout Features,
-    cancellables: Cancellables
-  ) -> DisableBiometricsAlertController {
+  public static func error(
+    _ message: StaticString = "URLOpeningFailed",
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
     Self(
-      disable: context
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
+        )
+      ),
+      displayableMessage: .localized(key: "generic.error")
     )
   }
+
+  public var context: DiagnosticsContext
+  public var displayableMessage: DisplayableString
 }

@@ -39,7 +39,7 @@ extension SessionMFAAuthorization: LoadableFeature {
   #if DEBUG
   nonisolated internal static var placeholder: Self {
     Self(
-      authorizeMFA: unimplemented()
+      authorizeMFA: unimplemented1()
     )
   }
   #endif

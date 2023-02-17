@@ -46,7 +46,7 @@ extension ApplicationLifecycle: StaticFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      lifecyclePublisher: unimplemented()
+      lifecyclePublisher: unimplemented0()
     )
   }
   #endif

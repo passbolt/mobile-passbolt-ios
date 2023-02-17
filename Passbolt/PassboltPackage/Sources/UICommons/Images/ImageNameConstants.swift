@@ -30,7 +30,7 @@ extension ImageNameConstant {
   public static var arrowLeft: Self { "ArrowLeft" }
   public static var help: Self { "Help" }
   public static var homeTab: Self { "HomeTab" }
-  public static var settingsTab: Self { "SettingsTab" }
+  public static var settings: Self { "SettingsTab" }
   public static var trash: Self { "Trash" }
   public static var plus: Self { "Plus" }
   public static var exit: Self { "Exit" }
@@ -77,6 +77,8 @@ extension ImageNameConstant {
   public static var circleSelected: Self { "CircleSelected" }
   public static var circleUnselected: Self { "CircleUnselected" }
   public static var mobileTransfer: Self { "MobileTransfer" }
+  public static var file: Self { "File" }
+  public static var feather: Self { "Feather" }
 
   // Dynamic images - rendered according to interface (Light/Dark)
   public static var accountsSkeleton: Self { "AccountsSkeleton" }

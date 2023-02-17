@@ -72,10 +72,10 @@ extension AutofillExtensionContext: StaticFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      completeWithCredential: unimplemented(),
-      completeWithError: unimplemented(),
-      cancelAndCloseExtension: unimplemented(),
-      requestedServiceIdentifiers: unimplemented()
+      completeWithCredential: unimplemented1(),
+      completeWithError: unimplemented1(),
+      cancelAndCloseExtension: unimplemented0(),
+      requestedServiceIdentifiers: unimplemented0()
     )
   }
   #endif

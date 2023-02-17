@@ -38,7 +38,7 @@ extension OSTime: StaticFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(
-      timestamp: unimplemented()
+      timestamp: unimplemented0()
     )
   }
   #endif

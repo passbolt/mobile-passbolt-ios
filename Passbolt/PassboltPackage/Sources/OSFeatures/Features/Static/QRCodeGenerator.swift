@@ -38,7 +38,7 @@ extension QRCodeGenerator: StaticFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(
-      generateQRCode: unimplemented()
+      generateQRCode: unimplemented1()
     )
   }
   #endif

@@ -125,9 +125,9 @@ extension HomePresentation {
 
   static var placeholder: Self {
     Self(
-      currentPresentationModePublisher: unimplemented(),
-      setPresentationMode: unimplemented(),
-      availableHomePresentationModes: unimplemented()
+      currentPresentationModePublisher: unimplemented0(),
+      setPresentationMode: unimplemented1(),
+      availableHomePresentationModes: unimplemented0()
     )
   }
 }

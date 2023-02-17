@@ -79,7 +79,7 @@ extension ApplicationRating: LoadableFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(
-      showApplicationRatingIfRequired: unimplemented()
+      showApplicationRatingIfRequired: unimplemented0()
     )
   }
   #endif

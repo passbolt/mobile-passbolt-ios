@@ -55,7 +55,7 @@ extension YubiKey: StaticFeature {
 
   #if DEBUG
   public static var placeholder: Self {
-    Self(read: unimplemented())
+    Self(read: unimplemented0())
   }
   #endif
 }

@@ -67,8 +67,8 @@ extension SessionCryptography: LoadableFeature {
   #if DEBUG
   public nonisolated static var placeholder: Self {
     Self(
-      decryptMessage: unimplemented(),
-      encryptAndSignMessage: unimplemented()
+      decryptMessage: unimplemented2(),
+      encryptAndSignMessage: unimplemented2()
     )
   }
   #endif

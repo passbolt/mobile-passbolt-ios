@@ -28,6 +28,8 @@ internal final class SettingsTabViewController: NavigationViewController, UIComp
 
   internal typealias Controller = SettingsTabController
 
+  internal override class var disableSystemBackNavigation: Bool { false }
+
   internal static func instance(
     using controller: Controller,
     with components: UIComponentFactory,
@@ -59,14 +61,10 @@ internal final class SettingsTabViewController: NavigationViewController, UIComp
     mut(tabBarItem) {
       .combined(
         .title(.localized(key: "tab.settings")),
-        .image(named: .settingsTab, from: .uiCommons)
+        .image(named: .settings, from: .uiCommons)
       )
     }
-    self.cancellables.executeOnMainActor { [weak self] in
-      guard let self = self else { return }
-      await self.replaceNavigationRoot(
-        with: SettingsViewController.self
-      )
-    }
+
+    self.viewControllers = [self.controller.content]
   }
 }

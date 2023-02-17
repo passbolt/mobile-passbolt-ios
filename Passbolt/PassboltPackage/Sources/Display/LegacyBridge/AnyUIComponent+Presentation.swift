@@ -27,7 +27,7 @@ import UIComponents  // LegacyBridge only
 
 extension AnyUIComponent {
 
-  @available(*, deprecated, message: "Please switch to `NavigationTree`")
+  @available(*, deprecated, message: "Please switch to `NavigationTo`")
   @MainActor public func push<DisplayComponent>(
     _ type: DisplayComponent.Type,
     controller: DisplayComponent.Controller,
@@ -40,7 +40,7 @@ extension AnyUIComponent {
     )
   }
 
-  @available(*, deprecated, message: "Please switch to `NavigationTree`")
+  @available(*, deprecated, message: "Please switch to `NavigationTo`")
   @MainActor public func pop<DisplayComponent>(
     if type: DisplayComponent.Type,
     animated: Bool = true
@@ -51,7 +51,7 @@ extension AnyUIComponent {
     )
   }
 
-  @available(*, deprecated, message: "Please switch to `NavigationTree`")
+  @available(*, deprecated, message: "Please switch to `NavigationTo`")
   @MainActor public func present<DisplayComponent>(
     _ type: DisplayComponent.Type,
     controller: DisplayComponent.Controller,
@@ -64,7 +64,7 @@ extension AnyUIComponent {
     )
   }
 
-  @available(*, deprecated, message: "Please switch to `NavigationTree`")
+  @available(*, deprecated, message: "Please switch to `NavigationTo`")
   @MainActor public func dismiss<DisplayComponent>(
     type: DisplayComponent.Type,
     animated: Bool = true
@@ -75,7 +75,7 @@ extension AnyUIComponent {
     )
   }
 
-  @available(*, deprecated, message: "Please switch to `NavigationTree`")
+  @available(*, deprecated, message: "Please switch to `NavigationTo`")
   @MainActor public func presentSheet<DisplayComponent>(
     _ type: DisplayComponent.Type,
     controller: DisplayComponent.Controller,
@@ -88,7 +88,7 @@ extension AnyUIComponent {
     )
   }
 
-  @available(*, deprecated, message: "Please switch to `NavigationTree`")
+  @available(*, deprecated, message: "Please switch to `NavigationTo`")
   @MainActor public func dismissSheet<DisplayComponent>(
     _ type: DisplayComponent.Type,
     animated: Bool = true

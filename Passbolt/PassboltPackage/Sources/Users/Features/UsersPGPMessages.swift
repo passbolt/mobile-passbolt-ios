@@ -80,9 +80,9 @@ extension UsersPGPMessages: LoadableFeature {
 
   public static var placeholder: Self {
     Self(
-      encryptMessageForUsers: unimplemented(),
-      encryptMessageForResourceUsers: unimplemented(),
-      encryptMessageForResourceFolderUsers: unimplemented()
+      encryptMessageForUsers: unimplemented2(),
+      encryptMessageForResourceUsers: unimplemented2(),
+      encryptMessageForResourceFolderUsers: unimplemented2()
     )
   }
   #endif

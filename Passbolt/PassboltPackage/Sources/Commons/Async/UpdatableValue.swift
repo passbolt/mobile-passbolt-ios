@@ -115,7 +115,7 @@ extension UpdatableValue {
   public static var placeholder: Self {
     .init(
       updatesSequence: .placeholder,
-      update: unimplemented()
+      update: unimplemented0()
     )
   }
 

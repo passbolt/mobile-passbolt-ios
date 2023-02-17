@@ -24,7 +24,10 @@
 import Accounts
 import UIComponents
 
-internal struct SettingsTabController {}
+internal struct SettingsTabController {
+
+  internal var content: UIViewController
+}
 
 extension SettingsTabController: UIController {
 
@@ -35,6 +38,19 @@ extension SettingsTabController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) -> Self {
-    Self()
+    do {
+      return try .init(
+        content: UIHostingController(
+          rootView: MainSettingsView(
+            controller: features.instance()
+          )
+        )
+      )
+    }
+    catch {
+      error
+        .asTheError()
+        .asFatalError(message: "Failed to initilize settings tab")
+    }
   }
 }

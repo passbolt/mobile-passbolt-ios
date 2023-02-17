@@ -45,8 +45,8 @@ extension ResourceFolders: LoadableFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      details: unimplemented(),
-      filteredFolderContent: unimplemented()
+      details: unimplemented1(),
+      filteredFolderContent: unimplemented1()
     )
   }
   #endif

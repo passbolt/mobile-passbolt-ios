@@ -51,9 +51,9 @@ extension ResourceFolderPermissionListController: ViewController {
   static var placeholder: Self {
     .init(
       viewState: .placeholder(),
-      showUserPermissionDetails: unimplemented(),
-      showUserGroupPermissionDetails: unimplemented(),
-      navigateBack: unimplemented()
+      showUserPermissionDetails: unimplemented1(),
+      showUserGroupPermissionDetails: unimplemented1(),
+      navigateBack: unimplemented0()
     )
   }
   #endif

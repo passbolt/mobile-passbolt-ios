@@ -42,6 +42,8 @@ extension ExtensionSetupController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
+    let diagnostics: OSDiagnostics = features.instance()
+
     let currentAccount: Account = try features.sessionAccount()
     let accountInitialSetup: AccountInitialSetup = try features.instance(context: currentAccount)
     let extensions: OSExtensions = features.instance()
@@ -56,9 +58,17 @@ extension ExtensionSetupController: UIController {
     }
 
     func setupExtension() -> AnyPublisher<Never, Error> {
-      linkOpener
-        .openSystemSettings()
-        .map { (_: Bool) -> AnyPublisher<Bool, Never> in
+      Just(Void())
+        .asyncMap { _ -> Void in
+          do {
+            try await linkOpener
+              .openSystemSettings()
+          }
+          catch {
+            diagnostics.log(error: error)
+          }
+        }
+        .map { (_: Void) -> AnyPublisher<Bool, Never> in
           applicationLifecycle.lifecyclePublisher()
             .asyncMap { _ in
               await extensions.autofillExtensionEnabled()

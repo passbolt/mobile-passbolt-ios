@@ -63,9 +63,9 @@ extension SessionNetworkAuthorization: LoadableFeature {
   #if DEBUG
   nonisolated internal static var placeholder: Self {
     Self(
-      createSessionTokens: unimplemented(),
-      refreshSessionTokens: unimplemented(),
-      invalidateSessionTokens: unimplemented()
+      createSessionTokens: unimplemented2(),
+      refreshSessionTokens: unimplemented3(),
+      invalidateSessionTokens: unimplemented2()
     )
   }
   #endif

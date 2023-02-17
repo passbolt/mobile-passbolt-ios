@@ -23,6 +23,7 @@
 
 import UIKit
 
+@available(*, deprecated, message: "Please switch to `NavigationTo`")
 public protocol NavigationTreeRootViewAnchor {
 
   @MainActor func setRoot<RootView>(

@@ -26,6 +26,7 @@ import UIKit
 
 @MainActor open class NavigationViewController: UINavigationController {
 
+  open class var disableSystemBackNavigation: Bool { true }
   public var cancellables: Cancellables
 
   @MainActor public init(
@@ -58,7 +59,7 @@ import UIKit
   override open func loadView() {
     super.loadView()
     view.backgroundColor = .passboltBackground
-    interactivePopGestureRecognizer?.isEnabled = false
+    interactivePopGestureRecognizer?.isEnabled = !Self.disableSystemBackNavigation
   }
 
   override open func viewDidLoad() {
@@ -112,6 +113,7 @@ import UIKit
     else {
       /* NOP */
     }
+
     CATransaction.begin()
     CATransaction.setCompletionBlock {
       (viewController.navigationItem.backBarButtonItem?.menu = UIMenu(
@@ -124,6 +126,7 @@ import UIKit
     }
     super.pushViewController(viewController, animated: animated)
     CATransaction.commit()
+
   }
 
   open override func popViewController(animated: Bool) -> UIViewController? {

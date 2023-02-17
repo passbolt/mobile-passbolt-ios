@@ -34,8 +34,8 @@ extension OSPasteboard: StaticFeature {
   #if DEBUG
   public static var placeholder: OSPasteboard {
     Self(
-      get: unimplemented(),
-      put: unimplemented()
+      get: unimplemented0(),
+      put: unimplemented1()
     )
   }
   #endif

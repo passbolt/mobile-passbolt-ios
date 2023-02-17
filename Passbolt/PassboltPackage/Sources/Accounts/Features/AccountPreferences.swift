@@ -70,9 +70,9 @@ extension AccountPreferences: LoadableFeature {
   nonisolated public static var placeholder: Self {
     Self(
       updates: .placeholder,
-      setLocalAccountLabel: unimplemented(),
-      isPassphraseStored: unimplemented(),
-      storePassphrase: unimplemented(),
+      setLocalAccountLabel: unimplemented1(),
+      isPassphraseStored: unimplemented0(),
+      storePassphrase: unimplemented1(),
       useLastHomePresentationAsDefault: .placeholder,
       defaultHomePresentation: .placeholder
     )

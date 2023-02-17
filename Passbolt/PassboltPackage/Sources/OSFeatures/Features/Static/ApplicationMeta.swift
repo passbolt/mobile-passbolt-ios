@@ -37,7 +37,7 @@ extension ApplicationMeta: StaticFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(
-      applicationVersion: unimplemented()
+      applicationVersion: unimplemented0()
     )
   }
   #endif

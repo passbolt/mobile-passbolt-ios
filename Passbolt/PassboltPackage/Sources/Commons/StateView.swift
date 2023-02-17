@@ -134,7 +134,7 @@ extension StateView {
   #if DEBUG
   public static var placeholder: Self {
     .init(
-      read: unimplemented(),
+      read: unimplemented0(),
       updatesPublisher: Empty()
         .eraseToAnyPublisher()
     )

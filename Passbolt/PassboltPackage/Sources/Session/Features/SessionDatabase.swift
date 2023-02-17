@@ -47,7 +47,7 @@ extension SessionDatabase: LoadableFeature {
   #if DEBUG
   public nonisolated static var placeholder: Self {
     Self(
-      connection: unimplemented()
+      connection: unimplemented0()
     )
   }
   #endif

@@ -83,10 +83,8 @@ final class BiometricsInfoScreenTests: MainActorTestCase {
     )
     features.patch(
       \OSLinkOpener.openSystemSettings,
-      with: {
+      with: { () async throws -> Void in
         uncheckedSendableResult.variable = Void()
-        return Just(true)
-          .eraseToAnyPublisher()
       }
     )
     features.patch(
@@ -112,6 +110,9 @@ final class BiometricsInfoScreenTests: MainActorTestCase {
       .store(in: cancellables)
 
     controller.setupBiometrics()
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertNotNil(result)
   }
@@ -170,10 +171,7 @@ final class BiometricsInfoScreenTests: MainActorTestCase {
   func test_presentationDestinationPublisher_publishBiometrySetup_afterSetup_withBiometricsAvailable() async throws {
     features.patch(
       \OSLinkOpener.openSystemSettings,
-      with: always(
-        Just(true)
-          .eraseToAnyPublisher()
-      )
+      with: { () async throws -> Void in }
     )
     features.patch(
       \ApplicationLifecycle.lifecyclePublisher,
@@ -210,10 +208,7 @@ final class BiometricsInfoScreenTests: MainActorTestCase {
   func test_presentationDestinationPublisher_doesNotPublish_afterSetup_withBiometricsUnavailable() async throws {
     features.patch(
       \OSLinkOpener.openSystemSettings,
-      with: always(
-        Just(true)
-          .eraseToAnyPublisher()
-      )
+      with: { () async throws -> Void in }
     )
     features.patch(
       \OSBiometry.availability,

@@ -39,11 +39,11 @@ extension OSKeychain: StaticFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      load: unimplemented(),
-      loadMeta: unimplemented(),
-      checkIfExists: unimplemented(),
-      save: unimplemented(),
-      delete: unimplemented()
+      load: unimplemented1(),
+      loadMeta: unimplemented1(),
+      checkIfExists: unimplemented1(),
+      save: unimplemented2(),
+      delete: unimplemented1()
     )
   }
   #endif
