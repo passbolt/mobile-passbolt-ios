@@ -382,7 +382,7 @@ nonisolated let mockDataPart_0: Data =
   + (try! mockDataEncoder.encode(AccountTransferConfiguration.mock_ada))  // current mock data fits in one page
 let mockDataPart_1: Data =
   "101".data(using: .ascii)!
-  + (try! mockDataEncoder.encode(AccountTransferData.mock_ada))  // current mock data fits in one page
+  + (try! mockDataEncoder.encode(AccountTransferAccount.mock_ada))  // current mock data fits in one page
 
 extension AccountChunkedExportInitializeRequestData: Equatable {
 

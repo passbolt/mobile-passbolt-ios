@@ -86,9 +86,14 @@ extension AccountChunkedExport {
     }
 
     @Sendable nonisolated func encodePayload(
-      _ payload: AccountTransferData,
+      _ transferData: AccountTransferData,
       chunkSize: Int
     ) throws -> (encodedData: Data, pagesCount: Int, dataHash: String) {
+			let payload: AccountTransferAccount = .init(
+				userID: transferData.userID,
+				fingerprint: transferData.fingerprint,
+				armoredKey: transferData.armoredKey
+			)
       let encodedPayload: Data = try dataEncoder.encode(payload)
 
       let payloadDataHash: String =

@@ -21,19 +21,15 @@
 // @since         v1.0
 //
 
+import Accounts
+@testable import PassboltAccountSetup
 import CommonModels
 
-@testable import PassboltAccountSetup
+extension AccountTransferAccount {
 
-extension AccountTransferConfiguration {
-
-  public static let mock_ada: Self = .init(
-    transferID: "TRANSFER_ID",
-    pagesCount: 2,
-    userID: Account.mock_ada.userID,
-    authenticationToken: "TRANSFER_TOKEN",
-    domain: Account.mock_ada.domain,
-    hash:
-      "a960a8890b43b5f31e2b09ed23c618e37336a00e3a581d595cdd2a49581b06ebb19e596c76a8ec929ba4a6e20b40f4166d24c60334a258e078ffd94a286f4fec"
-  )
+	public static let mock_ada: Self = .init(
+		userID: AccountWithProfile.mock_ada.userID,
+		fingerprint: AccountWithProfile.mock_ada.fingerprint,
+		armoredKey: "PRIVATE_KEY"
+	)
 }

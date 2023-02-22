@@ -74,7 +74,7 @@ extension AccountTransferAccount {
   }
 }
 
-extension AccountTransferAccount: Decodable {
+extension AccountTransferAccount: Codable {
 
   internal enum CodingKeys: String, CodingKey {
 
