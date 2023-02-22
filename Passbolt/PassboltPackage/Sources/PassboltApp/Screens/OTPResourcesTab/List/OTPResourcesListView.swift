@@ -21,9 +21,34 @@
 // @since         v1.0
 //
 
-internal enum MainTab: Int, Equatable, CaseIterable {
+import Display
+import UICommons
 
-  case home = 0
-	case otpResources = 1
-  case settings = 2
+internal struct OTPResourcesListView: ControlledView {
+
+	private let controller: OTPResourcesListController
+
+	internal init(
+		controller: OTPResourcesListController
+	) {
+		self.controller = controller
+	}
+
+	internal var body: some View {
+		ScreenView(
+			title: .localized(
+				key: "TODO: MOB-1087"
+			),
+			contentView: {
+				self.content
+			}
+		)
+	}
+
+	@ViewBuilder @MainActor private var content: some View {
+		CommonList {
+			Text("TODO: MOB-1087")
+				.commonListRowModifiers()
+		}
+	}
 }

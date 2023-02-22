@@ -118,7 +118,23 @@ extension MainTabsViewController: UITabBarControllerDelegate {
 extension MainTabsViewController {
 
   fileprivate func initializeTabs() {
-    self.viewControllers = controller.tabComponents()
+		do {
+			self.viewControllers = [
+				try UIComponentFactory(features: self.components.features).instance(of: HomeTabNavigationViewController.self),
+				try OTPResourcesTabViewController(
+					controller: self.components.features.instance()
+				),
+				try UIComponentFactory(features: self.components.features).instance(of: SettingsTabViewController.self),
+			]
+		}
+		catch {
+			error
+				.asTheError()
+				.pushing(
+					.message("Preparing main tabs failed!")
+				)
+				.asFatalError()
+		}
   }
 
   fileprivate func setupSubscriptions() {

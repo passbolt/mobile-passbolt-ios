@@ -27,7 +27,7 @@ import ObjectiveC
 @MainActor
 public struct UIComponentFactory {
 
-  private let features: Features
+  public let features: Features
 
   public init(features: Features) {
     self.features = features

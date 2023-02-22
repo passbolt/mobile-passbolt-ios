@@ -209,6 +209,7 @@
 "extension.setup.later.button" = "Maybe later";
 
 "tab.home" = "Home";
+"tab.otp" = "OTP";
 "tab.settings" = "Settings";
 
 "authorization.prompt.refresh.session.reason" = "Please authenticate to refresh session";
@@ -362,78 +363,6 @@ Contact your administrator for more information.";
 "error.another.account.transfer.in.progress" = "There is another account transfer in progress. Please complete it first.";
 "resource.menu.action.failed" = "%@ failed!";
 "mfa.yubiKey.scan.failed" = "Scan failed";
-"home.presentation.mode.menu.title" = "Filter view by";
-"home.presentation.mode.plain.resources.title" = "All items";
-"home.presentation.mode.favorite.resources.title" = "Favorites";
-"home.presentation.mode.modified.resources.title" = "Recently modified";
-"home.presentation.mode.shared.resources.title" = "Shared with me";
-"home.presentation.mode.owned.resources.title" = "Owned by me";
-"home.presentation.mode.folders.explorer.title" = "Folders";
-"home.presentation.mode.folders.explorer.search.direct.results" = "in \"%@\":";
-"home.presentation.mode.folders.explorer.search.nested.results" = "in subfolders:";
-"home.presentation.mode.tags.explorer.title" = "Tags";
-"home.presentation.mode.resource.user.groups.explorer.title" = "Groups";
-
-
-// Settings - Main
-
-"settings.main.title" = "Settings";
-"settings.main.item.application.title" = "App settings";
-"settings.main.item.accounts.title" = "Accounts";
-"settings.main.item.terms.and.licenses.title" = "Terms & licenses";
-"settings.main.item.troubleshooting.title" = "Debug, logs";
-"settings.main.item.sign.out.title" = "Sign out";
-
-// Settings - Application
-
-"settings.application.title" = "App settings";
-"settings.application.item.autofill.title" = "Autofill";
-"settings.application.item.default.mode.title" = "Default filter";
-
-// Settings - Accounts
-
-"settings.accounts.title" = "Accounts";
-"settings.accounts.item.manage.title" = "Manage accounts";
-"settings.accounts.item.export.title" = "Transfer account to another device";
-
-// Settings - Terms & Licenses
-
-"settings.terms.and.licenses.title" = "Terms & licenses";
-"settings.terms.and.licenses.item.terms.title" = "Terms & conditions";
-"settings.terms.and.licenses.item.privacy.title" = "Privacy policy";
-"settings.terms.and.licenses.item.licenses.title" = "Open source licenses";
-
-// Settings - Troubleshooting
-
-"settings.troubleshooting.title" = "Debug, logs";
-"settings.troubleshooting.item.logs.title" = "Access the debug logs";
-"settings.troubleshooting.item.help.site.title" = "Visit help site";
-
-// Settings - Default presentation mode
-
-"settings.application.default.mode.title" = "Default filter";
-"settings.application.default.mode.option.last.used.title" = "Latest used (default)";
-
-// Settings - Disable biometrics alert
-
-"settings.application.biometrics.disable.alert.title" = "Are you sure?";
-"settings.application.biometrics.disable.alert.message" = "After disabling %@ you will need to login by using your passphrase.";
-"settings.application.biometrics.disable.alert.confirm.title" = "Disable biometrics";
-"settings.application.biometrics.disable.alert.cancel.title" = "Keep";
-
-// Settings - Sign out alert
-
-"settings.main.sign.out.alert.title" = "Are you sure?";
-"settings.main.sign.out.alert.message" = "If you sign out you will be logged out of your account on this device.";
-"settings.main.sign.out.alert.confirm.title" = "Sign out";
-
-// Biometric authorization availability
-
-"biometric.authorization.availability.unavailable" = "Unavailable";
-"biometric.authorization.availability.face.id" = "FaceID";
-"biometric.authorization.availability.touch.id" = "TouchID";
-
-// Errors
 
 "error.internal.inconsistency" = "Internal inconsistency, please report a bug.";
 "error.feature.unavailable" = "Feature unavailable.";
@@ -512,3 +441,80 @@ Contact your administrator for more information.";
 "error.biometrics.unavailable.message" = "Biometrics unavailable";
 
 "error.qrcode.generation.generic" = "QRCode could not be generated from provided data";
+
+// Home - presentation mode menu
+
+"home.presentation.mode.menu.title" = "Filter view by";
+
+// Presentation modes
+
+"home.presentation.mode.plain.resources.title" = "All items";
+"home.presentation.mode.favorite.resources.title" = "Favorites";
+"home.presentation.mode.modified.resources.title" = "Recently modified";
+"home.presentation.mode.shared.resources.title" = "Shared with me";
+"home.presentation.mode.owned.resources.title" = "Owned by me";
+"home.presentation.mode.folders.explorer.title" = "Folders";
+"home.presentation.mode.folders.explorer.search.direct.results" = "in \"%@\":";
+"home.presentation.mode.folders.explorer.search.nested.results" = "in subfolders:";
+"home.presentation.mode.tags.explorer.title" = "Tags";
+"home.presentation.mode.resource.user.groups.explorer.title" = "Groups";
+
+// OTP resources
+
+// Settings - Main
+
+"settings.main.title" = "Settings";
+"settings.main.item.application.title" = "App settings";
+"settings.main.item.accounts.title" = "Accounts";
+"settings.main.item.terms.and.licenses.title" = "Terms & licenses";
+"settings.main.item.troubleshooting.title" = "Debug, logs";
+"settings.main.item.sign.out.title" = "Sign out";
+
+// Settings - Application
+
+"settings.application.title" = "App settings";
+"settings.application.item.autofill.title" = "Autofill";
+"settings.application.item.default.mode.title" = "Default filter";
+
+// Settings - Accounts
+
+"settings.accounts.title" = "Accounts";
+"settings.accounts.item.manage.title" = "Manage accounts";
+"settings.accounts.item.export.title" = "Transfer account to another device";
+
+// Settings - Terms & Licenses
+
+"settings.terms.and.licenses.title" = "Terms & licenses";
+"settings.terms.and.licenses.item.terms.title" = "Terms & conditions";
+"settings.terms.and.licenses.item.privacy.title" = "Privacy policy";
+"settings.terms.and.licenses.item.licenses.title" = "Open source licenses";
+
+// Settings - Troubleshooting
+
+"settings.troubleshooting.title" = "Debug, logs";
+"settings.troubleshooting.item.logs.title" = "Access the debug logs";
+"settings.troubleshooting.item.help.site.title" = "Visit help site";
+
+// Settings - Default presentation mode
+
+"settings.application.default.mode.title" = "Default filter";
+"settings.application.default.mode.option.last.used.title" = "Latest used (default)";
+
+// Settings - Disable biometrics alert
+
+"settings.application.biometrics.disable.alert.title" = "Are you sure?";
+"settings.application.biometrics.disable.alert.message" = "After disabling %@ you will need to login by using your passphrase.";
+"settings.application.biometrics.disable.alert.confirm.title" = "Disable biometrics";
+"settings.application.biometrics.disable.alert.cancel.title" = "Keep";
+
+// Settings - Sign out alert
+
+"settings.main.sign.out.alert.title" = "Are you sure?";
+"settings.main.sign.out.alert.message" = "If you sign out you will be logged out of your account on this device.";
+"settings.main.sign.out.alert.confirm.title" = "Sign out";
+
+// Biometric authorization availability
+
+"biometric.authorization.availability.unavailable" = "Unavailable";
+"biometric.authorization.availability.face.id" = "FaceID";
+"biometric.authorization.availability.touch.id" = "TouchID";

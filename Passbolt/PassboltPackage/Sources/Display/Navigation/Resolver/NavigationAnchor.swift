@@ -78,16 +78,16 @@ extension NavigationAnchor {
     animated: Bool,
     file: StaticString,
     line: UInt
-  ) async {
+  ) async throws {
     guard let stack: UINavigationController = self.navigationStack
     else {
-      InternalInconsistency
+      throw InternalInconsistency
         .error(
           "Invalid navigation - missing stack!",
           file: file,
           line: line
         )
-        .asFatalError()
+        .asAssertionFailure()
     }
     return await withCheckedContinuation { continuation in
       CATransaction.begin()

@@ -21,9 +21,28 @@
 // @since         v1.0
 //
 
-internal enum MainTab: Int, Equatable, CaseIterable {
+import Display
+import SharedUIComponents
 
-  case home = 0
-	case otpResources = 1
-  case settings = 2
+internal enum OTPResourcesTabNavigationDestination: NavigationDestination {}
+
+internal typealias NavigationToOTPResourcesTab = NavigationTo<OTPResourcesTabNavigationDestination>
+
+extension NavigationToOTPResourcesTab {
+
+	fileprivate static var live: FeatureLoader {
+		legacyTabSwitch(
+			to: OTPResourcesTabViewController.self
+		)
+	}
+}
+
+extension FeaturesRegistry {
+
+	internal mutating func useLiveNavigationToOTPResourcesTab() {
+		self.use(
+			NavigationToOTPResourcesTab.live,
+			in: SessionScope.self
+		)
+	}
 }

@@ -21,9 +21,68 @@
 // @since         v1.0
 //
 
-internal enum MainTab: Int, Equatable, CaseIterable {
+import Display
+import OSFeatures
 
-  case home = 0
-	case otpResources = 1
-  case settings = 2
+// MARK: - Interface
+
+internal struct OTPResourcesTabController {
+
+	@Stateless internal var viewState
+
+	// Temporary solution for providing stack initial element.
+	internal var prepareListController: @MainActor () -> OTPResourcesListController
+}
+
+extension OTPResourcesTabController: ViewController {
+
+	#if DEBUG
+	internal static var placeholder: Self {
+		.init(
+			prepareListController: unimplemented0()
+		)
+	}
+	#endif
+}
+
+// MARK: - Implementation
+
+extension OTPResourcesTabController {
+
+	@MainActor fileprivate static func load(
+		features: Features
+	) throws -> Self {
+		try features.ensureScope(SessionScope.self)
+
+		@MainActor func prepareListController() -> OTPResourcesListController {
+			do {
+				return try features.instance()
+			}
+			catch {
+				error
+					.asTheError()
+					.pushing(
+						.message("Preparing OTP tab list failed!")
+					)
+					.asFatalError()
+			}
+		}
+
+		return .init(
+			prepareListController: prepareListController
+		)
+	}
+}
+
+extension FeaturesRegistry {
+
+	internal mutating func useLiveOTPResourcesTabController() {
+		self.use(
+			.disposable(
+				OTPResourcesTabController.self,
+				load: OTPResourcesTabController.load(features:)
+			),
+			in: SessionScope.self
+		)
+	}
 }

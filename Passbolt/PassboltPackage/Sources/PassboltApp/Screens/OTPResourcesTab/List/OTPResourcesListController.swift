@@ -21,9 +21,63 @@
 // @since         v1.0
 //
 
-internal enum MainTab: Int, Equatable, CaseIterable {
+import Display
+import OSFeatures
 
-  case home = 0
-	case otpResources = 1
-  case settings = 2
+// MARK: - Interface
+
+internal struct OTPResourcesListController {
+
+	internal var viewState: MutableViewState<ViewState>
+}
+
+extension OTPResourcesListController: ViewController {
+
+	internal struct ViewState: Equatable {
+
+	}
+
+	#if DEBUG
+	internal static var placeholder: Self {
+		.init(
+			viewState: .placeholder()
+		)
+	}
+	#endif
+}
+
+// MARK: - Implementation
+
+extension OTPResourcesListController {
+
+	@MainActor fileprivate static func load(
+		features: Features
+	) throws -> Self {
+		try features.ensureScope(SessionScope.self)
+
+		let diagnostics: OSDiagnostics = features.instance()
+
+		let asyncExecutor: AsyncExecutor = try features.instance()
+
+		let viewState: MutableViewState<ViewState> = .init(
+			initial: .init()
+		)
+
+		return .init(
+			viewState: viewState
+		)
+	}
+}
+
+extension FeaturesRegistry {
+
+	internal mutating func useLiveOTPResourcesListController() {
+		self.use(
+			.disposable(
+				OTPResourcesListController.self,
+				load: OTPResourcesListController.load(features:)
+			),
+			in: SessionScope.self
+		)
+	}
 }

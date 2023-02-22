@@ -30,8 +30,6 @@ import UIComponents
 internal struct MainTabsController {
 
   internal var setActiveTab: @MainActor (MainTab) -> Void
-  // temporary solution to avoid blinking after authorization
-  internal var tabComponents: @MainActor () -> Array<AnyUIComponent>
   internal var activeTabPublisher: @MainActor () -> AnyPublisher<MainTab, Never>
   internal var initialModalPresentation: @MainActor () -> AnyPublisher<ModalPresentation?, Never>
 }
@@ -68,19 +66,9 @@ extension MainTabsController: UIController {
     let osBiometry: OSBiometry = features.instance()
 
     let activeTabSubject: CurrentValueSubject<MainTab, Never> = .init(.home)
-    // temporary solution to avoid blinking after authorization
-    // preload tabs so after presenting view all will be in place
-    let tabs: Array<AnyUIComponent> = [
-      try UIComponentFactory(features: features).instance(of: HomeTabNavigationViewController.self),
-      try UIComponentFactory(features: features).instance(of: SettingsTabViewController.self),
-    ]
 
     func setActiveTab(_ tab: MainTab) {
       activeTabSubject.send(tab)
-    }
-
-    func tabComponents() -> Array<AnyUIComponent> {
-      tabs
     }
 
     func activeTabPublisher() -> AnyPublisher<MainTab, Never> {
@@ -118,7 +106,6 @@ extension MainTabsController: UIController {
 
     return Self(
       setActiveTab: setActiveTab,
-      tabComponents: tabComponents,
       activeTabPublisher: activeTabPublisher,
       initialModalPresentation: initialModalPresentation
     )

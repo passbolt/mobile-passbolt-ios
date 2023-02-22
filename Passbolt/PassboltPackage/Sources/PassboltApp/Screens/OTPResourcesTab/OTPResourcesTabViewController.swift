@@ -21,9 +21,43 @@
 // @since         v1.0
 //
 
-internal enum MainTab: Int, Equatable, CaseIterable {
+import UICommons
+import UIComponents
 
-  case home = 0
-	case otpResources = 1
-  case settings = 2
+// This ViewController is a bridge for
+// legacy way of building views and navigating.
+// It does not suit UIComponent nor ControlledView
+// pattern just to allow bridging between worlds.
+// It will have to be removed/rewritten when
+// cleaning up main tabs navigation.
+internal final class OTPResourcesTabViewController: NavigationViewController {
+
+	internal override class var disableSystemBackNavigation: Bool { false }
+
+	private let controller: OTPResourcesTabController
+
+	internal init(
+		controller: OTPResourcesTabController
+	) {
+		self.controller = controller
+		super.init(cancellables: .init())
+		self.setup()
+	}
+
+	internal func setup() {
+		mut(tabBarItem) {
+			.combined(
+				.title(.localized(key: "tab.otp")),
+				.image(named: .otp, from: .uiCommons)
+			)
+		}
+
+		self.viewControllers = [
+			UIHostingController(
+				rootView: OTPResourcesListView(
+					controller: self.controller.prepareListController()
+				)
+			)
+		]
+	}
 }

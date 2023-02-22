@@ -44,7 +44,12 @@ extension FeaturesRegistry {
     // MARK: - Global
     self.useLiveNavigationToLogs()
 
-    // MARK: - Settings
+		// MARK: - OTP Tab
+		self.useLiveOTPResourcesTabController()
+		self.useLiveNavigationToOTPResourcesTab()
+		self.useLiveOTPResourcesListController()
+
+    // MARK: - Settings Tab
     self.useLiveMainSettingsController()
     self.useLiveTroubleshootingSettingsController()
     self.useLiveNavigationToTroubleshootingSettings()
