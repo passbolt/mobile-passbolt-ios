@@ -110,7 +110,7 @@ internal final class AccountDetailsView: KeyboardAwareView {
     let transferAccountButton: TextButton = .init()
     mut(transferAccountButton) {
       .combined(
-        .text(displayable: .localized(key: "account.settings.export.mobile")),
+        .text(displayable: .localized(key: "settings.accounts.item.export.title")),
         .linkStyle(),
         .action { transferAccountSubject.send() }
       )
