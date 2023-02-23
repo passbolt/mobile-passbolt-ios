@@ -21,56 +21,15 @@
 // @since         v1.0
 //
 
-import Display
+public struct OTPResourcesFilter {
 
-internal struct ResourceSearchDisplayView: ControlledView {
+  public var text: String
 
-  internal typealias Controller = ResourceSearchDisplayController
-
-  private let controller: ResourceSearchDisplayController
-
-  internal init(
-    controller: ResourceSearchDisplayController
+  public init(
+    text: String = .init()
   ) {
-    self.controller = controller
-  }
-
-  internal var body: some View {
-    WithViewState(from: self.controller) { state in
-      self.bodyView(with: state)
-    }
-    .task(self.controller.activate)
-  }
-
-  @MainActor @ViewBuilder private func bodyView(
-    with state: ViewState
-  ) -> some View {
-    SearchView(
-      prompt: .localized(key: "resources.search.placeholder"),
-      text: self.controller
-        .viewState
-        .binding(to: \.searchText),
-      leftAccessory: {
-        Button(
-          action: self.controller.showPresentationMenu,
-          label: { ImageWithPadding(4, named: .filter) }
-        )
-      },
-      rightAccessory: {
-        Button(
-          action: self.controller.signOut,
-          label: {
-            UserAvatarView(imageData: state.accountAvatar)
-              .padding(
-                trailing: 6
-              )
-          }
-        )
-      }
-    )
-    .padding(
-      top: 10,
-      bottom: 16
-    )
+    self.text = text
   }
 }
+
+extension OTPResourcesFilter: Hashable {}

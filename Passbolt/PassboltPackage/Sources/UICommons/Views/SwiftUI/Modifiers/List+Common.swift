@@ -30,14 +30,6 @@ extension List {
     self
       .foregroundColor(.passboltPrimaryText)
       .backgroundColor(.passboltBackground)
-      .listRowInsets(
-        EdgeInsets(
-          top: 12,
-          leading: 16,
-          bottom: 12,
-          trailing: 16
-        )
-      )
       .listStyle(.plain)
   }
 }

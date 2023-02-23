@@ -268,6 +268,17 @@ extension AnyUIComponent {
     )
   }
 
+  @MainActor public func presentSheetMenu<Component>(
+    _ type: Component.Type,
+    animated: Bool = true
+  ) async where Component: UIComponent, Component.Controller.Context == Void {
+    await present(
+      SheetMenuViewController<Component>.self,
+      in: Void(),
+      animated: animated
+    )
+  }
+
   @MainActor public func dismiss<Component>(
     _ type: Component.Type,
     animated: Bool = true

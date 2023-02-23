@@ -30,19 +30,19 @@ internal typealias NavigationToOTPResourcesTab = NavigationTo<OTPResourcesTabNav
 
 extension NavigationToOTPResourcesTab {
 
-	fileprivate static var live: FeatureLoader {
-		legacyTabSwitch(
-			to: OTPResourcesTabViewController.self
-		)
-	}
+  fileprivate static var live: FeatureLoader {
+    legacyTabSwitch(
+      to: OTPResourcesTabViewController.self
+    )
+  }
 }
 
 extension FeaturesRegistry {
 
-	internal mutating func useLiveNavigationToOTPResourcesTab() {
-		self.use(
-			NavigationToOTPResourcesTab.live,
-			in: SessionScope.self
-		)
-	}
+  internal mutating func useLiveNavigationToOTPResourcesTab() {
+    self.use(
+      NavigationToOTPResourcesTab.live,
+      in: SessionScope.self
+    )
+  }
 }

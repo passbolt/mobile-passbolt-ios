@@ -55,6 +55,11 @@ final class AccountDetailsControllerTests: MainActorTestCase {
       context: Account.mock_ada,
       with: always(.init())
     )
+    features.patch(
+      \AccountDetails.profile,
+      context: Account.mock_ada,
+      with: always(.mock_ada)
+    )
     preferencesUpdates = .init()
     features.patch(
       \AccountPreferences.updates,
@@ -64,9 +69,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
   }
 
   func test_currentAccountWithProfile_isEqualToProvidedInContext() async throws {
-    let controller: AccountDetailsController = try await testController(
-      context: AccountWithProfile.mock_ada
-    )
+    let controller: AccountDetailsController = try await testController()
 
     XCTAssertEqual(controller.currentAccountWithProfile, AccountWithProfile.mock_ada)
   }
@@ -87,9 +90,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
       }
     )
 
-    let controller: AccountDetailsController = try await testController(
-      context: AccountWithProfile.mock_ada
-    )
+    let controller: AccountDetailsController = try await testController()
 
     try await controller
       .currentAcountAvatarImagePublisher()
@@ -99,9 +100,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
   }
 
   func test_validatedAccountLabelPublisher_publishesInitialAccountLabel() async throws {
-    let controller: AccountDetailsController = try await testController(
-      context: AccountWithProfile.mock_ada
-    )
+    let controller: AccountDetailsController = try await testController()
 
     var result: Validated<String>?
     controller
@@ -115,9 +114,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
   }
 
   func test_validatedAccountLabelPublisher_publishesValidValueWhenLabelIsValid() async throws {
-    let controller: AccountDetailsController = try await testController(
-      context: AccountWithProfile.mock_ada
-    )
+    let controller: AccountDetailsController = try await testController()
 
     var result: Validated<String>?
     controller
@@ -133,9 +130,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
   }
 
   func test_validatedAccountLabelPublisher_publishesInvalidValueWhenLabelIsTooLong() async throws {
-    let controller: AccountDetailsController = try await testController(
-      context: AccountWithProfile.mock_ada
-    )
+    let controller: AccountDetailsController = try await testController()
 
     var result: Validated<String>?
     controller
@@ -151,9 +146,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
   }
 
   func test_updateCurrentAccountLabel_updatesLabel() async throws {
-    let controller: AccountDetailsController = try await testController(
-      context: AccountWithProfile.mock_ada
-    )
+    let controller: AccountDetailsController = try await testController()
 
     var result: Validated<String>?
     controller
@@ -169,9 +162,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
   }
 
   func test_saveChanges_fails_whenLabelValidationFails() async throws {
-    let controller: AccountDetailsController = try await testController(
-      context: AccountWithProfile.mock_ada
-    )
+    let controller: AccountDetailsController = try await testController()
 
     controller
       .updateCurrentAccountLabel(Array<String>(repeating: "a", count: 81).joined())
@@ -204,9 +195,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
       }
     )
 
-    let controller: AccountDetailsController = try await testController(
-      context: AccountWithProfile.mock_ada
-    )
+    let controller: AccountDetailsController = try await testController()
 
     controller.updateCurrentAccountLabel("")
 
@@ -224,9 +213,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let controller: AccountDetailsController = try await testController(
-      context: AccountWithProfile.mock_ada
-    )
+    let controller: AccountDetailsController = try await testController()
 
     var result: Error?
     do {
@@ -256,9 +243,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
       }
     )
 
-    let controller: AccountDetailsController = try await testController(
-      context: AccountWithProfile.mock_ada
-    )
+    let controller: AccountDetailsController = try await testController()
 
     try await controller
       .saveChanges()

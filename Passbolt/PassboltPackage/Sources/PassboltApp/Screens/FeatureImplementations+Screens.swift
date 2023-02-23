@@ -44,10 +44,16 @@ extension FeaturesRegistry {
     // MARK: - Global
     self.useLiveNavigationToLogs()
 
-		// MARK: - OTP Tab
-		self.useLiveOTPResourcesTabController()
-		self.useLiveNavigationToOTPResourcesTab()
-		self.useLiveOTPResourcesListController()
+    // MARK: - Session
+    self.useLiveNavigationToAccountMenu()
+    self.useLiveNavigationToAuthorization()
+    self.useLiveNavigationToAccountDetails()
+    self.useLiveNavigationToManageAccounts()
+
+    // MARK: - OTP Tab
+    self.useLiveOTPResourcesTabController()
+    self.useLiveNavigationToOTPResourcesTab()
+    self.useLiveOTPResourcesListController()
 
     // MARK: - Settings Tab
     self.useLiveMainSettingsController()
@@ -62,7 +68,6 @@ extension FeaturesRegistry {
     self.useLiveNavigationToAutofillSettings()
     self.useLiveAccountsSettingsController()
     self.useLiveNavigationToAccountsSettings()
-    self.useLiveNavigationToManageAccounts()
     self.useLiveNavigationToAccountExport()
   }
 }

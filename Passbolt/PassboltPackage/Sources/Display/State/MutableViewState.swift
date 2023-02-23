@@ -22,6 +22,7 @@
 //
 
 import Combine
+import Commons
 import SwiftUI
 
 @MainActor @dynamicMemberLookup
@@ -30,6 +31,7 @@ where State: Equatable & Sendable {
 
   public let cancellables: Cancellables = .init()
   internal let stateWillChange: AnyPublisher<State, Never>
+  internal let updates: UpdatesSequence
   private let read: @MainActor () -> State
   private let write: @MainActor (State) -> Void
   private nonisolated let cleanup: () -> Void
@@ -52,12 +54,15 @@ where State: Equatable & Sendable {
   ) {
     var state: State = initial
     let nextValueSubject: CurrentValueSubject<State, Never> = .init(initial)
+    let updatesSource: UpdatesSequenceSource = .init()
     self.read = { state }
     self.write = { (newValue: State) in
       nextValueSubject.send(newValue)
       state = newValue
+      updatesSource.sendUpdate()
     }
     self.stateWillChange = nextValueSubject.eraseToAnyPublisher()
+    self.updates = updatesSource.updatesSequence
     self.featuresContainer = container
     self.cleanup = cleanup
   }
@@ -71,6 +76,9 @@ where State: Equatable & Sendable {
     self.read = { fatalError("Can't read Never") }
     self.write = { _ in /* NOP */ }
     self.stateWillChange = Empty<State, Never>().eraseToAnyPublisher()
+    let updatesSource: UpdatesSequenceSource = .init()
+    updatesSource.endUpdates()
+    self.updates = updatesSource.updatesSequence
     self.featuresContainer = container
     self.cleanup = cleanup
   }
@@ -90,6 +98,7 @@ where State: Equatable & Sendable {
       line: line
     )
     self.stateWillChange = Empty<State, Never>().eraseToAnyPublisher()
+    self.updates = .placeholder
     self.featuresContainer = .none
     self.cleanup = { /* NOP */  }
   }
@@ -154,6 +163,18 @@ extension MutableViewState: Equatable {
     ViewNodeID(
       rawValue: ObjectIdentifier(self)
     )
+  }
+}
+
+extension MutableViewState: AsyncSequence {
+
+  public typealias Element = State
+  public typealias AsyncIterator = AsyncMapSequence<UpdatesSequence, State>.Iterator
+
+  public func makeAsyncIterator() -> AsyncIterator {
+    self.updates
+      .map { self.value }
+      .makeAsyncIterator()
   }
 }
 

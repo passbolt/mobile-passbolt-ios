@@ -21,56 +21,34 @@
 // @since         v1.0
 //
 
-import Display
+extension String {
 
-internal struct ResourceSearchDisplayView: ControlledView {
+  public func split(
+    every count: Int
+  ) -> Array<Substring> {
+    var currentIndex: Index = self.startIndex
+    var elements: Array<Substring> = .init()
+    while currentIndex < self.endIndex {
+      let currentEndIndex: Index? = self.index(
+        currentIndex,
+        offsetBy: count,
+        limitedBy: self.endIndex
+      )
 
-  internal typealias Controller = ResourceSearchDisplayController
-
-  private let controller: ResourceSearchDisplayController
-
-  internal init(
-    controller: ResourceSearchDisplayController
-  ) {
-    self.controller = controller
-  }
-
-  internal var body: some View {
-    WithViewState(from: self.controller) { state in
-      self.bodyView(with: state)
-    }
-    .task(self.controller.activate)
-  }
-
-  @MainActor @ViewBuilder private func bodyView(
-    with state: ViewState
-  ) -> some View {
-    SearchView(
-      prompt: .localized(key: "resources.search.placeholder"),
-      text: self.controller
-        .viewState
-        .binding(to: \.searchText),
-      leftAccessory: {
-        Button(
-          action: self.controller.showPresentationMenu,
-          label: { ImageWithPadding(4, named: .filter) }
+      if let currentEndIndex {
+        elements.append(
+          self[currentIndex..<currentEndIndex]
         )
-      },
-      rightAccessory: {
-        Button(
-          action: self.controller.signOut,
-          label: {
-            UserAvatarView(imageData: state.accountAvatar)
-              .padding(
-                trailing: 6
-              )
-          }
-        )
+        currentIndex = currentEndIndex
       }
-    )
-    .padding(
-      top: 10,
-      bottom: 16
-    )
+      else {
+        elements.append(
+          self[currentIndex..<self.endIndex]
+        )
+        currentIndex = self.endIndex
+      }
+
+    }
+    return elements
   }
 }

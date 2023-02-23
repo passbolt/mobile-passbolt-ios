@@ -22,55 +22,47 @@
 //
 
 import Display
+import SharedUIComponents
 
-internal struct ResourceSearchDisplayView: ControlledView {
+internal enum AuthorizationNavigationDestination: NavigationDestination {
+  internal typealias TransitionContext = AuthorizationViewController.Controller.Context
+}
 
-  internal typealias Controller = ResourceSearchDisplayController
+internal typealias NavigationToAuthorization = NavigationTo<AuthorizationNavigationDestination>
 
-  private let controller: ResourceSearchDisplayController
+extension NavigationToAuthorization {
 
-  internal init(
-    controller: ResourceSearchDisplayController
-  ) {
-    self.controller = controller
-  }
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(
+      toLegacy: AuthorizationViewController.self,
+      { (features: Features, context: Destination.TransitionContext) -> AuthorizationViewController in
+        var features: Features = features
+        let cancellables: Cancellables = .init()
 
-  internal var body: some View {
-    WithViewState(from: self.controller) { state in
-      self.bodyView(with: state)
-    }
-    .task(self.controller.activate)
-  }
-
-  @MainActor @ViewBuilder private func bodyView(
-    with state: ViewState
-  ) -> some View {
-    SearchView(
-      prompt: .localized(key: "resources.search.placeholder"),
-      text: self.controller
-        .viewState
-        .binding(to: \.searchText),
-      leftAccessory: {
-        Button(
-          action: self.controller.showPresentationMenu,
-          label: { ImageWithPadding(4, named: .filter) }
+        let controller: AuthorizationViewController.Controller = try .instance(
+          in: context,
+          with: &features,
+          cancellables: cancellables
         )
-      },
-      rightAccessory: {
-        Button(
-          action: self.controller.signOut,
-          label: {
-            UserAvatarView(imageData: state.accountAvatar)
-              .padding(
-                trailing: 6
-              )
-          }
-        )
+
+        return
+          AuthorizationViewController
+          .instance(
+            using: controller,
+            with: .init(features: features),
+            cancellables: cancellables
+          )
       }
     )
-    .padding(
-      top: 10,
-      bottom: 16
+  }
+}
+
+extension FeaturesRegistry {
+
+  internal mutating func useLiveNavigationToAuthorization() {
+    self.use(
+      NavigationToAuthorization.live,
+      in: SessionScope.self
     )
   }
 }

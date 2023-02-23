@@ -23,31 +23,27 @@
 
 import Accounts
 import Display
+import OSFeatures
 import Session
 import UIComponents
 
 internal struct AccountMenuController {
 
   internal let currentAccountWithProfile: AccountWithProfile
-  internal let navigation: DisplayNavigation
   internal var currentAcountAvatarImagePublisher: @MainActor () -> AnyPublisher<Data?, Never>
   internal var accountsListPublisher:
     () -> AnyPublisher<
       Array<(accountWithProfile: AccountWithProfile, avatarImagePublisher: AnyPublisher<Data?, Never>)>, Never
     >
-  internal var dismissPublisher: @MainActor () -> AnyPublisher<Void, Never>
   internal var presentAccountDetails: @MainActor () -> Void
-  internal var accountDetailsPresentationPublisher: @MainActor () -> AnyPublisher<AccountWithProfile, Never>
   internal var signOut: @MainActor () -> Void
   internal var presentAccountSwitch: @MainActor (Account) -> Void
-  internal var accountSwitchPresentationPublisher: @MainActor () -> AnyPublisher<Account, Never>
   internal var presentManageAccounts: @MainActor () -> Void
-  internal var manageAccountsPresentationPublisher: @MainActor () -> AnyPublisher<Void, Never>
 }
 
 extension AccountMenuController: UIController {
 
-  internal typealias Context = AccountWithProfile
+  internal typealias Context = Void
 
   internal static func instance(
     in context: Context,
@@ -55,10 +51,22 @@ extension AccountMenuController: UIController {
     cancellables: Cancellables
   ) throws -> Self {
     let features: Features = features
+
+    let currentAccount: Account = try features.sessionAccount()
+
+    let diagnostics: OSDiagnostics = features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
+
     let accounts: Accounts = try features.instance()
     let session: Session = try features.instance()
-    let currentAccountDetails: AccountDetails = try features.instance(context: context.account)
-    let navigation: DisplayNavigation = try features.instance()
+    let currentAccountDetails: AccountDetails = try features.instance(context: currentAccount)
+
+    let navigationToSelf: NavigationToAccountMenu = try features.instance()
+    let navigationToAuthorization: NavigationToAuthorization = try features.instance()
+    let navigationToAccountDetails: NavigationToAccountDetails = try features.instance()
+    let navigationToManageAccounts: NavigationToManageAccounts = try features.instance()
+
+    let currentAccountWithProfile = try currentAccountDetails.profile()
 
     typealias AccountsListItem = (
       accountWithProfile: AccountWithProfile, avatarImagePublisher: AnyPublisher<Data?, Never>
@@ -73,7 +81,7 @@ extension AccountMenuController: UIController {
 
           for storedAccount in accounts.storedAccounts() {
             guard
-              storedAccount != context.account,
+              storedAccount != currentAccount,
               let accountDetails: AccountDetails = try? await features.instance(context: storedAccount),
               let accountWithProfile: AccountWithProfile = try? accountDetails.profile()
             else { continue }  // skip current account
@@ -103,24 +111,39 @@ extension AccountMenuController: UIController {
         .eraseToAnyPublisher()
     }
 
-    let dismissSubject: PassthroughSubject<Void, Never> = .init()
     func dismiss() {
-      dismissSubject.send()
+      asyncExecutor.schedule(.reuse) {
+        do {
+          try await navigationToSelf.revert()
+        }
+        catch {
+          diagnostics
+            .log(
+              error: error,
+              info: .message(
+                "Navigation back from account menu failed!"
+              )
+            )
+        }
+      }
     }
 
-    func dismissPublisher() -> AnyPublisher<Void, Never> {
-      dismissSubject.eraseToAnyPublisher()
-    }
-
-    let accountDetailsPresentationSubject: PassthroughSubject<AccountWithProfile, Never> = .init()
     func presentAccountDetails() {
-      accountDetailsPresentationSubject
-        .send(context)
-    }
-
-    func accountDetailsPresentationPublisher() -> AnyPublisher<AccountWithProfile, Never> {
-      accountDetailsPresentationSubject
-        .eraseToAnyPublisher()
+      asyncExecutor.schedule(.reuse) {
+        do {
+          try await navigationToSelf.revert()
+          try await navigationToAccountDetails.perform()
+        }
+        catch {
+          diagnostics
+            .log(
+              error: error,
+              info: .message(
+                "Navigation to account details failed!"
+              )
+            )
+        }
+      }
     }
 
     func signOut() {
@@ -129,37 +152,50 @@ extension AccountMenuController: UIController {
       }
     }
 
-    let accountSwitchPresentationSubject: PassthroughSubject<Account, Never> = .init()
     func presentAccountSwitch(account: Account) {
-      accountSwitchPresentationSubject.send(account)
+      asyncExecutor.schedule(.reuse) {
+        do {
+          try await navigationToSelf.revert()
+          try await navigationToAuthorization.perform(context: account)
+        }
+        catch {
+          diagnostics
+            .log(
+              error: error,
+              info: .message(
+                "Navigation to account switch failed!"
+              )
+            )
+        }
+      }
     }
 
-    func accountSwitchPresentationPublisher() -> AnyPublisher<Account, Never> {
-      accountSwitchPresentationSubject.eraseToAnyPublisher()
-    }
-
-    let manageAccountsPresentationSubject: PassthroughSubject<Void, Never> = .init()
     func presentManageAccounts() {
-      manageAccountsPresentationSubject.send()
-    }
-
-    func manageAccountsPresentationPublisher() -> AnyPublisher<Void, Never> {
-      manageAccountsPresentationSubject.eraseToAnyPublisher()
+      asyncExecutor.schedule(.reuse) {
+        do {
+          try await navigationToSelf.revert()
+          try await navigationToManageAccounts.perform()
+        }
+        catch {
+          diagnostics
+            .log(
+              error: error,
+              info: .message(
+                "Navigation to manage accounts failed!"
+              )
+            )
+        }
+      }
     }
 
     return Self(
-      currentAccountWithProfile: context,
-      navigation: navigation,
+      currentAccountWithProfile: currentAccountWithProfile,
       currentAcountAvatarImagePublisher: currentAcountAvatarImagePublisher,
       accountsListPublisher: accountsListPublisher,
-      dismissPublisher: dismissPublisher,
       presentAccountDetails: presentAccountDetails,
-      accountDetailsPresentationPublisher: accountDetailsPresentationPublisher,
       signOut: signOut,
       presentAccountSwitch: presentAccountSwitch,
-      accountSwitchPresentationPublisher: accountSwitchPresentationPublisher,
-      presentManageAccounts: presentManageAccounts,
-      manageAccountsPresentationPublisher: manageAccountsPresentationPublisher
+      presentManageAccounts: presentManageAccounts
     )
   }
 }

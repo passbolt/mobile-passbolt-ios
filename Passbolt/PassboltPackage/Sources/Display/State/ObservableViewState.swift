@@ -22,11 +22,13 @@
 //
 
 import Combine
+import Commons
 
 @MainActor
 public final class ObservableViewState<State: Equatable>: ObservableObject {
 
   public nonisolated let objectWillChange: ObservableObjectPublisher
+  internal let updates: AnyAsyncSequence<State>
   private let read: @MainActor () -> State
   private let cancellable: AnyCancellable
 
@@ -37,6 +39,13 @@ public final class ObservableViewState<State: Equatable>: ObservableObject {
     self.read = { variable.value[keyPath: keyPath] }
     let objectWillChange: ObservableObjectPublisher = .init()
     self.objectWillChange = objectWillChange
+    self.updates =
+      variable
+      .map { (variable: Variable) -> State in
+        variable[keyPath: keyPath]
+      }
+      .removeDuplicates()
+      .asAnyAsyncSequence()
     self.cancellable = variable
       .stateWillChange
       .map { (variable: Variable) in
@@ -54,6 +63,9 @@ public final class ObservableViewState<State: Equatable>: ObservableObject {
     self.read = { variable.value }
     let objectWillChange: ObservableObjectPublisher = .init()
     self.objectWillChange = objectWillChange
+    self.updates =
+      variable
+      .asAnyAsyncSequence()
     self.cancellable = variable
       .stateWillChange
       .removeDuplicates()
@@ -64,11 +76,16 @@ public final class ObservableViewState<State: Equatable>: ObservableObject {
 
   public nonisolated init<Other>(
     from observable: ObservableViewState<Other>,
-    mapping: @escaping (Other) -> State
+    mapping: @escaping @Sendable (Other) -> State
   ) {
     self.read = { mapping(observable.value) }
     // TODO: no duplicate filtering
     self.objectWillChange = observable.objectWillChange
+    self.updates =
+      observable
+      .asAnyAsyncSequence()
+      .map(mapping)
+      .asAnyAsyncSequence()
     self.cancellable = AnyCancellable({ /* NOP */  })
   }
 
@@ -83,6 +100,7 @@ public final class ObservableViewState<State: Equatable>: ObservableObject {
       line: line
     )
     self.objectWillChange = .init()
+    self.updates = .init([])
     self.cancellable = AnyCancellable({ /* NOP */  })
   }
   #endif
@@ -121,6 +139,16 @@ extension ObservableViewState {
       .asyncMap { (binding: ObservableViewState) in
         await binding.read()
       }
+  }
+}
+
+extension ObservableViewState: AsyncSequence {
+
+  public typealias Element = State
+  public typealias AsyncIterator = AnyAsyncSequence<State>.AsyncIterator
+
+  public func makeAsyncIterator() -> AsyncIterator {
+    self.updates.makeAsyncIterator()
   }
 }
 

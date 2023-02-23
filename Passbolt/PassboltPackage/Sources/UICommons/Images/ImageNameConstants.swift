@@ -31,7 +31,7 @@ extension ImageNameConstant {
   public static var help: Self { "Help" }
   public static var home: Self { "Home" }
   public static var settings: Self { "Settings" }
-	public static var otp: Self { "OTP" }
+  public static var otp: Self { "OTP" }
   public static var trash: Self { "Trash" }
   public static var plus: Self { "Plus" }
   public static var exit: Self { "Exit" }

@@ -42,7 +42,7 @@ extension FeaturesRegistry {
   internal mutating func useLiveNavigationToManageAccounts() {
     self.use(
       NavigationToManageAccounts.live,
-      in: SettingsScope.self
+      in: SessionScope.self
     )
   }
 }

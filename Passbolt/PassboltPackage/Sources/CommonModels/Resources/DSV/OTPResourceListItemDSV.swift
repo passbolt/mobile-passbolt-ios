@@ -21,56 +21,23 @@
 // @since         v1.0
 //
 
-import Display
+public struct OTPResourceListItemDSV {
 
-internal struct ResourceSearchDisplayView: ControlledView {
+  public let id: Resource.ID
+  public var name: String
+  public var url: String?
 
-  internal typealias Controller = ResourceSearchDisplayController
-
-  private let controller: ResourceSearchDisplayController
-
-  internal init(
-    controller: ResourceSearchDisplayController
+  public init(
+    id: Resource.ID,
+    name: String,
+    url: String?
   ) {
-    self.controller = controller
-  }
-
-  internal var body: some View {
-    WithViewState(from: self.controller) { state in
-      self.bodyView(with: state)
-    }
-    .task(self.controller.activate)
-  }
-
-  @MainActor @ViewBuilder private func bodyView(
-    with state: ViewState
-  ) -> some View {
-    SearchView(
-      prompt: .localized(key: "resources.search.placeholder"),
-      text: self.controller
-        .viewState
-        .binding(to: \.searchText),
-      leftAccessory: {
-        Button(
-          action: self.controller.showPresentationMenu,
-          label: { ImageWithPadding(4, named: .filter) }
-        )
-      },
-      rightAccessory: {
-        Button(
-          action: self.controller.signOut,
-          label: {
-            UserAvatarView(imageData: state.accountAvatar)
-              .padding(
-                trailing: 6
-              )
-          }
-        )
-      }
-    )
-    .padding(
-      top: 10,
-      bottom: 16
-    )
+    self.id = id
+    self.name = name
+    self.url = url
   }
 }
+
+extension OTPResourceListItemDSV: DSV {}
+
+extension OTPResourceListItemDSV: Hashable {}

@@ -32,32 +32,32 @@ import UIComponents
 // cleaning up main tabs navigation.
 internal final class OTPResourcesTabViewController: NavigationViewController {
 
-	internal override class var disableSystemBackNavigation: Bool { false }
+  internal override class var disableSystemBackNavigation: Bool { false }
 
-	private let controller: OTPResourcesTabController
+  private let controller: OTPResourcesTabController
 
-	internal init(
-		controller: OTPResourcesTabController
-	) {
-		self.controller = controller
-		super.init(cancellables: .init())
-		self.setup()
-	}
+  internal init(
+    controller: OTPResourcesTabController
+  ) {
+    self.controller = controller
+    super.init(cancellables: .init())
+    self.setup()
+  }
 
-	internal func setup() {
-		mut(tabBarItem) {
-			.combined(
-				.title(.localized(key: "tab.otp")),
-				.image(named: .otp, from: .uiCommons)
-			)
-		}
+  internal func setup() {
+    mut(tabBarItem) {
+      .combined(
+        .title(.localized(key: "tab.otp")),
+        .image(named: .otp, from: .uiCommons)
+      )
+    }
 
-		self.viewControllers = [
-			UIHostingController(
-				rootView: OTPResourcesListView(
-					controller: self.controller.prepareListController()
-				)
-			)
-		]
-	}
+    self.viewControllers = [
+      UIHostingController(
+        rootView: OTPResourcesListView(
+          controller: self.controller.prepareListController()
+        )
+      )
+    ]
+  }
 }

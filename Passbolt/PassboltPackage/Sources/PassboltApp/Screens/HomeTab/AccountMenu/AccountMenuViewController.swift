@@ -74,15 +74,6 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
       .localized("account.menu.title")
       .string()
 
-    controller
-      .dismissPublisher()
-      .sink { [weak self] in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          await self?.dismiss(SheetMenuViewController<AccountMenuViewController>.self)
-        }
-      }
-      .store(in: cancellables)
-
     contentView
       .signOutTapPublisher
       .sink { [unowned self] in
@@ -97,23 +88,6 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
       }
       .store(in: cancellables)
 
-    controller
-      .accountDetailsPresentationPublisher()
-      .sink { [weak self] accountWithProfile in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          guard let self = self else { return }
-          await self.dismiss(
-            AccountMenuViewController.self
-          )
-          await self.controller.navigation
-            .push(
-              legacy: AccountDetailsViewController.self,
-              context: accountWithProfile
-            )
-        }
-      }
-      .store(in: cancellables)
-
     contentView
       .accountSwitchTapPublisher
       .sink { [unowned self] account in
@@ -121,46 +95,10 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
       }
       .store(in: cancellables)
 
-    controller
-      .accountSwitchPresentationPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] account in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          guard let self = self else { return }
-          await self.dismiss(
-            AccountMenuViewController.self
-          )
-          await self.controller.navigation
-            .push(
-              legacy: AuthorizationViewController.self,
-              context: account
-            )
-        }
-      }
-      .store(in: cancellables)
-
     contentView
       .manageAccountsTapPublisher
       .sink { [unowned self] in
         self.controller.presentManageAccounts()
-      }
-      .store(in: cancellables)
-
-    controller
-      .manageAccountsPresentationPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          guard let self = self else { return }
-          await self.dismiss(
-            AccountMenuViewController.self
-          )
-          await self.controller.navigation
-            .push(
-              legacy: AccountSelectionViewController.self,
-              context: .init(value: true)
-            )
-        }
       }
       .store(in: cancellables)
 

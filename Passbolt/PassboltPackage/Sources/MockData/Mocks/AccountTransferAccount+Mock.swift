@@ -22,14 +22,15 @@
 //
 
 import Accounts
-@testable import PassboltAccountSetup
 import CommonModels
+
+@testable import PassboltAccountSetup
 
 extension AccountTransferAccount {
 
-	public static let mock_ada: Self = .init(
-		userID: AccountWithProfile.mock_ada.userID,
-		fingerprint: AccountWithProfile.mock_ada.fingerprint,
-		armoredKey: "PRIVATE_KEY"
-	)
+  public static let mock_ada: Self = .init(
+    userID: AccountWithProfile.mock_ada.userID,
+    fingerprint: AccountWithProfile.mock_ada.fingerprint,
+    armoredKey: "PRIVATE_KEY"
+  )
 }

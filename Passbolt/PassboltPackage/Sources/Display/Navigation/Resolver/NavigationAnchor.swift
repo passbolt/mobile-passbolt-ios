@@ -81,7 +81,8 @@ extension NavigationAnchor {
   ) async throws {
     guard let stack: UINavigationController = self.navigationStack
     else {
-      throw InternalInconsistency
+      throw
+        InternalInconsistency
         .error(
           "Invalid navigation - missing stack!",
           file: file,

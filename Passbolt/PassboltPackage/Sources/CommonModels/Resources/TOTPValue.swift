@@ -21,56 +21,23 @@
 // @since         v1.0
 //
 
-import Display
+import Commons
 
-internal struct ResourceSearchDisplayView: ControlledView {
+public struct TOTPValue {
 
-  internal typealias Controller = ResourceSearchDisplayController
+  public var otp: OTP
+  public var timeLeft: Seconds
+  public var validityPeriod: Seconds
 
-  private let controller: ResourceSearchDisplayController
-
-  internal init(
-    controller: ResourceSearchDisplayController
+  public init(
+    otp: OTP,
+    timeLeft: Seconds,
+    validityPeriod: Seconds
   ) {
-    self.controller = controller
-  }
-
-  internal var body: some View {
-    WithViewState(from: self.controller) { state in
-      self.bodyView(with: state)
-    }
-    .task(self.controller.activate)
-  }
-
-  @MainActor @ViewBuilder private func bodyView(
-    with state: ViewState
-  ) -> some View {
-    SearchView(
-      prompt: .localized(key: "resources.search.placeholder"),
-      text: self.controller
-        .viewState
-        .binding(to: \.searchText),
-      leftAccessory: {
-        Button(
-          action: self.controller.showPresentationMenu,
-          label: { ImageWithPadding(4, named: .filter) }
-        )
-      },
-      rightAccessory: {
-        Button(
-          action: self.controller.signOut,
-          label: {
-            UserAvatarView(imageData: state.accountAvatar)
-              .padding(
-                trailing: 6
-              )
-          }
-        )
-      }
-    )
-    .padding(
-      top: 10,
-      bottom: 16
-    )
+    self.otp = otp
+    self.timeLeft = timeLeft
+    self.validityPeriod = validityPeriod
   }
 }
+
+extension TOTPValue: Equatable {}

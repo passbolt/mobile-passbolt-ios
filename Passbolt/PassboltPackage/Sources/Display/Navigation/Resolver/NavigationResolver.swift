@@ -143,38 +143,40 @@ extension NavigationResolver {
       )
   }
 
-	// To be used only with legacy tabs,
-	// ignores anchor indentifiers using types instead.
-	@MainActor internal func legacyTabSwitch<Tab>(
-		to: Tab.Type,
-		file: StaticString,
-		line: UInt
-	) async throws
-	where Tab: UIViewController {
-		guard let tabs: UITabBarController = self.activeLeafAnchor()?.navigationTabs
-		else {
-			throw InternalInconsistency
-				.error(
-					"Invalid navigation - missing tabs!",
-					file: file,
-					line: line
-				)
-				.asAssertionFailure()
-		}
+  // To be used only with legacy tabs,
+  // ignores anchor indentifiers using types instead.
+  @MainActor internal func legacyTabSwitch<Tab>(
+    to: Tab.Type,
+    file: StaticString,
+    line: UInt
+  ) async throws
+  where Tab: UIViewController {
+    guard let tabs: UITabBarController = self.activeLeafAnchor()?.navigationTabs
+    else {
+      throw
+        InternalInconsistency
+        .error(
+          "Invalid navigation - missing tabs!",
+          file: file,
+          line: line
+        )
+        .asAssertionFailure()
+    }
 
-		guard let idx: Int = tabs.viewControllers?.firstIndex(where: { $0 is Tab })
-		else {
-			throw InternalInconsistency
-				.error(
-					"Invalid navigation - missing tab item!",
-					file: file,
-					line: line
-				)
-				.asAssertionFailure()
-		}
+    guard let idx: Int = tabs.viewControllers?.firstIndex(where: { $0 is Tab })
+    else {
+      throw
+        InternalInconsistency
+        .error(
+          "Invalid navigation - missing tab item!",
+          file: file,
+          line: line
+        )
+        .asAssertionFailure()
+    }
 
-		tabs.selectedIndex = idx
-	}
+    tabs.selectedIndex = idx
+  }
 }
 extension NavigationResolver {
 

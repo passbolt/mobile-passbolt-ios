@@ -37,7 +37,7 @@ internal struct AccountDetailsController {
 
 extension AccountDetailsController: UIController {
 
-  internal typealias Context = AccountWithProfile
+  internal typealias Context = Void
 
   internal static func instance(
     in context: Context,
@@ -45,9 +45,12 @@ extension AccountDetailsController: UIController {
     cancellables: Cancellables
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
+    let currentAccount: Account = try features.sessionAccount()
 
-    let accountDetails: AccountDetails = try features.instance(context: context.account)
-    let accountPreferences: AccountPreferences = try features.instance(context: context.account)
+    let accountDetails: AccountDetails = try features.instance(context: currentAccount)
+    let accountPreferences: AccountPreferences = try features.instance(context: currentAccount)
+
+    let currentAccountWithProfile: AccountWithProfile = try accountDetails.profile()
 
     let accountLabelValidator: Validator<String> =
       .maxLength(
@@ -58,7 +61,7 @@ extension AccountDetailsController: UIController {
       )
 
     let currentAccountLabelSubject: CurrentValueSubject<Validated<String>, Never> = .init(
-      accountLabelValidator.validate(context.label)
+      accountLabelValidator.validate(currentAccountWithProfile.label)
     )
 
     func updateCurrentAccountLabel(_ updated: String) {
@@ -89,7 +92,7 @@ extension AccountDetailsController: UIController {
         .asyncMap { validatedLabel in
           let label: String
           if validatedLabel.value.isEmpty {
-            label = "\(context.firstName) \(context.lastName)"
+            label = "\(currentAccountWithProfile.firstName) \(currentAccountWithProfile.lastName)"
           }
           else if validatedLabel.isValid {
             label = validatedLabel.value
@@ -103,13 +106,13 @@ extension AccountDetailsController: UIController {
                 )
               )
           }
-          return try await accountPreferences.setLocalAccountLabel(label)
+          return try accountPreferences.setLocalAccountLabel(label)
         }
         .eraseToAnyPublisher()
     }
 
     return Self(
-      currentAccountWithProfile: context,
+      currentAccountWithProfile: currentAccountWithProfile,
       currentAcountAvatarImagePublisher: currentAcountAvatarImagePublisher,
       updateCurrentAccountLabel: updateCurrentAccountLabel(_:),
       validatedAccountLabelPublisher: validatedAccountLabelPublisher,

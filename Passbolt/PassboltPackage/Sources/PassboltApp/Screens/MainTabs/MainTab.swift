@@ -24,6 +24,6 @@
 internal enum MainTab: Int, Equatable, CaseIterable {
 
   case home = 0
-	case otpResources = 1
+  case otpResources = 1
   case settings = 2
 }

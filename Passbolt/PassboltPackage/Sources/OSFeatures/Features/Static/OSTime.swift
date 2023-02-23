@@ -21,16 +21,21 @@
 // @since         v1.0
 //
 
+import AsyncAlgorithms
+import Commons
 import Features
 
 import struct Foundation.Date
+import let Foundation.NSEC_PER_SEC
 import func Foundation.time
 
 // MARK: - Interface
 
 public struct OSTime {
 
-  public var timestamp: () -> Timestamp
+  public var timestamp: @Sendable () -> Timestamp
+  public var waitFor: @Sendable (Seconds) async throws -> Void
+  public var timerSequence: @Sendable (Seconds) -> AnyAsyncSequence<Void>
 }
 
 extension OSTime: StaticFeature {
@@ -38,7 +43,9 @@ extension OSTime: StaticFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(
-      timestamp: unimplemented0()
+      timestamp: unimplemented0(),
+      waitFor: unimplemented1(),
+      timerSequence: unimplemented1()
     )
   }
   #endif
@@ -55,14 +62,80 @@ extension OSTime {
 
 extension OSTime {
 
+  @available(iOS 16.0, *)
   fileprivate static var live: Self {
+    let continuousClock: ContinuousClock = .init()
 
-    func timestamp() -> Timestamp {
+    @Sendable func timestamp() -> Timestamp {
       .init(rawValue: time(nil))
     }
 
+    @Sendable func waitFor(
+      _ time: Seconds
+    ) async throws {
+      try await continuousClock
+        .sleep(
+          until: continuousClock
+            .now
+            .advanced(
+              by: .seconds(time.rawValue)
+            )
+        )
+    }
+
+    @Sendable func timerSequence(
+      _ time: Seconds
+    ) -> AnyAsyncSequence<Void> {
+      AsyncTimerSequence(
+        interval: .seconds(time.rawValue),
+        tolerance: .milliseconds(100),
+        clock: continuousClock
+      )
+      .map { _ in Void() }
+      .asAnyAsyncSequence()
+    }
+
     return Self(
-      timestamp: timestamp
+      timestamp: timestamp,
+      waitFor: waitFor(_:),
+      timerSequence: timerSequence(_:)
+    )
+  }
+
+  @available(iOS, deprecated: 16, message: "Please switch to `live`")
+  fileprivate static var liveOld: Self {
+
+    @Sendable func timestamp() -> Timestamp {
+      .init(rawValue: time(nil))
+    }
+
+    @Sendable func waitFor(
+      _ time: Seconds
+    ) async throws {
+      try await Task.sleep(
+        nanoseconds: NSEC_PER_SEC * time.rawValue
+      )
+    }
+
+    @Sendable func timerSequence(
+      _ delay: Seconds
+    ) -> AnyAsyncSequence<Void> {
+      .init {
+        while true {
+          // this is not fully correct since
+          // timer using Task.sleep drifts
+          // substantially and quickly
+          // becomes out of sync, however
+          // this is deprecated anyway
+          try? await waitFor(delay)
+        }
+      }
+    }
+
+    return Self(
+      timestamp: timestamp,
+      waitFor: waitFor(_:),
+      timerSequence: timerSequence(_:)
     )
   }
 }
@@ -70,8 +143,15 @@ extension OSTime {
 extension FeaturesRegistry {
 
   internal mutating func useOSTime() {
-    self.use(
-      OSTime.live
-    )
+    if #available(iOS 16.0, *) {
+      self.use(
+        OSTime.live
+      )
+    }
+    else {
+      self.use(
+        OSTime.liveOld
+      )
+    }
   }
 }

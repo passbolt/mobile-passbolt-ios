@@ -68,9 +68,21 @@ final class AccountMenuControllerTests: MainActorTestCase {
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: .mock_frances,
+      context: .mock_ada,
       with: always(.init())
     )
+    features.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_default
+      )
+    )
+    self.features
+      .patch(
+        \NavigationToAccountMenu.mockRevert,
+        with: always(Void())
+      )
   }
 
   override func mainActorTearDown() {
@@ -78,9 +90,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
   }
 
   func test_currentAccountWithProfile_isEqualToProvidedInContext() async throws {
-    let controller: AccountMenuController = try await testController(
-      context: .mock_ada
-    )
+    let controller: AccountMenuController = try await testController()
 
     XCTAssertEqual(controller.currentAccountWithProfile, .mock_ada)
   }
@@ -93,9 +103,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
       )
     )
 
-    let controller: AccountMenuController = try await testController(
-      context: .mock_ada
-    )
+    let controller: AccountMenuController = try await testController()
 
     var result:
       Array<
@@ -124,9 +132,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
       with: always(storedAccounts)
     )
 
-    let controller: AccountMenuController = try await testController(
-      context: .mock_ada
-    )
+    let controller: AccountMenuController = try await testController()
 
     storedAccounts = [.mock_ada, .mock_frances]
     accountUpdates.sendUpdate()
@@ -148,122 +154,61 @@ final class AccountMenuControllerTests: MainActorTestCase {
     XCTAssertEqual(result?.map { $0.accountWithProfile }, [.mock_frances])
   }
 
-  func test_accountDetailsPresentationPublisher_doesNotPublishInitially() async throws {
-    let controller: AccountMenuController = try await testController(
-      context: .mock_ada
-    )
+  func test_presentAccountDetails_navigatesToAccountDetails() async throws {
+    let result: UncheckedSendable<Void?> = .init(.none)
+    self.features
+      .patch(
+        \NavigationToAccountDetails.mockPerform,
+        with: { _, _ async throws -> Void in
+          result.variable = Void()
+        }
+      )
 
-    var result: Void?
-    controller
-      .accountDetailsPresentationPublisher()
-      .sink { account in
-        result = Void()
-      }
-      .store(in: cancellables)
-
-    XCTAssertNil(result)
-  }
-
-  func test_accountDetailsPresentationPublisher_publishesCurrentAccountAfterCallingPresent() async throws {
-    let controller: AccountMenuController = try await testController(
-      context: .mock_ada
-    )
-
-    var result: AccountWithProfile?
-    controller
-      .accountDetailsPresentationPublisher()
-      .sink { account in
-        result = account
-      }
-      .store(in: cancellables)
+    let controller: AccountMenuController = try await testController()
 
     controller.presentAccountDetails()
 
-    XCTAssertEqual(result, .mock_ada)
+    await mockExecutionControl.executeAll()
+
+    XCTAssertNotNil(result.variable)
   }
 
-  func test_accountSwitchPresentationPublisher_doesNotPublishInitially() async throws {
-    let controller: AccountMenuController = try await testController(
-      context: .mock_ada
-    )
+  func test_presentAccountSwitch_performsAccountAuthorization() async throws {
+    let result: UncheckedSendable<Account?> = .init(.none)
+    self.features
+      .patch(
+        \NavigationToAuthorization.mockPerform,
+        with: { _, account async throws -> Void in
+          result.variable = account
+        }
+      )
 
-    var result: Void?
-    controller
-      .accountSwitchPresentationPublisher()
-      .sink { account in
-        result = Void()
-      }
-      .store(in: cancellables)
-
-    XCTAssertNil(result)
-  }
-
-  func test_accountSwitchPresentationPublisher_publishesSelectedAccountAfterCallingPresent() async throws {
-    let controller: AccountMenuController = try await testController(
-      context: .mock_ada
-    )
-
-    var result: Account?
-    controller
-      .accountSwitchPresentationPublisher()
-      .sink { account in
-        result = account
-      }
-      .store(in: cancellables)
+    let controller: AccountMenuController = try await testController()
 
     controller.presentAccountSwitch(.mock_frances)
 
-    XCTAssertEqual(result, .mock_frances)
+    await mockExecutionControl.executeAll()
+
+    XCTAssertEqual(result.variable, .mock_frances)
   }
 
-  func test_dismissPublisher_doesNotPublishInitially() async throws {
-    let controller: AccountMenuController = try await testController(
-      context: .mock_ada
-    )
+  func test_presentManageAccounts_performsNavigationToManageAccounts() async throws {
+    let result: UncheckedSendable<Void?> = .init(.none)
+    self.features
+      .patch(
+        \NavigationToManageAccounts.mockPerform,
+        with: { _, account async throws -> Void in
+          result.variable = account
+        }
+      )
 
-    var result: Void?
-    controller
-      .dismissPublisher()
-      .sink { account in
-        result = Void()
-      }
-      .store(in: cancellables)
-
-    XCTAssertNil(result)
-  }
-
-  func test_manageAccountsPresentationPublisher_doesNotPublishInitially() async throws {
-    let controller: AccountMenuController = try await testController(
-      context: .mock_ada
-    )
-
-    var result: Void?
-    controller
-      .manageAccountsPresentationPublisher()
-      .sink {
-        result = Void()
-      }
-      .store(in: cancellables)
-
-    XCTAssertNil(result)
-  }
-
-  func test_manageAccountsPresentationPublisher_publishesAfterCallingPresent() async throws {
-    let controller: AccountMenuController = try await testController(
-      context: .mock_ada
-    )
-
-    var result: Void?
-    controller
-      .manageAccountsPresentationPublisher()
-      .sink {
-        result = Void()
-      }
-      .store(in: cancellables)
+    let controller: AccountMenuController = try await testController()
 
     controller.presentManageAccounts()
 
-    XCTAssertNotNil(result)
+    await mockExecutionControl.executeAll()
+
+    XCTAssertNotNil(result.variable)
   }
 
   func test_signOut_closesCurrentSession() async throws {
@@ -278,37 +223,11 @@ final class AccountMenuControllerTests: MainActorTestCase {
         uncheckedSendableResult.variable = Void()
       }
     )
-    let controller: AccountMenuController = try await testController(
-      context: .mock_ada
-    )
+    let controller: AccountMenuController = try await testController()
 
     controller.signOut()
     // temporary wait for detached tasks, to be removed
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
     XCTAssertNotNil(result)
-  }
-}
-
-@MainActor
-private final class TestComponent: UIViewController, AnyUIComponent {
-
-  var lazyView: UIView { unimplemented() }
-
-  var components: UIComponentFactory { unimplemented() }
-
-  func setup() {
-    unimplemented()
-  }
-
-  func setupView() {
-    unimplemented()
-  }
-
-  func activate() {
-    unimplemented()
-  }
-
-  func deactivate() {
-    unimplemented()
   }
 }

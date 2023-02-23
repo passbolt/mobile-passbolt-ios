@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import OSFeatures
 import Resources
 import Session
 import UIComponents
@@ -36,7 +37,6 @@ internal struct HomeSearchController {
   internal var presentHomePresentationMenu: @MainActor () -> Void
   internal var homePresentationMenuPresentationPublisher: @MainActor () -> AnyPublisher<HomePresentationMode, Never>
   internal var presentAccountMenu: @MainActor () -> Void
-  internal var accountMenuPresentationPublisher: @MainActor () -> AnyPublisher<AccountWithProfile, Never>
 }
 
 extension HomeSearchController: UIController {
@@ -49,6 +49,12 @@ extension HomeSearchController: UIController {
     cancellables: Cancellables
   ) throws -> Self {
     let currentAccount: Account = try features.sessionAccount()
+
+    let diagnostics: OSDiagnostics = try features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
+
+    let navigationToAccountMenu: NavigationToAccountMenu = try features.instance()
+
     let accountDetails: AccountDetails = try features.instance(context: currentAccount)
     let homePresentation: HomePresentation = try features.instance()
 
@@ -97,16 +103,15 @@ extension HomeSearchController: UIController {
     }
 
     func presentAccountMenu() {
-      accountMenuPresentationSubject
-        .send()
-    }
-
-    func accountMenuPresentationPublisher() -> AnyPublisher<AccountWithProfile, Never> {
-      accountMenuPresentationSubject
-        .compactMap {
-          try? accountDetails.profile()
+      asyncExecutor.schedule(.reuse) {
+        await diagnostics.logCatch(
+          info: .message(
+            "Navigation to account menu failed!"
+          )
+        ) {
+          try await navigationToAccountMenu.perform()
         }
-        .eraseToAnyPublisher()
+      }
     }
 
     return Self(
@@ -115,8 +120,7 @@ extension HomeSearchController: UIController {
       avatarImagePublisher: avatarImagePublisher,
       presentHomePresentationMenu: presentHomePresentationMenu,
       homePresentationMenuPresentationPublisher: homePresentationMenuPresentationPublisher,
-      presentAccountMenu: presentAccountMenu,
-      accountMenuPresentationPublisher: accountMenuPresentationPublisher
+      presentAccountMenu: presentAccountMenu
     )
   }
 }

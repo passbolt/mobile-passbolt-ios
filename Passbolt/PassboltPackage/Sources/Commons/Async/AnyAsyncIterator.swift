@@ -25,7 +25,7 @@ public struct AnyAsyncIterator<Element>: AsyncIteratorProtocol {
 
   @usableFromInline internal let nextElement: () async -> Element?
 
-  internal init(
+  public init(
     nextElement: @escaping () async -> Element?
   ) {
     self.nextElement = nextElement

@@ -65,7 +65,6 @@ final class WindowTests: MainActorTestCase {
   }
 
   func test_screenStateDispositionSequence_returnsInitialScreen_initially() async throws {
-
     let controller: WindowController = try await testController()
     var result: WindowController.ScreenStateDisposition?
 
@@ -98,7 +97,13 @@ final class WindowTests: MainActorTestCase {
     result = await iterator.next()
 
     pendingAuthorization = .passphrase(Account.mock_ada)
-    updates.sendUpdate()
+
+    Task {
+      // Temporary wait related to implementation
+      // of merge from async algorithms 0.1.0
+      try await Task.sleep(nanoseconds: NSEC_PER_MSEC * 100)
+      self.updates.sendUpdate()
+    }
 
     result = await iterator.next()
 
@@ -131,7 +136,12 @@ final class WindowTests: MainActorTestCase {
       Account.mock_ada,
       providers: []
     )
-    updates.sendUpdate()
+    Task {
+      // Temporary wait related to implementation
+      // of merge from async algorithms 0.1.0
+      try await Task.sleep(nanoseconds: NSEC_PER_MSEC * 100)
+      self.updates.sendUpdate()
+    }
 
     result = await iterator.next()
 
@@ -171,7 +181,12 @@ final class WindowTests: MainActorTestCase {
     result = await iterator.next()
 
     currentAccount = Account.mock_ada
-    updates.sendUpdate()
+    Task {
+      // Temporary wait related to implementation
+      // of merge from async algorithms 0.1.0
+      try await Task.sleep(nanoseconds: NSEC_PER_MSEC * 100)
+      self.updates.sendUpdate()
+    }
 
     result = await iterator.next()
 
@@ -215,7 +230,12 @@ final class WindowTests: MainActorTestCase {
     result = await iterator.next()
 
     pendingAuthorization = .passphrase(Account.mock_ada)
-    updates.sendUpdate()
+    Task {
+      // Temporary wait related to implementation
+      // of merge from async algorithms 0.1.0
+      try await Task.sleep(nanoseconds: NSEC_PER_MSEC * 100)
+      self.updates.sendUpdate()
+    }
 
     result = await iterator.next()
 
@@ -268,13 +288,23 @@ final class WindowTests: MainActorTestCase {
       Account.mock_ada,
       providers: []
     )
-    updates.sendUpdate()
+    Task {
+      // Temporary wait related to implementation
+      // of merge from async algorithms 0.1.0
+      try await Task.sleep(nanoseconds: NSEC_PER_MSEC * 100)
+      self.updates.sendUpdate()
+    }
 
     result = await iterator.next()
 
     currentAccount = Account.mock_ada
     pendingAuthorization = .none
-    updates.sendUpdate()
+    Task {
+      // Temporary wait related to implementation
+      // of merge from async algorithms 0.1.0
+      try await Task.sleep(nanoseconds: NSEC_PER_MSEC * 100)
+      self.updates.sendUpdate()
+    }
 
     result = await iterator.next()
 

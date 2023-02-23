@@ -26,29 +26,183 @@ import UICommons
 
 internal struct OTPResourcesListView: ControlledView {
 
-	private let controller: OTPResourcesListController
+  private let controller: OTPResourcesListController
 
-	internal init(
-		controller: OTPResourcesListController
-	) {
-		self.controller = controller
-	}
+  internal init(
+    controller: OTPResourcesListController
+  ) {
+    self.controller = controller
+  }
 
-	internal var body: some View {
-		ScreenView(
-			title: .localized(
-				key: "TODO: MOB-1087"
-			),
-			contentView: {
-				self.content
-			}
-		)
-	}
+  internal var body: some View {
+    WithViewState(
+      from: self.controller,
+      at: \.snackBarMessage
+    ) { _ in
+      VStack(spacing: 0) {
+        self.search
+        self.list
+      }
+      .snackBarMessage(
+        with: self.controller
+          .binding(to: \.snackBarMessage)
+      )
+    }
+    .backgroundColor(.passboltBackground)
+    .foregroundColor(.passboltPrimaryText)
+    .onDisappear(perform: self.controller.hideOTPCodes)
+  }
 
-	@ViewBuilder @MainActor private var content: some View {
-		CommonList {
-			Text("TODO: MOB-1087")
-				.commonListRowModifiers()
-		}
-	}
+  @ViewBuilder @MainActor private var search: some View {
+    WithViewState(
+      from: self.controller,
+      at: \.searchText
+    ) { (searchText: String) in
+      SearchView(
+        prompt: .localized(
+          key: "otp.resources.search.placeholder"
+        ),
+        text: self.controller
+          .binding(to: \.searchText),
+        rightAccessory: {
+          Button(
+            action: self.controller.showAccountMenu,
+            label: {
+              WithViewState(
+                from: self.controller,
+                at: \.accountAvatarImage
+              ) { (accountAvatarImage: Data?) in
+                UserAvatarView(
+                  imageData: accountAvatarImage
+                )
+              }
+            }
+          )
+        }
+      )
+    }
+    .padding(
+      top: 8,
+      leading: 16,
+      bottom: 16,
+      trailing: 16
+    )
+  }
+
+  @ViewBuilder @MainActor private var createOTP: some View {
+    Button(
+      action: self.controller.addOTP,
+      label: {
+        HStack(spacing: 12) {
+          Image(named: .create)
+            .resizable()
+            .frame(
+              width: 40,
+              height: 40
+            )
+
+          Text(
+            displayable: .localized(
+              key: .create
+            )
+          )
+          .font(
+            .inter(
+              ofSize: 14,
+              weight: .semibold
+            )
+          )
+          .multilineTextAlignment(.leading)
+          .frame(
+            maxWidth: .infinity,
+            alignment: .leading
+          )
+        }
+      }
+    )
+    .foregroundColor(Color.passboltPrimaryBlue)
+    .frame(
+      maxWidth: .infinity,
+      alignment: .leading
+    )
+    .commonListRowModifiers()
+  }
+
+  @ViewBuilder @MainActor private var emptyListPlaceholder: some View {
+    VStack(
+      alignment: .center,
+      spacing: 12
+    ) {
+      Text(
+        displayable: .localized(
+          key: "otp.resources.list.empty.message"
+        )
+      )
+      .multilineTextAlignment(.center)
+      .font(
+        .inter(
+          ofSize: 20,
+          weight: .semibold
+        )
+      )
+
+      Image(named: .emptyState)
+    }
+    .frame(
+      maxWidth: .infinity,
+      alignment: .center
+    )
+    .listRowSeparator(.hidden)
+    .listRowInsets(
+      EdgeInsets(
+        top: 32,
+        leading: 16,
+        bottom: 12,
+        trailing: 16
+      )
+    )
+  }
+
+  @ViewBuilder @MainActor private var list: some View {
+    CommonList {
+      self.createOTP
+
+      WithViewState(
+        from: self.controller,
+        at: \.otpResources
+      ) { (resources: Array<TOTPResourceViewModel>) in
+        if resources.isEmpty {
+          self.emptyListPlaceholder
+        }
+        else {
+          ForEach(resources) { (resource: TOTPResourceViewModel) in
+            TOTPResourcesListRowView(
+              title: resource.name,
+              value: resource.totpValue,
+              action: {
+                self.controller.revealAndCopyOTP(resource.id)
+              },
+              accessory: {
+                Button(
+                  action: {
+                    self.controller.showCentextualMenu(resource.id)
+                  },
+                  label: {
+                    Image(named: .more)
+                      .resizable()
+                      .frame(
+                        width: 20,
+                        height: 20
+                      )
+                  }
+                )
+              }
+            )
+          }
+        }
+      }
+    }
+    .refreshable(action: self.controller.refreshList)
+    .shadowTopEdgeOverlay()
+  }
 }

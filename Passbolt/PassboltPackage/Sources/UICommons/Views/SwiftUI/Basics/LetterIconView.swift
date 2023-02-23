@@ -42,6 +42,14 @@ public struct LetterIconView: View {
     self.color = colors[abs(text.hash) % colors.count]
   }
 
+  public init(
+    displayable: DisplayableString
+  ) {
+    self.init(
+      text: displayable.string()
+    )
+  }
+
   public var body: some View {
     Text(self.letters)
       .font(.inter(ofSize: 14, weight: .medium))

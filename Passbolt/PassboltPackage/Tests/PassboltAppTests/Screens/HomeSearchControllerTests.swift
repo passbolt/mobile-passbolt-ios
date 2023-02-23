@@ -72,58 +72,25 @@ final class HomeSearchControllerTests: MainActorTestCase {
     detailsUpdates = .none
   }
 
-  func test_accountMenuPresentationPublisher_doesNotPublish_initially() async throws {
-    let controller: HomeSearchController = try await testController(
-      context: { _ in /* NOP */ }
-    )
-
-    var result: Void?
-    controller
-      .accountMenuPresentationPublisher()
-      .sink { _ in
-        result = Void()
-      }
-      .store(in: cancellables)
-
-    XCTAssertNil(result)
-  }
-
-  func test_accountMenuPresentationPublisher_publishes_whenRequested() async throws {
+  func test_presentAccountMenu_navigatesToAccountMenu() async throws {
+    let result: UncheckedSendable<Void?> = .init(.none)
+    self.features
+      .patch(
+        \NavigationToAccountMenu.mockPerform,
+        with: { _, _ async throws -> Void in
+          result.variable = Void()
+        }
+      )
 
     let controller: HomeSearchController = try await testController(
       context: { _ in /* NOP */ }
     )
-
-    var result: Void?
-    controller
-      .accountMenuPresentationPublisher()
-      .sink { _ in
-        result = Void()
-      }
-      .store(in: cancellables)
 
     controller.presentAccountMenu()
 
-    XCTAssertNotNil(result)
-  }
+    await self.mockExecutionControl.executeAll()
 
-  func test_accountMenuPresentationPublisher_publishesCurrentAccountWithProfile_whenRequested() async throws {
-
-    let controller: HomeSearchController = try await testController(
-      context: { _ in /* NOP */ }
-    )
-
-    var result: AccountWithProfile?
-    controller
-      .accountMenuPresentationPublisher()
-      .sink { accountWithProfile in
-        result = accountWithProfile
-      }
-      .store(in: cancellables)
-
-    controller.presentAccountMenu()
-
-    XCTAssertEqual(result, AccountWithProfile.mock_ada)
+    XCTAssertNotNil(result.variable)
   }
 
   func test_homePresentationMenuPresentationPublisher_doesNotPublish_initially() async throws {

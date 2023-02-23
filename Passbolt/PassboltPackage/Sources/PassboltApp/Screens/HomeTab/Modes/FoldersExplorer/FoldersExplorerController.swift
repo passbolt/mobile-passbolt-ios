@@ -57,6 +57,10 @@ extension FoldersExplorerController: ComponentController {
     let features: Features = features
 
     let diagnostics: OSDiagnostics = features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
+
+    let navigationToAccountMenu: NavigationToAccountMenu = try features.instance()
+
     let navigation: DisplayNavigation = try features.instance()
     let currentAccount: Account = try features.sessionAccount()
     let accountDetails: AccountDetails = try features.instance(context: currentAccount)
@@ -287,19 +291,13 @@ extension FoldersExplorerController: ComponentController {
     }
 
     @MainActor func presentAccountMenu() {
-      cancellables.executeOnMainActor {
-        do {
-          let accountWithProfile: AccountWithProfile =
-            try accountDetails
-            .profile()
-
-          await navigation.presentSheetMenu(
-            AccountMenuViewController.self,
-            in: accountWithProfile
+      asyncExecutor.schedule(.reuse) {
+        await diagnostics.logCatch(
+          info: .message(
+            "Navigation to account menu failed!"
           )
-        }
-        catch {
-          viewState.snackBarMessage = .error(error.asTheError().displayableMessage)
+        ) {
+          try await navigationToAccountMenu.perform()
         }
       }
     }

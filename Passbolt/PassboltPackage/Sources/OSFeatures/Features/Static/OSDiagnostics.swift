@@ -332,6 +332,36 @@ extension OSDiagnostics {
       self.log(diagnostic: message)
     }
   }
+
+  public func logCatch(
+    info: DiagnosticsInfo? = .none,
+    _ operation: () throws -> Void
+  ) {
+    do {
+      try operation()
+    }
+    catch {
+      self.log(
+        error: error,
+        info: info
+      )
+    }
+  }
+
+  public func logCatch(
+    info: DiagnosticsInfo? = .none,
+    _ operation: () async throws -> Void
+  ) async {
+    do {
+      try await operation()
+    }
+    catch {
+      self.log(
+        error: error,
+        info: info
+      )
+    }
+  }
 }
 
 extension OSDiagnostics.Trace {

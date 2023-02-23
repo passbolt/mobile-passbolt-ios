@@ -115,21 +115,8 @@ internal final class HomeSearchViewController: PlainViewController, UIComponent 
     contentView
       .accountMenuTapPublisher
       .sink { [weak self] in
+        self?.view.endEditing(true)
         self?.controller.presentAccountMenu()
-      }
-      .store(in: cancellables)
-
-    controller
-      .accountMenuPresentationPublisher()
-      .sink { [weak self] accountWithProfile in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          guard let self = self else { return }
-          self.view.endEditing(true)
-          await self.presentSheetMenu(
-            AccountMenuViewController.self,
-            in: accountWithProfile
-          )
-        }
       }
       .store(in: cancellables)
   }

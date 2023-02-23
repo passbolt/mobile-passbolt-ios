@@ -253,50 +253,161 @@ extension NavigationTo {
     )
   }
 
-	public static func legacyTabSwitch<DestinationViewController>(
-		to: DestinationViewController.Type = DestinationViewController.self
-	) -> FeatureLoader
-	where DestinationViewController: UIViewController, Destination.TransitionContext == Void {
-		.disposable(
-			Self.self,
-			load: { features in
-				precondition(
-					Destination.isUnique,
-					"Tab switch has to be unique!"
-				)
+  public static func legacySheetPresentationTransition<DestinationViewController>(
+    toLegacy: DestinationViewController.Type = DestinationViewController.self,
+    _ prepareTransitionView: @escaping @MainActor (Features, Destination.TransitionContext) throws ->
+      DestinationViewController
+  ) -> FeatureLoader
+  where DestinationViewController: UIComponent {
+    .disposable(
+      Self.self,
+      load: { features in
+        let navigationResolver: NavigationResolver = try features.instance()
 
-				let navigationResolver: NavigationResolver = try features.instance()
+        @MainActor @Sendable func isActive() async -> Bool {
+          navigationResolver
+            .exists(with: Destination.identifier)
+        }
 
-				@MainActor @Sendable func perform(
-					animated: Bool,
-					context: Destination.TransitionContext,
-					file: StaticString,
-					line: UInt
-				) async throws {
-					try await navigationResolver
-						.legacyTabSwitch(
-							to: DestinationViewController.self,
-							file: file,
-							line: line
-						)
-				}
+        @MainActor @Sendable func perform(
+          animated: Bool,
+          context: Destination.TransitionContext,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          let anchor: NavigationAnchor = try prepareTransitionView(features, context)
+          anchor.destinationIdentifier = Destination.identifier
+          try await navigationResolver
+            .present(
+              anchor,
+              unique: Destination.isUnique,
+              animated: animated,
+              file: file,
+              line: line
+            )
+        }
 
-				@MainActor @Sendable func revert(
-					animated: Bool,
-					file: StaticString,
-					line: UInt
-				) async throws {
-					throw InternalInconsistency
-						.error("Invalid navigation - can't revert tab switching!")
-				}
+        @MainActor @Sendable func revert(
+          animated: Bool,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          try await navigationResolver
+            .dismiss(
+              with: Destination.identifier,
+              animated: animated,
+              file: file,
+              line: line
+            )
+        }
 
-				return .init(
-					performAnimated: perform(animated:context:file:line:),
-					revertAnimated: revert(animated:file:line:)
-				)
-			}
-		)
-	}
+        return .init(
+          performAnimated: perform(animated:context:file:line:),
+          revertAnimated: revert(animated:file:line:)
+        )
+      }
+    )
+  }
+
+  public static func legacySheetPresentationTransition<DestinationViewController>(
+    toLegacy: DestinationViewController.Type = DestinationViewController.self,
+    context: DestinationViewController.Controller.Context
+  ) -> FeatureLoader
+  where DestinationViewController: UIComponent {
+    self.legacySheetPresentationTransition(
+      toLegacy: DestinationViewController.self,
+      { features, _ in
+        var features: Features = features
+        let cancellables: Cancellables = .init()
+
+        let controller: DestinationViewController.Controller = try .instance(
+          in: context,
+          with: &features,
+          cancellables: cancellables
+        )
+
+        return
+          DestinationViewController
+          .instance(
+            using: controller,
+            with: .init(features: features),
+            cancellables: cancellables
+          )
+      }
+    )
+  }
+
+  public static func legacySheetPresentationTransition<DestinationViewController>(
+    toLegacy: DestinationViewController.Type = DestinationViewController.self
+  ) -> FeatureLoader
+  where DestinationViewController: UIComponent, DestinationViewController.Controller.Context == Void {
+    self.legacySheetPresentationTransition(
+      toLegacy: DestinationViewController.self,
+      { features, _ in
+        var features: Features = features
+        let cancellables: Cancellables = .init()
+
+        let controller: DestinationViewController.Controller = try .instance(
+          with: &features,
+          cancellables: cancellables
+        )
+
+        return
+          DestinationViewController
+          .instance(
+            using: controller,
+            with: .init(features: features),
+            cancellables: cancellables
+          )
+      }
+    )
+  }
+
+  public static func legacyTabSwitch<DestinationViewController>(
+    to: DestinationViewController.Type = DestinationViewController.self
+  ) -> FeatureLoader
+  where DestinationViewController: UIViewController, Destination.TransitionContext == Void {
+    .disposable(
+      Self.self,
+      load: { features in
+        precondition(
+          Destination.isUnique,
+          "Tab switch has to be unique!"
+        )
+
+        let navigationResolver: NavigationResolver = try features.instance()
+
+        @MainActor @Sendable func perform(
+          animated: Bool,
+          context: Destination.TransitionContext,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          try await navigationResolver
+            .legacyTabSwitch(
+              to: DestinationViewController.self,
+              file: file,
+              line: line
+            )
+        }
+
+        @MainActor @Sendable func revert(
+          animated: Bool,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          throw
+            InternalInconsistency
+            .error("Invalid navigation - can't revert tab switching!")
+        }
+
+        return .init(
+          performAnimated: perform(animated:context:file:line:),
+          revertAnimated: revert(animated:file:line:)
+        )
+      }
+    )
+  }
 }
 
 extension NavigationTo {
