@@ -28,7 +28,6 @@ extension List {
   @_transparent
   public func commonListModifiers() -> some View {
     self
-      .tint(.passboltSecondaryRed)
       .foregroundColor(.passboltPrimaryText)
       .backgroundColor(.passboltBackground)
       .listRowInsets(

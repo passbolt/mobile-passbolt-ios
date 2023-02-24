@@ -85,7 +85,7 @@ extension TroubleshootingSettingsController {
     nonisolated func navigateToHelpSite() {
       asyncExecutor.schedule(.reuse) {
         do {
-          try await linkOpener.openURL("TODO: FIXME!")
+          try await linkOpener.openURL("https://help.passbolt.com/")
         }
         catch {
           diagnostics
