@@ -56,6 +56,7 @@
 "account.selection.account.removed" = "La cuenta se ha eliminado de este dispositivo.";
 
 "authorization.button.title" = "Iniciar sesión";
+"authorization.reverification.button.title" = "Confirmar contraseña";
 "authorization.forgot.passphrase.button.title" = "He olvidado mi contraseña";
 "authorization.forgot.passphrase.alert.title" = "¿Ha olvidado su contraseña?";
 "authorization.forgot.passphrase.alert.message" = "Lamentablemente no puede acceder a sus datos si no recuerda su contraseña. Por favor, póngase en contacto con su administrador para desbloquear su cuenta.";
@@ -146,14 +147,21 @@
 
 
 "transfer.account.title" = "Transferir detalles de la cuenta";
-"transfer.account.description" = "Escanee los códigos QR para transferir los datos de su cuenta";
-"transfer.account.info.step.first" = "Inicie sesión usando la extensión del navegador";
-"transfer.account.info.step.second" = "Vaya a la página de perfil";
-"transfer.account.info.step.second.distinct" = "Perfil";
-"transfer.account.info.step.third" = "Vaya a la sección Móvil";
-"transfer.account.info.step.third.distinct" = "Móvil";
-"transfer.account.info.step.fourth" = "Escanee la secuencia de códigos QR";
-"transfer.account.scan.qr.button" = "Escanear códigos QR";
+"transfer.account.import.description" = "Escanee los códigos QR para transferir los datos de su cuenta";
+"transfer.account.import.info.step.first" = "Inicie sesión usando la extensión del navegador";
+"transfer.account.import.info.step.second" = "Vaya a la página de Perfil";
+"transfer.account.import.info.step.second.distinct" = "Perfil";
+"transfer.account.import.info.step.third" = "Vaya a la sección Móvil";
+"transfer.account.import.info.step.third.distinct" = "Móvil";
+"transfer.account.import.info.step.fourth" = "Escanee la secuencia de códigos QR";
+"transfer.account.import.scan.qr.button" = "Escanear códigos QR";
+"transfer.account.export.description" = "Mostrar los códigos QR para transferir los datos de su cuenta";
+"transfer.account.export.info.step.first" = "Instalar la aplicación en otro móvil";
+"transfer.account.export.info.step.second" = "Iniciar la aplicación";
+"transfer.account.export.info.step.third" = "Seleccione \"Conectar a una cuenta existente”";
+"transfer.account.export.info.step.fourth" = "Escanee la secuencia de códigos QR";
+"transfer.account.export.scan.qr.button" = "Iniciar transferencia";
+"transfer.account.export.cancel.button" = "Cancelar transferencia";
 "transfer.account.camera.access.alert.title" = "Se requiere acceso a la cámara";
 "transfer.account.camera.access.alert.text" = "Vaya a Configuración/Privacidad/Cámara para habilitar el acceso a su cámara.";
 "transfer.account.result.success.title" = "¡Su información ha sido transferida!";
@@ -162,6 +170,13 @@
 
 "transfer.account.exit.confirmation.title" = "¿Está seguro?";
 "transfer.account.exit.confirmation.message" = "Si sale, necesitará escanear los códigos QR de nuevo.";
+"transfer.account.import.exit.confirmation.cancel.button.title" = "Continuar configuración";
+"transfer.account.import.exit.confirmation.confirm.button.title" = "Cancelar configuración";
+"transfer.account.export.exit.confirmation.confirm.button.title" = "Detener transferencia";
+"transfer.account.export.exit.success.button" = "Volver";
+"transfer.account.export.exit.failure.button" = "Volver a intentarlo";
+"transfer.account.export.failure.message" = "No se pudo completar la transferencia.";
+"transfer.account.export.cancelled" = "La transferencia se ha cancelado";
 "transfer.account.exit.confirmation.cancel.button.title" = "Continuar configuración";
 "transfer.account.exit.confirmation.confirm.button.title" = "Cancelar configuración";
 
@@ -205,6 +220,7 @@
 "account.settings.default.home.mode.title" = "Filtro por defecto";
 "account.settings.default.home.mode.option.last.used" = "Último uso (por defecto)";
 "account.settings.manage.accounts" = "Gestionar cuentas";
+"account.settings.export.mobile" = "Transferir cuenta a otro dispositivo";
 "account.settings.terms" = "Términos y condiciones";
 "account.settings.privacy.policy" = "Política de privacidad";
 "account.settings.logs" = "Acceder a los registros";
@@ -314,7 +330,7 @@ Póngase en contacto con su administrador para obtener más información.";
 "autofill.extension.no.accounts.description" = "Necesita una cuenta para empezar. Por favor, abra la aplicación Passbolt y siga las instrucciones de configuración. Passbolt podrá autocompletar las credenciales después.";
 
 "autofill.extension.resource.list.title" = "Elija la contraseña";
-"autofill.extension.resource.list.section.suggested.title" = "Contraseñas sugeridas";
+"autofill.extension.resource.list.section.suggested.title" = "Sugerido";
 "autofill.extension.resource.list.section.all.title" = "Otras contraseñas";
 
 "autofill.extension.autofill.extension.resources.search.placeholder" = "Buscar en Passbolt...";
@@ -345,7 +361,7 @@ Póngase en contacto con su administrador para obtener más información.";
 // Errors
 
 "generic.error" = "¡Algo salió mal!";
-"generic.error.retry" = "Algo salió mal. Por favor, inténtalo de nuevo.";
+"generic.error.retry" = "Algo salió mal. Por favor, inténtelo de nuevo.";
 "generic.error.report" = "Algo salió mal. Por favor, informe del error.";
 "generic.error.cancelled" = "La operación fue cancelada.";
 "sign.in.error.message" = "El inicio de sesión falló";
@@ -436,6 +452,7 @@ Póngase en contacto con su administrador para obtener más información.";
 "error.account.data.missing" = "Faltan los datos de la cuenta.";
 "error.account.biometry.data.changed" = "Los datos biométricos han cambiado.";
 "error.users.list.empty" = "La lista de usuarios no puede estar vacía.";
+"error.user.public.key.invalid" = "Clave pública de usuario no válida.";
 "error.user.public.key.missing" = "Falta la clave pública del usuario.";
 "error.user.secret.missing" = "Falta el secreto del usuario.";
 "error.session.closed" = "Sesión cerrada.";
@@ -450,3 +467,6 @@ Póngase en contacto con su administrador para obtener más información.";
 "error.validation.permissions.owner.required" = "Tiene que haber al menos un propietario.";
 
 "error.validation.form.invalid" = "El formulario no es válido.";
+"error.biometrics.unavailable.message" = "Biometría no disponible";
+
+"error.qrcode.generation.generic" = "No se pudo generar el código QR a partir de los datos proporcionados";
