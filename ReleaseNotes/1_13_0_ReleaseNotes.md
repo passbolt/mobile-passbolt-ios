@@ -1,4 +1,4 @@
-# Passbolt 1.x.x release notes
+# Passbolt 1.13.0 release notes
 
 ## Added
 - Mobile to mobile transfer for account
