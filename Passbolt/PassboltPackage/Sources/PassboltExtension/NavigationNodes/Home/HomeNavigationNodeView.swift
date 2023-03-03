@@ -50,7 +50,7 @@ internal struct HomeNavigationNodeView: ControlledView {
         or: ResourceFolderContentNodeView.self,
         or: ResourceTagsListNodeView.self,
         or: ResourceUserGroupsListNodeView.self,
-        orDefault: LoaderViewNode.instance
+        orDefault: LoaderView.instance
       )
   }
 }

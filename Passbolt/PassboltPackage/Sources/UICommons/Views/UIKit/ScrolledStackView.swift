@@ -155,4 +155,10 @@ open class ScrolledStackView: UIScrollView {
   }
 
   open override var intrinsicContentSize: CGSize { stackView.intrinsicContentSize }
+
+  open override func sizeThatFits(
+    _ size: CGSize
+  ) -> CGSize {
+    stackView.sizeThatFits(size)
+  }
 }

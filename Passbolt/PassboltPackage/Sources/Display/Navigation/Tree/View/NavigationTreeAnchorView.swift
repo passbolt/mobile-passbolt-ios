@@ -30,6 +30,11 @@ extension View {
   }
 }
 
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 internal struct NavigationTreeAnchorView: View {
 
   internal let node: NavigationTreeNode

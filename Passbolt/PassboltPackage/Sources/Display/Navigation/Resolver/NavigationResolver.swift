@@ -42,6 +42,29 @@ extension NavigationResolver: LoadableFeature {
 
 extension NavigationResolver {
 
+  @available(iOS 16.0, *)
+  @MainActor internal func dynamicLegacySheetDetent(
+    for anchor: NavigationAnchor
+  ) -> UISheetPresentationController.Detent {
+    let height: CGFloat? = UIApplication.shared
+      .connectedScenes
+      .compactMap({ scene in
+        (scene as? UIWindowScene)?.keyWindow?.frame.width
+      })
+      .first?
+      .flatMap { (width: CGFloat) in
+        anchor.view.sizeThatFits(
+          .init(
+            width: width,
+            height: .greatestFiniteMagnitude
+          )
+        )
+      }?
+      .height
+
+    return .custom { _ in height }
+  }
+
   @MainActor internal func exists(
     with identifier: NavigationDestinationIdentifier
   ) -> Bool {

@@ -27,7 +27,11 @@ import UIComponents  // LegacyBridge only
 
 extension AnyUIComponent {
 
-  @available(*, deprecated, message: "Please switch to `NavigationTo`")
+  @available(
+    *,
+    deprecated,
+    message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+  )
   @MainActor public func push<DisplayComponent>(
     _ type: DisplayComponent.Type,
     controller: DisplayComponent.Controller,
@@ -40,7 +44,11 @@ extension AnyUIComponent {
     )
   }
 
-  @available(*, deprecated, message: "Please switch to `NavigationTo`")
+  @available(
+    *,
+    deprecated,
+    message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+  )
   @MainActor public func pop<DisplayComponent>(
     if type: DisplayComponent.Type,
     animated: Bool = true
@@ -51,7 +59,11 @@ extension AnyUIComponent {
     )
   }
 
-  @available(*, deprecated, message: "Please switch to `NavigationTo`")
+  @available(
+    *,
+    deprecated,
+    message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+  )
   @MainActor public func present<DisplayComponent>(
     _ type: DisplayComponent.Type,
     controller: DisplayComponent.Controller,
@@ -64,7 +76,11 @@ extension AnyUIComponent {
     )
   }
 
-  @available(*, deprecated, message: "Please switch to `NavigationTo`")
+  @available(
+    *,
+    deprecated,
+    message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+  )
   @MainActor public func dismiss<DisplayComponent>(
     type: DisplayComponent.Type,
     animated: Bool = true
@@ -75,7 +91,11 @@ extension AnyUIComponent {
     )
   }
 
-  @available(*, deprecated, message: "Please switch to `NavigationTo`")
+  @available(
+    *,
+    deprecated,
+    message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+  )
   @MainActor public func presentSheet<DisplayComponent>(
     _ type: DisplayComponent.Type,
     controller: DisplayComponent.Controller,
@@ -88,7 +108,11 @@ extension AnyUIComponent {
     )
   }
 
-  @available(*, deprecated, message: "Please switch to `NavigationTo`")
+  @available(
+    *,
+    deprecated,
+    message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+  )
   @MainActor public func dismissSheet<DisplayComponent>(
     _ type: DisplayComponent.Type,
     animated: Bool = true

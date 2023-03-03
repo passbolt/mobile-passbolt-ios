@@ -36,7 +36,7 @@ internal struct OTPResourcesListController {
   internal var viewState: MutableViewState<ViewState>
 
   internal var refreshList: @Sendable () async -> Void
-  internal var addOTP: () -> Void
+  internal var createOTP: () -> Void
   internal var revealAndCopyOTP: (Resource.ID) -> Void
   internal var showCentextualMenu: (Resource.ID) -> Void
   internal var showAccountMenu: () -> Void
@@ -58,7 +58,7 @@ extension OTPResourcesListController: ViewController {
     .init(
       viewState: .placeholder(),
       refreshList: unimplemented0(),
-      addOTP: unimplemented0(),
+      createOTP: unimplemented0(),
       revealAndCopyOTP: unimplemented1(),
       showCentextualMenu: unimplemented1(),
       showAccountMenu: unimplemented0(),
@@ -88,6 +88,7 @@ extension OTPResourcesListController {
     let accountDetails: AccountDetails = try features.instance(context: currentAccount)
 
     let navigationToAccountMenu: NavigationToAccountMenu = try features.instance()
+    let navigationToCreateOTPMenu: NavigationToCreateOTPMenu = try features.instance()
 
     let revealedTOTPState: CriticalState<RevealedTOTPState?> = .init(.none) { state in
       // make sure updates won't leak
@@ -193,9 +194,14 @@ extension OTPResourcesListController {
       }
     }
 
-    nonisolated func addOTP() {
+    nonisolated func createOTP() {
       asyncExecutor.schedule(.reuse) {
-        #warning("TODO: [MOB-1082]")
+        await diagnostics
+          .withLogCatch(
+            info: .message("Navigation to create OTP failed!")
+          ) {
+            try await navigationToCreateOTPMenu.perform()
+          }
       }
     }
 
@@ -356,7 +362,7 @@ extension OTPResourcesListController {
     return .init(
       viewState: viewState,
       refreshList: refreshList,
-      addOTP: addOTP,
+      createOTP: createOTP,
       revealAndCopyOTP: revealAndCopyOTP(for:),
       showCentextualMenu: showCentextualMenu(for:),
       showAccountMenu: showAccountMenu,

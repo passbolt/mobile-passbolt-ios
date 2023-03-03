@@ -24,6 +24,11 @@
 import UICommons
 import UIComponents
 
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 public final class DisplayViewBridgeHandle<HostedView>: ObservableObject
 where HostedView: ControlledView {
 
@@ -36,6 +41,11 @@ where HostedView: ControlledView {
   }
 }
 
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 @MainActor
 internal final class DisplayViewBridge<HostedView>: UIHostingController<
   ModifiedContent<HostedView, _EnvironmentKeyWritingModifier<DisplayViewBridgeHandle<HostedView>?>>

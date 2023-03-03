@@ -24,6 +24,11 @@
 import Features
 import ObjectiveC
 
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 @MainActor
 public struct UIComponentFactory {
 

@@ -25,7 +25,11 @@ import SwiftUI
 import UIComponents
 import UIKit
 
-@available(*, deprecated, message: "Please switch to `NavigationTo`")
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 internal struct LegacyNavigationNodeBridgeView<Component>: UIViewControllerRepresentable
 where Component: UIComponent {
 

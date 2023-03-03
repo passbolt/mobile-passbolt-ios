@@ -21,7 +21,11 @@
 // @since         v1.0
 //
 
-@available(*, deprecated, message: "Please switch to `NavigationTo`")
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 public struct NavigationTreeState {
 
   internal private(set) var root: NavigationTreeNode

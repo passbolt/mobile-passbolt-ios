@@ -21,38 +21,62 @@
 // @since         v1.0
 //
 
-import SwiftUI
+import Display
+import UICommons
 
-public struct InitializationViewNode: ControlledView {
+internal struct CreateOTPMenuView: ControlledView {
 
-  public struct Controller: ViewController {
+  private let controller: CreateOTPMenuController
 
-    @Stateless public var viewState
-
-    #if DEBUG
-    public static var placeholder: Self {
-      .init()
-    }
-    #endif
-  }
-
-  private let controller: Controller
-
-  public init(
-    controller: Controller
+  internal init(
+    controller: CreateOTPMenuController
   ) {
     self.controller = controller
   }
 
-  public var body: some View {
-    ZStack {
-      Image(named: .passboltLogo)
-    }
-    .ignoresSafeArea()
-    .frame(
-      maxWidth: .infinity,
-      maxHeight: .infinity
+  internal var body: some View {
+    DrawerMenu(
+      closeTap: self.controller.dismiss,
+      title: {
+        Text(
+          displayable: .localized(
+            key: "otp.create.menu.title"
+          )
+        )
+      },
+      content: {
+        VStack(spacing: 0) {
+          DrawerMenuItemView(
+            action: self.controller.createFromQRCode,
+            title: {
+              Text(
+                displayable: .localized(
+                  key: "otp.create.menu.scanning.title"
+                )
+              )
+            },
+            leftIcon: {
+              Image(named: .camera)
+                .resizable()
+            }
+          )
+
+          DrawerMenuItemView(
+            action: self.controller.createManually,
+            title: {
+              Text(
+                displayable: .localized(
+                  key: "otp.create.menu.manual.title"
+                )
+              )
+            },
+            leftIcon: {
+              Image(named: .editAlt)
+                .resizable()
+            }
+          )
+        }
+      }
     )
-    .backgroundColor(.passboltBackground)
   }
 }

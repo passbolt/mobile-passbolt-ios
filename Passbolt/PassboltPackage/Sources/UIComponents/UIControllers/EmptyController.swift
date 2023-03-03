@@ -21,6 +21,11 @@
 // @since         v1.0
 //
 
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 @MainActor
 public struct EmptyController<Context>: UIController {
 

@@ -29,6 +29,11 @@ private struct NavigationTreeDismissEnvironmentKey: EnvironmentKey {
   static let defaultValue: NavigationTreeDismiss? = .none
 }
 
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 public typealias NavigationTreeDismiss = @MainActor (ViewNodeID) -> Void
 
 extension EnvironmentValues {

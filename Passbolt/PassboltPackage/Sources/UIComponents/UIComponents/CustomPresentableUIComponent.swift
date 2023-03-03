@@ -23,6 +23,11 @@
 
 import class UIKit.UIViewController
 
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 public protocol CustomPresentableUIComponent: AnyUIComponent {
 
   func customPresentationSetup()

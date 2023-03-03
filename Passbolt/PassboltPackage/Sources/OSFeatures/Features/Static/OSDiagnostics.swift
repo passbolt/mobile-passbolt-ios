@@ -348,7 +348,8 @@ extension OSDiagnostics {
     }
   }
 
-  public func logCatch(
+  @_transparent
+  public func withLogCatch(
     info: DiagnosticsInfo? = .none,
     _ operation: () async throws -> Void
   ) async {

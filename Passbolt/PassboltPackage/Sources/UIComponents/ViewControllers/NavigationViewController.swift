@@ -24,6 +24,11 @@
 import CommonModels
 import UIKit
 
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 @MainActor open class NavigationViewController: UINavigationController {
 
   open class var disableSystemBackNavigation: Bool { true }

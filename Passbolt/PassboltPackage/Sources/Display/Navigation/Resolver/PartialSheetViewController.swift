@@ -21,66 +21,63 @@
 // @since         v1.0
 //
 
-import CommonModels
 import UIKit
 
-@available(
-  *,
-  deprecated,
-  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
-)
-@MainActor open class PlainViewController: UIViewController {
+@available(iOS, deprecated: 16, message: "Please switch to presentation detents")
+internal final class PartialSheetViewController<Content: UIViewController>: UIViewController {
 
-  public var cancellables: Cancellables
+  private let content: Content
 
-  @MainActor public init(
-    cancellables: Cancellables
+  internal init(
+    wrapping content: Content
   ) {
-    self.cancellables = cancellables
-    super.init(nibName: nil, bundle: nil)
-    self.navigationItem.backButtonTitle = ""
-    self.isModalInPresentation = true
-    (self as? AnyUIComponent)?.setup()
+    self.content = content
+    super.init(nibName: .none, bundle: .none)
+    self.modalPresentationStyle = .overFullScreen
+    self.modalTransitionStyle = .crossDissolve
   }
 
   @available(*, unavailable)
-  public required init?(coder: NSCoder) {
+  internal required init?(coder: NSCoder) {
     unreachable(#function)
   }
 
-  override public var childForStatusBarStyle: UIViewController? {
-    presentedViewController as? AnyUIComponent
+  override func loadView() {
+    let view: UIView = .init()
+    view.backgroundColor = .passboltSheetBackground
+    view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(backgroundTap)))
+
+    self.content.view.layer.cornerRadius = 8
+    self.content.view.layer.maskedCorners = [
+      .layerMinXMinYCorner,
+      .layerMaxXMinYCorner,
+    ]
+    self.content.view.layer.masksToBounds = true
+
+    self.addChild(self.content)
+    self.content.view.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(self.content.view)
+    NSLayoutConstraint
+      .activate([
+        self.content.view.leadingAnchor
+          .constraint(equalTo: view.leadingAnchor),
+        self.content.view.trailingAnchor
+          .constraint(equalTo: view.trailingAnchor),
+        self.content.view.bottomAnchor
+          .constraint(equalTo: view.bottomAnchor),
+        self.content.view.topAnchor
+          .constraint(greaterThanOrEqualTo: view.topAnchor),
+      ])
+
+    self.view = view
+    self.content.didMove(toParent: self)
   }
 
-  override public func loadView() {
-    if let vc: AnyUIComponent = self as? AnyUIComponent {
-      view = vc.lazyView
-      view.frame =
-        view.window?.bounds
-        ?? UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.bounds
-        ?? UIScreen.main.bounds
-    }
-    else {
-      super.loadView()
-    }
+  @objc internal func backgroundTap() {
+    self.dismiss(animated: true)
   }
 
-  override public func viewDidLoad() {
-    super.viewDidLoad()
-    (self as? AnyUIComponent)?.setupView()
-  }
-
-  override public func viewWillAppear(_ animated: Bool) {
-    super.viewWillAppear(animated)
-    (self as? AnyUIComponent)?.activate()
-  }
-
-  override public func viewDidDisappear(_ animated: Bool) {
-    super.viewDidDisappear(animated)
-    (self as? AnyUIComponent)?.deactivate()
-  }
-
-  override public func dismiss(
+  override internal func dismiss(
     animated: Bool,
     completion: (() -> Void)? = nil
   ) {

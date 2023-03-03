@@ -25,7 +25,11 @@ import Commons
 import Features
 import UIKit
 
-@available(*, deprecated, message: "Please switch to `NavigationTo`")
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 public struct NavigationTree {
 
   internal var state: MutableViewState<NavigationTreeState>
@@ -395,13 +399,13 @@ extension NavigationTree {
   fileprivate static func liveNavigationTree(
     from root: NavigationTreeRootViewAnchor
   ) -> Self {
-    let initializationViewController: InitializationViewNode.Controller = .init()
+    let initializationViewController: InitializationView.Controller = .init()
     let navigationTree: NavigationTree = .init(
       state: .init(
         initial: .init(
           root: .just(
             id: initializationViewController.viewNodeID,
-            view: InitializationViewNode(
+            view: InitializationView(
               controller: initializationViewController
             )
           )

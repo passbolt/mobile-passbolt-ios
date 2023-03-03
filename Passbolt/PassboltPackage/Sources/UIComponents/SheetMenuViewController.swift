@@ -25,6 +25,11 @@ import CommonModels
 import UICommons
 import UIKit
 
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 public final class SheetMenuContentView: PlainView {
 
   internal var closeActionPublisher: AnyPublisher<Void, Never> {
@@ -143,6 +148,11 @@ public final class SheetMenuContentView: PlainView {
   }
 }
 
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 public struct SheetMenuController<ContentContext> {
 
   public var contentContext: ContentContext
@@ -163,6 +173,11 @@ extension SheetMenuController: UIController {
   }
 }
 
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 public final class SheetMenuViewController<Content: UIComponent>: PlainViewController, UIComponent {
 
   public typealias ContentView = SheetMenuContentView

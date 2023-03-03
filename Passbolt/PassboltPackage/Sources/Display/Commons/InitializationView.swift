@@ -23,7 +23,7 @@
 
 import SwiftUI
 
-public struct LoaderViewNode: ControlledView {
+public struct InitializationView: ControlledView {
 
   public struct Controller: ViewController {
 
@@ -36,10 +36,6 @@ public struct LoaderViewNode: ControlledView {
     #endif
   }
 
-  public static func instance() -> Self {
-    .init(controller: .init())
-  }
-
   private let controller: Controller
 
   public init(
@@ -49,12 +45,14 @@ public struct LoaderViewNode: ControlledView {
   }
 
   public var body: some View {
-    ProgressView()
-      .progressViewStyle(.circular)
-      .frame(
-        maxWidth: .infinity,
-        maxHeight: .infinity
-      )
-      .backgroundColor(.passboltBackground)
+    ZStack {
+      Image(named: .passboltLogo)
+    }
+    .ignoresSafeArea()
+    .frame(
+      maxWidth: .infinity,
+      maxHeight: .infinity
+    )
+    .backgroundColor(.passboltBackground)
   }
 }

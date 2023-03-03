@@ -55,6 +55,10 @@ extension FeaturesRegistry {
     self.useLiveNavigationToOTPResourcesTab()
     self.useLiveOTPResourcesListController()
 
+    // MARK: - Create OTP
+    self.useLiveCreateOTPMenuController()
+    self.useLiveNavigationToCreateOTPMenu()
+
     // MARK: - Settings Tab
     self.useLiveMainSettingsController()
     self.useLiveTroubleshootingSettingsController()

@@ -24,7 +24,11 @@
 import Commons
 import SwiftUI
 
-@available(*, deprecated, message: "Please switch to `NavigationTo`")
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 public struct NavigationTreeRootView: View {
 
   private let navigationTree: NavigationTree

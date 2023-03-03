@@ -24,6 +24,11 @@
 import CommonModels
 import UIKit
 
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 @MainActor open class TabsViewController: UITabBarController {
 
   // Overriding TabBar is almost impossible, we delegate its colors setup to VC

@@ -69,7 +69,7 @@ internal final class AccountMenuView: PlainView {
 
     mut(self) {
       .combined(
-        .backgroundColor(.clear)
+        .backgroundColor(.passboltBackground)
       )
     }
 

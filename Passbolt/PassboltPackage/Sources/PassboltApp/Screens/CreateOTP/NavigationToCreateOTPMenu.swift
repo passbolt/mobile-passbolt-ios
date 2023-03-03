@@ -21,16 +21,28 @@
 // @since         v1.0
 //
 
-import UIKit
+import Display
+import SharedUIComponents
 
-@available(
-  *,
-  deprecated,
-  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
-)
-public protocol NavigationTreeRootViewAnchor {
+internal enum CreateOTPMenuNavigationDestination: NavigationDestination {}
 
-  @MainActor func setRoot<RootView>(
-    _ view: RootView
-  ) where RootView: View
+internal typealias NavigationToCreateOTPMenu = NavigationTo<CreateOTPMenuNavigationDestination>
+
+extension NavigationToCreateOTPMenu {
+
+  fileprivate static var live: FeatureLoader {
+    legacyPartialSheetPresentationTransition(
+      to: CreateOTPMenuView.self
+    )
+  }
+}
+
+extension FeaturesRegistry {
+
+  internal mutating func useLiveNavigationToCreateOTPMenu() {
+    self.use(
+      NavigationToCreateOTPMenu.live,
+      in: SessionScope.self
+    )
+  }
 }

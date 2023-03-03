@@ -29,6 +29,11 @@ private struct NavigationTreeBackEnvironmentKey: EnvironmentKey {
   static let defaultValue: NavigationTreeBack? = .none
 }
 
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 public typealias NavigationTreeBack = @MainActor (ViewNodeID) -> Void
 
 extension EnvironmentValues {

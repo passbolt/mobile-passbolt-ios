@@ -23,6 +23,11 @@
 
 import Foundation
 
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 @MainActor
 public final class PlainNavigationViewController<Content: UIComponent>: NavigationViewController, UIComponent {
 

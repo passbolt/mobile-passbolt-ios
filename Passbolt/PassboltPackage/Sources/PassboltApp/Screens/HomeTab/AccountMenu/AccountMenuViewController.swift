@@ -66,6 +66,7 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
     super.init(
       cancellables: cancellables
     )
+    self.isModalInPresentation = false
   }
 
   internal func setupView() {

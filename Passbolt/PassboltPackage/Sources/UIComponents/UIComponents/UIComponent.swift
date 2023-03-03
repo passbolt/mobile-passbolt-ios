@@ -24,6 +24,11 @@ import CommonModels
 import Features
 import UIKit
 
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 @MainActor public protocol AnyUIComponent: UIViewController {
 
   @MainActor var lazyView: UIView { get }
@@ -35,6 +40,11 @@ import UIKit
   @MainActor func deactivate()
 }
 
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 @MainActor public protocol UIComponent: AnyUIComponent {
 
   associatedtype ContentView: UIView
@@ -73,6 +83,11 @@ extension SwiftUIComponent {
   @MainActor public func setupView() {}
 }
 
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 public final class NavigationView: UIView {}
 
 extension UIComponent where Self: UINavigationController {

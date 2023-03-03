@@ -23,7 +23,11 @@
 
 import Aegithalos
 
-@available(*, deprecated)
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 public struct LegacyNavigationBarButtonBridge {
 
   public var icon: ImageNameConstant

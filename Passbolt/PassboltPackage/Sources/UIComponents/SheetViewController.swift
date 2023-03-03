@@ -24,6 +24,11 @@
 import CommonModels
 import UIKit
 
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 public final class SheetContentView: PlainView {
 
   internal var backgroundTapPublisher: AnyPublisher<Void, Never> { backgroundTapSubject.eraseToAnyPublisher() }
@@ -83,6 +88,11 @@ public final class SheetContentView: PlainView {
   }
 }
 
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 public struct SheetController<ContentContext> {
 
   public var contentContext: ContentContext
@@ -103,6 +113,11 @@ extension SheetController: UIController {
   }
 }
 
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 public final class SheetViewController<Content: UIComponent>: PlainViewController, UIComponent {
 
   public typealias ContentView = SheetContentView

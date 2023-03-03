@@ -23,7 +23,11 @@
 
 import UIComponents  // LegacyBridge only
 
-@available(*, deprecated, message: "Please switch to `NavigationTo`")
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 public struct DisplayNavigation {
 
   internal var legacyBridge: LegacyNavigationBridge

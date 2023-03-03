@@ -194,11 +194,6 @@ extension NavigationTo {
       load: { features in
         let navigationResolver: NavigationResolver = try features.instance()
 
-        @MainActor @Sendable func isActive() async -> Bool {
-          navigationResolver
-            .exists(with: Destination.identifier)
-        }
-
         @MainActor @Sendable func perform(
           animated: Bool,
           context: Destination.TransitionContext,
@@ -263,11 +258,6 @@ extension NavigationTo {
       Self.self,
       load: { features in
         let navigationResolver: NavigationResolver = try features.instance()
-
-        @MainActor @Sendable func isActive() async -> Bool {
-          navigationResolver
-            .exists(with: Destination.identifier)
-        }
 
         @MainActor @Sendable func perform(
           animated: Bool,
@@ -342,6 +332,175 @@ extension NavigationTo {
   ) -> FeatureLoader
   where DestinationViewController: UIComponent, DestinationViewController.Controller.Context == Void {
     self.legacySheetPresentationTransition(
+      toLegacy: DestinationViewController.self,
+      { features, _ in
+        var features: Features = features
+        let cancellables: Cancellables = .init()
+
+        let controller: DestinationViewController.Controller = try .instance(
+          with: &features,
+          cancellables: cancellables
+        )
+
+        return
+          DestinationViewController
+          .instance(
+            using: controller,
+            with: .init(features: features),
+            cancellables: cancellables
+          )
+      }
+    )
+  }
+
+  public static func legacyPartialSheetPresentationTransition<DestinationView>(
+    to: DestinationView.Type = DestinationView.self,
+    _ prepareTransitionView: @escaping @MainActor (Features, Destination.TransitionContext) throws -> DestinationView
+  ) -> FeatureLoader
+  where DestinationView: ControlledView {
+    .disposable(
+      Self.self,
+      load: { features in
+        let navigationResolver: NavigationResolver = try features.instance()
+
+        @MainActor @Sendable func perform(
+          animated: Bool,
+          context: Destination.TransitionContext,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          let anchor: NavigationAnchor
+          if #available(iOS 16.0, *) {
+            anchor = UIHostingController(
+              rootView: try prepareTransitionView(features, context)
+            )
+
+            anchor.sheetPresentationController?.detents = [
+              navigationResolver.dynamicLegacySheetDetent(for: anchor)
+            ]
+          }
+          else {
+            anchor = try PartialSheetViewController(
+              wrapping: UIHostingController(
+                rootView: prepareTransitionView(features, context)
+              )
+            )
+          }
+
+          anchor.destinationIdentifier = Destination.identifier
+          try await navigationResolver
+            .present(
+              anchor,
+              unique: Destination.isUnique,
+              animated: animated,
+              file: file,
+              line: line
+            )
+        }
+
+        @MainActor @Sendable func revert(
+          animated: Bool,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          try await navigationResolver
+            .dismiss(
+              with: Destination.identifier,
+              animated: animated,
+              file: file,
+              line: line
+            )
+        }
+
+        return .init(
+          performAnimated: perform(animated:context:file:line:),
+          revertAnimated: revert(animated:file:line:)
+        )
+      }
+    )
+  }
+
+  public static func legacyPartialSheetPresentationTransition<DestinationView>(
+    to: DestinationView.Type
+  ) -> FeatureLoader
+  where DestinationView: ControlledView, DestinationView.Controller.Context == ContextlessFeatureContext {
+    Self.legacyPartialSheetPresentationTransition(
+      to: DestinationView.self,
+      { features, _ in
+        try DestinationView(controller: features.instance())
+      }
+    )
+  }
+
+  public static func legacyPartialSheetPresentationTransition<DestinationViewController>(
+    toLegacy: DestinationViewController.Type = DestinationViewController.self,
+    _ prepareTransitionView: @escaping @MainActor (Features, Destination.TransitionContext) throws ->
+      DestinationViewController
+  ) -> FeatureLoader
+  where DestinationViewController: UIComponent {
+    .disposable(
+      Self.self,
+      load: { features in
+        let navigationResolver: NavigationResolver = try features.instance()
+
+        @MainActor @Sendable func perform(
+          animated: Bool,
+          context: Destination.TransitionContext,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          let anchor: NavigationAnchor
+          if #available(iOS 16.0, *) {
+            anchor = try prepareTransitionView(features, context)
+
+            anchor.sheetPresentationController?.detents = [
+              navigationResolver.dynamicLegacySheetDetent(for: anchor)
+            ]
+          }
+          else {
+            anchor = try PartialSheetViewController(
+              wrapping: prepareTransitionView(features, context)
+            )
+          }
+
+          anchor.destinationIdentifier = Destination.identifier
+          try await navigationResolver
+            .present(
+              anchor,
+              unique: Destination.isUnique,
+              animated: animated,
+              file: file,
+              line: line
+            )
+        }
+
+        @MainActor @Sendable func revert(
+          animated: Bool,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          try await navigationResolver
+            .dismiss(
+              with: Destination.identifier,
+              animated: animated,
+              file: file,
+              line: line
+            )
+        }
+
+        return .init(
+          performAnimated: perform(animated:context:file:line:),
+          revertAnimated: revert(animated:file:line:)
+        )
+      }
+    )
+  }
+
+  public static func legacyPartialSheetPresentationTransition<DestinationViewController>(
+    toLegacy: DestinationViewController.Type = DestinationViewController.self
+  ) -> FeatureLoader
+  where DestinationViewController: UIComponent, DestinationViewController.Controller.Context == Void {
+    self.legacyPartialSheetPresentationTransition(
       toLegacy: DestinationViewController.self,
       { features, _ in
         var features: Features = features

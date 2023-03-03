@@ -104,13 +104,14 @@ extension HomeSearchController: UIController {
 
     func presentAccountMenu() {
       asyncExecutor.schedule(.reuse) {
-        await diagnostics.logCatch(
-          info: .message(
-            "Navigation to account menu failed!"
-          )
-        ) {
-          try await navigationToAccountMenu.perform()
-        }
+        await diagnostics
+          .withLogCatch(
+            info: .message(
+              "Navigation to account menu failed!"
+            )
+          ) {
+            try await navigationToAccountMenu.perform()
+          }
       }
     }
 

@@ -21,16 +21,40 @@
 // @since         v1.0
 //
 
-import UIKit
+import SwiftUI
 
-@available(
-  *,
-  deprecated,
-  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
-)
-public protocol NavigationTreeRootViewAnchor {
+public struct LoaderView: ControlledView {
 
-  @MainActor func setRoot<RootView>(
-    _ view: RootView
-  ) where RootView: View
+  public struct Controller: ViewController {
+
+    @Stateless public var viewState
+
+    #if DEBUG
+    public static var placeholder: Self {
+      .init()
+    }
+    #endif
+  }
+
+  public static func instance() -> Self {
+    .init(controller: .init())
+  }
+
+  private let controller: Controller
+
+  public init(
+    controller: Controller
+  ) {
+    self.controller = controller
+  }
+
+  public var body: some View {
+    ProgressView()
+      .progressViewStyle(.circular)
+      .frame(
+        maxWidth: .infinity,
+        maxHeight: .infinity
+      )
+      .backgroundColor(.passboltBackground)
+  }
 }

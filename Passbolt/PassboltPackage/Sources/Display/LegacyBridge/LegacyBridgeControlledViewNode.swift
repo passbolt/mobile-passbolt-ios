@@ -23,6 +23,11 @@
 
 import UIKit
 
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 internal struct LegacyBridgeControlledView<Component>: ControlledView
 where Component: UIComponent {
 

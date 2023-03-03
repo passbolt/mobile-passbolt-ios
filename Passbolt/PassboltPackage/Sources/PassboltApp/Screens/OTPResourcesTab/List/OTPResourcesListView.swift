@@ -91,7 +91,7 @@ internal struct OTPResourcesListView: ControlledView {
 
   @ViewBuilder @MainActor private var createOTP: some View {
     Button(
-      action: self.controller.addOTP,
+      action: self.controller.createOTP,
       label: {
         HStack(spacing: 12) {
           Image(named: .create)

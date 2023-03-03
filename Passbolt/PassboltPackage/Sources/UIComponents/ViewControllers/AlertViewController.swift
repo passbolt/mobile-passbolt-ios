@@ -27,6 +27,11 @@ import UIKit
 // UIAlertController does not support subclassing, in order to make a proper component from it
 // we avoid overriding its initializer (which does break the things) and instead use existing one
 // and add controller right after initialization (this is reason for imclitly unwrapped optional there).
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
+)
 @MainActor open class AlertViewController<Controller: UIController>: UIAlertController {
 
   public static func instance(
