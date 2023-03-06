@@ -23,25 +23,25 @@
 
 import Display
 
-internal enum CreateOTPMenuNavigationDestination: NavigationDestination {}
+internal enum OTPScanningSuccessNavigationDestination: NavigationDestination {}
 
-internal typealias NavigationToCreateOTPMenu = NavigationTo<CreateOTPMenuNavigationDestination>
+internal typealias NavigationToOTPScanningSuccess = NavigationTo<OTPScanningSuccessNavigationDestination>
 
-extension NavigationToCreateOTPMenu {
+extension NavigationToOTPScanningSuccess {
 
   fileprivate static var live: FeatureLoader {
-    legacyPartialSheetPresentationTransition(
-      to: CreateOTPMenuView.self
+    legacyPushTransition(
+      to: OTPScanningSuccessView.self
     )
   }
 }
 
 extension FeaturesRegistry {
 
-  internal mutating func useLiveNavigationToCreateOTPMenu() {
+  internal mutating func useLiveNavigationToOTPScanningSuccess() {
     self.use(
-      NavigationToCreateOTPMenu.live,
-      in: SessionScope.self
+      NavigationToOTPScanningSuccess.live,
+      in: OTPEditScope.self
     )
   }
 }

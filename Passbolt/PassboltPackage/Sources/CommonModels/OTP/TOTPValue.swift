@@ -21,27 +21,23 @@
 // @since         v1.0
 //
 
-import Display
+import Commons
 
-internal enum CreateOTPMenuNavigationDestination: NavigationDestination {}
+public struct TOTPValue {
 
-internal typealias NavigationToCreateOTPMenu = NavigationTo<CreateOTPMenuNavigationDestination>
+  public var otp: OTP
+  public var timeLeft: Seconds
+  public var period: Seconds
 
-extension NavigationToCreateOTPMenu {
-
-  fileprivate static var live: FeatureLoader {
-    legacyPartialSheetPresentationTransition(
-      to: CreateOTPMenuView.self
-    )
+  public init(
+    otp: OTP,
+    timeLeft: Seconds,
+    period: Seconds
+  ) {
+    self.otp = otp
+    self.timeLeft = timeLeft
+    self.period = period
   }
 }
 
-extension FeaturesRegistry {
-
-  internal mutating func useLiveNavigationToCreateOTPMenu() {
-    self.use(
-      NavigationToCreateOTPMenu.live,
-      in: SessionScope.self
-    )
-  }
-}
+extension TOTPValue: Equatable {}

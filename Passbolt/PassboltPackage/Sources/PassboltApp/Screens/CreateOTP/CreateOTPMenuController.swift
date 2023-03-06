@@ -61,6 +61,7 @@ extension CreateOTPMenuController {
     let asyncExecutor: AsyncExecutor = try features.instance()
 
     let navigationToSelf: NavigationToCreateOTPMenu = try features.instance()
+    let navigationToQRCodeCreateOTPView: NavigationToOTPScanning = try features.instance()
 
     nonisolated func createFromQRCode() {
       asyncExecutor.scheduleCatchingWith(
@@ -69,6 +70,7 @@ extension CreateOTPMenuController {
         behavior: .reuse
       ) {
         try await navigationToSelf.revert()
+        try await navigationToQRCodeCreateOTPView.perform(context: .init())
       }
     }
     nonisolated func createManually() {

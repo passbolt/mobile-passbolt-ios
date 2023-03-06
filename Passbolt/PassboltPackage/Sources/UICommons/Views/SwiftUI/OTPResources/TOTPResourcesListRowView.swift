@@ -82,7 +82,7 @@ where Accessory: View {
 
                 CountdownCircleView(
                   current: totpValue.timeLeft.rawValue,
-                  max: totpValue.validityPeriod.rawValue
+                  max: totpValue.period.rawValue
                 )
               }
               .frame(
@@ -175,7 +175,7 @@ internal struct TOTPResourcesListRowView_Previews: PreviewProvider {
           value: .init(
             otp: "123456",
             timeLeft: value,
-            validityPeriod: 30
+            period: 30
           ),
           action: {},
           accessory: {
@@ -218,7 +218,7 @@ internal struct TOTPResourcesListRowView_Previews: PreviewProvider {
         value: .init(
           otp: "123456",
           timeLeft: 23,
-          validityPeriod: 30
+          period: 30
         ),
         action: {},
         accessory: {
@@ -241,7 +241,7 @@ internal struct TOTPResourcesListRowView_Previews: PreviewProvider {
         value: .init(
           otp: "123456",
           timeLeft: 23,
-          validityPeriod: 30
+          period: 30
         ),
         action: {},
         accessory: {
@@ -264,7 +264,7 @@ internal struct TOTPResourcesListRowView_Previews: PreviewProvider {
         value: .init(
           otp: "123456",
           timeLeft: 3,
-          validityPeriod: 30
+          period: 30
         ),
         action: {},
         accessory: {

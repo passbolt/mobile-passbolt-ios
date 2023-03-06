@@ -21,27 +21,44 @@
 // @since         v1.0
 //
 
-import Display
+import CommonModels
+import Features
 
-internal enum CreateOTPMenuNavigationDestination: NavigationDestination {}
+// MARK: - Interface
 
-internal typealias NavigationToCreateOTPMenu = NavigationTo<CreateOTPMenuNavigationDestination>
+public struct OTPEditForm {
 
-extension NavigationToCreateOTPMenu {
+  public var updates: UpdatesSequence
+  public var state: @Sendable () -> State
+  public var fillFromURI: @Sendable (String) throws -> Void
 
-  fileprivate static var live: FeatureLoader {
-    legacyPartialSheetPresentationTransition(
-      to: CreateOTPMenuView.self
-    )
+  public init(
+    updates: UpdatesSequence,
+    state: @escaping @Sendable () -> State,
+    fillFromURI: @escaping @Sendable (String) throws -> Void
+  ) {
+    self.updates = updates
+    self.state = state
+    self.fillFromURI = fillFromURI
   }
 }
 
-extension FeaturesRegistry {
+extension OTPEditForm {
 
-  internal mutating func useLiveNavigationToCreateOTPMenu() {
-    self.use(
-      NavigationToCreateOTPMenu.live,
-      in: SessionScope.self
+  // Since we are supporting only TOTP iniitally it is the same
+  // It can be updated to a custom structure when adding HOTP
+  public typealias State = TOTPConfiguration
+}
+
+extension OTPEditForm: LoadableFeature {
+
+  #if DEBUG
+  public static var placeholder: Self {
+    .init(
+      updates: .placeholder,
+      state: unimplemented0(),
+      fillFromURI: unimplemented1()
     )
   }
+  #endif
 }

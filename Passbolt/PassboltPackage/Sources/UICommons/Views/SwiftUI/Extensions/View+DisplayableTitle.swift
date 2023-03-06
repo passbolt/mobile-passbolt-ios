@@ -22,22 +22,16 @@
 //
 
 import Commons
+import SwiftUI
 
-public struct TOTPValue {
+extension View {
 
-  public var otp: OTP
-  public var timeLeft: Seconds
-  public var validityPeriod: Seconds
-
-  public init(
-    otp: OTP,
-    timeLeft: Seconds,
-    validityPeriod: Seconds
-  ) {
-    self.otp = otp
-    self.timeLeft = timeLeft
-    self.validityPeriod = validityPeriod
+  @_transparent
+  public func navigationTitle(
+    displayable: DisplayableString
+  ) -> some View {
+    self.navigationTitle(
+      displayable.string()
+    )
   }
 }
-
-extension TOTPValue: Equatable {}

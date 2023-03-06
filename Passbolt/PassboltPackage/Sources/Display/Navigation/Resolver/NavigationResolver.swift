@@ -48,9 +48,9 @@ extension NavigationResolver {
   ) -> UISheetPresentationController.Detent {
     let height: CGFloat? = UIApplication.shared
       .connectedScenes
-      .compactMap({ scene in
+      .compactMap { scene in
         (scene as? UIWindowScene)?.keyWindow?.frame.width
-      })
+      }
       .first?
       .flatMap { (width: CGFloat) in
         anchor.view.sizeThatFits(
@@ -62,7 +62,11 @@ extension NavigationResolver {
       }?
       .height
 
-    return .custom { _ in height }
+    return .custom { context in
+      height.map {
+        min($0, context.maximumDetentValue)
+      }
+    }
   }
 
   @MainActor internal func exists(

@@ -21,27 +21,11 @@
 // @since         v1.0
 //
 
-import Display
+public enum HOTPAlgorithm: String {
 
-internal enum CreateOTPMenuNavigationDestination: NavigationDestination {}
-
-internal typealias NavigationToCreateOTPMenu = NavigationTo<CreateOTPMenuNavigationDestination>
-
-extension NavigationToCreateOTPMenu {
-
-  fileprivate static var live: FeatureLoader {
-    legacyPartialSheetPresentationTransition(
-      to: CreateOTPMenuView.self
-    )
-  }
+  case sha1 = "SHA1"
+  case sha256 = "SHA256"
+  case sha512 = "SHA512"
 }
 
-extension FeaturesRegistry {
-
-  internal mutating func useLiveNavigationToCreateOTPMenu() {
-    self.use(
-      NavigationToCreateOTPMenu.live,
-      in: SessionScope.self
-    )
-  }
-}
+extension HOTPAlgorithm: Hashable {}

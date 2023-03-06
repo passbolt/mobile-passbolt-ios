@@ -21,27 +21,33 @@
 // @since         v1.0
 //
 
-import Display
+import Commons
 
-internal enum CreateOTPMenuNavigationDestination: NavigationDestination {}
+public struct TOTPConfiguration {
 
-internal typealias NavigationToCreateOTPMenu = NavigationTo<CreateOTPMenuNavigationDestination>
+  public var issuer: String?
+  public var account: String
+  public var secret: String
+  public var digits: UInt
+  public var algorithm: HOTPAlgorithm
+  public var period: Seconds
 
-extension NavigationToCreateOTPMenu {
-
-  fileprivate static var live: FeatureLoader {
-    legacyPartialSheetPresentationTransition(
-      to: CreateOTPMenuView.self
-    )
+  public init(
+    issuer: String?,
+    account: String,
+    secret: String,
+    digits: UInt,
+    algorithm: HOTPAlgorithm,
+    period: Seconds
+  ) {
+    self.issuer = issuer
+    self.account = account
+    self.secret = secret
+    self.digits = digits
+    self.algorithm = algorithm
+    self.period = period
   }
 }
 
-extension FeaturesRegistry {
-
-  internal mutating func useLiveNavigationToCreateOTPMenu() {
-    self.use(
-      NavigationToCreateOTPMenu.live,
-      in: SessionScope.self
-    )
-  }
-}
+extension TOTPConfiguration: Sendable {}
+extension TOTPConfiguration: Hashable {}

@@ -58,6 +58,10 @@ extension FeaturesRegistry {
     // MARK: - Create OTP
     self.useLiveCreateOTPMenuController()
     self.useLiveNavigationToCreateOTPMenu()
+    self.useLiveOTPScanningController()
+    self.useLiveNavigationToOTPScanning()
+    self.useLiveOTPScanningSuccessController()
+    self.useLiveNavigationToOTPScanningSuccess()
 
     // MARK: - Settings Tab
     self.useLiveMainSettingsController()

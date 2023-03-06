@@ -184,6 +184,18 @@ extension NavigationTo {
     )
   }
 
+  public static func legacyPushTransition<DestinationView>(
+    to: DestinationView.Type
+  ) -> FeatureLoader
+  where DestinationView: ControlledView, DestinationView.Controller.Context == Destination.TransitionContext {
+    Self.legacyPushTransition(
+      to: DestinationView.self,
+      { features, context in
+        try DestinationView(controller: features.instance(context: context))
+      }
+    )
+  }
+
   public static func legacySheetPresentationTransition<DestinationView>(
     to: DestinationView.Type = DestinationView.self,
     _ prepareTransitionView: @escaping @MainActor (Features, Destination.TransitionContext) throws -> DestinationView

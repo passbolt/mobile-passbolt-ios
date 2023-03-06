@@ -21,27 +21,9 @@
 // @since         v1.0
 //
 
-import Display
+import CommonModels
 
-internal enum CreateOTPMenuNavigationDestination: NavigationDestination {}
+public enum OTPEditScope: FeaturesScope {
 
-internal typealias NavigationToCreateOTPMenu = NavigationTo<CreateOTPMenuNavigationDestination>
-
-extension NavigationToCreateOTPMenu {
-
-  fileprivate static var live: FeatureLoader {
-    legacyPartialSheetPresentationTransition(
-      to: CreateOTPMenuView.self
-    )
-  }
-}
-
-extension FeaturesRegistry {
-
-  internal mutating func useLiveNavigationToCreateOTPMenu() {
-    self.use(
-      NavigationToCreateOTPMenu.live,
-      in: SessionScope.self
-    )
-  }
+  public typealias Context = Resource.ID?
 }

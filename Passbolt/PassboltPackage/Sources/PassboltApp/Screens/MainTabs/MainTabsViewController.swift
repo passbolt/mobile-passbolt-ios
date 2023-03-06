@@ -118,6 +118,7 @@ extension MainTabsViewController: UITabBarControllerDelegate {
 extension MainTabsViewController {
 
   fileprivate func initializeTabs() {
+    #warning("[MOB-1075] TODO: hide OTP tab when OTP resources are not available]")
     do {
       self.viewControllers = [
         try UIComponentFactory(features: self.components.features).instance(of: HomeTabNavigationViewController.self),

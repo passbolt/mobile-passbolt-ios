@@ -442,6 +442,8 @@ Contact your administrator for more information.";
 
 "error.qrcode.generation.generic" = "QRCode could not be generated from provided data";
 
+"error.otp.configuration.invalid" = "Invalid OTP configuration.";
+
 // Home - presentation mode menu
 
 "home.presentation.mode.menu.title" = "Filter view by";

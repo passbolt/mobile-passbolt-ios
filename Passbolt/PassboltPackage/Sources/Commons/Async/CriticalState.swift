@@ -87,6 +87,35 @@ public final class CriticalState<State> {
     defer { os_unfair_lock_unlock(self.lockPtr) }
     return self.statePtr.pointee[keyPath: keyPath] = newValue
   }
+
+  @inlinable @Sendable public func exchange<Value>(
+    _ keyPath: WritableKeyPath<State, Value>,
+    with newValue: Value
+  ) -> Value {
+    os_unfair_lock_lock(self.lockPtr)
+    defer { os_unfair_lock_unlock(self.lockPtr) }
+    let value: Value = self.statePtr.pointee[keyPath: keyPath]
+    self.statePtr.pointee[keyPath: keyPath] = newValue
+    return value
+  }
+
+  @discardableResult @inlinable @Sendable public func exchange<Value>(
+    _ keyPath: WritableKeyPath<State, Value>,
+    with newValue: Value,
+    when expectedValue: Value
+  ) -> Bool
+  where Value: Equatable {
+    os_unfair_lock_lock(self.lockPtr)
+    defer { os_unfair_lock_unlock(self.lockPtr) }
+    let value: Value = self.statePtr.pointee[keyPath: keyPath]
+
+    guard value == expectedValue
+    else { return false }
+
+    self.statePtr.pointee[keyPath: keyPath] = newValue
+
+    return true
+  }
 }
 
 extension CriticalState: Sendable where State: Sendable {}

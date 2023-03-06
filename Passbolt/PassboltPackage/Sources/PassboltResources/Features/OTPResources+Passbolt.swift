@@ -108,7 +108,7 @@ extension OTPResources {
                 30 - timestamp % 30
               )
             ),
-            validityPeriod: 30
+            period: 30
           )
         }
         .asAnyAsyncSequence()

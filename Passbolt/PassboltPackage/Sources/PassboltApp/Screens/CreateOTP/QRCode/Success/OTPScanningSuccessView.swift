@@ -22,26 +22,19 @@
 //
 
 import Display
+import UICommons
 
-internal enum CreateOTPMenuNavigationDestination: NavigationDestination {}
+internal struct OTPScanningSuccessView: ControlledView {
 
-internal typealias NavigationToCreateOTPMenu = NavigationTo<CreateOTPMenuNavigationDestination>
+  private let controller: OTPScanningSuccessController
 
-extension NavigationToCreateOTPMenu {
-
-  fileprivate static var live: FeatureLoader {
-    legacyPartialSheetPresentationTransition(
-      to: CreateOTPMenuView.self
-    )
+  internal init(
+    controller: OTPScanningSuccessController
+  ) {
+    self.controller = controller
   }
-}
 
-extension FeaturesRegistry {
-
-  internal mutating func useLiveNavigationToCreateOTPMenu() {
-    self.use(
-      NavigationToCreateOTPMenu.live,
-      in: SessionScope.self
-    )
+  internal var body: some View {
+    EmptyView()
   }
 }

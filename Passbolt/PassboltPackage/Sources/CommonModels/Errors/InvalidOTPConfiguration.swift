@@ -21,27 +21,27 @@
 // @since         v1.0
 //
 
-import Display
+public struct InvalidOTPConfiguration: TheError {
 
-internal enum CreateOTPMenuNavigationDestination: NavigationDestination {}
-
-internal typealias NavigationToCreateOTPMenu = NavigationTo<CreateOTPMenuNavigationDestination>
-
-extension NavigationToCreateOTPMenu {
-
-  fileprivate static var live: FeatureLoader {
-    legacyPartialSheetPresentationTransition(
-      to: CreateOTPMenuView.self
+  public static func error(
+    _ message: StaticString = "InvalidOTPConfiguration",
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    Self(
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
+        )
+      ),
+      displayableMessage: .localized(
+        key: "error.otp.configuration.invalid"
+      )
     )
   }
-}
 
-extension FeaturesRegistry {
-
-  internal mutating func useLiveNavigationToCreateOTPMenu() {
-    self.use(
-      NavigationToCreateOTPMenu.live,
-      in: SessionScope.self
-    )
-  }
+  public var context: DiagnosticsContext
+  public var displayableMessage: DisplayableString
 }
