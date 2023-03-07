@@ -220,6 +220,33 @@ import UIKit
     }
     return super.popToRootViewController(animated: animated)
   }
+
+  open override func popToViewController(
+    _ viewController: UIViewController,
+    animated: Bool
+  ) -> [UIViewController]? {
+    if let tabBarController = tabBarController,
+      tabBarController.tabBar.isHidden,
+      self.viewControllers.firstIndex(of: viewController) == self.viewControllers.startIndex
+    {
+      tabBarController.tabBar.isHidden = false
+      UIView.animate(
+        withDuration: animated ? 0.25 : 0,
+        delay: 0,
+        options: [.allowUserInteraction, .beginFromCurrentState],
+        animations: {
+          tabBarController.tabBar.frame.origin.x = 0
+        }
+      )
+    }
+    else {
+      /* NOP */
+    }
+    return super.popToViewController(
+      viewController,
+      animated: animated
+    )
+  }
 }
 
 // Disables contextual menu on back button, it cannot be disabled otherwise.

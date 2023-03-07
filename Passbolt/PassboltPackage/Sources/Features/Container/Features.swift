@@ -23,6 +23,13 @@
 
 public protocol Features {
 
+  func checkScope<Scope>(
+    _: Scope.Type,
+    file: StaticString,
+    line: UInt
+  ) -> Bool
+  where Scope: FeaturesScope
+
   func ensureScope<Scope>(
     _: Scope.Type,
     file: StaticString,
@@ -61,6 +68,19 @@ public protocol Features {
 }
 
 extension Features {
+
+  public func checkScope<Scope>(
+    _: Scope.Type,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Bool
+  where Scope: FeaturesScope {
+    self.checkScope(
+      Scope.self,
+      file: file,
+      line: line
+    )
+  }
 
   public func ensureScope<Scope>(
     _: Scope.Type,

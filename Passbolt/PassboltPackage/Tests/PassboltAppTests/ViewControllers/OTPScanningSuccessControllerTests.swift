@@ -21,61 +21,55 @@
 // @since         v1.0
 //
 
-import Display
-import UICommons
+import TestExtensions
 
-internal struct OTPScanningSuccessView: ControlledView {
+@testable import PassboltApp
 
-  private let controller: OTPScanningSuccessController
+final class OTPScanningSuccessControllerTests: LoadableFeatureTestCase<OTPScanningSuccessController> {
 
-  internal init(
-    controller: OTPScanningSuccessController
-  ) {
-    self.controller = controller
+  override class var testedImplementationScope: any FeaturesScope.Type {
+    OTPEditScope.self
   }
 
-  internal var body: some View {
-    VStack(spacing: 16) {
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.useLiveOTPScanningSuccessController()
+  }
 
-      Spacer(minLength: 40)
-
-      Image(named: .successMark)
-
-      Text(
-        displayable: .localized(
-          key: "otp.scanning.success.title"
-        )
+  override func prepare() throws {
+    set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_default
       )
-      .font(
-        .inter(
-          ofSize: 24,
-          weight: .bold
-        )
-      )
-      .foregroundColor(.passboltPrimaryText)
-      .padding(top: 24)
-
-      Spacer(minLength: 40)
-
-      PrimaryButton(
-        title: .localized(
-          key: "otp.scanning.success.create.button.title"
-        ),
-        action: self.controller.createStandaloneOTP
-      )
-
-      SecondaryButton(
-        title: .localized(
-          key: "otp.scanning.success.link.button.title"
-        ),
-        action: self.controller.updateExistingResource
-      )
-    }
-    .padding(
-      top: 8,
-      leading: 16,
-      bottom: 16,
-      trailing: 8
     )
+    set(
+      OTPEditScope.self,
+      context: .none
+    )
+  }
+
+  func test_createStandaloneOTP_navigatesBack_whenSucceeded() {
+    patch(
+      \NavigationToOTPScanning.mockRevert,
+      with: always(self.executed())
+    )
+    withTestedInstanceExecuted { feature in
+      feature.createStandaloneOTP()
+      await self.mockExecutionControl.executeAll()
+    }
+  }
+
+  func test_updateExistingResource_navigatesBack_whenSucceeded() {
+    patch(
+      \NavigationToOTPScanning.mockRevert,
+      with: always(self.executed())
+    )
+    withTestedInstanceExecuted { feature in
+      feature.updateExistingResource()
+      await self.mockExecutionControl.executeAll()
+    }
   }
 }

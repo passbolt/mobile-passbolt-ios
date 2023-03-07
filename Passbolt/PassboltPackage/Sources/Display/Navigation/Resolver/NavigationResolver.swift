@@ -161,7 +161,7 @@ extension NavigationResolver {
     file: StaticString,
     line: UInt
   ) async throws {
-    await self.activeLeafAnchor()?
+    await self.rootAnchor()?
       .dismiss(
         with: identifier,
         animated: animated,

@@ -80,6 +80,7 @@ extension OTPScanningController {
     let asyncExecutor: AsyncExecutor = try features.instance()
 
     let navigationToScanningSuccess: NavigationToOTPScanningSuccess = try features.instance()
+    let navigationToSelf: NavigationToOTPScanning = try features.instance()
 
     let otpEditForm: OTPEditForm = try features.instance()
 
@@ -108,7 +109,14 @@ extension OTPScanningController {
               with: .finished,
               when: .processing
             )
-          try await navigationToScanningSuccess.perform()
+
+          if let resourceID: Resource.ID = context.editedResourceID {
+            #warning("[MOB-1094] TODO: edit resource here!")
+            try await navigationToSelf.revert()
+          }
+          else {
+            try await navigationToScanningSuccess.perform()
+          }
         }
         catch is Cancelled {
           scanningState

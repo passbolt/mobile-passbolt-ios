@@ -67,6 +67,8 @@ extension OTPScanningSuccessController {
     let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
 
+    let navigationToScanning: NavigationToOTPScanning = try features.instance()
+
     let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
         editingResource: editedResourceID != nil
@@ -74,14 +76,22 @@ extension OTPScanningSuccessController {
     )
 
     nonisolated func createStandaloneOTP() {
-      asyncExecutor.schedule(.reuse) {
+      asyncExecutor.scheduleCatchingWith(
+        diagnostics,
+        behavior: .reuse
+      ) {
         #warning("[MOB-1130] TODO: to complete using OTP/resource form")
+        try await navigationToScanning.revert()
       }
     }
 
     nonisolated func updateExistingResource() {
-      asyncExecutor.schedule(.reuse) {
-        #warning("[MOB-1102] TODO: to complete using OTP/resource form")
+      asyncExecutor.scheduleCatchingWith(
+        diagnostics,
+        behavior: .reuse
+      ) {
+        #warning("[MOB-1130] TODO: to complete using OTP/resource form")
+        try await navigationToScanning.revert()
       }
     }
 

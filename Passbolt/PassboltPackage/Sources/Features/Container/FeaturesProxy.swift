@@ -34,6 +34,26 @@ internal struct FeaturesProxy {
 
 extension FeaturesProxy: Features {
 
+  public func checkScope<RequestedScope>(
+    _: RequestedScope.Type,
+    file: StaticString,
+    line: UInt
+  ) -> Bool
+  where RequestedScope: FeaturesScope {
+    if let container: Features = self.container {
+      return
+        container
+        .checkScope(
+          RequestedScope.self,
+          file: file,
+          line: line
+        )
+    }
+    else {
+      return false
+    }
+  }
+
   public func ensureScope<RequestedScope>(
     _: RequestedScope.Type,
     file: StaticString,

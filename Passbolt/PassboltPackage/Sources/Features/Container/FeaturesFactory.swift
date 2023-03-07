@@ -90,6 +90,29 @@ extension FeaturesFactory {
 
 extension FeaturesFactory: FeaturesContainer {
 
+  public func checkScope<RequestedScope>(
+    _: RequestedScope.Type,
+    file: StaticString,
+    line: UInt
+  ) -> Bool
+  where RequestedScope: FeaturesScope {
+    if Scope.self == RequestedScope.self {
+      return true
+    }
+    else if let parent: Features = self.parent {
+      return
+        parent
+        .checkScope(
+          RequestedScope.self,
+          file: file,
+          line: line
+        )
+    }
+    else {
+      return false
+    }
+  }
+
   public func ensureScope<RequestedScope>(
     _: RequestedScope.Type,
     file: StaticString,
