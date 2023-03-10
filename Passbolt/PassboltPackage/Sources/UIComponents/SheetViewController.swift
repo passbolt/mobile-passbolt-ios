@@ -72,7 +72,7 @@ public final class SheetContentView: PlainView {
     }
 
     mut(self) {
-      .backgroundColor(.passboltSheetBackground)
+      .backgroundColor(.passboltBackgroundOverlay)
     }
   }
 

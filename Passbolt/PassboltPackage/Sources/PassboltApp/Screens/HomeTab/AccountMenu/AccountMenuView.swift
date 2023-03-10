@@ -67,12 +67,6 @@ internal final class AccountMenuView: PlainView {
 
     super.init()
 
-    mut(self) {
-      .combined(
-        .backgroundColor(.passboltBackground)
-      )
-    }
-
     let accountAvatarImageView: ImageView = .init()
     mut(accountAvatarImageView) {
       .combined(

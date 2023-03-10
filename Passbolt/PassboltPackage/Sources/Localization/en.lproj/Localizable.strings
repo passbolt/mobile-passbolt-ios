@@ -464,6 +464,7 @@ Contact your administrator for more information.";
 // OTP resources
 
 "otp.resources.search.placeholder" = "Search OTP";
+"otp.resources.list.title" = "OTP";
 "otp.resources.list.empty.message" = "There is no TOTP";
 "otp.value.copied.message" = "TOTP copied to your clipboard!";
 
@@ -472,6 +473,13 @@ Contact your administrator for more information.";
 "otp.create.menu.title" = "Create TOTP";
 "otp.create.menu.scanning.title" = "Scan QR code";
 "otp.create.menu.manual.title" = "Create TOTP manually";
+"otp.create.code.scanning.title" = "Scan QR code";
+"otp.create.code.scanning.initial.message" = "Aim the camera at the QR Codes";
+
+"otp.scanning.success.title" = "Your TOTP has been
+scanned!";
+"otp.scanning.success.create.button.title" = "Create a standalone TOTP";
+"otp.scanning.success.link.button.title" = "Link TOTP to a password";
 
 // Settings - Main
 

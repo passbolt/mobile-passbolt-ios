@@ -143,7 +143,7 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
 
     XCTAssertEqual(
       controller.viewState.value.title,
-      "folder"
+      .raw("folder")
     )
   }
 }

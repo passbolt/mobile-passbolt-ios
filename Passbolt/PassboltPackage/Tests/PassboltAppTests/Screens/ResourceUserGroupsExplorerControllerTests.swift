@@ -141,7 +141,7 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
 
     XCTAssertEqual(
       controller.viewState.value.title,
-      "group"
+      .raw("group")
     )
   }
 }

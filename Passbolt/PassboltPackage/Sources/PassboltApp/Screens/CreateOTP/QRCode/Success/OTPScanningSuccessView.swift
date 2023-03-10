@@ -35,39 +35,32 @@ internal struct OTPScanningSuccessView: ControlledView {
   }
 
   internal var body: some View {
-    VStack(spacing: 16) {
+    VStack(spacing: 8) {
 
       Spacer(minLength: 40)
 
       Image(named: .successMark)
 
-      Text(
-        displayable: .localized(
-          key: "otp.scanning.success.title"
+      Text(displayable: "otp.scanning.success.title")
+        .multilineTextAlignment(.center)
+        .font(
+          .inter(
+            ofSize: 24,
+            weight: .bold
+          )
         )
-      )
-      .font(
-        .inter(
-          ofSize: 24,
-          weight: .bold
-        )
-      )
-      .foregroundColor(.passboltPrimaryText)
-      .padding(top: 24)
+        .foregroundColor(.passboltPrimaryText)
+        .padding(top: 24)
 
       Spacer(minLength: 40)
 
       PrimaryButton(
-        title: .localized(
-          key: "otp.scanning.success.create.button.title"
-        ),
+        title: "otp.scanning.success.create.button.title",
         action: self.controller.createStandaloneOTP
       )
 
       SecondaryButton(
-        title: .localized(
-          key: "otp.scanning.success.link.button.title"
-        ),
+        title: "otp.scanning.success.link.button.title",
         action: self.controller.updateExistingResource
       )
     }
@@ -77,5 +70,6 @@ internal struct OTPScanningSuccessView: ControlledView {
       bottom: 16,
       trailing: 8
     )
+    .navigationBarBackButtonHidden(true)
   }
 }

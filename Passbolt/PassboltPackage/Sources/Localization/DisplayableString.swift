@@ -35,7 +35,11 @@ extension DisplayableString: Hashable {}
 extension DisplayableString: ExpressibleByStringInterpolation {
 
   public init(stringLiteral string: String) {
-    self = .raw(string)
+    self = .localized(
+      key: .init(
+        rawValue: string
+      )
+    )
   }
 }
 

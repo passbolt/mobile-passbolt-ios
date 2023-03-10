@@ -87,7 +87,13 @@ extension OTPScanningController {
     let scanningState: CriticalState<ScanningState> = .init(.idle)
 
     let viewState: MutableViewState<ViewState> = .init(
-      initial: .init(),
+      initial: .init(
+        snackBarMessage: .info(
+          .localized(
+            key: "otp.create.code.scanning.initial.message"
+          )
+        )
+      ),
       extendingLifetimeOf: features
     )
 

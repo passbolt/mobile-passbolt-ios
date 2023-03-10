@@ -138,7 +138,7 @@ final class TagsExplorerControllerTests: MainActorTestCase {
 
     XCTAssertEqual(
       controller.viewState.value.title,
-      "tag"
+      .raw("tag")
     )
   }
 }

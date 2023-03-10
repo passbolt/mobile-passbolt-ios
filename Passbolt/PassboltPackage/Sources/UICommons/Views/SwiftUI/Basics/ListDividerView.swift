@@ -40,6 +40,5 @@ public struct ListDividerView: View {
       )
       .listRowSeparator(.hidden)
       .listRowInsets(EdgeInsets())
-      .backgroundColor(.passboltBackground)
   }
 }

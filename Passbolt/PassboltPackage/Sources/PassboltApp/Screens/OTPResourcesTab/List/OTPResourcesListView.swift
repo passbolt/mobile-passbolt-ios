@@ -35,19 +35,25 @@ internal struct OTPResourcesListView: ControlledView {
   }
 
   internal var body: some View {
-    WithViewState(
-      from: self.controller,
-      at: \.snackBarMessage
-    ) { _ in
-      VStack(spacing: 0) {
-        self.search
-        self.list
+    ScreenView(
+      titleIcon: .otp,
+      title: "otp.resources.list.title",
+      contentView: {
+        WithViewState(
+          from: self.controller,
+          at: \.snackBarMessage
+        ) { _ in
+          VStack(spacing: 0) {
+            self.search
+            self.list
+          }
+          .snackBarMessage(
+            with: self.controller
+              .binding(to: \.snackBarMessage)
+          )
+        }
       }
-      .snackBarMessage(
-        with: self.controller
-          .binding(to: \.snackBarMessage)
-      )
-    }
+    )
     .backgroundColor(.passboltBackground)
     .foregroundColor(.passboltPrimaryText)
     .onDisappear(perform: self.controller.hideOTPCodes)
@@ -59,9 +65,7 @@ internal struct OTPResourcesListView: ControlledView {
       at: \.searchText
     ) { (searchText: String) in
       SearchView(
-        prompt: .localized(
-          key: "otp.resources.search.placeholder"
-        ),
+        prompt: "otp.resources.search.placeholder",
         text: self.controller
           .binding(to: \.searchText),
         rightAccessory: {
@@ -82,7 +86,6 @@ internal struct OTPResourcesListView: ControlledView {
       )
     }
     .padding(
-      top: 8,
       leading: 16,
       bottom: 16,
       trailing: 16
@@ -133,18 +136,14 @@ internal struct OTPResourcesListView: ControlledView {
       alignment: .center,
       spacing: 12
     ) {
-      Text(
-        displayable: .localized(
-          key: "otp.resources.list.empty.message"
+      Text(displayable: "otp.resources.list.empty.message")
+        .multilineTextAlignment(.center)
+        .font(
+          .inter(
+            ofSize: 20,
+            weight: .semibold
+          )
         )
-      )
-      .multilineTextAlignment(.center)
-      .font(
-        .inter(
-          ofSize: 20,
-          weight: .semibold
-        )
-      )
 
       Image(named: .emptyState)
     }

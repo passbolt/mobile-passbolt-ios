@@ -97,6 +97,10 @@ extension UIColor {
     .init(named: "sheetBackground", in: .uiCommons, compatibleWith: .current)!
   }
 
+  public static var passboltBackgroundOverlay: Self {
+    .init(named: "backgroundOverlay", in: .uiCommons, compatibleWith: .current)!
+  }
+
   public static var passboltDivider: Self {
     .init(named: "divider", in: .uiCommons, compatibleWith: .current)!
   }
@@ -193,6 +197,10 @@ extension Color {
 
   public static var passboltSheetBackground: Self {
     .init(UIColor.passboltSheetBackground)
+  }
+
+  public static var passboltBackgroundOverlay: Self {
+    .init(UIColor.passboltBackgroundOverlay)
   }
 
   public static var passboltDivider: Self {

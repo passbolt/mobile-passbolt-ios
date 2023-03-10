@@ -41,7 +41,7 @@ private struct Loader: ViewModifier {
         .overlay(
           ZStack {
             Color
-              .passboltSheetBackground
+              .passboltBackgroundOverlay
               .frame(
                 maxWidth: .infinity,
                 maxHeight: .infinity

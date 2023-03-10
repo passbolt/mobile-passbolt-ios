@@ -81,7 +81,7 @@ where TitleView: View, ContentView: View {
           .padding(8)
       }
     }
-    .backgroundColor(.passboltBackground)
+    .backgroundColor(.passboltSheetBackground)
   }
 }
 
