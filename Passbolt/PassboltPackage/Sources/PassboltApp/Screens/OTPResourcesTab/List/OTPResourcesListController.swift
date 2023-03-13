@@ -79,6 +79,7 @@ extension OTPResourcesListController {
     let currentAccount: Account = try features.sessionAccount()
 
     let diagnostics: OSDiagnostics = features.instance()
+    let time: OSTime = features.instance()
     let pasteboard: OSPasteboard = features.instance()
 
     let asyncExecutor: AsyncExecutor = try features.instance()
@@ -88,7 +89,8 @@ extension OTPResourcesListController {
     let accountDetails: AccountDetails = try features.instance(context: currentAccount)
 
     let navigationToAccountMenu: NavigationToAccountMenu = try features.instance()
-    let navigationToCreateOTPMenu: NavigationToCreateOTPMenu = try features.instance()
+    let navigationToOTPCreateMenu: NavigationToOTPCreateMenu = try features.instance()
+    let navigationToOTPContextualMenu: NavigationToOTPContextualMenu = try features.instance()
 
     let revealedTOTPState: CriticalState<RevealedTOTPState?> = .init(.none) { state in
       // make sure updates won't leak
@@ -200,7 +202,7 @@ extension OTPResourcesListController {
           .withLogCatch(
             info: .message("Navigation to create OTP failed!")
           ) {
-            try await navigationToCreateOTPMenu.perform()
+            try await navigationToOTPCreateMenu.perform()
           }
       }
     }
@@ -212,9 +214,9 @@ extension OTPResourcesListController {
         do {
           if  // if it was already revealed just copy the code
           let revealedTOTPState: RevealedTOTPState = revealedTOTPState.get(\.self),
-            revealedTOTPState.resourceID == id,
-            let otp: OTP = await revealedTOTPState.totpCodes.first()?.otp
+            revealedTOTPState.resourceID == id
           {
+            let otp: OTP = revealedTOTPState.totpCodes.generate(time.timestamp()).otp
             pasteboard.put(otp.rawValue)
 
             await viewState
@@ -229,11 +231,13 @@ extension OTPResourcesListController {
           }
           else {
             // prepare codes sequence
-            let totpCodes: AnyAsyncSequence<TOTPValue> = try await otpResources.totpCodesFor(id)
+            let totpCodes: TOTPCodes = try await otpResources.totpCodesFor(id)
+
+            guard !Task.isCancelled
+            else { return }  // ignore, cancelled
 
             // get the first code
-            guard let totpValue: TOTPValue = await totpCodes.first(), !Task.isCancelled
-            else { return }  // ignore, cancelled
+            let totpValue: TOTPValue = totpCodes.generate(time.timestamp())
 
             // prepare automatic view updates
             let viewUpdatesExecution = scheduleTOTPViewUpdates(
@@ -290,13 +294,16 @@ extension OTPResourcesListController {
 
     @Sendable nonisolated func scheduleTOTPViewUpdates(
       for id: Resource.ID,
-      totpCodes: AnyAsyncSequence<TOTPValue>
+      totpCodes: TOTPCodes
     ) -> AsyncExecutor.Execution {
       // there can be at most one OTP code
       // revealed at the same time
       asyncExecutor.schedule(.replace) {
         do {
-          for try await totpValue: TOTPValue in totpCodes {
+          let codesSequence =
+            time
+            .timerSequence(1).map(totpCodes.generate)
+          for try await totpValue: TOTPValue in codesSequence {
             try await viewState.update { (state: inout ViewState) in
               guard let index = state.otpResources.firstIndex(where: { $0.id == id })
               else { throw Cancelled.error() }
@@ -329,8 +336,19 @@ extension OTPResourcesListController {
     nonisolated func showCentextualMenu(
       for id: Resource.ID
     ) {
-      asyncExecutor.schedule(.reuse) {
-        #warning("TODO: [MOB-1082]")
+      asyncExecutor.scheduleCatchingWith(
+        diagnostics,
+        failMessage: "Failed to present OTP contextual menu",
+        behavior: .reuse
+      ) {
+        try await navigationToOTPContextualMenu.perform(
+          context: .init(
+            resourceID: id,
+            showMessage: { message in
+              viewState.update(\.snackBarMessage, to: message)
+            }
+          )
+        )
       }
     }
 
@@ -397,6 +415,6 @@ extension TOTPResourceViewModel: Identifiable {}
 private struct RevealedTOTPState {
 
   fileprivate var resourceID: Resource.ID
-  fileprivate var totpCodes: AnyAsyncSequence<TOTPValue>
+  fileprivate var totpCodes: TOTPCodes
   fileprivate var viewUpdatesExecution: AsyncExecutor.Execution
 }

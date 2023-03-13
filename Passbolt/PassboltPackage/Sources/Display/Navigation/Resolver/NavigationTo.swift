@@ -444,6 +444,18 @@ extension NavigationTo {
     )
   }
 
+  public static func legacyPartialSheetPresentationTransition<DestinationView>(
+    to: DestinationView.Type
+  ) -> FeatureLoader
+  where DestinationView: ControlledView, DestinationView.Controller.Context == Destination.TransitionContext {
+    Self.legacyPartialSheetPresentationTransition(
+      to: DestinationView.self,
+      { features, context in
+        try DestinationView(controller: features.instance(context: context))
+      }
+    )
+  }
+
   public static func legacyPartialSheetPresentationTransition<DestinationViewController>(
     toLegacy: DestinationViewController.Type = DestinationViewController.self,
     _ prepareTransitionView: @escaping @MainActor (Features, Destination.TransitionContext) throws ->

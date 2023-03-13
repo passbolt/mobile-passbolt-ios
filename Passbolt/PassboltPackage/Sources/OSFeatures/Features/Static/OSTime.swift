@@ -35,7 +35,7 @@ public struct OSTime {
 
   public var timestamp: @Sendable () -> Timestamp
   public var waitFor: @Sendable (Seconds) async throws -> Void
-  public var timerSequence: @Sendable (Seconds) -> AnyAsyncSequence<Void>
+  public var timerSequence: @Sendable (Seconds) -> AnyAsyncSequence<Timestamp>
 }
 
 extension OSTime: StaticFeature {
@@ -71,27 +71,29 @@ extension OSTime {
     }
 
     @Sendable func waitFor(
-      _ time: Seconds
+      _ delay: Seconds
     ) async throws {
       try await continuousClock
         .sleep(
           until: continuousClock
             .now
             .advanced(
-              by: .seconds(time.rawValue)
+              by: .seconds(delay.rawValue)
             )
         )
     }
 
     @Sendable func timerSequence(
-      _ time: Seconds
-    ) -> AnyAsyncSequence<Void> {
+      _ period: Seconds
+    ) -> AnyAsyncSequence<Timestamp> {
       AsyncTimerSequence(
-        interval: .seconds(time.rawValue),
+        interval: .seconds(period.rawValue),
         tolerance: .milliseconds(100),
         clock: continuousClock
       )
-      .map { _ in Void() }
+      .map { _ in
+        Timestamp(rawValue: time(nil))
+      }
       .asAnyAsyncSequence()
     }
 
@@ -119,16 +121,15 @@ extension OSTime {
 
     @Sendable func timerSequence(
       _ delay: Seconds
-    ) -> AnyAsyncSequence<Void> {
-      .init {
-        while true {
-          // this is not fully correct since
-          // timer using Task.sleep drifts
-          // substantially and quickly
-          // becomes out of sync, however
-          // this is deprecated anyway
-          try? await waitFor(delay)
-        }
+    ) -> AnyAsyncSequence<Timestamp> {
+      .init {  // iterator `next`
+        // this is not fully correct since
+        // timer using Task.sleep drifts
+        // substantially and quickly
+        // becomes out of sync, however
+        // this is deprecated anyway
+        try? await waitFor(delay)
+        return .init(rawValue: time(nil))
       }
     }
 

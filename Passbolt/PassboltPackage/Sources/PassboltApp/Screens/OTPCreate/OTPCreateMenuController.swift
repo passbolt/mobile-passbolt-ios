@@ -26,7 +26,7 @@ import OSFeatures
 
 // MARK: - Interface
 
-internal struct CreateOTPMenuController {
+internal struct OTPCreateMenuController {
 
   @Stateless internal var viewState
 
@@ -35,7 +35,7 @@ internal struct CreateOTPMenuController {
   internal var dismiss: () -> Void
 }
 
-extension CreateOTPMenuController: ViewController {
+extension OTPCreateMenuController: ViewController {
 
   #if DEBUG
   internal static var placeholder: Self {
@@ -50,7 +50,7 @@ extension CreateOTPMenuController: ViewController {
 
 // MARK: - Implementation
 
-extension CreateOTPMenuController {
+extension OTPCreateMenuController {
 
   @MainActor fileprivate static func load(
     features: Features
@@ -60,7 +60,7 @@ extension CreateOTPMenuController {
     let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
 
-    let navigationToSelf: NavigationToCreateOTPMenu = try features.instance()
+    let navigationToSelf: NavigationToOTPCreateMenu = try features.instance()
     let navigationToQRCodeCreateOTPView: NavigationToOTPScanning = try features.instance()
 
     nonisolated func createFromQRCode() {
@@ -103,11 +103,11 @@ extension CreateOTPMenuController {
 
 extension FeaturesRegistry {
 
-  internal mutating func useLiveCreateOTPMenuController() {
+  internal mutating func useLiveOTPCreateMenuController() {
     self.use(
       .disposable(
-        CreateOTPMenuController.self,
-        load: CreateOTPMenuController.load(features:)
+        OTPCreateMenuController.self,
+        load: OTPCreateMenuController.load(features:)
       ),
       in: SessionScope.self
     )

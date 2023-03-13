@@ -468,13 +468,20 @@ Contact your administrator for more information.";
 "otp.resources.list.empty.message" = "There is no TOTP";
 "otp.value.copied.message" = "TOTP copied to your clipboard!";
 
-// Create OTP
+// OTP contextual menu
+
+"otp.contextual.menu.copy.title" = "Copy TOTP";
+"otp.copied.message" = "TOTP copied to your clipboard!";
+
+// OTP create menu
 
 "otp.create.menu.title" = "Create TOTP";
 "otp.create.menu.scanning.title" = "Scan QR code";
 "otp.create.menu.manual.title" = "Create TOTP manually";
 "otp.create.code.scanning.title" = "Scan QR code";
 "otp.create.code.scanning.initial.message" = "Aim the camera at the QR Codes";
+
+// OTP scanning
 
 "otp.scanning.success.title" = "Your TOTP has been
 scanned!";

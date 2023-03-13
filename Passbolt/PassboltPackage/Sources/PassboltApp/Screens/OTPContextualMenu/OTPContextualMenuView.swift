@@ -24,12 +24,12 @@
 import Display
 import UICommons
 
-internal struct CreateOTPMenuView: ControlledView {
+internal struct OTPContextualMenuView: ControlledView {
 
-  private let controller: CreateOTPMenuController
+  private let controller: OTPContextualMenuController
 
   internal init(
-    controller: CreateOTPMenuController
+    controller: OTPContextualMenuController
   ) {
     self.controller = controller
   }
@@ -38,40 +38,26 @@ internal struct CreateOTPMenuView: ControlledView {
     DrawerMenu(
       closeTap: self.controller.dismiss,
       title: {
-        Text(
-          displayable: .localized(
-            key: "otp.create.menu.title"
-          )
-        )
+				WithViewState(
+					from: self.controller,
+					at: \.title
+				) { title in
+					Text(displayable: title)
+				}
       },
       content: {
         VStack(spacing: 0) {
           DrawerMenuItemView(
-            action: self.controller.createFromQRCode,
+            action: self.controller.copyCode,
             title: {
               Text(
                 displayable: .localized(
-                  key: "otp.create.menu.scanning.title"
+                  key: "otp.contextual.menu.copy.title"
                 )
               )
             },
             leftIcon: {
-              Image(named: .camera)
-                .resizable()
-            }
-          )
-
-          DrawerMenuItemView(
-            action: self.controller.createManually,
-            title: {
-              Text(
-                displayable: .localized(
-                  key: "otp.create.menu.manual.title"
-                )
-              )
-            },
-            leftIcon: {
-              Image(named: .editAlt)
+              Image(named: .copy)
                 .resizable()
             }
           )

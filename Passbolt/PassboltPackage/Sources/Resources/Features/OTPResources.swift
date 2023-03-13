@@ -36,20 +36,18 @@ public struct OTPResources {
   public var refreshIfNeeded: @Sendable () async throws -> Void
   /// List of OTP resources matching filter.
   public var filteredList: @Sendable (OTPResourcesFilter) async throws -> Array<OTPResourceListItemDSV>
-  /// Prepare autoupdating sequence of TOTP values
-  /// for a resource with given ID.
-  /// It will update the values every second using
-  /// TOTP configuration for the resource.
+  /// Prepare sequence of TOTP values
+  /// for a resource with given ID if possible.
   /// Note that secret is not directly cached,
   /// each request for codes will request resource
   /// secret from the backend.
-  public var totpCodesFor: @Sendable (Resource.ID) async throws -> AnyAsyncSequence<TOTPValue>
+  public var totpCodesFor: @Sendable (Resource.ID) async throws -> TOTPCodes
 
   public init(
     updates: UpdatesSequence,
     refreshIfNeeded: @escaping @Sendable () async throws -> Void,
     filteredList: @escaping @Sendable (OTPResourcesFilter) async throws -> Array<OTPResourceListItemDSV>,
-    totpCodesFor: @escaping @Sendable (Resource.ID) async throws -> AnyAsyncSequence<TOTPValue>
+    totpCodesFor: @escaping @Sendable (Resource.ID) async throws -> TOTPCodes
   ) {
     self.updates = updates
     self.refreshIfNeeded = refreshIfNeeded

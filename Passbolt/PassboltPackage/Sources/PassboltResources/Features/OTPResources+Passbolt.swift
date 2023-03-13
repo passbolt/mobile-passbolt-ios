@@ -88,30 +88,27 @@ extension OTPResources {
 
     @Sendable nonisolated func totpCodesFor(
       _ id: Resource.ID
-    ) async throws -> AnyAsyncSequence<TOTPValue> {
+    ) async throws -> TOTPCodes {
       #warning("TODO: MOB-1107 add database support")
-      // MOCK - start
-      return
-        time
-        .timerSequence(1)
-        .map {
-          let timestamp: UInt64 = UInt64(time.timestamp().rawValue)
-          return TOTPValue(
+      return TOTPCodes(
+        resourceID: id,
+        generate: { (timestamp: Timestamp) -> TOTPValue in
+          TOTPValue(
             otp: .init(
               rawValue: String(
                 format: "1234%2d",
-                arguments: [timestamp / 30 % 100]
+                arguments: [timestamp.rawValue / 30 % 100]
               )
             ),
             timeLeft: Seconds(
               rawValue: UInt64(
-                30 - timestamp % 30
+                30 - timestamp.rawValue % 30
               )
             ),
             period: 30
           )
         }
-        .asAnyAsyncSequence()
+      )
       // MOCK - end
     }
 

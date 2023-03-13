@@ -55,9 +55,13 @@ extension FeaturesRegistry {
     self.useLiveNavigationToOTPResourcesTab()
     self.useLiveOTPResourcesListController()
 
-    // MARK: - Create OTP
-    self.useLiveCreateOTPMenuController()
-    self.useLiveNavigationToCreateOTPMenu()
+    // MARK: - OTP contextual menu
+    self.useLiveOTPCContextualMenuController()
+    self.useLiveNavigationToOTPContextualMenu()
+
+    // MARK: - OTP create menu
+    self.useLiveOTPCreateMenuController()
+    self.useLiveNavigationToOTPCreateMenu()
     self.useLiveOTPScanningController()
     self.useLiveNavigationToOTPScanning()
     self.useLiveOTPScanningSuccessController()
