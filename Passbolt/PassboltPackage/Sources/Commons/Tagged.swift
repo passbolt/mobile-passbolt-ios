@@ -328,3 +328,6 @@ where RawValue: Collection {
     }
   }
 }
+
+extension Tagged: Sendable
+where RawValue: Sendable {}

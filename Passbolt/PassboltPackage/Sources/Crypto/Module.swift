@@ -31,5 +31,6 @@ extension FeaturesRegistry {
     self.useSignatureVerification()
     self.usePGP()
     self.useRandomStringGenerator()
+    self.useHMAC()
   }
 }

@@ -21,39 +21,21 @@
 // @since         v1.0
 //
 
-@_exported import Aegithalos
-@_exported import CommonModels
-@_exported import Commons
-@_exported import Features
+extension Task where Failure == Never {
 
-extension FeaturesRegistry {
-
-  public mutating func useOSFeatures() {
-    self.useOSTime()
-    self.useOSFiles()
-    self.useOSCamera()
-    self.useOSBiometry()
-    self.useOSExtensions()
-    self.useOSApplicationRating()
-    self.useOSPasteboard()
-    self.useOSRandomness()
-    self.useOSPreferences()
-    self.useOSDiagnostics()
-    self.useUUIDGenerator()
-    self.useOSLinkOpener()
-    self.useOSKeychain()
-    self.useApplicationLifecycle()
-    self.useApplicationMeta()
-    self.useMDMConfiguration()
-    self.usePassboltNetworkRequestExecutor()
-    self.usePassboltStoredProperty(Bool.self)
-    self.usePassboltStoredProperty(Int.self)
-    self.usePassboltStoredProperty(Timestamp.self)
-    self.usePassboltStoredProperty(String.self)
-    self.usePassboltStoredProperty(Array<String>.self)
-    self.usePassboltStoredProperty(Set<String>.self)
-    self.usePassboltSharedOSStoredProperties()
-    self.usePassboltAsyncExecutor()
-    self.useQRCodeGenerator()
+  public static func never() async throws -> Success {
+    let awaiter: CriticalState<CheckedContinuation<Success, Swift.Error>?> = .init(.none)
+    return try await withTaskCancellationHandler(
+      operation: { () async throws -> Success in
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Success, Swift.Error>) -> Void in
+          awaiter.set(\.self, continuation)
+        }
+      },
+      onCancel: {
+        awaiter
+          .exchange(\.self, with: .none)?
+          .resume(throwing: Cancelled.error())
+      }
+    )
   }
 }

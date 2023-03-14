@@ -113,7 +113,7 @@ extension PGP: StaticFeature {
 
 extension PGP {
 
-  public static func gopenPGP() -> Self {
+  internal static func gopenPGP() -> Self {
 
     func encryptAndSign(
       _ input: String,

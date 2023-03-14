@@ -21,39 +21,54 @@
 // @since         v1.0
 //
 
-@_exported import Aegithalos
-@_exported import CommonModels
-@_exported import Commons
-@_exported import Features
+import CommonModels
+import Features
 
-extension FeaturesRegistry {
+// MARK: - Interface
 
-  public mutating func useOSFeatures() {
-    self.useOSTime()
-    self.useOSFiles()
-    self.useOSCamera()
-    self.useOSBiometry()
-    self.useOSExtensions()
-    self.useOSApplicationRating()
-    self.useOSPasteboard()
-    self.useOSRandomness()
-    self.useOSPreferences()
-    self.useOSDiagnostics()
-    self.useUUIDGenerator()
-    self.useOSLinkOpener()
-    self.useOSKeychain()
-    self.useApplicationLifecycle()
-    self.useApplicationMeta()
-    self.useMDMConfiguration()
-    self.usePassboltNetworkRequestExecutor()
-    self.usePassboltStoredProperty(Bool.self)
-    self.usePassboltStoredProperty(Int.self)
-    self.usePassboltStoredProperty(Timestamp.self)
-    self.usePassboltStoredProperty(String.self)
-    self.usePassboltStoredProperty(Array<String>.self)
-    self.usePassboltStoredProperty(Set<String>.self)
-    self.usePassboltSharedOSStoredProperties()
-    self.usePassboltAsyncExecutor()
-    self.useQRCodeGenerator()
+public struct TOTPCodeGenerator {
+
+  public var generate: @Sendable () -> TOTPValue
+
+  public init(
+    generate: @escaping @Sendable () -> TOTPValue
+  ) {
+    self.generate = generate
   }
+}
+
+extension TOTPCodeGenerator: LoadableFeature {
+
+  public struct Context: LoadableFeatureContext {
+
+    public var identifier: AnyHashable { ObjectIdentifier(Self.self) }
+
+    public var resourceID: Resource.ID
+    public var sharedSecret: String
+    public var algorithm: HOTPAlgorithm
+    public var digits: UInt
+    public var period: Seconds
+
+    public init(
+      resourceID: Resource.ID,
+      sharedSecret: String,
+      algorithm: HOTPAlgorithm,
+      digits: UInt,
+      period: Seconds
+    ) {
+      self.resourceID = resourceID
+      self.sharedSecret = sharedSecret
+      self.algorithm = algorithm
+      self.digits = digits
+      self.period = period
+    }
+  }
+
+  #if DEBUG
+  public nonisolated static var placeholder: Self {
+    .init(
+      generate: unimplemented0()
+    )
+  }
+  #endif
 }

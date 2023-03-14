@@ -36,23 +36,22 @@ public struct OTPResources {
   public var refreshIfNeeded: @Sendable () async throws -> Void
   /// List of OTP resources matching filter.
   public var filteredList: @Sendable (OTPResourcesFilter) async throws -> Array<OTPResourceListItemDSV>
-  /// Prepare sequence of TOTP values
-  /// for a resource with given ID if possible.
+  /// Access part of the resource secret associated with OTP.
   /// Note that secret is not directly cached,
-  /// each request for codes will request resource
-  /// secret from the backend.
-  public var totpCodesFor: @Sendable (Resource.ID) async throws -> TOTPCodes
+  /// each access to secret will request whole
+  /// resource secret from the backend.
+  public var secretFor: @Sendable (Resource.ID) async throws -> OTPSecret
 
   public init(
     updates: UpdatesSequence,
     refreshIfNeeded: @escaping @Sendable () async throws -> Void,
     filteredList: @escaping @Sendable (OTPResourcesFilter) async throws -> Array<OTPResourceListItemDSV>,
-    totpCodesFor: @escaping @Sendable (Resource.ID) async throws -> TOTPCodes
+    secretFor: @escaping @Sendable (Resource.ID) async throws -> OTPSecret
   ) {
     self.updates = updates
     self.refreshIfNeeded = refreshIfNeeded
     self.filteredList = filteredList
-    self.totpCodesFor = totpCodesFor
+    self.secretFor = secretFor
   }
 }
 
@@ -64,7 +63,7 @@ extension OTPResources: LoadableFeature {
       updates: .placeholder,
       refreshIfNeeded: unimplemented0(),
       filteredList: unimplemented1(),
-      totpCodesFor: unimplemented1()
+      secretFor: unimplemented1()
     )
   }
   #endif

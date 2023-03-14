@@ -35,7 +35,7 @@ extension ApplicationRating {
     features: Features,
     cancellables: Cancellables
   ) throws -> Self {
-    var lastAppRateCheckTimestamp: StoredProperty<Int> = try features.instance(
+    var lastAppRateCheckTimestamp: StoredProperty<Timestamp> = try features.instance(
       context: "lastAppRateCheckTimestamp"
     )
     let loginCount: StoredProperty<Int> = try features.instance(context: "loginCount")
@@ -48,11 +48,11 @@ extension ApplicationRating {
 
     nonisolated func fiveDaysHasPassedSinceInstall() -> Bool {
       guard let timestamp = lastAppRateCheckTimestamp.value else {
-        lastAppRateCheckTimestamp.value = timeProvider.timestamp().rawValue
+        lastAppRateCheckTimestamp.value = timeProvider.timestamp()
         return false
       }
 
-      let now = timeProvider.timestamp().rawValue
+      let now = timeProvider.timestamp()
       return now > timestamp + 5 * 24 * 60 * 60  // 5 days in seconds
     }
 

@@ -21,39 +21,23 @@
 // @since         v1.0
 //
 
-@_exported import Aegithalos
-@_exported import CommonModels
-@_exported import Commons
-@_exported import Features
+import Commons
 
-extension FeaturesRegistry {
+public struct HOTPValue {
 
-  public mutating func useOSFeatures() {
-    self.useOSTime()
-    self.useOSFiles()
-    self.useOSCamera()
-    self.useOSBiometry()
-    self.useOSExtensions()
-    self.useOSApplicationRating()
-    self.useOSPasteboard()
-    self.useOSRandomness()
-    self.useOSPreferences()
-    self.useOSDiagnostics()
-    self.useUUIDGenerator()
-    self.useOSLinkOpener()
-    self.useOSKeychain()
-    self.useApplicationLifecycle()
-    self.useApplicationMeta()
-    self.useMDMConfiguration()
-    self.usePassboltNetworkRequestExecutor()
-    self.usePassboltStoredProperty(Bool.self)
-    self.usePassboltStoredProperty(Int.self)
-    self.usePassboltStoredProperty(Timestamp.self)
-    self.usePassboltStoredProperty(String.self)
-    self.usePassboltStoredProperty(Array<String>.self)
-    self.usePassboltStoredProperty(Set<String>.self)
-    self.usePassboltSharedOSStoredProperties()
-    self.usePassboltAsyncExecutor()
-    self.useQRCodeGenerator()
+  public var resourceID: Resource.ID
+  public var otp: OTP
+  public var counter: UInt64
+
+  public init(
+    resourceID: Resource.ID,
+    otp: OTP,
+    counter: UInt64
+  ) {
+    self.resourceID = resourceID
+    self.otp = otp
+    self.counter = counter
   }
 }
+
+extension HOTPValue: Equatable {}

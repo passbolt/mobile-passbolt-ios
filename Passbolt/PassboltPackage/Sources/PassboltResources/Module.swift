@@ -37,5 +37,7 @@ extension FeaturesRegistry {
     self.usePassboltResourceFolderEditForm()
     self.usePassboltOTPResources()
     self.usePassboltOTPEditForm()
+    self.usePassboltHOTPCodeGenerator()
+    self.usePassboltTOTPCodeGenerator()
   }
 }

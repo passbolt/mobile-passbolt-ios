@@ -45,9 +45,7 @@ public struct OTPEditForm {
 
 extension OTPEditForm {
 
-  // Since we are supporting only TOTP iniitally it is the same
-  // It can be updated to a custom structure when adding HOTP
-  public typealias State = TOTPConfiguration
+  public typealias State = OTPConfiguration
 }
 
 extension OTPEditForm: LoadableFeature {

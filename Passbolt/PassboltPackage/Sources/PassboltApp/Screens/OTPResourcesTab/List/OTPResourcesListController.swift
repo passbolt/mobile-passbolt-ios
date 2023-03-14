@@ -79,23 +79,17 @@ extension OTPResourcesListController {
     let currentAccount: Account = try features.sessionAccount()
 
     let diagnostics: OSDiagnostics = features.instance()
-    let time: OSTime = features.instance()
-    let pasteboard: OSPasteboard = features.instance()
 
     let asyncExecutor: AsyncExecutor = try features.instance()
 
     let otpResources: OTPResources = try features.instance()
+    let otpCodesController: OTPCodesController = try features.instance()
 
     let accountDetails: AccountDetails = try features.instance(context: currentAccount)
 
     let navigationToAccountMenu: NavigationToAccountMenu = try features.instance()
     let navigationToOTPCreateMenu: NavigationToOTPCreateMenu = try features.instance()
     let navigationToOTPContextualMenu: NavigationToOTPContextualMenu = try features.instance()
-
-    let revealedTOTPState: CriticalState<RevealedTOTPState?> = .init(.none) { state in
-      // make sure updates won't leak
-      state?.viewUpdatesExecution.cancel()
-    }
 
     let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
@@ -106,72 +100,92 @@ extension OTPResourcesListController {
     )
 
     // load avatar image for search icon
-    asyncExecutor.schedule {
-      do {
-        let avatarImage: Data? = try await accountDetails.avatarImage()
-        await viewState
-          .update(
-            \.accountAvatarImage,
-            to: avatarImage
-          )
-      }
-      catch {
-        diagnostics
-          .log(
-            error: error,
-            info: .message(
-              "Failed to get account avatar image!"
-            )
-          )
+    asyncExecutor.scheduleCatchingWith(
+      diagnostics,
+      failMessage: "Failed to get account avatar image!"
+    ) {
+      let avatarImage: Data? = try await accountDetails.avatarImage()
+      await viewState
+        .update(
+          \.accountAvatarImage,
+          to: avatarImage
+        )
+    }
+
+    // auto present revealed OTP codes
+    asyncExecutor.scheduleCatchingWith(
+      diagnostics,
+      failMessage: "OTP codes updates broken!"
+    ) {
+      let otpUpdates = otpCodesController.updates.map(otpCodesController.current)
+      var lastRevealed: Resource.ID?
+      for await otpValue in otpUpdates {
+        defer { lastRevealed = otpValue?.resourceID }
+        if let otpValue {
+          await viewState.update { (state: inout ViewState) in
+            if let lastRevealed, otpValue.resourceID != lastRevealed,
+              let index = state.otpResources.firstIndex(where: { $0.id == lastRevealed })
+            {
+              state.otpResources[index].totpValue = .none
+            }  // else NOP
+
+            guard let index = state.otpResources.firstIndex(where: { $0.id == otpValue.resourceID })
+            else { return }
+            switch otpValue {
+            case .totp(let value):
+              state.otpResources[index].totpValue = value
+            case .hotp:
+              break  // not supported yet
+            }
+          }
+        }
+        else {  // make sure that no leftovers are visible
+          await viewState.update { (state: inout ViewState) in
+            for index in state.otpResources.indices {
+              state.otpResources[index].totpValue = .none
+            }
+          }
+        }
       }
     }
 
     // start list content updates
-    asyncExecutor.schedule {
-      let searchTextSequence: AnyAsyncSequence<String> = ObservableViewState(
-        from: viewState,
-        at: \.searchText
-      )
-      .asAnyAsyncSequence()
-
-      do {
-        let contentQueryUpdates:
-          AsyncMapSequence<AsyncCombineLatest2Sequence<UpdatesSequence, AnyAsyncSequence<String>>, OTPResourcesFilter> =
-            combineLatest(
-              otpResources.updates,
-              searchTextSequence
-            )
-            .map { _, searchText in
-              OTPResourcesFilter(text: searchText)
-            }
-
-        for await query in contentQueryUpdates {
-          let filteredResourcesList: Array<OTPResourceListItemDSV> = try await otpResources.filteredList(query)
-
-          hideOTPCodes()
-
-          await viewState.update { (state: inout ViewState) in
-            state.otpResources =
-              filteredResourcesList
-              .map { (resource: OTPResourceListItemDSV) -> TOTPResourceViewModel in
-                .init(
-                  id: resource.id,
-                  name: resource.name,
-                  // we are hiding OTP when list changes
-                  totpValue: .none
-                )
-              }
-          }
+    asyncExecutor.scheduleCatchingWith(
+      diagnostics,
+      failMessage: "OTP list updates broken!"
+    ) {
+      let filtersSequence: AnyAsyncSequence<OTPResourcesFilter> =
+        combineLatest(
+          ObservableViewState(
+            from: viewState,
+            at: \.searchText
+          ),
+          otpResources.updates
+        )
+        .map { (searchText: String, _) -> OTPResourcesFilter in
+          OTPResourcesFilter(text: searchText)
         }
-      }
-      catch {
-        diagnostics
-          .log(
-            error: error,
-            info: .message(
-              "OTP list updates broken!"
+        .asAnyAsyncSequence()
+
+      for await filter: OTPResourcesFilter in filtersSequence {
+        let filteredResourcesList: Array<TOTPResourceViewModel> =
+          try await otpResources
+          .filteredList(filter)
+          .map { (resource: OTPResourceListItemDSV) -> TOTPResourceViewModel in
+            .init(
+              id: resource.id,
+              name: resource.name,
+              // we are hiding all OTPs when list changes
+              totpValue: .none
             )
+          }
+
+        await viewState
+          .update(
+            \.otpResources,
+            to: filteredResourcesList
           )
+        await otpCodesController.dispose()
       }
     }
 
@@ -197,82 +211,44 @@ extension OTPResourcesListController {
     }
 
     nonisolated func createOTP() {
-      asyncExecutor.schedule(.reuse) {
-        await diagnostics
-          .withLogCatch(
-            info: .message("Navigation to create OTP failed!")
-          ) {
-            try await navigationToOTPCreateMenu.perform()
-          }
+      asyncExecutor.scheduleCatchingWith(
+        diagnostics,
+        failMessage: "Navigation to OTP create menu failed!",
+        behavior: .reuse
+      ) {
+        await otpCodesController.dispose()
+        try await navigationToOTPCreateMenu.perform()
       }
     }
 
+    @Sendable nonisolated func revealOTP(
+      for resourceID: Resource.ID
+    ) async throws {
+      try await otpCodesController.requestNextFor(resourceID)
+    }
+
+    @Sendable nonisolated func copyOTP(
+      for resourceID: Resource.ID
+    ) async throws {
+      try await otpCodesController.copyFor(resourceID)
+      await viewState
+        .update(
+          \.snackBarMessage,
+          to: .info(
+            .localized(
+              key: "otp.value.copied.message"
+            )
+          )
+        )
+    }
+
     nonisolated func revealAndCopyOTP(
-      for id: Resource.ID
+      for resourceID: Resource.ID
     ) {
       asyncExecutor.schedule(.replace) {
         do {
-          if  // if it was already revealed just copy the code
-          let revealedTOTPState: RevealedTOTPState = revealedTOTPState.get(\.self),
-            revealedTOTPState.resourceID == id
-          {
-            let otp: OTP = revealedTOTPState.totpCodes.generate(time.timestamp()).otp
-            pasteboard.put(otp.rawValue)
-
-            await viewState
-              .update(
-                \.snackBarMessage,
-                to: .info(
-                  .localized(
-                    key: "otp.value.copied.message"
-                  )
-                )
-              )
-          }
-          else {
-            // prepare codes sequence
-            let totpCodes: TOTPCodes = try await otpResources.totpCodesFor(id)
-
-            guard !Task.isCancelled
-            else { return }  // ignore, cancelled
-
-            // get the first code
-            let totpValue: TOTPValue = totpCodes.generate(time.timestamp())
-
-            // prepare automatic view updates
-            let viewUpdatesExecution = scheduleTOTPViewUpdates(
-              for: id,
-              totpCodes: totpCodes
-            )
-
-            // save revealed item state
-            revealedTOTPState.access { (state: inout RevealedTOTPState?) in
-              // cancel previous view updates if any
-              state?.viewUpdatesExecution.cancel()
-              state = .init(
-                resourceID: id,
-                totpCodes: totpCodes,
-                viewUpdatesExecution: viewUpdatesExecution
-              )
-            }
-
-            // put code into pasteboard
-            pasteboard.put(totpValue.otp.rawValue)
-
-            // update view state with initial code
-            await viewState.update { (state: inout ViewState) in
-              guard let index = state.otpResources.firstIndex(where: { $0.id == id })
-              // can't update, might be an error?
-              else { return }
-              state.otpResources[index].totpValue = totpValue
-
-              state.snackBarMessage = .info(
-                .localized(
-                  key: "otp.value.copied.message"
-                )
-              )
-            }
-          }
+          try await revealOTP(for: resourceID)
+          try await copyOTP(for: resourceID)
         }
         catch {
           diagnostics
@@ -292,60 +268,22 @@ extension OTPResourcesListController {
       }
     }
 
-    @Sendable nonisolated func scheduleTOTPViewUpdates(
-      for id: Resource.ID,
-      totpCodes: TOTPCodes
-    ) -> AsyncExecutor.Execution {
-      // there can be at most one OTP code
-      // revealed at the same time
-      asyncExecutor.schedule(.replace) {
-        do {
-          let codesSequence =
-            time
-            .timerSequence(1).map(totpCodes.generate)
-          for try await totpValue: TOTPValue in codesSequence {
-            try await viewState.update { (state: inout ViewState) in
-              guard let index = state.otpResources.firstIndex(where: { $0.id == id })
-              else { throw Cancelled.error() }
-              state.otpResources[index].totpValue = totpValue
-            }
-          }
-        }
-        catch is Cancelled {
-          // NOP - ignore cancelled
-        }
-        catch {
-          diagnostics
-            .log(
-              error: error,
-              info: .message(
-                "TOTP sequence broken!"
-              )
-            )
-        }
-
-        // hide OTP code when updates ends
-        await viewState.update { (state: inout ViewState) in
-          guard let index = state.otpResources.firstIndex(where: { $0.id == id })
-          else { return }
-          state.otpResources[index].totpValue = .none
-        }
-      }
-    }
-
     nonisolated func showCentextualMenu(
-      for id: Resource.ID
+      for resourceID: Resource.ID
     ) {
       asyncExecutor.scheduleCatchingWith(
         diagnostics,
         failMessage: "Failed to present OTP contextual menu",
         behavior: .reuse
       ) {
+        await otpCodesController.dispose()
         try await navigationToOTPContextualMenu.perform(
           context: .init(
-            resourceID: id,
-            showMessage: { message in
-              viewState.update(\.snackBarMessage, to: message)
+            resourceID: resourceID,
+            showMessage: { (message: SnackBarMessage) in
+              viewState.update { state in
+                state.snackBarMessage = message
+              }
             }
           )
         )
@@ -353,27 +291,19 @@ extension OTPResourcesListController {
     }
 
     nonisolated func showAccountMenu() {
-      asyncExecutor.schedule(.reuse) {
-        do {
-          try await navigationToAccountMenu.perform()
-        }
-        catch {
-          diagnostics
-            .log(
-              error: error,
-              info: .message(
-                "Navigation to account menu failed!"
-              )
-            )
-        }
+      asyncExecutor.scheduleCatchingWith(
+        diagnostics,
+        failMessage: "Navigation to account menu failed!",
+        behavior: .reuse
+      ) {
+        await otpCodesController.dispose()
+        try await navigationToAccountMenu.perform()
       }
     }
 
     @Sendable nonisolated func hideOTPCodes() {
-      revealedTOTPState.access { (state: inout RevealedTOTPState?) in
-        // it will hide OTP code automatically
-        state?.viewUpdatesExecution.cancel()
-        state = .none
+      asyncExecutor.schedule(.reuse) {
+        await otpCodesController.dispose()
       }
     }
 

@@ -21,39 +21,33 @@
 // @since         v1.0
 //
 
-@_exported import Aegithalos
-@_exported import CommonModels
-@_exported import Commons
-@_exported import Features
+public enum OTPValue {
 
-extension FeaturesRegistry {
+  case hotp(HOTPValue)
+  case totp(TOTPValue)
+}
 
-  public mutating func useOSFeatures() {
-    self.useOSTime()
-    self.useOSFiles()
-    self.useOSCamera()
-    self.useOSBiometry()
-    self.useOSExtensions()
-    self.useOSApplicationRating()
-    self.useOSPasteboard()
-    self.useOSRandomness()
-    self.useOSPreferences()
-    self.useOSDiagnostics()
-    self.useUUIDGenerator()
-    self.useOSLinkOpener()
-    self.useOSKeychain()
-    self.useApplicationLifecycle()
-    self.useApplicationMeta()
-    self.useMDMConfiguration()
-    self.usePassboltNetworkRequestExecutor()
-    self.usePassboltStoredProperty(Bool.self)
-    self.usePassboltStoredProperty(Int.self)
-    self.usePassboltStoredProperty(Timestamp.self)
-    self.usePassboltStoredProperty(String.self)
-    self.usePassboltStoredProperty(Array<String>.self)
-    self.usePassboltStoredProperty(Set<String>.self)
-    self.usePassboltSharedOSStoredProperties()
-    self.usePassboltAsyncExecutor()
-    self.useQRCodeGenerator()
+extension OTPValue {
+
+  public var otp: OTP {
+    switch self {
+    case .totp(let value):
+      return value.otp
+
+    case .hotp(let value):
+      return value.otp
+    }
+  }
+
+  public var resourceID: Resource.ID {
+    switch self {
+    case .totp(let value):
+      return value.resourceID
+
+    case .hotp(let value):
+      return value.resourceID
+    }
   }
 }
+
+extension OTPValue: Equatable {}

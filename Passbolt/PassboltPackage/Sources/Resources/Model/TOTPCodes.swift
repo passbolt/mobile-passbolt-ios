@@ -26,11 +26,11 @@ import CommonModels
 public struct TOTPCodes {
 
   public let resourceID: Resource.ID
-  public let generate: @Sendable (Timestamp) -> TOTPValue
+  public let generate: @Sendable () -> TOTPValue?
 
   public init(
     resourceID: Resource.ID,
-    generate: @escaping @Sendable (Timestamp) -> TOTPValue
+    generate: @escaping @Sendable () -> TOTPValue?
   ) {
     self.resourceID = resourceID
     self.generate = generate

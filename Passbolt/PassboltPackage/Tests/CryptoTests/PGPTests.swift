@@ -13,9 +13,10 @@
 //
 
 import CommonModels
-import Crypto
 import TestExtensions
 import XCTest
+
+@testable import Crypto
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class PGPTests: XCTestCase {

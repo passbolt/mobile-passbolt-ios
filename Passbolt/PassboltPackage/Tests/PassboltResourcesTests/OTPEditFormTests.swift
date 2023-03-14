@@ -133,13 +133,15 @@ final class OTPEditFormTests: LoadableFeatureTestCase<OTPEditForm> {
 
   func test_fillFromURI_updatesState_withRequiredDataAndDefaults() {
     withTestedInstanceReturnsEqual(
-      TOTPConfiguration(
+      OTPConfiguration(
         issuer: .none,
         account: "edith@passbolt.com",
-        secret: "SECRET_KEY",
-        digits: 6,
-        algorithm: .sha1,
-        period: 30
+        secret: .totp(
+          sharedSecret: "SECRET_KEY",
+          algorithm: .sha1,
+          digits: 6,
+          period: 30
+        )
       )
     ) { feature in
       try feature.fillFromURI("otpauth://totp/edith@passbolt.com?secret=SECRET_KEY")
@@ -149,13 +151,15 @@ final class OTPEditFormTests: LoadableFeatureTestCase<OTPEditForm> {
 
   func test_fillFromURI_updatesState_withAllParameters() {
     withTestedInstanceReturnsEqual(
-      TOTPConfiguration(
+      OTPConfiguration(
         issuer: "Passbolt",
         account: "edith@passbolt.com",
-        secret: "SECRET_KEY",
-        digits: 8,
-        algorithm: .sha256,
-        period: 90
+        secret: .totp(
+          sharedSecret: "SECRET_KEY",
+          algorithm: .sha256,
+          digits: 8,
+          period: 90
+        )
       )
     ) { feature in
       try feature.fillFromURI(

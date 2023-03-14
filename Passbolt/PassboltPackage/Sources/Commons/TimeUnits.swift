@@ -23,4 +23,4 @@
 
 public enum TimeSecondsTag {}
 
-public typealias Seconds = Tagged<UInt64, TimeSecondsTag>
+public typealias Seconds = Tagged<Int64, TimeSecondsTag>

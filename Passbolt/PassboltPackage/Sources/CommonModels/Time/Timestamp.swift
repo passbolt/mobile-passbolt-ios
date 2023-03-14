@@ -27,7 +27,7 @@ import struct Foundation.Date
 
 public enum TimestampTag {}
 /// Epoch time interval - Number of seconds from beginning of epoch (1/1/1970)
-public typealias Timestamp = Tagged<Int, TimestampTag>
+public typealias Timestamp = Tagged<Int64, TimestampTag>
 
 extension Timestamp {
 
@@ -42,7 +42,7 @@ extension Date {
 
   public var asTimestamp: Timestamp {
     .init(
-      rawValue: Int(timeIntervalSince1970)
+      rawValue: Int64(timeIntervalSince1970)
     )
   }
 }

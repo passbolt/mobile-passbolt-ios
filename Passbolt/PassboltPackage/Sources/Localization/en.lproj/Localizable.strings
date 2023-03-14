@@ -472,6 +472,7 @@ Contact your administrator for more information.";
 
 "otp.contextual.menu.copy.title" = "Copy TOTP";
 "otp.copied.message" = "TOTP copied to your clipboard!";
+"otp.contextual.menu.reveal.title" = "Show TOTP";
 
 // OTP create menu
 

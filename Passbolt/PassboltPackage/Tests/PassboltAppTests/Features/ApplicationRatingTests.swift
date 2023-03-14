@@ -55,7 +55,7 @@ final class ApplicationRatingTests: LoadableFeatureTestCase<ApplicationRating> {
     )
 
     patch(
-      \StoredProperty<Int>.binding,
+      \StoredProperty<Timestamp>.binding,
       context: "lastAppRateCheckTimestamp",
       with: .variable(initial: 0)
     )
@@ -78,7 +78,7 @@ final class ApplicationRatingTests: LoadableFeatureTestCase<ApplicationRating> {
     )
 
     patch(
-      \StoredProperty<Int>.binding,
+      \StoredProperty<Timestamp>.binding,
       context: "lastAppRateCheckTimestamp",
       with: .variable(initial: 0)
     )
@@ -102,7 +102,7 @@ final class ApplicationRatingTests: LoadableFeatureTestCase<ApplicationRating> {
       with: variable
     )
     patch(
-      \StoredProperty<Int>.binding,
+      \StoredProperty<Timestamp>.binding,
       context: "lastAppRateCheckTimestamp",
       with: .variable(initial: 0)
     )

@@ -79,6 +79,7 @@ extension ResourceDetails {
     }
 
     return Self(
+      updates: sessionData.updatesSequence,
       details: details,
       secret: secret
     )

@@ -185,14 +185,14 @@ extension SessionNetworkAuthorization {
       accountPrivateKey: ArmoredPGPPrivateKey,
       serverPublicPGPKey: ArmoredPGPPublicKey,
       verificationToken: String,
-      challengeExpiration: Int
+      challengeExpiration: Int64
     ) async throws -> ArmoredPGPMessage {
       struct Challenge: Encodable {
 
         var version: String
         var token: String
         var domain: String
-        var expiration: Int
+        var expiration: Int64
 
         private enum CodingKeys: String, CodingKey {
 
@@ -258,7 +258,7 @@ extension SessionNetworkAuthorization {
       serverPublicPGPKey: ArmoredPGPPublicKey,
       encryptedResponse: ArmoredPGPMessage,
       verificationToken: String,
-      challengeExpiration: Int
+      challengeExpiration: Int64
     ) throws -> (
       accessToken: SessionAccessToken,
       refreshToken: SessionRefreshToken,
@@ -391,7 +391,7 @@ extension SessionNetworkAuthorization {
     ) {
       let verificationToken: String = uuidGenerator.uuid()
       // 120s is verification token's lifetime
-      let challengeExpiration: Int = time.timestamp().rawValue + 120
+      let challengeExpiration: Int64 = time.timestamp().rawValue + 120
 
       async let serverPublicPGPKey: ArmoredPGPPublicKey = fetchServerPublicPGPKey(for: authorizationData.account)
       async let serverPublicRSAKey: PEMRSAPublicKey = fetchServerPublicRSAKey(for: authorizationData.account)

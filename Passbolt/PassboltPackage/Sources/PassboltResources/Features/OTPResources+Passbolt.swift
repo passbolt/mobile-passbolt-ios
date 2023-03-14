@@ -50,28 +50,28 @@ extension OTPResources {
     @Sendable nonisolated func filteredList(
       _ filter: OTPResourcesFilter
     ) async throws -> Array<OTPResourceListItemDSV> {
-      #warning("TODO: MOB-1107 add database support")
+      #warning("[MOB-1107] TODO: add database and backend support")
       // MOCK - start
       try await Task.sleep(nanoseconds: ((NSEC_PER_MSEC * 100)..<(NSEC_PER_MSEC * 1000)).randomElement()!)
       return
         ([
           .init(
-            id: "Facebook",
-            name: "Facebook",
+            id: "I65VU7K5ZQL7WB4E",
+            name: "I65VU7K5ZQL7WB4E",
             url: .none
           ),
           .init(
-            id: "Google",
-            name: "Google",
+            id: "OBQXG43CN5WHI===",
+            name: "OBQXG43CN5WHI===",
             url: "https://passbolt.com/"
           ),
         ]
         + (0...100)
         .map { i in
           .init(
-            id: "MOCK_\(i)",
-            name: "MOCK_\(i)",
-            url: "https://passbolt.com/"
+            id: "MZXW\(i)",
+            name: "MZXW\(i)",
+            url: .none
           )
         })
         .filter {
@@ -86,28 +86,16 @@ extension OTPResources {
       // MOCK - end
     }
 
-    @Sendable nonisolated func totpCodesFor(
+    @Sendable nonisolated func secretFor(
       _ id: Resource.ID
-    ) async throws -> TOTPCodes {
-      #warning("TODO: MOB-1107 add database support")
-      return TOTPCodes(
-        resourceID: id,
-        generate: { (timestamp: Timestamp) -> TOTPValue in
-          TOTPValue(
-            otp: .init(
-              rawValue: String(
-                format: "1234%2d",
-                arguments: [timestamp.rawValue / 30 % 100]
-              )
-            ),
-            timeLeft: Seconds(
-              rawValue: UInt64(
-                30 - timestamp.rawValue % 30
-              )
-            ),
-            period: 30
-          )
-        }
+    ) async throws -> OTPSecret {
+      #warning("[MOB-1107] TODO: add database and backend support")
+      // MOCK - start
+      return .totp(
+        sharedSecret: "\(id)",
+        algorithm: .sha1,
+        digits: 6,
+        period: 30
       )
       // MOCK - end
     }
@@ -116,7 +104,7 @@ extension OTPResources {
       updates: sessionData.updatesSequence,
       refreshIfNeeded: refreshIfNeeded,
       filteredList: filteredList(_:),
-      totpCodesFor: totpCodesFor(_:)
+      secretFor: secretFor(_:)
     )
   }
 }

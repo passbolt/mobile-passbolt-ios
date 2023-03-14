@@ -49,11 +49,11 @@ final class OTPContextualMenuControllerTests: LoadableFeatureTestCase<OTPContext
       \OSTime.timestamp,
       with: always(0)
     )
-		patch(
-			\ResourceDetails.details,
-			context: .mock_1,
-			with: always(.mock_1)
-		)
+    patch(
+      \ResourceDetails.details,
+      context: .mock_1,
+      with: always(.mock_1)
+    )
   }
 
   func test_dismiss_revertsNavigationToSelf() {
@@ -78,23 +78,8 @@ final class OTPContextualMenuControllerTests: LoadableFeatureTestCase<OTPContext
       with: always(self.executed())
     )
     patch(
-      \OSPasteboard.put,
+      \OTPCodesController.copyFor,
       with: always(Void())
-    )
-    patch(
-      \OTPResources.totpCodesFor,
-      with: always(
-        .init(
-          resourceID: .mock_1,
-          generate: { _ in
-            .init(
-              otp: "123456",
-              timeLeft: 20,
-              period: 30
-            )
-          }
-        )
-      )
     )
     withTestedInstanceExecuted(
       context: .init(
@@ -113,11 +98,7 @@ final class OTPContextualMenuControllerTests: LoadableFeatureTestCase<OTPContext
       with: always(self.executed())
     )
     patch(
-      \OSPasteboard.put,
-      with: always(Void())
-    )
-    patch(
-      \OTPResources.totpCodesFor,
+      \OTPCodesController.copyFor,
       with: alwaysThrow(MockIssue.error())
     )
     withTestedInstanceExecuted(
@@ -137,23 +118,8 @@ final class OTPContextualMenuControllerTests: LoadableFeatureTestCase<OTPContext
       with: always(Void())
     )
     patch(
-      \OSPasteboard.put,
+      \OTPCodesController.copyFor,
       with: always(Void())
-    )
-    patch(
-      \OTPResources.totpCodesFor,
-      with: always(
-        .init(
-          resourceID: .mock_1,
-          generate: { _ in
-            .init(
-              otp: "123456",
-              timeLeft: 20,
-              period: 30
-            )
-          }
-        )
-      )
     )
     withTestedInstanceExecuted(
       using: SnackBarMessage.info("otp.copied.message"),
@@ -177,7 +143,7 @@ final class OTPContextualMenuControllerTests: LoadableFeatureTestCase<OTPContext
       with: always(Void())
     )
     patch(
-      \OTPResources.totpCodesFor,
+      \OTPCodesController.copyFor,
       with: alwaysThrow(MockIssue.error())
     )
     withTestedInstanceExecuted(
@@ -192,77 +158,31 @@ final class OTPContextualMenuControllerTests: LoadableFeatureTestCase<OTPContext
     }
   }
 
-  func test_copyCode_doesNotModifyPasteboard_whenCodeGenerationFails() {
+  func test_viewState_updatesTitle_fromResourceDetails() {
+    let resourceUpdatesSequence: UpdatesSequenceSource = .init()
     patch(
-      \NavigationToOTPContextualMenu.mockRevert,
-      with: always(Void())
+      \ResourceDetails.updates,
+      context: .mock_1,
+      with: resourceUpdatesSequence.updatesSequence
     )
     patch(
-      \OSPasteboard.put,
-      with: always(self.executed())
+      \ResourceDetails.details,
+      context: .mock_1,
+      with: always(.mock_1)
     )
-    patch(
-      \OTPResources.totpCodesFor,
-      with: alwaysThrow(MockIssue.error())
-    )
-    withTestedInstanceNotExecuted(
+    withTestedInstanceReturnsEqual(
+      DisplayableString.raw("Mock_1"),
       context: .init(
         resourceID: .mock_1,
         showMessage: { _ in }
       )
     ) { feature in
-      feature.copyCode()
+      await self.mockExecutionControl.addTask {
+        resourceUpdatesSequence.endUpdates()
+      }
       await self.mockExecutionControl.executeAll()
+
+      return await feature.viewState.title
     }
   }
-
-  func test_copyCode_putsCodeIntoPasteboard_whenCodeGenerationSucceeds() {
-    patch(
-      \NavigationToOTPContextualMenu.mockRevert,
-      with: always(Void())
-    )
-    patch(
-      \OSPasteboard.put,
-      with: self.executed(using:)
-    )
-    patch(
-      \OTPResources.totpCodesFor,
-      with: always(
-        .init(
-          resourceID: .mock_1,
-          generate: { _ in
-            .init(
-              otp: "123456",
-              timeLeft: 20,
-              period: 30
-            )
-          }
-        )
-      )
-    )
-    withTestedInstanceExecuted(
-      using: "123456",
-      context: .init(
-        resourceID: .mock_1,
-        showMessage: { _ in }
-      )
-    ) { feature in
-      feature.copyCode()
-      await self.mockExecutionControl.executeAll()
-    }
-  }
-
-	func test_viewState_updatesTitle_fromResourceDetails() {
-
-		withTestedInstanceReturnsEqual(
-			DisplayableString.raw("Mock_1"),
-			context: .init(
-				resourceID: .mock_1,
-				showMessage: self.executed(using:)
-			)
-		) { feature in
-			await self.mockExecutionControl.executeAll()
-			return await feature.viewState.title
-		}
-	}
 }

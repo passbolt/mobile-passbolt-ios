@@ -29,9 +29,10 @@ import Resources
 
 internal struct OTPContextualMenuController {
 
-	internal var viewState: MutableViewState<ViewState>
+  internal var viewState: MutableViewState<ViewState>
 
   internal var copyCode: () -> Void
+  internal var revealCode: () -> Void
   internal var dismiss: () -> Void
 }
 
@@ -42,19 +43,21 @@ extension OTPContextualMenuController: ViewController {
     internal var identifier: AnyHashable { self.resourceID }
 
     internal var resourceID: Resource.ID
-    internal var showMessage: @MainActor (SnackBarMessage?) -> Void
+
+    internal var showMessage: @MainActor (SnackBarMessage) -> Void
   }
 
-	internal struct ViewState: Equatable {
+  internal struct ViewState: Equatable {
 
-		internal var title: DisplayableString
-	}
+    internal var title: DisplayableString
+  }
 
   #if DEBUG
   internal static var placeholder: Self {
     .init(
-			viewState: .placeholder(),
+      viewState: .placeholder(),
       copyCode: unimplemented0(),
+      revealCode: unimplemented0(),
       dismiss: unimplemented0()
     )
   }
@@ -74,69 +77,83 @@ extension OTPContextualMenuController {
     let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
 
-    let time: OSTime = features.instance()
-    let pasteboard: OSPasteboard = features.instance()
-
-    let otpResources: OTPResources = try features.instance()
-		let resourceDetails: ResourceDetails = try features.instance(context: context.resourceID)
+    let resourceDetails: ResourceDetails = try features.instance(context: context.resourceID)
+    let otpCodesController: OTPCodesController = try features.instance()
 
     let navigationToSelf: NavigationToOTPContextualMenu = try features.instance()
 
-		let viewState: MutableViewState<ViewState> = .init(
-			initial: .init(
-				title: .raw("OTP")
-			)
-		)
+    let viewState: MutableViewState<ViewState> = .init(
+      initial: .init(
+        title: .raw("OTP")
+      )
+    )
 
-		asyncExecutor.scheduleCatchingWith(
-			diagnostics,
-			failMessage: "Loading resource details failed!"
-		) {
-			let resourceName: String = try await resourceDetails.details().name
-			await viewState.update(\.title, to: .raw(resourceName))
-		}
+    // load resource name
+    asyncExecutor.scheduleCatchingWith(
+      diagnostics,
+      failMessage: "Loading resource details failed!"
+    ) {
+      for await _ in resourceDetails.updates {
+        let resourceName: String = try await resourceDetails.details().name
+        await viewState
+          .update(
+            \.title,
+            to: .raw(resourceName)
+          )
+      }
+    }
 
     nonisolated func copyCode() {
-      asyncExecutor.schedule(.reuse) {
-        var message: SnackBarMessage? = .none
+      asyncExecutor.scheduleCatchingWith(
+        diagnostics,
+        failMessage: "Copying in OTPContextualMenu failed!",
+        behavior: .reuse
+      ) {
+        var message: SnackBarMessage?
         do {
-          let code: OTP =
-            try await otpResources
-            .totpCodesFor(context.resourceID)
-            .generate(time.timestamp())
-            .otp
-          pasteboard.put(code.rawValue)
+          try await otpCodesController.copyFor(context.resourceID)
           message = .info("otp.copied.message")
         }
         catch {
-          diagnostics.log(
-            error: error,
-            info: .message(
-              "Generating resource OTP code failed!"
-            )
-          )
-          message = .error(error)
-        }
+          diagnostics.log(error: error)
+          message = SnackBarMessage.error(error)
+        }  // continue - message will be displayed after dismiss
 
-        do {
-          try await navigationToSelf.revert(animated: true)
+        try await navigationToSelf.revert(animated: true)
+
+        if let message {
           await context.showMessage(message)
+        }  // else nothing to display
+      }
+    }
+
+    nonisolated func revealCode() {
+      asyncExecutor.scheduleCatchingWith(
+        diagnostics,
+        failMessage: "Revealing in OTPContextualMenu failed!",
+        behavior: .reuse
+      ) {
+        var message: SnackBarMessage?
+        do {
+          _ = try await otpCodesController.requestNextFor(context.resourceID)
         }
         catch {
-          diagnostics.log(
-            error: error,
-            info: .message(
-              "Navigation back from OTP contextual menu failed!"
-            )
-          )
-        }
+          diagnostics.log(error: error)
+          message = SnackBarMessage.error(error)
+        }  // continue - message will be displayed after dismiss
+
+        try await navigationToSelf.revert(animated: true)
+
+        if let message {
+          await context.showMessage(message)
+        }  // else nothing to display
       }
     }
 
     nonisolated func dismiss() {
       asyncExecutor.scheduleCatchingWith(
         diagnostics,
-        failMessage: "Navigation back from OTP contextual menu failed!",
+        failMessage: "Dismissing OTPContextualMenu failed!",
         behavior: .reuse
       ) {
         try await navigationToSelf.revert()
@@ -144,8 +161,9 @@ extension OTPContextualMenuController {
     }
 
     return .init(
-			viewState: viewState,
+      viewState: viewState,
       copyCode: copyCode,
+      revealCode: revealCode,
       dismiss: dismiss
     )
   }

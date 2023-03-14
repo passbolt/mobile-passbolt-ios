@@ -28,13 +28,16 @@ import Features
 
 public struct ResourceDetails {
 
+  public var updates: UpdatesSequence
   public var details: @Sendable () async throws -> ResourceDetailsDSV
   public var secret: @Sendable () async throws -> ResourceSecret
 
   public init(
+    updates: UpdatesSequence,
     details: @escaping @Sendable () async throws -> ResourceDetailsDSV,
     secret: @escaping @Sendable () async throws -> ResourceSecret
   ) {
+    self.updates = updates
     self.details = details
     self.secret = secret
   }
@@ -47,7 +50,8 @@ extension ResourceDetails: LoadableFeature {
   #if DEBUG
 
   public static var placeholder: Self {
-    Self(
+    .init(
+      updates: .placeholder,
       details: unimplemented0(),
       secret: unimplemented0()
     )

@@ -38,12 +38,12 @@ internal struct OTPContextualMenuView: ControlledView {
     DrawerMenu(
       closeTap: self.controller.dismiss,
       title: {
-				WithViewState(
-					from: self.controller,
-					at: \.title
-				) { title in
-					Text(displayable: title)
-				}
+        WithViewState(
+          from: self.controller,
+          at: \.title
+        ) { title in
+          Text(displayable: title)
+        }
       },
       content: {
         VStack(spacing: 0) {
@@ -58,6 +58,21 @@ internal struct OTPContextualMenuView: ControlledView {
             },
             leftIcon: {
               Image(named: .copy)
+                .resizable()
+            }
+          )
+
+          DrawerMenuItemView(
+            action: self.controller.revealCode,
+            title: {
+              Text(
+                displayable: .localized(
+                  key: "otp.contextual.menu.reveal.title"
+                )
+              )
+            },
+            leftIcon: {
+              Image(named: .eye)
                 .resizable()
             }
           )

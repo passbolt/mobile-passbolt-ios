@@ -42,10 +42,12 @@ extension OTPEditForm {
       .init(
         issuer: .none,
         account: "",
-        secret: "",
-        digits: 6,
-        algorithm: .sha1,
-        period: 30
+        secret: .totp(
+          sharedSecret: "",
+          algorithm: .sha1,
+          digits: 6,
+          period: 30
+        )
       )
     )
 
@@ -56,7 +58,7 @@ extension OTPEditForm {
     @Sendable nonisolated func fillFrom(
       uri: String
     ) throws {
-      let configuration: TOTPConfiguration = try parseTOTPConfiguration(from: uri)
+      let configuration: OTPConfiguration = try parseTOTPConfiguration(from: uri)
 
       currentState.set(\.self, configuration)
     }
@@ -84,7 +86,7 @@ extension FeaturesRegistry {
 
 private func parseTOTPConfiguration(
   from string: String
-) throws -> TOTPConfiguration {
+) throws -> OTPConfiguration {
   let string: String = string.removingPercentEncoding ?? string
   var reminder: Substring = string[string.startIndex..<string.endIndex]
 
@@ -99,6 +101,7 @@ private func parseTOTPConfiguration(
   reminder = reminder[schemeRange.upperBound..<reminder.endIndex]
 
   // check and remove type substring
+  // initially - supporting only TOTP
   let otpType: String = "totp/"
   guard let typeRange: Range<Substring.Index> = reminder.range(of: otpType)
   else {
@@ -175,8 +178,7 @@ private func parseTOTPConfiguration(
   }
 
   let period: Seconds
-  if let periodParameter: UInt64 = parameters.first(where: { key, _ in key == "period" }).flatMap({ UInt64($0.value) })
-  {
+  if let periodParameter: Int64 = parameters.first(where: { key, _ in key == "period" }).flatMap({ Int64($0.value) }) {
     period = .init(rawValue: periodParameter)
   }
   else {  // use default
@@ -197,9 +199,11 @@ private func parseTOTPConfiguration(
   return .init(
     issuer: issuer,
     account: account,
-    secret: secret,
-    digits: digits,
-    algorithm: algorithm,
-    period: period
+    secret: .totp(
+      sharedSecret: secret,
+      algorithm: algorithm,
+      digits: digits,
+      period: period
+    )
   )
 }

@@ -21,39 +21,71 @@
 // @since         v1.0
 //
 
-@_exported import Aegithalos
-@_exported import CommonModels
-@_exported import Commons
-@_exported import Features
+public enum OTPSecret {
 
-extension FeaturesRegistry {
+  case totp(
+    sharedSecret: String,
+    algorithm: HOTPAlgorithm,
+    digits: UInt,
+    period: Seconds
+  )
+  case hotp(
+    sharedSecret: String,
+    algorithm: HOTPAlgorithm,
+    digits: UInt,
+    counter: UInt64
+  )
 
-  public mutating func useOSFeatures() {
-    self.useOSTime()
-    self.useOSFiles()
-    self.useOSCamera()
-    self.useOSBiometry()
-    self.useOSExtensions()
-    self.useOSApplicationRating()
-    self.useOSPasteboard()
-    self.useOSRandomness()
-    self.useOSPreferences()
-    self.useOSDiagnostics()
-    self.useUUIDGenerator()
-    self.useOSLinkOpener()
-    self.useOSKeychain()
-    self.useApplicationLifecycle()
-    self.useApplicationMeta()
-    self.useMDMConfiguration()
-    self.usePassboltNetworkRequestExecutor()
-    self.usePassboltStoredProperty(Bool.self)
-    self.usePassboltStoredProperty(Int.self)
-    self.usePassboltStoredProperty(Timestamp.self)
-    self.usePassboltStoredProperty(String.self)
-    self.usePassboltStoredProperty(Array<String>.self)
-    self.usePassboltStoredProperty(Set<String>.self)
-    self.usePassboltSharedOSStoredProperties()
-    self.usePassboltAsyncExecutor()
-    self.useQRCodeGenerator()
+  public var sharedSecret: String {
+    switch self {
+    case .totp(let secret, _, _, _):
+      return secret
+
+    case .hotp(let secret, _, _, _):
+      return secret
+    }
+  }
+
+  public var algorithm: HOTPAlgorithm {
+    switch self {
+    case .totp(_, let algorithm, _, _):
+      return algorithm
+
+    case .hotp(_, let algorithm, _, _):
+      return algorithm
+    }
+  }
+
+  public var digits: UInt {
+    switch self {
+    case .totp(_, _, let digits, _):
+      return digits
+
+    case .hotp(_, _, let digits, _):
+      return digits
+    }
+  }
+
+  public var period: Seconds? {
+    switch self {
+    case .totp(_, _, _, let period):
+      return period
+
+    case .hotp(_, _, _, _):
+      return .none
+    }
+  }
+
+  public var counter: UInt64? {
+    switch self {
+    case .totp(_, _, _, _):
+      return .none
+
+    case .hotp(_, _, _, let counter):
+      return counter
+    }
   }
 }
+
+extension OTPSecret: Sendable {}
+extension OTPSecret: Equatable {}

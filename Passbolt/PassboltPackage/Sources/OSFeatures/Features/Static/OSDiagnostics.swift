@@ -356,6 +356,9 @@ extension OSDiagnostics {
     do {
       try await operation()
     }
+    catch is Cancelled where Task.isCancelled {
+      // NOP - ignore in logs
+    }
     catch {
       self.log(
         error: error,

@@ -21,33 +21,49 @@
 // @since         v1.0
 //
 
-import Commons
+import CommonModels
+import Features
 
-public struct TOTPConfiguration {
+// MARK: - Interface
 
-  public var issuer: String?
-  public var account: String
-  public var secret: String
-  public var digits: UInt
-  public var algorithm: HOTPAlgorithm
-  public var period: Seconds
+public struct HOTPCodeGenerator {
+
+  public var generate: @Sendable (UInt64) -> HOTPValue
 
   public init(
-    issuer: String?,
-    account: String,
-    secret: String,
-    digits: UInt,
-    algorithm: HOTPAlgorithm,
-    period: Seconds
+    generate: @escaping @Sendable (UInt64) -> HOTPValue
   ) {
-    self.issuer = issuer
-    self.account = account
-    self.secret = secret
-    self.digits = digits
-    self.algorithm = algorithm
-    self.period = period
+    self.generate = generate
   }
 }
 
-extension TOTPConfiguration: Sendable {}
-extension TOTPConfiguration: Hashable {}
+extension HOTPCodeGenerator: LoadableFeature {
+
+  public struct Context: LoadableFeatureContext, Hashable {
+
+    public var resourceID: Resource.ID
+    public var sharedSecret: String
+    public var algorithm: HOTPAlgorithm
+    public var digits: UInt
+
+    public init(
+      resourceID: Resource.ID,
+      sharedSecret: String,
+      algorithm: HOTPAlgorithm,
+      digits: UInt
+    ) {
+      self.resourceID = resourceID
+      self.sharedSecret = sharedSecret
+      self.algorithm = algorithm
+      self.digits = digits
+    }
+  }
+
+  #if DEBUG
+  public nonisolated static var placeholder: Self {
+    .init(
+      generate: unimplemented1()
+    )
+  }
+  #endif
+}
