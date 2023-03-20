@@ -44,7 +44,7 @@ extension ResourceFavorites {
     let resourceSetFavoriteDatabaseOperation: ResourceSetFavoriteDatabaseOperation = try features.instance()
 
     @Sendable func toggleFavorite() async throws {
-      if let favoriteID: Resource.FavoriteID = try await resourceDetails.details().favoriteID {
+      if let favoriteID: Resource.Favorite.ID = try await resourceDetails.details().favoriteID {
         try await sessionData.withLocalUpdate {
           try await resourceFavoriteDeleteNetworkOperation(.init(favoriteID: favoriteID))
           try await resourceSetFavoriteDatabaseOperation(.init(resourceID: resourceID, favoriteID: .none))
@@ -52,7 +52,7 @@ extension ResourceFavorites {
       }
       else {
         try await sessionData.withLocalUpdate {
-          let favoriteID: Resource.FavoriteID = try await resourceFavoriteAddNetworkOperation(
+          let favoriteID: Resource.Favorite.ID = try await resourceFavoriteAddNetworkOperation(
             .init(resourceID: resourceID)
           ).favoriteID
           try await resourceSetFavoriteDatabaseOperation(.init(resourceID: resourceID, favoriteID: favoriteID))

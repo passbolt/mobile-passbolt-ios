@@ -39,9 +39,7 @@ internal struct ResourcesListNodeController {
 
 extension ResourcesListNodeController: ViewController {
 
-  internal struct Context: LoadableFeatureContext {
-    // feature is disposable, we don't care about ID
-    internal let identifier: AnyHashable = IID()
+  internal struct Context {
 
     internal var title: DisplayableString
     internal var titleIconName: ImageNameConstant
@@ -130,7 +128,10 @@ extension ResourcesListNodeController {
           .push(
             ResourceEditViewController.self,
             context: (
-              editing: .new(in: .none, url: requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }),
+              editing: .create(
+                folderID: .none,
+                uri: requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }
+              ),
               completion: { resourceID in
                 selectResource(resourceID)
               }
@@ -146,10 +147,12 @@ extension ResourcesListNodeController {
       asyncExecutor.schedule(.replace) {
         do {
           let resourceDetails: ResourceDetails = try await features.instance(context: resourceID)
-          let resource: ResourceDetailsDSV = try await resourceDetails.details()
+          let resource: Resource = try await resourceDetails.details()
           let secret: ResourceSecret = try await resourceDetails.secret()
 
-          guard let password: String = secret.password
+          guard
+            let passwordField: ResourceField = resource.type.password,
+            let password: String = secret.value(for: passwordField)?.stringValue
           else {
             throw
               ResourceSecretInvalid
@@ -158,7 +161,7 @@ extension ResourcesListNodeController {
           await autofillContext
             .completeWithCredential(
               AutofillExtensionContext.Credential(
-                user: resource.username ?? "",
+                user: resource.username?.stringValue ?? "",
                 password: password
               )
             )

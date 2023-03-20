@@ -39,7 +39,7 @@ final class ValidatorTests: XCTestCase {
     let validated: Validated<String> = validator.validate("NonEmptyString")
 
     XCTAssertTrue(validated.isValid)
-    XCTAssertTrue(validated.errors.isEmpty)
+    XCTAssertNil(validated.error)
   }
 
   func test_nonEmptyValidator_withEmptyValue_Fails() {
@@ -51,6 +51,6 @@ final class ValidatorTests: XCTestCase {
     let validated: Validated<String> = validator.validate("")
 
     XCTAssertFalse(validated.isValid)
-    XCTAssertEqual(validated.errors.first?.validationRule, "nonEmpty")
+    XCTAssertEqual(validated.error?.displayableMessage, .localized(key: messageKeyInvalid))
   }
 }

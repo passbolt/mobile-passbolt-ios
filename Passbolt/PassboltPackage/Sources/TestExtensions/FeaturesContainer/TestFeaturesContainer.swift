@@ -30,7 +30,7 @@ public final class TestFeaturesContainer {
   internal init() {
     self.state = .init(
       [  // initialize with Root scope
-        .init(RootFeaturesScope.self): RootFeaturesScope.self
+        .init(RootFeaturesScope.self, .none): RootFeaturesScope.self
       ]
     )
   }
@@ -45,7 +45,7 @@ extension TestFeaturesContainer: FeaturesContainer {
   ) throws where RequestedScope: FeaturesScope {
     try self.state.access { state in
       if state.keys
-        .contains(.init(RequestedScope.self))
+        .contains(.init(RequestedScope.self, .none))
       {
         // check passed
       }
@@ -68,7 +68,7 @@ extension TestFeaturesContainer: FeaturesContainer {
   ) throws -> RequestedScope.Context
   where RequestedScope: FeaturesScope {
     try self.state.access { state in
-      if let context: RequestedScope.Context = state[.init(RequestedScope.self)] as? RequestedScope.Context {
+      if let context: RequestedScope.Context = state[.init(RequestedScope.self, .none)] as? RequestedScope.Context {
         return context
       }
       else {
@@ -91,7 +91,7 @@ extension TestFeaturesContainer: FeaturesContainer {
   ) -> FeaturesContainer
   where RequestedScope: FeaturesScope {
     self.state.access { state in
-      state[.init(RequestedScope.self)] = context
+      state[.init(RequestedScope.self, .none)] = context
     }
     return self
   }
@@ -103,7 +103,7 @@ extension TestFeaturesContainer: FeaturesContainer {
   ) -> Feature
   where Feature: StaticFeature {
     self.state.access { state in
-      if let feature: Feature = state[.init(Feature.self)] as? Feature {
+      if let feature: Feature = state[.init(Feature.self, .none)] as? Feature {
         return feature
       }
       else {
@@ -120,7 +120,7 @@ extension TestFeaturesContainer: FeaturesContainer {
   ) throws -> Feature
   where Feature: LoadableFeature {
     self.state.access { state in
-      if let feature: Feature = state[.init(Feature.self, context.identifier)] as? Feature {
+      if let feature: Feature = state[.init(Feature.self, (context as? LoadableFeatureContext)?.identifier)] as? Feature {
         return feature
       }
       else {
@@ -137,15 +137,23 @@ extension TestFeaturesContainer {
     context: Feature.Context
   ) where Feature: LoadableFeature {
     self.state.access { state in
-      state[.init(Feature.self, context.identifier)] = Feature.placeholder
+      state[.init(Feature.self, (context as? LoadableFeatureContext)?.identifier)] = Feature.placeholder
     }
   }
 
   public func usePlaceholder<Feature>(
     for featureType: Feature.Type
-  ) where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {
+  ) where Feature: LoadableFeature, Feature.Context == ContextlessLoadableFeatureContext {
     self.state.access { state in
-      state[.init(Feature.self)] = Feature.placeholder
+      state[.init(Feature.self, ContextlessLoadableFeatureContext.instance)] = Feature.placeholder
+    }
+  }
+
+  public func usePlaceholder<Feature>(
+    for featureType: Feature.Type
+  ) where Feature: LoadableFeature, Feature.Context == Void {
+    self.state.access { state in
+      state[.init(Feature.self, .none)] = Feature.placeholder
     }
   }
 
@@ -153,7 +161,7 @@ extension TestFeaturesContainer {
     for featureType: Feature.Type
   ) where Feature: StaticFeature {
     self.state.access { state in
-      state[.init(Feature.self)] = Feature.placeholder
+      state[.init(Feature.self, .none)] = Feature.placeholder
     }
   }
 
@@ -164,31 +172,48 @@ extension TestFeaturesContainer {
   ) where Feature: LoadableFeature {
     self.state.access { state in
       var feature: Feature
-      if let mocked: Feature = state[.init(Feature.self, context.identifier)] as? Feature {
+      if let mocked: Feature = state[.init(Feature.self, (context as? LoadableFeatureContext)?.identifier)] as? Feature {
         feature = mocked
       }
       else {
         feature = .placeholder
       }
       feature[keyPath: keyPath] = updated
-      state[.init(Feature.self, context.identifier)] = feature
+      state[.init(Feature.self, (context as? LoadableFeatureContext)?.identifier)] = feature
     }
   }
 
   public func patch<Feature, Property>(
     _ keyPath: WritableKeyPath<Feature, Property>,
     with updated: Property
-  ) where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {
+  ) where Feature: LoadableFeature, Feature.Context == ContextlessLoadableFeatureContext {
     self.state.access { state in
       var feature: Feature
-      if let mocked: Feature = state[.init(Feature.self)] as? Feature {
+      if let mocked: Feature = state[.init(Feature.self, ContextlessLoadableFeatureContext.instance)] as? Feature {
         feature = mocked
       }
       else {
         feature = .placeholder
       }
       feature[keyPath: keyPath] = updated
-      state[.init(Feature.self)] = feature
+      state[.init(Feature.self, ContextlessLoadableFeatureContext.instance)] = feature
+    }
+  }
+
+  public func patch<Feature, Property>(
+    _ keyPath: WritableKeyPath<Feature, Property>,
+    with updated: Property
+  ) where Feature: LoadableFeature, Feature.Context == Void {
+    self.state.access { state in
+      var feature: Feature
+      if let mocked: Feature = state[.init(Feature.self, .none)] as? Feature {
+        feature = mocked
+      }
+      else {
+        feature = .placeholder
+      }
+      feature[keyPath: keyPath] = updated
+      state[.init(Feature.self, .none)] = feature
     }
   }
 
@@ -198,14 +223,14 @@ extension TestFeaturesContainer {
   ) where Feature: StaticFeature {
     self.state.access { state in
       var feature: Feature
-      if let mocked: Feature = state[.init(Feature.self)] as? Feature {
+      if let mocked: Feature = state[.init(Feature.self, .none)] as? Feature {
         feature = mocked
       }
       else {
         feature = .placeholder
       }
       feature[keyPath: keyPath] = updated
-      state[.init(Feature.self)] = feature
+      state[.init(Feature.self, .none)] = feature
     }
   }
 }
@@ -225,7 +250,7 @@ extension TestFeaturesContainer {
     context: Scope.Context
   ) where Scope: FeaturesScope {
     self.state.access { state in
-      state[.init(Scope.self)] = context
+      state[.init(Scope.self, .none)] = context
     }
   }
 
@@ -233,7 +258,7 @@ extension TestFeaturesContainer {
     _ scope: Scope.Type
   ) where Scope: FeaturesScope, Scope.Context == Void {
     self.state.access { state in
-      state[.init(Scope.self)] = Void()
+      state[.init(Scope.self, .none)] = Void()
     }
   }
 }
@@ -241,18 +266,11 @@ extension TestFeaturesContainer {
 internal struct MockItemKey {
 
   private let identifier: AnyHashable
-  private let additionalIdentifier: AnyHashable
-
-  internal init<T>(
-    _: T.Type
-  ) {
-    self.identifier = ObjectIdentifier(T.self)
-    self.additionalIdentifier = ContextlessFeatureContext.instance.identifier
-  }
+  private let additionalIdentifier: AnyHashable?
 
   internal init<T>(
     _: T.Type,
-    _ additional: AnyHashable
+    _ additional: AnyHashable?
   ) {
     self.identifier = ObjectIdentifier(T.self)
     self.additionalIdentifier = additional

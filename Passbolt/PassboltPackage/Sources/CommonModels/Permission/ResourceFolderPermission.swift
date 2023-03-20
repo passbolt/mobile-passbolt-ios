@@ -21,6 +21,63 @@
 // @since         v1.0
 //
 
-public typealias PermissionDSO = PermissionDTO
+import Commons
 
-extension PermissionDSO: DSO {}
+public enum ResourceFolderPermission {
+
+  case user(
+    id: User.ID,
+    permission: Permission,
+    permissionID: Permission.ID?  // none is local, not synchronized permission
+  )
+  case userGroup(
+    id: UserGroup.ID,
+    permission: Permission,
+    permissionID: Permission.ID?  // none is local, not synchronized permission
+  )
+}
+
+extension ResourceFolderPermission: Hashable {}
+
+extension ResourceFolderPermission {
+
+  public var userID: User.ID? {
+    switch self {
+    case let .user(id, _, _):
+      return id
+
+    case .userGroup:
+      return .none
+    }
+  }
+
+  public var userGroupID: UserGroup.ID? {
+    switch self {
+    case .user:
+      return .none
+
+    case .userGroup(let id, _, _):
+      return id
+    }
+  }
+
+  public var permissionID: Permission.ID? {
+    switch self {
+    case let .user(_, _, permissionID):
+      return permissionID
+
+    case let .userGroup(_, _, permissionID):
+      return permissionID
+    }
+  }
+
+  public var permission: Permission {
+    switch self {
+    case let .user(_, permission, _):
+      return permission
+
+    case let .userGroup(_, permission, _):
+      return permission
+    }
+  }
+}

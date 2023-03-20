@@ -29,11 +29,12 @@ import Session
 extension ResourceTypesStoreDatabaseOperation {
 
   @Sendable fileprivate static func execute(
-    _ input: Array<ResourceTypeDSO>,
+    _ input: Array<ResourceType>,
     connection: SQLiteConnection
   ) throws {
     // cleanup existing types as preparation for update
     try connection.execute("DELETE FROM resourceFields;")
+    try connection.execute("DELETE FROM resourceTypes;")
 
     for resourceType in input {
       try connection.execute(
@@ -62,7 +63,7 @@ extension ResourceTypesStoreDatabaseOperation {
           """,
           arguments: resourceType.id,
           resourceType.slug,
-          resourceType.name
+          resourceType._name
         )
       )
 
@@ -75,9 +76,10 @@ extension ResourceTypesStoreDatabaseOperation {
                 resourceFields(
                   name,
                   valueType,
-                  required,
                   encrypted,
-                  maxLength
+                  required,
+                  minimum,
+                  maximum
                 )
               VALUES
                 (
@@ -85,17 +87,19 @@ extension ResourceTypesStoreDatabaseOperation {
                   ?2,
                   ?3,
                   ?4,
-                  ?5
+                  ?5,
+                  ?6
                 )
               RETURNING
                 id AS id
               ;
               """,
-              arguments: field.name.rawValue,
-              field.valueType.rawValue,
-              field.required,
+              arguments: field.name,
+              field.valueTypeName,
               field.encrypted,
-              field.maxLength
+              field.required,
+              field.minimum,
+              field.maximum
             )
           )?
           .id
@@ -103,12 +107,8 @@ extension ResourceTypesStoreDatabaseOperation {
         guard let resourceFieldID: Int = resourceFieldID
         else {
           throw
-            DatabaseIssue
-            .error(
-              underlyingError:
-                DatabaseResultInvalid
-                .error("Failed to get inserted resource field id")
-            )
+            DatabaseResultInvalid
+            .error("Failed to get inserted resource field id")
         }
         try connection.execute(
           .statement(

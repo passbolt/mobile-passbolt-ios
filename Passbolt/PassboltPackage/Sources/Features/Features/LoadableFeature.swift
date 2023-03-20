@@ -25,7 +25,7 @@ import Commons
 
 public protocol LoadableFeature: AnyFeature {
 
-  associatedtype Context: LoadableFeatureContext = ContextlessFeatureContext
+  associatedtype Context = Void
 
   #if DEBUG
   nonisolated static var placeholder: Self { get }

@@ -70,13 +70,13 @@ extension ResourcePermissionEditListController: ComponentController {
     cancellables.executeAsync {
       try await resourceShareForm
         .permissionsSequence()
-        .forEach { (permissions: OrderedSet<ResourceShareFormPermission>) in
+        .forEach { (permissions: OrderedSet<ResourcePermission>) in
           var listItems: Array<PermissionListRowItem> = .init()
           listItems.reserveCapacity(permissions.count)
 
-          for permission: ResourceShareFormPermission in permissions {
+          for permission: ResourcePermission in permissions {
             switch permission {
-            case let .user(userID, permissionType):
+            case let .user(userID, permission, _):
               let userDetails: UserDetails =
                 try await features
                 .instance(
@@ -98,13 +98,13 @@ extension ResourcePermissionEditListController: ComponentController {
                       lastName: details.lastName,
                       fingerprint: details.fingerprint,
                       avatarImageURL: details.avatarImageURL,
-                      permissionType: permissionType
+                      permission: permission
                     ),
                     imageData: userDetails.avatarImage
                   )
                 )
 
-            case let .userGroup(userGroupID, permissionType):
+            case let .userGroup(userGroupID, permission, _):
               let details: UserGroupDetailsDSV =
                 try await features
                 .instance(
@@ -119,7 +119,7 @@ extension ResourcePermissionEditListController: ComponentController {
                     details: .init(
                       id: userGroupID,
                       name: details.name,
-                      permissionType: permissionType,
+                      permission: permission,
                       members: details.members
                     )
                   )

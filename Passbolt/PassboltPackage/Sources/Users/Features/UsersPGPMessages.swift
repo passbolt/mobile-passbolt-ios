@@ -76,8 +76,9 @@ public struct UsersPGPMessages {
 
 extension UsersPGPMessages: LoadableFeature {
 
-  #if DEBUG
+  public typealias Context = ContextlessLoadableFeatureContext
 
+  #if DEBUG
   public static var placeholder: Self {
     Self(
       encryptMessageForUsers: unimplemented2(),

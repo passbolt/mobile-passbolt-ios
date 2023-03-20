@@ -26,20 +26,20 @@ import UICommons
 
 internal final class ResourceDetailsView: ScrolledStackView {
 
-  internal var toggleEncryptedFieldTapPublisher: AnyPublisher<ResourceFieldNameDSV, Never> {
+  internal var toggleEncryptedFieldTapPublisher: AnyPublisher<ResourceField, Never> {
     toggleEncryptedFieldTapSubject.eraseToAnyPublisher()
   }
 
-  internal var copyFieldNameTapPublisher: AnyPublisher<ResourceFieldNameDSV, Never> {
-    copyFieldNameTapSubject.eraseToAnyPublisher()
+  internal var copyFieldTapPublisher: AnyPublisher<ResourceField, Never> {
+    copyFieldTapSubject.eraseToAnyPublisher()
   }
 
   private let favoriteStarView: ImageView = .init()
   private let iconView: LetterIconLegacyView = .init()
   private let titleLabel: Label = .init()
-  private let toggleEncryptedFieldTapSubject: PassthroughSubject<ResourceFieldNameDSV, Never> = .init()
-  private let copyFieldNameTapSubject: PassthroughSubject<ResourceFieldNameDSV, Never> = .init()
-  private var fieldUpdates: Dictionary<ResourceFieldNameDSV, (Mutation<ResourceDetailsItemView>) -> Void> = [:]
+  private let toggleEncryptedFieldTapSubject: PassthroughSubject<ResourceField, Never> = .init()
+  private let copyFieldTapSubject: PassthroughSubject<ResourceField, Never> = .init()
+  private var fieldUpdates: Dictionary<ResourceField, (Mutation<ResourceDetailsItemView>) -> Void> = [:]
 
   // Used to identify dynamic items in the stack
   private static let formItemTag: Int = 42
@@ -105,155 +105,92 @@ internal final class ResourceDetailsView: ScrolledStackView {
     }
   }
 
-  internal func update(with config: ResourceDetailsController.ResourceDetailsWithConfig) {
+  internal func update(with config: ResourceDetailsController.ResourceWithConfig) {
     removeAllArrangedSubviews(withTag: Self.formItemTag)
     removeAllArrangedSubviews(withTag: Self.formFillerTag)
     fieldUpdates.removeAll()
 
-    let resourceDetails: ResourceDetailsDSV = config.resourceDetails
+    let resource: Resource = config.resource
+    let resourceName: String = resource.name?.stringValue ?? ""
+    favoriteStarView.isHidden = resource.favoriteID == .none
+    iconView.update(from: resourceName)
+    titleLabel.text = resourceName
 
-    favoriteStarView.isHidden = resourceDetails.favoriteID == .none
-    iconView.update(from: resourceDetails.name)
-    titleLabel.text = resourceDetails.name
-
-    let setupSteps: Array<FieldSetup> = resourceDetails.fields.compactMap { field in
+    let setupSteps: Array<FieldSetup> = resource.fields.compactMap { (field: ResourceField) -> FieldSetup? in
       let encryptedPlaceholder: String = .init(repeating: "*", count: 10)
 
-      let contentButtonMutation: Mutation<ResourceDetailsItemView>
+      let contentButtonMutation: Mutation<ResourceDetailsItemView> = .action { [weak self] in
+        self?.copyFieldTapSubject.send(field)
+      }
+      let valueMutation: Mutation<TextView> = .combined(
+        .userInteractionEnabled(false),
+        .when(
+          field.encrypted,
+          then: .text(encryptedPlaceholder),
+          else: .text(resource.value(for: field)?.stringValue ?? "")
+        )
+      )
       let titleMutation: Mutation<Label>
-      let valueMutation: Mutation<TextView>
       let accessoryButtonMutation: Mutation<ImageButton>
-
-      switch field.name {
-      case .name:
-        return nil
-
-      case .username:
-        contentButtonMutation = .action { [weak self] in
-          self?.copyFieldNameTapSubject.send(field.name)
-        }
-        titleMutation = .text(
-          displayable: .localized(key: "resource.detail.field.username")
-        )
-        valueMutation = .combined(
-          .userInteractionEnabled(false),
-          .when(
-            field.encrypted,
-            then: .text(encryptedPlaceholder),
-            else: .text(resourceDetails.username ?? "")
-          )
-        )
-        accessoryButtonMutation = .combined(
-          .image(named: .copy, from: .uiCommons),
-          .action { [weak self] in
-            self?.copyFieldNameTapSubject.send(field.name)
-          }
-        )
-
-      case .password:
-        contentButtonMutation = .action { [weak self] in
-          self?.copyFieldNameTapSubject.send(field.name)
-        }
-        titleMutation = .text(
-          displayable: .localized(
-            key: "resource.detail.field.passphrase"
-          )
-        )
-        valueMutation = .combined(
-          .userInteractionEnabled(false),
-          .when(
-            field.encrypted,
-            then: .text(encryptedPlaceholder),
-            else: .text("")
-          )
-        )
-
-        if config.revealPasswordEnabled {
-          accessoryButtonMutation = .when(
-            field.encrypted,
-            then:
-              .combined(
-                .image(named: .eye, from: .uiCommons),
-                .action { [weak self] in
-                  self?.toggleEncryptedFieldTapSubject.send(field.name)
-                }
-              ),
-            else: .hidden(true)
+      if field.encrypted {
+        if field.name != "password" || config.revealPasswordEnabled {
+          accessoryButtonMutation = .combined(
+            .image(named: .eye, from: .uiCommons),
+            .action { [weak self] in
+              self?.toggleEncryptedFieldTapSubject.send(field)
+            }
           )
         }
         else {
           accessoryButtonMutation = .hidden(true)
         }
-      case .uri:
-        contentButtonMutation = .action { [weak self] in
-          self?.copyFieldNameTapSubject.send(field.name)
-        }
+      }
+      else {
+        accessoryButtonMutation = .combined(
+          .image(named: .copy, from: .uiCommons),
+          .action { [weak self] in
+            self?.copyFieldTapSubject.send(field)
+          }
+        )
+      }
+
+      switch field.name {
+      case "name":
+        return .none // name is displayed differently
+
+      case "username":
+        titleMutation = .text(
+          displayable: .localized(key: "resource.detail.field.username")
+        )
+
+      case "password":
+        titleMutation = .text(
+          displayable: .localized(
+            key: "resource.detail.field.passphrase"
+          )
+        )
+      case "uri":
         titleMutation = .text(
           displayable: .localized(
             key: "resource.detail.field.uri"
           )
         )
-        valueMutation = .combined(
-          .userInteractionEnabled(true),
-          .when(
-            field.encrypted,
-            then: .text(encryptedPlaceholder),
-            else: .attributedString(
-              .displayable(
-                .raw(resourceDetails.url ?? ""),
-                font: .inter(ofSize: 14, weight: .medium),
-                color: .primaryBlue,
-                isLink: true
-              )
-            )
-          )
-        )
 
-        accessoryButtonMutation = .combined(
-          .image(named: .copy, from: .uiCommons),
-          .action { [weak self] in
-            self?.copyFieldNameTapSubject.send(field.name)
-          }
-        )
-
-      case .description:
-        contentButtonMutation = .action { [weak self] in
-          self?.copyFieldNameTapSubject.send(field.name)
-        }
+      case "description":
         titleMutation = .text(
           displayable: .localized(
             key: "resource.detail.field.description"
           )
         )
-        valueMutation = .combined(
-          .combined(
-            .userInteractionEnabled(false),
-            .when(
-              field.encrypted,
-              then: .text(encryptedPlaceholder),
-              else: .text(resourceDetails.description ?? "")
-            )
-          )
-        )
-        accessoryButtonMutation = .when(
-          field.encrypted,
-          then:
-            .combined(
-              .image(named: .eye, from: .uiCommons),
-              .action { [weak self] in
-                self?.toggleEncryptedFieldTapSubject.send(field.name)
-              }
-            ),
-          else: .hidden(true)
-        )
 
-      case let .undefined(name):
-        assertionFailure("Undefined resource field \(name)")
-        return nil
+      case _:
+        titleMutation = .text(
+          displayable: .raw(field.name)
+        )
       }
 
       return .init(
-        fieldName: field.name,
+        field: field,
         contentButtonMutation: contentButtonMutation,
         titleMutation: titleMutation,
         valueMutation: valueMutation,
@@ -267,7 +204,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
     )
 
     let fieldViews: Array<ItemWithUpdate> = setupSteps.map { setup in
-      let itemView: ResourceDetailsItemView = .init(fieldName: setup.fieldName)
+      let itemView: ResourceDetailsItemView = .init(fieldName: setup.field)
       itemView.tag = Self.formItemTag
 
       let fieldUpdate: (Mutation<ResourceDetailsItemView>) -> Void = { itemMutation in
@@ -303,11 +240,11 @@ internal final class ResourceDetailsView: ScrolledStackView {
   }
 
   internal func applyOn(
-    field fieldName: ResourceFieldNameDSV,
+    field: ResourceField,
     buttonMutation: Mutation<ImageButton>,
     valueTextViewMutation: Mutation<TextView>
   ) {
-    guard let itemViewUpdate = fieldUpdates[fieldName]
+    guard let itemViewUpdate = fieldUpdates[field]
     else { return }
 
     itemViewUpdate(
@@ -345,7 +282,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
 
 internal final class ResourceDetailsItemView: PlainButton {
 
-  fileprivate var fieldName: ResourceFieldNameDSV
+  fileprivate var fieldName: ResourceField
   fileprivate var titleLabel: Label = .init()
   fileprivate var valueTextView: TextView = .init()
   fileprivate var accessoryButton: ImageButton = .init()
@@ -360,7 +297,7 @@ internal final class ResourceDetailsItemView: PlainButton {
     unreachable(#function)
   }
 
-  internal init(fieldName: ResourceFieldNameDSV) {
+  internal init(fieldName: ResourceField) {
     self.fieldName = fieldName
     super.init()
 
@@ -415,7 +352,7 @@ internal final class ResourceDetailsItemView: PlainButton {
 
 fileprivate struct FieldSetup {
 
-  fileprivate var fieldName: ResourceFieldNameDSV
+  fileprivate var field: ResourceField
   fileprivate var contentButtonMutation: Mutation<ResourceDetailsItemView>
   fileprivate var titleMutation: Mutation<Label>
   fileprivate var valueMutation: Mutation<TextView>

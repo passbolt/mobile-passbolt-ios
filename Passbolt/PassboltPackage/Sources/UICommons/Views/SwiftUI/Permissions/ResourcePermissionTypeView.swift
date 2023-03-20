@@ -28,23 +28,23 @@ import SwiftUI
 public struct ResourcePermissionTypeView: View {
 
   private let permissionIcon: Image
-  private let permissionTypeLabel: DisplayableString
+  private let permissionLabel: DisplayableString
 
   public init(
-    permissionType: PermissionType
+    permission: Permission
   ) {
-    switch permissionType {
+    switch permission {
     case .read:
       self.permissionIcon = .init(named: .permissionReadIcon)
-      self.permissionTypeLabel = .localized(key: "resource.permission.type.read.label")
+      self.permissionLabel = .localized(key: "resource.permission.type.read.label")
 
     case .write:
       self.permissionIcon = .init(named: .permissionWriteIcon)
-      self.permissionTypeLabel = .localized(key: "resource.permission.type.write.label")
+      self.permissionLabel = .localized(key: "resource.permission.type.write.label")
 
     case .owner:
       self.permissionIcon = .init(named: .permissionOwnIcon)
-      self.permissionTypeLabel = .localized(key: "resource.permission.type.own.label")
+      self.permissionLabel = .localized(key: "resource.permission.type.own.label")
     }
   }
 
@@ -59,7 +59,7 @@ public struct ResourcePermissionTypeView: View {
         )
         .foregroundColor(.passboltPrimaryText)
       Text(
-        displayable: self.permissionTypeLabel
+        displayable: self.permissionLabel
       )
       .text(
         font: .inter(
@@ -79,13 +79,13 @@ internal struct ResourcePermissionTypeView_Previews: PreviewProvider {
 
   internal static var previews: some View {
     ResourcePermissionTypeView(
-      permissionType: .read
+      permission: .read
     )
     ResourcePermissionTypeView(
-      permissionType: .write
+      permission: .write
     )
     ResourcePermissionTypeView(
-      permissionType: .owner
+      permission: .owner
     )
   }
 }

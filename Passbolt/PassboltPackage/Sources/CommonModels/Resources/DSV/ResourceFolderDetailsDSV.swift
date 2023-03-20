@@ -27,32 +27,30 @@ public struct ResourceFolderDetailsDSV {
 
   public var id: ResourceFolder.ID
   public var name: String
-  public var permissionType: PermissionTypeDSV
+  public var permission: Permission
   public var shared: Bool
   public var parentFolderID: ResourceFolder.ID?
-  public var location: Array<ResourceFolderLocationItemDSV>
-  public var permissions: OrderedSet<ResourceFolderPermissionDSV>
+  public var path: Array<ResourceFolderPathItem>
+  public var permissions: OrderedSet<ResourceFolderPermission>
 
   public init(
     id: ResourceFolder.ID,
     name: String,
-    permissionType: PermissionTypeDSV,
+    permission: Permission,
     shared: Bool,
     parentFolderID: ResourceFolder.ID?,
-    location: Array<ResourceFolderLocationItemDSV>,
-    permissions: OrderedSet<ResourceFolderPermissionDSV>
+    path: Array<ResourceFolderPathItem>,
+    permissions: OrderedSet<ResourceFolderPermission>
   ) {
-    assert(location.last?.folderID == parentFolderID)
+    assert(path.last?.id == parentFolderID)
     self.id = id
     self.name = name
-    self.permissionType = permissionType
+    self.permission = permission
     self.shared = shared
     self.parentFolderID = parentFolderID
-    self.location = location
+    self.path = path
     self.permissions = permissions
   }
 }
 
-extension ResourceFolderDetailsDSV: DSV {}
-
-extension ResourceFolderDetailsDSV: Hashable {}
+extension ResourceFolderDetailsDSV: Equatable {}

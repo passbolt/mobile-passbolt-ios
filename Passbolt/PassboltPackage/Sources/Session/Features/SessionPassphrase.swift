@@ -47,9 +47,7 @@ public struct SessionPassphrase {
 
 extension SessionPassphrase: LoadableFeature {
 
-  public struct Context: LoadableFeatureContext {
-
-    public var identifier: AnyHashable { self.account }
+  public struct Context: LoadableFeatureContext, Hashable {
 
     public var account: Account
 

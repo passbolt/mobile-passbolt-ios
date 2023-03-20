@@ -30,5 +30,5 @@ public typealias UserResourcePermissionTypeFetchDatabaseOperation = DatabaseOper
 public enum UserResourcePermissionTypeFetchDatabaseOperationDescription: DatabaseOperationDescription {
 
   public typealias Input = (userID: User.ID, resourceID: Resource.ID)
-  public typealias Output = PermissionTypeDSV?
+  public typealias Output = Permission?
 }

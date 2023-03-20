@@ -83,6 +83,13 @@ extension Int: SQLiteValueConvertible {
   }
 }
 
+extension UInt: SQLiteValueConvertible {
+
+  public var asSQLiteValue: SQLiteValue {
+    .int(Int(self))
+  }
+}
+
 extension Int64: SQLiteValueConvertible {
 
   public var asSQLiteValue: SQLiteValue {

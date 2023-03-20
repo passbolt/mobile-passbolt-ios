@@ -88,7 +88,7 @@ extension Resources {
           }(),
           text: filter.text,
           favoriteOnly: filter.favoriteOnly,
-          permissions: filter.permissions,
+          permissions: Set(filter.permissions),
           tags: filter.tags,
           userGroups: filter.userGroups,
           folders: filter.folders.map {
@@ -119,7 +119,7 @@ extension Resources {
 
     @Sendable nonisolated func resourceDetailsPublisher(
       resourceID: Resource.ID
-    ) -> AnyPublisher<ResourceDetailsDSV, Error> {
+    ) -> AnyPublisher<Resource, Error> {
       sessionData
         .updatesSequence
         .map {

@@ -36,10 +36,7 @@ internal struct OTPScanningController {
 
 extension OTPScanningController: ViewController {
 
-  internal struct Context: LoadableFeatureContext, Hashable {
-
-    internal var editedResourceID: Resource.ID?
-  }
+  internal typealias Context = Resource.ID?
 
   internal struct ViewState: Equatable {
 
@@ -73,7 +70,7 @@ extension OTPScanningController {
     try features.ensureScope(SessionScope.self)
     let features: FeaturesContainer = features.branch(
       scope: OTPEditScope.self,
-      context: context.editedResourceID
+      context: context
     )
 
     let diagnostics: OSDiagnostics = features.instance()
@@ -116,7 +113,7 @@ extension OTPScanningController {
               when: .processing
             )
 
-          if let resourceID: Resource.ID = context.editedResourceID {
+          if let resourceID: Resource.ID = context {
             #warning("[MOB-1094] TODO: edit resource here!")
             try await navigationToSelf.revert()
           }

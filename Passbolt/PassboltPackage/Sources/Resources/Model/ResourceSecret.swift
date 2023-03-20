@@ -27,24 +27,30 @@ import Commons
 import struct Foundation.Data
 import class Foundation.JSONDecoder
 
-@dynamicMemberLookup
+//@dynamicMemberLookup
 public struct ResourceSecret {
 
   public let rawValue: String
-  private var values: Dictionary<String, String>
+  private var values: Dictionary<String, ResourceFieldValue>
 
   internal init(
     rawValue: String,
-    values: Dictionary<String, String>
+    values: Dictionary<String, ResourceFieldValue>
   ) {
     self.rawValue = rawValue
     self.values = values
   }
 
-  public subscript(
-    dynamicMember key: String
-  ) -> String? {
-    values[key]
+  public func value(
+    forFieldWithName fieldName: String
+  ) -> ResourceFieldValue? {
+    self.values[fieldName]
+  }
+
+  public func value(
+    for field: ResourceField
+  ) -> ResourceFieldValue? {
+    self.value(forFieldWithName: field.name)
   }
 }
 
@@ -62,13 +68,13 @@ extension ResourceSecret {
       do {
         return Self(
           rawValue: message,
-          values: try decoder.decode(Dictionary<String, String>.self, from: data)
+          values: try decoder.decode(Dictionary<String, ResourceFieldValue>.self, from: data)
         )
       }
       catch {
         return Self(
           rawValue: message,
-          values: ["password": message]
+          values: ["password": .string(message)]
         )
       }
     }

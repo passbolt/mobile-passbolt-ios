@@ -64,7 +64,7 @@ extension UserDetails {
 
     @Sendable nonisolated func permissionToResource(
       _ resourceID: Resource.ID
-    ) async throws -> PermissionType? {
+    ) async throws -> Permission? {
       try await userResourcePermissionTypeFetchDatabaseOperation(
         (
           userID: currentDetails.value.id,

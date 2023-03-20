@@ -37,525 +37,449 @@ extension ResourceEditForm {
 
   @MainActor fileprivate static func load(
     features: Features,
+    context: Context,
     cancellables: Cancellables
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
     try features.ensureScope(ResourceEditScope.self)
+    let currentAccount: Account = try features.sessionAccount()
+
+    let diagnostics: OSDiagnostics = features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
 
     let usersPGPMessages: UsersPGPMessages = try features.instance()
-    let resources: Resources = try features.instance()
     let resourceTypesFetchDatabaseOperation: ResourceTypesFetchDatabaseOperation = try features.instance()
-    let resourceEditDetailsFetchDatabaseOperation: ResourceEditDetailsFetchDatabaseOperation =
-      try features.instance()
     let resourceEditNetworkOperation: ResourceEditNetworkOperation = try features.instance()
     let resourceCreateNetworkOperation: ResourceCreateNetworkOperation = try features.instance()
     let resourceShareNetworkOperation: ResourceShareNetworkOperation = try features.instance()
-    let session: Session = try features.instance()
     let resourceFolderPermissionsFetchDatabaseOperation: ResourceFolderPermissionsFetchDatabaseOperation =
       try features.instance()
+    let resourceFolderPathFetchDatabaseOperation: ResourceFolderPathFetchDatabaseOperation = try features.instance()
 
-    let resourceIDSubject: CurrentValueSubject<Resource.ID?, Never> = .init(nil)
-    let resourceParentFolderIDSubject: CurrentValueSubject<ResourceFolder.ID?, Never> = .init(nil)
-    let resourceTypeSubject: CurrentValueSubject<ResourceTypeDSV?, Error> = .init(nil)
-    let resourceTypePublisher: AnyPublisher<ResourceTypeDSV, Error> =
-      resourceTypeSubject.filterMapOptional().eraseToAnyPublisher()
-    let formValuesSubject: CurrentValueSubject<Dictionary<ResourceFieldName, Validated<ResourceFieldValue>>, Never> =
-      .init(.init())
-
-    // load initial resource type
-    Just(Void())
-      .eraseErrorType()
-      .asyncMap {
-        try await resourceTypesFetchDatabaseOperation()
+    let formUpdates: UpdatesSequenceSource = .init()
+    let formState: CriticalState<Resource?> = .init(
+      .none,
+      cleanup: { _ in
+        // make sure that executor is captured
+        // and won't deallocate immediately
+        asyncExecutor.cancelTasks()
       }
-      .map { resourceTypes -> AnyPublisher<ResourceTypeDSV, Error> in
-        // in initial version we are supporting only one type of resource for being created
-        if let resourceType: ResourceTypeDSV = resourceTypes.first(where: \.isDefault) {
-          return Just(resourceType)
-            .eraseErrorType()
-            .eraseToAnyPublisher()
-        }
-        else {
-          return Fail(
-            error: InvalidResourceType.error()
+    )
+    let formStatePublisher: AnyPublisher<Resource, Never> = formUpdates
+      .updatesSequence
+      .compactMap { formState.get(\.self) }
+      .asPublisher()
+
+    let initialLoading: AsyncExecutor.Execution = asyncExecutor.schedule {
+      do {
+        switch context {
+        case .create(let parentFolderID, let url):
+          let resourceTypes: Array<ResourceType> = try await resourceTypesFetchDatabaseOperation()
+          guard
+            let resourceType: ResourceType = resourceTypes.first(where: \.isDefault) ?? resourceTypes.first
+          else { throw InvalidResourceType.error() }
+          let folderPath: OrderedSet<ResourceFolderPathItem>
+          if let parentFolderID {
+            folderPath = try await resourceFolderPathFetchDatabaseOperation.execute(parentFolderID)
+          }
+          else {
+            folderPath = .init()
+          }
+          var resource: Resource = .init(
+            path: folderPath,
+            type: resourceType
           )
-          .eraseToAnyPublisher()
+          resource.uri = url.map { .string($0.rawValue) }
+          formState.set(\.self, resource)
+          formUpdates.sendUpdate()
+
+        case .edit(let resourceID):
+          let resourceDetails: ResourceDetails = try await features.instance(context: resourceID)
+          var editedResource = try await resourceDetails.details()
+          let resourceSecret: ResourceSecret = try await resourceDetails.secret()
+          for field in editedResource.encryptedFields {
+            // put all values from secret into the resource
+            try editedResource
+              .set(
+                resourceSecret
+                  .value(for: field),
+                for: field
+              )
+          }
+          formState.set(\.self, editedResource)
+          formUpdates.sendUpdate()
         }
       }
-      .switchToLatest()
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          resourceTypeSubject.send(completion: .failure(error))
-        },
-        receiveValue: { resourceType in
-          resourceTypeSubject.send(resourceType)
+      catch {
+        diagnostics.log(error: error)
+        formUpdates.sendUpdate()
+      }
+    }
+
+    @Sendable nonisolated func resource() async throws -> Resource {
+      await initialLoading.waitForCompletion()
+      if let resource: Resource = formState.get(\.self) {
+        return resource
+      }
+      else {
+        throw
+          InvalidForm
+          .error(displayable: "resource.form.error.invalid")
+      }
+    }
+
+    @Sendable nonisolated func fieldsPublisher() -> AnyPublisher<OrderedSet<ResourceField>, Never> {
+      formStatePublisher
+        .map { (resource: Resource) -> OrderedSet<ResourceField> in
+          resource.fields
         }
-      )
-      .store(in: cancellables)
-
-    // handle current resource type updates
-    resourceTypePublisher
-      .removeDuplicates(by: { $0.id == $1.id })
-      .sink(
-        receiveCompletion: { _ in /* NOP */ },
-        receiveValue: { resourceType in
-          // remove fields that are no longer in resource
-          let removedFields: Array<ResourceFieldNameDSV> = formValuesSubject.value.keys.filter { key in
-            !resourceType.fields.contains(where: { $0.name == key })
-          }
-          for removedField in removedFields {
-            formValuesSubject.value.removeValue(forKey: removedField)
-          }
-
-          // add new fields (if any) and validate again existing ones
-          for field in resourceType.fields {
-            let fieldValue: ResourceFieldValue =
-              formValuesSubject.value[field.name]?.value
-              ?? .init(defaultFor: field.valueType)
-            formValuesSubject.value[field.name] =
-              propertyValidator(for: field)
-              .validate(fieldValue)
-          }
-        }
-      )
-      .store(in: cancellables)
-
-    @Sendable nonisolated func editResource(
-      _ resourceID: Resource.ID
-    ) -> AnyPublisher<Void, Error> {
-      assert(
-        resourceIDSubject.value == nil,
-        "Edited resource change is not supported"
-      )
-      return Just(Void())
-        .eraseErrorType()
-        .asyncMap { () async throws -> (ResourceEditDetailsDSV, ResourceSecret) in
-          let resource = try await resourceEditDetailsFetchDatabaseOperation(resourceID)
-          let secret =
-            try await resources
-            .loadResourceSecret(resource.id)
-            .asAsyncValue()
-
-          return (resource, secret)
-        }
-        .handleEvents(
-          receiveOutput: { resource, secret in
-            resourceTypeSubject.send(resource.type)
-            resourceIDSubject.send(resource.id)
-            resourceParentFolderIDSubject.send(resource.parentFolderID)
-            for field in resource.type.fields {
-              switch field.name {
-              case .name:
-                formValuesSubject.value[.name] =
-                  propertyValidator(
-                    for: field
-                  )
-                  .validate(
-                    .init(
-                      fromString: resource.name,
-                      forType: field.valueType
-                    )
-                  )
-
-              case .uri:
-                formValuesSubject.value[.uri] =
-                  propertyValidator(
-                    for: field
-                  )
-                  .validate(
-                    .init(
-                      fromString: resource.url ?? "",
-                      forType: field.valueType
-                    )
-                  )
-
-              case .username:
-                formValuesSubject.value[.username] =
-                  propertyValidator(
-                    for: field
-                  )
-                  .validate(
-                    .init(
-                      fromString: resource.username ?? "",
-                      forType: field.valueType
-                    )
-                  )
-
-              case .password:
-                formValuesSubject.value[.password] =
-                  propertyValidator(
-                    for: field
-                  )
-                  .validate(
-                    .init(
-                      fromString: secret.password ?? "",
-                      forType: field.valueType
-                    )
-                  )
-
-              case .description:
-                let stringValue: String
-                if field.encrypted {
-                  stringValue = secret.description ?? ""
-                }
-                else {
-                  stringValue = resource.description ?? ""
-                }
-                formValuesSubject.value[.description] =
-                  propertyValidator(
-                    for: field
-                  )
-                  .validate(
-                    .init(
-                      fromString: stringValue,
-                      forType: field.valueType
-                    )
-                  )
-
-              case let .undefined(name: name):
-                formValuesSubject.value[.undefined(name: name)] =
-                  propertyValidator(
-                    for: field
-                  )
-                  .validate(
-                    .init(
-                      defaultFor: field.valueType
-                    )
-                  )
-              }
-            }
-          }
-        )
-        .mapToVoid()
+        .removeDuplicates()
         .eraseToAnyPublisher()
     }
 
-    @Sendable nonisolated func setEnclosingFolder(_ folderID: ResourceFolder.ID?) {
-      resourceParentFolderIDSubject.send(folderID)
-    }
-
-    @Sendable nonisolated func propertyValidator(
-      for property: ResourceFieldDSV
-    ) -> Validator<ResourceFieldValue> {
-      switch property.valueType {
-      case .string:
-        return zip(
-          {
-            if property.required {
-              return .nonEmpty(
-                displayable: .localized(
-                  key: "resource.form.field.error.empty"
+    @Sendable nonisolated func fieldValidator(
+      for property: ResourceField
+    ) -> Validator<ResourceFieldValue?> {
+      switch property.content {
+      case let .totp(required):
+        return .init { (value: ResourceFieldValue?) in
+          guard let value: ResourceFieldValue
+          else {
+            if required {
+              return .invalid(
+                value,
+                error: InvalidValue.null(
+                  value: value,
+                  displayable: "resource.form.field.error.empty"
                 )
               )
             }
             else {
-              return .alwaysValid
+              return .valid(value)
             }
-          }(),
-          // even if there is no requirement for max length we are limiting it with
-          // some high value to prevent too big values
-          .maxLength(
-            UInt(property.maxLength ?? 10000),
-            displayable: .localized(
-              key: "resource.form.field.error.max.length"
-            )
-          )
-        )
-        .contraMap { resourceFieldValue -> String in
-          switch resourceFieldValue {
-          case let .string(value):
-            return value
           }
+
+          guard case let .otp(.totp(secret, _, digits, period)) = value
+          else {
+            return .invalid(
+              value,
+              error: InvalidValue.wrongType(
+                value: value,
+                displayable: "resource.from.field.error.invalid.value"
+              )
+            )
+          }
+
+          guard
+            period > 0,
+            digits >= 6,
+            digits <= 8,
+            !secret.isEmpty
+          else {
+            return .invalid(
+              value,
+              error: InvalidValue.invalid(
+                value: value,
+                displayable: "resource.form.field.error.invalid"
+              )
+            )
+          }
+
+          return .valid(value)
+        }
+
+      case let .string(_, required, minLength, maxLength):
+        return .init { (value: ResourceFieldValue?) in
+          guard let value: ResourceFieldValue
+          else {
+            if required {
+              return .invalid(
+                value,
+                error: InvalidValue.null(
+                  value: value,
+                  displayable: "resource.form.field.error.empty"
+                )
+              )
+            }
+            else {
+              return .valid(value)
+            }
+          }
+
+          guard case let .string(string) = value
+          else {
+            return .invalid(
+              value,
+              error: InvalidValue.wrongType(
+                value: value,
+                displayable: "resource.from.field.error.invalid.value"
+              )
+            )
+          }
+
+          guard !string.isEmpty || !required,
+            string.count >= (minLength ?? 0),
+            // even if there is no requirement for max length we are limiting it with
+            // some high value to prevent too big values
+            string.count <= (maxLength ?? 100000)
+          else {
+            return .invalid(
+              value,
+              error: InvalidValue.invalid(
+                value: value,
+                displayable: "resource.form.field.error.invalid"
+              )
+            )
+          }
+
+          return .valid(value)
         }
       }
     }
 
     @Sendable nonisolated func setFieldValue(
-      _ value: String,
-      fieldName: ResourceFieldName
-    ) -> AnyPublisher<Void, Error> {
-      resourceTypePublisher
-        .map { resourceType -> AnyPublisher<Validated<ResourceFieldValue>, Error> in
-          if let field: ResourceFieldDSV = resourceType.fields.first(where: { $0.name == fieldName }) {
-            return Just(propertyValidator(for: field).validate(.init(fromString: value, forType: field.valueType)))
-              .eraseErrorType()
-              .eraseToAnyPublisher()
-          }
-          else {
-            return Fail(error: InvalidResourceType.error())
-              .eraseToAnyPublisher()
-          }
+      _ value: ResourceFieldValue,
+      for field: ResourceField
+    ) async throws {
+      await initialLoading.waitForCompletion()
+      try formState.access { (state: inout Resource?) in
+        guard var resource: Resource = state
+        else {
+          return assertionFailure(
+            "Trying to set form value before initializing"
+          )
         }
-        .switchToLatest()
-        .handleEvents(receiveOutput: { validatedValue in
-          formValuesSubject.value[fieldName] = validatedValue
-        })
-        .mapToVoid()
-        .eraseToAnyPublisher()
+        try resource.set(value, for: field)
+        state = resource
+        formUpdates.sendUpdate()
+      }
     }
 
-    @Sendable nonisolated func fieldValuePublisher(
-      field: ResourceFieldName
-    ) -> AnyPublisher<Validated<ResourceFieldValue>, Never> {
-      formValuesSubject
-        .map { formFields -> AnyPublisher<Validated<ResourceFieldValue>, Never> in
-          if let fieldValue: Validated<ResourceFieldValue> = formFields[field] {
-            return Just(fieldValue)
-              .eraseToAnyPublisher()
-          }
-          else {
-            return Empty(completeImmediately: true)
-              .eraseToAnyPublisher()
-          }
+    @Sendable nonisolated func validatedFieldValuePublisher(
+      for field: ResourceField
+    ) -> AnyPublisher<Validated<ResourceFieldValue?>, Never> {
+      let validator = fieldValidator(for: field)
+      return
+        formStatePublisher
+        .map { (resource: Resource) -> Validated<ResourceFieldValue?> in
+          validator.validate(resource.value(for: field))
         }
-        .switchToLatest()
         .removeDuplicates { lhs, rhs in
           lhs.value == rhs.value && lhs.isValid == rhs.isValid
         }
+        .replaceError(
+          with: .invalid(
+            .none,
+            error: InvalidValue.alwaysInvalid(
+              value: ResourceFieldValue?.none,
+              displayable: "error.generic"
+            )
+          )
+        )
         .eraseToAnyPublisher()
     }
 
-    @Sendable nonisolated func sendForm() -> AnyPublisher<Resource.ID, Error> {
-      Publishers.CombineLatest3(
-        resourceIDSubject
-          .eraseErrorType(),
-        resourceTypePublisher,
-        formValuesSubject
-          .eraseErrorType()
-      )
-      .first()
-      .map {
-        resourceID,
-        resourceType,
-        validatedFieldValues -> AnyPublisher<
-          (
-            resourceID: Resource.ID?,
-            resourceTypeID: ResourceType.ID,
-            fieldValues: Dictionary<ResourceFieldName, ResourceFieldValue>,
-            encodedSecret: String
-          ),
-          Error
-        > in
-        var fieldValues: Dictionary<ResourceFieldName, ResourceFieldValue> = .init()
-        var secretFieldValues: Dictionary<ResourceFieldName.RawValue, ResourceFieldValue> = .init()
-
-        for (key, validatedValue) in validatedFieldValues {
-          guard let field: ResourceFieldDSV = resourceType.fields.first(where: { $0.name == key })
-          else {
-            assertionFailure("Trying to use form value that is not associated with any resource fields")
-            continue
-          }
-          guard validatedValue.isValid
-          else {
-            return Fail(
-              error:
-                InvalidForm
-                .error(
-                  displayable: .localized(
-                    key: "resource.form.error.invalid"
-                  )
-                )
-            )
-            .eraseToAnyPublisher()
-          }
-          if field.encrypted {
-            secretFieldValues[key.rawValue] = validatedValue.value
-          }
-          else {
-            fieldValues[key] = validatedValue.value
-          }
-        }
-
-        let encodedSecret: String?
-        do {
-          if secretFieldValues.count == 1,
-            let password: ResourceFieldValue = secretFieldValues["password"]
-          {
-            encodedSecret = password.stringValue
-          }
-          else {
-            encodedSecret = try String(data: JSONEncoder().encode(secretFieldValues), encoding: .utf8)
-          }
-        }
-        catch {
-          return Fail(error: InvalidResourceData.error(underlyingError: error))
-            .eraseToAnyPublisher()
-        }
-
-        guard let encodedSecret: String = encodedSecret
-        else {
-          return Fail(error: InvalidResourceData.error())
-            .eraseToAnyPublisher()
-        }
-
-        return Just(
-          (
-            resourceID: resourceID,
-            resourceTypeID: resourceType.id,
-            fieldValues: fieldValues,
-            encodedSecret: encodedSecret
-          )
-        )
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    @Sendable nonisolated func sendForm() async throws -> Resource.ID {
+      await initialLoading.waitForCompletion()
+      guard let resource: Resource = formState.get(\.self)
+      else {
+        throw
+          InvalidForm
+          .error(displayable: "resource.form.error.invalid")
       }
-      .switchToLatest()
-      .asyncMap { (resourceID, resourceTypeID, fieldValues, encodedSecret) async throws -> Resource.ID in
-        guard let name: String = fieldValues[.name]?.stringValue
-        else {
+
+      for field in resource.type.fields {
+        let validator: Validator<ResourceFieldValue?> = fieldValidator(for: field)
+        let validated: Validated<ResourceFieldValue?> = validator.validate(resource.value(for: field))
+        if let _: Error = validated.error {
           throw
-            InvalidResourceType.error()
-        }
-        let parentFolderID: ResourceFolder.ID? = resourceParentFolderIDSubject.value
-
-        if let resourceID: Resource.ID = resourceID {
-          let encryptedSecrets: OrderedSet<EncryptedMessage> =
-            try await usersPGPMessages
-            .encryptMessageForResourceUsers(resourceID, encodedSecret)
-
-          let updatedResourceID: Resource.ID = try await resourceEditNetworkOperation(
-            .init(
-              resourceID: resourceID,
-              resourceTypeID: resourceTypeID,
-              parentFolderID: parentFolderID,
-              name: name,
-              username: fieldValues[.username]?.stringValue,
-              url: (fieldValues[.uri]?.stringValue).flatMap(URLString.init(rawValue:)),
-              description: fieldValues[.description]?.stringValue,
-              secrets: encryptedSecrets.map { (userID: $0.recipient, data: $0.message) }
-            )
-          )
-          .resourceID
-
-          return updatedResourceID
+            InvalidForm
+            .error(displayable: "resource.form.error.invalid")
         }
         else {
-          let account: Account = try await session.currentAccount()
+          continue
+        }
+      }
 
-          guard
-            let ownEncryptedMessage: EncryptedMessage = try await usersPGPMessages.encryptMessageForUsers(
-              [account.userID],
-              encodedSecret
-            )
-            .first
+      guard case .string(let resourceName) = resource.name
+      else {
+        throw
+          InvalidInputData
+          .error(message: "Missing resource name")
+      }
+
+      let secretFields = resource.encryptedFields
+      let descriptionEncrypted: Bool = secretFields.contains(where: { $0.name == "description" })
+      let encodedSecret: String
+      do {
+        if secretFields.count == 1,
+          case let .string(password) = resource.password
+        {
+          encodedSecret = password
+        }
+        else {
+          var secretFieldsValues: Dictionary<String, ResourceFieldValue> = .init()
+
+          for field: ResourceField in secretFields {
+            secretFieldsValues[field.name] = resource.value(for: field)
+          }
+          
+          guard let secretString: String = try? String(data: JSONEncoder().encode(secretFieldsValues), encoding: .utf8)
           else {
             throw
-              UserSecretMissing
-              .error()
+              InvalidInputData
+              .error(message: "Failed to encode resource secret")
           }
 
-          let createdResourceResult = try await resourceCreateNetworkOperation(
-            .init(
-              resourceTypeID: resourceTypeID,
-              parentFolderID: parentFolderID,
-              name: name,
-              username: fieldValues[.username]?.stringValue,
-              url: (fieldValues[.uri]?.stringValue).flatMap(URLString.init(rawValue:)),
-              description: fieldValues[.description]?.stringValue,
-              secrets: [ownEncryptedMessage]
-            )
-          )
-
-          if let folderID: ResourceFolder.ID = parentFolderID {
-            let encryptedSecrets: OrderedSet<EncryptedMessage> =
-              try await usersPGPMessages
-              .encryptMessageForResourceFolderUsers(folderID, encodedSecret)
-              .filter { encryptedMessage in
-                encryptedMessage.recipient != account.userID
-              }
-              .asOrderedSet()
-
-            let folderPermissions: Array<ResourceFolderPermissionDSV> =
-              try await resourceFolderPermissionsFetchDatabaseOperation(folderID)
-
-            let newPermissions: OrderedSet<NewPermissionDTO> =
-              folderPermissions
-              .compactMap { (permission: ResourceFolderPermissionDSV) -> NewPermissionDTO? in
-                switch permission {
-                case let .user(id, type, _):
-                  guard id != account.userID
-                  else { return .none }
-                  return .userToResource(
-                    userID: id,
-                    resourceID: createdResourceResult.resourceID,
-                    type: type
-                  )
-                case let .userGroup(id, type, _):
-                  return .userGroupToResource(
-                    userGroupID: id,
-                    resourceID: createdResourceResult.resourceID,
-                    type: type
-                  )
-                }
-              }
-              .asOrderedSet()
-
-            let updatedPermissions: OrderedSet<PermissionDTO> =
-              folderPermissions
-              .compactMap { (permission: ResourceFolderPermissionDSV) -> PermissionDTO? in
-                if case .user(account.userID, let type, _) = permission, type != .owner {
-                  return .userToResource(
-                    id: createdResourceResult.ownerPermissionID,
-                    userID: account.userID,
-                    resourceID: createdResourceResult.resourceID,
-                    type: type
-                  )
-                }
-                else {
-                  return .none
-                }
-              }
-              .asOrderedSet()
-
-            let deletedPermissions: OrderedSet<PermissionDTO>
-            if !folderPermissions.contains(where: { (permission: ResourceFolderPermissionDSV) -> Bool in
-              if case .user(account.userID, _, _) = permission {
-                return true
-              }
-              else {
-                return false
-              }
-            }) {
-              deletedPermissions = [
-                .userToResource(
-                  id: createdResourceResult.ownerPermissionID,
-                  userID: account.userID,
-                  resourceID: createdResourceResult.resourceID,
-                  type: .owner
-                )
-              ]
-            }
-            else {
-              deletedPermissions = .init()
-            }
-
-            try await resourceShareNetworkOperation(
-              .init(
-                resourceID: createdResourceResult.resourceID,
-                body: .init(
-                  newPermissions: newPermissions,
-                  updatedPermissions: updatedPermissions,
-                  deletedPermissions: deletedPermissions,
-                  newSecrets: encryptedSecrets
-                )
-              )
-            )
-          }  // else continue without sharing
-
-          return createdResourceResult.resourceID
+          encodedSecret = secretString
         }
       }
-      .eraseToAnyPublisher()
+      catch {
+        throw
+          InvalidResourceData
+          .error(underlyingError: error)
+      }
+
+      if let resourceID: Resource.ID = resource.id {
+        let encryptedSecrets: OrderedSet<EncryptedMessage> =
+          try await usersPGPMessages
+          .encryptMessageForResourceUsers(resourceID, encodedSecret)
+
+        let updatedResourceID: Resource.ID = try await resourceEditNetworkOperation(
+          .init(
+            resourceID: resourceID,
+            resourceTypeID: resource.type.id,
+            parentFolderID: resource.parentFolderID,
+            name: resourceName,
+            username: resource.username?.stringValue,
+            url: (resource.uri?.stringValue).flatMap(URLString.init(rawValue:)),
+            description: descriptionEncrypted ? .none : resource.description?.stringValue,
+            secrets: encryptedSecrets.map { (userID: $0.recipient, data: $0.message) }
+          )
+        )
+        .resourceID
+
+        return updatedResourceID
+      }
+      else {
+        guard
+          let ownEncryptedMessage: EncryptedMessage = try await usersPGPMessages.encryptMessageForUsers(
+            [currentAccount.userID],
+            encodedSecret
+          )
+          .first
+        else {
+          throw
+            UserSecretMissing
+            .error()
+        }
+
+        let createdResourceResult = try await resourceCreateNetworkOperation(
+          .init(
+            resourceTypeID: resource.type.id,
+            parentFolderID: resource.parentFolderID,
+            name: resourceName,
+            username: resource.username?.stringValue,
+            url: (resource.uri?.stringValue).flatMap(URLString.init(rawValue:)),
+            description: descriptionEncrypted ? .none : resource.description?.stringValue,
+            secrets: [ownEncryptedMessage]
+          )
+        )
+
+        if let folderID: ResourceFolder.ID = resource.parentFolderID {
+          let encryptedSecrets: OrderedSet<EncryptedMessage> =
+            try await usersPGPMessages
+            .encryptMessageForResourceFolderUsers(folderID, encodedSecret)
+            .filter { encryptedMessage in
+              encryptedMessage.recipient != currentAccount.userID
+            }
+            .asOrderedSet()
+
+          let folderPermissions: Array<ResourceFolderPermission> =
+            try await resourceFolderPermissionsFetchDatabaseOperation(folderID)
+
+          let newPermissions: Array<NewGenericPermissionDTO> =
+            folderPermissions
+            .compactMap { (permission: ResourceFolderPermission) -> NewGenericPermissionDTO? in
+              switch permission {
+              case let .user(id, permission, _):
+                guard id != currentAccount.userID
+                else { return .none }
+                return .userToResource(
+                  userID: id,
+                  resourceID: createdResourceResult.resourceID,
+                  permission: permission
+                )
+              case let .userGroup(id, permission, _):
+                return .userGroupToResource(
+                  userGroupID: id,
+                  resourceID: createdResourceResult.resourceID,
+                  permission: permission
+                )
+              }
+            }
+
+          let updatedPermissions: Array<GenericPermissionDTO> =
+            folderPermissions
+            .compactMap { (permission: ResourceFolderPermission) -> GenericPermissionDTO? in
+              if case .user(currentAccount.userID, let permission, _) = permission, permission != .owner {
+                return .userToResource(
+                  id: createdResourceResult.ownerPermissionID,
+                  userID: currentAccount.userID,
+                  resourceID: createdResourceResult.resourceID,
+                  permission: permission
+                )
+              }
+              else {
+                return .none
+              }
+            }
+
+          let deletedPermissions: Array<GenericPermissionDTO>
+          if !folderPermissions.contains(where: { (permission: ResourceFolderPermission) -> Bool in
+            if case .user(currentAccount.userID, _, _) = permission {
+              return true
+            }
+            else {
+              return false
+            }
+          }) {
+            deletedPermissions = [
+              .userToResource(
+                id: createdResourceResult.ownerPermissionID,
+                userID: currentAccount.userID,
+                resourceID: createdResourceResult.resourceID,
+                permission: .owner
+              )
+            ]
+          }
+          else {
+            deletedPermissions = .init()
+          }
+
+          try await resourceShareNetworkOperation(
+            .init(
+              resourceID: createdResourceResult.resourceID,
+              body: .init(
+                newPermissions: newPermissions,
+                updatedPermissions: updatedPermissions,
+                deletedPermissions: deletedPermissions,
+                newSecrets: encryptedSecrets
+              )
+            )
+          )
+        }  // else continue without sharing
+
+        return createdResourceResult.resourceID
+      }
     }
 
     return Self(
-      editResource: editResource(_:),
-      setEnclosingFolder: setEnclosingFolder(_:),
-      resourceTypePublisher: { resourceTypePublisher },
-      setFieldValue: setFieldValue(_:fieldName:),
-      fieldValuePublisher: fieldValuePublisher(field:),
+      updates: formUpdates.updatesSequence,
+      resource: resource,
+      fieldsPublisher: fieldsPublisher,
+      setFieldValue: setFieldValue(_:for:),
+      validatedFieldValuePublisher: validatedFieldValuePublisher(for:),
       sendForm: sendForm
     )
   }
@@ -567,7 +491,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         ResourceEditForm.self,
-        load: ResourceEditForm.load(features:cancellables:)
+        load: ResourceEditForm.load(features:context:cancellables:)
       ),
       in: ResourceEditScope.self
     )

@@ -38,9 +38,7 @@ internal struct ResourceTagsListDisplayController {
 
 extension ResourceTagsListDisplayController: ViewController {
 
-  internal struct Context: LoadableFeatureContext {
-    // feature is disposable, we don't care about ID
-    internal let identifier: AnyHashable = IID()
+  internal struct Context {
 
     internal var filter: ObservableViewState<String>
     internal var selectTag: (ResourceTag.ID) -> Void

@@ -51,15 +51,15 @@ extension ResourceShareNetworkOperationVariable {
 
   public struct RequestBody {
 
-    public var newPermissions: OrderedSet<NewPermissionDTO>
-    public var updatedPermissions: OrderedSet<PermissionDTO>
-    public var deletedPermissions: OrderedSet<PermissionDTO>
+    public var newPermissions: Array<NewGenericPermissionDTO>
+    public var updatedPermissions: Array<GenericPermissionDTO>
+    public var deletedPermissions: Array<GenericPermissionDTO>
     public var newSecrets: OrderedSet<EncryptedMessage>
 
     public init(
-      newPermissions: OrderedSet<NewPermissionDTO>,
-      updatedPermissions: OrderedSet<PermissionDTO>,
-      deletedPermissions: OrderedSet<PermissionDTO>,
+      newPermissions: Array<NewGenericPermissionDTO>,
+      updatedPermissions: Array<GenericPermissionDTO>,
+      deletedPermissions: Array<GenericPermissionDTO>,
       newSecrets: OrderedSet<EncryptedMessage>
     ) {
       self.newPermissions = newPermissions

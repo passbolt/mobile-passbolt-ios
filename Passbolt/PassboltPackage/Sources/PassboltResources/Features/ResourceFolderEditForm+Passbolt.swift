@@ -65,7 +65,7 @@ extension ResourceFolderEditForm {
               [
                 .user(
                   id: currentAccount.userID,
-                  type: .owner,
+                  permission: .owner,
                   permissionID: .none
                 )
               ]
@@ -79,11 +79,11 @@ extension ResourceFolderEditForm {
           ).details()
 
           let location =
-            enclosingFolderDetails.location
-            .map { (item: ResourceFolderLocationItemDSV) -> ResourceFolderLocationItem in
+            enclosingFolderDetails.path
+            .map { (item: ResourceFolderPathItem) -> ResourceFolderLocationItem in
               ResourceFolderLocationItem(
-                folderID: item.folderID,
-                folderName: item.folderName
+                folderID: item.id,
+                folderName: item.name
               )
             }
             + [
@@ -95,19 +95,19 @@ extension ResourceFolderEditForm {
 
           let permissions = enclosingFolderDetails
             .permissions
-            .map { (permission: ResourceFolderPermissionDSV) -> ResourceFolderPermissionDSV in
+            .map { (permission: ResourceFolderPermission) -> ResourceFolderPermission in
               switch permission {
-              case let .user(id, type, _):
+              case let .user(id, permission, _):
                 return .user(
                   id: id,
-                  type: type,
+                  permission: permission,
                   permissionID: .none
                 )
 
-              case let .userGroup(id, type, _):
+              case let .userGroup(id, permission, _):
                 return .userGroup(
                   id: id,
-                  type: type,
+                  permission: permission,
                   permissionID: .none
                 )
               }
@@ -125,11 +125,11 @@ extension ResourceFolderEditForm {
             context: folderID
           ).details()
 
-          let location = folderDetails.location
-            .map { (item: ResourceFolderLocationItemDSV) -> ResourceFolderLocationItem in
+          let location = folderDetails.path
+            .map { (item: ResourceFolderPathItem) -> ResourceFolderLocationItem in
               ResourceFolderLocationItem(
-                folderID: item.folderID,
-                folderName: item.folderName
+                folderID: item.id,
+                folderName: item.name
               )
             }
 
@@ -160,14 +160,14 @@ extension ResourceFolderEditForm {
       )
     )
 
-    let permissionsValidator: Validator<OrderedSet<ResourceFolderPermissionDSV>> = zip(
+    let permissionsValidator: Validator<OrderedSet<ResourceFolderPermission>> = zip(
       .nonEmpty(
         displayable: .localized(
           key: "error.validation.permissions.empty"
         )
       ),
       .contains(
-        where: { $0.type == .owner },
+        where: \.permission.isOwner,
         displayable: .localized(
           key: "error.validation.permissions.owner.required"
         )
@@ -219,35 +219,35 @@ extension ResourceFolderEditForm {
             )
           )
 
-        let newPermissions: OrderedSet<NewPermissionDTO> = formState.permissions.value
-          .compactMap { (permission: ResourceFolderPermissionDSV) -> NewPermissionDTO? in
+        let newPermissions: OrderedSet<NewGenericPermissionDTO> = formState.permissions.value
+          .compactMap { (permission: ResourceFolderPermission) -> NewGenericPermissionDTO? in
             switch permission {
-            case let .user(id, type, _):
+            case let .user(id, permission, _):
               guard id != currentAccount.userID
               else { return .none }
               return .userToFolder(
                 userID: id,
                 folderID: createdFolderResult.resourceFolderID,
-                type: type
+                permission: permission
               )
-            case let .userGroup(id, type, _):
+            case let .userGroup(id, permission, _):
               return .userGroupToFolder(
                 userGroupID: id,
                 folderID: createdFolderResult.resourceFolderID,
-                type: type
+                permission: permission
               )
             }
           }
           .asOrderedSet()
 
-        let updatedPermissions: OrderedSet<PermissionDTO> = formState.permissions.value
-          .compactMap { (permission: ResourceFolderPermissionDSV) -> PermissionDTO? in
-            if case .user(currentAccount.userID, let type, _) = permission, type != .owner {
+        let updatedPermissions: OrderedSet<GenericPermissionDTO> = formState.permissions.value
+          .compactMap { (permission: ResourceFolderPermission) -> GenericPermissionDTO? in
+            if case .user(currentAccount.userID, let permission, _) = permission, permission != .owner {
               return .userToFolder(
                 id: createdFolderResult.ownerPermissionID,
                 userID: currentAccount.userID,
                 folderID: createdFolderResult.resourceFolderID,
-                type: type
+                permission: permission
               )
             }
             else {
@@ -256,8 +256,8 @@ extension ResourceFolderEditForm {
           }
           .asOrderedSet()
 
-        let deletedPermissions: OrderedSet<PermissionDTO>
-        if !formState.permissions.value.contains(where: { (permission: ResourceFolderPermissionDSV) -> Bool in
+        let deletedPermissions: OrderedSet<GenericPermissionDTO>
+        if !formState.permissions.value.contains(where: { (permission: ResourceFolderPermission) -> Bool in
           if case .user(currentAccount.userID, _, _) = permission {
             return true
           }
@@ -270,7 +270,7 @@ extension ResourceFolderEditForm {
               id: createdFolderResult.ownerPermissionID,
               userID: currentAccount.userID,
               folderID: createdFolderResult.resourceFolderID,
-              type: .owner
+              permission: .owner
             )
           ]
         }

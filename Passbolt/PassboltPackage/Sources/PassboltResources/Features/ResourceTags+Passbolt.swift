@@ -50,7 +50,7 @@ extension ResourceTags {
 
     @Sendable nonisolated func details(
       _ resourceTagID: ResourceTag.ID
-    ) async throws -> ResourceTagDSV {
+    ) async throws -> ResourceTag {
       try await resourceTagDetailsFetchDatabaseOperation(resourceTagID)
     }
 

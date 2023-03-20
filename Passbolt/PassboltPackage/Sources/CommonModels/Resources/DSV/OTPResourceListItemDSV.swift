@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+#warning("[MOB-1090] TODO: remove in favor of ResourceListItem")
 public struct OTPResourceListItemDSV {
 
   public let id: Resource.ID
@@ -38,6 +39,4 @@ public struct OTPResourceListItemDSV {
   }
 }
 
-extension OTPResourceListItemDSV: DSV {}
-
-extension OTPResourceListItemDSV: Hashable {}
+extension OTPResourceListItemDSV: Equatable {}

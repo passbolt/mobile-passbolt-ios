@@ -43,6 +43,8 @@ public struct SessionData {
 
 extension SessionData: LoadableFeature {
 
+  public typealias Context = ContextlessLoadableFeatureContext
+
   #if DEBUG
   nonisolated public static var placeholder: Self {
     .init(

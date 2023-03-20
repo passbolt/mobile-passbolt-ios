@@ -95,6 +95,8 @@ public struct AccountsDataStore {
 
 extension AccountsDataStore: LoadableFeature {
 
+  public typealias Context = ContextlessLoadableFeatureContext
+
   #if DEBUG
   public static var placeholder: Self {
     Self(

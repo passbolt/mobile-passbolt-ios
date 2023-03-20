@@ -27,5 +27,5 @@ public typealias ResourceTypesFetchDatabaseOperation = DatabaseOperation<Resourc
 
 public enum ResourceTypesFetchDatabaseOperationDescription: DatabaseOperationDescription {
 
-  public typealias Output = Array<ResourceTypeDSV>
+  public typealias Output = Array<ResourceType>
 }

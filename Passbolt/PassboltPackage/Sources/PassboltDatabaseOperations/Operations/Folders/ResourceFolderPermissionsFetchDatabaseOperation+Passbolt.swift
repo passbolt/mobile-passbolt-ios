@@ -30,13 +30,13 @@ extension ResourceFolderPermissionsFetchDatabaseOperation {
   @Sendable fileprivate static func execute(
     _ input: ResourceFolder.ID,
     connection: SQLiteConnection
-  ) throws -> Array<ResourceFolderPermissionDSV> {
+  ) throws -> Array<ResourceFolderPermission> {
     let usersPermissionsStatement: SQLiteStatement =
       .statement(
         """
         SELECT
           usersResourceFolders.userID AS userID,
-          usersResourceFolders.permissionType AS permissionType,
+          usersResourceFolders.permission AS permission,
           usersResourceFolders.permissionID AS permissionID
         FROM
           usersResourceFolders
@@ -51,7 +51,7 @@ extension ResourceFolderPermissionsFetchDatabaseOperation {
         """
         SELECT
           userGroupsResourceFolders.userGroupID AS userGroupID,
-          userGroupsResourceFolders.permissionType AS permissionType,
+          userGroupsResourceFolders.permission AS permission,
           userGroupsResourceFolders.permissionID AS permissionID
         FROM
           userGroupsResourceFolders
@@ -61,12 +61,12 @@ extension ResourceFolderPermissionsFetchDatabaseOperation {
         arguments: input
       )
 
-    let usersPermissions: Array<ResourceFolderPermissionDSV> =
+    let usersPermissions: Array<ResourceFolderPermission> =
       try connection
-      .fetch(using: usersPermissionsStatement) { dataRow -> ResourceFolderPermissionDSV in
+      .fetch(using: usersPermissionsStatement) { dataRow -> ResourceFolderPermission in
         guard
           let userID: User.ID = dataRow.userID.flatMap(User.ID.init(rawValue:)),
-          let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
+          let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:)),
           let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
         else {
           throw
@@ -80,17 +80,17 @@ extension ResourceFolderPermissionsFetchDatabaseOperation {
 
         return .user(
           id: userID,
-          type: permissionType,
+          permission: permission,
           permissionID: permissionID
         )
       }
 
-    let userGroupsPermissions: Array<ResourceFolderPermissionDSV> =
+    let userGroupsPermissions: Array<ResourceFolderPermission> =
       try connection
-      .fetch(using: userGroupsPermissionsStatement) { dataRow -> ResourceFolderPermissionDSV in
+      .fetch(using: userGroupsPermissionsStatement) { dataRow -> ResourceFolderPermission in
         guard
           let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(rawValue:)),
-          let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
+          let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:)),
           let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
         else {
           throw
@@ -104,7 +104,7 @@ extension ResourceFolderPermissionsFetchDatabaseOperation {
 
         return .userGroup(
           id: userGroupID,
-          type: permissionType,
+          permission: permission,
           permissionID: permissionID
         )
       }

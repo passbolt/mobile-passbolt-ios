@@ -28,7 +28,7 @@ extension ResourceFolderListItemDSV {
   public static let mock_1: Self = .init(
     id: .mock_1,
     name: "mock_1",
-    permissionType: .owner,
+    permission: .owner,
     shared: false,
     parentFolderID: .none,
     location: "mockLocation",

@@ -34,8 +34,6 @@ public struct UserReferenceDTO {
   }
 }
 
-extension UserReferenceDTO: DTO {}
-
 extension UserReferenceDTO {
 
   internal static let validator: Validator<Self> = User.ID

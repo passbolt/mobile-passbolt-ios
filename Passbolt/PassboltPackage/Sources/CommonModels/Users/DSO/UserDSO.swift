@@ -42,5 +42,3 @@ public struct UserDSO {
     self.gpgKey = gpgKey
   }
 }
-
-extension UserDSO: DSO {}

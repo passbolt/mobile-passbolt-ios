@@ -39,9 +39,7 @@ internal struct ResourceTagsListNodeController {
 
 extension ResourceTagsListNodeController: ViewController {
 
-  internal struct Context: LoadableFeatureContext {
-    // feature is disposable, we don't care about ID
-    internal let identifier: AnyHashable = IID()
+  internal struct Context {
 
     internal var title: DisplayableString = .localized(key: "home.presentation.mode.tags.explorer.title")
     internal var searchPrompt: DisplayableString = .localized(key: "resources.search.placeholder")
@@ -115,7 +113,7 @@ extension ResourceTagsListNodeController {
     ) {
       asyncExecutor.schedule(.replace) {
         do {
-          let tagDetails: ResourceTagDSV = try await resourceTags.details(resourceTagID)
+          let tagDetails: ResourceTag = try await resourceTags.details(resourceTagID)
 
           let nodeController: ResourcesListNodeController =
             try await features

@@ -50,7 +50,7 @@ internal struct PermissionListRowView: View {
         contentAction: self.action,
         rightAccessory: {
           ResourcePermissionTypeCompactView(
-            permissionType: details.permissionType
+            permission: details.permission
           )
         }
       )
@@ -65,7 +65,7 @@ internal struct PermissionListRowView: View {
         contentAction: self.action,
         rightAccessory: {
           ResourcePermissionTypeCompactView(
-            permissionType: details.permissionType
+            permission: details.permission
           )
         }
       )
@@ -83,7 +83,7 @@ internal struct PermissionListRowView_Previews: PreviewProvider {
         details: .init(
           id: "UserGroup.ID",
           name: "User group",
-          permissionType: .read,
+          permission: .read,
           members: []
         )
       ),

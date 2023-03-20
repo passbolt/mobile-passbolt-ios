@@ -35,7 +35,7 @@ extension Validator where Value == String {
       else {
         return .invalid(
           value,
-          errors: .notValidUUID(
+          error: InvalidValue.notValidUUID(
             value: value,
             displayable: displayable,
             file: file,

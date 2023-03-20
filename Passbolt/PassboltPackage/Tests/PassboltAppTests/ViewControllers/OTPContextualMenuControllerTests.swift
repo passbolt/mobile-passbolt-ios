@@ -178,6 +178,8 @@ final class OTPContextualMenuControllerTests: LoadableFeatureTestCase<OTPContext
       )
     ) { feature in
       await self.mockExecutionControl.addTask {
+        // temporary wait for detached tasks
+        try? await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
         resourceUpdatesSequence.endUpdates()
       }
       await self.mockExecutionControl.executeAll()

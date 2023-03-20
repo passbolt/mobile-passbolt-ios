@@ -38,7 +38,7 @@ extension ResourceDetailsTagsListController {
 
     internal var resourceName: String
     internal var resourceFavorite: Bool
-    internal var tags: Array<ResourceTagDSV>
+    internal var tags: OrderedSet<ResourceTag>
   }
 }
 
@@ -77,9 +77,9 @@ extension ResourceDetailsTagsListController {
 
     asyncExecutor.schedule { @MainActor in
       do {
-        let resourceDetails: ResourceDetailsDSV = try await resourceDetails.details()
+        let resourceDetails: Resource = try await resourceDetails.details()
         viewState.update { (state: inout ViewState) in
-          state.resourceName = resourceDetails.name
+          state.resourceName = resourceDetails.name?.stringValue ?? ""
           state.resourceFavorite = resourceDetails.favorite
           state.tags = resourceDetails.tags
         }

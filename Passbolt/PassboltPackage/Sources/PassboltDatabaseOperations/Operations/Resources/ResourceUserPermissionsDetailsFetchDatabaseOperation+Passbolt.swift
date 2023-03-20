@@ -42,7 +42,7 @@ extension ResourceUserPermissionsDetailsFetchDatabaseOperation {
           users.lastName AS lastName,
           users.publicPGPKeyFingerprint AS fingerprint,
           users.avatarImageURL AS avatarImageURL,
-          usersResources.permissionType AS permissionType
+          usersResources.permission AS permission
         FROM
           usersResources
         INNER JOIN
@@ -66,15 +66,11 @@ extension ResourceUserPermissionsDetailsFetchDatabaseOperation {
           let lastName: String = dataRow.lastName,
           let fingerprint: Fingerprint = dataRow.fingerprint.flatMap(Fingerprint.init(rawValue:)),
           let avatarImageURL: URLString = dataRow.avatarImageURL.flatMap(URLString.init(rawValue:)),
-          let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:))
+          let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:))
         else {
           throw
-            DatabaseIssue
-            .error(
-              underlyingError:
-                DatabaseDataInvalid
-                .error(for: ResourceUserGroupListItemDSV.self)
-            )
+            DatabaseDataInvalid
+            .error(for: UserPermissionDetailsDSV.self)
             .recording(dataRow, for: "dataRow")
         }
 
@@ -85,7 +81,7 @@ extension ResourceUserPermissionsDetailsFetchDatabaseOperation {
           lastName: lastName,
           fingerprint: fingerprint,
           avatarImageURL: avatarImageURL,
-          permissionType: permissionType
+          permission: permission
         )
       }
   }

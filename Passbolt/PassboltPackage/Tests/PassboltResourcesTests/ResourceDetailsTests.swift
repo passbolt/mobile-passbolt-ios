@@ -70,7 +70,7 @@ final class ResourceDetailsTests: LoadableFeatureTestCase<ResourceDetails> {
   }
 
   func test_details_providesCachedDetails() async throws {
-    let expectedResult: ResourceDetailsDSV = .mock_1
+    let expectedResult: Resource = .mock_1
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
       with: always(expectedResult)
@@ -88,12 +88,12 @@ final class ResourceDetailsTests: LoadableFeatureTestCase<ResourceDetails> {
   }
 
   func test_details_providesUpdatedDetails_whenUpdatesSequenceGeneratesValue() async throws {
-    let expectedResult: ResourceDetailsDSV = .mock_1
-    var results: Array<ResourceDetailsDSV> = [
+    let expectedResult: Resource = .mock_1
+    var results: Array<Resource> = [
       .mock_1,
       expectedResult,
     ]
-    let nextResult: () -> ResourceDetailsDSV = {
+    let nextResult: () -> Resource = {
       results.removeFirst()
     }
     patch(
@@ -159,7 +159,7 @@ final class ResourceDetailsTests: LoadableFeatureTestCase<ResourceDetails> {
   func test_decryptSecret_returnsSecret_whenAllOperationsSucceed() async throws {
     let expectedResult: ResourceSecret = .init(
       rawValue: "{\"password\":\"secret\"}",
-      values: ["password": "secret"]
+      values: ["password": .string("secret")]
     )
     patch(
       \SessionCryptography.decryptMessage,

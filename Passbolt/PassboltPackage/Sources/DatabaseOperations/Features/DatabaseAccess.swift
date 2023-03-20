@@ -47,6 +47,8 @@ public struct DatabaseAccess {
 
 extension DatabaseAccess: LoadableFeature {
 
+  public typealias Context = ContextlessLoadableFeatureContext
+
   #if DEBUG
   public nonisolated static var placeholder: Self {
     Self(

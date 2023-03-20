@@ -21,91 +21,91 @@
 // @since         v1.0
 //
 
-//import Accounts
-//import Foundation
-//import XCTest
-//
-//// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-//final class ConfigDecodingTests: XCTestCase {
-//
-//  func test_pluginsDecoding_withAllPluginsEnabled_succeeds() {
-//    let rawJSON: Data = """
-//      {
-//          "legal": {
-//          "privacy_policy": {
-//            "url": "https://www.passbolt.com/privacy"
-//          },
-//          "terms": {
-//            "url": "https://www.passbolt.com/terms"
-//          }
-//        },
-//        "plugins": {
-//          "previewPassword": {
-//            "enabled": true
-//          },
-//          "tags": {
-//            "version": "1.0.1",
-//            "enabled": true
-//          },
-//          "folders": {
-//            "version": "2.0.0",
-//            "enabled": true
-//          }
-//        }
-//      }
-//      """.data(using: .utf8)!
-//
-//    let config: Config? = try? JSONDecoder().decode(Config.self, from: rawJSON)
-//
-//    let legal: Config.Legal = .init(
-//      privacyPolicy: .init(url: "https://www.passbolt.com/privacy"),
-//      terms: .init(url: "https://www.passbolt.com/terms")
-//    )
-//    let folders: Config.Folders = .init(enabled: true, version: "2.0.0")
-//    let previewPassword: Config.PreviewPassword = .init(enabled: true)
-//    let tags: Config.Tags = .init(enabled: true, version: "1.0.1")
-//
-//    XCTAssertEqual(config!.legal, legal)
-//    XCTAssertTrue(config!.plugins.contains { $0 as? Config.Folders == folders })
-//    XCTAssertTrue(config!.plugins.contains { $0 as? Config.PreviewPassword == previewPassword })
-//    XCTAssertTrue(config!.plugins.contains { $0 as? Config.Tags == tags })
-//  }
-//
-//  func test_pluginsDecoding_withNoPlugins_succeeds() {
-//    let rawJSON: Data = """
-//      {
-//        "legal": null,
-//        "plugins": {
-//        }
-//      }
-//      """.data(using: .utf8)!
-//
-//    let config: Config? = try? JSONDecoder().decode(Config.self, from: rawJSON)
-//
-//    XCTAssertNil(config!.legal)
-//    XCTAssertTrue(config!.plugins.isEmpty)
-//  }
-//
-//  func test_pluginsDecoding_withInvalidJSON_fails() {
-//    let rawJSON: Data = """
-//      {
-//          "legal": {
-//        },
-//        "plugins": {
-//          tags": {
-//            "version": "1.0.1",
-//            "enabled": true
-//          },
-//          "folders": {
-//            "version": "2.0.0",
-//            "enabled": true
-//          }
-//        }
-//      }
-//      """.data(using: .utf8)!
-//
-//    let config: Config? = try? JSONDecoder().decode(Config.self, from: rawJSON)
-//
-//    XCTAssertNil(config)
-//  }
-//}
+import Accounts
+import Foundation
+import XCTest
+
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+final class ConfigDecodingTests: XCTestCase {
+
+  func test_pluginsDecoding_withAllPluginsEnabled_succeeds() {
+    let rawJSON: Data = """
+      {
+          "legal": {
+          "privacy_policy": {
+            "url": "https://www.passbolt.com/privacy"
+          },
+          "terms": {
+            "url": "https://www.passbolt.com/terms"
+          }
+        },
+        "plugins": {
+          "previewPassword": {
+            "enabled": true
+          },
+          "tags": {
+            "version": "1.0.1",
+            "enabled": true
+          },
+          "folders": {
+            "version": "2.0.0",
+            "enabled": true
+          }
+        }
+      }
+      """.data(using: .utf8)!
+
+    let config: Config? = try? JSONDecoder().decode(Config.self, from: rawJSON)
+
+    let legal: Config.Legal = .init(
+      privacyPolicy: .init(url: "https://www.passbolt.com/privacy"),
+      terms: .init(url: "https://www.passbolt.com/terms")
+    )
+    let folders: Config.Folders = .init(enabled: true, version: "2.0.0")
+    let previewPassword: Config.PreviewPassword = .init(enabled: true)
+    let tags: Config.Tags = .init(enabled: true, version: "1.0.1")
+
+    XCTAssertEqual(config!.legal, legal)
+    XCTAssertTrue(config!.plugins.contains { $0 as? Config.Folders == folders })
+    XCTAssertTrue(config!.plugins.contains { $0 as? Config.PreviewPassword == previewPassword })
+    XCTAssertTrue(config!.plugins.contains { $0 as? Config.Tags == tags })
+  }
+
+  func test_pluginsDecoding_withNoPlugins_succeeds() {
+    let rawJSON: Data = """
+      {
+        "legal": null,
+        "plugins": {
+        }
+      }
+      """.data(using: .utf8)!
+
+    let config: Config? = try? JSONDecoder().decode(Config.self, from: rawJSON)
+
+    XCTAssertNil(config!.legal)
+    XCTAssertTrue(config!.plugins.isEmpty)
+  }
+
+  func test_pluginsDecoding_withInvalidJSON_fails() {
+    let rawJSON: Data = """
+      {
+          "legal": {
+        },
+        "plugins": {
+          tags": {
+            "version": "1.0.1",
+            "enabled": true
+          },
+          "folders": {
+            "version": "2.0.0",
+            "enabled": true
+          }
+        }
+      }
+      """.data(using: .utf8)!
+
+    let config: Config? = try? JSONDecoder().decode(Config.self, from: rawJSON)
+
+    XCTAssertNil(config)
+  }
+}

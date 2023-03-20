@@ -32,7 +32,7 @@ internal struct UserGroupPermissionEditController {
 
   internal var viewState: ObservableValue<ViewState>
   internal var showGroupMembers: () -> Void
-  internal var setPermissionType: (PermissionType) -> Void
+  internal var setPermissionType: (Permission) -> Void
   internal var saveChanges: () -> Void
   internal var deletePermission: () -> Void
   internal var navigateBack: () -> Void
@@ -73,7 +73,7 @@ extension UserGroupPermissionEditController: ComponentController {
     let viewState: ObservableValue<ViewState> = .init(
       initial: .init(
         name: .raw(context.permissionDetails.name),
-        permissionType: context.permissionDetails.permissionType,
+        permission: context.permissionDetails.permission,
         groupMembersPreviewItems: context
           .permissionDetails
           .members
@@ -97,11 +97,11 @@ extension UserGroupPermissionEditController: ComponentController {
     }
 
     nonisolated func setPermissionType(
-      _ type: PermissionType
+      _ type: Permission
     ) {
       cancellables.executeOnMainActor {
         viewState.withValue { (state: inout ViewState) in
-          state.permissionType = type
+          state.permission = type
         }
       }
     }
@@ -111,7 +111,7 @@ extension UserGroupPermissionEditController: ComponentController {
         await resourceShareForm
           .setUserGroupPermission(
             context.permissionDetails.id,
-            viewState.permissionType
+            viewState.permission
           )
         await navigation.pop(if: UserGroupPermissionEditView.self)
       }

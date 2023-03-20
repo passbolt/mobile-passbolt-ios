@@ -61,6 +61,8 @@ internal struct SessionAuthorizationState {
 
 extension SessionAuthorizationState: LoadableFeature {
 
+  public typealias Context = ContextlessLoadableFeatureContext
+
   #if DEBUG
   nonisolated static var placeholder: Self {
     Self(

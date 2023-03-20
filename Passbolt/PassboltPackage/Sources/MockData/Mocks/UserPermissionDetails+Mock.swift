@@ -32,6 +32,6 @@ extension UserPermissionDetailsDSV {
     lastName: "1",
     fingerprint: "MOCK_1",
     avatarImageURL: .mock_apple,
-    permissionType: .owner
+    permission: .owner
   )
 }

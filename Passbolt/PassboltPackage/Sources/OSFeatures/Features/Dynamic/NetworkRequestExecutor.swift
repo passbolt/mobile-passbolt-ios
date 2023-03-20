@@ -55,6 +55,8 @@ public struct NetworkRequestExecutor {
 
 extension NetworkRequestExecutor: LoadableFeature {
 
+  public typealias Context = ContextlessLoadableFeatureContext
+
   #if DEBUG
   public nonisolated static var placeholder: Self {
     Self(

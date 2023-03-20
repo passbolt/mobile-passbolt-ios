@@ -28,20 +28,20 @@ import Features
 
 public struct ResourceShareForm {
 
-  public var permissionsSequence: () -> AnyAsyncSequence<OrderedSet<ResourceShareFormPermission>>
-  public var currentPermissions: @Sendable () async -> OrderedSet<ResourceShareFormPermission>
-  public var setUserPermission: @Sendable (User.ID, PermissionType) async -> Void
+  public var permissionsSequence: () -> AnyAsyncSequence<OrderedSet<ResourcePermission>>
+  public var currentPermissions: @Sendable () async -> OrderedSet<ResourcePermission>
+  public var setUserPermission: @Sendable (User.ID, Permission) async -> Void
   public var deleteUserPermission: @Sendable (User.ID) async -> Void
-  public var setUserGroupPermission: @Sendable (UserGroup.ID, PermissionType) async -> Void
+  public var setUserGroupPermission: @Sendable (UserGroup.ID, Permission) async -> Void
   public var deleteUserGroupPermission: @Sendable (UserGroup.ID) async -> Void
   public var sendForm: @Sendable () async throws -> Void
 
   public init(
-    permissionsSequence: @escaping () -> AnyAsyncSequence<OrderedSet<ResourceShareFormPermission>>,
-    currentPermissions: @escaping @Sendable () async -> OrderedSet<ResourceShareFormPermission>,
-    setUserPermission: @escaping @Sendable (User.ID, PermissionType) async -> Void,
+    permissionsSequence: @escaping () -> AnyAsyncSequence<OrderedSet<ResourcePermission>>,
+    currentPermissions: @escaping @Sendable () async -> OrderedSet<ResourcePermission>,
+    setUserPermission: @escaping @Sendable (User.ID, Permission) async -> Void,
     deleteUserPermission: @escaping @Sendable (User.ID) async -> Void,
-    setUserGroupPermission: @escaping @Sendable (UserGroup.ID, PermissionType) async -> Void,
+    setUserGroupPermission: @escaping @Sendable (UserGroup.ID, Permission) async -> Void,
     deleteUserGroupPermission: @escaping @Sendable (UserGroup.ID) async -> Void,
     sendForm: @escaping @Sendable () async throws -> Void
   ) {

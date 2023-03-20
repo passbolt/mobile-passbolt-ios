@@ -39,10 +39,8 @@ public struct TOTPCodeGenerator {
 
 extension TOTPCodeGenerator: LoadableFeature {
 
-  public struct Context: LoadableFeatureContext {
-
-    public var identifier: AnyHashable { ObjectIdentifier(Self.self) }
-
+  public struct Context {
+    
     public var resourceID: Resource.ID
     public var sharedSecret: String
     public var algorithm: HOTPAlgorithm

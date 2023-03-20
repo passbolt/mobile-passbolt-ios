@@ -23,7 +23,7 @@
 
 public typealias EncryptedMessageDSV = EncryptedMessage
 
-extension EncryptedMessageDSV: DSV {
+extension EncryptedMessageDSV: Equatable {
 
   public static func == (
     _ lhs: Self,
@@ -31,12 +31,5 @@ extension EncryptedMessageDSV: DSV {
   ) -> Bool {
     lhs.recipient == rhs.recipient
       && lhs.message == rhs.message
-  }
-
-  public func hash(
-    into hasher: inout Hasher
-  ) {
-    hasher.combine(self.recipient)
-    hasher.combine(self.message)
   }
 }

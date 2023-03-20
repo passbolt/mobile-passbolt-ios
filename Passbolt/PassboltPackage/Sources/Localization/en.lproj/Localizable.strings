@@ -67,6 +67,7 @@
 
 "resource.list.username.empty.placeholder" = "no username";
 
+"resource.detail.field.name" = "Name";
 "resource.detail.field.username" = "Username";
 "resource.detail.field.passphrase" = "Password";
 "resource.detail.field.uri" = "Website URL";

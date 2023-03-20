@@ -53,34 +53,24 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
 
     set(ResourceEditScope.self, context: .mock_1)
-    use(Session.placeholder)
-    use(Resources.placeholder)
-    use(UsersPGPMessages.placeholder)
-    use(ResourceTypesFetchDatabaseOperation.placeholder)
-    use(ResourceEditDetailsFetchDatabaseOperation.placeholder)
-    use(ResourceEditNetworkOperation.placeholder)
-    use(ResourceCreateNetworkOperation.placeholder)
-    use(ResourceShareNetworkOperation.placeholder)
-    use(ResourceFolderPermissionsFetchDatabaseOperation.placeholder)
   }
 
-  func test_resourceTypePublisher_fails_whenNoResourceTypesAvailable() async throws {
+  func test_resource_fails_whenNoResourceTypesAvailable() async throws {
     patch(
       \ResourceTypesFetchDatabaseOperation.execute,
       with: always([])
     )
 
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: ResourceEditForm = try testedInstance(
+      context: .create(folderID: .none, uri: .none)
+    )
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    // execute resource loading
+    await self.mockExecutionControl.executeAll()
 
     var result: Error?
     do {
-      _ =
-        try await feature
-        .resourceTypePublisher()
-        .asAsyncValue()
+      _ = try await feature.resource()
     }
     catch {
       result = error
@@ -88,117 +78,45 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
 
     XCTAssertError(
       result,
-      matches: InvalidResourceType.self
+      matches: InvalidForm.self
     )
   }
 
-  func test_resourceTypePublisher_fails_whenNoValidResourceTypeAvailable() async throws {
-    patch(
-      \ResourceTypesFetchDatabaseOperation.execute,
-      with: always([emptyResourceType])
-    )
-
-    let feature: ResourceEditForm = try testedInstance()
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    var result: Error?
-    do {
-      _ =
-        try await feature
-        .resourceTypePublisher()
-        .asAsyncValue()
-    }
-    catch {
-      result = error
-    }
-
-    XCTAssertError(
-      result,
-      matches: InvalidResourceType.self
-    )
-  }
-
-  func test_resourceTypePublisher_publishesDefaultResourceType_whenValidResourceTypeAvailable() async throws {
+  func test_resource_retutnsDefaultResourceType_whenValidResourceTypeAvailable() async throws {
     patch(
       \ResourceTypesFetchDatabaseOperation.execute,
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: ResourceEditForm = try testedInstance(
+      context: .create(folderID: .none, uri: .none)
+    )
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    // execute resource loading
+    await self.mockExecutionControl.executeAll()
 
-    let result: ResourceTypeDSV? =
-      try? await feature
-      .resourceTypePublisher()
-      .asAsyncValue()
+    let result: Resource = try await feature.resource()
 
-    XCTAssert(result?.isDefault ?? false)
+    XCTAssert(result.type.isDefault)
   }
 
-  func test_fieldValuePublisher_returnsNotPublishingPublisher_whenResourceFieldNotAvailable() async throws {
+  func test_validatedFieldValuePublisher_returnsPublisher_whenResourceFieldNotAvailable() async throws {
     patch(
       \ResourceTypesFetchDatabaseOperation.execute,
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+   // execute resource loading
+   await self.mockExecutionControl.executeAll()
 
-    var result: Void?
+    var result: Validated<ResourceFieldValue?>?
     feature
-      .fieldValuePublisher(.undefined(name: "unavailable"))
-      .sink(
-        receiveCompletion: { completion in
-          result = Void()
-        },
-        receiveValue: { _ in
-          result = Void()
-        }
-      )
-      .store(in: cancellables)
-
-    XCTAssertNil(result)
-  }
-
-  func test_fieldValuePublisher_returnsInitiallyPublishingPublisher_whenResourceFieldAvailable() async throws {
-    patch(
-      \ResourceTypesFetchDatabaseOperation.execute,
-      with: always([defaultResourceType])
-    )
-
-    let feature: ResourceEditForm = try testedInstance()
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    let result: Validated<ResourceFieldValue>? =
-      try? await feature
-      .fieldValuePublisher(.name)
-      .asAsyncValue()
-
-    XCTAssertEqual(result?.value, .string(""))
-  }
-
-  func test_fieldValuePublisher_returnsPublisherPublishingChages_whenResourceFieldValueChanges() async throws {
-    patch(
-      \ResourceTypesFetchDatabaseOperation.execute,
-      with: always([defaultResourceType])
-    )
-
-    let feature: ResourceEditForm = try testedInstance()
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    var result: Validated<ResourceFieldValue>?
-    feature
-      .fieldValuePublisher(.name)
+      .validatedFieldValuePublisher(.init(
+        name: "unavailable",
+        content: .totp(required: false)
+      ))
       .sink(
         receiveCompletion: { _ in },
         receiveValue: { value in
@@ -207,28 +125,80 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       )
       .store(in: cancellables)
 
-    try? await feature
-      .setFieldValue("updated", .name)
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_validatedFieldValuePublisher_returnsInitiallyPublishingPublisher_whenResourceFieldAvailable() async throws {
+    patch(
+      \ResourceTypesFetchDatabaseOperation.execute,
+      with: always([defaultResourceType])
+    )
+
+    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
+
+    // execute resource loading
+    await self.mockExecutionControl.executeAll()
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    let result: Validated<ResourceFieldValue?>? =
+      try? await feature
+      .validatedFieldValuePublisher(.name)
       .asAsyncValue()
+
+    XCTAssertNil(result?.value)
+  }
+
+  func test_validatedFieldValuePublisher_returnsPublisherPublishingChages_whenResourceFieldValueChanges() async throws {
+    patch(
+      \ResourceTypesFetchDatabaseOperation.execute,
+      with: always([defaultResourceType])
+    )
+
+    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
+
+   // execute resource loading
+   await self.mockExecutionControl.executeAll()
+
+    var result: Validated<ResourceFieldValue?>?
+    feature
+      .validatedFieldValuePublisher(.name)
+      .sink(
+        receiveCompletion: { _ in },
+        receiveValue: { value in
+          result = value
+        }
+      )
+      .store(in: cancellables)
+
+    try await feature
+      .setFieldValue(.string("updated"), .name)
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result?.value, .string("updated"))
   }
 
-  func test_fieldValuePublisher_returnsPublisherPublishingValidatedValue_withResourceFieldValueValidation() async throws
+  func test_validatedFieldValuePublisher_returnsPublisherPublishingValidatedValue_withResourceFieldValueValidation() async throws
   {
     patch(
       \ResourceTypesFetchDatabaseOperation.execute,
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+   // execute resource loading
+   await self.mockExecutionControl.executeAll()
 
-    var result: Validated<ResourceFieldValue>?
+    var result: Validated<ResourceFieldValue?>?
     feature
-      .fieldValuePublisher(.name)
+      .validatedFieldValuePublisher(.name)
       .sink(
         receiveCompletion: { _ in },
         receiveValue: { value in
@@ -237,11 +207,16 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       )
       .store(in: cancellables)
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
     XCTAssert(!(result?.isValid ?? false))
 
-    try? await feature
-      .setFieldValue("updated", .name)
-      .asAsyncValue()
+    try await feature
+      .setFieldValue(.string("updated"), .name)
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     XCTAssert(result?.isValid ?? false)
   }
@@ -252,16 +227,15 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+   // execute resource loading
+   await self.mockExecutionControl.executeAll()
 
     var result: Error?
     do {
       try await feature
-        .setFieldValue("updated", .undefined(name: "unavailable"))
-        .asAsyncValue()
+        .setFieldValue(.string("updated"), .init(name: "unavailable", content: .totp(required: false)))
     }
     catch {
       result = error
@@ -269,7 +243,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
 
     XCTAssertError(
       result,
-      matches: InvalidResourceType.self
+      matches: InvalidResourceData.self
     )
   }
 
@@ -279,17 +253,41 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+   // execute resource loading
+   await self.mockExecutionControl.executeAll()
 
-    let result: Void? =
-      try? await feature
-      .setFieldValue("updated", .name)
-      .asAsyncValue()
+    do {
+      try await feature
+        .setFieldValue(.string("updated"), .name)
+    }
+    catch {
+      XCTFail()
+    }
+  }
 
-    XCTAssertNotNil(result)
+  func test_setFieldValue_fails_whenSettingInvalidValueType() async throws {
+    patch(
+      \ResourceTypesFetchDatabaseOperation.execute,
+      with: always([defaultResourceType])
+    )
+
+    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
+
+   // execute resource loading
+   await self.mockExecutionControl.executeAll()
+
+    var result: Error?
+    do {
+      try await feature
+        .setFieldValue(.otp(.totp(sharedSecret: "secret", algorithm: .sha1, digits: 6, period: 30)), .name)
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(result, matches: InvalidResourceData.self)
   }
 
   func test_sendForm_fails_whenFetchResourcesTypesOperationFails() async throws {
@@ -298,42 +296,14 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    var result: Error?
-    do {
-      _ =
-        try await feature
-        .sendForm()
-        .asAsyncValue()
-    }
-    catch {
-      result = error
-    }
-
-    XCTAssertError(result, matches: MockIssue.self)
-  }
-
-  func test_sendForm_fails_whenFieldsValidationFails() async throws {
-    patch(
-      \ResourceTypesFetchDatabaseOperation.execute,
-      with: always([defaultResourceType])
-    )
-
-    let feature: ResourceEditForm = try testedInstance()
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+   // execute resource loading
+   await self.mockExecutionControl.executeAll()
 
     var result: Error?
     do {
-      _ =
-        try await feature
-        .sendForm()
-        .asAsyncValue()
+      _ = try await feature.sendForm()
     }
     catch {
       result = error
@@ -342,44 +312,29 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     XCTAssertError(result, matches: InvalidForm.self)
   }
 
-  func test_sendForm_fails_whenNoActiveUserSession() async throws {
-    patch(
-      \Session.currentAccount,
-      with: alwaysThrow(SessionMissing.error())
-    )
+  func test_sendForm_fails_whenFieldsValidationFails() async throws {
     patch(
       \ResourceTypesFetchDatabaseOperation.execute,
-      with: always([defaultShrinkedResourceType])
+      with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    try? await feature
-      .setFieldValue(name, .name)
-      .asAsyncValue()
+   // execute resource loading
+   await self.mockExecutionControl.executeAll()
 
     var result: Error?
     do {
-      _ =
-        try await feature
-        .sendForm()
-        .asAsyncValue()
+      _ = try await feature.sendForm()
     }
     catch {
       result = error
     }
 
-    XCTAssertError(result, matches: SessionMissing.self)
+    XCTAssertError(result, matches: InvalidForm.self)
   }
 
   func test_sendForm_fails_whenEncryptMessageForUserFails() async throws {
-    patch(
-      \Session.currentAccount,
-      with: always(.mock_ada)
-    )
     patch(
       \ResourceTypesFetchDatabaseOperation.execute,
       with: always([defaultShrinkedResourceType])
@@ -389,21 +344,16 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+   // execute resource loading
+   await self.mockExecutionControl.executeAll()
 
-    try? await feature
-      .setFieldValue(name, .name)
-      .asAsyncValue()
+    try await feature.setFieldValue(.string("name"), .name)
 
     var result: Error?
     do {
-      _ =
-        try await feature
-        .sendForm()
-        .asAsyncValue()
+      _ = try await feature.sendForm()
     }
     catch {
       result = error
@@ -437,21 +387,16 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+   // execute resource loading
+   await self.mockExecutionControl.executeAll()
 
-    try? await feature
-      .setFieldValue("name", .name)
-      .asAsyncValue()
+    try await feature.setFieldValue(.string("name"), .name)
 
     var result: Error?
     do {
-      _ =
-        try await feature
-        .sendForm()
-        .asAsyncValue()
+      _ = try await feature.sendForm()
     }
     catch {
       result = error
@@ -461,10 +406,6 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
   }
 
   func test_sendForm_succeeds_whenAllOperationsSucceed() async throws {
-    patch(
-      \Session.currentAccount,
-      with: always(.mock_ada)
-    )
     patch(
       \ResourceTypesFetchDatabaseOperation.execute,
       with: always([defaultShrinkedResourceType])
@@ -485,52 +426,56 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always(.init(resourceID: "resource-id", ownerPermissionID: "permission-id"))
     )
 
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+   // execute resource loading
+   await self.mockExecutionControl.executeAll()
 
     try await feature
-      .setFieldValue("name", .name)
-      .asAsyncValue()
+      .setFieldValue(.string("name"), .name)
 
-    let result: Resource.ID? =
-      try await feature
-      .sendForm()
-      .asAsyncValue()
+    let result: Resource.ID? = try await feature.sendForm()
 
     XCTAssertEqual(result, "resource-id")
   }
 
-  func test_resourceEdit_fails_whenFetchingEditViewResourceFromDatabaseFails() async throws {
+  func test_resourceEdit_fails_whenFetchingResourceFromDatabaseFails() async throws {
     patch(
       \ResourceTypesFetchDatabaseOperation.execute,
       with: always([defaultResourceType])
     )
     patch(
-      \ResourceEditDetailsFetchDatabaseOperation.execute,
-      with: alwaysThrow(MockIssue.error())
+      \ResourceDetails.details,
+       context: .mock_1,
+       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: ResourceEditForm = try testedInstance(context: .edit(.mock_1))
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+   // execute resource loading
+   await self.mockExecutionControl.executeAll()
 
     var result: Error?
     do {
-      try await feature
-        .editResource(.init(rawValue: "resource-id"))
-        .asAsyncValue()
+      _ = try await feature.resource()
     }
     catch {
       result = error
     }
 
-    XCTAssertError(result, matches: MockIssue.self)
+    XCTAssertError(result, matches: InvalidForm.self)
   }
 
   func test_resourceEdit_fails_whenFetchingResourceSecretFails() async throws {
+    patch(
+      \ResourceTypesFetchDatabaseOperation.execute,
+      with: always([defaultResourceType])
+    )
+    patch(
+      \ResourceDetails.details,
+       context: .mock_1,
+       with: alwaysThrow(MockIssue.error())
+    )
     patch(
       \Resources.loadResourceSecret,
       with: always(
@@ -538,31 +483,21 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
           .eraseToAnyPublisher()
       )
     )
-    patch(
-      \ResourceTypesFetchDatabaseOperation.execute,
-      with: always([defaultResourceType])
-    )
-    patch(
-      \ResourceEditDetailsFetchDatabaseOperation.execute,
-      with: always(.mock_default)
-    )
 
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: ResourceEditForm = try testedInstance(context: .edit(.mock_1))
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+   // execute resource loading
+   await self.mockExecutionControl.executeAll()
 
     var result: Error?
     do {
-      try await feature
-        .editResource(.init(rawValue: "resource-id"))
-        .asAsyncValue()
+      _ = try await feature.resource()
     }
     catch {
       result = error
     }
 
-    XCTAssertError(result, matches: MockIssue.self)
+    XCTAssertError(result, matches: InvalidForm.self)
   }
 
   func test_resourceEdit_succeeds_whenLoadingResourceDataSucceeds() async throws {
@@ -571,75 +506,33 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
     patch(
-      \ResourceEditDetailsFetchDatabaseOperation.execute,
-      with: always(.mock_default)
+      \ResourceDetails.details,
+       context: .mock_1,
+       with: always(.mock_1)
     )
     patch(
       \Resources.loadResourceSecret,
       with: always(
-        Just(
-          .init(
-            rawValue: "{\"password\":\"secret\"}",
-            values: ["password": "secret"]
-          )
-        )
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+        Just(resourceSecret)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
       )
     )
 
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+   // execute resource loading
+   await self.mockExecutionControl.executeAll()
 
-    let result: Void? =
-      try? await feature
-      .editResource(.init(rawValue: "resource-id"))
-      .asAsyncValue()
+    var result: Error?
+    do {
+      _ = try await feature.resource()
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertNotNil(result)
-  }
-
-  func test_editResource_updatesResourceType_whenLoadingResourceDataSucceeds() async throws {
-    patch(
-      \ResourceTypesFetchDatabaseOperation.execute,
-      with: always([ResourceEditDetailsDSV.mock_default.type, defaultResourceType])
-    )
-    patch(
-      \ResourceEditDetailsFetchDatabaseOperation.execute,
-      with: always(.mock_default)
-    )
-    patch(
-      \Resources.loadResourceSecret,
-      with: always(
-        Just(
-          .init(
-            rawValue: "{\"password\":\"secret\"}",
-            values: ["password": "secret"]
-          )
-        )
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-      )
-    )
-
-    let feature: ResourceEditForm = try testedInstance()
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    try? await feature
-      .editResource(.mock_1)
-      .asAsyncValue()
-
-    let result: ResourceType.ID? =
-      try? await feature
-      .resourceTypePublisher()
-      .asAsyncValue()
-      .id
-
-    XCTAssertEqual(result, .mock_1)
+    XCTAssertNil(result)
   }
 
   func test_editResource_updatesResourceFieldValues_whenLoadingResourceDataSucceeds() async throws {
@@ -648,69 +541,165 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
     patch(
-      \ResourceEditDetailsFetchDatabaseOperation.execute,
-      with: always(.mock_default)
+      \ResourceDetails.details,
+       context: .mock_1,
+       with: always(.mock_1)
     )
     patch(
-      \Resources.loadResourceSecret,
-      with: always(
-        Just(
-          .init(
-            rawValue: "{\"password\":\"secret\"}",
-            values: ["password": "secret"]
-          )
-        )
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-      )
+      \ResourceDetails.secret,
+       context: .mock_1,
+      with: always(resourceSecret)
     )
 
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: ResourceEditForm = try testedInstance(context: .edit(.mock_1))
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    // execute resource loading
+   await self.mockExecutionControl.executeAll()
 
-    try? await feature
-      .editResource(.mock_1)
-      .asAsyncValue()
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    let result: ResourceFieldValue? =
+    let result: Validated<ResourceFieldValue?> =
       try await feature
-      .fieldValuePublisher(.name)
+      .validatedFieldValuePublisher(.name)
+      .first()
       .asAsyncValue()
-      .value
 
-    XCTAssertEqual(result?.stringValue, ResourceEditDetailsDSV.mock_default.name)
+    XCTAssertEqual(result, .valid(.string("Mock_1")))
+  }
+
+  func test_createResource_fails_whenLoadingLocationFromDatabaseFails() async throws {
+    patch(
+      \ResourceTypesFetchDatabaseOperation.execute,
+      with: always([defaultResourceType])
+    )
+    patch(
+      \ResourceFolderPathFetchDatabaseOperation.execute,
+       with: alwaysThrow(MockIssue.error())
+    )
+    patch(
+      \ResourceDetails.details,
+       context: .mock_1,
+       with: always(.mock_1)
+    )
+    patch(
+      \ResourceDetails.secret,
+       context: .mock_1,
+      with: always(resourceSecret)
+    )
+
+    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .mock_2, uri: .none))
+
+    // execute resource loading
+   await self.mockExecutionControl.executeAll()
+
+    var result: Error?
+    do {
+      _ = try await feature.resource()
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(result, matches: InvalidForm.self)
+  }
+
+  func test_createResource_loadsLocationFromDatabase() async throws {
+    patch(
+      \ResourceTypesFetchDatabaseOperation.execute,
+      with: always([defaultResourceType])
+    )
+    patch(
+      \ResourceFolderPathFetchDatabaseOperation.execute,
+       with: always([.mock_1, .mock_2])
+    )
+    patch(
+      \ResourceDetails.details,
+       context: .mock_1,
+       with: always(.mock_1)
+    )
+    patch(
+      \ResourceDetails.secret,
+       context: .mock_1,
+      with: always(resourceSecret)
+    )
+
+    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .mock_2, uri: .none))
+
+    // execute resource loading
+   await self.mockExecutionControl.executeAll()
+
+    let result: OrderedSet<ResourceFolderPathItem>? =
+    try await feature.resource().path
+
+    XCTAssertEqual(result, [.mock_1, .mock_2])
+  }
+
+  func test_createResource_usesPredefinedURL() async throws {
+    patch(
+      \ResourceTypesFetchDatabaseOperation.execute,
+      with: always([defaultResourceType])
+    )
+    patch(
+      \ResourceDetails.details,
+       context: .mock_1,
+       with: always(.mock_1)
+    )
+    patch(
+      \ResourceDetails.secret,
+       context: .mock_1,
+      with: always(resourceSecret)
+    )
+
+    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: "https://passbolt.com/predefined"))
+
+    // execute resource loading
+   await self.mockExecutionControl.executeAll()
+
+    let result: String? =
+    try await feature.resource().uri?.stringValue
+
+    XCTAssertEqual(result, "https://passbolt.com/predefined")
+  }
+
+  func test_createResource_usesDefaultResourceTypeIfAble() async throws {
+    patch(
+      \ResourceTypesFetchDatabaseOperation.execute,
+       with: always([.mock_1, defaultResourceType, .mock_2])
+    )
+    patch(
+      \ResourceDetails.details,
+       context: .mock_1,
+       with: always(.mock_1)
+    )
+    patch(
+      \ResourceDetails.secret,
+       context: .mock_1,
+      with: always(resourceSecret)
+    )
+
+    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: "https://passbolt.com/predefined"))
+
+    // execute resource loading
+   await self.mockExecutionControl.executeAll()
+
+    let result: ResourceType.Slug? =
+    try await feature.resource().type.slug
+
+    XCTAssertEqual(result, ResourceType.Slug.default)
   }
 
   func test_sendForm_updatesResource_whenEditingResource() async throws {
     patch(
-      \Session.currentAccount,
-      with: always(.mock_ada)
-    )
-    patch(
       \ResourceTypesFetchDatabaseOperation.execute,
-      with: always([ResourceEditDetailsDSV.mock_default.type, defaultResourceType])
+      with: always([defaultResourceType])
     )
     patch(
-      \ResourceEditDetailsFetchDatabaseOperation.execute,
-      with: always(.mock_default)
+      \ResourceDetails.details,
+       context: .mock_1,
+       with: always(.mock_1)
     )
     patch(
-      \Resources.loadResourceSecret,
-      with: always(
-        Just(
-          .init(
-            rawValue: "{\"password\":\"secret\"}",
-            values: ["password": "secret"]
-          )
-        )
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-      )
+      \ResourceDetails.secret,
+       context: .mock_1,
+      with: always(resourceSecret)
     )
     patch(
       \UsersPGPMessages.encryptMessageForResourceUsers,
@@ -736,20 +725,13 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       }
     )
 
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: ResourceEditForm = try testedInstance(context: .edit(.mock_1))
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    try? await feature
-      .editResource(.mock_1)
-      .asAsyncValue()
+   // execute resource loading
+   await self.mockExecutionControl.executeAll()
 
     do {
-      _ =
-        try await feature
-        .sendForm()
-        .asAsyncValue()
+      _ = try await feature.sendForm()
     }
     catch {
       XCTFail("\(error)")
@@ -760,35 +742,24 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
 
   func test_sendForm_fails_whenUpdateResourceRequestFails() async throws {
     patch(
-      \Session.currentAccount,
-      with: always(.mock_ada)
-    )
-    patch(
       \ResourceTypesFetchDatabaseOperation.execute,
-      with: always([ResourceEditDetailsDSV.mock_default.type])
+      with: always([defaultResourceType])
     )
     patch(
-      \ResourceEditDetailsFetchDatabaseOperation.execute,
-      with: always(.mock_default)
+      \ResourceDetails.details,
+       context: .mock_1,
+       with: always(.mock_1)
     )
     patch(
-      \Resources.loadResourceSecret,
-      with: always(
-        Just(
-          .init(
-            rawValue: "{\"password\":\"secret\"}",
-            values: ["password": "secret"]
-          )
-        )
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-      )
+      \ResourceDetails.secret,
+       context: .mock_1,
+      with: always(resourceSecret)
     )
     patch(
       \UsersPGPMessages.encryptMessageForResourceUsers,
       with: always([
         .init(
-          recipient: .mock_ada,
+          recipient: "USER_ID",
           message: "encrypted-message"
         )
       ])
@@ -798,21 +769,14 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: ResourceEditForm = try testedInstance(context: .edit(.mock_1))
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    try? await feature
-      .editResource(.mock_1)
-      .asAsyncValue()
+   // execute resource loading
+   await self.mockExecutionControl.executeAll()
 
     var result: Error?
     do {
-      _ =
-        try await feature
-        .sendForm()
-        .asAsyncValue()
+      _ = try await feature.sendForm()
     }
     catch {
       result = error
@@ -834,7 +798,7 @@ private let defaultShrinkedResourceType: ResourceTypeDTO = .init(
   slug: "password-and-description",
   name: "password-and-description-shrinked",
   fields: [
-    .init(name: .name, valueType: .string, required: true, encrypted: false, maxLength: nil)
+    .name
   ]
 )
 
@@ -843,10 +807,15 @@ private let defaultResourceType: ResourceTypeDTO = .init(
   slug: "password-and-description",
   name: "password-and-description",
   fields: [
-    .init(name: .name, valueType: .string, required: true, encrypted: false, maxLength: nil),
-    .init(name: .uri, valueType: .string, required: false, encrypted: false, maxLength: nil),
-    .init(name: .username, valueType: .string, required: false, encrypted: false, maxLength: nil),
-    .init(name: .password, valueType: .string, required: true, encrypted: true, maxLength: nil),
-    .init(name: .description, valueType: .string, required: false, encrypted: true, maxLength: nil),
+    .name,
+    .uri,
+    .username,
+    .password,
+    .descriptionEncrypted
   ]
+)
+
+private let resourceSecret: ResourceSecret = try! .from(
+  decrypted: #"{"password": "passbolt", "description": "encrypted"}"#,
+  using: .init()
 )

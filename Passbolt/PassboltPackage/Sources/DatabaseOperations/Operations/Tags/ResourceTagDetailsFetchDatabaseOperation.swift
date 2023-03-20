@@ -30,5 +30,5 @@ public typealias ResourceTagDetailsFetchDatabaseOperation = DatabaseOperation<
 public enum ResourceTagDetailsFetchDatabaseOperationDescription: DatabaseOperationDescription {
 
   public typealias Input = ResourceTag.ID
-  public typealias Output = ResourceTagDSV
+  public typealias Output = ResourceTag
 }

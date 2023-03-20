@@ -37,4 +37,4 @@ public struct UserPublicKeyDSV {
   }
 }
 
-extension UserPublicKeyDSV: DSV {}
+extension UserPublicKeyDSV: Hashable {}

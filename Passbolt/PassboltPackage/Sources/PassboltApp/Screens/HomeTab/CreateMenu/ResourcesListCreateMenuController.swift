@@ -37,10 +37,7 @@ internal struct ResourcesListCreateMenuController {
 
 extension ResourcesListCreateMenuController: ViewController {
 
-  internal struct Context: LoadableFeatureContext, Hashable {
-
-    internal var enclosingFolderID: ResourceFolder.ID?
-  }
+  internal typealias Context = ResourceFolder.ID?
 
   internal struct ViewState: Hashable {}
 
@@ -83,7 +80,7 @@ extension ResourcesListCreateMenuController {
           .push(
             legacy: ResourceEditViewController.self,
             context: (
-              .new(in: context.enclosingFolderID, url: .none),
+              .create(folderID: context, uri: .none),
               completion: { _ in
                 MainActor.execute {
                   await navigation.presentInfoSnackbar(
@@ -107,7 +104,7 @@ extension ResourcesListCreateMenuController {
             ResourceFolderEditView.self,
             controller: features.instance(
               context: .create(
-                containingFolderID: context.enclosingFolderID
+                containingFolderID: context
               )
             )
           )

@@ -100,18 +100,18 @@ extension ResourceFolderDetailsController {
       using details: ResourceFolderDetailsDSV
     ) {
       viewState.folderName = details.name
-      viewState.folderLocation = details.location.map(\.folderName)
+      viewState.folderLocation = details.path.map(\.name)
       viewState.folderPermissionItems = details
         .permissions
-        .map { (permission: ResourceFolderPermissionDSV) -> OverlappingAvatarStackView.Item in
+        .map { (permission: ResourceFolderPermission) -> OverlappingAvatarStackView.Item in
           switch permission {
-          case let .user(id: userID, type: _, permissionID: _):
+          case let .user(userID, _, _):
             return .user(
               userID,
               avatarImage: userAvatarImage(for: userID)
             )
 
-          case let .userGroup(id: userGroupID, type: _, permissionID: _):
+          case let .userGroup(userGroupID, _, _):
             return .userGroup(
               userGroupID
             )

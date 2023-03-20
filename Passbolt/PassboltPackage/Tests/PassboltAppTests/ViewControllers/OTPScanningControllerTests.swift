@@ -54,7 +54,7 @@ final class OTPScanningControllerTests: LoadableFeatureTestCase<OTPScanningContr
     )
     withTestedInstanceReturnsEqual(
       SnackBarMessage.error(DisplayableString.localized(key: "testLocalizationKey")),
-      context: .init()
+      context: .init(.mock_1)
     ) { feature in
       feature.processPayload("payload")
       await self.mockExecutionControl.executeAll()
@@ -71,9 +71,13 @@ final class OTPScanningControllerTests: LoadableFeatureTestCase<OTPScanningContr
       \NavigationToOTPScanningSuccess.mockPerform,
       with: always(self.executed())
     )
+    patch(
+      \NavigationToOTPScanning.mockRevert,
+      with: always(self.executed())
+    )
 
     withTestedInstanceExecuted(
-      context: .init()
+      context: .init(.mock_1)
     ) { feature in
       feature.processPayload("payload")
       await self.mockExecutionControl.executeAll()

@@ -26,19 +26,19 @@ import Localization
 public struct Validated<Value> {
 
   public var value: Value
-  public private(set) var errors: Array<InvalidValue>
+  public private(set) var error: TheError?
 
   public init(
     value: Value,
-    errors: Array<InvalidValue>
+    error: TheError?
   ) {
     self.value = value
-    self.errors = errors
+    self.error = error
   }
 
   public var validValue: Value {
     get throws {
-      if let error: Error = self.errors.first {
+      if let error: TheError = self.error {
         throw error
       }
       else {
@@ -47,51 +47,51 @@ public struct Validated<Value> {
     }
   }
 
-  public var isValid: Bool { errors.isEmpty }
+  public var isValid: Bool { error == nil }
 
   public var displayableErrorMessage: DisplayableString? {
-    errors.first?.displayableMessage
+    error?.displayableMessage
   }
 
-  public func withError(
-    message: StaticString = "InvalidValue",
-    validationRule: StaticString,
-    value: Value,
-    displayable: DisplayableString,
-    file: StaticString = #fileID,
-    line: UInt = #line
-  ) -> Self {
-    var copy: Self = self
-    copy.errors
-      .append(
-        .error(
-          message,
-          validationRule: validationRule,
-          value: value,
-          displayable: displayable,
-          file: file,
-          line: line
-        )
-      )
-    return copy
-  }
+//  public func withError(
+//    message: StaticString = "InvalidValue",
+//    validationRule: StaticString,
+//    value: Value,
+//    displayable: DisplayableString,
+//    file: StaticString = #fileID,
+//    line: UInt = #line
+//  ) -> Self {
+//    var copy: Self = self
+//    copy.errors
+//      .append(
+//        InvalidValue.error(
+//          message,
+//          validationRule: validationRule,
+//          value: value,
+//          displayable: displayable,
+//          file: file,
+//          line: line
+//        )
+//      )
+//    return copy
+//  }
 
-  public func withError(
-    _ error: InvalidValue
-  ) -> Self {
-    var copy: Self = self
-    copy.errors.append(error)
-    return copy
-  }
+//  public func withError(
+//    _ error: TheError
+//  ) -> Self {
+//    var copy: Self = self
+//    copy.errors.append(error)
+//    return copy
+//  }
 
-  public func withErrors<Errors>(
-    _ errors: Errors
-  ) -> Self
-  where Errors: Sequence, Errors.Element == InvalidValue {
-    var copy: Self = self
-    copy.errors.append(contentsOf: errors)
-    return copy
-  }
+//  public func withErrors<Errors>(
+//    _ errors: Errors
+//  ) -> Self
+//  where Errors: Sequence, Errors.Element == TheError {
+//    var copy: Self = self
+//    copy.errors.append(contentsOf: errors)
+//    return copy
+//  }
 }
 
 extension Validated {
@@ -101,17 +101,17 @@ extension Validated {
   ) -> Self {
     Self(
       value: value,
-      errors: []
+      error: .none
     )
   }
 
   public static func invalid(
     _ value: Value,
-    errors: InvalidValue...
+    error: TheError
   ) -> Self {
     Self(
       value: value,
-      errors: errors
+      error: error
     )
   }
 
@@ -125,25 +125,39 @@ extension Validated {
   ) -> Self {
     Self(
       value: value,
-      errors: [
-        .error(
-          message,
-          validationRule: validationRule,
-          value: value,
-          displayable: displayable,
-          file: file,
-          line: line
-        )
-      ]
+      error: InvalidValue.error(
+        message,
+        validationRule: validationRule,
+        value: value,
+        displayable: displayable,
+        file: file,
+        line: line
+      )
     )
   }
 }
 
 extension Validated: Equatable
-where Value: Equatable {}
+where Value: Equatable {
+
+  public static func == (
+    _ lhs: Validated,
+    _ rhs: Validated
+  ) -> Bool {
+    lhs.value == rhs.value
+    && lhs.displayableErrorMessage == rhs.displayableErrorMessage
+  }
+}
 
 extension Validated: Hashable
-where Value: Hashable {}
+where Value: Hashable {
+  public func hash(
+    into hasher: inout Hasher
+  ) {
+    hasher.combine(self.value)
+    hasher.combine(self.isValid)
+  }
+}
 
 extension Validated {
 
@@ -152,7 +166,7 @@ extension Validated {
   ) -> Validated<NewValue> {
     .init(
       value: transform(self.value),
-      errors: self.errors
+      error: self.error
     )
   }
 }

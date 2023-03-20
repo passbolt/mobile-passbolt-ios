@@ -39,9 +39,7 @@ internal struct ResourceUserGroupsListDisplayController {
 
 extension ResourceUserGroupsListDisplayController: ViewController {
 
-  internal struct Context: LoadableFeatureContext {
-    // feature is disposable, we don't care about ID
-    internal let identifier: AnyHashable = IID()
+  internal struct Context {
 
     internal var filter: ObservableViewState<UserGroupsFilter>
     internal var selectGroup: (UserGroup.ID) -> Void

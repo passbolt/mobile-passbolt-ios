@@ -23,11 +23,41 @@
 
 import Commons
 
-public enum ResourceFolder {}
+public struct ResourceFolder {
+
+  public typealias ID = Tagged<String, Self>
+
+  public var id: ID?  // none is local, not synchronized resource folder
+  public var name: String
+  public var path: OrderedSet<ResourceFolderPathItem>
+  public var shared: Bool
+  public var permission: Permission
+  public var permissions: OrderedSet<ResourceFolderPermission>
+
+  public init(
+    id: ID? = .none,
+    name: String,
+    path: OrderedSet<ResourceFolderPathItem>,
+    shared: Bool,
+    permission: Permission,
+    permissions: OrderedSet<ResourceFolderPermission>
+  ) {
+    self.id = id
+    self.name = name
+    self.path = path
+    self.shared = shared
+    self.permission = permission
+    self.permissions = permissions
+  }
+}
+
+extension ResourceFolder: Equatable {}
 
 extension ResourceFolder {
 
-  public typealias ID = Tagged<String, Self>
+  public var parentID: ID? {
+    self.path.last?.id
+  }
 }
 
 extension ResourceFolder.ID {

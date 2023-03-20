@@ -89,11 +89,11 @@ extension SQLiteMigration {
       (
         id TEXT UNIQUE NOT NULL PRIMARY KEY,
         name TEXT NOT NULL,
-        -- permissionType is current user permission, one of:
+        -- permission is current user permission, one of:
         -- 1 - read
         -- 7 - write
         -- 15 - owner
-        permissionType INTEGER NOT NULL,
+        permission INTEGER NOT NULL,
         shared BOOL NOT NULL,
         parentFolderID TEXT,
         FOREIGN KEY(parentFolderID)
@@ -109,12 +109,12 @@ extension SQLiteMigration {
       (
         resourceFolderID TEXT NOT NULL,
         userID TEXT NOT NULL,
-        -- permissionType is a user permission on a resource folder,
+        -- permission is a user permission on a resource folder,
         -- it is one of:
         -- 1 - read
         -- 7 - write
         -- 15 - owner
-        permissionType INTEGER NOT NULL,
+        permission INTEGER NOT NULL,
         FOREIGN KEY(resourceFolderID)
         REFERENCES resourceFolders(id)
         ON UPDATE CASCADE
@@ -133,12 +133,12 @@ extension SQLiteMigration {
       (
         resourceFolderID TEXT NOT NULL,
         userGroupID TEXT NOT NULL,
-        -- permissionType is a user group permission on a resource folder,
+        -- permission is a user group permission on a resource folder,
         -- it is one of:
         -- 1 - read
         -- 7 - write
         -- 15 - owner
-        permissionType INTEGER NOT NULL,
+        permission INTEGER NOT NULL,
         FOREIGN KEY(resourceFolderID)
         REFERENCES resourceFolders(id)
         ON UPDATE CASCADE
@@ -208,11 +208,11 @@ extension SQLiteMigration {
       (
         id TEXT UNIQUE NOT NULL PRIMARY KEY,
         name TEXT NOT NULL,
-        -- permissionType is current user permission, one of:
+        -- permission is current user permission, one of:
         -- 1 - read
         -- 7 - write
         -- 15 - owner
-        permissionType INTEGER NOT NULL,
+        permission INTEGER NOT NULL,
         url TEXT,
         username TEXT,
         -- id referencing resourceType
@@ -268,12 +268,12 @@ extension SQLiteMigration {
       (
         resourceID TEXT NOT NULL,
         userID TEXT NOT NULL,
-        -- permissionType is a user permission on a resource,
+        -- permission is a user permission on a resource,
         -- it is one of:
         -- 1 - read
         -- 7 - write
         -- 15 - owner
-        permissionType INTEGER NOT NULL,
+        permission INTEGER NOT NULL,
         FOREIGN KEY(resourceID)
         REFERENCES resources(id)
         ON UPDATE CASCADE
@@ -292,12 +292,12 @@ extension SQLiteMigration {
       (
         resourceID TEXT NOT NULL,
         userGroupID TEXT NOT NULL,
-        -- permissionType is a user group permission on a resource,
+        -- permission is a user group permission on a resource,
         -- it is one of:
         -- 1 - read
         -- 7 - write
         -- 15 - owner
-        permissionType INTEGER NOT NULL,
+        permission INTEGER NOT NULL,
         FOREIGN KEY(resourceID)
         REFERENCES resources(id)
         ON UPDATE CASCADE

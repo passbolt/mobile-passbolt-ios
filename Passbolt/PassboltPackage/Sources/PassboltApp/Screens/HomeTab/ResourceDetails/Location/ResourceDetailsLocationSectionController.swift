@@ -63,8 +63,8 @@ extension ResourceDetailsLocationSectionController: ComponentController {
         viewState.location =
           try await resourceDetails
           .details()
-          .location
-          .map(\.folderName)
+          .path
+          .map(\.name)
       }
       catch {
         diagnostics.log(error: error)

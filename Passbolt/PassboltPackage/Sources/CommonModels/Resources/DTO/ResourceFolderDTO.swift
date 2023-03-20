@@ -26,30 +26,28 @@ import Commons
 public struct ResourceFolderDTO {
 
   public var id: ResourceFolder.ID
+  public var parentID: ResourceFolder.ID?
   public var name: String
-  public var permissionType: PermissionTypeDTO
   public var shared: Bool
-  public var parentFolderID: ResourceFolder.ID?
-  public var permissions: OrderedSet<PermissionDTO>
+  public var permission: Permission
+  public var permissions: OrderedSet<GenericPermissionDTO>
 
   public init(
     id: ResourceFolder.ID,
+    parentID: ResourceFolder.ID?,
     name: String,
-    permissionType: PermissionTypeDTO,
     shared: Bool,
-    parentFolderID: ResourceFolder.ID?,
-    permissions: OrderedSet<PermissionDTO>
+    permission: Permission,
+    permissions: OrderedSet<GenericPermissionDTO>
   ) {
     self.id = id
+    self.parentID = parentID
     self.name = name
-    self.permissionType = permissionType
     self.shared = shared
-    self.parentFolderID = parentFolderID
+    self.permission = permission
     self.permissions = permissions
   }
 }
-
-extension ResourceFolderDTO: DTO {}
 
 extension ResourceFolderDTO {
 
@@ -73,27 +71,27 @@ extension ResourceFolderDTO: Decodable {
     let container: KeyedDecodingContainer<CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
     self.id = try container.decode(ResourceFolder.ID.self, forKey: .id)
     self.name = try container.decode(String.self, forKey: .name)
-    self.permissionType = try container.nestedContainer(keyedBy: PermissionTypeCodingKeys.self, forKey: .permissionType)
-      .decode(PermissionTypeDTO.self, forKey: .type)
+    self.permission = try container.nestedContainer(keyedBy: PermissionTypeCodingKeys.self, forKey: .permission)
+      .decode(Permission.self, forKey: .permission)
     self.shared = try !container.decode(Bool.self, forKey: .personal)
-    self.parentFolderID = try container.decode(ResourceFolder.ID?.self, forKey: .parentFolderID)
-    self.permissions = try container.decode(OrderedSet<PermissionDTO>.self, forKey: .permissions)
+    self.parentID = try container.decode(ResourceFolder.ID?.self, forKey: .parentID)
+    self.permissions = try container.decode(OrderedSet<GenericPermissionDTO>.self, forKey: .permissions)
   }
 
   private enum CodingKeys: String, CodingKey {
 
     case id = "id"
     case name = "name"
-    case permissionType = "permission"
+    case permission = "permission"
     case personal = "personal"
-    case parentFolderID = "folder_parent_id"
+    case parentID = "folder_parent_id"
     case permissions = "permissions"
   }
 
   private enum PermissionTypeCodingKeys: String, CodingKey {
 
-    case type = "type"
+    case permission = "type"
   }
 }
 
-extension ResourceFolderDTO: Hashable {}
+extension ResourceFolderDTO: Equatable {}

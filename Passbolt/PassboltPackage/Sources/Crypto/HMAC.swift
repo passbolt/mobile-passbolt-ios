@@ -23,6 +23,7 @@
 
 import CommonCrypto
 import Features
+import struct Foundation.Data
 
 public struct HMAC {
 

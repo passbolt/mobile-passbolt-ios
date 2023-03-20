@@ -135,18 +135,18 @@ internal struct UserGroupPermissionEditView: ComponentView {
         )
 
         ForEach(
-          PermissionType.allCases,
+          Permission.allCases,
           id: \.self
-        ) { (permissionType: PermissionType) in
+        ) { (permission: Permission) in
           AsyncButton(
             action: {
               await self.controller
-                .setPermissionType(permissionType)
+                .setPermissionType(permission)
             },
             label: {
               HStack(spacing: 0) {
                 ResourcePermissionTypeView(
-                  permissionType: permissionType
+                  permission: permission
                 )
                 .frame(
                   maxWidth: .infinity,
@@ -154,7 +154,7 @@ internal struct UserGroupPermissionEditView: ComponentView {
                 )
 
                 Image(
-                  named: self.state.permissionType == permissionType
+                  named: self.state.permission == permission
                     ? .circleSelected
                     : .circleUnselected
                 )
@@ -208,7 +208,7 @@ extension UserGroupPermissionEditView {
   internal struct ViewState: Hashable {
 
     internal var name: DisplayableString
-    internal var permissionType: PermissionType
+    internal var permission: Permission
     internal var groupMembersPreviewItems: Array<OverlappingAvatarStackView.Item>
     internal var deleteConfirmationAlert: ConfirmationAlertMessage? = .none
     internal var snackBarMessage: SnackBarMessage? = .none

@@ -60,7 +60,7 @@ extension Users {
     @Sendable nonisolated func userPermissionToResource(
       userID: User.ID,
       resourceID: Resource.ID
-    ) async throws -> PermissionType? {
+    ) async throws -> Permission? {
       try await features
         .instance(
           of: UserDetails.self,

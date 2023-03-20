@@ -76,6 +76,7 @@ final class AccountQRCodeExportControllerTests: LoadableFeatureTestCase<AccountQ
       )
     ) { feature in
       await self.mockExecutionControl.addTask {
+        try? await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
         updatesSource.endUpdates()
       }
       await self.mockExecutionControl.executeAll()

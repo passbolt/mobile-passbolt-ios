@@ -29,7 +29,7 @@ import UICommons
 
 public final class ResourceEditView: KeyboardAwareView {
 
-  internal typealias FieldWithView = (fieldName: ResourceFieldNameDSV, view: PlainView)
+  internal typealias FieldWithView = (field: ResourceField, view: PlainView)
 
   internal var generateTapPublisher: AnyPublisher<Void, Never> { generateButton.tapPublisher }
   internal var lockTapPublisher: AnyPublisher<Bool, Never> { lockTapSubject.eraseToAnyPublisher() }
@@ -41,7 +41,7 @@ public final class ResourceEditView: KeyboardAwareView {
   private let generateButton: ImageButton = .init()
   private let createButton: TextButton = .init()
 
-  private var fieldViews: Dictionary<ResourceFieldNameDSV, PlainView> = .init()
+  private var fieldViews: Dictionary<ResourceField, PlainView> = .init()
 
   internal required init(createsNewResource: Bool) {
     super.init()
@@ -105,18 +105,18 @@ public final class ResourceEditView: KeyboardAwareView {
     unreachable("use init(createsNewResource:)")
   }
 
-  internal func update(with fields: Array<ResourceFieldDSV>) {
+  internal func update(with fields: OrderedSet<ResourceField>) {
     fieldViews =
       fields
-      .compactMap { resourceField -> (fieldName: ResourceFieldNameDSV, view: PlainView)? in
+      .compactMap { resourceField -> (field: ResourceField, view: PlainView)? in
         switch resourceField.name {
-        case .name:
+        case "name":
           return (
-            fieldName: resourceField.name,
+            field: resourceField,
             view: Mutation<TextInput>
               .combined(
                 .backgroundColor(dynamic: .background),
-                .isRequired(resourceField.required),
+                .isRequired(true),
                 .custom { (input: TextInput) in
                   input.applyOn(
                     text: .combined(
@@ -140,9 +140,9 @@ public final class ResourceEditView: KeyboardAwareView {
               .instantiate()
           )
 
-        case .uri:
+        case "uri":
           return (
-            fieldName: resourceField.name,
+            field: resourceField,
             view: Mutation<TextInput>
               .combined(
                 .backgroundColor(dynamic: .background),
@@ -168,9 +168,9 @@ public final class ResourceEditView: KeyboardAwareView {
               .instantiate()
           )
 
-        case .username:
+        case "username":
           return (
-            fieldName: resourceField.name,
+            field: resourceField,
             view: Mutation<TextInput>
               .combined(
                 .backgroundColor(dynamic: .background),
@@ -196,9 +196,9 @@ public final class ResourceEditView: KeyboardAwareView {
               .instantiate()
           )
 
-        case .password:
+        case "password":
           return (
-            fieldName: resourceField.name,
+            field: resourceField,
             view: Mutation<SecureTextInput>
               .combined(
                 .backgroundColor(dynamic: .background),
@@ -224,9 +224,9 @@ public final class ResourceEditView: KeyboardAwareView {
               .instantiate()
           )
 
-        case .description:
+        case "description":
           return (
-            fieldName: resourceField.name,
+            field: resourceField,
             view: Mutation<TextViewInput>
               .combined(
                 .isRequired(resourceField.required),
@@ -237,7 +237,6 @@ public final class ResourceEditView: KeyboardAwareView {
                     color: .secondaryText
                   )
                 ),
-                .isRequired(false),
                 .custom { (input: TextViewInput) in
                   input.applyOn(
                     text: .formStyle()
@@ -272,15 +271,71 @@ public final class ResourceEditView: KeyboardAwareView {
               .instantiate()
           )
 
-        case let .undefined(name):
-          assertionFailure("Undefined field: \(name)")
-          return nil
+        case let name where resourceField.encrypted:
+          return (
+            field: resourceField,
+            view: Mutation<SecureTextInput>
+              .combined(
+                .backgroundColor(dynamic: .background),
+                .isRequired(resourceField.required),
+                .custom { (input: TextInput) in
+                  input.applyOn(
+                    text: .combined(
+                      .primaryStyle(),
+                      .attributedPlaceholderString(
+                        .displayable(
+                          .raw(name),
+                          font: .inter(ofSize: 14, weight: .medium),
+                          color: .secondaryText
+                        )
+                      )
+                    )
+                  )
+                  input.applyOn(
+                    description: .text(
+                      displayable: .raw(name)
+                    )
+                  )
+                }
+              )
+              .instantiate()
+          )
+
+        case let name:
+          return (
+            field: resourceField,
+            view: Mutation<TextInput>
+              .combined(
+                .backgroundColor(dynamic: .background),
+                .isRequired(resourceField.required),
+                .custom { (input: TextInput) in
+                  input.applyOn(
+                    text: .combined(
+                      .primaryStyle(),
+                      .attributedPlaceholderString(
+                        .displayable(
+                          .raw(name),
+                          font: .inter(ofSize: 14, weight: .medium),
+                          color: .secondaryText
+                        )
+                      )
+                    )
+                  )
+                  input.applyOn(
+                    description: .text(
+                      displayable: .raw(name)
+                    )
+                  )
+                }
+              )
+              .instantiate()
+          )
         }
       }
       .reduce(
-        into: Dictionary<ResourceFieldNameDSV, PlainView>(),
+        into: Dictionary<ResourceField, PlainView>(),
         { (partialResult, fieldWithView: FieldWithView) in
-          partialResult[fieldWithView.fieldName] = fieldWithView.view
+          partialResult[fieldWithView.field] = fieldWithView.view
         }
       )
 
@@ -289,10 +344,10 @@ public final class ResourceEditView: KeyboardAwareView {
     mut(scrolledStack) {
       .combined(
         .forEach(
-          in: fieldViews.sorted { $0.key < $1.key },
+          in: fieldViews,
           { [unowned self] fieldView in
-            switch fieldView.key {
-            case .password:
+            switch fieldView.key.name {
+            case "password":
               let container: PlainView =
                 Mutation
                 .combined(
@@ -353,24 +408,16 @@ public final class ResourceEditView: KeyboardAwareView {
 
   internal func update(
     validated: Validated<String>,
-    for fieldName: ResourceFieldNameDSV
+    for field: ResourceField
   ) {
-    guard let fieldView: PlainView = fieldViews.first(where: { $0.key == fieldName })?.value
+    guard let fieldView: PlainView = fieldViews.first(where: { $0.key == field })?.value
     else {
-      assertionFailure("Missing field for key: \(fieldName)")
+      assertionFailure("Missing field for key: \(field)")
       return
     }
 
-    switch fieldName {
-    case .name, .uri, .username, .password:
-      guard let textInput: TextInput = fieldView as? TextInput
-      else {
-        assertionFailure("Field is not a TextInput")
-        return
-      }
-
-      textInput.update(from: validated)
-    case .description:
+    switch field.name {
+    case "description":
       guard let textViewInput: TextViewInput = fieldView as? TextViewInput
       else {
         assertionFailure("Field is not a TextViewInput")
@@ -378,31 +425,28 @@ public final class ResourceEditView: KeyboardAwareView {
       }
 
       textViewInput.update(from: validated)
-    case let .undefined(name):
-      return assertionFailure("Undefined field: \(name)")
+    case _:
+      guard let textInput: TextInput = fieldView as? TextInput
+      else {
+        assertionFailure("Field is not a TextInput")
+        return
+      }
+
+      textInput.update(from: validated)
     }
   }
 
   internal func fieldValuePublisher(
-    for fieldName: ResourceFieldNameDSV
+    for field: ResourceField
   ) -> AnyPublisher<String, Never> {
-    guard let fieldView: PlainView = fieldViews.first(where: { $0.key == fieldName })?.value
+    guard let fieldView: PlainView = fieldViews.first(where: { $0.key == field })?.value
     else {
       return Empty()
         .eraseToAnyPublisher()
     }
 
-    switch fieldName {
-    case .name, .uri, .username, .password:
-      guard let textInput: TextInput = fieldView as? TextInput
-      else {
-        return Empty()
-          .eraseToAnyPublisher()
-      }
-
-      return textInput.textPublisher
-
-    case .description:
+    switch field.name {
+    case "description":
       guard let textViewInput: TextViewInput = fieldView as? TextViewInput
       else {
         return Empty()
@@ -411,10 +455,14 @@ public final class ResourceEditView: KeyboardAwareView {
 
       return textViewInput.textPublisher
 
-    case let .undefined(name):
-      assertionFailure("Undefined field: \(name)")
-      return Empty()
-        .eraseToAnyPublisher()
+    case _:
+      guard let textInput: TextInput = fieldView as? TextInput
+      else {
+        return Empty()
+          .eraseToAnyPublisher()
+      }
+
+      return textInput.textPublisher
     }
   }
 

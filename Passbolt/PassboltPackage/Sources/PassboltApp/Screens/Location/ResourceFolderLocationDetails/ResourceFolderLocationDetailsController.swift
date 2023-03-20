@@ -76,18 +76,18 @@ extension ResourceFolderLocationDetailsController {
     executor.schedule {
       do {
         let details: ResourceFolderDetailsDSV = try await folderDetails.details()
-        var location: FolderLocationTreeView.Node = details.location.reduce(
+        var path: FolderLocationTreeView.Node = details.path.reduce(
           into: FolderLocationTreeView.Node.root()
-        ) { (partialResult: inout FolderLocationTreeView.Node, item: ResourceFolderLocationItemDSV) in
+        ) { (partialResult: inout FolderLocationTreeView.Node, item: ResourceFolderPathItem) in
           partialResult.append(
             child: .node(
-              id: item.folderID,
-              name: item.folderName,
-              shared: item.folderShared
+              id: item.id,
+              name: item.name,
+              shared: item.shared
             )
           )
         }
-        location.append(
+        path.append(
           child: .node(
             id: details.id,
             name: details.name,
@@ -96,7 +96,7 @@ extension ResourceFolderLocationDetailsController {
         )
         await viewState.update { (state: inout ViewState) in
           state.folderName = details.name
-          state.folderLocation = location
+          state.folderLocation = path
           state.folderShared = details.shared
         }
       }

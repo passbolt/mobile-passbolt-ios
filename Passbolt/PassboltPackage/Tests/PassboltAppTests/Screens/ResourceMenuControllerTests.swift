@@ -59,21 +59,21 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     )
     features.usePlaceholder(
       for: ResourceFavorites.self,
-      context: detailsViewResource.id
+      context: detailsViewResource.id!
     )
   }
 
   func test_resourceDetailsPublisher_publishes_initially() async throws {
 
-    let controller: ResourceMenuController = try await testController(
+    let controller: ResourceMenuController = try testController(
       context: (
-        resourceID: detailsViewResource.id,
+        resourceID: detailsViewResource.id!,
         showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
       )
     )
-    var result: ResourceDetailsDSV?
+    var result: Resource?
 
     controller
       .resourceDetailsPublisher()
@@ -87,14 +87,14 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.id.rawValue, detailsViewResource.id.rawValue)
+    XCTAssertEqual(result?.id?.rawValue, detailsViewResource.id?.rawValue)
   }
 
   func test_availableActionsPublisher_publishesActionAvailable_initially() async throws {
 
-    let controller: ResourceMenuController = try await testController(
+    let controller: ResourceMenuController = try testController(
       context: (
-        resourceID: detailsViewResource.id,
+        resourceID: detailsViewResource.id!,
         showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
@@ -126,9 +126,9 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       }
     )
 
-    let controller: ResourceMenuController = try await testController(
+    let controller: ResourceMenuController = try testController(
       context: (
-        resourceID: detailsViewResource.id,
+        resourceID: detailsViewResource.id!,
         showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
@@ -142,7 +142,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       .performAction(.copyPassword)
       .asAsyncValue()
 
-    XCTAssertEqual(result, resourceSecret.password)
+    XCTAssertEqual(result, resourceSecret.value(forFieldWithName: "password")?.stringValue)
   }
 
   func test_performAction_copiesURLToPasteboard_forCopyURLAction() async throws {
@@ -154,9 +154,9 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       }
     )
 
-    let controller: ResourceMenuController = try await testController(
+    let controller: ResourceMenuController = try testController(
       context: (
-        resourceID: detailsViewResource.id,
+        resourceID: detailsViewResource.id!,
         showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
@@ -168,7 +168,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    XCTAssertEqual(result, detailsViewResource.url)
+    XCTAssertEqual(result, detailsViewResource.uri?.stringValue)
   }
 
   func test_performAction_opensURL_forOpenURLAction() async throws {
@@ -180,9 +180,9 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       }
     )
 
-    let controller: ResourceMenuController = try await testController(
+    let controller: ResourceMenuController = try testController(
       context: (
-        resourceID: detailsViewResource.id,
+        resourceID: detailsViewResource.id!,
         showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
@@ -197,7 +197,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
-    XCTAssertEqual(result?.rawValue, detailsViewResource.url)
+    XCTAssertEqual(result?.rawValue, detailsViewResource.uri?.stringValue)
   }
 
   func test_performAction_fails_forOpenURLAction_whenOpeningFails() async throws {
@@ -208,9 +208,9 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       }
     )
 
-    let controller: ResourceMenuController = try await testController(
+    let controller: ResourceMenuController = try testController(
       context: (
-        resourceID: detailsViewResource.id,
+        resourceID: detailsViewResource.id!,
         showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
@@ -245,9 +245,9 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       }
     )
 
-    let controller: ResourceMenuController = try await testController(
+    let controller: ResourceMenuController = try testController(
       context: (
-        resourceID: detailsViewResource.id,
+        resourceID: detailsViewResource.id!,
         showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
@@ -259,12 +259,20 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    XCTAssertEqual(result, detailsViewResource.username)
+    XCTAssertEqual(result, detailsViewResource.username?.stringValue)
   }
 
   func test_performAction_copiesDescriptionToPasteboard_forCopyDescriptionAction_withUnencryptedDescription()
     async throws
   {
+    features.patch(
+      \Resources.resourceDetailsPublisher,
+      with: always(
+        Just(detailsViewResourceWithUnencryptedDescription)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
     var result: String? = nil
     features.patch(
       \OSPasteboard.put,
@@ -273,9 +281,9 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       }
     )
 
-    let controller: ResourceMenuController = try await testController(
+    let controller: ResourceMenuController = try testController(
       context: (
-        resourceID: detailsViewResource.id,
+        resourceID: detailsViewResource.id!,
         showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
@@ -287,7 +295,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    XCTAssertEqual(result, detailsViewResource.description)
+    XCTAssertEqual(result, detailsViewResourceWithUnencryptedDescription.description?.stringValue)
   }
 
   func test_performAction_copiesDescriptionToPasteboard_forCopyDescriptionAction_withEncryptedDescription() async throws
@@ -295,7 +303,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     features.patch(
       \Resources.resourceDetailsPublisher,
       with: always(
-        Just(detailsViewResourceWithoutDescription)
+        Just(detailsViewResource)
           .eraseErrorType()
           .eraseToAnyPublisher()
       )
@@ -309,9 +317,9 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       }
     )
 
-    let controller: ResourceMenuController = try await testController(
+    let controller: ResourceMenuController = try testController(
       context: (
-        resourceID: detailsViewResource.id,
+        resourceID: detailsViewResource.id!,
         showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
@@ -332,7 +340,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     features.patch(
       \Resources.resourceDetailsPublisher,
       with: always(
-        Just(detailsViewResourceWithoutDescription)
+        Just(detailsViewResource)
           .eraseErrorType()
           .eraseToAnyPublisher()
       )
@@ -340,9 +348,9 @@ final class ResourceMenuControllerTests: MainActorTestCase {
 
     var result: Resource.ID?
 
-    let controller: ResourceMenuController = try await testController(
+    let controller: ResourceMenuController = try testController(
       context: (
-        resourceID: detailsViewResource.id,
+        resourceID: detailsViewResource.id!,
         showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { resourceID in result = resourceID }
@@ -354,47 +362,80 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    XCTAssertEqual(result, detailsViewResource.id)
+    XCTAssertEqual(result, detailsViewResource.id!)
   }
 }
 
-private let detailsViewResource: ResourceDetailsDSV = .init(
-  id: .init(rawValue: "1"),
-  permissionType: .owner,
-  name: "Passphrase",
-  url: "https://passbolt.com",
-  username: "passbolt@passbolt.com",
-  description: "Passbolt",
-  fields: [
-    .init(name: .username, valueType: .string, required: true, encrypted: false, maxLength: nil),
-    .init(name: .password, valueType: .string, required: true, encrypted: true, maxLength: nil),
-    .init(name: .uri, valueType: .string, required: true, encrypted: false, maxLength: nil),
-    .init(name: .description, valueType: .string, required: true, encrypted: false, maxLength: nil),
-  ],
-  favoriteID: .none,
-  location: .init(),
-  permissions: [],
-  tags: []
-)
 
-private let detailsViewResourceWithoutDescription: ResourceDetailsDSV = .init(
-  id: .init(rawValue: "1"),
-  permissionType: .owner,
-  name: "Passphrase",
-  url: "https://passbolt.com",
-  username: "passbolt@passbolt.com",
-  description: nil,
-  fields: [
-    .init(name: .username, valueType: .string, required: true, encrypted: false, maxLength: nil),
-    .init(name: .password, valueType: .string, required: true, encrypted: true, maxLength: nil),
-    .init(name: .uri, valueType: .string, required: true, encrypted: false, maxLength: nil),
-    .init(name: .description, valueType: .string, required: true, encrypted: true, maxLength: nil),
-  ],
-  favoriteID: .none,
-  location: .init(),
-  permissions: [],
-  tags: []
-)
+private let detailsViewResource: Resource = {
+  var mock: Resource = .init(
+    id: .mock_1,
+    path: .init(),
+    favoriteID: .none,
+    type: .mock_default,
+    permission: .owner,
+    tags: [
+      .init(
+        id: .mock_1,
+        slug: .init(rawValue: "mock_1"),
+        shared: false
+      )
+    ],
+    permissions: [
+      .user(
+        id: .mock_1,
+        permission: .owner,
+        permissionID: .mock_1
+      )
+    ],
+    modified: .init(rawValue: 0)
+  )
+  mock.uri = .string("https://passbolt.com")
+  mock.name = .string("Mock_1")
+  mock.username = .string("passbolt@passbolt.com")
+  return mock
+}()
+
+private let detailsViewResourceWithUnencryptedDescription: Resource = {
+  var mock: Resource = .init(
+    id: .mock_1,
+    path: .init(),
+    favoriteID: .none,
+    type: .init(
+      id: .mock_1,
+      slug: .mock_1,
+      name: "mock_1",
+      fields: [
+        .name,
+        .username,
+        .uri,
+        .password,
+        .description
+      ]
+    ),
+    permission: .owner,
+    tags: [
+      .init(
+        id: .mock_1,
+        slug: .init(rawValue: "mock_1"),
+        shared: false
+      )
+    ],
+    permissions: [
+      .user(
+        id: .mock_1,
+        permission: .owner,
+        permissionID: .mock_1
+      )
+    ],
+    modified: .init(rawValue: 0)
+  )
+  mock.uri = .string("https://passbolt.com")
+  mock.name = .string("Mock_1")
+  mock.username = .string("passbolt@passbolt.com")
+  mock.description = .string("Passbolt")
+  return mock
+}()
 
 private let resourceSecret: ResourceSecret = try! .from(
   decrypted: #"{"password" : "passbolt", "description": "encrypted description"}"#,

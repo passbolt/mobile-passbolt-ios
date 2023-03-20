@@ -215,7 +215,7 @@ extension FeaturesFactory: FeaturesContainer {
   where Feature: LoadableFeature {
     let cacheKey: CacheKey = .key(
       for: Feature.self,
-      context: context.identifier
+      context: (context as? LoadableFeatureContext)?.identifier
     )
 
     if let cached: Feature = self.cache[cacheKey]?.feature as? Feature {

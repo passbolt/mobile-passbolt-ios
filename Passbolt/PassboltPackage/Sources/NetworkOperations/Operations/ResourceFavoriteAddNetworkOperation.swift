@@ -47,10 +47,10 @@ public struct ResourceFavoriteAddNetworkOperationVariable {
 
 public struct ResourceFavoriteAddNetworkOperationResult: Decodable {
 
-  public var favoriteID: Resource.FavoriteID
+  public var favoriteID: Resource.Favorite.ID
 
   public init(
-    favoriteID: Resource.FavoriteID
+    favoriteID: Resource.Favorite.ID
   ) {
     self.favoriteID = favoriteID
   }

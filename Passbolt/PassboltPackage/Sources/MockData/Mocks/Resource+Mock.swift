@@ -32,7 +32,7 @@ extension Resource.ID {
   public static let mock_3: Self = .init(rawValue: "58C4204F-75B6-40F0-8642-874C934001CA")
 }
 
-extension Resource.FavoriteID {
+extension Resource.Favorite.ID {
 
   public static let mock_1: Self = .init(rawValue: "CEB02F9B-81D1-4C43-9BDC-30D95848897F")
 

@@ -39,12 +39,9 @@ internal struct OTPContextualMenuController {
 
 extension OTPContextualMenuController: ViewController {
 
-  internal struct Context: LoadableFeatureContext {
-
-    internal var identifier: AnyHashable { self.resourceID }
-
+  internal struct Context {
+    
     internal var resourceID: Resource.ID
-
     internal var showMessage: @MainActor (SnackBarMessage) -> Void
   }
 
@@ -97,7 +94,7 @@ extension OTPContextualMenuController {
       failMessage: "Loading resource details failed!"
     ) {
       for await _ in resourceDetails.updates {
-        let resourceName: String = try await resourceDetails.details().name
+        let resourceName: String = try await resourceDetails.details().name?.stringValue ?? ""
         await viewState
           .update(
             \.title,

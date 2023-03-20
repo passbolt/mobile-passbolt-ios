@@ -31,7 +31,7 @@ import Users
 internal struct UserPermissionEditController {
 
   internal var viewState: ObservableValue<ViewState>
-  internal var setPermissionType: @MainActor (PermissionType) -> Void
+  internal var setPermissionType: @MainActor (Permission) -> Void
   internal var saveChanges: @MainActor () -> Void
   internal var deletePermission: @MainActor () -> Void
   internal var navigateBack: () -> Void
@@ -66,16 +66,16 @@ extension UserPermissionEditController: ComponentController {
         ),
         username: .raw(context.permissionDetails.username),
         fingerprint: context.permissionDetails.fingerprint,
-        permissionType: context.permissionDetails.permissionType,
+        permission: context.permissionDetails.permission,
         avatarImageFetch: userDetails.avatarImage
       )
     )
 
     @MainActor func setPermissionType(
-      _ type: PermissionType
+      _ type: Permission
     ) {
       viewState
-        .set(\.permissionType, to: type)
+        .set(\.permission, to: type)
     }
 
     @MainActor func saveChanges() {
@@ -83,7 +83,7 @@ extension UserPermissionEditController: ComponentController {
         await resourceShareForm
           .setUserPermission(
             context.permissionDetails.id,
-            viewState.permissionType
+            viewState.permission
           )
         await navigation.pop(if: UserPermissionEditView.self)
       }

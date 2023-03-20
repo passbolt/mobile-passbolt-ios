@@ -29,5 +29,5 @@ public typealias ResourceFoldersStoreDatabaseOperation = DatabaseOperation<
 
 public enum ResourceFoldersStoreDatabaseOperationDescription: DatabaseOperationDescription {
 
-  public typealias Input = Array<ResourceFolderDSO>
+  public typealias Input = Array<ResourceFolderDTO>
 }

@@ -23,17 +23,70 @@
 
 import CommonModels
 
-extension ResourceFolderLocationItemDSV {
+extension ResourceField {
 
-  public static var mock_1: Self = .init(
-    folderID: .mock_1,
-    folderName: "mock_1",
-    folderShared: false
+  public static let name: Self = .init(
+    name: "name",
+    content: .string(
+      encrypted: false,
+      required: true,
+      minLength: 0,
+      maxLength: .none
+    )
   )
 
-  public static var mock_2: Self = .init(
-    folderID: .mock_2,
-    folderName: "mock_2",
-    folderShared: true
+  public static let username: Self = .init(
+    name: "username",
+    content: .string(
+      encrypted: false,
+      required: false,
+      minLength: .none,
+      maxLength: .none
+    )
+  )
+
+  public static let uri: Self = .init(
+    name: "uri",
+    content: .string(
+      encrypted: false,
+      required: false,
+      minLength: .none,
+      maxLength: .none
+    )
+  )
+
+  public static let password: Self = .init(
+    name: "password",
+    content: .string(
+      encrypted: true,
+      required: true,
+      minLength: .none,
+      maxLength: .none
+    )
+  )
+
+  public static let description: Self = .init(
+    name: "description",
+    content: .string(
+      encrypted: false,
+      required: false,
+      minLength: .none,
+      maxLength: .none
+    )
+  )
+
+  public static let descriptionEncrypted: Self = .init(
+    name: "description",
+    content: .string(
+      encrypted: true,
+      required: false,
+      minLength: .none,
+      maxLength: .none
+    )
+  )
+
+  public static let totp: Self = .init(
+    name: "totp",
+    content: .totp(required: true)
   )
 }

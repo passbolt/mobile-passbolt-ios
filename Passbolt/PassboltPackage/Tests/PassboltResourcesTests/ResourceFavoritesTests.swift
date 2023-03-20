@@ -58,11 +58,11 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
   }
 
   func test_toggleFavorite_throws_whenNetworkRequestThrows_whenAddingFavorite() {
-    var resourceDetails: ResourceDetailsDSV = .mock_1
+    var resourceDetails: Resource = .mock_1
     resourceDetails.favoriteID = .none
     patch(
       \ResourceDetails.details,
-      context: resourceDetails.id,
+      context: resourceDetails.id!,
       with: always(resourceDetails)
     )
     patch(
@@ -72,18 +72,18 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
 
     withTestedInstanceThrows(
       MockIssue.self,
-      context: resourceDetails.id
+      context: resourceDetails.id!
     ) { (testedInstance: ResourceFavorites) in
       try await testedInstance.toggleFavorite()
     }
   }
 
   func test_toggleFavorite_throws_whenDatabaseUpdateThrows_whenAddingFavorite() {
-    var resourceDetails: ResourceDetailsDSV = .mock_1
+    var resourceDetails: Resource = .mock_1
     resourceDetails.favoriteID = .none
     patch(
       \ResourceDetails.details,
-      context: resourceDetails.id,
+      context: resourceDetails.id!,
       with: always(resourceDetails)
     )
     patch(
@@ -97,18 +97,18 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
 
     withTestedInstanceThrows(
       MockIssue.self,
-      context: resourceDetails.id
+      context: resourceDetails.id!
     ) { (testedInstance: ResourceFavorites) in
       try await testedInstance.toggleFavorite()
     }
   }
 
   func test_toggleFavorite_throws_whenNetworkRequestThrows_whenRemovingFavorite() {
-    var resourceDetails: ResourceDetailsDSV = .mock_1
+    var resourceDetails: Resource = .mock_1
     resourceDetails.favoriteID = .mock_1
     patch(
       \ResourceDetails.details,
-      context: resourceDetails.id,
+      context: resourceDetails.id!,
       with: always(resourceDetails)
     )
     patch(
@@ -118,18 +118,18 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
 
     withTestedInstanceThrows(
       MockIssue.self,
-      context: resourceDetails.id
+      context: resourceDetails.id!
     ) { (testedInstance: ResourceFavorites) in
       try await testedInstance.toggleFavorite()
     }
   }
 
   func test_toggleFavorite_throws_whenDatabaseUpdateThrows_whenRemovingFavorite() {
-    var resourceDetails: ResourceDetailsDSV = .mock_1
+    var resourceDetails: Resource = .mock_1
     resourceDetails.favoriteID = .mock_1
     patch(
       \ResourceDetails.details,
-      context: resourceDetails.id,
+      context: resourceDetails.id!,
       with: always(resourceDetails)
     )
     patch(
@@ -143,18 +143,18 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
 
     withTestedInstanceThrows(
       MockIssue.self,
-      context: resourceDetails.id
+      context: resourceDetails.id!
     ) { (testedInstance: ResourceFavorites) in
       try await testedInstance.toggleFavorite()
     }
   }
 
   func test_toggleFavorite_removesFavorite_whenCurrentDetailsHaveFavorite() {
-    var resourceDetails: ResourceDetailsDSV = .mock_1
+    var resourceDetails: Resource = .mock_1
     resourceDetails.favoriteID = .mock_1
     patch(
       \ResourceDetails.details,
-      context: resourceDetails.id,
+      context: resourceDetails.id!,
       with: always(resourceDetails)
     )
     patch(
@@ -170,18 +170,18 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
 
     withTestedInstanceExecuted(
       using: resourceDetails.favoriteID,
-      context: resourceDetails.id
+      context: resourceDetails.id!
     ) { (testedInstance: ResourceFavorites) in
       try await testedInstance.toggleFavorite()
     }
   }
 
   func test_toggleFavorite_removesFavoriteFromDatabase_whenCurrentDetailsHaveNoFavorite() {
-    var resourceDetails: ResourceDetailsDSV = .mock_1
+    var resourceDetails: Resource = .mock_1
     resourceDetails.favoriteID = .mock_1
     patch(
       \ResourceDetails.details,
-      context: resourceDetails.id,
+      context: resourceDetails.id!,
       with: always(resourceDetails)
     )
     patch(
@@ -196,19 +196,19 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
     )
 
     withTestedInstanceExecuted(
-      using: Optional<Resource.FavoriteID>.none,
-      context: resourceDetails.id
+      using: Optional<Resource.Favorite.ID>.none,
+      context: resourceDetails.id!
     ) { (testedInstance: ResourceFavorites) in
       try await testedInstance.toggleFavorite()
     }
   }
 
   func test_toggleFavorite_addsFavorite_whenCurrentDetailsHaveNoFavorite() {
-    var resourceDetails: ResourceDetailsDSV = .mock_1
+    var resourceDetails: Resource = .mock_1
     resourceDetails.favoriteID = .none
     patch(
       \ResourceDetails.details,
-      context: resourceDetails.id,
+      context: resourceDetails.id!,
       with: always(resourceDetails)
     )
     patch(
@@ -223,19 +223,19 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
     )
 
     withTestedInstanceExecuted(
-      context: resourceDetails.id
+      context: resourceDetails.id!
     ) { (testedInstance: ResourceFavorites) in
       try await testedInstance.toggleFavorite()
     }
   }
 
   func test_toggleFavorite_addsFavoriteToDatabase_whenCurrentDetailsHaveNoFavorite() {
-    let expectedFavoriteID: Resource.FavoriteID = .mock_1
-    var resourceDetails: ResourceDetailsDSV = .mock_1
+    let expectedFavoriteID: Resource.Favorite.ID = .mock_1
+    var resourceDetails: Resource = .mock_1
     resourceDetails.favoriteID = .none
     patch(
       \ResourceDetails.details,
-      context: resourceDetails.id,
+      context: resourceDetails.id!,
       with: always(resourceDetails)
     )
     patch(
@@ -251,7 +251,7 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
 
     withTestedInstanceExecuted(
       using: expectedFavoriteID,
-      context: resourceDetails.id
+      context: resourceDetails.id!
     ) { (testedInstance: ResourceFavorites) in
       try await testedInstance.toggleFavorite()
     }

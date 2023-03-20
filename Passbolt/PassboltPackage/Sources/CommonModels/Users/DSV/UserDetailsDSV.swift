@@ -49,4 +49,4 @@ public struct UserDetailsDSV {
   }
 }
 
-extension UserDetailsDSV: DSV {}
+extension UserDetailsDSV: Hashable {}

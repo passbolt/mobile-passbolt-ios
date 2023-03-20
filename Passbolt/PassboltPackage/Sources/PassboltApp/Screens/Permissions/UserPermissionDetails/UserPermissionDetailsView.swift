@@ -106,7 +106,7 @@ internal struct UserPermissionDetailsView: ComponentView {
         )
 
         ResourcePermissionTypeView(
-          permissionType: self.state.permissionDetails.permissionType
+          permission: self.state.permissionDetails.permission
         )
         .frame(alignment: .leading)
       }

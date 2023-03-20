@@ -23,19 +23,62 @@
 
 import CommonModels
 
-extension ResourceDetailsDSV {
+extension Resource {
 
-  public static let mock_1: Self = .init(
-    id: .mock_1,
-    permissionType: .owner,
-    name: "Mock_1",
-    url: .none,
-    username: .none,
-    description: .none,
-    fields: .init(),
-    favoriteID: .none,
-    location: .init(),
-    permissions: .init(),
-    tags: .init()
-  )
+  public static let mock_1: Self = {
+    var mock: Resource = .init(
+      id: .mock_1,
+      path: .init(),
+      favoriteID: .none,
+      type: .mock_1,
+      permission: .owner,
+      tags: [
+        .init(
+          id: .mock_1,
+          slug: .init(rawValue: "mock_1"),
+          shared: false
+        )
+      ],
+      permissions: [
+        .user(
+          id: .mock_1,
+          permission: .owner,
+          permissionID: .mock_1
+        )
+      ],
+      modified: .init(rawValue: 0)
+    )
+    mock.name = .string("Mock_1")
+    mock.password = .string("R@nD0m")
+    return mock
+  }()
+  
+  public static let mock_2: Self = {
+    var mock: Resource = .init(
+      id: .mock_2,
+      path: .init(),
+      favoriteID: .none,
+      type: .mock_2,
+      permission: .owner,
+      tags: [
+        .init(
+          id: .mock_1,
+          slug: .init(rawValue: "mock_1"),
+          shared: false
+        )
+      ],
+      permissions: [
+        .user(
+          id: .mock_1,
+          permission: .owner,
+          permissionID: .mock_2
+        )
+      ],
+      modified: .init(rawValue: 0)
+    )
+    mock.name = .string("Mock_1")
+    mock.password = .string("R@nD0m")
+    return mock
+  }()
 }
+

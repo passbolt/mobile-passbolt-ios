@@ -32,7 +32,7 @@ import UIComponents
 internal struct ResourceMenuController {
 
   internal var availableActionsPublisher: @MainActor () -> AnyPublisher<Array<Action>, Never>
-  internal var resourceDetailsPublisher: @MainActor () -> AnyPublisher<ResourceDetailsDSV, Error>
+  internal var resourceDetailsPublisher: @MainActor () -> AnyPublisher<Resource, Error>
   internal var performAction: @MainActor (Action) -> AnyPublisher<Void, Error>
 }
 
@@ -80,7 +80,7 @@ extension ResourceMenuController: UIController {
     let pasteboard: OSPasteboard = features.instance()
     let resourceFavorites: ResourceFavorites = try features.instance(context: context.resourceID)
 
-    let currentDetailsSubject: CurrentValueSubject<ResourceDetailsDSV?, Error> = .init(
+    let currentResourceSubject: CurrentValueSubject<Resource?, Error> = .init(
       nil
     )
 
@@ -90,17 +90,17 @@ extension ResourceMenuController: UIController {
         receiveCompletion: { completion in
           guard case let .failure(error) = completion
           else { return }
-          currentDetailsSubject.send(completion: .failure(error))
+          currentResourceSubject.send(completion: .failure(error))
           diagnostics.log(error: error)
         },
         receiveValue: { resourceDetails in
-          currentDetailsSubject.send(resourceDetails)
+          currentResourceSubject.send(resourceDetails)
         }
       )
       .store(in: cancellables)
 
     func availableActionsPublisher() -> AnyPublisher<Array<Action>, Never> {
-      currentDetailsSubject
+      currentResourceSubject
         .compactMap { resourceDetails -> Array<Action>? in
           guard let resourceDetails = resourceDetails
           else { return nil }
@@ -108,7 +108,7 @@ extension ResourceMenuController: UIController {
           var availableActions: Array<Action> = .init()
 
           if resourceDetails.fields.contains(where: { field in
-            if case .uri = field.name {
+            if case "uri" = field.name {
               return true
             }
             else {
@@ -120,7 +120,7 @@ extension ResourceMenuController: UIController {
           }  // else skip
 
           if resourceDetails.fields.contains(where: { field in
-            if case .username = field.name {
+            if case "username" = field.name {
               return true
             }
             else {
@@ -131,7 +131,7 @@ extension ResourceMenuController: UIController {
           }  // else skip
 
           if resourceDetails.fields.contains(where: { field in
-            if case .password = field.name {
+            if case "password" = field.name {
               return true
             }
             else {
@@ -142,7 +142,7 @@ extension ResourceMenuController: UIController {
           }  // else skip
 
           if resourceDetails.fields.contains(where: { field in
-            if case .description = field.name {
+            if case "description" = field.name {
               return true
             }
             else {
@@ -154,11 +154,11 @@ extension ResourceMenuController: UIController {
 
           availableActions.append(.toggleFavorite(resourceDetails.favoriteID != .none))
 
-          if resourceDetails.permissionType.canShare {
+          if resourceDetails.permission.canShare {
             availableActions.append(.share)
           }  // else skip
 
-          if resourceDetails.permissionType.canEdit {
+          if resourceDetails.permission.canEdit {
             availableActions.append(.edit)
             availableActions.append(.delete)
           }  // else skip
@@ -169,21 +169,20 @@ extension ResourceMenuController: UIController {
         .eraseToAnyPublisher()
     }
 
-    func resourceDetailsPublisher() -> AnyPublisher<ResourceDetailsDSV, Error> {
-      currentDetailsSubject
+    func resourceDetailsPublisher() -> AnyPublisher<Resource, Error> {
+      currentResourceSubject
         .filterMapOptional()
         .eraseToAnyPublisher()
     }
 
     func openURLAction() -> AnyPublisher<Void, Error> {
-      currentDetailsSubject
+      currentResourceSubject
         .first()
-        .map { resourceDetails -> AnyPublisher<Void, Error> in
+        .map { resource -> AnyPublisher<Void, Error> in
           guard
-            let resourceDetails = resourceDetails,
-            let field: ResourceFieldDSV = resourceDetails
-              .fields
-              .first(where: { $0.name == .username })
+            let resource = resource,
+            let resourceID = resource.id,
+            let field: ResourceField = resource.type.uri
           else {
             return Fail<Void, Error>(error: InvalidResourceData.error())
               .eraseToAnyPublisher()
@@ -192,9 +191,9 @@ extension ResourceMenuController: UIController {
           if field.encrypted {
             return
               resources
-              .loadResourceSecret(resourceDetails.id)
+              .loadResourceSecret(resourceID)
               .map { resourceSecret -> AnyPublisher<Void, Error> in
-                if let secret: String = resourceSecret[dynamicMember: field.name.rawValue] {
+                if let secret: String = resourceSecret.value(for: field)?.stringValue {
                   return Just(Void())
                     .setFailureType(to: Error.self)
                     .asyncMap {
@@ -216,7 +215,7 @@ extension ResourceMenuController: UIController {
               .switchToLatest()
               .eraseToAnyPublisher()
           }
-          else if let value: String = resourceDetails.url {
+          else if let value: String = resource.uri?.stringValue {
 
             return Just(Void())
               .setFailureType(to: Error.self)
@@ -236,14 +235,13 @@ extension ResourceMenuController: UIController {
     }
 
     func copyURLAction() -> AnyPublisher<Void, Error> {
-      currentDetailsSubject
+      currentResourceSubject
         .first()
-        .map { resourceDetails -> AnyPublisher<Void, Error> in
+        .map { resource -> AnyPublisher<Void, Error> in
           guard
-            let resourceDetails = resourceDetails,
-            let field: ResourceFieldDSV = resourceDetails
-              .fields
-              .first(where: { $0.name == .uri })
+            let resource = resource,
+            let resourceID = resource.id,
+            let field: ResourceField = resource.type.uri
           else {
             return Fail<Void, Error>(error: InvalidResourceData.error())
               .eraseToAnyPublisher()
@@ -252,9 +250,9 @@ extension ResourceMenuController: UIController {
           if field.encrypted {
             return
               resources
-              .loadResourceSecret(resourceDetails.id)
+              .loadResourceSecret(resourceID)
               .map { resourceSecret -> AnyPublisher<String, Error> in
-                if let secret: String = resourceSecret[dynamicMember: field.name.rawValue] {
+                if let secret: String = resourceSecret.value(for: field)?.stringValue {
                   return Just(secret)
                     .eraseErrorType()
                     .eraseToAnyPublisher()
@@ -276,7 +274,7 @@ extension ResourceMenuController: UIController {
               .mapToVoid()
               .eraseToAnyPublisher()
           }
-          else if let value: String = resourceDetails.url {
+          else if let value: String = resource.uri?.stringValue {
             return Just(Void())
               .eraseErrorType()
               .handleEvents(receiveOutput: { _ in
@@ -294,14 +292,13 @@ extension ResourceMenuController: UIController {
     }
 
     func copyPasswordAction() -> AnyPublisher<Void, Error> {
-      currentDetailsSubject
+      currentResourceSubject
         .first()
-        .map { resourceDetails -> AnyPublisher<Void, Error> in
+        .map { resource -> AnyPublisher<Void, Error> in
           guard
-            let resourceDetails = resourceDetails,
-            let field: ResourceFieldDSV = resourceDetails
-              .fields
-              .first(where: { $0.name == .password })
+            let resource = resource,
+            let resourceID = resource.id,
+            let field: ResourceField = resource.type.password
           else {
             return Fail<Void, Error>(error: InvalidResourceData.error())
               .eraseToAnyPublisher()
@@ -310,9 +307,9 @@ extension ResourceMenuController: UIController {
           if field.encrypted {
             return
               resources
-              .loadResourceSecret(resourceDetails.id)
+              .loadResourceSecret(resourceID)
               .map { resourceSecret -> AnyPublisher<String, Error> in
-                if let secret: String = resourceSecret[dynamicMember: field.name.rawValue] {
+                if let secret: String = resourceSecret.value(for: field)?.stringValue {
                   return Just(secret)
                     .eraseErrorType()
                     .eraseToAnyPublisher()
@@ -344,14 +341,13 @@ extension ResourceMenuController: UIController {
     }
 
     func copyUsernameAction() -> AnyPublisher<Void, Error> {
-      currentDetailsSubject
+      currentResourceSubject
         .first()
-        .map { resourceDetails -> AnyPublisher<Void, Error> in
+        .map { resource -> AnyPublisher<Void, Error> in
           guard
-            let resourceDetails = resourceDetails,
-            let field: ResourceFieldDSV = resourceDetails
-              .fields
-              .first(where: { $0.name == .username })
+            let resource = resource,
+            let resourceID = resource.id,
+            let field: ResourceField = resource.type.username
           else {
             return Fail<Void, Error>(error: InvalidResourceData.error())
               .eraseToAnyPublisher()
@@ -360,9 +356,9 @@ extension ResourceMenuController: UIController {
           if field.encrypted {
             return
               resources
-              .loadResourceSecret(resourceDetails.id)
+              .loadResourceSecret(resourceID)
               .map { resourceSecret -> AnyPublisher<String, Error> in
-                if let secret: String = resourceSecret[dynamicMember: field.name.rawValue] {
+                if let secret: String = resourceSecret.value(for: field)?.stringValue {
                   return Just(secret)
                     .eraseErrorType()
                     .eraseToAnyPublisher()
@@ -384,7 +380,7 @@ extension ResourceMenuController: UIController {
               .mapToVoid()
               .eraseToAnyPublisher()
           }
-          else if let value: String = resourceDetails.username {
+          else if let value: String = resource.username?.stringValue {
             return Just(Void())
               .eraseErrorType()
               .handleEvents(receiveOutput: { _ in
@@ -402,14 +398,13 @@ extension ResourceMenuController: UIController {
     }
 
     func copyDescriptionAction() -> AnyPublisher<Void, Error> {
-      currentDetailsSubject
+      currentResourceSubject
         .first()
-        .map { resourceDetails -> AnyPublisher<Void, Error> in
+        .map { resource -> AnyPublisher<Void, Error> in
           guard
-            let resourceDetails = resourceDetails,
-            let field: ResourceFieldDSV = resourceDetails
-              .fields
-              .first(where: { $0.name == .description })
+            let resource = resource,
+            let resourceID = resource.id,
+            let field: ResourceField = resource.type.description
           else {
             return Fail<Void, Error>(error: InvalidResourceData.error())
               .eraseToAnyPublisher()
@@ -418,9 +413,9 @@ extension ResourceMenuController: UIController {
           if field.encrypted {
             return
               resources
-              .loadResourceSecret(resourceDetails.id)
+              .loadResourceSecret(resourceID)
               .map { resourceSecret -> AnyPublisher<String, Error> in
-                if let secret: String = resourceSecret[dynamicMember: field.name.rawValue] {
+                if let secret: String = resourceSecret.value(for: field)?.stringValue {
                   return Just(secret)
                     .eraseErrorType()
                     .eraseToAnyPublisher()
@@ -442,7 +437,7 @@ extension ResourceMenuController: UIController {
               .mapToVoid()
               .eraseToAnyPublisher()
           }
-          else if let value: String = resourceDetails.description {
+          else if let value: String = resource.description?.stringValue {
             return Just(Void())
               .eraseErrorType()
               .handleEvents(receiveOutput: { _ in
@@ -476,16 +471,18 @@ extension ResourceMenuController: UIController {
     }
 
     func shareAction() -> AnyPublisher<Void, Error> {
-      currentDetailsSubject
+      currentResourceSubject
         .first()
-        .map { resourceDetails -> AnyPublisher<Void, Error> in
-          guard let resourceDetails = resourceDetails
+        .map { resource -> AnyPublisher<Void, Error> in
+          guard
+            let resource = resource,
+            let resourceID = resource.id
           else {
             return Fail<Void, Error>(error: InvalidResourceData.error())
               .eraseToAnyPublisher()
           }
 
-          guard resourceDetails.permissionType.canShare
+          guard resource.permission.canShare
           else {
             return Fail<Void, Error>(
               error: ResourcePermissionRequired.error()
@@ -493,7 +490,7 @@ extension ResourceMenuController: UIController {
             .eraseToAnyPublisher()
           }
 
-          return Just(context.showShare(resourceDetails.id))
+          return Just(context.showShare(resourceID))
             .eraseErrorType()
             .eraseToAnyPublisher()
         }
@@ -502,16 +499,18 @@ extension ResourceMenuController: UIController {
     }
 
     func editAction() -> AnyPublisher<Void, Error> {
-      currentDetailsSubject
+      currentResourceSubject
         .first()
-        .map { resourceDetails -> AnyPublisher<Void, Error> in
-          guard let resourceDetails = resourceDetails
+        .map { resource -> AnyPublisher<Void, Error> in
+          guard
+            let resource = resource,
+            let resourceID = resource.id
           else {
             return Fail<Void, Error>(error: InvalidResourceData.error())
               .eraseToAnyPublisher()
           }
 
-          guard resourceDetails.permissionType.canEdit
+          guard resource.permission.canEdit
           else {
             return Fail<Void, Error>(
               error: ResourcePermissionRequired.error()
@@ -519,7 +518,7 @@ extension ResourceMenuController: UIController {
             .eraseToAnyPublisher()
           }
 
-          return Just(context.showEdit(resourceDetails.id))
+          return Just(context.showEdit(resourceID))
             .eraseErrorType()
             .eraseToAnyPublisher()
         }
@@ -528,16 +527,18 @@ extension ResourceMenuController: UIController {
     }
 
     func deleteAction() -> AnyPublisher<Void, Error> {
-      currentDetailsSubject
+      currentResourceSubject
         .first()
-        .map { resourceDetails -> AnyPublisher<Void, Error> in
-          guard let resourceDetails = resourceDetails
+        .map { resource -> AnyPublisher<Void, Error> in
+          guard
+            let resource = resource,
+            let resourceID = resource.id
           else {
             return Fail<Void, Error>(error: InvalidResourceData.error())
               .eraseToAnyPublisher()
           }
 
-          guard resourceDetails.permissionType.canEdit
+          guard resource.permission.canEdit
           else {
             return Fail<Void, Error>(
               error: ResourcePermissionRequired.error()
@@ -545,7 +546,7 @@ extension ResourceMenuController: UIController {
             .eraseToAnyPublisher()
           }
 
-          return Just(context.showDeleteAlert(resourceDetails.id))
+          return Just(context.showDeleteAlert(resourceID))
             .eraseErrorType()
             .eraseToAnyPublisher()
         }

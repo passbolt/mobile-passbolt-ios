@@ -356,9 +356,12 @@ final class AccountChunkedExportTests: LoadableFeatureTestCase<AccountChunkedExp
           1,
           content: mockDataPart_1
         ),
-      timeout: 3
+      timeout: 1
     ) { feature in
-      Task { await self.mockExecutionControl.executeAll() }
+      Task {
+        try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+        await self.mockExecutionControl.executeAll()
+      }
       try await feature.authorize(.biometrics)
       return
         await feature

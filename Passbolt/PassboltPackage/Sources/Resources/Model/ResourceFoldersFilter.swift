@@ -29,14 +29,14 @@ public struct ResourceFoldersFilter {
   public var text: String
   public var folderID: ResourceFolder.ID?  // none means root
   public var flattenContent: Bool
-  public var permissions: OrderedSet<PermissionType>
+  public var permissions: OrderedSet<Permission>
 
   public init(
     sorting: ResourcesSorting,
     text: String,
     folderID: ResourceFolder.ID?,
     flattenContent: Bool,
-    permissions: OrderedSet<PermissionType>
+    permissions: OrderedSet<Permission>
   ) {
     self.sorting = sorting
     self.text = text

@@ -38,7 +38,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
         				SELECT
         					resourceFolders.id AS id,
         					resourceFolders.name AS name,
-        					resourceFolders.permissionType AS permissionType,
+        					resourceFolders.permission AS permission,
         					resourceFolders.shared AS shared,
         					resourceFolders.parentFolderID AS parentFolderID
         				FROM
@@ -99,7 +99,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
         				SELECT
         					usersResourceFolders.userID AS userID,
         					usersResourceFolders.resourceFolderID AS folderID,
-        					usersResourceFolders.permissionType AS permissionType,
+        					usersResourceFolders.permission AS permission,
         					usersResourceFolders.permissionID AS permissionID
         				FROM
         					usersResourceFolders
@@ -115,7 +115,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
         				SELECT
         					userGroupsResourceFolders.userGroupID AS userGroupID,
         					userGroupsResourceFolders.resourceFolderID AS folderID,
-        					userGroupsResourceFolders.permissionType AS permissionType,
+        					userGroupsResourceFolders.permission AS permission,
         					userGroupsResourceFolders.permissionID AS permissionID
         				FROM
         					userGroupsResourceFolders
@@ -132,7 +132,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
           let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
           let name: String = dataRow.name,
           let shared: Bool = dataRow.shared,
-          let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:))
+          let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:))
         else {
           throw
             DatabaseIssue
@@ -144,13 +144,13 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
             .recording(dataRow, for: "dataRow")
         }
 
-        let usersPermissions: Array<ResourceFolderPermissionDSV> = try connection.fetch(
+        let usersPermissions: Array<ResourceFolderPermission> = try connection.fetch(
           using: selectFolderUsersPermissionsStatement
         ) {
           dataRow in
           guard
             let userID: User.ID = dataRow.userID.flatMap(User.ID.init(rawValue:)),
-            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
+            let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:)),
             let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
           else {
             throw
@@ -158,23 +158,23 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
               .error(
                 underlyingError:
                   DatabaseDataInvalid
-                  .error(for: PermissionTypeDSV.self)
+                  .error(for: Permission.self)
               )
           }
 
           return .user(
             id: userID,
-            type: permissionType,
+            permission: permission,
             permissionID: permissionID
           )
         }
 
-        let userGroupsPermissions: Array<ResourceFolderPermissionDSV> = try connection.fetch(
+        let userGroupsPermissions: Array<ResourceFolderPermission> = try connection.fetch(
           using: selectFolderUserGroupsPermissionsStatement
         ) { dataRow in
           guard
             let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(rawValue:)),
-            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
+            let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:)),
             let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
           else {
             throw
@@ -182,22 +182,22 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
               .error(
                 underlyingError:
                   DatabaseDataInvalid
-                  .error(for: PermissionDSV.self)
+                  .error(for: Permission.self)
               )
           }
 
           return .userGroup(
             id: userGroupID,
-            type: permissionType,
+            permission: permission,
             permissionID: permissionID
           )
         }
 
         let parentFolderID: ResourceFolder.ID? = dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:))
 
-        let location: Array<ResourceFolderLocationItemDSV>
+        let path: Array<ResourceFolderPathItem>
         if let parentFolderID: ResourceFolder.ID = parentFolderID {
-          location = try connection.fetch(
+          path = try connection.fetch(
             using:
               selectResourceFolderLocationStatement
               .appendingArgument(parentFolderID)
@@ -212,29 +212,29 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
                 .error(
                   underlyingError:
                     DatabaseDataInvalid
-                    .error(for: ResourceFolderLocationItemDSV.self)
+                    .error(for: ResourceFolderPathItem.self)
                 )
             }
 
-            return ResourceFolderLocationItemDSV(
-              folderID: id,
-              folderName: name,
-              folderShared: shared
+            return ResourceFolderPathItem(
+              id: id,
+              name: name,
+              shared: shared
             )
           }
           .reversed()
         }
         else {
-          location = .init()
+          path = .init()
         }
 
         return ResourceFolderDetailsDSV(
           id: id,
           name: name,
-          permissionType: permissionType,
+          permission: permission,
           shared: shared,
           parentFolderID: parentFolderID,
-          location: location,
+          path: path,
           permissions: OrderedSet(usersPermissions + userGroupsPermissions)
         )
       }

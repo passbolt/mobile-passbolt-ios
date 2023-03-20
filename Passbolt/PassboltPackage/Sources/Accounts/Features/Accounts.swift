@@ -64,6 +64,8 @@ public struct Accounts {
 
 extension Accounts: LoadableFeature {
 
+  public typealias Context = ContextlessLoadableFeatureContext
+
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(

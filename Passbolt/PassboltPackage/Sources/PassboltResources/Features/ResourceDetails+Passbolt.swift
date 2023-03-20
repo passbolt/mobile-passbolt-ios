@@ -43,20 +43,20 @@ extension ResourceDetails {
     let resourceSecretFetchNetworkOperation: ResourceSecretFetchNetworkOperation = try features.instance()
     let resourceDeleteNetworkOperation: ResourceDeleteNetworkOperation = try features.instance()
 
-    @Sendable nonisolated func fetchResourceDetails() async throws -> ResourceDetailsDSV {
+    @Sendable nonisolated func fetchResourceDetails() async throws -> Resource {
       try await resourceDetailsFetchDatabaseOperation(
         resourceID
       )
     }
 
-    let currentDetails: UpdatableValue<ResourceDetailsDSV> = .init(
+    let currentDetails: UpdatableValue<Resource> = .init(
       updatesSequence:
         sessionData
         .updatesSequence,
       update: fetchResourceDetails
     )
 
-    @Sendable nonisolated func details() async throws -> ResourceDetailsDSV {
+    @Sendable nonisolated func details() async throws -> Resource {
       try await currentDetails.value
     }
 

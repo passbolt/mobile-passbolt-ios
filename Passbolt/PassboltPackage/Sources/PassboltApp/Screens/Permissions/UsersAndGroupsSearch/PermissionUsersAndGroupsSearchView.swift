@@ -172,7 +172,7 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
                     },
                     rightAccesory: {
                       ResourcePermissionTypeCompactView(
-                        permissionType: permission
+                        permission: permission
                       )
                     }
                   )
@@ -184,7 +184,7 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
                     },
                     rightAccesory: {
                       ResourcePermissionTypeCompactView(
-                        permissionType: permission
+                        permission: permission
                       )
                     }
                   )
@@ -254,8 +254,8 @@ extension PermissionUsersAndGroupsSearchView {
 
   internal enum ExistingPermissionRowViewModel {
 
-    case user(UserListRowViewModel, permission: PermissionType)
-    case userGroup(UserGroupListRowViewModel, permission: PermissionType)
+    case user(UserListRowViewModel, permission: Permission)
+    case userGroup(UserGroupListRowViewModel, permission: Permission)
   }
 }
 

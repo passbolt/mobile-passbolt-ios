@@ -90,6 +90,24 @@ extension InvalidValue {
     )
   }
 
+  public static func null<Value>(
+    message: StaticString = "InvalidValue-null",
+    validationRule: StaticString = "nonNull",
+    value: Value,
+    displayable: DisplayableString,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    .error(
+      message,
+      validationRule: validationRule,
+      value: value,
+      displayable: displayable,
+      file: file,
+      line: line
+    )
+  }
+
   public static func empty<Value>(
     message: StaticString = "InvalidValue-empty",
     validationRule: StaticString = "nonEmpty",
@@ -147,6 +165,42 @@ extension InvalidValue {
   public static func notContains<Value>(
     message: StaticString = "InvalidValue-notContains",
     validationRule: StaticString = "contains",
+    value: Value,
+    displayable: DisplayableString,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    .error(
+      message,
+      validationRule: validationRule,
+      value: value,
+      displayable: displayable,
+      file: file,
+      line: line
+    )
+  }
+
+  public static func wrongType<Value>(
+    message: StaticString = "InvalidValue-wrongType",
+    validationRule: StaticString = "wrongType",
+    value: Value,
+    displayable: DisplayableString,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    .error(
+      message,
+      validationRule: validationRule,
+      value: value,
+      displayable: displayable,
+      file: file,
+      line: line
+    )
+  }
+
+  public static func invalid<Value>(
+    message: StaticString = "InvalidValue-invalid",
+    validationRule: StaticString = "invalid",
     value: Value,
     displayable: DisplayableString,
     file: StaticString = #fileID,

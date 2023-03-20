@@ -38,6 +38,8 @@ internal struct HomePresentation {
 
 extension HomePresentation: LoadableFeature {
 
+  public typealias Context = ContextlessLoadableFeatureContext
+
   #if DEBUG
   internal nonisolated static var placeholder: Self {
     .init(

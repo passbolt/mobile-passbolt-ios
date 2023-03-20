@@ -23,9 +23,7 @@
 
 import Commons
 
-public enum UserGroup {}
-
-extension UserGroup {
+public enum UserGroup {
 
   public typealias ID = Tagged<String, Self>
 }

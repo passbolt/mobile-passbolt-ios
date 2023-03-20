@@ -32,9 +32,9 @@ extension ResourceShareForm {
 
   fileprivate struct FormState: Hashable {
 
-    fileprivate var newPermissions: OrderedSet<NewPermissionDTO>
-    fileprivate var updatedPermissions: OrderedSet<PermissionDTO>
-    fileprivate var deletedPermissions: OrderedSet<PermissionDTO>
+    fileprivate let resourceID: Resource.ID
+    fileprivate var editedPermissions: OrderedSet<ResourcePermission>
+    fileprivate var deletedPermissions: OrderedSet<ResourcePermission>
   }
 
   @MainActor fileprivate static func load(
@@ -54,13 +54,13 @@ extension ResourceShareForm {
 
     let formState: AsyncVariable<FormState> = .init(
       initial: .init(
-        newPermissions: .init(),
-        updatedPermissions: .init(),
+        resourceID: resourceID,
+        editedPermissions: .init(),
         deletedPermissions: .init()
       )
     )
 
-    func existingPermissions() async -> OrderedSet<PermissionDTO> {
+    @Sendable func existingPermissions() async -> OrderedSet<ResourcePermission> {
       do {
         return try await resourceDetails.details().permissions
       }
@@ -70,154 +70,67 @@ extension ResourceShareForm {
       }
     }
 
-    nonisolated func permissionsSequence() -> AnyAsyncSequence<OrderedSet<ResourceShareFormPermission>> {
+    nonisolated func permissionsSequence() -> AnyAsyncSequence<OrderedSet<ResourcePermission>> {
       formState
-        .removeDuplicates()
-        .map { (formState: FormState) -> OrderedSet<ResourceShareFormPermission> in
-          let existingPermissions: OrderedSet<PermissionDTO> = await existingPermissions()
-          let existingPermissionsList: Array<ResourceShareFormPermission> =
-            existingPermissions
-            .compactMap { (permission: PermissionDSV) -> ResourceShareFormPermission? in
-              guard
-                !formState.deletedPermissions.contains(where: { $0.id == permission.id }),
-                !formState.updatedPermissions.contains(where: { $0.id == permission.id })
-              else { return .none }
-              switch permission {
-              case let .userToResource(_, userID, _, type):
-                return .user(userID, type: type)
-              case let .userGroupToResource(_, userGroupID, _, type):
-                return .userGroup(userGroupID, type: type)
-              case .userToFolder, .userGroupToFolder:
-                return .none
-              }
+        .map { (formState: FormState) -> OrderedSet<ResourcePermission> in
+          let existingPermissions: Array<ResourcePermission> = await existingPermissions()
+            .filter { (permission: ResourcePermission) -> Bool in
+              !formState.deletedPermissions
+                .contains(where: { $0.permissionID == permission.permissionID })
+                && !formState.editedPermissions.contains(where: { $0.permissionID == permission.permissionID })
             }
-
-          let updatedPermissionsList: OrderedSet<ResourceShareFormPermission> = .init(
-            formState
-              .updatedPermissions
-              .compactMap { (permission: PermissionDSV) -> ResourceShareFormPermission? in
-                switch permission {
-                case let .userToResource(_, userID, _, type):
-                  return .user(userID, type: type)
-                case let .userGroupToResource(_, userGroupID, _, type):
-                  return .userGroup(userGroupID, type: type)
-                case .userToFolder, .userGroupToFolder:
-                  return .none
-                }
-              }
-          )
-
-          let newPermissionsList: OrderedSet<ResourceShareFormPermission> = .init(
-            formState
-              .newPermissions
-              .compactMap { (permission: NewPermissionDTO) -> ResourceShareFormPermission? in
-                switch permission {
-                case let .userToResource(userID, _, type):
-                  return .user(userID, type: type)
-                case let .userGroupToResource(userGroupID, _, type):
-                  return .userGroup(userGroupID, type: type)
-                case .userToFolder, .userGroupToFolder:
-                  return .none
-                }
-              }
-          )
 
           return
             OrderedSet(
-              (existingPermissionsList
-                + updatedPermissionsList
-                + newPermissionsList)
-                .sorted {
-                  (lPermission: ResourceShareFormPermission, rPermission: ResourceShareFormPermission) -> Bool in
-                  switch (lPermission, rPermission) {
-                  case let (.user(lUserID, _), .user(rUserID, _)):
-                    return lUserID != rUserID
-                      && (existingPermissions.contains(where: { $0.userID == lUserID })
-                        && !existingPermissions.contains(where: { $0.userID == rUserID }))
-                  case let (.userGroup(lUserGroupID, _), .userGroup(rUserGroupID, _)):
-                    return lUserGroupID != rUserGroupID
-                      && (existingPermissions.contains(where: { $0.userGroupID == lUserGroupID })
-                        && !existingPermissions.contains(where: { $0.userGroupID == rUserGroupID }))
-                  case (.userGroup, .user):
-                    return true
-                  case (.user, .userGroup):
-                    return false
-                  }
+              (existingPermissions
+                + formState.editedPermissions)
+              .sorted {
+                (lPermission: ResourcePermission, rPermission: ResourcePermission) -> Bool in
+                switch (lPermission, rPermission) {
+                case (.userGroup, .user):
+                  return true
+
+                case (.userGroup(_, _, .some), .userGroup(_, _, .none)):
+                  return true
+
+                case (.user(_, _, .some), .user(_, _, .none)):
+                  return true
+
+                case _:
+                  return false
                 }
+              }
             )
         }
         .asAnyAsyncSequence()
     }
 
-    @Sendable nonisolated func currentPermissions() async -> OrderedSet<ResourceShareFormPermission> {
+    @Sendable nonisolated func currentPermissions() async -> OrderedSet<ResourcePermission> {
       let formState: FormState = formState.value
-      let existingPermissions: OrderedSet<PermissionDTO> = await existingPermissions()
-      let existingPermissionsList: Array<ResourceShareFormPermission> =
-        existingPermissions
-        .compactMap { (permission: PermissionDSV) -> ResourceShareFormPermission? in
-          guard
-            !formState.deletedPermissions.contains(where: { $0.id == permission.id }),
-            !formState.updatedPermissions.contains(where: { $0.id == permission.id })
-          else { return .none }
-          switch permission {
-          case let .userToResource(_, userID, _, type):
-            return .user(userID, type: type)
-          case let .userGroupToResource(_, userGroupID, _, type):
-            return .userGroup(userGroupID, type: type)
-          case .userToFolder, .userGroupToFolder:
-            return .none
-          }
+      let existingPermissions: Array<ResourcePermission> = await existingPermissions()
+        .filter { (permission: ResourcePermission) -> Bool in
+          !formState.deletedPermissions
+            .contains(where: { $0.permissionID == permission.permissionID })
+            && !formState.editedPermissions.contains(where: { $0.permissionID == permission.permissionID })
         }
-
-      let updatedPermissionsList: OrderedSet<ResourceShareFormPermission> = .init(
-        formState
-          .updatedPermissions
-          .compactMap { (permission: PermissionDSV) -> ResourceShareFormPermission? in
-            switch permission {
-            case let .userToResource(_, userID, _, type):
-              return .user(userID, type: type)
-            case let .userGroupToResource(_, userGroupID, _, type):
-              return .userGroup(userGroupID, type: type)
-            case .userToFolder, .userGroupToFolder:
-              return .none
-            }
-          }
-      )
-
-      let newPermissionsList: OrderedSet<ResourceShareFormPermission> = .init(
-        formState
-          .newPermissions
-          .compactMap { (permission: NewPermissionDTO) -> ResourceShareFormPermission? in
-            switch permission {
-            case let .userToResource(userID, _, type):
-              return .user(userID, type: type)
-            case let .userGroupToResource(userGroupID, _, type):
-              return .userGroup(userGroupID, type: type)
-            case .userToFolder, .userGroupToFolder:
-              return .none
-            }
-          }
-      )
 
       return
         OrderedSet(
-          (existingPermissionsList
-            + updatedPermissionsList
-            + newPermissionsList)
+          (existingPermissions
+            + formState.editedPermissions)
             .sorted {
-              (lPermission: ResourceShareFormPermission, rPermission: ResourceShareFormPermission) -> Bool in
+              (lPermission: ResourcePermission, rPermission: ResourcePermission) -> Bool in
               switch (lPermission, rPermission) {
-              case let (.user(lUserID, _), .user(rUserID, _)):
-                return lUserID != rUserID
-                  && (existingPermissions.contains(where: { $0.userID == lUserID })
-                    && !existingPermissions.contains(where: { $0.userID == rUserID }))
-              case let (.userGroup(lUserGroupID, _), .userGroup(rUserGroupID, _)):
-                return lUserGroupID != rUserGroupID
-                  && (existingPermissions.contains(where: { $0.userGroupID == lUserGroupID })
-                    && !existingPermissions.contains(where: { $0.userGroupID == rUserGroupID }))
               case (.userGroup, .user):
                 return true
-              case (.user, .userGroup):
+
+              case (.userGroup(_, _, .some), .userGroup(_, _, .none)):
+                return true
+
+              case (.user(_, _, .some), .user(_, _, .none)):
+                return true
+
+              case _:
                 return false
               }
             }
@@ -226,224 +139,174 @@ extension ResourceShareForm {
 
     @Sendable nonisolated func setUserPermission(
       _ userID: User.ID,
-      permissionType: PermissionType
+      permission: Permission
     ) async {
-      let existingPermissions: OrderedSet<PermissionDTO> = await existingPermissions()
-      let curentPermission: PermissionDTO? = existingPermissions.first { (permission: PermissionDTO) in
+      let existingPermissions: OrderedSet<ResourcePermission> = await existingPermissions()
+      let editedPermission: ResourcePermission?
+      if let curentPermission: ResourcePermission = existingPermissions.first(where: {
+        (permission: ResourcePermission) in
         permission.userID == userID
+      })
+      {
+        if curentPermission.permission == permission {
+          editedPermission = .none // existing permission is the same
+        }
+        else {
+          editedPermission = .user(
+            id: userID,
+            permission: permission,
+            permissionID: curentPermission.permissionID
+          )
+        }
+      }
+      else {
+        editedPermission = .user(
+          id: userID,
+          permission: permission,
+          permissionID: .none
+        )
       }
 
       return
         formState
         .withValue { (state: inout FormState) in
           state
-            .newPermissions
-            .removeAll { (permission: NewPermissionDTO) in
-              permission.userID == userID
-            }
-          state
-            .updatedPermissions
-            .removeAll { (permission: PermissionDTO) in
+            .editedPermissions
+            .removeAll { (permission: ResourcePermission) in
               permission.userID == userID
             }
           state
             .deletedPermissions
-            .removeAll { (permission: PermissionDTO) in
+            .removeAll { (permission: ResourcePermission) in
               permission.userID == userID
             }
 
-          if let curentPermission: PermissionDTO = curentPermission {
-            guard curentPermission.type != permissionType
-            else { return /* NOP */ }
-            state
-              .updatedPermissions
-              .append(
-                .userToResource(
-                  id: curentPermission.id,
-                  userID: userID,
-                  resourceID: resourceID,
-                  type: permissionType
-                )
-              )
-          }
-          else {
-            state
-              .newPermissions
-              .append(
-                .userToResource(
-                  userID: userID,
-                  resourceID: resourceID,
-                  type: permissionType
-                )
-              )
-          }
+          if let editedPermission {
+            state.editedPermissions.append(editedPermission)
+          } // else existing permission is used
         }
     }
 
     @Sendable nonisolated func deleteUserPermission(
       _ userID: User.ID
     ) async {
-      let existingPermissions: OrderedSet<PermissionDTO> = await existingPermissions()
+      let existingPermissions: OrderedSet<ResourcePermission> = await existingPermissions()
+
       formState
         .withValue { (state: inout FormState) in
           state
-            .newPermissions
-            .removeAll { (permission: NewPermissionDTO) in
+            .editedPermissions
+            .removeAll { (permission: ResourcePermission) in
               permission.userID == userID
             }
-          state
-            .updatedPermissions
-            .removeAll { (permission: PermissionDTO) in
-              permission.userID == userID
-            }
-          state
-            .deletedPermissions
-            .append(
-              contentsOf:
-                existingPermissions
-                .filter { (permission: PermissionDTO) in
-                  permission.userID == userID
-                }
-            )
+          if let deletedPermission: ResourcePermission = existingPermissions.first(where: {
+            (permission: ResourcePermission) in
+            permission.userID == userID
+          }) {
+            state
+              .deletedPermissions
+              .append(deletedPermission)
+          }  // else NOP
         }
     }
 
     @Sendable nonisolated func setUserGroupPermission(
       _ userGroupID: UserGroup.ID,
-      permissionType: PermissionType
+      permission: Permission
     ) async {
-      let existingPermissions: OrderedSet<PermissionDTO> = await existingPermissions()
-      formState
+      let existingPermissions: OrderedSet<ResourcePermission> = await existingPermissions()
+      let editedPermission: ResourcePermission?
+      if let curentPermission: ResourcePermission = existingPermissions.first(where: {
+        (permission: ResourcePermission) in
+        permission.userGroupID == userGroupID
+      })
+      {
+        if curentPermission.permission == permission {
+          editedPermission = .none // existing permission is the same
+        }
+        else {
+          editedPermission = .userGroup(
+            id: userGroupID,
+            permission: permission,
+            permissionID: curentPermission.permissionID
+          )
+        }
+      }
+      else {
+        editedPermission = .userGroup(
+          id: userGroupID,
+          permission: permission,
+          permissionID: .none
+        )
+      }
+
+      return
+        formState
         .withValue { (state: inout FormState) in
           state
-            .newPermissions
-            .removeAll { (permission: NewPermissionDTO) in
-              permission.userGroupID == userGroupID
-            }
-          state
-            .updatedPermissions
-            .removeAll { (permission: PermissionDTO) in
+            .editedPermissions
+            .removeAll { (permission: ResourcePermission) in
               permission.userGroupID == userGroupID
             }
           state
             .deletedPermissions
-            .removeAll { (permission: PermissionDTO) in
+            .removeAll { (permission: ResourcePermission) in
               permission.userGroupID == userGroupID
             }
 
-          let curentPermission: PermissionDTO? = existingPermissions.first { (permission: PermissionDTO) in
-            permission.userGroupID == userGroupID
-          }
-
-          if let curentPermission: PermissionDTO = curentPermission {
-            guard curentPermission.type != permissionType
-            else { return /* NOP */ }
-            state
-              .updatedPermissions
-              .append(
-                .userGroupToResource(
-                  id: curentPermission.id,
-                  userGroupID: userGroupID,
-                  resourceID: resourceID,
-                  type: permissionType
-                )
-              )
-          }
-          else {
-            state
-              .newPermissions
-              .append(
-                .userGroupToResource(
-                  userGroupID: userGroupID,
-                  resourceID: resourceID,
-                  type: permissionType
-                )
-              )
-          }
+          if let editedPermission {
+            state.editedPermissions.append(editedPermission)
+          } // else existing permission is used
         }
     }
 
     @Sendable nonisolated func deleteUserGroupPermission(
       _ userGroupID: UserGroup.ID
     ) async {
-      let existingPermissions: OrderedSet<PermissionDTO> = await existingPermissions()
+      let existingPermissions: OrderedSet<ResourcePermission> = await existingPermissions()
+
       formState
         .withValue { (state: inout FormState) in
           state
-            .newPermissions
-            .removeAll { (permission: NewPermissionDTO) in
+            .editedPermissions
+            .removeAll { (permission: ResourcePermission) in
               permission.userGroupID == userGroupID
             }
-          state
-            .updatedPermissions
-            .removeAll { (permission: PermissionDTO) in
-              permission.userGroupID == userGroupID
-            }
-          state
-            .deletedPermissions
-            .append(
-              contentsOf:
-                existingPermissions
-                .filter { (permission: PermissionDTO) in
-                  permission.userGroupID == userGroupID
-                }
-            )
+          if let deletedPermission: ResourcePermission = existingPermissions.first(where: {
+            (permission: ResourcePermission) in
+            permission.userGroupID == userGroupID
+          }) {
+            state
+              .deletedPermissions
+              .append(deletedPermission)
+          }  // else NOP
         }
     }
 
     @Sendable nonisolated func validate(
       formState: FormState
     ) async throws {
-      let existingPermissions: OrderedSet<PermissionDTO> = await existingPermissions()
-      let newPermissionsHasOwner: Bool =
-        formState
-        .newPermissions
-        .contains(
-          where: { (permission: NewPermissionDTO) in
-            permission.type.isOwner
-          }
-        )
+      let existingPermissions: Array<ResourcePermission> = await existingPermissions()
+        .filter { (permission: ResourcePermission) -> Bool in
+          !formState.deletedPermissions
+            .contains(where: { $0.permissionID == permission.permissionID })
+            && !formState.editedPermissions.contains(where: { $0.permissionID == permission.permissionID })
+        }
 
-      guard !newPermissionsHasOwner
-      else { return }
-
-      let updatedPermissionsHasOwner: Bool =
-        formState
-        .updatedPermissions
-        .contains(
-          where: { (permission: PermissionDTO) in
-            permission.type.isOwner
-          }
-        )
-
-      guard !updatedPermissionsHasOwner
-      else { return }
-
-      let currentPermissionsHasOwner: Bool =
-        existingPermissions
-        .contains(
-          where: { (permission: PermissionDTO) in
-            permission.type.isOwner
-              && !formState
-                .deletedPermissions
-                .contains(
-                  where: { (deletedPermission: PermissionDTO) in
-                    deletedPermission.id == permission.id
-                  }
-                )
-          }
-        )
-
-      guard !currentPermissionsHasOwner
-      else { return }
-
-      throw
-        MissingResourceOwner
-        .error()
+      if existingPermissions.contains(where: \.permission.isOwner)
+        || formState.editedPermissions.contains(where: \.permission.isOwner)
+      {
+        return  // valid
+      }
+      else {
+        throw
+          MissingResourceOwner
+          .error()
+      }
     }
 
     @Sendable nonisolated func encryptSecret(
-      for newPermissions: OrderedSet<NewPermissionDTO>
+      for newPermissions: Array<ResourcePermission>
     ) async throws -> OrderedSet<EncryptedMessage> {
       let newUsers: OrderedSet<User.ID> = .init(
         newPermissions
@@ -481,12 +344,10 @@ extension ResourceShareForm {
       let secret: ResourceSecret = try await resourceDetails.secret()
 
       return
-        try await OrderedSet(
-          usersPGPMessages
-            .encryptMessageForUsers(
-              uniqueNewUsers,
-              secret.rawValue
-            )
+        try await usersPGPMessages
+        .encryptMessageForUsers(
+          uniqueNewUsers,
+          secret.rawValue
         )
     }
 
@@ -495,15 +356,85 @@ extension ResourceShareForm {
 
       try await validate(formState: formState)
 
-      let newSecrets: OrderedSet<EncryptedMessage> = try await encryptSecret(for: formState.newPermissions)
+      let newPermissions: Array<ResourcePermission> = formState.editedPermissions.filter { $0.permissionID == .none }
+      let newSecrets: OrderedSet<EncryptedMessage> = try await encryptSecret(for: newPermissions)
+      let updatedPermissions: Array<ResourcePermission> = formState.editedPermissions.filter {
+        $0.permissionID != .none
+      }
 
       try await resourceShareNetworkOperation(
         .init(
           resourceID: resourceID,
           body: .init(
-            newPermissions: formState.newPermissions,
-            updatedPermissions: formState.updatedPermissions,
-            deletedPermissions: formState.deletedPermissions,
+            newPermissions: newPermissions.compactMap { (permission: ResourcePermission) -> NewGenericPermissionDTO? in
+              switch permission {
+              case let .user(id, permission, .none):
+                return .userToResource(
+                  userID: id,
+                  resourceID: resourceID,
+                  permission: permission
+                )
+
+              case let .userGroup(id, permission, .none):
+                return .userGroupToResource(
+                  userGroupID: id,
+                  resourceID: resourceID,
+                  permission: permission
+                )
+
+              case _:
+                assertionFailure("New permission can't have ID!")
+                return .none
+              }
+            },
+            updatedPermissions: updatedPermissions.compactMap {
+              (permission: ResourcePermission) -> GenericPermissionDTO? in
+              switch permission {
+              case let .user(id, permission, .some(permissionID)):
+                return .userToResource(
+                  id: permissionID,
+                  userID: id,
+                  resourceID: resourceID,
+                  permission: permission
+                )
+
+              case let .userGroup(id, permission, .some(permissionID)):
+                return .userGroupToResource(
+                  id: permissionID,
+                  userGroupID: id,
+                  resourceID: resourceID,
+                  permission: permission
+                )
+
+              case _:
+                assertionFailure("Edited permission has to have ID!")
+                return .none
+              }
+            },
+            deletedPermissions: formState.deletedPermissions.compactMap {
+              (permission: ResourcePermission) -> GenericPermissionDTO? in
+              switch permission {
+              case let .user(id, permission, .some(permissionID)):
+                return .userToResource(
+                  id: permissionID,
+                  userID: id,
+                  resourceID: resourceID,
+                  permission: permission
+                )
+
+              case let .userGroup(id, permission, .some(permissionID)):
+                return .userGroupToResource(
+                  id: permissionID,
+                  userGroupID: id,
+                  resourceID: resourceID,
+                  permission: permission
+                )
+
+              case _:
+                assertionFailure("Edited permission has to have ID!")
+                return .none
+              }
+            },
             newSecrets: newSecrets
           )
         )
@@ -515,9 +446,9 @@ extension ResourceShareForm {
     return Self(
       permissionsSequence: permissionsSequence,
       currentPermissions: currentPermissions,
-      setUserPermission: setUserPermission(_:permissionType:),
+      setUserPermission: setUserPermission(_:permission:),
       deleteUserPermission: deleteUserPermission(_:),
-      setUserGroupPermission: setUserGroupPermission(_:permissionType:),
+      setUserGroupPermission: setUserGroupPermission(_:permission:),
       deleteUserGroupPermission: deleteUserGroupPermission(_:),
       sendForm: sendForm
     )

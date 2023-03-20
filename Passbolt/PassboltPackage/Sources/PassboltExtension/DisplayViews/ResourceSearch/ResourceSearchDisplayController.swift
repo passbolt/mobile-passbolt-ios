@@ -41,9 +41,7 @@ internal struct ResourceSearchDisplayController {
 
 extension ResourceSearchDisplayController: ViewController {
 
-  internal struct Context: LoadableFeatureContext {
-    // feature is disposable, we don't care about ID
-    internal let identifier: AnyHashable = IID()
+  internal struct Context {
 
     internal var searchPrompt: DisplayableString
     internal var showMessage: (SnackBarMessage?) -> Void

@@ -23,50 +23,12 @@
 
 import CommonModels
 
-public enum ResourceShareFormPermission {
+public typealias ResourceFolderPathFetchDatabaseOperation = DatabaseOperation<
+  ResourceFolderPathFetchDatabaseOperationDescription
+>
 
-  case user(
-    User.ID,
-    type: PermissionType
-  )
+public enum ResourceFolderPathFetchDatabaseOperationDescription: DatabaseOperationDescription {
 
-  case userGroup(
-    UserGroup.ID,
-    type: PermissionType
-  )
-}
-
-extension ResourceShareFormPermission: Hashable {}
-
-extension ResourceShareFormPermission {
-
-  public var userID: User.ID? {
-    switch self {
-    case let .user(id, _):
-      return id
-
-    case .userGroup:
-      return .none
-    }
-  }
-
-  public var userGroupID: UserGroup.ID? {
-    switch self {
-    case let .userGroup(id, _):
-      return id
-
-    case .user:
-      return .none
-    }
-  }
-
-  public var type: PermissionType {
-    switch self {
-    case let .user(_, type):
-      return type
-
-    case let .userGroup(_, type):
-      return type
-    }
-  }
+  public typealias Input = ResourceFolder.ID
+  public typealias Output = OrderedSet<ResourceFolderPathItem>
 }

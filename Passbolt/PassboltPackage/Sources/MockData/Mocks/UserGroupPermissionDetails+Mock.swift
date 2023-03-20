@@ -28,7 +28,7 @@ extension UserGroupPermissionDetailsDSV {
   public static let mock_1: Self = .init(
     id: .mock_1,
     name: "mock_1",
-    permissionType: .owner,
+    permission: .owner,
     members: [
       .mock_1
     ]

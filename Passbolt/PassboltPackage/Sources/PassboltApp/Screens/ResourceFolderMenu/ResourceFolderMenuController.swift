@@ -36,7 +36,7 @@ internal struct ResourceFolderMenuController {
 
 extension ResourceFolderMenuController: ViewController {
 
-  internal struct Context: LoadableFeatureContext, Hashable {
+  internal struct Context {
 
     internal var folderID: ResourceFolder.ID
     internal var folderName: String

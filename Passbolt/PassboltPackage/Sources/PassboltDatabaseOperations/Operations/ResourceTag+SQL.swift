@@ -21,8 +21,41 @@
 // @since         v1.0
 //
 
-import Commons
+import CommonModels
 
-public typealias PermissionTypeDSV = PermissionType
+extension ResourceTag {
 
-extension PermissionTypeDSV: DSV {}
+  internal static func orderedSetFrom(
+    rawString: String
+  ) throws -> OrderedSet<Self> {
+    try OrderedSet(
+      rawString
+        .components(separatedBy: ",")
+        .map(from(string:))
+    )
+  }
+
+  private static func from(
+    string: String
+  ) throws -> Self {
+    var fields = string.components(separatedBy: ";")
+    guard
+      let shared: Bool = fields.popLast()?.components(separatedBy: "=").last.flatMap({ $0 == "1" }),
+      let slug: ResourceTag.Slug = fields.popLast()?.components(separatedBy: "=").last.map(
+        ResourceTag.Slug.init(rawValue:)
+      ),
+      let id: ResourceTag.ID = fields.popLast()?.components(separatedBy: "=").last.map(ResourceTag.ID.init(rawValue:))
+    else {
+      throw
+        DatabaseDataInvalid
+        .error(for: ResourceTag.self)
+        .recording(string, for: "string")
+    }
+
+    return .init(
+      id: id,
+      slug: slug,
+      shared: shared
+    )
+  }
+}

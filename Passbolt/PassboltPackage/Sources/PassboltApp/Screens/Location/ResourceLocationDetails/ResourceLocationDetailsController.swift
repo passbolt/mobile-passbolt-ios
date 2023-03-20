@@ -74,27 +74,28 @@ extension ResourceLocationDetailsController {
 
     asyncExecutor.schedule {
       do {
-        let details: ResourceDetailsDSV! = try await resourceDetails.details()
-        var location: FolderLocationTreeView.Node = details.location.reduce(
+        let details: Resource! = try await resourceDetails.details()
+        let resourceName = details.name?.stringValue ?? ""
+        var path: FolderLocationTreeView.Node = details.path.reduce(
           into: FolderLocationTreeView.Node.root()
-        ) { (partialResult: inout FolderLocationTreeView.Node, item: ResourceFolderLocationItemDSV) in
+        ) { (partialResult: inout FolderLocationTreeView.Node, item: ResourceFolderPathItem) in
           partialResult.append(
             child: .node(
-              id: item.folderID,
-              name: item.folderName,
-              shared: item.folderShared
+              id: item.id,
+              name: item.name,
+              shared: item.shared
             )
           )
         }
-        location.append(
+        path.append(
           child: .leaf(
             id: details.id,
-            name: details.name
+            name: resourceName
           )
         )
         await viewState.update { viewState in
-          viewState.resourceName = details.name
-          viewState.resourceLocation = location
+          viewState.resourceName = resourceName
+          viewState.resourceLocation = path
         }
       }
       catch {

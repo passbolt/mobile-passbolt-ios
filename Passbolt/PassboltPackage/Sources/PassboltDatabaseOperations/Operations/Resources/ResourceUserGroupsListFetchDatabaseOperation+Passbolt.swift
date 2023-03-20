@@ -99,12 +99,8 @@ extension ResourceUserGroupsListFetchDatabaseOperation {
           let contentCount: Int = dataRow.contentCount
         else {
           throw
-            DatabaseIssue
-            .error(
-              underlyingError:
-                DatabaseDataInvalid
-                .error(for: ResourceUserGroupListItemDSV.self)
-            )
+            DatabaseDataInvalid
+            .error(for: ResourceUserGroupListItemDSV.self)
             .recording(dataRow, for: "dataRow")
         }
 

@@ -117,7 +117,7 @@ extension FolderLocationTreeView {
       child: Node? = .none
     )
     case leaf(
-      id: Resource.ID,
+      id: Resource.ID?,
       name: String
     )
 

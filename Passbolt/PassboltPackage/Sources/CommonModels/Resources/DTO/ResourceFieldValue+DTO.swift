@@ -21,54 +21,34 @@
 // @since         v1.0
 //
 
-import Commons
+extension ResourceFieldValue: Codable {
 
-public enum PermissionType: Int {
-
-  case read = 1
-  case write = 7
-  case owner = 15
-}
-
-extension PermissionType: CaseIterable {
-
-  public static var allCases: Array<PermissionType> {
-    [
-      .read,
-      .write,
-      .owner,
-    ]
-  }
-}
-
-extension PermissionType {
-
-  public var canEdit: Bool {
-    switch self {
-    case .read:
-      return false
-    case .write, .owner:
-      return true
+  public init(
+    from decoder: Decoder
+  ) throws {
+    do {
+      self = try .otp(decoder.singleValueContainer().decode(OTPSecret.self))
+    }
+    catch DecodingError.typeMismatch {
+      let string: String = try decoder.singleValueContainer().decode(String.self)
+      self = .string(string)
+    }
+    catch {
+      throw error
     }
   }
 
-  public var canShare: Bool {
+  public func encode(
+    to encoder: Encoder
+  ) throws {
     switch self {
-    case .read, .write:
-      return false
-    case .owner:
-      return true
-    }
-  }
+    case .string(let value):
+      var container: SingleValueEncodingContainer = encoder.singleValueContainer()
+      try container.encode(value)
 
-  public var isOwner: Bool {
-    switch self {
-    case .read, .write:
-      return false
-    case .owner:
-      return true
+    case .otp(let secret):
+      var container: SingleValueEncodingContainer = encoder.singleValueContainer()
+      try container.encode(secret)
     }
   }
 }
-
-extension PermissionType: RawRepresentable {}

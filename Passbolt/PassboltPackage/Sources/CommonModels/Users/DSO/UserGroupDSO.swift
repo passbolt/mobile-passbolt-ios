@@ -24,5 +24,3 @@
 import Commons
 
 public typealias UserGroupDSO = UserGroupDTO
-
-extension UserGroupDSO: DSO {}

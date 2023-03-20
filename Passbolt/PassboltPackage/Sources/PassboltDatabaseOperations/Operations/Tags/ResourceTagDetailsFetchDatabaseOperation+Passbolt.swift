@@ -31,7 +31,7 @@ extension ResourceTagDetailsFetchDatabaseOperation {
   @Sendable fileprivate static func execute(
     _ input: ResourceTag.ID,
     connection: SQLiteConnection
-  ) throws -> ResourceTagDSV {
+  ) throws -> ResourceTag {
     let statement: SQLiteStatement = .statement(
       """
       SELECT
@@ -41,30 +41,26 @@ extension ResourceTagDetailsFetchDatabaseOperation {
       FROM
         resourceTags
       WHERE
-        id == ?1;
+        resourceTags.id == ?1;
       """,
       arguments: input
     )
 
     return
       try connection
-      .fetchFirst(using: statement) { dataRow -> ResourceTagDSV in
+      .fetchFirst(using: statement) { dataRow -> ResourceTag in
         guard
           let id: ResourceTag.ID = dataRow.id.flatMap(ResourceTag.ID.init(rawValue:)),
           let slug: ResourceTag.Slug = dataRow.slug.flatMap(ResourceTag.Slug.init(rawValue:)),
           let shared: Bool = dataRow.shared
         else {
           throw
-            DatabaseIssue
-            .error(
-              underlyingError:
-                DatabaseDataInvalid
-                .error(for: ResourceTagListItemDSV.self)
-            )
+            DatabaseDataInvalid
+            .error(for: ResourceTag.self)
             .recording(dataRow, for: "dataRow")
         }
 
-        return ResourceTagDSV(
+        return ResourceTag(
           id: id,
           slug: slug,
           shared: shared

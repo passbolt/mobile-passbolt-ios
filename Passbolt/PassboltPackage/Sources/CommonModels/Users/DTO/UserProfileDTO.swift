@@ -40,8 +40,6 @@ public struct UserProfileDTO {
   }
 }
 
-extension UserProfileDTO: DTO {}
-
 extension UserProfileDTO: Decodable {
 
   private enum CodingKeys: String, CodingKey {

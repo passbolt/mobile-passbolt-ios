@@ -107,18 +107,18 @@ internal struct UserPermissionEditView: ComponentView {
         )
 
         ForEach(
-          PermissionType.allCases,
+          Permission.allCases,
           id: \.self
-        ) { (permissionType: PermissionType) in
+        ) { (permission: Permission) in
           AsyncButton(
             action: {
               await self.controller
-                .setPermissionType(permissionType)
+                .setPermissionType(permission)
             },
             label: {
               HStack(spacing: 0) {
                 ResourcePermissionTypeView(
-                  permissionType: permissionType
+                  permission: permission
                 )
                 .frame(
                   maxWidth: .infinity,
@@ -126,7 +126,7 @@ internal struct UserPermissionEditView: ComponentView {
                 )
 
                 Image(
-                  named: self.state.permissionType == permissionType
+                  named: self.state.permission == permission
                     ? .circleSelected
                     : .circleUnselected
                 )
@@ -182,7 +182,7 @@ extension UserPermissionEditView {
     internal var name: DisplayableString
     internal var username: DisplayableString
     internal var fingerprint: Fingerprint
-    internal var permissionType: PermissionType
+    internal var permission: Permission
     internal var avatarImageFetch: () async -> Data?
     internal var deleteConfirmationAlert: ConfirmationAlertMessage? = .none
     internal var snackBarMessage: SnackBarMessage? = .none
@@ -198,7 +198,7 @@ extension UserPermissionEditView.ViewState: Hashable {
     lhs.name == rhs.name
       && lhs.username == rhs.username
       && lhs.fingerprint == rhs.fingerprint
-      && lhs.permissionType == rhs.permissionType
+      && lhs.permission == rhs.permission
       && lhs.deleteConfirmationAlert == rhs.deleteConfirmationAlert
       && lhs.snackBarMessage == rhs.snackBarMessage
   }
@@ -209,7 +209,7 @@ extension UserPermissionEditView.ViewState: Hashable {
     hasher.combine(self.name)
     hasher.combine(self.username)
     hasher.combine(self.fingerprint)
-    hasher.combine(self.permissionType)
+    hasher.combine(self.permission)
     hasher.combine(self.deleteConfirmationAlert)
     hasher.combine(self.snackBarMessage)
   }

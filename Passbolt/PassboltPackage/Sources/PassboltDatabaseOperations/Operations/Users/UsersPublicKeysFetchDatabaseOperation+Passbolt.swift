@@ -87,12 +87,8 @@ extension UsersPublicKeysFetchDatabaseOperation {
           let publicKey: ArmoredPGPPublicKey = dataRow.publicKey.flatMap(ArmoredPGPPublicKey.init(rawValue:))
         else {
           throw
-            DatabaseIssue
-            .error(
-              underlyingError:
-                DatabaseDataInvalid
-                .error(for: ResourceUserGroupListItemDSV.self)
-            )
+            DatabaseDataInvalid
+            .error(for: UserPublicKeyDSV.self)
             .recording(dataRow, for: "dataRow")
         }
 

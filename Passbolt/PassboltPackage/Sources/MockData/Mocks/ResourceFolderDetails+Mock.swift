@@ -28,14 +28,14 @@ extension ResourceFolderDetailsDSV {
   public static let mock_owned: Self = .init(
     id: .mock_1,
     name: "mock_owned",
-    permissionType: .owner,
+    permission: .owner,
     shared: false,
     parentFolderID: .none,
-    location: [],
+    path: [],
     permissions: [
       .user(
         id: .mock_1,
-        type: .owner,
+        permission: .owner,
         permissionID: .mock_1
       )
     ]
@@ -44,19 +44,19 @@ extension ResourceFolderDetailsDSV {
   public static let mock_shared: Self = .init(
     id: .mock_1,
     name: "mock_owned",
-    permissionType: .owner,
+    permission: .owner,
     shared: false,
     parentFolderID: .none,
-    location: [],
+    path: [],
     permissions: [
       .user(
         id: .mock_1,
-        type: .owner,
+        permission: .owner,
         permissionID: .mock_1
       ),
       .user(
         id: .mock_2,
-        type: .write,
+        permission: .write,
         permissionID: .mock_2
       ),
     ]
@@ -65,19 +65,19 @@ extension ResourceFolderDetailsDSV {
   public static let mock_group: Self = .init(
     id: .mock_1,
     name: "mock_owned",
-    permissionType: .owner,
+    permission: .owner,
     shared: false,
     parentFolderID: .none,
-    location: [],
+    path: [],
     permissions: [
       .userGroup(
         id: .mock_1,
-        type: .owner,
+        permission: .owner,
         permissionID: .mock_1
       ),
       .user(
         id: .mock_2,
-        type: .write,
+        permission: .write,
         permissionID: .mock_2
       ),
     ]

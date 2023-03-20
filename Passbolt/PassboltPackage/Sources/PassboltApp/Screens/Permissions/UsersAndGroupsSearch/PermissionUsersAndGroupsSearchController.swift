@@ -64,16 +64,16 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
     )
 
     executor.schedule { @MainActor in
-      let existingPermissions: OrderedSet<ResourceShareFormPermission> =
+      let existingPermissions: OrderedSet<ResourcePermission> =
         await resourceShareForm
         .currentPermissions()
       let selectedItems: Array<OverlappingAvatarStackView.Item> =
         existingPermissions
         .map { permission in
           switch permission {
-          case let .user(userID, _):
+          case let .user(userID, _, _):
             return .user(userID, avatarImage: userAvatarImageFetch(userID))
-          case let .userGroup(userGroupID, _):
+          case let .userGroup(userGroupID, _, _):
             return .userGroup(userGroupID)
           }
         }
@@ -121,7 +121,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
             )
             continue
           }
-          let existingPermissions: OrderedSet<ResourceShareFormPermission> =
+          let existingPermissions: OrderedSet<ResourcePermission> =
             await resourceShareForm
             .currentPermissions()
 
@@ -129,7 +129,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
             matchingUserGroups
             .compactMap { (userGroupDetails: UserGroupDetailsDSV) -> ControlledView.SelectionRowViewModel? in
               let permissionExists: Bool = existingPermissions.contains {
-                (permission: ResourceShareFormPermission) -> Bool in
+                (permission: ResourcePermission) -> Bool in
                 permission.userGroupID == userGroupDetails.id
               }
 
@@ -146,7 +146,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
             + matchingUsers
             .compactMap { (userDetails: UserDetailsDSV) -> ControlledView.SelectionRowViewModel? in
               let permissionExists: Bool = existingPermissions.contains {
-                (permission: ResourceShareFormPermission) -> Bool in
+                (permission: ResourcePermission) -> Bool in
                 permission.userID == userDetails.id
               }
 
@@ -166,12 +166,12 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
           let existingUsersAndGroupsPermissions: Array<ControlledView.ExistingPermissionRowViewModel> =
             matchingUserGroups
             .compactMap { (userGroupDetails: UserGroupDetailsDSV) -> ControlledView.ExistingPermissionRowViewModel? in
-              let matchingPermission: ResourceShareFormPermission? =
-                existingPermissions.first { (permission: ResourceShareFormPermission) -> Bool in
+              let matchingPermission: ResourcePermission? =
+                existingPermissions.first { (permission: ResourcePermission) -> Bool in
                   permission.userGroupID == userGroupDetails.id
                 }
 
-              guard let permission: ResourceShareFormPermission = matchingPermission
+              guard let permission: ResourcePermission = matchingPermission
               else { return .none }
 
               return .userGroup(
@@ -179,17 +179,17 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
                   id: userGroupDetails.id,
                   name: "\(userGroupDetails.name)"
                 ),
-                permission: permission.type
+                permission: permission.permission
               )
             }
             + matchingUsers
             .compactMap { (userDetails: UserDetailsDSV) -> ControlledView.ExistingPermissionRowViewModel? in
-              let matchingPermission: ResourceShareFormPermission? =
-                existingPermissions.first { (permission: ResourceShareFormPermission) -> Bool in
+              let matchingPermission: ResourcePermission? =
+                existingPermissions.first { (permission: ResourcePermission) -> Bool in
                   permission.userID == userDetails.id
                 }
 
-              guard let permission: ResourceShareFormPermission = matchingPermission
+              guard let permission: ResourcePermission = matchingPermission
               else { return .none }
 
               guard let permission = matchingPermission
@@ -202,7 +202,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
                   username: "\(userDetails.username)",
                   avatarImageFetch: userAvatarImageFetch(userDetails.id)
                 ),
-                permission: permission.type
+                permission: permission.permission
               )
             }
 
@@ -265,7 +265,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
 
     @MainActor func saveSelection() {
       cancellables.executeOnMainActor {
-        let existingPermissions: OrderedSet<ResourceShareFormPermission> =
+        let existingPermissions: OrderedSet<ResourcePermission> =
           await resourceShareForm
           .currentPermissions()
         let newSelections =

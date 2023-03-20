@@ -49,8 +49,6 @@ public struct UserDTO {
   }
 }
 
-extension UserDTO: DTO {}
-
 extension UserDTO {
 
   internal static let validator: Validator<Self> = User.ID

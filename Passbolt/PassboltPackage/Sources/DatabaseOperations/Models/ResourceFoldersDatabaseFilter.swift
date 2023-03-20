@@ -37,14 +37,14 @@ public struct ResourceFoldersDatabaseFilter {
   // true - filters recursively within current folderID and all its subfolders
   public var flattenContent: Bool
   // included permissions search (AND) - empty ignores this parameter
-  public var permissions: OrderedSet<PermissionType>
+  public var permissions: OrderedSet<Permission>
 
   public init(
     sorting: ResourceFoldersDatabaseSorting,
     text: String = .init(),
     folderID: ResourceFolder.ID?,
     flattenContent: Bool = false,
-    permissions: OrderedSet<PermissionType> = .init()
+    permissions: OrderedSet<Permission> = .init()
   ) {
     self.sorting = sorting
     self.text = text

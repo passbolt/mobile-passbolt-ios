@@ -32,7 +32,6 @@ extension FeaturesRegistry {
     self.usePassboltResourceFolderDetailsFetchDatabaseOperation()
     self.usePassboltResourceFoldersListFetchDatabaseOperation()
     self.usePassboltResourceDetailsFetchDatabaseOperation()
-    self.usePassboltResourceEditDetailsFetchDatabaseOperation()
     self.usePassboltResourcesListFetchDatabaseOperation()
     self.usePassboltResourcesStoreDatabaseOperation()
     self.usePassboltResourceTagsListFetchDatabaseOperation()
@@ -57,5 +56,6 @@ extension FeaturesRegistry {
     self.usePassboltResourceSetFavoriteDatabaseOperation()
     self.usePassboltResourceFolderUserPermissionsDetailsFetchDatabaseOperation()
     self.usePassboltResourceFolderUserGroupPermissionsDetailsFetchDatabaseOperation()
+    self.usePassboltResourceFolderPathFetchDatabaseOperation()
   }
 }

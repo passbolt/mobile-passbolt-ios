@@ -39,9 +39,7 @@ internal struct ResourceFolderContentNodeController {
 
 extension ResourceFolderContentNodeController: ViewController {
 
-  internal struct Context: LoadableFeatureContext {
-    // feature is disposable, we don't care about ID
-    internal let identifier: AnyHashable = IID()
+  internal struct Context {
 
     // none means root
     internal var folderDetails: ResourceFolderDetailsDSV?
@@ -123,7 +121,7 @@ extension ResourceFolderContentNodeController {
           requestedServiceIdentifiers.matches(resource)
         },
         createFolder: .none,
-        createResource: context.folderDetails?.permissionType != .read  // root or owned / write
+        createResource: context.folderDetails?.permission != .read  // root or owned / write
           ? createResource
           : .none,
         selectFolder: selectFolder(_:),
@@ -143,9 +141,9 @@ extension ResourceFolderContentNodeController {
           .push(
             ResourceEditViewController.self,
             context: (
-              editing: .new(
-                in: context.folderDetails?.id,
-                url: requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }
+              editing: .create(
+                folderID: context.folderDetails?.id,
+                uri: requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }
               ),
               completion: { resourceID in
                 selectResource(resourceID)
@@ -162,10 +160,12 @@ extension ResourceFolderContentNodeController {
       asyncExecutor.schedule(.replace) {
         do {
           let resourceDetails: ResourceDetails = try await features.instance(context: resourceID)
-          let resource: ResourceDetailsDSV = try await resourceDetails.details()
+          let resource: Resource = try await resourceDetails.details()
           let secret: ResourceSecret = try await resourceDetails.secret()
 
-          guard let password: String = secret.password
+          guard
+            let passwordField: ResourceField = resource.type.password,
+            let password: String = secret.value(for: passwordField)?.stringValue
           else {
             throw
               ResourceSecretInvalid
@@ -174,7 +174,7 @@ extension ResourceFolderContentNodeController {
           await autofillContext
             .completeWithCredential(
               AutofillExtensionContext.Credential(
-                user: resource.username ?? "",
+                user: resource.username?.stringValue ?? "",
                 password: password
               )
             )

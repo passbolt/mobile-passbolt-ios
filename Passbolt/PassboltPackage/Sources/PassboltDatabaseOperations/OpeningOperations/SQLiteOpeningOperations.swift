@@ -45,19 +45,22 @@ internal enum SQLiteOpeningOperations {
               resourceFields.name
               || ":"
               || resourceFields.valueType
-              || ";required="
+              || ",required="
               || resourceFields.required
-              || ";encrypted="
+              || ",encrypted="
               || resourceFields.encrypted
-              || ";maxLength="
-              || resourceFields.maxLength
+              || ",minimum="
+              || ifnull(resourceFields.minimum, "0")
+              || ",maximum="
+              || ifnull(resourceFields.maximum, "100000"),
+              ";"
             )
           FROM
-            resourceFields
-          JOIN
             resourceTypesFields
+          LEFT JOIN
+            resourceFields
           ON
-            resourceFields.id == resourceTypesFields.resourceFieldID
+            resourceTypesFields.resourceFieldID == resourceFields.id
           WHERE
             resourceTypesFields.resourceTypeID == resourceTypes.id
         )
@@ -68,40 +71,20 @@ internal enum SQLiteOpeningOperations {
       // - add resourceDetailsView - //
       """
       CREATE TEMPORARY VIEW
-        resourceDetailsView
+        resourcesView
       AS
       SELECT
         resources.id AS id,
         resources.name AS name,
         resources.favoriteID AS favoriteID,
-        resources.permissionType AS permissionType,
-        resources.url AS url,
+        resources.permission AS permission,
+        resources.uri AS uri,
         resources.username AS username,
         resources.description AS description,
-        resourceTypesView.fields AS fields
-      FROM
-        resources
-      JOIN
-        resourceTypesView
-      ON
-        resources.typeID == resourceTypesView.id;
-      """,
-
-      // - add resourceEditView - //
-      """
-      CREATE TEMPORARY VIEW
-        resourceEditView
-      AS
-      SELECT
-        resources.id AS id,
-        resources.name AS name,
-        resources.permissionType AS permissionType,
-        resources.url AS url,
-        resources.username AS username,
-        resources.description AS description,
-        resources.typeID AS typeID,
-        resourceTypesView.slug AS typeSlug,
+        resources.modified AS modified,
+        resourceTypesView.id AS typeID,
         resourceTypesView.name AS typeName,
+        resourceTypesView.slug AS typeSlug,
         resourceTypesView.fields AS fields
       FROM
         resources

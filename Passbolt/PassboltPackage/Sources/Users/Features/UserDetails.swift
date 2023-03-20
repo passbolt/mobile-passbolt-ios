@@ -35,13 +35,13 @@ public struct UserDetails {
   /// Access user details data for the context user.
   public var details: @Sendable () async throws -> UserDetailsDSV
   /// Access user permission to a given resource for the context user.
-  public var permissionToResource: @Sendable (Resource.ID) async throws -> PermissionType?
+  public var permissionToResource: @Sendable (Resource.ID) async throws -> Permission?
   /// Access user avatar image for the context user.
   public var avatarImage: @Sendable () async -> Data?
 
   public init(
     details: @escaping @Sendable () async throws -> UserDetailsDSV,
-    permissionToResource: @escaping @Sendable (Resource.ID) async throws -> PermissionType?,
+    permissionToResource: @escaping @Sendable (Resource.ID) async throws -> Permission?,
     avatarImage: @escaping @Sendable () async -> Data?
   ) {
     self.details = details

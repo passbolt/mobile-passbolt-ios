@@ -133,13 +133,6 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
       )
       .store(in: cancellables)
 
-    controller.passwordEntropyPublisher()
-      .receive(on: RunLoop.main)
-      .sink(receiveValue: { [weak self] entropy in
-        self?.contentView.update(entropy: entropy)
-      })
-      .store(in: cancellables)
-
     contentView.createTapPublisher
       .map { [unowned self] _ -> AnyPublisher<Void, Never> in
         self.controller
@@ -225,12 +218,12 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
   }
 
   private func setupFieldSubscriptions(
-    with fields: Array<ResourceFieldDSV>
+    with fields: OrderedSet<ResourceField>
   ) {
     fieldCancellables = .init()
     for field in fields {
       let fieldValuePublisher = self.controller
-        .fieldValuePublisher(field.name)
+        .fieldValuePublisher(field)
 
       fieldValuePublisher
         .first()  // skipping error just to update intial value
@@ -252,23 +245,28 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
         .sink(receiveValue: { [weak self] validated in
           self?.contentView.update(
             validated: validated,
-            for: field.name
+            for: field
           )
         })
         .store(in: self.fieldCancellables)
 
       self.contentView
-        .fieldValuePublisher(for: field.name)
+        .fieldValuePublisher(for: field)
         .receive(on: RunLoop.main)
         .removeDuplicates()
-        .map { [weak self] value in
-          self?.controller
-            .setValue(value, field.name)
-            ?? Empty().eraseToAnyPublisher()
+        .map { [unowned self] value in
+          self.controller
+            .setValue(value, field)
         }
-        .switchToLatest()
         .sinkDrop()
         .store(in: self.fieldCancellables)
     }
+    self.controller
+      .passwordEntropyPublisher()
+      .receive(on: RunLoop.main)
+      .sink(receiveValue: { [weak self] entropy in
+        self?.contentView.update(entropy: entropy)
+      })
+      .store(in: self.fieldCancellables)
   }
 }

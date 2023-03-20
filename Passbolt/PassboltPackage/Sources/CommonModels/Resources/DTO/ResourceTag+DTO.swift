@@ -21,8 +21,22 @@
 // @since         v1.0
 //
 
-public typealias ResourceFieldNameDTO = ResourceFieldName
+import Commons
 
-extension ResourceFieldNameDTO: DTO {}
+extension ResourceTag: Decodable {
 
-extension ResourceFieldName: Decodable {}
+  public init(
+    from decoder: Decoder
+  ) throws {
+    let container: KeyedDecodingContainer<CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+    self.id = try container.decode(ResourceTag.ID.self, forKey: .id)
+    self.slug = try container.decode(ResourceTag.Slug.self, forKey: .slug)
+    self.shared = try container.decode(Bool.self, forKey: .shared)
+  }
+
+  private enum CodingKeys: String, CodingKey {
+    case id = "id"
+    case slug = "slug"
+    case shared = "is_shared"
+  }
+}

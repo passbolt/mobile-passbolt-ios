@@ -25,8 +25,8 @@ import UICommons
 
 internal enum PermissionUsersAndGroupsSearchListExistingRowViewModel {
 
-  case user(UserListRowViewModel, permission: PermissionType)
-  case userGroup(UserGroupListRowViewModel, permission: PermissionType)
+  case user(UserListRowViewModel, permission: Permission)
+  case userGroup(UserGroupListRowViewModel, permission: Permission)
 }
 
 extension PermissionUsersAndGroupsSearchListExistingRowViewModel: Hashable {}

@@ -60,10 +60,8 @@ final class ValidationTests: XCTestCase {
     let validated: Validated<TestValue> = validator(testValue)
 
     XCTAssertEqual(validated.value, testValue)
-    XCTAssertEqual(validated.errors.first?.validationRule, "alwaysInvalid")
     XCTAssertFalse(validated.isValid)
-    XCTAssert(validated.errors.count == 1)
-    XCTAssertEqual(validated.errors.first?.validationRule, "alwaysInvalid")
+    XCTAssertEqual(validated.error?.displayableMessage, .localized(key: messageKeyInvalid))
   }
 
   func test_invalid_producesError() {
@@ -74,9 +72,8 @@ final class ValidationTests: XCTestCase {
 
     XCTAssertEqual(validated.value, testValue)
     XCTAssertFalse(validated.isValid)
-    XCTAssert(validated.errors.count == 1)
 
-    XCTAssertEqual(validated.errors.first?.validationRule, "alwaysInvalid")
+    XCTAssertEqual(validated.error?.displayableMessage, .localized(key: messageKeyInvalid))
   }
 
   func test_contraMapFromValid_producesValidValue() {
@@ -97,8 +94,7 @@ final class ValidationTests: XCTestCase {
 
     XCTAssertEqual(validated.value, testEmbeddedValue)
     XCTAssertFalse(validated.isValid)
-    XCTAssert(validated.errors.count == 1)
-    XCTAssertEqual(validated.errors.first?.validationRule, "alwaysInvalid")
+    XCTAssertEqual(validated.error?.displayableMessage, .localized(key: messageKeyInvalid))
   }
 
   func test_zipFromValid_producesValidValue() {
@@ -126,8 +122,7 @@ final class ValidationTests: XCTestCase {
 
     XCTAssertEqual(validated.value, testValue)
     XCTAssertFalse(validated.isValid)
-    XCTAssert(validated.errors.count == 2)
-    XCTAssertEqual(validated.errors.first?.validationRule, "alwaysInvalid")
+    XCTAssertEqual(validated.error?.displayableMessage, .localized(key: messageKeyInvalid))
   }
 }
 

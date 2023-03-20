@@ -31,8 +31,7 @@ public struct DatabaseDataInvalid: TheError {
     _ message: StaticString = "DatabaseDataInvalid",
     file: StaticString = #fileID,
     line: UInt = #line
-  ) -> Self
-  where DataType: DSV {
+  ) -> Self {
     Self(
       context: .context(
         .message(

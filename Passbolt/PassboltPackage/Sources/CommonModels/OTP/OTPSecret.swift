@@ -89,3 +89,67 @@ public enum OTPSecret {
 
 extension OTPSecret: Sendable {}
 extension OTPSecret: Equatable {}
+extension OTPSecret: Codable {
+
+  public init(
+    from decoder: Decoder
+  ) throws {
+    let container: KeyedDecodingContainer<CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+    let sharedSecret: String = try container.decode(String.self, forKey: .sharedSecret)
+    let algorithm: HOTPAlgorithm = try container.decode(HOTPAlgorithm.self, forKey: .algorithm)
+    let digits: UInt = try container.decode(UInt.self, forKey: .digits)
+
+    if let totpPeriod: Seconds = try? container.decodeIfPresent(Seconds.self, forKey: .period) {
+      self = .totp(
+        sharedSecret: sharedSecret,
+        algorithm: algorithm,
+        digits: digits,
+        period: totpPeriod
+      )
+    }
+    else if let hotpCounter: UInt64 = try? container.decodeIfPresent(UInt64.self, forKey: .counter) {
+      self = .hotp(
+        sharedSecret: sharedSecret,
+        algorithm: algorithm,
+        digits: digits,
+        counter: hotpCounter
+      )
+    }
+    else {
+      throw DecodingError
+        .dataCorrupted(
+          .init(
+            codingPath: decoder.codingPath,
+            debugDescription: "OTP secret has to be either TOTP or HOTP"
+          )
+        )
+    }
+  }
+
+  public func encode(
+    to encoder: Encoder
+  ) throws {
+    var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
+    switch self {
+    case let .totp(sharedSecret, algorithm, digits, period):
+      try container.encode(sharedSecret, forKey: .sharedSecret)
+      try container.encode(algorithm, forKey: .algorithm)
+      try container.encode(digits, forKey: .digits)
+      try container.encode(period, forKey: .period)
+
+    case let .hotp(sharedSecret, algorithm, digits, counter):
+      try container.encode(sharedSecret, forKey: .sharedSecret)
+      try container.encode(algorithm, forKey: .algorithm)
+      try container.encode(digits, forKey: .digits)
+      try container.encode(counter, forKey: .counter)
+    }
+  }
+
+  private enum CodingKeys: String, CodingKey {
+    case sharedSecret = "key"
+    case algorithm = "algorithm"
+    case digits = "digits"
+    case period = "period"
+    case counter = "counter"
+  }
+}

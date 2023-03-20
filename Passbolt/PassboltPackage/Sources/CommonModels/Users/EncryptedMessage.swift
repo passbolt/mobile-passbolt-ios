@@ -36,3 +36,5 @@ public struct EncryptedMessage {
     self.message = message
   }
 }
+
+extension EncryptedMessage: Hashable {}

@@ -24,13 +24,14 @@
 public struct InvalidInputData: TheError {
 
   public static func error(
+    message: StaticString = "InvalidInputData",
     file: StaticString = #fileID,
     line: UInt = #line
   ) -> Self {
     Self(
       context: .context(
         .message(
-          "InvalidInputData",
+          message,
           file: file,
           line: line
         )

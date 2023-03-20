@@ -68,7 +68,7 @@ extension ResourcesListFetchDatabaseOperation {
               resources.parentFolderID,
               resources.name AS name,
               resources.username AS username,
-              resources.url AS url
+              resources.uri AS uri
             FROM
               resources
             JOIN
@@ -89,7 +89,7 @@ extension ResourcesListFetchDatabaseOperation {
               resources.parentFolderID,
               resources.name AS name,
               resources.username AS username,
-              resources.url AS url
+              resources.uri AS uri
             FROM
               resources
             WHERE
@@ -105,7 +105,7 @@ extension ResourcesListFetchDatabaseOperation {
             resources.parentFolderID,
             resources.name AS name,
             resources.username AS username,
-            resources.url AS url
+            resources.uri AS uri
           FROM
             resources
           WHERE
@@ -120,7 +120,7 @@ extension ResourcesListFetchDatabaseOperation {
           AND
           (
              resources.name LIKE '%' || ? || '%'
-          OR resources.url LIKE '%' || ? || '%'
+          OR resources.uri LIKE '%' || ? || '%'
           OR resources.username LIKE '%' || ? || '%'
           OR (
             SELECT
@@ -160,7 +160,7 @@ extension ResourcesListFetchDatabaseOperation {
     }
 
     if !input.url.isEmpty {
-      statement.append("AND resources.url LIKE '%' || ? || '%' ")
+      statement.append("AND resources.uri LIKE '%' || ? || '%' ")
       statement.appendArgument(input.url)
     }
     else {
@@ -185,7 +185,7 @@ extension ResourcesListFetchDatabaseOperation {
     // since we cannot use array in query directly
     // we are preparing it manually as argument for each element
     if input.permissions.count > 1 {
-      statement.append("AND resources.permissionType IN (")
+      statement.append("AND resources.permission IN (")
       for index in input.permissions.indices {
         if index == input.permissions.startIndex {
           statement.append("?")
@@ -197,9 +197,9 @@ extension ResourcesListFetchDatabaseOperation {
       }
       statement.append(") ")
     }
-    else if let permissionType: PermissionType = input.permissions.first {
-      statement.append("AND resources.permissionType == ? ")
-      statement.appendArgument(permissionType)
+    else if let permission: Permission = input.permissions.first {
+      statement.append("AND resources.permission == ? ")
+      statement.appendArgument(permission)
     }
     else {
       /* NOP */

@@ -30,5 +30,5 @@ public typealias ResourceDetailsFetchDatabaseOperation = DatabaseOperation<
 public enum ResourceDetailsFetchDatabaseOperationDescription: DatabaseOperationDescription {
 
   public typealias Input = Resource.ID
-  public typealias Output = ResourceDetailsDSV
+  public typealias Output = Resource
 }

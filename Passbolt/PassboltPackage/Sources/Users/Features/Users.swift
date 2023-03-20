@@ -37,14 +37,14 @@ public struct Users {
   public var userDetails: (User.ID) async throws -> UserDetailsDSV
   /// Access permissions to a given resource
   /// for a given user.
-  public var userPermissionToResource: (User.ID, Resource.ID) async throws -> PermissionType?
+  public var userPermissionToResource: (User.ID, Resource.ID) async throws -> Permission?
   /// Access avatar image for a given user.
   public var userAvatarImage: (User.ID) async throws -> Data?
 
   public init(
     filteredUsers: @escaping @Sendable (UsersFilter) async throws -> Array<UserDetailsDSV>,
     userDetails: @escaping @Sendable (User.ID) async throws -> UserDetailsDSV,
-    userPermissionToResource: @escaping @Sendable (User.ID, Resource.ID) async throws -> PermissionType?,
+    userPermissionToResource: @escaping @Sendable (User.ID, Resource.ID) async throws -> Permission?,
     userAvatarImage: @escaping @Sendable (User.ID) async throws -> Data?
   ) {
     self.filteredUsers = filteredUsers
@@ -55,6 +55,8 @@ public struct Users {
 }
 
 extension Users: LoadableFeature {
+
+  public typealias Context = ContextlessLoadableFeatureContext
 
   #if DEBUG
 

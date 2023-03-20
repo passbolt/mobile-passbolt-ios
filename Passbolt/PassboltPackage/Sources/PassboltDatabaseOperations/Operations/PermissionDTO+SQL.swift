@@ -24,18 +24,18 @@
 import CommonModels
 import Database
 
-extension PermissionDSO {
+extension GenericPermissionDTO {
 
   internal var storeStatement: SQLiteStatement {
     switch self {
-    case let .userToResource(id, userID, resourceID, permissionType):
+    case let .userToResource(id, userID, resourceID, permission):
       return .statement(
         """
         INSERT INTO
           usersResources(
             resourceID,
             userID,
-            permissionType,
+            permission,
             permissionID
           )
         SELECT
@@ -54,7 +54,7 @@ extension PermissionDSO {
         """,
         arguments: resourceID,
         userID,
-        permissionType.rawValue,
+        permission.rawValue,
         id.rawValue
       )
 
@@ -65,7 +65,7 @@ extension PermissionDSO {
           usersResourceFolders(
             resourceFolderID,
             userID,
-            permissionType,
+            permission,
             permissionID
           )
         SELECT
@@ -95,7 +95,7 @@ extension PermissionDSO {
           userGroupsResources(
             resourceID,
             userGroupID,
-            permissionType,
+            permission,
             permissionID
           )
         SELECT
@@ -125,7 +125,7 @@ extension PermissionDSO {
           userGroupsResourceFolders(
             resourceFolderID,
             userGroupID,
-            permissionType,
+            permission,
             permissionID
           )
         SELECT

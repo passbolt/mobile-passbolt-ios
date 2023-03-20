@@ -31,7 +31,7 @@ extension ResourceTypesFetchDatabaseOperation {
   @Sendable fileprivate static func execute(
     _ input: Void,
     connection: SQLiteConnection
-  ) throws -> Array<ResourceTypeDSV> {
+  ) throws -> Array<ResourceType> {
     try connection
       .fetch(
         using: """
@@ -51,20 +51,18 @@ extension ResourceTypesFetchDatabaseOperation {
           let rawFields: String = dataRow.fields
         else {
           throw
-            DatabaseIssue
-            .error(
-              underlyingError:
-                DatabaseDataInvalid
-                .error(for: ResourceTypeDSV.self)
-            )
+            DatabaseDataInvalid
+            .error(for: ResourceType.self)
             .recording(dataRow, for: "dataRow")
         }
 
-        return ResourceTypeDSV(
+        return try ResourceType(
           id: id,
           slug: slug,
           name: name,
-          fields: ResourceFieldDSV.decodeArrayFrom(rawString: rawFields)
+          fields:
+            ResourceField
+            .decodeOrderedSetFrom(rawString: rawFields)
         )
       }
   }

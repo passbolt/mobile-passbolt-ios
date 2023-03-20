@@ -97,7 +97,7 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let controller: FoldersExplorerController = try await testController(
+    let controller: FoldersExplorerController = try testController(
       context: nil
     )
 
@@ -108,7 +108,7 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
 
   func test_refreshIfNeeded_finishesWithoutError_whenRefreshingSucceeds() async throws {
 
-    let controller: FoldersExplorerController = try await testController(
+    let controller: FoldersExplorerController = try testController(
       context: nil
     )
 
@@ -118,7 +118,7 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
   }
 
   func test_initally_viewStateTitle_isDefaultString_forRootFolder() async throws {
-    let controller: FoldersExplorerController = try await testController(
+    let controller: FoldersExplorerController = try testController(
       context: nil
     )
 
@@ -129,11 +129,11 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
   }
 
   func test_initally_viewStateTitle_isFolderName_forNonRootFolder() async throws {
-    let controller: FoldersExplorerController = try await testController(
+    let controller: FoldersExplorerController = try testController(
       context: .init(
         id: "folder",
         name: "folder",
-        permissionType: .owner,
+        permission: .owner,
         shared: false,
         parentFolderID: nil,
         location: "mockLocation",

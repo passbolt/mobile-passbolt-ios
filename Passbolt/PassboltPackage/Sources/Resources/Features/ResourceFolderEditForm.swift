@@ -50,12 +50,12 @@ public struct ResourceFolderEditFormState {
 
   public var name: Validated<String>
   public var location: Validated<Array<ResourceFolderLocationItem>>
-  public var permissions: Validated<OrderedSet<ResourceFolderPermissionDSV>>
+  public var permissions: Validated<OrderedSet<ResourceFolderPermission>>
 
   public init(
     name: Validated<String>,
     location: Validated<Array<ResourceFolderLocationItem>>,
-    permissions: Validated<OrderedSet<ResourceFolderPermissionDSV>>
+    permissions: Validated<OrderedSet<ResourceFolderPermission>>
   ) {
     self.name = name
     self.location = location

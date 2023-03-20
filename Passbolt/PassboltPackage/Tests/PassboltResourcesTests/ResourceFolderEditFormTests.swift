@@ -69,7 +69,7 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
         permissions: .valid([
           .user(
             id: .mock_ada,
-            type: .owner,
+            permission: .owner,
             permissionID: .none
           )
         ])
@@ -90,14 +90,14 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
         ResourceFolderDetailsDSV(
           id: containingFolderID,
           name: "folder",
-          permissionType: .owner,
+          permission: .owner,
           shared: false,
           parentFolderID: .none,
-          location: .init(),
+          path: .init(),
           permissions: [
             .user(
               id: .mock_ada,
-              type: .owner,
+              permission: .owner,
               permissionID: .mock_1
             )
           ]
@@ -116,7 +116,7 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
         permissions: .valid([
           .user(
             id: .mock_ada,
-            type: .owner,
+            permission: .owner,
             permissionID: .none
           )
         ])
@@ -137,19 +137,19 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
         ResourceFolderDetailsDSV(
           id: containingFolderID,
           name: "folder",
-          permissionType: .owner,
+          permission: .owner,
           shared: true,
           parentFolderID: .none,
-          location: .init(),
+          path: .init(),
           permissions: [
             .user(
               id: .mock_ada,
-              type: .owner,
+              permission: .owner,
               permissionID: .mock_1
             ),
             .user(
               id: .mock_frances,
-              type: .read,
+              permission: .read,
               permissionID: .mock_2
             ),
           ]
@@ -168,12 +168,12 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
         permissions: .valid([
           .user(
             id: .mock_ada,
-            type: .owner,
+            permission: .owner,
             permissionID: .none
           ),
           .user(
             id: .mock_frances,
-            type: .read,
+            permission: .read,
             permissionID: .none
           ),
         ])
@@ -194,19 +194,19 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
         ResourceFolderDetailsDSV(
           id: containingFolderID,
           name: "folder",
-          permissionType: .owner,
+          permission: .owner,
           shared: true,
           parentFolderID: .none,
-          location: .init(),
+          path: .init(),
           permissions: [
             .user(
               id: .mock_ada,
-              type: .write,
+              permission: .write,
               permissionID: .mock_1
             ),
             .user(
               id: .mock_frances,
-              type: .read,
+              permission: .read,
               permissionID: .mock_2
             ),
           ]
@@ -225,12 +225,12 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
         permissions: .valid([
           .user(
             id: .mock_ada,
-            type: .write,
+            permission: .write,
             permissionID: .none
           ),
           .user(
             id: .mock_frances,
-            type: .read,
+            permission: .read,
             permissionID: .none
           ),
         ])
@@ -251,19 +251,19 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
         ResourceFolderDetailsDSV(
           id: containingFolderID,
           name: "folder",
-          permissionType: .owner,
+          permission: .owner,
           shared: true,
           parentFolderID: .none,
-          location: .init(),
+          path: .init(),
           permissions: [
             .userGroup(
               id: .mock_1,
-              type: .owner,
+              permission: .owner,
               permissionID: .mock_1
             ),
             .user(
               id: .mock_frances,
-              type: .read,
+              permission: .read,
               permissionID: .mock_2
             ),
           ]
@@ -282,12 +282,12 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
         permissions: .valid([
           .userGroup(
             id: .mock_1,
-            type: .owner,
+            permission: .owner,
             permissionID: .none
           ),
           .user(
             id: .mock_frances,
-            type: .read,
+            permission: .read,
             permissionID: .none
           ),
         ])
@@ -324,7 +324,7 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
       Validated<String>
         .invalid(
           "",
-          errors: .empty(
+          error: InvalidValue.empty(
             value: "",
             displayable: .localized(
               key: "error.validation.folder.name.empty"
@@ -344,7 +344,7 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
       Validated<String>
         .invalid(
           name,
-          errors: .tooLong(
+          error: InvalidValue.tooLong(
             value: "",
             displayable: .localized(
               key: "error.validation.folder.name.too.long"
@@ -410,19 +410,19 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
         ResourceFolderDetailsDSV(
           id: containingFolderID,
           name: "folder",
-          permissionType: .owner,
+          permission: .owner,
           shared: true,
           parentFolderID: .none,
-          location: .init(),
+          path: .init(),
           permissions: [
             .user(
               id: .mock_ada,
-              type: .owner,
+              permission: .owner,
               permissionID: .mock_1
             ),
             .user(
               id: .mock_frances,
-              type: .read,
+              permission: .read,
               permissionID: .mock_2
             ),
           ]

@@ -27,14 +27,14 @@ import SwiftUI
 public struct ResourceDetailsTagsListSectionView: View {
 
   private let title: DisplayableString?
-  private let tags: Array<ResourceTagDSV>
+  private let tags: OrderedSet<ResourceTag>
   private let createAction: (() -> Void)?
   private let tagTapAction: ((ResourceTag.ID) -> Void)?
   private let tagMenuAction: ((ResourceTag.ID) -> Void)?
 
   public init(
     title: DisplayableString? = .none,
-    tags: Array<ResourceTagDSV>,
+    tags: OrderedSet<ResourceTag>,
     createAction: (() -> Void)?,
     tagTapAction: ((ResourceTag.ID) -> Void)?,
     tagMenuAction: ((ResourceTag.ID) -> Void)?

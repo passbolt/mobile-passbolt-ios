@@ -31,12 +31,12 @@ extension UserResourcePermissionTypeFetchDatabaseOperation {
   @Sendable fileprivate static func execute(
     _ input: (userID: User.ID, resourceID: Resource.ID),
     connection: SQLiteConnection
-  ) throws -> PermissionTypeDSV? {
+  ) throws -> Permission? {
     let statement: SQLiteStatement =
       .statement(
         """
         SELECT
-          usersResources.permissionType AS permissionType
+          usersResources.permission AS permission
         FROM
           usersResources
         WHERE
@@ -51,21 +51,17 @@ extension UserResourcePermissionTypeFetchDatabaseOperation {
 
     return
       try connection
-      .fetchFirst(using: statement) { dataRow -> PermissionTypeDSV in
+      .fetchFirst(using: statement) { dataRow -> Permission in
         guard
-          let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:))
+          let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:))
         else {
           throw
-            DatabaseIssue
-            .error(
-              underlyingError:
-                DatabaseDataInvalid
-                .error(for: PermissionTypeDSV.self)
-            )
+            DatabaseDataInvalid
+            .error(for: Permission.self)
             .recording(dataRow, for: "dataRow")
         }
 
-        return permissionType
+        return permission
       }
   }
 }

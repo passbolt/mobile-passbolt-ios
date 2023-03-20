@@ -35,6 +35,8 @@ public struct DisplayNavigation {
 
 extension DisplayNavigation: LoadableFeature {
 
+  public typealias Context = ContextlessLoadableFeatureContext
+  
   #if DEBUG
   public static var placeholder: Self {
     .init(

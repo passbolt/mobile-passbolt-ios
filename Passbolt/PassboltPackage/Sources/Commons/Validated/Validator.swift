@@ -54,11 +54,12 @@ extension Validator {
     _ mapping: @escaping (MappedValue) -> Value
   ) -> Validator<MappedValue> {
     Validator<MappedValue> { mappedValue in
-      Validated
-        .valid(mappedValue)
-        .withErrors(
-          self.validate(mapping(mappedValue)).errors
-        )
+      if let error: TheError = self.validate(mapping(mappedValue)).error {
+        return .invalid(mappedValue, error: error)
+      }
+      else {
+        return .valid(mappedValue)
+      }
     }
   }
 }
@@ -67,12 +68,15 @@ public func zip<Value>(
   _ validators: Validator<Value>...
 ) -> Validator<Value> {
   Validator<Value> { value in
-    validators
-      .reduce(
-        into: .valid(value)
-      ) { validated, validator in
-        validated = validated.withErrors(validator(value).errors)
+    for validator in validators {
+      if let error: TheError = validator(value).error {
+        return .invalid(value, error: error)
       }
+      else {
+        continue
+      }
+    }
+    return .valid(value)
   }
 }
 
@@ -92,7 +96,7 @@ extension Validator {
     Self { value in
       .invalid(
         value,
-        errors: .alwaysInvalid(
+        error: InvalidValue.alwaysInvalid(
           value: value,
           displayable: displayable,
           file: file,

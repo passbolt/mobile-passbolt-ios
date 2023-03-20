@@ -38,6 +38,8 @@ public struct AccountInjection {
 
 extension AccountInjection: LoadableFeature {
 
+  public typealias Context = ContextlessLoadableFeatureContext
+
   #if DEBUG
   public nonisolated static var placeholder: Self {
     .init(

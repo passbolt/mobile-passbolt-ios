@@ -83,14 +83,14 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       )
     )
 
-    let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = try await testController(context: context)
-    let result: ResourceDetailsController.ResourceDetailsWithConfig? =
+    let context: Resource.ID = detailsViewResource.id!
+    let controller: ResourceDetailsController = try testController(context: context)
+    let result: ResourceDetailsController.ResourceWithConfig? =
       try? await controller.resourceDetailsWithConfigPublisher()
       .asAsyncValue()
 
     XCTAssertNotNil(result)
-    XCTAssertEqual(result?.resourceDetails.id.rawValue, context.rawValue)
+    XCTAssertEqual(result?.resource.id, context)
   }
 
   func test_loadResourceDetails_succeeds_withSortedFields_whenAvailable() async throws {
@@ -98,8 +98,13 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       \SessionConfigurationLoader.configuration,
       with: always(FeatureFlags.PreviewPassword.enabled)
     )
-    var detailsViewResourceWithReorderedFields: ResourceDetailsDSV = detailsViewResource
-    detailsViewResourceWithReorderedFields.fields.reverse()
+    var detailsViewResourceWithReorderedFields: Resource = detailsViewResource
+    detailsViewResourceWithReorderedFields.type = .init(
+      id: detailsViewResource.type.id,
+      slug: detailsViewResource.type.slug,
+      name: detailsViewResource.type._name,
+      fields: detailsViewResource.type.fields.shuffled().asOrderedSet()
+    )
     features.patch(
       \Resources.resourceDetailsPublisher,
       with: always(
@@ -109,23 +114,24 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       )
     )
 
-    let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = try await testController(context: context)
+    let context: Resource.ID = detailsViewResource.id!
+    let controller: ResourceDetailsController = try testController(context: context)
 
-    let expectedOrderedFields: [ResourceFieldName] = [
+    let expectedOrderedFields: OrderedSet<ResourceField> = [
+      .name,
       .uri,
       .username,
       .password,
-      .description,
+      .descriptionEncrypted,
     ]
 
-    let result: ResourceDetailsController.ResourceDetailsWithConfig? =
+    let result: ResourceDetailsController.ResourceWithConfig? =
       try? await controller.resourceDetailsWithConfigPublisher()
       .asAsyncValue()
 
     XCTAssertNotNil(result)
-    XCTAssertEqual(result?.resourceDetails.id.rawValue, context.rawValue)
-    XCTAssertEqual(result?.resourceDetails.fields.map(\.name), expectedOrderedFields)
+    XCTAssertEqual(result?.resource.id?.rawValue, context.rawValue)
+    XCTAssertEqual(result?.resource.fields, expectedOrderedFields)
   }
 
   func test_loadResourceDetails_fails_whenErrorOnFetch() async throws {
@@ -141,8 +147,8 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       )
     )
 
-    let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = try await testController(context: context)
+    let context: Resource.ID = detailsViewResource.id!
+    let controller: ResourceDetailsController = try testController(context: context)
     var result: Error?
     do {
       _ = try await controller.resourceDetailsWithConfigPublisher()
@@ -178,8 +184,8 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       )
     )
 
-    let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = try await testController(context: context)
+    let context: Resource.ID = detailsViewResource.id!
+    let controller: ResourceDetailsController = try testController(context: context)
     let result: String? =
       try? await controller
       .toggleDecrypt(
@@ -211,11 +217,11 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       )
     )
 
-    let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = try await testController(context: context)
+    let context: Resource.ID = detailsViewResource.id!
+    let controller: ResourceDetailsController = try testController(context: context)
     var result: Error?
     do {
-      try await controller
+      _ = try await controller
         .toggleDecrypt(.password)
         .asAsyncValue()
       XCTFail()
@@ -249,8 +255,8 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       )
     )
 
-    let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = try await testController(context: context)
+    let context: Resource.ID = detailsViewResource.id!
+    let controller: ResourceDetailsController = try testController(context: context)
 
     _ =
       try await controller
@@ -289,8 +295,8 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       )
     )
 
-    let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = try await testController(context: context)
+    let context: Resource.ID = detailsViewResource.id!
+    let controller: ResourceDetailsController = try testController(context: context)
     var result: Resource.ID!
 
     controller.resourceMenuPresentationPublisher()
@@ -333,8 +339,8 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       }
     )
 
-    let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = try await testController(context: context)
+    let context: Resource.ID = detailsViewResource.id!
+    let controller: ResourceDetailsController = try testController(context: context)
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -344,7 +350,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       .asAsyncValue()
 
     XCTAssertNotNil(pasteboardContent)
-    XCTAssertEqual(pasteboardContent, detailsViewResource.username)
+    XCTAssertEqual(pasteboardContent, detailsViewResource.username?.stringValue)
   }
 
   func test_copyFieldDescription_succeeds() async throws {
@@ -376,8 +382,8 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       }
     )
 
-    let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = try await testController(context: context)
+    let context: Resource.ID = detailsViewResource.id!
+    let controller: ResourceDetailsController = try testController(context: context)
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -387,7 +393,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       .asAsyncValue()
 
     XCTAssertNotNil(pasteboardContent)
-    XCTAssertEqual(pasteboardContent, detailsViewResource.description)
+    XCTAssertEqual(pasteboardContent, resourceSecret.value(forFieldWithName: "description")?.stringValue)
   }
 
   func test_copyFieldEncryptedDescription_succeeds() async throws {
@@ -398,7 +404,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
     features.patch(
       \Resources.resourceDetailsPublisher,
       with: always(
-        Just(encryptedDescriptionResourceDetails)
+        Just(detailsViewResource)
           .eraseErrorType()
           .eraseToAnyPublisher()
       )
@@ -419,8 +425,8 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       }
     )
 
-    let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = try await testController(context: context)
+    let context: Resource.ID = detailsViewResource.id!
+    let controller: ResourceDetailsController = try testController(context: context)
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -430,7 +436,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       .asAsyncValue()
 
     XCTAssertNotNil(pasteboardContent)
-    XCTAssertEqual(pasteboardContent, resourceSecret.description)
+    XCTAssertEqual(pasteboardContent, resourceSecret.value(forFieldWithName: "description")?.stringValue)
   }
 
   func test_copyFieldURI_succeeds() async throws {
@@ -462,8 +468,8 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       }
     )
 
-    let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = try await testController(context: context)
+    let context: Resource.ID = detailsViewResource.id!
+    let controller: ResourceDetailsController = try testController(context: context)
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -473,7 +479,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       .asAsyncValue()
 
     XCTAssertNotNil(pasteboardContent)
-    XCTAssertEqual(pasteboardContent, detailsViewResource.url)
+    XCTAssertEqual(pasteboardContent, detailsViewResource.uri?.stringValue)
   }
 
   func test_copyFieldPassword_succeeds() async throws {
@@ -505,8 +511,8 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       }
     )
 
-    let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = try await testController(context: context)
+    let context: Resource.ID = detailsViewResource.id!
+    let controller: ResourceDetailsController = try testController(context: context)
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -516,7 +522,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       .asAsyncValue()
 
     XCTAssertNotNil(pasteboardContent)
-    XCTAssertEqual(pasteboardContent, resourceSecret.password)
+    XCTAssertEqual(pasteboardContent, resourceSecret.value(forFieldWithName: "password")?.stringValue)
   }
 
   func test_resourceDeleteAlertPresentationPublisher_publishesResourceID_whenPresentDeleteResourceAlertCalled()
@@ -543,8 +549,8 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       )
     )
 
-    let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = try await testController(context: context)
+    let context: Resource.ID = detailsViewResource.id!
+    let controller: ResourceDetailsController = try testController(context: context)
     var result: Resource.ID?
 
     controller.resourceDeleteAlertPresentationPublisher()
@@ -559,43 +565,34 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
   }
 }
 
-private let detailsViewResource: ResourceDetailsDSV = .init(
-  id: .init(rawValue: "1"),
-  permissionType: .owner,
-  name: "Passphrase",
-  url: "https://passbolt.com",
-  username: "passbolt@passbolt.com",
-  description: "Passbolt",
-  fields: [
-    .init(name: .username, valueType: .string, required: true, encrypted: false, maxLength: nil),
-    .init(name: .password, valueType: .string, required: true, encrypted: true, maxLength: nil),
-    .init(name: .uri, valueType: .string, required: true, encrypted: false, maxLength: nil),
-    .init(name: .description, valueType: .string, required: true, encrypted: false, maxLength: nil),
-  ],
-  favoriteID: .none,
-  location: .init(),
-  permissions: [],
-  tags: []
-)
-
-private let encryptedDescriptionResourceDetails: ResourceDetailsDSV = .init(
-  id: .init(rawValue: "1"),
-  permissionType: .owner,
-  name: "Passphrase",
-  url: "https://passbolt.com",
-  username: "passbolt@passbolt.com",
-  description: nil,
-  fields: [
-    .init(name: .username, valueType: .string, required: true, encrypted: false, maxLength: nil),
-    .init(name: .password, valueType: .string, required: true, encrypted: true, maxLength: nil),
-    .init(name: .uri, valueType: .string, required: true, encrypted: false, maxLength: nil),
-    .init(name: .description, valueType: .string, required: true, encrypted: true, maxLength: nil),
-  ],
-  favoriteID: .none,
-  location: .init(),
-  permissions: [],
-  tags: []
-)
+private let detailsViewResource: Resource = {
+  var mock: Resource = .init(
+    id: .mock_1,
+    path: .init(),
+    favoriteID: .none,
+    type: .mock_default,
+    permission: .owner,
+    tags: [
+      .init(
+        id: .mock_1,
+        slug: .init(rawValue: "mock_1"),
+        shared: false
+      )
+    ],
+    permissions: [
+      .user(
+        id: .mock_1,
+        permission: .owner,
+        permissionID: .mock_1
+      )
+    ],
+    modified: .init(rawValue: 0)
+  )
+  mock.uri = .string("https://passbolt.com")
+  mock.name = .string("Mock_1")
+  mock.username = .string("passbolt@passbolt.com")
+  return mock
+}()
 
 private let resourceSecret: ResourceSecret = try! .from(
   decrypted: #"{"password": "passbolt", "description": "encrypted"}"#,

@@ -35,15 +35,13 @@ public enum ResourceSetFavoriteDatabaseOperationDescription: DatabaseOperationDe
 public struct ResourceSetFavoriteDatabaseOperationDSO {
 
   public var resourceID: Resource.ID
-  public var favoriteID: Resource.FavoriteID?
+  public var favoriteID: Resource.Favorite.ID?
 
   public init(
     resourceID: Resource.ID,
-    favoriteID: Resource.FavoriteID?
+    favoriteID: Resource.Favorite.ID?
   ) {
     self.resourceID = resourceID
     self.favoriteID = favoriteID
   }
 }
-
-extension ResourceSetFavoriteDatabaseOperationDSO: DSO {}

@@ -23,6 +23,7 @@
 
 import Crypto
 import Resources
+import struct Foundation.Data
 
 // MARK: - Implementation
 

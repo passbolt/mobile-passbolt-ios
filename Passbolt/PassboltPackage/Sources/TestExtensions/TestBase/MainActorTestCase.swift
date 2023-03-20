@@ -108,7 +108,7 @@ open class MainActorTestCase: AsyncTestCase {
   public final func testedInstance<Feature>(
     _ featureType: Feature.Type = Feature.self
   ) throws -> Feature
-  where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {
+  where Feature: LoadableFeature, Feature.Context == Void {
     try features
       .instance(
         of: featureType

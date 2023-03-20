@@ -70,12 +70,8 @@ extension ResourceUsersIDFetchDatabaseOperation {
           let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:))
         else {
           throw
-            DatabaseIssue
-            .error(
-              underlyingError:
-                DatabaseDataInvalid
-                .error(for: ResourceUserGroupListItemDSV.self)
-            )
+            DatabaseDataInvalid
+            .error(for: User.ID.self)
             .recording(dataRow, for: "dataRow")
         }
 

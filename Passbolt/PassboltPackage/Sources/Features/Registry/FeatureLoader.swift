@@ -36,7 +36,7 @@ extension FeatureLoader {
     _ featureType: Feature.Type,
     load: @escaping @MainActor (Features, Feature.Context, Cancellables) throws -> Feature
   ) -> Self
-  where Feature: LoadableFeature {
+  where Feature: LoadableFeature, Feature.Context: LoadableFeatureContext {
     @MainActor func loadFeature(
       _ factory: Features,
       _ context: Any,
@@ -63,7 +63,7 @@ extension FeatureLoader {
     _ featureType: Feature.Type,
     load: @escaping @MainActor (Features, Cancellables) throws -> Feature
   ) -> Self
-  where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {
+  where Feature: LoadableFeature, Feature.Context == ContextlessLoadableFeatureContext {
     @MainActor func loadFeature(
       _ factory: Features,
       _: Any,
@@ -111,7 +111,7 @@ extension FeatureLoader {
     _ featureType: Feature.Type,
     load: @escaping @MainActor (Features) throws -> Feature
   ) -> Self
-  where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {
+  where Feature: LoadableFeature, Feature.Context == Void {
     @MainActor func loadFeature(
       _ factory: Features,
       _: Any,
@@ -130,7 +130,7 @@ extension FeatureLoader {
   public static func constant<Feature>(
     _ instance: Feature
   ) -> Self
-  where Feature: LoadableFeature {
+  where Feature: LoadableFeature, Feature.Context == ContextlessLoadableFeatureContext {
     @MainActor func loadFeature(
       _: Features,
       _: Any,

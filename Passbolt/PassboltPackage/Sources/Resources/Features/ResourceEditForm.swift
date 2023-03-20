@@ -28,49 +28,65 @@ import Features
 
 public struct ResourceEditForm {
 
-  // sets currently edited resource, if it was not set default form creates new resource
-  // note that editing resource will download and decrypt secrets to fill them in and allow editing
-  public var editResource: @Sendable (Resource.ID) -> AnyPublisher<Void, Error>
-  // set enclosing folder (parentFolderID)
-  public var setEnclosingFolder: @Sendable (ResourceFolder.ID?) -> Void
-  // initial version supports only one type of resource type, so there is no method to change it
-  public var resourceTypePublisher: () -> AnyPublisher<ResourceTypeDSV, Error>
-  // since currently the only field value is String we are not allowing other value types
-  public var setFieldValue: @Sendable (String, ResourceFieldName) -> AnyPublisher<Void, Error>
-  // prepare publisher for given field, publisher will complete when field will be no longer available
-  public var fieldValuePublisher: (ResourceFieldName) -> AnyPublisher<Validated<ResourceFieldValue>, Never>
-  // send the form and create resource on server
-  public var sendForm: @Sendable () -> AnyPublisher<Resource.ID, Error>
+  // Form state updates
+  public var updates: UpdatesSequence
+  // Access current resource state
+  public var resource: @Sendable () async throws -> Resource
+  // Access list of all available fields for edited resource
+  public var fieldsPublisher: @Sendable () -> AnyPublisher<OrderedSet<ResourceField>, Never>
+  // Assign value for given field
+  public var setFieldValue: @Sendable (ResourceFieldValue, ResourceField) async throws -> Void
+  // Publisher for validated values for given field
+  public var validatedFieldValuePublisher:
+    @Sendable (ResourceField) -> AnyPublisher<Validated<ResourceFieldValue?>, Never>
+  // Send the form
+  public var sendForm: @Sendable () async throws -> Resource.ID
 
   public init(
-    editResource: @escaping @Sendable (Resource.ID) -> AnyPublisher<Void, Error>,
-    setEnclosingFolder: @escaping @Sendable (ResourceFolder.ID?) -> Void,
-    resourceTypePublisher: @escaping () -> AnyPublisher<ResourceTypeDSV, Error>,
-    setFieldValue: @escaping @Sendable (String, ResourceFieldName) -> AnyPublisher<Void, Error>,
-    fieldValuePublisher: @escaping (ResourceFieldName) -> AnyPublisher<Validated<ResourceFieldValue>, Never>,
-    sendForm: @escaping @Sendable () -> AnyPublisher<Resource.ID, Error>
+    updates: UpdatesSequence,
+    resource: @escaping @Sendable () async throws -> Resource,
+    fieldsPublisher: @escaping @Sendable () -> AnyPublisher<OrderedSet<ResourceField>, Never>,
+    setFieldValue: @escaping @Sendable (ResourceFieldValue, ResourceField) async throws -> Void,
+    validatedFieldValuePublisher: @escaping @Sendable (ResourceField) -> AnyPublisher<
+      Validated<ResourceFieldValue?>, Never
+    >,
+    sendForm: @escaping @Sendable () async throws -> Resource.ID
   ) {
-    self.editResource = editResource
-    self.setEnclosingFolder = setEnclosingFolder
-    self.resourceTypePublisher = resourceTypePublisher
+    self.updates = updates
+    self.resource = resource
+    self.fieldsPublisher = fieldsPublisher
     self.setFieldValue = setFieldValue
-    self.fieldValuePublisher = fieldValuePublisher
+    self.validatedFieldValuePublisher = validatedFieldValuePublisher
     self.sendForm = sendForm
   }
 }
 
-// TODO: convert to LoadableFeature with
-// resource ID (and folder ID?) as a context
 extension ResourceEditForm: LoadableFeature {
+
+  public enum Context: LoadableFeatureContext, Hashable {
+
+    case create(folderID: ResourceFolder.ID?, uri: URLString?)
+    case edit(Resource.ID)
+
+    public var resourceID: Resource.ID? {
+      switch self {
+      case .edit(let resourceID):
+        return resourceID
+
+      case .create:
+        return .none
+      }
+    }
+  }
 
   #if DEBUG
   public static var placeholder: ResourceEditForm {
     Self(
-      editResource: unimplemented1(),
-      setEnclosingFolder: unimplemented1(),
-      resourceTypePublisher: unimplemented0(),
+      updates: .placeholder,
+      resource: unimplemented0(),
+      fieldsPublisher: unimplemented0(),
       setFieldValue: unimplemented2(),
-      fieldValuePublisher: unimplemented1(),
+      validatedFieldValuePublisher: unimplemented1(),
       sendForm: unimplemented0()
     )
   }

@@ -21,8 +21,21 @@
 // @since         v1.0
 //
 
-import Commons
+public struct ResourceFolderPathItem {
 
-public typealias ResourceDSO = ResourceDTO
+  public var id: ResourceFolder.ID
+  public var name: String
+  public var shared: Bool
 
-extension ResourceDSO: DSO {}
+  public init(
+    id: ResourceFolder.ID,
+    name: String,
+    shared: Bool
+  ) {
+    self.id = id
+    self.name = name
+    self.shared = shared
+  }
+}
+
+extension ResourceFolderPathItem: Hashable {}

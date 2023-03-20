@@ -46,14 +46,14 @@ extension ResourceFoldersListFetchDatabaseOperation {
           flattenedResourceFolders(
             id,
             name,
-            permissionType,
+            permission,
             parentFolderID,
             shared
           ) AS (
             SELECT
               resourceFolders.id,
               resourceFolders.name,
-              resourceFolders.permissionType,
+              resourceFolders.permission,
               resourceFolders.parentFolderID,
               resourceFolders.shared
             FROM
@@ -66,7 +66,7 @@ extension ResourceFoldersListFetchDatabaseOperation {
             SELECT
               resourceFolders.id,
               resourceFolders.name,
-              resourceFolders.permissionType,
+              resourceFolders.permission,
               resourceFolders.parentFolderID,
               resourceFolders.shared
             FROM
@@ -78,7 +78,7 @@ extension ResourceFoldersListFetchDatabaseOperation {
           SELECT DISTINCT
             flattenedResourceFolders.id AS id,
             flattenedResourceFolders.name AS name,
-            flattenedResourceFolders.permissionType AS permissionType,
+            flattenedResourceFolders.permission AS permission,
             flattenedResourceFolders.parentFolderID AS parentFolderID,
             flattenedResourceFolders.shared AS shared,
             (
@@ -158,7 +158,7 @@ extension ResourceFoldersListFetchDatabaseOperation {
         SELECT
           resourceFolders.id AS id,
           resourceFolders.name AS name,
-          resourceFolders.permissionType AS permissionType,
+          resourceFolders.permission AS permission,
           resourceFolders.parentFolderID AS parentFolderID,
           resourceFolders.shared AS shared,
           (
@@ -251,7 +251,7 @@ extension ResourceFoldersListFetchDatabaseOperation {
     // since we cannot use array in query directly
     // we are preparing it manually as argument for each element
     if input.permissions.count > 1 {
-      statement.append("AND permissionType IN (")
+      statement.append("AND permission IN (")
       for index in input.permissions.indices {
         if index == input.permissions.startIndex {
           statement.append("?")
@@ -263,8 +263,8 @@ extension ResourceFoldersListFetchDatabaseOperation {
       }
       statement.append(") ")
     }
-    else if let permission: PermissionType = input.permissions.first {
-      statement.append("AND permissionType == ? ")
+    else if let permission: Permission = input.permissions.first {
+      statement.append("AND permission == ? ")
       statement.appendArgument(permission)
     }
     else {
@@ -283,7 +283,7 @@ extension ResourceFoldersListFetchDatabaseOperation {
       guard
         let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
         let name: String = dataRow.name,
-        let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
+        let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:)),
         let shared: Bool = dataRow.shared
       else {
         throw
@@ -299,7 +299,7 @@ extension ResourceFoldersListFetchDatabaseOperation {
       return ResourceFolderListItemDSV(
         id: id,
         name: name,
-        permissionType: permissionType,
+        permission: permission,
         shared: shared,
         parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:)),
         location: fullLocation,

@@ -31,12 +31,41 @@ extension ResourceDetailsFetchDatabaseOperation {
   @Sendable fileprivate static func execute(
     _ input: Resource.ID,
     connection: SQLiteConnection
-  ) throws -> ResourceDetailsDSV {
-    let selectResourceLocationStatement: SQLiteStatement =
+  ) throws -> Resource {
+    let selectResourceWithTypeStatement: SQLiteStatement =
+      .statement(
+        """
+        SELECT
+          resources.id AS id,
+          resources.name AS name,
+          resources.favoriteID AS favoriteID,
+          resources.permission AS permission,
+          resources.uri AS uri,
+          resources.username AS username,
+          resources.description AS description,
+          resourceTypesView.id AS typeID,
+          resourceTypesView.slug AS typeSlug,
+          resourceTypesView.name AS typeName,
+          resourceTypesView.fields AS fields
+        FROM
+          resources
+        JOIN
+          resourceTypesView
+        ON
+          resources.typeID == resourceTypesView.id
+        WHERE
+          resources.id == ?1
+        LIMIT
+          1;
+        """,
+        arguments: input
+      )
+
+    let selectResourcePathStatement: SQLiteStatement =
       .statement(
         """
         WITH RECURSIVE
-          location(
+          path(
             id,
             name,
             shared,
@@ -67,16 +96,16 @@ extension ResourceDetailsFetchDatabaseOperation {
             resourceFolders.parentFolderID AS parentID
           FROM
             resourceFolders,
-            location
+            path
           WHERE
-            resourceFolders.id == location.parentID
+            resourceFolders.id == path.parentID
         )
         SELECT
-          location.id,
-          location.name AS name,
-          location.shared AS shared
+          path.id,
+          path.name AS name,
+          path.shared AS shared
         FROM
-          location;
+          path;
         """,
         arguments: input
       )
@@ -86,8 +115,7 @@ extension ResourceDetailsFetchDatabaseOperation {
         """
         SELECT
           usersResources.userID AS userID,
-          usersResources.resourceID AS resourceID,
-          usersResources.permissionType AS permissionType,
+          usersResources.permission AS permission,
           usersResources.permissionID AS permissionID
         FROM
           usersResources
@@ -102,8 +130,7 @@ extension ResourceDetailsFetchDatabaseOperation {
         """
         SELECT
           userGroupsResources.userGroupID AS userGroupID,
-          userGroupsResources.resourceID AS resourceID,
-          userGroupsResources.permissionType AS permissionType,
+          userGroupsResources.permission AS permission,
           userGroupsResources.permissionID AS permissionID
         FROM
           userGroupsResources
@@ -132,175 +159,154 @@ extension ResourceDetailsFetchDatabaseOperation {
         arguments: input
       )
 
-    let record: ResourceDetailsDSV? =
-      try connection.fetchFirst(
-        using: .statement(
-          """
-          SELECT
-            id,
-            name,
-            favoriteID,
-            permissionType,
-            url,
-            username,
-            description,
-            fields
-          FROM
-            resourceDetailsView
-          WHERE
-            id == ?1
-          LIMIT
-            1;
-          """,
-          arguments: input
-        )
-      ) { dataRow -> ResourceDetailsDSV in
+    let path: OrderedSet<ResourceFolderPathItem> = try OrderedSet(
+      connection.fetch(
+        using: selectResourcePathStatement
+      ) { dataRow in
         guard
-          let id: Resource.ID = dataRow.id.flatMap(Resource.ID.init(rawValue:)),
+          let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
           let name: String = dataRow.name,
-          let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
-          let rawFields: String = dataRow.fields
+          let shared: Bool = dataRow.shared
         else {
           throw
-            DatabaseIssue
-            .error(
-              underlyingError:
-                DatabaseDataInvalid
-                .error(for: ResourceTypeDSV.self)
-            )
+            DatabaseDataInvalid
+            .error(for: ResourceFolderPathItem.self)
             .recording(dataRow, for: "dataRow")
         }
 
-        let usersPermissions: Array<PermissionDSV> = try connection.fetch(
-          using: selectResourcesUsersPermissionsStatement
-        ) {
-          dataRow in
-          guard
-            let userID: User.ID = dataRow.userID.flatMap(User.ID.init(rawValue:)),
-            let resourceID: Resource.ID = dataRow.resourceID.flatMap(Resource.ID.init(rawValue:)),
-            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
-            let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseDataInvalid
-                  .error(for: PermissionTypeDSV.self)
-              )
-          }
-
-          return .userToResource(
-            id: permissionID,
-            userID: userID,
-            resourceID: resourceID,
-            type: permissionType
-          )
-        }
-
-        let userGroupsPermissions: Array<PermissionDSV> = try connection.fetch(
-          using: selectResourcesUserGroupsPermissionsStatement
-        ) { dataRow in
-          guard
-            let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(rawValue:)),
-            let resourceID: Resource.ID = dataRow.resourceID.flatMap(Resource.ID.init(rawValue:)),
-            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
-            let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseDataInvalid
-                  .error(for: PermissionDSV.self)
-              )
-          }
-
-          return .userGroupToResource(
-            id: permissionID,
-            userGroupID: userGroupID,
-            resourceID: resourceID,
-            type: permissionType
-          )
-        }
-
-        let tags: Array<ResourceTagDSV> = try connection.fetch(
-          using: selectResourceTagsStatement
-        ) { dataRow in
-          guard
-            let id: ResourceTag.ID = dataRow.id.flatMap(ResourceTag.ID.init(rawValue:)),
-            let slug: ResourceTag.Slug = dataRow.slug.flatMap(ResourceTag.Slug.init(rawValue:)),
-            let shared: Bool = dataRow.shared
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseDataInvalid
-                  .error(for: ResourceTagDSV.self)
-              )
-          }
-
-          return ResourceTagDSV(
-            id: id,
-            slug: slug,
-            shared: shared
-          )
-        }
-
-        let location: Array<ResourceFolderLocationItemDSV> = try connection.fetch(
-          using: selectResourceLocationStatement
-        ) { dataRow in
-          guard
-            let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
-            let name: String = dataRow.name,
-            let shared: Bool = dataRow.shared
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseDataInvalid
-                  .error(for: ResourceFolderLocationItemDSV.self)
-              )
-          }
-
-          return ResourceFolderLocationItemDSV(
-            folderID: id,
-            folderName: name,
-            folderShared: shared
-          )
-        }
-        .reversed()
-
-        return ResourceDetailsDSV(
+        return ResourceFolderPathItem(
           id: id,
-          permissionType: permissionType,
           name: name,
-          url: dataRow.url,
-          username: dataRow.username,
-          description: dataRow.description,
-          fields: ResourceFieldDSV.decodeArrayFrom(rawString: rawFields),
-          favoriteID: dataRow.favoriteID.flatMap(Resource.FavoriteID.init(rawValue:)),
-          location: location,
+          shared: shared
+        )
+      }
+      .reversed()
+    )
+
+    let usersPermissions: Array<ResourcePermission> = try connection.fetch(
+      using: selectResourcesUsersPermissionsStatement
+    ) {
+      dataRow in
+      guard
+        let userID: User.ID = dataRow.userID.flatMap(User.ID.init(rawValue:)),
+        let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:)),
+        let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
+      else {
+        throw
+          DatabaseDataInvalid
+          .error(for: ResourcePermission.self)
+          .recording(dataRow, for: "dataRow")
+      }
+
+      return .user(
+        id: userID,
+        permission: permission,
+        permissionID: permissionID
+      )
+    }
+
+    let userGroupsPermissions: Array<ResourcePermission> = try connection.fetch(
+      using: selectResourcesUserGroupsPermissionsStatement
+    ) { dataRow in
+      guard
+        let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(rawValue:)),
+        let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:)),
+        let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
+      else {
+        throw
+          DatabaseDataInvalid
+          .error(for: ResourcePermission.self)
+          .recording(dataRow, for: "dataRow")
+      }
+
+      return .userGroup(
+        id: userGroupID,
+        permission: permission,
+        permissionID: permissionID
+      )
+    }
+
+    let tags: OrderedSet<ResourceTag> = try OrderedSet(
+      connection.fetch(
+        using: selectResourceTagsStatement
+      ) { dataRow in
+        guard
+          let id: ResourceTag.ID = dataRow.id.flatMap(ResourceTag.ID.init(rawValue:)),
+          let slug: ResourceTag.Slug = dataRow.slug.flatMap(ResourceTag.Slug.init(rawValue:)),
+          let shared: Bool = dataRow.shared
+        else {
+          throw
+            DatabaseDataInvalid
+            .error(for: ResourceTag.self)
+            .recording(dataRow, for: "dataRow")
+        }
+
+        return ResourceTag(
+          id: id,
+          slug: slug,
+          shared: shared
+        )
+      }
+    )
+
+    let record: Resource? =
+      try connection.fetchFirst(
+        using: selectResourceWithTypeStatement
+      ) { (dataRow: SQLiteRow) throws -> Resource in
+        guard
+          let id: Resource.ID = dataRow.id.flatMap(Resource.ID.init(rawValue:)),
+          let name: String = dataRow.name,
+          let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:)),
+          let typeID: ResourceType.ID = dataRow.typeID.flatMap(ResourceType.ID.init(rawValue:)),
+          let typeSlug: ResourceType.Slug = dataRow.typeSlug.flatMap(ResourceType.Slug.init(rawValue:)),
+          let typeName: String = dataRow.typeName,
+          let rawFields: String = dataRow.fields
+        else {
+          throw
+            DatabaseDataInvalid
+            .error(for: Resource.self)
+            .recording(dataRow, for: "dataRow")
+        }
+
+        let type: ResourceType = try .init(
+          id: typeID,
+          slug: typeSlug,
+          name: typeName,
+          fields:
+            ResourceField
+            .decodeOrderedSetFrom(rawString: rawFields)
+        )
+
+        var resource: Resource = .init(
+          id: id,
+          path: path,
+          favoriteID: dataRow.favoriteID.flatMap(Resource.Favorite.ID.init(rawValue:)),
+          type: type,
+          permission: permission,
+          tags: tags,
           permissions: OrderedSet(
             usersPermissions + userGroupsPermissions
           ),
-          tags: tags
+          modified: dataRow.modified.flatMap(Timestamp.init(rawValue:))
         )
+        // set dynamic field values
+        resource.name = .string(name)
+        resource.uri = (dataRow.uri as String?)
+          .map(ResourceFieldValue.string)
+        resource.username = (dataRow.username as String?)
+          .map(ResourceFieldValue.string)
+        resource.description = (dataRow.description as String?)
+          .map(ResourceFieldValue.string)
+        return resource
       }
 
-    if let resourceDetails: ResourceDetailsDSV = record {
-      return resourceDetails
+    if let record {
+      return record
     }
     else {
       throw
-        DatabaseIssue
-        .error(
-          underlyingError:
-            DatabaseDataInvalid
-            .error(for: ResourceDetailsDSV.self)
-        )
+        DatabaseDataInvalid
+        .error(for: Resource.self)
     }
   }
 }

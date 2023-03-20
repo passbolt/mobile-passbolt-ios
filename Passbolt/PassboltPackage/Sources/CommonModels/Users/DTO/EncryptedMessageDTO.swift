@@ -23,8 +23,6 @@
 
 public typealias EncryptedMessageDTO = EncryptedMessage
 
-extension EncryptedMessageDTO: DTO {}
-
 extension EncryptedMessageDTO: Codable {
 
   public init(

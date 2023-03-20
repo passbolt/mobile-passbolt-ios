@@ -157,7 +157,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
           await self?.push(
             ResourceEditViewController.self,
             in: (
-              .new(in: nil, url: .none),
+              .create(folderID: nil, uri: .none),
               completion: { _ in
                 self?.cancellables.executeOnMainActor { [weak self] in
                   self?.presentInfoSnackbar(
@@ -197,7 +197,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
           await self.push(
             ResourceEditViewController.self,
             in: (
-              .existing(resourceID),
+              .edit(resourceID),
               completion: { [weak self] _ in
                 self?.cancellables.executeOnMainActor { [weak self] in
                   self?.presentInfoSnackbar(

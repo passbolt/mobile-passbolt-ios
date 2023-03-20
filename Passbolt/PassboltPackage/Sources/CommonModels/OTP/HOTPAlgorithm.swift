@@ -30,3 +30,4 @@ public enum HOTPAlgorithm: String {
 
 extension HOTPAlgorithm: Hashable {}
 extension HOTPAlgorithm: Sendable {}
+extension HOTPAlgorithm: Codable {}

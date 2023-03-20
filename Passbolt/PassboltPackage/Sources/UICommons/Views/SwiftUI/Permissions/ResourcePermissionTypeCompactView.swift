@@ -27,26 +27,26 @@ import SwiftUI
 @MainActor
 public struct ResourcePermissionTypeCompactView: View {
 
-  private let permissionTypeLabel: DisplayableString
+  private let permissionLabel: DisplayableString
 
   public init(
-    permissionType: PermissionType
+    permission: Permission
   ) {
-    switch permissionType {
+    switch permission {
     case .read:
-      self.permissionTypeLabel = .localized(key: "resource.permission.type.read.label")
+      self.permissionLabel = .localized(key: "resource.permission.type.read.label")
 
     case .write:
-      self.permissionTypeLabel = .localized(key: "resource.permission.type.write.label")
+      self.permissionLabel = .localized(key: "resource.permission.type.write.label")
 
     case .owner:
-      self.permissionTypeLabel = .localized(key: "resource.permission.type.own.label")
+      self.permissionLabel = .localized(key: "resource.permission.type.own.label")
     }
   }
 
   public var body: some View {
     Text(
-      displayable: self.permissionTypeLabel
+      displayable: self.permissionLabel
     )
     .text(
       font: .inter(
@@ -67,13 +67,13 @@ internal struct ResourcePermissionTypeCompactView_Previews: PreviewProvider {
 
   internal static var previews: some View {
     ResourcePermissionTypeCompactView(
-      permissionType: .read
+      permission: .read
     )
     ResourcePermissionTypeCompactView(
-      permissionType: .write
+      permission: .write
     )
     ResourcePermissionTypeCompactView(
-      permissionType: .owner
+      permission: .owner
     )
   }
 }

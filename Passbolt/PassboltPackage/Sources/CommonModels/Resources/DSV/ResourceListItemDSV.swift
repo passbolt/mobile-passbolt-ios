@@ -46,6 +46,4 @@ public struct ResourceListItemDSV {
   }
 }
 
-extension ResourceListItemDSV: DSV {}
-
 extension ResourceListItemDSV: Hashable {}

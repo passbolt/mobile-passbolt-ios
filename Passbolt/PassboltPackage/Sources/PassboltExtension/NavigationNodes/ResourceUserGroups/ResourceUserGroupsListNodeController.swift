@@ -39,9 +39,7 @@ internal struct ResourceUserGroupsListNodeController {
 
 extension ResourceUserGroupsListNodeController: ViewController {
 
-  internal struct Context: LoadableFeatureContext {
-    // feature is disposable, we don't care about ID
-    internal let identifier: AnyHashable = IID()
+  internal struct Context {
 
     internal var title: DisplayableString = .localized(
       key: "home.presentation.mode.resource.user.groups.explorer.title"

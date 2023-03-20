@@ -96,7 +96,7 @@ extension ResourcePermissionListController: ComponentController {
               imageData: userAvatarImageFetch(details.id)
             )
           }
-        let canEdit: Bool = try await resourceDetails.details().permissionType.canShare
+        let canEdit: Bool = try await resourceDetails.details().permission.canShare
 
         viewState.permissionListItems = userGroupPermissionsDetails + userPermissionsDetails
         viewState.editable = canEdit

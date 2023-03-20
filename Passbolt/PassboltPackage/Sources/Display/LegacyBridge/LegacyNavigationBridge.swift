@@ -36,6 +36,8 @@ internal struct LegacyNavigationBridge {
 
 extension LegacyNavigationBridge: LoadableFeature {
 
+  public typealias Context = ContextlessLoadableFeatureContext
+
   #if DEBUG
   internal static var placeholder: Self {
     .init(

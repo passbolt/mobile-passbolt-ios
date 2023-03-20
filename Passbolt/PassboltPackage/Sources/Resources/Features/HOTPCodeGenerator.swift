@@ -39,7 +39,7 @@ public struct HOTPCodeGenerator {
 
 extension HOTPCodeGenerator: LoadableFeature {
 
-  public struct Context: LoadableFeatureContext, Hashable {
+  public struct Context {
 
     public var resourceID: Resource.ID
     public var sharedSecret: String

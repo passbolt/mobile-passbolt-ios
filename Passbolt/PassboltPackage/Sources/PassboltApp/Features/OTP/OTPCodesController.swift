@@ -51,6 +51,8 @@ internal struct OTPCodesController {
 
 extension OTPCodesController: LoadableFeature {
 
+  public typealias Context = ContextlessLoadableFeatureContext
+
   #if DEBUG
   internal nonisolated static var placeholder: Self {
     .init(

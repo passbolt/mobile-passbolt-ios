@@ -39,6 +39,8 @@ internal struct SessionStateEnsurance {
 
 extension SessionStateEnsurance: LoadableFeature {
 
+  public typealias Context = ContextlessLoadableFeatureContext
+
   #if DEBUG
   nonisolated internal static var placeholder: Self {
     Self(

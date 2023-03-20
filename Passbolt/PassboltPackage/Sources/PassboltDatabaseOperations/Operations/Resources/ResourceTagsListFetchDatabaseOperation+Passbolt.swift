@@ -77,12 +77,8 @@ extension ResourceTagsListFetchDatabaseOperation {
           let contentCount: Int = dataRow.contentCount
         else {
           throw
-            DatabaseIssue
-            .error(
-              underlyingError:
-                DatabaseDataInvalid
-                .error(for: ResourceTagListItemDSV.self)
-            )
+            DatabaseDataInvalid
+            .error(for: ResourceTagListItemDSV.self)
             .recording(dataRow, for: "dataRow")
         }
 

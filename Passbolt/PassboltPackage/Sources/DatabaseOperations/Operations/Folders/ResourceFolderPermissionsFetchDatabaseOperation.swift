@@ -30,5 +30,5 @@ public typealias ResourceFolderPermissionsFetchDatabaseOperation = DatabaseOpera
 public enum ResourceFolderPermissionsFetchDatabaseOperationDescription: DatabaseOperationDescription {
 
   public typealias Input = ResourceFolder.ID
-  public typealias Output = Array<ResourceFolderPermissionDSV>
+  public typealias Output = Array<ResourceFolderPermission>
 }

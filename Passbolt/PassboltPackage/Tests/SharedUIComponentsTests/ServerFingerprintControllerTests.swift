@@ -42,7 +42,7 @@ final class ServerFingerprintControllerTests: MainActorTestCase {
   }
 
   func test_fingerprint_isCorrectlyFormatted() async throws {
-    let controller: ServerFingerprintController = try await testController(
+    let controller: ServerFingerprintController = try testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 
@@ -52,7 +52,7 @@ final class ServerFingerprintControllerTests: MainActorTestCase {
   }
 
   func test_fingerprintCheckedPublisher_initially_publishes_false() async throws {
-    let controller: ServerFingerprintController = try await testController(
+    let controller: ServerFingerprintController = try testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 
@@ -68,7 +68,7 @@ final class ServerFingerprintControllerTests: MainActorTestCase {
   }
 
   func test_fingerprintCheckedPublisher_publishes_whenToggled() async throws {
-    let controller: ServerFingerprintController = try await testController(
+    let controller: ServerFingerprintController = try testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 
@@ -99,7 +99,7 @@ final class ServerFingerprintControllerTests: MainActorTestCase {
       }
     )
 
-    let controller: ServerFingerprintController = try await testController(
+    let controller: ServerFingerprintController = try testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 
@@ -123,7 +123,7 @@ final class ServerFingerprintControllerTests: MainActorTestCase {
       with: always(Void())
     )
 
-    let controller: ServerFingerprintController = try await testController(
+    let controller: ServerFingerprintController = try testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 
@@ -145,7 +145,7 @@ final class ServerFingerprintControllerTests: MainActorTestCase {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let controller: ServerFingerprintController = try await testController(
+    let controller: ServerFingerprintController = try testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 

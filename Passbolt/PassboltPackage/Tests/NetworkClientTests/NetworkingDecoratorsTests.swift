@@ -21,98 +21,98 @@
 // @since         v1.0
 //
 
-//import CommonModels
-//import TestExtensions
-//import XCTest
-//
-//@testable import Features
-//
-//@testable
-//
-//// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-//final class NetworkingDecoratorsTests: XCTestCase {
-//
-//  var diagnostics: Diagnostics!
-//  var cancellables: Cancellables!
-//
-//  override func setUp() {
-//    super.setUp()
-//    diagnostics = .placeholder
-//    diagnostics.measurePerformance = { _ in Diagnostics.TimeMeasurement(event: { _ in }, end: {}) }
-//    diagnostics.uniqueID = { "uniqueID" }
-//    cancellables = .init()
-//  }
-//
-//  override func tearDown() {
-//    diagnostics = nil
-//    cancellables = nil
-//    super.tearDown()
-//  }
-//
-//  func test_withLogs_logsMessagesForRequestAndResponse() async throws {
-//    var result: Array<String> = .init()
-//    diagnostics.debugLog = { message in
-//      result.append(message)
-//    }
-//
-//    var networking: Networking = .placeholder
-//    networking.execute = { _, _ in
-//      HTTPResponse(
-//        url: URL(string: "https://passbolt.com")!,
-//        statusCode: 200,
-//        headers: [:],
-//        body: .empty
-//      )
-//    }
-//    networking = networking.withLogs(using: diagnostics)
-//
-//    _ = try await networking.make(
-//      HTTPRequest(
-//        url: URL(string: "https://passbolt.com")!,
-//        method: .get,
-//        headers: [:],
-//        body: .empty
-//      )
-//    )
-//
-//    XCTAssertEqual(
-//      result,
-//      [
-//        "Executing request <uniqueID> (useCache: false):\nGET  HTTP/1.1\n\n\n\n---",
-//        "Received <uniqueID>:\nHTTP/1.1 200\n\n\n\n---",
-//      ]
-//    )
-//  }
-//
-//  func test_withLogs_logsMessagesForRequestAndError() async throws {
-//    var result: Array<String> = .init()
-//    diagnostics.debugLog = { message in
-//      result.append(message)
-//    }
-//
-//    var networking: Networking = .placeholder
-//    networking.execute = { _, _ in
-//      throw MockIssue.error()
-//    }
-//    networking = networking.withLogs(using: diagnostics)
-//
-//    _ =
-//      try? await networking
-//      .make(
-//        HTTPRequest(
-//          url: URL(string: "https://passbolt.com")!,
-//          method: .get,
-//          headers: [:],
-//          body: .empty
-//        )
-//      )
-//
-//    XCTAssertEqual(
-//      result,
-//      [
-//        "Executing request <uniqueID> (useCache: false):\nGET  HTTP/1.1\n\n\n\n---",
-//        "Received <uniqueID>:\nMockIssue\ntest\nDiagnosticsContext\nMock:42-MockIssue\n\n\n---",
-//      ]
-//    )
-//  }
-//}
+import CommonModels
+import TestExtensions
+import XCTest
+
+@testable import Features
+
+@testable
+
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+final class NetworkingDecoratorsTests: XCTestCase {
+
+  var diagnostics: Diagnostics!
+  var cancellables: Cancellables!
+
+  override func setUp() {
+    super.setUp()
+    diagnostics = .placeholder
+    diagnostics.measurePerformance = { _ in Diagnostics.TimeMeasurement(event: { _ in }, end: {}) }
+    diagnostics.uniqueID = { "uniqueID" }
+    cancellables = .init()
+  }
+
+  override func tearDown() {
+    diagnostics = nil
+    cancellables = nil
+    super.tearDown()
+  }
+
+  func test_withLogs_logsMessagesForRequestAndResponse() async throws {
+    var result: Array<String> = .init()
+    diagnostics.debugLog = { message in
+      result.append(message)
+    }
+
+    var networking: Networking = .placeholder
+    networking.execute = { _, _ in
+      HTTPResponse(
+        url: URL(string: "https://passbolt.com")!,
+        statusCode: 200,
+        headers: [:],
+        body: .empty
+      )
+    }
+    networking = networking.withLogs(using: diagnostics)
+
+    _ = try await networking.make(
+      HTTPRequest(
+        url: URL(string: "https://passbolt.com")!,
+        method: .get,
+        headers: [:],
+        body: .empty
+      )
+    )
+
+    XCTAssertEqual(
+      result,
+      [
+        "Executing request <uniqueID> (useCache: false):\nGET  HTTP/1.1\n\n\n\n---",
+        "Received <uniqueID>:\nHTTP/1.1 200\n\n\n\n---",
+      ]
+    )
+  }
+
+  func test_withLogs_logsMessagesForRequestAndError() async throws {
+    var result: Array<String> = .init()
+    diagnostics.debugLog = { message in
+      result.append(message)
+    }
+
+    var networking: Networking = .placeholder
+    networking.execute = { _, _ in
+      throw MockIssue.error()
+    }
+    networking = networking.withLogs(using: diagnostics)
+
+    _ =
+      try? await networking
+      .make(
+        HTTPRequest(
+          url: URL(string: "https://passbolt.com")!,
+          method: .get,
+          headers: [:],
+          body: .empty
+        )
+      )
+
+    XCTAssertEqual(
+      result,
+      [
+        "Executing request <uniqueID> (useCache: false):\nGET  HTTP/1.1\n\n\n\n---",
+        "Received <uniqueID>:\nMockIssue\ntest\nDiagnosticsContext\nMock:42-MockIssue\n\n\n---",
+      ]
+    )
+  }
+}

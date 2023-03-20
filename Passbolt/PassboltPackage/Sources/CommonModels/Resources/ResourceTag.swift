@@ -23,13 +23,27 @@
 
 import Commons
 
-public enum ResourceTag {}
-
-extension ResourceTag {
+public struct ResourceTag {
 
   public typealias ID = Tagged<String, Self>
   public typealias Slug = Tagged<String, ID>
+
+  public let id: ID
+  public let slug: Slug
+  public let shared: Bool
+
+  public init(
+    id: ID,
+    slug: Slug,
+    shared: Bool
+  ) {
+    self.id = id
+    self.slug = slug
+    self.shared = shared
+  }
 }
+
+extension ResourceTag: Hashable {}
 
 extension ResourceTag.ID {
 

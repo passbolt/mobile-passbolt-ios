@@ -76,7 +76,7 @@ extension FoldersExplorerController: ComponentController {
           title: .raw(folder.name),
           folderID: folder.id,
           folderShared: folder.shared,
-          canCreateResources: folder.permissionType != .read  // write / owned
+          canCreateResources: folder.permission != .read  // write / owned
         )
       )
     }
@@ -177,9 +177,7 @@ extension FoldersExplorerController: ComponentController {
               features
               .instance(
                 of: ResourcesListCreateMenuController.self,
-                context: .init(
-                  enclosingFolderID: folderID
-                )
+                context: folderID
               )
           )
         }
@@ -201,7 +199,7 @@ extension FoldersExplorerController: ComponentController {
     }
 
     @MainActor func presentResourceEditingForm(
-      for context: ResourceEditController.EditingContext
+      for context: ResourceEditForm.Context
     ) {
       cancellables.executeOnMainActor {
         await navigation.push(
@@ -250,7 +248,7 @@ extension FoldersExplorerController: ComponentController {
                   .dismiss(
                     SheetMenuViewController<ResourceMenuViewController>.self
                   )
-                presentResourceEditingForm(for: .existing(resourceID))
+                presentResourceEditingForm(for: .edit(resourceID))
               }
             },
             showDeleteAlert: { (resourceID: Resource.ID) in

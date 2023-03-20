@@ -28,9 +28,11 @@ import XCTest
 @MainActor
 open class FeaturesTestCase: XCTestCase {
 
-  private lazy var testFeatures: TestFeaturesContainer = .init()
   public let asyncExecutionControl: AsyncExecutor.MockExecutionControl = .init()
-  public let dynamicVariables: DynamicVariables = .init()
+  public nonisolated let dynamicVariables: DynamicVariables = .init()
+  public let cancellables: Cancellables = .init() // for legacy elements
+
+  private lazy var testFeatures: TestFeaturesContainer = .init()
 
   open func commonPrepare() {
     patch(
@@ -93,7 +95,7 @@ extension FeaturesTestCase {
   public final func testedInstance<Feature>(
     _ featureType: Feature.Type = Feature.self
   ) throws -> Feature
-  where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {
+  where Feature: LoadableFeature, Feature.Context == Void {
     try self.testFeatures
       .instance(
         of: featureType
@@ -119,6 +121,43 @@ extension FeaturesTestCase {
       with: Void(),
       using: self.testFeatures
     )
+  }
+}
+
+// Legacy support
+extension FeaturesTestCase {
+
+  public final func testedInstance<Controller>(
+    _ featureType: Controller.Type = Controller.self,
+    context: Controller.Context
+  ) throws -> Controller
+  where Controller: UIController {
+    var features: Features = self.testFeatures
+    let instance: Controller = try .instance(
+        in: context,
+        with: &features,
+        cancellables: self.cancellables
+      )
+    guard let features = features as? TestFeaturesContainer
+    else { unreachable("Type can't be changed") }
+    self.testFeatures = features
+    return instance
+  }
+
+  public final func testedInstance<Controller>(
+    _ featureType: Controller.Type = Controller.self
+  ) throws -> Controller
+  where Controller: UIController, Controller.Context == Void {
+    var features: Features = self.testFeatures
+    let instance: Controller = try .instance(
+        in: Void(),
+        with: &features,
+        cancellables: self.cancellables
+      )
+    guard let features = features as? TestFeaturesContainer
+    else { unreachable("Type can't be changed") }
+    self.testFeatures = features
+    return instance
   }
 }
 
@@ -155,7 +194,7 @@ extension FeaturesTestCase {
 
   public func usePlaceholder<Feature>(
     for featureType: Feature.Type
-  ) where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {
+  ) where Feature: LoadableFeature, Feature.Context == Void {
     self.testFeatures
       .usePlaceholder(for: Feature.self)
   }
@@ -181,7 +220,7 @@ extension FeaturesTestCase {
 
   public final func use<MockFeature>(
     _ instance: MockFeature
-  ) where MockFeature: LoadableFeature, MockFeature.Context == ContextlessFeatureContext {
+  ) where MockFeature: LoadableFeature, MockFeature.Context == Void {
     self.testFeatures
       .patch(
         \MockFeature.self,
@@ -215,7 +254,19 @@ extension FeaturesTestCase {
   public func patch<MockFeature, Value>(
     _ keyPath: WritableKeyPath<MockFeature, Value>,
     with value: Value
-  ) where MockFeature: LoadableFeature, MockFeature.Context == ContextlessFeatureContext {
+  ) where MockFeature: LoadableFeature, MockFeature.Context == ContextlessLoadableFeatureContext {
+    self.testFeatures
+      .patch(
+        keyPath,
+        context: ContextlessLoadableFeatureContext.instance,
+        with: value
+      )
+  }
+
+  public func patch<MockFeature, Value>(
+    _ keyPath: WritableKeyPath<MockFeature, Value>,
+    with value: Value
+  ) where MockFeature: LoadableFeature, MockFeature.Context == Void {
     self.testFeatures
       .patch(
         keyPath,

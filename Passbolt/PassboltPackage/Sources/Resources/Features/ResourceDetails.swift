@@ -29,12 +29,12 @@ import Features
 public struct ResourceDetails {
 
   public var updates: UpdatesSequence
-  public var details: @Sendable () async throws -> ResourceDetailsDSV
+  public var details: @Sendable () async throws -> Resource
   public var secret: @Sendable () async throws -> ResourceSecret
 
   public init(
     updates: UpdatesSequence,
-    details: @escaping @Sendable () async throws -> ResourceDetailsDSV,
+    details: @escaping @Sendable () async throws -> Resource,
     secret: @escaping @Sendable () async throws -> ResourceSecret
   ) {
     self.updates = updates

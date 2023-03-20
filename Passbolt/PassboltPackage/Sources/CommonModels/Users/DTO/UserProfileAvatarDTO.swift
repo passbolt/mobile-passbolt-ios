@@ -34,8 +34,6 @@ public struct UserProfileAvatarDTO {
   }
 }
 
-extension UserProfileAvatarDTO: DTO {}
-
 extension UserProfileAvatarDTO: Decodable {
 
   public init(

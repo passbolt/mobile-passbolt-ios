@@ -21,37 +21,63 @@
 // @since         v1.0
 //
 
-extension ResourceFieldDSV {
+import Commons
 
-  internal static func decodeArrayFrom(
-    rawString: String
-  ) -> Array<Self> {
-    rawString.components(separatedBy: ",").compactMap(from(string:))
+public enum ResourcePermission {
+
+  case user(
+    id: User.ID,
+    permission: Permission,
+    permissionID: Permission.ID?  // none is local, not synchronized permission
+  )
+  case userGroup(
+    id: UserGroup.ID,
+    permission: Permission,
+    permissionID: Permission.ID?  // none is local, not synchronized permission
+  )
+}
+
+extension ResourcePermission: Hashable {}
+
+extension ResourcePermission {
+
+  public var userID: User.ID? {
+    switch self {
+    case let .user(id, _, _):
+      return id
+
+    case .userGroup:
+      return .none
+    }
   }
 
-  private static func from(
-    string: String
-  ) -> Self? {
-    var fields: Array<String> = string.components(separatedBy: ";")
+  public var userGroupID: UserGroup.ID? {
+    switch self {
+    case .user:
+      return .none
 
-    let maxLength: Int? = fields.popLast()?.components(separatedBy: "=").last.flatMap { Int($0) }
+    case .userGroup(let id, _, _):
+      return id
+    }
+  }
 
-    guard
-      let encrypted: Bool = fields.popLast()?.components(separatedBy: "=").last.flatMap({ $0 == "1" }),
-      let required: Bool = fields.popLast()?.components(separatedBy: "=").last.flatMap({ $0 == "1" }),
-      var nameAndTypeString: Array<String> = fields.popLast()?.components(separatedBy: ":"),
-      let valueType: ResourceFieldValueTypeDSV = nameAndTypeString.popLast().flatMap(
-        ResourceFieldValueTypeDSV.init(rawValue:)
-      ),
-      let name: ResourceFieldNameDSV = nameAndTypeString.popLast().flatMap(ResourceFieldNameDSV.init(rawValue:))
-    else { return nil }
+  public var permissionID: Permission.ID? {
+    switch self {
+    case let .user(_, _, permissionID):
+      return permissionID
 
-    return .init(
-      name: name,
-      valueType: valueType,
-      required: required,
-      encrypted: encrypted,
-      maxLength: maxLength
-    )
+    case let .userGroup(_, _, permissionID):
+      return permissionID
+    }
+  }
+
+  public var permission: Permission {
+    switch self {
+    case let .user(_, permission, _):
+      return permission
+
+    case let .userGroup(_, permission, _):
+      return permission
+    }
   }
 }

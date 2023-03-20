@@ -23,9 +23,73 @@
 
 import Commons
 
-public enum Permission {}
+public enum Permission: Int {
+
+  public typealias ID = Tagged<String, Self>
+
+  case read = 1
+  case write = 7
+  case owner = 15
+}
+
+extension Permission: Hashable {}
+extension Permission: RawRepresentable {}
+extension Permission: Codable {}
+
+extension Permission: CaseIterable {
+
+  public static var allCases: Array<Self> {
+    [
+      .read,
+      .write,
+      .owner,
+    ]
+  }
+}
 
 extension Permission {
 
-  public typealias ID = Tagged<String, Self>
+  public var canEdit: Bool {
+    switch self {
+    case .read:
+      return false
+
+    case .write, .owner:
+      return true
+    }
+  }
+
+  public var canShare: Bool {
+    switch self {
+    case .read, .write:
+      return false
+
+    case .owner:
+      return true
+    }
+  }
+
+  public var isOwner: Bool {
+    switch self {
+    case .read, .write:
+      return false
+
+    case .owner:
+      return true
+    }
+  }
+}
+
+extension Permission.ID {
+
+  internal static let validator: Validator<Self> = Validator<String>
+    .uuid()
+    .contraMap(\.rawValue)
+
+  public var isValid: Bool {
+    Self
+      .validator
+      .validate(self)
+      .isValid
+  }
 }

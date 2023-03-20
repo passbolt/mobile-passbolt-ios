@@ -85,12 +85,8 @@ extension UsersListFetchDatabaseOperation {
           let avatarImageURL: URLString = dataRow.avatarImageURL.flatMap(URLString.init(rawValue:))
         else {
           throw
-            DatabaseIssue
-            .error(
-              underlyingError:
-                DatabaseDataInvalid
-                .error(for: ResourceUserGroupListItemDSV.self)
-            )
+            DatabaseDataInvalid
+            .error(for: UserDetailsDSV.self)
             .recording(dataRow, for: "dataRow")
         }
 

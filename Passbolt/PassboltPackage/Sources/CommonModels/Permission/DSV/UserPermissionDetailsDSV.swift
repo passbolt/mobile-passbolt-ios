@@ -31,7 +31,7 @@ public struct UserPermissionDetailsDSV {
   public var lastName: String
   public var fingerprint: Fingerprint
   public var avatarImageURL: URLString
-  public var permissionType: PermissionTypeDSV
+  public var permission: Permission
 
   public init(
     id: User.ID,
@@ -40,7 +40,7 @@ public struct UserPermissionDetailsDSV {
     lastName: String,
     fingerprint: Fingerprint,
     avatarImageURL: URLString,
-    permissionType: PermissionTypeDSV
+    permission: Permission
   ) {
     self.id = id
     self.username = username
@@ -48,11 +48,11 @@ public struct UserPermissionDetailsDSV {
     self.lastName = lastName
     self.fingerprint = fingerprint
     self.avatarImageURL = avatarImageURL
-    self.permissionType = permissionType
+    self.permission = permission
   }
 }
 
-extension UserPermissionDetailsDSV: DSV {}
+extension UserPermissionDetailsDSV: Hashable {}
 
 extension UserPermissionDetailsDSV {
 

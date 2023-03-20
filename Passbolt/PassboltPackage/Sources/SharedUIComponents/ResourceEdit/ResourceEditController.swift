@@ -32,38 +32,20 @@ import UIComponents
 public struct ResourceEditController {
 
   internal var createsNewResource: Bool
-  internal var resourcePropertiesPublisher: @MainActor () -> AnyPublisher<Array<ResourceFieldDSV>, Error>
-  internal var fieldValuePublisher: @MainActor (ResourceFieldNameDSV) -> AnyPublisher<Validated<String>, Never>
+  internal var resourcePropertiesPublisher: @MainActor () -> AnyPublisher<OrderedSet<ResourceField>, Never>
+  internal var fieldValuePublisher: @MainActor (ResourceField) -> AnyPublisher<Validated<String>, Never>
   internal var passwordEntropyPublisher: @MainActor () -> AnyPublisher<Entropy, Never>
   internal var sendForm: @MainActor () -> AnyPublisher<Void, Error>
-  internal var setValue: @MainActor (String, ResourceFieldNameDSV) -> AnyPublisher<Void, Error>
+  internal var setValue: @MainActor (String, ResourceField) -> Void
   internal var generatePassword: @MainActor () -> Void
   internal var presentExitConfirmation: @MainActor () -> Void
   internal var exitConfirmationPresentationPublisher: @MainActor () -> AnyPublisher<Bool, Never>
 }
 
-extension ResourceEditController {
-
-  public enum EditingContext {
-    case new(in: ResourceFolder.ID?, url: URLString?)
-    case existing(Resource.ID)
-
-    fileprivate var resourceID: Resource.ID? {
-      switch self {
-      case .new:
-        return .none
-
-      case .existing(let id):
-        return id
-      }
-    }
-  }
-}
-
 extension ResourceEditController: UIController {
 
   public typealias Context = (
-    editing: EditingContext,
+    editing: ResourceEditForm.Context,
     completion: (Resource.ID) -> Void
   )
 
@@ -77,65 +59,34 @@ extension ResourceEditController: UIController {
       context: context.editing.resourceID
     )
     let diagnostics: OSDiagnostics = features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
     let sessionData: SessionData = try features.instance()
-    let resourceForm: ResourceEditForm = try features.instance()
+    let resourceForm: ResourceEditForm = try features.instance(context: context.editing)
     let randomGenerator: RandomStringGenerator = try features.instance()
 
-    let resourcePropertiesSubject: CurrentValueSubject<Array<ResourceFieldDSV>, Error> = .init([])
+    let createsNewResource: Bool = {
+      switch context.editing {
+      case .edit:
+        return false
+
+      case .create:
+        return true
+      }
+    }()
+
     let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()
 
-    let createsNewResource: Bool
-    switch context.editing {
-    case let .existing(resourceID):
-      createsNewResource = false
-      resourceForm
-        .editResource(resourceID)
-        .sink(
-          receiveCompletion: { completion in
-            guard case let .failure(error) = completion else { return }
-
-            resourcePropertiesSubject.send(completion: .failure(error))
-          },
-          receiveValue: { /* NOP */  }
-        )
-        .store(in: cancellables)
-
-    case let .new(in: enclosingFolder, url):
-      createsNewResource = true
-      resourceForm.setEnclosingFolder(enclosingFolder)
-      if let urlString: URLString = url {
-        resourceForm
-          .setFieldValue(urlString.rawValue, .uri)
-          .sinkDrop()
-          .store(in: cancellables)
-      }
+    func resourcePropertiesPublisher() -> AnyPublisher<OrderedSet<ResourceField>, Never> {
+      resourceForm.fieldsPublisher()
     }
 
-    resourceForm
-      .resourceTypePublisher()
-      .map(\.fields)
-      .sink(
-        receiveCompletion: { completion in
-          resourcePropertiesSubject.send(completion: completion)
-        },
-        receiveValue: { properties in
-          resourcePropertiesSubject.send(properties)
-        }
-      )
-      .store(in: cancellables)
-
-    func resourcePropertiesPublisher() -> AnyPublisher<Array<ResourceFieldDSV>, Error> {
-      resourcePropertiesSubject
-        .eraseToAnyPublisher()
-    }
-
-    func fieldValuePublisher(field: ResourceFieldNameDSV) -> AnyPublisher<Validated<String>, Never> {
+    func fieldValuePublisher(field: ResourceField) -> AnyPublisher<Validated<String>, Never> {
       resourceForm
-        .fieldValuePublisher(field)
+        .validatedFieldValuePublisher(field)
         .map { validatedFieldValue -> Validated<String> in
           Validated<String>(
-            value: validatedFieldValue.value.stringValue,
-            errors: validatedFieldValue.errors
+            value: validatedFieldValue.value?.stringValue ?? "",
+            error: validatedFieldValue.error
           )
         }
         .eraseToAnyPublisher()
@@ -143,59 +94,85 @@ extension ResourceEditController: UIController {
 
     func setValue(
       _ value: String,
-      for fieldName: ResourceFieldNameDSV
-    ) -> AnyPublisher<Void, Error> {
-      resourceForm
-        .setFieldValue(value, fieldName)
-        .collectErrorLog(using: diagnostics)
-        .eraseToAnyPublisher()
+      for field: ResourceField
+    ) {
+      asyncExecutor.scheduleCatchingWith(
+        diagnostics,
+        failMessage: "Resource field update failed"
+      ) {
+        try await resourceForm
+          .setFieldValue(.string(value), field)
+      }
     }
 
     func passwordEntropyPublisher() -> AnyPublisher<Entropy, Never> {
-      resourceForm
-        .fieldValuePublisher(.password)
-        .map { validated in
-          randomGenerator.entropy(
-            validated.value.stringValue,
-            CharacterSets.all
-          )
-        }
-        .eraseToAnyPublisher()
-    }
-
-    func sendForm() -> AnyPublisher<Void, Error> {
-      cancellables.executeAsyncWithPublisher {
-        resourceForm
-          .sendForm()
-          .asyncMap { resourceID -> Resource.ID in
-            try await sessionData
-              .refreshIfNeeded()
-            return resourceID
+      Future<ResourceType, Error> { fulfill in
+        asyncExecutor.schedule {
+          do {
+            let resourceType: ResourceType = try await resourceForm.resource().type
+            fulfill(.success(resourceType))
           }
-          .handleEvents(
-            receiveOutput: { resourceID in
-              context.completion(resourceID)
+          catch {
+            fulfill(.failure(error))
+          }
+        }
+      }
+      .map { (resourceType: ResourceType) -> ResourceField? in
+        resourceType.password
+      }
+      .replaceError(with: .none)
+      .map { (field: ResourceField?) in
+        if let passwordField: ResourceField = field {
+          return
+            resourceForm
+            .validatedFieldValuePublisher(passwordField)
+            .map { validated in
+              randomGenerator.entropy(
+                validated.value?.stringValue ?? "",
+                CharacterSets.all
+              )
             }
-          )
-          .mapToVoid()
-          .collectErrorLog(using: diagnostics)
-          .eraseToAnyPublisher()
+            .eraseToAnyPublisher()
+        }
+        else {
+          assertionFailure("Trying to access password without pasword field")
+          return Empty<Entropy, Never>()
+            .eraseToAnyPublisher()
+        }
       }
       .switchToLatest()
       .eraseToAnyPublisher()
     }
 
-    func generatePassword() {
-      let password: String = randomGenerator.generate(
-        CharacterSets.all,
-        18,
-        Entropy.veryStrongPassword
-      )
+    func sendForm() -> AnyPublisher<Void, Error> {
+      cancellables.executeAsyncWithPublisher { () async throws -> Void in
+        let resourceID: Resource.ID = try await resourceForm.sendForm()
+        try await sessionData.refreshIfNeeded()
+        context.completion(resourceID)
+      }
+      .collectErrorLog(using: diagnostics)
+      .eraseToAnyPublisher()
+    }
 
-      resourceForm
-        .setFieldValue(password, .password)
-        .sinkDrop()
-        .store(in: cancellables)
+    func generatePassword() {
+      asyncExecutor.scheduleCatchingWith(
+        diagnostics,
+        failMessage: "Password generation failed",
+        behavior: .reuse
+      ) {
+        guard let passwordField: ResourceField = try await resourceForm.resource().type.password
+        else { return assertionFailure("Trying to generate password without pasword field") }
+
+        let password: String = randomGenerator.generate(
+          CharacterSets.all,
+          18,
+          Entropy.veryStrongPassword
+        )
+
+        try await resourceForm
+          .setFieldValue(.string(password), passwordField)
+      }
+
     }
 
     func presentExitConfirmation() {

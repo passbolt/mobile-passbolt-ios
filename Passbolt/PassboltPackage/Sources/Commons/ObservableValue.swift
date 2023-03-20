@@ -28,7 +28,7 @@ import class Foundation.RunLoop
 @available(*, deprecated, message: "Please switch to `MutableViewState`")
 @MainActor @dynamicMemberLookup
 public final class ObservableValue<Value>: ObservableObject
-where Value: Hashable {
+where Value: Equatable {
 
   @MainActor public var value: Value {
     get { self.valueGetter() }

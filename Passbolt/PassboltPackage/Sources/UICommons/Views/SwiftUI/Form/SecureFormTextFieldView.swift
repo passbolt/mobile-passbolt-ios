@@ -128,7 +128,7 @@ public struct SecureFormTextFieldView: View {
       }
       .accessibilityIdentifier("form.textfield.text")
 
-      if let errorMessage: DisplayableString = self.text.errors.first?.displayableMessage {
+      if let errorMessage: DisplayableString = self.text.displayableErrorMessage {
         Text(displayable: errorMessage)
           .multilineTextAlignment(.leading)
           .text(
@@ -221,7 +221,7 @@ internal struct SecureFormTextFieldView_Previews: PreviewProvider {
         text: .constant(
           .invalid(
             "invalidText",
-            errors:
+            error:
               InvalidValue
               .error(
                 validationRule: "PREVIEW",
@@ -251,7 +251,7 @@ internal struct SecureFormTextFieldView_Previews: PreviewProvider {
         text: .constant(
           .invalid(
             "",
-            errors:
+            error:
               InvalidValue
               .empty(
                 value: "",
@@ -266,7 +266,7 @@ internal struct SecureFormTextFieldView_Previews: PreviewProvider {
         text: .constant(
           .invalid(
             "invalidText",
-            errors:
+            error:
               InvalidValue
               .error(
                 validationRule: "PREVIEW",
@@ -281,7 +281,7 @@ internal struct SecureFormTextFieldView_Previews: PreviewProvider {
         text: .constant(
           .invalid(
             "invalidLongText",
-            errors:
+            error:
               InvalidValue
               .error(
                 validationRule: "PREVIEW",

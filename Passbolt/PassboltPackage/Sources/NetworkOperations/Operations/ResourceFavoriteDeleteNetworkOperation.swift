@@ -35,10 +35,10 @@ public enum ResourceFavoriteDeleteNetworkOperationDescription: NetworkOperationD
 
 public struct ResourceFavoriteDeleteNetworkOperationVariable {
 
-  public var favoriteID: Resource.FavoriteID
+  public var favoriteID: Resource.Favorite.ID
 
   public init(
-    favoriteID: Resource.FavoriteID
+    favoriteID: Resource.Favorite.ID
   ) {
     self.favoriteID = favoriteID
   }

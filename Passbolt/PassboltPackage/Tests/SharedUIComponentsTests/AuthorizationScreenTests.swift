@@ -81,7 +81,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
       with: always([.mock_ada])
     )
 
-    let controller: AuthorizationController = try await testController(
+    let controller: AuthorizationController = try testController(
       context: .mock_ada
     )
     var result: Bool!
@@ -104,7 +104,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
       with: always([.mock_ada])
     )
 
-    let controller: AuthorizationController = try await testController(
+    let controller: AuthorizationController = try testController(
       context: .mock_ada
     )
     var result: Validated<String>!
@@ -131,7 +131,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
       with: always(Void())
     )
 
-    let controller: AuthorizationController = try await testController(
+    let controller: AuthorizationController = try testController(
       context: .mock_ada
     )
     let result: Bool? =
@@ -152,7 +152,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let controller: AuthorizationController = try await testController(
+    let controller: AuthorizationController = try testController(
       context: .mock_ada
     )
     var result: Error?
@@ -180,7 +180,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
       with: always(Void())
     )
 
-    let controller: AuthorizationController = try await testController(
+    let controller: AuthorizationController = try testController(
       context: .mock_ada
     )
     let result: Bool? =
@@ -201,7 +201,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let controller: AuthorizationController = try await testController(
+    let controller: AuthorizationController = try testController(
       context: .mock_ada
     )
     var result: Error?
@@ -235,7 +235,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
       with: always(testData)
     )
 
-    let controller: AuthorizationController = try await testController(
+    let controller: AuthorizationController = try testController(
       context: .mock_ada
     )
     let result: Data? =
@@ -261,7 +261,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let controller: AuthorizationController = try await testController(
+    let controller: AuthorizationController = try testController(
       context: .mock_ada
     )
     let result: Data? =
@@ -286,7 +286,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
       with: always(.unavailable)
     )
 
-    let controller: AuthorizationController = try await testController(
+    let controller: AuthorizationController = try testController(
       context: .mock_ada
     )
     let result: AuthorizationController.BiometricsState? =
@@ -317,7 +317,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
       with: always(.faceID)
     )
 
-    let controller: AuthorizationController = try await testController(
+    let controller: AuthorizationController = try testController(
       context: .mock_ada
     )
     let result: AuthorizationController.BiometricsState? =
@@ -342,7 +342,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
       with: always(.faceID)
     )
 
-    let controller: AuthorizationController = try await testController(
+    let controller: AuthorizationController = try testController(
       context: .mock_ada
     )
     let result: AuthorizationController.BiometricsState? =
@@ -372,7 +372,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
       with: always(true)
     )
 
-    let controller: AuthorizationController = try await testController(
+    let controller: AuthorizationController = try testController(
       context: .mock_ada
     )
     let result: AuthorizationController.BiometricsState? =

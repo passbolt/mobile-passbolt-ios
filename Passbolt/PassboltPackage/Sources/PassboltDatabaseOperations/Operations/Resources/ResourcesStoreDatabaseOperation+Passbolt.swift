@@ -29,7 +29,7 @@ import Session
 extension ResourcesStoreDatabaseOperation {
 
   @Sendable fileprivate static func execute(
-    _ input: Array<ResourceDSO>,
+    _ input: Array<ResourceDTO>,
     connection: SQLiteConnection
   ) throws {
     // We have to remove all previously stored data before updating
@@ -54,13 +54,13 @@ extension ResourcesStoreDatabaseOperation {
             resources(
               id,
               name,
-              url,
+              uri,
               username,
               typeID,
               description,
               parentFolderID,
               favoriteID,
-              permissionType,
+              permission,
               modified
             )
           VALUES
@@ -90,7 +90,7 @@ extension ResourcesStoreDatabaseOperation {
             )
           DO UPDATE SET
             name=?2,
-            url=?3,
+            uri=?3,
             username=?4,
             typeID=?5,
             description=?6,
@@ -104,19 +104,19 @@ extension ResourcesStoreDatabaseOperation {
               LIMIT 1
             ),
             favoriteID=?8,
-            permissionType=?9,
+            permission=?9,
             modified=?10
           ;
           """,
           arguments: resource.id,
           resource.name,
-          resource.url,
+          resource.uri,
           resource.username,
           resource.typeID,
           resource.description,
           resource.parentFolderID,
           resource.favoriteID,
-          resource.permissionType.rawValue,
+          resource.permission.rawValue,
           resource.modified
         )
       )

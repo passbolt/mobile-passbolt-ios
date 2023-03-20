@@ -76,6 +76,9 @@ extension ApplicationRating {
 }
 
 extension ApplicationRating: LoadableFeature {
+
+  public typealias Context = ContextlessLoadableFeatureContext
+
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(

@@ -35,7 +35,7 @@ internal struct TagsExplorerController {
 
   internal let viewState: ObservableValue<ViewState>
   internal var refreshIfNeeded: @MainActor () async -> Void
-  internal var presentTagContent: @MainActor (ResourceTagDSV) -> Void
+  internal var presentTagContent: @MainActor (ResourceTag) -> Void
   internal var presentResourceCreationFrom: @MainActor () -> Void
   internal var presentResourceDetails: @MainActor (Resource.ID) -> Void
   internal var presentResourceMenu: @MainActor (Resource.ID) -> Void
@@ -46,7 +46,7 @@ internal struct TagsExplorerController {
 extension TagsExplorerController: ComponentController {
 
   internal typealias ControlledView = TagsExplorerView
-  internal typealias Context = ResourceTagDSV?
+  internal typealias Context = ResourceTag?
 
   internal static func instance(
     in context: Context,
@@ -68,7 +68,7 @@ extension TagsExplorerController: ComponentController {
 
     let viewState: ObservableValue<ViewState>
 
-    if let resourceTag: ResourceTagDSV = context {
+    if let resourceTag: ResourceTag = context {
       viewState = .init(
         initial: .init(
           title: .raw(resourceTag.slug.rawValue),
@@ -151,7 +151,7 @@ extension TagsExplorerController: ComponentController {
       }
     }
 
-    @MainActor func presentTagContent(_ tag: ResourceTagDSV) {
+    @MainActor func presentTagContent(_ tag: ResourceTag) {
       cancellables.executeOnMainActor {
         await navigation.push(
           legacy: TagsExplorerView.self,
@@ -161,7 +161,7 @@ extension TagsExplorerController: ComponentController {
     }
 
     @MainActor func presentResourceCreationFrom() {
-      presentResourceEditingForm(for: .new(in: .none, url: .none))
+      presentResourceEditingForm(for: .create(folderID: .none, uri: .none))
     }
 
     @MainActor func presentResourceShareForm(
@@ -176,7 +176,7 @@ extension TagsExplorerController: ComponentController {
     }
 
     @MainActor func presentResourceEditingForm(
-      for context: ResourceEditController.EditingContext
+      for context: ResourceEditForm.Context
     ) {
       cancellables.executeOnMainActor {
         await navigation.push(
@@ -225,7 +225,7 @@ extension TagsExplorerController: ComponentController {
                   .dismiss(
                     SheetMenuViewController<ResourceMenuViewController>.self
                   )
-                presentResourceEditingForm(for: .existing(resourceID))
+                presentResourceEditingForm(for: .edit(resourceID))
               }
             },
             showDeleteAlert: { (resourceID: Resource.ID) in

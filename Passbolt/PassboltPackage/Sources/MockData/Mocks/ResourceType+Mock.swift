@@ -36,3 +36,40 @@ extension ResourceType.Slug {
 
   public static let mock_2: Self = .init(rawValue: "mock_2")
 }
+
+extension ResourceType {
+
+  public static let mock_1: Self = .init(
+    id: .mock_1,
+    slug: .mock_1,
+    name: "mock_1",
+    fields: [
+      .name,
+      .password
+    ]
+  )
+
+  public static let mock_2: Self = .init(
+    id: .mock_2,
+    slug: .mock_2,
+    name: "mock_2",
+    fields: [
+      .name,
+      .password
+    ]
+  )
+
+  public static let mock_default: Self =  .init(
+    id: "password-and-description",
+    slug: "password-and-description",
+    name: "password-and-description",
+    fields: [
+      .name,
+      .uri,
+      .username,
+      .password,
+      .descriptionEncrypted
+    ]
+  )
+}
+

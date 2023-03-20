@@ -21,76 +21,25 @@
 // @since         v1.0
 //
 
+import Commons
+
 public enum ResourceFieldValue {
 
   case string(String)
+  case otp(OTPSecret)
 }
+
+extension ResourceFieldValue: Equatable {}
 
 extension ResourceFieldValue {
 
-  public init(
-    defaultFor valueType: ResourceFieldValueType
-  ) {
-    switch valueType {
-    case .string:
-      self = .string("")
-    }
-  }
-
-  public init(
-    fromString string: String,
-    forType valueType: ResourceFieldValueType
-  ) {
-    switch valueType {
-    case .string:
-      self = .string(string)
-    }
-  }
-}
-
-extension ResourceFieldValue {
-
-  public var fieldType: ResourceFieldValueType {
-    switch self {
-    case .string:
-      return .string
-    }
-  }
-
-  public var stringValue: String {
-    get {
-      switch self {
-      case let .string(value):
-        return value
-      }
-    }
-    set {
-      switch self {
-      case .string:
-        self = .string(newValue)
-      }
-    }
-  }
-}
-
-extension ResourceFieldValue: Hashable {
-
-  public static func == (
-    _ lhs: Self,
-    _ rhs: Self
-  ) -> Bool {
-    switch (lhs, rhs) {
-    case let (.string(lhsv), .string(rhsv)):
-      return lhsv == rhsv
-    }
-  }
-
-  public func hash(
-    into hasher: inout Hasher
-  ) {
+  public var stringValue: String? {
     switch self {
     case let .string(value):
-      hasher.combine(value)
+      return value
+
+    case .otp:
+      return .none
     }
   }
 }

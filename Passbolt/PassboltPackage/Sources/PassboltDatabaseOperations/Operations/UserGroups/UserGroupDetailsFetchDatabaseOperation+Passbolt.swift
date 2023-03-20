@@ -77,12 +77,8 @@ extension UserGroupDetailsFetchDatabaseOperation {
           let name: String = dataRow.name
         else {
           throw
-            DatabaseIssue
-            .error(
-              underlyingError:
-                DatabaseDataInvalid
-                .error(for: UserGroupDetailsDSV.self)
-            )
+            DatabaseDataInvalid
+            .error(for: UserGroupDetailsDSV.self)
             .recording(dataRow, for: "dataRow")
         }
 
@@ -101,12 +97,9 @@ extension UserGroupDetailsFetchDatabaseOperation {
               let avatarImageURL: URLString = dataRow.avatarImageURL.flatMap(URLString.init(rawValue:))
             else {
               throw
-                DatabaseIssue
-                .error(
-                  underlyingError:
-                    DatabaseDataInvalid
-                    .error(for: UserDetailsDSV.self)
-                )
+                DatabaseDataInvalid
+                .error(for: UserDetailsDSV.self)
+                .recording(dataRow, for: "dataRow")
             }
 
             return UserDetailsDSV(

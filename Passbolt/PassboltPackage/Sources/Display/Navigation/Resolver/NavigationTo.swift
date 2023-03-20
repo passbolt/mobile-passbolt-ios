@@ -175,7 +175,7 @@ extension NavigationTo {
   public static func legacyPushTransition<DestinationView>(
     to: DestinationView.Type
   ) -> FeatureLoader
-  where DestinationView: ControlledView, DestinationView.Controller.Context == ContextlessFeatureContext {
+  where DestinationView: ControlledView, DestinationView.Controller.Context == ContextlessLoadableFeatureContext {
     Self.legacyPushTransition(
       to: DestinationView.self,
       { features, _ in
@@ -251,7 +251,19 @@ extension NavigationTo {
   public static func legacySheetPresentationTransition<DestinationView>(
     to: DestinationView.Type
   ) -> FeatureLoader
-  where DestinationView: ControlledView, DestinationView.Controller.Context == ContextlessFeatureContext {
+  where DestinationView: ControlledView, DestinationView.Controller.Context == ContextlessLoadableFeatureContext {
+    Self.legacySheetPresentationTransition(
+      to: DestinationView.self,
+      { features, _ in
+        try DestinationView(controller: features.instance())
+      }
+    )
+  }
+
+  public static func legacySheetPresentationTransition<DestinationView>(
+    to: DestinationView.Type
+  ) -> FeatureLoader
+  where DestinationView: ControlledView, DestinationView.Controller.Context == Void {
     Self.legacySheetPresentationTransition(
       to: DestinationView.self,
       { features, _ in
@@ -432,17 +444,17 @@ extension NavigationTo {
     )
   }
 
-  public static func legacyPartialSheetPresentationTransition<DestinationView>(
-    to: DestinationView.Type
-  ) -> FeatureLoader
-  where DestinationView: ControlledView, DestinationView.Controller.Context == ContextlessFeatureContext {
-    Self.legacyPartialSheetPresentationTransition(
-      to: DestinationView.self,
-      { features, _ in
-        try DestinationView(controller: features.instance())
-      }
-    )
-  }
+//  public static func legacyPartialSheetPresentationTransition<DestinationView>(
+//    to: DestinationView.Type
+//  ) -> FeatureLoader
+//  where DestinationView: ControlledView, DestinationView.Controller.Context == Void {
+//    Self.legacyPartialSheetPresentationTransition(
+//      to: DestinationView.self,
+//      { features, _ in
+//        try DestinationView(controller: features.instance())
+//      }
+//    )
+//  }
 
   public static func legacyPartialSheetPresentationTransition<DestinationView>(
     to: DestinationView.Type

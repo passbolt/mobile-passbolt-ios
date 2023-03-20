@@ -23,15 +23,67 @@
 
 import Commons
 
-public enum ResourceType {}
-
-extension ResourceType {
+@dynamicMemberLookup
+public struct ResourceType {
 
   public typealias ID = Tagged<String, Self>
   public typealias Slug = Tagged<String, ID>
+
+  public let id: ID
+  public let slug: Slug
+  public let _name: String  // `_` is used to avoid conflict with "name" field
+  public let fields: OrderedSet<ResourceField>
+
+  public init(
+    id: ID,
+    slug: Slug,
+    name: String,
+    fields: OrderedSet<ResourceField>
+  ) {
+    self.id = id
+    self.slug = slug
+    self._name = name
+    self.fields = fields
+      .sorted()
+      .asOrderedSet()
+  }
+
+  public subscript(
+    dynamicMember name: String
+  ) -> ResourceField? {
+    self.fields.first(where: { $0.name == name })
+  }
+}
+
+extension ResourceType: Equatable {}
+
+extension ResourceType {
+
+  public var isDefault: Bool {
+    self.slug == .default
+  }
+}
+
+extension ResourceType.ID {
+
+  internal static let validator: Validator<Self> = Validator<String>
+    .uuid()
+    .contraMap(\.rawValue)
+
+  public var isValid: Bool {
+    Self
+      .validator
+      .validate(self)
+      .isValid
+  }
 }
 
 extension ResourceType.Slug {
 
-  public static let defaultSlug: Self = "password-and-description"
+  public static let `default`: Self = .passwordWithDescription
+
+  public static let password: Self = "password"
+  public static let passwordWithDescription: Self = "password-and-description"
+  public static let passwordWithTOTP: Self = "password-description-totp"
+  public static let totp: Self = "totp"
 }

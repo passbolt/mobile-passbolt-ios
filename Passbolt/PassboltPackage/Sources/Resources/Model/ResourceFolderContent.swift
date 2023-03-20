@@ -43,4 +43,4 @@ public struct ResourceFolderContent {
   }
 }
 
-extension ResourceFolderContent: Hashable {}
+extension ResourceFolderContent: Equatable {}

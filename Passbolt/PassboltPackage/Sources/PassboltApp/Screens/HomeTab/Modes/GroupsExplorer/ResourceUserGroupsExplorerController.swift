@@ -160,7 +160,7 @@ extension ResourceUserGroupsExplorerController: ComponentController {
     }
 
     @MainActor func presentResourceCreationFrom() {
-      presentResourceEditingForm(for: .new(in: .none, url: .none))
+      presentResourceEditingForm(for: .create(folderID: .none, uri: .none))
     }
 
     @MainActor func presentResourceShareForm(
@@ -175,7 +175,7 @@ extension ResourceUserGroupsExplorerController: ComponentController {
     }
 
     @MainActor func presentResourceEditingForm(
-      for context: ResourceEditController.EditingContext
+      for context: ResourceEditForm.Context
     ) {
       cancellables.executeOnMainActor {
         await navigation.push(
@@ -224,7 +224,7 @@ extension ResourceUserGroupsExplorerController: ComponentController {
                   .dismiss(
                     SheetMenuViewController<ResourceMenuViewController>.self
                   )
-                presentResourceEditingForm(for: .existing(resourceID))
+                presentResourceEditingForm(for: .edit(resourceID))
               }
             },
             showDeleteAlert: { (resourceID: Resource.ID) in

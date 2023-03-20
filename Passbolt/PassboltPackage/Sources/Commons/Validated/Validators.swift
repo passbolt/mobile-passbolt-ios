@@ -39,7 +39,7 @@ where Value: Collection {
       else {
         return .invalid(
           value,
-          errors: .empty(
+          error: InvalidValue.empty(
             value: value,
             displayable: displayable,
             file: file,
@@ -63,7 +63,7 @@ where Value: Collection {
       else {
         return .invalid(
           value,
-          errors: .tooShort(
+          error: InvalidValue.tooShort(
             value: value,
             displayable: displayable,
             file: file,
@@ -87,7 +87,7 @@ where Value: Collection {
       else {
         return .invalid(
           value,
-          errors: .tooLong(
+          error: InvalidValue.tooLong(
             value: value,
             displayable: displayable,
             file: file,
@@ -111,7 +111,33 @@ where Value: Collection {
       else {
         return .invalid(
           value,
-          errors: .notContains(
+          error: InvalidValue.notContains(
+            value: value,
+            displayable: displayable,
+            file: file,
+            line: line
+          )
+        )
+      }
+    }
+  }
+}
+extension Validator {
+
+  public static func nonNull<WrappedValue>(
+    displayable: DisplayableString,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self
+  where Value == Optional<WrappedValue> {
+    Self { value in
+      if case .some = value {
+        return .valid(value)
+      }
+      else {
+        return .invalid(
+          value,
+          error: InvalidValue.null(
             value: value,
             displayable: displayable,
             file: file,

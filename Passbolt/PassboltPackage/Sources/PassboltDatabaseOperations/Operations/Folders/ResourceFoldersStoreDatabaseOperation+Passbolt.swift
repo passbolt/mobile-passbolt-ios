@@ -29,7 +29,7 @@ import Session
 extension ResourceFoldersStoreDatabaseOperation {
 
   @Sendable fileprivate static func execute(
-    _ input: Array<ResourceFolderDSO>,
+    _ input: Array<ResourceFolderDTO>,
     connection: SQLiteConnection
   ) throws {
     // We have to remove all previously stored data before updating
@@ -52,8 +52,8 @@ extension ResourceFoldersStoreDatabaseOperation {
     var sortedFolders: Array<ResourceFolderDTO> = .init()
 
     func isValidFolder(_ folder: ResourceFolderDTO) -> Bool {
-      folder.parentFolderID == nil
-        || sortedFolders.contains(where: { $0.id == folder.parentFolderID })
+      folder.parentID == nil
+        || sortedFolders.contains(where: { $0.id == folder.parentID })
     }
 
     while let index: Array<ResourceFolderDTO>.Index = inputReminder.firstIndex(where: isValidFolder(_:)) {
@@ -68,7 +68,7 @@ extension ResourceFoldersStoreDatabaseOperation {
             resourceFolders(
               id,
               name,
-              permissionType,
+              permission,
               shared,
               parentFolderID
             )
@@ -86,16 +86,16 @@ extension ResourceFoldersStoreDatabaseOperation {
             )
           DO UPDATE SET
             name=?2,
-            permissionType=?3,
+            permission=?3,
             shared=?4,
             parentFolderID=?5
           ;
           """,
           arguments: folder.id,
           folder.name,
-          folder.permissionType.rawValue,
+          folder.permission.rawValue,
           folder.shared,
-          folder.parentFolderID
+          folder.parentID
         )
       )
 

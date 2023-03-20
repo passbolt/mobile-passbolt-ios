@@ -31,45 +31,43 @@ public struct ResourceDTO {
   public var typeID: ResourceType.ID
   public var parentFolderID: ResourceFolder.ID?
   public var name: String
-  public var url: String?
+  public var permission: Permission
+  public var permissions: OrderedSet<GenericPermissionDTO>
+  public var favoriteID: Resource.Favorite.ID?
+  public var uri: String?
   public var username: String?
   public var description: String?
-  public var favoriteID: Resource.FavoriteID?
-  public var permissionType: PermissionTypeDTO
-  public var tags: Set<ResourceTagDTO>
-  public var permissions: OrderedSet<PermissionDTO>
-  public var modified: Date
+  public var tags: OrderedSet<ResourceTag>
+  public let modified: Date
 
   public init(
     id: Resource.ID,
     typeID: ResourceType.ID,
     parentFolderID: ResourceFolder.ID?,
+    favoriteID: Resource.Favorite.ID?,
     name: String,
-    url: String?,
+    permission: Permission,
+    permissions: OrderedSet<GenericPermissionDTO>,
+    uri: String?,
     username: String?,
     description: String?,
-    favoriteID: Resource.FavoriteID?,
-    permissionType: PermissionTypeDTO,
-    tags: Set<ResourceTagDTO>,
-    permissions: OrderedSet<PermissionDTO>,
+    tags: OrderedSet<ResourceTag>,
     modified: Date
   ) {
     self.id = id
     self.typeID = typeID
     self.parentFolderID = parentFolderID
+    self.favoriteID = favoriteID
     self.name = name
-    self.url = url
+    self.permission = permission
+    self.permissions = permissions
+    self.uri = uri
     self.username = username
     self.description = description
-    self.favoriteID = favoriteID
-    self.permissionType = permissionType
     self.tags = tags
-    self.permissions = permissions
     self.modified = modified
   }
 }
-
-extension ResourceDTO: DTO {}
 
 extension ResourceDTO {
 
@@ -111,13 +109,44 @@ extension ResourceDTO: Decodable {
         forKey: .parentFolderID
       )
       .map(ResourceFolder.ID.init(rawValue:))
+    do {
+      let favoriteContainer = try container.nestedContainer(
+        keyedBy: FavoriteCodingKeys.self,
+        forKey: .favorite
+      )
+      self.favoriteID = try favoriteContainer.decode(Resource.Favorite.ID.self, forKey: .id)
+    }
+    catch DecodingError.typeMismatch {
+      self.favoriteID = .none
+    }
+    catch {
+      throw error
+    }
     self.name = try container.decode(
       String.self,
       forKey: .name
     )
-    self.url = try container.decodeIfPresent(
+    let permissionContainer =
+      try container
+      .nestedContainer(
+        keyedBy: PermissionCodingKeys.self,
+        forKey: .permission
+      )
+    self.permission =
+      try permissionContainer
+      .decode(
+        Permission.self,
+        forKey: .permission
+      )
+    self.permissions =
+      try container
+      .decode(
+        OrderedSet<GenericPermissionDTO>.self,
+        forKey: .permissions
+      )
+    self.uri = try container.decodeIfPresent(
       String.self,
-      forKey: .url
+      forKey: .uri
     )
     self.username =
       try container
@@ -131,42 +160,12 @@ extension ResourceDTO: Decodable {
         String.self,
         forKey: .description
       )
-    do {
-      let favoriteConteiner = try container.nestedContainer(
-        keyedBy: FavoriteCodingKeys.self,
-        forKey: .favorite
-      )
-      self.favoriteID = try favoriteConteiner.decode(Resource.FavoriteID.self, forKey: .id)
-    }
-    catch {
-      self.favoriteID = .none
-    }
-    let permissionContainer =
-      try container
-      .nestedContainer(
-        keyedBy: PermissionCodingKeys.self,
-        forKey: .permissionType
-      )
-
-    self.permissionType =
-      try permissionContainer
-      .decode(
-        PermissionTypeDTO.self,
-        forKey: .type
-      )
     self.tags =
       try container.decodeIfPresent(
-        Set<ResourceTagDTO>.self,
+        OrderedSet<ResourceTag>.self,
         forKey: .tags
       )
       ?? .init()
-
-    self.permissions =
-      try container
-      .decode(
-        OrderedSet<PermissionDTO>.self,
-        forKey: .permissions
-      )
     self.modified =
       try container
       .decode(
@@ -180,20 +179,20 @@ extension ResourceDTO: Decodable {
     case id = "id"
     case typeID = "resource_type_id"
     case parentFolderID = "folder_parent_id"
+    case favorite = "favorite"
     case name = "name"
-    case url = "uri"
+    case permission = "permission"
+    case permissions = "permissions"
+    case uri = "uri"
     case username = "username"
     case description = "description"
-    case favorite = "favorite"
-    case permissionType = "permission"
     case tags = "tags"
-    case permissions = "permissions"
     case modified = "modified"
   }
 
   private enum PermissionCodingKeys: String, CodingKey {
 
-    case type = "type"
+    case permission = "type"
   }
 
   private enum FavoriteCodingKeys: String, CodingKey {

@@ -37,8 +37,6 @@ public struct UserGPGKeyDTO {
   }
 }
 
-extension UserGPGKeyDTO: DTO {}
-
 extension UserGPGKeyDTO: Decodable {
 
   public enum CodingKeys: String, CodingKey {

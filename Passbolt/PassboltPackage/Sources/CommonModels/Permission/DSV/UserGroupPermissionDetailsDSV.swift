@@ -27,23 +27,23 @@ public struct UserGroupPermissionDetailsDSV {
 
   public var id: UserGroup.ID
   public var name: String
-  public var permissionType: PermissionTypeDSV
+  public var permission: Permission
   public var members: OrderedSet<UserDetailsDSV>
 
   public init(
     id: UserGroup.ID,
     name: String,
-    permissionType: PermissionTypeDSV,
+    permission: Permission,
     members: OrderedSet<UserDetailsDSV>
   ) {
     self.id = id
     self.name = name
-    self.permissionType = permissionType
+    self.permission = permission
     self.members = members
   }
 }
 
-extension UserGroupPermissionDetailsDSV: DSV {}
+extension UserGroupPermissionDetailsDSV: Hashable {}
 
 extension UserGroupPermissionDetailsDSV {
 

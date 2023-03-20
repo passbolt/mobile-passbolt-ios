@@ -27,5 +27,5 @@ public typealias ResourcesStoreDatabaseOperation = DatabaseOperation<ResourcesSt
 
 public enum ResourcesStoreDatabaseOperationDescription: DatabaseOperationDescription {
 
-  public typealias Input = Array<ResourceDSO>
+  public typealias Input = Array<ResourceDTO>
 }

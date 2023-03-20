@@ -32,7 +32,7 @@ public struct Resources {
     (AnyPublisher<ResourcesFilter, Never>) -> AnyPublisher<Array<ResourceListItemDSV>, Never>
   public var filteredResourcesList: @Sendable (ResourcesFilter) async throws -> Array<ResourceListItemDSV>
   public var loadResourceSecret: @Sendable (Resource.ID) -> AnyPublisher<ResourceSecret, Error>
-  public var resourceDetailsPublisher: (Resource.ID) -> AnyPublisher<ResourceDetailsDSV, Error>
+  public var resourceDetailsPublisher: (Resource.ID) -> AnyPublisher<Resource, Error>
   @available(*, deprecated, message: "Please switch to async `delete`")
   public var deleteResource: @Sendable (Resource.ID) -> AnyPublisher<Void, Error>
   public var delete: @Sendable (Resource.ID) async throws -> Void
@@ -43,7 +43,7 @@ public struct Resources {
     filteredResourcesList:
       @escaping @Sendable (ResourcesFilter) async throws -> Array<ResourceListItemDSV>,
     loadResourceSecret: @escaping @Sendable (Resource.ID) -> AnyPublisher<ResourceSecret, Error>,
-    resourceDetailsPublisher: @escaping @Sendable (Resource.ID) -> AnyPublisher<ResourceDetailsDSV, Error>,
+    resourceDetailsPublisher: @escaping @Sendable (Resource.ID) -> AnyPublisher<Resource, Error>,
     deleteResource: @escaping @Sendable (Resource.ID) -> AnyPublisher<Void, Error>,
     delete: @escaping @Sendable (Resource.ID) async throws -> Void
   ) {
@@ -57,6 +57,8 @@ public struct Resources {
 }
 
 extension Resources: LoadableFeature {
+
+  public typealias Context = ContextlessLoadableFeatureContext
 
   #if DEBUG
   public static var placeholder: Resources {

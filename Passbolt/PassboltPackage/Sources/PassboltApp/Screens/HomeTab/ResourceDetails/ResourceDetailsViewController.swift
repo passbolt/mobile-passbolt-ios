@@ -87,34 +87,35 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
           self?.navigationController?.presentErrorSnackbar()
           await self?.pop(if: Self.self)
         }
-      } receiveValue: { [weak self] resourceDetailsWithConfig in
-        self?.contentView.update(with: resourceDetailsWithConfig)
+      } receiveValue: { [weak self] resourceWithConfig in
+        self?.contentView.update(with: resourceWithConfig)
         MainActor.execute {
           await self?.removeAllChildren(ResourceDetailsLocationSectionView.self)
-
-          await self?.addChild(
-            ResourceDetailsLocationSectionView.self,
-            in: resourceDetailsWithConfig.resourceDetails.id
-          ) { parent, child in
-            parent.insertLocationSection(view: child)
-          }
-
           await self?.removeAllChildren(ResourceDetailsTagsSectionView.self)
-
-          await self?.addChild(
-            ResourceDetailsTagsSectionView.self,
-            in: resourceDetailsWithConfig.resourceDetails.id
-          ) { parent, child in
-            parent.insertTagsSection(view: child)
-          }
-
           await self?.removeAllChildren(ResourceDetailsSharedSectionView.self)
-          await self?.addChild(
-            ResourceDetailsSharedSectionView.self,
-            in: resourceDetailsWithConfig.resourceDetails.id
-          ) { parent, child in
-            parent.insertShareSection(view: child)
-          }
+
+          if let resourceID = resourceWithConfig.resource.id {
+            await self?.addChild(
+              ResourceDetailsLocationSectionView.self,
+              in: resourceID
+            ) { parent, child in
+              parent.insertLocationSection(view: child)
+            }
+
+            await self?.addChild(
+              ResourceDetailsTagsSectionView.self,
+              in: resourceID
+            ) { parent, child in
+              parent.insertTagsSection(view: child)
+            }
+
+            await self?.addChild(
+              ResourceDetailsSharedSectionView.self,
+              in: resourceID
+            ) { parent, child in
+              parent.insertShareSection(view: child)
+            }
+          }  // else skip
         }
       }
 
@@ -186,17 +187,14 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
       .store(in: cancellables)
 
     contentView
-      .copyFieldNameTapPublisher
+      .copyFieldTapPublisher
       .map { [unowned self] field in
         self.controller
           .copyFieldValue(field)
           .receive(on: RunLoop.main)
           .handleEvents(receiveOutput: { [weak self] in
-            switch field {
-            case .name:
-              break
-
-            case .uri:
+            switch field.name {
+            case "uri":
               self?.presentInfoSnackbar(
                 .localized("resource.menu.item.field.copied"),
                 with: [
@@ -204,7 +202,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                 ]
               )
 
-            case .password:
+            case "password":
               self?.presentInfoSnackbar(
                 .localized("resource.menu.item.field.copied"),
                 with: [
@@ -212,7 +210,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                 ]
               )
 
-            case .username:
+            case "username":
               self?.presentInfoSnackbar(
                 .localized("resource.menu.item.field.copied"),
                 with: [
@@ -220,7 +218,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                 ]
               )
 
-            case .description:
+            case "description":
               self?.presentInfoSnackbar(
                 .localized("resource.menu.item.field.copied"),
                 with: [
@@ -228,8 +226,11 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                 ]
               )
 
-            case let .undefined(name):
-              assertionFailure("Undefined field: \(name)")
+            case _:
+              self?.presentInfoSnackbar(
+                .localized("resource.menu.item.field.copied"),
+                with: [field.name]
+              )
             }
           })
           .handleErrors { [weak self] error in
@@ -271,7 +272,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
           await self?.push(
             ResourceEditViewController.self,
             in: (
-              .existing(resourceID),
+              .edit(resourceID),
               completion: { [weak self] _ in
                 self?.cancellables.executeOnMainActor { [weak self] in
                   self?.presentInfoSnackbar(

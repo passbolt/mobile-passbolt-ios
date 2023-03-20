@@ -283,7 +283,7 @@ internal struct FoldersExplorerView: ComponentView {
       ForEach(
         self.state.directResources,
         id: \ResourceListItemDSV.id
-      ) { resource in
+      ) { (resource: ResourceListItemDSV) in
         ResourceListItemView(
           name: resource.name,
           username: resource.username,
@@ -332,7 +332,7 @@ internal struct FoldersExplorerView: ComponentView {
       ForEach(
         self.state.nestedResources,
         id: \ResourceListItemDSV.id
-      ) { resource in
+      ) { (resource: ResourceListItemDSV) in
         ResourceListItemView(
           name: resource.name,
           username: resource.username,
@@ -376,4 +376,4 @@ extension FoldersExplorerView {
   }
 }
 
-extension FoldersExplorerView.ViewState: Hashable {}
+extension FoldersExplorerView.ViewState: Equatable {}

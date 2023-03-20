@@ -21,8 +21,19 @@
 // @since         v1.0
 //
 
-import Commons
+import CommonModels
 
-public typealias PermissionDSV = PermissionDTO
+extension ResourceFolderPathItem {
 
-extension PermissionDSV: DSV {}
+  public static var mock_1: Self = .init(
+    id: .mock_1,
+    name: "mock_1",
+    shared: false
+  )
+
+  public static var mock_2: Self = .init(
+    id: .mock_2,
+    name: "mock_2",
+    shared: true
+  )
+}

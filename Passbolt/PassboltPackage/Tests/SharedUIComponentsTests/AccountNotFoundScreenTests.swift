@@ -39,7 +39,7 @@ final class AccountNotFoundScreenTests: MainActorTestCase {
       with: always(.mock_ada)
     )
 
-    let controller: AccountNotFoundController = try await testController(context: .mock_ada)
+    let controller: AccountNotFoundController = try testController(context: .mock_ada)
 
     var result: Void?
     controller
@@ -59,7 +59,7 @@ final class AccountNotFoundScreenTests: MainActorTestCase {
       with: always(.mock_ada)
     )
 
-    let controller: AccountNotFoundController = try await testController(context: .mock_ada)
+    let controller: AccountNotFoundController = try testController(context: .mock_ada)
 
     var result: Void?
     controller
@@ -81,7 +81,7 @@ final class AccountNotFoundScreenTests: MainActorTestCase {
       with: always(.mock_ada)
     )
 
-    let controller: AccountNotFoundController = try await testController(context: .mock_ada)
+    let controller: AccountNotFoundController = try testController(context: .mock_ada)
 
     let result: AccountWithProfile =
       controller

@@ -169,10 +169,24 @@ extension Features {
     file: StaticString = #fileID,
     line: UInt = #line
   ) throws -> Feature
-  where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {
+  where Feature: LoadableFeature, Feature.Context == ContextlessLoadableFeatureContext {
     try self.instance(
       of: featureType,
-      context: ContextlessFeatureContext.instance,
+      context: .instance,
+      file: file,
+      line: line
+    )
+  }
+
+  @MainActor public func instance<Feature>(
+    of featureType: Feature.Type = Feature.self,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) throws -> Feature
+  where Feature: LoadableFeature, Feature.Context == Void {
+    try self.instance(
+      of: featureType,
+      context: Void(),
       file: file,
       line: line
     )

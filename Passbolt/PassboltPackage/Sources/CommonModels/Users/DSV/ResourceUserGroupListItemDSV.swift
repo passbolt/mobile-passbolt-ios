@@ -40,4 +40,4 @@ public struct ResourceUserGroupListItemDSV {
   }
 }
 
-extension ResourceUserGroupListItemDSV: DSV {}
+extension ResourceUserGroupListItemDSV: Hashable {}

@@ -106,8 +106,7 @@ extension SQLiteConnection {
   public func fetch<Record>(
     using statement: SQLiteStatement,
     mapping: (SQLiteRow) throws -> Record
-  ) throws -> Array<Record>
-  where Record: DSV {
+  ) throws -> Array<Record> {
     try fetch(statement).map(mapping)
   }
 
@@ -115,8 +114,7 @@ extension SQLiteConnection {
   public func fetchFirst<Record>(
     using statement: SQLiteStatement,
     mapping: (SQLiteRow) throws -> Record
-  ) throws -> Record
-  where Record: DSV {
+  ) throws -> Record {
     let record: Record? = try fetch(statement).first.map(mapping)
 
     if let record: Record = record {

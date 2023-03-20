@@ -78,15 +78,11 @@ extension ResourceDetailsSharedSectionController: ComponentController {
           .permissions
           .compactMap { permission -> OverlappingAvatarStackView.Item? in
             switch permission {
-            case let .userToResource(_, userID, _, _):
+            case let .user(userID, _, _):
               return .user(userID, avatarImage: userAvatarImageFetch(userID))
 
-            case let .userGroupToResource(_, userGroup, _, _):
+            case let .userGroup(userGroup, _, _):
               return .userGroup(userGroup)
-
-            case .userToFolder, .userGroupToFolder:
-              // should not happen, filtering out
-              return nil
             }
           }
       }

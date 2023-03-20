@@ -38,7 +38,7 @@ extension ResourceUserGroupPermissionsDetailsFetchDatabaseOperation {
         SELECT
           userGroups.id AS id,
           userGroups.name AS name,
-          userGroupsResources.permissionType AS permissionType
+          userGroupsResources.permission AS permission
         FROM
           userGroupsResources
         INNER JOIN
@@ -80,15 +80,11 @@ extension ResourceUserGroupPermissionsDetailsFetchDatabaseOperation {
         guard
           let id: UserGroup.ID = dataRow.id.flatMap(UserGroup.ID.init(rawValue:)),
           let name: String = dataRow.name,
-          let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:))
+          let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:))
         else {
           throw
-            DatabaseIssue
-            .error(
-              underlyingError:
-                DatabaseDataInvalid
-                .error(for: ResourceUserGroupListItemDSV.self)
-            )
+            DatabaseDataInvalid
+            .error(for: UserGroupPermissionDetailsDSV.self)
             .recording(dataRow, for: "dataRow")
         }
 
@@ -107,12 +103,9 @@ extension ResourceUserGroupPermissionsDetailsFetchDatabaseOperation {
               let avatarImageURL: URLString = dataRow.avatarImageURL.flatMap(URLString.init(rawValue:))
             else {
               throw
-                DatabaseIssue
-                .error(
-                  underlyingError:
-                    DatabaseDataInvalid
-                    .error(for: ResourceUserGroupListItemDSV.self)
-                )
+                DatabaseDataInvalid
+                .error(for: UserDetailsDSV.self)
+                .recording(dataRow, for: "dataRow")
             }
 
             return UserDetailsDSV(
@@ -128,7 +121,7 @@ extension ResourceUserGroupPermissionsDetailsFetchDatabaseOperation {
         return UserGroupPermissionDetailsDSV(
           id: id,
           name: name,
-          permissionType: permissionType,
+          permission: permission,
           members: OrderedSet(groupMembers)
         )
       }

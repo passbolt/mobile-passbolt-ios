@@ -31,7 +31,7 @@ import UICommons
 @MainActor
 public protocol ComponentView: View {
 
-  associatedtype ViewState: Hashable
+  associatedtype ViewState: Equatable
   associatedtype Controller: ComponentController where Controller.ControlledView == Self
 
   static func legacyNavigaitionBarButtonBridge(

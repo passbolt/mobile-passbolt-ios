@@ -38,7 +38,7 @@ extension ResourceFolderUserGroupPermissionsDetailsFetchDatabaseOperation {
         SELECT
           userGroups.id AS id,
           userGroups.name AS name,
-          userGroupsResourceFolders.permissionType AS permissionType
+          userGroupsResourceFolders.permission AS permission
         FROM
           userGroupsResourceFolders
         INNER JOIN
@@ -80,7 +80,7 @@ extension ResourceFolderUserGroupPermissionsDetailsFetchDatabaseOperation {
         guard
           let id: UserGroup.ID = dataRow.id.flatMap(UserGroup.ID.init(rawValue:)),
           let name: String = dataRow.name,
-          let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:))
+          let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:))
         else {
           throw
             DatabaseIssue
@@ -128,7 +128,7 @@ extension ResourceFolderUserGroupPermissionsDetailsFetchDatabaseOperation {
         return UserGroupPermissionDetailsDSV(
           id: id,
           name: name,
-          permissionType: permissionType,
+          permission: permission,
           members: OrderedSet(groupMembers)
         )
       }

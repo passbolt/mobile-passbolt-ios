@@ -40,4 +40,4 @@ public struct UserGroupDetailsDSV {
   }
 }
 
-extension UserGroupDetailsDSV: DSV {}
+extension UserGroupDetailsDSV: Equatable {}

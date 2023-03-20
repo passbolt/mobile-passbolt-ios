@@ -23,32 +23,32 @@
 
 import Commons
 
-public enum NewPermissionDTO {
+public enum NewGenericPermissionDTO {
 
   case userToResource(
     userID: User.ID,
     resourceID: Resource.ID,
-    type: PermissionTypeDTO
+    permission: Permission
   )
   case userToFolder(
     userID: User.ID,
     folderID: ResourceFolder.ID,
-    type: PermissionTypeDTO
+    permission: Permission
   )
 
   case userGroupToResource(
     userGroupID: UserGroup.ID,
     resourceID: Resource.ID,
-    type: PermissionTypeDTO
+    permission: Permission
   )
   case userGroupToFolder(
     userGroupID: UserGroup.ID,
     folderID: ResourceFolder.ID,
-    type: PermissionTypeDTO
+    permission: Permission
   )
 }
 
-extension NewPermissionDTO {
+extension NewGenericPermissionDTO {
 
   public var userID: User.ID? {
     switch self {
@@ -72,20 +72,18 @@ extension NewPermissionDTO {
     }
   }
 
-  public var type: PermissionTypeDTO {
+  public var permission: Permission {
     switch self {
-    case let .userToResource(_, _, type),
-      let .userToFolder(_, _, type),
-      let .userGroupToResource(_, _, type),
-      let .userGroupToFolder(_, _, type):
-      return type
+    case let .userToResource(_, _, permission),
+      let .userToFolder(_, _, permission),
+      let .userGroupToResource(_, _, permission),
+      let .userGroupToFolder(_, _, permission):
+      return permission
     }
   }
 }
 
-extension NewPermissionDTO: DTO {}
-
-extension NewPermissionDTO: Encodable {
+extension NewGenericPermissionDTO: Encodable {
 
   public func encode(
     to encoder: Encoder
@@ -93,38 +91,38 @@ extension NewPermissionDTO: Encodable {
     var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
 
     switch self {
-    case let .userToResource(userID, resourceID, type):
+    case let .userToResource(userID, resourceID, permission):
       try container.encode("User", forKey: .subject)
       try container.encode(userID, forKey: .subjectID)
       try container.encode("Resource", forKey: .item)
       try container.encode(resourceID, forKey: .itemID)
-      try container.encode(type, forKey: .type)
+      try container.encode(permission, forKey: .permission)
 
-    case let .userToFolder(userID, folderID, type):
+    case let .userToFolder(userID, folderID, permission):
       try container.encode("User", forKey: .subject)
       try container.encode(userID, forKey: .subjectID)
       try container.encode("Folder", forKey: .item)
       try container.encode(folderID, forKey: .itemID)
-      try container.encode(type, forKey: .type)
+      try container.encode(permission, forKey: .permission)
 
-    case let .userGroupToResource(userGroupID, resourceID, type):
+    case let .userGroupToResource(userGroupID, resourceID, permission):
       try container.encode("Group", forKey: .subject)
       try container.encode(userGroupID, forKey: .subjectID)
       try container.encode("Resource", forKey: .item)
       try container.encode(resourceID, forKey: .itemID)
-      try container.encode(type, forKey: .type)
+      try container.encode(permission, forKey: .permission)
 
-    case let .userGroupToFolder(userID, folderID, type):
+    case let .userGroupToFolder(userID, folderID, permission):
       try container.encode("Group", forKey: .subject)
       try container.encode(userID, forKey: .subjectID)
       try container.encode("Folder", forKey: .item)
       try container.encode(folderID, forKey: .itemID)
-      try container.encode(type, forKey: .type)
+      try container.encode(permission, forKey: .permission)
     }
   }
 }
 
-extension NewPermissionDTO {
+extension NewGenericPermissionDTO {
 
   private enum CodingKeys: String, CodingKey {
 
@@ -132,8 +130,8 @@ extension NewPermissionDTO {
     case subjectID = "aro_foreign_key"
     case item = "aco"
     case itemID = "aco_foreign_key"
-    case type = "type"
+    case permission = "type"
   }
 }
 
-extension NewPermissionDTO: Hashable {}
+extension NewGenericPermissionDTO: Hashable {}

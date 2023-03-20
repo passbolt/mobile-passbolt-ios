@@ -39,9 +39,9 @@ where Self: Hashable {
 extension Tagged: LoadableFeatureContext
 where RawValue: Hashable {}
 
-public struct ContextlessFeatureContext: Hashable, LoadableFeatureContext {
+public struct ContextlessLoadableFeatureContext: Hashable, LoadableFeatureContext {
 
-  internal static let instance: Self = .init()
+  public static let instance: Self = .init()
 
   private init() {}
 }

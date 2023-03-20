@@ -140,7 +140,7 @@ final class AccountExportAuthorizationControllerTests: LoadableFeatureTestCase<A
       Validated<Passphrase>
         .invalid(
           "",
-          errors:
+          error:
             InvalidValue
             .empty(
               value: "",
