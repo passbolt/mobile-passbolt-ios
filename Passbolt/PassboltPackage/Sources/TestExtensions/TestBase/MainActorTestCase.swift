@@ -27,24 +27,92 @@ import XCTest
 
 @available(*, deprecated, message: "Please switch to `LoadableFeatureTestCase`")
 @MainActor
-open class MainActorTestCase: TestCase {
+open class MainActorTestCase: AsyncTestCase {
 
-  open override func featuresActorSetUp() async throws {
-    try await super.featuresActorSetUp()
-    mainActorSetUp()
-  }
+  public var features: TestFeaturesContainer!
+  public var cancellables: Cancellables!
+  public var mockExecutionControl: AsyncExecutor.MockExecutionControl!
 
   open func mainActorSetUp() {
     // to be overriden
   }
 
-  open override func featuresActorTearDown() async throws {
-    mainActorTearDown()
-    try await super.featuresActorTearDown()
-  }
-
   open func mainActorTearDown() {
     // to be overriden
+  }
+
+  final override public class func setUp() {
+    super.setUp()
+  }
+
+  public final override func setUp() {
+    /* NOP - overrding to ignore calls from default setUp methods calling order */
+  }
+
+  public final override func setUp() async throws {
+    // casting to specify correct method to be called,
+    // by default async one is selected by the compiler
+    (super.setUp as () -> Void)()
+    try await super.setUp()
+    try await featuresActorSetUp()
+  }
+
+  open func featuresActorSetUp() async throws {
+    self.mockExecutionControl = .init()
+    self.features = .init()
+    self.features
+      .patch(
+        \AsyncExecutor.self,
+        with: .mock(self.mockExecutionControl)
+      )
+    self.features
+      .patch(
+        \OSDiagnostics.self,
+        with: .disabled
+      )
+    self.cancellables = .init()
+    self.mainActorSetUp()
+  }
+
+  public final override func tearDown() {
+    /* NOP - overrding to ignore calls from default tearDown methods calling order */
+  }
+
+  public final override func tearDown() async throws {
+    try await featuresActorTearDown()
+    try await super.tearDown()
+    // casting to specify correct method to be called,
+    // by default async one is selected by the compiler
+    (super.tearDown as () -> Void)()
+  }
+
+  open func featuresActorTearDown() async throws {
+    self.mainActorTearDown()
+    self.features = nil
+    self.cancellables = nil
+    self.mockExecutionControl = nil
+  }
+
+  public final func testedInstance<Feature>(
+    _ featureType: Feature.Type = Feature.self,
+    context: Feature.Context
+  ) throws -> Feature
+  where Feature: LoadableFeature {
+    try features
+      .instance(
+        of: featureType,
+        context: context
+      )
+  }
+
+  public final func testedInstance<Feature>(
+    _ featureType: Feature.Type = Feature.self
+  ) throws -> Feature
+  where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {
+    try features
+      .instance(
+        of: featureType
+      )
   }
 
   public final func testController<Controller: UIController>(

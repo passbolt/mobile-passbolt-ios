@@ -35,10 +35,10 @@ open class AsyncTestCase: XCTestCase {
     }
   }
   private var testTasks: Array<Task<Void, Error>> = .init()
-  public var variables: TestVariables!
+  public var variables: DynamicVariables!
 
   public subscript<Value>(
-    dynamicMember keyPath: KeyPath<TestVariables, TestVariables.VariableName>
+    dynamicMember keyPath: KeyPath<DynamicVariables.VariableNames, StaticString>
   ) -> Value {
     get {
       self.variables.get(

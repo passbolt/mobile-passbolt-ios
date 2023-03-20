@@ -244,7 +244,7 @@ extension LoadableFeatureTestCase {
   }
 
   public final func set<Value>(
-    variable keyPath: KeyPath<TestVariables, TestVariables.VariableName>,
+    variable keyPath: KeyPath<DynamicVariables.VariableNames, StaticString>,
     of type: Value.Type = Value.self,
     to value: Optional<Value>
   ) {
@@ -256,7 +256,7 @@ extension LoadableFeatureTestCase {
   }
 
   public final func variable<Value>(
-    _ keyPath: KeyPath<TestVariables, TestVariables.VariableName>,
+    _ keyPath: KeyPath<DynamicVariables.VariableNames, StaticString>,
     of type: Value.Type = Value.self
   ) -> Value {
     self.variables.get(

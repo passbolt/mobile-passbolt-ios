@@ -33,7 +33,9 @@ public struct Resources {
   public var filteredResourcesList: @Sendable (ResourcesFilter) async throws -> Array<ResourceListItemDSV>
   public var loadResourceSecret: @Sendable (Resource.ID) -> AnyPublisher<ResourceSecret, Error>
   public var resourceDetailsPublisher: (Resource.ID) -> AnyPublisher<ResourceDetailsDSV, Error>
+  @available(*, deprecated, message: "Please switch to async `delete`")
   public var deleteResource: @Sendable (Resource.ID) -> AnyPublisher<Void, Error>
+  public var delete: @Sendable (Resource.ID) async throws -> Void
 
   public init(
     filteredResourcesListPublisher:
@@ -42,13 +44,15 @@ public struct Resources {
       @escaping @Sendable (ResourcesFilter) async throws -> Array<ResourceListItemDSV>,
     loadResourceSecret: @escaping @Sendable (Resource.ID) -> AnyPublisher<ResourceSecret, Error>,
     resourceDetailsPublisher: @escaping @Sendable (Resource.ID) -> AnyPublisher<ResourceDetailsDSV, Error>,
-    deleteResource: @escaping @Sendable (Resource.ID) -> AnyPublisher<Void, Error>
+    deleteResource: @escaping @Sendable (Resource.ID) -> AnyPublisher<Void, Error>,
+    delete: @escaping @Sendable (Resource.ID) async throws -> Void
   ) {
     self.filteredResourcesListPublisher = filteredResourcesListPublisher
     self.filteredResourcesList = filteredResourcesList
     self.loadResourceSecret = loadResourceSecret
     self.resourceDetailsPublisher = resourceDetailsPublisher
     self.deleteResource = deleteResource
+    self.delete = delete
   }
 }
 
@@ -61,7 +65,8 @@ extension Resources: LoadableFeature {
       filteredResourcesList: unimplemented1(),
       loadResourceSecret: unimplemented1(),
       resourceDetailsPublisher: unimplemented1(),
-      deleteResource: unimplemented1()
+      deleteResource: unimplemented1(),
+      delete: unimplemented1()
     )
   }
   #endif

@@ -231,6 +231,47 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
 
     XCTAssertNotNil(result)
   }
+
+  func test_delete_refreshesSessionData_whenDeleteSucceeded() async throws {
+    var result: Void?
+    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
+      get: { result },
+      set: { result = $0 }
+    )
+    patch(
+      \SessionData.refreshIfNeeded,
+      with: { () async throws in
+        uncheckedSendableResult.variable = Void()
+      }
+    )
+    patch(
+      \ResourceDeleteNetworkOperation.execute,
+      with: always(Void())
+    )
+
+    let feature: Resources = try testedInstance()
+
+    try await feature.delete(.mock_1)
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_delete_fails_whenDeleteFails() async throws {
+    patch(
+      \ResourceDeleteNetworkOperation.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
+
+    let feature: Resources = try testedInstance()
+
+    do {
+      try await feature.delete(.mock_1)
+      XCTFail()
+    }
+    catch {
+      // expected
+    }
+  }
 }
 
 private let testFilter: ResourcesFilter = .init(

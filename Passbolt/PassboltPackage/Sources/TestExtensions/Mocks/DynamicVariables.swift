@@ -24,29 +24,25 @@
 import Commons
 
 @dynamicMemberLookup
-public struct TestVariables: @unchecked Sendable {
+public final class DynamicVariables: @unchecked Sendable {
 
-  public struct VariableName: Hashable, CustomStringConvertible {
-
-    fileprivate var rawValue: StaticString
-
-    internal init(rawValue: StaticString) {
-      self.rawValue = rawValue
-    }
-
-    public var description: String {
-      "\(self.rawValue)"
+  @dynamicMemberLookup
+  public struct VariableNames {
+    public subscript(
+      dynamicMember name: StaticString
+    ) -> StaticString {
+      name
     }
   }
 
-  private struct Variable {
+  private final class Value {
 
     fileprivate let type: Any.Type
-    private let name: VariableName
+    private let name: StaticString
     private var value: Any
 
     fileprivate init<Value>(
-      name: VariableName,
+      name: StaticString,
       value: Value
     ) {
       self.type = Value.self
@@ -76,68 +72,77 @@ public struct TestVariables: @unchecked Sendable {
         fatalError(
           "Invalid variable: \"\(self.name)\", type: \(self.type), expected type: \(Value.self), value: \(value as Any)"
         )
-
       }
     }
 
-    fileprivate mutating func set<Value>(
+    fileprivate func set<Value>(
       _ value: Value
     ) {
       self.value = value
     }
   }
 
-  private let state: CriticalState<Dictionary<VariableName, Variable>> = .init(.init())
-
-  private var values: Dictionary<VariableName, Variable> {
+  private let state: CriticalState<Dictionary<StaticString, Value>> = .init(.init())
+  private let variableNames: VariableNames = .init()
+  private var values: Dictionary<StaticString, Value> {
     get { self.state.get(\.self) }
     set { self.state.set(\.self, newValue) }
   }
 
   public init() {}
 
-  public subscript(
+  public subscript<Variable>(
     dynamicMember name: StaticString
-  ) -> VariableName {
-    get { .init(rawValue: name) }
-  }
+  ) -> Variable {
+    get {
+      switch self.values[name] {
+      case let .some(variable):
+        return variable.get(Variable.self)
 
-  public func get<Value>(
-    _ member: KeyPath<TestVariables, VariableName>,
-    of type: Value.Type = Value.self
-  ) -> Value {
-    let name: VariableName = self[keyPath: member]
-    switch self.values[name] {
-    case let .some(variable):
-      return variable.get(Value.self)
-
-    case .none:
-      fatalError("Undefined variable \"\(name)\" of type: \(Value.self)")
+      case .none:
+        fatalError("Undefined variable \"\(name)\" of type: \(Variable.self)")
+      }
+    }
+    set {
+      if let value: Value = self.values[name] {
+        value.set(newValue)
+      }
+      else {
+        self.values[name] = .init(
+          name: name,
+          value: newValue
+        )
+      }
     }
   }
 
-  public mutating func set<Value>(
-    _ member: KeyPath<TestVariables, VariableName>,
+  public func get<Variable>(
+    _ member: KeyPath<DynamicVariables.VariableNames, StaticString>,
+    of type: Variable.Type = Variable.self
+  ) -> Variable {
+    return self[dynamicMember: self.variableNames[keyPath: member]]
+  }
+
+  public func set<Value>(
+    _ member: KeyPath<DynamicVariables.VariableNames, StaticString>,
     of type: Value.Type = Value.self,
     to value: Value
   ) {
-    let name: VariableName = self[keyPath: member]
-    self.values[name] = .init(
-      name: name,
-      value: value
-    )
+    self[dynamicMember: self.variableNames[keyPath: member]] = value
   }
 
-  public mutating func clear(
-    _ member: KeyPath<TestVariables, VariableName>
+  public func clear(
+    _ member: KeyPath<DynamicVariables.VariableNames, StaticString>
   ) {
-    self.values[self[keyPath: member]] = .none
+    let name: StaticString = self.variableNames[keyPath: member]
+    self.values[name] = .none
   }
 
   public func contains<Value>(
-    _ member: KeyPath<TestVariables, VariableName>,
+    _ member: KeyPath<DynamicVariables.VariableNames, StaticString>,
     of type: Value.Type = Value.self
   ) -> Bool {
-    self.values[self[keyPath: member]]?.type == type
+    let name: StaticString = self.variableNames[keyPath: member]
+    return self.values[name]?.type == type
   }
 }

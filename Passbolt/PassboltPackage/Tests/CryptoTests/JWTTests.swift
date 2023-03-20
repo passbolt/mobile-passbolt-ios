@@ -27,7 +27,7 @@ import XCTest
 @testable import Crypto
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class JWTTests: TestCase {
+final class JWTTests: XCTestCase {
 
   func test_decodeValidToken_Succeeds() async throws {
     let jwt: JWT = try! .from(rawValue: validToken).get()

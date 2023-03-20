@@ -28,7 +28,7 @@ import XCTest
 @testable import NFC
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class NDEFParserTests: TestCase {
+final class NDEFParserTests: XCTestCase {
 
   func test_parsePayloadContainingURI_succeeds() {
     let parser: NDEFParser = .yubiKeyOTPParser()

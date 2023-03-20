@@ -312,6 +312,10 @@ extension AsyncExecutor {
 
     public init() {}
 
+    public var scheduledTasksCount: Int {
+      executionQueue.get(\.count)
+    }
+
     @Sendable public func executeNext() async {
       if let next: @Sendable () async -> Void = self.nextTask() {
         await next()

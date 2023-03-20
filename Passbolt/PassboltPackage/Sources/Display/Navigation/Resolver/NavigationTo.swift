@@ -591,6 +591,91 @@ extension NavigationTo {
       }
     )
   }
+
+  public static func legacyAlertPresentationTransition<Alert>(
+    using: Alert.Type = Alert.self,
+    _ prepare: @escaping @MainActor (Features, Destination.TransitionContext) throws -> Alert
+  ) -> FeatureLoader
+  where Alert: AlertController {
+    .disposable(
+      Self.self,
+      load: { features in
+        let navigationResolver: NavigationResolver = try features.instance()
+
+        @MainActor @Sendable func perform(
+          animated: Bool,
+          context: Destination.TransitionContext,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          let alert: Alert = try prepare(features, context)
+          let anchor: NavigationAnchor = {
+            let alertController: UIAlertController = .init(
+              title: alert.title.string(),
+              message: alert.message?.string(),
+              preferredStyle: .alert
+            )
+            alert.actions
+              .forEach { action in
+                alertController.addAction(
+                  .init(
+                    title: action.title.string(),
+                    style: action.role.style,
+                    handler: { _ in
+                      action.action()
+                    }
+                  )
+                )
+              }
+            return alertController
+          }()
+          anchor.destinationIdentifier = Destination.identifier
+          try await navigationResolver
+            .present(
+              anchor,
+              unique: Destination.isUnique,
+              animated: animated,
+              file: file,
+              line: line
+            )
+        }
+
+        @MainActor @Sendable func revert(
+          animated: Bool,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          try await navigationResolver
+            .dismiss(
+              with: Destination.identifier,
+              animated: animated,
+              file: file,
+              line: line
+            )
+        }
+
+        return .init(
+          performAnimated: perform(animated:context:file:line:),
+          revertAnimated: revert(animated:file:line:)
+        )
+      }
+    )
+  }
+
+  public static func legacyAlertPresentationTransition<Alert>(
+    using: Alert.Type = Alert.self
+  ) -> FeatureLoader
+  where Alert: AlertController, Destination.TransitionContext == Alert.Context {
+    Self.legacyAlertPresentationTransition(
+      using: Alert.self,
+      { features, context in
+        try Alert(
+          with: context,
+          using: features
+        )
+      }
+    )
+  }
 }
 
 extension NavigationTo {

@@ -473,6 +473,11 @@ Contact your administrator for more information.";
 "otp.contextual.menu.copy.title" = "Copy TOTP";
 "otp.copied.message" = "TOTP copied to your clipboard!";
 "otp.contextual.menu.reveal.title" = "Show TOTP";
+"otp.contextual.menu.delete.title" = "Delete TOTP";
+"otp.contextual.menu.delete.confirm.title" = "Are you sure?";
+"otp.contextual.menu.delete.confirm.message" = "This action will pernamently delete the TOTP.";
+"otp.contextual.menu.delete.confirm.action.delete" = "Delete TOTP";
+"otp.contextual.menu.delete.succeeded" = "TOTP was deleted.";
 
 // OTP create menu
 

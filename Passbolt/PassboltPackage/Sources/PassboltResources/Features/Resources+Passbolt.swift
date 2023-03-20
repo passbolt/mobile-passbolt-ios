@@ -150,12 +150,20 @@ extension Resources {
         .eraseToAnyPublisher()
     }
 
+    @Sendable nonisolated func delete(
+      resourceID: Resource.ID
+    ) async throws {
+      try await resourceDeleteNetworkOperation(.init(resourceID: resourceID))
+      try await sessionData.refreshIfNeeded()
+    }
+
     return Self(
       filteredResourcesListPublisher: filteredResourcesListPublisher,
       filteredResourcesList: filteredResourcesList(_:),
       loadResourceSecret: loadResourceSecret,
       resourceDetailsPublisher: resourceDetailsPublisher(resourceID:),
-      deleteResource: deleteResource(resourceID:)
+      deleteResource: deleteResource(resourceID:),
+      delete: delete(resourceID:)
     )
   }
 }

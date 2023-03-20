@@ -41,6 +41,7 @@ extension ResourceDetails {
     let sessionCryptography: SessionCryptography = try features.instance()
     let resourceDetailsFetchDatabaseOperation: ResourceDetailsFetchDatabaseOperation = try features.instance()
     let resourceSecretFetchNetworkOperation: ResourceSecretFetchNetworkOperation = try features.instance()
+    let resourceDeleteNetworkOperation: ResourceDeleteNetworkOperation = try features.instance()
 
     @Sendable nonisolated func fetchResourceDetails() async throws -> ResourceDetailsDSV {
       try await resourceDetailsFetchDatabaseOperation(
@@ -76,6 +77,11 @@ extension ResourceDetails {
         .decryptMessage(encryptedSecret, nil)
 
       return try .from(decrypted: decryptedSecret)
+    }
+
+    @Sendable nonisolated func delete() async throws {
+      try await resourceDeleteNetworkOperation(.init(resourceID: resourceID))
+      try await sessionData.refreshIfNeeded()
     }
 
     return Self(

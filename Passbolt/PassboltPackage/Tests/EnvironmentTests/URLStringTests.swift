@@ -27,7 +27,7 @@ import TestExtensions
 import XCTest
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class URLStringTests: TestCase {
+final class URLStringTests: XCTestCase {
 
   func test_serverURLString_hasCorrectValue_whenProvided_withValidURL() {
     XCTAssertEqual(

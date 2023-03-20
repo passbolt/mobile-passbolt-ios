@@ -58,6 +58,7 @@ extension FeaturesRegistry {
     // MARK: - OTP contextual menu
     self.useLiveOTPCContextualMenuController()
     self.useLiveNavigationToOTPContextualMenu()
+    self.useLiveNavigationToOTPDeleteAlert()
 
     // MARK: - OTP create menu
     self.useLiveOTPCreateMenuController()

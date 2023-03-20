@@ -33,6 +33,7 @@ internal struct OTPContextualMenuController {
 
   internal var copyCode: () -> Void
   internal var revealCode: () -> Void
+  internal var deleteCode: () -> Void
   internal var dismiss: () -> Void
 }
 
@@ -58,6 +59,7 @@ extension OTPContextualMenuController: ViewController {
       viewState: .placeholder(),
       copyCode: unimplemented0(),
       revealCode: unimplemented0(),
+      deleteCode: unimplemented0(),
       dismiss: unimplemented0()
     )
   }
@@ -81,6 +83,7 @@ extension OTPContextualMenuController {
     let otpCodesController: OTPCodesController = try features.instance()
 
     let navigationToSelf: NavigationToOTPContextualMenu = try features.instance()
+    let navigationToOTPDeleteAlert: NavigationToOTPDeleteAlert = try features.instance()
 
     let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
@@ -150,6 +153,33 @@ extension OTPContextualMenuController {
       }
     }
 
+    nonisolated func deleteCode() {
+      asyncExecutor.scheduleCatchingWith(
+        diagnostics,
+        failMessage: "Deleting OTP in OTPContextualMenu failed!",
+        behavior: .reuse
+      ) {
+        var message: SnackBarMessage?
+        do {
+          try await navigationToSelf.revert(animated: true)
+          try await navigationToOTPDeleteAlert.perform(
+            context: (
+              resourceID: context.resourceID,
+              showMessage: context.showMessage
+            )
+          )
+        }
+        catch {
+          diagnostics.log(error: error)
+          message = SnackBarMessage.error(error)
+        }  // continue - message will be displayed after dismiss
+
+        if let message {
+          await context.showMessage(message)
+        }  // else nothing to display
+      }
+    }
+
     nonisolated func dismiss() {
       asyncExecutor.scheduleCatchingWith(
         diagnostics,
@@ -164,6 +194,7 @@ extension OTPContextualMenuController {
       viewState: viewState,
       copyCode: copyCode,
       revealCode: revealCode,
+      deleteCode: deleteCode,
       dismiss: dismiss
     )
   }
