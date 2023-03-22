@@ -98,6 +98,36 @@ extension StoredProperty {
       )
     )
   }
+
+	@MainActor fileprivate static func loadRaw(
+		features: Features,
+		context key: OSStoredPropertyKey,
+		removeDuplicates: @escaping (Value?, Value?) -> Bool,
+		cancellables: Cancellables
+	) throws -> Self
+	where Value: RawRepresentable {
+		let storedProperties: OSStoredProperties = features.instance()
+
+		@Sendable nonisolated func fetch() -> Value? {
+			(storedProperties
+				.fetch(key) as? Value.RawValue)
+			.flatMap(Value.init(rawValue:))
+		}
+
+		@Sendable nonisolated func store(
+			_ property: Value?
+		) {
+			storedProperties
+				.store(key, property?.rawValue)
+		}
+
+		return Self(
+			binding: .fromSource(
+				read: fetch,
+				write: store(_:)
+			)
+		)
+	}
 }
 
 extension FeaturesRegistry {
@@ -130,6 +160,35 @@ extension FeaturesRegistry {
       )
     )
   }
+
+	public mutating func usePassboltStoredRawProperty<Property>(
+		_: Property.Type
+	) where Property: RawRepresentable & Equatable {
+		self.usePassboltStoredRawProperty(
+			Property.self,
+			removeDuplicates: ==
+		)
+	}
+
+	public mutating func usePassboltStoredRawProperty<Property>(
+		_: Property.Type,
+		removeDuplicates: @escaping (Property?, Property?) -> Bool
+	) where Property: RawRepresentable {
+		self.use(
+			.lazyLoaded(
+				StoredProperty<Property>.self,
+				load: {
+					(features: Features, context: StoredProperty.Context, cancellables: Cancellables) -> StoredProperty in
+					try StoredProperty<Property>.load(
+						features: features,
+						context: context,
+						removeDuplicates: removeDuplicates,
+						cancellables: cancellables
+					)
+				}
+			)
+		)
+	}
 }
 
 #if DEBUG

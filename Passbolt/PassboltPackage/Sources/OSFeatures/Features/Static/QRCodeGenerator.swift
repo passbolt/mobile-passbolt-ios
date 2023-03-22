@@ -61,7 +61,7 @@ extension QRCodeGenerator {
         let outputImage: CIImage = filter.outputImage,
         let imageData: Data = context.pngRepresentation(
           of: outputImage,
-          format: .RGBA16,
+          format: .RGBA8,
           colorSpace: colorSpace
         )
       {
