@@ -47,10 +47,7 @@ final class OTPEditFormTests: LoadableFeatureTestCase<OTPEditForm> {
         configuration: .mock_1
       )
     )
-    self.set(
-      OTPEditScope.self,
-      context: .none
-    )
+    self.set(OTPEditScope.self)
   }
 
   func test_fillFromURI_throws_withInvalidScheme() {
@@ -167,6 +164,70 @@ final class OTPEditFormTests: LoadableFeatureTestCase<OTPEditForm> {
       )
 
       return feature.state()
+    }
+  }
+
+  func test_sendForm_updatesResourceEditForm_whenCreatingStandaloneOTP() {
+    patch(
+      \ResourceEditForm.resource,
+       with: always(.mock_totp)
+    )
+    var result: Dictionary<ResourceField, ResourceFieldValue> = .init()
+    let uncheckedSendableResult: UncheckedSendable<Dictionary<ResourceField, ResourceFieldValue>> = .init(
+      get: { result },
+      set: { result = $0 }
+    )
+    patch(
+      \ResourceEditForm.setFieldValue,
+       with: { (value, field) async throws in
+         uncheckedSendableResult.variable[field] = value
+       }
+    )
+    patch(
+      \ResourceEditForm.sendForm,
+       with: always(.mock_1)
+    )
+    withTestedInstanceReturnsEqual(
+      [
+        .name: .string("edith@passbolt.com"),
+        .uri: .string("Passbolt"),
+        .totp: .otp(
+          .totp(
+            sharedSecret: "SECRET_KEY",
+            algorithm: .sha256,
+            digits: 8,
+            period: 90
+          )
+        ),
+      ] as Dictionary<ResourceField, ResourceFieldValue>
+    ) { feature in
+      try feature.fillFromURI(
+        "otpauth://totp/Passbolt:edith@passbolt.com?secret=SECRET_KEY&issuer=Passbolt&digits=8&period=90&algorithm=SHA256"
+      )
+      try await feature.sendForm(.createStandalone)
+      return uncheckedSendableResult.variable
+    }
+  }
+
+  func test_sendForm_succeeds_whenSendingResourceFormSucceeds() {
+    patch(
+      \ResourceEditForm.resource,
+       with: always(.mock_totp)
+    )
+
+    patch(
+      \ResourceEditForm.setFieldValue,
+       with: always(Void())
+    )
+    patch(
+      \ResourceEditForm.sendForm,
+       with: always(.mock_1)
+    )
+    withTestedInstanceNotThrows { feature in
+      try feature.fillFromURI(
+        "otpauth://totp/Passbolt:edith@passbolt.com?secret=SECRET_KEY&issuer=Passbolt&digits=8&period=90&algorithm=SHA256"
+      )
+      try await feature.sendForm(.createStandalone)
     }
   }
 }

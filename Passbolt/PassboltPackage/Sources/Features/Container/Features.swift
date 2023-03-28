@@ -71,8 +71,8 @@ extension Features {
 
   public func checkScope<Scope>(
     _: Scope.Type,
-    file: StaticString = #fileID,
-    line: UInt = #line
+    _ file: StaticString = #fileID,
+    _ line: UInt = #line
   ) -> Bool
   where Scope: FeaturesScope {
     self.checkScope(
@@ -84,8 +84,8 @@ extension Features {
 
   public func ensureScope<Scope>(
     _: Scope.Type,
-    file: StaticString = #fileID,
-    line: UInt = #line
+    _ file: StaticString = #fileID,
+    _ line: UInt = #line
   ) throws where Scope: FeaturesScope {
     try self.ensureScope(
       Scope.self,
@@ -96,8 +96,8 @@ extension Features {
 
   public func context<Scope>(
     of _: Scope.Type,
-    file: StaticString = #fileID,
-    line: UInt = #line
+    _ file: StaticString = #fileID,
+    _ line: UInt = #line
   ) throws -> Scope.Context
   where Scope: FeaturesScope {
     try self.context(
@@ -110,8 +110,8 @@ extension Features {
   @MainActor public func branch<Scope>(
     scope: Scope.Type,
     context: Scope.Context,
-    file: StaticString = #fileID,
-    line: UInt = #line
+    _ file: StaticString = #fileID,
+    _ line: UInt = #line
   ) -> FeaturesContainer
   where Scope: FeaturesScope {
     self.branch(
@@ -136,10 +136,45 @@ extension Features {
     )
   }
 
-  @MainActor public func instance<Feature>(
-    of featureType: Feature.Type = Feature.self,
+  @MainActor public func branchIfNeeded<Scope>(
+    scope: Scope.Type,
+    context: Scope.Context,
     file: StaticString = #fileID,
     line: UInt = #line
+  ) -> FeaturesContainer?
+  where Scope: FeaturesScope {
+    let hasScope: Bool = self.checkScope(
+      scope,
+      file: file,
+      line: line
+    )
+    guard !hasScope else { return .none }
+    return self.branch(
+      scope: scope,
+      context: context,
+      file: file,
+      line: line
+    )
+  }
+
+  @MainActor public func branchIfNeeded<Scope>(
+    scope: Scope.Type,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> FeaturesContainer?
+  where Scope: FeaturesScope, Scope.Context == Void {
+    self.branchIfNeeded(
+      scope: Scope.self,
+      context: Void(),
+      file: file,
+      line: line
+    )
+  }
+
+  @MainActor public func instance<Feature>(
+    of featureType: Feature.Type = Feature.self,
+    _ file: StaticString = #fileID,
+    _ line: UInt = #line
   ) -> Feature
   where Feature: StaticFeature {
     self.instance(
@@ -152,8 +187,8 @@ extension Features {
   @MainActor public func instance<Feature>(
     of featureType: Feature.Type = Feature.self,
     context: Feature.Context,
-    file: StaticString = #fileID,
-    line: UInt = #line
+    _ file: StaticString = #fileID,
+    _ line: UInt = #line
   ) throws -> Feature
   where Feature: LoadableFeature {
     try self.instance(

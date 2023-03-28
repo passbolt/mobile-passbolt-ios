@@ -29,16 +29,15 @@ import Resources
 extension OTPEditForm {
 
   @MainActor fileprivate static func load(
-    features: Features
+    features: Features,
+    context: Context,
+    cancellables _: Cancellables
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
-
-    let diagnostics: OSDiagnostics = features.instance()
-
-    #warning("[MOB-1093] TODO: FIXME: complete OTP edit form")
+    try features.ensureScope(OTPEditScope.self)
 
     let updatesSource: UpdatesSequenceSource = .init()
-    let currentState: CriticalState<State> = .init(
+    let formState: CriticalState<State> = .init(
       .init(
         issuer: .none,
         account: "",
@@ -52,7 +51,7 @@ extension OTPEditForm {
     )
 
     @Sendable nonisolated func state() -> State {
-      currentState.get(\.self)
+      formState.get(\.self)
     }
 
     @Sendable nonisolated func fillFrom(
@@ -60,13 +59,54 @@ extension OTPEditForm {
     ) throws {
       let configuration: OTPConfiguration = try parseTOTPConfiguration(from: uri)
 
-      currentState.set(\.self, configuration)
+      formState.set(\.self, configuration)
+      updatesSource.sendUpdate()
+    }
+
+    @Sendable nonisolated func sendForm(
+      _ action: SendFormAction
+    ) async throws {
+      #warning("[MOB-1096] adding hotp will require resource type slug and dedicated fields usage")
+      let resourceEditingFeatures: Features = await features.branchIfNeeded(
+        scope: ResourceEditScope.self,
+        context: .create(
+          .totp,
+          folderID: .none,
+          uri: .none
+        )
+      ) ?? features
+
+      let resourceEditForm: ResourceEditForm = try await resourceEditingFeatures.instance()
+
+      switch action {
+      case .createStandalone:
+        let resource: Resource = try await resourceEditForm.resource()
+
+        guard
+          let nameField: ResourceField = resource.fields.first(where: { $0.name == "name" }),
+          let uriField: ResourceField = resource.fields.first(where: { $0.name == "uri" }),
+          let totpField: ResourceField = resource.fields.first(where: { $0.name == "totp" })
+        else {
+          throw InvalidResourceType.error()
+        }
+
+        let state: State = formState.get(\.self)
+        try await resourceEditForm.setFieldValue(.string(state.account), nameField)
+        try await resourceEditForm.setFieldValue(.string(state.issuer ?? ""), uriField)
+        try await resourceEditForm.setFieldValue(.otp(state.secret), totpField)
+        _ = try await resourceEditForm.sendForm()
+
+      case .attach(to: let resourceID):
+        throw Unimplemented
+          .error("[MOB-1094] Adding OTP to existing resource is not supported yet")
+      }
     }
 
     return .init(
       updates: updatesSource.updatesSequence,
       state: state,
-      fillFromURI: fillFrom(uri:)
+      fillFromURI: fillFrom(uri:),
+      sendForm: sendForm(_:)
     )
   }
 }
@@ -75,9 +115,9 @@ extension FeaturesRegistry {
 
   internal mutating func usePassboltOTPEditForm() {
     self.use(
-      .disposable(
+      .lazyLoaded(
         OTPEditForm.self,
-        load: OTPEditForm.load(features:)
+        load: OTPEditForm.load(features:context:cancellables:)
       ),
       in: OTPEditScope.self
     )

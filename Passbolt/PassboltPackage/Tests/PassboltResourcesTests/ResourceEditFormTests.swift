@@ -51,8 +51,6 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
         configuration: .mock_1
       )
     )
-
-    set(ResourceEditScope.self, context: .mock_1)
   }
 
   func test_resource_fails_whenNoResourceTypesAvailable() async throws {
@@ -60,10 +58,14 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       \ResourceTypesFetchDatabaseOperation.execute,
       with: always([])
     )
-
-    let feature: ResourceEditForm = try testedInstance(
-      context: .create(folderID: .none, uri: .none)
+    set(
+      ResourceEditScope.self,
+      context: .create(
+        folderID: .none,
+        uri: .none
+      )
     )
+    let feature: ResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -88,9 +90,15 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try testedInstance(
-      context: .create(folderID: .none, uri: .none)
+
+    set(
+      ResourceEditScope.self,
+      context: .create(
+        folderID: .none,
+        uri: .none
+      )
     )
+    let feature: ResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -106,7 +114,15 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
+
+    set(
+      ResourceEditScope.self,
+      context: .create(
+        folderID: .none,
+        uri: .none
+      )
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
    // execute resource loading
    await self.mockExecutionControl.executeAll()
@@ -137,7 +153,15 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
+
+    set(
+      ResourceEditScope.self,
+      context: .create(
+        folderID: .none,
+        uri: .none
+      )
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -159,7 +183,15 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
+
+    set(
+      ResourceEditScope.self,
+      context: .create(
+        folderID: .none,
+        uri: .none
+      )
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
    // execute resource loading
    await self.mockExecutionControl.executeAll()
@@ -191,7 +223,14 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
+    set(
+      ResourceEditScope.self,
+      context: .create(
+        folderID: .none,
+        uri: .none
+      )
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
    // execute resource loading
    await self.mockExecutionControl.executeAll()
@@ -227,7 +266,15 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
+
+    set(
+      ResourceEditScope.self,
+      context: .create(
+        folderID: .none,
+        uri: .none
+      )
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
    // execute resource loading
    await self.mockExecutionControl.executeAll()
@@ -253,7 +300,14 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
+    set(
+      ResourceEditScope.self,
+      context: .create(
+        folderID: .none,
+        uri: .none
+      )
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
    // execute resource loading
    await self.mockExecutionControl.executeAll()
@@ -273,7 +327,14 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
+    set(
+      ResourceEditScope.self,
+      context: .create(
+        folderID: .none,
+        uri: .none
+      )
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
    // execute resource loading
    await self.mockExecutionControl.executeAll()
@@ -296,7 +357,14 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
+    set(
+      ResourceEditScope.self,
+      context: .create(
+        folderID: .none,
+        uri: .none
+      )
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
    // execute resource loading
    await self.mockExecutionControl.executeAll()
@@ -318,7 +386,14 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
+    set(
+      ResourceEditScope.self,
+      context: .create(
+        folderID: .none,
+        uri: .none
+      )
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
    // execute resource loading
    await self.mockExecutionControl.executeAll()
@@ -344,7 +419,14 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
+    set(
+      ResourceEditScope.self,
+      context: .create(
+        folderID: .none,
+        uri: .none
+      )
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
    // execute resource loading
    await self.mockExecutionControl.executeAll()
@@ -387,7 +469,14 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
+    set(
+      ResourceEditScope.self,
+      context: .create(
+        folderID: .none,
+        uri: .none
+      )
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
    // execute resource loading
    await self.mockExecutionControl.executeAll()
@@ -426,7 +515,14 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always(.init(resourceID: "resource-id", ownerPermissionID: "permission-id"))
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
+    set(
+      ResourceEditScope.self,
+      context: .create(
+        folderID: .none,
+        uri: .none
+      )
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
    // execute resource loading
    await self.mockExecutionControl.executeAll()
@@ -450,7 +546,11 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
        with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .edit(.mock_1))
+    set(
+      ResourceEditScope.self,
+      context: .edit(.mock_1)
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
    // execute resource loading
    await self.mockExecutionControl.executeAll()
@@ -484,7 +584,11 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       )
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .edit(.mock_1))
+    set(
+      ResourceEditScope.self,
+      context: .edit(.mock_1)
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
    // execute resource loading
    await self.mockExecutionControl.executeAll()
@@ -519,7 +623,14 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       )
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: .none))
+    set(
+      ResourceEditScope.self,
+      context: .create(
+        folderID: .none,
+        uri: .none
+      )
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
    // execute resource loading
    await self.mockExecutionControl.executeAll()
@@ -551,7 +662,11 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always(resourceSecret)
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .edit(.mock_1))
+    set(
+      ResourceEditScope.self,
+      context: .edit(.mock_1)
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
     // execute resource loading
    await self.mockExecutionControl.executeAll()
@@ -585,7 +700,14 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always(resourceSecret)
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .mock_2, uri: .none))
+    set(
+      ResourceEditScope.self,
+      context: .create(
+        folderID: .mock_2,
+        uri: .none
+      )
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
     // execute resource loading
    await self.mockExecutionControl.executeAll()
@@ -621,7 +743,14 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always(resourceSecret)
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .mock_2, uri: .none))
+    set(
+      ResourceEditScope.self,
+      context: .create(
+        folderID: .mock_2,
+        uri: .none
+      )
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
     // execute resource loading
    await self.mockExecutionControl.executeAll()
@@ -648,7 +777,14 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always(resourceSecret)
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: "https://passbolt.com/predefined"))
+    set(
+      ResourceEditScope.self,
+      context: .create(
+        folderID: .none,
+        uri: "https://passbolt.com/predefined"
+      )
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
     // execute resource loading
    await self.mockExecutionControl.executeAll()
@@ -675,7 +811,14 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always(resourceSecret)
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .create(folderID: .none, uri: "https://passbolt.com/predefined"))
+    set(
+      ResourceEditScope.self,
+      context: .create(
+        folderID: .none,
+        uri: "https://passbolt.com/predefined"
+      )
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
     // execute resource loading
    await self.mockExecutionControl.executeAll()
@@ -725,7 +868,11 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       }
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .edit(.mock_1))
+    set(
+      ResourceEditScope.self,
+      context: .edit(.mock_1)
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
    // execute resource loading
    await self.mockExecutionControl.executeAll()
@@ -769,7 +916,11 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: ResourceEditForm = try testedInstance(context: .edit(.mock_1))
+    set(
+      ResourceEditScope.self,
+      context: .edit(.mock_1)
+    )
+    let feature: ResourceEditForm = try testedInstance()
 
    // execute resource loading
    await self.mockExecutionControl.executeAll()

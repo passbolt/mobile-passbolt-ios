@@ -25,5 +25,23 @@ import CommonModels
 
 public enum ResourceEditScope: FeaturesScope {
 
-  public typealias Context = Resource.ID?
+  public enum Context {
+
+    case create(
+      _ slug: ResourceType.Slug = .default,
+      folderID: ResourceFolder.ID?,
+      uri: URLString?
+    )
+    case edit(Resource.ID)
+
+    public var resourceID: Resource.ID? {
+      switch self {
+      case .create:
+        return .none
+
+      case .edit(let resourceID):
+        return resourceID
+      }
+    }
+  }
 }

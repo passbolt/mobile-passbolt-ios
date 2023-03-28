@@ -112,6 +112,7 @@ extension ResourceField {
       maxLength: UInt?
     )
     case totp(required: Bool)
+    case hotp(required: Bool)
   }
 }
 
@@ -126,6 +127,9 @@ extension ResourceField.Content {
 
     case .totp:
       return "totp"
+
+    case .hotp:
+      return "hotp"
     }
   }
 }
@@ -143,6 +147,9 @@ extension ResourceField {
 
     case .totp:
       return true
+
+    case .hotp:
+      return true
     }
   }
 
@@ -152,6 +159,9 @@ extension ResourceField {
       return required
 
     case .totp(let required):
+      return required
+
+    case .hotp(let required):
       return required
     }
   }
@@ -163,6 +173,9 @@ extension ResourceField {
 
     case .totp:
       return .none
+
+    case .hotp:
+      return .none
     }
   }
 
@@ -172,6 +185,9 @@ extension ResourceField {
       return maximum
 
     case .totp:
+      return .none
+
+    case .hotp:
       return .none
     }
   }

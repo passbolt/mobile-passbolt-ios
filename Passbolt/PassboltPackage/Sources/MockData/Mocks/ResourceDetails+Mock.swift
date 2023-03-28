@@ -80,5 +80,40 @@ extension Resource {
     mock.password = .string("R@nD0m")
     return mock
   }()
+
+  public static let mock_totp: Self = {
+    var mock: Resource = .init(
+      id: .mock_3,
+      path: .init(),
+      favoriteID: .none,
+      type: .mock_totp,
+      permission: .owner,
+      tags: [
+        .init(
+          id: .mock_1,
+          slug: .init(rawValue: "mock_1"),
+          shared: false
+        )
+      ],
+      permissions: [
+        .user(
+          id: .mock_1,
+          permission: .owner,
+          permissionID: .mock_1
+        )
+      ],
+      modified: .init(rawValue: 0)
+    )
+    mock.name = .string("Mock_totp")
+    mock.totp = .otp(
+      .totp(
+        sharedSecret: "SECRET",
+        algorithm: .sha1,
+        digits: 6,
+        period: 30
+      )
+    )
+    return mock
+  }()
 }
 

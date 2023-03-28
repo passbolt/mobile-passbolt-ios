@@ -36,8 +36,6 @@ internal struct OTPScanningController {
 
 extension OTPScanningController: ViewController {
 
-  internal typealias Context = Resource.ID?
-
   internal struct ViewState: Equatable {
 
     internal var snackBarMessage: SnackBarMessage?
@@ -64,14 +62,14 @@ extension OTPScanningController {
   }
 
   @MainActor fileprivate static func load(
-    features: Features,
-    context: Context
+    features: Features
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
     let features: FeaturesContainer = features.branch(
-      scope: OTPEditScope.self,
-      context: context
+      scope: OTPEditScope.self
     )
+
+    let editedResourceID: Resource.ID? = try? features.context(of: ResourceEditScope.self).resourceID
 
     let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
@@ -104,7 +102,7 @@ extension OTPScanningController {
           guard scanningState.exchange(\.self, with: .processing, when: .idle)
           else { return }  // ignore when already processing
 
-          try otpEditForm.fillFromURI(payload)
+          try await otpEditForm.fillFromURI(payload)
           // when filling form succeeds navigate to success
           scanningState
             .exchange(
@@ -113,8 +111,8 @@ extension OTPScanningController {
               when: .processing
             )
 
-          if let resourceID: Resource.ID = context {
-            #warning("[MOB-1094] TODO: edit resource here!")
+          if let resourceID: Resource.ID = editedResourceID {
+            try await otpEditForm.sendForm(.attach(to: resourceID))
             try await navigationToSelf.revert()
           }
           else {
@@ -159,7 +157,7 @@ extension FeaturesRegistry {
     self.use(
       .disposable(
         OTPScanningController.self,
-        load: OTPScanningController.load(features:context:)
+        load: OTPScanningController.load(features:)
       ),
       in: SessionScope.self
     )

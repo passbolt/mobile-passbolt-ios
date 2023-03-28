@@ -102,7 +102,7 @@ final class ApplicationSettingsControllerTests: LoadableFeatureTestCase<Applicat
         await self.mockExecutionControl.executeAll()
       }
       await self.mockExecutionControl.addTask {
-        try? await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+        try? await Task.sleep(nanoseconds: 150 * NSEC_PER_MSEC)
         accountPreferencesUpdates.endUpdates()
       }
       await self.mockExecutionControl.executeAll()

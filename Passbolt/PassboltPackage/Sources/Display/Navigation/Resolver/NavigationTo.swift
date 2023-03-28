@@ -184,6 +184,19 @@ extension NavigationTo {
     )
   }
 
+  @_disfavoredOverload
+  public static func legacyPushTransition<DestinationView>(
+    to: DestinationView.Type
+  ) -> FeatureLoader
+  where DestinationView: ControlledView, DestinationView.Controller.Context == Void {
+    Self.legacyPushTransition(
+      to: DestinationView.self,
+      { features, _ in
+        try DestinationView(controller: features.instance())
+      }
+    )
+  }
+
   public static func legacyPushTransition<DestinationView>(
     to: DestinationView.Type
   ) -> FeatureLoader

@@ -199,7 +199,7 @@ extension FoldersExplorerController: ComponentController {
     }
 
     @MainActor func presentResourceEditingForm(
-      for context: ResourceEditForm.Context
+      for context: ResourceEditScope.Context
     ) {
       cancellables.executeOnMainActor {
         await navigation.push(

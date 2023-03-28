@@ -45,7 +45,7 @@ public struct ResourceEditController {
 extension ResourceEditController: UIController {
 
   public typealias Context = (
-    editing: ResourceEditForm.Context,
+    editing: ResourceEditScope.Context,
     completion: (Resource.ID) -> Void
   )
 
@@ -56,12 +56,12 @@ extension ResourceEditController: UIController {
   ) throws -> Self {
     features = features.branch(
       scope: ResourceEditScope.self,
-      context: context.editing.resourceID
+      context: context.editing
     )
     let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
     let sessionData: SessionData = try features.instance()
-    let resourceForm: ResourceEditForm = try features.instance(context: context.editing)
+    let resourceForm: ResourceEditForm = try features.instance()
     let randomGenerator: RandomStringGenerator = try features.instance()
 
     let createsNewResource: Bool = {

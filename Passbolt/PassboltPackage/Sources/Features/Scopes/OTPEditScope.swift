@@ -23,7 +23,4 @@
 
 import CommonModels
 
-public enum OTPEditScope: FeaturesScope {
-
-  public typealias Context = Resource.ID?
-}
+public enum OTPEditScope: FeaturesScope {}

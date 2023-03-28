@@ -38,6 +38,17 @@ public final class TestFeaturesContainer {
 
 extension TestFeaturesContainer: FeaturesContainer {
 
+  public func checkScope<Scope>(
+    _: Scope.Type,
+    file: StaticString,
+    line: UInt
+  ) -> Bool where Scope : FeaturesScope {
+    self.state.access { state in
+      state.keys
+        .contains(.init(Scope.self, .none))
+    }
+  }
+
   public func ensureScope<RequestedScope>(
     _: RequestedScope.Type,
     file: StaticString,

@@ -63,21 +63,7 @@ public struct ResourceEditForm {
 
 extension ResourceEditForm: LoadableFeature {
 
-  public enum Context: LoadableFeatureContext, Hashable {
-
-    case create(folderID: ResourceFolder.ID?, uri: URLString?)
-    case edit(Resource.ID)
-
-    public var resourceID: Resource.ID? {
-      switch self {
-      case .edit(let resourceID):
-        return resourceID
-
-      case .create:
-        return .none
-      }
-    }
-  }
+  public typealias Context = ContextlessLoadableFeatureContext
 
   #if DEBUG
   public static var placeholder: ResourceEditForm {

@@ -37,12 +37,14 @@ extension ResourceEditForm {
 
   @MainActor fileprivate static func load(
     features: Features,
-    context: Context,
     cancellables: Cancellables
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
     try features.ensureScope(ResourceEditScope.self)
     let currentAccount: Account = try features.sessionAccount()
+    let context: ResourceEditScope.Context = try features.context(
+      of: ResourceEditScope.self
+    )
 
     let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
@@ -73,10 +75,9 @@ extension ResourceEditForm {
     let initialLoading: AsyncExecutor.Execution = asyncExecutor.schedule {
       do {
         switch context {
-        case .create(let parentFolderID, let url):
+        case .create(let slug, let parentFolderID, let url):
           let resourceTypes: Array<ResourceType> = try await resourceTypesFetchDatabaseOperation()
-          guard
-            let resourceType: ResourceType = resourceTypes.first(where: \.isDefault) ?? resourceTypes.first
+          guard let resourceType: ResourceType = resourceTypes.first(where: { $0.slug == slug })
           else { throw InvalidResourceType.error() }
           let folderPath: OrderedSet<ResourceFolderPathItem>
           if let parentFolderID {
@@ -141,6 +142,53 @@ extension ResourceEditForm {
       for property: ResourceField
     ) -> Validator<ResourceFieldValue?> {
       switch property.content {
+      case let .string(_, required, minLength, maxLength):
+        return .init { (value: ResourceFieldValue?) in
+          guard let value: ResourceFieldValue
+          else {
+            if required {
+              return .invalid(
+                value,
+                error: InvalidValue.null(
+                  value: value,
+                  displayable: "resource.form.field.error.empty"
+                )
+              )
+            }
+            else {
+              return .valid(value)
+            }
+          }
+
+          guard case let .string(string) = value
+          else {
+            return .invalid(
+              value,
+              error: InvalidValue.wrongType(
+                value: value,
+                displayable: "resource.from.field.error.invalid.value"
+              )
+            )
+          }
+
+          guard !string.isEmpty || !required,
+            string.count >= (minLength ?? 0),
+            // even if there is no requirement for max length we are limiting it with
+            // some high value to prevent too big values
+            string.count <= (maxLength ?? 100000)
+          else {
+            return .invalid(
+              value,
+              error: InvalidValue.invalid(
+                value: value,
+                displayable: "resource.form.field.error.invalid"
+              )
+            )
+          }
+
+          return .valid(value)
+        }
+        
       case let .totp(required):
         return .init { (value: ResourceFieldValue?) in
           guard let value: ResourceFieldValue
@@ -188,7 +236,7 @@ extension ResourceEditForm {
           return .valid(value)
         }
 
-      case let .string(_, required, minLength, maxLength):
+      case let .hotp(required):
         return .init { (value: ResourceFieldValue?) in
           guard let value: ResourceFieldValue
           else {
@@ -206,7 +254,7 @@ extension ResourceEditForm {
             }
           }
 
-          guard case let .string(string) = value
+          guard case let .otp(.hotp(secret, _, digits, _)) = value
           else {
             return .invalid(
               value,
@@ -217,11 +265,10 @@ extension ResourceEditForm {
             )
           }
 
-          guard !string.isEmpty || !required,
-            string.count >= (minLength ?? 0),
-            // even if there is no requirement for max length we are limiting it with
-            // some high value to prevent too big values
-            string.count <= (maxLength ?? 100000)
+          guard
+            digits >= 6,
+            digits <= 8,
+            !secret.isEmpty
           else {
             return .invalid(
               value,
@@ -491,7 +538,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         ResourceEditForm.self,
-        load: ResourceEditForm.load(features:context:cancellables:)
+        load: ResourceEditForm.load(features:cancellables:)
       ),
       in: ResourceEditScope.self
     )

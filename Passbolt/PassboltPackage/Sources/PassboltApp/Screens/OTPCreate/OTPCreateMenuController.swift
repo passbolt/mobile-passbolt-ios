@@ -70,7 +70,7 @@ extension OTPCreateMenuController {
         behavior: .reuse
       ) {
         try await navigationToSelf.revert()
-        try await navigationToQRCodeCreateOTPView.perform(context: .none)
+        try await navigationToQRCodeCreateOTPView.perform()
       }
     }
     nonisolated func createManually() {

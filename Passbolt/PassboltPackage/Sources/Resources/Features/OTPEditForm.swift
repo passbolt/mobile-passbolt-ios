@@ -31,15 +31,18 @@ public struct OTPEditForm {
   public var updates: UpdatesSequence
   public var state: @Sendable () -> State
   public var fillFromURI: @Sendable (String) throws -> Void
+  public var sendForm: @Sendable (SendFormAction) async throws -> Void
 
   public init(
     updates: UpdatesSequence,
     state: @escaping @Sendable () -> State,
-    fillFromURI: @escaping @Sendable (String) throws -> Void
+    fillFromURI: @escaping @Sendable (String) throws -> Void,
+    sendForm: @escaping @Sendable (SendFormAction) async throws -> Void
   ) {
     self.updates = updates
     self.state = state
     self.fillFromURI = fillFromURI
+    self.sendForm = sendForm
   }
 }
 
@@ -50,12 +53,21 @@ extension OTPEditForm {
 
 extension OTPEditForm: LoadableFeature {
 
+  public typealias Context = ContextlessLoadableFeatureContext
+
+  public enum SendFormAction {
+
+    case createStandalone
+    case attach(to: Resource.ID)
+  }
+
   #if DEBUG
   public static var placeholder: Self {
     .init(
       updates: .placeholder,
       state: unimplemented0(),
-      fillFromURI: unimplemented1()
+      fillFromURI: unimplemented1(),
+      sendForm: unimplemented1()
     )
   }
   #endif

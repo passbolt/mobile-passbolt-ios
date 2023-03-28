@@ -39,7 +39,6 @@ final class ResourceEditControllerTests: FeaturesTestCase {
     super.commonPrepare()
     patch(
       \ResourceEditForm.fieldsPublisher,
-       context: .create(folderID: .none, uri: .none),
        with: always(
         CurrentValueSubject(defaultResourceType.fields)
           .eraseToAnyPublisher()
@@ -47,7 +46,6 @@ final class ResourceEditControllerTests: FeaturesTestCase {
     )
     patch(
       \ResourceEditForm.fieldsPublisher,
-       context: .edit(.mock_1),
        with: always(
         CurrentValueSubject(defaultResourceType.fields)
           .eraseToAnyPublisher()
@@ -115,12 +113,10 @@ final class ResourceEditControllerTests: FeaturesTestCase {
 
     patch(
       \ResourceEditForm.resource,
-       context: .edit(.mock_1),
        with: always(.mock_1)
     )
     patch(
       \ResourceEditForm.setFieldValue,
-       context: .edit(.mock_1),
        with: { (value: ResourceFieldValue, field: ResourceField) async throws -> Void in
          if field.name == "password" {
            self.dynamicVariables.set(\.resultPassword, to: value)
@@ -163,12 +159,10 @@ final class ResourceEditControllerTests: FeaturesTestCase {
     let fieldValueSubject: PassthroughSubject<Validated<ResourceFieldValue?>, Never> = .init()
     patch(
       \ResourceEditForm.validatedFieldValuePublisher,
-       context: .edit(.mock_1),
        with: always(fieldValueSubject.eraseToAnyPublisher())
     )
     patch(
       \ResourceEditForm.resource,
-       context: .edit(.mock_1),
        with: always(.mock_1)
     )
     patch(
@@ -216,7 +210,6 @@ final class ResourceEditControllerTests: FeaturesTestCase {
 
     patch(
       \ResourceEditForm.sendForm,
-       context: .edit(.mock_1),
        with: always(.mock_1)
     )
 
@@ -241,7 +234,6 @@ final class ResourceEditControllerTests: FeaturesTestCase {
     )
     patch(
         \ResourceEditForm.sendForm,
-         context: .edit(.mock_1),
          with: always(.mock_1)
       )
 

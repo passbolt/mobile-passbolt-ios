@@ -23,7 +23,7 @@
 
 internal struct FeaturesProxy {
 
-  private weak var container: (Features & AnyObject)?
+  internal private(set) weak var container: FeaturesContainer?
 
   internal init<Scope>(
     container: FeaturesFactory<Scope>

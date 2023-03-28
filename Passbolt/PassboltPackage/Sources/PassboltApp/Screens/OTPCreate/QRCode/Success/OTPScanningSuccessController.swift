@@ -23,6 +23,7 @@
 
 import Display
 import OSFeatures
+import Resources
 
 // MARK: - Interface
 
@@ -62,10 +63,11 @@ extension OTPScanningSuccessController {
     context: Context
   ) throws -> Self {
     try features.ensureScope(OTPEditScope.self)
-    let editedResourceID: Resource.ID? = try features.context(of: OTPEditScope.self)
+    let editedResourceID: Resource.ID? = try? features.context(of: ResourceEditScope.self).resourceID
 
     let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
+    let otpEditForm: OTPEditForm = try features.instance()
 
     let navigationToScanning: NavigationToOTPScanning = try features.instance()
 
@@ -80,7 +82,17 @@ extension OTPScanningSuccessController {
         diagnostics,
         behavior: .reuse
       ) {
-        #warning("[MOB-1130] TODO: to complete using OTP/resource form")
+        do {
+          try await otpEditForm.sendForm(.createStandalone)
+        }
+        catch {
+          await viewState
+            .update(
+              \.snackBarMessage,
+              to: .error(error)
+            )
+          throw error
+        }
         try await navigationToScanning.revert()
       }
     }
@@ -90,7 +102,18 @@ extension OTPScanningSuccessController {
         diagnostics,
         behavior: .reuse
       ) {
-        #warning("[MOB-1130] TODO: to complete using OTP/resource form")
+        #warning("[MOB-1102] TODO: to complete when adding resources with OTP and password")
+        do {
+          try await otpEditForm.sendForm(.createStandalone)
+        }
+        catch {
+          await viewState
+            .update(
+              \.snackBarMessage,
+              to: .error(error)
+            )
+          throw error
+        }
         try await navigationToScanning.revert()
       }
     }

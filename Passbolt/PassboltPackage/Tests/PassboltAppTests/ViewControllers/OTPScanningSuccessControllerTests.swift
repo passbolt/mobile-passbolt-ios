@@ -45,16 +45,17 @@ final class OTPScanningSuccessControllerTests: LoadableFeatureTestCase<OTPScanni
         configuration: .mock_default
       )
     )
-    set(
-      OTPEditScope.self,
-      context: .none
-    )
+    set(OTPEditScope.self)
   }
 
   func test_createStandaloneOTP_navigatesBack_whenSucceeded() {
     patch(
       \NavigationToOTPScanning.mockRevert,
       with: always(self.executed())
+    )
+    patch(
+      \OTPEditForm.sendForm,
+       with: always(Void())
     )
     withTestedInstanceExecuted { feature in
       feature.createStandaloneOTP()
@@ -66,6 +67,10 @@ final class OTPScanningSuccessControllerTests: LoadableFeatureTestCase<OTPScanni
     patch(
       \NavigationToOTPScanning.mockRevert,
       with: always(self.executed())
+    )
+    patch(
+      \OTPEditForm.sendForm,
+       with: always(Void())
     )
     withTestedInstanceExecuted { feature in
       feature.updateExistingResource()

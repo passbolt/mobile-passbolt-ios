@@ -28,6 +28,8 @@ extension ResourceType.ID {
   public static let mock_1: Self = .init(rawValue: "F9B39DCA-CD93-4CD4-B91D-8AAE7B7AA813")
 
   public static let mock_2: Self = .init(rawValue: "59C8F6AE-AEE8-4905-983B-795A675EE0E2")
+
+  public static let mock_3: Self = .init(rawValue: "C3673B6B-B918-4BF4-9162-0178B8D18399")
 }
 
 extension ResourceType.Slug {
@@ -69,6 +71,17 @@ extension ResourceType {
       .username,
       .password,
       .descriptionEncrypted
+    ]
+  )
+
+  public static let mock_totp: Self = .init(
+    id: .mock_3,
+    slug: .totp,
+    name: "mock_totp",
+    fields: [
+      .name,
+      .uri,
+      .totp
     ]
   )
 }
