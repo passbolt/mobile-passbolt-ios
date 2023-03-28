@@ -184,6 +184,104 @@ extension ResourcesListFetchDatabaseOperation {
 
     // since we cannot use array in query directly
     // we are preparing it manually as argument for each element
+    if input.includedTypeSlugs.count > 1 {
+      statement.append(
+        """
+        AND (
+            SELECT
+              1
+            FROM
+              resourceTypes
+            WHERE
+              resourceTypes.id == resources.typeID
+            AND
+              resourceTypes.slug IN (
+        """
+      )
+      for index in input.includedTypeSlugs.indices {
+        if index == input.includedTypeSlugs.startIndex {
+          statement.append("?")
+        }
+        else {
+          statement.append(", ? ")
+        }
+        statement.appendArgument(input.includedTypeSlugs[index].rawValue)
+      }
+      statement.append(") LIMIT 1 )")
+    }
+    else if let includedTypeSlug: ResourceType.Slug = input.includedTypeSlugs.first {
+      statement.append(
+        """
+        AND (
+          SELECT
+            1
+          FROM
+            resourceTypes
+          WHERE
+            resourceTypes.id == resources.typeID
+          AND
+            resourceTypes.slug == ?
+          LIMIT 1
+        )
+        """
+      )
+      statement.appendArgument(includedTypeSlug)
+    }
+    else {
+      /* NOP */
+    }
+
+    // since we cannot use array in query directly
+    // we are preparing it manually as argument for each element
+    if input.excludedTypeSlugs.count > 1 {
+      statement.append(
+        """
+        AND (
+            SELECT
+              1
+            FROM
+              resourceTypes
+            WHERE
+              resourceTypes.id == resources.typeID
+            AND
+              resourceTypes.slug NOT IN (
+        """
+      )
+      for index in input.excludedTypeSlugs.indices {
+        if index == input.excludedTypeSlugs.startIndex {
+          statement.append("?")
+        }
+        else {
+          statement.append(", ? ")
+        }
+        statement.appendArgument(input.excludedTypeSlugs[index].rawValue)
+      }
+      statement.append(") LIMIT 1 )")
+    }
+    else if let excludedTypeSlug: ResourceType.Slug = input.excludedTypeSlugs.first {
+      statement.append(
+        """
+        AND (
+          SELECT
+            1
+          FROM
+            resourceTypes
+          WHERE
+            resourceTypes.id == resources.typeID
+          AND
+            resourceTypes.slug != ?
+          LIMIT 1
+        )
+        """
+      )
+      statement.appendArgument(excludedTypeSlug)
+    }
+    else {
+      /* NOP */
+    }
+
+    // since we cannot use array in query directly
+    // we are preparing it manually as argument for each element
     if input.permissions.count > 1 {
       statement.append("AND resources.permission IN (")
       for index in input.permissions.indices {

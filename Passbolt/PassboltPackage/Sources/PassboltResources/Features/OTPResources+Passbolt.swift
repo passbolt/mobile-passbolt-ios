@@ -35,12 +35,8 @@ extension OTPResources {
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
 
-    let diagnostics: OSDiagnostics = features.instance()
-    let time: OSTime = features.instance()
-
     let sessionData: SessionData = try features.instance()
-    //  MOB-1107 add new database operation
-    //		let databaseListFetch: OTPResourcesListFetchDatabaseOperation = try features.instance()
+    let resourcesListFetchDatabaseOperation: ResourcesListFetchDatabaseOperation = try features.instance()
 
     @_transparent
     @Sendable nonisolated func refreshIfNeeded() async throws {
@@ -49,55 +45,28 @@ extension OTPResources {
 
     @Sendable nonisolated func filteredList(
       _ filter: OTPResourcesFilter
-    ) async throws -> Array<OTPResourceListItemDSV> {
-      #warning("[MOB-1107] TODO: add database and backend support")
-      // MOCK - start
-      try await Task.sleep(nanoseconds: ((NSEC_PER_MSEC * 100)..<(NSEC_PER_MSEC * 1000)).randomElement()!)
-      return
-        ([
-          .init(
-            id: "I65VU7K5ZQL7WB4E",
-            name: "I65VU7K5ZQL7WB4E",
-            url: .none
-          ),
-          .init(
-            id: "OBQXG43CN5WHI===",
-            name: "OBQXG43CN5WHI===",
-            url: "https://passbolt.com/"
-          ),
-        ]
-        + (0...100)
-        .map { i in
-          .init(
-            id: "MZXW\(i)",
-            name: "MZXW\(i)",
-            url: .none
-          )
-        })
-        .filter {
-          if filter.text.isEmpty {
-            return true
-          }
-          else {
-            return $0.name
-              .contains(filter.text)
-          }
-        }
-      // MOCK - end
+    ) async throws -> Array<ResourceListItemDSV> {
+      try await resourcesListFetchDatabaseOperation(
+        .init(
+          sorting: .nameAlphabetically,
+          text: filter.text,
+          includedTypeSlugs: [.totp, .hotp]
+        )
+      )
     }
 
     @Sendable nonisolated func secretFor(
       _ id: Resource.ID
     ) async throws -> OTPSecret {
-      #warning("[MOB-1107] TODO: add database and backend support")
-      // MOCK - start
-      return .totp(
-        sharedSecret: "\(id)",
-        algorithm: .sha1,
-        digits: 6,
-        period: 30
-      )
-      // MOCK - end
+      let resourceDetails: ResourceDetails = try await features.instance(context: id)
+      let secret: ResourceSecret = try await resourceDetails.secret()
+      switch secret.value(forFieldWithName: "totp") ?? secret.value(forFieldWithName: "hotp") {
+      case .otp(let secret):
+        return secret
+
+      case .string, .none:
+        throw InvalidResourceData.error()
+      }
     }
 
     return Self(

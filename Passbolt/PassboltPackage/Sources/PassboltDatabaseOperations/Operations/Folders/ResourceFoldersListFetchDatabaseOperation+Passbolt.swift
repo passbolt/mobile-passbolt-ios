@@ -105,11 +105,11 @@ extension ResourceFoldersListFetchDatabaseOperation {
             ) AS contentCount,
             (
               SELECT
-                GROUP_CONCAT(name, ' > ') as fullLocation
+                GROUP_CONCAT(name, ' > ') as pathString
               FROM
                 (
                   WITH RECURSIVE
-                    location(
+                    pathItems(
                       id,
                       name,
                       parentID,
@@ -131,21 +131,21 @@ extension ResourceFoldersListFetchDatabaseOperation {
                         resourceFolders.id AS id,
                         resourceFolders.name AS name,
                         resourceFolders.parentFolderID AS parentID,
-                        location.depth + 1
+                        pathItems.depth + 1
                       FROM
                         resourceFolders,
-                        location
+                        pathItems
                       WHERE
-                        resourceFolders.id == location.parentID
+                        resourceFolders.id == pathItems.parentID
                     )
                     SELECT
-                      location.name
+                      pathItems.name
                     FROM
-                      location
+                      pathItems
                     ORDER BY
-                      location.depth DESC
+                      pathItems.depth DESC
               )
-            ) as fullLocation
+            ) as pathString
           FROM
             flattenedResourceFolders
           WHERE
@@ -185,11 +185,11 @@ extension ResourceFoldersListFetchDatabaseOperation {
           ) AS contentCount,
           (
             SELECT
-              GROUP_CONCAT(name, ' > ') as fullLocation
+              GROUP_CONCAT(name, ' > ') as pathString
             FROM
               (
                 WITH RECURSIVE
-                  location(
+                  pathItems(
                     id,
                     name,
                     parentID,
@@ -211,21 +211,21 @@ extension ResourceFoldersListFetchDatabaseOperation {
                       resourceFolders.id AS id,
                       resourceFolders.name AS name,
                       resourceFolders.parentFolderID AS parentID,
-                      location.depth + 1
+                      pathItems.depth + 1
                     FROM
                       resourceFolders,
-                      location
+                      pathItems
                     WHERE
-                      resourceFolders.id == location.parentID
+                      resourceFolders.id == pathItems.parentID
                   )
                   SELECT
-                    location.name
+                    pathItems.name
                   FROM
-                    location
+                    pathItems
                   ORDER BY
-                    location.depth DESC
+                    pathItems.depth DESC
               )
-          ) as fullLocation
+          ) as pathString
         FROM
           resourceFolders
         WHERE
@@ -295,14 +295,14 @@ extension ResourceFoldersListFetchDatabaseOperation {
           )
           .recording(dataRow, for: "dataRow")
       }
-      let fullLocation: String = dataRow.fullLocation ?? ""
+      let pathString: String = dataRow.pathString ?? ""
       return ResourceFolderListItemDSV(
         id: id,
         name: name,
         permission: permission,
         shared: shared,
         parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:)),
-        location: fullLocation,
+        location: pathString,
         contentCount: dataRow.contentCount ?? 0
       )
     }

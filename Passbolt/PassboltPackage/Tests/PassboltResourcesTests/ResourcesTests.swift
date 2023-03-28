@@ -283,5 +283,6 @@ private let testDatabaseFilter: ResourcesDatabaseFilter = .init(
   sorting: .nameAlphabetically,
   text: "test",
   name: "",
-  url: ""
+  url: "",
+  excludedTypeSlugs: [.totp, .hotp]
 )

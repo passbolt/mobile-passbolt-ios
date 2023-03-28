@@ -35,93 +35,93 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
     let selectFolderStatement: SQLiteStatement =
       .statement(
         """
-        				SELECT
-        					resourceFolders.id AS id,
-        					resourceFolders.name AS name,
-        					resourceFolders.permission AS permission,
-        					resourceFolders.shared AS shared,
-        					resourceFolders.parentFolderID AS parentFolderID
-        				FROM
-        					resourceFolders
-        				WHERE
-        					resourceFolders.id == ?;
-        				""",
+        SELECT
+          resourceFolders.id AS id,
+          resourceFolders.name AS name,
+          resourceFolders.permission AS permission,
+          resourceFolders.shared AS shared,
+          resourceFolders.parentFolderID AS parentFolderID
+        FROM
+          resourceFolders
+        WHERE
+          resourceFolders.id == ?;
+        """,
         arguments: input
       )
 
-    let selectResourceFolderLocationStatement: SQLiteStatement =
+    let selectResourceFolderPathStatement: SQLiteStatement =
       .statement(
         """
-        				WITH RECURSIVE
-        					location(
-        						id,
-        						name,
-        						shared,
-        						parentID
-        					)
-        				AS
-        				(
-        					SELECT
-        						resourceFolders.id AS id,
-        						resourceFolders.name AS name,
-        						resourceFolders.shared AS shared,
-        						resourceFolders.parentFolderID AS parentID
-        					FROM
-        						resourceFolders
-        					WHERE
-        						resourceFolders.id == ?
+        WITH RECURSIVE
+          pathItems(
+            id,
+            name,
+            shared,
+            parentID
+          )
+        AS
+        (
+          SELECT
+            resourceFolders.id AS id,
+            resourceFolders.name AS name,
+            resourceFolders.shared AS shared,
+            resourceFolders.parentFolderID AS parentID
+          FROM
+            resourceFolders
+          WHERE
+            resourceFolders.id == ?
 
-        					UNION
+          UNION
 
-        					SELECT
-        						resourceFolders.id AS id,
-        						resourceFolders.name AS name,
-        						resourceFolders.shared AS shared,
-        						resourceFolders.parentFolderID AS parentID
-        					FROM
-        						resourceFolders,
-        						location
-        					WHERE
-        						resourceFolders.id == location.parentID
-        				)
-        				SELECT
-        					location.id,
-        					location.shared,
-        					location.name AS name
-        				FROM
-        					location;
-        				"""
+          SELECT
+            resourceFolders.id AS id,
+            resourceFolders.name AS name,
+            resourceFolders.shared AS shared,
+            resourceFolders.parentFolderID AS parentID
+          FROM
+            resourceFolders,
+            pathItems
+          WHERE
+            resourceFolders.id == pathItems.parentID
+        )
+        SELECT
+          pathItems.id,
+          pathItems.shared,
+          pathItems.name AS name
+        FROM
+          pathItems;
+        """
       )
 
     let selectFolderUsersPermissionsStatement: SQLiteStatement =
       .statement(
         """
-        				SELECT
-        					usersResourceFolders.userID AS userID,
-        					usersResourceFolders.resourceFolderID AS folderID,
-        					usersResourceFolders.permission AS permission,
-        					usersResourceFolders.permissionID AS permissionID
-        				FROM
-        					usersResourceFolders
-        				WHERE
-        					usersResourceFolders.resourceFolderID == ?;
-        				""",
+        SELECT
+          usersResourceFolders.userID AS userID,
+          usersResourceFolders.resourceFolderID AS folderID,
+          usersResourceFolders.permission AS permission,
+          usersResourceFolders.permissionID AS permissionID
+        FROM
+          usersResourceFolders
+        WHERE
+          usersResourceFolders.resourceFolderID == ?;
+        """,
         arguments: input
       )
 
     let selectFolderUserGroupsPermissionsStatement: SQLiteStatement =
       .statement(
         """
-        				SELECT
-        					userGroupsResourceFolders.userGroupID AS userGroupID,
-        					userGroupsResourceFolders.resourceFolderID AS folderID,
-        					userGroupsResourceFolders.permission AS permission,
-        					userGroupsResourceFolders.permissionID AS permissionID
-        				FROM
-        					userGroupsResourceFolders
-        				WHERE
-        					userGroupsResourceFolders.resourceFolderID == ?;
-        				""",
+        SELECT
+          userGroupsResourceFolders.userGroupID AS userGroupID,
+          userGroupsResourceFolders.resourceFolderID AS folderID,
+          userGroupsResourceFolders.permission AS permission,
+          userGroupsResourceFolders.permissionID AS permissionID
+        FROM
+          userGroupsResourceFolders
+        WHERE
+          userGroupsResourceFolders.resourceFolderID == ?;
+        """,
         arguments: input
       )
 
@@ -199,7 +199,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
         if let parentFolderID: ResourceFolder.ID = parentFolderID {
           path = try connection.fetch(
             using:
-              selectResourceFolderLocationStatement
+              selectResourceFolderPathStatement
               .appendingArgument(parentFolderID)
           ) { dataRow in
             guard

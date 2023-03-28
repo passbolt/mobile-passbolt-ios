@@ -48,6 +48,7 @@ extension OTPContextualMenuController: ViewController {
   internal struct ViewState: Equatable {
 
     internal var title: DisplayableString
+    internal var deleteAvailable: Bool
   }
 
   #if DEBUG
@@ -84,7 +85,8 @@ extension OTPContextualMenuController {
 
     let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
-        title: .raw("OTP")
+        title: .raw("OTP"),
+        deleteAvailable: true
       )
     )
 
@@ -94,12 +96,13 @@ extension OTPContextualMenuController {
       failMessage: "Loading resource details failed!"
     ) {
       for await _ in resourceDetails.updates {
-        let resourceName: String = try await resourceDetails.details().name?.stringValue ?? ""
-        await viewState
-          .update(
-            \.title,
-            to: .raw(resourceName)
-          )
+        let resource: Resource = try await resourceDetails.details()
+        let resourceName: String = resource.name?.stringValue ?? ""
+
+        await viewState.update { (state: inout ViewState) in
+          state.title = .raw(resourceName)
+          state.deleteAvailable = resource.permission.canEdit
+        }
       }
     }
 

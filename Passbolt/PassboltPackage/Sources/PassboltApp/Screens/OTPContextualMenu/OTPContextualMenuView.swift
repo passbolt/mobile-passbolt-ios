@@ -77,22 +77,29 @@ internal struct OTPContextualMenuView: ControlledView {
             }
           )
 
-          DrawerMenuItemView(
-            action: self.controller.deleteCode,
-            title: {
-              Text(
-                displayable: .localized(
-                  key: "otp.contextual.menu.delete.title"
-                )
+          WithViewState(
+            from: self.controller,
+            at: \.deleteAvailable
+          ) { deleteAvailable in
+            if deleteAvailable {
+              DrawerMenuItemView(
+                action: self.controller.deleteCode,
+                title: {
+                  Text(
+                    displayable: .localized(
+                      key: "otp.contextual.menu.delete.title"
+                    )
+                  )
+                  .foregroundColor(.passboltSecondaryRed)
+                },
+                leftIcon: {
+                  Image(named: .trash)
+                    .resizable()
+                    .foregroundColor(.passboltSecondaryRed)
+                }
               )
-              .foregroundColor(.passboltSecondaryRed)
-            },
-            leftIcon: {
-              Image(named: .trash)
-                .resizable()
-                .foregroundColor(.passboltSecondaryRed)
-            }
-          )
+            } // else NOP
+          }
         }
       }
     )

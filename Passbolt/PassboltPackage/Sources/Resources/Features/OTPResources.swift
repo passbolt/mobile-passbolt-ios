@@ -35,7 +35,7 @@ public struct OTPResources {
   /// Current implementation uses SessionData.refreshIfNeeded.
   public var refreshIfNeeded: @Sendable () async throws -> Void
   /// List of OTP resources matching filter.
-  public var filteredList: @Sendable (OTPResourcesFilter) async throws -> Array<OTPResourceListItemDSV>
+  public var filteredList: @Sendable (OTPResourcesFilter) async throws -> Array<ResourceListItemDSV>
   /// Access part of the resource secret associated with OTP.
   /// Note that secret is not directly cached,
   /// each access to secret will request whole
@@ -45,7 +45,7 @@ public struct OTPResources {
   public init(
     updates: UpdatesSequence,
     refreshIfNeeded: @escaping @Sendable () async throws -> Void,
-    filteredList: @escaping @Sendable (OTPResourcesFilter) async throws -> Array<OTPResourceListItemDSV>,
+    filteredList: @escaping @Sendable (OTPResourcesFilter) async throws -> Array<ResourceListItemDSV>,
     secretFor: @escaping @Sendable (Resource.ID) async throws -> OTPSecret
   ) {
     self.updates = updates

@@ -171,7 +171,7 @@ extension OTPResourcesListController {
         let filteredResourcesList: Array<TOTPResourceViewModel> =
           try await otpResources
           .filteredList(filter)
-          .map { (resource: OTPResourceListItemDSV) -> TOTPResourceViewModel in
+          .map { (resource: ResourceListItemDSV) -> TOTPResourceViewModel in
             .init(
               id: resource.id,
               name: resource.name,

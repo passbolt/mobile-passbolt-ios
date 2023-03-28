@@ -65,7 +65,7 @@ extension ResourceFolderPathFetchDatabaseOperation {
             resourceFolders,
             pathItems
           WHERE
-            resourceFolders.id == location.parentID
+            resourceFolders.id == pathItems.parentID
         )
         SELECT
           pathItems.id,

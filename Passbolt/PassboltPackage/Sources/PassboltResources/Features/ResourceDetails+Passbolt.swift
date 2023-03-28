@@ -102,5 +102,19 @@ extension FeaturesRegistry {
       ),
       in: SessionScope.self
     )
+    self.use(
+      .lazyLoaded(
+        ResourceDetails.self,
+        load: ResourceDetails.load(features:context:cancellables:)
+      ),
+      in: ResourceEditScope.self
+    )
+    self.use(
+      .lazyLoaded(
+        ResourceDetails.self,
+        load: ResourceDetails.load(features:context:cancellables:)
+      ),
+      in: ResourceDetailsScope.self
+    )
   }
 }

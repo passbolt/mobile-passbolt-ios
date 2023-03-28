@@ -86,4 +86,5 @@ extension ResourceType.Slug {
   public static let passwordWithDescription: Self = "password-and-description"
   public static let passwordWithTOTP: Self = "password-description-totp"
   public static let totp: Self = "totp"
+  public static let hotp: Self = "hotp"
 }
