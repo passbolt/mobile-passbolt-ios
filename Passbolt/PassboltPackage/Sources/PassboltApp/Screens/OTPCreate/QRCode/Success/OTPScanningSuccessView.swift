@@ -59,10 +59,11 @@ internal struct OTPScanningSuccessView: ControlledView {
         action: self.controller.createStandaloneOTP
       )
 
-      SecondaryButton(
-        title: "otp.scanning.success.link.button.title",
-        action: self.controller.updateExistingResource
-      )
+      #warning("[MOB-1094] Disabled until allowing resource with OTP")
+//      SecondaryButton(
+//        title: "otp.scanning.success.link.button.title",
+//        action: self.controller.updateExistingResource
+//      )
     }
     .padding(
       top: 8,

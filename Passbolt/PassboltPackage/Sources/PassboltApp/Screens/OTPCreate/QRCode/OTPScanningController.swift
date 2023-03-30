@@ -102,7 +102,7 @@ extension OTPScanningController {
           guard scanningState.exchange(\.self, with: .processing, when: .idle)
           else { return }  // ignore when already processing
 
-          try await otpEditForm.fillFromURI(payload)
+          try otpEditForm.fillFromURI(payload)
           // when filling form succeeds navigate to success
           scanningState
             .exchange(

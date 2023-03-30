@@ -109,7 +109,14 @@ extension MainTabsViewController: UITabBarControllerDelegate {
     _ tabBarController: UITabBarController,
     didSelect viewController: UIViewController
   ) {
-    guard let tab = MainTab(rawValue: selectedIndex)
+    let indexOffset: Int // OTP tab is optional, changing index to match correct one
+    if tabBarController.viewControllers?.count == 2, selectedIndex > 1 {
+      indexOffset = -1
+    }
+    else {
+      indexOffset = 0
+    }
+    guard let tab = MainTab(rawValue: selectedIndex + indexOffset)
     else { unreachable("Internal inconsistency - Invalid state") }
     controller.setActiveTab(tab)
   }
@@ -118,13 +125,20 @@ extension MainTabsViewController: UITabBarControllerDelegate {
 extension MainTabsViewController {
 
   fileprivate func initializeTabs() {
-    #warning("[MOB-1075] TODO: hide OTP tab when OTP resources are not available]")
+    self.cancellables.executeOnMainActor { [weak self] in
+      guard let self, self.viewControllers?.count == 2 else { return }
+      guard await self.controller.otpTabAvailable() else { return }
+      try self.viewControllers?
+        .insert(
+          OTPResourcesTabViewController(
+            controller: self.components.features.instance()
+          ),
+          at: 1
+        )
+    }
     do {
       self.viewControllers = [
         try UIComponentFactory(features: self.components.features).instance(of: HomeTabNavigationViewController.self),
-        try OTPResourcesTabViewController(
-          controller: self.components.features.instance()
-        ),
         try UIComponentFactory(features: self.components.features).instance(of: SettingsTabViewController.self),
       ]
     }
@@ -148,9 +162,16 @@ extension MainTabsViewController {
       .receive(on: RunLoop.main)
       .sink { [weak self] state in
         guard let self = self else { return }
-        guard self.selectedIndex != state.rawValue
+        let indexOffset: Int // OTP tab is optional, changing index to match correct one
+        if self.viewControllers?.count == 2, state.rawValue > 1 {
+          indexOffset = -1
+        }
+        else {
+          indexOffset = 0
+        }
+        guard self.selectedIndex != state.rawValue + indexOffset
         else { return }
-        self.selectedIndex = state.rawValue
+        self.selectedIndex = state.rawValue + indexOffset
       }
       .store(in: cancellables)
   }

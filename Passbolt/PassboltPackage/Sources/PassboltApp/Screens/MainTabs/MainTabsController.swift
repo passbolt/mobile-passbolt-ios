@@ -26,12 +26,15 @@ import Features
 import OSFeatures
 import Session
 import UIComponents
+import DatabaseOperations
+import SessionData
 
 internal struct MainTabsController {
 
   internal var setActiveTab: @MainActor (MainTab) -> Void
   internal var activeTabPublisher: @MainActor () -> AnyPublisher<MainTab, Never>
   internal var initialModalPresentation: @MainActor () -> AnyPublisher<ModalPresentation?, Never>
+  internal var otpTabAvailable: () async -> Bool
 }
 
 extension MainTabsController {
@@ -64,6 +67,8 @@ extension MainTabsController: UIController {
 
     let accountInitialSetup: AccountInitialSetup = try features.instance(context: currentAccount)
     let osBiometry: OSBiometry = features.instance()
+    let sessionData: SessionData = try features.instance()
+    let resourceTypesFetchDatabaseOperation: ResourceTypesFetchDatabaseOperation = try features.instance()
 
     let activeTabSubject: CurrentValueSubject<MainTab, Never> = .init(.home)
 
@@ -104,10 +109,23 @@ extension MainTabsController: UIController {
       .eraseToAnyPublisher()
     }
 
+    func otpTabAvailable() async -> Bool {
+      do {
+        try await sessionData.refreshIfNeeded()
+        let availableResourceTypes: Array<ResourceType> = try await resourceTypesFetchDatabaseOperation()
+        return availableResourceTypes
+          .contains(where: { $0.slug == .totp || $0.slug == .hotp })
+      }
+      catch {
+        return false
+      }
+    }
+
     return Self(
       setActiveTab: setActiveTab,
       activeTabPublisher: activeTabPublisher,
-      initialModalPresentation: initialModalPresentation
+      initialModalPresentation: initialModalPresentation,
+      otpTabAvailable: otpTabAvailable
     )
   }
 }
