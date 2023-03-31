@@ -45,17 +45,17 @@ extension SettingsAutoFillController: UIController {
     let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
     let linkOpener: OSLinkOpener = features.instance()
-
+    
     func openSystemSettings() {
-      asyncExecutor.schedule(.reuse) {
-        do {
+      asyncExecutor
+        .scheduleCatchingWith(
+          diagnostics,
+          failMessage: "Navigation to system settings failed!",
+          behavior: .reuse
+        ) {
           try await linkOpener
             .openSystemSettings()
         }
-        catch {
-          diagnostics.log(error: error)
-        }
-      }
     }
 
     return Self(

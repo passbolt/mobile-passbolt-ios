@@ -30,7 +30,6 @@ internal struct DefaultPresentationModeSettingsController {
 
   internal var viewState: MutableViewState<ViewState>
   internal var selectMode: (HomePresentationMode?) -> Void
-  internal var navigateBack: () -> Void
 }
 
 extension DefaultPresentationModeSettingsController {
@@ -48,8 +47,7 @@ extension DefaultPresentationModeSettingsController: ViewController {
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder(),
-      selectMode: { _ in unimplemented() },
-      navigateBack: { unimplemented() }
+      selectMode: { _ in unimplemented() }
     )
   }
   #endif
@@ -122,29 +120,9 @@ extension DefaultPresentationModeSettingsController {
       }
     }
 
-    nonisolated func navigateBack() {
-      executor.schedule(.reuse) {
-        do {
-          try await navigationToSelf.revert()
-        }
-        catch {
-          diagnostics
-            .log(
-              error:
-                error
-                .asTheError()
-                .pushing(
-                  .message("Navigation to back from default presentation mode failed!")
-                )
-            )
-        }
-      }
-    }
-
     return Self(
       viewState: viewState,
-      selectMode: selectMode(_:),
-      navigateBack: navigateBack
+      selectMode: selectMode(_:)
     )
   }
 }

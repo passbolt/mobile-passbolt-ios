@@ -42,7 +42,7 @@ extension MainSettingsController: ViewController {
 
   internal typealias ViewState = Stateless
 
-  #if DEBUG
+#if DEBUG
   internal static var placeholder: Self {
     .init(
       viewState: .placeholder(),
@@ -53,7 +53,7 @@ extension MainSettingsController: ViewController {
       signOut: unimplemented0()
     )
   }
-  #endif
+#endif
 }
 
 // MARK: - Implementation
@@ -86,79 +86,47 @@ extension MainSettingsController {
     )
 
     nonisolated func navigateToApplicationSettings() {
-      asyncExecutor.schedule(.reuse) {
-        do {
+      asyncExecutor
+        .scheduleCatchingWith(
+          diagnostics,
+          failMessage: "Navigation to application settings failed!",
+          behavior: .reuse
+        ) {
           try await navigationToApplicationSettings.perform()
         }
-        catch {
-          diagnostics
-            .log(
-              error:
-                error
-                .asTheError()
-                .pushing(
-                  .message("Navigation to application settings failed!")
-                )
-            )
-        }
-      }
     }
 
     nonisolated func navigateToAccountsSettings() {
-      asyncExecutor.schedule(.reuse) {
-        do {
+      asyncExecutor
+        .scheduleCatchingWith(
+          diagnostics,
+          failMessage: "Navigation to accounts settings failed!",
+          behavior: .reuse
+        ) {
           try await navigationToAccountsSettings.perform()
         }
-        catch {
-          diagnostics
-            .log(
-              error:
-                error
-                .asTheError()
-                .pushing(
-                  .message("Navigation to accounts settings failed!")
-                )
-            )
-        }
-      }
     }
 
     nonisolated func navigateToTermsAndLicenses() {
-      asyncExecutor.schedule(.reuse) {
-        do {
+      asyncExecutor
+        .scheduleCatchingWith(
+          diagnostics,
+          failMessage: "Navigation to terms and licenses failed!",
+          behavior: .reuse
+        ) {
           try await navigationToTermsAndLicenses.perform()
         }
-        catch {
-          diagnostics
-            .log(
-              error:
-                error
-                .asTheError()
-                .pushing(
-                  .message("Navigation to terms and licenses failed!")
-                )
-            )
-        }
-      }
     }
 
     nonisolated func navigateToTroubleshooting() {
-      asyncExecutor.schedule(.reuse) {
-        do {
+      asyncExecutor
+        .scheduleCatchingWith(
+          diagnostics,
+          failMessage: "Navigation to troubleshooting failed!",
+          behavior: .reuse
+        ) {
           try await navigationToTroubleshooting.perform()
         }
-        catch {
-          diagnostics
-            .log(
-              error:
-                error
-                .asTheError()
-                .pushing(
-                  .message("Navigation to debug and logs failed!")
-                )
-            )
-        }
-      }
     }
 
     nonisolated func signOut() {

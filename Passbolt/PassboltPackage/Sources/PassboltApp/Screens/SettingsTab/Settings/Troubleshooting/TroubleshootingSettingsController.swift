@@ -64,41 +64,25 @@ extension TroubleshootingSettingsController {
     let navigationToLogs: NavigationToLogs = try features.instance()
 
     nonisolated func navigateToLogs() {
-      asyncExecutor.schedule(.reuse) {
-        do {
+      asyncExecutor
+        .scheduleCatchingWith(
+          diagnostics,
+          failMessage: "Navigation to logs failed!",
+          behavior: .reuse
+        ) {
           try await navigationToLogs.perform()
         }
-        catch {
-          diagnostics
-            .log(
-              error:
-                error
-                .asTheError()
-                .pushing(
-                  .message("Navigation to logs failed!")
-                )
-            )
-        }
-      }
     }
 
     nonisolated func navigateToHelpSite() {
-      asyncExecutor.schedule(.reuse) {
-        do {
+      asyncExecutor
+        .scheduleCatchingWith(
+          diagnostics,
+          failMessage: "Navigation to help site failed!",
+          behavior: .reuse
+        ) {
           try await linkOpener.openURL("https://help.passbolt.com/")
         }
-        catch {
-          diagnostics
-            .log(
-              error:
-                error
-                .asTheError()
-                .pushing(
-                  .message("Navigation to help failed!")
-                )
-            )
-        }
-      }
     }
 
     return .init(

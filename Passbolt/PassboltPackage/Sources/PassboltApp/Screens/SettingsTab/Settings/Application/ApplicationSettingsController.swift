@@ -43,7 +43,7 @@ extension ApplicationSettingsController: ViewController {
     internal var biometicsAuthorizationAvailability: BiometricsAuthorizationAvailability
   }
 
-  #if DEBUG
+#if DEBUG
   internal static var placeholder: Self {
     .init(
       viewState: .placeholder(),
@@ -52,7 +52,7 @@ extension ApplicationSettingsController: ViewController {
       navigateToDefaultPresentationModeSettings: unimplemented0()
     )
   }
-  #endif
+#endif
 }
 
 // MARK: - Implementation
@@ -87,22 +87,22 @@ extension ApplicationSettingsController {
         case .unavailable, .unconfigured:
           await viewState.update(
             \.biometicsAuthorizationAvailability,
-            to: .unavailable
+             to: .unavailable
           )
 
         case .touchID:
           await viewState.update(
             \.biometicsAuthorizationAvailability,
-            to: accountPreferences.isPassphraseStored()
-              ? .enabledTouchID
-              : .disabledTouchID
+             to: accountPreferences.isPassphraseStored()
+             ? .enabledTouchID
+             : .disabledTouchID
           )
         case .faceID:
           await viewState.update(
             \.biometicsAuthorizationAvailability,
-            to: accountPreferences.isPassphraseStored()
-              ? .enabledFaceID
-              : .disabledFaceID
+             to: accountPreferences.isPassphraseStored()
+             ? .enabledFaceID
+             : .disabledFaceID
           )
         }
       }
@@ -130,41 +130,25 @@ extension ApplicationSettingsController {
     }
 
     nonisolated func navigateToAutofillSettings() {
-      asyncExecutor.schedule(.reuse) {
-        do {
+      asyncExecutor
+        .scheduleCatchingWith(
+          diagnostics,
+          failMessage: "Navigation to autofill settings failed!",
+          behavior: .reuse
+        ) {
           try await navigationToAutofillSettings.perform()
         }
-        catch {
-          diagnostics
-            .log(
-              error:
-                error
-                .asTheError()
-                .pushing(
-                  .message("Navigation to autofill settings failed!")
-                )
-            )
-        }
-      }
     }
 
     nonisolated func navigateToDefaultPresentationModeSettings() {
-      asyncExecutor.schedule(.reuse) {
-        do {
+      asyncExecutor
+        .scheduleCatchingWith(
+          diagnostics,
+          failMessage: "Navigation to default presentation mode failed!",
+          behavior: .reuse
+        ) {
           try await navigationToDefaultModeSettings.perform()
         }
-        catch {
-          diagnostics
-            .log(
-              error:
-                error
-                .asTheError()
-                .pushing(
-                  .message("Navigation to default presentation mode failed!")
-                )
-            )
-        }
-      }
     }
 
     return .init(

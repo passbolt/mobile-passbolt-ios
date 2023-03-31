@@ -73,78 +73,58 @@ extension TermsAndLicensesSettingsController {
 
     let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
-        termsAndConditionsLinkAvailable: sessionConfiguration.termsURL != nil,
-        privacyPolicyLinkAvailable: sessionConfiguration.privacyPolicyURL != nil
+				termsAndConditionsLinkAvailable: !(sessionConfiguration.termsURL?.isEmpty ?? true),
+        privacyPolicyLinkAvailable: (sessionConfiguration.privacyPolicyURL?.isEmpty ?? true)
       )
     )
 
     nonisolated func navigateToTermsAndConditions() {
-      asyncExecutor.schedule(.reuse) {
-        do {
-          guard let url: URLString = sessionConfiguration.termsURL
+      asyncExecutor
+        .scheduleCatchingWith(
+          diagnostics,
+          failMessage: "Navigation to terms and conditions failed!",
+          behavior: .reuse
+        ) {
+          guard
+            let url: URLString = sessionConfiguration.termsURL,
+            !url.isEmpty
           else {
             throw
-              InternalInconsistency
+            InternalInconsistency
               .error("Missing terms and conditions URL")
           }
           try await linkOpener.openURL(url)
-        }
-        catch {
-          diagnostics
-            .log(
-              error:
-                error
-                .asTheError()
-                .pushing(
-                  .message("Navigation to terms and conditions failed!")
-                )
-            )
-        }
       }
     }
 
     nonisolated func navigateToPrivacyPolicy() {
-      asyncExecutor.schedule(.reuse) {
-        do {
-          guard let url: URLString = sessionConfiguration.privacyPolicyURL
+      asyncExecutor
+        .scheduleCatchingWith(
+          diagnostics,
+          failMessage: "Navigation to privacy policy failed!",
+          behavior: .reuse
+        ) {
+          guard
+            let url: URLString = sessionConfiguration.privacyPolicyURL,
+            !url.isEmpty
           else {
             throw
-              InternalInconsistency
+            InternalInconsistency
               .error("Missing privacy policy URL")
           }
           try await linkOpener.openURL(url)
-        }
-        catch {
-          diagnostics
-            .log(
-              error:
-                error
-                .asTheError()
-                .pushing(
-                  .message("Navigation to privacy policy failed!")
-                )
-            )
-        }
       }
     }
 
     nonisolated func navigateToLicenses() {
-      asyncExecutor.schedule(.reuse) {
-        do {
+      asyncExecutor
+        .scheduleCatchingWith(
+          diagnostics,
+          failMessage: "Navigation to licenses failed!",
+          behavior: .reuse
+        ) {
           try await linkOpener.openApplicationSettings()
         }
-        catch {
-          diagnostics
-            .log(
-              error:
-                error
-                .asTheError()
-                .pushing(
-                  .message("Navigation to application settings failed!")
-                )
-            )
-        }
-      }
     }
 
     return .init(

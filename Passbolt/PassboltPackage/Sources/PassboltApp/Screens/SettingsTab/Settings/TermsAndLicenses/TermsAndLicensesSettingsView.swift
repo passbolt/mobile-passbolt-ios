@@ -64,6 +64,11 @@ internal struct TermsAndLicensesSettingsView: ControlledView {
               )
           }
         )
+        .opacity(
+          viewState.termsAndConditionsLinkAvailable
+          ? 1
+          : 0.5
+        )
         .disabled(!viewState.termsAndConditionsLinkAvailable)
 
         SettingsActionRowView(
@@ -79,6 +84,11 @@ internal struct TermsAndLicensesSettingsView: ControlledView {
                 height: 24
               )
           }
+        )
+        .opacity(
+          viewState.privacyPolicyLinkAvailable
+          ? 1
+          : 0.5
         )
         .disabled(!viewState.privacyPolicyLinkAvailable)
       }
