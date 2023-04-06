@@ -85,7 +85,7 @@ public struct AnyAsyncSequence<Element> {
   }
 
   public init(
-    _ next: @escaping @Sendable () async -> Element
+    _ next: @escaping @Sendable () async -> Element?
   ) {
     self.makeIterator = {
       return AnyAsyncIterator<Element>(

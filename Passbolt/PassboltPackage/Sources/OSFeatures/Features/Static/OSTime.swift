@@ -91,9 +91,7 @@ extension OSTime {
         tolerance: .milliseconds(100),
         clock: continuousClock
       )
-      .map { _ in
-        Timestamp(rawValue: Int64(time(nil)))
-      }
+      .map { _ in }
       .asAnyAsyncSequence()
     }
 
@@ -120,15 +118,18 @@ extension OSTime {
     }
 
     @Sendable func timerSequence(
-      _ delay: Seconds
+      _ period: Seconds
     ) -> AnyAsyncSequence<Void> {
-      .init {  // iterator `next`
+      .init {  () -> Void? in
+        // iterator `next`
         // this is not fully correct since
         // timer using Task.sleep drifts
         // substantially and quickly
         // becomes out of sync, however
         // this is deprecated anyway
-        try? await waitFor(delay)
+        try? await Task.sleep(
+          nanoseconds: NSEC_PER_SEC * UInt64(period.rawValue)
+        )
       }
     }
 
