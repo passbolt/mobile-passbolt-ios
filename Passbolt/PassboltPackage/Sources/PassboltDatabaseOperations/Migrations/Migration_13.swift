@@ -322,9 +322,9 @@ extension SQLiteMigration {
       );
       """,
       // - version bump - //
-      //			"""
-      //			PRAGMA user_version = 14; -- persistent, used to track schema version
-      //			""",
+      """
+      PRAGMA user_version = 14; -- persistent, used to track schema version
+      """,
     ]
   }
 }
