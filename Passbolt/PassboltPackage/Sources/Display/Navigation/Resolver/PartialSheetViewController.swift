@@ -44,7 +44,7 @@ internal final class PartialSheetViewController<Content: UIViewController>: UIVi
 
   override func loadView() {
     let view: UIView = .init()
-    view.backgroundColor = .passboltSheetBackground
+    view.backgroundColor = .passboltBackgroundOverlay
     view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(backgroundTap)))
 
     self.content.view.layer.cornerRadius = 8
