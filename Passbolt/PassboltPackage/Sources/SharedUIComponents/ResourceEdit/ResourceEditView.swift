@@ -196,7 +196,7 @@ public final class ResourceEditView: KeyboardAwareView {
               .instantiate()
           )
 
-        case "password":
+        case "password", "secret":
           return (
             field: resourceField,
             view: Mutation<SecureTextInput>
@@ -347,7 +347,7 @@ public final class ResourceEditView: KeyboardAwareView {
           in: fieldViews,
           { [unowned self] fieldView in
             switch fieldView.key.name {
-            case "password":
+            case "password", "secret":
               let container: PlainView =
                 Mutation
                 .combined(

@@ -202,7 +202,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                 ]
               )
 
-            case "password":
+            case "password", "secret":
               self?.presentInfoSnackbar(
                 .localized("resource.menu.item.field.copied"),
                 with: [

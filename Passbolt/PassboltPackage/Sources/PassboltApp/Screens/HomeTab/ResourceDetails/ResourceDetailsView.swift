@@ -133,7 +133,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
       let titleMutation: Mutation<Label>
       let accessoryButtonMutation: Mutation<ImageButton>
       if field.encrypted {
-        if field.name != "password" || config.revealPasswordEnabled {
+        if (field.name != "password" && field.name != "secret") || config.revealPasswordEnabled {
           accessoryButtonMutation = .combined(
             .image(named: .eye, from: .uiCommons),
             .action { [weak self] in
@@ -163,7 +163,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
           displayable: .localized(key: "resource.detail.field.username")
         )
 
-      case "password":
+      case "password", "secret":
         titleMutation = .text(
           displayable: .localized(
             key: "resource.detail.field.passphrase"

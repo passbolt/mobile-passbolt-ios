@@ -386,7 +386,7 @@ extension ResourceDetailsController: UIController {
       case "uri":
         return copyURLAction()
 
-      case "password":
+      case "password", "secret":
         return copyPasswordAction()
 
       case "username":
