@@ -67,6 +67,10 @@ extension FeaturesRegistry {
     self.useLiveNavigationToOTPScanning()
     self.useLiveOTPScanningSuccessController()
     self.useLiveNavigationToOTPScanningSuccess()
+    self.useLiveOTPEditFormController()
+    self.useLiveNavigationToOTPEditForm()
+		self.useLiveNavigationToOTPEditAdvancedForm()
+		self.useLiveOTPEditAdvancedFormController()
 
     // MARK: - Settings Tab
     self.useLiveMainSettingsController()

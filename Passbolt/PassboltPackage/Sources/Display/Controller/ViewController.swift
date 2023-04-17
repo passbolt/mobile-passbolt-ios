@@ -76,6 +76,59 @@ extension ViewController {
   ) -> Binding<Value> {
     self.viewState.binding(to: keyPath)
   }
+
+  @MainActor public func binding<Value>(
+    to keyPath: WritableKeyPath<ViewState, Value>,
+    updating setter: @escaping (Value) -> Void
+  ) -> Binding<Value> {
+    .init(
+      get: {
+        self.viewState.value[keyPath: keyPath]
+      },
+      set: setter
+    )
+  }
+
+  @MainActor public func validatedBinding<Value>(
+    to keyPath: WritableKeyPath<ViewState, Validated<Value>>,
+    updating setter: @escaping (Value) -> Void
+  ) -> Binding<Validated<Value>> {
+    .init(
+      get: {
+        self.viewState.value[keyPath: keyPath]
+      },
+      set: { (newValue: Validated<Value>) in
+        setter(newValue.value)
+      }
+    )
+  }
+
+	@MainActor public func validatedStringBinding<Value, UpdateValue>(
+		with keyPath: WritableKeyPath<ViewState, Validated<Value>>,
+		updating setter: @escaping (UpdateValue) -> Void,
+		fromString: @escaping (String) -> UpdateValue?,
+		toString: @escaping (Value) -> String
+	) -> Binding<Validated<String>> {
+		.init(
+			get: {
+				let validated: Validated<Value> = self.viewState.value[keyPath: keyPath]
+				if let error: TheError = validated.error {
+					return .invalid(
+						toString(validated.value),
+						error: error
+					)
+				}
+				else {
+					return .valid(toString(validated.value))
+				}
+			},
+			set: { (newValidated: Validated<String>) in
+				guard let newValue: UpdateValue = fromString(newValidated.value)
+				else { return } // ignore
+				setter(newValue)
+			}
+		)
+	}
 }
 
 public enum Controlled {

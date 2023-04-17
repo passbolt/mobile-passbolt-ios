@@ -457,18 +457,6 @@ extension NavigationTo {
     )
   }
 
-//  public static func legacyPartialSheetPresentationTransition<DestinationView>(
-//    to: DestinationView.Type
-//  ) -> FeatureLoader
-//  where DestinationView: ControlledView, DestinationView.Controller.Context == Void {
-//    Self.legacyPartialSheetPresentationTransition(
-//      to: DestinationView.self,
-//      { features, _ in
-//        try DestinationView(controller: features.instance())
-//      }
-//    )
-//  }
-
   public static func legacyPartialSheetPresentationTransition<DestinationView>(
     to: DestinationView.Type
   ) -> FeatureLoader

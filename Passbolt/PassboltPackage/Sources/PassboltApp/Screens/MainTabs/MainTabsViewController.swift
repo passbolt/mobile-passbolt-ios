@@ -109,7 +109,7 @@ extension MainTabsViewController: UITabBarControllerDelegate {
     _ tabBarController: UITabBarController,
     didSelect viewController: UIViewController
   ) {
-    let indexOffset: Int // OTP tab is optional, changing index to match correct one
+    let indexOffset: Int  // OTP tab is optional, changing index to match correct one
     if tabBarController.viewControllers?.count == 2, selectedIndex > 1 {
       indexOffset = -1
     }
@@ -162,7 +162,7 @@ extension MainTabsViewController {
       .receive(on: RunLoop.main)
       .sink { [weak self] state in
         guard let self = self else { return }
-        let indexOffset: Int // OTP tab is optional, changing index to match correct one
+        let indexOffset: Int  // OTP tab is optional, changing index to match correct one
         if self.viewControllers?.count == 2, state.rawValue > 1 {
           indexOffset = -1
         }

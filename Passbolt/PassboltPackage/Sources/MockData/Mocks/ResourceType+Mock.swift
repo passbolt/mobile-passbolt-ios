@@ -47,7 +47,7 @@ extension ResourceType {
     name: "mock_1",
     fields: [
       .name,
-      .password
+      .password,
     ]
   )
 
@@ -57,11 +57,11 @@ extension ResourceType {
     name: "mock_2",
     fields: [
       .name,
-      .password
+      .password,
     ]
   )
 
-  public static let mock_default: Self =  .init(
+  public static let mock_default: Self = .init(
     id: "password-and-description",
     slug: "password-and-description",
     name: "password-and-description",
@@ -70,7 +70,7 @@ extension ResourceType {
       .uri,
       .username,
       .password,
-      .descriptionEncrypted
+      .descriptionEncrypted,
     ]
   )
 
@@ -81,8 +81,7 @@ extension ResourceType {
     fields: [
       .name,
       .uri,
-      .totp
+      .totp,
     ]
   )
 }
-

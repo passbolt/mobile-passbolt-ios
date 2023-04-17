@@ -38,4 +38,14 @@ extension Binding {
       }
     )
   }
+
+	public func filterMapOptional() -> Binding<Optional<Value>> {
+		.init(
+			get: { self.wrappedValue },
+			set: { (newValue: Optional<Value>) in
+				guard let newValue else { return }
+				self.wrappedValue = newValue
+			}
+		)
+	}
 }

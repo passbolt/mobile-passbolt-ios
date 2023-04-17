@@ -34,7 +34,7 @@ internal struct HomePresentation {
 }
 
 extension HomePresentation: LoadableFeature {
-  
+
   public typealias Context = ContextlessLoadableFeatureContext
 
   @MainActor internal static func load(

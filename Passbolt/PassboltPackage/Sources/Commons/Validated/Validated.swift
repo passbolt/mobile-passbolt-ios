@@ -52,46 +52,6 @@ public struct Validated<Value> {
   public var displayableErrorMessage: DisplayableString? {
     error?.displayableMessage
   }
-
-//  public func withError(
-//    message: StaticString = "InvalidValue",
-//    validationRule: StaticString,
-//    value: Value,
-//    displayable: DisplayableString,
-//    file: StaticString = #fileID,
-//    line: UInt = #line
-//  ) -> Self {
-//    var copy: Self = self
-//    copy.errors
-//      .append(
-//        InvalidValue.error(
-//          message,
-//          validationRule: validationRule,
-//          value: value,
-//          displayable: displayable,
-//          file: file,
-//          line: line
-//        )
-//      )
-//    return copy
-//  }
-
-//  public func withError(
-//    _ error: TheError
-//  ) -> Self {
-//    var copy: Self = self
-//    copy.errors.append(error)
-//    return copy
-//  }
-
-//  public func withErrors<Errors>(
-//    _ errors: Errors
-//  ) -> Self
-//  where Errors: Sequence, Errors.Element == TheError {
-//    var copy: Self = self
-//    copy.errors.append(contentsOf: errors)
-//    return copy
-//  }
 }
 
 extension Validated {
@@ -145,7 +105,7 @@ where Value: Equatable {
     _ rhs: Validated
   ) -> Bool {
     lhs.value == rhs.value
-    && lhs.displayableErrorMessage == rhs.displayableErrorMessage
+      && lhs.displayableErrorMessage == rhs.displayableErrorMessage
   }
 }
 
@@ -168,5 +128,25 @@ extension Validated {
       value: transform(self.value),
       error: self.error
     )
+  }
+
+  public func toOptional() -> Validated<Optional<Value>> {
+    .init(
+      value: .some(self.value),
+      error: self.error
+    )
+  }
+
+  public func fromOptional<WrappedValue>() -> Validated<WrappedValue>?
+  where Value == Optional<WrappedValue> {
+    if let wrappedValue: WrappedValue = self.value {
+      return .init(
+        value: wrappedValue,
+        error: self.error
+      )
+    }
+    else {
+      return .none
+    }
   }
 }

@@ -28,6 +28,7 @@ import Features
 import NetworkOperations
 import Resources
 import Users
+import SessionData
 
 import class Foundation.JSONEncoder
 
@@ -49,6 +50,7 @@ extension ResourceEditForm {
     let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
 
+    let sessionData: SessionData = try features.instance()
     let usersPGPMessages: UsersPGPMessages = try features.instance()
     let resourceTypesFetchDatabaseOperation: ResourceTypesFetchDatabaseOperation = try features.instance()
     let resourceEditNetworkOperation: ResourceEditNetworkOperation = try features.instance()
@@ -188,7 +190,7 @@ extension ResourceEditForm {
 
           return .valid(value)
         }
-        
+
       case let .totp(required):
         return .init { (value: ResourceFieldValue?) in
           guard let value: ResourceFieldValue
@@ -370,7 +372,7 @@ extension ResourceEditForm {
           for field: ResourceField in secretFields {
             secretFieldsValues[field.name] = resource.value(for: field)
           }
-          
+
           guard let secretString: String = try? String(data: JSONEncoder().encode(secretFieldsValues), encoding: .utf8)
           else {
             throw
@@ -405,6 +407,15 @@ extension ResourceEditForm {
           )
         )
         .resourceID
+
+        do {
+          try await sessionData.refreshIfNeeded()
+        }
+        catch {
+          // we don't want to fail sending form when refreshing data fails
+          // but we would like to update data after such a change
+          diagnostics.log(error: error)
+        }
 
         return updatedResourceID
       }
@@ -516,6 +527,15 @@ extension ResourceEditForm {
             )
           )
         }  // else continue without sharing
+
+        do {
+          try await sessionData.refreshIfNeeded()
+        }
+        catch {
+          // we don't want to fail sending form when refreshing data fails
+          // but we would like to update data after such a change
+          diagnostics.log(error: error)
+        }
 
         return createdResourceResult.resourceID
       }

@@ -44,6 +44,8 @@ extension TOTPCodeGenerator {
     )
 
     let rawPeriod: Int64 = context.period.rawValue
+    guard rawPeriod > 0
+    else { throw InternalInconsistency.error("TOTP period should be greater than zero!") }
 
     @Sendable nonisolated func generate() -> TOTPValue {
       let rawTimestamp: Int64 = time.timestamp().rawValue

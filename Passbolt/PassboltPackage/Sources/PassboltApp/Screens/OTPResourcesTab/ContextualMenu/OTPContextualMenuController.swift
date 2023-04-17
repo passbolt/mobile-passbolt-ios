@@ -40,7 +40,7 @@ internal struct OTPContextualMenuController {
 extension OTPContextualMenuController: ViewController {
 
   internal struct Context {
-    
+
     internal var resourceID: Resource.ID
     internal var showMessage: @MainActor (SnackBarMessage) -> Void
   }

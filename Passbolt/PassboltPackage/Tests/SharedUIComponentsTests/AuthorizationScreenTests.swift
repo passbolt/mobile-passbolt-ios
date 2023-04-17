@@ -38,7 +38,6 @@ final class AuthorizationScreenTests: MainActorTestCase {
   var preferencesUpdates: UpdatesSequenceSource!
 
   override func mainActorSetUp() {
-    features.usePlaceholder(for: Session.self)
     features.usePlaceholder(for: Accounts.self)
     features.usePlaceholder(for: OSBiometry.self)
     features.patch(

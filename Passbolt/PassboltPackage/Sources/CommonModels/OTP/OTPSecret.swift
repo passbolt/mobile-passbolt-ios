@@ -37,52 +37,147 @@ public enum OTPSecret {
   )
 
   public var sharedSecret: String {
-    switch self {
-    case .totp(let secret, _, _, _):
-      return secret
+    get {
+      switch self {
+      case .totp(let secret, _, _, _):
+        return secret
 
-    case .hotp(let secret, _, _, _):
-      return secret
+      case .hotp(let secret, _, _, _):
+        return secret
+      }
+    }
+    set {
+      switch self {
+      case let .totp(_, algorithm, digits, period):
+        self = .totp(
+          sharedSecret: newValue,
+          algorithm: algorithm,
+          digits: digits,
+          period: period
+        )
+
+      case let .hotp(_, algorithm, digits, counter):
+        self = .hotp(
+          sharedSecret: newValue,
+          algorithm: algorithm,
+          digits: digits,
+          counter: counter
+        )
+      }
     }
   }
 
   public var algorithm: HOTPAlgorithm {
-    switch self {
-    case .totp(_, let algorithm, _, _):
-      return algorithm
+    get {
+      switch self {
+      case .totp(_, let algorithm, _, _):
+        return algorithm
 
-    case .hotp(_, let algorithm, _, _):
-      return algorithm
+      case .hotp(_, let algorithm, _, _):
+        return algorithm
+      }
+    }
+    set {
+      switch self {
+      case let .totp(sharedSecret, _, digits, period):
+        self = .totp(
+          sharedSecret: sharedSecret,
+          algorithm: newValue,
+          digits: digits,
+          period: period
+        )
+
+      case let .hotp(sharedSecret, _, digits, counter):
+        self = .hotp(
+          sharedSecret: sharedSecret,
+          algorithm: newValue,
+          digits: digits,
+          counter: counter
+        )
+      }
     }
   }
 
   public var digits: UInt {
-    switch self {
-    case .totp(_, _, let digits, _):
-      return digits
+    get {
+      switch self {
+      case .totp(_, _, let digits, _):
+        return digits
 
-    case .hotp(_, _, let digits, _):
-      return digits
+      case .hotp(_, _, let digits, _):
+        return digits
+      }
+    }
+    set {
+      switch self {
+      case let .totp(sharedSecret, algorithm, _, period):
+        self = .totp(
+          sharedSecret: sharedSecret,
+          algorithm: algorithm,
+          digits: newValue,
+          period: period
+        )
+
+      case let .hotp(sharedSecret, algorithm, _, counter):
+        self = .hotp(
+          sharedSecret: sharedSecret,
+          algorithm: algorithm,
+          digits: newValue,
+          counter: counter
+        )
+      }
     }
   }
 
   public var period: Seconds? {
-    switch self {
-    case .totp(_, _, _, let period):
-      return period
+    get {
+      switch self {
+      case .totp(_, _, _, let period):
+        return period
 
-    case .hotp(_, _, _, _):
-      return .none
+      case .hotp(_, _, _, _):
+        return .none
+      }
+    }
+    set {
+      switch self {
+      case let .totp(sharedSecret, algorithm, digits, period):
+        self = .totp(
+          sharedSecret: sharedSecret,
+          algorithm: algorithm,
+          digits: digits,
+          period: newValue ?? period
+        )
+
+      case .hotp:
+        break
+      }
     }
   }
 
   public var counter: UInt64? {
-    switch self {
-    case .totp(_, _, _, _):
-      return .none
+    get {
+      switch self {
+      case .totp(_, _, _, _):
+        return .none
 
-    case .hotp(_, _, _, let counter):
-      return counter
+      case .hotp(_, _, _, let counter):
+        return counter
+      }
+    }
+    set {
+      switch self {
+      case .totp:
+        break
+
+      case let .hotp(sharedSecret, algorithm, digits, counter):
+        self = .hotp(
+          sharedSecret: sharedSecret,
+          algorithm: algorithm,
+          digits: digits,
+          counter: newValue ?? counter
+        )
+      }
     }
   }
 }
@@ -116,7 +211,8 @@ extension OTPSecret: Codable {
       )
     }
     else {
-      throw DecodingError
+      throw
+        DecodingError
         .dataCorrupted(
           .init(
             codingPath: decoder.codingPath,

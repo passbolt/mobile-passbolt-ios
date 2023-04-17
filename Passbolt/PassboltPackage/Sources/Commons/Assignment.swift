@@ -21,56 +21,49 @@
 // @since         v1.0
 //
 
-import Display
-import UICommons
+public struct Assignment<Subject> {
 
-internal struct OTPScanningSuccessView: ControlledView {
+  public let keyPath: PartialKeyPath<Subject>
+  private let assignment: (inout Subject) -> Void
+}
 
-  private let controller: OTPScanningSuccessController
+extension Assignment {
 
-  internal init(
-    controller: OTPScanningSuccessController
-  ) {
-    self.controller = controller
+  public static func assigning<Value>(
+    _ value: Value,
+    to keyPath: WritableKeyPath<Subject, Value>
+  ) -> Self {
+    .init(
+      keyPath: keyPath,
+      assignment: { (subject: inout Subject) in
+        subject[keyPath: keyPath] = value
+      }
+    )
   }
 
-  internal var body: some View {
-    VStack(spacing: 8) {
-
-      Spacer(minLength: 40)
-
-      Image(named: .successMark)
-
-      Text(displayable: "otp.scanning.success.title")
-        .multilineTextAlignment(.center)
-        .font(
-          .inter(
-            ofSize: 24,
-            weight: .bold
-          )
-        )
-        .foregroundColor(.passboltPrimaryText)
-        .padding(top: 24)
-
-      Spacer(minLength: 40)
-
-      PrimaryButton(
-        title: "otp.scanning.success.create.button.title",
-        action: self.controller.createStandaloneOTP
-      )
-
-      #warning("[MOB-1094] Disabled until allowing resource with OTP")
-//      SecondaryButton(
-//        title: "otp.scanning.success.link.button.title",
-//        action: self.controller.updateExistingResource
-//      )
-    }
-    .padding(
-      top: 8,
-      leading: 16,
-      bottom: 16,
-      trailing: 8
+  public static func assigning<Value>(
+    _ value: Value,
+    toValidated keyPath: WritableKeyPath<Subject, Validated<Value>>
+  ) -> Self {
+    .init(
+      keyPath: keyPath,
+      assignment: { (subject: inout Subject) in
+        subject[keyPath: keyPath].value = value
+      }
     )
-    .navigationBarBackButtonHidden(true)
+  }
+
+  public func assign(
+    on subject: inout Subject
+  ) {
+    self.assignment(&subject)
+  }
+
+  public func assign(
+    copying subject: Subject
+  ) -> Subject {
+    var subject: Subject = subject
+    self.assignment(&subject)
+    return subject
   }
 }

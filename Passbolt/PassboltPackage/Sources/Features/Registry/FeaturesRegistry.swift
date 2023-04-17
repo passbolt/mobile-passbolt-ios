@@ -74,5 +74,12 @@ extension FeaturesRegistry {
   where Feature: LoadableFeature {
     self.scopes[scope.identifier]?[Feature.identifier]
   }
+
+  internal func findFeatureLoader<Feature>(
+    for feature: Feature.Type
+  ) -> FeatureLoader?
+  where Feature: LoadableFeature {
+    self.scopes.values.first(where: { $0.keys.contains(Feature.identifier) })?[Feature.identifier]
+  }
   #endif
 }

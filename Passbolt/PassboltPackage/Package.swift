@@ -173,6 +173,7 @@ let package = Package(
         "UIComponents",
         "Display",
         "Session",
+        "SessionData",
       ]
     ),
     .testTarget(

@@ -221,7 +221,8 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
     let controller: ResourceDetailsController = try testController(context: context)
     var result: Error?
     do {
-      _ = try await controller
+      _ =
+        try await controller
         .toggleDecrypt(.password)
         .asAsyncValue()
       XCTFail()

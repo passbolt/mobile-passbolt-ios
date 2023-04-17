@@ -47,19 +47,19 @@ final class OTPResourcesListControllerTests: LoadableFeatureTestCase<OTPResource
     )
     patch(
       \AccountDetails.avatarImage,
-       context: .mock_ada,
-       with: always(nil)
+      context: .mock_ada,
+      with: always(nil)
     )
     patch(
       \OTPCodesController.dispose,
-       with: always(Void())
+      with: always(Void())
     )
   }
 
   func test_refreshList_presentsErrorMessage_whenRefreshFails() {
     patch(
       \OTPResources.refreshIfNeeded,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
     withTestedInstanceReturnsEqual(
       SnackBarMessage.error("testLocalizationKey")
@@ -72,9 +72,9 @@ final class OTPResourcesListControllerTests: LoadableFeatureTestCase<OTPResource
   func test_showCentextualMenu_navigatesToOTPContextualMenu() {
     patch(
       \NavigationToOTPContextualMenu.mockPerform,
-       with: { (_: Bool, context: OTPContextualMenuController.Context) async throws in
-         self.executed(using: context.resourceID)
-       }
+      with: { (_: Bool, context: OTPContextualMenuController.Context) async throws in
+        self.executed(using: context.resourceID)
+      }
     )
     withTestedInstanceExecuted(
       using: Resource.ID.mock_1
@@ -87,9 +87,9 @@ final class OTPResourcesListControllerTests: LoadableFeatureTestCase<OTPResource
   func test_showAccountMenu_navigatesToAccountMenu() {
     patch(
       \NavigationToAccountMenu.mockPerform,
-       with: always(self.executed())
+      with: always(self.executed())
     )
-    withTestedInstanceExecuted() { feature in
+    withTestedInstanceExecuted { feature in
       feature.showAccountMenu()
       await self.mockExecutionControl.executeAll()
     }
@@ -98,15 +98,15 @@ final class OTPResourcesListControllerTests: LoadableFeatureTestCase<OTPResource
   func test_createOTP_navigatesToOTPCreationMenu() {
     #warning("[MOB-1130] - menu skipped")
     return
-    withTestedInstance { feature in
-      feature.createOTP()
-    }
+      withTestedInstance { feature in
+        feature.createOTP()
+      }
   }
 
   func test_revealAndCopyOTP_presentsErrorMessage_whenAccessingOTPFails() {
     patch(
       \OTPCodesController.requestNextFor,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
     withTestedInstanceReturnsEqual(
       SnackBarMessage.error("testLocalizationKey")
@@ -120,7 +120,7 @@ final class OTPResourcesListControllerTests: LoadableFeatureTestCase<OTPResource
   func test_revealAndCopyOTP_presentsErrorMessage_whenCopyingOTPFails() {
     patch(
       \OTPCodesController.requestNextFor,
-       with: always(
+      with: always(
         .totp(
           .init(
             resourceID: .mock_1,
@@ -129,11 +129,11 @@ final class OTPResourcesListControllerTests: LoadableFeatureTestCase<OTPResource
             period: 30
           )
         )
-       )
+      )
     )
     patch(
       \OTPCodesController.copyFor,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
     withTestedInstanceReturnsEqual(
       SnackBarMessage.error("testLocalizationKey")
@@ -147,7 +147,7 @@ final class OTPResourcesListControllerTests: LoadableFeatureTestCase<OTPResource
   func test_revealAndCopyOTP_showsMessage_whenCopyingOTPSucceeds() {
     patch(
       \OTPCodesController.requestNextFor,
-       with: always(
+      with: always(
         .totp(
           .init(
             resourceID: .mock_1,
@@ -156,11 +156,11 @@ final class OTPResourcesListControllerTests: LoadableFeatureTestCase<OTPResource
             period: 30
           )
         )
-       )
+      )
     )
     patch(
       \OTPCodesController.copyFor,
-       with: always(Void())
+      with: always(Void())
     )
     withTestedInstanceReturnsEqual(
       SnackBarMessage.info("otp.value.copied.message")
@@ -174,7 +174,7 @@ final class OTPResourcesListControllerTests: LoadableFeatureTestCase<OTPResource
   func test_revealAndCopyOTP_requestsOTPValueForRequestedResource() {
     patch(
       \OTPCodesController.requestNextFor,
-       with: always(
+      with: always(
         .totp(
           .init(
             resourceID: .mock_1,
@@ -187,9 +187,9 @@ final class OTPResourcesListControllerTests: LoadableFeatureTestCase<OTPResource
     )
     patch(
       \OTPCodesController.copyFor,
-       with: { (resourceID: Resource.ID) async throws in
-         self.executed(using: resourceID)
-       }
+      with: { (resourceID: Resource.ID) async throws in
+        self.executed(using: resourceID)
+      }
     )
     withTestedInstanceExecuted(
       using: Resource.ID.mock_1
@@ -203,16 +203,16 @@ final class OTPResourcesListControllerTests: LoadableFeatureTestCase<OTPResource
     let resourceUpdates: UpdatesSequenceSource = .init()
     patch(
       \OTPResources.updates,
-       with: resourceUpdates.updatesSequence
+      with: resourceUpdates.updatesSequence
     )
     let otpUpdates: UpdatesSequenceSource = .init()
     patch(
       \OTPCodesController.updates,
-       with: otpUpdates.updatesSequence
+      with: otpUpdates.updatesSequence
     )
     patch(
       \OTPCodesController.current,
-       with: always(
+      with: always(
         .totp(
           .init(
             resourceID: .mock_1,
@@ -221,11 +221,11 @@ final class OTPResourcesListControllerTests: LoadableFeatureTestCase<OTPResource
             period: 30
           )
         )
-       )
+      )
     )
     patch(
       \OTPCodesController.requestNextFor,
-       with: always(
+      with: always(
         .totp(
           .init(
             resourceID: .mock_1,
@@ -234,15 +234,15 @@ final class OTPResourcesListControllerTests: LoadableFeatureTestCase<OTPResource
             period: 30
           )
         )
-       )
+      )
     )
     patch(
       \OTPCodesController.copyFor,
-       with: always(Void())
+      with: always(Void())
     )
     patch(
       \OTPResources.filteredList,
-       with: always(
+      with: always(
         [
           .init(
             id: .mock_1,
@@ -252,7 +252,7 @@ final class OTPResourcesListControllerTests: LoadableFeatureTestCase<OTPResource
             url: .none
           )
         ]
-       )
+      )
     )
     withTestedInstanceReturnsEqual(
       true,
@@ -272,7 +272,7 @@ final class OTPResourcesListControllerTests: LoadableFeatureTestCase<OTPResource
   func test_hideOTPCodes_disposesOTPValues() {
     patch(
       \OTPCodesController.dispose,
-       with: always(self.executed())
+      with: always(self.executed())
     )
     withTestedInstanceExecuted { feature in
       feature.hideOTPCodes()
@@ -284,11 +284,11 @@ final class OTPResourcesListControllerTests: LoadableFeatureTestCase<OTPResource
     let resourceUpdates: UpdatesSequenceSource = .init()
     patch(
       \OTPResources.updates,
-       with: resourceUpdates.updatesSequence
+      with: resourceUpdates.updatesSequence
     )
     patch(
       \OTPResources.filteredList,
-       with: always(
+      with: always(
         [
           .init(
             id: .mock_1,
@@ -298,7 +298,7 @@ final class OTPResourcesListControllerTests: LoadableFeatureTestCase<OTPResource
             url: .none
           )
         ]
-       )
+      )
     )
     withTestedInstanceReturnsEqual(
       [
@@ -319,4 +319,3 @@ final class OTPResourcesListControllerTests: LoadableFeatureTestCase<OTPResource
     }
   }
 }
-

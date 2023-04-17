@@ -45,7 +45,7 @@ extension SettingsAutoFillController: UIController {
     let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
     let linkOpener: OSLinkOpener = features.instance()
-    
+
     func openSystemSettings() {
       asyncExecutor
         .scheduleCatchingWith(

@@ -366,7 +366,6 @@ final class ResourceMenuControllerTests: MainActorTestCase {
   }
 }
 
-
 private let detailsViewResource: Resource = {
   var mock: Resource = .init(
     id: .mock_1,
@@ -410,7 +409,7 @@ private let detailsViewResourceWithUnencryptedDescription: Resource = {
         .username,
         .uri,
         .password,
-        .description
+        .description,
       ]
     ),
     permission: .owner,

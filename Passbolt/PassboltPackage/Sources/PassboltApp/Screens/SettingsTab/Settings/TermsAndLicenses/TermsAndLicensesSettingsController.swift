@@ -73,7 +73,7 @@ extension TermsAndLicensesSettingsController {
 
     let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
-				termsAndConditionsLinkAvailable: !(sessionConfiguration.termsURL?.isEmpty ?? true),
+        termsAndConditionsLinkAvailable: !(sessionConfiguration.termsURL?.isEmpty ?? true),
         privacyPolicyLinkAvailable: (sessionConfiguration.privacyPolicyURL?.isEmpty ?? true)
       )
     )
@@ -90,11 +90,11 @@ extension TermsAndLicensesSettingsController {
             !url.isEmpty
           else {
             throw
-            InternalInconsistency
+              InternalInconsistency
               .error("Missing terms and conditions URL")
           }
           try await linkOpener.openURL(url)
-      }
+        }
     }
 
     nonisolated func navigateToPrivacyPolicy() {
@@ -109,11 +109,11 @@ extension TermsAndLicensesSettingsController {
             !url.isEmpty
           else {
             throw
-            InternalInconsistency
+              InternalInconsistency
               .error("Missing privacy policy URL")
           }
           try await linkOpener.openURL(url)
-      }
+        }
     }
 
     nonisolated func navigateToLicenses() {

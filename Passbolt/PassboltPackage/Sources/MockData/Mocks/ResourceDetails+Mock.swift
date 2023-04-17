@@ -52,7 +52,7 @@ extension Resource {
     mock.password = .string("R@nD0m")
     return mock
   }()
-  
+
   public static let mock_2: Self = {
     var mock: Resource = .init(
       id: .mock_2,
@@ -116,4 +116,3 @@ extension Resource {
     return mock
   }()
 }
-

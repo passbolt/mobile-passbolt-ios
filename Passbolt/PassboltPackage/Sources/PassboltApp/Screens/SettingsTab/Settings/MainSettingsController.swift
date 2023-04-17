@@ -42,7 +42,7 @@ extension MainSettingsController: ViewController {
 
   internal typealias ViewState = Stateless
 
-#if DEBUG
+  #if DEBUG
   internal static var placeholder: Self {
     .init(
       viewState: .placeholder(),
@@ -53,7 +53,7 @@ extension MainSettingsController: ViewController {
       signOut: unimplemented0()
     )
   }
-#endif
+  #endif
 }
 
 // MARK: - Implementation

@@ -60,7 +60,6 @@ extension ResourceEditController: UIController {
     )
     let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
-    let sessionData: SessionData = try features.instance()
     let resourceForm: ResourceEditForm = try features.instance()
     let randomGenerator: RandomStringGenerator = try features.instance()
 
@@ -147,7 +146,6 @@ extension ResourceEditController: UIController {
     func sendForm() -> AnyPublisher<Void, Error> {
       cancellables.executeAsyncWithPublisher { () async throws -> Void in
         let resourceID: Resource.ID = try await resourceForm.sendForm()
-        try await sessionData.refreshIfNeeded()
         context.completion(resourceID)
       }
       .collectErrorLog(using: diagnostics)

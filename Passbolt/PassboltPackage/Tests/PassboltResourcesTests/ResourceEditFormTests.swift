@@ -27,6 +27,7 @@ import Features
 import TestExtensions
 import Users
 import XCTest
+import SessionData
 
 @testable import Accounts
 @testable import PassboltResources
@@ -51,6 +52,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
         configuration: .mock_1
       )
     )
+    self.usePlaceholder(for: SessionData.self)
   }
 
   func test_resource_fails_whenNoResourceTypesAvailable() async throws {
@@ -90,7 +92,6 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-
     set(
       ResourceEditScope.self,
       context: .create(
@@ -114,7 +115,6 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-
     set(
       ResourceEditScope.self,
       context: .create(
@@ -124,15 +124,17 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     let feature: ResourceEditForm = try testedInstance()
 
-   // execute resource loading
-   await self.mockExecutionControl.executeAll()
+    // execute resource loading
+    await self.mockExecutionControl.executeAll()
 
     var result: Validated<ResourceFieldValue?>?
     feature
-      .validatedFieldValuePublisher(.init(
-        name: "unavailable",
-        content: .totp(required: false)
-      ))
+      .validatedFieldValuePublisher(
+        .init(
+          name: "unavailable",
+          content: .totp(required: false)
+        )
+      )
       .sink(
         receiveCompletion: { _ in },
         receiveValue: { value in
@@ -152,7 +154,6 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       \ResourceTypesFetchDatabaseOperation.execute,
       with: always([defaultResourceType])
     )
-
 
     set(
       ResourceEditScope.self,
@@ -183,7 +184,6 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-
     set(
       ResourceEditScope.self,
       context: .create(
@@ -193,8 +193,8 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     let feature: ResourceEditForm = try testedInstance()
 
-   // execute resource loading
-   await self.mockExecutionControl.executeAll()
+    // execute resource loading
+    await self.mockExecutionControl.executeAll()
 
     var result: Validated<ResourceFieldValue?>?
     feature
@@ -216,7 +216,8 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     XCTAssertEqual(result?.value, .string("updated"))
   }
 
-  func test_validatedFieldValuePublisher_returnsPublisherPublishingValidatedValue_withResourceFieldValueValidation() async throws
+  func test_validatedFieldValuePublisher_returnsPublisherPublishingValidatedValue_withResourceFieldValueValidation()
+    async throws
   {
     patch(
       \ResourceTypesFetchDatabaseOperation.execute,
@@ -232,8 +233,8 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     let feature: ResourceEditForm = try testedInstance()
 
-   // execute resource loading
-   await self.mockExecutionControl.executeAll()
+    // execute resource loading
+    await self.mockExecutionControl.executeAll()
 
     var result: Validated<ResourceFieldValue?>?
     feature
@@ -266,7 +267,6 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       with: always([defaultResourceType])
     )
 
-
     set(
       ResourceEditScope.self,
       context: .create(
@@ -276,8 +276,8 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     let feature: ResourceEditForm = try testedInstance()
 
-   // execute resource loading
-   await self.mockExecutionControl.executeAll()
+    // execute resource loading
+    await self.mockExecutionControl.executeAll()
 
     var result: Error?
     do {
@@ -309,8 +309,8 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     let feature: ResourceEditForm = try testedInstance()
 
-   // execute resource loading
-   await self.mockExecutionControl.executeAll()
+    // execute resource loading
+    await self.mockExecutionControl.executeAll()
 
     do {
       try await feature
@@ -336,8 +336,8 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     let feature: ResourceEditForm = try testedInstance()
 
-   // execute resource loading
-   await self.mockExecutionControl.executeAll()
+    // execute resource loading
+    await self.mockExecutionControl.executeAll()
 
     var result: Error?
     do {
@@ -366,8 +366,8 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     let feature: ResourceEditForm = try testedInstance()
 
-   // execute resource loading
-   await self.mockExecutionControl.executeAll()
+    // execute resource loading
+    await self.mockExecutionControl.executeAll()
 
     var result: Error?
     do {
@@ -395,8 +395,8 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     let feature: ResourceEditForm = try testedInstance()
 
-   // execute resource loading
-   await self.mockExecutionControl.executeAll()
+    // execute resource loading
+    await self.mockExecutionControl.executeAll()
 
     var result: Error?
     do {
@@ -428,8 +428,8 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     let feature: ResourceEditForm = try testedInstance()
 
-   // execute resource loading
-   await self.mockExecutionControl.executeAll()
+    // execute resource loading
+    await self.mockExecutionControl.executeAll()
 
     try await feature.setFieldValue(.string("name"), .name)
 
@@ -478,8 +478,8 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     let feature: ResourceEditForm = try testedInstance()
 
-   // execute resource loading
-   await self.mockExecutionControl.executeAll()
+    // execute resource loading
+    await self.mockExecutionControl.executeAll()
 
     try await feature.setFieldValue(.string("name"), .name)
 
@@ -514,7 +514,10 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       \ResourceCreateNetworkOperation.execute,
       with: always(.init(resourceID: "resource-id", ownerPermissionID: "permission-id"))
     )
-
+    patch(
+      \SessionData.refreshIfNeeded,
+       with: always(Void())
+    )
     set(
       ResourceEditScope.self,
       context: .create(
@@ -524,8 +527,8 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     let feature: ResourceEditForm = try testedInstance()
 
-   // execute resource loading
-   await self.mockExecutionControl.executeAll()
+    // execute resource loading
+    await self.mockExecutionControl.executeAll()
 
     try await feature
       .setFieldValue(.string("name"), .name)
@@ -542,8 +545,8 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     patch(
       \ResourceDetails.details,
-       context: .mock_1,
-       with: alwaysThrow(MockIssue.error())
+      context: .mock_1,
+      with: alwaysThrow(MockIssue.error())
     )
 
     set(
@@ -552,8 +555,8 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     let feature: ResourceEditForm = try testedInstance()
 
-   // execute resource loading
-   await self.mockExecutionControl.executeAll()
+    // execute resource loading
+    await self.mockExecutionControl.executeAll()
 
     var result: Error?
     do {
@@ -573,8 +576,8 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     patch(
       \ResourceDetails.details,
-       context: .mock_1,
-       with: alwaysThrow(MockIssue.error())
+      context: .mock_1,
+      with: alwaysThrow(MockIssue.error())
     )
     patch(
       \Resources.loadResourceSecret,
@@ -590,8 +593,8 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     let feature: ResourceEditForm = try testedInstance()
 
-   // execute resource loading
-   await self.mockExecutionControl.executeAll()
+    // execute resource loading
+    await self.mockExecutionControl.executeAll()
 
     var result: Error?
     do {
@@ -611,8 +614,8 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     patch(
       \ResourceDetails.details,
-       context: .mock_1,
-       with: always(.mock_1)
+      context: .mock_1,
+      with: always(.mock_1)
     )
     patch(
       \Resources.loadResourceSecret,
@@ -632,8 +635,8 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     let feature: ResourceEditForm = try testedInstance()
 
-   // execute resource loading
-   await self.mockExecutionControl.executeAll()
+    // execute resource loading
+    await self.mockExecutionControl.executeAll()
 
     var result: Error?
     do {
@@ -653,12 +656,12 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     patch(
       \ResourceDetails.details,
-       context: .mock_1,
-       with: always(.mock_1)
+      context: .mock_1,
+      with: always(.mock_1)
     )
     patch(
       \ResourceDetails.secret,
-       context: .mock_1,
+      context: .mock_1,
       with: always(resourceSecret)
     )
 
@@ -669,7 +672,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     let feature: ResourceEditForm = try testedInstance()
 
     // execute resource loading
-   await self.mockExecutionControl.executeAll()
+    await self.mockExecutionControl.executeAll()
 
     let result: Validated<ResourceFieldValue?> =
       try await feature
@@ -687,16 +690,16 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     patch(
       \ResourceFolderPathFetchDatabaseOperation.execute,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
     patch(
       \ResourceDetails.details,
-       context: .mock_1,
-       with: always(.mock_1)
+      context: .mock_1,
+      with: always(.mock_1)
     )
     patch(
       \ResourceDetails.secret,
-       context: .mock_1,
+      context: .mock_1,
       with: always(resourceSecret)
     )
 
@@ -710,7 +713,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     let feature: ResourceEditForm = try testedInstance()
 
     // execute resource loading
-   await self.mockExecutionControl.executeAll()
+    await self.mockExecutionControl.executeAll()
 
     var result: Error?
     do {
@@ -730,16 +733,16 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     patch(
       \ResourceFolderPathFetchDatabaseOperation.execute,
-       with: always([.mock_1, .mock_2])
+      with: always([.mock_1, .mock_2])
     )
     patch(
       \ResourceDetails.details,
-       context: .mock_1,
-       with: always(.mock_1)
+      context: .mock_1,
+      with: always(.mock_1)
     )
     patch(
       \ResourceDetails.secret,
-       context: .mock_1,
+      context: .mock_1,
       with: always(resourceSecret)
     )
 
@@ -753,10 +756,10 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     let feature: ResourceEditForm = try testedInstance()
 
     // execute resource loading
-   await self.mockExecutionControl.executeAll()
+    await self.mockExecutionControl.executeAll()
 
     let result: OrderedSet<ResourceFolderPathItem>? =
-    try await feature.resource().path
+      try await feature.resource().path
 
     XCTAssertEqual(result, [.mock_1, .mock_2])
   }
@@ -768,12 +771,12 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     patch(
       \ResourceDetails.details,
-       context: .mock_1,
-       with: always(.mock_1)
+      context: .mock_1,
+      with: always(.mock_1)
     )
     patch(
       \ResourceDetails.secret,
-       context: .mock_1,
+      context: .mock_1,
       with: always(resourceSecret)
     )
 
@@ -787,10 +790,10 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     let feature: ResourceEditForm = try testedInstance()
 
     // execute resource loading
-   await self.mockExecutionControl.executeAll()
+    await self.mockExecutionControl.executeAll()
 
     let result: String? =
-    try await feature.resource().uri?.stringValue
+      try await feature.resource().uri?.stringValue
 
     XCTAssertEqual(result, "https://passbolt.com/predefined")
   }
@@ -798,16 +801,16 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
   func test_createResource_usesDefaultResourceTypeIfAble() async throws {
     patch(
       \ResourceTypesFetchDatabaseOperation.execute,
-       with: always([.mock_1, defaultResourceType, .mock_2])
+      with: always([.mock_1, defaultResourceType, .mock_2])
     )
     patch(
       \ResourceDetails.details,
-       context: .mock_1,
-       with: always(.mock_1)
+      context: .mock_1,
+      with: always(.mock_1)
     )
     patch(
       \ResourceDetails.secret,
-       context: .mock_1,
+      context: .mock_1,
       with: always(resourceSecret)
     )
 
@@ -821,10 +824,10 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     let feature: ResourceEditForm = try testedInstance()
 
     // execute resource loading
-   await self.mockExecutionControl.executeAll()
+    await self.mockExecutionControl.executeAll()
 
     let result: ResourceType.Slug? =
-    try await feature.resource().type.slug
+      try await feature.resource().type.slug
 
     XCTAssertEqual(result, ResourceType.Slug.default)
   }
@@ -836,12 +839,12 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     patch(
       \ResourceDetails.details,
-       context: .mock_1,
-       with: always(.mock_1)
+      context: .mock_1,
+      with: always(.mock_1)
     )
     patch(
       \ResourceDetails.secret,
-       context: .mock_1,
+      context: .mock_1,
       with: always(resourceSecret)
     )
     patch(
@@ -852,6 +855,10 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
           message: "encrypted-message"
         )
       ])
+    )
+    patch(
+      \SessionData.refreshIfNeeded,
+       with: always(Void())
     )
     var result: Resource.ID?
     let uncheckedSendableResult: UncheckedSendable<Resource.ID?> = .init(
@@ -874,8 +881,8 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     let feature: ResourceEditForm = try testedInstance()
 
-   // execute resource loading
-   await self.mockExecutionControl.executeAll()
+    // execute resource loading
+    await self.mockExecutionControl.executeAll()
 
     do {
       _ = try await feature.sendForm()
@@ -894,12 +901,12 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     patch(
       \ResourceDetails.details,
-       context: .mock_1,
-       with: always(.mock_1)
+      context: .mock_1,
+      with: always(.mock_1)
     )
     patch(
       \ResourceDetails.secret,
-       context: .mock_1,
+      context: .mock_1,
       with: always(resourceSecret)
     )
     patch(
@@ -922,8 +929,8 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     let feature: ResourceEditForm = try testedInstance()
 
-   // execute resource loading
-   await self.mockExecutionControl.executeAll()
+    // execute resource loading
+    await self.mockExecutionControl.executeAll()
 
     var result: Error?
     do {
@@ -934,6 +941,69 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     }
 
     XCTAssertError(result, matches: MockIssue.self)
+  }
+
+  func test_sendForm_triggersRefreshIfNeeded_whenSendingFormSucceeds() async throws {
+    patch(
+      \ResourceTypesFetchDatabaseOperation.execute,
+      with: always([defaultResourceType])
+    )
+    patch(
+      \ResourceDetails.details,
+      context: .mock_1,
+      with: always(.mock_1)
+    )
+    patch(
+      \ResourceDetails.secret,
+      context: .mock_1,
+      with: always(resourceSecret)
+    )
+    patch(
+      \UsersPGPMessages.encryptMessageForResourceUsers,
+      with: always([
+        .init(
+          recipient: "USER_ID",
+          message: "encrypted-message"
+        )
+      ])
+    )
+    patch(
+      \ResourceEditNetworkOperation.execute,
+      with: { (variable) async throws in
+        return .init(
+          resourceID: variable.resourceID
+        )
+      }
+    )
+
+    set(
+      ResourceEditScope.self,
+      context: .edit(.mock_1)
+    )
+    var result: Void?
+    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
+      get: { result },
+      set: { result = $0 }
+    )
+    patch(
+      \SessionData.refreshIfNeeded,
+       with: { () async throws in
+         uncheckedSendableResult.variable = Void()
+       }
+    )
+    let feature: ResourceEditForm = try testedInstance()
+
+    // execute resource loading
+    await self.mockExecutionControl.executeAll()
+
+    do {
+      _ = try await feature.sendForm()
+    }
+    catch {
+      XCTFail("\(error)")
+    }
+
+    XCTAssertNotNil(result)
   }
 }
 
@@ -962,7 +1032,7 @@ private let defaultResourceType: ResourceTypeDTO = .init(
     .uri,
     .username,
     .password,
-    .descriptionEncrypted
+    .descriptionEncrypted,
   ]
 )
 

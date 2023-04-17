@@ -156,7 +156,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
 
       switch field.name {
       case "name":
-        return .none // name is displayed differently
+        return .none  // name is displayed differently
 
       case "username":
         titleMutation = .text(

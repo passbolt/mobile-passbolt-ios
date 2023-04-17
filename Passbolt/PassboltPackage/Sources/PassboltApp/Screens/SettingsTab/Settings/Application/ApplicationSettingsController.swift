@@ -43,7 +43,7 @@ extension ApplicationSettingsController: ViewController {
     internal var biometicsAuthorizationAvailability: BiometricsAuthorizationAvailability
   }
 
-#if DEBUG
+  #if DEBUG
   internal static var placeholder: Self {
     .init(
       viewState: .placeholder(),
@@ -52,7 +52,7 @@ extension ApplicationSettingsController: ViewController {
       navigateToDefaultPresentationModeSettings: unimplemented0()
     )
   }
-#endif
+  #endif
 }
 
 // MARK: - Implementation
@@ -87,22 +87,22 @@ extension ApplicationSettingsController {
         case .unavailable, .unconfigured:
           await viewState.update(
             \.biometicsAuthorizationAvailability,
-             to: .unavailable
+            to: .unavailable
           )
 
         case .touchID:
           await viewState.update(
             \.biometicsAuthorizationAvailability,
-             to: accountPreferences.isPassphraseStored()
-             ? .enabledTouchID
-             : .disabledTouchID
+            to: accountPreferences.isPassphraseStored()
+              ? .enabledTouchID
+              : .disabledTouchID
           )
         case .faceID:
           await viewState.update(
             \.biometicsAuthorizationAvailability,
-             to: accountPreferences.isPassphraseStored()
-             ? .enabledFaceID
-             : .disabledFaceID
+            to: accountPreferences.isPassphraseStored()
+              ? .enabledFaceID
+              : .disabledFaceID
           )
         }
       }

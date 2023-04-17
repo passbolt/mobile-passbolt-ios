@@ -44,10 +44,8 @@ public struct SecondaryButton: View {
 
   public var body: some View {
     Button(
-      action: {  // this should be always MainActor
-        MainActor.execute(priority: .userInitiated) {
-          self.action()
-        }
+      action: {
+        self.action()
       },
       label: {
         if let icon: Image = self.icon {

@@ -77,6 +77,8 @@ internal struct OTPContextualMenuView: ControlledView {
             }
           )
 
+					ListDividerView()
+
           WithViewState(
             from: self.controller,
             at: \.deleteAvailable
@@ -98,7 +100,7 @@ internal struct OTPContextualMenuView: ControlledView {
                     .foregroundColor(.passboltSecondaryRed)
                 }
               )
-            } // else NOP
+            }  // else NOP
           }
         }
       }

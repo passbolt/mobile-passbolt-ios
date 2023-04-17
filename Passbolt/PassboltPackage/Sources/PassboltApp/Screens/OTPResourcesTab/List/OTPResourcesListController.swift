@@ -89,7 +89,6 @@ extension OTPResourcesListController {
 
     let navigationToAccountMenu: NavigationToAccountMenu = try features.instance()
     let navigationToOTPCreateMenu: NavigationToOTPCreateMenu = try features.instance()
-    let navigationToQRCodeCreateOTPView: NavigationToOTPScanning = try features.instance()
     let navigationToOTPContextualMenu: NavigationToOTPContextualMenu = try features.instance()
 
     let viewState: MutableViewState<ViewState> = .init(
@@ -218,9 +217,7 @@ extension OTPResourcesListController {
         behavior: .reuse
       ) {
         await otpCodesController.dispose()
-#warning("[MOB-1130] Disabled until allowing manual OTP input")
-//        try await navigationToOTPCreateMenu.perform()
-        try await navigationToQRCodeCreateOTPView.perform()
+        try await navigationToOTPCreateMenu.perform()
       }
     }
 

@@ -77,32 +77,33 @@ extension ResourceFolderPathFetchDatabaseOperation {
         arguments: input
       )
 
-    return try connection
+    return
+      try connection
       .fetch(
         using: selectPathStatement
       ) { dataRow in
-      guard
-        let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
-        let name: String = dataRow.name,
-        let shared: Bool = dataRow.shared
-      else {
-        throw
-        DatabaseIssue
-          .error(
-            underlyingError:
-              DatabaseDataInvalid
-              .error(for: ResourceFolderPathItem.self)
-          )
-      }
+        guard
+          let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
+          let name: String = dataRow.name,
+          let shared: Bool = dataRow.shared
+        else {
+          throw
+            DatabaseIssue
+            .error(
+              underlyingError:
+                DatabaseDataInvalid
+                .error(for: ResourceFolderPathItem.self)
+            )
+        }
 
-      return ResourceFolderPathItem(
-        id: id,
-        name: name,
-        shared: shared
-      )
-    }
-    .reversed()
-    .asOrderedSet()
+        return ResourceFolderPathItem(
+          id: id,
+          name: name,
+          shared: shared
+        )
+      }
+      .reversed()
+      .asOrderedSet()
   }
 }
 

@@ -24,11 +24,13 @@
 import Commons
 import SwiftUI
 
-public struct FormTextFieldView: View {
+public struct FormTextFieldView<Accessory>: View
+where Accessory: View {
 
   private let title: DisplayableString
   private let mandatory: Bool
   private let prompt: DisplayableString?
+	private let accessory: () -> Accessory
   @Binding private var text: Validated<String>
   @FocusState private var focused: Bool
   @State private var editing: Bool = false
@@ -38,96 +40,116 @@ public struct FormTextFieldView: View {
     mandatory: Bool = false,
     text: Binding<Validated<String>>,
     prompt: DisplayableString? = nil
-  ) {
+  ) where Accessory == EmptyView {
     self._text = text
     self.title = title
     self.mandatory = mandatory
     self.prompt = prompt
+		self.accessory = EmptyView.init
   }
+
+	public init(
+		title: DisplayableString = .raw(""),
+		mandatory: Bool = false,
+		text: Binding<Validated<String>>,
+		prompt: DisplayableString? = nil,
+		@ViewBuilder accessory: @escaping () -> Accessory
+	) {
+		self._text = text
+		self.title = title
+		self.mandatory = mandatory
+		self.prompt = prompt
+		self.accessory = accessory
+	}
 
   public var body: some View {
     VStack(
       alignment: .leading,
       spacing: 0
-    ) {
-      let title: String = self.title.string()
+		) {
+			let title: String = self.title.string()
 
-      if !title.isEmpty {
-        Group {
-          Text(title)
-            + Text(self.mandatory ? " *" : "")
-            .foregroundColor(Color.passboltSecondaryRed)
-        }
-        .text(
-          font: .inter(
-            ofSize: 12,
-            weight: .medium
-          ),
-          color: self.text.isValid
-            ? Color.passboltPrimaryText
-            : Color.passboltSecondaryRed
-        )
-        .padding(
-          top: 4,
-          bottom: 4
-        )
-      }  // else skip
+			if !title.isEmpty {
+				Group {
+					Text(title)
+					+ Text(self.mandatory ? " *" : "")
+						.foregroundColor(Color.passboltSecondaryRed)
+				}
+				.text(
+					font: .inter(
+						ofSize: 12,
+						weight: .medium
+					),
+					color: self.text.isValid
+					? Color.passboltPrimaryText
+					: Color.passboltSecondaryRed
+				)
+				.padding(
+					top: 4,
+					bottom: 4
+				)
+			}  // else skip
 
-      SwiftUI.TextField(
-        title,
-        text: .init(
-          get: { self.text.value },
-          set: { newValue in
-            self.text.value = newValue
-          }
-        ),
-        prompt: self.prompt
-          .map {
-            Text(displayable: $0)
-              .text(
-                font: .inter(
-                  ofSize: 14,
-                  weight: .regular
-                ),
-                color: .passboltSecondaryText
-              )
-          }
-      )
-      .text(
-        font: .inter(
-          ofSize: 14,
-          weight: .regular
-        ),
-        color: .passboltPrimaryText
-      )
-      .multilineTextAlignment(.leading)
-      .focused(self.$focused)
-      .onChange(of: focused) { (focused: Bool) in
-        withAnimation {
-          self.editing = focused
-        }
-      }
-      .padding(12)
-      .overlay(
-        RoundedRectangle(cornerRadius: 4)
-          .stroke(
-            self.editing
-              ? Color.passboltPrimaryBlue
-              : self.text.isValid
-                ? Color.passboltDivider
-                : Color.passboltSecondaryRed,
-            lineWidth: 1
-          )
-          .allowsHitTesting(false)
-          .transition(.opacity)
-      )
-      .padding(1)  // border size
-      .backgroundColor(.passboltBackgroundAlternative)
-      .cornerRadius(4, corners: .allCorners)
-      .onTapGesture {
-        self.focused = true
-      }
-      .accessibilityIdentifier("form.textfield.text")
+			HStack {
+				SwiftUI.TextField(
+					title,
+					text: .init(
+						get: { self.text.value },
+						set: { newValue in
+							self.text.value = newValue
+						}
+					),
+					prompt: self.prompt
+						.map {
+							Text(displayable: $0)
+								.text(
+									font: .inter(
+										ofSize: 14,
+										weight: .regular
+									),
+									color: .passboltSecondaryText
+								)
+						}
+				)
+				.text(
+					font: .inter(
+						ofSize: 14,
+						weight: .regular
+					),
+					color: .passboltPrimaryText
+				)
+				.multilineTextAlignment(.leading)
+				.focused(self.$focused)
+				.onChange(of: focused) { (focused: Bool) in
+					withAnimation {
+						self.editing = focused
+					}
+				}
+				.padding(12)
+				.overlay(
+					RoundedRectangle(cornerRadius: 4)
+						.stroke(
+							self.editing
+							? Color.passboltPrimaryBlue
+							: self.text.isValid
+							? Color.passboltDivider
+							: Color.passboltSecondaryRed,
+							lineWidth: 1
+						)
+						.allowsHitTesting(false)
+						.transition(.opacity)
+				)
+				.padding(1)  // border size
+				.backgroundColor(.passboltBackgroundAlternative)
+				.cornerRadius(4, corners: .allCorners)
+				.onTapGesture {
+					self.focused = true
+				}
+				.frame(minWidth: 50)
+				.accessibilityIdentifier("form.textfield.text")
+
+				self.accessory()
+			}
 
       if let errorMessage: DisplayableString = self.text.displayableErrorMessage {
         Text(displayable: errorMessage)

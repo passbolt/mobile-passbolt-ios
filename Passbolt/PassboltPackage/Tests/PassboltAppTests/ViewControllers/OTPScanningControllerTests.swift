@@ -75,7 +75,7 @@ final class OTPScanningControllerTests: LoadableFeatureTestCase<OTPScanningContr
       with: always(self.executed())
     )
 
-    withTestedInstanceExecuted() { feature in
+    withTestedInstanceExecuted { feature in
       feature.processPayload("payload")
       await self.mockExecutionControl.executeAll()
       return await feature.viewState.snackBarMessage

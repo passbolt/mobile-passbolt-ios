@@ -66,8 +66,8 @@ internal struct TermsAndLicensesSettingsView: ControlledView {
         )
         .opacity(
           viewState.termsAndConditionsLinkAvailable
-          ? 1
-          : 0.5
+            ? 1
+            : 0.5
         )
         .disabled(!viewState.termsAndConditionsLinkAvailable)
 
@@ -87,8 +87,8 @@ internal struct TermsAndLicensesSettingsView: ControlledView {
         )
         .opacity(
           viewState.privacyPolicyLinkAvailable
-          ? 1
-          : 0.5
+            ? 1
+            : 0.5
         )
         .disabled(!viewState.privacyPolicyLinkAvailable)
       }

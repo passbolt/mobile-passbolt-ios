@@ -30,9 +30,9 @@ open class FeaturesTestCase: XCTestCase {
 
   public let asyncExecutionControl: AsyncExecutor.MockExecutionControl = .init()
   public nonisolated let dynamicVariables: DynamicVariables = .init()
-  public let cancellables: Cancellables = .init() // for legacy elements
+  public var cancellables: Cancellables { self.testFeatures.cancellables }  // for legacy elements
 
-  private lazy var testFeatures: TestFeaturesContainer = .init()
+  private let testFeatures: TestFeaturesContainer = .init()
 
   open func commonPrepare() {
     patch(
@@ -134,13 +134,12 @@ extension FeaturesTestCase {
   where Controller: UIController {
     var features: Features = self.testFeatures
     let instance: Controller = try .instance(
-        in: context,
-        with: &features,
-        cancellables: self.cancellables
-      )
-    guard let features = features as? TestFeaturesContainer
-    else { unreachable("Type can't be changed") }
-    self.testFeatures = features
+      in: context,
+      with: &features,
+      cancellables: self.cancellables
+    )
+    guard features as? FeaturesContainer === self.testFeatures
+    else { unreachable("Test container can't be changed") }
     return instance
   }
 
@@ -150,13 +149,12 @@ extension FeaturesTestCase {
   where Controller: UIController, Controller.Context == Void {
     var features: Features = self.testFeatures
     let instance: Controller = try .instance(
-        in: Void(),
-        with: &features,
-        cancellables: self.cancellables
-      )
-    guard let features = features as? TestFeaturesContainer
-    else { unreachable("Type can't be changed") }
-    self.testFeatures = features
+      in: Void(),
+      with: &features,
+      cancellables: self.cancellables
+    )
+    guard features as? FeaturesContainer === self.testFeatures
+    else { unreachable("Test container can't be changed") }
     return instance
   }
 }
@@ -179,6 +177,17 @@ extension FeaturesTestCase {
   ) where Scope: FeaturesScope, Scope.Context == Void {
     self.testFeatures
       .set(scope)
+  }
+
+  public func register<Feature>(
+    _ register: (inout FeaturesRegistry) -> Void,
+    for _: Feature.Type
+  ) where Feature: LoadableFeature {
+    self.testFeatures
+      .register(
+        register,
+        for: Feature.self
+      )
   }
 
   public func usePlaceholder<Feature>(

@@ -445,6 +445,13 @@ Contact your administrator for more information.";
 
 "error.otp.configuration.invalid" = "Invalid OTP configuration.";
 
+// Validation errors
+
+"error.resource.field.empty" = "%@ cannot be empty!";
+"error.resource.field.range.greater" = "%@ has to be greater than %d";
+"error.resource.field.range.between" = "%@ has to be between %d and %d";
+"error.resource.field.characters.invalid" = "%@ contains invalid characters.";
+
 // Home - presentation mode menu
 
 "home.presentation.mode.menu.title" = "Filter view by";
@@ -494,6 +501,25 @@ Contact your administrator for more information.";
 scanned!";
 "otp.scanning.success.create.button.title" = "Create a standalone TOTP";
 "otp.scanning.success.link.button.title" = "Link TOTP to a password";
+
+// OTP form
+
+"otp.edit.form.create.title" = "Create TOTP";
+"otp.edit.form.field.name.title" = "Name (Label)";
+"otp.edit.form.field.name.prompt" = "Name";
+"otp.edit.form.field.uri.title" = "URL (Issuer)";
+"otp.edit.form.field.uri.prompt" = "URL";
+"otp.edit.form.field.secret.title" = "Secret";
+"otp.edit.form.field.secret.prompt" = "Secret";
+"otp.edit.form.advanced.button.title" = "Advanced settings";
+"otp.edit.form.create.button.title" = "Create standalone OTP";
+"otp.edit.form.edit.advanced.title" = "Create TOTP - advanced settings";
+"otp.edit.form.field.digits.title" = "OTP length";
+"otp.edit.form.field.digits.label" = "digits.";
+"otp.edit.form.field.period.title" = "TOTP expiry";
+"otp.edit.form.field.period.label" = "seconds until the TOTP expires.";
+"otp.edit.form.field.algorithm.title" = "Algorithm";
+"otp.edit.form.apply.button.title" = "Apply";
 
 // Settings - Main
 

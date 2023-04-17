@@ -55,7 +55,7 @@ final class OTPScanningSuccessControllerTests: LoadableFeatureTestCase<OTPScanni
     )
     patch(
       \OTPEditForm.sendForm,
-       with: always(Void())
+      with: always(Void())
     )
     withTestedInstanceExecuted { feature in
       feature.createStandaloneOTP()
@@ -70,7 +70,7 @@ final class OTPScanningSuccessControllerTests: LoadableFeatureTestCase<OTPScanni
     )
     patch(
       \OTPEditForm.sendForm,
-       with: always(Void())
+      with: always(Void())
     )
     withTestedInstanceExecuted { feature in
       feature.updateExistingResource()

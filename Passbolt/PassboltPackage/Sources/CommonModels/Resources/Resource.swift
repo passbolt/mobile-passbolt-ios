@@ -95,14 +95,16 @@ public struct Resource {
   ) throws {
     guard self.type.fields.contains(field)
     else {
-      throw InvalidResourceData
+      throw
+        InvalidResourceData
         .error(
           message: "Trying to set non existing field value!"
         )
     }
     guard field.accepts(value)
     else {
-      throw InvalidResourceData
+      throw
+        InvalidResourceData
         .error(
           message: "Trying to set wrong field value!"
         )

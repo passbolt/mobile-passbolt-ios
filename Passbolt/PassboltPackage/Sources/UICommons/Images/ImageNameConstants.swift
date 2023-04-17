@@ -80,6 +80,8 @@ extension ImageNameConstant {
   public static var mobileTransfer: Self { "MobileTransfer" }
   public static var file: Self { "File" }
   public static var feather: Self { "Feather" }
+  public static var cog: Self { "Cog" }
+	public static var chevronDown: Self { "ChevronDown" }
 
   // Dynamic images - rendered according to interface (Light/Dark)
   public static var accountsSkeleton: Self { "AccountsSkeleton" }

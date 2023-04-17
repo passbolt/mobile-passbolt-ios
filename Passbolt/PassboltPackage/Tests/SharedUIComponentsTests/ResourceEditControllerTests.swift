@@ -39,17 +39,17 @@ final class ResourceEditControllerTests: FeaturesTestCase {
     super.commonPrepare()
     patch(
       \ResourceEditForm.fieldsPublisher,
-       with: always(
+      with: always(
         CurrentValueSubject(defaultResourceType.fields)
           .eraseToAnyPublisher()
-       )
+      )
     )
     patch(
       \ResourceEditForm.fieldsPublisher,
-       with: always(
+      with: always(
         CurrentValueSubject(defaultResourceType.fields)
           .eraseToAnyPublisher()
-       )
+      )
     )
   }
 
@@ -61,7 +61,7 @@ final class ResourceEditControllerTests: FeaturesTestCase {
       )
     )
     var result: OrderedSet<ResourceField> = .init()
-    
+
     controller
       .resourcePropertiesPublisher()
       .sink(
@@ -71,7 +71,7 @@ final class ResourceEditControllerTests: FeaturesTestCase {
         }
       )
       .store(in: cancellables)
-    
+
     XCTAssertEqual(
       result,
       defaultResourceType.fields
@@ -101,40 +101,43 @@ final class ResourceEditControllerTests: FeaturesTestCase {
   }
 
   func test_generatePassword_generatesPassword_andTriggersFieldValuePublisher() async throws {
-    var resultPassword: ResourceFieldValue { self.dynamicVariables.get(\.resultPassword)
+    var resultPassword: ResourceFieldValue {
+      self.dynamicVariables.get(\.resultPassword)
     }
-    var resultGenerate: (
-      alphabet: Set<Set<Character>>,
-      minLength: Int,
-      targetEntropy: Entropy
-    )? {
+    var resultGenerate:
+      (
+        alphabet: Set<Set<Character>>,
+        minLength: Int,
+        targetEntropy: Entropy
+      )?
+    {
       self.dynamicVariables.get(\.resultGenerate)
     }
 
     patch(
       \ResourceEditForm.resource,
-       with: always(.mock_1)
+      with: always(.mock_1)
     )
     patch(
       \ResourceEditForm.setFieldValue,
-       with: { (value: ResourceFieldValue, field: ResourceField) async throws -> Void in
-         if field.name == "password" {
-           self.dynamicVariables.set(\.resultPassword, to: value)
-         }
-         else {
-           /* NOP */
-         }
-       }
+      with: { (value: ResourceFieldValue, field: ResourceField) async throws -> Void in
+        if field.name == "password" {
+          self.dynamicVariables.set(\.resultPassword, to: value)
+        }
+        else {
+          /* NOP */
+        }
+      }
     )
     patch(
       \RandomStringGenerator.generate,
-       with: { alphabets, minLength, targetEntropy in
-         self.dynamicVariables.set(
+      with: { alphabets, minLength, targetEntropy in
+        self.dynamicVariables.set(
           \.resultGenerate,
-           to: (alphabets, minLength, targetEntropy)
-         )
-         return "&!)]V3rYstrP@$word___"
-       }
+          to: (alphabets, minLength, targetEntropy)
+        )
+        return "&!)]V3rYstrP@$word___"
+      }
     )
 
     let controller: ResourceEditController = try testedInstance(
@@ -159,15 +162,15 @@ final class ResourceEditControllerTests: FeaturesTestCase {
     let fieldValueSubject: PassthroughSubject<Validated<ResourceFieldValue?>, Never> = .init()
     patch(
       \ResourceEditForm.validatedFieldValuePublisher,
-       with: always(fieldValueSubject.eraseToAnyPublisher())
+      with: always(fieldValueSubject.eraseToAnyPublisher())
     )
     patch(
       \ResourceEditForm.resource,
-       with: always(.mock_1)
+      with: always(.mock_1)
     )
     patch(
       \RandomStringGenerator.entropy,
-       with: always(.veryStrongPassword)
+      with: always(.veryStrongPassword)
     )
 
     let controller: ResourceEditController = try testedInstance(
@@ -196,46 +199,15 @@ final class ResourceEditControllerTests: FeaturesTestCase {
     XCTAssertEqual(result, .veryStrongPassword)
   }
 
-  func test_createResource_triggersRefreshIfNeeded_whenSendingFormSucceeds() async throws {
-    var result: Void? {
-      self.dynamicVariables.get(\.result)
-    }
-
-    patch(
-      \SessionData.refreshIfNeeded,
-       with: { () async throws in
-         self.dynamicVariables.set(\.result, to: Void())
-       }
-    )
-
-    patch(
-      \ResourceEditForm.sendForm,
-       with: always(.mock_1)
-    )
-
-    let controller: ResourceEditController = try testedInstance(
-      context: (
-        editing: .edit(.mock_1),
-        completion: { _ in /* NOP */ }
-      )
-    )
-
-    try await controller
-      .sendForm()
-      .asAsyncValue()
-
-    XCTAssertNotNil(result)
-  }
-
   func test_createResource_callsContextCompletionWithCreatedResourceID_whenSendingFormSucceeds() async throws {
     patch(
       \SessionData.refreshIfNeeded,
-       with: always(Void())
+      with: always(Void())
     )
     patch(
-        \ResourceEditForm.sendForm,
-         with: always(.mock_1)
-      )
+      \ResourceEditForm.sendForm,
+      with: always(.mock_1)
+    )
 
     var result: Resource.ID?
     let controller: ResourceEditController = try testedInstance(

@@ -22,12 +22,12 @@
 //
 
 import Accounts
+import DatabaseOperations
 import Features
 import OSFeatures
 import Session
-import UIComponents
-import DatabaseOperations
 import SessionData
+import UIComponents
 
 internal struct MainTabsController {
 
@@ -113,7 +113,8 @@ extension MainTabsController: UIController {
       do {
         try await sessionData.refreshIfNeeded()
         let availableResourceTypes: Array<ResourceType> = try await resourceTypesFetchDatabaseOperation()
-        return availableResourceTypes
+        return
+          availableResourceTypes
           .contains(where: { $0.slug == .totp || $0.slug == .hotp })
       }
       catch {

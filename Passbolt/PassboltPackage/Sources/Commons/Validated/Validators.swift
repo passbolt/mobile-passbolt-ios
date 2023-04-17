@@ -148,3 +148,45 @@ extension Validator {
     }
   }
 }
+
+extension Validator where Value: Comparable {
+
+  public static func inRange(
+    of range: ClosedRange<Value>,
+    displayable: DisplayableString,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    Self { value in
+      if range.contains(value) {
+        return .valid(value)
+      }
+      else {
+        return .invalid(
+          value,
+          error: InvalidValue.invalid(
+            value: value,
+            displayable: displayable,
+            file: file,
+            line: line
+          )
+        )
+      }
+    }
+  }
+}
+
+extension Validator {
+
+  public func contraMapOptional() -> Validator<Optional<Value>> {
+    .init { (value: Value?) -> Validated<Optional<Value>> in
+      if let value {
+        return self.validate(value)
+          .map(Optional<Value>.some)
+      }
+      else {
+        return .valid(.none)
+      }
+    }
+  }
+}

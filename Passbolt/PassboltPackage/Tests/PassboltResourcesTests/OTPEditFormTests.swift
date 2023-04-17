@@ -130,15 +130,13 @@ final class OTPEditFormTests: LoadableFeatureTestCase<OTPEditForm> {
 
   func test_fillFromURI_updatesState_withRequiredDataAndDefaults() {
     withTestedInstanceReturnsEqual(
-      OTPConfiguration(
-        issuer: .none,
-        account: "edith@passbolt.com",
-        secret: .totp(
-          sharedSecret: "SECRET_KEY",
-          algorithm: .sha1,
-          digits: 6,
-          period: 30
-        )
+      OTPEditForm.State(
+        name: .valid("edith@passbolt.com"),
+        uri: .valid(""),
+        secret: .valid("SECRET_KEY"),
+        algorithm: .valid(.sha1),
+        digits: .valid(6),
+        type: .totp(period: .valid(30))
       )
     ) { feature in
       try feature.fillFromURI("otpauth://totp/edith@passbolt.com?secret=SECRET_KEY")
@@ -148,15 +146,13 @@ final class OTPEditFormTests: LoadableFeatureTestCase<OTPEditForm> {
 
   func test_fillFromURI_updatesState_withAllParameters() {
     withTestedInstanceReturnsEqual(
-      OTPConfiguration(
-        issuer: "Passbolt",
-        account: "edith@passbolt.com",
-        secret: .totp(
-          sharedSecret: "SECRET_KEY",
-          algorithm: .sha256,
-          digits: 8,
-          period: 90
-        )
+      OTPEditForm.State(
+        name: .valid("edith@passbolt.com"),
+        uri: .valid("Passbolt"),
+        secret: .valid("SECRET_KEY"),
+        algorithm: .valid(.sha256),
+        digits: .valid(8),
+        type: .totp(period: .valid(90))
       )
     ) { feature in
       try feature.fillFromURI(
@@ -170,7 +166,7 @@ final class OTPEditFormTests: LoadableFeatureTestCase<OTPEditForm> {
   func test_sendForm_updatesResourceEditForm_whenCreatingStandaloneOTP() {
     patch(
       \ResourceEditForm.resource,
-       with: always(.mock_totp)
+      with: always(.mock_totp)
     )
     var result: Dictionary<ResourceField, ResourceFieldValue> = .init()
     let uncheckedSendableResult: UncheckedSendable<Dictionary<ResourceField, ResourceFieldValue>> = .init(
@@ -179,13 +175,13 @@ final class OTPEditFormTests: LoadableFeatureTestCase<OTPEditForm> {
     )
     patch(
       \ResourceEditForm.setFieldValue,
-       with: { (value, field) async throws in
-         uncheckedSendableResult.variable[field] = value
-       }
+      with: { (value, field) async throws in
+        uncheckedSendableResult.variable[field] = value
+      }
     )
     patch(
       \ResourceEditForm.sendForm,
-       with: always(.mock_1)
+      with: always(.mock_1)
     )
     withTestedInstanceReturnsEqual(
       [
@@ -212,16 +208,16 @@ final class OTPEditFormTests: LoadableFeatureTestCase<OTPEditForm> {
   func test_sendForm_succeeds_whenSendingResourceFormSucceeds() {
     patch(
       \ResourceEditForm.resource,
-       with: always(.mock_totp)
+      with: always(.mock_totp)
     )
 
     patch(
       \ResourceEditForm.setFieldValue,
-       with: always(Void())
+      with: always(Void())
     )
     patch(
       \ResourceEditForm.sendForm,
-       with: always(.mock_1)
+      with: always(.mock_1)
     )
     withTestedInstanceNotThrows { feature in
       try feature.fillFromURI(

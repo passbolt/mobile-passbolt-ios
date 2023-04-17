@@ -36,45 +36,144 @@ extension OTPEditForm {
     try features.ensureScope(SessionScope.self)
     try features.ensureScope(OTPEditScope.self)
 
-    let updatesSource: UpdatesSequenceSource = .init()
-    let formState: CriticalState<State> = .init(
-      .init(
-        issuer: .none,
-        account: "",
-        secret: .totp(
-          sharedSecret: "",
-          algorithm: .sha1,
-          digits: 6,
-          period: 30
+    let nameFieldValidator: Validator<String> = .nonEmpty(
+      displayable: .localized(
+        key: "error.resource.field.empty",
+        arguments: [
+          DisplayableString.localized(
+            key: "otp.edit.form.field.name.title"
+          ).string()
+        ]
+      )
+    )
+    let uriFieldValidator: Validator<String> = .alwaysValid
+    let secretFieldValidator: Validator<String> = .nonEmpty(
+      displayable: .localized(
+        key: "error.resource.field.empty",
+        arguments: [
+          DisplayableString.localized(
+            key: "otp.edit.form.field.secret.title"
+          ).string()
+        ]
+      )
+    )
+    let digitsFieldValidator: Validator<UInt> = .inRange(
+      of: 6...8,
+      displayable: .localized(
+        key: "error.resource.field.range.between",
+        arguments: [
+          DisplayableString.localized(
+            key: "otp.edit.form.field.digits.title"
+          ).string(),
+          6,
+          8,
+        ]
+      )
+    )
+    let periodFieldValidator: Validator<Seconds?> = Validator<Seconds>
+      .inRange(
+        of: 1...Seconds(rawValue: .max),
+        displayable: .localized(
+          key: "error.resource.field.range.greater",
+          arguments: [
+            DisplayableString.localized(
+              key: "otp.edit.form.field.period.title"
+            ).string(),
+            0,
+          ]
         )
+      )
+      .contraMapOptional()
+    let counterFieldValidator: Validator<UInt64?> = .alwaysValid
+
+    let updatesSource: UpdatesSequenceSource = .init()
+    let formState: CriticalState<AutoValidated<State>> = .init(
+      .init(
+        state: .init(),
+        .validating(\.name, with: nameFieldValidator),
+        .validating(\.uri, with: uriFieldValidator),
+        .validating(\.secret, with: secretFieldValidator),
+        .validating(\.digits, with: digitsFieldValidator),
+        .validating(\.type.period, with: periodFieldValidator),
+        .validating(\.type.counter, with: counterFieldValidator),
+        .validating(\.digits, with: digitsFieldValidator)
       )
     )
 
     @Sendable nonisolated func state() -> State {
-      formState.get(\.self)
+      formState.get(\.state)
     }
 
     @Sendable nonisolated func fillFrom(
       uri: String
     ) throws {
       let configuration: OTPConfiguration = try parseTOTPConfiguration(from: uri)
+      defer { updatesSource.sendUpdate() }
+      try formState.access { (state: inout AutoValidated<State>) in
+        state.apply(
+          .assigning(
+            State(
+              name: .valid(configuration.account),
+              uri: .valid(configuration.issuer ?? ""),
+              secret: .valid(configuration.secret.sharedSecret),
+							algorithm: .valid(configuration.secret.algorithm),
+              digits: .valid(configuration.secret.digits),
+              type: {
+                switch configuration.secret {
+                case .totp(_, _, _, let period):
+                  return .totp(period: .valid(period))
+                case .hotp(_, _, _, let counter):
+                  return .hotp(counter: .valid(counter))
+                }
+              }()
+            ),
+            to: \.self
+          )
+        )
+        try state.validate()
+      }
+    }
 
-      formState.set(\.self, configuration)
+    @Sendable nonisolated func update(
+      _ assignment: Assignment<State>
+    ) {
+      formState.access { (state: inout AutoValidated<State>) in
+        state.apply(assignment)
+      }
       updatesSource.sendUpdate()
     }
 
     @Sendable nonisolated func sendForm(
       _ action: SendFormAction
     ) async throws {
-      #warning("[MOB-1096] adding hotp will require resource type slug and dedicated fields usage")
-      let resourceEditingFeatures: Features = await features.branchIfNeeded(
-        scope: ResourceEditScope.self,
-        context: .create(
-          .totp,
-          folderID: .none,
-          uri: .none
-        )
-      ) ?? features
+      let state: AutoValidated<State>
+      do {
+        state = try formState.access { (state: inout AutoValidated<State>) in
+          try state.validate()
+          return state
+        }
+      }
+      catch {
+        updatesSource.sendUpdate()
+        throw error
+      }
+
+      let resourceEditingFeatures: Features =
+        await features.branchIfNeeded(
+          scope: ResourceEditScope.self,
+          context: .create(
+            {
+              switch state.type {
+              case .totp:
+                return .totp
+              case .hotp:
+                return .hotp
+              }
+            }(),
+            folderID: .none,
+            uri: .none
+          )
+        ) ?? features
 
       let resourceEditForm: ResourceEditForm = try await resourceEditingFeatures.instance()
 
@@ -84,20 +183,54 @@ extension OTPEditForm {
 
         guard
           let nameField: ResourceField = resource.fields.first(where: { $0.name == "name" }),
-          let uriField: ResourceField = resource.fields.first(where: { $0.name == "uri" }),
-          let totpField: ResourceField = resource.fields.first(where: { $0.name == "totp" })
+          let uriField: ResourceField = resource.fields.first(where: { $0.name == "uri" })
         else {
           throw InvalidResourceType.error()
         }
 
-        let state: State = formState.get(\.self)
-        try await resourceEditForm.setFieldValue(.string(state.account), nameField)
-        try await resourceEditForm.setFieldValue(.string(state.issuer ?? ""), uriField)
-        try await resourceEditForm.setFieldValue(.otp(state.secret), totpField)
+        try await resourceEditForm.setFieldValue(.string(state.name), nameField)
+        try await resourceEditForm.setFieldValue(.string(state.uri), uriField)
+        switch state.type {
+        case .totp(let period):
+          guard let totpField: ResourceField = resource.fields.first(where: { $0.name == "totp" })
+          else { throw InvalidResourceType.error() }
+
+          try await resourceEditForm
+            .setFieldValue(
+              .otp(
+                .totp(
+                  sharedSecret: state.secret,
+                  algorithm: state.algorithm,
+                  digits: state.digits,
+                  period: period.value
+                )
+              ),
+              totpField
+            )
+
+        case .hotp(let counter):
+          guard let hotpField: ResourceField = resource.fields.first(where: { $0.name == "hotp" })
+          else { throw InvalidResourceType.error() }
+
+          try await resourceEditForm
+            .setFieldValue(
+              .otp(
+                .hotp(
+                  sharedSecret: state.secret,
+                  algorithm: state.algorithm,
+                  digits: state.digits,
+                  counter: counter.value
+                )
+              ),
+              hotpField
+            )
+        }
+
         _ = try await resourceEditForm.sendForm()
 
       case .attach(to: let resourceID):
-        throw Unimplemented
+        throw
+          Unimplemented
           .error("[MOB-1094] Adding OTP to existing resource is not supported yet")
       }
     }
@@ -106,6 +239,7 @@ extension OTPEditForm {
       updates: updatesSource.updatesSequence,
       state: state,
       fillFromURI: fillFrom(uri:),
+      update: update(_:),
       sendForm: sendForm(_:)
     )
   }

@@ -400,7 +400,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         id: .mock_1,
         permission: .owner,
         permissionID: .mock_2
-      )
+      ),
     ]
     patch(
       \ResourceShareNetworkOperation.execute,

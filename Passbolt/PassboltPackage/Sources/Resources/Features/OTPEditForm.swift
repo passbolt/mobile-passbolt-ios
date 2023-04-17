@@ -31,24 +31,105 @@ public struct OTPEditForm {
   public var updates: UpdatesSequence
   public var state: @Sendable () -> State
   public var fillFromURI: @Sendable (String) throws -> Void
+  public var update: @Sendable (Assignment<State>) -> Void
   public var sendForm: @Sendable (SendFormAction) async throws -> Void
 
   public init(
     updates: UpdatesSequence,
     state: @escaping @Sendable () -> State,
     fillFromURI: @escaping @Sendable (String) throws -> Void,
+    update: @escaping @Sendable (Assignment<State>) -> Void,
     sendForm: @escaping @Sendable (SendFormAction) async throws -> Void
   ) {
     self.updates = updates
     self.state = state
     self.fillFromURI = fillFromURI
+    self.update = update
     self.sendForm = sendForm
   }
 }
 
 extension OTPEditForm {
 
-  public typealias State = OTPConfiguration
+  public struct State: Hashable {
+
+    public enum OTPType: Hashable {
+
+      case hotp(counter: Validated<UInt64>)
+      case totp(period: Validated<Seconds>)
+
+      public var counter: Validated<UInt64?> {
+        get {
+          switch self {
+          case .hotp(let counter):
+            return counter.toOptional()
+
+          case .totp:
+            return .valid(.none)
+          }
+        }
+        set {
+          guard let newValue = newValue.fromOptional()
+          else { return }  // Can't assign .none
+          self = .hotp(counter: newValue)
+        }
+      }
+
+      public var period: Validated<Seconds?> {
+        get {
+          switch self {
+          case .hotp:
+            return .valid(.none)
+
+          case .totp(let period):
+            return period.toOptional()
+          }
+        }
+        set {
+          guard let newValue = newValue.fromOptional()
+          else { return }  // Can't assign .none
+          self = .totp(period: newValue)
+        }
+      }
+    }
+
+    public var name: Validated<String>
+    public var uri: Validated<String>
+    public var secret: Validated<String>
+    public var algorithm: Validated<HOTPAlgorithm>
+    public var digits: Validated<UInt>
+    public var type: OTPType
+
+    public init(
+      name: Validated<String> = .valid(""),
+      uri: Validated<String> = .valid(""),
+      secret: Validated<String> = .valid(""),
+			algorithm: Validated<HOTPAlgorithm> = .valid(.sha1),
+      digits: Validated<UInt> = .valid(6),
+      type: OTPType = .totp(period: .valid(30))
+    ) {
+      self.name = name
+      self.uri = uri
+      self.secret = secret
+      self.algorithm = algorithm
+      self.digits = digits
+      self.type = type
+    }
+  }
+
+  public func update<Value>(
+    field keyPath: WritableKeyPath<State, Value>,
+    to value: Value
+  ) {
+    self.update(.assigning(value, to: keyPath))
+  }
+
+  public func update<Value>(
+    field keyPath: WritableKeyPath<State, Validated<Value>>,
+    toValidated value: Value
+  ) {
+    self.update(.assigning(value, toValidated: keyPath))
+  }
 }
 
 extension OTPEditForm: LoadableFeature {
@@ -67,6 +148,7 @@ extension OTPEditForm: LoadableFeature {
       updates: .placeholder,
       state: unimplemented0(),
       fillFromURI: unimplemented1(),
+      update: unimplemented1(),
       sendForm: unimplemented1()
     )
   }

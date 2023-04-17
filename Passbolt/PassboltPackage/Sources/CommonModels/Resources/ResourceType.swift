@@ -43,7 +43,8 @@ public struct ResourceType {
     self.id = id
     self.slug = slug
     self._name = name
-    self.fields = fields
+    self.fields =
+      fields
       .sorted()
       .asOrderedSet()
   }

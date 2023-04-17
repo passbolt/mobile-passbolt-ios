@@ -202,7 +202,7 @@ internal struct SecureFormTextFieldView_Previews: PreviewProvider {
 
   internal static var previews: some View {
     VStack(spacing: 8) {
-      FormTextFieldView(
+      SecureFormTextFieldView(
         title: "Some field title",
         text: .constant(.valid("edited")),
         prompt: "editedText"
@@ -277,7 +277,7 @@ internal struct SecureFormTextFieldView_Previews: PreviewProvider {
         )
       )
 
-      FormTextFieldView(
+      SecureFormTextFieldView(
         text: .constant(
           .invalid(
             "invalidLongText",

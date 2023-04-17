@@ -53,7 +53,13 @@ where TitleView: View, ContentView: View {
             self.closeTap()
           }
       }
-      .styleTextTitle()
+      .text(
+        font: .inter(
+          ofSize: 20,
+          weight: .semibold
+        ),
+        color: .passboltPrimaryText
+      )
       .padding(
         EdgeInsets(
           top: 16,

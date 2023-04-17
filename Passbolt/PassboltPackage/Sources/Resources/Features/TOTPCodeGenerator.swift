@@ -40,7 +40,7 @@ public struct TOTPCodeGenerator {
 extension TOTPCodeGenerator: LoadableFeature {
 
   public struct Context {
-    
+
     public var resourceID: Resource.ID
     public var sharedSecret: String
     public var algorithm: HOTPAlgorithm

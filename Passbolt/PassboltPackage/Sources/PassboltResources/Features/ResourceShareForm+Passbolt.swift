@@ -84,22 +84,22 @@ extension ResourceShareForm {
             OrderedSet(
               (existingPermissions
                 + formState.editedPermissions)
-              .sorted {
-                (lPermission: ResourcePermission, rPermission: ResourcePermission) -> Bool in
-                switch (lPermission, rPermission) {
-                case (.userGroup, .user):
-                  return true
+                .sorted {
+                  (lPermission: ResourcePermission, rPermission: ResourcePermission) -> Bool in
+                  switch (lPermission, rPermission) {
+                  case (.userGroup, .user):
+                    return true
 
-                case (.userGroup(_, _, .some), .userGroup(_, _, .none)):
-                  return true
+                  case (.userGroup(_, _, .some), .userGroup(_, _, .none)):
+                    return true
 
-                case (.user(_, _, .some), .user(_, _, .none)):
-                  return true
+                  case (.user(_, _, .some), .user(_, _, .none)):
+                    return true
 
-                case _:
-                  return false
+                  case _:
+                    return false
+                  }
                 }
-              }
             )
         }
         .asAnyAsyncSequence()
@@ -146,10 +146,9 @@ extension ResourceShareForm {
       if let curentPermission: ResourcePermission = existingPermissions.first(where: {
         (permission: ResourcePermission) in
         permission.userID == userID
-      })
-      {
+      }) {
         if curentPermission.permission == permission {
-          editedPermission = .none // existing permission is the same
+          editedPermission = .none  // existing permission is the same
         }
         else {
           editedPermission = .user(
@@ -183,7 +182,7 @@ extension ResourceShareForm {
 
           if let editedPermission {
             state.editedPermissions.append(editedPermission)
-          } // else existing permission is used
+          }  // else existing permission is used
         }
     }
 
@@ -219,10 +218,9 @@ extension ResourceShareForm {
       if let curentPermission: ResourcePermission = existingPermissions.first(where: {
         (permission: ResourcePermission) in
         permission.userGroupID == userGroupID
-      })
-      {
+      }) {
         if curentPermission.permission == permission {
-          editedPermission = .none // existing permission is the same
+          editedPermission = .none  // existing permission is the same
         }
         else {
           editedPermission = .userGroup(
@@ -256,7 +254,7 @@ extension ResourceShareForm {
 
           if let editedPermission {
             state.editedPermissions.append(editedPermission)
-          } // else existing permission is used
+          }  // else existing permission is used
         }
     }
 

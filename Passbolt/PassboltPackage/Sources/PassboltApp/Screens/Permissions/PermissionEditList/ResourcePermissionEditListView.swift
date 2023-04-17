@@ -99,8 +99,8 @@ internal struct ResourcePermissionEditListView: ComponentView {
       )
       .opacity(
         self.state.permissionListItems.isEmpty
-        ? 0.5
-        : 1
+          ? 0.5
+          : 1
       )
       .disabled(self.state.permissionListItems.isEmpty)
       .padding(16)
