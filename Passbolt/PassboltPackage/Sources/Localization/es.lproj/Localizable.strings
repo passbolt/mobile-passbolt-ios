@@ -67,6 +67,7 @@
 
 "resource.list.username.empty.placeholder" = "sin nombre de usuario";
 
+"resource.detail.field.name" = "Nombre";
 "resource.detail.field.username" = "Nombre de usuario";
 "resource.detail.field.passphrase" = "Contraseña";
 "resource.detail.field.uri" = "URL del sitio web";
@@ -209,26 +210,8 @@
 "extension.setup.later.button" = "Quizás más tarde";
 
 "tab.home" = "Inicio";
+"tab.otp" = "OTP";
 "tab.settings" = "Ajustes";
-
-"account.settings.title" = "Ajustes";
-"account.settings.biometrics.face.id" = "FaceID";
-"account.settings.biometrics.touch.id" = "TouchID";
-"account.settings.biometrics.unavailable" = "Biometría no disponible";
-"account.settings.autofill" = "Autocompletar";
-"account.settings.default.home.mode" = "Filtro por defecto";
-"account.settings.default.home.mode.title" = "Filtro por defecto";
-"account.settings.default.home.mode.option.last.used" = "Último uso (por defecto)";
-"account.settings.manage.accounts" = "Gestionar cuentas";
-"account.settings.export.mobile" = "Transferir cuenta a otro dispositivo";
-"account.settings.terms" = "Términos y condiciones";
-"account.settings.privacy.policy" = "Política de privacidad";
-"account.settings.logs" = "Acceder a los registros";
-"account.settings.sign.out" = "Cerrar sesión";
-
-"account.settings.alert.title" = "¿Está seguro?";
-"account.settings.biometrics.alert.message" = "Después de desactivar Face ID necesitará iniciar sesión usando su contraseña.";
-"account.settings.signout.alert.message" = "Si cierra la sesión, necesitará configurar su cuenta de nuevo en este dispositivo.";
 
 "authorization.prompt.refresh.session.reason" = "Por favor, autentifíquese para actualizar la sesión";
 "authorization.prompt.biometrics.set.reason" = "Por favor, autentifíquese para activar la biometría.";
@@ -381,17 +364,6 @@ Póngase en contacto con su administrador para obtener más información.";
 "error.another.account.transfer.in.progress" = "Ya hay una transferencia de cuenta en curso. Por favor, complétela primero.";
 "resource.menu.action.failed" = "¡%@ falló!";
 "mfa.yubiKey.scan.failed" = "Escaneo fallido";
-"home.presentation.mode.menu.title" = "Filtrar vista por";
-"home.presentation.mode.plain.resources.title" = "Todos los elementos";
-"home.presentation.mode.favorite.resources.title" = "Favoritos";
-"home.presentation.mode.modified.resources.title" = "Modificado recientemente";
-"home.presentation.mode.shared.resources.title" = "Compartido conmigo";
-"home.presentation.mode.owned.resources.title" = "En propiedad";
-"home.presentation.mode.folders.explorer.title" = "Carpetas";
-"home.presentation.mode.folders.explorer.search.direct.results" = "en \"%@\"";
-"home.presentation.mode.folders.explorer.search.nested.results" = "en subcarpetas:";
-"home.presentation.mode.tags.explorer.title" = "Etiquetas";
-"home.presentation.mode.resource.user.groups.explorer.title" = "Grupos";
 
 "error.internal.inconsistency" = "Inconsistencia interna, por favor informe del error.";
 "error.feature.unavailable" = "Característica no disponible.";
@@ -470,3 +442,138 @@ Póngase en contacto con su administrador para obtener más información.";
 "error.biometrics.unavailable.message" = "Biometría no disponible";
 
 "error.qrcode.generation.generic" = "No se pudo generar el código QR a partir de los datos proporcionados";
+
+"error.otp.configuration.invalid" = "Configuración OTP no válida.";
+
+// Validation errors
+
+"error.resource.field.empty" = "¡%@ no puede estar vacía!";
+"error.resource.field.range.greater" = "%@ tiene que ser mayor que %d";
+"error.resource.field.range.between" = "%@ tiene que estar entre %d y %d";
+"error.resource.field.characters.invalid" = "%@ contiene caracteres no válidos.";
+
+// Home - presentation mode menu
+
+"home.presentation.mode.menu.title" = "Filtrar vista por";
+
+// Presentation modes
+
+"home.presentation.mode.plain.resources.title" = "Todos los elementos";
+"home.presentation.mode.favorite.resources.title" = "Favoritos";
+"home.presentation.mode.modified.resources.title" = "Modificado recientemente";
+"home.presentation.mode.shared.resources.title" = "Compartido conmigo";
+"home.presentation.mode.owned.resources.title" = "En propiedad";
+"home.presentation.mode.folders.explorer.title" = "Carpetas";
+"home.presentation.mode.folders.explorer.search.direct.results" = "en \"%@\"";
+"home.presentation.mode.folders.explorer.search.nested.results" = "en subcarpetas:";
+"home.presentation.mode.tags.explorer.title" = "Etiquetas";
+"home.presentation.mode.resource.user.groups.explorer.title" = "Grupos";
+
+// OTP resources
+
+"otp.resources.search.placeholder" = "Buscar OTP";
+"otp.resources.list.title" = "OTP";
+"otp.resources.list.empty.message" = "No hay TOTP";
+"otp.value.copied.message" = "¡TOTP copiado a su portapapeles!";
+
+// OTP contextual menu
+
+"otp.contextual.menu.copy.title" = "Copiar TOTP";
+"otp.copied.message" = "¡TOTP copiado a su portapapeles!";
+"otp.contextual.menu.reveal.title" = "Mostrar TOTP";
+"otp.contextual.menu.delete.title" = "Eliminar TOTP";
+"otp.contextual.menu.delete.confirm.title" = "¿Está seguro?";
+"otp.contextual.menu.delete.confirm.message" = "Esta acción eliminará el TOTP de forma permanente.";
+"otp.contextual.menu.delete.confirm.action.delete" = "Eliminar TOTP";
+"otp.contextual.menu.delete.succeeded" = "El TOTP ha sido eliminado.";
+
+// OTP create menu
+
+"otp.create.menu.title" = "Crear TOTP";
+"otp.create.menu.scanning.title" = "Escanear código QR";
+"otp.create.menu.manual.title" = "Crear TOTP manualmente";
+"otp.create.code.scanning.title" = "Escanear código QR";
+"otp.create.code.scanning.initial.message" = "Apunte con la cámara a los códigos QR";
+
+// OTP scanning
+
+"otp.scanning.success.title" = "¡Su TOTP ha sido escaneado!";
+"otp.scanning.success.create.button.title" = "Crear un TOTP independiente";
+"otp.scanning.success.link.button.title" = "Vincular TOTP con una contraseña";
+
+// OTP form
+
+"otp.edit.form.create.title" = "Crear TOTP";
+"otp.edit.form.field.name.title" = "Nombre (Etiqueta)";
+"otp.edit.form.field.name.prompt" = "Nombre";
+"otp.edit.form.field.uri.title" = "URL (emisor)";
+"otp.edit.form.field.uri.prompt" = "URL";
+"otp.edit.form.field.secret.title" = "Secreto";
+"otp.edit.form.field.secret.prompt" = "Secreto";
+"otp.edit.form.advanced.button.title" = "Configuración avanzada";
+"otp.edit.form.create.button.title" = "Crear OTP independiente";
+"otp.edit.form.edit.advanced.title" = "Crear TOTP - configuración avanzada";
+"otp.edit.form.field.digits.title" = "Longitud del OTP";
+"otp.edit.form.field.digits.label" = "dígitos.";
+"otp.edit.form.field.period.title" = "Caducidad TOTP";
+"otp.edit.form.field.period.label" = "segundos hasta que el TOTP caduque.";
+"otp.edit.form.field.algorithm.title" = "Algoritmo";
+"otp.edit.form.apply.button.title" = "Aplicar";
+
+// Settings - Main
+
+"settings.main.title" = "Ajustes";
+"settings.main.item.application.title" = "Ajustes de la app";
+"settings.main.item.accounts.title" = "Cuentas";
+"settings.main.item.terms.and.licenses.title" = "Términos y licencias";
+"settings.main.item.troubleshooting.title" = "Depurar, registros";
+"settings.main.item.sign.out.title" = "Cerrar sesión";
+
+// Settings - Application
+
+"settings.application.title" = "Ajustes de la app";
+"settings.application.item.autofill.title" = "Autocompletar";
+"settings.application.item.default.mode.title" = "Filtro por defecto";
+
+// Settings - Accounts
+
+"settings.accounts.title" = "Cuentas";
+"settings.accounts.item.manage.title" = "Gestionar cuentas";
+"settings.accounts.item.export.title" = "Transferir cuenta a otro dispositivo";
+
+// Settings - Terms & Licenses
+
+"settings.terms.and.licenses.title" = "Términos y licencias";
+"settings.terms.and.licenses.item.terms.title" = "Términos y condiciones";
+"settings.terms.and.licenses.item.privacy.title" = "Política de privacidad";
+"settings.terms.and.licenses.item.licenses.title" = "Licencias de código abierto";
+
+// Settings - Troubleshooting
+
+"settings.troubleshooting.title" = "Depurar, registros";
+"settings.troubleshooting.item.logs.title" = "Acceder a los registros de depuración";
+"settings.troubleshooting.item.help.site.title" = "Visitar el sitio de ayuda";
+
+// Settings - Default presentation mode
+
+"settings.application.default.mode.title" = "Filtro por defecto";
+"settings.application.default.mode.option.last.used.title" = "Último uso (por defecto)";
+
+// Settings - Disable biometrics alert
+
+"settings.application.biometrics.disable.alert.title" = "¿Está seguro?";
+"settings.application.biometrics.disable.alert.message" = "Después de desactivar %@ tendrá que iniciar sesión utilizando su contraseña.";
+"settings.application.biometrics.disable.alert.confirm.title" = "Desactivar biometría";
+"settings.application.biometrics.disable.alert.cancel.title" = "Mantener";
+
+// Settings - Sign out alert
+
+"settings.main.sign.out.alert.title" = "¿Está seguro?";
+"settings.main.sign.out.alert.message" = "Si cierra la sesión, se cerrará la sesión de su cuenta en este dispositivo.";
+"settings.main.sign.out.alert.confirm.title" = "Cerrar sesión";
+
+// Biometric authorization availability
+
+"biometric.authorization.availability.unavailable" = "No disponible";
+"biometric.authorization.availability.face.id" = "FaceID";
+"biometric.authorization.availability.touch.id" = "TouchID";
