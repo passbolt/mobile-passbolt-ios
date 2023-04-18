@@ -23,7 +23,6 @@
 
 import struct Foundation.URL
 
-#warning("TODO: Add other feature flags: tags & folders")
 public enum FeatureFlags {}
 
 extension FeatureFlags {
@@ -56,6 +55,12 @@ extension FeatureFlags {
     case disabled
     case enabled
   }
+
+  public enum TOTP {
+
+    case disabled
+    case enabled
+  }
 }
 
 extension FeatureFlags.Legal: FeatureConfigItem {
@@ -78,7 +83,6 @@ extension FeatureFlags.PreviewPassword: FeatureConfigItem {
   public static var `default`: FeatureFlags.PreviewPassword {
     .enabled
   }
-
 }
 
 extension FeatureFlags.Tags: FeatureConfigItem {
@@ -88,7 +92,15 @@ extension FeatureFlags.Tags: FeatureConfigItem {
   }
 }
 
+extension FeatureFlags.TOTP: FeatureConfigItem {
+
+  public static var `default`: FeatureFlags.TOTP {
+    .disabled
+  }
+}
+
 extension FeatureFlags.Legal: Equatable {}
 extension FeatureFlags.Folders: Equatable {}
 extension FeatureFlags.PreviewPassword: Equatable {}
 extension FeatureFlags.Tags: Equatable {}
+extension FeatureFlags.TOTP: Equatable {}

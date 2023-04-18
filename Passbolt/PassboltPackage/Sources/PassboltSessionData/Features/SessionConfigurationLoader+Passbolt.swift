@@ -118,6 +118,13 @@ extension SessionConfigurationLoader {
         configuration[FeatureFlags.Tags.identifier] = FeatureFlags.Tags.default
       }
 
+      if let totp: ConfigurationPlugins.TOTP = rawConfiguration.plugins.firstElementOfType(), totp.enabled {
+        configuration[FeatureFlags.TOTP.identifier] = FeatureFlags.TOTP.enabled
+      }
+      else {
+        configuration[FeatureFlags.TOTP.identifier] = FeatureFlags.TOTP.default
+      }
+
       diagnostics.log(diagnostic: "...server configuration fetched!")
 
       return configuration

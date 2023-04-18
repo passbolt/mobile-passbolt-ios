@@ -70,6 +70,14 @@ extension SessionConfigurationLoader {
         return true
       }
     }()
+    let totpEnabled: Bool = await {
+      switch await self.configuration(for: FeatureFlags.TOTP.self) {
+      case .disabled:
+        return false
+      case .enabled:
+        return true
+      }
+    }()
     let passwordPreviewEnabled: Bool = await {
       switch await self.configuration(for: FeatureFlags.PreviewPassword.self) {
       case .disabled:
@@ -106,6 +114,7 @@ extension SessionConfigurationLoader {
     return .init(
       foldersEnabled: foldersEnabled,
       tagsEnabled: tagsEnabled,
+      totpEnabled: totpEnabled,
       passwordPreviewEnabled: passwordPreviewEnabled,
       termsURL: termsURL,
       privacyPolicyURL: privacyPolicyURL

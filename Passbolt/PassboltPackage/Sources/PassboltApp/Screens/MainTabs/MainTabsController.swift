@@ -64,6 +64,7 @@ extension MainTabsController: UIController {
       )
     let features: Features = features
     let currentAccount: Account = try features.sessionAccount()
+    let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
 
     let accountInitialSetup: AccountInitialSetup = try features.instance(context: currentAccount)
     let osBiometry: OSBiometry = features.instance()
@@ -110,11 +111,12 @@ extension MainTabsController: UIController {
     }
 
     func otpTabAvailable() async -> Bool {
+      guard sessionConfiguration.totpEnabled
+      else { return false }
       do {
         try await sessionData.refreshIfNeeded()
         let availableResourceTypes: Array<ResourceType> = try await resourceTypesFetchDatabaseOperation()
-        return
-          availableResourceTypes
+        return availableResourceTypes
           .contains(where: { $0.slug == .totp || $0.slug == .hotp })
       }
       catch {

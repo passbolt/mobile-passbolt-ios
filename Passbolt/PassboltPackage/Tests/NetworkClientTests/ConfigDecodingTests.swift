@@ -47,6 +47,9 @@ final class ConfigDecodingTests: XCTestCase {
             "version": "1.0.1",
             "enabled": true
           },
+          "totpResourceType": {
+            "enabled": true
+          },
           "folders": {
             "version": "2.0.0",
             "enabled": true
@@ -64,11 +67,13 @@ final class ConfigDecodingTests: XCTestCase {
     let folders: Config.Folders = .init(enabled: true, version: "2.0.0")
     let previewPassword: Config.PreviewPassword = .init(enabled: true)
     let tags: Config.Tags = .init(enabled: true, version: "1.0.1")
+    let tags: Config.TOTP = .init(enabled: true)
 
     XCTAssertEqual(config!.legal, legal)
     XCTAssertTrue(config!.plugins.contains { $0 as? Config.Folders == folders })
     XCTAssertTrue(config!.plugins.contains { $0 as? Config.PreviewPassword == previewPassword })
     XCTAssertTrue(config!.plugins.contains { $0 as? Config.Tags == tags })
+    XCTAssertTrue(config!.plugins.contains { $0 as? Config.TOTP == totp })
   }
 
   func test_pluginsDecoding_withNoPlugins_succeeds() {

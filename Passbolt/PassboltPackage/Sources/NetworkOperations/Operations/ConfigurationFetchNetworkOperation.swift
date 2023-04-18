@@ -94,6 +94,16 @@ extension ConfigurationFetchNetworkOperationResult {
       else {
         /* NOP */
       }
+
+      if let totp: ConfigurationPlugins.TOTP = try plugins.decodeIfPresent(
+        ConfigurationPlugins.TOTP.self,
+        forKey: "totpResourceType"
+      ) {
+        self.plugins.append(totp)
+      }
+      else {
+        /* NOP */
+      }
     }
 
     internal init(
@@ -148,5 +158,10 @@ public enum ConfigurationPlugins {
 
     public var enabled: Bool
     public var version: String
+  }
+
+  public struct TOTP: Decodable, Equatable, ConfigurationPlugin {
+
+    public var enabled: Bool
   }
 }

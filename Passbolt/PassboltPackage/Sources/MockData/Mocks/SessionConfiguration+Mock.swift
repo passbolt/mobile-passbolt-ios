@@ -28,6 +28,7 @@ extension SessionConfiguration {
   public static let mock_default: Self = .init(
     foldersEnabled: false,
     tagsEnabled: false,
+    totpEnabled: false,
     passwordPreviewEnabled: true,
     termsURL: .none,
     privacyPolicyURL: .none
@@ -36,6 +37,7 @@ extension SessionConfiguration {
   public static let mock_1: Self = .init(
     foldersEnabled: true,
     tagsEnabled: true,
+    totpEnabled: true,
     passwordPreviewEnabled: true,
     termsURL: "https://passbolt.com/terms",
     privacyPolicyURL: "https://passbolt.com/privacy"

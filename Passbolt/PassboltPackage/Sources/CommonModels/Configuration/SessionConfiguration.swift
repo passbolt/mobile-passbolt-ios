@@ -25,6 +25,7 @@ public struct SessionConfiguration: Hashable {
 
   public let foldersEnabled: Bool
   public let tagsEnabled: Bool
+  public let totpEnabled: Bool
   public let passwordPreviewEnabled: Bool
   public let termsURL: URLString?
   public let privacyPolicyURL: URLString?
@@ -32,12 +33,14 @@ public struct SessionConfiguration: Hashable {
   public init(
     foldersEnabled: Bool,
     tagsEnabled: Bool,
+    totpEnabled: Bool,
     passwordPreviewEnabled: Bool,
     termsURL: URLString?,
     privacyPolicyURL: URLString?
   ) {
     self.foldersEnabled = foldersEnabled
     self.tagsEnabled = tagsEnabled
+    self.totpEnabled = totpEnabled
     self.passwordPreviewEnabled = passwordPreviewEnabled
     self.termsURL = termsURL
     self.privacyPolicyURL = privacyPolicyURL
