@@ -155,6 +155,7 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
             case is Cancelled:
               return /* NOP */
             case _:
+              self?.showErrorSubject.send()
               self?.presentErrorSnackbar(error.displayableMessage)
             }
           }
@@ -221,52 +222,52 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
     with fields: OrderedSet<ResourceField>
   ) {
     fieldCancellables = .init()
-    for field in fields {
-      let fieldValuePublisher = self.controller
-        .fieldValuePublisher(field)
+      for field in fields {
+        let fieldValuePublisher = self.controller
+          .fieldValuePublisher(field)
 
-      fieldValuePublisher
-        .first()  // skipping error just to update intial value
-        .map { Validated.valid($0.value) }
-        .merge(
-          with:
-            fieldValuePublisher
-            .dropFirst()
-        )
-        .merge(
-          with:
-            // the subject is used as a trigger for showing error on the form, initially no errors are shown
-            self.showErrorSubject
-            .map { fieldValuePublisher.first() }
-            .switchToLatest()
-        )
-        .removeDuplicates()
-        .receive(on: RunLoop.main)
-        .sink(receiveValue: { [weak self] validated in
-          self?.contentView.update(
-            validated: validated,
-            for: field
+        fieldValuePublisher
+          .first()  // skipping error just to update intial value
+          .map { Validated.valid($0.value) }
+          .merge(
+            with:
+              fieldValuePublisher
+              .dropFirst()
           )
+          .merge(
+            with:
+              // the subject is used as a trigger for showing error on the form, initially no errors are shown
+            self.showErrorSubject
+              .map {
+                fieldValuePublisher.first()
+              }
+              .switchToLatest()
+          )
+          .receive(on: RunLoop.main)
+          .sink(receiveValue: { [weak self] validated in
+            self?.contentView.update(
+              validated: validated,
+              for: field
+            )
+          })
+          .store(in: self.fieldCancellables)
+
+        self.contentView
+          .fieldValuePublisher(for: field)
+          .receive(on: RunLoop.main)
+          .removeDuplicates()
+          .sink { [unowned self] value in
+            self.controller
+              .setValue(value, field)
+          }
+          .store(in: self.fieldCancellables)
+      }
+      self.controller
+        .passwordEntropyPublisher()
+        .receive(on: RunLoop.main)
+        .sink(receiveValue: { [weak self] entropy in
+          self?.contentView.update(entropy: entropy)
         })
         .store(in: self.fieldCancellables)
-
-      self.contentView
-        .fieldValuePublisher(for: field)
-        .receive(on: RunLoop.main)
-        .removeDuplicates()
-        .map { [unowned self] value in
-          self.controller
-            .setValue(value, field)
-        }
-        .sinkDrop()
-        .store(in: self.fieldCancellables)
-    }
-    self.controller
-      .passwordEntropyPublisher()
-      .receive(on: RunLoop.main)
-      .sink(receiveValue: { [weak self] entropy in
-        self?.contentView.update(entropy: entropy)
-      })
-      .store(in: self.fieldCancellables)
   }
 }

@@ -351,7 +351,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       .asAsyncValue()
 
     XCTAssertNotNil(pasteboardContent)
-    XCTAssertEqual(pasteboardContent, detailsViewResource.username?.stringValue)
+    XCTAssertEqual(pasteboardContent, detailsViewResource.value(for: .unknownNamed("username"))?.stringValue)
   }
 
   func test_copyFieldDescription_succeeds() async throws {
@@ -394,7 +394,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       .asAsyncValue()
 
     XCTAssertNotNil(pasteboardContent)
-    XCTAssertEqual(pasteboardContent, resourceSecret.value(forFieldWithName: "description")?.stringValue)
+    XCTAssertEqual(pasteboardContent, resourceSecret.value(for: .unknownNamed("description"))?.stringValue)
   }
 
   func test_copyFieldEncryptedDescription_succeeds() async throws {
@@ -437,7 +437,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       .asAsyncValue()
 
     XCTAssertNotNil(pasteboardContent)
-    XCTAssertEqual(pasteboardContent, resourceSecret.value(forFieldWithName: "description")?.stringValue)
+    XCTAssertEqual(pasteboardContent, resourceSecret.value(for: .unknownNamed("description"))?.stringValue)
   }
 
   func test_copyFieldURI_succeeds() async throws {
@@ -480,7 +480,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       .asAsyncValue()
 
     XCTAssertNotNil(pasteboardContent)
-    XCTAssertEqual(pasteboardContent, detailsViewResource.uri?.stringValue)
+    XCTAssertEqual(pasteboardContent, detailsViewResource.value(for: .unknownNamed("uri"))?.stringValue)
   }
 
   func test_copyFieldPassword_succeeds() async throws {
@@ -523,7 +523,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       .asAsyncValue()
 
     XCTAssertNotNil(pasteboardContent)
-    XCTAssertEqual(pasteboardContent, resourceSecret.value(forFieldWithName: "password")?.stringValue)
+    XCTAssertEqual(pasteboardContent, resourceSecret.value(for: .unknownNamed("password"))?.stringValue)
   }
 
   func test_resourceDeleteAlertPresentationPublisher_publishesResourceID_whenPresentDeleteResourceAlertCalled()
@@ -589,9 +589,9 @@ private let detailsViewResource: Resource = {
     ],
     modified: .init(rawValue: 0)
   )
-  mock.uri = .string("https://passbolt.com")
-  mock.name = .string("Mock_1")
-  mock.username = .string("passbolt@passbolt.com")
+  try! mock.set(.string("Mock_1"), for: .unknownNamed("name"))
+  try! mock.set(.string("https://passbolt.com"), for: .unknownNamed("uri"))
+  try! mock.set(.string("passbolt@passbolt.com"), for: .unknownNamed("username"))
   return mock
 }()
 

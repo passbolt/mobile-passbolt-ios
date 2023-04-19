@@ -41,7 +41,7 @@ public final class ResourceEditView: KeyboardAwareView {
   private let generateButton: ImageButton = .init()
   private let createButton: TextButton = .init()
 
-  private var fieldViews: Dictionary<ResourceField, PlainView> = .init()
+  private var fieldViews: OrderedDictionary<ResourceField, PlainView> = .init()
 
   internal required init(createsNewResource: Bool) {
     super.init()
@@ -333,7 +333,7 @@ public final class ResourceEditView: KeyboardAwareView {
         }
       }
       .reduce(
-        into: Dictionary<ResourceField, PlainView>(),
+        into: OrderedDictionary<ResourceField, PlainView>(),
         { (partialResult, fieldWithView: FieldWithView) in
           partialResult[fieldWithView.field] = fieldWithView.view
         }
@@ -344,7 +344,7 @@ public final class ResourceEditView: KeyboardAwareView {
     mut(scrolledStack) {
       .combined(
         .forEach(
-          in: fieldViews,
+          in: fieldViews.elements,
           { [unowned self] fieldView in
             switch fieldView.key.name {
             case "password", "secret":

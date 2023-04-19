@@ -175,7 +175,7 @@ extension OTPEditForm {
           )
         ) ?? features
 
-      let resourceEditForm: ResourceEditForm = try await resourceEditingFeatures.instance()
+      let resourceEditForm: LegacyResourceEditForm = try await resourceEditingFeatures.instance()
 
       switch action {
       case .createStandalone:

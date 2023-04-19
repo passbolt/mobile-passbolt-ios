@@ -174,7 +174,7 @@ extension ResourceFolderContentNodeController {
           await autofillContext
             .completeWithCredential(
               AutofillExtensionContext.Credential(
-                user: resource.username?.stringValue ?? "",
+                user: resource.value(for: .unknownNamed("username"))?.stringValue ?? "",
                 password: password
               )
             )

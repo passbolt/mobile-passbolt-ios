@@ -23,6 +23,20 @@
 
 public struct ResourceField {
 
+  public typealias ValuePath = WritableKeyPath<Dictionary<String, ResourceFieldValue>, ResourceFieldValue?>
+
+  public static func unknownNamed(
+    _ name: StaticString // used only to refer certain fields from code
+  ) -> Self {
+    .init(
+      name: name.description,
+      content: .unknown(
+        encrypted: true,
+        required: false
+      )
+    )
+  }
+
   public let name: String
   public let content: Content
 
@@ -33,9 +47,33 @@ public struct ResourceField {
     self.name = name
     self.content = content
   }
+
+  public var valuePath: ValuePath {
+    \Dictionary<String, ResourceFieldValue>[self.name]
+  }
 }
 
-extension ResourceField: Hashable {}
+extension ResourceField: Hashable {
+
+  public static func ==(
+    _ lhs: ResourceField,
+    _ rhs: ResourceField
+  ) -> Bool {
+    // this implementations does not properly check equality
+    // since it does not take into account content differences
+    // however we are treating it as immutable after decoding
+    // and no content changes are allowed while identifying
+    // fields only by its name - this implementation is required
+    // for proper Set and Dictionary behaviors to avoid duplicates
+    lhs.valuePath == rhs.valuePath
+  }
+
+  public func hash(
+    into hasher: inout Hasher
+  ) {
+    hasher.combine(self.valuePath)
+  }
+}
 
 extension ResourceField: Comparable {
 
@@ -88,11 +126,21 @@ extension ResourceField {
   public func accepts(
     _ value: ResourceFieldValue?
   ) -> Bool {
+    guard case .some = value else { return true }
     switch (self.content, value) {
     case (.string, .string):
       return true
 
     case (.totp, .otp(.totp)):
+      return true
+
+    case (.hotp, .otp(.hotp)):
+      return true
+
+    case (.unknown, .unknown):
+      return true
+
+    case (.string(encrypted: true, _, _, _), .encrypted), (.hotp, .encrypted), (.totp, .encrypted), (.unknown(encrypted: true, _), .encrypted):
       return true
 
     case _:
@@ -113,6 +161,10 @@ extension ResourceField {
     )
     case totp(required: Bool)
     case hotp(required: Bool)
+    case unknown(
+      encrypted: Bool,
+      required: Bool
+    )
   }
 }
 
@@ -120,7 +172,7 @@ extension ResourceField.Content: Hashable {}
 
 extension ResourceField.Content {
 
-  fileprivate var typeName: String {
+  fileprivate var typeName: String? {
     switch self {
     case .string:
       return "string"
@@ -130,13 +182,16 @@ extension ResourceField.Content {
 
     case .hotp:
       return "hotp"
+
+    case .unknown:
+      return .none
     }
   }
 }
 
 extension ResourceField {
 
-  public var valueTypeName: String {
+  public var valueTypeName: String? {
     self.content.typeName
   }
 
@@ -150,6 +205,9 @@ extension ResourceField {
 
     case .hotp:
       return true
+
+    case .unknown(let encrypted, _):
+      return encrypted
     }
   }
 
@@ -162,6 +220,9 @@ extension ResourceField {
       return required
 
     case .hotp(let required):
+      return required
+
+    case .unknown(_, let required):
       return required
     }
   }
@@ -176,6 +237,9 @@ extension ResourceField {
 
     case .hotp:
       return .none
+
+    case .unknown:
+      return .none
     }
   }
 
@@ -188,6 +252,9 @@ extension ResourceField {
       return .none
 
     case .hotp:
+      return .none
+
+    case .unknown:
       return .none
     }
   }

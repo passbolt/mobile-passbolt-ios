@@ -48,8 +48,8 @@ extension Resource {
       ],
       modified: .init(rawValue: 0)
     )
-    mock.name = .string("Mock_1")
-    mock.password = .string("R@nD0m")
+    try! mock.set(.string("Mock_1"), for: .unknownNamed("name"))
+    try! mock.set(.string("R@nD0m"), for: .unknownNamed("password"))
     return mock
   }()
 
@@ -76,8 +76,8 @@ extension Resource {
       ],
       modified: .init(rawValue: 0)
     )
-    mock.name = .string("Mock_1")
-    mock.password = .string("R@nD0m")
+    try! mock.set(.string("Mock_2"), for: .unknownNamed("name"))
+    try! mock.set(.string("R@nD0m"), for: .unknownNamed("password"))
     return mock
   }()
 
@@ -104,14 +104,17 @@ extension Resource {
       ],
       modified: .init(rawValue: 0)
     )
-    mock.name = .string("Mock_totp")
-    mock.totp = .otp(
-      .totp(
-        sharedSecret: "SECRET",
-        algorithm: .sha1,
-        digits: 6,
-        period: 30
-      )
+    try! mock.set(.string("Mock_totp"), for: .unknownNamed("name"))
+    try! mock.set(
+      .otp(
+        .totp(
+          sharedSecret: "SECRET",
+          algorithm: .sha1,
+          digits: 6,
+          period: 30
+        )
+      ),
+      for: .unknownNamed("totp")
     )
     return mock
   }()

@@ -193,7 +193,7 @@ extension ResourceDetailsController: UIController {
             .switchToLatest()
             .eraseToAnyPublisher()
           }
-          else if let value: String = resource.uri?.stringValue {
+          else if let value: String = resource.value(for: .unknownNamed("uri"))?.stringValue {
             return Just(Void())
               .eraseErrorType()
               .handleEvents(receiveOutput: { _ in
@@ -303,7 +303,7 @@ extension ResourceDetailsController: UIController {
             .switchToLatest()
             .eraseToAnyPublisher()
           }
-          else if let value: String = resource.username?.stringValue {
+          else if let value: String = resource.value(for: field)?.stringValue {
             return Just(Void())
               .eraseErrorType()
               .handleEvents(receiveOutput: { _ in
@@ -362,7 +362,7 @@ extension ResourceDetailsController: UIController {
             .switchToLatest()
             .eraseToAnyPublisher()
           }
-          else if let value: String = resource.description?.stringValue {
+          else if let value: String = resource.value(for: field)?.stringValue {
             return Just(Void())
               .eraseErrorType()
               .handleEvents(receiveOutput: { _ in

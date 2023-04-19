@@ -34,7 +34,7 @@ import SessionData
 @testable import Resources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
+final class ResourcesEditFormTests: LoadableFeatureTestCase<LegacyResourceEditForm> {
 
   override class var testedImplementationScope: any FeaturesScope.Type { ResourceEditScope.self }
 
@@ -67,7 +67,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
         uri: .none
       )
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -99,7 +99,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
         uri: .none
       )
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -122,7 +122,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
         uri: .none
       )
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -162,7 +162,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
         uri: .none
       )
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -191,7 +191,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
         uri: .none
       )
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -231,7 +231,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
         uri: .none
       )
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -274,7 +274,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
         uri: .none
       )
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -307,7 +307,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
         uri: .none
       )
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -334,7 +334,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
         uri: .none
       )
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -364,7 +364,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
         uri: .none
       )
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -393,7 +393,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
         uri: .none
       )
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -426,7 +426,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
         uri: .none
       )
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -476,7 +476,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
         uri: .none
       )
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -525,7 +525,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
         uri: .none
       )
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -553,7 +553,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       ResourceEditScope.self,
       context: .edit(.mock_1)
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -591,7 +591,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       ResourceEditScope.self,
       context: .edit(.mock_1)
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -633,7 +633,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
         uri: .none
       )
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -669,7 +669,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       ResourceEditScope.self,
       context: .edit(.mock_1)
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -710,7 +710,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
         uri: .none
       )
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -753,7 +753,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
         uri: .none
       )
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -787,13 +787,13 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
         uri: "https://passbolt.com/predefined"
       )
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
 
     let result: String? =
-      try await feature.resource().uri?.stringValue
+      try await feature.resource().value(for: .unknownNamed("uri"))?.stringValue
 
     XCTAssertEqual(result, "https://passbolt.com/predefined")
   }
@@ -821,7 +821,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
         uri: "https://passbolt.com/predefined"
       )
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -879,7 +879,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       ResourceEditScope.self,
       context: .edit(.mock_1)
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -927,7 +927,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       ResourceEditScope.self,
       context: .edit(.mock_1)
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()
@@ -991,7 +991,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
          uncheckedSendableResult.variable = Void()
        }
     )
-    let feature: ResourceEditForm = try testedInstance()
+    let feature: LegacyResourceEditForm = try testedInstance()
 
     // execute resource loading
     await self.mockExecutionControl.executeAll()

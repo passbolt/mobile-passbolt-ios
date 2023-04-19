@@ -79,7 +79,7 @@ extension ResourceDetailsTagsListController {
       do {
         let resourceDetails: Resource = try await resourceDetails.details()
         viewState.update { (state: inout ViewState) in
-          state.resourceName = resourceDetails.name?.stringValue ?? ""
+          state.resourceName = resourceDetails.value(for: .unknownNamed("name"))?.stringValue ?? ""
           state.resourceFavorite = resourceDetails.favorite
           state.tags = resourceDetails.tags
         }

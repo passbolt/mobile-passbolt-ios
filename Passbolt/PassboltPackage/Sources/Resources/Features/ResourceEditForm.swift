@@ -28,36 +28,47 @@ import Features
 
 public struct ResourceEditForm {
 
-  // Form state updates
   public var updates: UpdatesSequence
-  // Access current resource state
-  public var resource: @Sendable () async throws -> Resource
-  // Access list of all available fields for edited resource
-  public var fieldsPublisher: @Sendable () -> AnyPublisher<OrderedSet<ResourceField>, Never>
-  // Assign value for given field
-  public var setFieldValue: @Sendable (ResourceFieldValue, ResourceField) async throws -> Void
-  // Publisher for validated values for given field
-  public var validatedFieldValuePublisher:
-    @Sendable (ResourceField) -> AnyPublisher<Validated<ResourceFieldValue?>, Never>
-  // Send the form
-  public var sendForm: @Sendable () async throws -> Resource.ID
+  public var state: @Sendable () -> State
+  public var update: @Sendable (Assignment<State>) -> Void
+  public var sendForm: @Sendable () async throws -> Void
 
   public init(
     updates: UpdatesSequence,
-    resource: @escaping @Sendable () async throws -> Resource,
-    fieldsPublisher: @escaping @Sendable () -> AnyPublisher<OrderedSet<ResourceField>, Never>,
-    setFieldValue: @escaping @Sendable (ResourceFieldValue, ResourceField) async throws -> Void,
-    validatedFieldValuePublisher: @escaping @Sendable (ResourceField) -> AnyPublisher<
-      Validated<ResourceFieldValue?>, Never
-    >,
-    sendForm: @escaping @Sendable () async throws -> Resource.ID
+    state: @escaping @Sendable () -> State,
+    update: @escaping @Sendable (Assignment<State>) -> Void,
+    sendForm: @escaping @Sendable () async throws -> Void
   ) {
     self.updates = updates
-    self.resource = resource
-    self.fieldsPublisher = fieldsPublisher
-    self.setFieldValue = setFieldValue
-    self.validatedFieldValuePublisher = validatedFieldValuePublisher
+    self.state = state
+    self.update = update
     self.sendForm = sendForm
+  }
+}
+
+extension ResourceEditForm {
+
+  public typealias State = Resource
+
+  public func update(
+    field: ResourceField,
+    to value: ResourceFieldValue
+  ) {
+    self.update(.assigning(value, to: State.keyPath(for: field)))
+  }
+
+  public func update<Value>(
+    field keyPath: WritableKeyPath<State, Value>,
+    to value: Value
+  ) {
+    self.update(.assigning(value, to: keyPath))
+  }
+
+  public func update<Value>(
+    field keyPath: WritableKeyPath<State, Validated<Value>>,
+    toValidated value: Value
+  ) {
+    self.update(.assigning(value, toValidated: keyPath))
   }
 }
 
@@ -66,13 +77,11 @@ extension ResourceEditForm: LoadableFeature {
   public typealias Context = ContextlessLoadableFeatureContext
 
   #if DEBUG
-  public static var placeholder: ResourceEditForm {
-    Self(
+  public static var placeholder: Self {
+    .init(
       updates: .placeholder,
-      resource: unimplemented0(),
-      fieldsPublisher: unimplemented0(),
-      setFieldValue: unimplemented2(),
-      validatedFieldValuePublisher: unimplemented1(),
+      state: unimplemented0(),
+      update: unimplemented1(),
       sendForm: unimplemented0()
     )
   }

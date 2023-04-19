@@ -83,7 +83,7 @@ public class TextViewInput: PlainView {
 
   private var placeholderTopConstraint: NSLayoutConstraint?
 
-  private lazy var textSubject: CurrentValueSubject<String, Never> = .init(textView.text)
+  private lazy var textSubject: PassthroughSubject<String, Never> = .init()
   private let editingDidBeginSubject: PassthroughSubject<Void, Never> = .init()
 
   public required init() {

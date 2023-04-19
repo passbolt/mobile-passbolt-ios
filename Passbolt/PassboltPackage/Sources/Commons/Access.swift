@@ -21,33 +21,32 @@
 // @since         v1.0
 //
 
-import Commons
+public struct Access<Subject, Value> {
 
-public enum ResourceFieldValue {
-
-  case encrypted
-  case string(String)
-  case otp(OTPSecret)
-  case unknown(JSON)
+  private let access: (Subject) -> Value
 }
 
-extension ResourceFieldValue: Equatable {}
+extension Access {
 
-extension ResourceFieldValue {
-
-  public var stringValue: String? {
-    switch self {
-    case let .string(value):
-      return value
-
-    case .otp:
-      return .none
-
-    case .encrypted:
-      return .none
-
-    case .unknown:
-      return .none
+  public static func accessing(
+    _ keyPath: KeyPath<Subject, Value>
+  ) -> Self {
+    .init { (subject: Subject) in
+      subject[keyPath: keyPath]
     }
+  }
+
+  public static func accessing(
+    validated keyPath: WritableKeyPath<Subject, Validated<Value>>
+  ) -> Self {
+    .init { (subject: Subject) in
+      subject[keyPath: keyPath].value
+    }
+  }
+
+  public func access(
+    from subject: Subject
+  ) -> Value {
+    self.access(subject)
   }
 }

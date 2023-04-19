@@ -21,40 +21,67 @@
 // @since         v1.0
 //
 
-extension ResourceFieldValue: Codable {
+public enum JSON {
+
+  case null
+  case bool(Bool)
+  case number(Double)
+  case string(String)
+  case array(Array<JSON>)
+  case object(Dictionary<String, JSON>)
+}
+
+extension JSON: Equatable {}
+
+extension JSON: Decodable {
 
   public init(
     from decoder: Decoder
   ) throws {
-    if let string: String = try? .init(from: decoder) {
+    let container = try decoder.singleValueContainer()
+
+    if let string = try? container.decode(String.self) {
       self = .string(string)
-    }
-    else if let otpSecret: OTPSecret = try? .init(from: decoder) {
-      self = .otp(otpSecret)
-    }
-    else {
-      self = try .unknown(.init(from: decoder))
+    } else if let object = try? container.decode(Dictionary<String, JSON>.self) {
+      self = .object(object)
+    } else if let array = try? container.decode(Array<JSON>.self) {
+      self = .array(array)
+    } else if let bool = try? container.decode(Bool.self) {
+      self = .bool(bool)
+    } else if let number = try? container.decode(Double.self) {
+      self = .number(number)
+    } else if container.decodeNil() {
+      self = .null
+    } else {
+      throw DecodingError
+        .dataCorruptedError(
+          in: container,
+          debugDescription: "Invalid JSON!"
+        )
     }
   }
+}
+
+extension JSON: Encodable {
 
   public func encode(
     to encoder: Encoder
   ) throws {
+    var container = encoder.singleValueContainer()
+
     switch self {
-    case .string(let value):
-      var container: SingleValueEncodingContainer = encoder.singleValueContainer()
-      try container.encode(value)
-
-    case .otp(let secret):
-      var container: SingleValueEncodingContainer = encoder.singleValueContainer()
-      try container.encode(secret)
-
-    case .encrypted:
-      throw InternalInconsistency
-        .error("Can't encode encrypted value, you have to decrypt it first!")
-
-    case .unknown(let json):
-      try json.encode(to: encoder)
+    case let .string(string):
+      try container.encode(string)
+    case let .object(object):
+      try container.encode(object)
+    case let .array(array):
+      try container.encode(array)
+    case let .bool(bool):
+      try container.encode(bool)
+    case let .number(number):
+      try container.encode(number)
+    case .null:
+      try container.encodeNil()
     }
   }
 }

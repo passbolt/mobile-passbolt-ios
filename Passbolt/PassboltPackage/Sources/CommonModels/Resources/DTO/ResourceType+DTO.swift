@@ -92,13 +92,13 @@ extension FieldsDefinition: Decodable {
               )
             )
           case .object:
-            throw
-              DecodingError
-              .dataCorruptedError(
-                forKey: .resource,
-                in: container,
-                debugDescription: "Unsupported or invalid field description"
+            return .init(
+              name: key.stringValue,
+              content: .unknown(
+                encrypted: false,
+                required: requiredFields.contains(key.stringValue)
               )
+            )
 
           case .null:  // ignore
             assertionFailure("NULL types should not occur in models.")
@@ -151,13 +151,13 @@ extension FieldsDefinition: Decodable {
                 )
               }
               else {
-                throw
-                  DecodingError
-                  .dataCorruptedError(
-                    forKey: .secret,
-                    in: container,
-                    debugDescription: "Unsupported or invalid field description"
+                return .init(
+                  name: key.stringValue,
+                  content: .unknown(
+                    encrypted: true,
+                    required: requiredSecretFields.contains(key.stringValue)
                   )
+                )
               }
             case .null:  // ignore
               assertionFailure("NULL types should not occur in models.")

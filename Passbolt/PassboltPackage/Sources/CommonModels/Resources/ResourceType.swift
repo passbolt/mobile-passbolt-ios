@@ -54,6 +54,18 @@ public struct ResourceType {
   ) -> ResourceField? {
     self.fields.first(where: { $0.name == name })
   }
+
+  public func contains(
+    _ field: ResourceField
+  ) -> Bool {
+    self.fields.contains(field)
+  }
+
+  public func contains(
+    _ path: ResourceField.ValuePath
+  ) -> Bool {
+    self.fields.contains(where: { $0.valuePath == path })
+  }
 }
 
 extension ResourceType: Equatable {}

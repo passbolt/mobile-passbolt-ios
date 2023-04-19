@@ -290,13 +290,25 @@ extension ResourceDetailsFetchDatabaseOperation {
           modified: dataRow.modified.flatMap(Timestamp.init(rawValue:))
         )
         // set dynamic field values
-        resource.name = .string(name)
-        resource.uri = (dataRow.uri as String?)
-          .map(ResourceFieldValue.string)
-        resource.username = (dataRow.username as String?)
-          .map(ResourceFieldValue.string)
-        resource.description = (dataRow.description as String?)
-          .map(ResourceFieldValue.string)
+        try resource.set(
+          .string(name),
+          for: .unknownNamed("name")
+        )
+        try resource.set(
+          (dataRow.uri as String?)
+          .map(ResourceFieldValue.string),
+          for: .unknownNamed("uri")
+        )
+        try resource.set(
+          (dataRow.username as String?)
+            .map(ResourceFieldValue.string),
+          for: .unknownNamed("username")
+        )
+        try resource.set(
+          (dataRow.description as String?)
+            .map(ResourceFieldValue.string),
+          for: .unknownNamed("description")
+        )
         return resource
       }
 

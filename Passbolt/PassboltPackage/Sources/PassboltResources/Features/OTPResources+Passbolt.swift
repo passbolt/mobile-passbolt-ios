@@ -60,11 +60,11 @@ extension OTPResources {
     ) async throws -> OTPSecret {
       let resourceDetails: ResourceDetails = try await features.instance(context: id)
       let secret: ResourceSecret = try await resourceDetails.secret()
-      switch secret.value(forFieldWithName: "totp") ?? secret.value(forFieldWithName: "hotp") {
+      switch secret.value(for: .unknownNamed("totp")) ?? secret.value(for: .unknownNamed("hotp")) {
       case .otp(let secret):
         return secret
 
-      case .string, .none:
+      case .string, .encrypted, .unknown, .none:
         throw InvalidResourceData.error()
       }
     }

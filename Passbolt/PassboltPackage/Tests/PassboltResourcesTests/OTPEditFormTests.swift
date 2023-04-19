@@ -165,7 +165,7 @@ final class OTPEditFormTests: LoadableFeatureTestCase<OTPEditForm> {
 
   func test_sendForm_updatesResourceEditForm_whenCreatingStandaloneOTP() {
     patch(
-      \ResourceEditForm.resource,
+      \LegacyResourceEditForm.resource,
       with: always(.mock_totp)
     )
     var result: Dictionary<ResourceField, ResourceFieldValue> = .init()
@@ -174,13 +174,13 @@ final class OTPEditFormTests: LoadableFeatureTestCase<OTPEditForm> {
       set: { result = $0 }
     )
     patch(
-      \ResourceEditForm.setFieldValue,
+      \LegacyResourceEditForm.setFieldValue,
       with: { (value, field) async throws in
         uncheckedSendableResult.variable[field] = value
       }
     )
     patch(
-      \ResourceEditForm.sendForm,
+      \LegacyResourceEditForm.sendForm,
       with: always(.mock_1)
     )
     withTestedInstanceReturnsEqual(
@@ -207,16 +207,16 @@ final class OTPEditFormTests: LoadableFeatureTestCase<OTPEditForm> {
 
   func test_sendForm_succeeds_whenSendingResourceFormSucceeds() {
     patch(
-      \ResourceEditForm.resource,
+      \LegacyResourceEditForm.resource,
       with: always(.mock_totp)
     )
 
     patch(
-      \ResourceEditForm.setFieldValue,
+      \LegacyResourceEditForm.setFieldValue,
       with: always(Void())
     )
     patch(
-      \ResourceEditForm.sendForm,
+      \LegacyResourceEditForm.sendForm,
       with: always(.mock_1)
     )
     withTestedInstanceNotThrows { feature in

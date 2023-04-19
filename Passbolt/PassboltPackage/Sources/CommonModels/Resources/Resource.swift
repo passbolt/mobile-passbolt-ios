@@ -36,12 +36,12 @@ public struct Resource {
   public let id: Resource.ID?  // none is local, not synchronized resource
   public var path: OrderedSet<ResourceFolderPathItem>
   public var type: ResourceType
-  public var fieldValues: Dictionary<ResourceField, ResourceFieldValue>
   public var favoriteID: Resource.Favorite.ID?
   public var permission: Permission
   public var permissions: OrderedSet<ResourcePermission>
   public var tags: OrderedSet<ResourceTag>
   public let modified: Timestamp?  // local resources does not have modified date
+  private var fieldValues: Dictionary<ResourceField.ValuePath, ResourceFieldValue>
 
   public init(
     id: Resource.ID? = .none,
@@ -57,43 +57,50 @@ public struct Resource {
     self.path = path
     self.favoriteID = favoriteID
     self.type = type
-    self.fieldValues = .init()
     self.permission = permission
     self.tags = tags
     self.permissions = permissions
     self.modified = modified
+    self.fieldValues = .init()
   }
 
   public subscript(
-    dynamicMember keyPath: KeyPath<ResourceType, ResourceField?>
+    dynamicMember keyPath: ResourceField.ValuePath
   ) -> ResourceFieldValue? {
     get {
-      self.type[keyPath: keyPath]
-        .flatMap { self.fieldValues[$0] }
+      if self.type.contains(keyPath) {
+        return self.fieldValues[keyPath]
+      }
+      else {
+        return .none
+      }
     }
     set {
-      if let field: ResourceField = self.type[keyPath: keyPath], field.accepts(newValue) {
-        self.fieldValues[field] = newValue
-      }  // else ignore
+      guard self.type.contains(keyPath) else { return }
+      self.fieldValues[keyPath] = newValue
     }
+  }
+
+  public static func keyPath(
+    for field: ResourceField
+  ) -> WritableKeyPath<Resource, ResourceFieldValue?> {
+    \Resource[dynamicMember: field.valuePath]
   }
 
   public func value(
     for field: ResourceField
   ) -> ResourceFieldValue? {
-    if self.type.fields.contains(field) {
-      return self.fieldValues[field]
-    }
-    else {
-      return .none
-    }
+    guard let field: ResourceField = self.type.fields.first(where: { $0.name == field.name })
+    else { return .none }
+    return self.fieldValues[field.valuePath]
+      ?? (field.encrypted ? .encrypted : .none)
   }
 
   public mutating func set(
     _ value: ResourceFieldValue?,
     for field: ResourceField
   ) throws {
-    guard self.type.fields.contains(field)
+    guard let field: ResourceField = self.type.fields.first(where: { $0.name == field.name })
     else {
       throw
         InvalidResourceData
@@ -109,7 +116,7 @@ public struct Resource {
           message: "Trying to set wrong field value!"
         )
     }
-    self.fieldValues[field] = value
+    self.fieldValues[field.valuePath] = value
   }
 }
 

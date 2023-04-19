@@ -111,7 +111,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
     fieldUpdates.removeAll()
 
     let resource: Resource = config.resource
-    let resourceName: String = resource.name?.stringValue ?? ""
+    let resourceName: String = resource.value(for: .unknownNamed("name"))?.stringValue ?? ""
     favoriteStarView.isHidden = resource.favoriteID == .none
     iconView.update(from: resourceName)
     titleLabel.text = resourceName

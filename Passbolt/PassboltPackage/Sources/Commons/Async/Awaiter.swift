@@ -83,6 +83,9 @@ extension Awaiter {
               continuation: continuation
             )
           )
+          if Task.isCancelled {
+            cancelation(id)
+          } // else NOP
         }
         #else
         try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Value, Error>) in
@@ -92,6 +95,9 @@ extension Awaiter {
               continuation: continuation
             )
           )
+          if Task.isCancelled {
+            cancelation(id)
+          } // else NOP
         }
         #endif
       },

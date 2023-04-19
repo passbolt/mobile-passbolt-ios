@@ -206,7 +206,8 @@ extension UpdatesSequence {
           !state.awaiters.contains(awaiter: awaiter),
           "Awaiters cannot be reused."
         )
-        state.awaiters.update(with: awaiter)?
+        state.awaiters
+          .update(with: awaiter)?
           .resume(throwing: CancellationError())
       }
     }

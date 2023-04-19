@@ -60,7 +60,7 @@ where PublishedSequence: AsyncSequence {
   fileprivate typealias Output = PublishedSequence.Element
   fileprivate typealias Failure = Never
 
-  private let subject: PassthroughSubject<Output, Failure> = .init()
+  private let subject: CurrentValueSubject<Output?, Failure> = .init(.none)
   private let sequence: PublishedSequence
   private let file: StaticString
   private let line: UInt
@@ -79,6 +79,7 @@ where PublishedSequence: AsyncSequence {
     subscriber: S
   ) where S: Subscriber, S.Input == Output, S.Failure == Failure {
     self.subject
+      .compactMap({ $0 })
       .receive(subscriber: subscriber)
   }
 
@@ -119,7 +120,7 @@ where PublishedSequence: AsyncSequence {
   fileprivate typealias Output = PublishedSequence.Element
   fileprivate typealias Failure = Error
 
-  private let subject: PassthroughSubject<Output, Failure> = .init()
+  private let subject: CurrentValueSubject<Output?, Failure> = .init(.none)
   private let sequence: PublishedSequence
 
   fileprivate init(
@@ -132,15 +133,20 @@ where PublishedSequence: AsyncSequence {
     subscriber: S
   ) where S: Subscriber, S.Input == Output, S.Failure == Failure {
     self.subject
+      .compactMap({ $0 })
       .receive(subscriber: subscriber)
   }
 
   public func connect() -> Cancellable {
     let task: Task<Void, Never> = .init {
       do {
-        for try await element: Output in self.sequence where !Task.isCancelled {
+        for try await element: Output in self.sequence {
+          try Task.checkCancellation()
           self.subject.send(element)
         }
+        self.subject.send(completion: .finished)
+      }
+      catch is Cancelled {
         self.subject.send(completion: .finished)
       }
       catch {

@@ -66,12 +66,6 @@ extension OTPEditFormController: ViewController {
 
 extension OTPEditFormController {
 
-  private enum ScanningState {
-    case idle
-    case processing
-    case finished
-  }
-
   @MainActor fileprivate static func load(
     features: Features
   ) throws -> Self {

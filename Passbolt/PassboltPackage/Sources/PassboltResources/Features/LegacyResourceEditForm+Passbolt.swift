@@ -31,10 +31,11 @@ import Users
 import SessionData
 
 import class Foundation.JSONEncoder
+import Foundation
 
 // MARK: - Implementation
 
-extension ResourceEditForm {
+extension LegacyResourceEditForm {
 
   @MainActor fileprivate static func load(
     features: Features,
@@ -69,10 +70,6 @@ extension ResourceEditForm {
         asyncExecutor.cancelTasks()
       }
     )
-    let formStatePublisher: AnyPublisher<Resource, Never> = formUpdates
-      .updatesSequence
-      .compactMap { formState.get(\.self) }
-      .asPublisher()
 
     let initialLoading: AsyncExecutor.Execution = asyncExecutor.schedule {
       do {
@@ -92,7 +89,10 @@ extension ResourceEditForm {
             path: folderPath,
             type: resourceType
           )
-          resource.uri = url.map { .string($0.rawValue) }
+          try? resource.set(
+            url.map { .string($0.rawValue) },
+            for: .unknownNamed("uri")
+          )
           formState.set(\.self, resource)
           formUpdates.sendUpdate()
 
@@ -119,23 +119,28 @@ extension ResourceEditForm {
       }
     }
 
+    let formStatePublisher: AnyPublisher<Resource, Never> = formUpdates
+      .updatesSequence
+      .compactMap {
+        await initialLoading.waitForCompletion()
+        return formState.get(\.self)
+      }
+      .asPublisher()
+
     @Sendable nonisolated func resource() async throws -> Resource {
       await initialLoading.waitForCompletion()
-      if let resource: Resource = formState.get(\.self) {
-        return resource
+      if let state: Resource = formState.get(\.self) {
+        return state
       }
       else {
-        throw
-          InvalidForm
+        throw InvalidForm
           .error(displayable: "resource.form.error.invalid")
       }
     }
 
     @Sendable nonisolated func fieldsPublisher() -> AnyPublisher<OrderedSet<ResourceField>, Never> {
       formStatePublisher
-        .map { (resource: Resource) -> OrderedSet<ResourceField> in
-          resource.fields
-        }
+        .map(\.fields)
         .removeDuplicates()
         .eraseToAnyPublisher()
     }
@@ -283,6 +288,37 @@ extension ResourceEditForm {
 
           return .valid(value)
         }
+
+      case .unknown(_, let required):
+        return .init { (value: ResourceFieldValue?) in
+          switch value {
+          case .unknown(.null):
+            if required {
+              return .invalid(
+                value,
+                error: InvalidValue.null(
+                  value: value,
+                  displayable: "resource.form.field.error.empty"
+                )
+              )
+            }
+            else {
+              return .valid(value)
+            }
+
+          case .encrypted, .unknown:
+            return .valid(value)
+
+          case _:
+            return .invalid(
+              value,
+              error: InvalidValue.invalid(
+                value: value,
+                displayable: "resource.form.field.error.invalid"
+              )
+            )
+          }
+        }
       }
     }
 
@@ -292,16 +328,9 @@ extension ResourceEditForm {
     ) async throws {
       await initialLoading.waitForCompletion()
       try formState.access { (state: inout Resource?) in
-        guard var resource: Resource = state
-        else {
-          return assertionFailure(
-            "Trying to set form value before initializing"
-          )
-        }
-        try resource.set(value, for: field)
-        state = resource
-        formUpdates.sendUpdate()
+        try state?.set(value, for: field)
       }
+      formUpdates.sendUpdate()
     }
 
     @Sendable nonisolated func validatedFieldValuePublisher(
@@ -310,11 +339,12 @@ extension ResourceEditForm {
       let validator = fieldValidator(for: field)
       return
         formStatePublisher
-        .map { (resource: Resource) -> Validated<ResourceFieldValue?> in
-          validator.validate(resource.value(for: field))
+        .map { (resource: Resource) -> ResourceFieldValue? in
+          resource.value(for: field)
         }
-        .removeDuplicates { lhs, rhs in
-          lhs.value == rhs.value && lhs.isValid == rhs.isValid
+        .removeDuplicates()
+        .map { (fieldValue: ResourceFieldValue?) -> Validated<ResourceFieldValue?> in
+          validator.validate(fieldValue)
         }
         .replaceError(
           with: .invalid(
@@ -332,8 +362,7 @@ extension ResourceEditForm {
       await initialLoading.waitForCompletion()
       guard let resource: Resource = formState.get(\.self)
       else {
-        throw
-          InvalidForm
+        throw InvalidForm
           .error(displayable: "resource.form.error.invalid")
       }
 
@@ -350,7 +379,7 @@ extension ResourceEditForm {
         }
       }
 
-      guard case .string(let resourceName) = resource.name
+      guard case .string(let resourceName) = resource.value(for: .unknownNamed("name"))
       else {
         throw
           InvalidInputData
@@ -362,7 +391,7 @@ extension ResourceEditForm {
       let encodedSecret: String
       do {
         if secretFields.count == 1,
-          case let .string(password) = resource.password
+           case let .string(password) = resource.value(for: .unknownNamed("password"))
         {
           encodedSecret = password
         }
@@ -400,9 +429,9 @@ extension ResourceEditForm {
             resourceTypeID: resource.type.id,
             parentFolderID: resource.parentFolderID,
             name: resourceName,
-            username: resource.username?.stringValue,
-            url: (resource.uri?.stringValue).flatMap(URLString.init(rawValue:)),
-            description: descriptionEncrypted ? .none : resource.description?.stringValue,
+            username: resource.value(for: .unknownNamed("username"))?.stringValue,
+            url: (resource.value(for: .unknownNamed("uri"))?.stringValue).flatMap(URLString.init(rawValue:)),
+            description: descriptionEncrypted ? .none : resource.value(for: .unknownNamed("description"))?.stringValue,
             secrets: encryptedSecrets.map { (userID: $0.recipient, data: $0.message) }
           )
         )
@@ -437,9 +466,9 @@ extension ResourceEditForm {
             resourceTypeID: resource.type.id,
             parentFolderID: resource.parentFolderID,
             name: resourceName,
-            username: resource.username?.stringValue,
-            url: (resource.uri?.stringValue).flatMap(URLString.init(rawValue:)),
-            description: descriptionEncrypted ? .none : resource.description?.stringValue,
+            username: resource.value(for: .unknownNamed("username"))?.stringValue,
+            url: (resource.value(for: .unknownNamed("uri"))?.stringValue).flatMap(URLString.init(rawValue:)),
+            description: descriptionEncrypted ? .none : resource.value(for: .unknownNamed("description"))?.stringValue,
             secrets: [ownEncryptedMessage]
           )
         )
@@ -557,8 +586,8 @@ extension FeaturesRegistry {
   internal mutating func usePassboltResourceEditForm() {
     self.use(
       .lazyLoaded(
-        ResourceEditForm.self,
-        load: ResourceEditForm.load(features:cancellables:)
+        LegacyResourceEditForm.self,
+        load: LegacyResourceEditForm.load(features:cancellables:)
       ),
       in: ResourceEditScope.self
     )

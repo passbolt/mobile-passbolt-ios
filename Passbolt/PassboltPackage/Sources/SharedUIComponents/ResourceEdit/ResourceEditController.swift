@@ -60,7 +60,7 @@ extension ResourceEditController: UIController {
     )
     let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
-    let resourceForm: ResourceEditForm = try features.instance()
+    let resourceForm: LegacyResourceEditForm = try features.instance()
     let randomGenerator: RandomStringGenerator = try features.instance()
 
     let createsNewResource: Bool = {
@@ -134,7 +134,6 @@ extension ResourceEditController: UIController {
             .eraseToAnyPublisher()
         }
         else {
-          assertionFailure("Trying to access password without pasword field")
           return Empty<Entropy, Never>()
             .eraseToAnyPublisher()
         }

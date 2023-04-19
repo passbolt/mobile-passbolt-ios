@@ -27,7 +27,6 @@ import Commons
 import struct Foundation.Data
 import class Foundation.JSONDecoder
 
-//@dynamicMemberLookup
 public struct ResourceSecret {
 
   public let rawValue: String
@@ -42,15 +41,9 @@ public struct ResourceSecret {
   }
 
   public func value(
-    forFieldWithName fieldName: String
-  ) -> ResourceFieldValue? {
-    self.values[fieldName]
-  }
-
-  public func value(
     for field: ResourceField
   ) -> ResourceFieldValue? {
-    self.value(forFieldWithName: field.name)
+    self.values[field.name]
   }
 }
 
