@@ -514,6 +514,7 @@ scanned!";
 "otp.edit.form.advanced.button.title" = "Advanced settings";
 "otp.edit.form.create.button.title" = "Create standalone OTP";
 "otp.edit.form.edit.advanced.title" = "Create TOTP - advanced settings";
+"otp.edit.form.edit.advanced.warning" = "Advanced settings have to match your TOTP provider settings otherwise it won’t work.";
 "otp.edit.form.field.digits.title" = "OTP length";
 "otp.edit.form.field.digits.label" = "digits.";
 "otp.edit.form.field.period.title" = "TOTP expiry";

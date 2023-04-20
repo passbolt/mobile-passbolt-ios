@@ -89,6 +89,10 @@ extension UIColor {
     .init(named: "primaryButtonText", in: .uiCommons, compatibleWith: .current)!
   }
 
+  public static var passboltWarningText: Self {
+    .init(named: "warningText", in: .uiCommons, compatibleWith: .current)!
+  }
+
   public static var passboltBackground: Self {
     .init(named: "background", in: .uiCommons, compatibleWith: .current)!
   }
@@ -189,6 +193,10 @@ extension Color {
   }
   public static var passboltPrimaryButtonText: Self {
     .init(UIColor.passboltPrimaryButtonText)
+  }
+
+  public static var passboltWarningText: Self {
+    .init(UIColor.passboltPrimaryText)
   }
 
   public static var passboltBackground: Self {

@@ -42,6 +42,7 @@ internal struct OTPEditAdvancedFormView: ControlledView {
       VStack(spacing: 0) {
         ScrollView {
           VStack(spacing: 16) {
+            WarningView(message: "otp.edit.form.edit.advanced.warning")
             self.periodField
             self.digitsField
             self.algorithmField
