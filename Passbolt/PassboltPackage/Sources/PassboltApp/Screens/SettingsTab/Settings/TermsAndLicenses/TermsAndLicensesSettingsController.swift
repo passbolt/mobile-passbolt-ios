@@ -74,7 +74,7 @@ extension TermsAndLicensesSettingsController {
     let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
         termsAndConditionsLinkAvailable: !(sessionConfiguration.termsURL?.isEmpty ?? true),
-        privacyPolicyLinkAvailable: (sessionConfiguration.privacyPolicyURL?.isEmpty ?? true)
+        privacyPolicyLinkAvailable: !(sessionConfiguration.privacyPolicyURL?.isEmpty ?? true)
       )
     )
 
