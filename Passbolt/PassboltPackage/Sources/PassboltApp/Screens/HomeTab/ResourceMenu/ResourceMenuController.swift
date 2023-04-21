@@ -215,7 +215,7 @@ extension ResourceMenuController: UIController {
               .switchToLatest()
               .eraseToAnyPublisher()
           }
-          else if let value: String = resource.value(for: .unknownNamed("uri"))?.stringValue {
+          else if let value: String = resource.value(forField: "uri")?.stringValue {
 
             return Just(Void())
               .setFailureType(to: Error.self)
@@ -274,7 +274,7 @@ extension ResourceMenuController: UIController {
               .mapToVoid()
               .eraseToAnyPublisher()
           }
-          else if let value: String = resource.value(for: .unknownNamed("uri"))?.stringValue {
+          else if let value: String = resource.value(forField: "uri")?.stringValue {
             return Just(Void())
               .eraseErrorType()
               .handleEvents(receiveOutput: { _ in
@@ -380,7 +380,7 @@ extension ResourceMenuController: UIController {
               .mapToVoid()
               .eraseToAnyPublisher()
           }
-          else if let value: String = resource.value(for: .unknownNamed("username"))?.stringValue {
+          else if let value: String = resource.value(forField: "username")?.stringValue {
             return Just(Void())
               .eraseErrorType()
               .handleEvents(receiveOutput: { _ in

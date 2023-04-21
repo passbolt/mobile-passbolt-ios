@@ -109,23 +109,21 @@ public final class ResourceEditView: KeyboardAwareView {
     fieldViews =
       fields
       .compactMap { resourceField -> (field: ResourceField, view: PlainView)? in
-        switch resourceField.name {
-        case "name":
+        switch resourceField.editor {
+        case .textField(encrypted: false, let required):
           return (
             field: resourceField,
             view: Mutation<TextInput>
               .combined(
                 .backgroundColor(dynamic: .background),
-                .isRequired(true),
+                .isRequired(required),
                 .custom { (input: TextInput) in
                   input.applyOn(
                     text: .combined(
                       .primaryStyle(),
                       .attributedPlaceholderString(
                         .displayable(
-                          .localized(
-                            key: "resource.edit.name.field.placeholder"
-                          ),
+                          resourceField.displayablePlaceholder ?? .raw(""),
                           font: .inter(ofSize: 14, weight: .medium),
                           color: .secondaryText
                         )
@@ -133,83 +131,27 @@ public final class ResourceEditView: KeyboardAwareView {
                     )
                   )
                   input.applyOn(
-                    description: .text(displayable: .localized(key: "resource.edit.field.name.label"))
+                    description: .text(displayable: resourceField.displayableName)
                   )
                 }
               )
               .instantiate()
           )
 
-        case "uri":
-          return (
-            field: resourceField,
-            view: Mutation<TextInput>
-              .combined(
-                .backgroundColor(dynamic: .background),
-                .isRequired(resourceField.required),
-                .custom { (input: TextInput) in
-                  input.applyOn(
-                    text: .combined(
-                      .primaryStyle(),
-                      .attributedPlaceholderString(
-                        .displayable(
-                          .localized(key: "resource.edit.url.field.placeholder"),
-                          font: .inter(ofSize: 14, weight: .medium),
-                          color: .secondaryText
-                        )
-                      )
-                    )
-                  )
-                  input.applyOn(
-                    description: .text(displayable: .localized(key: "resource.edit.field.url.label"))
-                  )
-                }
-              )
-              .instantiate()
-          )
-
-        case "username":
-          return (
-            field: resourceField,
-            view: Mutation<TextInput>
-              .combined(
-                .backgroundColor(dynamic: .background),
-                .isRequired(resourceField.required),
-                .custom { (input: TextInput) in
-                  input.applyOn(
-                    text: .combined(
-                      .primaryStyle(),
-                      .attributedPlaceholderString(
-                        .displayable(
-                          .localized(key: "resource.edit.username.field.placeholder"),
-                          font: .inter(ofSize: 14, weight: .medium),
-                          color: .secondaryText
-                        )
-                      )
-                    )
-                  )
-                  input.applyOn(
-                    description: .text(displayable: .localized(key: "resource.edit.field.username.label"))
-                  )
-                }
-              )
-              .instantiate()
-          )
-
-        case "password", "secret":
+        case .textField(encrypted: true, let required):
           return (
             field: resourceField,
             view: Mutation<SecureTextInput>
               .combined(
                 .backgroundColor(dynamic: .background),
-                .isRequired(resourceField.required),
+                .isRequired(required),
                 .custom { (input: TextInput) in
                   input.applyOn(
                     text: .combined(
                       .primaryStyle(),
                       .attributedPlaceholderString(
                         .displayable(
-                          .localized(key: "resource.edit.password.field.placeholder"),
+                          resourceField.displayablePlaceholder ?? .raw(""),
                           font: .inter(ofSize: 14, weight: .medium),
                           color: .secondaryText
                         )
@@ -217,22 +159,22 @@ public final class ResourceEditView: KeyboardAwareView {
                     )
                   )
                   input.applyOn(
-                    description: .text(displayable: .localized(key: "resource.edit.field.password.label"))
+                    description: .text(displayable: resourceField.displayableName)
                   )
                 }
               )
               .instantiate()
           )
 
-        case "description":
+        case .longTextField(let encrypted, let required) where resourceField.name == "description":
           return (
             field: resourceField,
             view: Mutation<TextViewInput>
               .combined(
-                .isRequired(resourceField.required),
+                .isRequired(required),
                 .attributedPlaceholder(
                   .displayable(
-                    .localized(key: "resource.edit.description.field.placeholder"),
+                    resourceField.displayablePlaceholder ?? .raw(""),
                     font: .inter(ofSize: 14, weight: .medium),
                     color: .secondaryText
                   )
@@ -243,7 +185,7 @@ public final class ResourceEditView: KeyboardAwareView {
                   )
                   input.applyOn(
                     description: .text(
-                      displayable: .localized(key: "resource.edit.field.description.label")
+                      displayable: resourceField.displayableName
                     )
                   )
                   input.set(
@@ -254,7 +196,7 @@ public final class ResourceEditView: KeyboardAwareView {
                           self?.lockTapSubject.send(resourceField.encrypted)
                         },
                         .image(
-                          named: resourceField.encrypted
+                          named: encrypted
                             ? .lockedLock
                             : .unlockedLock,
                           from: .uiCommons
@@ -271,29 +213,26 @@ public final class ResourceEditView: KeyboardAwareView {
               .instantiate()
           )
 
-        case let name where resourceField.encrypted:
+        case .longTextField(_, let required):
           return (
             field: resourceField,
-            view: Mutation<SecureTextInput>
+            view: Mutation<TextViewInput>
               .combined(
-                .backgroundColor(dynamic: .background),
-                .isRequired(resourceField.required),
-                .custom { (input: TextInput) in
+                .isRequired(required),
+                .attributedPlaceholder(
+                  .displayable(
+                    resourceField.displayablePlaceholder ?? .raw(""),
+                    font: .inter(ofSize: 14, weight: .medium),
+                    color: .secondaryText
+                  )
+                ),
+                .custom { (input: TextViewInput) in
                   input.applyOn(
-                    text: .combined(
-                      .primaryStyle(),
-                      .attributedPlaceholderString(
-                        .displayable(
-                          .raw(name),
-                          font: .inter(ofSize: 14, weight: .medium),
-                          color: .secondaryText
-                        )
-                      )
-                    )
+                    text: .formStyle()
                   )
                   input.applyOn(
                     description: .text(
-                      displayable: .raw(name)
+                      displayable: resourceField.displayableName
                     )
                   )
                 }
@@ -301,35 +240,11 @@ public final class ResourceEditView: KeyboardAwareView {
               .instantiate()
           )
 
-        case let name:
-          return (
-            field: resourceField,
-            view: Mutation<TextInput>
-              .combined(
-                .backgroundColor(dynamic: .background),
-                .isRequired(resourceField.required),
-                .custom { (input: TextInput) in
-                  input.applyOn(
-                    text: .combined(
-                      .primaryStyle(),
-                      .attributedPlaceholderString(
-                        .displayable(
-                          .raw(name),
-                          font: .inter(ofSize: 14, weight: .medium),
-                          color: .secondaryText
-                        )
-                      )
-                    )
-                  )
-                  input.applyOn(
-                    description: .text(
-                      displayable: .raw(name)
-                    )
-                  )
-                }
-              )
-              .instantiate()
-          )
+        case .totp:
+          return .none
+
+        case .undefined:
+          return .none
         }
       }
       .reduce(

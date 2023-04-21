@@ -97,7 +97,7 @@ extension OTPContextualMenuController {
     ) {
       for await _ in resourceDetails.updates {
         let resource: Resource = try await resourceDetails.details()
-        let resourceName: String = resource.value(for: .unknownNamed("name"))?.stringValue ?? ""
+        let resourceName: String = resource.value(forField: "name")?.stringValue ?? ""
 
         await viewState.update { (state: inout ViewState) in
           state.title = .raw(resourceName)

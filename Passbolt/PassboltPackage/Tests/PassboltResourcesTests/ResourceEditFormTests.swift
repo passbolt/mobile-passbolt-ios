@@ -793,7 +793,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<LegacyResourceEditFo
     await self.mockExecutionControl.executeAll()
 
     let result: String? =
-      try await feature.resource().value(for: .unknownNamed("uri"))?.stringValue
+      try await feature.resource().value(forField: "uri")?.stringValue
 
     XCTAssertEqual(result, "https://passbolt.com/predefined")
   }

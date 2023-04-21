@@ -142,7 +142,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       .performAction(.copyPassword)
       .asAsyncValue()
 
-    XCTAssertEqual(result, resourceSecret.value(for: .unknownNamed("password"))?.stringValue)
+    XCTAssertEqual(result, resourceSecret.value(forField: "password")?.stringValue)
   }
 
   func test_performAction_copiesURLToPasteboard_forCopyURLAction() async throws {
@@ -168,7 +168,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    XCTAssertEqual(result, detailsViewResource.value(for: .unknownNamed("uri"))?.stringValue)
+    XCTAssertEqual(result, detailsViewResource.value(forField: "uri")?.stringValue)
   }
 
   func test_performAction_opensURL_forOpenURLAction() async throws {
@@ -197,7 +197,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
-    XCTAssertEqual(result?.rawValue, detailsViewResource.value(for: .unknownNamed("uri"))?.stringValue)
+    XCTAssertEqual(result?.rawValue, detailsViewResource.value(forField: "uri")?.stringValue)
   }
 
   func test_performAction_fails_forOpenURLAction_whenOpeningFails() async throws {
@@ -259,7 +259,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    XCTAssertEqual(result, detailsViewResource.value(for: .unknownNamed("username"))?.stringValue)
+    XCTAssertEqual(result, detailsViewResource.value(forField: "username")?.stringValue)
   }
 
   func test_performAction_copiesDescriptionToPasteboard_forCopyDescriptionAction_withUnencryptedDescription()
@@ -295,7 +295,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    XCTAssertEqual(result, detailsViewResourceWithUnencryptedDescription.value(for: .unknownNamed("description"))?.stringValue)
+    XCTAssertEqual(result, detailsViewResourceWithUnencryptedDescription.value(forField: "description")?.stringValue)
   }
 
   func test_performAction_copiesDescriptionToPasteboard_forCopyDescriptionAction_withEncryptedDescription() async throws
@@ -389,9 +389,9 @@ private let detailsViewResource: Resource = {
     ],
     modified: .init(rawValue: 0)
   )
-  try! mock.set(.string("Mock_1"), for: .unknownNamed("name"))
-  try! mock.set(.string("https://passbolt.com"), for: .unknownNamed("uri"))
-  try! mock.set(.string("passbolt@passbolt.com"), for: .unknownNamed("username"))
+  try! mock.set(.string("Mock_1"), forField: "name")
+  try! mock.set(.string("https://passbolt.com"), forField: "uri")
+  try! mock.set(.string("passbolt@passbolt.com"), forField: "username")
   return mock
 }()
 
@@ -429,10 +429,10 @@ private let detailsViewResourceWithUnencryptedDescription: Resource = {
     ],
     modified: .init(rawValue: 0)
   )
-  try! mock.set(.string("Mock_1"), for: .unknownNamed("name"))
-  try! mock.set(.string("https://passbolt.com"), for: .unknownNamed("uri"))
-  try! mock.set(.string("passbolt@passbolt.com"), for: .unknownNamed("username"))
-  try! mock.set(.string("Passbolt"), for: .unknownNamed("description"))
+  try! mock.set(.string("Mock_1"), forField: "name")
+  try! mock.set(.string("https://passbolt.com"), forField: "uri")
+  try! mock.set(.string("passbolt@passbolt.com"), forField: "username")
+  try! mock.set(.string("Passbolt"), forField: "description")
   return mock
 }()
 

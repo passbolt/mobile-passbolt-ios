@@ -45,6 +45,12 @@ public struct ResourceSecret {
   ) -> ResourceFieldValue? {
     self.values[field.name]
   }
+
+  public func value(
+    forField name: StaticString
+  ) -> ResourceFieldValue? {
+    self.values[name.description]
+  }
 }
 
 extension ResourceSecret {

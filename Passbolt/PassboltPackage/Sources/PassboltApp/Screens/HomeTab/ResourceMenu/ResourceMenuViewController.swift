@@ -74,7 +74,7 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
           }
         },
         receiveValue: { [weak self] resourceDetails in
-          self?.title = resourceDetails.value(for: .unknownNamed("name"))?.stringValue ?? ""
+          self?.title = resourceDetails.value(forField: "name")?.stringValue ?? ""
         }
       )
       .store(in: cancellables)

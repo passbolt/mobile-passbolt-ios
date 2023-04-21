@@ -193,7 +193,7 @@ extension ResourceDetailsController: UIController {
             .switchToLatest()
             .eraseToAnyPublisher()
           }
-          else if let value: String = resource.value(for: .unknownNamed("uri"))?.stringValue {
+          else if let value: String = resource.value(forField: "uri")?.stringValue {
             return Just(Void())
               .eraseErrorType()
               .handleEvents(receiveOutput: { _ in

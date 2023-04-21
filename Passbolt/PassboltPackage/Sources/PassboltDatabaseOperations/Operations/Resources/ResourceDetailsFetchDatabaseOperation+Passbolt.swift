@@ -289,26 +289,32 @@ extension ResourceDetailsFetchDatabaseOperation {
           ),
           modified: dataRow.modified.flatMap(Timestamp.init(rawValue:))
         )
-        // set dynamic field values
+        // set dynamic field values if able, ignore missing fields
         try resource.set(
           .string(name),
-          for: .unknownNamed("name")
+          forField: "name"
         )
-        try resource.set(
-          (dataRow.uri as String?)
-          .map(ResourceFieldValue.string),
-          for: .unknownNamed("uri")
-        )
-        try resource.set(
-          (dataRow.username as String?)
-            .map(ResourceFieldValue.string),
-          for: .unknownNamed("username")
-        )
-        try resource.set(
-          (dataRow.description as String?)
-            .map(ResourceFieldValue.string),
-          for: .unknownNamed("description")
-        )
+        if let uri: String = dataRow.uri {
+          try resource.set(
+            .string(uri),
+            forField: "uri"
+          )
+        } // else NOP
+
+        if let username: String = dataRow.username {
+          try resource.set(
+            .string(username),
+            forField: "username"
+          )
+        } // else NOP
+
+        if let description: String = dataRow.description {
+          try resource.set(
+            .string(description),
+            forField: "description"
+          )
+        } // else NOP
+
         return resource
       }
 

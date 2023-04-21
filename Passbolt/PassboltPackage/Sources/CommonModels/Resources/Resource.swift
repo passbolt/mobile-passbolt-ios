@@ -90,7 +90,19 @@ public struct Resource {
   public func value(
     for field: ResourceField
   ) -> ResourceFieldValue? {
-    guard let field: ResourceField = self.type.fields.first(where: { $0.name == field.name })
+    value(for: field.valuePath)
+  }
+
+  public func value(
+    forField name: StaticString
+  ) -> ResourceFieldValue? {
+    value(for: ResourceField.valuePath(forName: name))
+  }
+
+  private func value(
+    for path: ResourceField.ValuePath
+  ) -> ResourceFieldValue? {
+    guard let field: ResourceField = self.type.fields.first(where: { $0.valuePath == path })
     else { return .none }
     return self.fieldValues[field.valuePath]
       ?? (field.encrypted ? .encrypted : .none)
@@ -100,7 +112,27 @@ public struct Resource {
     _ value: ResourceFieldValue?,
     for field: ResourceField
   ) throws {
-    guard let field: ResourceField = self.type.fields.first(where: { $0.name == field.name })
+    try self.set(
+      value,
+      for: field.valuePath
+    )
+  }
+
+  public mutating func set(
+    _ value: ResourceFieldValue?,
+    forField name: StaticString
+  ) throws {
+    try self.set(
+      value,
+      for: ResourceField.valuePath(forName: name)
+    )
+  }
+
+  private mutating func set(
+    _ value: ResourceFieldValue?,
+    for path: ResourceField.ValuePath
+  ) throws {
+    guard let field: ResourceField = self.type.fields.first(where: { $0.valuePath == path })
     else {
       throw
         InvalidResourceData
@@ -117,6 +149,22 @@ public struct Resource {
         )
     }
     self.fieldValues[field.valuePath] = value
+  }
+
+  public func validate() throws {
+    for field in self.fields {
+      let error: TheError? = field
+        .validator
+        .contraMapOptional()
+        .validate(self.value(for: field))
+        .error
+      if let error {
+        throw error
+      }
+      else {
+        continue
+      }
+    }
   }
 }
 
