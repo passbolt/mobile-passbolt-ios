@@ -47,7 +47,7 @@ final class ConfigDecodingTests: XCTestCase {
             "version": "1.0.1",
             "enabled": true
           },
-          "totpResourceType": {
+          "totpResourceTypes": {
             "enabled": true
           },
           "folders": {

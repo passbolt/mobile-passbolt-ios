@@ -97,7 +97,7 @@ extension ConfigurationFetchNetworkOperationResult {
 
       if let totp: ConfigurationPlugins.TOTP = try plugins.decodeIfPresent(
         ConfigurationPlugins.TOTP.self,
-        forKey: "totpResourceType"
+        forKey: "totpResourceTypes"
       ) {
         self.plugins.append(totp)
       }
