@@ -75,7 +75,6 @@ extension FeatureFlags.Folders: FeatureConfigItem {
   public static var `default`: FeatureFlags.Folders {
     .disabled
   }
-
 }
 
 extension FeatureFlags.PreviewPassword: FeatureConfigItem {

@@ -196,7 +196,7 @@ extension Color {
   }
 
   public static var passboltWarningText: Self {
-    .init(UIColor.passboltPrimaryText)
+    .init(UIColor.passboltWarningText)
   }
 
   public static var passboltBackground: Self {
