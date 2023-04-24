@@ -41,13 +41,14 @@ internal final class ResourcesListView: CollectionView<SingleSection, ResourcesL
   private var itemMenuTapSubject: PassthroughSubject<ResourcesResourceListItemDSVItem, Never> = .init()
 
   internal init() {
-    super.init(
-      layout: .resourcesList(),
-      cells: [
-        ResourcesListAddCell.self,
-        ResourcesListResourceCell.self,
-      ]
-    )
+    super
+      .init(
+        layout: .resourcesList(),
+        cells: [
+          ResourcesListAddCell.self,
+          ResourcesListResourceCell.self,
+        ]
+      )
   }
 
   override internal func setup() {

@@ -40,7 +40,7 @@ extension NDEFParser {
 
     func validate(token: String?) -> Bool {
       // validate length
-      guard let token = token, (32...64) ~= token.count
+      guard let token = token, (32 ... 64) ~= token.count
       else { return false }
 
       // mod hex characters are legal

@@ -26,10 +26,11 @@ import UICommons
 public final class LogsViewerView: CollectionView<SingleSection, LogsViewerLogItem> {
 
   public init() {
-    super.init(
-      layout: .logsList(),
-      cells: [LogsViewerLogCell.self]
-    )
+    super
+      .init(
+        layout: .logsList(),
+        cells: [LogsViewerLogCell.self]
+      )
     let activityIndicator: ActivityIndicator = .init(style: .large)
     activityIndicator.dynamicColor = .icon
     emptyStateView = activityIndicator

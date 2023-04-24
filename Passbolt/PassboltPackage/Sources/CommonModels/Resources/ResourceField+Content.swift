@@ -73,7 +73,8 @@ extension ResourceField {
     case (.unknown, .unknown):
       return true
 
-    case (.string(encrypted: true, _, _, _), .encrypted), (.totp, .encrypted), (.unknown(encrypted: true, _), .encrypted):
+    case (.string(encrypted: true, _, _, _), .encrypted), (.totp, .encrypted),
+      (.unknown(encrypted: true, _), .encrypted):
       return true
 
     case _:

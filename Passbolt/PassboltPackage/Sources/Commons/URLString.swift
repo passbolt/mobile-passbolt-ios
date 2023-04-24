@@ -73,7 +73,7 @@ extension URLString {
 
     // Remove path from target url - ignoring in matching
     if let pathBeginningIndex = targetURL.firstIndex(of: "/") {
-      targetURL.removeSubrange(pathBeginningIndex..<targetURL.endIndex)
+      targetURL.removeSubrange(pathBeginningIndex ..< targetURL.endIndex)
     }
     else {
       /* NOP */
@@ -81,7 +81,7 @@ extension URLString {
 
     // Remove path from checked url - ignoring in matching
     if let pathBeginningIndex = checkedURL.firstIndex(of: "/") {
-      checkedURL.removeSubrange(pathBeginningIndex..<checkedURL.endIndex)
+      checkedURL.removeSubrange(pathBeginningIndex ..< checkedURL.endIndex)
     }
     else {
       /* NOP */
@@ -89,7 +89,7 @@ extension URLString {
 
     // Pick and remove port from target url
     let targetURLPort: Substring
-    if let portRange = targetURL.lastIndex(of: ":").map({ $0..<targetURL.endIndex }),
+    if let portRange = targetURL.lastIndex(of: ":").map({ $0 ..< targetURL.endIndex }),
       targetURL[portRange].range(of: "^(:[0-9]{1,6})$", options: .regularExpression, range: nil, locale: nil) != nil
     {
       targetURLPort = targetURL[portRange]
@@ -101,7 +101,7 @@ extension URLString {
 
     // Pick and remove scheme from checked url
     let checkedURLPort: Substring
-    if let portRange = checkedURL.lastIndex(of: ":").map({ $0..<checkedURL.endIndex }),
+    if let portRange = checkedURL.lastIndex(of: ":").map({ $0 ..< checkedURL.endIndex }),
       checkedURL[portRange].range(of: "^(:[0-9]{1,6})$", options: .regularExpression, range: nil, locale: nil) != nil
     {
       checkedURLPort = checkedURL[portRange]

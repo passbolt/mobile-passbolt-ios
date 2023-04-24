@@ -197,32 +197,33 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
 
         let path: Array<ResourceFolderPathItem>
         if let parentFolderID: ResourceFolder.ID = parentFolderID {
-          path = try connection.fetch(
-            using:
-              selectResourceFolderPathStatement
-              .appendingArgument(parentFolderID)
-          ) { dataRow in
-            guard
-              let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
-              let name: String = dataRow.name,
-              let shared: Bool = dataRow.shared
-            else {
-              throw
-                DatabaseIssue
-                .error(
-                  underlyingError:
-                    DatabaseDataInvalid
-                    .error(for: ResourceFolderPathItem.self)
-                )
-            }
+          path =
+            try connection.fetch(
+              using:
+                selectResourceFolderPathStatement
+                .appendingArgument(parentFolderID)
+            ) { dataRow in
+              guard
+                let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
+                let name: String = dataRow.name,
+                let shared: Bool = dataRow.shared
+              else {
+                throw
+                  DatabaseIssue
+                  .error(
+                    underlyingError:
+                      DatabaseDataInvalid
+                      .error(for: ResourceFolderPathItem.self)
+                  )
+              }
 
-            return ResourceFolderPathItem(
-              id: id,
-              name: name,
-              shared: shared
-            )
-          }
-          .reversed()
+              return ResourceFolderPathItem(
+                id: id,
+                name: name,
+                shared: shared
+              )
+            }
+            .reversed()
         }
         else {
           path = .init()

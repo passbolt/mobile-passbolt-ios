@@ -156,13 +156,13 @@ extension UpdatesSequence: AsyncSequence {
 
   public nonisolated func makeAsyncIterator() -> AsyncIterator {
     AsyncIterator(
-      update: { @Sendable (generation: Generation, awaiter: Awaiter) in
+      update: { (generation: Generation, awaiter: Awaiter) in
         self.update(
           after: generation,
           using: awaiter
         )
       },
-      cancel: { @Sendable (id: IID) -> Void in
+      cancel: { (id: IID) -> Void in
         self.cancelAwaiter(withID: id)
       }
     )

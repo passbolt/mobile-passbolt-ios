@@ -52,9 +52,10 @@ internal final class FavoriteResourcesListViewController: PlainViewController, U
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setupView() {

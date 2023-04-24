@@ -47,12 +47,13 @@ extension Features {
     line: UInt = #line
   ) throws -> Account {
     do {
-      return try self.context(
-        of: SessionScope.self,
-        file: file,
-        line: line
-      )
-      .account
+      return
+        try self.context(
+          of: SessionScope.self,
+          file: file,
+          line: line
+        )
+        .account
     }
     catch {
       throw
@@ -70,12 +71,13 @@ extension Features {
     line: UInt = #line
   ) throws -> SessionConfiguration {
     do {
-      return try self.context(
-        of: SessionScope.self,
-        file: file,
-        line: line
-      )
-      .configuration
+      return
+        try self.context(
+          of: SessionScope.self,
+          file: file,
+          line: line
+        )
+        .configuration
     }
     catch {
       throw

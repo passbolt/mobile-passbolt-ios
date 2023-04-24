@@ -53,9 +53,10 @@ internal final class BiometricsInfoViewController: PlainViewController, UICompon
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setupView() {
@@ -82,18 +83,19 @@ internal final class BiometricsInfoViewController: PlainViewController, UICompon
     controller
       .presentationDestinationPublisher()
       .sink { [weak self] destination in
-        self?.cancellables.executeOnMainActor {
-          switch destination {
-          case .biometricsSetup:
-            await self?.push(BiometricsSetupViewController.self)
+        self?.cancellables
+          .executeOnMainActor {
+            switch destination {
+            case .biometricsSetup:
+              await self?.push(BiometricsSetupViewController.self)
 
-          case .extensionSetup:
-            await self?.push(ExtensionSetupViewController.self)
+            case .extensionSetup:
+              await self?.push(ExtensionSetupViewController.self)
 
-          case .finish:
-            await self?.dismiss(Self.self)
+            case .finish:
+              await self?.dismiss(Self.self)
+            }
           }
-        }
       }
       .store(in: cancellables)
   }

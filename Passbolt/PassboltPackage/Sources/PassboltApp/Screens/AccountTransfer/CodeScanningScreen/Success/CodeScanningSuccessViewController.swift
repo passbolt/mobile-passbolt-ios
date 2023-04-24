@@ -52,9 +52,10 @@ internal final class CodeScanningSuccessViewController: PlainViewController, UIC
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setupView() {
@@ -86,9 +87,10 @@ internal final class CodeScanningSuccessViewController: PlainViewController, UIC
       .signInPresentationPublisher()
       .sink(
         receiveCompletion: { [weak self] _ in
-          self?.cancellables.executeOnMainActor { [weak self] in
-            await self?.push(TransferSignInViewController.self)
-          }
+          self?.cancellables
+            .executeOnMainActor { [weak self] in
+              await self?.push(TransferSignInViewController.self)
+            }
         },
         receiveValue: { _ in }
       )

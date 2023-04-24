@@ -53,9 +53,10 @@ internal final class TOTPViewController: PlainViewController, UIComponent {
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setupView() {
@@ -107,16 +108,18 @@ internal final class TOTPViewController: PlainViewController, UIComponent {
       .sink { [weak self] change in
         switch change {
         case .idle, .processing:
-          self?.contentView.applyOn(
-            labels:
-              .textColor(dynamic: .primaryText)
-          )
+          self?.contentView
+            .applyOn(
+              labels:
+                .textColor(dynamic: .primaryText)
+            )
 
         case .error:
-          self?.contentView.applyOn(
-            labels:
-              .textColor(dynamic: .secondaryRed)
-          )
+          self?.contentView
+            .applyOn(
+              labels:
+                .textColor(dynamic: .secondaryRed)
+            )
         }
 
         switch change {
@@ -125,24 +128,26 @@ internal final class TOTPViewController: PlainViewController, UIComponent {
 
         case .processing:
           self?.view.endEditing(true)
-          self?.present(
-            overlay: LoaderOverlayView(
-              longLoadingMessage: (
-                message: .localized(
-                  key: .loadingLong
-                ),
-                delay: 15
+          self?
+            .present(
+              overlay: LoaderOverlayView(
+                longLoadingMessage: (
+                  message: .localized(
+                    key: .loadingLong
+                  ),
+                  delay: 15
+                )
               )
             )
-          )
 
         case let .error(error) where error is InvalidPasteValue:
           self?.dismissOverlay()
-          self?.presentErrorSnackbar(
-            .localized(
-              key: .invalidPasteValue
+          self?
+            .presentErrorSnackbar(
+              .localized(
+                key: .invalidPasteValue
+              )
             )
-          )
 
         case let .error(error) where !(error is Cancelled):
           self?.dismissOverlay()
@@ -150,9 +155,10 @@ internal final class TOTPViewController: PlainViewController, UIComponent {
 
         case let .error(error as NetworkRequestValidationFailure):
           self?.dismissOverlay()
-          self?.presentErrorSnackbar(
-            .localized("totp.wrong.code.error")
-          )
+          self?
+            .presentErrorSnackbar(
+              .localized("totp.wrong.code.error")
+            )
 
         case _:
           self?.dismissOverlay()

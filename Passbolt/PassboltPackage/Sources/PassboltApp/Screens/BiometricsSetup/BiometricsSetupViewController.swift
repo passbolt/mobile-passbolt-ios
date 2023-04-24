@@ -53,9 +53,10 @@ internal final class BiometricsSetupViewController: PlainViewController, UICompo
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setupView() {
@@ -84,16 +85,17 @@ internal final class BiometricsSetupViewController: PlainViewController, UICompo
           .sink(receiveCompletion: { [weak self] completion in
             guard case .failure = completion
             else { return }
-            self?.present(
-              snackbar: Mutation<UICommons.PlainView>
-                .snackBarErrorMessage(
-                  .localized(
-                    key: .genericError
+            self?
+              .present(
+                snackbar: Mutation<UICommons.PlainView>
+                  .snackBarErrorMessage(
+                    .localized(
+                      key: .genericError
+                    )
                   )
-                )
-                .instantiate(),
-              hideAfter: 2
-            )
+                  .instantiate(),
+                hideAfter: 2
+              )
           })
           .store(in: self.cancellables)
       }
@@ -110,14 +112,15 @@ internal final class BiometricsSetupViewController: PlainViewController, UICompo
     controller
       .destinationPresentationPublisher()
       .sink { [weak self] destination in
-        self?.cancellables.executeOnMainActor {
-          switch destination {
-          case .extensionSetup:
-            await self?.push(ExtensionSetupViewController.self)
-          case .finish:
-            await self?.dismiss(Self.self)
+        self?.cancellables
+          .executeOnMainActor {
+            switch destination {
+            case .extensionSetup:
+              await self?.push(ExtensionSetupViewController.self)
+            case .finish:
+              await self?.dismiss(Self.self)
+            }
           }
-        }
       }
       .store(in: cancellables)
   }

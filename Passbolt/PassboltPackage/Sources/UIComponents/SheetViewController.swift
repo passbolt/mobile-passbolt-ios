@@ -147,9 +147,10 @@ public final class SheetViewController<Content: UIComponent>: PlainViewControlle
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
     self.modalPresentationStyle = .overFullScreen
     self.modalTransitionStyle = .crossDissolve
   }
@@ -172,9 +173,10 @@ public final class SheetViewController<Content: UIComponent>: PlainViewControlle
   private func setupSubscriptions() {
     contentView.backgroundTapPublisher
       .sink { [weak self] in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          await self?.dismiss(Self.self)
-        }
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            await self?.dismiss(Self.self)
+          }
       }
       .store(in: cancellables)
   }

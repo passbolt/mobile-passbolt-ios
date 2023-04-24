@@ -85,7 +85,7 @@ public final class CriticalState<State> {
   ) {
     os_unfair_lock_lock(self.lockPtr)
     defer { os_unfair_lock_unlock(self.lockPtr) }
-    return self.statePtr.pointee[keyPath: keyPath] = newValue
+    self.statePtr.pointee[keyPath: keyPath] = newValue
   }
 
   @inlinable @Sendable public func exchange<Value>(

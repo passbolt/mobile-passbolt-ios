@@ -169,7 +169,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
   }
 
   func test_succeesCodes_withStatusOk_succeeds() {
-    let decoding: NetworkResponseDecoding<Void, Void, Void> = .statusCodes(200..<400)
+    let decoding: NetworkResponseDecoding<Void, Void, Void> = .statusCodes(200 ..< 400)
 
     do {
       _ =
@@ -197,7 +197,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
   }
 
   func test_succeesCodes_withInvalidStatus_fails() {
-    let decoding: NetworkResponseDecoding<Void, Void, Void> = .statusCodes(200..<400)
+    let decoding: NetworkResponseDecoding<Void, Void, Void> = .statusCodes(200 ..< 400)
     do {
       try decoding
         .decode(

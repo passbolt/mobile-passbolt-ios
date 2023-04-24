@@ -316,63 +316,64 @@ extension AccountImport {
         )
         .eraseToAnyPublisher()
       }
-      return cancellables.executeAsyncWithPublisher {
-        do {
-          // verify passphrase
-          switch pgp.verifyPassphrase(account.armoredKey, passphrase) {
-          case .success:
-            break  // continue process
+      return
+        cancellables.executeAsyncWithPublisher {
+          do {
+            // verify passphrase
+            switch pgp.verifyPassphrase(account.armoredKey, passphrase) {
+            case .success:
+              break  // continue process
 
-          case let .failure(error):
-            diagnostics.log(diagnostic: "...invalid passphrase!")
-            throw
-              error
-              .asTheError()
-              .pushing(.message("Invalid passphrase used for account transfer"))
-          }
-          let addedAccount: Account =
-            try accounts
-            .addAccount(
-              .init(
-                userID: account.userID,
-                domain: configuration.domain,
-                username: profile.username,
-                firstName: profile.firstName,
-                lastName: profile.lastName,
-                avatarImageURL: profile.avatarImageURL,
-                fingerprint: account.fingerprint,
-                armoredKey: account.armoredKey
+            case let .failure(error):
+              diagnostics.log(diagnostic: "...invalid passphrase!")
+              throw
+                error
+                .asTheError()
+                .pushing(.message("Invalid passphrase used for account transfer"))
+            }
+            let addedAccount: Account =
+              try accounts
+              .addAccount(
+                .init(
+                  userID: account.userID,
+                  domain: configuration.domain,
+                  username: profile.username,
+                  firstName: profile.firstName,
+                  lastName: profile.lastName,
+                  avatarImageURL: profile.avatarImageURL,
+                  fingerprint: account.fingerprint,
+                  armoredKey: account.armoredKey
+                )
               )
-            )
 
-          // create new session for transferred account
-          _ =
-            try await session
-            .authorize(
-              .adHoc(addedAccount, passphrase, account.armoredKey)
-            )
+            // create new session for transferred account
+            _ =
+              try await session
+              .authorize(
+                .adHoc(addedAccount, passphrase, account.armoredKey)
+              )
 
-          diagnostics.log(diagnostic: "...account transfer succeeded!")
-          transferState.send(completion: .finished)
+            diagnostics.log(diagnostic: "...account transfer succeeded!")
+            transferState.send(completion: .finished)
+          }
+          catch let error as AccountDuplicate {
+            diagnostics.log(error: error)
+            diagnostics.log(diagnostic: "...account transfer failed!")
+            transferState.send(completion: .failure(error))
+          }
+          catch let error as SessionMFAAuthorizationRequired {
+            diagnostics.log(error: error)
+            diagnostics.log(diagnostic: "...account transfer finished, requesting MFA...")
+            transferState.send(completion: .finished)
+          }
+          catch {
+            diagnostics.log(error: error)
+            diagnostics.log(diagnostic: "...account transfer failed!")
+            throw error
+          }
         }
-        catch let error as AccountDuplicate {
-          diagnostics.log(error: error)
-          diagnostics.log(diagnostic: "...account transfer failed!")
-          transferState.send(completion: .failure(error))
-        }
-        catch let error as SessionMFAAuthorizationRequired {
-          diagnostics.log(error: error)
-          diagnostics.log(diagnostic: "...account transfer finished, requesting MFA...")
-          transferState.send(completion: .finished)
-        }
-        catch {
-          diagnostics.log(error: error)
-          diagnostics.log(diagnostic: "...account transfer failed!")
-          throw error
-        }
-      }
-      .ignoreOutput()
-      .eraseToAnyPublisher()
+        .ignoreOutput()
+        .eraseToAnyPublisher()
     }
 
     nonisolated func cancelTransfer() {
@@ -485,7 +486,7 @@ private func updated(
         )
       }
       switch AccountTransferAccount.from(
-        Array(state.scanningParts[1..<state.scanningParts.count]),
+        Array(state.scanningParts[1 ..< state.scanningParts.count]),
         verificationHash: hash
       ) {
       case let .success(account):

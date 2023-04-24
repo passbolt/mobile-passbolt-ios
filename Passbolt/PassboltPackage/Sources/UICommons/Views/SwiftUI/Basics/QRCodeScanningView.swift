@@ -84,10 +84,11 @@ internal final class QRCodeScanningViewController: UIViewController {
     process: @escaping (String) -> Void
   ) {
     self.process = process
-    super.init(
-      nibName: .none,
-      bundle: .none
-    )
+    super
+      .init(
+        nibName: .none,
+        bundle: .none
+      )
   }
 
   @available(*, unavailable)

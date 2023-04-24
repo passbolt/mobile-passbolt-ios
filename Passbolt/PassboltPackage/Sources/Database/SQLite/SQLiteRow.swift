@@ -102,7 +102,7 @@ public struct SQLiteRow {
     }
 
     self.values = .init(
-      uniqueKeysWithValues: (0..<sqlite3_column_count(handle))
+      uniqueKeysWithValues: (0 ..< sqlite3_column_count(handle))
         .map { columnIndex in
           (
             key: String(

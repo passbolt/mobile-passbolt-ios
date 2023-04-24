@@ -53,9 +53,10 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setupView() {
@@ -124,14 +125,15 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
     controller
       .exitConfirmationPresentationPublisher()
       .sink { [weak self] presented in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          if presented {
-            await self?.present(CodeScanningExitConfirmationViewController.self)
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            if presented {
+              await self?.present(CodeScanningExitConfirmationViewController.self)
+            }
+            else {
+              await self?.dismiss(CodeScanningExitConfirmationViewController.self)
+            }
           }
-          else {
-            await self?.dismiss(CodeScanningExitConfirmationViewController.self)
-          }
-        }
       }
       .store(in: cancellables)
 
@@ -139,31 +141,35 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
       .helpPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] presented in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          if presented {
-            await self?.presentSheetMenu(
-              HelpMenuViewController.self,
-              in: [
-                .init(
-                  iconName: .camera,
-                  iconBundle: .uiCommons,
-                  title: .localized("code.scanning.help.menu.button.title"),
-                  handler: { [weak self] in
-                    self?.cancellables.executeOnMainActor { [weak self] in
-                      await self?.dismiss(
-                        HelpMenuViewController.self
-                      )
-                      await self?.present(CodeScanningHelpViewController.self)
-                    }
-                  }
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            if presented {
+              await self?
+                .presentSheetMenu(
+                  HelpMenuViewController.self,
+                  in: [
+                    .init(
+                      iconName: .camera,
+                      iconBundle: .uiCommons,
+                      title: .localized("code.scanning.help.menu.button.title"),
+                      handler: { [weak self] in
+                        self?.cancellables
+                          .executeOnMainActor { [weak self] in
+                            await self?
+                              .dismiss(
+                                HelpMenuViewController.self
+                              )
+                            await self?.present(CodeScanningHelpViewController.self)
+                          }
+                      }
+                    )
+                  ]
                 )
-              ]
-            )
+            }
+            else {
+              await self?.dismiss(HelpMenuViewController.self)
+            }
           }
-          else {
-            await self?.dismiss(HelpMenuViewController.self)
-          }
-        }
       }
       .store(in: cancellables)
 
@@ -172,47 +178,51 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
       .receive(on: RunLoop.main)
       .sink(
         receiveCompletion: { [weak self] completion in
-          self?.cancellables.executeOnMainActor { [weak self] in
-            switch completion {
-            case .finished:
-              await self?.push(
-                CodeScanningSuccessViewController.self
-              )
-              await self?.popAll(Self.self, animated: false)
+          self?.cancellables
+            .executeOnMainActor { [weak self] in
+              switch completion {
+              case .finished:
+                await self?
+                  .push(
+                    CodeScanningSuccessViewController.self
+                  )
+                await self?.popAll(Self.self, animated: false)
 
-            case let .failure(error) where error is Cancelled:
-              switch self?.navigationController {
-              case .some(_ as WelcomeNavigationViewController):
-                await self?.popToRoot()
-
-              case .some(_ as AuthorizationNavigationViewController):
-                await self?.pop(to: AccountSelectionViewController.self)
-
-              case .some:
-                if await self?.pop(to: AccountSelectionViewController.self) ?? false {
-                  /* NOP */
-                }
-                else {
+              case let .failure(error) where error is Cancelled:
+                switch self?.navigationController {
+                case .some(_ as WelcomeNavigationViewController):
                   await self?.popToRoot()
+
+                case .some(_ as AuthorizationNavigationViewController):
+                  await self?.pop(to: AccountSelectionViewController.self)
+
+                case .some:
+                  if await self?.pop(to: AccountSelectionViewController.self) ?? false {
+                    /* NOP */
+                  }
+                  else {
+                    await self?.popToRoot()
+                  }
+
+                case .none:
+                  await self?.dismiss(Self.self)
                 }
 
-              case .none:
-                await self?.dismiss(Self.self)
+              case let .failure(error) where error is AccountDuplicate:
+                await self?
+                  .push(
+                    CodeScanningDuplicateViewController.self
+                  )
+                await self?.popAll(Self.self, animated: false)
+
+              case let .failure(error):
+                await self?
+                  .push(
+                    AccountTransferFailureViewController.self,
+                    in: error
+                  )
               }
-
-            case let .failure(error) where error is AccountDuplicate:
-              await self?.push(
-                CodeScanningDuplicateViewController.self
-              )
-              await self?.popAll(Self.self, animated: false)
-
-            case let .failure(error):
-              await self?.push(
-                AccountTransferFailureViewController.self,
-                in: error
-              )
             }
-          }
         },
         receiveValue: { _ in }
       )

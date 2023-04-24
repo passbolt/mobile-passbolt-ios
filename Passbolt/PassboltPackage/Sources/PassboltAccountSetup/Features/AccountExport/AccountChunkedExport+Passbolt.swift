@@ -321,7 +321,7 @@ extension Data {
     while offset < size {
       chunked.append(
         self[
-          offset..<Swift.min(offset + chunkSize, size)
+          offset ..< Swift.min(offset + chunkSize, size)
         ]
       )
       offset += chunkSize

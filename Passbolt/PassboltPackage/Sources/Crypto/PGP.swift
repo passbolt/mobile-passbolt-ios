@@ -512,7 +512,8 @@ extension PGP {
         let fingerprintFromKey: String = Gopenpgp.CryptoNewKeyFromArmored(
           publicKey.rawValue,
           &error
-        )?.getFingerprint()
+        )?
+        .getFingerprint()
       else {
         return .failure(
           PGPIssue.error(
@@ -539,7 +540,8 @@ extension PGP {
         let fingerprintFromKey: String = Gopenpgp.CryptoNewKeyFromArmored(
           publicKey.rawValue,
           &error
-        )?.getFingerprint()
+        )?
+        .getFingerprint()
       else {
         return .failure(
           PGPIssue.error(

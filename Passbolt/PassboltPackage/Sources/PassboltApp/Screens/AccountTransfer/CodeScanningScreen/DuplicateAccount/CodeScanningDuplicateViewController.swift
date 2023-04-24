@@ -53,9 +53,10 @@ internal final class CodeScanningDuplicateViewController: PlainViewController, U
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setupView() {
@@ -88,16 +89,18 @@ internal final class CodeScanningDuplicateViewController: PlainViewController, U
       .receive(on: RunLoop.main)
       .sink(
         receiveCompletion: { [weak self] _ in
-          self?.cancellables.executeOnMainActor { [weak self] in
-            guard await !(self?.pop(to: AccountSelectionViewController.self) ?? true)
-            else { return }
-            await self?.replaceWindowRoot(
-              with: AuthorizationNavigationViewController.self,
-              in: (account: nil, message: nil)
-              // there might be an account ID (local) used here to go
-              // straight to authorization for that account
-            )
-          }
+          self?.cancellables
+            .executeOnMainActor { [weak self] in
+              guard await !(self?.pop(to: AccountSelectionViewController.self) ?? true)
+              else { return }
+              await self?
+                .replaceWindowRoot(
+                  with: AuthorizationNavigationViewController.self,
+                  in: (account: nil, message: nil)
+                  // there might be an account ID (local) used here to go
+                  // straight to authorization for that account
+                )
+            }
         },
         receiveValue: { _ in }
       )

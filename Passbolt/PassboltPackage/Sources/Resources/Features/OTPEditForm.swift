@@ -104,7 +104,7 @@ extension OTPEditForm {
       name: Validated<String> = .valid(""),
       uri: Validated<String> = .valid(""),
       secret: Validated<String> = .valid(""),
-			algorithm: Validated<HOTPAlgorithm> = .valid(.sha1),
+      algorithm: Validated<HOTPAlgorithm> = .valid(.sha1),
       digits: Validated<UInt> = .valid(6),
       type: OTPType = .totp(period: .valid(30))
     ) {

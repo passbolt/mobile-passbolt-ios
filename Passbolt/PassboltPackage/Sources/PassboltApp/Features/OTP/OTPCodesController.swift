@@ -137,11 +137,12 @@ extension OTPCodesController {
     @Sendable nonisolated func copy(
       for resourceID: Resource.ID
     ) async throws {
-      let otp: OTP = try await controller.requestOTP(
-        for: resourceID,
-        disposable: true
-      )
-      .otp
+      let otp: OTP =
+        try await controller.requestOTP(
+          for: resourceID,
+          disposable: true
+        )
+        .otp
 
       pasteboard.put(otp.rawValue)
     }

@@ -107,7 +107,10 @@ public class ImageView: UIImageView {
       let width: CGFloat = image.size.width
       let height: CGFloat = image.size.height
       guard width > 0 && height > 0
-      else { return scaleConstraint = nil }
+      else {
+        scaleConstraint = nil
+        return
+      }
       scaleConstraint =
         widthAnchor
         .constraint(

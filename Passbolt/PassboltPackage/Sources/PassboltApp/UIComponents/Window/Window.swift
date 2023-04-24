@@ -47,7 +47,7 @@ internal final class Window {
     self.cancellables = cancellables
     self.window.rootViewController = rootViewController
 
-    cancellables.executeAsync { @MainActor[weak self] in
+    cancellables.executeAsync { @MainActor [weak self] in
       let controller: WindowController = lazyController()
       for await disposition
         in controller
@@ -253,9 +253,10 @@ extension Window {
 
   private var isMFAPromptDisplayed: Bool {
     window.rootViewController is PlainNavigationViewController<MFARootViewController>
-      || (window.rootViewController as? AuthorizationNavigationViewController)?.viewControllers.contains(where: {
-        $0 is MFARootViewController
-      }) ?? false
+      || (window.rootViewController as? AuthorizationNavigationViewController)?.viewControllers
+        .contains(where: {
+          $0 is MFARootViewController
+        }) ?? false
   }
 }
 

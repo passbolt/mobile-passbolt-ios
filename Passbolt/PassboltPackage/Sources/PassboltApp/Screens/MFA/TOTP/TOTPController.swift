@@ -73,27 +73,28 @@ extension TOTPController: UIController {
       .compactMap { (otp, rememberDevice) -> AnyPublisher<Void, Never>? in
         if otp.count == Self.otpLength {
           statusChangeSubject.send(.processing)
-          return cancellables.executeAsyncWithPublisher {
-            do {
-              try await session
-                .authorizeMFA(
-                  .totp(
-                    session.currentAccount(),
-                    otp,
-                    rememberDevice: rememberDevice
+          return
+            cancellables.executeAsyncWithPublisher {
+              do {
+                try await session
+                  .authorizeMFA(
+                    .totp(
+                      session.currentAccount(),
+                      otp,
+                      rememberDevice: rememberDevice
+                    )
                   )
-                )
-              statusChangeSubject.send(.idle)
+                statusChangeSubject.send(.idle)
+              }
+              catch is CancellationError, is Cancelled {
+                statusChangeSubject.send(.idle)
+              }
+              catch {
+                statusChangeSubject.send(.error(error))
+              }
             }
-            catch is CancellationError, is Cancelled {
-              statusChangeSubject.send(.idle)
-            }
-            catch {
-              statusChangeSubject.send(.error(error))
-            }
-          }
-          .replaceError(with: Void())
-          .eraseToAnyPublisher()
+            .replaceError(with: Void())
+            .eraseToAnyPublisher()
         }
         else {
           return nil

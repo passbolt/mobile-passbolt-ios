@@ -45,7 +45,8 @@ public struct SelectiveCornerRadius: ViewModifier {
             width: radius,
             height: radius
           )
-        ).cgPath
+        )
+        .cgPath
       )
     }
   }

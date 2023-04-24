@@ -80,10 +80,11 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
     footers: Array<CollectionReusableView.Type> = [],
     supplementaryViews: Array<CollectionViewSupplementaryView.Type> = []
   ) {
-    super.init(
-      frame: .zero,
-      collectionViewLayout: layout
-    )
+    super
+      .init(
+        frame: .zero,
+        collectionViewLayout: layout
+      )
     cells.forEach { cell in
       register(cell, forCellWithReuseIdentifier: cell.reuseIdentifier)
     }

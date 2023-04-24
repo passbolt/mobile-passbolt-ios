@@ -51,9 +51,10 @@ internal final class HomeTabNavigationViewController: NavigationViewController, 
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setup() {
@@ -74,61 +75,62 @@ internal final class HomeTabNavigationViewController: NavigationViewController, 
     self.controller
       .currentHomePresentationModePublisher()
       .sink { [weak self] mode in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          guard let self = self else { return }
-          switch mode {
-          case .plainResourcesList:
-            await self.replaceNavigationRoot(
-              with: PlainResourcesListViewController.self,
-              animated: false
-            )
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            guard let self = self else { return }
+            switch mode {
+            case .plainResourcesList:
+              await self.replaceNavigationRoot(
+                with: PlainResourcesListViewController.self,
+                animated: false
+              )
 
-          case .favoriteResourcesList:
-            await self.replaceNavigationRoot(
-              with: FavoriteResourcesListViewController.self,
-              animated: false
-            )
+            case .favoriteResourcesList:
+              await self.replaceNavigationRoot(
+                with: FavoriteResourcesListViewController.self,
+                animated: false
+              )
 
-          case .modifiedResourcesList:
-            await self.replaceNavigationRoot(
-              with: ModifiedResourcesListViewController.self,
-              animated: false
-            )
+            case .modifiedResourcesList:
+              await self.replaceNavigationRoot(
+                with: ModifiedResourcesListViewController.self,
+                animated: false
+              )
 
-          case .sharedResourcesList:
-            await self.replaceNavigationRoot(
-              with: SharedResourcesListViewController.self,
-              animated: false
-            )
+            case .sharedResourcesList:
+              await self.replaceNavigationRoot(
+                with: SharedResourcesListViewController.self,
+                animated: false
+              )
 
-          case .ownedResourcesList:
-            await self.replaceNavigationRoot(
-              with: OwnedResourcesListViewController.self,
-              animated: false
-            )
+            case .ownedResourcesList:
+              await self.replaceNavigationRoot(
+                with: OwnedResourcesListViewController.self,
+                animated: false
+              )
 
-          case .foldersExplorer:
-            await self.replaceNavigationRoot(
-              with: FoldersExplorerView.self,
-              in: nil,  // root folder
-              animated: false
-            )
+            case .foldersExplorer:
+              await self.replaceNavigationRoot(
+                with: FoldersExplorerView.self,
+                in: nil,  // root folder
+                animated: false
+              )
 
-          case .tagsExplorer:
-            await self.replaceNavigationRoot(
-              with: TagsExplorerView.self,
-              in: nil,  // tag list
-              animated: false
-            )
+            case .tagsExplorer:
+              await self.replaceNavigationRoot(
+                with: TagsExplorerView.self,
+                in: nil,  // tag list
+                animated: false
+              )
 
-          case .resourceUserGroupsExplorer:
-            await self.replaceNavigationRoot(
-              with: ResourceUserGroupsExplorerView.self,
-              in: nil,  // user group list
-              animated: false
-            )
+            case .resourceUserGroupsExplorer:
+              await self.replaceNavigationRoot(
+                with: ResourceUserGroupsExplorerView.self,
+                in: nil,  // user group list
+                animated: false
+              )
+            }
           }
-        }
       }
       .store(in: self.cancellables)
   }

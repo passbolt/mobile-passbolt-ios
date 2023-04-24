@@ -55,9 +55,10 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setupView() {
@@ -82,9 +83,10 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
             .combined(
               .image(named: .help, from: .uiCommons),
               .action { [weak self] in
-                self?.cancellables.executeOnMainActor { [weak self] in
-                  await self?.presentSheetMenu(HelpMenuViewController.self, in: [])
-                }
+                self?.cancellables
+                  .executeOnMainActor { [weak self] in
+                    await self?.presentSheetMenu(HelpMenuViewController.self, in: [])
+                  }
               }
             )
             .instantiate()
@@ -146,13 +148,14 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
       .receive(on: RunLoop.main)
       .sink { [weak self] validatedPassphrase in
         self?.contentView.update(from: validatedPassphrase)
-        self?.contentView.applyOn(
-          signInButton: .when(
-            validatedPassphrase.isValid,
-            then: .enabled(),
-            else: .disabled()
+        self?.contentView
+          .applyOn(
+            signInButton: .when(
+              validatedPassphrase.isValid,
+              then: .enabled(),
+              else: .disabled()
+            )
           )
-        )
       }
       .store(in: cancellables)
 
@@ -161,13 +164,14 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
       .map(\.isValid)
       .receive(on: RunLoop.main)
       .sink { [weak self] isValid in
-        self?.contentView.applyOn(
-          signInButton: .when(
-            isValid,
-            then: .enabled(),
-            else: .disabled()
+        self?.contentView
+          .applyOn(
+            signInButton: .when(
+              isValid,
+              then: .enabled(),
+              else: .disabled()
+            )
           )
-        )
       }
       .store(in: cancellables)
 
@@ -182,16 +186,17 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
           .receive(on: RunLoop.main)
           .handleEvents(
             receiveSubscription: { [weak self] _ in
-              self?.present(
-                overlay: LoaderOverlayView(
-                  longLoadingMessage: (
-                    message: .localized(
-                      key: .loadingLong
-                    ),
-                    delay: 5
+              self?
+                .present(
+                  overlay: LoaderOverlayView(
+                    longLoadingMessage: (
+                      message: .localized(
+                        key: .loadingLong
+                      ),
+                      delay: 5
+                    )
                   )
                 )
-              )
             },
             receiveCompletion: { [weak self] _ in
               self?.dismissOverlay()
@@ -203,28 +208,34 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
               return /* NOP */
 
             case let serverError as ServerConnectionIssue:
-              self?.cancellables.executeOnMainActor { [weak self] in
-                await self?.present(
-                  ServerNotReachableAlertViewController.self,
-                  in: serverError.serverURL
-                )
-              }
+              self?.cancellables
+                .executeOnMainActor { [weak self] in
+                  await self?
+                    .present(
+                      ServerNotReachableAlertViewController.self,
+                      in: serverError.serverURL
+                    )
+                }
 
             case let serverError as ServerConnectionIssue:
-              self?.cancellables.executeOnMainActor { [weak self] in
-                await self?.present(
-                  ServerNotReachableAlertViewController.self,
-                  in: serverError.serverURL
-                )
-              }
+              self?.cancellables
+                .executeOnMainActor { [weak self] in
+                  await self?
+                    .present(
+                      ServerNotReachableAlertViewController.self,
+                      in: serverError.serverURL
+                    )
+                }
 
             case let serverError as ServerResponseTimeout:
-              self?.cancellables.executeOnMainActor { [weak self] in
-                await self?.present(
-                  ServerNotReachableAlertViewController.self,
-                  in: serverError.serverURL
-                )
-              }
+              self?.cancellables
+                .executeOnMainActor { [weak self] in
+                  await self?
+                    .present(
+                      ServerNotReachableAlertViewController.self,
+                      in: serverError.serverURL
+                    )
+                }
 
             case is SessionMFAAuthorizationRequired:
               return  // ignore, handled by window controller
@@ -249,30 +260,32 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
     controller
       .presentForgotPassphraseAlertPublisher()
       .sink { [weak self] presented in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          guard let self = self else { return }
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            guard let self = self else { return }
 
-          if presented {
-            await self.present(ForgotPassphraseAlertViewController.self)
+            if presented {
+              await self.present(ForgotPassphraseAlertViewController.self)
+            }
+            else {
+              await self.dismiss(ForgotPassphraseAlertViewController.self)
+            }
           }
-          else {
-            await self.dismiss(ForgotPassphraseAlertViewController.self)
-          }
-        }
       }
       .store(in: cancellables)
 
     controller
       .exitConfirmationPresentationPublisher()
       .sink { [weak self] presented in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          if presented {
-            await self?.present(TransferSignInExitConfirmationViewController.self)
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            if presented {
+              await self?.present(TransferSignInExitConfirmationViewController.self)
+            }
+            else {
+              await self?.dismiss(TransferSignInExitConfirmationViewController.self)
+            }
           }
-          else {
-            await self?.dismiss(TransferSignInExitConfirmationViewController.self)
-          }
-        }
       }
       .store(in: cancellables)
 
@@ -284,31 +297,34 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
         receiveCompletion: { [weak self] completion in
           self?.dismissOverlay()
 
-          self?.cancellables.executeOnMainActor {
-            switch completion {
-            case .finished:
-              break
+          self?.cancellables
+            .executeOnMainActor {
+              switch completion {
+              case .finished:
+                break
 
-            case .failure(_ as Cancelled):
-              switch self?.navigationController {
-              case .some(_ as WelcomeNavigationViewController),
-                .some(_ as AuthorizationNavigationViewController):
-                await self?.popToRoot()
+              case .failure(_ as Cancelled):
+                switch self?.navigationController {
+                case .some(_ as WelcomeNavigationViewController),
+                  .some(_ as AuthorizationNavigationViewController):
+                  await self?.popToRoot()
 
-              case .some, .none:
-                await self?.replaceWindowRoot(
-                  with: SplashScreenViewController.self,
-                  in: .none
-                )
+                case .some, .none:
+                  await self?
+                    .replaceWindowRoot(
+                      with: SplashScreenViewController.self,
+                      in: .none
+                    )
+                }
+
+              case let .failure(error):
+                await self?
+                  .push(
+                    AccountTransferFailureViewController.self,
+                    in: error
+                  )
               }
-
-            case let .failure(error):
-              await self?.push(
-                AccountTransferFailureViewController.self,
-                in: error
-              )
             }
-          }
         }
       )
       .store(in: cancellables)

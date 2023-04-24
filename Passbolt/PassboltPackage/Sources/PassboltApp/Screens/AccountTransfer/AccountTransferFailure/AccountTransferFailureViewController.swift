@@ -52,9 +52,10 @@ internal final class AccountTransferFailureViewController: PlainViewController, 
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setupView() {
@@ -102,9 +103,10 @@ internal final class AccountTransferFailureViewController: PlainViewController, 
       .backPresentationPublisher()
       .sink(
         receiveCompletion: { [weak self] _ in
-          self?.cancellables.executeOnMainActor { [weak self] in
-            await self?.pop(to: TransferInfoScreenViewController.self)
-          }
+          self?.cancellables
+            .executeOnMainActor { [weak self] in
+              await self?.pop(to: TransferInfoScreenViewController.self)
+            }
         },
         receiveValue: { _ in }
       )

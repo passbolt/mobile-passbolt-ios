@@ -52,9 +52,10 @@ internal final class SettingsTabViewController: NavigationViewController, UIComp
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setup() {

@@ -116,7 +116,6 @@ extension ResourceField: Comparable {
   }
 }
 
-
 extension ResourceField {
 
   public var valueTypeName: String? {

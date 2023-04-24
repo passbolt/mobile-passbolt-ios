@@ -34,15 +34,16 @@ public struct InvalidValue: TheError {
     line: UInt = #line
   ) -> Self {
     Self(
-      context: .context(
-        .message(
-          message,
-          file: file,
-          line: line
+      context:
+        .context(
+          .message(
+            message,
+            file: file,
+            line: line
+          )
         )
-      )
-      .recording(validationRule, for: "validationRule")
-      .recording(value, for: "value"),
+        .recording(validationRule, for: "validationRule")
+        .recording(value, for: "value"),
       displayableMessage: displayable,
       validationRule: validationRule
     )

@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.8
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 // swift-format as a Swift Package
 // Run by issuing the following from the command prompt:
@@ -11,13 +11,19 @@ let package = Package(
   platforms: [.macOS(.v10_15)],
   dependencies: [
     .package(
-      name: "swift-format",
-      url: "https://github.com/apple/swift-format.git", .exact("0.50700.1")
+      url: "https://github.com/apple/swift-format.git", 
+      .upToNextMajor(from: "508.0.0")
     )
   ],
   targets: [
     .target(
       name: "format",
-      dependencies: [.product(name: "swift-format", package: "swift-format")])
+      dependencies: [
+        .product(
+          name: "swift-format", 
+          package: "swift-format"
+        )
+      ]
+    )
   ]
 )

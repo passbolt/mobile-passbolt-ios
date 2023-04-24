@@ -53,9 +53,10 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setupView() {
@@ -65,9 +66,10 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
           .combined(
             .image(named: .help, from: .uiCommons),
             .action { [weak self] in
-              self?.cancellables.executeOnMainActor { [weak self] in
-                await self?.presentSheetMenu(HelpMenuViewController.self, in: [])
-              }
+              self?.cancellables
+                .executeOnMainActor { [weak self] in
+                  await self?.presentSheetMenu(HelpMenuViewController.self, in: [])
+                }
             }
           )
           .instantiate()
@@ -95,29 +97,32 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
     controller.noAccountAlertPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] presented in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          guard let self = self else { return }
-          if presented {
-            await self.present(
-              WelcomeScreenNoAccountAlertViewController.self,
-              in: self.controller.dismissNoAccountAlert
-            )
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            guard let self = self else { return }
+            if presented {
+              await self.present(
+                WelcomeScreenNoAccountAlertViewController.self,
+                in: self.controller.dismissNoAccountAlert
+              )
+            }
+            else {
+              await self.dismiss(WelcomeScreenNoAccountAlertViewController.self)
+            }
           }
-          else {
-            await self.dismiss(WelcomeScreenNoAccountAlertViewController.self)
-          }
-        }
       }
       .store(in: cancellables)
 
     controller.pushTransferInfoPublisher()
       .sink { [weak self] in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          await self?.push(
-            TransferInfoScreenViewController.self,
-            in: .import
-          )
-        }
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            await self?
+              .push(
+                TransferInfoScreenViewController.self,
+                in: .import
+              )
+          }
       }
       .store(in: cancellables)
   }

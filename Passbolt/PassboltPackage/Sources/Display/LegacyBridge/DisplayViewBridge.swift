@@ -118,13 +118,14 @@ where HostedView: ControlledView {
     completion: (() -> Void)? = nil
   ) {
     let presentingViewController: UIViewController? = self.presentingViewController
-    super.dismiss(
-      animated: animated,
-      completion: { [weak presentingViewController] in
-        presentingViewController?.setNeedsStatusBarAppearanceUpdate()
-        completion?()
-      }
-    )
+    super
+      .dismiss(
+        animated: animated,
+        completion: { [weak presentingViewController] in
+          presentingViewController?.setNeedsStatusBarAppearanceUpdate()
+          completion?()
+        }
+      )
   }
 }
 

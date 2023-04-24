@@ -60,18 +60,19 @@ extension RandomStringGenerator: LoadableFeature {
       guard !password.isEmpty && !alphabets.isEmpty && alphabets.contains(where: { !$0.isEmpty })
       else { return .zero }
 
-      let usedAlphabet: Set<Character> = Set(password).reduce(into: .init()) { result, character in
-        for alphabet in alphabets {
-          if alphabet.contains(character) {
-            return result.formUnion(alphabet)
+      let usedAlphabet: Set<Character> = Set(password)
+        .reduce(into: .init()) { result, character in
+          for alphabet in alphabets {
+            if alphabet.contains(character) {
+              return result.formUnion(alphabet)
+            }
+            else {
+              /* NOP */
+            }
           }
-          else {
-            /* NOP */
-          }
-        }
 
-        result.insert(character)
-      }
+          result.insert(character)
+        }
 
       return .init(rawValue: Double(password.count) * (log(Double(usedAlphabet.count)) / log(2)))
     }

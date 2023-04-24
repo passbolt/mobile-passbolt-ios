@@ -94,7 +94,7 @@ extension String {
     var currentIndex: Index = startIndex
 
     while let nextIndex = self.index(currentIndex, offsetBy: length, limitedBy: endIndex) {
-      result.append(.init(self[currentIndex..<nextIndex]))
+      result.append(.init(self[currentIndex ..< nextIndex]))
       currentIndex = nextIndex
     }
 

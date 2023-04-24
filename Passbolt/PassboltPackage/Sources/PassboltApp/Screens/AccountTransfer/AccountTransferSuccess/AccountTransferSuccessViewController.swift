@@ -50,9 +50,10 @@ internal final class AccountTransferSuccessViewController: PlainViewController, 
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setupView() {
@@ -74,11 +75,12 @@ internal final class AccountTransferSuccessViewController: PlainViewController, 
             displayable: .localized(key: "transfer.account.export.exit.success.button")
           ),
           .action({ [weak self] in
-            self?.cancellables.executeOnMainActor {
-              if await self?.pop(to: AccountDetailsViewController.self) == false {
-                await self?.popToRoot()
+            self?.cancellables
+              .executeOnMainActor {
+                if await self?.pop(to: AccountDetailsViewController.self) == false {
+                  await self?.popToRoot()
+                }
               }
-            }
           })
         )
       )

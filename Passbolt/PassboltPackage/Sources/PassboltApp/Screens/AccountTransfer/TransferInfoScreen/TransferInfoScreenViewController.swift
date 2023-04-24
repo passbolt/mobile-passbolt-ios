@@ -52,9 +52,10 @@ internal final class TransferInfoScreenViewController: PlainViewController, UICo
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setupView() {
@@ -86,36 +87,38 @@ internal final class TransferInfoScreenViewController: PlainViewController, UICo
       }
       .switchToLatest()
       .sink { [weak self] granted in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          guard let self = self else { return }
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            guard let self = self else { return }
 
-          switch self.controller.transferInfoContext() {
-          case .import:
-            if granted {
-              await self.push(CodeScanningViewController.self)
+            switch self.controller.transferInfoContext() {
+            case .import:
+              if granted {
+                await self.push(CodeScanningViewController.self)
+              }
+              else {
+                self.controller.presentNoCameraPermissionAlert()
+              }
+            case .export:
+              try await self.controller.requestAuthorization()
             }
-            else {
-              self.controller.presentNoCameraPermissionAlert()
-            }
-          case .export:
-            try await self.controller.requestAuthorization()
           }
-        }
       }
       .store(in: cancellables)
 
     controller.presentNoCameraPermissionAlertPublisher()
       .sink { [weak self] presented in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          guard let self = self else { return }
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            guard let self = self else { return }
 
-          if presented {
-            await self.present(TransferInfoCameraRequiredAlertViewController.self)
+            if presented {
+              await self.present(TransferInfoCameraRequiredAlertViewController.self)
+            }
+            else {
+              await self.dismiss(TransferInfoCameraRequiredAlertViewController.self)
+            }
           }
-          else {
-            await self.dismiss(TransferInfoCameraRequiredAlertViewController.self)
-          }
-        }
       }
       .store(in: cancellables)
   }

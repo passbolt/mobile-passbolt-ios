@@ -120,7 +120,7 @@ extension OSTime {
     @Sendable func timerSequence(
       _ period: Seconds
     ) -> AnyAsyncSequence<Void> {
-      .init {  () -> Void? in
+      .init { () -> Void? in
         // iterator `next`
         // this is not fully correct since
         // timer using Task.sleep drifts

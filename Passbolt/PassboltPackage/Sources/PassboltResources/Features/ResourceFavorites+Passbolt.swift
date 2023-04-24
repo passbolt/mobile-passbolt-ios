@@ -54,7 +54,8 @@ extension ResourceFavorites {
         try await sessionData.withLocalUpdate {
           let favoriteID: Resource.Favorite.ID = try await resourceFavoriteAddNetworkOperation(
             .init(resourceID: resourceID)
-          ).favoriteID
+          )
+          .favoriteID
           try await resourceSetFavoriteDatabaseOperation(.init(resourceID: resourceID, favoriteID: favoriteID))
         }
       }

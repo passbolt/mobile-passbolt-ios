@@ -37,14 +37,15 @@ public final class AccountSelectionCollectionView: CollectionView<SingleSection,
   private let removeSubject: PassthroughSubject<AccountSelectionCellItem, Never> = .init()
 
   public init(layout: UICollectionViewLayout) {
-    super.init(
-      layout: layout,
-      cells: [
-        AccountSelectionCell.self,
-        AccountSelectionAddAccountCell.self,
-      ],
-      supplementaryViews: [CollectionViewSeparator.self]
-    )
+    super
+      .init(
+        layout: layout,
+        cells: [
+          AccountSelectionCell.self,
+          AccountSelectionAddAccountCell.self,
+        ],
+        supplementaryViews: [CollectionViewSeparator.self]
+      )
   }
 
   override public func setupCell(

@@ -53,9 +53,10 @@ public final class HelpMenuViewController: PlainViewController, UIComponent {
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   public func setupView() {
@@ -75,24 +76,26 @@ public final class HelpMenuViewController: PlainViewController, UIComponent {
     controller
       .logsPresentationPublisher()
       .sink { [weak self] in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          if let parent: AnyUIComponent = self?.presentingViewController as? AnyUIComponent {
-            await self?.dismiss(Self.self)
-            await parent.present(PlainNavigationViewController<LogsViewerViewController>.self)
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            if let parent: AnyUIComponent = self?.presentingViewController as? AnyUIComponent {
+              await self?.dismiss(Self.self)
+              await parent.present(PlainNavigationViewController<LogsViewerViewController>.self)
+            }
+            else {
+              await self?.present(PlainNavigationViewController<LogsViewerViewController>.self)
+            }
           }
-          else {
-            await self?.present(PlainNavigationViewController<LogsViewerViewController>.self)
-          }
-        }
       }
       .store(in: cancellables)
 
     controller
       .websiteHelpPresentationPublisher()
       .sink { [weak self] in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          await self?.dismiss(Self.self)
-        }
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            await self?.dismiss(Self.self)
+          }
       }
       .store(in: cancellables)
   }

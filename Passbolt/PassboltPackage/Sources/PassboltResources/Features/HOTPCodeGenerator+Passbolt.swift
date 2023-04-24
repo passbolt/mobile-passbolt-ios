@@ -58,7 +58,7 @@ extension HOTPCodeGenerator {
     let digits: Int32 = Int32(context.digits)
     let digitsMultiplier: Int32 = {
       var result: Int32 = 1
-      for _ in 0..<digits {
+      for _ in 0 ..< digits {
         result *= 10
       }
       return result

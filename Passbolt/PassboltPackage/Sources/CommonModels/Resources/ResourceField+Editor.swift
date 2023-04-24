@@ -39,7 +39,7 @@ extension ResourceField {
     case ("description", .string(let encrypted, let required, _, _)):
       return .longTextField(encrypted: encrypted, required: required)
 
-    case (_, .string(let encrypted, let required, _, let maxLength)) where (maxLength ?? 0 > 512): // long fields will be defined as more than 512 characters
+    case (_, .string(let encrypted, let required, _, let maxLength)) where (maxLength ?? 0 > 512):  // long fields will be defined as more than 512 characters
       return .longTextField(encrypted: encrypted, required: required)
 
     case (_, .string(let encrypted, let required, _, _)):

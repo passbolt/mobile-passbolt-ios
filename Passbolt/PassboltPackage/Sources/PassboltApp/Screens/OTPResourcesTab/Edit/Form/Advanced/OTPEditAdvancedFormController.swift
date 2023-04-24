@@ -47,7 +47,7 @@ extension OTPEditAdvancedFormController: ViewController {
     internal var snackBarMessage: SnackBarMessage?
   }
 
-#if DEBUG
+  #if DEBUG
   internal static var placeholder: Self {
     .init(
       viewState: .placeholder(),
@@ -57,7 +57,7 @@ extension OTPEditAdvancedFormController: ViewController {
       applyChanges: unimplemented0()
     )
   }
-#endif
+  #endif
 }
 
 // MARK: - Implementation
@@ -82,7 +82,8 @@ extension OTPEditAdvancedFormController {
       else {
         return .invalid(
           string,
-          error: InvalidValue
+          error:
+            InvalidValue
             .invalid(
               value: string,
               displayable: .localized(
@@ -90,17 +91,19 @@ extension OTPEditAdvancedFormController {
                 arguments: [
                   DisplayableString.localized(
                     key: "otp.edit.form.field.digits.title"
-                  ).string()
+                  )
+                  .string()
                 ]
               )
             )
-          )
+        )
       }
       guard let digits: UInt = UInt(string)
       else {
         return .invalid(
           string,
-          error: InvalidValue
+          error:
+            InvalidValue
             .invalid(
               value: string,
               displayable: .localized(
@@ -108,7 +111,8 @@ extension OTPEditAdvancedFormController {
                 arguments: [
                   DisplayableString.localized(
                     key: "otp.edit.form.field.digits.title"
-                  ).string()
+                  )
+                  .string()
                 ]
               )
             )
@@ -119,7 +123,8 @@ extension OTPEditAdvancedFormController {
       else {
         return .invalid(
           string,
-          error: InvalidValue
+          error:
+            InvalidValue
             .invalid(
               value: digits,
               displayable: .localized(
@@ -127,7 +132,8 @@ extension OTPEditAdvancedFormController {
                 arguments: [
                   DisplayableString.localized(
                     key: "otp.edit.form.field.digits.title"
-                  ).string(),
+                  )
+                  .string(),
                   6,
                   8,
                 ]
@@ -143,7 +149,8 @@ extension OTPEditAdvancedFormController {
       else {
         return .invalid(
           string,
-          error: InvalidValue
+          error:
+            InvalidValue
             .invalid(
               value: string,
               displayable: .localized(
@@ -151,17 +158,19 @@ extension OTPEditAdvancedFormController {
                 arguments: [
                   DisplayableString.localized(
                     key: "otp.edit.form.field.period.title"
-                  ).string()
+                  )
+                  .string()
                 ]
               )
             )
-          )
+        )
       }
       guard let digits: Int64 = Int64(string)
       else {
         return .invalid(
           string,
-          error: InvalidValue
+          error:
+            InvalidValue
             .invalid(
               value: string,
               displayable: .localized(
@@ -169,7 +178,8 @@ extension OTPEditAdvancedFormController {
                 arguments: [
                   DisplayableString.localized(
                     key: "otp.edit.form.field.period.title"
-                  ).string()
+                  )
+                  .string()
                 ]
               )
             )
@@ -180,7 +190,8 @@ extension OTPEditAdvancedFormController {
       else {
         return .invalid(
           string,
-          error: InvalidValue
+          error:
+            InvalidValue
             .invalid(
               value: digits,
               displayable: .localized(
@@ -188,7 +199,8 @@ extension OTPEditAdvancedFormController {
                 arguments: [
                   DisplayableString.localized(
                     key: "otp.edit.form.field.period.title"
-                  ).string(),
+                  )
+                  .string(),
                   0,
                 ]
               )
@@ -275,22 +287,23 @@ extension OTPEditAdvancedFormController {
           }
           else {
             let error: InvalidValue = .invalid(
-                value: state.digits.value,
-                displayable: .localized(
-                  key: "error.resource.field.characters.invalid",
-                  arguments: [
-                    DisplayableString.localized(
-                      key: "otp.edit.form.field.digits.title"
-                    ).string()
-                  ]
-                )
+              value: state.digits.value,
+              displayable: .localized(
+                key: "error.resource.field.characters.invalid",
+                arguments: [
+                  DisplayableString.localized(
+                    key: "otp.edit.form.field.digits.title"
+                  )
+                  .string()
+                ]
               )
+            )
             viewState.update(
               \.digits,
-               to: .invalid(
+              to: .invalid(
                 state.digits.value,
                 error: error
-               )
+              )
             )
             throw error
           }
@@ -307,22 +320,23 @@ extension OTPEditAdvancedFormController {
           }
           else {
             let error: InvalidValue = .invalid(
-                value: state.period.value,
-                displayable: .localized(
-                  key: "error.resource.field.characters.invalid",
-                  arguments: [
-                    DisplayableString.localized(
-                      key: "otp.edit.form.field.period.title"
-                    ).string()
-                  ]
-                )
+              value: state.period.value,
+              displayable: .localized(
+                key: "error.resource.field.characters.invalid",
+                arguments: [
+                  DisplayableString.localized(
+                    key: "otp.edit.form.field.period.title"
+                  )
+                  .string()
+                ]
               )
+            )
             viewState.update(
               \.period,
-               to: .invalid(
+              to: .invalid(
                 state.period.value,
                 error: error
-               )
+              )
             )
             throw error
           }
@@ -333,7 +347,7 @@ extension OTPEditAdvancedFormController {
           viewState
             .update(
               \.snackBarMessage,
-               to: .error(error)
+              to: .error(error)
             )
           throw error
         }

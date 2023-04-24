@@ -350,7 +350,7 @@ internal final class ResourceDetailsItemView: PlainButton {
   }
 }
 
-fileprivate struct FieldSetup {
+private struct FieldSetup {
 
   fileprivate var field: ResourceField
   fileprivate var contentButtonMutation: Mutation<ResourceDetailsItemView>

@@ -128,18 +128,19 @@ extension ResourceDetailsController: UIController {
           .eraseToAnyPublisher()
       }
       else {
-        return cancellables.executeAsyncWithPublisher {
-          resources
-            .loadResourceSecret(context)
-            .map { resourceSecret -> String in
-              resourceSecret.value(for: field)?.stringValue ?? ""
-            }
-            .handleEvents(receiveOutput: { _ in
-              revealedFields.insert(field)
-            })
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
+        return
+          cancellables.executeAsyncWithPublisher {
+            resources
+              .loadResourceSecret(context)
+              .map { resourceSecret -> String in
+                resourceSecret.value(for: field)?.stringValue ?? ""
+              }
+              .handleEvents(receiveOutput: { _ in
+                revealedFields.insert(field)
+              })
+          }
+          .switchToLatest()
+          .eraseToAnyPublisher()
       }
     }
 
@@ -165,33 +166,34 @@ extension ResourceDetailsController: UIController {
           }
 
           if field.encrypted {
-            return cancellables.executeAsyncWithPublisher {
-              resources
-                .loadResourceSecret(resourceID)
-                .map { resourceSecret -> AnyPublisher<String, Error> in
-                  if let secret: String = resourceSecret.value(for: field)?.stringValue {
-                    return Just(secret)
-                      .eraseErrorType()
-                      .eraseToAnyPublisher()
+            return
+              cancellables.executeAsyncWithPublisher {
+                resources
+                  .loadResourceSecret(resourceID)
+                  .map { resourceSecret -> AnyPublisher<String, Error> in
+                    if let secret: String = resourceSecret.value(for: field)?.stringValue {
+                      return Just(secret)
+                        .eraseErrorType()
+                        .eraseToAnyPublisher()
+                    }
+                    else if !field.required {
+                      return Just("")
+                        .eraseErrorType()
+                        .eraseToAnyPublisher()
+                    }
+                    else {
+                      return Fail(error: InvalidResourceSecret.error())
+                        .eraseToAnyPublisher()
+                    }
                   }
-                  else if !field.required {
-                    return Just("")
-                      .eraseErrorType()
-                      .eraseToAnyPublisher()
-                  }
-                  else {
-                    return Fail(error: InvalidResourceSecret.error())
-                      .eraseToAnyPublisher()
-                  }
-                }
-                .switchToLatest()
-                .handleEvents(receiveOutput: { value in
-                  pasteboard.put(value)
-                })
-                .mapToVoid()
-            }
-            .switchToLatest()
-            .eraseToAnyPublisher()
+                  .switchToLatest()
+                  .handleEvents(receiveOutput: { value in
+                    pasteboard.put(value)
+                  })
+                  .mapToVoid()
+              }
+              .switchToLatest()
+              .eraseToAnyPublisher()
           }
           else if let value: String = resource.value(forField: "uri")?.stringValue {
             return Just(Void())
@@ -224,33 +226,34 @@ extension ResourceDetailsController: UIController {
           }
 
           if field.encrypted {
-            return cancellables.executeAsyncWithPublisher {
-              resources
-                .loadResourceSecret(resourceID)
-                .map { resourceSecret -> AnyPublisher<String, Error> in
-                  if let secret: String = resourceSecret.value(for: field)?.stringValue {
-                    return Just(secret)
-                      .eraseErrorType()
-                      .eraseToAnyPublisher()
+            return
+              cancellables.executeAsyncWithPublisher {
+                resources
+                  .loadResourceSecret(resourceID)
+                  .map { resourceSecret -> AnyPublisher<String, Error> in
+                    if let secret: String = resourceSecret.value(for: field)?.stringValue {
+                      return Just(secret)
+                        .eraseErrorType()
+                        .eraseToAnyPublisher()
+                    }
+                    else if !field.required {
+                      return Just("")
+                        .eraseErrorType()
+                        .eraseToAnyPublisher()
+                    }
+                    else {
+                      return Fail(error: InvalidResourceSecret.error())
+                        .eraseToAnyPublisher()
+                    }
                   }
-                  else if !field.required {
-                    return Just("")
-                      .eraseErrorType()
-                      .eraseToAnyPublisher()
-                  }
-                  else {
-                    return Fail(error: InvalidResourceSecret.error())
-                      .eraseToAnyPublisher()
-                  }
-                }
-                .switchToLatest()
-                .handleEvents(receiveOutput: { value in
-                  pasteboard.put(value)
-                })
-                .mapToVoid()
-            }
-            .switchToLatest()
-            .eraseToAnyPublisher()
+                  .switchToLatest()
+                  .handleEvents(receiveOutput: { value in
+                    pasteboard.put(value)
+                  })
+                  .mapToVoid()
+              }
+              .switchToLatest()
+              .eraseToAnyPublisher()
           }
           else {
             return Fail(error: MissingResourceData.error())
@@ -275,33 +278,34 @@ extension ResourceDetailsController: UIController {
           }
 
           if field.encrypted {
-            return cancellables.executeAsyncWithPublisher {
-              resources
-                .loadResourceSecret(resourceID)
-                .map { resourceSecret -> AnyPublisher<String, Error> in
-                  if let secret: String = resourceSecret.value(for: field)?.stringValue {
-                    return Just(secret)
-                      .eraseErrorType()
-                      .eraseToAnyPublisher()
+            return
+              cancellables.executeAsyncWithPublisher {
+                resources
+                  .loadResourceSecret(resourceID)
+                  .map { resourceSecret -> AnyPublisher<String, Error> in
+                    if let secret: String = resourceSecret.value(for: field)?.stringValue {
+                      return Just(secret)
+                        .eraseErrorType()
+                        .eraseToAnyPublisher()
+                    }
+                    else if !field.required {
+                      return Just("")
+                        .eraseErrorType()
+                        .eraseToAnyPublisher()
+                    }
+                    else {
+                      return Fail(error: InvalidResourceSecret.error())
+                        .eraseToAnyPublisher()
+                    }
                   }
-                  else if !field.required {
-                    return Just("")
-                      .eraseErrorType()
-                      .eraseToAnyPublisher()
-                  }
-                  else {
-                    return Fail(error: InvalidResourceSecret.error())
-                      .eraseToAnyPublisher()
-                  }
-                }
-                .switchToLatest()
-                .handleEvents(receiveOutput: { value in
-                  pasteboard.put(value)
-                })
-                .mapToVoid()
-            }
-            .switchToLatest()
-            .eraseToAnyPublisher()
+                  .switchToLatest()
+                  .handleEvents(receiveOutput: { value in
+                    pasteboard.put(value)
+                  })
+                  .mapToVoid()
+              }
+              .switchToLatest()
+              .eraseToAnyPublisher()
           }
           else if let value: String = resource.value(for: field)?.stringValue {
             return Just(Void())
@@ -334,33 +338,34 @@ extension ResourceDetailsController: UIController {
           }
 
           if field.encrypted {
-            return cancellables.executeAsyncWithPublisher {
-              resources
-                .loadResourceSecret(resourceID)
-                .map { resourceSecret -> AnyPublisher<String, Error> in
-                  if let secret: String = resourceSecret.value(for: field)?.stringValue {
-                    return Just(secret)
-                      .eraseErrorType()
-                      .eraseToAnyPublisher()
+            return
+              cancellables.executeAsyncWithPublisher {
+                resources
+                  .loadResourceSecret(resourceID)
+                  .map { resourceSecret -> AnyPublisher<String, Error> in
+                    if let secret: String = resourceSecret.value(for: field)?.stringValue {
+                      return Just(secret)
+                        .eraseErrorType()
+                        .eraseToAnyPublisher()
+                    }
+                    else if !field.required {
+                      return Just("")
+                        .eraseErrorType()
+                        .eraseToAnyPublisher()
+                    }
+                    else {
+                      return Fail(error: InvalidResourceSecret.error())
+                        .eraseToAnyPublisher()
+                    }
                   }
-                  else if !field.required {
-                    return Just("")
-                      .eraseErrorType()
-                      .eraseToAnyPublisher()
-                  }
-                  else {
-                    return Fail(error: InvalidResourceSecret.error())
-                      .eraseToAnyPublisher()
-                  }
-                }
-                .switchToLatest()
-                .handleEvents(receiveOutput: { value in
-                  pasteboard.put(value)
-                })
-                .mapToVoid()
-            }
-            .switchToLatest()
-            .eraseToAnyPublisher()
+                  .switchToLatest()
+                  .handleEvents(receiveOutput: { value in
+                    pasteboard.put(value)
+                  })
+                  .mapToVoid()
+              }
+              .switchToLatest()
+              .eraseToAnyPublisher()
           }
           else if let value: String = resource.value(for: field)?.stringValue {
             return Just(Void())

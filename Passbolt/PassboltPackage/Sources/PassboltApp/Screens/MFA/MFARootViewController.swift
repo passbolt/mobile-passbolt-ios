@@ -53,9 +53,10 @@ internal final class MFARootViewController: PlainViewController, UIComponent {
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setupView() {
@@ -91,19 +92,20 @@ internal final class MFARootViewController: PlainViewController, UIComponent {
           self?.presentErrorSnackbar()
         },
         receiveValue: { [weak self] provider in
-          self?.cancellables.executeOnMainActor { [weak self] in
-            guard let self = self else { return }
-            switch provider {
-            case .yubiKey:
-              await self.addChild(YubiKeyViewController.self) { parent, child in
-                parent.setContent(view: child)
-              }
-            case .totp:
-              await self.addChild(TOTPViewController.self) { parent, child in
-                parent.setContent(view: child)
+          self?.cancellables
+            .executeOnMainActor { [weak self] in
+              guard let self = self else { return }
+              switch provider {
+              case .yubiKey:
+                await self.addChild(YubiKeyViewController.self) { parent, child in
+                  parent.setContent(view: child)
+                }
+              case .totp:
+                await self.addChild(TOTPViewController.self) { parent, child in
+                  parent.setContent(view: child)
+                }
               }
             }
-          }
         }
       )
       .store(in: cancellables)

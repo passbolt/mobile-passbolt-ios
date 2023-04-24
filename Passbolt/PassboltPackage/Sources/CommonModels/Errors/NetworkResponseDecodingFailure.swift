@@ -33,14 +33,15 @@ public struct NetworkResponseDecodingFailure: TheError {
     line: UInt = #line
   ) -> Self {
     Self(
-      context: .context(
-        .message(
-          message,
-          file: file,
-          line: line
+      context:
+        .context(
+          .message(
+            message,
+            file: file,
+            line: line
+          )
         )
-      )
-      .recording(underlyingError as Any, for: "underlyingError"),
+        .recording(underlyingError as Any, for: "underlyingError"),
       displayableMessage: .localized(key: "error.network.response.decoding.failed"),
       response: response
     )

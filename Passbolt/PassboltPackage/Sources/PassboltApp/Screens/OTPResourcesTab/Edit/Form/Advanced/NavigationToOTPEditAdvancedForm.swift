@@ -29,19 +29,19 @@ internal typealias NavigationToOTPEditAdvancedForm = NavigationTo<OTPEditAdvance
 
 extension NavigationToOTPEditAdvancedForm {
 
-	fileprivate static var live: FeatureLoader {
-		legacyPushTransition(
-			to: OTPEditAdvancedFormView.self
-		)
-	}
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(
+      to: OTPEditAdvancedFormView.self
+    )
+  }
 }
 
 extension FeaturesRegistry {
 
-	internal mutating func useLiveNavigationToOTPEditAdvancedForm() {
-		self.use(
-			NavigationToOTPEditAdvancedForm.live,
-			in: OTPEditScope.self
-		)
-	}
+  internal mutating func useLiveNavigationToOTPEditAdvancedForm() {
+    self.use(
+      NavigationToOTPEditAdvancedForm.live,
+      in: OTPEditScope.self
+    )
+  }
 }

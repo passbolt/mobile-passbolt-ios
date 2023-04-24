@@ -7,21 +7,30 @@
 	"blankLineBetweenMembers" : {
 		"ignoreSingleLineProperties" : true
 	},
+	"fileScopedDeclarationPrivacy" : {
+    "accessLevel" : "private"
+  },
+	"spacesAroundRangeFormationOperators": true,
 	"indentConditionalCompilationBlocks" : false,
+	"indentSwitchCaseLabels": false,
+	"lineBreakAroundMultilineExpressionChainComponents": true,
 	"lineBreakBeforeControlFlowKeywords" : true,
 	"lineBreakBeforeEachArgument" : true,
+	"lineBreakBeforeEachGenericRequirement": true,
 	"lineLength" : 120,
 	"maximumBlankLines" : 1,
+	"prioritizeKeepingFunctionOutputTogether": true,
 	"respectsExistingLineBreaks" : true,
 	"rules" : {
 			"AllPublicDeclarationsHaveDocumentation" : false,
 			"AlwaysUseLowerCamelCase" : true,
 			"AmbiguousTrailingClosureOverload" : true,
 			"BeginDocumentationCommentWithOneLineSummary" : false,
+			"DoNotUseSemicolons": true,
 			"BlankLineBetweenMembers" : true,
 			"CaseIndentLevelEqualsSwitch" : true,
-			"DoNotUseSemicolons" : true,
 			"DontRepeatTypeInStaticProperties" : true,
+			"FileScopedDeclarationPrivacy": true,
 			"FullyIndirectEnum" : true,
 			"GroupNumericLiterals" : true,
 			"IdentifiersMustBeASCII" : true,
@@ -30,6 +39,7 @@
 			"NeverUseForceTry" : true,
 			"NeverUseImplicitlyUnwrappedOptionals" : true,
 			"NoAccessLevelOnExtensionDeclaration" : true,
+			"NoAssignmentInExpressions": true,
 			"NoBlockComments" : false,
 			"NoCasesWithOnlyFallthrough" : true,
 			"NoEmptyTrailingClosureParentheses" : true,
@@ -43,11 +53,13 @@
 			"OrderedImports" : true,
 			"ReturnVoidInsteadOfEmptyTuple" : true,
 			"UseEnumForNamespacing" : true,
-			"UseLetInEveryBoundCaseVariable" : false,
+			"UseEarlyExits": false,
+			"UseLetInEveryBoundCaseVariable" : true,
 			"UseShorthandTypeNames" : false,
 			"UseSingleLinePropertyGetter" : true,
 			"UseSynthesizedInitializer" : false,
 			"UseTripleSlashForDocumentationComments" : true,
+			"UseWhereClausesInForLoops": true,
 			"ValidateDocumentationComments" : true
 	}
 }

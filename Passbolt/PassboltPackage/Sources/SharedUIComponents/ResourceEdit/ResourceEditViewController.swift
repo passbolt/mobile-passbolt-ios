@@ -48,9 +48,10 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   public private(set) lazy var contentView: ContentView = .init(createsNewResource: controller.createsNewResource)
@@ -80,9 +81,10 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
               .combined(
                 .backStyle(),
                 .action { [weak self] in
-                  self?.cancellables.executeOnMainActor { [weak self] in
-                    await self?.pop(if: Self.self)
-                  }
+                  self?.cancellables
+                    .executeOnMainActor { [weak self] in
+                      await self?.pop(if: Self.self)
+                    }
                 }
               )
               .instantiate()
@@ -118,10 +120,11 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
         case is Cancelled:
           return /* NOP */
         case _:
-          self?.cancellables.executeOnMainActor { [weak self] in
-            self?.presentErrorSnackbar(error.displayableMessage)
-            await self?.pop(if: Self.self)
-          }
+          self?.cancellables
+            .executeOnMainActor { [weak self] in
+              self?.presentErrorSnackbar(error.displayableMessage)
+              await self?.pop(if: Self.self)
+            }
         }
       }
       .sink(
@@ -139,16 +142,17 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
           .sendForm()
           .receive(on: RunLoop.main)
           .handleStart { [weak self] in
-            self?.present(
-              overlay: LoaderOverlayView(
-                longLoadingMessage: (
-                  message: .localized(
-                    key: .loadingLong
-                  ),
-                  delay: 15
+            self?
+              .present(
+                overlay: LoaderOverlayView(
+                  longLoadingMessage: (
+                    message: .localized(
+                      key: .loadingLong
+                    ),
+                    delay: 15
+                  )
                 )
               )
-            )
           }
           .handleErrors { [weak self] error in
             switch error {
@@ -160,14 +164,15 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
             }
           }
           .handleEnd { [weak self] ending in
-            self?.cancellables.executeOnMainActor { [weak self] in
-              self?.dismissOverlay()
+            self?.cancellables
+              .executeOnMainActor { [weak self] in
+                self?.dismissOverlay()
 
-              guard case .finished = ending
-              else { return }
+                guard case .finished = ending
+                else { return }
 
-              await self?.pop(if: Self.self)
-            }
+                await self?.pop(if: Self.self)
+              }
           }
           .mapToVoid()
           .replaceError(with: Void())
@@ -186,34 +191,38 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
 
     contentView.lockTapPublisher
       .sink(receiveValue: { [weak self] encrypted in
-        self?.presentInfoSnackbar(
-          .localized(
-            key: encrypted
-              ? "resource.form.description.encrypted"
-              : "resource.form.description.unencrypted"
+        self?
+          .presentInfoSnackbar(
+            .localized(
+              key: encrypted
+                ? "resource.form.description.encrypted"
+                : "resource.form.description.unencrypted"
+            )
           )
-        )
       })
       .store(in: cancellables)
 
     self.controller
       .exitConfirmationPresentationPublisher()
       .sink { [weak self] presented in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          if presented {
-            await self?.present(
-              ResourceEditExitConfirmationAlert.self,
-              in: { [weak self] in
-                self?.cancellables.executeOnMainActor { [weak self] in
-                  await self?.pop(if: Self.self)
-                }
-              }
-            )
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            if presented {
+              await self?
+                .present(
+                  ResourceEditExitConfirmationAlert.self,
+                  in: { [weak self] in
+                    self?.cancellables
+                      .executeOnMainActor { [weak self] in
+                        await self?.pop(if: Self.self)
+                      }
+                  }
+                )
+            }
+            else {
+              await self?.dismiss(ResourceEditExitConfirmationAlert.self)
+            }
           }
-          else {
-            await self?.dismiss(ResourceEditExitConfirmationAlert.self)
-          }
-        }
       }
       .store(in: cancellables)
   }
@@ -222,52 +231,53 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
     with fields: OrderedSet<ResourceField>
   ) {
     fieldCancellables = .init()
-      for field in fields {
-        let fieldValuePublisher = self.controller
-          .fieldValuePublisher(field)
+    for field in fields {
+      let fieldValuePublisher = self.controller
+        .fieldValuePublisher(field)
 
-        fieldValuePublisher
-          .first()  // skipping error just to update intial value
-          .map { Validated.valid($0.value) }
-          .merge(
-            with:
-              fieldValuePublisher
-              .dropFirst()
-          )
-          .merge(
-            with:
-              // the subject is used as a trigger for showing error on the form, initially no errors are shown
+      fieldValuePublisher
+        .first()  // skipping error just to update intial value
+        .map { Validated.valid($0.value) }
+        .merge(
+          with:
+            fieldValuePublisher
+            .dropFirst()
+        )
+        .merge(
+          with:
+            // the subject is used as a trigger for showing error on the form, initially no errors are shown
             self.showErrorSubject
-              .map {
-                fieldValuePublisher.first()
-              }
-              .switchToLatest()
-          )
-          .receive(on: RunLoop.main)
-          .sink(receiveValue: { [weak self] validated in
-            self?.contentView.update(
+            .map {
+              fieldValuePublisher.first()
+            }
+            .switchToLatest()
+        )
+        .receive(on: RunLoop.main)
+        .sink(receiveValue: { [weak self] validated in
+          self?.contentView
+            .update(
               validated: validated,
               for: field
             )
-          })
-          .store(in: self.fieldCancellables)
-
-        self.contentView
-          .fieldValuePublisher(for: field)
-          .receive(on: RunLoop.main)
-          .removeDuplicates()
-          .sink { [unowned self] value in
-            self.controller
-              .setValue(value, field)
-          }
-          .store(in: self.fieldCancellables)
-      }
-      self.controller
-        .passwordEntropyPublisher()
-        .receive(on: RunLoop.main)
-        .sink(receiveValue: { [weak self] entropy in
-          self?.contentView.update(entropy: entropy)
         })
         .store(in: self.fieldCancellables)
+
+      self.contentView
+        .fieldValuePublisher(for: field)
+        .receive(on: RunLoop.main)
+        .removeDuplicates()
+        .sink { [unowned self] value in
+          self.controller
+            .setValue(value, field)
+        }
+        .store(in: self.fieldCancellables)
+    }
+    self.controller
+      .passwordEntropyPublisher()
+      .receive(on: RunLoop.main)
+      .sink(receiveValue: { [weak self] entropy in
+        self?.contentView.update(entropy: entropy)
+      })
+      .store(in: self.fieldCancellables)
   }
 }

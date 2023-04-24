@@ -73,8 +73,8 @@ extension AttributedString {
       )
     }
 
-    let splitedStringHead: String = .init(string[string.startIndex..<substringRange.lowerBound])
-    let splitedStringTail: String = .init(string[substringRange.upperBound..<string.endIndex])
+    let splitedStringHead: String = .init(string[string.startIndex ..< substringRange.lowerBound])
+    let splitedStringTail: String = .init(string[substringRange.upperBound ..< string.endIndex])
 
     return .string(
       .raw(splitedStringHead),

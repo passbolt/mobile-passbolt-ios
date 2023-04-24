@@ -51,9 +51,10 @@ internal final class MainTabsViewController: TabsViewController, UIComponent {
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setup() {
@@ -184,19 +185,22 @@ extension MainTabsViewController {
         MainActor.execute {
           switch destination {
           case .biometricsInfo:
-            await self?.present(
-              PlainNavigationViewController<BiometricsInfoViewController>.self
-            )
+            await self?
+              .present(
+                PlainNavigationViewController<BiometricsInfoViewController>.self
+              )
 
           case .biometricsSetup:
-            await self?.present(
-              PlainNavigationViewController<BiometricsSetupViewController>.self
-            )
+            await self?
+              .present(
+                PlainNavigationViewController<BiometricsSetupViewController>.self
+              )
 
           case .autofillSetup:
-            await self?.present(
-              PlainNavigationViewController<ExtensionSetupViewController>.self
-            )
+            await self?
+              .present(
+                PlainNavigationViewController<ExtensionSetupViewController>.self
+              )
 
           case .none:
             break

@@ -87,13 +87,14 @@ import UIKit
     completion: (() -> Void)? = nil
   ) {
     let presentingViewController: UIViewController? = self.presentingViewController
-    super.dismiss(
-      animated: animated,
-      completion: { [weak presentingViewController] in
-        presentingViewController?.setNeedsStatusBarAppearanceUpdate()
-        completion?()
-      }
-    )
+    super
+      .dismiss(
+        animated: animated,
+        completion: { [weak presentingViewController] in
+          presentingViewController?.setNeedsStatusBarAppearanceUpdate()
+          completion?()
+        }
+      )
   }
 
   open override func pushViewController(_ viewController: UIViewController, animated: Bool) {
@@ -162,10 +163,11 @@ import UIKit
     }
 
     if let tabBarController = tabBarController {
-      viewControllers[1...].forEach { viewController in
-        viewController.extendedLayoutIncludesOpaqueBars = true
-        viewController.edgesForExtendedLayout = viewController.edgesForExtendedLayout.union([.bottom])
-      }
+      viewControllers[1...]
+        .forEach { viewController in
+          viewController.extendedLayoutIncludesOpaqueBars = true
+          viewController.edgesForExtendedLayout = viewController.edgesForExtendedLayout.union([.bottom])
+        }
       if tabBarController.tabBar.isHidden, viewControllers.count <= 1 {
         tabBarController.tabBar.isHidden = false
         UIView.animate(
@@ -242,10 +244,11 @@ import UIKit
     else {
       /* NOP */
     }
-    return super.popToViewController(
-      viewController,
-      animated: animated
-    )
+    return super
+      .popToViewController(
+        viewController,
+        animated: animated
+      )
   }
 }
 

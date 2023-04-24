@@ -50,7 +50,8 @@ extension ResourceFieldValue: Codable {
       try container.encode(secret)
 
     case .encrypted:
-      throw InternalInconsistency
+      throw
+        InternalInconsistency
         .error("Can't encode encrypted value, you have to decrypt it first!")
 
     case .unknown(let json):

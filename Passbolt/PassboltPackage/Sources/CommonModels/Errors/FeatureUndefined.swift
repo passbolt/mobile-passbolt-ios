@@ -32,14 +32,15 @@ public struct FeatureUndefined: TheError {
     line: UInt = #line
   ) -> Self {
     Self(
-      context: .context(
-        .message(
-          message,
-          file: file,
-          line: line
+      context:
+        .context(
+          .message(
+            message,
+            file: file,
+            line: line
+          )
         )
-      )
-      .recording(featureName, for: "feature"),
+        .recording(featureName, for: "feature"),
       displayableMessage: .localized(key: "error.feature.unavailable")
     )
   }

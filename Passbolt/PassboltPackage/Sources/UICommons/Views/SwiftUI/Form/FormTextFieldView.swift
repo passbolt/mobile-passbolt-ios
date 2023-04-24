@@ -72,7 +72,7 @@ where Accessory: View {
       if !title.isEmpty {
         Group {
           Text(title)
-          + Text(self.mandatory ? " *" : "")
+            + Text(self.mandatory ? " *" : "")
             .foregroundColor(Color.passboltSecondaryRed)
         }
         .text(
@@ -81,8 +81,8 @@ where Accessory: View {
             weight: .medium
           ),
           color: self.text.isValid
-          ? Color.passboltPrimaryText
-          : Color.passboltSecondaryRed
+            ? Color.passboltPrimaryText
+            : Color.passboltSecondaryRed
         )
         .padding(
           top: 4,
@@ -131,10 +131,10 @@ where Accessory: View {
           RoundedRectangle(cornerRadius: 4)
             .stroke(
               self.editing
-              ? Color.passboltPrimaryBlue
-              : self.text.isValid
-              ? Color.passboltDivider
-              : Color.passboltSecondaryRed,
+                ? Color.passboltPrimaryBlue
+                : self.text.isValid
+                  ? Color.passboltDivider
+                  : Color.passboltSecondaryRed,
               lineWidth: 1
             )
             .allowsHitTesting(false)

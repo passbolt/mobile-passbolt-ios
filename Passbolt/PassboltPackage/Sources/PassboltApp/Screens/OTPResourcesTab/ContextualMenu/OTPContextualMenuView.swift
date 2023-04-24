@@ -77,7 +77,7 @@ internal struct OTPContextualMenuView: ControlledView {
             }
           )
 
-					ListDividerView()
+          ListDividerView()
 
           WithViewState(
             from: self.controller,

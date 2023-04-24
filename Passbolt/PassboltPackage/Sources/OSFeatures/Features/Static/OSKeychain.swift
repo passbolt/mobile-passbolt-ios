@@ -168,7 +168,8 @@ extension OSKeychain {
               try jsonDecoder.decode(
                 JSONWrapper<Value>.self,
                 from: item
-              ).v
+              )
+              .v
             }
           )
         }
@@ -199,7 +200,8 @@ extension OSKeychain {
             jsonDecoder.decode(
               JSONWrapper<Value>.self,
               from: firstItem
-            ).v
+            )
+            .v
           )
         }
         catch {  // if any of values are invalid we treat it as error

@@ -73,10 +73,12 @@ extension ResourceFolderEditForm {
           }
 
         case let .create(.some(enclosingFolderID)):
-          let enclosingFolderDetails: ResourceFolderDetailsDSV = try await features.instance(
-            of: ResourceFolderDetails.self,
-            context: enclosingFolderID
-          ).details()
+          let enclosingFolderDetails: ResourceFolderDetailsDSV =
+            try await features.instance(
+              of: ResourceFolderDetails.self,
+              context: enclosingFolderID
+            )
+            .details()
 
           let location =
             enclosingFolderDetails.path
@@ -120,10 +122,12 @@ extension ResourceFolderEditForm {
           }
 
         case let .modify(folderID):
-          let folderDetails: ResourceFolderDetailsDSV = try await features.instance(
-            of: ResourceFolderDetails.self,
-            context: folderID
-          ).details()
+          let folderDetails: ResourceFolderDetailsDSV =
+            try await features.instance(
+              of: ResourceFolderDetails.self,
+              context: folderID
+            )
+            .details()
 
           let location = folderDetails.path
             .map { (item: ResourceFolderPathItem) -> ResourceFolderLocationItem in

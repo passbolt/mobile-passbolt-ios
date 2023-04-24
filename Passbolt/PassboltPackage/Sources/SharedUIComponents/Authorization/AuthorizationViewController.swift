@@ -59,9 +59,10 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   public func setup() {
@@ -76,9 +77,10 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
           .combined(
             .image(named: .help, from: .uiCommons),
             .action { [weak self] in
-              self?.cancellables.executeOnMainActor { [weak self] in
-                await self?.presentSheetMenu(HelpMenuViewController.self, in: [])
-              }
+              self?.cancellables
+                .executeOnMainActor { [weak self] in
+                  await self?.presentSheetMenu(HelpMenuViewController.self, in: [])
+                }
             },
             .accessibilityIdentifier("button.help")
           )
@@ -127,24 +129,29 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
       self?.contentView.applyOn(url: .text(accountWithProfile.domain.rawValue))
       switch biometricsState {
       case .unavailable:
-        self?.contentView.applyOn(
-          biometricButtonContainer: .hidden(true)
-        )
+        self?.contentView
+          .applyOn(
+            biometricButtonContainer: .hidden(true)
+          )
       case .faceID:
-        self?.contentView.applyOn(
-          biometricButton: .image(named: .faceID, from: .uiCommons)
-        )
-        self?.contentView.applyOn(
-          biometricButtonContainer: .hidden(false)
-        )
+        self?.contentView
+          .applyOn(
+            biometricButton: .image(named: .faceID, from: .uiCommons)
+          )
+        self?.contentView
+          .applyOn(
+            biometricButtonContainer: .hidden(false)
+          )
         self?.autoLoginPromptSubject.send(completion: .finished)
       case .touchID:
-        self?.contentView.applyOn(
-          biometricButton: .image(named: .touchID, from: .uiCommons)
-        )
-        self?.contentView.applyOn(
-          biometricButtonContainer: .hidden(false)
-        )
+        self?.contentView
+          .applyOn(
+            biometricButton: .image(named: .touchID, from: .uiCommons)
+          )
+        self?.contentView
+          .applyOn(
+            biometricButtonContainer: .hidden(false)
+          )
         self?.autoLoginPromptSubject.send(completion: .finished)
       }
     }
@@ -184,13 +191,14 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
       .receive(on: RunLoop.main)
       .sink { [weak self] validatedPassphrase in
         self?.contentView.update(from: validatedPassphrase)
-        self?.contentView.applyOn(
-          signInButton: .when(
-            validatedPassphrase.isValid,
-            then: .enabled(),
-            else: .disabled()
+        self?.contentView
+          .applyOn(
+            signInButton: .when(
+              validatedPassphrase.isValid,
+              then: .enabled(),
+              else: .disabled()
+            )
           )
-        )
       }
       .store(in: cancellables)
 
@@ -199,13 +207,14 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
       .map(\.isValid)
       .receive(on: RunLoop.main)
       .sink { [weak self] isValid in
-        self?.contentView.applyOn(
-          signInButton: .when(
-            isValid,
-            then: .enabled(),
-            else: .disabled()
+        self?.contentView
+          .applyOn(
+            signInButton: .when(
+              isValid,
+              then: .enabled(),
+              else: .disabled()
+            )
           )
-        )
       }
       .store(in: cancellables)
 
@@ -245,29 +254,32 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
     controller
       .presentForgotPassphraseAlertPublisher()
       .sink { [weak self] presented in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          guard let self = self else { return }
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            guard let self = self else { return }
 
-          if presented {
-            await self.present(ForgotPassphraseAlertViewController.self)
+            if presented {
+              await self.present(ForgotPassphraseAlertViewController.self)
+            }
+            else {
+              await self.dismiss(ForgotPassphraseAlertViewController.self)
+            }
           }
-          else {
-            await self.dismiss(ForgotPassphraseAlertViewController.self)
-          }
-        }
       }
       .store(in: cancellables)
 
     controller
       .accountNotFoundScreenPresentationPublisher()
       .sink { [weak self] account in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          await self?.replaceLast(
-            Self.self,
-            with: AccountNotFoundViewController.self,
-            in: account
-          )
-        }
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            await self?
+              .replaceLast(
+                Self.self,
+                with: AccountNotFoundViewController.self,
+                in: account
+              )
+          }
       }
       .store(in: cancellables)
   }
@@ -301,22 +313,24 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
         let fingerprint: Fingerprint = theError.fingerprint ?? "N/A"
 
         self?.signInCancellable = nil
-        self?.navigateToInvalidServerFingerprint(
-          accountID: accountID,
-          fingerprint: fingerprint
-        )
+        self?
+          .navigateToInvalidServerFingerprint(
+            accountID: accountID,
+            fingerprint: fingerprint
+          )
       })
       .handleStart { [weak self] in
-        self?.present(
-          overlay: LoaderOverlayView(
-            longLoadingMessage: (
-              message: .localized(
-                key: .loadingLong
-              ),
-              delay: 5
+        self?
+          .present(
+            overlay: LoaderOverlayView(
+              longLoadingMessage: (
+                message: .localized(
+                  key: .loadingLong
+                ),
+                delay: 5
+              )
             )
           )
-        )
       }
       .handleErrors { [weak self] error in
         switch error {
@@ -324,28 +338,34 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
           return /* NOP */
 
         case let serverError as ServerConnectionIssue:
-          self?.cancellables.executeOnMainActor { [weak self] in
-            await self?.present(
-              ServerNotReachableAlertViewController.self,
-              in: serverError.serverURL
-            )
-          }
+          self?.cancellables
+            .executeOnMainActor { [weak self] in
+              await self?
+                .present(
+                  ServerNotReachableAlertViewController.self,
+                  in: serverError.serverURL
+                )
+            }
 
         case let serverError as ServerConnectionIssue:
-          self?.cancellables.executeOnMainActor { [weak self] in
-            await self?.present(
-              ServerNotReachableAlertViewController.self,
-              in: serverError.serverURL
-            )
-          }
+          self?.cancellables
+            .executeOnMainActor { [weak self] in
+              await self?
+                .present(
+                  ServerNotReachableAlertViewController.self,
+                  in: serverError.serverURL
+                )
+            }
 
         case let serverError as ServerResponseTimeout:
-          self?.cancellables.executeOnMainActor { [weak self] in
-            await self?.present(
-              ServerNotReachableAlertViewController.self,
-              in: serverError.serverURL
-            )
-          }
+          self?.cancellables
+            .executeOnMainActor { [weak self] in
+              await self?
+                .present(
+                  ServerNotReachableAlertViewController.self,
+                  in: serverError.serverURL
+                )
+            }
 
         case _:
           self?.presentErrorSnackbar(error.displayableMessage)

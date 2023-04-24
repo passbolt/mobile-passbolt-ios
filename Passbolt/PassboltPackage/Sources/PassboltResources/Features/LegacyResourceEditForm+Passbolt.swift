@@ -25,13 +25,13 @@ import CommonModels
 import Crypto
 import DatabaseOperations
 import Features
+import Foundation
 import NetworkOperations
 import Resources
-import Users
 import SessionData
+import Users
 
 import class Foundation.JSONEncoder
-import Foundation
 
 // MARK: - Implementation
 
@@ -133,7 +133,8 @@ extension LegacyResourceEditForm {
         return state
       }
       else {
-        throw InvalidForm
+        throw
+          InvalidForm
           .error(displayable: "resource.form.error.invalid")
       }
     }
@@ -185,7 +186,8 @@ extension LegacyResourceEditForm {
       await initialLoading.waitForCompletion()
       guard let resource: Resource = formState.get(\.self)
       else {
-        throw InvalidForm
+        throw
+          InvalidForm
           .error(displayable: "resource.form.error.invalid")
       }
 
@@ -214,7 +216,7 @@ extension LegacyResourceEditForm {
       let encodedSecret: String
       do {
         if secretFields.count == 1,
-           case let .string(password) = resource.value(forField: "password")
+          case let .string(password) = resource.value(forField: "password")
         {
           encodedSecret = password
         }
@@ -273,11 +275,12 @@ extension LegacyResourceEditForm {
       }
       else {
         guard
-          let ownEncryptedMessage: EncryptedMessage = try await usersPGPMessages.encryptMessageForUsers(
-            [currentAccount.userID],
-            encodedSecret
-          )
-          .first
+          let ownEncryptedMessage: EncryptedMessage =
+            try await usersPGPMessages.encryptMessageForUsers(
+              [currentAccount.userID],
+              encodedSecret
+            )
+            .first
         else {
           throw
             UserSecretMissing

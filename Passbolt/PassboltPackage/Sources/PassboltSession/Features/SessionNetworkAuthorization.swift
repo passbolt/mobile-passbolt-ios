@@ -227,13 +227,14 @@ extension SessionNetworkAuthorization {
             )
         }
 
-        let encryptedAndSignedChallenge: String = try pgp.encryptAndSign(
-          encodedChallenge,
-          passphrase,
-          accountPrivateKey,
-          serverPublicPGPKey
-        )
-        .get()
+        let encryptedAndSignedChallenge: String =
+          try pgp.encryptAndSign(
+            encodedChallenge,
+            passphrase,
+            accountPrivateKey,
+            serverPublicPGPKey
+          )
+          .get()
 
         return ArmoredPGPMessage(
           rawValue: encryptedAndSignedChallenge
@@ -287,7 +288,8 @@ extension SessionNetworkAuthorization {
       let tokens: Tokens
       do {
         let decryptedPayloadData: Data =
-          try pgp.decryptAndVerify(
+          try pgp
+          .decryptAndVerify(
             encryptedResponse.rawValue,
             passphrase,
             accountPrivateKey,

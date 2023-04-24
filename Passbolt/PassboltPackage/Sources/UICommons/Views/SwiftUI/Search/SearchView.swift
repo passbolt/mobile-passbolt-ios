@@ -149,7 +149,8 @@ where LeftAccessoryView: View, RightAccessoryView: View {
           .aspectRatio(1, contentMode: .fit)
           .frame(maxWidth: 48, maxHeight: 48)
         }
-      ).accessibilityIdentifier("search.view.account")
+      )
+      .accessibilityIdentifier("search.view.account")
     }
   }
 }

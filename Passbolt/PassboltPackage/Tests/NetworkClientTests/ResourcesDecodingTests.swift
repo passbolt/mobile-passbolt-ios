@@ -85,61 +85,68 @@ final class ResourcesDecodingTests: XCTestCase {
           }
         }
       }
-      """.data(using: .utf8)!
+      """
+      .data(using: .utf8)!
 
-    let decodedData: ResourceTypeDTO? = try? JSONDecoder().decode(
-      ResourceTypeDTO.self,
-      from: rawJSON
-    )
+    let decodedData: ResourceTypeDTO? = try? JSONDecoder()
+      .decode(
+        ResourceTypeDTO.self,
+        from: rawJSON
+      )
 
     XCTAssertEqual(decodedData?.id, "669f8c64-242a-59fb-92fc-81f660975fd3")
     XCTAssertEqual(decodedData?.name, "Simple password")
     XCTAssertEqual(decodedData?.slug, "simple-password")
     XCTAssertTrue(
-      decodedData?.fields.contains(where: { field in
-        return field.valueType == .string
-          && field.name == .name
-          && field.required == true
-          && field.encrypted == false
-          && field.maxLength == 64
-      }) ?? false
+      decodedData?.fields
+        .contains(where: { field in
+          return field.valueType == .string
+            && field.name == .name
+            && field.required == true
+            && field.encrypted == false
+            && field.maxLength == 64
+        }) ?? false
     )
     XCTAssertTrue(
-      decodedData?.fields.contains(where: { field in
-        field.valueType == .string
-          && field.name == .username
-          && field.required == false
-          && field.encrypted == false
-          && field.maxLength == 64
-      }) ?? false
+      decodedData?.fields
+        .contains(where: { field in
+          field.valueType == .string
+            && field.name == .username
+            && field.required == false
+            && field.encrypted == false
+            && field.maxLength == 64
+        }) ?? false
     )
     XCTAssertTrue(
-      decodedData?.fields.contains(where: { field in
-        field.valueType == .string
-          && field.name == .uri
-          && field.required == false
-          && field.encrypted == false
-          && field.maxLength == 1024
-      }) ?? false
+      decodedData?.fields
+        .contains(where: { field in
+          field.valueType == .string
+            && field.name == .uri
+            && field.required == false
+            && field.encrypted == false
+            && field.maxLength == 1024
+        }) ?? false
     )
     XCTAssertTrue(
-      decodedData?.fields.contains(where: {
-        field in
-        field.valueType == .string
-          && field.name == .description
-          && field.required == false
-          && field.encrypted == false
-          && field.maxLength == 10000
-      }) ?? false
+      decodedData?.fields
+        .contains(where: {
+          field in
+          field.valueType == .string
+            && field.name == .description
+            && field.required == false
+            && field.encrypted == false
+            && field.maxLength == 10000
+        }) ?? false
     )
     XCTAssertTrue(
-      decodedData?.fields.contains(where: { field in
-        field.valueType == .string
-          && field.name == .password
-          && field.required == true
-          && field.encrypted == true
-          && field.maxLength == 4064
-      }) ?? false
+      decodedData?.fields
+        .contains(where: { field in
+          field.valueType == .string
+            && field.name == .password
+            && field.required == true
+            && field.encrypted == true
+            && field.maxLength == 4064
+        }) ?? false
     )
   }
 
@@ -218,60 +225,67 @@ final class ResourcesDecodingTests: XCTestCase {
            }
         }
       }
-      """.data(using: .utf8)!
+      """
+      .data(using: .utf8)!
 
-    let decodedData: ResourceTypeDTO? = try? JSONDecoder().decode(
-      ResourceTypeDTO.self,
-      from: rawJSON
-    )
+    let decodedData: ResourceTypeDTO? = try? JSONDecoder()
+      .decode(
+        ResourceTypeDTO.self,
+        from: rawJSON
+      )
 
     XCTAssertEqual(decodedData?.id, "669f8c64-242a-59fb-92fc-81f660975fd3")
     XCTAssertEqual(decodedData?.name, "Simple password")
     XCTAssertEqual(decodedData?.slug, "simple-password")
     XCTAssertTrue(
-      decodedData?.fields.contains(where: { field in
-        return field.valueType == .string
-          && field.name == .name
-          && field.required == true
-          && field.encrypted == false
-          && field.maxLength == 64
-      }) ?? false
+      decodedData?.fields
+        .contains(where: { field in
+          return field.valueType == .string
+            && field.name == .name
+            && field.required == true
+            && field.encrypted == false
+            && field.maxLength == 64
+        }) ?? false
     )
     XCTAssertTrue(
-      decodedData?.fields.contains(where: { field in
-        field.valueType == .string
-          && field.name == .username
-          && field.required == false
-          && field.encrypted == false
-          && field.maxLength == 64
-      }) ?? false
+      decodedData?.fields
+        .contains(where: { field in
+          field.valueType == .string
+            && field.name == .username
+            && field.required == false
+            && field.encrypted == false
+            && field.maxLength == 64
+        }) ?? false
     )
     XCTAssertTrue(
-      decodedData?.fields.contains(where: { field in
-        field.valueType == .string
-          && field.name == .uri
-          && field.required == false
-          && field.encrypted == false
-          && field.maxLength == 1024
-      }) ?? false
+      decodedData?.fields
+        .contains(where: { field in
+          field.valueType == .string
+            && field.name == .uri
+            && field.required == false
+            && field.encrypted == false
+            && field.maxLength == 1024
+        }) ?? false
     )
     XCTAssertTrue(
-      decodedData?.fields.contains(where: { field in
-        field.valueType == .string
-          && field.name == .description
-          && field.required == false
-          && field.encrypted == false
-          && field.maxLength == 10000
-      }) ?? false
+      decodedData?.fields
+        .contains(where: { field in
+          field.valueType == .string
+            && field.name == .description
+            && field.required == false
+            && field.encrypted == false
+            && field.maxLength == 10000
+        }) ?? false
     )
     XCTAssertTrue(
-      decodedData?.fields.contains(where: { field in
-        field.valueType == .string
-          && field.name == .password
-          && field.required == true
-          && field.encrypted == true
-          && field.maxLength == 4096
-      }) ?? false
+      decodedData?.fields
+        .contains(where: { field in
+          field.valueType == .string
+            && field.name == .password
+            && field.required == true
+            && field.encrypted == true
+            && field.maxLength == 4096
+        }) ?? false
     )
   }
 
@@ -300,7 +314,8 @@ final class ResourcesDecodingTests: XCTestCase {
           }
         ]
       }
-      """.data(using: .utf8)!
+      """
+      .data(using: .utf8)!
 
     let decodedData: ResourceDTO
     do {

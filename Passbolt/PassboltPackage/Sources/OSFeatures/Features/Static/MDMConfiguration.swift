@@ -83,9 +83,10 @@ extension MDMConfiguration {
             let username: String = configuration["username"] as? String,
             let firstName: String = configuration["firstName"] as? String,
             let lastName: String = configuration["lastName"] as? String,
-            let avatarImageURL: URLString = (configuration["avatarImageURL"] as? String).map(
-              URLString.init(rawValue:)
-            ),
+            let avatarImageURL: URLString = (configuration["avatarImageURL"] as? String)
+              .map(
+                URLString.init(rawValue:)
+              ),
             let fingerprint: String = configuration["fingerprint"] as? String,
             let flattenedArmoredKey: String = configuration["armoredKey"] as? String
           else { return nil }

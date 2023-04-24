@@ -57,9 +57,10 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setupView() {
@@ -69,9 +70,10 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
           .combined(
             .image(named: .help, from: .uiCommons),
             .action { [weak self] in
-              self?.cancellables.executeOnMainActor { [weak self] in
-                await self?.presentSheetMenu(HelpMenuViewController.self, in: [])
-              }
+              self?.cancellables
+                .executeOnMainActor { [weak self] in
+                  await self?.presentSheetMenu(HelpMenuViewController.self, in: [])
+                }
             }
           )
           .instantiate()
@@ -87,18 +89,20 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
       .receive(on: RunLoop.main)
       .sink(
         receiveValue: { [weak self] items in
-          self?.cancellables.executeOnMainActor { [weak self] in
-            // After removing last account, window controller takes care of navigation to proper screen when removing current account.
-            if items.isEmpty, self?.view.window != nil {
-              await self?.replaceWindowRoot(
-                with: SplashScreenViewController.self,
-                in: .none
-              )
+          self?.cancellables
+            .executeOnMainActor { [weak self] in
+              // After removing last account, window controller takes care of navigation to proper screen when removing current account.
+              if items.isEmpty, self?.view.window != nil {
+                await self?
+                  .replaceWindowRoot(
+                    with: SplashScreenViewController.self,
+                    in: .none
+                  )
+              }
+              else {
+                self?.contentView.update(items: items)
+              }
             }
-            else {
-              self?.contentView.update(items: items)
-            }
-          }
         }
       )
       .store(in: cancellables)
@@ -114,17 +118,19 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
     contentView
       .accountTapPublisher
       .sink { [weak self] item in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          if item.isCurrentAccount && !(self?.navigationController is AuthorizationNavigationViewController) {
-            await self?.popToRoot()
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            if item.isCurrentAccount && !(self?.navigationController is AuthorizationNavigationViewController) {
+              await self?.popToRoot()
+            }
+            else {
+              await self?
+                .push(
+                  AuthorizationViewController.self,
+                  in: item.account
+                )
+            }
           }
-          else {
-            await self?.push(
-              AuthorizationViewController.self,
-              in: item.account
-            )
-          }
-        }
       }
       .store(in: cancellables)
 
@@ -154,36 +160,42 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
           return self.controller
             .removeAccount(item.account)
             .handleValues { [weak self] in
-              self?.cancellables.executeOnMainActor { [weak self] in
-                self?.presentInfoSnackbar(
-                  .localized(
-                    key: "account.selection.account.removed"
-                  )
-                )
-              }
+              self?.cancellables
+                .executeOnMainActor { [weak self] in
+                  self?
+                    .presentInfoSnackbar(
+                      .localized(
+                        key: "account.selection.account.removed"
+                      )
+                    )
+                }
             }
             .handleErrors { [weak self] error in
-              self?.cancellables.executeOnMainActor { [weak self] in
-                self?.present(
-                  snackbar: Mutation<ContentView>
-                    .snackBarErrorMessage(
-                      error.displayableMessage
+              self?.cancellables
+                .executeOnMainActor { [weak self] in
+                  self?
+                    .present(
+                      snackbar: Mutation<ContentView>
+                        .snackBarErrorMessage(
+                          error.displayableMessage
+                        )
+                        .instantiate(),
+                      hideAfter: 2
                     )
-                    .instantiate(),
-                  hideAfter: 2
-                )
-              }
+                }
             }
             .replaceError(with: Void())
             .eraseToAnyPublisher()
         }
 
-        self?.cancellables.executeOnMainActor { [weak self] in
-          await self?.present(
-            RemoveAccountAlertViewController.self,
-            in: removeAccount
-          )
-        }
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            await self?
+              .present(
+                RemoveAccountAlertViewController.self,
+                in: removeAccount
+              )
+          }
       }
       .store(in: cancellables)
 
@@ -197,19 +209,22 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
     controller
       .addAccountPresentationPublisher()
       .sink { [weak self] accountTransferInProgress in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          if accountTransferInProgress {
-            self?.presentErrorSnackbar(
-              .localized("error.another.account.transfer.in.progress")
-            )
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            if accountTransferInProgress {
+              self?
+                .presentErrorSnackbar(
+                  .localized("error.another.account.transfer.in.progress")
+                )
+            }
+            else {
+              await self?
+                .push(
+                  TransferInfoScreenViewController.self,
+                  in: .import
+                )
+            }
           }
-          else {
-            await self?.push(
-              TransferInfoScreenViewController.self,
-              in: .import
-            )
-          }
-        }
       }
       .store(in: cancellables)
   }

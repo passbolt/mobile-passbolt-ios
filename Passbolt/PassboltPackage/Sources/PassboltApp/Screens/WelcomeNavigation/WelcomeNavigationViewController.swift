@@ -50,9 +50,10 @@ internal final class WelcomeNavigationViewController: NavigationViewController, 
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setup() {

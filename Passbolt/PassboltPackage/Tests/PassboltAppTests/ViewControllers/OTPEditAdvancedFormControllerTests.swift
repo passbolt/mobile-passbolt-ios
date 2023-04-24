@@ -43,11 +43,10 @@ final class OTPEditAdvancedFormControllerTests: FeaturesTestCase {
     set(OTPEditScope.self)
   }
 
-
   func test_viewState_loadsFromFormState_initially() async throws {
     patch(
       \OTPEditForm.state,
-       with: always(
+      with: always(
         .init(
           name: .valid("name"),
           uri: .invalid(
@@ -61,13 +60,13 @@ final class OTPEditAdvancedFormControllerTests: FeaturesTestCase {
             period: .valid(32)
           )
         )
-       )
+      )
     )
 
     let feature: OTPEditAdvancedFormController = try self.testedInstance()
 
     await self.asyncExecutionControl.executeAll()
-    
+
     await XCTAssertValue(
       equal: OTPEditAdvancedFormController.ViewState(
         algorithm: .valid(.sha256),

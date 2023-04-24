@@ -61,7 +61,8 @@ extension NavigationAnchor {
     return await withCheckedContinuation { continuation in
       (self.navigationTabs
         ?? self.navigationStack
-        ?? self).present(
+        ?? self)
+        .present(
           presentedAnchor,
           animated: animated,
           completion: continuation.resume

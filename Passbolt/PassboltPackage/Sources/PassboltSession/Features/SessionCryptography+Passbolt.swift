@@ -51,21 +51,23 @@ extension SessionCryptography {
       let privateKey: ArmoredPGPPrivateKey = try accountsDataStore.loadAccountPrivateKey(account.localID)
 
       if let publicKey: ArmoredPGPPublicKey = publicKey {
-        return try pgp.decryptAndVerify(
-          encryptedMessage.rawValue,
-          passphrase,
-          privateKey,
-          publicKey
-        )
-        .get()
+        return
+          try pgp.decryptAndVerify(
+            encryptedMessage.rawValue,
+            passphrase,
+            privateKey,
+            publicKey
+          )
+          .get()
       }
       else {
-        return try pgp.decrypt(
-          encryptedMessage.rawValue,
-          passphrase,
-          privateKey
-        )
-        .get()
+        return
+          try pgp.decrypt(
+            encryptedMessage.rawValue,
+            passphrase,
+            privateKey
+          )
+          .get()
       }
     }
 
@@ -79,14 +81,15 @@ extension SessionCryptography {
 
       let privateKey: ArmoredPGPPrivateKey = try accountsDataStore.loadAccountPrivateKey(account.localID)
 
-      return try pgp.encryptAndSign(
-        plainMessage,
-        passphrase,
-        privateKey,
-        publicKey
-      )
-      .map(ArmoredPGPMessage.init(rawValue:))
-      .get()
+      return
+        try pgp.encryptAndSign(
+          plainMessage,
+          passphrase,
+          privateKey,
+          publicKey
+        )
+        .map(ArmoredPGPMessage.init(rawValue:))
+        .get()
     }
 
     return Self(

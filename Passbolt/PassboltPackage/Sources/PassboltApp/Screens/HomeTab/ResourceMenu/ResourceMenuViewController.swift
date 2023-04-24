@@ -52,9 +52,10 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setupView() {
@@ -68,10 +69,11 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
       .sink(
         receiveCompletion: { [weak self] completion in
           guard case .failure = completion else { return }
-          self?.cancellables.executeOnMainActor { [weak self] in
-            self?.presentingViewController?.presentErrorSnackbar()
-            await self?.dismiss(ResourceMenuViewController.self)
-          }
+          self?.cancellables
+            .executeOnMainActor { [weak self] in
+              self?.presentingViewController?.presentErrorSnackbar()
+              await self?.dismiss(ResourceMenuViewController.self)
+            }
         },
         receiveValue: { [weak self] resourceDetails in
           self?.title = resourceDetails.value(forField: "name")?.stringValue ?? ""
@@ -93,54 +95,59 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
           .performAction(action)
           .receive(on: RunLoop.main)
           .handleEvents(receiveOutput: { [weak self] in
-            self?.cancellables.executeOnMainActor { [weak self] in
-              switch action {
-              case .share, .edit, .delete:
-                break  // Actions handled elsewhere
+            self?.cancellables
+              .executeOnMainActor { [weak self] in
+                switch action {
+                case .share, .edit, .delete:
+                  break  // Actions handled elsewhere
 
-              case .toggleFavorite:
-                await self?.dismiss(ResourceMenuViewController.self)
+                case .toggleFavorite:
+                  await self?.dismiss(ResourceMenuViewController.self)
 
-              case .openURL:
-                await self?.dismiss(ResourceMenuViewController.self)
+                case .openURL:
+                  await self?.dismiss(ResourceMenuViewController.self)
 
-              case .copyURL:
-                self?.presentingViewController?.presentInfoSnackbar(
-                  .localized("resource.menu.item.field.copied"),
-                  with: [
-                    NSLocalizedString("resource.menu.item.url", bundle: .localization, comment: "")
-                  ]
-                )
-                await self?.dismiss(ResourceMenuViewController.self)
+                case .copyURL:
+                  self?.presentingViewController?
+                    .presentInfoSnackbar(
+                      .localized("resource.menu.item.field.copied"),
+                      with: [
+                        NSLocalizedString("resource.menu.item.url", bundle: .localization, comment: "")
+                      ]
+                    )
+                  await self?.dismiss(ResourceMenuViewController.self)
 
-              case .copyPassword:
-                self?.presentingViewController?.presentInfoSnackbar(
-                  .localized("resource.menu.item.field.copied"),
-                  with: [
-                    NSLocalizedString("resource.menu.item.password", bundle: .localization, comment: "")
-                  ]
-                )
-                await self?.dismiss(ResourceMenuViewController.self)
+                case .copyPassword:
+                  self?.presentingViewController?
+                    .presentInfoSnackbar(
+                      .localized("resource.menu.item.field.copied"),
+                      with: [
+                        NSLocalizedString("resource.menu.item.password", bundle: .localization, comment: "")
+                      ]
+                    )
+                  await self?.dismiss(ResourceMenuViewController.self)
 
-              case .copyUsername:
-                self?.presentingViewController?.presentInfoSnackbar(
-                  .localized("resource.menu.item.field.copied"),
-                  with: [
-                    NSLocalizedString("resource.menu.item.username", bundle: .localization, comment: "")
-                  ]
-                )
-                await self?.dismiss(ResourceMenuViewController.self)
+                case .copyUsername:
+                  self?.presentingViewController?
+                    .presentInfoSnackbar(
+                      .localized("resource.menu.item.field.copied"),
+                      with: [
+                        NSLocalizedString("resource.menu.item.username", bundle: .localization, comment: "")
+                      ]
+                    )
+                  await self?.dismiss(ResourceMenuViewController.self)
 
-              case .copyDescription:
-                self?.presentingViewController?.presentInfoSnackbar(
-                  .localized("resource.menu.item.field.copied"),
-                  with: [
-                    NSLocalizedString("resource.menu.item.description", bundle: .localization, comment: "")
-                  ]
-                )
-                await self?.dismiss(ResourceMenuViewController.self)
+                case .copyDescription:
+                  self?.presentingViewController?
+                    .presentInfoSnackbar(
+                      .localized("resource.menu.item.field.copied"),
+                      with: [
+                        NSLocalizedString("resource.menu.item.description", bundle: .localization, comment: "")
+                      ]
+                    )
+                  await self?.dismiss(ResourceMenuViewController.self)
+                }
               }
-            }
           })
           .handleErrors { [weak self] error in
             switch error {

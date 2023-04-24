@@ -56,7 +56,8 @@ final class ConfigDecodingTests: XCTestCase {
           }
         }
       }
-      """.data(using: .utf8)!
+      """
+      .data(using: .utf8)!
 
     let config: Config? = try? JSONDecoder().decode(Config.self, from: rawJSON)
 
@@ -83,7 +84,8 @@ final class ConfigDecodingTests: XCTestCase {
         "plugins": {
         }
       }
-      """.data(using: .utf8)!
+      """
+      .data(using: .utf8)!
 
     let config: Config? = try? JSONDecoder().decode(Config.self, from: rawJSON)
 
@@ -107,7 +109,8 @@ final class ConfigDecodingTests: XCTestCase {
           }
         }
       }
-      """.data(using: .utf8)!
+      """
+      .data(using: .utf8)!
 
     let config: Config? = try? JSONDecoder().decode(Config.self, from: rawJSON)
 

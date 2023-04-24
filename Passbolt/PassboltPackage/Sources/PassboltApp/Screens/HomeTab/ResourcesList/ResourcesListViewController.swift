@@ -53,9 +53,10 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   func setupView() {
@@ -123,143 +124,158 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
 
     controller.resourceDetailsPresentationPublisher()
       .sink { [weak self] resourceId in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          await self?.push(
-            ResourceDetailsViewController.self,
-            in: resourceId
-          )
-        }
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            await self?
+              .push(
+                ResourceDetailsViewController.self,
+                in: resourceId
+              )
+          }
       }
       .store(in: cancellables)
 
     controller.resourceMenuPresentationPublisher()
       .sink { [weak self] resourceID in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          guard let self = self else { return }
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            guard let self = self else { return }
 
-          await self.presentSheetMenu(
-            ResourceMenuViewController.self,
-            in: (
-              resourceID: resourceID,
-              showShare: self.controller.presentResourceShare,
-              showEdit: self.controller.presentResourceEdit,
-              showDeleteAlert: self.controller.presentDeleteResourceAlert
+            await self.presentSheetMenu(
+              ResourceMenuViewController.self,
+              in: (
+                resourceID: resourceID,
+                showShare: self.controller.presentResourceShare,
+                showEdit: self.controller.presentResourceEdit,
+                showDeleteAlert: self.controller.presentDeleteResourceAlert
+              )
             )
-          )
-        }
+          }
       }
       .store(in: cancellables)
 
     controller
       .resourceCreatePresentationPublisher()
       .sink { [weak self] in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          await self?.push(
-            ResourceEditViewController.self,
-            in: (
-              .create(folderID: nil, uri: .none),
-              completion: { _ in
-                self?.cancellables.executeOnMainActor { [weak self] in
-                  self?.presentInfoSnackbar(
-                    .localized(
-                      key: "resource.form.new.password.created"
-                    ),
-                    presentationMode: .global
-                  )
-                }
-              }
-            )
-          )
-        }
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            await self?
+              .push(
+                ResourceEditViewController.self,
+                in: (
+                  .create(folderID: nil, uri: .none),
+                  completion: { _ in
+                    self?.cancellables
+                      .executeOnMainActor { [weak self] in
+                        self?
+                          .presentInfoSnackbar(
+                            .localized(
+                              key: "resource.form.new.password.created"
+                            ),
+                            presentationMode: .global
+                          )
+                      }
+                  }
+                )
+              )
+          }
       }
       .store(in: cancellables)
 
     controller
       .resourceSharePresentationPublisher()
       .sink { [weak self] resourceID in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          guard let self = self else { return }
-          await self.dismiss(SheetMenuViewController<ResourceMenuViewController>.self)
-          await self.push(
-            ResourcePermissionEditListView.self,
-            in: resourceID
-          )
-        }
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            guard let self = self else { return }
+            await self.dismiss(SheetMenuViewController<ResourceMenuViewController>.self)
+            await self.push(
+              ResourcePermissionEditListView.self,
+              in: resourceID
+            )
+          }
       }
       .store(in: cancellables)
 
     controller
       .resourceEditPresentationPublisher()
       .sink { [weak self] resourceID in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          guard let self = self else { return }
-          await self.dismiss(SheetMenuViewController<ResourceMenuViewController>.self)
-          await self.push(
-            ResourceEditViewController.self,
-            in: (
-              .edit(resourceID),
-              completion: { [weak self] _ in
-                self?.cancellables.executeOnMainActor { [weak self] in
-                  self?.presentInfoSnackbar(
-                    .localized(key: "resource.menu.action.edited"),
-                    presentationMode: .global
-                  )
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            guard let self = self else { return }
+            await self.dismiss(SheetMenuViewController<ResourceMenuViewController>.self)
+            await self.push(
+              ResourceEditViewController.self,
+              in: (
+                .edit(resourceID),
+                completion: { [weak self] _ in
+                  self?.cancellables
+                    .executeOnMainActor { [weak self] in
+                      self?
+                        .presentInfoSnackbar(
+                          .localized(key: "resource.menu.action.edited"),
+                          presentationMode: .global
+                        )
+                    }
                 }
-              }
+              )
             )
-          )
-        }
+          }
       }
       .store(in: cancellables)
 
     controller
       .resourceDeleteAlertPresentationPublisher()
       .sink { [weak self] resourceID in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          await self?.dismiss(SheetMenuViewController<ResourceMenuViewController>.self)
-          await self?.present(
-            ResourceDeleteAlert.self,
-            in: { [weak self] in
-              self?.controller.resourceDeletionPublisher(resourceID)
-                .receive(on: RunLoop.main)
-                .handleStart { [weak self] in
-                  self?.present(
-                    overlay: LoaderOverlayView(
-                      longLoadingMessage: (
-                        message: .localized(
-                          key: .loadingLong
-                        ),
-                        delay: 5
-                      )
-                    )
-                  )
-                }
-                .handleErrors { [weak self] error in
-                  switch error {
-                  case is Cancelled:
-                    return /* NOP */
-                  case _:
-                    self?.presentErrorSnackbar(error.displayableMessage)
-                  }
-                }
-                .handleEnd { [weak self] ending in
-                  self?.dismissOverlay()
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            await self?.dismiss(SheetMenuViewController<ResourceMenuViewController>.self)
+            await self?
+              .present(
+                ResourceDeleteAlert.self,
+                in: { [weak self] in
+                  self?.controller.resourceDeletionPublisher(resourceID)
+                    .receive(on: RunLoop.main)
+                    .handleStart { [weak self] in
+                      self?
+                        .present(
+                          overlay: LoaderOverlayView(
+                            longLoadingMessage: (
+                              message: .localized(
+                                key: .loadingLong
+                              ),
+                              delay: 5
+                            )
+                          )
+                        )
+                    }
+                    .handleErrors { [weak self] error in
+                      switch error {
+                      case is Cancelled:
+                        return /* NOP */
+                      case _:
+                        self?.presentErrorSnackbar(error.displayableMessage)
+                      }
+                    }
+                    .handleEnd { [weak self] ending in
+                      self?.dismissOverlay()
 
-                  guard case .finished = ending
-                  else { return }
+                      guard case .finished = ending
+                      else { return }
 
-                  self?.presentInfoSnackbar(
-                    .localized("resource.menu.action.deleted"),
-                    with: [
-                      NSLocalizedString("resource.menu.item.password", bundle: .localization, comment: "")
-                    ]
-                  )
+                      self?
+                        .presentInfoSnackbar(
+                          .localized("resource.menu.action.deleted"),
+                          with: [
+                            NSLocalizedString("resource.menu.item.password", bundle: .localization, comment: "")
+                          ]
+                        )
+                    }
+                    .sinkDrop()
+                    .store(in: self?.cancellables)
                 }
-                .sinkDrop()
-                .store(in: self?.cancellables)
-            }
-          )
-        }
+              )
+          }
       }
       .store(in: cancellables)
 

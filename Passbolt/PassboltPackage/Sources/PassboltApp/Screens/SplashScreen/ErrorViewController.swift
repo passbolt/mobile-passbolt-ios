@@ -52,9 +52,10 @@ final class ErrorViewController: PlainViewController, UIComponent {
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setupView() {
@@ -97,9 +98,10 @@ final class ErrorViewController: PlainViewController, UIComponent {
 
     controller.signOutAlertPresentationPublisher()
       .sink { [weak self] in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          await self?.present(SignOutAlertViewController.self)
-        }
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            await self?.present(SignOutAlertViewController.self)
+          }
       }
       .store(in: cancellables)
   }

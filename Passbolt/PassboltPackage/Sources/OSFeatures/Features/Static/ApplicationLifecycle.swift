@@ -61,31 +61,32 @@ extension ApplicationLifecycle {
       lifecyclePublisher = Empty<Transition, Never>().eraseToAnyPublisher()
     }
     else {
-      lifecyclePublisher = Publishers.MergeMany(
-        NotificationCenter
-          .default
-          .publisher(for: UIApplication.didBecomeActiveNotification)
-          .map { _ in Transition.didBecomeActive },
-        NotificationCenter
-          .default
-          .publisher(for: UIApplication.willResignActiveNotification)
-          .map { _ in Transition.willResignActive },
-        NotificationCenter
-          .default
-          .publisher(for: UIApplication.didEnterBackgroundNotification)
-          .map { _ in Transition.didEnterBackground },
-        NotificationCenter
-          .default
-          .publisher(for: UIApplication.willEnterForegroundNotification)
-          .map { _ in Transition.willEnterForeground },
-        NotificationCenter
-          .default
-          .publisher(for: UIApplication.willTerminateNotification)
-          .map { _ in Transition.willTerminate }
-      )
-      .removeDuplicates()
-      .share()
-      .eraseToAnyPublisher()
+      lifecyclePublisher =
+        Publishers.MergeMany(
+          NotificationCenter
+            .default
+            .publisher(for: UIApplication.didBecomeActiveNotification)
+            .map { _ in Transition.didBecomeActive },
+          NotificationCenter
+            .default
+            .publisher(for: UIApplication.willResignActiveNotification)
+            .map { _ in Transition.willResignActive },
+          NotificationCenter
+            .default
+            .publisher(for: UIApplication.didEnterBackgroundNotification)
+            .map { _ in Transition.didEnterBackground },
+          NotificationCenter
+            .default
+            .publisher(for: UIApplication.willEnterForegroundNotification)
+            .map { _ in Transition.willEnterForeground },
+          NotificationCenter
+            .default
+            .publisher(for: UIApplication.willTerminateNotification)
+            .map { _ in Transition.willTerminate }
+        )
+        .removeDuplicates()
+        .share()
+        .eraseToAnyPublisher()
     }
 
     return Self(

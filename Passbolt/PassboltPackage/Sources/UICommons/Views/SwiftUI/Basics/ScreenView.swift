@@ -101,7 +101,9 @@ where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, Titl
     @ViewBuilder contentView: @escaping () -> ContentView
   )
   where
-    TitleCenterView == HStack<TupleView<(Image, Text)>>, TitleBottomView == EmptyView, TitleLeadingItem == EmptyView,
+    TitleCenterView == HStack<TupleView<(Image, Text)>>,
+    TitleBottomView == EmptyView,
+    TitleLeadingItem == EmptyView,
     TitleTrailingItem == EmptyView
   {
     self.title = title
@@ -137,7 +139,9 @@ where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, Titl
     @ViewBuilder contentView: @escaping () -> ContentView
   )
   where
-    TitleCenterView == Text, TitleBottomView == EmptyView, TitleLeadingItem == Button<Image>,
+    TitleCenterView == Text,
+    TitleBottomView == EmptyView,
+    TitleLeadingItem == Button<Image>,
     TitleTrailingItem == EmptyView
   {
     self.title = title
@@ -174,7 +178,9 @@ where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, Titl
     @ViewBuilder contentView: @escaping () -> ContentView
   )
   where
-    TitleCenterView == Text, TitleBottomView == EmptyView, TitleLeadingItem == EmptyView,
+    TitleCenterView == Text,
+    TitleBottomView == EmptyView,
+    TitleLeadingItem == EmptyView,
     TitleTrailingItem == Button<Image>
   {
     self.title = title
@@ -210,7 +216,9 @@ where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, Titl
     @ViewBuilder contentView: @escaping () -> ContentView
   )
   where
-    TitleCenterView == Text, TitleBottomView == EmptyView, TitleLeadingItem == EmptyView,
+    TitleCenterView == Text,
+    TitleBottomView == EmptyView,
+    TitleLeadingItem == EmptyView,
     TitleTrailingItem == EmptyView
   {
     self.title = title

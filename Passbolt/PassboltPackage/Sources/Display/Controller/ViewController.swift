@@ -103,32 +103,32 @@ extension ViewController {
     )
   }
 
-	@MainActor public func validatedStringBinding<Value, UpdateValue>(
-		with keyPath: WritableKeyPath<ViewState, Validated<Value>>,
-		updating setter: @escaping (UpdateValue) -> Void,
-		fromString: @escaping (String) -> UpdateValue?,
-		toString: @escaping (Value) -> String
-	) -> Binding<Validated<String>> {
-		.init(
-			get: {
-				let validated: Validated<Value> = self.viewState.value[keyPath: keyPath]
-				if let error: TheError = validated.error {
-					return .invalid(
-						toString(validated.value),
-						error: error
-					)
-				}
-				else {
-					return .valid(toString(validated.value))
-				}
-			},
-			set: { (newValidated: Validated<String>) in
-				guard let newValue: UpdateValue = fromString(newValidated.value)
-				else { return } // ignore
-				setter(newValue)
-			}
-		)
-	}
+  @MainActor public func validatedStringBinding<Value, UpdateValue>(
+    with keyPath: WritableKeyPath<ViewState, Validated<Value>>,
+    updating setter: @escaping (UpdateValue) -> Void,
+    fromString: @escaping (String) -> UpdateValue?,
+    toString: @escaping (Value) -> String
+  ) -> Binding<Validated<String>> {
+    .init(
+      get: {
+        let validated: Validated<Value> = self.viewState.value[keyPath: keyPath]
+        if let error: TheError = validated.error {
+          return .invalid(
+            toString(validated.value),
+            error: error
+          )
+        }
+        else {
+          return .valid(toString(validated.value))
+        }
+      },
+      set: { (newValidated: Validated<String>) in
+        guard let newValue: UpdateValue = fromString(newValidated.value)
+        else { return }  // ignore
+        setter(newValue)
+      }
+    )
+  }
 }
 
 public enum Controlled {
@@ -178,7 +178,10 @@ public enum Controlled {
     @ViewBuilder orDefault defaultView: () -> DefaultView
   ) -> some View
   where
-    ControlledViewA: ControlledView, ControlledViewB: ControlledView, ControlledViewC: ControlledView, DefaultView: View
+    ControlledViewA: ControlledView,
+    ControlledViewB: ControlledView,
+    ControlledViewC: ControlledView,
+    DefaultView: View
   {
     switch controller {
     case let controller as ControlledViewA.Controller:
@@ -207,8 +210,11 @@ public enum Controlled {
     @ViewBuilder orDefault defaultView: () -> DefaultView
   ) -> some View
   where
-    ControlledViewA: ControlledView, ControlledViewB: ControlledView, ControlledViewC: ControlledView,
-    ControlledViewD: ControlledView, DefaultView: View
+    ControlledViewA: ControlledView,
+    ControlledViewB: ControlledView,
+    ControlledViewC: ControlledView,
+    ControlledViewD: ControlledView,
+    DefaultView: View
   {
     switch controller {
     case let controller as ControlledViewA.Controller:
@@ -250,8 +256,12 @@ public enum Controlled {
     @ViewBuilder orDefault defaultView: () -> DefaultView
   ) -> some View
   where
-    ControlledViewA: ControlledView, ControlledViewB: ControlledView, ControlledViewC: ControlledView,
-    ControlledViewD: ControlledView, ControlledViewE: ControlledView, DefaultView: View
+    ControlledViewA: ControlledView,
+    ControlledViewB: ControlledView,
+    ControlledViewC: ControlledView,
+    ControlledViewD: ControlledView,
+    ControlledViewE: ControlledView,
+    DefaultView: View
   {
     switch controller {
     case let controller as ControlledViewA.Controller:

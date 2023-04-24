@@ -84,27 +84,27 @@ internal final class EntropyView: PlainView {
     let color: DynamicColor
 
     switch entropy {
-    case Entropy.zero..<Entropy.veryWeakPassword:
+    case Entropy.zero ..< Entropy.veryWeakPassword:
       localizedStirng = .localized(key: "resource.form.password.strength")
       multiplier = 1
       color = .background
-    case Entropy.veryWeakPassword..<Entropy.weakPassword:
+    case Entropy.veryWeakPassword ..< Entropy.weakPassword:
       localizedStirng = .localized(key: "resource.form.strength.very.weak")
       multiplier = 0.1
       color = .secondaryDarkRed
-    case Entropy.weakPassword..<Entropy.fairPassword:
+    case Entropy.weakPassword ..< Entropy.fairPassword:
       localizedStirng = .localized(key: "resource.form.strength.weak")
       multiplier = 0.4
       color = .secondaryRed
-    case Entropy.fairPassword..<Entropy.strongPassword:
+    case Entropy.fairPassword ..< Entropy.strongPassword:
       localizedStirng = .localized(key: "resource.form.strength.fair")
       multiplier = 0.6
       color = .secondaryOrange
-    case Entropy.strongPassword..<Entropy.veryStrongPassword:
+    case Entropy.strongPassword ..< Entropy.veryStrongPassword:
       localizedStirng = .localized(key: "resource.form.strength.strong")
       multiplier = 0.8
       color = .secondaryGreen
-    case Entropy.veryStrongPassword..<Entropy.greatestFinite:
+    case Entropy.veryStrongPassword ..< Entropy.greatestFinite:
       localizedStirng = .localized(key: "resource.form.strength.very.strong")
       multiplier = 1
       color = .secondaryGreen

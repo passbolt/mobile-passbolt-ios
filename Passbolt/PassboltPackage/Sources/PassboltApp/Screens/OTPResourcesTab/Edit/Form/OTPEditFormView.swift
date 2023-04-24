@@ -82,7 +82,7 @@ internal struct OTPEditFormView: ControlledView {
           ),
         prompt: "otp.edit.form.field.name.prompt"
       )
-			.textInputAutocapitalization(.sentences)
+      .textInputAutocapitalization(.sentences)
     }
   }
 
@@ -101,7 +101,7 @@ internal struct OTPEditFormView: ControlledView {
           ),
         prompt: "otp.edit.form.field.uri.prompt"
       )
-			.textInputAutocapitalization(.never)
+      .textInputAutocapitalization(.never)
     }
   }
 
@@ -120,7 +120,7 @@ internal struct OTPEditFormView: ControlledView {
           ),
         prompt: "otp.edit.form.field.secret.prompt"
       )
-			.textInputAutocapitalization(.never)
+      .textInputAutocapitalization(.never)
     }
   }
 

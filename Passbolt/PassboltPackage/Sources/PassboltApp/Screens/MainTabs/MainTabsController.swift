@@ -116,7 +116,8 @@ extension MainTabsController: UIController {
       do {
         try await sessionData.refreshIfNeeded()
         let availableResourceTypes: Array<ResourceType> = try await resourceTypesFetchDatabaseOperation()
-        return availableResourceTypes
+        return
+          availableResourceTypes
           .contains(where: { $0.slug == .totp || $0.slug == .hotp })
       }
       catch {

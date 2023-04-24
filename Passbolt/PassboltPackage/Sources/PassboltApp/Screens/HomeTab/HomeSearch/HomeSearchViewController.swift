@@ -52,9 +52,10 @@ internal final class HomeSearchViewController: PlainViewController, UIComponent 
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setupView() {
@@ -102,13 +103,15 @@ internal final class HomeSearchViewController: PlainViewController, UIComponent 
     controller
       .homePresentationMenuPresentationPublisher()
       .sink { [weak self] currentMode in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          self?.view.endEditing(true)
-          await self?.presentSheet(
-            HomePresentationMenuView.self,
-            in: currentMode
-          )
-        }
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            self?.view.endEditing(true)
+            await self?
+              .presentSheet(
+                HomePresentationMenuView.self,
+                in: currentMode
+              )
+          }
       }
       .store(in: cancellables)
 

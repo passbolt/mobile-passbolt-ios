@@ -337,7 +337,8 @@ extension AsyncExecutor {
             return await task()
           }
         }
-      }.value
+      }
+      .value
       return try await (returned, result).0
     }
 

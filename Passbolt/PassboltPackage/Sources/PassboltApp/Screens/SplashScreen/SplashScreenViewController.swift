@@ -51,9 +51,10 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setupView() {
@@ -69,20 +70,22 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
       .navigationDestinationPublisher()
       .delay(for: 0.3, scheduler: RunLoop.main)
       .sink { [weak self] destination in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          let presentUpdateAlert: Bool = await self?.controller.shouldDisplayUpdateAlert() ?? false
-          if presentUpdateAlert {
-            await self?.present(
-              UpdateAvailableViewController.self,
-              in: { [weak self] in
-                self?.navigate(to: destination)
-              }
-            )
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            let presentUpdateAlert: Bool = await self?.controller.shouldDisplayUpdateAlert() ?? false
+            if presentUpdateAlert {
+              await self?
+                .present(
+                  UpdateAvailableViewController.self,
+                  in: { [weak self] in
+                    self?.navigate(to: destination)
+                  }
+                )
+            }
+            else {
+              self?.navigate(to: destination)
+            }
           }
-          else {
-            self?.navigate(to: destination)
-          }
-        }
 
       }
       .store(in: cancellables)
@@ -92,55 +95,63 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
     to destination: Controller.Destination
   ) {
     showFeedbackAlertIfNeeded(presentationAnchor: self) { [weak self] in
-      self?.cancellables.executeOnMainActor {
-        switch destination {
-        case let .accountSelection(lastAccount, message):
-          await self?.replaceWindowRoot(
-            with: AuthorizationNavigationViewController.self,
-            in: (
-              account: lastAccount,
-              message: message
-            )
-          )
+      self?.cancellables
+        .executeOnMainActor {
+          switch destination {
+          case let .accountSelection(lastAccount, message):
+            await self?
+              .replaceWindowRoot(
+                with: AuthorizationNavigationViewController.self,
+                in: (
+                  account: lastAccount,
+                  message: message
+                )
+              )
 
-        case .accountSetup:
-          await self?.replaceWindowRoot(
-            with: WelcomeNavigationViewController.self
-          )
+          case .accountSetup:
+            await self?
+              .replaceWindowRoot(
+                with: WelcomeNavigationViewController.self
+              )
 
-        case .diagnostics:
-          await self?.replaceWindowRoot(
-            with: PlainNavigationViewController<LogsViewerViewController>.self
-          )
+          case .diagnostics:
+            await self?
+              .replaceWindowRoot(
+                with: PlainNavigationViewController<LogsViewerViewController>.self
+              )
 
-        case .home(let sessionContext):
-          await self?.replaceWindowRoot(
-            with: MainTabsViewController.self,
-            in: sessionContext
-          )
+          case .home(let sessionContext):
+            await self?
+              .replaceWindowRoot(
+                with: MainTabsViewController.self,
+                in: sessionContext
+              )
 
-        case let .mfaAuthorization(mfaProviders):
-          if mfaProviders.isEmpty {
-            await self?.replaceWindowRoot(
-              with: PlainNavigationViewController<UnsupportedMFAViewController>.self
-            )
-          }
-          else {
-            await self?.replaceWindowRoot(
-              with: PlainNavigationViewController<MFARootViewController>.self,
-              in: mfaProviders
-            )
-          }
-
-        case .featureConfigFetchError:
-          await self?.present(
-            ErrorViewController.self,
-            in: { [weak self] in
-              try await self?.controller.retryFetchConfiguration()
+          case let .mfaAuthorization(mfaProviders):
+            if mfaProviders.isEmpty {
+              await self?
+                .replaceWindowRoot(
+                  with: PlainNavigationViewController<UnsupportedMFAViewController>.self
+                )
             }
-          )
+            else {
+              await self?
+                .replaceWindowRoot(
+                  with: PlainNavigationViewController<MFARootViewController>.self,
+                  in: mfaProviders
+                )
+            }
+
+          case .featureConfigFetchError:
+            await self?
+              .present(
+                ErrorViewController.self,
+                in: { [weak self] in
+                  try await self?.controller.retryFetchConfiguration()
+                }
+              )
+          }
         }
-      }
     }
   }
 }

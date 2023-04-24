@@ -42,18 +42,25 @@ extension JSON: Decodable {
 
     if let string = try? container.decode(String.self) {
       self = .string(string)
-    } else if let object = try? container.decode(Dictionary<String, JSON>.self) {
+    }
+    else if let object = try? container.decode(Dictionary<String, JSON>.self) {
       self = .object(object)
-    } else if let array = try? container.decode(Array<JSON>.self) {
+    }
+    else if let array = try? container.decode(Array<JSON>.self) {
       self = .array(array)
-    } else if let bool = try? container.decode(Bool.self) {
+    }
+    else if let bool = try? container.decode(Bool.self) {
       self = .bool(bool)
-    } else if let number = try? container.decode(Double.self) {
+    }
+    else if let number = try? container.decode(Double.self) {
       self = .number(number)
-    } else if container.decodeNil() {
+    }
+    else if container.decodeNil() {
       self = .null
-    } else {
-      throw DecodingError
+    }
+    else {
+      throw
+        DecodingError
         .dataCorruptedError(
           in: container,
           debugDescription: "Invalid JSON!"

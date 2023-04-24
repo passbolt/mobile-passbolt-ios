@@ -24,10 +24,10 @@
 import CommonModels
 import Crypto
 import Features
+import SessionData
 import TestExtensions
 import Users
 import XCTest
-import SessionData
 
 @testable import Accounts
 @testable import PassboltResources
@@ -516,7 +516,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<LegacyResourceEditFo
     )
     patch(
       \SessionData.refreshIfNeeded,
-       with: always(Void())
+      with: always(Void())
     )
     set(
       ResourceEditScope.self,
@@ -858,7 +858,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<LegacyResourceEditFo
     )
     patch(
       \SessionData.refreshIfNeeded,
-       with: always(Void())
+      with: always(Void())
     )
     var result: Resource.ID?
     let uncheckedSendableResult: UncheckedSendable<Resource.ID?> = .init(
@@ -987,9 +987,9 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<LegacyResourceEditFo
     )
     patch(
       \SessionData.refreshIfNeeded,
-       with: { () async throws in
-         uncheckedSendableResult.variable = Void()
-       }
+      with: { () async throws in
+        uncheckedSendableResult.variable = Void()
+      }
     )
     let feature: LegacyResourceEditForm = try testedInstance()
 

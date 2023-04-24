@@ -425,7 +425,7 @@ private func withVerifiedStatusCode(
   httpRequest: HTTPRequest,
   httpResponse: HTTPResponse
 ) throws -> HTTPResponse {
-  if 200..<300 ~= httpResponse.statusCode {
+  if 200 ..< 300 ~= httpResponse.statusCode {
     return httpResponse
   }
   else if httpResponse.statusCode == 302,

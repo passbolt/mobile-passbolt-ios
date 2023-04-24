@@ -55,9 +55,10 @@ public final class PlainNavigationViewController<Content: UIComponent>: Navigati
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   public func setup() {

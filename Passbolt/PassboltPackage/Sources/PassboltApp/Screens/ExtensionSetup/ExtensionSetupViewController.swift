@@ -52,9 +52,10 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setupView() {
@@ -74,16 +75,17 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
           .sink(
             receiveCompletion: { [weak self] completion in
               guard case .failure = completion else { return }
-              self?.present(
-                snackbar: Mutation<UICommons.PlainView>
-                  .snackBarErrorMessage(
-                    .localized(
-                      key: .genericError
+              self?
+                .present(
+                  snackbar: Mutation<UICommons.PlainView>
+                    .snackBarErrorMessage(
+                      .localized(
+                        key: .genericError
+                      )
                     )
-                  )
-                  .instantiate(),
-                hideAfter: 3
-              )
+                    .instantiate(),
+                  hideAfter: 3
+                )
             }
           )
           .store(in: self.cancellables)
@@ -100,9 +102,10 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
     controller
       .continueSetupPresentationPublisher()
       .sink { [weak self] in
-        self?.cancellables.executeOnMainActor {
-          await self?.dismiss(Self.self)
-        }
+        self?.cancellables
+          .executeOnMainActor {
+            await self?.dismiss(Self.self)
+          }
       }
       .store(in: cancellables)
   }

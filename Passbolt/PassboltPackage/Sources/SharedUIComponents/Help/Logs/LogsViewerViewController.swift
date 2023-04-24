@@ -53,9 +53,10 @@ public final class LogsViewerViewController: PlainViewController, UIComponent {
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   public func setupView() {
@@ -63,29 +64,32 @@ public final class LogsViewerViewController: PlainViewController, UIComponent {
       .combined(
         .title(.localized(key: "help.logs.viewer.title")),
         .rightBarButtonItem(
-          Mutation<UIBarButtonItem>.combined(
-            .style(.done),
-            .image(named: .open, from: .uiCommons),
-            .action { [weak self] in
-              self?.controller.presentShareMenu()
-            }
-          )
-          .instantiate()
+          Mutation<UIBarButtonItem>
+            .combined(
+              .style(.done),
+              .image(named: .open, from: .uiCommons),
+              .action { [weak self] in
+                self?.controller.presentShareMenu()
+              }
+            )
+            .instantiate()
         ),
         .when(
           navigationController?.viewControllers.count == 1,
           then:
             .leftBarButtonItem(
-              Mutation<UIBarButtonItem>.combined(
-                .style(.done),
-                .image(named: .close, from: .uiCommons),
-                .action { [weak self] in
-                  self?.cancellables.executeOnMainActor { [weak self] in
-                    await self?.dismiss(Self.self)
+              Mutation<UIBarButtonItem>
+                .combined(
+                  .style(.done),
+                  .image(named: .close, from: .uiCommons),
+                  .action { [weak self] in
+                    self?.cancellables
+                      .executeOnMainActor { [weak self] in
+                        await self?.dismiss(Self.self)
+                      }
                   }
-                }
-              )
-              .instantiate()
+                )
+                .instantiate()
             )
         )
 
@@ -127,14 +131,15 @@ public final class LogsViewerViewController: PlainViewController, UIComponent {
       .receive(on: RunLoop.main)
       .sink { [weak self] logs in
         if let logs: String = logs {
-          self?.present(
-            UIActivityViewController(
-              activityItems: [logs],
-              applicationActivities: nil
-            ),
-            animated: true,
-            completion: nil
-          )
+          self?
+            .present(
+              UIActivityViewController(
+                activityItems: [logs],
+                applicationActivities: nil
+              ),
+              animated: true,
+              completion: nil
+            )
         }
         else if self?.presentedViewController != nil {
           // assuming that it won't present anything besides share menu

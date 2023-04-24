@@ -63,9 +63,10 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
     self.isModalInPresentation = false
   }
 

@@ -54,9 +54,10 @@ internal final class AccountDetailsViewController: PlainViewController, UICompon
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setupView() {
@@ -105,9 +106,10 @@ internal final class AccountDetailsViewController: PlainViewController, UICompon
           }
           .handleEnd { [weak self] ending in
             guard case .finished = ending else { return }
-            self?.cancellables.executeOnMainActor { [weak self] in
-              await self?.pop(if: Self.self)
-            }
+            self?.cancellables
+              .executeOnMainActor { [weak self] in
+                await self?.pop(if: Self.self)
+              }
           }
           .replaceError(with: Void())
       }
@@ -118,12 +120,14 @@ internal final class AccountDetailsViewController: PlainViewController, UICompon
     contentView
       .transferAccountPublisher
       .sink { [weak self] in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          await self?.push(
-            TransferInfoScreenViewController.self,
-            in: .export
-          )
-        }
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            await self?
+              .push(
+                TransferInfoScreenViewController.self,
+                in: .export
+              )
+          }
       }
       .store(in: cancellables)
   }

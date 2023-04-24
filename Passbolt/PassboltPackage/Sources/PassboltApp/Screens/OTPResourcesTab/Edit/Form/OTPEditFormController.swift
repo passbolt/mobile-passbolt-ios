@@ -81,7 +81,7 @@ extension OTPEditFormController {
     let asyncExecutor: AsyncExecutor = try features.instance()
 
     let navigationToSelf: NavigationToOTPEditForm = try features.instance()
-		let navigationToAdvanced: NavigationToOTPEditAdvancedForm = try features.instance()
+    let navigationToAdvanced: NavigationToOTPEditAdvancedForm = try features.instance()
 
     let otpEditForm: OTPEditForm = try features.instance()
 
@@ -143,13 +143,13 @@ extension OTPEditFormController {
     }
 
     nonisolated func showAdvancedSettings() {
-			asyncExecutor.scheduleCatchingWith(
-				diagnostics,
-				failMessage: "Navigation to OTP advanced settings failed!",
-				behavior: .reuse
-			) {
-				try await navigationToAdvanced.perform()
-			}
+      asyncExecutor.scheduleCatchingWith(
+        diagnostics,
+        failMessage: "Navigation to OTP advanced settings failed!",
+        behavior: .reuse
+      ) {
+        try await navigationToAdvanced.perform()
+      }
     }
 
     nonisolated func sendForm() {

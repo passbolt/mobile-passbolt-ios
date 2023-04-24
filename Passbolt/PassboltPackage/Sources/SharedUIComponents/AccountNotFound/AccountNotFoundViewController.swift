@@ -46,9 +46,10 @@ internal final class AccountNotFoundViewController: PlainViewController, UICompo
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal private(set) lazy var contentView: ContentView = .init()
@@ -93,9 +94,10 @@ internal final class AccountNotFoundViewController: PlainViewController, UICompo
     controller
       .backNavigationPresentationPublisher()
       .sink { [weak self] in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          await self?.pop(if: Self.self)
-        }
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            await self?.pop(if: Self.self)
+          }
       }
       .store(in: cancellables)
   }

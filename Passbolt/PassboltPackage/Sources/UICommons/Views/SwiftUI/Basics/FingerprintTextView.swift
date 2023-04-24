@@ -52,7 +52,7 @@ public struct FingerprintTextView: View {
         }
         formattedString.append(
           contentsOf: fingerprint.rawValue[
-            currentIndex..<nextIndex
+            currentIndex ..< nextIndex
           ]
         )
         formattedString.append(" ")
@@ -67,7 +67,7 @@ public struct FingerprintTextView: View {
         }
         formattedString.append(
           contentsOf: fingerprint.rawValue[
-            currentIndex..<fingerprint.rawValue.endIndex
+            currentIndex ..< fingerprint.rawValue.endIndex
           ]
         )
         break

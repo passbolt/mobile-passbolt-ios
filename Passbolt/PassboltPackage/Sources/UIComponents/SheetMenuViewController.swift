@@ -208,9 +208,10 @@ public final class SheetMenuViewController<Content: UIComponent>: PlainViewContr
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
     self.modalPresentationStyle = .overFullScreen
     self.modalTransitionStyle = .crossDissolve
   }
@@ -247,9 +248,10 @@ public final class SheetMenuViewController<Content: UIComponent>: PlainViewContr
     contentView
       .closeActionPublisher
       .sink { [weak self] in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          await self?.dismiss(Self.self)
-        }
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            await self?.dismiss(Self.self)
+          }
       }
       .store(in: cancellables)
   }

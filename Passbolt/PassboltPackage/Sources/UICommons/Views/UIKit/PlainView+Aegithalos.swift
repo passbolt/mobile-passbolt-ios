@@ -42,11 +42,13 @@ extension Mutation where Subject: PlainView {
 
   public static func aspectRatio(_ ratio: CGFloat) -> Self {
     .custom { (subject: Subject) in
-      subject.heightAnchor.constraint(
-        equalTo: subject.widthAnchor,
-        multiplier: ratio,
-        constant: 0
-      ).isActive = true
+      subject.heightAnchor
+        .constraint(
+          equalTo: subject.widthAnchor,
+          multiplier: ratio,
+          constant: 0
+        )
+        .isActive = true
     }
   }
 

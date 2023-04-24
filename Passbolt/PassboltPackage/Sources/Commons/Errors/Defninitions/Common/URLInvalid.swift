@@ -32,14 +32,15 @@ public struct URLInvalid: TheError {
     line: UInt = #line
   ) -> Self {
     Self(
-      context: .context(
-        .message(
-          message,
-          file: file,
-          line: line
+      context:
+        .context(
+          .message(
+            message,
+            file: file,
+            line: line
+          )
         )
-      )
-      .recording(rawString, for: "raw string"),
+        .recording(rawString, for: "raw string"),
       displayableMessage: .localized(key: "error.url.invalid")
     )
   }

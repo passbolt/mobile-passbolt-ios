@@ -37,13 +37,13 @@ extension String {
 
       if let currentEndIndex {
         elements.append(
-          self[currentIndex..<currentEndIndex]
+          self[currentIndex ..< currentEndIndex]
         )
         currentIndex = currentEndIndex
       }
       else {
         elements.append(
-          self[currentIndex..<self.endIndex]
+          self[currentIndex ..< self.endIndex]
         )
         currentIndex = self.endIndex
       }

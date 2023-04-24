@@ -51,7 +51,7 @@ final class OTPEditFormControllerTests: LoadableFeatureTestCase<OTPEditFormContr
   func test_viewState_loadsFromFormState_initially() {
     patch(
       \OTPEditForm.state,
-       with: always(
+      with: always(
         .init(
           name: .valid("name"),
           uri: .invalid(
@@ -65,7 +65,7 @@ final class OTPEditFormControllerTests: LoadableFeatureTestCase<OTPEditFormContr
             period: .valid(32)
           )
         )
-       )
+      )
     )
     withTestedInstanceReturnsEqual(
       OTPEditFormController.ViewState(

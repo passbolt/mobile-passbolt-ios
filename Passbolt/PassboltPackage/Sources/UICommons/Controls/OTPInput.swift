@@ -36,7 +36,7 @@ public final class OTPInput: UIControl, UIKeyInput {
       if newValue.count > length {
         textSubject.value = String(
           newValue[
-            newValue.startIndex..<newValue.index(newValue.startIndex, offsetBy: length)
+            newValue.startIndex ..< newValue.index(newValue.startIndex, offsetBy: length)
           ]
         )
       }
@@ -50,7 +50,8 @@ public final class OTPInput: UIControl, UIKeyInput {
           if idx < newValue.count {
             label.text = String(
               newValue[
-                newValue.index(newValue.startIndex, offsetBy: idx)...newValue.index(newValue.startIndex, offsetBy: idx)
+                newValue.index(newValue.startIndex, offsetBy: idx)
+                  ... newValue.index(newValue.startIndex, offsetBy: idx)
               ]
             )
           }
@@ -71,7 +72,7 @@ public final class OTPInput: UIControl, UIKeyInput {
     self.length = length
     let labelsContainer: StackView = .init()
     self.labelsContainer = labelsContainer
-    self.labels = (0..<length)
+    self.labels = (0 ..< length)
       .map { _ in
         Mutation<Label>
           .combined(

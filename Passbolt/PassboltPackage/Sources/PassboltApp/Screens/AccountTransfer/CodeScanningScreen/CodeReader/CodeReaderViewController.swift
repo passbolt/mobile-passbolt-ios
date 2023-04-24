@@ -76,9 +76,10 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setupView() {
@@ -91,21 +92,23 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
     self.cancellables.executeOnMainActor { [weak self] in
       if let cameraSession: AVCaptureSession = self?.cameraSession {
         cameraSession.startRunning()
-        self?.present(
-          snackbar: Mutation<UICommons.PlainView>
-            .snackBarMessage(
-              .localized("code.scanning.begin"),
-              backgroundColor: .background,
-              textColor: .primaryText
-            )
-            .instantiate(),
-          hideAfter: 2
-        )
+        self?
+          .present(
+            snackbar: Mutation<UICommons.PlainView>
+              .snackBarMessage(
+                .localized("code.scanning.begin"),
+                backgroundColor: .background,
+                textColor: .primaryText
+              )
+              .instantiate(),
+            hideAfter: 2
+          )
       }
       else {
-        await self?.present(
-          CodeScanningCameraInaccessibleViewController.self
-        )
+        await self?
+          .present(
+            CodeScanningCameraInaccessibleViewController.self
+          )
       }
     }
   }
@@ -137,17 +140,18 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
       .processPayload(payload)
       .subscribe(on: RunLoop.main)
       .handleEvents(receiveSubscription: { [weak self] _ in
-        self?.present(
-          snackbar: Mutation<UICommons.PlainView>
-            .snackBarMessage(
-              .localized("code.scanning.processing.in.progress"),
-              backgroundColor: .background,
-              textColor: .primaryText
-            )
-            .instantiate(),
-          hideAfter: 2,
-          replaceCurrent: false
-        )
+        self?
+          .present(
+            snackbar: Mutation<UICommons.PlainView>
+              .snackBarMessage(
+                .localized("code.scanning.processing.in.progress"),
+                backgroundColor: .background,
+                textColor: .primaryText
+              )
+              .instantiate(),
+            hideAfter: 2,
+            replaceCurrent: false
+          )
       })
       .receive(on: RunLoop.main)
       .handleErrors { [weak self] error in
@@ -157,26 +161,29 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
 
         case let serverError as ServerConnectionIssue:
           Task {
-            await self?.present(
-              ServerNotReachableAlertViewController.self,
-              in: serverError.serverURL
-            )
+            await self?
+              .present(
+                ServerNotReachableAlertViewController.self,
+                in: serverError.serverURL
+              )
           }
 
         case let serverError as ServerConnectionIssue:
           Task {
-            await self?.present(
-              ServerNotReachableAlertViewController.self,
-              in: serverError.serverURL
-            )
+            await self?
+              .present(
+                ServerNotReachableAlertViewController.self,
+                in: serverError.serverURL
+              )
           }
 
         case let serverError as ServerResponseTimeout:
           Task {
-            await self?.present(
-              ServerNotReachableAlertViewController.self,
-              in: serverError.serverURL
-            )
+            await self?
+              .present(
+                ServerNotReachableAlertViewController.self,
+                in: serverError.serverURL
+              )
           }
 
         case _:
@@ -187,14 +194,16 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
         if case let .failed(error) = ending, !(error is Cancelled) {
           // Delay unlocking QRCode processing until error message becomes visible for some time.
           // It will blink rapidly otherwise if camera is still pointing into invalid QRCode.
-          self?.captureMetadataQueue.asyncAfter(deadline: .now() + 1.5) { [weak self] in
-            self?.payloadProcessingCancellable = nil
-          }
+          self?.captureMetadataQueue
+            .asyncAfter(deadline: .now() + 1.5) { [weak self] in
+              self?.payloadProcessingCancellable = nil
+            }
         }
         else {
-          self?.captureMetadataQueue.async { [weak self] in
-            self?.payloadProcessingCancellable = nil
-          }
+          self?.captureMetadataQueue
+            .async { [weak self] in
+              self?.payloadProcessingCancellable = nil
+            }
         }
       }
       .sinkDrop()

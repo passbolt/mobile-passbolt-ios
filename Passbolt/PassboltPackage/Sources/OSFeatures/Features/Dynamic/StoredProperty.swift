@@ -150,12 +150,13 @@ extension FeaturesRegistry {
         StoredProperty<Property>.self,
         load: {
           (features: Features, context: StoredProperty.Context, cancellables: Cancellables) -> StoredProperty in
-          try StoredProperty<Property>.load(
-            features: features,
-            context: context,
-            removeDuplicates: removeDuplicates,
-            cancellables: cancellables
-          )
+          try StoredProperty<Property>
+            .load(
+              features: features,
+              context: context,
+              removeDuplicates: removeDuplicates,
+              cancellables: cancellables
+            )
         }
       )
     )
@@ -179,12 +180,13 @@ extension FeaturesRegistry {
         StoredProperty<Property>.self,
         load: {
           (features: Features, context: StoredProperty.Context, cancellables: Cancellables) -> StoredProperty in
-          try StoredProperty<Property>.loadRaw(
-            features: features,
-            context: context,
-            removeDuplicates: removeDuplicates,
-            cancellables: cancellables
-          )
+          try StoredProperty<Property>
+            .loadRaw(
+              features: features,
+              context: context,
+              removeDuplicates: removeDuplicates,
+              cancellables: cancellables
+            )
         }
       )
     )

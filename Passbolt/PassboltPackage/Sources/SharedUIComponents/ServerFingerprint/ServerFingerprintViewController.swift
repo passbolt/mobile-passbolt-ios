@@ -56,9 +56,10 @@ public final class ServerFingerprintViewController: PlainViewController, UICompo
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   public func setupView() {
@@ -95,16 +96,18 @@ public final class ServerFingerprintViewController: PlainViewController, UICompo
           else {
             return
           }
-          self?.presentErrorSnackbar(
-            .localized(
-              key: "server.fingerprint.save.failed"
+          self?
+            .presentErrorSnackbar(
+              .localized(
+                key: "server.fingerprint.save.failed"
+              )
             )
-          )
         },
         receiveValue: { [weak self] in
-          self?.cancellables.executeOnMainActor { [weak self] in
-            await self?.pop(to: AuthorizationViewController.self)
-          }
+          self?.cancellables
+            .executeOnMainActor { [weak self] in
+              await self?.pop(to: AuthorizationViewController.self)
+            }
         }
       )
       .store(in: cancellables)

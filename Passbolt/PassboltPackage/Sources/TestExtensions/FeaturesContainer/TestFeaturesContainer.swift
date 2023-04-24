@@ -26,7 +26,7 @@
 public final class TestFeaturesContainer {
 
   private var mocks: Dictionary<MockItemKey, Any>
-  internal let cancellables: Cancellables // for legacy elements
+  internal let cancellables: Cancellables  // for legacy elements
   private let lock: NSRecursiveLock
 
   internal init() {
@@ -79,7 +79,8 @@ extension TestFeaturesContainer: FeaturesContainer {
   ) throws -> RequestedScope.Context
   where RequestedScope: FeaturesScope {
     try self.withLock {
-      if let context: RequestedScope.Context = self.mocks[.init(RequestedScope.self, .none)] as? RequestedScope.Context {
+      if let context: RequestedScope.Context = self.mocks[.init(RequestedScope.self, .none)] as? RequestedScope.Context
+      {
         return context
       }
       else {
@@ -131,7 +132,8 @@ extension TestFeaturesContainer: FeaturesContainer {
   ) throws -> Feature
   where Feature: LoadableFeature {
     try self.withLock {
-      if let feature: Feature = self.mocks[.init(Feature.self, (context as? LoadableFeatureContext)?.identifier)] as? Feature
+      if let feature: Feature = self.mocks[.init(Feature.self, (context as? LoadableFeatureContext)?.identifier)]
+        as? Feature
       {
         return feature
       }
@@ -140,7 +142,7 @@ extension TestFeaturesContainer: FeaturesContainer {
         else { fatalError("Invalid feature type from loader!") }
         if loader.cache {
           self.mocks[.init(Feature.self, (context as? LoadableFeatureContext)?.identifier)] = feature
-        } // else continue
+        }  // else continue
         return feature
       }
       else {
@@ -210,7 +212,8 @@ extension TestFeaturesContainer {
     self.withLock {
       precondition(self.mocks[.init(FeatureLoader.self, Feature.identifier)] == nil)
       var feature: Feature
-      if let mocked: Feature = self.mocks[.init(Feature.self, (context as? LoadableFeatureContext)?.identifier)] as? Feature
+      if let mocked: Feature = self.mocks[.init(Feature.self, (context as? LoadableFeatureContext)?.identifier)]
+        as? Feature
       {
         feature = mocked
       }

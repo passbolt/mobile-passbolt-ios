@@ -141,19 +141,23 @@ final class NDEFParserTests: XCTestCase {
   }
 }
 
-private let uriWithOTP: Data = "https://my.yubico.com/yk/#cccccccccccggvetntitdeguhrledeeeeeeivbfeehe".data(
-  using: .utf8
-)!
-private let otpTextEmbeddedInURI: Data = "https://my.yubico.com/yk/cccccccccccccvetntitdeguhrledeeeeeeivbfeehe".data(
-  using: .utf8
-)!
+private let uriWithOTP: Data = "https://my.yubico.com/yk/#cccccccccccggvetntitdeguhrledeeeeeeivbfeehe"
+  .data(
+    using: .utf8
+  )!
+private let otpTextEmbeddedInURI: Data = "https://my.yubico.com/yk/cccccccccccccvetntitdeguhrledeeeeeeivbfeehe"
+  .data(
+    using: .utf8
+  )!
 private let otpText: Data = "cccccccccccccvetntitdeguhrledeeeeeeivbfeehe".data(using: .utf8)!
-private let uriWithIllegalCharactersInOTP: Data = "https://my.yubico.com/yk/#passbolt_passbolt_passbolt_passbolt".data(
-  using: .utf8
-)!
+private let uriWithIllegalCharactersInOTP: Data = "https://my.yubico.com/yk/#passbolt_passbolt_passbolt_passbolt"
+  .data(
+    using: .utf8
+  )!
 private let uriWithOTPLessThanMinLength: Data = "https://my.yubico.com/yk/#cc".data(using: .utf8)!
 private let uriWithOTPExceedingMaxLength: Data =
-  ("https://my.yubico.com/yk/#" + String(repeating: "cccccccccccccvetntitdeguhrledeeeeeeivbfeehe", count: 10)).data(
+  ("https://my.yubico.com/yk/#" + String(repeating: "cccccccccccccvetntitdeguhrledeeeeeeivbfeehe", count: 10))
+  .data(
     using: .utf8
   )!
 

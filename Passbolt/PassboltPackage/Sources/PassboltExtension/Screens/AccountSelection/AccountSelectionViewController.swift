@@ -57,9 +57,10 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal func setup() {

@@ -84,15 +84,16 @@ extension DiagnosticsInfo: CustomDebugStringConvertible {
 
   public var debugDescription: String {
     #if DEBUG
-    return "\(self.file):\(self.line)-\(self.message)".appending(
-      self.values
-        .reduce(
-          into: String(),
-          { (result, value) in
-            result.append("\n - \(value.key): \(value.value)")
-          }
-        )
-    )
+    return "\(self.file):\(self.line)-\(self.message)"
+      .appending(
+        self.values
+          .reduce(
+            into: String(),
+            { (result, value) in
+              result.append("\n - \(value.key): \(value.value)")
+            }
+          )
+      )
     #else
     return self.description
     #endif

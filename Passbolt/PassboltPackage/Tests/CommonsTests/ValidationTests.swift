@@ -86,10 +86,11 @@ final class ValidationTests: XCTestCase {
   }
 
   func test_contraMapFromInvalid_producesInvalidValue() {
-    let validator: Validator<TestEmbeddedValue> = Validator<TestValue>.alwaysInvalid(
-      displayable: .localized(key: messageKeyInvalid)
-    )
-    .contraMap(\.value)
+    let validator: Validator<TestEmbeddedValue> = Validator<TestValue>
+      .alwaysInvalid(
+        displayable: .localized(key: messageKeyInvalid)
+      )
+      .contraMap(\.value)
     let validated: Validated<TestEmbeddedValue> = validator(testEmbeddedValue)
 
     XCTAssertEqual(validated.value, testEmbeddedValue)

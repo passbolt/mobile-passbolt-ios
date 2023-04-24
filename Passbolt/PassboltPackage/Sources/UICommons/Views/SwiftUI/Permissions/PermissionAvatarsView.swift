@@ -79,9 +79,10 @@ internal struct PermissionAvatarsView_Previews: PreviewProvider {
       )
 
       PermissionAvatarsView(
-        items: (0..<20).map { idx in
-          .userGroup("mock_\(idx)")
-        }
+        items: (0 ..< 20)
+          .map { idx in
+            .userGroup("mock_\(idx)")
+          }
       )
     }
     .padding(8)

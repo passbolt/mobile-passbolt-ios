@@ -299,21 +299,21 @@ extension ResourceDetailsFetchDatabaseOperation {
             .string(uri),
             forField: "uri"
           )
-        } // else NOP
+        }  // else NOP
 
         if let username: String = dataRow.username {
           try resource.set(
             .string(username),
             forField: "username"
           )
-        } // else NOP
+        }  // else NOP
 
         if let description: String = dataRow.description {
           try resource.set(
             .string(description),
             forField: "description"
           )
-        } // else NOP
+        }  // else NOP
 
         return resource
       }

@@ -91,7 +91,7 @@ extension Data {
     )
     defer { blockBuffer.deallocate() }
 
-    for block: Int in 0..<blocksCount {
+    for block: Int in 0 ..< blocksCount {
       // clear block buffer for each block
       blockBuffer
         .initializeMemory(
@@ -105,7 +105,7 @@ extension Data {
       let blockBytesCount: Int = (inputOffset + 8 > inputBytesCount) ? inputBytesCount % 8 : 8
 
       // write bytes from input to block buffer
-      for byteIndex: Int in 0..<blockBytesCount {
+      for byteIndex: Int in 0 ..< blockBytesCount {
         blockBuffer[byteIndex] = inputBuffer[inputOffset + byteIndex]
       }
 

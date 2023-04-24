@@ -56,10 +56,11 @@ extension FeaturesRegistry {
         load: { _, context in
           @MainActor func topmostViewComponent() -> AnyUIComponent? {
             guard
-              var current: UIViewController = UIApplication.shared.connectedScenes.compactMap({ scene in
-                (scene as? UIWindowScene)?.keyWindow?.rootViewController
-              })
-              .first
+              var current: UIViewController = UIApplication.shared.connectedScenes
+                .compactMap({ scene in
+                  (scene as? UIWindowScene)?.keyWindow?.rootViewController
+                })
+                .first
             else { return .none }
 
             var candidate: AnyUIComponent?

@@ -42,7 +42,8 @@ extension OTPEditForm {
         arguments: [
           DisplayableString.localized(
             key: "otp.edit.form.field.name.title"
-          ).string()
+          )
+          .string()
         ]
       )
     )
@@ -53,18 +54,20 @@ extension OTPEditForm {
         arguments: [
           DisplayableString.localized(
             key: "otp.edit.form.field.secret.title"
-          ).string()
+          )
+          .string()
         ]
       )
     )
     let digitsFieldValidator: Validator<UInt> = .inRange(
-      of: 6...8,
+      of: 6 ... 8,
       displayable: .localized(
         key: "error.resource.field.range.between",
         arguments: [
           DisplayableString.localized(
             key: "otp.edit.form.field.digits.title"
-          ).string(),
+          )
+          .string(),
           6,
           8,
         ]
@@ -72,13 +75,14 @@ extension OTPEditForm {
     )
     let periodFieldValidator: Validator<Seconds?> = Validator<Seconds>
       .inRange(
-        of: 1...Seconds(rawValue: .max),
+        of: 1 ... Seconds(rawValue: .max),
         displayable: .localized(
           key: "error.resource.field.range.greater",
           arguments: [
             DisplayableString.localized(
               key: "otp.edit.form.field.period.title"
-            ).string(),
+            )
+            .string(),
             0,
           ]
         )
@@ -116,7 +120,7 @@ extension OTPEditForm {
               name: .valid(configuration.account),
               uri: .valid(configuration.issuer ?? ""),
               secret: .valid(configuration.secret.sharedSecret),
-							algorithm: .valid(configuration.secret.algorithm),
+              algorithm: .valid(configuration.secret.algorithm),
               digits: .valid(configuration.secret.digits),
               type: {
                 switch configuration.secret {
@@ -262,7 +266,7 @@ private func parseTOTPConfiguration(
   from string: String
 ) throws -> OTPConfiguration {
   let string: String = string.removingPercentEncoding ?? string
-  var reminder: Substring = string[string.startIndex..<string.endIndex]
+  var reminder: Substring = string[string.startIndex ..< string.endIndex]
 
   // check and remove scheme substring
   let scheme: String = "otpauth://"
@@ -272,7 +276,7 @@ private func parseTOTPConfiguration(
       InvalidOTPConfiguration
       .error("Invalid OTP configuration - invalid scheme")
   }
-  reminder = reminder[schemeRange.upperBound..<reminder.endIndex]
+  reminder = reminder[schemeRange.upperBound ..< reminder.endIndex]
 
   // check and remove type substring
   // initially - supporting only TOTP
@@ -283,18 +287,18 @@ private func parseTOTPConfiguration(
       InvalidOTPConfiguration
       .error("Invalid OTP configuration - unsupported or missing type")
   }
-  reminder = reminder[typeRange.upperBound..<reminder.endIndex]
+  reminder = reminder[typeRange.upperBound ..< reminder.endIndex]
 
   // extract label
   let labelEndIndex: Substring.Index = reminder.firstIndex(of: "?") ?? reminder.endIndex
-  let label: Substring = reminder[reminder.startIndex..<labelEndIndex]
+  let label: Substring = reminder[reminder.startIndex ..< labelEndIndex]
 
   // split label to issuer and account
   var issuer: String?
   let account: String
   if let splitIndex: Substring.Index = label.firstIndex(of: ":") {
-    issuer = String(label[label.startIndex..<splitIndex])
-    account = String(label[label.index(after: splitIndex)..<label.endIndex])
+    issuer = String(label[label.startIndex ..< splitIndex])
+    account = String(label[label.index(after: splitIndex) ..< label.endIndex])
   }
   else {
     issuer = .none
@@ -303,7 +307,8 @@ private func parseTOTPConfiguration(
 
   // extract parameters
   let parameters: Array<(key: Substring, value: Substring)> = reminder[
-    (reminder.index(labelEndIndex, offsetBy: 1, limitedBy: reminder.endIndex) ?? reminder.endIndex)..<reminder.endIndex
+    (reminder.index(labelEndIndex, offsetBy: 1, limitedBy: reminder.endIndex) ?? reminder.endIndex)
+      ..< reminder.endIndex
   ]
   .split(separator: "&")
   .compactMap { (rawParameter: Substring) in
@@ -342,9 +347,11 @@ private func parseTOTPConfiguration(
   }
 
   let algorithm: HOTPAlgorithm
-  if let algorithmParameter: HOTPAlgorithm = parameters.first(where: { key, _ in key == "algorithm" }).flatMap({
-    HOTPAlgorithm(rawValue: String($0.value))
-  }) {
+  if let algorithmParameter: HOTPAlgorithm = parameters.first(where: { key, _ in key == "algorithm" })
+    .flatMap({
+      HOTPAlgorithm(rawValue: String($0.value))
+    })
+  {
     algorithm = algorithmParameter
   }
   else {  // use default

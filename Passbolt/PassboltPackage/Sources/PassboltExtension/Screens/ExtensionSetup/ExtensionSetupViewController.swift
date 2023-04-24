@@ -47,9 +47,10 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
   ) {
     self.controller = controller
     self.components = components
-    super.init(
-      cancellables: cancellables
-    )
+    super
+      .init(
+        cancellables: cancellables
+      )
   }
 
   internal private(set) lazy var contentView: ContentView = .init()

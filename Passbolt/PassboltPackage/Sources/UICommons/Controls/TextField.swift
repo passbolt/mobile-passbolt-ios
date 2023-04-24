@@ -51,9 +51,10 @@ open class TextField: UITextField {
   // Conflicts with `attributedPlaceholder` property, never use both at the same time.
   public var attributedPlaceholderString: AttributedString? {
     didSet {
-      self.attributedPlaceholder = attributedPlaceholderString?.nsAttributedString(
-        in: traitCollection.userInterfaceStyle
-      )
+      self.attributedPlaceholder = attributedPlaceholderString?
+        .nsAttributedString(
+          in: traitCollection.userInterfaceStyle
+        )
     }
   }
 

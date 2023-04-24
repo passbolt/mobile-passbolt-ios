@@ -41,9 +41,10 @@ extension ResourceTag {
     var fields = string.components(separatedBy: ";")
     guard
       let shared: Bool = fields.popLast()?.components(separatedBy: "=").last.flatMap({ $0 == "1" }),
-      let slug: ResourceTag.Slug = fields.popLast()?.components(separatedBy: "=").last.map(
-        ResourceTag.Slug.init(rawValue:)
-      ),
+      let slug: ResourceTag.Slug = fields.popLast()?.components(separatedBy: "=").last
+        .map(
+          ResourceTag.Slug.init(rawValue:)
+        ),
       let id: ResourceTag.ID = fields.popLast()?.components(separatedBy: "=").last.map(ResourceTag.ID.init(rawValue:))
     else {
       throw
