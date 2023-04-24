@@ -210,7 +210,7 @@
 "extension.setup.later.button" = "Quizás más tarde";
 
 "tab.home" = "Inicio";
-"tab.otp" = "OTP";
+"tab.otp" = "TOTP";
 "tab.settings" = "Ajustes";
 
 "authorization.prompt.refresh.session.reason" = "Por favor, autentifíquese para actualizar la sesión";
@@ -471,8 +471,8 @@ Póngase en contacto con su administrador para obtener más información.";
 
 // OTP resources
 
-"otp.resources.search.placeholder" = "Buscar OTP";
-"otp.resources.list.title" = "OTP";
+"otp.resources.search.placeholder" = "Buscar TOTP";
+"otp.resources.list.title" = "TOTP";
 "otp.resources.list.empty.message" = "No hay TOTP";
 "otp.value.copied.message" = "¡TOTP copiado a su portapapeles!";
 
@@ -511,9 +511,9 @@ Póngase en contacto con su administrador para obtener más información.";
 "otp.edit.form.field.secret.title" = "Secreto";
 "otp.edit.form.field.secret.prompt" = "Secreto";
 "otp.edit.form.advanced.button.title" = "Configuración avanzada";
-"otp.edit.form.create.button.title" = "Crear OTP independiente";
+"otp.edit.form.create.button.title" = "Crear TOTP independiente";
 "otp.edit.form.edit.advanced.title" = "Crear TOTP - configuración avanzada";
-"otp.edit.form.field.digits.title" = "Longitud del OTP";
+"otp.edit.form.field.digits.title" = "Longitud del TOTP";
 "otp.edit.form.field.digits.label" = "dígitos.";
 "otp.edit.form.field.period.title" = "Caducidad TOTP";
 "otp.edit.form.field.period.label" = "segundos hasta que el TOTP caduque.";

@@ -210,7 +210,7 @@
 "extension.setup.later.button" = "Maybe later";
 
 "tab.home" = "Home";
-"tab.otp" = "OTP";
+"tab.otp" = "TOTP";
 "tab.settings" = "Settings";
 
 "authorization.prompt.refresh.session.reason" = "Please authenticate to refresh session";
@@ -471,8 +471,8 @@ Contact your administrator for more information.";
 
 // OTP resources
 
-"otp.resources.search.placeholder" = "Search OTP";
-"otp.resources.list.title" = "OTP";
+"otp.resources.search.placeholder" = "Search TOTP";
+"otp.resources.list.title" = "TOTP";
 "otp.resources.list.empty.message" = "There is no TOTP";
 "otp.value.copied.message" = "TOTP copied to your clipboard!";
 
@@ -512,10 +512,10 @@ scanned!";
 "otp.edit.form.field.secret.title" = "Secret";
 "otp.edit.form.field.secret.prompt" = "Secret";
 "otp.edit.form.advanced.button.title" = "Advanced settings";
-"otp.edit.form.create.button.title" = "Create standalone OTP";
+"otp.edit.form.create.button.title" = "Create standalone TOTP";
 "otp.edit.form.edit.advanced.title" = "Create TOTP - advanced settings";
 "otp.edit.form.edit.advanced.warning" = "Advanced settings have to match your TOTP provider settings otherwise it won’t work.";
-"otp.edit.form.field.digits.title" = "OTP length";
+"otp.edit.form.field.digits.title" = "TOTP length";
 "otp.edit.form.field.digits.label" = "digits.";
 "otp.edit.form.field.period.title" = "TOTP expiry";
 "otp.edit.form.field.period.label" = "seconds until the TOTP expires.";
