@@ -102,6 +102,16 @@ extension FeaturesTestCase {
       )
   }
 
+  public final func testedInstance<Feature>(
+    _ featureType: Feature.Type = Feature.self
+  ) throws -> Feature
+  where Feature: LoadableFeature, Feature.Context == ContextlessLoadableFeatureContext {
+    try self.testFeatures
+      .instance(
+        of: featureType
+      )
+  }
+
   public final func testedInstance<Alert>(
     _ alertType: Alert.Type = Alert.self,
     context: Alert.Context

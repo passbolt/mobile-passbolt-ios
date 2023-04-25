@@ -23,7 +23,6 @@
 
 import Commons
 
-@dynamicMemberLookup
 public struct ResourceType {
 
   public typealias ID = Tagged<String, Self>
@@ -31,7 +30,7 @@ public struct ResourceType {
 
   public let id: ID
   public let slug: Slug
-  public let _name: String  // `_` is used to avoid conflict with "name" field
+  public let name: String
   public let fields: OrderedSet<ResourceField>
 
   public init(
@@ -42,17 +41,17 @@ public struct ResourceType {
   ) {
     self.id = id
     self.slug = slug
-    self._name = name
+    self.name = name
     self.fields =
       fields
       .sorted()
       .asOrderedSet()
   }
 
-  public subscript(
-    dynamicMember name: String
+  public func field(
+    named fieldName: StaticString
   ) -> ResourceField? {
-    self.fields.first(where: { $0.name == name })
+    self.fields.first(where: { $0.name == fieldName.description })
   }
 
   public func contains(

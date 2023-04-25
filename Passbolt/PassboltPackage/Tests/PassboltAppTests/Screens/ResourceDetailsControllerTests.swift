@@ -102,7 +102,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
     detailsViewResourceWithReorderedFields.type = .init(
       id: detailsViewResource.type.id,
       slug: detailsViewResource.type.slug,
-      name: detailsViewResource.type._name,
+      name: detailsViewResource.type.name,
       fields: detailsViewResource.type.fields.shuffled().asOrderedSet()
     )
     features.patch(
@@ -351,7 +351,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       .asAsyncValue()
 
     XCTAssertNotNil(pasteboardContent)
-    XCTAssertEqual(pasteboardContent, detailsViewResource.value(forField: "username")?.stringValue)
+    XCTAssertEqual(pasteboardContent, detailsViewResource.value(forField: "username").stringValue)
   }
 
   func test_copyFieldDescription_succeeds() async throws {
@@ -394,7 +394,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       .asAsyncValue()
 
     XCTAssertNotNil(pasteboardContent)
-    XCTAssertEqual(pasteboardContent, resourceSecret.value(forField: "description")?.stringValue)
+    XCTAssertEqual(pasteboardContent, resourceSecret.value(forField: "description").stringValue)
   }
 
   func test_copyFieldEncryptedDescription_succeeds() async throws {
@@ -437,7 +437,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       .asAsyncValue()
 
     XCTAssertNotNil(pasteboardContent)
-    XCTAssertEqual(pasteboardContent, resourceSecret.value(forField: "description")?.stringValue)
+    XCTAssertEqual(pasteboardContent, resourceSecret.value(forField: "description").stringValue)
   }
 
   func test_copyFieldURI_succeeds() async throws {
@@ -480,7 +480,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       .asAsyncValue()
 
     XCTAssertNotNil(pasteboardContent)
-    XCTAssertEqual(pasteboardContent, detailsViewResource.value(forField: "uri")?.stringValue)
+    XCTAssertEqual(pasteboardContent, detailsViewResource.value(forField: "uri").stringValue)
   }
 
   func test_copyFieldPassword_succeeds() async throws {
@@ -523,7 +523,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       .asAsyncValue()
 
     XCTAssertNotNil(pasteboardContent)
-    XCTAssertEqual(pasteboardContent, resourceSecret.value(forField: "password")?.stringValue)
+    XCTAssertEqual(pasteboardContent, resourceSecret.value(forField: "password").stringValue)
   }
 
   func test_resourceDeleteAlertPresentationPublisher_publishesResourceID_whenPresentDeleteResourceAlertCalled()

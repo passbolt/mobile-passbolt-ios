@@ -23,7 +23,10 @@
 
 import Display
 
-internal enum OTPScanningSuccessNavigationDestination: NavigationDestination {}
+internal enum OTPScanningSuccessNavigationDestination: NavigationDestination {
+
+  internal typealias TransitionContext = TOTPConfiguration
+}
 
 internal typealias NavigationToOTPScanningSuccess = NavigationTo<OTPScanningSuccessNavigationDestination>
 
@@ -41,7 +44,7 @@ extension FeaturesRegistry {
   internal mutating func useLiveNavigationToOTPScanningSuccess() {
     self.use(
       NavigationToOTPScanningSuccess.live,
-      in: OTPEditScope.self
+      in: SessionScope.self
     )
   }
 }

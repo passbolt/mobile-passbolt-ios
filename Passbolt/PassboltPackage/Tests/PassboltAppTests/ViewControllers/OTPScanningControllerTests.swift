@@ -25,19 +25,14 @@ import TestExtensions
 
 @testable import PassboltApp
 
-final class OTPScanningControllerTests: LoadableFeatureTestCase<OTPScanningController> {
+final class OTPScanningControllerTests: FeaturesTestCase {
 
-  override class var testedImplementationScope: any FeaturesScope.Type {
-    SessionScope.self
-  }
-
-  override class func testedImplementationRegister(
-    _ registry: inout FeaturesRegistry
-  ) {
-    registry.useLiveOTPScanningController()
-  }
-
-  override func prepare() throws {
+  override func commonPrepare() {
+    super.commonPrepare()
+    register(
+      { $0.useLiveOTPScanningController() },
+      for: OTPConfigurationScanningController.self
+    )
     set(
       SessionScope.self,
       context: .init(
@@ -47,38 +42,250 @@ final class OTPScanningControllerTests: LoadableFeatureTestCase<OTPScanningContr
     )
   }
 
-  func test_processPayload_showsErrorSnackBar_whenFillingFormFails() {
-    patch(
-      \OTPEditForm.fillFromURI,
-      with: alwaysThrow(MockIssue.error())
-    )
-    withTestedInstanceReturnsEqual(
-      SnackBarMessage.error(DisplayableString.localized(key: "testLocalizationKey"))
-    ) { feature in
-      feature.processPayload("payload")
-      await self.mockExecutionControl.executeAll()
-      return await feature.viewState.snackBarMessage
+  func test_processPayload_showsErrorSnackBar_whenParsingFails() async throws {
+    let feature: OTPConfigurationScanningController = try self.testedInstance()
+
+    feature.processPayload("payload")
+    await self.asyncExecutionControl.executeAll()
+
+    await XCTAssertValue(
+      equal: SnackBarMessage
+        .error("error.otp.configuration.invalid")
+    ) {
+      feature.viewState.snackBarMessage
     }
   }
 
-  func test_processPayload_navigatesToSuccess_whenFillingFormSucceeds() {
-    patch(
-      \OTPEditForm.fillFromURI,
-      with: always(Void())
-    )
+  func test_processPayload_navigatesToSuccess_whenParsingSucceeds() async throws {
     patch(
       \NavigationToOTPScanningSuccess.mockPerform,
-      with: always(self.executed())
-    )
-    patch(
-      \NavigationToOTPScanning.mockRevert,
-      with: always(self.executed())
+       with: always(self.dynamicVariables.executed = Void())
     )
 
-    withTestedInstanceExecuted { feature in
-      feature.processPayload("payload")
-      await self.mockExecutionControl.executeAll()
-      return await feature.viewState.snackBarMessage
+    let feature: OTPConfigurationScanningController = try self.testedInstance()
+
+    feature.processPayload("otpauth://totp/Passbolt:edith@passbolt.com?secret=SECRET_KEY&issuer=Passbolt&digits=6&period=30&algorithm=SHA1")
+    await self.asyncExecutionControl.executeAll()
+
+    XCTAssertNotNil(self.dynamicVariables.getIfPresent(\.executed, of: Void.self))
+  }
+
+  func test_processPayload_doesNotNavigate_whenParsingFails() async throws {
+    patch(
+      \NavigationToOTPScanningSuccess.mockPerform,
+       with: always(self.dynamicVariables.executed = Void())
+    )
+
+    let feature: OTPConfigurationScanningController = try self.testedInstance()
+
+    feature.processPayload("payload")
+    await self.asyncExecutionControl.executeAll()
+
+    XCTAssertNil(self.dynamicVariables.getIfPresent(\.executed, of: Void.self))
+  }
+
+
+  func test_processPayload_fails_withInvalidScheme() async throws {
+    let feature: OTPConfigurationScanningController = try self.testedInstance()
+
+    feature.processPayload("invalid://")
+    await self.asyncExecutionControl.executeAll()
+
+    await XCTAssertValue(
+      equal: SnackBarMessage
+        .error("error.otp.configuration.invalid")
+    ) {
+      feature.viewState.snackBarMessage
     }
+  }
+
+  func test_processPayload_fails_withInvalidType() async throws {
+    let feature: OTPConfigurationScanningController = try self.testedInstance()
+
+    feature.processPayload("otpauth://invalid")
+    await self.asyncExecutionControl.executeAll()
+
+    await XCTAssertValue(
+      equal: SnackBarMessage
+        .error("error.otp.configuration.invalid")
+    ) {
+      feature.viewState.snackBarMessage
+    }
+  }
+
+  func test_processPayload_fails_withInvalidLabel() async throws {
+    let feature: OTPConfigurationScanningController = try self.testedInstance()
+
+    feature.processPayload("otpauth://totp?")
+    await self.asyncExecutionControl.executeAll()
+
+    await XCTAssertValue(
+      equal: SnackBarMessage
+        .error("error.otp.configuration.invalid")
+    ) {
+      feature.viewState.snackBarMessage
+    }
+  }
+
+  func test_processPayload_fails_withWithoutParameters() async throws {
+    let feature: OTPConfigurationScanningController = try self.testedInstance()
+
+    feature.processPayload("otpauth://totp/Passbolt:edith@passbolt.com")
+    await self.asyncExecutionControl.executeAll()
+
+    await XCTAssertValue(
+      equal: SnackBarMessage
+        .error("error.otp.configuration.invalid")
+    ) {
+      feature.viewState.snackBarMessage
+    }
+  }
+
+  func test_processPayload_fails_withInvalidParameters() async throws {
+    let feature: OTPConfigurationScanningController = try self.testedInstance()
+
+    feature.processPayload("otpauth://totp/Passbolt:edith@passbolt.com?invalid=invalid=invalid")
+    await self.asyncExecutionControl.executeAll()
+
+    await XCTAssertValue(
+      equal: SnackBarMessage
+        .error("error.otp.configuration.invalid")
+    ) {
+      feature.viewState.snackBarMessage
+    }
+  }
+
+  func test_processPayload_fails_withMissingSecret() async throws {
+    let feature: OTPConfigurationScanningController = try self.testedInstance()
+
+    feature.processPayload("otpauth://totp/Passbolt:edith@passbolt.com?")
+    await self.asyncExecutionControl.executeAll()
+
+    await XCTAssertValue(
+      equal: SnackBarMessage
+        .error("error.otp.configuration.invalid")
+    ) {
+      feature.viewState.snackBarMessage
+    }
+  }
+
+  func test_processPayload_fails_withInvalidIssuer() async throws {
+    let feature: OTPConfigurationScanningController = try self.testedInstance()
+
+    feature.processPayload("otpauth://totp/Passbolt:edith@passbolt.com?secret=SECRET_KEY&issuer=invalid")
+    await self.asyncExecutionControl.executeAll()
+
+    await XCTAssertValue(
+      equal: SnackBarMessage
+        .error("error.otp.configuration.invalid")
+    ) {
+      feature.viewState.snackBarMessage
+    }
+  }
+
+  func test_processPayload_succeeds_withRequiredData() async throws {
+    patch(
+      \NavigationToOTPScanningSuccess.mockPerform,
+       with: always(self.dynamicVariables.executed = Void())
+    )
+
+    let feature: OTPConfigurationScanningController = try self.testedInstance()
+
+    feature.processPayload("otpauth://totp/Passbolt:edith@passbolt.com?secret=SECRET_KEY")
+    await self.asyncExecutionControl.executeAll()
+
+    XCTAssertNotNil(self.dynamicVariables.getIfPresent(\.executed, of: Void.self))
+  }
+
+  func test_processPayload_succeeds_withAllParameters() async throws {
+    patch(
+      \NavigationToOTPScanningSuccess.mockPerform,
+       with: always(self.dynamicVariables.executed = Void())
+    )
+
+    let feature: OTPConfigurationScanningController = try self.testedInstance()
+
+    feature.processPayload("otpauth://totp/Passbolt:edith@passbolt.com?secret=SECRET_KEY&issuer=Passbolt&digits=6&period=30&algorithm=SHA1")
+    await self.asyncExecutionControl.executeAll()
+
+    XCTAssertNotNil(self.dynamicVariables.getIfPresent(\.executed, of: Void.self))
+  }
+
+  func test_processPayload_succeeds_ignoringInvalidParameters() async throws {
+    patch(
+      \NavigationToOTPScanningSuccess.mockPerform,
+       with: always(self.dynamicVariables.executed = Void())
+    )
+
+    let feature: OTPConfigurationScanningController = try self.testedInstance()
+
+    feature.processPayload("otpauth://totp/Passbolt:edith@passbolt.com?secret=SECRET_KEY&badissuer=Passbolt&digits=6&period=30&algorithm=invalid&unnecessary=value")
+    await self.asyncExecutionControl.executeAll()
+
+    XCTAssertNotNil(self.dynamicVariables.getIfPresent(\.executed, of: Void.self))
+  }
+
+  func test_processPayload_navigates_withRequiredDataAndDefaults() async throws {
+    patch(
+      \NavigationToOTPScanningSuccess.mockPerform,
+       with: { (_, context: TOTPConfiguration) async throws in
+         self.dynamicVariables.configuration = context
+       }
+    )
+
+    let feature: OTPConfigurationScanningController = try self.testedInstance()
+
+    feature.processPayload("otpauth://totp/edith@passbolt.com?secret=SECRET_KEY")
+    await self.asyncExecutionControl.executeAll()
+
+    XCTAssertEqual(
+      TOTPConfiguration(
+        issuer: "",
+        account: "edith@passbolt.com",
+        secret: .init(
+          sharedSecret: "SECRET_KEY",
+          algorithm: .sha1,
+          digits: 6,
+          period: 30
+        )
+      ),
+      self.dynamicVariables
+        .getIfPresent(
+          \.configuration,
+           of: TOTPConfiguration.self
+        )
+    )
+  }
+
+  func test_processPayload_navigates_withAllParameters() async throws {
+    patch(
+      \NavigationToOTPScanningSuccess.mockPerform,
+       with: { (_, context: TOTPConfiguration) async throws in
+         self.dynamicVariables.configuration = context
+       }
+    )
+
+    let feature: OTPConfigurationScanningController = try self.testedInstance()
+
+    feature.processPayload("otpauth://totp/Passbolt:edith@passbolt.com?secret=SECRET_KEY&issuer=Passbolt&digits=8&period=90&algorithm=SHA256")
+    await self.asyncExecutionControl.executeAll()
+
+    XCTAssertEqual(
+      TOTPConfiguration(
+        issuer: "Passbolt",
+        account: "edith@passbolt.com",
+        secret: .init(
+          sharedSecret: "SECRET_KEY",
+          algorithm: .sha256,
+          digits: 8,
+          period: 90
+        )
+      ),
+      self.dynamicVariables
+        .getIfPresent(
+          \.configuration,
+           of: TOTPConfiguration.self
+        )
+    )
   }
 }

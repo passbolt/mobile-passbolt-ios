@@ -77,15 +77,29 @@ internal struct OTPContextualMenuView: ControlledView {
             }
           )
 
-          ListDividerView()
-
           WithViewState(
             from: self.controller,
-            at: \.deleteAvailable
-          ) { deleteAvailable in
-            if deleteAvailable {
+            at: \.editAvailable
+          ) { editAvailable in
+            if editAvailable {
+              ListDividerView()
+              
               DrawerMenuItemView(
-                action: self.controller.deleteCode,
+                action: self.controller.editResource,
+                title: {
+                  Text(
+                    displayable: .localized(
+                      key: "otp.contextual.menu.edit.title"
+                    )
+                  )
+                },
+                leftIcon: {
+                  Image(named: .edit)
+                    .resizable()
+                }
+              )
+              DrawerMenuItemView(
+                action: self.controller.deleteResource,
                 title: {
                   Text(
                     displayable: .localized(

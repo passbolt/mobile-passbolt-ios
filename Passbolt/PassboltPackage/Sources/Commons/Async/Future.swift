@@ -21,27 +21,33 @@
 // @since         v1.0
 //
 
-import Display
+@Sendable public func future<Value>(
+  _ fulfill: @escaping (@Sendable @escaping (Result<Value, Error>) -> Void) -> Void
+) async throws -> Value {
+  let state: CriticalState<CheckedContinuation<Value, Error>?> = .init(.none)
+  return try await withTaskCancellationHandler(
+    operation: {
+      try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Value, Error>) in
+        guard !Task.isCancelled
+        else {
+          return continuation
+            .resume(throwing: Cancelled.error())
+        }
+        state
+          .set(\.self, continuation)
 
-internal enum OTPEditFormNavigationDestination: NavigationDestination {}
-
-internal typealias NavigationToOTPEditForm = NavigationTo<OTPEditFormNavigationDestination>
-
-extension NavigationToOTPEditForm {
-
-  fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
-      to: OTPEditFormView.self
-    )
-  }
+        fulfill { (result: Result<Value, Error>) in
+          state
+            .exchange(\.self, with: .none)?
+            .resume(with: result)
+        }
+      }
+    },
+    onCancel: {
+      state
+        .exchange(\.self, with: .none)?
+        .resume(throwing: Cancelled.error())
+    }
+  )
 }
 
-extension FeaturesRegistry {
-
-  internal mutating func useLiveNavigationToOTPEditForm() {
-    self.use(
-      NavigationToOTPEditForm.live,
-      in: SessionScope.self
-    )
-  }
-}

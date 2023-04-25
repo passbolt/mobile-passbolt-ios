@@ -27,18 +27,21 @@ import Resources
 
 // MARK: - Interface
 
-internal struct OTPEditFormController {
+internal struct TOTPEditFormController {
 
+  internal var isEditing: () -> Bool
   internal var viewState: MutableViewState<ViewState>
 
-  internal var setNameField: (String) -> Void
-  internal var setURIField: (String) -> Void
-  internal var setSecretField: (String) -> Void
-  internal var showAdvancedSettings: () -> Void
-  internal var sendForm: () -> Void
+  internal var setNameField: @MainActor (String) -> Void
+  internal var setURIField: @MainActor (String) -> Void
+  internal var setSecretField: @MainActor (String) -> Void
+  internal var showAdvancedSettings: @MainActor () -> Void
+  internal var sendForm: @MainActor () -> Void
 }
 
-extension OTPEditFormController: ViewController {
+extension TOTPEditFormController: ViewController {
+
+  internal typealias Context = Resource.ID?
 
   internal struct ViewState: Equatable {
 
@@ -51,6 +54,7 @@ extension OTPEditFormController: ViewController {
   #if DEBUG
   internal static var placeholder: Self {
     .init(
+      isEditing: unimplemented0(),
       viewState: .placeholder(),
       setNameField: unimplemented1(),
       setURIField: unimplemented1(),
@@ -64,26 +68,34 @@ extension OTPEditFormController: ViewController {
 
 // MARK: - Implementation
 
-extension OTPEditFormController {
+extension TOTPEditFormController {
 
   @MainActor fileprivate static func load(
-    features: Features
+    features: Features,
+    context: Context
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
     let featuresBranchContainer: FeaturesContainer? = features.branchIfNeeded(
-      scope: OTPEditScope.self
+      scope: ResourceEditScope.self,
+      context: {
+        if let context {
+          return .edit(context)
+        }
+        else {
+          return .create(.totp, folderID: .none, uri: .none)
+        }
+      }()
     )
-    let features: Features = featuresBranchContainer ?? features
 
-    let editedResourceID: Resource.ID? = try? features.context(of: ResourceEditScope.self).resourceID
+    let features: Features = featuresBranchContainer ?? features
 
     let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
 
-    let navigationToSelf: NavigationToOTPEditForm = try features.instance()
-    let navigationToAdvanced: NavigationToOTPEditAdvancedForm = try features.instance()
+    let navigationToSelf: NavigationToTOTPEditForm = try features.instance()
+    let navigationToAdvanced: NavigationToTOTPEditAdvancedForm = try features.instance()
 
-    let otpEditForm: OTPEditForm = try features.instance()
+    let resourceEditForm: ResourceEditForm = try features.instance()
 
     let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
@@ -96,53 +108,76 @@ extension OTPEditFormController {
     )
 
     asyncExecutor.schedule {
-      await viewState.update { (state: inout ViewState) in
-        let initialState: OTPEditForm.State = otpEditForm.state()
-        state.nameField = initialState.name
-        state.uriField = initialState.uri
-        state.secretField = initialState.secret
-      }
-      for await _ in otpEditForm.updates.dropFirst() {
-        let updatedState: OTPEditForm.State = otpEditForm.state()
+      do {
+        let resource: Resource = try await resourceEditForm.state.value
+        let name: String = resource.value(forField: "name").stringValue ?? ""
+        let uri: String = resource.value(forField: "uri").stringValue ?? ""
+        let secret: String = try resource.value(forTOTP: \.sharedSecret, inField: "totp")
+
         await viewState.update { (state: inout ViewState) in
-          state.nameField = updatedState.name
-          state.uriField = updatedState.uri
-          state.secretField = updatedState.secret
+          state.nameField = .valid(name)
+          state.uriField = .valid(uri)
+          state.secretField = .valid(secret)
+        }
+      }
+      catch {
+        diagnostics.log(error: error)
+        await viewState.update { state in
+          state.snackBarMessage = .error(error)
         }
       }
     }
 
-    nonisolated func setNameField(
-      _ value: String
+    @MainActor func setNameField(
+      _ name: String
     ) {
-      otpEditForm
-        .update(
-          field: \.name,
-          toValidated: value
-        )
+      viewState.update { (state: inout ViewState) in
+        state.nameField = .valid(name)
+      }
+      asyncExecutor
+        .scheduleCatchingWith(diagnostics, behavior: .replace) {
+          try Task.checkCancellation()
+          let validated = try await resourceEditForm.update(field: "name", to: .string(name))
+          await viewState.update { (state: inout ViewState) in
+            state.nameField = validated.map { $0.stringValue ?? "" }
+          }
+        }
     }
 
-    nonisolated func setURIField(
-      _ value: String
+    @MainActor func setURIField(
+      _ uri: String
     ) {
-      otpEditForm
-        .update(
-          field: \.uri,
-          toValidated: value
-        )
+      viewState.update { (state: inout ViewState) in
+        state.uriField = .valid(uri)
+      }
+      asyncExecutor
+        .scheduleCatchingWith(diagnostics, behavior: .replace) {
+          try Task.checkCancellation()
+          let validated = try await resourceEditForm.update(field: "uri", to: .string(uri))
+          await viewState.update { (state: inout ViewState) in
+            state.uriField = validated.map { $0.stringValue ?? "" }
+          }
+        }
     }
 
-    nonisolated func setSecretField(
-      _ value: String
+    @MainActor func setSecretField(
+      _ secret: String
     ) {
-      otpEditForm
-        .update(
-          field: \.secret,
-          toValidated: value
-        )
+      viewState.update { (state: inout ViewState) in
+        state.secretField = .valid(secret)
+      }
+      asyncExecutor
+        .scheduleCatchingWith(diagnostics, behavior: .replace) {
+          try Task.checkCancellation()
+          let updatable = try await resourceEditForm.updatableTOTPField(ResourceField.valuePath(forName: "totp"))
+          let validated = try await updatable.update(\.sharedSecret, to: secret)
+          await viewState.update { (state: inout ViewState) in
+            state.secretField = validated
+          }
+        }
     }
 
-    nonisolated func showAdvancedSettings() {
+    @MainActor func showAdvancedSettings() {
       asyncExecutor.scheduleCatchingWith(
         diagnostics,
         failMessage: "Navigation to OTP advanced settings failed!",
@@ -152,19 +187,14 @@ extension OTPEditFormController {
       }
     }
 
-    nonisolated func sendForm() {
+    @MainActor func sendForm() {
       asyncExecutor.scheduleCatchingWith(
         diagnostics,
         failMessage: "Sending OTP form failed!",
         behavior: .reuse
       ) {
         do {
-          if let editedResourceID {
-            try await otpEditForm.sendForm(.attach(to: editedResourceID))
-          }
-          else {
-            try await otpEditForm.sendForm(.createStandalone)
-          }
+          _ = try await resourceEditForm.sendForm()
         }
         catch {
           await viewState
@@ -179,6 +209,7 @@ extension OTPEditFormController {
     }
 
     return .init(
+      isEditing: { context != nil },
       viewState: viewState,
       setNameField: setNameField(_:),
       setURIField: setURIField(_:),
@@ -191,11 +222,11 @@ extension OTPEditFormController {
 
 extension FeaturesRegistry {
 
-  internal mutating func useLiveOTPEditFormController() {
+  internal mutating func useLiveTOTPEditFormController() {
     self.use(
       .disposable(
-        OTPEditFormController.self,
-        load: OTPEditFormController.load(features:)
+        TOTPEditFormController.self,
+        load: TOTPEditFormController.load(features:context:)
       ),
       in: SessionScope.self
     )

@@ -25,7 +25,7 @@ import Display
 
 internal enum OTPScanningNavigationDestination: NavigationDestination {
 
-  internal typealias TransitionContext = OTPScanningController.Context
+  internal typealias TransitionContext = OTPConfigurationScanningController.Context
 }
 
 internal typealias NavigationToOTPScanning = NavigationTo<OTPScanningNavigationDestination>
@@ -34,7 +34,7 @@ extension NavigationToOTPScanning {
 
   fileprivate static var live: FeatureLoader {
     legacyPushTransition(
-      to: OTPScanningView.self
+      to: OTPConfigurationScanningView.self
     )
   }
 }

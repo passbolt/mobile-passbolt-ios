@@ -151,8 +151,8 @@ extension ResourcesListNodeController {
           let secret: ResourceSecret = try await resourceDetails.secret()
 
           guard
-            let passwordField: ResourceField = resource.type.password,
-            let password: String = secret.value(for: passwordField)?.stringValue
+            let passwordField: ResourceField = resource.type.field(named: "password"),
+            let password: String = secret.value(for: passwordField).stringValue
           else {
             throw
               ResourceSecretInvalid
@@ -161,7 +161,7 @@ extension ResourcesListNodeController {
           await autofillContext
             .completeWithCredential(
               AutofillExtensionContext.Credential(
-                user: resource.value(forField: "username")?.stringValue ?? "",
+                user: resource.value(forField: "username").stringValue ?? "",
                 password: password
               )
             )

@@ -63,7 +63,7 @@ extension ResourceTypesStoreDatabaseOperation {
           """,
           arguments: resourceType.id,
           resourceType.slug,
-          resourceType._name
+          resourceType.name
         )
       )
 

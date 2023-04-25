@@ -24,12 +24,12 @@
 import Display
 import UICommons
 
-internal struct OTPEditAdvancedFormView: ControlledView {
+internal struct TOTPEditAdvancedFormView: ControlledView {
 
-  private let controller: OTPEditAdvancedFormController
+  private let controller: TOTPEditAdvancedFormController
 
   internal init(
-    controller: OTPEditAdvancedFormController
+    controller: TOTPEditAdvancedFormController
   ) {
     self.controller = controller
   }
@@ -39,19 +39,15 @@ internal struct OTPEditAdvancedFormView: ControlledView {
       from: self.controller,
       at: \.snackBarMessage
     ) { (message: SnackBarMessage?) in
-      VStack(spacing: 0) {
-        ScrollView {
-          VStack(spacing: 16) {
-            WarningView(message: "otp.edit.form.edit.advanced.warning")
-            self.periodField
-            self.digitsField
-            self.algorithmField
-          }
+      ScrollView {
+        VStack(spacing: 16) {
+          WarningView(message: "otp.edit.form.edit.advanced.warning")
+          self.periodField
+          self.digitsField
+          self.algorithmField
         }
-
-        Spacer()
-
-        self.applyButton
+        .autocorrectionDisabled()
+        .textInputAutocapitalization(.never)
       }
       .padding(16)
       .snackBarMessage(
@@ -153,13 +149,6 @@ internal struct OTPEditAdvancedFormView: ControlledView {
           )
       )
     }
-  }
-
-  @MainActor @ViewBuilder internal var applyButton: some View {
-    PrimaryButton(
-      title: "otp.edit.form.apply.button.title",
-      action: self.controller.applyChanges
-    )
   }
 }
 

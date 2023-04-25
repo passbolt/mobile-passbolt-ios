@@ -84,7 +84,7 @@ extension ResourceEditController: UIController {
         .validatedFieldValuePublisher(field)
         .map { validatedFieldValue -> Validated<String> in
           Validated<String>(
-            value: validatedFieldValue.value?.stringValue ?? "",
+            value: validatedFieldValue.value.stringValue ?? "",
             error: validatedFieldValue.error
           )
         }
@@ -117,7 +117,7 @@ extension ResourceEditController: UIController {
         }
       }
       .map { (resourceType: ResourceType) -> ResourceField? in
-        resourceType.password
+        resourceType.field(named: "password")
       }
       .replaceError(with: .none)
       .map { (field: ResourceField?) in
@@ -127,7 +127,7 @@ extension ResourceEditController: UIController {
             .validatedFieldValuePublisher(passwordField)
             .map { validated in
               randomGenerator.entropy(
-                validated.value?.stringValue ?? "",
+                validated.value.stringValue ?? "",
                 CharacterSets.all
               )
             }
@@ -157,7 +157,7 @@ extension ResourceEditController: UIController {
         failMessage: "Password generation failed",
         behavior: .reuse
       ) {
-        guard let passwordField: ResourceField = try await resourceForm.resource().type.password
+        guard let passwordField: ResourceField = try await resourceForm.resource().type.field(named: "password")
         else { return assertionFailure("Trying to generate password without pasword field") }
 
         let password: String = randomGenerator.generate(

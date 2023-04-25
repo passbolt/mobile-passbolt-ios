@@ -27,7 +27,7 @@ public enum ResourceFieldValue {
 
   case encrypted
   case string(String)
-  case otp(OTPSecret)
+  case totp(TOTPSecret)
   case unknown(JSON)
 }
 
@@ -40,7 +40,7 @@ extension ResourceFieldValue {
     case let .string(value):
       return value
 
-    case .otp:
+    case .totp:
       return .none
 
     case .encrypted:

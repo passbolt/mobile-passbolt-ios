@@ -25,26 +25,10 @@ import Commons
 
 extension ResourceField {
 
-  public var validator: Validator<ResourceFieldValue?> {
+  public var validator: Validator<ResourceFieldValue> {
     switch self.content {
     case let .string(_, required, minLength, maxLength):
-      return .init { (value: ResourceFieldValue?) in
-        guard let value: ResourceFieldValue
-        else {
-          if required {
-            return .invalid(
-              value,
-              error: InvalidValue.null(
-                value: value,
-                displayable: "resource.form.field.error.empty"
-              )
-            )
-          }
-          else {
-            return .valid(value)
-          }
-        }
-
+      return .init { (value: ResourceFieldValue) in
         guard case let .string(string) = value
         else {
           return .invalid(
@@ -74,25 +58,9 @@ extension ResourceField {
         return .valid(value)
       }
 
-    case let .totp(required):
-      return .init { (value: ResourceFieldValue?) in
-        guard let value: ResourceFieldValue
-        else {
-          if required {
-            return .invalid(
-              value,
-              error: InvalidValue.null(
-                value: value,
-                displayable: "resource.form.field.error.empty"
-              )
-            )
-          }
-          else {
-            return .valid(value)
-          }
-        }
-
-        guard case let .otp(.totp(secret, _, digits, period)) = value
+    case .totp:
+      return .init { (value: ResourceFieldValue) in
+        guard case .totp(let totp) = value
         else {
           return .invalid(
             value,
@@ -103,26 +71,21 @@ extension ResourceField {
           )
         }
 
-        guard
-          period > 0,
-          digits >= 6,
-          digits <= 8,
-          !secret.isEmpty
-        else {
+        let error: TheError? = ResourceField.totpValidators.values.lazy.compactMap { $0(totp) }.first
+
+        if let error {
           return .invalid(
             value,
-            error: InvalidValue.invalid(
-              value: value,
-              displayable: "resource.form.field.error.invalid"
-            )
+            error: error
           )
         }
-
-        return .valid(value)
+        else {
+          return .valid(value)
+        }
       }
 
     case .unknown(_, let required):
-      return .init { (value: ResourceFieldValue?) in
+      return .init { (value: ResourceFieldValue) in
         switch value {
         case .unknown(.null):
           if required {
@@ -153,4 +116,69 @@ extension ResourceField {
       }
     }
   }
+}
+
+extension ResourceField {
+
+  internal static let totpValidators: Dictionary<PartialKeyPath<TOTPSecret>, (TOTPSecret) -> TheError?> = [
+    \TOTPSecret.algorithm: { (totp: TOTPSecret) in
+      Validator<HOTPAlgorithm>
+        .alwaysValid
+        .validate(totp.algorithm)
+        .error
+    },
+     \TOTPSecret.digits: { (totp: TOTPSecret) in
+       Validator<UInt>
+         .inRange(
+          of: 6 ... 8,
+          displayable: .localized(
+            key: "error.resource.field.range.between",
+            arguments: [
+              DisplayableString.localized(
+                key: "otp.edit.form.field.digits.title"
+              )
+              .string(),
+              6,
+              8,
+            ]
+          )
+         )
+         .validate(totp.digits)
+         .error
+     },
+     \TOTPSecret.period: { (totp: TOTPSecret) in
+       Validator<Seconds>
+         .inRange(
+          of: 1 ... Seconds(rawValue: .max),
+          displayable: .localized(
+            key: "error.resource.field.range.greater",
+            arguments: [
+              DisplayableString.localized(
+                key: "otp.edit.form.field.period.title"
+              )
+              .string(),
+              0,
+            ]
+          )
+         )
+         .validate(totp.period)
+         .error
+     },
+     \TOTPSecret.sharedSecret: { (totp: TOTPSecret) in
+       Validator<String>
+         .nonEmpty(
+          displayable: .localized(
+            key: "error.resource.field.empty",
+            arguments: [
+              DisplayableString.localized(
+                key: "otp.edit.form.field.secret.title"
+              )
+              .string()
+            ]
+          )
+         )
+         .validate(totp.sharedSecret)
+         .error
+     },
+  ]
 }

@@ -21,41 +21,45 @@
 // @since         v1.0
 //
 
-extension ResourceFieldValue: Codable {
+import Display
+import UICommons
 
-  public init(
-    from decoder: Decoder
-  ) throws {
-    if let string: String = try? .init(from: decoder) {
-      self = .string(string)
-    }
-    else if let totpSecret: TOTPSecret = try? .init(from: decoder) {
-      self = .totp(totpSecret)
-    }
-    else {
-      self = try .unknown(.init(from: decoder))
-    }
+internal struct OTPConfigurationScanningView: ControlledView {
+
+  private let controller: OTPConfigurationScanningController
+
+  internal init(
+    controller: OTPConfigurationScanningController
+  ) {
+    self.controller = controller
   }
 
-  public func encode(
-    to encoder: Encoder
-  ) throws {
-    switch self {
-    case .string(let value):
-      var container: SingleValueEncodingContainer = encoder.singleValueContainer()
-      try container.encode(value)
-
-    case .totp(let secret):
-      var container: SingleValueEncodingContainer = encoder.singleValueContainer()
-      try container.encode(secret)
-
-    case .encrypted:
-      throw
-        InternalInconsistency
-        .error("Can't encode encrypted value, you have to decrypt it first!")
-
-    case .unknown(let json):
-      try json.encode(to: encoder)
+  internal var body: some View {
+    WithViewState(
+      from: self.controller,
+      at: \.loading
+    ) { (loading: Bool) in
+      WithViewState(
+        from: self.controller,
+        at: \.snackBarMessage
+      ) { (message: SnackBarMessage?) in
+        QRCodeScanningView(
+          process: self.controller.processPayload
+        )
+        .edgesIgnoringSafeArea(.bottom)
+        .snackBarMessage(
+          presenting: self.controller
+            .binding(
+              to: \.snackBarMessage
+            )
+        )
+      }
+      .loader(visible: loading)
     }
+    .navigationTitle(
+      displayable: .localized(
+        key: "otp.create.code.scanning.title"
+      )
+    )
   }
 }

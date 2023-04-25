@@ -33,7 +33,8 @@ internal struct OTPContextualMenuController {
 
   internal var copyCode: () -> Void
   internal var revealCode: () -> Void
-  internal var deleteCode: () -> Void
+  internal var editResource: () -> Void
+  internal var deleteResource: () -> Void
   internal var dismiss: () -> Void
 }
 
@@ -48,7 +49,7 @@ extension OTPContextualMenuController: ViewController {
   internal struct ViewState: Equatable {
 
     internal var title: DisplayableString
-    internal var deleteAvailable: Bool
+    internal var editAvailable: Bool
   }
 
   #if DEBUG
@@ -57,7 +58,8 @@ extension OTPContextualMenuController: ViewController {
       viewState: .placeholder(),
       copyCode: unimplemented0(),
       revealCode: unimplemented0(),
-      deleteCode: unimplemented0(),
+      editResource: unimplemented0(),
+      deleteResource: unimplemented0(),
       dismiss: unimplemented0()
     )
   }
@@ -82,11 +84,12 @@ extension OTPContextualMenuController {
 
     let navigationToSelf: NavigationToOTPContextualMenu = try features.instance()
     let navigationToOTPDeleteAlert: NavigationToOTPDeleteAlert = try features.instance()
+    let navigationToTOTPEdit: NavigationToTOTPEditForm = try features.instance()
 
     let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
         title: .raw("OTP"),
-        deleteAvailable: true
+        editAvailable: true
       )
     )
 
@@ -97,11 +100,11 @@ extension OTPContextualMenuController {
     ) {
       for await _ in resourceDetails.updates {
         let resource: Resource = try await resourceDetails.details()
-        let resourceName: String = resource.value(forField: "name")?.stringValue ?? ""
+        let resourceName: String = resource.value(forField: "name").stringValue ?? ""
 
         await viewState.update { (state: inout ViewState) in
           state.title = .raw(resourceName)
-          state.deleteAvailable = resource.permission.canEdit
+          state.editAvailable = resource.permission.canEdit
         }
       }
     }
@@ -153,10 +156,33 @@ extension OTPContextualMenuController {
       }
     }
 
-    nonisolated func deleteCode() {
+    nonisolated func editResource() {
       asyncExecutor.scheduleCatchingWith(
         diagnostics,
-        failMessage: "Deleting OTP in OTPContextualMenu failed!",
+        failMessage: "Editing OTP from OTPContextualMenu failed!",
+        behavior: .reuse
+      ) {
+        var message: SnackBarMessage?
+        do {
+          try await navigationToSelf.revert(animated: true)
+          
+          try await navigationToTOTPEdit.perform(context: context.resourceID)
+        }
+        catch {
+          diagnostics.log(error: error)
+          message = SnackBarMessage.error(error)
+        }  // continue - message will be displayed after dismiss
+
+        if let message {
+          await context.showMessage(message)
+        }  // else nothing to display
+      }
+    }
+
+    nonisolated func deleteResource() {
+      asyncExecutor.scheduleCatchingWith(
+        diagnostics,
+        failMessage: "Deleting OTP from OTPContextualMenu failed!",
         behavior: .reuse
       ) {
         var message: SnackBarMessage?
@@ -194,7 +220,8 @@ extension OTPContextualMenuController {
       viewState: viewState,
       copyCode: copyCode,
       revealCode: revealCode,
-      deleteCode: deleteCode,
+      editResource: editResource,
+      deleteResource: deleteResource,
       dismiss: dismiss
     )
   }

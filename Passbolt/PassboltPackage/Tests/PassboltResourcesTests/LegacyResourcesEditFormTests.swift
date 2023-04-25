@@ -34,14 +34,14 @@ import XCTest
 @testable import Resources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ResourcesEditFormTests: LoadableFeatureTestCase<LegacyResourceEditForm> {
+final class LegacyResourcesEditFormTests: LoadableFeatureTestCase<LegacyResourceEditForm> {
 
   override class var testedImplementationScope: any FeaturesScope.Type { ResourceEditScope.self }
 
   override class func testedImplementationRegister(
     _ registry: inout FeaturesRegistry
   ) {
-    registry.usePassboltResourceEditForm()
+    registry.usePassboltLegacyResourceEditForm()
   }
 
   override func prepare() throws {
@@ -127,7 +127,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<LegacyResourceEditFo
     // execute resource loading
     await self.mockExecutionControl.executeAll()
 
-    var result: Validated<ResourceFieldValue?>?
+    var result: Validated<ResourceFieldValue>?
     feature
       .validatedFieldValuePublisher(
         .init(
@@ -170,12 +170,12 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<LegacyResourceEditFo
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
-    let result: Validated<ResourceFieldValue?>? =
+    let result: Validated<ResourceFieldValue>? =
       try? await feature
       .validatedFieldValuePublisher(.name)
       .asAsyncValue()
 
-    XCTAssertNil(result?.value)
+    XCTAssertEqual(.string(""), result?.value)
   }
 
   func test_validatedFieldValuePublisher_returnsPublisherPublishingChages_whenResourceFieldValueChanges() async throws {
@@ -196,7 +196,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<LegacyResourceEditFo
     // execute resource loading
     await self.mockExecutionControl.executeAll()
 
-    var result: Validated<ResourceFieldValue?>?
+    var result: Validated<ResourceFieldValue>?
     feature
       .validatedFieldValuePublisher(.name)
       .sink(
@@ -236,7 +236,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<LegacyResourceEditFo
     // execute resource loading
     await self.mockExecutionControl.executeAll()
 
-    var result: Validated<ResourceFieldValue?>?
+    var result: Validated<ResourceFieldValue>?
     feature
       .validatedFieldValuePublisher(.name)
       .sink(
@@ -342,7 +342,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<LegacyResourceEditFo
     var result: Error?
     do {
       try await feature
-        .setFieldValue(.otp(.totp(sharedSecret: "secret", algorithm: .sha1, digits: 6, period: 30)), .name)
+        .setFieldValue(.totp(.init(sharedSecret: "secret", algorithm: .sha1, digits: 6, period: 30)), .name)
     }
     catch {
       result = error
@@ -674,7 +674,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<LegacyResourceEditFo
     // execute resource loading
     await self.mockExecutionControl.executeAll()
 
-    let result: Validated<ResourceFieldValue?> =
+    let result: Validated<ResourceFieldValue> =
       try await feature
       .validatedFieldValuePublisher(.name)
       .first()
@@ -793,7 +793,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<LegacyResourceEditFo
     await self.mockExecutionControl.executeAll()
 
     let result: String? =
-      try await feature.resource().value(forField: "uri")?.stringValue
+      try await feature.resource().value(forField: "uri").stringValue
 
     XCTAssertEqual(result, "https://passbolt.com/predefined")
   }

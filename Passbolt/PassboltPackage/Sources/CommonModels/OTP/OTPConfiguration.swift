@@ -23,16 +23,16 @@
 
 import Commons
 
-public struct OTPConfiguration {
+public struct TOTPConfiguration {
 
-  public var issuer: String?
+  public var issuer: String
   public var account: String
-  public var secret: OTPSecret
+  public var secret: TOTPSecret
 
   public init(
-    issuer: String?,
+    issuer: String,
     account: String,
-    secret: OTPSecret
+    secret: TOTPSecret
   ) {
     self.issuer = issuer
     self.account = account
@@ -40,5 +40,6 @@ public struct OTPConfiguration {
   }
 }
 
-extension OTPConfiguration: Sendable {}
-extension OTPConfiguration: Equatable {}
+extension TOTPConfiguration: Sendable {}
+
+extension TOTPConfiguration: Equatable {}

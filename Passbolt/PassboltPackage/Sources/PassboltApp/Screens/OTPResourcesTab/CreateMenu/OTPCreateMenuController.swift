@@ -62,7 +62,7 @@ extension OTPCreateMenuController {
 
     let navigationToSelf: NavigationToOTPCreateMenu = try features.instance()
     let navigationToQRCodeCreateOTPView: NavigationToOTPScanning = try features.instance()
-    let navigationToOTPEditForm: NavigationToOTPEditForm = try features.instance()
+    let navigationToTOTPEditForm: NavigationToTOTPEditForm = try features.instance()
 
     nonisolated func createFromQRCode() {
       asyncExecutor.scheduleCatchingWith(
@@ -81,7 +81,7 @@ extension OTPCreateMenuController {
         behavior: .reuse
       ) {
         try await navigationToSelf.revert()
-        try await navigationToOTPEditForm.perform()
+        try await navigationToTOTPEditForm.perform(context: .none)
       }
     }
 

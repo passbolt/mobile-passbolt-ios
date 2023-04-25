@@ -37,9 +37,10 @@ internal struct OTPScanningSuccessController {
 
 extension OTPScanningSuccessController: ViewController {
 
+  internal typealias Context = TOTPConfiguration
+
   internal struct ViewState: Equatable {
 
-    internal var editingResource: Bool
     internal var snackBarMessage: SnackBarMessage?
   }
 
@@ -62,19 +63,20 @@ extension OTPScanningSuccessController {
     features: Features,
     context: Context
   ) throws -> Self {
-    try features.ensureScope(OTPEditScope.self)
-    let editedResourceID: Resource.ID? = try? features.context(of: ResourceEditScope.self).resourceID
+    try features.ensureScope(SessionScope.self)
+    guard !features.checkScope(ResourceEditScope.self)
+    else {
+      throw InternalInconsistency
+        .error("OTPScanningSuccessController can't be used when editing a resource!")
+    }
 
     let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
-    let otpEditForm: OTPEditForm = try features.instance()
 
     let navigationToScanning: NavigationToOTPScanning = try features.instance()
 
     let viewState: MutableViewState<ViewState> = .init(
-      initial: .init(
-        editingResource: editedResourceID != nil
-      )
+      initial: .init()
     )
 
     nonisolated func createStandaloneOTP() {
@@ -83,7 +85,29 @@ extension OTPScanningSuccessController {
         behavior: .reuse
       ) {
         do {
-          try await otpEditForm.sendForm(.createStandalone)
+          let features: Features = await features.branch(
+            scope: ResourceEditScope.self,
+            context: .create(
+              .totp,
+              folderID: .none,
+              uri: .none
+            )
+          )
+          let resourceEditForm: ResourceEditForm = try await features.instance()
+          try await resourceEditForm.update(
+            ResourceField.valuePath(forName: "name"),
+            to: .string(context.account)
+          )
+          try await resourceEditForm.update(
+            ResourceField.valuePath(forName: "uri"),
+            to: .string(context.issuer)
+          )
+          try await resourceEditForm.update(
+            ResourceField.valuePath(forName: "totp"),
+            to: .totp(context.secret)
+          )
+          _ = try await resourceEditForm.sendForm()
+          try await navigationToScanning.revert()
         }
         catch {
           await viewState
@@ -93,7 +117,6 @@ extension OTPScanningSuccessController {
             )
           throw error
         }
-        try await navigationToScanning.revert()
       }
     }
 
@@ -104,7 +127,7 @@ extension OTPScanningSuccessController {
       ) {
         #warning("[MOB-1102] TODO: to complete when adding resources with OTP and password")
         do {
-          try await otpEditForm.sendForm(.createStandalone)
+          throw Unimplemented.error()
         }
         catch {
           await viewState
@@ -134,7 +157,7 @@ extension FeaturesRegistry {
         OTPScanningSuccessController.self,
         load: OTPScanningSuccessController.load(features:context:)
       ),
-      in: OTPEditScope.self
+      in: SessionScope.self
     )
   }
 }

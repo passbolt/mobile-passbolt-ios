@@ -29,6 +29,7 @@ extension FeaturesRegistry {
     self.usePassboltResourceDetails()
     self.usePassboltResourceShareForm()
     self.usePassboltResourceEditForm()
+    self.usePassboltLegacyResourceEditForm()
     self.usePassboltResourceFolders()
     self.usePassboltResources()
     self.usePassboltResourceTags()
@@ -36,7 +37,6 @@ extension FeaturesRegistry {
     self.usePassboltResourceFolderDetails()
     self.usePassboltResourceFolderEditForm()
     self.usePassboltOTPResources()
-    self.usePassboltOTPEditForm()
     self.usePassboltHOTPCodeGenerator()
     self.usePassboltTOTPCodeGenerator()
   }

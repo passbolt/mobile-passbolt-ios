@@ -35,7 +35,7 @@ import class Foundation.JSONEncoder
 
 // MARK: - Implementation
 
-extension LegacyResourceEditForm {
+extension ResourceEditForm {
 
   @MainActor fileprivate static func load(
     features: Features,
@@ -49,7 +49,6 @@ extension LegacyResourceEditForm {
     )
 
     let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
 
     let sessionData: SessionData = try features.instance()
     let usersPGPMessages: UsersPGPMessages = try features.instance()
@@ -61,137 +60,106 @@ extension LegacyResourceEditForm {
       try features.instance()
     let resourceFolderPathFetchDatabaseOperation: ResourceFolderPathFetchDatabaseOperation = try features.instance()
 
-    let formUpdates: UpdatesSequenceSource = .init()
-    let formState: CriticalState<Resource?> = .init(
-      .none,
-      cleanup: { _ in
-        // make sure that executor is captured
-        // and won't deallocate immediately
-        asyncExecutor.cancelTasks()
-      }
-    )
-
-    let initialLoading: AsyncExecutor.Execution = asyncExecutor.schedule {
-      do {
-        switch context {
-        case .create(let slug, let parentFolderID, let uri):
-          let resourceTypes: Array<ResourceType> = try await resourceTypesFetchDatabaseOperation()
-          guard let resourceType: ResourceType = resourceTypes.first(where: { $0.slug == slug })
-          else { throw InvalidResourceType.error() }
-          let folderPath: OrderedSet<ResourceFolderPathItem>
-          if let parentFolderID {
-            folderPath = try await resourceFolderPathFetchDatabaseOperation.execute(parentFolderID)
-          }
-          else {
-            folderPath = .init()
-          }
-          var resource: Resource = .init(
-            path: folderPath,
-            type: resourceType
-          )
-					if let value: ResourceFieldValue = uri.map({ .string($0.rawValue) }) {
-						try? resource.set(
-							value,
-							forField: "uri"
-						)
-					} // else skip
-          formState.set(\.self, resource)
-          formUpdates.sendUpdate()
-
-        case .edit(let resourceID):
-          let resourceDetails: ResourceDetails = try await features.instance(context: resourceID)
-          var editedResource = try await resourceDetails.details()
-          let resourceSecret: ResourceSecret = try await resourceDetails.secret()
-          for field in editedResource.encryptedFields {
-            // put all values from secret into the resource
-            try editedResource
-              .set(
-                resourceSecret
-                  .value(for: field),
-                for: field
-              )
-          }
-          formState.set(\.self, editedResource)
-          formUpdates.sendUpdate()
+    let formState: MutableState<Resource> = .init {
+      switch context {
+      case .create(let slug, let parentFolderID, let uri):
+        let resourceTypes: Array<ResourceType> = try await resourceTypesFetchDatabaseOperation()
+        guard let resourceType: ResourceType = resourceTypes.first(where: { $0.slug == slug })
+        else { throw InvalidResourceType.error() }
+        let folderPath: OrderedSet<ResourceFolderPathItem>
+        if let parentFolderID {
+          folderPath = try await resourceFolderPathFetchDatabaseOperation.execute(parentFolderID)
         }
-      }
-      catch {
-        diagnostics.log(error: error)
-        formUpdates.sendUpdate()
-      }
-    }
-
-    let formStatePublisher: AnyPublisher<Resource, Never> = formUpdates
-      .updatesSequence
-      .compactMap {
-        await initialLoading.waitForCompletion()
-        return formState.get(\.self)
-      }
-      .asPublisher()
-
-    @Sendable nonisolated func resource() async throws -> Resource {
-      await initialLoading.waitForCompletion()
-      if let state: Resource = formState.get(\.self) {
-        return state
-      }
-      else {
-        throw
-          InvalidForm
-          .error(displayable: "resource.form.error.invalid")
-      }
-    }
-
-    @Sendable nonisolated func fieldsPublisher() -> AnyPublisher<OrderedSet<ResourceField>, Never> {
-      formStatePublisher
-        .map(\.fields)
-        .removeDuplicates()
-        .eraseToAnyPublisher()
-    }
-
-    @Sendable nonisolated func setFieldValue(
-      _ value: ResourceFieldValue,
-      for field: ResourceField
-    ) async throws {
-      await initialLoading.waitForCompletion()
-      try formState.access { (state: inout Resource?) in
-        try state?.set(value, for: field)
-      }
-      formUpdates.sendUpdate()
-    }
-
-    @Sendable nonisolated func validatedFieldValuePublisher(
-      for field: ResourceField
-    ) -> AnyPublisher<Validated<ResourceFieldValue>, Never> {
-      let validator: Validator<ResourceFieldValue> = field.validator
-      return
-        formStatePublisher
-        .map { (resource: Resource) -> ResourceFieldValue in
-          resource.value(for: field)
+        else {
+          folderPath = .init()
         }
-        .removeDuplicates()
-        .map { (fieldValue: ResourceFieldValue) -> Validated<ResourceFieldValue> in
-          validator.validate(fieldValue)
-        }
-        .replaceError(
-          with: .invalid(
-            .unknown(.null),
-            error: InvalidValue.alwaysInvalid(
-              value: ResourceFieldValue.unknown(.null),
-              displayable: "error.generic"
-            )
-          )
+        var resource: Resource = .init(
+          path: folderPath,
+          type: resourceType
         )
-        .eraseToAnyPublisher()
+
+        for field in resource.encryptedFields {
+          let initialValue: ResourceFieldValue
+          switch field.content {
+          case .string:
+            initialValue = .string("")
+
+          case .totp:
+            initialValue = .totp(
+              .init(
+                sharedSecret: "",
+                algorithm: .sha1,
+                digits: 6,
+                period: 30
+              )
+            )
+
+          case .unknown:
+            initialValue = .unknown(.null)
+          }
+          // put default values into the secret
+          try resource
+            .set(
+              initialValue,
+              for: field
+            )
+        }
+
+        if
+          let value: ResourceFieldValue = uri.map({ .string($0.rawValue) }),
+          resource.fields.contains(where: { $0.name == "uri" })
+        {
+          try resource.set(
+            value,
+            forField: "uri"
+          )
+        } // else skip
+
+        return resource
+
+      case .edit(let resourceID):
+        let resourceDetails: ResourceDetails = try await features.instance(context: resourceID)
+        var editedResource = try await resourceDetails.details()
+        let resourceSecret: ResourceSecret = try await resourceDetails.secret()
+        for field in editedResource.encryptedFields {
+          // put all values from secret into the resource
+          try editedResource
+            .set(
+              resourceSecret
+                .value(for: field),
+              for: field
+            )
+        }
+        
+        return editedResource
+      }
+    }
+
+    @Sendable nonisolated func update(
+      _ fieldPath: ResourceField.ValuePath,
+      to newValue: ResourceFieldValue
+    ) async throws -> Validated<ResourceFieldValue> {
+      try await formState.update { (resource: inout Resource) in
+        try resource.set(newValue, for: fieldPath)
+      }
+    }
+
+    @Sendable nonisolated func updatableTOTPField(
+      _ fieldPath: ResourceField.ValuePath
+    ) async throws -> ResourceTOTPFieldProxy {
+      ResourceTOTPFieldProxy(
+        fieldPath: fieldPath,
+        access: { (update: (inout Resource) throws -> Void) async throws in
+          try await formState.update { (resource: inout Resource) in
+            try update(&resource)
+            return resource
+          }
+        }
+      )
     }
 
     @Sendable nonisolated func sendForm() async throws -> Resource.ID {
-      await initialLoading.waitForCompletion()
-      guard let resource: Resource = formState.get(\.self)
-      else {
-        throw
-          InvalidForm
-          .error(displayable: "resource.form.error.invalid")
-      }
+      let resource: Resource = try await formState.value
 
       do {
         try resource.validate()
@@ -199,14 +167,14 @@ extension LegacyResourceEditForm {
       catch {
         diagnostics.log(error: error)
         throw
-          InvalidForm
+        InvalidForm
           .error(displayable: "resource.form.error.invalid")
       }
 
       guard case .string(let resourceName) = resource.value(forField: "name")
       else {
         throw
-          InvalidInputData
+        InvalidInputData
           .error(message: "Missing resource name")
       }
 
@@ -215,7 +183,7 @@ extension LegacyResourceEditForm {
       let encodedSecret: String
       do {
         if secretFields.count == 1,
-          case let .string(password) = resource.value(forField: "password")
+           case let .string(password) = resource.value(forField: "password")
         {
           encodedSecret = password
         }
@@ -229,7 +197,7 @@ extension LegacyResourceEditForm {
           guard let secretString: String = try? String(data: JSONEncoder().encode(secretFieldsValues), encoding: .utf8)
           else {
             throw
-              InvalidInputData
+            InvalidInputData
               .error(message: "Failed to encode resource secret")
           }
 
@@ -238,13 +206,13 @@ extension LegacyResourceEditForm {
       }
       catch {
         throw
-          InvalidResourceData
+        InvalidResourceData
           .error(underlyingError: error)
       }
 
       if let resourceID: Resource.ID = resource.id {
         let encryptedSecrets: OrderedSet<EncryptedMessage> =
-          try await usersPGPMessages
+        try await usersPGPMessages
           .encryptMessageForResourceUsers(resourceID, encodedSecret)
 
         let updatedResourceID: Resource.ID = try await resourceEditNetworkOperation(
@@ -259,7 +227,7 @@ extension LegacyResourceEditForm {
             secrets: encryptedSecrets.map { (userID: $0.recipient, data: $0.message) }
           )
         )
-        .resourceID
+          .resourceID
 
         do {
           try await sessionData.refreshIfNeeded()
@@ -282,7 +250,7 @@ extension LegacyResourceEditForm {
             .first
         else {
           throw
-            UserSecretMissing
+          UserSecretMissing
             .error()
         }
 
@@ -300,7 +268,7 @@ extension LegacyResourceEditForm {
 
         if let folderID: ResourceFolder.ID = resource.parentFolderID {
           let encryptedSecrets: OrderedSet<EncryptedMessage> =
-            try await usersPGPMessages
+          try await usersPGPMessages
             .encryptMessageForResourceFolderUsers(folderID, encodedSecret)
             .filter { encryptedMessage in
               encryptedMessage.recipient != currentAccount.userID
@@ -308,10 +276,10 @@ extension LegacyResourceEditForm {
             .asOrderedSet()
 
           let folderPermissions: Array<ResourceFolderPermission> =
-            try await resourceFolderPermissionsFetchDatabaseOperation(folderID)
+          try await resourceFolderPermissionsFetchDatabaseOperation(folderID)
 
           let newPermissions: Array<NewGenericPermissionDTO> =
-            folderPermissions
+          folderPermissions
             .compactMap { (permission: ResourceFolderPermission) -> NewGenericPermissionDTO? in
               switch permission {
               case let .user(id, permission, _):
@@ -332,7 +300,7 @@ extension LegacyResourceEditForm {
             }
 
           let updatedPermissions: Array<GenericPermissionDTO> =
-            folderPermissions
+          folderPermissions
             .compactMap { (permission: ResourceFolderPermission) -> GenericPermissionDTO? in
               if case .user(currentAccount.userID, let permission, _) = permission, permission != .owner {
                 return .userToResource(
@@ -395,12 +363,11 @@ extension LegacyResourceEditForm {
       }
     }
 
-    return Self(
-      updates: formUpdates.updatesSequence,
-      resource: resource,
-      fieldsPublisher: fieldsPublisher,
-      setFieldValue: setFieldValue(_:for:),
-      validatedFieldValuePublisher: validatedFieldValuePublisher(for:),
+
+    return .init(
+      state: .init(viewing: formState),
+      update: update(_:to:),
+      updatableTOTPField: updatableTOTPField(_:),
       sendForm: sendForm
     )
   }
@@ -408,11 +375,11 @@ extension LegacyResourceEditForm {
 
 extension FeaturesRegistry {
 
-  internal mutating func usePassboltLegacyResourceEditForm() {
+  internal mutating func usePassboltResourceEditForm() {
     self.use(
       .lazyLoaded(
-        LegacyResourceEditForm.self,
-        load: LegacyResourceEditForm.load(features:cancellables:)
+        ResourceEditForm.self,
+        load: ResourceEditForm.load(features:cancellables:)
       ),
       in: ResourceEditScope.self
     )

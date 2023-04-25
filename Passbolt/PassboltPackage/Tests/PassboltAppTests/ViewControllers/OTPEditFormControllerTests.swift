@@ -25,19 +25,14 @@ import TestExtensions
 
 @testable import PassboltApp
 
-final class OTPEditFormControllerTests: LoadableFeatureTestCase<OTPEditFormController> {
+final class OTPEditFormControllerTests: FeaturesTestCase {
 
-  override class var testedImplementationScope: any FeaturesScope.Type {
-    SessionScope.self
-  }
-
-  override class func testedImplementationRegister(
-    _ registry: inout FeaturesRegistry
-  ) {
-    registry.useLiveOTPEditFormController()
-  }
-
-  override func prepare() throws {
+  override func commonPrepare() {
+    super.commonPrepare()
+    register(
+      { $0.useLiveTOTPEditFormController() },
+      for: TOTPEditFormController.self
+    )
     set(
       SessionScope.self,
       context: .init(
@@ -45,42 +40,68 @@ final class OTPEditFormControllerTests: LoadableFeatureTestCase<OTPEditFormContr
         configuration: .mock_default
       )
     )
-    set(OTPEditScope.self)
-  }
-
-  func test_viewState_loadsFromFormState_initially() {
-    patch(
-      \OTPEditForm.state,
-      with: always(
-        .init(
-          name: .valid("name"),
-          uri: .invalid(
-            "uri",
-            error: MockIssue.error()
-          ),
-          secret: .valid(""),
-          algorithm: .valid(.sha256),
-          digits: .valid(7),
-          type: .totp(
-            period: .valid(32)
-          )
-        )
+    set(
+      ResourceEditScope.self,
+      context: .create(
+        .totp,
+        folderID: .none,
+        uri: .none
       )
     )
-    withTestedInstanceReturnsEqual(
-      OTPEditFormController.ViewState(
-        nameField: .valid("name"),
-        uriField: .invalid(
-          "uri",
-          error: MockIssue.error()
+  }
+
+  func test_viewState_loadsFromFormState_initially() async throws {
+    var resource: Resource = .init(
+      type: .mock_totp
+    )
+    try resource
+      .set(
+        .string("name"),
+        for: ResourceField.valuePath(forName: "name")
+      )
+    try resource
+      .set(
+        .totp(
+          .init(
+            sharedSecret: "SECRET",
+            algorithm: .sha256,
+            digits: 7,
+            period: 32
+          )
         ),
-        secretField: .valid(""),
+        for: ResourceField.valuePath(forName: "totp")
+      )
+    let mutableState: MutableState<Resource> = .init(initial: resource)
+    patch(
+      \ResourceEditForm.state,
+       with: .init(viewing: mutableState)
+    )
+    patch(
+      \ResourceEditForm.updatableTOTPField,
+       with: always(.init(
+        fieldPath: ResourceField.valuePath(forName: "totp"),
+        access: { (access) throws in
+          try await mutableState.update { state in
+            try access(&state)
+            return state
+          }
+        }
+       ))
+    )
+
+    let feature: TOTPEditFormController = try self.testedInstance(context: .none)
+
+    await self.asyncExecutionControl.executeAll()
+
+    await XCTAssertValue(
+      equal: TOTPEditFormController.ViewState(
+        nameField: .valid("name"),
+        uriField: .valid(""),
+        secretField: .valid("SECRET"),
         snackBarMessage: .none
       )
-    ) { feature in
-      await self.mockExecutionControl.executeAll()
-
-      return await feature.viewState.value
+    ) {
+      feature.viewState.value
     }
   }
 }

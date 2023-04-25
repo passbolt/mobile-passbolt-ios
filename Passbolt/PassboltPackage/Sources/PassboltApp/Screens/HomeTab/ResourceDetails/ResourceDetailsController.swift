@@ -133,7 +133,7 @@ extension ResourceDetailsController: UIController {
             resources
               .loadResourceSecret(context)
               .map { resourceSecret -> String in
-                resourceSecret.value(for: field)?.stringValue ?? ""
+                resourceSecret.value(for: field).stringValue ?? ""
               }
               .handleEvents(receiveOutput: { _ in
                 revealedFields.insert(field)
@@ -159,7 +159,7 @@ extension ResourceDetailsController: UIController {
           guard
             let resource = resourceWithConfig?.resource,
             let resourceID = resource.id,
-            let field: ResourceField = resource.type.uri
+            let field: ResourceField = resource.type.field(named: "uri")
           else {
             return Fail<Void, Error>(error: InvalidResourceData.error())
               .eraseToAnyPublisher()
@@ -171,7 +171,7 @@ extension ResourceDetailsController: UIController {
                 resources
                   .loadResourceSecret(resourceID)
                   .map { resourceSecret -> AnyPublisher<String, Error> in
-                    if let secret: String = resourceSecret.value(for: field)?.stringValue {
+                    if let secret: String = resourceSecret.value(for: field).stringValue {
                       return Just(secret)
                         .eraseErrorType()
                         .eraseToAnyPublisher()
@@ -195,7 +195,7 @@ extension ResourceDetailsController: UIController {
               .switchToLatest()
               .eraseToAnyPublisher()
           }
-          else if let value: String = resource.value(forField: "uri")?.stringValue {
+          else if let value: String = resource.value(forField: "uri").stringValue {
             return Just(Void())
               .eraseErrorType()
               .handleEvents(receiveOutput: { _ in
@@ -219,7 +219,7 @@ extension ResourceDetailsController: UIController {
           guard
             let resource = resourceWithConfig?.resource,
             let resourceID = resource.id,
-            let field: ResourceField = resource.type.password
+            let field: ResourceField = resource.type.field(named: "password")
           else {
             return Fail<Void, Error>(error: InvalidResourceData.error())
               .eraseToAnyPublisher()
@@ -231,7 +231,7 @@ extension ResourceDetailsController: UIController {
                 resources
                   .loadResourceSecret(resourceID)
                   .map { resourceSecret -> AnyPublisher<String, Error> in
-                    if let secret: String = resourceSecret.value(for: field)?.stringValue {
+                    if let secret: String = resourceSecret.value(for: field).stringValue {
                       return Just(secret)
                         .eraseErrorType()
                         .eraseToAnyPublisher()
@@ -271,7 +271,7 @@ extension ResourceDetailsController: UIController {
           guard
             let resource = resourceWithConfig?.resource,
             let resourceID = resource.id,
-            let field: ResourceField = resource.type.username
+            let field: ResourceField = resource.type.field(named: "username")
           else {
             return Fail<Void, Error>(error: InvalidResourceData.error())
               .eraseToAnyPublisher()
@@ -283,7 +283,7 @@ extension ResourceDetailsController: UIController {
                 resources
                   .loadResourceSecret(resourceID)
                   .map { resourceSecret -> AnyPublisher<String, Error> in
-                    if let secret: String = resourceSecret.value(for: field)?.stringValue {
+                    if let secret: String = resourceSecret.value(for: field).stringValue {
                       return Just(secret)
                         .eraseErrorType()
                         .eraseToAnyPublisher()
@@ -307,7 +307,7 @@ extension ResourceDetailsController: UIController {
               .switchToLatest()
               .eraseToAnyPublisher()
           }
-          else if let value: String = resource.value(for: field)?.stringValue {
+          else if let value: String = resource.value(for: field).stringValue {
             return Just(Void())
               .eraseErrorType()
               .handleEvents(receiveOutput: { _ in
@@ -331,7 +331,7 @@ extension ResourceDetailsController: UIController {
           guard
             let resource = resourceWithConfig?.resource,
             let resourceID = resource.id,
-            let field: ResourceField = resource.type.description
+            let field: ResourceField = resource.type.field(named: "description")
           else {
             return Fail<Void, Error>(error: InvalidResourceData.error())
               .eraseToAnyPublisher()
@@ -343,7 +343,7 @@ extension ResourceDetailsController: UIController {
                 resources
                   .loadResourceSecret(resourceID)
                   .map { resourceSecret -> AnyPublisher<String, Error> in
-                    if let secret: String = resourceSecret.value(for: field)?.stringValue {
+                    if let secret: String = resourceSecret.value(for: field).stringValue {
                       return Just(secret)
                         .eraseErrorType()
                         .eraseToAnyPublisher()
@@ -367,7 +367,7 @@ extension ResourceDetailsController: UIController {
               .switchToLatest()
               .eraseToAnyPublisher()
           }
-          else if let value: String = resource.value(for: field)?.stringValue {
+          else if let value: String = resource.value(for: field).stringValue {
             return Just(Void())
               .eraseErrorType()
               .handleEvents(receiveOutput: { _ in

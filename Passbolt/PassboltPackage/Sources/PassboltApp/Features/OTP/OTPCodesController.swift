@@ -84,35 +84,18 @@ extension OTPCodesController {
     @Sendable nonisolated func requestOTPCodeGenerator(
       for resourceID: Resource.ID
     ) async throws -> OTPCodesGenerator {
-      let secret: OTPSecret = try await otpResources.secretFor(resourceID)
-      switch secret {
-      case .totp(let sharedSecret, let algorithm, let digits, let period):
-        let totpCodeGenerator: TOTPCodeGenerator = try await features.instance(
-          context: .init(
-            resourceID: resourceID,
-            sharedSecret: sharedSecret,
-            algorithm: algorithm,
-            digits: digits,
-            period: period
-          )
+      let totp: TOTPSecret = try await otpResources.secretFor(resourceID)
+      let totpCodeGenerator: TOTPCodeGenerator = try await features.instance(
+        context: .init(
+          resourceID: resourceID,
+          sharedSecret: totp.sharedSecret,
+          algorithm: totp.algorithm,
+          digits: totp.digits,
+          period: totp.period
         )
-        return {
-          .totp(totpCodeGenerator.generate())
-        }
-
-      case .hotp(let sharedSecret, let algorithm, let digits, let counter):
-        let hotpCodeGenerator: HOTPCodeGenerator = try await features.instance(
-          context: .init(
-            resourceID: resourceID,
-            sharedSecret: sharedSecret,
-            algorithm: algorithm,
-            digits: digits
-          )
-        )
-        #warning("[MOB-1096] TODO: add full support for HOTP - increment counter")
-        return {
-          .hotp(hotpCodeGenerator.generate(counter))
-        }
+      )
+      return {
+        .totp(totpCodeGenerator.generate())
       }
     }
 
@@ -189,8 +172,15 @@ private typealias OTPCodesGenerator = @Sendable () -> OTPValue
 private enum OTPControllerState {
 
   case idle
-  case requested(Resource.ID, task: Task<OTPCodesGenerator, Error>)
-  case active(Resource.ID, generator: OTPCodesGenerator, updatesTask: Task<Void, Never>)
+  case requested(
+    Resource.ID,
+    task: Task<OTPCodesGenerator, Error>
+  )
+  case active(
+    Resource.ID,
+    generator: OTPCodesGenerator,
+    updatesTask: Task<Void, Never>
+  )
 }
 
 extension OTPControllerState {

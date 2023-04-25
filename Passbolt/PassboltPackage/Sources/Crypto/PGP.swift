@@ -161,7 +161,7 @@ extension PGP {
             underlyingError:
               PassphraseInvalid
               .error("Invalid passphrase used for encryption with signature")
-              .recording(passphrase, for: "v")
+              .recording(passphrase, for: "passphrase")
               .recording(nsError, for: "goError")
           )
         )

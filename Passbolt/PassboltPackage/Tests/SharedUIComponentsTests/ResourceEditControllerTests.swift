@@ -159,7 +159,7 @@ final class ResourceEditControllerTests: FeaturesTestCase {
 
   func test_passwordEntropyPublisher_publishes_whenFieldPublisher_publishes() async throws {
 
-    let fieldValueSubject: PassthroughSubject<Validated<ResourceFieldValue?>, Never> = .init()
+    let fieldValueSubject: PassthroughSubject<Validated<ResourceFieldValue>, Never> = .init()
     patch(
       \LegacyResourceEditForm.validatedFieldValuePublisher,
       with: always(fieldValueSubject.eraseToAnyPublisher())

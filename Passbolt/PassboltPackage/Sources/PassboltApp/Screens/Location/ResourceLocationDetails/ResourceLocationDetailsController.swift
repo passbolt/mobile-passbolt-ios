@@ -75,7 +75,7 @@ extension ResourceLocationDetailsController {
     asyncExecutor.schedule {
       do {
         let details: Resource! = try await resourceDetails.details()
-        let resourceName = details.value(forField: "name")?.stringValue ?? ""
+        let resourceName = details.value(forField: "name").stringValue ?? ""
         var path: FolderLocationTreeView.Node = details.path.reduce(
           into: FolderLocationTreeView.Node.root()
         ) { (partialResult: inout FolderLocationTreeView.Node, item: ResourceFolderPathItem) in

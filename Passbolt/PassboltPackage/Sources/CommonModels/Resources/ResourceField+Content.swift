@@ -60,14 +60,13 @@ extension ResourceField.Content {
 extension ResourceField {
 
   public func accepts(
-    _ value: ResourceFieldValue?
+    _ value: ResourceFieldValue
   ) -> Bool {
-    guard case .some = value else { return true }
     switch (self.content, value) {
     case (.string, .string):
       return true
 
-    case (.totp, .otp(.totp)):
+    case (.totp, .totp):
       return true
 
     case (.unknown, .unknown):

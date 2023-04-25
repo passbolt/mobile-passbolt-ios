@@ -481,6 +481,7 @@ Contact your administrator for more information.";
 "otp.contextual.menu.copy.title" = "Copy TOTP";
 "otp.copied.message" = "TOTP copied to your clipboard!";
 "otp.contextual.menu.reveal.title" = "Show TOTP";
+"otp.contextual.menu.edit.title" = "Edit TOTP";
 "otp.contextual.menu.delete.title" = "Delete TOTP";
 "otp.contextual.menu.delete.confirm.title" = "Are you sure?";
 "otp.contextual.menu.delete.confirm.message" = "This action will pernamently delete the TOTP.";
@@ -505,6 +506,7 @@ scanned!";
 // OTP form
 
 "otp.edit.form.create.title" = "Create TOTP";
+"otp.edit.form.edit.title" = "Edit TOTP";
 "otp.edit.form.field.name.title" = "Name (Label)";
 "otp.edit.form.field.name.prompt" = "Name";
 "otp.edit.form.field.uri.title" = "URL (Issuer)";
@@ -513,6 +515,7 @@ scanned!";
 "otp.edit.form.field.secret.prompt" = "Secret";
 "otp.edit.form.advanced.button.title" = "Advanced settings";
 "otp.edit.form.create.button.title" = "Create standalone TOTP";
+"otp.edit.form.edit.button.title" = "Save";
 "otp.edit.form.edit.advanced.title" = "Create TOTP - advanced settings";
 "otp.edit.form.edit.advanced.warning" = "Advanced settings have to match your TOTP provider settings otherwise it won’t work.";
 "otp.edit.form.field.digits.title" = "TOTP length";

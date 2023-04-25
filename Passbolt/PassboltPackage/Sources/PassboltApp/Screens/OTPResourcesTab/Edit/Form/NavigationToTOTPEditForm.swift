@@ -21,6 +21,30 @@
 // @since         v1.0
 //
 
-import CommonModels
+import Display
 
-public enum OTPEditScope: FeaturesScope {}
+internal enum TOTPEditFormNavigationDestination: NavigationDestination {
+
+  internal typealias TransitionContext = Resource.ID?
+}
+
+internal typealias NavigationToTOTPEditForm = NavigationTo<TOTPEditFormNavigationDestination>
+
+extension NavigationToTOTPEditForm {
+
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(
+      to: TOTPEditFormView.self
+    )
+  }
+}
+
+extension FeaturesRegistry {
+
+  internal mutating func useLiveNavigationToTOTPEditForm() {
+    self.use(
+      NavigationToTOTPEditForm.live,
+      in: SessionScope.self
+    )
+  }
+}

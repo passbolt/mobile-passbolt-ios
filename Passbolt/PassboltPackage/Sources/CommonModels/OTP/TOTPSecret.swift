@@ -21,39 +21,37 @@
 // @since         v1.0
 //
 
-import Display
-import UICommons
+public struct TOTPSecret {
 
-internal struct OTPScanningView: ControlledView {
+  public var sharedSecret: String
+  public var algorithm: HOTPAlgorithm
+  public var digits: UInt
+  public var period: Seconds
 
-  private let controller: OTPScanningController
-
-  internal init(
-    controller: OTPScanningController
+  public init(
+    sharedSecret: String,
+    algorithm: HOTPAlgorithm,
+    digits: UInt,
+    period: Seconds
   ) {
-    self.controller = controller
+    self.sharedSecret = sharedSecret
+    self.algorithm = algorithm
+    self.digits = digits
+    self.period = period
   }
+}
 
-  internal var body: some View {
-    WithViewState(
-      from: self.controller,
-      at: \.snackBarMessage
-    ) { (message: SnackBarMessage?) in
-      QRCodeScanningView(
-        process: self.controller.processPayload
-      )
-      .edgesIgnoringSafeArea(.bottom)
-      .snackBarMessage(
-        presenting: self.controller
-          .binding(
-            to: \.snackBarMessage
-          )
-      )
-    }
-    .navigationTitle(
-      displayable: .localized(
-        key: "otp.create.code.scanning.title"
-      )
-    )
+extension TOTPSecret: Sendable {}
+
+extension TOTPSecret: Equatable {}
+
+extension TOTPSecret: Codable {
+
+  private enum CodingKeys: String, CodingKey {
+
+    case sharedSecret = "key"
+    case algorithm = "algorithm"
+    case digits = "digits"
+    case period = "period"
   }
 }

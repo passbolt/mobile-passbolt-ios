@@ -40,13 +40,13 @@ public struct OTPResources {
   /// Note that secret is not directly cached,
   /// each access to secret will request whole
   /// resource secret from the backend.
-  public var secretFor: @Sendable (Resource.ID) async throws -> OTPSecret
+  public var secretFor: @Sendable (Resource.ID) async throws -> TOTPSecret
 
   public init(
     updates: UpdatesSequence,
     refreshIfNeeded: @escaping @Sendable () async throws -> Void,
     filteredList: @escaping @Sendable (OTPResourcesFilter) async throws -> Array<ResourceListItemDSV>,
-    secretFor: @escaping @Sendable (Resource.ID) async throws -> OTPSecret
+    secretFor: @escaping @Sendable (Resource.ID) async throws -> TOTPSecret
   ) {
     self.updates = updates
     self.refreshIfNeeded = refreshIfNeeded

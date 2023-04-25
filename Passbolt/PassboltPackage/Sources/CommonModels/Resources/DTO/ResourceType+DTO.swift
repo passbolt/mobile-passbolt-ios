@@ -33,7 +33,7 @@ extension ResourceTypeDTO: Decodable {
     let container: KeyedDecodingContainer<ResourceTypeDTO.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
     self.id = try container.decode(ResourceType.ID.self, forKey: .id)
     self.slug = try container.decode(ResourceType.Slug.self, forKey: .slug)
-    self._name = try container.decode(String.self, forKey: .name)
+    self.name = try container.decode(String.self, forKey: .name)
 
     let fieldsDefinition: FieldsDefinition = try container.decode(FieldsDefinition.self, forKey: .definition)
     self.fields = fieldsDefinition.fields

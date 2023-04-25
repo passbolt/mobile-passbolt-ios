@@ -26,7 +26,7 @@ public struct ResourceField {
   public typealias ValuePath = WritableKeyPath<Dictionary<String, ResourceFieldValue>, ResourceFieldValue?>
 
   // used only to refer certain fields from code
-  internal static func valuePath(
+  public static func valuePath(
     forName name: StaticString
   ) -> ValuePath {
     \Dictionary<String, ResourceFieldValue>[name.description]

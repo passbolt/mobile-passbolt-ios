@@ -77,7 +77,7 @@ final class OTPCodesControllerTests: LoadableFeatureTestCase<OTPCodesController>
     patch(
       \OTPResources.secretFor,
       with: always(
-        .totp(
+        .init(
           sharedSecret: "MOCK",
           algorithm: .sha1,
           digits: 6,
@@ -133,7 +133,7 @@ final class OTPCodesControllerTests: LoadableFeatureTestCase<OTPCodesController>
     patch(
       \OTPResources.secretFor,
       with: always(
-        .totp(
+        .init(
           sharedSecret: "MOCK",
           algorithm: .sha1,
           digits: 6,
@@ -175,7 +175,7 @@ final class OTPCodesControllerTests: LoadableFeatureTestCase<OTPCodesController>
     patch(
       \OTPResources.secretFor,
       with: always(
-        .totp(
+        .init(
           sharedSecret: "MOCK",
           algorithm: .sha1,
           digits: 6,
@@ -217,7 +217,7 @@ final class OTPCodesControllerTests: LoadableFeatureTestCase<OTPCodesController>
     patch(
       \OTPResources.secretFor,
       with: always(
-        .totp(
+        .init(
           sharedSecret: "MOCK",
           algorithm: .sha1,
           digits: 6,
@@ -305,7 +305,7 @@ final class OTPCodesControllerTests: LoadableFeatureTestCase<OTPCodesController>
     patch(
       \OTPResources.secretFor,
       with: always(
-        .totp(
+        .init(
           sharedSecret: "MOCK",
           algorithm: .sha1,
           digits: 6,

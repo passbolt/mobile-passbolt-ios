@@ -25,19 +25,14 @@ import TestExtensions
 
 @testable import PassboltApp
 
-final class OTPScanningSuccessControllerTests: LoadableFeatureTestCase<OTPScanningSuccessController> {
+final class OTPScanningSuccessControllerTests: FeaturesTestCase {
 
-  override class var testedImplementationScope: any FeaturesScope.Type {
-    OTPEditScope.self
-  }
-
-  override class func testedImplementationRegister(
-    _ registry: inout FeaturesRegistry
-  ) {
-    registry.useLiveOTPScanningSuccessController()
-  }
-
-  override func prepare() throws {
+  override func commonPrepare() {
+    super.commonPrepare()
+    register(
+      { $0.useLiveOTPScanningSuccessController() },
+      for: OTPScanningSuccessController.self
+    )
     set(
       SessionScope.self,
       context: .init(
@@ -45,36 +40,102 @@ final class OTPScanningSuccessControllerTests: LoadableFeatureTestCase<OTPScanni
         configuration: .mock_default
       )
     )
-    set(OTPEditScope.self)
   }
 
-  func test_createStandaloneOTP_navigatesBack_whenSucceeded() {
+  func test_createStandaloneOTP_navigatesBack_whenSucceeded() async throws {
     patch(
       \NavigationToOTPScanning.mockRevert,
-      with: always(self.executed())
+       with: always(self.dynamicVariables.executed = Void())
     )
     patch(
-      \OTPEditForm.sendForm,
-      with: always(Void())
+      \ResourceEditForm.update,
+       with: always(.valid(.unknown(.null)))
     )
-    withTestedInstanceExecuted { feature in
-      feature.createStandaloneOTP()
-      await self.mockExecutionControl.executeAll()
-    }
+    patch(
+      \ResourceEditForm.sendForm,
+       with: always(.mock_1)
+    )
+
+    let feature: OTPScanningSuccessController = try self.testedInstance(
+      context: .init(
+        issuer: "https://passbolt.com",
+        account: "user_automated@passbolt.com",
+        secret: .init(
+          sharedSecret: "AAAA",
+          algorithm: .sha1,
+          digits: 6,
+          period: 30
+        )
+      )
+    )
+    feature.createStandaloneOTP()
+    await self.asyncExecutionControl.executeAll()
+
+    XCTAssertNotNil(self.dynamicVariables.getIfPresent(\.executed, of: Void.self))
   }
 
-  func test_updateExistingResource_navigatesBack_whenSucceeded() {
+  func test_createStandaloneOTP_doesNotNavigate_whenFailed() async throws {
     patch(
       \NavigationToOTPScanning.mockRevert,
-      with: always(self.executed())
+       with: always(self.dynamicVariables.executed = Void())
     )
     patch(
-      \OTPEditForm.sendForm,
-      with: always(Void())
+      \ResourceEditForm.update,
+       with: always(.valid(.unknown(.null)))
     )
-    withTestedInstanceExecuted { feature in
-      feature.updateExistingResource()
-      await self.mockExecutionControl.executeAll()
+    patch(
+      \ResourceEditForm.sendForm,
+       with: alwaysThrow(MockIssue.error())
+    )
+
+    let feature: OTPScanningSuccessController = try self.testedInstance(
+      context: .init(
+        issuer: "https://passbolt.com",
+        account: "user_automated@passbolt.com",
+        secret: .init(
+          sharedSecret: "AAAA",
+          algorithm: .sha1,
+          digits: 6,
+          period: 30
+        )
+      )
+    )
+    feature.createStandaloneOTP()
+    await self.asyncExecutionControl.executeAll()
+
+    XCTAssertNil(self.dynamicVariables.getIfPresent(\.executed, of: Void.self))
+  }
+
+  func test_createStandaloneOTP_presentsError_whenFailed() async throws {
+    patch(
+      \ResourceEditForm.update,
+       with: always(.valid(.unknown(.null)))
+    )
+    patch(
+      \ResourceEditForm.sendForm,
+       with: alwaysThrow(MockIssue.error())
+    )
+
+    let feature: OTPScanningSuccessController = try self.testedInstance(
+      context: .init(
+        issuer: "https://passbolt.com",
+        account: "user_automated@passbolt.com",
+        secret: .init(
+          sharedSecret: "AAAA",
+          algorithm: .sha1,
+          digits: 6,
+          period: 30
+        )
+      )
+    )
+    feature.createStandaloneOTP()
+    await self.asyncExecutionControl.executeAll()
+
+    await XCTAssertValue(
+      equal: SnackBarMessage
+        .error("testLocalizationKey")
+    ) {
+      feature.viewState.snackBarMessage
     }
   }
 }

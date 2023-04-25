@@ -105,6 +105,41 @@ extension AsyncExecutor {
       }
     )
   }
+
+  @discardableResult @_transparent
+  public func scheduleCatching(
+    with diagnostics: OSDiagnostics,
+    failMessage: StaticString? = .none,
+    behavior: OngoingExecutionBehavior = .concurrent,
+    identifier: ExecutionIdentifier,
+    function: StaticString = #function,
+    file: StaticString = #fileID,
+    line: UInt = #line,
+    _ task: @escaping @Sendable () async throws -> Void
+  ) -> Execution {
+    self.schedule(
+      behavior,
+      function: function,
+      file: file,
+      line: line,
+      {
+        await diagnostics
+          .withLogCatch(
+            info:
+              failMessage
+              .map { (message: StaticString) -> DiagnosticsInfo in
+                .message(
+                  message,
+                  file: file,
+                  line: line
+                )
+              }
+          ) {
+            try await task()
+          }
+      }
+    )
+  }
 }
 
 extension AsyncExecutor {

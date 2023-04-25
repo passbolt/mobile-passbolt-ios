@@ -24,12 +24,12 @@
 import Display
 import UICommons
 
-internal struct OTPEditFormView: ControlledView {
+internal struct TOTPEditFormView: ControlledView {
 
-  private let controller: OTPEditFormController
+  private let controller: TOTPEditFormController
 
   internal init(
-    controller: OTPEditFormController
+    controller: TOTPEditFormController
   ) {
     self.controller = controller
   }
@@ -63,7 +63,9 @@ internal struct OTPEditFormView: ControlledView {
       .frame(maxHeight: .infinity)
     }
     .navigationTitle(
-      displayable: "otp.edit.form.create.title"
+      displayable: self.controller.isEditing()
+      ? "otp.edit.form.edit.title"
+      : "otp.edit.form.create.title"
     )
   }
 
@@ -102,6 +104,7 @@ internal struct OTPEditFormView: ControlledView {
         prompt: "otp.edit.form.field.uri.prompt"
       )
       .textInputAutocapitalization(.never)
+      .autocorrectionDisabled()
     }
   }
 
@@ -121,6 +124,7 @@ internal struct OTPEditFormView: ControlledView {
         prompt: "otp.edit.form.field.secret.prompt"
       )
       .textInputAutocapitalization(.never)
+      .autocorrectionDisabled()
     }
   }
 
@@ -134,7 +138,9 @@ internal struct OTPEditFormView: ControlledView {
 
   @MainActor @ViewBuilder internal var sendForm: some View {
     PrimaryButton(
-      title: "otp.edit.form.create.button.title",
+      title: self.controller.isEditing()
+      ? "otp.edit.form.edit.button.title"
+      : "otp.edit.form.create.button.title",
       action: self.controller.sendForm
     )
   }

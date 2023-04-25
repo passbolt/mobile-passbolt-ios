@@ -42,14 +42,14 @@ public struct ResourceSecret {
 
   public func value(
     for field: ResourceField
-  ) -> ResourceFieldValue? {
-    self.values[field.name]
+  ) -> ResourceFieldValue {
+    self.values[field.name] ?? .unknown(.null)
   }
 
   public func value(
     forField name: StaticString
-  ) -> ResourceFieldValue? {
-    self.values[name.description]
+  ) -> ResourceFieldValue {
+    self.values[name.description] ?? .unknown(.null)
   }
 }
 

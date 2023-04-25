@@ -41,7 +41,7 @@ public struct Resource {
   public var permissions: OrderedSet<ResourcePermission>
   public var tags: OrderedSet<ResourceTag>
   public let modified: Timestamp?  // local resources does not have modified date
-  private var fieldValues: Dictionary<ResourceField.ValuePath, ResourceFieldValue>
+  internal var fieldValues: Dictionary<ResourceField.ValuePath, ResourceFieldValue>
 
   public init(
     id: Resource.ID? = .none,
@@ -62,17 +62,18 @@ public struct Resource {
     self.permissions = permissions
     self.modified = modified
     self.fieldValues = .init()
+    self.initializeFieldValues()
   }
 
   public subscript(
     dynamicMember keyPath: ResourceField.ValuePath
-  ) -> ResourceFieldValue? {
+  ) -> ResourceFieldValue {
     get {
       if self.type.contains(keyPath) {
-        return self.fieldValues[keyPath]
+        return self.fieldValues[keyPath] ?? .unknown(.null)
       }
       else {
-        return .none
+        return .unknown(.null)
       }
     }
     set {
@@ -80,90 +81,35 @@ public struct Resource {
       self.fieldValues[keyPath] = newValue
     }
   }
+}
 
-  public static func keyPath(
-    for field: ResourceField
-  ) -> WritableKeyPath<Resource, ResourceFieldValue?> {
-    \Resource[dynamicMember:field.valuePath]
-  }
+extension Resource {
 
-  public func value(
-    for field: ResourceField
-  ) -> ResourceFieldValue? {
-    value(for: field.valuePath)
-  }
-
-  public func value(
-    forField name: StaticString
-  ) -> ResourceFieldValue? {
-    value(for: ResourceField.valuePath(forName: name))
-  }
-
-  private func value(
-    for path: ResourceField.ValuePath
-  ) -> ResourceFieldValue? {
-    guard let field: ResourceField = self.type.fields.first(where: { $0.valuePath == path })
-    else { return .none }
-    return self.fieldValues[field.valuePath]
-      ?? (field.encrypted ? .encrypted : .none)
-  }
-
-  public mutating func set(
-    _ value: ResourceFieldValue?,
-    for field: ResourceField
-  ) throws {
-    try self.set(
-      value,
-      for: field.valuePath
-    )
-  }
-
-  public mutating func set(
-    _ value: ResourceFieldValue?,
-    forField name: StaticString
-  ) throws {
-    try self.set(
-      value,
-      for: ResourceField.valuePath(forName: name)
-    )
-  }
-
-  private mutating func set(
-    _ value: ResourceFieldValue?,
-    for path: ResourceField.ValuePath
-  ) throws {
-    guard let field: ResourceField = self.type.fields.first(where: { $0.valuePath == path })
-    else {
-      throw
-        InvalidResourceData
-        .error(
-          message: "Trying to set non existing field value!"
-        )
-    }
-    guard field.accepts(value)
-    else {
-      throw
-        InvalidResourceData
-        .error(
-          message: "Trying to set wrong field value!"
-        )
-    }
-    self.fieldValues[field.valuePath] = value
-  }
-
-  public func validate() throws {
+  private mutating func initializeFieldValues() {
     for field in self.fields {
-      let error: TheError? = field
-        .validator
-        .contraMapOptional()
-        .validate(self.value(for: field))
-        .error
-      if let error {
-        throw error
+      let initialValue: ResourceFieldValue
+      switch field.content {
+      case .string(let encrypted, _, _, _):
+        if encrypted {
+          initialValue = .encrypted
+        }
+        else {
+          initialValue = .string("")
+        }
+
+      case .totp:
+        initialValue = .encrypted
+
+      case .unknown(let encrypted, _):
+        if encrypted {
+          initialValue = .encrypted
+        }
+        else {
+          initialValue = .unknown(.null)
+        }
       }
-      else {
-        continue
-      }
+
+      self.fieldValues[field.valuePath] = initialValue
     }
   }
 }

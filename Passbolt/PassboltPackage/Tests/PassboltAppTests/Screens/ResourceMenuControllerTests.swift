@@ -142,7 +142,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       .performAction(.copyPassword)
       .asAsyncValue()
 
-    XCTAssertEqual(result, resourceSecret.value(forField: "password")?.stringValue)
+    XCTAssertEqual(result, resourceSecret.value(forField: "password").stringValue)
   }
 
   func test_performAction_copiesURLToPasteboard_forCopyURLAction() async throws {
@@ -168,7 +168,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    XCTAssertEqual(result, detailsViewResource.value(forField: "uri")?.stringValue)
+    XCTAssertEqual(result, detailsViewResource.value(forField: "uri").stringValue)
   }
 
   func test_performAction_opensURL_forOpenURLAction() async throws {
@@ -197,7 +197,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
-    XCTAssertEqual(result?.rawValue, detailsViewResource.value(forField: "uri")?.stringValue)
+    XCTAssertEqual(result?.rawValue, detailsViewResource.value(forField: "uri").stringValue)
   }
 
   func test_performAction_fails_forOpenURLAction_whenOpeningFails() async throws {
@@ -259,7 +259,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    XCTAssertEqual(result, detailsViewResource.value(forField: "username")?.stringValue)
+    XCTAssertEqual(result, detailsViewResource.value(forField: "username").stringValue)
   }
 
   func test_performAction_copiesDescriptionToPasteboard_forCopyDescriptionAction_withUnencryptedDescription()
@@ -295,7 +295,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    XCTAssertEqual(result, detailsViewResourceWithUnencryptedDescription.value(forField: "description")?.stringValue)
+    XCTAssertEqual(result, detailsViewResourceWithUnencryptedDescription.value(forField: "description").stringValue)
   }
 
   func test_performAction_copiesDescriptionToPasteboard_forCopyDescriptionAction_withEncryptedDescription() async throws

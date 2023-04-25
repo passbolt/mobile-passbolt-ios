@@ -38,7 +38,7 @@ public struct LegacyResourceEditForm {
   public var setFieldValue: @Sendable (ResourceFieldValue, ResourceField) async throws -> Void
   // Publisher for validated values for given field
   public var validatedFieldValuePublisher:
-    @Sendable (ResourceField) -> AnyPublisher<Validated<ResourceFieldValue?>, Never>
+    @Sendable (ResourceField) -> AnyPublisher<Validated<ResourceFieldValue>, Never>
   // Send the form
   public var sendForm: @Sendable () async throws -> Resource.ID
 
@@ -48,7 +48,7 @@ public struct LegacyResourceEditForm {
     fieldsPublisher: @escaping @Sendable () -> AnyPublisher<OrderedSet<ResourceField>, Never>,
     setFieldValue: @escaping @Sendable (ResourceFieldValue, ResourceField) async throws -> Void,
     validatedFieldValuePublisher: @escaping @Sendable (ResourceField) -> AnyPublisher<
-      Validated<ResourceFieldValue?>, Never
+      Validated<ResourceFieldValue>, Never
     >,
     sendForm: @escaping @Sendable () async throws -> Resource.ID
   ) {

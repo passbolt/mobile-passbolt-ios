@@ -123,6 +123,18 @@ public final class DynamicVariables: @unchecked Sendable {
     return self[dynamicMember: self.variableNames[keyPath: member]]
   }
 
+  public func getIfPresent<Variable>(
+    _ member: KeyPath<DynamicVariables.VariableNames, StaticString>,
+    of type: Variable.Type = Variable.self
+  ) -> Optional<Variable> {
+    if self.contains(member, of: type) {
+      return self[dynamicMember: self.variableNames[keyPath: member]]
+    }
+    else {
+      return .none
+    }
+  }
+
   public func set<Value>(
     _ member: KeyPath<DynamicVariables.VariableNames, StaticString>,
     of type: Value.Type = Value.self,

@@ -106,8 +106,8 @@ extension Resource {
     )
     try! mock.set(.string("Mock_totp"), forField: "name")
     try! mock.set(
-      .otp(
-        .totp(
+      .totp(
+        .init(
           sharedSecret: "SECRET",
           algorithm: .sha1,
           digits: 6,

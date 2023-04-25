@@ -57,14 +57,14 @@ extension OTPResources {
 
     @Sendable nonisolated func secretFor(
       _ id: Resource.ID
-    ) async throws -> OTPSecret {
+    ) async throws -> TOTPSecret {
       let resourceDetails: ResourceDetails = try await features.instance(context: id)
       let secret: ResourceSecret = try await resourceDetails.secret()
       switch secret.value(forField: "totp") {
-      case .otp(let secret):
+      case .totp(let secret):
         return secret
 
-      case .string, .encrypted, .unknown, .none:
+      case .string, .encrypted, .unknown:
         throw InvalidResourceData.error()
       }
     }
