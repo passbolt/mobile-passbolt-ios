@@ -8,6 +8,7 @@
 
 ## Fixed
 - Spanish translation in settings is now fixed.
+- Fix terms button availability
 
 ## Security
 - 
