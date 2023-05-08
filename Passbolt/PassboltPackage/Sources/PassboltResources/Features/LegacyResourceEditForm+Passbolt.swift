@@ -93,6 +93,14 @@ extension LegacyResourceEditForm {
             url.map { .string($0.rawValue) },
             forField: "uri"
           )
+          for field in resource.encryptedFields {
+            // put initial secret values into the resource
+            try resource
+              .set(
+                .string(""),
+                for: field
+              )
+          }
           formState.set(\.self, resource)
           formUpdates.sendUpdate()
 
