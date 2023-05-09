@@ -437,7 +437,7 @@ extension ResourcesListFetchDatabaseOperation {
           parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:)),
           name: name,
           username: dataRow.username,
-          url: dataRow.url
+          url: dataRow.uri
         )
       }
   }
