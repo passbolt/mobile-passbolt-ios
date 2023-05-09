@@ -30,7 +30,7 @@ extension ResourcePermission {
     from dataRow: SQLiteRow
   ) throws -> Self {
     guard
-      let permissionID: Permission.ID = (dataRow.permissionID as String?).flatMap(Permission.ID.init(rawValue:))
+      let permissionID: Permission.ID = (dataRow.permissionID as String?).flatMap(Permission.ID.init(uuidString:))
     else {
       throw
         DatabaseDataInvalid
@@ -54,14 +54,14 @@ extension ResourcePermission {
         .recording(dataRow, for: "dataRow")
     }
 
-    if let userID: User.ID = dataRow.userID.map(User.ID.init(rawValue:)) {
+    if let userID: User.ID = dataRow.userID.flatMap(User.ID.init(uuidString:)) {
       return .user(
         id: userID,
         permission: permission,
         permissionID: permissionID
       )
     }
-    else if let userGroupID: UserGroup.ID = dataRow.userGroupID.map(UserGroup.ID.init(rawValue:)) {
+    else if let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(uuidString:)) {
       return .userGroup(
         id: userGroupID,
         permission: permission,

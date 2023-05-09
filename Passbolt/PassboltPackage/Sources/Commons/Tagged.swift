@@ -331,3 +331,19 @@ where RawValue: Collection {
 
 extension Tagged: Sendable
 where RawValue: Sendable {}
+
+extension Tagged
+where RawValue == UUID {
+
+  public init() {
+    self.init(rawValue: .init())
+  }
+
+  public init?(
+    uuidString: String
+  ) {
+    guard let uuid: UUID = .init(uuidString: uuidString)
+    else { return nil }
+    self.init(rawValue: uuid)
+  }
+}

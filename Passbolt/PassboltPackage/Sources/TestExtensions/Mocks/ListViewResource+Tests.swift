@@ -28,7 +28,7 @@ extension Array where Element == ResourceListItemDSV {
   public static var testResources: Array<ResourceListItemDSV> {
     [
       .init(
-        id: .init(rawValue: "test"),
+        id: .mock_1,
         parentFolderID: .none,
         name: "test",
         username: "test",
@@ -40,14 +40,14 @@ extension Array where Element == ResourceListItemDSV {
   public static var testResourcesAlternative: Array<ResourceListItemDSV> {
     [
       .init(
-        id: .init(rawValue: "test"),
+        id: .mock_1,
         parentFolderID: .none,
         name: "test",
         username: "test",
         url: "test"
       ),
       .init(
-        id: .init(rawValue: "testAlt"),
+        id: .mock_2,
         parentFolderID: .none,
         name: "testAlt",
         username: "testAlt",

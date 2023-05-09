@@ -25,7 +25,7 @@ import Commons
 
 public struct ResourceTag {
 
-  public typealias ID = Tagged<String, Self>
+  public typealias ID = Tagged<UUID, Self>
   public typealias Slug = Tagged<String, ID>
 
   public let id: ID
@@ -44,17 +44,3 @@ public struct ResourceTag {
 }
 
 extension ResourceTag: Hashable {}
-
-extension ResourceTag.ID {
-
-  internal static let validator: Validator<Self> = Validator<String>
-    .uuid()
-    .contraMap(\.rawValue)
-
-  public var isValid: Bool {
-    Self
-      .validator
-      .validate(self)
-      .isValid
-  }
-}

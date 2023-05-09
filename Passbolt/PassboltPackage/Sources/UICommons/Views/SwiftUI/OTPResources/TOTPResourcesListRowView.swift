@@ -173,7 +173,7 @@ internal struct TOTPResourcesListRowView_Previews: PreviewProvider {
         TOTPResourcesListRowView(
           title: "Revealed running",
           value: .init(
-            resourceID: "ResourceID",
+            resourceID: .init(),
             otp: "123456",
             timeLeft: value,
             period: 30
@@ -217,7 +217,7 @@ internal struct TOTPResourcesListRowView_Previews: PreviewProvider {
       TOTPResourcesListRowView(
         title: "Revealed",
         value: .init(
-          resourceID: "ResourceID",
+          resourceID: .init(),
           otp: "123456",
           timeLeft: 23,
           period: 30
@@ -241,7 +241,7 @@ internal struct TOTPResourcesListRowView_Previews: PreviewProvider {
       TOTPResourcesListRowView(
         title: "Revealed with very long title which won't fit in one line",
         value: .init(
-          resourceID: "ResourceID",
+          resourceID: .init(),
           otp: "123456",
           timeLeft: 23,
           period: 30
@@ -265,7 +265,7 @@ internal struct TOTPResourcesListRowView_Previews: PreviewProvider {
       TOTPResourcesListRowView(
         title: "Low Time Revealed",
         value: .init(
-          resourceID: "ResourceID",
+          resourceID: .init(),
           otp: "123456",
           timeLeft: 3,
           period: 30

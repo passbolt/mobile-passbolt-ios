@@ -25,11 +25,13 @@ import CommonModels
 
 extension ResourceType.ID {
 
-  public static let mock_1: Self = .init(rawValue: "F9B39DCA-CD93-4CD4-B91D-8AAE7B7AA813")
+  public static let mock_1: Self = .init(uuidString: "F9B39DCA-CD93-4CD4-B91D-8AAE7B7AA813")!
 
-  public static let mock_2: Self = .init(rawValue: "59C8F6AE-AEE8-4905-983B-795A675EE0E2")
+  public static let mock_2: Self = .init(uuidString: "59C8F6AE-AEE8-4905-983B-795A675EE0E2")!
 
-  public static let mock_3: Self = .init(rawValue: "C3673B6B-B918-4BF4-9162-0178B8D18399")
+  public static let mock_3: Self = .init(uuidString: "C3673B6B-B918-4BF4-9162-0178B8D18399")!
+
+  public static let mock_4: Self = .init(uuidString: "A6626564-8CE2-4FC0-870C-5C299F04AB0C")!
 }
 
 extension ResourceType.Slug {
@@ -62,7 +64,7 @@ extension ResourceType {
   )
 
   public static let mock_default: Self = .init(
-    id: "password-and-description",
+    id: .mock_3,
     slug: "password-and-description",
     name: "password-and-description",
     fields: [
@@ -75,7 +77,7 @@ extension ResourceType {
   )
 
   public static let mock_totp: Self = .init(
-    id: .mock_3,
+    id: .mock_4,
     slug: .totp,
     name: "mock_totp",
     fields: [

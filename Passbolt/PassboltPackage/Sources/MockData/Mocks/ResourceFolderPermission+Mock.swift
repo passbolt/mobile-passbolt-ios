@@ -28,12 +28,12 @@ extension ResourceFolderPermission {
   public static var mock_user_1_owner: Self = .user(
     id: .mock_1,
     permission: .owner,
-    permissionID: .init(rawValue: "3D1DF8D0-1C86-443B-8A38-B72C971BA48C")
+    permissionID: .init(uuidString: "3D1DF8D0-1C86-443B-8A38-B72C971BA48C")
   )
 
   public static var mock_user_2_owner: Self = user(
     id: .mock_2,
     permission: .owner,
-    permissionID: .init(rawValue: "D7A12567-364D-4DAE-B6C8-5E1F1044429C")
+    permissionID: .init(uuidString: "D7A12567-364D-4DAE-B6C8-5E1F1044429C")
   )
 }

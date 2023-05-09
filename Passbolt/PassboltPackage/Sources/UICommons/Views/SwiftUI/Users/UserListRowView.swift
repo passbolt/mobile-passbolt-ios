@@ -71,7 +71,7 @@ internal struct UserListRowView_Previews: PreviewProvider {
   internal static var previews: some View {
     UserListRowView(
       model: .init(
-        id: "row_1",
+        id: .init(),
         fullName: "John Doe",
         username: "johndoe@email.com",
         avatarImageFetch: { nil }

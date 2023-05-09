@@ -83,7 +83,7 @@ extension ResourceFolderPathFetchDatabaseOperation {
         using: selectPathStatement
       ) { dataRow in
         guard
-          let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
+          let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(uuidString:)),
           let name: String = dataRow.name,
           let shared: Bool = dataRow.shared
         else {

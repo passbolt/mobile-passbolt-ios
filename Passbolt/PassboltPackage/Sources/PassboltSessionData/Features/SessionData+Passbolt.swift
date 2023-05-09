@@ -56,7 +56,6 @@ extension SessionData {
       do {
         try await usersStoreDatabaseOperation(
           usersFetchNetworkOperation()
-            .filter(\.isValid)
             .compactMap(\.asFilteredDSO)
         )
         diagnostics.log(diagnostic: "...users data refresh finished!")
@@ -77,7 +76,6 @@ extension SessionData {
       do {
         try await userGroupsStoreDatabaseOperation(
           userGroupsFetchNetworkOperation()
-            .filter(\.isValid)
         )
 
         diagnostics.log(diagnostic: "...user groups data refresh finished!")
@@ -102,7 +100,6 @@ extension SessionData {
       do {
         try await resourceFoldersStoreDatabaseOperation(
           resourceFoldersFetchNetworkOperation()
-            .filter(\.isValid)
         )
 
         diagnostics.log(diagnostic: "...folders data refresh finished!")
@@ -127,7 +124,6 @@ extension SessionData {
 
         try await resourcesStoreDatabaseOperation(
           resourcesFetchNetworkOperation()
-            .filter(\.isValid)
         )
 
         diagnostics.log(diagnostic: "...resources data refresh finished!")

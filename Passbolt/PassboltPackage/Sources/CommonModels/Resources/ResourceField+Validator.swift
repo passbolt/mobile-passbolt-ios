@@ -127,9 +127,9 @@ extension ResourceField {
         .validate(totp.algorithm)
         .error
     },
-     \TOTPSecret.digits: { (totp: TOTPSecret) in
-       Validator<UInt>
-         .inRange(
+    \TOTPSecret.digits: { (totp: TOTPSecret) in
+      Validator<UInt>
+        .inRange(
           of: 6 ... 8,
           displayable: .localized(
             key: "error.resource.field.range.between",
@@ -142,13 +142,13 @@ extension ResourceField {
               8,
             ]
           )
-         )
-         .validate(totp.digits)
-         .error
-     },
-     \TOTPSecret.period: { (totp: TOTPSecret) in
-       Validator<Seconds>
-         .inRange(
+        )
+        .validate(totp.digits)
+        .error
+    },
+    \TOTPSecret.period: { (totp: TOTPSecret) in
+      Validator<Seconds>
+        .inRange(
           of: 1 ... Seconds(rawValue: .max),
           displayable: .localized(
             key: "error.resource.field.range.greater",
@@ -160,13 +160,13 @@ extension ResourceField {
               0,
             ]
           )
-         )
-         .validate(totp.period)
-         .error
-     },
-     \TOTPSecret.sharedSecret: { (totp: TOTPSecret) in
-       Validator<String>
-         .nonEmpty(
+        )
+        .validate(totp.period)
+        .error
+    },
+    \TOTPSecret.sharedSecret: { (totp: TOTPSecret) in
+      Validator<String>
+        .nonEmpty(
           displayable: .localized(
             key: "error.resource.field.empty",
             arguments: [
@@ -176,9 +176,9 @@ extension ResourceField {
               .string()
             ]
           )
-         )
-         .validate(totp.sharedSecret)
-         .error
-     },
+        )
+        .validate(totp.sharedSecret)
+        .error
+    },
   ]
 }

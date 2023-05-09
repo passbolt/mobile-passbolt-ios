@@ -50,7 +50,7 @@ extension OTPResources {
         .init(
           sorting: .nameAlphabetically,
           text: filter.text,
-          includedTypeSlugs: [.totp, .hotp]
+          includedTypeSlugs: [.totp]
         )
       )
     }

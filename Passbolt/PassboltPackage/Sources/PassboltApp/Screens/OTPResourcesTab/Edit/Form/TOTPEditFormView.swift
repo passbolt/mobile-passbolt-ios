@@ -64,8 +64,8 @@ internal struct TOTPEditFormView: ControlledView {
     }
     .navigationTitle(
       displayable: self.controller.isEditing()
-      ? "otp.edit.form.edit.title"
-      : "otp.edit.form.create.title"
+        ? "otp.edit.form.edit.title"
+        : "otp.edit.form.create.title"
     )
   }
 
@@ -139,8 +139,8 @@ internal struct TOTPEditFormView: ControlledView {
   @MainActor @ViewBuilder internal var sendForm: some View {
     PrimaryButton(
       title: self.controller.isEditing()
-      ? "otp.edit.form.edit.button.title"
-      : "otp.edit.form.create.button.title",
+        ? "otp.edit.form.edit.button.title"
+        : "otp.edit.form.create.button.title",
       action: self.controller.sendForm
     )
   }

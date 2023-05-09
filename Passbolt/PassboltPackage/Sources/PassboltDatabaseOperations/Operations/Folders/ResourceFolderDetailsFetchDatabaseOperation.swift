@@ -129,7 +129,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
       try connection
       .fetchFirst(using: selectFolderStatement) { dataRow in
         guard
-          let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
+          let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(uuidString:)),
           let name: String = dataRow.name,
           let shared: Bool = dataRow.shared,
           let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:))
@@ -149,9 +149,9 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
         ) {
           dataRow in
           guard
-            let userID: User.ID = dataRow.userID.flatMap(User.ID.init(rawValue:)),
+            let userID: User.ID = dataRow.userID.flatMap(User.ID.init(uuidString:)),
             let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:)),
-            let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
+            let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(uuidString:))
           else {
             throw
               DatabaseIssue
@@ -173,9 +173,9 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
           using: selectFolderUserGroupsPermissionsStatement
         ) { dataRow in
           guard
-            let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(rawValue:)),
+            let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(uuidString:)),
             let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:)),
-            let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
+            let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(uuidString:))
           else {
             throw
               DatabaseIssue
@@ -193,7 +193,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
           )
         }
 
-        let parentFolderID: ResourceFolder.ID? = dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:))
+        let parentFolderID: ResourceFolder.ID? = dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(uuidString:))
 
         let path: Array<ResourceFolderPathItem>
         if let parentFolderID: ResourceFolder.ID = parentFolderID {
@@ -204,7 +204,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
                 .appendingArgument(parentFolderID)
             ) { dataRow in
               guard
-                let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
+                let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(uuidString:)),
                 let name: String = dataRow.name,
                 let shared: Bool = dataRow.shared
               else {

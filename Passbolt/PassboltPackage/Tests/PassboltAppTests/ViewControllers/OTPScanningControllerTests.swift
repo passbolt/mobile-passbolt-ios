@@ -49,7 +49,8 @@ final class OTPScanningControllerTests: FeaturesTestCase {
     await self.asyncExecutionControl.executeAll()
 
     await XCTAssertValue(
-      equal: SnackBarMessage
+      equal:
+        SnackBarMessage
         .error("error.otp.configuration.invalid")
     ) {
       feature.viewState.snackBarMessage
@@ -59,12 +60,14 @@ final class OTPScanningControllerTests: FeaturesTestCase {
   func test_processPayload_navigatesToSuccess_whenParsingSucceeds() async throws {
     patch(
       \NavigationToOTPScanningSuccess.mockPerform,
-       with: always(self.dynamicVariables.executed = Void())
+      with: always(self.dynamicVariables.executed = Void())
     )
 
     let feature: OTPConfigurationScanningController = try self.testedInstance()
 
-    feature.processPayload("otpauth://totp/Passbolt:edith@passbolt.com?secret=SECRET_KEY&issuer=Passbolt&digits=6&period=30&algorithm=SHA1")
+    feature.processPayload(
+      "otpauth://totp/Passbolt:edith@passbolt.com?secret=SECRET_KEY&issuer=Passbolt&digits=6&period=30&algorithm=SHA1"
+    )
     await self.asyncExecutionControl.executeAll()
 
     XCTAssertNotNil(self.dynamicVariables.getIfPresent(\.executed, of: Void.self))
@@ -73,7 +76,7 @@ final class OTPScanningControllerTests: FeaturesTestCase {
   func test_processPayload_doesNotNavigate_whenParsingFails() async throws {
     patch(
       \NavigationToOTPScanningSuccess.mockPerform,
-       with: always(self.dynamicVariables.executed = Void())
+      with: always(self.dynamicVariables.executed = Void())
     )
 
     let feature: OTPConfigurationScanningController = try self.testedInstance()
@@ -84,7 +87,6 @@ final class OTPScanningControllerTests: FeaturesTestCase {
     XCTAssertNil(self.dynamicVariables.getIfPresent(\.executed, of: Void.self))
   }
 
-
   func test_processPayload_fails_withInvalidScheme() async throws {
     let feature: OTPConfigurationScanningController = try self.testedInstance()
 
@@ -92,7 +94,8 @@ final class OTPScanningControllerTests: FeaturesTestCase {
     await self.asyncExecutionControl.executeAll()
 
     await XCTAssertValue(
-      equal: SnackBarMessage
+      equal:
+        SnackBarMessage
         .error("error.otp.configuration.invalid")
     ) {
       feature.viewState.snackBarMessage
@@ -106,7 +109,8 @@ final class OTPScanningControllerTests: FeaturesTestCase {
     await self.asyncExecutionControl.executeAll()
 
     await XCTAssertValue(
-      equal: SnackBarMessage
+      equal:
+        SnackBarMessage
         .error("error.otp.configuration.invalid")
     ) {
       feature.viewState.snackBarMessage
@@ -120,7 +124,8 @@ final class OTPScanningControllerTests: FeaturesTestCase {
     await self.asyncExecutionControl.executeAll()
 
     await XCTAssertValue(
-      equal: SnackBarMessage
+      equal:
+        SnackBarMessage
         .error("error.otp.configuration.invalid")
     ) {
       feature.viewState.snackBarMessage
@@ -134,7 +139,8 @@ final class OTPScanningControllerTests: FeaturesTestCase {
     await self.asyncExecutionControl.executeAll()
 
     await XCTAssertValue(
-      equal: SnackBarMessage
+      equal:
+        SnackBarMessage
         .error("error.otp.configuration.invalid")
     ) {
       feature.viewState.snackBarMessage
@@ -148,7 +154,8 @@ final class OTPScanningControllerTests: FeaturesTestCase {
     await self.asyncExecutionControl.executeAll()
 
     await XCTAssertValue(
-      equal: SnackBarMessage
+      equal:
+        SnackBarMessage
         .error("error.otp.configuration.invalid")
     ) {
       feature.viewState.snackBarMessage
@@ -162,7 +169,8 @@ final class OTPScanningControllerTests: FeaturesTestCase {
     await self.asyncExecutionControl.executeAll()
 
     await XCTAssertValue(
-      equal: SnackBarMessage
+      equal:
+        SnackBarMessage
         .error("error.otp.configuration.invalid")
     ) {
       feature.viewState.snackBarMessage
@@ -176,7 +184,8 @@ final class OTPScanningControllerTests: FeaturesTestCase {
     await self.asyncExecutionControl.executeAll()
 
     await XCTAssertValue(
-      equal: SnackBarMessage
+      equal:
+        SnackBarMessage
         .error("error.otp.configuration.invalid")
     ) {
       feature.viewState.snackBarMessage
@@ -186,7 +195,7 @@ final class OTPScanningControllerTests: FeaturesTestCase {
   func test_processPayload_succeeds_withRequiredData() async throws {
     patch(
       \NavigationToOTPScanningSuccess.mockPerform,
-       with: always(self.dynamicVariables.executed = Void())
+      with: always(self.dynamicVariables.executed = Void())
     )
 
     let feature: OTPConfigurationScanningController = try self.testedInstance()
@@ -200,12 +209,14 @@ final class OTPScanningControllerTests: FeaturesTestCase {
   func test_processPayload_succeeds_withAllParameters() async throws {
     patch(
       \NavigationToOTPScanningSuccess.mockPerform,
-       with: always(self.dynamicVariables.executed = Void())
+      with: always(self.dynamicVariables.executed = Void())
     )
 
     let feature: OTPConfigurationScanningController = try self.testedInstance()
 
-    feature.processPayload("otpauth://totp/Passbolt:edith@passbolt.com?secret=SECRET_KEY&issuer=Passbolt&digits=6&period=30&algorithm=SHA1")
+    feature.processPayload(
+      "otpauth://totp/Passbolt:edith@passbolt.com?secret=SECRET_KEY&issuer=Passbolt&digits=6&period=30&algorithm=SHA1"
+    )
     await self.asyncExecutionControl.executeAll()
 
     XCTAssertNotNil(self.dynamicVariables.getIfPresent(\.executed, of: Void.self))
@@ -214,12 +225,14 @@ final class OTPScanningControllerTests: FeaturesTestCase {
   func test_processPayload_succeeds_ignoringInvalidParameters() async throws {
     patch(
       \NavigationToOTPScanningSuccess.mockPerform,
-       with: always(self.dynamicVariables.executed = Void())
+      with: always(self.dynamicVariables.executed = Void())
     )
 
     let feature: OTPConfigurationScanningController = try self.testedInstance()
 
-    feature.processPayload("otpauth://totp/Passbolt:edith@passbolt.com?secret=SECRET_KEY&badissuer=Passbolt&digits=6&period=30&algorithm=invalid&unnecessary=value")
+    feature.processPayload(
+      "otpauth://totp/Passbolt:edith@passbolt.com?secret=SECRET_KEY&badissuer=Passbolt&digits=6&period=30&algorithm=invalid&unnecessary=value"
+    )
     await self.asyncExecutionControl.executeAll()
 
     XCTAssertNotNil(self.dynamicVariables.getIfPresent(\.executed, of: Void.self))
@@ -228,9 +241,9 @@ final class OTPScanningControllerTests: FeaturesTestCase {
   func test_processPayload_navigates_withRequiredDataAndDefaults() async throws {
     patch(
       \NavigationToOTPScanningSuccess.mockPerform,
-       with: { (_, context: TOTPConfiguration) async throws in
-         self.dynamicVariables.configuration = context
-       }
+      with: { (_, context: TOTPConfiguration) async throws in
+        self.dynamicVariables.configuration = context
+      }
     )
 
     let feature: OTPConfigurationScanningController = try self.testedInstance()
@@ -252,7 +265,7 @@ final class OTPScanningControllerTests: FeaturesTestCase {
       self.dynamicVariables
         .getIfPresent(
           \.configuration,
-           of: TOTPConfiguration.self
+          of: TOTPConfiguration.self
         )
     )
   }
@@ -260,14 +273,16 @@ final class OTPScanningControllerTests: FeaturesTestCase {
   func test_processPayload_navigates_withAllParameters() async throws {
     patch(
       \NavigationToOTPScanningSuccess.mockPerform,
-       with: { (_, context: TOTPConfiguration) async throws in
-         self.dynamicVariables.configuration = context
-       }
+      with: { (_, context: TOTPConfiguration) async throws in
+        self.dynamicVariables.configuration = context
+      }
     )
 
     let feature: OTPConfigurationScanningController = try self.testedInstance()
 
-    feature.processPayload("otpauth://totp/Passbolt:edith@passbolt.com?secret=SECRET_KEY&issuer=Passbolt&digits=8&period=90&algorithm=SHA256")
+    feature.processPayload(
+      "otpauth://totp/Passbolt:edith@passbolt.com?secret=SECRET_KEY&issuer=Passbolt&digits=8&period=90&algorithm=SHA256"
+    )
     await self.asyncExecutionControl.executeAll()
 
     XCTAssertEqual(
@@ -284,7 +299,7 @@ final class OTPScanningControllerTests: FeaturesTestCase {
       self.dynamicVariables
         .getIfPresent(
           \.configuration,
-           of: TOTPConfiguration.self
+          of: TOTPConfiguration.self
         )
     )
   }

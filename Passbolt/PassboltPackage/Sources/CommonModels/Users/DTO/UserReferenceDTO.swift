@@ -34,20 +34,6 @@ public struct UserReferenceDTO {
   }
 }
 
-extension UserReferenceDTO {
-
-  internal static let validator: Validator<Self> = User.ID
-    .validator
-    .contraMap(\.id)
-
-  public var isValid: Bool {
-    Self
-      .validator
-      .validate(self)
-      .isValid
-  }
-}
-
 extension UserReferenceDTO: Decodable {
 
   private enum CodingKeys: String, CodingKey {

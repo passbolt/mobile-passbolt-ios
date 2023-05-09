@@ -158,45 +158,45 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_permissionsSequence_providesSortedPermissions() async throws {
     let expectedResult: OrderedSet<ResourcePermission> = [
       .userGroup(
-        id: "existing-group",
+        id: .mock_1,
         permission: .read,
-        permissionID: "existing-group"
+        permissionID: .mock_1
       ),
       .userGroup(
-        id: "new-group",
+        id: .mock_2,
         permission: .write,
         permissionID: .none
       ),
       .user(
-        id: "existing-user",
+        id: .mock_1,
         permission: .owner,
-        permissionID: "existing-user"
+        permissionID: .mock_1
       ),
       .user(
-        id: "new-user",
+        id: .mock_2,
         permission: .read,
         permissionID: .none
       ),
     ]
     self.resource.permissions = [
       .user(
-        id: "existing-user",
+        id: .mock_1,
         permission: .owner,
-        permissionID: "existing-user"
+        permissionID: .mock_1
       ),
       .userGroup(
-        id: "existing-group",
+        id: .mock_1,
         permission: .read,
-        permissionID: "existing-group"
+        permissionID: .mock_1
       ),
     ]
 
     let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
 
     await feature
-      .setUserPermission("new-user", .read)
+      .setUserPermission(.mock_2, .read)
     await feature
-      .setUserGroupPermission("new-group", .write)
+      .setUserGroupPermission(.mock_2, .write)
 
     let permissionsSequence: AnyAsyncSequence<OrderedSet<ResourcePermission>> = feature.permissionsSequence()
 

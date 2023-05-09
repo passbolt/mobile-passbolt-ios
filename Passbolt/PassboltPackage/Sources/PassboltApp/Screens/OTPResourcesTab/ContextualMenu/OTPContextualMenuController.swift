@@ -165,7 +165,7 @@ extension OTPContextualMenuController {
         var message: SnackBarMessage?
         do {
           try await navigationToSelf.revert(animated: true)
-          
+
           try await navigationToTOTPEdit.perform(context: context.resourceID)
         }
         catch {

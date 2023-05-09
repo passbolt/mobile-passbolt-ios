@@ -45,7 +45,8 @@ extension ResourceTag {
         .map(
           ResourceTag.Slug.init(rawValue:)
         ),
-      let id: ResourceTag.ID = fields.popLast()?.components(separatedBy: "=").last.map(ResourceTag.ID.init(rawValue:))
+      let id: ResourceTag.ID = fields.popLast()?.components(separatedBy: "=").last
+        .flatMap(ResourceTag.ID.init(uuidString:))
     else {
       throw
         DatabaseDataInvalid

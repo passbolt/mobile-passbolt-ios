@@ -53,7 +53,7 @@ final class UsersTests: LoadableFeatureTestCase<Users> {
   func test_userDetails_throws_whenUserDetailsThrows() async throws {
     patch(
       \UserDetails.details,
-      context: "userID",
+      context: .mock_1,
       with: alwaysThrow(MockIssue.error())
     )
 
@@ -61,7 +61,7 @@ final class UsersTests: LoadableFeatureTestCase<Users> {
 
     var result: Error?
     do {
-      _ = try await feature.userDetails("userID")
+      _ = try await feature.userDetails(.mock_1)
     }
     catch {
       result = error
@@ -74,7 +74,7 @@ final class UsersTests: LoadableFeatureTestCase<Users> {
     let expectedResult: UserDetailsDSV = .mock_1
     patch(
       \UserDetails.details,
-      context: "userID",
+      context: .mock_1,
       with: always(expectedResult)
     )
 
@@ -82,7 +82,7 @@ final class UsersTests: LoadableFeatureTestCase<Users> {
 
     var result: UserDetailsDSV?
     do {
-      result = try await feature.userDetails("userID")
+      result = try await feature.userDetails(.mock_1)
     }
     catch {
       XCTFail("\(error)")

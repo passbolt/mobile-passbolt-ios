@@ -81,7 +81,7 @@ internal struct PermissionListRowView_Previews: PreviewProvider {
     PermissionListRowView(
       .userGroup(
         details: .init(
-          id: "UserGroup.ID",
+          id: .init(),
           name: "User group",
           permission: .read,
           members: []

@@ -100,14 +100,14 @@ final class ResourceListControllerTests: MainActorTestCase {
   func test_resourcesListPublisher_publishesResourcesListFromResources() async throws {
     let resourcesList: Array<ResourceListItemDSV> = [
       ResourceListItemDSV(
-        id: "resource_1",
+        id: .mock_1,
         parentFolderID: .none,
         name: "Resoure 1",
         username: "test",
         url: "passbolt.com"
       ),
       ResourceListItemDSV(
-        id: "resource_2",
+        id: .mock_2,
         parentFolderID: .none,
         name: "Resoure 2",
         username: "test",
@@ -171,14 +171,14 @@ final class ResourceListControllerTests: MainActorTestCase {
   func test_resourceDetailsPresentationPublisher_publishesResourceID() async throws {
     let resourcesList: Array<ResourceListItemDSV> = [
       ResourceListItemDSV(
-        id: "resource_1",
+        id: .mock_1,
         parentFolderID: .none,
         name: "Resoure 1",
         username: "test",
         url: "passbolt.com"
       ),
       ResourceListItemDSV(
-        id: "resource_2",
+        id: .mock_2,
         parentFolderID: .none,
         name: "Resoure 2",
         username: "test",
@@ -217,14 +217,14 @@ final class ResourceListControllerTests: MainActorTestCase {
   func test_resourceMenuPresentationPublisher_publishesResourceID() async throws {
     let resourcesList: Array<ResourceListItemDSV> = [
       ResourceListItemDSV(
-        id: "resource_1",
+        id: .mock_1,
         parentFolderID: .none,
         name: "Resoure 1",
         username: "test",
         url: "passbolt.com"
       ),
       ResourceListItemDSV(
-        id: "resource_2",
+        id: .mock_2,
         parentFolderID: .none,
         name: "Resoure 2",
         username: "test",
@@ -265,14 +265,14 @@ final class ResourceListControllerTests: MainActorTestCase {
   {
     let resourcesList: Array<ResourceListItemDSV> = [
       ResourceListItemDSV(
-        id: "resource_1",
+        id: .mock_1,
         parentFolderID: .none,
         name: "Resoure 1",
         username: "test",
         url: "passbolt.com"
       ),
       ResourceListItemDSV(
-        id: "resource_2",
+        id: .mock_2,
         parentFolderID: .none,
         name: "Resoure 2",
         username: "test",

@@ -112,7 +112,10 @@ extension OTPConfigurationScanningController {
               )
             do {
               let resourceEditForm: ResourceEditForm = try await features.instance()
-              try await resourceEditForm.update(ResourceField.valuePath(forName: "totp"), to: .totp(configuration.secret))
+              try await resourceEditForm.update(
+                ResourceField.valuePath(forName: "totp"),
+                to: .totp(configuration.secret)
+              )
               try await navigationToSelf.revert()
             }
             catch {
@@ -185,7 +188,7 @@ private func parseTOTPConfiguration(
   guard let schemeRange: Range<Substring.Index> = reminder.range(of: scheme)
   else {
     throw
-    InvalidOTPConfiguration
+      InvalidOTPConfiguration
       .error("Invalid OTP configuration - invalid scheme")
   }
   reminder = reminder[schemeRange.upperBound ..< reminder.endIndex]
@@ -196,7 +199,7 @@ private func parseTOTPConfiguration(
   guard let typeRange: Range<Substring.Index> = reminder.range(of: otpType)
   else {
     throw
-    InvalidOTPConfiguration
+      InvalidOTPConfiguration
       .error("Invalid OTP configuration - unsupported or missing type")
   }
   reminder = reminder[typeRange.upperBound ..< reminder.endIndex]
@@ -220,33 +223,33 @@ private func parseTOTPConfiguration(
   // extract parameters
   let parameters: Array<(key: Substring, value: Substring)> = reminder[
     (reminder.index(labelEndIndex, offsetBy: 1, limitedBy: reminder.endIndex) ?? reminder.endIndex)
-    ..< reminder.endIndex
+      ..< reminder.endIndex
   ]
-    .split(separator: "&")
-    .compactMap { (rawParameter: Substring) in
-      let components: Array<Substring> =
+  .split(separator: "&")
+  .compactMap { (rawParameter: Substring) in
+    let components: Array<Substring> =
       rawParameter
-        .split(separator: "=")
-      if  // only key/value pairs
-        components.count == 2,
-        let key: Substring = components.first,
-        let value: Substring = components.last
-      {
-        return (
-          key: key,
-          value: value
-        )
-      }
-      else {
-        return .none
-      }
+      .split(separator: "=")
+    if  // only key/value pairs
+    components.count == 2,
+      let key: Substring = components.first,
+      let value: Substring = components.last
+    {
+      return (
+        key: key,
+        value: value
+      )
     }
+    else {
+      return .none
+    }
+  }
 
   guard
     let secret: String = parameters.first(where: { key, _ in key == "secret" }).map({ String($0.value) })
   else {
     throw
-    InvalidOTPConfiguration
+      InvalidOTPConfiguration
       .error("Invalid OTP configuration - missing secret")
   }
 
@@ -283,7 +286,7 @@ private func parseTOTPConfiguration(
     guard issuer.isEmpty || issuer == issuerParameter
     else {
       throw
-      InvalidOTPConfiguration
+        InvalidOTPConfiguration
         .error("Invalid OTP configuration - wrong scheme")
     }
     issuer = issuerParameter

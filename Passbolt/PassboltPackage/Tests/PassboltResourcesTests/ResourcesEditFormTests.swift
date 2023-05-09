@@ -112,7 +112,7 @@ final class ResourcesEditFormTests: FeaturesTestCase {
     await XCTAssertError(matches: InvalidValue.self) {
       try await feature.state.value
         .validatedValue(forField: "unavailable")
-        .validValue // access to trigger validation error throw
+        .validValue  // access to trigger validation error throw
     }
   }
 
@@ -172,13 +172,13 @@ final class ResourcesEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceDetails.details,
-       context: .mock_1,
-       with: always(.mock_1)
+      context: .mock_1,
+      with: always(.mock_1)
     )
     patch(
       \ResourceDetails.secret,
-       context: .mock_1,
-       with: always(resourceSecret)
+      context: .mock_1,
+      with: always(resourceSecret)
     )
 
     let feature: ResourceEditForm = try testedInstance()
@@ -201,13 +201,13 @@ final class ResourcesEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceDetails.details,
-       context: .mock_1,
-       with: always(.mock_1)
+      context: .mock_1,
+      with: always(.mock_1)
     )
     patch(
       \ResourceDetails.secret,
-       context: .mock_1,
-       with: always(resourceSecret)
+      context: .mock_1,
+      with: always(resourceSecret)
     )
 
     let feature: ResourceEditForm = try testedInstance()
@@ -229,8 +229,8 @@ final class ResourcesEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceDetails.details,
-       context: .mock_1,
-       with: alwaysThrow(MockIssue.error())
+      context: .mock_1,
+      with: alwaysThrow(MockIssue.error())
     )
 
     let feature: ResourceEditForm = try testedInstance()
@@ -252,13 +252,13 @@ final class ResourcesEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceDetails.details,
-       context: .mock_1,
-       with: always(.mock_1)
+      context: .mock_1,
+      with: always(.mock_1)
     )
     patch(
       \ResourceDetails.secret,
-       context: .mock_1,
-       with: alwaysThrow(MockIssue.error())
+      context: .mock_1,
+      with: alwaysThrow(MockIssue.error())
     )
 
     let feature: ResourceEditForm = try testedInstance()
@@ -280,13 +280,13 @@ final class ResourcesEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceDetails.details,
-       context: .mock_1,
-       with: always(.mock_1)
+      context: .mock_1,
+      with: always(.mock_1)
     )
     patch(
       \ResourceDetails.secret,
-       context: .mock_1,
-       with: always(resourceSecret)
+      context: .mock_1,
+      with: always(resourceSecret)
     )
 
     let feature: ResourceEditForm = try testedInstance()
@@ -313,13 +313,13 @@ final class ResourcesEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceDetails.details,
-       context: .mock_1,
-       with: always(.mock_1)
+      context: .mock_1,
+      with: always(.mock_1)
     )
     patch(
       \ResourceDetails.secret,
-       context: .mock_1,
-       with: always(resourceSecret)
+      context: .mock_1,
+      with: always(resourceSecret)
     )
 
     let feature: ResourceEditForm = try testedInstance()
@@ -345,13 +345,13 @@ final class ResourcesEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceDetails.details,
-       context: .mock_1,
-       with: always(.mock_1)
+      context: .mock_1,
+      with: always(.mock_1)
     )
     patch(
       \ResourceDetails.secret,
-       context: .mock_1,
-       with: always(resourceSecret)
+      context: .mock_1,
+      with: always(resourceSecret)
     )
 
     let feature: ResourceEditForm = try testedInstance()
@@ -382,13 +382,13 @@ final class ResourcesEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceDetails.details,
-       context: .mock_1,
-       with: always(.mock_1)
+      context: .mock_1,
+      with: always(.mock_1)
     )
     patch(
       \ResourceDetails.secret,
-       context: .mock_1,
-       with: always(resourceSecret)
+      context: .mock_1,
+      with: always(resourceSecret)
     )
 
     let feature: ResourceEditForm = try testedInstance()
@@ -495,7 +495,7 @@ final class ResourcesEditFormTests: FeaturesTestCase {
       with: always(
         [
           .init(
-            recipient: "USER_ID",
+            recipient: .mock_1,
             message: "encrypted-message"
           )
         ]
@@ -528,7 +528,7 @@ final class ResourcesEditFormTests: FeaturesTestCase {
       with: always(
         [
           .init(
-            recipient: "USER_ID",
+            recipient: .mock_1,
             message: "encrypted-message"
           )
         ]
@@ -536,7 +536,7 @@ final class ResourcesEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceCreateNetworkOperation.execute,
-      with: always(.init(resourceID: "resource-id", ownerPermissionID: "permission-id"))
+      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
     )
     patch(
       \SessionData.refreshIfNeeded,
@@ -556,7 +556,7 @@ final class ResourcesEditFormTests: FeaturesTestCase {
       to: .string("name")
     )
 
-    await XCTAssertValue(equal: "resource-id") {
+    await XCTAssertValue(equal: .mock_1) {
       try await feature.sendForm()
     }
   }
@@ -770,7 +770,7 @@ final class ResourcesEditFormTests: FeaturesTestCase {
       \UsersPGPMessages.encryptMessageForResourceUsers,
       with: always([
         .init(
-          recipient: "USER_ID",
+          recipient: .mock_1,
           message: "encrypted-message"
         )
       ])
@@ -827,7 +827,7 @@ final class ResourcesEditFormTests: FeaturesTestCase {
       \UsersPGPMessages.encryptMessageForResourceUsers,
       with: always([
         .init(
-          recipient: "USER_ID",
+          recipient: .mock_1,
           message: "encrypted-message"
         )
       ])
@@ -868,7 +868,7 @@ final class ResourcesEditFormTests: FeaturesTestCase {
       \UsersPGPMessages.encryptMessageForResourceUsers,
       with: always([
         .init(
-          recipient: "USER_ID",
+          recipient: .mock_1,
           message: "encrypted-message"
         )
       ])
@@ -900,7 +900,7 @@ final class ResourcesEditFormTests: FeaturesTestCase {
 }
 
 private let defaultShrinkedResourceType: ResourceTypeDTO = .init(
-  id: "password-and-description-shrinked",
+  id: .mock_1,
   slug: "password-and-description",
   name: "password-and-description-shrinked",
   fields: [
@@ -909,7 +909,7 @@ private let defaultShrinkedResourceType: ResourceTypeDTO = .init(
 )
 
 private let defaultResourceType: ResourceTypeDTO = .init(
-  id: "password-and-description",
+  id: .mock_2,
   slug: "password-and-description",
   name: "password-and-description",
   fields: [

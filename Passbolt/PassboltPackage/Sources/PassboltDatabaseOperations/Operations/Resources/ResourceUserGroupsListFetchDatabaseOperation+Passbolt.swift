@@ -94,7 +94,7 @@ extension ResourceUserGroupsListFetchDatabaseOperation {
       try connection
       .fetch(using: statement) { dataRow -> ResourceUserGroupListItemDSV in
         guard
-          let id: UserGroup.ID = dataRow.id.map(UserGroup.ID.init(rawValue:)),
+          let id: UserGroup.ID = dataRow.id.flatMap(UserGroup.ID.init(uuidString:)),
           let name: String = dataRow.name,
           let contentCount: Int = dataRow.contentCount
         else {

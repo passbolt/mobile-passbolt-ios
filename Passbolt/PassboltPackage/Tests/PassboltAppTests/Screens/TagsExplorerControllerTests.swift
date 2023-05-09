@@ -130,7 +130,7 @@ final class TagsExplorerControllerTests: MainActorTestCase {
 
     let controller: TagsExplorerController = try await testController(
       context: .init(
-        id: "tagID",
+        id: .mock_1,
         slug: "tag",
         shared: false
       )

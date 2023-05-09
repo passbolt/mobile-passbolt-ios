@@ -30,7 +30,7 @@ extension Resource {
   public static func keyPath(
     for field: ResourceField
   ) -> WritableKeyPath<Resource, ResourceFieldValue> {
-    \Resource[dynamicMember: field.valuePath]
+    \Resource[dynamicMember:field.valuePath]
   }
 
   public func value(

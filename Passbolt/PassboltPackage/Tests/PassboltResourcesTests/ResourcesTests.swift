@@ -226,7 +226,7 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
     let feature: Resources = try testedInstance()
 
     try await feature
-      .deleteResource(.init(rawValue: "test"))
+      .deleteResource(.mock_1)
       .asAsyncValue()
 
     XCTAssertNotNil(result)
@@ -284,5 +284,5 @@ private let testDatabaseFilter: ResourcesDatabaseFilter = .init(
   text: "test",
   name: "",
   url: "",
-  excludedTypeSlugs: [.totp, .hotp]
+  excludedTypeSlugs: [.totp]
 )

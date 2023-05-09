@@ -31,7 +31,8 @@ public struct ResourceEditForm {
   // Access current resource state and updates
   public var state: ViewableState<Resource>
   // Update field value
-  public var update: @Sendable (ResourceField.ValuePath, ResourceFieldValue) async throws -> Validated<ResourceFieldValue>
+  public var update:
+    @Sendable (ResourceField.ValuePath, ResourceFieldValue) async throws -> Validated<ResourceFieldValue>
   // Access TOTP nested field through a proxy
   public var updatableTOTPField: @Sendable (ResourceField.ValuePath) async throws -> ResourceTOTPFieldProxy
   // Send the form
@@ -39,7 +40,9 @@ public struct ResourceEditForm {
 
   public init(
     state: ViewableState<Resource>,
-    update: @escaping @Sendable (ResourceField.ValuePath, ResourceFieldValue) async throws -> Validated<ResourceFieldValue>,
+    update: @escaping @Sendable (ResourceField.ValuePath, ResourceFieldValue) async throws -> Validated<
+      ResourceFieldValue
+    >,
     updatableTOTPField: @escaping @Sendable (ResourceField.ValuePath) async throws -> ResourceTOTPFieldProxy,
     sendForm: @escaping @Sendable () async throws -> Resource.ID
   ) {

@@ -87,7 +87,7 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
   func test_addAccount_storesDataInAccountsDataStore() async throws {
     let expectedResult: AccountWithProfile = .init(
       localID: .init(rawValue: UUID.test.uuidString),
-      userID: .init(rawValue: UUID.test.uuidString),
+      userID: .init(rawValue: UUID.test),
       domain: AccountWithProfile.mock_ada.domain,
       label: AccountWithProfile.mock_ada.label,
       username: AccountWithProfile.mock_ada.username,

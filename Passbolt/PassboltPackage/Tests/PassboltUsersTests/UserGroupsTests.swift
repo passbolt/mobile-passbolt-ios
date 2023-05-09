@@ -131,7 +131,7 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
         if expectedResult.isEmpty {
           expectedResult.append(
             .init(
-              id: "id",
+              id: .mock_1,
               name: "name",
               contentCount: 0
             )
@@ -167,31 +167,31 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
   func test_groupMembers_fails_whenLoadingDetailsFails() async throws {
     patch(
       \UserGroupDetails.details,
-      context: "groupID",
+      context: .mock_1,
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: UserGroups = try await self.testedInstance()
+    let feature: UserGroups = try self.testedInstance()
 
     await XCTAssertError(
       matches: MockIssue.self
     ) {
-      try await feature.groupMembers("groupID")
+      try await feature.groupMembers(.mock_1)
     }
   }
 
   func test_groupMembers_fails_whenDetailsAccessFails() async throws {
     patch(
       \UserGroupDetails.details,
-      context: "groupID",
+      context: .mock_1,
       with: alwaysThrow(MockIssue.error())
     )
-    let feature: UserGroups = try await self.testedInstance()
+    let feature: UserGroups = try self.testedInstance()
 
     await XCTAssertError(
       matches: MockIssue.self
     ) {
-      try await feature.groupMembers("groupID")
+      try await feature.groupMembers(.mock_1)
     }
   }
 
@@ -199,22 +199,22 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
     let expectedResult: OrderedSet<UserDetailsDSV> = [.mock_1]
     patch(
       \UserGroupDetails.details,
-      context: "groupID",
+      context: .mock_1,
       with: always(
         .init(
-          id: "groupID",
+          id: .mock_1,
           name: "group",
           members: expectedResult
         )
       )
     )
 
-    let feature: UserGroups = try await self.testedInstance()
+    let feature: UserGroups = try self.testedInstance()
 
     await XCTAssertValue(
       equal: expectedResult
     ) {
-      try await feature.groupMembers("groupID")
+      try await feature.groupMembers(.mock_1)
     }
   }
 }

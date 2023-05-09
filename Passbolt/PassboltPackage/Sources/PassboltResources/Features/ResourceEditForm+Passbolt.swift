@@ -105,15 +105,14 @@ extension ResourceEditForm {
             )
         }
 
-        if
-          let value: ResourceFieldValue = uri.map({ .string($0.rawValue) }),
+        if let value: ResourceFieldValue = uri.map({ .string($0.rawValue) }),
           resource.fields.contains(where: { $0.name == "uri" })
         {
           try resource.set(
             value,
             forField: "uri"
           )
-        } // else skip
+        }  // else skip
 
         return resource
 
@@ -130,7 +129,7 @@ extension ResourceEditForm {
               for: field
             )
         }
-        
+
         return editedResource
       }
     }
@@ -167,14 +166,14 @@ extension ResourceEditForm {
       catch {
         diagnostics.log(error: error)
         throw
-        InvalidForm
+          InvalidForm
           .error(displayable: "resource.form.error.invalid")
       }
 
       guard case .string(let resourceName) = resource.value(forField: "name")
       else {
         throw
-        InvalidInputData
+          InvalidInputData
           .error(message: "Missing resource name")
       }
 
@@ -183,7 +182,7 @@ extension ResourceEditForm {
       let encodedSecret: String
       do {
         if secretFields.count == 1,
-           case let .string(password) = resource.value(forField: "password")
+          case let .string(password) = resource.value(forField: "password")
         {
           encodedSecret = password
         }
@@ -197,7 +196,7 @@ extension ResourceEditForm {
           guard let secretString: String = try? String(data: JSONEncoder().encode(secretFieldsValues), encoding: .utf8)
           else {
             throw
-            InvalidInputData
+              InvalidInputData
               .error(message: "Failed to encode resource secret")
           }
 
@@ -206,13 +205,13 @@ extension ResourceEditForm {
       }
       catch {
         throw
-        InvalidResourceData
+          InvalidResourceData
           .error(underlyingError: error)
       }
 
       if let resourceID: Resource.ID = resource.id {
         let encryptedSecrets: OrderedSet<EncryptedMessage> =
-        try await usersPGPMessages
+          try await usersPGPMessages
           .encryptMessageForResourceUsers(resourceID, encodedSecret)
 
         let updatedResourceID: Resource.ID = try await resourceEditNetworkOperation(
@@ -227,7 +226,7 @@ extension ResourceEditForm {
             secrets: encryptedSecrets.map { (userID: $0.recipient, data: $0.message) }
           )
         )
-          .resourceID
+        .resourceID
 
         do {
           try await sessionData.refreshIfNeeded()
@@ -250,7 +249,7 @@ extension ResourceEditForm {
             .first
         else {
           throw
-          UserSecretMissing
+            UserSecretMissing
             .error()
         }
 
@@ -268,7 +267,7 @@ extension ResourceEditForm {
 
         if let folderID: ResourceFolder.ID = resource.parentFolderID {
           let encryptedSecrets: OrderedSet<EncryptedMessage> =
-          try await usersPGPMessages
+            try await usersPGPMessages
             .encryptMessageForResourceFolderUsers(folderID, encodedSecret)
             .filter { encryptedMessage in
               encryptedMessage.recipient != currentAccount.userID
@@ -276,10 +275,10 @@ extension ResourceEditForm {
             .asOrderedSet()
 
           let folderPermissions: Array<ResourceFolderPermission> =
-          try await resourceFolderPermissionsFetchDatabaseOperation(folderID)
+            try await resourceFolderPermissionsFetchDatabaseOperation(folderID)
 
           let newPermissions: Array<NewGenericPermissionDTO> =
-          folderPermissions
+            folderPermissions
             .compactMap { (permission: ResourceFolderPermission) -> NewGenericPermissionDTO? in
               switch permission {
               case let .user(id, permission, _):
@@ -300,7 +299,7 @@ extension ResourceEditForm {
             }
 
           let updatedPermissions: Array<GenericPermissionDTO> =
-          folderPermissions
+            folderPermissions
             .compactMap { (permission: ResourceFolderPermission) -> GenericPermissionDTO? in
               if case .user(currentAccount.userID, let permission, _) = permission, permission != .owner {
                 return .userToResource(
@@ -362,7 +361,6 @@ extension ResourceEditForm {
         return createdResourceResult.resourceID
       }
     }
-
 
     return .init(
       state: .init(viewing: formState),

@@ -66,7 +66,8 @@ extension OTPScanningSuccessController {
     try features.ensureScope(SessionScope.self)
     guard !features.checkScope(ResourceEditScope.self)
     else {
-      throw InternalInconsistency
+      throw
+        InternalInconsistency
         .error("OTPScanningSuccessController can't be used when editing a resource!")
     }
 

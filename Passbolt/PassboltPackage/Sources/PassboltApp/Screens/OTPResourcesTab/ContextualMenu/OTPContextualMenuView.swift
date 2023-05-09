@@ -83,7 +83,7 @@ internal struct OTPContextualMenuView: ControlledView {
           ) { editAvailable in
             if editAvailable {
               ListDividerView()
-              
+
               DrawerMenuItemView(
                 action: self.controller.editResource,
                 title: {

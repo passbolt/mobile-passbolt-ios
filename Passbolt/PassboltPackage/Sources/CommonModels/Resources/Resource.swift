@@ -26,11 +26,11 @@ import Commons
 @dynamicMemberLookup
 public struct Resource {
 
-  public typealias ID = Tagged<String, Self>
+  public typealias ID = Tagged<UUID, Self>
 
   public enum Favorite {
 
-    public typealias ID = Tagged<String, Self>
+    public typealias ID = Tagged<UUID, Self>
   }
 
   public let id: Resource.ID?  // none is local, not synchronized resource
@@ -132,33 +132,5 @@ extension Resource {
 
   public var encryptedFields: OrderedSet<ResourceField> {
     self.type.fields.filter(\.encrypted).asOrderedSet()
-  }
-}
-
-extension Resource.ID {
-
-  internal static let validator: Validator<Self> = Validator<String>
-    .uuid()
-    .contraMap(\.rawValue)
-
-  public var isValid: Bool {
-    Self
-      .validator
-      .validate(self)
-      .isValid
-  }
-}
-
-extension Resource.Favorite.ID {
-
-  internal static let validator: Validator<Self> = Validator<String>
-    .uuid()
-    .contraMap(\.rawValue)
-
-  public var isValid: Bool {
-    Self
-      .validator
-      .validate(self)
-      .isValid
   }
 }

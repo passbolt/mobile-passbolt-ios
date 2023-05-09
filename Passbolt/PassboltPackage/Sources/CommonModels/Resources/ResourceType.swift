@@ -25,7 +25,7 @@ import Commons
 
 public struct ResourceType {
 
-  public typealias ID = Tagged<String, Self>
+  public typealias ID = Tagged<UUID, Self>
   public typealias Slug = Tagged<String, ID>
 
   public let id: ID
@@ -76,20 +76,6 @@ extension ResourceType {
   }
 }
 
-extension ResourceType.ID {
-
-  internal static let validator: Validator<Self> = Validator<String>
-    .uuid()
-    .contraMap(\.rawValue)
-
-  public var isValid: Bool {
-    Self
-      .validator
-      .validate(self)
-      .isValid
-  }
-}
-
 extension ResourceType.Slug {
 
   public static let `default`: Self = .passwordWithDescription
@@ -98,5 +84,4 @@ extension ResourceType.Slug {
   public static let passwordWithDescription: Self = "password-and-description"
   public static let passwordWithTOTP: Self = "password-description-totp"
   public static let totp: Self = "totp"
-  public static let hotp: Self = "hotp"
 }

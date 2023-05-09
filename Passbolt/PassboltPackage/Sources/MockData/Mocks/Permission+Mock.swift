@@ -25,9 +25,9 @@ import CommonModels
 
 extension Permission.ID {
 
-  public static let mock_1: Self = .init(rawValue: "B1F70F84-868B-46A8-A40F-F1289E2E8608")
+  public static let mock_1: Self = .init(uuidString: "B1F70F84-868B-46A8-A40F-F1289E2E8608")!
 
-  public static let mock_2: Self = .init(rawValue: "80A6DB1A-A51F-498F-980B-DEF1C4CFE450")
+  public static let mock_2: Self = .init(uuidString: "80A6DB1A-A51F-498F-980B-DEF1C4CFE450")!
 
-  public static let mock_3: Self = .init(rawValue: "A187D405-E578-4C96-A978-6C13D9ACA447")
+  public static let mock_3: Self = .init(uuidString: "A187D405-E578-4C96-A978-6C13D9ACA447")!
 }

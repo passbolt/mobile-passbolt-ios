@@ -69,20 +69,6 @@ public struct ResourceDTO {
   }
 }
 
-extension ResourceDTO {
-
-  internal static let validator: Validator<Self> = Resource.ID
-    .validator
-    .contraMap(\.id)
-
-  public var isValid: Bool {
-    Self
-      .validator
-      .validate(self)
-      .isValid
-  }
-}
-
 extension ResourceDTO: Decodable {
 
   public init(
@@ -105,7 +91,7 @@ extension ResourceDTO: Decodable {
     self.parentFolderID =
       try container
       .decodeIfPresent(
-        String.self,
+        UUID.self,
         forKey: .parentFolderID
       )
       .map(ResourceFolder.ID.init(rawValue:))

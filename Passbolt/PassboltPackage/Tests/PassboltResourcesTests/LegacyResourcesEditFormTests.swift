@@ -458,7 +458,7 @@ final class LegacyResourcesEditFormTests: LoadableFeatureTestCase<LegacyResource
       with: always(
         [
           .init(
-            recipient: "USER_ID",
+            recipient: .mock_1,
             message: "encrypted-message"
           )
         ]
@@ -504,7 +504,7 @@ final class LegacyResourcesEditFormTests: LoadableFeatureTestCase<LegacyResource
       with: always(
         [
           .init(
-            recipient: "USER_ID",
+            recipient: .mock_1,
             message: "encrypted-message"
           )
         ]
@@ -512,7 +512,7 @@ final class LegacyResourcesEditFormTests: LoadableFeatureTestCase<LegacyResource
     )
     patch(
       \ResourceCreateNetworkOperation.execute,
-      with: always(.init(resourceID: "resource-id", ownerPermissionID: "permission-id"))
+      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
     )
     patch(
       \SessionData.refreshIfNeeded,
@@ -535,7 +535,7 @@ final class LegacyResourcesEditFormTests: LoadableFeatureTestCase<LegacyResource
 
     let result: Resource.ID? = try await feature.sendForm()
 
-    XCTAssertEqual(result, "resource-id")
+    XCTAssertEqual(result, .mock_1)
   }
 
   func test_resourceEdit_fails_whenFetchingResourceFromDatabaseFails() async throws {
@@ -851,7 +851,7 @@ final class LegacyResourcesEditFormTests: LoadableFeatureTestCase<LegacyResource
       \UsersPGPMessages.encryptMessageForResourceUsers,
       with: always([
         .init(
-          recipient: "USER_ID",
+          recipient: .mock_1,
           message: "encrypted-message"
         )
       ])
@@ -913,7 +913,7 @@ final class LegacyResourcesEditFormTests: LoadableFeatureTestCase<LegacyResource
       \UsersPGPMessages.encryptMessageForResourceUsers,
       with: always([
         .init(
-          recipient: "USER_ID",
+          recipient: .mock_1,
           message: "encrypted-message"
         )
       ])
@@ -962,7 +962,7 @@ final class LegacyResourcesEditFormTests: LoadableFeatureTestCase<LegacyResource
       \UsersPGPMessages.encryptMessageForResourceUsers,
       with: always([
         .init(
-          recipient: "USER_ID",
+          recipient: .mock_1,
           message: "encrypted-message"
         )
       ])
@@ -1008,14 +1008,14 @@ final class LegacyResourcesEditFormTests: LoadableFeatureTestCase<LegacyResource
 }
 
 private let emptyResourceType: ResourceTypeDTO = .init(
-  id: "empty",
+  id: .init(),
   slug: "empty",
   name: "empty",
   fields: []
 )
 
 private let defaultShrinkedResourceType: ResourceTypeDTO = .init(
-  id: "password-and-description-shrinked",
+  id: .init(),
   slug: "password-and-description",
   name: "password-and-description-shrinked",
   fields: [
@@ -1024,7 +1024,7 @@ private let defaultShrinkedResourceType: ResourceTypeDTO = .init(
 )
 
 private let defaultResourceType: ResourceTypeDTO = .init(
-  id: "password-and-description",
+  id: .init(),
   slug: "password-and-description",
   name: "password-and-description",
   fields: [

@@ -45,15 +45,15 @@ final class OTPScanningSuccessControllerTests: FeaturesTestCase {
   func test_createStandaloneOTP_navigatesBack_whenSucceeded() async throws {
     patch(
       \NavigationToOTPScanning.mockRevert,
-       with: always(self.dynamicVariables.executed = Void())
+      with: always(self.dynamicVariables.executed = Void())
     )
     patch(
       \ResourceEditForm.update,
-       with: always(.valid(.unknown(.null)))
+      with: always(.valid(.unknown(.null)))
     )
     patch(
       \ResourceEditForm.sendForm,
-       with: always(.mock_1)
+      with: always(.mock_1)
     )
 
     let feature: OTPScanningSuccessController = try self.testedInstance(
@@ -77,15 +77,15 @@ final class OTPScanningSuccessControllerTests: FeaturesTestCase {
   func test_createStandaloneOTP_doesNotNavigate_whenFailed() async throws {
     patch(
       \NavigationToOTPScanning.mockRevert,
-       with: always(self.dynamicVariables.executed = Void())
+      with: always(self.dynamicVariables.executed = Void())
     )
     patch(
       \ResourceEditForm.update,
-       with: always(.valid(.unknown(.null)))
+      with: always(.valid(.unknown(.null)))
     )
     patch(
       \ResourceEditForm.sendForm,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
 
     let feature: OTPScanningSuccessController = try self.testedInstance(
@@ -109,11 +109,11 @@ final class OTPScanningSuccessControllerTests: FeaturesTestCase {
   func test_createStandaloneOTP_presentsError_whenFailed() async throws {
     patch(
       \ResourceEditForm.update,
-       with: always(.valid(.unknown(.null)))
+      with: always(.valid(.unknown(.null)))
     )
     patch(
       \ResourceEditForm.sendForm,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
 
     let feature: OTPScanningSuccessController = try self.testedInstance(
@@ -132,7 +132,8 @@ final class OTPScanningSuccessControllerTests: FeaturesTestCase {
     await self.asyncExecutionControl.executeAll()
 
     await XCTAssertValue(
-      equal: SnackBarMessage
+      equal:
+        SnackBarMessage
         .error("testLocalizationKey")
     ) {
       feature.viewState.snackBarMessage

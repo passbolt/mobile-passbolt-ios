@@ -100,7 +100,7 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
   func test_filteredTagsList_returnsDataFromDabase() async throws {
     let expectedResult: Array<ResourceTagListItemDSV> = [
       .init(
-        id: "resourceID",
+        id: .mock_1,
         slug: "slug",
         shared: false,
         contentCount: 0

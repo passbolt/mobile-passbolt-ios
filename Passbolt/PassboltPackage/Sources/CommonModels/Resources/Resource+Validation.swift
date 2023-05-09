@@ -62,7 +62,7 @@ extension Resource {
 
     if let error {
       throw error
-    } // else NOP
+    }  // else NOP
   }
 
   public func validate() throws {

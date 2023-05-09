@@ -86,7 +86,7 @@ extension UserGroupsListFetchDatabaseOperation {
         using: groupSelectStatement
       ) { dataRow -> UserGroupDetailsDSV in
         guard
-          let id: UserGroup.ID = dataRow.id.flatMap(UserGroup.ID.init(rawValue:)),
+          let id: UserGroup.ID = dataRow.id.flatMap(UserGroup.ID.init(uuidString:)),
           let name: String = dataRow.name
         else {
           throw
@@ -102,7 +102,7 @@ extension UserGroupsListFetchDatabaseOperation {
           try connection
           .fetch(using: groupMembersSelectStatement) { dataRow -> UserDetailsDSV in
             guard
-              let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:)),
+              let id: User.ID = dataRow.id.flatMap(User.ID.init(uuidString:)),
               let username: String = dataRow.username,
               let firstName: String = dataRow.firstName,
               let lastName: String = dataRow.lastName,

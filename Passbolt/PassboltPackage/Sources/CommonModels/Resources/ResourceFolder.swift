@@ -25,7 +25,7 @@ import Commons
 
 public struct ResourceFolder {
 
-  public typealias ID = Tagged<String, Self>
+  public typealias ID = Tagged<UUID, Self>
 
   public var id: ID?  // none is local, not synchronized resource folder
   public var name: String
@@ -57,19 +57,5 @@ extension ResourceFolder {
 
   public var parentID: ID? {
     self.path.last?.id
-  }
-}
-
-extension ResourceFolder.ID {
-
-  internal static let validator: Validator<Self> = Validator<String>
-    .uuid()
-    .contraMap(\.rawValue)
-
-  public var isValid: Bool {
-    Self
-      .validator
-      .validate(self)
-      .isValid
   }
 }

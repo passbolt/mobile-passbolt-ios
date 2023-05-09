@@ -133,7 +133,7 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
 
     let controller: ResourceUserGroupsExplorerController = try await testController(
       context: .init(
-        id: "groupID",
+        id: .mock_1,
         name: "group",
         contentCount: 0
       )

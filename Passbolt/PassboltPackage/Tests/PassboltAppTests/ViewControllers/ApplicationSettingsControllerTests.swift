@@ -98,9 +98,6 @@ final class ApplicationSettingsControllerTests: LoadableFeatureTestCase<Applicat
     withTestedInstanceReturnsEqual(
       BiometricsAuthorizationAvailability.disabledFaceID
     ) { feature in
-      Task {
-        await self.mockExecutionControl.executeAll()
-      }
       await self.mockExecutionControl.addTask {
         try? await Task.sleep(nanoseconds: 150 * NSEC_PER_MSEC)
         accountPreferencesUpdates.endUpdates()

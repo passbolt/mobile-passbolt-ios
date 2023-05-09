@@ -89,12 +89,12 @@ extension LegacyResourceEditForm {
             path: folderPath,
             type: resourceType
           )
-					if let value: ResourceFieldValue = uri.map({ .string($0.rawValue) }) {
-						try? resource.set(
-							value,
-							forField: "uri"
-						)
-					} // else skip
+          if let value: ResourceFieldValue = uri.map({ .string($0.rawValue) }) {
+            try? resource.set(
+              value,
+              forField: "uri"
+            )
+          }  // else skip
           formState.set(\.self, resource)
           formUpdates.sendUpdate()
 

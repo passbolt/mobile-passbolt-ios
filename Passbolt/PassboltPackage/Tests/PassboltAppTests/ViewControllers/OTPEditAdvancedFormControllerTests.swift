@@ -69,19 +69,21 @@ final class TOTPEditAdvancedFormControllerTests: FeaturesTestCase {
     let mutableState: MutableState<Resource> = .init(initial: resource)
     patch(
       \ResourceEditForm.state,
-       with: .init(viewing: mutableState)
+      with: .init(viewing: mutableState)
     )
     patch(
       \ResourceEditForm.updatableTOTPField,
-       with: always(.init(
-        fieldPath: ResourceField.valuePath(forName: "totp"),
-        access: { (access) throws in
-          try await mutableState.update { state in
-            try access(&state)
-            return state
+      with: always(
+        .init(
+          fieldPath: ResourceField.valuePath(forName: "totp"),
+          access: { (access) throws in
+            try await mutableState.update { state in
+              try access(&state)
+              return state
+            }
           }
-        }
-       ))
+        )
+      )
     )
 
     let feature: TOTPEditAdvancedFormController = try self.testedInstance()

@@ -88,7 +88,7 @@ extension Resources {
           }(),
           text: filter.text,
           favoriteOnly: filter.favoriteOnly,
-          excludedTypeSlugs: [.totp, .hotp],
+          excludedTypeSlugs: [.totp],
           permissions: Set(filter.permissions),
           tags: filter.tags,
           userGroups: filter.userGroups,

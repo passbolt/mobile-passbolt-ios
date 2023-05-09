@@ -932,7 +932,7 @@ private let accountTransferUpdateResponse: AccountTransferUpdateNetworkOperation
 private let transferedAccount: Account = .init(
   localID: .init(rawValue: UUID.test.uuidString),
   domain: "https://localhost:8443",
-  userID: "f848277c-5398-58f8-a82a-72397af2d450",
+  userID: .init(uuidString: "f848277c-5398-58f8-a82a-72397af2d450")!,
   fingerprint: "FINGERPRINT"
 )
 

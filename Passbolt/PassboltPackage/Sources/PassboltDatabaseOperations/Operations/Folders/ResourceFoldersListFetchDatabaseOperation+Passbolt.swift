@@ -281,7 +281,7 @@ extension ResourceFoldersListFetchDatabaseOperation {
 
     return try connection.fetch(using: statement) { dataRow -> ResourceFolderListItemDSV in
       guard
-        let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
+        let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(uuidString:)),
         let name: String = dataRow.name,
         let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:)),
         let shared: Bool = dataRow.shared
@@ -301,7 +301,7 @@ extension ResourceFoldersListFetchDatabaseOperation {
         name: name,
         permission: permission,
         shared: shared,
-        parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:)),
+        parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(uuidString:)),
         location: pathString,
         contentCount: dataRow.contentCount ?? 0
       )

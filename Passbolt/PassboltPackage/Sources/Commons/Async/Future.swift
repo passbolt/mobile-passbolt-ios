@@ -30,7 +30,8 @@
       try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Value, Error>) in
         guard !Task.isCancelled
         else {
-          return continuation
+          return
+            continuation
             .resume(throwing: Cancelled.error())
         }
         state
@@ -50,4 +51,3 @@
     }
   )
 }
-

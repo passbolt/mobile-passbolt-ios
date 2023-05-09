@@ -131,7 +131,7 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
   func test_initally_viewStateTitle_isFolderName_forNonRootFolder() async throws {
     let controller: FoldersExplorerController = try testController(
       context: .init(
-        id: "folder",
+        id: .mock_1,
         name: "folder",
         permission: .owner,
         shared: false,

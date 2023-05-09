@@ -61,6 +61,13 @@ where Wrapped: SQLiteValueConvertible {
   }
 }
 
+extension UUID: SQLiteValueConvertible {
+
+  public var asSQLiteValue: SQLiteValue {
+    self.uuidString.asSQLiteValue
+  }
+}
+
 extension Tagged: SQLiteValueConvertible
 where RawValue: SQLiteValueConvertible {
 

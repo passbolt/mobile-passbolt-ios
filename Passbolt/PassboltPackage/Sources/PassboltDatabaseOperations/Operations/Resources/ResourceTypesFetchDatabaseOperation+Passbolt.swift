@@ -45,7 +45,7 @@ extension ResourceTypesFetchDatabaseOperation {
           """
       ) { dataRow in
         guard
-          let id: ResourceType.ID = dataRow.id.flatMap(ResourceType.ID.init(rawValue:)),
+          let id: ResourceType.ID = dataRow.id.flatMap(ResourceType.ID.init(uuidString:)),
           let slug: ResourceType.Slug = dataRow.slug.flatMap(ResourceType.Slug.init(rawValue:)),
           let name: String = dataRow.name,
           let rawFields: String = dataRow.fields

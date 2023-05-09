@@ -42,7 +42,7 @@ extension ViewableState {
 
   public var value: Value {
     get async throws {
-      var generation: Generation = 0 // 0 guarantees receiving latest value
+      var generation: Generation = 0  // 0 guarantees receiving latest value
       return try await self.current(&generation)
     }
   }
