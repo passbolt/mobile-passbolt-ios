@@ -21,51 +21,31 @@
 // @since         v1.0
 //
 
-import Localization
+import Commons
 
-extension ResourceField {
+public enum ResourceFieldEditor {
 
-  public var displayableName: DisplayableString {
-    switch self.name {
-    case "name":
-      return "resource.edit.field.name.label"
+  case textField(
+    name: DisplayableString,
+    placeholder: DisplayableString?,
+    required: Bool,
+    encrypted: Bool
+  )
 
-    case "uri":
-      return "resource.edit.field.uri.label"
+  case longTextField(
+    name: DisplayableString,
+    placeholder: DisplayableString?,
+    required: Bool,
+    encrypted: Bool
+  )
 
-    case "username":
-      return "resource.edit.field.username.label"
+  case selection(
+    name: DisplayableString,
+    placeholder: DisplayableString?,
+    required: Bool,
+    encrypted: Bool,
+    values: Array<String>
+  )
 
-    case "password", "secret":
-      return "resource.edit.field.password.label"
-
-    case "description":
-      return "resource.edit.field.description.label"
-
-    case let rawName:
-      return .raw(rawName)
-    }
-  }
-
-  public var displayablePlaceholder: DisplayableString? {
-    switch self.name {
-    case "name":
-      return "resource.edit.field.name.placeholder"
-
-    case "uri":
-      return "resource.edit.field.uri.placeholder"
-
-    case "username":
-      return "resource.edit.field.username.placeholder"
-
-    case "password", "secret":
-      return "resource.edit.field.password.placeholder"
-
-    case "description":
-      return "resource.edit.field.description.placeholder"
-
-    case _:
-      return .none
-    }
-  }
+  case undefined
 }

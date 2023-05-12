@@ -22,7 +22,6 @@
 //
 
 import Combine
-import TestExtensions
 import XCTest
 
 @testable import Commons
@@ -131,7 +130,7 @@ final class AnyAsyncThrowingSequenceTests: XCTestCase {
     let content: AsyncThrowingStream<Int, Error> = .init { continuation in
       continuation.yield(1)
       continuation.yield(2)
-      continuation.finish(throwing: MockIssue.error())
+      continuation.finish(throwing: CancellationError())
     }
 
     let sequence: AnyAsyncThrowingSequence<Int> = .init(content)

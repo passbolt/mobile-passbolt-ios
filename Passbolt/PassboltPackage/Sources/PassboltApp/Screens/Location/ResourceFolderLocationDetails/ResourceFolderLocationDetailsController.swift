@@ -73,7 +73,7 @@ extension ResourceFolderLocationDetailsController {
       )
     )
 
-    executor.schedule {
+    executor.schedule(.unmanaged) {
       do {
         let details: ResourceFolderDetailsDSV = try await folderDetails.details()
         var path: FolderLocationTreeView.Node = details.path.reduce(

@@ -13,6 +13,8 @@
     }
   ],
   "defaultOptions" : {
+    "defaultTestExecutionTimeAllowance" : 60,
+    "maximumTestExecutionTimeAllowance" : 60,
     "testExecutionOrdering" : "random",
     "testTimeoutsEnabled" : true
   },
@@ -108,6 +110,13 @@
         "containerPath" : "container:PassboltPackage",
         "identifier" : "PassboltAccountSetupTests",
         "name" : "PassboltAccountSetupTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "CommonModelsTests",
+        "name" : "CommonModelsTests"
       }
     }
   ],

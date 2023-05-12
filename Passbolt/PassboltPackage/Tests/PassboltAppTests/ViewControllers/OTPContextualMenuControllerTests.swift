@@ -50,9 +50,8 @@ final class OTPContextualMenuControllerTests: LoadableFeatureTestCase<OTPContext
       with: always(0)
     )
     patch(
-      \ResourceDetails.details,
-      context: .mock_1,
-      with: always(.mock_1)
+      \ResourceController.state,
+      with: .init(constant: .mock_1)
     )
   }
 
@@ -159,16 +158,9 @@ final class OTPContextualMenuControllerTests: LoadableFeatureTestCase<OTPContext
   }
 
   func test_viewState_updatesTitle_fromResourceDetails() {
-    let resourceUpdatesSequence: UpdatesSequenceSource = .init()
     patch(
-      \ResourceDetails.updates,
-      context: .mock_1,
-      with: resourceUpdatesSequence.updatesSequence
-    )
-    patch(
-      \ResourceDetails.details,
-      context: .mock_1,
-      with: always(.mock_1)
+      \ResourceController.state,
+      with: .init(constant: .mock_1)
     )
     withTestedInstanceReturnsEqual(
       DisplayableString.raw("Mock_1"),
@@ -177,11 +169,6 @@ final class OTPContextualMenuControllerTests: LoadableFeatureTestCase<OTPContext
         showMessage: { _ in }
       )
     ) { feature in
-      await self.mockExecutionControl.addTask {
-        // temporary wait for detached tasks
-        try? await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
-        resourceUpdatesSequence.endUpdates()
-      }
       await self.mockExecutionControl.executeAll()
 
       return await feature.viewState.title

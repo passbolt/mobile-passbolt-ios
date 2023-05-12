@@ -47,7 +47,7 @@ extension ResourceDetailsSharedSectionController: ComponentController {
     let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
     let navigation: DisplayNavigation = try features.instance()
-    let resourceDetails: ResourceDetails = try features.instance(context: context)
+    let resourceController: ResourceController = try features.instance()
     let users: Users = try features.instance()
 
     func userAvatarImageFetch(
@@ -70,11 +70,11 @@ extension ResourceDetailsSharedSectionController: ComponentController {
       )
     )
 
-    asyncExecutor.schedule { @MainActor in
+    asyncExecutor.schedule(.unmanaged) { @MainActor in
       do {
         viewState.items =
-          try await resourceDetails
-          .details()
+          try await resourceController
+          .state.value
           .permissions
           .compactMap { permission -> OverlappingAvatarStackView.Item? in
             switch permission {

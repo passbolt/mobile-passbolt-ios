@@ -63,7 +63,8 @@ public struct CompactTagsView: View {
     HStack(spacing: 4) {
       switch self.tags.count {
       case 0:
-        EmptyView()
+        Color.clear
+          .frame(height: 18)
 
       case 1:
         self.tagView(self.tags[0])

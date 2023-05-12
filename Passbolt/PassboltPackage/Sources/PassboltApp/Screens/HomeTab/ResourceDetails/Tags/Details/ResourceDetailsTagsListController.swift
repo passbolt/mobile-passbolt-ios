@@ -65,7 +65,7 @@ extension ResourceDetailsTagsListController {
     let asyncExecutor: AsyncExecutor = try features.instance()
 
     let navigation: DisplayNavigation = try features.instance()
-    let resourceDetails: ResourceDetails = try features.instance(context: context)
+    let resourceController: ResourceController = try features.instance()
 
     let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
@@ -75,13 +75,13 @@ extension ResourceDetailsTagsListController {
       )
     )
 
-    asyncExecutor.schedule { @MainActor in
+    asyncExecutor.schedule(.unmanaged) { @MainActor in
       do {
-        let resourceDetails: Resource = try await resourceDetails.details()
+        let resource: Resource = try await resourceController.state.value
         viewState.update { (state: inout ViewState) in
-          state.resourceName = resourceDetails.value(forField: "name").stringValue ?? ""
-          state.resourceFavorite = resourceDetails.favorite
-          state.tags = resourceDetails.tags
+          state.resourceName = resource.meta.name.stringValue ?? ""
+          state.resourceFavorite = resource.favorite
+          state.tags = resource.tags
         }
       }
       catch {

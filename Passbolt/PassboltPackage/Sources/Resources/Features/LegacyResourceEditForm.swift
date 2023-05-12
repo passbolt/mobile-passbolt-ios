@@ -33,23 +33,20 @@ public struct LegacyResourceEditForm {
   // Access current resource state
   public var resource: @Sendable () async throws -> Resource
   // Access list of all available fields for edited resource
-  public var fieldsPublisher: @Sendable () -> AnyPublisher<OrderedSet<ResourceField>, Never>
+  public var fieldsPublisher: @Sendable () -> AnyPublisher<OrderedSet<ResourceFieldSpecification>, Never>
   // Assign value for given field
-  public var setFieldValue: @Sendable (ResourceFieldValue, ResourceField) async throws -> Void
+  public var setFieldValue: @Sendable (JSON, Resource.FieldPath) async throws -> Void
   // Publisher for validated values for given field
-  public var validatedFieldValuePublisher:
-    @Sendable (ResourceField) -> AnyPublisher<Validated<ResourceFieldValue>, Never>
+  public var validatedFieldValuePublisher: @Sendable (Resource.FieldPath) -> AnyPublisher<Validated<JSON>, Never>
   // Send the form
   public var sendForm: @Sendable () async throws -> Resource.ID
 
   public init(
     updates: UpdatesSequence,
     resource: @escaping @Sendable () async throws -> Resource,
-    fieldsPublisher: @escaping @Sendable () -> AnyPublisher<OrderedSet<ResourceField>, Never>,
-    setFieldValue: @escaping @Sendable (ResourceFieldValue, ResourceField) async throws -> Void,
-    validatedFieldValuePublisher: @escaping @Sendable (ResourceField) -> AnyPublisher<
-      Validated<ResourceFieldValue>, Never
-    >,
+    fieldsPublisher: @escaping @Sendable () -> AnyPublisher<OrderedSet<ResourceFieldSpecification>, Never>,
+    setFieldValue: @escaping @Sendable (JSON, Resource.FieldPath) async throws -> Void,
+    validatedFieldValuePublisher: @escaping @Sendable (Resource.FieldPath) -> AnyPublisher<Validated<JSON>, Never>,
     sendForm: @escaping @Sendable () async throws -> Resource.ID
   ) {
     self.updates = updates

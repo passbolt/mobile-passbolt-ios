@@ -30,9 +30,7 @@ public final class MutableViewState<State>
 where State: Equatable & Sendable {
 
   public let cancellables: Cancellables = .init()
-  public nonisolated let forceRefeshSubject: PassthroughSubject<Void, Never>
   internal let stateWillChange: AnyPublisher<State, Never>
-  internal let updates: UpdatesSequence
   private let read: @MainActor () -> State
   private let write: @MainActor (State) -> Void
   private nonisolated let cleanup: () -> Void
@@ -54,7 +52,6 @@ where State: Equatable & Sendable {
     cleanup: @escaping () -> Void = { /* NOP */  }
   ) {
     var state: State = initial
-    let forceRefeshSubject: PassthroughSubject<Void, Never> = .init()
     let nextValueSubject: CurrentValueSubject<State, Never> = .init(initial)
     let updatesSource: UpdatesSequenceSource = .init()
     self.read = { state }
@@ -63,12 +60,11 @@ where State: Equatable & Sendable {
       state = newValue
       updatesSource.sendUpdate()
     }
-    self.stateWillChange = nextValueSubject.merge(with: forceRefeshSubject.map { nextValueSubject.value })
+    self.stateWillChange =
+      nextValueSubject
       .eraseToAnyPublisher()
-    self.updates = updatesSource.updatesSequence
     self.featuresContainer = container
     self.cleanup = cleanup
-    self.forceRefeshSubject = forceRefeshSubject
   }
 
   // stateless - does nothing
@@ -82,10 +78,8 @@ where State: Equatable & Sendable {
     self.stateWillChange = Empty<State, Never>().eraseToAnyPublisher()
     let updatesSource: UpdatesSequenceSource = .init()
     updatesSource.endUpdates()
-    self.updates = updatesSource.updatesSequence
     self.featuresContainer = container
     self.cleanup = cleanup
-    self.forceRefeshSubject = .init()
   }
 
   #if DEBUG
@@ -103,10 +97,8 @@ where State: Equatable & Sendable {
       line: line
     )
     self.stateWillChange = Empty<State, Never>().eraseToAnyPublisher()
-    self.updates = .placeholder
     self.featuresContainer = .none
     self.cleanup = { /* NOP */  }
-    self.forceRefeshSubject = .init()
   }
   #endif
 
@@ -175,11 +167,11 @@ extension MutableViewState: Equatable {
 extension MutableViewState: AsyncSequence {
 
   public typealias Element = State
-  public typealias AsyncIterator = AsyncMapSequence<UpdatesSequence, State>.Iterator
+  public typealias AsyncIterator = AnyAsyncIterator<State>
 
   public func makeAsyncIterator() -> AsyncIterator {
-    self.updates
-      .map { self.value }
+    self.stateWillChange
+      .asAnyAsyncSequence()
       .makeAsyncIterator()
   }
 }

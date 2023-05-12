@@ -38,9 +38,9 @@ public struct ResourcesDatabaseFilter {
   // favorite only search (AND)
   public var favoriteOnly: Bool
   // included resource types search (AND) - empty ignores this parameter
-  public var includedTypeSlugs: Set<ResourceType.Slug>
+  public var includedTypeSlugs: Set<ResourceSpecification.Slug>
   // excluded resource types search (AND) - empty ignores this parameter
-  public var excludedTypeSlugs: Set<ResourceType.Slug>
+  public var excludedTypeSlugs: Set<ResourceSpecification.Slug>
   // included permissions search (AND) - empty ignores this parameter
   public var permissions: Set<Permission>
   // included tags search (AND) - matches when any of tags matches,
@@ -60,8 +60,8 @@ public struct ResourcesDatabaseFilter {
     url: String = .init(),
     username: String = .init(),
     favoriteOnly: Bool = false,
-    includedTypeSlugs: Set<ResourceType.Slug> = .init(),
-    excludedTypeSlugs: Set<ResourceType.Slug> = .init(),
+    includedTypeSlugs: Set<ResourceSpecification.Slug> = .init(),
+    excludedTypeSlugs: Set<ResourceSpecification.Slug> = .init(),
     permissions: Set<Permission> = .init(),
     tags: Set<ResourceTag.ID> = .init(),
     userGroups: Set<UserGroup.ID> = .init(),

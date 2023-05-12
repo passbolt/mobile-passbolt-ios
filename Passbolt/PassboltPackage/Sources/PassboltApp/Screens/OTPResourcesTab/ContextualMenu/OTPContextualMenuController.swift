@@ -79,7 +79,7 @@ extension OTPContextualMenuController {
     let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
 
-    let resourceDetails: ResourceDetails = try features.instance(context: context.resourceID)
+    let resourceController: ResourceController = try features.instance()
     let otpCodesController: OTPCodesController = try features.instance()
 
     let navigationToSelf: NavigationToOTPContextualMenu = try features.instance()
@@ -94,18 +94,16 @@ extension OTPContextualMenuController {
     )
 
     // load resource name
-    asyncExecutor.scheduleCatchingWith(
-      diagnostics,
+    asyncExecutor.scheduleIteration(
+      over: resourceController.state,
+      catchingWith: diagnostics,
       failMessage: "Loading resource details failed!"
-    ) {
-      for await _ in resourceDetails.updates {
-        let resource: Resource = try await resourceDetails.details()
-        let resourceName: String = resource.value(forField: "name").stringValue ?? ""
-
-        await viewState.update { (state: inout ViewState) in
-          state.title = .raw(resourceName)
-          state.editAvailable = resource.permission.canEdit
-        }
+    ) { (resource: Resource) async throws in
+      let resourceName: String = resource.meta.name.stringValue ?? ""
+      
+      await viewState.update { (state: inout ViewState) in
+        state.title = .raw(resourceName)
+        state.editAvailable = resource.permission.canEdit
       }
     }
 

@@ -37,7 +37,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
   override func prepare() throws {
     patch(
       \PGP.setTimeOffset,
-       with: always(Void())
+      with: always(Void())
     )
     patch(
       \UUIDGenerator.uuid,
@@ -83,7 +83,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     )
     patch(
       \ServerPGPPublicKeyFetchNetworkOperation.execute,
-       with: always(.init(serverTime: 0, keyData: "key"))
+      with: always(.init(serverTime: 0, keyData: "key"))
     )
     patch(
       \PGP.extractFingerprint,
@@ -1026,14 +1026,14 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     )
     patch(
       \PGP.encryptAndSign,
-       with: always(.failure(MockIssue.error()))
+      with: always(.failure(MockIssue.error()))
     )
     self.variables.set(\.offset, of: Seconds.self, to: 0)
     patch(
       \PGP.setTimeOffset,
-       with: {
-         self.variables.set(\.offset, to: $0)
-       }
+      with: {
+        self.variables.set(\.offset, to: $0)
+      }
     )
 
     withTestedInstanceReturnsEqual(

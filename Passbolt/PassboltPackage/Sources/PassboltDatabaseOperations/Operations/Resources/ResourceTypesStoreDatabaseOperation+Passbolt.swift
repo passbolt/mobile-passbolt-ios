@@ -33,7 +33,6 @@ extension ResourceTypesStoreDatabaseOperation {
     connection: SQLiteConnection
   ) throws {
     // cleanup existing types as preparation for update
-    try connection.execute("DELETE FROM resourceFields;")
     try connection.execute("DELETE FROM resourceTypes;")
 
     for resourceType in input {
@@ -62,74 +61,10 @@ extension ResourceTypesStoreDatabaseOperation {
           ;
           """,
           arguments: resourceType.id,
-          resourceType.slug,
+          resourceType.specification.slug,
           resourceType.name
         )
       )
-
-      for field in resourceType.fields {
-        let resourceFieldID: Int? =
-          try connection.fetchFirst(
-            using: .statement(
-              """
-              INSERT INTO
-                resourceFields(
-                  name,
-                  valueType,
-                  encrypted,
-                  required,
-                  minimum,
-                  maximum
-                )
-              VALUES
-                (
-                  ?1,
-                  ?2,
-                  ?3,
-                  ?4,
-                  ?5,
-                  ?6
-                )
-              RETURNING
-                id AS id
-              ;
-              """,
-              arguments: field.name,
-              field.valueTypeName,
-              field.encrypted,
-              field.required,
-              field.minimum,
-              field.maximum
-            )
-          )?
-          .id
-
-        guard let resourceFieldID: Int = resourceFieldID
-        else {
-          throw
-            DatabaseResultInvalid
-            .error("Failed to get inserted resource field id")
-        }
-        try connection.execute(
-          .statement(
-            """
-            INSERT INTO
-              resourceTypesFields(
-                resourceTypeID,
-                resourceFieldID
-              )
-            VALUES
-              (
-                ?1,
-                ?2
-              )
-            ;
-            """,
-            arguments: resourceType.id,
-            resourceFieldID
-          )
-        )
-      }
     }
   }
 }

@@ -21,45 +21,105 @@
 // @since         v1.0
 //
 
-public final actor MutableState<Value> {
+public final class MutableState<Value>
+where Value: Sendable {
 
-  private enum State {
-
-    case current(Value)
-    case deferred(@Sendable () async throws -> Value)
-    case pending(Task<Value, Error>)
-    case error(Error)
-  }
+  public typealias ResolveValue = @Sendable () async throws -> Value
+  public typealias ResolveMutation = @Sendable (inout Value) throws -> Void
+  public typealias ResolveAsyncMutation = @Sendable (inout Value) async throws -> Void
 
   internal typealias Generation = UInt64
-  private typealias Awaiter = @Sendable (Result<Value, Error>) -> Void
 
-  private var state: State
-  private var generation: Generation
-  private var awaiters: Array<Awaiter>
+  fileprivate typealias ValueGeneration = (value: Value, generation: Generation)
+  fileprivate typealias UpdateTask = Task<Value, Error>
+  fileprivate typealias UpdateAwaiter = @Sendable (Result<ValueGeneration, Error>) -> Void
+
+  fileprivate enum ValueState {
+    // Value is up to date and nothing is pending.
+    case current(Value)
+    // Value has to be updated but it is resolved only when needed.
+    case deferred(ResolveValue)
+    // Value is being updated, further updates will be queued??.
+    case pending(UpdateTask)
+    // State is broken, no more updates possible.
+    case failure(Error)
+  }
+
+  fileprivate struct State {
+
+    fileprivate var value: ValueState {
+      didSet {
+        switch self.value {
+        case .pending: // TODO: oldValue was current
+          let pendingAwaiters: Array<UpdateAwaiter> = self.updateAwaiters.removeValue(forKey: self.generation) ?? .init()
+          self.generation &+= 1
+          var updatedAwaiters: Array<UpdateAwaiter> = self.updateAwaiters[self.generation] ?? .init()
+          updatedAwaiters.append(contentsOf: pendingAwaiters)
+          self.updateAwaiters[self.generation] = updatedAwaiters
+
+        case .current, .pending:
+          self.generation &+= 1
+
+        case .deferred, .failure:
+          assert(self.updateAwaiters.isEmpty)
+        }
+      }
+    }
+    fileprivate private(set) var generation: Generation
+    fileprivate private(set) var updateAwaiters: Dictionary<Generation, Array<UpdateAwaiter>> = .init()
+
+    fileprivate init(
+      value: ValueState,
+      generation: Generation
+    ) {
+      self.value = value
+      self.generation = generation
+    }
+  }
+
+  private let state: CriticalState<State>
 
   public init(
     initial: Value
   ) {
-    self.state = .current(initial)
-    self.generation = 1
-    self.awaiters = .init()
+    self.state = .init(
+      .init(
+        value: .current(initial),
+        generation: 1
+      )
+    )
   }
 
   public init(
     failed error: Error
   ) {
-    self.state = .error(error)
-    self.generation = 1
-    self.awaiters = .init()
+    self.state = .init(
+      .init(
+        value: .failure(error),
+        generation: 1
+      )
+    )
   }
 
   public init(
-    lazy resolve: @escaping @Sendable () async throws -> Value
+    lazy resolve: @escaping ResolveValue
   ) {
-    self.state = .deferred(resolve)
-    self.generation = 0
-    self.awaiters = .init()
+    // initial value is not there yet
+    self.state = .init(
+      .init(
+        value: .deferred(resolve),
+        generation: 0
+      )
+    )
+  }
+
+  deinit {
+    self.state.access { (state: inout State) in
+      // cancel all awaiters left
+      for awaiter in state.updateAwaiters.values.flatMap({ $0 }) {
+        awaiter(.failure(CancellationError()))
+      }
+    }
   }
 }
 
@@ -69,136 +129,265 @@ extension MutableState {
 
   public var value: Value {
     get async throws {
-      switch self.state {
-      case .current(let value):
-        return value
+      let valueGeneration: ValueGeneration = try await future { fulfill in
+        self.state.access { (state: inout State) in
+          switch state.value {
+          case .current(let value):
+            fulfill(.success((value: value, generation: state.generation)))
 
-      case .deferred(let resolve):
-        let resolveTask: Task<Value, Error> = .detached(operation: resolve)
-        self.state = .pending(resolveTask)
-        let result: Result<Value, Error> = await resolveTask.result
-        switch result {
-        case .success(let value):
-          self.generation &+= 1
-          self.state = .current(value)
-          self.resumeAwaiters(with: .success(value))
-          return value
+          case .pending:
+            state.addAwaiter(fulfill)
 
-        case .failure(let error):
-          self.generation &+= 1
-          self.state = .error(error)
-          self.resumeAwaiters(with: .failure(error))
-          throw error
+          case .deferred(let resolve):
+            let generation: Generation = state.generation + 1
+            let updateTask: Task<Value, Error> = .detached { [weak self] in
+              do {
+                let resolvedValue: Value = try await resolve()
+                try self?.update(to: resolvedValue, from: generation)
+                return resolvedValue
+              }
+              catch {
+                try self?.fail(with: error)
+                throw error
+              }
+            }
+            state.value = .pending(updateTask)
+            state.addAwaiter(fulfill)
+
+          case .failure(let error):
+            fulfill(.failure(error))
+          }
         }
-
-      case .pending(let task):
-        return try await task.value
-
-      case .error(let error):
-        throw error
       }
+
+      return valueGeneration.value
+    }
+  }
+}
+
+extension MutableState {
+
+  public func fail(
+    with error: Error
+  ) throws {
+    try self.state.access { (state: inout State) throws in
+      try state.fail(with: error)
     }
   }
 
-  public func update<Returned>(
-    _ update: (inout Value) throws -> Returned
-  ) async throws -> Returned {
-    var value: Value = try await self.value
-    do {
-      let returned: Returned = try update(&value)
-      self.generation &+= 1
-      self.state = .current(value)
-      self.resumeAwaiters(with: .success(value))
-      return returned
+  @discardableResult
+  public func update(
+    _ mutation: @escaping ResolveMutation
+  ) async throws -> Value {
+    try await future { fulfill in
+      self.state.access { (state: inout State) in
+        switch state.value {
+        case .current(var value):
+          state.addAwaiter(fulfill)
+          do {
+            try mutation(&value)
+            try state.update(to: value, from: state.generation)
+          }
+          catch {
+            // ignore error here, it can't throw when failing from a valid value
+            try? state.fail(with: error)
+          }
+
+        case .deferred(let resolve):
+          let generation: Generation = state.generation + 1
+          let updateTask: Task<Value, Error> = .detached { [weak self] in
+            do {
+              var resolvedValue: Value = try await resolve()
+              try mutation(&resolvedValue)
+              try self?.update(to: resolvedValue, from: generation)
+              return resolvedValue
+            }
+            catch {
+              try self?.fail(with: error)
+              throw error
+            }
+          }
+          state.value = .pending(updateTask)
+          state.addAwaiter(fulfill)
+
+        case .pending(let task):
+          let generation: Generation = state.generation + 1
+          let updateTask: Task<Value, Error> = .detached { [weak self] in
+            do {
+              var resolvedValue: Value = try await task.value
+              try mutation(&resolvedValue)
+              try self?.update(to: resolvedValue, from: generation)
+              return resolvedValue
+            }
+            catch {
+              try self?.fail(with: error)
+              throw error
+            }
+          }
+          state.value = .pending(updateTask)
+          state.addAwaiter(fulfill)
+
+        case .failure(let error):
+          fulfill(.failure(error))
+        }
+      }
     }
-    catch {
-      self.generation &+= 1
-      self.state = .error(error)
-      self.resumeAwaiters(with: .failure(error))
-      throw error
-    }
+    .value
   }
 
   public func update<Property>(
     _ keyPath: WritableKeyPath<Value, Property>,
     to newValue: Property
   ) async throws {
-    var value: Value = try await self.value
-    value[keyPath: keyPath] = newValue
-    self.generation &+= 1
-    self.state = .current(value)
-    self.resumeAwaiters(with: .success(value))
+    try await self.update { (value: inout Value) in
+      value[keyPath: keyPath] = newValue
+    }
   }
 
-  public func lazyUpdate(
-    _ resolve: @escaping @Sendable () async throws -> Value
-  ) async throws {
-    // wait for current value if needed
-    switch self.state {
-    case .current where self.awaiters.isEmpty:
-      self.state = .deferred(resolve)
+  public func deferredUpdate(
+    _ mutation: @escaping ResolveAsyncMutation
+  ) throws {
+    try self.state.access { (state: inout State) throws in
+      switch state.value {
+      case .current(let value):
+        if state.updateAwaiters.isEmpty {
+          state.value = .deferred {
+            var value: Value = value
+            try await mutation(&value)
+            return value
+          }
+        }
+        else {
+          let generation: Generation = state.generation + 1
+          let updateTask: Task<Value, Error> = .detached { [weak self] in
+            do {
+              var resolvedValue: Value = value
+              try await mutation(&resolvedValue)
+              try self?.update(to: resolvedValue, from: generation)
+              return resolvedValue
+            }
+            catch {
+              try self?.fail(with: error)
+              throw error
+            }
+          }
+          state.value = .pending(updateTask)
+        }
 
-    case .current:
-      let resolveTask: Task<Value, Error> = .detached(operation: resolve)
-      self.state = .pending(resolveTask)
-      let result: Result<Value, Error> = await resolveTask.result
-      switch result {
-      case .success(let value):
-        self.generation &+= 1
-        self.state = .current(value)
-        self.resumeAwaiters(with: .success(value))
+      case .deferred(let resolve):
+        state.value = .deferred {
+          var value: Value = try await resolve()
+          try await mutation(&value)
+          return value
+        }
+
+      case .pending(let task):
+        let generation: Generation = state.generation + 1
+        let updateTask: Task<Value, Error> = .detached { [weak self] in
+          do {
+            var resolvedValue: Value = try await task.value
+            try await mutation(&resolvedValue)
+            try self?.update(to: resolvedValue, from: generation)
+            return resolvedValue
+          }
+          catch {
+            try self?.fail(with: error)
+            throw error
+          }
+        }
+        state.value = .pending(updateTask)
 
       case .failure(let error):
-        self.generation &+= 1
-        self.state = .error(error)
-        self.resumeAwaiters(with: .failure(error))
+        throw error
       }
-
-    case .deferred:
-      // skip to new update
-      assert(self.awaiters.isEmpty)
-      self.state = .deferred(resolve)
-
-    case .pending(let task):
-      // wait for finishing current update in progress
-      _ = try await task.value
-      assert(self.awaiters.isEmpty)
-      self.state = .deferred(resolve)
-
-    case .error(let error):
-      // if there was already an error it will prevent future updates
-      throw error
     }
+  }
+
+  @discardableResult
+  public func asyncUpdate(
+    _ mutation: @escaping ResolveAsyncMutation
+  ) async throws -> Value {
+    try await future { (fulfill: @escaping @Sendable (Result<ValueGeneration, Error>) -> Void) in
+      self.state.access { (state: inout State) in
+        switch state.value {
+        case .current(let value):
+          let generation: Generation = state.generation + 1
+          let updateTask: Task<Value, Error> = .detached { [weak self] in
+            do {
+              var resolvedValue: Value = value
+              try await mutation(&resolvedValue)
+              try self?.update(to: resolvedValue, from: generation)
+              return resolvedValue
+            }
+            catch {
+              try self?.fail(with: error)
+              throw error
+            }
+          }
+          state.value = .pending(updateTask)
+          state.addAwaiter(fulfill)
+
+        case .deferred(let resolve):
+          let generation: Generation = state.generation + 1
+          let updateTask: Task<Value, Error> = .detached { [weak self] in
+            do {
+              var resolvedValue: Value = try await resolve()
+              try await mutation(&resolvedValue)
+              try self?.update(to: resolvedValue, from: generation)
+              return resolvedValue
+            }
+            catch {
+              try self?.fail(with: error)
+              throw error
+            }
+          }
+          state.value = .pending(updateTask)
+          state.addAwaiter(fulfill)
+
+        case .pending(let task):
+          let generation: Generation = state.generation + 1
+          let updateTask: Task<Value, Error> = .detached { [weak self] in
+            do {
+              var resolvedValue: Value = try await task.value
+              try await mutation(&resolvedValue)
+              try self?.update(to: resolvedValue, from: generation)
+              return resolvedValue
+            }
+            catch {
+              try self?.fail(with: error)
+              throw error
+            }
+          }
+          state.value = .pending(updateTask)
+          state.addAwaiter(fulfill)
+
+        case .failure(let error):
+          fulfill(.failure(error))
+        }
+      }
+    }.value
   }
 }
 
 extension MutableState: AsyncSequence {
 
   public typealias Element = Value
+
   public struct AsyncIterator: AsyncIteratorProtocol {
 
-    public typealias Element = Value
-
-    // initial value generation is 0,
-    // it should always return initial value when resolved
-    // only exception is Int64 overflow which will cause
-    // single value to be not emmited properly
-    // but it should not happen in a typical use anyway
-    // ---
-    // there is a risk of concurrent access to the generation
-    // variable when the same instance of iterator is reused
-    // across multiple threads, but it should be avoided anyway
-    private var generation: Generation = 0
-    private var requestNext: @Sendable (inout Generation) async throws -> Element
+    private var requestNext: () async throws -> Value?
 
     fileprivate init(
-      _ state: MutableState<Element>
+      _ state: MutableState<Value>
     ) {
-      self.requestNext = state.next(after:)
+      var generation: Generation = 0
+      self.requestNext = { [weak state] () async throws -> Value? in
+        return try await state?.next(after: &generation)
+      }
     }
 
-    public mutating func next() async throws -> Value? {
-      try await self.requestNext(&self.generation)
+    @Sendable public mutating func next() async throws -> Value? {
+      try await self.requestNext()
     }
   }
 
@@ -206,42 +395,132 @@ extension MutableState: AsyncSequence {
     .init(self)
   }
 
-  @Sendable internal func next(
+  internal func next(
     after generation: inout Generation
-  ) async throws -> Element {
-    defer { generation = self.generation }
-    if self.generation > generation {
-      return try await self.value
+  ) async throws -> Value {
+    let nextValueGeneration: ValueGeneration = try await future { fulfill in
+      self.state.access { (state: inout State) in
+        switch state.value {
+        case .current(let value):
+          if state.generation > generation {
+            fulfill(.success((value: value, generation: state.generation)))
+          }
+          else {
+            state.addAwaiter(fulfill)
+          }
+
+        case .pending:
+          state.addAwaiter(fulfill)
+
+        case .deferred(let resolve):
+          let generation: Generation = state.generation + 1
+          let updateTask: Task<Value, Error> = .detached { [weak self] in
+            do {
+              let resolvedValue: Value = try await resolve()
+              try self?.update(to: resolvedValue, from: generation)
+              return resolvedValue
+            }
+            catch {
+              try self?.fail(with: error)
+              throw error
+            }
+          }
+          state.value = .pending(updateTask)
+          state.addAwaiter(fulfill)
+
+        case .failure(let error):
+          fulfill(.failure(error))
+        }
+      }
+    }
+    generation = nextValueGeneration.generation
+    return nextValueGeneration.value
+  }
+}
+
+extension MutableState {
+
+  @discardableResult
+  fileprivate func update(
+    to newValue: Value,
+    from generation: MutableState.Generation
+  ) throws -> MutableState.Generation {
+    try self.state.access { (state: inout State) throws in
+      try state.update(to: newValue, from: generation)
+    }
+  }
+}
+
+extension MutableState.State {
+
+  @discardableResult
+  fileprivate mutating func update(
+    to newValue: Value,
+    from generation: MutableState.Generation
+  ) throws -> MutableState.Generation {
+    // it it already failed throw an error, awaiters should be already resumed
+    if case .failure(let error) = self.value {
+      throw error
+    }
+    // if there is new update triggered don't mess up with internal state
+    else if self.generation != generation {
+      // find awaiters for that generation
+      let awaiters: Array<MutableState.UpdateAwaiter> = self.updateAwaiters.removeValue(forKey: generation) ?? .init()
+      for awaiter in awaiters {
+        awaiter(.success((value: newValue, generation: generation)))
+      }
+      return generation
     }
     else {
-      return try await future { (fulfill: @escaping Awaiter) in
-        self.awaiters.append(fulfill)
+      assert(self.updateAwaiters.count == 1)
+      // find awaiters for that generation
+      let awaiters: Array<MutableState.UpdateAwaiter> = self.updateAwaiters.removeValue(forKey: generation) ?? .init()
+      self.value = .current(newValue)
+      for awaiter in awaiters {
+        awaiter(.success((value: newValue, generation: self.generation)))
+      }
+      return self.generation
+    }
+  }
+
+  fileprivate mutating func fail(
+    with error: Error
+  ) throws {
+    switch self.value {
+      // if it already failed just ignore it and throw previous error
+    case .failure(let error):
+      throw error
+      
+    case .pending(let task):
+      // cancel pending task, it won't deliver value anyway
+      task.cancel()
+      fallthrough
+
+    case .current, .deferred:
+      // pick all awaiters since it is terminal state
+      let awaiters: Array<MutableState.UpdateAwaiter> = self.updateAwaiters.values.flatMap { $0 }
+      self.updateAwaiters = .init()
+      self.value = .failure(error)
+      for awaiter in awaiters {
+        awaiter(.failure(error))
       }
     }
   }
 
-  @Sendable internal func current(
-    including generation: inout Generation
-  ) async throws -> Element {
-    defer { generation = self.generation }
-    if self.generation >= generation {
-      return try await self.value
-    }
-    else {
-      return try await future { (fulfill: @escaping Awaiter) in
-        self.awaiters.append(fulfill)
-      }
-    }
-  }
-
-  @inline(__always) @_transparent
-  private func resumeAwaiters(
-    with result: Result<Value, Error>
+  fileprivate mutating func addAwaiter(
+    _ awaiter: @escaping MutableState.UpdateAwaiter,
+    forGeneration generation: MutableState.Generation? = .none
   ) {
-    for awaiter in self.awaiters {
-      awaiter(result)
+    // can't add awaiter if already failed
+    if case .failure(let error) = self.value {
+      awaiter(.failure(error)) // finish it immediately with error
     }
-    self.awaiters.removeAll(keepingCapacity: true)
+    else {
+      let generation: MutableState.Generation = generation ?? self.generation
+      var awaiters: Array<MutableState.UpdateAwaiter> = self.updateAwaiters[generation] ?? .init()
+      awaiters.append(awaiter)
+      self.updateAwaiters[generation] = awaiters
+    }
   }
 }
 
@@ -249,7 +528,7 @@ extension MutableState {
 
   #if DEBUG
   public static var placeholder: Self {
-    .init(lazy: { try await Task.never() })
+    .init(lazy: unimplemented0())
   }
   #endif
 }

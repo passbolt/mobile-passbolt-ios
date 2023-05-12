@@ -26,14 +26,13 @@
 extension FeaturesRegistry {
 
   public mutating func usePassboltResourcesModule() {
-    self.usePassboltResourceDetails()
+    self.usePassboltResourceController()
     self.usePassboltResourceShareForm()
     self.usePassboltResourceEditForm()
     self.usePassboltLegacyResourceEditForm()
     self.usePassboltResourceFolders()
     self.usePassboltResources()
     self.usePassboltResourceTags()
-    self.usePassboltResourceFavorites()
     self.usePassboltResourceFolderDetails()
     self.usePassboltResourceFolderEditForm()
     self.usePassboltOTPResources()

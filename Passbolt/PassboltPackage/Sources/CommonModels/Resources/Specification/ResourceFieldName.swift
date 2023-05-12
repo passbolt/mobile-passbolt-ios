@@ -21,41 +21,54 @@
 // @since         v1.0
 //
 
-extension ResourceFieldValue: Codable {
+import Commons
 
-  public init(
-    from decoder: Decoder
-  ) throws {
-    if let string: String = try? .init(from: decoder) {
-      self = .string(string)
-    }
-    else if let totpSecret: TOTPSecret = try? .init(from: decoder) {
-      self = .totp(totpSecret)
-    }
-    else {
-      self = try .unknown(.init(from: decoder))
+public enum ResourceFieldNameTag {}
+public typealias ResourceFieldName = Tagged<String, ResourceFieldNameTag>
+
+extension ResourceFieldName {
+
+  public var displayable: DisplayableString {
+    switch self.rawValue {
+    case "name":
+      return "resource.edit.field.name.label"
+
+    case "uri":
+      return "resource.edit.field.uri.label"
+
+    case "username":
+      return "resource.edit.field.username.label"
+
+    case "password", "secret":
+      return "resource.edit.field.password.label"
+
+    case "description":
+      return "resource.edit.field.description.label"
+
+    case let rawName:
+      return .raw(rawName)
     }
   }
 
-  public func encode(
-    to encoder: Encoder
-  ) throws {
-    switch self {
-    case .string(let value):
-      var container: SingleValueEncodingContainer = encoder.singleValueContainer()
-      try container.encode(value)
+  public var displayablePlaceholder: DisplayableString? {
+    switch self.rawValue {
+    case "name":
+      return "resource.edit.field.name.placeholder"
 
-    case .totp(let secret):
-      var container: SingleValueEncodingContainer = encoder.singleValueContainer()
-      try container.encode(secret)
+    case "uri":
+      return "resource.edit.field.uri.placeholder"
 
-    case .encrypted:
-      throw
-        InternalInconsistency
-        .error("Can't encode encrypted value, you have to decrypt it first!")
+    case "username":
+      return "resource.edit.field.username.placeholder"
 
-    case .unknown(let json):
-      try json.encode(to: encoder)
+    case "password", "secret":
+      return "resource.edit.field.password.placeholder"
+
+    case "description":
+      return "resource.edit.field.description.placeholder"
+
+    case _:
+      return .none
     }
   }
 }

@@ -29,28 +29,23 @@ import XCTest
 @testable import PassboltResources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ResourcesTests: LoadableFeatureTestCase<Resources> {
+final class ResourcesControllerTests: FeaturesTestCase {
 
-  override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
+  let updatesSequence: UpdatesSequenceSource = .init()
 
-  override class func testedImplementationRegister(
-    _ registry: inout FeaturesRegistry
-  ) {
-    registry.usePassboltResources()
-  }
-
-  var updatesSequence: UpdatesSequenceSource!
-
-  override func prepare() throws {
-    self.set(
+  override func commonPrepare() {
+    super.commonPrepare()
+    register(
+      { $0.usePassboltResources() },
+      for: ResourcesController.self
+    )
+    set(
       SessionScope.self,
       context: .init(
         account: .mock_ada,
         configuration: .mock_1
       )
     )
-
-    updatesSequence = .init()
     patch(
       \Session.currentAccount,
       with: always(.mock_ada)
@@ -71,12 +66,6 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
       \ResourceTypesFetchNetworkOperation.execute,
       with: always([])
     )
-    use(ResourcesListFetchDatabaseOperation.placeholder)
-    use(ResourceDeleteNetworkOperation.placeholder)
-    use(ResourceSecretFetchNetworkOperation.placeholder)
-    use(ResourceFolders.placeholder)
-    use(ResourceTags.placeholder)
-    use(UserGroups.placeholder)
     patch(
       \OSTime.timestamp,
       with: always(100)
@@ -91,50 +80,21 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
     )
   }
 
-  override func cleanup() throws {
-    updatesSequence = .none
-  }
-
-  func test_loading_refreshesData() async throws {
-    var result: Void?
-    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
-    patch(
-      \SessionData.refreshIfNeeded,
-      with: { () async throws in
-        uncheckedSendableResult.variable = Void()
-      }
-    )
-
-    let _: Resources = try testedInstance()
-
-    // wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    XCTAssertNotNil(result)
-  }
-
-  func test_filteredResourcesListPublisher_publishesResourcesFromDatabase() async throws {
+  func test_filteredResourcesList_publishesResourcesFromDatabase() async throws {
     patch(
       \ResourcesListFetchDatabaseOperation.execute,
       with: always(.testResources)
     )
 
-    let feature: Resources = try testedInstance()
+    let feature: ResourcesController = try testedInstance()
 
-    let filterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(testFilter)
-
-    let result: Array<ResourceListItemDSV>? =
-      try await feature
-      .filteredResourcesListPublisher(filterSubject.eraseToAnyPublisher())
-      .asAsyncValue()
+    let result: Array<ResourceListItemDSV>? = try await feature
+      .filteredResourcesList(testFilter)
 
     XCTAssertEqual(result, .testResources)
   }
 
-  func test_filteredResourcesListPublisher_usesFilterWhenAccessingDatabase() async throws {
+  func test_filteredResourcesList_usesFilterWhenAccessingDatabase() async throws {
     var result: ResourcesDatabaseFilter?
     let uncheckedSendableResult: UncheckedSendable<ResourcesDatabaseFilter?> = .init(
       get: { result },
@@ -148,62 +108,26 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
       }
     )
 
-    let feature: Resources = try testedInstance()
+    let feature: ResourcesController = try testedInstance()
 
-    let filterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(testFilter)
-
-    _ =
-      try await feature
-      .filteredResourcesListPublisher(filterSubject.eraseToAnyPublisher())
-      .asAsyncValue()
+    _ = try await feature.filteredResourcesList(testFilter)
 
     XCTAssertEqual(result, testDatabaseFilter)
   }
 
-  func test_filteredResourcesListPublisher_updatesData_whenFilterChanges() async throws {
-    var resources: Array<ResourceListItemDSV> = .testResources
-    patch(
-      \ResourcesListFetchDatabaseOperation.execute,
-      with: always(resources)
-    )
-
-    let feature: Resources = try testedInstance()
-
-    let filterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(testFilter)
-
-    var result: Array<ResourceListItemDSV>? =
-      try await feature
-      .filteredResourcesListPublisher(filterSubject.eraseToAnyPublisher())
-      .asAsyncValue()
-
-    resources = .testResourcesAlternative
-
-    filterSubject.send(.init(sorting: .nameAlphabetically))
-
-    result =
-      try await feature
-      .filteredResourcesListPublisher(filterSubject.eraseToAnyPublisher())
-      .asAsyncValue()
-
-    XCTAssertEqual(result, .testResourcesAlternative)
-  }
-
-  func test_filteredResourcesListPublisher_publishesEmptyList_onDatabaseError() async throws {
+  func test_filteredResourcesList_throws_onDatabaseError() async throws {
     patch(
       \ResourcesListFetchDatabaseOperation.execute,
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: Resources = try testedInstance()
+    let feature: ResourcesController = try testedInstance()
 
-    let filterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(testFilter)
-
-    let result: Array<ResourceListItemDSV>? =
-      try? await feature
-      .filteredResourcesListPublisher(filterSubject.eraseToAnyPublisher())
-      .asAsyncValue()
-
-    XCTAssertEqual(result, [])
+    await XCTAssertError(
+      matches: MockIssue.self
+    ) {
+      try await feature.filteredResourcesList(testFilter)
+    }
   }
 
   func test_delete_triggersRefreshIfNeeded_whenDeletion_succeeds() async throws {
@@ -223,11 +147,9 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
       with: always(Void())
     )
 
-    let feature: Resources = try testedInstance()
+    let feature: ResourcesController = try testedInstance()
 
-    try await feature
-      .deleteResource(.mock_1)
-      .asAsyncValue()
+    try await feature.delete(.mock_1)
 
     XCTAssertNotNil(result)
   }
@@ -249,7 +171,7 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
       with: always(Void())
     )
 
-    let feature: Resources = try testedInstance()
+    let feature: ResourcesController = try testedInstance()
 
     try await feature.delete(.mock_1)
 
@@ -262,7 +184,7 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: Resources = try testedInstance()
+    let feature: ResourcesController = try testedInstance()
 
     do {
       try await feature.delete(.mock_1)

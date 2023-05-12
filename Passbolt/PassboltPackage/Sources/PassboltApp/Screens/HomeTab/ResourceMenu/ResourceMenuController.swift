@@ -74,91 +74,48 @@ extension ResourceMenuController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
+    let features: Features =
+      features.branchIfNeeded(
+        scope: ResourceDetailsScope.self,
+        context: context.resourceID
+      ) ?? features
     let diagnostics: OSDiagnostics = features.instance()
     let linkOpener: OSLinkOpener = features.instance()
-    let resources: Resources = try features.instance()
     let pasteboard: OSPasteboard = features.instance()
-    let resourceFavorites: ResourceFavorites = try features.instance(context: context.resourceID)
-
-    let currentResourceSubject: CurrentValueSubject<Resource?, Error> = .init(
-      nil
-    )
-
-    resources
-      .resourceDetailsPublisher(context.resourceID)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          currentResourceSubject.send(completion: .failure(error))
-          diagnostics.log(error: error)
-        },
-        receiveValue: { resourceDetails in
-          currentResourceSubject.send(resourceDetails)
-        }
-      )
-      .store(in: cancellables)
+    let resourceController: ResourceController = try features.instance()
 
     func availableActionsPublisher() -> AnyPublisher<Array<Action>, Never> {
-      currentResourceSubject
-        .compactMap { resourceDetails -> Array<Action>? in
-          guard let resourceDetails = resourceDetails
-          else { return nil }
+      resourceController
+        .state
+        .asThrowingPublisher()
+        .compactMap { resource -> Array<Action>? in
 
           var availableActions: Array<Action> = .init()
 
-          if resourceDetails.fields.contains(where: { field in
-            if case "uri" = field.name {
-              return true
-            }
-            else {
-              return false
-            }
-          }) {
+          if resource.contains(\.meta.uri) {
             availableActions.append(.openURL)
             availableActions.append(.copyURL)
           }  // else skip
 
-          if resourceDetails.fields.contains(where: { field in
-            if case "username" = field.name {
-              return true
-            }
-            else {
-              return false
-            }
-          }) {
+          if resource.contains(\.meta.username) {
             availableActions.append(.copyUsername)
           }  // else skip
 
-          if resourceDetails.fields.contains(where: { field in
-            if case "password" = field.name {
-              return true
-            }
-            else {
-              return false
-            }
-          }) {
+          if resource.contains(\.secret.password) || resource.contains(\.secret) {
             availableActions.append(.copyPassword)
           }  // else skip
 
-          if resourceDetails.fields.contains(where: { field in
-            if case "description" = field.name {
-              return true
-            }
-            else {
-              return false
-            }
-          }) {
+          if resource.contains(\.meta.description) || resource.contains(\.secret.description) {
             availableActions.append(.copyDescription)
           }  // else skip
 
-          availableActions.append(.toggleFavorite(resourceDetails.favoriteID != .none))
+          availableActions.append(.toggleFavorite(resource.favoriteID != .none))
 
-          if resourceDetails.permission.canShare {
+          if resource.permission.canShare {
             availableActions.append(.share)
           }  // else skip
 
-          if resourceDetails.permission.canEdit {
+          if resource.permission.canEdit {
             availableActions.append(.edit)
             availableActions.append(.delete)
           }  // else skip
@@ -170,410 +127,96 @@ extension ResourceMenuController: UIController {
     }
 
     func resourceDetailsPublisher() -> AnyPublisher<Resource, Error> {
-      currentResourceSubject
-        .filterMapOptional()
-        .eraseToAnyPublisher()
+      resourceController
+        .state
+        .asThrowingPublisher()
     }
 
-    func openURLAction() -> AnyPublisher<Void, Error> {
-      currentResourceSubject
-        .first()
-        .map { resource -> AnyPublisher<Void, Error> in
-          guard
-            let resource = resource,
-            let resourceID = resource.id,
-            let field: ResourceField = resource.type.field(named: "uri")
-          else {
-            return Fail<Void, Error>(error: InvalidResourceData.error())
-              .eraseToAnyPublisher()
-          }
-
-          if field.encrypted {
-            return
-              resources
-              .loadResourceSecret(resourceID)
-              .map { resourceSecret -> AnyPublisher<Void, Error> in
-                if let secret: String = resourceSecret.value(for: field).stringValue {
-                  return Just(Void())
-                    .setFailureType(to: Error.self)
-                    .asyncMap {
-                      try await linkOpener
-                        .openURL(.init(rawValue: secret))
-                    }
-                    .eraseToAnyPublisher()
-                }
-                else if !field.required {
-                  return Just(Void())
-                    .eraseErrorType()
-                    .eraseToAnyPublisher()
-                }
-                else {
-                  return Fail(error: InvalidResourceSecret.error())
-                    .eraseToAnyPublisher()
-                }
-              }
-              .switchToLatest()
-              .eraseToAnyPublisher()
-          }
-          else if let value: String = resource.value(forField: "uri").stringValue {
-
-            return Just(Void())
-              .setFailureType(to: Error.self)
-              .asyncMap {
-                try await linkOpener
-                  .openURL(.init(rawValue: value))
-              }
-              .eraseToAnyPublisher()
-          }
-          else {
-            return Fail(error: MissingResourceData.error())
-              .eraseToAnyPublisher()
-          }
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
+    func shareAction() async throws {
+      guard let resourceID: Resource.ID = try await resourceController.state.value.id
+      else { throw InvalidResourceData.error() }
+      context.showShare(resourceID)
     }
 
-    func copyURLAction() -> AnyPublisher<Void, Error> {
-      currentResourceSubject
-        .first()
-        .map { resource -> AnyPublisher<Void, Error> in
-          guard
-            let resource = resource,
-            let resourceID = resource.id,
-            let field: ResourceField = resource.type.field(named: "uri")
-          else {
-            return Fail<Void, Error>(error: InvalidResourceData.error())
-              .eraseToAnyPublisher()
-          }
-
-          if field.encrypted {
-            return
-              resources
-              .loadResourceSecret(resourceID)
-              .map { resourceSecret -> AnyPublisher<String, Error> in
-                if let secret: String = resourceSecret.value(for: field).stringValue {
-                  return Just(secret)
-                    .eraseErrorType()
-                    .eraseToAnyPublisher()
-                }
-                else if !field.required {
-                  return Just("")
-                    .eraseErrorType()
-                    .eraseToAnyPublisher()
-                }
-                else {
-                  return Fail(error: InvalidResourceSecret.error())
-                    .eraseToAnyPublisher()
-                }
-              }
-              .switchToLatest()
-              .handleEvents(receiveOutput: { value in
-                pasteboard.put(value)
-              })
-              .mapToVoid()
-              .eraseToAnyPublisher()
-          }
-          else if let value: String = resource.value(forField: "uri").stringValue {
-            return Just(Void())
-              .eraseErrorType()
-              .handleEvents(receiveOutput: { _ in
-                pasteboard.put(value)
-              })
-              .eraseToAnyPublisher()
-          }
-          else {
-            return Fail(error: MissingResourceData.error())
-              .eraseToAnyPublisher()
-          }
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
+    func editAction() async throws {
+      guard let resourceID: Resource.ID = try await resourceController.state.value.id
+      else { throw InvalidResourceData.error() }
+      context.showEdit(resourceID)
     }
 
-    func copyPasswordAction() -> AnyPublisher<Void, Error> {
-      currentResourceSubject
-        .first()
-        .map { resource -> AnyPublisher<Void, Error> in
-          guard
-            let resource = resource,
-            let resourceID = resource.id,
-            let field: ResourceField = resource.type.field(named: "password")
-          else {
-            return Fail<Void, Error>(error: InvalidResourceData.error())
-              .eraseToAnyPublisher()
-          }
-
-          if field.encrypted {
-            return
-              resources
-              .loadResourceSecret(resourceID)
-              .map { resourceSecret -> AnyPublisher<String, Error> in
-                if let secret: String = resourceSecret.value(for: field).stringValue {
-                  return Just(secret)
-                    .eraseErrorType()
-                    .eraseToAnyPublisher()
-                }
-                else if !field.required {
-                  return Just("")
-                    .eraseErrorType()
-                    .eraseToAnyPublisher()
-                }
-                else {
-                  return Fail(error: InvalidResourceSecret.error())
-                    .eraseToAnyPublisher()
-                }
-              }
-              .switchToLatest()
-              .handleEvents(receiveOutput: { value in
-                pasteboard.put(value)
-              })
-              .mapToVoid()
-              .eraseToAnyPublisher()
-          }
-          else {
-            return Fail(error: MissingResourceData.error())
-              .eraseToAnyPublisher()
-          }
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
-    }
-
-    func copyUsernameAction() -> AnyPublisher<Void, Error> {
-      currentResourceSubject
-        .first()
-        .map { resource -> AnyPublisher<Void, Error> in
-          guard
-            let resource = resource,
-            let resourceID = resource.id,
-            let field: ResourceField = resource.type.field(named: "username")
-          else {
-            return Fail<Void, Error>(error: InvalidResourceData.error())
-              .eraseToAnyPublisher()
-          }
-
-          if field.encrypted {
-            return
-              resources
-              .loadResourceSecret(resourceID)
-              .map { resourceSecret -> AnyPublisher<String, Error> in
-                if let secret: String = resourceSecret.value(for: field).stringValue {
-                  return Just(secret)
-                    .eraseErrorType()
-                    .eraseToAnyPublisher()
-                }
-                else if !field.required {
-                  return Just("")
-                    .eraseErrorType()
-                    .eraseToAnyPublisher()
-                }
-                else {
-                  return Fail(error: InvalidResourceSecret.error())
-                    .eraseToAnyPublisher()
-                }
-              }
-              .switchToLatest()
-              .handleEvents(receiveOutput: { value in
-                pasteboard.put(value)
-              })
-              .mapToVoid()
-              .eraseToAnyPublisher()
-          }
-          else if let value: String = resource.value(forField: "username").stringValue {
-            return Just(Void())
-              .eraseErrorType()
-              .handleEvents(receiveOutput: { _ in
-                pasteboard.put(value)
-              })
-              .eraseToAnyPublisher()
-          }
-          else {
-            return Fail(error: MissingResourceData.error())
-              .eraseToAnyPublisher()
-          }
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
-    }
-
-    func copyDescriptionAction() -> AnyPublisher<Void, Error> {
-      currentResourceSubject
-        .first()
-        .map { resource -> AnyPublisher<Void, Error> in
-          guard
-            let resource = resource,
-            let resourceID = resource.id,
-            let field: ResourceField = resource.type.field(named: "description")
-          else {
-            return Fail<Void, Error>(error: InvalidResourceData.error())
-              .eraseToAnyPublisher()
-          }
-
-          if field.encrypted {
-            return
-              resources
-              .loadResourceSecret(resourceID)
-              .map { resourceSecret -> AnyPublisher<String, Error> in
-                if let secret: String = resourceSecret.value(for: field).stringValue {
-                  return Just(secret)
-                    .eraseErrorType()
-                    .eraseToAnyPublisher()
-                }
-                else if !field.required {
-                  return Just("")
-                    .eraseErrorType()
-                    .eraseToAnyPublisher()
-                }
-                else {
-                  return Fail(error: InvalidResourceSecret.error())
-                    .eraseToAnyPublisher()
-                }
-              }
-              .switchToLatest()
-              .handleEvents(receiveOutput: { value in
-                pasteboard.put(value)
-              })
-              .mapToVoid()
-              .eraseToAnyPublisher()
-          }
-          else if let value: String = resource.value(for: field).stringValue {
-            return Just(Void())
-              .eraseErrorType()
-              .handleEvents(receiveOutput: { _ in
-                pasteboard.put(value)
-              })
-              .eraseToAnyPublisher()
-          }
-          else {
-            return Fail(error: MissingResourceData.error())
-              .eraseToAnyPublisher()
-          }
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
-    }
-
-    func toggleFavoriteAction() -> AnyPublisher<Void, Error> {
-      return Future<Void, Error> { promise in
-        Task {
-          do {
-            try await resourceFavorites.toggleFavorite()
-            promise(.success(Void()))
-          }
-          catch {
-            diagnostics.log(error: error)
-            promise(.failure(error))
-          }
-        }
-      }
-      .eraseToAnyPublisher()
-    }
-
-    func shareAction() -> AnyPublisher<Void, Error> {
-      currentResourceSubject
-        .first()
-        .map { resource -> AnyPublisher<Void, Error> in
-          guard
-            let resource = resource,
-            let resourceID = resource.id
-          else {
-            return Fail<Void, Error>(error: InvalidResourceData.error())
-              .eraseToAnyPublisher()
-          }
-
-          guard resource.permission.canShare
-          else {
-            return Fail<Void, Error>(
-              error: ResourcePermissionRequired.error()
-            )
-            .eraseToAnyPublisher()
-          }
-
-          return Just(context.showShare(resourceID))
-            .eraseErrorType()
-            .eraseToAnyPublisher()
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
-    }
-
-    func editAction() -> AnyPublisher<Void, Error> {
-      currentResourceSubject
-        .first()
-        .map { resource -> AnyPublisher<Void, Error> in
-          guard
-            let resource = resource,
-            let resourceID = resource.id
-          else {
-            return Fail<Void, Error>(error: InvalidResourceData.error())
-              .eraseToAnyPublisher()
-          }
-
-          guard resource.permission.canEdit
-          else {
-            return Fail<Void, Error>(
-              error: ResourcePermissionRequired.error()
-            )
-            .eraseToAnyPublisher()
-          }
-
-          return Just(context.showEdit(resourceID))
-            .eraseErrorType()
-            .eraseToAnyPublisher()
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
-    }
-
-    func deleteAction() -> AnyPublisher<Void, Error> {
-      currentResourceSubject
-        .first()
-        .map { resource -> AnyPublisher<Void, Error> in
-          guard
-            let resource = resource,
-            let resourceID = resource.id
-          else {
-            return Fail<Void, Error>(error: InvalidResourceData.error())
-              .eraseToAnyPublisher()
-          }
-
-          guard resource.permission.canEdit
-          else {
-            return Fail<Void, Error>(
-              error: ResourcePermissionRequired.error()
-            )
-            .eraseToAnyPublisher()
-          }
-
-          return Just(context.showDeleteAlert(resourceID))
-            .eraseErrorType()
-            .eraseToAnyPublisher()
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
+    func deleteAction() async throws {
+      guard let resourceID: Resource.ID = try await resourceController.state.value.id
+      else { throw InvalidResourceData.error() }
+      context.showDeleteAlert(resourceID)
     }
 
     func perform(action: Action) -> AnyPublisher<Void, Error> {
-      switch action {
-      case .openURL:
-        return openURLAction()
-      case .copyURL:
-        return copyURLAction()
-      case .copyPassword:
-        return copyPasswordAction()
-      case .copyUsername:
-        return copyUsernameAction()
-      case .copyDescription:
-        return copyDescriptionAction()
-      case .toggleFavorite:
-        return toggleFavoriteAction()
-      case .share:
-        return shareAction()
-      case .edit:
-        return editAction()
-      case .delete:
-        return deleteAction()
+      cancellables.executeAsyncWithPublisher {
+        switch action {
+        case .openURL:
+          guard let url = try await fieldValue(for: \.meta.uri).stringValue
+          else {
+            throw URLInvalid.error(rawString: "")
+          }
+          try await linkOpener.openURL(.init(rawValue: url))
+
+        case .copyURL:
+          try await pasteboard.put(
+            fieldValue(for: \.meta.uri).stringValue ?? ""
+          )
+        case .copyPassword:
+          if let password = try await fieldValue(for: \.secret.password).stringValue {
+            pasteboard.put(password)
+          }
+          else if let password = try await fieldValue(for: \.secret).stringValue {
+            pasteboard.put(password)
+          }
+          else {
+            throw InvalidResourceSecret.error()
+          }
+
+        case .copyUsername:
+          try await pasteboard.put(
+            fieldValue(for: \.meta.username).stringValue ?? ""
+          )
+        case .copyDescription:
+          if let description = try await fieldValue(for: \.secret.description).stringValue {
+            pasteboard.put(description)
+          }
+          else if let description = try await fieldValue(for: \.meta.description).stringValue {
+            pasteboard.put(description)
+          }
+          else {
+            throw InvalidResourceSecret.error()
+          }
+
+        case .toggleFavorite:
+          try await resourceController.toggleFavorite()
+
+        case .share:
+          try await shareAction()
+
+        case .edit:
+          try await editAction()
+
+        case .delete:
+          try await deleteAction()
+        }
+      }
+      .collectErrorLog(using: diagnostics)
+      .eraseToAnyPublisher()
+    }
+
+    func fieldValue(
+      for field: Resource.FieldPath
+    ) async throws -> JSON {
+      let resource: Resource = try await resourceController.state.value
+      if resource.secretContains(field) {
+        try await resourceController.fetchSecretIfNeeded(force: true)
+        return try await resourceController.state.value[keyPath: field]
+      }
+      else {
+        return resource[keyPath: field]
       }
     }
 

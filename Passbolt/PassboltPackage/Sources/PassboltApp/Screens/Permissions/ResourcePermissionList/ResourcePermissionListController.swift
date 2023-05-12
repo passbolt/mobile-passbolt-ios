@@ -48,11 +48,13 @@ extension ResourcePermissionListController: ComponentController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
+    try features.ensureScope(ResourceDetailsScope.self)
+
     let diagnostics: OSDiagnostics = features.instance()
     let navigation: DisplayNavigation = try features.instance()
     let executor: AsyncExecutor = try features.instance()
     let users: Users = try features.instance()
-    let resourceDetails: ResourceDetails = try features.instance(context: context)
+    let resourceController: ResourceController = try features.instance()
     let resourceUserPermissionsDetailsFetch: ResourceUserPermissionsDetailsFetchDatabaseOperation =
       try features.instance()
     let resourceUserGroupPermissionsDetailsFetch: ResourceUserGroupPermissionsDetailsFetchDatabaseOperation =
@@ -96,7 +98,7 @@ extension ResourcePermissionListController: ComponentController {
               imageData: userAvatarImageFetch(details.id)
             )
           }
-        let canEdit: Bool = try await resourceDetails.details().permission.canShare
+        let canEdit: Bool = try await resourceController.state.value.permission.canShare
 
         viewState.permissionListItems = userGroupPermissionsDetails + userPermissionsDetails
         viewState.editable = canEdit
@@ -110,7 +112,7 @@ extension ResourcePermissionListController: ComponentController {
     nonisolated func showUserPermissionDetails(
       _ details: UserPermissionDetailsDSV
     ) {
-      cancellables.executeOnMainActor {
+      executor.schedule(.reuse) {
         await navigation.push(
           legacy: UserPermissionDetailsView.self,
           context: details
@@ -121,7 +123,7 @@ extension ResourcePermissionListController: ComponentController {
     nonisolated func showUserGroupPermissionDetails(
       _ details: UserGroupPermissionDetailsDSV
     ) {
-      cancellables.executeOnMainActor {
+      executor.schedule(.reuse) {
         await navigation.push(
           legacy: UserGroupPermissionDetailsView.self,
           context: details
@@ -130,7 +132,7 @@ extension ResourcePermissionListController: ComponentController {
     }
 
     nonisolated func editPermissions() {
-      cancellables.executeOnMainActor {
+      executor.schedule(.reuse) {
         await navigation.replace(
           ResourcePermissionListView.self,
           pushing: ResourcePermissionEditListView.self,
@@ -140,7 +142,7 @@ extension ResourcePermissionListController: ComponentController {
     }
 
     nonisolated func navigateBack() {
-      Task {
+      executor.schedule(.reuse) {
         await navigation.pop(if: ResourcePermissionListView.self)
       }
     }

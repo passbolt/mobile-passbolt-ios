@@ -26,34 +26,33 @@ import Features
 
 // MARK: - Interface
 
-public struct ResourceDetails {
+public struct ResourcesController {
 
-  public var updates: UpdatesSequence
-  public var details: @Sendable () async throws -> Resource
-  public var secret: @Sendable () async throws -> ResourceSecret
+  public var lastUpdate: ViewableState<Timestamp>
+  public var filteredResourcesList: @Sendable (ResourcesFilter) async throws -> Array<ResourceListItemDSV>
+  public var delete: @Sendable (Resource.ID) async throws -> Void
 
   public init(
-    updates: UpdatesSequence,
-    details: @escaping @Sendable () async throws -> Resource,
-    secret: @escaping @Sendable () async throws -> ResourceSecret
+    lastUpdate: ViewableState<Timestamp>,
+    filteredResourcesList: @escaping @Sendable (ResourcesFilter) async throws -> Array<ResourceListItemDSV>,
+    delete: @escaping @Sendable (Resource.ID) async throws -> Void
   ) {
-    self.updates = updates
-    self.details = details
-    self.secret = secret
+    self.lastUpdate = lastUpdate
+    self.filteredResourcesList = filteredResourcesList
+    self.delete = delete
   }
 }
 
-extension ResourceDetails: LoadableFeature {
+extension ResourcesController: LoadableFeature {
 
-  public typealias Context = Resource.ID
+  public typealias Context = ContextlessLoadableFeatureContext
 
   #if DEBUG
-
   public static var placeholder: Self {
-    .init(
-      updates: .placeholder,
-      details: unimplemented0(),
-      secret: unimplemented0()
+    Self(
+      lastUpdate: .placeholder,
+      filteredResourcesList: unimplemented1(),
+      delete: unimplemented1()
     )
   }
   #endif

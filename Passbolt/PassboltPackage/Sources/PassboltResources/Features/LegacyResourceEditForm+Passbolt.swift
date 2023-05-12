@@ -76,7 +76,7 @@ extension LegacyResourceEditForm {
         switch context {
         case .create(let slug, let parentFolderID, let uri):
           let resourceTypes: Array<ResourceType> = try await resourceTypesFetchDatabaseOperation()
-          guard let resourceType: ResourceType = resourceTypes.first(where: { $0.slug == slug })
+          guard let resourceType: ResourceType = resourceTypes.first(where: { $0.specification.slug == slug })
           else { throw InvalidResourceType.error() }
           let folderPath: OrderedSet<ResourceFolderPathItem>
           if let parentFolderID {
@@ -89,28 +89,21 @@ extension LegacyResourceEditForm {
             path: folderPath,
             type: resourceType
           )
-          if let value: ResourceFieldValue = uri.map({ .string($0.rawValue) }) {
-            try? resource.set(
-              value,
-              forField: "uri"
-            )
+          if let value: JSON = uri.map({ .string($0.rawValue) }) {
+            resource.meta.uri = value
           }  // else skip
           formState.set(\.self, resource)
           formUpdates.sendUpdate()
 
         case .edit(let resourceID):
-          let resourceDetails: ResourceDetails = try await features.instance(context: resourceID)
-          var editedResource = try await resourceDetails.details()
-          let resourceSecret: ResourceSecret = try await resourceDetails.secret()
-          for field in editedResource.encryptedFields {
-            // put all values from secret into the resource
-            try editedResource
-              .set(
-                resourceSecret
-                  .value(for: field),
-                for: field
-              )
-          }
+          let features =
+            await features.branchIfNeeded(
+              scope: ResourceDetailsScope.self,
+              context: resourceID
+            ) ?? features
+          let resourceController: ResourceController = try await features.instance()
+          try await resourceController.fetchSecretIfNeeded(force: true)
+          let editedResource = try await resourceController.state.value
           formState.set(\.self, editedResource)
           formUpdates.sendUpdate()
         }
@@ -127,7 +120,12 @@ extension LegacyResourceEditForm {
         await initialLoading.waitForCompletion()
         return formState.get(\.self)
       }
-      .asPublisher()
+      .asThrowingPublisher()
+      .catch { _ in
+        Empty(completeImmediately: true)
+          .eraseToAnyPublisher()
+      }
+      .eraseToAnyPublisher()
 
     @Sendable nonisolated func resource() async throws -> Resource {
       await initialLoading.waitForCompletion()
@@ -141,42 +139,38 @@ extension LegacyResourceEditForm {
       }
     }
 
-    @Sendable nonisolated func fieldsPublisher() -> AnyPublisher<OrderedSet<ResourceField>, Never> {
+    @Sendable nonisolated func fieldsPublisher() -> AnyPublisher<OrderedSet<ResourceFieldSpecification>, Never> {
       formStatePublisher
-        .map(\.fields)
+        .map(\.allFields)
         .removeDuplicates()
         .eraseToAnyPublisher()
     }
 
     @Sendable nonisolated func setFieldValue(
-      _ value: ResourceFieldValue,
-      for field: ResourceField
+      _ value: JSON,
+      for field: Resource.FieldPath
     ) async throws {
       await initialLoading.waitForCompletion()
-      try formState.access { (state: inout Resource?) in
-        try state?.set(value, for: field)
+      formState.access { (state: inout Resource?) in
+        state?[keyPath: field] = value
       }
       formUpdates.sendUpdate()
     }
 
     @Sendable nonisolated func validatedFieldValuePublisher(
-      for field: ResourceField
-    ) -> AnyPublisher<Validated<ResourceFieldValue>, Never> {
-      let validator: Validator<ResourceFieldValue> = field.validator
+      for field: Resource.FieldPath
+    ) -> AnyPublisher<Validated<JSON>, Never> {
       return
         formStatePublisher
-        .map { (resource: Resource) -> ResourceFieldValue in
-          resource.value(for: field)
+        .map { (resource: Resource) -> Validated<JSON> in
+          resource.validator(for: field).validate(resource[keyPath: field])
         }
         .removeDuplicates()
-        .map { (fieldValue: ResourceFieldValue) -> Validated<ResourceFieldValue> in
-          validator.validate(fieldValue)
-        }
         .replaceError(
           with: .invalid(
-            .unknown(.null),
+            .null,
             error: InvalidValue.alwaysInvalid(
-              value: ResourceFieldValue.unknown(.null),
+              value: JSON.null,
               displayable: "error.generic"
             )
           )
@@ -203,49 +197,24 @@ extension LegacyResourceEditForm {
           .error(displayable: "resource.form.error.invalid")
       }
 
-      guard case .string(let resourceName) = resource.value(forField: "name")
+      guard let resourceName: String = resource.meta.name.stringValue
       else {
         throw
           InvalidInputData
           .error(message: "Missing resource name")
       }
 
-      let secretFields = resource.encryptedFields
-      let descriptionEncrypted: Bool = secretFields.contains(where: { $0.name == "description" })
-      let encodedSecret: String
-      do {
-        if secretFields.count == 1,
-          case let .string(password) = resource.value(forField: "password")
-        {
-          encodedSecret = password
-        }
-        else {
-          var secretFieldsValues: Dictionary<String, ResourceFieldValue> = .init()
-
-          for field: ResourceField in secretFields {
-            secretFieldsValues[field.name] = resource.value(for: field)
-          }
-
-          guard let secretString: String = try? String(data: JSONEncoder().encode(secretFieldsValues), encoding: .utf8)
-          else {
-            throw
-              InvalidInputData
-              .error(message: "Failed to encode resource secret")
-          }
-
-          encodedSecret = secretString
-        }
-      }
-      catch {
+      guard let resourceSecret: String = resource.secret.resourceSecretString
+      else {
         throw
-          InvalidResourceData
-          .error(underlyingError: error)
+          InvalidInputData
+          .error(message: "Invalid or missing resource secret")
       }
 
       if let resourceID: Resource.ID = resource.id {
         let encryptedSecrets: OrderedSet<EncryptedMessage> =
           try await usersPGPMessages
-          .encryptMessageForResourceUsers(resourceID, encodedSecret)
+          .encryptMessageForResourceUsers(resourceID, resourceSecret)
 
         let updatedResourceID: Resource.ID = try await resourceEditNetworkOperation(
           .init(
@@ -253,9 +222,9 @@ extension LegacyResourceEditForm {
             resourceTypeID: resource.type.id,
             parentFolderID: resource.parentFolderID,
             name: resourceName,
-            username: resource.value(forField: "username").stringValue,
-            url: (resource.value(forField: "uri").stringValue).flatMap(URLString.init(rawValue:)),
-            description: descriptionEncrypted ? .none : resource.value(forField: "description").stringValue,
+            username: resource.meta.username.stringValue,
+            url: (resource.meta.uri.stringValue).flatMap(URLString.init(rawValue:)),
+            description: resource.meta.description.stringValue,
             secrets: encryptedSecrets.map { (userID: $0.recipient, data: $0.message) }
           )
         )
@@ -277,7 +246,7 @@ extension LegacyResourceEditForm {
           let ownEncryptedMessage: EncryptedMessage =
             try await usersPGPMessages.encryptMessageForUsers(
               [currentAccount.userID],
-              encodedSecret
+              resourceSecret
             )
             .first
         else {
@@ -291,9 +260,9 @@ extension LegacyResourceEditForm {
             resourceTypeID: resource.type.id,
             parentFolderID: resource.parentFolderID,
             name: resourceName,
-            username: resource.value(forField: "username").stringValue,
-            url: (resource.value(forField: "uri").stringValue).flatMap(URLString.init(rawValue:)),
-            description: descriptionEncrypted ? .none : resource.value(forField: "description").stringValue,
+            username: resource.meta.username.stringValue,
+            url: (resource.meta.uri.stringValue).flatMap(URLString.init(rawValue:)),
+            description: resource.meta.description.stringValue,
             secrets: [ownEncryptedMessage]
           )
         )
@@ -301,7 +270,7 @@ extension LegacyResourceEditForm {
         if let folderID: ResourceFolder.ID = resource.parentFolderID {
           let encryptedSecrets: OrderedSet<EncryptedMessage> =
             try await usersPGPMessages
-            .encryptMessageForResourceFolderUsers(folderID, encodedSecret)
+            .encryptMessageForResourceFolderUsers(folderID, resourceSecret)
             .filter { encryptedMessage in
               encryptedMessage.recipient != currentAccount.userID
             }

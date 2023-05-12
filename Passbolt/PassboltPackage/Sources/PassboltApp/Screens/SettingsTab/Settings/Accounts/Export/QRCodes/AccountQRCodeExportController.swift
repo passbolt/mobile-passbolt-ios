@@ -61,6 +61,7 @@ extension AccountQRCodeExportController {
   ) throws -> Self {
     try features.ensureScope(AccountTransferScope.self)
 
+    let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
     let navigation: DisplayNavigation = try features.instance()
 
@@ -74,49 +75,51 @@ extension AccountQRCodeExportController {
       )
     )
 
-    asyncExecutor.schedule(.reuse) {
-      for await _ in accountExport.updates {
-        switch accountExport.status() {
-        case .part(_, let content):
-          do {
-            let qrCodePart: Data = try await qrCodeGenerator.generateQRCode(content)
-            await viewState.update { state in
-              state.currentQRcode = qrCodePart
-            }
+    asyncExecutor.scheduleIteration(
+      over: accountExport.updates,
+      catchingWith: diagnostics,
+      failMessage: "Updates broken!"
+    ) { (_) in
+      switch accountExport.status() {
+      case .part(_, let content):
+        do {
+          let qrCodePart: Data = try await qrCodeGenerator.generateQRCode(content)
+          await viewState.update { state in
+            state.currentQRcode = qrCodePart
           }
-          catch {
-            await navigation
-              .push(
-                legacy: AccountTransferFailureViewController.self,
-                context: error
-              )
-            return  // don't continue observing
-          }
-
-        case .finished:
-          await navigation
-            .push(legacy: AccountTransferSuccessViewController.self)
-
-        case .error(let error):
+        }
+        catch {
           await navigation
             .push(
               legacy: AccountTransferFailureViewController.self,
               context: error
             )
-          return  // don't continue observing
-
-        case .uninitialized:
-          await navigation
-            .push(
-              legacy: AccountTransferFailureViewController.self,
-              context:
-                InternalInconsistency
-                .error(
-                  "Account export used without initialization."
-                )
-            )
-          return  // don't continue observing
+          throw CancellationError()  // don't continue observing
         }
+
+      case .finished:
+        await navigation
+          .push(legacy: AccountTransferSuccessViewController.self)
+
+      case .error(let error):
+        await navigation
+          .push(
+            legacy: AccountTransferFailureViewController.self,
+            context: error
+          )
+        throw CancellationError()  // don't continue observing
+
+      case .uninitialized:
+        await navigation
+          .push(
+            legacy: AccountTransferFailureViewController.self,
+            context:
+              InternalInconsistency
+              .error(
+                "Account export used without initialization."
+              )
+          )
+        throw CancellationError()  // don't continue observing
       }
     }
 

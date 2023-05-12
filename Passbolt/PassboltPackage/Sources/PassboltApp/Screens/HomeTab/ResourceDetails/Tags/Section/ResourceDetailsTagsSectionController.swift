@@ -49,7 +49,7 @@ extension ResourceDetailsTagsSectionController: ComponentController {
     let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
     let navigation: DisplayNavigation = try features.instance()
-    let resourceDetails: ResourceDetails = try features.instance(context: context)
+    let resourceController: ResourceController = try features.instance()
 
     let viewState: ObservableValue<ViewState> = .init(
       initial: .init(
@@ -60,8 +60,9 @@ extension ResourceDetailsTagsSectionController: ComponentController {
     asyncExecutor.schedule { @MainActor in
       do {
         viewState.tags =
-          try await resourceDetails
-          .details()
+          try await resourceController
+          .state
+          .value
           .tags
           .map(\.slug.rawValue)
       }

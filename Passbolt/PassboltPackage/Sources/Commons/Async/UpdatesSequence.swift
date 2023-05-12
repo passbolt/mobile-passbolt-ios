@@ -23,6 +23,7 @@
 
 import struct Foundation.UUID
 
+@available(*, deprecated, message: "Please switch to Mutable/Viewable State")
 public struct UpdatesSequence: Sendable {
 
   internal typealias Generation = UInt64

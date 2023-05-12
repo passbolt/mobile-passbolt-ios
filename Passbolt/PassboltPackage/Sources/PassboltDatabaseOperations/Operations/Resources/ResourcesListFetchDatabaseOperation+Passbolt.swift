@@ -209,7 +209,7 @@ extension ResourcesListFetchDatabaseOperation {
       }
       statement.append(") LIMIT 1 )")
     }
-    else if let includedTypeSlug: ResourceType.Slug = input.includedTypeSlugs.first {
+    else if let includedTypeSlug: ResourceSpecification.Slug = input.includedTypeSlugs.first {
       statement.append(
         """
         AND (
@@ -258,7 +258,7 @@ extension ResourcesListFetchDatabaseOperation {
       }
       statement.append(") LIMIT 1 )")
     }
-    else if let excludedTypeSlug: ResourceType.Slug = input.excludedTypeSlugs.first {
+    else if let excludedTypeSlug: ResourceSpecification.Slug = input.excludedTypeSlugs.first {
       statement.append(
         """
         AND (

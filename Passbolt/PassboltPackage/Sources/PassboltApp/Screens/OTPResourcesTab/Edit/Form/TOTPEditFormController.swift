@@ -109,10 +109,33 @@ extension TOTPEditFormController {
 
     asyncExecutor.schedule {
       do {
-        let resource: Resource = try await resourceEditForm.state.value
-        let name: String = resource.value(forField: "name").stringValue ?? ""
-        let uri: String = resource.value(forField: "uri").stringValue ?? ""
-        let secret: String = try resource.value(forTOTP: \.sharedSecret, inField: "totp")
+        var resource: Resource = try await resourceEditForm.state.value
+        guard case .some = resource.type.specification.fieldSpecification(for: \.secret.totp)
+        else {
+          throw
+            InvalidResourceType
+            .error(message: "Resource without OTP can't edit it.")
+        }
+        let name: String = resource.meta.name.stringValue ?? ""
+        let uri: String = resource.meta.uri.stringValue ?? ""
+        let secret: String
+
+        // initialize TOTP fields with defaults
+        if context == .none {
+          resource.secret.totp = [
+            "secret_key": "",
+            "algorithm": "SHA1",
+            "period": 30,
+            "digits": 6
+          ]
+          _ = try await resourceEditForm.update { form in
+            form = resource
+          }
+          secret = ""
+        }
+        else {
+          secret = resource.secret.totp.secret_key.stringValue ?? ""
+        }
 
         await viewState.update { (state: inout ViewState) in
           state.nameField = .valid(name)
@@ -137,9 +160,21 @@ extension TOTPEditFormController {
       asyncExecutor
         .scheduleCatchingWith(diagnostics, behavior: .replace) {
           try Task.checkCancellation()
-          let validated = try await resourceEditForm.update(field: "name", to: .string(name))
+          let validated: Validated<String> =
+            try await resourceEditForm
+            .update(
+              \.meta.name,
+              to: name,
+              valueToJSON: { (value: String) -> JSON in
+                .string(value)
+              },
+              jsonToValue: { (json: JSON) -> String in
+                json.stringValue ?? ""
+              }
+            )
+          try Task.checkCancellation()
           await viewState.update { (state: inout ViewState) in
-            state.nameField = validated.map { $0.stringValue ?? "" }
+            state.nameField = validated
           }
         }
     }
@@ -153,9 +188,21 @@ extension TOTPEditFormController {
       asyncExecutor
         .scheduleCatchingWith(diagnostics, behavior: .replace) {
           try Task.checkCancellation()
-          let validated = try await resourceEditForm.update(field: "uri", to: .string(uri))
+          let validated: Validated<String> =
+            try await resourceEditForm
+            .update(
+              \.meta.uri,
+              to: uri,
+              valueToJSON: { (value: String) -> JSON in
+                .string(value)
+              },
+              jsonToValue: { (json: JSON) -> String in
+                json.stringValue ?? ""
+              }
+            )
+          try Task.checkCancellation()
           await viewState.update { (state: inout ViewState) in
-            state.uriField = validated.map { $0.stringValue ?? "" }
+            state.uriField = validated
           }
         }
     }
@@ -169,8 +216,19 @@ extension TOTPEditFormController {
       asyncExecutor
         .scheduleCatchingWith(diagnostics, behavior: .replace) {
           try Task.checkCancellation()
-          let updatable = try await resourceEditForm.updatableTOTPField(ResourceField.valuePath(forName: "totp"))
-          let validated = try await updatable.update(\.sharedSecret, to: secret)
+          let validated: Validated<String> =
+            try await resourceEditForm
+            .update(
+              \.secret.totp.secret_key,
+              to: secret,
+              valueToJSON: { (value: String) -> JSON in
+                .string(value)
+              },
+              jsonToValue: { (json: JSON) -> String in
+                json.stringValue ?? ""
+              }
+            )
+          try Task.checkCancellation()
           await viewState.update { (state: inout ViewState) in
             state.secretField = validated
           }

@@ -228,12 +228,12 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
   }
 
   private func setupFieldSubscriptions(
-    with fields: OrderedSet<ResourceField>
+    with fields: OrderedSet<ResourceFieldSpecification>
   ) {
     fieldCancellables = .init()
     for field in fields {
       let fieldValuePublisher = self.controller
-        .fieldValuePublisher(field)
+        .fieldValuePublisher(field.path)
 
       fieldValuePublisher
         .first()  // skipping error just to update intial value

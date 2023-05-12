@@ -30,44 +30,6 @@ internal enum SQLiteOpeningOperations {
 
   public static var all: Array<SQLiteStatement> {
     [
-      // - add resourceTypesView - //
-      """
-      CREATE TEMPORARY VIEW
-        resourceTypesView
-      AS
-      SELECT
-        resourceTypes.id AS id,
-        resourceTypes.slug AS slug,
-        resourceTypes.name AS name,
-        (
-          SELECT
-            group_concat(
-              resourceFields.name
-              || ":"
-              || resourceFields.valueType
-              || ",required="
-              || resourceFields.required
-              || ",encrypted="
-              || resourceFields.encrypted
-              || ",minimum="
-              || ifnull(resourceFields.minimum, "0")
-              || ",maximum="
-              || ifnull(resourceFields.maximum, "100000"),
-              ";"
-            )
-          FROM
-            resourceTypesFields
-          LEFT JOIN
-            resourceFields
-          ON
-            resourceTypesFields.resourceFieldID == resourceFields.id
-          WHERE
-            resourceTypesFields.resourceTypeID == resourceTypes.id
-        )
-        AS fields
-      FROM
-        resourceTypes;
-      """,
       // - add resourceDetailsView - //
       """
       CREATE TEMPORARY VIEW
@@ -82,17 +44,16 @@ internal enum SQLiteOpeningOperations {
         resources.username AS username,
         resources.description AS description,
         resources.modified AS modified,
-        resourceTypesView.id AS typeID,
-        resourceTypesView.name AS typeName,
-        resourceTypesView.slug AS typeSlug,
-        resourceTypesView.fields AS fields
+        resourceTypes.id AS typeID,
+        resourceTypes.name AS typeName,
+        resourceTypes.slug AS typeSlug
       FROM
         resources
       JOIN
-        resourceTypesView
+        resourceTypes
       ON
-        resources.typeID == resourceTypesView.id;
-      """,
+        resources.typeID == resourceTypes.id;
+      """
     ]
   }
 }

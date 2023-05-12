@@ -62,7 +62,7 @@ extension TagsExplorerController: ComponentController {
 
     let navigation: DisplayNavigation = try features.instance()
     let accountDetails: AccountDetails = try features.instance(context: currentAccount)
-    let resources: Resources = try features.instance()
+    let resources: ResourcesController = try features.instance()
     let resourceTags: ResourceTags = try features.instance()
     let sessionData: SessionData = try features.instance()
 
@@ -93,9 +93,10 @@ extension TagsExplorerController: ComponentController {
           .removeDuplicates()
           .asAnyAsyncSequence()
 
-        try await resources
-          .filteredResourcesListPublisher(filterSequence.asPublisher())
-          .asAnyAsyncSequence()
+        try await combineLatest(filterSequence, resources.lastUpdate)
+          .map { (filter, _) in
+            try await resources.filteredResourcesList(filter)
+          }
           .forEach { resourcesList in
             await viewState.withValue { state in
               state.resources = resourcesList
@@ -240,8 +241,7 @@ extension TagsExplorerController: ComponentController {
                     Task {
                       do {
                         try await resources
-                          .deleteResource(resourceID)
-                          .asAsyncValue()
+                          .delete(resourceID)
                       }
                       catch {
                         viewState.snackBarMessage = .error(error.asTheError().displayableMessage)

@@ -43,11 +43,12 @@ extension ResourceShareForm {
     cancellables: Cancellables
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
+    try features.ensureScope(ResourceDetailsScope.self)
     try features.ensureScope(ResourceShareScope.self)
 
     let diagnostics: OSDiagnostics = features.instance()
     let sessionData: SessionData = try features.instance()
-    let resourceDetails: ResourceDetails = try features.instance(context: resourceID)
+    let resourceController: ResourceController = try features.instance()
     let usersPGPMessages: UsersPGPMessages = try features.instance()
     let userGroups: UserGroups = try features.instance()
     let resourceShareNetworkOperation: ResourceShareNetworkOperation = try features.instance()
@@ -62,7 +63,7 @@ extension ResourceShareForm {
 
     @Sendable func existingPermissions() async -> OrderedSet<ResourcePermission> {
       do {
-        return try await resourceDetails.details().permissions
+        return try await resourceController.state.value.permissions
       }
       catch {
         diagnostics.log(error: error)
@@ -339,13 +340,19 @@ extension ResourceShareForm {
       guard !uniqueNewUsers.isEmpty
       else { return .init() }
 
-      let secret: ResourceSecret = try await resourceDetails.secret()
+      guard
+        let resourceSecret: String = try await resourceController.fetchSecretIfNeeded(force: true).resourceSecretString
+      else {
+        throw
+          InvalidInputData
+          .error(message: "Invalid or missing resource secret")
+      }
 
       return
         try await usersPGPMessages
         .encryptMessageForUsers(
           uniqueNewUsers,
-          secret.rawValue
+          resourceSecret
         )
     }
 

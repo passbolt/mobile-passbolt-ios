@@ -40,7 +40,6 @@ final class ResourceListControllerTests: MainActorTestCase {
   var updates: UpdatesSequenceSource!
 
   override func mainActorSetUp() {
-    features.usePlaceholder(for: Resources.self)
     updates = .init()
     features.patch(
       \SessionData.updatesSequence,
@@ -115,11 +114,12 @@ final class ResourceListControllerTests: MainActorTestCase {
       ),
     ]
     features.patch(
-      \Resources.filteredResourcesListPublisher,
-      with: always(
-        Just(resourcesList)
-          .eraseToAnyPublisher()
-      )
+      \ResourcesController.filteredResourcesList,
+      with: always(resourcesList)
+    )
+    features.patch(
+      \ResourcesController.lastUpdate,
+      with: .init(constant: 0)
     )
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
@@ -137,21 +137,28 @@ final class ResourceListControllerTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+
     XCTAssertEqual(result, resourcesList.map(ResourcesResourceListItemDSVItem.init(from:)))
   }
 
   func test_resourcesListPublisher_requestsResourcesListWithFilters() async throws {
     var result: ResourcesFilter?
-
+    let sendableResult: UncheckedSendable<ResourcesFilter?> = .init(
+      get: { result },
+      set: { result = $0 }
+    )
     features.patch(
-      \Resources.filteredResourcesListPublisher,
-      with: { filterPublisher in
-        filterPublisher.map { filter in
-          result = filter
-          return []
-        }
-        .eraseToAnyPublisher()
+      \ResourcesController.filteredResourcesList,
+      with: { filter in
+        sendableResult.variable = filter
+        return []
       }
+    )
+    features.patch(
+      \ResourcesController.lastUpdate,
+      with: .init(constant: 0)
     )
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
@@ -164,6 +171,9 @@ final class ResourceListControllerTests: MainActorTestCase {
       .resourcesListPublisher()
       .sinkDrop()
       .store(in: cancellables)
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result, ResourcesFilter(sorting: .nameAlphabetically, text: "1"))
   }
@@ -186,11 +196,12 @@ final class ResourceListControllerTests: MainActorTestCase {
       ),
     ]
     features.patch(
-      \Resources.filteredResourcesListPublisher,
-      with: always(
-        Just(resourcesList)
-          .eraseToAnyPublisher()
-      )
+      \ResourcesController.filteredResourcesList,
+      with: always(resourcesList)
+    )
+    features.patch(
+      \ResourcesController.lastUpdate,
+      with: .init(constant: 0)
     )
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
@@ -232,11 +243,12 @@ final class ResourceListControllerTests: MainActorTestCase {
       ),
     ]
     features.patch(
-      \Resources.filteredResourcesListPublisher,
-      with: always(
-        Just(resourcesList)
-          .eraseToAnyPublisher()
-      )
+      \ResourcesController.filteredResourcesList,
+      with: always(resourcesList)
+    )
+    features.patch(
+      \ResourcesController.lastUpdate,
+      with: .init(constant: 0)
     )
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
@@ -280,11 +292,12 @@ final class ResourceListControllerTests: MainActorTestCase {
       ),
     ]
     features.patch(
-      \Resources.filteredResourcesListPublisher,
-      with: always(
-        Just(resourcesList)
-          .eraseToAnyPublisher()
-      )
+      \ResourcesController.filteredResourcesList,
+      with: always(resourcesList)
+    )
+    features.patch(
+      \ResourcesController.lastUpdate,
+      with: .init(constant: 0)
     )
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(

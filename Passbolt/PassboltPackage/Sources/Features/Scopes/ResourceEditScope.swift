@@ -28,7 +28,7 @@ public enum ResourceEditScope: FeaturesScope {
   public enum Context {
 
     case create(
-      _ slug: ResourceType.Slug = .default,
+      _ slug: ResourceSpecification.Slug = .default,
       folderID: ResourceFolder.ID?,
       uri: URLString?
     )

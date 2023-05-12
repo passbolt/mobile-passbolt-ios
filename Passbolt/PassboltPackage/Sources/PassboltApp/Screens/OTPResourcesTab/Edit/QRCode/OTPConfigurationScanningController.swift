@@ -112,10 +112,12 @@ extension OTPConfigurationScanningController {
               )
             do {
               let resourceEditForm: ResourceEditForm = try await features.instance()
-              try await resourceEditForm.update(
-                ResourceField.valuePath(forName: "totp"),
-                to: .totp(configuration.secret)
-              )
+              _ = try await resourceEditForm.update { (resource: inout Resource) in
+                resource.secret.totp.secret_key = .string(configuration.secret.sharedSecret)
+                resource.secret.totp.period = .integer(configuration.secret.period.rawValue)
+                resource.secret.totp.algorithm = .string(configuration.secret.algorithm.rawValue)
+                resource.secret.totp.digits = .integer(configuration.secret.digits)
+              }
               try await navigationToSelf.revert()
             }
             catch {

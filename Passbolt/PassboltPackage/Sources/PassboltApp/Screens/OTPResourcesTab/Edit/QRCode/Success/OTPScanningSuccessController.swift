@@ -95,18 +95,15 @@ extension OTPScanningSuccessController {
             )
           )
           let resourceEditForm: ResourceEditForm = try await features.instance()
-          try await resourceEditForm.update(
-            ResourceField.valuePath(forName: "name"),
-            to: .string(context.account)
-          )
-          try await resourceEditForm.update(
-            ResourceField.valuePath(forName: "uri"),
-            to: .string(context.issuer)
-          )
-          try await resourceEditForm.update(
-            ResourceField.valuePath(forName: "totp"),
-            to: .totp(context.secret)
-          )
+          _ = try await resourceEditForm.update { (resouce: inout Resource) in
+            resouce.meta.name = .string(context.account)
+            resouce.meta.uri = .string(context.issuer)
+            resouce.secret.totp.algorithm = .string(context.secret.algorithm.rawValue)
+            resouce.secret.totp.digits = .integer(context.secret.digits)
+            resouce.secret.totp.period = .integer(context.secret.period.rawValue)
+            resouce.secret.totp.secret_key = .string(context.secret.sharedSecret)
+          }
+
           _ = try await resourceEditForm.sendForm()
           try await navigationToScanning.revert()
         }

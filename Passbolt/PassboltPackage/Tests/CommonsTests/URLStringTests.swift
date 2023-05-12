@@ -21,9 +21,8 @@
 // @since         v1.0
 //
 
-import CommonModels
+import Commons
 import Foundation
-import TestExtensions
 import XCTest
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals

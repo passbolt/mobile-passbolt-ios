@@ -34,7 +34,7 @@ extension ResourceType.ID {
   public static let mock_4: Self = .init(uuidString: "A6626564-8CE2-4FC0-870C-5C299F04AB0C")!
 }
 
-extension ResourceType.Slug {
+extension ResourceSpecification.Slug {
 
   public static let mock_1: Self = .init(rawValue: "mock_1")
 
@@ -47,9 +47,23 @@ extension ResourceType {
     id: .mock_1,
     slug: .mock_1,
     name: "mock_1",
-    fields: [
-      .name,
-      .password,
+    metaFields: [
+      .init(
+        path: \.meta.name,
+        name: "name",
+        content: .string(maxLength: 1024),
+        required: true,
+        encrypted: false
+      )
+    ],
+    secretFields: [
+      .init(
+        path: \.secret.password,
+        name: "password",
+        content: .string(maxLength: 4096),
+        required: true,
+        encrypted: true
+      )
     ]
   )
 
@@ -57,33 +71,35 @@ extension ResourceType {
     id: .mock_2,
     slug: .mock_2,
     name: "mock_2",
-    fields: [
-      .name,
-      .password,
+    metaFields: [
+      .init(
+        path: \.meta.name,
+        name: "name",
+        content: .string(maxLength: 1024),
+        required: true,
+        encrypted: false
+      )
+    ],
+    secretFields: [
+      .init(
+        path: \.secret.password,
+        name: "password",
+        content: .string(maxLength: 4096),
+        required: true,
+        encrypted: true
+      )
     ]
   )
 
   public static let mock_default: Self = .init(
     id: .mock_3,
-    slug: "password-and-description",
-    name: "password-and-description",
-    fields: [
-      .name,
-      .uri,
-      .username,
-      .password,
-      .descriptionEncrypted,
-    ]
+    slug: .passwordWithDescription,
+    name: "password-and-description"
   )
 
   public static let mock_totp: Self = .init(
     id: .mock_4,
     slug: .totp,
-    name: "mock_totp",
-    fields: [
-      .name,
-      .uri,
-      .totp,
-    ]
+    name: "mock_totp"
   )
 }

@@ -40,9 +40,14 @@ internal struct OTPDeleteAlertController: AlertController {
     with context: Context,
     using features: Features
   ) throws {
+    let features: Features =
+      features.branchIfNeeded(
+        scope: ResourceDetailsScope.self,
+        context: context.resourceID
+      ) ?? features
     let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
-    let resources: Resources = try features.instance()
+    let resourceController: ResourceController = try features.instance()
 
     self.title = "otp.contextual.menu.delete.confirm.title"
     self.message = "otp.contextual.menu.delete.confirm.message"
@@ -57,7 +62,7 @@ internal struct OTPDeleteAlertController: AlertController {
         action: {
           asyncExecutor.schedule(.unmanaged) {
             do {
-              try await resources.delete(context.resourceID)
+              try await resourceController.delete()
               await context.showMessage(.info("otp.contextual.menu.delete.succeeded"))
             }
             catch {

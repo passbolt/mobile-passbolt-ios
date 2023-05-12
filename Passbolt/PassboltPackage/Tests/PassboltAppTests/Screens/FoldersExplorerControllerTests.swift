@@ -48,9 +48,6 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
       \SessionData.refreshIfNeeded,
       with: always(Void())
     )
-    features.usePlaceholder(for: Resources.self)
-    features.usePlaceholder(for: ResourceFolders.self)
-    features.usePlaceholder(for: HomePresentation.self)
   }
 
   override func mainActorTearDown() {

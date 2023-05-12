@@ -21,33 +21,25 @@
 // @since         v1.0
 //
 
-import Commons
+import Database
 
-public enum ResourceFieldValue {
+// swift-format-ignore: AlwaysUseLowerCamelCase
+extension SQLiteMigration {
 
-  case encrypted
-  case string(String)
-  case totp(TOTPSecret)
-  case unknown(JSON)
-}
-
-extension ResourceFieldValue: Equatable {}
-
-extension ResourceFieldValue {
-
-  public var stringValue: String? {
-    switch self {
-    case let .string(value):
-      return value
-
-    case .totp:
-      return .none
-
-    case .encrypted:
-      return .none
-
-    case .unknown:
-      return .none
-    }
+  internal static var migration_14: Self {
+    [
+      // - remove resourceTypesFields - //
+      """
+      			DROP TABLE resourceTypesFields;
+      			""",
+      // - remove resourceFields - //
+      """
+      			DROP TABLE resourceFields;
+      			""",
+      // - version bump - //
+      """
+      			PRAGMA user_version = 15; -- persistent, used to track schema version
+      			""",
+    ]
   }
 }

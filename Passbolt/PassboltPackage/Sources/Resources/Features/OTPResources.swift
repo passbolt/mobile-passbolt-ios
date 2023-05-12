@@ -37,9 +37,8 @@ public struct OTPResources {
   /// List of OTP resources matching filter.
   public var filteredList: @Sendable (OTPResourcesFilter) async throws -> Array<ResourceListItemDSV>
   /// Access part of the resource secret associated with OTP.
-  /// Note that secret is not directly cached,
-  /// each access to secret will request whole
-  /// resource secret from the backend.
+  /// Note that each access to secret might request
+  /// the whole resource secret from the backend.
   public var secretFor: @Sendable (Resource.ID) async throws -> TOTPSecret
 
   public init(

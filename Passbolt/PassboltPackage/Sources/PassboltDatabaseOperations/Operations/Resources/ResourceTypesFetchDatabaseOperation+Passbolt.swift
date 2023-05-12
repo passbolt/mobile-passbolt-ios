@@ -38,17 +38,15 @@ extension ResourceTypesFetchDatabaseOperation {
           SELECT
             id,
             slug,
-            name,
-            fields
+            name
           FROM
-            resourceTypesView;
+            resourceTypes;
           """
       ) { dataRow in
         guard
           let id: ResourceType.ID = dataRow.id.flatMap(ResourceType.ID.init(uuidString:)),
-          let slug: ResourceType.Slug = dataRow.slug.flatMap(ResourceType.Slug.init(rawValue:)),
-          let name: String = dataRow.name,
-          let rawFields: String = dataRow.fields
+          let slug: ResourceSpecification.Slug = dataRow.slug.flatMap(ResourceSpecification.Slug.init(rawValue:)),
+          let name: String = dataRow.name
         else {
           throw
             DatabaseDataInvalid
@@ -56,13 +54,10 @@ extension ResourceTypesFetchDatabaseOperation {
             .recording(dataRow, for: "dataRow")
         }
 
-        return try ResourceType(
+        return .init(
           id: id,
           slug: slug,
-          name: name,
-          fields:
-            ResourceField
-            .decodeOrderedSetFrom(rawString: rawFields)
+          name: name
         )
       }
   }

@@ -56,7 +56,7 @@ extension ResourcesListController: UIController {
     cancellables: Cancellables
   ) throws -> Self {
     let sessionData: SessionData = try features.instance()
-    let resources: Resources = try features.instance()
+    let resources: ResourcesController = try features.instance()
 
     let resourceDetailsIDSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceMenuIDSubject: PassthroughSubject<Resource.ID, Never> = .init()
@@ -74,10 +74,19 @@ extension ResourcesListController: UIController {
     }
 
     func resourcesListPublisher() -> AnyPublisher<Array<ResourcesResourceListItemDSVItem>, Never> {
-      resources
-        .filteredResourcesListPublisher(context)
-        .map { $0.map(ResourcesResourceListItemDSVItem.init(from:)) }
-        .eraseToAnyPublisher()
+      context.map { filter in
+        resources
+          .lastUpdate
+          .map { _ in
+            try await resources.filteredResourcesList(filter)
+              .map(ResourcesResourceListItemDSVItem.init(from:))
+          }
+          .asThrowingPublisher()
+          .replaceError(with: .init())
+          .eraseToAnyPublisher()
+      }
+      .switchToLatest()
+      .eraseToAnyPublisher()
     }
 
     func addResource() {
@@ -129,9 +138,10 @@ extension ResourcesListController: UIController {
     }
 
     func resourceDeletionPublisher(resourceID: Resource.ID) -> AnyPublisher<Void, Error> {
-      resources
-        .deleteResource(resourceID)
-        .eraseToAnyPublisher()
+      cancellables.executeAsyncWithPublisher {
+        try await resources
+          .delete(resourceID)
+      }
     }
 
     return Self(

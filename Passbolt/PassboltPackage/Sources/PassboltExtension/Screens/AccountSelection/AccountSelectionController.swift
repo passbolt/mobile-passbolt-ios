@@ -88,7 +88,9 @@ extension AccountSelectionController: UIController {
           }
           return listItems
         }
-        .asPublisher()
+        .asThrowingPublisher()
+        .replaceError(with: .init())
+        .eraseToAnyPublisher()
     }
 
     func screenMode() -> AccountSelectionController.Mode {

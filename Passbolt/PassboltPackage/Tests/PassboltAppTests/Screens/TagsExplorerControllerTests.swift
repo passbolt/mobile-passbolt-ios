@@ -64,7 +64,6 @@ final class TagsExplorerControllerTests: MainActorTestCase {
       \ResourceTags.filteredTagsList,
       with: always([])
     )
-    features.usePlaceholder(for: Resources.self)
     features.usePlaceholder(for: HomePresentation.self)
     features.patch(
       \AccountDetails.profile,
@@ -120,12 +119,13 @@ final class TagsExplorerControllerTests: MainActorTestCase {
   }
 
   func test_initally_viewStateTitle_isTagSlug_forNonRootFolder() async throws {
-    await features.patch(
-      \Resources.filteredResourcesListPublisher,
-      with: always(
-        Just([])
-          .eraseToAnyPublisher()
-      )
+    features.patch(
+      \ResourcesController.filteredResourcesList,
+      with: always([])
+    )
+    features.patch(
+      \ResourcesController.lastUpdate,
+      with: .init(constant: 0)
     )
 
     let controller: TagsExplorerController = try await testController(

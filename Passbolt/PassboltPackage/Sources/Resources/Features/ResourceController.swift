@@ -21,63 +21,54 @@
 // @since         v1.0
 //
 
-extension ResourceField {
+import CommonModels
+import Features
 
-  public enum Content {
+// MARK: - Interface
 
-    case string(
-      encrypted: Bool,
-      required: Bool,
-      minLength: UInt?,
-      maxLength: UInt?
-    )
-    case totp(required: Bool)
-    case unknown(
-      encrypted: Bool,
-      required: Bool
-    )
+public struct ResourceController {
+
+  public var state: ViewableState<Resource>
+  public var fetchSecretIfNeeded: @Sendable (Bool) async throws -> JSON
+  public var toggleFavorite: @Sendable () async throws -> Void
+  public var delete: @Sendable () async throws -> Void
+
+  public init(
+    state: ViewableState<Resource>,
+    fetchSecretIfNeeded: @escaping @Sendable (Bool) async throws -> JSON,
+    toggleFavorite: @escaping @Sendable () async throws -> Void,
+    delete: @escaping @Sendable () async throws -> Void
+  ) {
+    self.state = state
+    self.fetchSecretIfNeeded = fetchSecretIfNeeded
+    self.toggleFavorite = toggleFavorite
+    self.delete = delete
   }
 }
 
-extension ResourceField.Content: Hashable {}
+extension ResourceController: LoadableFeature {
 
-extension ResourceField.Content {
+  public typealias Context = ContextlessLoadableFeatureContext
 
-  internal var typeName: String? {
-    switch self {
-    case .string:
-      return "string"
+  #if DEBUG
 
-    case .totp:
-      return "totp"
-
-    case .unknown:
-      return .none
-    }
+  public static var placeholder: Self {
+    .init(
+      state: .placeholder,
+      fetchSecretIfNeeded: unimplemented1(),
+      toggleFavorite: unimplemented0(),
+      delete: unimplemented0()
+    )
   }
+  #endif
 }
 
-extension ResourceField {
+extension ResourceController {
 
-  public func accepts(
-    _ value: ResourceFieldValue
-  ) -> Bool {
-    switch (self.content, value) {
-    case (.string, .string):
-      return true
-
-    case (.totp, .totp):
-      return true
-
-    case (.unknown, .unknown):
-      return true
-
-    case (.string(encrypted: true, _, _, _), .encrypted), (.totp, .encrypted),
-      (.unknown(encrypted: true, _), .encrypted):
-      return true
-
-    case _:
-      return false
-    }
+  @discardableResult
+  @Sendable public func fetchSecretIfNeeded(
+    force: Bool = false
+  ) async throws -> JSON {
+    try await self.fetchSecretIfNeeded(force)
   }
 }

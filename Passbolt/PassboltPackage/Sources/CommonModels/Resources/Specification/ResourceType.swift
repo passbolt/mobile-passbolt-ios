@@ -26,44 +26,67 @@ import Commons
 public struct ResourceType {
 
   public typealias ID = Tagged<UUID, Self>
-  public typealias Slug = Tagged<String, ID>
 
   public let id: ID
-  public let slug: Slug
   public let name: String
-  public let fields: OrderedSet<ResourceField>
+  public let specification: ResourceSpecification
 
   public init(
     id: ID,
-    slug: Slug,
     name: String,
-    fields: OrderedSet<ResourceField>
+    specification: ResourceSpecification
   ) {
     self.id = id
-    self.slug = slug
     self.name = name
-    self.fields =
-      fields
-      .sorted()
-      .asOrderedSet()
+    self.specification = specification
   }
 
-  public func field(
-    named fieldName: StaticString
-  ) -> ResourceField? {
-    self.fields.first(where: { $0.name == fieldName.description })
+  public init(
+    id: ID,
+    slug: ResourceSpecification.Slug,
+    name: String
+  ) {
+    let specification: ResourceSpecification
+    switch slug {
+    case .password:
+      specification = .password
+
+    case .passwordWithDescription:
+      specification = .passwordWithDescription
+
+    case .totp:
+      specification = .totp
+
+    case .passwordWithTOTP:
+      specification = .passwordWithTOTP
+
+    case _:
+      specification = .placeholder
+    }
+
+    self.init(
+      id: id,
+      name: name,
+      specification: specification
+    )
   }
 
-  public func contains(
-    _ field: ResourceField
-  ) -> Bool {
-    self.fields.contains(field)
-  }
-
-  public func contains(
-    _ path: ResourceField.ValuePath
-  ) -> Bool {
-    self.fields.contains(where: { $0.valuePath == path })
+  public init(
+    id: ID,
+    slug: ResourceSpecification.Slug,
+    name: String,
+    metaFields: OrderedSet<ResourceFieldSpecification>,
+    secretFields: OrderedSet<ResourceFieldSpecification>
+  ) {
+    self.init(
+      id: id,
+      name: name,
+      specification: .init(
+        slug: slug,
+        metaFields: metaFields,
+        secretFields: secretFields
+      )
+    )
   }
 }
 
@@ -72,16 +95,6 @@ extension ResourceType: Equatable {}
 extension ResourceType {
 
   public var isDefault: Bool {
-    self.slug == .default
+    self.specification.slug == .default
   }
-}
-
-extension ResourceType.Slug {
-
-  public static let `default`: Self = .passwordWithDescription
-
-  public static let password: Self = "password"
-  public static let passwordWithDescription: Self = "password-and-description"
-  public static let passwordWithTOTP: Self = "password-description-totp"
-  public static let totp: Self = "totp"
 }

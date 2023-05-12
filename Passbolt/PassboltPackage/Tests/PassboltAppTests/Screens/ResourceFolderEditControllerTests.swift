@@ -143,10 +143,7 @@ final class ResourceFolderEditControllerTests: LoadableFeatureTestCase<ResourceF
     withTestedInstance(
       context: .create(containingFolderID: .none),
       test: { (tested: ResourceFolderEditController) in
-        Task { await self.executionMockControl.executeAll() }
-
-        // wait for detached task to execute
-        try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
+        await self.executionMockControl.executeNext()
         let initialFolderName: Validated<String> = await tested.viewState.value.folderName
 
         self.formState = ResourceFolderEditFormState(
@@ -155,10 +152,8 @@ final class ResourceFolderEditControllerTests: LoadableFeatureTestCase<ResourceF
           permissions: .valid(.init())
         )
         updatesSource.sendUpdate()
-
-        // wait for detached task to execute
-        try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
-
+        await self.executionMockControl.executeNext()
+        
         let updatedFolderName: Validated<String> = await tested.viewState.value.folderName
 
         updatesSource.endUpdates()

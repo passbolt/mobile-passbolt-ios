@@ -80,7 +80,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
   }
 
   private func setupSubscriptions() {
-    resourceDetailsCancellable = controller.resourceDetailsWithConfigPublisher()
+    resourceDetailsCancellable = controller.statePublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] completion in
         guard case .failure = completion
@@ -90,14 +90,19 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
             self?.navigationController?.presentErrorSnackbar()
             await self?.pop(if: Self.self)
           }
-      } receiveValue: { [weak self] resourceWithConfig in
-        self?.contentView.update(with: resourceWithConfig)
+      } receiveValue: { [weak self] state in
+        self?.contentView
+          .update(
+            with: state.resource,
+            passwordRevealAvailable: state.passwordRevealAvailable,
+            revealedFields: state.revealedFields
+          )
         MainActor.execute {
           await self?.removeAllChildren(ResourceDetailsLocationSectionView.self)
           await self?.removeAllChildren(ResourceDetailsTagsSectionView.self)
           await self?.removeAllChildren(ResourceDetailsSharedSectionView.self)
 
-          if let resourceID = resourceWithConfig.resource.id {
+          if let resourceID = state.resource.id {
             await self?
               .addChild(
                 ResourceDetailsLocationSectionView.self,
@@ -174,7 +179,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                     ),
                     else: .combined(
                       .text(String(repeating: "*", count: 10)),
-                      .font(.inter(ofSize: 14, weight: .medium))
+                      .font(.inconsolata(ofSize: 14, weight: .bold))
                     )
                   )
                 )
@@ -243,7 +248,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
               self?
                 .presentInfoSnackbar(
                   .localized("resource.menu.item.field.copied"),
-                  with: [field.name]
+                  with: [field.name.displayable.string()]
                 )
             }
           })
@@ -319,7 +324,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
               .present(
                 ResourceDeleteAlert.self,
                 in: { [weak self] in
-                  self?.controller.resourceDeletionPublisher(resourceID)
+                  self?.controller.resourceDeletionPublisher()
                     .receive(on: RunLoop.main)
                     .handleStart { [weak self] in
                       self?

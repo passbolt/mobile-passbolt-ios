@@ -150,43 +150,42 @@ extension OTPResourcesListController {
     }
 
     // start list content updates
-    asyncExecutor.scheduleCatchingWith(
-      diagnostics,
-      failMessage: "OTP list updates broken!"
-    ) {
-      let filtersSequence: AnyAsyncSequence<OTPResourcesFilter> =
-        combineLatest(
-          ObservableViewState(
-            from: viewState,
-            at: \.searchText
-          ),
-          otpResources.updates
-        )
-        .map { (searchText: String, _) -> OTPResourcesFilter in
-          OTPResourcesFilter(text: searchText)
-        }
-        .asAnyAsyncSequence()
+    let filtersSequence: AnyAsyncSequence<OTPResourcesFilter> =
+      combineLatest(
+        ObservableViewState(
+          from: viewState,
+          at: \.searchText
+        ),
+        otpResources.updates
+      )
+      .map { (searchText: String, _) -> OTPResourcesFilter in
+        OTPResourcesFilter(text: searchText)
+      }
+      .asAnyAsyncSequence()
 
-      for await filter: OTPResourcesFilter in filtersSequence {
-        let filteredResourcesList: Array<TOTPResourceViewModel> =
-          try await otpResources
-          .filteredList(filter)
-          .map { (resource: ResourceListItemDSV) -> TOTPResourceViewModel in
+    asyncExecutor.scheduleIteration(
+      over: filtersSequence,
+      catchingWith: diagnostics,
+      failMessage: "OTP list updates broken!"
+    ) { (filter: OTPResourcesFilter) in
+      let filteredResourcesList: Array<TOTPResourceViewModel> =
+      try await otpResources
+        .filteredList(filter)
+        .map { (resource: ResourceListItemDSV) -> TOTPResourceViewModel in
             .init(
               id: resource.id,
               name: resource.name,
               // we are hiding all OTPs when list changes
               totpValue: .none
             )
-          }
+        }
 
-        await viewState
-          .update(
-            \.otpResources,
-            to: filteredResourcesList
-          )
-        await otpCodesController.dispose()
-      }
+      await viewState
+        .update(
+          \.otpResources,
+           to: filteredResourcesList
+        )
+      await otpCodesController.dispose()
     }
 
     @Sendable nonisolated func refreshList() async {

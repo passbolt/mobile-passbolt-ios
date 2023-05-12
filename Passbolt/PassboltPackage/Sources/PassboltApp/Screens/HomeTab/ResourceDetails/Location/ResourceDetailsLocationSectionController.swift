@@ -50,7 +50,7 @@ extension ResourceDetailsLocationSectionController: ComponentController {
     let asyncExecutor: AsyncExecutor = try features.instance()
 
     let navigation: DisplayNavigation = try features.instance()
-    let resourceDetails: ResourceDetails = try features.instance(context: context)
+    let resourceController: ResourceController = try features.instance()
 
     let viewState: ObservableValue<ViewState> = .init(
       initial: .init(
@@ -61,8 +61,9 @@ extension ResourceDetailsLocationSectionController: ComponentController {
     asyncExecutor.schedule { @MainActor in
       do {
         viewState.location =
-          try await resourceDetails
-          .details()
+          try await resourceController
+          .state
+          .value
           .path
           .map(\.name)
       }

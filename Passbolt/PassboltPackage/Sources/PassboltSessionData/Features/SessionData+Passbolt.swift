@@ -35,6 +35,8 @@ extension SessionData {
   ) throws -> Self {
     let configuration: SessionConfiguration = try features.sessionConfiguration()
 
+    let time: OSTime = features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
     let diagnostics: OSDiagnostics = features.instance()
     let usersStoreDatabaseOperation: UsersStoreDatabaseOperation = try features.instance()
     let userGroupsStoreDatabaseOperation: UserGroupsStoreDatabaseOperation = try features.instance()
@@ -47,9 +49,23 @@ extension SessionData {
     let resourceTypesFetchNetworkOperation: ResourceTypesFetchNetworkOperation = try features.instance()
     let resourceFoldersFetchNetworkOperation: ResourceFoldersFetchNetworkOperation = try features.instance()
 
+    // when diffing endpoint becomes available
+    // we could store last update time and reuse it to avoid
+    // fetching all the data when initializing
+    let lastUpdate: MutableState<Timestamp> = .init(initial: 0)
     let updatesSequenceSource: UpdatesSequenceSource = .init()
 
     let refreshTask: ManagedTask<Void> = .init()
+
+    // initial refresh after loading
+    asyncExecutor.schedule {
+      do {
+        try await refreshIfNeeded()
+      }
+      catch {
+        diagnostics.log(error: error)
+      }
+    }
 
     @Sendable nonisolated func refreshUsers() async throws {
       diagnostics.log(diagnostic: "Refreshing users data...")
@@ -141,7 +157,7 @@ extension SessionData {
 
     @Sendable nonisolated func refreshIfNeeded() async throws {
       try await refreshTask.run {
-        // TODO: when diffing endpoint becomes available
+        // when diffing endpoint becomes available
         // there should be some additional logic
         // to selectively update database data
 
@@ -151,20 +167,16 @@ extension SessionData {
         try await refreshResources()
 
         updatesSequenceSource.sendUpdate()
+        // when diffing endpoint becomes available
+        // we should use server time instead
+        try await lastUpdate.update(\.self, to: time.timestamp())
       }
     }
 
-    @Sendable func withLocalUpdate(
-      _ execute: @escaping @Sendable () async throws -> Void
-    ) async throws {
-      try await execute()
-      updatesSequenceSource.sendUpdate()
-    }
-
     return Self(
+      lastUpdate: .init(viewing: lastUpdate),
       updatesSequence: updatesSequenceSource.updatesSequence,
-      refreshIfNeeded: refreshIfNeeded,
-      withLocalUpdate: withLocalUpdate(_:)
+      refreshIfNeeded: refreshIfNeeded
     )
   }
 }

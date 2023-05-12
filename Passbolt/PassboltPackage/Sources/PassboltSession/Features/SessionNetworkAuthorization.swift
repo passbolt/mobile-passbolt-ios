@@ -101,7 +101,9 @@ extension SessionNetworkAuthorization {
         .log(diagnostic: "...fetching server public PGP key...")
 
       let localTimestampBefore: Timestamp = time.timestamp()
-      let response: ServerPGPPublicKeyFetchNetworkOperationResult = try await serverPGPPublicKeyFetchNetworkOperation(.init(domain: account.domain))
+      let response: ServerPGPPublicKeyFetchNetworkOperationResult = try await serverPGPPublicKeyFetchNetworkOperation(
+        .init(domain: account.domain)
+      )
       let localTimestampAfter: Timestamp = time.timestamp()
       let executionTime: Seconds = .init(rawValue: localTimestampAfter.rawValue - localTimestampBefore.rawValue)
       diagnostics.log(diagnostic: "Local timestamp:", .unsafeVariable("\(localTimestampAfter.rawValue)"))
@@ -113,7 +115,8 @@ extension SessionNetworkAuthorization {
 
       guard timeDiff <= 10 && timeDiff >= -10
       else {
-        throw ServerTimeOutOfSync
+        throw
+          ServerTimeOutOfSync
           .error(
             "Time difference between client and server is bigger than 10 seconds!",
             serverURL: account.domain
@@ -411,7 +414,8 @@ extension SessionNetworkAuthorization {
     ) {
       let verificationToken: String = uuidGenerator.uuid()
 
-      async let (serverPublicPGPKey, serverTimeDiff): (ArmoredPGPPublicKey, Seconds) = fetchServerPublicPGPKeyAndTimeDiff(for: authorizationData.account)
+      async let (serverPublicPGPKey, serverTimeDiff): (ArmoredPGPPublicKey, Seconds) =
+        fetchServerPublicPGPKeyAndTimeDiff(for: authorizationData.account)
       async let serverPublicRSAKey: PEMRSAPublicKey = fetchServerPublicRSAKey(for: authorizationData.account)
 
       let timeDiff: Seconds = try await serverTimeDiff

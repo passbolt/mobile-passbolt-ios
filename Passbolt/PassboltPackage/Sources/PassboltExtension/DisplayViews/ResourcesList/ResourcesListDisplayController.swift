@@ -83,7 +83,7 @@ extension ResourcesListDisplayController {
     let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
     let sessionData: SessionData = try features.instance()
-    let resources: Resources = try features.instance()
+    let resources: ResourcesController = try features.instance()
 
     let viewState: MutableViewState<ViewState> = .init(
       initial: .init(

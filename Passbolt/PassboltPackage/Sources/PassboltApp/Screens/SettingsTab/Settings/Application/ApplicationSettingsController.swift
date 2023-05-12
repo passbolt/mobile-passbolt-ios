@@ -81,30 +81,32 @@ extension ApplicationSettingsController {
       )
     )
 
-    asyncExecutor.schedule {
-      for await _ in accountPreferences.updates {
-        switch osBiometry.availability() {
-        case .unavailable, .unconfigured:
-          await viewState.update(
-            \.biometicsAuthorizationAvailability,
-            to: .unavailable
-          )
+    asyncExecutor.scheduleIteration(
+      over: accountPreferences.updates,
+      catchingWith: diagnostics,
+      failMessage: "Updates broken!"
+    ) { (_) in
+      switch osBiometry.availability() {
+      case .unavailable, .unconfigured:
+        await viewState.update(
+          \.biometicsAuthorizationAvailability,
+           to: .unavailable
+        )
 
-        case .touchID:
-          await viewState.update(
-            \.biometicsAuthorizationAvailability,
-            to: accountPreferences.isPassphraseStored()
-              ? .enabledTouchID
-              : .disabledTouchID
-          )
-        case .faceID:
-          await viewState.update(
-            \.biometicsAuthorizationAvailability,
-            to: accountPreferences.isPassphraseStored()
-              ? .enabledFaceID
-              : .disabledFaceID
-          )
-        }
+      case .touchID:
+        await viewState.update(
+          \.biometicsAuthorizationAvailability,
+           to: accountPreferences.isPassphraseStored()
+           ? .enabledTouchID
+           : .disabledTouchID
+        )
+      case .faceID:
+        await viewState.update(
+          \.biometicsAuthorizationAvailability,
+           to: accountPreferences.isPassphraseStored()
+           ? .enabledFaceID
+           : .disabledFaceID
+        )
       }
     }
 

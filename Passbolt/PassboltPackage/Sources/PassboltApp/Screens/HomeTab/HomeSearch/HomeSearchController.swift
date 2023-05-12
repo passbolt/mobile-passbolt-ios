@@ -60,7 +60,6 @@ extension HomeSearchController: UIController {
 
     let searchTextSubject: CurrentValueSubject<String, Never> = .init("")
     let homePresentationMenuPresentationSubject: PassthroughSubject<Void, Never> = .init()
-    let accountMenuPresentationSubject: PassthroughSubject<Void, Never> = .init()
 
     searchTextSubject
       .sink { text in

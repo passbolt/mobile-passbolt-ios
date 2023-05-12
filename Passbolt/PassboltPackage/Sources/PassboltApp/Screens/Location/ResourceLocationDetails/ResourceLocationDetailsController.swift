@@ -63,7 +63,7 @@ extension ResourceLocationDetailsController {
     let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
 
-    let resourceDetails: ResourceDetails = try features.instance(context: context)
+    let resourceController: ResourceController = try features.instance()
 
     let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
@@ -72,11 +72,11 @@ extension ResourceLocationDetailsController {
       )
     )
 
-    asyncExecutor.schedule {
+    asyncExecutor.schedule(.unmanaged) {
       do {
-        let details: Resource! = try await resourceDetails.details()
-        let resourceName = details.value(forField: "name").stringValue ?? ""
-        var path: FolderLocationTreeView.Node = details.path.reduce(
+        let resource: Resource = try await resourceController.state.value
+        let resourceName = resource.meta.name.stringValue ?? ""
+        var path: FolderLocationTreeView.Node = resource.path.reduce(
           into: FolderLocationTreeView.Node.root()
         ) { (partialResult: inout FolderLocationTreeView.Node, item: ResourceFolderPathItem) in
           partialResult.append(
@@ -89,7 +89,7 @@ extension ResourceLocationDetailsController {
         }
         path.append(
           child: .leaf(
-            id: details.id,
+            id: resource.id,
             name: resourceName
           )
         )

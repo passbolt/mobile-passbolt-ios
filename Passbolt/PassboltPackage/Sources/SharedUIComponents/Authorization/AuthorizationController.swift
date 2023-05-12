@@ -102,7 +102,9 @@ extension AuthorizationController: UIController {
         .map {
           try? await accountDetails.avatarImage()
         }
-        .asPublisher()
+        .asThrowingPublisher()
+        .replaceError(with: .none)
+        .eraseToAnyPublisher()
     }
 
     func updatePassphrase(_ passphrase: String) {
@@ -130,7 +132,9 @@ extension AuthorizationController: UIController {
             return .faceID
           }
         }
-        .asPublisher()
+        .asThrowingPublisher()
+        .replaceError(with: .unavailable)
+        .eraseToAnyPublisher()
     }
 
     func performSignIn() -> AnyPublisher<Bool, Error> {

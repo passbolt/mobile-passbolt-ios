@@ -26,18 +26,18 @@ import Features
 
 public struct SessionData {
 
+  public var lastUpdate: ViewableState<Timestamp>
   public var updatesSequence: UpdatesSequence
   public var refreshIfNeeded: @Sendable () async throws -> Void
-  public var withLocalUpdate: @Sendable (@escaping @Sendable () async throws -> Void) async throws -> Void
 
   public init(
+    lastUpdate: ViewableState<Timestamp>,
     updatesSequence: UpdatesSequence,
-    refreshIfNeeded: @escaping @Sendable () async throws -> Void,
-    withLocalUpdate: @escaping @Sendable (@escaping @Sendable () async throws -> Void) async throws -> Void
+    refreshIfNeeded: @escaping @Sendable () async throws -> Void
   ) {
+    self.lastUpdate = lastUpdate
     self.updatesSequence = updatesSequence
     self.refreshIfNeeded = refreshIfNeeded
-    self.withLocalUpdate = withLocalUpdate
   }
 }
 
@@ -48,9 +48,9 @@ extension SessionData: LoadableFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     .init(
+      lastUpdate: .placeholder,
       updatesSequence: .placeholder,
-      refreshIfNeeded: unimplemented0(),
-      withLocalUpdate: unimplemented1()
+      refreshIfNeeded: unimplemented0()
     )
   }
   #endif

@@ -54,44 +54,19 @@ final class OTPEditFormControllerTests: FeaturesTestCase {
     var resource: Resource = .init(
       type: .mock_totp
     )
-    try resource
-      .set(
-        .string("name"),
-        for: ResourceField.valuePath(forName: "name")
-      )
-    try resource
-      .set(
-        .totp(
-          .init(
-            sharedSecret: "SECRET",
-            algorithm: .sha256,
-            digits: 7,
-            period: 32
-          )
-        ),
-        for: ResourceField.valuePath(forName: "totp")
-      )
+    resource.meta.name = .string("name")
+    resource.secret.totp.secret_key = .string("SECRET")
+    resource.secret.totp.algorithm = .string(HOTPAlgorithm.sha256.rawValue)
+    resource.secret.totp.digits = .integer(7)
+    resource.secret.totp.period = .integer(32)
+
     let mutableState: MutableState<Resource> = .init(initial: resource)
     patch(
       \ResourceEditForm.state,
       with: .init(viewing: mutableState)
     )
-    patch(
-      \ResourceEditForm.updatableTOTPField,
-      with: always(
-        .init(
-          fieldPath: ResourceField.valuePath(forName: "totp"),
-          access: { (access) throws in
-            try await mutableState.update { state in
-              try access(&state)
-              return state
-            }
-          }
-        )
-      )
-    )
 
-    let feature: TOTPEditFormController = try self.testedInstance(context: .none)
+    let feature: TOTPEditFormController = try self.testedInstance(context: .mock_1)
 
     await self.asyncExecutionControl.executeAll()
 
@@ -105,5 +80,44 @@ final class OTPEditFormControllerTests: FeaturesTestCase {
     ) {
       feature.viewState.value
     }
+  }
+
+  func test_initializesTOTP_whenCreating() async throws {
+    var expectedResult: Resource = .init(
+      type: .mock_totp
+    )
+    // ensure no totp initially
+    expectedResult.secret.totp = .null
+    let mutable: CriticalState<Resource> = .init(expectedResult)
+
+    patch(
+      \ResourceEditForm.state,
+       with: .init(constant: .mock_totp)
+    )
+    patch(
+      \ResourceEditForm.update,
+       with: { mutation in
+         mutable.access { value in
+           mutation(&value)
+           return value
+         }
+       }
+    )
+
+    let _: TOTPEditFormController = try self.testedInstance(context: .none)
+
+    await self.asyncExecutionControl.executeAll()
+
+    XCTAssertEqual(
+      mutable.get(\.self).secret,
+      [
+        "totp": [
+          "secret_key": "",
+          "algorithm": "SHA1",
+          "period": 30,
+          "digits": 6
+        ]
+     ]
+    )
   }
 }

@@ -30,8 +30,8 @@ import UIComponents
 
 internal struct ResourceDetailsController {
 
-  internal var resourceDetailsWithConfigPublisher: @MainActor () -> AnyPublisher<ResourceWithConfig, Error>
-  internal var toggleDecrypt: @MainActor (ResourceField) -> AnyPublisher<String?, Error>
+  internal var statePublisher: @MainActor () -> AnyPublisher<State, Error>
+  internal var toggleDecrypt: @MainActor (ResourceFieldSpecification) -> AnyPublisher<String?, Error>
   internal var presentResourceMenu: @MainActor () -> Void
   internal var presentResourceShare: @MainActor (Resource.ID) -> Void
   internal var presentResourceEdit: @MainActor (Resource.ID) -> Void
@@ -40,22 +40,19 @@ internal struct ResourceDetailsController {
   internal var presentDeleteResourceAlert: @MainActor (Resource.ID) -> Void
   internal var resourceMenuPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
   internal var resourceDeleteAlertPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
-  internal var resourceDeletionPublisher: @MainActor (Resource.ID) -> AnyPublisher<Void, Error>
-  internal var copyFieldValue: @MainActor (ResourceField) -> AnyPublisher<Void, Error>
-}
-
-extension ResourceDetailsController {
-
-  internal struct ResourceWithConfig: Equatable {
-
-    internal var resource: Resource
-    internal var revealPasswordEnabled: Bool
-  }
+  internal var resourceDeletionPublisher: @MainActor () -> AnyPublisher<Void, Error>
+  internal var copyFieldValue: @MainActor (ResourceFieldSpecification) -> AnyPublisher<Void, Error>
 }
 
 extension ResourceDetailsController: UIController {
 
   internal typealias Context = Resource.ID
+
+  internal struct State: Equatable {
+    internal var resource: Resource
+    internal var passwordRevealAvailable: Bool
+    internal var revealedFields: Set<Resource.FieldPath>
+  }
 
   internal static func instance(
     in context: Context,
@@ -73,74 +70,59 @@ extension ResourceDetailsController: UIController {
     let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
 
     let diagnostics: OSDiagnostics = features.instance()
-    let resources: Resources = try features.instance()
+    let resourceController: ResourceController = try features.instance()
     let pasteboard: OSPasteboard = features.instance()
-    var revealedFields: Set<ResourceField> = .init()
+    let revealedFields: CurrentValueSubject<Set<Resource.FieldPath>, Never> = .init(.init())
 
     let resourceMenuPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceSharePresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceEditPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceDeleteAlertPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
 
-    let currentDetailsSubject: CurrentValueSubject<ResourceWithConfig?, Error> = .init(nil)
-
-    resources
-      .resourceDetailsPublisher(context)
-      .map { resource in
-        return .init(
-          resource: resource,
-          revealPasswordEnabled: sessionConfiguration.passwordPreviewEnabled
-        )
-      }
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-
-          currentDetailsSubject.send(completion: .failure(error))
-          diagnostics.log(error: error)
-        },
-        receiveValue: { resourceDetails in
-          currentDetailsSubject.send(resourceDetails)
+    func statePublisher() -> AnyPublisher<State, Error> {
+      resourceController
+        .state
+        .asThrowingPublisher()
+        .map { resource in
+          revealedFields
+            .map { revealedFields in
+              State(
+                resource: resource,
+                passwordRevealAvailable: sessionConfiguration.passwordPreviewEnabled,
+                revealedFields: revealedFields
+              )
+            }
         }
-      )
-      .store(in: cancellables)
-
-    func resourceDetailsWithConfigPublisher() -> AnyPublisher<ResourceWithConfig, Error> {
-      currentDetailsSubject
-        .filterMapOptional()
+        .switchToLatest()
         .removeDuplicates()
-        .handleEvents(receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          diagnostics.log(error: error)
-        })
         .eraseToAnyPublisher()
     }
 
-    func toggleDecrypt(field: ResourceField) -> AnyPublisher<String?, Error> {
-      if revealedFields.contains(field) {
+    func toggleDecrypt(
+      field: ResourceFieldSpecification
+    ) -> AnyPublisher<String?, Error> {
+      guard
+        (field.name != "password" && field.name != "secret")
+          || sessionConfiguration.passwordPreviewEnabled
+      else {
+        return Fail(error: Unavailable.error("Password preview disabled"))
+          .eraseToAnyPublisher()
+      }
+      if revealedFields.value.contains(field.path) {
         return Just(nil)
           .eraseErrorType()
           .handleEvents(receiveOutput: { _ in
-            revealedFields.remove(field)
+            revealedFields.value.remove(field.path)
           })
           .eraseToAnyPublisher()
       }
       else {
         return
           cancellables.executeAsyncWithPublisher {
-            resources
-              .loadResourceSecret(context)
-              .map { resourceSecret -> String in
-                resourceSecret.value(for: field).stringValue ?? ""
-              }
-              .handleEvents(receiveOutput: { _ in
-                revealedFields.insert(field)
-              })
+            try await resourceController.fetchSecretIfNeeded()
+            revealedFields.value.insert(field.path)
+            return try await resourceController.state.value[keyPath: field.path].stringValue
           }
-          .switchToLatest()
-          .eraseToAnyPublisher()
       }
     }
 
@@ -152,258 +134,22 @@ extension ResourceDetailsController: UIController {
       resourceMenuPresentationSubject.eraseToAnyPublisher()
     }
 
-    func copyURLAction() -> AnyPublisher<Void, Error> {
-      currentDetailsSubject
-        .first()
-        .map { resourceWithConfig -> AnyPublisher<Void, Error> in
-          guard
-            let resource = resourceWithConfig?.resource,
-            let resourceID = resource.id,
-            let field: ResourceField = resource.type.field(named: "uri")
-          else {
-            return Fail<Void, Error>(error: InvalidResourceData.error())
-              .eraseToAnyPublisher()
-          }
-
-          if field.encrypted {
-            return
-              cancellables.executeAsyncWithPublisher {
-                resources
-                  .loadResourceSecret(resourceID)
-                  .map { resourceSecret -> AnyPublisher<String, Error> in
-                    if let secret: String = resourceSecret.value(for: field).stringValue {
-                      return Just(secret)
-                        .eraseErrorType()
-                        .eraseToAnyPublisher()
-                    }
-                    else if !field.required {
-                      return Just("")
-                        .eraseErrorType()
-                        .eraseToAnyPublisher()
-                    }
-                    else {
-                      return Fail(error: InvalidResourceSecret.error())
-                        .eraseToAnyPublisher()
-                    }
-                  }
-                  .switchToLatest()
-                  .handleEvents(receiveOutput: { value in
-                    pasteboard.put(value)
-                  })
-                  .mapToVoid()
-              }
-              .switchToLatest()
-              .eraseToAnyPublisher()
-          }
-          else if let value: String = resource.value(forField: "uri").stringValue {
-            return Just(Void())
-              .eraseErrorType()
-              .handleEvents(receiveOutput: { _ in
-                pasteboard.put(value)
-              })
-              .eraseToAnyPublisher()
-          }
-          else {
-            return Fail(error: MissingResourceData.error())
-              .eraseToAnyPublisher()
-          }
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
-    }
-
-    func copyPasswordAction() -> AnyPublisher<Void, Error> {
-      currentDetailsSubject
-        .first()
-        .map { resourceWithConfig -> AnyPublisher<Void, Error> in
-          guard
-            let resource = resourceWithConfig?.resource,
-            let resourceID = resource.id,
-            let field: ResourceField = resource.type.field(named: "password")
-          else {
-            return Fail<Void, Error>(error: InvalidResourceData.error())
-              .eraseToAnyPublisher()
-          }
-
-          if field.encrypted {
-            return
-              cancellables.executeAsyncWithPublisher {
-                resources
-                  .loadResourceSecret(resourceID)
-                  .map { resourceSecret -> AnyPublisher<String, Error> in
-                    if let secret: String = resourceSecret.value(for: field).stringValue {
-                      return Just(secret)
-                        .eraseErrorType()
-                        .eraseToAnyPublisher()
-                    }
-                    else if !field.required {
-                      return Just("")
-                        .eraseErrorType()
-                        .eraseToAnyPublisher()
-                    }
-                    else {
-                      return Fail(error: InvalidResourceSecret.error())
-                        .eraseToAnyPublisher()
-                    }
-                  }
-                  .switchToLatest()
-                  .handleEvents(receiveOutput: { value in
-                    pasteboard.put(value)
-                  })
-                  .mapToVoid()
-              }
-              .switchToLatest()
-              .eraseToAnyPublisher()
-          }
-          else {
-            return Fail(error: MissingResourceData.error())
-              .eraseToAnyPublisher()
-          }
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
-    }
-
-    func copyUsernameAction() -> AnyPublisher<Void, Error> {
-      currentDetailsSubject
-        .first()
-        .map { resourceWithConfig -> AnyPublisher<Void, Error> in
-          guard
-            let resource = resourceWithConfig?.resource,
-            let resourceID = resource.id,
-            let field: ResourceField = resource.type.field(named: "username")
-          else {
-            return Fail<Void, Error>(error: InvalidResourceData.error())
-              .eraseToAnyPublisher()
-          }
-
-          if field.encrypted {
-            return
-              cancellables.executeAsyncWithPublisher {
-                resources
-                  .loadResourceSecret(resourceID)
-                  .map { resourceSecret -> AnyPublisher<String, Error> in
-                    if let secret: String = resourceSecret.value(for: field).stringValue {
-                      return Just(secret)
-                        .eraseErrorType()
-                        .eraseToAnyPublisher()
-                    }
-                    else if !field.required {
-                      return Just("")
-                        .eraseErrorType()
-                        .eraseToAnyPublisher()
-                    }
-                    else {
-                      return Fail(error: InvalidResourceSecret.error())
-                        .eraseToAnyPublisher()
-                    }
-                  }
-                  .switchToLatest()
-                  .handleEvents(receiveOutput: { value in
-                    pasteboard.put(value)
-                  })
-                  .mapToVoid()
-              }
-              .switchToLatest()
-              .eraseToAnyPublisher()
-          }
-          else if let value: String = resource.value(for: field).stringValue {
-            return Just(Void())
-              .eraseErrorType()
-              .handleEvents(receiveOutput: { _ in
-                pasteboard.put(value)
-              })
-              .eraseToAnyPublisher()
-          }
-          else {
-            return Fail(error: InvalidResourceData.error())
-              .eraseToAnyPublisher()
-          }
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
-    }
-
-    func copyDescriptionAction() -> AnyPublisher<Void, Error> {
-      currentDetailsSubject
-        .first()
-        .map { resourceWithConfig -> AnyPublisher<Void, Error> in
-          guard
-            let resource = resourceWithConfig?.resource,
-            let resourceID = resource.id,
-            let field: ResourceField = resource.type.field(named: "description")
-          else {
-            return Fail<Void, Error>(error: InvalidResourceData.error())
-              .eraseToAnyPublisher()
-          }
-
-          if field.encrypted {
-            return
-              cancellables.executeAsyncWithPublisher {
-                resources
-                  .loadResourceSecret(resourceID)
-                  .map { resourceSecret -> AnyPublisher<String, Error> in
-                    if let secret: String = resourceSecret.value(for: field).stringValue {
-                      return Just(secret)
-                        .eraseErrorType()
-                        .eraseToAnyPublisher()
-                    }
-                    else if !field.required {
-                      return Just("")
-                        .eraseErrorType()
-                        .eraseToAnyPublisher()
-                    }
-                    else {
-                      return Fail(error: InvalidResourceSecret.error())
-                        .eraseToAnyPublisher()
-                    }
-                  }
-                  .switchToLatest()
-                  .handleEvents(receiveOutput: { value in
-                    pasteboard.put(value)
-                  })
-                  .mapToVoid()
-              }
-              .switchToLatest()
-              .eraseToAnyPublisher()
-          }
-          else if let value: String = resource.value(for: field).stringValue {
-            return Just(Void())
-              .eraseErrorType()
-              .handleEvents(receiveOutput: { _ in
-                pasteboard.put(value)
-              })
-              .eraseToAnyPublisher()
-          }
-          else {
-            return Fail(error: InvalidResourceData.error())
-              .eraseToAnyPublisher()
-          }
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
-    }
-
     func copyField(
-      _ field: ResourceField
+      _ field: ResourceFieldSpecification
     ) -> AnyPublisher<Void, Error> {
-      switch field.name {
-      case "uri":
-        return copyURLAction()
-
-      case "password", "secret":
-        return copyPasswordAction()
-
-      case "username":
-        return copyUsernameAction()
-
-      case "description":
-        return copyDescriptionAction()
-
-      case _:
-        assertionFailure("Unhandled resource field - \(field)")
-        return Fail(error: InvalidResourceData.error())
-          .eraseToAnyPublisher()
+      return cancellables.executeAsyncWithPublisher {
+        let resource: Resource = try await resourceController.state.value
+        if resource.secretContains(field.path) {
+          try await resourceController.fetchSecretIfNeeded()
+          try await pasteboard.put(
+            resourceController.state.value[keyPath: field.path].stringValue
+          )
+        }
+        else {
+          pasteboard.put(
+            resource[keyPath: field.path].stringValue
+          )
+        }
       }
     }
 
@@ -433,16 +179,14 @@ extension ResourceDetailsController: UIController {
       resourceDeleteAlertPresentationSubject.eraseToAnyPublisher()
     }
 
-    func resourceDeletionPublisher(resourceID: Resource.ID) -> AnyPublisher<Void, Error> {
+    func resourceDeletionPublisher() -> AnyPublisher<Void, Error> {
       cancellables.executeAsyncWithPublisher {
-        resources.deleteResource(resourceID)
+        try await resourceController.delete()
       }
-      .switchToLatest()
-      .eraseToAnyPublisher()
     }
 
     return Self(
-      resourceDetailsWithConfigPublisher: resourceDetailsWithConfigPublisher,
+      statePublisher: statePublisher,
       toggleDecrypt: toggleDecrypt(field:),
       presentResourceMenu: presentResourceMenu,
       presentResourceShare: presentResourceShare(resourceID:),
@@ -452,7 +196,7 @@ extension ResourceDetailsController: UIController {
       presentDeleteResourceAlert: presentDeleteResourceAlert(resourceID:),
       resourceMenuPresentationPublisher: resourceMenuPresentationPublisher,
       resourceDeleteAlertPresentationPublisher: resourceDeleteAlertPresentationPublisher,
-      resourceDeletionPublisher: resourceDeletionPublisher(resourceID:),
+      resourceDeletionPublisher: resourceDeletionPublisher,
       copyFieldValue: copyField(_:)
     )
   }

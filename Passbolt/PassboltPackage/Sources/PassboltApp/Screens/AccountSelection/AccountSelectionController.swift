@@ -93,7 +93,8 @@ extension AccountSelectionController: UIController {
           }
           return listItems
         }
-        .asPublisher()
+        .asThrowingPublisher()
+        .replaceError(with: .init())
         .map { (listItems: Array<AccountSelectionListItem>) in
           listModeSubject
             .map { (mode: AccountSelectionListMode) -> Array<AccountSelectionListItem> in

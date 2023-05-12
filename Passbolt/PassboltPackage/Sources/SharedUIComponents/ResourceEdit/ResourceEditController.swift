@@ -32,11 +32,11 @@ import UIComponents
 public struct ResourceEditController {
 
   internal var createsNewResource: Bool
-  internal var resourcePropertiesPublisher: @MainActor () -> AnyPublisher<OrderedSet<ResourceField>, Never>
-  internal var fieldValuePublisher: @MainActor (ResourceField) -> AnyPublisher<Validated<String>, Never>
+  internal var resourcePropertiesPublisher: @MainActor () -> AnyPublisher<OrderedSet<ResourceFieldSpecification>, Never>
+  internal var fieldValuePublisher: @MainActor (Resource.FieldPath) -> AnyPublisher<Validated<String>, Never>
   internal var passwordEntropyPublisher: @MainActor () -> AnyPublisher<Entropy, Never>
   internal var sendForm: @MainActor () -> AnyPublisher<Void, Error>
-  internal var setValue: @MainActor (String, ResourceField) -> Void
+  internal var setValue: @MainActor (String, ResourceFieldSpecification) -> Void
   internal var generatePassword: @MainActor () -> Void
   internal var presentExitConfirmation: @MainActor () -> Void
   internal var exitConfirmationPresentationPublisher: @MainActor () -> AnyPublisher<Bool, Never>
@@ -75,11 +75,13 @@ extension ResourceEditController: UIController {
 
     let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()
 
-    func resourcePropertiesPublisher() -> AnyPublisher<OrderedSet<ResourceField>, Never> {
+    func resourcePropertiesPublisher() -> AnyPublisher<OrderedSet<ResourceFieldSpecification>, Never> {
       resourceForm.fieldsPublisher()
     }
 
-    func fieldValuePublisher(field: ResourceField) -> AnyPublisher<Validated<String>, Never> {
+    func fieldValuePublisher(
+      for field: Resource.FieldPath
+    ) -> AnyPublisher<Validated<String>, Never> {
       resourceForm
         .validatedFieldValuePublisher(field)
         .map { validatedFieldValue -> Validated<String> in
@@ -93,53 +95,32 @@ extension ResourceEditController: UIController {
 
     func setValue(
       _ value: String,
-      for field: ResourceField
+      for field: ResourceFieldSpecification
     ) {
       asyncExecutor.scheduleCatchingWith(
         diagnostics,
         failMessage: "Resource field update failed"
       ) {
         try await resourceForm
-          .setFieldValue(.string(value), field)
+          .setFieldValue(.string(value), field.path)
       }
     }
 
     func passwordEntropyPublisher() -> AnyPublisher<Entropy, Never> {
-      Future<ResourceType, Error> { fulfill in
-        asyncExecutor.schedule {
-          do {
-            let resourceType: ResourceType = try await resourceForm.resource().type
-            fulfill(.success(resourceType))
-          }
-          catch {
-            fulfill(.failure(error))
-          }
+      resourceForm
+        .updates
+        .map(resourceForm.resource)
+        .map { (resource: Resource) in
+          randomGenerator.entropy(
+            resource.secret.password.stringValue
+              ?? resource.secret.secret.stringValue
+              ?? "",
+            CharacterSets.all
+          )
         }
-      }
-      .map { (resourceType: ResourceType) -> ResourceField? in
-        resourceType.field(named: "password")
-      }
-      .replaceError(with: .none)
-      .map { (field: ResourceField?) in
-        if let passwordField: ResourceField = field {
-          return
-            resourceForm
-            .validatedFieldValuePublisher(passwordField)
-            .map { validated in
-              randomGenerator.entropy(
-                validated.value.stringValue ?? "",
-                CharacterSets.all
-              )
-            }
-            .eraseToAnyPublisher()
-        }
-        else {
-          return Empty<Entropy, Never>()
-            .eraseToAnyPublisher()
-        }
-      }
-      .switchToLatest()
-      .eraseToAnyPublisher()
+        .asThrowingPublisher()
+        .replaceError(with: .zero)
+        .eraseToAnyPublisher()
     }
 
     func sendForm() -> AnyPublisher<Void, Error> {
@@ -157,7 +138,18 @@ extension ResourceEditController: UIController {
         failMessage: "Password generation failed",
         behavior: .reuse
       ) {
-        guard let passwordField: ResourceField = try await resourceForm.resource().type.field(named: "password")
+        let passwordField: ResourceFieldSpecification?
+        if let field = try await resourceForm.resource().type.specification.fieldSpecification(for: \.secret.password) {
+          passwordField = field
+        }
+        else if let field = try await resourceForm.resource().type.specification.fieldSpecification(for: \.secret) {
+          passwordField = field
+        }
+        else {
+          passwordField = .none
+        }
+
+        guard let passwordField: ResourceFieldSpecification
         else { return assertionFailure("Trying to generate password without pasword field") }
 
         let password: String = randomGenerator.generate(
@@ -167,7 +159,7 @@ extension ResourceEditController: UIController {
         )
 
         try await resourceForm
-          .setFieldValue(.string(password), passwordField)
+          .setFieldValue(.string(password), passwordField.path)
       }
 
     }
@@ -183,7 +175,7 @@ extension ResourceEditController: UIController {
     return Self(
       createsNewResource: createsNewResource,
       resourcePropertiesPublisher: resourcePropertiesPublisher,
-      fieldValuePublisher: fieldValuePublisher,
+      fieldValuePublisher: fieldValuePublisher(for:),
       passwordEntropyPublisher: passwordEntropyPublisher,
       sendForm: sendForm,
       setValue: setValue(_:for:),

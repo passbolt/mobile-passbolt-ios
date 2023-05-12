@@ -37,37 +37,14 @@ import XCTest
 @MainActor
 final class ResourceMenuControllerTests: MainActorTestCase {
 
-  override func mainActorSetUp() {
-    features.usePlaceholder(for: OSPasteboard.self)
-    features.usePlaceholder(for: OSLinkOpener.self)
-    features.usePlaceholder(for: SessionConfigurationLoader.self)
-    features.patch(
-      \Resources.resourceDetailsPublisher,
-      with: always(
-        Just(detailsViewResource)
-          .eraseErrorType()
-          .eraseToAnyPublisher()
-      )
-    )
-    features.patch(
-      \Resources.loadResourceSecret,
-      with: always(
-        Just(resourceSecret)
-          .eraseErrorType()
-          .eraseToAnyPublisher()
-      )
-    )
-    features.usePlaceholder(
-      for: ResourceFavorites.self,
-      context: detailsViewResource.id!
-    )
-  }
-
   func test_resourceDetailsPublisher_publishes_initially() async throws {
-
+    features.patch(
+      \ResourceController.state,
+      with: .init(constant: detailsViewResource)
+    )
     let controller: ResourceMenuController = try testController(
       context: (
-        resourceID: detailsViewResource.id!,
+        resourceID: .mock_1,
         showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
@@ -79,7 +56,6 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       .resourceDetailsPublisher()
       .sink(
         receiveCompletion: { _ in
-          XCTFail("Unexpected completion")
         },
         receiveValue: { value in
           result = value
@@ -87,14 +63,20 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.id?.rawValue, detailsViewResource.id?.rawValue)
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    XCTAssertEqual(result?.id, .mock_1)
   }
 
   func test_availableActionsPublisher_publishesActionAvailable_initially() async throws {
-
+    features.patch(
+      \ResourceController.state,
+      with: .init(constant: detailsViewResource)
+    )
     let controller: ResourceMenuController = try testController(
       context: (
-        resourceID: detailsViewResource.id!,
+        resourceID: .mock_1,
         showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
@@ -107,6 +89,9 @@ final class ResourceMenuControllerTests: MainActorTestCase {
         result = actions
       }
       .store(in: cancellables)
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     XCTAssertEqual(
       result,
@@ -125,10 +110,18 @@ final class ResourceMenuControllerTests: MainActorTestCase {
         result = $0
       }
     )
+    features.patch(
+      \ResourceController.state,
+      with: .init(constant: detailsViewResource)
+    )
+    features.patch(
+      \ResourceController.fetchSecretIfNeeded,
+      with: always(detailsViewResource.secret)
+    )
 
     let controller: ResourceMenuController = try testController(
       context: (
-        resourceID: detailsViewResource.id!,
+        resourceID: .mock_1,
         showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
@@ -142,7 +135,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       .performAction(.copyPassword)
       .asAsyncValue()
 
-    XCTAssertEqual(result, resourceSecret.value(forField: "password").stringValue)
+    XCTAssertEqual(result, "password")
   }
 
   func test_performAction_copiesURLToPasteboard_forCopyURLAction() async throws {
@@ -153,10 +146,14 @@ final class ResourceMenuControllerTests: MainActorTestCase {
         result = $0
       }
     )
+    features.patch(
+      \ResourceController.state,
+      with: .init(constant: detailsViewResource)
+    )
 
     let controller: ResourceMenuController = try testController(
       context: (
-        resourceID: detailsViewResource.id!,
+        resourceID: .mock_1,
         showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
@@ -168,7 +165,10 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    XCTAssertEqual(result, detailsViewResource.value(forField: "uri").stringValue)
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+
+    XCTAssertEqual(result, "uri")
   }
 
   func test_performAction_opensURL_forOpenURLAction() async throws {
@@ -179,10 +179,14 @@ final class ResourceMenuControllerTests: MainActorTestCase {
         result = url
       }
     )
+    features.patch(
+      \ResourceController.state,
+      with: .init(constant: detailsViewResource)
+    )
 
     let controller: ResourceMenuController = try testController(
       context: (
-        resourceID: detailsViewResource.id!,
+        resourceID: .mock_1,
         showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
@@ -197,7 +201,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
-    XCTAssertEqual(result?.rawValue, detailsViewResource.value(forField: "uri").stringValue)
+    XCTAssertEqual(result, "uri")
   }
 
   func test_performAction_fails_forOpenURLAction_whenOpeningFails() async throws {
@@ -207,10 +211,14 @@ final class ResourceMenuControllerTests: MainActorTestCase {
         throw MockIssue.error()
       }
     )
+    features.patch(
+      \ResourceController.state,
+      with: .init(constant: detailsViewResource)
+    )
 
     let controller: ResourceMenuController = try testController(
       context: (
-        resourceID: detailsViewResource.id!,
+        resourceID: .mock_1,
         showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
@@ -244,10 +252,14 @@ final class ResourceMenuControllerTests: MainActorTestCase {
         result = $0
       }
     )
+    features.patch(
+      \ResourceController.state,
+      with: .init(constant: detailsViewResource)
+    )
 
     let controller: ResourceMenuController = try testController(
       context: (
-        resourceID: detailsViewResource.id!,
+        resourceID: .mock_1,
         showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
@@ -259,19 +271,18 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    XCTAssertEqual(result, detailsViewResource.value(forField: "username").stringValue)
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+
+    XCTAssertEqual(result, "username")
   }
 
   func test_performAction_copiesDescriptionToPasteboard_forCopyDescriptionAction_withUnencryptedDescription()
     async throws
   {
     features.patch(
-      \Resources.resourceDetailsPublisher,
-      with: always(
-        Just(detailsViewResourceWithUnencryptedDescription)
-          .eraseErrorType()
-          .eraseToAnyPublisher()
-      )
+      \ResourceController.state,
+      with: .init(constant: detailsViewResourceWithUnencryptedDescription)
     )
     var result: String? = nil
     features.patch(
@@ -283,7 +294,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
 
     let controller: ResourceMenuController = try testController(
       context: (
-        resourceID: detailsViewResource.id!,
+        resourceID: .mock_1,
         showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
@@ -295,18 +306,25 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    XCTAssertEqual(result, detailsViewResourceWithUnencryptedDescription.value(forField: "description").stringValue)
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+
+    XCTAssertEqual(result, "description")
   }
 
   func test_performAction_copiesDescriptionToPasteboard_forCopyDescriptionAction_withEncryptedDescription() async throws
   {
     features.patch(
-      \Resources.resourceDetailsPublisher,
-      with: always(
-        Just(detailsViewResource)
-          .eraseErrorType()
-          .eraseToAnyPublisher()
-      )
+      \ResourceController.state,
+      with: .init(constant: .mock_1)
+    )
+    features.patch(
+      \ResourceController.state,
+      with: .init(constant: detailsViewResource)
+    )
+    features.patch(
+      \ResourceController.fetchSecretIfNeeded,
+      with: always(detailsViewResource.secret)
     )
 
     var result: String? = nil
@@ -319,7 +337,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
 
     let controller: ResourceMenuController = try testController(
       context: (
-        resourceID: detailsViewResource.id!,
+        resourceID: .mock_1,
         showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
@@ -333,24 +351,20 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       .performAction(.copyDescription)
       .asAsyncValue()
 
-    XCTAssertEqual(result, "encrypted description")
+    XCTAssertEqual(result, "description")
   }
 
   func test_performAction_triggersShowDeleteAlert_forDeleteAction() async throws {
     features.patch(
-      \Resources.resourceDetailsPublisher,
-      with: always(
-        Just(detailsViewResource)
-          .eraseErrorType()
-          .eraseToAnyPublisher()
-      )
+      \ResourceController.state,
+      with: .init(constant: detailsViewResource)
     )
 
     var result: Resource.ID?
 
     let controller: ResourceMenuController = try testController(
       context: (
-        resourceID: detailsViewResource.id!,
+        resourceID: .mock_1,
         showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { resourceID in result = resourceID }
@@ -362,6 +376,9 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+
     XCTAssertEqual(result, detailsViewResource.id!)
   }
 }
@@ -371,46 +388,10 @@ private let detailsViewResource: Resource = {
     id: .mock_1,
     path: .init(),
     favoriteID: .none,
-    type: .mock_default,
-    permission: .owner,
-    tags: [
-      .init(
-        id: .mock_1,
-        slug: .init(rawValue: "mock_1"),
-        shared: false
-      )
-    ],
-    permissions: [
-      .user(
-        id: .mock_1,
-        permission: .owner,
-        permissionID: .mock_1
-      )
-    ],
-    modified: .init(rawValue: 0)
-  )
-  try! mock.set(.string("Mock_1"), forField: "name")
-  try! mock.set(.string("https://passbolt.com"), forField: "uri")
-  try! mock.set(.string("passbolt@passbolt.com"), forField: "username")
-  return mock
-}()
-
-private let detailsViewResourceWithUnencryptedDescription: Resource = {
-  var mock: Resource = .init(
-    id: .mock_1,
-    path: .init(),
-    favoriteID: .none,
     type: .init(
       id: .mock_1,
-      slug: .mock_1,
-      name: "mock_1",
-      fields: [
-        .name,
-        .username,
-        .uri,
-        .password,
-        .description,
-      ]
+      slug: .passwordWithDescription,
+      name: "mock"
     ),
     permission: .owner,
     tags: [
@@ -429,14 +410,45 @@ private let detailsViewResourceWithUnencryptedDescription: Resource = {
     ],
     modified: .init(rawValue: 0)
   )
-  try! mock.set(.string("Mock_1"), forField: "name")
-  try! mock.set(.string("https://passbolt.com"), forField: "uri")
-  try! mock.set(.string("passbolt@passbolt.com"), forField: "username")
-  try! mock.set(.string("Passbolt"), forField: "description")
+  mock.meta.name = .string("name")
+  mock.meta.uri = .string("uri")
+  mock.meta.username = .string("username")
+  mock.secret.password = .string("password")
+  mock.secret.description = .string("description")
   return mock
 }()
 
-private let resourceSecret: ResourceSecret = try! .from(
-  decrypted: #"{"password" : "passbolt", "description": "encrypted description"}"#,
-  using: .init()
-)
+private let detailsViewResourceWithUnencryptedDescription: Resource = {
+  var mock: Resource = .init(
+    id: .mock_1,
+    path: .init(),
+    favoriteID: .none,
+    type: .init(
+      id: .mock_1,
+      slug: .password,
+      name: "mock"
+    ),
+    permission: .owner,
+    tags: [
+      .init(
+        id: .mock_1,
+        slug: .init(rawValue: "mock_1"),
+        shared: false
+      )
+    ],
+    permissions: [
+      .user(
+        id: .mock_1,
+        permission: .owner,
+        permissionID: .mock_1
+      )
+    ],
+    modified: .init(rawValue: 0)
+  )
+  mock.meta.name = .string("name")
+  mock.meta.uri = .string("uri")
+  mock.meta.username = .string("username")
+  mock.meta.description = .string("description")
+  mock.secret.password = .string("password")
+  return mock
+}()

@@ -24,6 +24,7 @@
 public struct InvalidResourceType: TheError {
 
   public static func error(
+    message: StaticString = "InvalidResourceType",
     underlyingError: Error? = .none,
     file: StaticString = #fileID,
     line: UInt = #line
@@ -31,7 +32,7 @@ public struct InvalidResourceType: TheError {
     Self(
       context: .context(
         .message(
-          "InvalidResourceType",
+          message,
           file: file,
           line: line
         )

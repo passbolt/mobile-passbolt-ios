@@ -51,6 +51,10 @@ extension ResourcePermissionEditListController: ComponentController {
     features =
       features
       .branch(
+        scope: ResourceDetailsScope.self,
+        context: context
+      )
+      .branch(
         scope: ResourceShareScope.self,
         context: context
       )

@@ -58,15 +58,31 @@ extension OTPResources {
     @Sendable nonisolated func secretFor(
       _ id: Resource.ID
     ) async throws -> TOTPSecret {
-      let resourceDetails: ResourceDetails = try await features.instance(context: id)
-      let secret: ResourceSecret = try await resourceDetails.secret()
-      switch secret.value(forField: "totp") {
-      case .totp(let secret):
-        return secret
+      let features: Features =
+        await features.branchIfNeeded(
+          scope: ResourceDetailsScope.self,
+          context: id
+        ) ?? features
+      let resourceController: ResourceController = try await features.instance()
+      let resourceSecret: JSON = try await resourceController.fetchSecretIfNeeded()
 
-      case .string, .encrypted, .unknown:
-        throw InvalidResourceData.error()
+      guard  // searching only for "totp" field, can't identify totp otherwise now
+        let sharedSecret: String = resourceSecret.totp.secret_key.stringValue,
+        let algorithm: HOTPAlgorithm = resourceSecret.totp.algorithm.stringValue.flatMap(HOTPAlgorithm.init(rawValue:)),
+        let digits: UInt = resourceSecret.totp.digits.uIntValue,
+        let period: Seconds = resourceSecret.totp.period.int64Value.map(Seconds.init(rawValue:))
+      else {
+        throw
+          InvalidResourceData
+          .error(message: "Invalid or missing TOTP in secret")
       }
+
+      return TOTPSecret(
+        sharedSecret: sharedSecret,
+        algorithm: algorithm,
+        digits: digits,
+        period: period
+      )
     }
 
     return Self(

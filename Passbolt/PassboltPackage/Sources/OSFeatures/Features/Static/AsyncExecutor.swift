@@ -72,6 +72,77 @@ extension AsyncExecutor {
     )
   }
 
+  @_transparent
+  public func scheduleIteration<S>(
+    over sequence: S,
+    catchingWith diagnostics: OSDiagnostics,
+    failMessage: StaticString? = .none,
+    behavior: OngoingExecutionBehavior = .concurrent,
+    function: StaticString = #function,
+    file: StaticString = #fileID,
+    line: UInt = #line,
+    _ handleNext: @escaping @Sendable (S.Element) async throws -> Void
+  ) where S: AsyncSequence {
+    self.scheduleRecursiveNext(
+      using: sequence.makeAsyncIterator().asAnyAsyncThrowingIterator(),
+      catchingWith: diagnostics,
+      failMessage: failMessage,
+      behavior: behavior,
+      function: function,
+      file: file,
+      line: line,
+      handleNext
+    )
+  }
+
+  @usableFromInline
+  internal func scheduleRecursiveNext<Element>(
+    using iterator: AnyAsyncThrowingIterator<Element>,
+    catchingWith diagnostics: OSDiagnostics,
+    failMessage: StaticString?,
+    behavior: OngoingExecutionBehavior,
+    function: StaticString,
+    file: StaticString,
+    line: UInt,
+    _ handleNext: @escaping @Sendable (Element) async throws -> Void
+  ) {
+    self.schedule(
+      behavior,
+      function: function,
+      file: file,
+      line: line,
+      {
+        await diagnostics
+          .withLogCatch(
+            info:
+              failMessage
+              .map { (message: StaticString) -> DiagnosticsInfo in
+                .message(
+                  message,
+                  file: file,
+                  line: line
+                )
+              }
+          ) {
+            guard let nextElement: Element = try await iterator.next()
+            else { return }
+            try await handleNext(nextElement)
+            // if it not failed schedule recursively for next
+            self.scheduleRecursiveNext(
+              using: iterator,
+              catchingWith: diagnostics,
+              failMessage: failMessage,
+              behavior: behavior,
+              function: function,
+              file: file,
+              line: line,
+              handleNext
+            )
+          }
+      }
+    )
+  }
+
   @discardableResult @_transparent
   public func scheduleCatchingWith(
     _ diagnostics: OSDiagnostics,

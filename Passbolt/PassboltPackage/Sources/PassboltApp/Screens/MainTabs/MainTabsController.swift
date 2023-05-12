@@ -118,7 +118,7 @@ extension MainTabsController: UIController {
         let availableResourceTypes: Array<ResourceType> = try await resourceTypesFetchDatabaseOperation()
         return
           availableResourceTypes
-          .contains(where: { $0.slug == .totp })
+          .contains(where: { $0.specification.slug == .totp })
       }
       catch {
         return false

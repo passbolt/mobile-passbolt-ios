@@ -26,20 +26,20 @@ import UICommons
 
 internal final class ResourceDetailsView: ScrolledStackView {
 
-  internal var toggleEncryptedFieldTapPublisher: AnyPublisher<ResourceField, Never> {
+  internal var toggleEncryptedFieldTapPublisher: AnyPublisher<ResourceFieldSpecification, Never> {
     toggleEncryptedFieldTapSubject.eraseToAnyPublisher()
   }
 
-  internal var copyFieldTapPublisher: AnyPublisher<ResourceField, Never> {
+  internal var copyFieldTapPublisher: AnyPublisher<ResourceFieldSpecification, Never> {
     copyFieldTapSubject.eraseToAnyPublisher()
   }
 
   private let favoriteStarView: ImageView = .init()
   private let iconView: LetterIconLegacyView = .init()
   private let titleLabel: Label = .init()
-  private let toggleEncryptedFieldTapSubject: PassthroughSubject<ResourceField, Never> = .init()
-  private let copyFieldTapSubject: PassthroughSubject<ResourceField, Never> = .init()
-  private var fieldUpdates: Dictionary<ResourceField, (Mutation<ResourceDetailsItemView>) -> Void> = [:]
+  private let toggleEncryptedFieldTapSubject: PassthroughSubject<ResourceFieldSpecification, Never> = .init()
+  private let copyFieldTapSubject: PassthroughSubject<ResourceFieldSpecification, Never> = .init()
+  private var fieldUpdates: Dictionary<ResourceFieldSpecification, (Mutation<ResourceDetailsItemView>) -> Void> = [:]
 
   // Used to identify dynamic items in the stack
   private static let formItemTag: Int = 42
@@ -105,18 +105,22 @@ internal final class ResourceDetailsView: ScrolledStackView {
     }
   }
 
-  internal func update(with config: ResourceDetailsController.ResourceWithConfig) {
+  internal func update(
+    with resource: Resource,
+    passwordRevealAvailable: Bool,
+    revealedFields: Set<Resource.FieldPath>
+  ) {
     removeAllArrangedSubviews(withTag: Self.formItemTag)
     removeAllArrangedSubviews(withTag: Self.formFillerTag)
     fieldUpdates.removeAll()
 
-    let resource: Resource = config.resource
-    let resourceName: String = resource.value(forField: "name").stringValue ?? ""
+    let resourceName: String = resource.meta.name.stringValue ?? ""
     favoriteStarView.isHidden = resource.favoriteID == .none
     iconView.update(from: resourceName)
     titleLabel.text = resourceName
 
-    let setupSteps: Array<FieldSetup> = resource.fields.compactMap { (field: ResourceField) -> FieldSetup? in
+    let setupSteps: Array<FieldSetup> = resource.allFields.compactMap {
+      (field: ResourceFieldSpecification) -> FieldSetup? in
       let encryptedPlaceholder: String = .init(repeating: "*", count: 10)
 
       let contentButtonMutation: Mutation<ResourceDetailsItemView> = .action { [weak self] in
@@ -125,17 +129,22 @@ internal final class ResourceDetailsView: ScrolledStackView {
       let valueMutation: Mutation<TextView> = .combined(
         .userInteractionEnabled(false),
         .when(
-          field.encrypted,
+          field.encrypted && !revealedFields.contains(field.path),
           then: .text(encryptedPlaceholder),
-          else: .text(resource.value(for: field).stringValue ?? "")
+          else: .text(resource[keyPath: field.path].stringValue ?? "")
+        ),
+        .when(
+          field.encrypted,
+          then: .font(.inconsolata(ofSize: 14, weight: .bold)),
+          else: .font(.inter(ofSize: 14, weight: .medium))
         )
       )
       let titleMutation: Mutation<Label>
       let accessoryButtonMutation: Mutation<ImageButton>
       if field.encrypted {
-        if (field.name != "password" && field.name != "secret") || config.revealPasswordEnabled {
+        if passwordRevealAvailable || (field.name != "password" && field.name != "secret") {
           accessoryButtonMutation = .combined(
-            .image(named: .eye, from: .uiCommons),
+            .image(named: revealedFields.contains(field.path) ? .eyeSlash : .eye, from: .uiCommons),
             .action { [weak self] in
               self?.toggleEncryptedFieldTapSubject.send(field)
             }
@@ -185,7 +194,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
 
       case _:
         titleMutation = .text(
-          displayable: .raw(field.name)
+          displayable: .raw(field.name.rawValue)
         )
       }
 
@@ -204,7 +213,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
     )
 
     let fieldViews: Array<ItemWithUpdate> = setupSteps.map { setup in
-      let itemView: ResourceDetailsItemView = .init(fieldName: setup.field)
+      let itemView: ResourceDetailsItemView = .init(field: setup.field)
       itemView.tag = Self.formItemTag
 
       let fieldUpdate: (Mutation<ResourceDetailsItemView>) -> Void = { itemMutation in
@@ -223,7 +232,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
     }
 
     fieldViews.forEach { itemWithUpdate in
-      fieldUpdates[itemWithUpdate.itemView.fieldName] = itemWithUpdate.fieldUpdate
+      fieldUpdates[itemWithUpdate.itemView.field] = itemWithUpdate.fieldUpdate
     }
 
     mut(self) {
@@ -240,7 +249,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
   }
 
   internal func applyOn(
-    field: ResourceField,
+    field: ResourceFieldSpecification,
     buttonMutation: Mutation<ImageButton>,
     valueTextViewMutation: Mutation<TextView>
   ) {
@@ -282,7 +291,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
 
 internal final class ResourceDetailsItemView: PlainButton {
 
-  fileprivate var fieldName: ResourceField
+  fileprivate var field: ResourceFieldSpecification
   fileprivate var titleLabel: Label = .init()
   fileprivate var valueTextView: TextView = .init()
   fileprivate var accessoryButton: ImageButton = .init()
@@ -297,8 +306,8 @@ internal final class ResourceDetailsItemView: PlainButton {
     unreachable(#function)
   }
 
-  internal init(fieldName: ResourceField) {
-    self.fieldName = fieldName
+  internal init(field: ResourceFieldSpecification) {
+    self.field = field
     super.init()
 
     mut(self) {
@@ -352,7 +361,7 @@ internal final class ResourceDetailsItemView: PlainButton {
 
 private struct FieldSetup {
 
-  fileprivate var field: ResourceField
+  fileprivate var field: ResourceFieldSpecification
   fileprivate var contentButtonMutation: Mutation<ResourceDetailsItemView>
   fileprivate var titleMutation: Mutation<Label>
   fileprivate var valueMutation: Mutation<TextView>

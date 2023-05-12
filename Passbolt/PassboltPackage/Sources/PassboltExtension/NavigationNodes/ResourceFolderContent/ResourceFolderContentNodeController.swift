@@ -159,13 +159,11 @@ extension ResourceFolderContentNodeController {
     ) {
       asyncExecutor.schedule(.replace) {
         do {
-          let resourceDetails: ResourceDetails = try await features.instance(context: resourceID)
-          let resource: Resource = try await resourceDetails.details()
-          let secret: ResourceSecret = try await resourceDetails.secret()
+          let resourceController: ResourceController = try await features.instance()
+          try await resourceController.fetchSecretIfNeeded(force: true)
+          let resource: Resource = try await resourceController.state.value
 
-          guard
-            let passwordField: ResourceField = resource.type.field(named: "password"),
-            let password: String = secret.value(for: passwordField).stringValue
+          guard let password: String = resource.secret.password.stringValue ?? resource.secret.secret.stringValue
           else {
             throw
               ResourceSecretInvalid
@@ -174,7 +172,7 @@ extension ResourceFolderContentNodeController {
           await autofillContext
             .completeWithCredential(
               AutofillExtensionContext.Credential(
-                user: resource.value(forField: "username").stringValue ?? "",
+                user: resource.meta.username.stringValue ?? "",
                 password: password
               )
             )

@@ -100,7 +100,9 @@ extension AccountMenuController: UIController {
           }
           return listItems
         }
-        .asPublisher()
+        .asThrowingPublisher()
+        .replaceError(with: .init())
+        .eraseToAnyPublisher()
     }
 
     func currentAcountAvatarImagePublisher() -> AnyPublisher<Data?, Never> {

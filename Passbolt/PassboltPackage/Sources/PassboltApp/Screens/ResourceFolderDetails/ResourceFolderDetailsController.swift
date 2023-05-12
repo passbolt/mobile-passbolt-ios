@@ -129,21 +129,23 @@ extension ResourceFolderDetailsController {
       )
     )
 
-    asyncExecutor.schedule(.reuse) {
-      for await _ in sessionData.updatesSequence {
-        do {
-          let details: ResourceFolderDetailsDSV = try await folderDetails.details()
-          await viewState.update { viewState in
-            update(
-              viewState: &viewState,
-              using: details
-            )
-          }
+    asyncExecutor.scheduleIteration(
+      over: sessionData.updatesSequence,
+      catchingWith: diagnostics,
+      failMessage: "Updates broken!"
+    ) { (_) in
+      do {
+        let details: ResourceFolderDetailsDSV = try await folderDetails.details()
+        await viewState.update { viewState in
+          update(
+            viewState: &viewState,
+            using: details
+          )
         }
-        catch {
-          diagnostics.log(error: error)
-        }
-      }  // break
+      }
+      catch {
+        diagnostics.log(error: error)
+      }
     }
 
     func openLocationDetails() {

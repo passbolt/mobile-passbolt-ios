@@ -23,16 +23,49 @@
 
 public final class ViewableState<Value> {
 
-  private typealias Generation = MutableState<Value>.Generation
-  private typealias Reader = @Sendable (inout Generation) async throws -> Value
-  private typealias Awaiter = @Sendable (Result<Value, Error>) -> Void
+  private typealias Generation = UInt64
 
-  private let current: Reader
+  private let next: @Sendable (inout Generation) async throws -> Value
 
   public init(
-    viewing: MutableState<Value>
+    constant value: Value
   ) {
-    self.current = viewing.current(including:)
+    self.next = { (generation: inout Generation) async throws -> Value in
+      defer { generation = 1 }
+      if generation < 1 {
+        return value
+      }
+      else {
+        return try await Task.never()
+      }
+    }
+  }
+
+  public init(
+    failure error: Error
+  ) {
+    self.next = { (generation: inout Generation) async throws -> Value in
+      throw error
+    }
+  }
+
+  public init(
+    viewing mutableState: MutableState<Value>
+  ) {
+    self.next = { [weak mutableState] (generation: inout Generation) async throws -> Value in
+      if let mutableState {
+        return try await mutableState.next(after: &generation)
+      }
+      else {
+        throw CancellationError()
+      }
+    }
+  }
+
+  private init(
+    next: @escaping @Sendable (inout Generation) async throws -> Value
+  ) {
+    self.next = next
   }
 }
 
@@ -42,8 +75,15 @@ extension ViewableState {
 
   public var value: Value {
     get async throws {
-      var generation: Generation = 0  // 0 guarantees receiving latest value
-      return try await self.current(&generation)
+      var generation: Generation = .min
+      return try await self.next(&generation)
+    }
+  }
+
+  public var nextValue: Value {
+    get async throws {
+      var generation: Generation = .max
+      return try await self.next(&generation)
     }
   }
 }
@@ -51,31 +91,13 @@ extension ViewableState {
 extension ViewableState: AsyncSequence {
 
   public typealias Element = Value
-  public struct AsyncIterator: AsyncIteratorProtocol {
+  public typealias AsyncIterator = AnyAsyncThrowingIterator<Element>
 
-    public typealias Element = Value
-
-    private var generation: Generation = 1
-    private var requestNext: @Sendable (inout Generation) async throws -> Element
-
-    fileprivate init(
-      _ state: ViewableState<Element>
-    ) {
-      self.requestNext = state.current
+  public func makeAsyncIterator() -> AsyncIterator {
+    var generation: Generation = .min
+    return .init { [weak self] () async throws -> Element? in
+      return try await self?.next(&generation)
     }
-
-    public mutating func next() async throws -> Value? {
-      defer {
-        // it has to be one generation ahead to avoid infinite loop
-        // because of usage of MutableState.current(including:)
-        self.generation &+= 1
-      }
-      return try await self.requestNext(&self.generation)
-    }
-  }
-
-  public nonisolated func makeAsyncIterator() -> AsyncIterator {
-    .init(self)
   }
 }
 
@@ -83,7 +105,7 @@ extension ViewableState {
 
   #if DEBUG
   public static var placeholder: Self {
-    .init(viewing: .placeholder)
+    .init(next: { _ in unimplemented() })
   }
   #endif
 }

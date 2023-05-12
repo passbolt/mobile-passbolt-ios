@@ -29,7 +29,7 @@ import SessionData
 
 // MARK: - Implementation
 
-extension Resources {
+extension ResourcesController {
 
   @MainActor fileprivate static func load(
     features: Features,
@@ -37,40 +37,9 @@ extension Resources {
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
 
-    let diagnostics: OSDiagnostics = features.instance()
     let sessionData: SessionData = try features.instance()
     let resourcesListFetchDatabaseOperation: ResourcesListFetchDatabaseOperation = try features.instance()
     let resourceDeleteNetworkOperation: ResourceDeleteNetworkOperation = try features.instance()
-
-    // initial refresh after loading
-    // TODO: move to more appropriate place
-    cancellables.executeAsync {
-      do {
-        try await sessionData.refreshIfNeeded()
-      }
-      catch {
-        diagnostics.log(error: error)
-      }
-    }
-
-    nonisolated func filteredResourcesListPublisher(
-      _ filterPublisher: AnyPublisher<ResourcesFilter, Never>
-    ) -> AnyPublisher<Array<ResourceListItemDSV>, Never> {
-      // trigger refresh on data updates, publishes initially on subscription
-      filterPublisher
-        .map { filter -> AnyPublisher<Array<ResourceListItemDSV>, Error> in
-          sessionData
-            .updatesSequence
-            .map { () async throws -> Array<ResourceListItemDSV> in
-              try await filteredResourcesList(filter)
-            }
-            .asThrowingPublisher()
-            .eraseToAnyPublisher()
-        }
-        .switchToLatest()
-        .replaceError(with: Array<ResourceListItemDSV>())
-        .eraseToAnyPublisher()
-    }
 
     @Sendable nonisolated func filteredResourcesList(
       _ filter: ResourcesFilter
@@ -88,7 +57,9 @@ extension Resources {
           }(),
           text: filter.text,
           favoriteOnly: filter.favoriteOnly,
-          excludedTypeSlugs: [.totp],
+          excludedTypeSlugs: filter.otpOnly
+            ? [.password, .passwordWithDescription]
+            : [.totp],
           permissions: Set(filter.permissions),
           tags: filter.tags,
           userGroups: filter.userGroups,
@@ -102,55 +73,6 @@ extension Resources {
       )
     }
 
-    @Sendable nonisolated func loadResourceSecret(
-      _ resourceID: Resource.ID
-    ) -> AnyPublisher<ResourceSecret, Error> {
-      Just(Void())
-        .eraseErrorType()
-        .asyncMap { () async throws -> ResourceSecret in
-          try await features
-            .instance(
-              of: ResourceDetails.self,
-              context: resourceID
-            )
-            .secret()
-        }
-        .eraseToAnyPublisher()
-    }
-
-    @Sendable nonisolated func resourceDetailsPublisher(
-      resourceID: Resource.ID
-    ) -> AnyPublisher<Resource, Error> {
-      sessionData
-        .updatesSequence
-        .map {
-          try await features
-            .instance(
-              of: ResourceDetails.self,
-              context: resourceID
-            )
-            .details()
-        }
-        .asThrowingPublisher()
-    }
-
-    @Sendable nonisolated func deleteResource(
-      resourceID: Resource.ID
-    ) -> AnyPublisher<Void, Error> {
-      Just(Void())
-        .eraseErrorType()
-        .asyncMap {
-          try await resourceDeleteNetworkOperation(
-            .init(
-              resourceID: resourceID
-            )
-          )
-
-          try await sessionData.refreshIfNeeded()
-        }
-        .eraseToAnyPublisher()
-    }
-
     @Sendable nonisolated func delete(
       resourceID: Resource.ID
     ) async throws {
@@ -159,11 +81,8 @@ extension Resources {
     }
 
     return Self(
-      filteredResourcesListPublisher: filteredResourcesListPublisher,
+      lastUpdate: sessionData.lastUpdate,
       filteredResourcesList: filteredResourcesList(_:),
-      loadResourceSecret: loadResourceSecret,
-      resourceDetailsPublisher: resourceDetailsPublisher(resourceID:),
-      deleteResource: deleteResource(resourceID:),
       delete: delete(resourceID:)
     )
   }
@@ -174,8 +93,8 @@ extension FeaturesRegistry {
   internal mutating func usePassboltResources() {
     self.use(
       .lazyLoaded(
-        Resources.self,
-        load: Resources.load(features:cancellables:)
+        ResourcesController.self,
+        load: ResourcesController.load(features:cancellables:)
       ),
       in: SessionScope.self
     )

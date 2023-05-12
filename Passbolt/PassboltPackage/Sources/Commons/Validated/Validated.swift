@@ -122,7 +122,7 @@ where Value: Hashable {
 extension Validated {
 
   public func map<NewValue>(
-    _ transform: @escaping (Value) -> NewValue
+    _ transform: (Value) -> NewValue
   ) -> Validated<NewValue> {
     .init(
       value: transform(self.value),

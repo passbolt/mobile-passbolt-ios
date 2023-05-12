@@ -31,7 +31,7 @@ final class OTPDeleteAlertControllerTests: FeaturesTestCase {
 
   func test_deleteAction_failsWithMessage_whenDeleteFails() async throws {
     patch(
-      \Resources.delete,
+      \ResourceController.delete,
       with: alwaysThrow(MockIssue.error())
     )
     let tested: OTPDeleteAlertController = try self.testedInstance(
@@ -54,7 +54,7 @@ final class OTPDeleteAlertControllerTests: FeaturesTestCase {
 
   func test_deleteAction_succeedsWithMessage_whenDeleteSucceeds() async throws {
     patch(
-      \Resources.delete,
+      \ResourceController.delete,
       with: always(Void())
     )
     let tested: OTPDeleteAlertController = try self.testedInstance(

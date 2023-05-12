@@ -25,6 +25,7 @@ import CommonModels
 import Session
 import SessionData
 import UIComponents
+import OSFeatures
 
 internal struct SplashScreenController {
 
@@ -55,6 +56,7 @@ extension SplashScreenController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
+    let asyncExecutor: AsyncExecutor = try features.instance()
     let accounts: Accounts = try features.instance()
     let session: Session = try features.instance()
     let sessionConfigurationLoader: SessionConfigurationLoader = try features.instance()
@@ -62,7 +64,7 @@ extension SplashScreenController: UIController {
 
     let destinationSubject: CurrentValueSubject<Destination?, Never> = .init(nil)
 
-    cancellables.executeAsync { () -> Void in
+    asyncExecutor.schedule { () async -> Void in
       do {
         try accounts.verifyDataIntegrity()
       }
@@ -97,7 +99,7 @@ extension SplashScreenController: UIController {
             .send(
               .home(
                 .init(
-                  account: try session.currentAccount(),
+                  account: currentAccount,
                   configuration: sessionConfigurationLoader.sessionConfiguration()
                 )
               )

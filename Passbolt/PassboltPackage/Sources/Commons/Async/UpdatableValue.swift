@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+@available(*, deprecated, message: "Switch to MutableState instead")
 public final actor UpdatableValue<Value> {
 
   private var lastValue: Value? = .none

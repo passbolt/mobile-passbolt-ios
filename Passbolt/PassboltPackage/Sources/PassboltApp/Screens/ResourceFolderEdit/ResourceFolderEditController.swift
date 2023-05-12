@@ -132,19 +132,21 @@ extension ResourceFolderEditController {
       extendingLifetimeOf: features
     )
 
-    asyncExecutor.schedule(.reuse) { [weak viewState] in
-      for await _ in resourceFolderEditForm.formUpdates {
-        if let viewState: MutableViewState<ViewState> = viewState {
-          await viewState.update { viewState in
-            update(
-              viewState: &viewState,
-              using: resourceFolderEditForm.formState()
-            )
-          }
+    asyncExecutor.scheduleIteration(
+      over: resourceFolderEditForm.formUpdates,
+      catchingWith: diagnostics,
+      failMessage: "Updates broken!"
+    ) { [weak viewState] (_) in
+      if let viewState: MutableViewState<ViewState> = viewState {
+        await viewState.update { viewState in
+          update(
+            viewState: &viewState,
+            using: resourceFolderEditForm.formState()
+          )
         }
-        else {
-          diagnostics.log(diagnostic: "Resource folder edit form updates ended.")
-        }
+      }
+      else {
+        diagnostics.log(diagnostic: "Resource folder edit form updates ended.")
       }
     }
 

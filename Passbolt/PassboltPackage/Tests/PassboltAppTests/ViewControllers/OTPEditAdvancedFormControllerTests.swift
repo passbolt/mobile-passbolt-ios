@@ -54,36 +54,14 @@ final class TOTPEditAdvancedFormControllerTests: FeaturesTestCase {
     var resource: Resource = .init(
       type: .mock_totp
     )
-    try resource
-      .set(
-        .totp(
-          .init(
-            sharedSecret: "SECRET",
-            algorithm: .sha256,
-            digits: 7,
-            period: 32
-          )
-        ),
-        for: ResourceField.valuePath(forName: "totp")
-      )
+    resource.secret.totp.secret_key = .string("SECRET")
+    resource.secret.totp.algorithm = .string(HOTPAlgorithm.sha256.rawValue)
+    resource.secret.totp.digits = .integer(7)
+    resource.secret.totp.period = .integer(32)
     let mutableState: MutableState<Resource> = .init(initial: resource)
     patch(
       \ResourceEditForm.state,
       with: .init(viewing: mutableState)
-    )
-    patch(
-      \ResourceEditForm.updatableTOTPField,
-      with: always(
-        .init(
-          fieldPath: ResourceField.valuePath(forName: "totp"),
-          access: { (access) throws in
-            try await mutableState.update { state in
-              try access(&state)
-              return state
-            }
-          }
-        )
-      )
     )
 
     let feature: TOTPEditAdvancedFormController = try self.testedInstance()

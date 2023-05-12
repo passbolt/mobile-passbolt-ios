@@ -43,16 +43,15 @@ extension ResourceDetailsFetchDatabaseOperation {
           resources.uri AS uri,
           resources.username AS username,
           resources.description AS description,
-          resourceTypesView.id AS typeID,
-          resourceTypesView.slug AS typeSlug,
-          resourceTypesView.name AS typeName,
-          resourceTypesView.fields AS fields
+          resourceTypes.id AS typeID,
+          resourceTypes.slug AS typeSlug,
+          resourceTypes.name AS typeName
         FROM
           resources
         JOIN
-          resourceTypesView
+          resourceTypes
         ON
-          resources.typeID == resourceTypesView.id
+          resources.typeID == resourceTypes.id
         WHERE
           resources.id == ?1
         LIMIT
@@ -258,9 +257,10 @@ extension ResourceDetailsFetchDatabaseOperation {
           let name: String = dataRow.name,
           let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:)),
           let typeID: ResourceType.ID = dataRow.typeID.flatMap(ResourceType.ID.init(uuidString:)),
-          let typeSlug: ResourceType.Slug = dataRow.typeSlug.flatMap(ResourceType.Slug.init(rawValue:)),
-          let typeName: String = dataRow.typeName,
-          let rawFields: String = dataRow.fields
+          let typeSlug: ResourceSpecification.Slug = dataRow.typeSlug.flatMap(
+            ResourceSpecification.Slug.init(rawValue:)
+          ),
+          let typeName: String = dataRow.typeName
         else {
           throw
             DatabaseDataInvalid
@@ -268,20 +268,15 @@ extension ResourceDetailsFetchDatabaseOperation {
             .recording(dataRow, for: "dataRow")
         }
 
-        let type: ResourceType = try .init(
-          id: typeID,
-          slug: typeSlug,
-          name: typeName,
-          fields:
-            ResourceField
-            .decodeOrderedSetFrom(rawString: rawFields)
-        )
-
         var resource: Resource = .init(
           id: id,
           path: path,
           favoriteID: dataRow.favoriteID.flatMap(Resource.Favorite.ID.init(uuidString:)),
-          type: type,
+          type: .init(
+            id: typeID,
+            slug: typeSlug,
+            name: typeName
+          ),
           permission: permission,
           tags: tags,
           permissions: OrderedSet(
@@ -289,30 +284,18 @@ extension ResourceDetailsFetchDatabaseOperation {
           ),
           modified: dataRow.modified.flatMap(Timestamp.init(rawValue:))
         )
-        // set dynamic field values if able, ignore missing fields
-        try resource.set(
-          .string(name),
-          forField: "name"
-        )
+        // set field values if able, ignore missing fields
+        resource.meta.name = .string(name)
         if let uri: String = dataRow.uri {
-          try resource.set(
-            .string(uri),
-            forField: "uri"
-          )
+          resource.meta.uri = .string(uri)
         }  // else NOP
 
         if let username: String = dataRow.username {
-          try resource.set(
-            .string(username),
-            forField: "username"
-          )
+          resource.meta.username = .string(username)
         }  // else NOP
 
         if let description: String = dataRow.description {
-          try resource.set(
-            .string(description),
-            forField: "description"
-          )
+          resource.meta.description = .string(description)
         }  // else NOP
 
         return resource

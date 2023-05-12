@@ -690,6 +690,13 @@ let package = Package(
       ]
     ),
     .testTarget(
+      name: "CommonModelsTests",
+      dependencies: [
+        "CommonModels",
+        "TestExtensions",
+      ]
+    ),
+    .testTarget(
       name: "FeaturesTests",
       dependencies: [
         "Features",

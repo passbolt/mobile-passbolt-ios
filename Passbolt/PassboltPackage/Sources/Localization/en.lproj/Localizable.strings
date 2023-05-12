@@ -449,9 +449,13 @@ Contact your administrator for more information.";
 // Validation errors
 
 "error.resource.field.empty" = "%@ cannot be empty!";
-"error.resource.field.range.greater" = "%@ has to be greater than %d";
-"error.resource.field.range.between" = "%@ has to be between %d and %d";
-"error.resource.field.characters.invalid" = "%@ contains invalid characters.";
+"error.resource.field.length.lower" = "%@ cannot have more than %d characters!";
+"error.resource.field.length.higher" = "%@ cannot have less than %d characters!";
+"error.resource.field.range.lower" = "%@ has to be lower than %d!";
+"error.resource.field.range.greater" = "%@ has to be greater than %d!";
+"error.resource.field.characters.invalid" = "%@ contains invalid characters!";
+"error.resource.field.selection.invalid" = "%@ has to be one of the valid options!";
+"error.resource.field.unknown" = "%@ is not expected!";
 
 // Home - presentation mode menu
 

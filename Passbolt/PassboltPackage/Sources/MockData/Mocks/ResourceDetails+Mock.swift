@@ -48,8 +48,8 @@ extension Resource {
       ],
       modified: .init(rawValue: 0)
     )
-    try! mock.set(.string("Mock_1"), forField: "name")
-    try! mock.set(.string("R@nD0m"), forField: "password")
+    mock.meta.name = .string("Mock_1")
+    mock.secret.password = .string("R@nD0m")
     return mock
   }()
 
@@ -76,8 +76,8 @@ extension Resource {
       ],
       modified: .init(rawValue: 0)
     )
-    try! mock.set(.string("Mock_2"), forField: "name")
-    try! mock.set(.string("R@nD0m"), forField: "password")
+    mock.meta.name = .string("Mock_2")
+    mock.secret.password = .string("R@nD0m")
     return mock
   }()
 
@@ -104,18 +104,11 @@ extension Resource {
       ],
       modified: .init(rawValue: 0)
     )
-    try! mock.set(.string("Mock_totp"), forField: "name")
-    try! mock.set(
-      .totp(
-        .init(
-          sharedSecret: "SECRET",
-          algorithm: .sha1,
-          digits: 6,
-          period: 30
-        )
-      ),
-      forField: "totp"
-    )
+    mock.meta.name = .string("Mock_totp")
+    mock.secret.totp.algorithm = .string(HOTPAlgorithm.sha1.rawValue)
+    mock.secret.totp.secrey_key = .string("SECRET")
+    mock.secret.totp.digits = .integer(6)
+    mock.secret.totp.period = .integer(30)
     return mock
   }()
 }

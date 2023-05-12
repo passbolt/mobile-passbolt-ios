@@ -64,7 +64,7 @@ extension FoldersExplorerController: ComponentController {
     let navigation: DisplayNavigation = try features.instance()
     let currentAccount: Account = try features.sessionAccount()
     let accountDetails: AccountDetails = try features.instance(context: currentAccount)
-    let resources: Resources = try features.instance()
+    let resources: ResourcesController = try features.instance()
     let sessionData: SessionData = try features.instance()
     let folders: ResourceFolders = try features.instance()
 
@@ -263,8 +263,7 @@ extension FoldersExplorerController: ComponentController {
                     Task {
                       do {
                         try await resources
-                          .deleteResource(resourceID)
-                          .asAsyncValue()
+                          .delete(resourceID)
                       }
                       catch {
                         viewState.snackBarMessage = .error(error.asTheError().displayableMessage)

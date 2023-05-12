@@ -40,18 +40,16 @@ final class ResourcePermissionListControllerTests: MainActorTestCase {
 
   override func mainActorSetUp() {
     resourceID = Resource.ID.mock_1
-    features.usePlaceholder(for: Users.self)
-  }
-
-  override func mainActorTearDown() {
-    resourceID = .none
+    features.set(
+      ResourceDetailsScope.self,
+      context: .mock_1
+    )
   }
 
   func test_loading_succeedsWithPermissionList_whenDatabaseFetchSucceeds() async throws {
     features.patch(
-      \ResourceDetails.details,
-      context: resourceID,
-      with: always(.mock_1)
+      \ResourceController.state,
+      with: .init(constant: .mock_1)
     )
     features.patch(
       \ResourceUserPermissionsDetailsFetchDatabaseOperation.execute,
@@ -73,9 +71,8 @@ final class ResourcePermissionListControllerTests: MainActorTestCase {
 
   func test_loading_succeedsWithErrorMessage_whenDatabaseFetchFails() async throws {
     features.patch(
-      \ResourceDetails.details,
-      context: resourceID,
-      with: always(.mock_1)
+      \ResourceController.state,
+      with: .init(constant: .mock_1)
     )
     features.patch(
       \ResourceUserPermissionsDetailsFetchDatabaseOperation.execute,

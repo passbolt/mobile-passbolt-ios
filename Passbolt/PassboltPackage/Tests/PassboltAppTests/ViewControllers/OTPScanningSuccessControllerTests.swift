@@ -49,7 +49,9 @@ final class OTPScanningSuccessControllerTests: FeaturesTestCase {
     )
     patch(
       \ResourceEditForm.update,
-      with: always(.valid(.unknown(.null)))
+      with: { _ async throws in
+        Resource.mock_1
+      }
     )
     patch(
       \ResourceEditForm.sendForm,
@@ -81,7 +83,9 @@ final class OTPScanningSuccessControllerTests: FeaturesTestCase {
     )
     patch(
       \ResourceEditForm.update,
-      with: always(.valid(.unknown(.null)))
+      with: { _ async throws in
+        throw MockIssue.error()
+      }
     )
     patch(
       \ResourceEditForm.sendForm,
@@ -109,7 +113,9 @@ final class OTPScanningSuccessControllerTests: FeaturesTestCase {
   func test_createStandaloneOTP_presentsError_whenFailed() async throws {
     patch(
       \ResourceEditForm.update,
-      with: always(.valid(.unknown(.null)))
+      with: { _ async throws in
+        throw MockIssue.error()
+      }
     )
     patch(
       \ResourceEditForm.sendForm,

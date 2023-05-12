@@ -29,7 +29,7 @@ import UICommons
 
 public final class ResourceEditView: KeyboardAwareView {
 
-  internal typealias FieldWithView = (field: ResourceField, view: PlainView)
+  internal typealias FieldWithView = (field: ResourceFieldSpecification, view: PlainView)
 
   internal var generateTapPublisher: AnyPublisher<Void, Never> { generateButton.tapPublisher }
   internal var lockTapPublisher: AnyPublisher<Bool, Never> { lockTapSubject.eraseToAnyPublisher() }
@@ -41,7 +41,7 @@ public final class ResourceEditView: KeyboardAwareView {
   private let generateButton: ImageButton = .init()
   private let createButton: TextButton = .init()
 
-  private var fieldViews: OrderedDictionary<ResourceField, PlainView> = .init()
+  private var fieldViews: OrderedDictionary<ResourceFieldSpecification, PlainView> = .init()
 
   internal required init(createsNewResource: Bool) {
     super.init()
@@ -105,12 +105,12 @@ public final class ResourceEditView: KeyboardAwareView {
     unreachable("use init(createsNewResource:)")
   }
 
-  internal func update(with fields: OrderedSet<ResourceField>) {
+  internal func update(with fields: OrderedSet<ResourceFieldSpecification>) {
     fieldViews =
       fields
-      .compactMap { resourceField -> (field: ResourceField, view: PlainView)? in
+      .compactMap { resourceField -> (field: ResourceFieldSpecification, view: PlainView)? in
         switch resourceField.editor {
-        case .textField(encrypted: false, let required):
+        case .textField(let name, let placeholder, let required, encrypted: false):
           return (
             field: resourceField,
             view: Mutation<TextInput>
@@ -123,7 +123,7 @@ public final class ResourceEditView: KeyboardAwareView {
                       .primaryStyle(),
                       .attributedPlaceholderString(
                         .displayable(
-                          resourceField.displayablePlaceholder ?? .raw(""),
+                          placeholder ?? .raw(""),
                           font: .inter(ofSize: 14, weight: .medium),
                           color: .secondaryText
                         )
@@ -131,14 +131,14 @@ public final class ResourceEditView: KeyboardAwareView {
                     )
                   )
                   input.applyOn(
-                    description: .text(displayable: resourceField.displayableName)
+                    description: .text(displayable: name)
                   )
                 }
               )
               .instantiate()
           )
 
-        case .textField(encrypted: true, let required):
+        case .textField(let name, let placeholder, let required, encrypted: true):
           return (
             field: resourceField,
             view: Mutation<SecureTextInput>
@@ -151,7 +151,7 @@ public final class ResourceEditView: KeyboardAwareView {
                       .primaryStyle(),
                       .attributedPlaceholderString(
                         .displayable(
-                          resourceField.displayablePlaceholder ?? .raw(""),
+                          placeholder ?? .raw(""),
                           font: .inter(ofSize: 14, weight: .medium),
                           color: .secondaryText
                         )
@@ -159,14 +159,15 @@ public final class ResourceEditView: KeyboardAwareView {
                     )
                   )
                   input.applyOn(
-                    description: .text(displayable: resourceField.displayableName)
+                    description: .text(displayable: name)
                   )
                 }
               )
               .instantiate()
           )
 
-        case .longTextField(let encrypted, let required) where resourceField.name == "description":
+        case .longTextField(let name, let placeholder, let required, let encrypted)
+        where resourceField.name == "description":
           return (
             field: resourceField,
             view: Mutation<TextViewInput>
@@ -174,7 +175,7 @@ public final class ResourceEditView: KeyboardAwareView {
                 .isRequired(required),
                 .attributedPlaceholder(
                   .displayable(
-                    resourceField.displayablePlaceholder ?? .raw(""),
+                    placeholder ?? .raw(""),
                     font: .inter(ofSize: 14, weight: .medium),
                     color: .secondaryText
                   )
@@ -185,7 +186,7 @@ public final class ResourceEditView: KeyboardAwareView {
                   )
                   input.applyOn(
                     description: .text(
-                      displayable: resourceField.displayableName
+                      displayable: name
                     )
                   )
                   input.set(
@@ -193,7 +194,7 @@ public final class ResourceEditView: KeyboardAwareView {
                       .combined(
                         .enabled(),
                         .action { [weak self] in
-                          self?.lockTapSubject.send(resourceField.encrypted)
+                          self?.lockTapSubject.send(encrypted)
                         },
                         .image(
                           named: encrypted
@@ -213,7 +214,7 @@ public final class ResourceEditView: KeyboardAwareView {
               .instantiate()
           )
 
-        case .longTextField(_, let required):
+        case .longTextField(let name, let placeholder, let required, let encrypted):
           return (
             field: resourceField,
             view: Mutation<TextViewInput>
@@ -221,7 +222,7 @@ public final class ResourceEditView: KeyboardAwareView {
                 .isRequired(required),
                 .attributedPlaceholder(
                   .displayable(
-                    resourceField.displayablePlaceholder ?? .raw(""),
+                    placeholder ?? .raw(""),
                     font: .inter(ofSize: 14, weight: .medium),
                     color: .secondaryText
                   )
@@ -232,7 +233,7 @@ public final class ResourceEditView: KeyboardAwareView {
                   )
                   input.applyOn(
                     description: .text(
-                      displayable: resourceField.displayableName
+                      displayable: name
                     )
                   )
                 }
@@ -240,7 +241,8 @@ public final class ResourceEditView: KeyboardAwareView {
               .instantiate()
           )
 
-        case .totp:
+        case .selection:
+          // not supported yet
           return .none
 
         case .undefined:
@@ -248,7 +250,7 @@ public final class ResourceEditView: KeyboardAwareView {
         }
       }
       .reduce(
-        into: OrderedDictionary<ResourceField, PlainView>(),
+        into: OrderedDictionary<ResourceFieldSpecification, PlainView>(),
         { (partialResult, fieldWithView: FieldWithView) in
           partialResult[fieldWithView.field] = fieldWithView.view
         }
@@ -323,7 +325,7 @@ public final class ResourceEditView: KeyboardAwareView {
 
   internal func update(
     validated: Validated<String>,
-    for field: ResourceField
+    for field: ResourceFieldSpecification
   ) {
     guard let fieldView: PlainView = fieldViews.first(where: { $0.key == field })?.value
     else {
@@ -352,7 +354,7 @@ public final class ResourceEditView: KeyboardAwareView {
   }
 
   internal func fieldValuePublisher(
-    for field: ResourceField
+    for field: ResourceFieldSpecification
   ) -> AnyPublisher<String, Never> {
     guard let fieldView: PlainView = fieldViews.first(where: { $0.key == field })?.value
     else {

@@ -73,16 +73,6 @@ extension TOTPEditAdvancedFormController {
 
     let resourceEditForm: ResourceEditForm = try features.instance()
 
-    let totpProxy: MutableState<ResourceTOTPFieldProxy> = .init {
-      let resource: Resource = try await resourceEditForm.state.value
-
-      guard let totpField: ResourceField = resource.fields.first(where: { $0.name == "totp" })
-      else { throw InvalidResourceType.error() }
-      let totpFieldPath: ResourceField.ValuePath = totpField.valuePath
-
-      return try await resourceEditForm.updatableTOTPField(totpFieldPath)
-    }
-
     let viewState: MutableViewState<ViewState> = .init(
       initial: .init(
         algorithm: .valid(.sha1),
@@ -94,12 +84,20 @@ extension TOTPEditAdvancedFormController {
 
     asyncExecutor.schedule {
       do {
-        let totpSecret: TOTPSecret = try await totpProxy.value.rawValue
+        let resourceSecret: JSON = try await resourceEditForm.state.value.secret
+
+        // searching only for "totp" field, can't identify totp otherwise now
+        let algorithm: HOTPAlgorithm = resourceSecret.totp.algorithm.stringValue.flatMap(
+          HOTPAlgorithm.init(rawValue:)
+        ) ?? .sha1
+        let digits: Int = resourceSecret.totp.digits.intValue ?? 6
+        let period: Int = resourceSecret.totp.period.intValue ?? 30
+
         await viewState.update { state in
           state = .init(
-            algorithm: .valid(totpSecret.algorithm),
-            period: .valid("\(totpSecret.period.rawValue)"),
-            digits: .valid("\(totpSecret.digits)"),
+            algorithm: .valid(algorithm),
+            period: .valid("\(period)"),
+            digits: .valid("\(digits)"),
             snackBarMessage: .none
           )
         }
@@ -120,7 +118,30 @@ extension TOTPEditAdvancedFormController {
       }
       asyncExecutor
         .scheduleCatchingWith(diagnostics, behavior: .replace) {
-          let validated = try await totpProxy.value.update(\.algorithm, to: algorithm)
+          try Task.checkCancellation()
+          let validated: Validated<HOTPAlgorithm> =
+            try await resourceEditForm
+            .update(
+              \.secret.totp.algorithm,
+              to: algorithm,
+              valueToJSON: { (value: HOTPAlgorithm) -> JSON in
+                .string(value.rawValue)
+              },
+              jsonToValue: { (json: JSON) -> HOTPAlgorithm in
+                if let string: String = json.stringValue,
+                  let algorithm: HOTPAlgorithm = .init(rawValue: string)
+                {
+                  return algorithm
+                }
+                else {
+                  throw InvalidValue.invalid(
+                    value: algorithm,
+                    displayable: "TODO: FIXME: invalid selection"
+                  )
+                }
+              }
+            )
+          try Task.checkCancellation()
           await viewState.update { (state: inout ViewState) in
             state.algorithm = validated
           }
@@ -130,26 +151,42 @@ extension TOTPEditAdvancedFormController {
     @MainActor func setPeriod(
       _ period: String
     ) {
-      guard let periodValue: Int64 = .init(period)
-      else {
-        return viewState.update { (state: inout ViewState) in
-          state.period = .invalid(
-            period,
-            error: InvalidValue.invalid(
-              value: period,
-              displayable: "error.resource.field.characters.invalid"
-            )
-          )
-        }
-      }
       viewState.update { (state: inout ViewState) in
         state.period = .valid(period)
       }
       asyncExecutor
         .scheduleCatchingWith(diagnostics, behavior: .replace) {
-          let validated = try await totpProxy.value.update(\.period, to: .init(rawValue: periodValue))
+          try Task.checkCancellation()
+          let validated: Validated<String> =
+            try await resourceEditForm
+            .update(
+              \.secret.totp.period,
+              to: period,
+              valueToJSON: { (value: String) -> JSON in
+                guard let periodValue: Int = .init(period)
+                else {
+                  throw InvalidValue.invalid(
+                    value: period,
+                    displayable: "error.resource.field.characters.invalid"
+                  )
+                }
+                return .integer(periodValue)
+              },
+              jsonToValue: { (json: JSON) -> String in
+                if let int: Int = json.intValue {
+                  return "\(int)"
+                }
+                else {
+                  throw InvalidValue.invalid(
+                    value: json,
+                    displayable: "TODO: FIXME: invalid value"
+                  )
+                }
+              }
+            )
+          try Task.checkCancellation()
           await viewState.update { (state: inout ViewState) in
-            state.period = validated.map { _ in period }
+            state.period = validated
           }
         }
     }
@@ -157,26 +194,42 @@ extension TOTPEditAdvancedFormController {
     @MainActor func setDigits(
       _ digits: String
     ) {
-      guard let digitsValue: UInt = .init(digits)
-      else {
-        return viewState.update { (state: inout ViewState) in
-          state.digits = .invalid(
-            digits,
-            error: InvalidValue.invalid(
-              value: digits,
-              displayable: "error.resource.field.characters.invalid"
-            )
-          )
-        }
-      }
       viewState.update { (state: inout ViewState) in
         state.digits = .valid(digits)
       }
       asyncExecutor
         .scheduleCatchingWith(diagnostics, behavior: .replace) {
-          let validated = try await totpProxy.value.update(\.digits, to: digitsValue)
+          try Task.checkCancellation()
+          let validated: Validated<String> =
+            try await resourceEditForm
+            .update(
+              \.secret.totp.period,
+              to: digits,
+              valueToJSON: { (value: String) -> JSON in
+                guard let digitsValue: Int = .init(digits)
+                else {
+                  throw InvalidValue.invalid(
+                    value: digits,
+                    displayable: "error.resource.field.characters.invalid"
+                  )
+                }
+                return .integer(digitsValue)
+              },
+              jsonToValue: { (json: JSON) -> String in
+                if let int: Int = json.intValue {
+                  return "\(int)"
+                }
+                else {
+                  throw InvalidValue.invalid(
+                    value: json,
+                    displayable: "TODO: FIXME: invalid value"
+                  )
+                }
+              }
+            )
+          try Task.checkCancellation()
           await viewState.update { (state: inout ViewState) in
-            state.digits = validated.map { _ in digits }
+            state.digits = validated
           }
         }
     }

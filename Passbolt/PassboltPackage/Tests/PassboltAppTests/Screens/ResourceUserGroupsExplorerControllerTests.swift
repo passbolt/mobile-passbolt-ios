@@ -57,14 +57,12 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
       \SessionData.refreshIfNeeded,
       with: always(Void())
     )
-    features.usePlaceholder(for: Resources.self)
     features.patch(
       \UserGroups.filteredResourceUserGroupList,
       with: always(
         AnyAsyncSequence([])
       )
     )
-    features.usePlaceholder(for: HomePresentation.self)
     features.patch(
       \Session.currentAccount,
       with: always(Account.mock_ada)
@@ -124,11 +122,12 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
 
   func test_initally_viewStateTitle_isTagSlug_forNonRootFolder() async throws {
     features.patch(
-      \Resources.filteredResourcesListPublisher,
-      with: always(
-        Just([])
-          .eraseToAnyPublisher()
-      )
+      \ResourcesController.filteredResourcesList,
+      with: always([])
+    )
+    features.patch(
+      \ResourcesController.lastUpdate,
+      with: .init(constant: 0)
     )
 
     let controller: ResourceUserGroupsExplorerController = try await testController(
