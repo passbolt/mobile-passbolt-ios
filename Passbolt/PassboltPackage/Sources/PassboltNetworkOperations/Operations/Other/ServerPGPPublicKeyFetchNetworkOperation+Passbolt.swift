@@ -41,13 +41,17 @@ extension ServerPGPPublicKeyFetchNetworkOperation {
     _ input: Input,
     _ response: HTTPResponse
   ) throws -> Output {
-    try NetworkResponseDecoder<Input, CommonNetworkResponse<Output>>
+    let response: CommonNetworkResponse<BodyContent> = try NetworkResponseDecoder<Input, CommonNetworkResponse<BodyContent>>
       .bodyAsJSON()
       .decode(
         input,
         response
       )
-      .body
+
+    return .init(
+      serverTime: response.header.servertime,
+      keyData: response.body.keyData
+    )
   }
 }
 
@@ -61,5 +65,15 @@ extension FeaturesRegistry {
         responseDecoding: ServerPGPPublicKeyFetchNetworkOperation.responseDecoder(_:_:)
       )
     )
+  }
+}
+
+
+private struct BodyContent: Decodable {
+
+  fileprivate var keyData: String
+
+  private enum CodingKeys: String, CodingKey {
+    case keyData = "keydata"
   }
 }

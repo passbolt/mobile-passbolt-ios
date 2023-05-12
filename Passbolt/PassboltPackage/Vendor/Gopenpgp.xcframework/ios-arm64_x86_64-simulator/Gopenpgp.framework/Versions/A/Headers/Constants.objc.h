@@ -53,10 +53,12 @@ FOUNDATION_EXPORT NSString* _Nonnull const ConstantsPrivateKeyHeader;
  * Constants for armored data.
  */
 FOUNDATION_EXPORT NSString* _Nonnull const ConstantsPublicKeyHeader;
+FOUNDATION_EXPORT const long ConstantsSIGNATURE_BAD_CONTEXT;
 FOUNDATION_EXPORT const long ConstantsSIGNATURE_FAILED;
 FOUNDATION_EXPORT const long ConstantsSIGNATURE_NOT_SIGNED;
 FOUNDATION_EXPORT const long ConstantsSIGNATURE_NO_VERIFIER;
 FOUNDATION_EXPORT const long ConstantsSIGNATURE_OK;
+FOUNDATION_EXPORT NSString* _Nonnull const ConstantsSignatureContextName;
 /**
  * Cipher suite names.
  */

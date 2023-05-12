@@ -373,6 +373,7 @@ Contact your administrator for more information.";
 "error.internet.connection.issue" = "Cannot connect to the internet.";
 "error.client.certificate.invalid" = "Client certificate invalid.";
 "error.server.connection.issue" = "Cannot connect with the server.";
+"error.server.time.issue" = "Server and client time is out of sync, please contact your administrator.";
 "error.server.response.invalid" = "Invalid server response";
 "error.server.response.timeout" = "Server response timeout.";
 "error.server.certificate.invalid" = "Invalid server certificate.";

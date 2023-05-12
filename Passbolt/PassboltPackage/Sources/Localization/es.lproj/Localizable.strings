@@ -373,6 +373,7 @@ Póngase en contacto con su administrador para obtener más información.";
 "error.internet.connection.issue" = "No es posible conectarse a internet.";
 "error.client.certificate.invalid" = "Certificado de cliente no válido.";
 "error.server.connection.issue" = "No es posible conectarse con el servidor.";
+"error.server.time.issue" = "Server and client time is out of sync, please contact your administrator.";
 "error.server.response.invalid" = "Respuesta del servidor no válida";
 "error.server.response.timeout" = "Tiempo de espera de respuesta del servidor expirado.";
 "error.server.certificate.invalid" = "Certificado de servidor no válido.";

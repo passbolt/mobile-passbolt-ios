@@ -347,16 +347,6 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
                 )
             }
 
-        case let serverError as ServerConnectionIssue:
-          self?.cancellables
-            .executeOnMainActor { [weak self] in
-              await self?
-                .present(
-                  ServerNotReachableAlertViewController.self,
-                  in: serverError.serverURL
-                )
-            }
-
         case let serverError as ServerResponseTimeout:
           self?.cancellables
             .executeOnMainActor { [weak self] in

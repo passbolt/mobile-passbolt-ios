@@ -94,23 +94,41 @@ extension SessionNetworkAuthorization {
     let jsonEncoder: JSONEncoder = .init()
     let jsonDecoder: JSONDecoder = .init()
 
-    @Sendable nonisolated func fetchServerPublicPGPKey(
+    @Sendable nonisolated func fetchServerPublicPGPKeyAndTimeDiff(
       for account: Account
-    ) async throws -> ArmoredPGPPublicKey {
+    ) async throws -> (ArmoredPGPPublicKey, Seconds) {
       diagnostics
         .log(diagnostic: "...fetching server public PGP key...")
 
-      let publicKey: ArmoredPGPPublicKey = try await .init(
-        rawValue: serverPGPPublicKeyFetchNetworkOperation(.init(domain: account.domain))
-          .keyData
-      )
+      let localTimestampBefore: Timestamp = time.timestamp()
+      let response: ServerPGPPublicKeyFetchNetworkOperationResult = try await serverPGPPublicKeyFetchNetworkOperation(.init(domain: account.domain))
+      let localTimestampAfter: Timestamp = time.timestamp()
+      let executionTime: Seconds = .init(rawValue: localTimestampAfter.rawValue - localTimestampBefore.rawValue)
+      diagnostics.log(diagnostic: "Local timestamp:", .unsafeVariable("\(localTimestampAfter.rawValue)"))
+      diagnostics.log(diagnostic: "Server timestamp:", .unsafeVariable("\(response.serverTime.rawValue)"))
+      // this is not a very precise time synchronization,
+      // but it is good enough to solve the most of the timing issues
+      // with PGP we encountered which are caused by client and server being out of sync
+      let timeDiff: Seconds = .init(rawValue: response.serverTime.rawValue - time.timestamp().rawValue) - executionTime
+
+      guard timeDiff <= 10 && timeDiff >= -10
+      else {
+        throw ServerTimeOutOfSync
+          .error(
+            "Time difference between client and server is bigger than 10 seconds!",
+            serverURL: account.domain
+          )
+      }
+      diagnostics.log(diagnostic: "Using time diff for session:", .unsafeVariable("\(timeDiff)"))
+
+      let publicKey: ArmoredPGPPublicKey = .init(rawValue: response.keyData)
 
       try verifyServerPublicPGPKey(
         publicKey,
         for: account
       )
 
-      return publicKey
+      return (publicKey, timeDiff)
     }
 
     @Sendable nonisolated func verifyServerPublicPGPKey(
@@ -392,11 +410,16 @@ extension SessionNetworkAuthorization {
       requiredMFAProviders: Array<SessionMFAProvider>
     ) {
       let verificationToken: String = uuidGenerator.uuid()
-      // 120s is verification token's lifetime
-      let challengeExpiration: Int64 = time.timestamp().rawValue + 120
 
-      async let serverPublicPGPKey: ArmoredPGPPublicKey = fetchServerPublicPGPKey(for: authorizationData.account)
+      async let (serverPublicPGPKey, serverTimeDiff): (ArmoredPGPPublicKey, Seconds) = fetchServerPublicPGPKeyAndTimeDiff(for: authorizationData.account)
       async let serverPublicRSAKey: PEMRSAPublicKey = fetchServerPublicRSAKey(for: authorizationData.account)
+
+      let timeDiff: Seconds = try await serverTimeDiff
+
+      pgp.setTimeOffset(timeDiff)
+
+      // 120s is verification token's lifetime
+      let challengeExpiration: Timestamp = time.timestamp() + (timeDiff + 120)
 
       let challenge = try await prepareEncryptedChallenge(
         account: authorizationData.account,
@@ -404,7 +427,7 @@ extension SessionNetworkAuthorization {
         accountPrivateKey: authorizationData.privateKey,
         serverPublicPGPKey: serverPublicPGPKey,
         verificationToken: verificationToken,
-        challengeExpiration: challengeExpiration
+        challengeExpiration: challengeExpiration.rawValue
       )
 
       let sessionCreationResult: SessionCreateNetworkOperationResult = try await sessionCreateNetworkOperation(
@@ -435,7 +458,7 @@ extension SessionNetworkAuthorization {
           serverPublicPGPKey: serverPublicPGPKey,
           encryptedResponse: sessionCreationResult.challenge,
           verificationToken: verificationToken,
-          challengeExpiration: challengeExpiration
+          challengeExpiration: challengeExpiration.rawValue
         )
 
       return (

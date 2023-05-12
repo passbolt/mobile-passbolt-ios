@@ -168,15 +168,6 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
               )
           }
 
-        case let serverError as ServerConnectionIssue:
-          Task {
-            await self?
-              .present(
-                ServerNotReachableAlertViewController.self,
-                in: serverError.serverURL
-              )
-          }
-
         case let serverError as ServerResponseTimeout:
           Task {
             await self?

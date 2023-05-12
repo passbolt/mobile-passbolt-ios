@@ -53,7 +53,7 @@ extension ApplicationRating {
       }
 
       let now = timeProvider.timestamp()
-      return now > timestamp + 5 * 24 * 60 * 60  // 5 days in seconds
+      return now > timestamp + (5 * 24 * 60 * 60 as Timestamp)  // 5 days in seconds
     }
 
     nonisolated func fiveLoginsHasPassed() -> Bool {

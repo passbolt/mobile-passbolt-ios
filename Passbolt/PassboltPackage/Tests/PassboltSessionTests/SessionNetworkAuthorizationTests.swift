@@ -35,15 +35,10 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
   }
 
   override func prepare() throws {
-    use(AccountsDataStore.placeholder)
-    use(ServerPGPPublicKeyFetchNetworkOperation.placeholder)
-    use(ServerRSAPublicKeyFetchNetworkOperation.placeholder)
-    use(SessionCreateNetworkOperation.placeholder)
-    use(SessionRefreshNetworkOperation.placeholder)
-    use(SessionCloseNetworkOperation.placeholder)
-    use(OSTime.placeholder)
-    use(PGP.placeholder)
-    use(SignatureVerification.placeholder)
+    patch(
+      \PGP.setTimeOffset,
+       with: always(Void())
+    )
     patch(
       \UUIDGenerator.uuid,
       with: always(UUID.test.uuidString)
@@ -88,7 +83,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     )
     patch(
       \ServerPGPPublicKeyFetchNetworkOperation.execute,
-      with: always(.init(keyData: "key"))
+       with: always(.init(serverTime: 0, keyData: "key"))
     )
     patch(
       \PGP.extractFingerprint,
@@ -120,7 +115,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     )
     patch(
       \ServerPGPPublicKeyFetchNetworkOperation.execute,
-      with: always(.init(keyData: "key"))
+      with: always(.init(serverTime: 0, keyData: "key"))
     )
     patch(
       \PGP.extractFingerprint,
@@ -160,7 +155,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     )
     patch(
       \ServerPGPPublicKeyFetchNetworkOperation.execute,
-      with: always(.init(keyData: "key"))
+      with: always(.init(serverTime: 0, keyData: "key"))
     )
     patch(
       \PGP.extractFingerprint,
@@ -200,7 +195,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     )
     patch(
       \ServerPGPPublicKeyFetchNetworkOperation.execute,
-      with: always(.init(keyData: "key"))
+      with: always(.init(serverTime: 0, keyData: "key"))
     )
     patch(
       \PGP.extractFingerprint,
@@ -239,7 +234,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     )
     patch(
       \ServerPGPPublicKeyFetchNetworkOperation.execute,
-      with: always(.init(keyData: "key"))
+      with: always(.init(serverTime: 0, keyData: "key"))
     )
     patch(
       \PGP.extractFingerprint,
@@ -283,7 +278,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     )
     patch(
       \ServerPGPPublicKeyFetchNetworkOperation.execute,
-      with: always(.init(keyData: "key"))
+      with: always(.init(serverTime: 0, keyData: "key"))
     )
     patch(
       \PGP.extractFingerprint,
@@ -331,7 +326,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     )
     patch(
       \ServerPGPPublicKeyFetchNetworkOperation.execute,
-      with: always(.init(keyData: "key"))
+      with: always(.init(serverTime: 0, keyData: "key"))
     )
     patch(
       \PGP.extractFingerprint,
@@ -388,7 +383,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     )
     patch(
       \ServerPGPPublicKeyFetchNetworkOperation.execute,
-      with: always(.init(keyData: "key"))
+      with: always(.init(serverTime: 0, keyData: "key"))
     )
     patch(
       \PGP.extractFingerprint,
@@ -445,7 +440,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     )
     patch(
       \ServerPGPPublicKeyFetchNetworkOperation.execute,
-      with: always(.init(keyData: "key"))
+      with: always(.init(serverTime: 0, keyData: "key"))
     )
     patch(
       \PGP.extractFingerprint,
@@ -515,7 +510,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     )
     patch(
       \ServerPGPPublicKeyFetchNetworkOperation.execute,
-      with: always(.init(keyData: "key"))
+      with: always(.init(serverTime: 0, keyData: "key"))
     )
     patch(
       \PGP.extractFingerprint,
@@ -589,7 +584,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     )
     patch(
       \ServerPGPPublicKeyFetchNetworkOperation.execute,
-      with: always(.init(keyData: "key"))
+      with: always(.init(serverTime: 0, keyData: "key"))
     )
     patch(
       \PGP.extractFingerprint,
@@ -663,7 +658,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     )
     patch(
       \ServerPGPPublicKeyFetchNetworkOperation.execute,
-      with: always(.init(keyData: "key"))
+      with: always(.init(serverTime: 0, keyData: "key"))
     )
     patch(
       \PGP.extractFingerprint,
@@ -736,7 +731,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     )
     patch(
       \ServerPGPPublicKeyFetchNetworkOperation.execute,
-      with: always(.init(keyData: "key"))
+      with: always(.init(serverTime: 0, keyData: "key"))
     )
     patch(
       \PGP.extractFingerprint,
@@ -809,7 +804,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     )
     patch(
       \ServerPGPPublicKeyFetchNetworkOperation.execute,
-      with: always(.init(keyData: "key"))
+      with: always(.init(serverTime: 0, keyData: "key"))
     )
     patch(
       \PGP.extractFingerprint,
@@ -921,6 +916,139 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
         .mock_ada,
         "refresh_token"
       )
+    }
+  }
+
+  func test_createSessionTokens_throws_whenServerTimeIsTooMuchAhead() {
+    patch(
+      \OSTime.timestamp,
+      with: always(0)
+    )
+    patch(
+      \ServerRSAPublicKeyFetchNetworkOperation.execute,
+      with: always(.init(keyData: "key"))
+    )
+    patch(
+      \ServerPGPPublicKeyFetchNetworkOperation.execute,
+      with: always(.init(serverTime: 11, keyData: "key"))
+    )
+    patch(
+      \PGP.extractFingerprint,
+      with: always(.success("fingerprint"))
+    )
+    patch(
+      \AccountsDataStore.loadServerFingerprint,
+      with: always("other")
+    )
+    patch(
+      \PGP.verifyPublicKeyFingerprint,
+      with: always(.success(false))
+    )
+
+    withTestedInstanceThrows(
+      ServerTimeOutOfSync.self
+    ) { (testedInstance: SessionNetworkAuthorization) in
+      try await testedInstance.createSessionTokens(
+        (
+          account: .mock_ada,
+          passphrase: "passphrase",
+          privateKey: "private_key"
+        ),
+        .none
+      )
+    }
+  }
+
+  func test_createSessionTokens_throws_whenServerTimeIsTooMuchBehind() {
+    patch(
+      \OSTime.timestamp,
+      with: always(11)
+    )
+    patch(
+      \ServerRSAPublicKeyFetchNetworkOperation.execute,
+      with: always(.init(keyData: "key"))
+    )
+    patch(
+      \ServerPGPPublicKeyFetchNetworkOperation.execute,
+      with: always(.init(serverTime: 0, keyData: "key"))
+    )
+    patch(
+      \PGP.extractFingerprint,
+      with: always(.success("fingerprint"))
+    )
+    patch(
+      \AccountsDataStore.loadServerFingerprint,
+      with: always("other")
+    )
+    patch(
+      \PGP.verifyPublicKeyFingerprint,
+      with: always(.success(false))
+    )
+
+    withTestedInstanceThrows(
+      ServerTimeOutOfSync.self
+    ) { (testedInstance: SessionNetworkAuthorization) in
+      try await testedInstance.createSessionTokens(
+        (
+          account: .mock_ada,
+          passphrase: "passphrase",
+          privateKey: "private_key"
+        ),
+        .none
+      )
+    }
+  }
+
+  func test_createSessionTokens_updatesTimeDiff_whenServerTimeIsReceived() {
+    patch(
+      \OSTime.timestamp,
+      with: always(0)
+    )
+    patch(
+      \ServerRSAPublicKeyFetchNetworkOperation.execute,
+      with: always(.init(keyData: "key"))
+    )
+    patch(
+      \ServerPGPPublicKeyFetchNetworkOperation.execute,
+      with: always(.init(serverTime: 7, keyData: "key"))
+    )
+    patch(
+      \PGP.extractFingerprint,
+      with: always(.success("fingerprint"))
+    )
+    patch(
+      \AccountsDataStore.loadServerFingerprint,
+      with: always("other")
+    )
+    patch(
+      \PGP.verifyPublicKeyFingerprint,
+      with: always(.success(true))
+    )
+    patch(
+      \PGP.encryptAndSign,
+       with: always(.failure(MockIssue.error()))
+    )
+    self.variables.set(\.offset, of: Seconds.self, to: 0)
+    patch(
+      \PGP.setTimeOffset,
+       with: {
+         self.variables.set(\.offset, to: $0)
+       }
+    )
+
+    withTestedInstanceReturnsEqual(
+      Seconds(7)
+    ) { (testedInstance: SessionNetworkAuthorization) in
+      _ = try? await testedInstance.createSessionTokens(
+        (
+          account: .mock_ada,
+          passphrase: "passphrase",
+          privateKey: "private_key"
+        ),
+        .none
+      )
+
+      return self.variables.get(\.offset, of: Seconds.self)
     }
   }
 }
