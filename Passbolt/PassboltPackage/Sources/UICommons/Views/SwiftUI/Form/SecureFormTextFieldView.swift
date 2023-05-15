@@ -72,6 +72,7 @@ public struct SecureFormTextFieldView: View {
           top: 4,
           bottom: 4
         )
+        .accessibilityIdentifier("form.textfield.label")
       }  // else skip
 
       HStack(spacing: 8) {
@@ -91,6 +92,7 @@ public struct SecureFormTextFieldView: View {
             }
           }
           .padding(12)
+          .accessibilityIdentifier("form.textfield.field")
 
         Button(
           action: {
@@ -106,6 +108,7 @@ public struct SecureFormTextFieldView: View {
           }
         )
         .padding(trailing: 8)
+        .accessibilityIdentifier("form.textfield.eye")
       }
       .overlay(
         RoundedRectangle(cornerRadius: 4)
@@ -126,7 +129,6 @@ public struct SecureFormTextFieldView: View {
       .onTapGesture {
         self.focused = true
       }
-      .accessibilityIdentifier("form.textfield.text")
 
       if let errorMessage: DisplayableString = self.text.displayableErrorMessage {
         Text(displayable: errorMessage)

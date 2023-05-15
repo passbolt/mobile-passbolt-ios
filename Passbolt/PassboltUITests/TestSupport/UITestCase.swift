@@ -208,6 +208,16 @@ internal class UITestCase: XCTestCase {
     .element(boundBy: index)
     .tap()
   }
+    
+  internal func tapTab(
+    _ identifier: String
+  ) {
+      application.tabBars.buttons.element(
+            matching: .button,
+            identifier: identifier
+      )
+          .tap()
+  }
 
   internal func swipeUp(
     _ identifier: String,
@@ -367,4 +377,15 @@ internal class UITestCase: XCTestCase {
       line: line
     )
   }
+    
+    internal func skipFailure(
+        _ string: String,
+        _ execute: () -> Void,
+        file: StaticString = #file,
+        line: UInt = #line
+      ) {
+          XCTExpectFailure(string) {
+              execute()
+          }
+      }
 }

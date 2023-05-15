@@ -74,6 +74,7 @@ where SupportActionView: View {
       }
       .frame(width: 96, height: 96)
       .padding(top: 56)
+      .accessibilityIdentifier("authorization.passphrase.avatar")
 
       Text(self.label)
         .text(
@@ -155,6 +156,7 @@ where SupportActionView: View {
         title: self.mainActionLabel,
         action: self.mainAction
       )
+      .accessibilityIdentifier("transfer.account.export.passphrase.primary.button")
 
       self.supportActionView()
         .padding(top: -8)

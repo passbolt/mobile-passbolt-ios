@@ -62,6 +62,7 @@ internal struct MainSettingsView: ControlledView {
             )
         }
       )
+      .accessibilityIdentifier("settings.main.item.application.title")
 
       SettingsActionRowView(
         icon: .people,
@@ -77,6 +78,7 @@ internal struct MainSettingsView: ControlledView {
             )
         }
       )
+      .accessibilityIdentifier("settings.main.item.accounts.title")
 
       SettingsActionRowView(
         icon: .info,

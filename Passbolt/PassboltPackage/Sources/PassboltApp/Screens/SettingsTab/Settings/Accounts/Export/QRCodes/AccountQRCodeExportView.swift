@@ -57,6 +57,7 @@ internal struct AccountQRCodeExportView: ControlledView {
         .interpolation(.none)
         .resizable()
         .aspectRatio(contentMode: .fit)
+        .accessibilityIdentifier("transfer.account.export.qrcode.image")
       Spacer()
       PrimaryButton(
         title: .localized("transfer.account.export.cancel.button"),
@@ -65,6 +66,7 @@ internal struct AccountQRCodeExportView: ControlledView {
           controller.showCancelConfirmation()
         }
       )
+      .accessibilityIdentifier("transfer.account.export.cancel.button")
     }
     .padding(16)
     .alert(

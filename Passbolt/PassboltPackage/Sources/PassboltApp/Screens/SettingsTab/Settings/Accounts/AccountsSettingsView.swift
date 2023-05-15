@@ -76,6 +76,7 @@ internal struct AccountsSettingsView: ControlledView {
             )
         }
       )
+      .accessibilityIdentifier("settings.accounts.item.export.title")
     }
   }
 }
