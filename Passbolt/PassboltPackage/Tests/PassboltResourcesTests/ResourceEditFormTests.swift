@@ -175,7 +175,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<LegacyResourceEditFo
       .validatedFieldValuePublisher(.name)
       .asAsyncValue()
 
-    XCTAssertNil(result?.value)
+    XCTAssertEqual(result?.value, .string(""))
   }
 
   func test_validatedFieldValuePublisher_returnsPublisherPublishingChages_whenResourceFieldValueChanges() async throws {

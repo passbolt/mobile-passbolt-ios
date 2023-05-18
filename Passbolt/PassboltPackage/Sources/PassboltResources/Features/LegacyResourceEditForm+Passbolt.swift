@@ -94,10 +94,28 @@ extension LegacyResourceEditForm {
             forField: "uri"
           )
           for field in resource.encryptedFields {
-            // put initial secret values into the resource
+            let initialValue: ResourceFieldValue
+            switch field.content {
+            case .string:
+              initialValue = .string("")
+              
+            case .totp:
+              initialValue = .otp(
+                .totp(
+                  sharedSecret: "",
+                  algorithm: .sha1,
+                  digits: 6,
+                  period: 30
+                )
+              )
+              
+            case .unknown:
+              initialValue = .unknown(.null)
+            }
+            // put default values into the secret
             try resource
               .set(
-                .string(""),
+                initialValue,
                 for: field
               )
           }

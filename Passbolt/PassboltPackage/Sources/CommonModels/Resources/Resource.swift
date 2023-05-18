@@ -62,6 +62,7 @@ public struct Resource {
     self.permissions = permissions
     self.modified = modified
     self.fieldValues = .init()
+    self.initializeFieldValues()
   }
 
   public subscript(
@@ -167,6 +168,38 @@ public struct Resource {
     }
   }
 }
+
+extension Resource {
+
+  private mutating func initializeFieldValues() {
+    for field in self.fields {
+      let initialValue: ResourceFieldValue
+      switch field.content {
+      case .string(let encrypted, _, _, _):
+        if encrypted {
+          initialValue = .encrypted
+        }
+        else {
+          initialValue = .string("")
+        }
+
+      case .totp:
+        initialValue = .encrypted
+
+      case .unknown(let encrypted, _):
+        if encrypted {
+          initialValue = .encrypted
+        }
+        else {
+          initialValue = .unknown(.null)
+        }
+      }
+
+      self.fieldValues[field.valuePath] = initialValue
+    }
+  }
+}
+
 
 extension Resource: Equatable {}
 
