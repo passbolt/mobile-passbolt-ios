@@ -70,6 +70,7 @@ internal struct ApplicationSettingsView: ControlledView {
               ),
               label: EmptyView.init
             )
+            .accessibilityIdentifier("settings.application.biometrics.disabled.toggle")
           }
         )
         .alert(
@@ -114,8 +115,10 @@ internal struct ApplicationSettingsView: ControlledView {
               width: 24,
               height: 24
             )
+            .accessibilityIdentifier("settings.application.item.autofill.disclosure.indicator")
         }
       )
+      .accessibilityIdentifier("settings.application.item.autofill.title")
 
       SettingsActionRowView(
         icon: .filter,
@@ -129,8 +132,10 @@ internal struct ApplicationSettingsView: ControlledView {
               width: 24,
               height: 24
             )
+            .accessibilityIdentifier("settings.application.item.filter.disclosure.indicator")
         }
       )
+      .accessibilityIdentifier("settings.application.item.default.mode.title")
     }
   }
 }

@@ -106,7 +106,8 @@ internal final class AccountSelectionView: PlainView {
           .titleStyle(),
           .leadingAnchor(.equalTo, container.leadingAnchor),
           .trailingAnchor(.equalTo, container.trailingAnchor),
-          .topAnchor(.equalTo, logoContainer.bottomAnchor, constant: 94)
+          .topAnchor(.equalTo, logoContainer.bottomAnchor, constant: 94),
+          .accessibilityIdentifier("account.selection.title")
         )
       )
     }

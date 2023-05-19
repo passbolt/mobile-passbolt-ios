@@ -60,6 +60,7 @@ internal struct MainSettingsView: ControlledView {
               width: 24,
               height: 24
             )
+            .accessibilityIdentifier("settings.main.item.application.disclosure.indicator")
         }
       )
       .accessibilityIdentifier("settings.main.item.application.title")
@@ -76,6 +77,7 @@ internal struct MainSettingsView: ControlledView {
               width: 24,
               height: 24
             )
+            .accessibilityIdentifier("settings.main.item.accounts.disclosure.indicator")
         }
       )
       .accessibilityIdentifier("settings.main.item.accounts.title")
@@ -92,8 +94,10 @@ internal struct MainSettingsView: ControlledView {
               width: 24,
               height: 24
             )
+            .accessibilityIdentifier("settings.accounts.item.terms.and.licenses.disclosure.indicator")
         }
       )
+      .accessibilityIdentifier("settings.main.item.terms.and.licenses.title")
 
       SettingsActionRowView(
         icon: .bug,
@@ -107,6 +111,7 @@ internal struct MainSettingsView: ControlledView {
               width: 24,
               height: 24
             )
+            .accessibilityIdentifier("settings.accounts.item.troubleshooting.disclosure.indicator")
         }
       )
 
@@ -119,6 +124,7 @@ internal struct MainSettingsView: ControlledView {
           self.signOutConfirmationPresented = true
         }
       )
+      .accessibilityIdentifier("settings.main.item.sign.out.title")
       .alert(
         isPresented: self.$signOutConfirmationPresented,
         title: .localized(
@@ -135,6 +141,7 @@ internal struct MainSettingsView: ControlledView {
             role: .destructive,
             action: self.controller.signOut
           )
+          .accessibilityIdentifier("settings.main.sign.out.alert.confirm.title")
           Button(
             displayable: .localized(
               key: .cancel
@@ -142,6 +149,7 @@ internal struct MainSettingsView: ControlledView {
             role: .cancel,
             action: { /* NOP */  }
           )
+          .accessibilityIdentifier("settings.main.sign.out.alert.cancel.button")
         }
       )
     }
