@@ -242,7 +242,7 @@ extension OTPSecret: Codable {
   }
 
   private enum CodingKeys: String, CodingKey {
-    case sharedSecret = "key"
+    case sharedSecret = "secret_key"
     case algorithm = "algorithm"
     case digits = "digits"
     case period = "period"
