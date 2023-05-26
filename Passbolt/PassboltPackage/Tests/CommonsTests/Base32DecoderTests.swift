@@ -39,65 +39,89 @@ final class Base32DecoderTests: XCTestCase {
   }
 
   func test_base32Decode_decodesValidData() {
-    XCTAssertEqual(
-      Data(base32Encoded: "")?.count,
-      0
+    XCTAssertNotNil(
+      Data(base32Encoded: "ABCDEFGHIJKLMNOPQRSTUWXYZ234567")
     )
     XCTAssertEqual(
-      Data(base32Encoded: "a")?.count,
-      0
+      Data(base32Encoded: "abcdefghijklmnopqrstuwxyz234567"),
+      Data(base32Encoded: "ABCDEFGHIJKLMNOPQRSTUWXYZ234567")
     )
     XCTAssertEqual(
-      Data(base32Encoded: "ab")?.count,
-      2
+      Data(base32Encoded: ""),
+      Data([])
     )
     XCTAssertEqual(
-      Data(base32Encoded: "abc")?.count,
-      2
+      Data(base32Encoded: "z"),
+      Data([])
     )
     XCTAssertEqual(
-      Data(base32Encoded: "abcd")?.count,
-      3
+      Data(base32Encoded: "zx"),
+      Data([0xCD])
     )
     XCTAssertEqual(
-      Data(base32Encoded: "I65VU7K5ZQL7WB4E")?.count,
-      10
+      Data(base32Encoded: "zxy"),
+      Data([0xCD])
     )
     XCTAssertEqual(
-      Data(base32Encoded: "OBQXG43CN5WHI==="),
-      "passbolt".data(using: .utf8)
+      Data(base32Encoded: "zxyw"),
+      Data([0xCD, 0xF1])
     )
     XCTAssertEqual(
-      Data(base32Encoded: "OBQXG43CN5WHI"),
-      "passbolt".data(using: .utf8)
+      Data(base32Encoded: "I65VU7K5ZQL7WB4E"),
+      Data([0x47, 0xBB, 0x5A, 0x7D, 0x5D, 0xCC, 0x17, 0xFB, 0x07, 0x84])
     )
     XCTAssertEqual(
-      Data(base32Encoded: "KRUGKIDROVUWG2ZAMJZG653OEBTG66BANJ2W24DTEBXXMZLSEB2GQZJANRQXU6JAMRXWOLQ="),
-      "The quick brown fox jumps over the lazy dog.".data(using: .utf8)
+      Data(base32Encoded: "AAAB"),
+      Data([0x0, 0x0])
     )
     XCTAssertEqual(
-      Data(base32Encoded: "MY======"),
-      "f".data(using: .utf8)
+      Data(base32Encoded: "OBQXG43CN5WHI===")
+        .map { String(data: $0, encoding: .utf8) },
+      "passbolt"
     )
     XCTAssertEqual(
-      Data(base32Encoded: "MZXQ===="),
-      "fo".data(using: .utf8)
+      Data(base32Encoded: "OBQXG43CN5WHI")
+        .map { String(data: $0, encoding: .utf8) },
+      "passbolt"
     )
     XCTAssertEqual(
-      Data(base32Encoded: "MZXW6==="),
-      "foo".data(using: .utf8)
+      Data(base32Encoded: "KRUGKIDROVUWG2ZAMJZG653OEBTG66BANJ2W24DTEBXXMZLSEB2GQZJANRQXU6JAMRXWOLQ=".uppercased()),
+      Data(base32Encoded: "KRUGKIDROVUWG2ZAMJZG653OEBTG66BANJ2W24DTEBXXMZLSEB2GQZJANRQXU6JAMRXWOLQ=".lowercased())
     )
     XCTAssertEqual(
-      Data(base32Encoded: "MZXW6YQ="),
-      "foob".data(using: .utf8)
+      Data(base32Encoded: "KRUGKIDROVUWG2ZAMJZG653OEBTG66BANJ2W24DTEBXXMZLSEB2GQZJANRQXU6JAMRXWOLQ=")
+        .map { String(data: $0, encoding: .utf8) },
+      "The quick brown fox jumps over the lazy dog."
     )
     XCTAssertEqual(
-      Data(base32Encoded: "MZXW6YTB"),
-      "fooba".data(using: .utf8)
+      Data(base32Encoded: "MY======")
+        .map { String(data: $0, encoding: .utf8) },
+      "f"
     )
     XCTAssertEqual(
-      Data(base32Encoded: "MZXW6YTBOI======"),
-      "foobar".data(using: .utf8)
+      Data(base32Encoded: "MZXQ====")
+        .map { String(data: $0, encoding: .utf8) },
+      "fo"
+    )
+    XCTAssertEqual(
+      Data(base32Encoded: "MZXW6===")
+        .map { String(data: $0, encoding: .utf8) },
+      "foo"
+    )
+    XCTAssertEqual(
+      Data(base32Encoded: "MZXW6YQ=")
+        .map { String(data: $0, encoding: .utf8) },
+      "foob"
+    )
+    XCTAssertEqual(
+      Data(base32Encoded: "MZXW6YTB")
+        .map { String(data: $0, encoding: .utf8) },
+      "fooba"
+    )
+    XCTAssertEqual(
+      Data(base32Encoded: "MZXW6YTBOI======")
+        .map { String(data: $0, encoding: .utf8) },
+      "foobar"
     )
   }
 }
