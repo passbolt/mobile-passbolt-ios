@@ -84,10 +84,10 @@ release_build_publish: release_build
 	echo "Uploaded release build: $(BUILD)"
 
 lint:
-	swift run --configuration release --package-path Tools/formatter --scratch-path ~/tmp/passbolt -- swift-format lint --configuration ./Tools/code-format.json --parallel --recursive ./Passbolt/PassboltPackage/Package.swift ./Passbolt/PassboltPackage/Sources ./Passbolt/PassboltPackage/Tests 2> lint-report
+	swift run --configuration release --package-path Tools/formatter --scratch-path ~/tmp/passbolt -- swift-format lint --configuration ./Tools/code-format.json --parallel --recursive ./Passbolt/PassboltPackage/Package.swift ./Passbolt/PassboltPackage/Sources ./Passbolt/PassboltPackage/Tests  ./Passbolt/PassboltUITests ./Passbolt/Passbolt 2> lint-report
 
 format:
-	swift run --configuration release --package-path Tools/formatter --scratch-path ~/tmp/passbolt -- swift-format format --configuration ./Tools/code-format.json --in-place --parallel --recursive ./Passbolt/PassboltPackage/Package.swift ./Passbolt/PassboltPackage/Sources ./Passbolt/PassboltPackage/Tests
+	swift run --configuration release --package-path Tools/formatter --scratch-path ~/tmp/passbolt -- swift-format format --configuration ./Tools/code-format.json --in-place --parallel --recursive ./Passbolt/PassboltPackage/Package.swift ./Passbolt/PassboltPackage/Sources ./Passbolt/PassboltPackage/Tests ./Passbolt/PassboltUITests ./Passbolt/Passbolt
 
 prepare_licenses:
 	swift run --package-path Tools/license --scratch-path ~/tmp/passbolt -- license-plist --suppress-opening-directory --fail-if-missing-license --package-path Passbolt/PassboltPackage/Package.swift --config-path Tools/license-plist.yml --prefix LicensePlist --output-path Passbolt/Passbolt/Settings.bundle

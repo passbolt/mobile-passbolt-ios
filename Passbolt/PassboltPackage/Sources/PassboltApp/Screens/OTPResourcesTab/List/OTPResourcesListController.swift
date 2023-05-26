@@ -169,21 +169,21 @@ extension OTPResourcesListController {
       failMessage: "OTP list updates broken!"
     ) { (filter: OTPResourcesFilter) in
       let filteredResourcesList: Array<TOTPResourceViewModel> =
-      try await otpResources
+        try await otpResources
         .filteredList(filter)
         .map { (resource: ResourceListItemDSV) -> TOTPResourceViewModel in
-            .init(
-              id: resource.id,
-              name: resource.name,
-              // we are hiding all OTPs when list changes
-              totpValue: .none
-            )
+          .init(
+            id: resource.id,
+            name: resource.name,
+            // we are hiding all OTPs when list changes
+            totpValue: .none
+          )
         }
 
       await viewState
         .update(
           \.otpResources,
-           to: filteredResourcesList
+          to: filteredResourcesList
         )
       await otpCodesController.dispose()
     }

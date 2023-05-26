@@ -113,7 +113,7 @@ extension ResourceController {
       try await state.asyncUpdate { (resource: inout Resource) async throws in
         guard force || !resource.hasSecret else { return }
         resource.secret = try await fetchSecretJSON(unstructured: resource.hasUnstructuredSecret)
-        try resource.validate() // validate resource with secret
+        try resource.validate()  // validate resource with secret
       }
       .secret
     }

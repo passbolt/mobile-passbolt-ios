@@ -23,39 +23,42 @@
 
 import XCTest
 
-final class WelcomeScreenUITests: UITestCase {
+internal struct TestFailure: Error {
 
-  override var initialAccounts: Array<MockAccount> { [] }
+  fileprivate let message: String
+  private let file: StaticString
+  private let line: UInt
 
-  func testThatAsAMobileUserICanSeeTheWelcomeScreenWhenIOpenTheApplicationAndNoAccountIsSetup() throws {
-    self.assert(
-      "label.title",
-      textEqual: "Welcome!"
-    )
-
-    self.assert(
-      "label.description",
-      textEqual:
-        "You need an existing account to get started. Sign in with your existing account on the desktop browser extension to connect it with the mobile device."
-    )
-
-    self.assertExists(
-      "button.account.transfer"
-    )
-
-    self.assertExists(
-      "button.account.none"
+  public static func error(
+    message: String,
+    file: StaticString,
+    line: UInt
+  ) -> Self {
+    .init(
+      message: message,
+      file: file,
+      line: line
     )
   }
+}
 
-  func testThatAsAMobileUserICanSeeAnExplanationWhyICannotCreateAnAccountOnTheMobileApp() throws {
-    try self.tap(
-      "button.account.none"
-    )
+extension Error {
 
-    self.assertPresentsString(
-      matching:
-        "It is currently not possible to create an account using the mobile app. First you will need create an account using your desktop browser extension."
+  private var testFailureMessage: String {
+    (self as? TestFailure)?.message
+      ?? (self as CustomDebugStringConvertible).debugDescription
+  }
+
+  @discardableResult
+  internal func asTestFailure(
+    file: StaticString,
+    line: UInt
+  ) -> Self {
+    XCTFail(
+      self.testFailureMessage,
+      file: file,
+      line: line
     )
+    return self
   }
 }

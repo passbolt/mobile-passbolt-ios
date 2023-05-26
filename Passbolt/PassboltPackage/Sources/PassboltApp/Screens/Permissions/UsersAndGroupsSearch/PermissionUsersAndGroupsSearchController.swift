@@ -108,26 +108,26 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
 
       do {
         matchingUsers =
-        try await users
+          try await users
           .filteredUsers(.init(text: searchText))
         matchingUserGroups =
-        try await userGroups
+          try await userGroups
           .filteredUserGroups(.init(userID: .none, text: searchText))
       }
       catch {
         diagnostics.log(error: error)
         viewState.set(
           \.snackBarMessage,
-           to: .error(error)
+          to: .error(error)
         )
         return
       }
       let existingPermissions: OrderedSet<ResourcePermission> =
-      await resourceShareForm
+        await resourceShareForm
         .currentPermissions()
 
       let selectableUsersAndGroups: Array<ControlledView.SelectionRowViewModel> =
-      matchingUserGroups
+        matchingUserGroups
         .compactMap { (userGroupDetails: UserGroupDetailsDSV) -> ControlledView.SelectionRowViewModel? in
           let permissionExists: Bool = existingPermissions.contains {
             (permission: ResourcePermission) -> Bool in
@@ -144,7 +144,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
             )
           )
         }
-      + matchingUsers
+        + matchingUsers
         .compactMap { (userDetails: UserDetailsDSV) -> ControlledView.SelectionRowViewModel? in
           let permissionExists: Bool = existingPermissions.contains {
             (permission: ResourcePermission) -> Bool in
@@ -165,12 +165,12 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
         }
 
       let existingUsersAndGroupsPermissions: Array<ControlledView.ExistingPermissionRowViewModel> =
-      matchingUserGroups
+        matchingUserGroups
         .compactMap { (userGroupDetails: UserGroupDetailsDSV) -> ControlledView.ExistingPermissionRowViewModel? in
           let matchingPermission: ResourcePermission? =
-          existingPermissions.first { (permission: ResourcePermission) -> Bool in
-            permission.userGroupID == userGroupDetails.id
-          }
+            existingPermissions.first { (permission: ResourcePermission) -> Bool in
+              permission.userGroupID == userGroupDetails.id
+            }
 
           guard let permission: ResourcePermission = matchingPermission
           else { return .none }
@@ -183,12 +183,12 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
             permission: permission.permission
           )
         }
-      + matchingUsers
+        + matchingUsers
         .compactMap { (userDetails: UserDetailsDSV) -> ControlledView.ExistingPermissionRowViewModel? in
           let matchingPermission: ResourcePermission? =
-          existingPermissions.first { (permission: ResourcePermission) -> Bool in
-            permission.userID == userDetails.id
-          }
+            existingPermissions.first { (permission: ResourcePermission) -> Bool in
+              permission.userID == userDetails.id
+            }
 
           guard let permission: ResourcePermission = matchingPermission
           else { return .none }
@@ -211,7 +211,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
         state.listSelectionRowViewModels = selectableUsersAndGroups
         state.listExistingRowViewModels = existingUsersAndGroupsPermissions
       }
-      }
+    }
 
     @MainActor func toggleUserSelection(
       _ userID: User.ID

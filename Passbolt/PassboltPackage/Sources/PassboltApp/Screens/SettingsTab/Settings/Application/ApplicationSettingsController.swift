@@ -90,22 +90,22 @@ extension ApplicationSettingsController {
       case .unavailable, .unconfigured:
         await viewState.update(
           \.biometicsAuthorizationAvailability,
-           to: .unavailable
+          to: .unavailable
         )
 
       case .touchID:
         await viewState.update(
           \.biometicsAuthorizationAvailability,
-           to: accountPreferences.isPassphraseStored()
-           ? .enabledTouchID
-           : .disabledTouchID
+          to: accountPreferences.isPassphraseStored()
+            ? .enabledTouchID
+            : .disabledTouchID
         )
       case .faceID:
         await viewState.update(
           \.biometicsAuthorizationAvailability,
-           to: accountPreferences.isPassphraseStored()
-           ? .enabledFaceID
-           : .disabledFaceID
+          to: accountPreferences.isPassphraseStored()
+            ? .enabledFaceID
+            : .disabledFaceID
         )
       }
     }

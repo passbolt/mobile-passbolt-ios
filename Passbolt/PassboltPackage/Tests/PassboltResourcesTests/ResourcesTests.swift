@@ -88,7 +88,8 @@ final class ResourcesControllerTests: FeaturesTestCase {
 
     let feature: ResourcesController = try testedInstance()
 
-    let result: Array<ResourceListItemDSV>? = try await feature
+    let result: Array<ResourceListItemDSV>? =
+      try await feature
       .filteredResourcesList(testFilter)
 
     XCTAssertEqual(result, .testResources)

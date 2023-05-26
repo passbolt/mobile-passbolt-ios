@@ -25,7 +25,7 @@ import UIKit
 
 @MainActor
 internal class SceneDelegate: UIResponder, UIWindowSceneDelegate {
-  
+
   internal func scene(
     _ scene: UIScene,
     willConnectTo session: UISceneSession,
@@ -38,17 +38,16 @@ internal class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         with: connectionOptions
       )
   }
-  
+
   internal func sceneDidDisconnect(_ scene: UIScene) {
     Application.shared.ui.close(scene)
   }
-  
+
   internal func sceneDidBecomeActive(_ scene: UIScene) {
     Application.shared.ui.resume(scene)
   }
-  
+
   internal func sceneWillResignActive(_ scene: UIScene) {
     Application.shared.ui.suspend(scene)
   }
 }
-

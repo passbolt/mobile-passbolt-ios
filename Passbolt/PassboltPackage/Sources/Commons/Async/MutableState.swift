@@ -50,8 +50,9 @@ where Value: Sendable {
     fileprivate var value: ValueState {
       didSet {
         switch self.value {
-        case .pending: // TODO: oldValue was current
-          let pendingAwaiters: Array<UpdateAwaiter> = self.updateAwaiters.removeValue(forKey: self.generation) ?? .init()
+        case .pending:  // TODO: oldValue was current
+          let pendingAwaiters: Array<UpdateAwaiter> =
+            self.updateAwaiters.removeValue(forKey: self.generation) ?? .init()
           self.generation &+= 1
           var updatedAwaiters: Array<UpdateAwaiter> = self.updateAwaiters[self.generation] ?? .init()
           updatedAwaiters.append(contentsOf: pendingAwaiters)
@@ -365,7 +366,8 @@ extension MutableState {
           fulfill(.failure(error))
         }
       }
-    }.value
+    }
+    .value
   }
 }
 
@@ -487,10 +489,10 @@ extension MutableState.State {
     with error: Error
   ) throws {
     switch self.value {
-      // if it already failed just ignore it and throw previous error
+    // if it already failed just ignore it and throw previous error
     case .failure(let error):
       throw error
-      
+
     case .pending(let task):
       // cancel pending task, it won't deliver value anyway
       task.cancel()
@@ -513,7 +515,7 @@ extension MutableState.State {
   ) {
     // can't add awaiter if already failed
     if case .failure(let error) = self.value {
-      awaiter(.failure(error)) // finish it immediately with error
+      awaiter(.failure(error))  // finish it immediately with error
     }
     else {
       let generation: MutableState.Generation = generation ?? self.generation

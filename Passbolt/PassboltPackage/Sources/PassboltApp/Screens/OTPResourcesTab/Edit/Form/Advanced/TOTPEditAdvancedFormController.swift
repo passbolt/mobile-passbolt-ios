@@ -87,9 +87,10 @@ extension TOTPEditAdvancedFormController {
         let resourceSecret: JSON = try await resourceEditForm.state.value.secret
 
         // searching only for "totp" field, can't identify totp otherwise now
-        let algorithm: HOTPAlgorithm = resourceSecret.totp.algorithm.stringValue.flatMap(
-          HOTPAlgorithm.init(rawValue:)
-        ) ?? .sha1
+        let algorithm: HOTPAlgorithm =
+          resourceSecret.totp.algorithm.stringValue.flatMap(
+            HOTPAlgorithm.init(rawValue:)
+          ) ?? .sha1
         let digits: Int = resourceSecret.totp.digits.intValue ?? 6
         let period: Int = resourceSecret.totp.period.intValue ?? 30
 

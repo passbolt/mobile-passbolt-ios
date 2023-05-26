@@ -133,97 +133,97 @@ final class MutableStateTests: XCTestCase {
     XCTAssertEqual(result, "42")
   }
 
-//  func test_scheduleRecurringUpdates_updatesValue() async throws {
-//    let state: MutableState<String> = .init(initial: "initial")
-//    let counter: CriticalState<Int> = .init(0)
-//    state.scheduleRecurringUpdates {
-//      try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
-//      let counter: Int = counter.exchange(\.self, with: 1)
-//      guard counter == 0 else { throw CancellationError() }
-//      return { (value: inout String) in
-//        value = "42"
-//      }
-//    }
-//    let result: String = try await state.nextValue
-//    XCTAssertEqual(result, "42")
-//  }
-//
-//  func test_scheduleRecurringUpdates_updatesLazyValue() async throws {
-//    let state: MutableState<String> = .init(lazy: { "initial" })
-//    let counter: CriticalState<Int> = .init(0)
-//    state.scheduleRecurringUpdates {
-//      try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
-//      let counter: Int = counter.exchange(\.self, with: 1)
-//      guard counter == 0 else { throw CancellationError() }
-//      return { (value: inout String) in
-//        value = "42"
-//      }
-//    }
-//    // delay to ensure that update will be scheduled before asking for a value
-//    try await Task.sleep(nanoseconds: 200 * NSEC_PER_MSEC)
-//    let result: String = try await state.value
-//    XCTAssertEqual(result, "42")
-//  }
-//
-//  func test_scheduleRecurringUpdates_updatesValueOverTime() async throws {
-//    let state: MutableState<String> = .init(lazy: { "initial" })
-//    let counter: CriticalState<Int> = .init(10)
-//    state.scheduleRecurringUpdates {
-//      // delay to ensure picking all values
-//      try await Task.sleep(nanoseconds: 10 * NSEC_PER_MSEC)
-//      let counter: Int = counter.access { (value: inout Int) in
-//        defer { value -= 1 }
-//        return value
-//      }
-//      guard counter >= 0
-//      else { throw CancellationError() }
-//      return { (value: inout String) in
-//        if counter == 0 {
-//          throw CancellationError()
-//        }
-//        else {
-//          value = "\(counter)"
-//        }
-//      }
-//    }
-//
-//    var result: Array<String> = .init()
-//    do {
-//      for try await value in state {
-//        result.append(value)
-//      }
-//    }
-//    catch is CancellationError {
-//      // ended
-//    }
-//    catch {
-//      throw error
-//    }
-//
-//    XCTAssertEqual(result, ["initial", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"])
-//  }
-//
-//  func test_scheduleRecurringUpdates_doesNotCrashWhenLongRunning() async throws {
-//    let state: MutableState<String> = .init(lazy: { "initial" })
-//    let counter: CriticalState<Int> = .init(1_000)
-//    state.scheduleRecurringUpdates {
-//      let counter: Int = counter.access { (value: inout Int) in
-//        defer { value -= 1 }
-//        return value
-//      }
-//      guard counter >= 0
-//      else { throw CancellationError() }
-//      return { (value: inout String) in
-//        if counter == 0 {
-//          throw CancellationError()
-//        }
-//        else {
-//          value = "\(counter)"
-//        }
-//      }
-//    }
-//
-//    // iterate over to wait for the completion
-//    while let _ = try? await state.nextValue {}
-//  }
+  //  func test_scheduleRecurringUpdates_updatesValue() async throws {
+  //    let state: MutableState<String> = .init(initial: "initial")
+  //    let counter: CriticalState<Int> = .init(0)
+  //    state.scheduleRecurringUpdates {
+  //      try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+  //      let counter: Int = counter.exchange(\.self, with: 1)
+  //      guard counter == 0 else { throw CancellationError() }
+  //      return { (value: inout String) in
+  //        value = "42"
+  //      }
+  //    }
+  //    let result: String = try await state.nextValue
+  //    XCTAssertEqual(result, "42")
+  //  }
+  //
+  //  func test_scheduleRecurringUpdates_updatesLazyValue() async throws {
+  //    let state: MutableState<String> = .init(lazy: { "initial" })
+  //    let counter: CriticalState<Int> = .init(0)
+  //    state.scheduleRecurringUpdates {
+  //      try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+  //      let counter: Int = counter.exchange(\.self, with: 1)
+  //      guard counter == 0 else { throw CancellationError() }
+  //      return { (value: inout String) in
+  //        value = "42"
+  //      }
+  //    }
+  //    // delay to ensure that update will be scheduled before asking for a value
+  //    try await Task.sleep(nanoseconds: 200 * NSEC_PER_MSEC)
+  //    let result: String = try await state.value
+  //    XCTAssertEqual(result, "42")
+  //  }
+  //
+  //  func test_scheduleRecurringUpdates_updatesValueOverTime() async throws {
+  //    let state: MutableState<String> = .init(lazy: { "initial" })
+  //    let counter: CriticalState<Int> = .init(10)
+  //    state.scheduleRecurringUpdates {
+  //      // delay to ensure picking all values
+  //      try await Task.sleep(nanoseconds: 10 * NSEC_PER_MSEC)
+  //      let counter: Int = counter.access { (value: inout Int) in
+  //        defer { value -= 1 }
+  //        return value
+  //      }
+  //      guard counter >= 0
+  //      else { throw CancellationError() }
+  //      return { (value: inout String) in
+  //        if counter == 0 {
+  //          throw CancellationError()
+  //        }
+  //        else {
+  //          value = "\(counter)"
+  //        }
+  //      }
+  //    }
+  //
+  //    var result: Array<String> = .init()
+  //    do {
+  //      for try await value in state {
+  //        result.append(value)
+  //      }
+  //    }
+  //    catch is CancellationError {
+  //      // ended
+  //    }
+  //    catch {
+  //      throw error
+  //    }
+  //
+  //    XCTAssertEqual(result, ["initial", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"])
+  //  }
+  //
+  //  func test_scheduleRecurringUpdates_doesNotCrashWhenLongRunning() async throws {
+  //    let state: MutableState<String> = .init(lazy: { "initial" })
+  //    let counter: CriticalState<Int> = .init(1_000)
+  //    state.scheduleRecurringUpdates {
+  //      let counter: Int = counter.access { (value: inout Int) in
+  //        defer { value -= 1 }
+  //        return value
+  //      }
+  //      guard counter >= 0
+  //      else { throw CancellationError() }
+  //      return { (value: inout String) in
+  //        if counter == 0 {
+  //          throw CancellationError()
+  //        }
+  //        else {
+  //          value = "\(counter)"
+  //        }
+  //      }
+  //    }
+  //
+  //    // iterate over to wait for the completion
+  //    while let _ = try? await state.nextValue {}
+  //  }
 }

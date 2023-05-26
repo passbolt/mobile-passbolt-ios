@@ -24,47 +24,40 @@
 import Foundation
 
 final class AppSettingsTests: UITestCase {
-    override var initialAccounts: Array<MockAccount> {
-        [
-            .automation
-        ]
+
+  override func beforeEachTestCase() throws {
+    try signIn()
+    try tapTab("Settings")
+  }
+
+  ///    https://passbolt.testrail.io/index.php?/cases/view/8168
+  func test_AsAnIOSUserICanSeeAppSettings() throws {
+    //    Given that I am #MOBILE_USER_ON_SETTINGS_PAGE
+    //    When    I click on the “App settings” button
+    try tap("settings.main.item.application.title")
+    //    Then  I see the “App settings” title
+    assertPresentsString(matching: "App Settings")
+    //    And     I see the back button to go to the main settings page
+    ignoreFailure("Back arrow button can't be accessed") {
+      assertInteractive("navigation.back")
     }
-    
-    override func beforeEachTestCase() {
-        typeTo("input", text: MockAccount.automation.username)
-        tap("button.signin.passphrase")
-        tap("biometrics.info.later.button", required: false, timeout: 2.0)
-        tap("biometrics.setup.later.button", required: false, timeout: 2.0)
-        tap("extension.setup.later.button", required: false, timeout: 2.0)
-        tapTab("Settings")
-    }
-    
-    ///    https://passbolt.testrail.io/index.php?/cases/view/8168
-    func test_AsAnIOSUserICanSeeAppSettings() {
-        //    Given that I am #MOBILE_USER_ON_SETTINGS_PAGE
-        //    When    I click on the “App settings” button
-        tap("settings.main.item.application.title")
-        //    Then  I see the “App settings” title
-        assertPresentsString(matching: "App Settings")
-        //    And     I see the back button to go to the main settings page
-        skipFailure("The Back Arrow button can't be automated currently") {
-            assertInteractive("navigation.back")
-        }
-        //    And     I see a <list item> with an <graphic> icon and a <action item> on the right
-        //
-        //        Examples:
-        //        | list item | graphic | action item |
-        //        | FaceID/TouchID | face/fingerprint | switch |
-        assertPresentsString(matching: "Unavailable") // I can't add this AccID
-        assertExists("Unavailable") //On emulators biometry is set to unavailable
-        assertInteractive("settings.application.biometrics.disabled.toggle")
-        //        | Autofill | key | caret |
-        assertInteractive("settings.application.item.autofill.title")
-        assertExists("Key")
-        assertExists("settings.application.item.autofill.disclosure.indicator")
-        //        | Default filter | filter | caret |
-        assertInteractive("settings.application.item.default.mode.title")
-        assertExists("Filter")
-        assertExists("settings.application.item.filter.disclosure.indicator")
-    }
+    //    And     I see a <list item> with an <graphic> icon and a <action item> on the right
+    //
+    //        Examples:
+    //        | list item | graphic | action item |
+    //        | FaceID/TouchID | face/fingerprint | switch |
+    assertPresentsString(
+      matching: "Unavailable"
+    )  // I can't add this AccID
+    assertExists("Unavailable")  //On emulators biometry is set to unavailable
+    assertInteractive("settings.application.biometrics.disabled.toggle")
+    //        | Autofill | key | caret |
+    assertInteractive("settings.application.item.autofill.title")
+    assertExists("Key")
+    assertExists("settings.application.item.autofill.disclosure.indicator")
+    //        | Default filter | filter | caret |
+    assertInteractive("settings.application.item.default.mode.title")
+    assertExists("Filter")
+    assertExists("settings.application.item.filter.disclosure.indicator")
+  }
 }

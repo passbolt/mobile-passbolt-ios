@@ -22,10 +22,10 @@
 
 import Accounts
 import CommonModels
+import OSFeatures
 import Session
 import SessionData
 import UIComponents
-import OSFeatures
 
 internal struct SplashScreenController {
 

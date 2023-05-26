@@ -36,7 +36,7 @@ extension AccountInitialSetup {
 
     #warning("TODO: refine with account related storage")
     let unfinishedSetupElementsProperty: StoredProperty<Array<String>> = try features.instance(
-      context: "unfinishedSetup-\(context.localID)"
+      context: "unfinishedSetup-\(context.userID)"
     )
 
     let osExtensions: OSExtensions = features.instance()

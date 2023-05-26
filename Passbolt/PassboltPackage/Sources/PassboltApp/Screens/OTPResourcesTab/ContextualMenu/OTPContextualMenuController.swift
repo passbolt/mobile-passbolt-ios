@@ -100,7 +100,7 @@ extension OTPContextualMenuController {
       failMessage: "Loading resource details failed!"
     ) { (resource: Resource) async throws in
       let resourceName: String = resource.meta.name.stringValue ?? ""
-      
+
       await viewState.update { (state: inout ViewState) in
         state.title = .raw(resourceName)
         state.editAvailable = resource.permission.canEdit

@@ -51,7 +51,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     )
     patch(
       \SessionData.lastUpdate,
-       with: .init(failure: MockIssue.error())
+      with: .init(failure: MockIssue.error())
     )
   }
 
@@ -76,7 +76,7 @@ final class ResourceControllerTests: FeaturesTestCase {
   func test_state_isBroken_whenDatabaseFails() async throws {
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
 
     let feature: ResourceController = try self.testedInstance()
@@ -115,7 +115,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     let updatesState: MutableState<Timestamp> = .init(initial: 0)
     patch(
       \SessionData.lastUpdate,
-       with: .init(viewing: updatesState)
+      with: .init(viewing: updatesState)
     )
     let expectedResult_0: Resource = {
       var resource: Resource = .mock_1
@@ -134,25 +134,25 @@ final class ResourceControllerTests: FeaturesTestCase {
     }()
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
-       with: { _ in
-         let executionCount: Int = self.dynamicVariables.getIfPresent(\.executionCount, of: Int.self) ?? 0
-         self.dynamicVariables.set(\.executionCount, to: executionCount + 1)
-         switch executionCount {
-         case 0:
-           return expectedResult_0
+      with: { _ in
+        let executionCount: Int = self.dynamicVariables.getIfPresent(\.executionCount, of: Int.self) ?? 0
+        self.dynamicVariables.set(\.executionCount, to: executionCount + 1)
+        switch executionCount {
+        case 0:
+          return expectedResult_0
 
-         case 1:
-           return expectedResult_1
+        case 1:
+          return expectedResult_1
 
-         case 2:
-           return expectedResult_2
+        case 2:
+          return expectedResult_2
 
-         case _:
-           // ends updates
-           XCTFail("Updates should be ended")
-           throw CancellationError()
-         }
-       }
+        case _:
+          // ends updates
+          XCTFail("Updates should be ended")
+          throw CancellationError()
+        }
+      }
     )
 
     let feature: ResourceController = try self.testedInstance()
@@ -170,7 +170,7 @@ final class ResourceControllerTests: FeaturesTestCase {
       try await feature.state.value
     }
 
-    try await updatesState.update(\.self, to: 1) // update
+    try await updatesState.update(\.self, to: 1)  // update
     await self.asyncExecutionControl.executeNext()
     await XCTAssertValue(
       equal: expectedResult_2
@@ -178,7 +178,7 @@ final class ResourceControllerTests: FeaturesTestCase {
       try await feature.state.value
     }
 
-    try updatesState.fail(with: MockIssue.error()) // end updates
+    try updatesState.fail(with: MockIssue.error())  // end updates
     await self.asyncExecutionControl.executeNext()
 
     XCTAssertEqual(self.dynamicVariables.getIfPresent(\.executionCount, of: Int.self), 3)
@@ -188,23 +188,23 @@ final class ResourceControllerTests: FeaturesTestCase {
     let updatesState: MutableState<Timestamp> = .init(initial: 0)
     patch(
       \SessionData.lastUpdate,
-       with: .init(viewing: updatesState)
+      with: .init(viewing: updatesState)
     )
     let expectedResult: Resource = .mock_1
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
-       with: { _ in
-         let executionCount: Int = self.dynamicVariables.getIfPresent(\.executionCount, of: Int.self) ?? 0
-         self.dynamicVariables.set(\.executionCount, to: executionCount + 1)
-         switch executionCount {
-         case 0:
-           return expectedResult
+      with: { _ in
+        let executionCount: Int = self.dynamicVariables.getIfPresent(\.executionCount, of: Int.self) ?? 0
+        self.dynamicVariables.set(\.executionCount, to: executionCount + 1)
+        switch executionCount {
+        case 0:
+          return expectedResult
 
-         case _:
-           // fail updates
-           throw MockIssue.error()
-         }
-       }
+        case _:
+          // fail updates
+          throw MockIssue.error()
+        }
+      }
     )
 
     let feature: ResourceController = try self.testedInstance()
@@ -222,22 +222,22 @@ final class ResourceControllerTests: FeaturesTestCase {
       try await feature.state.value
     }
 
-    try updatesState.fail(with: MockIssue.error()) // end updates
+    try updatesState.fail(with: MockIssue.error())  // end updates
     await self.asyncExecutionControl.executeNext()
-    
+
     XCTAssertEqual(self.dynamicVariables.getIfPresent(\.executionCount, of: Int.self), 2)
   }
 
   func test_fetchSecretIfNeeded_failsWhenFetchingSecretFromNetworkFails() async throws {
     var resource: Resource = .mock_1
-    resource.secret = nil // ensure no initial secret
+    resource.secret = nil  // ensure no initial secret
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
       with: always(resource)
     )
     patch(
       \ResourceSecretFetchNetworkOperation.execute,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
 
     let feature: ResourceController = try self.testedInstance()
@@ -253,18 +253,18 @@ final class ResourceControllerTests: FeaturesTestCase {
 
   func test_fetchSecretIfNeeded_failsWhenDecryptingSecretFails() async throws {
     var resource: Resource = .mock_1
-    resource.secret = nil // ensure no initial secret
+    resource.secret = nil  // ensure no initial secret
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
       with: always(resource)
     )
     patch(
       \ResourceSecretFetchNetworkOperation.execute,
-       with: always(.init(data: "encrypted_secret"))
+      with: always(.init(data: "encrypted_secret"))
     )
     patch(
       \SessionCryptography.decryptMessage,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
 
     let feature: ResourceController = try self.testedInstance()
@@ -280,18 +280,18 @@ final class ResourceControllerTests: FeaturesTestCase {
 
   func test_fetchSecretIfNeeded_failsWhenSecretValidationFails() async throws {
     var resource: Resource = .mock_1
-    resource.secret = nil // ensure no initial secret
+    resource.secret = nil  // ensure no initial secret
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
       with: always(resource)
     )
     patch(
       \ResourceSecretFetchNetworkOperation.execute,
-       with: always(.init(data: "encrypted_secret"))
+      with: always(.init(data: "encrypted_secret"))
     )
     patch(
       \SessionCryptography.decryptMessage,
-       with: always("{\"secret\":\"invalid\"}")
+      with: always("{\"secret\":\"invalid\"}")
     )
 
     let feature: ResourceController = try self.testedInstance()
@@ -307,18 +307,18 @@ final class ResourceControllerTests: FeaturesTestCase {
 
   func test_fetchSecretIfNeeded_fetchesSecretFromNetworkInitially() async throws {
     var resource: Resource = .mock_1
-    resource.secret = nil // ensure no initial secret
+    resource.secret = nil  // ensure no initial secret
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
       with: always(resource)
     )
     patch(
       \ResourceSecretFetchNetworkOperation.execute,
-       with: always(.init(data: "encrypted_secret"))
+      with: always(.init(data: "encrypted_secret"))
     )
     patch(
       \SessionCryptography.decryptMessage,
-       with: always("{\"password\":\"decrypted\"}")
+      with: always("{\"password\":\"decrypted\"}")
     )
 
     let feature: ResourceController = try self.testedInstance()
@@ -334,7 +334,7 @@ final class ResourceControllerTests: FeaturesTestCase {
 
   func test_fetchSecretIfNeeded_doesNotFetchSecretFromNetworkWhenAvailable() async throws {
     var resource: Resource = .mock_1
-    resource.secret = ["password": "initial"] // ensure any initial secret
+    resource.secret = ["password": "initial"]  // ensure any initial secret
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
       with: always(resource)
@@ -353,22 +353,22 @@ final class ResourceControllerTests: FeaturesTestCase {
 
   func test_fetchSecretIfNeeded_fetchesSecretFromNetworkWhenAvailableButForced() async throws {
     var resource: Resource = .mock_1
-    resource.secret = ["password": "initial"] // ensure any initial secret
+    resource.secret = ["password": "initial"]  // ensure any initial secret
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
       with: always(resource)
     )
     patch(
       \ResourceSecretFetchNetworkOperation.execute,
-       with: { _ in
-         let iteration: Int = self.dynamicVariables.getIfPresent(\.executedCount, of: Int.self) ?? 0
-         self.dynamicVariables.set(\.executedCount, to: iteration + 1)
-         return .init(data: "encrypted_secret")
-       }
+      with: { _ in
+        let iteration: Int = self.dynamicVariables.getIfPresent(\.executedCount, of: Int.self) ?? 0
+        self.dynamicVariables.set(\.executedCount, to: iteration + 1)
+        return .init(data: "encrypted_secret")
+      }
     )
     patch(
       \SessionCryptography.decryptMessage,
-       with: always("{\"password\":\"decrypted\"}")
+      with: always("{\"password\":\"decrypted\"}")
     )
 
     let feature: ResourceController = try self.testedInstance()
@@ -392,7 +392,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     )
     patch(
       \ResourceFavoriteAddNetworkOperation.execute,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
 
     let feature: ResourceController = try self.testedInstance()
@@ -415,7 +415,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     )
     patch(
       \ResourceFavoriteDeleteNetworkOperation.execute,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
 
     let feature: ResourceController = try self.testedInstance()
@@ -442,7 +442,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     )
     patch(
       \ResourceFavoriteAddNetworkOperation.execute,
-       with: always(.init(favoriteID: .mock_1))
+      with: always(.init(favoriteID: .mock_1))
     )
 
     let feature: ResourceController = try self.testedInstance()
@@ -472,7 +472,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     )
     patch(
       \ResourceFavoriteDeleteNetworkOperation.execute,
-       with: always(Void())
+      with: always(Void())
     )
 
     let feature: ResourceController = try self.testedInstance()
@@ -498,7 +498,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     )
     patch(
       \ResourceDeleteNetworkOperation.execute,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
     patch(
       \SessionData.refreshIfNeeded,

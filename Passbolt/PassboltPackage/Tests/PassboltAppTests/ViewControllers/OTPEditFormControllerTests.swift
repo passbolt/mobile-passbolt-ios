@@ -92,16 +92,16 @@ final class OTPEditFormControllerTests: FeaturesTestCase {
 
     patch(
       \ResourceEditForm.state,
-       with: .init(constant: .mock_totp)
+      with: .init(constant: .mock_totp)
     )
     patch(
       \ResourceEditForm.update,
-       with: { mutation in
-         mutable.access { value in
-           mutation(&value)
-           return value
-         }
-       }
+      with: { mutation in
+        mutable.access { value in
+          mutation(&value)
+          return value
+        }
+      }
     )
 
     let _: TOTPEditFormController = try self.testedInstance(context: .none)
@@ -115,9 +115,9 @@ final class OTPEditFormControllerTests: FeaturesTestCase {
           "secret_key": "",
           "algorithm": "SHA1",
           "period": 30,
-          "digits": 6
+          "digits": 6,
         ]
-     ]
+      ]
     )
   }
 }

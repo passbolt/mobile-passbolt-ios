@@ -23,39 +23,24 @@
 
 import XCTest
 
-final class WelcomeScreenUITests: UITestCase {
+extension UITestCase {
 
-  override var initialAccounts: Array<MockAccount> { [] }
-
-  func testThatAsAMobileUserICanSeeTheWelcomeScreenWhenIOpenTheApplicationAndNoAccountIsSetup() throws {
-    self.assert(
-      "label.title",
-      textEqual: "Welcome!"
+  internal final func signIn(
+    password: String = MockAccount.automation.username,
+    index: Int = 0
+  ) throws {
+    ignoreFailure("Test can start already on login screen") {
+      try selectCollectionViewItem(
+        identifier: "account.selection.collectionview",
+        at: index
+      )
+    }
+    try type(
+      text: password,
+      to: "input"
     )
-
-    self.assert(
-      "label.description",
-      textEqual:
-        "You need an existing account to get started. Sign in with your existing account on the desktop browser extension to connect it with the mobile device."
-    )
-
-    self.assertExists(
-      "button.account.transfer"
-    )
-
-    self.assertExists(
-      "button.account.none"
-    )
-  }
-
-  func testThatAsAMobileUserICanSeeAnExplanationWhyICannotCreateAnAccountOnTheMobileApp() throws {
-    try self.tap(
-      "button.account.none"
-    )
-
-    self.assertPresentsString(
-      matching:
-        "It is currently not possible to create an account using the mobile app. First you will need create an account using your desktop browser extension."
-    )
+    try tap("button.signin.passphrase")
+    ignoreFailure("Passing initial setup popup is optional") {
+    }
   }
 }

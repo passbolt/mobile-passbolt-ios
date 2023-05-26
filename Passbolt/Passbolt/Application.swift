@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-import Crypto
 import Combine
+import Crypto
 import Features
 import Foundation
 import NFC
@@ -30,36 +30,35 @@ import PassboltApp
 
 @MainActor
 internal struct Application {
-  
+
   internal let ui: UI
   private let features: Features
-  
+
   internal init() {
-		let features: Features = FeaturesFactory { (registry: inout FeaturesRegistry) in
-			registry.usePassboltFeatures()
-		}
+    let features: Features = FeaturesFactory { (registry: inout FeaturesRegistry) in
+      registry.usePassboltFeatures()
+    }
     self.ui = UI(features: features)
     self.features = features
   }
 }
 
 extension Application {
-  
+
   internal func initialize() -> Bool {
-		do {
-			try features.instance(of: Initialization.self).initialize()
-		}
-		catch {
-			error
-				.asTheError()
-				.asFatalError()
-		}
+    do {
+      try features.instance(of: Initialization.self).initialize()
+    }
+    catch {
+      error
+        .asTheError()
+        .asFatalError()
+    }
     return true
   }
 }
 
 extension Application {
-  
+
   internal static let shared: Application = .init()
 }
-

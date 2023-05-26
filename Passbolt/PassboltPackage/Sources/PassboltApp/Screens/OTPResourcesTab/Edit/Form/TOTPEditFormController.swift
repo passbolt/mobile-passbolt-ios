@@ -126,7 +126,7 @@ extension TOTPEditFormController {
             "secret_key": "",
             "algorithm": "SHA1",
             "period": 30,
-            "digits": 6
+            "digits": 6,
           ]
           _ = try await resourceEditForm.update { form in
             form = resource

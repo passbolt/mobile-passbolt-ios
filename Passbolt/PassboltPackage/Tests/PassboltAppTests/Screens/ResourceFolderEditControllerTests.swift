@@ -153,7 +153,7 @@ final class ResourceFolderEditControllerTests: LoadableFeatureTestCase<ResourceF
         )
         updatesSource.sendUpdate()
         await self.executionMockControl.executeNext()
-        
+
         let updatedFolderName: Validated<String> = await tested.viewState.value.folderName
 
         updatesSource.endUpdates()
