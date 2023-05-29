@@ -23,41 +23,36 @@
 
 import XCTest
 
-final class AppSettingsTests: UITestCase {
+final class AccountsTests: UITestCase {
 
   override func beforeEachTestCase() throws {
     try signIn()
     try tapTab("Settings")
   }
 
-  ///    https://passbolt.testrail.io/index.php?/cases/view/8614
-  func test_AsAnIOSUserWithoutBiometrySetUpOnTheDeviceICanSeeAppSettings() throws {
-    //    Given that I am #MOBILE_USER_ON_SETTINGS_PAGE
-    //    When    I click on the “App settings” button
-    try tap("settings.main.item.application.title")
-    //    Then  I see the “App settings” title
-    assertPresentsString(matching: "App Settings")
-    //    And     I see the back button to go to the main settings page
-    ignoreFailure("Back arrow button can't be accessed") {
+  ///    https://passbolt.testrail.io/index.php?/cases/view/8174
+  func test_AsAMobileUserICanSeeAccounts() throws {
+
+    //        Given that I am #MOBILE_USER_ON_SETTINGS_PAGE
+    //        When    I click on the “Accounts” button
+    try tap("settings.main.item.accounts.title")
+    //        Then  I see the “Accounts” title
+    assertPresentsString(matching: "Accounts")
+    //        And     I see the back button to go to the main settings page
+    ignoreFailure("The Back Arrow button can't be automated currently") {
       assertInteractive("navigation.back")
     }
-    //    And     I see a <list item> with an <graphic> icon and a <action item> on the right
+    //        And     I see a <list item> with an <graphic> icon and a <action item> on the right
     //
     //        Examples:
     //        | list item | graphic | action item |
-    //        | FaceID/TouchID | face/fingerprint | switch |
-    assertPresentsString(
-      matching: "Unavailable"
-    )
-    assertExists("Unavailable")  // On emulators biometry is set to unavailable
-    assertExists("settings.application.biometrics.disabled.toggle")
-    //        | Autofill | key | caret |
-    assertInteractive("settings.application.item.autofill.title")
-    assertExists("Key")
-    assertExists("ChevronRight", inside: "settings.application.item.autofill.title")
-    //        | Default filter | filter | caret |
-    assertInteractive("settings.application.item.default.mode.title")
-    assertExists("Filter")
-    assertExists("ChevronRight", inside: "settings.application.item.default.mode.title")
+    //        | Manage accounts | peronas | caret |
+    assertInteractive("settings.accounts.item.manage.title")
+    assertExists("Accounts")
+    assertExists("ChevronRight", inside: "settings.accounts.item.manage.title")
+    //        | Transfer account to another device | lorry | caret |
+    assertInteractive("settings.accounts.item.export.title")
+    assertExists("MobileTransfer")
+    assertExists("ChevronRight", inside: "settings.accounts.item.export.title")
   }
 }

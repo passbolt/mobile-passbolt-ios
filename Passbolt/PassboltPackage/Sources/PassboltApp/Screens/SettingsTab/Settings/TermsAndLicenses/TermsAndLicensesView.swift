@@ -56,6 +56,7 @@ internal struct TermsAndLicensesView: ControlledView {
         navigation: self.controller.navigateToTermsAndConditions
       )
       .enabled(self.controller.termsAndConditionsLinkAvailable)
+      .accessibilityIdentifier("settings.terms.and.licenses.item.terms.title")
 
       SettingsActionRowView(
         icon: .lockedLock,
@@ -63,12 +64,14 @@ internal struct TermsAndLicensesView: ControlledView {
         navigation: self.controller.navigateToPrivacyPolicy
       )
       .enabled(self.controller.privacyPolicyLinkAvailable)
+      .accessibilityIdentifier("settings.terms.and.licenses.item.privacy.title")
 
       SettingsActionRowView(
         icon: .feather,
         title: "settings.terms.and.licenses.item.licenses.title",
         navigation: self.controller.navigateToLicenses
       )
+      .accessibilityIdentifier("settings.terms.and.licenses.item.licenses.title")
     }
   }
 }

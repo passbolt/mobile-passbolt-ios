@@ -43,4 +43,12 @@ extension UITestCase {
     ignoreFailure("Passing initial setup popup is optional") {
     }
   }
+
+  internal final func allowCookies()
+    throws
+  {
+    ignoreFailure("Cookies may be already allowed") {
+      safari.buttons["Allow selection"].tap()
+    }
+  }
 }

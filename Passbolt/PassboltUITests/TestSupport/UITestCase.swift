@@ -73,6 +73,7 @@ internal class UITestCase: XCTestCase {
     application.launch()
     return application
   }()
+  internal private(set) lazy var safari = XCUIApplication(bundleIdentifier: "com.apple.mobilesafari")
 
   /// Prepare ``XCUIApplication``
   internal func applicationSetup(
@@ -139,16 +140,33 @@ internal class UITestCase: XCTestCase {
 
   internal final func waitForElement(
     _ identifier: String,
+    inside specifier: String? = .none,
     timeout: TimeInterval = 2.0,
     file: StaticString = #file,
     line: UInt = #line
   ) throws {
-    let element: XCUIElement = self.application
-      .descendants(matching: .any)
-      .element(
-        matching: .any,
-        identifier: identifier
-      )
+    let element: XCUIElement
+    if let specifier {
+      element = self.application
+        .descendants(matching: .any)
+        .element(
+          matching: .any,
+          identifier: specifier
+        )
+        .descendants(matching: .any)
+        .element(
+          matching: .any,
+          identifier: identifier
+        )
+    }
+    else {
+      element = self.application
+        .descendants(matching: .any)
+        .element(
+          matching: .any,
+          identifier: identifier
+        )
+    }
 
     let exists: Bool =
       element.exists
@@ -159,7 +177,7 @@ internal class UITestCase: XCTestCase {
       throw
         TestFailure
         .error(
-          message: "Required element \"\(identifier)\" does not exists!",
+          message: "Required element \"\(identifier)\" \(specifier.map { " inside \"\($0)\"" } ?? "") does not exists!",
           file: file,
           line: line
         )
@@ -168,16 +186,33 @@ internal class UITestCase: XCTestCase {
 
   internal final func element(
     _ identifier: String,
+    inside specifier: String?,
     timeout: TimeInterval = 2.0,
     file: StaticString = #file,
     line: UInt = #line
   ) throws -> XCUIElement {
-    let element: XCUIElement = self.application
-      .descendants(matching: .any)
-      .element(
-        matching: .any,
-        identifier: identifier
-      )
+    let element: XCUIElement
+    if let specifier {
+      element = self.application
+        .descendants(matching: .any)
+        .element(
+          matching: .any,
+          identifier: specifier
+        )
+        .descendants(matching: .any)
+        .element(
+          matching: .any,
+          identifier: identifier
+        )
+    }
+    else {
+      element = self.application
+        .descendants(matching: .any)
+        .element(
+          matching: .any,
+          identifier: identifier
+        )
+    }
 
     let exists: Bool =
       element.exists
@@ -188,7 +223,7 @@ internal class UITestCase: XCTestCase {
       throw
         TestFailure
         .error(
-          message: "Required element \"\(identifier)\" does not exists!",
+          message: "Required element \"\(identifier)\"\(specifier.map { " inside \"\($0)\" " } ?? "") does not exists!",
           file: file,
           line: line
         )
@@ -202,6 +237,7 @@ internal class UITestCase: XCTestCase {
 
   internal final func selectCollectionViewItem(
     identifier: String,
+    inside specifier: String? = .none,
     at index: Int,
     timeout: Double = 2.0,
     file: StaticString = #file,
@@ -209,6 +245,7 @@ internal class UITestCase: XCTestCase {
   ) throws {
     try element(
       identifier,
+      inside: specifier,
       timeout: timeout,
       file: file,
       line: line
@@ -220,34 +257,18 @@ internal class UITestCase: XCTestCase {
 
   internal final func tap(
     _ identifier: String,
+    inside specifier: String? = .none,
     timeout: Double = 2.0,
     file: StaticString = #file,
     line: UInt = #line
   ) throws {
     try self.element(
       identifier,
+      inside: specifier,
       timeout: timeout,
       file: file,
       line: line
     )
-    .tap()
-  }
-
-  internal final func tapAccessoryView(
-    _ identifier: String,
-    index: Int,
-    timeout: Double = 2.0,
-    file: StaticString = #file,
-    line: UInt = #line
-  ) throws {
-    try self.element(
-      identifier,
-      timeout: timeout,
-      file: file,
-      line: line
-    )
-    .children(matching: .button)
-    .element(boundBy: index)
     .tap()
   }
 
@@ -286,12 +307,14 @@ internal class UITestCase: XCTestCase {
 
   internal final func swipeUp(
     _ identifier: String,
+    inside specifier: String? = .none,
     timeout: Double = 2.0,
     file: StaticString = #file,
     line: UInt = #line
   ) throws {
     try self.element(
       identifier,
+      inside: specifier,
       timeout: timeout,
       file: file,
       line: line
@@ -301,12 +324,14 @@ internal class UITestCase: XCTestCase {
 
   internal final func swipeDown(
     _ identifier: String,
+    inside specifier: String? = .none,
     timeout: Double = 2.0,
     file: StaticString = #file,
     line: UInt = #line
   ) throws {
     try self.element(
       identifier,
+      inside: specifier,
       timeout: timeout,
       file: file,
       line: line
@@ -317,12 +342,14 @@ internal class UITestCase: XCTestCase {
   internal final func type(
     text value: String,
     to identifier: String,
+    inside specifier: String? = .none,
     timeout: Double = 2.0,
     file: StaticString = #file,
     line: UInt = #line
   ) throws {
     let element: XCUIElement = try self.element(
       identifier,
+      inside: specifier,
       timeout: timeout,
       file: file,
       line: line
@@ -335,6 +362,7 @@ internal class UITestCase: XCTestCase {
 
   internal final func assert(
     _ identifier: String,
+    inside specifier: String? = .none,
     textEqual text: String,
     timeout: Double = 2.0,
     file: StaticString = #file,
@@ -344,6 +372,7 @@ internal class UITestCase: XCTestCase {
       let label: String =
         try self.element(
           identifier,
+          inside: specifier,
           timeout: timeout,
           file: file,
           line: line
@@ -353,7 +382,8 @@ internal class UITestCase: XCTestCase {
       if label != text {
         TestFailure
           .error(
-            message: "Element \"\(identifier)\" text \"\(label)\" is not equal to \"\(text)\"!",
+            message:
+              "Element \"\(identifier)\"\(identifier)\"\(specifier.map { " inside \"\($0)\" " } ?? "") text \"\(label)\" is not equal to \"\(text)\"!",
             file: file,
             line: line
           )
@@ -374,6 +404,7 @@ internal class UITestCase: XCTestCase {
 
   internal final func assert(
     _ identifier: String,
+    inside specifier: String? = .none,
     textContains text: String,
     timeout: Double = 2.0,
     file: StaticString = #file,
@@ -383,6 +414,7 @@ internal class UITestCase: XCTestCase {
       let label: String =
         try self.element(
           identifier,
+          inside: specifier,
           timeout: timeout,
           file: file,
           line: line
@@ -392,7 +424,8 @@ internal class UITestCase: XCTestCase {
       if !label.contains(text) {
         TestFailure
           .error(
-            message: "Element \"\(identifier)\" text \"\(label)\" does not contain \"\(text)\"!",
+            message:
+              "Element \"\(identifier)\"\(specifier.map { " inside \"\($0)\" " } ?? "") text \"\(label)\" does not contain \"\(text)\"!",
             file: file,
             line: line
           )
@@ -413,6 +446,7 @@ internal class UITestCase: XCTestCase {
 
   internal final func assertExists(
     _ identifier: String,
+    inside specifier: String? = .none,
     timeout: Double = 2.0,
     file: StaticString = #file,
     line: UInt = #line
@@ -420,6 +454,7 @@ internal class UITestCase: XCTestCase {
     do {
       try self.waitForElement(
         identifier,
+        inside: specifier,
         timeout: timeout,
         file: file,
         line: line
@@ -436,6 +471,7 @@ internal class UITestCase: XCTestCase {
 
   internal final func assertNotExists(
     _ identifier: String,
+    inside specifier: String? = .none,
     // shorter default timeout, we expect it to not be there but still wan't to wait a while to be sure
     timeout: Double = 0.5,
     file: StaticString = #file,
@@ -444,6 +480,7 @@ internal class UITestCase: XCTestCase {
     do {
       try self.waitForElement(
         identifier,
+        inside: specifier,
         timeout: timeout,
         file: file,
         line: line
@@ -451,7 +488,7 @@ internal class UITestCase: XCTestCase {
 
       TestFailure
         .error(
-          message: "Not expected element \"\(identifier)\" exists!",
+          message: "Not expected element \"\(identifier)\"\(specifier.map { " inside \"\($0)\" " } ?? "") exists!",
           file: file,
           line: line
         )
@@ -467,6 +504,7 @@ internal class UITestCase: XCTestCase {
 
   internal final func assertInteractive(
     _ identifier: String,
+    inside specifier: String? = .none,
     timeout: Double = 2.0,
     file: StaticString = #file,
     line: UInt = #line
@@ -475,6 +513,7 @@ internal class UITestCase: XCTestCase {
       let enabled: Bool =
         try self.element(
           identifier,
+          inside: specifier,
           timeout: timeout,
           file: file,
           line: line
@@ -485,7 +524,8 @@ internal class UITestCase: XCTestCase {
         throw
           TestFailure
           .error(
-            message: "Required element \"\(identifier)\" is not interactive!",
+            message:
+              "Required element \"\(identifier)\"\(specifier.map { " inside \"\($0)\" " } ?? "") is not interactive!",
             file: file,
             line: line
           )
@@ -535,6 +575,65 @@ internal class UITestCase: XCTestCase {
     }  // else passes
   }
 
+  internal final func assertPresentsSafari(
+    timeout: Double = 2.0,
+    file: StaticString = #file,
+    line: UInt = #line
+  ) throws {
+    let safari = self.safari
+    let exists: Bool =
+      safari.exists
+      ? true
+      : safari.wait(for: .runningForeground, timeout: timeout)
+
+    if !exists {
+      throw
+        SafariError
+        .appLoadTimeout
+    }
+  }
+
+  internal final func assertPresentsStringInSafari(
+    matching string: String,
+    timeout: Double = 2.0,
+    file: StaticString = #file,
+    line: UInt = #line
+  ) {
+    do {
+      let element: XCUIElement = self.safari
+        .descendants(matching: .staticText)
+        .containing(
+          NSPredicate(
+            format: "label CONTAINS[c] %@",
+            string
+          )
+        )
+        .firstMatch
+
+      let exists: Bool =
+        element.exists
+        ? true
+        : element.waitForExistence(timeout: timeout)
+
+      if !exists {
+        throw
+          TestFailure
+          .error(
+            message: "Required string \"\(string)\" does not exists!",
+            file: file,
+            line: line
+          )
+      }
+    }
+    catch {
+      error
+        .asTestFailure(
+          file: file,
+          line: line
+        )
+    }  // else passes
+  }
+
   internal final func ignoreFailure(
     _ reason: String,
     _ execute: () throws -> Void,
@@ -549,5 +648,9 @@ internal class UITestCase: XCTestCase {
         // ignore failures
       }
     }
+  }
+
+  enum SafariError: Error {
+    case appLoadTimeout
   }
 }

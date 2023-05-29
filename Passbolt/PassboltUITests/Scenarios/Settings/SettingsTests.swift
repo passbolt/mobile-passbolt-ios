@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-import Foundation
+import XCTest
 
 final class SettingsTests: UITestCase {
 
@@ -45,19 +45,19 @@ final class SettingsTests: UITestCase {
     //            | App settings | settings | caret |
     assertInteractive("settings.main.item.application.title")
     assertExists("Settings")
-    assertExists("settings.main.item.application.disclosure.indicator")
+    assertExists("ChevronRight", inside: "settings.main.item.application.title")
     //            | Accounts | personas | caret |
     assertInteractive("settings.main.item.application.title")
     assertExists("People")
-    assertExists("settings.main.item.accounts.disclosure.indicator")
+    assertExists("ChevronRight", inside: "settings.main.item.application.title")
     //            | Terms & licences | info | caret |
     assertInteractive("settings.main.item.terms.and.licenses.title")
     assertExists("Info")
-    assertExists("settings.accounts.item.terms.and.licenses.disclosure.indicator")
+    assertExists("ChevronRight", inside: "settings.main.item.terms.and.licenses.title")
     //            | Debug, logs | bug | caret |
     assertInteractive("settings.main.item.application.title")
     assertExists("Bug")
-    assertExists("settings.accounts.item.troubleshooting.disclosure.indicator")
+    assertExists("ChevronRight", inside: "settings.main.item.application.title")
     //            | Sign out | exit | none |
     assertInteractive("settings.main.item.sign.out.title")
     assertExists("Exit")

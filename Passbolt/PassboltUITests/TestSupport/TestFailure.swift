@@ -42,6 +42,12 @@ internal struct TestFailure: Error {
   }
 }
 
+extension TestFailure: LocalizedError {
+
+  internal var failureReason: String? { self.message }
+  internal var errorDescription: String? { self.message }
+}
+
 extension Error {
 
   private var testFailureMessage: String {

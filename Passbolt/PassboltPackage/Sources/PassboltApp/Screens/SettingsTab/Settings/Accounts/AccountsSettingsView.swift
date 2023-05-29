@@ -50,6 +50,7 @@ internal struct AccountsSettingsView: ControlledView {
         title: "settings.accounts.item.manage.title",
         navigation: self.controller.navigateToManageAccounts
       )
+      .accessibilityIdentifier("settings.accounts.item.manage.title")
 
       SettingsActionRowView(
         icon: .mobileTransfer,
