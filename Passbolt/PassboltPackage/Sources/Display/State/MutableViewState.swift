@@ -71,8 +71,7 @@ where State: Equatable & Sendable {
   public nonisolated init(
     extendingLifetimeOf container: FeaturesContainer? = .none,
     cleanup: @escaping () -> Void = { /* NOP */  }
-  )
-  where State == Stateless {
+  ) where State == Never {
     self.read = { fatalError("Can't read Never") }
     self.write = { _ in /* NOP */ }
     self.stateWillChange = Empty<State, Never>().eraseToAnyPublisher()
@@ -120,7 +119,7 @@ where State: Equatable & Sendable {
 
 extension MutableViewState {
 
-  public func update<Returned>(
+  @MainActor public func update<Returned>(
     _ mutation: (inout State) throws -> Returned
   ) rethrows -> Returned {
     var copy: State = self.value
@@ -129,7 +128,7 @@ extension MutableViewState {
     return try mutation(&copy)
   }
 
-  public func update<Value>(
+  @MainActor public func update<Value>(
     _ keyPath: WritableKeyPath<State, Value>,
     to value: Value
   ) {

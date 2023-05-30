@@ -44,12 +44,11 @@ internal struct ResourceFolderContentDisplayView: ControlledView {
         directResources: state.directResources,
         nestedResources: state.nestedResources,
         refreshAction: self.controller.refresh,
-        createAction: self.controller.create,
+        createAction: self.controller.createResource,
         folderTapAction: self.controller.selectFolder,
         resourceTapAction: self.controller.selectResource,
         resourceMenuAction: self.controller.openResourceMenu
       )
     }
-    .task(self.controller.activate)
   }
 }

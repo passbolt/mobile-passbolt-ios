@@ -23,15 +23,14 @@
 
 import CommonModels
 
-extension ResourceFolderDetailsDSV {
+extension ResourceFolder {
 
   public static let mock_owned: Self = .init(
     id: .mock_1,
     name: "mock_owned",
-    permission: .owner,
-    shared: false,
-    parentFolderID: .none,
     path: [],
+    shared: false,
+    permission: .owner,
     permissions: [
       .user(
         id: .mock_1,
@@ -44,10 +43,9 @@ extension ResourceFolderDetailsDSV {
   public static let mock_shared: Self = .init(
     id: .mock_1,
     name: "mock_owned",
-    permission: .owner,
-    shared: false,
-    parentFolderID: .none,
     path: [],
+    shared: false,
+    permission: .owner,
     permissions: [
       .user(
         id: .mock_1,
@@ -65,10 +63,9 @@ extension ResourceFolderDetailsDSV {
   public static let mock_group: Self = .init(
     id: .mock_1,
     name: "mock_owned",
-    permission: .owner,
-    shared: false,
-    parentFolderID: .none,
     path: [],
+    shared: false,
+    permission: .owner,
     permissions: [
       .userGroup(
         id: .mock_1,

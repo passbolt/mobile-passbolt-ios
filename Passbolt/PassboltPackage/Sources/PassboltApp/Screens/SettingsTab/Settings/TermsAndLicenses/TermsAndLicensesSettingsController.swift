@@ -24,127 +24,92 @@
 import Display
 import OSFeatures
 
-// MARK: - Interface
+internal final class TermsAndLicensesSettingsController: ViewController {
 
-internal struct TermsAndLicensesSettingsController {
+  internal nonisolated let viewState: MutableViewState<ViewState>
 
-  internal var viewState: MutableViewState<ViewState>
+  private let sessionConfiguration: SessionConfiguration
+  private let diagnostics: OSDiagnostics
+  private let linkOpener: OSLinkOpener
+  private let asyncExecutor: AsyncExecutor
 
-  internal var navigateToTermsAndConditions: () -> Void
-  internal var navigateToPrivacyPolicy: () -> Void
-  internal var navigateToLicenses: () -> Void
+  internal init(
+    context: Void,
+    features: Features
+  ) throws {
+    try features.ensureScope(SettingsScope.self)
+    try features.ensureScope(SessionScope.self)
+
+    self.sessionConfiguration = try features.sessionConfiguration()
+    self.diagnostics = features.instance()
+    self.linkOpener = features.instance()
+    self.asyncExecutor = try features.instance()
+    self.viewState = .init(
+      initial: .init(
+        termsAndConditionsLinkAvailable: !(sessionConfiguration.termsURL?.isEmpty ?? true),
+        privacyPolicyLinkAvailable: !(sessionConfiguration.privacyPolicyURL?.isEmpty ?? true)
+      )
+    )
+  }
 }
 
-extension TermsAndLicensesSettingsController: ViewController {
+extension TermsAndLicensesSettingsController {
 
   internal struct ViewState: Equatable {
 
     internal var termsAndConditionsLinkAvailable: Bool
     internal var privacyPolicyLinkAvailable: Bool
   }
-
-  #if DEBUG
-  internal static var placeholder: Self {
-    .init(
-      viewState: .placeholder(),
-      navigateToTermsAndConditions: unimplemented0(),
-      navigateToPrivacyPolicy: unimplemented0(),
-      navigateToLicenses: unimplemented0()
-    )
-  }
-  #endif
 }
-
-// MARK: - Implementation
 
 extension TermsAndLicensesSettingsController {
 
-  @MainActor fileprivate static func load(
-    features: Features
-  ) throws -> Self {
-    try features.ensureScope(SettingsScope.self)
-    try features.ensureScope(SessionScope.self)
-    let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
-
-    let diagnostics: OSDiagnostics = features.instance()
-    let linkOpener: OSLinkOpener = features.instance()
-
-    let asyncExecutor: AsyncExecutor = try features.instance()
-
-    let viewState: MutableViewState<ViewState> = .init(
-      initial: .init(
-        termsAndConditionsLinkAvailable: !(sessionConfiguration.termsURL?.isEmpty ?? true),
-        privacyPolicyLinkAvailable: !(sessionConfiguration.privacyPolicyURL?.isEmpty ?? true)
-      )
-    )
-
-    nonisolated func navigateToTermsAndConditions() {
-      asyncExecutor
-        .scheduleCatchingWith(
-          diagnostics,
-          failMessage: "Navigation to terms and conditions failed!",
-          behavior: .reuse
-        ) {
-          guard
-            let url: URLString = sessionConfiguration.termsURL,
-            !url.isEmpty
-          else {
-            throw
-              InternalInconsistency
-              .error("Missing terms and conditions URL")
-          }
-          try await linkOpener.openURL(url)
+  internal final func navigateToTermsAndConditions() {
+    self.asyncExecutor
+      .scheduleCatchingWith(
+        self.diagnostics,
+        failMessage: "Navigation to terms and conditions failed!",
+        behavior: .reuse
+      ) { [sessionConfiguration, linkOpener] in
+        guard
+          let url: URLString = sessionConfiguration.termsURL,
+          !url.isEmpty
+        else {
+          throw
+            InternalInconsistency
+            .error("Missing terms and conditions URL")
         }
-    }
-
-    nonisolated func navigateToPrivacyPolicy() {
-      asyncExecutor
-        .scheduleCatchingWith(
-          diagnostics,
-          failMessage: "Navigation to privacy policy failed!",
-          behavior: .reuse
-        ) {
-          guard
-            let url: URLString = sessionConfiguration.privacyPolicyURL,
-            !url.isEmpty
-          else {
-            throw
-              InternalInconsistency
-              .error("Missing privacy policy URL")
-          }
-          try await linkOpener.openURL(url)
-        }
-    }
-
-    nonisolated func navigateToLicenses() {
-      asyncExecutor
-        .scheduleCatchingWith(
-          diagnostics,
-          failMessage: "Navigation to licenses failed!",
-          behavior: .reuse
-        ) {
-          try await linkOpener.openApplicationSettings()
-        }
-    }
-
-    return .init(
-      viewState: viewState,
-      navigateToTermsAndConditions: navigateToTermsAndConditions,
-      navigateToPrivacyPolicy: navigateToPrivacyPolicy,
-      navigateToLicenses: navigateToLicenses
-    )
+        try await linkOpener.openURL(url)
+      }
   }
-}
 
-extension FeaturesRegistry {
+  internal final func navigateToPrivacyPolicy() {
+    self.asyncExecutor
+      .scheduleCatchingWith(
+        self.diagnostics,
+        failMessage: "Navigation to privacy policy failed!",
+        behavior: .reuse
+      ) { [sessionConfiguration, linkOpener] in
+        guard
+          let url: URLString = sessionConfiguration.privacyPolicyURL,
+          !url.isEmpty
+        else {
+          throw
+            InternalInconsistency
+            .error("Missing privacy policy URL")
+        }
+        try await linkOpener.openURL(url)
+      }
+  }
 
-  internal mutating func useLiveTermsAndLicensesSettingsController() {
-    self.use(
-      .disposable(
-        TermsAndLicensesSettingsController.self,
-        load: TermsAndLicensesSettingsController.load(features:)
-      ),
-      in: SettingsScope.self
-    )
+  internal final func navigateToLicenses() {
+    self.asyncExecutor
+      .scheduleCatchingWith(
+        self.diagnostics,
+        failMessage: "Navigation to licenses failed!",
+        behavior: .reuse
+      ) { [linkOpener] in
+        try await linkOpener.openApplicationSettings()
+      }
   }
 }

@@ -72,9 +72,10 @@
 "resource.detail.field.passphrase" = "Contraseña";
 "resource.detail.field.uri" = "URL del sitio web";
 "resource.detail.field.description" = "Descripción";
-"resource.details.copied" = "%@ copiado!";
+"resource.value.copied" = "%@ copiado!";
 "resource.details.value" = "Valor";
-"resource.detail.section.shared" = "Compartido con";
+"resource.detail.section.location" = "Ubicación";
+"resource.detail.section.permissions" = "Compartido con";
 "resource.detail.section.tags" = "Etiquetas";
 
 "server.key.fingerprint.changed.title" = "Lo sentimos, la clave del servidor ha cambiado.";
@@ -227,7 +228,7 @@
 "resource.menu.item.remove.favorite" = "Eliminar de favoritos";
 "resource.menu.item.share" = "Compartir contraseña";
 "resource.menu.item.edit" = "Editar contraseña";
-"resource.menu.item.delete.password" = "Eliminar contraseña";
+"resource.menu.item.delete" = "Eliminar contraseña";
 "resource.menu.item.password" = "Contraseña";
 "resource.menu.item.username" = "Nombre de usuario";
 "resource.menu.item.description" = "Descripción";

@@ -44,42 +44,21 @@ public struct FolderLocationView: View {
   }
 
   public var body: some View {
-    VStack(spacing: 8) {
-      Text(
-        displayable: .localized(
-          key: "folder.location.title"
-        )
-      )
+    Text(self.location)
       .text(
         font: .inter(
           ofSize: 12,
-          weight: .medium
+          weight: .regular
         ),
-        color: Color.passboltPrimaryText
+        color: Color.passboltSecondaryText
       )
+      .truncationMode(.middle)
       .multilineTextAlignment(.leading)
       .lineLimit(1)
       .frame(
         maxWidth: .infinity,
-        alignment: .leading
+        alignment: .topLeading
       )
-
-      Text(self.location)
-        .text(
-          font: .inter(
-            ofSize: 12,
-            weight: .regular
-          ),
-          color: Color.passboltSecondaryText
-        )
-        .truncationMode(.middle)
-        .multilineTextAlignment(.leading)
-        .lineLimit(1)
-        .frame(
-          maxWidth: .infinity,
-          alignment: .leading
-        )
-    }
   }
 }
 

@@ -31,7 +31,7 @@ import UIComponents
 )
 internal struct LegacyNavigationBridge {
 
-  internal let bridgeComponent: () async -> AnyUIComponent?
+  internal let bridgeComponent: @MainActor () -> AnyUIComponent?
 }
 
 extension LegacyNavigationBridge: LoadableFeature {

@@ -113,9 +113,9 @@ final class MutableStateTests: XCTestCase {
     XCTAssertEqual(result, "42")
   }
 
-  func test_scheduleUpdate_updatesValue() async throws {
+  func test_deferredUpdate_updatesValue() async throws {
     let state: MutableState<String> = .init(initial: "initial")
-    try await state.deferredUpdate { (value: inout String) in
+    try state.deferredUpdate { (value: inout String) in
       try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
       value = "42"
     }
@@ -123,7 +123,7 @@ final class MutableStateTests: XCTestCase {
     XCTAssertEqual(result, "42")
   }
 
-  func test_scheduleUpdate_updatesLazyValue() async throws {
+  func test_deferredUpdate_updatesLazyValue() async throws {
     let state: MutableState<String> = .init(lazy: { "initial" })
     try state.deferredUpdate { (value: inout String) in
       try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
@@ -131,6 +131,52 @@ final class MutableStateTests: XCTestCase {
     }
     let result: String = try await state.value
     XCTAssertEqual(result, "42")
+  }
+
+  func test_deferredUpdate_doesNotResolveWhenNotNeeded() async throws {
+    let state: MutableState<String> = .init(initial: "initial")
+    let resolved: CriticalState<Bool> = .init(false)
+    try state.deferredUpdate { (value: inout String) in
+      try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+      value = "42"
+      resolved.set(\.self, true)
+    }
+    XCTAssertFalse(resolved.get(\.self))
+    _ = try await state.value
+    XCTAssertTrue(resolved.get(\.self))
+  }
+
+  func test_deferredAssign_assignsValue() async throws {
+    let state: MutableState<String> = .init(initial: "initial")
+    try state.deferredAssign { () -> String in
+      try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+      return "42"
+    }
+    let result: String = try await state.value
+    XCTAssertEqual(result, "42")
+  }
+
+  func test_deferredAssign_assignsWithLazyValue() async throws {
+    let state: MutableState<String> = .init(lazy: { "initial" })
+    try state.deferredAssign { () -> String in
+      try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+      return "42"
+    }
+    let result: String = try await state.value
+    XCTAssertEqual(result, "42")
+  }
+
+  func test_deferredAssign_doesNotResolveWhenNotNeeded() async throws {
+    let state: MutableState<String> = .init(initial: "initial")
+    let resolved: CriticalState<Bool> = .init(false)
+    try state.deferredAssign { () -> String in
+      try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+      resolved.set(\.self, true)
+      return "42"
+    }
+    XCTAssertFalse(resolved.get(\.self))
+    _ = try await state.value
+    XCTAssertTrue(resolved.get(\.self))
   }
 
   //  func test_scheduleRecurringUpdates_updatesValue() async throws {

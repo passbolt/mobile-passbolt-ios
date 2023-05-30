@@ -77,6 +77,7 @@ extension AsyncExecutor {
     over sequence: S,
     catchingWith diagnostics: OSDiagnostics,
     failMessage: StaticString? = .none,
+    failAction: ((Error) async -> Void)? = .none,
     behavior: OngoingExecutionBehavior = .concurrent,
     function: StaticString = #function,
     file: StaticString = #fileID,
@@ -87,6 +88,7 @@ extension AsyncExecutor {
       using: sequence.makeAsyncIterator().asAnyAsyncThrowingIterator(),
       catchingWith: diagnostics,
       failMessage: failMessage,
+      failAction: failAction,
       behavior: behavior,
       function: function,
       file: file,
@@ -100,6 +102,7 @@ extension AsyncExecutor {
     using iterator: AnyAsyncThrowingIterator<Element>,
     catchingWith diagnostics: OSDiagnostics,
     failMessage: StaticString?,
+    failAction: ((Error) async -> Void)?,
     behavior: OngoingExecutionBehavior,
     function: StaticString,
     file: StaticString,
@@ -124,20 +127,27 @@ extension AsyncExecutor {
                 )
               }
           ) {
-            guard let nextElement: Element = try await iterator.next()
-            else { return }
-            try await handleNext(nextElement)
-            // if it not failed schedule recursively for next
-            self.scheduleRecursiveNext(
-              using: iterator,
-              catchingWith: diagnostics,
-              failMessage: failMessage,
-              behavior: behavior,
-              function: function,
-              file: file,
-              line: line,
-              handleNext
-            )
+            do {
+              guard let nextElement: Element = try await iterator.next()
+              else { return }
+              try await handleNext(nextElement)
+              // if it not failed schedule recursively for next
+              self.scheduleRecursiveNext(
+                using: iterator,
+                catchingWith: diagnostics,
+                failMessage: failMessage,
+                failAction: failAction,
+                behavior: behavior,
+                function: function,
+                file: file,
+                line: line,
+                handleNext
+              )
+            }
+            catch {
+              await failAction?(error)
+              throw error
+            }
           }
       }
     )
@@ -147,6 +157,7 @@ extension AsyncExecutor {
   public func scheduleCatchingWith(
     _ diagnostics: OSDiagnostics,
     failMessage: StaticString? = .none,
+    failAction: (@Sendable (Error) async -> Void)? = .none,
     behavior: OngoingExecutionBehavior = .concurrent,
     function: StaticString = #function,
     file: StaticString = #fileID,
@@ -171,7 +182,13 @@ extension AsyncExecutor {
                 )
               }
           ) {
-            try await task()
+            do {
+              try await task()
+            }
+            catch {
+              await failAction?(error)
+              throw error
+            }
           }
       }
     )

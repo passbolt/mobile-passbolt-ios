@@ -149,8 +149,8 @@ extension DisplayNavigation {
   @MainActor public func presentInfoSnackbar(
     _ displayable: DisplayableString,
     with arguments: Array<CVarArg> = .init()
-  ) async {
-    await self.legacyBridge
+  ) {
+    self.legacyBridge
       .bridgeComponent()?
       .presentInfoSnackbar(
         displayable,
@@ -309,7 +309,7 @@ extension DisplayNavigation {
     pushing type: Component.Type,
     in context: Component.Controller.Context,
     animated: Bool = true
-  ) async where Component: ComponentView, ReplacedComponent: ComponentView {
+  ) async where Component: ComponentView, ReplacedComponent: UIViewController {
     await self.legacyBridge
       .bridgeComponent()?
       .replace(

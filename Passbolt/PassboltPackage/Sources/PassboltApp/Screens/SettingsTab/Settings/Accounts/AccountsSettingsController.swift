@@ -25,98 +25,46 @@ import Accounts
 import Display
 import OSFeatures
 
-// MARK: - Interface
+internal final class AccountsSettingsController: ViewController {
 
-internal struct AccountsSettingsController {
+  private let diagnostics: OSDiagnostics
+  private let asyncExecutor: AsyncExecutor
+  private let navigationToManageAccounts: NavigationToManageAccounts
+  private let navigationToAccountExport: NavigationToAccountExport
 
-  @Stateless internal var viewState
-
-  internal var navigateToManageAccounts: () -> Void
-  internal var navigateToAccountExport: () -> Void
-}
-
-extension AccountsSettingsController: ViewController {
-
-  #if DEBUG
-  internal static var placeholder: Self {
-    .init(
-      navigateToManageAccounts: unimplemented0(),
-      navigateToAccountExport: unimplemented0()
-    )
-  }
-  #endif
-}
-
-// MARK: - Implementation
-
-extension AccountsSettingsController {
-
-  @MainActor fileprivate static func load(
+  internal init(
+    context: Void,
     features: Features
-  ) throws -> Self {
+  ) throws {
     try features.ensureScope(SettingsScope.self)
     try features.ensureScope(SessionScope.self)
 
-    let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
-
-    let navigationToManageAccounts: NavigationToManageAccounts = try features.instance()
-    let navigationToAccountExport: NavigationToAccountExport = try features.instance()
-
-    nonisolated func navigateToManageAccounts() {
-      asyncExecutor.schedule(.reuse) {
-        do {
-          try await navigationToManageAccounts.perform()
-        }
-        catch {
-          diagnostics
-            .log(
-              error:
-                error
-                .asTheError()
-                .pushing(
-                  .message("Navigation to manage accounts failed!")
-                )
-            )
-        }
-      }
-    }
-
-    nonisolated func navigateToAccountExport() {
-      asyncExecutor.schedule(.reuse) {
-        do {
-          try await navigationToAccountExport.perform()
-        }
-        catch {
-          diagnostics
-            .log(
-              error:
-                error
-                .asTheError()
-                .pushing(
-                  .message("Navigation to account export failed!")
-                )
-            )
-        }
-      }
-    }
-
-    return .init(
-      navigateToManageAccounts: navigateToManageAccounts,
-      navigateToAccountExport: navigateToAccountExport
-    )
+    self.diagnostics = features.instance()
+    self.asyncExecutor = try features.instance()
+    self.navigationToManageAccounts = try features.instance()
+    self.navigationToAccountExport = try features.instance()
   }
 }
 
-extension FeaturesRegistry {
+extension AccountsSettingsController {
 
-  internal mutating func useLiveAccountsSettingsController() {
-    self.use(
-      .disposable(
-        AccountsSettingsController.self,
-        load: AccountsSettingsController.load(features:)
-      ),
-      in: SettingsScope.self
-    )
+  internal final func navigateToManageAccounts() {
+    self.asyncExecutor.scheduleCatchingWith(
+      self.diagnostics,
+      failMessage: "Navigation to manage accounts failed!",
+      behavior: .reuse
+    ) { [navigationToManageAccounts] in
+      try await navigationToManageAccounts.perform()
+    }
+  }
+
+  internal final func navigateToAccountExport() {
+    self.asyncExecutor.scheduleCatchingWith(
+      self.diagnostics,
+      failMessage: "Navigation to account export failed!",
+      behavior: .reuse
+    ) { [navigationToAccountExport] in
+      try await navigationToAccountExport.perform()
+    }
   }
 }

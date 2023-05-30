@@ -23,6 +23,8 @@
 
 import CommonModels
 
+// Scoper for editing a resource fields including secret.
+// Usually requires also ResourceDetailsScope.
 public enum ResourceEditScope: FeaturesScope {
 
   public enum Context {

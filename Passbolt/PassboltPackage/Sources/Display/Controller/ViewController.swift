@@ -26,47 +26,55 @@ import UIComponents
 
 // Same instance should not be reused between multiple
 // views - it should uniquely identify a view on display.
-public protocol ViewController: Hashable, LoadableFeature {
+@MainActor public protocol ViewController: AnyObject, Hashable {
 
-  associatedtype ViewState: Equatable = Stateless
+  associatedtype ViewState: Equatable = Never
+  associatedtype Context = Void
 
-  var viewState: MutableViewState<ViewState> { get }
+  nonisolated var viewState: MutableViewState<ViewState> { get }
+
+  @MainActor init(
+    context: Context,
+    features: Features
+  ) throws
 }
 
 extension ViewController {
 
-  public var viewNodeID: ViewNodeID {
+  public nonisolated var viewNodeID: ViewNodeID {
     self.viewState.viewNodeID
   }
 }
 
 extension ViewController /* Hashable */ {
 
-  public static func == (
+  public nonisolated static func == (
     _ lhs: Self,
     _ rhs: Self
   ) -> Bool {
-    lhs.viewNodeID == rhs.viewNodeID
+    lhs === rhs
   }
 
-  public func equal(
+  public nonisolated func equal(
     to other: any ViewController
   ) -> Bool {
-    func equal<LHS: ViewController>(
-      _ lhs: LHS,
-      _ rhs: any ViewController
-    ) -> Bool {
-      lhs.viewNodeID == (rhs as? LHS)?.viewNodeID
-    }
-
-    return equal(self, other)
+    return self === other  //equal(self, other)
   }
 
-  public func hash(
+  public nonisolated func hash(
     into hasher: inout Hasher
   ) {
-    hasher.combine(self.viewNodeID)
+    hasher.combine(self)
   }
+}
+
+extension ViewController
+where ViewState == Never {
+
+  @_semantics("constant_evaluable")
+  @_alwaysEmitIntoClient
+  @_transparent  // Debug performance
+  public nonisolated var viewState: MutableViewState<ViewState> { .init() }
 }
 
 extension ViewController {
@@ -127,6 +135,34 @@ extension ViewController {
         else { return }  // ignore
         setter(newValue)
       }
+    )
+  }
+}
+
+extension Features {
+
+  @MainActor public func instance<Controller>(
+    of _: Controller.Type = Controller.self,
+    context: Controller.Context,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) throws -> Controller
+  where Controller: ViewController {
+    try Controller(
+      context: context,
+      features: self
+    )
+  }
+
+  @MainActor public func instance<Controller>(
+    of _: Controller.Type = Controller.self,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) throws -> Controller
+  where Controller: ViewController, Controller.Context == Void {
+    try Controller(
+      context: Void(),
+      features: self
     )
   }
 }

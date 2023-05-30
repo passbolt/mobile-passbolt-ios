@@ -25,71 +25,50 @@ import AccountSetup
 import Display
 import OSFeatures
 
-internal struct AccountQRCodeExportController {
+internal final class AccountQRCodeExportController: ViewController {
 
-  internal var viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: MutableViewState<ViewState>
 
-  internal var showCancelConfirmation: () -> Void
-  internal var cancelTransfer: () -> Void
-}
+  private let diagnostics: OSDiagnostics
+  private let asyncExecutor: AsyncExecutor
+  private let navigation: DisplayNavigation
+  private let accountExport: AccountChunkedExport
+  private let qrCodeGenerator: QRCodeGenerator
 
-extension AccountQRCodeExportController: ViewController {
-
-  internal struct ViewState: Hashable {
-
-    internal var currentQRcode: Data
-    internal var exitConfirmationAlertPresented: Bool
-  }
-
-  #if DEBUG
-  internal nonisolated static var placeholder: Self {
-    .init(
-      viewState: .placeholder(),
-      showCancelConfirmation: unimplemented0(),
-      cancelTransfer: unimplemented0()
-    )
-  }
-  #endif
-}
-
-// MARK: - Implementation
-
-extension AccountQRCodeExportController {
-
-  @MainActor fileprivate static func load(
+  internal init(
+    context: Void,
     features: Features
-  ) throws -> Self {
+  ) throws {
     try features.ensureScope(AccountTransferScope.self)
 
-    let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
-    let navigation: DisplayNavigation = try features.instance()
+    self.diagnostics = features.instance()
+    self.asyncExecutor = try features.instance()
+    self.navigation = try features.instance()
+    self.accountExport = try features.instance()
+    self.qrCodeGenerator = features.instance()
 
-    let accountExport: AccountChunkedExport = try features.instance()
-    let qrCodeGenerator: QRCodeGenerator = features.instance()
-
-    let viewState: MutableViewState<ViewState> = .init(
+    self.viewState = .init(
       initial: .init(
         currentQRcode: .init(),
         exitConfirmationAlertPresented: false
       )
     )
 
-    asyncExecutor.scheduleIteration(
-      over: accountExport.updates,
-      catchingWith: diagnostics,
+    self.asyncExecutor.scheduleIteration(
+      over: self.accountExport.updates,
+      catchingWith: self.diagnostics,
       failMessage: "Updates broken!"
-    ) { (_) in
-      switch accountExport.status() {
+    ) { [unowned self] (_) in
+      switch self.accountExport.status() {
       case .part(_, let content):
         do {
-          let qrCodePart: Data = try await qrCodeGenerator.generateQRCode(content)
+          let qrCodePart: Data = try await self.qrCodeGenerator.generateQRCode(content)
           await viewState.update { state in
             state.currentQRcode = qrCodePart
           }
         }
         catch {
-          await navigation
+          await self.navigation
             .push(
               legacy: AccountTransferFailureViewController.self,
               context: error
@@ -98,11 +77,11 @@ extension AccountQRCodeExportController {
         }
 
       case .finished:
-        await navigation
+        await self.navigation
           .push(legacy: AccountTransferSuccessViewController.self)
 
       case .error(let error):
-        await navigation
+        await self.navigation
           .push(
             legacy: AccountTransferFailureViewController.self,
             context: error
@@ -110,7 +89,7 @@ extension AccountQRCodeExportController {
         throw CancellationError()  // don't continue observing
 
       case .uninitialized:
-        await navigation
+        await self.navigation
           .push(
             legacy: AccountTransferFailureViewController.self,
             context:
@@ -122,36 +101,29 @@ extension AccountQRCodeExportController {
         throw CancellationError()  // don't continue observing
       }
     }
-
-    nonisolated func showCancelConfirmation() {
-      asyncExecutor.schedule(.reuse) {
-        await viewState.update { (state: inout ViewState) in
-          state.exitConfirmationAlertPresented = true
-        }
-      }
-    }
-
-    nonisolated func cancelTransfer() {
-      accountExport.cancel()
-    }
-
-    return .init(
-      viewState: viewState,
-      showCancelConfirmation: showCancelConfirmation,
-      cancelTransfer: cancelTransfer
-    )
   }
 }
 
-extension FeaturesRegistry {
+extension AccountQRCodeExportController {
 
-  internal mutating func useAccountQRCodeExportController() {
-    use(
-      .disposable(
-        AccountQRCodeExportController.self,
-        load: AccountQRCodeExportController.load(features:)
-      ),
-      in: AccountTransferScope.self
-    )
+  internal struct ViewState: Hashable {
+
+    internal var currentQRcode: Data
+    internal var exitConfirmationAlertPresented: Bool
+  }
+}
+
+extension AccountQRCodeExportController {
+
+  nonisolated func showCancelConfirmation() {
+    self.asyncExecutor.schedule(.reuse) { [unowned self] in
+      await self.viewState.update { (state: inout ViewState) in
+        state.exitConfirmationAlertPresented = true
+      }
+    }
+  }
+
+  nonisolated func cancelTransfer() {
+    self.accountExport.cancel()
   }
 }

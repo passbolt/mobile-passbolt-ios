@@ -25,152 +25,118 @@ import Accounts
 import Display
 import OSFeatures
 
-// MARK: - Interface
+internal final class ApplicationSettingsController: ViewController {
 
-internal struct ApplicationSettingsController {
+  internal nonisolated let viewState: MutableViewState<ViewState>
 
-  internal var viewState: MutableViewState<ViewState>
+  private let currentAccount: Account
+  private let diagnostics: OSDiagnostics
+  private let asyncExecutor: AsyncExecutor
+  private let navigationToAutofillSettings: NavigationToAutofillSettings
+  private let navigationToDefaultModeSettings: NavigationToDefaultPresentationModeSettings
+  private let osBiometry: OSBiometry
+  private let accountPreferences: AccountPreferences
 
-  internal var setBiometricsAuthorizationEnabled: (Bool) -> Void
-  internal var navigateToAutofillSettings: () -> Void
-  internal var navigateToDefaultPresentationModeSettings: () -> Void
+  internal init(
+    context: Void,
+    features: Features
+  ) throws {
+    try features.ensureScope(SettingsScope.self)
+    try features.ensureScope(SessionScope.self)
+
+    self.currentAccount = try features.sessionAccount()
+    self.diagnostics = features.instance()
+    self.asyncExecutor = try features.instance()
+    self.navigationToAutofillSettings = try features.instance()
+    self.navigationToDefaultModeSettings = try features.instance()
+    self.osBiometry = features.instance()
+    self.accountPreferences = try features.instance(context: currentAccount)
+
+    self.viewState = .init(
+      initial: .init(
+        biometicsAuthorizationAvailability: .unavailable
+      )
+    )
+  }
 }
 
-extension ApplicationSettingsController: ViewController {
+extension ApplicationSettingsController {
 
   internal struct ViewState: Equatable {
 
     internal var biometicsAuthorizationAvailability: BiometricsAuthorizationAvailability
   }
-
-  #if DEBUG
-  internal static var placeholder: Self {
-    .init(
-      viewState: .placeholder(),
-      setBiometricsAuthorizationEnabled: unimplemented1(),
-      navigateToAutofillSettings: unimplemented0(),
-      navigateToDefaultPresentationModeSettings: unimplemented0()
-    )
-  }
-  #endif
 }
-
-// MARK: - Implementation
 
 extension ApplicationSettingsController {
 
-  @MainActor fileprivate static func load(
-    features: Features
-  ) throws -> Self {
-    try features.ensureScope(SettingsScope.self)
-    try features.ensureScope(SessionScope.self)
-    let currentAccount: Account = try features.sessionAccount()
+	@Sendable internal func activate() async {
+		await self.diagnostics
+			.withLogCatch(
+				info: .message("Application settings updates broken!")
+			) {
+				for try await _ in self.accountPreferences.updates {
+					self.updateViewState()
+				}
+			}
+	}
 
-    let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
+	internal func updateViewState() {
+		switch self.osBiometry.availability() {
+		case .unavailable, .unconfigured:
+			self.viewState.update(
+				\.biometicsAuthorizationAvailability,
+				to: .unavailable
+			)
 
-    let navigationToAutofillSettings: NavigationToAutofillSettings = try features.instance()
-    let navigationToDefaultModeSettings: NavigationToDefaultPresentationModeSettings = try features.instance()
+		case .touchID:
+			self.viewState.update(
+				\.biometicsAuthorizationAvailability,
+				to: self.accountPreferences.isPassphraseStored()
+					? .enabledTouchID
+					: .disabledTouchID
+			)
+		case .faceID:
+			self.viewState.update(
+				\.biometicsAuthorizationAvailability,
+				to: self.accountPreferences.isPassphraseStored()
+					? .enabledFaceID
+					: .disabledFaceID
+			)
+		}
+	}
 
-    let osBiometry: OSBiometry = features.instance()
-    let accountPreferences: AccountPreferences = try features.instance(context: currentAccount)
-
-    let viewState: MutableViewState<ViewState> = .init(
-      initial: .init(
-        biometicsAuthorizationAvailability: .unavailable
-      )
-    )
-
-    asyncExecutor.scheduleIteration(
-      over: accountPreferences.updates,
-      catchingWith: diagnostics,
-      failMessage: "Updates broken!"
-    ) { (_) in
-      switch osBiometry.availability() {
-      case .unavailable, .unconfigured:
-        await viewState.update(
-          \.biometicsAuthorizationAvailability,
-          to: .unavailable
-        )
-
-      case .touchID:
-        await viewState.update(
-          \.biometicsAuthorizationAvailability,
-          to: accountPreferences.isPassphraseStored()
-            ? .enabledTouchID
-            : .disabledTouchID
-        )
-      case .faceID:
-        await viewState.update(
-          \.biometicsAuthorizationAvailability,
-          to: accountPreferences.isPassphraseStored()
-            ? .enabledFaceID
-            : .disabledFaceID
-        )
-      }
+  internal final func setBiometricsAuthorizationEnabled(
+    _ enabled: Bool
+  ) {
+    self.asyncExecutor.scheduleCatchingWith(
+      self.diagnostics,
+      failMessage: "Toggling biometric authorization failed!",
+      behavior: .reuse
+    ) { [accountPreferences] in
+      try await accountPreferences.storePassphrase(enabled)
     }
-
-    nonisolated func setBiometricsAuthorizationEnabled(
-      _ enabled: Bool
-    ) {
-      asyncExecutor.schedule(.reuse) {
-        do {
-          try await accountPreferences.storePassphrase(enabled)
-        }
-        catch {
-          diagnostics
-            .log(
-              error:
-                error
-                .asTheError()
-                .pushing(
-                  .message("Enabling/Disabling biometric authorization failed!")
-                )
-            )
-        }
-      }
-    }
-
-    nonisolated func navigateToAutofillSettings() {
-      asyncExecutor
-        .scheduleCatchingWith(
-          diagnostics,
-          failMessage: "Navigation to autofill settings failed!",
-          behavior: .reuse
-        ) {
-          try await navigationToAutofillSettings.perform()
-        }
-    }
-
-    nonisolated func navigateToDefaultPresentationModeSettings() {
-      asyncExecutor
-        .scheduleCatchingWith(
-          diagnostics,
-          failMessage: "Navigation to default presentation mode failed!",
-          behavior: .reuse
-        ) {
-          try await navigationToDefaultModeSettings.perform()
-        }
-    }
-
-    return .init(
-      viewState: viewState,
-      setBiometricsAuthorizationEnabled: setBiometricsAuthorizationEnabled(_:),
-      navigateToAutofillSettings: navigateToAutofillSettings,
-      navigateToDefaultPresentationModeSettings: navigateToDefaultPresentationModeSettings
-    )
   }
-}
 
-extension FeaturesRegistry {
+  nonisolated func navigateToAutofillSettings() {
+    self.asyncExecutor
+      .scheduleCatchingWith(
+        self.diagnostics,
+        failMessage: "Navigation to autofill settings failed!",
+        behavior: .reuse
+      ) { [navigationToAutofillSettings] in
+        try await navigationToAutofillSettings.perform()
+      }
+  }
 
-  internal mutating func useLiveApplicationSettingsController() {
-    self.use(
-      .disposable(
-        ApplicationSettingsController.self,
-        load: ApplicationSettingsController.load(features:)
-      ),
-      in: SettingsScope.self
-    )
+  nonisolated func navigateToDefaultPresentationModeSettings() {
+    self.asyncExecutor
+      .scheduleCatchingWith(
+        self.diagnostics,
+        failMessage: "Navigation to default presentation mode failed!",
+        behavior: .reuse
+      ) { [navigationToDefaultModeSettings] in
+        try await navigationToDefaultModeSettings.perform()
+      }
   }
 }

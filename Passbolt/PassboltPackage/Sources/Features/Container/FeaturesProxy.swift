@@ -132,6 +132,24 @@ extension FeaturesProxy: Features {
     }
   }
 
+	@MainActor public func takeOwned(
+		file: StaticString,
+		line: UInt
+	) -> FeaturesContainer {
+		if let container: FeaturesContainer = self.container {
+			return container
+		}
+		else {
+			InternalInconsistency
+				.error(
+					"Memory issue - attempting to use a deallocated features container.",
+					file: file,
+					line: line
+				)
+				.asFatalError()
+		}
+	}
+
   @MainActor public func instance<Feature>(
     of featureType: Feature.Type,
     file: StaticString,

@@ -26,10 +26,54 @@ import Display
 import OSFeatures
 import Session
 
-internal struct DefaultPresentationModeSettingsController {
+internal final class DefaultPresentationModeSettingsController: ViewController {
 
-  internal var viewState: MutableViewState<ViewState>
-  internal var selectMode: (HomePresentationMode?) -> Void
+  internal nonisolated let viewState: MutableViewState<ViewState>
+
+  private let currentAccount: Account
+  private let diagnostics: OSDiagnostics
+  private let asyncExecutor: AsyncExecutor
+  private let navigationToSelf: NavigationToDefaultPresentationModeSettings
+  private let accountPreferences: AccountPreferences
+  private let homePresentation: HomePresentation
+  private let useLastUsedHomePresentationAsDefault: StateBinding<Bool>
+  private let defaultHomePresentation: StateBinding<HomePresentationMode>
+
+  internal init(
+    context: Void,
+    features: Features
+  ) throws {
+    try features.ensureScope(SettingsScope.self)
+    try features.ensureScope(SessionScope.self)
+
+    self.currentAccount = try features.sessionAccount()
+    self.diagnostics = features.instance()
+    self.asyncExecutor = try features.instance()
+    self.navigationToSelf = try features.instance()
+    self.accountPreferences = try features.instance(context: currentAccount)
+    self.homePresentation = try features.instance()
+
+    self.useLastUsedHomePresentationAsDefault =
+      accountPreferences
+      .useLastHomePresentationAsDefault
+    self.defaultHomePresentation = accountPreferences.defaultHomePresentation
+
+    self.viewState = .init(
+      initial: .init(
+        selectedMode: useLastUsedHomePresentationAsDefault.get(\.self)
+          ? .none
+          : defaultHomePresentation.get(\.self),
+        availableModes: .init()
+      )
+    )
+
+    self.asyncExecutor.schedule { [unowned self] in
+      let availableModes = await self.homePresentation.availableHomePresentationModes()
+      await self.viewState.update { state in
+        state.availableModes = availableModes
+      }
+    }
+  }
 }
 
 extension DefaultPresentationModeSettingsController {
@@ -41,101 +85,27 @@ extension DefaultPresentationModeSettingsController {
   }
 }
 
-extension DefaultPresentationModeSettingsController: ViewController {
-
-  #if DEBUG
-  nonisolated static var placeholder: Self {
-    .init(
-      viewState: .placeholder(),
-      selectMode: { _ in unimplemented() }
-    )
-  }
-  #endif
-}
-
 extension DefaultPresentationModeSettingsController {
 
-  @MainActor fileprivate static func load(
-    features: Features
-  ) throws -> Self {
-    try features.ensureScope(SettingsScope.self)
-    try features.ensureScope(SessionScope.self)
-
-    let currentAccount: Account = try features.sessionAccount()
-
-    let diagnostics: OSDiagnostics = features.instance()
-    let executor: AsyncExecutor = try features.instance()
-    let navigationToSelf: NavigationToDefaultPresentationModeSettings = try features.instance()
-    let accountPreferences: AccountPreferences = try features.instance(context: currentAccount)
-    let homePresentation: HomePresentation = try features.instance()
-
-    let useLastUsedHomePresentationAsDefault: StateBinding<Bool> = accountPreferences
-      .useLastHomePresentationAsDefault
-    let defaultHomePresentation: StateBinding<HomePresentationMode> = accountPreferences.defaultHomePresentation
-
-    let viewState: MutableViewState<ViewState> = .init(
-      initial: .init(
-        selectedMode: useLastUsedHomePresentationAsDefault.get(\.self)
-          ? .none
-          : defaultHomePresentation.get(\.self),
-        availableModes: .init()
-      )
-    )
-
-    executor.schedule {
-      let availableModes = await homePresentation.availableHomePresentationModes()
-      await viewState.update { state in
-        state.availableModes = availableModes
+  internal final func selectMode(
+    _ mode: HomePresentationMode?
+  ) {
+    self.asyncExecutor.scheduleCatchingWith(
+      self.diagnostics,
+      behavior: .replace
+    ) { [viewState, defaultHomePresentation, useLastUsedHomePresentationAsDefault, navigationToSelf] in
+      await viewState.update { viewState in
+        viewState.selectedMode = mode
       }
-    }
-
-    nonisolated func selectMode(
-      _ mode: HomePresentationMode?
-    ) {
-      executor.schedule(.replace) {
-        await viewState.update { viewState in
-          viewState.selectedMode = mode
-        }
-        if let mode: HomePresentationMode = mode {
-          useLastUsedHomePresentationAsDefault.set(to: false)
-          defaultHomePresentation.set(to: mode)
-        }
-        else {
-          useLastUsedHomePresentationAsDefault.set(to: true)
-        }
-        do {
-          try await navigationToSelf.revert()
-        }
-        catch {
-          diagnostics
-            .log(
-              error:
-                error
-                .asTheError()
-                .pushing(
-                  .message("Navigation to back from default presentation mode failed!")
-                )
-            )
-        }
+      if let mode: HomePresentationMode = mode {
+        useLastUsedHomePresentationAsDefault.set(to: false)
+        defaultHomePresentation.set(to: mode)
       }
+      else {
+        useLastUsedHomePresentationAsDefault.set(to: true)
+      }
+
+      try await navigationToSelf.revert()
     }
-
-    return Self(
-      viewState: viewState,
-      selectMode: selectMode(_:)
-    )
-  }
-}
-
-extension FeaturesRegistry {
-
-  internal mutating func useLiveDefaultPresentationModeSettingsController() {
-    self.use(
-      .disposable(
-        DefaultPresentationModeSettingsController.self,
-        load: DefaultPresentationModeSettingsController.load(features:)
-      ),
-      in: SettingsScope.self
-    )
   }
 }

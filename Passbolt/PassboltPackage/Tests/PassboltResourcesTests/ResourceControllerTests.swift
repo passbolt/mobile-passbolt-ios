@@ -163,6 +163,11 @@ final class ResourceControllerTests: FeaturesTestCase {
       try await feature.state.value
     }
 
+		Task {
+			try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+			// first update is ignored
+			try await updatesState.update(\.self, to: 0)
+		}
     await self.asyncExecutionControl.executeNext()
     await XCTAssertValue(
       equal: expectedResult_1
@@ -214,6 +219,12 @@ final class ResourceControllerTests: FeaturesTestCase {
     ) {
       try await feature.state.value
     }
+
+		Task {
+			try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+			// first update is ignored
+			try await updatesState.update(\.self, to: 0)
+		}
     // execute scheduled updates
     await self.asyncExecutionControl.executeNext()
     await XCTAssertError(

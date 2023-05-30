@@ -44,7 +44,7 @@ internal struct OTPConfigurationScanningView: ControlledView {
         at: \.snackBarMessage
       ) { (message: SnackBarMessage?) in
         QRCodeScanningView(
-          process: self.controller.processPayload
+          process: self.controller.process(payload:)
         )
         .edgesIgnoringSafeArea(.bottom)
         .snackBarMessage(

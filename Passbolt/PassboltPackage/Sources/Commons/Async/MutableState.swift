@@ -50,7 +50,7 @@ where Value: Sendable {
     fileprivate var value: ValueState {
       didSet {
         switch self.value {
-        case .pending:  // TODO: oldValue was current
+        case .pending:
           let pendingAwaiters: Array<UpdateAwaiter> =
             self.updateAwaiters.removeValue(forKey: self.generation) ?? .init()
           self.generation &+= 1
@@ -58,7 +58,7 @@ where Value: Sendable {
           updatedAwaiters.append(contentsOf: pendingAwaiters)
           self.updateAwaiters[self.generation] = updatedAwaiters
 
-        case .current, .pending:
+        case .current:
           self.generation &+= 1
 
         case .deferred, .failure:
@@ -288,6 +288,56 @@ extension MutableState {
           do {
             var resolvedValue: Value = try await task.value
             try await mutation(&resolvedValue)
+            try self?.update(to: resolvedValue, from: generation)
+            return resolvedValue
+          }
+          catch {
+            try self?.fail(with: error)
+            throw error
+          }
+        }
+        state.value = .pending(updateTask)
+
+      case .failure(let error):
+        throw error
+      }
+    }
+  }
+
+  public func deferredAssign(
+    _ resolve: @escaping ResolveValue
+  ) throws {
+    try self.state.access { (state: inout State) throws in
+      switch state.value {
+      case .current:
+        if state.updateAwaiters.isEmpty {
+          state.value = .deferred(resolve)
+        }
+        else {
+          let generation: Generation = state.generation + 1
+          let updateTask: Task<Value, Error> = .detached { [weak self] in
+            do {
+              let resolvedValue: Value = try await resolve()
+              try self?.update(to: resolvedValue, from: generation)
+              return resolvedValue
+            }
+            catch {
+              try self?.fail(with: error)
+              throw error
+            }
+          }
+          state.value = .pending(updateTask)
+        }
+
+      case .deferred:
+        state.value = .deferred(resolve)
+
+      case .pending(let task):
+        task.cancel()
+        let generation: Generation = state.generation + 1
+        let updateTask: Task<Value, Error> = .detached { [weak self] in
+          do {
+            let resolvedValue: Value = try await resolve()
             try self?.update(to: resolvedValue, from: generation)
             return resolvedValue
           }

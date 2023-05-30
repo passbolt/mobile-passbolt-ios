@@ -22,3 +22,13 @@
 //
 
 public protocol FeaturesContainer: Features & AnyObject {}
+
+extension FeaturesContainer {
+
+	@MainActor public func takeOwned(
+		file: StaticString,
+		line: UInt
+	) -> FeaturesContainer {
+		self
+	}
+}

@@ -56,7 +56,26 @@ extension UserDetails {
       update: fetchUserDetails
     )
 
-    let avatarImageCache: AsyncCache<Data> = .init()
+    let avatarImageCache: MutableState<Data> = .init(
+      lazy: {
+        do {
+          return
+            try await mediaDownloadNetworkOperation
+            .execute(
+              currentDetails
+                .value
+                .avatarImageURL
+            )
+        }
+        catch {
+          diagnostics.log(
+            error: error,
+            info: .message("Failed to fetch user avatar image!")
+          )
+          throw error
+        }
+      }
+    )
 
     @Sendable nonisolated func details() async throws -> UserDetailsDSV {
       try await currentDetails.value
@@ -74,23 +93,7 @@ extension UserDetails {
     }
 
     @Sendable nonisolated func avatarImage() async -> Data? {
-      do {
-        return
-          try await avatarImageCache
-          .valueOrUpdate {
-            return
-              try await mediaDownloadNetworkOperation
-              .execute(
-                currentDetails
-                  .value
-                  .avatarImageURL
-              )
-          }
-      }
-      catch {
-        diagnostics.log(error: error)
-        return .none
-      }
+      try? await avatarImageCache.value
     }
 
     return Self(

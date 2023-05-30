@@ -24,94 +24,58 @@
 import Display
 import OSFeatures
 
-// MARK: - Interface
+internal final class OTPCreateMenuController: ViewController {
 
-internal struct OTPCreateMenuController {
+  private let diagnostics: OSDiagnostics
+  private let asyncExecutor: AsyncExecutor
+  private let navigationToSelf: NavigationToOTPCreateMenu
+  private let navigationToQRCodeCreateOTPView: NavigationToOTPScanning
+  private let navigationToTOTPEditForm: NavigationToTOTPEditForm
 
-  @Stateless internal var viewState
+  internal init(
+    context: Void,
+    features: Features
+  ) throws {
+    try features.ensureScope(SessionScope.self)
 
-  internal var createFromQRCode: () -> Void
-  internal var createManually: () -> Void
-  internal var dismiss: () -> Void
-}
-
-extension OTPCreateMenuController: ViewController {
-
-  #if DEBUG
-  internal static var placeholder: Self {
-    .init(
-      createFromQRCode: unimplemented0(),
-      createManually: unimplemented0(),
-      dismiss: unimplemented0()
-    )
+    self.diagnostics = features.instance()
+    self.asyncExecutor = try features.instance()
+    self.navigationToSelf = try features.instance()
+    self.navigationToQRCodeCreateOTPView = try features.instance()
+    self.navigationToTOTPEditForm = try features.instance()
   }
-  #endif
 }
-
-// MARK: - Implementation
 
 extension OTPCreateMenuController {
 
-  @MainActor fileprivate static func load(
-    features: Features
-  ) throws -> Self {
-    try features.ensureScope(SessionScope.self)
-
-    let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
-
-    let navigationToSelf: NavigationToOTPCreateMenu = try features.instance()
-    let navigationToQRCodeCreateOTPView: NavigationToOTPScanning = try features.instance()
-    let navigationToTOTPEditForm: NavigationToTOTPEditForm = try features.instance()
-
-    nonisolated func createFromQRCode() {
-      asyncExecutor.scheduleCatchingWith(
-        diagnostics,
-        failMessage: "Navigation to create OTP from QR code failed!",
-        behavior: .reuse
-      ) {
-        try await navigationToSelf.revert()
-        try await navigationToQRCodeCreateOTPView.perform()
-      }
+  internal final func createFromQRCode() {
+    self.asyncExecutor.scheduleCatchingWith(
+      self.diagnostics,
+      failMessage: "Navigation to create OTP from QR code failed!",
+      behavior: .reuse
+    ) { [navigationToSelf, navigationToQRCodeCreateOTPView] in
+      try await navigationToSelf.revert()
+      try await navigationToQRCodeCreateOTPView.perform()
     }
-    nonisolated func createManually() {
-      asyncExecutor.scheduleCatchingWith(
-        diagnostics,
-        failMessage: "Navigation to create OTP manually failed!",
-        behavior: .reuse
-      ) {
-        try await navigationToSelf.revert()
-        try await navigationToTOTPEditForm.perform(context: .none)
-      }
-    }
-
-    nonisolated func dismiss() {
-      asyncExecutor.scheduleCatchingWith(
-        diagnostics,
-        failMessage: "Navigation back from create OTP menu failed!",
-        behavior: .reuse
-      ) {
-        try await navigationToSelf.revert()
-      }
-    }
-
-    return .init(
-      createFromQRCode: createFromQRCode,
-      createManually: createManually,
-      dismiss: dismiss
-    )
   }
-}
+  internal final func createManually() {
+    self.asyncExecutor.scheduleCatchingWith(
+      self.diagnostics,
+      failMessage: "Navigation to create OTP manually failed!",
+      behavior: .reuse
+    ) { [navigationToSelf, navigationToTOTPEditForm] in
+      try await navigationToSelf.revert()
+      try await navigationToTOTPEditForm.perform(context: .none)
+    }
+  }
 
-extension FeaturesRegistry {
-
-  internal mutating func useLiveOTPCreateMenuController() {
-    self.use(
-      .disposable(
-        OTPCreateMenuController.self,
-        load: OTPCreateMenuController.load(features:)
-      ),
-      in: SessionScope.self
-    )
+  internal final func dismiss() {
+    self.asyncExecutor.scheduleCatchingWith(
+      self.diagnostics,
+      failMessage: "Navigation back from create OTP menu failed!",
+      behavior: .reuse
+    ) { [navigationToSelf] in
+      try await navigationToSelf.revert()
+    }
   }
 }

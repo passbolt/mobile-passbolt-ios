@@ -27,69 +27,47 @@ import Display
 import OSFeatures
 import Session
 
-struct AccountExportAuthorizationController {
+internal final class AccountExportAuthorizationController: ViewController {
 
-  internal var viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: MutableViewState<ViewState>
 
-  internal var setPassphrase: @MainActor (Passphrase) -> Void
-  internal var authorizeWithPassphrase: () -> Void
-  internal var authorizeWithBiometrics: () -> Void
-}
-
-extension AccountExportAuthorizationController: ViewController {
-
-  internal struct ViewState: Hashable {
-
-    internal var accountLabel: String
-    internal var accountUsername: String
-    internal var accountDomain: String
-    internal var accountAvatarImage: Data?
-    internal var biometricsAvailability: OSBiometryAvailability
-    internal var passphrase: Validated<Passphrase>
-    internal var snackBarMessage: SnackBarMessage?
-  }
-
-  #if DEBUG
-  nonisolated static var placeholder: Self {
-    .init(
-      viewState: .placeholder(),
-      setPassphrase: unimplemented1(),
-      authorizeWithPassphrase: unimplemented0(),
-      authorizeWithBiometrics: unimplemented0()
+  private nonisolated let passphraseValidator: Validator<Passphrase> = .nonEmpty(
+    displayable: .localized(
+      key: "authorization.passphrase.error"
     )
-  }
-  #endif
-}
+  )
 
-// MARK: - Implementation
+  private let accountDetails: AccountDetails
+  private let accountExport: AccountChunkedExport
+  private let diagnostics: OSDiagnostics
+  private let biometry: OSBiometry
+  private let asyncExecutor: AsyncExecutor
+  private let navigation: DisplayNavigation
+  private let accountPreferences: AccountPreferences
+  private let account: Account
 
-extension AccountExportAuthorizationController {
+  private let features: Features
 
-  @MainActor fileprivate static func load(
+  internal init(
+    context: Void,
     features: Features
-  ) throws -> Self {
-    let features: Features = features.branch(scope: AccountTransferScope.self)
+  ) throws {
+    self.features = features.branch(scope: AccountTransferScope.self)
 
-    let account: Account = try features.sessionAccount()
+    self.account = try features.sessionAccount()
 
-    let diagnostics: OSDiagnostics = features.instance()
-    let biometry: OSBiometry = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
-    let navigation: DisplayNavigation = try features.instance()
-    let accountPreferences: AccountPreferences = try features.instance(context: account)
+    self.diagnostics = features.instance()
+    self.biometry = features.instance()
+    self.asyncExecutor = try features.instance()
+    self.navigation = try features.instance()
+    self.accountPreferences = try features.instance(context: account)
 
-    let accountDetails: AccountDetails = try features.instance(context: account)
-    let accountExport: AccountChunkedExport = try features.instance()
-
-    let passphraseValidator: Validator<Passphrase> = .nonEmpty(
-      displayable: .localized(
-        key: "authorization.passphrase.error"
-      )
-    )
+    self.accountDetails = try features.instance(context: account)
+    self.accountExport = try features.instance()
 
     let accountWithProfile: AccountWithProfile = try accountDetails.profile()
 
-    let biometricsAvailability: OSBiometryAvailability = {
+    let biometricsAvailability: OSBiometryAvailability = { [biometry, accountPreferences] in
       guard accountPreferences.isPassphraseStored()
       else { return .unavailable }
       switch biometry.availability() {
@@ -103,7 +81,7 @@ extension AccountExportAuthorizationController {
       }
     }()
 
-    let viewState: MutableViewState<ViewState> = .init(
+    self.viewState = .init(
       initial:
         .init(
           accountLabel: accountWithProfile.label,
@@ -115,81 +93,71 @@ extension AccountExportAuthorizationController {
         )
     )
 
-    asyncExecutor.schedule {
-      do {
-        let avatarImage: Data? = try await accountDetails.avatarImage()
-        await viewState.update { (state: inout ViewState) in
-          state.accountAvatarImage = avatarImage
-        }
-      }
-      catch {
-        diagnostics.log(error: error)
+    self.asyncExecutor.scheduleCatchingWith(self.diagnostics) { [accountDetails, viewState] in
+      let avatarImage: Data? = try await accountDetails.avatarImage()
+      await viewState.update { (state: inout ViewState) in
+        state.accountAvatarImage = avatarImage
       }
     }
-
-    @MainActor func setPassphrase(
-      _ passphrase: Passphrase
-    ) {
-      viewState.update(\.passphrase, to: passphraseValidator(passphrase))
-    }
-
-    nonisolated func authorizeWithPassphrase() {
-      asyncExecutor.schedule(.reuse) {
-        let validatedPassphrase: Validated<Passphrase> = await passphraseValidator(viewState.value.passphrase)
-        do {
-          let passphrase: Passphrase = try validatedPassphrase.validValue
-          try await accountExport.authorize(.passphrase(passphrase))
-          try await navigation.push(
-            AccountQRCodeExportView.self,
-            controller: features.instance()
-          )
-        }
-        catch {
-          await viewState.update { (state: inout ViewState) in
-            state.passphrase = validatedPassphrase
-            state.snackBarMessage = .error(error)
-          }
-          diagnostics.log(error: error)
-        }
-      }
-    }
-
-    nonisolated func authorizeWithBiometrics() {
-      asyncExecutor.schedule(.reuse) {
-        do {
-          try await accountExport.authorize(.biometrics)
-          try await navigation.push(
-            AccountQRCodeExportView.self,
-            controller: features.instance()
-          )
-        }
-        catch {
-          await viewState.update { (state: inout ViewState) in
-            state.snackBarMessage = .error(error)
-          }
-          diagnostics.log(error: error)
-        }
-      }
-    }
-
-    return .init(
-      viewState: viewState,
-      setPassphrase: setPassphrase(_:),
-      authorizeWithPassphrase: authorizeWithPassphrase,
-      authorizeWithBiometrics: authorizeWithBiometrics
-    )
   }
 }
 
-extension FeaturesRegistry {
+extension AccountExportAuthorizationController {
 
-  internal mutating func useAccountExportAuthorizationController() {
-    use(
-      .disposable(
-        AccountExportAuthorizationController.self,
-        load: AccountExportAuthorizationController.load(features:)
-      ),
-      in: SessionScope.self
-    )
+  internal struct ViewState: Hashable {
+
+    internal var accountLabel: String
+    internal var accountUsername: String
+    internal var accountDomain: String
+    internal var accountAvatarImage: Data?
+    internal var biometricsAvailability: OSBiometryAvailability
+    internal var passphrase: Validated<Passphrase>
+    internal var snackBarMessage: SnackBarMessage?
+  }
+}
+
+extension AccountExportAuthorizationController {
+
+  internal final func setPassphrase(
+    _ passphrase: Passphrase
+  ) {
+    self.viewState.update(\.passphrase, to: passphraseValidator(passphrase))
+  }
+
+  internal final func authorizeWithPassphrase() {
+    self.asyncExecutor.schedule(.reuse) { [unowned self] in
+      let validatedPassphrase: Validated<Passphrase> = await self.passphraseValidator(self.viewState.value.passphrase)
+      do {
+        let passphrase: Passphrase = try validatedPassphrase.validValue
+        try await self.accountExport.authorize(.passphrase(passphrase))
+        try await self.navigation.push(
+          AccountQRCodeExportView.self,
+          controller: self.features.instance()
+        )
+      }
+      catch {
+        await self.viewState.update { (state: inout ViewState) in
+          state.passphrase = validatedPassphrase
+          state.snackBarMessage = .error(error)
+        }
+        self.diagnostics.log(error: error)
+      }
+    }
+  }
+
+  internal final func authorizeWithBiometrics() {
+    self.asyncExecutor.scheduleCatchingWith(
+      self.diagnostics,
+      failAction: { (error: Error) in
+        await self.viewState.update(\.snackBarMessage, to: .error(error))
+      },
+      behavior: .reuse
+    ) { [features, accountExport, navigation] in
+      try await accountExport.authorize(.biometrics)
+      try await navigation.push(
+        AccountQRCodeExportView.self,
+        controller: features.instance()
+      )
+    }
   }
 }

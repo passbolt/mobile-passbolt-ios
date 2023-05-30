@@ -22,25 +22,11 @@
 //
 
 import Features
+import SharedUIComponents
 
 extension FeaturesRegistry {
 
-  internal mutating func useLiveScreenControllers() {
-    self.usePassboltHomePresentation()
-
-    self.useLiveDefaultPresentationModeSettingsController()
-    self.useLiveResourceDetailsTagsListController()
-
-    self.usePassboltResourcesListCreateMenuController()
-    self.usePassboltResourceFolderEditController()
-    self.usePassboltResourceFolderMenuController()
-    self.usePassboltResourceFolderDetailsController()
-    self.usePassboltResourceFolderLocationDetailsController()
-    self.usePassboltResourceLocationDetailsController()
-    self.usePassboltResourceFolderPermissionListController()
-    self.useAccountQRCodeExportController()
-    self.useAccountExportAuthorizationController()
-
+  public mutating func useLiveNavigation() {
     // MARK: - Global
     self.useLiveNavigationToLogs()
 
@@ -50,40 +36,34 @@ extension FeaturesRegistry {
     self.useLiveNavigationToAccountDetails()
     self.useLiveNavigationToManageAccounts()
 
-    // MARK: - OTP Tab
-    self.useLiveOTPResourcesTabController()
-    self.useLiveNavigationToOTPResourcesTab()
-    self.useLiveOTPResourcesListController()
+    // MARK: - Resource details
+    self.useLiveNavigationToResourceDetails()
+    self.useLiveNavigationToResourceLocationDetails()
+    self.useLiveNavigationToResourceTagsDetails()
+    self.useLiveNavigationToResourcePermissionsDetails()
 
-    // MARK: - OTP contextual menu
-    self.useLiveOTPCContextualMenuController()
-    self.useLiveNavigationToOTPContextualMenu()
-    self.useLiveNavigationToOTPDeleteAlert()
+    // MARK: - Resource menu
+    self.useLiveNavigationToResourceContextualMenu()
+		self.useLiveNavigationToResourceDeleteAlert()
+		self.useLiveNavigationToResourceShare()
+		self.useLiveNavigationToResourceEdit()
+
+    // MARK: - OTP Tab
+    self.useLiveNavigationToOTPResourcesTab()
 
     // MARK: - OTP create menu
-    self.useLiveOTPCreateMenuController()
     self.useLiveNavigationToOTPCreateMenu()
-    self.useLiveOTPScanningController()
     self.useLiveNavigationToOTPScanning()
-    self.useLiveOTPScanningSuccessController()
     self.useLiveNavigationToOTPScanningSuccess()
-    self.useLiveTOTPEditFormController()
     self.useLiveNavigationToTOTPEditForm()
     self.useLiveNavigationToTOTPEditAdvancedForm()
-    self.useLiveTOTPEditAdvancedFormController()
 
     // MARK: - Settings Tab
-    self.useLiveMainSettingsController()
-    self.useLiveTroubleshootingSettingsController()
     self.useLiveNavigationToTroubleshootingSettings()
-    self.useLiveTermsAndLicensesSettingsController()
     self.useLiveNavigationToTermsAndLicensesSettings()
-    self.useLiveApplicationSettingsController()
     self.useLiveNavigationToApplicationSettings()
-    self.useLiveDefaultPresentationModeSettingsController()
     self.useLiveNavigationToDefaultPresentationModeSettings()
     self.useLiveNavigationToAutofillSettings()
-    self.useLiveAccountsSettingsController()
     self.useLiveNavigationToAccountsSettings()
     self.useLiveNavigationToAccountExport()
   }

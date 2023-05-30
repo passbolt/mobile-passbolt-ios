@@ -35,8 +35,7 @@ public struct Users {
   public var filteredUsers: (UsersFilter) async throws -> Array<UserDetailsDSV>
   /// Access details for a given user.
   public var userDetails: (User.ID) async throws -> UserDetailsDSV
-  /// Access permissions to a given resource
-  /// for a given user.
+  /// Access permissions to a given resource for a given user.
   public var userPermissionToResource: (User.ID, Resource.ID) async throws -> Permission?
   /// Access avatar image for a given user.
   public var userAvatarImage: (User.ID) async throws -> Data?

@@ -29,15 +29,68 @@ import SessionData
 import SharedUIComponents
 import Users
 
-internal struct ResourceTagsListNodeController {
+internal final class ResourceTagsListNodeController: ViewController {
 
-  internal var viewState: MutableViewState<ViewState>
-  internal var closeExtension: () -> Void
-  internal var searchController: ResourceSearchDisplayController
-  internal var contentController: ResourceTagsListDisplayController
+  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal var searchController: ResourceSearchDisplayController!  // lazy?
+  internal var contentController: ResourceTagsListDisplayController!  // lazy?
+
+  private let diagnostics: OSDiagnostics
+  private let asyncExecutor: AsyncExecutor
+  private let navigationTree: NavigationTree
+  private let autofillContext: AutofillExtensionContext
+  private let resourceTags: ResourceTags
+
+  private let context: Context
+  private let features: Features
+
+  internal init(
+    context: Context,
+    features: Features
+  ) throws {
+    self.context = context
+    self.features = features
+
+    self.diagnostics = features.instance()
+    self.asyncExecutor = try features.instance()
+    self.navigationTree = features.instance()
+    self.autofillContext = features.instance()
+    self.resourceTags = try features.instance()
+
+    self.viewState = .init(
+      initial: .init(
+        title: context.title,
+        titleIconName: context.titleIconName,
+        snackBarMessage: .none
+      )
+    )
+
+    self.searchController = try features.instance(
+      context: .init(
+        searchPrompt: context.searchPrompt,
+        showMessage: { [viewState] (message: SnackBarMessage?) in
+          viewState.update { viewState in
+            viewState.snackBarMessage = message
+          }
+        }
+      )
+    )
+
+    self.contentController = try features.instance(
+      context: .init(
+        filter: self.searchController.searchText,
+        selectTag: self.selectResourceTag(_:),
+        showMessage: { [viewState] (message: SnackBarMessage?) in
+          viewState.update { viewState in
+            viewState.snackBarMessage = message
+          }
+        }
+      )
+    )
+  }
 }
 
-extension ResourceTagsListNodeController: ViewController {
+extension ResourceTagsListNodeController {
 
   internal struct Context {
 
@@ -52,126 +105,47 @@ extension ResourceTagsListNodeController: ViewController {
     internal var titleIconName: ImageNameConstant
     internal var snackBarMessage: SnackBarMessage?
   }
-
-  #if DEBUG
-  nonisolated static var placeholder: Self {
-    .init(
-      viewState: .placeholder(),
-      closeExtension: { unimplemented() },
-      searchController: .placeholder,
-      contentController: .placeholder
-    )
-  }
-  #endif
 }
 
 extension ResourceTagsListNodeController {
 
-  @MainActor fileprivate static func load(
-    features: Features,
-    context: Context
-  ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
-    let navigationTree: NavigationTree = features.instance()
-    let autofillContext: AutofillExtensionContext = features.instance()
-    let resourceTags: ResourceTags = try features.instance()
+  internal final func selectResourceTag(
+    _ resourceTagID: ResourceTag.ID
+  ) {
+    self.asyncExecutor.scheduleCatchingWith(
+      self.diagnostics,
+      failMessage: "Failed to handle resource selection.",
+      failAction: { [viewState] (error: Error) in
+        await viewState.update(\.snackBarMessage, to: .error(error))
+      },
+      behavior: .replace
+    ) { [features, resourceTags, navigationTree] in
+      let tagDetails: ResourceTag = try await resourceTags.details(resourceTagID)
 
-    let viewState: MutableViewState<ViewState> = .init(
-      initial: .init(
-        title: context.title,
-        titleIconName: context.titleIconName,
-        snackBarMessage: .none
-      )
-    )
-
-    let searchController: ResourceSearchDisplayController = try features.instance(
-      context: .init(
-        searchPrompt: context.searchPrompt,
-        showMessage: { (message: SnackBarMessage?) in
-          viewState.update { viewState in
-            viewState.snackBarMessage = message
-          }
-        }
-      )
-    )
-
-    let contentController: ResourceTagsListDisplayController = try features.instance(
-      context: .init(
-        filter: searchController.searchText,
-        selectTag: selectResourceTag(_:),
-        showMessage: { (message: SnackBarMessage?) in
-          viewState.update { viewState in
-            viewState.snackBarMessage = message
-          }
-        }
-      )
-    )
-
-    @Sendable nonisolated func selectResourceTag(
-      _ resourceTagID: ResourceTag.ID
-    ) {
-      asyncExecutor.schedule(.replace) {
-        do {
-          let tagDetails: ResourceTag = try await resourceTags.details(resourceTagID)
-
-          let nodeController: ResourcesListNodeController =
-            try await features
-            .instance(
-              of: ResourcesListNodeController.self,
-              context: .init(
-                title: .raw(tagDetails.slug.rawValue),
-                titleIconName: .tag,
-                baseFilter: .init(
-                  sorting: .nameAlphabetically,
-                  tags: [resourceTagID]
-                )
-              )
-            )
-          await navigationTree
-            .push(
-              ResourcesListNodeView.self,
-              controller: nodeController
-            )
-        }
-        catch {
-          diagnostics.log(
-            error: error,
-            info: .message(
-              "Failed to handle resource tag selection."
+      let nodeController: ResourcesListNodeController =
+        try await features
+        .instance(
+          of: ResourcesListNodeController.self,
+          context: .init(
+            title: .raw(tagDetails.slug.rawValue),
+            titleIconName: .tag,
+            baseFilter: .init(
+              sorting: .nameAlphabetically,
+              tags: [resourceTagID]
             )
           )
-          await viewState.update { viewState in
-            viewState.snackBarMessage = .error(error)
-          }
-        }
-      }
+        )
+      await navigationTree
+        .push(
+          ResourcesListNodeView.self,
+          controller: nodeController
+        )
     }
-
-    nonisolated func closeExtension() {
-      asyncExecutor.schedule(.reuse) {
-        await autofillContext.cancelAndCloseExtension()
-      }
-    }
-
-    return .init(
-      viewState: viewState,
-      closeExtension: closeExtension,
-      searchController: searchController,
-      contentController: contentController
-    )
   }
-}
 
-extension FeaturesRegistry {
-
-  public mutating func usePassboltResourceTagsListNodeController() {
-    self.use(
-      .disposable(
-        ResourceTagsListNodeController.self,
-        load: ResourceTagsListNodeController.load(features:context:)
-      ),
-      in: SessionScope.self
-    )
+  internal final func closeExtension() {
+    self.asyncExecutor.schedule(.reuse) { [autofillContext] in
+      await autofillContext.cancelAndCloseExtension()
+    }
   }
 }

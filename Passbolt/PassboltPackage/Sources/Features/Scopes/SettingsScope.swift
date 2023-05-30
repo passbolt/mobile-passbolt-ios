@@ -21,4 +21,5 @@
 // @since         v1.0
 //
 
+// Scope for application/account settings.
 public enum SettingsScope: FeaturesScope {}

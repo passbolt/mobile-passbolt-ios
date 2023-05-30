@@ -21,6 +21,9 @@
 // @since         v1.0
 //
 
+import CommonModels
+
+// Scope for sharing resources.
 public enum ResourceShareScope: FeaturesScope {
 
   public typealias Context = Resource.ID

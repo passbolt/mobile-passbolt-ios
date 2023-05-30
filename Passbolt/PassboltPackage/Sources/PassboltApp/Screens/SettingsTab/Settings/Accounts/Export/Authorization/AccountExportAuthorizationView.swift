@@ -78,13 +78,3 @@ internal struct AccountExportAuthorizationView: ControlledView {
     }
   }
 }
-
-#if DEBUG
-internal struct AccountExportAuthorizationView_Previews: PreviewProvider {
-  internal static var previews: some View {
-    AccountExportAuthorizationView(
-      controller: .placeholder
-    )
-  }
-}
-#endif

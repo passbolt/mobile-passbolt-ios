@@ -55,7 +55,7 @@ extension ResourceFolder: Equatable {}
 
 extension ResourceFolder {
 
-  public var parentID: ID? {
+  public var parentFolderID: ID? {
     self.path.last?.id
   }
 }

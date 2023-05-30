@@ -44,6 +44,10 @@ extension ResourceController {
     let sessionData: SessionData = try features.instance()
     let sessionCryptography: SessionCryptography = try features.instance()
     let resourceDataFetchDatabaseOperation: ResourceDetailsFetchDatabaseOperation = try features.instance()
+    let resourceUserPermissionsDetailsFetch: ResourceUserPermissionsDetailsFetchDatabaseOperation =
+      try features.instance()
+    let resourceUserGroupPermissionsDetailsFetch: ResourceUserGroupPermissionsDetailsFetchDatabaseOperation =
+      try features.instance()
     let resourceSecretFetchNetworkOperation: ResourceSecretFetchNetworkOperation = try features.instance()
     let resourceDeleteNetworkOperation: ResourceDeleteNetworkOperation = try features.instance()
     let resourceFavoriteAddNetworkOperation: ResourceFavoriteAddNetworkOperation = try features.instance()
@@ -53,8 +57,8 @@ extension ResourceController {
     let state: MutableState<Resource> = .init(lazy: fetchMeta)
 
     asyncExecutor
-      .scheduleIteration(
-        over: sessionData.lastUpdate,
+      .scheduleIteration( // dropFirst - we have initial value already scheduled
+				over: sessionData.lastUpdate.dropFirst(),
         catchingWith: diagnostics,
         failMessage: "Resource updates broken!",
         behavior: .replace
@@ -118,6 +122,16 @@ extension ResourceController {
       .secret
     }
 
+    @Sendable func loadUserPermissionsDetails() async throws -> Array<UserPermissionDetailsDSV> {
+      // there could be a cache if needed
+      try await resourceUserPermissionsDetailsFetch(resourceID)
+    }
+
+    @Sendable func loadUserGroupPermissionsDetails() async throws -> Array<UserGroupPermissionDetailsDSV> {
+      // there could be a cache if needed
+      try await resourceUserGroupPermissionsDetailsFetch(resourceID)
+    }
+
     @Sendable func toggleFavorite() async throws {
       if let favoriteID: Resource.Favorite.ID = try await state.value.favoriteID {
         try await resourceFavoriteDeleteNetworkOperation(.init(favoriteID: favoriteID))
@@ -142,6 +156,8 @@ extension ResourceController {
     return Self(
       state: .init(viewing: state),
       fetchSecretIfNeeded: fetchSecretIfNeeded,
+      loadUserPermissionsDetails: loadUserPermissionsDetails,
+      loadUserGroupPermissionsDetails: loadUserGroupPermissionsDetails,
       toggleFavorite: toggleFavorite,
       delete: delete
     )

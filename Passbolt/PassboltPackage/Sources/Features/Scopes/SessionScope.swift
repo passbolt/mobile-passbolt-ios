@@ -23,6 +23,7 @@
 
 import CommonModels
 
+// Scope for signed in user.
 public enum SessionScope: FeaturesScope {
 
   public struct Context: Hashable, LoadableFeatureContext {

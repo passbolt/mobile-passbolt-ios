@@ -25,41 +25,35 @@ import TestExtensions
 
 @testable import PassboltApp
 
-final class TermsAndLicensesSettingsControllerTests: LoadableFeatureTestCase<TermsAndLicensesSettingsController> {
+final class TermsAndLicensesSettingsControllerTests: FeaturesTestCase {
 
-  override class var testedImplementationScope: any FeaturesScope.Type {
-    SettingsScope.self
-  }
+	override func commonPrepare() {
+		super.commonPrepare()
+		set(
+			SessionScope.self,
+			context: .init(
+				account: .mock_ada,
+				configuration: .mock_default
+			)
+		)
+		set(SettingsScope.self)
+	}
 
-  override class func testedImplementationRegister(
-    _ registry: inout FeaturesRegistry
-  ) {
-    registry.useLiveTermsAndLicensesSettingsController()
-  }
-
-  override func prepare() throws {
-    set(
-      SessionScope.self,
-      context: .init(
-        account: .mock_ada,
-        configuration: .mock_default
-      )
-    )
-    set(SettingsScope.self)
-  }
-
-  func test_navigateToLicenses_opensApplicationSettings() {
+  func test_navigateToLicenses_opensApplicationSettings() async {
     patch(
       \OSLinkOpener.openApplicationSettings,
-      with: always(self.executed())
+      with: always(self.mockExecuted())
     )
-    withTestedInstanceExecuted { feature in
-      feature.navigateToLicenses()
-      await self.mockExecutionControl.executeAll()
+		await withInstance(
+			of: TermsAndLicensesSettingsController.self,
+			mockExecuted: 1
+		) { feature in
+      await feature.navigateToLicenses()
+      await self.asyncExecutionControl.executeAll()
     }
   }
 
-  func test_navigateToTermsAndConditions_opensTermsAndConditionsURL() {
+  func test_navigateToTermsAndConditions_opensTermsAndConditionsURL() async {
     set(
       SessionScope.self,
       context: .init(
@@ -69,15 +63,18 @@ final class TermsAndLicensesSettingsControllerTests: LoadableFeatureTestCase<Ter
     )
     patch(
       \OSLinkOpener.openURL,
-      with: always(self.executed())
+      with: always(self.mockExecuted())
     )
-    withTestedInstanceExecuted { feature in
-      feature.navigateToTermsAndConditions()
-      await self.mockExecutionControl.executeAll()
+		await withInstance(
+			of: TermsAndLicensesSettingsController.self,
+			mockExecuted: 1
+		) { feature in
+      await feature.navigateToTermsAndConditions()
+      await self.asyncExecutionControl.executeAll()
     }
   }
 
-  func test_navigateToPrivacyPolicy_opensPrivacyPolicyURL() {
+  func test_navigateToPrivacyPolicy_opensPrivacyPolicyURL() async {
     set(
       SessionScope.self,
       context: .init(
@@ -87,15 +84,18 @@ final class TermsAndLicensesSettingsControllerTests: LoadableFeatureTestCase<Ter
     )
     patch(
       \OSLinkOpener.openURL,
-      with: always(self.executed())
+      with: always(self.mockExecuted())
     )
-    withTestedInstanceExecuted { feature in
-      feature.navigateToPrivacyPolicy()
-      await self.mockExecutionControl.executeAll()
+		await withInstance(
+			of: TermsAndLicensesSettingsController.self,
+			mockExecuted: 1
+		) { feature in
+      await feature.navigateToPrivacyPolicy()
+      await self.asyncExecutionControl.executeAll()
     }
   }
 
-  func test_navigateToTermsAndConditions_isIgnoredWithoutURL() {
+  func test_navigateToTermsAndConditions_isIgnoredWithoutURL() async {
     set(
       SessionScope.self,
       context: .init(
@@ -104,13 +104,15 @@ final class TermsAndLicensesSettingsControllerTests: LoadableFeatureTestCase<Ter
         configuration: .mock_default
       )
     )
-    withTestedInstanceNotExecuted { feature in
-      feature.navigateToTermsAndConditions()
-      await self.mockExecutionControl.executeAll()
+		await withInstance(
+			of: TermsAndLicensesSettingsController.self
+		) { feature in
+      await feature.navigateToTermsAndConditions()
+      await self.asyncExecutionControl.executeAll()
     }
   }
 
-  func test_navigateToPrivacyPolicy_isIgnoredWithoutURL() {
+  func test_navigateToPrivacyPolicy_isIgnoredWithoutURL() async {
     set(
       SessionScope.self,
       context: .init(
@@ -121,11 +123,14 @@ final class TermsAndLicensesSettingsControllerTests: LoadableFeatureTestCase<Ter
     )
     patch(
       \OSLinkOpener.openURL,
-      with: always(self.executed())
+      with: always(self.mockExecuted())
     )
-    withTestedInstanceNotExecuted { feature in
-      feature.navigateToPrivacyPolicy()
-      await self.mockExecutionControl.executeAll()
+		await withInstance(
+			of: TermsAndLicensesSettingsController.self,
+			mockExecuted: 0
+		) { feature in
+      await feature.navigateToPrivacyPolicy()
+      await self.asyncExecutionControl.executeAll()
     }
   }
 }

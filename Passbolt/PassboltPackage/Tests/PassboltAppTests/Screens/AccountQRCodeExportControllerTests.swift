@@ -26,34 +26,28 @@ import TestExtensions
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class AccountQRCodeExportControllerTests: LoadableFeatureTestCase<AccountQRCodeExportController> {
+final class AccountQRCodeExportControllerTests: FeaturesTestCase {
 
-  override class var testedImplementationScope: any FeaturesScope.Type {
-    AccountTransferScope.self
+	override func commonPrepare() {
+		super.commonPrepare()
+		set(AccountTransferScope.self)
+	}
+
+  func test_viewState_equalsDefault_initially() async throws {
+		let tested: AccountQRCodeExportController = try self.testedInstance()
+
+		await XCTAssertValue(
+			equal: AccountQRCodeExportController.ViewState(
+				currentQRcode: Data(),
+				exitConfirmationAlertPresented: false
+			)
+		) {
+			await self.asyncExecutionControl.executeAll()
+			return tested.viewState.value
+		}
   }
 
-  override class func testedImplementationRegister(
-    _ registry: inout FeaturesRegistry
-  ) {
-    registry.useAccountQRCodeExportController()
-  }
-
-  override func prepare() throws {
-    set(AccountTransferScope.self)
-  }
-
-  func test_viewState_equalsDefault_initially() {
-    withTestedInstanceReturnsEqual(
-      AccountQRCodeExportController.ViewState(
-        currentQRcode: Data(),
-        exitConfirmationAlertPresented: false
-      )
-    ) { feature in
-      await feature.viewState.value
-    }
-  }
-
-  func test_viewState_updatesWithData_whenTransferStateUpdates() {
+  func test_viewState_updatesWithData_whenTransferStateUpdates() async throws {
     let updatesSource: UpdatesSequenceSource = .init()
     patch(
       \AccountChunkedExport.updates,
@@ -69,22 +63,27 @@ final class AccountQRCodeExportControllerTests: LoadableFeatureTestCase<AccountQ
       \QRCodeGenerator.generateQRCode,
       with: always(Data([0x65, 0x66]))
     )
-    withTestedInstanceReturnsEqual(
-      AccountQRCodeExportController.ViewState(
-        currentQRcode: Data([0x65, 0x66]),
-        exitConfirmationAlertPresented: false
-      )
-    ) { feature in
-      await self.mockExecutionControl.addTask {
-        try? await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
-        updatesSource.endUpdates()
-      }
-      await self.mockExecutionControl.executeAll()
-      return await feature.viewState.value
-    }
+
+		let tested: AccountQRCodeExportController = try self.testedInstance()
+
+		await XCTAssertValue(
+			equal: AccountQRCodeExportController.ViewState(
+				currentQRcode: Data([0x65, 0x66]),
+				exitConfirmationAlertPresented: false
+			)
+		) {
+			self.asyncExecutionControl.addTask {
+				try? await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+				updatesSource.endUpdates()
+			}
+			await self.asyncExecutionControl.executeAll()
+			return tested.viewState.value
+		}
+		// to be removed after navigation refactor
+		await self.asyncExecutionControl.executeAll()
   }
 
-  func test_controller_navigates_whenTransferStateUpdatesToError() {
+  func test_controller_navigates_whenTransferStateUpdatesToError() async throws {
     XCTExpectFailure(
       "TODO: there should be test that checks if navigation was triggered, but that requires update in app navigation to be verified"
     )
@@ -99,12 +98,10 @@ final class AccountQRCodeExportControllerTests: LoadableFeatureTestCase<AccountQ
       \AccountChunkedExport.status,
       with: always(.error(MockIssue.error()))
     )
-    withTestedInstance { feature in
-      await self.mockExecutionControl.executeAll()
-    }
+		let tested: AccountQRCodeExportController = try self.testedInstance()
   }
 
-  func test_controller_navigates_whenTransferStateUpdatesToFinished() {
+  func test_controller_navigates_whenTransferStateUpdatesToFinished() async throws {
     XCTExpectFailure(
       "TODO: there should be test that checks if navigation was triggered, but that requires update in app navigation to be verified"
     )
@@ -119,23 +116,23 @@ final class AccountQRCodeExportControllerTests: LoadableFeatureTestCase<AccountQ
       \AccountChunkedExport.status,
       with: always(.finished)
     )
-    withTestedInstance { feature in
-      await self.mockExecutionControl.executeAll()
-    }
+		let tested: AccountQRCodeExportController = try self.testedInstance()
   }
 
-  func test_cancelTransfer_cancelsDataExport() {
+  func test_cancelTransfer_cancelsDataExport() async throws {
     patch(
       \AccountChunkedExport.cancel,
-      with: always(self.executed())
+			 with: always(self.dynamicVariables.set(\.executed, to: true))
     )
-    withTestedInstanceExecuted { feature in
-      feature.cancelTransfer()
-      await self.mockExecutionControl.executeAll()
-    }
+
+		let tested: AccountQRCodeExportController = try self.testedInstance()
+
+		tested.cancelTransfer()
+		await self.asyncExecutionControl.executeAll()
+		XCTAssertTrue(self.dynamicVariables.get(\.executed, of: Bool.self))
   }
 
-  func test_cancelTransfer_navigates() {
+  func test_cancelTransfer_navigates() async throws {
     XCTExpectFailure(
       "TODO: there should be test that checks if navigation was triggered, but that requires update in app navigation to be verified"
     )
@@ -145,9 +142,9 @@ final class AccountQRCodeExportControllerTests: LoadableFeatureTestCase<AccountQ
       \AccountChunkedExport.cancel,
       with: always(Void())
     )
-    withTestedInstanceExecuted { feature in
-      feature.cancelTransfer()
-      await self.mockExecutionControl.executeAll()
-    }
+		let tested: AccountQRCodeExportController = try self.testedInstance()
+
+		tested.cancelTransfer()
+		await self.asyncExecutionControl.executeAll()
   }
 }

@@ -65,7 +65,7 @@ internal struct ResourceFolderContentNodeView: ControlledView {
     )
   }
 
-  @ViewBuilder private func searchView(
+  @MainActor @ViewBuilder private func searchView(
     with state: ViewState
   ) -> some View {
     ResourceSearchDisplayView(
@@ -73,7 +73,7 @@ internal struct ResourceFolderContentNodeView: ControlledView {
     )
   }
 
-  @ViewBuilder private func contentView(
+  @MainActor @ViewBuilder private func contentView(
     with state: ViewState
   ) -> some View {
     ResourceFolderContentDisplayView(

@@ -28,11 +28,11 @@ import Features
 
 public struct ResourceFolders {
 
-  public var details: @Sendable (ResourceFolder.ID) async throws -> ResourceFolderDetailsDSV
+  public var details: @Sendable (ResourceFolder.ID) async throws -> ResourceFolder
   public var filteredFolderContent: @Sendable (ResourceFoldersFilter) async throws -> ResourceFolderContent
 
   public init(
-    details: @escaping @Sendable (ResourceFolder.ID) async throws -> ResourceFolderDetailsDSV,
+    details: @escaping @Sendable (ResourceFolder.ID) async throws -> ResourceFolder,
     filteredFolderContent: @escaping @Sendable (ResourceFoldersFilter) async throws -> ResourceFolderContent
   ) {
     self.details = details

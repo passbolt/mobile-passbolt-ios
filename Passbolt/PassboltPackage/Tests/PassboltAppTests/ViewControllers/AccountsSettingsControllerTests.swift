@@ -25,48 +25,45 @@ import TestExtensions
 
 @testable import PassboltApp
 
-final class AccountsSettingsControllerTests: LoadableFeatureTestCase<AccountsSettingsController> {
+final class AccountsSettingsControllerTests: FeaturesTestCase {
 
-  override class var testedImplementationScope: any FeaturesScope.Type {
-    SettingsScope.self
-  }
+	override func commonPrepare() {
+		super.commonPrepare()
+		set(
+			SessionScope.self,
+			context: .init(
+				account: .mock_ada,
+				configuration: .mock_default
+			)
+		)
+		set(SettingsScope.self)
+	}
 
-  override class func testedImplementationRegister(
-    _ registry: inout FeaturesRegistry
-  ) {
-    registry.useLiveAccountsSettingsController()
-  }
-
-  override func prepare() throws {
-    set(
-      SessionScope.self,
-      context: .init(
-        account: .mock_ada,
-        configuration: .mock_default
-      )
-    )
-    set(SettingsScope.self)
-  }
-
-  func test_navigateToAccountExport_performsNavigation() {
+  func test_navigateToAccountExport_performsNavigation() async {
     patch(
       \NavigationToAccountExport.mockPerform,
-      with: always(self.executed())
+      with: always(self.mockExecuted())
     )
-    withTestedInstanceExecuted { feature in
-      feature.navigateToAccountExport()
-      await self.mockExecutionControl.executeAll()
+		await withInstance(
+			of: AccountsSettingsController.self,
+			mockExecuted: 1
+		) { feature in
+      await feature.navigateToAccountExport()
+      await self.asyncExecutionControl.executeAll()
     }
   }
 
-  func test_navigateToManageAccounts_performsNavigation() {
+  func test_navigateToManageAccounts_performsNavigation() async {
     patch(
       \NavigationToManageAccounts.mockPerform,
-      with: always(self.executed())
+      with: always(self.mockExecuted())
     )
-    withTestedInstanceExecuted { feature in
-      feature.navigateToManageAccounts()
-      await self.mockExecutionControl.executeAll()
+		await withInstance(
+			of: AccountsSettingsController.self,
+			mockExecuted: 1
+		) { feature in
+      await feature.navigateToManageAccounts()
+      await self.asyncExecutionControl.executeAll()
     }
   }
 }

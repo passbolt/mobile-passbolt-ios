@@ -24,65 +24,34 @@
 import Display
 import OSFeatures
 
-// MARK: - Interface
+internal final class OTPResourcesTabController: ViewController {
 
-internal struct OTPResourcesTabController {
+  private let features: Features
 
-  @Stateless internal var viewState
+  internal init(
+    context: Void,
+    features: Features
+  ) throws {
+    try features.ensureScope(SessionScope.self)
 
-  // Temporary solution for providing stack initial element.
-  internal var prepareListController: @MainActor () -> OTPResourcesListController
-}
-
-extension OTPResourcesTabController: ViewController {
-
-  #if DEBUG
-  internal static var placeholder: Self {
-    .init(
-      prepareListController: unimplemented0()
-    )
+    self.features = features
   }
-  #endif
 }
-
-// MARK: - Implementation
 
 extension OTPResourcesTabController {
 
-  @MainActor fileprivate static func load(
-    features: Features
-  ) throws -> Self {
-    try features.ensureScope(SessionScope.self)
-
-    @MainActor func prepareListController() -> OTPResourcesListController {
-      do {
-        return try features.instance()
-      }
-      catch {
-        error
-          .asTheError()
-          .pushing(
-            .message("Preparing OTP tab list failed!")
-          )
-          .asFatalError()
-      }
+  // Temporary solution for providing stack initial element.
+  internal final func prepareListController() -> OTPResourcesListController {
+    do {
+      return try self.features.instance()
     }
-
-    return .init(
-      prepareListController: prepareListController
-    )
-  }
-}
-
-extension FeaturesRegistry {
-
-  internal mutating func useLiveOTPResourcesTabController() {
-    self.use(
-      .disposable(
-        OTPResourcesTabController.self,
-        load: OTPResourcesTabController.load(features:)
-      ),
-      in: SessionScope.self
-    )
+    catch {
+      error
+        .asTheError()
+        .pushing(
+          .message("Preparing OTP tab list failed!")
+        )
+        .asFatalError()
+    }
   }
 }

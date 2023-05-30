@@ -82,6 +82,16 @@ extension ResourceEditForm {
           resource.meta.uri = value
         }  // else skip
 
+        if resource.contains(\.secret.totp) {
+          // initialize TOTP fields with defaults
+          resource.secret.totp = [
+            "secret_key": "",
+            "algorithm": "SHA1",
+            "period": 30,
+            "digits": 6,
+          ]
+        }  // else skip
+
         return resource
 
       case .edit(let resourceID):

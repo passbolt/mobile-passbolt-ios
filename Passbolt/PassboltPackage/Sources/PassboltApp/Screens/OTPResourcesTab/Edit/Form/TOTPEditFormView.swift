@@ -80,7 +80,9 @@ internal struct TOTPEditFormView: ControlledView {
         text: self.controller
           .validatedBinding(
             to: \.nameField,
-            updating: self.controller.setNameField
+            updating: {
+              self.controller.setNameField($0)
+            }
           ),
         prompt: "otp.edit.form.field.name.prompt"
       )
@@ -99,7 +101,9 @@ internal struct TOTPEditFormView: ControlledView {
         text: self.controller
           .validatedBinding(
             to: \.uriField,
-            updating: self.controller.setURIField
+            updating: {
+              self.controller.setURIField($0)
+            }
           ),
         prompt: "otp.edit.form.field.uri.prompt"
       )
@@ -119,7 +123,9 @@ internal struct TOTPEditFormView: ControlledView {
         text: self.controller
           .validatedBinding(
             to: \.secretField,
-            updating: self.controller.setSecretField
+            updating: {
+              self.controller.setSecretField($0)
+            }
           ),
         prompt: "otp.edit.form.field.secret.prompt"
       )

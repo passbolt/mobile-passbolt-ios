@@ -31,7 +31,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
   @Sendable fileprivate static func execute(
     _ input: ResourceFolder.ID,
     connection: SQLiteConnection
-  ) throws -> ResourceFolderDetailsDSV {
+  ) throws -> ResourceFolder {
     let selectFolderStatement: SQLiteStatement =
       .statement(
         """
@@ -139,7 +139,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
             .error(
               underlyingError:
                 DatabaseDataInvalid
-                .error(for: ResourceFolderDetailsDSV.self)
+                .error(for: ResourceFolder.self)
             )
             .recording(dataRow, for: "dataRow")
         }
@@ -229,13 +229,12 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
           path = .init()
         }
 
-        return ResourceFolderDetailsDSV(
+        return ResourceFolder(
           id: id,
           name: name,
-          permission: permission,
+          path: path.asOrderedSet(),
           shared: shared,
-          parentFolderID: parentFolderID,
-          path: path,
+          permission: permission,
           permissions: OrderedSet(usersPermissions + userGroupsPermissions)
         )
       }

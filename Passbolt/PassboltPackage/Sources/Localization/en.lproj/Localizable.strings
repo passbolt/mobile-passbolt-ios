@@ -72,10 +72,14 @@
 "resource.detail.field.passphrase" = "Password";
 "resource.detail.field.uri" = "Website URL";
 "resource.detail.field.description" = "Description";
-"resource.details.copied" = "%@ copied!";
+"resource.value.copied" = "%@ copied to your clipboard!";
 "resource.details.value" = "Value";
-"resource.detail.section.shared" = "Shared with";
+"resource.detail.section.location" = "Location";
+"resource.detail.section.permissions" = "Shared with";
 "resource.detail.section.tags" = "Tags";
+
+"resource.field.name.unknown" = "Value";
+"section.tags.empty" = "No tags";
 
 "server.key.fingerprint.changed.title" = "Sorry, the server key has changed.";
 "server.key.fingerprint.changed.description" = "For security reasons please check with your administrator that this is a change that they initiated. The new fingerprint:";
@@ -223,16 +227,23 @@
 "resource.menu.item.copy.password" = "Copy password";
 "resource.menu.item.copy.username" = "Copy username";
 "resource.menu.item.copy.description" = "Copy description";
+"resource.menu.item.reveal.otp" = "Reveal OTP";
+"resource.menu.item.copy.otp" = "Copy OTP";
 "resource.menu.item.add.favorite" = "Add to favorite";
 "resource.menu.item.remove.favorite" = "Remove from favorite";
 "resource.menu.item.share" = "Share password";
 "resource.menu.item.edit" = "Edit password";
-"resource.menu.item.delete.password" = "Delete password";
+"resource.menu.item.delete" = "Delete password";
 "resource.menu.item.password" = "Password";
 "resource.menu.item.username" = "Username";
 "resource.menu.item.description" = "Description";
 "resource.menu.item.url" = "URL";
-"resource.menu.item.field.copied" = "%@ copied!";
+"resource.menu.item.field.copied" = "%@ copied to your clipboard!";
+
+
+"resource" = "Resource";
+"resource.menu.action.favorite.added" = "%@ has been added to favorites!";
+"resource.menu.action.favorite.removed" = "%@ has been removed from favorites!";
 
 "resource.menu.action.edited" = "This password was successfully edited.";
 "resource.menu.action.deleted" = "%@ has been deleted!";

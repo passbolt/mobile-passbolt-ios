@@ -179,12 +179,12 @@ internal struct OTPResourcesListView: ControlledView {
               title: resource.name,
               value: resource.totpValue,
               action: {
-                self.controller.revealAndCopyOTP(resource.id)
+                self.controller.revealAndCopyOTP(for: resource.id)
               },
               accessory: {
                 Button(
                   action: {
-                    self.controller.showCentextualMenu(resource.id)
+                    self.controller.showCentextualMenu(for: resource.id)
                   },
                   label: {
                     Image(named: .more)

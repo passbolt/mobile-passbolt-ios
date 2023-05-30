@@ -40,21 +40,22 @@ public struct ListRowTitleWithSubtitleView: View {
   public var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text(displayable: self.title)
-        .font(
-          .inter(
+        .text(
+          font: .inter(
             ofSize: 14,
             weight: .semibold
-          )
+          ),
+          color: .passboltPrimaryText
         )
-        .foregroundColor(.passboltPrimaryText)
+
       Text(displayable: self.subtitle)
-        .font(
-          .inter(
+        .text(
+          font: .inter(
             ofSize: 12,
             weight: .regular
-          )
+          ),
+          color: .passboltPrimaryText
         )
-        .foregroundColor(.passboltSecondaryText)
     }
     .padding(
       leading: 8,

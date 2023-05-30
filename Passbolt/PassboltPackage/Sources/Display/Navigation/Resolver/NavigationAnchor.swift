@@ -58,6 +58,14 @@ extension NavigationAnchor {
     file: StaticString,
     line: UInt
   ) async {
+    defer {
+      if #available(iOS 16.0, *) {
+        presentedAnchor.sheetPresentationController?
+          .animateChanges {
+            presentedAnchor.sheetPresentationController?.invalidateDetents()
+          }
+      }  // else NOP
+    }
     return await withCheckedContinuation { continuation in
       (self.navigationTabs
         ?? self.navigationStack

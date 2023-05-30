@@ -24,83 +24,48 @@
 import Display
 import OSFeatures
 
-// MARK: - Interface
+internal final class TroubleshootingSettingsController: ViewController {
 
-internal struct TroubleshootingSettingsController {
+  private let diagnostics: OSDiagnostics
+  private let linkOpener: OSLinkOpener
+  private let asyncExecutor: AsyncExecutor
+  private let navigationToLogs: NavigationToLogs
 
-  @Stateless internal var viewState
-
-  internal var navigateToLogs: () -> Void
-  internal var navigateToHelpSite: () -> Void
-}
-
-extension TroubleshootingSettingsController: ViewController {
-
-  #if DEBUG
-  internal static var placeholder: Self {
-    .init(
-      navigateToLogs: unimplemented0(),
-      navigateToHelpSite: unimplemented0()
-    )
-  }
-  #endif
-}
-
-// MARK: - Implementation
-
-extension TroubleshootingSettingsController {
-
-  @MainActor fileprivate static func load(
+  internal init(
+    context: Void,
     features: Features
-  ) throws -> Self {
+  ) throws {
     try features.ensureScope(SettingsScope.self)
     try features.ensureScope(SessionScope.self)
 
-    let diagnostics: OSDiagnostics = features.instance()
-    let linkOpener: OSLinkOpener = features.instance()
-
-    let asyncExecutor: AsyncExecutor = try features.instance()
-
-    let navigationToLogs: NavigationToLogs = try features.instance()
-
-    nonisolated func navigateToLogs() {
-      asyncExecutor
-        .scheduleCatchingWith(
-          diagnostics,
-          failMessage: "Navigation to logs failed!",
-          behavior: .reuse
-        ) {
-          try await navigationToLogs.perform()
-        }
-    }
-
-    nonisolated func navigateToHelpSite() {
-      asyncExecutor
-        .scheduleCatchingWith(
-          diagnostics,
-          failMessage: "Navigation to help site failed!",
-          behavior: .reuse
-        ) {
-          try await linkOpener.openURL("https://help.passbolt.com/")
-        }
-    }
-
-    return .init(
-      navigateToLogs: navigateToLogs,
-      navigateToHelpSite: navigateToHelpSite
-    )
+    self.diagnostics = features.instance()
+    self.linkOpener = features.instance()
+    self.asyncExecutor = try features.instance()
+    self.navigationToLogs = try features.instance()
   }
 }
 
-extension FeaturesRegistry {
+extension TroubleshootingSettingsController {
 
-  internal mutating func useLiveTroubleshootingSettingsController() {
-    self.use(
-      .disposable(
-        TroubleshootingSettingsController.self,
-        load: TroubleshootingSettingsController.load(features:)
-      ),
-      in: SettingsScope.self
-    )
+  internal final func navigateToLogs() {
+    self.asyncExecutor
+      .scheduleCatchingWith(
+        self.diagnostics,
+        failMessage: "Navigation to logs failed!",
+        behavior: .reuse
+      ) { [navigationToLogs] in
+        try await navigationToLogs.perform()
+      }
+  }
+
+  internal final func navigateToHelpSite() {
+    self.asyncExecutor
+      .scheduleCatchingWith(
+        self.diagnostics,
+        failMessage: "Navigation to help site failed!",
+        behavior: .reuse
+      ) { [linkOpener] in
+        try await linkOpener.openURL("https://help.passbolt.com/")
+      }
   }
 }

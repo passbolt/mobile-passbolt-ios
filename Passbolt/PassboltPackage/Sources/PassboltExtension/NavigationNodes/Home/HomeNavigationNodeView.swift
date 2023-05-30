@@ -37,7 +37,6 @@ internal struct HomeNavigationNodeView: ControlledView {
     WithViewState(from: self.controller) { state in
       self.bodyView(with: state)
     }
-    .task(self.controller.activate)
   }
 
   @ViewBuilder private func bodyView(

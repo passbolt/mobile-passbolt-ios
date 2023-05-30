@@ -27,64 +27,53 @@ import Resources
 import SessionData
 import Users
 
-// MARK: - Interface
-
-internal struct ResourceFolderDetailsController {
+internal final class ResourceFolderDetailsController: ViewController {
 
   internal var viewState: MutableViewState<ViewState>
-  internal var openLocationDetails: () -> Void
-  internal var openPermissionDetails: () -> Void
-}
 
-extension ResourceFolderDetailsController: ViewController {
+  private let diagnostics: OSDiagnostics
+  private let asyncExecutor: AsyncExecutor
+  private let sessionData: SessionData
+  private let navigation: DisplayNavigation
+  private let users: Users
+  private let resourceFolderController: ResourceFolderController
 
-  internal typealias Context = ResourceFolder.ID
+  private let context: ResourceFolder.ID
+  private let features: Features
 
-  internal struct ViewState: Hashable {
-
-    internal var folderName: String
-    internal var folderLocation: Array<String>
-    internal var folderPermissionItems: Array<OverlappingAvatarStackView.Item>
-    internal var folderShared: Bool
-    internal var snackBarMessage: SnackBarMessage?
-  }
-
-  #if DEBUG
-  static var placeholder: Self {
-    .init(
-      viewState: .placeholder(),
-      openLocationDetails: unimplemented0(),
-      openPermissionDetails: unimplemented0()
-    )
-  }
-  #endif
-}
-
-// MARK: - Implementation
-
-extension ResourceFolderDetailsController {
-
-  @MainActor fileprivate static func load(
-    features: Features,
-    context: Context
-  ) throws -> Self {
+  internal init(
+    context: ResourceFolder.ID,
+    features: Features
+  ) throws {
     let features: Features =
       features
       .branch(
         scope: ResourceFolderDetailsScope.self,
         context: context
       )
-    let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
-    let sessionData: SessionData = try features.instance()
-    let navigation: DisplayNavigation = try features.instance()
-    let users: Users = try features.instance()
-    let folderDetails: ResourceFolderDetails = try features.instance(context: context)
+    self.context = context
+    self.features = features
 
-    @Sendable func userAvatarImage(
-      for userID: User.ID
+    self.diagnostics = features.instance()
+    self.asyncExecutor = try features.instance()
+    self.sessionData = try features.instance()
+    self.navigation = try features.instance()
+    self.users = try features.instance()
+    self.resourceFolderController = try features.instance(context: context)
+
+    self.viewState = .init(
+      initial: .init(
+        folderName: "",
+        folderLocation: .init(),
+        folderPermissionItems: .init(),
+        folderShared: false
+      )
+    )
+
+    @Sendable nonisolated func userAvatarImageFetch(
+      _ userID: User.ID
     ) -> () async -> Data? {
-      {
+      { [diagnostics, users] in
         do {
           return try await users.userAvatarImage(userID)
         }
@@ -95,110 +84,80 @@ extension ResourceFolderDetailsController {
       }
     }
 
-    @Sendable func update(
-      viewState: inout ViewState,
-      using details: ResourceFolderDetailsDSV
-    ) {
-      viewState.folderName = details.name
-      viewState.folderLocation = details.path.map(\.name)
-      viewState.folderPermissionItems = details
-        .permissions
-        .map { (permission: ResourceFolderPermission) -> OverlappingAvatarStackView.Item in
-          switch permission {
-          case let .user(userID, _, _):
-            return .user(
-              userID,
-              avatarImage: userAvatarImage(for: userID)
-            )
+    self.asyncExecutor.scheduleIteration(
+      over: self.resourceFolderController.state,
+      catchingWith: self.diagnostics,
+      failMessage: "Resource folder details updates broken!",
+      failAction: { [viewState] (error: Error) in
+        await viewState.update(\.snackBarMessage, to: .error(error))
+      }
+    ) { [viewState] (resourceFolder: ResourceFolder) in
+      await viewState.update { viewState in
+        viewState.folderName = resourceFolder.name
+        viewState.folderLocation = resourceFolder.path.map(\.name)
+        viewState.folderPermissionItems = resourceFolder
+          .permissions
+          .map { (permission: ResourceFolderPermission) -> OverlappingAvatarStackView.Item in
+            switch permission {
+            case let .user(userID, _, _):
+              return .user(
+                userID,
+                avatarImage: userAvatarImageFetch(userID)
+              )
 
-          case let .userGroup(userGroupID, _, _):
-            return .userGroup(
-              userGroupID
-            )
+            case let .userGroup(userGroupID, _, _):
+              return .userGroup(
+                userGroupID
+              )
+            }
           }
-        }
-      viewState.folderShared = details.shared
-    }
-
-    let viewState: MutableViewState<ViewState> = .init(
-      initial: .init(
-        folderName: "",
-        folderLocation: .init(),
-        folderPermissionItems: .init(),
-        folderShared: false
-      )
-    )
-
-    asyncExecutor.scheduleIteration(
-      over: sessionData.updatesSequence,
-      catchingWith: diagnostics,
-      failMessage: "Updates broken!"
-    ) { (_) in
-      do {
-        let details: ResourceFolderDetailsDSV = try await folderDetails.details()
-        await viewState.update { viewState in
-          update(
-            viewState: &viewState,
-            using: details
-          )
-        }
-      }
-      catch {
-        diagnostics.log(error: error)
+        viewState.folderShared = resourceFolder.shared
       }
     }
-
-    func openLocationDetails() {
-      asyncExecutor.schedule(.reuse) {
-        do {
-          try await navigation
-            .push(
-              ResourceFolderLocationDetailsView.self,
-              controller:
-                features
-                .instance(context: context)
-            )
-        }
-        catch {
-          diagnostics.log(error: error)
-        }
-      }
-    }
-
-    func openPermissionDetails() {
-      asyncExecutor.schedule(.reuse) {
-        do {
-          try await navigation
-            .push(
-              ResourceFolderPermissionListView.self,
-              controller:
-                features
-                .instance(context: context)
-            )
-        }
-        catch {
-          diagnostics.log(error: error)
-        }
-      }
-    }
-
-    return .init(
-      viewState: viewState,
-      openLocationDetails: openLocationDetails,
-      openPermissionDetails: openPermissionDetails
-    )
   }
 }
 
-extension FeaturesRegistry {
+extension ResourceFolderDetailsController {
 
-  public mutating func usePassboltResourceFolderDetailsController() {
-    self.use(
-      .disposable(
-        ResourceFolderDetailsController.self,
-        load: ResourceFolderDetailsController.load(features:context:)
-      ),
-      in: SessionScope.self
-    )
+  internal struct ViewState: Hashable {
+
+    internal var folderName: String
+    internal var folderLocation: Array<String>
+    internal var folderPermissionItems: Array<OverlappingAvatarStackView.Item>
+    internal var folderShared: Bool
+    internal var snackBarMessage: SnackBarMessage?
+  }
+}
+
+extension ResourceFolderDetailsController {
+
+  internal final func openLocationDetails() {
+    self.asyncExecutor.scheduleCatchingWith(
+      self.diagnostics,
+      behavior: .reuse
+    ) { [context, features, navigation] in
+      try await navigation
+        .push(
+          ResourceFolderLocationDetailsView.self,
+          controller:
+            features
+            .instance(context: context)
+        )
+    }
+  }
+
+  internal final func openPermissionDetails() {
+    self.asyncExecutor.scheduleCatchingWith(
+      self.diagnostics,
+      behavior: .reuse
+    ) { [context, features, navigation] in
+      try await navigation
+        .push(
+          ResourceFolderPermissionListView.self,
+          controller:
+            features
+            .instance(context: context)
+        )
+    }
   }
 }

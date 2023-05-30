@@ -30,17 +30,23 @@ public struct ResourceController {
 
   public var state: ViewableState<Resource>
   public var fetchSecretIfNeeded: @Sendable (Bool) async throws -> JSON
+  public var loadUserPermissionsDetails: @Sendable () async throws -> Array<UserPermissionDetailsDSV>
+  public var loadUserGroupPermissionsDetails: @Sendable () async throws -> Array<UserGroupPermissionDetailsDSV>
   public var toggleFavorite: @Sendable () async throws -> Void
   public var delete: @Sendable () async throws -> Void
 
   public init(
     state: ViewableState<Resource>,
     fetchSecretIfNeeded: @escaping @Sendable (Bool) async throws -> JSON,
+    loadUserPermissionsDetails: @escaping @Sendable () async throws -> Array<UserPermissionDetailsDSV>,
+    loadUserGroupPermissionsDetails: @escaping @Sendable () async throws -> Array<UserGroupPermissionDetailsDSV>,
     toggleFavorite: @escaping @Sendable () async throws -> Void,
     delete: @escaping @Sendable () async throws -> Void
   ) {
     self.state = state
     self.fetchSecretIfNeeded = fetchSecretIfNeeded
+    self.loadUserPermissionsDetails = loadUserPermissionsDetails
+    self.loadUserGroupPermissionsDetails = loadUserGroupPermissionsDetails
     self.toggleFavorite = toggleFavorite
     self.delete = delete
   }
@@ -56,6 +62,8 @@ extension ResourceController: LoadableFeature {
     .init(
       state: .placeholder,
       fetchSecretIfNeeded: unimplemented1(),
+      loadUserPermissionsDetails: unimplemented0(),
+      loadUserGroupPermissionsDetails: unimplemented0(),
       toggleFavorite: unimplemented0(),
       delete: unimplemented0()
     )

@@ -67,6 +67,7 @@ extension FoldersExplorerController: ComponentController {
     let resources: ResourcesController = try features.instance()
     let sessionData: SessionData = try features.instance()
     let folders: ResourceFolders = try features.instance()
+    let navigationToResourceDetails: NavigationToResourceDetails = try features.instance()
 
     let viewState: ObservableValue<ViewState>
 
@@ -176,7 +177,7 @@ extension FoldersExplorerController: ComponentController {
             controller:
               features
               .instance(
-                of: ResourcesListCreateMenuController.self,
+                of: ResourcesListCreateMenuViewController.self,
                 context: folderID
               )
           )
@@ -220,61 +221,29 @@ extension FoldersExplorerController: ComponentController {
 
     @MainActor func presentResourceDetails(_ resourceID: Resource.ID) {
       cancellables.executeOnMainActor {
-        await navigation.push(
-          legacy: ResourceDetailsViewController.self,
-          context: resourceID
-        )
+        try await navigationToResourceDetails
+          .perform(context: resourceID)
       }
     }
 
     @MainActor func presentResourceMenu(_ resourceID: Resource.ID) {
       cancellables.executeOnMainActor {
-        await navigation.presentSheetMenu(
-          ResourceMenuViewController.self,
-          in: (
-            resourceID: resourceID,
-            showShare: { (resourceID: Resource.ID) in
-              cancellables.executeOnMainActor {
-                await navigation
-                  .dismiss(
-                    SheetMenuViewController<ResourceMenuViewController>.self
-                  )
-                presentResourceShareForm(for: resourceID)
-              }
-            },
-            showEdit: { (resourceID: Resource.ID) in
-              cancellables.executeOnMainActor {
-                await navigation
-                  .dismiss(
-                    SheetMenuViewController<ResourceMenuViewController>.self
-                  )
-                presentResourceEditingForm(for: .edit(resourceID))
-              }
-            },
-            showDeleteAlert: { (resourceID: Resource.ID) in
-              cancellables.executeOnMainActor {
-                await navigation
-                  .dismiss(
-                    SheetMenuViewController<ResourceMenuViewController>.self
-                  )
-                await navigation.present(
-                  ResourceDeleteAlert.self,
-                  in: {
-                    Task {
-                      do {
-                        try await resources
-                          .delete(resourceID)
-                      }
-                      catch {
-                        viewState.snackBarMessage = .error(error.asTheError().displayableMessage)
-                      }
-                    }
-                  }
-                )
-              }
-            }
-          )
-        )
+				await diagnostics.withLogCatch {
+					let features: Features = features
+						.branchIfNeeded(
+							scope: ResourceDetailsScope.self,
+							context: resourceID
+						)
+						?? features
+					let navigationToResourceContextualMenu: NavigationToResourceContextualMenu = try features.instance()
+					try await navigationToResourceContextualMenu.perform(
+						context: .init(
+							showMessage: { (message: SnackBarMessage?) in
+								viewState.snackBarMessage = message
+							}
+						)
+					)
+				}
       }
     }
 

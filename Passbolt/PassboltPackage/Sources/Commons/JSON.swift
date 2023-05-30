@@ -343,17 +343,26 @@ extension JSON {
     case .string(let value):
       return value
 
-    case .object:
-      return .none
+    case .integer(let value):
+      return "\(value)"
 
-    case .array:
-      return .none
+    case .float(let value):
+      return "\(value)"
 
-    case .integer:
-      return .none
-
-    case .float:
-      return .none
+    case .object, .array:  // fallback for displaying unknown resource fields
+      let encoder: JSONEncoder = .init()
+      encoder.outputFormatting = .prettyPrinted
+      guard let encoded: Data = try? encoder.encode(self)
+      else {
+        assertionFailure("JSON is always a valid json")
+        return .none
+      }
+      guard let string: String = .init(data: encoded, encoding: .utf8)
+      else {
+        assertionFailure("encoded json is always a valid utf8 string")
+        return .none
+      }
+      return string
 
     case .bool:
       return .none

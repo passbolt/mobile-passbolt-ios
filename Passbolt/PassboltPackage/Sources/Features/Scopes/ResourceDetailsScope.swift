@@ -23,6 +23,8 @@
 
 import CommonModels
 
+// Scope for examining resource details and performing operations on it
+// like deleting toggilng favorite etc. (except editing fields).
 public enum ResourceDetailsScope: FeaturesScope {
 
   public typealias Context = Resource.ID

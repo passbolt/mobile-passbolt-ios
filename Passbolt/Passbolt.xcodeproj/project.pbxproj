@@ -206,6 +206,7 @@
 				DD38F93F261746C400A6C627 /* Products */,
 			);
 			sourceTree = "<group>";
+			usesTabs = 0;
 		};
 		DD38F93F261746C400A6C627 /* Products */ = {
 			isa = PBXGroup;

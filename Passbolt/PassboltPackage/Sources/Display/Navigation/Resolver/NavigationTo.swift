@@ -175,31 +175,6 @@ extension NavigationTo {
   public static func legacyPushTransition<DestinationView>(
     to: DestinationView.Type
   ) -> FeatureLoader
-  where DestinationView: ControlledView, DestinationView.Controller.Context == ContextlessLoadableFeatureContext {
-    Self.legacyPushTransition(
-      to: DestinationView.self,
-      { features, _ in
-        try DestinationView(controller: features.instance())
-      }
-    )
-  }
-
-  @_disfavoredOverload
-  public static func legacyPushTransition<DestinationView>(
-    to: DestinationView.Type
-  ) -> FeatureLoader
-  where DestinationView: ControlledView, DestinationView.Controller.Context == Void {
-    Self.legacyPushTransition(
-      to: DestinationView.self,
-      { features, _ in
-        try DestinationView(controller: features.instance())
-      }
-    )
-  }
-
-  public static func legacyPushTransition<DestinationView>(
-    to: DestinationView.Type
-  ) -> FeatureLoader
   where DestinationView: ControlledView, DestinationView.Controller.Context == Destination.TransitionContext {
     Self.legacyPushTransition(
       to: DestinationView.self,
@@ -257,18 +232,6 @@ extension NavigationTo {
           performAnimated: perform(animated:context:file:line:),
           revertAnimated: revert(animated:file:line:)
         )
-      }
-    )
-  }
-
-  public static func legacySheetPresentationTransition<DestinationView>(
-    to: DestinationView.Type
-  ) -> FeatureLoader
-  where DestinationView: ControlledView, DestinationView.Controller.Context == ContextlessLoadableFeatureContext {
-    Self.legacySheetPresentationTransition(
-      to: DestinationView.self,
-      { features, _ in
-        try DestinationView(controller: features.instance())
       }
     )
   }
@@ -367,14 +330,18 @@ extension NavigationTo {
   public static func legacySheetPresentationTransition<DestinationViewController>(
     toLegacy: DestinationViewController.Type = DestinationViewController.self
   ) -> FeatureLoader
-  where DestinationViewController: UIComponent, DestinationViewController.Controller.Context == Void {
+  where
+    DestinationViewController: UIComponent,
+    DestinationViewController.Controller.Context == Destination.TransitionContext
+  {
     self.legacySheetPresentationTransition(
       toLegacy: DestinationViewController.self,
-      { features, _ in
+      { features, context in
         var features: Features = features
         let cancellables: Cancellables = .init()
 
         let controller: DestinationViewController.Controller = try .instance(
+          in: context,
           with: &features,
           cancellables: cancellables
         )
@@ -411,7 +378,6 @@ extension NavigationTo {
             anchor = UIHostingController(
               rootView: try prepareTransitionView(features, context)
             )
-
             anchor.sheetPresentationController?.detents = [
               navigationResolver.dynamicLegacySheetDetent(for: anchor)
             ]
@@ -780,14 +746,18 @@ extension NavigationTo {
   public static func legacyPushTransition<DestinationViewController>(
     toLegacy: DestinationViewController.Type = DestinationViewController.self
   ) -> FeatureLoader
-  where DestinationViewController: UIComponent, DestinationViewController.Controller.Context == Void {
+  where
+    DestinationViewController: UIComponent,
+    DestinationViewController.Controller.Context == Destination.TransitionContext
+  {
     self.legacyPushTransition(
       toLegacy: DestinationViewController.self,
-      { features, _ in
+      { features, context in
         var features: Features = features
         let cancellables: Cancellables = .init()
 
         let controller: DestinationViewController.Controller = try .instance(
+          in: context,
           with: &features,
           cancellables: cancellables
         )

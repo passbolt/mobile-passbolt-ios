@@ -29,15 +29,84 @@ import SessionData
 import SharedUIComponents
 import Users
 
-internal struct ResourcesListNodeController {
+internal final class ResourcesListNodeController: ViewController {
 
-  internal var viewState: MutableViewState<ViewState>
-  internal var closeExtension: () -> Void
+  internal nonisolated let viewState: MutableViewState<ViewState>
   internal var searchController: ResourceSearchDisplayController
-  internal var contentController: ResourcesListDisplayController
+  internal var contentController: ResourcesListDisplayController!  // lazy init?
+
+  private let diagnostics: OSDiagnostics
+  private let navigationTree: NavigationTree
+  private let asyncExecutor: AsyncExecutor
+  private let autofillContext: AutofillExtensionContext
+
+  private let requestedServiceIdentifiers: Array<AutofillExtensionContext.ServiceIdentifier>
+
+  private let context: Context
+  private let features: Features
+
+  internal init(
+    context: Context,
+    features: Features
+  ) throws {
+    self.context = context
+    self.features = features
+
+    self.diagnostics = features.instance()
+    self.navigationTree = features.instance()
+    self.asyncExecutor = try features.instance()
+    self.autofillContext = features.instance()
+
+    let requestedServiceIdentifiers: Array<AutofillExtensionContext.ServiceIdentifier> =
+      autofillContext.requestedServiceIdentifiers()
+    self.requestedServiceIdentifiers = requestedServiceIdentifiers
+
+    let viewState: MutableViewState<ViewState> = .init(
+      initial: .init(
+        title: context.title,
+        titleIconName: context.titleIconName,
+        snackBarMessage: .none
+      )
+    )
+    self.viewState = viewState
+
+    self.searchController = try features.instance(
+      context: .init(
+        searchPrompt: context.searchPrompt,
+        showMessage: { (message: SnackBarMessage?) in
+          viewState.update { viewState in
+            viewState.snackBarMessage = message
+          }
+        }
+      )
+    )
+
+    self.contentController = try features.instance(
+      context: .init(
+        filter: self.searchController
+          .searchText
+          .map { (text: String) -> ResourcesFilter in
+            var filter: ResourcesFilter = context.baseFilter
+            filter.text = text
+            return filter
+          },
+        suggestionFilter: { (resource: ResourceListItemDSV) -> Bool in
+          requestedServiceIdentifiers.matches(resource)
+        },
+        createResource: self.createResource,
+        selectResource: self.selectResource(_:),
+        openResourceMenu: .none,
+        showMessage: { (message: SnackBarMessage?) in
+          viewState.update { viewState in
+            viewState.snackBarMessage = message
+          }
+        }
+      )
+    )
+  }
 }
 
-extension ResourcesListNodeController: ViewController {
+extension ResourcesListNodeController {
 
   internal struct Context {
 
@@ -53,155 +122,63 @@ extension ResourcesListNodeController: ViewController {
     internal var titleIconName: ImageNameConstant
     internal var snackBarMessage: SnackBarMessage?
   }
-
-  #if DEBUG
-  nonisolated static var placeholder: Self {
-    .init(
-      viewState: .placeholder(),
-      closeExtension: { unimplemented() },
-      searchController: .placeholder,
-      contentController: .placeholder
-    )
-  }
-  #endif
 }
 
 extension ResourcesListNodeController {
 
-  @MainActor fileprivate static func load(
-    features: Features,
-    context: Context
-  ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
-    let navigationTree: NavigationTree = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
-    let autofillContext: AutofillExtensionContext = features.instance()
-
-    let requestedServiceIdentifiers: Array<AutofillExtensionContext.ServiceIdentifier> =
-      autofillContext.requestedServiceIdentifiers()
-
-    let viewState: MutableViewState<ViewState> = .init(
-      initial: .init(
-        title: context.title,
-        titleIconName: context.titleIconName,
-        snackBarMessage: .none
-      )
-    )
-
-    let searchController: ResourceSearchDisplayController = try features.instance(
-      context: .init(
-        searchPrompt: context.searchPrompt,
-        showMessage: { (message: SnackBarMessage?) in
-          viewState.update { viewState in
-            viewState.snackBarMessage = message
-          }
-        }
-      )
-    )
-
-    let contentController: ResourcesListDisplayController = try features.instance(
-      context: .init(
-        filter: searchController
-          .searchText
-          .map { (text: String) -> ResourcesFilter in
-            var filter: ResourcesFilter = context.baseFilter
-            filter.text = text
-            return filter
-          },
-        suggestionFilter: { (resource: ResourceListItemDSV) -> Bool in
-          requestedServiceIdentifiers.matches(resource)
-        },
-        createResource: createResource,
-        selectResource: selectResource(_:),
-        openResourceMenu: .none,
-        showMessage: { (message: SnackBarMessage?) in
-          viewState.update { viewState in
-            viewState.snackBarMessage = message
-          }
-        }
-      )
-    )
-
-    @Sendable nonisolated func createResource() {
-      asyncExecutor.schedule(.reuse) {
-        await navigationTree
-          .push(
-            ResourceEditViewController.self,
-            context: (
-              editing: .create(
-                folderID: .none,
-                uri: requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }
-              ),
-              completion: { resourceID in
-                selectResource(resourceID)
-              }
+  internal final func createResource() {
+    self.asyncExecutor.schedule(.reuse) { [weak self, features, navigationTree, requestedServiceIdentifiers] in
+      await navigationTree
+        .push(
+          ResourceEditViewController.self,
+          context: (
+            editing: .create(
+              folderID: .none,
+              uri: requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }
             ),
-            using: features
-          )
-      }
+            completion: { [weak self] resourceID in
+              self?.selectResource(resourceID)
+            }
+          ),
+          using: features
+        )
     }
-
-    @Sendable nonisolated func selectResource(
-      _ resourceID: Resource.ID
-    ) {
-      asyncExecutor.schedule(.replace) {
-        do {
-          let resourceController: ResourceController = try await features.instance()
-          try await resourceController.fetchSecretIfNeeded(force: true)
-          let resource: Resource = try await resourceController.state.value
-
-          guard let password: String = resource.secret.password.stringValue ?? resource.secret.secret.stringValue
-          else {
-            throw
-              ResourceSecretInvalid
-              .error("Missing resource password in secret.")
-          }
-          await autofillContext
-            .completeWithCredential(
-              AutofillExtensionContext.Credential(
-                user: resource.meta.username.stringValue ?? "",
-                password: password
-              )
-            )
-        }
-        catch {
-          diagnostics.log(
-            error: error,
-            info: .message(
-              "Failed to handle resource selection."
-            )
-          )
-          await viewState.update { viewState in
-            viewState.snackBarMessage = .error(error)
-          }
-        }
-      }
-    }
-
-    nonisolated func closeExtension() {
-      asyncExecutor.schedule(.reuse) {
-        await autofillContext.cancelAndCloseExtension()
-      }
-    }
-
-    return .init(
-      viewState: viewState,
-      closeExtension: closeExtension,
-      searchController: searchController,
-      contentController: contentController
-    )
   }
-}
 
-extension FeaturesRegistry {
+  internal final func selectResource(
+    _ resourceID: Resource.ID
+  ) {
+    self.asyncExecutor.scheduleCatchingWith(
+      self.diagnostics,
+      failMessage: "Failed to handle resource selection.",
+      failAction: { [viewState] (error: Error) in
+        await viewState.update(\.snackBarMessage, to: .error(error))
+      },
+      behavior: .replace
+    ) { [features, autofillContext] in
+      let resourceController: ResourceController = try await features.instance()
+      try await resourceController.fetchSecretIfNeeded(force: true)
+      let resource: Resource = try await resourceController.state.value
 
-  public mutating func usePassboltResourcesListNodeController() {
-    self.use(
-      .disposable(
-        ResourcesListNodeController.self,
-        load: ResourcesListNodeController.load(features:context:)
-      ),
-      in: SessionScope.self
-    )
+      guard let password: String = resource.secret.password.stringValue ?? resource.secret.secret.stringValue
+      else {
+        throw
+          ResourceSecretInvalid
+          .error("Missing resource password in secret.")
+      }
+      await autofillContext
+        .completeWithCredential(
+          AutofillExtensionContext.Credential(
+            user: resource.meta.username.stringValue ?? "",
+            password: password
+          )
+        )
+    }
+  }
+
+  internal final func closeExtension() {
+    self.asyncExecutor.schedule(.reuse) { [autofillContext] in
+      await autofillContext.cancelAndCloseExtension()
+    }
   }
 }

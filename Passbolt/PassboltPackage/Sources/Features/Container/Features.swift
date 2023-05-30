@@ -51,6 +51,11 @@ public protocol Features {
   ) -> FeaturesContainer
   where Scope: FeaturesScope
 
+	@MainActor func takeOwned(
+		file: StaticString,
+		line: UInt
+	) -> FeaturesContainer
+
   @MainActor func instance<Feature>(
     of featureType: Feature.Type,
     file: StaticString,
@@ -170,6 +175,16 @@ extension Features {
       line: line
     )
   }
+
+	@MainActor public func takeOwned(
+		file: StaticString = #fileID,
+		line: UInt = #line
+	) -> FeaturesContainer {
+		self.takeOwned(
+			file: file,
+			line: line
+		)
+	}
 
   @MainActor public func instance<Feature>(
     of featureType: Feature.Type = Feature.self,

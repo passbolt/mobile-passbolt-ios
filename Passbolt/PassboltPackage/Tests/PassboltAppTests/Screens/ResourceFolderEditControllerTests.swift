@@ -30,33 +30,16 @@ import Users
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ResourceFolderEditControllerTests: LoadableFeatureTestCase<ResourceFolderEditController> {
+final class ResourceFolderEditControllerTests: FeaturesTestCase{
 
-  override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
-
-  override class func testedImplementationRegister(
-    _ registry: inout FeaturesRegistry
-  ) {
-    registry.usePassboltResourceFolderEditController()
-  }
-
-  var executionMockControl: AsyncExecutor.MockExecutionControl!
-
-  override func prepare() throws {
+  override func commonPrepare() {
+		super.commonPrepare()
     set(
       SessionScope.self,
       context: .init(
         account: .mock_ada,
         configuration: .mock_1
       )
-    )
-    executionMockControl = .init()
-    use(AsyncExecutor.mock(executionMockControl))
-    use(DisplayNavigation.placeholder)
-    use(Users.placeholder)
-    use(
-      ResourceFolderEditForm.placeholder,
-      context: .create(containingFolderID: .none)
     )
     patch(
       \ResourceFolderEditForm.formState,
@@ -71,65 +54,60 @@ final class ResourceFolderEditControllerTests: LoadableFeatureTestCase<ResourceF
     )
   }
 
-  override func cleanup() throws {
-    executionMockControl = .none
-  }
-
-  func test_setFolderName_setsNameInForm() {
+  func test_setFolderName_setsNameInForm() async throws {
     patch(
       \ResourceFolderEditForm.setFolderName,
       context: .create(containingFolderID: .none),
-      with: always(self.executed())
+      with: always(self.dynamicVariables.set(\.executed, to: true))
     )
-    withTestedInstanceExecuted(
-      context: .create(containingFolderID: .none),
-      test: { (tested: ResourceFolderEditController) in
-        tested.setFolderName("folder name")
-        await self.executionMockControl.executeAll()
-      }
-    )
+
+		let tested: ResourceFolderEditController = try self.testedInstance(context: .create(containingFolderID: .none))
+
+		tested.setFolderName("folder name")
+		await self.asyncExecutionControl.executeAll()
+		XCTAssertTrue(self.dynamicVariables.get(\.executed, of: Bool.self))
   }
 
-  func test_saveChanges_sendsForm() {
+  func test_saveChanges_sendsForm() async throws {
     patch(
       \ResourceFolderEditForm.sendForm,
       context: .create(containingFolderID: .none),
-      with: always(self.executed())
+      with: always(self.dynamicVariables.set(\.executed, to: true))
     )
-    withTestedInstanceExecuted(
-      context: .create(containingFolderID: .none),
-      test: { (tested: ResourceFolderEditController) in
-        tested.saveChanges()
-        await self.executionMockControl.executeAll()
-      }
-    )
+
+		let tested: ResourceFolderEditController = try self.testedInstance(context: .create(containingFolderID: .none))
+
+		tested.saveChanges()
+		await self.asyncExecutionControl.executeAll()
   }
 
-  func test_saveChanges_presentsError_whenSendingFormThrows() {
+  func test_saveChanges_presentsError_whenSendingFormThrows() async throws {
     patch(
       \ResourceFolderEditForm.sendForm,
       context: .create(containingFolderID: .none),
       with: alwaysThrow(MockIssue.error())
     )
-    withTestedInstanceReturnsEqual(
-      SnackBarMessage.error(MockIssue.error()),
-      context: .create(containingFolderID: .none),
-      test: { (tested: ResourceFolderEditController) in
-        tested.saveChanges()
-        await self.executionMockControl.executeAll()
-        return await tested.viewState.value.snackBarMessage
-      }
-    )
-  }
 
-  func test_viewState_updates_whenFormUpdates() {
+		let tested: ResourceFolderEditController = try self.testedInstance(context: .create(containingFolderID: .none))
+
+		tested.saveChanges()
+		await self.asyncExecutionControl.executeAll()
+
+		await XCTAssertValue(
+			equal: SnackBarMessage.error(MockIssue.error())
+		) {
+			tested.viewState.value.snackBarMessage
+		}
+	}
+
+  func test_viewState_updates_whenFormUpdates() async throws {
     let updatesSource: UpdatesSequenceSource = .init()
     patch(
       \ResourceFolderEditForm.formUpdates,
       context: .create(containingFolderID: .none),
       with: updatesSource.updatesSequence
     )
-    self.formState = ResourceFolderEditFormState(
+		self.dynamicVariables.formState = ResourceFolderEditFormState(
       name: .valid("initial"),
       location: .valid(.init()),
       permissions: .valid(.init())
@@ -137,32 +115,31 @@ final class ResourceFolderEditControllerTests: LoadableFeatureTestCase<ResourceF
     patch(
       \ResourceFolderEditForm.formState,
       context: .create(containingFolderID: .none),
-      with: always(self.formState)
+			 with: always(self.dynamicVariables.formState)
     )
 
-    withTestedInstance(
-      context: .create(containingFolderID: .none),
-      test: { (tested: ResourceFolderEditController) in
-        await self.executionMockControl.executeNext()
-        let initialFolderName: Validated<String> = await tested.viewState.value.folderName
+		let tested: ResourceFolderEditController = try self.testedInstance(context: .create(containingFolderID: .none))
 
-        self.formState = ResourceFolderEditFormState(
-          name: .valid("edited"),
-          location: .valid(.init()),
-          permissions: .valid(.init())
-        )
-        updatesSource.sendUpdate()
-        await self.executionMockControl.executeNext()
+		await self.asyncExecutionControl.executeNext()
+		let initialFolderName: Validated<String> = await tested.viewState.value.folderName
 
-        let updatedFolderName: Validated<String> = await tested.viewState.value.folderName
+		self.dynamicVariables.formState = ResourceFolderEditFormState(
+			name: .valid("edited"),
+			location: .valid(.init()),
+			permissions: .valid(.init())
+		)
+		updatesSource.sendUpdate()
+		await self.asyncExecutionControl.executeNext()
 
-        updatesSource.endUpdates()
+		let updatedFolderName: Validated<String> = tested.viewState.value.folderName
 
-        XCTAssertNotEqual(
-          initialFolderName,
-          updatedFolderName
-        )
-      }
-    )
+		updatesSource.endUpdates()
+
+		XCTAssertNotEqual(
+			initialFolderName,
+			updatedFolderName
+		)
+
+		await self.asyncExecutionControl.executeAll()
   }
 }

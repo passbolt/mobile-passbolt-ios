@@ -39,7 +39,7 @@ internal struct HomePresentationMenuNodeView: ControlledView {
     }
   }
 
-  @ViewBuilder private func content(
+  @MainActor @ViewBuilder private func content(
     with state: ViewState
   ) -> some View {
     DrawerMenu(

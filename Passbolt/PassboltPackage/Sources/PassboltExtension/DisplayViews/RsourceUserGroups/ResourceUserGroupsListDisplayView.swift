@@ -42,6 +42,5 @@ internal struct ResourceUserGroupsListDisplayView: ControlledView {
         groupTapAction: self.controller.selectGroup
       )
     }
-    .task(self.controller.activate)
   }
 }

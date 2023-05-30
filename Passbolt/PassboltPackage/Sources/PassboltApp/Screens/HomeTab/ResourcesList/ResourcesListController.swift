@@ -39,7 +39,6 @@ internal struct ResourcesListController {
   internal var resourceSharePresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
   internal var resourceEditPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
   internal var presentDeleteResourceAlert: @MainActor (Resource.ID) -> Void
-  internal var resourceDetailsPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
   internal var resourceMenuPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
   internal var resourceCreatePresentationPublisher: @MainActor () -> AnyPublisher<Void, Never>
   internal var resourceDeleteAlertPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
@@ -55,15 +54,16 @@ extension ResourcesListController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
+    let features: Features = features
     let sessionData: SessionData = try features.instance()
     let resources: ResourcesController = try features.instance()
 
-    let resourceDetailsIDSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceMenuIDSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceCreatePresentationSubject: PassthroughSubject<Void, Never> = .init()
     let resourceSharePresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceEditPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceDeleteAlertPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
+    let navigationToResourceDetails: NavigationToResourceDetails = try features.instance()
 
     func refreshResources() -> AnyPublisher<Void, Error> {
       Task {
@@ -94,19 +94,35 @@ extension ResourcesListController: UIController {
     }
 
     func presentResourceDetails(_ resource: ResourcesResourceListItemDSVItem) {
-      resourceDetailsIDSubject.send(resource.id)
+      cancellables.executeOnMainActor {
+        try await navigationToResourceDetails
+          .perform(context: resource.id)
+      }
     }
 
     func presentResourceMenu(_ resource: ResourcesResourceListItemDSVItem) {
       resourceMenuIDSubject.send(resource.id)
+      cancellables.executeOnMainActor {
+				let features: Features = features
+				.branchIfNeeded(
+					scope: ResourceDetailsScope.self,
+					context: resource.id
+				)
+				?? features
+        let navigationToResourceContextualMenu: NavigationToResourceContextualMenu = try features.instance()
+        try await navigationToResourceContextualMenu
+          .perform(
+            context: .init(
+              showMessage: { (message: SnackBarMessage?) in
+                #warning("TODO: FIXME: show snackbar!")
+              }
+            )
+          )
+      }
     }
 
     func presentDeleteResourceAlert(resourceID: Resource.ID) {
       resourceDeleteAlertPresentationSubject.send(resourceID)
-    }
-
-    func resourceDetailsPresentationPublisher() -> AnyPublisher<Resource.ID, Never> {
-      resourceDetailsIDSubject.eraseToAnyPublisher()
     }
 
     func resourceMenuPresentationPublisher() -> AnyPublisher<Resource.ID, Never> {
@@ -155,7 +171,6 @@ extension ResourcesListController: UIController {
       resourceSharePresentationPublisher: resourceSharePresentationPublisher,
       resourceEditPresentationPublisher: resourceEditPresentationPublisher,
       presentDeleteResourceAlert: presentDeleteResourceAlert(resourceID:),
-      resourceDetailsPresentationPublisher: resourceDetailsPresentationPublisher,
       resourceMenuPresentationPublisher: resourceMenuPresentationPublisher,
       resourceCreatePresentationPublisher: resourceCreatePresentationPublisher,
       resourceDeleteAlertPresentationPublisher: resourceDeleteAlertPresentationPublisher,

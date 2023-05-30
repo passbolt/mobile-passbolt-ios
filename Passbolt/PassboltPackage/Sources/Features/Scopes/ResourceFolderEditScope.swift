@@ -23,6 +23,7 @@
 
 import CommonModels
 
+// Scope for editing resource folder details.
 public enum ResourceFolderEditScope: FeaturesScope {
 
   public typealias Context = ResourceFolder.ID?

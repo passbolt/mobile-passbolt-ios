@@ -46,7 +46,7 @@ extension ResourceEditController: UIController {
 
   public typealias Context = (
     editing: ResourceEditScope.Context,
-    completion: (Resource.ID) -> Void
+    completion: @MainActor (Resource.ID) -> Void
   )
 
   public static func instance(

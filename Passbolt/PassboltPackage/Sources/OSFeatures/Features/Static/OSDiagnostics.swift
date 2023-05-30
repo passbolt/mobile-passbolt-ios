@@ -335,6 +335,7 @@ extension OSDiagnostics {
 
   public func logCatch(
     info: DiagnosticsInfo? = .none,
+    fallback: (() -> Void)? = .none,
     _ operation: () throws -> Void
   ) {
     do {
@@ -345,12 +346,14 @@ extension OSDiagnostics {
         error: error,
         info: info
       )
+      fallback?()
     }
   }
 
   @_transparent
   public func withLogCatch(
     info: DiagnosticsInfo? = .none,
+    fallback: (() async -> Void)? = .none,
     _ operation: () async throws -> Void
   ) async {
     do {
@@ -364,6 +367,7 @@ extension OSDiagnostics {
         error: error,
         info: info
       )
+      await fallback?()
     }
   }
 }

@@ -49,9 +49,9 @@ public struct Resource {
 
   // Private caches for accessing common elements without traversing
   // the whole resource specification
+  private var flattenedFields: Dictionary<Resource.FieldPath, ResourceFieldSpecification>
   private var metaPaths: Set<Resource.FieldPath>
   private var secretPaths: Set<Resource.FieldPath>
-  private var validators: Dictionary<Resource.FieldPath, Validator<JSON>>
 
   public init(
     id: Resource.ID? = .none,
@@ -75,9 +75,9 @@ public struct Resource {
     self.modified = modified
     self.meta = meta
     self.secret = secret
+    self.flattenedFields = .init()
     self.metaPaths = .init()
     self.secretPaths = .init()
-    self.validators = .init()
     self.updateCaches()
   }
 }
@@ -133,13 +133,8 @@ extension Resource {
   }
 
   public var allFields: OrderedSet<ResourceFieldSpecification> {
-    let metaFields: OrderedSet<ResourceFieldSpecification> = self.metaFields
-    let secretFields: OrderedSet<ResourceFieldSpecification> = self.secretFields
-    var allFields: OrderedSet<ResourceFieldSpecification> = .init()
-    allFields.reserveCapacity(metaFields.count + secretFields.count)
-    allFields.append(contentsOf: metaFields)
-    allFields.append(contentsOf: secretFields)
-    return allFields
+    self.type.specification.metaFields
+      .union(self.type.specification.secretFields)
   }
 }
 
@@ -156,7 +151,7 @@ extension Resource {
   public func validator(
     for path: Resource.FieldPath
   ) -> Validator<JSON> {
-    self.validators[path]
+    self.flattenedFields[path]?.validator
       ?? .alwaysInvalid(displayable: "error.resource.field.unknown")
   }
 }
@@ -179,13 +174,13 @@ extension Resource {
       }
     }
 
-    func validators(
+    func fields(
       for field: ResourceFieldSpecification
-    ) -> Dictionary<Resource.FieldPath, Validator<JSON>> {
-      var result: Dictionary<Resource.FieldPath, Validator<JSON>> = [field.path: field.validator]
+    ) -> Dictionary<Resource.FieldPath, ResourceFieldSpecification> {
+      var result: Dictionary<Resource.FieldPath, ResourceFieldSpecification> = [field.path: field]
       if case .structure(let nestedFields) = field.content {
         for field in nestedFields {
-          result.merge(validators(for: field), uniquingKeysWith: { $1 })
+          result.merge(fields(for: field), uniquingKeysWith: { $1 })
         }
         return result
       }
@@ -194,38 +189,51 @@ extension Resource {
       }
     }
 
+    self.flattenedFields.removeAll(keepingCapacity: true)
     self.metaPaths.removeAll(keepingCapacity: true)
     self.secretPaths.removeAll(keepingCapacity: true)
-    self.validators.removeAll(keepingCapacity: true)
     for field in self.metaFields {
-      self.validators.merge(validators(for: field), uniquingKeysWith: { $1 })
       self.metaPaths.formUnion(paths(for: field))
+      self.flattenedFields.merge(fields(for: field), uniquingKeysWith: { $1 })
     }
 
     for field in self.secretFields {
-      self.validators.merge(validators(for: field), uniquingKeysWith: { $1 })
       self.secretPaths.formUnion(paths(for: field))
+      self.flattenedFields.merge(fields(for: field), uniquingKeysWith: { $1 })
     }
   }
 }
 
 extension Resource {
 
+  public func displayableName(
+    forField path: FieldPath
+  ) -> DisplayableString? {
+    self.flattenedFields[path]?.name.displayable
+  }
+
+	public func totpSecret(
+		forField path: FieldPath
+	) -> TOTPSecret? {
+		// searching for predefined structure at given path
+		self[keyPath: path].totpSecretValue
+	}
+
   public func metaContains(
-    _ path: Resource.FieldPath
+    _ path: FieldPath
   ) -> Bool {
     self.metaPaths.contains(path)
   }
 
   public func secretContains(
-    _ path: Resource.FieldPath
+    _ path: FieldPath
   ) -> Bool {
     self.secretPaths.contains(path)
   }
 
   public func contains(
-    _ path: Resource.FieldPath
+    _ path: FieldPath
   ) -> Bool {
-    self.metaContains(path) || self.secretContains(path)
+    self.flattenedFields.keys.contains(path)
   }
 }

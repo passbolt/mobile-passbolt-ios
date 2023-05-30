@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+// Root scope of the application.
 public enum RootFeaturesScope: FeaturesScope {
 
   public typealias Context = Never

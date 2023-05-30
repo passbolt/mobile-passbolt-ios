@@ -25,44 +25,21 @@ import Display
 import OSFeatures
 import Resources
 
-// MARK: - Interface
+internal final class OTPScanningSuccessController: ViewController {
 
-internal struct OTPScanningSuccessController {
+  internal nonisolated let viewState: MutableViewState<ViewState>
 
-  internal var viewState: MutableViewState<ViewState>
+  private let diagnostics: OSDiagnostics
+  private let asyncExecutor: AsyncExecutor
+  private let navigationToScanning: NavigationToOTPScanning
 
-  internal var createStandaloneOTP: () -> Void
-  internal var updateExistingResource: () -> Void
-}
+  private let context: TOTPConfiguration
+  private let features: Features
 
-extension OTPScanningSuccessController: ViewController {
-
-  internal typealias Context = TOTPConfiguration
-
-  internal struct ViewState: Equatable {
-
-    internal var snackBarMessage: SnackBarMessage?
-  }
-
-  #if DEBUG
-  internal static var placeholder: Self {
-    .init(
-      viewState: .placeholder(),
-      createStandaloneOTP: unimplemented0(),
-      updateExistingResource: unimplemented0()
-    )
-  }
-  #endif
-}
-
-// MARK: - Implementation
-
-extension OTPScanningSuccessController {
-
-  @MainActor fileprivate static func load(
-    features: Features,
-    context: Context
-  ) throws -> Self {
+  internal init(
+    context: TOTPConfiguration,
+    features: Features
+  ) throws {
     try features.ensureScope(SessionScope.self)
     guard !features.checkScope(ResourceEditScope.self)
     else {
@@ -71,91 +48,71 @@ extension OTPScanningSuccessController {
         .error("OTPScanningSuccessController can't be used when editing a resource!")
     }
 
-    let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
+    self.context = context
+    self.features = features
 
-    let navigationToScanning: NavigationToOTPScanning = try features.instance()
+    self.diagnostics = features.instance()
+    self.asyncExecutor = try features.instance()
+    self.navigationToScanning = try features.instance()
 
-    let viewState: MutableViewState<ViewState> = .init(
+    self.viewState = .init(
       initial: .init()
-    )
-
-    nonisolated func createStandaloneOTP() {
-      asyncExecutor.scheduleCatchingWith(
-        diagnostics,
-        behavior: .reuse
-      ) {
-        do {
-          let features: Features = await features.branch(
-            scope: ResourceEditScope.self,
-            context: .create(
-              .totp,
-              folderID: .none,
-              uri: .none
-            )
-          )
-          let resourceEditForm: ResourceEditForm = try await features.instance()
-          _ = try await resourceEditForm.update { (resouce: inout Resource) in
-            resouce.meta.name = .string(context.account)
-            resouce.meta.uri = .string(context.issuer)
-            resouce.secret.totp.algorithm = .string(context.secret.algorithm.rawValue)
-            resouce.secret.totp.digits = .integer(context.secret.digits)
-            resouce.secret.totp.period = .integer(context.secret.period.rawValue)
-            resouce.secret.totp.secret_key = .string(context.secret.sharedSecret)
-          }
-
-          _ = try await resourceEditForm.sendForm()
-          try await navigationToScanning.revert()
-        }
-        catch {
-          await viewState
-            .update(
-              \.snackBarMessage,
-              to: .error(error)
-            )
-          throw error
-        }
-      }
-    }
-
-    nonisolated func updateExistingResource() {
-      asyncExecutor.scheduleCatchingWith(
-        diagnostics,
-        behavior: .reuse
-      ) {
-        #warning("[MOB-1102] TODO: to complete when adding resources with OTP and password")
-        do {
-          throw Unimplemented.error()
-        }
-        catch {
-          await viewState
-            .update(
-              \.snackBarMessage,
-              to: .error(error)
-            )
-          throw error
-        }
-        try await navigationToScanning.revert()
-      }
-    }
-
-    return .init(
-      viewState: viewState,
-      createStandaloneOTP: createStandaloneOTP,
-      updateExistingResource: updateExistingResource
     )
   }
 }
 
-extension FeaturesRegistry {
+extension OTPScanningSuccessController {
 
-  internal mutating func useLiveOTPScanningSuccessController() {
-    self.use(
-      .disposable(
-        OTPScanningSuccessController.self,
-        load: OTPScanningSuccessController.load(features:context:)
-      ),
-      in: SessionScope.self
-    )
+  internal struct ViewState: Equatable {
+
+    internal var snackBarMessage: SnackBarMessage?
+  }
+}
+
+extension OTPScanningSuccessController {
+
+  internal final func createStandaloneOTP() {
+    self.asyncExecutor.scheduleCatchingWith(
+      self.diagnostics,
+      failAction: { [viewState] (error: Error) in
+        await viewState.update(\.snackBarMessage, to: .error(error))
+      },
+      behavior: .reuse
+    ) { [context, features, navigationToScanning] in
+      let features: Features = await features.branch(
+        scope: ResourceEditScope.self,
+        context: .create(
+          .totp,
+          folderID: .none,
+          uri: .none
+        )
+      )
+      let resourceEditForm: ResourceEditForm = try await features.instance()
+      _ = try await resourceEditForm.update { (resouce: inout Resource) in
+        resouce.meta.name = .string(context.account)
+        resouce.meta.uri = .string(context.issuer)
+        resouce.secret.totp.algorithm = .string(context.secret.algorithm.rawValue)
+        resouce.secret.totp.digits = .integer(context.secret.digits)
+        resouce.secret.totp.period = .integer(context.secret.period.rawValue)
+        resouce.secret.totp.secret_key = .string(context.secret.sharedSecret)
+      }
+
+      _ = try await resourceEditForm.sendForm()
+      try await navigationToScanning.revert()
+    }
+  }
+
+  internal final func updateExistingResource() {
+    self.asyncExecutor.scheduleCatchingWith(
+      self.diagnostics,
+      failAction: { [viewState] (error: Error) in
+        await viewState.update(\.snackBarMessage, to: .error(error))
+      },
+      behavior: .reuse
+    ) { [navigationToScanning] in
+      #warning("[MOB-1102] TODO: to complete when adding resources with OTP and password")
+      throw Unimplemented.error()
+      try await navigationToScanning.revert()
+    }
   }
 }

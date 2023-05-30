@@ -23,7 +23,10 @@
 
 import Display
 
-internal enum TOTPEditAdvancedFormNavigationDestination: NavigationDestination {}
+internal enum TOTPEditAdvancedFormNavigationDestination: NavigationDestination {
+
+  internal typealias TransitionContext = TOTPEditAdvancedFormController.Context
+}
 
 internal typealias NavigationToTOTPEditAdvancedForm = NavigationTo<TOTPEditAdvancedFormNavigationDestination>
 

@@ -193,12 +193,6 @@ let package = Package(
         "UICommons",
       ]
     ),
-    .testTarget(
-      name: "UIComponentsTests",
-      dependencies: [
-        "UIComponents"
-      ]
-    ),
     // MARK: - Entrypoints
     .target(
       name: "PassboltApp",

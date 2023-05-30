@@ -26,18 +26,70 @@ import OSFeatures
 import Resources
 import Users
 
-// MARK: - Interface
+internal final class ResourceFolderEditController: ViewController {
 
-internal struct ResourceFolderEditController {
+  internal nonisolated let viewState: MutableViewState<ViewState>
 
-  internal var viewState: MutableViewState<ViewState>
-  internal var setFolderName: (String) -> Void
-  internal var saveChanges: () -> Void
+  private let diagnostics: OSDiagnostics
+  private let asyncExecutor: AsyncExecutor
+  private let navigation: DisplayNavigation
+  private let users: Users
+  private let resourceFolderEditForm: ResourceFolderEditForm
+
+  private let context: ResourceFolderEditForm.Context
+  private let features: Features
+
+  internal init(
+    context: ResourceFolderEditForm.Context,
+    features: Features
+  ) throws {
+    let features: FeaturesContainer = features.branch(
+      scope: ResourceFolderEditScope.self,
+      context: context.editedFolderID
+    )
+    self.context = context
+    self.features = features
+
+    self.diagnostics = features.instance()
+    self.asyncExecutor = try features.instance()
+    self.navigation = try features.instance()
+    self.users = try features.instance()
+    let resourceFolderEditForm: ResourceFolderEditForm = try features.instance(context: context)
+    self.resourceFolderEditForm = resourceFolderEditForm
+
+    var initialState: ViewState = .init(
+      folderName: .valid(""),
+      folderLocation: .init(),
+      folderPermissionItems: .init(),
+      loading: false
+    )
+    Self.update(
+      viewState: &initialState,
+      using: resourceFolderEditForm.formState(),
+      users: users
+    )
+    self.viewState = .init(
+      initial: initialState,
+      extendingLifetimeOf: features
+    )
+
+    self.asyncExecutor.scheduleIteration(
+      over: self.resourceFolderEditForm.formUpdates,
+      catchingWith: self.diagnostics,
+      failMessage: "Updates broken!"
+    ) { [viewState, users, resourceFolderEditForm] (_) in
+      await viewState.update { viewState in
+        Self.update(
+          viewState: &viewState,
+          using: resourceFolderEditForm.formState(),
+          users: users
+        )
+      }
+    }
+  }
 }
 
-extension ResourceFolderEditController: ViewController {
-
-  internal typealias Context = ResourceFolderEditForm.Context
+extension ResourceFolderEditController {
 
   internal struct ViewState: Hashable {
 
@@ -47,153 +99,60 @@ extension ResourceFolderEditController: ViewController {
     internal var loading: Bool
     internal var snackBarMessage: SnackBarMessage?
   }
-
-  #if DEBUG
-  static var placeholder: Self {
-    .init(
-      viewState: .placeholder(),
-      setFolderName: unimplemented1(),
-      saveChanges: unimplemented0()
-    )
-  }
-  #endif
 }
-
-// MARK: - Implementation
 
 extension ResourceFolderEditController {
 
-  @MainActor fileprivate static func load(
-    features: Features,
-    context: Context
-  ) throws -> Self {
-    let features: FeaturesContainer = features.branch(
-      scope: ResourceFolderEditScope.self,
-      context: context.editedFolderID
-    )
+  @Sendable nonisolated static func update(
+    viewState: inout ViewState,
+    using formState: ResourceFolderEditFormState,
+    users: Users
+  ) {
+    viewState.folderName = formState.name
+    viewState.folderLocation = formState.location.value.map(\.folderName)
+    viewState.folderPermissionItems = formState
+      .permissions
+      .value
+      .map { (permission: ResourceFolderPermission) -> OverlappingAvatarStackView.Item in
+        switch permission {
+        case let .user(id: userID, _, _):
+          return .user(
+            userID,
+            avatarImage: { try? await users.userAvatarImage(userID) }
+          )
 
-    let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
-    let navigation: DisplayNavigation = try features.instance()
-    let users: Users = try features.instance()
-    let resourceFolderEditForm: ResourceFolderEditForm = try features.instance(context: context)
-
-    @Sendable nonisolated func userAvatarImage(
-      for userID: User.ID
-    ) -> () async -> Data? {
-      {
-        do {
-          return try await users.userAvatarImage(userID)
-        }
-        catch {
-          diagnostics.log(error: error)
-          return nil
-        }
-      }
-    }
-
-    @Sendable nonisolated func update(
-      viewState: inout ViewState,
-      using formState: ResourceFolderEditFormState
-    ) {
-      viewState.folderName = formState.name
-      viewState.folderLocation = formState.location.value.map(\.folderName)
-      viewState.folderPermissionItems = formState
-        .permissions
-        .value
-        .map { (permission: ResourceFolderPermission) -> OverlappingAvatarStackView.Item in
-          switch permission {
-          case let .user(id: userID, _, _):
-            return .user(
-              userID,
-              avatarImage: userAvatarImage(for: userID)
-            )
-
-          case let .userGroup(id: userGroupID, _, _):
-            return .userGroup(
-              userGroupID
-            )
-          }
-        }
-    }
-
-    var initialState: ViewState = .init(
-      folderName: .valid(""),
-      folderLocation: .init(),
-      folderPermissionItems: .init(),
-      loading: false
-    )
-    update(
-      viewState: &initialState,
-      using: resourceFolderEditForm.formState()
-    )
-    let viewState: MutableViewState<ViewState> = .init(
-      initial: initialState,
-      extendingLifetimeOf: features
-    )
-
-    asyncExecutor.scheduleIteration(
-      over: resourceFolderEditForm.formUpdates,
-      catchingWith: diagnostics,
-      failMessage: "Updates broken!"
-    ) { [weak viewState] (_) in
-      if let viewState: MutableViewState<ViewState> = viewState {
-        await viewState.update { viewState in
-          update(
-            viewState: &viewState,
-            using: resourceFolderEditForm.formState()
+        case let .userGroup(id: userGroupID, _, _):
+          return .userGroup(
+            userGroupID
           )
         }
       }
-      else {
-        diagnostics.log(diagnostic: "Resource folder edit form updates ended.")
-      }
-    }
-
-    nonisolated func setFolderName(
-      _ folderName: String
-    ) {
-      resourceFolderEditForm.setFolderName(folderName)
-    }
-
-    nonisolated func saveChanges() {
-      asyncExecutor.schedule(.reuse) {
-        await viewState.update { viewState in
-          viewState.loading = true
-        }
-        do {
-          try await resourceFolderEditForm.sendForm()
-          await navigation.pop(ResourceFolderEditView.self)
-          await viewState.update { viewState in
-            viewState.loading = false
-          }
-        }
-        catch {
-          await viewState.update { viewState in
-            viewState.loading = false
-            viewState.snackBarMessage = .error(error)
-          }
-        }
-      }
-    }
-
-    return .init(
-      viewState: viewState,
-      setFolderName: setFolderName(_:),
-      saveChanges: saveChanges
-    )
   }
-}
 
-extension FeaturesRegistry {
+  internal final func setFolderName(
+    _ folderName: String
+  ) {
+    self.resourceFolderEditForm.setFolderName(folderName)
+  }
 
-  public mutating func usePassboltResourceFolderEditController() {
-    self.use(
-      .disposable(
-        ResourceFolderEditController.self,
-        load: ResourceFolderEditController.load(features:context:)
-      ),
-      in: SessionScope.self
-    )
+  internal final func saveChanges() {
+    self.asyncExecutor.schedule(.reuse) { [viewState, resourceFolderEditForm, navigation] in
+      await viewState.update { viewState in
+        viewState.loading = true
+      }
+      do {
+        try await resourceFolderEditForm.sendForm()
+        await navigation.pop(ResourceFolderEditView.self)
+        await viewState.update { viewState in
+          viewState.loading = false
+        }
+      }
+      catch {
+        await viewState.update { viewState in
+          viewState.loading = false
+          viewState.snackBarMessage = .error(error)
+        }
+      }
+    }
   }
 }

@@ -24,17 +24,7 @@
 @propertyWrapper
 public struct Stateless {
 
-  public var wrappedValue: MutableViewState<Stateless> = .init()
+  public var wrappedValue: MutableViewState<Never> = .init()
 
   public init() {}
-}
-
-extension Stateless: Equatable {
-
-  public static func == (
-    _ lhs: Self,
-    _ rhs: Self
-  ) -> Bool {
-    lhs.wrappedValue === rhs.wrappedValue
-  }
 }

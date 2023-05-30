@@ -29,13 +29,58 @@ import SessionData
 import SharedUIComponents
 import Users
 
-internal struct HomeNavigationNodeController {
+internal final class HomeNavigationNodeController: ViewController {
 
-  internal var viewState: MutableViewState<ViewState>
-  internal var activate: @Sendable () async -> Void
+  internal nonisolated let viewState: MutableViewState<ViewState>
+
+  private let diagnostics: OSDiagnostics
+  private let asyncExecutor: AsyncExecutor
+  private let navigationTree: NavigationTree
+  private let homePresentation: HomePresentation
+
+  private let features: Features
+
+  internal init(
+    context: Context,
+    features: Features
+  ) throws {
+    let features: Features =
+      features
+      .branch(
+        scope: SessionScope.self,
+        context: context
+      )
+    self.features = features
+
+    self.diagnostics = features.instance()
+    self.asyncExecutor = try features.instance()
+    self.navigationTree = features.instance()
+    self.homePresentation = try features.instance()
+
+    self.viewState = .init(
+      initial: .init(
+        contentController: Self.contentRoot(
+          for: homePresentation.currentMode.get(),
+          using: features
+        )
+      )
+    )
+
+    self.asyncExecutor.scheduleIteration(
+      over: self.homePresentation.currentMode.asAnyAsyncSequence(),
+      catchingWith: self.diagnostics,
+      failMessage: "Home mode updates broken!"
+    ) { [features, viewState, navigationTree] (mode: HomePresentationMode) in
+      let contentController = await Self.contentRoot(for: mode, using: features)
+      await viewState.update { viewState in
+        viewState.contentController = contentController
+      }
+      await navigationTree.dismiss(upTo: self.viewState.viewNodeID)
+    }
+  }
 }
 
-extension HomeNavigationNodeController: ViewController {
+extension HomeNavigationNodeController {
 
   internal typealias Context = SessionScope.Context
 
@@ -56,189 +101,126 @@ extension HomeNavigationNodeController: ViewController {
       hasher.combine(self.contentController)
     }
   }
-
-  #if DEBUG
-  nonisolated static var placeholder: Self {
-    .init(
-      viewState: .placeholder(),
-      activate: unimplemented0()
-    )
-  }
-  #endif
 }
 
 extension HomeNavigationNodeController {
 
-  @MainActor fileprivate static func load(
-    features: Features,
-    context: Context
-  ) throws -> Self {
-    let features: Features =
-      features
-      .branch(
-        scope: SessionScope.self,
-        context: context
-      )
-    let asyncExecutor: AsyncExecutor = try features.instance()
-    let navigationTree: NavigationTree = features.instance()
-    let homePresentation: HomePresentation = try features.instance()
+  @MainActor private static func contentRoot(
+    for mode: HomePresentationMode,
+    using features: Features
+  ) -> any ViewController {
+    do {
+      switch mode {
+      case .plainResourcesList:
+        return
+          try features
+          .instance(
+            of: ResourcesListNodeController.self,
+            context: .init(
+              title: mode.title,
+              titleIconName: mode.iconName,
+              baseFilter: .init(
+                sorting: .nameAlphabetically
+              )
+            )
+          )
 
-    let viewState: MutableViewState<ViewState> = .init(
-      initial: .init(
-        contentController: contentRoot(
-          for: homePresentation.currentMode.get()
-        )
-      )
-    )
+      case .modifiedResourcesList:
+        return
+          try features
+          .instance(
+            of: ResourcesListNodeController.self,
+            context: .init(
+              title: mode.title,
+              titleIconName: mode.iconName,
+              baseFilter: .init(
+                sorting: .modifiedRecently
+              )
+            )
+          )
 
-    @Sendable nonisolated func activate() async {
-      asyncExecutor.schedule(.reuse) {
-        await homePresentation
-          .currentMode
-          .asAnyAsyncSequence()
-          .forEach { (mode: HomePresentationMode) in
-            let contentController = await contentRoot(for: mode)
-            await viewState.update { viewState in
-              viewState.contentController = contentController
-            }
-            await navigationTree.dismiss(upTo: viewState.viewNodeID)
-          }
+      case .favoriteResourcesList:
+        return
+          try features
+          .instance(
+            of: ResourcesListNodeController.self,
+            context: .init(
+              title: mode.title,
+              titleIconName: mode.iconName,
+              baseFilter: .init(
+                sorting: .nameAlphabetically,
+                favoriteOnly: true
+              )
+            )
+          )
+
+      case .sharedResourcesList:
+        return
+          try features
+          .instance(
+            of: ResourcesListNodeController.self,
+            context: .init(
+              title: mode.title,
+              titleIconName: mode.iconName,
+              baseFilter: .init(
+                sorting: .nameAlphabetically,
+                permissions: [.read, .write]
+              )
+            )
+          )
+
+      case .ownedResourcesList:
+        return
+          try features
+          .instance(
+            of: ResourcesListNodeController.self,
+            context: .init(
+              title: mode.title,
+              titleIconName: mode.iconName,
+              baseFilter: .init(
+                sorting: .nameAlphabetically,
+                permissions: [.owner]
+              )
+            )
+          )
+
+      case .tagsExplorer:
+        return
+          try features
+          .instance(
+            of: ResourceTagsListNodeController.self,
+            context: .init(
+              title: mode.title,
+              titleIconName: mode.iconName
+            )
+          )
+
+      case .resourceUserGroupsExplorer:
+        return
+          try features
+          .instance(
+            of: ResourceUserGroupsListNodeController.self,
+            context: .init(
+              title: mode.title,
+              titleIconName: mode.iconName
+            )
+          )
+
+      case .foldersExplorer:
+        return
+          try features
+          .instance(
+            of: ResourceFolderContentNodeController.self,
+            context: .init(
+              folderDetails: .none
+            )
+          )
       }
     }
-
-    @MainActor func contentRoot(
-      for mode: HomePresentationMode
-    ) -> any ViewController {
-      do {
-        switch mode {
-        case .plainResourcesList:
-          return
-            try features
-            .instance(
-              of: ResourcesListNodeController.self,
-              context: .init(
-                title: mode.title,
-                titleIconName: mode.iconName,
-                baseFilter: .init(
-                  sorting: .nameAlphabetically
-                )
-              )
-            )
-
-        case .modifiedResourcesList:
-          return
-            try features
-            .instance(
-              of: ResourcesListNodeController.self,
-              context: .init(
-                title: mode.title,
-                titleIconName: mode.iconName,
-                baseFilter: .init(
-                  sorting: .modifiedRecently
-                )
-              )
-            )
-
-        case .favoriteResourcesList:
-          return
-            try features
-            .instance(
-              of: ResourcesListNodeController.self,
-              context: .init(
-                title: mode.title,
-                titleIconName: mode.iconName,
-                baseFilter: .init(
-                  sorting: .nameAlphabetically,
-                  favoriteOnly: true
-                )
-              )
-            )
-
-        case .sharedResourcesList:
-          return
-            try features
-            .instance(
-              of: ResourcesListNodeController.self,
-              context: .init(
-                title: mode.title,
-                titleIconName: mode.iconName,
-                baseFilter: .init(
-                  sorting: .nameAlphabetically,
-                  permissions: [.read, .write]
-                )
-              )
-            )
-
-        case .ownedResourcesList:
-          return
-            try features
-            .instance(
-              of: ResourcesListNodeController.self,
-              context: .init(
-                title: mode.title,
-                titleIconName: mode.iconName,
-                baseFilter: .init(
-                  sorting: .nameAlphabetically,
-                  permissions: [.owner]
-                )
-              )
-            )
-
-        case .tagsExplorer:
-          return
-            try features
-            .instance(
-              of: ResourceTagsListNodeController.self,
-              context: .init(
-                title: mode.title,
-                titleIconName: mode.iconName
-              )
-            )
-
-        case .resourceUserGroupsExplorer:
-          return
-            try features
-            .instance(
-              of: ResourceUserGroupsListNodeController.self,
-              context: .init(
-                title: mode.title,
-                titleIconName: mode.iconName
-              )
-            )
-
-        case .foldersExplorer:
-          return
-            try features
-            .instance(
-              of: ResourceFolderContentNodeController.self,
-              context: .init(
-                folderDetails: .none
-              )
-            )
-        }
-      }
-      catch {
-        error
-          .asTheError()
-          .asFatalError(message: "Failed to update home screen.")
-      }
+    catch {
+      error
+        .asTheError()
+        .asFatalError(message: "Failed to update home screen.")
     }
-
-    return .init(
-      viewState: viewState,
-      activate: activate
-    )
-  }
-}
-
-extension FeaturesRegistry {
-
-  public mutating func usePassboltHomeNavigationNodeController() {
-    self.use(
-      .disposable(
-        HomeNavigationNodeController.self,
-        load: HomeNavigationNodeController.load(features:context:)
-      )
-    )
   }
 }

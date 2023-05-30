@@ -42,6 +42,5 @@ internal struct ResourceTagsListDisplayView: ControlledView {
         tagTapAction: self.controller.selectTag
       )
     }
-    .task(self.controller.activate)
   }
 }

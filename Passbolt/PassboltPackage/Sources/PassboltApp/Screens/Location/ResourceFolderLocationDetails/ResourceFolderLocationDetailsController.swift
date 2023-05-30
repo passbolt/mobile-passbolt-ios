@@ -26,57 +26,35 @@ import OSFeatures
 import Resources
 import Users
 
-// MARK: - Interface
+internal final class ResourceFolderLocationDetailsController: ViewController {
 
-internal struct ResourceFolderLocationDetailsController {
+  internal nonisolated let viewState: MutableViewState<ViewState>
 
-  internal var viewState: MutableViewState<ViewState>
-}
+  private let executor: AsyncExecutor
 
-extension ResourceFolderLocationDetailsController: ViewController {
+  internal init(
+    context: ResourceFolder.ID,
+    features: Features
+  ) throws {
+    self.executor = try features.instance()
 
-  internal typealias Context = ResourceFolder.ID
-
-  internal struct ViewState: Hashable {
-
-    internal var folderName: String
-    internal var folderLocation: FolderLocationTreeView.Node
-    internal var folderShared: Bool
-  }
-
-  #if DEBUG
-  static var placeholder: Self {
-    .init(
-      viewState: .placeholder()
-    )
-  }
-  #endif
-}
-
-// MARK: - Implementation
-
-extension ResourceFolderLocationDetailsController {
-
-  @MainActor fileprivate static func load(
-    features: Features,
-    context: Context
-  ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
-    let executor: AsyncExecutor = try features.instance()
-    let folderDetails: ResourceFolderDetails = try features.instance(context: context)
-
-    let viewState: MutableViewState<ViewState> = .init(
+    self.viewState = .init(
       initial: .init(
         folderName: "",
         folderLocation: .root(),
         folderShared: false
       )
     )
+    let diagnostics: OSDiagnostics = features.instance()
+    let resourceFolderController: ResourceFolderController = try features.instance(context: context)
 
-    executor.schedule(.unmanaged) {
-      do {
-        let details: ResourceFolderDetailsDSV = try await folderDetails.details()
-        var path: FolderLocationTreeView.Node = details.path.reduce(
+    self.executor
+      .scheduleIteration(
+        over: resourceFolderController.state,
+        catchingWith: diagnostics,
+        failMessage: "Resource folder location updates broken!"
+      ) { [viewState] (resourceFolder: ResourceFolder) in
+        var path: FolderLocationTreeView.Node = resourceFolder.path.reduce(
           into: FolderLocationTreeView.Node.root()
         ) { (partialResult: inout FolderLocationTreeView.Node, item: ResourceFolderPathItem) in
           partialResult.append(
@@ -87,39 +65,30 @@ extension ResourceFolderLocationDetailsController {
             )
           )
         }
-        path.append(
-          child: .node(
-            id: details.id,
-            name: details.name,
-            shared: details.shared
+        if let id: ResourceFolder.ID = resourceFolder.id {
+          path.append(
+            child: .node(
+              id: id,
+              name: resourceFolder.name,
+              shared: resourceFolder.shared
+            )
           )
-        )
+        }  // else NOP
         await viewState.update { (state: inout ViewState) in
-          state.folderName = details.name
+          state.folderName = resourceFolder.name
           state.folderLocation = path
-          state.folderShared = details.shared
+          state.folderShared = resourceFolder.shared
         }
       }
-      catch {
-        diagnostics.log(error: error)
-      }
-    }
-
-    return .init(
-      viewState: viewState
-    )
   }
 }
 
-extension FeaturesRegistry {
+extension ResourceFolderLocationDetailsController {
 
-  public mutating func usePassboltResourceFolderLocationDetailsController() {
-    self.use(
-      .disposable(
-        ResourceFolderLocationDetailsController.self,
-        load: ResourceFolderLocationDetailsController.load(features:context:)
-      ),
-      in: ResourceFolderDetailsScope.self
-    )
+  internal struct ViewState: Hashable {
+
+    internal var folderName: String
+    internal var folderLocation: FolderLocationTreeView.Node
+    internal var folderShared: Bool
   }
 }

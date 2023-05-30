@@ -52,10 +52,12 @@ extension FeaturesRegistry {
     self.usePassboltUsersModule()
     self.usePassboltApplicationRatingFeature()
 
-    self.useLiveScreenControllers()
+    self.usePassboltHomePresentation()
 
     self.usePassboltInitialization()
     self.usePassboltUpdateCheck()
     self.usePassboltOTPCodesController()
+
+    self.useLiveNavigation()
   }
 }

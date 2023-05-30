@@ -25,57 +25,31 @@ import Display
 import OSFeatures
 import Resources
 
-// MARK: - Interface
+internal final class OTPConfigurationScanningController: ViewController {
 
-internal struct OTPConfigurationScanningController {
+  internal nonisolated let viewState: MutableViewState<ViewState>
 
-  internal var viewState: MutableViewState<ViewState>
+  private let diagnostics: OSDiagnostics
+  private let asyncExecutor: AsyncExecutor
+  private let navigationToScanningSuccess: NavigationToOTPScanningSuccess
+  private let navigationToSelf: NavigationToOTPScanning
+  private let scanningState: CriticalState<ScanningState>
 
-  internal var processPayload: @Sendable (String) -> Void
-}
+  private let features: Features
 
-extension OTPConfigurationScanningController: ViewController {
-
-  internal struct ViewState: Equatable {
-
-    internal var loading: Bool
-    internal var snackBarMessage: SnackBarMessage?
-  }
-
-  #if DEBUG
-  internal static var placeholder: Self {
-    .init(
-      viewState: .placeholder(),
-      processPayload: unimplemented1()
-    )
-  }
-  #endif
-}
-
-// MARK: - Implementation
-
-extension OTPConfigurationScanningController {
-
-  private enum ScanningState {
-    case idle
-    case processing
-    case finished
-  }
-
-  @MainActor fileprivate static func load(
+  internal init(
+    context: Void,
     features: Features
-  ) throws -> Self {
+  ) throws {
     try features.ensureScope(SessionScope.self)
+    self.features = features
 
-    let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
-
-    let navigationToScanningSuccess: NavigationToOTPScanningSuccess = try features.instance()
-    let navigationToSelf: NavigationToOTPScanning = try features.instance()
-
-    let scanningState: CriticalState<ScanningState> = .init(.idle)
-
-    let viewState: MutableViewState<ViewState> = .init(
+    self.diagnostics = features.instance()
+    self.asyncExecutor = try features.instance()
+    self.navigationToScanningSuccess = try features.instance()
+    self.navigationToSelf = try features.instance()
+    self.scanningState = .init(.idle)
+    self.viewState = .init(
       initial: .init(
         loading: false,
         snackBarMessage: .info(
@@ -85,100 +59,101 @@ extension OTPConfigurationScanningController {
         )
       )
     )
+  }
+}
 
-    @Sendable nonisolated func process(
-      payload: String
-    ) {
-      guard scanningState.exchange(\.self, with: .processing, when: .idle)
-      else { return }  // ignore when already processing
-      do {
-        let configuration: TOTPConfiguration = try parseTOTPConfiguration(from: payload)
-        scanningState
-          .exchange(
-            \.self,
-            with: .finished,
-            when: .processing
-          )
-        asyncExecutor.scheduleCatching(
-          with: diagnostics,
-          behavior: .reuse,
-          identifier: #function
-        ) {
-          if features.checkScope(ResourceEditScope.self) {
+extension OTPConfigurationScanningController {
+
+  internal struct ViewState: Equatable {
+
+    internal var loading: Bool
+    internal var snackBarMessage: SnackBarMessage?
+  }
+}
+
+extension OTPConfigurationScanningController {
+
+  private enum ScanningState {
+    case idle
+    case processing
+    case finished
+  }
+
+  internal final func process(
+    payload: String
+  ) {
+    guard self.scanningState.exchange(\.self, with: .processing, when: .idle)
+    else { return }  // ignore when already processing
+    do {
+      let configuration: TOTPConfiguration = try parseTOTPConfiguration(from: payload)
+      self.scanningState
+        .exchange(
+          \.self,
+          with: .finished,
+          when: .processing
+        )
+      self.asyncExecutor.scheduleCatching(
+        with: self.diagnostics,
+        behavior: .reuse,
+        identifier: #function
+      ) { [features, viewState, navigationToSelf, navigationToScanningSuccess] in
+        if features.checkScope(ResourceEditScope.self) {
+          await viewState
+            .update(
+              \.loading,
+              to: true
+            )
+          do {
+            let resourceEditForm: ResourceEditForm = try await features.instance()
+            _ = try await resourceEditForm.update { (resource: inout Resource) in
+              resource.secret.totp.secret_key = .string(configuration.secret.sharedSecret)
+              resource.secret.totp.period = .integer(configuration.secret.period.rawValue)
+              resource.secret.totp.algorithm = .string(configuration.secret.algorithm.rawValue)
+              resource.secret.totp.digits = .integer(configuration.secret.digits)
+            }
+            try await navigationToSelf.revert()
+          }
+          catch {
             await viewState
               .update(
                 \.loading,
-                to: true
+                to: false
               )
-            do {
-              let resourceEditForm: ResourceEditForm = try await features.instance()
-              _ = try await resourceEditForm.update { (resource: inout Resource) in
-                resource.secret.totp.secret_key = .string(configuration.secret.sharedSecret)
-                resource.secret.totp.period = .integer(configuration.secret.period.rawValue)
-                resource.secret.totp.algorithm = .string(configuration.secret.algorithm.rawValue)
-                resource.secret.totp.digits = .integer(configuration.secret.digits)
-              }
-              try await navigationToSelf.revert()
-            }
-            catch {
-              await viewState
-                .update(
-                  \.loading,
-                  to: false
-                )
-              throw error
-            }
-          }
-          else {
-            try await navigationToScanningSuccess.perform(context: configuration)
+            throw error
           }
         }
-      }
-      catch is Cancelled {
-        scanningState
-          .exchange(
-            \.self,
-            with: .idle,
-            when: .processing
-          )
-      }
-      catch {
-        scanningState
-          .exchange(
-            \.self,
-            with: .idle,
-            when: .processing
-          )
-        diagnostics.log(error: error)
-        asyncExecutor.schedule(.reuse, identifier: #function) {
-          await viewState
-            .update(
-              \.snackBarMessage,
-              to: .error(error)
-            )
+        else {
+          try await navigationToScanningSuccess.perform(context: configuration)
         }
       }
     }
-
-    return .init(
-      viewState: viewState,
-      processPayload: process(payload:)
-    )
+    catch is Cancelled {
+      scanningState
+        .exchange(
+          \.self,
+          with: .idle,
+          when: .processing
+        )
+    }
+    catch {
+      scanningState
+        .exchange(
+          \.self,
+          with: .idle,
+          when: .processing
+        )
+      self.diagnostics.log(error: error)
+      self.asyncExecutor.schedule(.reuse, identifier: #function) { [viewState] in
+        await viewState
+          .update(
+            \.snackBarMessage,
+            to: .error(error)
+          )
+      }
+    }
   }
 }
 
-extension FeaturesRegistry {
-
-  internal mutating func useLiveOTPScanningController() {
-    self.use(
-      .disposable(
-        OTPConfigurationScanningController.self,
-        load: OTPConfigurationScanningController.load(features:)
-      ),
-      in: SessionScope.self
-    )
-  }
-}
 private func parseTOTPConfiguration(
   from string: String
 ) throws -> TOTPConfiguration {

@@ -68,8 +68,13 @@ internal struct ResourceFolderEditView: ControlledView {
         )
       )
 
-      FolderLocationView(
-        locationElements: state.folderLocation
+      ResourceFieldView(
+        name: "folder.location.title",
+        content: {
+          FolderLocationView(
+            locationElements: state.folderLocation
+          )
+        }
       )
 
       PermissionAvatarsView(

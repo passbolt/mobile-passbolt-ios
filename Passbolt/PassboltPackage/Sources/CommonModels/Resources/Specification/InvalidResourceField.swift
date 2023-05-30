@@ -71,7 +71,7 @@ extension InvalidResourceField: Hashable {
   public func hash(
     into hasher: inout Hasher
   ) {
-    hasher.combine(self.specification.name)
+    hasher.combine(self.path)
   }
 }
 

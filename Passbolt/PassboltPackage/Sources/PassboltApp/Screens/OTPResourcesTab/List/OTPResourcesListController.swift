@@ -29,69 +29,39 @@ import Resources
 import Session
 import SessionData
 
-// MARK: - Interface
+internal final class OTPResourcesListController: ViewController {
 
-internal struct OTPResourcesListController {
+  internal nonisolated let viewState: MutableViewState<ViewState>
 
-  internal var viewState: MutableViewState<ViewState>
+  private let currentAccount: Account
+  private let diagnostics: OSDiagnostics
+  private let asyncExecutor: AsyncExecutor
+  private let otpResources: OTPResources
+  private let otpCodesController: OTPCodesController
+  private let accountDetails: AccountDetails
+  private let navigationToAccountMenu: NavigationToAccountMenu
+  private let navigationToOTPCreateMenu: NavigationToOTPCreateMenu
 
-  internal var refreshList: @Sendable () async -> Void
-  internal var createOTP: () -> Void
-  internal var revealAndCopyOTP: (Resource.ID) -> Void
-  internal var showCentextualMenu: (Resource.ID) -> Void
-  internal var showAccountMenu: () -> Void
-  internal var hideOTPCodes: () -> Void
-}
+	private let features: Features
 
-extension OTPResourcesListController: ViewController {
-
-  internal struct ViewState: Equatable {
-
-    internal var accountAvatarImage: Data?
-    internal var searchText: String
-    internal var otpResources: Array<TOTPResourceViewModel>
-    internal var snackBarMessage: SnackBarMessage?
-  }
-
-  #if DEBUG
-  internal static var placeholder: Self {
-    .init(
-      viewState: .placeholder(),
-      refreshList: unimplemented0(),
-      createOTP: unimplemented0(),
-      revealAndCopyOTP: unimplemented1(),
-      showCentextualMenu: unimplemented1(),
-      showAccountMenu: unimplemented0(),
-      hideOTPCodes: unimplemented0()
-    )
-  }
-  #endif
-}
-
-// MARK: - Implementation
-
-extension OTPResourcesListController {
-
-  @MainActor fileprivate static func load(
+  internal init(
+    context: Void,
     features: Features
-  ) throws -> Self {
+  ) throws {
     try features.ensureScope(SessionScope.self)
-    let currentAccount: Account = try features.sessionAccount()
 
-    let diagnostics: OSDiagnostics = features.instance()
+		self.features = features
 
-    let asyncExecutor: AsyncExecutor = try features.instance()
+    self.currentAccount = try features.sessionAccount()
+    self.diagnostics = features.instance()
+    self.asyncExecutor = try features.instance()
+    self.otpResources = try features.instance()
+    self.otpCodesController = try features.instance()
+    self.accountDetails = try features.instance(context: currentAccount)
+    self.navigationToAccountMenu = try features.instance()
+    self.navigationToOTPCreateMenu = try features.instance()
 
-    let otpResources: OTPResources = try features.instance()
-    let otpCodesController: OTPCodesController = try features.instance()
-
-    let accountDetails: AccountDetails = try features.instance(context: currentAccount)
-
-    let navigationToAccountMenu: NavigationToAccountMenu = try features.instance()
-    let navigationToOTPCreateMenu: NavigationToOTPCreateMenu = try features.instance()
-    let navigationToOTPContextualMenu: NavigationToOTPContextualMenu = try features.instance()
-
-    let viewState: MutableViewState<ViewState> = .init(
+    self.viewState = .init(
       initial: .init(
         searchText: .init(),
         otpResources: .init(),
@@ -100,10 +70,10 @@ extension OTPResourcesListController {
     )
 
     // load avatar image for search icon
-    asyncExecutor.scheduleCatchingWith(
-      diagnostics,
+    self.asyncExecutor.scheduleCatchingWith(
+      self.diagnostics,
       failMessage: "Failed to get account avatar image!"
-    ) {
+    ) { [viewState, accountDetails] in
       let avatarImage: Data? = try await accountDetails.avatarImage()
       await viewState
         .update(
@@ -112,16 +82,20 @@ extension OTPResourcesListController {
         )
     }
 
-    // auto present revealed OTP codes
-    asyncExecutor.scheduleCatchingWith(
-      diagnostics,
-      failMessage: "OTP codes updates broken!"
-    ) {
-      let otpUpdates = otpCodesController.updates.map(otpCodesController.current)
-      var lastRevealed: Resource.ID?
-      for await otpValue in otpUpdates {
-        defer { lastRevealed = otpValue?.resourceID }
+    let lastRevealed: CriticalState<Resource.ID?> = .init(.none)
+    self.asyncExecutor
+      .scheduleIteration(
+        over: self.otpCodesController.updates
+          .map(self.otpCodesController.current),
+        catchingWith: self.diagnostics,
+        failMessage: "OTP codes updates broken!",
+        failAction: { [viewState] (error: Error) in
+          await viewState.update(\.snackBarMessage, to: .error(error))
+        }
+      ) { [viewState] (otpValue: OTPValue?) async throws -> Void in
+        defer { lastRevealed.set(\.self, otpValue?.resourceID) }
         if let otpValue {
+          let lastRevealed: Resource.ID? = lastRevealed.get(\.self)
           await viewState.update { (state: inout ViewState) in
             if let lastRevealed, otpValue.resourceID != lastRevealed,
               let index = state.otpResources.firstIndex(where: { $0.id == lastRevealed })
@@ -131,9 +105,11 @@ extension OTPResourcesListController {
 
             guard let index = state.otpResources.firstIndex(where: { $0.id == otpValue.resourceID })
             else { return }
+
             switch otpValue {
             case .totp(let value):
               state.otpResources[index].totpValue = value
+
             case .hotp:
               break  // not supported yet
             }
@@ -147,7 +123,6 @@ extension OTPResourcesListController {
           }
         }
       }
-    }
 
     // start list content updates
     let filtersSequence: AnyAsyncSequence<OTPResourcesFilter> =
@@ -163,11 +138,14 @@ extension OTPResourcesListController {
       }
       .asAnyAsyncSequence()
 
-    asyncExecutor.scheduleIteration(
+    self.asyncExecutor.scheduleIteration(
       over: filtersSequence,
-      catchingWith: diagnostics,
-      failMessage: "OTP list updates broken!"
-    ) { (filter: OTPResourcesFilter) in
+      catchingWith: self.diagnostics,
+      failMessage: "OTP list updates broken!",
+      failAction: { [viewState] (error: Error) in
+        await viewState.update(\.snackBarMessage, to: .error(error))
+      }
+    ) { [viewState, otpResources, otpCodesController] (filter: OTPResourcesFilter) in
       let filteredResourcesList: Array<TOTPResourceViewModel> =
         try await otpResources
         .filteredList(filter)
@@ -187,99 +165,119 @@ extension OTPResourcesListController {
         )
       await otpCodesController.dispose()
     }
+  }
+}
 
-    @Sendable nonisolated func refreshList() async {
-      do {
-        try await otpResources.refreshIfNeeded()
-      }
-      catch {
-        diagnostics
-          .log(
-            error: error,
-            info: .message(
-              "Failed to refresh otp resources data."
-            )
-          )
+extension OTPResourcesListController {
 
-        await viewState
-          .update(
-            \.snackBarMessage,
-            to: .error(error)
-          )
-      }
+  internal struct ViewState: Equatable {
+
+    internal var accountAvatarImage: Data?
+    internal var searchText: String
+    internal var otpResources: Array<TOTPResourceViewModel>
+    internal var snackBarMessage: SnackBarMessage?
+  }
+}
+
+extension OTPResourcesListController {
+
+  internal final func refreshList() async {
+    do {
+      try await self.otpResources.refreshIfNeeded()
     }
+    catch {
+      self.diagnostics
+        .log(
+          error: error,
+          info: .message(
+            "Failed to refresh otp resources data."
+          )
+        )
 
-    nonisolated func createOTP() {
-      asyncExecutor.scheduleCatchingWith(
-        diagnostics,
+      self.viewState
+        .update(
+          \.snackBarMessage,
+          to: .error(error)
+        )
+    }
+  }
+
+  internal final func createOTP() {
+    self.asyncExecutor
+      .scheduleCatchingWith(
+        self.diagnostics,
         failMessage: "Navigation to OTP create menu failed!",
+        failAction: { [viewState] (error: Error) in
+          await viewState.update(\.snackBarMessage, to: .error(error))
+        },
         behavior: .reuse
-      ) {
+      ) { [otpCodesController, navigationToOTPCreateMenu] in
         await otpCodesController.dispose()
         try await navigationToOTPCreateMenu.perform()
       }
-    }
+  }
 
-    @Sendable nonisolated func revealOTP(
-      for resourceID: Resource.ID
-    ) async throws {
-      try await otpCodesController.requestNextFor(resourceID)
-    }
+  private final func revealOTP(
+    for resourceID: Resource.ID
+  ) async throws {
+    _ = try await self.otpCodesController.requestNextFor(resourceID)
+  }
 
-    @Sendable nonisolated func copyOTP(
-      for resourceID: Resource.ID
-    ) async throws {
-      try await otpCodesController.copyFor(resourceID)
-      await viewState
-        .update(
-          \.snackBarMessage,
-          to: .info(
-            .localized(
-              key: "otp.value.copied.message"
-            )
+  private final func copyOTP(
+    for resourceID: Resource.ID
+  ) async throws {
+    try await self.otpCodesController.copyFor(resourceID)
+    self.viewState
+      .update(
+        \.snackBarMessage,
+        to: .info(
+          .localized(
+            key: "otp.value.copied.message"
           )
         )
+      )
+  }
+
+  internal final func revealAndCopyOTP(
+    for resourceID: Resource.ID
+  ) {
+    self.asyncExecutor.scheduleCatchingWith(
+      self.diagnostics,
+      failMessage: "Failed to reveal/copy OTP value!",
+      failAction: { [viewState] (error: Error) in
+        await viewState.update(\.snackBarMessage, to: .error(error))
+      },
+      behavior: .reuse
+    ) { [self] in
+      try await self.revealOTP(for: resourceID)
+      try await self.copyOTP(for: resourceID)
     }
+  }
 
-    nonisolated func revealAndCopyOTP(
-      for resourceID: Resource.ID
-    ) {
-      asyncExecutor.schedule(.replace) {
-        do {
-          try await revealOTP(for: resourceID)
-          try await copyOTP(for: resourceID)
-        }
-        catch {
-          diagnostics
-            .log(
-              error: error,
-              info: .message(
-                "Failed to reveal/copy OTP value!"
-              )
-            )
-
-          await viewState
-            .update(
-              \.snackBarMessage,
-              to: .error(error)
-            )
-        }
-      }
-    }
-
-    nonisolated func showCentextualMenu(
-      for resourceID: Resource.ID
-    ) {
-      asyncExecutor.scheduleCatchingWith(
-        diagnostics,
+  internal final func showCentextualMenu(
+    for resourceID: Resource.ID
+  ) {
+    self.asyncExecutor
+      .scheduleCatchingWith(
+        self.diagnostics,
         failMessage: "Failed to present OTP contextual menu",
+        failAction: { [viewState] (error: Error) in
+          await viewState.update(\.snackBarMessage, to: .error(error))
+        },
         behavior: .reuse
-      ) {
-        await otpCodesController.dispose()
-        try await navigationToOTPContextualMenu.perform(
+      ) { @MainActor [self, viewState, otpCodesController, features] in
+				await otpCodesController.dispose()
+				let features: Features = features.branchIfNeeded(
+					scope: ResourceDetailsScope.self,
+					context: resourceID
+				) ?? features
+				let navigationToContextualMenu: NavigationToResourceContextualMenu = try features.instance()
+        try await navigationToContextualMenu.perform(
           context: .init(
-            resourceID: resourceID,
-            showMessage: { (message: SnackBarMessage) in
+						revealOTP: { [self] in
+							self.revealAndCopyOTP(for: resourceID)
+						},
+            showMessage: { (message: SnackBarMessage?) in
               viewState.update { state in
                 state.snackBarMessage = message
               }
@@ -287,47 +285,26 @@ extension OTPResourcesListController {
           )
         )
       }
-    }
-
-    nonisolated func showAccountMenu() {
-      asyncExecutor.scheduleCatchingWith(
-        diagnostics,
-        failMessage: "Navigation to account menu failed!",
-        behavior: .reuse
-      ) {
-        await otpCodesController.dispose()
-        try await navigationToAccountMenu.perform()
-      }
-    }
-
-    @Sendable nonisolated func hideOTPCodes() {
-      asyncExecutor.schedule(.reuse) {
-        await otpCodesController.dispose()
-      }
-    }
-
-    return .init(
-      viewState: viewState,
-      refreshList: refreshList,
-      createOTP: createOTP,
-      revealAndCopyOTP: revealAndCopyOTP(for:),
-      showCentextualMenu: showCentextualMenu(for:),
-      showAccountMenu: showAccountMenu,
-      hideOTPCodes: hideOTPCodes
-    )
   }
-}
 
-extension FeaturesRegistry {
+  internal final func showAccountMenu() {
+    self.asyncExecutor.scheduleCatchingWith(
+      self.diagnostics,
+      failMessage: "Navigation to account menu failed!",
+      failAction: { [viewState] (error: Error) in
+        await viewState.update(\.snackBarMessage, to: .error(error))
+      },
+      behavior: .reuse
+    ) { [otpCodesController, navigationToAccountMenu] in
+      await otpCodesController.dispose()
+      try await navigationToAccountMenu.perform()
+    }
+  }
 
-  internal mutating func useLiveOTPResourcesListController() {
-    self.use(
-      .disposable(
-        OTPResourcesListController.self,
-        load: OTPResourcesListController.load(features:)
-      ),
-      in: SessionScope.self
-    )
+  internal final func hideOTPCodes() {
+    self.asyncExecutor.schedule(.reuse) { [otpCodesController] in
+      await otpCodesController.dispose()
+    }
   }
 }
 

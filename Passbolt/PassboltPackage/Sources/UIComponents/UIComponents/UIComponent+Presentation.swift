@@ -399,7 +399,7 @@ extension AnyUIComponent {
   ) async
   where Component: ComponentView, Component.Controller.Context == Void, ReplacedComponent: ComponentView {
     await self.replace(
-      ReplacedComponent.self,
+      ComponentHostingViewController<ReplacedComponent>.self,
       pushing: Component.self,
       in: Void(),
       animated: animated
@@ -411,7 +411,7 @@ extension AnyUIComponent {
     pushing type: Component.Type,
     in context: Component.Controller.Context,
     animated: Bool = true
-  ) async where Component: ComponentView, ReplacedComponent: ComponentView {
+  ) async where Component: ComponentView, ReplacedComponent: UIViewController {
     guard
       let navigationController = self as? UINavigationController
         ?? self.navigationController
@@ -419,7 +419,7 @@ extension AnyUIComponent {
     else { return assertionFailure("It is programmer error to push without navigation controller") }
 
     var updatedViewControllers: Array<UIViewController> = navigationController.viewControllers
-    guard updatedViewControllers.popLast() is ComponentHostingViewController<ReplacedComponent>
+    guard updatedViewControllers.popLast() is ReplacedComponent
     else { return }  // ignore
 
     let component: ComponentHostingViewController<Component>

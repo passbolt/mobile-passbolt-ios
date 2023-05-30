@@ -34,7 +34,7 @@ final class OTPDeleteAlertControllerTests: FeaturesTestCase {
       \ResourceController.delete,
       with: alwaysThrow(MockIssue.error())
     )
-    let tested: OTPDeleteAlertController = try self.testedInstance(
+    let tested: ResourceDeleteAlertController = try self.testedInstance(
       context: (
         resourceID: .mock_1,
         showMessage: { (message: SnackBarMessage) in
@@ -57,7 +57,7 @@ final class OTPDeleteAlertControllerTests: FeaturesTestCase {
       \ResourceController.delete,
       with: always(Void())
     )
-    let tested: OTPDeleteAlertController = try self.testedInstance(
+    let tested: ResourceDeleteAlertController = try self.testedInstance(
       context: (
         resourceID: .mock_1,
         showMessage: { (message: SnackBarMessage) in

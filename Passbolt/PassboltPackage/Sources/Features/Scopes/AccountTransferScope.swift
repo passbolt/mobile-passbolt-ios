@@ -21,8 +21,7 @@
 // @since         v1.0
 //
 
-import CommonModels
-
+// Scoper for transfering account, both import and export.
 public enum AccountTransferScope: FeaturesScope {
 
   public typealias Context = Void

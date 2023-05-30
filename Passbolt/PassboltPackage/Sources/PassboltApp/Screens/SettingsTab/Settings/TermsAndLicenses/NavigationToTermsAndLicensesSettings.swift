@@ -23,7 +23,10 @@
 
 import Display
 
-internal enum TermsAndLicensesSettingsNavigationDestination: NavigationDestination {}
+internal enum TermsAndLicensesSettingsNavigationDestination: NavigationDestination {
+
+  internal typealias TransitionContext = TermsAndLicensesSettingsController.Context
+}
 
 internal typealias NavigationToTermsAndLicensesSettings = NavigationTo<TermsAndLicensesSettingsNavigationDestination>
 

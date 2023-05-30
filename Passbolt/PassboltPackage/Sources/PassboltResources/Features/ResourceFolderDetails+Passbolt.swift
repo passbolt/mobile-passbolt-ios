@@ -28,36 +28,41 @@ import SessionData
 
 // MARK: - Implementation
 
-extension ResourceFolderDetails {
+extension ResourceFolderController {
 
   @MainActor fileprivate static func load(
     features: Features,
     context resourceFolderID: Context,
     cancellables: Cancellables
   ) throws -> Self {
+    #warning("TODO: remove context in favor of scope")
+    let disgnostics: OSDiagnostics = features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
+
     let sessionData: SessionData = try features.instance()
     let resourceFolderDetailsFetchDatabaseOperation: ResourceFolderDetailsFetchDatabaseOperation =
       try features.instance()
 
-    @Sendable nonisolated func fetchResourceFolderDetails() async throws -> ResourceFolderDetailsDSV {
+    let state: MutableState<ResourceFolder> = .init(lazy: {
       try await resourceFolderDetailsFetchDatabaseOperation(
         resourceFolderID
       )
-    }
+    })
 
-    let currentDetails: UpdatableValue<ResourceFolderDetailsDSV> = .init(
-      updatesSequence:
-        sessionData
-        .updatesSequence,
-      update: fetchResourceFolderDetails
-    )
-
-    @Sendable nonisolated func details() async throws -> ResourceFolderDetailsDSV {
-      try await currentDetails.value
-    }
+    asyncExecutor
+      .scheduleIteration(
+        over: sessionData.lastUpdate,
+        catchingWith: disgnostics
+      ) { _ in
+        try state.deferredAssign {
+          try await resourceFolderDetailsFetchDatabaseOperation(
+            resourceFolderID
+          )
+        }
+      }
 
     return Self(
-      details: details
+      state: .init(viewing: state)
     )
   }
 }
@@ -67,8 +72,8 @@ extension FeaturesRegistry {
   internal mutating func usePassboltResourceFolderDetails() {
     self.use(
       .lazyLoaded(
-        ResourceFolderDetails.self,
-        load: ResourceFolderDetails.load(features:context:cancellables:)
+        ResourceFolderController.self,
+        load: ResourceFolderController.load(features:context:cancellables:)
       ),
       in: SessionScope.self
     )

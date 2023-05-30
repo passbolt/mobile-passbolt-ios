@@ -44,14 +44,23 @@ where TitleView: View, ContentView: View {
     VStack(spacing: 0) {
       HStack {
         title()
-          .frame(maxWidth: .infinity, alignment: .leading)
+          .frame(
+            maxWidth: .infinity,
+            alignment: .leading
+          )
           .frame(height: 24)
-        Image(named: .close)
-          .resizable()
-          .frame(width: 24, height: 24)
-          .onTapGesture {
-            self.closeTap()
+
+        Button(
+          action: self.closeTap,
+          label: {
+            Image(named: .close)
+              .resizable()
+              .frame(
+                width: 24,
+                height: 24
+              )
           }
+        )
       }
       .text(
         font: .inter(
@@ -69,22 +78,22 @@ where TitleView: View, ContentView: View {
         )
       )
 
-      Color
-        .passboltDivider
-        .frame(height: 1)
-        .frame(maxWidth: .infinity)
+      ListDividerView()
         .padding(
-          EdgeInsets(
-            top: 0,
-            leading: 8,
-            bottom: 0,
-            trailing: 8
-          )
+          top: 0,
+          leading: 8,
+          bottom: 0,
+          trailing: 8
         )
 
       ScrollView {
         self.content()
-          .padding(8)
+          .padding(
+            top: 8,
+            leading: 8,
+            bottom: 0,
+            trailing: 8
+          )
       }
     }
     .backgroundColor(.passboltSheetBackground)
@@ -166,6 +175,24 @@ internal struct DrawerMenu_Previews: PreviewProvider {
             },
             isSelected: false
           )
+
+          ForEach((0 ... 10), id: \.self) { _ in
+            DrawerMenuItemView(
+              action: {},
+              title: {
+                Text("Item x")
+              },
+              leftIcon: {
+                Image(named: .bug)
+                  .resizable()
+              },
+              rightIcon: {
+                Image(named: .link)
+                  .resizable()
+              },
+              isSelected: false
+            )
+          }
         }
       }
     )

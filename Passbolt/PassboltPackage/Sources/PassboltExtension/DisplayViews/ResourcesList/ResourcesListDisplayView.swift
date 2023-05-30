@@ -44,6 +44,5 @@ internal struct ResourcesListDisplayView: ControlledView {
         resourceMenuAction: self.controller.openResourceMenu
       )
     }
-    .task(self.controller.activate)
   }
 }

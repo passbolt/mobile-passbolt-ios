@@ -112,8 +112,13 @@ internal struct ResourceFolderDetailsView: ControlledView {
         action: self.controller.openLocationDetails,
         label: {
           HStack {
-            FolderLocationView(
-              locationElements: state.folderLocation
+            ResourceFieldView(
+              name: "folder.location.title",
+              content: {
+                FolderLocationView(
+                  locationElements: state.folderLocation
+                )
+              }
             )
             Spacer()
             Image(named: .chevronRight)

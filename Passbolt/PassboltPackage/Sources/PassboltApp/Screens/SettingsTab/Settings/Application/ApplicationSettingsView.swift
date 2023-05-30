@@ -44,6 +44,7 @@ internal struct ApplicationSettingsView: ControlledView {
         self.content
       }
     )
+		.task(self.controller.activate)
   }
 
   @ViewBuilder @MainActor private var content: some View {

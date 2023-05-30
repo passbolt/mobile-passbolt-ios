@@ -25,55 +25,23 @@ import Display
 import OSFeatures
 import Resources
 
-// MARK: - Interface
-
-internal struct TOTPEditFormController {
+internal final class TOTPEditFormController: ViewController {
 
   internal var isEditing: () -> Bool
   internal var viewState: MutableViewState<ViewState>
 
-  internal var setNameField: @MainActor (String) -> Void
-  internal var setURIField: @MainActor (String) -> Void
-  internal var setSecretField: @MainActor (String) -> Void
-  internal var showAdvancedSettings: @MainActor () -> Void
-  internal var sendForm: @MainActor () -> Void
-}
+  private let diagnostics: OSDiagnostics
+  private let asyncExecutor: AsyncExecutor
+  private let navigationToSelf: NavigationToTOTPEditForm
+  private let navigationToAdvanced: NavigationToTOTPEditAdvancedForm
+  private let resourceEditForm: ResourceEditForm
 
-extension TOTPEditFormController: ViewController {
+  private let features: Features
 
-  internal typealias Context = Resource.ID?
-
-  internal struct ViewState: Equatable {
-
-    internal var nameField: Validated<String>
-    internal var uriField: Validated<String>
-    internal var secretField: Validated<String>
-    internal var snackBarMessage: SnackBarMessage?
-  }
-
-  #if DEBUG
-  internal static var placeholder: Self {
-    .init(
-      isEditing: unimplemented0(),
-      viewState: .placeholder(),
-      setNameField: unimplemented1(),
-      setURIField: unimplemented1(),
-      setSecretField: unimplemented1(),
-      showAdvancedSettings: unimplemented0(),
-      sendForm: unimplemented0()
-    )
-  }
-  #endif
-}
-
-// MARK: - Implementation
-
-extension TOTPEditFormController {
-
-  @MainActor fileprivate static func load(
-    features: Features,
-    context: Context
-  ) throws -> Self {
+  internal init(
+    context: Resource.ID?,
+    features: Features
+  ) throws {
     try features.ensureScope(SessionScope.self)
     let featuresBranchContainer: FeaturesContainer? = features.branchIfNeeded(
       scope: ResourceEditScope.self,
@@ -88,16 +56,18 @@ extension TOTPEditFormController {
     )
 
     let features: Features = featuresBranchContainer ?? features
+    self.features = features
 
-    let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
+    self.isEditing = { context != nil }
+    self.diagnostics = features.instance()
+    self.asyncExecutor = try features.instance()
 
-    let navigationToSelf: NavigationToTOTPEditForm = try features.instance()
-    let navigationToAdvanced: NavigationToTOTPEditAdvancedForm = try features.instance()
+    self.navigationToSelf = try features.instance()
+    self.navigationToAdvanced = try features.instance()
 
-    let resourceEditForm: ResourceEditForm = try features.instance()
+    self.resourceEditForm = try features.instance()
 
-    let viewState: MutableViewState<ViewState> = .init(
+    self.viewState = .init(
       initial: .init(
         nameField: .valid(""),
         uriField: .valid(""),
@@ -107,9 +77,18 @@ extension TOTPEditFormController {
       extendingLifetimeOf: featuresBranchContainer
     )
 
-    asyncExecutor.schedule {
-      do {
-        var resource: Resource = try await resourceEditForm.state.value
+    self.asyncExecutor
+      .scheduleIteration(
+        over: self.resourceEditForm.state,
+        catchingWith: self.diagnostics,
+        failMessage: "Resource form updates broken!",
+        failAction: { [viewState] (error: Error) in
+          viewState.update { state in
+            state.snackBarMessage = .error(error)
+          }
+        }
+      ) { [viewState] (resource: Resource) in
+        let resource: Resource = resource
         guard case .some = resource.type.specification.fieldSpecification(for: \.secret.totp)
         else {
           throw
@@ -118,24 +97,7 @@ extension TOTPEditFormController {
         }
         let name: String = resource.meta.name.stringValue ?? ""
         let uri: String = resource.meta.uri.stringValue ?? ""
-        let secret: String
-
-        // initialize TOTP fields with defaults
-        if context == .none {
-          resource.secret.totp = [
-            "secret_key": "",
-            "algorithm": "SHA1",
-            "period": 30,
-            "digits": 6,
-          ]
-          _ = try await resourceEditForm.update { form in
-            form = resource
-          }
-          secret = ""
-        }
-        else {
-          secret = resource.secret.totp.secret_key.stringValue ?? ""
-        }
+        let secret: String = resource.secret.totp.secret_key.stringValue ?? ""
 
         await viewState.update { (state: inout ViewState) in
           state.nameField = .valid(name)
@@ -143,150 +105,148 @@ extension TOTPEditFormController {
           state.secretField = .valid(secret)
         }
       }
-      catch {
-        diagnostics.log(error: error)
-        await viewState.update { state in
-          state.snackBarMessage = .error(error)
-        }
-      }
-    }
-
-    @MainActor func setNameField(
-      _ name: String
-    ) {
-      viewState.update { (state: inout ViewState) in
-        state.nameField = .valid(name)
-      }
-      asyncExecutor
-        .scheduleCatchingWith(diagnostics, behavior: .replace) {
-          try Task.checkCancellation()
-          let validated: Validated<String> =
-            try await resourceEditForm
-            .update(
-              \.meta.name,
-              to: name,
-              valueToJSON: { (value: String) -> JSON in
-                .string(value)
-              },
-              jsonToValue: { (json: JSON) -> String in
-                json.stringValue ?? ""
-              }
-            )
-          try Task.checkCancellation()
-          await viewState.update { (state: inout ViewState) in
-            state.nameField = validated
-          }
-        }
-    }
-
-    @MainActor func setURIField(
-      _ uri: String
-    ) {
-      viewState.update { (state: inout ViewState) in
-        state.uriField = .valid(uri)
-      }
-      asyncExecutor
-        .scheduleCatchingWith(diagnostics, behavior: .replace) {
-          try Task.checkCancellation()
-          let validated: Validated<String> =
-            try await resourceEditForm
-            .update(
-              \.meta.uri,
-              to: uri,
-              valueToJSON: { (value: String) -> JSON in
-                .string(value)
-              },
-              jsonToValue: { (json: JSON) -> String in
-                json.stringValue ?? ""
-              }
-            )
-          try Task.checkCancellation()
-          await viewState.update { (state: inout ViewState) in
-            state.uriField = validated
-          }
-        }
-    }
-
-    @MainActor func setSecretField(
-      _ secret: String
-    ) {
-      viewState.update { (state: inout ViewState) in
-        state.secretField = .valid(secret)
-      }
-      asyncExecutor
-        .scheduleCatchingWith(diagnostics, behavior: .replace) {
-          try Task.checkCancellation()
-          let validated: Validated<String> =
-            try await resourceEditForm
-            .update(
-              \.secret.totp.secret_key,
-              to: secret,
-              valueToJSON: { (value: String) -> JSON in
-                .string(value)
-              },
-              jsonToValue: { (json: JSON) -> String in
-                json.stringValue ?? ""
-              }
-            )
-          try Task.checkCancellation()
-          await viewState.update { (state: inout ViewState) in
-            state.secretField = validated
-          }
-        }
-    }
-
-    @MainActor func showAdvancedSettings() {
-      asyncExecutor.scheduleCatchingWith(
-        diagnostics,
-        failMessage: "Navigation to OTP advanced settings failed!",
-        behavior: .reuse
-      ) {
-        try await navigationToAdvanced.perform()
-      }
-    }
-
-    @MainActor func sendForm() {
-      asyncExecutor.scheduleCatchingWith(
-        diagnostics,
-        failMessage: "Sending OTP form failed!",
-        behavior: .reuse
-      ) {
-        do {
-          _ = try await resourceEditForm.sendForm()
-        }
-        catch {
-          await viewState
-            .update(
-              \.snackBarMessage,
-              to: .error(error)
-            )
-          throw error
-        }
-        try await navigationToSelf.revert()
-      }
-    }
-
-    return .init(
-      isEditing: { context != nil },
-      viewState: viewState,
-      setNameField: setNameField(_:),
-      setURIField: setURIField(_:),
-      setSecretField: setSecretField(_:),
-      showAdvancedSettings: showAdvancedSettings,
-      sendForm: sendForm
-    )
   }
 }
 
-extension FeaturesRegistry {
+extension TOTPEditFormController {
 
-  internal mutating func useLiveTOTPEditFormController() {
-    self.use(
-      .disposable(
-        TOTPEditFormController.self,
-        load: TOTPEditFormController.load(features:context:)
-      ),
-      in: SessionScope.self
-    )
+  internal struct ViewState: Equatable {
+
+    internal var nameField: Validated<String>
+    internal var uriField: Validated<String>
+    internal var secretField: Validated<String>
+    internal var snackBarMessage: SnackBarMessage?
+  }
+}
+
+extension TOTPEditFormController {
+
+  internal final func setNameField(
+    _ name: String
+  ) {
+    self.viewState.update { (state: inout ViewState) in
+      state.nameField = .valid(name)
+    }
+    self.asyncExecutor
+      .scheduleCatchingWith(
+        self.diagnostics,
+        failAction: { [viewState] (error: Error) in
+          await viewState.update(\.snackBarMessage, to: .error(error))
+        },
+        behavior: .replace
+      ) { [viewState, resourceEditForm] in
+        try Task.checkCancellation()
+        let validated: Validated<String> =
+          try await resourceEditForm
+          .update(
+            \.meta.name,
+            to: name,
+            valueToJSON: { (value: String) -> JSON in
+              .string(value)
+            },
+            jsonToValue: { (json: JSON) -> String in
+              json.stringValue ?? ""
+            }
+          )
+        try Task.checkCancellation()
+        await viewState.update { (state: inout ViewState) in
+          state.nameField = validated
+        }
+      }
+  }
+
+  internal final func setURIField(
+    _ uri: String
+  ) {
+    self.viewState.update { (state: inout ViewState) in
+      state.uriField = .valid(uri)
+    }
+    self.asyncExecutor
+      .scheduleCatchingWith(
+        self.diagnostics,
+        failAction: { [viewState] (error: Error) in
+          await viewState.update(\.snackBarMessage, to: .error(error))
+        },
+        behavior: .replace
+      ) { [viewState, resourceEditForm] in
+        try Task.checkCancellation()
+        let validated: Validated<String> =
+          try await resourceEditForm
+          .update(
+            \.meta.uri,
+            to: uri,
+            valueToJSON: { (value: String) -> JSON in
+              .string(value)
+            },
+            jsonToValue: { (json: JSON) -> String in
+              json.stringValue ?? ""
+            }
+          )
+        try Task.checkCancellation()
+        await viewState.update { (state: inout ViewState) in
+          state.uriField = validated
+        }
+      }
+  }
+
+  internal final func setSecretField(
+    _ secret: String
+  ) {
+    self.viewState.update { (state: inout ViewState) in
+      state.secretField = .valid(secret)
+    }
+    self.asyncExecutor
+      .scheduleCatchingWith(
+        self.diagnostics,
+        failAction: { [viewState] (error: Error) in
+          await viewState.update(\.snackBarMessage, to: .error(error))
+        },
+        behavior: .replace
+      ) { [viewState, resourceEditForm] in
+        try Task.checkCancellation()
+        let validated: Validated<String> =
+          try await resourceEditForm
+          .update(
+            \.secret.totp.secret_key,
+            to: secret,
+            valueToJSON: { (value: String) -> JSON in
+              .string(value)
+            },
+            jsonToValue: { (json: JSON) -> String in
+              json.stringValue ?? ""
+            }
+          )
+        try Task.checkCancellation()
+        await viewState.update { (state: inout ViewState) in
+          state.secretField = validated
+        }
+      }
+  }
+
+  internal final func showAdvancedSettings() {
+    self.asyncExecutor.scheduleCatchingWith(
+      self.diagnostics,
+      failMessage: "Navigation to OTP advanced settings failed!",
+      failAction: { [viewState] (error: Error) in
+        await viewState.update(\.snackBarMessage, to: .error(error))
+      },
+      behavior: .reuse
+    ) { [navigationToAdvanced] in
+      try await navigationToAdvanced.perform()
+    }
+  }
+
+  internal final func sendForm() {
+    self.asyncExecutor.scheduleCatchingWith(
+      self.diagnostics,
+      failMessage: "Sending OTP form failed!",
+      failAction: { [viewState] (error: Error) in
+        await viewState.update(\.snackBarMessage, to: .error(error))
+      },
+      behavior: .reuse
+    ) { [resourceEditForm, navigationToSelf] in
+      _ = try await resourceEditForm.sendForm()
+      try await navigationToSelf.revert()
+    }
   }
 }

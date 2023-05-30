@@ -21,8 +21,7 @@
 // @since         v1.0
 //
 
-import CommonModels
-
+// Scoper for authorization.
 public enum AuthorizationScope: FeaturesScope {
 
   public typealias Context = Void
