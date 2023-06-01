@@ -176,10 +176,6 @@ final class TransferAccountTests: UITestCase {
     assertInteractive("transfer.account.result.failure.message")
     //      And     I see a “Go back to my account”
     assertInteractive("transfer.account.result.failure.continiue.button")
-    //      And     I see a “Try again” button
-    ignoreFailure("There is no such button currently") {
-      assertInteractive("transfer.account.result.failure.try.again.button")
-    }
   }
 
   // https://passbolt.testrail.io/index.php?/cases/view/C8157
@@ -195,21 +191,6 @@ final class TransferAccountTests: UITestCase {
     assertPresentsString(
       matching: "Transfer account details"
     )
-  }
-
-  // https://passbolt.testrail.io/index.php?/cases/view/C8158
-  func test_asAUserICouldTryAgainFromAFailedFeedbackInCaseOfErrorDuringQrCodesSequence() throws {
-    //      Given   I’m on a “Transferring your account details” page
-    //      And     there was an error during the transfer process
-    try openTransferFailureScreen()
-    //      And     I see an unsuccessful “Something went wrong!” screen
-    assertInteractive("Something went wrong!")
-    //      When    I click a “Try again” button
-    ignoreFailure("There is no such button currently") {
-      try tap("transfer.account.result.failure.try.again.button")
-      //      Then    I see the first QR code page to transfer my account
-      assertInteractive("transfer.account.export.qrcode.image")
-    }
   }
 
   private func openStopTransferPrompt() throws {
