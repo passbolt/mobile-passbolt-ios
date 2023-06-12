@@ -46,7 +46,7 @@ internal struct ResourceFolderMenuView: ControlledView {
           VStack(spacing: 0) {
             DrawerMenuItemView(
               action: {
-                self.controller.openDetails()
+                await self.controller.openDetails()
               },
               title: {
                 Text(

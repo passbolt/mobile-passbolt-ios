@@ -55,7 +55,7 @@ internal struct ResourceContextualMenuView: ControlledView {
             case .openURI:
               DrawerMenuItemView(
                 action: {
-                  self.controller.handle(action)
+                  await self.controller.handle(action)
                 },
                 title: {
                   Text(displayable: "resource.menu.item.open.url")
@@ -69,7 +69,7 @@ internal struct ResourceContextualMenuView: ControlledView {
             case .copyURI:
               DrawerMenuItemView(
                 action: {
-                  self.controller.handle(action)
+									await self.controller.handle(action)
                 },
                 title: {
                   Text(displayable: "resource.menu.item.copy.url")
@@ -83,7 +83,7 @@ internal struct ResourceContextualMenuView: ControlledView {
             case .copyUsername:
               DrawerMenuItemView(
                 action: {
-                  self.controller.handle(action)
+									await self.controller.handle(action)
                 },
                 title: {
                   Text(displayable: "resource.menu.item.copy.username")
@@ -97,7 +97,7 @@ internal struct ResourceContextualMenuView: ControlledView {
             case .revealOTP:
               DrawerMenuItemView(
                 action: {
-                  self.controller.handle(action)
+									await self.controller.handle(action)
                 },
                 title: {
                   Text(displayable: "resource.menu.item.reveal.otp")
@@ -111,7 +111,7 @@ internal struct ResourceContextualMenuView: ControlledView {
             case .copyOTP:
               DrawerMenuItemView(
                 action: {
-                  self.controller.handle(action)
+									await self.controller.handle(action)
                 },
                 title: {
                   Text(displayable: "resource.menu.item.copy.otp")
@@ -125,7 +125,7 @@ internal struct ResourceContextualMenuView: ControlledView {
             case .copyPassword:
               DrawerMenuItemView(
                 action: {
-                  self.controller.handle(action)
+									await self.controller.handle(action)
                 },
                 title: {
                   Text(displayable: "resource.menu.item.copy.password")
@@ -139,7 +139,7 @@ internal struct ResourceContextualMenuView: ControlledView {
             case .copyDescription:
               DrawerMenuItemView(
                 action: {
-                  self.controller.handle(action)
+									await self.controller.handle(action)
                 },
                 title: {
                   Text(displayable: "resource.menu.item.copy.description")
@@ -166,7 +166,7 @@ internal struct ResourceContextualMenuView: ControlledView {
             case .toggle(favorite: true):
               DrawerMenuItemView(
                 action: {
-                  self.controller.handle(action)
+									await self.controller.handle(action)
                 },
                 title: {
                   Text(displayable: "resource.menu.item.remove.favorite")
@@ -180,7 +180,7 @@ internal struct ResourceContextualMenuView: ControlledView {
             case .toggle(favorite: false):
               DrawerMenuItemView(
                 action: {
-                  self.controller.handle(action)
+									await self.controller.handle(action)
                 },
                 title: {
                   Text(displayable: "resource.menu.item.add.favorite")
@@ -194,7 +194,7 @@ internal struct ResourceContextualMenuView: ControlledView {
             case .share:
               DrawerMenuItemView(
                 action: {
-                  self.controller.handle(action)
+									await self.controller.handle(action)
                 },
                 title: {
                   Text(displayable: "resource.menu.item.share")
@@ -208,7 +208,7 @@ internal struct ResourceContextualMenuView: ControlledView {
             case .edit:
               DrawerMenuItemView(
                 action: {
-                  self.controller.handle(action)
+									await self.controller.handle(action)
                 },
                 title: {
                   Text(displayable: "resource.menu.item.edit")
@@ -222,7 +222,7 @@ internal struct ResourceContextualMenuView: ControlledView {
             case .delete:
               DrawerMenuItemView(
                 action: {
-                  self.controller.handle(action)
+									await self.controller.handle(action)
                 },
                 title: {
                   Text(displayable: "resource.menu.item.delete")

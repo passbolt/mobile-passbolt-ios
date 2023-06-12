@@ -27,7 +27,7 @@ import TestExtensions
 @testable import Display
 @testable import PassboltApp
 
-final class OTPDeleteAlertControllerTests: FeaturesTestCase {
+final class ResourceDeleteAlertControllerTests: FeaturesTestCase {
 
   func test_deleteAction_failsWithMessage_whenDeleteFails() async throws {
     patch(
@@ -37,6 +37,7 @@ final class OTPDeleteAlertControllerTests: FeaturesTestCase {
     let tested: ResourceDeleteAlertController = try self.testedInstance(
       context: (
         resourceID: .mock_1,
+				containsOTP: true,
         showMessage: { (message: SnackBarMessage) in
           self.dynamicVariables.message = message
         }
@@ -60,6 +61,7 @@ final class OTPDeleteAlertControllerTests: FeaturesTestCase {
     let tested: ResourceDeleteAlertController = try self.testedInstance(
       context: (
         resourceID: .mock_1,
+				containsOTP: true,
         showMessage: { (message: SnackBarMessage) in
           self.dynamicVariables.message = message
         }

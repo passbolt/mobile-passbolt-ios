@@ -188,340 +188,333 @@ extension ResourceContextualMenuViewController {
 
   internal func handle(
     _ action: ResourceContextualMenuAccessAction
-  ) {
+  ) async {
     switch action {
     case .openURI:
-      self.openURL(field: \.meta.uri)
+      await self.openURL(field: \.meta.uri)
 
     case .copyURI:
-      self.copy(field: \.meta.uri)
+			await self.copy(field: \.meta.uri)
 
     case .copyUsername:
-      self.copy(field: \.meta.username)
+			await self.copy(field: \.meta.username)
 
     case .revealOTP:
-      self.revealOTPCode()
+			await self.revealOTPCode()
 
     case .copyOTP:
-      self.copyOTPCode()
+			await self.copyOTPCode()
 
     case .copyPassword:
       // it can be \.secret as well!!!
-      self.copy(field: \.secret.password)
+			await self.copy(field: \.secret.password)
 
     case .copyDescription:
       // it can be \.meta.description as well!!!
-      self.copy(field: \.secret.description)
+			await self.copy(field: \.secret.description)
     }
   }
 
   internal func handle(
     _ action: ResourceContextualMenuModifyAction
-  ) {
+  ) async {
     switch action {
     case .toggle(favorite: _):
-      self.toggleFavorite()
+			await self.toggleFavorite()
 
     case .share:
-      self.share()
+			await self.share()
 
     case .edit:
-      self.edit()
+			await self.edit()
 
     case .delete:
-      self.delete()
+			await self.delete()
     }
   }
 
   internal func openURL(
     field path: Resource.FieldPath
-  ) {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
-      failMessage: "Opening resource field url failed!",
-      failAction: { [showMessage] (error: Error) in
-        await showMessage(.error(error))
-      },
-      behavior: .reuse
-    ) { [resourceController, linkOpener, navigationToSelf] () async throws -> Void in
-      var resource: Resource = try await resourceController.state.value
+  ) async {
+		await self.diagnostics
+			.withLogCatch(
+				info: .message("Opening resource field url failed!"),
+				fallback: { @MainActor (error: Error) async -> Void in
+					self.showMessage(.error(error))
+				}
+			) { () async throws -> Void in
+				var resource: Resource = try await self.resourceController.state.value
 
-      let fieldPath: Resource.FieldPath
-      // password can be legacy unstructured
-      if path == \.secret.password {
-        if resource.contains(\.secret.password) {
-          fieldPath = \.secret.password
-        }
-        else if resource.contains(\.secret) {
-          fieldPath = \.secret
-        }
-        else {
-          throw
-            UnknownResourceField
-            .error(
-              "Attempting to access not existing resource field value!",
-              path: path,
-              value: .null
-            )
-        }
-      }
-      // edscription can be encrypted or not
-      else if path == \.secret.description {
-        if resource.contains(\.secret.description) {
-          fieldPath = \.secret.description
-        }
-        else if resource.contains(\.meta.description) {
-          fieldPath = \.meta.description
-        }
-        else {
-          throw
-            UnknownResourceField
-            .error(
-              "Attempting to access not existing resource field value!",
-              path: path,
-              value: .null
-            )
-        }
-      }
-      else {
-        fieldPath = path
-      }
+				let fieldPath: Resource.FieldPath
+				// password can be legacy unstructured
+				if path == \.secret.password {
+					if resource.contains(\.secret.password) {
+						fieldPath = \.secret.password
+					}
+					else if resource.contains(\.secret) {
+						fieldPath = \.secret
+					}
+					else {
+						throw
+						UnknownResourceField
+							.error(
+								"Attempting to access not existing resource field value!",
+								path: path,
+								value: .null
+							)
+					}
+				}
+				// edscription can be encrypted or not
+				else if path == \.secret.description {
+					if resource.contains(\.secret.description) {
+						fieldPath = \.secret.description
+					}
+					else if resource.contains(\.meta.description) {
+						fieldPath = \.meta.description
+					}
+					else {
+						throw
+						UnknownResourceField
+							.error(
+								"Attempting to access not existing resource field value!",
+								path: path,
+								value: .null
+							)
+					}
+				}
+				else {
+					fieldPath = path
+				}
 
-      guard let field: ResourceFieldSpecification = resource.allFields.first(where: { $0.path == fieldPath })
-      else {
-        throw
-          UnknownResourceField
-          .error(
-            "Attempting to access not existing resource field value!",
-            path: path,
-            value: .null
-          )
-      }
+				guard let field: ResourceFieldSpecification = resource.allFields.first(where: { $0.path == fieldPath })
+				else {
+					throw
+					UnknownResourceField
+						.error(
+							"Attempting to access not existing resource field value!",
+							path: path,
+							value: .null
+						)
+				}
 
-      if field.encrypted {
-        _ = try await resourceController.fetchSecretIfNeeded()
-        resource = try await resourceController.state.value
-      }  // else continue
+				if field.encrypted {
+					_ = try await self.resourceController.fetchSecretIfNeeded()
+					resource = try await self.resourceController.state.value
+				}  // else continue
 
-      try await linkOpener.openURL(.init(rawValue: resource[keyPath: fieldPath].stringValue ?? ""))
+				try await self.linkOpener.openURL(.init(rawValue: resource[keyPath: fieldPath].stringValue ?? ""))
 
-      try await navigationToSelf.revert()
-    }
+				try await self.navigationToSelf.revert()
+			}
   }
 
   internal func copy(
     field path: Resource.FieldPath
-  ) {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
-      failMessage: "Copying resource field value failed!",
-      failAction: { [showMessage] (error: Error) in
-        await showMessage(.error(error))
-      },
-      behavior: .reuse
-    ) { [resourceController, pasteboard, navigationToSelf, showMessage] () async throws -> Void in
-      var resource: Resource = try await resourceController.state.value
+  ) async {
+		await self.diagnostics
+			.withLogCatch(
+				info: .message("Copying resource field value failed!"),
+				fallback: { @MainActor (error: Error) async -> Void in
+					self.showMessage(.error(error))
+				}
+			) { () async throws -> Void in
+				var resource: Resource = try await self.resourceController.state.value
 
-      let fieldPath: Resource.FieldPath
-      // password can be legacy unstructured
-      if path == \.secret.password {
-        if resource.contains(\.secret.password) {
-          fieldPath = \.secret.password
-        }
-        else if resource.contains(\.secret) {
-          fieldPath = \.secret
-        }
-        else {
-          throw
-            UnknownResourceField
-            .error(
-              "Attempting to access not existing resource field value!",
-              path: path,
-              value: .null
-            )
-        }
-      }
-      // edscription can be encrypted or not
-      else if path == \.secret.description {
-        if resource.contains(\.secret.description) {
-          fieldPath = \.secret.description
-        }
-        else if resource.contains(\.meta.description) {
-          fieldPath = \.meta.description
-        }
-        else {
-          throw
-            UnknownResourceField
-            .error(
-              "Attempting to access not existing resource field value!",
-              path: path,
-              value: .null
-            )
-        }
-      }
-      else {
-        fieldPath = path
-      }
+				let fieldPath: Resource.FieldPath
+				// password can be legacy unstructured
+				if path == \.secret.password {
+					if resource.contains(\.secret.password) {
+						fieldPath = \.secret.password
+					}
+					else if resource.contains(\.secret) {
+						fieldPath = \.secret
+					}
+					else {
+						throw
+						UnknownResourceField
+							.error(
+								"Attempting to access not existing resource field value!",
+								path: path,
+								value: .null
+							)
+					}
+				}
+				// edscription can be encrypted or not
+				else if path == \.secret.description {
+					if resource.contains(\.secret.description) {
+						fieldPath = \.secret.description
+					}
+					else if resource.contains(\.meta.description) {
+						fieldPath = \.meta.description
+					}
+					else {
+						throw
+						UnknownResourceField
+							.error(
+								"Attempting to access not existing resource field value!",
+								path: path,
+								value: .null
+							)
+					}
+				}
+				else {
+					fieldPath = path
+				}
 
-      guard let field: ResourceFieldSpecification = resource.allFields.first(where: { $0.path == fieldPath })
-      else {
-        throw
-          UnknownResourceField
-          .error(
-            "Attempting to access not existing resource field value!",
-            path: path,
-            value: .null
-          )
-      }
+				guard let field: ResourceFieldSpecification = resource.allFields.first(where: { $0.path == fieldPath })
+				else {
+					throw
+					UnknownResourceField
+						.error(
+							"Attempting to access not existing resource field value!",
+							path: path,
+							value: .null
+						)
+				}
 
-      if field.encrypted {
-        _ = try await resourceController.fetchSecretIfNeeded()
-        resource = try await resourceController.state.value
-      }  // else continue
+				if field.encrypted {
+					_ = try await self.resourceController.fetchSecretIfNeeded()
+					resource = try await self.resourceController.state.value
+				}  // else continue
 
-      pasteboard.put(resource[keyPath: fieldPath].stringValue ?? "")
+				self.pasteboard.put(resource[keyPath: fieldPath].stringValue ?? "")
 
-      try await navigationToSelf.revert()
+				try await self.navigationToSelf.revert()
 
-      await showMessage(
-        .info(
-          .localized(
-            key: "resource.menu.item.field.copied",
-            arguments: [
-              field.name.displayable.string()
-            ]
-          )
-        )
-      )
+				self.showMessage(
+					.info(
+						.localized(
+							key: "resource.menu.item.field.copied",
+							arguments: [
+								field.name.displayable.string()
+							]
+						)
+					)
+				)
+			}
+  }
+
+  internal final func revealOTPCode() async {
+		await self.diagnostics
+			.withLogCatch(
+				info: .message("Revealing resource OTP failed!"),
+				fallback: { @MainActor (error: Error) async -> Void in
+					self.showMessage(.error(error))
+				}
+			) { @MainActor in
+				guard let revealOTP = self.revealOTP
+				else {
+					throw
+					InvalidResourceData
+						.error(message: "Invalid or missing TOTP reveal action!")
+				}
+				try await self.navigationToSelf.revert(animated: true)
+				revealOTP()
+			}
+  }
+
+  internal final func copyOTPCode() async {
+		await self.diagnostics
+			.withLogCatch(
+				info: .message("Copying resource OTP failed!"),
+				fallback: { @MainActor (error: Error) async -> Void in
+					self.showMessage(.error(error))
+				}
+			) {
+				let resourceSecret: JSON = try await self.resourceController.fetchSecretIfNeeded()
+
+				// searching only for "totp" field, can't identify totp otherwise now
+				guard let totpSecret: TOTPSecret = resourceSecret.totp.totpSecretValue
+				else {
+					throw
+					InvalidResourceData
+						.error(message: "Invalid or missing TOTP in secret")
+				}
+
+				let totpCodeGenerator: TOTPCodeGenerator = try self.features.instance(
+					context: .init(
+						resourceID: resourceID,
+						sharedSecret: totpSecret.sharedSecret,
+						algorithm: totpSecret.algorithm,
+						digits: totpSecret.digits,
+						period: totpSecret.period
+					)
+				)
+
+				let totp: TOTPValue = totpCodeGenerator.generate()
+				self.pasteboard.put(totp.otp.rawValue)
+				try await self.navigationToSelf.revert(animated: true)
+				self.showMessage(.info("otp.copied.message"))
+			}
+  }
+
+  internal final func toggleFavorite() async {
+		await self.diagnostics
+			.withLogCatch(
+				info: .message("Toggling resource favorite failed!"),
+				fallback: { @MainActor (error: Error) async -> Void in
+					self.showMessage(.error(error))
+				}
+			) {
+				try await self.resourceController.toggleFavorite()
+				let resource: Resource = try await self.resourceController.state.value
+				try await self.navigationToSelf.revert()
+				if resource.favorite {
+					self.showMessage(
+						.info(
+							.localized(
+								key: "resource.menu.action.favorite.added",
+								arguments: [
+									resource.meta.name.stringValue
+									?? DisplayableString
+										.localized("resource")
+										.string()
+								]
+							)
+						)
+					)
+				}
+				else {
+					self.showMessage(
+						.info(
+							.localized(
+								key: "resource.menu.action.favorite.removed",
+								arguments: [
+									resource.meta.name.stringValue
+									?? DisplayableString
+										.localized("resource")
+										.string()
+								]
+							)
+						)
+					)
+				}
+			}
+  }
+
+  internal final func share() async {
+		await self.diagnostics
+			.withLogCatch(
+				info: .message("Navigation to resource share failed!"),
+				fallback: { @MainActor (error: Error) async -> Void in
+					self.showMessage(.error(error))
+				}
+			) {
+				try await self.navigationToSelf.revert()
+				try await self.navigationToShare.perform(context: resourceID)
     }
   }
 
-  internal final func revealOTPCode() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
-      failMessage: "Revealing resource OTP failed!",
-      failAction: { [showMessage] (error: Error) in
-        await showMessage(.error(error))
-      },
-      behavior: .reuse
-    ) { @MainActor [revealOTP, navigationToSelf] in
-      guard let revealOTP
-      else {
-        throw
-          InvalidResourceData
-          .error(message: "Invalid or missing TOTP reveal action!")
-      }
-      try await navigationToSelf.revert(animated: true)
-      revealOTP()
-    }
-  }
-
-  internal final func copyOTPCode() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
-      failMessage: "Copying resource OTP failed!",
-      failAction: { [showMessage] (error: Error) in
-        await showMessage(.error(error))
-      },
-      behavior: .reuse
-    ) { [features, resourceID, pasteboard, resourceController, navigationToSelf, showMessage] in
-      let resourceSecret: JSON = try await resourceController.fetchSecretIfNeeded()
-
-      // searching only for "totp" field, can't identify totp otherwise now
-      guard let totpSecret: TOTPSecret = resourceSecret.totp.totpSecretValue
-      else {
-        throw
-          InvalidResourceData
-          .error(message: "Invalid or missing TOTP in secret")
-      }
-
-      let totpCodeGenerator: TOTPCodeGenerator = try await features.instance(
-        context: .init(
-          resourceID: resourceID,
-          sharedSecret: totpSecret.sharedSecret,
-          algorithm: totpSecret.algorithm,
-          digits: totpSecret.digits,
-          period: totpSecret.period
-        )
-      )
-
-      let totp: TOTPValue = totpCodeGenerator.generate()
-      pasteboard.put(totp.otp.rawValue)
-      try await navigationToSelf.revert(animated: true)
-      await showMessage(.info("otp.copied.message"))
-    }
-  }
-
-  internal final func toggleFavorite() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
-      failMessage: "Toggling resource favorite failed!",
-      failAction: { [showMessage] (error: Error) in
-        await showMessage(.error(error))
-      },
-      behavior: .reuse
-    ) { [navigationToSelf, resourceController, showMessage] in
-      try await resourceController.toggleFavorite()
-      let resource: Resource = try await resourceController.state.value
-      try await navigationToSelf.revert()
-      if resource.favorite {
-        await showMessage(
-          .info(
-            .localized(
-              key: "resource.menu.action.favorite.added",
-              arguments: [
-                resource.meta.name.stringValue
-                  ?? DisplayableString
-                  .localized("resource")
-                  .string()
-              ]
-            )
-          )
-        )
-      }
-      else {
-        await showMessage(
-          .info(
-            .localized(
-              key: "resource.menu.action.favorite.removed",
-              arguments: [
-                resource.meta.name.stringValue
-                  ?? DisplayableString
-                  .localized("resource")
-                  .string()
-              ]
-            )
-          )
-        )
-      }
-    }
-  }
-
-  internal final func share() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
-      failMessage: "Navigation to resource share failed!",
-      failAction: { [showMessage] (error: Error) in
-        await showMessage(.error(error))
-      },
-      behavior: .reuse
-    ) { [resourceID, navigationToSelf, navigationToShare] in
-      try await navigationToSelf.revert()
-      try await navigationToShare.perform(context: resourceID)
-    }
-  }
-
-  internal final func edit() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
-      failMessage: "Navigation to resource edit failed!",
-      failAction: { [showMessage] (error: Error) in
-        await showMessage(.error(error))
-      },
-      behavior: .reuse
-    ) { [resourceID, navigationToSelf, navigationToEdit] in
-      try await navigationToSelf.revert()
-      try await navigationToEdit.perform(
+  internal final func edit() async {
+		await self.diagnostics
+			.withLogCatch(
+				info: .message("Navigation to resource edit failed!"),
+				fallback: { @MainActor (error: Error) async -> Void in
+					self.showMessage(.error(error))
+				}
+			) {
+				try await self.navigationToSelf.revert()
+				try await self.navigationToEdit.perform(
         context: (
           editing: .edit(resourceID),
           completion: { _ in }
@@ -530,20 +523,20 @@ extension ResourceContextualMenuViewController {
     }
   }
 
-  internal final func delete() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
-      failMessage: "Navigation to resource delete failed!",
-      failAction: { [showMessage] (error: Error) in
-        await showMessage(.error(error))
-      },
-      behavior: .reuse
-    ) { [resourceID, showMessage, navigationToSelf, navigationToDeleteAlert] in
-      try await navigationToSelf.revert(animated: true)
-      try await navigationToDeleteAlert.perform(
+  internal final func delete() async {
+		await self.diagnostics
+			.withLogCatch(
+				info: .message("Navigation to resource delete failed!"),
+				fallback: { @MainActor (error: Error) async -> Void in
+					self.showMessage(.error(error))
+				}
+			) {
+				try await self.navigationToSelf.revert(animated: true)
+				try await self.navigationToDeleteAlert.perform(
         context: (
-          resourceID: resourceID,
-          showMessage: showMessage
+					resourceID: self.resourceID,
+					containsOTP: self.resourceController.state.value.containsOTP,
+					showMessage: self.showMessage
         )
       )
     }

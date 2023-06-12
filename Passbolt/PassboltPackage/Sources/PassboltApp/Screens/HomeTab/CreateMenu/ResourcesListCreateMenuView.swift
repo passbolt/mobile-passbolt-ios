@@ -49,7 +49,7 @@ internal struct ResourcesListCreateMenuView: ControlledView {
         VStack(spacing: 0) {
           DrawerMenuItemView(
             action: {
-              self.controller.createResource()
+              await self.controller.createResource()
             },
             title: {
               Text(
@@ -66,7 +66,7 @@ internal struct ResourcesListCreateMenuView: ControlledView {
 
           DrawerMenuItemView(
             action: {
-              self.controller.createFolder()
+              await self.controller.createFolder()
             },
             title: {
               Text(

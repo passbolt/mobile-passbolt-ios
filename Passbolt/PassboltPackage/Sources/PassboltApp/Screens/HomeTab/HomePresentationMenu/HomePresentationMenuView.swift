@@ -62,7 +62,7 @@ internal struct HomePresentationMenuView: ComponentView {
             }  // else { /* NOP */ }
             DrawerMenuItemView(
               action: {
-                self.controller.selectMode(mode)
+                await self.controller.selectMode(mode)
               },
               title: {
                 Text(displayable: mode.title)

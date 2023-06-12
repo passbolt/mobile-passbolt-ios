@@ -29,6 +29,7 @@ internal struct ResourceDeleteAlertController: AlertController {
 
   internal typealias Context = (
     resourceID: Resource.ID,
+		containsOTP: Bool,
     showMessage: @MainActor (SnackBarMessage) -> Void
   )
 
@@ -49,21 +50,33 @@ internal struct ResourceDeleteAlertController: AlertController {
     let asyncExecutor: AsyncExecutor = try features.instance()
     let resourceController: ResourceController = try features.instance()
 
-    self.title = "generic.are.you.sure"  //"otp.contextual.menu.delete.confirm.title"
-    self.message = "otp.contextual.menu.delete.confirm.message"
+		self.title = context.containsOTP
+		? "otp.contextual.menu.delete.confirm.title"
+		: "generic.are.you.sure"
+    self.message = context.containsOTP
+		? "otp.contextual.menu.delete.confirm.message"
+		: .none
     self.actions = [
       .init(
         title: "generic.cancel",
         role: .cancel
       ),
       .init(
-        title: "otp.contextual.menu.delete.confirm.action.delete",
+        title: context.containsOTP
+				? "otp.contextual.menu.delete.confirm.action.delete"
+				: "generic.confirm",
         role: .destructive,
         action: {
           asyncExecutor.schedule(.unmanaged) {
             do {
               try await resourceController.delete()
-              await context.showMessage(.info("otp.contextual.menu.delete.succeeded"))
+              await context.showMessage(
+								.info(
+									context.containsOTP
+									? "otp.contextual.menu.delete.succeeded"
+									: "resource.delete.succeeded"
+								)
+							)
             }
             catch {
               diagnostics.log(error: error)

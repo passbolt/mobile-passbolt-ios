@@ -115,6 +115,11 @@ extension Resource {
     self.secret != .null
   }
 
+	public var containsOTP: Bool {
+		// currently only TOTP is supported and recognized only by its name
+		self.contains(\.secret.totp)
+	}
+
   public var hasUnstructuredSecret: Bool {
     // if there is a field straight to the secret without any nested field
     // this is treated as special case without internal secret structure available
