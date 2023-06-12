@@ -89,7 +89,7 @@ internal struct UserGroupPermissionDetailsView: ComponentView {
             action: {
               await self.controller.showGroupMembers()
             },
-            label: {
+            regularLabel: {
               OverlappingAvatarStackView(self.state.groupMembersPreviewItems)
             }
           )

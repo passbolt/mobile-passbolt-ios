@@ -335,7 +335,7 @@ extension OSDiagnostics {
 
   public func logCatch(
     info: DiagnosticsInfo? = .none,
-    fallback: (() -> Void)? = .none,
+    @_inheritActorContext fallback: ((Error) -> Void)? = .none,
     _ operation: () throws -> Void
   ) {
     do {
@@ -346,14 +346,14 @@ extension OSDiagnostics {
         error: error,
         info: info
       )
-      fallback?()
+      fallback?(error)
     }
   }
 
   @_transparent
   public func withLogCatch(
     info: DiagnosticsInfo? = .none,
-    fallback: (() async -> Void)? = .none,
+    @_inheritActorContext fallback: ((Error) async -> Void)? = .none,
     _ operation: () async throws -> Void
   ) async {
     do {
@@ -367,7 +367,7 @@ extension OSDiagnostics {
         error: error,
         info: info
       )
-      await fallback?()
+      await fallback?(error)
     }
   }
 }

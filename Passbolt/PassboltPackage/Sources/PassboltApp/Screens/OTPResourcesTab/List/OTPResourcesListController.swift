@@ -42,7 +42,7 @@ internal final class OTPResourcesListController: ViewController {
   private let navigationToAccountMenu: NavigationToAccountMenu
   private let navigationToOTPCreateMenu: NavigationToOTPCreateMenu
 
-	private let features: Features
+  private let features: Features
 
   internal init(
     context: Void,
@@ -50,7 +50,7 @@ internal final class OTPResourcesListController: ViewController {
   ) throws {
     try features.ensureScope(SessionScope.self)
 
-		self.features = features
+    self.features = features
 
     self.currentAccount = try features.sessionAccount()
     self.diagnostics = features.instance()
@@ -266,17 +266,18 @@ extension OTPResourcesListController {
         },
         behavior: .reuse
       ) { @MainActor [self, viewState, otpCodesController, features] in
-				await otpCodesController.dispose()
-				let features: Features = features.branchIfNeeded(
-					scope: ResourceDetailsScope.self,
-					context: resourceID
-				) ?? features
-				let navigationToContextualMenu: NavigationToResourceContextualMenu = try features.instance()
+        await otpCodesController.dispose()
+        let features: Features =
+          features.branchIfNeeded(
+            scope: ResourceDetailsScope.self,
+            context: resourceID
+          ) ?? features
+        let navigationToContextualMenu: NavigationToResourceContextualMenu = try features.instance()
         try await navigationToContextualMenu.perform(
           context: .init(
-						revealOTP: { [self] in
-							self.revealAndCopyOTP(for: resourceID)
-						},
+            revealOTP: { [self] in
+              self.revealAndCopyOTP(for: resourceID)
+            },
             showMessage: { (message: SnackBarMessage?) in
               viewState.update { state in
                 state.snackBarMessage = message

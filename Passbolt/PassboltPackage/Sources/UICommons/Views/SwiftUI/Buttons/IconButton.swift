@@ -21,41 +21,77 @@
 // @since         v1.0
 //
 
+import AegithalosCocoa
 import Commons
 import SwiftUI
 
-@available(*, deprecated, message: "Please switch to `PrimaryButton`/`SecondaryButton` or regular `Button`")
-public struct AsyncButton<LabelView>: View where LabelView: View {
+@MainActor
+public struct IconButton: View {
 
-  @State private var action: RecurringTask
-  private let label: () -> LabelView
+  private let iconName: ImageNameConstant
+  private let action: @MainActor () async -> Void
 
   public init(
-    action: @Sendable @escaping () async -> Void,
-    @ViewBuilder label: @escaping () -> LabelView
+    iconName: ImageNameConstant,
+    action: @escaping @MainActor () async -> Void
   ) {
-    self.action = .init(
-      priority: .userInitiated,
-      operation: action
-    )
-    self.label = label
+    self.iconName = iconName
+    self.action = action
   }
 
   public var body: some View {
-    Button(
-      action: {
-        Task {
-          await self.action.run()
-        }
-      },
-      label: {
-        self
-          .label()
-          .contentShape(
-            .interaction,
-            Rectangle()
+    AsyncButton(
+      action: self.action,
+      regularLabel: {
+        Image(named: self.iconName)
+          .frame(
+            width: 40,
+            height: 40
           )
+          .padding(8)
+      },
+      loadingLabel: {
+        SwiftUI.ProgressView()
+          .progressViewStyle(.circular)
+          .frame(
+            width: 40,
+            height: 40
+          )
+          .padding(8)
       }
+    )
+    .foregroundColor(.passboltPrimaryText)
+    .tint(.passboltPrimaryText)
+    .backgroundColor(.clear)
+    .frame(
+      width: 48,
+      height: 48
     )
   }
 }
+
+#if DEBUG
+
+internal struct IconButton_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    VStack {
+      IconButton(
+        iconName: .bug,
+        action: {
+          print("TAP")
+          try? await Task.sleep(nanoseconds: 1500 * NSEC_PER_MSEC)
+        }
+      )
+
+      IconButton(
+        iconName: .clock,
+        action: {
+          print("TAP")
+        }
+      )
+    }
+    .padding()
+  }
+}
+#endif

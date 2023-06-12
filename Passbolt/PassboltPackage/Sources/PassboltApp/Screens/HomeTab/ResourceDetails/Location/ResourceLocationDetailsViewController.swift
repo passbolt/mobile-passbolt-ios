@@ -71,8 +71,8 @@ extension ResourceLocationDetailsViewController {
     await self.diagnostics
       .withLogCatch(
         info: .message("Resource location details updates broken!"),
-        fallback: { [navigationToSelf] in
-          try? await navigationToSelf.revert()
+        fallback: { _ in
+          try? await self.navigationToSelf.revert()
         }
       ) {
         for try await resource in self.resourceController.state {

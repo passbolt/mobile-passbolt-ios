@@ -71,10 +71,10 @@ internal struct ResourcePermissionsDetailsView: ControlledView {
           action: {
             switch item {
             case let .user(details, _):
-              self.controller.showUserPermissionDetails(details)
+              await self.controller.showUserPermissionDetails(details)
 
             case let .userGroup(details):
-              self.controller.showUserGroupPermissionDetails(details)
+              await self.controller.showUserGroupPermissionDetails(details)
             }
           }
         )

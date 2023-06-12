@@ -26,71 +26,67 @@ import Commons
 import SwiftUI
 
 @MainActor
-public struct SecondaryButton: View {
+public struct AvatarButton: View {
 
-  private let icon: Image?
-  private let title: DisplayableString
-  private let action: @MainActor () -> Void
+  @State private var currentImage: Image
+  private let resolveImage: @Sendable () async -> Data?
+  private let action: @MainActor () async -> Void
 
   public init(
-    title: DisplayableString,
-    iconName: ImageNameConstant? = .none,
-    action: @escaping @MainActor () -> Void
+    resolveImage: @escaping @Sendable () async -> Data?,
+    action: @escaping @MainActor () async -> Void
   ) {
-    self.icon = iconName.map(Image.init(named:))
-    self.title = title
+    self.currentImage = Image(named: .person)
+    self.resolveImage = resolveImage
     self.action = action
   }
 
   public var body: some View {
-    Button(
-      action: {
-        self.action()
-      },
-      label: {
-        if let icon: Image = self.icon {
-          HStack(spacing: 0) {
-            icon
-              .resizable()
-              .frame(width: 20, height: 20)
-              .padding(8)
-            self.titleView
-          }
-          .padding(8)
+    AsyncButton(
+      action: self.action,
+      regularLabel: {
+        AvatarView {
+          self.currentImage
         }
-        else {
-          self.titleView
-            .padding(8)
+      },
+      loadingLabel: {
+        AvatarView {
+          self.currentImage
+        }
+        .overlay {
+          ZStack {
+            Color.passboltBackground.opacity(0.5)
+            SwiftUI.ProgressView()
+              .progressViewStyle(.circular)
+          }
         }
       }
     )
     .foregroundColor(.passboltPrimaryText)
+    .tint(.passboltPrimaryText)
     .backgroundColor(.clear)
-    .frame(height: 56)
-  }
-
-  private var titleView: some View {
-    Text(displayable: title)
-      .font(
-        .inter(
-          ofSize: 14,
-          weight: .medium
-        )
-      )
+    .task {
+      if let resolvedImage: Image = await self.resolveImage().flatMap(Image.init(data:)) {
+        self.currentImage = resolvedImage
+      }  // else keep current
+    }
   }
 }
 
 #if DEBUG
 
-internal struct SecondaryButton_Previews: PreviewProvider {
+internal struct AvatarButton_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    SecondaryButton(
-      title: "Secondary button",
-      action: {
-        print("tap")
-      }
-    )
+    VStack {
+      AvatarButton(
+        resolveImage: { .none },
+        action: {
+          print("TAP")
+          try? await Task.sleep(nanoseconds: 1500 * NSEC_PER_MSEC)
+        }
+      )
+    }
     .padding()
   }
 }

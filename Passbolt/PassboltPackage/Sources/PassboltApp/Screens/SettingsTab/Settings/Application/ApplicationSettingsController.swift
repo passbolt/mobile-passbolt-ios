@@ -70,41 +70,41 @@ extension ApplicationSettingsController {
 
 extension ApplicationSettingsController {
 
-	@Sendable internal func activate() async {
-		await self.diagnostics
-			.withLogCatch(
-				info: .message("Application settings updates broken!")
-			) {
-				for try await _ in self.accountPreferences.updates {
-					self.updateViewState()
-				}
-			}
-	}
+  @Sendable internal func activate() async {
+    await self.diagnostics
+      .withLogCatch(
+        info: .message("Application settings updates broken!")
+      ) {
+        for try await _ in self.accountPreferences.updates {
+          self.updateViewState()
+        }
+      }
+  }
 
-	internal func updateViewState() {
-		switch self.osBiometry.availability() {
-		case .unavailable, .unconfigured:
-			self.viewState.update(
-				\.biometicsAuthorizationAvailability,
-				to: .unavailable
-			)
+  internal func updateViewState() {
+    switch self.osBiometry.availability() {
+    case .unavailable, .unconfigured:
+      self.viewState.update(
+        \.biometicsAuthorizationAvailability,
+        to: .unavailable
+      )
 
-		case .touchID:
-			self.viewState.update(
-				\.biometicsAuthorizationAvailability,
-				to: self.accountPreferences.isPassphraseStored()
-					? .enabledTouchID
-					: .disabledTouchID
-			)
-		case .faceID:
-			self.viewState.update(
-				\.biometicsAuthorizationAvailability,
-				to: self.accountPreferences.isPassphraseStored()
-					? .enabledFaceID
-					: .disabledFaceID
-			)
-		}
-	}
+    case .touchID:
+      self.viewState.update(
+        \.biometicsAuthorizationAvailability,
+        to: self.accountPreferences.isPassphraseStored()
+          ? .enabledTouchID
+          : .disabledTouchID
+      )
+    case .faceID:
+      self.viewState.update(
+        \.biometicsAuthorizationAvailability,
+        to: self.accountPreferences.isPassphraseStored()
+          ? .enabledFaceID
+          : .disabledFaceID
+      )
+    }
+  }
 
   internal final func setBiometricsAuthorizationEnabled(
     _ enabled: Bool

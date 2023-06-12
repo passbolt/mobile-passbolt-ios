@@ -25,26 +25,26 @@ import Display
 
 public enum ResourceEditNavigationDestination: NavigationDestination {
 
-	public typealias TransitionContext = ResourceEditController.Context
+  public typealias TransitionContext = ResourceEditController.Context
 }
 
 public typealias NavigationToResourceEdit = NavigationTo<ResourceEditNavigationDestination>
 
 extension NavigationToResourceEdit {
 
-	fileprivate static var live: FeatureLoader {
-		legacyPushTransition(
-			toLegacy: ResourceEditViewController.self
-		)
-	}
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(
+      toLegacy: ResourceEditViewController.self
+    )
+  }
 }
 
 extension FeaturesRegistry {
 
-	public mutating func useLiveNavigationToResourceEdit() {
-		self.use(
-			NavigationToResourceEdit.live,
-			in: SessionScope.self
-		)
-	}
+  public mutating func useLiveNavigationToResourceEdit() {
+    self.use(
+      NavigationToResourceEdit.live,
+      in: SessionScope.self
+    )
+  }
 }

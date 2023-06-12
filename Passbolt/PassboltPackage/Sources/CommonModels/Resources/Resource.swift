@@ -212,12 +212,12 @@ extension Resource {
     self.flattenedFields[path]?.name.displayable
   }
 
-	public func totpSecret(
-		forField path: FieldPath
-	) -> TOTPSecret? {
-		// searching for predefined structure at given path
-		self[keyPath: path].totpSecretValue
-	}
+  public func totpSecret(
+    forField path: FieldPath
+  ) -> TOTPSecret? {
+    // searching for predefined structure at given path
+    self[keyPath: path].totpSecretValue
+  }
 
   public func metaContains(
     _ path: FieldPath

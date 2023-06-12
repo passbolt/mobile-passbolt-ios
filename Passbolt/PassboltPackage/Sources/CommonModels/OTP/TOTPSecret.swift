@@ -60,35 +60,35 @@ extension TOTPSecret: Codable {
 
 extension JSON {
 
-	public var totpSecretValue: TOTPSecret? {
-		get {
-			if  // searching for predefined structure
-				let sharedSecret: String = self.secret_key.stringValue,
-				let algorithm: HOTPAlgorithm = self.algorithm.stringValue.flatMap(HOTPAlgorithm.init(rawValue:)),
-				let digits: UInt = self.digits.uIntValue,
-				let period: Seconds = self.period.int64Value.map(Seconds.init(rawValue:))
-			{
-				return .init(
-					sharedSecret: sharedSecret,
-					algorithm: algorithm,
-					digits: digits,
-					period: period
-				)
-			}
-			else {
-				return .none // can't find matching structure
-			}
-		}
-		set {
-			if let newValue {
-				self.secret_key = .string(newValue.sharedSecret)
-				self.algorithm = .string(newValue.algorithm.rawValue)
-				self.digits = .integer(newValue.digits)
-				self.period = .integer(newValue.period.rawValue)
-			}
-			else {
-				self = .null
-			}
-		}
-	}
+  public var totpSecretValue: TOTPSecret? {
+    get {
+      if  // searching for predefined structure
+      let sharedSecret: String = self.secret_key.stringValue,
+        let algorithm: HOTPAlgorithm = self.algorithm.stringValue.flatMap(HOTPAlgorithm.init(rawValue:)),
+        let digits: UInt = self.digits.uIntValue,
+        let period: Seconds = self.period.int64Value.map(Seconds.init(rawValue:))
+      {
+        return .init(
+          sharedSecret: sharedSecret,
+          algorithm: algorithm,
+          digits: digits,
+          period: period
+        )
+      }
+      else {
+        return .none  // can't find matching structure
+      }
+    }
+    set {
+      if let newValue {
+        self.secret_key = .string(newValue.sharedSecret)
+        self.algorithm = .string(newValue.algorithm.rawValue)
+        self.digits = .integer(newValue.digits)
+        self.period = .integer(newValue.period.rawValue)
+      }
+      else {
+        self = .null
+      }
+    }
+  }
 }

@@ -116,8 +116,8 @@ extension ResourceDetailsViewController {
     await self.diagnostics
       .withLogCatch(
         info: .message("Resource details updates broken!"),
-        fallback: { [navigationToSelf] in
-          try? await navigationToSelf.revert()
+        fallback: { _ in
+          try? await self.navigationToSelf.revert()
         }
       ) {
         for try await resource in self.resourceController.state {
@@ -168,114 +168,128 @@ extension ResourceDetailsViewController {
     }
   }
 
-  internal nonisolated func showMenu() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
-      failMessage: "Failed to present resource menu!",
-      behavior: .reuse
-    ) { [navigationToResourceContextualMenu, viewState] in
-      try await navigationToResourceContextualMenu
-        .perform(
-          context: .init(
-            showMessage: { (message: SnackBarMessage?) in
-              viewState.update(\.snackbarMessage, to: message)
-            }
+  internal nonisolated func showMenu() async {
+    await self.diagnostics
+      .withLogCatch(
+        info: .message("Failed to present resource menu!"),
+        fallback: { @MainActor (error: Error) async -> Void in
+          self.viewState.update(\.snackbarMessage, to: .error(error))
+        }
+      ) {
+        try await self.navigationToResourceContextualMenu
+          .perform(
+            context: .init(
+              showMessage: { [viewState] (message: SnackBarMessage?) in
+                viewState.update(\.snackbarMessage, to: message)
+              }
+            )
           )
-        )
-    }
+      }
   }
 
-  internal nonisolated func showLocationDetails() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
-      failMessage: "Failed to present resource location details!",
-      behavior: .reuse
-    ) { [navigationToResourceLocationDetails] in
-      try await navigationToResourceLocationDetails.perform()
-    }
+  internal nonisolated func showLocationDetails() async {
+    await self.diagnostics
+      .withLogCatch(
+        info: .message("Failed to present resource location details!"),
+        fallback: { @MainActor (error: Error) async -> Void in
+          self.viewState.update(\.snackbarMessage, to: .error(error))
+        }
+      ) {
+        try await self.navigationToResourceLocationDetails.perform()
+      }
   }
 
-  internal nonisolated func showTagsDetails() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
-      failMessage: "Failed to present resource tags details!",
-      behavior: .reuse
-    ) { [navigationToResourceTagsDetails] in
-      try await navigationToResourceTagsDetails.perform()
-    }
+  internal nonisolated func showTagsDetails() async {
+    await self.diagnostics
+      .withLogCatch(
+        info: .message("Failed to present resource tags details!"),
+        fallback: { @MainActor (error: Error) async -> Void in
+          self.viewState.update(\.snackbarMessage, to: .error(error))
+        }
+      ) {
+        try await self.navigationToResourceTagsDetails.perform()
+      }
   }
 
-  internal nonisolated func showPermissionsDetails() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
-      failMessage: "Failed to present resource permissions details!",
-      behavior: .reuse
-    ) { [navigationToResourcePermissionsDetails] in
-      try await navigationToResourcePermissionsDetails.perform()
-    }
+  internal nonisolated func showPermissionsDetails() async {
+    await self.diagnostics
+      .withLogCatch(
+        info: .message("Failed to present resource permissions details!"),
+        fallback: { @MainActor (error: Error) async -> Void in
+          self.viewState.update(\.snackbarMessage, to: .error(error))
+        }
+      ) {
+        try await self.navigationToResourcePermissionsDetails.perform()
+      }
   }
 
   internal nonisolated func copyFieldValue(
     path: Resource.FieldPath
-  ) {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
-      failMessage: "Failed to copy resource field value!",
-      behavior: .reuse
-    ) { [viewState, resourceController, pasteboard] in
-      var resource: Resource = try await resourceController.state.value
+  ) async {
+    await self.diagnostics
+      .withLogCatch(
+        info: .message("Failed to copy resource field value!"),
+        fallback: { @MainActor (error: Error) async -> Void in
+          self.viewState.update(\.snackbarMessage, to: .error(error))
+        }
+      ) {
+        var resource: Resource = try await self.resourceController.state.value
 
-      // ensure having secret if field is part of it
-      if resource.secretContains(path) {
-        try await resourceController.fetchSecretIfNeeded()
-        resource = try await resourceController.state.value
-      }  // else NOP
+        // ensure having secret if field is part of it
+        if resource.secretContains(path) {
+          try await self.resourceController.fetchSecretIfNeeded()
+          resource = try await self.resourceController.state.value
+        }  // else NOP
 
-      pasteboard.put(resource[keyPath: path].stringValue ?? "")
+        self.pasteboard.put(resource[keyPath: path].stringValue ?? "")
 
-      await viewState.update { (state: inout ViewState) in
-        state.snackbarMessage = .info(
-          .localized(
-            key: "resource.value.copied",
-            arguments: [
-              resource
-                .displayableName(forField: path)?
-                .string()
-                ?? DisplayableString
-                .localized("resource.field.name.unknown")
-                .string()
-            ]
+        await self.viewState.update { (state: inout ViewState) in
+          state.snackbarMessage = .info(
+            .localized(
+              key: "resource.value.copied",
+              arguments: [
+                resource
+                  .displayableName(forField: path)?
+                  .string()
+                  ?? DisplayableString
+                  .localized("resource.field.name.unknown")
+                  .string()
+              ]
+            )
           )
-        )
+        }
       }
-    }
   }
 
   internal nonisolated func revealFieldValue(
     path: Resource.FieldPath
-  ) {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
-      failMessage: "Failed to reveal resource field value!",
-      behavior: .reuse
-    ) { @MainActor [self] in
-      self.revealedFields.insert(path)
-      try await self.resourceController.fetchSecretIfNeeded()
-      try await self.update(resourceController.state.value)
-    }
+  ) async {
+    await self.diagnostics
+      .withLogCatch(
+        info: .message("Failed to reveal resource field value!"),
+        fallback: { @MainActor (error: Error) async -> Void in
+          self.viewState.update(\.snackbarMessage, to: .error(error))
+        }
+      ) { @MainActor in
+        self.revealedFields.insert(path)
+        try await self.resourceController.fetchSecretIfNeeded()
+        try await self.update(resourceController.state.value)
+      }
   }
 
   internal nonisolated func coverFieldValue(
     path: Resource.FieldPath
-  ) {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
-      failMessage: "Failed to cover resource field value!",
-      behavior: .reuse
-    ) { @MainActor [self] in
-      self.revealedFields.remove(path)
-      try await self.update(resourceController.state.value)
-    }
+  ) async {
+    await self.diagnostics
+      .withLogCatch(
+        info: .message("Failed to cover resource field value!"),
+        fallback: { @MainActor (error: Error) async -> Void in
+          self.viewState.update(\.snackbarMessage, to: .error(error))
+        }
+      ) { @MainActor in
+        self.revealedFields.remove(path)
+        try await self.update(resourceController.state.value)
+      }
   }
 }
 

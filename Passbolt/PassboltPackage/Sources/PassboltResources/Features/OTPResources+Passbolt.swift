@@ -66,19 +66,19 @@ extension OTPResources {
       let resourceController: ResourceController = try await features.instance()
       let resourceSecret: JSON = try await resourceController.fetchSecretIfNeeded()
 
-			// searching only for "totp" field, can't identify totp otherwise now
-			guard let totpSecret: TOTPSecret = resourceSecret.totp.totpSecretValue
-			else {
-				throw
-					InvalidResourceData
-					.error(message: "Invalid or missing TOTP in secret")
-			}
+      // searching only for "totp" field, can't identify totp otherwise now
+      guard let totpSecret: TOTPSecret = resourceSecret.totp.totpSecretValue
+      else {
+        throw
+          InvalidResourceData
+          .error(message: "Invalid or missing TOTP in secret")
+      }
 
       return TOTPSecret(
-				sharedSecret: totpSecret.sharedSecret,
-				algorithm: totpSecret.algorithm,
-				digits: totpSecret.digits,
-				period: totpSecret.period
+        sharedSecret: totpSecret.sharedSecret,
+        algorithm: totpSecret.algorithm,
+        digits: totpSecret.digits,
+        period: totpSecret.period
       )
     }
 

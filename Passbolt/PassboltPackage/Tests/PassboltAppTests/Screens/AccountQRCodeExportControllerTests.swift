@@ -28,23 +28,23 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class AccountQRCodeExportControllerTests: FeaturesTestCase {
 
-	override func commonPrepare() {
-		super.commonPrepare()
-		set(AccountTransferScope.self)
-	}
+  override func commonPrepare() {
+    super.commonPrepare()
+    set(AccountTransferScope.self)
+  }
 
   func test_viewState_equalsDefault_initially() async throws {
-		let tested: AccountQRCodeExportController = try self.testedInstance()
+    let tested: AccountQRCodeExportController = try self.testedInstance()
 
-		await XCTAssertValue(
-			equal: AccountQRCodeExportController.ViewState(
-				currentQRcode: Data(),
-				exitConfirmationAlertPresented: false
-			)
-		) {
-			await self.asyncExecutionControl.executeAll()
-			return tested.viewState.value
-		}
+    await XCTAssertValue(
+      equal: AccountQRCodeExportController.ViewState(
+        currentQRcode: Data(),
+        exitConfirmationAlertPresented: false
+      )
+    ) {
+      await self.asyncExecutionControl.executeAll()
+      return tested.viewState.value
+    }
   }
 
   func test_viewState_updatesWithData_whenTransferStateUpdates() async throws {
@@ -64,23 +64,23 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
       with: always(Data([0x65, 0x66]))
     )
 
-		let tested: AccountQRCodeExportController = try self.testedInstance()
+    let tested: AccountQRCodeExportController = try self.testedInstance()
 
-		await XCTAssertValue(
-			equal: AccountQRCodeExportController.ViewState(
-				currentQRcode: Data([0x65, 0x66]),
-				exitConfirmationAlertPresented: false
-			)
-		) {
-			self.asyncExecutionControl.addTask {
-				try? await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
-				updatesSource.endUpdates()
-			}
-			await self.asyncExecutionControl.executeAll()
-			return tested.viewState.value
-		}
-		// to be removed after navigation refactor
-		await self.asyncExecutionControl.executeAll()
+    await XCTAssertValue(
+      equal: AccountQRCodeExportController.ViewState(
+        currentQRcode: Data([0x65, 0x66]),
+        exitConfirmationAlertPresented: false
+      )
+    ) {
+      self.asyncExecutionControl.addTask {
+        try? await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+        updatesSource.endUpdates()
+      }
+      await self.asyncExecutionControl.executeAll()
+      return tested.viewState.value
+    }
+    // to be removed after navigation refactor
+    await self.asyncExecutionControl.executeAll()
   }
 
   func test_controller_navigates_whenTransferStateUpdatesToError() async throws {
@@ -98,7 +98,7 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
       \AccountChunkedExport.status,
       with: always(.error(MockIssue.error()))
     )
-		let tested: AccountQRCodeExportController = try self.testedInstance()
+    let tested: AccountQRCodeExportController = try self.testedInstance()
   }
 
   func test_controller_navigates_whenTransferStateUpdatesToFinished() async throws {
@@ -116,20 +116,20 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
       \AccountChunkedExport.status,
       with: always(.finished)
     )
-		let tested: AccountQRCodeExportController = try self.testedInstance()
+    let tested: AccountQRCodeExportController = try self.testedInstance()
   }
 
   func test_cancelTransfer_cancelsDataExport() async throws {
     patch(
       \AccountChunkedExport.cancel,
-			 with: always(self.dynamicVariables.set(\.executed, to: true))
+      with: always(self.dynamicVariables.set(\.executed, to: true))
     )
 
-		let tested: AccountQRCodeExportController = try self.testedInstance()
+    let tested: AccountQRCodeExportController = try self.testedInstance()
 
-		tested.cancelTransfer()
-		await self.asyncExecutionControl.executeAll()
-		XCTAssertTrue(self.dynamicVariables.get(\.executed, of: Bool.self))
+    tested.cancelTransfer()
+    await self.asyncExecutionControl.executeAll()
+    XCTAssertTrue(self.dynamicVariables.get(\.executed, of: Bool.self))
   }
 
   func test_cancelTransfer_navigates() async throws {
@@ -142,9 +142,9 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
       \AccountChunkedExport.cancel,
       with: always(Void())
     )
-		let tested: AccountQRCodeExportController = try self.testedInstance()
+    let tested: AccountQRCodeExportController = try self.testedInstance()
 
-		tested.cancelTransfer()
-		await self.asyncExecutionControl.executeAll()
+    tested.cancelTransfer()
+    await self.asyncExecutionControl.executeAll()
   }
 }

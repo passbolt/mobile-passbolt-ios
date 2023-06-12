@@ -27,27 +27,27 @@ import TestExtensions
 
 final class AccountsSettingsControllerTests: FeaturesTestCase {
 
-	override func commonPrepare() {
-		super.commonPrepare()
-		set(
-			SessionScope.self,
-			context: .init(
-				account: .mock_ada,
-				configuration: .mock_default
-			)
-		)
-		set(SettingsScope.self)
-	}
+  override func commonPrepare() {
+    super.commonPrepare()
+    set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_default
+      )
+    )
+    set(SettingsScope.self)
+  }
 
   func test_navigateToAccountExport_performsNavigation() async {
     patch(
       \NavigationToAccountExport.mockPerform,
       with: always(self.mockExecuted())
     )
-		await withInstance(
-			of: AccountsSettingsController.self,
-			mockExecuted: 1
-		) { feature in
+    await withInstance(
+      of: AccountsSettingsController.self,
+      mockExecuted: 1
+    ) { feature in
       await feature.navigateToAccountExport()
       await self.asyncExecutionControl.executeAll()
     }
@@ -58,10 +58,10 @@ final class AccountsSettingsControllerTests: FeaturesTestCase {
       \NavigationToManageAccounts.mockPerform,
       with: always(self.mockExecuted())
     )
-		await withInstance(
-			of: AccountsSettingsController.self,
-			mockExecuted: 1
-		) { feature in
+    await withInstance(
+      of: AccountsSettingsController.self,
+      mockExecuted: 1
+    ) { feature in
       await feature.navigateToManageAccounts()
       await self.asyncExecutionControl.executeAll()
     }

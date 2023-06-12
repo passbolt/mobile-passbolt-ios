@@ -27,14 +27,14 @@ public struct CommonListRow<Content, Accessory>: View
 where Content: View, Accessory: View {
 
   private let content: @MainActor () -> Content
-  private let contentAction: (@MainActor () -> Void)?
+  private let contentAction: (@MainActor () async -> Void)?
   private let accessory: @MainActor () -> Accessory
-  private let accessoryAction: (@MainActor () -> Void)?
+  private let accessoryAction: (@MainActor () async -> Void)?
 
   public init(
-    contentAction: (@MainActor () -> Void)? = .none,
+    contentAction: (@MainActor () async -> Void)? = .none,
     @ViewBuilder content: @escaping @MainActor () -> Content,
-    accessoryAction: (@MainActor () -> Void)? = .none,
+    accessoryAction: (@MainActor () async -> Void)? = .none,
     @ViewBuilder accessory: @escaping @MainActor () -> Accessory
   ) {
     self.contentAction = contentAction
@@ -44,7 +44,7 @@ where Content: View, Accessory: View {
   }
 
   public init(
-    contentAction: (@MainActor () -> Void)? = .none,
+    contentAction: (@MainActor () async -> Void)? = .none,
     @ViewBuilder content: @escaping @MainActor () -> Content
   ) where Accessory == EmptyView {
     self.contentAction = contentAction
@@ -56,9 +56,9 @@ where Content: View, Accessory: View {
   public var body: some View {
     if let contentAction, let accessoryAction {
       HStack(spacing: 8) {
-        Button(
-          action: { contentAction() },
-          label: {
+        AsyncButton(
+          action: contentAction,
+          regularLabel: {
             self.content()
               .frame(  // fill space
                 maxWidth: .infinity,
@@ -66,27 +66,48 @@ where Content: View, Accessory: View {
                 maxHeight: .infinity,
                 alignment: .topLeading
               )
-              .contentShape(Rectangle())  // ensure proper hit tests
+          },
+          loadingLabel: {
+            HStack(spacing: 8) {
+              self.content()
+              SwiftUI.ProgressView()
+                .progressViewStyle(.circular)
+                .tint(.passboltPrimaryText)
+            }
+            .frame(  // fill space
+              maxWidth: .infinity,
+              minHeight: 32,
+              maxHeight: .infinity,
+              alignment: .topLeading
+            )
           }
         )
 
-        Button(
-          action: { accessoryAction() },
-          label: {
+        AsyncButton(
+          action: accessoryAction,
+          regularLabel: {
             self.accessory()
               .frame(  // minimal for interaction
                 minWidth: 32,
                 minHeight: 32
               )
-              .contentShape(Rectangle())  // ensure proper hit tests
+          },
+          loadingLabel: {
+            SwiftUI.ProgressView()
+              .progressViewStyle(.circular)
+              .tint(.passboltPrimaryText)
+              .frame(  // minimal for interaction
+                minWidth: 32,
+                minHeight: 32
+              )
           }
         )
       }
     }
     else if let contentAction {
-      Button(
-        action: { contentAction() },
-        label: {
+      AsyncButton(
+        action: contentAction,
+        regularLabel: {
           HStack(spacing: 8) {
             self.content()
               .frame(  // fill space
@@ -95,7 +116,27 @@ where Content: View, Accessory: View {
                 maxHeight: .infinity,
                 alignment: .topLeading
               )
-              .contentShape(Rectangle())  // ensure proper hit tests
+
+            self.accessory()
+              .frame(  // minimal for interaction
+                minWidth: 32,
+                minHeight: 32
+              )
+          }
+        },
+        loadingLabel: {
+          HStack(spacing: 8) {
+            SwiftUI.ProgressView()
+              .progressViewStyle(.circular)
+              .tint(.passboltPrimaryText)
+
+            self.content()
+              .frame(  // fill space
+                maxWidth: .infinity,
+                minHeight: 32,
+                maxHeight: .infinity,
+                alignment: .topLeading
+              )
 
             self.accessory()
               .frame(  // minimal for interaction
@@ -116,15 +157,23 @@ where Content: View, Accessory: View {
             alignment: .topLeading
           )
 
-        Button(
-          action: { accessoryAction() },
-          label: {
+        AsyncButton(
+          action: accessoryAction,
+          regularLabel: {
             self.accessory()
               .frame(  // minimal for interaction
                 minWidth: 32,
                 minHeight: 32
               )
-              .contentShape(Rectangle())  // ensure proper hit tests
+          },
+          loadingLabel: {
+            SwiftUI.ProgressView()
+              .progressViewStyle(.circular)
+              .tint(.passboltPrimaryText)
+              .frame(  // minimal for interaction
+                minWidth: 32,
+                minHeight: 32
+              )
           }
         )
       }

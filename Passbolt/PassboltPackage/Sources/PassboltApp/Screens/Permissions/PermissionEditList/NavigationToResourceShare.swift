@@ -25,26 +25,26 @@ import Display
 
 internal enum ResourceShareNavigationDestination: NavigationDestination {
 
-	internal typealias TransitionContext = ResourcePermissionEditListController.Context
+  internal typealias TransitionContext = ResourcePermissionEditListController.Context
 }
 
 internal typealias NavigationToResourceShare = NavigationTo<ResourceShareNavigationDestination>
 
 extension NavigationToResourceShare {
 
-	fileprivate static var live: FeatureLoader {
-		legacyPushTransition(
-			toLegacy: ComponentHostingViewController<ResourcePermissionEditListView>.self
-		)
-	}
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(
+      toLegacy: ComponentHostingViewController<ResourcePermissionEditListView>.self
+    )
+  }
 }
 
 extension FeaturesRegistry {
 
-	internal mutating func useLiveNavigationToResourceShare() {
-		self.use(
-			NavigationToResourceShare.live,
-			in: SessionScope.self
-		)
-	}
+  internal mutating func useLiveNavigationToResourceShare() {
+    self.use(
+      NavigationToResourceShare.live,
+      in: SessionScope.self
+    )
+  }
 }

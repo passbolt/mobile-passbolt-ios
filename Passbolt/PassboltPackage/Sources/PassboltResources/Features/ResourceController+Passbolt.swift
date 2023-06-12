@@ -57,8 +57,8 @@ extension ResourceController {
     let state: MutableState<Resource> = .init(lazy: fetchMeta)
 
     asyncExecutor
-      .scheduleIteration( // dropFirst - we have initial value already scheduled
-				over: sessionData.lastUpdate.dropFirst(),
+      .scheduleIteration(  // dropFirst - we have initial value already scheduled
+        over: sessionData.lastUpdate.dropFirst(),
         catchingWith: diagnostics,
         failMessage: "Resource updates broken!",
         behavior: .replace

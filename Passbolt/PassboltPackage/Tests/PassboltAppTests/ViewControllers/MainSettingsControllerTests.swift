@@ -27,27 +27,27 @@ import TestExtensions
 
 final class MainSettingsControllerTests: FeaturesTestCase {
 
-	override func commonPrepare() {
-		super.commonPrepare()
-		set(
-			SessionScope.self,
-			context: .init(
-				account: .mock_ada,
-				configuration: .mock_default
-			)
-		)
-		set(SettingsScope.self)
-	}
+  override func commonPrepare() {
+    super.commonPrepare()
+    set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_default
+      )
+    )
+    set(SettingsScope.self)
+  }
 
   func test_navigateToAccountsSettings_performsNavigation() async {
     patch(
       \NavigationToAccountsSettings.mockPerform,
       with: always(self.mockExecuted())
     )
-		await withInstance(
-			of: MainSettingsController.self,
-			mockExecuted: 1
-		) { feature in
+    await withInstance(
+      of: MainSettingsController.self,
+      mockExecuted: 1
+    ) { feature in
       await feature.navigateToAccountsSettings()
       await self.asyncExecutionControl.executeAll()
     }
@@ -58,10 +58,10 @@ final class MainSettingsControllerTests: FeaturesTestCase {
       \NavigationToTroubleshootingSettings.mockPerform,
       with: always(self.mockExecuted())
     )
-		await withInstance(
-			of: MainSettingsController.self,
-			mockExecuted: 1
-		) { feature in
+    await withInstance(
+      of: MainSettingsController.self,
+      mockExecuted: 1
+    ) { feature in
       await feature.navigateToTroubleshooting()
       await self.asyncExecutionControl.executeAll()
     }
@@ -72,10 +72,10 @@ final class MainSettingsControllerTests: FeaturesTestCase {
       \NavigationToApplicationSettings.mockPerform,
       with: always(self.mockExecuted())
     )
-		await withInstance(
-			of: MainSettingsController.self,
-			mockExecuted: 1
-		) { feature in
+    await withInstance(
+      of: MainSettingsController.self,
+      mockExecuted: 1
+    ) { feature in
       await feature.navigateToApplicationSettings()
       await self.asyncExecutionControl.executeAll()
     }
@@ -86,10 +86,10 @@ final class MainSettingsControllerTests: FeaturesTestCase {
       \NavigationToTermsAndLicensesSettings.mockPerform,
       with: always(self.mockExecuted())
     )
-		await withInstance(
-			of: MainSettingsController.self,
-			mockExecuted: 1
-		) { feature in
+    await withInstance(
+      of: MainSettingsController.self,
+      mockExecuted: 1
+    ) { feature in
       await feature.navigateToTermsAndLicenses()
       await self.asyncExecutionControl.executeAll()
     }

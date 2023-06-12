@@ -80,8 +80,8 @@ extension ResourcePermissionsDetailsViewController {
     await self.diagnostics
       .withLogCatch(
         info: .message("Resource permissions details updates broken!"),
-        fallback: { [navigationToSelf] in
-          try? await navigationToSelf.revert()
+        fallback: { _ in
+          try? await self.navigationToSelf.revert()
         }
       ) {
         for try await resource in self.resourceController.state {
@@ -127,35 +127,29 @@ extension ResourcePermissionsDetailsViewController {
     }
   }
 
-  nonisolated func showUserPermissionDetails(
+  internal func showUserPermissionDetails(
     _ details: UserPermissionDetailsDSV
-  ) {
-    self.asyncExecutor.schedule(.reuse) { [legacyNavigation] in
-      await legacyNavigation.push(
-        legacy: UserPermissionDetailsView.self,
-        context: details
-      )
-    }
+  ) async {
+    await self.legacyNavigation.push(
+      legacy: UserPermissionDetailsView.self,
+      context: details
+    )
   }
 
-  nonisolated func showUserGroupPermissionDetails(
+  internal func showUserGroupPermissionDetails(
     _ details: UserGroupPermissionDetailsDSV
-  ) {
-    self.asyncExecutor.schedule(.reuse) { [legacyNavigation] in
-      await legacyNavigation.push(
-        legacy: UserGroupPermissionDetailsView.self,
-        context: details
-      )
-    }
+  ) async {
+    await legacyNavigation.push(
+      legacy: UserGroupPermissionDetailsView.self,
+      context: details
+    )
   }
 
-  nonisolated func editPermissions() {
-    self.asyncExecutor.schedule(.reuse) { [legacyNavigation, resourceID] in
-      await legacyNavigation.replace(
-        UIHostingController<ResourcePermissionsDetailsView>.self,
-        pushing: ResourcePermissionEditListView.self,
-        in: resourceID
-      )
-    }
+  internal func editPermissions() async {
+    await self.legacyNavigation.replace(
+      UIHostingController<ResourcePermissionsDetailsView>.self,
+      pushing: ResourcePermissionEditListView.self,
+      in: self.resourceID
+    )
   }
 }

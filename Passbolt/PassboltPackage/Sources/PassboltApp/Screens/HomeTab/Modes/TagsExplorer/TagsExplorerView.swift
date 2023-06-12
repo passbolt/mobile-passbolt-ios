@@ -94,7 +94,7 @@ internal struct TagsExplorerView: ComponentView {
           action: {
             await self.controller.presentHomePresentationMenu()
           },
-          label: {
+          regularLabel: {
             ImageWithPadding(4, named: .filter)
           }
         )
@@ -104,7 +104,7 @@ internal struct TagsExplorerView: ComponentView {
           action: {
             await self.controller.presentAccountMenu()
           },
-          label: {
+          regularLabel: {
             UserAvatarView(imageData: self.state.userAvatarImage)
               .padding(
                 top: 0,

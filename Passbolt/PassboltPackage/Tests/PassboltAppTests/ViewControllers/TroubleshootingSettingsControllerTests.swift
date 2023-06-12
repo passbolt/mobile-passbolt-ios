@@ -27,27 +27,27 @@ import TestExtensions
 
 final class TroubleshootingSettingsControllerTests: FeaturesTestCase {
 
-	override func commonPrepare() {
-		super.commonPrepare()
-		set(
-			SessionScope.self,
-			context: .init(
-				account: .mock_ada,
-				configuration: .mock_default
-			)
-		)
-		set(SettingsScope.self)
-	}
+  override func commonPrepare() {
+    super.commonPrepare()
+    set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_default
+      )
+    )
+    set(SettingsScope.self)
+  }
 
   func test_navigateToLogs_performsNavigation() async {
     patch(
       \NavigationToLogs.mockPerform,
       with: always(self.mockExecuted())
     )
-		await withInstance(
-			of: TroubleshootingSettingsController.self,
-			mockExecuted: 1
-		) { feature in
+    await withInstance(
+      of: TroubleshootingSettingsController.self,
+      mockExecuted: 1
+    ) { feature in
       await feature.navigateToLogs()
       await self.asyncExecutionControl.executeAll()
     }
@@ -58,10 +58,10 @@ final class TroubleshootingSettingsControllerTests: FeaturesTestCase {
       \OSLinkOpener.openURL,
       with: always(self.mockExecuted())
     )
-		await withInstance(
-			of: TroubleshootingSettingsController.self,
-			mockExecuted: 1
-		) { feature in
+    await withInstance(
+      of: TroubleshootingSettingsController.self,
+      mockExecuted: 1
+    ) { feature in
       await feature.navigateToHelpSite()
       await self.asyncExecutionControl.executeAll()
     }

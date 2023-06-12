@@ -46,11 +46,9 @@ internal struct ResourceDetailsView: ControlledView {
     }
     .toolbar {
       ToolbarItemGroup(placement: .navigationBarTrailing) {
-        Button(
-          action: self.controller.showMenu,
-          label: {
-            Image(named: .more)
-          }
+        IconButton(
+          iconName: .more,
+          action: self.controller.showMenu
         )
       }
     }
@@ -134,7 +132,7 @@ internal struct ResourceDetailsView: ControlledView {
         ForEach(fields) { (fieldModel: ResourceDetailsFieldViewModel) in
           CommonListRow(
             contentAction: {
-              self.controller.copyFieldValue(path: fieldModel.path)
+              await self.controller.copyFieldValue(path: fieldModel.path)
             },
             content: {
               ResourceFieldView(
@@ -187,17 +185,17 @@ internal struct ResourceDetailsView: ControlledView {
               switch accessory {
               case .copy:
                 return {
-                  self.controller.copyFieldValue(path: fieldModel.path)
+                  await self.controller.copyFieldValue(path: fieldModel.path)
                 }
 
               case .reveal:
                 return {
-                  self.controller.revealFieldValue(path: fieldModel.path)
+                  await self.controller.revealFieldValue(path: fieldModel.path)
                 }
 
               case .hide:
                 return {
-                  self.controller.coverFieldValue(path: fieldModel.path)
+                  await self.controller.coverFieldValue(path: fieldModel.path)
                 }
               }
             },

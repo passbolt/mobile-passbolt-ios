@@ -207,12 +207,13 @@ extension TagsExplorerController: ComponentController {
 
     @MainActor func presentResourceMenu(_ resourceID: Resource.ID) {
       cancellables.executeOnMainActor {
-				let features: Features = features
-					.branchIfNeeded(
-						scope: ResourceDetailsScope.self,
-						context: resourceID
-					)
-					?? features
+        let features: Features =
+          features
+          .branchIfNeeded(
+            scope: ResourceDetailsScope.self,
+            context: resourceID
+          )
+          ?? features
         let navigationToResourceContextualMenu: NavigationToResourceContextualMenu = try features.instance()
         try await navigationToResourceContextualMenu.perform(
           context: .init(

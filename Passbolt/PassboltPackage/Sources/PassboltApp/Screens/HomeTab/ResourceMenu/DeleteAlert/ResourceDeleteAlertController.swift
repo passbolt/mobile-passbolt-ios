@@ -49,7 +49,7 @@ internal struct ResourceDeleteAlertController: AlertController {
     let asyncExecutor: AsyncExecutor = try features.instance()
     let resourceController: ResourceController = try features.instance()
 
-		self.title = "generic.are.you.sure" //"otp.contextual.menu.delete.confirm.title"
+    self.title = "generic.are.you.sure"  //"otp.contextual.menu.delete.confirm.title"
     self.message = "otp.contextual.menu.delete.confirm.message"
     self.actions = [
       .init(

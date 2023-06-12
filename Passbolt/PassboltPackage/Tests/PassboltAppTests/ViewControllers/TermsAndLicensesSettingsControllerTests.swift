@@ -27,27 +27,27 @@ import TestExtensions
 
 final class TermsAndLicensesSettingsControllerTests: FeaturesTestCase {
 
-	override func commonPrepare() {
-		super.commonPrepare()
-		set(
-			SessionScope.self,
-			context: .init(
-				account: .mock_ada,
-				configuration: .mock_default
-			)
-		)
-		set(SettingsScope.self)
-	}
+  override func commonPrepare() {
+    super.commonPrepare()
+    set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_default
+      )
+    )
+    set(SettingsScope.self)
+  }
 
   func test_navigateToLicenses_opensApplicationSettings() async {
     patch(
       \OSLinkOpener.openApplicationSettings,
       with: always(self.mockExecuted())
     )
-		await withInstance(
-			of: TermsAndLicensesSettingsController.self,
-			mockExecuted: 1
-		) { feature in
+    await withInstance(
+      of: TermsAndLicensesSettingsController.self,
+      mockExecuted: 1
+    ) { feature in
       await feature.navigateToLicenses()
       await self.asyncExecutionControl.executeAll()
     }
@@ -65,10 +65,10 @@ final class TermsAndLicensesSettingsControllerTests: FeaturesTestCase {
       \OSLinkOpener.openURL,
       with: always(self.mockExecuted())
     )
-		await withInstance(
-			of: TermsAndLicensesSettingsController.self,
-			mockExecuted: 1
-		) { feature in
+    await withInstance(
+      of: TermsAndLicensesSettingsController.self,
+      mockExecuted: 1
+    ) { feature in
       await feature.navigateToTermsAndConditions()
       await self.asyncExecutionControl.executeAll()
     }
@@ -86,10 +86,10 @@ final class TermsAndLicensesSettingsControllerTests: FeaturesTestCase {
       \OSLinkOpener.openURL,
       with: always(self.mockExecuted())
     )
-		await withInstance(
-			of: TermsAndLicensesSettingsController.self,
-			mockExecuted: 1
-		) { feature in
+    await withInstance(
+      of: TermsAndLicensesSettingsController.self,
+      mockExecuted: 1
+    ) { feature in
       await feature.navigateToPrivacyPolicy()
       await self.asyncExecutionControl.executeAll()
     }
@@ -104,9 +104,9 @@ final class TermsAndLicensesSettingsControllerTests: FeaturesTestCase {
         configuration: .mock_default
       )
     )
-		await withInstance(
-			of: TermsAndLicensesSettingsController.self
-		) { feature in
+    await withInstance(
+      of: TermsAndLicensesSettingsController.self
+    ) { feature in
       await feature.navigateToTermsAndConditions()
       await self.asyncExecutionControl.executeAll()
     }
@@ -125,10 +125,10 @@ final class TermsAndLicensesSettingsControllerTests: FeaturesTestCase {
       \OSLinkOpener.openURL,
       with: always(self.mockExecuted())
     )
-		await withInstance(
-			of: TermsAndLicensesSettingsController.self,
-			mockExecuted: 0
-		) { feature in
+    await withInstance(
+      of: TermsAndLicensesSettingsController.self,
+      mockExecuted: 0
+    ) { feature in
       await feature.navigateToPrivacyPolicy()
       await self.asyncExecutionControl.executeAll()
     }

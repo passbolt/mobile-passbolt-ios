@@ -347,18 +347,18 @@ where RawValue == UUID {
     self.init(rawValue: uuid)
   }
 
-	// currently backend is not handling uppercased UUID properly
-	// making it lowercased for the encoder makes it appearing
-	// lowercased in client-server communication
-	public func encode(
-		to encoder: Encoder
-	) throws {
-		try self.rawValue.uuidString.lowercased().encode(to: encoder)
-	}
+  // currently backend is not handling uppercased UUID properly
+  // making it lowercased for the encoder makes it appearing
+  // lowercased in client-server communication
+  public func encode(
+    to encoder: Encoder
+  ) throws {
+    try self.rawValue.uuidString.lowercased().encode(to: encoder)
+  }
 
-	// lowercase description as well in order to provide
-	// lowercased UUID IDs in URLs
-	public var urlString: String {
-		self.rawValue.uuidString.lowercased()
-	}
+  // lowercase description as well in order to provide
+  // lowercased UUID IDs in URLs
+  public var urlString: String {
+    self.rawValue.uuidString.lowercased()
+  }
 }

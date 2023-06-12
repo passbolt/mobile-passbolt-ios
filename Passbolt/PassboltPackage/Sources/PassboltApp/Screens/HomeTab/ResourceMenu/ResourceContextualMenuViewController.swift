@@ -71,11 +71,11 @@ internal final class ResourceContextualMenuViewController: ViewController {
   private let otpCodesController: OTPCodesController
 
   private let navigationToSelf: NavigationToResourceContextualMenu
-	private let navigationToDeleteAlert: NavigationToResourceDeleteAlert
-	private let navigationToShare: NavigationToResourceShare
-	private let navigationToEdit: NavigationToResourceEdit
+  private let navigationToDeleteAlert: NavigationToResourceDeleteAlert
+  private let navigationToShare: NavigationToResourceShare
+  private let navigationToEdit: NavigationToResourceEdit
 
-	private let linkOpener: OSLinkOpener
+  private let linkOpener: OSLinkOpener
   private let pasteboard: OSPasteboard
   private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
@@ -93,20 +93,20 @@ internal final class ResourceContextualMenuViewController: ViewController {
     try features.ensureScope(ResourceDetailsScope.self)
     self.resourceID = try features.context(of: ResourceDetailsScope.self)
 
-		self.features = features.takeOwned()
+    self.features = features.takeOwned()
 
     self.revealOTP = context.revealOTP
     self.showMessage = context.showMessage
 
-		self.linkOpener = features.instance()
+    self.linkOpener = features.instance()
     self.pasteboard = features.instance()
     self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
 
     self.navigationToSelf = try features.instance()
-		self.navigationToDeleteAlert = try features.instance()
-		self.navigationToShare = try features.instance()
-		self.navigationToEdit = try features.instance()
+    self.navigationToDeleteAlert = try features.instance()
+    self.navigationToShare = try features.instance()
+    self.navigationToEdit = try features.instance()
 
     self.resourceController = try features.instance()
     self.otpCodesController = try features.instance()
@@ -127,8 +127,8 @@ extension ResourceContextualMenuViewController {
     await self.diagnostics
       .withLogCatch(
         info: .message("Resource contextual menu updates broken!"),
-        fallback: { [navigationToSelf] in
-          try? await navigationToSelf.revert()
+        fallback: { _ in
+          try? await self.navigationToSelf.revert()
         }
       ) {
         for try await resource in self.resourceController.state {
@@ -168,8 +168,8 @@ extension ResourceContextualMenuViewController {
     }  // else NOP
 
     var modifyActions: Array<ResourceContextualMenuModifyAction> = [
-			.toggle(favorite: resource.favorite)
-		]
+      .toggle(favorite: resource.favorite)
+    ]
 
     if resource.permission.canShare {
       modifyActions.append(.share)
@@ -191,7 +191,7 @@ extension ResourceContextualMenuViewController {
   ) {
     switch action {
     case .openURI:
-			self.openURL(field: \.meta.uri)
+      self.openURL(field: \.meta.uri)
 
     case .copyURI:
       self.copy(field: \.meta.uri)
@@ -200,7 +200,7 @@ extension ResourceContextualMenuViewController {
       self.copy(field: \.meta.username)
 
     case .revealOTP:
-			self.revealOTPCode()
+      self.revealOTPCode()
 
     case .copyOTP:
       self.copyOTPCode()
@@ -233,81 +233,81 @@ extension ResourceContextualMenuViewController {
     }
   }
 
-	internal func openURL(
-		field path: Resource.FieldPath
-	) {
-		self.asyncExecutor.scheduleCatchingWith(
-			self.diagnostics,
-			failMessage: "Opening resource field url failed!",
-			failAction: { [showMessage] (error: Error) in
-				await showMessage(.error(error))
-			},
-			behavior: .reuse
-		) { [resourceController, linkOpener, navigationToSelf] () async throws -> Void in
-			var resource: Resource = try await resourceController.state.value
+  internal func openURL(
+    field path: Resource.FieldPath
+  ) {
+    self.asyncExecutor.scheduleCatchingWith(
+      self.diagnostics,
+      failMessage: "Opening resource field url failed!",
+      failAction: { [showMessage] (error: Error) in
+        await showMessage(.error(error))
+      },
+      behavior: .reuse
+    ) { [resourceController, linkOpener, navigationToSelf] () async throws -> Void in
+      var resource: Resource = try await resourceController.state.value
 
-			let fieldPath: Resource.FieldPath
-			// password can be legacy unstructured
-			if path == \.secret.password {
-				if resource.contains(\.secret.password) {
-					fieldPath = \.secret.password
-				}
-				else if resource.contains(\.secret) {
-					fieldPath = \.secret
-				}
-				else {
-					throw
-						UnknownResourceField
-						.error(
-							"Attempting to access not existing resource field value!",
-							path: path,
-							value: .null
-						)
-				}
-			}
-			// edscription can be encrypted or not
-			else if path == \.secret.description {
-				if resource.contains(\.secret.description) {
-					fieldPath = \.secret.description
-				}
-				else if resource.contains(\.meta.description) {
-					fieldPath = \.meta.description
-				}
-				else {
-					throw
-						UnknownResourceField
-						.error(
-							"Attempting to access not existing resource field value!",
-							path: path,
-							value: .null
-						)
-				}
-			}
-			else {
-				fieldPath = path
-			}
+      let fieldPath: Resource.FieldPath
+      // password can be legacy unstructured
+      if path == \.secret.password {
+        if resource.contains(\.secret.password) {
+          fieldPath = \.secret.password
+        }
+        else if resource.contains(\.secret) {
+          fieldPath = \.secret
+        }
+        else {
+          throw
+            UnknownResourceField
+            .error(
+              "Attempting to access not existing resource field value!",
+              path: path,
+              value: .null
+            )
+        }
+      }
+      // edscription can be encrypted or not
+      else if path == \.secret.description {
+        if resource.contains(\.secret.description) {
+          fieldPath = \.secret.description
+        }
+        else if resource.contains(\.meta.description) {
+          fieldPath = \.meta.description
+        }
+        else {
+          throw
+            UnknownResourceField
+            .error(
+              "Attempting to access not existing resource field value!",
+              path: path,
+              value: .null
+            )
+        }
+      }
+      else {
+        fieldPath = path
+      }
 
-			guard let field: ResourceFieldSpecification = resource.allFields.first(where: { $0.path == fieldPath })
-			else {
-				throw
-					UnknownResourceField
-					.error(
-						"Attempting to access not existing resource field value!",
-						path: path,
-						value: .null
-					)
-			}
+      guard let field: ResourceFieldSpecification = resource.allFields.first(where: { $0.path == fieldPath })
+      else {
+        throw
+          UnknownResourceField
+          .error(
+            "Attempting to access not existing resource field value!",
+            path: path,
+            value: .null
+          )
+      }
 
-			if field.encrypted {
-				_ = try await resourceController.fetchSecretIfNeeded()
-				resource = try await resourceController.state.value
-			}  // else continue
+      if field.encrypted {
+        _ = try await resourceController.fetchSecretIfNeeded()
+        resource = try await resourceController.state.value
+      }  // else continue
 
-			try await linkOpener.openURL(.init(rawValue: resource[keyPath: fieldPath].stringValue ?? ""))
+      try await linkOpener.openURL(.init(rawValue: resource[keyPath: fieldPath].stringValue ?? ""))
 
-			try await navigationToSelf.revert()
-		}
-	}
+      try await navigationToSelf.revert()
+    }
+  }
 
   internal func copy(
     field path: Resource.FieldPath
@@ -322,46 +322,46 @@ extension ResourceContextualMenuViewController {
     ) { [resourceController, pasteboard, navigationToSelf, showMessage] () async throws -> Void in
       var resource: Resource = try await resourceController.state.value
 
-			let fieldPath: Resource.FieldPath
-			// password can be legacy unstructured
-			if path == \.secret.password {
-				if resource.contains(\.secret.password) {
-					fieldPath = \.secret.password
-				}
-				else if resource.contains(\.secret) {
-					fieldPath = \.secret
-				}
-				else {
-					throw
-						UnknownResourceField
-						.error(
-							"Attempting to access not existing resource field value!",
-							path: path,
-							value: .null
-						)
-				}
-			}
-			// edscription can be encrypted or not
-			else if path == \.secret.description {
-				if resource.contains(\.secret.description) {
-					fieldPath = \.secret.description
-				}
-				else if resource.contains(\.meta.description) {
-					fieldPath = \.meta.description
-				}
-				else {
-					throw
-						UnknownResourceField
-						.error(
-							"Attempting to access not existing resource field value!",
-							path: path,
-							value: .null
-						)
-				}
-			}
-			else {
-				fieldPath = path
-			}
+      let fieldPath: Resource.FieldPath
+      // password can be legacy unstructured
+      if path == \.secret.password {
+        if resource.contains(\.secret.password) {
+          fieldPath = \.secret.password
+        }
+        else if resource.contains(\.secret) {
+          fieldPath = \.secret
+        }
+        else {
+          throw
+            UnknownResourceField
+            .error(
+              "Attempting to access not existing resource field value!",
+              path: path,
+              value: .null
+            )
+        }
+      }
+      // edscription can be encrypted or not
+      else if path == \.secret.description {
+        if resource.contains(\.secret.description) {
+          fieldPath = \.secret.description
+        }
+        else if resource.contains(\.meta.description) {
+          fieldPath = \.meta.description
+        }
+        else {
+          throw
+            UnknownResourceField
+            .error(
+              "Attempting to access not existing resource field value!",
+              path: path,
+              value: .null
+            )
+        }
+      }
+      else {
+        fieldPath = path
+      }
 
       guard let field: ResourceFieldSpecification = resource.allFields.first(where: { $0.path == fieldPath })
       else {
@@ -396,25 +396,25 @@ extension ResourceContextualMenuViewController {
     }
   }
 
-	internal final func revealOTPCode() {
-		self.asyncExecutor.scheduleCatchingWith(
-			self.diagnostics,
-			failMessage: "Revealing resource OTP failed!",
-			failAction: { [showMessage] (error: Error) in
-				await showMessage(.error(error))
-			},
-			behavior: .reuse
-		) { @MainActor [revealOTP, navigationToSelf] in
-			guard let revealOTP
-			else {
-				throw
-					InvalidResourceData
-					.error(message: "Invalid or missing TOTP reveal action!")
-			}
-			try await navigationToSelf.revert(animated: true)
-			revealOTP()
-		}
-	}
+  internal final func revealOTPCode() {
+    self.asyncExecutor.scheduleCatchingWith(
+      self.diagnostics,
+      failMessage: "Revealing resource OTP failed!",
+      failAction: { [showMessage] (error: Error) in
+        await showMessage(.error(error))
+      },
+      behavior: .reuse
+    ) { @MainActor [revealOTP, navigationToSelf] in
+      guard let revealOTP
+      else {
+        throw
+          InvalidResourceData
+          .error(message: "Invalid or missing TOTP reveal action!")
+      }
+      try await navigationToSelf.revert(animated: true)
+      revealOTP()
+    }
+  }
 
   internal final func copyOTPCode() {
     self.asyncExecutor.scheduleCatchingWith(
@@ -427,8 +427,8 @@ extension ResourceContextualMenuViewController {
     ) { [features, resourceID, pasteboard, resourceController, navigationToSelf, showMessage] in
       let resourceSecret: JSON = try await resourceController.fetchSecretIfNeeded()
 
-			// searching only for "totp" field, can't identify totp otherwise now
-			guard let totpSecret: TOTPSecret = resourceSecret.totp.totpSecretValue
+      // searching only for "totp" field, can't identify totp otherwise now
+      guard let totpSecret: TOTPSecret = resourceSecret.totp.totpSecretValue
       else {
         throw
           InvalidResourceData
@@ -438,10 +438,10 @@ extension ResourceContextualMenuViewController {
       let totpCodeGenerator: TOTPCodeGenerator = try await features.instance(
         context: .init(
           resourceID: resourceID,
-					sharedSecret: totpSecret.sharedSecret,
-					algorithm: totpSecret.algorithm,
-					digits: totpSecret.digits,
-					period: totpSecret.period
+          sharedSecret: totpSecret.sharedSecret,
+          algorithm: totpSecret.algorithm,
+          digits: totpSecret.digits,
+          period: totpSecret.period
         )
       )
 
@@ -460,40 +460,40 @@ extension ResourceContextualMenuViewController {
         await showMessage(.error(error))
       },
       behavior: .reuse
-		) { [navigationToSelf, resourceController, showMessage] in
-			try await resourceController.toggleFavorite()
-			let resource: Resource = try await resourceController.state.value
-			try await navigationToSelf.revert()
-			if resource.favorite {
-				await showMessage(
-					.info(
-						.localized(
-							key: "resource.menu.action.favorite.added",
-							arguments: [
-								resource.meta.name.stringValue
-								?? DisplayableString
-									.localized("resource")
-									.string()
-							]
-						)
-					)
-				)
-			}
-			else {
-				await showMessage(
-					.info(
-						.localized(
-							key: "resource.menu.action.favorite.removed",
-							arguments: [
-								resource.meta.name.stringValue
-								?? DisplayableString
-									.localized("resource")
-									.string()
-							]
-						)
-					)
-				)
-			}
+    ) { [navigationToSelf, resourceController, showMessage] in
+      try await resourceController.toggleFavorite()
+      let resource: Resource = try await resourceController.state.value
+      try await navigationToSelf.revert()
+      if resource.favorite {
+        await showMessage(
+          .info(
+            .localized(
+              key: "resource.menu.action.favorite.added",
+              arguments: [
+                resource.meta.name.stringValue
+                  ?? DisplayableString
+                  .localized("resource")
+                  .string()
+              ]
+            )
+          )
+        )
+      }
+      else {
+        await showMessage(
+          .info(
+            .localized(
+              key: "resource.menu.action.favorite.removed",
+              arguments: [
+                resource.meta.name.stringValue
+                  ?? DisplayableString
+                  .localized("resource")
+                  .string()
+              ]
+            )
+          )
+        )
+      }
     }
   }
 
@@ -507,7 +507,7 @@ extension ResourceContextualMenuViewController {
       behavior: .reuse
     ) { [resourceID, navigationToSelf, navigationToShare] in
       try await navigationToSelf.revert()
-			try await navigationToShare.perform(context: resourceID)
+      try await navigationToShare.perform(context: resourceID)
     }
   }
 
@@ -521,12 +521,12 @@ extension ResourceContextualMenuViewController {
       behavior: .reuse
     ) { [resourceID, navigationToSelf, navigationToEdit] in
       try await navigationToSelf.revert()
-			try await navigationToEdit.perform(
-				context: (
-					editing: .edit(resourceID),
-					completion: { _ in }
-				)
-			)
+      try await navigationToEdit.perform(
+        context: (
+          editing: .edit(resourceID),
+          completion: { _ in }
+        )
+      )
     }
   }
 

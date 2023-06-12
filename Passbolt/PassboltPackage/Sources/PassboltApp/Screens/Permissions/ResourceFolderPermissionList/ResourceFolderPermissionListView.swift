@@ -46,28 +46,28 @@ internal struct ResourceFolderPermissionListView: ControlledView {
   }
 
   @ViewBuilder private var contentView: some View {
-		WithViewState(from: self.controller) { viewState in
-			CommonList {
-				CommonListSection {
-					ForEach(
-						viewState.permissionListItems,
-						id: \PermissionListRowItem.self
-					) { item in
-						PermissionListRowView(
-							item,
-							action: {
-								switch item {
-								case let .user(details, _):
-									self.controller.showUserPermissionDetails(details)
+    WithViewState(from: self.controller) { viewState in
+      CommonList {
+        CommonListSection {
+          ForEach(
+            viewState.permissionListItems,
+            id: \PermissionListRowItem.self
+          ) { item in
+            PermissionListRowView(
+              item,
+              action: {
+                switch item {
+                case let .user(details, _):
+                  self.controller.showUserPermissionDetails(details)
 
-								case let .userGroup(details):
-									self.controller.showUserGroupPermissionDetails(details)
-								}
-							}
-						)
-					}
-				}
-			}
-		}
+                case let .userGroup(details):
+                  self.controller.showUserGroupPermissionDetails(details)
+                }
+              }
+            )
+          }
+        }
+      }
+    }
   }
 }

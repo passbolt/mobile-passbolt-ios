@@ -103,12 +103,13 @@ extension ResourcesListController: UIController {
     func presentResourceMenu(_ resource: ResourcesResourceListItemDSVItem) {
       resourceMenuIDSubject.send(resource.id)
       cancellables.executeOnMainActor {
-				let features: Features = features
-				.branchIfNeeded(
-					scope: ResourceDetailsScope.self,
-					context: resource.id
-				)
-				?? features
+        let features: Features =
+          features
+          .branchIfNeeded(
+            scope: ResourceDetailsScope.self,
+            context: resource.id
+          )
+          ?? features
         let navigationToResourceContextualMenu: NavigationToResourceContextualMenu = try features.instance()
         try await navigationToResourceContextualMenu
           .perform(

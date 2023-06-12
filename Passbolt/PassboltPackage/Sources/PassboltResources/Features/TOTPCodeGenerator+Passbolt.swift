@@ -78,7 +78,7 @@ extension FeaturesRegistry {
         TOTPCodeGenerator.self,
         load: TOTPCodeGenerator.load(features:context:)
       ),
-			in: SessionScope.self
+      in: SessionScope.self
     )
   }
 }

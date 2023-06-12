@@ -27,20 +27,21 @@ import TestExtensions
 
 final class ApplicationSettingsControllerTests: FeaturesTestCase {
 
-	override func commonPrepare() {
-		super.commonPrepare()
-		set(
-			SessionScope.self,
-			context: .init(
-				account: .mock_ada,
-				configuration: .mock_default
-			)
-		)
-		set(SettingsScope.self)
-	}
+  override func commonPrepare() {
+    super.commonPrepare()
+    set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_default
+      )
+    )
+    set(SettingsScope.self)
+  }
 
   func test_viewState_biometicsAuthorizationAvailability_isEnabledInitially_whenPassphraseIsStoredAndBiometryAvailable()
-  async {
+    async
+  {
     patch(
       \AccountPreferences.isPassphraseStored,
       context: .mock_ada,
@@ -51,17 +52,18 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
       with: always(.faceID)
     )
     await withInstance(
-			of: ApplicationSettingsController.self,
-			returns: BiometricsAuthorizationAvailability.enabledFaceID
+      of: ApplicationSettingsController.self,
+      returns: BiometricsAuthorizationAvailability.enabledFaceID
     ) { feature in
-			await feature.updateViewState()
+      await feature.updateViewState()
       return await feature.viewState.biometicsAuthorizationAvailability
     }
   }
 
   func
     test_viewState_biometicsAuthorizationAvailability_isDisabledInitially_whenPassphraseIsNotStoredAndBiometryAvailable()
-  async {
+    async
+  {
     let accountPreferencesUpdates: UpdatesSequenceSource = .init()
     patch(
       \AccountPreferences.isPassphraseStored,
@@ -72,11 +74,11 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
       \OSBiometry.availability,
       with: always(.faceID)
     )
-		await withInstance(
-			of: ApplicationSettingsController.self,
-			returns:BiometricsAuthorizationAvailability.disabledFaceID
+    await withInstance(
+      of: ApplicationSettingsController.self,
+      returns: BiometricsAuthorizationAvailability.disabledFaceID
     ) { feature in
-			await feature.updateViewState()
+      await feature.updateViewState()
       return await feature.viewState.biometicsAuthorizationAvailability
     }
   }
@@ -92,9 +94,9 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
       \OSBiometry.availability,
       with: always(.unavailable)
     )
-		await withInstance(
-			of: ApplicationSettingsController.self,
-			returns:BiometricsAuthorizationAvailability.unavailable
+    await withInstance(
+      of: ApplicationSettingsController.self,
+      returns: BiometricsAuthorizationAvailability.unavailable
     ) { feature in
       await self.asyncExecutionControl.addTask {
         accountPreferencesUpdates.endUpdates()
@@ -109,10 +111,10 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
       \NavigationToAutofillSettings.mockPerform,
       with: always(self.mockExecuted())
     )
-		await withInstance(
-			of: ApplicationSettingsController.self,
-			mockExecuted: 1
-		) { feature in
+    await withInstance(
+      of: ApplicationSettingsController.self,
+      mockExecuted: 1
+    ) { feature in
       feature.navigateToAutofillSettings()
       await self.asyncExecutionControl.executeAll()
     }
@@ -123,10 +125,10 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
       \NavigationToDefaultPresentationModeSettings.mockPerform,
       with: always(self.mockExecuted())
     )
-		await withInstance(
-			of: ApplicationSettingsController.self,
-			mockExecuted: 1
-		) { feature in
+    await withInstance(
+      of: ApplicationSettingsController.self,
+      mockExecuted: 1
+    ) { feature in
       feature.navigateToDefaultPresentationModeSettings()
       await self.asyncExecutionControl.executeAll()
     }
@@ -139,19 +141,19 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
       with: self.mockExecuted(with:)
     )
 
-		await withInstance(
-			of: ApplicationSettingsController.self,
-			mockExecutedWith: true
-		) { feature in
+    await withInstance(
+      of: ApplicationSettingsController.self,
+      mockExecutedWith: true
+    ) { feature in
       await feature.setBiometricsAuthorizationEnabled(true)
       await self.asyncExecutionControl.executeAll()
     }
 
-		await withInstance(
-			of: ApplicationSettingsController.self,
-			mockExecutedWith: false
-		) { feature in
-			await feature.setBiometricsAuthorizationEnabled(false)
+    await withInstance(
+      of: ApplicationSettingsController.self,
+      mockExecutedWith: false
+    ) { feature in
+      await feature.setBiometricsAuthorizationEnabled(false)
       await self.asyncExecutionControl.executeAll()
     }
   }

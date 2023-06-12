@@ -33,9 +33,9 @@ final class TOTPCodeGeneratorTests: LoadableFeatureTestCase<TOTPCodeGenerator> {
 
   let secret: String = "AABBCCDD"
 
-	override class var testedImplementationScope: any FeaturesScope.Type {
-		SessionScope.self
-	}
+  override class var testedImplementationScope: any FeaturesScope.Type {
+    SessionScope.self
+  }
 
   override class func testedImplementationRegister(
     _ registry: inout FeaturesRegistry
@@ -43,15 +43,15 @@ final class TOTPCodeGeneratorTests: LoadableFeatureTestCase<TOTPCodeGenerator> {
     registry.usePassboltTOTPCodeGenerator()
   }
 
-	override func prepare() throws {
-		set(
-			SessionScope.self,
-			context: .init(
-				account: .mock_ada,
-				configuration: .mock_default
-			)
-		)
-	}
+  override func prepare() throws {
+    set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_default
+      )
+    )
+  }
 
   func test_generation_period30_digits6_withTime0() {
     patch(

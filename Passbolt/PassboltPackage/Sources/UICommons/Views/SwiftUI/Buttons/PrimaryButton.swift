@@ -30,13 +30,13 @@ public struct PrimaryButton: View {
   private let icon: Image?
   private let title: DisplayableString
   private let style: Style
-  private let action: () -> Void
+  private let action: @MainActor () async -> Void
 
   public init(
     title: DisplayableString,
     iconName: ImageNameConstant? = .none,
     style: Style = .regular,
-    action: @escaping () -> Void
+    action: @escaping @MainActor () async -> Void
   ) {
     self.icon = iconName.map(Image.init(named:))
     self.title = title
@@ -45,32 +45,13 @@ public struct PrimaryButton: View {
   }
 
   public var body: some View {
-    Button(
-      action: {
-        self.action()
+    AsyncButton(
+      action: self.action,
+      regularLabel: {
+        self.regularLabelView
       },
-      label: {
-        if let icon: Image = self.icon {
-          HStack(spacing: 8) {
-            icon
-              .resizable()
-              .frame(width: 20, height: 20)
-            self.titleView
-          }
-          .frame(
-            maxWidth: .infinity,
-            maxHeight: .infinity
-          )
-          .padding(8)
-        }
-        else {
-          self.titleView
-            .frame(
-              maxWidth: .infinity,
-              maxHeight: .infinity
-            )
-            .padding(8)
-        }
+      loadingLabel: {
+        self.loadingLabelView
       }
     )
     .foregroundColor(.passboltPrimaryButtonText)
@@ -87,6 +68,45 @@ public struct PrimaryButton: View {
           weight: .medium
         )
       )
+  }
+
+  @MainActor @ViewBuilder private var regularLabelView: some View {
+    if let icon: Image = self.icon {
+      HStack(spacing: 8) {
+        icon
+          .resizable()
+          .frame(width: 20, height: 20)
+        self.titleView
+      }
+      .frame(
+        maxWidth: .infinity,
+        maxHeight: .infinity
+      )
+      .padding(8)
+    }
+    else {
+      self.titleView
+        .frame(
+          maxWidth: .infinity,
+          maxHeight: .infinity
+        )
+        .padding(8)
+    }
+  }
+
+  @MainActor @ViewBuilder private var loadingLabelView: some View {
+    HStack(spacing: 8) {
+      SwiftUI.ProgressView()
+        .progressViewStyle(.circular)
+        .tint(.passboltPrimaryButtonText)
+        .frame(width: 20, height: 20)
+      self.titleView
+    }
+    .frame(
+      maxWidth: .infinity,
+      maxHeight: .infinity
+    )
+    .padding(8)
   }
 }
 
@@ -120,7 +140,8 @@ internal struct PrimaryButton_Previews: PreviewProvider {
     PrimaryButton(
       title: "Primary button",
       action: {
-        print("tap")
+        print("TAP")
+        try? await Task.sleep(nanoseconds: 1500 * NSEC_PER_MSEC)
       }
     )
     .padding()
