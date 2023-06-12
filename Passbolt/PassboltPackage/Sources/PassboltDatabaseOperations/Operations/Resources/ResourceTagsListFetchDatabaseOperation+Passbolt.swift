@@ -71,7 +71,7 @@ extension ResourceTagsListFetchDatabaseOperation {
       try connection
       .fetch(using: statement) { dataRow -> ResourceTagListItemDSV in
         guard
-          let id: ResourceTag.ID = dataRow.id.flatMap(ResourceTag.ID.init(uuidString:)),
+          let id: ResourceTag.ID = dataRow.id.flatMap(ResourceTag.ID.init(rawValue:)),
           let slug: ResourceTag.Slug = dataRow.slug.flatMap(ResourceTag.Slug.init(rawValue:)),
           let shared: Bool = dataRow.shared,
           let contentCount: Int = dataRow.contentCount

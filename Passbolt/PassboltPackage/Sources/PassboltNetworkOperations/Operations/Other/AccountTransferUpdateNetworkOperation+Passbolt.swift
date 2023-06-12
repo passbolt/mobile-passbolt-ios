@@ -32,7 +32,7 @@ extension AccountTransferUpdateNetworkOperation {
   ) -> Mutation<HTTPRequest> {
     .combined(
       .url(string: input.domain.rawValue),
-      .pathSuffix("/mobile/transfers/\(input.transferID)/\(input.authenticationToken).json"),
+			.pathSuffix("/mobile/transfers/\(input.transferID)/\(input.authenticationToken).json"),
       .method(.post),
       .when(
         input.requestUserProfile,

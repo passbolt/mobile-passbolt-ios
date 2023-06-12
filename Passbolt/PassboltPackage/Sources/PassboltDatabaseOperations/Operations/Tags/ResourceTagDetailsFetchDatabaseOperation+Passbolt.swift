@@ -50,7 +50,7 @@ extension ResourceTagDetailsFetchDatabaseOperation {
       try connection
       .fetchFirst(using: statement) { dataRow -> ResourceTag in
         guard
-          let id: ResourceTag.ID = dataRow.id.flatMap(ResourceTag.ID.init(uuidString:)),
+          let id: ResourceTag.ID = dataRow.id.flatMap(ResourceTag.ID.init(rawValue:)),
           let slug: ResourceTag.Slug = dataRow.slug.flatMap(ResourceTag.Slug.init(rawValue:)),
           let shared: Bool = dataRow.shared
         else {

@@ -31,7 +31,7 @@ extension ResourceSecretFetchNetworkOperation {
     _ input: Input
   ) -> Mutation<HTTPRequest> {
     .combined(
-      .pathSuffix("/secrets/resource/\(input.resourceID).json"),
+      .pathSuffix("/secrets/resource/\(input.resourceID.urlString).json"),
       .method(.get)
     )
   }

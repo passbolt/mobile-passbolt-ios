@@ -67,7 +67,7 @@ extension ResourceUsersIDFetchDatabaseOperation {
       try connection
       .fetch(using: statement) { dataRow -> User.ID in
         guard
-          let id: User.ID = dataRow.id.flatMap(User.ID.init(uuidString:))
+          let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:))
         else {
           throw
             DatabaseDataInvalid

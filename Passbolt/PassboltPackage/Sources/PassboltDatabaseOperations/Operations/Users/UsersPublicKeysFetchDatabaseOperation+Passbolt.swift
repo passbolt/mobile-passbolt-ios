@@ -83,7 +83,7 @@ extension UsersPublicKeysFetchDatabaseOperation {
       try connection
       .fetch(using: statement) { dataRow -> UserPublicKeyDSV in
         guard
-          let id: User.ID = dataRow.id.flatMap(User.ID.init(uuidString:)),
+          let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:)),
           let publicKey: ArmoredPGPPublicKey = dataRow.publicKey.flatMap(ArmoredPGPPublicKey.init(rawValue:))
         else {
           throw

@@ -30,7 +30,7 @@ extension ResourceFolderPermission {
     from dataRow: SQLiteRow
   ) throws -> Self {
     guard
-      let permissionID: Permission.ID = (dataRow.permissionID as String?).flatMap(Permission.ID.init(uuidString:))
+      let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
     else {
       throw
         DatabaseDataInvalid
@@ -54,14 +54,14 @@ extension ResourceFolderPermission {
         .recording(dataRow, for: "dataRow")
     }
 
-    if let userID: User.ID = dataRow.userID.flatMap(User.ID.init(uuidString:)) {
+    if let userID: User.ID = dataRow.userID.flatMap(User.ID.init(rawValue:)) {
       return .user(
         id: userID,
         permission: permission,
         permissionID: permissionID
       )
     }
-    else if let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(uuidString:)) {
+    else if let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(rawValue:)) {
       return .userGroup(
         id: userGroupID,
         permission: permission,

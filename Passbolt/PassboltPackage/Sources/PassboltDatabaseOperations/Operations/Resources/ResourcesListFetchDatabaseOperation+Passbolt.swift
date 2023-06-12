@@ -419,7 +419,7 @@ extension ResourcesListFetchDatabaseOperation {
       try connection
       .fetch(using: statement) { dataRow -> ResourceListItemDSV in
         guard
-          let id: Resource.ID = dataRow.id.flatMap(Resource.ID.init(uuidString:)),
+          let id: Resource.ID = dataRow.id.flatMap(Resource.ID.init(rawValue:)),
           let name: String = dataRow.name
         else {
           throw
@@ -434,7 +434,7 @@ extension ResourcesListFetchDatabaseOperation {
 
         return ResourceListItemDSV(
           id: id,
-          parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(uuidString:)),
+          parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:)),
           name: name,
           username: dataRow.username,
           url: dataRow.uri

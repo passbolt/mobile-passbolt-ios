@@ -31,7 +31,7 @@ extension ResourceDeleteNetworkOperation {
     _ input: Input
   ) -> Mutation<HTTPRequest> {
     .combined(
-      .pathSuffix("/resources/\(input.resourceID).json"),
+      .pathSuffix("/resources/\(input.resourceID.urlString).json"),
       .method(.delete)
     )
   }

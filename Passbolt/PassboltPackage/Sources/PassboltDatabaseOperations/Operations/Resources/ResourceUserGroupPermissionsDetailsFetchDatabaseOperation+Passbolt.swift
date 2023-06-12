@@ -78,7 +78,7 @@ extension ResourceUserGroupPermissionsDetailsFetchDatabaseOperation {
       try connection
       .fetch(using: groupsSelectStatement) { dataRow -> UserGroupPermissionDetailsDSV in
         guard
-          let id: UserGroup.ID = dataRow.id.flatMap(UserGroup.ID.init(uuidString:)),
+          let id: UserGroup.ID = dataRow.id.flatMap(UserGroup.ID.init(rawValue:)),
           let name: String = dataRow.name,
           let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:))
         else {
@@ -95,7 +95,7 @@ extension ResourceUserGroupPermissionsDetailsFetchDatabaseOperation {
           try connection
           .fetch(using: groupMembersSelectStatement) { dataRow -> UserDetailsDSV in
             guard
-              let id: User.ID = dataRow.id.flatMap(User.ID.init(uuidString:)),
+              let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:)),
               let username: String = dataRow.username,
               let firstName: String = dataRow.firstName,
               let lastName: String = dataRow.lastName,

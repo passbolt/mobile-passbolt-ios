@@ -77,7 +77,7 @@ extension UsersListFetchDatabaseOperation {
       try connection
       .fetch(using: statement) { dataRow -> UserDetailsDSV in
         guard
-          let id: User.ID = dataRow.id.flatMap(User.ID.init(uuidString:)),
+          let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:)),
           let username: String = dataRow.username,
           let firstName: String = dataRow.firstName,
           let lastName: String = dataRow.lastName,

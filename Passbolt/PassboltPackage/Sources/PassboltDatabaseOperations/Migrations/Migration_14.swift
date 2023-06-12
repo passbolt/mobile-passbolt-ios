@@ -30,16 +30,16 @@ extension SQLiteMigration {
     [
       // - remove resourceTypesFields - //
       """
-      			DROP TABLE resourceTypesFields;
-      			""",
+      DROP TABLE resourceTypesFields;
+      """,
       // - remove resourceFields - //
       """
-      			DROP TABLE resourceFields;
-      			""",
+      DROP TABLE resourceFields;
+      """,
       // - version bump - //
       """
-      			PRAGMA user_version = 15; -- persistent, used to track schema version
-      			""",
+      PRAGMA user_version = 15; -- persistent, used to track schema version
+      """,
     ]
   }
 }

@@ -65,9 +65,9 @@ extension ResourceFolderPermissionsFetchDatabaseOperation {
       try connection
       .fetch(using: usersPermissionsStatement) { dataRow -> ResourceFolderPermission in
         guard
-          let userID: User.ID = dataRow.userID.flatMap(User.ID.init(uuidString:)),
+          let userID: User.ID = dataRow.userID.flatMap(User.ID.init(rawValue:)),
           let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:)),
-          let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(uuidString:))
+          let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
         else {
           throw
             DatabaseIssue
@@ -89,9 +89,9 @@ extension ResourceFolderPermissionsFetchDatabaseOperation {
       try connection
       .fetch(using: userGroupsPermissionsStatement) { dataRow -> ResourceFolderPermission in
         guard
-          let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(uuidString:)),
+          let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(rawValue:)),
           let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:)),
-          let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(uuidString:))
+          let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
         else {
           throw
             DatabaseIssue

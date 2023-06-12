@@ -163,7 +163,7 @@ extension ResourceDetailsFetchDatabaseOperation {
         using: selectResourcePathStatement
       ) { dataRow in
         guard
-          let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(uuidString:)),
+          let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
           let name: String = dataRow.name,
           let shared: Bool = dataRow.shared
         else {
@@ -187,9 +187,9 @@ extension ResourceDetailsFetchDatabaseOperation {
     ) {
       dataRow in
       guard
-        let userID: User.ID = dataRow.userID.flatMap(User.ID.init(uuidString:)),
+        let userID: User.ID = dataRow.userID.flatMap(User.ID.init(rawValue:)),
         let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:)),
-        let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(uuidString:))
+        let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
       else {
         throw
           DatabaseDataInvalid
@@ -208,9 +208,9 @@ extension ResourceDetailsFetchDatabaseOperation {
       using: selectResourcesUserGroupsPermissionsStatement
     ) { dataRow in
       guard
-        let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(uuidString:)),
+        let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(rawValue:)),
         let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:)),
-        let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(uuidString:))
+        let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
       else {
         throw
           DatabaseDataInvalid
@@ -230,7 +230,7 @@ extension ResourceDetailsFetchDatabaseOperation {
         using: selectResourceTagsStatement
       ) { dataRow in
         guard
-          let id: ResourceTag.ID = dataRow.id.flatMap(ResourceTag.ID.init(uuidString:)),
+          let id: ResourceTag.ID = dataRow.id.flatMap(ResourceTag.ID.init(rawValue:)),
           let slug: ResourceTag.Slug = dataRow.slug.flatMap(ResourceTag.Slug.init(rawValue:)),
           let shared: Bool = dataRow.shared
         else {
@@ -253,10 +253,10 @@ extension ResourceDetailsFetchDatabaseOperation {
         using: selectResourceWithTypeStatement
       ) { (dataRow: SQLiteRow) throws -> Resource in
         guard
-          let id: Resource.ID = dataRow.id.flatMap(Resource.ID.init(uuidString:)),
+          let id: Resource.ID = dataRow.id.flatMap(Resource.ID.init(rawValue:)),
           let name: String = dataRow.name,
           let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:)),
-          let typeID: ResourceType.ID = dataRow.typeID.flatMap(ResourceType.ID.init(uuidString:)),
+          let typeID: ResourceType.ID = dataRow.typeID.flatMap(ResourceType.ID.init(rawValue:)),
           let typeSlug: ResourceSpecification.Slug = dataRow.typeSlug.flatMap(
             ResourceSpecification.Slug.init(rawValue:)
           ),
@@ -271,7 +271,7 @@ extension ResourceDetailsFetchDatabaseOperation {
         var resource: Resource = .init(
           id: id,
           path: path,
-          favoriteID: dataRow.favoriteID.flatMap(Resource.Favorite.ID.init(uuidString:)),
+          favoriteID: dataRow.favoriteID.flatMap(Resource.Favorite.ID.init(rawValue:)),
           type: .init(
             id: typeID,
             slug: typeSlug,

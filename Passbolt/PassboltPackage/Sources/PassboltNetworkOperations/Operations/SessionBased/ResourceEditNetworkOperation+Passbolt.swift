@@ -31,7 +31,7 @@ extension ResourceEditNetworkOperation {
     _ input: Input
   ) -> Mutation<HTTPRequest> {
     .combined(
-      .pathSuffix("/resources/\(input.resourceID).json"),
+      .pathSuffix("/resources/\(input.resourceID.urlString).json"),
       .jsonBody(from: input),
       .method(.put)
     )
