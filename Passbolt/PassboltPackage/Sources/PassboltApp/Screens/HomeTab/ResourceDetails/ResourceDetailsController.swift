@@ -219,7 +219,7 @@ extension ResourceDetailsController: UIController {
           guard
             let resource = resourceWithConfig?.resource,
             let resourceID = resource.id,
-            let field: ResourceField = resource.type.password
+            let field: ResourceField = resource.type.password ?? resource.type.secret
           else {
             return Fail<Void, Error>(error: InvalidResourceData.error())
               .eraseToAnyPublisher()

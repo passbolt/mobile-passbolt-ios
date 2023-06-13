@@ -151,7 +151,7 @@ extension ResourcesListNodeController {
           let secret: ResourceSecret = try await resourceDetails.secret()
 
           guard
-            let passwordField: ResourceField = resource.type.password,
+            let passwordField: ResourceField = resource.type.password ?? resource.type.secret,
             let password: String = secret.value(for: passwordField)?.stringValue
           else {
             throw
