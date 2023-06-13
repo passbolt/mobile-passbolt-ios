@@ -73,7 +73,7 @@ extension ResourceSecret {
       catch {
         return Self(
           rawValue: message,
-          values: ["password": .string(message)]
+          values: ["secret": .string(message)]
         )
       }
     }
