@@ -117,7 +117,7 @@ extension ResourceEditController: UIController {
         }
       }
       .map { (resourceType: ResourceType) -> ResourceField? in
-        resourceType.password
+        resourceType.password ?? resourceType.secret
       }
       .replaceError(with: .none)
       .map { (field: ResourceField?) in
@@ -157,7 +157,8 @@ extension ResourceEditController: UIController {
         failMessage: "Password generation failed",
         behavior: .reuse
       ) {
-        guard let passwordField: ResourceField = try await resourceForm.resource().type.password
+				let resourceType = try await resourceForm.resource().type
+				guard let passwordField: ResourceField = resourceType.password ?? resourceType.secret
         else { return assertionFailure("Trying to generate password without pasword field") }
 
         let password: String = randomGenerator.generate(

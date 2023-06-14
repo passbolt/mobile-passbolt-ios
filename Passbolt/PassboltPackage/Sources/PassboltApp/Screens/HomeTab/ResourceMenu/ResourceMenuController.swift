@@ -134,6 +134,9 @@ extension ResourceMenuController: UIController {
             if case "password" = field.name {
               return true
             }
+						else  if case "secret" = field.name {
+							return true
+						}
             else {
               return false
             }
