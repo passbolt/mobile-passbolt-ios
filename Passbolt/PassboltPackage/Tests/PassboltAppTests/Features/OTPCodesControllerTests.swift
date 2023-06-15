@@ -89,10 +89,12 @@ final class OTPCodesControllerTests: LoadableFeatureTestCase<OTPCodesController>
       \TOTPCodeGenerator.generate,
       context: .init(
         resourceID: .mock_1,
-        sharedSecret: "MOCK",
-        algorithm: .sha1,
-        digits: 6,
-        period: 30
+				totpSecret: .init(
+					sharedSecret: "MOCK",
+					algorithm: .sha1,
+					digits: 6,
+					period: 30
+				)
       ),
       with: always(
         .init(
@@ -145,10 +147,12 @@ final class OTPCodesControllerTests: LoadableFeatureTestCase<OTPCodesController>
       \TOTPCodeGenerator.generate,
       context: .init(
         resourceID: .mock_1,
-        sharedSecret: "MOCK",
-        algorithm: .sha1,
-        digits: 6,
-        period: 30
+				totpSecret: .init(
+					sharedSecret: "MOCK",
+					algorithm: .sha1,
+					digits: 6,
+					period: 30
+				)
       ),
       with: always(
         .init(
@@ -191,10 +195,12 @@ final class OTPCodesControllerTests: LoadableFeatureTestCase<OTPCodesController>
       \TOTPCodeGenerator.generate,
       context: .init(
         resourceID: .mock_1,
-        sharedSecret: "MOCK",
-        algorithm: .sha1,
-        digits: 6,
-        period: 30
+				totpSecret: .init(
+					sharedSecret: "MOCK",
+					algorithm: .sha1,
+					digits: 6,
+					period: 30
+				)
       ),
       with: always(
         .init(
@@ -233,10 +239,12 @@ final class OTPCodesControllerTests: LoadableFeatureTestCase<OTPCodesController>
       \TOTPCodeGenerator.generate,
       context: .init(
         resourceID: .mock_1,
-        sharedSecret: "MOCK_REMOVED",
-        algorithm: .sha1,
-        digits: 6,
-        period: 30
+				totpSecret: .init(
+					sharedSecret: "MOCK_REMOVED",
+					algorithm: .sha1,
+					digits: 6,
+					period: 30
+				)
       ),
       with: always(
         .init(
@@ -251,10 +259,12 @@ final class OTPCodesControllerTests: LoadableFeatureTestCase<OTPCodesController>
       \TOTPCodeGenerator.generate,
       context: .init(
         resourceID: .mock_2,
-        sharedSecret: "MOCK",
-        algorithm: .sha1,
-        digits: 6,
-        period: 30
+				totpSecret: .init(
+					sharedSecret: "MOCK",
+					algorithm: .sha1,
+					digits: 6,
+					period: 30
+				)
       ),
       with: always(
         .init(
@@ -317,10 +327,12 @@ final class OTPCodesControllerTests: LoadableFeatureTestCase<OTPCodesController>
       \TOTPCodeGenerator.generate,
       context: .init(
         resourceID: .mock_1,
-        sharedSecret: "MOCK",
-        algorithm: .sha1,
-        digits: 6,
-        period: 30
+				totpSecret: .init(
+					sharedSecret: "MOCK",
+					algorithm: .sha1,
+					digits: 6,
+					period: 30
+				)
       ),
       with: always(
         .init(

@@ -45,30 +45,52 @@ extension ResourceFieldName {
     case "description":
       return "resource.edit.field.description.label"
 
+		case "totp":
+			return "resource.edit.field.totp.label"
+
     case let rawName:
       return .raw(rawName)
     }
   }
 
-  public var displayablePlaceholder: DisplayableString? {
+  public var displayableViewingPlaceholder: DisplayableString {
     switch self.rawValue {
-    case "name":
-      return "resource.edit.field.name.placeholder"
-
     case "uri":
-      return "resource.edit.field.uri.placeholder"
+      return "resource.show.field.uri.placeholder"
 
     case "username":
-      return "resource.edit.field.username.placeholder"
+      return "resource.show.field.username.placeholder"
 
     case "password", "secret":
-      return "resource.edit.field.password.placeholder"
+      return "resource.show.field.password.placeholder"
 
     case "description":
-      return "resource.edit.field.description.placeholder"
+      return "resource.show.field.description.placeholder"
 
     case _:
-      return .none
+			return .raw("")
     }
   }
+
+	public var displayableEditingPlaceholder: DisplayableString {
+		switch self.rawValue {
+		case "name":
+			return "resource.edit.field.name.placeholder"
+
+		case "uri":
+			return "resource.edit.field.uri.placeholder"
+
+		case "username":
+			return "resource.edit.field.username.placeholder"
+
+		case "password", "secret":
+			return "resource.edit.field.password.placeholder"
+
+		case "description":
+			return "resource.edit.field.description.placeholder"
+
+		case _:
+			return .raw("")
+		}
+	}
 }

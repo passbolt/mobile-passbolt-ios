@@ -72,11 +72,16 @@
 "resource.detail.field.passphrase" = "Password";
 "resource.detail.field.uri" = "Website URL";
 "resource.detail.field.description" = "Description";
+"resource.show.field.uri.placeholder" = "No URL";
+"resource.show.field.username.placeholder" = "No username";
+"resource.show.field.password.placeholder" = "No password";
+"resource.show.field.description.placeholder" = "No description";
 "resource.value.copied" = "%@ copied to your clipboard!";
 "resource.details.value" = "Value";
 "resource.detail.section.location" = "Location";
 "resource.detail.section.permissions" = "Shared with";
 "resource.detail.section.tags" = "Tags";
+"resource.detail.undefined.content.warning" = "Unsupported type, unknown fields are hidden!";
 
 "resource.delete.succeeded" = "Resource has been deleted.";
 
@@ -120,6 +125,7 @@
 "resource.edit.field.username.label" = "Username";
 "resource.edit.field.password.label" = "Password";
 "resource.edit.field.description.label" = "Description";
+"resource.edit.field.totp.label" = "TOTP";
 "resource.edit.field.name.placeholder" = "Enter a name";
 "resource.edit.field.uri.placeholder" = "Enter URL";
 "resource.edit.field.username.placeholder" = "Enter username";

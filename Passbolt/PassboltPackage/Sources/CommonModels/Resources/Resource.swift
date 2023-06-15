@@ -115,6 +115,18 @@ extension Resource {
     self.secret != .null
   }
 
+	public var containsUndefinedFields: Bool {
+		self.type.specification.slug == .placeholder
+		|| self.allFields.contains(where: { (field: ResourceFieldSpecification) in
+			if case .undefined = field.semantics {
+				return true
+			}
+			else {
+				return false
+			}
+		})
+	}
+
 	public var containsOTP: Bool {
 		// currently only TOTP is supported and recognized only by its name
 		self.contains(\.secret.totp)
@@ -126,7 +138,7 @@ extension Resource {
     // it can be either legacy or placeholder resource where there is none structure
     // or it was not available to parse and check,
     // it has to be the only element in secret specification
-    self.secretPaths.count == 1 && self.secretPaths.contains(\.secret)
+		self.secretPaths.count == 1 && self.secretPaths.contains(\.secret)
   }
 
   public var metaFields: OrderedSet<ResourceFieldSpecification> {

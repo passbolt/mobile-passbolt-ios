@@ -281,12 +281,13 @@ extension ResourceFieldSpecification {
 
 extension ResourceFieldSpecification {
 
-  public var editor: ResourceFieldEditor {
+  public var semantics: ResourceFieldSemantics {
     switch self.content {
     case .string(_, .some(let maxLength)) where maxLength > 4096:
       return .longTextField(
         name: self.name.displayable,
-        placeholder: self.name.displayablePlaceholder,
+				viewingPlaceholder: self.name.displayableViewingPlaceholder,
+				editingPlaceholder: self.name.displayableEditingPlaceholder,
         required: self.required,
         encrypted: self.encrypted
       )
@@ -294,7 +295,8 @@ extension ResourceFieldSpecification {
     case .string:
       return .textField(
         name: self.name.displayable,
-        placeholder: self.name.displayablePlaceholder,
+				viewingPlaceholder: self.name.displayableViewingPlaceholder,
+				editingPlaceholder: self.name.displayableEditingPlaceholder,
         required: self.required,
         encrypted: self.encrypted
       )
@@ -302,7 +304,8 @@ extension ResourceFieldSpecification {
     case .int:
       return .textField(
         name: self.name.displayable,
-        placeholder: self.name.displayablePlaceholder,
+				viewingPlaceholder: self.name.displayableViewingPlaceholder,
+				editingPlaceholder: self.name.displayableEditingPlaceholder,
         required: self.required,
         encrypted: self.encrypted
       )
@@ -310,7 +313,8 @@ extension ResourceFieldSpecification {
     case .double:
       return .textField(
         name: self.name.displayable,
-        placeholder: self.name.displayablePlaceholder,
+				viewingPlaceholder: self.name.displayableViewingPlaceholder,
+				editingPlaceholder: self.name.displayableEditingPlaceholder,
         required: self.required,
         encrypted: self.encrypted
       )
@@ -318,15 +322,27 @@ extension ResourceFieldSpecification {
     case .stringEnum(let values):
       return .selection(
         name: self.name.displayable,
-        placeholder: self.name.displayablePlaceholder,
+				viewingPlaceholder: self.name.displayableViewingPlaceholder,
+				editingPlaceholder: self.name.displayableEditingPlaceholder,
         required: self.required,
         encrypted: self.encrypted,
         values: values
       )
 
-    case .structure:
-      return .undefined
-    }
+		case .totp:
+			return .totp(
+				name: self.name.displayable,
+				required: self.required,
+				encrypted: self.encrypted
+			)
+
+		case .structure:
+			return .undefined(
+				name: self.name.displayable,
+				required: self.required,
+				encrypted: self.encrypted
+			)
+		}
   }
 }
 

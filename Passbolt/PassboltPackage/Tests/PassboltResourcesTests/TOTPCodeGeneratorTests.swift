@@ -83,10 +83,12 @@ final class TOTPCodeGeneratorTests: LoadableFeatureTestCase<TOTPCodeGenerator> {
       ),
       context: .init(
         resourceID: .mock_1,
-        sharedSecret: self.secret,
-        algorithm: .sha1,
-        digits: 6,
-        period: 30
+				totpSecret: .init(
+					sharedSecret: self.secret,
+					algorithm: .sha1,
+					digits: 6,
+					period: 30
+				)
       )
     ) { (feature: TOTPCodeGenerator) in
       feature.generate()
@@ -123,10 +125,12 @@ final class TOTPCodeGeneratorTests: LoadableFeatureTestCase<TOTPCodeGenerator> {
       ),
       context: .init(
         resourceID: .mock_1,
-        sharedSecret: self.secret,
-        algorithm: .sha1,
-        digits: 6,
-        period: 30
+				totpSecret: .init(
+					sharedSecret: self.secret,
+					algorithm: .sha1,
+					digits: 6,
+					period: 30
+				)
       )
     ) { (feature: TOTPCodeGenerator) in
       feature.generate()
@@ -163,10 +167,12 @@ final class TOTPCodeGeneratorTests: LoadableFeatureTestCase<TOTPCodeGenerator> {
       ),
       context: .init(
         resourceID: .mock_1,
-        sharedSecret: self.secret,
-        algorithm: .sha1,
-        digits: 6,
-        period: 30
+				totpSecret: .init(
+					sharedSecret: self.secret,
+					algorithm: .sha1,
+					digits: 6,
+					period: 30
+				)
       )
     ) { (feature: TOTPCodeGenerator) in
       feature.generate()
@@ -203,10 +209,12 @@ final class TOTPCodeGeneratorTests: LoadableFeatureTestCase<TOTPCodeGenerator> {
       ),
       context: .init(
         resourceID: .mock_1,
-        sharedSecret: self.secret,
-        algorithm: .sha1,
-        digits: 6,
-        period: 30
+				totpSecret: .init(
+					sharedSecret: self.secret,
+					algorithm: .sha1,
+					digits: 6,
+					period: 30
+				)
       )
     ) { (feature: TOTPCodeGenerator) in
       feature.generate()
@@ -243,10 +251,12 @@ final class TOTPCodeGeneratorTests: LoadableFeatureTestCase<TOTPCodeGenerator> {
       ),
       context: .init(
         resourceID: .mock_1,
-        sharedSecret: self.secret,
-        algorithm: .sha1,
-        digits: 6,
-        period: 30
+				totpSecret: .init(
+					sharedSecret: self.secret,
+					algorithm: .sha1,
+					digits: 6,
+					period: 30
+				)
       )
     ) { (feature: TOTPCodeGenerator) in
       feature.generate()
@@ -283,10 +293,12 @@ final class TOTPCodeGeneratorTests: LoadableFeatureTestCase<TOTPCodeGenerator> {
       ),
       context: .init(
         resourceID: .mock_1,
-        sharedSecret: self.secret,
-        algorithm: .sha1,
-        digits: 8,
-        period: 30
+				totpSecret: .init(
+					sharedSecret: self.secret,
+					algorithm: .sha1,
+					digits: 8,
+					period: 30
+				)
       )
     ) { (feature: TOTPCodeGenerator) in
       feature.generate()
@@ -323,10 +335,12 @@ final class TOTPCodeGeneratorTests: LoadableFeatureTestCase<TOTPCodeGenerator> {
       ),
       context: .init(
         resourceID: .mock_1,
-        sharedSecret: self.secret,
-        algorithm: .sha1,
-        digits: 6,
-        period: 10
+				totpSecret: .init(
+					sharedSecret: self.secret,
+					algorithm: .sha1,
+					digits: 6,
+					period: 10
+				)
       )
     ) { (feature: TOTPCodeGenerator) in
       feature.generate()
@@ -363,10 +377,12 @@ final class TOTPCodeGeneratorTests: LoadableFeatureTestCase<TOTPCodeGenerator> {
       ),
       context: .init(
         resourceID: .mock_1,
-        sharedSecret: self.secret,
-        algorithm: .sha1,
-        digits: 6,
-        period: 10
+				totpSecret: .init(
+					sharedSecret: self.secret,
+					algorithm: .sha1,
+					digits: 6,
+					period: 10
+				)
       )
     ) { (feature: TOTPCodeGenerator) in
       feature.generate()
@@ -403,10 +419,12 @@ final class TOTPCodeGeneratorTests: LoadableFeatureTestCase<TOTPCodeGenerator> {
       ),
       context: .init(
         resourceID: .mock_1,
-        sharedSecret: self.secret,
-        algorithm: .sha1,
-        digits: 6,
-        period: 10
+				totpSecret: .init(
+					sharedSecret: self.secret,
+					algorithm: .sha1,
+					digits: 6,
+					period: 10
+				)
       )
     ) { (feature: TOTPCodeGenerator) in
       feature.generate()
@@ -443,10 +461,12 @@ final class TOTPCodeGeneratorTests: LoadableFeatureTestCase<TOTPCodeGenerator> {
       ),
       context: .init(
         resourceID: .mock_1,
-        sharedSecret: self.secret,
-        algorithm: .sha1,
-        digits: 6,
-        period: 10
+				totpSecret: .init(
+					sharedSecret: self.secret,
+					algorithm: .sha1,
+					digits: 6,
+					period: 10
+				)
       )
     ) { (feature: TOTPCodeGenerator) in
       feature.generate()

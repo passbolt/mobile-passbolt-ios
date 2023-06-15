@@ -126,10 +126,6 @@ where Content: View, Accessory: View {
         },
         loadingLabel: {
           HStack(spacing: 8) {
-            SwiftUI.ProgressView()
-              .progressViewStyle(.circular)
-              .tint(.passboltPrimaryText)
-
             self.content()
               .frame(  // fill space
                 maxWidth: .infinity,
@@ -137,6 +133,10 @@ where Content: View, Accessory: View {
                 maxHeight: .infinity,
                 alignment: .topLeading
               )
+						
+						SwiftUI.ProgressView()
+							.progressViewStyle(.circular)
+							.tint(.passboltPrimaryText)
 
             self.accessory()
               .frame(  // minimal for interaction

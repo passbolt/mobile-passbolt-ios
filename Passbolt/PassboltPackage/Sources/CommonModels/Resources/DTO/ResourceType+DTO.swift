@@ -38,7 +38,7 @@ extension ResourceTypeDTO: Decodable {
     // [MOB-1283] In order to make grade D we can use hardcoded types.
     // We are using it instead of decoding JSON schema in order to avoid
     // yet unnecessary work related to decoding and interpreting it.
-    // Any unknown resource type will cause data decoding failure, however
+    // Any unknown resource type will result in placeholder type, however
     // at this stage all resource types are are known and won't change without
     // preparation on the client side as well. This will require client updates
     // when we introduce new resource types though.
@@ -47,7 +47,7 @@ extension ResourceTypeDTO: Decodable {
       self.specification = .password
 
     case .passwordWithDescription:
-      self.specification = .passwordWithDescription
+			self.specification = .passwordWithDescription
 
     case .totp:
       self.specification = .totp
@@ -56,14 +56,7 @@ extension ResourceTypeDTO: Decodable {
       self.specification = .passwordWithTOTP
 
     case _:
-      throw
-        DecodingError
-        .dataCorrupted(
-          .init(
-            codingPath: decoder.codingPath,
-            debugDescription: "Unknown resource type!"
-          )
-        )
+			self.specification = .placeholder
     }
   }
 

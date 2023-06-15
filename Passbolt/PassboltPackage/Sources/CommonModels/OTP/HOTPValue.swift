@@ -25,12 +25,12 @@ import Commons
 
 public struct HOTPValue {
 
-  public var resourceID: Resource.ID
+  public var resourceID: Resource.ID?
   public var otp: OTP
   public var counter: UInt64
 
   public init(
-    resourceID: Resource.ID,
+    resourceID: Resource.ID?,
     otp: OTP,
     counter: UInt64
   ) {

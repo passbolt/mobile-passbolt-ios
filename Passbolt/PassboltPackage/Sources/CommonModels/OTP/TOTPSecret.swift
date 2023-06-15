@@ -45,7 +45,7 @@ public struct TOTPSecret {
 
 extension TOTPSecret: Sendable {}
 
-extension TOTPSecret: Equatable {}
+extension TOTPSecret: Hashable {}
 
 extension TOTPSecret: Codable {
 

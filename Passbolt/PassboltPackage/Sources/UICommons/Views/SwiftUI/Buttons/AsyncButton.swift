@@ -27,12 +27,12 @@ public struct AsyncButton<RegularView, LoadingView>: View
 where RegularView: View, LoadingView: View {
 
   @State private var runningTask: Task<Void, Never>?
-  private let action: @Sendable () async -> Void
+  private let action: () async -> Void
   private let regularLabel: () -> RegularView
   private let loadingLabel: () -> LoadingView
 
   public init(
-    @_inheritActorContext action: @escaping @Sendable () async -> Void,
+    @_inheritActorContext action: @escaping () async -> Void,
     @ViewBuilder regularLabel: @escaping () -> RegularView,
     @ViewBuilder loadingLabel: @escaping () -> LoadingView
   ) {
@@ -42,7 +42,7 @@ where RegularView: View, LoadingView: View {
   }
 
   public init(
-		@_inheritActorContext action: @escaping @Sendable () async -> Void,
+		@_inheritActorContext action: @escaping () async -> Void,
     @ViewBuilder regularLabel: @escaping () -> RegularView
   ) where LoadingView == EmptyView {
     self.action = action

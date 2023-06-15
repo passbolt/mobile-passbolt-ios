@@ -150,7 +150,7 @@ extension ResourceContextualMenuViewController {
       accessActions.append(.copyUsername)
     }  // else NOP
 
-    if resource.contains(\.secret.password) || resource.contains(\.secret) {
+		if resource.contains(\.secret.password) || (resource.contains(\.secret) && resource.type.specification.slug != .placeholder) {
       accessActions.append(.copyPassword)
     }  // else NOP
 
@@ -174,8 +174,12 @@ extension ResourceContextualMenuViewController {
     if resource.permission.canShare {
       modifyActions.append(.share)
     }  // else NOP
+
     if resource.permission.canEdit {
-      modifyActions.append(.edit)
+			if !resource.containsUndefinedFields {
+				modifyActions.append(.edit)
+			} // else NOP
+
       modifyActions.append(.delete)
     }  // else NOP
 
@@ -206,11 +210,9 @@ extension ResourceContextualMenuViewController {
 			await self.copyOTPCode()
 
     case .copyPassword:
-      // it can be \.secret as well!!!
 			await self.copy(field: \.secret.password)
 
     case .copyDescription:
-      // it can be \.meta.description as well!!!
 			await self.copy(field: \.secret.description)
     }
   }
@@ -251,7 +253,7 @@ extension ResourceContextualMenuViewController {
 					if resource.contains(\.secret.password) {
 						fieldPath = \.secret.password
 					}
-					else if resource.contains(\.secret) {
+					else if (resource.contains(\.secret) && resource.type.specification.slug != .placeholder) {
 						fieldPath = \.secret
 					}
 					else {
@@ -264,7 +266,7 @@ extension ResourceContextualMenuViewController {
 							)
 					}
 				}
-				// edscription can be encrypted or not
+				// description can be encrypted or not
 				else if path == \.secret.description {
 					if resource.contains(\.secret.description) {
 						fieldPath = \.secret.description
@@ -326,7 +328,7 @@ extension ResourceContextualMenuViewController {
 					if resource.contains(\.secret.password) {
 						fieldPath = \.secret.password
 					}
-					else if resource.contains(\.secret) {
+					else if (resource.contains(\.secret) && resource.type.specification.slug != .placeholder) {
 						fieldPath = \.secret
 					}
 					else {
@@ -339,7 +341,7 @@ extension ResourceContextualMenuViewController {
 							)
 					}
 				}
-				// edscription can be encrypted or not
+				// description can be encrypted or not
 				else if path == \.secret.description {
 					if resource.contains(\.secret.description) {
 						fieldPath = \.secret.description
@@ -434,10 +436,7 @@ extension ResourceContextualMenuViewController {
 				let totpCodeGenerator: TOTPCodeGenerator = try self.features.instance(
 					context: .init(
 						resourceID: resourceID,
-						sharedSecret: totpSecret.sharedSecret,
-						algorithm: totpSecret.algorithm,
-						digits: totpSecret.digits,
-						period: totpSecret.period
+						totpSecret: totpSecret
 					)
 				)
 

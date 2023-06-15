@@ -115,6 +115,7 @@
 "resource.edit.field.username.label" = "Nombre de usuario";
 "resource.edit.field.password.label" = "Contraseña";
 "resource.edit.field.description.label" = "Descripción";
+"resource.edit.field.totp.label" = "TOTP";
 "resource.edit.field.name.placeholder" = "Introducir un nombre";
 "resource.edit.field.uri.placeholder" = "Introducir URL";
 "resource.edit.field.username.placeholder" = "Introducir nombre de usuario";

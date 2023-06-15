@@ -21,31 +21,59 @@
 // @since         v1.0
 //
 
+import SwiftUI
 import Commons
 
-public enum ResourceFieldEditor {
+public struct TOTPValueView: View {
 
-  case textField(
-    name: DisplayableString,
-    placeholder: DisplayableString?,
-    required: Bool,
-    encrypted: Bool
-  )
+	private let value: TOTPValue?
 
-  case longTextField(
-    name: DisplayableString,
-    placeholder: DisplayableString?,
-    required: Bool,
-    encrypted: Bool
-  )
+	public init(
+		value: TOTPValue? // none is covered value
+	) {
+		self.value = value
+	}
 
-  case selection(
-    name: DisplayableString,
-    placeholder: DisplayableString?,
-    required: Bool,
-    encrypted: Bool,
-    values: Array<String>
-  )
+	public var body: some View {
+		if let value {
+			HStack(spacing: 12) {
+				Text(value.otp.rawValue.split(every: 3).joined(separator: " "))
+					.multilineTextAlignment(.leading)
+					.font(
+						.inconsolata(
+							ofSize: 24,
+							weight: .semibold
+						)
+					)
 
-  case undefined
+				CountdownCircleView(
+					current: value.timeLeft.rawValue,
+					max: value.period.rawValue
+				)
+			}
+			.frame(
+				maxWidth: .infinity,
+				alignment: .leading
+			)
+			.foregroundColor(
+				value.timeLeft > 5
+				? Color.passboltPrimaryText
+				: Color.passboltSecondaryRed
+			)
+		}
+		else {
+			Text("••• •••")
+				.multilineTextAlignment(.leading)
+				.font(
+					.inconsolata(
+						ofSize: 24,
+						weight: .semibold
+					)
+				)
+			.frame(
+				maxWidth: .infinity,
+				alignment: .leading
+			)
+		}
+	}
 }

@@ -109,8 +109,8 @@ public final class ResourceEditView: KeyboardAwareView {
     fieldViews =
       fields
       .compactMap { resourceField -> (field: ResourceFieldSpecification, view: PlainView)? in
-        switch resourceField.editor {
-        case .textField(let name, let placeholder, let required, encrypted: false):
+        switch resourceField.semantics {
+        case .textField(let name, _, let placeholder, let required, encrypted: false):
           return (
             field: resourceField,
             view: Mutation<TextInput>
@@ -138,7 +138,7 @@ public final class ResourceEditView: KeyboardAwareView {
               .instantiate()
           )
 
-        case .textField(let name, let placeholder, let required, encrypted: true):
+        case .textField(let name, _, let placeholder, let required, encrypted: true):
           return (
             field: resourceField,
             view: Mutation<SecureTextInput>
@@ -166,7 +166,7 @@ public final class ResourceEditView: KeyboardAwareView {
               .instantiate()
           )
 
-        case .longTextField(let name, let placeholder, let required, let encrypted)
+        case .longTextField(let name, _, let placeholder, let required, let encrypted)
         where resourceField.name == "description":
           return (
             field: resourceField,
@@ -214,7 +214,7 @@ public final class ResourceEditView: KeyboardAwareView {
               .instantiate()
           )
 
-        case .longTextField(let name, let placeholder, let required, let encrypted):
+        case .longTextField(let name, _, let placeholder, let required, let encrypted):
           return (
             field: resourceField,
             view: Mutation<TextViewInput>
@@ -244,6 +244,10 @@ public final class ResourceEditView: KeyboardAwareView {
         case .selection:
           // not supported yet
           return .none
+
+				case .totp:
+					// not supported yet
+					return .none
 
         case .undefined:
           return .none

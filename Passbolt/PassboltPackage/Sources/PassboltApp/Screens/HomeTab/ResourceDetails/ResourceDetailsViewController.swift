@@ -32,6 +32,7 @@ internal final class ResourceDetailsViewController: ViewController {
 
     internal var name: String
     internal var favorite: Bool
+		internal var containsUndefinedFields: Bool
     internal var fields: Array<ResourceDetailsFieldViewModel>
     internal var location: Array<String>
     internal var tags: Array<String>
@@ -100,6 +101,7 @@ internal final class ResourceDetailsViewController: ViewController {
       initial: .init(
         name: .init(),
         favorite: false,
+				containsUndefinedFields: false,
         fields: .init(),
         location: .init(),
         tags: .init(),
@@ -144,6 +146,7 @@ extension ResourceDetailsViewController {
     self.viewState.update { (state: inout ViewState) -> Void in
       state.name = resource.meta.name.stringValue ?? ""
       state.favorite = resource.favorite
+			state.containsUndefinedFields = resource.containsUndefinedFields
       state.location = resource.path.map(\.name)
       state.tags = resource.tags.map(\.slug.rawValue)
       state.permissions = resource.permissions.map { (permission: ResourcePermission) in
@@ -162,6 +165,7 @@ extension ResourceDetailsViewController {
 
       state.updateFields(
         for: resource,
+				using: self.features,
         revealedFields: self.revealedFields,
         passwordPreviewEnabled: self.passwordPreviewEnabled
       )
@@ -240,8 +244,22 @@ extension ResourceDetailsViewController {
           try await self.resourceController.fetchSecretIfNeeded()
           resource = try await self.resourceController.state.value
         }  // else NOP
-
-        self.pasteboard.put(resource[keyPath: path].stringValue ?? "")
+				let fieldValue: JSON = resource[keyPath: path]
+				if let totpSecret: TOTPSecret = fieldValue.totpSecretValue {
+					let totpValue: TOTPValue = try await self.features
+						.instance(
+							of: TOTPCodeGenerator.self,
+							context: .init(
+								resourceID: resource.id,
+								totpSecret: totpSecret
+							)
+						)
+						.generate()
+					self.pasteboard.put(totpValue.otp.rawValue)
+				}
+				else {
+					self.pasteboard.put(fieldValue.stringValue ?? "")
+				}
 
         await self.viewState.update { (state: inout ViewState) in
           state.snackbarMessage = .info(
@@ -291,39 +309,57 @@ extension ResourceDetailsViewController {
         try await self.update(resourceController.state.value)
       }
   }
+
+
+	internal func deactivate() {
+		self.diagnostics
+			.logCatch(
+				info: .message("Failed to cover resource fields!")
+			) { @MainActor in
+				self.revealedFields.removeAll()
+			}
+	}
 }
 
 extension ResourceDetailsViewController.ViewState {
 
-  fileprivate mutating func updateFields(
+  @MainActor fileprivate mutating func updateFields(
     for resource: Resource,
+		using features: Features,
     revealedFields: Set<Resource.FieldPath>,
     passwordPreviewEnabled: Bool
   ) {
+		if resource.type.specification.slug == .placeholder {
+			self.fields = .init() // show no fields for placeholder type
+		}
+		else {
     self.fields =
-      resource
-      .metaFields
-      // remove name from fields, we already have it displayed
-      .filter { (field: ResourceFieldSpecification) -> Bool in
-        field.path != \.meta.name
-      }
-      .map { (field: ResourceFieldSpecification) -> ResourceDetailsFieldViewModel in
-        .meta(field, in: resource)
-      }
-      + resource
-      .secretFields
-      .map { (field: ResourceFieldSpecification) -> ResourceDetailsFieldViewModel in
-        let revealed: Bool = revealedFields.contains(field.path)
-        // check if password preview is allowed
-        let revealingAllowed: Bool =
-          passwordPreviewEnabled || !(field.path == \.secret.password || field.path == \.secret)
-        return .secret(
-          field,
-          in: resource,
-          revealed: revealed,
-          revealingAllowed: revealingAllowed
-        )
-      }
+			resource
+			.allFields
+			.compactMap { (field: ResourceFieldSpecification) -> ResourceDetailsFieldViewModel? in
+				// remove name from fields, we already have it displayed
+				if field.path == \.meta.name {
+					return .none
+				}
+				else {
+					return .init(
+						field,
+						in: resource,
+						revealedFields: revealedFields,
+						passwordPreviewEnabled: passwordPreviewEnabled,
+						prepareTOTPGenerator: { [features] totpSecret in
+							let generator: TOTPCodeGenerator = try features.instance(
+								context: .init(
+									resourceID: resource.id,
+									totpSecret: totpSecret
+								)
+							)
+							return generator.generate
+						}
+					)
+				}
+			}
+		}
   }
 }
 
@@ -336,18 +372,37 @@ internal struct ResourceDetailsFieldViewModel {
     case hide
   }
 
-  internal enum Value: Equatable, ExpressibleByStringLiteral {
+	internal enum Value: Equatable {
 
+		internal static func == (
+			_ lhs: ResourceDetailsFieldViewModel.Value,
+			_ rhs: ResourceDetailsFieldViewModel.Value
+		) -> Bool {
+			switch (lhs, rhs) {
+			case (.plain(let lString), .plain(let rString)):
+				return lString == rString
+
+			case (.encrypted, .encrypted):
+				return true
+
+			case (.encryptedTOTP, .encryptedTOTP):
+				return true
+
+			case (.totp(let lHash, _), .totp(let rHash, _)):
+				return lHash == rHash
+
+			case _:
+				return false
+			}
+		}
+
+		case password(String)
     case plain(String)
+		case placeholder(String)
     case encrypted
-    // TODO: [MOB-1290] - add TOTP to resource details
-    //	 case totp(TOTPValue)
-
-    init(
-      stringLiteral value: String
-    ) {
-      self = .plain(value)
-    }
+		case totp(hash: Int, generate: @Sendable () -> TOTPValue)
+		case encryptedTOTP
+		case invalid(TheError)
   }
 
   internal var path: Resource.FieldPath
@@ -355,39 +410,126 @@ internal struct ResourceDetailsFieldViewModel {
   internal var value: Value
   internal var accessory: Accessory?
 
-  internal static func meta(
-    _ field: ResourceFieldSpecification,
-    in resource: Resource
-  ) -> Self {
-    .init(
-      path: field.path,
-      name: field.name.displayable,
-      value: resource[keyPath: field.path].stringValue.map(Value.plain) ?? "",
-      accessory: .copy
-    )
-  }
+	internal init?(
+		_ field: ResourceFieldSpecification,
+		in resource: Resource,
+		revealedFields: Set<Resource.FieldPath>,
+		passwordPreviewEnabled: Bool,
+		prepareTOTPGenerator: (TOTPSecret) throws -> @Sendable () -> TOTPValue
+	) {
+		assert(
+			resource.type.specification.slug != .placeholder,
+			"Can't prepare fields for placeholder resources"
+		)
+		self.path = field.path
+		switch field.semantics {
+		case
+				.textField(let name, let placeholder, _, required: _, encrypted: false),
+				.longTextField(let name, let placeholder, _, required: _, encrypted: false),
+				.selection(let name, let placeholder, _, required: _, encrypted: false, values: _):
+			self.name = name
+			if let stringValue = resource[keyPath: field.path].stringValue, !stringValue.isEmpty {
+				self.value = .plain(stringValue)
+				self.accessory = .copy
+			}
+			else {
+				self.value = .placeholder(placeholder.string())
+				self.accessory = .none
+			}
 
-  internal static func secret(
-    _ field: ResourceFieldSpecification,
-    in resource: Resource,
-    revealed: Bool,
-    revealingAllowed: Bool
-  ) -> Self {
-    .init(
-      path: field.path,
-      name: field.name.displayable,
-      value: revealed && revealingAllowed
-        ? resource[keyPath: field.path].stringValue.map(Value.plain) ?? .encrypted
-        : .encrypted,
-      accessory: revealingAllowed
-        ? (  // if allowed check if secret is here and field is revealed
-          !revealed || resource[keyPath: field.path] == nil
-          ? .reveal
-          : .hide)
-        // if not allowed use copy action accessory
-        : .copy
-    )
-  }
+		case
+				.textField(let name, let placeholder, _, required: _, encrypted: true),
+				.longTextField(let name, let placeholder, _, required: _, encrypted: true),
+				.selection(let name, let placeholder, _, required: _, encrypted: true, values: _):
+			self.name = name
+			let revealed: Bool = revealedFields.contains(field.path)
+			let revealingAllowed: Bool = passwordPreviewEnabled || !(field.path == \.secret.password || field.path == \.secret)
+			if revealed && revealingAllowed {
+				if let stringValue = resource[keyPath: field.path].stringValue, !stringValue.isEmpty {
+					if path == \.secret.password || path == \.secret {
+						self.value = .password(stringValue)
+					}
+					else {
+						self.value = .plain(stringValue)
+					}
+				}
+				else {
+					self.value = .placeholder(placeholder.string())
+				}
+				self.accessory = .hide
+			}
+			else {
+				self.value = .encrypted
+				self.accessory = revealingAllowed
+				? .reveal
+				: .copy // if not allowed use copy action accessory
+			}
+
+		case .totp(let name, required: _, encrypted: true):
+			let revealed: Bool = revealedFields.contains(field.path)
+			self.name = name
+			if revealed {
+				if let totpSecret: TOTPSecret = resource[keyPath: field.path].totpSecretValue {
+					do {
+						self.value = .totp(
+							hash: totpSecret.hashValue,
+							generate: try prepareTOTPGenerator(totpSecret)
+						)
+					}
+					catch {
+						self.value = .invalid(error.asTheError())
+					}
+				}
+				else {
+					self.value = .invalid(
+						InvalidResourceField
+							.error(
+								"Invalid or missing TOTP field",
+								specification: field,
+								path: field.path,
+								value: nil,
+								displayable: "error.otp.configuration.invalid"
+							)
+					)
+				}
+				self.accessory = .hide
+			}
+			else {
+				self.value = .encryptedTOTP
+				self.accessory = .reveal
+			}
+
+		case .totp(let name, required: _, encrypted: false):
+			self.name = name
+			if let totpSecret: TOTPSecret = resource[keyPath: field.path].totpSecretValue {
+				do {
+					self.value = .totp(
+						hash: totpSecret.hashValue,
+						generate: try prepareTOTPGenerator(totpSecret)
+					)
+				}
+				catch {
+					self.value = .invalid(error.asTheError())
+				}
+			}
+			else {
+				self.value = .invalid(
+					InvalidResourceField
+						.error(
+							"Invalid or missing TOTP field",
+							specification: field,
+							path: field.path,
+							value: nil,
+							displayable: "error.otp.configuration.invalid"
+						)
+				)
+			}
+			self.accessory = .copy
+
+		case .undefined:
+			return nil
+		}
+	}
 }
 
 extension ResourceDetailsFieldViewModel: Equatable {}

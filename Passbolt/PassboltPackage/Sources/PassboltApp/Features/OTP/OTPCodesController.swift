@@ -88,10 +88,7 @@ extension OTPCodesController {
       let totpCodeGenerator: TOTPCodeGenerator = try await features.instance(
         context: .init(
           resourceID: resourceID,
-          sharedSecret: totp.sharedSecret,
-          algorithm: totp.algorithm,
-          digits: totp.digits,
-          period: totp.period
+					totpSecret: totp
         )
       )
       return {

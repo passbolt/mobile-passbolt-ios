@@ -21,33 +21,44 @@
 // @since         v1.0
 //
 
-public enum OTPValue {
+import Commons
 
-  case hotp(HOTPValue)
-  case totp(TOTPValue)
+public enum ResourceFieldSemantics {
+
+	case textField(
+		name: DisplayableString,
+		viewingPlaceholder: DisplayableString,
+		editingPlaceholder: DisplayableString,
+		required: Bool,
+		encrypted: Bool
+	)
+
+	case longTextField(
+		name: DisplayableString,
+		viewingPlaceholder: DisplayableString,
+		editingPlaceholder: DisplayableString,
+		required: Bool,
+		encrypted: Bool
+	)
+
+	case selection(
+		name: DisplayableString,
+		viewingPlaceholder: DisplayableString,
+		editingPlaceholder: DisplayableString,
+		required: Bool,
+		encrypted: Bool,
+		values: Array<String>
+	)
+
+	case totp(
+		name: DisplayableString,
+		required: Bool,
+		encrypted: Bool
+	)
+
+	case undefined(
+		name: DisplayableString,
+		required: Bool,
+		encrypted: Bool
+	)
 }
-
-extension OTPValue {
-
-  public var otp: OTP {
-    switch self {
-    case .totp(let value):
-      return value.otp
-
-    case .hotp(let value):
-      return value.otp
-    }
-  }
-
-  public var resourceID: Resource.ID? {
-    switch self {
-    case .totp(let value):
-      return value.resourceID
-
-    case .hotp(let value):
-      return value.resourceID
-    }
-  }
-}
-
-extension OTPValue: Equatable {}

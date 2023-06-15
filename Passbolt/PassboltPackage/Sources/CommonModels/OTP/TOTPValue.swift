@@ -25,13 +25,13 @@ import Commons
 
 public struct TOTPValue {
 
-  public var resourceID: Resource.ID
+  public var resourceID: Resource.ID?
   public var otp: OTP
   public var timeLeft: Seconds
   public var period: Seconds
 
   public init(
-    resourceID: Resource.ID,
+    resourceID: Resource.ID?,
     otp: OTP,
     timeLeft: Seconds,
     period: Seconds
