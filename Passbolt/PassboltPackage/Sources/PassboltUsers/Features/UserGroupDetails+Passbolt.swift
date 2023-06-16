@@ -41,11 +41,9 @@ extension UserGroupDetails {
       try await userGroupDetailsFetchDatabaseOperation(userGroupID)
     }
 
-    let currentDetails: UpdatableValue<UserGroupDetailsDSV> = .init(
-      updatesSequence:
-        sessionData
-        .updatesSequence,
-      update: fetchUserGroupDetails
+    let currentDetails: ComputedVariable<UserGroupDetailsDSV> = .init(
+      using: sessionData.updates,
+      compute: fetchUserGroupDetails
     )
 
     @Sendable nonisolated func details() async throws -> UserGroupDetailsDSV {

@@ -29,9 +29,11 @@ import UIComponents
 @MainActor public protocol ViewController: AnyObject, Hashable {
 
   associatedtype ViewState: Equatable = Never
+	associatedtype StateSource: ViewStateSource = MutableViewState<Never>
+	where StateSource.ViewState == ViewState
   associatedtype Context = Void
 
-  nonisolated var viewState: MutableViewState<ViewState> { get }
+	nonisolated var viewState: StateSource { get }
 
   @MainActor init(
     context: Context,
@@ -41,8 +43,10 @@ import UIComponents
 
 extension ViewController {
 
+	@available(*, deprecated, message: "Do not use viewNodeID to identify views.")
   public nonisolated var viewNodeID: ViewNodeID {
-    self.viewState.viewNodeID
+		(self.viewState as? MutableViewState<ViewState>)?.viewNodeID
+		?? .init(rawValue: .init(self))
   }
 }
 
@@ -69,12 +73,9 @@ extension ViewController /* Hashable */ {
 }
 
 extension ViewController
-where ViewState == Never {
+where StateSource == MutableViewState<Never> {
 
-  @_semantics("constant_evaluable")
-  @_alwaysEmitIntoClient
-  @_transparent  // Debug performance
-  public nonisolated var viewState: MutableViewState<ViewState> { .init() }
+  public nonisolated var viewState: StateSource { MutableViewState<Never>() }
 }
 
 extension ViewController {
@@ -91,7 +92,7 @@ extension ViewController {
   ) -> Binding<Value> {
     .init(
       get: {
-        self.viewState.value[keyPath: keyPath]
+        self.viewState.state[keyPath: keyPath]
       },
       set: setter
     )
@@ -103,7 +104,7 @@ extension ViewController {
   ) -> Binding<Validated<Value>> {
     .init(
       get: {
-        self.viewState.value[keyPath: keyPath]
+        self.viewState.state[keyPath: keyPath]
       },
       set: { (newValue: Validated<Value>) in
         setter(newValue.value)
@@ -119,7 +120,7 @@ extension ViewController {
   ) -> Binding<Validated<String>> {
     .init(
       get: {
-        let validated: Validated<Value> = self.viewState.value[keyPath: keyPath]
+        let validated: Validated<Value> = self.viewState.state[keyPath: keyPath]
         if let error: TheError = validated.error {
           return .invalid(
             toString(validated.value),

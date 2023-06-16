@@ -53,13 +53,13 @@ extension ResourceShareForm {
     let userGroups: UserGroups = try features.instance()
     let resourceShareNetworkOperation: ResourceShareNetworkOperation = try features.instance()
 
-    let formState: AsyncVariable<FormState> = .init(
-      initial: .init(
-        resourceID: resourceID,
-        editedPermissions: .init(),
-        deletedPermissions: .init()
-      )
-    )
+		let formState: Variable<FormState> = .init(
+			initial: .init(
+				resourceID: resourceID,
+					editedPermissions: .init(),
+					deletedPermissions: .init()
+				)
+		)
 
     @Sendable func existingPermissions() async -> OrderedSet<ResourcePermission> {
       do {
@@ -107,7 +107,8 @@ extension ResourceShareForm {
     }
 
     @Sendable nonisolated func currentPermissions() async -> OrderedSet<ResourcePermission> {
-      let formState: FormState = formState.value
+			guard let formState: FormState = try? await formState.value
+			else { return .init() }
       let existingPermissions: Array<ResourcePermission> = await existingPermissions()
         .filter { (permission: ResourcePermission) -> Bool in
           !formState.deletedPermissions
@@ -167,9 +168,8 @@ extension ResourceShareForm {
         )
       }
 
-      return
-        formState
-        .withValue { (state: inout FormState) in
+			formState
+        .mutate { (state: inout FormState) in
           state
             .editedPermissions
             .removeAll { (permission: ResourcePermission) in
@@ -192,8 +192,8 @@ extension ResourceShareForm {
     ) async {
       let existingPermissions: OrderedSet<ResourcePermission> = await existingPermissions()
 
-      formState
-        .withValue { (state: inout FormState) in
+			formState
+        .mutate { (state: inout FormState) in
           state
             .editedPermissions
             .removeAll { (permission: ResourcePermission) in
@@ -239,9 +239,8 @@ extension ResourceShareForm {
         )
       }
 
-      return
-        formState
-        .withValue { (state: inout FormState) in
+			formState
+        .mutate { (state: inout FormState) in
           state
             .editedPermissions
             .removeAll { (permission: ResourcePermission) in
@@ -264,8 +263,8 @@ extension ResourceShareForm {
     ) async {
       let existingPermissions: OrderedSet<ResourcePermission> = await existingPermissions()
 
-      formState
-        .withValue { (state: inout FormState) in
+			formState
+        .mutate { (state: inout FormState) in
           state
             .editedPermissions
             .removeAll { (permission: ResourcePermission) in
@@ -357,7 +356,7 @@ extension ResourceShareForm {
     }
 
     @Sendable nonisolated func sendForm() async throws {
-      let formState: FormState = formState.value
+      let formState: FormState = try await formState.value
 
       try await validate(formState: formState)
 

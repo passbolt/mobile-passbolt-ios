@@ -26,13 +26,14 @@ import Commons
 import SwiftUI
 
 @MainActor @dynamicMemberLookup
-public final class MutableViewState<State>
-where State: Equatable & Sendable {
+public final class MutableViewState<ViewState>
+where ViewState: Equatable & Sendable {
 
   public let cancellables: Cancellables = .init()
-  internal let stateWillChange: AnyPublisher<State, Never>
-  private let read: @MainActor () -> State
-  private let write: @MainActor (State) -> Void
+  internal let stateWillChange: AnyPublisher<ViewState, Never>
+  private let read: @MainActor () -> ViewState
+  private let write: @MainActor (ViewState) -> Void
+	private nonisolated let updatesSource: UpdatesSource // for compatibility only
   private nonisolated let cleanup: () -> Void
   // Features are stored here to bind reference
   // with a screen when branching. Losing reference
@@ -47,15 +48,16 @@ where State: Equatable & Sendable {
   private let featuresContainer: FeaturesContainer?
 
   public nonisolated init(
-    initial: State,
+    initial: ViewState,
     extendingLifetimeOf container: FeaturesContainer? = .none,
     cleanup: @escaping () -> Void = { /* NOP */  }
   ) {
-    var state: State = initial
-    let nextValueSubject: CurrentValueSubject<State, Never> = .init(initial)
-    let updatesSource: UpdatesSequenceSource = .init()
+    var state: ViewState = initial
+    let nextValueSubject: CurrentValueSubject<ViewState, Never> = .init(initial)
+		let updatesSource: UpdatesSource = .init()
+		self.updatesSource = updatesSource
     self.read = { state }
-    self.write = { (newValue: State) in
+    self.write = { (newValue: ViewState) in
       nextValueSubject.send(newValue)
       state = newValue
       updatesSource.sendUpdate()
@@ -71,12 +73,13 @@ where State: Equatable & Sendable {
   public nonisolated init(
     extendingLifetimeOf container: FeaturesContainer? = .none,
     cleanup: @escaping () -> Void = { /* NOP */  }
-  ) where State == Never {
+  ) where ViewState == Never {
     self.read = { fatalError("Can't read Never") }
     self.write = { _ in /* NOP */ }
-    self.stateWillChange = Empty<State, Never>().eraseToAnyPublisher()
-    let updatesSource: UpdatesSequenceSource = .init()
-    updatesSource.endUpdates()
+    self.stateWillChange = Empty<ViewState, Never>().eraseToAnyPublisher()
+    let updatesSource: UpdatesSource = .init()
+    updatesSource.terminate()
+		self.updatesSource = updatesSource
     self.featuresContainer = container
     self.cleanup = cleanup
   }
@@ -95,7 +98,8 @@ where State: Equatable & Sendable {
       file: file,
       line: line
     )
-    self.stateWillChange = Empty<State, Never>().eraseToAnyPublisher()
+    self.stateWillChange = Empty<ViewState, Never>(completeImmediately: true).eraseToAnyPublisher()
+		self.updatesSource = .placeholder
     self.featuresContainer = .none
     self.cleanup = { /* NOP */  }
   }
@@ -105,43 +109,48 @@ where State: Equatable & Sendable {
     self.cleanup()
   }
 
-  public private(set) var value: State {
+  public private(set) var state: ViewState {
     get { self.read() }
     set { self.write(newValue) }
   }
 
   public subscript<Value>(
-    dynamicMember keyPath: KeyPath<State, Value>
+    dynamicMember keyPath: KeyPath<ViewState, Value>
   ) -> Value {
     self.value[keyPath: keyPath]
   }
 }
 
+extension MutableViewState: ViewStateSource {
+
+	public nonisolated var updates: Updates { self.updatesSource.updates }
+}
+
 extension MutableViewState {
 
   @MainActor public func update<Returned>(
-    _ mutation: (inout State) throws -> Returned
+    _ mutation: (inout ViewState) throws -> Returned
   ) rethrows -> Returned {
-    var copy: State = self.value
-    defer { self.value = copy }
+    var copy: ViewState = self.value
+    defer { self.state = copy }
 
     return try mutation(&copy)
   }
 
   @MainActor public func update<Value>(
-    _ keyPath: WritableKeyPath<State, Value>,
+    _ keyPath: WritableKeyPath<ViewState, Value>,
     to value: Value
   ) {
-    self.value[keyPath: keyPath] = value
+    self.state[keyPath: keyPath] = value
   }
 
   public func binding<BindingValue>(
-    to keyPath: WritableKeyPath<State, BindingValue>
+    to keyPath: WritableKeyPath<ViewState, BindingValue>
   ) -> Binding<BindingValue> {
     Binding<BindingValue>(
-      get: { self.value[keyPath: keyPath] },
+      get: { self.state[keyPath: keyPath] },
       set: { (newValue: BindingValue) in
-        self.value[keyPath: keyPath] = newValue
+        self.state[keyPath: keyPath] = newValue
       }
     )
   }
@@ -150,8 +159,8 @@ extension MutableViewState {
 extension MutableViewState: Equatable {
 
   public nonisolated static func == (
-    lhs: MutableViewState<State>,
-    rhs: MutableViewState<State>
+    lhs: MutableViewState<ViewState>,
+    rhs: MutableViewState<ViewState>
   ) -> Bool {
     lhs === rhs
   }
@@ -160,18 +169,6 @@ extension MutableViewState: Equatable {
     ViewNodeID(
       rawValue: ObjectIdentifier(self)
     )
-  }
-}
-
-extension MutableViewState: AsyncSequence {
-
-  public typealias Element = State
-  public typealias AsyncIterator = AnyAsyncIterator<State>
-
-  public func makeAsyncIterator() -> AsyncIterator {
-    self.stateWillChange
-      .asAnyAsyncSequence()
-      .makeAsyncIterator()
   }
 }
 

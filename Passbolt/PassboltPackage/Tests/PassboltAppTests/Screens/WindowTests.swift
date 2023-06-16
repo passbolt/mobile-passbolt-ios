@@ -34,13 +34,13 @@ import XCTest
 @MainActor
 final class WindowTests: MainActorTestCase {
 
-  var updates: UpdatesSequenceSource!
+  var updates: UpdatesSource!
 
   override func mainActorSetUp() {
     updates = .init()
     features.patch(
-      \Session.updatesSequence,
-      with: updates.updatesSequence
+      \Session.updates,
+      with: updates.updates
     )
     features.patch(
       \Session.currentAccount,
@@ -69,7 +69,7 @@ final class WindowTests: MainActorTestCase {
     var result: WindowController.ScreenStateDisposition?
 
     result =
-      await controller
+		try await controller
       .screenStateDispositionSequence()
       .first()
 
@@ -94,7 +94,7 @@ final class WindowTests: MainActorTestCase {
       controller
       .screenStateDispositionSequence().makeAsyncIterator()
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
     pendingAuthorization = .passphrase(Account.mock_ada)
 
@@ -105,7 +105,7 @@ final class WindowTests: MainActorTestCase {
       self.updates.sendUpdate()
     }
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
     guard case let .requestPassphrase(account, message) = result
     else { return XCTFail() }
@@ -130,7 +130,7 @@ final class WindowTests: MainActorTestCase {
       controller
       .screenStateDispositionSequence().makeAsyncIterator()
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
     pendingAuthorization = .mfa(
       Account.mock_ada,
@@ -143,7 +143,7 @@ final class WindowTests: MainActorTestCase {
       self.updates.sendUpdate()
     }
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
     guard case let .requestMFA(account, providers) = result
     else { return XCTFail() }
@@ -178,7 +178,7 @@ final class WindowTests: MainActorTestCase {
       controller
       .screenStateDispositionSequence().makeAsyncIterator()
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
     currentAccount = Account.mock_ada
     Task {
@@ -188,7 +188,7 @@ final class WindowTests: MainActorTestCase {
       self.updates.sendUpdate()
     }
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
     guard case .useInitialScreenState = result
     else { return XCTFail() }
@@ -227,7 +227,7 @@ final class WindowTests: MainActorTestCase {
       controller
       .screenStateDispositionSequence().makeAsyncIterator()
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
     pendingAuthorization = .passphrase(Account.mock_ada)
     Task {
@@ -237,13 +237,13 @@ final class WindowTests: MainActorTestCase {
       self.updates.sendUpdate()
     }
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
     currentAccount = Account.mock_ada
     pendingAuthorization = .none
     updates.sendUpdate()
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
     guard case .useCachedScreenState = result
     else { return XCTFail() }
@@ -282,7 +282,7 @@ final class WindowTests: MainActorTestCase {
       controller
       .screenStateDispositionSequence().makeAsyncIterator()
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
     pendingAuthorization = .mfa(
       Account.mock_ada,
@@ -295,7 +295,7 @@ final class WindowTests: MainActorTestCase {
       self.updates.sendUpdate()
     }
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
     currentAccount = Account.mock_ada
     pendingAuthorization = .none
@@ -306,7 +306,7 @@ final class WindowTests: MainActorTestCase {
       self.updates.sendUpdate()
     }
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
     guard case .useCachedScreenState = result
     else { return XCTFail() }

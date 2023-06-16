@@ -34,8 +34,8 @@ import XCTest
 @MainActor
 final class AuthorizationScreenTests: MainActorTestCase {
 
-  var detailsUpdates: UpdatesSequenceSource!
-  var preferencesUpdates: UpdatesSequenceSource!
+  var detailsUpdates: UpdatesSource!
+  var preferencesUpdates: UpdatesSource!
 
   override func mainActorSetUp() {
     features.usePlaceholder(for: Accounts.self)
@@ -54,13 +54,13 @@ final class AuthorizationScreenTests: MainActorTestCase {
     features.patch(
       \AccountDetails.updates,
       context: .mock_ada,
-      with: detailsUpdates.updatesSequence
+      with: detailsUpdates.updates
     )
     preferencesUpdates = .init()
     features.patch(
       \AccountPreferences.updates,
       context: .mock_ada,
-      with: preferencesUpdates.updatesSequence
+      with: preferencesUpdates.updates
     )
     features.patch(
       \AccountPreferences.isPassphraseStored,

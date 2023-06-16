@@ -30,7 +30,7 @@ public struct Accounts {
 
   /// Updates in stored accounts.
   /// Includes adding and removing accounts.
-  public var updates: UpdatesSequence
+  public var updates: Updates
   /// Accounts data integrity check.
   /// Cleans up any leftover data
   /// and removes inproperly stored accounts.
@@ -46,7 +46,7 @@ public struct Accounts {
   public var removeAccount: @Sendable (Account) throws -> Void
 
   public init(
-    updates: UpdatesSequence,
+    updates: Updates,
     verifyDataIntegrity: @escaping @Sendable () throws -> Void,
     storedAccounts: @escaping @Sendable () -> Array<Account>,
     lastUsedAccount: @escaping @Sendable () -> Account?,

@@ -36,13 +36,13 @@ import XCTest
 @MainActor
 final class AccountSelectionScreenTests: MainActorTestCase {
 
-  var accountsUpdates: UpdatesSequenceSource!
+  var accountsUpdates: UpdatesSource!
 
   override func mainActorSetUp() {
     accountsUpdates = .init()
     features.patch(
       \Accounts.updates,
-      with: accountsUpdates.updatesSequence
+      with: accountsUpdates.updates
     )
     features.patch(
       \Session.currentAccount,

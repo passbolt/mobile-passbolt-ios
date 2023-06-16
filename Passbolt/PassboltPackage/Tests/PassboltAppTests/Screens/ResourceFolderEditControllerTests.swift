@@ -101,11 +101,11 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
   }
 
   func test_viewState_updates_whenFormUpdates() async throws {
-    let updatesSource: UpdatesSequenceSource = .init()
+    let updatesSource: UpdatesSource = .init()
     patch(
-      \ResourceFolderEditForm.formUpdates,
+      \ResourceFolderEditForm.updates,
       context: .create(containingFolderID: .none),
-      with: updatesSource.updatesSequence
+      with: updatesSource.updates
     )
     self.dynamicVariables.formState = ResourceFolderEditFormState(
       name: .valid("initial"),
@@ -133,7 +133,7 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
 
     let updatedFolderName: Validated<String> = tested.viewState.value.folderName
 
-    updatesSource.endUpdates()
+    updatesSource.terminate()
 
     XCTAssertNotEqual(
       initialFolderName,

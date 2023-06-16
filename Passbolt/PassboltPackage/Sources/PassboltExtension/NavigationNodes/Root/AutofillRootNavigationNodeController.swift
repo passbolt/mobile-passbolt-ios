@@ -103,7 +103,7 @@ extension AutofillRootNavigationNodeController {
 
     self.asyncExecutor.schedule(.unmanaged) { [unowned self] () async -> Void in
       do {
-        try await self.session.updatesSequence
+        try await self.session.updates
           .dropFirst()
           .forEach { @SessionActor in
             do {

@@ -34,10 +34,11 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 @MainActor
 final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
 
-  var updates: UpdatesSequenceSource!
+  var updates: UpdatesSource!
 
   override func mainActorSetUp() {
     features
@@ -50,8 +51,8 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
       )
     updates = .init()
     features.patch(
-      \SessionData.updatesSequence,
-      with: updates.updatesSequence
+      \SessionData.updates,
+      with: updates.updates
     )
     features.patch(
       \SessionData.refreshIfNeeded,
@@ -127,7 +128,7 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
     )
     features.patch(
       \ResourcesController.lastUpdate,
-      with: .init(constant: 0)
+      with: Constant(value: 0)
     )
 
     let controller: ResourceUserGroupsExplorerController = try await testController(

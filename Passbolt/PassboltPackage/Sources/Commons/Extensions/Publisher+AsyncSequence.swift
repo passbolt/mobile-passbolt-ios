@@ -25,8 +25,8 @@ import Combine
 
 extension Publisher {
 
-  public func asAsyncThrowingSequence() -> AnyAsyncThrowingSequence<Output> {
-    AnyAsyncThrowingSequence(self)
+  public func asAsyncSequence() -> AnyAsyncSequence<Output> {
+    AnyAsyncSequence(self)
   }
 }
 

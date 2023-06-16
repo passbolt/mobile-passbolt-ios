@@ -60,7 +60,7 @@ internal final class ResourceUserGroupsListDisplayController: ViewController {
     )
 
     self.asyncExecutor.scheduleIteration(
-      over: combineLatest(context.filter, sessionData.updatesSequence),
+      over: combineLatest(context.filter, sessionData.updates),
       catchingWith: self.diagnostics,
       failMessage: "User groups list updates broken!",
       failAction: { [context] (error: Error) in
@@ -82,7 +82,7 @@ extension ResourceUserGroupsListDisplayController {
 
   internal struct Context {
 
-    internal var filter: ObservableViewState<UserGroupsFilter>
+    internal var filter: AnyAsyncSequence<UserGroupsFilter>
     internal var selectGroup: (UserGroup.ID) -> Void
     internal var showMessage: (SnackBarMessage?) -> Void
   }

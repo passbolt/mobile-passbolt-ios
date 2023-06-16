@@ -58,7 +58,7 @@ internal final class ResourceTagsListDisplayController: ViewController {
     )
 
     self.asyncExecutor.scheduleIteration(
-      over: combineLatest(context.filter, sessionData.updatesSequence),
+      over: combineLatest(context.filter, sessionData.updates),
       catchingWith: self.diagnostics,
       failMessage: "Resource tags list updates broken!",
       failAction: { [context] (error: Error) in
@@ -78,7 +78,7 @@ extension ResourceTagsListDisplayController {
 
   internal struct Context {
 
-    internal var filter: ObservableViewState<String>
+    internal var filter: AnyAsyncSequence<String>
     internal var selectTag: (ResourceTag.ID) -> Void
     internal var showMessage: (SnackBarMessage?) -> Void
   }

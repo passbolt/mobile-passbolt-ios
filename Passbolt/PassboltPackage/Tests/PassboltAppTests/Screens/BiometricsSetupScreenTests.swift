@@ -33,7 +33,7 @@ import UIComponents
 @MainActor
 final class BiometricsSetupScreenTests: MainActorTestCase {
 
-  var preferencesUpdates: UpdatesSequenceSource!
+  var preferencesUpdates: UpdatesSource!
 
   override func mainActorSetUp() {
     features
@@ -54,7 +54,7 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
     features.patch(
       \AccountPreferences.updates,
       context: Account.mock_ada,
-      with: preferencesUpdates.updatesSequence
+      with: preferencesUpdates.updates
     )
     features.patch(
       \AccountInitialSetup.completeSetup,

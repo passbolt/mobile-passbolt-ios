@@ -61,7 +61,7 @@ extension LegacyResourceEditForm {
       try features.instance()
     let resourceFolderPathFetchDatabaseOperation: ResourceFolderPathFetchDatabaseOperation = try features.instance()
 
-    let formUpdates: UpdatesSequenceSource = .init()
+    let formUpdates: UpdatesSource = .init()
     let formState: CriticalState<Resource?> = .init(
       .none,
       cleanup: { _ in
@@ -115,7 +115,7 @@ extension LegacyResourceEditForm {
     }
 
     let formStatePublisher: AnyPublisher<Resource, Never> = formUpdates
-      .updatesSequence
+      .updates
       .compactMap {
         await initialLoading.waitForCompletion()
         return formState.get(\.self)
@@ -365,7 +365,7 @@ extension LegacyResourceEditForm {
     }
 
     return Self(
-      updates: formUpdates.updatesSequence,
+      updates: formUpdates.updates,
       resource: resource,
       fieldsPublisher: fieldsPublisher,
       setFieldValue: setFieldValue(_:for:),

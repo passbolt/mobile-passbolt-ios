@@ -33,7 +33,7 @@ import Users
 internal final class ResourceSearchDisplayController: ViewController {
 
   internal nonisolated let viewState: MutableViewState<ViewState>
-  internal nonisolated let searchText: ObservableViewState<String>
+  internal nonisolated let searchText: any ViewStateSource<String>
 
   private let currentAccount: Account
   private let diagnostics: OSDiagnostics
@@ -71,7 +71,7 @@ internal final class ResourceSearchDisplayController: ViewController {
     )
 
     self.viewState = viewState
-    self.searchText = .init(from: viewState, at: \.searchText)
+    self.searchText = ObservableViewState(from: viewState, at: \.searchText)
   }
 }
 

@@ -28,10 +28,10 @@ import Features
 
 public struct ResourceFolderController {
 
-  public var state: ViewableState<ResourceFolder>
+  public var state: any DataSource<ResourceFolder, Error>
 
   public init(
-    state: ViewableState<ResourceFolder>
+    state: any DataSource<ResourceFolder, Error>
   ) {
     self.state = state
   }
@@ -45,7 +45,7 @@ extension ResourceFolderController: LoadableFeature {
 
   public static var placeholder: Self {
     Self(
-      state: .placeholder
+      state: PlaceholderDataSource()
     )
   }
   #endif

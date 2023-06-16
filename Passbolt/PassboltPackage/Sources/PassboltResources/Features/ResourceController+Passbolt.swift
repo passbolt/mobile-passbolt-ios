@@ -54,19 +54,10 @@ extension ResourceController {
     let resourceFavoriteDeleteNetworkOperation: ResourceFavoriteDeleteNetworkOperation = try features.instance()
     let resourceSetFavoriteDatabaseOperation: ResourceSetFavoriteDatabaseOperation = try features.instance()
 
-    let state: MutableState<Resource> = .init(lazy: fetchMeta)
-
-    asyncExecutor
-      .scheduleIteration(  // dropFirst - we have initial value already scheduled
-        over: sessionData.lastUpdate.dropFirst(),
-        catchingWith: diagnostics,
-        failMessage: "Resource updates broken!",
-        behavior: .replace
-      ) { _ in
-        try state.deferredUpdate { (resource: inout Resource) in
-          resource = try await fetchMeta()
-        }
-      }
+    let state: UpdatableVariable<Resource> = .init(
+			using: sessionData.updates,
+			compute: fetchMeta
+		)
 
     @Sendable nonisolated func fetchMeta() async throws -> Resource {
       let resource: Resource = try await resourceDataFetchDatabaseOperation(
@@ -114,12 +105,13 @@ extension ResourceController {
     @Sendable nonisolated func fetchSecretIfNeeded(
       force: Bool
     ) async throws -> JSON {
-      try await state.asyncUpdate { (resource: inout Resource) async throws in
-        guard force || !resource.hasSecret else { return }
+			try await state.update { (resource: inout Resource) async throws -> JSON in
+				guard force || !resource.hasSecret
+				else { return resource.secret }
         resource.secret = try await fetchSecretJSON(unstructured: resource.hasUnstructuredSecret)
         try resource.validate()  // validate resource with secret
+				return resource.secret
       }
-      .secret
     }
 
     @Sendable func loadUserPermissionsDetails() async throws -> Array<UserPermissionDetailsDSV> {
@@ -136,7 +128,9 @@ extension ResourceController {
       if let favoriteID: Resource.Favorite.ID = try await state.value.favoriteID {
         try await resourceFavoriteDeleteNetworkOperation(.init(favoriteID: favoriteID))
         try await resourceSetFavoriteDatabaseOperation(.init(resourceID: resourceID, favoriteID: .none))
-        try await state.update(\.favoriteID, to: .none)
+				state.mutate { (resource: inout Resource) in
+					resource.favoriteID = .none
+				}
       }
       else {
         let favoriteID: Resource.Favorite.ID = try await resourceFavoriteAddNetworkOperation(
@@ -144,7 +138,9 @@ extension ResourceController {
         )
         .favoriteID
         try await resourceSetFavoriteDatabaseOperation(.init(resourceID: resourceID, favoriteID: favoriteID))
-        try await state.update(\.favoriteID, to: favoriteID)
+				state.mutate { (resource: inout Resource) in
+					resource.favoriteID = favoriteID
+				}
       }
     }
 
@@ -154,7 +150,7 @@ extension ResourceController {
     }
 
     return Self(
-      state: .init(viewing: state),
+      state: state,
       fetchSecretIfNeeded: fetchSecretIfNeeded,
       loadUserPermissionsDetails: loadUserPermissionsDetails,
       loadUserGroupPermissionsDetails: loadUserGroupPermissionsDetails,

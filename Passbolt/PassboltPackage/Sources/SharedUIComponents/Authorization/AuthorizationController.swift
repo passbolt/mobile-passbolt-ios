@@ -84,7 +84,7 @@ extension AuthorizationController: UIController {
     )
 
     cancellables.executeAsync {
-      for await _ in accountDetails.updates {
+			for try await _ in accountDetails.updates {
         try accountWithProfileSubject
           .send(
             accountDetails.profile()

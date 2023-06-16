@@ -108,10 +108,10 @@ final class SessionDatabaseTests: LoadableFeatureTestCase<SessionDatabase> {
   }
 
   func test_connection_throws_withActiveSessionClosing() {
-    let sessionUpdatesSequenceSource: UpdatesSequenceSource = .init()
+    let sessionUpdatesSource: UpdatesSource = .init()
     patch(
-      \Session.updatesSequence,
-      with: sessionUpdatesSequenceSource.updatesSequence
+      \Session.updates,
+      with: sessionUpdatesSource.updates
     )
     patch(
       \SessionState.account,
@@ -132,7 +132,7 @@ final class SessionDatabaseTests: LoadableFeatureTestCase<SessionDatabase> {
     }
 
     self.account = Optional<Account>.none
-    sessionUpdatesSequenceSource.sendUpdate()
+    sessionUpdatesSource.sendUpdate()
     withTestedInstanceThrows(DatabaseConnectionClosed.self) { (testedInstance: SessionDatabase) in
       try await testedInstance.connection()
     }

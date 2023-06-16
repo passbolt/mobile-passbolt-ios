@@ -31,7 +31,7 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ResourcesControllerTests: FeaturesTestCase {
 
-  let updatesSequence: UpdatesSequenceSource = .init()
+  let updatesSequence: UpdatesSource = .init()
 
   override func commonPrepare() {
     super.commonPrepare()
@@ -71,8 +71,8 @@ final class ResourcesControllerTests: FeaturesTestCase {
       with: always(100)
     )
     patch(
-      \SessionData.updatesSequence,
-      with: self.updatesSequence.updatesSequence
+      \SessionData.updates,
+      with: self.updatesSequence.updates
     )
     patch(
       \SessionData.refreshIfNeeded,

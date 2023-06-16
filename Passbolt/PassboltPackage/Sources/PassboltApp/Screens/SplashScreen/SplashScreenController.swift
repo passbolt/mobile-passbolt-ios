@@ -64,7 +64,7 @@ extension SplashScreenController: UIController {
 
     let destinationSubject: CurrentValueSubject<Destination?, Never> = .init(nil)
 
-    asyncExecutor.schedule { () async -> Void in
+		asyncExecutor.schedule(.unmanaged) { () async -> Void in
       do {
         try accounts.verifyDataIntegrity()
       }

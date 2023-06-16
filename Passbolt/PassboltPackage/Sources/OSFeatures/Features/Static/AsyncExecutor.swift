@@ -85,7 +85,7 @@ extension AsyncExecutor {
     _ handleNext: @escaping @Sendable (S.Element) async throws -> Void
   ) where S: AsyncSequence {
     self.scheduleRecursiveNext(
-      using: sequence.makeAsyncIterator().asAnyAsyncThrowingIterator(),
+      using: sequence.makeAsyncIterator().asAnyAsyncIterator(),
       catchingWith: diagnostics,
       failMessage: failMessage,
       failAction: failAction,
@@ -99,7 +99,7 @@ extension AsyncExecutor {
 
   @usableFromInline
   internal func scheduleRecursiveNext<Element>(
-    using iterator: AnyAsyncThrowingIterator<Element>,
+    using iterator: AnyAsyncIterator<Element>,
     catchingWith diagnostics: OSDiagnostics,
     failMessage: StaticString?,
     failAction: ((Error) async -> Void)?,
@@ -397,7 +397,7 @@ extension AsyncExecutor.ExecutionIdentifier: ExpressibleByStringInterpolation {
 extension AsyncExecutor {
 
   public func updates(
-    using sequence: UpdatesSequence,
+    using sequence: UpdatesSource,
     update: @escaping @Sendable () async throws -> Void,
     finish: @escaping @Sendable (TheError?) -> Void = { _ in /* NOP */ }
   ) {
@@ -420,7 +420,7 @@ extension AsyncExecutor {
 
       @IID fileprivate var id
       fileprivate let execute: @Sendable () async -> Void
-      fileprivate let completion: AsyncVariable<Void?>
+      fileprivate let completion: Once
     }
 
     private let executionQueue: CriticalState<Array<QueueItem>> = .init(
@@ -480,11 +480,11 @@ extension AsyncExecutor {
     @Sendable public func addTask(
       _ task: @escaping @Sendable () async -> Void
     ) -> Execution {
-      let completion: AsyncVariable<Void?> = .init(initial: .none)
+			let completion: Once = .init({ /* Void */ })
       let queueItem: QueueItem = .init(
         execute: {
           await task()
-          completion.send(Void())
+          completion.executeIfNeeded()
         },
         completion: completion
       )
@@ -501,13 +501,11 @@ extension AsyncExecutor {
         cancellation: {
           self.executionQueue.access { state in
             state.removeAll(where: { $0.id == queueItem.id })
-            completion.send(Void())
+            completion.executeIfNeeded()
           }
         },
         waitForCompletion: {
-          await completion
-            .compactMap(identity)
-            .first()
+					try? await completion.waitForCompletion()
         }
       )
     }

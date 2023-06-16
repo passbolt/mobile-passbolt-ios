@@ -52,10 +52,10 @@ extension SessionData {
     // when diffing endpoint becomes available
     // we could store last update time and reuse it to avoid
     // fetching all the data when initializing
-    let lastUpdate: MutableState<Timestamp> = .init(initial: 0)
-    let updatesSequenceSource: UpdatesSequenceSource = .init()
+    let lastUpdate: Variable<Timestamp> = .init(initial: 0)
+    let updatesSource: UpdatesSource = .init()
 
-    let refreshTask: ManagedTask<Void> = .init()
+		let refreshTask: CriticalState<Task<Void, Error>?> = .init(.none)
 
     // initial refresh after loading
     asyncExecutor.schedule {
@@ -156,26 +156,42 @@ extension SessionData {
     }
 
     @Sendable nonisolated func refreshIfNeeded() async throws {
-      try await refreshTask.run {
-        // when diffing endpoint becomes available
-        // there should be some additional logic
-        // to selectively update database data
+			let task: Task<Void, Error> = refreshTask.access { (task: inout Task<Void, Error>?) -> Task<Void, Error> in
+				if let runningTask: Task<Void, Error> = task {
+					return runningTask
+				}
+				else {
+					let runningTask: Task<Void, Error> = .init {
+						defer {
+							refreshTask.access { task in
+								task = .none
+							}
+						}
+						// when diffing endpoint becomes available
+					 // there should be some additional logic
+					 // to selectively update database data
 
-        try await refreshUsers()
-        try await refreshUserGroups()
-        try await refreshFolders()
-        try await refreshResources()
+					 try await refreshUsers()
+					 try await refreshUserGroups()
+					 try await refreshFolders()
+					 try await refreshResources()
 
-        updatesSequenceSource.sendUpdate()
-        // when diffing endpoint becomes available
-        // we should use server time instead
-        try await lastUpdate.update(\.self, to: time.timestamp())
-      }
+					 updatesSource.sendUpdate()
+					 // when diffing endpoint becomes available
+					 // we should use server time instead
+					 lastUpdate.value = time.timestamp()
+				 }
+					task = runningTask
+					return runningTask
+				}
+			}
+
+			return try await task.value
     }
 
     return Self(
-      lastUpdate: .init(viewing: lastUpdate),
-      updatesSequence: updatesSequenceSource.updatesSequence,
+      lastUpdate: lastUpdate,
+      updates: updatesSource.updates,
       refreshIfNeeded: refreshIfNeeded
     )
   }

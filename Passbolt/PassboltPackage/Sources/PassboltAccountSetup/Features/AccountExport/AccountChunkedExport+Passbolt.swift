@@ -57,7 +57,7 @@ extension AccountChunkedExport {
     let dataEncoder: JSONEncoder = .init()
     dataEncoder.keyEncodingStrategy = .convertToSnakeCase
 
-    let updatesSource: UpdatesSequenceSource = .init()
+    let updatesSource: UpdatesSource = .init()
     let state: CriticalState<State> = .init(
       .init(
         transferID: .none,
@@ -253,7 +253,7 @@ extension AccountChunkedExport {
                 state.currentTransferPage = state.transferDataChunks.count
                 updatesSource.sendUpdate()
               }
-              updatesSource.endUpdates()
+              updatesSource.terminate()
               return  // finished
 
             case .error:
@@ -272,7 +272,7 @@ extension AccountChunkedExport {
             state.error = error.asTheError()
             updatesSource.sendUpdate()
           }
-          updatesSource.endUpdates()
+          updatesSource.terminate()
         }
       }
     }
@@ -284,11 +284,11 @@ extension AccountChunkedExport {
         state.error = Cancelled.error()
         updatesSource.sendUpdate()
       }
-      updatesSource.endUpdates()
+      updatesSource.terminate()
     }
 
     return .init(
-      updates: updatesSource.updatesSequence,
+      updates: updatesSource.updates,
       status: status,
       authorize: authorize(authorizationMethod:),
       cancel: cancel

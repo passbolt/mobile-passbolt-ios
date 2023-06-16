@@ -21,31 +21,36 @@
 // @since         v1.0
 //
 
-public struct AnyAsyncThrowingIterator<Element>: AsyncIteratorProtocol {
+public final class Variable<DataType>: DataSource
+where DataType: Sendable {
 
-  @usableFromInline internal let nextElement: () async throws -> Element?
+	public typealias Failure = Never
 
-  public init(
-    nextElement: @escaping () async throws -> Element?
-  ) {
-    self.nextElement = nextElement
-  }
+	public var updates: Updates { self.updatesSource.updates }
 
-  @inlinable public func next() async throws -> Element? {
-    try await nextElement()
-  }
+	private let updatesSource: UpdatesSource
+	private let storage: CriticalState<DataType>
+
+	public init(
+		initial: DataType
+	) {
+		self.storage = .init(initial)
+		self.updatesSource = .init()
+	}
+
+	public var value: DataType {
+		get { self.storage.get(\.self) }
+		set {
+			self.storage.set(\.self, newValue)
+			self.updatesSource.sendUpdate()
+		}
+	}
+
+	public func mutate(
+		_ mutation: (inout DataType) -> Void
+	) {
+		self.storage.access(mutation)
+		self.updatesSource.sendUpdate()
+	}
 }
 
-extension AsyncIteratorProtocol {
-
-  public func asAnyAsyncThrowingIterator() -> AnyAsyncThrowingIterator<Element> {
-    // protocol requirement marks `next` as mutating
-    // it forces to create mutable copy of self
-    var mutableCopy: Self = self
-    return .init(
-      nextElement: {
-        try await mutableCopy.next()
-      }
-    )
-  }
-}

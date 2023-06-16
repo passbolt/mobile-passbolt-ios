@@ -77,6 +77,7 @@ extension ResourcesListController: UIController {
       context.map { filter in
         resources
           .lastUpdate
+					.asAnyAsyncSequence()
           .map { _ in
             try await resources.filteredResourcesList(filter)
               .map(ResourcesResourceListItemDSVItem.init(from:))

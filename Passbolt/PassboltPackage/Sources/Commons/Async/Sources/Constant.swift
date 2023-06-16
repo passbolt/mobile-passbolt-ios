@@ -21,23 +21,24 @@
 // @since         v1.0
 //
 
-public final class UpdatesSequenceSource: Sendable {
+public final class Constant<DataType, Failure>: DataSource
+where DataType: Sendable, Failure: Error {
 
-  public let updatesSequence: UpdatesSequence
+	public let updates: Updates = .never
+	public let state: Result<DataType, Error>
+	public var value: DataType {
+		get throws { try self.state.get() }
+	}
 
-  public init() {
-    self.updatesSequence = .init()
-  }
+	public init(
+		value: DataType
+	) {
+		self.state = .success(value)
+	}
 
-  deinit {
-    self.updatesSequence.endSequence()
-  }
-
-  @Sendable public func sendUpdate() {
-    self.updatesSequence.sendUpdate()
-  }
-
-  @Sendable public func endUpdates() {
-    self.updatesSequence.endSequence()
-  }
+	public init(
+		failure error: Error
+	) where Failure == Error {
+		self.state = .failure(error)
+	}
 }

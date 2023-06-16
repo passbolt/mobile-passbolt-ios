@@ -95,7 +95,7 @@ extension TagsExplorerController: ComponentController {
           .removeDuplicates()
           .asAnyAsyncSequence()
 
-        try await combineLatest(filterSequence, resources.lastUpdate)
+				try await combineLatest(filterSequence, resources.lastUpdate.asAnyAsyncSequence())
           .map { (filter, _) in
             try await resources.filteredResourcesList(filter)
           }
@@ -121,7 +121,7 @@ extension TagsExplorerController: ComponentController {
             .asAnyAsyncSequence()
             .map(\.searchText)
             .removeDuplicates(),
-          sessionData.updatesSequence
+          sessionData.updates
         )
         .map { (filter: String, _) in
           try await resourceTags

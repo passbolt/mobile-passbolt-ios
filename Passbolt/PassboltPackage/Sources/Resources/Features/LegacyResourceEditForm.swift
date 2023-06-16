@@ -29,7 +29,7 @@ import Features
 public struct LegacyResourceEditForm {
 
   // Form state updates
-  public var updates: UpdatesSequence
+  public var updates: Updates
   // Access current resource state
   public var resource: @Sendable () async throws -> Resource
   // Access list of all available fields for edited resource
@@ -42,7 +42,7 @@ public struct LegacyResourceEditForm {
   public var sendForm: @Sendable () async throws -> Resource.ID
 
   public init(
-    updates: UpdatesSequence,
+    updates: Updates,
     resource: @escaping @Sendable () async throws -> Resource,
     fieldsPublisher: @escaping @Sendable () -> AnyPublisher<OrderedSet<ResourceFieldSpecification>, Never>,
     setFieldValue: @escaping @Sendable (JSON, Resource.FieldPath) async throws -> Void,

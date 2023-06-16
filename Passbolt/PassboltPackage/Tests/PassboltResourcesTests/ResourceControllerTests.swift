@@ -30,6 +30,7 @@ import XCTest
 @testable import Resources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class ResourceControllerTests: FeaturesTestCase {
 
   override func commonPrepare() {
@@ -51,7 +52,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     )
     patch(
       \SessionData.lastUpdate,
-      with: .init(failure: MockIssue.error())
+      with: Constant(value: 0)
     )
   }
 
@@ -112,10 +113,10 @@ final class ResourceControllerTests: FeaturesTestCase {
   }
 
   func test_state_updates_whenSessionDataUpdates() async throws {
-    let updatesState: MutableState<Timestamp> = .init(initial: 0)
+		let updatesSource: UpdatesSource = .init()
     patch(
-      \SessionData.lastUpdate,
-      with: .init(viewing: updatesState)
+      \SessionData.updates,
+			 with: updatesSource.updates
     )
     let expectedResult_0: Resource = {
       var resource: Resource = .mock_1
@@ -163,37 +164,28 @@ final class ResourceControllerTests: FeaturesTestCase {
       try await feature.state.value
     }
 
-    Task {
-      try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
-      // first update is ignored
-      try await updatesState.update(\.self, to: 0)
-    }
-    await self.asyncExecutionControl.executeNext()
+		updatesSource.sendUpdate()
     await XCTAssertValue(
       equal: expectedResult_1
     ) {
       try await feature.state.value
     }
 
-    try await updatesState.update(\.self, to: 1)  // update
-    await self.asyncExecutionControl.executeNext()
+		updatesSource.sendUpdate()
     await XCTAssertValue(
       equal: expectedResult_2
     ) {
       try await feature.state.value
     }
 
-    try updatesState.fail(with: MockIssue.error())  // end updates
-    await self.asyncExecutionControl.executeNext()
-
     XCTAssertEqual(self.dynamicVariables.getIfPresent(\.executionCount, of: Int.self), 3)
   }
 
   func test_state_breaks_whenSessionDataUpdatesFail() async throws {
-    let updatesState: MutableState<Timestamp> = .init(initial: 0)
+		let updatesSource: UpdatesSource = .init()
     patch(
-      \SessionData.lastUpdate,
-      with: .init(viewing: updatesState)
+      \SessionData.updates,
+			 with: updatesSource.updates
     )
     let expectedResult: Resource = .mock_1
     patch(
@@ -220,21 +212,12 @@ final class ResourceControllerTests: FeaturesTestCase {
       try await feature.state.value
     }
 
-    Task {
-      try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
-      // first update is ignored
-      try await updatesState.update(\.self, to: 0)
-    }
-    // execute scheduled updates
-    await self.asyncExecutionControl.executeNext()
+		updatesSource.sendUpdate()
     await XCTAssertError(
       matches: MockIssue.self
     ) {
       try await feature.state.value
     }
-
-    try updatesState.fail(with: MockIssue.error())  // end updates
-    await self.asyncExecutionControl.executeNext()
 
     XCTAssertEqual(self.dynamicVariables.getIfPresent(\.executionCount, of: Int.self), 2)
   }

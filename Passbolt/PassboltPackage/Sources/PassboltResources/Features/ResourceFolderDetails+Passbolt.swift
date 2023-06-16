@@ -36,33 +36,21 @@ extension ResourceFolderController {
     cancellables: Cancellables
   ) throws -> Self {
     #warning("TODO: remove context in favor of scope")
-    let disgnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
-
     let sessionData: SessionData = try features.instance()
     let resourceFolderDetailsFetchDatabaseOperation: ResourceFolderDetailsFetchDatabaseOperation =
       try features.instance()
 
-    let state: MutableState<ResourceFolder> = .init(lazy: {
-      try await resourceFolderDetailsFetchDatabaseOperation(
-        resourceFolderID
-      )
-    })
-
-    asyncExecutor
-      .scheduleIteration(
-        over: sessionData.lastUpdate,
-        catchingWith: disgnostics
-      ) { _ in
-        try state.deferredAssign {
-          try await resourceFolderDetailsFetchDatabaseOperation(
-            resourceFolderID
-          )
-        }
-      }
+		let state: ComputedVariable<ResourceFolder> = .init(
+			using: sessionData.updates,
+			compute: {
+				try await resourceFolderDetailsFetchDatabaseOperation(
+					resourceFolderID
+				)
+			}
+		)
 
     return Self(
-      state: .init(viewing: state)
+      state: state
     )
   }
 }

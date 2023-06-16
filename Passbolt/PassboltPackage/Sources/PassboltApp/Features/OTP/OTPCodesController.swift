@@ -29,7 +29,7 @@ import Resources
 internal struct OTPCodesController {
 
   /// Updates when current OTP value changes.
-  internal var updates: UpdatesSequence
+  internal var updates: Updates
   /// Returns currently active OTP resource value if any.
   internal var current: @Sendable () async -> OTPValue?
   /// Changes currently active OTP resource to the next OTP
@@ -212,7 +212,7 @@ extension OTPControllerState {
 private final actor OTPController {
 
   private var state: OTPControllerState
-  private let updatesSource: UpdatesSequenceSource
+  private let updatesSource: UpdatesSource
   private let timerSequence: AnyAsyncSequence<Void>
   private let requestGenerator: @Sendable (Resource.ID) async throws -> OTPCodesGenerator
 
@@ -226,8 +226,8 @@ private final actor OTPController {
     self.requestGenerator = requestGenerator
   }
 
-  fileprivate nonisolated var updates: UpdatesSequence {
-    self.updatesSource.updatesSequence
+  fileprivate nonisolated var updates: Updates {
+    self.updatesSource.updates
   }
 
   fileprivate var currentOTPValue: OTPValue? {
@@ -250,9 +250,12 @@ private final actor OTPController {
           generator: generator,
           updatesTask: .init {
             #warning("[MOB-1096] TODO: add full support for HOTP - don't schedule updates / trigger only on counter updates")
-            for await _ in timerSequence {
-              updatesSource.sendUpdate()
-            }
+						do {
+							for try await _ in timerSequence {
+								updatesSource.sendUpdate()
+							}
+						}
+						catch {}
           }
         )
       }  // else NOP
@@ -323,16 +326,19 @@ private final actor OTPController {
     let generator: OTPCodesGenerator = try await requestTask.value
 
     if keepActive {
-      let updatesSource: UpdatesSequenceSource = self.updatesSource
+      let updatesSource: UpdatesSource = self.updatesSource
       let timerSequence: AnyAsyncSequence<Void> = self.timerSequence
       self.state = .active(
         resourceID,
         generator: generator,
         updatesTask: .init {
           #warning("[MOB-1096] TODO: add full support for HOTP - don't schedule updates / trigger only on counter updates")
-          for await _ in timerSequence {
-            updatesSource.sendUpdate()
-          }
+					do {
+						for try await _ in timerSequence {
+							updatesSource.sendUpdate()
+						}
+					}
+					catch {}
         }
       )
       self.updatesSource.sendUpdate()

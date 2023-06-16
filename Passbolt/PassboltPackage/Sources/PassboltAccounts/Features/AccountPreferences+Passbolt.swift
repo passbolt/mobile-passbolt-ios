@@ -48,7 +48,7 @@ extension AccountPreferences {
       profile.label = label
       try accountsDataStore
         .updateAccountProfile(profile)
-      accountData.updatesSequenceSource.sendUpdate()
+      accountData.updatesSource.sendUpdate()
     }
 
     @Sendable nonisolated func isPassphraseStored() -> Bool {
@@ -59,7 +59,7 @@ extension AccountPreferences {
       _ store: Bool
     ) async throws {
       try await sessionPassphrase.storeWithBiometry(store)
-      accountData.updatesSequenceSource.sendUpdate()
+      accountData.updatesSource.sendUpdate()
     }
 
     let useLastHomePresentationAsDefaultProperty: StoredProperty<Bool> =

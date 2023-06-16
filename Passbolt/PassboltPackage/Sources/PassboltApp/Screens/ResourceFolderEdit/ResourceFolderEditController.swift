@@ -74,7 +74,7 @@ internal final class ResourceFolderEditController: ViewController {
     )
 
     self.asyncExecutor.scheduleIteration(
-      over: self.resourceFolderEditForm.formUpdates,
+      over: self.resourceFolderEditForm.updates,
       catchingWith: self.diagnostics,
       failMessage: "Updates broken!"
     ) { [viewState, users, resourceFolderEditForm] (_) in

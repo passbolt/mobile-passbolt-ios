@@ -33,6 +33,7 @@ import XCTest
 @testable import Resources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
 
   override class var testedImplementationScope: any FeaturesScope.Type { ResourceShareScope.self }
@@ -85,7 +86,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     resource.permissions = expectedResult
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+      with: Constant(value: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -95,7 +96,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     await XCTAssertValue(
       equal: expectedResult
     ) {
-      await permissionsSequence.first()
+			try? await permissionsSequence.first()
     }
   }
 
@@ -132,7 +133,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+			 with: Constant(value: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -151,7 +152,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     await XCTAssertValue(
       equal: expectedResult
     ) {
-      await permissionsSequence
+      try? await permissionsSequence
         .first()
     }
   }
@@ -194,7 +195,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+      with: Constant(value: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -209,7 +210,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     await XCTAssertValue(
       equal: expectedResult
     ) {
-      await permissionsSequence.first()
+			try? await permissionsSequence.first()
     }
   }
 
@@ -230,7 +231,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+      with: Constant(value: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -253,7 +254,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+      with: Constant(value: resource)
     )
     patch(
       \UserGroups.groupMembers,
@@ -287,7 +288,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+      with: Constant(value: resource)
     )
     patch(
       \UserGroups.groupMembers,
@@ -327,7 +328,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+      with: Constant(value: resource)
     )
     patch(
       \UserGroups.groupMembers,
@@ -373,7 +374,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+      with: Constant(value: resource)
     )
     patch(
       \UserGroups.groupMembers,
@@ -428,7 +429,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+      with: Constant(value: resource)
     )
     patch(
       \ResourceShareNetworkOperation.execute,
@@ -471,7 +472,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+      with: Constant(value: resource)
     )
     patch(
       \UserGroups.groupMembers,
@@ -514,7 +515,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+      with: Constant(value: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -539,7 +540,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-      await feature
+			try? await feature
         .permissionsSequence()
         .first()
     }
@@ -556,7 +557,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+      with: Constant(value: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -587,7 +588,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-      await feature
+			try? await feature
         .permissionsSequence()
         .first()
     }
@@ -609,7 +610,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+      with: Constant(value: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -634,7 +635,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-      await feature
+			try? await feature
         .permissionsSequence()
         .first()
     }
@@ -656,7 +657,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+      with: Constant(value: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -681,7 +682,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-      await feature
+			try? await feature
         .permissionsSequence()
         .first()
     }
@@ -698,7 +699,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+      with: Constant(value: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -723,7 +724,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         )
       ]
     ) {
-      await feature
+			try? await feature
         .permissionsSequence()
         .first()
     }
@@ -745,7 +746,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+      with: Constant(value: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -764,7 +765,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         )
       ]
     ) {
-      await feature
+			try? await feature
         .permissionsSequence()
         .first()
     }
@@ -781,7 +782,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+      with: Constant(value: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -806,7 +807,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-      await feature
+			try? await feature
         .permissionsSequence()
         .first()
     }
@@ -823,7 +824,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+      with: Constant(value: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -854,7 +855,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-      await feature
+			try? await feature
         .permissionsSequence()
         .first()
     }
@@ -876,7 +877,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+      with: Constant(value: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -901,7 +902,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-      await feature
+			try? await feature
         .permissionsSequence()
         .first()
     }
@@ -923,7 +924,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+      with: Constant(value: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -948,7 +949,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-      await feature
+			try? await feature
         .permissionsSequence()
         .first()
     }
@@ -965,7 +966,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+      with: Constant(value: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -990,7 +991,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         )
       ]
     ) {
-      await feature
+			try? await feature
         .permissionsSequence()
         .first()
     }
@@ -1012,7 +1013,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: .init(constant: resource)
+      with: Constant(value: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -1031,7 +1032,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         )
       ]
     ) {
-      await feature
+			try? await feature
         .permissionsSequence()
         .first()
     }

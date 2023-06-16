@@ -35,13 +35,13 @@ import XCTest
 @MainActor
 final class SplashScreenTests: MainActorTestCase {
 
-  var updates: UpdatesSequenceSource!
+  var updates: UpdatesSource!
 
   override func mainActorSetUp() {
     updates = .init()
     features.patch(
-      \Session.updatesSequence,
-      with: updates.updatesSequence
+      \Session.updates,
+      with: updates.updates
     )
     features.patch(
       \Session.currentAccount,

@@ -36,13 +36,13 @@ import XCTest
 @MainActor
 final class FoldersExplorerControllerTests: MainActorTestCase {
 
-  var updates: UpdatesSequenceSource!
+  var updates: UpdatesSource!
 
   override func mainActorSetUp() {
     updates = .init()
     features.patch(
-      \SessionData.updatesSequence,
-      with: updates.updatesSequence
+      \SessionData.updates,
+      with: updates.updates
     )
     features.patch(
       \SessionData.refreshIfNeeded,

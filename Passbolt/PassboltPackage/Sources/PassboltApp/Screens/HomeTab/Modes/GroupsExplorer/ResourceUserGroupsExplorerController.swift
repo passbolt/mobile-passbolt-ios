@@ -96,7 +96,7 @@ extension ResourceUserGroupsExplorerController: ComponentController {
           .removeDuplicates()
           .asAnyAsyncSequence()
 
-        try await combineLatest(filterSequence, resources.lastUpdate)
+        try await combineLatest(filterSequence, resources.lastUpdate.asAnyAsyncSequence())
           .map { (filter, _) in
             try await resources.filteredResourcesList(filter)
           }

@@ -28,7 +28,7 @@ import Features
 
 public struct ResourceController {
 
-  public var state: ViewableState<Resource>
+  public var state: any DataSource<Resource, Error>
   public var fetchSecretIfNeeded: @Sendable (Bool) async throws -> JSON
   public var loadUserPermissionsDetails: @Sendable () async throws -> Array<UserPermissionDetailsDSV>
   public var loadUserGroupPermissionsDetails: @Sendable () async throws -> Array<UserGroupPermissionDetailsDSV>
@@ -36,7 +36,7 @@ public struct ResourceController {
   public var delete: @Sendable () async throws -> Void
 
   public init(
-    state: ViewableState<Resource>,
+    state: any DataSource<Resource, Error>,
     fetchSecretIfNeeded: @escaping @Sendable (Bool) async throws -> JSON,
     loadUserPermissionsDetails: @escaping @Sendable () async throws -> Array<UserPermissionDetailsDSV>,
     loadUserGroupPermissionsDetails: @escaping @Sendable () async throws -> Array<UserGroupPermissionDetailsDSV>,
@@ -60,7 +60,7 @@ extension ResourceController: LoadableFeature {
 
   public static var placeholder: Self {
     .init(
-      state: .placeholder,
+      state: PlaceholderDataSource(),
       fetchSecretIfNeeded: unimplemented1(),
       loadUserPermissionsDetails: unimplemented0(),
       loadUserGroupPermissionsDetails: unimplemented0(),

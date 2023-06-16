@@ -55,7 +55,6 @@ where SnackBarView: View {
   private var presenting: Binding<SnackBarModel?>
   private let autoDismissDelaySeconds: UInt64
   private let snackBar: (SnackBarModel) -> SnackBarView
-  private var dismissTask: ManagedTask<Void> = .init()
 
   fileprivate init(
     presenting: Binding<SnackBarModel?>,
@@ -82,14 +81,9 @@ where SnackBarView: View {
             }
             .task {
               guard self.autoDismissDelaySeconds > 0 else { return }
-              await Task {
-                try await self.dismissTask.run { @MainActor in
-                  try? await Task.sleep(seconds: self.autoDismissDelaySeconds)
-                  guard !Task.isCancelled else { return }
-                  self.presenting.wrappedValue = nil
-                }
-              }
-              .waitForCompletion()
+							try? await Task.sleep(seconds: self.autoDismissDelaySeconds)
+							guard !Task.isCancelled else { return }
+							self.presenting.wrappedValue = nil
             }  // else no snack bar
         }
       }

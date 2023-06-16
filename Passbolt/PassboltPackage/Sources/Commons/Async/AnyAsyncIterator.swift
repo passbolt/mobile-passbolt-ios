@@ -21,43 +21,28 @@
 // @since         v1.0
 //
 
-public struct AnyAsyncIterator<Element>: AsyncIteratorProtocol {
+public struct AnyAsyncIterator<Element>: AsyncIteratorProtocol
+where Element: Sendable {
 
-  @usableFromInline internal let nextElement: () async -> Element?
+	@usableFromInline internal let nextElement: () async throws -> Element?
 
-  public init(
-    nextElement: @escaping () async -> Element?
-  ) {
-    self.nextElement = nextElement
-  }
+	@usableFromInline internal init(
+		nextElement: @escaping () async throws -> Element?
+	) {
+		self.nextElement = nextElement
+	}
 
-  @inlinable public func next() async -> Element? {
-    await nextElement()
-  }
+	@inlinable public func next() async throws -> Element? {
+		try await self.nextElement()
+	}
 }
 
 extension AsyncIteratorProtocol {
 
-  internal func asAnyAsyncIterator() -> AnyAsyncIterator<Element> {
+	@inlinable public func asAnyAsyncIterator() -> AnyAsyncIterator<Element> {
     // protocol requirement marks `next` as mutating
     // it forces to create mutable copy of self
     var mutableCopy: Self = self
-    return .init(
-      nextElement: {
-        do {
-          return try await mutableCopy.next()
-        }
-        catch {
-          // we can't get the details if Content sequence is throwing or not
-          // so if it is it will be treated as sequence end since we can't rethrow
-          error
-            .asTheError()
-            .asAssertionFailure(
-              message: "AnyAsyncIterator should not use throwing iterators, please use AnyAsyncThrowingIterator instead"
-            )
-          return nil
-        }
-      }
-    )
+    return .init(nextElement: { try await mutableCopy.next() })
   }
 }

@@ -32,8 +32,8 @@ import XCTest
 @MainActor
 final class AccountDetailsControllerTests: MainActorTestCase {
 
-  var detailsUpdates: UpdatesSequenceSource!
-  var preferencesUpdates: UpdatesSequenceSource!
+  var detailsUpdates: UpdatesSource!
+  var preferencesUpdates: UpdatesSource!
 
   override func mainActorSetUp() {
     features
@@ -48,7 +48,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
     features.patch(
       \AccountDetails.updates,
       context: Account.mock_ada,
-      with: detailsUpdates.updatesSequence
+      with: detailsUpdates.updates
     )
     features.patch(
       \AccountDetails.avatarImage,
@@ -64,7 +64,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
     features.patch(
       \AccountPreferences.updates,
       context: Account.mock_ada,
-      with: preferencesUpdates.updatesSequence
+      with: preferencesUpdates.updates
     )
   }
 

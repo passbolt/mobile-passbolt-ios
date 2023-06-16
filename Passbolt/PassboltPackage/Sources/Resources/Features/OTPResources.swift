@@ -30,7 +30,7 @@ public struct OTPResources {
 
   /// Sequence indicating updates in the list data.
   /// It won't contain updates in actual OTP codes.
-  public var updates: UpdatesSequence
+  public var updates: Updates
   /// Refresh resources data.
   /// Current implementation uses SessionData.refreshIfNeeded.
   public var refreshIfNeeded: @Sendable () async throws -> Void
@@ -42,7 +42,7 @@ public struct OTPResources {
   public var secretFor: @Sendable (Resource.ID) async throws -> TOTPSecret
 
   public init(
-    updates: UpdatesSequence,
+    updates: Updates,
     refreshIfNeeded: @escaping @Sendable () async throws -> Void,
     filteredList: @escaping @Sendable (OTPResourcesFilter) async throws -> Array<ResourceListItemDSV>,
     secretFor: @escaping @Sendable (Resource.ID) async throws -> TOTPSecret

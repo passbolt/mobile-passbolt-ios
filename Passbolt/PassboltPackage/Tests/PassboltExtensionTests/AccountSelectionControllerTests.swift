@@ -35,13 +35,13 @@ import XCTest
 @MainActor
 final class AccountSelectionControllerTests: MainActorTestCase {
 
-  var accountsUpdates: UpdatesSequenceSource!
+  var accountsUpdates: UpdatesSource!
 
   override func mainActorSetUp() {
     accountsUpdates = .init()
     features.patch(
       \Accounts.updates,
-      with: accountsUpdates.updatesSequence
+      with: accountsUpdates.updates
     )
     features.patch(
       \Accounts.storedAccounts,
@@ -71,7 +71,6 @@ final class AccountSelectionControllerTests: MainActorTestCase {
       \Session.currentAccount,
       with: always(Account.mock_ada)
     )
-    features.usePlaceholder(for: NavigationTree.self)
     features.usePlaceholder(for: AutofillExtensionContext.self)
   }
 

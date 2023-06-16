@@ -60,7 +60,7 @@ internal final class ResourcesListDisplayController: ViewController {
     )
 
     self.asyncExecutor.scheduleIteration(
-      over: combineLatest(context.filter, sessionData.updatesSequence),
+			over: combineLatest(context.filter.asAnyAsyncSequence(), sessionData.updates),
       catchingWith: self.diagnostics,
       failMessage: "Resources list updates broken!",
       failAction: { [context] (error: Error) in
@@ -81,7 +81,7 @@ extension ResourcesListDisplayController {
 
   internal struct Context {
 
-    internal var filter: ObservableViewState<ResourcesFilter>
+    internal var filter: AnyAsyncSequence<ResourcesFilter>
     internal var suggestionFilter: (ResourceListItemDSV) -> Bool
     internal var createResource: (() -> Void)?
     internal var selectResource: (Resource.ID) -> Void

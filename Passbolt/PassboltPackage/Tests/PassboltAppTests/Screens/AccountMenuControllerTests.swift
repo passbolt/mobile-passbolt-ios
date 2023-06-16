@@ -32,14 +32,14 @@ import XCTest
 @MainActor
 final class AccountMenuControllerTests: MainActorTestCase {
 
-  var accountUpdates: UpdatesSequenceSource!
+  var accountUpdates: UpdatesSource!
 
   override func mainActorSetUp() {
     accountUpdates = .init()
     features.usePlaceholder(for: Session.self)
     features.patch(
       \Accounts.updates,
-      with: accountUpdates.updatesSequence
+      with: accountUpdates.updates
     )
     features.patch(
       \Accounts.storedAccounts,

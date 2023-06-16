@@ -60,7 +60,7 @@ extension ResourceEditForm {
       try features.instance()
     let resourceFolderPathFetchDatabaseOperation: ResourceFolderPathFetchDatabaseOperation = try features.instance()
 
-    let formState: MutableState<Resource> = .init {
+		let formState: UpdatableVariable<Resource> = .init {
       switch context {
       case .create(let slug, let parentFolderID, let uri):
         let resourceTypes: Array<ResourceType> = try await resourceTypesFetchDatabaseOperation()
@@ -107,11 +107,10 @@ extension ResourceEditForm {
     }
 
     @Sendable nonisolated func update(
-      _ mutation: @escaping (inout Resource) -> Void
+      _ mutation: @escaping @Sendable (inout Resource) -> Void
     ) async throws -> Resource {
-      try await formState.asyncUpdate { (state: inout Resource) async throws in
-        mutation(&state)
-      }
+			formState.mutate(mutation)
+			return try await formState.value
     }
 
     @Sendable nonisolated func sendForm() async throws -> Resource.ID {
@@ -295,7 +294,7 @@ extension ResourceEditForm {
     }
 
     return .init(
-      state: .init(viewing: formState),
+      state: formState,
       update: update(_:),
       sendForm: sendForm
     )

@@ -63,7 +63,7 @@ extension SessionDatabase {
       }
     }
 
-    @SessionActor func openDatabaseConnectionIfAble() async -> SQLiteConnection? {
+		@SessionActor @Sendable func openDatabaseConnectionIfAble() async -> SQLiteConnection? {
       guard let account: Account = sessionState.account()
       else { return .none }
 
@@ -81,13 +81,13 @@ extension SessionDatabase {
       }
     }
 
-    let updatableDatabaseConnection: UpdatableValue<SQLiteConnection?> = .init(
-      updatesSequence: session.updatesSequence,
-      update: openDatabaseConnectionIfAble
-    )
+		let databaseConnection: ComputedVariable<SQLiteConnection?> = .init(
+			using: session.updates,
+			compute: { await openDatabaseConnectionIfAble() }
+		)
 
     @Sendable nonisolated func currentConnection() async throws -> SQLiteConnection {
-      if let connection: SQLiteConnection = try await updatableDatabaseConnection.value {
+      if let connection: SQLiteConnection = try await databaseConnection.value {
         return connection
       }
       else {

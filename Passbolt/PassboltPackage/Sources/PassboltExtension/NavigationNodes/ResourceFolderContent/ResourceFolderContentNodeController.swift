@@ -91,6 +91,7 @@ internal final class ResourceFolderContentNodeController: ViewController {
         folderName: folderName,
         filter: searchController
           .searchText
+					.asAnyAsyncSequence()
           .map { (text: String) -> ResourceFoldersFilter in
             ResourceFoldersFilter(
               sorting: .nameAlphabetically,
@@ -99,7 +100,8 @@ internal final class ResourceFolderContentNodeController: ViewController {
               flattenContent: !text.isEmpty,
               permissions: []
             )
-          },
+          }
+					.asAnyAsyncSequence(),
         suggestionFilter: { (resource: ResourceListItemDSV) -> Bool in
           requestedServiceIdentifiers.matches(resource)
         },

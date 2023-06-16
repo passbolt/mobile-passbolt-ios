@@ -47,7 +47,7 @@ extension ResourceFolderEditForm {
     let resourceFolderCreateNetworkOperation: ResourceFolderCreateNetworkOperation = try features.instance()
     let resourceFolderShareNetworkOperation: ResourceFolderShareNetworkOperation = try features.instance()
 
-    let formUpdates: UpdatesSequenceSource = .init()
+    let formUpdates: UpdatesSource = .init()
     let formState: CriticalState<ResourceFolderEditFormState> = .init(
       .init(
         name: .valid(.init()),
@@ -307,7 +307,7 @@ extension ResourceFolderEditForm {
     }
 
     return Self(
-      formUpdates: formUpdates.updatesSequence,
+      updates: formUpdates.updates,
       formState: accessFormState,
       setFolderName: setFolderName(_:),
       sendForm: sendForm

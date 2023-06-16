@@ -77,7 +77,7 @@ internal final class ResourceFolderContentDisplayController: ViewController {
     self.openResourceMenu = context.openResourceMenu
 
     self.asyncExecutor.scheduleIteration(
-      over: combineLatest(context.filter, sessionData.updatesSequence),
+			over: combineLatest(context.filter.asAnyAsyncSequence(), sessionData.updates),
       catchingWith: self.diagnostics,
       failMessage: "Resource folders list updates broken!",
       failAction: { [context] (error: Error) in
@@ -107,7 +107,7 @@ extension ResourceFolderContentDisplayController {
   internal struct Context {
 
     internal var folderName: DisplayableString
-    internal var filter: ObservableViewState<ResourceFoldersFilter>
+    internal var filter: AnyAsyncSequence<ResourceFoldersFilter>
     internal var suggestionFilter: (ResourceListItemDSV) -> Bool
     internal var createFolder: (() -> Void)?
     internal var createResource: (() -> Void)?

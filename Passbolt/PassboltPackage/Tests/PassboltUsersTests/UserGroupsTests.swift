@@ -38,7 +38,7 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
     registry.usePassboltUserGroups()
   }
 
-  var updatesSequence: UpdatesSequenceSource!
+  var updatesSequence: UpdatesSource!
 
   override func prepare() throws {
     self.set(
@@ -50,8 +50,8 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
     )
     self.updatesSequence = .init()
     patch(
-      \SessionData.updatesSequence,
-      with: updatesSequence.updatesSequence
+      \SessionData.updates,
+      with: updatesSequence.updates
     )
     use(Session.placeholder)
     use(ResourceUserGroupsListFetchDatabaseOperation.placeholder)
@@ -73,12 +73,12 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let filtersSequence: AsyncVariable<String> = .init(initial: "filter")
+    let filtersSequence: Variable<String> = .init(initial: "filter")
 
     let feature: UserGroups = try await self.testedInstance()
 
     let result: Array<ResourceUserGroupListItemDSV>? =
-      await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
+      try await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
       .first()
 
     XCTAssertEqual(
@@ -104,12 +104,12 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
       with: always(expectedResult)
     )
 
-    let filtersSequence: AsyncVariable<String> = .init(initial: "filter")
+    let filtersSequence: Variable<String> = .init(initial: "filter")
 
     let feature: UserGroups = try await self.testedInstance()
 
     let result: Array<ResourceUserGroupListItemDSV>? =
-      await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
+      try await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
       .first()
 
     XCTAssertEqual(
@@ -124,7 +124,7 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
       with: always(.mock_ada)
     )
     var expectedResult: Array<ResourceUserGroupListItemDSV> = []
-    let filtersSequence: AsyncVariable<String> = .init(initial: "filter")
+    let filtersSequence: Variable<String> = .init(initial: "filter")
 
     let nextResult: () -> Array<ResourceUserGroupListItemDSV> = {
       defer {
@@ -149,13 +149,13 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
 
     let feature: UserGroups = try await self.testedInstance()
 
-    _ = await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
+    _ = await try feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
       .first()
 
-    filtersSequence.send("changed")
+		filtersSequence.value = "changed"
 
     let result: Array<ResourceUserGroupListItemDSV>? =
-      await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
+      try await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
       .first()
 
     XCTAssertEqual(

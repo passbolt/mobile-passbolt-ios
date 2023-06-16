@@ -38,7 +38,7 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
     registry.usePassboltResourceFolders()
   }
 
-  private var updatesSequenceSource: UpdatesSequenceSource!
+  private var updatesSequenceSource: UpdatesSource!
 
   override func prepare() throws {
     self.set(
@@ -51,8 +51,8 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
 
     updatesSequenceSource = .init()
     patch(
-      \SessionData.updatesSequence,
-      with: updatesSequenceSource.updatesSequence
+      \SessionData.updates,
+      with: updatesSequenceSource.updates
     )
     use(ResourceFolderDetailsFetchDatabaseOperation.placeholder)
   }

@@ -49,14 +49,12 @@ extension UserDetails {
       try await userDetailsFetchDatabaseOperation(userID)
     }
 
-    let currentDetails: UpdatableValue<UserDetailsDSV> = .init(
-      updatesSequence:
-        sessionData
-        .updatesSequence,
-      update: fetchUserDetails
+    let currentDetails: ComputedVariable<UserDetailsDSV> = .init(
+      using: sessionData.updates,
+      compute: fetchUserDetails
     )
 
-    let avatarImageCache: MutableState<Data> = .init(
+    let avatarImageCache: ComputedVariable<Data> = .init(
       lazy: {
         do {
           return

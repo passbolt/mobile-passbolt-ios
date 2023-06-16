@@ -38,7 +38,7 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
     registry.usePassboltResourceTags()
   }
 
-  private var updatesSequence: UpdatesSequenceSource!
+  private var updatesSequence: UpdatesSource!
 
   override func prepare() throws {
     self.set(
@@ -51,8 +51,8 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
 
     self.updatesSequence = .init()
     patch(
-      \SessionData.updatesSequence,
-      with: self.updatesSequence.updatesSequence
+      \SessionData.updates,
+      with: self.updatesSequence.updates
     )
     use(ResourceTagDetailsFetchDatabaseOperation.placeholder)
   }

@@ -24,145 +24,54 @@
 import Combine
 import Commons
 
-@MainActor
-public final class ObservableViewState<State: Equatable>: ObservableObject {
+public final class ObservableViewState<ViewState: Equatable>: ViewStateSource {
 
-  public nonisolated let objectWillChange: ObservableObjectPublisher
-  internal let updates: AnyAsyncSequence<State>
-  private let read: @MainActor () -> State
-  private let cancellable: AnyCancellable
+	public nonisolated var updates: Updates { self.source.updates }
+	@MainActor public var state: ViewState {
+		self.source.state
+	}
 
-  public nonisolated init<Variable>(
-    from variable: MutableViewState<Variable>,
-    at keyPath: KeyPath<Variable, State>
+	private let source: any ViewStateSource<ViewState>
+
+	public init(
+		from source: any ViewStateSource<ViewState>
+	) {
+		self.source = source
+	}
+
+  @MainActor public init<Other>(
+    from source: any ViewStateSource<Other>,
+    at keyPath: KeyPath<Other, ViewState>
   ) {
-    self.read = { variable.value[keyPath: keyPath] }
-    let objectWillChange: ObservableObjectPublisher = .init()
-    self.objectWillChange = objectWillChange
-    self.updates =
-      variable
-      .map { (variable: Variable) -> State in
-        variable[keyPath: keyPath]
-      }
-      .removeDuplicates()
-      .asAnyAsyncSequence()
-    self.cancellable = variable
-      .stateWillChange
-      .map { (variable: Variable) in
-        variable[keyPath: keyPath]
-      }
-      .removeDuplicates()
-      .sink { (_: State) in
-        objectWillChange.send()
-      }
+		self.source = ComputedViewState(
+			from: source,
+			transform: { $0[keyPath: keyPath] }
+		)
   }
 
-  public nonisolated init(
-    from variable: MutableViewState<State>
-  ) {
-    self.read = { variable.value }
-    let objectWillChange: ObservableObjectPublisher = .init()
-    self.objectWillChange = objectWillChange
-    self.updates =
-      variable
-      .asAnyAsyncSequence()
-    self.cancellable = variable
-      .stateWillChange
-      .removeDuplicates()
-      .sink { (_: State) in
-        objectWillChange.send()
-      }
-  }
-
-  public nonisolated init<Other>(
-    from observable: ObservableViewState<Other>,
-    mapping: @escaping @Sendable (Other) -> State
-  ) {
-    self.read = { mapping(observable.value) }
-    // TODO: no duplicate filtering
-    self.objectWillChange = observable.objectWillChange
-    self.updates =
-      observable
-      .asAnyAsyncSequence()
-      .map(mapping)
-      .asAnyAsyncSequence()
-    self.cancellable = AnyCancellable({ /* NOP */  })
-  }
-
-  #if DEBUG
-  // placeholder - crashes when used
-  fileprivate nonisolated init(
-    file: StaticString,
-    line: UInt
-  ) {
-    self.read = unimplemented0(
-      file: file,
-      line: line
-    )
-    self.objectWillChange = .init()
-    self.updates = .init([])
-    self.cancellable = AnyCancellable({ /* NOP */  })
-  }
-  #endif
-
-  public var value: State {
-    self.read()
-  }
+	@MainActor public init<Other>(
+		from source: any ViewStateSource<Other>,
+		mapping: @escaping @MainActor (Other) -> ViewState
+	) {
+		self.source = ComputedViewState(
+			from: source,
+			transform: mapping
+		)
+	}
 }
 
 extension ObservableViewState {
 
-  @available(
-    *,
-    deprecated,
-    message:
-      "Please use other forms of binding values. ViewStateView should be used only to provide view state and updates.`"
-  )
-  public nonisolated func map<Mapped>(
-    _ mapping: @escaping @Sendable (State) -> Mapped
-  ) -> ObservableViewState<Mapped> {
-    .init(
-      from: self,
-      mapping: mapping
-    )
-  }
-
-  @available(
-    *,
-    deprecated,
-    message:
-      "Please use other forms of binding values. ViewStateView should be used only to provide view state and updates.`"
-  )
-  public nonisolated func valuesPublisher() -> some Combine.Publisher<State, Never> {
-    self.objectWillChange
-      .compactMap { [weak self] in self }
-      .asyncMap { (binding: ObservableViewState) in
-        await binding.read()
-      }
-  }
+	@MainActor public func binding<Value>(
+		to keyPath: WritableKeyPath<ViewState, Value>
+	) -> Binding<Value> {
+		Binding<Value>(
+			get: { self.value[keyPath: keyPath] },
+			set: { (newValue: Value) in
+				Unimplemented
+					.error()
+					.asAssertionFailure(message: "Can't set through a binding to ObservableViewState")
+			}
+		)
+	}
 }
-
-extension ObservableViewState: AsyncSequence {
-
-  public typealias Element = State
-  public typealias AsyncIterator = AnyAsyncSequence<State>.AsyncIterator
-
-  public func makeAsyncIterator() -> AsyncIterator {
-    self.updates.makeAsyncIterator()
-  }
-}
-
-#if DEBUG
-extension ObservableViewState {
-
-  public nonisolated static func placeholder(
-    file: StaticString = #fileID,
-    line: UInt = #line
-  ) -> Self {
-    .init(
-      file: file,
-      line: line
-    )
-  }
-}
-#endif

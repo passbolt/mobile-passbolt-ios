@@ -21,9 +21,45 @@
 // @since         v1.0
 //
 
-extension Task where Failure == Never {
+@rethrows
+public protocol DataSource<DataType, Failure>: AnyObject, AsyncSequence, Sendable
+where Element == DataType, AsyncIterator == AsyncThrowingMapSequence<Updates, DataType>.Iterator {
 
-  @Sendable public static func never() async throws -> Success {
-    try await future { _ in /* never fulfill */ }
-  }
+	associatedtype DataType: Sendable
+	associatedtype Failure: Error
+
+	nonisolated var updates: Updates { @Sendable get }
+
+	var value: DataType { @Sendable get async throws }
 }
+
+extension DataSource /* AsyncSequence */ {
+
+	public nonisolated func makeAsyncIterator() -> AsyncThrowingMapSequence<Updates, DataType>.Iterator {
+		self.updates
+			.map { [unowned self] () async throws -> Element in
+				try await self.value
+			}
+			.makeAsyncIterator()
+	}
+
+	public func asAnyAsyncSequence() -> AnyAsyncSequence<DataType> {
+		AnyAsyncSequence(self)
+	}
+}
+
+#if DEBUG
+
+public final class PlaceholderDataSource<DataType, Failure>: DataSource
+where DataType: Sendable, Failure: Error {
+
+	public let updates: Updates = .placeholder
+
+	public init() {}
+
+	public var value: DataType {
+		@inlinable get async throws { unimplemented() }
+	}
+}
+
+#endif

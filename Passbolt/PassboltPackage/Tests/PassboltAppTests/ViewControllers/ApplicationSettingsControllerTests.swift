@@ -64,7 +64,7 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
     test_viewState_biometicsAuthorizationAvailability_isDisabledInitially_whenPassphraseIsNotStoredAndBiometryAvailable()
     async
   {
-    let accountPreferencesUpdates: UpdatesSequenceSource = .init()
+    let accountPreferencesUpdates: UpdatesSource = .init()
     patch(
       \AccountPreferences.isPassphraseStored,
       context: .mock_ada,
@@ -84,11 +84,11 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
   }
 
   func test_viewState_biometicsAuthorizationAvailability_isUnavailableInitially_whenBiometryIsNotAvailable() async {
-    let accountPreferencesUpdates: UpdatesSequenceSource = .init()
+    let accountPreferencesUpdates: UpdatesSource = .init()
     patch(
       \AccountPreferences.updates,
       context: .mock_ada,
-      with: accountPreferencesUpdates.updatesSequence
+      with: accountPreferencesUpdates.updates
     )
     patch(
       \OSBiometry.availability,
@@ -99,7 +99,7 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
       returns: BiometricsAuthorizationAvailability.unavailable
     ) { feature in
       await self.asyncExecutionControl.addTask {
-        accountPreferencesUpdates.endUpdates()
+        accountPreferencesUpdates.terminate()
       }
       await self.asyncExecutionControl.executeAll()
       return await feature.viewState.biometicsAuthorizationAvailability

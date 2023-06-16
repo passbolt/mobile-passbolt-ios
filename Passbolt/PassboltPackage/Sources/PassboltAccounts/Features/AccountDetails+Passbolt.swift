@@ -80,26 +80,24 @@ extension AccountDetails {
 
       try accountsDataStore
         .updateAccountProfile(updatedProfile)
-      accountData.updatesSequenceSource.sendUpdate()
+      accountData.updatesSource.sendUpdate()
     }
 
-    let avatarImageCache: AsyncCache<Data> = .init()
-    @Sendable nonisolated func avatarImage() async throws -> Data? {
-      do {
-        return
-          try await avatarImageCache
-          .valueOrUpdate {
-            let profile: AccountWithProfile = try profile()
-            return
-              try await mediaDownloadNetworkOperation
-              .execute(profile.avatarImageURL)
-          }
-      }
-      catch {
-        diagnostics.log(error: error)
-        return .none
-      }
-    }
+    let avatarImageCache: ComputedVariable<Data> = .init(lazy: {
+			do {
+				let profile: AccountWithProfile = try profile()
+				return try await mediaDownloadNetworkOperation.execute(profile.avatarImageURL)
+			}
+			catch {
+				diagnostics.log(error: error)
+				throw error
+			}
+		})
+
+		@Sendable nonisolated func avatarImage() async throws -> Data? {
+			try? await avatarImageCache.value
+		}
+
 
     return Self(
       updates: accountData.updates,

@@ -39,13 +39,13 @@ extension SessionConfigurationLoader {
     let session: Session = try features.instance()
     let configurationFetchNetworkOperation: ConfigurationFetchNetworkOperation = try features.instance()
 
-    let configuration: UpdatableValue<Dictionary<AnyHashable, FeatureConfigItem>> = .init(
+    let configuration: ComputedVariable<Dictionary<AnyHashable, FeatureConfigItem>> = .init(
       // TODO: we should update only on account changes
       // not on all session changes...
-      updatesSequence: session.updatesSequence,
+			using: session.updates,
       //        .currentAccountSequence()
       //        .map { _ in Void() },
-      update: fetchConfiguration
+      compute: fetchConfiguration
     )
 
     @Sendable nonisolated func fetchConfiguration() async throws -> Dictionary<AnyHashable, FeatureConfigItem> {

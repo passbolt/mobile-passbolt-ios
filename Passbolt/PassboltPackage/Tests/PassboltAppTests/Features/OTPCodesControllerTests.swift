@@ -41,7 +41,7 @@ final class OTPCodesControllerTests: LoadableFeatureTestCase<OTPCodesController>
     registry.usePassboltOTPCodesController()
   }
 
-  let timerMockSequence: UpdatesSequenceSource = .init()
+  let timerMockSequence: UpdatesSource = .init()
 
   override func prepare() throws {
     set(
@@ -52,7 +52,7 @@ final class OTPCodesControllerTests: LoadableFeatureTestCase<OTPCodesController>
       )
     )
     let sequence = self.timerMockSequence
-      .updatesSequence
+      .updates
       .asAnyAsyncSequence()
 
     patch(

@@ -21,9 +21,37 @@
 // @since         v1.0
 //
 
-extension Task where Failure == Never {
+import Combine
 
-  @Sendable public static func never() async throws -> Success {
-    try await future { _ in /* never fulfill */ }
-  }
+public final class UpdatesPublisher: ConnectablePublisher {
+
+	public typealias Output = Void
+	public typealias Failure = Never
+
+	private let subject: CurrentValueSubject<Void, Failure> = .init(Void())
+	private let updates: Updates
+
+	@usableFromInline internal init(
+		for updates: Updates
+	) {
+		self.updates = updates
+	}
+
+	public func receive<S>(
+		subscriber: S
+	) where S: Subscriber, S.Input == Output, S.Failure == Failure {
+		self.subject
+			.receive(subscriber: subscriber)
+	}
+
+	public func connect() -> Cancellable {
+		let task: Task<Void, Never> = .init {
+			for await element: Output in self.updates {
+				self.subject.send(element)
+			}
+			self.subject.send(completion: .finished)
+		}
+
+		return AnyCancellable(task.cancel)
+	}
 }

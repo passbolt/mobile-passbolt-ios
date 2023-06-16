@@ -34,7 +34,7 @@ import XCTest
 @MainActor
 final class HomeSearchControllerTests: MainActorTestCase {
 
-  var detailsUpdates: UpdatesSequenceSource!
+  var detailsUpdates: UpdatesSource!
 
   override func mainActorSetUp() {
     features
@@ -54,7 +54,7 @@ final class HomeSearchControllerTests: MainActorTestCase {
     features.patch(
       \AccountDetails.updates,
       context: Account.mock_ada,
-      with: detailsUpdates.updatesSequence
+      with: detailsUpdates.updates
     )
     features.patch(
       \AccountDetails.profile,

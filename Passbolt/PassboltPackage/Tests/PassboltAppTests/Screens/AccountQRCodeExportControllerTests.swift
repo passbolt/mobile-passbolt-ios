@@ -48,10 +48,10 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
   }
 
   func test_viewState_updatesWithData_whenTransferStateUpdates() async throws {
-    let updatesSource: UpdatesSequenceSource = .init()
+    let updatesSource: UpdatesSource = .init()
     patch(
       \AccountChunkedExport.updates,
-      with: updatesSource.updatesSequence
+      with: updatesSource.updates
     )
     patch(
       \AccountChunkedExport.status,
@@ -74,7 +74,7 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
     ) {
       self.asyncExecutionControl.addTask {
         try? await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
-        updatesSource.endUpdates()
+        updatesSource.terminate()
       }
       await self.asyncExecutionControl.executeAll()
       return tested.viewState.value
@@ -89,10 +89,10 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
     )
     return XCTFail()
 
-    let updatesSource: UpdatesSequenceSource = .init()
+    let updatesSource: UpdatesSource = .init()
     patch(
       \AccountChunkedExport.updates,
-      with: updatesSource.updatesSequence
+      with: updatesSource.updates
     )
     patch(
       \AccountChunkedExport.status,
@@ -107,10 +107,10 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
     )
     return XCTFail()
 
-    let updatesSource: UpdatesSequenceSource = .init()
+    let updatesSource: UpdatesSource = .init()
     patch(
       \AccountChunkedExport.updates,
-      with: updatesSource.updatesSequence
+      with: updatesSource.updates
     )
     patch(
       \AccountChunkedExport.status,

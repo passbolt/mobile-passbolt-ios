@@ -29,15 +29,15 @@ import Features
 public struct ResourceEditForm {
 
   // Access current resource state and updates
-  public var state: ViewableState<Resource>
+  public var state: any DataSource<Resource, Error>
   // Update resource
-  public var update: @Sendable (@escaping (inout Resource) -> Void) async throws -> Resource
+  public var update: @Sendable (@escaping @Sendable (inout Resource) -> Void) async throws -> Resource
   // Send the form
   public var sendForm: @Sendable () async throws -> Resource.ID
 
   public init(
-    state: ViewableState<Resource>,
-    update: @escaping @Sendable (@escaping (inout Resource) -> Void) async throws -> Resource,
+    state: any DataSource<Resource, Error>,
+    update: @escaping @Sendable (@escaping @Sendable (inout Resource) -> Void) async throws -> Resource,
     sendForm: @escaping @Sendable () async throws -> Resource.ID
   ) {
     self.state = state
@@ -53,7 +53,7 @@ extension ResourceEditForm: LoadableFeature {
   #if DEBUG
   public static var placeholder: Self {
     .init(
-      state: .placeholder,
+      state: PlaceholderDataSource(),
       update: { _ in unimplemented() },
       sendForm: unimplemented0()
     )

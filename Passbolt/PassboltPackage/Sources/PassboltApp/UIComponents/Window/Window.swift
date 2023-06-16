@@ -49,7 +49,7 @@ internal final class Window {
 
     cancellables.executeAsync { @MainActor [weak self] in
       let controller: WindowController = lazyController()
-      for await disposition
+      for try await disposition
         in controller
         .screenStateDispositionSequence()
       {

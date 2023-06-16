@@ -127,7 +127,7 @@ extension Session {
     }
 
     return Self(
-      updatesSequence: sessionState.updatesSequence,
+      updates: sessionState.updates,
       pendingAuthorization: pendingAuthorization,
       currentAccount: currentAccount,
       authorize: authorize(_:),

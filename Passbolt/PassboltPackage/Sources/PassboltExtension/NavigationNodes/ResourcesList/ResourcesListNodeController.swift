@@ -85,11 +85,13 @@ internal final class ResourcesListNodeController: ViewController {
       context: .init(
         filter: self.searchController
           .searchText
+					.asAnyAsyncSequence()
           .map { (text: String) -> ResourcesFilter in
             var filter: ResourcesFilter = context.baseFilter
             filter.text = text
             return filter
-          },
+          }
+					.asAnyAsyncSequence(),
         suggestionFilter: { (resource: ResourceListItemDSV) -> Bool in
           requestedServiceIdentifiers.matches(resource)
         },

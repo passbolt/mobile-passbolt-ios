@@ -21,9 +21,45 @@
 // @since         v1.0
 //
 
-extension Task where Failure == Never {
+import SwiftUI
 
-  @Sendable public static func never() async throws -> Success {
-    try await future { _ in /* never fulfill */ }
-  }
+public final class ViewStateVariable<ViewState>: ViewStateSource
+where ViewState: Sendable {
+
+	public var updates: Updates { self.updatesSource.updates }
+	@MainActor public var state: ViewState {
+		willSet {
+			self.updatesSource.sendUpdate()
+		}
+	}
+
+	private let updatesSource: UpdatesSource
+
+	public init(
+		initial: ViewState
+	) {
+		self.state = initial
+		self.updatesSource = .init()
+	}
+
+	@discardableResult
+	@MainActor public func mutate<Returned>(
+		_ mutation: @MainActor (inout ViewState) -> Returned
+	) -> Returned {
+		mutation(&self.state)
+	}
+}
+
+extension ViewStateVariable {
+
+	@MainActor public func binding<Value>(
+		to keyPath: WritableKeyPath<ViewState, Value>
+	) -> Binding<Value> {
+		Binding<Value>(
+			get: { self.state[keyPath: keyPath] },
+			set: { (newValue: Value) in
+				self.state[keyPath: keyPath] = newValue
+			}
+		)
+	}
 }
