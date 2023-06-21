@@ -21,10 +21,35 @@
 // @since         v1.0
 //
 
-import CommonModels
+#if DEBUG
 
-// Scope for examining resource folder details.
-public enum ResourceFolderDetailsScope: FeaturesScope {
+import SwiftUI
 
-  public typealias Context = ResourceFolder.ID
+public struct PreviewInputState<Content>: View
+where Content: View {
+
+  @State private var state: Validated<String>
+  private let validator: Validator<String>
+  private let content: (Validated<String>, @escaping @MainActor (String) -> Void) -> Content
+
+  public init(
+    initial: String = "Edit me!",
+    validator: Validator<String> = .nonEmpty(displayable: "Can't be empty!"),
+    @ViewBuilder content: @escaping (Validated<String>, @escaping @MainActor (String) -> Void) -> Content
+  ) {
+    self._state = .init(initialValue: validator.validate(initial))
+    self.validator = validator
+    self.content = content
+  }
+
+  public var body: some View {
+    self.content(
+      self.state,
+      { (newValue: String) in
+        self.state = self.validator.validate(newValue)
+      }
+    )
+  }
 }
+
+#endif

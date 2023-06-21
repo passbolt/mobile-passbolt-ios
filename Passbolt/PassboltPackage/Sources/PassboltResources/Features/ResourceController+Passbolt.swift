@@ -22,6 +22,7 @@
 //
 
 import DatabaseOperations
+import FeatureScopes
 import NetworkOperations
 import Resources
 import SessionData
@@ -55,9 +56,9 @@ extension ResourceController {
     let resourceSetFavoriteDatabaseOperation: ResourceSetFavoriteDatabaseOperation = try features.instance()
 
     let state: UpdatableVariable<Resource> = .init(
-			using: sessionData.updates,
-			compute: fetchMeta
-		)
+      using: sessionData.updates,
+      compute: fetchMeta
+    )
 
     @Sendable nonisolated func fetchMeta() async throws -> Resource {
       let resource: Resource = try await resourceDataFetchDatabaseOperation(
@@ -105,12 +106,12 @@ extension ResourceController {
     @Sendable nonisolated func fetchSecretIfNeeded(
       force: Bool
     ) async throws -> JSON {
-			try await state.update { (resource: inout Resource) async throws -> JSON in
-				guard force || !resource.hasSecret
-				else { return resource.secret }
+      try await state.update { (resource: inout Resource) async throws -> JSON in
+        guard force || !resource.hasSecret
+        else { return resource.secret }
         resource.secret = try await fetchSecretJSON(unstructured: resource.hasUnstructuredSecret)
         try resource.validate()  // validate resource with secret
-				return resource.secret
+        return resource.secret
       }
     }
 
@@ -128,9 +129,9 @@ extension ResourceController {
       if let favoriteID: Resource.Favorite.ID = try await state.value.favoriteID {
         try await resourceFavoriteDeleteNetworkOperation(.init(favoriteID: favoriteID))
         try await resourceSetFavoriteDatabaseOperation(.init(resourceID: resourceID, favoriteID: .none))
-				state.mutate { (resource: inout Resource) in
-					resource.favoriteID = .none
-				}
+        state.mutate { (resource: inout Resource) in
+          resource.favoriteID = .none
+        }
       }
       else {
         let favoriteID: Resource.Favorite.ID = try await resourceFavoriteAddNetworkOperation(
@@ -138,9 +139,9 @@ extension ResourceController {
         )
         .favoriteID
         try await resourceSetFavoriteDatabaseOperation(.init(resourceID: resourceID, favoriteID: favoriteID))
-				state.mutate { (resource: inout Resource) in
-					resource.favoriteID = favoriteID
-				}
+        state.mutate { (resource: inout Resource) in
+          resource.favoriteID = favoriteID
+        }
       }
     }
 

@@ -22,6 +22,7 @@
 //
 
 import DatabaseOperations
+import FeatureScopes
 import NetworkOperations
 import Resources
 import SessionData
@@ -40,14 +41,14 @@ extension ResourceFolderController {
     let resourceFolderDetailsFetchDatabaseOperation: ResourceFolderDetailsFetchDatabaseOperation =
       try features.instance()
 
-		let state: ComputedVariable<ResourceFolder> = .init(
-			using: sessionData.updates,
-			compute: {
-				try await resourceFolderDetailsFetchDatabaseOperation(
-					resourceFolderID
-				)
-			}
-		)
+    let state: ComputedVariable<ResourceFolder> = .init(
+      using: sessionData.updates,
+      compute: {
+        try await resourceFolderDetailsFetchDatabaseOperation(
+          resourceFolderID
+        )
+      }
+    )
 
     return Self(
       state: state

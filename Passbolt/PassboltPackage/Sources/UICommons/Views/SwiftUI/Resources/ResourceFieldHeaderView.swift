@@ -27,21 +27,165 @@ import SwiftUI
 public struct ResourceFieldHeaderView: View {
 
   private let name: DisplayableString
+  private let requiredMark: Bool
+  private let encryptedMark: Bool?
 
   public init(
-    name: DisplayableString
+    name: DisplayableString,
+    requiredMark: Bool = false,
+    encryptedMark: Bool? = .none
   ) {
     self.name = name
+    self.requiredMark = requiredMark
+    self.encryptedMark = encryptedMark
   }
 
   public var body: some View {
-    Text(displayable: self.name)
-      .text(
-        font: .inter(
-          ofSize: 12,
-          weight: .semibold
-        ),
-        color: .passboltPrimaryText
+    switch (self.requiredMark, self.encryptedMark) {
+    case (false, .none):
+      Text(displayable: self.name)
+        .text(
+          font: .inter(
+            ofSize: 12,
+            weight: .semibold
+          ),
+          color: .passboltPrimaryText
+        )
+        .lineLimit(1)
+        .frame(
+          maxWidth: .infinity,
+          minHeight: 12,
+          alignment: .leading
+        )
+
+    case (true, .none):
+      (Text(displayable: self.name)
+        .text(
+          font: .inter(
+            ofSize: 12,
+            weight: .semibold
+          ),
+          color: .passboltPrimaryText
+        )
+        + Text("*")
+        .text(
+          font: .inter(
+            ofSize: 12,
+            weight: .semibold
+          ),
+          color: .passboltSecondaryRed
+        ))
+        .lineLimit(1)
+        .frame(
+          maxWidth: .infinity,
+          minHeight: 12,
+          alignment: .leading
+        )
+
+    case (true, .some(let encrypted)):
+      HStack(spacing: 0) {
+        (Text(displayable: self.name)
+          .text(
+            font: .inter(
+              ofSize: 12,
+              weight: .semibold
+            ),
+            color: .passboltPrimaryText
+          )
+          + Text("*")
+          .text(
+            font: .inter(
+              ofSize: 12,
+              weight: .semibold
+            ),
+            color: .passboltSecondaryRed
+          ))
+          .lineLimit(1)
+          .frame(
+            maxWidth: .infinity,
+            minHeight: 12,
+            alignment: .leading
+          )
+
+        Image(
+          named: encrypted
+            ? .lockedLock
+            : .unlockedLock
+        )
+        .resizable(resizingMode: .stretch)
+        .aspectRatio(1, contentMode: .fit)
+        .frame(maxWidth: 12)
+      }
+
+    case (false, .some(let encrypted)):
+      HStack(spacing: 0) {
+        Text(displayable: self.name)
+          .text(
+            font: .inter(
+              ofSize: 12,
+              weight: .semibold
+            ),
+            color: .passboltPrimaryText
+          )
+          .lineLimit(1)
+          .frame(
+            maxWidth: .infinity,
+            minHeight: 12,
+            alignment: .leading
+          )
+
+        Image(
+          named: encrypted
+            ? .lockedLock
+            : .unlockedLock
+        )
+        .resizable(resizingMode: .stretch)
+        .aspectRatio(1, contentMode: .fit)
+        .frame(maxWidth: 12)
+      }
+    }
+  }
+}
+
+struct ResourceFieldHeaderView_Previews: PreviewProvider {
+
+  static var previews: some View {
+    VStack {
+      ResourceFieldHeaderView(
+        name: "Aaaa",
+        requiredMark: false,
+        encryptedMark: .none
       )
+
+      ResourceFieldHeaderView(
+        name: "Bbbb",
+        requiredMark: true,
+        encryptedMark: .none
+      )
+
+      ResourceFieldHeaderView(
+        name: "Cccc",
+        requiredMark: false,
+        encryptedMark: false
+      )
+
+      ResourceFieldHeaderView(
+        name: "Dddd",
+        requiredMark: false,
+        encryptedMark: true
+      )
+
+      ResourceFieldHeaderView(
+        name: "Eeee",
+        requiredMark: true,
+        encryptedMark: false
+      )
+
+      ResourceFieldHeaderView(
+        name: "Ffff",
+        requiredMark: true,
+        encryptedMark: true
+      )
+    }
   }
 }

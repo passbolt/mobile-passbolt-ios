@@ -22,13 +22,39 @@
 //
 
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 
 internal final class TOTPEditFormController: ViewController {
 
-  internal var isEditing: () -> Bool
-  internal var viewState: MutableViewState<ViewState>
+  public struct Context {
+
+    public var editingContext: ResourceEditingContext
+    public var totpPath: Resource.FieldPath
+    public var success: @Sendable (Resource?) -> Void
+
+    public init(
+      editingContext: ResourceEditingContext,
+      totpPath: Resource.FieldPath,
+      success: @escaping @Sendable (Resource?) -> Void
+    ) {
+      self.editingContext = editingContext
+      self.totpPath = totpPath
+      self.success = success
+    }
+  }
+
+  internal struct ViewState: Equatable {
+
+    internal var nameField: Validated<String>
+    internal var uriField: Validated<String>
+    internal var secretField: Validated<String>
+  }
+
+  internal var viewState: ComputedViewState<ViewState>
+  internal let snackBarMessage: ViewStateVariable<SnackBarMessage?>
+  internal let isEditing: Bool
 
   private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
@@ -36,29 +62,28 @@ internal final class TOTPEditFormController: ViewController {
   private let navigationToAdvanced: NavigationToTOTPEditAdvancedForm
   private let resourceEditForm: ResourceEditForm
 
+  private let totpPath: Resource.FieldPath
+  private let success: @Sendable (Resource) -> Void
+
   private let features: Features
 
   internal init(
-    context: Resource.ID?,
+    context: Context,
     features: Features
   ) throws {
     try features.ensureScope(SessionScope.self)
     let featuresBranchContainer: FeaturesContainer? = features.branchIfNeeded(
       scope: ResourceEditScope.self,
-      context: {
-        if let context {
-          return .edit(context)
-        }
-        else {
-          return .create(.totp, folderID: .none, uri: .none)
-        }
-      }()
+      context: context.editingContext
     )
 
     let features: Features = featuresBranchContainer ?? features
     self.features = features
 
-    self.isEditing = { context != nil }
+    let totpPath: Resource.FieldPath = context.totpPath
+    self.totpPath = totpPath
+    self.success = context.success
+
     self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
 
@@ -67,55 +92,58 @@ internal final class TOTPEditFormController: ViewController {
 
     self.resourceEditForm = try features.instance()
 
+    self.isEditing = !context.editingContext.editedResource.isLocal
+
     self.viewState = .init(
       initial: .init(
         nameField: .valid(""),
         uriField: .valid(""),
-        secretField: .valid(""),
-        snackBarMessage: .none
+        secretField: .valid("")
       ),
-      extendingLifetimeOf: featuresBranchContainer
-    )
-
-    self.asyncExecutor
-      .scheduleIteration(
-        over: self.resourceEditForm.state,
-        catchingWith: self.diagnostics,
-        failMessage: "Resource form updates broken!",
-        failAction: { [viewState] (error: Error) in
-          viewState.update { state in
-            state.snackBarMessage = .error(error)
-          }
-        }
-      ) { [viewState] (resource: Resource) in
-        let resource: Resource = resource
-        guard case .some = resource.type.specification.fieldSpecification(for: \.secret.totp)
+      from: self.resourceEditForm.state,
+      transform: { (resource: Resource) in
+        guard resource.contains(totpPath)
         else {
           throw
             InvalidResourceType
-            .error(message: "Resource without OTP can't edit it.")
+            .error(message: "Resource without TOTP, can't edit it.")
         }
-        let name: String = resource.meta.name.stringValue ?? ""
-        let uri: String = resource.meta.uri.stringValue ?? ""
-        let secret: String = resource.secret.totp.secret_key.stringValue ?? ""
 
-        await viewState.update { (state: inout ViewState) in
-          state.nameField = .valid(name)
-          state.uriField = .valid(uri)
-          state.secretField = .valid(secret)
-        }
+        return .init(
+          nameField:
+            resource
+            .validated(\.meta.name)
+            .map { $0.stringValue ?? "" },
+          uriField:
+            resource
+            .validated(\.meta.uri)
+            .map { $0.stringValue ?? "" },
+          secretField:
+            resource
+            .validated(totpPath.appending(path: \.secret_key))
+            .map { $0.stringValue ?? "" }
+        )
+      },
+      failure: { [diagnostics] (error: Error) in
+        diagnostics.log(error: error)
+        return .init(
+          nameField: .invalid(
+            "",
+            error: error.asTheError()
+          ),
+          uriField: .invalid(
+            "",
+            error: error.asTheError()
+          ),
+          secretField: .invalid(
+            "",
+            error: error.asTheError()
+          )
+        )
       }
-  }
-}
+    )
 
-extension TOTPEditFormController {
-
-  internal struct ViewState: Equatable {
-
-    internal var nameField: Validated<String>
-    internal var uriField: Validated<String>
-    internal var secretField: Validated<String>
-    internal var snackBarMessage: SnackBarMessage?
+    self.snackBarMessage = .init(initial: .none)
   }
 }
 
@@ -124,129 +152,54 @@ extension TOTPEditFormController {
   internal final func setNameField(
     _ name: String
   ) {
-    self.viewState.update { (state: inout ViewState) in
-      state.nameField = .valid(name)
-    }
-    self.asyncExecutor
-      .scheduleCatchingWith(
-        self.diagnostics,
-        failAction: { [viewState] (error: Error) in
-          await viewState.update(\.snackBarMessage, to: .error(error))
-        },
-        behavior: .replace
-      ) { [viewState, resourceEditForm] in
-        try Task.checkCancellation()
-        let validated: Validated<String> =
-          try await resourceEditForm
-          .update(
-            \.meta.name,
-            to: name,
-            valueToJSON: { (value: String) -> JSON in
-              .string(value)
-            },
-            jsonToValue: { (json: JSON) -> String in
-              json.stringValue ?? ""
-            }
-          )
-        try Task.checkCancellation()
-        await viewState.update { (state: inout ViewState) in
-          state.nameField = validated
-        }
-      }
+    self.resourceEditForm
+      .update(\.meta.name, to: name)
   }
 
   internal final func setURIField(
     _ uri: String
   ) {
-    self.viewState.update { (state: inout ViewState) in
-      state.uriField = .valid(uri)
-    }
-    self.asyncExecutor
-      .scheduleCatchingWith(
-        self.diagnostics,
-        failAction: { [viewState] (error: Error) in
-          await viewState.update(\.snackBarMessage, to: .error(error))
-        },
-        behavior: .replace
-      ) { [viewState, resourceEditForm] in
-        try Task.checkCancellation()
-        let validated: Validated<String> =
-          try await resourceEditForm
-          .update(
-            \.meta.uri,
-            to: uri,
-            valueToJSON: { (value: String) -> JSON in
-              .string(value)
-            },
-            jsonToValue: { (json: JSON) -> String in
-              json.stringValue ?? ""
-            }
-          )
-        try Task.checkCancellation()
-        await viewState.update { (state: inout ViewState) in
-          state.uriField = validated
-        }
-      }
+    self.resourceEditForm
+      .update(\.meta.uri, to: uri)
   }
 
   internal final func setSecretField(
     _ secret: String
   ) {
-    self.viewState.update { (state: inout ViewState) in
-      state.secretField = .valid(secret)
-    }
-    self.asyncExecutor
-      .scheduleCatchingWith(
-        self.diagnostics,
-        failAction: { [viewState] (error: Error) in
-          await viewState.update(\.snackBarMessage, to: .error(error))
-        },
-        behavior: .replace
-      ) { [viewState, resourceEditForm] in
-        try Task.checkCancellation()
-        let validated: Validated<String> =
-          try await resourceEditForm
-          .update(
-            \.secret.totp.secret_key,
-            to: secret,
-            valueToJSON: { (value: String) -> JSON in
-              .string(value)
-            },
-            jsonToValue: { (json: JSON) -> String in
-              json.stringValue ?? ""
-            }
-          )
-        try Task.checkCancellation()
-        await viewState.update { (state: inout ViewState) in
-          state.secretField = validated
+    self.resourceEditForm
+      .update(
+        self.totpPath.appending(path: \.secret_key),
+        to: secret
+      )
+  }
+
+  @MainActor internal final func showAdvancedSettings() async {
+    await self.diagnostics
+      .withLogCatch(
+        info: .message("Navigation to OTP advanced settings failed!"),
+        fallback: { [snackBarMessage] (error: Error) in
+          snackBarMessage.update(\.self, to: .error(error))
         }
+      ) {
+        try await navigationToAdvanced.perform(
+          context: .init(
+            totpPath: totpPath
+          )
+        )
       }
   }
 
-  internal final func showAdvancedSettings() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
-      failMessage: "Navigation to OTP advanced settings failed!",
-      failAction: { [viewState] (error: Error) in
-        await viewState.update(\.snackBarMessage, to: .error(error))
-      },
-      behavior: .reuse
-    ) { [navigationToAdvanced] in
-      try await navigationToAdvanced.perform()
-    }
-  }
-
-  internal final func sendForm() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
-      failMessage: "Sending OTP form failed!",
-      failAction: { [viewState] (error: Error) in
-        await viewState.update(\.snackBarMessage, to: .error(error))
-      },
-      behavior: .reuse
-    ) { [resourceEditForm, navigationToSelf] in
-      _ = try await resourceEditForm.sendForm()
-      try await navigationToSelf.revert()
-    }
+  @MainActor internal final func sendForm() async {
+    await self.diagnostics
+      .withLogCatch(
+        info: .message("Sending OTP form failed!"),
+        fallback: { [snackBarMessage] (error: Error) in
+          snackBarMessage.update(\.self, to: .error(error))
+        }
+      ) {
+        let resource: Resource = try await resourceEditForm.sendForm()
+        try await navigationToSelf.revert()
+        success(resource)
+      }
   }
 }

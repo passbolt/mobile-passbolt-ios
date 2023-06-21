@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import FeatureScopes
 import Features
 import SessionData
 import TestExtensions

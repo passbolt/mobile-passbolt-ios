@@ -111,7 +111,7 @@ extension InvalidResourceField {
       path: path,
       value: value,
       displayable: .localized(
-        key: "error.resource.field.type.invalid",
+        key: "error.resource.field.content.invalid",
         arguments: [
           specification.name.displayable.string()
         ]

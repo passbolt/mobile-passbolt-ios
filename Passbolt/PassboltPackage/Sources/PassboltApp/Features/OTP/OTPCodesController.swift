@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import FeatureScopes
 import OSFeatures
 import Resources
 
@@ -88,7 +89,7 @@ extension OTPCodesController {
       let totpCodeGenerator: TOTPCodeGenerator = try await features.instance(
         context: .init(
           resourceID: resourceID,
-					totpSecret: totp
+          totpSecret: totp
         )
       )
       return {
@@ -250,12 +251,12 @@ private final actor OTPController {
           generator: generator,
           updatesTask: .init {
             #warning("[MOB-1096] TODO: add full support for HOTP - don't schedule updates / trigger only on counter updates")
-						do {
-							for try await _ in timerSequence {
-								updatesSource.sendUpdate()
-							}
-						}
-						catch {}
+            do {
+              for try await _ in timerSequence {
+                updatesSource.sendUpdate()
+              }
+            }
+            catch {}
           }
         )
       }  // else NOP
@@ -333,12 +334,12 @@ private final actor OTPController {
         generator: generator,
         updatesTask: .init {
           #warning("[MOB-1096] TODO: add full support for HOTP - don't schedule updates / trigger only on counter updates")
-					do {
-						for try await _ in timerSequence {
-							updatesSource.sendUpdate()
-						}
-					}
-					catch {}
+          do {
+            for try await _ in timerSequence {
+              updatesSource.sendUpdate()
+            }
+          }
+          catch {}
         }
       )
       self.updatesSource.sendUpdate()

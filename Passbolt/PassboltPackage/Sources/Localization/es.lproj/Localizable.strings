@@ -84,11 +84,11 @@
 "server.key.fingerprint.accept.new.key" = "Aceptar nueva clave";
 
 "resource.form.password.strength" = "Fortaleza de la contraseña";
-"resource.form.strength.very.weak" = "muy débil";
-"resource.form.strength.weak" = "débil";
-"resource.form.strength.fair" = "justa";
-"resource.form.strength.strong" = "fuerte";
-"resource.form.strength.very.strong" = "muy fuerte";
+"resource.form.strength.very.weak" = "Muy débil";
+"resource.form.strength.weak" = "Débil";
+"resource.form.strength.fair" = "Justa";
+"resource.form.strength.strong" = "Fuerte";
+"resource.form.strength.very.strong" = "Muy fuerte";
 "resource.form.create.button.title" = "Crear";
 "resource.form.create.and.fill.button.title" = "Crear y rellenar";
 "resource.form.update.button.title" = "Guardar";

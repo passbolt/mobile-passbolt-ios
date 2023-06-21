@@ -21,6 +21,7 @@
 // @since         v1.0
 
 import AccountSetup
+import FeatureScopes
 import UIComponents
 
 internal struct CodeScanningController {

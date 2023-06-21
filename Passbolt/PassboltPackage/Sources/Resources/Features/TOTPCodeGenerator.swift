@@ -42,11 +42,11 @@ extension TOTPCodeGenerator: LoadableFeature {
   public struct Context {
 
     public var resourceID: Resource.ID?
-		public var totpSecret: TOTPSecret
+    public var totpSecret: TOTPSecret
 
     public init(
       resourceID: Resource.ID?,
-			totpSecret: TOTPSecret
+      totpSecret: TOTPSecret
     ) {
       self.resourceID = resourceID
       self.totpSecret = totpSecret

@@ -31,7 +31,7 @@ extension ResourceShareNetworkOperation {
     _ input: Input
   ) -> Mutation<HTTPRequest> {
     .combined(
-      .pathSuffix("/share/resource/\(input.resourceID.urlString).json"),
+      .pathSuffix("/share/resource/\(input.resourceID).json"),
       .method(.put),
       .jsonBody(from: input.body)
     )

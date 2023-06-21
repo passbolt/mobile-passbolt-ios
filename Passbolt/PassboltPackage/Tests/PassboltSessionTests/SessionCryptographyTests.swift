@@ -22,6 +22,7 @@
 //
 
 import Crypto
+import FeatureScopes
 import TestExtensions
 
 @testable import PassboltSession

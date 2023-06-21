@@ -23,111 +23,192 @@
 
 import SwiftUI
 
-public final class ComputedViewState<ViewState>: ViewStateSource
-where ViewState: Sendable {
+public final class ComputedViewState<ViewState>: @unchecked Sendable, ViewStateSource
+where ViewState: Sendable & Equatable {
 
-	public var updates: Updates { self.updatesSource.updates }
-	@MainActor public private(set) var state: ViewState {
-		willSet {
-			self.updatesSource.sendUpdate()
-		}
-	}
+  public typealias ObjectWillChangePublisher = ObservableObjectPublisher
 
-	private let updatesSource: UpdatesSource
-	private var updatesTask: Task<Void, Never>?
+  public var updates: Updates { self.updatesSource.updates }
+  public let objectWillChange: ObjectWillChangePublisher
+  @MainActor public private(set) var state: ViewState {
+    didSet {
+      guard state != oldValue else { return }  // no update
+      self.objectWillChange.send()
+      self.updatesSource.sendUpdate()
+    }
+  }
 
-	public init<State>(
-		async compute: @escaping @Sendable () async -> State
-	) where ViewState == Optional<State> {
-		self.state = .none
-		self.updatesSource = .init()
-		self.updatesTask = .detached { @MainActor [unowned self] in
-			self.state = await compute()
-		}
-	}
+  private let updatesSource: UpdatesSource
+  private var updatesTask: Task<Void, Never>?
 
-	public init<State>(
-		using updates: Updates,
-		compute: @escaping @Sendable () async throws -> ViewState,
-		failure: @escaping @MainActor (Error) -> ViewState
-	) where ViewState == Optional<State> {
-		self.state = .none
-		self.updatesSource = .init()
-		self.updatesTask = .detached { @MainActor [unowned self] in
-			do {
-				for await _ in updates {
-					self.state = try await compute()
-				}
-			}
-			catch {
-				self.state = failure(error)
-			}
-		}
-	}
+  public init<State>(
+    async compute: @escaping @Sendable () async -> State
+  ) where ViewState == Optional<State> {
+    self.state = .none
+    self.updatesSource = .init()
+    self.objectWillChange = .init()
+    self.updatesTask = .detached { @MainActor [unowned self] in
+      self.state = await compute()
+    }
+  }
 
-	public init(
-		initial: ViewState,
-		updateUsing updates: Updates,
-		update: @escaping @MainActor (ViewState) async -> ViewState
-	) {
-		self.state = initial
-		self.updatesSource = .init()
-		self.updatesTask = .detached { @MainActor [unowned self] in
-			for await _ in updates {
-				self.state = await update(self.state)
-			}
-		}
-	}
+  public init<State>(
+    using updates: Updates,
+    compute: @escaping @Sendable () async throws -> ViewState,
+    failure: @escaping @MainActor (Error) -> ViewState
+  ) where ViewState == Optional<State> {
+    self.state = .none
+    self.updatesSource = .init()
+    self.objectWillChange = .init()
+    self.updatesTask = .detached { @MainActor [unowned self] in
+      do {
+        for await _ in updates {
+          self.state = try await compute()
+        }
+      }
+      catch {
+        self.state = failure(error)
+      }
+    }
+  }
 
-	public init<Source, State>(
-		from source: Source,
-		transform: @escaping @MainActor (Source.DataType) async throws -> ViewState,
-		failure: @escaping @MainActor (Error) -> ViewState
-	) where Source: DataSource, ViewState == Optional<State> {
-		self.state = .none
-		self.updatesSource = .init()
-		self.updatesTask = .detached { @MainActor [unowned source] in
-			do {
-				for await _ in source.updates {
-					self.state = try await transform(source.value)
-				}
-			}
-			catch {
-				self.state = failure(error)
-			}
-		}
-	}
+  public init(
+    initial: ViewState,
+    updateUsing updates: Updates,
+    update: @escaping @MainActor (ViewState) async -> ViewState
+  ) {
+    self.state = initial
+    self.updatesSource = .init()
+    self.objectWillChange = .init()
+    self.updatesTask = .detached { @MainActor [unowned self] in
+      for await _ in updates {
+        self.state = await update(self.state)
+      }
+    }
+  }
 
-	@MainActor public init<Source>(
-		from source: Source,
-		transform: @escaping @MainActor (Source.ViewState) -> ViewState
-	) where Source: ViewStateSource {
-		self.state = transform(source.state)
-		self.updatesSource = .init()
-		self.updatesTask = .detached { @MainActor [unowned source] in
-			for await _ in source.updates.dropFirst() {
-				self.state = transform(source.state)
-			}
-		}
-	}
+  public init<Source, State>(
+    from source: Source,
+    transform: @escaping @MainActor (Source.DataType) async throws -> ViewState,
+    failure: @escaping @MainActor (Error) -> ViewState
+  ) where Source: DataSource, ViewState == Optional<State> {
+    self.state = .none
+    self.updatesSource = .init()
+    self.objectWillChange = .init()
+    self.updatesTask = .detached { @MainActor [unowned source] in
+      do {
+        for await _ in source.updates {
+          self.state = try await transform(source.value)
+        }
+      }
+      catch {
+        self.state = failure(error)
+      }
+    }
+  }
 
-	deinit {
-		self.updatesTask?.cancel()
-	}
+  public init<Source, State>(
+    from source: Source,
+    transform: @escaping @MainActor (Source.DataType) async -> ViewState,
+    failure: @escaping @MainActor (Error) -> ViewState
+  ) where Source: DataSource, Source.Failure == Never, ViewState == Optional<State> {
+    self.state = .none
+    self.updatesSource = .init()
+    self.objectWillChange = .init()
+    self.updatesTask = .detached { @MainActor [unowned source] in
+      for await _ in source.updates {
+        try? self.state = await transform(source.value)
+      }
+    }
+  }
+
+  public init<Source>(
+    initial: ViewState,
+    from source: Source,
+    transform: @escaping @MainActor (Source.DataType) async throws -> ViewState,
+    failure: @escaping @MainActor (Error) -> ViewState
+  ) where Source: DataSource {
+    self.state = initial
+    self.updatesSource = .init()
+    self.objectWillChange = .init()
+    self.updatesTask = .detached { @MainActor [unowned source] in
+      do {
+        for await _ in source.updates {
+          self.state = try await transform(source.value)
+        }
+      }
+      catch {
+        self.state = failure(error)
+      }
+    }
+  }
+
+  public init<Source>(
+    initial: ViewState,
+    from source: Source,
+    transform: @escaping @MainActor (Source.DataType) async -> ViewState
+  ) where Source: DataSource, Source.Failure == Never {
+    self.state = initial
+    self.updatesSource = .init()
+    self.objectWillChange = .init()
+    self.updatesTask = .detached { @MainActor [unowned source] in
+      for await _ in source.updates {
+        // source value can't throw here
+        try? self.state = await transform(source.value)
+      }
+    }
+  }
+
+  @MainActor public init<Source>(
+    from source: Source,
+    transform: @escaping @MainActor (Source.ViewState) -> ViewState
+  ) where Source: ViewStateSource {
+    self.state = transform(source.state)
+    self.updatesSource = .init()
+    self.objectWillChange = .init()
+    self.updatesTask = .detached { @MainActor [unowned source] in
+      for await _ in source.updates.dropFirst() {
+        self.state = transform(source.state)
+      }
+    }
+  }
+
+  @MainActor public init<Source>(
+    from source: Source,
+    at keyPath: KeyPath<Source.ViewState, ViewState>
+  ) where Source: ViewStateSource {
+    self.state = source.state[keyPath: keyPath]
+    self.updatesSource = .init()
+    self.objectWillChange = .init()
+    self.updatesTask = .detached { @MainActor [unowned source] in
+      for await _ in source.updates.dropFirst() {
+        self.state = source.state[keyPath: keyPath]
+      }
+    }
+  }
+
+  deinit {
+    self.updatesTask?.cancel()
+  }
 }
 
 extension ComputedViewState {
 
-	@MainActor public func binding<Value>(
-		to keyPath: WritableKeyPath<ViewState, Value>
-	) -> Binding<Value> {
-		Binding<Value>(
-			get: { self.value[keyPath: keyPath] },
-			set: { (newValue: Value) in
-				Unimplemented
-					.error()
-					.asAssertionFailure(message: "Can't set through a binding to ComputedViewState")
-			}
-		)
-	}
+  @MainActor public func binding<Value>(
+    to keyPath: WritableKeyPath<ViewState, Value>
+  ) -> Binding<Value> {
+    Binding<Value>(
+      get: { self.value[keyPath: keyPath] },
+      set: { (newValue: Value) in
+        Unimplemented
+          .error()
+          .asAssertionFailure(message: "Can't set through a binding to ComputedViewState")
+      }
+    )
+  }
+
+  @MainActor public func forceUpdate() {
+    self.updatesSource.sendUpdate()
+    self.objectWillChange.send()
+  }
 }

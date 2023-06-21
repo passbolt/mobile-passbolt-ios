@@ -44,6 +44,7 @@
 "generic.user.search.list.empty" = "User not found.";
 "generic.paste.value.invalid" = "Trying to paste invalid value";
 "generic.are.you.sure" = "Are you sure?";
+"generic.picker.select.placeholder" = "Select";
 
 "account.selection.title" = "Welcome back!";
 "account.selection.subtitle" = "Choose an account to sign in!";
@@ -94,17 +95,18 @@
 "server.key.fingerprint.accept.new.key" = "Accept new key";
 
 "resource.form.password.strength" = "Password strength";
-"resource.form.strength.very.weak" = "very weak";
-"resource.form.strength.weak" = "weak";
-"resource.form.strength.fair" = "fair";
-"resource.form.strength.strong" = "strong";
-"resource.form.strength.very.strong" = "very strong";
+"resource.form.strength.very.weak" = "Very weak";
+"resource.form.strength.weak" = "Weak";
+"resource.form.strength.fair" = "Fair";
+"resource.form.strength.strong" = "Strong";
+"resource.form.strength.very.strong" = "Very strong";
 "resource.form.create.button.title" = "Create";
 "resource.form.create.and.fill.button.title" = "Create and fill";
 "resource.form.update.button.title" = "Save";
 "resource.form.new.password.created" = "New password has been created";
 "resource.form.description.encrypted" = "Description is encrypted";
 "resource.form.description.unencrypted" = "Description is not encrypted";
+"resource.form.undefined.content.warning" = "Unsupported type, unknown fields are hidden!";
 
 "feedback.alert.title" = "Device may be jailbroken";
 "feedback.alert.message" = "We suspect your device may be jailbroken. Please be aware that it lowers overall device security and can be maliciously used to acquire your passwords.";
@@ -240,7 +242,8 @@
 "resource.menu.item.add.favorite" = "Add to favorite";
 "resource.menu.item.remove.favorite" = "Remove from favorite";
 "resource.menu.item.share" = "Share password";
-"resource.menu.item.edit" = "Edit password";
+"resource.menu.item.edit.password" = "Edit password";
+"resource.menu.item.edit.totp" = "Edit TOTP";
 "resource.menu.item.delete" = "Delete password";
 "resource.menu.item.password" = "Password";
 "resource.menu.item.username" = "Username";
@@ -420,6 +423,7 @@ Contact your administrator for more information.";
 "error.data.invalid" = "Invalid data provided.";
 "error.resource.permission.required" = "Permission required.";
 "error.resource.secret.invalid" = "Resource secret is invalid.";
+"error.resource.permission.invalid" = "Resource permission is invalid.";
 "error.resource.owner.missing" = "Resource has to have at least one owner.";
 "error.system.feature.inaccessible" = "System feature inaccessible.";
 "error.system.feature.permission.not.granted" = "System feature permission not granted.";
@@ -472,7 +476,7 @@ Contact your administrator for more information.";
 "error.resource.field.length.higher" = "%@ cannot have less than %d characters!";
 "error.resource.field.range.lower" = "%@ has to be lower than %d!";
 "error.resource.field.range.greater" = "%@ has to be greater than %d!";
-"error.resource.field.characters.invalid" = "%@ contains invalid characters!";
+"error.resource.field.content.invalid" = "%@ has invalid content!";
 "error.resource.field.selection.invalid" = "%@ has to be one of the valid options!";
 "error.resource.field.unknown" = "%@ is not expected!";
 

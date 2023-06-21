@@ -21,10 +21,10 @@
 // @since         v1.0
 //
 
-import CommonModels
+import Features
 
-// Scope for editing resource folder details.
-public enum ResourceFolderEditScope: FeaturesScope {
+// Scope for authorization.
+public enum AuthorizationScope: FeaturesScope {
 
-  public typealias Context = ResourceFolder.ID?
+  public typealias Context = Void
 }

@@ -4,7 +4,7 @@ public struct UnknownResourceField: TheError {
 
   public static func error(
     _ message: StaticString,
-    path: Resource.FieldPath,
+    path: Resource._FieldPath,
     value: JSON,
     file: StaticString = #fileID,
     line: UInt = #line
@@ -24,5 +24,5 @@ public struct UnknownResourceField: TheError {
   }
 
   public var context: DiagnosticsContext
-  public var path: Resource.FieldPath
+  public var path: Resource._FieldPath
 }

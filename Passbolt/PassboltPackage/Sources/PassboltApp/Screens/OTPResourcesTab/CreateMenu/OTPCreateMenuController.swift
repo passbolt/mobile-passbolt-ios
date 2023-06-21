@@ -22,27 +22,38 @@
 //
 
 import Display
+import FeatureScopes
 import OSFeatures
+import Resources
 
 internal final class OTPCreateMenuController: ViewController {
 
-  private let diagnostics: OSDiagnostics
-  private let asyncExecutor: AsyncExecutor
+  private let resourceEditPreparation: ResourceEditPreparation
+
   private let navigationToSelf: NavigationToOTPCreateMenu
   private let navigationToQRCodeCreateOTPView: NavigationToOTPScanning
   private let navigationToTOTPEditForm: NavigationToTOTPEditForm
+
+  private let diagnostics: OSDiagnostics
+  private let asyncExecutor: AsyncExecutor
+
+  private let features: Features
 
   internal init(
     context: Void,
     features: Features
   ) throws {
     try features.ensureScope(SessionScope.self)
+    self.features = features
 
     self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
+
     self.navigationToSelf = try features.instance()
     self.navigationToQRCodeCreateOTPView = try features.instance()
     self.navigationToTOTPEditForm = try features.instance()
+
+    self.resourceEditPreparation = try features.instance()
   }
 }
 
@@ -58,14 +69,27 @@ extension OTPCreateMenuController {
       try await navigationToQRCodeCreateOTPView.perform()
     }
   }
+
   internal final func createManually() {
     self.asyncExecutor.scheduleCatchingWith(
       self.diagnostics,
       failMessage: "Navigation to create OTP manually failed!",
       behavior: .reuse
-    ) { [navigationToSelf, navigationToTOTPEditForm] in
+    ) { [navigationToSelf, resourceEditPreparation, navigationToTOTPEditForm] in
+      let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(.totp, .none, .none)
       try await navigationToSelf.revert()
-      try await navigationToTOTPEditForm.perform(context: .none)
+      try await navigationToTOTPEditForm
+        .perform(
+          context: .init(
+            editingContext: editingContext,
+            // creating resource from predefined fields,
+            // there no need to search for edited totp path
+            totpPath: \.secret.totp,
+            success: { _ in
+              #warning("TODO: success message")
+            }
+          )
+        )
     }
   }
 

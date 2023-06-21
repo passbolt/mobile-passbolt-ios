@@ -111,6 +111,8 @@ extension ResourceSpecification.Slug {
 
 extension ResourceSpecification {
 
+  public static let `default`: Self = .passwordWithDescription
+
   public static let password: Self = .init(
     slug: .password,
     metaFields: [

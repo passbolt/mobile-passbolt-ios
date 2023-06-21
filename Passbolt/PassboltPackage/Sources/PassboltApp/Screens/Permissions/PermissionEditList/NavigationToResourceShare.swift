@@ -22,6 +22,7 @@
 //
 
 import Display
+import FeatureScopes
 
 internal enum ResourceShareNavigationDestination: NavigationDestination {
 

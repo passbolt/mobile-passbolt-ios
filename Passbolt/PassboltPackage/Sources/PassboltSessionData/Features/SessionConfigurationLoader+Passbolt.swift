@@ -42,7 +42,7 @@ extension SessionConfigurationLoader {
     let configuration: ComputedVariable<Dictionary<AnyHashable, FeatureConfigItem>> = .init(
       // TODO: we should update only on account changes
       // not on all session changes...
-			using: session.updates,
+      using: session.updates,
       //        .currentAccountSequence()
       //        .map { _ in Void() },
       compute: fetchConfiguration

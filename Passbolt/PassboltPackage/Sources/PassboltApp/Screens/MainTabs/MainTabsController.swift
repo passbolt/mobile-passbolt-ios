@@ -23,6 +23,7 @@
 
 import Accounts
 import DatabaseOperations
+import FeatureScopes
 import Features
 import OSFeatures
 import Session

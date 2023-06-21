@@ -22,6 +22,7 @@
 //
 
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 import SessionData
@@ -60,7 +61,7 @@ internal final class ResourcesListDisplayController: ViewController {
     )
 
     self.asyncExecutor.scheduleIteration(
-			over: combineLatest(context.filter.asAnyAsyncSequence(), sessionData.updates),
+      over: combineLatest(context.filter.asAnyAsyncSequence(), sessionData.updates),
       catchingWith: self.diagnostics,
       failMessage: "Resources list updates broken!",
       failAction: { [context] (error: Error) in

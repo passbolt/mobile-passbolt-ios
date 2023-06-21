@@ -122,34 +122,6 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
       }
       .store(in: self.cancellables)
 
-    controller
-      .resourceCreatePresentationPublisher()
-      .sink { [weak self] in
-        self?.cancellables
-          .executeOnMainActor { [weak self] in
-            await self?
-              .push(
-                ResourceEditViewController.self,
-                in: (
-                  .create(folderID: nil, uri: .none),
-                  completion: { _ in
-                    self?.cancellables
-                      .executeOnMainActor { [weak self] in
-                        self?
-                          .presentInfoSnackbar(
-                            .localized(
-                              key: "resource.form.new.password.created"
-                            ),
-                            presentationMode: .global
-                          )
-                      }
-                  }
-                )
-              )
-          }
-      }
-      .store(in: cancellables)
-
     // load view in loading state
     self.contentView.startDataRefresh()
   }

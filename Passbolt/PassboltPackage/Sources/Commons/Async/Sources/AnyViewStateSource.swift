@@ -21,10 +21,42 @@
 // @since         v1.0
 //
 
-import CommonModels
+import SwiftUI
 
-// Scope for sharing resources.
-public enum ResourceShareScope: FeaturesScope {
+public final class AnyViewStateSource<ViewState>: ViewStateSource
+where ViewState: Sendable {
 
-  public typealias Context = Resource.ID
+  public var objectWillChange: ObservableObjectPublisher { self.source.objectWillChange }
+  public var updates: Updates { self.source.updates }
+
+  public let source: any ViewStateSource<ViewState>
+
+  public init<Source>(
+    erasing source: Source
+  ) where Source: ViewStateSource, Source.ViewState == ViewState {
+    self.source = source
+  }
+
+  @MainActor public var state: ViewState {
+    @inlinable get { self.source.state }
+  }
+
+  @inlinable
+  @MainActor public func binding<Value>(
+    to keyPath: WritableKeyPath<ViewState, Value>
+  ) -> Binding<Value> {
+    self.source.binding(to: keyPath)
+  }
+
+  @inlinable
+  @MainActor public func forceUpdate() {
+    self.source.forceUpdate()
+  }
+}
+
+extension ViewStateSource {
+
+  public func asAnyViewStateSource() -> AnyViewStateSource<ViewState> {
+    self as? AnyViewStateSource<ViewState> ?? .init(erasing: self)
+  }
 }

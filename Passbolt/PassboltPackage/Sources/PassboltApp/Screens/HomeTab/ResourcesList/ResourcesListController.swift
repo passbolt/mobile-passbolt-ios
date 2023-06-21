@@ -23,8 +23,10 @@
 
 import Accounts
 import CommonModels
+import FeatureScopes
 import Resources
 import SessionData
+import SharedUIComponents
 import UIComponents
 
 internal struct ResourcesListController {
@@ -34,15 +36,12 @@ internal struct ResourcesListController {
   internal var addResource: @MainActor () -> Void
   internal var presentResourceDetails: @MainActor (ResourcesResourceListItemDSVItem) -> Void
   internal var presentResourceMenu: @MainActor (ResourcesResourceListItemDSVItem) -> Void
-  internal var presentResourceShare: @MainActor (Resource.ID) -> Void
-  internal var presentResourceEdit: @MainActor (Resource.ID) -> Void
-  internal var resourceSharePresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
-  internal var resourceEditPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
   internal var presentDeleteResourceAlert: @MainActor (Resource.ID) -> Void
   internal var resourceMenuPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
-  internal var resourceCreatePresentationPublisher: @MainActor () -> AnyPublisher<Void, Never>
   internal var resourceDeleteAlertPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
   internal var resourceDeletionPublisher: @MainActor (Resource.ID) -> AnyPublisher<Void, Error>
+
+  internal let features: Features
 }
 
 extension ResourcesListController: UIController {
@@ -59,9 +58,6 @@ extension ResourcesListController: UIController {
     let resources: ResourcesController = try features.instance()
 
     let resourceMenuIDSubject: PassthroughSubject<Resource.ID, Never> = .init()
-    let resourceCreatePresentationSubject: PassthroughSubject<Void, Never> = .init()
-    let resourceSharePresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
-    let resourceEditPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceDeleteAlertPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let navigationToResourceDetails: NavigationToResourceDetails = try features.instance()
 
@@ -77,7 +73,7 @@ extension ResourcesListController: UIController {
       context.map { filter in
         resources
           .lastUpdate
-					.asAnyAsyncSequence()
+          .asAnyAsyncSequence()
           .map { _ in
             try await resources.filteredResourcesList(filter)
               .map(ResourcesResourceListItemDSVItem.init(from:))
@@ -91,7 +87,26 @@ extension ResourcesListController: UIController {
     }
 
     func addResource() {
-      resourceCreatePresentationSubject.send()
+      cancellables.executeOnMainActor {
+        let resourceEditPreparation: ResourceEditPreparation = try features.instance()
+        let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
+          .default,
+          .none,
+          .none
+        )
+        try await features
+          .instance(of: NavigationToResourceEdit.self)
+          .perform(
+            context: .init(
+              editingContext: editingContext,
+              success: { _ in
+                cancellables.executeOnMainActor {
+                  #warning("TODO: show snack bar message")
+                }
+              }
+            )
+          )
+      }
     }
 
     func presentResourceDetails(_ resource: ResourcesResourceListItemDSVItem) {
@@ -131,26 +146,6 @@ extension ResourcesListController: UIController {
       resourceMenuIDSubject.eraseToAnyPublisher()
     }
 
-    func resourceCreatePresentationPublisher() -> AnyPublisher<Void, Never> {
-      resourceCreatePresentationSubject.eraseToAnyPublisher()
-    }
-
-    func presentResourceShare(resourceID: Resource.ID) {
-      resourceSharePresentationSubject.send(resourceID)
-    }
-
-    func presentResourceEdit(resourceID: Resource.ID) {
-      resourceEditPresentationSubject.send(resourceID)
-    }
-
-    func resourceSharePresentationPublisher() -> AnyPublisher<Resource.ID, Never> {
-      resourceSharePresentationSubject.eraseToAnyPublisher()
-    }
-
-    func resourceEditPresentationPublisher() -> AnyPublisher<Resource.ID, Never> {
-      resourceEditPresentationSubject.eraseToAnyPublisher()
-    }
-
     func resourceDeleteAlertPresentationPublisher() -> AnyPublisher<Resource.ID, Never> {
       resourceDeleteAlertPresentationSubject.eraseToAnyPublisher()
     }
@@ -168,15 +163,11 @@ extension ResourcesListController: UIController {
       addResource: addResource,
       presentResourceDetails: presentResourceDetails,
       presentResourceMenu: presentResourceMenu,
-      presentResourceShare: presentResourceShare(resourceID:),
-      presentResourceEdit: presentResourceEdit(resourceID:),
-      resourceSharePresentationPublisher: resourceSharePresentationPublisher,
-      resourceEditPresentationPublisher: resourceEditPresentationPublisher,
       presentDeleteResourceAlert: presentDeleteResourceAlert(resourceID:),
       resourceMenuPresentationPublisher: resourceMenuPresentationPublisher,
-      resourceCreatePresentationPublisher: resourceCreatePresentationPublisher,
       resourceDeleteAlertPresentationPublisher: resourceDeleteAlertPresentationPublisher,
-      resourceDeletionPublisher: resourceDeletionPublisher(resourceID:)
+      resourceDeletionPublisher: resourceDeletionPublisher(resourceID:),
+      features: features
     )
   }
 }

@@ -22,6 +22,7 @@
 //
 
 import DatabaseOperations
+import FeatureScopes
 import OSFeatures
 import Resources
 import SessionData

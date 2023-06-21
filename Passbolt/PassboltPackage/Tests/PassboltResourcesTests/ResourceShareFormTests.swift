@@ -23,6 +23,7 @@
 
 import Accounts
 import CommonModels
+import FeatureScopes
 import Features
 import SessionData
 import TestExtensions
@@ -96,7 +97,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     await XCTAssertValue(
       equal: expectedResult
     ) {
-			try? await permissionsSequence.first()
+      try? await permissionsSequence.first()
     }
   }
 
@@ -133,7 +134,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-			 with: Constant(value: resource)
+      with: Constant(value: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -210,7 +211,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     await XCTAssertValue(
       equal: expectedResult
     ) {
-			try? await permissionsSequence.first()
+      try? await permissionsSequence.first()
     }
   }
 
@@ -540,7 +541,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-			try? await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
@@ -588,7 +589,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-			try? await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
@@ -635,7 +636,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-			try? await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
@@ -682,7 +683,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-			try? await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
@@ -724,7 +725,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         )
       ]
     ) {
-			try? await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
@@ -765,7 +766,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         )
       ]
     ) {
-			try? await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
@@ -807,7 +808,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-			try? await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
@@ -855,7 +856,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-			try? await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
@@ -902,7 +903,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-			try? await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
@@ -949,7 +950,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-			try? await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
@@ -991,7 +992,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         )
       ]
     ) {
-			try? await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
@@ -1032,7 +1033,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         )
       ]
     ) {
-			try? await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }

@@ -193,13 +193,13 @@ extension JSON {
     case .bool(let value):
       return value
 
+    case .integer(let value):
+      return value != 0
+
+    case .float(let value):
+      return value != 0
+
     case .string:
-      return .none
-
-    case .integer:
-      return .none
-
-    case .float:
       return .none
 
     case .object:
@@ -218,11 +218,11 @@ extension JSON {
     case .integer(let value):
       return value
 
-    case .float:
-      return .none
+    case .float(let value):
+      return Int(value)
 
-    case .string:
-      return .none
+    case .string(let value):
+      return Int(value)
 
     case .object:
       return .none
@@ -243,11 +243,11 @@ extension JSON {
     case .integer(let value):
       return Int64(value)
 
-    case .float:
-      return .none
+    case .float(let value):
+      return Int64(value)
 
-    case .string:
-      return .none
+    case .string(let value):
+      return Int64(value)
 
     case .object:
       return .none
@@ -268,11 +268,11 @@ extension JSON {
     case .integer(let value):
       return UInt(value)
 
-    case .float:
-      return .none
+    case .float(let value):
+      return UInt(value)
 
-    case .string:
-      return .none
+    case .string(let value):
+      return UInt(value)
 
     case .object:
       return .none
@@ -293,11 +293,11 @@ extension JSON {
     case .integer(let value):
       return UInt64(value)
 
-    case .float:
-      return .none
+    case .float(let value):
+      return UInt64(value)
 
-    case .string:
-      return .none
+    case .string(let value):
+      return UInt64(value)
 
     case .object:
       return .none
@@ -318,11 +318,11 @@ extension JSON {
     case .float(let value):
       return value
 
-    case .integer:
-      return .none
+    case .integer(let value):
+      return Double(value)
 
-    case .string:
-      return .none
+    case .string(let value):
+      return Double(value)
 
     case .object:
       return .none

@@ -22,6 +22,7 @@
 //
 
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 
@@ -29,11 +30,15 @@ internal final class OTPScanningSuccessController: ViewController {
 
   internal nonisolated let viewState: MutableViewState<ViewState>
 
-  private let diagnostics: OSDiagnostics
-  private let asyncExecutor: AsyncExecutor
+  private let resourceEditPreparation: ResourceEditPreparation
+
   private let navigationToScanning: NavigationToOTPScanning
 
+  private let diagnostics: OSDiagnostics
+  private let asyncExecutor: AsyncExecutor
+
   private let context: TOTPConfiguration
+
   private let features: Features
 
   internal init(
@@ -48,12 +53,15 @@ internal final class OTPScanningSuccessController: ViewController {
         .error("OTPScanningSuccessController can't be used when editing a resource!")
     }
 
-    self.context = context
     self.features = features
+    self.context = context
 
     self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
+
     self.navigationToScanning = try features.instance()
+
+    self.resourceEditPreparation = try features.instance()
 
     self.viewState = .init(
       initial: .init()
@@ -78,24 +86,14 @@ extension OTPScanningSuccessController {
         await viewState.update(\.snackBarMessage, to: .error(error))
       },
       behavior: .reuse
-    ) { [context, features, navigationToScanning] in
+    ) { [context, features, resourceEditPreparation, navigationToScanning] in
+      let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(.totp, .none, .none)
       let features: Features = await features.branch(
         scope: ResourceEditScope.self,
-        context: .create(
-          .totp,
-          folderID: .none,
-          uri: .none
-        )
+        context: editingContext
       )
       let resourceEditForm: ResourceEditForm = try await features.instance()
-      _ = try await resourceEditForm.update { (resouce: inout Resource) in
-        resouce.meta.name = .string(context.account)
-        resouce.meta.uri = .string(context.issuer)
-        resouce.secret.totp.algorithm = .string(context.secret.algorithm.rawValue)
-        resouce.secret.totp.digits = .integer(context.secret.digits)
-        resouce.secret.totp.period = .integer(context.secret.period.rawValue)
-        resouce.secret.totp.secret_key = .string(context.secret.sharedSecret)
-      }
+      resourceEditForm.update(\.secret.totp, to: context.secret)
 
       _ = try await resourceEditForm.sendForm()
       try await navigationToScanning.revert()

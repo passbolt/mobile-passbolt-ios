@@ -23,6 +23,7 @@
 
 import Accounts
 import Combine
+import FeatureScopes
 import Features
 import TestExtensions
 import UIComponents

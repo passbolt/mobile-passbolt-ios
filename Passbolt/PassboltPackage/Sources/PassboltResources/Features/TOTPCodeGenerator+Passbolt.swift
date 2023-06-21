@@ -22,6 +22,7 @@
 //
 
 import Crypto
+import FeatureScopes
 import OSFeatures
 import Resources
 
@@ -37,13 +38,13 @@ extension TOTPCodeGenerator {
     let hotpCodeGenerator: HOTPCodeGenerator = try features.instance(
       context: .init(
         resourceID: context.resourceID,
-				sharedSecret: context.totpSecret.sharedSecret,
-				algorithm: context.totpSecret.algorithm,
-				digits: context.totpSecret.digits
+        sharedSecret: context.totpSecret.sharedSecret,
+        algorithm: context.totpSecret.algorithm,
+        digits: context.totpSecret.digits
       )
     )
 
-		let rawPeriod: Int64 = context.totpSecret.period.rawValue
+    let rawPeriod: Int64 = context.totpSecret.period.rawValue
     guard rawPeriod > 0
     else { throw InternalInconsistency.error("TOTP period should be greater than zero!") }
 
@@ -60,7 +61,7 @@ extension TOTPCodeGenerator {
         timeLeft: .init(
           rawValue: rawPeriod - rawTimestamp % rawPeriod
         ),
-				period: context.totpSecret.period
+        period: context.totpSecret.period
       )
     }
 

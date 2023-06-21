@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import FeatureScopes
 import SessionData
 import TestExtensions
 import XCTest
@@ -113,10 +114,10 @@ final class ResourceControllerTests: FeaturesTestCase {
   }
 
   func test_state_updates_whenSessionDataUpdates() async throws {
-		let updatesSource: UpdatesSource = .init()
+    let updatesSource: UpdatesSource = .init()
     patch(
       \SessionData.updates,
-			 with: updatesSource.updates
+      with: updatesSource.updates
     )
     let expectedResult_0: Resource = {
       var resource: Resource = .mock_1
@@ -164,14 +165,14 @@ final class ResourceControllerTests: FeaturesTestCase {
       try await feature.state.value
     }
 
-		updatesSource.sendUpdate()
+    updatesSource.sendUpdate()
     await XCTAssertValue(
       equal: expectedResult_1
     ) {
       try await feature.state.value
     }
 
-		updatesSource.sendUpdate()
+    updatesSource.sendUpdate()
     await XCTAssertValue(
       equal: expectedResult_2
     ) {
@@ -182,10 +183,10 @@ final class ResourceControllerTests: FeaturesTestCase {
   }
 
   func test_state_breaks_whenSessionDataUpdatesFail() async throws {
-		let updatesSource: UpdatesSource = .init()
+    let updatesSource: UpdatesSource = .init()
     patch(
       \SessionData.updates,
-			 with: updatesSource.updates
+      with: updatesSource.updates
     )
     let expectedResult: Resource = .mock_1
     patch(
@@ -212,7 +213,7 @@ final class ResourceControllerTests: FeaturesTestCase {
       try await feature.state.value
     }
 
-		updatesSource.sendUpdate()
+    updatesSource.sendUpdate()
     await XCTAssertError(
       matches: MockIssue.self
     ) {

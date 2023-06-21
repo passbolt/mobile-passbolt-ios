@@ -31,7 +31,7 @@ extension ResourceFolderShareNetworkOperation {
     _ input: Input
   ) -> Mutation<HTTPRequest> {
     .combined(
-      .pathSuffix("/share/folder/\(input.resourceFolderID.urlString).json"),
+      .pathSuffix("/share/folder/\(input.resourceFolderID).json"),
       .method(.put),
       .jsonBody(from: input.body)
     )

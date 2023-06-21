@@ -28,13 +28,19 @@ public struct ResourceFieldView<ContentView>: View
 where ContentView: View {
 
   private let name: DisplayableString
+  private let requiredMark: Bool
+  private let encryptedMark: Bool?
   private let content: @MainActor () -> ContentView
 
   public init(
     name: DisplayableString,
+    requiredMark: Bool = false,
+    encryptedMark: Bool? = .none,
     @ViewBuilder content: @escaping @MainActor () -> ContentView
   ) {
     self.name = name
+    self.requiredMark = requiredMark
+    self.encryptedMark = encryptedMark
     self.content = content
   }
 
@@ -44,7 +50,9 @@ where ContentView: View {
       spacing: 8
     ) {
       ResourceFieldHeaderView(
-        name: self.name
+        name: self.name,
+        requiredMark: self.requiredMark,
+        encryptedMark: self.encryptedMark
       )
       self.content()
         .frame(minHeight: 24)

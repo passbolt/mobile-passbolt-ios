@@ -24,6 +24,7 @@
 public struct InvalidResourceSecret: TheError {
 
   public static func error(
+    message: StaticString = "InvalidResourceSecret",
     underlyingError: Error? = .none,
     file: StaticString = #fileID,
     line: UInt = #line
@@ -31,7 +32,7 @@ public struct InvalidResourceSecret: TheError {
     Self(
       context: .context(
         .message(
-          "InvalidResourceSecret",
+          message,
           file: file,
           line: line
         )

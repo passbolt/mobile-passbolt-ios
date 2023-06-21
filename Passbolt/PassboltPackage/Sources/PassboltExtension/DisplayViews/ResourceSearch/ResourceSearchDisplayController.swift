@@ -23,6 +23,7 @@
 
 import Accounts
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 import Session
@@ -71,7 +72,7 @@ internal final class ResourceSearchDisplayController: ViewController {
     )
 
     self.viewState = viewState
-    self.searchText = ObservableViewState(from: viewState, at: \.searchText)
+    self.searchText = ComputedViewState(from: viewState, at: \.searchText)
   }
 }
 

@@ -26,7 +26,7 @@ import Commons
 public struct AsyncExecutor {
 
   public let cancelTasks: @Sendable () -> Void
-  private let execute:
+  @usableFromInline internal let execute:
     @Sendable (ExecutionIdentifier, OngoingExecutionBehavior, @escaping @Sendable () async -> Void) -> Execution
 }
 
@@ -169,6 +169,45 @@ extension AsyncExecutor {
       function: function,
       file: file,
       line: line,
+      {
+        await diagnostics
+          .withLogCatch(
+            info:
+              failMessage
+              .map { (message: StaticString) -> DiagnosticsInfo in
+                .message(
+                  message,
+                  file: file,
+                  line: line
+                )
+              }
+          ) {
+            do {
+              try await task()
+            }
+            catch {
+              await failAction?(error)
+              throw error
+            }
+          }
+      }
+    )
+  }
+
+  @discardableResult @_transparent
+  public func scheduleCatchingWith(
+    _ diagnostics: OSDiagnostics,
+    failMessage: StaticString? = .none,
+    failAction: (@Sendable (Error) async -> Void)? = .none,
+    identifier: AnyHashable,
+    behavior: OngoingExecutionBehavior = .concurrent,
+    file: StaticString = #fileID,
+    line: UInt = #line,
+    _ task: @escaping @Sendable () async throws -> Void
+  ) -> Execution {
+    self.execute(
+      .custom(identifier),
+      behavior,
       {
         await diagnostics
           .withLogCatch(
@@ -364,6 +403,14 @@ extension AsyncExecutor {
         identifier: IID()
       )
     }
+
+    public static func custom(
+      _ identifier: AnyHashable
+    ) -> Self {
+      .init(
+        identifier: identifier
+      )
+    }
   }
 
   public struct Execution: Sendable {
@@ -480,7 +527,7 @@ extension AsyncExecutor {
     @Sendable public func addTask(
       _ task: @escaping @Sendable () async -> Void
     ) -> Execution {
-			let completion: Once = .init({ /* Void */ })
+      let completion: Once = .init({ /* Void */  })
       let queueItem: QueueItem = .init(
         execute: {
           await task()
@@ -505,7 +552,7 @@ extension AsyncExecutor {
           }
         },
         waitForCompletion: {
-					try? await completion.waitForCompletion()
+          try? await completion.waitForCompletion()
         }
       )
     }

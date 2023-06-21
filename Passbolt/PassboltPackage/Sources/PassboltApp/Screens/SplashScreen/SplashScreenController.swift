@@ -22,6 +22,7 @@
 
 import Accounts
 import CommonModels
+import FeatureScopes
 import OSFeatures
 import Session
 import SessionData
@@ -64,7 +65,7 @@ extension SplashScreenController: UIController {
 
     let destinationSubject: CurrentValueSubject<Destination?, Never> = .init(nil)
 
-		asyncExecutor.schedule(.unmanaged) { () async -> Void in
+    asyncExecutor.schedule(.unmanaged) { () async -> Void in
       do {
         try accounts.verifyDataIntegrity()
       }

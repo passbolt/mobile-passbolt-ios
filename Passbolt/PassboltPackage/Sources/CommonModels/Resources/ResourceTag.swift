@@ -25,7 +25,7 @@ import Commons
 
 public struct ResourceTag {
 
-  public typealias ID = Tagged<UUID, Self>
+  public typealias ID = Tagged<PassboltID, Self>
   public typealias Slug = Tagged<String, ID>
 
   public let id: ID

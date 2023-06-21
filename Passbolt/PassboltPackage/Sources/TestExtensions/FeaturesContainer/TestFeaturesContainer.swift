@@ -21,6 +21,8 @@
 // @since         v1.0
 //
 
+import FeatureScopes
+
 @testable import Features
 
 public final class TestFeaturesContainer {

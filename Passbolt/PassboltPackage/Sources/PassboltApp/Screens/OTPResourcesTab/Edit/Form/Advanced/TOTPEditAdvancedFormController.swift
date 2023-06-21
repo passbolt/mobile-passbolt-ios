@@ -22,23 +22,50 @@
 //
 
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 
 internal final class TOTPEditAdvancedFormController: ViewController {
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  public struct Context {
+
+    public var totpPath: Resource.FieldPath
+
+    public init(
+      totpPath: Resource.FieldPath
+    ) {
+      self.totpPath = totpPath
+    }
+  }
+
+  internal struct ViewState: Equatable {
+
+    internal var algorithm: Validated<HOTPAlgorithm?>
+    internal var period: Validated<String>
+    internal var digits: Validated<String>
+  }
+
+  internal let viewState: ComputedViewState<ViewState>
 
   private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
   private let resourceEditForm: ResourceEditForm
 
+  private let navigationToSelf: NavigationToTOTPEditAdvancedForm
+
+  private let totpPath: Resource.FieldPath
+
   internal init(
-    context: Void,
+    context: Context,
     features: Features
   ) throws {
     try features.ensureScope(SessionScope.self)
     try features.ensureScope(ResourceEditScope.self)
+
+    self.totpPath = context.totpPath
+
+    self.navigationToSelf = try features.instance()
 
     self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
@@ -46,54 +73,50 @@ internal final class TOTPEditAdvancedFormController: ViewController {
 
     self.viewState = .init(
       initial: .init(
-        algorithm: .valid(.sha1),
-        period: .valid("30"),
-        digits: .valid("6"),
-        snackBarMessage: .none
-      )
-    )
-
-    self.asyncExecutor
-      .scheduleIteration(
-        over: self.resourceEditForm.state,
-        catchingWith: self.diagnostics,
-        failMessage: "Resource form updates broken!",
-        failAction: { [viewState] (error: Error) in
-          viewState.update { state in
-            state.snackBarMessage = .error(error)
-          }
+        algorithm: .valid(.none),
+        period: .valid(""),
+        digits: .valid("")
+      ),
+      from: self.resourceEditForm.state,
+      transform: { resource in
+        guard resource.contains(context.totpPath)
+        else {
+          throw
+            InvalidResourceType
+            .error(message: "Resource without TOTP, can't edit it.")
         }
-      ) { [viewState] (resource: Resource) in
-        let resourceSecret: JSON = resource.secret
 
-        // searching only for "totp" field, can't identify totp otherwise now
-        let algorithm: HOTPAlgorithm =
-          resourceSecret.totp.algorithm.stringValue.flatMap(
-            HOTPAlgorithm.init(rawValue:)
-          ) ?? .sha1
-        let digits: Int = resourceSecret.totp.digits.intValue ?? 6
-        let period: Int = resourceSecret.totp.period.intValue ?? 30
+        let algorithm: Validated<HOTPAlgorithm?> = resource.validated(context.totpPath.appending(path: \.algorithm))
+          .map { $0.stringValue.flatMap(HOTPAlgorithm.init(rawValue:)) }
+        let digits: Validated<String> = resource.validated(context.totpPath.appending(path: \.digits))
+          .map { $0.stringValue ?? "" }
+        let period: Validated<String> = resource.validated(context.totpPath.appending(path: \.period))
+          .map { $0.stringValue ?? "" }
 
-        await viewState.update { state in
-          state = .init(
-            algorithm: .valid(algorithm),
-            period: .valid("\(period)"),
-            digits: .valid("\(digits)"),
-            snackBarMessage: .none
+        return ViewState(
+          algorithm: algorithm,
+          period: period,
+          digits: digits
+        )
+      },
+      failure: { [diagnostics] error in
+        diagnostics.log(error: error)
+        return ViewState(
+          algorithm: .invalid(
+            .none,
+            error: error.asTheError()
+          ),
+          period: .invalid(
+            "",
+            error: error.asTheError()
+          ),
+          digits: .invalid(
+            "",
+            error: error.asTheError()
           )
-        }
+        )
       }
-  }
-}
-
-extension TOTPEditAdvancedFormController {
-
-  internal struct ViewState: Equatable {
-
-    internal var algorithm: Validated<HOTPAlgorithm>
-    internal var period: Validated<String>
-    internal var digits: Validated<String>
-    internal var snackBarMessage: SnackBarMessage?
+    )
   }
 }
 
@@ -102,124 +125,30 @@ extension TOTPEditAdvancedFormController {
   internal final func setAlgorithm(
     _ algorithm: HOTPAlgorithm
   ) {
-    self.viewState.update { (state: inout ViewState) in
-      state.algorithm = .valid(algorithm)
-    }
-    self.asyncExecutor
-      .scheduleCatchingWith(self.diagnostics, behavior: .replace) { [viewState, resourceEditForm] in
-        try Task.checkCancellation()
-        let validated: Validated<HOTPAlgorithm> =
-          try await resourceEditForm
-          .update(
-            \.secret.totp.algorithm,
-            to: algorithm,
-            valueToJSON: { (value: HOTPAlgorithm) -> JSON in
-              .string(value.rawValue)
-            },
-            jsonToValue: { (json: JSON) -> HOTPAlgorithm in
-              if let string: String = json.stringValue,
-                let algorithm: HOTPAlgorithm = .init(rawValue: string)
-              {
-                return algorithm
-              }
-              else {
-                throw InvalidValue.invalid(
-                  value: algorithm,
-                  displayable: "TODO: FIXME: invalid selection"
-                )
-              }
-            }
-          )
-        try Task.checkCancellation()
-        await viewState.update { (state: inout ViewState) in
-          state.algorithm = validated
-        }
-      }
+    self.resourceEditForm
+      .update(
+        self.totpPath.appending(path: \.algorithm),
+        to: algorithm
+      )
   }
 
   internal final func setPeriod(
     _ period: String
   ) {
-    self.viewState.update { (state: inout ViewState) in
-      state.period = .valid(period)
-    }
-    self.asyncExecutor
-      .scheduleCatchingWith(self.diagnostics, behavior: .replace) { [viewState, resourceEditForm] in
-        try Task.checkCancellation()
-        let validated: Validated<String> =
-          try await resourceEditForm
-          .update(
-            \.secret.totp.period,
-            to: period,
-            valueToJSON: { (value: String) -> JSON in
-              guard let periodValue: Int = .init(period)
-              else {
-                throw InvalidValue.invalid(
-                  value: period,
-                  displayable: "error.resource.field.characters.invalid"
-                )
-              }
-              return .integer(periodValue)
-            },
-            jsonToValue: { (json: JSON) -> String in
-              if let int: Int = json.intValue {
-                return "\(int)"
-              }
-              else {
-                throw InvalidValue.invalid(
-                  value: json,
-                  displayable: "TODO: FIXME: invalid value"
-                )
-              }
-            }
-          )
-        try Task.checkCancellation()
-        await viewState.update { (state: inout ViewState) in
-          state.period = validated
-        }
-      }
+    self.resourceEditForm
+      .update(
+        self.totpPath.appending(path: \.period),
+        to: period
+      )
   }
 
   internal final func setDigits(
     _ digits: String
   ) {
-    self.viewState.update { (state: inout ViewState) in
-      state.digits = .valid(digits)
-    }
-    self.asyncExecutor
-      .scheduleCatchingWith(self.diagnostics, behavior: .replace) { [viewState, resourceEditForm] in
-        try Task.checkCancellation()
-        let validated: Validated<String> =
-          try await resourceEditForm
-          .update(
-            \.secret.totp.digits,
-            to: digits,
-            valueToJSON: { (value: String) -> JSON in
-              guard let digitsValue: Int = .init(digits)
-              else {
-                throw InvalidValue.invalid(
-                  value: digits,
-                  displayable: "error.resource.field.characters.invalid"
-                )
-              }
-              return .integer(digitsValue)
-            },
-            jsonToValue: { (json: JSON) -> String in
-              if let int: Int = json.intValue {
-                return "\(int)"
-              }
-              else {
-                throw InvalidValue.invalid(
-                  value: json,
-                  displayable: "TODO: FIXME: invalid value"
-                )
-              }
-            }
-          )
-        try Task.checkCancellation()
-        await viewState.update { (state: inout ViewState) in
-          state.digits = validated
-        }
-      }
+    self.resourceEditForm
+      .update(
+        self.totpPath.appending(path: \.digits),
+        to: digits
+      )
   }
 }

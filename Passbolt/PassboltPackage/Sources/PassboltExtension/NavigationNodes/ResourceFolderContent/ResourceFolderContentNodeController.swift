@@ -22,6 +22,7 @@
 //
 
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 import Session
@@ -91,7 +92,7 @@ internal final class ResourceFolderContentNodeController: ViewController {
         folderName: folderName,
         filter: searchController
           .searchText
-					.asAnyAsyncSequence()
+          .asAnyAsyncSequence()
           .map { (text: String) -> ResourceFoldersFilter in
             ResourceFoldersFilter(
               sorting: .nameAlphabetically,
@@ -101,7 +102,7 @@ internal final class ResourceFolderContentNodeController: ViewController {
               permissions: []
             )
           }
-					.asAnyAsyncSequence(),
+          .asAnyAsyncSequence(),
         suggestionFilter: { (resource: ResourceListItemDSV) -> Bool in
           requestedServiceIdentifiers.matches(resource)
         },
@@ -142,25 +143,50 @@ extension ResourceFolderContentNodeController {
 extension ResourceFolderContentNodeController {
 
   internal final func createResource() {
-    self.asyncExecutor.schedule(.reuse) { [weak self, context, features, requestedServiceIdentifiers, navigationTree] in
-      await navigationTree
-        .push(
-          ResourceEditViewController.self,
-          context: (
-            editing: .create(
-              folderID: context.folderDetails?.id,
-              uri: requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }
-            ),
-            completion: { resourceID in
-              self?.selectResource(resourceID)
-            }
-          ),
-          using: features
+    self.asyncExecutor
+      .scheduleCatchingWith(
+        diagnostics,
+        behavior: .reuse
+      ) { [features, requestedServiceIdentifiers, navigationTree, diagnostics, asyncExecutor, autofillContext] in
+        let resourceEditPreparation: ResourceEditPreparation = try await features.instance()
+        let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
+          .default,
+          self.context.folderDetails?.id,
+          requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }
         )
-    }
+        try await navigationTree.push(
+          ResourceEditView.self,
+          controller: .init(
+            context: .init(
+              editingContext: editingContext,
+              success: { [diagnostics, asyncExecutor, autofillContext] resource in
+                if let password: String = resource.firstPasswordString {
+                  asyncExecutor.schedule(.replace) {
+                    await autofillContext
+                      .completeWithCredential(
+                        AutofillExtensionContext.Credential(
+                          user: resource.meta.username.stringValue ?? "",
+                          password: password
+                        )
+                      )
+                  }
+                }
+                else {
+                  diagnostics.log(
+                    error:
+                      ResourceSecretInvalid
+                      .error("Missing resource password in secret.")
+                  )
+                }
+              }
+            ),
+            features: features
+          )
+        )
+      }
   }
 
-  @Sendable internal nonisolated func selectResource(
+  @Sendable internal func selectResource(
     _ resourceID: Resource.ID
   ) {
     self.asyncExecutor.scheduleCatchingWith(
@@ -171,11 +197,15 @@ extension ResourceFolderContentNodeController {
       },
       behavior: .replace
     ) { [features, autofillContext] in
+      let features: Features = await features.branch(
+        scope: ResourceDetailsScope.self,
+        context: resourceID
+      )
       let resourceController: ResourceController = try await features.instance()
       try await resourceController.fetchSecretIfNeeded(force: true)
       let resource: Resource = try await resourceController.state.value
 
-      guard let password: String = resource.secret.password.stringValue ?? resource.secret.secret.stringValue
+      guard let password: String = resource.firstPasswordString
       else {
         throw
           ResourceSecretInvalid

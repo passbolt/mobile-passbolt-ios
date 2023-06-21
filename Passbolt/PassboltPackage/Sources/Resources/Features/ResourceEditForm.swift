@@ -29,16 +29,17 @@ import Features
 public struct ResourceEditForm {
 
   // Access current resource state and updates
-  public var state: any DataSource<Resource, Error>
-  // Update resource
-  public var update: @Sendable (@escaping @Sendable (inout Resource) -> Void) async throws -> Resource
+  public var state: any DataSource<Resource, Never>
   // Send the form
-  public var sendForm: @Sendable () async throws -> Resource.ID
+  public var sendForm: @Sendable () async throws -> Resource
+  // Update resource, publicly exposing only dedicated methods
+  // in order to avoid mutable access to the whole resource
+  internal var update: @Sendable (Resource.FieldPath, JSON) -> Validated<JSON>
 
   public init(
-    state: any DataSource<Resource, Error>,
-    update: @escaping @Sendable (@escaping @Sendable (inout Resource) -> Void) async throws -> Resource,
-    sendForm: @escaping @Sendable () async throws -> Resource.ID
+    state: any DataSource<Resource, Never>,
+    update: @escaping @Sendable (Resource.FieldPath, JSON) -> Validated<JSON>,
+    sendForm: @escaping @Sendable () async throws -> Resource
   ) {
     self.state = state
     self.update = update
@@ -54,7 +55,7 @@ extension ResourceEditForm: LoadableFeature {
   public static var placeholder: Self {
     .init(
       state: PlaceholderDataSource(),
-      update: { _ in unimplemented() },
+      update: unimplemented2(),
       sendForm: unimplemented0()
     )
   }
@@ -68,51 +69,43 @@ extension ResourceEditForm {
     _ field: Resource.FieldPath,
     to value: JSON
   ) async throws -> Validated<JSON> {
-    try await self.update { (resource: inout Resource) in
-      resource[keyPath: field] = value
-    }
-    .validator(for: field).validate(value)
+    self.update(field, value)
   }
 
   @discardableResult
-  @Sendable public func update<Value>(
+  @Sendable public func update(
     _ field: Resource.FieldPath,
-    to value: Value,
-    valueToJSON: (Value) throws -> JSON,
-    jsonToValue: (JSON) throws -> Value
-  ) async throws -> Validated<Value> {
-    let jsonValue: JSON
-    do {
-      jsonValue = try valueToJSON(value)
-    }
-    catch {
-      // if conversion fails update to null (or should mabe skip the update?)
-      _ = try await self.update { (resource: inout Resource) in
-        resource[keyPath: field] = .null
-      }
-      return .invalid(
-        value,
-        error: error.asTheError()
-      )
-    }
+    to value: String
+  ) -> Validated<String> {
+    self.update(field, .string(value))
+      .map { $0.stringValue ?? "" }
+  }
 
-    let validatedJSON: Validated<JSON> =
-      try await self.update { (resource: inout Resource) in
-        resource[keyPath: field] = jsonValue
-      }
-      .validator(for: field).validate(jsonValue)
+  @discardableResult
+  @Sendable public func update(
+    _ field: Resource.FieldPath,
+    to value: Int
+  ) -> Validated<Int> {
+    self.update(field, .integer(value))
+      .map { $0.intValue ?? 0 }
+  }
 
-    do {
-      return .init(
-        value: try jsonToValue(validatedJSON.value),
-        error: validatedJSON.error
-      )
-    }
-    catch {
-      return .invalid(
-        value,
-        error: error.asTheError()
-      )
-    }
+  @discardableResult
+  @Sendable public func update<Raw>(
+    _ field: Resource.FieldPath,
+    to value: Raw
+  ) -> Validated<Raw?>
+  where Raw: RawRepresentable, Raw.RawValue == String {
+    self.update(field, .string(value.rawValue))
+      .map { Raw(rawValue: $0.stringValue ?? "") }
+  }
+
+  @discardableResult
+  @Sendable public func update(
+    _ field: Resource.FieldPath,
+    to value: TOTPSecret
+  ) -> Validated<TOTPSecret?> {
+    self.update(field, value.asJSON)
+      .map { $0.totpSecretValue }
   }
 }

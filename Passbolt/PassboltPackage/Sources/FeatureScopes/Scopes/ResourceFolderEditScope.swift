@@ -21,8 +21,10 @@
 // @since         v1.0
 //
 
-// Scoper for authorization.
-public enum AuthorizationScope: FeaturesScope {
+import Features
 
-  public typealias Context = Void
+// Scope for editing resource folder details.
+public enum ResourceFolderEditScope: FeaturesScope {
+
+  public typealias Context = ResourceFolder.ID?
 }

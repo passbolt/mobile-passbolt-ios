@@ -45,8 +45,8 @@ extension ResourceFieldName {
     case "description":
       return "resource.edit.field.description.label"
 
-		case "totp":
-			return "resource.edit.field.totp.label"
+    case "totp":
+      return "resource.edit.field.totp.label"
 
     case let rawName:
       return .raw(rawName)
@@ -68,29 +68,29 @@ extension ResourceFieldName {
       return "resource.show.field.description.placeholder"
 
     case _:
-			return .raw("")
+      return .raw("")
     }
   }
 
-	public var displayableEditingPlaceholder: DisplayableString {
-		switch self.rawValue {
-		case "name":
-			return "resource.edit.field.name.placeholder"
+  public var displayableEditingPlaceholder: DisplayableString {
+    switch self.rawValue {
+    case "name":
+      return "resource.edit.field.name.placeholder"
 
-		case "uri":
-			return "resource.edit.field.uri.placeholder"
+    case "uri":
+      return "resource.edit.field.uri.placeholder"
 
-		case "username":
-			return "resource.edit.field.username.placeholder"
+    case "username":
+      return "resource.edit.field.username.placeholder"
 
-		case "password", "secret":
-			return "resource.edit.field.password.placeholder"
+    case "password", "secret":
+      return "resource.edit.field.password.placeholder"
 
-		case "description":
-			return "resource.edit.field.description.placeholder"
+    case "description":
+      return "resource.edit.field.description.placeholder"
 
-		case _:
-			return .raw("")
-		}
-	}
+    case _:
+      return .raw("")
+    }
+  }
 }

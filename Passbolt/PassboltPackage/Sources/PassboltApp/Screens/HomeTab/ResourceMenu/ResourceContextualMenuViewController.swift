@@ -22,6 +22,7 @@
 //
 
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 import SharedUIComponents
@@ -44,7 +45,8 @@ internal enum ResourceContextualMenuModifyAction: Hashable, Identifiable {
   case toggle(favorite: Bool)
 
   case share
-  case edit
+  case editPassword
+  case editTOTP
   case delete
 
   internal var id: Self { self }
@@ -65,7 +67,7 @@ internal final class ResourceContextualMenuViewController: ViewController {
     internal var modifyActions: Array<ResourceContextualMenuModifyAction>
   }
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: ViewStateVariable<ViewState>
 
   private let resourceController: ResourceController
   private let otpCodesController: OTPCodesController
@@ -73,7 +75,8 @@ internal final class ResourceContextualMenuViewController: ViewController {
   private let navigationToSelf: NavigationToResourceContextualMenu
   private let navigationToDeleteAlert: NavigationToResourceDeleteAlert
   private let navigationToShare: NavigationToResourceShare
-  private let navigationToEdit: NavigationToResourceEdit
+  private let navigationToResourceEdit: NavigationToResourceEdit
+  private let navigationToTOTPEdit: NavigationToTOTPEditForm
 
   private let linkOpener: OSLinkOpener
   private let pasteboard: OSPasteboard
@@ -106,7 +109,8 @@ internal final class ResourceContextualMenuViewController: ViewController {
     self.navigationToSelf = try features.instance()
     self.navigationToDeleteAlert = try features.instance()
     self.navigationToShare = try features.instance()
-    self.navigationToEdit = try features.instance()
+    self.navigationToResourceEdit = try features.instance()
+    self.navigationToTOTPEdit = try features.instance()
 
     self.resourceController = try features.instance()
     self.otpCodesController = try features.instance()
@@ -150,7 +154,7 @@ extension ResourceContextualMenuViewController {
       accessActions.append(.copyUsername)
     }  // else NOP
 
-		if resource.contains(\.secret.password) || (resource.contains(\.secret) && resource.type.specification.slug != .placeholder) {
+    if resource.hasPassword {
       accessActions.append(.copyPassword)
     }  // else NOP
 
@@ -162,8 +166,7 @@ extension ResourceContextualMenuViewController {
       accessActions.append(.revealOTP)
     }  // else NOP
 
-    // TODO: currently can't identify otp fields other way than by name
-    if resource.contains(\.secret.totp) {
+    if resource.hasTOTP {
       accessActions.append(.copyOTP)
     }  // else NOP
 
@@ -176,9 +179,18 @@ extension ResourceContextualMenuViewController {
     }  // else NOP
 
     if resource.permission.canEdit {
-			if !resource.containsUndefinedFields {
-				modifyActions.append(.edit)
-			} // else NOP
+      if resource.containsUndefinedFields {
+        // NOP - can't do much with it
+      }
+      else {
+        if resource.hasPassword {
+          modifyActions.append(.editPassword)
+        }  // else NOP
+
+        if resource.hasTOTP {
+          modifyActions.append(.editTOTP)
+        }  // else NOP
+      }
 
       modifyActions.append(.delete)
     }  // else NOP
@@ -198,22 +210,26 @@ extension ResourceContextualMenuViewController {
       await self.openURL(field: \.meta.uri)
 
     case .copyURI:
-			await self.copy(field: \.meta.uri)
+      await self.copy(field: \.meta.uri)
 
     case .copyUsername:
-			await self.copy(field: \.meta.username)
+      await self.copy(field: \.meta.username)
 
     case .revealOTP:
-			await self.revealOTPCode()
+      await self.revealOTPCode()
 
     case .copyOTP:
-			await self.copyOTPCode()
+      await self.copyOTPCode()
 
     case .copyPassword:
-			await self.copy(field: \.secret.password)
+      // using \.firstPassword to find first field with password
+      // semantics, actual password have different path
+      await self.copy(field: \.firstPassword)
 
     case .copyDescription:
-			await self.copy(field: \.secret.description)
+      // using \.description to find proper description field
+      // actual description have different path
+      await self.copy(field: \.description)
     }
   }
 
@@ -222,323 +238,274 @@ extension ResourceContextualMenuViewController {
   ) async {
     switch action {
     case .toggle(favorite: _):
-			await self.toggleFavorite()
+      await self.toggleFavorite()
 
     case .share:
-			await self.share()
+      await self.share()
 
-    case .edit:
-			await self.edit()
+    case .editPassword:
+      await self.editPassword()
+
+    case .editTOTP:
+      await self.editTOTP()
 
     case .delete:
-			await self.delete()
+      await self.delete()
     }
   }
 
   internal func openURL(
-    field path: Resource.FieldPath
+    field path: Resource._FieldPath
   ) async {
-		await self.diagnostics
-			.withLogCatch(
-				info: .message("Opening resource field url failed!"),
-				fallback: { @MainActor (error: Error) async -> Void in
-					self.showMessage(.error(error))
-				}
-			) { () async throws -> Void in
-				var resource: Resource = try await self.resourceController.state.value
+    await self.diagnostics
+      .withLogCatch(
+        info: .message("Opening resource field url failed!"),
+        fallback: { @MainActor (error: Error) async -> Void in
+          self.showMessage(.error(error))
+        }
+      ) { () async throws -> Void in
+        var resource: Resource = try await self.resourceController.state.value
 
-				let fieldPath: Resource.FieldPath
-				// password can be legacy unstructured
-				if path == \.secret.password {
-					if resource.contains(\.secret.password) {
-						fieldPath = \.secret.password
-					}
-					else if (resource.contains(\.secret) && resource.type.specification.slug != .placeholder) {
-						fieldPath = \.secret
-					}
-					else {
-						throw
-						UnknownResourceField
-							.error(
-								"Attempting to access not existing resource field value!",
-								path: path,
-								value: .null
-							)
-					}
-				}
-				// description can be encrypted or not
-				else if path == \.secret.description {
-					if resource.contains(\.secret.description) {
-						fieldPath = \.secret.description
-					}
-					else if resource.contains(\.meta.description) {
-						fieldPath = \.meta.description
-					}
-					else {
-						throw
-						UnknownResourceField
-							.error(
-								"Attempting to access not existing resource field value!",
-								path: path,
-								value: .null
-							)
-					}
-				}
-				else {
-					fieldPath = path
-				}
+        guard let field: ResourceFieldSpecification = resource.fieldSpecification(for: path)
+        else {
+          throw
+            UnknownResourceField
+            .error(
+              "Attempting to access not existing resource field value!",
+              path: path,
+              value: .null
+            )
+        }
 
-				guard let field: ResourceFieldSpecification = resource.allFields.first(where: { $0.path == fieldPath })
-				else {
-					throw
-					UnknownResourceField
-						.error(
-							"Attempting to access not existing resource field value!",
-							path: path,
-							value: .null
-						)
-				}
+        if field.encrypted {
+          _ = try await self.resourceController.fetchSecretIfNeeded()
+          resource = try await self.resourceController.state.value
+        }  // else continue
 
-				if field.encrypted {
-					_ = try await self.resourceController.fetchSecretIfNeeded()
-					resource = try await self.resourceController.state.value
-				}  // else continue
+        try await self.linkOpener.openURL(.init(rawValue: resource[keyPath: path].stringValue ?? ""))
 
-				try await self.linkOpener.openURL(.init(rawValue: resource[keyPath: fieldPath].stringValue ?? ""))
-
-				try await self.navigationToSelf.revert()
-			}
+        try await self.navigationToSelf.revert()
+      }
   }
 
   internal func copy(
-    field path: Resource.FieldPath
+    field path: Resource._FieldPath
   ) async {
-		await self.diagnostics
-			.withLogCatch(
-				info: .message("Copying resource field value failed!"),
-				fallback: { @MainActor (error: Error) async -> Void in
-					self.showMessage(.error(error))
-				}
-			) { () async throws -> Void in
-				var resource: Resource = try await self.resourceController.state.value
+    await self.diagnostics
+      .withLogCatch(
+        info: .message("Copying resource field value failed!"),
+        fallback: { @MainActor (error: Error) async -> Void in
+          self.showMessage(.error(error))
+        }
+      ) { () async throws -> Void in
+        var resource: Resource = try await self.resourceController.state.value
 
-				let fieldPath: Resource.FieldPath
-				// password can be legacy unstructured
-				if path == \.secret.password {
-					if resource.contains(\.secret.password) {
-						fieldPath = \.secret.password
-					}
-					else if (resource.contains(\.secret) && resource.type.specification.slug != .placeholder) {
-						fieldPath = \.secret
-					}
-					else {
-						throw
-						UnknownResourceField
-							.error(
-								"Attempting to access not existing resource field value!",
-								path: path,
-								value: .null
-							)
-					}
-				}
-				// description can be encrypted or not
-				else if path == \.secret.description {
-					if resource.contains(\.secret.description) {
-						fieldPath = \.secret.description
-					}
-					else if resource.contains(\.meta.description) {
-						fieldPath = \.meta.description
-					}
-					else {
-						throw
-						UnknownResourceField
-							.error(
-								"Attempting to access not existing resource field value!",
-								path: path,
-								value: .null
-							)
-					}
-				}
-				else {
-					fieldPath = path
-				}
+        guard let field: ResourceFieldSpecification = resource.fieldSpecification(for: path)
+        else {
+          throw
+            UnknownResourceField
+            .error(
+              "Attempting to access not existing resource field value!",
+              path: path,
+              value: .null
+            )
+        }
 
-				guard let field: ResourceFieldSpecification = resource.allFields.first(where: { $0.path == fieldPath })
-				else {
-					throw
-					UnknownResourceField
-						.error(
-							"Attempting to access not existing resource field value!",
-							path: path,
-							value: .null
-						)
-				}
+        if field.encrypted {
+          _ = try await self.resourceController.fetchSecretIfNeeded()
+          resource = try await self.resourceController.state.value
+        }  // else continue
 
-				if field.encrypted {
-					_ = try await self.resourceController.fetchSecretIfNeeded()
-					resource = try await self.resourceController.state.value
-				}  // else continue
+        self.pasteboard.put(resource[keyPath: path].stringValue ?? "")
 
-				self.pasteboard.put(resource[keyPath: fieldPath].stringValue ?? "")
+        try await self.navigationToSelf.revert()
 
-				try await self.navigationToSelf.revert()
-
-				self.showMessage(
-					.info(
-						.localized(
-							key: "resource.menu.item.field.copied",
-							arguments: [
-								field.name.displayable.string()
-							]
-						)
-					)
-				)
-			}
+        self.showMessage(
+          .info(
+            .localized(
+              key: "resource.menu.item.field.copied",
+              arguments: [
+                field.name.displayable.string()
+              ]
+            )
+          )
+        )
+      }
   }
 
   internal final func revealOTPCode() async {
-		await self.diagnostics
-			.withLogCatch(
-				info: .message("Revealing resource OTP failed!"),
-				fallback: { @MainActor (error: Error) async -> Void in
-					self.showMessage(.error(error))
-				}
-			) { @MainActor in
-				guard let revealOTP = self.revealOTP
-				else {
-					throw
-					InvalidResourceData
-						.error(message: "Invalid or missing TOTP reveal action!")
-				}
-				try await self.navigationToSelf.revert(animated: true)
-				revealOTP()
-			}
+    await self.diagnostics
+      .withLogCatch(
+        info: .message("Revealing resource OTP failed!"),
+        fallback: { @MainActor (error: Error) async -> Void in
+          self.showMessage(.error(error))
+        }
+      ) { @MainActor in
+        guard let revealOTP = self.revealOTP
+        else {
+          throw
+            InvalidResourceData
+            .error(message: "Invalid or missing TOTP reveal action!")
+        }
+        try await self.navigationToSelf.revert(animated: true)
+        revealOTP()
+      }
   }
 
   internal final func copyOTPCode() async {
-		await self.diagnostics
-			.withLogCatch(
-				info: .message("Copying resource OTP failed!"),
-				fallback: { @MainActor (error: Error) async -> Void in
-					self.showMessage(.error(error))
-				}
-			) {
-				let resourceSecret: JSON = try await self.resourceController.fetchSecretIfNeeded()
+    await self.diagnostics
+      .withLogCatch(
+        info: .message("Copying resource OTP failed!"),
+        fallback: { @MainActor (error: Error) async -> Void in
+          self.showMessage(.error(error))
+        }
+      ) {
+        try await self.resourceController.fetchSecretIfNeeded()
+        let resource: Resource = try await self.resourceController.state.value
 
-				// searching only for "totp" field, can't identify totp otherwise now
-				guard let totpSecret: TOTPSecret = resourceSecret.totp.totpSecretValue
-				else {
-					throw
-					InvalidResourceData
-						.error(message: "Invalid or missing TOTP in secret")
-				}
+        // searching only for the first totp field, can't identify totp otherwise now
+        guard let totpSecret: TOTPSecret = resource.firstTOTPSecret
+        else {
+          throw
+            InvalidResourceData
+            .error(message: "Invalid or missing TOTP in secret")
+        }
 
-				let totpCodeGenerator: TOTPCodeGenerator = try self.features.instance(
-					context: .init(
-						resourceID: resourceID,
-						totpSecret: totpSecret
-					)
-				)
+        let totpCodeGenerator: TOTPCodeGenerator = try self.features.instance(
+          context: .init(
+            resourceID: resourceID,
+            totpSecret: totpSecret
+          )
+        )
 
-				let totp: TOTPValue = totpCodeGenerator.generate()
-				self.pasteboard.put(totp.otp.rawValue)
-				try await self.navigationToSelf.revert(animated: true)
-				self.showMessage(.info("otp.copied.message"))
-			}
+        let totp: TOTPValue = totpCodeGenerator.generate()
+        self.pasteboard.put(totp.otp.rawValue)
+        try await self.navigationToSelf.revert(animated: true)
+        self.showMessage(.info("otp.copied.message"))
+      }
   }
 
   internal final func toggleFavorite() async {
-		await self.diagnostics
-			.withLogCatch(
-				info: .message("Toggling resource favorite failed!"),
-				fallback: { @MainActor (error: Error) async -> Void in
-					self.showMessage(.error(error))
-				}
-			) {
-				try await self.resourceController.toggleFavorite()
-				let resource: Resource = try await self.resourceController.state.value
-				try await self.navigationToSelf.revert()
-				if resource.favorite {
-					self.showMessage(
-						.info(
-							.localized(
-								key: "resource.menu.action.favorite.added",
-								arguments: [
-									resource.meta.name.stringValue
-									?? DisplayableString
-										.localized("resource")
-										.string()
-								]
-							)
-						)
-					)
-				}
-				else {
-					self.showMessage(
-						.info(
-							.localized(
-								key: "resource.menu.action.favorite.removed",
-								arguments: [
-									resource.meta.name.stringValue
-									?? DisplayableString
-										.localized("resource")
-										.string()
-								]
-							)
-						)
-					)
-				}
-			}
+    await self.diagnostics
+      .withLogCatch(
+        info: .message("Toggling resource favorite failed!"),
+        fallback: { @MainActor (error: Error) async -> Void in
+          self.showMessage(.error(error))
+        }
+      ) {
+        try await self.resourceController.toggleFavorite()
+        let resource: Resource = try await self.resourceController.state.value
+        try await self.navigationToSelf.revert()
+        if resource.favorite {
+          self.showMessage(
+            .info(
+              .localized(
+                key: "resource.menu.action.favorite.added",
+                arguments: [
+                  resource.meta.name.stringValue
+                    ?? DisplayableString
+                    .localized("resource")
+                    .string()
+                ]
+              )
+            )
+          )
+        }
+        else {
+          self.showMessage(
+            .info(
+              .localized(
+                key: "resource.menu.action.favorite.removed",
+                arguments: [
+                  resource.meta.name.stringValue
+                    ?? DisplayableString
+                    .localized("resource")
+                    .string()
+                ]
+              )
+            )
+          )
+        }
+      }
   }
 
   internal final func share() async {
-		await self.diagnostics
-			.withLogCatch(
-				info: .message("Navigation to resource share failed!"),
-				fallback: { @MainActor (error: Error) async -> Void in
-					self.showMessage(.error(error))
-				}
-			) {
-				try await self.navigationToSelf.revert()
-				try await self.navigationToShare.perform(context: resourceID)
-    }
+    await self.diagnostics
+      .withLogCatch(
+        info: .message("Navigation to resource share failed!"),
+        fallback: { @MainActor (error: Error) async -> Void in
+          self.showMessage(.error(error))
+        }
+      ) {
+        try await self.navigationToSelf.revert()
+        try await self.navigationToShare.perform(context: self.resourceID)
+      }
   }
 
-  internal final func edit() async {
-		await self.diagnostics
-			.withLogCatch(
-				info: .message("Navigation to resource edit failed!"),
-				fallback: { @MainActor (error: Error) async -> Void in
-					self.showMessage(.error(error))
-				}
-			) {
-				try await self.navigationToSelf.revert()
-				try await self.navigationToEdit.perform(
-        context: (
-          editing: .edit(resourceID),
-          completion: { _ in }
+  internal final func editPassword() async {
+    await self.diagnostics
+      .withLogCatch(
+        info: .message("Navigation to resource edit failed!"),
+        fallback: { @MainActor (error: Error) async -> Void in
+          self.showMessage(.error(error))
+        }
+      ) { [resourceID] in
+        let resourceEditPreparation: ResourceEditPreparation = try features.instance()
+        let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareExisting(resourceID)
+        try await self.navigationToSelf.revert()
+        try await self.navigationToResourceEdit.perform(
+          context: .init(
+            editingContext: editingContext,
+            success: { _ in /* TODO: FIXME: to check, no completion? */ }
+          )
         )
-      )
-    }
+      }
+  }
+
+  internal final func editTOTP() async {
+    await self.diagnostics
+      .withLogCatch(
+        info: .message("Navigation to totp edit failed!"),
+        fallback: { @MainActor (error: Error) async -> Void in
+          self.showMessage(.error(error))
+        }
+      ) { [resourceID] in
+        let resourceEditPreparation: ResourceEditPreparation = try features.instance()
+        let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareExisting(resourceID)
+        guard let totpPath: Resource.FieldPath = editingContext.editedResource.firstTOTPPath
+        else {
+          throw
+            InvalidResourceType
+            .error(message: "Resource without TOTP, can't edit it.")
+        }
+        try await self.navigationToSelf.revert()
+        try await self.navigationToTOTPEdit.perform(
+          context: .init(
+            editingContext: editingContext,
+            totpPath: totpPath,
+            success: { _ in /* TODO: FIXME: to check, no completion? */ }
+          )
+        )
+      }
   }
 
   internal final func delete() async {
-		await self.diagnostics
-			.withLogCatch(
-				info: .message("Navigation to resource delete failed!"),
-				fallback: { @MainActor (error: Error) async -> Void in
-					self.showMessage(.error(error))
-				}
-			) {
-				try await self.navigationToSelf.revert(animated: true)
-				try await self.navigationToDeleteAlert.perform(
-        context: (
-					resourceID: self.resourceID,
-					containsOTP: self.resourceController.state.value.containsOTP,
-					showMessage: self.showMessage
+    await self.diagnostics
+      .withLogCatch(
+        info: .message("Navigation to resource delete failed!"),
+        fallback: { @MainActor (error: Error) async -> Void in
+          self.showMessage(.error(error))
+        }
+      ) {
+        try await self.navigationToSelf.revert(animated: true)
+        try await self.navigationToDeleteAlert.perform(
+          context: (
+            resourceID: self.resourceID,
+            containsOTP: self.resourceController.state.value.containsOTP,
+            showMessage: self.showMessage
+          )
         )
-      )
-    }
+      }
   }
 
   internal final func dismiss() {

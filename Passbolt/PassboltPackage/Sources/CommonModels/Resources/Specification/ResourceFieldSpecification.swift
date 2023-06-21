@@ -23,6 +23,10 @@
 
 import Commons
 
+import enum Foundation.ComparisonResult
+import protocol Foundation.SortComparator
+import enum Foundation.SortOrder
+
 public struct ResourceFieldSpecification {
 
   public enum Content {
@@ -47,9 +51,10 @@ public struct ResourceFieldSpecification {
 
   public let path: Resource.FieldPath
   public let name: ResourceFieldName
-  public var content: Content
-  public var required: Bool
-  public var encrypted: Bool
+  public let content: Content
+  public let required: Bool
+  public let encrypted: Bool
+  public let semantics: ResourceFieldSemantics
 
   public init(
     path: Resource.FieldPath,
@@ -63,6 +68,62 @@ public struct ResourceFieldSpecification {
     self.content = content
     self.required = required
     self.encrypted = encrypted
+    self.semantics = {
+      // we can't detect semantics of fields other way than using
+      // concrete paths or exact description of complex fields
+      switch content {
+      case .string where path == \.secret.password || path == \.secret:
+        assert(encrypted, "Unencrypted passwords should not occur!")
+        return .password(
+          name: name.displayable,
+          viewingPlaceholder: name.displayableViewingPlaceholder,
+          editingPlaceholder: name.displayableEditingPlaceholder
+        )
+
+      case .string(_, .some(let maxLength)) where maxLength > 4096:
+        return .longText(
+          name: name.displayable,
+          viewingPlaceholder: name.displayableViewingPlaceholder,
+          editingPlaceholder: name.displayableEditingPlaceholder
+        )
+
+      case .string:
+        return .text(
+          name: name.displayable,
+          viewingPlaceholder: name.displayableViewingPlaceholder,
+          editingPlaceholder: name.displayableEditingPlaceholder
+        )
+
+      case .int:
+        return .intValue(
+          name: name.displayable,
+          viewingPlaceholder: name.displayableViewingPlaceholder,
+          editingPlaceholder: name.displayableEditingPlaceholder
+        )
+
+      case .double:
+        return .floatValue(
+          name: name.displayable,
+          viewingPlaceholder: name.displayableViewingPlaceholder,
+          editingPlaceholder: name.displayableEditingPlaceholder
+        )
+
+      case .stringEnum(let values):
+        return .selection(
+          name: name.displayable,
+          values: values,
+          viewingPlaceholder: name.displayableViewingPlaceholder,
+          editingPlaceholder: name.displayableEditingPlaceholder
+        )
+
+      case .totp:
+        assert(encrypted, "Unencrypted totp should not occur!")
+        return .totp(name: name.displayable)
+
+      case .structure:
+        return .undefined(name: name.displayable)
+      }
+    }()
   }
 }
 
@@ -160,13 +221,24 @@ extension ResourceFieldSpecification {
     case .int(let min, let max):
       guard let intValue: Int = json.intValue
       else {
-        throw
-          InvalidResourceField
-          .type(
-            specification: self,
-            path: self.path,
-            value: json
-          )
+        if self.required, json.stringValue?.isEmpty ?? false {
+          throw
+            InvalidResourceField
+            .required(
+              specification: self,
+              path: self.path,
+              value: json
+            )
+        }
+        else {
+          throw
+            InvalidResourceField
+            .type(
+              specification: self,
+              path: self.path,
+              value: json
+            )
+        }
       }
 
       if let min, intValue < min {
@@ -194,13 +266,24 @@ extension ResourceFieldSpecification {
     case .double(let min, let max):
       guard let doubleValue: Double = json.doubleValue
       else {
-        throw
-          InvalidResourceField
-          .type(
-            specification: self,
-            path: self.path,
-            value: json
-          )
+        if self.required, json.stringValue?.isEmpty ?? false {
+          throw
+            InvalidResourceField
+            .required(
+              specification: self,
+              path: self.path,
+              value: json
+            )
+        }
+        else {
+          throw
+            InvalidResourceField
+            .type(
+              specification: self,
+              path: self.path,
+              value: json
+            )
+        }
       }
 
       if let min, doubleValue < min {
@@ -281,68 +364,76 @@ extension ResourceFieldSpecification {
 
 extension ResourceFieldSpecification {
 
-  public var semantics: ResourceFieldSemantics {
-    switch self.content {
-    case .string(_, .some(let maxLength)) where maxLength > 4096:
-      return .longTextField(
-        name: self.name.displayable,
-				viewingPlaceholder: self.name.displayableViewingPlaceholder,
-				editingPlaceholder: self.name.displayableEditingPlaceholder,
-        required: self.required,
-        encrypted: self.encrypted
-      )
+  internal struct Sorting: SortComparator {
 
-    case .string:
-      return .textField(
-        name: self.name.displayable,
-				viewingPlaceholder: self.name.displayableViewingPlaceholder,
-				editingPlaceholder: self.name.displayableEditingPlaceholder,
-        required: self.required,
-        encrypted: self.encrypted
-      )
+    internal typealias Compared = ResourceFieldSpecification
 
-    case .int:
-      return .textField(
-        name: self.name.displayable,
-				viewingPlaceholder: self.name.displayableViewingPlaceholder,
-				editingPlaceholder: self.name.displayableEditingPlaceholder,
-        required: self.required,
-        encrypted: self.encrypted
-      )
+    internal var order: SortOrder = .forward {
+      willSet {
+        guard case .forward = newValue
+        else { unimplemented("Unsupported ordering") }
+      }
+    }
 
-    case .double:
-      return .textField(
-        name: self.name.displayable,
-				viewingPlaceholder: self.name.displayableViewingPlaceholder,
-				editingPlaceholder: self.name.displayableEditingPlaceholder,
-        required: self.required,
-        encrypted: self.encrypted
-      )
+    internal func compare(
+      _ lhs: ResourceFieldSpecification,
+      _ rhs: ResourceFieldSpecification
+    ) -> ComparisonResult {
+      guard case .forward = self.order
+      else { unimplemented("Unsupported ordering") }
+      // resource fields should be sorted however
+      // there is no corrent way of sorting it
+      // nor ordering is provided by type description
+      // for current partially hardcoded support
+      // of resource types we are sorting fields based
+      // on its paths only
+      switch (lhs.path, rhs.path) {
+      case (\Resource.meta.name, _):
+        return .orderedAscending
 
-    case .stringEnum(let values):
-      return .selection(
-        name: self.name.displayable,
-				viewingPlaceholder: self.name.displayableViewingPlaceholder,
-				editingPlaceholder: self.name.displayableEditingPlaceholder,
-        required: self.required,
-        encrypted: self.encrypted,
-        values: values
-      )
+      case (_, \Resource.meta.name):
+        return .orderedDescending
 
-		case .totp:
-			return .totp(
-				name: self.name.displayable,
-				required: self.required,
-				encrypted: self.encrypted
-			)
+      case (\Resource.meta.username, _):
+        return .orderedAscending
 
-		case .structure:
-			return .undefined(
-				name: self.name.displayable,
-				required: self.required,
-				encrypted: self.encrypted
-			)
-		}
+      case (_, \Resource.meta.username):
+        return .orderedDescending
+
+      case (\Resource.meta.uri, _):
+        return .orderedAscending
+
+      case (_, \Resource.meta.uri):
+        return .orderedDescending
+
+      case (\Resource.secret, _):
+        return .orderedAscending
+
+      case (_, \Resource.secret):
+        return .orderedDescending
+
+      case (\Resource.secret.password, _):
+        return .orderedAscending
+
+      case (_, \Resource.secret.password):
+        return .orderedDescending
+
+      case (\Resource.secret.description, _):
+        return .orderedAscending
+
+      case (_, \Resource.secret.description):
+        return .orderedDescending
+
+      case (\Resource.meta.description, _):
+        return .orderedAscending
+
+      case (_, \Resource.meta.description):
+        return .orderedDescending
+
+      case _:  // we don't know how to / don't want to sort anything else
+        return .orderedSame
+      }
+    }
   }
 }
 

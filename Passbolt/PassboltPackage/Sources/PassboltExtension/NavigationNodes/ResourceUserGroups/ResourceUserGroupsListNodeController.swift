@@ -80,14 +80,14 @@ internal final class ResourceUserGroupsListNodeController: ViewController {
       context: .init(
         filter: self.searchController
           .searchText
-					.asAnyAsyncSequence()
+          .asAnyAsyncSequence()
           .map { (text: String) -> UserGroupsFilter in
             .init(
               userID: self.currentAccount.userID,
               text: text
             )
-					}
-					.asAnyAsyncSequence(),
+          }
+          .asAnyAsyncSequence(),
         selectGroup: self.selectUserGroup(_:),
         showMessage: { [viewState] (message: SnackBarMessage?) in
           viewState.update { viewState in

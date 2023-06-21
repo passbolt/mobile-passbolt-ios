@@ -21,57 +21,10 @@
 // @since         v1.0
 //
 
-import Combine
-import Commons
+import Features
 
-public final class ObservableViewState<ViewState: Equatable>: ViewStateSource {
+// Scope for sharing resources.
+public enum ResourceShareScope: FeaturesScope {
 
-	public nonisolated var updates: Updates { self.source.updates }
-	@MainActor public var state: ViewState {
-		self.source.state
-	}
-
-	private let source: any ViewStateSource<ViewState>
-
-	public init(
-		from source: any ViewStateSource<ViewState>
-	) {
-		self.source = source
-	}
-
-  @MainActor public init<Other>(
-    from source: any ViewStateSource<Other>,
-    at keyPath: KeyPath<Other, ViewState>
-  ) {
-		self.source = ComputedViewState(
-			from: source,
-			transform: { $0[keyPath: keyPath] }
-		)
-  }
-
-	@MainActor public init<Other>(
-		from source: any ViewStateSource<Other>,
-		mapping: @escaping @MainActor (Other) -> ViewState
-	) {
-		self.source = ComputedViewState(
-			from: source,
-			transform: mapping
-		)
-	}
-}
-
-extension ObservableViewState {
-
-	@MainActor public func binding<Value>(
-		to keyPath: WritableKeyPath<ViewState, Value>
-	) -> Binding<Value> {
-		Binding<Value>(
-			get: { self.value[keyPath: keyPath] },
-			set: { (newValue: Value) in
-				Unimplemented
-					.error()
-					.asAssertionFailure(message: "Can't set through a binding to ObservableViewState")
-			}
-		)
-	}
+  public typealias Context = Resource.ID
 }

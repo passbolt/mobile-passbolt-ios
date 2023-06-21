@@ -25,7 +25,7 @@ import Commons
 
 public struct ResourceType {
 
-  public typealias ID = Tagged<UUID, Self>
+  public typealias ID = Tagged<PassboltID, Self>
 
   public let id: ID
   public let name: String

@@ -22,6 +22,7 @@
 //
 
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 import SessionData
@@ -77,7 +78,7 @@ internal final class ResourceFolderContentDisplayController: ViewController {
     self.openResourceMenu = context.openResourceMenu
 
     self.asyncExecutor.scheduleIteration(
-			over: combineLatest(context.filter.asAnyAsyncSequence(), sessionData.updates),
+      over: combineLatest(context.filter.asAnyAsyncSequence(), sessionData.updates),
       catchingWith: self.diagnostics,
       failMessage: "Resource folders list updates broken!",
       failAction: { [context] (error: Error) in

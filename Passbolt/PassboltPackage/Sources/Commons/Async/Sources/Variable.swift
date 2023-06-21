@@ -24,33 +24,32 @@
 public final class Variable<DataType>: DataSource
 where DataType: Sendable {
 
-	public typealias Failure = Never
+  public typealias Failure = Never
 
-	public var updates: Updates { self.updatesSource.updates }
+  public var updates: Updates { self.updatesSource.updates }
 
-	private let updatesSource: UpdatesSource
-	private let storage: CriticalState<DataType>
+  private let updatesSource: UpdatesSource
+  private let storage: CriticalState<DataType>
 
-	public init(
-		initial: DataType
-	) {
-		self.storage = .init(initial)
-		self.updatesSource = .init()
-	}
+  public init(
+    initial: DataType
+  ) {
+    self.storage = .init(initial)
+    self.updatesSource = .init()
+  }
 
-	public var value: DataType {
-		get { self.storage.get(\.self) }
-		set {
-			self.storage.set(\.self, newValue)
-			self.updatesSource.sendUpdate()
-		}
-	}
+  public var value: DataType {
+    get { self.storage.get(\.self) }
+    set {
+      self.storage.set(\.self, newValue)
+      self.updatesSource.sendUpdate()
+    }
+  }
 
-	public func mutate(
-		_ mutation: (inout DataType) -> Void
-	) {
-		self.storage.access(mutation)
-		self.updatesSource.sendUpdate()
-	}
+  public func mutate<Returned>(
+    _ mutation: (inout DataType) -> Returned
+  ) -> Returned {
+    defer { self.updatesSource.sendUpdate() }
+    return self.storage.access(mutation)
+  }
 }
-

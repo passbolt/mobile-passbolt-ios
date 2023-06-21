@@ -22,6 +22,7 @@
 //
 
 import AccountSetup
+import FeatureScopes
 import NetworkOperations
 import OSFeatures
 

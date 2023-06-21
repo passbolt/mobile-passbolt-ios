@@ -25,40 +25,43 @@ import Commons
 
 public enum ResourceFieldSemantics {
 
-	case textField(
-		name: DisplayableString,
-		viewingPlaceholder: DisplayableString,
-		editingPlaceholder: DisplayableString,
-		required: Bool,
-		encrypted: Bool
-	)
+  case intValue(
+    name: DisplayableString,
+    viewingPlaceholder: DisplayableString,
+    editingPlaceholder: DisplayableString
+  )
 
-	case longTextField(
-		name: DisplayableString,
-		viewingPlaceholder: DisplayableString,
-		editingPlaceholder: DisplayableString,
-		required: Bool,
-		encrypted: Bool
-	)
+  case floatValue(
+    name: DisplayableString,
+    viewingPlaceholder: DisplayableString,
+    editingPlaceholder: DisplayableString
+  )
 
-	case selection(
-		name: DisplayableString,
-		viewingPlaceholder: DisplayableString,
-		editingPlaceholder: DisplayableString,
-		required: Bool,
-		encrypted: Bool,
-		values: Array<String>
-	)
+  case text(
+    name: DisplayableString,
+    viewingPlaceholder: DisplayableString,
+    editingPlaceholder: DisplayableString
+  )
 
-	case totp(
-		name: DisplayableString,
-		required: Bool,
-		encrypted: Bool
-	)
+  case longText(
+    name: DisplayableString,
+    viewingPlaceholder: DisplayableString,
+    editingPlaceholder: DisplayableString
+  )
 
-	case undefined(
-		name: DisplayableString,
-		required: Bool,
-		encrypted: Bool
-	)
+  case selection(
+    name: DisplayableString,
+    values: Array<String>,
+    viewingPlaceholder: DisplayableString,
+    editingPlaceholder: DisplayableString
+  )
+
+  case password(
+    name: DisplayableString,
+    viewingPlaceholder: DisplayableString,
+    editingPlaceholder: DisplayableString
+  )
+
+  case totp(name: DisplayableString)
+  case undefined(name: DisplayableString)
 }

@@ -101,7 +101,7 @@ extension AutofillRootNavigationNodeController {
       }  // else NOP
     }
 
-    self.asyncExecutor.schedule(.unmanaged) { [unowned self] () async -> Void in
+    self.asyncExecutor.schedule(.unmanaged) { [self] () async -> Void in
       do {
         try await self.session.updates
           .dropFirst()

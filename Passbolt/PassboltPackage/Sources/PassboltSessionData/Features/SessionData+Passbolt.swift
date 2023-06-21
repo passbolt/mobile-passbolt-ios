@@ -22,6 +22,7 @@
 //
 
 import DatabaseOperations
+import FeatureScopes
 import Features
 import NetworkOperations
 import OSFeatures
@@ -55,7 +56,7 @@ extension SessionData {
     let lastUpdate: Variable<Timestamp> = .init(initial: 0)
     let updatesSource: UpdatesSource = .init()
 
-		let refreshTask: CriticalState<Task<Void, Error>?> = .init(.none)
+    let refreshTask: CriticalState<Task<Void, Error>?> = .init(.none)
 
     // initial refresh after loading
     asyncExecutor.schedule {
@@ -156,37 +157,37 @@ extension SessionData {
     }
 
     @Sendable nonisolated func refreshIfNeeded() async throws {
-			let task: Task<Void, Error> = refreshTask.access { (task: inout Task<Void, Error>?) -> Task<Void, Error> in
-				if let runningTask: Task<Void, Error> = task {
-					return runningTask
-				}
-				else {
-					let runningTask: Task<Void, Error> = .init {
-						defer {
-							refreshTask.access { task in
-								task = .none
-							}
-						}
-						// when diffing endpoint becomes available
-					 // there should be some additional logic
-					 // to selectively update database data
+      let task: Task<Void, Error> = refreshTask.access { (task: inout Task<Void, Error>?) -> Task<Void, Error> in
+        if let runningTask: Task<Void, Error> = task {
+          return runningTask
+        }
+        else {
+          let runningTask: Task<Void, Error> = .init {
+            defer {
+              refreshTask.access { task in
+                task = .none
+              }
+            }
+            // when diffing endpoint becomes available
+            // there should be some additional logic
+            // to selectively update database data
 
-					 try await refreshUsers()
-					 try await refreshUserGroups()
-					 try await refreshFolders()
-					 try await refreshResources()
+            try await refreshUsers()
+            try await refreshUserGroups()
+            try await refreshFolders()
+            try await refreshResources()
 
-					 updatesSource.sendUpdate()
-					 // when diffing endpoint becomes available
-					 // we should use server time instead
-					 lastUpdate.value = time.timestamp()
-				 }
-					task = runningTask
-					return runningTask
-				}
-			}
+            updatesSource.sendUpdate()
+            // when diffing endpoint becomes available
+            // we should use server time instead
+            lastUpdate.value = time.timestamp()
+          }
+          task = runningTask
+          return runningTask
+        }
+      }
 
-			return try await task.value
+      return try await task.value
     }
 
     return Self(

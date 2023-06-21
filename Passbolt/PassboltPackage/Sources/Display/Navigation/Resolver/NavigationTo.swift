@@ -44,14 +44,13 @@ where Destination: NavigationDestination {
 
 extension NavigationTo: LoadableFeature {
 
-  #if DEBUG
   public nonisolated static var placeholder: Self {
     .init(
       performAnimated: unimplemented4(),
       revertAnimated: unimplemented3()
     )
   }
-
+  #if DEBUG
   public var mockPerform: @Sendable (Bool, Destination.TransitionContext) async throws -> Void {
     get { unimplemented2("Mock can't be used, it is intended only as a helper to patch in test.") }
     set {

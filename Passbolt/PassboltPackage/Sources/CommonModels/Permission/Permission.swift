@@ -25,7 +25,7 @@ import Commons
 
 public enum Permission: Int {
 
-  public typealias ID = Tagged<UUID, Self>
+  public typealias ID = Tagged<PassboltID, Self>
 
   case read = 1
   case write = 7

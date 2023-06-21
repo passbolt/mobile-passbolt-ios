@@ -24,6 +24,7 @@
 import AccountSetup
 import Accounts
 import Display
+import FeatureScopes
 import OSFeatures
 import Session
 

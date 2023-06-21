@@ -25,27 +25,27 @@ import struct Foundation.UUID
 
 public final class UpdatesSource: Sendable {
 
-	@usableFromInline internal typealias Generation = UInt64
+  @usableFromInline internal typealias Generation = UInt64
 
-	@usableFromInline internal struct State: Sendable {
+  @usableFromInline internal struct State: Sendable {
 
-		@usableFromInline internal var generation: Generation?
-		@usableFromInline internal var awaiters: Dictionary<IID, UnsafeContinuation<Generation?, Never>>
+    @usableFromInline internal var generation: Generation?
+    @usableFromInline internal var awaiters: Dictionary<IID, UnsafeContinuation<Generation?, Never>>
   }
 
   @usableFromInline internal let state: CriticalState<State>
 
-	public convenience init() {
-		self.init(generation: 1)
-	}
+  public convenience init() {
+    self.init(generation: 1)
+  }
 
-	@usableFromInline internal init(
-		generation: Generation?
-	) {
-		// Generation `none` will be ended updates
-		// (inactive) from the beginning.
-		// Generation starting from 0
-		// will wait for the initial update.
+  @usableFromInline internal init(
+    generation: Generation?
+  ) {
+    // Generation `none` will be ended updates
+    // (inactive) from the beginning.
+    // Generation starting from 0
+    // will wait for the initial update.
     // Generation starting from 1
     // means that sequence will
     // emit initial value without
@@ -56,9 +56,9 @@ public final class UpdatesSource: Sendable {
         generation: generation,
         awaiters: .init()
       ),
-			cleanup: { (state: State) in
-				for continuation: UnsafeContinuation<Generation?, Never> in state.awaiters.values {
-					continuation.resume(returning: .none)
+      cleanup: { (state: State) in
+        for continuation: UnsafeContinuation<Generation?, Never> in state.awaiters.values {
+          continuation.resume(returning: .none)
         }
       }
     )
@@ -67,61 +67,61 @@ public final class UpdatesSource: Sendable {
 
 extension UpdatesSource {
 
-	@_transparent
+  @_transparent
   public static var placeholder: UpdatesSource {
-		UpdatesSource(generation: .none)
+    UpdatesSource(generation: .none)
   }
 
-	@_transparent @_semantics("constant_evaluable")
-	public var updates: Updates { .init(for: self) }
+  @_transparent @_semantics("constant_evaluable")
+  public var updates: Updates { .init(for: self) }
 
-	@_transparent
+  @_transparent
   @Sendable public func sendUpdate() {
-		let resumeAwaiters: () -> Void =
-    self.state
+    let resumeAwaiters: () -> Void =
+      self.state
       .access { (state: inout State) -> () -> Void in
-				if case .some(var generation) = state.generation {
-					generation &+= 1
-					state.generation = generation
-					let awaiters = state.awaiters.values
-					state.awaiters.removeAll()
-					return {
-						for continuation: UnsafeContinuation<Generation?, Never> in awaiters {
-							continuation.resume(returning: generation)
-						}
-					}
-				}
-				else {
-					assert(state.awaiters.isEmpty)
-					return {} // generation `none` means terminated, nothing to resume
-				}
+        if case .some(var generation) = state.generation {
+          generation &+= 1
+          state.generation = generation
+          let awaiters = state.awaiters.values
+          state.awaiters.removeAll()
+          return {
+            for continuation: UnsafeContinuation<Generation?, Never> in awaiters {
+              continuation.resume(returning: generation)
+            }
+          }
+        }
+        else {
+          assert(state.awaiters.isEmpty)
+          return {}  // generation `none` means terminated, nothing to resume
+        }
       }
 
-		resumeAwaiters()
+    resumeAwaiters()
   }
 
-	@_transparent
+  @_transparent
   @Sendable public func terminate() {
-		let resumeAwaiters: () -> Void =
-		self.state
-			.access { (state: inout State) -> () -> Void in
-				if case .some = state.generation {
-					state.generation = .none
-					let awaiters = state.awaiters.values
-					state.awaiters.removeAll()
-					return {
-						for continuation: UnsafeContinuation<Generation?, Never> in awaiters {
-							continuation.resume(returning: .none)
-						}
-					}
-				}
-				else {
-					assert(state.awaiters.isEmpty)
-					return {} // generation `none` means terminated, nothing to resume
-				}
-			}
+    let resumeAwaiters: () -> Void =
+      self.state
+      .access { (state: inout State) -> () -> Void in
+        if case .some = state.generation {
+          state.generation = .none
+          let awaiters = state.awaiters.values
+          state.awaiters.removeAll()
+          return {
+            for continuation: UnsafeContinuation<Generation?, Never> in awaiters {
+              continuation.resume(returning: .none)
+            }
+          }
+        }
+        else {
+          assert(state.awaiters.isEmpty)
+          return {}  // generation `none` means terminated, nothing to resume
+        }
+      }
 
-		resumeAwaiters()
+    resumeAwaiters()
   }
 }
 
@@ -131,32 +131,32 @@ extension UpdatesSource: AsyncSequence {
 
   public struct AsyncIterator: AsyncIteratorProtocol {
 
-		@usableFromInline internal var generation: Generation
+    @usableFromInline internal var generation: Generation
     @usableFromInline internal let nextElement: (inout Generation) async -> Void?
 
     fileprivate init(
-			nextElement: @escaping (inout Generation) async -> Void?
+      nextElement: @escaping (inout Generation) async -> Void?
     ) {
-			self.generation = 0  // make sure all updates are picked
+      self.generation = 0  // make sure all updates are picked
       self.nextElement = nextElement
     }
 
-		@_transparent
+    @_transparent
     public mutating func next() async -> Element? {
-			await self.nextElement(&self.generation)
+      await self.nextElement(&self.generation)
     }
   }
 
   public nonisolated func makeAsyncIterator() -> AsyncIterator {
-		AsyncIterator { [weak self] (generation: inout Generation) in
-			await self?.update(after: &generation)
-		}
+    AsyncIterator { [weak self] (generation: inout Generation) in
+      await self?.update(after: &generation)
+    }
   }
 }
 
 extension UpdatesSource {
 
-	@_transparent @available(*, deprecated, message: "Please use `hasUpdate` instead")
+  @_transparent @available(*, deprecated, message: "Please use `hasUpdate` instead")
   internal func checkUpdate(
     after generation: Generation
   ) throws -> Generation {
@@ -173,55 +173,56 @@ extension UpdatesSource {
 
 extension UpdatesSource {
 
-	@_transparent
-	@usableFromInline
-	internal func hasUpdate(
-		after generation: Generation
-	) -> Bool {
-		self.state.access { (state: inout State) -> Bool in
-			if case .some(let currentGeneration) = state.generation {
-				return currentGeneration > generation
-			}
-			else {
-				return false
-			}
-		}
-	}
+  @_transparent
+  @usableFromInline
+  internal func hasUpdate(
+    after generation: Generation
+  ) -> Bool {
+    self.state.access { (state: inout State) -> Bool in
+      if case .some(let currentGeneration) = state.generation {
+        return currentGeneration > generation
+      }
+      else {
+        return false
+      }
+    }
+  }
 
-	@_transparent
-	@usableFromInline
+  @_transparent
+  @usableFromInline
   internal func update(
     after generation: inout Generation
   ) async -> Void? {
-		let iid: IID = .init()
-		let updated: Generation? = await withTaskCancellationHandler(
-			operation: { () async -> Generation? in
-				await withUnsafeContinuation { (continuation: UnsafeContinuation<Generation?, Never>) in
-					self.state.access { (state: inout State) in
-						guard case .some(let currentGeneration) = state.generation, !Task.isCancelled
-						else { return continuation.resume(returning: .none) }
+    let iid: IID = .init()
+    let updated: Generation? = await withTaskCancellationHandler(
+      operation: { () async -> Generation? in
+        await withUnsafeContinuation { (continuation: UnsafeContinuation<Generation?, Never>) in
+          self.state.access { (state: inout State) in
+            guard case .some(let currentGeneration) = state.generation, !Task.isCancelled
+            else { return continuation.resume(returning: .none) }
 
-						if currentGeneration > generation {
-							return continuation.resume(returning: currentGeneration)
-						}
-						else {
-							state.awaiters[iid] = continuation
-						}
-					}
-				}
-			},
-			onCancel: {
-				self.state.exchange(\.awaiters[iid], with: .none)?
-					.resume(returning: .none)
-			}
-		)
+            if currentGeneration > generation {
+              return continuation.resume(returning: currentGeneration)
+            }
+            else {
+              state.awaiters[iid] = continuation
+            }
+          }
+        }
+      },
+      onCancel: {
+        self.state.exchange(\.awaiters[iid], with: .none)?
+          .resume(returning: .none)
+      }
+    )
 
-		if let updated: Generation {
-			return generation = updated
-		}
-		else {
-			generation = .max
-			return .none
-		}
+    if let updated: Generation {
+      generation = updated
+      return Void()
+    }
+    else {
+      generation = .max
+      return .none
+    }
   }
 }

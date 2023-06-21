@@ -24,37 +24,34 @@
 import SwiftUI
 
 public protocol ViewStateSource<ViewState>: DataSource, ObservableObject
-where DataType == ViewState, Failure == Never, Element == DataType, AsyncIterator == AsyncThrowingMapSequence<Updates, DataType>.Iterator {
+where
+  DataType == ViewState,
+  Failure == Never,
+  Element == DataType,
+  AsyncIterator == AsyncThrowingMapSequence<Updates, DataType>.Iterator,
+  ObjectWillChangePublisher == ObservableObjectPublisher
+{
 
-	associatedtype ViewState: Sendable
+  associatedtype ViewState: Sendable
 
-	nonisolated var updates: Updates { @Sendable get }
+  nonisolated var updates: Updates { @Sendable get }
 
-	var state: ViewState { @MainActor get }
+  var state: ViewState { @MainActor get }
 
-	@MainActor func binding<Value>(
-		to keyPath: WritableKeyPath<ViewState, Value>
-	) -> Binding<Value>
+  @MainActor func binding<Value>(
+    to keyPath: WritableKeyPath<ViewState, Value>
+  ) -> Binding<Value>
+
+  @MainActor func forceUpdate()
 }
 
 extension ViewStateSource /* DataSource */ {
 
-	// there is a warning in Swift 5.8 but it does not compile without it
-	// regardless of type constraint in protocol declaration
-	public typealias DataType = ViewState
+  // there is a warning in Swift 5.8 but it does not compile without it
+  // regardless of type constraint in protocol declaration
+  public typealias DataType = ViewState
 
-	public var value: ViewState { self.state }
-}
-
-extension ViewStateSource /* ObservableObject */
-where Self.ObjectWillChangePublisher == Publishers.ReceiveOn<Publishers.Autoconnect<UpdatesPublisher>, RunLoop> {
-
-	@_transparent @_semantics("constant_evaluable")
-	public nonisolated var objectWillChange: ObjectWillChangePublisher {
-		UpdatesPublisher(for: self.updates)
-			.autoconnect()
-			.receive(on: RunLoop.main)
-	}
+  public var value: ViewState { self.state }
 }
 
 #if DEBUG
@@ -62,19 +59,23 @@ where Self.ObjectWillChangePublisher == Publishers.ReceiveOn<Publishers.Autoconn
 public final class PlaceholderViewStateSource<ViewState>: ViewStateSource
 where ViewState: Sendable {
 
-	public let updates: Updates = .placeholder
+  public let updates: Updates = .placeholder
 
-	public init() {}
+  public init() {}
 
-	@MainActor public var state: ViewState {
-		@inlinable get { unimplemented() }
-	}
+  @MainActor public var state: ViewState {
+    @inlinable get { unimplemented() }
+  }
 
-	@MainActor public func binding<Value>(
-		to keyPath: WritableKeyPath<ViewState, Value>
-	) -> Binding<Value> {
-		unimplemented()
-	}
+  @MainActor public func binding<Value>(
+    to keyPath: WritableKeyPath<ViewState, Value>
+  ) -> Binding<Value> {
+    unimplemented()
+  }
+
+  @MainActor public func forceUpdate() {
+    unimplemented()
+  }
 }
 
 #endif

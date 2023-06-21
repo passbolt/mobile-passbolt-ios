@@ -84,20 +84,19 @@ extension AccountDetails {
     }
 
     let avatarImageCache: ComputedVariable<Data> = .init(lazy: {
-			do {
-				let profile: AccountWithProfile = try profile()
-				return try await mediaDownloadNetworkOperation.execute(profile.avatarImageURL)
-			}
-			catch {
-				diagnostics.log(error: error)
-				throw error
-			}
-		})
+      do {
+        let profile: AccountWithProfile = try profile()
+        return try await mediaDownloadNetworkOperation.execute(profile.avatarImageURL)
+      }
+      catch {
+        diagnostics.log(error: error)
+        throw error
+      }
+    })
 
-		@Sendable nonisolated func avatarImage() async throws -> Data? {
-			try? await avatarImageCache.value
-		}
-
+    @Sendable nonisolated func avatarImage() async throws -> Data? {
+      try? await avatarImageCache.value
+    }
 
     return Self(
       updates: accountData.updates,

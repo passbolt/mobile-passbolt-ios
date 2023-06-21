@@ -78,7 +78,7 @@ internal final class ResourceTagsListNodeController: ViewController {
 
     self.contentController = try features.instance(
       context: .init(
-				filter: self.searchController.searchText.asAnyAsyncSequence(),
+        filter: self.searchController.searchText.asAnyAsyncSequence(),
         selectTag: self.selectResourceTag(_:),
         showMessage: { [viewState] (message: SnackBarMessage?) in
           viewState.update { viewState in

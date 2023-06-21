@@ -35,29 +35,18 @@ internal struct TOTPEditAdvancedFormView: ControlledView {
   }
 
   internal var body: some View {
-    WithViewState(
-      from: self.controller,
-      at: \.snackBarMessage
-    ) { (message: SnackBarMessage?) in
-      ScrollView {
-        VStack(spacing: 16) {
-          WarningView(message: "otp.edit.form.edit.advanced.warning")
-          self.periodField
-          self.digitsField
-          self.algorithmField
-        }
-        .autocorrectionDisabled()
-        .textInputAutocapitalization(.never)
+    ScrollView {
+      VStack(spacing: 16) {
+        WarningView(message: "otp.edit.form.edit.advanced.warning")
+        self.periodField
+        self.digitsField
+        self.algorithmField
       }
-      .padding(16)
-      .snackBarMessage(
-        presenting: self.controller
-          .binding(
-            to: \.snackBarMessage
-          )
-      )
-      .frame(maxHeight: .infinity)
+      .autocorrectionDisabled()
+      .textInputAutocapitalization(.never)
     }
+    .padding(16)
+    .frame(maxHeight: .infinity)
     .navigationTitle(
       displayable: "otp.edit.form.edit.advanced.title"
     )
@@ -67,18 +56,15 @@ internal struct TOTPEditAdvancedFormView: ControlledView {
     WithViewState(
       from: self.controller,
       at: \.period
-    ) { _ in
+    ) { (state: Validated<String>) in
       HStack {
         FormTextFieldView(
           title: "otp.edit.form.field.period.title",
           mandatory: true,
-          text: self.controller
-            .validatedBinding(
-              to: \.period,
-              updating: { (string: String) in
-                self.controller.setPeriod(string)
-              }
-            ),
+          state: state,
+          update: { (string: String) in
+            self.controller.setPeriod(string)
+          },
           accessory: {
             Text(displayable: "otp.edit.form.field.period.label")
               .text(
@@ -101,18 +87,15 @@ internal struct TOTPEditAdvancedFormView: ControlledView {
     WithViewState(
       from: self.controller,
       at: \.digits
-    ) { _ in
+    ) { (state: Validated<String>) in
       HStack {
         FormTextFieldView(
           title: "otp.edit.form.field.digits.title",
           mandatory: true,
-          text: self.controller
-            .validatedBinding(
-              to: \.digits,
-              updating: { (string: String) in
-                self.controller.setDigits(string)
-              }
-            ),
+          state: state,
+          update: { (string: String) in
+            self.controller.setDigits(string)
+          },
           accessory: {
             Text(displayable: "otp.edit.form.field.digits.label")
               .text(
@@ -135,18 +118,16 @@ internal struct TOTPEditAdvancedFormView: ControlledView {
     WithViewState(
       from: self.controller,
       at: \.algorithm
-    ) { (_: Validated<HOTPAlgorithm>) in
+    ) { (state: Validated<HOTPAlgorithm?>) in
       FormPickerFieldView<HOTPAlgorithm>(
         title: "otp.edit.form.field.algorithm.title",
         mandatory: true,
-        values: [HOTPAlgorithm.sha1, .sha256, .sha512],
-        selected: self.controller
-          .validatedBinding(
-            to: \.algorithm,
-            updating: {
-              self.controller.setAlgorithm($0)
-            }
-          )
+        // TODO: those should be loaded from field specification
+        values: HOTPAlgorithm.allCases,
+        state: state,
+        update: { (algorithm: HOTPAlgorithm) in
+          self.controller.setAlgorithm(algorithm)
+        }
       )
     }
   }

@@ -23,7 +23,7 @@
 
 extension AsyncSequence {
 
-	@available(*, deprecated, message: "Please use regular for-each loop instead")
+  @available(*, deprecated, message: "Please use regular for-each loop instead")
   public func forEach(
     execute operation: @Sendable @escaping (Element) async throws -> Void
   ) async rethrows {

@@ -33,7 +33,7 @@ where Element: Sendable {
     bufferingPolicy: AsyncStream<Element>.Continuation.BufferingPolicy = .unbounded
   ) where Upstream.Output == Element {
     self.makeIterator = {
-			upstream.values.makeAsyncIterator().asAnyAsyncIterator()
+      upstream.values.makeAsyncIterator().asAnyAsyncIterator()
     }
   }
 
@@ -41,7 +41,7 @@ where Element: Sendable {
     _ content: Content
   ) where Content: AsyncSequence, Content.Element == Element {
     self.makeIterator = {
-			content.makeAsyncIterator().asAnyAsyncIterator()
+      content.makeAsyncIterator().asAnyAsyncIterator()
     }
   }
 
@@ -86,12 +86,12 @@ extension Sequence {
 extension AsyncSequence {
 
   public func asAnyAsyncSequence() -> AnyAsyncSequence<Element> {
-		if let sequence: AnyAsyncSequence<Element> = self as? AnyAsyncSequence<Element> {
-			return sequence
-		}
-		else {
-			return AnyAsyncSequence(self)
-		}
+    if let sequence: AnyAsyncSequence<Element> = self as? AnyAsyncSequence<Element> {
+      return sequence
+    }
+    else {
+      return AnyAsyncSequence(self)
+    }
   }
 }
 

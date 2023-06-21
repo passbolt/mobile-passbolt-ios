@@ -24,22 +24,22 @@
 public struct AnyAsyncIterator<Element>: AsyncIteratorProtocol
 where Element: Sendable {
 
-	@usableFromInline internal let nextElement: () async throws -> Element?
+  @usableFromInline internal let nextElement: () async throws -> Element?
 
-	@usableFromInline internal init(
-		nextElement: @escaping () async throws -> Element?
-	) {
-		self.nextElement = nextElement
-	}
+  @usableFromInline internal init(
+    nextElement: @escaping () async throws -> Element?
+  ) {
+    self.nextElement = nextElement
+  }
 
-	@inlinable public func next() async throws -> Element? {
-		try await self.nextElement()
-	}
+  @inlinable public func next() async throws -> Element? {
+    try await self.nextElement()
+  }
 }
 
 extension AsyncIteratorProtocol {
 
-	@inlinable public func asAnyAsyncIterator() -> AnyAsyncIterator<Element> {
+  @inlinable public func asAnyAsyncIterator() -> AnyAsyncIterator<Element> {
     // protocol requirement marks `next` as mutating
     // it forces to create mutable copy of self
     var mutableCopy: Self = self

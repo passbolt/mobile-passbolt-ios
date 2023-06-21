@@ -53,12 +53,10 @@ internal struct AccountExportAuthorizationView: ControlledView {
       username: state.accountUsername,
       domain: state.accountDomain,
       avatarImage: state.accountAvatarImage,
-      passphraseBinding: .init(
-        get: { state.passphrase.map(\.rawValue) },
-        set: { (passphrase: Validated<String>) in
-          self.controller.setPassphrase(passphrase.map(Passphrase.init(rawValue:)).value)
-        }
-      ),
+      passphrase: state.passphrase.map(\.rawValue),
+      updatePassphrase: { (passphrase: String) in
+        self.controller.setPassphrase(.init(rawValue: passphrase))
+      },
       mainActionLabel: .localized(
         key: "authorization.reverification.button.title"
       ),

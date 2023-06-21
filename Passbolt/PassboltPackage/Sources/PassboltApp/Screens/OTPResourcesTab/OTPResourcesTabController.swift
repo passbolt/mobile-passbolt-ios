@@ -22,6 +22,7 @@
 //
 
 import Display
+import FeatureScopes
 import OSFeatures
 
 internal final class OTPResourcesTabController: ViewController {

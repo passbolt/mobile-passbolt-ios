@@ -133,10 +133,10 @@ where Content: View, Accessory: View {
                 maxHeight: .infinity,
                 alignment: .topLeading
               )
-						
-						SwiftUI.ProgressView()
-							.progressViewStyle(.circular)
-							.tint(.passboltPrimaryText)
+
+            SwiftUI.ProgressView()
+              .progressViewStyle(.circular)
+              .tint(.passboltPrimaryText)
 
             self.accessory()
               .frame(  // minimal for interaction

@@ -22,6 +22,7 @@
 //
 
 import Display
+import FeatureScopes
 import SharedUIComponents
 
 internal enum LogsNavigationDestination: NavigationDestination {}

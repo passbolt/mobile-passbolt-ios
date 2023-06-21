@@ -42,7 +42,7 @@ where RegularView: View, LoadingView: View {
   }
 
   public init(
-		@_inheritActorContext action: @escaping () async -> Void,
+    @_inheritActorContext action: @escaping () async -> Void,
     @ViewBuilder regularLabel: @escaping () -> RegularView
   ) where LoadingView == EmptyView {
     self.action = action

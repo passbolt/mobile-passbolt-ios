@@ -22,6 +22,7 @@
 //
 
 import DatabaseOperations
+import FeatureScopes
 import NetworkOperations
 import OSFeatures
 import Resources

@@ -22,6 +22,7 @@
 //
 
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 import Session
@@ -85,13 +86,13 @@ internal final class ResourcesListNodeController: ViewController {
       context: .init(
         filter: self.searchController
           .searchText
-					.asAnyAsyncSequence()
+          .asAnyAsyncSequence()
           .map { (text: String) -> ResourcesFilter in
             var filter: ResourcesFilter = context.baseFilter
             filter.text = text
             return filter
           }
-					.asAnyAsyncSequence(),
+          .asAnyAsyncSequence(),
         suggestionFilter: { (resource: ResourceListItemDSV) -> Bool in
           requestedServiceIdentifiers.matches(resource)
         },
@@ -129,25 +130,50 @@ extension ResourcesListNodeController {
 extension ResourcesListNodeController {
 
   internal final func createResource() {
-    self.asyncExecutor.schedule(.reuse) { [weak self, features, navigationTree, requestedServiceIdentifiers] in
-      await navigationTree
-        .push(
-          ResourceEditViewController.self,
-          context: (
-            editing: .create(
-              folderID: .none,
-              uri: requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }
-            ),
-            completion: { [weak self] resourceID in
-              self?.selectResource(resourceID)
-            }
-          ),
-          using: features
+    self.asyncExecutor
+      .scheduleCatchingWith(
+        diagnostics,
+        behavior: .reuse
+      ) { [features, requestedServiceIdentifiers, navigationTree, diagnostics, asyncExecutor, autofillContext] in
+        let resourceEditPreparation: ResourceEditPreparation = try await features.instance()
+        let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
+          .default,
+          .none,
+          requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }
         )
-    }
+        try await navigationTree.push(
+          ResourceEditView.self,
+          controller: .init(
+            context: .init(
+              editingContext: editingContext,
+              success: { [diagnostics, asyncExecutor, autofillContext] resource in
+                if let password: String = resource.firstPasswordString {
+                  asyncExecutor.schedule(.replace) {
+                    await autofillContext
+                      .completeWithCredential(
+                        AutofillExtensionContext.Credential(
+                          user: resource.meta.username.stringValue ?? "",
+                          password: password
+                        )
+                      )
+                  }
+                }
+                else {
+                  diagnostics.log(
+                    error:
+                      ResourceSecretInvalid
+                      .error("Missing resource password in secret.")
+                  )
+                }
+              }
+            ),
+            features: features
+          )
+        )
+      }
   }
 
-  internal final func selectResource(
+  nonisolated internal final func selectResource(
     _ resourceID: Resource.ID
   ) {
     self.asyncExecutor.scheduleCatchingWith(
@@ -158,11 +184,15 @@ extension ResourcesListNodeController {
       },
       behavior: .replace
     ) { [features, autofillContext] in
+      let features: Features = await features.branch(
+        scope: ResourceDetailsScope.self,
+        context: resourceID
+      )
       let resourceController: ResourceController = try await features.instance()
       try await resourceController.fetchSecretIfNeeded(force: true)
       let resource: Resource = try await resourceController.state.value
 
-      guard let password: String = resource.secret.password.stringValue ?? resource.secret.secret.stringValue
+      guard let password: String = resource.firstPasswordString
       else {
         throw
           ResourceSecretInvalid

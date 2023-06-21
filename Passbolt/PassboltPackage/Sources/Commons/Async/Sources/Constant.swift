@@ -24,21 +24,21 @@
 public final class Constant<DataType, Failure>: DataSource
 where DataType: Sendable, Failure: Error {
 
-	public let updates: Updates = .never
-	public let state: Result<DataType, Error>
-	public var value: DataType {
-		get throws { try self.state.get() }
-	}
+  public let updates: Updates = .never
+  public let state: Result<DataType, Error>
+  public var value: DataType {
+    get throws { try self.state.get() }
+  }
 
-	public init(
-		value: DataType
-	) {
-		self.state = .success(value)
-	}
+  public init(
+    value: DataType
+  ) {
+    self.state = .success(value)
+  }
 
-	public init(
-		failure error: Error
-	) where Failure == Error {
-		self.state = .failure(error)
-	}
+  public init(
+    failure error: Error
+  ) where Failure == Error {
+    self.state = .failure(error)
+  }
 }

@@ -81,9 +81,9 @@ where SnackBarView: View {
             }
             .task {
               guard self.autoDismissDelaySeconds > 0 else { return }
-							try? await Task.sleep(seconds: self.autoDismissDelaySeconds)
-							guard !Task.isCancelled else { return }
-							self.presenting.wrappedValue = nil
+              try? await Task.sleep(seconds: self.autoDismissDelaySeconds)
+              guard !Task.isCancelled else { return }
+              self.presenting.wrappedValue = nil
             }  // else no snack bar
         }
       }

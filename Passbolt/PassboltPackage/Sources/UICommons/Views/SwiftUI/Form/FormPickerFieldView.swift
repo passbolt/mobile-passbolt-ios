@@ -29,60 +29,55 @@ public protocol FormPickerFieldValue: Identifiable {
   var fromPickerFieldLabel: String { get }
 }
 
+extension String: FormPickerFieldValue {
+
+  public var id: Self { self }
+  public var fromPickerFieldLabel: String { self }
+}
+
 public struct FormPickerFieldView<Value>: View
 where Value: FormPickerFieldValue {
 
-  private let title: DisplayableString
+  private let title: String
   private let mandatory: Bool
-  private let prompt: DisplayableString?
+  private let prompt: String
   private let values: Array<Value>
-  @Binding private var selected: Validated<Value?>
+  private let state: Validated<String>
+  private let update: @MainActor (Value) -> Void
   // FIXME: editing/focus state is not properly changing due to lack of  functions for determining if SwiftUI.Menu appears of disappears, `.onAppear` is called once and only on menu disappear...
   @FocusState private var focused: Bool
   @State private var editing: Bool = false
 
   public init(
     title: DisplayableString,
+    prompt: DisplayableString = "generic.picker.select.placeholder",
     mandatory: Bool = false,
     values: Array<Value>,
-    selected: Binding<Validated<Value?>>,
-    prompt: DisplayableString? = nil
+    state: Validated<Value>,
+    update: @escaping @MainActor (Value) -> Void
   ) {
-    self._selected = selected
-    self.title = title
+    self.title = title.string()
+    self.prompt = prompt.string()
     self.mandatory = mandatory
-    self.prompt = prompt
     self.values = values
+    self.state = state.map(\.fromPickerFieldLabel)
+    self.update = update
   }
 
   public init(
     title: DisplayableString,
+    prompt: DisplayableString = "generic.picker.select.placeholder",
     mandatory: Bool = false,
     values: Array<Value>,
-    selected: Binding<Validated<Value>>,
-    prompt: DisplayableString? = nil
+    state: Validated<Value?>,
+    update: @escaping @MainActor (Value) -> Void
   ) {
-    self._selected = .init(
-      get: {
-        if let error: TheError = selected.wrappedValue.error {
-          return .invalid(
-            selected.wrappedValue.value,
-            error: error
-          )
-        }
-        else {
-          return .valid(selected.wrappedValue.value)
-        }
-      },
-      set: { (newValue: Validated<Optional<Value>>) in
-        guard let newValue = newValue.value else { return }
-        selected.wrappedValue = .valid(newValue)
-      }
-    )
-    self.title = title
+    self.title = title.string()
+    self.prompt = prompt.string()
     self.mandatory = mandatory
-    self.prompt = prompt
     self.values = values
+    self.state = state.map { $0?.fromPickerFieldLabel ?? "" }
+    self.update = update
   }
 
   public var body: some View {
@@ -90,11 +85,9 @@ where Value: FormPickerFieldValue {
       alignment: .leading,
       spacing: 0
     ) {
-      let title: String = self.title.string()
-
-      if !title.isEmpty {
+      if !self.title.isEmpty {
         Group {
-          Text(title)
+          Text(self.title)
             + Text(self.mandatory ? " *" : "")
             .foregroundColor(Color.passboltSecondaryRed)
         }
@@ -103,13 +96,13 @@ where Value: FormPickerFieldValue {
             ofSize: 12,
             weight: .medium
           ),
-          color: self.selected.isValid
+          color: self.state.isValid
             ? Color.passboltPrimaryText
             : Color.passboltSecondaryRed
         )
         .padding(
           top: 4,
-          bottom: 4
+          bottom: 6
         )
       }  // else skip
 
@@ -118,7 +111,7 @@ where Value: FormPickerFieldValue {
           ForEach(self.values) { (value: Value) in
             Button(
               action: {
-                self.selected = .valid(value)
+                self.update(value)
               },
               label: {
                 Text(value.fromPickerFieldLabel)
@@ -128,15 +121,17 @@ where Value: FormPickerFieldValue {
         },
         label: {
           HStack {
-            if let selectedValueLabel: String = self.selected.value?.fromPickerFieldLabel {
-              Text(selectedValueLabel)
-                .foregroundColor(.passboltPrimaryText)
-            }
-            else {
-              Text(displayable: self.prompt ?? .raw(""))
+            if self.state.value.isEmpty {
+              Text(self.prompt)
                 .foregroundColor(.passboltSecondaryText)
             }
+            else {
+              Text(self.state.value)
+                .foregroundColor(.passboltPrimaryText)
+            }
+
             Spacer()
+
             Image(named: .chevronDown)
               .foregroundColor(.passboltPrimaryText)
           }
@@ -152,6 +147,7 @@ where Value: FormPickerFieldValue {
           )
           .lineLimit(1)
           .multilineTextAlignment(.leading)
+          .frame(height: 20)
           .padding(12)
         }
       )
@@ -165,7 +161,7 @@ where Value: FormPickerFieldValue {
           .stroke(
             self.editing
               ? Color.passboltPrimaryBlue
-              : self.selected.isValid
+              : self.state.isValid
                 ? Color.passboltDivider
                 : Color.passboltSecondaryRed,
             lineWidth: 1
@@ -178,24 +174,29 @@ where Value: FormPickerFieldValue {
       .cornerRadius(4, corners: .allCorners)
       .accessibilityIdentifier("form.picker.field")
 
-      if let errorMessage: DisplayableString = self.selected.displayableErrorMessage {
-        Text(displayable: errorMessage)
-          .multilineTextAlignment(.leading)
+      if let message: String = self.state.displayableErrorMessage?.string() {
+        Text(message)
           .text(
+            .leading,
             font: .inter(
               ofSize: 12,
               weight: .regular
             ),
             color: .passboltSecondaryRed
           )
-          .padding(
-            top: 4,
-            bottom: 4
+          .frame(
+            maxWidth: .infinity,
+            alignment: .leading
           )
-          .accessibilityIdentifier("form.picker.error")
-      }  // else no view
+          .padding(top: 4)
+          .accessibilityIdentifier("form.field.error")
+      }  // else NOP
     }
     .frame(maxWidth: .infinity)
+    .animation(
+      .easeIn,
+      value: self.state.displayableErrorMessage
+    )
   }
 }
 
@@ -220,64 +221,65 @@ internal struct FormPickerFieldView_Previews: PreviewProvider {
     VStack(spacing: 8) {
       FormPickerFieldView<MockOptions>(
         title: "Some field title",
+        prompt: "edited",
         mandatory: false,
         values: [.one, .two, .three],
-        selected: .constant(.valid(.one)),
-        prompt: "edited"
+        state: .valid(.one),
+        update: { _ in }
       )
 
       FormPickerFieldView<MockOptions>(
         title: "Some mandatory field title",
+        prompt: "edited",
         mandatory: true,
         values: [.one, .two, .three],
-        selected: .constant(.valid(.one)),
-        prompt: "edited"
+        state: .valid(.one),
+        update: { _ in }
       )
 
       FormPickerFieldView<MockOptions>(
         title: "Some invalid field title",
+        prompt: "edited",
         mandatory: true,
         values: [.one, .two, .three, .superlonggtextvaluetoseeifpickerarrowswillmoveanywhere],
-        selected: .constant(
-          .invalid(
-            .superlonggtextvaluetoseeifpickerarrowswillmoveanywhere,
-            error:
-              InvalidValue
-              .error(
-                validationRule: "PREVIEW",
-                value: "VALUE",
-                displayable: "invalid value"
-              )
-          )
+        state: .invalid(
+          .superlonggtextvaluetoseeifpickerarrowswillmoveanywhere,
+          error:
+            InvalidValue
+            .error(
+              validationRule: "PREVIEW",
+              value: "VALUE",
+              displayable: "invalid value"
+            )
         ),
-        prompt: "edited"
+        update: { _ in }
       )
 
       FormPickerFieldView<MockOptions>(
         title: "Some empty field title",
+        prompt: "Not selected value",
         mandatory: false,
         values: [.one, .two, .three],
-        selected: .constant(.valid(.none)),
-        prompt: "Not selected value"
+        state: .valid(.none),
+        update: { _ in }
       )
 
       FormPickerFieldView<MockOptions>(
         title: "Some empty invalid field title",
+        prompt: "Not selected value",
         mandatory: true,
         values: [.one, .two, .three],
-        selected: .constant(
-          .invalid(
-            .superlonggtextvaluetoseeifpickerarrowswillmoveanywhere,
-            error:
-              InvalidValue
-              .error(
-                validationRule: "PREVIEW",
-                value: "VALUE",
-                displayable: "invalid value"
-              )
-          )
+        state: .invalid(
+          .superlonggtextvaluetoseeifpickerarrowswillmoveanywhere,
+          error:
+            InvalidValue
+            .error(
+              validationRule: "PREVIEW",
+              value: "VALUE",
+              displayable: "invalid value"
+            )
         ),
-        prompt: "Not selected value"
+        update: { _ in }
       )
     }
     .padding(8)

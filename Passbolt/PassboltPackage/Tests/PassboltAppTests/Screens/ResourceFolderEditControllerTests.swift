@@ -22,6 +22,7 @@
 //
 
 import Display
+import FeatureScopes
 import Resources
 import TestExtensions
 import Users

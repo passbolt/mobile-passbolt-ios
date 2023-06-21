@@ -53,19 +53,13 @@ internal struct ResourceFolderEditView: ControlledView {
   ) -> some View {
     VStack(spacing: 16) {
       FormTextFieldView(
-        title: .localized(
-          key: "form.field.name.title"
-        ),
+        title: "form.field.name.title",
+        prompt: "folder.edit.form.name.field.placeholder",
         mandatory: true,
-        text: .init(
-          get: { state.folderName },
-          set: { (newValue: Validated<String>) in
-            self.controller.setFolderName(newValue.value)
-          }
-        ),
-        prompt: .localized(
-          key: "folder.edit.form.name.field.placeholder"
-        )
+        state: state.folderName,
+        update: { (value: String) in
+          self.controller.setFolderName(value)
+        }
       )
 
       ResourceFieldView(

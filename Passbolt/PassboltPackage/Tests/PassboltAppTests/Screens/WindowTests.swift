@@ -69,7 +69,7 @@ final class WindowTests: MainActorTestCase {
     var result: WindowController.ScreenStateDisposition?
 
     result =
-		try await controller
+      try await controller
       .screenStateDispositionSequence()
       .first()
 

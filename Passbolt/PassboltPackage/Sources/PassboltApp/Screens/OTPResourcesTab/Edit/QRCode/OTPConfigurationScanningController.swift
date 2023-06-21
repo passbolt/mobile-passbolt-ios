@@ -22,6 +22,7 @@
 //
 
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 
@@ -105,12 +106,7 @@ extension OTPConfigurationScanningController {
             )
           do {
             let resourceEditForm: ResourceEditForm = try await features.instance()
-            _ = try await resourceEditForm.update { (resource: inout Resource) in
-              resource.secret.totp.secret_key = .string(configuration.secret.sharedSecret)
-              resource.secret.totp.period = .integer(configuration.secret.period.rawValue)
-              resource.secret.totp.algorithm = .string(configuration.secret.algorithm.rawValue)
-              resource.secret.totp.digits = .integer(configuration.secret.digits)
-            }
+            try await resourceEditForm.update(\.secret.totp, to: configuration.secret)
             try await navigationToSelf.revert()
           }
           catch {

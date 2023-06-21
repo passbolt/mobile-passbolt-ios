@@ -153,7 +153,10 @@ where RawValue: ExpressibleByNilLiteral {
 extension Tagged: Encodable
 where RawValue: Encodable {
 
-  public func encode(to encoder: Encoder) throws {
+  @_disfavoredOverload
+  public func encode(
+    to encoder: Encoder
+  ) throws {
     try rawValue.encode(to: encoder)
   }
 }
@@ -161,7 +164,9 @@ where RawValue: Encodable {
 extension Tagged: Decodable
 where RawValue: Decodable {
 
-  public init(from decoder: Decoder) throws {
+  public init(
+    from decoder: Decoder
+  ) throws {
     self.rawValue = try RawValue(from: decoder)
   }
 }
@@ -331,34 +336,3 @@ where RawValue: Collection {
 
 extension Tagged: Sendable
 where RawValue: Sendable {}
-
-extension Tagged
-where RawValue == UUID {
-
-  public init() {
-    self.init(rawValue: .init())
-  }
-
-  public init?(
-    uuidString: String
-  ) {
-    guard let uuid: UUID = .init(uuidString: uuidString)
-    else { return nil }
-    self.init(rawValue: uuid)
-  }
-
-  // currently backend is not handling uppercased UUID properly
-  // making it lowercased for the encoder makes it appearing
-  // lowercased in client-server communication
-  public func encode(
-    to encoder: Encoder
-  ) throws {
-    try self.rawValue.uuidString.lowercased().encode(to: encoder)
-  }
-
-  // lowercase description as well in order to provide
-  // lowercased UUID IDs in URLs
-  public var urlString: String {
-    self.rawValue.uuidString.lowercased()
-  }
-}

@@ -21,77 +21,85 @@
 // @since         v1.0
 //
 
-import SwiftUI
 import Commons
+import SwiftUI
 
 public struct AutoupdatingTOTPValueView: View {
 
-	@State private var value: TOTPValue?
-	private let generateTOTP: (@Sendable () -> TOTPValue)?
+  @State private var value: TOTPValue?
+  private let generateTOTP: (@Sendable () -> TOTPValue)?
 
-	public init(
-		generateTOTP: (@Sendable () -> TOTPValue)?
-	) {
-		self.generateTOTP = generateTOTP
-	}
+  public init(
+    generateTOTP: (@Sendable () -> TOTPValue)?
+  ) {
+    self.generateTOTP = generateTOTP
+  }
 
-	public var body: some View {
-		HStack(spacing: 12) {
-			if let value {
-				Group {
-					Text(value.otp.rawValue.split(every: 3).joined(separator: " "))
-						.multilineTextAlignment(.leading)
-						.font(
-							.inconsolata(
-								ofSize: 24,
-								weight: .semibold
-							)
-						)
+  public var body: some View {
+    HStack(spacing: 12) {
+      if let value {
+        Group {
+          Text(value.otp.rawValue.split(every: 3).joined(separator: " "))
+            .multilineTextAlignment(.leading)
+            .font(
+              .inconsolata(
+                ofSize: 24,
+                weight: .semibold
+              )
+            )
 
-					CountdownCircleView(
-						current: value.timeLeft.rawValue,
-						max: value.period.rawValue
-					)
-				}
-				.foregroundColor(
-					value.timeLeft > 5
-					? Color.passboltPrimaryText
-					: Color.passboltSecondaryRed
-				)
-			}
-			else {
-				Text("••• •••")
-					.multilineTextAlignment(.leading)
-					.font(
-						.inconsolata(
-							ofSize: 24,
-							weight: .semibold
-						)
-					)
-			}
-		}
-		.frame(
-			maxWidth: .infinity,
-			alignment: .leading
-		)
-		.task {
-			guard let generateTOTP
-			else { return self.value = .none } // no updates available
+          CountdownCircleView(
+            current: value.timeLeft.rawValue,
+            max: value.period.rawValue
+          )
+        }
+        .foregroundColor(
+          value.timeLeft > 5
+            ? Color.passboltPrimaryText
+            : Color.passboltSecondaryRed
+        )
+      }
+      else {
+        Text("••• •••")
+          .multilineTextAlignment(.leading)
+          .font(
+            .inconsolata(
+              ofSize: 24,
+              weight: .semibold
+            )
+          )
+      }
+    }
+    .frame(
+      maxWidth: .infinity,
+      alignment: .leading
+    )
+    .task {
+      guard let generateTOTP
+      else {
+        self.value = .none
+        return
+      }  // no updates available
 
-			if #available(iOS 16.0, *) {
-				var iterator: AsyncTimerSequence<ContinuousClock>.Iterator = AsyncTimerSequence(interval: .seconds(1), clock: .continuous).makeAsyncIterator()
-				repeat {
-					self.value = generateTOTP()
-				}
-				while await iterator.next() != nil
+      if #available(iOS 16.0, *) {
+        var iterator: AsyncTimerSequence<ContinuousClock>.Iterator = AsyncTimerSequence(
+          interval: .seconds(1),
+          clock: .continuous
+        )
+        .makeAsyncIterator()
+        repeat {
+          self.value = generateTOTP()
+        }
+        while await iterator.next() != nil
 
-			} else {
-				// this is not fully correct, it will drift quickly but it is about to be dropped
-				repeat {
-					self.value = generateTOTP()
-				}
-				while (try? await Task.sleep(nanoseconds: NSEC_PER_SEC)) != nil
-			}
-		}
-	}
+      }
+      else {
+        // this is not fully correct, it will drift quickly but it is about to be dropped
+        repeat {
+          self.value = generateTOTP()
+        }
+        while (try? await Task.sleep(nanoseconds: NSEC_PER_SEC)) != nil
+      }
+    }
+  }
 }

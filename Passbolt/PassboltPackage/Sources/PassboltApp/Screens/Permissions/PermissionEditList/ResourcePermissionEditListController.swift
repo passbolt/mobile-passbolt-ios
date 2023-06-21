@@ -23,6 +23,7 @@
 
 import Accounts
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 import UIComponents

@@ -31,7 +31,7 @@ extension ResourceFavoriteAddNetworkOperation {
     _ input: Input
   ) -> Mutation<HTTPRequest> {
     .combined(
-      .pathSuffix("/favorites/resource/\(input.resourceID.urlString).json"),
+      .pathSuffix("/favorites/resource/\(input.resourceID).json"),
       .method(.post)
     )
   }

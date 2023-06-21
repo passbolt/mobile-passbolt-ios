@@ -47,7 +47,7 @@ extension ResourceTypeDTO: Decodable {
       self.specification = .password
 
     case .passwordWithDescription:
-			self.specification = .passwordWithDescription
+      self.specification = .passwordWithDescription
 
     case .totp:
       self.specification = .totp
@@ -56,7 +56,7 @@ extension ResourceTypeDTO: Decodable {
       self.specification = .passwordWithTOTP
 
     case _:
-			self.specification = .placeholder
+      self.specification = .placeholder
     }
   }
 

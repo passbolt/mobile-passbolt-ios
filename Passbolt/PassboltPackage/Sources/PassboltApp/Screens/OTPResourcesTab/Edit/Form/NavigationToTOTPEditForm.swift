@@ -22,10 +22,11 @@
 //
 
 import Display
+import FeatureScopes
 
 internal enum TOTPEditFormNavigationDestination: NavigationDestination {
 
-  internal typealias TransitionContext = Resource.ID?
+  internal typealias TransitionContext = TOTPEditFormController.Context
 }
 
 internal typealias NavigationToTOTPEditForm = NavigationTo<TOTPEditFormNavigationDestination>

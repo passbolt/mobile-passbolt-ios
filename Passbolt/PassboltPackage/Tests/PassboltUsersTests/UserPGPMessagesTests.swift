@@ -22,6 +22,7 @@
 //
 
 import DatabaseOperations
+import FeatureScopes
 import Features
 import NetworkOperations
 import TestExtensions

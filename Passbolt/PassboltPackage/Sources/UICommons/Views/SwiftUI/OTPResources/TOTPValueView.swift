@@ -21,59 +21,59 @@
 // @since         v1.0
 //
 
-import SwiftUI
 import Commons
+import SwiftUI
 
 public struct TOTPValueView: View {
 
-	private let value: TOTPValue?
+  private let value: TOTPValue?
 
-	public init(
-		value: TOTPValue? // none is covered value
-	) {
-		self.value = value
-	}
+  public init(
+    value: TOTPValue?  // none is covered value
+  ) {
+    self.value = value
+  }
 
-	public var body: some View {
-		if let value {
-			HStack(spacing: 12) {
-				Text(value.otp.rawValue.split(every: 3).joined(separator: " "))
-					.multilineTextAlignment(.leading)
-					.font(
-						.inconsolata(
-							ofSize: 24,
-							weight: .semibold
-						)
-					)
+  public var body: some View {
+    if let value {
+      HStack(spacing: 12) {
+        Text(value.otp.rawValue.split(every: 3).joined(separator: " "))
+          .multilineTextAlignment(.leading)
+          .font(
+            .inconsolata(
+              ofSize: 24,
+              weight: .semibold
+            )
+          )
 
-				CountdownCircleView(
-					current: value.timeLeft.rawValue,
-					max: value.period.rawValue
-				)
-			}
-			.frame(
-				maxWidth: .infinity,
-				alignment: .leading
-			)
-			.foregroundColor(
-				value.timeLeft > 5
-				? Color.passboltPrimaryText
-				: Color.passboltSecondaryRed
-			)
-		}
-		else {
-			Text("••• •••")
-				.multilineTextAlignment(.leading)
-				.font(
-					.inconsolata(
-						ofSize: 24,
-						weight: .semibold
-					)
-				)
-			.frame(
-				maxWidth: .infinity,
-				alignment: .leading
-			)
-		}
-	}
+        CountdownCircleView(
+          current: value.timeLeft.rawValue,
+          max: value.period.rawValue
+        )
+      }
+      .frame(
+        maxWidth: .infinity,
+        alignment: .leading
+      )
+      .foregroundColor(
+        value.timeLeft > 5
+          ? Color.passboltPrimaryText
+          : Color.passboltSecondaryRed
+      )
+    }
+    else {
+      Text("••• •••")
+        .multilineTextAlignment(.leading)
+        .font(
+          .inconsolata(
+            ofSize: 24,
+            weight: .semibold
+          )
+        )
+        .frame(
+          maxWidth: .infinity,
+          alignment: .leading
+        )
+    }
+  }
 }

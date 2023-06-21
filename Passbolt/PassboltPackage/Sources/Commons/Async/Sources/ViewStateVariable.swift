@@ -23,43 +23,61 @@
 
 import SwiftUI
 
-public final class ViewStateVariable<ViewState>: ViewStateSource
-where ViewState: Sendable {
+public final class ViewStateVariable<ViewState>: @unchecked Sendable, ViewStateSource
+where ViewState: Sendable & Equatable {
 
-	public var updates: Updates { self.updatesSource.updates }
-	@MainActor public var state: ViewState {
-		willSet {
-			self.updatesSource.sendUpdate()
-		}
-	}
+  public typealias ObjectWillChangePublisher = ObservableObjectPublisher
 
-	private let updatesSource: UpdatesSource
+  public var updates: Updates { self.updatesSource.updates }
+  public let objectWillChange: ObjectWillChangePublisher
+  @MainActor public var state: ViewState {
+    willSet {
+      guard state != newValue else { return }  // no update
+      self.objectWillChange.send()
+      self.updatesSource.sendUpdate()
+    }
+  }
 
-	public init(
-		initial: ViewState
-	) {
-		self.state = initial
-		self.updatesSource = .init()
-	}
+  private let updatesSource: UpdatesSource
 
-	@discardableResult
-	@MainActor public func mutate<Returned>(
-		_ mutation: @MainActor (inout ViewState) -> Returned
-	) -> Returned {
-		mutation(&self.state)
-	}
+  public init(
+    initial: ViewState
+  ) {
+    self.state = initial
+    self.updatesSource = .init()
+    self.objectWillChange = .init()
+  }
+
+  @discardableResult
+  @MainActor public func update<Returned>(
+    _ mutation: @MainActor (inout ViewState) throws -> Returned
+  ) rethrows -> Returned {
+    try mutation(&self.state)
+  }
+
+  @MainActor public func update<Property>(
+    _ keyPath: WritableKeyPath<ViewState, Property>,
+    to newValue: Property
+  ) {
+    self.state[keyPath: keyPath] = newValue
+  }
 }
 
 extension ViewStateVariable {
 
-	@MainActor public func binding<Value>(
-		to keyPath: WritableKeyPath<ViewState, Value>
-	) -> Binding<Value> {
-		Binding<Value>(
-			get: { self.state[keyPath: keyPath] },
-			set: { (newValue: Value) in
-				self.state[keyPath: keyPath] = newValue
-			}
-		)
-	}
+  @MainActor public func binding<Value>(
+    to keyPath: WritableKeyPath<ViewState, Value>
+  ) -> Binding<Value> {
+    Binding<Value>(
+      get: { self.state[keyPath: keyPath] },
+      set: { (newValue: Value) in
+        self.state[keyPath: keyPath] = newValue
+      }
+    )
+  }
+
+  @MainActor public func forceUpdate() {
+    self.updatesSource.sendUpdate()
+    self.objectWillChange.send()
+  }
 }

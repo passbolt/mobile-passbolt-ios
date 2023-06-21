@@ -23,6 +23,7 @@
 
 import Accounts
 import CommonModels
+import FeatureScopes
 import Session
 import UIComponents
 

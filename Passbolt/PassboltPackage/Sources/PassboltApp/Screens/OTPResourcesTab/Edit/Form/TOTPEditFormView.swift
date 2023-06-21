@@ -36,8 +36,7 @@ internal struct TOTPEditFormView: ControlledView {
 
   internal var body: some View {
     WithViewState(
-      from: self.controller,
-      at: \.snackBarMessage
+      self.controller.snackBarMessage
     ) { (message: SnackBarMessage?) in
       VStack(spacing: 0) {
         ScrollView {
@@ -55,15 +54,15 @@ internal struct TOTPEditFormView: ControlledView {
       }
       .padding(16)
       .snackBarMessage(
-        presenting: self.controller
+        presenting: self.controller.snackBarMessage
           .binding(
-            to: \.snackBarMessage
+            to: \.self
           )
       )
       .frame(maxHeight: .infinity)
     }
     .navigationTitle(
-      displayable: self.controller.isEditing()
+      displayable: self.controller.isEditing
         ? "otp.edit.form.edit.title"
         : "otp.edit.form.create.title"
     )
@@ -73,18 +72,15 @@ internal struct TOTPEditFormView: ControlledView {
     WithViewState(
       from: self.controller,
       at: \.nameField
-    ) { (_: Validated<String>) in
+    ) { (state: Validated<String>) in
       FormTextFieldView(
         title: "otp.edit.form.field.name.title",
+        prompt: "otp.edit.form.field.name.prompt",
         mandatory: true,
-        text: self.controller
-          .validatedBinding(
-            to: \.nameField,
-            updating: {
-              self.controller.setNameField($0)
-            }
-          ),
-        prompt: "otp.edit.form.field.name.prompt"
+        state: state,
+        update: { (value: String) in
+          self.controller.setNameField(value)
+        }
       )
       .textInputAutocapitalization(.sentences)
     }
@@ -94,18 +90,15 @@ internal struct TOTPEditFormView: ControlledView {
     WithViewState(
       from: self.controller,
       at: \.uriField
-    ) { (_: Validated<String>) in
+    ) { (state: Validated<String>) in
       FormTextFieldView(
         title: "otp.edit.form.field.uri.title",
+        prompt: "otp.edit.form.field.uri.prompt",
         mandatory: false,
-        text: self.controller
-          .validatedBinding(
-            to: \.uriField,
-            updating: {
-              self.controller.setURIField($0)
-            }
-          ),
-        prompt: "otp.edit.form.field.uri.prompt"
+        state: state,
+        update: { (value: String) in
+          self.controller.setURIField(value)
+        }
       )
       .textInputAutocapitalization(.never)
       .autocorrectionDisabled()
@@ -116,18 +109,15 @@ internal struct TOTPEditFormView: ControlledView {
     WithViewState(
       from: self.controller,
       at: \.secretField
-    ) { (_: Validated<String>) in
+    ) { (state: Validated<String>) in
       FormTextFieldView(
         title: "otp.edit.form.field.secret.title",
+        prompt: "otp.edit.form.field.secret.prompt",
         mandatory: true,
-        text: self.controller
-          .validatedBinding(
-            to: \.secretField,
-            updating: {
-              self.controller.setSecretField($0)
-            }
-          ),
-        prompt: "otp.edit.form.field.secret.prompt"
+        state: state,
+        update: { (value: String) in
+          self.controller.setSecretField(value)
+        }
       )
       .textInputAutocapitalization(.never)
       .autocorrectionDisabled()
@@ -144,7 +134,7 @@ internal struct TOTPEditFormView: ControlledView {
 
   @MainActor @ViewBuilder internal var sendForm: some View {
     PrimaryButton(
-      title: self.controller.isEditing()
+      title: self.controller.isEditing
         ? "otp.edit.form.edit.button.title"
         : "otp.edit.form.create.button.title",
       action: self.controller.sendForm

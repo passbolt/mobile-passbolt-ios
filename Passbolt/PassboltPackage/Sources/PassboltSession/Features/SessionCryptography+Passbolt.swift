@@ -23,6 +23,7 @@
 
 import Accounts
 import Crypto
+import FeatureScopes
 import Session
 
 // MARK: - Implementation

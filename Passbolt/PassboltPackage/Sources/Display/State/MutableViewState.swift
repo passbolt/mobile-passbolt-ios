@@ -25,6 +25,7 @@ import Combine
 import Commons
 import SwiftUI
 
+@available(*, deprecated, message: "Please use ViewStateVariable instead")
 @MainActor @dynamicMemberLookup
 public final class MutableViewState<ViewState>
 where ViewState: Equatable & Sendable {
@@ -33,7 +34,7 @@ where ViewState: Equatable & Sendable {
   internal let stateWillChange: AnyPublisher<ViewState, Never>
   private let read: @MainActor () -> ViewState
   private let write: @MainActor (ViewState) -> Void
-	private nonisolated let updatesSource: UpdatesSource // for compatibility only
+  private nonisolated let updatesSource: UpdatesSource  // for compatibility only
   private nonisolated let cleanup: () -> Void
   // Features are stored here to bind reference
   // with a screen when branching. Losing reference
@@ -54,8 +55,8 @@ where ViewState: Equatable & Sendable {
   ) {
     var state: ViewState = initial
     let nextValueSubject: CurrentValueSubject<ViewState, Never> = .init(initial)
-		let updatesSource: UpdatesSource = .init()
-		self.updatesSource = updatesSource
+    let updatesSource: UpdatesSource = .init()
+    self.updatesSource = updatesSource
     self.read = { state }
     self.write = { (newValue: ViewState) in
       nextValueSubject.send(newValue)
@@ -79,7 +80,7 @@ where ViewState: Equatable & Sendable {
     self.stateWillChange = Empty<ViewState, Never>().eraseToAnyPublisher()
     let updatesSource: UpdatesSource = .init()
     updatesSource.terminate()
-		self.updatesSource = updatesSource
+    self.updatesSource = updatesSource
     self.featuresContainer = container
     self.cleanup = cleanup
   }
@@ -99,7 +100,7 @@ where ViewState: Equatable & Sendable {
       line: line
     )
     self.stateWillChange = Empty<ViewState, Never>(completeImmediately: true).eraseToAnyPublisher()
-		self.updatesSource = .placeholder
+    self.updatesSource = .placeholder
     self.featuresContainer = .none
     self.cleanup = { /* NOP */  }
   }
@@ -123,10 +124,15 @@ where ViewState: Equatable & Sendable {
 
 extension MutableViewState: ViewStateSource {
 
-	public nonisolated var updates: Updates { self.updatesSource.updates }
+  public nonisolated var updates: Updates { self.updatesSource.updates }
 }
 
 extension MutableViewState {
+
+  @MainActor public func forceUpdate() {
+    self.updatesSource.sendUpdate()
+    self.objectWillChange.send()
+  }
 
   @MainActor public func update<Returned>(
     _ mutation: (inout ViewState) throws -> Returned

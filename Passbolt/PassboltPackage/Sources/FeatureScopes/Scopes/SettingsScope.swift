@@ -21,8 +21,7 @@
 // @since         v1.0
 //
 
-// Scoper for transfering account, both import and export.
-public enum AccountTransferScope: FeaturesScope {
+import Features
 
-  public typealias Context = Void
-}
+// Scope for application/account settings.
+public enum SettingsScope: FeaturesScope {}

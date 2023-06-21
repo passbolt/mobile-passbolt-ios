@@ -27,38 +27,43 @@ import SwiftUI
 public struct FormTextFieldView<Accessory>: View
 where Accessory: View {
 
-  private let title: DisplayableString
+  private let title: String
+  private let prompt: String?
   private let mandatory: Bool
-  private let prompt: DisplayableString?
+  private let state: Validated<String>
+  private let update: @MainActor (String) -> Void
   private let accessory: () -> Accessory
-  @Binding private var text: Validated<String>
   @FocusState private var focused: Bool
   @State private var editing: Bool = false
 
   public init(
     title: DisplayableString = .raw(""),
+    prompt: DisplayableString? = nil,
     mandatory: Bool = false,
-    text: Binding<Validated<String>>,
-    prompt: DisplayableString? = nil
+    state: Validated<String>,
+    update: @escaping @MainActor (String) -> Void
   ) where Accessory == EmptyView {
-    self._text = text
-    self.title = title
+    self.title = title.string()
+    self.prompt = prompt?.string()
     self.mandatory = mandatory
-    self.prompt = prompt
+    self.state = state
+    self.update = update
     self.accessory = EmptyView.init
   }
 
   public init(
     title: DisplayableString = .raw(""),
-    mandatory: Bool = false,
-    text: Binding<Validated<String>>,
     prompt: DisplayableString? = nil,
+    mandatory: Bool = false,
+    state: Validated<String>,
+    update: @escaping @MainActor (String) -> Void,
     @ViewBuilder accessory: @escaping () -> Accessory
   ) {
-    self._text = text
-    self.title = title
+    self.title = title.string()
+    self.prompt = prompt?.string()
     self.mandatory = mandatory
-    self.prompt = prompt
+    self.state = state
+    self.update = update
     self.accessory = accessory
   }
 
@@ -67,11 +72,9 @@ where Accessory: View {
       alignment: .leading,
       spacing: 0
     ) {
-      let title: String = self.title.string()
-
-      if !title.isEmpty {
+      if !self.title.isEmpty {
         Group {
-          Text(title)
+          Text(self.title)
             + Text(self.mandatory ? " *" : "")
             .foregroundColor(Color.passboltSecondaryRed)
         }
@@ -80,28 +83,28 @@ where Accessory: View {
             ofSize: 12,
             weight: .medium
           ),
-          color: self.text.isValid
+          color: self.state.isValid
             ? Color.passboltPrimaryText
             : Color.passboltSecondaryRed
         )
         .padding(
           top: 4,
-          bottom: 4
+          bottom: 6
         )
       }  // else skip
 
       HStack {
         SwiftUI.TextField(
-          title,
+          self.title,
           text: .init(
-            get: { self.text.value },
-            set: { newValue in
-              self.text.value = newValue
+            get: { self.state.value },
+            set: { (newValue: String) in
+              self.update(newValue)
             }
           ),
           prompt: self.prompt
             .map {
-              Text(displayable: $0)
+              Text($0)
                 .text(
                   font: .inter(
                     ofSize: 14,
@@ -119,6 +122,8 @@ where Accessory: View {
           ),
           color: .passboltPrimaryText
         )
+        .autocorrectionDisabled()
+        .autocapitalization(.none)
         .multilineTextAlignment(.leading)
         .focused(self.$focused)
         .onChange(of: focused) { (focused: Bool) in
@@ -126,13 +131,14 @@ where Accessory: View {
             self.editing = focused
           }
         }
+        .frame(height: 20)
         .padding(12)
         .overlay(
           RoundedRectangle(cornerRadius: 4)
             .stroke(
               self.editing
                 ? Color.passboltPrimaryBlue
-                : self.text.isValid
+                : self.state.isValid
                   ? Color.passboltDivider
                   : Color.passboltSecondaryRed,
               lineWidth: 1
@@ -152,24 +158,29 @@ where Accessory: View {
         self.accessory()
       }
 
-      if let errorMessage: DisplayableString = self.text.displayableErrorMessage {
-        Text(displayable: errorMessage)
-          .multilineTextAlignment(.leading)
+      if let message: String = self.state.displayableErrorMessage?.string() {
+        Text(message)
           .text(
+            .leading,
             font: .inter(
               ofSize: 12,
               weight: .regular
             ),
             color: .passboltSecondaryRed
           )
-          .padding(
-            top: 4,
-            bottom: 4
+          .frame(
+            maxWidth: .infinity,
+            alignment: .leading
           )
-          .accessibilityIdentifier("form.textfield.error")
-      }  // else no view
+          .padding(top: 4)
+          .accessibilityIdentifier("form.field.error")
+      }  // else NOP
     }
     .frame(maxWidth: .infinity)
+    .animation(
+      .easeIn,
+      value: self.state.displayableErrorMessage
+    )
   }
 }
 
@@ -178,25 +189,30 @@ where Accessory: View {
 internal struct FormTextFieldView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    VStack(spacing: 8) {
-      FormTextFieldView(
-        title: "Some field title",
-        text: .constant(.valid("edited")),
-        prompt: "editedText"
-      )
+    ScrollView {
+      VStack(spacing: 8) {
+        PreviewInputState { state, update in
+          FormTextFieldView(
+            title: "Some field title",
+            prompt: "Live to edit in preview!",
+            state: state,
+            update: update
+          )
+        }
 
-      FormTextFieldView(
-        title: "Some required",
-        mandatory: true,
-        text: .constant(.valid("edited")),
-        prompt: "editedText"
-      )
+        FormTextFieldView(
+          title: "Some required",
+          prompt: "editedText",
+          mandatory: true,
+          state: .valid("edited"),
+          update: { _ in }
+        )
 
-      FormTextFieldView(
-        title: "Some required",
-        mandatory: true,
-        text: .constant(
-          .invalid(
+        FormTextFieldView(
+          title: "Some required",
+          prompt: "editedText",
+          mandatory: true,
+          state: .invalid(
             "invalidText",
             error:
               InvalidValue
@@ -205,28 +221,81 @@ internal struct FormTextFieldView_Previews: PreviewProvider {
                 value: "VALUE",
                 displayable: "invalid value"
               )
-          )
-        ),
-        prompt: "editedText"
-      )
+          ),
+          update: { _ in }
+        )
 
-      FormTextFieldView(
-        text: .constant(.valid("edited")),
-        prompt: "editedText"
-      )
+        FormTextFieldView(
+          title: "Some accessory",
+          state: .invalid(
+            "invalidText",
+            error:
+              InvalidValue
+              .error(
+                validationRule: "PREVIEW",
+                value: "VALUE",
+                displayable: "invalid value"
+              )
+          ),
+          update: { _ in },
+          accessory: {
+            Button(
+              action: {},
+              label: {
+                Image(named: .dice)
+                  .tint(.passboltPrimaryText)
+                  .padding(12)
+                  .backgroundColor(.passboltDivider)
+                  .cornerRadius(4)
+              }
+            )
+          }
+        )
 
-      FormTextFieldView(
-        text: .constant(.valid("")),
-        prompt: "emptyText"
-      )
+        FormTextFieldView(
+          title: "Some accessory",
+          state: .valid(""),
+          update: { _ in },
+          accessory: {
+            Button(
+              action: {},
+              label: {
+                Image(named: .dice)
+                  .tint(.passboltPrimaryText)
+                  .padding(12)
+                  .backgroundColor(.passboltDivider)
+                  .cornerRadius(4)
+              }
+            )
+          }
+        )
 
-      FormTextFieldView(
-        text: .constant(.valid("validText"))
-      )
+        FormTextFieldView(
+          prompt: "accessory with no name",
+          state: .valid(""),
+          update: { _ in },
+          accessory: {
+            Button(
+              action: {},
+              label: {
+                Image(named: .dice)
+                  .tint(.passboltPrimaryText)
+                  .padding(12)
+                  .backgroundColor(.passboltDivider)
+                  .cornerRadius(4)
+              }
+            )
+          }
+        )
 
-      FormTextFieldView(
-        text: .constant(
-          .invalid(
+        FormTextFieldView(
+          state: .valid("validText"),
+          update: { _ in }
+        )
+
+        FormTextFieldView(
+          prompt: "emptyInvalidText",
+          state: .invalid(
             "",
             error:
               InvalidValue
@@ -234,14 +303,12 @@ internal struct FormTextFieldView_Previews: PreviewProvider {
                 value: "",
                 displayable: "empty"
               )
-          )
-        ),
-        prompt: "emptyInvalidText"
-      )
+          ),
+          update: { _ in }
+        )
 
-      FormTextFieldView(
-        text: .constant(
-          .invalid(
+        FormTextFieldView(
+          state: .invalid(
             "invalidText",
             error:
               InvalidValue
@@ -250,13 +317,12 @@ internal struct FormTextFieldView_Previews: PreviewProvider {
                 value: "VALUE",
                 displayable: "invalid value"
               )
-          )
+          ),
+          update: { _ in }
         )
-      )
 
-      FormTextFieldView(
-        text: .constant(
-          .invalid(
+        FormTextFieldView(
+          state: .invalid(
             "invalidLongText",
             error:
               InvalidValue
@@ -266,11 +332,12 @@ internal struct FormTextFieldView_Previews: PreviewProvider {
                 displayable:
                   "invalid value with some long message displayed to see how it goes when message is really long and will start line breaking with even more than two lines"
               )
-          )
+          ),
+          update: { _ in }
         )
-      )
+      }
+      .padding(8)
     }
-    .padding(8)
   }
 }
 #endif

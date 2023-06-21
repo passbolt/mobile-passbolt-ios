@@ -22,6 +22,7 @@
 //
 
 import CommonModels
+import FeatureScopes
 import Features
 import TestExtensions
 

@@ -25,7 +25,7 @@ import Commons
 
 public struct ResourceFolder {
 
-  public typealias ID = Tagged<UUID, Self>
+  public typealias ID = Tagged<PassboltID, Self>
 
   public var id: ID?  // none is local, not synchronized resource folder
   public var name: String

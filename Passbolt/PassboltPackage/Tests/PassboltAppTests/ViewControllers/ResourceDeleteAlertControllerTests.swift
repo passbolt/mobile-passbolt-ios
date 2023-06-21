@@ -37,7 +37,7 @@ final class ResourceDeleteAlertControllerTests: FeaturesTestCase {
     let tested: ResourceDeleteAlertController = try self.testedInstance(
       context: (
         resourceID: .mock_1,
-				containsOTP: true,
+        containsOTP: true,
         showMessage: { (message: SnackBarMessage) in
           self.dynamicVariables.message = message
         }
@@ -61,7 +61,7 @@ final class ResourceDeleteAlertControllerTests: FeaturesTestCase {
     let tested: ResourceDeleteAlertController = try self.testedInstance(
       context: (
         resourceID: .mock_1,
-				containsOTP: true,
+        containsOTP: true,
         showMessage: { (message: SnackBarMessage) in
           self.dynamicVariables.message = message
         }

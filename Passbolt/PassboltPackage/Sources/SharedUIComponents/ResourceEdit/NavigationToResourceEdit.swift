@@ -22,10 +22,11 @@
 //
 
 import Display
+import FeatureScopes
 
 public enum ResourceEditNavigationDestination: NavigationDestination {
 
-  public typealias TransitionContext = ResourceEditController.Context
+  public typealias TransitionContext = ResourceEditViewController.Context
 }
 
 public typealias NavigationToResourceEdit = NavigationTo<ResourceEditNavigationDestination>
@@ -34,7 +35,7 @@ extension NavigationToResourceEdit {
 
   fileprivate static var live: FeatureLoader {
     legacyPushTransition(
-      toLegacy: ResourceEditViewController.self
+      to: ResourceEditView.self
     )
   }
 }

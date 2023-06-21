@@ -24,6 +24,7 @@
 import AccountSetup
 import Accounts
 import Crypto
+import FeatureScopes
 import NetworkOperations
 import OSFeatures
 import Session

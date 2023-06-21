@@ -21,29 +21,13 @@
 // @since         v1.0
 //
 
-import CommonModels
+import DatabaseOperations
+import Features
+import Resources
 
 // Scoper for editing a resource fields including secret.
 // Usually requires also ResourceDetailsScope.
 public enum ResourceEditScope: FeaturesScope {
 
-  public enum Context {
-
-    case create(
-      _ slug: ResourceSpecification.Slug = .default,
-      folderID: ResourceFolder.ID?,
-      uri: URLString?
-    )
-    case edit(Resource.ID)
-
-    public var resourceID: Resource.ID? {
-      switch self {
-      case .create:
-        return .none
-
-      case .edit(let resourceID):
-        return resourceID
-      }
-    }
-  }
+  public typealias Context = ResourceEditingContext
 }

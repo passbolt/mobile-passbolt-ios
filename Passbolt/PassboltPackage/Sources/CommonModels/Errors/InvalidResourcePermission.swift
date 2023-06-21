@@ -21,73 +21,27 @@
 // @since         v1.0
 //
 
-import CommonModels
+public struct InvalidResourcePermission: TheError {
 
-// Scope for signed in user.
-public enum SessionScope: FeaturesScope {
-
-  public struct Context: Hashable, LoadableFeatureContext {
-
-    public let account: Account
-    public let configuration: SessionConfiguration
-
-    public init(
-      account: Account,
-      configuration: SessionConfiguration
-    ) {
-      self.account = account
-      self.configuration = configuration
-    }
-  }
-}
-
-extension Features {
-
-  public func sessionAccount(
+  public static func error(
+    message: StaticString = "InvalidResourcePermission",
+    underlyingError: Error? = .none,
     file: StaticString = #fileID,
     line: UInt = #line
-  ) throws -> Account {
-    do {
-      return
-        try self.context(
-          of: SessionScope.self,
+  ) -> Self {
+    Self(
+      context: .context(
+        .message(
+          message,
           file: file,
           line: line
         )
-        .account
-    }
-    catch {
-      throw
-        SessionMissing
-        .error(
-          file: file,
-          line: line
-        )
-        .recording(error, for: "error")
-    }
+      ),
+      underlyingError: underlyingError
+    )
   }
 
-  public func sessionConfiguration(
-    file: StaticString = #fileID,
-    line: UInt = #line
-  ) throws -> SessionConfiguration {
-    do {
-      return
-        try self.context(
-          of: SessionScope.self,
-          file: file,
-          line: line
-        )
-        .configuration
-    }
-    catch {
-      throw
-        SessionMissing
-        .error(
-          file: file,
-          line: line
-        )
-        .recording(error, for: "error")
-    }
-  }
+  public var context: DiagnosticsContext
+  public var underlyingError: Error?
+  public var displayableMessage: DisplayableString = .localized(key: "error.resource.permission.invalid")
 }

@@ -23,6 +23,7 @@
 
 import Accounts
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 import Session
@@ -163,7 +164,30 @@ extension ResourceUserGroupsExplorerController: ComponentController {
     }
 
     @MainActor func presentResourceCreationFrom() {
-      presentResourceEditingForm(for: .create(folderID: .none, uri: .none))
+      cancellables.executeOnMainActor {
+        let resourceEditPreparation: ResourceEditPreparation = try features.instance()
+        let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
+          .default,
+          .none,
+          .none
+        )
+        try await features
+          .instance(of: NavigationToResourceEdit.self)
+          .perform(
+            context: .init(
+              editingContext: editingContext,
+              success: { _ in
+                cancellables.executeOnMainActor {
+                  viewState.snackBarMessage = .info(
+                    .localized(
+                      key: "resource.form.new.password.created"
+                    )
+                  )
+                }
+              }
+            )
+          )
+      }
     }
 
     @MainActor func presentResourceShareForm(
@@ -173,26 +197,6 @@ extension ResourceUserGroupsExplorerController: ComponentController {
         await navigation.push(
           legacy: ResourcePermissionEditListView.self,
           context: resourceID
-        )
-      }
-    }
-
-    @MainActor func presentResourceEditingForm(
-      for context: ResourceEditScope.Context
-    ) {
-      cancellables.executeOnMainActor {
-        await navigation.push(
-          legacy: ResourceEditViewController.self,
-          context: (
-            context,
-            completion: { _ in
-              viewState.snackBarMessage = .info(
-                .localized(
-                  key: "resource.form.new.password.created"
-                )
-              )
-            }
-          )
         )
       }
     }

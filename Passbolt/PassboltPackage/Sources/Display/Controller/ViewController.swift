@@ -29,11 +29,11 @@ import UIComponents
 @MainActor public protocol ViewController: AnyObject, Hashable {
 
   associatedtype ViewState: Equatable = Never
-	associatedtype StateSource: ViewStateSource = MutableViewState<Never>
-	where StateSource.ViewState == ViewState
+  associatedtype StateSource: ViewStateSource = MutableViewState<Never>
+  where StateSource.ViewState == ViewState
   associatedtype Context = Void
 
-	nonisolated var viewState: StateSource { get }
+  nonisolated var viewState: StateSource { get }
 
   @MainActor init(
     context: Context,
@@ -43,10 +43,10 @@ import UIComponents
 
 extension ViewController {
 
-	@available(*, deprecated, message: "Do not use viewNodeID to identify views.")
+  @available(*, deprecated, message: "Do not use viewNodeID to identify views.")
   public nonisolated var viewNodeID: ViewNodeID {
-		(self.viewState as? MutableViewState<ViewState>)?.viewNodeID
-		?? .init(rawValue: .init(self))
+    (self.viewState as? MutableViewState<ViewState>)?.viewNodeID
+      ?? .init(rawValue: .init(self))
   }
 }
 

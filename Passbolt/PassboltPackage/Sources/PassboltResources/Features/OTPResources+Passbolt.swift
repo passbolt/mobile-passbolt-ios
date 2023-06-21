@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 import DatabaseOperations
+import FeatureScopes
 import NetworkOperations
 import OSFeatures
 import Resources

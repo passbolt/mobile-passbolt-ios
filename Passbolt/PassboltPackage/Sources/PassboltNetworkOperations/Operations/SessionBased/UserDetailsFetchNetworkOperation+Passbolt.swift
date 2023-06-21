@@ -34,7 +34,7 @@ extension UserDetailsFetchNetworkOperation {
       .whenSome(
         input.userID,
         then: { userID in
-          .pathSuffix("/users/\(userID.urlString).json")
+          .pathSuffix("/users/\(userID).json")
         },
         else: .pathSuffix("/users/me.json")
       ),

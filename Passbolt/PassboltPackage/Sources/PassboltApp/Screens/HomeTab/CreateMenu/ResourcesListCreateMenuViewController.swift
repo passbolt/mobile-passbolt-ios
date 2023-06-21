@@ -23,6 +23,7 @@
 
 import Display
 import OSFeatures
+import Resources
 import SharedUIComponents
 
 internal final class ResourcesListCreateMenuViewController: ViewController {
@@ -57,20 +58,31 @@ extension ResourcesListCreateMenuViewController {
   }
 
   internal final func createResource() {
-    self.asyncExecutor.schedule(.reuse) { @MainActor [context, navigation] in
+    self.asyncExecutor.scheduleCatchingWith(
+      diagnostics,
+      behavior: .reuse
+    ) { @MainActor [context, features, navigation] in
+      let resourceEditPreparation: ResourceEditPreparation = try features.instance()
+      let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
+        .default,
+        self.context,
+        .none
+      )
       await navigation
         .dismissLegacySheet(ResourcesListCreateMenuView.self)
-      await navigation
-        .push(
-          legacy: ResourceEditViewController.self,
-          context: (
-            .create(folderID: context, uri: .none),
-            completion: { @MainActor _ in
-              navigation.presentInfoSnackbar(
-                .localized(
-                  key: "resource.form.new.password.created"
+      try await features
+        .instance(of: NavigationToResourceEdit.self)
+        .perform(
+          context: .init(
+            editingContext: editingContext,
+            success: { _ in
+              MainActor.execute {
+                navigation.presentInfoSnackbar(
+                  .localized(
+                    key: "resource.form.new.password.created"
+                  )
                 )
-              )
+              }
             }
           )
         )

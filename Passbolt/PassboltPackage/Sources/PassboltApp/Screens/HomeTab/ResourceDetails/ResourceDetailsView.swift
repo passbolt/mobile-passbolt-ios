@@ -55,36 +55,36 @@ internal struct ResourceDetailsView: ControlledView {
     .backgroundColor(.passboltBackground)
     .foregroundColor(.passboltPrimaryText)
     .task(self.controller.activate)
-		.onDisappear(perform: self.controller.deactivate)
+    .onDisappear(perform: self.controller.deactivate)
   }
 
   @MainActor @ViewBuilder private var contentView: some View {
-		CommonList {
-			self.headerSectionView
-			WithViewState(
-				from: self.controller,
-				at: \.containsUndefinedFields
-			) { (containsUndefinedFields: Bool) in
-				if containsUndefinedFields {
-					self.undefinedContentSectionView
-				}
-			}
-			self.fieldsSectionsView
-			self.locationSectionView
-			self.tagsSectionView
-			self.permissionsSectionView
-			CommonListSpacer(minHeight: 16)
-		}
-		.edgesIgnoringSafeArea(.bottom)
+    CommonList {
+      self.headerSectionView
+      WithViewState(
+        from: self.controller,
+        at: \.containsUndefinedFields
+      ) { (containsUndefinedFields: Bool) in
+        if containsUndefinedFields {
+          self.undefinedContentSectionView
+        }
+      }
+      self.fieldsSectionsView
+      self.locationSectionView
+      self.tagsSectionView
+      self.permissionsSectionView
+      CommonListSpacer(minHeight: 16)
+    }
+    .edgesIgnoringSafeArea(.bottom)
   }
 
-	@MainActor @ViewBuilder private var undefinedContentSectionView: some View {
-		CommonListSection {
-			CommonListRow {
-				WarningView(message: "resource.detail.undefined.content.warning")
-			}
-		}
-	}
+  @MainActor @ViewBuilder private var undefinedContentSectionView: some View {
+    CommonListSection {
+      CommonListRow {
+        WarningView(message: "resource.detail.undefined.content.warning")
+      }
+    }
+  }
 
   @MainActor @ViewBuilder private var headerSectionView: some View {
     CommonListSection {
@@ -157,16 +157,16 @@ internal struct ResourceDetailsView: ControlledView {
                 content: {
                   switch fieldModel.value {
                   case .plain(let value):
-										Text(value)
-											.text(
-												.leading,
-												lines: .none,
-												font: .inter(
-													ofSize: 14,
-													weight: .regular
-												),
-												color: .passboltSecondaryText
-											)
+                    Text(value)
+                      .text(
+                        .leading,
+                        lines: .none,
+                        font: .inter(
+                          ofSize: 14,
+                          weight: .regular
+                        ),
+                        color: .passboltSecondaryText
+                      )
 
                   case .encrypted:
                     Text("••••••••")
@@ -180,48 +180,48 @@ internal struct ResourceDetailsView: ControlledView {
                         color: .passboltSecondaryText
                       )
 
-									case .password(let value):
-										// password has specific font to be displayed
-										Text(value)
-											.text(
-												.leading,
-												lines: .none,
-												font: .inconsolata(
-													ofSize: 14,
-													weight: .regular
-												),
-												color: .passboltSecondaryText
-											)
+                  case .password(let value):
+                    // password has specific font to be displayed
+                    Text(value)
+                      .text(
+                        .leading,
+                        lines: .none,
+                        font: .inconsolata(
+                          ofSize: 14,
+                          weight: .regular
+                        ),
+                        color: .passboltSecondaryText
+                      )
 
-									case .encryptedTOTP:
-										TOTPValueView(value: .none)
+                  case .encryptedTOTP:
+                    TOTPValueView(value: .none)
 
-									case .totp(hash: _, let generateTOTP):
-										AutoupdatingTOTPValueView(generateTOTP: generateTOTP)
+                  case .totp(hash: _, let generateTOTP):
+                    AutoupdatingTOTPValueView(generateTOTP: generateTOTP)
 
-									case .placeholder(let value):
-										Text(value)
-											.text(
-												.leading,
-												lines: .none,
-												font: .interItalic(
-													ofSize: 12,
-													weight: .regular
-												),
-												color: .passboltSecondaryText
-											)
+                  case .placeholder(let value):
+                    Text(value)
+                      .text(
+                        .leading,
+                        lines: .none,
+                        font: .interItalic(
+                          ofSize: 12,
+                          weight: .regular
+                        ),
+                        color: .passboltSecondaryText
+                      )
 
-									case .invalid(let error):
-										Text(displayable: error.displayableMessage)
-											.text(
-												.leading,
-												lines: .none,
-												font: .interItalic(
-													ofSize: 14,
-													weight: .regular
-												),
-												color: .passboltSecondaryRed
-											)
+                  case .invalid(let error):
+                    Text(displayable: error.displayableMessage)
+                      .text(
+                        .leading,
+                        lines: .none,
+                        font: .interItalic(
+                          ofSize: 14,
+                          weight: .regular
+                        ),
+                        color: .passboltSecondaryRed
+                      )
                   }
                 }
               )

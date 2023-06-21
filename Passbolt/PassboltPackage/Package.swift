@@ -55,6 +55,10 @@ let package = Package(
       targets: ["Features"]
     ),
     .library(
+      name: "FeatureScopes",
+      targets: ["FeatureScopes"]
+    ),
+    .library(
       name: "Display",
       targets: ["Display"]
     ),
@@ -140,6 +144,7 @@ let package = Package(
         "Gopenpgp",
         "OSFeatures",
         "Features",
+        "FeatureScopes",
       ]
     ),
     .testTarget(
@@ -155,6 +160,7 @@ let package = Package(
         "Commons",
         "CommonModels",
         "Features",
+        "FeatureScopes",
       ]
     ),
     .testTarget(
@@ -174,6 +180,7 @@ let package = Package(
         "Display",
         "Session",
         "SessionData",
+        "FeatureScopes",
       ]
     ),
     .testTarget(
@@ -190,6 +197,7 @@ let package = Package(
         "Commons",
         "CommonModels",
         "Features",
+        "FeatureScopes",
         "UICommons",
       ]
     ),
@@ -207,6 +215,7 @@ let package = Package(
         "CommonModels",
         "Localization",
         "Features",
+        "FeatureScopes",
         "Display",
         "UICommons",
         "OSFeatures",
@@ -233,6 +242,7 @@ let package = Package(
         "CommonModels",
         "Localization",
         "Features",
+        "FeatureScopes",
         "Display",
         "UICommons",
         "OSFeatures",
@@ -283,6 +293,17 @@ let package = Package(
       ]
     ),
     .target(
+      name: "FeatureScopes",
+      dependencies: [
+        // Base
+        "Commons",
+        "CommonModels",
+        "Features",
+        "Resources",
+        "DatabaseOperations",
+      ]
+    ),
+    .target(
       name: "Display",
       dependencies: [
         // Legacy
@@ -290,6 +311,7 @@ let package = Package(
         // Base
         "Commons",
         "Features",
+        "FeatureScopes",
       ]
     ),
     .target(
@@ -298,6 +320,7 @@ let package = Package(
         // Base
         "Commons",
         "CommonModels",
+        "Crypto",
         // Modules
         "Accounts",
         "Users",
@@ -414,6 +437,7 @@ let package = Package(
         "Commons",
         "CommonModels",
         "Features",
+        "FeatureScopes",
         // Modules
         "Accounts",
         "Session",
@@ -438,6 +462,7 @@ let package = Package(
         "Commons",
         "CommonModels",
         "Features",
+        "FeatureScopes",
         "OSFeatures",
         // Modules
         "Accounts",
@@ -476,6 +501,7 @@ let package = Package(
         "Commons",
         "CommonModels",
         "Features",
+        "FeatureScopes",
         "Database",
         "OSFeatures",
         // Modules
@@ -491,6 +517,7 @@ let package = Package(
         // Base
         "Commons",
         "CommonModels",
+        "Features",
         // Modules
         "Accounts",
         "Session",
@@ -507,6 +534,8 @@ let package = Package(
         // Base
         "Commons",
         "CommonModels",
+        "Features",
+        "FeatureScopes",
         "OSFeatures",
         // Modules
         "Accounts",
@@ -533,6 +562,7 @@ let package = Package(
         "Commons",
         "CommonModels",
         "Features",
+        "FeatureScopes",
         "Database",
         "OSFeatures",
         // Modules
@@ -557,6 +587,7 @@ let package = Package(
         "Commons",
         "CommonModels",
         "Features",
+        "FeatureScopes",
         "Database",
         // Modules
         "Accounts",
@@ -584,6 +615,7 @@ let package = Package(
         "Commons",
         "CommonModels",
         "Features",
+        "FeatureScopes",
         // Modules
         "Accounts",
         "Session",
@@ -609,6 +641,7 @@ let package = Package(
         "Commons",
         "CommonModels",
         "Features",
+        "FeatureScopes",
         // Modules
         "Accounts",
         "Session",
@@ -648,6 +681,7 @@ let package = Package(
         "Commons",
         "CommonModels",
         "Features",
+        "FeatureScopes",
         "Database",
         "OSFeatures",
         // Modules

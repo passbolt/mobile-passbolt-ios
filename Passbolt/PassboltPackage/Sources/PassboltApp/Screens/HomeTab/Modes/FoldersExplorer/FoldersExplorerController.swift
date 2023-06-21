@@ -23,6 +23,7 @@
 
 import Accounts
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 import Session
@@ -195,26 +196,6 @@ extension FoldersExplorerController: ComponentController {
         await navigation.push(
           legacy: ResourcePermissionEditListView.self,
           context: resourceID
-        )
-      }
-    }
-
-    @MainActor func presentResourceEditingForm(
-      for context: ResourceEditScope.Context
-    ) {
-      cancellables.executeOnMainActor {
-        await navigation.push(
-          legacy: ResourceEditViewController.self,
-          context: (
-            context,
-            completion: { _ in
-              viewState.snackBarMessage = .info(
-                .localized(
-                  key: "resource.form.new.password.created"
-                )
-              )
-            }
-          )
         )
       }
     }

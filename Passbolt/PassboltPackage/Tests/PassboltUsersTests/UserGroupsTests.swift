@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import FeatureScopes
 import Features
 import SessionData
 import TestExtensions
@@ -152,7 +153,7 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
     _ = await try feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
       .first()
 
-		filtersSequence.value = "changed"
+    filtersSequence.value = "changed"
 
     let result: Array<ResourceUserGroupListItemDSV>? =
       try await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())

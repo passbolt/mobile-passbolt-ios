@@ -25,5 +25,5 @@ import Commons
 
 public enum UserGroup {
 
-  public typealias ID = Tagged<UUID, Self>
+  public typealias ID = Tagged<PassboltID, Self>
 }

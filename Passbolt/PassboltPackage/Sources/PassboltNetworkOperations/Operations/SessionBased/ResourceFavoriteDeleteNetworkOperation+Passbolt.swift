@@ -31,7 +31,7 @@ extension ResourceFavoriteDeleteNetworkOperation {
     _ input: Input
   ) -> Mutation<HTTPRequest> {
     .combined(
-      .pathSuffix("/favorites/\(input.favoriteID.urlString).json"),
+      .pathSuffix("/favorites/\(input.favoriteID).json"),
       .method(.delete)
     )
   }

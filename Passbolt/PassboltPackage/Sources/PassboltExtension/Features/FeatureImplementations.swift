@@ -46,5 +46,9 @@ extension FeaturesRegistry {
     self.usePassboltSessionModule()
     self.usePassboltSessionDataModule()
     self.usePassboltUsersModule()
+    self.usePassboltHomePresentation()
+    self.usePassboltResourcesModule()
+    // it is required until navigations will become fully integrated
+    self.useLiveNavigationToResourceEdit()
   }
 }

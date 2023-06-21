@@ -26,18 +26,15 @@ import SwiftUI
 public struct WithViewState<State, ContentView>: View
 where State: Equatable, ContentView: View {
 
-  @StateObject private var viewState: ObservableViewState<State>
+  @StateObject private var viewState: AnyViewStateSource<State>
   private let content: (State) -> ContentView
 
-  internal init(
-    _ viewState: MutableViewState<State>,
+  public init<Source>(
+    _ source: Source,
     @ViewBuilder content: @escaping (State) -> ContentView
-  ) {
+  ) where Source: ViewStateSource, Source.ViewState == State {
     self._viewState = .init(
-      wrappedValue: .init(
-        from: viewState,
-        at: \.self
-      )
+      wrappedValue: source.asAnyViewStateSource()
     )
     self.content = content
   }
@@ -48,10 +45,11 @@ where State: Equatable, ContentView: View {
     @ViewBuilder content: @escaping (State) -> ContentView
   ) where Controller: ViewController {
     self._viewState = .init(
-      wrappedValue: .init(
+      wrappedValue: ComputedViewState(
         from: controller.viewState,
         at: keyPath
       )
+      .asAnyViewStateSource()
     )
     self.content = content
   }
@@ -61,9 +59,7 @@ where State: Equatable, ContentView: View {
     @ViewBuilder content: @escaping (State) -> ContentView
   ) where Controller: ViewController, Controller.ViewState == State {
     self._viewState = .init(
-      wrappedValue: .init(
-        from: controller.viewState
-      )
+      wrappedValue: controller.viewState.asAnyViewStateSource()
     )
     self.content = content
   }

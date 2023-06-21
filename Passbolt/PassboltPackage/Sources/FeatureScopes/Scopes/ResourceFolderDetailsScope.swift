@@ -21,11 +21,10 @@
 // @since         v1.0
 //
 
-import CommonModels
+import Features
 
-// Scope for examining resource details and performing operations on it
-// like deleting toggilng favorite etc. (except editing fields).
-public enum ResourceDetailsScope: FeaturesScope {
+// Scope for examining resource folder details.
+public enum ResourceFolderDetailsScope: FeaturesScope {
 
-  public typealias Context = Resource.ID
+  public typealias Context = ResourceFolder.ID
 }

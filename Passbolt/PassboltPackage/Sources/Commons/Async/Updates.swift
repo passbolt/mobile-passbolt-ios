@@ -23,71 +23,71 @@
 
 public struct Updates: Sendable {
 
-	#if DEBUG
-	public static let placeholder: Self = .init()
-	#endif
-	public static let never: Self = .init()
+  #if DEBUG
+  public static let placeholder: Self = .init()
+  #endif
+  public static let never: Self = .init()
 
-	@usableFromInline internal var generation: UpdatesSource.Generation
-	@usableFromInline internal private(set) weak var updatesSource: UpdatesSource?
+  @usableFromInline internal var generation: UpdatesSource.Generation
+  @usableFromInline internal private(set) weak var updatesSource: UpdatesSource?
 
-	public init(
-		for source: UpdatesSource
-	) {
-		self.generation = 0  // always deliver at least first/lastelement if able
-		self.updatesSource = source
-	}
+  public init(
+    for source: UpdatesSource
+  ) {
+    self.generation = 0  // always deliver at least first/lastelement if able
+    self.updatesSource = source
+  }
 
-	private init() {
-		self.generation = .max
-		self.updatesSource = .none
-	}
+  private init() {
+    self.generation = .max
+    self.updatesSource = .none
+  }
 
-	@_transparent
-	public func hasUpdate() -> Bool {
-		let current: UpdatesSource.Generation = self.updatesSource?.state.get(\.generation) ?? .max
-		return current > self.generation
-	}
+  @_transparent
+  public func hasUpdate() -> Bool {
+    let current: UpdatesSource.Generation = self.updatesSource?.state.get(\.generation) ?? .max
+    return current > self.generation
+  }
 
-	@_transparent
-	@discardableResult
-	public mutating func checkUpdate() -> Bool {
-		let current: UpdatesSource.Generation = self.updatesSource?.state.get(\.generation) ?? .max
-		if current > self.generation {
-			self.generation = current
-			return true
-		}
-		else {
-			return false
-		}
-	}
+  @_transparent
+  @discardableResult
+  public mutating func checkUpdate() -> Bool {
+    let current: UpdatesSource.Generation = self.updatesSource?.state.get(\.generation) ?? .max
+    if current > self.generation {
+      self.generation = current
+      return true
+    }
+    else {
+      return false
+    }
+  }
 }
 
 extension Updates: AsyncSequence, AsyncIteratorProtocol {
 
-	public typealias Element = Void
-	public typealias AsyncIterator = Self
+  public typealias Element = Void
+  public typealias AsyncIterator = Self
 
-	@_transparent
-	@discardableResult
-	public mutating func next() async -> Void? {
-		await self.updatesSource?.update(after: &self.generation)
-	}
+  @_transparent
+  @discardableResult
+  public mutating func next() async -> Void? {
+    await self.updatesSource?.update(after: &self.generation)
+  }
 
-	@_transparent
-	public func makeAsyncIterator() -> Self {
-		self
-	}
+  @_transparent
+  public func makeAsyncIterator() -> Self {
+    self
+  }
 }
 
 extension Updates {
 
-	public var publisher: UpdatesPublisher {
-		if let updatesSource {
-			return .init(for: .init(for: updatesSource))
-		}
-		else {
-			return .init(for: .init())
-		}
-	}
+  public var publisher: UpdatesPublisher {
+    if let updatesSource {
+      return .init(for: .init(for: updatesSource))
+    }
+    else {
+      return .init(for: .init())
+    }
+  }
 }

@@ -23,6 +23,7 @@
 
 import AccountSetup
 import Display
+import FeatureScopes
 import OSFeatures
 
 internal final class AccountQRCodeExportController: ViewController {

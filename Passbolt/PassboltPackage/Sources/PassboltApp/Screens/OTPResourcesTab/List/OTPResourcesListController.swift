@@ -23,6 +23,7 @@
 
 import Accounts
 import Display
+import FeatureScopes
 import Foundation
 import OSFeatures
 import Resources
@@ -127,7 +128,7 @@ internal final class OTPResourcesListController: ViewController {
     // start list content updates
     let filtersSequence: AnyAsyncSequence<OTPResourcesFilter> =
       combineLatest(
-        ObservableViewState(
+        ComputedViewState(
           from: viewState,
           at: \.searchText
         ),

@@ -31,10 +31,10 @@ public struct TOTPSecret {
   public var period: Seconds
 
   public init(
-    sharedSecret: String,
-    algorithm: HOTPAlgorithm,
-    digits: UInt,
-    period: Seconds
+    sharedSecret: String = "",
+		algorithm: HOTPAlgorithm = .sha1,
+		digits: UInt = 6,
+    period: Seconds = 30
   ) {
     self.sharedSecret = sharedSecret
     self.algorithm = algorithm
@@ -55,6 +55,18 @@ extension TOTPSecret: Codable {
     case algorithm = "algorithm"
     case digits = "digits"
     case period = "period"
+  }
+}
+
+extension TOTPSecret {
+
+  public var asJSON: JSON {
+    .object([
+      "secret_key": .string(self.sharedSecret),
+      "algorithm": .string(self.algorithm.rawValue),
+      "digits": .integer(self.digits),
+      "period": .integer(self.period.rawValue),
+    ])
   }
 }
 

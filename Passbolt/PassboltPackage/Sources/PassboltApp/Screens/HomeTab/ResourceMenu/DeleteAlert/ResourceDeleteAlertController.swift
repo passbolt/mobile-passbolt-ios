@@ -22,6 +22,7 @@
 //
 
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 
@@ -29,7 +30,7 @@ internal struct ResourceDeleteAlertController: AlertController {
 
   internal typealias Context = (
     resourceID: Resource.ID,
-		containsOTP: Bool,
+    containsOTP: Bool,
     showMessage: @MainActor (SnackBarMessage) -> Void
   )
 
@@ -50,12 +51,14 @@ internal struct ResourceDeleteAlertController: AlertController {
     let asyncExecutor: AsyncExecutor = try features.instance()
     let resourceController: ResourceController = try features.instance()
 
-		self.title = context.containsOTP
-		? "otp.contextual.menu.delete.confirm.title"
-		: "generic.are.you.sure"
-    self.message = context.containsOTP
-		? "otp.contextual.menu.delete.confirm.message"
-		: .none
+    self.title =
+      context.containsOTP
+      ? "otp.contextual.menu.delete.confirm.title"
+      : "generic.are.you.sure"
+    self.message =
+      context.containsOTP
+      ? "otp.contextual.menu.delete.confirm.message"
+      : .none
     self.actions = [
       .init(
         title: "generic.cancel",
@@ -63,20 +66,20 @@ internal struct ResourceDeleteAlertController: AlertController {
       ),
       .init(
         title: context.containsOTP
-				? "otp.contextual.menu.delete.confirm.action.delete"
-				: "generic.confirm",
+          ? "otp.contextual.menu.delete.confirm.action.delete"
+          : "generic.confirm",
         role: .destructive,
         action: {
           asyncExecutor.schedule(.unmanaged) {
             do {
               try await resourceController.delete()
               await context.showMessage(
-								.info(
-									context.containsOTP
-									? "otp.contextual.menu.delete.succeeded"
-									: "resource.delete.succeeded"
-								)
-							)
+                .info(
+                  context.containsOTP
+                    ? "otp.contextual.menu.delete.succeeded"
+                    : "resource.delete.succeeded"
+                )
+              )
             }
             catch {
               diagnostics.log(error: error)

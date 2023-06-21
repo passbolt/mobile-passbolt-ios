@@ -24,6 +24,7 @@
 import CommonModels
 import Crypto
 import DatabaseOperations
+import FeatureScopes
 import Features
 import Foundation
 import NetworkOperations
@@ -52,69 +53,26 @@ extension ResourceEditForm {
 
     let sessionData: SessionData = try features.instance()
     let usersPGPMessages: UsersPGPMessages = try features.instance()
-    let resourceTypesFetchDatabaseOperation: ResourceTypesFetchDatabaseOperation = try features.instance()
+
     let resourceEditNetworkOperation: ResourceEditNetworkOperation = try features.instance()
     let resourceCreateNetworkOperation: ResourceCreateNetworkOperation = try features.instance()
     let resourceShareNetworkOperation: ResourceShareNetworkOperation = try features.instance()
     let resourceFolderPermissionsFetchDatabaseOperation: ResourceFolderPermissionsFetchDatabaseOperation =
       try features.instance()
-    let resourceFolderPathFetchDatabaseOperation: ResourceFolderPathFetchDatabaseOperation = try features.instance()
 
-		let formState: UpdatableVariable<Resource> = .init {
-      switch context {
-      case .create(let slug, let parentFolderID, let uri):
-        let resourceTypes: Array<ResourceType> = try await resourceTypesFetchDatabaseOperation()
-        guard let resourceType: ResourceType = resourceTypes.first(where: { $0.specification.slug == slug })
-        else { throw InvalidResourceType.error() }
-        let folderPath: OrderedSet<ResourceFolderPathItem>
-        if let parentFolderID {
-          folderPath = try await resourceFolderPathFetchDatabaseOperation.execute(parentFolderID)
-        }
-        else {
-          folderPath = .init()
-        }
-        var resource: Resource = .init(
-          path: folderPath,
-          type: resourceType
-        )
+    let formState: Variable<Resource> = .init(initial: context.editedResource)
 
-        if let value: JSON = uri.map({ .string($0.rawValue) }) {
-          resource.meta.uri = value
-        }  // else skip
-
-        if resource.contains(\.secret.totp) {
-          // initialize TOTP fields with defaults
-          resource.secret.totp = [
-            "secret_key": "",
-            "algorithm": "SHA1",
-            "period": 30,
-            "digits": 6,
-          ]
-        }  // else skip
-
-        return resource
-
-      case .edit(let resourceID):
-        let features =
-          await features.branchIfNeeded(
-            scope: ResourceDetailsScope.self,
-            context: resourceID
-          ) ?? features
-        let resourceController: ResourceController = try await features.instance()
-        try await resourceController.fetchSecretIfNeeded(force: true)
-        return try await resourceController.state.value
+    @Sendable nonisolated func update(
+      _ field: Resource.FieldPath,
+      to value: JSON
+    ) -> Validated<JSON> {
+      formState.mutate { (resource: inout Resource) -> Validated<JSON> in
+        resource.update(field, to: value)
       }
     }
 
-    @Sendable nonisolated func update(
-      _ mutation: @escaping @Sendable (inout Resource) -> Void
-    ) async throws -> Resource {
-			formState.mutate(mutation)
-			return try await formState.value
-    }
-
-    @Sendable nonisolated func sendForm() async throws -> Resource.ID {
-      let resource: Resource = try await formState.value
+    @Sendable nonisolated func sendForm() async throws -> Resource {
+      let resource: Resource = formState.value
 
       do {
         try resource.validate()
@@ -161,14 +119,19 @@ extension ResourceEditForm {
 
         do {
           try await sessionData.refreshIfNeeded()
+          let features: Features =
+            await features.branchIfNeeded(
+              scope: ResourceDetailsScope.self,
+              context: updatedResourceID
+            ) ?? features
+          return try await features.instance(of: ResourceController.self).state.value
         }
         catch {
           // we don't want to fail sending form when refreshing data fails
-          // but we would like to update data after such a change
+          // but if we can't access updated data then it seemes to be an issue
           diagnostics.log(error: error)
+          throw error
         }
-
-        return updatedResourceID
       }
       else {
         guard
@@ -282,20 +245,25 @@ extension ResourceEditForm {
 
         do {
           try await sessionData.refreshIfNeeded()
+          let features: Features =
+            await features.branchIfNeeded(
+              scope: ResourceDetailsScope.self,
+              context: createdResourceResult.resourceID
+            ) ?? features
+          return try await features.instance(of: ResourceController.self).state.value
         }
         catch {
           // we don't want to fail sending form when refreshing data fails
-          // but we would like to update data after such a change
+          // but if we can't access updated data then it seemes to be an issue
           diagnostics.log(error: error)
+          throw error
         }
-
-        return createdResourceResult.resourceID
       }
     }
 
     return .init(
       state: formState,
-      update: update(_:),
+      update: update(_:to:),
       sendForm: sendForm
     )
   }

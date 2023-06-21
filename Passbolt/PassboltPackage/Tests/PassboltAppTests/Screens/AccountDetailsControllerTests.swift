@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import FeatureScopes
 import TestExtensions
 import UIComponents
 import XCTest

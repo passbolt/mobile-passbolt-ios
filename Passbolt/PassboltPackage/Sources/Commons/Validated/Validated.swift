@@ -130,6 +130,16 @@ extension Validated {
     )
   }
 
+  public func flatMap<NewValue>(
+    _ transform: (Value) -> Validated<NewValue>
+  ) -> Validated<NewValue> {
+    let inner: Validated<NewValue> = transform(self.value)
+    return .init(
+      value: inner.value,
+      error: self.error ?? inner.error
+    )
+  }
+
   public func toOptional() -> Validated<Optional<Value>> {
     .init(
       value: .some(self.value),

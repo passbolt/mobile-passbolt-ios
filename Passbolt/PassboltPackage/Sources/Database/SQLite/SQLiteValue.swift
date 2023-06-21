@@ -118,27 +118,27 @@ extension Date: SQLiteValueConvertible {
   }
 }
 
-extension UUID: SQLiteValueConvertible {
+extension PassboltID: SQLiteValueConvertible {
 
   public var asSQLiteValue: SQLiteValue {
     .data(
       Data([
-        self.uuid.0,
-        self.uuid.1,
-        self.uuid.2,
-        self.uuid.3,
-        self.uuid.4,
-        self.uuid.5,
-        self.uuid.6,
-        self.uuid.7,
-        self.uuid.8,
-        self.uuid.9,
-        self.uuid.10,
-        self.uuid.11,
-        self.uuid.12,
-        self.uuid.13,
-        self.uuid.14,
-        self.uuid.15,
+        self.rawValue.uuid.0,
+        self.rawValue.uuid.1,
+        self.rawValue.uuid.2,
+        self.rawValue.uuid.3,
+        self.rawValue.uuid.4,
+        self.rawValue.uuid.5,
+        self.rawValue.uuid.6,
+        self.rawValue.uuid.7,
+        self.rawValue.uuid.8,
+        self.rawValue.uuid.9,
+        self.rawValue.uuid.10,
+        self.rawValue.uuid.11,
+        self.rawValue.uuid.12,
+        self.rawValue.uuid.13,
+        self.rawValue.uuid.14,
+        self.rawValue.uuid.15,
       ])
     )
   }

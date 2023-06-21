@@ -23,6 +23,7 @@
 
 import Accounts
 import Display
+import FeatureScopes
 import OSFeatures
 
 internal final class ApplicationSettingsController: ViewController {

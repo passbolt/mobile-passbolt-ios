@@ -29,12 +29,12 @@ public struct LinkButton: View {
 
   private let icon: Image?
   private let title: DisplayableString
-  private let action: () -> Void
+  private let action: @MainActor () async -> Void
 
   public init(
     title: DisplayableString,
     iconName: ImageNameConstant? = .none,
-    action: @escaping () -> Void
+    action: @escaping @MainActor () async -> Void
   ) {
     self.icon = iconName.map(Image.init(named:))
     self.title = title
@@ -42,11 +42,9 @@ public struct LinkButton: View {
   }
 
   public var body: some View {
-    Button(
-      action: {
-        self.action()
-      },
-      label: {
+    AsyncButton(
+      action: self.action,
+      regularLabel: {
         HStack(spacing: 8) {
           if let icon: Image = self.icon {
             icon
