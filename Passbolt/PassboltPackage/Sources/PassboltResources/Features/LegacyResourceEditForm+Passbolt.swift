@@ -242,7 +242,7 @@ extension LegacyResourceEditForm {
       let encodedSecret: String
       do {
         if secretFields.count == 1,
-          case let .string(password) = resource.value(forField: "password")
+          case let .string(password) = resource.value(forField: "secret")
         {
           encodedSecret = password
         }
