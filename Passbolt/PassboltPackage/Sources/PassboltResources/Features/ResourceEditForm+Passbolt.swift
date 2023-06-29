@@ -71,6 +71,14 @@ extension ResourceEditForm {
       }
     }
 
+    @Sendable nonisolated func updateType(
+      to resourceType: ResourceType
+    ) throws {
+      try formState.mutate { (resource: inout Resource) throws in
+        try resource.updateType(to: resourceType)
+      }
+    }
+
     @Sendable nonisolated func sendForm() async throws -> Resource {
       let resource: Resource = formState.value
 
@@ -84,12 +92,7 @@ extension ResourceEditForm {
           .error(displayable: "resource.form.error.invalid")
       }
 
-      guard let resourceName: String = resource.meta.name.stringValue
-      else {
-        throw
-          InvalidInputData
-          .error(message: "Missing resource name")
-      }
+      let resourceName: String = resource.name
 
       guard let resourceSecret: String = resource.secret.resourceSecretString
       else {
@@ -263,7 +266,8 @@ extension ResourceEditForm {
 
     return .init(
       state: formState,
-      update: update(_:to:),
+      updateField: update(_:to:),
+      updateType: updateType(to:),
       sendForm: sendForm
     )
   }

@@ -21,47 +21,15 @@
 // @since         v1.0
 //
 
-import CommonModels
-import Features
+import SwiftUI
 
-public struct ResourceEditPreparation {
-
-  public var prepareNew:
-    @Sendable (
-      _ slug: ResourceSpecification.Slug,
-      _ parentFolderID: ResourceFolder.ID?,
-      _ uri: URLString?
-    ) async throws -> ResourceEditingContext
-
-  public var prepareExisting: @Sendable (Resource.ID) async throws -> ResourceEditingContext
-
-  public init(
-    prepareNew: @escaping @Sendable (
-      _ slug: ResourceSpecification.Slug,
-      _ parentFolderID: ResourceFolder.ID?,
-      _ uri: URLString?
-    ) async throws -> ResourceEditingContext,
-    prepareExisting: @escaping @Sendable (Resource.ID) async throws -> ResourceEditingContext
-  ) {
-    self.prepareNew = prepareNew
-    self.prepareExisting = prepareExisting
-  }
-}
-
-public struct ResourceEditingContext {
-
-  public var editedResource: Resource
-  public var availableTypes: Array<ResourceType>
-
-  public init(
-    editedResource: Resource,
-    availableTypes: Array<ResourceType>
-  ) {
-    assert(
-      editedResource.secretAvailable,
-      "Can't edit a resource without the secret!"
-    )
-    self.editedResource = editedResource
-    self.availableTypes = availableTypes
+extension Backport where Content: View {
+  @ViewBuilder func hideScrollContentBackground() -> some View {
+    if #available(iOS 16, *) {
+      content.scrollContentBackground(.hidden)
+    }
+    else {
+      content
+    }
   }
 }

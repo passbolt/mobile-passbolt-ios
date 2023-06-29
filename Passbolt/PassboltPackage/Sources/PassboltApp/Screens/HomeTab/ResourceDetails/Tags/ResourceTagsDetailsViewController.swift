@@ -87,7 +87,7 @@ extension ResourceTagsDetailsViewController {
     _ resource: Resource
   ) {
     self.viewState.update { (state: inout ViewState) in
-      state.name = resource.meta.name.stringValue ?? ""
+      state.name = resource.name
       state.favorite = resource.favorite
       state.tags = resource.tags
     }

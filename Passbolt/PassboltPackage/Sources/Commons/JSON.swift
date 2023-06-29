@@ -80,7 +80,13 @@ public enum JSON {
     set {
       switch (self, newValue) {
       case (.object(var dictionary), let newValue):
-        dictionary[key] = newValue
+        if case .null = newValue {
+          // remove the value when assigning null
+          dictionary[key] = .none
+        }
+        else {
+          dictionary[key] = newValue
+        }
         self = .object(dictionary)
 
       case (.array(var array), let newValue):
@@ -91,13 +97,27 @@ public enum JSON {
             .asAssertionFailure()
           return  // NOP
         }
+
         if array.count > index {
-          array.insert(newValue, at: index)
-          array.remove(at: index + 1)
+          if case .null = newValue {
+            // remove the value when assigning null
+            array.remove(at: index)
+          }
+          else {
+            array.insert(newValue, at: index)
+            array.remove(at: index + 1)
+          }
+
           self = .array(array)
         }
         else if array.count == index {
-          array.append(newValue)
+          if case .null = newValue {
+            // NOP - do not add value when assigning null
+          }
+          else {
+            array.append(newValue)
+          }
+
           self = .array(array)
         }
         else {
@@ -108,7 +128,12 @@ public enum JSON {
         }
 
       case (.null, let newValue):
-        self = .object([key: newValue])
+        if case .null = newValue {
+          return  // do not set null inside null
+        }
+        else {
+          self = .object([key: newValue])
+        }
 
       case (.bool, _), (.integer, _), (.float, _), (.string, _):
         InternalInconsistency
@@ -470,5 +495,10 @@ extension JSON {
     case .bool(let value):
       return value ? "true" : "false"
     }
+  }
+
+  // remove value if able or set it to null
+  public mutating func remove() {
+    self = .null
   }
 }

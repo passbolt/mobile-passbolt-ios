@@ -196,7 +196,7 @@ extension ResourceContextualMenuViewController {
     }  // else NOP
 
     self.viewState.update { (state: inout ViewState) in
-      state.title = resource.meta.name.stringValue ?? ""
+      state.title = resource.name
       state.accessActions = accessActions
       state.modifyActions = modifyActions
     }
@@ -255,7 +255,7 @@ extension ResourceContextualMenuViewController {
   }
 
   internal func openURL(
-    field path: Resource._FieldPath
+    field path: Resource.FieldPath
   ) async {
     await self.diagnostics
       .withLogCatch(
@@ -289,7 +289,7 @@ extension ResourceContextualMenuViewController {
   }
 
   internal func copy(
-    field path: Resource._FieldPath
+    field path: Resource.FieldPath
   ) async {
     await self.diagnostics
       .withLogCatch(
@@ -401,12 +401,7 @@ extension ResourceContextualMenuViewController {
             .info(
               .localized(
                 key: "resource.menu.action.favorite.added",
-                arguments: [
-                  resource.meta.name.stringValue
-                    ?? DisplayableString
-                    .localized("resource")
-                    .string()
-                ]
+                arguments: [resource.name]
               )
             )
           )
@@ -416,12 +411,7 @@ extension ResourceContextualMenuViewController {
             .info(
               .localized(
                 key: "resource.menu.action.favorite.removed",
-                arguments: [
-                  resource.meta.name.stringValue
-                    ?? DisplayableString
-                    .localized("resource")
-                    .string()
-                ]
+                arguments: [resource.name]
               )
             )
           )
@@ -501,7 +491,7 @@ extension ResourceContextualMenuViewController {
         try await self.navigationToDeleteAlert.perform(
           context: (
             resourceID: self.resourceID,
-            containsOTP: self.resourceController.state.value.containsOTP,
+            containsOTP: self.resourceController.state.value.hasTOTP,
             showMessage: self.showMessage
           )
         )

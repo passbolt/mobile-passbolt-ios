@@ -41,6 +41,8 @@ where Content: View {
       .environment(\.defaultMinListHeaderHeight, 16)  // allows smaller headers
       .foregroundColor(.passboltPrimaryText)
       .backgroundColor(.passboltBackground)
+      .backport.hidesKeyboardOnScroll()
+      .backport.hideScrollContentBackground()
       .clipped()
   }
 }

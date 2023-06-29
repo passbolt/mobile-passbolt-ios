@@ -31,9 +31,9 @@ extension ResourceTypeDTO: Decodable {
     from decoder: Decoder
   ) throws {
     let container: KeyedDecodingContainer<ResourceTypeDTO.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
-    self.id = try container.decode(ResourceType.ID.self, forKey: .id)
-    self.name = try container.decode(String.self, forKey: .name)
-    let slug = try container.decode(ResourceSpecification.Slug.self, forKey: .slug)
+    let id: ResourceType.ID = try container.decode(ResourceType.ID.self, forKey: .id)
+    let name: String = try container.decode(String.self, forKey: .name)
+    let slug: ResourceSpecification.Slug = try container.decode(ResourceSpecification.Slug.self, forKey: .slug)
 
     // [MOB-1283] In order to make grade D we can use hardcoded types.
     // We are using it instead of decoding JSON schema in order to avoid
@@ -42,22 +42,29 @@ extension ResourceTypeDTO: Decodable {
     // at this stage all resource types are are known and won't change without
     // preparation on the client side as well. This will require client updates
     // when we introduce new resource types though.
+    let specification: ResourceSpecification
     switch slug {
     case .password:
-      self.specification = .password
+      specification = .password
 
     case .passwordWithDescription:
-      self.specification = .passwordWithDescription
+      specification = .passwordWithDescription
 
     case .totp:
-      self.specification = .totp
+      specification = .totp
 
     case .passwordWithTOTP:
-      self.specification = .passwordWithTOTP
+      specification = .passwordWithTOTP
 
     case _:
-      self.specification = .placeholder
+      specification = .placeholder
     }
+
+    self.init(
+      id: id,
+      name: name,
+      specification: specification
+    )
   }
 
   private enum CodingKeys: String, CodingKey {

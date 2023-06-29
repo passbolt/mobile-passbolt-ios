@@ -27,9 +27,9 @@ public struct ResourceSpecification {
 
   public typealias Slug = Tagged<String, Self>
 
-  public var slug: Slug
-  public var metaFields: OrderedSet<ResourceFieldSpecification>
-  public var secretFields: OrderedSet<ResourceFieldSpecification>
+  public let slug: Slug
+  public let metaFields: OrderedSet<ResourceFieldSpecification>
+  public let secretFields: OrderedSet<ResourceFieldSpecification>
 
   public init(
     slug: Slug,
@@ -43,57 +43,6 @@ public struct ResourceSpecification {
 }
 
 extension ResourceSpecification: Equatable {}
-
-extension ResourceSpecification {
-
-  public func fieldSpecification(
-    for path: Resource.FieldPath
-  ) -> ResourceFieldSpecification? {
-    for field in self.metaFields {
-      if let match: ResourceFieldSpecification = field.specification(for: path) {
-        return match
-      }
-      else {
-        continue
-      }
-    }
-    for field in self.secretFields {
-      if let match: ResourceFieldSpecification = field.specification(for: path) {
-        return match
-      }
-      else {
-        continue
-      }
-    }
-    return .none
-  }
-}
-
-extension ResourceSpecification {
-
-  internal func validate(
-    meta: JSON,
-    secret: JSON  // null skips secret validation
-  ) throws {
-    for fieldSpecification in self.metaFields {
-      try fieldSpecification.validate(meta[dynamicMember: fieldSpecification.name.rawValue])
-    }
-    if case .null = secret {
-      // skip secret validation if there was no secret
-    }
-    else if self.secretFields.count == 1, let fieldSpecification = self.secretFields.first,
-      fieldSpecification.path == \.secret
-    {
-      // fallback for legacy resource where secret was just plain field
-      try fieldSpecification.validate(secret)
-    }
-    else {
-      for fieldSpecification in self.secretFields {
-        try fieldSpecification.validate(secret[dynamicMember: fieldSpecification.name.rawValue])
-      }
-    }
-  }
-}
 
 // MARK: - Hardcode of well known resource type specifications
 

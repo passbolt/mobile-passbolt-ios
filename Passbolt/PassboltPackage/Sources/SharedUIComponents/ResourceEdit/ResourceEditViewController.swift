@@ -104,7 +104,7 @@ public final class ResourceEditViewController: ViewController {
       ),
       from: self.resourceEditForm.state,
       transform: { (resource: Resource) in
-        assert(resource.hasSecret, "Can't edit resource without secret!")
+        assert(resource.secretAvailable, "Can't edit resource without secret!")
 
         return .init(
           fields: fields(
@@ -193,7 +193,7 @@ public final class ResourceEditViewController: ViewController {
   else {
     let fields: Array<ResourceEditFieldViewModel> =
       resource
-      .allFieldsOrdered
+      .fields
       .compactMap { (field: ResourceFieldSpecification) -> ResourceEditFieldViewModel? in
         .init(
           field,

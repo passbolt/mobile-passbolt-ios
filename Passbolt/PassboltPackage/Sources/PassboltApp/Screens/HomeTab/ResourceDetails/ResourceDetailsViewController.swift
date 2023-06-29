@@ -140,12 +140,12 @@ extension ResourceDetailsViewController {
       }
     }
 
-    if !resource.hasSecret {
+    if !resource.secretAvailable {
       self.revealedFields.removeAll(keepingCapacity: true)
     }  // else NOP
 
     self.viewState.update { (state: inout ViewState) -> Void in
-      state.name = resource.meta.name.stringValue ?? ""
+      state.name = resource.name
       state.favorite = resource.favorite
       state.containsUndefinedFields = resource.containsUndefinedFields
       state.location = resource.path.map(\.name)
@@ -241,7 +241,7 @@ extension ResourceDetailsViewController {
         var resource: Resource = try await self.resourceController.state.value
 
         // ensure having secret if field is part of it
-        if resource.secretContains(path) {
+        if resource.isEncrypted(path) {
           try await self.resourceController.fetchSecretIfNeeded()
           resource = try await self.resourceController.state.value
         }  // else NOP
@@ -335,10 +335,10 @@ extension ResourceDetailsViewController.ViewState {
     else {
       self.fields =
         resource
-        .allFieldsOrdered
+        .fields
         .compactMap { (field: ResourceFieldSpecification) -> ResourceDetailsFieldViewModel? in
           // remove name from fields, we already have it displayed
-          if field.path == \.meta.name {
+          if field.isNameField {
             return .none
           }
           else {

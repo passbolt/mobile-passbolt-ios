@@ -85,7 +85,7 @@ extension ResourceLocationDetailsViewController {
   internal func update(
     _ resource: Resource
   ) {
-    let resourceName: String = resource.meta.name.stringValue ?? ""
+    let resourceName: String = resource.name
     var path: FolderLocationTreeView.Node = resource.path.reduce(
       into: FolderLocationTreeView.Node.root()
     ) { (partialResult: inout FolderLocationTreeView.Node, item: ResourceFolderPathItem) in

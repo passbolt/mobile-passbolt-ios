@@ -32,8 +32,8 @@ public struct TOTPSecret {
 
   public init(
     sharedSecret: String = "",
-		algorithm: HOTPAlgorithm = .sha1,
-		digits: UInt = 6,
+    algorithm: HOTPAlgorithm = .sha1,
+    digits: UInt = 6,
     period: Seconds = 30
   ) {
     self.sharedSecret = sharedSecret

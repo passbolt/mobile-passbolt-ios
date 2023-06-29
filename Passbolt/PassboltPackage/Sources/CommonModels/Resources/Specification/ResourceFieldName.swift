@@ -48,6 +48,9 @@ extension ResourceFieldName {
     case "totp":
       return "resource.edit.field.totp.label"
 
+    case "secret_key":
+      return "otp.edit.form.field.secret.title"
+
     case let rawName:
       return .raw(rawName)
     }
@@ -88,6 +91,9 @@ extension ResourceFieldName {
 
     case "description":
       return "resource.edit.field.description.placeholder"
+
+    case "secret_key":
+      return "otp.edit.form.field.secret.prompt"
 
     case _:
       return .raw("")

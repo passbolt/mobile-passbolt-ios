@@ -26,10 +26,21 @@ import Commons
 public struct ResourceType {
 
   public typealias ID = Tagged<PassboltID, Self>
+  // All actual fields from the specification are read/write
+  public typealias FieldPath = WritableKeyPath<Resource, JSON>
+  // Computed fields are read only but it also contains all actual fields
+  public typealias ComputedFieldPath = KeyPath<Resource, JSON>
 
   public let id: ID
   public let name: String
   public let specification: ResourceSpecification
+  public let orderedFields: OrderedSet<ResourceFieldSpecification>
+  public let containsUndefinedFields: Bool
+  // internal cache to quickly access common things
+  // and provide support for special, computed fields
+  internal var flattenedFields: Dictionary<ComputedFieldPath, ResourceFieldSpecification>
+  internal var metaPaths: Set<ComputedFieldPath>
+  internal var secretPaths: Set<ComputedFieldPath>
 
   public init(
     id: ID,
@@ -39,6 +50,130 @@ public struct ResourceType {
     self.id = id
     self.name = name
     self.specification = specification
+    self.orderedFields = specification.metaFields
+      .union(specification.secretFields)
+      .sorted(using: ResourceFieldSpecification.Sorting())
+      .asOrderedSet()
+    self.containsUndefinedFields =
+      specification.slug == .placeholder
+      || specification.secretFields.contains(where: { (field: ResourceFieldSpecification) in
+        if case .undefined = field.semantics {
+          return true
+        }
+        else {
+          return false
+        }
+      })
+      || specification.metaFields.contains(where: { (field: ResourceFieldSpecification) in
+        if case .undefined = field.semantics {
+          return true
+        }
+        else {
+          return false
+        }
+      })
+
+    // prepare cache for quick access to fields
+    func paths(
+      for field: ResourceFieldSpecification
+    ) -> Set<FieldPath> {
+      var result: Set<FieldPath> = [field.path]
+      if case .structure(let nestedFields) = field.content {
+        for field in nestedFields {
+          result.formUnion(paths(for: field))
+        }
+        return result
+      }
+      else {
+        return result
+      }
+    }
+
+    func fields(
+      for field: ResourceFieldSpecification
+    ) -> Dictionary<FieldPath, ResourceFieldSpecification> {
+      var result: Dictionary<FieldPath, ResourceFieldSpecification> = [field.path: field]
+      if case .structure(let nestedFields) = field.content {
+        for field in nestedFields {
+          result.merge(fields(for: field), uniquingKeysWith: { $1 })
+        }
+        return result
+      }
+      else {
+        return result
+      }
+    }
+
+    self.flattenedFields = .init()
+    self.metaPaths = .init()
+    self.secretPaths = .init()
+
+    for field in specification.metaFields {
+      self.metaPaths.formUnion(paths(for: field))
+      self.flattenedFields.merge(fields(for: field), uniquingKeysWith: { $1 })
+    }
+
+    for field in specification.secretFields {
+      self.secretPaths.formUnion(paths(for: field))
+      self.flattenedFields.merge(fields(for: field), uniquingKeysWith: { $1 })
+    }
+
+    // add computed fields in order to properly find and resolve them
+
+    // find name field, it has to be always available
+    self.flattenedFields[\.nameField] = self.orderedFields
+      .first(where: { (specification: ResourceFieldSpecification) in
+        if specification.path == \.meta.name {
+          return true
+        }
+        else {
+          return false
+        }
+      })
+
+    // find first field with password semantics
+    self.flattenedFields[\.firstPassword] = self.orderedFields
+      .first(where: { (specification: ResourceFieldSpecification) in
+        if case .password = specification.semantics {
+          return true
+        }
+        else {
+          return false
+        }
+      })
+
+    // find first field with totp semantics
+    self.flattenedFields[\.firstTOTP] = self.orderedFields
+      .first(where: { (specification: ResourceFieldSpecification) in
+        if case .totp = specification.semantics {
+          return true
+        }
+        else {
+          return false
+        }
+      })
+
+    // can't guess which description it will be,
+    // proritizing encrypted one, description has a special handling
+    self.flattenedFields[\.description] =
+      specification.secretFields
+      .first(where: { (specification: ResourceFieldSpecification) in
+        if specification.path == \.secret.description {
+          return true
+        }
+        else {
+          return false
+        }
+      })
+      ?? specification.metaFields
+      .first(where: { (specification: ResourceFieldSpecification) in
+        if specification.path == \.meta.description {
+          return true
+        }
+        else {
+          return false
+        }
+      })
   }
 
   public init(
@@ -96,5 +231,61 @@ extension ResourceType {
 
   public var isDefault: Bool {
     self.specification.slug == .default
+  }
+
+  public var hasUnstructuredSecret: Bool {
+    // if there is a field straight to the secret without any nested field
+    // this is treated as special case without internal secret structure available
+    // it can be either legacy or placeholder resource where there is none structure
+    // or it was not available to parse and check,
+    // it has to be the only element in secret specification
+    self.secretPaths.count == 1 && self.secretPaths.contains(\.secret)
+  }
+
+  public func validator(
+    for path: ComputedFieldPath
+  ) -> Validator<JSON> {
+    self.flattenedFields[path]?.validator
+      ?? .alwaysInvalid(displayable: "error.resource.field.unknown")
+  }
+
+  public func displayableName(
+    forField path: ComputedFieldPath
+  ) -> DisplayableString? {
+    self.flattenedFields[path]?.name.displayable
+  }
+
+  public func contains(
+    _ path: ComputedFieldPath
+  ) -> Bool {
+    self.flattenedFields.keys.contains(path)
+  }
+
+  public func fieldSpecification(
+    for path: ComputedFieldPath
+  ) -> ResourceFieldSpecification? {
+    self.flattenedFields[path]
+  }
+
+  internal func validate(
+    _ resource: Resource
+  ) throws {
+    for fieldSpecification in self.specification.metaFields {
+      try fieldSpecification.validate(resource.meta[dynamicMember: fieldSpecification.name.rawValue])
+    }
+		if !resource.secretAvailable {
+      // skip secret validation if there is no secret
+    }
+    else if self.specification.secretFields.count == 1, let fieldSpecification = self.specification.secretFields.first,
+      fieldSpecification.path == \.secret
+    {
+      // fallback for legacy resource where secret was just plain field
+      try fieldSpecification.validate(resource.secret)
+    }
+    else {
+      for fieldSpecification in self.specification.secretFields {
+        try fieldSpecification.validate(resource.secret[dynamicMember: fieldSpecification.name.rawValue])
+      }
+    }
   }
 }

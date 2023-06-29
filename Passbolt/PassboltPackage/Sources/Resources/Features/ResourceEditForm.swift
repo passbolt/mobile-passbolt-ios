@@ -30,19 +30,23 @@ public struct ResourceEditForm {
 
   // Access current resource state and updates
   public var state: any DataSource<Resource, Never>
+  // Change the resource type
+  public var updateType: @Sendable (ResourceType) throws -> Void
   // Send the form
   public var sendForm: @Sendable () async throws -> Resource
   // Update resource, publicly exposing only dedicated methods
   // in order to avoid mutable access to the whole resource
-  internal var update: @Sendable (Resource.FieldPath, JSON) -> Validated<JSON>
+  internal var updateField: @Sendable (Resource.FieldPath, JSON) -> Validated<JSON>
 
   public init(
     state: any DataSource<Resource, Never>,
-    update: @escaping @Sendable (Resource.FieldPath, JSON) -> Validated<JSON>,
+    updateField: @escaping @Sendable (Resource.FieldPath, JSON) -> Validated<JSON>,
+    updateType: @escaping @Sendable (ResourceType) throws -> Void,
     sendForm: @escaping @Sendable () async throws -> Resource
   ) {
     self.state = state
-    self.update = update
+    self.updateField = updateField
+    self.updateType = updateType
     self.sendForm = sendForm
   }
 }
@@ -55,7 +59,8 @@ extension ResourceEditForm: LoadableFeature {
   public static var placeholder: Self {
     .init(
       state: PlaceholderDataSource(),
-      update: unimplemented2(),
+      updateField: unimplemented2(),
+      updateType: unimplemented1(),
       sendForm: unimplemented0()
     )
   }
@@ -69,7 +74,7 @@ extension ResourceEditForm {
     _ field: Resource.FieldPath,
     to value: JSON
   ) async throws -> Validated<JSON> {
-    self.update(field, value)
+    self.updateField(field, value)
   }
 
   @discardableResult
@@ -77,7 +82,7 @@ extension ResourceEditForm {
     _ field: Resource.FieldPath,
     to value: String
   ) -> Validated<String> {
-    self.update(field, .string(value))
+    self.updateField(field, .string(value))
       .map { $0.stringValue ?? "" }
   }
 
@@ -86,7 +91,7 @@ extension ResourceEditForm {
     _ field: Resource.FieldPath,
     to value: Int
   ) -> Validated<Int> {
-    self.update(field, .integer(value))
+    self.updateField(field, .integer(value))
       .map { $0.intValue ?? 0 }
   }
 
@@ -96,7 +101,7 @@ extension ResourceEditForm {
     to value: Raw
   ) -> Validated<Raw?>
   where Raw: RawRepresentable, Raw.RawValue == String {
-    self.update(field, .string(value.rawValue))
+    self.updateField(field, .string(value.rawValue))
       .map { Raw(rawValue: $0.stringValue ?? "") }
   }
 
@@ -105,7 +110,7 @@ extension ResourceEditForm {
     _ field: Resource.FieldPath,
     to value: TOTPSecret
   ) -> Validated<TOTPSecret?> {
-    self.update(field, value.asJSON)
+    self.updateField(field, value.asJSON)
       .map { $0.totpSecretValue }
   }
 }

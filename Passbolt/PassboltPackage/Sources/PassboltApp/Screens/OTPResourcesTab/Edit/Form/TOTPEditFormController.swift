@@ -112,7 +112,7 @@ internal final class TOTPEditFormController: ViewController {
         return .init(
           nameField:
             resource
-            .validated(\.meta.name)
+            .validated(\.nameField)
             .map { $0.stringValue ?? "" },
           uriField:
             resource
@@ -153,7 +153,7 @@ extension TOTPEditFormController {
     _ name: String
   ) {
     self.resourceEditForm
-      .update(\.meta.name, to: name)
+      .update(\.nameField, to: name)
   }
 
   internal final func setURIField(

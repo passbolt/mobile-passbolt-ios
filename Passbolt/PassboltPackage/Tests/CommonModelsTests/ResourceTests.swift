@@ -78,7 +78,7 @@ final class ResourceTests: XCTestCase {
       )
     )
     resource.meta.name = "name"
-    XCTAssertEqual(resource.meta.name.stringValue, "name")
+    XCTAssertEqual(resource.name, "name")
     resource.secret.nested.secret = "$3crEt"
     XCTAssertEqual(resource.secret.nested.secret, "$3crEt")
     // updating fields out of specifications is allowed
@@ -236,8 +236,8 @@ final class ResourceTests: XCTestCase {
     )
     resource.secret = "initial"
     XCTAssertEqual(resource.secret, "initial")
-    XCTAssertEqual(resource.secretFields.count, 1)
-    resource[keyPath: resource.secretFields.first!.path] = "edited with path"
+    XCTAssertEqual(resource.fields.filter(\.encrypted).count, 1)
+    resource[keyPath: resource.fields.filter(\.encrypted).first!.path] = "edited with path"
     XCTAssertEqual(resource.secret, "edited with path")
     resource.secret = "final"
     XCTAssertEqual(resource[keyPath: \.secret], "final")

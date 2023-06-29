@@ -478,7 +478,7 @@ Contact your administrator for more information.";
 "error.resource.field.range.greater" = "%@ has to be greater than %d!";
 "error.resource.field.content.invalid" = "%@ has invalid content!";
 "error.resource.field.selection.invalid" = "%@ has to be one of the valid options!";
-"error.resource.field.unknown" = "%@ is not expected!";
+"error.resource.field.unknown" = "Unknown fields are not expected!";
 
 // Home - presentation mode menu
 

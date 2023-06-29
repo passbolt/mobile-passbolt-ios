@@ -32,14 +32,11 @@ public struct Resource {
     public typealias ID = Tagged<PassboltID, Self>
   }
 
-  public typealias FieldPath = WritableKeyPath<Resource, JSON>
-  public typealias _FieldPath = KeyPath<Resource, JSON>
+  public typealias FieldPath = ResourceType.ComputedFieldPath
 
   public let id: Resource.ID?  // none is local, not synchronized resource
+  public private(set) var type: ResourceType
   public var path: OrderedSet<ResourceFolderPathItem>
-  public var type: ResourceType {
-    didSet { self.updateCaches() }
-  }
   public var favoriteID: Resource.Favorite.ID?
   public var permission: Permission
   public var permissions: OrderedSet<ResourcePermission>
@@ -47,12 +44,6 @@ public struct Resource {
   public let modified: Timestamp?  // local resources does not have modified date
   public var meta: JSON
   public var secret: JSON  // null means that secret was not fetched yet as it is requested and filled separately
-
-  // Private caches for accessing common elements without traversing
-  // the whole resource specification
-  private var flattenedFields: Dictionary<_FieldPath, ResourceFieldSpecification>
-  private var metaPaths: Set<_FieldPath>
-  private var secretPaths: Set<_FieldPath>
 
   public init(
     id: Resource.ID? = .none,
@@ -76,19 +67,7 @@ public struct Resource {
     self.modified = modified
     self.meta = meta
     self.secret = secret
-    self.flattenedFields = .init()
-    self.metaPaths = .init()
-    self.secretPaths = .init()
-    self.updateCaches()
-    if case .none = id {
-      // no ID means that it is local resource,
-      // in order to have a proper initial state
-      // we have to initialize all fields
-      // the most important is to provide non null
-      // secret to avoid treating this resource
-      // as one without secret downloaded yet
-      self.initializeFields()
-    }  // else use data provided by initializer, do not modify it
+    self.initializeFieldsIfNeeded()
   }
 }
 
@@ -111,7 +90,25 @@ extension Resource: Equatable {
   }
 }
 
+// MARK: - Common info
+
 extension Resource {
+
+  // Name field is always required, we are not supporting
+  // resources without a name inside the meta.
+  public var name: String {
+    get {
+      self[keyPath: \Resource.meta.name].stringValue
+        ?? DisplayableString
+        .localized("resource")
+        .string()
+    }
+    set { self[keyPath: \Resource.meta.name] = .string(newValue) }
+  }
+
+  public var isLocal: Bool {
+    self.id == .none
+  }
 
   public var parentFolderID: ResourceFolder.ID? {
     self.path.last?.id
@@ -120,89 +117,55 @@ extension Resource {
   public var favorite: Bool {
     self.favoriteID != .none
   }
-
-  public var hasSecret: Bool {
-    self.secret != .null
-  }
-
-  public var containsUndefinedFields: Bool {
-    self.type.specification.slug == .placeholder
-      || self.allFields.contains(where: { (field: ResourceFieldSpecification) in
-        if case .undefined = field.semantics {
-          return true
-        }
-        else {
-          return false
-        }
-      })
-  }
-
-  public var containsOTP: Bool {
-    // currently only TOTP is supported and recognized only by its name
-    self.contains(\.secret.totp)
-  }
-
-  public var hasUnstructuredSecret: Bool {
-    // if there is a field straight to the secret without any nested field
-    // this is treated as special case without internal secret structure available
-    // it can be either legacy or placeholder resource where there is none structure
-    // or it was not available to parse and check,
-    // it has to be the only element in secret specification
-    self.secretPaths.count == 1 && self.secretPaths.contains(\.secret)
-  }
-
-  public var metaFields: OrderedSet<ResourceFieldSpecification> {
-    self.type.specification.metaFields
-  }
-
-  public var secretFields: OrderedSet<ResourceFieldSpecification> {
-    self.type.specification.secretFields
-  }
-
-  public var allFields: OrderedSet<ResourceFieldSpecification> {
-    self.type.specification.metaFields
-      .union(self.type.specification.secretFields)
-  }
-
-  public var allFieldsOrdered: OrderedSet<ResourceFieldSpecification> {
-    self.type.specification.metaFields
-      .union(self.type.specification.secretFields)
-      .sorted(using: ResourceFieldSpecification.Sorting())
-      .asOrderedSet()
-  }
 }
+
+// MARK: - Validation
 
 extension Resource {
 
   public func validate() throws {
-    try self.type.specification
-      .validate(
-        meta: self.meta,
-        secret: self.secret
-      )
-  }
-
-  public func validated(
-    _ path: Resource.FieldPath
-  ) -> Validated<JSON> {
-    self.validator(for: path)
-      .validate(self[keyPath: path])
+    try self.type.validate(self)
   }
 
   public func validator(
-    for path: Resource.FieldPath
+    for path: FieldPath
   ) -> Validator<JSON> {
-    self.flattenedFields[path]?.validator
-      ?? .alwaysInvalid(displayable: "error.resource.field.unknown")
+    self.type.validator(for: path)
+  }
+
+  public func validated(
+    _ path: FieldPath
+  ) -> Validated<JSON> {
+    self.type.validator(for: path)
+      .validate(self[keyPath: path])
   }
 }
 
+// MARK: - Fields
+
 extension Resource {
+
+  public var fields: OrderedSet<ResourceFieldSpecification> {
+    self.type.orderedFields
+  }
+
+  public var secretAvailable: Bool {
+    // local resource always "has secret" since all the data is local
+    self.secret != .null || self.isLocal
+  }
+
+  public var containsUndefinedFields: Bool {
+    self.type.containsUndefinedFields
+  }
+
+  public var hasUnstructuredSecret: Bool {
+    self.type.hasUnstructuredSecret
+  }
 
   public func displayableName(
     forField path: FieldPath
   ) -> DisplayableString? {
-    self.flattenedFields[path]?.name.displayable
+    self.type.displayableName(forField: path)
   }
 
   public func totpSecret(
@@ -212,70 +175,35 @@ extension Resource {
     self[keyPath: path].totpSecretValue
   }
 
-  public func metaContains(
-    _ path: FieldPath
-  ) -> Bool {
-    self.metaPaths.contains(path)
-  }
-
-  public func secretContains(
-    _ path: FieldPath
-  ) -> Bool {
-    self.secretPaths.contains(path)
-  }
-
   public func contains(
     _ path: FieldPath
   ) -> Bool {
-    self.flattenedFields.keys.contains(path)
+    self.type.contains(path)
+  }
+
+  public func isEncrypted(
+    _ path: FieldPath
+  ) -> Bool {
+    self.type.fieldSpecification(for: path)?.encrypted ?? false
   }
 
   public func fieldSpecification(
-    for path: _FieldPath
+    for path: FieldPath
   ) -> ResourceFieldSpecification? {
-    switch path {
-    case \.firstPassword:
-      // \.firstPassword is a helper path to find a field by its semantics
-      // (it will also work for legacy - secret is password)
-      return self.allFieldsOrdered
-        .first(where: { specification in
-          if case .password = specification.semantics {
-            return true
-          }
-          else {
-            return false
-          }
-        })
-
-    case \.firstTOTP:
-      // \.firstTOTP is a helper path to find a field by its semantics
-      return self.allFieldsOrdered
-        .first(where: { specification in
-          if case .totp = specification.semantics {
-            return true
-          }
-          else {
-            return false
-          }
-        })
-
-    case \.description:
-      // can't guess which description it will be,
-      // proritizing encrypted one, description has a special handling
-      return self.flattenedFields[\.secret.description]
-        ?? self.flattenedFields[\.meta.description]
-
-    case _:
-      return self.flattenedFields[path]
-    }
+    self.type.fieldSpecification(for: path)
   }
+}
+
+// MARK: - Updates
+
+extension Resource {
 
   @discardableResult
   public mutating func update(
     _ field: FieldPath,
     to value: JSON
   ) -> Validated<JSON> {
-    guard let specification: ResourceFieldSpecification = self.flattenedFields[field]
+    guard let specification: ResourceFieldSpecification = self.type.fieldSpecification(for: field)
     else {
       return .invalid(
         value,
@@ -292,7 +220,7 @@ extension Resource {
     // try to auto convert if able
     switch specification.content {
     case .string, .stringEnum, .structure:
-      self[keyPath: field] = value
+      self[keyPath: specification.path] = value
       return specification.validator.validate(value)
 
     case .int:
@@ -300,16 +228,16 @@ extension Resource {
       case .string(let string):
         if let integer: Int = Int(string) {
           let convertedValue: JSON = .integer(integer)
-          self[keyPath: field] = convertedValue
+          self[keyPath: specification.path] = convertedValue
           return specification.validator.validate(convertedValue)
         }
         else {
-          self[keyPath: field] = value
+          self[keyPath: specification.path] = value
           return specification.validator.validate(value)
         }
 
       case _:
-        self[keyPath: field] = value
+        self[keyPath: specification.path] = value
         return specification.validator.validate(value)
       }
 
@@ -318,53 +246,76 @@ extension Resource {
       case .string(let string):
         if let float: Double = Double(string) {
           let convertedValue: JSON = .float(float)
-          self[keyPath: field] = convertedValue
+          self[keyPath: specification.path] = convertedValue
           return specification.validator.validate(convertedValue)
         }
         else {
-          self[keyPath: field] = value
+          self[keyPath: specification.path] = value
           return specification.validator.validate(value)
         }
 
       case _:
-        self[keyPath: field] = value
+        self[keyPath: specification.path] = value
         return specification.validator.validate(value)
       }
     }
   }
+
+  public mutating func updateType(
+    to resourceType: ResourceType
+  ) throws {
+    guard self.type != resourceType else { return }  // no need to update
+		guard !self.type.containsUndefinedFields
+		else { // can't update properly if current type has undefined fields
+			throw InvalidResourceType.error(
+				message: "Attempting to update a resource which has a type containing undefined fields!"
+			)
+		}
+    guard !resourceType.containsUndefinedFields
+    else { // can't update properly if updated type has undefined fields
+      throw InvalidResourceType.error(
+        message: "Attempting to update a resource type to a type containing undefined fields!"
+      )
+    }
+
+    // remove fields that were in the old one but are not present in new one
+    let newFields: Dictionary<ResourceType.ComputedFieldPath, ResourceFieldSpecification>.Values = resourceType
+      .flattenedFields.values
+    let removedFields: Array<ResourceFieldSpecification> = self.type.flattenedFields.values.filter {
+      !newFields.contains($0)
+    }
+    for field in removedFields {
+      #warning("To verify - this should not leave any junk values!")
+      self[keyPath: field.path].remove()
+    }
+    // assign new type and initialize fields if needed
+    self.type = resourceType
+    self.initializeFieldsIfNeeded()
+  }
 }
 
+// MARK: - Computed fields
+
+// NOTE: all computed resource fields have to be read only and supported
+// inside resource type, it won't work otherwise, resource fields
+// have to return JSON, otherwise it won't be counted as actual resource
+// fields (it will be plain computed properties on Resource type, not
+// a passbolt resource fields)
 extension Resource {
 
-  public var isLocal: Bool {
-    self.id == .none
+  // Name field is always required, we are not supporting
+  // resources without a name inside the meta.
+  public var nameField: JSON {
+    self[keyPath: \Resource.meta.name]
   }
 
   public var hasPassword: Bool {
-    self.allFields
-      .contains(where: { specification in
-        if case .password = specification.semantics {
-          return true
-        }
-        else {
-          return false
-        }
-      })
+    self.firstPasswordPath != nil
   }
 
   // Note it will return nil if there is no password field
-  // or if it is encrypted and secret part is not fetched
   public var firstPasswordPath: FieldPath? {
-    self.allFieldsOrdered
-      .first(where: { specification in
-        if case .password = specification.semantics {
-          return true
-        }
-        else {
-          return false
-        }
-      })?
-      .path
+    self.type.fieldSpecification(for: \.firstPassword)?.path
   }
 
   // Note it will return nil if there is no password field
@@ -385,30 +336,12 @@ extension Resource {
   }
 
   public var hasTOTP: Bool {
-    self.allFields
-      .contains(where: { specification in
-        if case .totp = specification.semantics {
-          return true
-        }
-        else {
-          return false
-        }
-      })
+    self.type.fieldSpecification(for: \.firstTOTP) != nil
   }
 
   // Note it will return nil if there is no totp field
-  // or if it is encrypted and secret part is not fetched
   public var firstTOTPPath: FieldPath? {
-    self.allFieldsOrdered
-      .first(where: { specification in
-        if case .totp = specification.semantics {
-          return true
-        }
-        else {
-          return false
-        }
-      })?
-      .path
+    self.type.fieldSpecification(for: \.firstTOTP)?.path
   }
 
   // Note it will return nil if there is no totp field
@@ -429,40 +362,25 @@ extension Resource {
   }
 
   public var hasEncryptedDescription: Bool {
-    // description can be unencrypted or not exist at all
-    // knowing if it is encrypted is quite important
-    // and allows to quickly find proper value path to get its value
-    self.secretFields
-      .contains(where: { specification in
-        if specification.path == \.secret.description {
-          return true
-        }
-        else {
-          return false
-        }
-      })
+    self.type.fieldSpecification(for: \.description)?.encrypted ?? false
   }
 
-  // Note it will return nil if there is no such field
+  // Note it will return nil if there is no description field
+  public var descriptionPath: FieldPath? {
+    self.type.fieldSpecification(for: \.description)?.path
+  }
+
+  // Note it will return nil if there is no description field
   // or if it is encrypted and secret part is not fetched
   public var descriptionString: String? {
     self.description.stringValue
   }
 
-  // Note it will return null if there is no such field
+  // Note it will return null if there is no description field
   // or if it is encrypted and secret part is not fetched
   public var description: JSON {
-    let descriptionField: ResourceFieldSpecification? = self.allFields
-      .first(where: { specification in
-        // description has a bit of special handling
-        // yet we can't easily find it, the only way
-        // is to match exact path (either in meta or secret)
-        specification.path == \.secret.description
-          || specification.path == \.meta.description
-      })
-
-    if let descriptionField {
-      return self[keyPath: descriptionField.path]
+    if let path: FieldPath = self.descriptionPath {
+      return self[keyPath: path]
     }
     else {
       return .null
@@ -470,61 +388,24 @@ extension Resource {
   }
 }
 
+// MARK: - internal
+
 extension Resource {
-
-  private mutating func updateCaches() {
-    func paths(
-      for field: ResourceFieldSpecification
-    ) -> Set<Resource.FieldPath> {
-      var result: Set<Resource.FieldPath> = [field.path]
-      if case .structure(let nestedFields) = field.content {
-        for field in nestedFields {
-          result.formUnion(paths(for: field))
-        }
-        return result
-      }
-      else {
-        return result
-      }
-    }
-
-    func fields(
-      for field: ResourceFieldSpecification
-    ) -> Dictionary<Resource.FieldPath, ResourceFieldSpecification> {
-      var result: Dictionary<Resource.FieldPath, ResourceFieldSpecification> = [field.path: field]
-      if case .structure(let nestedFields) = field.content {
-        for field in nestedFields {
-          result.merge(fields(for: field), uniquingKeysWith: { $1 })
-        }
-        return result
-      }
-      else {
-        return result
-      }
-    }
-
-    self.flattenedFields.removeAll(keepingCapacity: true)
-    self.metaPaths.removeAll(keepingCapacity: true)
-    self.secretPaths.removeAll(keepingCapacity: true)
-    for field in self.metaFields {
-      self.metaPaths.formUnion(paths(for: field))
-      self.flattenedFields.merge(fields(for: field), uniquingKeysWith: { $1 })
-    }
-
-    for field in self.secretFields {
-      self.secretPaths.formUnion(paths(for: field))
-      self.flattenedFields.merge(fields(for: field), uniquingKeysWith: { $1 })
-    }
-  }
 
   // Initialize fields is required for creating new instances
   // of resources in order to have a proper fields structure
-  // inside JSON representation
-  private mutating func initializeFields() {
-    // initializing fields to null seems to be
-    // unnecessary but it is required to initialize
-    // a proper structure inside JSON
-    for field in self.allFields {
+  // inside JSON representation. It should not modify any data
+  // that is already provided (initialize only null fields and
+  // only if those are required) initializing fields to null
+  // seems to be unnecessary but it is required to have
+  // a proper structure inside JSON.
+  private mutating func initializeFieldsIfNeeded() {
+    for field in self.fields where self[keyPath: field.path] == .null {
+      // do not initialize secret in resources without secret
+      // unless it is local
+      guard self.isLocal || !field.encrypted || self.secretAvailable
+      else { continue }  // skip field
+
       switch field.semantics {
       case .text, .longText:
         if field.required {
@@ -549,7 +430,7 @@ extension Resource {
 
       case .totp:
         if field.required {
-					self[keyPath: field.path] = TOTPSecret().asJSON
+          self[keyPath: field.path] = TOTPSecret().asJSON
         }
         else {
           self[keyPath: field.path] = .null

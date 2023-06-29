@@ -49,7 +49,7 @@ public struct ResourceFieldSpecification {
     case structure(Array<ResourceFieldSpecification>)
   }
 
-  public let path: Resource.FieldPath
+  public let path: ResourceType.FieldPath
   public let name: ResourceFieldName
   public let content: Content
   public let required: Bool
@@ -57,7 +57,7 @@ public struct ResourceFieldSpecification {
   public let semantics: ResourceFieldSemantics
 
   public init(
-    path: Resource.FieldPath,
+    path: ResourceType.FieldPath,
     name: ResourceFieldName,
     content: Content,
     required: Bool,
@@ -149,6 +149,12 @@ extension ResourceFieldSpecification: Hashable {
 extension ResourceFieldSpecification.Content: Hashable {}
 
 extension ResourceFieldSpecification {
+
+  public var isNameField: Bool {
+    // name is required and has special handling
+    // it is the easiest way to identify it
+    self.path == \.meta.name
+  }
 
   public var validator: Validator<JSON> {
     .init(validate: self.validate(_:))
@@ -336,28 +342,6 @@ extension ResourceFieldSpecification {
         try fieldSpecification
           .validate(fieldJSON)
       }
-    }
-  }
-
-  internal func specification(
-    for path: Resource.FieldPath
-  ) -> ResourceFieldSpecification? {
-    if self.path == path {
-      return self
-    }
-    else if case .structure(let fields) = self.content {
-      for field in fields {
-        if let match: Self = field.specification(for: path) {
-          return match
-        }
-        else {
-          continue
-        }
-      }
-      return .none
-    }
-    else {
-      return .none
     }
   }
 }

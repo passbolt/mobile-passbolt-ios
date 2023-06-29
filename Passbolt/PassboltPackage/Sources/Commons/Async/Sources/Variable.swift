@@ -47,9 +47,9 @@ where DataType: Sendable {
   }
 
   public func mutate<Returned>(
-    _ mutation: (inout DataType) -> Returned
-  ) -> Returned {
+    _ mutation: (inout DataType) throws -> Returned
+  ) rethrows -> Returned {
     defer { self.updatesSource.sendUpdate() }
-    return self.storage.access(mutation)
+    return try self.storage.access(mutation)
   }
 }
