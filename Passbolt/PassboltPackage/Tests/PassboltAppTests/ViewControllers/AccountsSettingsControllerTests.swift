@@ -46,7 +46,7 @@ final class AccountsSettingsControllerTests: FeaturesTestCase {
       with: always(self.mockExecuted())
     )
     await withInstance(
-      of: AccountsSettingsController.self,
+      of: AccountsSettingsViewController.self,
       mockExecuted: 1
     ) { feature in
       await feature.navigateToAccountExport()
@@ -60,7 +60,7 @@ final class AccountsSettingsControllerTests: FeaturesTestCase {
       with: always(self.mockExecuted())
     )
     await withInstance(
-      of: AccountsSettingsController.self,
+      of: AccountsSettingsViewController.self,
       mockExecuted: 1
     ) { feature in
       await feature.navigateToManageAccounts()

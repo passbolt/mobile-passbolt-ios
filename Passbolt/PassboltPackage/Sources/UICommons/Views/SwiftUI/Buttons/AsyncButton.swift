@@ -27,24 +27,29 @@ public struct AsyncButton<RegularView, LoadingView>: View
 where RegularView: View, LoadingView: View {
 
   @State private var runningTask: Task<Void, Never>?
+  private let role: ButtonRole?
   private let action: () async -> Void
   private let regularLabel: () -> RegularView
   private let loadingLabel: () -> LoadingView
 
   public init(
+    role: ButtonRole? = .none,
     @_inheritActorContext action: @escaping () async -> Void,
     @ViewBuilder regularLabel: @escaping () -> RegularView,
     @ViewBuilder loadingLabel: @escaping () -> LoadingView
   ) {
+    self.role = role
     self.action = action
     self.regularLabel = regularLabel
     self.loadingLabel = loadingLabel
   }
 
   public init(
+    role: ButtonRole? = .none,
     @_inheritActorContext action: @escaping () async -> Void,
     @ViewBuilder regularLabel: @escaping () -> RegularView
   ) where LoadingView == EmptyView {
+    self.role = role
     self.action = action
     self.regularLabel = regularLabel
     self.loadingLabel = EmptyView.init
@@ -52,6 +57,7 @@ where RegularView: View, LoadingView: View {
 
   public var body: some View {
     Button(
+      role: self.role,
       action: {
         if case .none = self.runningTask {
           self.runningTask = .detached { @MainActor [action] () async -> Void in

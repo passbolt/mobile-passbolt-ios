@@ -58,7 +58,6 @@ extension ResourceUserGroupsExplorerController: ComponentController {
     let features: Features = features
     let currentAccount: Account = try features.sessionAccount()
 
-    let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
 
     let navigationToAccountMenu: NavigationToAccountMenu = try features.instance()
@@ -149,7 +148,7 @@ extension ResourceUserGroupsExplorerController: ComponentController {
           .refreshIfNeeded()
       }
       catch {
-        diagnostics.log(error: error)
+        Diagnostics.log(error: error)
         viewState.snackBarMessage = .error(error.asTheError().displayableMessage)
       }
     }
@@ -239,8 +238,8 @@ extension ResourceUserGroupsExplorerController: ComponentController {
 
     @MainActor func presentAccountMenu() {
       asyncExecutor.schedule(.reuse) {
-        await diagnostics
-          .withLogCatch(
+        await Diagnostics
+          .logCatch(
             info: .message(
               "Navigation to account menu failed!"
             )

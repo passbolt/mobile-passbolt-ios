@@ -67,7 +67,6 @@ extension AuthorizationController: UIController {
     let accountPreferences: AccountPreferences = try features.instance(context: context)
     let session: Session = try features.instance()
     let biometry: OSBiometry = features.instance()
-    let diagnostics: OSDiagnostics = features.instance()
 
     let passphraseSubject: CurrentValueSubject<String, Never> = .init("")
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
@@ -150,13 +149,13 @@ extension AuthorizationController: UIController {
               )
             )
             do {
-              diagnostics.log(diagnostic: "Updating account profile data...")
+              Diagnostics.log(diagnostic: "Updating account profile data...")
               try await accountDetails.updateProfile()
-              diagnostics.log(diagnostic: "...account profile data updated!")
+              Diagnostics.log(diagnostic: "...account profile data updated!")
             }
             catch {
-              diagnostics.log(error: error)
-              diagnostics.log(diagnostic: "...account profile data update failed!")
+              Diagnostics.log(error: error)
+              Diagnostics.log(diagnostic: "...account profile data update failed!")
             }
             return false
           }
@@ -167,7 +166,7 @@ extension AuthorizationController: UIController {
             throw error
           }
         }
-        .collectErrorLog(using: diagnostics)
+        .collectErrorLog(using: Diagnostics.shared)
         .handleErrors { error in
           switch error {
           case is HTTPNotFound:
@@ -187,13 +186,13 @@ extension AuthorizationController: UIController {
               .biometrics(account)
             )
           do {
-            diagnostics.log(diagnostic: "Updating account profile data...")
+            Diagnostics.log(diagnostic: "Updating account profile data...")
             try await accountDetails.updateProfile()
-            diagnostics.log(diagnostic: "...account profile data updated!")
+            Diagnostics.log(diagnostic: "...account profile data updated!")
           }
           catch {
-            diagnostics.log(error: error)
-            diagnostics.log(diagnostic: "...account profile data update failed!")
+            Diagnostics.log(error: error)
+            Diagnostics.log(diagnostic: "...account profile data update failed!")
           }
           return false
         }
@@ -204,7 +203,7 @@ extension AuthorizationController: UIController {
           throw error
         }
       }
-      .collectErrorLog(using: diagnostics)
+      .collectErrorLog(using: Diagnostics.shared)
       .handleErrors { error in
         switch error {
         case is HTTPNotFound:

@@ -26,7 +26,7 @@ import CommonModels
 extension Publisher {
 
   public func collectErrorLog(
-    using diagnostics: OSDiagnostics
+    using diagnostics: Diagnostics
   ) -> Publishers.HandleEvents<Self> {
     self.handleEvents(
       receiveCompletion: { (completion: Subscribers.Completion<Self.Failure>) -> Void in
@@ -53,7 +53,7 @@ extension Publisher {
 
   public func collectValueLog(
     withPrefix prefix: StaticString = "Received:",
-    using diagnostics: OSDiagnostics
+    using diagnostics: Diagnostics
   ) -> AnyPublisher<Output, Failure> {
     #if DEBUG
     handleEvents(receiveOutput: { output in
@@ -70,7 +70,7 @@ extension Publisher {
 
   public func collectCancelationLog(
     withPrefix prefix: StaticString = "Canceled",
-    using diagnostics: OSDiagnostics
+    using diagnostics: Diagnostics
   ) -> AnyPublisher<Output, Failure> {
     #if DEBUG
     handleEvents(receiveCancel: {

@@ -60,7 +60,7 @@ extension HelpMenuController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
+
     let linkOpener: OSLinkOpener = features.instance()
 
     let logsPresentationSubject: PassthroughSubject<Void, Never> = .init()
@@ -101,7 +101,7 @@ extension HelpMenuController: UIController {
               .openURL("https://help.passbolt.com")
           }
           catch {
-            diagnostics.log(error: error)
+            Diagnostics.log(error: error)
           }
         }
         .eraseToAnyPublisher()

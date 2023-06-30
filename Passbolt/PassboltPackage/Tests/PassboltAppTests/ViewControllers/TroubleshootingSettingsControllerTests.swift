@@ -46,7 +46,7 @@ final class TroubleshootingSettingsControllerTests: FeaturesTestCase {
       with: always(self.mockExecuted())
     )
     await withInstance(
-      of: TroubleshootingSettingsController.self,
+      of: TroubleshootingSettingsViewController.self,
       mockExecuted: 1
     ) { feature in
       await feature.navigateToLogs()
@@ -60,7 +60,7 @@ final class TroubleshootingSettingsControllerTests: FeaturesTestCase {
       with: always(self.mockExecuted())
     )
     await withInstance(
-      of: TroubleshootingSettingsController.self,
+      of: TroubleshootingSettingsViewController.self,
       mockExecuted: 1
     ) { feature in
       await feature.navigateToHelpSite()

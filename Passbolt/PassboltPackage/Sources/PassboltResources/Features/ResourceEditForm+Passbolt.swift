@@ -49,8 +49,6 @@ extension ResourceEditForm {
       of: ResourceEditScope.self
     )
 
-    let diagnostics: OSDiagnostics = features.instance()
-
     let sessionData: SessionData = try features.instance()
     let usersPGPMessages: UsersPGPMessages = try features.instance()
 
@@ -86,7 +84,7 @@ extension ResourceEditForm {
         try resource.validate()
       }
       catch {
-        diagnostics.log(error: error)
+        Diagnostics.log(error: error)
         throw
           InvalidForm
           .error(displayable: "resource.form.error.invalid")
@@ -132,7 +130,7 @@ extension ResourceEditForm {
         catch {
           // we don't want to fail sending form when refreshing data fails
           // but if we can't access updated data then it seemes to be an issue
-          diagnostics.log(error: error)
+          Diagnostics.log(error: error)
           throw error
         }
       }
@@ -258,7 +256,7 @@ extension ResourceEditForm {
         catch {
           // we don't want to fail sending form when refreshing data fails
           // but if we can't access updated data then it seemes to be an issue
-          diagnostics.log(error: error)
+          Diagnostics.log(error: error)
           throw error
         }
       }

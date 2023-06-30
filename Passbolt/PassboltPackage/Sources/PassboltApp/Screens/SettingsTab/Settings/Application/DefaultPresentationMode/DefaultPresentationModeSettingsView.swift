@@ -25,81 +25,102 @@ import Display
 
 internal struct DefaultPresentationModeSettingsView: ControlledView {
 
-  private let controller: DefaultPresentationModeSettingsController
+  private let controller: DefaultPresentationModeSettingsViewController
 
   internal init(
-    controller: DefaultPresentationModeSettingsController
+    controller: DefaultPresentationModeSettingsViewController
   ) {
     self.controller = controller
   }
 
   internal var body: some View {
     ScreenView(
-      titleIcon: .filter,
-      title: .localized(
-        key: "settings.application.default.mode.title"
-      ),
+      title: "settings.application.default.mode.title",
       contentView: {
-        WithViewState(from: self.controller) { (state) in
-          List {
-            ListRowView(
-              title: .localized(
-                key: "settings.application.default.mode.option.last.used.title"
-              ),
-              leftAccessory: {
-                Image(named: .filter)
-                  .frame(width: 20, height: 20)
-                  .padding(4)
-              },
-              contentAction: {
-                self.controller.selectMode(.none)
-              },
-              rightAccessory: {
-                Image(
-                  named: state.selectedMode == .none
-                    ? .circleSelected
-                    : .circleUnselected
-                )
-                .frame(width: 20, height: 20)
-                .padding(4)
-                .foregroundColor(
-                  state.selectedMode == .none
-                    ? .passboltPrimaryBlue
-                    : .passboltIcon
-                )
-              }
-            )
-            ForEach(state.availableModes) { mode in
-              ListRowView(
-                title: mode.title,
-                leftAccessory: {
-                  Image(named: mode.iconName)
-                    .frame(width: 20, height: 20)
-                    .padding(4)
-                },
-                contentAction: {
-                  self.controller.selectMode(mode)
-                },
-                rightAccessory: {
-                  Image(
-                    named: state.selectedMode == mode
-                      ? .circleSelected
-                      : .circleUnselected
-                  )
-                  .frame(width: 20, height: 20)
-                  .padding(4)
-                  .foregroundColor(
-                    state.selectedMode == mode
-                      ? .passboltPrimaryBlue
-                      : .passboltIcon
-                  )
-                }
-              )
-            }
-          }
-          .listStyle(.plain)
-        }
+        self.content
       }
     )
+  }
+
+  @ViewBuilder @MainActor private var content: some View {
+    CommonPlainList {
+      WithViewState(from: self.controller) { (state) in
+        CommonListRow(
+          contentAction: {
+            await self.controller.selectMode(.none)
+          },
+          content: {
+            HStack(spacing: 8) {
+              Image(named: .filter)
+                .frame(width: 20, height: 20)
+                .padding(4)
+
+              Text(displayable: "settings.application.default.mode.option.last.used.title")
+                .text(
+                  font: .inter(
+                    ofSize: 14,
+                    weight: .semibold
+                  ),
+                  color: .passboltPrimaryText
+                )
+            }
+            .frame(height: 64)
+          },
+          accessory: {
+            Image(
+              named: state.selectedMode == .none
+                ? .circleSelected
+                : .circleUnselected
+            )
+            .frame(width: 20, height: 20)
+            .padding(4)
+            .foregroundColor(
+              state.selectedMode == .none
+                ? .passboltPrimaryBlue
+                : .passboltIcon
+            )
+          }
+        )
+
+        ForEach(state.availableModes) { mode in
+          CommonListRow(
+            contentAction: {
+              await self.controller.selectMode(mode)
+            },
+            content: {
+              HStack(spacing: 8) {
+                Image(named: mode.iconName)
+                  .frame(width: 20, height: 20)
+                  .padding(4)
+
+                Text(displayable: mode.title)
+                  .text(
+                    font: .inter(
+                      ofSize: 14,
+                      weight: .semibold
+                    ),
+                    color: .passboltPrimaryText
+                  )
+              }
+              .frame(height: 64)
+            },
+            accessory: {
+              Image(
+                named: state.selectedMode == mode
+                  ? .circleSelected
+                  : .circleUnselected
+              )
+              .frame(width: 20, height: 20)
+              .padding(4)
+              .foregroundColor(
+                state.selectedMode == mode
+                  ? .passboltPrimaryBlue
+                  : .passboltIcon
+              )
+            }
+          )
+        }
+      }
+    }
   }
 }

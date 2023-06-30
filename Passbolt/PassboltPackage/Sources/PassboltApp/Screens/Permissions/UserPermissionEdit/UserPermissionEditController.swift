@@ -52,7 +52,6 @@ extension UserPermissionEditController: ComponentController {
   ) throws -> Self {
     let features: Features = features
 
-    let diagnostics: OSDiagnostics = features.instance()
     let navigation: DisplayNavigation = try features.instance()
     let userDetails: UserDetails = try features.instance(context: context.permissionDetails.id)
     let resourceShareForm: ResourceShareForm = try features.instance(context: context.resourceID)

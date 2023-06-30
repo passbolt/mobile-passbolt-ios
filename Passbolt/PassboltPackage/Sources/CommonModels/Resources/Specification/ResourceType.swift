@@ -273,7 +273,7 @@ extension ResourceType {
     for fieldSpecification in self.specification.metaFields {
       try fieldSpecification.validate(resource.meta[dynamicMember: fieldSpecification.name.rawValue])
     }
-		if !resource.secretAvailable {
+    if !resource.secretAvailable {
       // skip secret validation if there is no secret
     }
     else if self.specification.secretFields.count == 1, let fieldSpecification = self.specification.secretFields.first,

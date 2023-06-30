@@ -21,42 +21,51 @@
 // @since         v1.0
 //
 
-import SwiftUI
+import Display
+import UICommons
 
-public final class AnyViewStateSource<ViewState>: ViewStateSource
-where ViewState: Sendable {
+internal struct TermsAndLicensesView: ControlledView {
 
-  public var objectWillChange: ObservableObjectPublisher { self.source.objectWillChange }
-  public var updates: Updates { self.source.updates }
+  private let controller: TermsAndLicensesViewController
 
-  public let source: any ViewStateSource<ViewState>
-
-  public init<Source>(
-    erasing source: Source
-  ) where Source: ViewStateSource, Source.ViewState == ViewState {
-    self.source = source
+  internal init(
+    controller: TermsAndLicensesViewController
+  ) {
+    self.controller = controller
   }
 
-  @MainActor public var state: ViewState {
-    @inlinable get { self.source.state }
+  internal var body: some View {
+    ScreenView(
+      title: "settings.terms.and.licenses.title",
+      contentView: {
+        WithSnackBarMessage(from: self.controller) {
+          self.content
+        }
+      }
+    )
   }
 
-  @inlinable
-  @MainActor public func binding<Value>(
-    to keyPath: WritableKeyPath<ViewState, Value>
-  ) -> Binding<Value> {
-    self.source.binding(to: keyPath)
-  }
+  @ViewBuilder @MainActor private var content: some View {
+    CommonPlainList {
+      SettingsActionRowView(
+        icon: .info,
+        title: "settings.terms.and.licenses.item.terms.title",
+        navigation: self.controller.navigateToTermsAndConditions
+      )
+      .enabled(self.controller.termsAndConditionsLinkAvailable)
 
-  @inlinable
-  @MainActor public func forceUpdate() {
-    self.source.forceUpdate()
-  }
-}
+      SettingsActionRowView(
+        icon: .lockedLock,
+        title: "settings.terms.and.licenses.item.privacy.title",
+        navigation: self.controller.navigateToPrivacyPolicy
+      )
+      .enabled(self.controller.privacyPolicyLinkAvailable)
 
-extension ViewStateSource {
-
-  public func asAnyViewStateSource() -> AnyViewStateSource<ViewState> {
-    self as? AnyViewStateSource<ViewState> ?? .init(erasing: self)
+      SettingsActionRowView(
+        icon: .feather,
+        title: "settings.terms.and.licenses.item.licenses.title",
+        navigation: self.controller.navigateToLicenses
+      )
+    }
   }
 }

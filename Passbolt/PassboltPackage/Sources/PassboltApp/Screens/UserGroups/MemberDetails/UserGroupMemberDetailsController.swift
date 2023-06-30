@@ -41,7 +41,7 @@ extension UserGroupMemberDetailsController: ComponentController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
+
     let users: Users = try features.instance()
 
     func userAvatarImageFetch(
@@ -52,7 +52,7 @@ extension UserGroupMemberDetailsController: ComponentController {
           return try await users.userAvatarImage(userID)
         }
         catch {
-          diagnostics.log(error: error)
+          Diagnostics.log(error: error)
           return nil
         }
       }

@@ -53,6 +53,25 @@ where Content: View, Accessory: View {
     self.accessory = EmptyView.init
   }
 
+  public init(
+    label: DisplayableString,
+    contentAction: (@MainActor () async -> Void)? = .none
+  ) where Content == Text, Accessory == EmptyView {
+    self.contentAction = contentAction
+    self.content = {
+      Text(displayable: label)
+        .text(
+          font: .inter(
+            ofSize: 14,
+            weight: .semibold
+          ),
+          color: .passboltPrimaryText
+        )
+    }
+    self.accessoryAction = .none
+    self.accessory = EmptyView.init
+  }
+
   public var body: some View {
     if let contentAction, let accessoryAction {
       HStack(spacing: 8) {

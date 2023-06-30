@@ -36,7 +36,7 @@ internal final class ResourcePermissionsDetailsViewController: ViewController {
     internal var snackBarMessage: SnackBarMessage?
   }
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: ViewStateVariable<ViewState>
 
   private let navigationToSelf: NavigationToResourcePermissionsDetails
 
@@ -44,7 +44,6 @@ internal final class ResourcePermissionsDetailsViewController: ViewController {
   private let users: Users
   private let legacyNavigation: DisplayNavigation
 
-  private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
 
   private let resourceID: Resource.ID
@@ -58,7 +57,6 @@ internal final class ResourcePermissionsDetailsViewController: ViewController {
 
     self.navigationToSelf = try features.instance()
 
-    self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
 
     self.resourceController = try features.instance()
@@ -78,8 +76,8 @@ internal final class ResourcePermissionsDetailsViewController: ViewController {
 extension ResourcePermissionsDetailsViewController {
 
   @Sendable internal func activate() async {
-    await self.diagnostics
-      .withLogCatch(
+    await Diagnostics
+      .logCatch(
         info: .message("Resource permissions details updates broken!"),
         fallback: { _ in
           try? await self.navigationToSelf.revert()

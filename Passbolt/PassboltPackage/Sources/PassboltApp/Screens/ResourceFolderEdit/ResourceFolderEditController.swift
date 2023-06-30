@@ -29,9 +29,8 @@ import Users
 
 internal final class ResourceFolderEditController: ViewController {
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: ViewStateVariable<ViewState>
 
-  private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
   private let navigation: DisplayNavigation
   private let users: Users
@@ -51,7 +50,6 @@ internal final class ResourceFolderEditController: ViewController {
     self.context = context
     self.features = features
 
-    self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
     self.navigation = try features.instance()
     self.users = try features.instance()
@@ -70,13 +68,11 @@ internal final class ResourceFolderEditController: ViewController {
       users: users
     )
     self.viewState = .init(
-      initial: initialState,
-      extendingLifetimeOf: features
+      initial: initialState
     )
 
     self.asyncExecutor.scheduleIteration(
       over: self.resourceFolderEditForm.updates,
-      catchingWith: self.diagnostics,
       failMessage: "Updates broken!"
     ) { [viewState, users, resourceFolderEditForm] (_) in
       await viewState.update { viewState in

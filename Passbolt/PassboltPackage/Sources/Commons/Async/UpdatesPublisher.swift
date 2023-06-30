@@ -29,12 +29,13 @@ public final class UpdatesPublisher: ConnectablePublisher {
   public typealias Failure = Never
 
   private let subject: CurrentValueSubject<Void, Failure> = .init(Void())
-  private let updates: Updates
+  private let iteratorNext: () async -> Void?
 
   @usableFromInline internal init(
     for updates: Updates
   ) {
-    self.updates = updates
+    var local: Updates = updates
+    self.iteratorNext = { await local.next() }
   }
 
   public func receive<S>(
@@ -46,8 +47,8 @@ public final class UpdatesPublisher: ConnectablePublisher {
 
   public func connect() -> Cancellable {
     let task: Task<Void, Never> = .init {
-      for await element: Output in self.updates {
-        self.subject.send(element)
+      while case .some = await self.iteratorNext() {
+        self.subject.send(Void())
       }
       self.subject.send(completion: .finished)
     }

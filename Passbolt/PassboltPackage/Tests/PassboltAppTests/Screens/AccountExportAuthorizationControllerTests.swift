@@ -75,7 +75,7 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
         passphrase: .valid(""),
         snackBarMessage: .none
       ),
-      tested.viewState.value
+      tested.viewState.state
     )
   }
 
@@ -97,7 +97,7 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
 
     XCTAssertEqual(
       .unavailable,
-      tested.viewState.value.biometricsAvailability
+      tested.viewState.state.biometricsAvailability
     )
   }
 
@@ -119,7 +119,7 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
 
     XCTAssertEqual(
       .faceID,
-      tested.viewState.value.biometricsAvailability
+      tested.viewState.state.biometricsAvailability
     )
   }
 
@@ -132,7 +132,7 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
     tested.setPassphrase("updated_passphrase")
     XCTAssertEqual(
       "updated_passphrase",
-      tested.viewState.value.passphrase.value.rawValue
+      tested.viewState.state.passphrase.value.rawValue
     )
   }
 
@@ -145,7 +145,7 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
     tested.setPassphrase("valid_passphrase")
     XCTAssertEqual(
       Validated<Passphrase>.valid("valid_passphrase"),
-      tested.viewState.value.passphrase
+      tested.viewState.state.passphrase
     )
 
     tested.setPassphrase("")
@@ -162,7 +162,7 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
               )
             )
         ),
-      tested.viewState.value.passphrase
+      tested.viewState.state.passphrase
     )
   }
 
@@ -179,7 +179,7 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
 
     XCTAssertEqual(
       SnackBarMessage.error(.testMessage()),
-      tested.viewState.value.snackBarMessage
+      tested.viewState.state.snackBarMessage
     )
   }
 
@@ -196,7 +196,7 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
     await self.asyncExecutionControl.executeAll()
 
     XCTAssertNil(
-      tested.viewState.value.snackBarMessage
+      tested.viewState.state.snackBarMessage
     )
 
     // Temporary fix for pending tasks on queue, will be removed after using proper navigation
@@ -224,7 +224,7 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
             key: "authorization.passphrase.error"
           )
         ),
-      tested.viewState.value.snackBarMessage
+      tested.viewState.state.snackBarMessage
     )
   }
 
@@ -245,7 +245,7 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
 
     XCTAssertEqual(
       SnackBarMessage.error(.testMessage()),
-      tested.viewState.value.snackBarMessage
+      tested.viewState.state.snackBarMessage
     )
   }
 
@@ -263,7 +263,7 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
     await self.asyncExecutionControl.executeAll()
 
     XCTAssertNil(
-      tested.viewState.value.snackBarMessage
+      tested.viewState.state.snackBarMessage
     )
 
     // Temporary fix for pending tasks on queue, will be removed after using proper navigation

@@ -21,17 +21,15 @@
 // @since         v1.0
 //
 
-import Accounts
 import Display
 import FeatureScopes
 import OSFeatures
 
-internal final class AccountsSettingsController: ViewController {
+internal final class TroubleshootingSettingsViewController: ViewController {
 
-  private let diagnostics: OSDiagnostics
-  private let asyncExecutor: AsyncExecutor
-  private let navigationToManageAccounts: NavigationToManageAccounts
-  private let navigationToAccountExport: NavigationToAccountExport
+  internal let messageState: ViewStateVariable<SnackBarMessage?>
+  private let linkOpener: OSLinkOpener
+  private let navigationToLogs: NavigationToLogs
 
   internal init(
     context: Void,
@@ -40,32 +38,27 @@ internal final class AccountsSettingsController: ViewController {
     try features.ensureScope(SettingsScope.self)
     try features.ensureScope(SessionScope.self)
 
-    self.diagnostics = features.instance()
-    self.asyncExecutor = try features.instance()
-    self.navigationToManageAccounts = try features.instance()
-    self.navigationToAccountExport = try features.instance()
+    self.linkOpener = features.instance()
+    self.navigationToLogs = try features.instance()
+
+    self.messageState = .init(initial: .none)
   }
 }
 
-extension AccountsSettingsController {
+extension TroubleshootingSettingsViewController {
 
-  internal final func navigateToManageAccounts() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
-      failMessage: "Navigation to manage accounts failed!",
-      behavior: .reuse
-    ) { [navigationToManageAccounts] in
-      try await navigationToManageAccounts.perform()
-    }
+  internal final func navigateToLogs() async {
+    await self.navigationToLogs.performCatching()
   }
 
-  internal final func navigateToAccountExport() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
-      failMessage: "Navigation to account export failed!",
-      behavior: .reuse
-    ) { [navigationToAccountExport] in
-      try await navigationToAccountExport.perform()
+  internal final func navigateToHelpSite() async {
+    await withLogCatch(
+      failInfo: "Failed to open help site!",
+      fallback: { (error: Error) async in
+        self.messageState.show(error)
+      }
+    ) {
+      try await self.linkOpener.openURL("https://help.passbolt.com/")
     }
   }
 }

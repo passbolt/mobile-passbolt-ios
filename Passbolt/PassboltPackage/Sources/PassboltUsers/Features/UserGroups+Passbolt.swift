@@ -36,7 +36,6 @@ extension UserGroups {
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
 
-    let diagnostics: OSDiagnostics = features.instance()
     let session: Session = try features.instance()
     let sessionData: SessionData = try features.instance()
     let resourceUserGroupsListFetchDatabaseOperation: ResourceUserGroupsListFetchDatabaseOperation =
@@ -58,7 +57,7 @@ extension UserGroups {
             )
           }
           catch {
-            diagnostics.log(error: error)
+            Diagnostics.log(error: error)
             userGroups = .init()
           }
 

@@ -31,11 +31,10 @@ import Users
 
 internal final class ResourceTagsListNodeController: ViewController {
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: ViewStateVariable<ViewState>
   internal var searchController: ResourceSearchDisplayController!  // lazy?
   internal var contentController: ResourceTagsListDisplayController!  // lazy?
 
-  private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
   private let navigationTree: NavigationTree
   private let autofillContext: AutofillExtensionContext
@@ -51,7 +50,6 @@ internal final class ResourceTagsListNodeController: ViewController {
     self.context = context
     self.features = features
 
-    self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
     self.navigationTree = features.instance()
     self.autofillContext = features.instance()
@@ -112,8 +110,7 @@ extension ResourceTagsListNodeController {
   internal final func selectResourceTag(
     _ resourceTagID: ResourceTag.ID
   ) {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
+    self.asyncExecutor.scheduleCatching(
       failMessage: "Failed to handle resource selection.",
       failAction: { [viewState] (error: Error) in
         await viewState.update(\.snackBarMessage, to: .error(error))

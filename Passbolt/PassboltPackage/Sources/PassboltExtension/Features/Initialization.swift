@@ -52,11 +52,10 @@ extension Initialization {
   @MainActor fileprivate static func passbolt(
     features: Features
   ) -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
 
     @MainActor func initialize() {
-      diagnostics.log(diagnostic: "Initializing the app extension...")
-      defer { diagnostics.log(diagnostic: "...app extension initialization completed!") }
+      Diagnostics.log(diagnostic: "Initializing the app extension...")
+      defer { Diagnostics.log(diagnostic: "...app extension initialization completed!") }
 
       setupApplicationAppearance()
       analytics()

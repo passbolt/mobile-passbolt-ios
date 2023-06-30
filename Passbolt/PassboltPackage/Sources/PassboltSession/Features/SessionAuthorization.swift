@@ -55,7 +55,6 @@ extension SessionAuthorization {
     features: Features
   ) throws -> Self {
 
-    let diagnostics: OSDiagnostics = features.instance()
     let sessionState: SessionState = try features.instance()
     let sessionNetworkAuthorization: SessionNetworkAuthorization = try features.instance()
     let accountsData: AccountsDataStore = try features.instance()
@@ -122,7 +121,7 @@ extension SessionAuthorization {
         return true
       }
       catch {
-        diagnostics.log(error: error)
+        Diagnostics.log(error: error)
         return false
       }
     }
@@ -255,7 +254,7 @@ extension SessionAuthorization {
     @SessionActor @Sendable func authorize(
       _ method: SessionAuthorizationMethod
     ) async throws {
-      diagnostics.log(diagnostic: "Beginning authorization...")
+      Diagnostics.log(diagnostic: "Beginning authorization...")
       do {
         // prepare and validate authorization data
         let authorizationData: AuthorizationData = try validatedAuthorizationData(
@@ -271,7 +270,7 @@ extension SessionAuthorization {
 
           // check current token expiration
           if isCurrentAccessTokenValid() {
-            diagnostics
+            Diagnostics
               .log(diagnostic: "...reusing access token...")
             // extend passphrase cache expire time
             try sessionState
@@ -279,13 +278,13 @@ extension SessionAuthorization {
                 authorizationData.account,
                 authorizationData.passphrase
               )
-            diagnostics
+            Diagnostics
               .log(diagnostic: "...authorization succeeded!")
             return  // nothing more to do...
           }
           // refresh session using refresh token
           else if let refreshToken: SessionRefreshToken = currentRefreshToken() {
-            diagnostics
+            Diagnostics
               .log(diagnostic: "...refreshing access token...")
             do {
               let sessionTokens: SessionTokens = try await refreshSessionTokens(
@@ -300,20 +299,20 @@ extension SessionAuthorization {
                 sessionTokens: sessionTokens,
                 mfaToken: mfaToken
               )
-              diagnostics
+              Diagnostics
                 .log(diagnostic: "...authorization succeeded!")
               return  // nothing more to do...
             }
             catch {
-              diagnostics.log(error: error)
+              Diagnostics.log(error: error)
               // ignore refresh error and fallback to regular
               // authorization  / create new tokens
-              diagnostics
+              Diagnostics
                 .log(diagnostic: "...refreshing access token failed, fallback to token creation...")
             }
           }  // else / catch - continue
 
-          diagnostics
+          Diagnostics
             .log(diagnostic: "...creating new access token...")
 
           let (sessionTokens, requiredMFAProviders): (SessionTokens, Array<SessionMFAProvider>) =
@@ -333,12 +332,12 @@ extension SessionAuthorization {
           )
 
           if requiredMFAProviders.isEmpty {
-            diagnostics
+            Diagnostics
               .log(diagnostic: "...authorization succeeded!")
             return  // nothing more to do...
           }
           else {
-            diagnostics
+            Diagnostics
               .log(diagnostic: "...authorization finished, mfa required!")
             throw
               SessionMFAAuthorizationRequired
@@ -350,7 +349,7 @@ extension SessionAuthorization {
         }
         // diffrent or new account authorization
         else {
-          diagnostics
+          Diagnostics
             .log(diagnostic: "...creating new access token...")
           let mfaToken: SessionMFAToken? = storedMFAToken(
             for: authorizationData.account
@@ -373,12 +372,12 @@ extension SessionAuthorization {
           )
 
           if requiredMFAProviders.isEmpty {
-            diagnostics
+            Diagnostics
               .log(diagnostic: "...authorization succeeded!")
             return  // nothing more to do...
           }
           else {
-            diagnostics
+            Diagnostics
               .log(diagnostic: "...authorization finished, mfa required!")
             throw
               SessionMFAAuthorizationRequired
@@ -396,9 +395,9 @@ extension SessionAuthorization {
         throw error
       }
       catch {
-        diagnostics
+        Diagnostics
           .log(error: error)
-        diagnostics
+        Diagnostics
           .log(diagnostic: "...authorization failed!")
         throw error
       }
@@ -411,7 +410,7 @@ extension SessionAuthorization {
       guard account == sessionState.account()
       else { throw SessionClosed.error(account: account) }
 
-      diagnostics
+      Diagnostics
         .log(diagnostic: "Refreshing session...")
 
       do {
@@ -438,12 +437,12 @@ extension SessionAuthorization {
               sessionTokens: sessionTokens,
               mfaToken: mfaToken
             )
-            diagnostics
+            Diagnostics
               .log(diagnostic: "...session refresh succeeded!")
             return  // nothing more to do...
           }
           catch {
-            diagnostics.log(error: error)
+            Diagnostics.log(error: error)
             // ignore refresh error and fallback to regular
             // authorization  / create new tokens
           }
@@ -466,12 +465,12 @@ extension SessionAuthorization {
         )
 
         if requiredMFAProviders.isEmpty {
-          diagnostics
+          Diagnostics
             .log(diagnostic: "...session refresh succeeded!")
           return  // nothing more to do...
         }
         else {
-          diagnostics
+          Diagnostics
             .log(diagnostic: "...session refresh finished, mfa required!")
           throw
             SessionMFAAuthorizationRequired
@@ -489,9 +488,9 @@ extension SessionAuthorization {
         throw error
       }
       catch {
-        diagnostics
+        Diagnostics
           .log(error: error)
-        diagnostics
+        Diagnostics
           .log(diagnostic: "...session refresh failed!")
         throw error
       }

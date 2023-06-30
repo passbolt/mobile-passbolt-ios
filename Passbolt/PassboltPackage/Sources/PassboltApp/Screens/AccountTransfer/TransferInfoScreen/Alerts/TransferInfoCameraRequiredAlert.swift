@@ -62,7 +62,7 @@ extension TransferInfoCameraRequiredAlertController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
+
     let asyncExecutor: AsyncExecutor = try features.instance()
     let linkOpener: OSLinkOpener = features.instance()
 
@@ -73,7 +73,7 @@ extension TransferInfoCameraRequiredAlertController: UIController {
             try await linkOpener.openApplicationSettings()
           }
           catch {
-            diagnostics.log(error: error)
+            Diagnostics.log(error: error)
           }
         }
       }

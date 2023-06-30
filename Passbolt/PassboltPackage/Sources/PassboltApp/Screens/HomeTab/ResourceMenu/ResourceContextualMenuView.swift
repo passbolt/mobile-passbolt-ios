@@ -46,210 +46,204 @@ internal struct ResourceContextualMenuView: ControlledView {
         }
       },
       content: {
-        WithViewState(
+        WithEachViewState(
           from: self.controller,
           at: \.accessActions
-        ) { (actions: Array<ResourceContextualMenuAccessAction>) in
-          ForEach(actions) { (action: ResourceContextualMenuAccessAction) in
-            switch action {
-            case .openURI:
-              DrawerMenuItemView(
-                action: {
-                  await self.controller.handle(action)
-                },
-                title: {
-                  Text(displayable: "resource.menu.item.open.url")
-                },
-                leftIcon: {
-                  Image(named: .open)
-                    .resizable()
-                }
-              )
+        ) { (action: ResourceContextualMenuAccessAction) in
+          switch action {
+          case .openURI:
+            DrawerMenuItemView(
+              action: {
+                await self.controller.handle(action)
+              },
+              title: {
+                Text(displayable: "resource.menu.item.open.url")
+              },
+              leftIcon: {
+                Image(named: .open)
+                  .resizable()
+              }
+            )
 
-            case .copyURI:
-              DrawerMenuItemView(
-                action: {
-                  await self.controller.handle(action)
-                },
-                title: {
-                  Text(displayable: "resource.menu.item.copy.url")
-                },
-                leftIcon: {
-                  Image(named: .link)
-                    .resizable()
-                }
-              )
+          case .copyURI:
+            DrawerMenuItemView(
+              action: {
+                await self.controller.handle(action)
+              },
+              title: {
+                Text(displayable: "resource.menu.item.copy.url")
+              },
+              leftIcon: {
+                Image(named: .link)
+                  .resizable()
+              }
+            )
 
-            case .copyUsername:
-              DrawerMenuItemView(
-                action: {
-                  await self.controller.handle(action)
-                },
-                title: {
-                  Text(displayable: "resource.menu.item.copy.username")
-                },
-                leftIcon: {
-                  Image(named: .user)
-                    .resizable()
-                }
-              )
+          case .copyUsername:
+            DrawerMenuItemView(
+              action: {
+                await self.controller.handle(action)
+              },
+              title: {
+                Text(displayable: "resource.menu.item.copy.username")
+              },
+              leftIcon: {
+                Image(named: .user)
+                  .resizable()
+              }
+            )
 
-            case .revealOTP:
-              DrawerMenuItemView(
-                action: {
-                  await self.controller.handle(action)
-                },
-                title: {
-                  Text(displayable: "resource.menu.item.reveal.otp")
-                },
-                leftIcon: {
-                  Image(named: .eye)
-                    .resizable()
-                }
-              )
+          case .revealOTP:
+            DrawerMenuItemView(
+              action: {
+                await self.controller.handle(action)
+              },
+              title: {
+                Text(displayable: "resource.menu.item.reveal.otp")
+              },
+              leftIcon: {
+                Image(named: .eye)
+                  .resizable()
+              }
+            )
 
-            case .copyOTP:
-              DrawerMenuItemView(
-                action: {
-                  await self.controller.handle(action)
-                },
-                title: {
-                  Text(displayable: "resource.menu.item.copy.otp")
-                },
-                leftIcon: {
-                  Image(named: .copy)
-                    .resizable()
-                }
-              )
+          case .copyOTP:
+            DrawerMenuItemView(
+              action: {
+                await self.controller.handle(action)
+              },
+              title: {
+                Text(displayable: "resource.menu.item.copy.otp")
+              },
+              leftIcon: {
+                Image(named: .copy)
+                  .resizable()
+              }
+            )
 
-            case .copyPassword:
-              DrawerMenuItemView(
-                action: {
-                  await self.controller.handle(action)
-                },
-                title: {
-                  Text(displayable: "resource.menu.item.copy.password")
-                },
-                leftIcon: {
-                  Image(named: .key)
-                    .resizable()
-                }
-              )
+          case .copyPassword:
+            DrawerMenuItemView(
+              action: {
+                await self.controller.handle(action)
+              },
+              title: {
+                Text(displayable: "resource.menu.item.copy.password")
+              },
+              leftIcon: {
+                Image(named: .key)
+                  .resizable()
+              }
+            )
 
-            case .copyDescription:
-              DrawerMenuItemView(
-                action: {
-                  await self.controller.handle(action)
-                },
-                title: {
-                  Text(displayable: "resource.menu.item.copy.description")
-                },
-                leftIcon: {
-                  Image(named: .description)
-                    .resizable()
-                }
-              )
-            }
+          case .copyDescription:
+            DrawerMenuItemView(
+              action: {
+                await self.controller.handle(action)
+              },
+              title: {
+                Text(displayable: "resource.menu.item.copy.description")
+              },
+              leftIcon: {
+                Image(named: .description)
+                  .resizable()
+              }
+            )
           }
         }
 
-        WithViewState(
+        Divider()
+
+        WithEachViewState(
           from: self.controller,
           at: \.modifyActions
-        ) { (actions: Array<ResourceContextualMenuModifyAction>) in
-          if !actions.isEmpty {
-            Divider()
-
-            ForEach(actions) { (action: ResourceContextualMenuModifyAction) in
-              switch action {
-              case .toggle(favorite: true):
-                DrawerMenuItemView(
-                  action: {
-                    await self.controller.handle(action)
-                  },
-                  title: {
-                    Text(displayable: "resource.menu.item.remove.favorite")
-                  },
-                  leftIcon: {
-                    Image(named: .starCrossed)
-                      .resizable()
-                  }
-                )
-
-              case .toggle(favorite: false):
-                DrawerMenuItemView(
-                  action: {
-                    await self.controller.handle(action)
-                  },
-                  title: {
-                    Text(displayable: "resource.menu.item.add.favorite")
-                  },
-                  leftIcon: {
-                    Image(named: .star)
-                      .resizable()
-                  }
-                )
-
-              case .share:
-                DrawerMenuItemView(
-                  action: {
-                    await self.controller.handle(action)
-                  },
-                  title: {
-                    Text(displayable: "resource.menu.item.share")
-                  },
-                  leftIcon: {
-                    Image(named: .share)
-                      .resizable()
-                  }
-                )
-
-              case .editPassword:
-                DrawerMenuItemView(
-                  action: {
-                    await self.controller.handle(action)
-                  },
-                  title: {
-                    Text(displayable: "resource.menu.item.edit.password")
-                  },
-                  leftIcon: {
-                    Image(named: .edit)
-                      .resizable()
-                  }
-                )
-
-              case .editTOTP:
-                DrawerMenuItemView(
-                  action: {
-                    await self.controller.handle(action)
-                  },
-                  title: {
-                    Text(displayable: "resource.menu.item.edit.totp")
-                  },
-                  leftIcon: {
-                    Image(named: .otp)
-                      .resizable()
-                  }
-                )
-
-              case .delete:
-                DrawerMenuItemView(
-                  action: {
-                    await self.controller.handle(action)
-                  },
-                  title: {
-                    Text(displayable: "resource.menu.item.delete")
-                      .foregroundColor(.passboltSecondaryRed)
-                  },
-                  leftIcon: {
-                    Image(named: .trash)
-                      .resizable()
-                      .foregroundColor(.passboltSecondaryRed)
-                  }
-                )
+        ) { (action: ResourceContextualMenuModifyAction) in
+          switch action {
+          case .toggle(favorite: true):
+            DrawerMenuItemView(
+              action: {
+                await self.controller.handle(action)
+              },
+              title: {
+                Text(displayable: "resource.menu.item.remove.favorite")
+              },
+              leftIcon: {
+                Image(named: .starCrossed)
+                  .resizable()
               }
-            }
-          }  // else nothing
+            )
+
+          case .toggle(favorite: false):
+            DrawerMenuItemView(
+              action: {
+                await self.controller.handle(action)
+              },
+              title: {
+                Text(displayable: "resource.menu.item.add.favorite")
+              },
+              leftIcon: {
+                Image(named: .star)
+                  .resizable()
+              }
+            )
+
+          case .share:
+            DrawerMenuItemView(
+              action: {
+                await self.controller.handle(action)
+              },
+              title: {
+                Text(displayable: "resource.menu.item.share")
+              },
+              leftIcon: {
+                Image(named: .share)
+                  .resizable()
+              }
+            )
+
+          case .editPassword:
+            DrawerMenuItemView(
+              action: {
+                await self.controller.handle(action)
+              },
+              title: {
+                Text(displayable: "resource.menu.item.edit.password")
+              },
+              leftIcon: {
+                Image(named: .edit)
+                  .resizable()
+              }
+            )
+
+          case .editTOTP:
+            DrawerMenuItemView(
+              action: {
+                await self.controller.handle(action)
+              },
+              title: {
+                Text(displayable: "resource.menu.item.edit.totp")
+              },
+              leftIcon: {
+                Image(named: .otp)
+                  .resizable()
+              }
+            )
+
+          case .delete:
+            DrawerMenuItemView(
+              action: {
+                await self.controller.handle(action)
+              },
+              title: {
+                Text(displayable: "resource.menu.item.delete")
+                  .foregroundColor(.passboltSecondaryRed)
+              },
+              leftIcon: {
+                Image(named: .trash)
+                  .resizable()
+                  .foregroundColor(.passboltSecondaryRed)
+              }
+            )
+          }
         }
       }
     )

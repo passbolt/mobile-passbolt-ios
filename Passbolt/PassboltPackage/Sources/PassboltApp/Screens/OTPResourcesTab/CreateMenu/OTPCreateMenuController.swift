@@ -34,7 +34,6 @@ internal final class OTPCreateMenuController: ViewController {
   private let navigationToQRCodeCreateOTPView: NavigationToOTPScanning
   private let navigationToTOTPEditForm: NavigationToTOTPEditForm
 
-  private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
 
   private let features: Features
@@ -46,7 +45,6 @@ internal final class OTPCreateMenuController: ViewController {
     try features.ensureScope(SessionScope.self)
     self.features = features
 
-    self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
 
     self.navigationToSelf = try features.instance()
@@ -60,8 +58,7 @@ internal final class OTPCreateMenuController: ViewController {
 extension OTPCreateMenuController {
 
   internal final func createFromQRCode() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
+    self.asyncExecutor.scheduleCatching(
       failMessage: "Navigation to create OTP from QR code failed!",
       behavior: .reuse
     ) { [navigationToSelf, navigationToQRCodeCreateOTPView] in
@@ -71,8 +68,7 @@ extension OTPCreateMenuController {
   }
 
   internal final func createManually() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
+    self.asyncExecutor.scheduleCatching(
       failMessage: "Navigation to create OTP manually failed!",
       behavior: .reuse
     ) { [navigationToSelf, resourceEditPreparation, navigationToTOTPEditForm] in
@@ -94,8 +90,7 @@ extension OTPCreateMenuController {
   }
 
   internal final func dismiss() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
+    self.asyncExecutor.scheduleCatching(
       failMessage: "Navigation back from create OTP menu failed!",
       behavior: .reuse
     ) { [navigationToSelf] in

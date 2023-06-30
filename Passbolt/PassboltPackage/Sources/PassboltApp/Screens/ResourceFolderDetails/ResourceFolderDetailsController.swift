@@ -30,9 +30,8 @@ import Users
 
 internal final class ResourceFolderDetailsController: ViewController {
 
-  internal var viewState: MutableViewState<ViewState>
+  internal var viewState: ViewStateVariable<ViewState>
 
-  private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
   private let sessionData: SessionData
   private let navigation: DisplayNavigation
@@ -55,7 +54,6 @@ internal final class ResourceFolderDetailsController: ViewController {
     self.context = context
     self.features = features
 
-    self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
     self.sessionData = try features.instance()
     self.navigation = try features.instance()
@@ -74,12 +72,12 @@ internal final class ResourceFolderDetailsController: ViewController {
     @Sendable nonisolated func userAvatarImageFetch(
       _ userID: User.ID
     ) -> () async -> Data? {
-      { [diagnostics, users] in
+      { [users] in
         do {
           return try await users.userAvatarImage(userID)
         }
         catch {
-          diagnostics.log(error: error)
+          Diagnostics.log(error: error)
           return nil
         }
       }
@@ -87,7 +85,6 @@ internal final class ResourceFolderDetailsController: ViewController {
 
     self.asyncExecutor.scheduleIteration(
       over: self.resourceFolderController.state,
-      catchingWith: self.diagnostics,
       failMessage: "Resource folder details updates broken!",
       failAction: { [viewState] (error: Error) in
         await viewState.update(\.snackBarMessage, to: .error(error))
@@ -133,8 +130,7 @@ extension ResourceFolderDetailsController {
 extension ResourceFolderDetailsController {
 
   internal final func openLocationDetails() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
+    self.asyncExecutor.scheduleCatching(
       behavior: .reuse
     ) { [context, features, navigation] in
       try await navigation
@@ -148,8 +144,7 @@ extension ResourceFolderDetailsController {
   }
 
   internal final func openPermissionDetails() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
+    self.asyncExecutor.scheduleCatching(
       behavior: .reuse
     ) { [context, features, navigation] in
       try await navigation

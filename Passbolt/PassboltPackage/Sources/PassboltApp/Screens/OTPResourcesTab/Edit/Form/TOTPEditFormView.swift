@@ -35,9 +35,9 @@ internal struct TOTPEditFormView: ControlledView {
   }
 
   internal var body: some View {
-    WithViewState(
-      self.controller.snackBarMessage
-    ) { (message: SnackBarMessage?) in
+    WithSnackBarMessage(
+      from: self.controller
+    ) {
       VStack(spacing: 0) {
         ScrollView {
           VStack(spacing: 16) {
@@ -53,12 +53,6 @@ internal struct TOTPEditFormView: ControlledView {
         self.sendForm
       }
       .padding(16)
-      .snackBarMessage(
-        presenting: self.controller.snackBarMessage
-          .binding(
-            to: \.self
-          )
-      )
       .frame(maxHeight: .infinity)
     }
     .navigationTitle(

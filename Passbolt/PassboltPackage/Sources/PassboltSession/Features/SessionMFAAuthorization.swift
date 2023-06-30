@@ -53,7 +53,6 @@ extension SessionMFAAuthorization {
     features: Features
   ) throws -> Self {
 
-    let diagnostics: OSDiagnostics = features.instance()
     let sessionState: SessionState = try features.instance()
     let accountsData: AccountsDataStore = try features.instance()
     let yubiKey: YubiKey = features.instance()
@@ -110,7 +109,7 @@ extension SessionMFAAuthorization {
     @SessionActor func authorizeMFA(
       _ method: SessionMFAAuthorizationMethod
     ) async throws {
-      diagnostics.log(diagnostic: "Starting MFA authorization...")
+      Diagnostics.log(diagnostic: "Starting MFA authorization...")
       do {
         let mfaToken: SessionMFAToken
         let account: Account
@@ -142,11 +141,11 @@ extension SessionMFAAuthorization {
           account: account,
           saveLocally: rememberDevice
         )
-        diagnostics.log(diagnostic: "...MFA authorization succeeded!")
+        Diagnostics.log(diagnostic: "...MFA authorization succeeded!")
       }
       catch {
-        diagnostics.log(error: error)
-        diagnostics.log(diagnostic: "...MFA authorization failed!")
+        Diagnostics.log(error: error)
+        Diagnostics.log(diagnostic: "...MFA authorization failed!")
         throw error
       }
     }

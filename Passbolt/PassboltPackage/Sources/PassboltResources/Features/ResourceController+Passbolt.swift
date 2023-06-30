@@ -39,7 +39,6 @@ extension ResourceController {
   ) throws -> Self {
     let resourceID: Resource.ID = try features.context(of: ResourceDetailsScope.self)
 
-    let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
 
     let sessionData: SessionData = try features.instance()

@@ -38,10 +38,9 @@ extension AccountsDataStore {
     let keychain: OSKeychain = features.instance()
     let files: OSFiles = features.instance()
     let preferences: OSPreferences = features.instance()
-    let diagnostics: OSDiagnostics = features.instance()
 
     @Sendable func forceDelete(matching query: OSKeychainQuery) {
-      diagnostics.debugLog("Purging data for \(query.key)")
+      Diagnostics.debugLog("Purging data for \(query.key)")
       switch keychain.delete(matching: query) {
       case .success:
         break
@@ -55,16 +54,16 @@ extension AccountsDataStore {
     }
 
     @Sendable func ensureDataIntegrity() throws {
-      diagnostics.log(diagnostic: "Verifying data integrity...")
+      Diagnostics.log(diagnostic: "Verifying data integrity...")
       defer {
-        diagnostics.log(diagnostic: "...data integrity verification finished")
+        Diagnostics.log(diagnostic: "...data integrity verification finished")
       }
 
       // storedAccountsList - user defaults control list
       let storedAccountsList: Array<Account.LocalID> =
         preferences
         .load(Array<Account.LocalID>.self, for: .accountsList)
-      diagnostics.debugLog("Stored accounts list: \(storedAccountsList)")
+      Diagnostics.debugLog("Stored accounts list: \(storedAccountsList)")
 
       // storedAccounts - keychain accounts
       let storedAccounts: Array<Account.LocalID>
@@ -72,15 +71,15 @@ extension AccountsDataStore {
       case let .success(accounts):
         storedAccounts = accounts.map(\.localID)
       case let .failure(error):
-        diagnostics.log(
+        Diagnostics.log(
           diagnostic:
             "Failed to load accounts data, recovering with empty list"
         )
-        diagnostics.log(error: error)
+        Diagnostics.log(error: error)
         forceDelete(matching: .accountsQuery)
         storedAccounts = .init()
       }
-      diagnostics.debugLog("Stored accounts: \(storedAccounts)")
+      Diagnostics.debugLog("Stored accounts: \(storedAccounts)")
 
       // storedAccountProfiles - keychain accounts metadata
       let storedAccountsProfiles: Array<Account.LocalID>
@@ -88,15 +87,15 @@ extension AccountsDataStore {
       case let .success(accounts):
         storedAccountsProfiles = accounts.map(\.accountID)
       case let .failure(error):
-        diagnostics.log(
+        Diagnostics.log(
           diagnostic:
             "Failed to load account profiles data, recovering with empty list"
         )
-        diagnostics.log(error: error)
+        Diagnostics.log(error: error)
         forceDelete(matching: .accountsProfilesQuery)
         storedAccountsProfiles = .init()
       }
-      diagnostics.debugLog("Stored account profiles: \(storedAccountsProfiles)")
+      Diagnostics.debugLog("Stored account profiles: \(storedAccountsProfiles)")
 
       // storedAccountMFATokens - keychain accounts mfa tokens
       let storedAccountMFATokens: Array<Account.LocalID>
@@ -107,15 +106,15 @@ extension AccountsDataStore {
           .compactMap(\.tag?.rawValue)
           .map(Account.LocalID.init(rawValue:))
       case let .failure(error):
-        diagnostics.log(
+        Diagnostics.log(
           diagnostic:
             "Failed to load account mfa tokens data, recovering with empty list"
         )
-        diagnostics.log(error: error)
+        Diagnostics.log(error: error)
         forceDelete(matching: .accountsProfilesQuery)
         storedAccountMFATokens = .init()
       }
-      diagnostics.debugLog("Stored account mfa tokens: \(storedAccountMFATokens)")
+      Diagnostics.debugLog("Stored account mfa tokens: \(storedAccountMFATokens)")
 
       // storedServerFingerprints - keychain accounts server fingerprints
       let storedServerFingerprints: Array<Account.LocalID>
@@ -126,15 +125,15 @@ extension AccountsDataStore {
           .compactMap(\.tag?.rawValue)
           .map(Account.LocalID.init(rawValue:))
       case let .failure(error):
-        diagnostics.log(
+        Diagnostics.log(
           diagnostic:
             "Failed to load account server fingerprint data, recovering with empty list"
         )
-        diagnostics.log(error: error)
+        Diagnostics.log(error: error)
         forceDelete(matching: .accountsProfilesQuery)
         storedServerFingerprints = .init()
       }
-      diagnostics.debugLog("Stored server fingerprints: \(storedServerFingerprints)")
+      Diagnostics.debugLog("Stored server fingerprints: \(storedServerFingerprints)")
 
       // storedAccountKeys - keychain accounts private keys
       let storedAccountKeys: Array<Account.LocalID>
@@ -152,15 +151,15 @@ extension AccountsDataStore {
             Account.LocalID(rawValue: tag.rawValue)
           }
       case let .failure(error):
-        diagnostics.log(
+        Diagnostics.log(
           diagnostic:
             "Failed to load armored keys metadata, recovering with empty list"
         )
-        diagnostics.log(error: error)
+        Diagnostics.log(error: error)
         forceDelete(matching: armoredKeysQuery)
         storedAccountKeys = .init()
       }
-      diagnostics.debugLog("Stored account keys: \(storedAccountKeys)")
+      Diagnostics.debugLog("Stored account keys: \(storedAccountKeys)")
 
       let updatedAccountsList: Array<Account.LocalID> =
         storedAccountsList
@@ -171,7 +170,7 @@ extension AccountsDataStore {
         }
       preferences
         .save(updatedAccountsList, for: .accountsList)
-      diagnostics.debugLog("Updated accounts list: \(updatedAccountsList)")
+      Diagnostics.debugLog("Updated accounts list: \(updatedAccountsList)")
 
       let accountsToRemove: Array<Account.LocalID> =
         storedAccounts
@@ -182,7 +181,7 @@ extension AccountsDataStore {
         case .success:
           continue
         case let .failure(error):
-          diagnostics.log(diagnostic: "Failed to delete account")
+          Diagnostics.log(diagnostic: "Failed to delete account")
           throw
             error
             .asTheError()
@@ -190,7 +189,7 @@ extension AccountsDataStore {
             .recording(accountID, for: "accountID")
         }
       }
-      diagnostics.debugLog("Deleted accounts: \(accountsToRemove)")
+      Diagnostics.debugLog("Deleted accounts: \(accountsToRemove)")
 
       let accountProfilesToRemove: Array<Account.LocalID> =
         storedAccountsProfiles
@@ -201,7 +200,7 @@ extension AccountsDataStore {
         case .success:
           continue
         case let .failure(error):
-          diagnostics.log(diagnostic: "Failed to delete account profile")
+          Diagnostics.log(diagnostic: "Failed to delete account profile")
           throw
             error
             .asTheError()
@@ -209,7 +208,7 @@ extension AccountsDataStore {
             .recording(accountID, for: "accountID")
         }
       }
-      diagnostics.debugLog("Deleted account profiles: \(accountProfilesToRemove)")
+      Diagnostics.debugLog("Deleted account profiles: \(accountProfilesToRemove)")
 
       let mfaTokensToRemove: Array<Account.LocalID> =
         storedAccountMFATokens
@@ -220,14 +219,14 @@ extension AccountsDataStore {
         case .success:
           continue
         case let .failure(error):
-          diagnostics.log(
+          Diagnostics.log(
             diagnostic:
               "Failed to delete account mfa token"
           )
           throw error
         }
       }
-      diagnostics.debugLog("Deleted account mfa tokens: \(mfaTokensToRemove)")
+      Diagnostics.debugLog("Deleted account mfa tokens: \(mfaTokensToRemove)")
 
       let serverFingerprintsToRemove: Array<Account.LocalID> =
         storedServerFingerprints
@@ -238,7 +237,7 @@ extension AccountsDataStore {
         case .success:
           continue
         case let .failure(error):
-          diagnostics.log(diagnostic: "Failed to delete server fingerprint")
+          Diagnostics.log(diagnostic: "Failed to delete server fingerprint")
           throw
             error
             .asTheError()
@@ -246,7 +245,7 @@ extension AccountsDataStore {
             .recording(accountID, for: "accountID")
         }
       }
-      diagnostics.debugLog("Deleted server fingerprints: \(serverFingerprintsToRemove)")
+      Diagnostics.debugLog("Deleted server fingerprints: \(serverFingerprintsToRemove)")
 
       let keysToRemove: Array<Account.LocalID> =
         storedAccountKeys
@@ -257,7 +256,7 @@ extension AccountsDataStore {
         case .success:
           continue
         case let .failure(error):
-          diagnostics.log(diagnostic: "Failed to delete account private key")
+          Diagnostics.log(diagnostic: "Failed to delete account private key")
           throw
             error
             .asTheError()
@@ -265,15 +264,15 @@ extension AccountsDataStore {
             .recording(accountID, for: "accountID")
         }
       }
-      diagnostics.debugLog("Deleted account private keys: \(keysToRemove)")
+      Diagnostics.debugLog("Deleted account private keys: \(keysToRemove)")
 
       if updatedAccountsList.isEmpty {
-        diagnostics.debugLog("Deleting stored passphrases")
+        Diagnostics.debugLog("Deleting stored passphrases")
         switch keychain.delete(matching: .accountPassphraseDeletionQuery()) {
         case .success:
           break
         case let .failure(error):
-          diagnostics.log(diagnostic: "Failed to delete stored passphrases")
+          Diagnostics.log(diagnostic: "Failed to delete stored passphrases")
           throw
             error
             .asTheError()
@@ -298,7 +297,7 @@ extension AccountsDataStore {
           return .init(rawValue: fileName)
         }
 
-      diagnostics.debugLog("Stored databases: \(storedDatabases)")
+      Diagnostics.debugLog("Stored databases: \(storedDatabases)")
 
       let databasesToRemove: Array<Account.LocalID> =
         storedDatabases
@@ -313,13 +312,13 @@ extension AccountsDataStore {
         )
       }
 
-      diagnostics.debugLog("Deleted account databases: \(databasesToRemove)")
+      Diagnostics.debugLog("Deleted account databases: \(databasesToRemove)")
 
       let deleted: Set<Account.LocalID> = .init(
         accountsToRemove + accountProfilesToRemove + keysToRemove + databasesToRemove
       )
 
-      diagnostics.debugLog("Deleted accounts: \(deleted)")
+      Diagnostics.debugLog("Deleted accounts: \(deleted)")
     }
 
     @Sendable func loadAccounts() -> Array<Account> {
@@ -333,7 +332,7 @@ extension AccountsDataStore {
       case let .success(accounts):
         return accounts
       case let .failure(error):
-        diagnostics
+        Diagnostics
           .log(
             error: error,
             info: .message("Failed to load accounts")
@@ -361,7 +360,7 @@ extension AccountsDataStore {
           case let .success(account):
             return account
           case let .failure(error):
-            diagnostics
+            Diagnostics
               .log(
                 error: error,
                 info: .message("Failed to load last used account")
@@ -628,8 +627,8 @@ extension AccountsDataStore {
         #warning("TODO: Consider propagating errors outside of this function")
       }
       catch {
-        diagnostics.log(diagnostic: "Failed to properly delete account")
-        diagnostics.log(
+        Diagnostics.log(diagnostic: "Failed to properly delete account")
+        Diagnostics.log(
           error: error,
           info: .message("Failed to properly delete account")
         )

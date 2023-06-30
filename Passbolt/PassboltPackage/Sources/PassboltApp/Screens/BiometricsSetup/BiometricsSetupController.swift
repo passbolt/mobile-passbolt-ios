@@ -55,7 +55,7 @@ extension BiometricsSetupController: UIController {
 
     let accountInitialSetup: AccountInitialSetup = try features.instance(context: currentAccount)
     let extensions: OSExtensions = features.instance()
-    let diagnostics: OSDiagnostics = features.instance()
+
     let applicationLifecycle: ApplicationLifecycle = features.instance()
     let accountPreferences: AccountPreferences = try features.instance(context: currentAccount)
     let biometry: OSBiometry = features.instance()
@@ -93,7 +93,7 @@ extension BiometricsSetupController: UIController {
             try await accountPreferences.storePassphrase(true)
           }
           catch {
-            diagnostics.log(error: error)
+            Diagnostics.log(error: error)
             return promise(.failure(error))
           }
           if await extensions.autofillExtensionEnabled() {

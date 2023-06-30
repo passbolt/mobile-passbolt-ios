@@ -27,13 +27,16 @@ import FeatureScopes
 import OSFeatures
 import Session
 
-internal final class DefaultPresentationModeSettingsController: ViewController {
+internal final class DefaultPresentationModeSettingsViewController: ViewController {
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal struct ViewState: Hashable {
 
-  private let currentAccount: Account
-  private let diagnostics: OSDiagnostics
-  private let asyncExecutor: AsyncExecutor
+    internal var selectedMode: HomePresentationMode?
+    internal var availableModes: OrderedSet<HomePresentationMode>
+  }
+
+  internal nonisolated let viewState: ComputedViewState<ViewState>
+
   private let navigationToSelf: NavigationToDefaultPresentationModeSettings
   private let accountPreferences: AccountPreferences
   private let homePresentation: HomePresentation
@@ -47,66 +50,50 @@ internal final class DefaultPresentationModeSettingsController: ViewController {
     try features.ensureScope(SettingsScope.self)
     try features.ensureScope(SessionScope.self)
 
-    self.currentAccount = try features.sessionAccount()
-    self.diagnostics = features.instance()
-    self.asyncExecutor = try features.instance()
+    let currentAccount: Account = try features.sessionAccount()
+
     self.navigationToSelf = try features.instance()
     self.accountPreferences = try features.instance(context: currentAccount)
     self.homePresentation = try features.instance()
 
-    self.useLastUsedHomePresentationAsDefault =
-      accountPreferences
+    let useLastUsedHomePresentationAsDefault: StateBinding<Bool> = accountPreferences
       .useLastHomePresentationAsDefault
-    self.defaultHomePresentation = accountPreferences.defaultHomePresentation
+    self.useLastUsedHomePresentationAsDefault = useLastUsedHomePresentationAsDefault
+    let defaultHomePresentation: StateBinding<HomePresentationMode> = accountPreferences.defaultHomePresentation
+    self.defaultHomePresentation = defaultHomePresentation
 
     self.viewState = .init(
       initial: .init(
-        selectedMode: useLastUsedHomePresentationAsDefault.get(\.self)
-          ? .none
-          : defaultHomePresentation.get(\.self),
+        selectedMode: .none,
         availableModes: .init()
-      )
-    )
+      ),
+      updateUsing: self.accountPreferences.updates,
+      update: {
+        [homePresentation, useLastUsedHomePresentationAsDefault, defaultHomePresentation] (state: inout ViewState) in
+        state.selectedMode =
+          useLastUsedHomePresentationAsDefault.get(\.self)
+          ? .none
+          : defaultHomePresentation.get(\.self)
 
-    self.asyncExecutor.schedule { [unowned self] in
-      let availableModes = await self.homePresentation.availableHomePresentationModes()
-      await self.viewState.update { state in
-        state.availableModes = availableModes
+        state.availableModes = homePresentation.availableHomePresentationModes()
       }
-    }
+    )
   }
 }
 
-extension DefaultPresentationModeSettingsController {
-
-  internal struct ViewState: Hashable {
-
-    internal var selectedMode: HomePresentationMode?
-    internal var availableModes: OrderedSet<HomePresentationMode>
-  }
-}
-
-extension DefaultPresentationModeSettingsController {
+extension DefaultPresentationModeSettingsViewController {
 
   internal final func selectMode(
     _ mode: HomePresentationMode?
-  ) {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
-      behavior: .replace
-    ) { [viewState, defaultHomePresentation, useLastUsedHomePresentationAsDefault, navigationToSelf] in
-      await viewState.update { viewState in
-        viewState.selectedMode = mode
-      }
-      if let mode: HomePresentationMode = mode {
-        useLastUsedHomePresentationAsDefault.set(to: false)
-        defaultHomePresentation.set(to: mode)
-      }
-      else {
-        useLastUsedHomePresentationAsDefault.set(to: true)
-      }
-
-      try await navigationToSelf.revert()
+  ) async {
+    if let mode: HomePresentationMode = mode {
+      useLastUsedHomePresentationAsDefault.set(to: false)
+      defaultHomePresentation.set(to: mode)
     }
+    else {
+      useLastUsedHomePresentationAsDefault.set(to: true)
+    }
+
+    await navigationToSelf.revertCatching()
   }
 }

@@ -61,10 +61,14 @@ where ViewState: Equatable & Sendable {
     self.write = { (newValue: ViewState) in
       nextValueSubject.send(newValue)
       state = newValue
-      updatesSource.sendUpdate()
     }
     self.stateWillChange =
       nextValueSubject
+      .map {
+        // compatibility only
+        updatesSource.sendUpdate()
+        return $0
+      }
       .eraseToAnyPublisher()
     self.featuresContainer = container
     self.cleanup = cleanup
@@ -111,33 +115,35 @@ where ViewState: Equatable & Sendable {
   }
 
   public private(set) var state: ViewState {
-    get { self.read() }
-    set { self.write(newValue) }
+    @MainActor get { self.read() }
+    @MainActor set { self.write(newValue) }
   }
 
   public subscript<Value>(
     dynamicMember keyPath: KeyPath<ViewState, Value>
   ) -> Value {
-    self.value[keyPath: keyPath]
+    self.state[keyPath: keyPath]
   }
 }
 
 extension MutableViewState: ViewStateSource {
+
+  // It seems that there is some bug in swift 5.8 compiler,
+  // typealiases below are already defined but it does not compile without it
+  public typealias DataType = ViewState
+  public typealias Failure = Never
+  public typealias Element = ViewState
+  public typealias AsyncIterator = AsyncThrowingMapSequence<Updates, ViewState>.Iterator
 
   public nonisolated var updates: Updates { self.updatesSource.updates }
 }
 
 extension MutableViewState {
 
-  @MainActor public func forceUpdate() {
-    self.updatesSource.sendUpdate()
-    self.objectWillChange.send()
-  }
-
   @MainActor public func update<Returned>(
     _ mutation: (inout ViewState) throws -> Returned
   ) rethrows -> Returned {
-    var copy: ViewState = self.value
+    var copy: ViewState = self.state
     defer { self.state = copy }
 
     return try mutation(&copy)
@@ -170,7 +176,11 @@ extension MutableViewState: Equatable {
   ) -> Bool {
     lhs === rhs
   }
+}
 
+extension ViewStateSource {
+
+  @available(*, deprecated, message: "Legacy use only")
   public nonisolated var viewNodeID: ViewNodeID {
     ViewNodeID(
       rawValue: ObjectIdentifier(self)

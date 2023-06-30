@@ -26,29 +26,28 @@ import UICommons
 
 internal struct ApplicationSettingsView: ControlledView {
 
-  private let controller: ApplicationSettingsController
+  private let controller: ApplicationSettingsViewController
   @State private var disableBiometricsConfirmationPresented: Bool = false
 
   internal init(
-    controller: ApplicationSettingsController
+    controller: ApplicationSettingsViewController
   ) {
     self.controller = controller
   }
 
   internal var body: some View {
     ScreenView(
-      title: .localized(
-        key: "settings.application.title"
-      ),
+      title: "settings.application.title",
       contentView: {
-        self.content
+        WithSnackBarMessage(from: self.controller) {
+          self.content
+        }
       }
     )
-    .task(self.controller.activate)
   }
 
   @ViewBuilder @MainActor private var content: some View {
-    CommonList {
+    CommonPlainList {
       WithViewState(
         from: self.controller,
         at: \.biometicsAuthorizationAvailability
@@ -57,46 +56,40 @@ internal struct ApplicationSettingsView: ControlledView {
           icon: availablility.iconName,
           title: availablility.title,
           accessory: {
-            Toggle(
-              isOn: .init(
-                get: { availablility.enabled },
-                set: { (newValue: Bool) in
-                  if newValue {
-                    self.controller.setBiometricsAuthorizationEnabled(true)
-                  }
-                  else {
-                    self.disableBiometricsConfirmationPresented = true
-                  }
+            AsyncToggle(
+              state: availablility.enabled,
+              toggle: { (newValue: Bool) in
+                if newValue {
+                  await self.controller.setBiometricsAuthorization(enabled: true)
                 }
-              ),
-              label: EmptyView.init
+                else {
+                  self.disableBiometricsConfirmationPresented = true
+                }
+              }
             )
+            .enabled(availablility.available)
             .accessibilityIdentifier("settings.application.biometrics.disabled.toggle")
           }
         )
         .alert(
           isPresented: self.$disableBiometricsConfirmationPresented,
-          title: .localized(
-            key: "settings.application.biometrics.disable.alert.title"
-          ),
+          title: "settings.application.biometrics.disable.alert.title",
           message: .localized(
             key: "settings.application.biometrics.disable.alert.message",
             arguments: [availablility.title.string()]
           ),
           actions: {
-            Button(
-              displayable: .localized(
-                key: .confirm
-              ),
+            AsyncButton(
               role: .destructive,
               action: {
-                self.controller.setBiometricsAuthorizationEnabled(false)
+                await self.controller.setBiometricsAuthorization(enabled: false)
+              },
+              regularLabel: {
+                Text(displayable: .localized(key: .confirm))
               }
             )
             Button(
-              displayable: .localized(
-                key: .cancel
-              ),
+              displayable: .localized(key: .cancel),
               role: .cancel,
               action: { /* NOP */  }
             )
@@ -109,32 +102,14 @@ internal struct ApplicationSettingsView: ControlledView {
         title: .localized(
           key: "settings.application.item.autofill.title"
         ),
-        action: self.controller.navigateToAutofillSettings,
-        accessory: {
-          Image(named: .disclosureIndicator)
-            .frame(
-              width: 24,
-              height: 24
-            )
-            .accessibilityIdentifier("settings.application.item.autofill.disclosure.indicator")
-        }
+        navigation: self.controller.navigateToAutofillSettings
       )
       .accessibilityIdentifier("settings.application.item.autofill.title")
 
       SettingsActionRowView(
         icon: .filter,
-        title: .localized(
-          key: "settings.application.item.default.mode.title"
-        ),
-        action: self.controller.navigateToDefaultPresentationModeSettings,
-        accessory: {
-          Image(named: .disclosureIndicator)
-            .frame(
-              width: 24,
-              height: 24
-            )
-            .accessibilityIdentifier("settings.application.item.filter.disclosure.indicator")
-        }
+        title: "settings.application.item.default.mode.title",
+        navigation: self.controller.navigateToDefaultPresentationModeSettings
       )
       .accessibilityIdentifier("settings.application.item.default.mode.title")
     }

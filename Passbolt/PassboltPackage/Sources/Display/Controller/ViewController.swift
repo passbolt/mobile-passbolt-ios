@@ -28,12 +28,15 @@ import UIComponents
 // views - it should uniquely identify a view on display.
 @MainActor public protocol ViewController: AnyObject, Hashable {
 
-  associatedtype ViewState: Equatable = Never
-  associatedtype StateSource: ViewStateSource = MutableViewState<Never>
+  associatedtype ViewState: Equatable = Never?
+  associatedtype StateSource: ViewStateSource = ComputedViewState<Never>
   where StateSource.ViewState == ViewState
+  associatedtype MessageStateSource: ViewStateSource = ComputedViewState<SnackBarMessage?>
+  where MessageStateSource.ViewState == SnackBarMessage?
   associatedtype Context = Void
 
   nonisolated var viewState: StateSource { get }
+  nonisolated var messageState: MessageStateSource { get }
 
   @MainActor init(
     context: Context,
@@ -73,21 +76,43 @@ extension ViewController /* Hashable */ {
 }
 
 extension ViewController
-where StateSource == MutableViewState<Never> {
+where StateSource == ComputedViewState<Never?> {
 
-  public nonisolated var viewState: StateSource { MutableViewState<Never>() }
+  public nonisolated var viewState: StateSource { ComputedViewState<Never?>(never: Never.self) }
 }
 
-extension ViewController {
+extension ViewController
+where MessageStateSource == ComputedViewState<SnackBarMessage?> {
+
+  public nonisolated var messageState: MessageStateSource {
+    ComputedViewState<SnackBarMessage?>(never: SnackBarMessage.self)
+  }
+}
+
+extension ViewController
+where StateSource == ViewStateVariable<ViewState> {
 
   @MainActor public func binding<Value>(
     to keyPath: WritableKeyPath<ViewState, Value>
   ) -> Binding<Value> {
     self.viewState.binding(to: keyPath)
   }
+}
+
+extension ViewController  // Legacy
+where StateSource == MutableViewState<ViewState> {
 
   @MainActor public func binding<Value>(
-    to keyPath: WritableKeyPath<ViewState, Value>,
+    to keyPath: WritableKeyPath<ViewState, Value>
+  ) -> Binding<Value> {
+    self.viewState.binding(to: keyPath)
+  }
+}
+
+extension ViewController {
+
+  @MainActor public func binding<Value>(
+    to keyPath: KeyPath<ViewState, Value>,
     updating setter: @escaping (Value) -> Void
   ) -> Binding<Value> {
     .init(
@@ -99,7 +124,7 @@ extension ViewController {
   }
 
   @MainActor public func validatedBinding<Value>(
-    to keyPath: WritableKeyPath<ViewState, Validated<Value>>,
+    to keyPath: KeyPath<ViewState, Validated<Value>>,
     updating setter: @escaping (Value) -> Void
   ) -> Binding<Validated<Value>> {
     .init(
@@ -113,7 +138,7 @@ extension ViewController {
   }
 
   @MainActor public func validatedStringBinding<Value, UpdateValue>(
-    with keyPath: WritableKeyPath<ViewState, Validated<Value>>,
+    with keyPath: KeyPath<ViewState, Validated<Value>>,
     updating setter: @escaping (UpdateValue) -> Void,
     fromString: @escaping (String) -> UpdateValue?,
     toString: @escaping (Value) -> String
@@ -137,6 +162,22 @@ extension ViewController {
         setter(newValue)
       }
     )
+  }
+}
+
+extension ViewController
+where MessageStateSource == ViewStateVariable<SnackBarMessage?> {
+
+  @MainActor public func messageBinding() -> Binding<SnackBarMessage?> {
+    self.messageState.binding(to: \.self)
+  }
+}
+
+extension ViewController
+where MessageStateSource == ComputedViewState<SnackBarMessage?> {
+
+  @MainActor public func messageBinding() -> Binding<SnackBarMessage?> {
+    self.messageState.binding(to: \.self, update: { _ in /* NOP */ })
   }
 }
 
@@ -324,5 +365,21 @@ public enum Controlled {
     case _:
       defaultView()
     }
+  }
+}
+
+extension ViewStateVariable
+where ViewState == Optional<SnackBarMessage> {
+
+  @MainActor public func show(
+    _ message: SnackBarMessage?
+  ) {
+    self.update(to: message)
+  }
+
+  @MainActor public func show(
+    _ error: Error
+  ) {
+    self.update(to: .error(error))
   }
 }

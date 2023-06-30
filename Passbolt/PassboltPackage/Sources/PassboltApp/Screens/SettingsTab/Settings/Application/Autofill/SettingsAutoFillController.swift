@@ -43,14 +43,12 @@ extension SettingsAutoFillController: UIController {
     try features.ensureScope(SettingsScope.self)
     try features.ensureScope(SessionScope.self)
 
-    let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
     let linkOpener: OSLinkOpener = features.instance()
 
     func openSystemSettings() {
       asyncExecutor
-        .scheduleCatchingWith(
-          diagnostics,
+        .scheduleCatching(
           failMessage: "Navigation to system settings failed!",
           behavior: .reuse
         ) {

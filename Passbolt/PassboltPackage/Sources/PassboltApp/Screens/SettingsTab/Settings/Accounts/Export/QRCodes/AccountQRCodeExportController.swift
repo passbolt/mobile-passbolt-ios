@@ -28,9 +28,8 @@ import OSFeatures
 
 internal final class AccountQRCodeExportController: ViewController {
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: ViewStateVariable<ViewState>
 
-  private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
   private let navigation: DisplayNavigation
   private let accountExport: AccountChunkedExport
@@ -42,7 +41,6 @@ internal final class AccountQRCodeExportController: ViewController {
   ) throws {
     try features.ensureScope(AccountTransferScope.self)
 
-    self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
     self.navigation = try features.instance()
     self.accountExport = try features.instance()
@@ -57,7 +55,6 @@ internal final class AccountQRCodeExportController: ViewController {
 
     self.asyncExecutor.scheduleIteration(
       over: self.accountExport.updates,
-      catchingWith: self.diagnostics,
       failMessage: "Updates broken!"
     ) { [unowned self] (_) in
       switch self.accountExport.status() {

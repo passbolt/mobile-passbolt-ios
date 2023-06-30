@@ -32,9 +32,8 @@ import Users
 
 internal final class HomeNavigationNodeController: ViewController {
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: ViewStateVariable<ViewState>
 
-  private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
   private let navigationTree: NavigationTree
   private let homePresentation: HomePresentation
@@ -53,7 +52,6 @@ internal final class HomeNavigationNodeController: ViewController {
       )
     self.features = features
 
-    self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
     self.navigationTree = features.instance()
     self.homePresentation = try features.instance()
@@ -69,7 +67,6 @@ internal final class HomeNavigationNodeController: ViewController {
 
     self.asyncExecutor.scheduleIteration(
       over: self.homePresentation.currentMode.asAnyAsyncSequence(),
-      catchingWith: self.diagnostics,
       failMessage: "Home mode updates broken!"
     ) { [features, viewState, navigationTree] (mode: HomePresentationMode) in
       let contentController = await Self.contentRoot(for: mode, using: features)

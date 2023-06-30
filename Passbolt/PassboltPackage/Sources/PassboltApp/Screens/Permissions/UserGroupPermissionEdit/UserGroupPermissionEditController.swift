@@ -51,7 +51,7 @@ extension UserGroupPermissionEditController: ComponentController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
+
     let navigation: DisplayNavigation = try features.instance()
     let users: Users = try features.instance()
     let resourceShareForm: ResourceShareForm = try features.instance(context: context.resourceID)
@@ -64,7 +64,7 @@ extension UserGroupPermissionEditController: ComponentController {
           return try await users.userAvatarImage(userID)
         }
         catch {
-          diagnostics.log(error: error)
+          Diagnostics.log(error: error)
           return nil
         }
       }

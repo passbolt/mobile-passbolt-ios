@@ -74,7 +74,6 @@ extension NetworkRequestExecutor {
     features: Features,
     cancellables _: Cancellables
   ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
 
     let urlSessionConfiguration: URLSessionConfiguration = .ephemeral
     urlSessionConfiguration.networkServiceType = .responsiveData
@@ -160,7 +159,7 @@ extension NetworkRequestExecutor {
       _ execute: @escaping @Sendable (HTTPRequest) async throws -> HTTPResponse
     ) -> @Sendable (HTTPRequest) async throws -> HTTPResponse {
       { (httpRequest: HTTPRequest) async throws -> HTTPResponse in
-        let trace: OSDiagnostics.Trace = diagnostics.trace()
+        let trace: Diagnostics.Trace = Diagnostics.shared.trace()
         trace.log(
           diagnostic: "HTTP",
           unsafe: httpRequest.method.rawValue,

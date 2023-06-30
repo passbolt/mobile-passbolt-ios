@@ -61,7 +61,7 @@ extension ResourcePermissionEditListController: ComponentController {
       )
     let features: Features = features
     let navigation: DisplayNavigation = try features.instance()
-    let diagnostics: OSDiagnostics = features.instance()
+
     let resourceShareForm: ResourceShareForm = try features.instance(context: context)
 
     let viewState: ObservableValue<ViewState>
@@ -187,7 +187,7 @@ extension ResourcePermissionEditListController: ComponentController {
           viewState.set(\.loading, to: false)
         }
         catch {
-          diagnostics.log(error: error)
+          Diagnostics.log(error: error)
           viewState.withValue { (state: inout ViewState) in
             state.loading = false
             state.snackBarMessage = .error(error)

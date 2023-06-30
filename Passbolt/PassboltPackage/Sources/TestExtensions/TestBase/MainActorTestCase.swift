@@ -65,11 +65,6 @@ open class MainActorTestCase: AsyncTestCase {
         \AsyncExecutor.self,
         with: .mock(self.mockExecutionControl)
       )
-    self.features
-      .patch(
-        \OSDiagnostics.self,
-        with: .disabled
-      )
     self.cancellables = .init()
     self.mainActorSetUp()
   }

@@ -36,21 +36,17 @@ internal final class ResourceLocationDetailsViewController: ViewController {
     internal var location: FolderLocationTreeView.Node
   }
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: ViewStateVariable<ViewState>
 
   private let navigationToSelf: NavigationToResourceLocationDetails
 
   private let resourceController: ResourceController
-
-  private let diagnostics: OSDiagnostics
 
   internal init(
     context: Void,
     features: Features
   ) throws {
     try features.ensureScope(ResourceDetailsScope.self)
-
-    self.diagnostics = features.instance()
 
     self.navigationToSelf = try features.instance()
 
@@ -69,8 +65,8 @@ internal final class ResourceLocationDetailsViewController: ViewController {
 extension ResourceLocationDetailsViewController {
 
   @Sendable internal func activate() async {
-    await self.diagnostics
-      .withLogCatch(
+    await Diagnostics
+      .logCatch(
         info: .message("Resource location details updates broken!"),
         fallback: { _ in
           try? await self.navigationToSelf.revert()

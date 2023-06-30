@@ -36,10 +36,6 @@ open class FeaturesTestCase: XCTestCase {
 
   open func commonPrepare() {
     patch(
-      \OSDiagnostics.self,
-      with: .disabled
-    )
-    patch(
       \AsyncExecutor.self,
       with: .mock(self.asyncExecutionControl)
     )
@@ -339,7 +335,11 @@ extension FeaturesTestCase {
       try await test(self.testedInstance())
     }
     catch {
-      XCTFail("Unexpected error: \(error)")
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
     }
   }
 
@@ -355,7 +355,11 @@ extension FeaturesTestCase {
       try await test(self.testedInstance(context: context))
     }
     catch {
-      XCTFail("Unexpected error: \(error)")
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
     }
   }
 
@@ -394,11 +398,17 @@ extension FeaturesTestCase {
       XCTAssertEqual(
         mockExecuted,
         self.dynamicVariables.getIfPresent(\.mockExecuted, of: UInt.self) ?? 0,
-        "Executed count was not matching expected"
+        "Executed count was not matching expected",
+        file: file,
+        line: line
       )
     }
     catch {
-      XCTFail("Unexpected error: \(error)")
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
     }
   }
 
@@ -416,11 +426,17 @@ extension FeaturesTestCase {
       XCTAssertEqual(
         mockExecuted,
         self.dynamicVariables.getIfPresent(\.mockExecuted, of: UInt.self) ?? 0,
-        "Executed count was not matching expected"
+        "Executed count was not matching expected",
+        file: file,
+        line: line
       )
     }
     catch {
-      XCTFail("Unexpected error: \(error)")
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
     }
   }
 
@@ -437,11 +453,17 @@ extension FeaturesTestCase {
       XCTAssertEqual(
         mockExecutedWith,
         self.dynamicVariables.getIfPresent(\.mockExecutedArgument, of: Argument.self),
-        "Executed argument was invalid or missing"
+        "Executed argument was invalid or missing",
+        file: file,
+        line: line
       )
     }
     catch {
-      XCTFail("Unexpected error: \(error)")
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
     }
   }
 
@@ -459,11 +481,17 @@ extension FeaturesTestCase {
       XCTAssertEqual(
         mockExecutedWith,
         self.dynamicVariables.getIfPresent(\.mockExecutedArgument, of: Argument.self),
-        "Executed argument was invalid or missing"
+        "Executed argument was invalid or missing",
+        file: file,
+        line: line
       )
     }
     catch {
-      XCTFail("Unexpected error: \(error)")
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
     }
   }
 
@@ -480,11 +508,17 @@ extension FeaturesTestCase {
       XCTAssertEqual(
         returns,
         returned,
-        "Returned value was invalid"
+        "Returned value was invalid",
+        file: file,
+        line: line
       )
     }
     catch {
-      XCTFail("Unexpected error: \(error)")
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
     }
   }
 
@@ -502,11 +536,17 @@ extension FeaturesTestCase {
       XCTAssertEqual(
         returns,
         returned,
-        "Returned value was invalid"
+        "Returned value was invalid",
+        file: file,
+        line: line
       )
     }
     catch {
-      XCTFail("Unexpected error: \(error)")
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
     }
   }
 
@@ -520,13 +560,21 @@ extension FeaturesTestCase {
   where Controller: ViewController, Controller.Context == Void, Failure: Error {
     do {
       _ = try await test(self.testedInstance())
-      XCTFail("Expected error not thrown")
+      XCTFail(
+        "Expected error not thrown",
+        file: file,
+        line: line
+      )
     }
     catch is Failure {
       // expected
     }
     catch {
-      XCTFail("Unexpected error: \(error)")
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
     }
   }
 
@@ -541,13 +589,21 @@ extension FeaturesTestCase {
   where Controller: ViewController, Controller.Context == Void, Failure: Error {
     do {
       _ = try await test(self.testedInstance(context: context))
-      XCTFail("Expected error not thrown")
+      XCTFail(
+        "Expected error not thrown",
+        file: file,
+        line: line
+      )
     }
     catch is Failure {
       // expected
     }
     catch {
-      XCTFail("Unexpected error: \(error)")
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
     }
   }
 }

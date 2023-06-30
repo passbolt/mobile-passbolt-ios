@@ -29,9 +29,8 @@ import SessionData
 
 internal final class ResourcesListDisplayController: ViewController {
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: ViewStateVariable<ViewState>
 
-  private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
   private let sessionData: SessionData
   private let resources: ResourcesController
@@ -48,7 +47,6 @@ internal final class ResourcesListDisplayController: ViewController {
     self.context = context
     self.features = features
 
-    self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
     self.sessionData = try features.instance()
     self.resources = try features.instance()
@@ -62,7 +60,6 @@ internal final class ResourcesListDisplayController: ViewController {
 
     self.asyncExecutor.scheduleIteration(
       over: combineLatest(context.filter.asAnyAsyncSequence(), sessionData.updates),
-      catchingWith: self.diagnostics,
       failMessage: "Resources list updates broken!",
       failAction: { [context] (error: Error) in
         context.showMessage(.error(error))
@@ -104,7 +101,7 @@ extension ResourcesListDisplayController {
       try await self.sessionData.refreshIfNeeded()
     }
     catch {
-      self.diagnostics.log(
+      Diagnostics.log(
         error: error,
         info: .message(
           "Failed to refresh session data."

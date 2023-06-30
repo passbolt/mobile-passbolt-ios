@@ -28,31 +28,115 @@ public struct Updates: Sendable {
   #endif
   public static let never: Self = .init()
 
-  @usableFromInline internal var generation: UpdatesSource.Generation
-  @usableFromInline internal private(set) weak var updatesSource: UpdatesSource?
+  @usableFromInline internal typealias Generation = UpdatesSource.Generation
+
+  @usableFromInline internal var generation: Generation
+  @usableFromInline internal let check: @Sendable () -> Generation?
+  @usableFromInline internal let next: @Sendable (inout Generation) async -> Void?
 
   public init(
     for source: UpdatesSource
   ) {
     self.generation = 0  // always deliver at least first/lastelement if able
-    self.updatesSource = source
+    self.check = { @Sendable [weak source] () -> Generation? in
+      source?.generation
+    }
+    self.next = { @Sendable [weak source] (generation: inout Generation) async -> Void? in
+      await source?.update(after: &generation)
+    }
+  }
+
+  public init(
+    combined lSource: Updates,
+    with rSource: Updates
+  ) {
+    self.generation = 0  // always deliver at least first/last element if able
+    self.check = { @Sendable [lSource, rSource] () -> Generation? in
+      switch (lSource.check(), rSource.check()) {
+      case (.some(let lGeneration), .some(let rGeneration)):
+        return Swift.max(lGeneration, rGeneration)
+
+      case (.some(let generation), .none):
+        return generation
+
+      case (.none, .some(let generation)):
+        return generation
+
+      case (.none, .none):
+        return .none
+      }
+    }
+    self.next = { @Sendable [lSource, rSource] (generation: inout UpdatesSource.Generation) async -> Void? in
+      let requested: Generation = generation
+      let recieved: Optional<Generation> = await withTaskGroup(of: Optional<Generation>.self) {
+        (group: inout TaskGroup<Optional<Generation>>) in
+        group.addTask {
+          var generation: Generation = requested
+          if case .some = await lSource.next(&generation) {
+            return generation
+          }
+          else {
+            return .none
+          }
+        }
+
+        group.addTask {
+          var generation: Generation = requested
+          if case .some = await rSource.next(&generation) {
+            return generation
+          }
+          else {
+            return .none
+          }
+        }
+
+        if case .some(.some(let first)) = await group.next() {
+          group.cancelAll()
+          return first
+        }
+        else if case .some(.some(let second)) = await group.next() {
+          return second
+        }
+        else {
+          return .none
+        }
+      }
+
+      if Task.isCancelled {
+        // do not update local generation on cancelled
+        return .none
+      }
+      else if let recieved {
+        generation = recieved
+        return Void()
+      }
+      else {
+        generation = .max
+        return .none
+      }
+    }
   }
 
   private init() {
     self.generation = .max
-    self.updatesSource = .none
+    self.check = { () -> UpdatesSource.Generation? in
+      .none
+    }
+    self.next = { @Sendable (_: inout UpdatesSource.Generation) async -> Void? in
+      .none
+    }
   }
 
   @_transparent
   public func hasUpdate() -> Bool {
-    let current: UpdatesSource.Generation = self.updatesSource?.state.get(\.generation) ?? .max
+    let current: UpdatesSource.Generation = self.check() ?? .max
     return current > self.generation
   }
 
   @_transparent
   @discardableResult
   public mutating func checkUpdate() -> Bool {
-    let current: UpdatesSource.Generation = self.updatesSource?.state.get(\.generation) ?? .max
+    let current: UpdatesSource.Generation = self.check() ?? .max
     if current > self.generation {
       self.generation = current
       return true
@@ -68,10 +152,13 @@ extension Updates: AsyncSequence, AsyncIteratorProtocol {
   public typealias Element = Void
   public typealias AsyncIterator = Self
 
-  @_transparent
+  //  @_transparent
   @discardableResult
   public mutating func next() async -> Void? {
-    await self.updatesSource?.update(after: &self.generation)
+    // no source or max is the same as finished
+    guard self.generation != .max
+    else { return .none }  // there won't be any new updates
+    return await self.next(&self.generation)
   }
 
   @_transparent
@@ -83,11 +170,6 @@ extension Updates: AsyncSequence, AsyncIteratorProtocol {
 extension Updates {
 
   public var publisher: UpdatesPublisher {
-    if let updatesSource {
-      return .init(for: .init(for: updatesSource))
-    }
-    else {
-      return .init(for: .init())
-    }
+    .init(for: self)
   }
 }

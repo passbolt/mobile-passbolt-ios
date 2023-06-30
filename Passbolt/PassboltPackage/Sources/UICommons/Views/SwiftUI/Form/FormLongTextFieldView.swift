@@ -117,7 +117,7 @@ public struct FormLongTextFieldView: View {
         .multilineTextAlignment(.leading)
         .focused(self.$focused)
         .backport.hideScrollContentBackground()
-        .frame(minHeight: 32)
+        .frame(minHeight: 34)
 
         if self.state.value.isEmpty, let prompt {
           Text(prompt)

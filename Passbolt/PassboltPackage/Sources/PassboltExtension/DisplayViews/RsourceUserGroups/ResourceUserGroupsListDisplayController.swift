@@ -30,9 +30,8 @@ import Users
 
 internal final class ResourceUserGroupsListDisplayController: ViewController {
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: ViewStateVariable<ViewState>
 
-  private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
   private let sessionData: SessionData
   private let userGroups: UserGroups
@@ -49,7 +48,6 @@ internal final class ResourceUserGroupsListDisplayController: ViewController {
     self.context = context
     self.features = features
 
-    self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
     self.sessionData = try features.instance()
     self.userGroups = try features.instance()
@@ -62,7 +60,6 @@ internal final class ResourceUserGroupsListDisplayController: ViewController {
 
     self.asyncExecutor.scheduleIteration(
       over: combineLatest(context.filter, sessionData.updates),
-      catchingWith: self.diagnostics,
       failMessage: "User groups list updates broken!",
       failAction: { [context] (error: Error) in
         context.showMessage(.error(error))
@@ -101,7 +98,7 @@ extension ResourceUserGroupsListDisplayController {
       try await self.sessionData.refreshIfNeeded()
     }
     catch {
-      self.diagnostics.log(
+      Diagnostics.log(
         error: error,
         info: .message(
           "Failed to refresh session data."

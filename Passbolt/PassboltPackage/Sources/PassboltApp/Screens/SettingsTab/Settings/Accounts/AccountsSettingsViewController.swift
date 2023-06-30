@@ -21,16 +21,15 @@
 // @since         v1.0
 //
 
+import Accounts
 import Display
 import FeatureScopes
 import OSFeatures
 
-internal final class TroubleshootingSettingsController: ViewController {
+internal final class AccountsSettingsViewController: ViewController {
 
-  private let diagnostics: OSDiagnostics
-  private let linkOpener: OSLinkOpener
-  private let asyncExecutor: AsyncExecutor
-  private let navigationToLogs: NavigationToLogs
+  private let navigationToManageAccounts: NavigationToManageAccounts
+  private let navigationToAccountExport: NavigationToAccountExport
 
   internal init(
     context: Void,
@@ -39,34 +38,18 @@ internal final class TroubleshootingSettingsController: ViewController {
     try features.ensureScope(SettingsScope.self)
     try features.ensureScope(SessionScope.self)
 
-    self.diagnostics = features.instance()
-    self.linkOpener = features.instance()
-    self.asyncExecutor = try features.instance()
-    self.navigationToLogs = try features.instance()
+    self.navigationToManageAccounts = try features.instance()
+    self.navigationToAccountExport = try features.instance()
   }
 }
 
-extension TroubleshootingSettingsController {
+extension AccountsSettingsViewController {
 
-  internal final func navigateToLogs() {
-    self.asyncExecutor
-      .scheduleCatchingWith(
-        self.diagnostics,
-        failMessage: "Navigation to logs failed!",
-        behavior: .reuse
-      ) { [navigationToLogs] in
-        try await navigationToLogs.perform()
-      }
+  internal final func navigateToManageAccounts() async {
+    await navigationToManageAccounts.performCatching()
   }
 
-  internal final func navigateToHelpSite() {
-    self.asyncExecutor
-      .scheduleCatchingWith(
-        self.diagnostics,
-        failMessage: "Navigation to help site failed!",
-        behavior: .reuse
-      ) { [linkOpener] in
-        try await linkOpener.openURL("https://help.passbolt.com/")
-      }
+  internal final func navigateToAccountExport() async {
+    await navigationToAccountExport.performCatching()
   }
 }

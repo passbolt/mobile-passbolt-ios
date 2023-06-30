@@ -39,7 +39,6 @@ internal final class OTPScanningSuccessController: ViewController {
 
   private let navigationToScanning: NavigationToOTPScanning
 
-  private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
 
   private let context: TOTPConfiguration
@@ -61,7 +60,6 @@ internal final class OTPScanningSuccessController: ViewController {
     self.features = features
     self.context = context
 
-    self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
 
     self.navigationToScanning = try features.instance()
@@ -77,7 +75,7 @@ internal final class OTPScanningSuccessController: ViewController {
 extension OTPScanningSuccessController {
 
   internal func createStandaloneOTP() async {
-    await self.diagnostics.withLogCatch(
+    await Diagnostics.logCatch(
       info: .message("Failed to create standalone OTP"),
       fallback: { [viewState] (error: Error) in
         viewState.update(\.snackBarMessage, to: .error(error))
@@ -99,7 +97,7 @@ extension OTPScanningSuccessController {
   }
 
   internal func updateExistingResource() async {
-    await self.diagnostics.withLogCatch(
+    await Diagnostics.logCatch(
       info: .message("Failed to navigate to adding OTP to a resource"),
       fallback: { [viewState] (error: Error) in
         viewState.update(\.snackBarMessage, to: .error(error))

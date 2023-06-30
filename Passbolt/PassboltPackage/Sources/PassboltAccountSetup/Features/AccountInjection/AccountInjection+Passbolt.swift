@@ -35,7 +35,7 @@ extension AccountInjection {
   ) throws -> Self {
 
     let mdmConfiguration: MDMConfiguration = features.instance()
-    let diagnostics: OSDiagnostics = features.instance()
+
     let accounts: Accounts = try features.instance()
 
     @Sendable nonisolated func injectPreconfiguredAccounts() throws {
@@ -46,7 +46,7 @@ extension AccountInjection {
           _ = try accounts.addAccount(account)
         }
         catch {
-          diagnostics
+          Diagnostics
             .log(
               error:
                 error

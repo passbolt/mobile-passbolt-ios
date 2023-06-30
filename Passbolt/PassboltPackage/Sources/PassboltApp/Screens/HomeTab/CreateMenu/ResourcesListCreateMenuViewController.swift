@@ -28,7 +28,6 @@ import SharedUIComponents
 
 internal final class ResourcesListCreateMenuViewController: ViewController {
 
-  private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
   private let navigation: DisplayNavigation
 
@@ -42,7 +41,6 @@ internal final class ResourcesListCreateMenuViewController: ViewController {
     self.context = context
     self.features = features
 
-    self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
     self.navigation = try features.instance()
   }
@@ -58,8 +56,7 @@ extension ResourcesListCreateMenuViewController {
   }
 
   internal final func createResource() {
-    self.asyncExecutor.scheduleCatchingWith(
-      diagnostics,
+    self.asyncExecutor.scheduleCatching(
       behavior: .reuse
     ) { @MainActor [context, features, navigation] in
       let resourceEditPreparation: ResourceEditPreparation = try features.instance()
@@ -91,8 +88,7 @@ extension ResourcesListCreateMenuViewController {
 
   internal final func createFolder() {
     self.asyncExecutor
-      .scheduleCatchingWith(
-        diagnostics,
+      .scheduleCatching(
         behavior: .reuse
       ) { [context, features, navigation] in
         await navigation

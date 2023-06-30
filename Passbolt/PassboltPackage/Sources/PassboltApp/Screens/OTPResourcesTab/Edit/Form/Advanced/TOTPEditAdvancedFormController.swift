@@ -48,7 +48,6 @@ internal final class TOTPEditAdvancedFormController: ViewController {
 
   internal let viewState: ComputedViewState<ViewState>
 
-  private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
   private let resourceEditForm: ResourceEditForm
 
@@ -67,7 +66,6 @@ internal final class TOTPEditAdvancedFormController: ViewController {
 
     self.navigationToSelf = try features.instance()
 
-    self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
     self.resourceEditForm = try features.instance()
 
@@ -99,8 +97,8 @@ internal final class TOTPEditAdvancedFormController: ViewController {
           digits: digits
         )
       },
-      failure: { [diagnostics] error in
-        diagnostics.log(error: error)
+      failure: { error in
+        Diagnostics.log(error: error)
         return ViewState(
           algorithm: .invalid(
             .none,

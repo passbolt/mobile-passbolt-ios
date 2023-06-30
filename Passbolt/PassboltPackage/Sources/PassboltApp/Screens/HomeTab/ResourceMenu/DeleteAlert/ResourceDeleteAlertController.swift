@@ -47,7 +47,7 @@ internal struct ResourceDeleteAlertController: AlertController {
         scope: ResourceDetailsScope.self,
         context: context.resourceID
       ) ?? features
-    let diagnostics: OSDiagnostics = features.instance()
+
     let asyncExecutor: AsyncExecutor = try features.instance()
     let resourceController: ResourceController = try features.instance()
 
@@ -82,7 +82,7 @@ internal struct ResourceDeleteAlertController: AlertController {
               )
             }
             catch {
-              diagnostics.log(error: error)
+              Diagnostics.log(error: error)
               guard let message: SnackBarMessage = .error(error)
               else { return }
               await context.showMessage(message)

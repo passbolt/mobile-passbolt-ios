@@ -38,7 +38,7 @@ where Header: View, Content: View {
   }
 
   public init(
-    @ViewBuilder content: @escaping () -> Content
+    @ViewBuilder content: @escaping @MainActor () -> Content
   ) where Header == EmptyView {
     self.header = EmptyView.init
     self.content = content

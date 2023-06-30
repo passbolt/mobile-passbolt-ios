@@ -37,12 +37,11 @@ extension Initialization: LoadableFeature {
   @MainActor public static func load(
     using features: Features
   ) throws -> Initialization {
-    let diagnostics: OSDiagnostics = features.instance()
 
     // swift-format-ignore: NoLeadingUnderscores
     @MainActor func initialize() {
-      diagnostics.log(diagnostic: "Initializing the app...")
-      defer { diagnostics.log(diagnostic: "...app initialization completed!") }
+      Diagnostics.log(diagnostic: "Initializing the app...")
+      defer { Diagnostics.log(diagnostic: "...app initialization completed!") }
       setupApplicationAppearance()
       // initialize application extension features here
       analytics()
@@ -52,7 +51,7 @@ extension Initialization: LoadableFeature {
         try accountInjection.injectPreconfiguredAccounts()
       }
       catch {
-        diagnostics.log(error: error)
+        Diagnostics.log(error: error)
       }
     }
 

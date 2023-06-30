@@ -53,10 +53,9 @@ internal final class TOTPEditFormController: ViewController {
   }
 
   internal var viewState: ComputedViewState<ViewState>
-  internal let snackBarMessage: ViewStateVariable<SnackBarMessage?>
+  internal var messageState: ViewStateVariable<SnackBarMessage?>
   internal let isEditing: Bool
 
-  private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
   private let navigationToSelf: NavigationToTOTPEditForm
   private let navigationToAdvanced: NavigationToTOTPEditAdvancedForm
@@ -84,7 +83,6 @@ internal final class TOTPEditFormController: ViewController {
     self.totpPath = totpPath
     self.success = context.success
 
-    self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
 
     self.navigationToSelf = try features.instance()
@@ -124,8 +122,8 @@ internal final class TOTPEditFormController: ViewController {
             .map { $0.stringValue ?? "" }
         )
       },
-      failure: { [diagnostics] (error: Error) in
-        diagnostics.log(error: error)
+      failure: { (error: Error) in
+        Diagnostics.log(error: error)
         return .init(
           nameField: .invalid(
             "",
@@ -143,7 +141,7 @@ internal final class TOTPEditFormController: ViewController {
       }
     )
 
-    self.snackBarMessage = .init(initial: .none)
+    self.messageState = .init(initial: .none)
   }
 }
 
@@ -174,11 +172,11 @@ extension TOTPEditFormController {
   }
 
   @MainActor internal final func showAdvancedSettings() async {
-    await self.diagnostics
-      .withLogCatch(
+    await Diagnostics
+      .logCatch(
         info: .message("Navigation to OTP advanced settings failed!"),
-        fallback: { [snackBarMessage] (error: Error) in
-          snackBarMessage.update(\.self, to: .error(error))
+        fallback: { [messageState] (error: Error) in
+          messageState.update(\.self, to: .error(error))
         }
       ) {
         try await navigationToAdvanced.perform(
@@ -190,11 +188,11 @@ extension TOTPEditFormController {
   }
 
   @MainActor internal final func sendForm() async {
-    await self.diagnostics
-      .withLogCatch(
+    await Diagnostics
+      .logCatch(
         info: .message("Sending OTP form failed!"),
-        fallback: { [snackBarMessage] (error: Error) in
-          snackBarMessage.update(\.self, to: .error(error))
+        fallback: { [messageState] (error: Error) in
+          messageState.update(\.self, to: .error(error))
         }
       ) {
         let resource: Resource = try await resourceEditForm.sendForm()

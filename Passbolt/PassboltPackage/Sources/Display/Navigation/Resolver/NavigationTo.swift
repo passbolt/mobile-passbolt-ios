@@ -89,6 +89,27 @@ extension NavigationTo {
   }
 
   @_transparent
+  @Sendable public func performCatching(
+    animated: Bool = true,
+    context: Destination.TransitionContext,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) async {
+    await withLogCatch(
+      failInfo: "Navigation perform failed!",
+      file: file,
+      line: line
+    ) {
+      try await self.performAnimated(
+        animated,
+        context,
+        file,
+        line
+      )
+    }
+  }
+
+  @_transparent
   @Sendable public func perform(
     animated: Bool = true,
     file: StaticString = #fileID,
@@ -104,6 +125,27 @@ extension NavigationTo {
   }
 
   @_transparent
+  @Sendable public func performCatching(
+    animated: Bool = true,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) async
+  where Destination.TransitionContext == Void {
+    await withLogCatch(
+      failInfo: "Navigation perform failed!",
+      file: file,
+      line: line
+    ) {
+      try await self.performAnimated(
+        animated,
+        Void(),
+        file,
+        line
+      )
+    }
+  }
+
+  @_transparent
   @Sendable public func revert(
     animated: Bool = true,
     file: StaticString = #fileID,
@@ -114,6 +156,25 @@ extension NavigationTo {
       file,
       line
     )
+  }
+
+  @_transparent
+  @Sendable public func revertCatching(
+    animated: Bool = true,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) async {
+    await withLogCatch(
+      failInfo: "Navigation revert failed!",
+      file: file,
+      line: line
+    ) {
+      try await self.revertAnimated(
+        animated,
+        file,
+        line
+      )
+    }
   }
 }
 

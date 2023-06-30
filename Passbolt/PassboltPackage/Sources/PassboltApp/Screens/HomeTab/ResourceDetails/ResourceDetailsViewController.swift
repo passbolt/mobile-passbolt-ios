@@ -38,17 +38,14 @@ internal final class ResourceDetailsViewController: ViewController {
     internal var location: Array<String>
     internal var tags: Array<String>
     internal var permissions: Array<OverlappingAvatarStackView.Item>
-
-    internal var snackbarMessage: SnackBarMessage?
+    fileprivate var revealedFields: Set<ResourceType.FieldPath>
   }
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
-
-  private var revealedFields: Set<Resource.FieldPath>
+  internal let viewState: UpdatableViewState<ViewState>
+  internal let messageState: ViewStateVariable<SnackBarMessage?>
 
   private let resourceController: ResourceController
   private let otpCodesController: OTPCodesController
-  private let users: Users
 
   private let navigationToSelf: NavigationToResourceDetails
   private let navigationToResourceContextualMenu: NavigationToResourceContextualMenu
@@ -57,7 +54,6 @@ internal final class ResourceDetailsViewController: ViewController {
   private let navigationToResourcePermissionsDetails: NavigationToResourcePermissionsDetails
   private let pasteboard: OSPasteboard
 
-  private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
 
   private let resourceID: Resource.ID
@@ -73,15 +69,16 @@ internal final class ResourceDetailsViewController: ViewController {
       scope: ResourceDetailsScope.self,
       context: context
     )
-    self.passwordPreviewEnabled =
+    let passwordPreviewEnabled: Bool =
       try features
       .sessionConfiguration()
       .passwordPreviewEnabled
+    self.passwordPreviewEnabled = passwordPreviewEnabled
+
     self.resourceID = context
 
     self.features = features
 
-    self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
 
     self.pasteboard = features.instance()
@@ -94,9 +91,7 @@ internal final class ResourceDetailsViewController: ViewController {
 
     self.resourceController = try features.instance()
     self.otpCodesController = try features.instance()
-    self.users = try features.instance()
-
-    self.revealedFields = .init()
+    let users: Users = try features.instance()
 
     self.viewState = .init(
       initial: .init(
@@ -107,259 +102,190 @@ internal final class ResourceDetailsViewController: ViewController {
         location: .init(),
         tags: .init(),
         permissions: .init(),
-        snackbarMessage: .none
-      )
+        revealedFields: .init()
+      ),
+      updateFrom: self.resourceController.state,
+      update: { (state: inout ViewState, resource: Resource) async throws in
+        if !resource.secretAvailable {
+          state.revealedFields.removeAll()
+        }  // else NOP
+
+        state.name = resource.name
+        state.favorite = resource.favorite
+        state.containsUndefinedFields = resource.containsUndefinedFields
+        state.fields = fields(
+          for: resource,
+          using: features,
+          revealedFields: state.revealedFields,
+          passwordPreviewEnabled: passwordPreviewEnabled
+        )
+        state.location = resource.path.map(\.name)
+        state.tags = resource.tags.map(\.slug.rawValue)
+        state.permissions = resource.permissions.map { (permission: ResourcePermission) in
+          switch permission {
+          case .user(let id, _, _):
+            return .user(
+              id,
+              avatarImage: users.avatarImage(for: id)
+            )
+
+          case .userGroup(let id, _, _):
+            return .userGroup(id)
+          }
+        }
+      },
+      fallback: { [navigationToSelf] (state: inout ViewState, error: Error) async -> Void in
+        try? await navigationToSelf.revert()
+      }
     )
+    self.messageState = .init(initial: .none)
   }
 }
 
 extension ResourceDetailsViewController {
 
-  @Sendable internal func activate() async {
-    await self.diagnostics
-      .withLogCatch(
-        info: .message("Resource details updates broken!"),
-        fallback: { _ in
-          try? await self.navigationToSelf.revert()
-        }
-      ) {
-        for try await resource in self.resourceController.state {
-          self.update(resource)
-        }
-      }
-  }
-
-  @MainActor private func update(
-    _ resource: Resource
-  ) {
-    @Sendable func avatarImageFetch(
-      for userID: User.ID
-    ) -> @Sendable () async -> Data? {
-      { [users] () async -> Data? in
-        try? await users.userAvatarImage(userID)
-      }
-    }
-
-    if !resource.secretAvailable {
-      self.revealedFields.removeAll(keepingCapacity: true)
-    }  // else NOP
-
-    self.viewState.update { (state: inout ViewState) -> Void in
-      state.name = resource.name
-      state.favorite = resource.favorite
-      state.containsUndefinedFields = resource.containsUndefinedFields
-      state.location = resource.path.map(\.name)
-      state.tags = resource.tags.map(\.slug.rawValue)
-      state.permissions = resource.permissions.map { (permission: ResourcePermission) in
-        switch permission {
-        case .user(let id, _, _):
-          return .user(
-            id,
-            avatarImage: avatarImageFetch(for: id)
-          )
-
-        case .userGroup(let id, _, _):
-          return .userGroup(id)
-
-        }
-      }
-
-      state.updateFields(
-        for: resource,
-        using: self.features,
-        revealedFields: self.revealedFields,
-        passwordPreviewEnabled: self.passwordPreviewEnabled
-      )
-    }
-  }
-
-  internal nonisolated func showMenu() async {
-    await self.diagnostics
-      .withLogCatch(
+  internal func showMenu() async {
+    await Diagnostics
+      .logCatch(
         info: .message("Failed to present resource menu!"),
-        fallback: { @MainActor (error: Error) async -> Void in
-          self.viewState.update(\.snackbarMessage, to: .error(error))
+        fallback: { @MainActor [messageState] (error: Error) async -> Void in
+          messageState.show(.error(error))
         }
       ) {
         try await self.navigationToResourceContextualMenu
           .perform(
             context: .init(
-              showMessage: { [viewState] (message: SnackBarMessage?) in
-                viewState.update(\.snackbarMessage, to: message)
+              showMessage: { [messageState] (message: SnackBarMessage?) in
+                messageState.update(\.self, to: message)
               }
             )
           )
       }
   }
 
-  internal nonisolated func showLocationDetails() async {
-    await self.diagnostics
-      .withLogCatch(
-        info: .message("Failed to present resource location details!"),
-        fallback: { @MainActor (error: Error) async -> Void in
-          self.viewState.update(\.snackbarMessage, to: .error(error))
-        }
-      ) {
-        try await self.navigationToResourceLocationDetails.perform()
-      }
+  internal func showLocationDetails() async {
+    await self.navigationToResourceLocationDetails.performCatching()
   }
 
-  internal nonisolated func showTagsDetails() async {
-    await self.diagnostics
-      .withLogCatch(
-        info: .message("Failed to present resource tags details!"),
-        fallback: { @MainActor (error: Error) async -> Void in
-          self.viewState.update(\.snackbarMessage, to: .error(error))
-        }
-      ) {
-        try await self.navigationToResourceTagsDetails.perform()
-      }
+  internal func showTagsDetails() async {
+    await self.navigationToResourceTagsDetails.performCatching()
   }
 
-  internal nonisolated func showPermissionsDetails() async {
-    await self.diagnostics
-      .withLogCatch(
-        info: .message("Failed to present resource permissions details!"),
-        fallback: { @MainActor (error: Error) async -> Void in
-          self.viewState.update(\.snackbarMessage, to: .error(error))
-        }
-      ) {
-        try await self.navigationToResourcePermissionsDetails.perform()
-      }
+  internal func showPermissionsDetails() async {
+    await self.navigationToResourcePermissionsDetails.performCatching()
   }
 
-  internal nonisolated func copyFieldValue(
+  internal func copyFieldValue(
     path: Resource.FieldPath
   ) async {
-    await self.diagnostics
-      .withLogCatch(
-        info: .message("Failed to copy resource field value!"),
-        fallback: { @MainActor (error: Error) async -> Void in
-          self.viewState.update(\.snackbarMessage, to: .error(error))
-        }
-      ) {
-        var resource: Resource = try await self.resourceController.state.value
+    await withLogCatch(
+      failInfo: "Failed to copy resource field value!",
+      fallback: { @MainActor [messageState] (error: Error) async -> Void in
+        messageState.show(.error(error))
+      }
+    ) {
+      var resource: Resource = try await self.resourceController.state.value
 
-        // ensure having secret if field is part of it
-        if resource.isEncrypted(path) {
-          try await self.resourceController.fetchSecretIfNeeded()
-          resource = try await self.resourceController.state.value
-        }  // else NOP
-        let fieldValue: JSON = resource[keyPath: path]
-        if let totpSecret: TOTPSecret = fieldValue.totpSecretValue {
-          let totpValue: TOTPValue = try await self.features
-            .instance(
-              of: TOTPCodeGenerator.self,
-              context: .init(
-                resourceID: resource.id,
-                totpSecret: totpSecret
-              )
-            )
-            .generate()
-          self.pasteboard.put(totpValue.otp.rawValue)
-        }
-        else {
-          self.pasteboard.put(fieldValue.stringValue ?? "")
-        }
-
-        await self.viewState.update { (state: inout ViewState) in
-          state.snackbarMessage = .info(
-            .localized(
-              key: "resource.value.copied",
-              arguments: [
-                resource
-                  .displayableName(forField: path)?
-                  .string()
-                  ?? DisplayableString
-                  .localized("resource.field.name.unknown")
-                  .string()
-              ]
+      // ensure having secret if field is part of it
+      if resource.isEncrypted(path) {
+        try await self.resourceController.fetchSecretIfNeeded()
+        resource = try await self.resourceController.state.value
+      }  // else NOP
+      let fieldValue: JSON = resource[keyPath: path]
+      if let totpSecret: TOTPSecret = fieldValue.totpSecretValue {
+        let totpValue: TOTPValue = try self.features
+          .instance(
+            of: TOTPCodeGenerator.self,
+            context: .init(
+              resourceID: resource.id,
+              totpSecret: totpSecret
             )
           )
-        }
+          .generate()
+        self.pasteboard.put(totpValue.otp.rawValue)
       }
+      else {
+        self.pasteboard.put(fieldValue.stringValue ?? "")
+      }
+
+      self.messageState.show(
+        .info(
+          .localized(
+            key: "resource.value.copied",
+            arguments: [
+              resource
+                .displayableName(forField: path)?
+                .string()
+                ?? DisplayableString
+                .localized("resource.field.name.unknown")
+                .string()
+            ]
+          )
+        )
+      )
+    }
   }
 
-  internal nonisolated func revealFieldValue(
-    path: Resource.FieldPath
+  internal func revealFieldValue(
+    path: ResourceType.FieldPath
   ) async {
-    await self.diagnostics
-      .withLogCatch(
-        info: .message("Failed to reveal resource field value!"),
-        fallback: { @MainActor (error: Error) async -> Void in
-          self.viewState.update(\.snackbarMessage, to: .error(error))
-        }
-      ) { @MainActor in
-        self.revealedFields.insert(path)
-        try await self.resourceController.fetchSecretIfNeeded()
-        try await self.update(resourceController.state.value)
+    await withLogCatch(
+      failInfo: "Failed to reveal resource field value!",
+      fallback: { @MainActor [messageState] (error: Error) async -> Void in
+        messageState.show(.error(error))
       }
+    ) {
+      try await self.resourceController.fetchSecretIfNeeded()
+      await self.viewState.update { (state: inout ViewState) in
+        state.revealedFields.insert(path)
+      }
+    }
   }
 
-  internal nonisolated func coverFieldValue(
-    path: Resource.FieldPath
+  internal func coverFieldValue(
+    path: ResourceType.FieldPath
   ) async {
-    await self.diagnostics
-      .withLogCatch(
-        info: .message("Failed to cover resource field value!"),
-        fallback: { @MainActor (error: Error) async -> Void in
-          self.viewState.update(\.snackbarMessage, to: .error(error))
-        }
-      ) { @MainActor in
-        self.revealedFields.remove(path)
-        try await self.update(resourceController.state.value)
-      }
-  }
-
-  internal func deactivate() {
-    self.diagnostics
-      .logCatch(
-        info: .message("Failed to cover resource fields!")
-      ) { @MainActor in
-        self.revealedFields.removeAll()
-      }
+    await self.viewState.update { (state: inout ViewState) in
+      state.revealedFields.remove(path)
+    }
   }
 }
 
-extension ResourceDetailsViewController.ViewState {
-
-  @MainActor fileprivate mutating func updateFields(
-    for resource: Resource,
-    using features: Features,
-    revealedFields: Set<Resource.FieldPath>,
-    passwordPreviewEnabled: Bool
-  ) {
-    if resource.type.specification.slug == .placeholder {
-      self.fields = .init()  // show no fields for placeholder type
-    }
-    else {
-      self.fields =
-        resource
-        .fields
-        .compactMap { (field: ResourceFieldSpecification) -> ResourceDetailsFieldViewModel? in
-          // remove name from fields, we already have it displayed
-          if field.isNameField {
-            return .none
-          }
-          else {
-            return .init(
-              field,
-              in: resource,
-              revealedFields: revealedFields,
-              passwordPreviewEnabled: passwordPreviewEnabled,
-              prepareTOTPGenerator: { [features] totpSecret in
-                let generator: TOTPCodeGenerator = try features.instance(
-                  context: .init(
-                    resourceID: resource.id,
-                    totpSecret: totpSecret
-                  )
-                )
-                return generator.generate
-              }
-            )
-          }
+@MainActor private func fields(
+  for resource: Resource,
+  using features: Features,
+  revealedFields: Set<Resource.FieldPath>,
+  passwordPreviewEnabled: Bool
+) -> Array<ResourceDetailsFieldViewModel> {
+  if resource.type.specification.slug == .placeholder {
+    return .init()  // show no fields for placeholder type
+  }
+  else {
+    return resource
+      .fields
+      .compactMap { (field: ResourceFieldSpecification) -> ResourceDetailsFieldViewModel? in
+        // remove name from fields, we already have it displayed
+        if field.isNameField {
+          return .none
         }
-    }
+        else {
+          return .init(
+            field,
+            in: resource,
+            revealedFields: revealedFields,
+            passwordPreviewEnabled: passwordPreviewEnabled,
+            prepareTOTPGenerator: { [features] totpSecret in
+              let generator: TOTPCodeGenerator = try features.instance(
+                context: .init(
+                  resourceID: resource.id,
+                  totpSecret: totpSecret
+                )
+              )
+              return generator.generate
+            }
+          )
+        }
+      }
   }
 }
 
@@ -408,7 +334,7 @@ internal struct ResourceDetailsFieldViewModel {
     case invalid(TheError)
   }
 
-  internal var path: Resource.FieldPath
+  internal var path: ResourceType.FieldPath
   internal var name: DisplayableString
   internal var value: Value
   internal var accessory: Accessory?

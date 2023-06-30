@@ -26,52 +26,62 @@ import Display
 public struct ResourceEditView: ControlledView {
 
   private let controller: ResourceEditViewController
+  @State private var discardFormAlertVisible: Bool
 
   public init(
     controller: ResourceEditViewController
   ) {
     self.controller = controller
+    self.discardFormAlertVisible = false
   }
 
   public var body: some View {
-    WithViewState(
-      self.controller.discardFormAlertVisible
-    ) { (discardFormAlertVisible: Bool) in
-      WithViewState(
-        self.controller.snackBarMessage
-      ) { (_: SnackBarMessage?) in
-        self.contentView
-          .snackBarMessage(
-            presenting: self.controller.snackBarMessage
-              .binding(to: \.self)
-          )
-      }
-      .alert(
-        isPresented: self.controller.discardFormAlertVisible.binding(to: \.self)
-      ) {
-        Alert(
-          title: Text(displayable: "generic.are.you.sure"),
-          message: Text(displayable: "resource.edit.exit.confirmation.message"),
-          primaryButton: .cancel(
-            Text(displayable: "resource.edit.exit.confirmation.button.edit.title")
-          ),
-          secondaryButton: .destructive(
-            Text(displayable: "resource.edit.exit.confirmation.button.revert.title"),
-            action: {
-              Task { await self.controller.discardForm() }
-            }
-          )
+    WithSnackBarMessage(
+      from: self.controller
+    ) {
+      self.contentView
+    }
+    .alert(
+      isPresented: self.$discardFormAlertVisible,
+      title: "generic.are.you.sure",
+      message: "resource.edit.exit.confirmation.message",
+      actions: {
+        Button(
+          displayable: "resource.edit.exit.confirmation.button.edit.title",
+          role: .cancel,
+          action: { /* NOP */  }
+        )
+        AsyncButton(
+          role: .destructive,
+          action: {
+            await self.controller.discardForm()
+          },
+          regularLabel: {
+            Text(displayable: "resource.edit.exit.confirmation.button.revert.title")
+          }
         )
       }
-    }
+    )
     .navigationBarBackButtonHidden()
     .toolbar {  // replace back button
       ToolbarItemGroup(placement: .navigationBarLeading) {
         BackButton(
-          action: self.controller.showDiscardFormAlert
+          action: {
+            if self.controller.editedFields.get().isEmpty {
+              await self.controller.discardForm()
+            }
+            else {
+              self.discardFormAlertVisible = true
+            }
+          }
         )
       }
     }
+    .navigationTitle(
+      displayable: self.controller.editsExisting
+        ? "resource.edit.title"
+        : "resource.edit.create.title"
+    )
     .backgroundColor(.passboltBackground)
     .foregroundColor(.passboltPrimaryText)
   }
@@ -104,92 +114,90 @@ public struct ResourceEditView: ControlledView {
 
   @MainActor @ViewBuilder private var fieldsSectionsView: some View {
     CommonListSection {
-      WithViewState(
+      WithEachViewState(
         from: self.controller,
-        at: \.fields
-      ) { (fields: OrderedDictionary<Resource.FieldPath, ResourceEditFieldViewModel>) in
-        ForEach(fields.values) { (fieldModel: ResourceEditFieldViewModel) in
-          CommonListRow(
-            content: {
-              switch fieldModel.value {
-              case .plainShort(let state):
-                FormTextFieldView(
-                  title: fieldModel.name,
-                  prompt: fieldModel.placeholder,
-                  mandatory: fieldModel.requiredMark,
-                  state: state,
-                  update: { (string: String) in
-                    withAnimation {
-                      self.controller.set(string, for: fieldModel.path)
-                    }
+        at: \.fields.values
+      ) { (fieldModel: ResourceEditFieldViewModel) in
+        CommonListRow(
+          content: {
+            switch fieldModel.value {
+            case .plainShort(let state):
+              FormTextFieldView(
+                title: fieldModel.name,
+                prompt: fieldModel.placeholder,
+                mandatory: fieldModel.requiredMark,
+                state: state,
+                update: { (string: String) in
+                  withAnimation {
+                    self.controller.set(string, for: fieldModel.path)
                   }
-                )
-                .padding(bottom: 8)
-
-              case .plainLong(let state):
-                FormLongTextFieldView(
-                  title: fieldModel.name,
-                  prompt: fieldModel.placeholder,
-                  mandatory: fieldModel.requiredMark,
-                  state: state,
-                  update: { (string: String) in
-                    withAnimation {
-                      self.controller.set(string, for: fieldModel.path)
-                    }
-                  }
-                )
-                .padding(bottom: 8)
-
-              case .password(let state, let entropy):
-                VStack(spacing: 4) {
-                  FormSecureTextFieldView(
-                    title: fieldModel.name,
-                    prompt: fieldModel.placeholder,
-                    mandatory: fieldModel.requiredMark,
-                    state: state,
-                    update: { (string: String) in
-                      withAnimation {
-                        self.controller.set(string, for: fieldModel.path)
-                      }
-                    },
-                    accessory: {
-                      Button(
-                        action: {
-                          self.controller.generatePassword(for: fieldModel.path)
-                        },
-                        label: {
-                          Image(named: .dice)
-                            .tint(.passboltPrimaryText)
-                            .padding(12)
-                            .backgroundColor(.passboltDivider)
-                            .cornerRadius(4)
-                        }
-                      )
-                    }
-                  )
-
-                  EntropyView(entropy: entropy)
                 }
-                .padding(bottom: 8)
+              )
+              .padding(bottom: 8)
 
-              case .selection(let state, let values):
-                FormPickerFieldView(
+            case .plainLong(let state):
+              FormLongTextFieldView(
+                title: fieldModel.name,
+                prompt: fieldModel.placeholder,
+                mandatory: fieldModel.requiredMark,
+                state: state,
+                update: { (string: String) in
+                  withAnimation {
+                    self.controller.set(string, for: fieldModel.path)
+                  }
+                }
+              )
+              .padding(bottom: 8)
+
+            case .password(let state, let entropy):
+              VStack(spacing: 4) {
+                FormSecureTextFieldView(
                   title: fieldModel.name,
                   prompt: fieldModel.placeholder,
                   mandatory: fieldModel.requiredMark,
-                  values: values,
                   state: state,
                   update: { (string: String) in
                     withAnimation {
                       self.controller.set(string, for: fieldModel.path)
                     }
+                  },
+                  accessory: {
+                    Button(
+                      action: {
+                        self.controller.generatePassword(for: fieldModel.path)
+                      },
+                      label: {
+                        Image(named: .dice)
+                          .tint(.passboltPrimaryText)
+                          .padding(12)
+                          .backgroundColor(.passboltDivider)
+                          .cornerRadius(4)
+                      }
+                    )
                   }
                 )
-                .padding(bottom: 8)
+
+                EntropyView(entropy: entropy)
               }
+              .padding(bottom: 8)
+
+            case .selection(let state, let values):
+              FormPickerFieldView(
+                title: fieldModel.name,
+                prompt: fieldModel.placeholder,
+                mandatory: fieldModel.requiredMark,
+                values: values,
+                state: state,
+                update: { (string: String) in
+                  withAnimation {
+                    self.controller.set(string, for: fieldModel.path)
+                  }
+                }
+              )
+              .padding(bottom: 8)
             }
-          )
-        }
+          }
+        )
       }
     }
   }

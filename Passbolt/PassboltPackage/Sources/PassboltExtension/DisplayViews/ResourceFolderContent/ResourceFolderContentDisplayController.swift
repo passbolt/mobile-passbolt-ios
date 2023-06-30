@@ -29,7 +29,7 @@ import SessionData
 
 internal final class ResourceFolderContentDisplayController: ViewController {
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: ViewStateVariable<ViewState>
 
   internal var createFolder: (() -> Void)?
   internal var createResource: (() -> Void)?
@@ -37,7 +37,6 @@ internal final class ResourceFolderContentDisplayController: ViewController {
   internal var selectResource: (Resource.ID) -> Void
   internal var openResourceMenu: ((Resource.ID) -> Void)?
 
-  private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
   private let sessionData: SessionData
   private let resourceFolders: ResourceFolders
@@ -54,7 +53,6 @@ internal final class ResourceFolderContentDisplayController: ViewController {
     self.context = context
     self.features = features
 
-    self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
     self.sessionData = try features.instance()
     self.resourceFolders = try features.instance()
@@ -79,7 +77,6 @@ internal final class ResourceFolderContentDisplayController: ViewController {
 
     self.asyncExecutor.scheduleIteration(
       over: combineLatest(context.filter.asAnyAsyncSequence(), sessionData.updates),
-      catchingWith: self.diagnostics,
       failMessage: "Resource folders list updates broken!",
       failAction: { [context] (error: Error) in
         context.showMessage(.error(error))
@@ -137,7 +134,7 @@ extension ResourceFolderContentDisplayController {
       try await self.sessionData.refreshIfNeeded()
     }
     catch {
-      self.diagnostics.log(
+      Diagnostics.log(
         error: error,
         info: .message(
           "Failed to refresh session data."

@@ -41,7 +41,6 @@ extension ResourceFolderEditForm {
 
     let currentAccount: Account = try features.sessionAccount()
 
-    let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
 
     let sessionData: SessionData = try features.instance()
@@ -149,7 +148,7 @@ extension ResourceFolderEditForm {
         formUpdates.sendUpdate()
       }
       catch {
-        diagnostics.log(error: error)
+        Diagnostics.log(error: error)
       }
     }
 

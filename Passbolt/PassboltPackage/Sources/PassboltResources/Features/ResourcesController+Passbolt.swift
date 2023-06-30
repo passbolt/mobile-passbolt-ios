@@ -60,7 +60,7 @@ extension ResourcesController {
           favoriteOnly: filter.favoriteOnly,
           excludedTypeSlugs: filter.otpOnly
             ? [.password, .passwordWithDescription]
-            : [.totp],
+            : [.totp, .passwordWithTOTP],
           permissions: Set(filter.permissions),
           tags: filter.tags,
           userGroups: filter.userGroups,

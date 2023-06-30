@@ -26,11 +26,10 @@ import FeatureScopes
 import OSFeatures
 import Session
 
-internal final class MainSettingsController: ViewController {
+internal final class MainSettingsViewController: ViewController {
 
   private let currentAccount: Account
-  private let diagnostics: OSDiagnostics
-  private let asyncExecutor: AsyncExecutor
+
   private let session: Session
   private let navigationToApplicationSettings: NavigationToApplicationSettings
   private let navigationToAccountsSettings: NavigationToAccountsSettings
@@ -50,8 +49,7 @@ internal final class MainSettingsController: ViewController {
     self.features = features
 
     self.currentAccount = try features.sessionAccount()
-    self.diagnostics = features.instance()
-    self.asyncExecutor = try features.instance()
+
     self.session = try features.instance()
     self.navigationToApplicationSettings = try features.instance()
     self.navigationToAccountsSettings = try features.instance()
@@ -60,55 +58,25 @@ internal final class MainSettingsController: ViewController {
   }
 }
 
-extension MainSettingsController {
+extension MainSettingsViewController {
 
-  internal final func navigateToApplicationSettings() {
-    self.asyncExecutor
-      .scheduleCatchingWith(
-        self.diagnostics,
-        failMessage: "Navigation to application settings failed!",
-        behavior: .reuse
-      ) { [navigationToApplicationSettings] in
-        try await navigationToApplicationSettings.perform()
-      }
+  internal final func navigateToApplicationSettings() async {
+    await self.navigationToApplicationSettings.performCatching()
   }
 
-  internal final func navigateToAccountsSettings() {
-    self.asyncExecutor
-      .scheduleCatchingWith(
-        self.diagnostics,
-        failMessage: "Navigation to accounts settings failed!",
-        behavior: .reuse
-      ) { [navigationToAccountsSettings] in
-        try await navigationToAccountsSettings.perform()
-      }
+  internal final func navigateToAccountsSettings() async {
+    await self.navigationToAccountsSettings.performCatching()
   }
 
-  internal final func navigateToTermsAndLicenses() {
-    self.asyncExecutor
-      .scheduleCatchingWith(
-        self.diagnostics,
-        failMessage: "Navigation to terms and licenses failed!",
-        behavior: .reuse
-      ) { [navigationToTermsAndLicenses] in
-        try await navigationToTermsAndLicenses.perform()
-      }
+  internal final func navigateToTermsAndLicenses() async {
+    await self.navigationToTermsAndLicenses.performCatching()
   }
 
-  internal final func navigateToTroubleshooting() {
-    self.asyncExecutor
-      .scheduleCatchingWith(
-        self.diagnostics,
-        failMessage: "Navigation to troubleshooting failed!",
-        behavior: .reuse
-      ) { [navigationToTroubleshooting] in
-        try await navigationToTroubleshooting.perform()
-      }
+  internal final func navigateToTroubleshooting() async {
+    await navigationToTroubleshooting.performCatching()
   }
 
-  internal final func signOut() {
-    self.asyncExecutor.schedule(.reuse) { [session, currentAccount] in
-      await session.close(currentAccount)
-    }
+  internal final func signOut() async {
+    await session.close(currentAccount)
   }
 }

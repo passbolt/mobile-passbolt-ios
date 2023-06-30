@@ -32,10 +32,10 @@ import SessionData
 
 internal final class OTPResourcesListController: ViewController {
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: ViewStateVariable<ViewState>
 
   private let currentAccount: Account
-  private let diagnostics: OSDiagnostics
+
   private let asyncExecutor: AsyncExecutor
   private let otpResources: OTPResources
   private let otpCodesController: OTPCodesController
@@ -54,7 +54,7 @@ internal final class OTPResourcesListController: ViewController {
     self.features = features
 
     self.currentAccount = try features.sessionAccount()
-    self.diagnostics = features.instance()
+
     self.asyncExecutor = try features.instance()
     self.otpResources = try features.instance()
     self.otpCodesController = try features.instance()
@@ -71,8 +71,7 @@ internal final class OTPResourcesListController: ViewController {
     )
 
     // load avatar image for search icon
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
+    self.asyncExecutor.scheduleCatching(
       failMessage: "Failed to get account avatar image!"
     ) { [viewState, accountDetails] in
       let avatarImage: Data? = try await accountDetails.avatarImage()
@@ -88,15 +87,14 @@ internal final class OTPResourcesListController: ViewController {
       .scheduleIteration(
         over: self.otpCodesController.updates
           .map(self.otpCodesController.current),
-        catchingWith: self.diagnostics,
         failMessage: "OTP codes updates broken!",
         failAction: { [viewState] (error: Error) in
           await viewState.update(\.snackBarMessage, to: .error(error))
         }
       ) { [viewState] (otpValue: OTPValue?) async throws -> Void in
-        defer { lastRevealed.set(\.self, otpValue?.resourceID) }
+        defer { lastRevealed.set(otpValue?.resourceID) }
         if let otpValue {
-          let lastRevealed: Resource.ID? = lastRevealed.get(\.self)
+          let lastRevealed: Resource.ID? = lastRevealed.get()
           await viewState.update { (state: inout ViewState) in
             if let lastRevealed, otpValue.resourceID != lastRevealed,
               let index = state.otpResources.firstIndex(where: { $0.id == lastRevealed })
@@ -141,7 +139,6 @@ internal final class OTPResourcesListController: ViewController {
 
     self.asyncExecutor.scheduleIteration(
       over: filtersSequence,
-      catchingWith: self.diagnostics,
       failMessage: "OTP list updates broken!",
       failAction: { [viewState] (error: Error) in
         await viewState.update(\.snackBarMessage, to: .error(error))
@@ -187,7 +184,7 @@ extension OTPResourcesListController {
       try await self.otpResources.refreshIfNeeded()
     }
     catch {
-      self.diagnostics
+      Diagnostics
         .log(
           error: error,
           info: .message(
@@ -205,8 +202,7 @@ extension OTPResourcesListController {
 
   internal final func createOTP() {
     self.asyncExecutor
-      .scheduleCatchingWith(
-        self.diagnostics,
+      .scheduleCatching(
         failMessage: "Navigation to OTP create menu failed!",
         failAction: { [viewState] (error: Error) in
           await viewState.update(\.snackBarMessage, to: .error(error))
@@ -242,8 +238,7 @@ extension OTPResourcesListController {
   internal final func revealAndCopyOTP(
     for resourceID: Resource.ID
   ) {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
+    self.asyncExecutor.scheduleCatching(
       failMessage: "Failed to reveal/copy OTP value!",
       failAction: { [viewState] (error: Error) in
         await viewState.update(\.snackBarMessage, to: .error(error))
@@ -259,8 +254,7 @@ extension OTPResourcesListController {
     for resourceID: Resource.ID
   ) {
     self.asyncExecutor
-      .scheduleCatchingWith(
-        self.diagnostics,
+      .scheduleCatching(
         failMessage: "Failed to present OTP contextual menu",
         failAction: { [viewState] (error: Error) in
           await viewState.update(\.snackBarMessage, to: .error(error))
@@ -290,8 +284,7 @@ extension OTPResourcesListController {
   }
 
   internal final func showAccountMenu() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
+    self.asyncExecutor.scheduleCatching(
       failMessage: "Navigation to account menu failed!",
       failAction: { [viewState] (error: Error) in
         await viewState.update(\.snackBarMessage, to: .error(error))

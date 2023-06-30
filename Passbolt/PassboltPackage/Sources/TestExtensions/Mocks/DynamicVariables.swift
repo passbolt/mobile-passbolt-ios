@@ -85,8 +85,8 @@ public final class DynamicVariables: @unchecked Sendable {
   private let state: CriticalState<Dictionary<StaticString, Value>> = .init(.init())
   private let variableNames: VariableNames = .init()
   private var values: Dictionary<StaticString, Value> {
-    get { self.state.get(\.self) }
-    set { self.state.set(\.self, newValue) }
+    get { self.state.get() }
+    set { self.state.set(newValue) }
   }
 
   public init() {}

@@ -72,6 +72,9 @@ extension SessionLocking {
                 try sesionState
                   .authorizationRequested(.passphrase(account))
               }
+              catch is SessionClosed {
+                // ignore, expected
+              }
               catch {
                 // ignore errors
                 error

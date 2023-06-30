@@ -35,7 +35,7 @@ extension SessionConfigurationLoader {
     features: Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
+
     let session: Session = try features.instance()
     let configurationFetchNetworkOperation: ConfigurationFetchNetworkOperation = try features.instance()
 
@@ -49,10 +49,10 @@ extension SessionConfigurationLoader {
     )
 
     @Sendable nonisolated func fetchConfiguration() async throws -> Dictionary<AnyHashable, FeatureConfigItem> {
-      diagnostics.log(diagnostic: "Fetching server configuration...")
+      Diagnostics.log(diagnostic: "Fetching server configuration...")
       guard case .some = try? await session.currentAccount()
       else {
-        diagnostics.log(diagnostic: "...server configuration fetching skipped!")
+        Diagnostics.log(diagnostic: "...server configuration fetching skipped!")
         return .init()
       }
       let rawConfiguration: ConfigurationFetchNetworkOperationResult.Config
@@ -60,8 +60,8 @@ extension SessionConfigurationLoader {
         rawConfiguration = try await configurationFetchNetworkOperation().config
       }
       catch {
-        diagnostics.log(error: error)
-        diagnostics.log(diagnostic: "...server configuration fetching failed!")
+        Diagnostics.log(error: error)
+        Diagnostics.log(diagnostic: "...server configuration fetching failed!")
         throw error
       }
 
@@ -125,7 +125,7 @@ extension SessionConfigurationLoader {
         configuration[FeatureFlags.TOTP.identifier] = FeatureFlags.TOTP.default
       }
 
-      diagnostics.log(diagnostic: "...server configuration fetched!")
+      Diagnostics.log(diagnostic: "...server configuration fetched!")
 
       return configuration
     }

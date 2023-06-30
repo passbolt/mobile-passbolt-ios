@@ -46,7 +46,7 @@ final class TermsAndLicensesSettingsControllerTests: FeaturesTestCase {
       with: always(self.mockExecuted())
     )
     await withInstance(
-      of: TermsAndLicensesSettingsController.self,
+      of: TermsAndLicensesViewController.self,
       mockExecuted: 1
     ) { feature in
       await feature.navigateToLicenses()
@@ -67,7 +67,7 @@ final class TermsAndLicensesSettingsControllerTests: FeaturesTestCase {
       with: always(self.mockExecuted())
     )
     await withInstance(
-      of: TermsAndLicensesSettingsController.self,
+      of: TermsAndLicensesViewController.self,
       mockExecuted: 1
     ) { feature in
       await feature.navigateToTermsAndConditions()
@@ -88,7 +88,7 @@ final class TermsAndLicensesSettingsControllerTests: FeaturesTestCase {
       with: always(self.mockExecuted())
     )
     await withInstance(
-      of: TermsAndLicensesSettingsController.self,
+      of: TermsAndLicensesViewController.self,
       mockExecuted: 1
     ) { feature in
       await feature.navigateToPrivacyPolicy()
@@ -106,7 +106,7 @@ final class TermsAndLicensesSettingsControllerTests: FeaturesTestCase {
       )
     )
     await withInstance(
-      of: TermsAndLicensesSettingsController.self
+      of: TermsAndLicensesViewController.self
     ) { feature in
       await feature.navigateToTermsAndConditions()
       await self.asyncExecutionControl.executeAll()
@@ -127,7 +127,7 @@ final class TermsAndLicensesSettingsControllerTests: FeaturesTestCase {
       with: always(self.mockExecuted())
     )
     await withInstance(
-      of: TermsAndLicensesSettingsController.self,
+      of: TermsAndLicensesViewController.self,
       mockExecuted: 0
     ) { feature in
       await feature.navigateToPrivacyPolicy()

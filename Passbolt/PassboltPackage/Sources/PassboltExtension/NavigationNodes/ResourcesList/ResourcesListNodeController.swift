@@ -32,11 +32,10 @@ import Users
 
 internal final class ResourcesListNodeController: ViewController {
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: ViewStateVariable<ViewState>
   internal var searchController: ResourceSearchDisplayController
   internal var contentController: ResourcesListDisplayController!  // lazy init?
 
-  private let diagnostics: OSDiagnostics
   private let navigationTree: NavigationTree
   private let asyncExecutor: AsyncExecutor
   private let autofillContext: AutofillExtensionContext
@@ -53,7 +52,6 @@ internal final class ResourcesListNodeController: ViewController {
     self.context = context
     self.features = features
 
-    self.diagnostics = features.instance()
     self.navigationTree = features.instance()
     self.asyncExecutor = try features.instance()
     self.autofillContext = features.instance()
@@ -62,7 +60,7 @@ internal final class ResourcesListNodeController: ViewController {
       autofillContext.requestedServiceIdentifiers()
     self.requestedServiceIdentifiers = requestedServiceIdentifiers
 
-    let viewState: MutableViewState<ViewState> = .init(
+    let viewState: ViewStateVariable<ViewState> = .init(
       initial: .init(
         title: context.title,
         titleIconName: context.titleIconName,
@@ -131,10 +129,9 @@ extension ResourcesListNodeController {
 
   internal final func createResource() {
     self.asyncExecutor
-      .scheduleCatchingWith(
-        diagnostics,
+      .scheduleCatching(
         behavior: .reuse
-      ) { [features, requestedServiceIdentifiers, navigationTree, diagnostics, asyncExecutor, autofillContext] in
+      ) { [features, requestedServiceIdentifiers, navigationTree, asyncExecutor, autofillContext] in
         let resourceEditPreparation: ResourceEditPreparation = try await features.instance()
         let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
           .default,
@@ -146,7 +143,7 @@ extension ResourcesListNodeController {
           controller: .init(
             context: .init(
               editingContext: editingContext,
-              success: { [diagnostics, asyncExecutor, autofillContext] resource in
+              success: { [asyncExecutor, autofillContext] resource in
                 if let password: String = resource.firstPasswordString {
                   asyncExecutor.schedule(.replace) {
                     await autofillContext
@@ -159,7 +156,7 @@ extension ResourcesListNodeController {
                   }
                 }
                 else {
-                  diagnostics.log(
+                  Diagnostics.log(
                     error:
                       ResourceSecretInvalid
                       .error("Missing resource password in secret.")
@@ -176,8 +173,7 @@ extension ResourcesListNodeController {
   nonisolated internal final func selectResource(
     _ resourceID: Resource.ID
   ) {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
+    self.asyncExecutor.scheduleCatching(
       failMessage: "Failed to handle resource selection.",
       failAction: { [viewState] (error: Error) in
         await viewState.update(\.snackBarMessage, to: .error(error))

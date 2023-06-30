@@ -37,7 +37,6 @@ extension AccountDetails {
     cancellables: Cancellables
   ) throws -> Self {
 
-    let diagnostics: OSDiagnostics = features.instance()
     let accountsDataStore: AccountsDataStore = try features.instance()
     let accountData: AccountData = try features.instance(context: account)
     let userDetailsFetchNetworkOperation: UserDetailsFetchNetworkOperation = try features.instance()
@@ -89,7 +88,7 @@ extension AccountDetails {
         return try await mediaDownloadNetworkOperation.execute(profile.avatarImageURL)
       }
       catch {
-        diagnostics.log(error: error)
+        Diagnostics.log(error: error)
         throw error
       }
     })

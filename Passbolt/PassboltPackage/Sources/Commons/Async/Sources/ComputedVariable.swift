@@ -41,7 +41,7 @@ where DataType: Sendable {
     fileprivate var awaiters: Dictionary<IID, UnsafeContinuation<DataType, Error>>
   }
 
-  public var updates: Updates { self.updatesSource.updates }
+  public let updates: Updates
 
   private let updatesSource: UpdatesSource
   private let computeVariable: @Sendable () async throws -> DataType
@@ -60,6 +60,7 @@ where DataType: Sendable {
       )
     )
     self.updatesSource = .init()
+    self.updates = self.updatesSource.updates
     self.computeVariable = {
       defer { lazySource.terminate() }
       return try await compute()
@@ -78,6 +79,7 @@ where DataType: Sendable {
       )
     )
     self.updatesSource = .init()
+    self.updates = self.updatesSource.updates
     self.computeVariable = compute
   }
 
@@ -93,6 +95,7 @@ where DataType: Sendable {
       )
     )
     self.updatesSource = .init()
+    self.updates = self.updatesSource.updates
     self.computeVariable = { @Sendable [weak source] () async throws -> DataType in
       guard let source else { throw CancellationError() }
       return try await transform(source.value)

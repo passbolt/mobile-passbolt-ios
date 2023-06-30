@@ -92,11 +92,6 @@ where Feature: LoadableFeature {
 
     self.mockExecutionControl = .init()
     self.features = .init()
-    self.features
-      .patch(
-        \OSDiagnostics.self,
-        with: OSDiagnostics.disabled
-      )
 
     self.features
       .patch(

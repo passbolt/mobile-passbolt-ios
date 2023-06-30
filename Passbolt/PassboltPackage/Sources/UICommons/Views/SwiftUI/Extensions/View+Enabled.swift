@@ -21,10 +21,11 @@
 // @since         v1.0
 //
 
-@propertyWrapper
-public struct Stateless {
+import SwiftUI
 
-  public var wrappedValue: MutableViewState<Never> = .init()
+extension View {
 
-  public init() {}
+  public func enabled(_ enabled: Bool) -> some View {
+    self.opacity(enabled ? 1 : 0.5).disabled(!enabled)
+  }
 }

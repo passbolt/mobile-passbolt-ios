@@ -29,9 +29,8 @@ import SessionData
 
 internal final class ResourceTagsListDisplayController: ViewController {
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: ViewStateVariable<ViewState>
 
-  private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
   private let sessionData: SessionData
   private let resourceTags: ResourceTags
@@ -47,7 +46,6 @@ internal final class ResourceTagsListDisplayController: ViewController {
     self.context = context
     self.features = features
 
-    self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
     self.sessionData = try features.instance()
     self.resourceTags = try features.instance()
@@ -60,7 +58,6 @@ internal final class ResourceTagsListDisplayController: ViewController {
 
     self.asyncExecutor.scheduleIteration(
       over: combineLatest(context.filter, sessionData.updates),
-      catchingWith: self.diagnostics,
       failMessage: "Resource tags list updates broken!",
       failAction: { [context] (error: Error) in
         context.showMessage(.error(error))
@@ -97,7 +94,7 @@ extension ResourceTagsListDisplayController {
       try await self.sessionData.refreshIfNeeded()
     }
     catch {
-      self.diagnostics.log(
+      Diagnostics.log(
         error: error,
         info: .message(
           "Failed to refresh session data."

@@ -69,3 +69,14 @@ extension Users: LoadableFeature {
   }
   #endif
 }
+
+extension Users {
+
+  @Sendable public func avatarImage(
+    for userID: User.ID
+  ) -> @Sendable () async -> Data? {
+    { [self] () async -> Data? in
+      try? await self.userAvatarImage(userID)
+    }
+  }
+}

@@ -35,7 +35,6 @@ extension SessionDatabase {
     cancellables: Cancellables
   ) throws -> Self {
 
-    let diagnostics: OSDiagnostics = features.instance()
     let session: Session = try features.instance()
     let sessionState: SessionState = try features.instance()
     let sessionStateEnsurance: SessionStateEnsurance = try features.instance()
@@ -76,7 +75,7 @@ extension SessionDatabase {
           .openConnection(account.localID, key)
       }
       catch {
-        diagnostics.log(error: error)
+        Diagnostics.log(error: error)
         return .none
       }
     }

@@ -44,7 +44,7 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
       )
     ) {
       await self.asyncExecutionControl.executeAll()
-      return tested.viewState.value
+      return tested.viewState.state
     }
   }
 
@@ -78,7 +78,7 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
         updatesSource.terminate()
       }
       await self.asyncExecutionControl.executeAll()
-      return tested.viewState.value
+      return tested.viewState.state
     }
     // to be removed after navigation refactor
     await self.asyncExecutionControl.executeAll()

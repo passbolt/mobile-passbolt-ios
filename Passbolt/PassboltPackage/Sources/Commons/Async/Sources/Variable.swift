@@ -26,7 +26,7 @@ where DataType: Sendable {
 
   public typealias Failure = Never
 
-  public var updates: Updates { self.updatesSource.updates }
+  public let updates: Updates
 
   private let updatesSource: UpdatesSource
   private let storage: CriticalState<DataType>
@@ -36,12 +36,13 @@ where DataType: Sendable {
   ) {
     self.storage = .init(initial)
     self.updatesSource = .init()
+    self.updates = self.updatesSource.updates
   }
 
   public var value: DataType {
-    get { self.storage.get(\.self) }
+    get { self.storage.get() }
     set {
-      self.storage.set(\.self, newValue)
+      self.storage.set(newValue)
       self.updatesSource.sendUpdate()
     }
   }

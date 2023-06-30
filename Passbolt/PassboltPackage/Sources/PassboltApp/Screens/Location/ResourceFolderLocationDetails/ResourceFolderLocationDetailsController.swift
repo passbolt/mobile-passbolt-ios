@@ -28,7 +28,7 @@ import Users
 
 internal final class ResourceFolderLocationDetailsController: ViewController {
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: ViewStateVariable<ViewState>
 
   private let executor: AsyncExecutor
 
@@ -45,13 +45,12 @@ internal final class ResourceFolderLocationDetailsController: ViewController {
         folderShared: false
       )
     )
-    let diagnostics: OSDiagnostics = features.instance()
+
     let resourceFolderController: ResourceFolderController = try features.instance(context: context)
 
     self.executor
       .scheduleIteration(
         over: resourceFolderController.state,
-        catchingWith: diagnostics,
         failMessage: "Resource folder location updates broken!"
       ) { [viewState] (resourceFolder: ResourceFolder) in
         var path: FolderLocationTreeView.Node = resourceFolder.path.reduce(

@@ -38,7 +38,6 @@ extension FeaturesRegistry {
     self.useOSPasteboard()
     self.useOSRandomness()
     self.useOSPreferences()
-    self.useOSDiagnostics()
     self.useUUIDGenerator()
     self.useOSLinkOpener()
     self.useOSKeychain()

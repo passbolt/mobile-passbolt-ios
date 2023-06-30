@@ -33,11 +33,11 @@ import Users
 
 internal final class ResourceSearchDisplayController: ViewController {
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: ViewStateVariable<ViewState>
   internal nonisolated let searchText: any ViewStateSource<String>
 
   private let currentAccount: Account
-  private let diagnostics: OSDiagnostics
+
   private let navigationTree: NavigationTree
   private let asyncExecutor: AsyncExecutor
   private let session: Session
@@ -57,13 +57,12 @@ internal final class ResourceSearchDisplayController: ViewController {
 
     self.currentAccount = try features.sessionAccount()
 
-    self.diagnostics = features.instance()
     self.navigationTree = features.instance()
     self.asyncExecutor = try features.instance()
     self.session = try features.instance()
     self.accountDetails = try features.instance(context: currentAccount)
 
-    let viewState: MutableViewState<ViewState> = .init(
+    let viewState: ViewStateVariable<ViewState> = .init(
       initial: .init(
         searchPrompt: context.searchPrompt,
         accountAvatar: .none,
@@ -102,7 +101,7 @@ extension ResourceSearchDisplayController {
       }
     }
     catch {
-      self.diagnostics.log(
+      Diagnostics.log(
         error: error,
         info: .message(
           "Failed to load account avatar image, using placeholder."
@@ -112,8 +111,7 @@ extension ResourceSearchDisplayController {
   }
 
   internal final func showPresentationMenu() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
+    self.asyncExecutor.scheduleCatching(
       failAction: { [context] (error: Error) in
         await context.showMessage(.error(error))
       },

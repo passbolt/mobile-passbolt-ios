@@ -34,15 +34,10 @@ internal struct ResourceDetailsView: ControlledView {
   }
 
   internal var body: some View {
-    WithViewState(
-      from: self.controller,
-      at: \.snackbarMessage
-    ) { (_: SnackBarMessage?) in
+    WithSnackBarMessage(
+      from: self.controller
+    ) {
       self.contentView
-        .snackBarMessage(
-          presenting: self.controller
-            .binding(to: \.snackbarMessage)
-        )
     }
     .toolbar {
       ToolbarItemGroup(placement: .navigationBarTrailing) {
@@ -54,8 +49,6 @@ internal struct ResourceDetailsView: ControlledView {
     }
     .backgroundColor(.passboltBackground)
     .foregroundColor(.passboltPrimaryText)
-    .task(self.controller.activate)
-    .onDisappear(perform: self.controller.deactivate)
   }
 
   @MainActor @ViewBuilder private var contentView: some View {
@@ -142,125 +135,123 @@ internal struct ResourceDetailsView: ControlledView {
 
   @MainActor @ViewBuilder private var fieldsSectionsView: some View {
     CommonListSection {
-      WithViewState(
+      WithEachViewState(
         from: self.controller,
         at: \.fields
-      ) { (fields: Array<ResourceDetailsFieldViewModel>) in
-        ForEach(fields) { (fieldModel: ResourceDetailsFieldViewModel) in
-          CommonListRow(
-            contentAction: {
-              await self.controller.copyFieldValue(path: fieldModel.path)
-            },
-            content: {
-              ResourceFieldView(
-                name: fieldModel.name,
-                content: {
-                  switch fieldModel.value {
-                  case .plain(let value):
-                    Text(value)
-                      .text(
-                        .leading,
-                        lines: .none,
-                        font: .inter(
-                          ofSize: 14,
-                          weight: .regular
-                        ),
-                        color: .passboltSecondaryText
-                      )
+      ) { (fieldModel: ResourceDetailsFieldViewModel) in
+        CommonListRow(
+          contentAction: {
+            await self.controller.copyFieldValue(path: fieldModel.path)
+          },
+          content: {
+            ResourceFieldView(
+              name: fieldModel.name,
+              content: {
+                switch fieldModel.value {
+                case .plain(let value):
+                  Text(value)
+                    .text(
+                      .leading,
+                      lines: .none,
+                      font: .inter(
+                        ofSize: 14,
+                        weight: .regular
+                      ),
+                      color: .passboltSecondaryText
+                    )
 
-                  case .encrypted:
-                    Text("••••••••")
-                      .text(
-                        .leading,
-                        lines: 1,
-                        font: .inter(
-                          ofSize: 14,
-                          weight: .regular
-                        ),
-                        color: .passboltSecondaryText
-                      )
+                case .encrypted:
+                  Text("••••••••")
+                    .text(
+                      .leading,
+                      lines: 1,
+                      font: .inter(
+                        ofSize: 14,
+                        weight: .regular
+                      ),
+                      color: .passboltSecondaryText
+                    )
 
-                  case .password(let value):
-                    // password has specific font to be displayed
-                    Text(value)
-                      .text(
-                        .leading,
-                        lines: .none,
-                        font: .inconsolata(
-                          ofSize: 14,
-                          weight: .regular
-                        ),
-                        color: .passboltSecondaryText
-                      )
+                case .password(let value):
+                  // password has specific font to be displayed
+                  Text(value)
+                    .text(
+                      .leading,
+                      lines: .none,
+                      font: .inconsolata(
+                        ofSize: 14,
+                        weight: .regular
+                      ),
+                      color: .passboltSecondaryText
+                    )
 
-                  case .encryptedTOTP:
-                    TOTPValueView(value: .none)
+                case .encryptedTOTP:
+                  TOTPValueView(value: .none)
 
-                  case .totp(hash: _, let generateTOTP):
-                    AutoupdatingTOTPValueView(generateTOTP: generateTOTP)
+                case .totp(hash: _, let generateTOTP):
+                  AutoupdatingTOTPValueView(generateTOTP: generateTOTP)
 
-                  case .placeholder(let value):
-                    Text(value)
-                      .text(
-                        .leading,
-                        lines: .none,
-                        font: .interItalic(
-                          ofSize: 12,
-                          weight: .regular
-                        ),
-                        color: .passboltSecondaryText
-                      )
+                case .placeholder(let value):
+                  Text(value)
+                    .text(
+                      .leading,
+                      lines: .none,
+                      font: .interItalic(
+                        ofSize: 12,
+                        weight: .regular
+                      ),
+                      color: .passboltSecondaryText
+                    )
 
-                  case .invalid(let error):
-                    Text(displayable: error.displayableMessage)
-                      .text(
-                        .leading,
-                        lines: .none,
-                        font: .interItalic(
-                          ofSize: 14,
-                          weight: .regular
-                        ),
-                        color: .passboltSecondaryRed
-                      )
-                  }
-                }
-              )
-            },
-            accessoryAction: fieldModel.accessory.map { accessory in
-              switch accessory {
-              case .copy:
-                return {
-                  await self.controller.copyFieldValue(path: fieldModel.path)
-                }
-
-              case .reveal:
-                return {
-                  await self.controller.revealFieldValue(path: fieldModel.path)
-                }
-
-              case .hide:
-                return {
-                  await self.controller.coverFieldValue(path: fieldModel.path)
+                case .invalid(let error):
+                  Text(displayable: error.displayableMessage)
+                    .text(
+                      .leading,
+                      lines: .none,
+                      font: .interItalic(
+                        ofSize: 14,
+                        weight: .regular
+                      ),
+                      color: .passboltSecondaryRed
+                    )
                 }
               }
-            },
-            accessory: {
-              switch fieldModel.accessory {
-              case .copy:
-                CopyButtonImage()
+            )
+          },
+          accessoryAction: fieldModel.accessory.map { accessory in
+            switch accessory {
+            case .copy:
+              return {
+                await self.controller.copyFieldValue(path: fieldModel.path)
+              }
 
-              case .reveal:
-                RevealButtonImage()
+            case .reveal:
+              return {
+                await self.controller.revealFieldValue(path: fieldModel.path)
+              }
 
-              case .hide:
-                CoverButtonImage()
-
-              case .none:
-                EmptyView()
+            case .hide:
+              return {
+                await self.controller.coverFieldValue(path: fieldModel.path)
               }
             }
-          )
-        }
+          },
+          accessory: {
+            switch fieldModel.accessory {
+            case .copy:
+              CopyButtonImage()
+
+            case .reveal:
+              RevealButtonImage()
+
+            case .hide:
+              CoverButtonImage()
+
+            case .none:
+              EmptyView()
+            }
+          }
+        )
       }
     }
   }

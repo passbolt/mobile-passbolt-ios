@@ -75,7 +75,6 @@ extension AsyncExecutor {
   @_transparent
   public func scheduleIteration<S>(
     over sequence: S,
-    catchingWith diagnostics: OSDiagnostics,
     failMessage: StaticString? = .none,
     failAction: ((Error) async -> Void)? = .none,
     behavior: OngoingExecutionBehavior = .concurrent,
@@ -84,9 +83,8 @@ extension AsyncExecutor {
     line: UInt = #line,
     _ handleNext: @escaping @Sendable (S.Element) async throws -> Void
   ) where S: AsyncSequence {
-    self.scheduleRecursiveNext(
+    self.scheduleRecursiveNextCatching(
       using: sequence.makeAsyncIterator().asAnyAsyncIterator(),
-      catchingWith: diagnostics,
       failMessage: failMessage,
       failAction: failAction,
       behavior: behavior,
@@ -98,9 +96,8 @@ extension AsyncExecutor {
   }
 
   @usableFromInline
-  internal func scheduleRecursiveNext<Element>(
+  internal func scheduleRecursiveNextCatching<Element>(
     using iterator: AnyAsyncIterator<Element>,
-    catchingWith diagnostics: OSDiagnostics,
     failMessage: StaticString?,
     failAction: ((Error) async -> Void)?,
     behavior: OngoingExecutionBehavior,
@@ -115,8 +112,8 @@ extension AsyncExecutor {
       file: file,
       line: line,
       {
-        await diagnostics
-          .withLogCatch(
+        await Diagnostics
+          .logCatch(
             info:
               failMessage
               .map { (message: StaticString) -> DiagnosticsInfo in
@@ -132,9 +129,8 @@ extension AsyncExecutor {
               else { return }
               try await handleNext(nextElement)
               // if it not failed schedule recursively for next
-              self.scheduleRecursiveNext(
+              self.scheduleRecursiveNextCatching(
                 using: iterator,
-                catchingWith: diagnostics,
                 failMessage: failMessage,
                 failAction: failAction,
                 behavior: behavior,
@@ -154,8 +150,7 @@ extension AsyncExecutor {
   }
 
   @discardableResult @_transparent
-  public func scheduleCatchingWith(
-    _ diagnostics: OSDiagnostics,
+  public func scheduleCatching(
     failMessage: StaticString? = .none,
     failAction: (@Sendable (Error) async -> Void)? = .none,
     behavior: OngoingExecutionBehavior = .concurrent,
@@ -170,47 +165,8 @@ extension AsyncExecutor {
       file: file,
       line: line,
       {
-        await diagnostics
-          .withLogCatch(
-            info:
-              failMessage
-              .map { (message: StaticString) -> DiagnosticsInfo in
-                .message(
-                  message,
-                  file: file,
-                  line: line
-                )
-              }
-          ) {
-            do {
-              try await task()
-            }
-            catch {
-              await failAction?(error)
-              throw error
-            }
-          }
-      }
-    )
-  }
-
-  @discardableResult @_transparent
-  public func scheduleCatchingWith(
-    _ diagnostics: OSDiagnostics,
-    failMessage: StaticString? = .none,
-    failAction: (@Sendable (Error) async -> Void)? = .none,
-    identifier: AnyHashable,
-    behavior: OngoingExecutionBehavior = .concurrent,
-    file: StaticString = #fileID,
-    line: UInt = #line,
-    _ task: @escaping @Sendable () async throws -> Void
-  ) -> Execution {
-    self.execute(
-      .custom(identifier),
-      behavior,
-      {
-        await diagnostics
-          .withLogCatch(
+        await Diagnostics
+          .logCatch(
             info:
               failMessage
               .map { (message: StaticString) -> DiagnosticsInfo in
@@ -235,7 +191,44 @@ extension AsyncExecutor {
 
   @discardableResult @_transparent
   public func scheduleCatching(
-    with diagnostics: OSDiagnostics,
+    failMessage: StaticString? = .none,
+    failAction: (@Sendable (Error) async -> Void)? = .none,
+    identifier: AnyHashable,
+    behavior: OngoingExecutionBehavior = .concurrent,
+    file: StaticString = #fileID,
+    line: UInt = #line,
+    _ task: @escaping @Sendable () async throws -> Void
+  ) -> Execution {
+    self.execute(
+      .custom(identifier),
+      behavior,
+      {
+        await Diagnostics
+          .logCatch(
+            info:
+              failMessage
+              .map { (message: StaticString) -> DiagnosticsInfo in
+                .message(
+                  message,
+                  file: file,
+                  line: line
+                )
+              }
+          ) {
+            do {
+              try await task()
+            }
+            catch {
+              await failAction?(error)
+              throw error
+            }
+          }
+      }
+    )
+  }
+
+  @discardableResult @_transparent
+  public func scheduleCatching(
     failMessage: StaticString? = .none,
     behavior: OngoingExecutionBehavior = .concurrent,
     identifier: ExecutionIdentifier,
@@ -250,8 +243,8 @@ extension AsyncExecutor {
       file: file,
       line: line,
       {
-        await diagnostics
-          .withLogCatch(
+        await Diagnostics
+          .logCatch(
             info:
               failMessage
               .map { (message: StaticString) -> DiagnosticsInfo in
@@ -450,7 +443,7 @@ extension AsyncExecutor {
   ) {
     self.schedule {
       do {
-        for try await _ in sequence {
+        for try await _ in sequence.updates {
           try await update()
         }
         finish(.none)

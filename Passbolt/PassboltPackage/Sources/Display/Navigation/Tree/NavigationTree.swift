@@ -51,11 +51,11 @@ extension NavigationTree {
   @MainActor public func contains(
     _ nodeID: ViewNodeID
   ) -> Bool {
-    self.state.value.contains(nodeID)
+    self.state.state.contains(nodeID)
   }
 
   @MainActor public var treeState: NavigationTreeState {
-    self.state.value
+    self.state.state
   }
 
   @MainActor public func set(

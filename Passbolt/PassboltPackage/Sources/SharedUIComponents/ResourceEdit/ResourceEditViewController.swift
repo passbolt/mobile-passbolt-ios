@@ -52,17 +52,18 @@ public final class ResourceEditViewController: ViewController {
   }
 
   public let viewState: ComputedViewState<ViewState>
-  internal let discardFormAlertVisible: ViewStateVariable<Bool>
-  internal let snackBarMessage: ViewStateVariable<SnackBarMessage?>
+  public let messageState: ViewStateVariable<SnackBarMessage?>
+
   internal let editsExisting: Bool
+  internal let editedFields: CriticalState<Set<ResourceType.FieldPath>>
+
+  private let allFields: Set<ResourceType.FieldPath>
 
   private let resourceEditForm: ResourceEditForm
 
   private let navigationToSelf: NavigationToResourceEdit
 
   private let randomGenerator: RandomStringGenerator
-  private let asyncExecutor: AsyncExecutor
-  private let diagnostics: OSDiagnostics
 
   private let success: @Sendable (Resource) -> Void
 
@@ -80,8 +81,6 @@ public final class ResourceEditViewController: ViewController {
 
     self.success = context.success
 
-    self.diagnostics = features.instance()
-    self.asyncExecutor = try features.instance()
     let randomGenerator: RandomStringGenerator = try features.instance()
     self.randomGenerator = randomGenerator
 
@@ -95,7 +94,11 @@ public final class ResourceEditViewController: ViewController {
 
     self.resourceEditForm = try features.instance()
 
-    self.editsExisting = context.editingContext.editedResource.isLocal
+    self.editsExisting = !context.editingContext.editedResource.isLocal
+    self.allFields = Set(context.editingContext.editedResource.fields.map(\.path))
+
+    let editedFields: CriticalState<Set<ResourceType.FieldPath>> = .init(.init())
+    self.editedFields = editedFields
 
     self.viewState = .init(
       initial: .init(
@@ -105,11 +108,11 @@ public final class ResourceEditViewController: ViewController {
       from: self.resourceEditForm.state,
       transform: { (resource: Resource) in
         assert(resource.secretAvailable, "Can't edit resource without secret!")
-
         return .init(
           fields: fields(
             for: resource,
             using: features,
+            edited: editedFields.get(),
             countEntropy: { [randomGenerator] (input: String) -> Entropy in
               randomGenerator.entropy(input, CharacterSets.all)
             }
@@ -119,57 +122,68 @@ public final class ResourceEditViewController: ViewController {
       }
     )
 
-    self.discardFormAlertVisible = .init(initial: false)
-    self.snackBarMessage = .init(initial: .none)
+    self.messageState = .init(initial: .none)
   }
 
   @MainActor internal func set(
     _ value: String,
-    for field: Resource.FieldPath
+    for field: ResourceType.FieldPath
   ) {
+    self.editedFields.access { (edited: inout Set<ResourceType.FieldPath>) -> Void in
+      edited.insert(field)
+    }
     self.resourceEditForm.update(field, to: value)
   }
 
   @MainActor internal func generatePassword(
-    for field: Resource.FieldPath
+    for field: ResourceType.FieldPath
   ) {
     let generated: String = self.randomGenerator.generate(
       CharacterSets.all,
       18,
       Entropy.veryStrongPassword
     )
+    self.editedFields.access { (edited: inout Set<ResourceType.FieldPath>) -> Void in
+      edited.insert(field)
+    }
     self.resourceEditForm.update(field, to: generated)
   }
 
   @MainActor internal func sendForm() async {
-    await self.diagnostics.withLogCatch(
-      info: .message("Failed to send resource edit form!"),
-      fallback: { [snackBarMessage] error in
-        snackBarMessage.update(\.self, to: .error(error))
+    await withLogCatch(
+      failInfo: "Failed to send resource edit form!",
+      fallback: { [messageState] error in
+        messageState.show(error)
       }
     ) {
-      self.discardFormAlertVisible.update(\.self, to: false)
-      let resource: Resource = try await self.resourceEditForm.sendForm()
-      if !isInExtensionContext {
-        // TODO: unify navigation between app and extnsion
-        try await self.navigationToSelf.revert()
-      }  // else NOP
-      self.success(resource)
+      do {
+        let resource: Resource = try await self.resourceEditForm.sendForm()
+        if !isInExtensionContext {
+          // TODO: unify navigation between app and extnsion
+          try await self.navigationToSelf.revert()
+        }  // else NOP
+        self.success(resource)
+      }
+      catch let error as InvalidForm {
+        self.editedFields.access { (edited: inout Set<ResourceType.FieldPath>) -> Void in
+          edited = self.allFields
+        }
+        await self.viewState.forceUpdate()
+        throw error
+      }
+      catch {
+        throw error
+      }
     }
   }
 
-  @MainActor internal func showDiscardFormAlert() {
-    self.discardFormAlertVisible.update(\.self, to: true)
-  }
-
   @MainActor internal func discardForm() async {
-    await self.diagnostics.withLogCatch(
+    await Diagnostics.logCatch(
       info: .message("Failed to discard resource edit form!"),
-      fallback: { [snackBarMessage] error in
-        snackBarMessage.update(\.self, to: .error(error))
+      fallback: { [messageState] error in
+        messageState.update(\.self, to: .error(error))
       }
     ) {
-      self.discardFormAlertVisible.update(\.self, to: false)
       if isInExtensionContext {
         // TODO: unify navigation between app and extnsion
         self.features.instance(of: NavigationTree.self)
@@ -185,6 +199,7 @@ public final class ResourceEditViewController: ViewController {
 @MainActor private func fields(
   for resource: Resource,
   using features: Features,
+  edited: Set<ResourceType.FieldPath>,
   countEntropy: (String) -> Entropy
 ) -> OrderedDictionary<Resource.FieldPath, ResourceEditFieldViewModel> {
   if resource.type.specification.slug == .placeholder {
@@ -198,6 +213,7 @@ public final class ResourceEditViewController: ViewController {
         .init(
           field,
           in: resource,
+          edited: edited.contains(field.path),
           countEntropy: countEntropy
         )
       }
@@ -250,7 +266,7 @@ internal struct ResourceEditFieldViewModel {
     )
   }
 
-  internal var path: Resource.FieldPath
+  internal var path: ResourceType.FieldPath
   internal var name: DisplayableString
   internal var requiredMark: Bool
   internal var encryptedMark: Bool?
@@ -260,6 +276,7 @@ internal struct ResourceEditFieldViewModel {
   internal init?(
     _ field: ResourceFieldSpecification,
     in resource: Resource,
+    edited: Bool,
     countEntropy: (String) -> Entropy
   ) {
     assert(
@@ -277,9 +294,11 @@ internal struct ResourceEditFieldViewModel {
       self.placeholder = placeholder
 
       let validated: Validated<String> =
-        resource
-        .validated(field.path)
-        .map { $0.stringValue ?? "" }
+        edited
+        ? resource
+          .validated(field.path)
+          .map { $0.stringValue ?? "" }
+        : .valid(resource[keyPath: field.path].stringValue ?? "")
 
       self.value = .plainShort(validated)
 
@@ -294,9 +313,11 @@ internal struct ResourceEditFieldViewModel {
       self.placeholder = placeholder
 
       let validated: Validated<String> =
-        resource
-        .validated(field.path)
-        .map { $0.stringValue ?? "" }
+        edited
+        ? resource
+          .validated(field.path)
+          .map { $0.stringValue ?? "" }
+        : .valid(resource[keyPath: field.path].stringValue ?? "")
 
       self.value = .plainLong(validated)
 
@@ -306,9 +327,11 @@ internal struct ResourceEditFieldViewModel {
       self.placeholder = placeholder
 
       let validated: Validated<String> =
-        resource
-        .validated(field.path)
-        .map { $0.stringValue ?? "" }
+        edited
+        ? resource
+          .validated(field.path)
+          .map { $0.stringValue ?? "" }
+        : .valid(resource[keyPath: field.path].stringValue ?? "")
 
       self.value = .password(
         validated,
@@ -321,9 +344,11 @@ internal struct ResourceEditFieldViewModel {
       self.placeholder = placeholder
 
       let validated: Validated<String> =
-        resource
-        .validated(field.path)
-        .map { $0.stringValue ?? "" }
+        edited
+        ? resource
+          .validated(field.path)
+          .map { $0.stringValue ?? "" }
+        : .valid(resource[keyPath: field.path].stringValue ?? "")
 
       self.value = .selection(
         validated,

@@ -30,7 +30,6 @@ import SharedUIComponents
 
 internal final class AutofillRootNavigationNodeController: ViewController {
 
-  private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
   private let navigationTree: NavigationTree
   private let accounts: Accounts
@@ -46,7 +45,6 @@ internal final class AutofillRootNavigationNodeController: ViewController {
   ) throws {
     self.features = features
 
-    self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
 
     self.navigationTree = features.instance()
@@ -116,12 +114,11 @@ extension AutofillRootNavigationNodeController {
 
               switch (currentAccount, pendingAuthorization) {
               case let (.some(currentAccount), .none):
-                if let (account, tree): (Account, NavigationTreeState) = self.authorizationPromptRecoveryTreeState.get(
-                  \.self
-                ),
+                if let (account, tree): (Account, NavigationTreeState) = self.authorizationPromptRecoveryTreeState
+                  .get(),
                   account == currentAccount
                 {
-                  self.authorizationPromptRecoveryTreeState.set(\.self, .none)
+                  self.authorizationPromptRecoveryTreeState.set(.none)
                   await self.navigationTree.set(treeState: tree)
                 }
                 else {
@@ -139,7 +136,7 @@ extension AutofillRootNavigationNodeController {
                 }
 
               case let (.some(account), .passphrase):
-                await self.authorizationPromptRecoveryTreeState.set(\.self, (account, self.navigationTree.treeState))
+                await self.authorizationPromptRecoveryTreeState.set((account, self.navigationTree.treeState))
                 await self.navigationTree
                   .replaceRoot(
                     pushing: AccountSelectionViewController.self,
@@ -162,7 +159,7 @@ extension AutofillRootNavigationNodeController {
                   )
 
               case (.none, _):
-                self.authorizationPromptRecoveryTreeState.set(\.self, .none)
+                self.authorizationPromptRecoveryTreeState.set(.none)
                 if self.accounts.storedAccounts().isEmpty {
                   await self.navigationTree
                     .replaceRoot(
@@ -182,7 +179,7 @@ extension AutofillRootNavigationNodeController {
               }
             }
             catch {
-              self.diagnostics
+              Diagnostics
                 .log(
                   error: error,
                   info: .message(

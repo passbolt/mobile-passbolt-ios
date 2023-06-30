@@ -54,7 +54,6 @@ extension AccountMenuController: UIController {
 
     let currentAccount: Account = try features.sessionAccount()
 
-    let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
 
     let accounts: Accounts = try features.instance()
@@ -119,7 +118,7 @@ extension AccountMenuController: UIController {
           try await navigationToSelf.revert()
         }
         catch {
-          diagnostics
+          Diagnostics
             .log(
               error: error,
               info: .message(
@@ -137,7 +136,7 @@ extension AccountMenuController: UIController {
           try await navigationToAccountDetails.perform()
         }
         catch {
-          diagnostics
+          Diagnostics
             .log(
               error: error,
               info: .message(
@@ -161,7 +160,7 @@ extension AccountMenuController: UIController {
           try await navigationToAuthorization.perform(context: account)
         }
         catch {
-          diagnostics
+          Diagnostics
             .log(
               error: error,
               info: .message(
@@ -179,7 +178,7 @@ extension AccountMenuController: UIController {
           try await navigationToManageAccounts.perform()
         }
         catch {
-          diagnostics
+          Diagnostics
             .log(
               error: error,
               info: .message(

@@ -50,7 +50,6 @@ extension HomeSearchController: UIController {
   ) throws -> Self {
     let currentAccount: Account = try features.sessionAccount()
 
-    let diagnostics: OSDiagnostics = try features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
 
     let navigationToAccountMenu: NavigationToAccountMenu = try features.instance()
@@ -103,8 +102,8 @@ extension HomeSearchController: UIController {
 
     func presentAccountMenu() {
       asyncExecutor.schedule(.reuse) {
-        await diagnostics
-          .withLogCatch(
+        await Diagnostics
+          .logCatch(
             info: .message(
               "Navigation to account menu failed!"
             )

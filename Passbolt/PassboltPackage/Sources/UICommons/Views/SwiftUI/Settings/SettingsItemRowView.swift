@@ -41,30 +41,32 @@ where Accessory: View {
   }
 
   public var body: some View {
-    HStack(spacing: 12) {
-      Image(named: self.iconName)
-        .frame(
-          width: 24,
-          height: 24
-        )
+    CommonListRow(
+      content: {
+        HStack(spacing: 12) {
+          Image(named: self.iconName)
+            .frame(
+              width: 24,
+              height: 24
+            )
 
-      Text(displayable: self.title)
-        .frame(
-          maxWidth: .infinity,
-          alignment: .leading
+          Text(displayable: self.title)
+            .frame(
+              maxWidth: .infinity,
+              alignment: .leading
+            )
+            .multilineTextAlignment(.leading)
+        }
+        .font(
+          .inter(
+            ofSize: 14,
+            weight: .semibold
+          )
         )
-        .multilineTextAlignment(.leading)
-
-      self.accessory()
-        .contentShape(Rectangle())
-    }
-    .font(
-      .inter(
-        ofSize: 14,
-        weight: .semibold
-      )
+        .frame(height: 64)
+      },
+      accessory: self.accessory
     )
-    .commonListRowModifiers()
   }
 }
 

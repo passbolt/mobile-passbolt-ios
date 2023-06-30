@@ -26,14 +26,15 @@ import SwiftUI
 public final class ViewStateVariable<ViewState>: @unchecked Sendable, ViewStateSource
 where ViewState: Sendable & Equatable {
 
-  public typealias ObjectWillChangePublisher = ObservableObjectPublisher
+  // It seems that there is some bug in swift 5.8 compiler,
+  // typealiases below are already defined but it does not compile without it
+  public typealias DataType = ViewState
+  public typealias Failure = Never
 
-  public var updates: Updates { self.updatesSource.updates }
-  public let objectWillChange: ObjectWillChangePublisher
+  public let updates: Updates
   @MainActor public var state: ViewState {
     willSet {
-      guard state != newValue else { return }  // no update
-      self.objectWillChange.send()
+      guard newValue != state else { return }
       self.updatesSource.sendUpdate()
     }
   }
@@ -45,7 +46,7 @@ where ViewState: Sendable & Equatable {
   ) {
     self.state = initial
     self.updatesSource = .init()
-    self.objectWillChange = .init()
+    self.updates = self.updatesSource.updates
   }
 
   @discardableResult
@@ -61,6 +62,12 @@ where ViewState: Sendable & Equatable {
   ) {
     self.state[keyPath: keyPath] = newValue
   }
+
+  @MainActor public func update(
+    to newValue: ViewState
+  ) {
+    self.state = newValue
+  }
 }
 
 extension ViewStateVariable {
@@ -74,10 +81,5 @@ extension ViewStateVariable {
         self.state[keyPath: keyPath] = newValue
       }
     )
-  }
-
-  @MainActor public func forceUpdate() {
-    self.updatesSource.sendUpdate()
-    self.objectWillChange.send()
   }
 }

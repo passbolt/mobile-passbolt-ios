@@ -30,7 +30,7 @@ import Session
 
 internal final class AccountExportAuthorizationController: ViewController {
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: ViewStateVariable<ViewState>
 
   private nonisolated let passphraseValidator: Validator<Passphrase> = .nonEmpty(
     displayable: .localized(
@@ -40,7 +40,7 @@ internal final class AccountExportAuthorizationController: ViewController {
 
   private let accountDetails: AccountDetails
   private let accountExport: AccountChunkedExport
-  private let diagnostics: OSDiagnostics
+
   private let biometry: OSBiometry
   private let asyncExecutor: AsyncExecutor
   private let navigation: DisplayNavigation
@@ -53,11 +53,11 @@ internal final class AccountExportAuthorizationController: ViewController {
     context: Void,
     features: Features
   ) throws {
-    self.features = features.branch(scope: AccountTransferScope.self)
+    let features: Features = features.branch(scope: AccountTransferScope.self)
+    self.features = features
 
     self.account = try features.sessionAccount()
 
-    self.diagnostics = features.instance()
     self.biometry = features.instance()
     self.asyncExecutor = try features.instance()
     self.navigation = try features.instance()
@@ -94,7 +94,7 @@ internal final class AccountExportAuthorizationController: ViewController {
         )
     )
 
-    self.asyncExecutor.scheduleCatchingWith(self.diagnostics) { [accountDetails, viewState] in
+    self.asyncExecutor.scheduleCatching { [accountDetails, viewState] in
       let avatarImage: Data? = try await accountDetails.avatarImage()
       await viewState.update { (state: inout ViewState) in
         state.accountAvatarImage = avatarImage
@@ -127,7 +127,7 @@ extension AccountExportAuthorizationController {
 
   internal final func authorizeWithPassphrase() {
     self.asyncExecutor.schedule(.reuse) { [unowned self] in
-      let validatedPassphrase: Validated<Passphrase> = await self.passphraseValidator(self.viewState.value.passphrase)
+      let validatedPassphrase: Validated<Passphrase> = await self.passphraseValidator(self.viewState.state.passphrase)
       do {
         let passphrase: Passphrase = try validatedPassphrase.validValue
         try await self.accountExport.authorize(.passphrase(passphrase))
@@ -141,14 +141,13 @@ extension AccountExportAuthorizationController {
           state.passphrase = validatedPassphrase
           state.snackBarMessage = .error(error)
         }
-        self.diagnostics.log(error: error)
+        Diagnostics.log(error: error)
       }
     }
   }
 
   internal final func authorizeWithBiometrics() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
+    self.asyncExecutor.scheduleCatching(
       failAction: { (error: Error) in
         await self.viewState.update(\.snackBarMessage, to: .error(error))
       },

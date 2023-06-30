@@ -23,13 +23,12 @@
 
 import SwiftUI
 
-public protocol ViewStateSource<ViewState>: DataSource, ObservableObject
+public protocol ViewStateSource<ViewState>: DataSource
 where
   DataType == ViewState,
   Failure == Never,
   Element == DataType,
-  AsyncIterator == AsyncThrowingMapSequence<Updates, DataType>.Iterator,
-  ObjectWillChangePublisher == ObservableObjectPublisher
+  AsyncIterator == AsyncThrowingMapSequence<Updates, DataType>.Iterator
 {
 
   associatedtype ViewState: Sendable
@@ -37,12 +36,6 @@ where
   nonisolated var updates: Updates { @Sendable get }
 
   var state: ViewState { @MainActor get }
-
-  @MainActor func binding<Value>(
-    to keyPath: WritableKeyPath<ViewState, Value>
-  ) -> Binding<Value>
-
-  @MainActor func forceUpdate()
 }
 
 extension ViewStateSource /* DataSource */ {
@@ -50,14 +43,21 @@ extension ViewStateSource /* DataSource */ {
   // there is a warning in Swift 5.8 but it does not compile without it
   // regardless of type constraint in protocol declaration
   public typealias DataType = ViewState
+  public typealias Failure = Never
 
-  public var value: ViewState { self.state }
+  public var value: DataType { @Sendable get async { self.state } }
 }
 
 #if DEBUG
 
 public final class PlaceholderViewStateSource<ViewState>: ViewStateSource
 where ViewState: Sendable {
+  // It seems that there is some bug in swift 5.8 compiler,
+  // typealiases below are already defined but it does not compile without it
+  public typealias DataType = ViewState
+  public typealias Failure = Never
+  public typealias Element = ViewState
+  public typealias AsyncIterator = AsyncThrowingMapSequence<Updates, ViewState>.Iterator
 
   public let updates: Updates = .placeholder
 
@@ -65,16 +65,6 @@ where ViewState: Sendable {
 
   @MainActor public var state: ViewState {
     @inlinable get { unimplemented() }
-  }
-
-  @MainActor public func binding<Value>(
-    to keyPath: WritableKeyPath<ViewState, Value>
-  ) -> Binding<Value> {
-    unimplemented()
-  }
-
-  @MainActor public func forceUpdate() {
-    unimplemented()
   }
 }
 

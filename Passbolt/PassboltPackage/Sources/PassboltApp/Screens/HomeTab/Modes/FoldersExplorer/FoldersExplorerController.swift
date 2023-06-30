@@ -57,7 +57,6 @@ extension FoldersExplorerController: ComponentController {
   ) throws -> Self {
     let features: Features = features
 
-    let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
 
     let navigationToAccountMenu: NavigationToAccountMenu = try features.instance()
@@ -138,7 +137,7 @@ extension FoldersExplorerController: ComponentController {
         }
       }
       catch {
-        diagnostics
+        Diagnostics
           .log(
             error: error,
             info: .message("Folders explorer updates broken")
@@ -153,7 +152,7 @@ extension FoldersExplorerController: ComponentController {
           .refreshIfNeeded()
       }
       catch {
-        diagnostics.log(error: error)
+        Diagnostics.log(error: error)
         viewState.snackBarMessage = .error(error.asTheError().displayableMessage)
       }
     }
@@ -184,7 +183,7 @@ extension FoldersExplorerController: ComponentController {
           )
         }
         catch {
-          diagnostics.log(error: error)
+          Diagnostics.log(error: error)
         }
       }
     }
@@ -209,7 +208,7 @@ extension FoldersExplorerController: ComponentController {
 
     @MainActor func presentResourceMenu(_ resourceID: Resource.ID) {
       cancellables.executeOnMainActor {
-        await diagnostics.withLogCatch {
+        await Diagnostics.logCatch {
           let features: Features =
             features
             .branchIfNeeded(
@@ -240,8 +239,8 @@ extension FoldersExplorerController: ComponentController {
 
     @MainActor func presentAccountMenu() {
       asyncExecutor.schedule(.reuse) {
-        await diagnostics
-          .withLogCatch(
+        await Diagnostics
+          .logCatch(
             info: .message(
               "Navigation to account menu failed!"
             )
@@ -270,7 +269,7 @@ extension FoldersExplorerController: ComponentController {
           )
         }
         catch {
-          diagnostics.log(error: error)
+          Diagnostics.log(error: error)
         }
       }
     }

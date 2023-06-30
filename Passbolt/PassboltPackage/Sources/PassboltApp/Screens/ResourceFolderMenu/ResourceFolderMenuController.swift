@@ -27,9 +27,8 @@ import SharedUIComponents
 
 internal final class ResourceFolderMenuController: ViewController {
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: ViewStateVariable<ViewState>
 
-  private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
   private let navigation: DisplayNavigation
 
@@ -43,7 +42,6 @@ internal final class ResourceFolderMenuController: ViewController {
     self.context = context
     self.features = features
 
-    self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
     self.navigation = try features.instance()
 
@@ -72,8 +70,7 @@ extension ResourceFolderMenuController {
 extension ResourceFolderMenuController {
 
   internal final func openDetails() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
+    self.asyncExecutor.scheduleCatching(
       behavior: .reuse
     ) { [context, features, navigation] in
       await navigation

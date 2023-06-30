@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-import Commons
 import OSLog
 
 import struct Foundation.Date
@@ -33,7 +32,26 @@ import func os.raise
 
 // MARK: - Interface
 
-public struct OSDiagnostics {
+public struct Diagnostics {
+
+  #if DEBUG
+  public static var shared: Self = {
+    let enabled: Bool = {
+      // Disabled automatically for XCTest
+      !(Bundle.main.infoDictionary?["CFBundleName"] as? String == "xctest"
+        || ProcessInfo.processInfo.environment.keys.contains("XCTestBundlePath")
+        || ProcessInfo.processInfo.environment.keys.contains("XCTestSessionIdentifier"))
+    }()
+    if enabled {
+      return .live
+    }
+    else {
+      return .disabled
+    }
+  }()
+  #else
+  public static let shared: Self = .live
+  #endif
 
   public var trace: () -> Trace
   public var debugLog: (String) -> Void
@@ -42,7 +60,7 @@ public struct OSDiagnostics {
   public var breakpoint: () -> Void
 }
 
-extension OSDiagnostics {
+extension Diagnostics {
 
   public struct Trace {
 
@@ -60,24 +78,9 @@ extension OSDiagnostics {
   }
 }
 
-extension OSDiagnostics: StaticFeature {
-
-  #if DEBUG
-  public static var placeholder: Self {
-    Self(
-      trace: unimplemented0(),
-      debugLog: unimplemented1(),
-      diagnosticLog: unimplemented2(),
-      diagnosticsInfo: unimplemented0(),
-      breakpoint: unimplemented0()
-    )
-  }
-  #endif
-}
-
 // MARK: - Implementation
 
-extension OSDiagnostics {
+extension Diagnostics {
 
   fileprivate static var live: Self {
     #if DEBUG
@@ -251,13 +254,13 @@ extension OSDiagnostics {
       },
       debugLog: { _ in },
       diagnosticLog: { _, _ in },
-      diagnosticsInfo: { ["OSDiagnostics disabled"] },
+      diagnosticsInfo: { ["Diagnostics disabled"] },
       breakpoint: {}
     )
   }
 }
 
-extension OSDiagnostics {
+extension Diagnostics {
 
   public func log<Variable>(
     debug message: @autoclosure () -> Variable
@@ -269,7 +272,7 @@ extension OSDiagnostics {
 
   public func log(
     diagnostic message: StaticString,
-    _ variable: OSDiagnostics.MessageVariable = .none
+    _ variable: Diagnostics.MessageVariable = .none
   ) {
     self.diagnosticLog(message, variable)
   }
@@ -350,17 +353,31 @@ extension OSDiagnostics {
     }
   }
 
+  public func logCatch<Returned>(
+    info: DiagnosticsInfo? = .none,
+    @_inheritActorContext fallback: (Error) -> Returned,
+    _ operation: () throws -> Returned
+  ) -> Returned {
+    do {
+      return try operation()
+    }
+    catch {
+      self.log(
+        error: error,
+        info: info
+      )
+      return fallback(error)
+    }
+  }
+
   @_transparent
-  public func withLogCatch(
+  public func logCatch(
     info: DiagnosticsInfo? = .none,
     @_inheritActorContext fallback: ((Error) async -> Void)? = .none,
     _ operation: () async throws -> Void
   ) async {
     do {
       try await operation()
-    }
-    catch is Cancelled where Task.isCancelled {
-      // NOP - ignore in logs
     }
     catch {
       self.log(
@@ -370,9 +387,139 @@ extension OSDiagnostics {
       await fallback?(error)
     }
   }
+
+  @_transparent
+  public func logCatch<Returned>(
+    info: DiagnosticsInfo? = .none,
+    @_inheritActorContext fallback: (Error) async -> Returned,
+    _ operation: () async throws -> Returned
+  ) async -> Returned {
+    do {
+      return try await operation()
+    }
+    catch {
+      self.log(
+        error: error,
+        info: info
+      )
+      return await fallback(error)
+    }
+  }
 }
 
-extension OSDiagnostics.Trace {
+extension Diagnostics {
+
+  public static func log<Variable>(
+    debug message: @autoclosure () -> Variable
+  ) {
+    #if DEBUG
+    Self.shared.log(debug: message())
+    #endif
+  }
+
+  public static func log(
+    diagnostic message: StaticString,
+    _ variable: Diagnostics.MessageVariable = .none
+  ) {
+    Self.shared.log(diagnostic: message, variable)
+  }
+
+  public static func log<Variable>(
+    diagnostic message: StaticString,
+    unsafe variable: Variable
+  ) {
+    Self.shared.log(diagnostic: message, unsafe: variable)
+  }
+
+  public static func log<First, Second>(
+    diagnostic message: StaticString,
+    unsafe first: First,
+    _ second: Second
+  ) {
+    Self.shared.log(diagnostic: message, unsafe: first, second)
+  }
+
+  public static func log(
+    diagnostic message: StaticString,
+    _ variable: StaticString
+  ) {
+    Self.shared.log(diagnostic: message, variable)
+  }
+
+  public static func log(
+    diagnostic message: StaticString,
+    _ first: StaticString,
+    _ second: StaticString
+  ) {
+    Self.shared.log(diagnostic: message, first, second)
+  }
+
+  public static func log(
+    error: Error,
+    info: DiagnosticsInfo? = .none
+  ) {
+    Self.shared.log(error: error, info: info)
+  }
+
+  public static func logCatch(
+    info: DiagnosticsInfo? = .none,
+    @_inheritActorContext fallback: ((Error) -> Void)? = .none,
+    _ operation: () throws -> Void
+  ) {
+    Self.shared.logCatch(info: info, fallback: fallback, operation)
+  }
+
+  @_transparent
+  public static func logCatch<Returned>(
+    info: DiagnosticsInfo? = .none,
+    @_inheritActorContext fallback: (Error) -> Returned,
+    _ operation: () throws -> Returned
+  ) -> Returned {
+    Self.shared.logCatch(info: info, fallback: fallback, operation)
+  }
+
+  @_transparent
+  public static func logCatch(
+    info: DiagnosticsInfo? = .none,
+    @_inheritActorContext fallback: ((Error) async -> Void)? = .none,
+    _ operation: () async throws -> Void
+  ) async {
+    await Self.shared.logCatch(info: info, fallback: fallback, operation)
+  }
+
+  @_transparent
+  public static func logCatch<Returned>(
+    info: DiagnosticsInfo? = .none,
+    @_inheritActorContext fallback: (Error) async -> Returned,
+    _ operation: () async throws -> Returned
+  ) async -> Returned {
+    await Self.shared.logCatch(info: info, fallback: fallback, operation)
+  }
+
+  @_transparent
+  public static func debugLog(
+    _ message: String,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) {
+    #if DEBUG
+    Self.shared.debugLog("\(file):\(line) - \(message)")
+    #endif
+  }
+}
+
+extension Error {
+
+  @_transparent @discardableResult
+  public func log(
+    info: DiagnosticsInfo? = .none
+  ) -> Self {
+    Diagnostics.log(error: self, info: info)
+    return self
+  }
+}
+
+extension Diagnostics.Trace {
 
   public func log<Variable>(
     debug message: @autoclosure () -> Variable
@@ -384,7 +531,7 @@ extension OSDiagnostics.Trace {
 
   public func log(
     diagnostic message: StaticString,
-    _ variable: OSDiagnostics.MessageVariable = .none
+    _ variable: Diagnostics.MessageVariable = .none
   ) {
     self.diagnosticLog(message, variable)
   }
@@ -449,17 +596,62 @@ extension OSDiagnostics.Trace {
   }
 }
 
-extension FeaturesRegistry {
+@_transparent
+public func withLogCatch(
+  failInfo: StaticString? = .none,
+  file: StaticString = #fileID,
+  line: UInt = #line,
+  @_inheritActorContext fallback: ((Error) -> Void)? = .none,
+  _ operation: () throws -> Void
+) {
+  Diagnostics.logCatch(
+    info: failInfo.map { .message($0, file: file, line: line) },
+    fallback: fallback,
+    operation
+  )
+}
 
-  internal mutating func useOSDiagnostics() {
-    self.use(
-      OSDiagnostics.live
-    )
-  }
+@_transparent
+public func withLogCatch<Returned>(
+  failInfo: StaticString? = .none,
+  file: StaticString = #fileID,
+  line: UInt = #line,
+  @_inheritActorContext fallback: (Error) -> Returned,
+  _ operation: () throws -> Returned
+) -> Returned {
+  Diagnostics.logCatch(
+    info: failInfo.map { .message($0, file: file, line: line) },
+    fallback: fallback,
+    operation
+  )
+}
 
-  internal mutating func useDisabledOSDiagnostics() {
-    self.use(
-      OSDiagnostics.disabled
-    )
-  }
+@_transparent
+public func withLogCatch(
+  failInfo: StaticString? = .none,
+  file: StaticString = #fileID,
+  line: UInt = #line,
+  @_inheritActorContext fallback: ((Error) async -> Void)? = .none,
+  _ operation: () async throws -> Void
+) async {
+  await Diagnostics.logCatch(
+    info: failInfo.map { .message($0, file: file, line: line) },
+    fallback: fallback,
+    operation
+  )
+}
+
+@_transparent
+public func withLogCatch<Returned>(
+  failInfo: StaticString? = .none,
+  file: StaticString = #fileID,
+  line: UInt = #line,
+  @_inheritActorContext fallback: (Error) async -> Returned,
+  _ operation: () async throws -> Returned
+) async -> Returned {
+  await Diagnostics.logCatch(
+    info: failInfo.map { .message($0, file: file, line: line) },
+    fallback: fallback,
+    operation
+  )
 }

@@ -80,7 +80,7 @@ internal final class ResourceContextualMenuViewController: ViewController {
 
   private let linkOpener: OSLinkOpener
   private let pasteboard: OSPasteboard
-  private let diagnostics: OSDiagnostics
+
   private let asyncExecutor: AsyncExecutor
 
   private let revealOTP: (@MainActor () -> Void)?
@@ -103,7 +103,7 @@ internal final class ResourceContextualMenuViewController: ViewController {
 
     self.linkOpener = features.instance()
     self.pasteboard = features.instance()
-    self.diagnostics = features.instance()
+
     self.asyncExecutor = try features.instance()
 
     self.navigationToSelf = try features.instance()
@@ -128,8 +128,8 @@ internal final class ResourceContextualMenuViewController: ViewController {
 extension ResourceContextualMenuViewController {
 
   @Sendable internal func activate() async {
-    await self.diagnostics
-      .withLogCatch(
+    await Diagnostics
+      .logCatch(
         info: .message("Resource contextual menu updates broken!"),
         fallback: { _ in
           try? await self.navigationToSelf.revert()
@@ -257,8 +257,8 @@ extension ResourceContextualMenuViewController {
   internal func openURL(
     field path: Resource.FieldPath
   ) async {
-    await self.diagnostics
-      .withLogCatch(
+    await Diagnostics
+      .logCatch(
         info: .message("Opening resource field url failed!"),
         fallback: { @MainActor (error: Error) async -> Void in
           self.showMessage(.error(error))
@@ -291,8 +291,8 @@ extension ResourceContextualMenuViewController {
   internal func copy(
     field path: Resource.FieldPath
   ) async {
-    await self.diagnostics
-      .withLogCatch(
+    await Diagnostics
+      .logCatch(
         info: .message("Copying resource field value failed!"),
         fallback: { @MainActor (error: Error) async -> Void in
           self.showMessage(.error(error))
@@ -334,8 +334,8 @@ extension ResourceContextualMenuViewController {
   }
 
   internal final func revealOTPCode() async {
-    await self.diagnostics
-      .withLogCatch(
+    await Diagnostics
+      .logCatch(
         info: .message("Revealing resource OTP failed!"),
         fallback: { @MainActor (error: Error) async -> Void in
           self.showMessage(.error(error))
@@ -353,8 +353,8 @@ extension ResourceContextualMenuViewController {
   }
 
   internal final func copyOTPCode() async {
-    await self.diagnostics
-      .withLogCatch(
+    await Diagnostics
+      .logCatch(
         info: .message("Copying resource OTP failed!"),
         fallback: { @MainActor (error: Error) async -> Void in
           self.showMessage(.error(error))
@@ -386,8 +386,8 @@ extension ResourceContextualMenuViewController {
   }
 
   internal final func toggleFavorite() async {
-    await self.diagnostics
-      .withLogCatch(
+    await Diagnostics
+      .logCatch(
         info: .message("Toggling resource favorite failed!"),
         fallback: { @MainActor (error: Error) async -> Void in
           self.showMessage(.error(error))
@@ -420,8 +420,8 @@ extension ResourceContextualMenuViewController {
   }
 
   internal final func share() async {
-    await self.diagnostics
-      .withLogCatch(
+    await Diagnostics
+      .logCatch(
         info: .message("Navigation to resource share failed!"),
         fallback: { @MainActor (error: Error) async -> Void in
           self.showMessage(.error(error))
@@ -433,8 +433,8 @@ extension ResourceContextualMenuViewController {
   }
 
   internal final func editPassword() async {
-    await self.diagnostics
-      .withLogCatch(
+    await Diagnostics
+      .logCatch(
         info: .message("Navigation to resource edit failed!"),
         fallback: { @MainActor (error: Error) async -> Void in
           self.showMessage(.error(error))
@@ -453,8 +453,8 @@ extension ResourceContextualMenuViewController {
   }
 
   internal final func editTOTP() async {
-    await self.diagnostics
-      .withLogCatch(
+    await Diagnostics
+      .logCatch(
         info: .message("Navigation to totp edit failed!"),
         fallback: { @MainActor (error: Error) async -> Void in
           self.showMessage(.error(error))
@@ -480,8 +480,8 @@ extension ResourceContextualMenuViewController {
   }
 
   internal final func delete() async {
-    await self.diagnostics
-      .withLogCatch(
+    await Diagnostics
+      .logCatch(
         info: .message("Navigation to resource delete failed!"),
         fallback: { @MainActor (error: Error) async -> Void in
           self.showMessage(.error(error))
@@ -499,8 +499,7 @@ extension ResourceContextualMenuViewController {
   }
 
   internal final func dismiss() {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
+    self.asyncExecutor.scheduleCatching(
       failMessage: "Dismissing resource contextual menu failed!",
       behavior: .reuse
     ) { [navigationToSelf] in

@@ -54,7 +54,6 @@ extension TransferSignInController: UIController {
     cancellables: Cancellables
   ) throws -> Self {
     let accountTransfer: AccountImport = try features.instance()
-    let diagnostics: OSDiagnostics = features.instance()
 
     let passphraseSubject: CurrentValueSubject<String, Never> = .init("")
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
@@ -70,7 +69,7 @@ extension TransferSignInController: UIController {
       accountTransfer
         .accountDetailsPublisher()
         .map { details -> AccountImport.AccountDetails? in details }
-        .collectErrorLog(using: diagnostics)
+        .collectErrorLog(using: Diagnostics.shared)
         .replaceError(with: nil)
         .filterMapOptional()
         .eraseToAnyPublisher()
@@ -80,7 +79,7 @@ extension TransferSignInController: UIController {
       accountTransfer
         .avatarPublisher()
         .map { data -> Data? in data }
-        .collectErrorLog(using: diagnostics)
+        .collectErrorLog(using: Diagnostics.shared)
         .replaceError(with: nil)
         .eraseToAnyPublisher()
     }

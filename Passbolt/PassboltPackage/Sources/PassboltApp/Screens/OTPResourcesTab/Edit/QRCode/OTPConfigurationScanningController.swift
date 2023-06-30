@@ -28,9 +28,8 @@ import Resources
 
 internal final class OTPConfigurationScanningController: ViewController {
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: ViewStateVariable<ViewState>
 
-  private let diagnostics: OSDiagnostics
   private let asyncExecutor: AsyncExecutor
   private let navigationToScanningSuccess: NavigationToOTPScanningSuccess
   private let navigationToSelf: NavigationToOTPScanning
@@ -45,7 +44,6 @@ internal final class OTPConfigurationScanningController: ViewController {
     try features.ensureScope(SessionScope.self)
     self.features = features
 
-    self.diagnostics = features.instance()
     self.asyncExecutor = try features.instance()
     self.navigationToScanningSuccess = try features.instance()
     self.navigationToSelf = try features.instance()
@@ -94,7 +92,6 @@ extension OTPConfigurationScanningController {
           when: .processing
         )
       self.asyncExecutor.scheduleCatching(
-        with: self.diagnostics,
         behavior: .reuse,
         identifier: #function
       ) { [features, viewState, navigationToSelf, navigationToScanningSuccess] in
@@ -138,7 +135,7 @@ extension OTPConfigurationScanningController {
           with: .idle,
           when: .processing
         )
-      self.diagnostics.log(error: error)
+      Diagnostics.log(error: error)
       self.asyncExecutor.schedule(.reuse, identifier: #function) { [viewState] in
         await viewState
           .update(

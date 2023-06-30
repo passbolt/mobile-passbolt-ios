@@ -47,7 +47,6 @@ extension ResourceShareForm {
     try features.ensureScope(ResourceDetailsScope.self)
     try features.ensureScope(ResourceShareScope.self)
 
-    let diagnostics: OSDiagnostics = features.instance()
     let sessionData: SessionData = try features.instance()
     let resourceController: ResourceController = try features.instance()
     let usersPGPMessages: UsersPGPMessages = try features.instance()
@@ -67,7 +66,7 @@ extension ResourceShareForm {
         return try await resourceController.state.value.permissions
       }
       catch {
-        diagnostics.log(error: error)
+        Diagnostics.log(error: error)
         return .init()
       }
     }

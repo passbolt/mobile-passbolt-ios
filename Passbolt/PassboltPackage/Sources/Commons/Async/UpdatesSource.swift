@@ -22,6 +22,8 @@
 //
 
 import struct Foundation.UUID
+import let os.CLOCK_MONOTONIC_RAW
+import func os.clock_gettime_nsec_np
 
 public final class UpdatesSource: Sendable {
 
@@ -29,7 +31,7 @@ public final class UpdatesSource: Sendable {
 
   @usableFromInline internal struct State: Sendable {
 
-    @usableFromInline internal var generation: Generation?
+    @usableFromInline internal var generation: Generation
     @usableFromInline internal var awaiters: Dictionary<IID, UnsafeContinuation<Generation?, Never>>
   }
 
@@ -40,7 +42,7 @@ public final class UpdatesSource: Sendable {
   }
 
   @usableFromInline internal init(
-    generation: Generation?
+    generation: Generation
   ) {
     // Generation `none` will be ended updates
     // (inactive) from the beginning.
@@ -69,44 +71,57 @@ extension UpdatesSource {
 
   @_transparent
   public static var placeholder: UpdatesSource {
-    UpdatesSource(generation: .none)
+    UpdatesSource(generation: .max)
   }
 
-  @_transparent @_semantics("constant_evaluable")
   public var updates: Updates { .init(for: self) }
 
-  @_transparent
+  internal var generation: Generation? {
+    self.state.access(\.generation)
+  }
+
+  @inlinable
   @Sendable public func sendUpdate() {
+    // using CLOCK_MONOTONIC_RAW allows monotonically
+    // increasing value which has very low risk of duplication
+    // across multiple instances, it is like very precise timestamp
+    // of when update was sent, measured in CPU ticks
+    // generation is prepared before accessing the lock
+    // os_unfair_lock which is used here can result in non increasing
+    // valuse (lower value assigned after higher), it also allows
+    // skipping old pending updates during high rate updates
+    let updateGeneration: Generation = clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW)
     let resumeAwaiters: () -> Void =
       self.state
       .access { (state: inout State) -> () -> Void in
-        if case .some(var generation) = state.generation {
-          generation &+= 1
-          state.generation = generation
+        if state.generation != .max {
+          guard state.generation < updateGeneration
+          else { return {} }  // do not deliver old updates
+          state.generation = updateGeneration
           let awaiters = state.awaiters.values
           state.awaiters.removeAll()
           return {
             for continuation: UnsafeContinuation<Generation?, Never> in awaiters {
-              continuation.resume(returning: generation)
+              continuation.resume(returning: updateGeneration)
             }
           }
         }
         else {
           assert(state.awaiters.isEmpty)
-          return {}  // generation `none` means terminated, nothing to resume
+          return {}  // generation `max` means terminated, nothing to resume
         }
       }
 
     resumeAwaiters()
   }
 
-  @_transparent
+  @inlinable
   @Sendable public func terminate() {
     let resumeAwaiters: () -> Void =
       self.state
       .access { (state: inout State) -> () -> Void in
-        if case .some = state.generation {
-          state.generation = .none
+        if state.generation != .max {
+          state.generation = .max
           let awaiters = state.awaiters.values
           state.awaiters.removeAll()
           return {
@@ -125,35 +140,6 @@ extension UpdatesSource {
   }
 }
 
-extension UpdatesSource: AsyncSequence {
-
-  public typealias Element = Void
-
-  public struct AsyncIterator: AsyncIteratorProtocol {
-
-    @usableFromInline internal var generation: Generation
-    @usableFromInline internal let nextElement: (inout Generation) async -> Void?
-
-    fileprivate init(
-      nextElement: @escaping (inout Generation) async -> Void?
-    ) {
-      self.generation = 0  // make sure all updates are picked
-      self.nextElement = nextElement
-    }
-
-    @_transparent
-    public mutating func next() async -> Element? {
-      await self.nextElement(&self.generation)
-    }
-  }
-
-  public nonisolated func makeAsyncIterator() -> AsyncIterator {
-    AsyncIterator { [weak self] (generation: inout Generation) in
-      await self?.update(after: &generation)
-    }
-  }
-}
-
 extension UpdatesSource {
 
   @_transparent @available(*, deprecated, message: "Please use `hasUpdate` instead")
@@ -161,8 +147,8 @@ extension UpdatesSource {
     after generation: Generation
   ) throws -> Generation {
     try self.state.access { (state: inout State) in
-      if let current = state.generation, current > generation {
-        return current
+      if state.generation > generation {
+        return state.generation
       }
       else {
         throw NoUpdate.error()
@@ -179,8 +165,8 @@ extension UpdatesSource {
     after generation: Generation
   ) -> Bool {
     self.state.access { (state: inout State) -> Bool in
-      if case .some(let currentGeneration) = state.generation {
-        return currentGeneration > generation
+      if state.generation != .max {
+        return state.generation > generation
       }
       else {
         return false
@@ -198,11 +184,11 @@ extension UpdatesSource {
       operation: { () async -> Generation? in
         await withUnsafeContinuation { (continuation: UnsafeContinuation<Generation?, Never>) in
           self.state.access { (state: inout State) in
-            guard case .some(let currentGeneration) = state.generation, !Task.isCancelled
+            guard state.generation != .max, !Task.isCancelled
             else { return continuation.resume(returning: .none) }
 
-            if currentGeneration > generation {
-              return continuation.resume(returning: currentGeneration)
+            if state.generation > generation {
+              return continuation.resume(returning: state.generation)
             }
             else {
               state.awaiters[iid] = continuation
@@ -216,7 +202,11 @@ extension UpdatesSource {
       }
     )
 
-    if let updated: Generation {
+    if Task.isCancelled {
+      // do not update generation on cancelled
+      return .none
+    }
+    else if let updated: Generation {
       generation = updated
       return Void()
     }

@@ -71,7 +71,7 @@ extension WindowController: UIController {
     func screenStateDispositionSequence() -> AnyAsyncSequence<ScreenStateDisposition> {
       merge(
         // initial state
-        [lastDisposition.get(\.self)].asAnyAsyncSequence(),
+        [lastDisposition.get()].asAnyAsyncSequence(),
         session
           .updates
           .dropFirst()  // we have initial value handled
@@ -79,7 +79,7 @@ extension WindowController: UIController {
             async let currentAccount: Account? = session.currentAccount()
             async let currentAuthorizationRequest: SessionAuthorizationRequest? = session.pendingAuthorization()
 
-            switch (try? await currentAccount, await currentAuthorizationRequest, lastDisposition.get(\.self)) {
+            switch (try? await currentAccount, await currentAuthorizationRequest, lastDisposition.get()) {
 
             case  // fully authorized after prompting
             let (.some(account), .none, .requestPassphrase),
@@ -105,7 +105,7 @@ extension WindowController: UIController {
             }
           }
           .map { (disposition: ScreenStateDisposition) -> ScreenStateDisposition in
-            lastDisposition.set(\.self, disposition)
+            lastDisposition.set(disposition)
             return disposition
           }
       )

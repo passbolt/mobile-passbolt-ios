@@ -27,6 +27,8 @@ public struct LoaderView: ControlledView {
 
   public final class Controller: ViewController {
 
+    //		public nonisolated var viewState: some ViewStateSource & AnyObject
+    //		public nonisolated var messageState: some ViewStateSource & AnyObject
     public init(
       context: Void,
       features: Features

@@ -50,7 +50,7 @@ public struct StateBinding<Value> {
     let updatesSubject: PassthroughSubject<Value, Never> = .init()
 
     return .init(
-      read: { state.get(\.self) },
+      read: { state.get() },
       write: { (newValue: Value) in
         let updated: Bool = state.access { (value: inout Value) in
           if isDuplicate(value, newValue) {

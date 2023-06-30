@@ -37,21 +37,17 @@ internal final class ResourceTagsDetailsViewController: ViewController {
     internal var tags: OrderedSet<ResourceTag>
   }
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: ViewStateVariable<ViewState>
 
   private let resourceController: ResourceController
 
   private let navigationToSelf: NavigationToResourceTagsDetails
-
-  private let diagnostics: OSDiagnostics
 
   internal init(
     context: Void,
     features: Features
   ) throws {
     try features.ensureScope(ResourceDetailsScope.self)
-
-    self.diagnostics = features.instance()
 
     self.navigationToSelf = try features.instance()
 
@@ -70,8 +66,8 @@ internal final class ResourceTagsDetailsViewController: ViewController {
 extension ResourceTagsDetailsViewController {
 
   @Sendable internal func activate() async {
-    await self.diagnostics
-      .withLogCatch(
+    await Diagnostics
+      .logCatch(
         info: .message("Resource tags details updates broken!"),
         fallback: { _ in
           try? await self.navigationToSelf.revert()

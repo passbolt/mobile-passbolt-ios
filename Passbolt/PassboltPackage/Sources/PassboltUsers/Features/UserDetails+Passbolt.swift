@@ -39,7 +39,7 @@ extension UserDetails {
     context userID: Context,
     cancellables: Cancellables
   ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
+
     let sessionData: SessionData = try features.instance()
     let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
     let userDetailsFetchDatabaseOperation: UserDetailsFetchDatabaseOperation = try features.instance()
@@ -67,7 +67,7 @@ extension UserDetails {
             )
         }
         catch {
-          diagnostics.log(
+          Diagnostics.log(
             error: error,
             info: .message("Failed to fetch user avatar image!")
           )

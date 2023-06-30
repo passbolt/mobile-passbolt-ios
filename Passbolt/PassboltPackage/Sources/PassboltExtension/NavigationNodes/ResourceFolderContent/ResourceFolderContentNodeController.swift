@@ -32,11 +32,10 @@ import Users
 
 internal final class ResourceFolderContentNodeController: ViewController {
 
-  internal nonisolated let viewState: MutableViewState<ViewState>
+  internal nonisolated let viewState: ViewStateVariable<ViewState>
   internal var searchController: ResourceSearchDisplayController!  // lazy?
   internal var contentController: ResourceFolderContentDisplayController!  // lazy?
 
-  private let diagnostics: OSDiagnostics
   private let navigationTree: NavigationTree
   private let asyncExecutor: AsyncExecutor
   private let autofillContext: AutofillExtensionContext
@@ -53,7 +52,6 @@ internal final class ResourceFolderContentNodeController: ViewController {
     self.context = context
     self.features = features
 
-    self.diagnostics = features.instance()
     self.navigationTree = features.instance()
     self.asyncExecutor = try features.instance()
     self.autofillContext = features.instance()
@@ -67,7 +65,7 @@ internal final class ResourceFolderContentNodeController: ViewController {
       context.folderDetails.map { .raw($0.name) }
       ?? .localized("home.presentation.mode.folders.explorer.title")
 
-    let viewState: MutableViewState<ViewState> = .init(
+    let viewState: ViewStateVariable<ViewState> = .init(
       initial: .init(
         folderName: folderName,
         folderShared: context.folderDetails?.shared ?? false,
@@ -144,10 +142,9 @@ extension ResourceFolderContentNodeController {
 
   internal final func createResource() {
     self.asyncExecutor
-      .scheduleCatchingWith(
-        diagnostics,
+      .scheduleCatching(
         behavior: .reuse
-      ) { [features, requestedServiceIdentifiers, navigationTree, diagnostics, asyncExecutor, autofillContext] in
+      ) { [features, requestedServiceIdentifiers, navigationTree, asyncExecutor, autofillContext] in
         let resourceEditPreparation: ResourceEditPreparation = try await features.instance()
         let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
           .default,
@@ -159,7 +156,7 @@ extension ResourceFolderContentNodeController {
           controller: .init(
             context: .init(
               editingContext: editingContext,
-              success: { [diagnostics, asyncExecutor, autofillContext] resource in
+              success: { [asyncExecutor, autofillContext] resource in
                 if let password: String = resource.firstPasswordString {
                   asyncExecutor.schedule(.replace) {
                     await autofillContext
@@ -172,7 +169,7 @@ extension ResourceFolderContentNodeController {
                   }
                 }
                 else {
-                  diagnostics.log(
+                  Diagnostics.log(
                     error:
                       ResourceSecretInvalid
                       .error("Missing resource password in secret.")
@@ -189,8 +186,7 @@ extension ResourceFolderContentNodeController {
   @Sendable internal func selectResource(
     _ resourceID: Resource.ID
   ) {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
+    self.asyncExecutor.scheduleCatching(
       failMessage: "Failed to handle resource selection.",
       failAction: { [viewState] (error: Error) in
         await viewState.update(\.snackBarMessage, to: .error(error))
@@ -224,8 +220,7 @@ extension ResourceFolderContentNodeController {
   internal final func selectFolder(
     _ resourceFolderID: ResourceFolder.ID
   ) {
-    self.asyncExecutor.scheduleCatchingWith(
-      self.diagnostics,
+    self.asyncExecutor.scheduleCatching(
       failMessage: "Failed to handle resource folder selection.",
       failAction: { [viewState] (error: Error) in
         await viewState.update(\.snackBarMessage, to: .error(error))

@@ -47,7 +47,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
+
     let navigation: DisplayNavigation = try features.instance()
     let executor: AsyncExecutor = try features.instance()
     let resourceShareForm: ResourceShareForm = try features.instance(context: context)
@@ -88,7 +88,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
           return try await users.userAvatarImage(userID)
         }
         catch {
-          diagnostics.log(error: error)
+          Diagnostics.log(error: error)
           return nil
         }
       }
@@ -100,7 +100,6 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
       .map(\.searchText)
     executor.scheduleIteration(
       over: searchTextSequence,
-      catchingWith: diagnostics,
       failMessage: "Search updates broken!"
     ) { @MainActor (searchText: String) async throws -> Void in
       let matchingUserGroups: Array<UserGroupDetailsDSV>
@@ -115,7 +114,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
           .filteredUserGroups(.init(userID: .none, text: searchText))
       }
       catch {
-        diagnostics.log(error: error)
+        Diagnostics.log(error: error)
         viewState.set(
           \.snackBarMessage,
           to: .error(error)
