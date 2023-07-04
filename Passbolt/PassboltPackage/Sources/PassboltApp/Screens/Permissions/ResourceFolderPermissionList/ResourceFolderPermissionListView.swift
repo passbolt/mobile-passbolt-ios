@@ -26,7 +26,7 @@ import UICommons
 
 internal struct ResourceFolderPermissionListView: ControlledView {
 
-  private let controller: ResourceFolderPermissionListController
+  internal let controller: ResourceFolderPermissionListController
 
   internal init(
     controller: ResourceFolderPermissionListController
@@ -39,7 +39,7 @@ internal struct ResourceFolderPermissionListView: ControlledView {
       title: .localized(
         key: "resource.permission.list.title"
       ),
-      snackBarMessage: self.controller.binding(to: \.snackBarMessage)
+      snackBarMessage: self.binding(to: \.snackBarMessage)
     ) {
       self.contentView
     }

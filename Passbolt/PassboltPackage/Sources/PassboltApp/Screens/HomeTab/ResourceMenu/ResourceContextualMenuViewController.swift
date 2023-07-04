@@ -56,7 +56,7 @@ internal final class ResourceContextualMenuViewController: ViewController {
 
   internal struct Context {
 
-    internal var revealOTP: (@MainActor () -> Void)?
+    internal var revealOTP: (@MainActor () async -> Void)?
     internal var showMessage: @MainActor (SnackBarMessage?) -> Void
   }
 
@@ -67,10 +67,9 @@ internal final class ResourceContextualMenuViewController: ViewController {
     internal var modifyActions: Array<ResourceContextualMenuModifyAction>
   }
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private let resourceController: ResourceController
-  private let otpCodesController: OTPCodesController
 
   private let navigationToSelf: NavigationToResourceContextualMenu
   private let navigationToDeleteAlert: NavigationToResourceDeleteAlert
@@ -83,7 +82,7 @@ internal final class ResourceContextualMenuViewController: ViewController {
 
   private let asyncExecutor: AsyncExecutor
 
-  private let revealOTP: (@MainActor () -> Void)?
+  private let revealOTP: (@MainActor () async -> Void)?
   private let showMessage: @MainActor (SnackBarMessage?) -> Void
   private let resourceID: Resource.ID
 
@@ -113,7 +112,6 @@ internal final class ResourceContextualMenuViewController: ViewController {
     self.navigationToTOTPEdit = try features.instance()
 
     self.resourceController = try features.instance()
-    self.otpCodesController = try features.instance()
 
     self.viewState = .init(
       initial: .init(
@@ -264,7 +262,7 @@ extension ResourceContextualMenuViewController {
           self.showMessage(.error(error))
         }
       ) { () async throws -> Void in
-        var resource: Resource = try await self.resourceController.state.value
+        var resource: Resource = try await self.resourceController.state.current
 
         guard let field: ResourceFieldSpecification = resource.fieldSpecification(for: path)
         else {
@@ -279,7 +277,7 @@ extension ResourceContextualMenuViewController {
 
         if field.encrypted {
           _ = try await self.resourceController.fetchSecretIfNeeded()
-          resource = try await self.resourceController.state.value
+          resource = try await self.resourceController.state.current
         }  // else continue
 
         try await self.linkOpener.openURL(.init(rawValue: resource[keyPath: path].stringValue ?? ""))
@@ -298,7 +296,7 @@ extension ResourceContextualMenuViewController {
           self.showMessage(.error(error))
         }
       ) { () async throws -> Void in
-        var resource: Resource = try await self.resourceController.state.value
+        var resource: Resource = try await self.resourceController.state.current
 
         guard let field: ResourceFieldSpecification = resource.fieldSpecification(for: path)
         else {
@@ -313,7 +311,7 @@ extension ResourceContextualMenuViewController {
 
         if field.encrypted {
           _ = try await self.resourceController.fetchSecretIfNeeded()
-          resource = try await self.resourceController.state.value
+          resource = try await self.resourceController.state.current
         }  // else continue
 
         self.pasteboard.put(resource[keyPath: path].stringValue ?? "")
@@ -348,7 +346,7 @@ extension ResourceContextualMenuViewController {
             .error(message: "Invalid or missing TOTP reveal action!")
         }
         try await self.navigationToSelf.revert(animated: true)
-        revealOTP()
+        await revealOTP()
       }
   }
 
@@ -361,7 +359,7 @@ extension ResourceContextualMenuViewController {
         }
       ) {
         try await self.resourceController.fetchSecretIfNeeded()
-        let resource: Resource = try await self.resourceController.state.value
+        let resource: Resource = try await self.resourceController.state.current
 
         // searching only for the first totp field, can't identify totp otherwise now
         guard let totpSecret: TOTPSecret = resource.firstTOTPSecret
@@ -394,7 +392,7 @@ extension ResourceContextualMenuViewController {
         }
       ) {
         try await self.resourceController.toggleFavorite()
-        let resource: Resource = try await self.resourceController.state.value
+        let resource: Resource = try await self.resourceController.state.current
         try await self.navigationToSelf.revert()
         if resource.favorite {
           self.showMessage(
@@ -462,7 +460,7 @@ extension ResourceContextualMenuViewController {
       ) { [resourceID] in
         let resourceEditPreparation: ResourceEditPreparation = try features.instance()
         let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareExisting(resourceID)
-        guard let totpPath: Resource.FieldPath = editingContext.editedResource.firstTOTPPath
+        guard let totpPath: ResourceType.FieldPath = editingContext.editedResource.firstTOTPPath
         else {
           throw
             InvalidResourceType
@@ -491,7 +489,7 @@ extension ResourceContextualMenuViewController {
         try await self.navigationToDeleteAlert.perform(
           context: (
             resourceID: self.resourceID,
-            containsOTP: self.resourceController.state.value.hasTOTP,
+            containsOTP: self.resourceController.state.current.hasTOTP,
             showMessage: self.showMessage
           )
         )

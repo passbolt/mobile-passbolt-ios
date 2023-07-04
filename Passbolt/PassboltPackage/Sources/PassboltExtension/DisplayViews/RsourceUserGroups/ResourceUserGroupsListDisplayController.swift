@@ -30,7 +30,7 @@ import Users
 
 internal final class ResourceUserGroupsListDisplayController: ViewController {
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private let asyncExecutor: AsyncExecutor
   private let sessionData: SessionData
@@ -85,7 +85,7 @@ extension ResourceUserGroupsListDisplayController {
     internal var showMessage: (SnackBarMessage?) -> Void
   }
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var userGroups: Array<ResourceUserGroupListItemDSV>
   }

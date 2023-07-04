@@ -153,7 +153,7 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
     _ = await try feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
       .first()
 
-    filtersSequence.value = "changed"
+    filtersSequence.current = "changed"
 
     let result: Array<ResourceUserGroupListItemDSV>? =
       try await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())

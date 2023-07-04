@@ -36,7 +36,7 @@ internal final class ResourceLocationDetailsViewController: ViewController {
     internal var location: FolderLocationTreeView.Node
   }
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private let navigationToSelf: NavigationToResourceLocationDetails
 

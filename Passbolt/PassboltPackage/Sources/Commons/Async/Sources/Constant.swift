@@ -21,24 +21,36 @@
 // @since         v1.0
 //
 
-public final class Constant<DataType, Failure>: DataSource
-where DataType: Sendable, Failure: Error {
+public final class Constant<DataValue, Failure>: DataSource
+where DataValue: Sendable, Failure: Error {
 
   public let updates: Updates = .never
-  public let state: Result<DataType, Error>
-  public var value: DataType {
+  public var current: DataValue {
     get throws { try self.state.get() }
   }
 
+  private let state: Result<DataValue, Failure>
+
   public init(
-    value: DataType
-  ) {
+    value: DataValue
+  ) where Failure == Never {
     self.state = .success(value)
   }
 
   public init(
-    failure error: Error
-  ) where Failure == Error {
+    failure error: Failure
+  ) {
     self.state = .failure(error)
+  }
+}
+
+extension Constant
+where Failure == Never {
+
+  public var current: DataValue {
+    switch self.state {
+    case .success(let value):
+      return value
+    }
   }
 }

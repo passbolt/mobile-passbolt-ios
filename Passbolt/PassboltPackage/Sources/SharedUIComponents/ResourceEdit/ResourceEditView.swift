@@ -25,7 +25,7 @@ import Display
 
 public struct ResourceEditView: ControlledView {
 
-  private let controller: ResourceEditViewController
+  public let controller: ResourceEditViewController
   @State private var discardFormAlertVisible: Bool
 
   public init(
@@ -37,7 +37,8 @@ public struct ResourceEditView: ControlledView {
 
   public var body: some View {
     WithSnackBarMessage(
-      from: self.controller
+      from: self.controller,
+      at: \.snackBarMessage
     ) {
       self.contentView
     }
@@ -65,16 +66,21 @@ public struct ResourceEditView: ControlledView {
     .navigationBarBackButtonHidden()
     .toolbar {  // replace back button
       ToolbarItemGroup(placement: .navigationBarLeading) {
-        BackButton(
-          action: {
-            if self.controller.editedFields.get().isEmpty {
-              await self.controller.discardForm()
+        WithViewState(
+          from: self.controller,
+          at: \.edited
+        ) { (edited: Bool) in
+          BackButton(
+            action: {
+              if edited {
+                self.discardFormAlertVisible = true
+              }
+              else {
+                await self.controller.discardForm()
+              }
             }
-            else {
-              self.discardFormAlertVisible = true
-            }
-          }
-        )
+          )
+        }
       }
     }
     .navigationTitle(
@@ -133,6 +139,8 @@ public struct ResourceEditView: ControlledView {
                   }
                 }
               )
+              .textInputAutocapitalization(.never)
+              .autocorrectionDisabled()
               .padding(bottom: 8)
 
             case .plainLong(let state):
@@ -147,6 +155,7 @@ public struct ResourceEditView: ControlledView {
                   }
                 }
               )
+              .textInputAutocapitalization(.sentences)
               .padding(bottom: 8)
 
             case .password(let state, let entropy):

@@ -26,7 +26,7 @@ import UICommons
 
 internal struct TOTPEditAdvancedFormView: ControlledView {
 
-  private let controller: TOTPEditAdvancedFormController
+  internal let controller: TOTPEditAdvancedFormController
 
   internal init(
     controller: TOTPEditAdvancedFormController

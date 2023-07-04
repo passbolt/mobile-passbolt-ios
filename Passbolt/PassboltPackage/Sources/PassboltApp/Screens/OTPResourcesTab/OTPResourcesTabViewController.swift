@@ -52,12 +52,12 @@ internal final class OTPResourcesTabViewController: NavigationViewController {
       )
     }
 
-    self.viewControllers = [
-      UIHostingController(
-        rootView: OTPResourcesListView(
-          controller: self.controller.prepareListController()
-        )
+    let root: UIHostingController = .init(
+      rootView: OTPResourcesListView(
+        controller: self.controller.prepareListController()
       )
-    ]
+    )
+    root.destinationIdentifier = OTPResourcesListNavigationDestination.identifier
+    self.viewControllers = [root]
   }
 }

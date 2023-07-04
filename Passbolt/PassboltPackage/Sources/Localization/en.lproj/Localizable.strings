@@ -553,6 +553,16 @@ scanned!";
 "otp.edit.form.field.algorithm.title" = "Algorithm";
 "otp.edit.form.apply.button.title" = "Apply";
 
+// OTP attach
+
+"otp.attach.list.title" = "Add TOTP to a password";
+"otp.attach.alert.attach.title" = "Are you sure?";
+"otp.attach.alert.attach.message" = "If you add TOTP to this resource, the TOTP will inherit the same sharing  permissions.";
+"otp.attach.alert.attach.button.title" = "Add TOTP";
+"otp.attach.alert.replace.title" = "Replace TOTP?";
+"otp.attach.alert.replace.message" = "A TOTP is already associated with this resource, do you want to override it?";
+"otp.attach.alert.replace.button.title" = "Replace TOTP";
+
 // Settings - Main
 
 "settings.main.title" = "Settings";

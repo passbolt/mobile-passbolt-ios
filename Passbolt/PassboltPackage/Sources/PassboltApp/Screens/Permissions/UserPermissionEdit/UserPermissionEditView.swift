@@ -189,7 +189,7 @@ extension UserPermissionEditView {
   }
 }
 
-extension UserPermissionEditView.ViewState: Hashable {
+extension UserPermissionEditView.ViewState: Equatable {
 
   internal static func == (
     _ lhs: Self,

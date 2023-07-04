@@ -217,4 +217,4 @@ extension ResourceUserGroupsExplorerView {
   }
 }
 
-extension ResourceUserGroupsExplorerView.ViewState: Hashable {}
+extension ResourceUserGroupsExplorerView.ViewState: Equatable {}

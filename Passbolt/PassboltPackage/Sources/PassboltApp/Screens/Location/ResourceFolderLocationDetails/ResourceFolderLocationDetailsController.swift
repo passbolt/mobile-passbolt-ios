@@ -28,7 +28,7 @@ import Users
 
 internal final class ResourceFolderLocationDetailsController: ViewController {
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private let executor: AsyncExecutor
 
@@ -84,7 +84,7 @@ internal final class ResourceFolderLocationDetailsController: ViewController {
 
 extension ResourceFolderLocationDetailsController {
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var folderName: String
     internal var folderLocation: FolderLocationTreeView.Node

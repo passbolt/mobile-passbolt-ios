@@ -93,7 +93,7 @@ extension ResourceFolderEditForm: LoadableFeature {
 
   public static var placeholder: Self {
     Self(
-      updates: .placeholder,
+      updates: .never,
       formState: unimplemented0(),
       setFolderName: unimplemented1(),
       sendForm: unimplemented0()

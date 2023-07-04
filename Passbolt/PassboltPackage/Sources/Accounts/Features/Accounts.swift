@@ -69,7 +69,7 @@ extension Accounts: LoadableFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(
-      updates: .placeholder,
+      updates: .never,
       verifyDataIntegrity: unimplemented0(),
       storedAccounts: unimplemented0(),
       lastUsedAccount: unimplemented0(),

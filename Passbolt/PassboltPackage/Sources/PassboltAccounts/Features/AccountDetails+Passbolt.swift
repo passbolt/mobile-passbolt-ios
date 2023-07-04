@@ -94,7 +94,7 @@ extension AccountDetails {
     })
 
     @Sendable nonisolated func avatarImage() async throws -> Data? {
-      try? await avatarImageCache.value
+      try? await avatarImageCache.current
     }
 
     return Self(

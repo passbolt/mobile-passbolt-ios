@@ -208,5 +208,5 @@ private let testDatabaseFilter: ResourcesDatabaseFilter = .init(
   text: "test",
   name: "",
   url: "",
-  excludedTypeSlugs: [.totp]
+  excludedTypeSlugs: []
 )

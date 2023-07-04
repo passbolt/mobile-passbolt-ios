@@ -25,7 +25,7 @@ import Display
 
 internal struct ResourceLocationDetailsView: ControlledView {
 
-  private let controller: ResourceLocationDetailsViewController
+  internal let controller: ResourceLocationDetailsViewController
 
   internal init(
     controller: ResourceLocationDetailsViewController

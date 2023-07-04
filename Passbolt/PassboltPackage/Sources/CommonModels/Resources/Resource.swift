@@ -34,7 +34,7 @@ public struct Resource {
 
   public typealias FieldPath = ResourceType.ComputedFieldPath
 
-  public let id: Resource.ID?  // none is local, not synchronized resource
+  public var id: Resource.ID?  // none is local, not synchronized resource
   public private(set) var type: ResourceType
   public var path: OrderedSet<ResourceFolderPathItem>
   public var favoriteID: Resource.Favorite.ID?
@@ -314,7 +314,7 @@ extension Resource {
   }
 
   // Note it will return nil if there is no password field
-  public var firstPasswordPath: FieldPath? {
+  public var firstPasswordPath: ResourceType.FieldPath? {
     self.type.fieldSpecification(for: \.firstPassword)?.path
   }
 
@@ -340,7 +340,7 @@ extension Resource {
   }
 
   // Note it will return nil if there is no totp field
-  public var firstTOTPPath: FieldPath? {
+  public var firstTOTPPath: ResourceType.FieldPath? {
     self.type.fieldSpecification(for: \.firstTOTP)?.path
   }
 
@@ -366,7 +366,7 @@ extension Resource {
   }
 
   // Note it will return nil if there is no description field
-  public var descriptionPath: FieldPath? {
+  public var descriptionPath: ResourceType.FieldPath? {
     self.type.fieldSpecification(for: \.description)?.path
   }
 

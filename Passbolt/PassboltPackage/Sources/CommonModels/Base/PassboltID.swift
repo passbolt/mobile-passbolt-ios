@@ -60,6 +60,7 @@ extension PassboltID: CustomStringConvertible {
   }
 }
 
+extension PassboltID: Sendable {}
 extension PassboltID: Hashable {}
 
 extension PassboltID: Encodable {

@@ -26,7 +26,7 @@ import UICommons
 
 internal struct AccountsSettingsView: ControlledView {
 
-  private let controller: AccountsSettingsViewController
+  internal let controller: AccountsSettingsViewController
 
   internal init(
     controller: AccountsSettingsViewController

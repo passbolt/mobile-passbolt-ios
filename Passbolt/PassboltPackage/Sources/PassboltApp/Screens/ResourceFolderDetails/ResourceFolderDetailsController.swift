@@ -30,7 +30,7 @@ import Users
 
 internal final class ResourceFolderDetailsController: ViewController {
 
-  internal var viewState: ViewStateVariable<ViewState>
+  internal var viewState: ViewStateSource<ViewState>
 
   private let asyncExecutor: AsyncExecutor
   private let sessionData: SessionData
@@ -117,7 +117,7 @@ internal final class ResourceFolderDetailsController: ViewController {
 
 extension ResourceFolderDetailsController {
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var folderName: String
     internal var folderLocation: Array<String>

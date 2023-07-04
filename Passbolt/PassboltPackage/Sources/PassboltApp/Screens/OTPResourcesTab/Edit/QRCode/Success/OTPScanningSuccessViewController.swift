@@ -26,18 +26,19 @@ import FeatureScopes
 import OSFeatures
 import Resources
 
-internal final class OTPScanningSuccessController: ViewController {
+internal final class OTPScanningSuccessViewController: ViewController {
 
   internal struct ViewState: Equatable {
 
     internal var snackBarMessage: SnackBarMessage?
   }
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private let resourceEditPreparation: ResourceEditPreparation
 
-  private let navigationToScanning: NavigationToOTPScanning
+  private let navigationToAttach: NavigationToTOTPAttachSelectionList
+  private let navigationToOTPResourcesList: NavigationToOTPResourcesList
 
   private let asyncExecutor: AsyncExecutor
 
@@ -62,7 +63,8 @@ internal final class OTPScanningSuccessController: ViewController {
 
     self.asyncExecutor = try features.instance()
 
-    self.navigationToScanning = try features.instance()
+    self.navigationToAttach = try features.instance()
+    self.navigationToOTPResourcesList = try features.instance()
 
     self.resourceEditPreparation = try features.instance()
 
@@ -72,11 +74,11 @@ internal final class OTPScanningSuccessController: ViewController {
   }
 }
 
-extension OTPScanningSuccessController {
+extension OTPScanningSuccessViewController {
 
   internal func createStandaloneOTP() async {
-    await Diagnostics.logCatch(
-      info: .message("Failed to create standalone OTP"),
+    await withLogCatch(
+      failInfo: "Failed to create standalone OTP",
       fallback: { [viewState] (error: Error) in
         viewState.update(\.snackBarMessage, to: .error(error))
       }
@@ -92,37 +94,26 @@ extension OTPScanningSuccessController {
       resourceEditForm.update(\.secret.totp, to: context.secret)
 
       _ = try await resourceEditForm.sendForm()
-      try await navigationToScanning.revert()
+      try await self.navigationToOTPResourcesList.revert()
     }
   }
 
   internal func updateExistingResource() async {
-    await Diagnostics.logCatch(
-      info: .message("Failed to navigate to adding OTP to a resource"),
+    await withLogCatch(
+      failInfo: "Failed to navigate to adding OTP to a resource",
       fallback: { [viewState] (error: Error) in
         viewState.update(\.snackBarMessage, to: .error(error))
       }
     ) {
-      #warning("[MOB-1102] TODO: to complete when adding resources with OTP and password")
-      //      throw Unimplemented.error()
-      //      try await navigationToScanning.revert()
-
-      // TODO: FIXME!!! temp test
-      let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareExisting(
-        .init(uuidString: "77ca1bad-7a70-49c6-80d2-1d584b04a384")!
+      try await self.navigationToAttach.perform(
+        context: .init(
+          totpSecret: self.context.secret
+        )
       )
-      let features: Features = self.features.branch(
-        scope: ResourceEditScope.self,
-        context: editingContext
-      )
-      let resourceEditForm: ResourceEditForm = try features.instance()
-      try resourceEditForm.updateType(
-        editingContext.availableTypes.first(where: { $0.specification.slug == .passwordWithTOTP })!
-      )
-      resourceEditForm.update(\.secret.totp, to: context.secret)
-
-      _ = try await resourceEditForm.sendForm()
-      try await navigationToScanning.revert()
     }
+  }
+
+  internal func close() async {
+    await navigationToOTPResourcesList.performCatching()
   }
 }

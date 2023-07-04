@@ -32,15 +32,22 @@ import UIKit
 )
 public struct NavigationTree {
 
-  internal var state: MutableViewState<NavigationTreeState>
+  internal var state: ViewStateSource<NavigationTreeState>
 }
 
 extension NavigationTree: StaticFeature {
 
   #if DEBUG
   public static var placeholder: Self {
-    return .init(
-      state: .placeholder()
+    .init(
+      state: .init(
+        initial: .init(
+          root: .just(
+            id: ViewNodeID(rawValue: ObjectIdentifier(NavigationTree.self)),
+            view: EmptyView()
+          )
+        )
+      )
     )
   }
   #endif
@@ -51,11 +58,11 @@ extension NavigationTree {
   @MainActor public func contains(
     _ nodeID: ViewNodeID
   ) -> Bool {
-    self.state.state.contains(nodeID)
+    self.state.value.contains(nodeID)
   }
 
   @MainActor public var treeState: NavigationTreeState {
-    self.state.state
+    self.state.value
   }
 
   @MainActor public func set(

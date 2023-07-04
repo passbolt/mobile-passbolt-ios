@@ -44,9 +44,10 @@ internal final class TOTPEditAdvancedFormController: ViewController {
     internal var algorithm: Validated<HOTPAlgorithm?>
     internal var period: Validated<String>
     internal var digits: Validated<String>
+    internal var snackBarMessage: SnackBarMessage?
   }
 
-  internal let viewState: ComputedViewState<ViewState>
+  internal let viewState: ViewStateSource<ViewState>
 
   private let asyncExecutor: AsyncExecutor
   private let resourceEditForm: ResourceEditForm
@@ -73,10 +74,11 @@ internal final class TOTPEditAdvancedFormController: ViewController {
       initial: .init(
         algorithm: .valid(.none),
         period: .valid(""),
-        digits: .valid("")
+        digits: .valid(""),
+        snackBarMessage: .none
       ),
-      from: self.resourceEditForm.state,
-      transform: { resource in
+      updateFrom: self.resourceEditForm.state,
+      transform: { (viewState: inout ViewState, resource: Resource) async throws in
         guard resource.contains(context.totpPath)
         else {
           throw
@@ -84,35 +86,15 @@ internal final class TOTPEditAdvancedFormController: ViewController {
             .error(message: "Resource without TOTP, can't edit it.")
         }
 
-        let algorithm: Validated<HOTPAlgorithm?> = resource.validated(context.totpPath.appending(path: \.algorithm))
+        viewState.algorithm = resource.validated(context.totpPath.appending(path: \.algorithm))
           .map { $0.stringValue.flatMap(HOTPAlgorithm.init(rawValue:)) }
-        let digits: Validated<String> = resource.validated(context.totpPath.appending(path: \.digits))
+        viewState.digits = resource.validated(context.totpPath.appending(path: \.digits))
           .map { $0.stringValue ?? "" }
-        let period: Validated<String> = resource.validated(context.totpPath.appending(path: \.period))
+        viewState.period = resource.validated(context.totpPath.appending(path: \.period))
           .map { $0.stringValue ?? "" }
-
-        return ViewState(
-          algorithm: algorithm,
-          period: period,
-          digits: digits
-        )
       },
-      failure: { error in
-        Diagnostics.log(error: error)
-        return ViewState(
-          algorithm: .invalid(
-            .none,
-            error: error.asTheError()
-          ),
-          period: .invalid(
-            "",
-            error: error.asTheError()
-          ),
-          digits: .invalid(
-            "",
-            error: error.asTheError()
-          )
-        )
+      fallback: { (viewState: inout ViewState, error: Error) in
+        viewState.snackBarMessage = .error(error)
       }
     )
   }

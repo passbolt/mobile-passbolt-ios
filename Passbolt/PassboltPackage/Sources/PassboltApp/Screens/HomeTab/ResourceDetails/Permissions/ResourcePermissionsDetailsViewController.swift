@@ -36,7 +36,7 @@ internal final class ResourcePermissionsDetailsViewController: ViewController {
     internal var snackBarMessage: SnackBarMessage?
   }
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private let navigationToSelf: NavigationToResourcePermissionsDetails
 

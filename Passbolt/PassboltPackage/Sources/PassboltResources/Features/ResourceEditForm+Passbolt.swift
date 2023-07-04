@@ -77,14 +77,24 @@ extension ResourceEditForm {
       }
     }
 
+    @Sendable nonisolated func validateForm() async throws {
+      do {
+        try formState.current.validate()
+      }
+      catch {
+        throw
+          InvalidForm
+          .error(displayable: "resource.form.error.invalid")
+      }
+    }
+
     @Sendable nonisolated func sendForm() async throws -> Resource {
-      let resource: Resource = formState.value
+      var resource: Resource = formState.current
 
       do {
         try resource.validate()
       }
       catch {
-        Diagnostics.log(error: error)
         throw
           InvalidForm
           .error(displayable: "resource.form.error.invalid")
@@ -117,22 +127,6 @@ extension ResourceEditForm {
           )
         )
         .resourceID
-
-        do {
-          try await sessionData.refreshIfNeeded()
-          let features: Features =
-            await features.branchIfNeeded(
-              scope: ResourceDetailsScope.self,
-              context: updatedResourceID
-            ) ?? features
-          return try await features.instance(of: ResourceController.self).state.value
-        }
-        catch {
-          // we don't want to fail sending form when refreshing data fails
-          // but if we can't access updated data then it seemes to be an issue
-          Diagnostics.log(error: error)
-          throw error
-        }
       }
       else {
         guard
@@ -244,21 +238,18 @@ extension ResourceEditForm {
           )
         }  // else continue without sharing
 
-        do {
-          try await sessionData.refreshIfNeeded()
-          let features: Features =
-            await features.branchIfNeeded(
-              scope: ResourceDetailsScope.self,
-              context: createdResourceResult.resourceID
-            ) ?? features
-          return try await features.instance(of: ResourceController.self).state.value
-        }
-        catch {
-          // we don't want to fail sending form when refreshing data fails
-          // but if we can't access updated data then it seemes to be an issue
-          Diagnostics.log(error: error)
-          throw error
-        }
+        resource.id = createdResourceResult.resourceID
+      }
+
+      do {
+        try await sessionData.refreshIfNeeded()
+        return resource
+      }
+      catch {
+        // we don't want to fail sending form when refreshing data fails
+        // but if we can't access updated data then it seemes to be an issue
+        Diagnostics.log(error: error)
+        return resource
       }
     }
 
@@ -266,6 +257,7 @@ extension ResourceEditForm {
       state: formState,
       updateField: update(_:to:),
       updateType: updateType(to:),
+      validateForm: validateForm,
       sendForm: sendForm
     )
   }

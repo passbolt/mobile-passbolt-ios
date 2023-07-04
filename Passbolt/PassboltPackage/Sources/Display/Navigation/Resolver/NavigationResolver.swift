@@ -100,6 +100,21 @@ extension NavigationResolver {
       )
   }
 
+  @MainActor internal func pop(
+    to identifier: NavigationDestinationIdentifier,
+    animated: Bool,
+    file: StaticString,
+    line: UInt
+  ) async throws {
+    try await self.rootAnchor()?
+      .pop(
+        to: identifier,
+        animated: animated,
+        file: file,
+        line: line
+      )
+  }
+
   @MainActor internal func present(
     _ anchor: NavigationAnchor,
     unique: Bool,

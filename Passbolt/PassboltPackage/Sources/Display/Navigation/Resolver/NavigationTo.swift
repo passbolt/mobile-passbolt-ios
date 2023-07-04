@@ -443,10 +443,8 @@ extension NavigationTo {
             ]
           }
           else {
-            anchor = try PartialSheetViewController(
-              wrapping: UIHostingController(
-                rootView: prepareTransitionView(features, context)
-              )
+            anchor = try UIHostingController(
+              rootView: prepareTransitionView(features, context)
             )
           }
 
@@ -829,6 +827,46 @@ extension NavigationTo {
             with: .init(features: features),
             cancellables: cancellables
           )
+      }
+    )
+  }
+
+  public static func legacyPopTransition<DestinationView>(
+    to: DestinationView.Type = DestinationView.self
+  ) -> FeatureLoader
+  where DestinationView: ControlledView {
+    .disposable(
+      Self.self,
+      load: { features in
+        let navigationResolver: NavigationResolver = try features.instance()
+
+        @MainActor @Sendable func perform(
+          animated: Bool,
+          context: Destination.TransitionContext,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          try await navigationResolver
+            .pop(
+              to: Destination.identifier,
+              animated: animated,
+              file: file,
+              line: line
+            )
+        }
+
+        @MainActor @Sendable func revert(
+          animated: Bool,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          throw InternalInconsistency.error("Can't revert pop transition!")
+        }
+
+        return .init(
+          performAnimated: perform(animated:context:file:line:),
+          revertAnimated: revert(animated:file:line:)
+        )
       }
     )
   }

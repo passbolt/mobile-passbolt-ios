@@ -44,7 +44,7 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
       )
     ) {
       await self.asyncExecutionControl.executeAll()
-      return tested.viewState.state
+      return await tested.viewState.current
     }
   }
 
@@ -73,14 +73,9 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
         exitConfirmationAlertPresented: false
       )
     ) {
-      self.asyncExecutionControl.addTask {
-        try? await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
-        updatesSource.terminate()
-      }
-      await self.asyncExecutionControl.executeAll()
-      return tested.viewState.state
+      return await tested.viewState.current
     }
-    // to be removed after navigation refactor
+    updatesSource.terminate()
     await self.asyncExecutionControl.executeAll()
   }
 

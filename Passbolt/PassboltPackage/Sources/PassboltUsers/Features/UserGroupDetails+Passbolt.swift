@@ -48,7 +48,7 @@ extension UserGroupDetails {
     )
 
     @Sendable nonisolated func details() async throws -> UserGroupDetailsDSV {
-      try await currentDetails.value
+      try await currentDetails.current
     }
 
     return .init(

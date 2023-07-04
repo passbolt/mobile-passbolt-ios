@@ -27,7 +27,7 @@ import OSFeatures
 
 internal final class TroubleshootingSettingsViewController: ViewController {
 
-  internal let messageState: ViewStateVariable<SnackBarMessage?>
+  internal let viewState: ViewStateSource<SnackBarMessage?>
   private let linkOpener: OSLinkOpener
   private let navigationToLogs: NavigationToLogs
 
@@ -40,8 +40,7 @@ internal final class TroubleshootingSettingsViewController: ViewController {
 
     self.linkOpener = features.instance()
     self.navigationToLogs = try features.instance()
-
-    self.messageState = .init(initial: .none)
+    self.viewState = .init(initial: .none)
   }
 }
 
@@ -54,8 +53,8 @@ extension TroubleshootingSettingsViewController {
   internal final func navigateToHelpSite() async {
     await withLogCatch(
       failInfo: "Failed to open help site!",
-      fallback: { (error: Error) async in
-        self.messageState.show(error)
+      fallback: { [viewState] (error: Error) async in
+        viewState.update(\.self, to: .error(error))
       }
     ) {
       try await self.linkOpener.openURL("https://help.passbolt.com/")

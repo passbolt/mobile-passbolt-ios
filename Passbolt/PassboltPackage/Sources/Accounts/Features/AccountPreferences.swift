@@ -69,7 +69,7 @@ extension AccountPreferences: LoadableFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(
-      updates: .placeholder,
+      updates: .never,
       setLocalAccountLabel: unimplemented1(),
       isPassphraseStored: unimplemented0(),
       storePassphrase: unimplemented1(),

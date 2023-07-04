@@ -122,8 +122,6 @@ where Accessory: View {
           ),
           color: .passboltPrimaryText
         )
-        .autocorrectionDisabled()
-        .autocapitalization(.none)
         .multilineTextAlignment(.leading)
         .focused(self.$focused)
         .onChange(of: focused) { (focused: Bool) in
@@ -195,8 +193,18 @@ internal struct FormTextFieldView_Previews: PreviewProvider {
           FormTextFieldView(
             title: "Some field title",
             prompt: "Live to edit in preview!",
-            state: state,
-            update: update
+            state: {
+              print("sent: \(state)")
+              return state
+            }(),
+            update: { text in
+              print("quick loop: \(state)")
+              Task {
+                try await Task.sleep(nanoseconds: 1500 * NSEC_PER_MSEC)
+                print("updated: \(state)")
+                update(text)
+              }
+            }
           )
         }
 

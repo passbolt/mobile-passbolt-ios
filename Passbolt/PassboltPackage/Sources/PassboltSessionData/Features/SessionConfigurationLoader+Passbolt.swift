@@ -131,13 +131,13 @@ extension SessionConfigurationLoader {
     }
 
     @Sendable nonisolated func fetchIfNeeded() async throws {
-      _ = try await configuration.value
+      _ = try await configuration.current
     }
 
     @Sendable nonisolated func configuration(
       _ itemType: FeatureConfigItem.Type
     ) async -> FeatureConfigItem? {
-      try? await configuration.value[itemType.identifier]
+      try? await configuration.current[itemType.identifier]
     }
 
     return Self(

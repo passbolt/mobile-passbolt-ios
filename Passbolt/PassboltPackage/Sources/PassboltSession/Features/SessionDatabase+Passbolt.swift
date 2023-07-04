@@ -86,7 +86,7 @@ extension SessionDatabase {
     )
 
     @Sendable nonisolated func currentConnection() async throws -> SQLiteConnection {
-      if let connection: SQLiteConnection = try await databaseConnection.value {
+      if let connection: SQLiteConnection = try await databaseConnection.current {
         return connection
       }
       else {

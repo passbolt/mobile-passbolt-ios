@@ -62,7 +62,7 @@ extension AccountDetails: LoadableFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      updates: .placeholder,
+      updates: .never,
       profile: unimplemented0(),
       updateProfile: unimplemented0(),
       avatarImage: unimplemented0()

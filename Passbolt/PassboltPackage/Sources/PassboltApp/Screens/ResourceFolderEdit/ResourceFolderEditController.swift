@@ -29,7 +29,7 @@ import Users
 
 internal final class ResourceFolderEditController: ViewController {
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private let asyncExecutor: AsyncExecutor
   private let navigation: DisplayNavigation
@@ -68,27 +68,22 @@ internal final class ResourceFolderEditController: ViewController {
       users: users
     )
     self.viewState = .init(
-      initial: initialState
-    )
-
-    self.asyncExecutor.scheduleIteration(
-      over: self.resourceFolderEditForm.updates,
-      failMessage: "Updates broken!"
-    ) { [viewState, users, resourceFolderEditForm] (_) in
-      await viewState.update { viewState in
+      initial: initialState,
+      updateUsing: self.resourceFolderEditForm.updates,
+      update: { [users, resourceFolderEditForm] (viewState: inout ViewState) in
         Self.update(
           viewState: &viewState,
           using: resourceFolderEditForm.formState(),
           users: users
         )
       }
-    }
+    )
   }
 }
 
 extension ResourceFolderEditController {
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var folderName: Validated<String>
     internal var folderLocation: Array<String>

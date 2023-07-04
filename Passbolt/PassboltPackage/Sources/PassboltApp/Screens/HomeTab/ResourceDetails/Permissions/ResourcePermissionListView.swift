@@ -26,7 +26,7 @@ import UICommons
 
 internal struct ResourcePermissionsDetailsView: ControlledView {
 
-  private let controller: ResourcePermissionsDetailsViewController
+  internal let controller: ResourcePermissionsDetailsViewController
 
   internal init(
     controller: ResourcePermissionsDetailsViewController

@@ -106,7 +106,7 @@ extension SessionState: LoadableFeature {
   #if DEBUG
   nonisolated static var placeholder: Self {
     Self(
-      updates: .placeholder,
+      updates: .never,
       account: unimplemented0(),
       passphrase: unimplemented0(),
       validAccessToken: unimplemented0(),

@@ -37,7 +37,7 @@ internal final class ResourceTagsDetailsViewController: ViewController {
     internal var tags: OrderedSet<ResourceTag>
   }
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private let resourceController: ResourceController
 

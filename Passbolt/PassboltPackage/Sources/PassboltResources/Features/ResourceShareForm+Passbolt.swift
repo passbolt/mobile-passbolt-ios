@@ -63,7 +63,7 @@ extension ResourceShareForm {
 
     @Sendable func existingPermissions() async -> OrderedSet<ResourcePermission> {
       do {
-        return try await resourceController.state.value.permissions
+        return try await resourceController.state.current.permissions
       }
       catch {
         Diagnostics.log(error: error)
@@ -107,7 +107,7 @@ extension ResourceShareForm {
     }
 
     @Sendable nonisolated func currentPermissions() async -> OrderedSet<ResourcePermission> {
-      guard let formState: FormState = try? await formState.value
+      guard let formState: FormState = try? await formState.current
       else { return .init() }
       let existingPermissions: Array<ResourcePermission> = await existingPermissions()
         .filter { (permission: ResourcePermission) -> Bool in
@@ -356,7 +356,7 @@ extension ResourceShareForm {
     }
 
     @Sendable nonisolated func sendForm() async throws {
-      let formState: FormState = try await formState.value
+      let formState: FormState = try await formState.current
 
       try await validate(formState: formState)
 

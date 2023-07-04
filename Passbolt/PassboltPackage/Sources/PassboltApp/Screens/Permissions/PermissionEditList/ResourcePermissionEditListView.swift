@@ -139,7 +139,7 @@ internal struct ResourcePermissionEditListView: ComponentView {
 
 extension ResourcePermissionEditListView {
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var permissionListItems: Array<PermissionListRowItem>
     internal var loading: Bool = false

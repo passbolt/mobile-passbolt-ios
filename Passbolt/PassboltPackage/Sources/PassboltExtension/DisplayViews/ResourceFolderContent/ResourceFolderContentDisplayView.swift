@@ -25,7 +25,7 @@ import Display
 
 internal struct ResourceFolderContentDisplayView: ControlledView {
 
-  private let controller: ResourceFolderContentDisplayController
+  internal let controller: ResourceFolderContentDisplayController
 
   internal init(
     controller: ResourceFolderContentDisplayController

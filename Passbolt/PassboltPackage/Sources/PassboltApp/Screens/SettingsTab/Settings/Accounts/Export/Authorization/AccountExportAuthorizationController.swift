@@ -30,7 +30,7 @@ import Session
 
 internal final class AccountExportAuthorizationController: ViewController {
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private nonisolated let passphraseValidator: Validator<Passphrase> = .nonEmpty(
     displayable: .localized(
@@ -105,7 +105,7 @@ internal final class AccountExportAuthorizationController: ViewController {
 
 extension AccountExportAuthorizationController {
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var accountLabel: String
     internal var accountUsername: String
@@ -127,7 +127,7 @@ extension AccountExportAuthorizationController {
 
   internal final func authorizeWithPassphrase() {
     self.asyncExecutor.schedule(.reuse) { [unowned self] in
-      let validatedPassphrase: Validated<Passphrase> = await self.passphraseValidator(self.viewState.state.passphrase)
+      let validatedPassphrase: Validated<Passphrase> = await self.passphraseValidator(self.viewState.current.passphrase)
       do {
         let passphrase: Passphrase = try validatedPassphrase.validValue
         try await self.accountExport.authorize(.passphrase(passphrase))

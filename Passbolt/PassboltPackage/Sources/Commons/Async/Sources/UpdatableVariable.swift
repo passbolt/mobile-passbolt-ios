@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-public final class UpdatableVariable<DataType>: DataSource
-where DataType: Sendable {
+public final class UpdatableVariable<DataValue>: DataSource
+where DataValue: Sendable {
 
   public typealias Failure = Error
 
@@ -31,25 +31,25 @@ where DataType: Sendable {
     fileprivate enum State: Sendable {
 
       case initial
-      case current(DataType)
-      case terminal(Error)
+      case current(DataValue)
+      case terminal(Failure?)
     }
 
     fileprivate var state: State
     fileprivate var sourceUpdates: Updates
     fileprivate var runningUpdate: Task<Void, Never>?
-    fileprivate var awaiters: Dictionary<IID, UnsafeContinuation<DataType, Error>>
+    fileprivate var awaiters: Dictionary<IID, UnsafeContinuation<DataValue, Error>>
   }
 
   public let updates: Updates
 
   private let updatesSource: UpdatesSource
-  private let computeVariable: @Sendable () async throws -> DataType
+  private let computeVariable: @Sendable () async throws -> DataValue
 
   private let storage: CriticalState<Storage>
 
   public init(
-    lazy compute: @escaping @Sendable () async throws -> DataType
+    lazy compute: @escaping @Sendable () async throws -> DataValue
   ) {
     let lazySource: UpdatesSource = .init()
     self.storage = .init(
@@ -60,16 +60,16 @@ where DataType: Sendable {
       )
     )
     self.updatesSource = .init()
-    self.updates = self.updatesSource.updates
-    self.computeVariable = {
-      defer { lazySource.terminate() }
-      return try await compute()
-    }
+    self.updates = .init(
+      combined: self.updatesSource.updates,
+      with: lazySource.updates
+    )
+    self.computeVariable = compute
   }
 
   public init(
     using updates: Updates,
-    compute: @escaping @Sendable () async throws -> DataType
+    compute: @escaping @Sendable () async throws -> DataValue
   ) {
     self.storage = .init(
       .init(
@@ -79,13 +79,16 @@ where DataType: Sendable {
       )
     )
     self.updatesSource = .init()
-    self.updates = self.updatesSource.updates
+    self.updates = .init(
+      combined: self.updatesSource.updates,
+      with: updates
+    )
     self.computeVariable = compute
   }
 
   public init<Source>(
     from source: Source,
-    transform: @escaping @Sendable (Source.DataType) async throws -> DataType
+    transform: @escaping @Sendable (Source.DataValue) async throws -> DataValue
   ) where Source: DataSource {
     self.storage = .init(
       .init(
@@ -95,19 +98,22 @@ where DataType: Sendable {
       )
     )
     self.updatesSource = .init()
-    self.updates = self.updatesSource.updates
-    self.computeVariable = { @Sendable [weak source] () async throws -> DataType in
+    self.updates = .init(
+      combined: self.updatesSource.updates,
+      with: source.updates
+    )
+    self.computeVariable = { @Sendable [weak source] () async throws -> DataValue in
       guard let source else { throw CancellationError() }
-      return try await transform(source.value)
+      return try await transform(source.current)
     }
   }
 
-  public var value: DataType {
+  public var current: DataValue {
     get async throws {
       let iid: IID = .init()
       return try await withTaskCancellationHandler(
-        operation: { () async throws -> DataType in
-          try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<DataType, Error>) in
+        operation: { () async throws -> DataValue in
+          try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<DataValue, Error>) in
             self.storage.access { (storage: inout Storage) in
               guard !Task.isCancelled
               else { return continuation.resume(throwing: CancellationError()) }
@@ -125,7 +131,7 @@ where DataType: Sendable {
                   storage.runningUpdate = .detached { [computeVariable, weak self] in
                     await runningUpdate?.waitForCompletion()
                     do {
-                      let updated: DataType = try await computeVariable()
+                      let updated: DataValue = try await computeVariable()
                       self?.update(with: updated)
                     }
                     catch is CancellationError where Task.isCancelled {
@@ -145,7 +151,7 @@ where DataType: Sendable {
                 }
 
               case .terminal(let error):
-                return continuation.resume(throwing: error)
+                return continuation.resume(throwing: error ?? CancellationError())
 
               case .initial:
                 storage.awaiters[iid] = continuation
@@ -158,7 +164,7 @@ where DataType: Sendable {
                 storage.sourceUpdates.checkUpdate()  // called to update current generation
                 storage.runningUpdate = .detached { [computeVariable, weak self] in
                   do {
-                    let updated: DataType = try await computeVariable()
+                    let updated: DataValue = try await computeVariable()
                     self?.update(with: updated)
                   }
                   catch is CancellationError where Task.isCancelled {
@@ -182,7 +188,7 @@ where DataType: Sendable {
   }
 
   public func mutate(
-    _ mutation: @escaping @Sendable (inout DataType) -> Void
+    _ mutation: @escaping @Sendable (inout DataValue) -> Void
   ) {
     let deliverUpdate: () -> Void = self.storage.access { (storage: inout Storage) -> () -> Void in
       guard !Task.isCancelled else { return {} }
@@ -199,7 +205,7 @@ where DataType: Sendable {
           storage.runningUpdate = .detached { [computeVariable, weak self] in
             await runningUpdate?.waitForCompletion()
             do {
-              var updated: DataType = try await computeVariable()
+              var updated: DataValue = try await computeVariable()
               mutation(&updated)
               self?.update(with: updated)
             }
@@ -235,14 +241,14 @@ where DataType: Sendable {
         else {
           mutation(&value)
           storage.state = .current(value)
-          let awaitersToResume: Dictionary<IID, UnsafeContinuation<DataType, Error>>.Values = storage.awaiters.values
+          let awaitersToResume: Dictionary<IID, UnsafeContinuation<DataValue, Error>>.Values = storage.awaiters.values
           storage.awaiters.removeAll()
           return { () -> Void in
             self.updatesSource.sendUpdate()
             // we could check if there is any new update and schedule
             // it before notifying awaiters to ensure always latest value
             // on the other hand it could lead to starvation
-            for continuation: UnsafeContinuation<DataType, Error> in awaitersToResume {
+            for continuation: UnsafeContinuation<DataValue, Error> in awaitersToResume {
               continuation.resume(returning: value)
             }
           }
@@ -279,7 +285,7 @@ where DataType: Sendable {
           storage.sourceUpdates.checkUpdate()  // called to update current generation
           storage.runningUpdate = .detached { [computeVariable, weak self] in
             do {
-              var updated: DataType = try await computeVariable()
+              var updated: DataValue = try await computeVariable()
               mutation(&updated)
               self?.update(with: updated)
             }
@@ -302,7 +308,7 @@ where DataType: Sendable {
 
   @discardableResult
   public func update<Returned>(
-    _ mutation: @escaping @Sendable (inout DataType) async throws -> Returned
+    _ mutation: @escaping @Sendable (inout DataValue) async throws -> Returned
   ) async throws -> Returned {
     try await future { (fulfill: @escaping @Sendable (Result<Returned, Error>) -> Void) in
       self.storage.access { (storage: inout Storage) in
@@ -320,7 +326,7 @@ where DataType: Sendable {
             storage.runningUpdate = .detached { [computeVariable, weak self] in
               await runningUpdate?.waitForCompletion()
               do {
-                var updated: DataType = try await computeVariable()
+                var updated: DataValue = try await computeVariable()
                 try Task.checkCancellation()
                 let returned: Returned = try await mutation(&updated)
                 self?.update(with: updated)
@@ -364,7 +370,7 @@ where DataType: Sendable {
           else {
             storage.runningUpdate = .detached { [weak self] in
               do {
-                var updated: DataType = value
+                var updated: DataValue = value
                 let returned: Returned = try await mutation(&updated)
                 self?.update(with: updated)
                 fulfill(.success(returned))
@@ -417,7 +423,7 @@ where DataType: Sendable {
           else {
             storage.runningUpdate = .detached { [computeVariable, weak self] in
               do {
-                var updated: DataType = try await computeVariable()
+                var updated: DataValue = try await computeVariable()
                 let returned: Returned = try await mutation(&updated)
                 self?.update(with: updated)
                 fulfill(.success(returned))
@@ -439,7 +445,7 @@ where DataType: Sendable {
   }
 
   private func update(
-    with value: DataType
+    with value: DataValue
   ) {
     let deliverUpdate: () -> Void = self.storage.access { (storage: inout Storage) -> () -> Void in
       defer {
@@ -452,7 +458,7 @@ where DataType: Sendable {
       case .current, .initial:
         storage.state = .current(value)
 
-        let awaitersToResume: Dictionary<IID, UnsafeContinuation<DataType, Error>>.Values = storage.awaiters.values
+        let awaitersToResume: Dictionary<IID, UnsafeContinuation<DataValue, Error>>.Values = storage.awaiters.values
         storage.awaiters.removeAll()
 
         return { () -> Void in
@@ -460,7 +466,7 @@ where DataType: Sendable {
           // we could check if there is any new update and schedule
           // it before notifying awaiters to ensure always latest value
           // on the other hand it could lead to starvation
-          for continuation: UnsafeContinuation<DataType, Error> in awaitersToResume {
+          for continuation: UnsafeContinuation<DataValue, Error> in awaitersToResume {
             continuation.resume(returning: value)
           }
         }
@@ -488,15 +494,14 @@ where DataType: Sendable {
       case .current, .initial:
         storage.state = .terminal(error)
 
-        let awaitersToResume: Dictionary<IID, UnsafeContinuation<DataType, Error>>.Values = storage.awaiters.values
+        let awaitersToResume: Dictionary<IID, UnsafeContinuation<DataValue, Error>>.Values = storage.awaiters.values
         storage.awaiters.removeAll()
 
         return { () -> Void in
-          self.updatesSource.terminate()
           // we could check if there is any new update and schedule
           // it before notifying awaiters to ensure always latest value
           // on the other hand it could lead to starvation
-          for continuation: UnsafeContinuation<DataType, Error> in awaitersToResume {
+          for continuation: UnsafeContinuation<DataValue, Error> in awaitersToResume {
             continuation.resume(throwing: error)
           }
         }

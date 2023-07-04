@@ -26,10 +26,10 @@ import UICommons
 
 internal struct OTPConfigurationScanningView: ControlledView {
 
-  private let controller: OTPConfigurationScanningController
+  internal let controller: OTPConfigurationScanningViewController
 
   internal init(
-    controller: OTPConfigurationScanningController
+    controller: OTPConfigurationScanningViewController
   ) {
     self.controller = controller
   }
@@ -48,10 +48,9 @@ internal struct OTPConfigurationScanningView: ControlledView {
         )
         .edgesIgnoringSafeArea(.bottom)
         .snackBarMessage(
-          presenting: self.controller
-            .binding(
-              to: \.snackBarMessage
-            )
+          presenting: self.binding(
+            to: \.snackBarMessage
+          )
         )
       }
       .loader(visible: loading)

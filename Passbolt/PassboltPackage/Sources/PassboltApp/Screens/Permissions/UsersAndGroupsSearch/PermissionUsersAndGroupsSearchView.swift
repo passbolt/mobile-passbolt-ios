@@ -217,7 +217,7 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
 
 extension PermissionUsersAndGroupsSearchView {
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var searchText: String
     internal var selectedItems: Array<OverlappingAvatarStackView.Item>

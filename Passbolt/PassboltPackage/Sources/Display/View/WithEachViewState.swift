@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import SwiftUI
 
 public struct WithEachViewState<State, ContentView, PlaceholderView>: View
@@ -32,32 +33,9 @@ where
   PlaceholderView: View
 {
 
-  @StateObject private var viewState: ObservedViewState<State>
+  @ObservedObject private var viewState: TrimmedViewState<State>
   private let content: (State.Element) -> ContentView
   private let placeholder: () -> PlaceholderView
-
-  public init<Source>(
-    _ source: Source,
-    @ViewBuilder content: @escaping (State.Element) -> ContentView,
-    @ViewBuilder placeholder: @escaping () -> PlaceholderView
-  ) where Source: ViewStateSource, Source.ViewState == State {
-    self._viewState = .init(
-      wrappedValue: ObservedViewState(from: source)
-    )
-    self.content = content
-    self.placeholder = placeholder
-  }
-
-  public init<Source>(
-    _ source: Source,
-    @ViewBuilder content: @escaping (State.Element) -> ContentView
-  ) where Source: ViewStateSource, Source.ViewState == State, PlaceholderView == Display.PlaceholderView {
-    self._viewState = .init(
-      wrappedValue: ObservedViewState(from: source)
-    )
-    self.content = content
-    self.placeholder = PlaceholderView.init
-  }
 
   public init<Controller>(
     from controller: Controller,
@@ -66,7 +44,7 @@ where
     @ViewBuilder placeholder: @escaping () -> PlaceholderView
   ) where Controller: ViewController {
     self._viewState = .init(
-      wrappedValue: ObservedViewState(
+      wrappedValue: .init(
         from: controller.viewState,
         at: keyPath
       )
@@ -79,15 +57,15 @@ where
     from controller: Controller,
     at keyPath: KeyPath<Controller.ViewState, State>,
     @ViewBuilder content: @escaping (State.Element) -> ContentView
-  ) where Controller: ViewController, PlaceholderView == Display.PlaceholderView {
+  ) where Controller: ViewController, PlaceholderView == EmptyView {
     self._viewState = .init(
-      wrappedValue: ObservedViewState(
+      wrappedValue: .init(
         from: controller.viewState,
         at: keyPath
       )
     )
     self.content = content
-    self.placeholder = PlaceholderView.init
+    self.placeholder = EmptyView.init
   }
 
   public init<Controller>(
@@ -96,7 +74,7 @@ where
     @ViewBuilder placeholder: @escaping () -> PlaceholderView
   ) where Controller: ViewController, Controller.ViewState == State {
     self._viewState = .init(
-      wrappedValue: ObservedViewState(from: controller.viewState)
+      wrappedValue: .init(from: controller.viewState)
     )
     self.content = content
     self.placeholder = placeholder
@@ -105,26 +83,23 @@ where
   public init<Controller>(
     from controller: Controller,
     @ViewBuilder content: @escaping (State.Element) -> ContentView
-  ) where Controller: ViewController, Controller.ViewState == State, PlaceholderView == Display.PlaceholderView {
+  ) where Controller: ViewController, Controller.ViewState == State, PlaceholderView == EmptyView {
     self._viewState = .init(
-      wrappedValue: ObservedViewState(from: controller.viewState)
+      wrappedValue: .init(from: controller.viewState)
     )
     self.content = content
-    self.placeholder = PlaceholderView.init
+    self.placeholder = EmptyView.init
   }
 
   public var body: some View {
-    Group {
-      if self.viewState.state.isEmpty {
-        // placeholder can't be EmptyView, it will break `task` otherwise
-        self.placeholder()
-      }
-      else {
-        ForEach(self.viewState.state) { element in
-          self.content(element)
-        }
+    let viewState: State = self.viewState.value
+    if viewState.isEmpty {
+      self.placeholder()
+    }
+    else {
+      ForEach(viewState) { element in
+        self.content(element)
       }
     }
-    .task { await self.viewState.autoupdate() }
   }
 }

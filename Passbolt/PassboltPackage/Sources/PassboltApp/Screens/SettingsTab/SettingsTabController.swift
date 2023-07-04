@@ -39,12 +39,15 @@ extension SettingsTabController: UIController {
     cancellables: Cancellables
   ) -> Self {
     do {
-      return try .init(
-        content: UIHostingController(
-          rootView: MainSettingsView(
-            controller: features.instance()
-          )
+      let content: UIHostingController = try .init(
+        rootView: MainSettingsView(
+          controller: features.instance()
         )
+      )
+      // add when needed
+      //	 content.destinationIdentifier = // NavigationToMainSettings
+      return .init(
+        content: content
       )
     }
     catch {

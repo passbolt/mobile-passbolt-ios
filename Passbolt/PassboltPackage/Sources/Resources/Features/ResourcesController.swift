@@ -28,12 +28,12 @@ import Features
 
 public struct ResourcesController {
 
-  public var lastUpdate: any DataSource<Timestamp, Never>
+  public var lastUpdate: any DataSource<Timestamp>
   public var filteredResourcesList: @Sendable (ResourcesFilter) async throws -> Array<ResourceListItemDSV>
   public var delete: @Sendable (Resource.ID) async throws -> Void
 
   public init(
-    lastUpdate: any DataSource<Timestamp, Never>,
+    lastUpdate: any DataSource<Timestamp>,
     filteredResourcesList: @escaping @Sendable (ResourcesFilter) async throws -> Array<ResourceListItemDSV>,
     delete: @escaping @Sendable (Resource.ID) async throws -> Void
   ) {

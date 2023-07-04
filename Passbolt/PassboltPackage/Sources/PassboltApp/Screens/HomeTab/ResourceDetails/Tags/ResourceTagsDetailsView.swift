@@ -25,7 +25,7 @@ import Display
 
 internal struct ResourceTagsDetailsView: ControlledView {
 
-  private let controller: ResourceTagsDetailsViewController
+  internal let controller: ResourceTagsDetailsViewController
 
   internal init(
     controller: ResourceTagsDetailsViewController

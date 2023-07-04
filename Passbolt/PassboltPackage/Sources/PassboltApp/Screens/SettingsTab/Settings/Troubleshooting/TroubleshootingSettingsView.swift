@@ -26,7 +26,7 @@ import UICommons
 
 internal struct TroubleshootingSettingsView: ControlledView {
 
-  private let controller: TroubleshootingSettingsViewController
+  internal let controller: TroubleshootingSettingsViewController
 
   internal init(
     controller: TroubleshootingSettingsViewController
@@ -38,7 +38,10 @@ internal struct TroubleshootingSettingsView: ControlledView {
     ScreenView(
       title: "settings.troubleshooting.title",
       contentView: {
-        WithSnackBarMessage(from: self.controller) {
+        WithSnackBarMessage(
+          from: self.controller,
+          at: \.self
+        ) {
           self.content
         }
       }

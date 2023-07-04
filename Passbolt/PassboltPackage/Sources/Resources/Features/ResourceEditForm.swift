@@ -29,9 +29,11 @@ import Features
 public struct ResourceEditForm {
 
   // Access current resource state and updates
-  public var state: any DataSource<Resource, Never>
+  public var state: any DataSource<Resource>
   // Change the resource type
   public var updateType: @Sendable (ResourceType) throws -> Void
+  // Validate form state
+  public var validateForm: @Sendable () async throws -> Void
   // Send the form
   public var sendForm: @Sendable () async throws -> Resource
   // Update resource, publicly exposing only dedicated methods
@@ -39,14 +41,16 @@ public struct ResourceEditForm {
   internal var updateField: @Sendable (Resource.FieldPath, JSON) -> Validated<JSON>
 
   public init(
-    state: any DataSource<Resource, Never>,
+    state: any DataSource<Resource>,
     updateField: @escaping @Sendable (Resource.FieldPath, JSON) -> Validated<JSON>,
     updateType: @escaping @Sendable (ResourceType) throws -> Void,
+    validateForm: @escaping @Sendable () async throws -> Void,
     sendForm: @escaping @Sendable () async throws -> Resource
   ) {
     self.state = state
     self.updateField = updateField
     self.updateType = updateType
+    self.validateForm = validateForm
     self.sendForm = sendForm
   }
 }
@@ -61,6 +65,7 @@ extension ResourceEditForm: LoadableFeature {
       state: PlaceholderDataSource(),
       updateField: unimplemented2(),
       updateType: unimplemented1(),
+      validateForm: unimplemented0(),
       sendForm: unimplemented0()
     )
   }

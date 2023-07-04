@@ -26,16 +26,19 @@ import OSFeatures
 
 internal final class HomePresentationMenuNodeController: ViewController {
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private let asyncExecutor: AsyncExecutor
   private let navigationTree: NavigationTree
   private let homePresentation: HomePresentation
 
+  private let context: ViewNodeID
+
   internal init(
-    context: Void,
+    context: ViewNodeID,
     features: Features
   ) throws {
+    self.context = context
 
     self.asyncExecutor = try features.instance()
     self.navigationTree = features.instance()
@@ -45,21 +48,18 @@ internal final class HomePresentationMenuNodeController: ViewController {
       initial: .init(
         currentMode: homePresentation.currentMode.wrappedValue,
         availableModes: homePresentation.availableModes()
-      )
+      ),
+      updateUsing: self.homePresentation.currentMode.updates,
+      update: { [homePresentation] (state: inout ViewState) in
+        state.currentMode = homePresentation.currentMode.get()
+      }
     )
-
-    self.asyncExecutor.scheduleIteration(
-      over: self.homePresentation.currentMode.asAnyAsyncSequence(),
-      failMessage: "Home mode updates broken!"
-    ) { [viewState] (mode: HomePresentationMode) in
-      await viewState.update(\.currentMode, to: mode)
-    }
   }
 }
 
 extension HomePresentationMenuNodeController {
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var currentMode: HomePresentationMode
     internal var availableModes: OrderedSet<HomePresentationMode>
@@ -72,14 +72,14 @@ extension HomePresentationMenuNodeController {
     _ mode: HomePresentationMode
   ) {
     self.homePresentation.currentMode.set(to: mode)
-    self.asyncExecutor.schedule(.reuse) { [viewState, navigationTree] in
-      await navigationTree.dismiss(viewState.viewNodeID)
+    self.asyncExecutor.schedule(.reuse) { [viewState, context, navigationTree] in
+      await navigationTree.dismiss(upTo: context)
     }
   }
 
   internal nonisolated func dismissView() {
-    self.asyncExecutor.schedule(.reuse) { [viewState, navigationTree] in
-      await navigationTree.dismiss(viewState.viewNodeID)
+    self.asyncExecutor.schedule(.reuse) { [viewNodeID, navigationTree] in
+      await navigationTree.dismiss(viewNodeID)
     }
   }
 }

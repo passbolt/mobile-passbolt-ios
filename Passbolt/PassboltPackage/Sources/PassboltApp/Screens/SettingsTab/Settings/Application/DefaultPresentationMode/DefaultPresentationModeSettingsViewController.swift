@@ -29,13 +29,13 @@ import Session
 
 internal final class DefaultPresentationModeSettingsViewController: ViewController {
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var selectedMode: HomePresentationMode?
     internal var availableModes: OrderedSet<HomePresentationMode>
   }
 
-  internal nonisolated let viewState: ComputedViewState<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private let navigationToSelf: NavigationToDefaultPresentationModeSettings
   private let accountPreferences: AccountPreferences
@@ -56,11 +56,10 @@ internal final class DefaultPresentationModeSettingsViewController: ViewControll
     self.accountPreferences = try features.instance(context: currentAccount)
     self.homePresentation = try features.instance()
 
-    let useLastUsedHomePresentationAsDefault: StateBinding<Bool> = accountPreferences
+    self.useLastUsedHomePresentationAsDefault =
+      accountPreferences
       .useLastHomePresentationAsDefault
-    self.useLastUsedHomePresentationAsDefault = useLastUsedHomePresentationAsDefault
-    let defaultHomePresentation: StateBinding<HomePresentationMode> = accountPreferences.defaultHomePresentation
-    self.defaultHomePresentation = defaultHomePresentation
+    self.defaultHomePresentation = accountPreferences.defaultHomePresentation
 
     self.viewState = .init(
       initial: .init(
@@ -69,13 +68,15 @@ internal final class DefaultPresentationModeSettingsViewController: ViewControll
       ),
       updateUsing: self.accountPreferences.updates,
       update: {
-        [homePresentation, useLastUsedHomePresentationAsDefault, defaultHomePresentation] (state: inout ViewState) in
-        state.selectedMode =
+        [homePresentation, useLastUsedHomePresentationAsDefault, defaultHomePresentation] (
+          viewState: inout ViewState
+        )
+        in
+        viewState.selectedMode =
           useLastUsedHomePresentationAsDefault.get(\.self)
           ? .none
           : defaultHomePresentation.get(\.self)
-
-        state.availableModes = homePresentation.availableHomePresentationModes()
+        viewState.availableModes = homePresentation.availableHomePresentationModes()
       }
     )
   }

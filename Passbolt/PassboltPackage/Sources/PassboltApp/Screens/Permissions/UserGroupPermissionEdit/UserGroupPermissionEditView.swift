@@ -205,7 +205,7 @@ internal struct UserGroupPermissionEditView: ComponentView {
 
 extension UserGroupPermissionEditView {
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var name: DisplayableString
     internal var permission: Permission

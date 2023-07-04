@@ -102,6 +102,16 @@ public final class CriticalState<State> {
     self.statePtr.pointee = newValue
   }
 
+  @inlinable @Sendable public func exchange(
+    with newValue: State
+  ) -> State {
+    os_unfair_lock_lock(self.lockPtr)
+    defer { os_unfair_lock_unlock(self.lockPtr) }
+    let state: State = self.statePtr.pointee
+    self.statePtr.pointee = newValue
+    return state
+  }
+
   @inlinable @Sendable public func exchange<Value>(
     _ keyPath: WritableKeyPath<State, Value>,
     with newValue: Value

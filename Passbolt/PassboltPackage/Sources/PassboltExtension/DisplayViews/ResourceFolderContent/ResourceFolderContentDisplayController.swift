@@ -29,7 +29,7 @@ import SessionData
 
 internal final class ResourceFolderContentDisplayController: ViewController {
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
   internal var createFolder: (() -> Void)?
   internal var createResource: (() -> Void)?
@@ -115,7 +115,7 @@ extension ResourceFolderContentDisplayController {
     internal var showMessage: (SnackBarMessage?) -> Void
   }
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var folderName: DisplayableString
     internal var isSearchResult: Bool

@@ -40,7 +40,7 @@ extension AccountData: LoadableFeature {
   nonisolated static var placeholder: Self {
     Self(
       updatesSource: .init(),
-      updates: .placeholder
+      updates: .never
     )
   }
   #endif

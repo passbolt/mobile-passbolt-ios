@@ -35,17 +35,34 @@ public struct ResourceEditPreparation {
 
   public var prepareExisting: @Sendable (Resource.ID) async throws -> ResourceEditingContext
 
+  public var availableTypes: @Sendable () async throws -> Array<ResourceType>
+
   public init(
     prepareNew: @escaping @Sendable (
       _ slug: ResourceSpecification.Slug,
       _ parentFolderID: ResourceFolder.ID?,
       _ uri: URLString?
     ) async throws -> ResourceEditingContext,
-    prepareExisting: @escaping @Sendable (Resource.ID) async throws -> ResourceEditingContext
+    prepareExisting: @escaping @Sendable (Resource.ID) async throws -> ResourceEditingContext,
+    availableTypes: @escaping @Sendable () async throws -> Array<ResourceType>
   ) {
     self.prepareNew = prepareNew
     self.prepareExisting = prepareExisting
+    self.availableTypes = availableTypes
   }
+}
+
+extension ResourceEditPreparation: LoadableFeature {
+
+  #if DEBUG
+  public nonisolated static var placeholder: Self {
+    .init(
+      prepareNew: unimplemented3(),
+      prepareExisting: unimplemented1(),
+      availableTypes: unimplemented0()
+    )
+  }
+  #endif
 }
 
 public struct ResourceEditingContext {

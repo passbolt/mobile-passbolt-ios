@@ -31,7 +31,7 @@ import Users
 
 internal final class ResourceFolderPermissionListController: ViewController {
 
-  internal var viewState: ViewStateVariable<ViewState>
+  internal var viewState: ViewStateSource<ViewState>
 
   private let asyncExecutor: AsyncExecutor
   private let navigation: DisplayNavigation
@@ -115,7 +115,7 @@ internal final class ResourceFolderPermissionListController: ViewController {
 
 extension ResourceFolderPermissionListController {
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var permissionListItems: Array<PermissionListRowItem>
     internal var snackBarMessage: SnackBarMessage? = .none

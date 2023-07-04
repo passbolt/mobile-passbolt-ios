@@ -21,36 +21,50 @@
 // @since         v1.0
 //
 
-public final class Variable<DataType>: DataSource
-where DataType: Sendable {
+@dynamicMemberLookup
+public final class Variable<DataValue>: DataSource
+where DataValue: Sendable & Equatable {
 
   public typealias Failure = Never
 
   public let updates: Updates
 
   private let updatesSource: UpdatesSource
-  private let storage: CriticalState<DataType>
+  private let storage: CriticalState<DataValue>
 
   public init(
-    initial: DataType
+    initial: DataValue
   ) {
     self.storage = .init(initial)
     self.updatesSource = .init()
     self.updates = self.updatesSource.updates
   }
 
-  public var value: DataType {
+  public var current: DataValue {
     get { self.storage.get() }
     set {
-      self.storage.set(newValue)
+      let oldValue: DataValue = self.storage.exchange(with: newValue)
+      guard oldValue != newValue else { return }
       self.updatesSource.sendUpdate()
     }
   }
 
+  public subscript<Value>(
+    dynamicMember keyPath: KeyPath<DataValue, Value>
+  ) -> Value {
+    get { self.current[keyPath: keyPath] }
+  }
+
+  public subscript<Value>(
+    dynamicMember keyPath: WritableKeyPath<DataValue, Value>
+  ) -> Value {
+    get { self.current[keyPath: keyPath] }
+    set { self.current[keyPath: keyPath] = newValue }
+  }
+
   public func mutate<Returned>(
-    _ mutation: (inout DataType) throws -> Returned
+    _ mutation: (inout DataValue) throws -> Returned
   ) rethrows -> Returned {
-    defer { self.updatesSource.sendUpdate() }
-    return try self.storage.access(mutation)
+    try mutation(&self.current)
   }
 }

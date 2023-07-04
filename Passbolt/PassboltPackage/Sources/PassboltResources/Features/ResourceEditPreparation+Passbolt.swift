@@ -26,7 +26,7 @@ import FeatureScopes
 import Features
 import Resources
 
-extension ResourceEditPreparation: LoadableFeature {
+extension ResourceEditPreparation {
 
   @MainActor fileprivate static func load(
     using features: Features
@@ -78,7 +78,7 @@ extension ResourceEditPreparation: LoadableFeature {
 
       try await resourceController.fetchSecretIfNeeded(force: true)
 
-      let resource: Resource = try await resourceController.state.value
+      let resource: Resource = try await resourceController.state.current
 
       guard resource.permission.canEdit
       else {
@@ -96,20 +96,16 @@ extension ResourceEditPreparation: LoadableFeature {
       )
     }
 
+    @Sendable func availableTypes() async throws -> Array<ResourceType> {
+      try await resourceTypesFetchDatabaseOperation()
+    }
+
     return .init(
       prepareNew: prepareNew(_:parentFolderID:uri:),
-      prepareExisting: prepareExisting(resourceID:)
+      prepareExisting: prepareExisting(resourceID:),
+      availableTypes: availableTypes
     )
   }
-
-  #if DEBUG
-  public nonisolated static var placeholder: Self {
-    .init(
-      prepareNew: unimplemented3(),
-      prepareExisting: unimplemented1()
-    )
-  }
-  #endif
 }
 
 extension FeaturesRegistry {

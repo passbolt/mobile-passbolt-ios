@@ -78,7 +78,7 @@ extension ResourceFolderEditForm {
               of: ResourceFolderController.self,
               context: enclosingFolderID
             )
-            .state.value
+            .state.current
 
           let location =
             enclosingFolderDetails.path
@@ -129,7 +129,7 @@ extension ResourceFolderEditForm {
               of: ResourceFolderController.self,
               context: folderID
             )
-            .state.value
+            .state.current
 
           let location = folderDetails.path
             .map { (item: ResourceFolderPathItem) -> ResourceFolderLocationItem in

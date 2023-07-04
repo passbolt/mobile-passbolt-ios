@@ -28,7 +28,9 @@ import SwiftUI
 public struct PreviewInputState<Content>: View
 where Content: View {
 
-  @State private var state: Validated<String>
+  @State private var state: Validated<String> {
+    didSet { print("Preview state: \(state)") }
+  }
   private let validator: Validator<String>
   private let content: (Validated<String>, @escaping @MainActor (String) -> Void) -> Content
 

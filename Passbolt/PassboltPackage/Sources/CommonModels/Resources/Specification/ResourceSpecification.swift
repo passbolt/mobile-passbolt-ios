@@ -42,6 +42,7 @@ public struct ResourceSpecification {
   }
 }
 
+extension ResourceSpecification: Sendable {}
 extension ResourceSpecification: Equatable {}
 
 // MARK: - Hardcode of well known resource type specifications

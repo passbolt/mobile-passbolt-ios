@@ -26,7 +26,7 @@ import UICommons
 
 internal struct ApplicationSettingsView: ControlledView {
 
-  private let controller: ApplicationSettingsViewController
+  internal let controller: ApplicationSettingsViewController
   @State private var disableBiometricsConfirmationPresented: Bool = false
 
   internal init(
@@ -39,7 +39,10 @@ internal struct ApplicationSettingsView: ControlledView {
     ScreenView(
       title: "settings.application.title",
       contentView: {
-        WithSnackBarMessage(from: self.controller) {
+        WithSnackBarMessage(
+          from: self.controller,
+          at: \.snackBarMessage
+        ) {
           self.content
         }
       }

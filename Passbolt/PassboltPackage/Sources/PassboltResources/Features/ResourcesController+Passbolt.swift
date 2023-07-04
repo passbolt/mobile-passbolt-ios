@@ -58,9 +58,9 @@ extension ResourcesController {
           }(),
           text: filter.text,
           favoriteOnly: filter.favoriteOnly,
-          excludedTypeSlugs: filter.otpOnly
-            ? [.password, .passwordWithDescription]
-            : [.totp, .passwordWithTOTP],
+          includedTypeSlugs: filter.otpOnly
+            ? [.totp, .passwordWithTOTP]
+            : [],
           permissions: Set(filter.permissions),
           tags: filter.tags,
           userGroups: filter.userGroups,

@@ -33,8 +33,8 @@ import Users
 
 internal final class ResourceSearchDisplayController: ViewController {
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
-  internal nonisolated let searchText: any ViewStateSource<String>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
+  internal nonisolated let searchText: Variable<String>
 
   private let currentAccount: Account
 
@@ -62,16 +62,18 @@ internal final class ResourceSearchDisplayController: ViewController {
     self.session = try features.instance()
     self.accountDetails = try features.instance(context: currentAccount)
 
-    let viewState: ViewStateVariable<ViewState> = .init(
+    self.searchText = .init(initial: .init())
+    self.viewState = .init(
       initial: .init(
         searchPrompt: context.searchPrompt,
         accountAvatar: .none,
         searchText: ""
-      )
+      ),
+      updateFrom: self.searchText,
+      transform: { (viewState: inout ViewState, searchText: String) in
+        viewState.searchText = searchText
+      }
     )
-
-    self.viewState = viewState
-    self.searchText = ComputedViewState(from: viewState, at: \.searchText)
   }
 }
 
@@ -79,11 +81,12 @@ extension ResourceSearchDisplayController {
 
   internal struct Context {
 
+    internal var nodeID: ViewNodeID
     internal var searchPrompt: DisplayableString
     internal var showMessage: (SnackBarMessage?) -> Void
   }
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var searchPrompt: DisplayableString
     internal var accountAvatar: Data?
@@ -110,17 +113,23 @@ extension ResourceSearchDisplayController {
     }
   }
 
+  internal final func updateSearchText(
+    _ text: String
+  ) {
+    self.searchText.current = text
+  }
+
   internal final func showPresentationMenu() {
     self.asyncExecutor.scheduleCatching(
       failAction: { [context] (error: Error) in
         await context.showMessage(.error(error))
       },
       behavior: .reuse
-    ) { [features, navigationTree] in
+    ) { [features, context, navigationTree] in
       try await navigationTree.present(
         .sheet,
         HomePresentationMenuNodeView.self,
-        controller: features.instance()
+        controller: features.instance(context: context.nodeID)
       )
     }
   }

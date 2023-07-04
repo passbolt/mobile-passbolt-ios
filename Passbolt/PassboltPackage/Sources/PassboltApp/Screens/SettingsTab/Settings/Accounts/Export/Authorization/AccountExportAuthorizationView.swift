@@ -25,7 +25,7 @@ import Display
 
 internal struct AccountExportAuthorizationView: ControlledView {
 
-  private let controller: AccountExportAuthorizationController
+  internal let controller: AccountExportAuthorizationController
 
   internal init(
     controller: AccountExportAuthorizationController
@@ -37,7 +37,7 @@ internal struct AccountExportAuthorizationView: ControlledView {
     WithViewState(from: self.controller) { (state: ViewState) in
       ScreenView(
         title: .localized(key: "authorization.title"),
-        snackBarMessage: self.controller.binding(to: \.snackBarMessage),
+        snackBarMessage: self.binding(to: \.snackBarMessage),
         contentView: {
           self.contentView(using: state)
         }

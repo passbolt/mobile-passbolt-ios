@@ -28,7 +28,7 @@ internal struct AutofillRootNavigationNodeView: ControlledView {
 
   internal typealias Controller = AutofillRootNavigationNodeController
 
-  private let controller: Controller
+  internal let controller: Controller
 
   internal init(
     controller: Controller

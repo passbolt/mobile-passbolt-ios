@@ -29,7 +29,7 @@ import SessionData
 
 internal final class ResourceTagsListDisplayController: ViewController {
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private let asyncExecutor: AsyncExecutor
   private let sessionData: SessionData
@@ -81,7 +81,7 @@ extension ResourceTagsListDisplayController {
     internal var showMessage: (SnackBarMessage?) -> Void
   }
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var resourceTags: Array<ResourceTagListItemDSV>
   }

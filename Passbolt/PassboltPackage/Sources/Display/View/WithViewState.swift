@@ -21,20 +21,31 @@
 // @since         v1.0
 //
 
+import Commons
 import SwiftUI
 
 public struct WithViewState<State, ContentView>: View
 where State: Equatable, ContentView: View {
 
-  @StateObject private var viewState: ObservedViewState<State>
+  @ObservedObject private var viewState: TrimmedViewState<State>
   private let content: (State) -> ContentView
 
-  public init<Source>(
-    _ source: Source,
+  public init(
+    _ source: ViewStateSource<State>,
     @ViewBuilder content: @escaping (State) -> ContentView
-  ) where Source: ViewStateSource, Source.ViewState == State {
+  ) {
     self._viewState = .init(
-      wrappedValue: ObservedViewState(from: source)
+      wrappedValue: .init(from: source)
+    )
+    self.content = content
+  }
+
+  public init<Controller>(
+    from controller: Controller,
+    @ViewBuilder content: @escaping (State) -> ContentView
+  ) where Controller: ViewController, Controller.ViewState == State {
+    self._viewState = .init(
+      wrappedValue: .init(from: controller.viewState)
     )
     self.content = content
   }
@@ -45,7 +56,7 @@ where State: Equatable, ContentView: View {
     @ViewBuilder content: @escaping (State) -> ContentView
   ) where Controller: ViewController {
     self._viewState = .init(
-      wrappedValue: ObservedViewState(
+      wrappedValue: .init(
         from: controller.viewState,
         at: keyPath
       )
@@ -53,18 +64,7 @@ where State: Equatable, ContentView: View {
     self.content = content
   }
 
-  public init<Controller>(
-    from controller: Controller,
-    @ViewBuilder content: @escaping (State) -> ContentView
-  ) where Controller: ViewController, Controller.ViewState == State {
-    self._viewState = .init(
-      wrappedValue: ObservedViewState(from: controller.viewState)
-    )
-    self.content = content
-  }
-
   public var body: some View {
-    self.content(self.viewState.state)
-      .task { await self.viewState.autoupdate() }
+    self.content(self.viewState.value)
   }
 }

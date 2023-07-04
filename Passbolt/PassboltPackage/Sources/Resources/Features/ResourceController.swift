@@ -28,7 +28,7 @@ import Features
 
 public struct ResourceController {
 
-  public var state: any DataSource<Resource, Error>
+  public var state: any DataSource<Resource>
   public var fetchSecretIfNeeded: @Sendable (Bool) async throws -> JSON
   public var loadUserPermissionsDetails: @Sendable () async throws -> Array<UserPermissionDetailsDSV>
   public var loadUserGroupPermissionsDetails: @Sendable () async throws -> Array<UserGroupPermissionDetailsDSV>
@@ -36,7 +36,7 @@ public struct ResourceController {
   public var delete: @Sendable () async throws -> Void
 
   public init(
-    state: any DataSource<Resource, Error>,
+    state: any DataSource<Resource>,
     fetchSecretIfNeeded: @escaping @Sendable (Bool) async throws -> JSON,
     loadUserPermissionsDetails: @escaping @Sendable () async throws -> Array<UserPermissionDetailsDSV>,
     loadUserGroupPermissionsDetails: @escaping @Sendable () async throws -> Array<UserGroupPermissionDetailsDSV>,
@@ -78,5 +78,9 @@ extension ResourceController {
     force: Bool = false
   ) async throws -> JSON {
     try await self.fetchSecretIfNeeded(force)
+  }
+
+  @Sendable public func firstTOTPSecret() async throws -> TOTPSecret? {
+    return try await self.state.current.firstTOTPSecret
   }
 }

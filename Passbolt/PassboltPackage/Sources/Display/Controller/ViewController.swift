@@ -28,28 +28,25 @@ import UIComponents
 // views - it should uniquely identify a view on display.
 @MainActor public protocol ViewController: AnyObject, Hashable {
 
-  associatedtype ViewState: Equatable = Never?
-  associatedtype StateSource: ViewStateSource = ComputedViewState<Never>
-  where StateSource.ViewState == ViewState
-  associatedtype MessageStateSource: ViewStateSource = ComputedViewState<SnackBarMessage?>
-  where MessageStateSource.ViewState == SnackBarMessage?
+  associatedtype ViewState: Equatable = Stateless
   associatedtype Context = Void
 
-  nonisolated var viewState: StateSource { get }
-  nonisolated var messageState: MessageStateSource { get }
+  nonisolated var viewState: ViewStateSource<ViewState> { get }
 
   @MainActor init(
     context: Context,
     features: Features
   ) throws
+
+  @available(*, deprecated, message: "Do not use viewNodeID to identify views. Legacy use only!")
+  nonisolated var viewNodeID: ViewNodeID { get }
 }
 
 extension ViewController {
 
-  @available(*, deprecated, message: "Do not use viewNodeID to identify views.")
+  @available(*, deprecated, message: "Do not use viewNodeID to identify views. Legacy use only!")
   public nonisolated var viewNodeID: ViewNodeID {
-    (self.viewState as? MutableViewState<ViewState>)?.viewNodeID
-      ?? .init(rawValue: .init(self))
+    .init(rawValue: ObjectIdentifier(self))
   }
 }
 
@@ -65,7 +62,7 @@ extension ViewController /* Hashable */ {
   public nonisolated func equal(
     to other: any ViewController
   ) -> Bool {
-    return self === other  //equal(self, other)
+    return self === other
   }
 
   public nonisolated func hash(
@@ -76,108 +73,40 @@ extension ViewController /* Hashable */ {
 }
 
 extension ViewController
-where StateSource == ComputedViewState<Never?> {
+where ViewState == Stateless {
 
-  public nonisolated var viewState: StateSource { ComputedViewState<Never?>(never: Never.self) }
-}
-
-extension ViewController
-where MessageStateSource == ComputedViewState<SnackBarMessage?> {
-
-  public nonisolated var messageState: MessageStateSource {
-    ComputedViewState<SnackBarMessage?>(never: SnackBarMessage.self)
-  }
-}
-
-extension ViewController
-where StateSource == ViewStateVariable<ViewState> {
-
-  @MainActor public func binding<Value>(
-    to keyPath: WritableKeyPath<ViewState, Value>
-  ) -> Binding<Value> {
-    self.viewState.binding(to: keyPath)
-  }
-}
-
-extension ViewController  // Legacy
-where StateSource == MutableViewState<ViewState> {
-
-  @MainActor public func binding<Value>(
-    to keyPath: WritableKeyPath<ViewState, Value>
-  ) -> Binding<Value> {
-    self.viewState.binding(to: keyPath)
+  public nonisolated var viewState: ViewStateSource<Stateless> {
+    ViewStateSource<Stateless>()
   }
 }
 
 extension ViewController {
 
-  @MainActor public func binding<Value>(
-    to keyPath: KeyPath<ViewState, Value>,
-    updating setter: @escaping (Value) -> Void
+  @MainActor internal func binding<Value>(
+    to keyPath: WritableKeyPath<ViewState, Value>,
+    updating setter: @escaping @MainActor (Value) -> Void
   ) -> Binding<Value> {
     .init(
       get: {
-        self.viewState.state[keyPath: keyPath]
+        self.viewState.value[keyPath: keyPath]
       },
-      set: setter
-    )
-  }
-
-  @MainActor public func validatedBinding<Value>(
-    to keyPath: KeyPath<ViewState, Validated<Value>>,
-    updating setter: @escaping (Value) -> Void
-  ) -> Binding<Validated<Value>> {
-    .init(
-      get: {
-        self.viewState.state[keyPath: keyPath]
-      },
-      set: { (newValue: Validated<Value>) in
-        setter(newValue.value)
+      set: { (newValue: Value) in
+        // quick loop - update local state to prevent SwiftUI issues
+        self.viewState.value[keyPath: keyPath] = newValue
+        setter(newValue)  // then pass the update to actual source of data
       }
     )
   }
 
-  @MainActor public func validatedStringBinding<Value, UpdateValue>(
-    with keyPath: KeyPath<ViewState, Validated<Value>>,
-    updating setter: @escaping (UpdateValue) -> Void,
-    fromString: @escaping (String) -> UpdateValue?,
-    toString: @escaping (Value) -> String
-  ) -> Binding<Validated<String>> {
-    .init(
-      get: {
-        let validated: Validated<Value> = self.viewState.state[keyPath: keyPath]
-        if let error: TheError = validated.error {
-          return .invalid(
-            toString(validated.value),
-            error: error
-          )
-        }
-        else {
-          return .valid(toString(validated.value))
-        }
-      },
-      set: { (newValidated: Validated<String>) in
-        guard let newValue: UpdateValue = fromString(newValidated.value)
-        else { return }  // ignore
-        setter(newValue)
+  @MainActor internal func binding<Value>(
+    to keyPath: WritableKeyPath<ViewState, Value>
+  ) -> Binding<Value> {
+    Binding<Value>(
+      get: { self.viewState.value[keyPath: keyPath] },
+      set: { (newValue: Value) in
+        self.viewState.value[keyPath: keyPath] = newValue
       }
     )
-  }
-}
-
-extension ViewController
-where MessageStateSource == ViewStateVariable<SnackBarMessage?> {
-
-  @MainActor public func messageBinding() -> Binding<SnackBarMessage?> {
-    self.messageState.binding(to: \.self)
-  }
-}
-
-extension ViewController
-where MessageStateSource == ComputedViewState<SnackBarMessage?> {
-
-  @MainActor public func messageBinding() -> Binding<SnackBarMessage?> {
-    self.messageState.binding(to: \.self, update: { _ in /* NOP */ })
   }
 }
 
@@ -365,21 +294,5 @@ public enum Controlled {
     case _:
       defaultView()
     }
-  }
-}
-
-extension ViewStateVariable
-where ViewState == Optional<SnackBarMessage> {
-
-  @MainActor public func show(
-    _ message: SnackBarMessage?
-  ) {
-    self.update(to: message)
-  }
-
-  @MainActor public func show(
-    _ error: Error
-  ) {
-    self.update(to: .error(error))
   }
 }

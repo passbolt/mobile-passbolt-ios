@@ -27,14 +27,25 @@ import func os.clock_gettime_nsec_np
 
 public final class UpdatesSource: Sendable {
 
+  public static var never: UpdatesSource = .init(generation: .max)
+
   @usableFromInline internal typealias Generation = UInt64
+  @usableFromInline internal typealias Awaiter = @Sendable (Generation) -> Void
 
   @usableFromInline internal struct State: Sendable {
 
     @usableFromInline internal var generation: Generation
-    @usableFromInline internal var awaiters: Dictionary<IID, UnsafeContinuation<Generation?, Never>>
+    @usableFromInline internal var awaiters: Array<Awaiter>
   }
 
+  public var updates: Updates {
+    if self.generation == .max {
+      return .never
+    }
+    else {
+      return Updates(for: self)
+    }
+  }
   @usableFromInline internal let state: CriticalState<State>
 
   public convenience init() {
@@ -44,7 +55,7 @@ public final class UpdatesSource: Sendable {
   @usableFromInline internal init(
     generation: Generation
   ) {
-    // Generation `none` will be ended updates
+    // Generation `max` will be ended updates
     // (inactive) from the beginning.
     // Generation starting from 0
     // will wait for the initial update.
@@ -59,8 +70,8 @@ public final class UpdatesSource: Sendable {
         awaiters: .init()
       ),
       cleanup: { (state: State) in
-        for continuation: UnsafeContinuation<Generation?, Never> in state.awaiters.values {
-          continuation.resume(returning: .none)
+        for resume: Awaiter in state.awaiters {
+          resume(.max)
         }
       }
     )
@@ -68,17 +79,6 @@ public final class UpdatesSource: Sendable {
 }
 
 extension UpdatesSource {
-
-  @_transparent
-  public static var placeholder: UpdatesSource {
-    UpdatesSource(generation: .max)
-  }
-
-  public var updates: Updates { .init(for: self) }
-
-  internal var generation: Generation? {
-    self.state.access(\.generation)
-  }
 
   @inlinable
   @Sendable public func sendUpdate() {
@@ -88,72 +88,52 @@ extension UpdatesSource {
     // of when update was sent, measured in CPU ticks
     // generation is prepared before accessing the lock
     // os_unfair_lock which is used here can result in non increasing
-    // valuse (lower value assigned after higher), it also allows
+    // value (lower value assigned after higher), it also allows
     // skipping old pending updates during high rate updates
     let updateGeneration: Generation = clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW)
-    let resumeAwaiters: () -> Void =
-      self.state
-      .access { (state: inout State) -> () -> Void in
-        if state.generation != .max {
-          guard state.generation < updateGeneration
-          else { return {} }  // do not deliver old updates
-          state.generation = updateGeneration
-          let awaiters = state.awaiters.values
-          state.awaiters.removeAll()
-          return {
-            for continuation: UnsafeContinuation<Generation?, Never> in awaiters {
-              continuation.resume(returning: updateGeneration)
-            }
-          }
-        }
+    let deliverUpdate: () -> Void =
+      self.state.access { (state: inout State) -> () -> Void in
+        // do not deliver old updates - os_unfair_lock
+        guard state.generation < updateGeneration
         else {
-          assert(state.awaiters.isEmpty)
-          return {}  // generation `max` means terminated, nothing to resume
+          // generation `max` is terminal, shouldn't have awaiters
+          assert(state.generation != .max || state.awaiters.isEmpty)
+          return {}
+        }
+        state.generation = updateGeneration
+        let awaiters: Array<Awaiter> = state.awaiters
+        state.awaiters = .init()
+        return {
+          for resume: Awaiter in awaiters {
+            resume(updateGeneration)
+          }
         }
       }
 
-    resumeAwaiters()
+    deliverUpdate()
   }
 
   @inlinable
   @Sendable public func terminate() {
-    let resumeAwaiters: () -> Void =
-      self.state
-      .access { (state: inout State) -> () -> Void in
-        if state.generation != .max {
-          state.generation = .max
-          let awaiters = state.awaiters.values
-          state.awaiters.removeAll()
-          return {
-            for continuation: UnsafeContinuation<Generation?, Never> in awaiters {
-              continuation.resume(returning: .none)
-            }
+    let deliverUpdate: () -> Void =
+      self.state.access { (state: inout State) -> () -> Void in
+        guard state.generation != .max
+        else {
+          // generation `max` is terminal, shouldn't have awaiters
+          assert(state.awaiters.isEmpty)
+          return {}
+        }
+        state.generation = .max
+        let awaiters: Array<Awaiter> = state.awaiters
+        state.awaiters = .init()
+        return {
+          for resume: Awaiter in awaiters {
+            resume(.max)
           }
         }
-        else {
-          assert(state.awaiters.isEmpty)
-          return {}  // generation `none` means terminated, nothing to resume
-        }
       }
 
-    resumeAwaiters()
-  }
-}
-
-extension UpdatesSource {
-
-  @_transparent @available(*, deprecated, message: "Please use `hasUpdate` instead")
-  internal func checkUpdate(
-    after generation: Generation
-  ) throws -> Generation {
-    try self.state.access { (state: inout State) in
-      if state.generation > generation {
-        return state.generation
-      }
-      else {
-        throw NoUpdate.error()
-      }
-    }
+    deliverUpdate()
   }
 }
 
@@ -161,58 +141,29 @@ extension UpdatesSource {
 
   @_transparent
   @usableFromInline
-  internal func hasUpdate(
-    after generation: Generation
-  ) -> Bool {
-    self.state.access { (state: inout State) -> Bool in
-      if state.generation != .max {
-        return state.generation > generation
-      }
-      else {
-        return false
-      }
-    }
+  internal var generation: Generation {
+    self.state.access(\.generation)
   }
 
   @_transparent
   @usableFromInline
   internal func update(
-    after generation: inout Generation
-  ) async -> Void? {
-    let iid: IID = .init()
-    let updated: Generation? = await withTaskCancellationHandler(
-      operation: { () async -> Generation? in
-        await withUnsafeContinuation { (continuation: UnsafeContinuation<Generation?, Never>) in
-          self.state.access { (state: inout State) in
-            guard state.generation != .max, !Task.isCancelled
-            else { return continuation.resume(returning: .none) }
-
-            if state.generation > generation {
-              return continuation.resume(returning: state.generation)
-            }
-            else {
-              state.awaiters[iid] = continuation
-            }
-          }
-        }
-      },
-      onCancel: {
-        self.state.exchange(\.awaiters[iid], with: .none)?
-          .resume(returning: .none)
+    after generation: Generation,
+    deliver: @escaping Awaiter
+  ) {
+    assert(generation != .max, "Shouldn't ask if already finished")
+    self.state.access { (state: inout State) in
+      if state.generation > generation {
+        return deliver(state.generation)
       }
-    )
-
-    if Task.isCancelled {
-      // do not update generation on cancelled
-      return .none
-    }
-    else if let updated: Generation {
-      generation = updated
-      return Void()
-    }
-    else {
-      generation = .max
-      return .none
+      else {
+        // awaiters are not removed when cancelled,
+        // this makes them occupy memory until
+        // update or terminate is delivered
+        // despite occupying additional memory it requires
+        // less computation since it asks for lock less frequent
+        state.awaiters.append(deliver)
+      }
     }
   }
 }

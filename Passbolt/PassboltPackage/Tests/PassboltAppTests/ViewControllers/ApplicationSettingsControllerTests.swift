@@ -24,6 +24,7 @@
 import FeatureScopes
 import TestExtensions
 
+@testable import Display
 @testable import PassboltApp
 
 final class ApplicationSettingsControllerTests: FeaturesTestCase {
@@ -62,8 +63,7 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
       of: ApplicationSettingsViewController.self,
       returns: BiometricsAuthorizationAvailability.enabledFaceID
     ) { feature in
-      await feature.viewState.updateIfNeeded()
-      return await feature.viewState.state.biometicsAuthorizationAvailability
+      return await feature.viewState.current.biometicsAuthorizationAvailability
     }
   }
 
@@ -91,7 +91,7 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
       returns: BiometricsAuthorizationAvailability.disabledFaceID
     ) { feature in
       await feature.viewState.updateIfNeeded()
-      return await feature.viewState.state.biometicsAuthorizationAvailability
+      return await feature.viewState.current.biometicsAuthorizationAvailability
     }
   }
 
@@ -110,11 +110,8 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
       of: ApplicationSettingsViewController.self,
       returns: BiometricsAuthorizationAvailability.unavailable
     ) { feature in
-      await self.asyncExecutionControl.addTask {
-        accountPreferencesUpdates.terminate()
-      }
       await self.asyncExecutionControl.executeAll()
-      return await feature.viewState.state.biometicsAuthorizationAvailability
+      return await feature.viewState.current.biometicsAuthorizationAvailability
     }
   }
 

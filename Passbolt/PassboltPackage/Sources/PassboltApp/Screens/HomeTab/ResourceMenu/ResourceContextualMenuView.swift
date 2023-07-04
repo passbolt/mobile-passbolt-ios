@@ -26,7 +26,7 @@ import UICommons
 
 internal struct ResourceContextualMenuView: ControlledView {
 
-  private let controller: ResourceContextualMenuViewController
+  internal let controller: ResourceContextualMenuViewController
 
   internal init(
     controller: ResourceContextualMenuViewController

@@ -91,7 +91,7 @@ extension AccountChunkedExport: LoadableFeature {
   #if DEBUG
   public static var placeholder: Self {
     .init(
-      updates: .placeholder,
+      updates: .never,
       status: unimplemented0(),
       authorize: unimplemented1(),
       cancel: unimplemented0()

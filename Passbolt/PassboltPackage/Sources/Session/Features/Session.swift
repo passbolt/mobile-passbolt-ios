@@ -88,7 +88,7 @@ extension Session: LoadableFeature {
   #if DEBUG
   public nonisolated static var placeholder: Self {
     Self(
-      updates: .placeholder,
+      updates: .never,
       pendingAuthorization: unimplemented0(),
       currentAccount: unimplemented0(),
       authorize: unimplemented1(),

@@ -108,6 +108,8 @@ where Accessory: View {
               color: .passboltPrimaryText
             )
             .multilineTextAlignment(.leading)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
             .focused(self.$focused)
             .onChange(of: focused) { (focused: Bool) in
               withAnimation {

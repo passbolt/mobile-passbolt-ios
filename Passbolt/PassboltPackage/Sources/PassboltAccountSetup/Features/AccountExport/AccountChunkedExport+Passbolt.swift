@@ -254,7 +254,6 @@ extension AccountChunkedExport {
                 state.currentTransferPage = state.transferDataChunks.count
                 updatesSource.sendUpdate()
               }
-              updatesSource.terminate()
               return  // finished
 
             case .error:
@@ -273,7 +272,6 @@ extension AccountChunkedExport {
             state.error = error.asTheError()
             updatesSource.sendUpdate()
           }
-          updatesSource.terminate()
         }
       }
     }
@@ -285,7 +283,6 @@ extension AccountChunkedExport {
         state.error = Cancelled.error()
         updatesSource.sendUpdate()
       }
-      updatesSource.terminate()
     }
 
     return .init(

@@ -26,7 +26,7 @@ import UICommons
 
 internal struct TermsAndLicensesView: ControlledView {
 
-  private let controller: TermsAndLicensesViewController
+  internal let controller: TermsAndLicensesViewController
 
   internal init(
     controller: TermsAndLicensesViewController
@@ -38,7 +38,10 @@ internal struct TermsAndLicensesView: ControlledView {
     ScreenView(
       title: "settings.terms.and.licenses.title",
       contentView: {
-        WithSnackBarMessage(from: self.controller) {
+        WithSnackBarMessage(
+          from: self.controller,
+          at: \.self
+        ) {
           self.content
         }
       }

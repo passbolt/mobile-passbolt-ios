@@ -31,7 +31,7 @@ import Users
 
 internal final class ResourceTagsListNodeController: ViewController {
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
   internal var searchController: ResourceSearchDisplayController!  // lazy?
   internal var contentController: ResourceTagsListDisplayController!  // lazy?
 
@@ -65,6 +65,7 @@ internal final class ResourceTagsListNodeController: ViewController {
 
     self.searchController = try features.instance(
       context: .init(
+        nodeID: context.nodeID,
         searchPrompt: context.searchPrompt,
         showMessage: { [viewState] (message: SnackBarMessage?) in
           viewState.update { viewState in
@@ -92,12 +93,13 @@ extension ResourceTagsListNodeController {
 
   internal struct Context {
 
+    internal var nodeID: ViewNodeID
     internal var title: DisplayableString = .localized(key: "home.presentation.mode.tags.explorer.title")
     internal var searchPrompt: DisplayableString = .localized(key: "resources.search.placeholder")
     internal var titleIconName: ImageNameConstant = .tag
   }
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var title: DisplayableString
     internal var titleIconName: ImageNameConstant
@@ -116,7 +118,7 @@ extension ResourceTagsListNodeController {
         await viewState.update(\.snackBarMessage, to: .error(error))
       },
       behavior: .replace
-    ) { [features, resourceTags, navigationTree] in
+    ) { [features, context, resourceTags, navigationTree] in
       let tagDetails: ResourceTag = try await resourceTags.details(resourceTagID)
 
       let nodeController: ResourcesListNodeController =
@@ -124,6 +126,7 @@ extension ResourceTagsListNodeController {
         .instance(
           of: ResourcesListNodeController.self,
           context: .init(
+            nodeID: context.nodeID,
             title: .raw(tagDetails.slug.rawValue),
             titleIconName: .tag,
             baseFilter: .init(

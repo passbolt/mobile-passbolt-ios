@@ -38,5 +38,6 @@ extension FeaturesRegistry {
     self.usePassboltOTPResources()
     self.usePassboltHOTPCodeGenerator()
     self.usePassboltTOTPCodeGenerator()
+    self.usePassboltResourceSearchController()
   }
 }

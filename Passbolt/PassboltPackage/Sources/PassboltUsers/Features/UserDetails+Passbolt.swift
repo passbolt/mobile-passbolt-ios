@@ -62,7 +62,7 @@ extension UserDetails {
             try await mediaDownloadNetworkOperation
             .execute(
               currentDetails
-                .value
+                .current
                 .avatarImageURL
             )
         }
@@ -77,7 +77,7 @@ extension UserDetails {
     )
 
     @Sendable nonisolated func details() async throws -> UserDetailsDSV {
-      try await currentDetails.value
+      try await currentDetails.current
     }
 
     @Sendable nonisolated func permissionToResource(
@@ -85,14 +85,14 @@ extension UserDetails {
     ) async throws -> Permission? {
       try await userResourcePermissionTypeFetchDatabaseOperation(
         (
-          userID: currentDetails.value.id,
+          userID: currentDetails.current.id,
           resourceID: resourceID
         )
       )
     }
 
     @Sendable nonisolated func avatarImage() async -> Data? {
-      try? await avatarImageCache.value
+      try? await avatarImageCache.current
     }
 
     return Self(

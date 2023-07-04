@@ -125,7 +125,7 @@ extension ResourceController {
     }
 
     @Sendable func toggleFavorite() async throws {
-      if let favoriteID: Resource.Favorite.ID = try await state.value.favoriteID {
+      if let favoriteID: Resource.Favorite.ID = try await state.current.favoriteID {
         try await resourceFavoriteDeleteNetworkOperation(.init(favoriteID: favoriteID))
         try await resourceSetFavoriteDatabaseOperation(.init(resourceID: resourceID, favoriteID: .none))
         state.mutate { (resource: inout Resource) in

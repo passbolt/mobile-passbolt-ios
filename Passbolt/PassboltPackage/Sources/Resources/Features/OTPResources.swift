@@ -59,7 +59,7 @@ extension OTPResources: LoadableFeature {
   #if DEBUG
   public static var placeholder: Self {
     .init(
-      updates: .placeholder,
+      updates: .never,
       refreshIfNeeded: unimplemented0(),
       filteredList: unimplemented1(),
       secretFor: unimplemented1()

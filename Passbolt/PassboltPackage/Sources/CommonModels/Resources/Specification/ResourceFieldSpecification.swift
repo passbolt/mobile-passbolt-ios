@@ -127,6 +127,8 @@ public struct ResourceFieldSpecification {
   }
 }
 
+extension ResourceFieldSpecification: Sendable {}
+
 extension ResourceFieldSpecification: Hashable {
 
   public static func == (
@@ -146,6 +148,7 @@ extension ResourceFieldSpecification: Hashable {
   }
 }
 
+extension ResourceFieldSpecification.Content: Sendable {}
 extension ResourceFieldSpecification.Content: Hashable {}
 
 extension ResourceFieldSpecification {

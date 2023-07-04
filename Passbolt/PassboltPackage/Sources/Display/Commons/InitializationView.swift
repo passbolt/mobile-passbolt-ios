@@ -37,7 +37,7 @@ public struct InitializationView: ControlledView {
     internal nonisolated init() {}
   }
 
-  private let controller: Controller
+  public let controller: Controller
 
   public init(
     controller: Controller

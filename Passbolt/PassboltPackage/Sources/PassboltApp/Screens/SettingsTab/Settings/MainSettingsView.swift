@@ -26,7 +26,7 @@ import UICommons
 
 internal struct MainSettingsView: ControlledView {
 
-  private let controller: MainSettingsViewController
+  internal let controller: MainSettingsViewController
   @State private var signOutConfirmationPresented: Bool = false
 
   internal init(

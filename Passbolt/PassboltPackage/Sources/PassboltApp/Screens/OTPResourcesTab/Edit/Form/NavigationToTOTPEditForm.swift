@@ -26,7 +26,7 @@ import FeatureScopes
 
 internal enum TOTPEditFormNavigationDestination: NavigationDestination {
 
-  internal typealias TransitionContext = TOTPEditFormController.Context
+  internal typealias TransitionContext = TOTPEditFormViewController.Context
 }
 
 internal typealias NavigationToTOTPEditForm = NavigationTo<TOTPEditFormNavigationDestination>

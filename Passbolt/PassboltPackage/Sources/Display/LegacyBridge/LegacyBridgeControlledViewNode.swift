@@ -49,6 +49,8 @@ where Component: UIComponent {
     self.legacyBridge = legacyBridge
   }
 
+  internal var controller: Controller { unimplemented() }
+
   internal init(
     controller: Controller
   ) {

@@ -82,9 +82,14 @@ extension WindowController: UIController {
             switch (try? await currentAccount, await currentAuthorizationRequest, lastDisposition.get()) {
 
             case  // fully authorized after prompting
-            let (.some(account), .none, .requestPassphrase),
-              let (.some(account), .none, .requestMFA):
-              return .useCachedScreenState(for: account)
+            (.some(let account), .none, .requestPassphrase(let previousAccount, _)),
+              (.some(let account), .none, .requestMFA(let previousAccount, _)):
+              if account == previousAccount {
+                return .useCachedScreenState(for: account)
+              }
+              else {
+                return .useInitialScreenState(for: account)
+              }
 
             case  // fully authorized initially
             let (.some(account), .none, .useCachedScreenState),

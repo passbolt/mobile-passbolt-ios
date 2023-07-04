@@ -25,7 +25,7 @@ import Display
 
 internal struct DefaultPresentationModeSettingsView: ControlledView {
 
-  private let controller: DefaultPresentationModeSettingsViewController
+  internal let controller: DefaultPresentationModeSettingsViewController
 
   internal init(
     controller: DefaultPresentationModeSettingsViewController

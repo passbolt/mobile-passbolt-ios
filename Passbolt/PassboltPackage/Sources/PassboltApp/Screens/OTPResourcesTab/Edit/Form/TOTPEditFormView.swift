@@ -26,18 +26,16 @@ import UICommons
 
 internal struct TOTPEditFormView: ControlledView {
 
-  private let controller: TOTPEditFormController
+  internal let controller: TOTPEditFormViewController
 
   internal init(
-    controller: TOTPEditFormController
+    controller: TOTPEditFormViewController
   ) {
     self.controller = controller
   }
 
   internal var body: some View {
-    WithSnackBarMessage(
-      from: self.controller
-    ) {
+    withSnackBarMessage(\.snackBarMessage) {
       VStack(spacing: 0) {
         ScrollView {
           VStack(spacing: 16) {
@@ -73,7 +71,7 @@ internal struct TOTPEditFormView: ControlledView {
         mandatory: true,
         state: state,
         update: { (value: String) in
-          self.controller.setNameField(value)
+          self.controller.setName(value)
         }
       )
       .textInputAutocapitalization(.sentences)
@@ -91,7 +89,7 @@ internal struct TOTPEditFormView: ControlledView {
         mandatory: false,
         state: state,
         update: { (value: String) in
-          self.controller.setURIField(value)
+          self.controller.setURI(value)
         }
       )
       .textInputAutocapitalization(.never)
@@ -110,7 +108,7 @@ internal struct TOTPEditFormView: ControlledView {
         mandatory: true,
         state: state,
         update: { (value: String) in
-          self.controller.setSecretField(value)
+          self.controller.setSecret(value)
         }
       )
       .textInputAutocapitalization(.never)
@@ -127,11 +125,23 @@ internal struct TOTPEditFormView: ControlledView {
   }
 
   @MainActor @ViewBuilder internal var sendForm: some View {
-    PrimaryButton(
-      title: self.controller.isEditing
-        ? "otp.edit.form.edit.button.title"
-        : "otp.edit.form.create.button.title",
-      action: self.controller.sendForm
-    )
+    if self.controller.isEditing {
+      PrimaryButton(
+        title: "otp.edit.form.edit.button.title",
+        action: self.controller.createStandaloneOTP
+      )
+    }
+    else {
+      VStack(spacing: 8) {
+        PrimaryButton(
+          title: "otp.edit.form.create.button.title",
+          action: self.controller.createStandaloneOTP
+        )
+        SecondaryButton(
+          title: "otp.scanning.success.link.button.title",
+          action: self.controller.updateExistingResource
+        )
+      }
+    }
   }
 }

@@ -21,51 +21,45 @@
 // @since         v1.0
 //
 
-import SwiftUI
+import Combine
 
-public protocol ViewStateSource<ViewState>: DataSource
-where
-  DataType == ViewState,
-  Failure == Never,
-  Element == DataType,
-  AsyncIterator == AsyncThrowingMapSequence<Updates, DataType>.Iterator
-{
+internal final class ViewUpdatesPublisher<ViewState>: ConnectablePublisher
+where ViewState: Equatable {
 
-  associatedtype ViewState: Sendable
-
-  nonisolated var updates: Updates { @Sendable get }
-
-  var state: ViewState { @MainActor get }
-}
-
-extension ViewStateSource /* DataSource */ {
-
-  // there is a warning in Swift 5.8 but it does not compile without it
-  // regardless of type constraint in protocol declaration
-  public typealias DataType = ViewState
+  public typealias Output = ViewState
   public typealias Failure = Never
 
-  public var value: DataType { @Sendable get async { self.state } }
-}
+  internal var connection: @MainActor () async -> Void
+  private let subject: PassthroughSubject<ViewState, Failure>
 
-#if DEBUG
+  internal init(
+    initial: ViewState,
+    connection: @escaping @MainActor () async -> Void = {}
+  ) {
+    self.subject = .init()
+    self.connection = connection
+  }
 
-public final class PlaceholderViewStateSource<ViewState>: ViewStateSource
-where ViewState: Sendable {
-  // It seems that there is some bug in swift 5.8 compiler,
-  // typealiases below are already defined but it does not compile without it
-  public typealias DataType = ViewState
-  public typealias Failure = Never
-  public typealias Element = ViewState
-  public typealias AsyncIterator = AsyncThrowingMapSequence<Updates, ViewState>.Iterator
+  internal func send(
+    _ state: ViewState
+  ) {
+    self.subject.send(state)
+  }
 
-  public let updates: Updates = .placeholder
+  internal func receive<S>(
+    subscriber: S
+  ) where S: Subscriber, S.Input == Output, S.Failure == Failure {
+    self.subject
+      .receive(subscriber: subscriber)
+  }
 
-  public init() {}
-
-  @MainActor public var state: ViewState {
-    @inlinable get { unimplemented() }
+  internal func connect() -> Cancellable {
+    let task: Task<Void, Never> = .init(
+      priority: .userInitiated,
+      operation: { @MainActor [connection] in
+        await connection()
+      }
+    )
+    return AnyCancellable(task.cancel)
   }
 }
-
-#endif

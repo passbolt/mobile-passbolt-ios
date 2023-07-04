@@ -225,6 +225,7 @@ public struct ResourceType {
   }
 }
 
+extension ResourceType: Sendable {}
 extension ResourceType: Equatable {}
 
 extension ResourceType {

@@ -27,7 +27,7 @@ import SharedUIComponents
 
 internal final class ResourceFolderMenuController: ViewController {
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private let asyncExecutor: AsyncExecutor
   private let navigation: DisplayNavigation
@@ -61,7 +61,7 @@ extension ResourceFolderMenuController {
     internal var folderName: String
   }
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var folderName: String
   }

@@ -25,7 +25,7 @@ import Display
 
 internal struct ResourcesListCreateMenuView: ControlledView {
 
-  private let controller: ResourcesListCreateMenuViewController
+  internal let controller: ResourcesListCreateMenuViewController
 
   internal init(
     controller: ResourcesListCreateMenuViewController

@@ -130,7 +130,7 @@ internal struct UserGroupMemberDetailsView: ComponentView {
 
 extension UserGroupMemberDetailsView {
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var userDetails: UserDetailsDSV
     internal var avatarImageFetch: () async -> Data?

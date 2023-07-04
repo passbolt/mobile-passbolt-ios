@@ -38,14 +38,19 @@ internal final class ResourceDetailsViewController: ViewController {
     internal var location: Array<String>
     internal var tags: Array<String>
     internal var permissions: Array<OverlappingAvatarStackView.Item>
+    internal var snackBarMessage: SnackBarMessage?
+  }
+
+  internal let viewState: ViewStateSource<ViewState>
+
+  internal struct LocalState: Equatable {
+
     fileprivate var revealedFields: Set<ResourceType.FieldPath>
   }
 
-  internal let viewState: UpdatableViewState<ViewState>
-  internal let messageState: ViewStateVariable<SnackBarMessage?>
+  private let localState: Variable<LocalState>
 
   private let resourceController: ResourceController
-  private let otpCodesController: OTPCodesController
 
   private let navigationToSelf: NavigationToResourceDetails
   private let navigationToResourceContextualMenu: NavigationToResourceContextualMenu
@@ -90,9 +95,13 @@ internal final class ResourceDetailsViewController: ViewController {
     self.navigationToResourcePermissionsDetails = try features.instance()
 
     self.resourceController = try features.instance()
-    self.otpCodesController = try features.instance()
     let users: Users = try features.instance()
 
+    self.localState = .init(
+      initial: .init(
+        revealedFields: .init()
+      )
+    )
     self.viewState = .init(
       initial: .init(
         name: .init(),
@@ -102,43 +111,45 @@ internal final class ResourceDetailsViewController: ViewController {
         location: .init(),
         tags: .init(),
         permissions: .init(),
-        revealedFields: .init()
+        snackBarMessage: .none
       ),
-      updateFrom: self.resourceController.state,
-      update: { (state: inout ViewState, resource: Resource) async throws in
-        if !resource.secretAvailable {
-          state.revealedFields.removeAll()
-        }  // else NOP
+      updateFrom: ComputedVariable(
+        combining: self.resourceController.state,
+        and: self.localState,
+        combine: { (resource: Resource, localState: LocalState) async throws -> ViewState in
+          await ViewState(
+            name: resource.name,
+            favorite: resource.favorite,
+            containsUndefinedFields: resource.containsUndefinedFields,
+            fields: fields(
+              for: resource,
+              using: features,
+              revealedFields: resource.secretAvailable
+                ? localState.revealedFields
+                : .init(),
+              passwordPreviewEnabled: passwordPreviewEnabled
+            ),
+            location: resource.path.map(\.name),
+            tags: resource.tags.map(\.slug.rawValue),
+            permissions: resource.permissions.map { (permission: ResourcePermission) in
+              switch permission {
+              case .user(let id, _, _):
+                return .user(
+                  id,
+                  avatarImage: users.avatarImage(for: id)
+                )
 
-        state.name = resource.name
-        state.favorite = resource.favorite
-        state.containsUndefinedFields = resource.containsUndefinedFields
-        state.fields = fields(
-          for: resource,
-          using: features,
-          revealedFields: state.revealedFields,
-          passwordPreviewEnabled: passwordPreviewEnabled
-        )
-        state.location = resource.path.map(\.name)
-        state.tags = resource.tags.map(\.slug.rawValue)
-        state.permissions = resource.permissions.map { (permission: ResourcePermission) in
-          switch permission {
-          case .user(let id, _, _):
-            return .user(
-              id,
-              avatarImage: users.avatarImage(for: id)
-            )
-
-          case .userGroup(let id, _, _):
-            return .userGroup(id)
-          }
+              case .userGroup(let id, _, _):
+                return .userGroup(id)
+              }
+            }
+          )
         }
-      },
-      fallback: { [navigationToSelf] (state: inout ViewState, error: Error) async -> Void in
+      ),
+      fallback: { [navigationToSelf] (state, _) async in
         try? await navigationToSelf.revert()
       }
     )
-    self.messageState = .init(initial: .none)
   }
 }
 
@@ -148,15 +159,15 @@ extension ResourceDetailsViewController {
     await Diagnostics
       .logCatch(
         info: .message("Failed to present resource menu!"),
-        fallback: { @MainActor [messageState] (error: Error) async -> Void in
-          messageState.show(.error(error))
+        fallback: { @MainActor [viewState] (error: Error) async -> Void in
+          viewState.update(\.snackBarMessage, to: .error(error))
         }
       ) {
         try await self.navigationToResourceContextualMenu
           .perform(
             context: .init(
-              showMessage: { [messageState] (message: SnackBarMessage?) in
-                messageState.update(\.self, to: message)
+              showMessage: { [viewState] (message: SnackBarMessage?) in
+                viewState.update(\.snackBarMessage, to: message)
               }
             )
           )
@@ -180,16 +191,16 @@ extension ResourceDetailsViewController {
   ) async {
     await withLogCatch(
       failInfo: "Failed to copy resource field value!",
-      fallback: { @MainActor [messageState] (error: Error) async -> Void in
-        messageState.show(.error(error))
+      fallback: { @MainActor [viewState] (error: Error) async -> Void in
+        viewState.update(\.snackBarMessage, to: .error(error))
       }
     ) {
-      var resource: Resource = try await self.resourceController.state.value
+      var resource: Resource = try await self.resourceController.state.current
 
       // ensure having secret if field is part of it
       if resource.isEncrypted(path) {
         try await self.resourceController.fetchSecretIfNeeded()
-        resource = try await self.resourceController.state.value
+        resource = try await self.resourceController.state.current
       }  // else NOP
       let fieldValue: JSON = resource[keyPath: path]
       if let totpSecret: TOTPSecret = fieldValue.totpSecretValue {
@@ -208,8 +219,9 @@ extension ResourceDetailsViewController {
         self.pasteboard.put(fieldValue.stringValue ?? "")
       }
 
-      self.messageState.show(
-        .info(
+      self.viewState.update(
+        \.snackBarMessage,
+        to: .info(
           .localized(
             key: "resource.value.copied",
             arguments: [
@@ -231,23 +243,19 @@ extension ResourceDetailsViewController {
   ) async {
     await withLogCatch(
       failInfo: "Failed to reveal resource field value!",
-      fallback: { @MainActor [messageState] (error: Error) async -> Void in
-        messageState.show(.error(error))
+      fallback: { @MainActor [viewState] (error: Error) async -> Void in
+        viewState.update(\.snackBarMessage, to: .error(error))
       }
     ) {
       try await self.resourceController.fetchSecretIfNeeded()
-      await self.viewState.update { (state: inout ViewState) in
-        state.revealedFields.insert(path)
-      }
+      self.localState.revealedFields.insert(path)
     }
   }
 
   internal func coverFieldValue(
     path: ResourceType.FieldPath
   ) async {
-    await self.viewState.update { (state: inout ViewState) in
-      state.revealedFields.remove(path)
-    }
+    self.localState.revealedFields.remove(path)
   }
 }
 

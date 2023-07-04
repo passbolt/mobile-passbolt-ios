@@ -26,10 +26,10 @@ import UICommons
 
 internal struct OTPScanningSuccessView: ControlledView {
 
-  private let controller: OTPScanningSuccessController
+  internal let controller: OTPScanningSuccessViewController
 
   internal init(
-    controller: OTPScanningSuccessController
+    controller: OTPScanningSuccessViewController
   ) {
     self.controller = controller
   }
@@ -71,5 +71,13 @@ internal struct OTPScanningSuccessView: ControlledView {
       trailing: 8
     )
     .navigationBarBackButtonHidden(true)
+    .toolbar {
+      ToolbarItemGroup(placement: .navigationBarTrailing) {
+        IconButton(
+          iconName: .close,
+          action: self.controller.close
+        )
+      }
+    }
   }
 }

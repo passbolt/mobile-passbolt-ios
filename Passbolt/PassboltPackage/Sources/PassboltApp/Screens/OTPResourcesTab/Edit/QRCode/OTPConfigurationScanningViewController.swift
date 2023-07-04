@@ -26,9 +26,15 @@ import FeatureScopes
 import OSFeatures
 import Resources
 
-internal final class OTPConfigurationScanningController: ViewController {
+internal final class OTPConfigurationScanningViewController: ViewController {
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
+  internal struct ViewState: Equatable {
+
+    internal var loading: Bool
+    internal var snackBarMessage: SnackBarMessage?
+  }
+
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private let asyncExecutor: AsyncExecutor
   private let navigationToScanningSuccess: NavigationToOTPScanningSuccess
@@ -61,16 +67,7 @@ internal final class OTPConfigurationScanningController: ViewController {
   }
 }
 
-extension OTPConfigurationScanningController {
-
-  internal struct ViewState: Equatable {
-
-    internal var loading: Bool
-    internal var snackBarMessage: SnackBarMessage?
-  }
-}
-
-extension OTPConfigurationScanningController {
+extension OTPConfigurationScanningViewController {
 
   private enum ScanningState {
     case idle
@@ -103,7 +100,7 @@ extension OTPConfigurationScanningController {
             )
           do {
             let resourceEditForm: ResourceEditForm = try await features.instance()
-            try await resourceEditForm.update(\.secret.totp, to: configuration.secret)
+            resourceEditForm.update(\.secret.totp, to: configuration.secret)
             try await navigationToSelf.revert()
           }
           catch {

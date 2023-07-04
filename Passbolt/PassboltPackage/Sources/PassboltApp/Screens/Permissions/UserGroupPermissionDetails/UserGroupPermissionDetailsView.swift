@@ -152,7 +152,7 @@ internal struct UserGroupPermissionDetailsView: ComponentView {
 
 extension UserGroupPermissionDetailsView {
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var permissionDetails: UserGroupPermissionDetailsDSV
     internal var groupMembersPreviewItems: Array<OverlappingAvatarStackView.Item>

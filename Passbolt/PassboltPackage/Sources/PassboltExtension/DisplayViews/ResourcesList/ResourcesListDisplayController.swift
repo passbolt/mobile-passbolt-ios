@@ -29,7 +29,7 @@ import SessionData
 
 internal final class ResourcesListDisplayController: ViewController {
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private let asyncExecutor: AsyncExecutor
   private let sessionData: SessionData
@@ -54,24 +54,24 @@ internal final class ResourcesListDisplayController: ViewController {
     self.viewState = .init(
       initial: .init(
         suggested: .init(),
-        resources: .init()
-      )
-    )
-
-    self.asyncExecutor.scheduleIteration(
-      over: combineLatest(context.filter.asAnyAsyncSequence(), sessionData.updates),
-      failMessage: "Resources list updates broken!",
-      failAction: { [context] (error: Error) in
-        context.showMessage(.error(error))
-      }
-    ) { [viewState, resources] (filter: ResourcesFilter, _) in
-      let filteredResources: Array<ResourceListItemDSV> = try await resources.filteredResourcesList(filter)
-
-      await viewState.update { (viewState: inout ViewState) in
+        resources: .init(),
+        snackBarMessage: .none
+      ),
+      updateUsing: .init(
+        combined: context.filterTextSource.updates,
+        with: sessionData.updates
+      ),
+      update: { [resources] (viewState: inout ViewState) in
+        var filter: ResourcesFilter = context.baseFilter
+        filter.text = try await context.filterTextSource.current
+        let filteredResources: Array<ResourceListItemDSV> = try await resources.filteredResourcesList(filter)
         viewState.suggested = filteredResources.filter(context.suggestionFilter)
         viewState.resources = filteredResources
+      },
+      fallback: { (viewState: inout ViewState, error: Error) in
+        viewState.snackBarMessage = .error(error)
       }
-    }
+    )
   }
 }
 
@@ -79,7 +79,8 @@ extension ResourcesListDisplayController {
 
   internal struct Context {
 
-    internal var filter: AnyAsyncSequence<ResourcesFilter>
+    internal var baseFilter: ResourcesFilter
+    internal var filterTextSource: any DataSource<String>
     internal var suggestionFilter: (ResourceListItemDSV) -> Bool
     internal var createResource: (() -> Void)?
     internal var selectResource: (Resource.ID) -> Void
@@ -87,10 +88,11 @@ extension ResourcesListDisplayController {
     internal var showMessage: (SnackBarMessage?) -> Void
   }
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var suggested: Array<ResourceListItemDSV>
     internal var resources: Array<ResourceListItemDSV>
+    internal var snackBarMessage: SnackBarMessage?
   }
 }
 

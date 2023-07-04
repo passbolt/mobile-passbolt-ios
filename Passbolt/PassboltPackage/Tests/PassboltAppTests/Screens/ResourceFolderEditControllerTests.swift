@@ -97,7 +97,7 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
     await XCTAssertValue(
       equal: SnackBarMessage.error(MockIssue.error())
     ) {
-      await tested.viewState.state.snackBarMessage
+      await tested.viewState.current.snackBarMessage
     }
   }
 
@@ -122,7 +122,7 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
     let tested: ResourceFolderEditController = try self.testedInstance(context: .create(containingFolderID: .none))
 
     await self.asyncExecutionControl.executeNext()
-    let initialFolderName: Validated<String> = await tested.viewState.state.folderName
+    let initialFolderName: Validated<String> = await tested.viewState.current.folderName
 
     self.dynamicVariables.formState = ResourceFolderEditFormState(
       name: .valid("edited"),
@@ -132,15 +132,14 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
     updatesSource.sendUpdate()
     await self.asyncExecutionControl.executeNext()
 
-    let updatedFolderName: Validated<String> = await tested.viewState.state.folderName
-
-    updatesSource.terminate()
+    let updatedFolderName: Validated<String> = await tested.viewState.current.folderName
 
     XCTAssertNotEqual(
       initialFolderName,
       updatedFolderName
     )
 
+    updatesSource.terminate()
     await self.asyncExecutionControl.executeAll()
   }
 }

@@ -50,6 +50,7 @@ extension FeaturesRegistry {
 
     // MARK: - OTP Tab
     self.useLiveNavigationToOTPResourcesTab()
+    self.useLiveNavigationToOTPResourcesList()
 
     // MARK: - OTP create menu
     self.useLiveNavigationToOTPCreateMenu()
@@ -57,6 +58,7 @@ extension FeaturesRegistry {
     self.useLiveNavigationToOTPScanningSuccess()
     self.useLiveNavigationToTOTPEditForm()
     self.useLiveNavigationToTOTPEditAdvancedForm()
+    self.useLiveNavigationToTOTPAttachSelectionList()
 
     // MARK: - Settings Tab
     self.useLiveNavigationToTroubleshootingSettings()

@@ -25,7 +25,7 @@ import Display
 
 internal struct ResourceDetailsView: ControlledView {
 
-  private let controller: ResourceDetailsViewController
+  internal let controller: ResourceDetailsViewController
 
   internal init(
     controller: ResourceDetailsViewController
@@ -35,7 +35,8 @@ internal struct ResourceDetailsView: ControlledView {
 
   internal var body: some View {
     WithSnackBarMessage(
-      from: self.controller
+      from: self.controller,
+      at: \.snackBarMessage
     ) {
       self.contentView
     }

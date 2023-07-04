@@ -32,7 +32,7 @@ import Users
 
 internal final class ResourceFolderContentNodeController: ViewController {
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
   internal var searchController: ResourceSearchDisplayController!  // lazy?
   internal var contentController: ResourceFolderContentDisplayController!  // lazy?
 
@@ -65,7 +65,7 @@ internal final class ResourceFolderContentNodeController: ViewController {
       context.folderDetails.map { .raw($0.name) }
       ?? .localized("home.presentation.mode.folders.explorer.title")
 
-    let viewState: ViewStateVariable<ViewState> = .init(
+    let viewState: ViewStateSource<ViewState> = .init(
       initial: .init(
         folderName: folderName,
         folderShared: context.folderDetails?.shared ?? false,
@@ -76,6 +76,7 @@ internal final class ResourceFolderContentNodeController: ViewController {
 
     self.searchController = try features.instance(
       context: .init(
+        nodeID: context.nodeID,
         searchPrompt: context.searchPrompt,
         showMessage: { (message: SnackBarMessage?) in
           viewState.update { viewState in
@@ -125,12 +126,13 @@ extension ResourceFolderContentNodeController {
 
   internal struct Context {
 
+    internal var nodeID: ViewNodeID
     // none means root
     internal var folderDetails: ResourceFolder?
     internal var searchPrompt: DisplayableString = .localized(key: "resources.search.placeholder")
   }
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var folderName: DisplayableString
     internal var folderShared: Bool
@@ -199,7 +201,7 @@ extension ResourceFolderContentNodeController {
       )
       let resourceController: ResourceController = try await features.instance()
       try await resourceController.fetchSecretIfNeeded(force: true)
-      let resource: Resource = try await resourceController.state.value
+      let resource: Resource = try await resourceController.state.current
 
       guard let password: String = resource.firstPasswordString
       else {
@@ -226,14 +228,17 @@ extension ResourceFolderContentNodeController {
         await viewState.update(\.snackBarMessage, to: .error(error))
       },
       behavior: .replace
-    ) { [features, resourceFolders, navigationTree] in
+    ) { [features, context, resourceFolders, navigationTree] in
       let folderDetails: ResourceFolder = try await resourceFolders.details(resourceFolderID)
 
       let nodeController: ResourceFolderContentNodeController =
         try await features
         .instance(
           of: ResourceFolderContentNodeController.self,
-          context: .init(folderDetails: folderDetails)
+          context: .init(
+            nodeID: context.nodeID,
+            folderDetails: folderDetails
+          )
         )
       await navigationTree
         .push(

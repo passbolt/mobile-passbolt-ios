@@ -42,7 +42,7 @@ internal final class OTPResourcesTabController: ViewController {
 extension OTPResourcesTabController {
 
   // Temporary solution for providing stack initial element.
-  internal final func prepareListController() -> OTPResourcesListController {
+  internal final func prepareListController() -> OTPResourcesListViewController {
     do {
       return try self.features.instance()
     }

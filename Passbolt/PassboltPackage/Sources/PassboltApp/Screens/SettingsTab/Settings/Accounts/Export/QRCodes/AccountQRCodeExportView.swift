@@ -26,7 +26,7 @@ import Display
 internal struct AccountQRCodeExportView: ControlledView {
 
   @EnvironmentObject var displayViewBridgeHandle: DisplayViewBridgeHandle<Self>
-  private let controller: AccountQRCodeExportController
+  internal let controller: AccountQRCodeExportController
 
   internal init(
     controller: AccountQRCodeExportController
@@ -70,7 +70,8 @@ internal struct AccountQRCodeExportView: ControlledView {
     }
     .padding(16)
     .alert(
-      presenting: self.controller
+      presenting:
+        self
         .binding(to: \.exitConfirmationAlertPresented)
         .map(
           get: { (presented: Bool) -> ConfirmationAlertMessage? in

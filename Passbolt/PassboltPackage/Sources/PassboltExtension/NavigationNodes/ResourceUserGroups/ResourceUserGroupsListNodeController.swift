@@ -31,7 +31,7 @@ import Users
 
 internal final class ResourceUserGroupsListNodeController: ViewController {
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
   internal var searchController: ResourceSearchDisplayController
   internal var contentController: ResourceUserGroupsListDisplayController!  // lazy?
 
@@ -65,6 +65,7 @@ internal final class ResourceUserGroupsListNodeController: ViewController {
 
     self.searchController = try features.instance(
       context: .init(
+        nodeID: context.nodeID,
         searchPrompt: context.searchPrompt,
         showMessage: { [viewState] (message: SnackBarMessage?) in
           viewState.update { viewState in
@@ -101,6 +102,7 @@ extension ResourceUserGroupsListNodeController {
 
   internal struct Context {
 
+    internal var nodeID: ViewNodeID
     internal var title: DisplayableString = .localized(
       key: "home.presentation.mode.resource.user.groups.explorer.title"
     )
@@ -108,7 +110,7 @@ extension ResourceUserGroupsListNodeController {
     internal var titleIconName: ImageNameConstant = .userGroup
   }
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var title: DisplayableString
     internal var titleIconName: ImageNameConstant
@@ -127,7 +129,7 @@ extension ResourceUserGroupsListNodeController {
         await viewState.update(\.snackBarMessage, to: .error(error))
       },
       behavior: .replace
-    ) { [features, navigationTree] in
+    ) { [features, context, navigationTree] in
       let userGroup: UserGroupDetails = try await features.instance(context: userGroupID)
       let userGroupDetails: UserGroupDetailsDSV = try await userGroup.details()
 
@@ -136,6 +138,7 @@ extension ResourceUserGroupsListNodeController {
         .instance(
           of: ResourcesListNodeController.self,
           context: .init(
+            nodeID: context.nodeID,
             title: .raw(userGroupDetails.name),
             titleIconName: .userGroup,
             baseFilter: .init(

@@ -25,7 +25,7 @@ import Display
 
 internal struct ResourceFolderDetailsView: ControlledView {
 
-  private let controller: ResourceFolderDetailsController
+  internal let controller: ResourceFolderDetailsController
 
   internal init(
     controller: ResourceFolderDetailsController
@@ -37,7 +37,7 @@ internal struct ResourceFolderDetailsView: ControlledView {
     WithViewState(from: self.controller) { (state: ViewState) in
       ScreenView(
         title: "",
-        snackBarMessage: self.controller.binding(to: \.snackBarMessage),
+        snackBarMessage: self.binding(to: \.snackBarMessage),
         contentView: {
           self.contentView(using: state)
         }

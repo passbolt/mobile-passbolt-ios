@@ -25,7 +25,7 @@ import Display
 
 internal struct ResourcesListDisplayView: ControlledView {
 
-  private let controller: ResourcesListDisplayController
+  internal let controller: ResourcesListDisplayController
 
   internal init(
     controller: ResourcesListDisplayController

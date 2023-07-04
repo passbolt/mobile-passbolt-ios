@@ -31,10 +31,10 @@ internal final class ApplicationSettingsViewController: ViewController {
   internal struct ViewState: Equatable {
 
     internal var biometicsAuthorizationAvailability: BiometricsAuthorizationAvailability
+    internal var snackBarMessage: SnackBarMessage?
   }
 
-  internal let viewState: ComputedViewState<ViewState>
-  internal let messageState: ViewStateVariable<SnackBarMessage?>
+  internal let viewState: ViewStateSource<ViewState>
 
   private let navigationToAutofillSettings: NavigationToAutofillSettings
   private let navigationToDefaultModeSettings: NavigationToDefaultPresentationModeSettings
@@ -54,34 +54,33 @@ internal final class ApplicationSettingsViewController: ViewController {
     self.navigationToAutofillSettings = try features.instance()
     self.navigationToDefaultModeSettings = try features.instance()
 
-    let accountPreferences: AccountPreferences = try features.instance(context: currentAccount)
-    self.accountPreferences = accountPreferences
+    self.accountPreferences = try features.instance(context: currentAccount)
 
     self.viewState = .init(
       initial: .init(
-        biometicsAuthorizationAvailability: .unavailable
+        biometicsAuthorizationAvailability: .unavailable,
+        snackBarMessage: .none
       ),
       updateUsing: self.accountPreferences.updates,
-      update: { (state: inout ViewState) in
+      update: { [accountPreferences] (viewState: inout ViewState) in
         switch osBiometry.availability() {
         case .unavailable, .unconfigured:
-          state.biometicsAuthorizationAvailability = .unavailable
+          viewState.biometicsAuthorizationAvailability = .unavailable
 
         case .touchID:
-          state.biometicsAuthorizationAvailability =
+          viewState.biometicsAuthorizationAvailability =
             accountPreferences.isPassphraseStored()
             ? .enabledTouchID
             : .disabledTouchID
 
         case .faceID:
-          state.biometicsAuthorizationAvailability =
+          viewState.biometicsAuthorizationAvailability =
             accountPreferences.isPassphraseStored()
             ? .enabledFaceID
             : .disabledFaceID
         }
       }
     )
-    self.messageState = .init(initial: .none)
   }
 }
 
@@ -93,7 +92,7 @@ extension ApplicationSettingsViewController {
     await withLogCatch(
       failInfo: "Toggling biometric authorization failed!",
       fallback: { (error: Error) async in
-        self.messageState.show(error)
+        self.viewState.update(\.snackBarMessage, to: .error(error))
       }
     ) {
       try await self.accountPreferences.storePassphrase(enabled)

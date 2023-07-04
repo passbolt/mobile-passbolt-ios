@@ -27,10 +27,109 @@ public protocol ControlledView: View {
 
   associatedtype Controller: ViewController
 
+  var controller: Controller { get }
+
   init(controller: Controller)
 }
 
 extension ControlledView {
 
   public typealias ViewState = Controller.ViewState
+}
+
+extension ControlledView {
+
+  @_transparent
+  public func withSnackBarMessage<ContentView>(
+    _ keyPath: WritableKeyPath<ViewState, SnackBarMessage?>,
+    @ViewBuilder content contentView: @escaping () -> ContentView
+  ) -> some View
+  where Controller: ViewController, ContentView: View {
+    WithSnackBarMessage(
+      from: self.controller,
+      at: keyPath,
+      content: contentView
+    )
+  }
+
+  @_transparent
+  public func with<State, StateView>(
+    _ keyPath: KeyPath<ViewState, State>,
+    @ViewBuilder content stateView: @escaping (State) -> StateView
+  ) -> some View
+  where State: Equatable, StateView: View {
+    WithViewState(
+      from: self.controller,
+      at: keyPath,
+      content: stateView
+    )
+  }
+
+  @_transparent
+  public func withEach<State, StateView>(
+    _ keyPath: KeyPath<ViewState, State>,
+    @ViewBuilder content stateView: @escaping (State.Element) -> StateView
+  ) -> some View
+  where State: RandomAccessCollection, State: Equatable, State.Element: Equatable & Identifiable, StateView: View {
+    WithEachViewState(
+      from: self.controller,
+      at: keyPath,
+      content: stateView
+    )
+  }
+
+  @_transparent
+  public func withEach<State, StateView, PlaceholderView>(
+    _ keyPath: KeyPath<ViewState, State>,
+    @ViewBuilder content stateView: @escaping (State.Element) -> StateView,
+    @ViewBuilder placeholder placeholderView: @escaping () -> PlaceholderView
+  ) -> some View
+  where
+    State: RandomAccessCollection,
+    State: Equatable,
+    State.Element: Equatable & Identifiable,
+    StateView: View,
+    PlaceholderView: View
+  {
+    WithEachViewState(
+      from: self.controller,
+      at: keyPath,
+      content: stateView,
+      placeholder: placeholderView
+    )
+  }
+
+  @_transparent
+  public func withAlert<State, ContentView>(
+    _ keyPath: WritableKeyPath<ViewState, State?>,
+    alert: @escaping @Sendable (State) -> AlertViewModel,
+    @ViewBuilder content contentView: @escaping () -> ContentView
+  ) -> some View
+  where State: Equatable, ContentView: View {
+    WithAlert(
+      from: self.controller,
+      at: keyPath,
+      alert: alert,
+      content: contentView
+    )
+  }
+}
+
+extension ControlledView {
+
+  @MainActor public func binding<Value>(
+    to keyPath: WritableKeyPath<ViewState, Value>,
+    updating setter: @escaping @MainActor (Value) -> Void
+  ) -> Binding<Value> {
+    self.controller.binding(
+      to: keyPath,
+      updating: setter
+    )
+  }
+
+  @MainActor public func binding<Value>(
+    to keyPath: WritableKeyPath<ViewState, Value>
+  ) -> Binding<Value> {
+    self.controller.binding(to: keyPath)
+  }
 }

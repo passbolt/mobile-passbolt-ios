@@ -25,7 +25,7 @@ import Display
 
 internal struct ResourceFolderEditView: ControlledView {
 
-  private let controller: ResourceFolderEditController
+  internal let controller: ResourceFolderEditController
 
   internal init(
     controller: ResourceFolderEditController
@@ -40,7 +40,7 @@ internal struct ResourceFolderEditView: ControlledView {
           key: "folder.edit.form.create.title"
         ),
         loading: state.loading,
-        snackBarMessage: self.controller.binding(to: \.snackBarMessage),
+        snackBarMessage: self.binding(to: \.snackBarMessage),
         contentView: {
           self.contentView(using: state)
         }

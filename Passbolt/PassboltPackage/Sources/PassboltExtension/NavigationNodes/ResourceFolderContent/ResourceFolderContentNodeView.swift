@@ -25,7 +25,7 @@ import Display
 
 internal struct ResourceFolderContentNodeView: ControlledView {
 
-  private let controller: ResourceFolderContentNodeController
+  internal let controller: ResourceFolderContentNodeController
 
   internal init(
     controller: ResourceFolderContentNodeController
@@ -47,7 +47,7 @@ internal struct ResourceFolderContentNodeView: ControlledView {
         ? .sharedFolder
         : .folder,
       title: state.folderName,
-      snackBarMessage: self.controller.binding(to: \.snackBarMessage),
+      snackBarMessage: self.binding(to: \.snackBarMessage),
       titleExtensionView: {
         self.searchView(with: state)
       },

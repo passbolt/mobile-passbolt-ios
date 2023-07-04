@@ -25,7 +25,7 @@ import Display
 
 internal struct HomePresentationMenuNodeView: ControlledView {
 
-  private let controller: HomePresentationMenuNodeController
+  internal let controller: HomePresentationMenuNodeController
 
   internal init(
     controller: HomePresentationMenuNodeController

@@ -22,43 +22,45 @@
 //
 
 @rethrows
-public protocol DataSource<DataType, Failure>: AnyObject, AsyncSequence, Sendable
-where Element == DataType, AsyncIterator == AsyncThrowingMapSequence<Updates, DataType>.Iterator {
+public protocol DataSource<DataValue>: AnyObject, AsyncSequence, Sendable
+where
+  DataValue: Sendable,
+  Element == DataValue,
+  AsyncIterator == AsyncThrowingMapSequence<Updates, DataValue>.Iterator
+{
 
-  associatedtype DataType: Sendable
-  associatedtype Failure: Error
+  associatedtype DataValue
 
   nonisolated var updates: Updates { @Sendable get }
-
-  var value: DataType { @Sendable get async throws }
+  var current: DataValue { @Sendable get async throws }
 }
 
 extension DataSource /* AsyncSequence */ {
 
-  public nonisolated func makeAsyncIterator() -> AsyncThrowingMapSequence<Updates, DataType>.Iterator {
+  public nonisolated func makeAsyncIterator() -> AsyncThrowingMapSequence<Updates, DataValue>.Iterator {
     self.updates
       .map { [unowned self] () async throws -> Element in
-        try await self.value
+        try await self.current
       }
       .makeAsyncIterator()
   }
 
-  public func asAnyAsyncSequence() -> AnyAsyncSequence<DataType> {
+  public nonisolated func asAnyAsyncSequence() -> AnyAsyncSequence<DataValue> {
     AnyAsyncSequence(self)
   }
 }
 
 #if DEBUG
 
-public final class PlaceholderDataSource<DataType, Failure>: DataSource
-where DataType: Sendable, Failure: Error {
+public final class PlaceholderDataSource<DataValue>: DataSource
+where DataValue: Sendable {
 
-  public let updates: Updates = .placeholder
+  public let updates: Updates = .never
 
   public init() {}
 
-  public var value: DataType {
-    @inlinable get async throws { unimplemented() }
+  public var current: DataValue {
+    @inlinable get { unimplemented() }
   }
 }
 

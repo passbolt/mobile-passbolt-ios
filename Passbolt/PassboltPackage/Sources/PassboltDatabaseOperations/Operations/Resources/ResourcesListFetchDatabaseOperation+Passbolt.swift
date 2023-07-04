@@ -65,8 +65,9 @@ extension ResourcesListFetchDatabaseOperation {
                   resourceFolders.parentFolderID IS flattenedResourceFolders.id
               )
             SELECT DISTINCT
-              resources.id,
-              resources.parentFolderID,
+              resources.id AS id,
+              resourceTypes.slug AS typeSlug,
+              resources.parentFolderID AS parentFolderID,
               resources.name AS name,
               resources.username AS username,
               resources.uri AS uri
@@ -76,6 +77,10 @@ extension ResourcesListFetchDatabaseOperation {
               flattenedResourceFolders
             ON
               resources.parentFolderID IS flattenedResourceFolders.id
+            JOIN
+              resourceTypes
+            ON
+              resources.typeID = resourceTypes.id
             WHERE
               1 -- equivalent of true, used to simplify dynamic query building
           """
@@ -86,13 +91,18 @@ extension ResourcesListFetchDatabaseOperation {
       else {
         statement = """
             SELECT
-              resources.id,
-              resources.parentFolderID,
+              resources.id AS id,
+              resourceTypes.slug AS typeSlug,
+              resources.parentFolderID AS parentFolderID,
               resources.name AS name,
               resources.username AS username,
               resources.uri AS uri
             FROM
               resources
+            JOIN
+              resourceTypes
+            ON
+              resources.typeID = resourceTypes.id
             WHERE
               resources.parentFolderID IS ?
           """
@@ -102,13 +112,18 @@ extension ResourcesListFetchDatabaseOperation {
     else {
       statement = """
           SELECT
-            resources.id,
-            resources.parentFolderID,
+            resources.id AS id,
+            resourceTypes.slug AS typeSlug,
+            resources.parentFolderID AS parentFolderID,
             resources.name AS name,
             resources.username AS username,
             resources.uri AS uri
           FROM
             resources
+          JOIN
+            resourceTypes
+          ON
+            resources.typeID = resourceTypes.id
           WHERE
             1 -- equivalent of true, used to simplify dynamic query building
         """
@@ -421,6 +436,9 @@ extension ResourcesListFetchDatabaseOperation {
       .fetch(using: statement) { dataRow -> ResourceListItemDSV in
         guard
           let id: Resource.ID = dataRow.id.flatMap(Resource.ID.init(rawValue:)),
+          let typeSlug: ResourceSpecification.Slug = dataRow.typeSlug.flatMap(
+            ResourceSpecification.Slug.init(rawValue:)
+          ),
           let name: String = dataRow.name
         else {
           throw
@@ -435,6 +453,7 @@ extension ResourcesListFetchDatabaseOperation {
 
         return ResourceListItemDSV(
           id: id,
+          typeSlug: typeSlug,
           parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:)),
           name: name,
           username: dataRow.username,

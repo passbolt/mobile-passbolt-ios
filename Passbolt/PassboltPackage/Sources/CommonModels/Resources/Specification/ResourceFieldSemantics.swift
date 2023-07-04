@@ -65,3 +65,5 @@ public enum ResourceFieldSemantics {
   case totp(name: DisplayableString)
   case undefined(name: DisplayableString)
 }
+
+extension ResourceFieldSemantics: Sendable {}

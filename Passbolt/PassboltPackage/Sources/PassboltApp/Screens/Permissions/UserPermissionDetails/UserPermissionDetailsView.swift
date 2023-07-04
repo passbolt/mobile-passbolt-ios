@@ -128,7 +128,7 @@ internal struct UserPermissionDetailsView: ComponentView {
 
 extension UserPermissionDetailsView {
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var permissionDetails: UserPermissionDetailsDSV
     internal var avatarImageFetch: () async -> Data?

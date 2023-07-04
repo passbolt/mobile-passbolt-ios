@@ -208,7 +208,13 @@ internal struct FormLongFieldView_Previews: PreviewProvider {
             title: "Some field title",
             prompt: "editedText",
             state: state,
-            update: update
+            update: { text in
+              update(text)
+              Task {
+                try await Task.sleep(nanoseconds: 500 * NSEC_PER_MSEC)
+                update(text)
+              }
+            }
           )
         }
 

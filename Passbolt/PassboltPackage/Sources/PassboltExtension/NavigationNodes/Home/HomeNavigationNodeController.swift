@@ -32,11 +32,13 @@ import Users
 
 internal final class HomeNavigationNodeController: ViewController {
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
+  internal let viewState: ViewStateSource<ViewState>
 
   private let asyncExecutor: AsyncExecutor
   private let navigationTree: NavigationTree
   private let homePresentation: HomePresentation
+  @available(*, deprecated, message: "Do not use viewNodeID to identify views. Legacy use only!")
+  public let viewNodeID: ViewNodeID
 
   private let features: Features
 
@@ -51,6 +53,7 @@ internal final class HomeNavigationNodeController: ViewController {
         context: context
       )
     self.features = features
+    self.viewNodeID = .init(rawValue: .init(Self.self))
 
     self.asyncExecutor = try features.instance()
     self.navigationTree = features.instance()
@@ -60,21 +63,20 @@ internal final class HomeNavigationNodeController: ViewController {
       initial: .init(
         contentController: Self.contentRoot(
           for: homePresentation.currentMode.get(),
-          using: features
+          using: features,
+          nodeID: self.viewNodeID
         )
-      )
-    )
-
-    self.asyncExecutor.scheduleIteration(
-      over: self.homePresentation.currentMode.asAnyAsyncSequence(),
-      failMessage: "Home mode updates broken!"
-    ) { [features, viewState, navigationTree] (mode: HomePresentationMode) in
-      let contentController = await Self.contentRoot(for: mode, using: features)
-      await viewState.update { viewState in
-        viewState.contentController = contentController
+      ),
+      updateUsing: self.homePresentation.currentMode.updates,
+      update: { [homePresentation, navigationTree, viewNodeID, features] (state: inout ViewState) in
+        let contentController = Self.contentRoot(
+          for: homePresentation.currentMode.get(),
+          using: features,
+          nodeID: viewNodeID
+        )
+        state.contentController = contentController
       }
-      await navigationTree.dismiss(upTo: self.viewState.viewNodeID)
-    }
+    )
   }
 }
 
@@ -82,7 +84,7 @@ extension HomeNavigationNodeController {
 
   internal typealias Context = SessionScope.Context
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var contentController: any ViewController
 
@@ -105,7 +107,8 @@ extension HomeNavigationNodeController {
 
   @MainActor private static func contentRoot(
     for mode: HomePresentationMode,
-    using features: Features
+    using features: Features,
+    nodeID: ViewNodeID
   ) -> any ViewController {
     do {
       switch mode {
@@ -115,6 +118,7 @@ extension HomeNavigationNodeController {
           .instance(
             of: ResourcesListNodeController.self,
             context: .init(
+              nodeID: nodeID,
               title: mode.title,
               titleIconName: mode.iconName,
               baseFilter: .init(
@@ -129,6 +133,7 @@ extension HomeNavigationNodeController {
           .instance(
             of: ResourcesListNodeController.self,
             context: .init(
+              nodeID: nodeID,
               title: mode.title,
               titleIconName: mode.iconName,
               baseFilter: .init(
@@ -143,6 +148,7 @@ extension HomeNavigationNodeController {
           .instance(
             of: ResourcesListNodeController.self,
             context: .init(
+              nodeID: nodeID,
               title: mode.title,
               titleIconName: mode.iconName,
               baseFilter: .init(
@@ -158,6 +164,7 @@ extension HomeNavigationNodeController {
           .instance(
             of: ResourcesListNodeController.self,
             context: .init(
+              nodeID: nodeID,
               title: mode.title,
               titleIconName: mode.iconName,
               baseFilter: .init(
@@ -173,6 +180,7 @@ extension HomeNavigationNodeController {
           .instance(
             of: ResourcesListNodeController.self,
             context: .init(
+              nodeID: nodeID,
               title: mode.title,
               titleIconName: mode.iconName,
               baseFilter: .init(
@@ -188,6 +196,7 @@ extension HomeNavigationNodeController {
           .instance(
             of: ResourceTagsListNodeController.self,
             context: .init(
+              nodeID: nodeID,
               title: mode.title,
               titleIconName: mode.iconName
             )
@@ -199,6 +208,7 @@ extension HomeNavigationNodeController {
           .instance(
             of: ResourceUserGroupsListNodeController.self,
             context: .init(
+              nodeID: nodeID,
               title: mode.title,
               titleIconName: mode.iconName
             )
@@ -210,6 +220,7 @@ extension HomeNavigationNodeController {
           .instance(
             of: ResourceFolderContentNodeController.self,
             context: .init(
+              nodeID: nodeID,
               folderDetails: .none
             )
           )

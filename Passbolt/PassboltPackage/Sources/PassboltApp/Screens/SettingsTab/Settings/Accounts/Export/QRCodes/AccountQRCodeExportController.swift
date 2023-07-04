@@ -28,7 +28,7 @@ import OSFeatures
 
 internal final class AccountQRCodeExportController: ViewController {
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private let asyncExecutor: AsyncExecutor
   private let navigation: DisplayNavigation
@@ -50,61 +50,53 @@ internal final class AccountQRCodeExportController: ViewController {
       initial: .init(
         currentQRcode: .init(),
         exitConfirmationAlertPresented: false
-      )
-    )
-
-    self.asyncExecutor.scheduleIteration(
-      over: self.accountExport.updates,
-      failMessage: "Updates broken!"
-    ) { [unowned self] (_) in
-      switch self.accountExport.status() {
-      case .part(_, let content):
-        do {
-          let qrCodePart: Data = try await self.qrCodeGenerator.generateQRCode(content)
-          await viewState.update { state in
-            state.currentQRcode = qrCodePart
+      ),
+      updateUsing: self.accountExport.updates,
+      update: { [navigation, accountExport, qrCodeGenerator] (viewState: inout ViewState) in
+        switch accountExport.status() {
+        case .part(_, let content):
+          do {
+            let qrCodePart: Data = try await qrCodeGenerator.generateQRCode(content)
+            viewState.currentQRcode = qrCodePart
           }
-        }
-        catch {
-          await self.navigation
+          catch {
+            await navigation
+              .push(
+                legacy: AccountTransferFailureViewController.self,
+                context: error
+              )
+          }
+
+        case .finished:
+          await navigation
+            .push(legacy: AccountTransferSuccessViewController.self)
+
+        case .error(let error):
+          await navigation
             .push(
               legacy: AccountTransferFailureViewController.self,
               context: error
             )
-          throw CancellationError()  // don't continue observing
+
+        case .uninitialized:
+          await navigation
+            .push(
+              legacy: AccountTransferFailureViewController.self,
+              context:
+                InternalInconsistency
+                .error(
+                  "Account export used without initialization."
+                )
+            )
         }
-
-      case .finished:
-        await self.navigation
-          .push(legacy: AccountTransferSuccessViewController.self)
-
-      case .error(let error):
-        await self.navigation
-          .push(
-            legacy: AccountTransferFailureViewController.self,
-            context: error
-          )
-        throw CancellationError()  // don't continue observing
-
-      case .uninitialized:
-        await self.navigation
-          .push(
-            legacy: AccountTransferFailureViewController.self,
-            context:
-              InternalInconsistency
-              .error(
-                "Account export used without initialization."
-              )
-          )
-        throw CancellationError()  // don't continue observing
       }
-    }
+    )
   }
 }
 
 extension AccountQRCodeExportController {
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var currentQRcode: Data
     internal var exitConfirmationAlertPresented: Bool

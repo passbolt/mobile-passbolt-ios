@@ -53,7 +53,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     )
     patch(
       \SessionData.lastUpdate,
-      with: Constant(value: 0)
+      with: Constant<Timestamp, Never>(value: 0)
     )
   }
 
@@ -71,7 +71,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     await XCTAssertValue(
       equal: expectedResult
     ) {
-      try await feature.state.value
+      try await feature.state.current
     }
   }
 
@@ -88,7 +88,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     await XCTAssertError(
       matches: MockIssue.self
     ) {
-      try await feature.state.value
+      try await feature.state.current
     }
   }
 
@@ -109,7 +109,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     await XCTAssertError(
       matches: InvalidResourceField.self
     ) {
-      try await feature.state.value
+      try await feature.state.current
     }
   }
 
@@ -162,21 +162,21 @@ final class ResourceControllerTests: FeaturesTestCase {
     await XCTAssertValue(
       equal: expectedResult_0
     ) {
-      try await feature.state.value
+      try await feature.state.current
     }
 
     updatesSource.sendUpdate()
     await XCTAssertValue(
       equal: expectedResult_1
     ) {
-      try await feature.state.value
+      try await feature.state.current
     }
 
     updatesSource.sendUpdate()
     await XCTAssertValue(
       equal: expectedResult_2
     ) {
-      try await feature.state.value
+      try await feature.state.current
     }
 
     XCTAssertEqual(self.dynamicVariables.getIfPresent(\.executionCount, of: Int.self), 3)
@@ -210,14 +210,14 @@ final class ResourceControllerTests: FeaturesTestCase {
     await XCTAssertValue(
       equal: expectedResult
     ) {
-      try await feature.state.value
+      try await feature.state.current
     }
 
     updatesSource.sendUpdate()
     await XCTAssertError(
       matches: MockIssue.self
     ) {
-      try await feature.state.value
+      try await feature.state.current
     }
 
     XCTAssertEqual(self.dynamicVariables.getIfPresent(\.executionCount, of: Int.self), 2)
@@ -450,7 +450,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     await XCTAssertValue(
       equal: .mock_1
     ) {
-      try await feature.state.value.favoriteID
+      try await feature.state.current.favoriteID
     }
   }
 
@@ -480,7 +480,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     await XCTAssertValue(
       equal: .none
     ) {
-      try await feature.state.value.favoriteID
+      try await feature.state.current.favoriteID
     }
   }
 

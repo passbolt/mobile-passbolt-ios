@@ -21,44 +21,33 @@
 // @since         v1.0
 //
 
+import Commons
 import SwiftUI
 
-public struct WithSnackBarMessage<ContentView>: View
-where ContentView: View {
+public struct WithSnackBarMessage<ViewState, ContentView>: View
+where ViewState: Equatable, ContentView: View {
 
-  @StateObject private var viewState: ObservedViewState<SnackBarMessage?>
+  @ObservedObject private var viewState: TrimmedViewState<SnackBarMessage?>
   private let binding: Binding<SnackBarMessage?>
   private let content: () -> ContentView
 
   public init<Controller>(
     from controller: Controller,
+    at keyPath: WritableKeyPath<ViewState, SnackBarMessage?>,
     @ViewBuilder content: @escaping () -> ContentView
-  ) where Controller: ViewController, Controller.MessageStateSource == ViewStateVariable<SnackBarMessage?> {
+  ) where Controller: ViewController, Controller.ViewState == ViewState {
     self._viewState = .init(
-      wrappedValue: ObservedViewState(
-        from: controller.messageState
+      wrappedValue: .init(
+        from: controller.viewState,
+        at: keyPath
       )
     )
-    self.binding = controller.messageBinding()
-    self.content = content
-  }
-
-  public init<Controller>(
-    from controller: Controller,
-    @ViewBuilder content: @escaping () -> ContentView
-  ) where Controller: ViewController, Controller.MessageStateSource == ComputedViewState<SnackBarMessage?> {
-    self._viewState = .init(
-      wrappedValue: ObservedViewState(
-        from: controller.messageState
-      )
-    )
-    self.binding = controller.messageBinding()
+    self.binding = controller.binding(to: keyPath)
     self.content = content
   }
 
   public var body: some View {
     self.content()
       .snackBarMessage(with: self.binding)
-      .task { await self.viewState.autoupdate() }
   }
 }

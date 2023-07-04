@@ -26,7 +26,7 @@ import FeatureScopes
 
 internal enum OTPScanningNavigationDestination: NavigationDestination {
 
-  internal typealias TransitionContext = OTPConfigurationScanningController.Context
+  internal typealias TransitionContext = OTPConfigurationScanningViewController.Context
 }
 
 internal typealias NavigationToOTPScanning = NavigationTo<OTPScanningNavigationDestination>

@@ -26,10 +26,10 @@ import UICommons
 
 internal struct OTPResourcesListView: ControlledView {
 
-  private let controller: OTPResourcesListController
+  internal let controller: OTPResourcesListViewController
 
   internal init(
-    controller: OTPResourcesListController
+    controller: OTPResourcesListViewController
   ) {
     self.controller = controller
   }
@@ -48,8 +48,7 @@ internal struct OTPResourcesListView: ControlledView {
             self.list
           }
           .snackBarMessage(
-            with: self.controller
-              .binding(to: \.snackBarMessage)
+            with: self.binding(to: \.snackBarMessage)
           )
         }
       }
@@ -60,22 +59,18 @@ internal struct OTPResourcesListView: ControlledView {
   }
 
   @ViewBuilder @MainActor private var search: some View {
-    WithViewState(
-      from: self.controller,
-      at: \.searchText
-    ) { (searchText: String) in
+    with(\.searchText) { (searchText: String) in
       SearchView(
         prompt: "otp.resources.search.placeholder",
-        text: self.controller
-          .binding(to: \.searchText),
+        text: self.binding(
+          to: \.searchText,
+          updating: self.controller.setSearch(text:)
+        ),
         rightAccessory: {
-          Button(
+          AsyncButton(
             action: self.controller.showAccountMenu,
-            label: {
-              WithViewState(
-                from: self.controller,
-                at: \.accountAvatarImage
-              ) { (accountAvatarImage: Data?) in
+            regularLabel: {
+              with(\.accountAvatarImage) { (accountAvatarImage: Data?) in
                 UserAvatarView(
                   imageData: accountAvatarImage
                 )
@@ -93,9 +88,9 @@ internal struct OTPResourcesListView: ControlledView {
   }
 
   @ViewBuilder @MainActor private var createOTP: some View {
-    Button(
+    AsyncButton(
       action: self.controller.createOTP,
-      label: {
+      regularLabel: {
         HStack(spacing: 12) {
           Image(named: .create)
             .resizable()
@@ -166,39 +161,31 @@ internal struct OTPResourcesListView: ControlledView {
     CommonList {
       self.createOTP
 
-      WithViewState(
-        from: self.controller,
-        at: \.otpResources
-      ) { (resources: Array<TOTPResourceViewModel>) in
-        if resources.isEmpty {
-          self.emptyListPlaceholder
-        }
-        else {
-          ForEach(resources) { (resource: TOTPResourceViewModel) in
-            TOTPResourcesListRowView(
-              title: resource.name,
-              value: resource.totpValue,
+      withEach(\.otpResources.values) { (item: TOTPResourceViewModel) in
+        TOTPResourcesListRowView(
+          title: item.name,
+          generateTOTP: item.generateTOTP,
+          action: {
+            await self.controller.revealAndCopyOTP(for: item.id)
+          },
+          accessory: {
+            AsyncButton(
               action: {
-                self.controller.revealAndCopyOTP(for: resource.id)
+                await self.controller.showCentextualMenu(for: item.id)
               },
-              accessory: {
-                Button(
-                  action: {
-                    self.controller.showCentextualMenu(for: resource.id)
-                  },
-                  label: {
-                    Image(named: .more)
-                      .resizable()
-                      .frame(
-                        width: 20,
-                        height: 20
-                      )
-                  }
-                )
+              regularLabel: {
+                Image(named: .more)
+                  .resizable()
+                  .frame(
+                    width: 20,
+                    height: 20
+                  )
               }
             )
           }
-        }
+        )
+      } placeholder: {
+        self.emptyListPlaceholder
       }
     }
     .refreshable(action: self.controller.refreshList)

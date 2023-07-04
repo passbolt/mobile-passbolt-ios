@@ -28,10 +28,10 @@ import Features
 
 public struct ResourceFolderController {
 
-  public var state: any DataSource<ResourceFolder, Error>
+  public var state: any DataSource<ResourceFolder>
 
   public init(
-    state: any DataSource<ResourceFolder, Error>
+    state: any DataSource<ResourceFolder>
   ) {
     self.state = state
   }

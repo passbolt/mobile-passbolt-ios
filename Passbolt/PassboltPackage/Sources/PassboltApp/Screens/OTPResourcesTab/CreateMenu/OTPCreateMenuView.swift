@@ -26,7 +26,7 @@ import UICommons
 
 internal struct OTPCreateMenuView: ControlledView {
 
-  private let controller: OTPCreateMenuController
+  internal let controller: OTPCreateMenuController
 
   internal init(
     controller: OTPCreateMenuController

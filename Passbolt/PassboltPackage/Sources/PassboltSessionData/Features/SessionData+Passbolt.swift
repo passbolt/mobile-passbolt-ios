@@ -180,7 +180,7 @@ extension SessionData {
             updatesSource.sendUpdate()
             // when diffing endpoint becomes available
             // we should use server time instead
-            lastUpdate.value = time.timestamp()
+            lastUpdate.current = time.timestamp()
           }
           task = runningTask
           return runningTask

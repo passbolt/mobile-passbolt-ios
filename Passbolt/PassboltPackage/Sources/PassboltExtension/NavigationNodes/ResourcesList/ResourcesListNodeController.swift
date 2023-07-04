@@ -32,7 +32,7 @@ import Users
 
 internal final class ResourcesListNodeController: ViewController {
 
-  internal nonisolated let viewState: ViewStateVariable<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
   internal var searchController: ResourceSearchDisplayController
   internal var contentController: ResourcesListDisplayController!  // lazy init?
 
@@ -60,7 +60,7 @@ internal final class ResourcesListNodeController: ViewController {
       autofillContext.requestedServiceIdentifiers()
     self.requestedServiceIdentifiers = requestedServiceIdentifiers
 
-    let viewState: ViewStateVariable<ViewState> = .init(
+    let viewState: ViewStateSource<ViewState> = .init(
       initial: .init(
         title: context.title,
         titleIconName: context.titleIconName,
@@ -71,6 +71,7 @@ internal final class ResourcesListNodeController: ViewController {
 
     self.searchController = try features.instance(
       context: .init(
+        nodeID: context.nodeID,
         searchPrompt: context.searchPrompt,
         showMessage: { (message: SnackBarMessage?) in
           viewState.update { viewState in
@@ -82,15 +83,9 @@ internal final class ResourcesListNodeController: ViewController {
 
     self.contentController = try features.instance(
       context: .init(
-        filter: self.searchController
-          .searchText
-          .asAnyAsyncSequence()
-          .map { (text: String) -> ResourcesFilter in
-            var filter: ResourcesFilter = context.baseFilter
-            filter.text = text
-            return filter
-          }
-          .asAnyAsyncSequence(),
+        baseFilter: context.baseFilter,
+        filterTextSource: self.searchController
+          .searchText,
         suggestionFilter: { (resource: ResourceListItemDSV) -> Bool in
           requestedServiceIdentifiers.matches(resource)
         },
@@ -111,13 +106,14 @@ extension ResourcesListNodeController {
 
   internal struct Context {
 
+    internal var nodeID: ViewNodeID
     internal var title: DisplayableString
     internal var titleIconName: ImageNameConstant
     internal var searchPrompt: DisplayableString = .localized(key: "resources.search.placeholder")
     internal var baseFilter: ResourcesFilter
   }
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var title: DisplayableString
     internal var titleIconName: ImageNameConstant
@@ -186,7 +182,7 @@ extension ResourcesListNodeController {
       )
       let resourceController: ResourceController = try await features.instance()
       try await resourceController.fetchSecretIfNeeded(force: true)
-      let resource: Resource = try await resourceController.state.value
+      let resource: Resource = try await resourceController.state.current
 
       guard let password: String = resource.firstPasswordString
       else {

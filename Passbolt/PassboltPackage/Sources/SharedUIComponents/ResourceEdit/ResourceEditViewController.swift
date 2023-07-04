@@ -49,13 +49,20 @@ public final class ResourceEditViewController: ViewController {
 
     internal var fields: OrderedDictionary<Resource.FieldPath, ResourceEditFieldViewModel>
     internal var containsUndefinedFields: Bool
+    internal var edited: Bool
+    internal var snackBarMessage: SnackBarMessage?
   }
 
-  public let viewState: ComputedViewState<ViewState>
-  public let messageState: ViewStateVariable<SnackBarMessage?>
+  public let viewState: ViewStateSource<ViewState>
 
   internal let editsExisting: Bool
-  internal let editedFields: CriticalState<Set<ResourceType.FieldPath>>
+
+  private struct LocalState: Equatable {
+
+    fileprivate var editedFields: Set<ResourceType.FieldPath>
+  }
+
+  private let localState: Variable<LocalState>
 
   private let allFields: Set<ResourceType.FieldPath>
 
@@ -97,42 +104,46 @@ public final class ResourceEditViewController: ViewController {
     self.editsExisting = !context.editingContext.editedResource.isLocal
     self.allFields = Set(context.editingContext.editedResource.fields.map(\.path))
 
-    let editedFields: CriticalState<Set<ResourceType.FieldPath>> = .init(.init())
-    self.editedFields = editedFields
-
+    self.localState = .init(
+      initial: .init(
+        editedFields: .init()
+      )
+    )
     self.viewState = .init(
       initial: .init(
         fields: .init(),
-        containsUndefinedFields: false
+        containsUndefinedFields: false,
+        edited: false
       ),
-      from: self.resourceEditForm.state,
-      transform: { (resource: Resource) in
-        assert(resource.secretAvailable, "Can't edit resource without secret!")
-        return .init(
-          fields: fields(
-            for: resource,
-            using: features,
-            edited: editedFields.get(),
-            countEntropy: { [randomGenerator] (input: String) -> Entropy in
-              randomGenerator.entropy(input, CharacterSets.all)
-            }
-          ),
-          containsUndefinedFields: resource.containsUndefinedFields
+      updateFrom: ComputedVariable(
+        combining: self.resourceEditForm.state,
+        and: self.localState
+      ),
+      transform: { (viewState: inout ViewState, update: (resource: Resource, localState: LocalState)) in
+        assert(update.resource.secretAvailable, "Can't edit resource without secret!")
+        viewState.fields = await fields(
+          for: update.resource,
+          using: features,
+          edited: update.localState.editedFields,
+          countEntropy: { [randomGenerator] (input: String) -> Entropy in
+            randomGenerator.entropy(input, CharacterSets.all)
+          }
         )
+        viewState.containsUndefinedFields = update.resource.containsUndefinedFields
+        viewState.edited = !update.localState.editedFields.isEmpty
+      },
+      fallback: { (viewState: inout ViewState, error: Error) in
+        viewState.snackBarMessage = .error(error)
       }
     )
-
-    self.messageState = .init(initial: .none)
   }
 
   @MainActor internal func set(
     _ value: String,
     for field: ResourceType.FieldPath
   ) {
-    self.editedFields.access { (edited: inout Set<ResourceType.FieldPath>) -> Void in
-      edited.insert(field)
-    }
     self.resourceEditForm.update(field, to: value)
+    self.localState.editedFields.insert(field)
   }
 
   @MainActor internal func generatePassword(
@@ -143,17 +154,15 @@ public final class ResourceEditViewController: ViewController {
       18,
       Entropy.veryStrongPassword
     )
-    self.editedFields.access { (edited: inout Set<ResourceType.FieldPath>) -> Void in
-      edited.insert(field)
-    }
     self.resourceEditForm.update(field, to: generated)
+    self.localState.editedFields.insert(field)
   }
 
   @MainActor internal func sendForm() async {
     await withLogCatch(
       failInfo: "Failed to send resource edit form!",
-      fallback: { [messageState] error in
-        messageState.show(error)
+      fallback: { [viewState] error in
+        viewState.update(\.snackBarMessage, to: .error(error))
       }
     ) {
       do {
@@ -165,10 +174,7 @@ public final class ResourceEditViewController: ViewController {
         self.success(resource)
       }
       catch let error as InvalidForm {
-        self.editedFields.access { (edited: inout Set<ResourceType.FieldPath>) -> Void in
-          edited = self.allFields
-        }
-        await self.viewState.forceUpdate()
+        self.localState.editedFields = self.allFields
         throw error
       }
       catch {
@@ -180,8 +186,8 @@ public final class ResourceEditViewController: ViewController {
   @MainActor internal func discardForm() async {
     await Diagnostics.logCatch(
       info: .message("Failed to discard resource edit form!"),
-      fallback: { [messageState] error in
-        messageState.update(\.self, to: .error(error))
+      fallback: { [viewState] error in
+        viewState.update(\.snackBarMessage, to: .error(error))
       }
     ) {
       if isInExtensionContext {

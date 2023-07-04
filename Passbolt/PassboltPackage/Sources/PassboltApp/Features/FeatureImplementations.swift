@@ -56,7 +56,6 @@ extension FeaturesRegistry {
 
     self.usePassboltInitialization()
     self.usePassboltUpdateCheck()
-    self.usePassboltOTPCodesController()
 
     self.useLiveNavigation()
   }

@@ -224,4 +224,4 @@ extension TagsExplorerView {
   }
 }
 
-extension TagsExplorerView.ViewState: Hashable {}
+extension TagsExplorerView.ViewState: Equatable {}

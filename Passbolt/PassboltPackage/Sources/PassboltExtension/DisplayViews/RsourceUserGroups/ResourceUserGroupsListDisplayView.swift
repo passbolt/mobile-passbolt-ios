@@ -25,7 +25,7 @@ import Display
 
 internal struct ResourceUserGroupsListDisplayView: ControlledView {
 
-  private let controller: ResourceUserGroupsListDisplayController
+  internal let controller: ResourceUserGroupsListDisplayController
 
   internal init(
     controller: ResourceUserGroupsListDisplayController
