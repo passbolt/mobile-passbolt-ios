@@ -56,10 +56,12 @@ internal struct ResourceFolderEditView: ControlledView {
         title: "form.field.name.title",
         prompt: "folder.edit.form.name.field.placeholder",
         mandatory: true,
-        state: state.folderName,
-        update: { (value: String) in
-          self.controller.setFolderName(value)
-        }
+        state: self.validatedBinding(
+          to: \.folderName,
+          updating: { (newValue: String) in
+            self.controller.setFolderName(newValue)
+          }
+        )
       )
 
       ResourceFieldView(

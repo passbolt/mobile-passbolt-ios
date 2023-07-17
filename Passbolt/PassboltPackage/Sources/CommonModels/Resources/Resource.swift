@@ -154,6 +154,10 @@ extension Resource {
     self.secret != .null || self.isLocal
   }
 
+  public var canEdit: Bool {
+    self.permission.canEdit && !self.containsUndefinedFields
+  }
+
   public var containsUndefinedFields: Bool {
     self.type.containsUndefinedFields
   }
@@ -333,6 +337,22 @@ extension Resource {
     else {
       return .null
     }
+  }
+
+  public var canAttachOTP: Bool {
+    self.canEdit && self.attachedOTPSlug != nil
+  }
+
+  public var attachedOTPSlug: ResourceSpecification.Slug? {
+    self.type.attachedOTPSlug
+  }
+
+  public var canDetachOTP: Bool {
+    self.canEdit && self.detachedOTPSlug != nil
+  }
+
+  public var detachedOTPSlug: ResourceSpecification.Slug? {
+    self.type.detachedOTPSlug
   }
 
   public var hasTOTP: Bool {

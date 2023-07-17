@@ -49,6 +49,48 @@ extension SnackBarMessage {
   }
 }
 
+extension SnackBarMessage: ExpressibleByStringLiteral {
+
+  public init(
+    stringLiteral value: String
+  ) {
+    self = .info(DisplayableString(stringLiteral: value))
+  }
+}
+
+extension Error {
+
+  @discardableResult
+  @MainActor public func show(
+    using showMessage: @MainActor (SnackBarMessage) -> Void
+  ) -> Self {
+    switch self {
+    case is CancellationError, is Cancelled:
+      return self
+
+    case let error:
+      showMessage(.error(error.asTheError().displayableMessage))
+      return self
+    }
+  }
+
+  @discardableResult
+  @MainActor public func logAndShow(
+    using showMessage: @MainActor (SnackBarMessage) -> Void
+  ) -> Self {
+    switch self {
+    case is CancellationError, is Cancelled:
+      return self
+
+    case let error:
+      let theError: TheError = error.asTheError()
+      Diagnostics.log(error: theError)
+      showMessage(.error(theError.displayableMessage))
+      return self
+    }
+  }
+}
+
 private struct SnackBar<SnackBarModel, SnackBarView>: ViewModifier
 where SnackBarView: View {
 

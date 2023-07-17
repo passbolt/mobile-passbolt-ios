@@ -118,4 +118,9 @@ extension ResourceEditForm {
     self.updateField(field, value.asJSON)
       .map { $0.totpSecretValue }
   }
+
+  @discardableResult
+  @Sendable public func send() async throws -> Resource {
+    try await self.sendForm()
+  }
 }

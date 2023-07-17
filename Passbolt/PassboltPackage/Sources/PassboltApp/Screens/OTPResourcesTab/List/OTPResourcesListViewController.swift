@@ -47,10 +47,12 @@ internal final class OTPResourcesListViewController: ViewController {
   private let asyncExecutor: AsyncExecutor
   private let pasteboard: OSPasteboard
 
-  private let resourceSearchController: ResourceSearchController
   private let accountDetails: AccountDetails
+  private let resourceSearchController: ResourceSearchController
+  private let resourceEditPreparation: ResourceEditPreparation
+
   private let navigationToAccountMenu: NavigationToAccountMenu
-  private let navigationToOTPCreateMenu: NavigationToOTPCreateMenu
+  private let navigationToOTPEditMenu: NavigationToResourceOTPEditMenu
 
   private let features: Features
 
@@ -67,15 +69,18 @@ internal final class OTPResourcesListViewController: ViewController {
     self.currentAccount = try features.sessionAccount()
 
     self.asyncExecutor = try features.instance()
+
+    self.accountDetails = try features.instance(context: currentAccount)
     self.resourceSearchController = try features.instance(
       context: .init(
         text: .init(),
         includedTypes: [.totp, .passwordWithTOTP]
       )
     )
-    self.accountDetails = try features.instance(context: currentAccount)
+    self.resourceEditPreparation = try features.instance()
+
     self.navigationToAccountMenu = try features.instance()
-    self.navigationToOTPCreateMenu = try features.instance()
+    self.navigationToOTPEditMenu = try features.instance()
 
     self.viewState = .init(
       initial: .init(
@@ -132,7 +137,21 @@ extension OTPResourcesListViewController {
   }
 
   internal func createOTP() async {
-    await self.navigationToOTPCreateMenu.performCatching()
+    await withLogCatch(
+      fallback: { [viewState] (error: Error) in
+        viewState.update(\.snackBarMessage, to: .error(error))
+      }
+    ) {
+      let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(.totp, .none, .none)
+      await self.navigationToOTPEditMenu.performCatching(
+        context: .init(
+          editingContext: editingContext,
+          showMessage: { [viewState] (message: SnackBarMessage?) in
+            viewState.update(\.snackBarMessage, to: message)
+          }
+        )
+      )
+    }
   }
 
   private func revealOTP(
@@ -142,8 +161,9 @@ extension OTPResourcesListViewController {
     else {
       throw
         MissingResourceData
-        .error("Attempting to reveal TOTP for not visible item!")
+        .error("Attempting to reveal OTP for not visible item!")
     }
+
     // no need to update if there is already reveqaled
     if let generator: @Sendable () -> TOTPValue = resourceItem.generateTOTP {
       return generator()
@@ -154,14 +174,17 @@ extension OTPResourcesListViewController {
           scope: ResourceDetailsScope.self,
           context: resourceID
         ) ?? features
+
       let resource: ResourceController = try features.instance()
       try await resource.fetchSecretIfNeeded()
+
       guard let totpSecret: TOTPSecret = try await resource.firstTOTPSecret()
       else {
         throw
           ResourceSecretInvalid
           .error("Failed to acecss TOTP secret!")
       }
+
       let generator: @Sendable () -> TOTPValue =
         try features
         .instance(
@@ -206,6 +229,7 @@ extension OTPResourcesListViewController {
     for resourceID: Resource.ID
   ) async {
     await withLogCatch(
+      failInfo: "Failed to reveal or copy OTP.",
       fallback: { [viewState] (error: Error) in
         viewState.update(\.snackBarMessage, to: .error(error))
       }
@@ -218,17 +242,18 @@ extension OTPResourcesListViewController {
     for resourceID: Resource.ID
   ) async {
     await withLogCatch(
+      failInfo: "Failed to navigate to OTP contextual menu.",
       fallback: { [viewState] (error: Error) in
         viewState.update(\.snackBarMessage, to: .error(error))
       }
-    ) { [viewState] in
+    ) {
       hideOTPCodes()
       let features: Features =
         features.branchIfNeeded(
           scope: ResourceDetailsScope.self,
           context: resourceID
         ) ?? features
-      let navigationToContextualMenu: NavigationToResourceContextualMenu = try features.instance()
+      let navigationToContextualMenu: NavigationToResourceOTPContextualMenu = try features.instance()
       try await navigationToContextualMenu.perform(
         context: .init(
           revealOTP: { [self] in
@@ -245,8 +270,15 @@ extension OTPResourcesListViewController {
   }
 
   internal func showAccountMenu() async {
-    hideOTPCodes()
-    await navigationToAccountMenu.performCatching()
+    await withLogCatch(
+      failInfo: "Failed to navigate to account menu.",
+      fallback: { [viewState] (error: Error) in
+        viewState.update(\.snackBarMessage, to: .error(error))
+      }
+    ) {
+      hideOTPCodes()
+      try await navigationToAccountMenu.perform()
+    }
   }
 
   internal func hideOTPCodes() {

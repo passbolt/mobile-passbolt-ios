@@ -28,6 +28,12 @@ import Resources
 
 internal final class OTPScanningSuccessViewController: ViewController {
 
+  internal struct Context {
+
+    internal var totpConfiguration: TOTPConfiguration
+    internal var showMessage: @MainActor (SnackBarMessage) -> Void
+  }
+
   internal struct ViewState: Equatable {
 
     internal var snackBarMessage: SnackBarMessage?
@@ -36,27 +42,23 @@ internal final class OTPScanningSuccessViewController: ViewController {
   internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private let resourceEditPreparation: ResourceEditPreparation
+  private let resourceEditForm: ResourceEditForm
 
-  private let navigationToAttach: NavigationToTOTPAttachSelectionList
+  private let navigationToAttach: NavigationToOTPAttachSelectionList
   private let navigationToOTPResourcesList: NavigationToOTPResourcesList
 
   private let asyncExecutor: AsyncExecutor
 
-  private let context: TOTPConfiguration
+  private let context: Context
 
   private let features: Features
 
   internal init(
-    context: TOTPConfiguration,
+    context: Context,
     features: Features
   ) throws {
     try features.ensureScope(SessionScope.self)
-    guard !features.checkScope(ResourceEditScope.self)
-    else {
-      throw
-        InternalInconsistency
-        .error("OTPScanningSuccessController can't be used when editing a resource!")
-    }
+    try features.ensureScope(ResourceEditScope.self)
 
     self.features = features
     self.context = context
@@ -67,6 +69,7 @@ internal final class OTPScanningSuccessViewController: ViewController {
     self.navigationToOTPResourcesList = try features.instance()
 
     self.resourceEditPreparation = try features.instance()
+    self.resourceEditForm = try features.instance()
 
     self.viewState = .init(
       initial: .init()
@@ -83,18 +86,9 @@ extension OTPScanningSuccessViewController {
         viewState.update(\.snackBarMessage, to: .error(error))
       }
     ) {
-      let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(.totp, .none, .none)
-      let features: Features = self.features.branch(
-        scope: ResourceEditScope.self,
-        context: editingContext
-      )
-      let resourceEditForm: ResourceEditForm = try features.instance()
-      resourceEditForm.update(\.nameField, to: context.account)
-      resourceEditForm.update(\.meta.uri, to: context.issuer)
-      resourceEditForm.update(\.secret.totp, to: context.secret)
-
-      _ = try await resourceEditForm.sendForm()
+      try await self.resourceEditForm.send()
       try await self.navigationToOTPResourcesList.revert()
+      self.context.showMessage("otp.create.otp.created.message")
     }
   }
 
@@ -107,7 +101,8 @@ extension OTPScanningSuccessViewController {
     ) {
       try await self.navigationToAttach.perform(
         context: .init(
-          totpSecret: self.context.secret
+          totpSecret: self.context.totpConfiguration.secret,
+          showMessage: self.context.showMessage
         )
       )
     }

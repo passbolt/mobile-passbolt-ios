@@ -30,8 +30,7 @@ where Accessory: View {
   private let title: String
   private let prompt: String?
   private let mandatory: Bool
-  private let state: Validated<String>
-  private let update: @MainActor (String) -> Void
+  @Binding private var state: Validated<String>
   private let accessory: () -> Accessory
   @FocusState private var focused: Bool
   @State private var editing: Bool = false
@@ -40,14 +39,12 @@ where Accessory: View {
     title: DisplayableString = .raw(""),
     prompt: DisplayableString? = nil,
     mandatory: Bool = false,
-    state: Validated<String>,
-    update: @escaping @MainActor (String) -> Void
+    state: Binding<Validated<String>>
   ) where Accessory == EmptyView {
     self.title = title.string()
     self.prompt = prompt?.string()
     self.mandatory = mandatory
-    self.state = state
-    self.update = update
+    self._state = state
     self.accessory = EmptyView.init
   }
 
@@ -55,15 +52,13 @@ where Accessory: View {
     title: DisplayableString = .raw(""),
     prompt: DisplayableString? = nil,
     mandatory: Bool = false,
-    state: Validated<String>,
-    update: @escaping @MainActor (String) -> Void,
+    state: Binding<Validated<String>>,
     @ViewBuilder accessory: @escaping () -> Accessory
   ) {
     self.title = title.string()
     self.prompt = prompt?.string()
     self.mandatory = mandatory
-    self.state = state
-    self.update = update
+    self._state = state
     self.accessory = accessory
   }
 
@@ -97,9 +92,11 @@ where Accessory: View {
         SwiftUI.TextField(
           self.title,
           text: .init(
-            get: { self.state.value },
+            get: {
+              self.state.value
+            },
             set: { (newValue: String) in
-              self.update(newValue)
+              self.state.value = newValue
             }
           ),
           prompt: self.prompt
@@ -189,22 +186,11 @@ internal struct FormTextFieldView_Previews: PreviewProvider {
   internal static var previews: some View {
     ScrollView {
       VStack(spacing: 8) {
-        PreviewInputState { state, update in
+        PreviewInputState { state in
           FormTextFieldView(
             title: "Some field title",
             prompt: "Live to edit in preview!",
-            state: {
-              print("sent: \(state)")
-              return state
-            }(),
-            update: { text in
-              print("quick loop: \(state)")
-              Task {
-                try await Task.sleep(nanoseconds: 1500 * NSEC_PER_MSEC)
-                print("updated: \(state)")
-                update(text)
-              }
-            }
+            state: state
           )
         }
 
@@ -212,40 +198,41 @@ internal struct FormTextFieldView_Previews: PreviewProvider {
           title: "Some required",
           prompt: "editedText",
           mandatory: true,
-          state: .valid("edited"),
-          update: { _ in }
+          state: .constant(.valid("edited"))
         )
 
         FormTextFieldView(
           title: "Some required",
           prompt: "editedText",
           mandatory: true,
-          state: .invalid(
-            "invalidText",
-            error:
-              InvalidValue
-              .error(
-                validationRule: "PREVIEW",
-                value: "VALUE",
-                displayable: "invalid value"
-              )
-          ),
-          update: { _ in }
+          state: .constant(
+            .invalid(
+              "invalidText",
+              error:
+                InvalidValue
+                .error(
+                  validationRule: "PREVIEW",
+                  value: "VALUE",
+                  displayable: "invalid value"
+                )
+            )
+          )
         )
 
         FormTextFieldView(
           title: "Some accessory",
-          state: .invalid(
-            "invalidText",
-            error:
-              InvalidValue
-              .error(
-                validationRule: "PREVIEW",
-                value: "VALUE",
-                displayable: "invalid value"
-              )
+          state: .constant(
+            .invalid(
+              "invalidText",
+              error:
+                InvalidValue
+                .error(
+                  validationRule: "PREVIEW",
+                  value: "VALUE",
+                  displayable: "invalid value"
+                )
+            )
           ),
-          update: { _ in },
           accessory: {
             Button(
               action: {},
@@ -262,8 +249,7 @@ internal struct FormTextFieldView_Previews: PreviewProvider {
 
         FormTextFieldView(
           title: "Some accessory",
-          state: .valid(""),
-          update: { _ in },
+          state: .constant(.valid("")),
           accessory: {
             Button(
               action: {},
@@ -280,8 +266,7 @@ internal struct FormTextFieldView_Previews: PreviewProvider {
 
         FormTextFieldView(
           prompt: "accessory with no name",
-          state: .valid(""),
-          update: { _ in },
+          state: .constant(.valid("")),
           accessory: {
             Button(
               action: {},
@@ -297,51 +282,53 @@ internal struct FormTextFieldView_Previews: PreviewProvider {
         )
 
         FormTextFieldView(
-          state: .valid("validText"),
-          update: { _ in }
+          state: .constant(.valid("validText"))
         )
 
         FormTextFieldView(
           prompt: "emptyInvalidText",
-          state: .invalid(
-            "",
-            error:
-              InvalidValue
-              .empty(
-                value: "",
-                displayable: "empty"
-              )
-          ),
-          update: { _ in }
+          state: .constant(
+            .invalid(
+              "",
+              error:
+                InvalidValue
+                .empty(
+                  value: "",
+                  displayable: "empty"
+                )
+            )
+          )
         )
 
         FormTextFieldView(
-          state: .invalid(
-            "invalidText",
-            error:
-              InvalidValue
-              .error(
-                validationRule: "PREVIEW",
-                value: "VALUE",
-                displayable: "invalid value"
-              )
-          ),
-          update: { _ in }
+          state: .constant(
+            .invalid(
+              "invalidText",
+              error:
+                InvalidValue
+                .error(
+                  validationRule: "PREVIEW",
+                  value: "VALUE",
+                  displayable: "invalid value"
+                )
+            )
+          )
         )
 
         FormTextFieldView(
-          state: .invalid(
-            "invalidLongText",
-            error:
-              InvalidValue
-              .error(
-                validationRule: "PREVIEW",
-                value: "VALUE",
-                displayable:
-                  "invalid value with some long message displayed to see how it goes when message is really long and will start line breaking with even more than two lines"
-              )
-          ),
-          update: { _ in }
+          state: .constant(
+            .invalid(
+              "invalidLongText",
+              error:
+                InvalidValue
+                .error(
+                  validationRule: "PREVIEW",
+                  value: "VALUE",
+                  displayable:
+                    "invalid value with some long message displayed to see how it goes when message is really long and will start line breaking with even more than two lines"
+                )
+            )
+          )
         )
       }
       .padding(8)

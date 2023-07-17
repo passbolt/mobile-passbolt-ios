@@ -43,27 +43,23 @@ extension ResourceTypesStoreDatabaseOperation {
           INSERT INTO
             resourceTypes(
               id,
-              slug,
-              name
+              slug
             )
           VALUES
             (
               ?1,
-              ?2,
-              ?3
+              ?2
             )
           ON CONFLICT
             (
               id
             )
           DO UPDATE SET
-            slug=?2,
-            name=?3
+            slug=?2
           ;
           """,
           arguments: resourceType.id,
-          resourceType.specification.slug,
-          resourceType.name
+          resourceType.specification.slug
         )
       )
     }

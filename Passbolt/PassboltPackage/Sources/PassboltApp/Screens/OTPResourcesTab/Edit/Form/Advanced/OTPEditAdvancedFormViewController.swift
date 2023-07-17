@@ -26,7 +26,7 @@ import FeatureScopes
 import OSFeatures
 import Resources
 
-internal final class TOTPEditAdvancedFormController: ViewController {
+internal final class OTPEditAdvancedFormViewController: ViewController {
 
   public struct Context {
 
@@ -52,7 +52,7 @@ internal final class TOTPEditAdvancedFormController: ViewController {
   private let asyncExecutor: AsyncExecutor
   private let resourceEditForm: ResourceEditForm
 
-  private let navigationToSelf: NavigationToTOTPEditAdvancedForm
+  private let navigationToSelf: NavigationToOTPEditAdvancedForm
 
   private let totpPath: Resource.FieldPath
 
@@ -100,7 +100,7 @@ internal final class TOTPEditAdvancedFormController: ViewController {
   }
 }
 
-extension TOTPEditAdvancedFormController {
+extension OTPEditAdvancedFormViewController {
 
   internal final func setAlgorithm(
     _ algorithm: HOTPAlgorithm
@@ -112,7 +112,7 @@ extension TOTPEditAdvancedFormController {
       )
   }
 
-  internal final func setPeriod(
+  @Sendable nonisolated internal final func setPeriod(
     _ period: String
   ) {
     self.resourceEditForm
@@ -122,7 +122,7 @@ extension TOTPEditAdvancedFormController {
       )
   }
 
-  internal final func setDigits(
+  @Sendable nonisolated internal final func setDigits(
     _ digits: String
   ) {
     self.resourceEditForm

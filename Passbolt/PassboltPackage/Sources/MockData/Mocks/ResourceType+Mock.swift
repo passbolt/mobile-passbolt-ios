@@ -46,7 +46,6 @@ extension ResourceType {
   public static let mock_1: Self = .init(
     id: .mock_1,
     slug: .mock_1,
-    name: "mock_1",
     metaFields: [
       .init(
         path: \.meta.name,
@@ -70,7 +69,6 @@ extension ResourceType {
   public static let mock_2: Self = .init(
     id: .mock_2,
     slug: .mock_2,
-    name: "mock_2",
     metaFields: [
       .init(
         path: \.meta.name,
@@ -93,13 +91,11 @@ extension ResourceType {
 
   public static let mock_default: Self = .init(
     id: .mock_3,
-    slug: .passwordWithDescription,
-    name: "password-and-description"
+    slug: .passwordWithDescription
   )
 
   public static let mock_totp: Self = .init(
     id: .mock_4,
-    slug: .totp,
-    name: "mock_totp"
+    slug: .totp
   )
 }

@@ -87,13 +87,98 @@ extension ViewController {
     updating setter: @escaping @MainActor (Value) -> Void
   ) -> Binding<Value> {
     .init(
-      get: {
+      get: { @MainActor in
         self.viewState.value[keyPath: keyPath]
       },
-      set: { (newValue: Value) in
-        // quick loop - update local state to prevent SwiftUI issues
+      set: { @MainActor [setter] (newValue: Value) in
+        // quick loop - update local state immediately to prevent SwiftUI issues
         self.viewState.value[keyPath: keyPath] = newValue
         setter(newValue)  // then pass the update to actual source of data
+      }
+    )
+  }
+
+  @MainActor internal func optionalBinding<Value>(
+    to keyPath: WritableKeyPath<ViewState, Value?>,
+    default: Value,
+    updating setter: @escaping @MainActor (Value) -> Void
+  ) -> Binding<Value> {
+    .init(
+      get: { @MainActor in
+        self.viewState.value[keyPath: keyPath] ?? `default`
+      },
+      set: { @MainActor [setter] (newValue: Value) in
+        // quick loop - update local state immediately to prevent SwiftUI issues
+        self.viewState.value[keyPath: keyPath] = newValue
+        setter(newValue)  // then pass the update to actual source of data
+      }
+    )
+  }
+
+  @MainActor internal func validatedBinding<Value>(
+    to keyPath: WritableKeyPath<ViewState, Validated<Value>>,
+    updating setter: @escaping @MainActor (Value) -> Void
+  ) -> Binding<Validated<Value>> {
+    .init(
+      get: { @MainActor in
+        self.viewState.value[keyPath: keyPath]
+      },
+      set: { @MainActor [setter] (newValue: Validated<Value>) in
+        // quick loop - update local state immediately to prevent SwiftUI issues
+        self.viewState.value[keyPath: keyPath] = newValue
+        setter(newValue.value)  // then pass the update to actual source of data
+      }
+    )
+  }
+
+  @MainActor internal func validatedOptionalBinding<Value>(
+    to keyPath: WritableKeyPath<ViewState, Validated<Value>?>,
+    default: Validated<Value>,
+    updating setter: @escaping @MainActor (Value) -> Void
+  ) -> Binding<Validated<Value>> {
+    .init(
+      get: { @MainActor in
+        self.viewState.value[keyPath: keyPath] ?? `default`
+      },
+      set: { @MainActor [setter] (newValue: Validated<Value>) in
+        // quick loop - update local state immediately to prevent SwiftUI issues
+        self.viewState.value[keyPath: keyPath] = newValue
+        setter(newValue.value)  // then pass the update to actual source of data
+      }
+    )
+  }
+
+  @MainActor internal func validatedOptionalBinding<MidValue, Value>(
+    to nestedKeyPath: WritableKeyPath<MidValue, Validated<Value>>,
+    in keyPath: WritableKeyPath<ViewState, MidValue?>,
+    default: Validated<Value>,
+    updating setter: @escaping @MainActor (Value) -> Void
+  ) -> Binding<Validated<Value>> {
+    .init(
+      get: { @MainActor in
+        self.viewState.value[keyPath: keyPath]?[keyPath: nestedKeyPath] ?? `default`
+      },
+      set: { @MainActor [setter] (newValue: Validated<Value>) in
+        // quick loop - update local state immediately to prevent SwiftUI issues
+        self.viewState.value[keyPath: keyPath]?[keyPath: nestedKeyPath] = newValue
+        setter(newValue.value)  // then pass the update to actual source of data
+      }
+    )
+  }
+
+  @MainActor internal func validatedBinding<Value, Tag>(
+    to keyPath: WritableKeyPath<ViewState, Validated<Tagged<Value, Tag>>>,
+    updating setter: @escaping @MainActor (Tagged<Value, Tag>) -> Void
+  ) -> Binding<Validated<Value>> {
+    return .init(
+      get: { @MainActor in
+        self.viewState.value[keyPath: keyPath].map(\.rawValue)
+      },
+      set: { @MainActor [setter] (newValue: Validated<Value>) in
+        // quick loop - update local state immediately to prevent SwiftUI issues
+        let tagged: Validated<Tagged<Value, Tag>> = newValue.map(Tagged<Value, Tag>.init(rawValue:))
+        self.viewState.value[keyPath: keyPath] = tagged
+        setter(tagged.value)  // then pass the update to actual source of data
       }
     )
   }

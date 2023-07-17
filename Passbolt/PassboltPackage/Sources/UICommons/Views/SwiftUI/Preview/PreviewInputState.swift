@@ -28,16 +28,18 @@ import SwiftUI
 public struct PreviewInputState<Content>: View
 where Content: View {
 
-  @State private var state: Validated<String> {
-    didSet { print("Preview state: \(state)") }
-  }
+  @State private var state: Validated<String>
   private let validator: Validator<String>
-  private let content: (Validated<String>, @escaping @MainActor (String) -> Void) -> Content
+  private let content: (Binding<Validated<String>>) -> Content
 
   public init(
     initial: String = "Edit me!",
-    validator: Validator<String> = .nonEmpty(displayable: "Can't be empty!"),
-    @ViewBuilder content: @escaping (Validated<String>, @escaping @MainActor (String) -> Void) -> Content
+    validator: Validator<String> = zip(
+      .nonEmpty(displayable: "Can't be empty!"),
+      .minLength(3, displayable: "Can't have less than 3 characters!"),
+      .maxLength(25, displayable: "Can't have more than 25 characters!")
+    ),
+    @ViewBuilder content: @escaping (Binding<Validated<String>>) -> Content
   ) {
     self._state = .init(initialValue: validator.validate(initial))
     self.validator = validator
@@ -45,12 +47,7 @@ where Content: View {
   }
 
   public var body: some View {
-    self.content(
-      self.state,
-      { (newValue: String) in
-        self.state = self.validator.validate(newValue)
-      }
-    )
+    self.content(self.$state)
   }
 }
 

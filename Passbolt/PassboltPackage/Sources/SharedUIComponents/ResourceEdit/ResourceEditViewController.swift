@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import Crypto
 import Display
 import FeatureScopes
@@ -34,11 +35,11 @@ public final class ResourceEditViewController: ViewController {
   public struct Context {
 
     public var editingContext: ResourceEditingContext
-    public var success: @Sendable (Resource) -> Void
+    public var success: @Sendable (Resource) async -> Void
 
     public init(
       editingContext: ResourceEditingContext,
-      success: @escaping @Sendable (Resource) -> Void
+      success: @escaping @Sendable (Resource) async -> Void
     ) {
       self.editingContext = editingContext
       self.success = success
@@ -47,7 +48,7 @@ public final class ResourceEditViewController: ViewController {
 
   public struct ViewState: Equatable {
 
-    internal var fields: OrderedDictionary<Resource.FieldPath, ResourceEditFieldViewModel>
+    internal var fields: IdentifiedArray<ResourceEditFieldViewModel>
     internal var containsUndefinedFields: Bool
     internal var edited: Bool
     internal var snackBarMessage: SnackBarMessage?
@@ -72,7 +73,7 @@ public final class ResourceEditViewController: ViewController {
 
   private let randomGenerator: RandomStringGenerator
 
-  private let success: @Sendable (Resource) -> Void
+  private let success: @Sendable (Resource) async -> Void
 
   private let features: Features
 
@@ -138,7 +139,7 @@ public final class ResourceEditViewController: ViewController {
     )
   }
 
-  @MainActor internal func set(
+  @Sendable nonisolated internal func set(
     _ value: String,
     for field: ResourceType.FieldPath
   ) {
@@ -171,7 +172,7 @@ public final class ResourceEditViewController: ViewController {
           // TODO: unify navigation between app and extnsion
           try await self.navigationToSelf.revert()
         }  // else NOP
-        self.success(resource)
+        await self.success(resource)
       }
       catch let error as InvalidForm {
         self.localState.editedFields = self.allFields
@@ -207,7 +208,7 @@ public final class ResourceEditViewController: ViewController {
   using features: Features,
   edited: Set<ResourceType.FieldPath>,
   countEntropy: (String) -> Entropy
-) -> OrderedDictionary<Resource.FieldPath, ResourceEditFieldViewModel> {
+) -> IdentifiedArray<ResourceEditFieldViewModel> {
   if resource.type.specification.slug == .placeholder {
     return .init()  // show no fields for placeholder type
   }
@@ -224,7 +225,7 @@ public final class ResourceEditViewController: ViewController {
         )
       }
 
-    var result: OrderedDictionary<Resource.FieldPath, ResourceEditFieldViewModel> = .init()
+    var result: IdentifiedArray<ResourceEditFieldViewModel> = .init()
     for field: ResourceEditFieldViewModel in fields {
       result[field.path] = field
     }
@@ -368,11 +369,44 @@ internal struct ResourceEditFieldViewModel {
       return nil
     }
   }
+
+  internal var validatedString: Validated<String> {
+    get {
+      switch self.value {
+      case .plainShort(let value):
+        return value
+
+      case .plainLong(let value):
+        return value
+
+      case .password(let value, entropy: _):
+        return value
+
+      case .selection(let value, values: _):
+        return value
+      }
+    }
+    set {
+      switch self.value {
+      case .plainShort:
+        self.value = .plainShort(newValue)
+
+      case .plainLong:
+        self.value = .plainLong(newValue)
+
+      case .password(_, let entropy):
+        self.value = .password(newValue, entropy: entropy)
+
+      case .selection(_, let values):
+        self.value = .selection(newValue, values: values)
+      }
+    }
+  }
 }
 
 extension ResourceEditFieldViewModel: Equatable {}
 
 extension ResourceEditFieldViewModel: Identifiable {
 
-  internal var id: some Hashable { self.path }
+  internal var id: ResourceType.FieldPath { self.path }
 }

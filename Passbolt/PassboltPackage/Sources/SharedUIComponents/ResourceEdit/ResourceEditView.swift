@@ -120,10 +120,7 @@ public struct ResourceEditView: ControlledView {
 
   @MainActor @ViewBuilder private var fieldsSectionsView: some View {
     CommonListSection {
-      WithEachViewState(
-        from: self.controller,
-        at: \.fields.values
-      ) { (fieldModel: ResourceEditFieldViewModel) in
+      withEach(\.fields) { (fieldModel: ResourceEditFieldViewModel) in
         CommonListRow(
           content: {
             switch fieldModel.value {
@@ -132,12 +129,16 @@ public struct ResourceEditView: ControlledView {
                 title: fieldModel.name,
                 prompt: fieldModel.placeholder,
                 mandatory: fieldModel.requiredMark,
-                state: state,
-                update: { (string: String) in
-                  withAnimation {
-                    self.controller.set(string, for: fieldModel.path)
+                state: self.validatedOptionalBinding(
+                  to: \.validatedString,
+                  in: \.fields[fieldModel.path],
+                  default: state,
+                  updating: { (newValue: String) in
+                    withAnimation {
+                      self.controller.set(newValue, for: fieldModel.path)
+                    }
                   }
-                }
+                )
               )
               .textInputAutocapitalization(.never)
               .autocorrectionDisabled()
@@ -148,12 +149,16 @@ public struct ResourceEditView: ControlledView {
                 title: fieldModel.name,
                 prompt: fieldModel.placeholder,
                 mandatory: fieldModel.requiredMark,
-                state: state,
-                update: { (string: String) in
-                  withAnimation {
-                    self.controller.set(string, for: fieldModel.path)
+                state: self.validatedOptionalBinding(
+                  to: \.validatedString,
+                  in: \.fields[fieldModel.path],
+                  default: state,
+                  updating: { (newValue: String) in
+                    withAnimation {
+                      self.controller.set(newValue, for: fieldModel.path)
+                    }
                   }
-                }
+                )
               )
               .textInputAutocapitalization(.sentences)
               .padding(bottom: 8)
@@ -164,12 +169,16 @@ public struct ResourceEditView: ControlledView {
                   title: fieldModel.name,
                   prompt: fieldModel.placeholder,
                   mandatory: fieldModel.requiredMark,
-                  state: state,
-                  update: { (string: String) in
-                    withAnimation {
-                      self.controller.set(string, for: fieldModel.path)
+                  state: self.validatedOptionalBinding(
+                    to: \.validatedString,
+                    in: \.fields[fieldModel.path],
+                    default: state,
+                    updating: { (newValue: String) in
+                      withAnimation {
+                        self.controller.set(newValue, for: fieldModel.path)
+                      }
                     }
-                  },
+                  ),
                   accessory: {
                     Button(
                       action: {

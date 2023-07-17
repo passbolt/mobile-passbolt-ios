@@ -26,27 +26,25 @@ import FeatureScopes
 import OSFeatures
 import Resources
 
-internal final class TOTPEditFormViewController: ViewController {
+internal final class OTPEditFormViewController: ViewController {
 
-  public struct Context {
+  internal struct Context {
 
-    public var editingContext: ResourceEditingContext
-    public var totpPath: ResourceType.FieldPath
-    public var success: @Sendable (Resource?) -> Void
+    internal var totpPath: ResourceType.FieldPath
+    internal var showMessage: @MainActor (SnackBarMessage) -> Void
 
-    public init(
-      editingContext: ResourceEditingContext,
+    internal init(
       totpPath: ResourceType.FieldPath,
-      success: @escaping @Sendable (Resource?) -> Void
+      showMessage: @escaping @MainActor (SnackBarMessage) -> Void
     ) {
-      self.editingContext = editingContext
       self.totpPath = totpPath
-      self.success = success
+      self.showMessage = showMessage
     }
   }
 
   internal struct ViewState: Equatable {
 
+    internal var isEditing: Bool
     internal var nameField: Validated<String>
     internal var uriField: Validated<String>
     internal var secretField: Validated<String>
@@ -57,23 +55,20 @@ internal final class TOTPEditFormViewController: ViewController {
 
   private struct LocalState: Equatable {
 
-    fileprivate var editedFields: Set<ResourceType.FieldPath>
+    fileprivate var editedFields: Set<Resource.FieldPath>
   }
 
   private let localState: Variable<LocalState>
 
-  private let allFields: Set<ResourceType.FieldPath>
-
-  internal let isEditing: Bool
+  private let allFields: Set<Resource.FieldPath>
 
   private let asyncExecutor: AsyncExecutor
-  private let navigationToSelf: NavigationToTOTPEditForm
-  private let navigationToAttach: NavigationToTOTPAttachSelectionList
-  private let navigationToAdvanced: NavigationToTOTPEditAdvancedForm
+  private let navigationToSelf: NavigationToOTPEditForm
+  private let navigationToAttach: NavigationToOTPAttachSelectionList
+  private let navigationToAdvanced: NavigationToOTPEditAdvancedForm
   private let resourceEditForm: ResourceEditForm
 
-  private let totpPath: ResourceType.FieldPath
-  private let success: @Sendable (Resource) -> Void
+  private let context: Context
 
   private let features: Features
 
@@ -82,17 +77,11 @@ internal final class TOTPEditFormViewController: ViewController {
     features: Features
   ) throws {
     try features.ensureScope(SessionScope.self)
-    let featuresBranchContainer: FeaturesContainer? = features.branchIfNeeded(
-      scope: ResourceEditScope.self,
-      context: context.editingContext
-    )
+    try features.ensureScope(ResourceEditScope.self)
 
-    let features: Features = featuresBranchContainer ?? features
-    self.features = features
+    self.features = features.takeOwned()
 
-    let totpPath: ResourceType.FieldPath = context.totpPath
-    self.totpPath = totpPath
-    self.success = context.success
+    self.context = context
 
     self.asyncExecutor = try features.instance()
 
@@ -102,12 +91,9 @@ internal final class TOTPEditFormViewController: ViewController {
 
     self.resourceEditForm = try features.instance()
 
-    self.isEditing = !context.editingContext.editedResource.isLocal
     self.allFields = [
       \.meta.name,
-      // we are requiring uri field but it could not be always part of the resource in future
-      \.meta.uri,
-      totpPath.appending(path: \.secret_key),
+      context.totpPath.appending(path: \.secret_key),
     ]
 
     self.localState = .init(
@@ -117,6 +103,7 @@ internal final class TOTPEditFormViewController: ViewController {
     )
     self.viewState = .init(
       initial: .init(
+        isEditing: false,
         nameField: .valid(""),
         uriField: .valid(""),
         secretField: .valid("")
@@ -125,13 +112,15 @@ internal final class TOTPEditFormViewController: ViewController {
         combining: self.resourceEditForm.state,
         and: self.localState
       ),
-      transform: { (viewState: inout ViewState, update: (resource: Resource, localState: LocalState)) async throws in
-        guard update.resource.contains(totpPath)
+      transform: {
+        [context] (viewState: inout ViewState, update: (resource: Resource, localState: LocalState)) async throws in
+        guard update.resource.contains(context.totpPath)
         else {
           throw
             InvalidResourceType
             .error(message: "Resource without TOTP, can't edit its TOTP.")
         }
+        viewState.isEditing = !update.resource.isLocal
 
         if update.localState.editedFields.contains(\.meta.name) {
           viewState.nameField =
@@ -153,15 +142,16 @@ internal final class TOTPEditFormViewController: ViewController {
           viewState.uriField =
             .valid(update.resource[keyPath: \.meta.uri].stringValue ?? "")
         }
-        if update.localState.editedFields.contains(totpPath.appending(path: \.secret_key)) {
+
+        if update.localState.editedFields.contains(context.totpPath.appending(path: \.secret_key)) {
           viewState.secretField =
             update.resource
-            .validated(totpPath.appending(path: \.secret_key))
+            .validated(context.totpPath.appending(path: \.secret_key))
             .map { $0.stringValue ?? "" }
         }
         else {
           viewState.secretField =
-            .valid(update.resource[keyPath: totpPath.appending(path: \.secret_key)].stringValue ?? "")
+            .valid(update.resource[keyPath: context.totpPath.appending(path: \.secret_key)].stringValue ?? "")
         }
       },
       fallback: { (viewState: inout ViewState, error: Error) in
@@ -171,9 +161,9 @@ internal final class TOTPEditFormViewController: ViewController {
   }
 }
 
-extension TOTPEditFormViewController {
+extension OTPEditFormViewController {
 
-  internal func setName(
+  @Sendable nonisolated internal func setName(
     _ name: String
   ) {
     self.resourceEditForm
@@ -181,7 +171,7 @@ extension TOTPEditFormViewController {
     self.localState.editedFields.insert(\.meta.name)
   }
 
-  internal func setURI(
+  @Sendable nonisolated internal func setURI(
     _ uri: String
   ) {
     self.resourceEditForm
@@ -189,35 +179,35 @@ extension TOTPEditFormViewController {
     self.localState.editedFields.insert(\.meta.uri)
   }
 
-  internal func setSecret(
+  @Sendable nonisolated internal func setSecret(
     _ secret: String
   ) {
     self.resourceEditForm
       .update(
-        self.totpPath.appending(path: \.secret_key),
+        context.totpPath.appending(path: \.secret_key),
         to: secret
       )
-    self.localState.editedFields.insert(self.totpPath.appending(path: \.secret_key))
+    self.localState.editedFields.insert(context.totpPath.appending(path: \.secret_key))
   }
 
   @MainActor internal func showAdvancedSettings() async {
     await navigationToAdvanced.performCatching(
       context: .init(
-        totpPath: totpPath
+        totpPath: context.totpPath
       )
     )
   }
 
-  @MainActor internal func createStandaloneOTP() async {
+  @MainActor internal func createOrUpdateOTP() async {
     await withLogCatch(
       fallback: { [viewState] (error: Error) in
         viewState.update(\.snackBarMessage, to: .error(error))
       }
     ) {
       do {
-        let resource: Resource = try await resourceEditForm.sendForm()
+        try await resourceEditForm.send()
         try await navigationToSelf.revert()
-        success(resource)
+        self.context.showMessage("otp.create.otp.created.message")
       }
       catch let error as InvalidForm {
         self.localState.editedFields = self.allFields
@@ -229,7 +219,7 @@ extension TOTPEditFormViewController {
     }
   }
 
-  internal func updateExistingResource() async {
+  internal func selectResourceToAttach() async {
     await withLogCatch(
       failInfo: "Failed to navigate to adding OTP to a resource",
       fallback: { [viewState] (error: Error) in
@@ -238,13 +228,20 @@ extension TOTPEditFormViewController {
     ) {
       do {
         try await resourceEditForm.validateForm()
-        guard let totpSecret: TOTPSecret = try await resourceEditForm.state.current.firstTOTPSecret
+        guard
+          let totpSecret: TOTPSecret = try await resourceEditForm.state.current[keyPath: context.totpPath]
+            .totpSecretValue
         else {
           throw
             InvalidResourceSecret
             .error(message: "Missing OTP secret!")
         }
-        try await self.navigationToAttach.perform(context: .init(totpSecret: totpSecret))
+        try await self.navigationToAttach.perform(
+          context: .init(
+            totpSecret: totpSecret,
+            showMessage: self.context.showMessage
+          )
+        )
       }
       catch let error as InvalidForm {
         self.localState.editedFields = self.allFields

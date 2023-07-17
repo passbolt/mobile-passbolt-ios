@@ -38,16 +38,14 @@ extension ResourceTypesFetchDatabaseOperation {
         using: """
           SELECT
             id,
-            slug,
-            name
+            slug
           FROM
             resourceTypes;
           """
       ) { dataRow in
         guard
-          let id: ResourceType.ID = dataRow.id.flatMap(ResourceType.ID.init(rawValue:)),
-          let slug: ResourceSpecification.Slug = dataRow.slug.flatMap(ResourceSpecification.Slug.init(rawValue:)),
-          let name: String = dataRow.name
+          let id: ResourceType.ID = dataRow.id,
+          let slug: ResourceSpecification.Slug = dataRow.slug
         else {
           throw
             DatabaseDataInvalid
@@ -57,8 +55,7 @@ extension ResourceTypesFetchDatabaseOperation {
 
         return .init(
           id: id,
-          slug: slug,
-          name: name
+          slug: slug
         )
       }
   }

@@ -28,10 +28,10 @@ where TitleView: View, ContentView: View {
 
   private let title: () -> TitleView
   private let content: () -> ContentView
-  private let closeTap: () -> Void
+  private let closeTap: @MainActor () async -> Void
 
   public init(
-    closeTap: @escaping () -> Void,
+    closeTap: @escaping @MainActor () async -> Void,
     @ViewBuilder title: @escaping () -> TitleView,
     @ViewBuilder content: @escaping () -> ContentView
   ) {
@@ -50,9 +50,9 @@ where TitleView: View, ContentView: View {
           )
           .frame(height: 24)
 
-        Button(
+        AsyncButton(
           action: self.closeTap,
-          label: {
+          regularLabel: {
             Image(named: .close)
               .resizable()
               .frame(

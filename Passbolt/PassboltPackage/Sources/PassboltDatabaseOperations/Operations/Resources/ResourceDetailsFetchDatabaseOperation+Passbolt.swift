@@ -45,8 +45,7 @@ extension ResourceDetailsFetchDatabaseOperation {
           resources.username AS username,
           resources.description AS description,
           resourceTypes.id AS typeID,
-          resourceTypes.slug AS typeSlug,
-          resourceTypes.name AS typeName
+          resourceTypes.slug AS typeSlug
         FROM
           resources
         JOIN
@@ -254,14 +253,11 @@ extension ResourceDetailsFetchDatabaseOperation {
         using: selectResourceWithTypeStatement
       ) { (dataRow: SQLiteRow) throws -> Resource in
         guard
-          let id: Resource.ID = dataRow.id.flatMap(Resource.ID.init(rawValue:)),
+          let id: Resource.ID = dataRow.id,
           let name: String = dataRow.name,
-          let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:)),
-          let typeID: ResourceType.ID = dataRow.typeID.flatMap(ResourceType.ID.init(rawValue:)),
-          let typeSlug: ResourceSpecification.Slug = dataRow.typeSlug.flatMap(
-            ResourceSpecification.Slug.init(rawValue:)
-          ),
-          let typeName: String = dataRow.typeName
+          let permission: Permission = dataRow.permission,
+          let typeID: ResourceType.ID = dataRow.typeID,
+          let typeSlug: ResourceSpecification.Slug = dataRow.typeSlug
         else {
           throw
             DatabaseDataInvalid
@@ -275,8 +271,7 @@ extension ResourceDetailsFetchDatabaseOperation {
           favoriteID: dataRow.favoriteID.flatMap(Resource.Favorite.ID.init(rawValue:)),
           type: .init(
             id: typeID,
-            slug: typeSlug,
-            name: typeName
+            slug: typeSlug
           ),
           permission: permission,
           tags: tags,

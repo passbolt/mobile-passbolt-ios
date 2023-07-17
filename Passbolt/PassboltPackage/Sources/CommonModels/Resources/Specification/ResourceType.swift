@@ -32,7 +32,6 @@ public struct ResourceType {
   public typealias ComputedFieldPath = KeyPath<Resource, JSON>
 
   public let id: ID
-  public let name: String
   public let specification: ResourceSpecification
   public let orderedFields: OrderedSet<ResourceFieldSpecification>
   public let containsUndefinedFields: Bool
@@ -44,11 +43,9 @@ public struct ResourceType {
 
   public init(
     id: ID,
-    name: String,
     specification: ResourceSpecification
   ) {
     self.id = id
-    self.name = name
     self.specification = specification
     self.orderedFields = specification.metaFields
       .union(specification.secretFields)
@@ -178,8 +175,7 @@ public struct ResourceType {
 
   public init(
     id: ID,
-    slug: ResourceSpecification.Slug,
-    name: String
+    slug: ResourceSpecification.Slug
   ) {
     let specification: ResourceSpecification
     switch slug {
@@ -201,7 +197,6 @@ public struct ResourceType {
 
     self.init(
       id: id,
-      name: name,
       specification: specification
     )
   }
@@ -209,13 +204,11 @@ public struct ResourceType {
   public init(
     id: ID,
     slug: ResourceSpecification.Slug,
-    name: String,
     metaFields: OrderedSet<ResourceFieldSpecification>,
     secretFields: OrderedSet<ResourceFieldSpecification>
   ) {
     self.init(
       id: id,
-      name: name,
       specification: .init(
         slug: slug,
         metaFields: metaFields,
@@ -241,6 +234,37 @@ extension ResourceType {
     // or it was not available to parse and check,
     // it has to be the only element in secret specification
     self.secretPaths.count == 1 && self.secretPaths.contains(\.secret)
+  }
+
+  public var attachedOTPSlug: ResourceSpecification.Slug? {
+    // only types where we know how to add OTP are supported
+    switch self.specification.slug {
+    case .passwordWithDescription:
+      return .passwordWithTOTP
+
+    case .passwordWithTOTP:
+      return .passwordWithTOTP
+
+    case .totp:
+      return .totp
+
+    case _:
+      return .none
+    }
+  }
+
+  public var detachedOTPSlug: ResourceSpecification.Slug? {
+    // only types where we know how to remove OTP are supported
+    switch self.specification.slug {
+    case .passwordWithTOTP:
+      return .passwordWithDescription
+
+    case .totp:
+      return .none
+
+    case let slug:
+      return slug
+    }
   }
 
   public func validator(

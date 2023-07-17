@@ -121,7 +121,7 @@ extension ResourceFolderEditController {
       }
   }
 
-  internal final func setFolderName(
+  @Sendable nonisolated internal final func setFolderName(
     _ folderName: String
   ) {
     self.resourceFolderEditForm.setFolderName(folderName)

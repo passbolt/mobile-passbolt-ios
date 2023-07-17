@@ -28,6 +28,20 @@ import Resources
 
 internal final class OTPConfigurationScanningViewController: ViewController {
 
+  internal struct Context {
+
+    internal var totpPath: ResourceType.FieldPath
+    internal var showMessage: @MainActor (SnackBarMessage) -> Void
+
+    internal init(
+      totpPath: ResourceType.FieldPath,
+      showMessage: @escaping @MainActor (SnackBarMessage) -> Void
+    ) {
+      self.totpPath = totpPath
+      self.showMessage = showMessage
+    }
+  }
+
   internal struct ViewState: Equatable {
 
     internal var loading: Bool
@@ -37,31 +51,39 @@ internal final class OTPConfigurationScanningViewController: ViewController {
   internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private let asyncExecutor: AsyncExecutor
+
+  private let resourceEditForm: ResourceEditForm
+
   private let navigationToScanningSuccess: NavigationToOTPScanningSuccess
   private let navigationToSelf: NavigationToOTPScanning
   private let scanningState: CriticalState<ScanningState>
 
+  private let context: Context
+
   private let features: Features
 
   internal init(
-    context: Void,
+    context: Context,
     features: Features
   ) throws {
     try features.ensureScope(SessionScope.self)
-    self.features = features
+    try features.ensureScope(ResourceEditScope.self)
+    self.features = features.takeOwned()
+
+    self.context = context
 
     self.asyncExecutor = try features.instance()
+
     self.navigationToScanningSuccess = try features.instance()
     self.navigationToSelf = try features.instance()
     self.scanningState = .init(.idle)
+
+    self.resourceEditForm = try features.instance()
+
     self.viewState = .init(
       initial: .init(
         loading: false,
-        snackBarMessage: .info(
-          .localized(
-            key: "otp.create.code.scanning.initial.message"
-          )
-        )
+        snackBarMessage: "otp.code.scanning.initial.message"
       )
     )
   }
@@ -75,7 +97,7 @@ extension OTPConfigurationScanningViewController {
     case finished
   }
 
-  internal final func process(
+  @Sendable nonisolated internal func process(
     payload: String
   ) {
     guard self.scanningState.exchange(\.self, with: .processing, when: .idle)
@@ -91,17 +113,30 @@ extension OTPConfigurationScanningViewController {
       self.asyncExecutor.scheduleCatching(
         behavior: .reuse,
         identifier: #function
-      ) { [features, viewState, navigationToSelf, navigationToScanningSuccess] in
-        if features.checkScope(ResourceEditScope.self) {
+      ) { [viewState, context, resourceEditForm, navigationToSelf, navigationToScanningSuccess] in
+        resourceEditForm.update(context.totpPath, to: configuration.secret)
+        if try await resourceEditForm.state.current.isLocal {
+          resourceEditForm.update(\.nameField, to: configuration.account)
+          resourceEditForm.update(\.meta.uri, to: configuration.issuer)
+          resourceEditForm.update(\.secret.totp, to: configuration.secret)
+          try await navigationToScanningSuccess
+            .perform(
+              context: .init(
+                totpConfiguration: configuration,
+                showMessage: context.showMessage
+              )
+            )
+        }
+        else {
           await viewState
             .update(
               \.loading,
               to: true
             )
           do {
-            let resourceEditForm: ResourceEditForm = try await features.instance()
-            resourceEditForm.update(\.secret.totp, to: configuration.secret)
+            try await resourceEditForm.send()
             try await navigationToSelf.revert()
+            await context.showMessage("otp.create.otp.replaced.message")
           }
           catch {
             await viewState
@@ -111,9 +146,6 @@ extension OTPConfigurationScanningViewController {
               )
             throw error
           }
-        }
-        else {
-          try await navigationToScanningSuccess.perform(context: configuration)
         }
       }
     }

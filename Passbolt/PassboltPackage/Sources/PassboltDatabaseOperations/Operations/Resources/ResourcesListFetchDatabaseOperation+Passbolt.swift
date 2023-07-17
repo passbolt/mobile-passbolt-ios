@@ -66,6 +66,7 @@ extension ResourcesListFetchDatabaseOperation {
               )
             SELECT DISTINCT
               resources.id AS id,
+              resourceTypes.id AS typeID,
               resourceTypes.slug AS typeSlug,
               resources.parentFolderID AS parentFolderID,
               resources.name AS name,
@@ -92,6 +93,7 @@ extension ResourcesListFetchDatabaseOperation {
         statement = """
             SELECT
               resources.id AS id,
+              resourceTypes.id AS typeID,
               resourceTypes.slug AS typeSlug,
               resources.parentFolderID AS parentFolderID,
               resources.name AS name,
@@ -113,6 +115,7 @@ extension ResourcesListFetchDatabaseOperation {
       statement = """
           SELECT
             resources.id AS id,
+            resourceTypes.id AS typeID,
             resourceTypes.slug AS typeSlug,
             resources.parentFolderID AS parentFolderID,
             resources.name AS name,
@@ -435,10 +438,9 @@ extension ResourcesListFetchDatabaseOperation {
       try connection
       .fetch(using: statement) { dataRow -> ResourceListItemDSV in
         guard
-          let id: Resource.ID = dataRow.id.flatMap(Resource.ID.init(rawValue:)),
-          let typeSlug: ResourceSpecification.Slug = dataRow.typeSlug.flatMap(
-            ResourceSpecification.Slug.init(rawValue:)
-          ),
+          let id: Resource.ID = dataRow.id,
+          let typeID: ResourceType.ID = dataRow.typeID,
+          let typeSlug: ResourceSpecification.Slug = dataRow.typeSlug,
           let name: String = dataRow.name
         else {
           throw
@@ -453,7 +455,10 @@ extension ResourcesListFetchDatabaseOperation {
 
         return ResourceListItemDSV(
           id: id,
-          typeSlug: typeSlug,
+          type: .init(
+            id: typeID,
+            slug: typeSlug
+          ),
           parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:)),
           name: name,
           username: dataRow.username,

@@ -30,8 +30,7 @@ public struct FormLongTextFieldView: View {
   private let prompt: String?
   private let mandatory: Bool
   private let encrypted: Bool?
-  private let state: Validated<String>
-  private let update: @MainActor (String) -> Void
+  @Binding private var state: Validated<String>
   @FocusState private var focused: Bool
   @State private var editing: Bool = false
 
@@ -40,15 +39,13 @@ public struct FormLongTextFieldView: View {
     prompt: DisplayableString? = nil,
     mandatory: Bool = false,
     encrypted: Bool? = .none,
-    state: Validated<String>,
-    update: @escaping @MainActor (String) -> Void
+    state: Binding<Validated<String>>
   ) {
     self.title = title.string()
     self.prompt = prompt?.string()
     self.mandatory = mandatory
     self.encrypted = encrypted
-    self.state = state
-    self.update = update
+    self._state = state
   }
 
   public var body: some View {
@@ -97,9 +94,11 @@ public struct FormLongTextFieldView: View {
       ZStack {
         SwiftUI.TextEditor(
           text: .init(
-            get: { self.state.value },
+            get: {
+              self.state.value
+            },
             set: { (newValue: String) in
-              self.update(newValue)
+              self.state.value = newValue
             }
           )
         )
@@ -203,18 +202,11 @@ internal struct FormLongFieldView_Previews: PreviewProvider {
   internal static var previews: some View {
     ScrollView {
       VStack(spacing: 8) {
-        PreviewInputState { state, update in
+        PreviewInputState { state in
           FormLongTextFieldView(
             title: "Some field title",
             prompt: "editedText",
-            state: state,
-            update: { text in
-              update(text)
-              Task {
-                try await Task.sleep(nanoseconds: 500 * NSEC_PER_MSEC)
-                update(text)
-              }
-            }
+            state: state
           )
         }
 
@@ -222,105 +214,110 @@ internal struct FormLongFieldView_Previews: PreviewProvider {
           title: "Some required",
           prompt: "editedText",
           mandatory: true,
-          state: .valid("edited"),
-          update: { _ in }
+          state: .constant(
+            .valid("edited")
+          )
         )
 
         FormLongTextFieldView(
           title: "Some required",
           prompt: "editedText",
           mandatory: true,
-          state: .invalid(
-            "invalidText",
-            error:
-              InvalidValue
-              .error(
-                validationRule: "PREVIEW",
-                value: "VALUE",
-                displayable: "invalid value"
-              )
-          ),
-          update: { _ in }
+          state: .constant(
+            .invalid(
+              "invalidText",
+              error:
+                InvalidValue
+                .error(
+                  validationRule: "PREVIEW",
+                  value: "VALUE",
+                  displayable: "invalid value"
+                )
+            )
+          )
         )
 
         FormLongTextFieldView(
           title: "Some accessory",
           encrypted: true,
-          state: .invalid(
-            "invalidText",
-            error:
-              InvalidValue
-              .error(
-                validationRule: "PREVIEW",
-                value: "VALUE",
-                displayable: "invalid value"
-              )
-          ),
-          update: { _ in }
+          state: .constant(
+            .invalid(
+              "invalidText",
+              error:
+                InvalidValue
+                .error(
+                  validationRule: "PREVIEW",
+                  value: "VALUE",
+                  displayable: "invalid value"
+                )
+            )
+          )
         )
 
         FormLongTextFieldView(
           title: "Some accessory",
           encrypted: false,
-          state: .valid(""),
-          update: { _ in }
+          state: .constant(.valid(""))
         )
 
         FormLongTextFieldView(
           prompt: "accessory with no name",
           encrypted: true,
-          state: .valid(""),
-          update: { _ in }
+          state: .constant(.valid(""))
         )
 
         FormLongTextFieldView(
-          state: .valid(
-            "valid value with some long message displayed to see how it goes when message is really long and will start line breaking with even more than two lines"
-          ),
-          update: { _ in }
+          state: .constant(
+            .valid(
+              "valid value with some long message displayed to see how it goes when message is really long and will start line breaking with even more than two lines"
+            )
+          )
         )
 
         FormLongTextFieldView(
           prompt: "emptyInvalidText",
-          state: .invalid(
-            "",
-            error:
-              InvalidValue
-              .empty(
-                value: "",
-                displayable: "empty"
-              )
-          ),
-          update: { _ in }
+          state: .constant(
+            .invalid(
+              "",
+              error:
+                InvalidValue
+                .empty(
+                  value: "",
+                  displayable: "empty"
+                )
+            )
+          )
         )
 
         FormLongTextFieldView(
-          state: .invalid(
-            "invalidText",
-            error:
-              InvalidValue
-              .error(
-                validationRule: "PREVIEW",
-                value: "VALUE",
-                displayable: "invalid value"
-              )
-          ),
-          update: { _ in }
+          state: .constant(
+            .invalid(
+              "invalidText",
+              error:
+                InvalidValue
+                .error(
+                  validationRule: "PREVIEW",
+                  value: "VALUE",
+                  displayable: "invalid value"
+                )
+            )
+          )
         )
 
         FormLongTextFieldView(
-          state: .invalid(
-            "invalidLongText",
-            error:
-              InvalidValue
-              .error(
-                validationRule: "PREVIEW",
-                value: "VALUE",
-                displayable:
-                  "invalid value with some long message displayed to see how it goes when message is really long and will start line breaking with even more than two lines"
-              )
-          ),
-          update: { _ in }
+          state: .constant(
+            .invalid(
+              "invalidLongText",
+              error:
+                InvalidValue
+                .error(
+                  validationRule: "PREVIEW",
+                  value: "VALUE",
+                  displayable:
+                    "invalid value with some long message displayed to see how it goes when message is really long and will start line breaking with even more than two lines"
+                )
+            )
+          )
         )
       }
       .padding(8)

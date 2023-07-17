@@ -21,31 +21,24 @@
 // @since         v1.0
 //
 
-import Display
-import FeatureScopes
+import Database
 
-internal enum TOTPAttachSelectionListNavigationDestination: NavigationDestination {
+// swift-format-ignore: AlwaysUseLowerCamelCase
+extension SQLiteMigration {
 
-  internal typealias TransitionContext = TOTPAttachSelectionListViewController.Context
-}
-
-internal typealias NavigationToTOTPAttachSelectionList = NavigationTo<TOTPAttachSelectionListNavigationDestination>
-
-extension NavigationToTOTPAttachSelectionList {
-
-  fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
-      to: TOTPAttachSelectionListView.self
-    )
-  }
-}
-
-extension FeaturesRegistry {
-
-  internal mutating func useLiveNavigationToTOTPAttachSelectionList() {
-    self.use(
-      NavigationToTOTPAttachSelectionList.live,
-      in: SessionScope.self
-    )
+  internal static var migration_16: Self {
+    [
+      // remove name from resource types
+      """
+      			ALTER TABLE
+      				resourceTypes
+      			DROP COLUMN
+      				name;
+      			""",
+      // - version bump - //
+      """
+      			PRAGMA user_version = 17; -- persistent, used to track schema version
+      			""",
+    ]
   }
 }

@@ -24,27 +24,27 @@
 import Display
 import FeatureScopes
 
-internal enum TOTPEditFormNavigationDestination: NavigationDestination {
+internal enum ResourceOTPDeleteAlertNavigationDestination: NavigationDestination {
 
-  internal typealias TransitionContext = TOTPEditFormViewController.Context
+  internal typealias TransitionContext = ResourceOTPDeleteAlertController.Context
 }
 
-internal typealias NavigationToTOTPEditForm = NavigationTo<TOTPEditFormNavigationDestination>
+internal typealias NavigationToResourceOTPDeleteAlert = NavigationTo<ResourceOTPDeleteAlertNavigationDestination>
 
-extension NavigationToTOTPEditForm {
+extension NavigationToResourceOTPDeleteAlert {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
-      to: TOTPEditFormView.self
+    legacyAlertPresentationTransition(
+      using: ResourceOTPDeleteAlertController.self
     )
   }
 }
 
 extension FeaturesRegistry {
 
-  internal mutating func useLiveNavigationToTOTPEditForm() {
+  internal mutating func useLiveNavigationToResourceOTPDeleteAlert() {
     self.use(
-      NavigationToTOTPEditForm.live,
+      NavigationToResourceOTPDeleteAlert.live,
       in: SessionScope.self
     )
   }

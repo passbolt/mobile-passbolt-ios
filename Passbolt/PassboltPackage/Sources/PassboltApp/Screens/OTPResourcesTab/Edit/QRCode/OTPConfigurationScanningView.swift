@@ -56,9 +56,7 @@ internal struct OTPConfigurationScanningView: ControlledView {
       .loader(visible: loading)
     }
     .navigationTitle(
-      displayable: .localized(
-        key: "otp.create.code.scanning.title"
-      )
+      displayable: "otp.code.scanning.title"
     )
   }
 }

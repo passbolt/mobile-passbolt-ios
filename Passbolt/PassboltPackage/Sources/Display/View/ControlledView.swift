@@ -127,6 +127,64 @@ extension ControlledView {
     )
   }
 
+  @MainActor public func optionalBinding<Value>(
+    to keyPath: WritableKeyPath<ViewState, Value?>,
+    default: Value,
+    updating setter: @escaping @MainActor (Value) -> Void
+  ) -> Binding<Value> {
+    self.controller.optionalBinding(
+      to: keyPath,
+      default: `default`,
+      updating: setter
+    )
+  }
+
+  @MainActor public func validatedBinding<Value>(
+    to keyPath: WritableKeyPath<ViewState, Validated<Value>>,
+    updating setter: @escaping @MainActor (Value) -> Void
+  ) -> Binding<Validated<Value>> {
+    self.controller.validatedBinding(
+      to: keyPath,
+      updating: setter
+    )
+  }
+
+  @MainActor public func validatedOptionalBinding<Value>(
+    to keyPath: WritableKeyPath<ViewState, Validated<Value>?>,
+    default: Validated<Value>,
+    updating setter: @escaping @MainActor (Value) -> Void
+  ) -> Binding<Validated<Value>> {
+    self.controller.validatedOptionalBinding(
+      to: keyPath,
+      default: `default`,
+      updating: setter
+    )
+  }
+
+  @MainActor public func validatedOptionalBinding<MidValue, Value>(
+    to nestedKeyPath: WritableKeyPath<MidValue, Validated<Value>>,
+    in keyPath: WritableKeyPath<ViewState, MidValue?>,
+    default: Validated<Value>,
+    updating setter: @escaping @MainActor (Value) -> Void
+  ) -> Binding<Validated<Value>> {
+    self.controller.validatedOptionalBinding(
+      to: nestedKeyPath,
+      in: keyPath,
+      default: `default`,
+      updating: setter
+    )
+  }
+
+  @MainActor public func validatedBinding<Value, Tag>(
+    to keyPath: WritableKeyPath<ViewState, Validated<Tagged<Value, Tag>>>,
+    updating setter: @escaping @MainActor (Tagged<Value, Tag>) -> Void
+  ) -> Binding<Validated<Value>> {
+    self.controller.validatedBinding(
+      to: keyPath,
+      updating: setter
+    )
+  }
+
   @MainActor public func binding<Value>(
     to keyPath: WritableKeyPath<ViewState, Value>
   ) -> Binding<Value> {

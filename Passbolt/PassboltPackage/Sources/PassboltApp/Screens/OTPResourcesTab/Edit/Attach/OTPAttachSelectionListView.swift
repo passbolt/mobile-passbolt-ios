@@ -24,12 +24,12 @@
 import Display
 import UICommons
 
-internal struct TOTPAttachSelectionListView: ControlledView {
+internal struct OTPAttachSelectionListView: ControlledView {
 
-  internal let controller: TOTPAttachSelectionListViewController
+  internal let controller: OTPAttachSelectionListViewController
 
   internal init(
-    controller: TOTPAttachSelectionListViewController
+    controller: OTPAttachSelectionListViewController
   ) {
     self.controller = controller
   }

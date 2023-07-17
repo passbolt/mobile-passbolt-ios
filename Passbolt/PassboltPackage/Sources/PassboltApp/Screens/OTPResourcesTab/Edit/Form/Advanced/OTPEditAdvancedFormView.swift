@@ -24,12 +24,12 @@
 import Display
 import UICommons
 
-internal struct TOTPEditAdvancedFormView: ControlledView {
+internal struct OTPEditAdvancedFormView: ControlledView {
 
-  internal let controller: TOTPEditAdvancedFormController
+  internal let controller: OTPEditAdvancedFormViewController
 
   internal init(
-    controller: TOTPEditAdvancedFormController
+    controller: OTPEditAdvancedFormViewController
   ) {
     self.controller = controller
   }
@@ -61,10 +61,14 @@ internal struct TOTPEditAdvancedFormView: ControlledView {
         FormTextFieldView(
           title: "otp.edit.form.field.period.title",
           mandatory: true,
-          state: state,
-          update: { (string: String) in
-            self.controller.setPeriod(string)
-          },
+          state: self.validatedBinding(
+            to: \.period,
+            updating: { (newValue: String) in
+              withAnimation {
+                self.controller.setPeriod(newValue)
+              }
+            }
+          ),
           accessory: {
             Text(displayable: "otp.edit.form.field.period.label")
               .text(
@@ -92,10 +96,14 @@ internal struct TOTPEditAdvancedFormView: ControlledView {
         FormTextFieldView(
           title: "otp.edit.form.field.digits.title",
           mandatory: true,
-          state: state,
-          update: { (string: String) in
-            self.controller.setDigits(string)
-          },
+          state: self.binding(
+            to: \.digits,
+            updating: { (newValue: Validated<String>) in
+              withAnimation {
+                self.controller.setDigits(newValue.value)
+              }
+            }
+          ),
           accessory: {
             Text(displayable: "otp.edit.form.field.digits.label")
               .text(

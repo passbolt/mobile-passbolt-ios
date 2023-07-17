@@ -24,12 +24,12 @@
 import Display
 import UICommons
 
-internal struct OTPCreateMenuView: ControlledView {
+internal struct ResourceOTPEditMenuView: ControlledView {
 
-  internal let controller: OTPCreateMenuController
+  internal let controller: ResourceOTPEditMenuViewController
 
   internal init(
-    controller: OTPCreateMenuController
+    controller: ResourceOTPEditMenuViewController
   ) {
     self.controller = controller
   }
@@ -39,20 +39,18 @@ internal struct OTPCreateMenuView: ControlledView {
       closeTap: self.controller.dismiss,
       title: {
         Text(
-          displayable: .localized(
-            key: "otp.create.menu.title"
-          )
+          displayable: self.controller.creatingNew
+            ? "otp.edit.menu.create.title"
+            : "otp.edit.menu.edit.title"
         )
       },
       content: {
         VStack(spacing: 0) {
           DrawerMenuItemView(
-            action: self.controller.createFromQRCode,
+            action: self.controller.editFromQRCode,
             title: {
               Text(
-                displayable: .localized(
-                  key: "otp.create.menu.scanning.title"
-                )
+                displayable: "otp.edit.menu.scanning.title"
               )
             },
             leftIcon: {
@@ -62,12 +60,12 @@ internal struct OTPCreateMenuView: ControlledView {
           )
 
           DrawerMenuItemView(
-            action: self.controller.createManually,
+            action: self.controller.editManually,
             title: {
               Text(
-                displayable: .localized(
-                  key: "otp.create.menu.manual.title"
-                )
+                displayable: self.controller.creatingNew
+                  ? "otp.edit.menu.create.manual.title"
+                  : "otp.edit.menu.edit.manual.title"
               )
             },
             leftIcon: {

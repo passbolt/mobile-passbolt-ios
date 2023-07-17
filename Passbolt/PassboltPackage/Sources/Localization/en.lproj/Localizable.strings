@@ -243,14 +243,16 @@
 "resource.menu.item.remove.favorite" = "Remove from favorite";
 "resource.menu.item.share" = "Share password";
 "resource.menu.item.edit.password" = "Edit password";
-"resource.menu.item.edit.totp" = "Edit TOTP";
-"resource.menu.item.delete" = "Delete password";
+"resource.menu.item.add.otp" = "Add TOTP";
+"resource.menu.item.edit.otp" = "Edit TOTP";
+"resource.menu.item.otp.menu" = "Manage TOTP";
+"resource.menu.item.delete.resource" = "Delete password";
+"resource.menu.item.delete.otp" = "Delete OTP";
 "resource.menu.item.password" = "Password";
 "resource.menu.item.username" = "Username";
 "resource.menu.item.description" = "Description";
 "resource.menu.item.url" = "URL";
 "resource.menu.item.field.copied" = "%@ copied to your clipboard!";
-
 
 "resource" = "Resource";
 "resource.menu.action.favorite.added" = "%@ has been added to favorites!";
@@ -516,13 +518,19 @@ Contact your administrator for more information.";
 "otp.contextual.menu.delete.confirm.action.delete" = "Delete TOTP";
 "otp.contextual.menu.delete.succeeded" = "TOTP was deleted.";
 
-// OTP create menu
+// OTP edit menu
 
-"otp.create.menu.title" = "Create TOTP";
-"otp.create.menu.scanning.title" = "Scan QR code";
-"otp.create.menu.manual.title" = "Create TOTP manually";
-"otp.create.code.scanning.title" = "Scan QR code";
-"otp.create.code.scanning.initial.message" = "Aim the camera at the QR Codes";
+"otp.edit.menu.create.title" = "Create TOTP";
+"otp.edit.menu.edit.title" = "Edit TOTP";
+"otp.edit.menu.scanning.title" = "Scan QR code";
+"otp.edit.menu.create.manual.title" = "Create TOTP manually";
+"otp.edit.menu.edit.manual.title" = "Edit TOTP manually";
+"otp.edit.code.scanning.title" = "Edit TOTP manually";
+"otp.edit.code.scanning.initial.message" = "Scan QR code";
+"otp.edit.menu.title" = "Aim the camera at the QR Codes";
+"otp.edit.otp.created.message" = "TOTP has beed created.";
+"otp.edit.otp.replaced.message" = "TOTP has been replaced.";
+"otp.edit.otp.deleted.message" = "TOTP has been deleted.";
 
 // OTP scanning
 

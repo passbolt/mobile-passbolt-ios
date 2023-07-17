@@ -21,38 +21,31 @@
 // @since         v1.0
 //
 
-import Database
+import Display
+import FeatureScopes
 
-/// Operations executed on SQLite database opening.
-/// Useful to define database views which won't be persisted
-/// so editing it won't require migrations.
-internal enum SQLiteOpeningOperations {
+internal enum ResourceOTPEditMenuNavigationDestination: NavigationDestination {
 
-  public static var all: Array<SQLiteStatement> {
-    [
-      // - add resourceDetailsView - //
-      """
-      CREATE TEMPORARY VIEW
-        resourcesView
-      AS
-      SELECT
-        resources.id AS id,
-        resources.name AS name,
-        resources.favoriteID AS favoriteID,
-        resources.permission AS permission,
-        resources.uri AS uri,
-        resources.username AS username,
-        resources.description AS description,
-        resources.modified AS modified,
-        resourceTypes.id AS typeID,
-        resourceTypes.slug AS typeSlug
-      FROM
-        resources
-      JOIN
-        resourceTypes
-      ON
-        resources.typeID == resourceTypes.id;
-      """
-    ]
+  internal typealias TransitionContext = ResourceOTPEditMenuViewController.Context
+}
+
+internal typealias NavigationToResourceOTPEditMenu = NavigationTo<ResourceOTPEditMenuNavigationDestination>
+
+extension NavigationToResourceOTPEditMenu {
+
+  fileprivate static var live: FeatureLoader {
+    legacyPartialSheetPresentationTransition(
+      to: ResourceOTPEditMenuView.self
+    )
+  }
+}
+
+extension FeaturesRegistry {
+
+  internal mutating func useLiveNavigationToResourceOTPEditMenu() {
+    self.use(
+      NavigationToResourceOTPEditMenu.live,
+      in: SessionScope.self
+    )
   }
 }

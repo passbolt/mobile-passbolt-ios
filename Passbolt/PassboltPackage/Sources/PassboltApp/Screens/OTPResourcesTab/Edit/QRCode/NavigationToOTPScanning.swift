@@ -45,7 +45,7 @@ extension FeaturesRegistry {
   internal mutating func useLiveNavigationToOTPScanning() {
     self.use(
       NavigationToOTPScanning.live,
-      in: SessionScope.self
+      in: ResourceEditScope.self
     )
   }
 }

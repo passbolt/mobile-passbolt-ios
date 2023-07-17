@@ -30,8 +30,7 @@ where Accessory: View {
   private let title: DisplayableString
   private let prompt: DisplayableString?
   private let mandatory: Bool
-  private let state: Validated<String>
-  private let update: @MainActor (String) -> Void
+  @Binding private var state: Validated<String>
   private let accessory: () -> Accessory
   @FocusState private var focused: Bool
   @State private var editing: Bool = false
@@ -41,14 +40,12 @@ where Accessory: View {
     title: DisplayableString = .raw(""),
     prompt: DisplayableString? = nil,
     mandatory: Bool = false,
-    state: Validated<String>,
-    update: @escaping @MainActor (String) -> Void
+    state: Binding<Validated<String>>
   ) where Accessory == EmptyView {
     self.title = title
     self.prompt = prompt
     self.mandatory = mandatory
-    self.state = state
-    self.update = update
+    self._state = state
     self.accessory = EmptyView.init
   }
 
@@ -56,15 +53,13 @@ where Accessory: View {
     title: DisplayableString = .raw(""),
     prompt: DisplayableString? = nil,
     mandatory: Bool = false,
-    state: Validated<String>,
-    update: @escaping @MainActor (String) -> Void,
+    state: Binding<Validated<String>>,
     @ViewBuilder accessory: @escaping () -> Accessory
   ) {
     self.title = title
     self.prompt = prompt
     self.mandatory = mandatory
-    self.state = state
-    self.update = update
+    self._state = state
     self.accessory = accessory
   }
 
@@ -191,9 +186,11 @@ where Accessory: View {
       SwiftUI.SecureField(
         title.string(),
         text: .init(
-          get: { self.state.value },
+          get: {
+            self.state.value
+          },
           set: { (newValue: String) in
-            self.update(newValue)
+            self.state.value = newValue
           }
         ),
         prompt: self.prompt
@@ -216,9 +213,11 @@ where Accessory: View {
       SwiftUI.TextField(
         title.string(),
         text: .init(
-          get: { self.state.value },
+          get: {
+            self.state.value
+          },
           set: { (newValue: String) in
-            self.update(newValue)
+            self.state.value = newValue
           }
         ),
         prompt: self.prompt
@@ -246,28 +245,28 @@ internal struct SecureFormTextFieldView_Previews: PreviewProvider {
 
   internal static var previews: some View {
     VStack(spacing: 8) {
-      PreviewInputState { state, update in
+      PreviewInputState { state in
         FormSecureTextFieldView(
           title: "Some field title",
           prompt: "editedText",
-          state: state,
-          update: update
+          state: state
         )
       }
 
       FormSecureTextFieldView(
         title: "Some accessory",
-        state: .invalid(
-          "invalidText",
-          error:
-            InvalidValue
-            .error(
-              validationRule: "PREVIEW",
-              value: "VALUE",
-              displayable: "invalid value"
-            )
+        state: .constant(
+          .invalid(
+            "invalidText",
+            error:
+              InvalidValue
+              .error(
+                validationRule: "PREVIEW",
+                value: "VALUE",
+                displayable: "invalid value"
+              )
+          )
         ),
-        update: { _ in },
         accessory: {
           Button(
             action: {},
@@ -283,18 +282,19 @@ internal struct SecureFormTextFieldView_Previews: PreviewProvider {
       )
 
       FormSecureTextFieldView(
-        state: .invalid(
-          "invalidLongText",
-          error:
-            InvalidValue
-            .error(
-              validationRule: "PREVIEW",
-              value: "VALUE",
-              displayable:
-                "invalid value with some long message displayed to see how it goes when message is really long and will start line breaking with even more than two lines"
-            )
-        ),
-        update: { _ in }
+        state: .constant(
+          .invalid(
+            "invalidLongText",
+            error:
+              InvalidValue
+              .error(
+                validationRule: "PREVIEW",
+                value: "VALUE",
+                displayable:
+                  "invalid value with some long message displayed to see how it goes when message is really long and will start line breaking with even more than two lines"
+              )
+          )
+        )
       )
     }
     .padding(8)

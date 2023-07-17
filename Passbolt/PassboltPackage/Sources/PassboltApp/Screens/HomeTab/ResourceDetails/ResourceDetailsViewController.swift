@@ -163,9 +163,21 @@ extension ResourceDetailsViewController {
           viewState.update(\.snackBarMessage, to: .error(error))
         }
       ) {
+        let revealOTPAction: (@MainActor () async -> Void)?
+        let resource: Resource = try await self.resourceController.state.current
+        if let totpPath: ResourceType.FieldPath = resource.firstTOTPPath {
+          revealOTPAction = { [weak self] in
+            await self?.revealFieldValue(path: totpPath)
+          }
+        }
+        else {
+          revealOTPAction = .none
+        }
+
         try await self.navigationToResourceContextualMenu
           .perform(
             context: .init(
+              revealOTP: revealOTPAction,
               showMessage: { [viewState] (message: SnackBarMessage?) in
                 viewState.update(\.snackBarMessage, to: message)
               }

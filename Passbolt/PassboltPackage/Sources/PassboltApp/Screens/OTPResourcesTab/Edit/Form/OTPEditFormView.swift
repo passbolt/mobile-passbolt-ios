@@ -24,73 +24,77 @@
 import Display
 import UICommons
 
-internal struct TOTPEditFormView: ControlledView {
+internal struct OTPEditFormView: ControlledView {
 
-  internal let controller: TOTPEditFormViewController
+  internal let controller: OTPEditFormViewController
 
   internal init(
-    controller: TOTPEditFormViewController
+    controller: OTPEditFormViewController
   ) {
     self.controller = controller
   }
 
   internal var body: some View {
-    withSnackBarMessage(\.snackBarMessage) {
-      VStack(spacing: 0) {
-        ScrollView {
-          VStack(spacing: 16) {
-            self.nameField
-            self.uriField
-            self.secretField
-            self.advancedLink
+    with(\.isEditing) { (isEditing: Bool) in
+      withSnackBarMessage(\.snackBarMessage) {
+        VStack(spacing: 0) {
+          ScrollView {
+            VStack(spacing: 16) {
+              self.nameField
+              self.uriField
+              self.secretField
+              self.advancedLink
+            }
           }
+
+          Spacer()
+
+          self.sendForm(editng: isEditing)
         }
-
-        Spacer()
-
-        self.sendForm
+        .padding(16)
+        .frame(maxHeight: .infinity)
       }
-      .padding(16)
-      .frame(maxHeight: .infinity)
+      .navigationTitle(
+        displayable: isEditing
+          ? "otp.edit.form.edit.title"
+          : "otp.edit.form.create.title"
+      )
     }
-    .navigationTitle(
-      displayable: self.controller.isEditing
-        ? "otp.edit.form.edit.title"
-        : "otp.edit.form.create.title"
-    )
   }
 
   @MainActor @ViewBuilder internal var nameField: some View {
-    WithViewState(
-      from: self.controller,
-      at: \.nameField
-    ) { (state: Validated<String>) in
+    with(\.nameField) { (state: Validated<String>) in
       FormTextFieldView(
         title: "otp.edit.form.field.name.title",
         prompt: "otp.edit.form.field.name.prompt",
         mandatory: true,
-        state: state,
-        update: { (value: String) in
-          self.controller.setName(value)
-        }
+        state: self.validatedBinding(
+          to: \.nameField,
+          updating: { (newValue: String) in
+            withAnimation {
+              self.controller.setName(newValue)
+            }
+          }
+        )
       )
       .textInputAutocapitalization(.sentences)
     }
   }
 
   @MainActor @ViewBuilder internal var uriField: some View {
-    WithViewState(
-      from: self.controller,
-      at: \.uriField
-    ) { (state: Validated<String>) in
+    with(\.uriField) { (state: Validated<String>) in
       FormTextFieldView(
         title: "otp.edit.form.field.uri.title",
         prompt: "otp.edit.form.field.uri.prompt",
         mandatory: false,
-        state: state,
-        update: { (value: String) in
-          self.controller.setURI(value)
-        }
+        state: self.binding(
+          to: \.uriField,
+          updating: { (newValue: Validated<String>) in
+            withAnimation {
+              self.controller.setURI(newValue.value)
+            }
+          }
+        )
       )
       .textInputAutocapitalization(.never)
       .autocorrectionDisabled()
@@ -98,18 +102,19 @@ internal struct TOTPEditFormView: ControlledView {
   }
 
   @MainActor @ViewBuilder internal var secretField: some View {
-    WithViewState(
-      from: self.controller,
-      at: \.secretField
-    ) { (state: Validated<String>) in
+    with(\.secretField) { (state: Validated<String>) in
       FormTextFieldView(
         title: "otp.edit.form.field.secret.title",
         prompt: "otp.edit.form.field.secret.prompt",
         mandatory: true,
-        state: state,
-        update: { (value: String) in
-          self.controller.setSecret(value)
-        }
+        state: self.validatedBinding(
+          to: \.secretField,
+          updating: { (newValue: String) in
+            withAnimation {
+              self.controller.setSecret(newValue)
+            }
+          }
+        )
       )
       .textInputAutocapitalization(.never)
       .autocorrectionDisabled()
@@ -124,22 +129,24 @@ internal struct TOTPEditFormView: ControlledView {
     )
   }
 
-  @MainActor @ViewBuilder internal var sendForm: some View {
-    if self.controller.isEditing {
+  @MainActor @ViewBuilder internal func sendForm(
+    editng isEditing: Bool
+  ) -> some View {
+    if isEditing {
       PrimaryButton(
         title: "otp.edit.form.edit.button.title",
-        action: self.controller.createStandaloneOTP
+        action: self.controller.createOrUpdateOTP
       )
     }
     else {
       VStack(spacing: 8) {
         PrimaryButton(
           title: "otp.edit.form.create.button.title",
-          action: self.controller.createStandaloneOTP
+          action: self.controller.createOrUpdateOTP
         )
         SecondaryButton(
           title: "otp.scanning.success.link.button.title",
-          action: self.controller.updateExistingResource
+          action: self.controller.selectResourceToAttach
         )
       }
     }

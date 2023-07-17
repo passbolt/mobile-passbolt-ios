@@ -39,17 +39,11 @@ internal struct OTPResourcesListView: ControlledView {
       titleIcon: .otp,
       title: "otp.resources.list.title",
       contentView: {
-        WithViewState(
-          from: self.controller,
-          at: \.snackBarMessage
-        ) { _ in
+        withSnackBarMessage(\.snackBarMessage) {
           VStack(spacing: 0) {
             self.search
             self.list
           }
-          .snackBarMessage(
-            with: self.binding(to: \.snackBarMessage)
-          )
         }
       }
     )
@@ -98,6 +92,7 @@ internal struct OTPResourcesListView: ControlledView {
               width: 40,
               height: 40
             )
+            .foregroundColor(Color.passboltPrimaryBlue)
 
           Text(
             displayable: .localized(
@@ -118,7 +113,6 @@ internal struct OTPResourcesListView: ControlledView {
         }
       }
     )
-    .foregroundColor(Color.passboltPrimaryBlue)
     .frame(
       maxWidth: .infinity,
       alignment: .leading

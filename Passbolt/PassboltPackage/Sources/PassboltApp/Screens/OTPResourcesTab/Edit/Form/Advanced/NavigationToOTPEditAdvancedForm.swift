@@ -24,27 +24,27 @@
 import Display
 import FeatureScopes
 
-internal enum TOTPEditAdvancedFormNavigationDestination: NavigationDestination {
+internal enum OTPEditAdvancedFormNavigationDestination: NavigationDestination {
 
-  internal typealias TransitionContext = TOTPEditAdvancedFormController.Context
+  internal typealias TransitionContext = OTPEditAdvancedFormViewController.Context
 }
 
-internal typealias NavigationToTOTPEditAdvancedForm = NavigationTo<TOTPEditAdvancedFormNavigationDestination>
+internal typealias NavigationToOTPEditAdvancedForm = NavigationTo<OTPEditAdvancedFormNavigationDestination>
 
-extension NavigationToTOTPEditAdvancedForm {
+extension NavigationToOTPEditAdvancedForm {
 
   fileprivate static var live: FeatureLoader {
     legacyPushTransition(
-      to: TOTPEditAdvancedFormView.self
+      to: OTPEditAdvancedFormView.self
     )
   }
 }
 
 extension FeaturesRegistry {
 
-  internal mutating func useLiveNavigationToTOTPEditAdvancedForm() {
+  internal mutating func useLiveNavigationToOTPEditAdvancedForm() {
     self.use(
-      NavigationToTOTPEditAdvancedForm.live,
+      NavigationToOTPEditAdvancedForm.live,
       in: ResourceEditScope.self
     )
   }

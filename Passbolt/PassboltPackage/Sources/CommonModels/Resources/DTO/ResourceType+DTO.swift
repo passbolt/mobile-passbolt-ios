@@ -32,7 +32,6 @@ extension ResourceTypeDTO: Decodable {
   ) throws {
     let container: KeyedDecodingContainer<ResourceTypeDTO.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
     let id: ResourceType.ID = try container.decode(ResourceType.ID.self, forKey: .id)
-    let name: String = try container.decode(String.self, forKey: .name)
     let slug: ResourceSpecification.Slug = try container.decode(ResourceSpecification.Slug.self, forKey: .slug)
 
     // [MOB-1283] In order to make grade D we can use hardcoded types.
@@ -62,7 +61,6 @@ extension ResourceTypeDTO: Decodable {
 
     self.init(
       id: id,
-      name: name,
       specification: specification
     )
   }
@@ -70,7 +68,6 @@ extension ResourceTypeDTO: Decodable {
   private enum CodingKeys: String, CodingKey {
 
     case id = "id"
-    case name = "name"
     case slug = "slug"
   }
 }

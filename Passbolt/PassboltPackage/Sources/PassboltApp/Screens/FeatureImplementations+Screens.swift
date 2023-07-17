@@ -52,13 +52,17 @@ extension FeaturesRegistry {
     self.useLiveNavigationToOTPResourcesTab()
     self.useLiveNavigationToOTPResourcesList()
 
+    // MARK: - OTP menu
+    self.useLiveNavigationToResourceOTPContextualMenu()
+    self.useLiveNavigationToResourceOTPDeleteAlert()
+
     // MARK: - OTP create menu
-    self.useLiveNavigationToOTPCreateMenu()
+    self.useLiveNavigationToResourceOTPEditMenu()
     self.useLiveNavigationToOTPScanning()
     self.useLiveNavigationToOTPScanningSuccess()
-    self.useLiveNavigationToTOTPEditForm()
-    self.useLiveNavigationToTOTPEditAdvancedForm()
-    self.useLiveNavigationToTOTPAttachSelectionList()
+    self.useLiveNavigationToOTPEditForm()
+    self.useLiveNavigationToOTPEditAdvancedForm()
+    self.useLiveNavigationToOTPAttachSelectionList()
 
     // MARK: - Settings Tab
     self.useLiveNavigationToTroubleshootingSettings()

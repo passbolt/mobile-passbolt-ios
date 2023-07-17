@@ -26,7 +26,7 @@ import FeatureScopes
 import OSFeatures
 import Resources
 
-internal struct ResourceDeleteAlertController: AlertController {
+internal struct ResourceOTPDeleteAlertController: AlertController {
 
   internal struct Context {
     internal var resourceID: Resource.ID
@@ -45,29 +45,66 @@ internal struct ResourceDeleteAlertController: AlertController {
       features.branchIfNeeded(
         scope: ResourceDetailsScope.self,
         context: context.resourceID
-      ) ?? features
+      ) ?? features.takeOwned()
 
     let resourceController: ResourceController = try features.instance()
 
-    self.title = "generic.are.you.sure"
-    self.message = .none
+    func deleteOTP() async {
+      do {
+        let resource: Resource = try await resourceController.state.current
+        if resource.type.specification.slug == .totp {
+          // for standalone TOTP we delete the resource
+          try await resourceController.delete()
+        }
+        else if let detachedOTPSlug: ResourceSpecification.Slug = resource.detachedOTPSlug {
+          let resourceEditPreparation: ResourceEditPreparation = try features.instance()
+          let editingContext = try await resourceEditPreparation.prepareExisting(context.resourceID)
+
+          guard
+            let detachedType: ResourceType = editingContext.availableTypes.first(where: { type in
+              type.specification.slug == detachedOTPSlug
+            })
+          else {
+            throw
+              InvalidResourceType
+              .error(message: "Attempting to detach OTP from a resource which has none or unavailable detached type!")
+          }
+          let features: Features =
+            features.branchIfNeeded(
+              scope: ResourceEditScope.self,
+              context: editingContext
+            ) ?? features
+
+          let resourceEditForm: ResourceEditForm = try features.instance()
+          try resourceEditForm.updateType(detachedType)
+          try await resourceEditForm.send()
+        }
+        else {
+          throw
+            InvalidResourceType
+            .error(message: "Attempting to delete OTP in a resource without OTP delete action supported!")
+        }
+
+        context.showMessage("otp.create.otp.deleted.message")
+      }
+      catch {
+        error.logAndShow(using: context.showMessage)
+      }
+    }
+
+    self.title = "otp.contextual.menu.delete.confirm.title"
+    self.message = "otp.contextual.menu.delete.confirm.message"
     self.actions = [
       .init(
         title: "generic.cancel",
         role: .cancel
       ),
       .init(
-        title: "generic.confirm",
+        title: "otp.contextual.menu.delete.confirm.action.delete",
         role: .destructive,
         action: {
           Task(priority: .userInitiated) { @MainActor in
-            do {
-              try await resourceController.delete()
-              context.showMessage("resource.delete.succeeded")
-            }
-            catch {
-              error.logAndShow(using: context.showMessage)
-            }
+            await deleteOTP()
           }
         }
       ),

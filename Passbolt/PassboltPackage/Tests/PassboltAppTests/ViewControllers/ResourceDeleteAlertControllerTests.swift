@@ -35,9 +35,8 @@ final class ResourceDeleteAlertControllerTests: FeaturesTestCase {
       with: alwaysThrow(MockIssue.error())
     )
     let tested: ResourceDeleteAlertController = try self.testedInstance(
-      context: (
+      context: .init(
         resourceID: .mock_1,
-        containsOTP: true,
         showMessage: { (message: SnackBarMessage) in
           self.dynamicVariables.message = message
         }
@@ -59,9 +58,8 @@ final class ResourceDeleteAlertControllerTests: FeaturesTestCase {
       with: always(Void())
     )
     let tested: ResourceDeleteAlertController = try self.testedInstance(
-      context: (
+      context: .init(
         resourceID: .mock_1,
-        containsOTP: true,
         showMessage: { (message: SnackBarMessage) in
           self.dynamicVariables.message = message
         }
@@ -73,6 +71,6 @@ final class ResourceDeleteAlertControllerTests: FeaturesTestCase {
 
     testedAction.action()
     await self.asyncExecutionControl.executeAll()
-    XCTAssertEqual(self.dynamicVariables.message, SnackBarMessage.info("otp.contextual.menu.delete.succeeded"))
+    XCTAssertEqual(self.dynamicVariables.message, SnackBarMessage.info("resource.delete.succeeded"))
   }
 }

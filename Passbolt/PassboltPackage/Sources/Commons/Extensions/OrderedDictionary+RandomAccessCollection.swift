@@ -21,28 +21,63 @@
 // @since         v1.0
 //
 
-import Display
-import FeatureScopes
+@preconcurrency import OrderedCollections
 
-internal enum OTPCreateMenuNavigationDestination: NavigationDestination {}
+public struct IdentifiedArray<Element: Identifiable> {
 
-internal typealias NavigationToOTPCreateMenu = NavigationTo<OTPCreateMenuNavigationDestination>
+  @usableFromInline internal var dictionary: OrderedDictionary<Element.ID, Element>
 
-extension NavigationToOTPCreateMenu {
-
-  fileprivate static var live: FeatureLoader {
-    legacyPartialSheetPresentationTransition(
-      to: OTPCreateMenuView.self
-    )
+  public init() {
+    self.dictionary = .init()
   }
 }
 
-extension FeaturesRegistry {
+extension IdentifiedArray: Sendable
+where Element: Sendable {}
 
-  internal mutating func useLiveNavigationToOTPCreateMenu() {
-    self.use(
-      NavigationToOTPCreateMenu.live,
-      in: SessionScope.self
-    )
+extension IdentifiedArray: Equatable
+where Element: Equatable {}
+
+extension IdentifiedArray: Hashable
+where Element: Hashable {}
+
+extension IdentifiedArray {
+
+  public subscript(
+    _ key: Element.ID
+  ) -> Element? {
+    @_transparent get { self.dictionary[key] }
+    @_transparent set { self.dictionary[key] = newValue }
+  }
+}
+
+extension IdentifiedArray: RandomAccessCollection {}
+
+extension IdentifiedArray: MutableCollection {
+
+  public subscript(
+    position: Int
+  ) -> Element {
+    @_transparent get {
+      self.dictionary[self.dictionary.keys[position]]!
+    }
+    @_transparent set {
+      self.dictionary[self.dictionary.keys[position]] = newValue
+    }
+  }
+
+  @_transparent
+  public var startIndex: Int {
+    self.dictionary.keys.startIndex
+  }
+
+  @_transparent
+  public var endIndex: Int {
+    self.dictionary.keys.endIndex
+  }
+
+  @_transparent
+  public func index(after i: Int) -> Int {
+    self.dictionary.keys.index(after: i)
   }
 }

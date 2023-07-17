@@ -32,8 +32,7 @@ where SupportActionView: View {
   private let username: String
   private let domain: String
   private let avatarImage: Data?
-  private var passphrase: Validated<String>
-  private let updatePassphrase: @MainActor (String) -> Void
+  private var passphrase: Binding<Validated<String>>
   private let mainActionLabel: DisplayableString
   private let mainAction: () -> Void
   private let biometricsAvailability: OSBiometryAvailability
@@ -45,8 +44,7 @@ where SupportActionView: View {
     username: String,
     domain: String,
     avatarImage: Data?,
-    passphrase: Validated<String>,
-    updatePassphrase: @escaping @MainActor (String) -> Void,
+    passphrase: Binding<Validated<String>>,
     mainActionLabel: DisplayableString,
     mainAction: @escaping () -> Void,
     biometricsAvailability: OSBiometryAvailability,
@@ -58,7 +56,6 @@ where SupportActionView: View {
     self.domain = domain
     self.avatarImage = avatarImage
     self.passphrase = passphrase
-    self.updatePassphrase = updatePassphrase
     self.mainActionLabel = mainActionLabel
     self.mainAction = mainAction
     self.biometricsAvailability = biometricsAvailability
@@ -106,8 +103,7 @@ where SupportActionView: View {
         ),
         prompt: "",
         mandatory: true,
-        state: self.passphrase,
-        update: self.updatePassphrase
+        state: self.passphrase
       )
       .padding(top: 16)
 
@@ -174,14 +170,13 @@ where SupportActionView: View {
 internal struct AuthView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    PreviewInputState { state, update in
+    PreviewInputState { state in
       AuthView(
         label: "AccountLabel",
         username: "user@passbolt.com",
         domain: "https://passbolt.com",
         avatarImage: .none,
         passphrase: state,
-        updatePassphrase: update,
         mainActionLabel: "MainAction",
         mainAction: {},
         biometricsAvailability: .faceID,

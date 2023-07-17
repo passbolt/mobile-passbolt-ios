@@ -26,16 +26,19 @@ import FeatureScopes
 import OSFeatures
 import Resources
 
-internal final class TOTPAttachSelectionListViewController: ViewController {
+internal final class OTPAttachSelectionListViewController: ViewController {
 
-  public struct Context {
+  internal struct Context {
 
-    public var totpSecret: TOTPSecret
+    internal var totpSecret: TOTPSecret
+    internal var showMessage: @MainActor (SnackBarMessage) -> Void
 
-    public init(
-      totpSecret: TOTPSecret
+    internal init(
+      totpSecret: TOTPSecret,
+      showMessage: @escaping @MainActor (SnackBarMessage) -> Void
     ) {
       self.totpSecret = totpSecret
+      self.showMessage = showMessage
     }
   }
 
@@ -56,14 +59,14 @@ internal final class TOTPAttachSelectionListViewController: ViewController {
 
   private struct LocalState: Equatable {
     fileprivate static func == (
-      _ lhs: TOTPAttachSelectionListViewController.LocalState,
-      _ rhs: TOTPAttachSelectionListViewController.LocalState
+      _ lhs: OTPAttachSelectionListViewController.LocalState,
+      _ rhs: OTPAttachSelectionListViewController.LocalState
     ) -> Bool {
       lhs.selected?.id == rhs.selected?.id
-        && lhs.selected?.slug == rhs.selected?.slug
+        && lhs.selected?.type == rhs.selected?.type
     }
 
-    fileprivate var selected: (id: Resource.ID, slug: ResourceSpecification.Slug)?
+    fileprivate var selected: (id: Resource.ID, type: ResourceType)?
   }
 
   private let localState: Variable<LocalState>
@@ -73,7 +76,7 @@ internal final class TOTPAttachSelectionListViewController: ViewController {
 
   private let navigationToOTPResourcesList: NavigationToOTPResourcesList
 
-  private let totpSecret: TOTPSecret
+  private let context: Context
 
   private let features: Features
 
@@ -85,7 +88,7 @@ internal final class TOTPAttachSelectionListViewController: ViewController {
 
     self.features = features
 
-    self.totpSecret = context.totpSecret
+    self.context = context
 
     self.navigationToOTPResourcesList = try features.instance()
 
@@ -114,22 +117,17 @@ internal final class TOTPAttachSelectionListViewController: ViewController {
         combine: { (search: ResourceSearchState, local: LocalState) async throws -> ViewState in
           return ViewState(
             searchText: search.filter.text,
-            listItems: search.result.map { item -> TOTPAttachSelectionListItemViewModel in
+            listItems: search.result.map { (item: ResourceSearchResultItem) -> TOTPAttachSelectionListItemViewModel in
               .init(
                 id: item.id,
-                typeSlug: item.typeSlug,
+                type: item.type,
                 name: item.name,
                 username: item.username,
                 state: local.selected?.id == item.id
                   ? .selected
-                  : [  // precise what types are allowed to attach OTP to
-                    ResourceSpecification.Slug.passwordWithTOTP,
-                    .passwordWithDescription,
-                    .totp,
-                  ]
-                  .contains(item.typeSlug)
+                  : item.type.attachedOTPSlug != nil
                     ? .none
-                    : .notAllowed
+                    : .notAllowed  // TODO: FIXME: check editing permission!
               )
             }
           )
@@ -142,7 +140,7 @@ internal final class TOTPAttachSelectionListViewController: ViewController {
   }
 }
 
-extension TOTPAttachSelectionListViewController {
+extension OTPAttachSelectionListViewController {
 
   @MainActor internal func setSearch(
     text: String
@@ -157,55 +155,28 @@ extension TOTPAttachSelectionListViewController {
   ) {
     self.localState.selected = (
       id: item.id,
-      slug: item.typeSlug
+      type: item.type
     )
   }
 
   @MainActor internal func trySendForm() async {
-    await withLogCatch(
+    withLogCatch(
       fallback: { [viewState] (error: Error) in
         viewState.update(\.snackBarMessage, to: .error(error))
       }
     ) {
-      guard let selected: (id: Resource.ID, slug: ResourceSpecification.Slug) = self.localState.selected
+      guard let selected: (id: Resource.ID, type: ResourceType) = self.localState.selected
       else {
         throw
           InvalidForm
           .error(displayable: "resource.form.error.invalid")
       }
 
-      let availableTypes = try await self.resourceEditPreparation.availableTypes()
-
-      guard
-        let currentType: ResourceType = availableTypes.first(where: { $0.specification.slug == selected.slug }),
-        !currentType.containsUndefinedFields
-      else {
-        throw
-          InvalidResourceType
-          .error(message: "Attempting to edit a resource with unknown type")
+      if selected.type.contains(\.firstTOTP) {
+        self.viewState.update(\.confirmationAlert, to: .replace)
       }
-
-      switch selected.slug {
-      case .passwordWithDescription:
-        if availableTypes.contains(where: { $0.specification.slug == .passwordWithTOTP }) {
-          self.viewState.update(\.confirmationAlert, to: .attach)
-        }
-        else {
-          throw
-            InvalidResourceType
-            .error(message: "Upgrade type with attached OTP is not available!")
-        }
-
-      case _:
-        if currentType.contains(\.firstTOTP) {
-          // keep current type and update its otp
-          self.viewState.update(\.confirmationAlert, to: .replace)
-        }
-        else {
-          throw
-            InvalidResourceType
-            .error(message: "Upgrade type with attached OTP is not available!")
-        }
+      else {
+        self.viewState.update(\.confirmationAlert, to: .attach)
       }
     }
   }
@@ -216,7 +187,7 @@ extension TOTPAttachSelectionListViewController {
         viewState.update(\.snackBarMessage, to: .error(error))
       }
     ) {
-      guard let selected: (id: Resource.ID, slug: ResourceSpecification.Slug) = self.localState.selected
+      guard let selected: (id: Resource.ID, type: ResourceType) = self.localState.selected
       else {
         throw
           InvalidForm
@@ -226,14 +197,13 @@ extension TOTPAttachSelectionListViewController {
       let editingContext: ResourceEditingContext = try await self.resourceEditPreparation.prepareExisting(selected.id)
 
       guard
-        let currentType: ResourceType = editingContext.availableTypes.first(where: {
-          $0.specification.slug == selected.slug
-        }),
-        !currentType.containsUndefinedFields
+        let attachedOTPSlug: ResourceSpecification.Slug = selected.type.attachedOTPSlug,
+        let attachedOTPType: ResourceType =
+          editingContext.availableTypes.first(where: { $0.specification.slug == attachedOTPSlug })
       else {
         throw
           InvalidResourceType
-          .error(message: "Attempting to edit a resource with unknown type")
+          .error(message: "Attempting to attach OTP to a resource which has none or unavailable attached type!")
       }
 
       let features: Features = self.features.branch(
@@ -243,34 +213,19 @@ extension TOTPAttachSelectionListViewController {
 
       let resourceEditForm: ResourceEditForm = try features.instance()
 
-      switch selected.slug {
-      case .passwordWithDescription:
-        guard
-          let updatedType: ResourceType = editingContext.availableTypes.first(where: {
-            $0.specification.slug == .passwordWithTOTP
-          })
-        else {
-          throw
-            InvalidResourceType
-            .error(message: "Upgrade type with attached OTP is not available!")
-        }
-        try resourceEditForm.updateType(updatedType)
+      if attachedOTPType != selected.type {
+        try resourceEditForm.updateType(attachedOTPType)
+      }  // else keep current type
 
-      case _:
-        if currentType.contains(\.firstTOTP) {
-          break  // keep current type and update its otp
-        }
-        else {
-          throw
-            InvalidResourceType
-            .error(message: "Upgrade type with attached OTP is not available!")
-        }
-      }
+      resourceEditForm.update(\.firstTOTP, to: self.context.totpSecret)
 
-      resourceEditForm.update(\.firstTOTP, to: self.totpSecret)
-
-      _ = try await resourceEditForm.sendForm()
-      await navigationToOTPResourcesList.performCatching()
+      try await resourceEditForm.send()
+      try await navigationToOTPResourcesList.perform()
+      self.context.showMessage(
+        editingContext.editedResource.isLocal || !editingContext.editedResource.hasTOTP
+          ? "otp.create.otp.created.message"
+          : "otp.create.otp.replaced.message"
+      )
     }
   }
 }
@@ -310,7 +265,7 @@ internal struct TOTPAttachSelectionListItemViewModel: Equatable, Identifiable {
   }
 
   internal let id: Resource.ID
-  internal var typeSlug: ResourceSpecification.Slug
+  internal var type: ResourceType
   internal var name: String
   internal var username: String?
   internal var state: State
