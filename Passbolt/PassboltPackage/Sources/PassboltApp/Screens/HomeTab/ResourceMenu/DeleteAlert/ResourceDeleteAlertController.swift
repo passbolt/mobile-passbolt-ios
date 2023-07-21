@@ -46,7 +46,7 @@ internal struct ResourceDeleteAlertController: AlertController {
         scope: ResourceDetailsScope.self,
         context: context.resourceID
       ) ?? features
-
+    let asyncExecutor: AsyncExecutor = try features.instance()
     let resourceController: ResourceController = try features.instance()
 
     self.title = "generic.are.you.sure"
@@ -60,7 +60,7 @@ internal struct ResourceDeleteAlertController: AlertController {
         title: "generic.confirm",
         role: .destructive,
         action: {
-          Task(priority: .userInitiated) { @MainActor in
+          asyncExecutor.schedule(.unmanaged) { @MainActor in
             do {
               try await resourceController.delete()
               context.showMessage("resource.delete.succeeded")

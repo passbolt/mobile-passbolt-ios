@@ -80,6 +80,7 @@ internal final class ResourceUserGroupsListNodeController: ViewController {
         filter: self.searchController
           .searchText
           .asAnyAsyncSequence()
+          .compactMap { try? $0.value }
           .map { (text: String) -> UserGroupsFilter in
             .init(
               userID: self.currentAccount.userID,

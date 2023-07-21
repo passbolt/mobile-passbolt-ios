@@ -63,7 +63,8 @@ extension AccountSelectionController: UIController {
     func accountsPublisher() -> AnyPublisher<Array<AccountSelectionListItem>, Never> {
       accounts
         .updates
-        .map { () -> Array<AccountSelectionListItem> in
+        .asAnyAsyncSequence()
+        .map { _ -> Array<AccountSelectionListItem> in
           let currentAccount: Account? = try? await session.currentAccount()
           var listItems: Array<AccountSelectionListItem> = .init()
           for storedAccount in accounts.storedAccounts() {

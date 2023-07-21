@@ -32,10 +32,11 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 @MainActor
 final class HomeSearchControllerTests: MainActorTestCase {
 
-  var detailsUpdates: UpdatesSource!
+  var detailsUpdates: Updates!
 
   override func mainActorSetUp() {
     features
@@ -55,7 +56,7 @@ final class HomeSearchControllerTests: MainActorTestCase {
     features.patch(
       \AccountDetails.updates,
       context: Account.mock_ada,
-      with: detailsUpdates.updates
+      with: detailsUpdates
     )
     features.patch(
       \AccountDetails.profile,

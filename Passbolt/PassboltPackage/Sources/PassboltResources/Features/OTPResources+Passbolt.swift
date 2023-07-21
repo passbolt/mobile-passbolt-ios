@@ -84,7 +84,7 @@ extension OTPResources {
     }
 
     return Self(
-      updates: sessionData.updates,
+      lastUpdate: sessionData.lastUpdate,
       refreshIfNeeded: refreshIfNeeded,
       filteredList: filteredList(_:),
       secretFor: secretFor(_:)

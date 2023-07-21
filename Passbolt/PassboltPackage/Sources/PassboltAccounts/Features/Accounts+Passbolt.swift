@@ -39,7 +39,7 @@ extension Accounts {
     let session: Session = try features.instance()
     let dataStore: AccountsDataStore = try features.instance()
 
-    let updatesSource: UpdatesSource = .init()
+    let updatesSource: Updates = .init()
 
     @Sendable nonisolated func verifyAccountsDataIntegrity() throws {
       try dataStore.verifyDataIntegrity()
@@ -90,7 +90,7 @@ extension Accounts {
         do {
           try dataStore
             .storeAccount(account, accountProfile, transferedAccount.armoredKey)
-          updatesSource.sendUpdate()
+          updatesSource.update()
         }
         catch {
           Diagnostics.log(diagnostic: "...failed to store account data...")
@@ -112,12 +112,12 @@ extension Accounts {
         await session.close(account)
       }
       dataStore.deleteAccount(account.localID)
-      updatesSource.sendUpdate()
+      updatesSource.update()
       Diagnostics.log(diagnostic: "...removing local account data succeeded!")
     }
 
     return Self(
-      updates: updatesSource.updates,
+      updates: updatesSource,
       verifyDataIntegrity: verifyAccountsDataIntegrity,
       storedAccounts: storedAccounts,
       lastUsedAccount: lastUsedAccount,

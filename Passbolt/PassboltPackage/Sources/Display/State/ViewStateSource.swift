@@ -31,137 +31,59 @@ where ViewState: Equatable {
   }
 
   @MainActor internal var value: ViewState {
-    willSet { self.viewUpdatesPublisher.send(newValue) }
+    @MainActor _read {
+      yield self._value
+    }
+    @MainActor _modify {
+      var modified: ViewState = self._value
+      yield &modified
+      self.viewUpdatesPublisher.send(modified)
+      self._value = modified
+    }
   }
-  internal var updatesPublisher:
+  private var _value: ViewState
+  internal let updatesPublisher:
     Publishers.Share<Publishers.RemoveDuplicates<Publishers.Autoconnect<ViewUpdatesPublisher<ViewState>>>>
-  @MainActor internal private(set) var sourceUpdates: Updates
-  private var viewUpdatesPublisher: ViewUpdatesPublisher<ViewState>
-  private var update: @MainActor (inout ViewState) async -> Void
-  @MainActor private var runningUpdate: Task<ViewState, Never>?
+  private let viewUpdatesPublisher: ViewUpdatesPublisher<ViewState>
+  private let checkSourceUpdate: @MainActor () -> Bool
+  private let updateFromSource: @Sendable (@MainActor (@MainActor (inout ViewState) -> Void) -> Void) async -> Void
+  @MainActor private var runningUpdate: Task<Void, Never>?
+  private let sourceRef: AnyObject?
 
-  @MainActor public init<Source>(
+  @MainActor public init<SourceValue>(
     initial: ViewState,
-    updateFrom source: Source,
-    fallback: @escaping @MainActor (inout ViewState, Error) async -> Void = { _, _ in }
-  ) where Source: DataSource, Source.DataValue == ViewState {
-    self.value = initial
-    self.sourceUpdates = source.updates
-    self.update = { @MainActor (state: inout ViewState) async in
-      await withLogCatch(
-        fallback: { (error: Error) in
-          await fallback(&state, error)
-        }
-      ) {
-        state = try await source.current
-      }
+    updateFrom source: any Updatable<SourceValue>,
+    update: @escaping @Sendable (@MainActor (@MainActor (inout ViewState) -> Void) -> Void, Update<SourceValue>) async
+      -> Void
+  ) where SourceValue: Sendable {
+    // always keep reference to source to prevent unexpected
+    // deallocation, however it should be kept only if uniquely referenced
+    // revisit on iOS 16+ with Swift 5.9+
+    self.sourceRef = source as? AnyObject  // warning due to iOS 15 support
+    self._value = initial
+    var lastUpdateGeneration: UpdateGeneration = .uninitialized
+    self.checkSourceUpdate = { @MainActor [weak source] () -> Bool in
+      lastUpdateGeneration < source?.generation ?? .uninitialized
     }
-    self.viewUpdatesPublisher = .init(initial: self.value)
-    self.updatesPublisher = self.viewUpdatesPublisher
-      .autoconnect()
-      .removeDuplicates()
-      .share()
-    self.viewUpdatesPublisher.connection = { @MainActor [unowned self] in
-      for await _ in source.updates {
-        await self.updateIfNeeded()
-      }
-    }
-  }
+    self.updateFromSource = { @MainActor [weak source] (mutate: (@MainActor (inout ViewState) -> Void) -> Void) async in
 
-  @MainActor public init<Source>(
-    initial: ViewState,
-    updateFrom source: Source,
-    transform: @escaping @Sendable (inout ViewState, Source.DataValue) async throws -> Void,
-    fallback: @escaping @MainActor (inout ViewState, Error) async -> Void = { _, _ in }
-  ) where Source: DataSource {
-    self.value = initial
-    self.sourceUpdates = source.updates
-    self.update = { @MainActor (state: inout ViewState) async in
-      await withLogCatch(
-        fallback: { (error: Error) in
-          await fallback(&state, error)
-        }
-      ) {
-        try await transform(&state, source.current)
+      await withLogCatch {
+        guard let sourceUpdate: Update<SourceValue> = try await source?.lastUpdate
+        else { return }  // can't update without source
+        lastUpdateGeneration = sourceUpdate.generation
+        await update(mutate, sourceUpdate)
       }
     }
-    self.viewUpdatesPublisher = .init(initial: self.value)
+    self.viewUpdatesPublisher = .init(initial: self._value)
     self.updatesPublisher = self.viewUpdatesPublisher
       .autoconnect()
       .removeDuplicates()
       .share()
-    self.viewUpdatesPublisher.connection = { @MainActor [unowned self] in
-      for await _ in source.updates {
-        await self.updateIfNeeded()
-      }
-    }
-  }
-
-  @MainActor public init(
-    initial: ViewState,
-    updateUsing updates: Updates,
-    update: @escaping @MainActor (inout ViewState) async -> Void
-  ) {
-    self.value = initial
-    self.sourceUpdates = updates
-    self.update = update
-    self.viewUpdatesPublisher = .init(initial: self.value)
-    self.updatesPublisher = self.viewUpdatesPublisher
-      .autoconnect()
-      .removeDuplicates()
-      .share()
-    self.viewUpdatesPublisher.connection = { @MainActor [unowned self] in
-      for await _ in updates {
-        await self.updateIfNeeded()
-      }
-    }
-  }
-
-  @MainActor public init(
-    initial: ViewState,
-    updateUsing updates: Updates,
-    update: @escaping @MainActor (inout ViewState) async throws -> Void,
-    fallback: @escaping @MainActor (inout ViewState, Error) async -> Void
-  ) {
-    self.value = initial
-    self.sourceUpdates = updates
-    self.update = { @MainActor (state: inout ViewState) async -> Void in
-      await withLogCatch(
-        fallback: { (error: Error) in
-          await fallback(&state, error)
-        }
-      ) {
-        try await update(&state)
-      }
-    }
-    self.viewUpdatesPublisher = .init(initial: self.value)
-    self.updatesPublisher = self.viewUpdatesPublisher
-      .autoconnect()
-      .removeDuplicates()
-      .share()
-    self.viewUpdatesPublisher.connection = { @MainActor [unowned self] in
-      for await _ in updates {
-        await self.updateIfNeeded()
-      }
-    }
-  }
-
-  @MainActor public init(
-    from variable: Variable<ViewState>
-  ) {
-    self.value = variable.current
-    self.sourceUpdates = variable.updates
-    self.update = { @MainActor (state: inout ViewState) async in
-      state = variable.current
-    }
-    self.viewUpdatesPublisher = .init(initial: self.value)
-    self.updatesPublisher = self.viewUpdatesPublisher
-      .autoconnect()
-      .removeDuplicates()
-      .share()
-    self.viewUpdatesPublisher.connection = { @MainActor [unowned self] in
-      for await _ in variable.updates {
-        await self.updateIfNeeded()
+    self.viewUpdatesPublisher.connection = { @MainActor [weak self, weak source] in
+      guard var iterator = source?.makeAsyncIterator()
+      else { return }  // can't update without source
+      while let _ = await iterator.next() {
+        await self?.updateIfNeeded()
       }
     }
   }
@@ -169,12 +91,13 @@ where ViewState: Equatable {
   public init(
     initial: ViewState
   ) {
-    self.value = initial
-    self.sourceUpdates = .never
-    self.update = { @MainActor (_: inout ViewState) async -> Void in
+    self.sourceRef = .none
+    self._value = initial
+    self.checkSourceUpdate = { false }
+    self.updateFromSource = { @MainActor _ in
       // NOP
     }
-    self.viewUpdatesPublisher = .init(initial: self.value)
+    self.viewUpdatesPublisher = .init(initial: self._value)
     self.updatesPublisher = self.viewUpdatesPublisher
       .autoconnect()
       .removeDuplicates()
@@ -182,12 +105,13 @@ where ViewState: Equatable {
   }
 
   public init() where ViewState == Stateless {
-    self.value = Stateless()
-    self.sourceUpdates = .never
-    self.update = { @MainActor (_: inout ViewState) async -> Void in
+    self.sourceRef = .none
+    self._value = Stateless()
+    self.checkSourceUpdate = { false }
+    self.updateFromSource = { @MainActor _ in
       // NOP
     }
-    self.viewUpdatesPublisher = .init(initial: self.value)
+    self.viewUpdatesPublisher = .init(initial: self._value)
     self.updatesPublisher = self.viewUpdatesPublisher
       .autoconnect()
       .removeDuplicates()
@@ -201,18 +125,16 @@ where ViewState: Equatable {
   @discardableResult
   @MainActor internal func updateIfNeeded() async -> ViewState {
     await self.runningUpdate?.waitForCompletion()
-    guard self.sourceUpdates.checkUpdate()
-    else { return self.value }
-    let state: ViewState = self.value
-    let runningUpdate: Task<ViewState, Never> = .init(
+    guard self.checkSourceUpdate() else { return self.value }
+    let runningUpdate: Task<Void, Never> = .init(
       priority: .userInitiated
-    ) {
-      var state: ViewState = state
-      await update(&state)
-      return state
+    ) { [weak self, updateFromSource] in
+      await updateFromSource { @MainActor [weak self] (mutate: @MainActor (inout ViewState) -> Void) in
+        self?.update(mutate)
+      }
     }
     self.runningUpdate = runningUpdate
-    self.value = await runningUpdate.value
+    await runningUpdate.waitForCompletion()
     self.runningUpdate = .none
     return self.value
   }
@@ -240,15 +162,5 @@ extension ViewStateSource {
     self.value = newValue
   }
 }
-
-//extension ViewStateSource {
-//
-//  @available(*, deprecated, message: "Legacy use only")
-//  public nonisolated var viewNodeID: ViewNodeID {
-//    ViewNodeID(
-//      rawValue: ObjectIdentifier(self)
-//    )
-//  }
-//}
 
 public struct Stateless: Equatable {}

@@ -121,7 +121,8 @@ extension TagsExplorerController: ComponentController {
             .asAnyAsyncSequence()
             .map(\.searchText)
             .removeDuplicates(),
-          sessionData.updates
+          sessionData.lastUpdate
+            .asAnyAsyncSequence()
         )
         .map { (filter: String, _) in
           try await resourceTags

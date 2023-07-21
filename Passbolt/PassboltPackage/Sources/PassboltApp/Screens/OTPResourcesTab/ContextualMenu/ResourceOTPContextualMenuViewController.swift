@@ -102,32 +102,37 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
         modifyMenuItems: .init()
       ),
       updateFrom: self.resourceController.state,
-      transform: { [revealOTP] (viewState: inout ViewState, resource: Resource) in
-        var accessMenuItems: Array<ResourceOTPContextualMenuItem> = .init()
-        if case .some = revealOTP {
-          accessMenuItems.append(.revealOTP)
-        }  // else NOP
-
-        if resource.hasTOTP {
-          accessMenuItems.append(.copyOTP)
-        }  // else NOP
-
-        var modifyMenuItems: Array<ResourceOTPContextualMenuItem> = .init()
-
-        if resource.canEdit {
-          if resource.hasTOTP {
-            modifyMenuItems.append(.editOTP)
+      update: { [revealOTP, navigationToSelf] (updateState, update: Update<Resource>) in
+        do {
+          let resource: Resource = try update.value
+          var accessMenuItems: Array<ResourceOTPContextualMenuItem> = .init()
+          if case .some = revealOTP {
+            accessMenuItems.append(.revealOTP)
           }  // else NOP
 
-          modifyMenuItems.append(.deleteOTP)
-        }  // else NOP
+          if resource.hasTOTP {
+            accessMenuItems.append(.copyOTP)
+          }  // else NOP
 
-        viewState.title = resource.name
-        viewState.accessMenuItems = accessMenuItems
-        viewState.modifyMenuItems = modifyMenuItems
-      },
-      fallback: { [navigationToSelf] (viewState: inout ViewState, error: Error) in
-        await navigationToSelf.revertCatching()
+          var modifyMenuItems: Array<ResourceOTPContextualMenuItem> = .init()
+
+          if resource.canEdit {
+            if resource.hasTOTP {
+              modifyMenuItems.append(.editOTP)
+            }  // else NOP
+
+            modifyMenuItems.append(.deleteOTP)
+          }  // else NOP
+
+          await updateState { (viewState: inout ViewState) in
+            viewState.title = resource.name
+            viewState.accessMenuItems = accessMenuItems
+            viewState.modifyMenuItems = modifyMenuItems
+          }
+        }
+        catch {
+          await navigationToSelf.revertCatching()
+        }
       }
     )
   }
@@ -177,7 +182,7 @@ extension ResourceOTPContextualMenuViewController {
       }
     ) {
       try await self.resourceController.fetchSecretIfNeeded()
-      let resource: Resource = try await self.resourceController.state.current
+      let resource: Resource = try await self.resourceController.state.value
 
       // searching only for the first totp field, can't identify totp otherwise now
       guard let totpSecret: TOTPSecret = resource.firstTOTPSecret

@@ -89,17 +89,27 @@ internal final class OTPResourcesListViewController: ViewController {
         snackBarMessage: .none
       ),
       updateFrom: self.resourceSearchController.state,
-      transform: { (viewState: inout ViewState, searchState: ResourceSearchState) in
-        var otpResources: OrderedDictionary<Resource.ID, TOTPResourceViewModel> = .init()
-        otpResources.reserveCapacity(searchState.result.count)
-        for item: ResourceSearchResultItem in searchState.result {
-          otpResources[item.id] = .init(
-            id: item.id,
-            name: item.name,
-            generateTOTP: .none
-          )
+      update: { (updateState, update: Update<ResourceSearchState>) in
+        do {
+          let searchState: ResourceSearchState = try update.value
+          var otpResources: OrderedDictionary<Resource.ID, TOTPResourceViewModel> = .init()
+          otpResources.reserveCapacity(searchState.result.count)
+          for item: ResourceSearchResultItem in searchState.result {
+            otpResources[item.id] = .init(
+              id: item.id,
+              name: item.name,
+              generateTOTP: .none
+            )
+          }
+          await updateState { (viewState: inout ViewState) in
+            viewState.otpResources = otpResources
+          }
         }
-        viewState.otpResources = otpResources
+        catch {
+          await updateState { (viewState: inout ViewState) in
+            viewState.snackBarMessage = .error(error)
+          }
+        }
       }
     )
 

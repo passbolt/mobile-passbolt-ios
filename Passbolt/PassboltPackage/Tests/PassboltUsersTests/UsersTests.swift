@@ -29,6 +29,7 @@ import TestExtensions
 @testable import PassboltUsers
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class UsersTests: LoadableFeatureTestCase<Users> {
 
   override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }

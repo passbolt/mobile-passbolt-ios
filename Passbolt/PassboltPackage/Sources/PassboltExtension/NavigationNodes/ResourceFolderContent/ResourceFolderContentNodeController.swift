@@ -92,6 +92,7 @@ internal final class ResourceFolderContentNodeController: ViewController {
         filter: searchController
           .searchText
           .asAnyAsyncSequence()
+          .compactMap { try? $0.value }
           .map { (text: String) -> ResourceFoldersFilter in
             ResourceFoldersFilter(
               sorting: .nameAlphabetically,
@@ -201,7 +202,7 @@ extension ResourceFolderContentNodeController {
       )
       let resourceController: ResourceController = try await features.instance()
       try await resourceController.fetchSecretIfNeeded(force: true)
-      let resource: Resource = try await resourceController.state.current
+      let resource: Resource = try await resourceController.state.value
 
       guard let password: String = resource.firstPasswordString
       else {

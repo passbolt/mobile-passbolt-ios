@@ -47,7 +47,7 @@ extension ResourceFolderEditForm {
     let resourceFolderCreateNetworkOperation: ResourceFolderCreateNetworkOperation = try features.instance()
     let resourceFolderShareNetworkOperation: ResourceFolderShareNetworkOperation = try features.instance()
 
-    let formUpdates: UpdatesSource = .init()
+    let formUpdates: Updates = .init()
     let formState: CriticalState<ResourceFolderEditFormState> = .init(
       .init(
         name: .valid(.init()),
@@ -78,7 +78,7 @@ extension ResourceFolderEditForm {
               of: ResourceFolderController.self,
               context: enclosingFolderID
             )
-            .state.current
+            .state.value
 
           let location =
             enclosingFolderDetails.path
@@ -129,7 +129,7 @@ extension ResourceFolderEditForm {
               of: ResourceFolderController.self,
               context: folderID
             )
-            .state.current
+            .state.value
 
           let location = folderDetails.path
             .map { (item: ResourceFolderPathItem) -> ResourceFolderLocationItem in
@@ -145,7 +145,7 @@ extension ResourceFolderEditForm {
             state.permissions = .valid(folderDetails.permissions)
           }
         }
-        formUpdates.sendUpdate()
+        formUpdates.update()
       }
       catch {
         Diagnostics.log(error: error)
@@ -185,7 +185,7 @@ extension ResourceFolderEditForm {
     ) -> ResourceFolderEditFormState {
       form.name = nameValidator.validate(form.name.value)
       form.permissions = permissionsValidator.validate(form.permissions.value)
-      formUpdates.sendUpdate()
+      formUpdates.update()
       return form
     }
 
@@ -199,7 +199,7 @@ extension ResourceFolderEditForm {
       formState.access { (state: inout ResourceFolderEditFormState) in
         state.name = nameValidator.validate(folderName)
       }
-      formUpdates.sendUpdate()
+      formUpdates.update()
     }
 
     @Sendable func sendForm() async throws {
@@ -307,7 +307,7 @@ extension ResourceFolderEditForm {
     }
 
     return Self(
-      updates: formUpdates.updates,
+      updates: formUpdates,
       formState: accessFormState,
       setFolderName: setFolderName(_:),
       sendForm: sendForm

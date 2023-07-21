@@ -87,7 +87,7 @@ internal final class ResourceFolderPermissionListController: ViewController {
       }
     ) {
       [viewState, resourceFolderUserGroupPermissionsDetailsFetch, resourceFolderUserPermissionsDetailsFetch] (
-        resourceFolder: ResourceFolder
+        update: Update<ResourceFolder>
       ) in
       let userGroupPermissionsDetails: Array<PermissionListRowItem> =
         try await resourceFolderUserGroupPermissionsDetailsFetch(context)

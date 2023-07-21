@@ -54,7 +54,6 @@ extension SessionData {
     // we could store last update time and reuse it to avoid
     // fetching all the data when initializing
     let lastUpdate: Variable<Timestamp> = .init(initial: 0)
-    let updatesSource: UpdatesSource = .init()
 
     let refreshTask: CriticalState<Task<Void, Error>?> = .init(.none)
 
@@ -177,10 +176,11 @@ extension SessionData {
             try await refreshFolders()
             try await refreshResources()
 
-            updatesSource.sendUpdate()
             // when diffing endpoint becomes available
             // we should use server time instead
-            lastUpdate.current = time.timestamp()
+            lastUpdate.mutate { (lastUpdate: inout Timestamp) in
+              lastUpdate = time.timestamp()
+            }
           }
           task = runningTask
           return runningTask
@@ -192,7 +192,6 @@ extension SessionData {
 
     return Self(
       lastUpdate: lastUpdate,
-      updates: updatesSource.updates,
       refreshIfNeeded: refreshIfNeeded
     )
   }

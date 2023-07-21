@@ -74,7 +74,7 @@ extension ResourceTagsDetailsViewController {
         }
       ) {
         for try await resource in self.resourceController.state {
-          self.update(resource)
+          try self.update(resource.value)
         }
       }
   }

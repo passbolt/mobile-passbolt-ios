@@ -61,23 +61,29 @@ internal final class ApplicationSettingsViewController: ViewController {
         biometicsAuthorizationAvailability: .unavailable,
         snackBarMessage: .none
       ),
-      updateUsing: self.accountPreferences.updates,
-      update: { [accountPreferences] (viewState: inout ViewState) in
+      updateFrom: self.accountPreferences.updates,
+      update: { [accountPreferences] (updateState, _) in
         switch osBiometry.availability() {
         case .unavailable, .unconfigured:
-          viewState.biometicsAuthorizationAvailability = .unavailable
+          await updateState { (viewState: inout ViewState) in
+            viewState.biometicsAuthorizationAvailability = .unavailable
+          }
 
         case .touchID:
-          viewState.biometicsAuthorizationAvailability =
-            accountPreferences.isPassphraseStored()
-            ? .enabledTouchID
-            : .disabledTouchID
+          await updateState { (viewState: inout ViewState) in
+            viewState.biometicsAuthorizationAvailability =
+              accountPreferences.isPassphraseStored()
+              ? .enabledTouchID
+              : .disabledTouchID
+          }
 
         case .faceID:
-          viewState.biometicsAuthorizationAvailability =
-            accountPreferences.isPassphraseStored()
-            ? .enabledFaceID
-            : .disabledFaceID
+          await updateState { (viewState: inout ViewState) in
+            viewState.biometicsAuthorizationAvailability =
+              accountPreferences.isPassphraseStored()
+              ? .enabledFaceID
+              : .disabledFaceID
+          }
         }
       }
     )

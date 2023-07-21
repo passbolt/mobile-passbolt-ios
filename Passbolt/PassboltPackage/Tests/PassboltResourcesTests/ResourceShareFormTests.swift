@@ -87,7 +87,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     resource.permissions = expectedResult
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -134,7 +134,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -196,7 +196,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -232,7 +232,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -255,7 +255,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
     patch(
       \UserGroups.groupMembers,
@@ -289,7 +289,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
     patch(
       \UserGroups.groupMembers,
@@ -329,7 +329,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
     patch(
       \UserGroups.groupMembers,
@@ -375,7 +375,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
     patch(
       \UserGroups.groupMembers,
@@ -430,7 +430,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
     patch(
       \ResourceShareNetworkOperation.execute,
@@ -473,7 +473,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
     patch(
       \UserGroups.groupMembers,
@@ -516,7 +516,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -558,7 +558,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -611,7 +611,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -658,7 +658,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -700,7 +700,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -747,7 +747,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -783,7 +783,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -825,7 +825,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -878,7 +878,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -925,7 +925,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -967,7 +967,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -1014,7 +1014,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Constant(value: resource)
+      with: Variable(initial: resource)
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)

@@ -27,6 +27,7 @@ import TestExtensions
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class AccountQRCodeExportControllerTests: FeaturesTestCase {
 
   override func commonPrepare() {
@@ -49,10 +50,10 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
   }
 
   func test_viewState_updatesWithData_whenTransferStateUpdates() async throws {
-    let updatesSource: UpdatesSource = .init()
+    let updatesSource: Updates = .init()
     patch(
       \AccountChunkedExport.updates,
-      with: updatesSource.updates
+      with: updatesSource
     )
     patch(
       \AccountChunkedExport.status,
@@ -75,7 +76,7 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
     ) {
       return await tested.viewState.current
     }
-    updatesSource.terminate()
+    //    updatesSource.terminate()
     await self.asyncExecutionControl.executeAll()
   }
 
@@ -85,10 +86,10 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
     )
     return XCTFail()
 
-    let updatesSource: UpdatesSource = .init()
+    let updatesSource: Updates = .init()
     patch(
       \AccountChunkedExport.updates,
-      with: updatesSource.updates
+      with: updatesSource
     )
     patch(
       \AccountChunkedExport.status,
@@ -103,10 +104,10 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
     )
     return XCTFail()
 
-    let updatesSource: UpdatesSource = .init()
+    let updatesSource: Updates = .init()
     patch(
       \AccountChunkedExport.updates,
-      with: updatesSource.updates
+      with: updatesSource
     )
     patch(
       \AccountChunkedExport.status,

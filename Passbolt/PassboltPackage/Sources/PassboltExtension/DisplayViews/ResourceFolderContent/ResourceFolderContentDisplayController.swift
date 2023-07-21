@@ -76,7 +76,7 @@ internal final class ResourceFolderContentDisplayController: ViewController {
     self.openResourceMenu = context.openResourceMenu
 
     self.asyncExecutor.scheduleIteration(
-      over: combineLatest(context.filter.asAnyAsyncSequence(), sessionData.updates),
+      over: combineLatest(context.filter.asAnyAsyncSequence(), sessionData.lastUpdate.asAnyAsyncSequence()),
       failMessage: "Resource folders list updates broken!",
       failAction: { [context] (error: Error) in
         context.showMessage(.error(error))

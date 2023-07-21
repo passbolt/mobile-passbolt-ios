@@ -21,50 +21,19 @@
 // @since         v1.0
 //
 
-@dynamicMemberLookup
-public final class Variable<DataValue>: DataSource
-where DataValue: Sendable & Equatable {
+import struct os.os_unfair_lock
+import func os.os_unfair_lock_lock
+import func os.os_unfair_lock_unlock
 
-  public typealias Failure = Never
+@usableFromInline internal typealias UnsafeLock = os_unfair_lock
 
-  public let updates: Updates
+extension UnsafeLock {
 
-  private let updatesSource: UpdatesSource
-  private let storage: CriticalState<DataValue>
-
-  public init(
-    initial: DataValue
-  ) {
-    self.storage = .init(initial)
-    self.updatesSource = .init()
-    self.updates = self.updatesSource.updates
+  @_transparent @usableFromInline @Sendable internal mutating func unsafe_lock() {
+    os_unfair_lock_lock(&self)
   }
 
-  public var current: DataValue {
-    get { self.storage.get() }
-    set {
-      let oldValue: DataValue = self.storage.exchange(with: newValue)
-      guard oldValue != newValue else { return }
-      self.updatesSource.sendUpdate()
-    }
-  }
-
-  public subscript<Value>(
-    dynamicMember keyPath: KeyPath<DataValue, Value>
-  ) -> Value {
-    get { self.current[keyPath: keyPath] }
-  }
-
-  public subscript<Value>(
-    dynamicMember keyPath: WritableKeyPath<DataValue, Value>
-  ) -> Value {
-    get { self.current[keyPath: keyPath] }
-    set { self.current[keyPath: keyPath] = newValue }
-  }
-
-  public func mutate<Returned>(
-    _ mutation: (inout DataValue) throws -> Returned
-  ) rethrows -> Returned {
-    try mutation(&self.current)
+  @_transparent @usableFromInline @Sendable internal mutating func unsafe_unlock() {
+    os_unfair_lock_unlock(&self)
   }
 }

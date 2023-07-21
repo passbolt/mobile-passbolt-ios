@@ -25,7 +25,7 @@ import Features
 import UIComponents
 import XCTest
 
-@available(*, deprecated, message: "Please switch to `LoadableFeatureTestCase`")
+@available(iOS, introduced: 16.0.0, deprecated, message: "Please switch to `LoadableFeatureTestCase`")
 @MainActor
 open class MainActorTestCase: AsyncTestCase {
 

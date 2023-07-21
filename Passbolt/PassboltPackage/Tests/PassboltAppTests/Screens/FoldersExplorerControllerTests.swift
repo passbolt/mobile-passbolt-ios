@@ -34,16 +34,17 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 @MainActor
 final class FoldersExplorerControllerTests: MainActorTestCase {
 
-  var updates: UpdatesSource!
+  var updates: Variable<Timestamp>!
 
   override func mainActorSetUp() {
-    updates = .init()
+    updates = .init(initial: 0)
     features.patch(
-      \SessionData.updates,
-      with: updates.updates
+      \SessionData.lastUpdate,
+      with: updates
     )
     features.patch(
       \SessionData.refreshIfNeeded,

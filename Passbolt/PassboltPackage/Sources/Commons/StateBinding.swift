@@ -25,14 +25,14 @@ import struct Combine.AnyPublisher
 import class Combine.CurrentValueSubject
 import enum Combine.Publishers
 
-@available(*, deprecated, message: "Use DataSource instead")
+@available(*, deprecated, message: "Use Updatable instead")
 @propertyWrapper
 public struct StateBinding<Value> {
 
-  public let updates: Updates
+  public let updates: any Updatable<Void>
   private let read: @Sendable () -> Value
   private let write: @Sendable (Value) -> Void
-  private let updatesSource: UpdatesSource
+  private let updatesSource: Updates
 
   public static func variable(
     initial: Value
@@ -49,10 +49,10 @@ public struct StateBinding<Value> {
     removeDuplicates isDuplicate: @escaping (Value, Value) -> Bool
   ) -> Self {
     let state: CriticalState<Value> = .init(initial)
-    let updatesSource: UpdatesSource = .init()
+    let updatesSource: Updates = .init()
 
     return .init(
-      updates: updatesSource.updates,
+      updates: updatesSource,
       read: { state.get() },
       write: { (newValue: Value) in
         let updated: Bool = state.access { (value: inout Value) in
@@ -65,7 +65,7 @@ public struct StateBinding<Value> {
           }
         }
         guard updated else { return }
-        updatesSource.sendUpdate()
+        updatesSource.update()
       },
       updatesSource: updatesSource
     )
@@ -75,14 +75,14 @@ public struct StateBinding<Value> {
     read: @escaping @Sendable () -> Value,
     write: @escaping @Sendable (Value) -> Void
   ) -> Self {
-    let updatesSource: UpdatesSource = .init()
+    let updatesSource: Updates = .init()
 
     return .init(
-      updates: updatesSource.updates,
+      updates: updatesSource,
       read: read,
       write: { (newValue: Value) in
         write(newValue)
-        updatesSource.sendUpdate()
+        updatesSource.update()
       },
       updatesSource: updatesSource
     )
@@ -90,10 +90,10 @@ public struct StateBinding<Value> {
 
   // make sure that proper duplicates filtering is applied
   private init(
-    updates: Updates,
+    updates: any Updatable<Void>,
     read: @escaping @Sendable () -> Value,
     write: @escaping @Sendable (Value) -> Void,
-    updatesSource: UpdatesSource
+    updatesSource: Updates
   ) {
     self.updates = updates
     self.read = read
@@ -172,7 +172,7 @@ extension StateBinding {
       write: { (newValue: ConvertedValue) in
         self.write(write(newValue))
       },
-      updatesSource: .never
+      updatesSource: .init()
     )
   }
 }
@@ -188,8 +188,8 @@ extension StateBinding: Publisher {
   public func receive<S>(
     subscriber: S
   ) where S: Subscriber, S.Input == Value, S.Failure == Never {
-    self.updatesSource.updates.publisher
-      .map { self.get() }
+    self.updatesSource.publisher
+      .map { _ in self.get() }
       .receive(subscriber: subscriber)
   }
 }
@@ -199,10 +199,10 @@ extension StateBinding {
   #if DEBUG
   public static var placeholder: Self {
     .init(
-      updates: .never,
+      updates: PlaceholderUpdatable(),
       read: unimplemented0(),
       write: unimplemented1(),
-      updatesSource: .never
+      updatesSource: .init()
     )
   }
   #endif

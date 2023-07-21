@@ -37,7 +37,6 @@ internal struct ResourceLocationDetailsView: ControlledView {
     self.contentView
       .backgroundColor(.passboltBackground)
       .foregroundColor(.passboltPrimaryText)
-      .task(self.controller.activate)
   }
 
   @ViewBuilder @MainActor private var contentView: some View {

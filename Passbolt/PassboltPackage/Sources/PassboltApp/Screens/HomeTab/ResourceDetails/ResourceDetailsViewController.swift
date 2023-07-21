@@ -114,24 +114,27 @@ internal final class ResourceDetailsViewController: ViewController {
         snackBarMessage: .none
       ),
       updateFrom: ComputedVariable(
-        combining: self.resourceController.state,
-        and: self.localState,
-        combine: { (resource: Resource, localState: LocalState) async throws -> ViewState in
-          await ViewState(
-            name: resource.name,
-            favorite: resource.favorite,
-            containsUndefinedFields: resource.containsUndefinedFields,
-            fields: fields(
+        combined: self.resourceController.state,
+        with: self.localState
+      ),
+      update: { [navigationToSelf] (updateView, update: Update<(Resource, LocalState)>) in
+        do {
+          let (resource, localState): (Resource, LocalState) = try update.value
+          await updateView { (viewState: inout ViewState) in
+            viewState.name = resource.name
+            viewState.favorite = resource.favorite
+            viewState.containsUndefinedFields = resource.containsUndefinedFields
+            viewState.fields = fields(
               for: resource,
               using: features,
               revealedFields: resource.secretAvailable
                 ? localState.revealedFields
                 : .init(),
               passwordPreviewEnabled: passwordPreviewEnabled
-            ),
-            location: resource.path.map(\.name),
-            tags: resource.tags.map(\.slug.rawValue),
-            permissions: resource.permissions.map { (permission: ResourcePermission) in
+            )
+            viewState.location = resource.path.map(\.name)
+            viewState.tags = resource.tags.map(\.slug.rawValue)
+            viewState.permissions = resource.permissions.map { (permission: ResourcePermission) in
               switch permission {
               case .user(let id, _, _):
                 return .user(
@@ -143,11 +146,14 @@ internal final class ResourceDetailsViewController: ViewController {
                 return .userGroup(id)
               }
             }
-          )
+          }
         }
-      ),
-      fallback: { [navigationToSelf] (state, _) async in
-        try? await navigationToSelf.revert()
+        catch {
+          await updateView { (viewState: inout ViewState) in
+            viewState.snackBarMessage = .error(error)
+          }
+          await navigationToSelf.revertCatching()
+        }
       }
     )
   }
@@ -164,7 +170,7 @@ extension ResourceDetailsViewController {
         }
       ) {
         let revealOTPAction: (@MainActor () async -> Void)?
-        let resource: Resource = try await self.resourceController.state.current
+        let resource: Resource = try await self.resourceController.state.value
         if let totpPath: ResourceType.FieldPath = resource.firstTOTPPath {
           revealOTPAction = { [weak self] in
             await self?.revealFieldValue(path: totpPath)
@@ -207,12 +213,12 @@ extension ResourceDetailsViewController {
         viewState.update(\.snackBarMessage, to: .error(error))
       }
     ) {
-      var resource: Resource = try await self.resourceController.state.current
+      var resource: Resource = try await self.resourceController.state.value
 
       // ensure having secret if field is part of it
       if resource.isEncrypted(path) {
         try await self.resourceController.fetchSecretIfNeeded()
-        resource = try await self.resourceController.state.current
+        resource = try await self.resourceController.state.value
       }  // else NOP
       let fieldValue: JSON = resource[keyPath: path]
       if let totpSecret: TOTPSecret = fieldValue.totpSecretValue {
@@ -259,15 +265,31 @@ extension ResourceDetailsViewController {
         viewState.update(\.snackBarMessage, to: .error(error))
       }
     ) {
-      try await self.resourceController.fetchSecretIfNeeded()
-      self.localState.revealedFields.insert(path)
+      var resource: Resource = try await self.resourceController.state.value
+
+      // ensure having secret if field is part of it
+      if resource.isEncrypted(path) {
+        try await self.resourceController.fetchSecretIfNeeded()
+      }  // else NOP
+
+      self.localState.mutate { (state: inout LocalState) in
+        state.revealedFields.insert(path)
+      }
     }
   }
 
   internal func coverFieldValue(
     path: ResourceType.FieldPath
-  ) async {
-    self.localState.revealedFields.remove(path)
+  ) {
+    self.localState.mutate { (state: inout LocalState) in
+      state.revealedFields.remove(path)
+    }
+  }
+
+  internal func coverAllFields() {
+    self.localState.mutate { (state: inout LocalState) in
+      state.revealedFields.removeAll()
+    }
   }
 }
 

@@ -31,16 +31,17 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 @MainActor
 final class WindowTests: MainActorTestCase {
 
-  var updates: UpdatesSource!
+  var updates: Updates!
 
   override func mainActorSetUp() {
     updates = .init()
     features.patch(
       \Session.updates,
-      with: updates.updates
+      with: updates
     )
     features.patch(
       \Session.currentAccount,
@@ -102,7 +103,7 @@ final class WindowTests: MainActorTestCase {
       // Temporary wait related to implementation
       // of merge from async algorithms 0.1.0
       try await Task.sleep(nanoseconds: NSEC_PER_MSEC * 100)
-      self.updates.sendUpdate()
+      self.updates.update()
     }
 
     result = try await iterator.next()
@@ -140,7 +141,7 @@ final class WindowTests: MainActorTestCase {
       // Temporary wait related to implementation
       // of merge from async algorithms 0.1.0
       try await Task.sleep(nanoseconds: NSEC_PER_MSEC * 100)
-      self.updates.sendUpdate()
+      self.updates.update()
     }
 
     result = try await iterator.next()
@@ -185,7 +186,7 @@ final class WindowTests: MainActorTestCase {
       // Temporary wait related to implementation
       // of merge from async algorithms 0.1.0
       try await Task.sleep(nanoseconds: NSEC_PER_MSEC * 100)
-      self.updates.sendUpdate()
+      self.updates.update()
     }
 
     result = try await iterator.next()
@@ -234,14 +235,14 @@ final class WindowTests: MainActorTestCase {
       // Temporary wait related to implementation
       // of merge from async algorithms 0.1.0
       try await Task.sleep(nanoseconds: NSEC_PER_MSEC * 100)
-      self.updates.sendUpdate()
+      self.updates.update()
     }
 
     result = try await iterator.next()
 
     currentAccount = Account.mock_ada
     pendingAuthorization = .none
-    updates.sendUpdate()
+    updates.update()
 
     result = try await iterator.next()
 
@@ -292,7 +293,7 @@ final class WindowTests: MainActorTestCase {
       // Temporary wait related to implementation
       // of merge from async algorithms 0.1.0
       try await Task.sleep(nanoseconds: NSEC_PER_MSEC * 100)
-      self.updates.sendUpdate()
+      self.updates.update()
     }
 
     result = try await iterator.next()
@@ -303,7 +304,7 @@ final class WindowTests: MainActorTestCase {
       // Temporary wait related to implementation
       // of merge from async algorithms 0.1.0
       try await Task.sleep(nanoseconds: NSEC_PER_MSEC * 100)
-      self.updates.sendUpdate()
+      self.updates.update()
     }
 
     result = try await iterator.next()

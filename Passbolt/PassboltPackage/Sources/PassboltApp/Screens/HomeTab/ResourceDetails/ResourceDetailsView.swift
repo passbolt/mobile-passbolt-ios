@@ -34,10 +34,7 @@ internal struct ResourceDetailsView: ControlledView {
   }
 
   internal var body: some View {
-    WithSnackBarMessage(
-      from: self.controller,
-      at: \.snackBarMessage
-    ) {
+    withSnackBarMessage(\.snackBarMessage) {
       self.contentView
     }
     .toolbar {
@@ -50,15 +47,13 @@ internal struct ResourceDetailsView: ControlledView {
     }
     .backgroundColor(.passboltBackground)
     .foregroundColor(.passboltPrimaryText)
+    .onDisappear(perform: self.controller.coverAllFields)
   }
 
   @MainActor @ViewBuilder private var contentView: some View {
     CommonList {
       self.headerSectionView
-      WithViewState(
-        from: self.controller,
-        at: \.containsUndefinedFields
-      ) { (containsUndefinedFields: Bool) in
+      with(\.containsUndefinedFields) { (containsUndefinedFields: Bool) in
         if containsUndefinedFields {
           self.undefinedContentSectionView
         }
@@ -83,19 +78,13 @@ internal struct ResourceDetailsView: ControlledView {
   @MainActor @ViewBuilder private var headerSectionView: some View {
     CommonListSection {
       CommonListRow {
-        WithViewState(
-          from: self.controller,
-          at: \.name
-        ) { (name: String) in
+        with(\.name) { (name: String) in
           VStack(spacing: 8) {
             ZStack(alignment: .topTrailing) {
               LetterIconView(text: name)
                 .padding(top: 16)
 
-              WithViewState(
-                from: self.controller,
-                at: \.favorite
-              ) { (favorite: Bool) in
+              with(\.favorite) { (favorite: Bool) in
                 if favorite {
                   Image(named: .starFilled)
                     .foregroundColor(.passboltSecondaryOrange)
@@ -136,10 +125,7 @@ internal struct ResourceDetailsView: ControlledView {
 
   @MainActor @ViewBuilder private var fieldsSectionsView: some View {
     CommonListSection {
-      WithEachViewState(
-        from: self.controller,
-        at: \.fields
-      ) { (fieldModel: ResourceDetailsFieldViewModel) in
+      withEach(\.fields) { (fieldModel: ResourceDetailsFieldViewModel) in
         CommonListRow(
           contentAction: {
             await self.controller.copyFieldValue(path: fieldModel.path)
@@ -233,7 +219,7 @@ internal struct ResourceDetailsView: ControlledView {
 
             case .hide:
               return {
-                await self.controller.coverFieldValue(path: fieldModel.path)
+                self.controller.coverFieldValue(path: fieldModel.path)
               }
             }
           },
@@ -265,10 +251,7 @@ internal struct ResourceDetailsView: ControlledView {
           ResourceFieldView(
             name: "resource.detail.section.location",
             content: {
-              WithViewState(
-                from: self.controller,
-                at: \.location
-              ) { (location: Array<String>) in
+              with(\.location) { (location: Array<String>) in
                 FolderLocationView(locationElements: location)
               }
             }
@@ -287,10 +270,7 @@ internal struct ResourceDetailsView: ControlledView {
           ResourceFieldView(
             name: "resource.detail.section.tags",
             content: {
-              WithViewState(
-                from: self.controller,
-                at: \.tags
-              ) { (tags: Array<String>) in
+              with(\.tags) { (tags: Array<String>) in
                 CompactTagsView(tags: tags)
               }
             }
@@ -309,10 +289,7 @@ internal struct ResourceDetailsView: ControlledView {
           ResourceFieldView(
             name: "resource.detail.section.permissions",
             content: {
-              WithViewState(
-                from: self.controller,
-                at: \.permissions
-              ) { (permissionItems: Array<OverlappingAvatarStackView.Item>) in
+              with(\.permissions) { (permissionItems: Array<OverlappingAvatarStackView.Item>) in
                 OverlappingAvatarStackView(permissionItems)
                   .frame(height: 40)
               }

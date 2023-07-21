@@ -69,13 +69,15 @@ internal final class ResourceFolderEditController: ViewController {
     )
     self.viewState = .init(
       initial: initialState,
-      updateUsing: self.resourceFolderEditForm.updates,
-      update: { [users, resourceFolderEditForm] (viewState: inout ViewState) in
-        Self.update(
-          viewState: &viewState,
-          using: resourceFolderEditForm.formState(),
-          users: users
-        )
+      updateFrom: self.resourceFolderEditForm.updates,
+      update: { [users, resourceFolderEditForm] (updateState, _) in
+        await updateState { (viewState: inout ViewState) in
+          Self.update(
+            viewState: &viewState,
+            using: resourceFolderEditForm.formState(),
+            users: users
+          )
+        }
       }
     )
   }

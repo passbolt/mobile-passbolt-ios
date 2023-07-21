@@ -27,6 +27,7 @@ import XCTest
 @testable import Features
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class StoredPropertyTests: LoadableFeatureTestCase<StoredProperty<Int>> {
 
   override class func testedImplementationRegister(

@@ -223,6 +223,18 @@ extension ResourceType: Equatable {}
 
 extension ResourceType {
 
+  public static var placeholder: Self {
+    .init(
+      id: .init(
+        uuidString: "00000000-0000-0000-0000-000000000000"
+      )!,
+      specification: .placeholder
+    )
+  }
+}
+
+extension ResourceType {
+
   public var isDefault: Bool {
     self.specification.slug == .default
   }

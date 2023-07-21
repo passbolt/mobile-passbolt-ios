@@ -117,24 +117,32 @@ public final class ResourceEditViewController: ViewController {
         edited: false
       ),
       updateFrom: ComputedVariable(
-        combining: self.resourceEditForm.state,
-        and: self.localState
+        combined: self.resourceEditForm.state,
+        with: self.localState
       ),
-      transform: { (viewState: inout ViewState, update: (resource: Resource, localState: LocalState)) in
-        assert(update.resource.secretAvailable, "Can't edit resource without secret!")
-        viewState.fields = await fields(
-          for: update.resource,
-          using: features,
-          edited: update.localState.editedFields,
-          countEntropy: { [randomGenerator] (input: String) -> Entropy in
-            randomGenerator.entropy(input, CharacterSets.all)
+      update: { (updateState, update: Update<(Resource, LocalState)>) in
+        do {
+          let update: (resource: Resource, localState: LocalState) = try update.value
+          assert(update.resource.secretAvailable, "Can't edit resource without secret!")
+          let fields = await fields(
+            for: update.resource,
+            using: features,
+            edited: update.localState.editedFields,
+            countEntropy: { [randomGenerator] (input: String) -> Entropy in
+              randomGenerator.entropy(input, CharacterSets.all)
+            }
+          )
+          await updateState { (viewState: inout ViewState) in
+            viewState.fields = fields
+            viewState.containsUndefinedFields = update.resource.containsUndefinedFields
+            viewState.edited = !update.localState.editedFields.isEmpty
           }
-        )
-        viewState.containsUndefinedFields = update.resource.containsUndefinedFields
-        viewState.edited = !update.localState.editedFields.isEmpty
-      },
-      fallback: { (viewState: inout ViewState, error: Error) in
-        viewState.snackBarMessage = .error(error)
+        }
+        catch {
+          await updateState { (viewState: inout ViewState) in
+            viewState.snackBarMessage = .error(error)
+          }
+        }
       }
     )
   }
@@ -144,7 +152,9 @@ public final class ResourceEditViewController: ViewController {
     for field: ResourceType.FieldPath
   ) {
     self.resourceEditForm.update(field, to: value)
-    self.localState.editedFields.insert(field)
+    self.localState.mutate { (state: inout LocalState) in
+      state.editedFields.insert(field)
+    }
   }
 
   @MainActor internal func generatePassword(
@@ -156,7 +166,9 @@ public final class ResourceEditViewController: ViewController {
       Entropy.veryStrongPassword
     )
     self.resourceEditForm.update(field, to: generated)
-    self.localState.editedFields.insert(field)
+    self.localState.mutate { (state: inout LocalState) in
+      state.editedFields.insert(field)
+    }
   }
 
   @MainActor internal func sendForm() async {
@@ -175,7 +187,9 @@ public final class ResourceEditViewController: ViewController {
         await self.success(resource)
       }
       catch let error as InvalidForm {
-        self.localState.editedFields = self.allFields
+        self.localState.mutate { (state: inout LocalState) in
+          state.editedFields = self.allFields
+        }
         throw error
       }
       catch {

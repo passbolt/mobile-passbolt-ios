@@ -79,7 +79,7 @@ extension ResourceEditForm {
 
     @Sendable nonisolated func validateForm() async throws {
       do {
-        try formState.current.validate()
+        try formState.value.validate()
       }
       catch {
         throw
@@ -89,7 +89,7 @@ extension ResourceEditForm {
     }
 
     @Sendable nonisolated func sendForm() async throws -> Resource {
-      var resource: Resource = formState.current
+      var resource: Resource = formState.value
 
       do {
         try resource.validate()

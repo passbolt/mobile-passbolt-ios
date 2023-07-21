@@ -57,53 +57,40 @@ internal final class ResourceLocationDetailsViewController: ViewController {
         name: .init(),
         favorite: false,
         location: .root()
-      )
-    )
-  }
-}
+      ),
+      updateFrom: self.resourceController.state,
+      update: { [navigationToSelf] (updateState, update: Update<Resource>) in
+        do {
+          let resource: Resource = try update.value
+          let resourceName: String = resource.name
+          var path: FolderLocationTreeView.Node = resource.path.reduce(
+            into: FolderLocationTreeView.Node.root()
+          ) { (partialResult: inout FolderLocationTreeView.Node, item: ResourceFolderPathItem) in
+            partialResult.append(
+              child: .node(
+                id: item.id,
+                name: item.name,
+                shared: item.shared
+              )
+            )
+          }
+          path.append(
+            child: .leaf(
+              id: resource.id,
+              name: resourceName
+            )
+          )
 
-extension ResourceLocationDetailsViewController {
-
-  @Sendable internal func activate() async {
-    await Diagnostics
-      .logCatch(
-        info: .message("Resource location details updates broken!"),
-        fallback: { _ in
-          try? await self.navigationToSelf.revert()
+          await updateState { (viewState: inout ViewState) in
+            viewState.name = resourceName
+            viewState.favorite = resource.favorite
+            viewState.location = path
+          }
         }
-      ) {
-        for try await resource in self.resourceController.state {
-          self.update(resource)
+        catch {
+          await navigationToSelf.revertCatching()
         }
       }
-  }
-
-  internal func update(
-    _ resource: Resource
-  ) {
-    let resourceName: String = resource.name
-    var path: FolderLocationTreeView.Node = resource.path.reduce(
-      into: FolderLocationTreeView.Node.root()
-    ) { (partialResult: inout FolderLocationTreeView.Node, item: ResourceFolderPathItem) in
-      partialResult.append(
-        child: .node(
-          id: item.id,
-          name: item.name,
-          shared: item.shared
-        )
-      )
-    }
-    path.append(
-      child: .leaf(
-        id: resource.id,
-        name: resourceName
-      )
     )
-
-    self.viewState.update { (state: inout ViewState) in
-      state.name = resourceName
-      state.favorite = resource.favorite
-      state.location = path
-    }
   }
 }

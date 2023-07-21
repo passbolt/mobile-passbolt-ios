@@ -29,20 +29,24 @@ where ViewState: Equatable {
   public typealias Output = ViewState
   public typealias Failure = Never
 
-  internal var connection: @MainActor () async -> Void
+  internal var connection: @Sendable () async -> Void
   private let subject: PassthroughSubject<ViewState, Failure>
 
   internal init(
     initial: ViewState,
-    connection: @escaping @MainActor () async -> Void = {}
+    connection: @escaping @Sendable () async -> Void = {}
   ) {
     self.subject = .init()
     self.connection = connection
   }
 
-  internal func send(
+  @MainActor internal func send(
     _ state: ViewState
   ) {
+    assert(
+      Thread.isMainThread,
+      "It seems that @MainActor does not work properly in some scenatios... yet this have to be on main!"
+    )
     self.subject.send(state)
   }
 
@@ -56,9 +60,7 @@ where ViewState: Equatable {
   internal func connect() -> Cancellable {
     let task: Task<Void, Never> = .init(
       priority: .userInitiated,
-      operation: { @MainActor [connection] in
-        await connection()
-      }
+      operation: self.connection
     )
     return AnyCancellable(task.cancel)
   }

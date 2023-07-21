@@ -78,23 +78,29 @@ internal final class OTPEditAdvancedFormViewController: ViewController {
         snackBarMessage: .none
       ),
       updateFrom: self.resourceEditForm.state,
-      transform: { (viewState: inout ViewState, resource: Resource) async throws in
-        guard resource.contains(context.totpPath)
-        else {
-          throw
-            InvalidResourceType
-            .error(message: "Resource without TOTP, can't edit it.")
+      update: { (updateState, update: Update<Resource>) async in
+        do {
+          let resource: Resource = try update.value
+          guard resource.contains(context.totpPath)
+          else {
+            throw
+              InvalidResourceType
+              .error(message: "Resource without TOTP, can't edit it.")
+          }
+          await updateState { (viewState: inout ViewState) in
+            viewState.algorithm = resource.validated(context.totpPath.appending(path: \.algorithm))
+              .map { $0.stringValue.flatMap(HOTPAlgorithm.init(rawValue:)) }
+            viewState.digits = resource.validated(context.totpPath.appending(path: \.digits))
+              .map { $0.stringValue ?? "" }
+            viewState.period = resource.validated(context.totpPath.appending(path: \.period))
+              .map { $0.stringValue ?? "" }
+          }
         }
-
-        viewState.algorithm = resource.validated(context.totpPath.appending(path: \.algorithm))
-          .map { $0.stringValue.flatMap(HOTPAlgorithm.init(rawValue:)) }
-        viewState.digits = resource.validated(context.totpPath.appending(path: \.digits))
-          .map { $0.stringValue ?? "" }
-        viewState.period = resource.validated(context.totpPath.appending(path: \.period))
-          .map { $0.stringValue ?? "" }
-      },
-      fallback: { (viewState: inout ViewState, error: Error) in
-        viewState.snackBarMessage = .error(error)
+        catch {
+          await updateState { (viewState: inout ViewState) in
+            viewState.snackBarMessage = .error(error)
+          }
+        }
       }
     )
   }

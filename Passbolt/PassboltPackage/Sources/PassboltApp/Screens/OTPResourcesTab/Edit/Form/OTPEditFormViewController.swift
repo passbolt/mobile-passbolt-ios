@@ -109,53 +109,61 @@ internal final class OTPEditFormViewController: ViewController {
         secretField: .valid("")
       ),
       updateFrom: ComputedVariable(
-        combining: self.resourceEditForm.state,
-        and: self.localState
+        combined: self.resourceEditForm.state,
+        with: self.localState
       ),
-      transform: {
-        [context] (viewState: inout ViewState, update: (resource: Resource, localState: LocalState)) async throws in
-        guard update.resource.contains(context.totpPath)
-        else {
-          throw
-            InvalidResourceType
-            .error(message: "Resource without TOTP, can't edit its TOTP.")
-        }
-        viewState.isEditing = !update.resource.isLocal
+      update: {
+        [context] (updateState, update: Update<(Resource, LocalState)>) async in
+        do {
+          let resource: Resource = try update.value.0
+          let localState: LocalState = try update.value.1
+          guard resource.contains(context.totpPath)
+          else {
+            throw
+              InvalidResourceType
+              .error(message: "Resource without TOTP, can't edit its TOTP.")
+          }
+          await updateState { (viewState: inout ViewState) in
+            viewState.isEditing = !resource.isLocal
 
-        if update.localState.editedFields.contains(\.meta.name) {
-          viewState.nameField =
-            update.resource
-            .validated(\.meta.name)
-            .map { $0.stringValue ?? "" }
-        }
-        else {
-          viewState.nameField =
-            .valid(update.resource[keyPath: \.meta.name].stringValue ?? "")
-        }
-        if update.localState.editedFields.contains(\.meta.uri) {
-          viewState.uriField =
-            update.resource
-            .validated(\.meta.uri)
-            .map { $0.stringValue ?? "" }
-        }
-        else {
-          viewState.uriField =
-            .valid(update.resource[keyPath: \.meta.uri].stringValue ?? "")
-        }
+            if localState.editedFields.contains(\.meta.name) {
+              viewState.nameField =
+                resource
+                .validated(\.meta.name)
+                .map { $0.stringValue ?? "" }
+            }
+            else {
+              viewState.nameField =
+                .valid(resource[keyPath: \.meta.name].stringValue ?? "")
+            }
+            if localState.editedFields.contains(\.meta.uri) {
+              viewState.uriField =
+                resource
+                .validated(\.meta.uri)
+                .map { $0.stringValue ?? "" }
+            }
+            else {
+              viewState.uriField =
+                .valid(resource[keyPath: \.meta.uri].stringValue ?? "")
+            }
 
-        if update.localState.editedFields.contains(context.totpPath.appending(path: \.secret_key)) {
-          viewState.secretField =
-            update.resource
-            .validated(context.totpPath.appending(path: \.secret_key))
-            .map { $0.stringValue ?? "" }
+            if localState.editedFields.contains(context.totpPath.appending(path: \.secret_key)) {
+              viewState.secretField =
+                resource
+                .validated(context.totpPath.appending(path: \.secret_key))
+                .map { $0.stringValue ?? "" }
+            }
+            else {
+              viewState.secretField =
+                .valid(resource[keyPath: context.totpPath.appending(path: \.secret_key)].stringValue ?? "")
+            }
+          }
         }
-        else {
-          viewState.secretField =
-            .valid(update.resource[keyPath: context.totpPath.appending(path: \.secret_key)].stringValue ?? "")
+        catch {
+          await updateState { (viewState: inout ViewState) in
+            viewState.snackBarMessage = .error(error)
+          }
         }
-      },
-      fallback: { (viewState: inout ViewState, error: Error) in
-        viewState.snackBarMessage = .error(error)
       }
     )
   }
@@ -168,7 +176,9 @@ extension OTPEditFormViewController {
   ) {
     self.resourceEditForm
       .update(\.meta.name, to: name)
-    self.localState.editedFields.insert(\.meta.name)
+    self.localState.mutate { (state: inout LocalState) in
+      state.editedFields.insert(\.meta.name)
+    }
   }
 
   @Sendable nonisolated internal func setURI(
@@ -176,7 +186,9 @@ extension OTPEditFormViewController {
   ) {
     self.resourceEditForm
       .update(\.meta.uri, to: uri)
-    self.localState.editedFields.insert(\.meta.uri)
+    self.localState.mutate { (state: inout LocalState) in
+      state.editedFields.insert(\.meta.uri)
+    }
   }
 
   @Sendable nonisolated internal func setSecret(
@@ -187,7 +199,9 @@ extension OTPEditFormViewController {
         context.totpPath.appending(path: \.secret_key),
         to: secret
       )
-    self.localState.editedFields.insert(context.totpPath.appending(path: \.secret_key))
+    self.localState.mutate { (state: inout LocalState) in
+      state.editedFields.insert(context.totpPath.appending(path: \.secret_key))
+    }
   }
 
   @MainActor internal func showAdvancedSettings() async {
@@ -207,10 +221,12 @@ extension OTPEditFormViewController {
       do {
         try await resourceEditForm.send()
         try await navigationToSelf.revert()
-        self.context.showMessage("otp.create.otp.created.message")
+        self.context.showMessage("otp.edit.otp.created.message")
       }
       catch let error as InvalidForm {
-        self.localState.editedFields = self.allFields
+        self.localState.mutate { (state: inout LocalState) in
+          state.editedFields = self.allFields
+        }
         throw error
       }
       catch {
@@ -229,7 +245,7 @@ extension OTPEditFormViewController {
       do {
         try await resourceEditForm.validateForm()
         guard
-          let totpSecret: TOTPSecret = try await resourceEditForm.state.current[keyPath: context.totpPath]
+          let totpSecret: TOTPSecret = try await resourceEditForm.state.value[keyPath: context.totpPath]
             .totpSecretValue
         else {
           throw
@@ -244,7 +260,9 @@ extension OTPEditFormViewController {
         )
       }
       catch let error as InvalidForm {
-        self.localState.editedFields = self.allFields
+        self.localState.mutate { (state: inout LocalState) in
+          state.editedFields = self.allFields
+        }
         throw error
       }
       catch {

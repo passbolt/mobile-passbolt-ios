@@ -437,13 +437,13 @@ extension AsyncExecutor.ExecutionIdentifier: ExpressibleByStringInterpolation {
 extension AsyncExecutor {
 
   public func updates(
-    using sequence: UpdatesSource,
+    using sequence: Updates,
     update: @escaping @Sendable () async throws -> Void,
     finish: @escaping @Sendable (TheError?) -> Void = { _ in /* NOP */ }
   ) {
     self.schedule {
       do {
-        for try await _ in sequence.updates {
+        for try await _ in sequence {
           try await update()
         }
         finish(.none)

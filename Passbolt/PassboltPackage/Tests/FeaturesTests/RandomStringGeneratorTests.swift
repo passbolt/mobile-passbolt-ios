@@ -27,6 +27,7 @@ import TestExtensions
 @testable import Features
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class RandomStringGeneratorTests: LoadableFeatureTestCase<RandomStringGenerator> {
 
   override class func testedImplementationRegister(

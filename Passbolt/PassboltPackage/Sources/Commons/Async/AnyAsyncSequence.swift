@@ -93,6 +93,16 @@ extension AsyncSequence {
       return AnyAsyncSequence(self)
     }
   }
+
+  public func asAnyValueAsyncSequence<Value>() -> AnyAsyncSequence<Value>
+  where Self.Element == Update<Value> {
+    if let sequence: AnyAsyncSequence<Value> = self as? AnyAsyncSequence<Value> {
+      return sequence
+    }
+    else {
+      return AnyAsyncSequence(self.map { try $0.value })
+    }
+  }
 }
 
 extension Publisher {

@@ -30,6 +30,7 @@ import XCTest
 
 // test data based on https://www.rfc-editor.org/rfc/rfc4226
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class HOTPCodeGeneratorTests: LoadableFeatureTestCase<HOTPCodeGenerator> {
 
   override class func testedImplementationRegister(

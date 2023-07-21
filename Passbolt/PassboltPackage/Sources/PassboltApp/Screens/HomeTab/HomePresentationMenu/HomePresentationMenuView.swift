@@ -60,6 +60,7 @@ internal struct HomePresentationMenuView: ComponentView {
             else if case .foldersExplorer = mode, !self.state.availableModes.contains(.foldersExplorer) {
               ListDividerView()
             }  // else { /* NOP */ }
+
             DrawerMenuItemView(
               action: {
                 await self.controller.selectMode(mode)

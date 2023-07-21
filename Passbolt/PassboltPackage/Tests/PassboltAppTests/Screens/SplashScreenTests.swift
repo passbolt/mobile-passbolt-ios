@@ -32,16 +32,17 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 @MainActor
 final class SplashScreenTests: MainActorTestCase {
 
-  var updates: UpdatesSource!
+  var updates: Updates!
 
   override func mainActorSetUp() {
     updates = .init()
     features.patch(
       \Session.updates,
-      with: updates.updates
+      with: updates
     )
     features.patch(
       \Session.currentAccount,

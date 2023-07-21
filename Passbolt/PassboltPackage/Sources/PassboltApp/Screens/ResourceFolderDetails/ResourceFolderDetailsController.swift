@@ -89,7 +89,8 @@ internal final class ResourceFolderDetailsController: ViewController {
       failAction: { [viewState] (error: Error) in
         await viewState.update(\.snackBarMessage, to: .error(error))
       }
-    ) { [viewState] (resourceFolder: ResourceFolder) in
+    ) { [viewState] (update: Update<ResourceFolder>) in
+      let resourceFolder: ResourceFolder = try update.value
       await viewState.update { viewState in
         viewState.folderName = resourceFolder.name
         viewState.folderLocation = resourceFolder.path.map(\.name)

@@ -59,7 +59,7 @@ internal final class ResourceUserGroupsListDisplayController: ViewController {
     )
 
     self.asyncExecutor.scheduleIteration(
-      over: combineLatest(context.filter, sessionData.updates),
+      over: combineLatest(context.filter, sessionData.lastUpdate.asAnyAsyncSequence()),
       failMessage: "User groups list updates broken!",
       failAction: { [context] (error: Error) in
         context.showMessage(.error(error))

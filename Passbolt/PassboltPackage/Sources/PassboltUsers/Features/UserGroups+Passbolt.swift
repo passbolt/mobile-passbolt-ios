@@ -45,7 +45,7 @@ extension UserGroups {
     @Sendable nonisolated func filteredResourceUserGroupList(
       filters: AnyAsyncSequence<String>
     ) -> AnyAsyncSequence<Array<ResourceUserGroupListItemDSV>> {
-      combineLatest(sessionData.updates, filters)
+      combineLatest(sessionData.lastUpdate.asAnyAsyncSequence(), filters)
         .map { (_, filterText: String) async -> Array<ResourceUserGroupListItemDSV> in
           let userGroups: Array<ResourceUserGroupListItemDSV>
           do {

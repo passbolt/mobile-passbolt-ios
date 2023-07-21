@@ -30,11 +30,12 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 @MainActor
 final class AccountDetailsControllerTests: MainActorTestCase {
 
-  var detailsUpdates: UpdatesSource!
-  var preferencesUpdates: UpdatesSource!
+  var detailsUpdates: Updates!
+  var preferencesUpdates: Updates!
 
   override func mainActorSetUp() {
     features
@@ -49,7 +50,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
     features.patch(
       \AccountDetails.updates,
       context: Account.mock_ada,
-      with: detailsUpdates.updates
+      with: detailsUpdates
     )
     features.patch(
       \AccountDetails.avatarImage,
@@ -65,7 +66,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
     features.patch(
       \AccountPreferences.updates,
       context: Account.mock_ada,
-      with: preferencesUpdates.updates
+      with: preferencesUpdates
     )
   }
 

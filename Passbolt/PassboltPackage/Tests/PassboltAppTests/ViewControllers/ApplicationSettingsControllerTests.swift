@@ -27,6 +27,7 @@ import TestExtensions
 @testable import Display
 @testable import PassboltApp
 
+@available(iOS 16.0.0, *)
 final class ApplicationSettingsControllerTests: FeaturesTestCase {
 
   override func commonPrepare() {
@@ -44,11 +45,11 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
   func test_viewState_biometicsAuthorizationAvailability_isEnabledInitially_whenPassphraseIsStoredAndBiometryAvailable()
     async
   {
-    let accountPreferencesUpdates: UpdatesSource = .init()
+    let accountPreferencesUpdates: Updates = .init()
     patch(
       \AccountPreferences.updates,
       context: .mock_ada,
-      with: accountPreferencesUpdates.updates
+      with: accountPreferencesUpdates
     )
     patch(
       \AccountPreferences.isPassphraseStored,
@@ -71,11 +72,11 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
     test_viewState_biometicsAuthorizationAvailability_isDisabledInitially_whenPassphraseIsNotStoredAndBiometryAvailable()
     async
   {
-    let accountPreferencesUpdates: UpdatesSource = .init()
+    let accountPreferencesUpdates: Updates = .init()
     patch(
       \AccountPreferences.updates,
       context: .mock_ada,
-      with: accountPreferencesUpdates.updates
+      with: accountPreferencesUpdates
     )
     patch(
       \AccountPreferences.isPassphraseStored,
@@ -96,11 +97,11 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
   }
 
   func test_viewState_biometicsAuthorizationAvailability_isUnavailableInitially_whenBiometryIsNotAvailable() async {
-    let accountPreferencesUpdates: UpdatesSource = .init()
+    let accountPreferencesUpdates: Updates = .init()
     patch(
       \AccountPreferences.updates,
       context: .mock_ada,
-      with: accountPreferencesUpdates.updates
+      with: accountPreferencesUpdates
     )
     patch(
       \OSBiometry.availability,

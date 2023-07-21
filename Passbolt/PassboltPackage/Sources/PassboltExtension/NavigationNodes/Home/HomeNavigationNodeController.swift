@@ -67,14 +67,16 @@ internal final class HomeNavigationNodeController: ViewController {
           nodeID: self.viewNodeID
         )
       ),
-      updateUsing: self.homePresentation.currentMode.updates,
-      update: { [homePresentation, navigationTree, viewNodeID, features] (state: inout ViewState) in
-        let contentController = Self.contentRoot(
+      updateFrom: self.homePresentation.currentMode.updates,
+      update: { [homePresentation, navigationTree, viewNodeID, features] (updateState, _) in
+        let contentController = await Self.contentRoot(
           for: homePresentation.currentMode.get(),
           using: features,
           nodeID: viewNodeID
         )
-        state.contentController = contentController
+        await updateState { (state: inout ViewState) in
+          state.contentController = contentController
+        }
       }
     )
   }

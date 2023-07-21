@@ -51,9 +51,10 @@ extension UserDetails {
     }
 
     let currentDetails: ComputedVariable<UserDetailsDSV> = .init(
-      using: sessionData.updates,
-      compute: fetchUserDetails
-    )
+      transformed: sessionData.lastUpdate
+    ) { _ in
+      try await fetchUserDetails()
+    }
 
     let avatarImageCache: ComputedVariable<Data> = .init(
       lazy: {
@@ -62,7 +63,7 @@ extension UserDetails {
             try await mediaDownloadNetworkOperation
             .execute(
               currentDetails
-                .current
+                .value
                 .avatarImageURL
             )
         }
@@ -77,7 +78,7 @@ extension UserDetails {
     )
 
     @Sendable nonisolated func details() async throws -> UserDetailsDSV {
-      try await currentDetails.current
+      try await currentDetails.value
     }
 
     @Sendable nonisolated func permissionToResource(
@@ -85,14 +86,14 @@ extension UserDetails {
     ) async throws -> Permission? {
       try await userResourcePermissionTypeFetchDatabaseOperation(
         (
-          userID: currentDetails.current.id,
+          userID: currentDetails.value.id,
           resourceID: resourceID
         )
       )
     }
 
     @Sendable nonisolated func avatarImage() async -> Data? {
-      try? await avatarImageCache.current
+      try? await avatarImageCache.value
     }
 
     return Self(

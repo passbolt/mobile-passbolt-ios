@@ -51,13 +51,15 @@ internal final class AccountQRCodeExportController: ViewController {
         currentQRcode: .init(),
         exitConfirmationAlertPresented: false
       ),
-      updateUsing: self.accountExport.updates,
-      update: { [navigation, accountExport, qrCodeGenerator] (viewState: inout ViewState) in
+      updateFrom: self.accountExport.updates,
+      update: { [navigation, accountExport, qrCodeGenerator] (updateState, _) in
         switch accountExport.status() {
         case .part(_, let content):
           do {
             let qrCodePart: Data = try await qrCodeGenerator.generateQRCode(content)
-            viewState.currentQRcode = qrCodePart
+            await updateState { (viewState: inout ViewState) in
+              viewState.currentQRcode = qrCodePart
+            }
           }
           catch {
             await navigation

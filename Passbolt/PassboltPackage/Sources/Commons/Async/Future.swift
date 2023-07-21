@@ -22,7 +22,7 @@
 //
 
 @Sendable public func future<Value>(
-  _ fulfill: (@Sendable @escaping (Result<Value, Error>) -> Void) -> Void
+  _ fulfill: (@escaping @Sendable (Result<Value, Error>) -> Void) -> Void
 ) async throws -> Value {
   let state: CriticalState<CheckedContinuation<Value, Error>?> = .init(.none)
   return try await withTaskCancellationHandler(
@@ -46,6 +46,42 @@
           state
             .exchange(\.self, with: .none)?
             .resume(with: result)
+        }
+      }
+    },
+    onCancel: {
+      state
+        .exchange(\.self, with: .none)?
+        .resume(throwing: Cancelled.error())
+    }
+  )
+}
+
+@Sendable public func future<Value>(
+  _ fulfill: (@escaping @Sendable (Value) -> Void) -> Void
+) async throws -> Value {
+  let state: CriticalState<CheckedContinuation<Value, Error>?> = .init(.none)
+  return try await withTaskCancellationHandler(
+    operation: {
+      try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Value, Error>) in
+        let cancelled: Bool = state.access { (state: inout CheckedContinuation<Value, Error>?) -> Bool in
+          if Task.isCancelled {
+            continuation
+              .resume(throwing: Cancelled.error())
+            return true
+          }
+          else {
+            state = continuation
+            return false
+          }
+        }
+
+        guard !cancelled else { return }
+
+        fulfill { (value: Value) in
+          state
+            .exchange(\.self, with: .none)?
+            .resume(returning: value)
         }
       }
     },

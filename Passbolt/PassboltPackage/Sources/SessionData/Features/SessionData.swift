@@ -26,17 +26,14 @@ import Features
 
 public struct SessionData {
 
-  public var lastUpdate: any DataSource<Timestamp>
-  public var updates: Updates
+  public var lastUpdate: any Updatable<Timestamp>
   public var refreshIfNeeded: @Sendable () async throws -> Void
 
   public init(
-    lastUpdate: any DataSource<Timestamp>,
-    updates: Updates,
+    lastUpdate: any Updatable<Timestamp>,
     refreshIfNeeded: @escaping @Sendable () async throws -> Void
   ) {
     self.lastUpdate = lastUpdate
-    self.updates = updates
     self.refreshIfNeeded = refreshIfNeeded
   }
 }
@@ -48,8 +45,7 @@ extension SessionData: LoadableFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     .init(
-      lastUpdate: PlaceholderDataSource(),
-      updates: .never,
+      lastUpdate: PlaceholderUpdatable(),
       refreshIfNeeded: unimplemented0()
     )
   }

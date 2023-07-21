@@ -28,12 +28,12 @@ import Features
 
 public struct ResourceSearchController {
 
-  public var state: any DataSource<ResourceSearchState>
+  public var state: any Updatable<ResourceSearchState>
   public var refreshIfNeeded: @Sendable () async throws -> Void
   public var updateFilter: @Sendable ((inout ResourceSearchFilter) -> Void) -> Void
 
   public init(
-    state: any DataSource<ResourceSearchState>,
+    state: any Updatable<ResourceSearchState>,
     refreshIfNeeded: @escaping @Sendable () async throws -> Void,
     updateFilter: @escaping @Sendable ((inout ResourceSearchFilter) -> Void) -> Void
   ) {
@@ -50,7 +50,7 @@ extension ResourceSearchController: LoadableFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      state: PlaceholderDataSource(),
+      state: PlaceholderUpdatable(),
       refreshIfNeeded: unimplemented0(),
       updateFilter: { _ in unimplemented() }
     )

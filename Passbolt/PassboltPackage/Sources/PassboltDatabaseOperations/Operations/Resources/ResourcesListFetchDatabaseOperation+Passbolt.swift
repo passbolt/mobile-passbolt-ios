@@ -68,6 +68,7 @@ extension ResourcesListFetchDatabaseOperation {
               resources.id AS id,
               resourceTypes.id AS typeID,
               resourceTypes.slug AS typeSlug,
+              resources.permission AS permission,
               resources.parentFolderID AS parentFolderID,
               resources.name AS name,
               resources.username AS username,
@@ -95,6 +96,7 @@ extension ResourcesListFetchDatabaseOperation {
               resources.id AS id,
               resourceTypes.id AS typeID,
               resourceTypes.slug AS typeSlug,
+              resources.permission AS permission,
               resources.parentFolderID AS parentFolderID,
               resources.name AS name,
               resources.username AS username,
@@ -117,6 +119,7 @@ extension ResourcesListFetchDatabaseOperation {
             resources.id AS id,
             resourceTypes.id AS typeID,
             resourceTypes.slug AS typeSlug,
+            resources.permission AS permission,
             resources.parentFolderID AS parentFolderID,
             resources.name AS name,
             resources.username AS username,
@@ -439,6 +442,7 @@ extension ResourcesListFetchDatabaseOperation {
       .fetch(using: statement) { dataRow -> ResourceListItemDSV in
         guard
           let id: Resource.ID = dataRow.id,
+          let permission: Permission = dataRow.permission,
           let typeID: ResourceType.ID = dataRow.typeID,
           let typeSlug: ResourceSpecification.Slug = dataRow.typeSlug,
           let name: String = dataRow.name
@@ -459,6 +463,7 @@ extension ResourcesListFetchDatabaseOperation {
             id: typeID,
             slug: typeSlug
           ),
+          permission: permission,
           parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:)),
           name: name,
           username: dataRow.username,

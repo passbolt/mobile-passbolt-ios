@@ -78,7 +78,7 @@ extension ResourceEditPreparation {
 
       try await resourceController.fetchSecretIfNeeded(force: true)
 
-      let resource: Resource = try await resourceController.state.current
+      let resource: Resource = try await resourceController.state.value
 
       guard resource.permission.canEdit
       else {

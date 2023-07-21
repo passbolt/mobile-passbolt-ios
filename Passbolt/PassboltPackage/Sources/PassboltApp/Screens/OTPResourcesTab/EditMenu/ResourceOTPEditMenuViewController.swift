@@ -82,7 +82,7 @@ extension ResourceOTPEditMenuViewController {
   internal func editFromQRCode() async {
     do {
       try await navigationToSelf.revert()
-      let editedResource: Resource = try await self.resourceEditForm.state.current
+      let editedResource: Resource = try await self.resourceEditForm.state.value
       guard
         let attachedOTPSlug: ResourceSpecification.Slug = editedResource.attachedOTPSlug,
         let attachType: ResourceType = context.editingContext.availableTypes.first(where: {
@@ -114,7 +114,7 @@ extension ResourceOTPEditMenuViewController {
   internal func editManually() async {
     do {
       try await navigationToSelf.revert()
-      let editedResource: Resource = try await self.resourceEditForm.state.current
+      let editedResource: Resource = try await self.resourceEditForm.state.value
       guard
         let attachedOTPSlug: ResourceSpecification.Slug = editedResource.attachedOTPSlug,
         let attachType: ResourceType = context.editingContext.availableTypes.first(where: {

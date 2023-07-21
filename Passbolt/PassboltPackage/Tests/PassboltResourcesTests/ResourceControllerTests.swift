@@ -53,7 +53,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     )
     patch(
       \SessionData.lastUpdate,
-      with: Constant<Timestamp, Never>(value: 0)
+      with: Variable<Timestamp>(initial: 0)
     )
   }
 
@@ -71,7 +71,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     await XCTAssertValue(
       equal: expectedResult
     ) {
-      try await feature.state.current
+      try await feature.state.value
     }
   }
 
@@ -88,7 +88,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     await XCTAssertError(
       matches: MockIssue.self
     ) {
-      try await feature.state.current
+      try await feature.state.value
     }
   }
 
@@ -109,15 +109,15 @@ final class ResourceControllerTests: FeaturesTestCase {
     await XCTAssertError(
       matches: InvalidResourceField.self
     ) {
-      try await feature.state.current
+      try await feature.state.value
     }
   }
 
   func test_state_updates_whenSessionDataUpdates() async throws {
-    let updatesSource: UpdatesSource = .init()
+    let updatesSource: Variable<Timestamp> = .init(initial: 0)
     patch(
-      \SessionData.updates,
-      with: updatesSource.updates
+      \SessionData.lastUpdate,
+      with: updatesSource
     )
     let expectedResult_0: Resource = {
       var resource: Resource = .mock_1
@@ -162,31 +162,31 @@ final class ResourceControllerTests: FeaturesTestCase {
     await XCTAssertValue(
       equal: expectedResult_0
     ) {
-      try await feature.state.current
+      try await feature.state.value
     }
 
-    updatesSource.sendUpdate()
+    updatesSource.assign(1)
     await XCTAssertValue(
       equal: expectedResult_1
     ) {
-      try await feature.state.current
+      try await feature.state.value
     }
 
-    updatesSource.sendUpdate()
+    updatesSource.assign(2)
     await XCTAssertValue(
       equal: expectedResult_2
     ) {
-      try await feature.state.current
+      try await feature.state.value
     }
 
     XCTAssertEqual(self.dynamicVariables.getIfPresent(\.executionCount, of: Int.self), 3)
   }
 
   func test_state_breaks_whenSessionDataUpdatesFail() async throws {
-    let updatesSource: UpdatesSource = .init()
+    let updatesSource: Variable<Timestamp> = .init(initial: 0)
     patch(
-      \SessionData.updates,
-      with: updatesSource.updates
+      \SessionData.lastUpdate,
+      with: updatesSource
     )
     let expectedResult: Resource = .mock_1
     patch(
@@ -210,14 +210,14 @@ final class ResourceControllerTests: FeaturesTestCase {
     await XCTAssertValue(
       equal: expectedResult
     ) {
-      try await feature.state.current
+      try await feature.state.value
     }
 
-    updatesSource.sendUpdate()
+    updatesSource.assign(1)
     await XCTAssertError(
       matches: MockIssue.self
     ) {
-      try await feature.state.current
+      try await feature.state.value
     }
 
     XCTAssertEqual(self.dynamicVariables.getIfPresent(\.executionCount, of: Int.self), 2)
@@ -450,7 +450,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     await XCTAssertValue(
       equal: .mock_1
     ) {
-      try await feature.state.current.favoriteID
+      try await feature.state.value.favoriteID
     }
   }
 
@@ -480,7 +480,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     await XCTAssertValue(
       equal: .none
     ) {
-      try await feature.state.current.favoriteID
+      try await feature.state.value.favoriteID
     }
   }
 

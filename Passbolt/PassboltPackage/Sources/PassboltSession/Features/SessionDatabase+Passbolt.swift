@@ -81,12 +81,13 @@ extension SessionDatabase {
     }
 
     let databaseConnection: ComputedVariable<SQLiteConnection?> = .init(
-      using: session.updates,
-      compute: { await openDatabaseConnectionIfAble() }
-    )
+      transformed: session.updates
+    ) { _ in
+      await openDatabaseConnectionIfAble()
+    }
 
     @Sendable nonisolated func currentConnection() async throws -> SQLiteConnection {
-      if let connection: SQLiteConnection = try await databaseConnection.current {
+      if let connection: SQLiteConnection = try await databaseConnection.value {
         return connection
       }
       else {

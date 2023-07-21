@@ -102,8 +102,9 @@ extension AutofillRootNavigationNodeController {
     self.asyncExecutor.schedule(.unmanaged) { [self] () async -> Void in
       do {
         try await self.session.updates
+          .asAnyAsyncSequence()
           .dropFirst()
-          .forEach { @SessionActor in
+          .forEach { @SessionActor _ in
             do {
               let currentAccount: Account? =
                 try? await self.session

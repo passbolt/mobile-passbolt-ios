@@ -57,19 +57,28 @@ internal final class ResourcesListDisplayController: ViewController {
         resources: .init(),
         snackBarMessage: .none
       ),
-      updateUsing: .init(
-        combined: context.filterTextSource.updates,
-        with: sessionData.updates
+      updateFrom: ComputedVariable(
+        combined: context.filterTextSource,
+        with: sessionData.lastUpdate,
+        combine: { (update: (Update<String>, Update<Timestamp>)) in
+          try update.0.value
+        }
       ),
-      update: { [resources] (viewState: inout ViewState) in
-        var filter: ResourcesFilter = context.baseFilter
-        filter.text = try await context.filterTextSource.current
-        let filteredResources: Array<ResourceListItemDSV> = try await resources.filteredResourcesList(filter)
-        viewState.suggested = filteredResources.filter(context.suggestionFilter)
-        viewState.resources = filteredResources
-      },
-      fallback: { (viewState: inout ViewState, error: Error) in
-        viewState.snackBarMessage = .error(error)
+      update: { [resources] (updateState, update: Update<String>) in
+        do {
+          var filter: ResourcesFilter = context.baseFilter
+          filter.text = try update.value
+          let filteredResources: Array<ResourceListItemDSV> = try await resources.filteredResourcesList(filter)
+          await updateState { (viewState: inout ViewState) in
+            viewState.suggested = filteredResources.filter(context.suggestionFilter)
+            viewState.resources = filteredResources
+          }
+        }
+        catch {
+          await updateState { (viewState: inout ViewState) in
+            viewState.snackBarMessage = .error(error)
+          }
+        }
       }
     )
   }
@@ -80,7 +89,7 @@ extension ResourcesListDisplayController {
   internal struct Context {
 
     internal var baseFilter: ResourcesFilter
-    internal var filterTextSource: any DataSource<String>
+    internal var filterTextSource: any Updatable<String>
     internal var suggestionFilter: (ResourceListItemDSV) -> Bool
     internal var createResource: (() -> Void)?
     internal var selectResource: (Resource.ID) -> Void

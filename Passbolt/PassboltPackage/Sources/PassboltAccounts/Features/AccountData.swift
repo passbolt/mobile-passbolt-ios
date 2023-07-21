@@ -27,8 +27,6 @@ import Accounts
 internal struct AccountData {
 
   // temporararily exposing updates source for internal use
-  internal var updatesSource: UpdatesSource
-  /// Updates in the context account data.
   internal var updates: Updates
 }
 
@@ -39,8 +37,7 @@ extension AccountData: LoadableFeature {
   #if DEBUG
   nonisolated static var placeholder: Self {
     Self(
-      updatesSource: .init(),
-      updates: .never
+      updates: .init()
     )
   }
   #endif
@@ -54,11 +51,10 @@ extension AccountData {
     cancellables: Cancellables
   ) throws -> Self {
 
-    let updatesSource: UpdatesSource = .init()
+    let updatesSource: Updates = .init()
 
     return Self(
-      updatesSource: updatesSource,
-      updates: updatesSource.updates
+      updates: updatesSource
     )
   }
 }

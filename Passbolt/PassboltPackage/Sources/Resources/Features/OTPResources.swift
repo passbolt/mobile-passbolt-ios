@@ -30,7 +30,7 @@ public struct OTPResources {
 
   /// Sequence indicating updates in the list data.
   /// It won't contain updates in actual OTP codes.
-  public var updates: Updates
+  public var lastUpdate: any Updatable<Timestamp>
   /// Refresh resources data.
   /// Current implementation uses SessionData.refreshIfNeeded.
   public var refreshIfNeeded: @Sendable () async throws -> Void
@@ -42,12 +42,12 @@ public struct OTPResources {
   public var secretFor: @Sendable (Resource.ID) async throws -> TOTPSecret
 
   public init(
-    updates: Updates,
+    lastUpdate: any Updatable<Timestamp>,
     refreshIfNeeded: @escaping @Sendable () async throws -> Void,
     filteredList: @escaping @Sendable (OTPResourcesFilter) async throws -> Array<ResourceListItemDSV>,
     secretFor: @escaping @Sendable (Resource.ID) async throws -> TOTPSecret
   ) {
-    self.updates = updates
+    self.lastUpdate = lastUpdate
     self.refreshIfNeeded = refreshIfNeeded
     self.filteredList = filteredList
     self.secretFor = secretFor
@@ -59,7 +59,7 @@ extension OTPResources: LoadableFeature {
   #if DEBUG
   public static var placeholder: Self {
     .init(
-      updates: .never,
+      lastUpdate: PlaceholderUpdatable(),
       refreshIfNeeded: unimplemented0(),
       filteredList: unimplemented1(),
       secretFor: unimplemented1()

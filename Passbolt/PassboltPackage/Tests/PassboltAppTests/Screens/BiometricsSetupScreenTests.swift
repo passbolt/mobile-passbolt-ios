@@ -31,10 +31,11 @@ import UIComponents
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 @MainActor
 final class BiometricsSetupScreenTests: MainActorTestCase {
 
-  var preferencesUpdates: UpdatesSource!
+  var preferencesUpdates: Updates!
 
   override func mainActorSetUp() {
     features
@@ -55,7 +56,7 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
     features.patch(
       \AccountPreferences.updates,
       context: Account.mock_ada,
-      with: preferencesUpdates.updates
+      with: preferencesUpdates
     )
     features.patch(
       \AccountInitialSetup.completeSetup,

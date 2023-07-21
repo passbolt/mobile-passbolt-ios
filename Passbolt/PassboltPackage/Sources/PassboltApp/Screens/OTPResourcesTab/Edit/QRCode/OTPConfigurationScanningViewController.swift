@@ -115,7 +115,7 @@ extension OTPConfigurationScanningViewController {
         identifier: #function
       ) { [viewState, context, resourceEditForm, navigationToSelf, navigationToScanningSuccess] in
         resourceEditForm.update(context.totpPath, to: configuration.secret)
-        if try await resourceEditForm.state.current.isLocal {
+        if try await resourceEditForm.state.value.isLocal {
           resourceEditForm.update(\.nameField, to: configuration.account)
           resourceEditForm.update(\.meta.uri, to: configuration.issuer)
           resourceEditForm.update(\.secret.totp, to: configuration.secret)

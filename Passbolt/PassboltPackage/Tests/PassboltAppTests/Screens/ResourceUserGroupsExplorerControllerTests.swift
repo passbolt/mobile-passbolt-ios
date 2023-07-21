@@ -39,7 +39,7 @@ import XCTest
 @MainActor
 final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
 
-  var updates: UpdatesSource!
+  var updates: Variable<Timestamp>!
 
   override func mainActorSetUp() {
     features
@@ -50,10 +50,10 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
           configuration: .mock_1
         )
       )
-    updates = .init()
+    updates = .init(initial: 0)
     features.patch(
-      \SessionData.updates,
-      with: updates.updates
+      \SessionData.lastUpdate,
+      with: updates
     )
     features.patch(
       \SessionData.refreshIfNeeded,
@@ -82,7 +82,7 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
   }
 
   override func mainActorTearDown() {
-    updates = .init()
+    updates = .init(initial: 0)
   }
 
   func test_refreshIfNeeded_setsViewStateError_whenRefreshFails() async throws {
@@ -129,7 +129,7 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
     )
     features.patch(
       \ResourcesController.lastUpdate,
-      with: Constant(value: 0)
+      with: Variable(initial: 0)
     )
 
     let controller: ResourceUserGroupsExplorerController = try await testController(

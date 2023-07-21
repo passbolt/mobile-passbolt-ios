@@ -39,8 +39,6 @@ extension ResourceController {
   ) throws -> Self {
     let resourceID: Resource.ID = try features.context(of: ResourceDetailsScope.self)
 
-    let asyncExecutor: AsyncExecutor = try features.instance()
-
     let sessionData: SessionData = try features.instance()
     let sessionCryptography: SessionCryptography = try features.instance()
     let resourceDataFetchDatabaseOperation: ResourceDetailsFetchDatabaseOperation = try features.instance()
@@ -54,10 +52,11 @@ extension ResourceController {
     let resourceFavoriteDeleteNetworkOperation: ResourceFavoriteDeleteNetworkOperation = try features.instance()
     let resourceSetFavoriteDatabaseOperation: ResourceSetFavoriteDatabaseOperation = try features.instance()
 
-    let state: UpdatableVariable<Resource> = .init(
-      using: sessionData.updates,
-      compute: fetchMeta
-    )
+    let state: PatchableVariable<Resource> = .init(
+      updatingFrom: sessionData.lastUpdate
+    ) { (_: Update<Resource>, _: Update<Timestamp>) in
+      try await fetchMeta()
+    }
 
     @Sendable nonisolated func fetchMeta() async throws -> Resource {
       let resource: Resource = try await resourceDataFetchDatabaseOperation(
@@ -105,13 +104,15 @@ extension ResourceController {
     @Sendable nonisolated func fetchSecretIfNeeded(
       force: Bool
     ) async throws -> JSON {
-      try await state.update { (resource: inout Resource) async throws -> JSON in
+      await state.patch { (latest: Update<Resource>) async throws in
+        var resource: Resource = try latest.value
         guard force || !resource.secretAvailable
-        else { return resource.secret }
+        else { return .none }
         resource.secret = try await fetchSecretJSON(unstructured: resource.hasUnstructuredSecret)
         try resource.validate()  // validate resource with secret
-        return resource.secret
+        return resource
       }
+      return try await state.value.secret
     }
 
     @Sendable func loadUserPermissionsDetails() async throws -> Array<UserPermissionDetailsDSV> {
@@ -125,11 +126,13 @@ extension ResourceController {
     }
 
     @Sendable func toggleFavorite() async throws {
-      if let favoriteID: Resource.Favorite.ID = try await state.current.favoriteID {
+      if let favoriteID: Resource.Favorite.ID = try await state.value.favoriteID {
         try await resourceFavoriteDeleteNetworkOperation(.init(favoriteID: favoriteID))
         try await resourceSetFavoriteDatabaseOperation(.init(resourceID: resourceID, favoriteID: .none))
-        state.mutate { (resource: inout Resource) in
+        await state.patch { (latest: Update<Resource>) in
+          var resource: Resource = try latest.value
           resource.favoriteID = .none
+          return resource
         }
       }
       else {
@@ -138,8 +141,10 @@ extension ResourceController {
         )
         .favoriteID
         try await resourceSetFavoriteDatabaseOperation(.init(resourceID: resourceID, favoriteID: favoriteID))
-        state.mutate { (resource: inout Resource) in
+        await state.patch { (latest: Update<Resource>) in
+          var resource: Resource = try latest.value
           resource.favoriteID = favoriteID
+          return resource
         }
       }
     }

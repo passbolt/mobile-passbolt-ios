@@ -30,17 +30,18 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 @MainActor
 final class AccountMenuControllerTests: MainActorTestCase {
 
-  var accountUpdates: UpdatesSource!
+  var accountUpdates: Updates!
 
   override func mainActorSetUp() {
     accountUpdates = .init()
     features.usePlaceholder(for: Session.self)
     features.patch(
       \Accounts.updates,
-      with: accountUpdates.updates
+      with: accountUpdates
     )
     features.patch(
       \Accounts.storedAccounts,
@@ -136,7 +137,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
     let controller: AccountMenuController = try await testController()
 
     storedAccounts = [.mock_ada, .mock_frances]
-    accountUpdates.sendUpdate()
+    accountUpdates.update()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)

@@ -29,6 +29,7 @@ import TestExtensions
 @testable import PassboltUsers
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
 
   override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
@@ -39,9 +40,10 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
     registry.usePassboltUserGroups()
   }
 
-  var updatesSequence: UpdatesSource!
+  var updatesSequence: Variable<Timestamp>!
 
   override func prepare() throws {
+    self.updatesSequence = .init(initial: 0)
     self.set(
       SessionScope.self,
       context: .init(
@@ -49,10 +51,9 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
         configuration: .mock_1
       )
     )
-    self.updatesSequence = .init()
     patch(
-      \SessionData.updates,
-      with: updatesSequence.updates
+      \SessionData.lastUpdate,
+      with: updatesSequence
     )
     use(Session.placeholder)
     use(ResourceUserGroupsListFetchDatabaseOperation.placeholder)
@@ -79,7 +80,9 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
     let feature: UserGroups = try await self.testedInstance()
 
     let result: Array<ResourceUserGroupListItemDSV>? =
-      try await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
+      try await feature.filteredResourceUserGroupList(
+        filtersSequence.asAnyAsyncSequence().compactMap { try? $0.value }.asAnyAsyncSequence()
+      )
       .first()
 
     XCTAssertEqual(
@@ -110,7 +113,7 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
     let feature: UserGroups = try await self.testedInstance()
 
     let result: Array<ResourceUserGroupListItemDSV>? =
-      try await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
+      try await feature.filteredResourceUserGroupList(filtersSequence.asAnyValueAsyncSequence())
       .first()
 
     XCTAssertEqual(
@@ -150,13 +153,13 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
 
     let feature: UserGroups = try await self.testedInstance()
 
-    _ = await try feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
+    _ = await try feature.filteredResourceUserGroupList(filtersSequence.asAnyValueAsyncSequence())
       .first()
 
-    filtersSequence.current = "changed"
+    filtersSequence.assign("changed")
 
     let result: Array<ResourceUserGroupListItemDSV>? =
-      try await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
+      try await feature.filteredResourceUserGroupList(filtersSequence.asAnyValueAsyncSequence())
       .first()
 
     XCTAssertEqual(

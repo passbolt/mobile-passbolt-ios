@@ -30,7 +30,7 @@ public struct Session {
   /// Async sequence distributing new values
   /// each time session state changes including
   /// requesting authorization and authorizing.
-  public var updates: Updates
+  public var updates: any Updatable<Void>
   /// Check if there is any pending
   /// authorization request.
   public var pendingAuthorization: @SessionActor () -> SessionAuthorizationRequest?
@@ -55,7 +55,7 @@ public struct Session {
   public var close: @SessionActor (_ account: Account?) async -> Void
 
   public init(
-    updates: Updates,
+    updates: any Updatable<Void>,
     pendingAuthorization: @escaping @SessionActor () -> SessionAuthorizationRequest?,
     currentAccount: @escaping @SessionActor () async throws -> Account,
     authorize: @escaping @SessionActor (SessionAuthorizationMethod) async throws -> Void,
@@ -88,7 +88,7 @@ extension Session: LoadableFeature {
   #if DEBUG
   public nonisolated static var placeholder: Self {
     Self(
-      updates: .never,
+      updates: PlaceholderUpdatable(),
       pendingAuthorization: unimplemented0(),
       currentAccount: unimplemented0(),
       authorize: unimplemented1(),
@@ -103,14 +103,16 @@ extension Session {
 
   @Sendable public func currentAccountSequence() -> AnyAsyncSequence<Account?> {
     self.updates
-      .map { try await self.currentAccount() }
+      .asAnyAsyncSequence()
+      .map { _ in try await self.currentAccount() }
       .removeDuplicates()
       .asAnyAsyncSequence()
   }
 
   @Sendable public func authorizationRequestSequence() -> AnyAsyncSequence<SessionAuthorizationRequest?> {
     self.updates
-      .map { await self.pendingAuthorization() }
+      .asAnyAsyncSequence()
+      .map { _ in await self.pendingAuthorization() }
       .removeDuplicates()
       .asAnyAsyncSequence()
   }

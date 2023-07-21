@@ -28,7 +28,7 @@ import XCTest
 @testable import Features
 
 /// Base class for preparing unit tests of features.
-@MainActor
+@MainActor @available(iOS 16.0.0, *)
 open class LoadableFeatureTestCase<Feature>: AsyncTestCase
 where Feature: LoadableFeature {
 
@@ -143,6 +143,7 @@ where Feature: LoadableFeature {
   }
 }
 
+@available(iOS 16.0.0, *)
 extension LoadableFeatureTestCase {
 
   @available(*, deprecated, message: "UIController should be migrated to a proper feature")
@@ -433,6 +434,7 @@ extension LoadableFeatureTestCase {
   }
 }
 
+@available(iOS 16.0.0, *)
 extension LoadableFeatureTestCase {
 
   public func withTestedInstance(

@@ -52,7 +52,8 @@ internal final class ResourceFolderLocationDetailsController: ViewController {
       .scheduleIteration(
         over: resourceFolderController.state,
         failMessage: "Resource folder location updates broken!"
-      ) { [viewState] (resourceFolder: ResourceFolder) in
+      ) { [viewState] (update: Update<ResourceFolder>) in
+        let resourceFolder: ResourceFolder = try update.value
         var path: FolderLocationTreeView.Node = resourceFolder.path.reduce(
           into: FolderLocationTreeView.Node.root()
         ) { (partialResult: inout FolderLocationTreeView.Node, item: ResourceFolderPathItem) in

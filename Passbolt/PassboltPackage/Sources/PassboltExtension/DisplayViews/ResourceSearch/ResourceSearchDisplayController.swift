@@ -70,8 +70,16 @@ internal final class ResourceSearchDisplayController: ViewController {
         searchText: ""
       ),
       updateFrom: self.searchText,
-      transform: { (viewState: inout ViewState, searchText: String) in
-        viewState.searchText = searchText
+      update: { (updateState, update: Update<String>) in
+        do {
+          let text: String = try update.value
+          await updateState { (viewState: inout ViewState) in
+            viewState.searchText = text
+          }
+        }
+        catch {
+          Diagnostics.log(debug: error)
+        }
       }
     )
   }
@@ -116,7 +124,9 @@ extension ResourceSearchDisplayController {
   internal final func updateSearchText(
     _ text: String
   ) {
-    self.searchText.current = text
+    self.searchText.mutate { (current: inout String) in
+      current = text
+    }
   }
 
   internal final func showPresentationMenu() {

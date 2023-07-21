@@ -42,13 +42,12 @@ extension ResourceFolderController {
       try features.instance()
 
     let state: ComputedVariable<ResourceFolder> = .init(
-      using: sessionData.updates,
-      compute: {
-        try await resourceFolderDetailsFetchDatabaseOperation(
-          resourceFolderID
-        )
-      }
-    )
+      transformed: sessionData.lastUpdate
+    ) { _ in
+      try await resourceFolderDetailsFetchDatabaseOperation(
+        resourceFolderID
+      )
+    }
 
     return Self(
       state: state

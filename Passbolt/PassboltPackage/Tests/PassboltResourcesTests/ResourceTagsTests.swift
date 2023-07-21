@@ -29,6 +29,7 @@ import TestExtensions
 @testable import PassboltResources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
 
   override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
@@ -39,7 +40,7 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
     registry.usePassboltResourceTags()
   }
 
-  private var updatesSequence: UpdatesSource!
+  private var updatesSequence: Variable<Timestamp>!
 
   override func prepare() throws {
     self.set(
@@ -50,10 +51,10 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
       )
     )
 
-    self.updatesSequence = .init()
+    self.updatesSequence = .init(initial: 0)
     patch(
-      \SessionData.updates,
-      with: self.updatesSequence.updates
+      \SessionData.lastUpdate,
+      with: self.updatesSequence
     )
     use(ResourceTagDetailsFetchDatabaseOperation.placeholder)
   }

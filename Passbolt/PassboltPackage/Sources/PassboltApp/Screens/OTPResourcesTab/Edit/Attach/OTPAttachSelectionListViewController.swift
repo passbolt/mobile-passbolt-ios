@@ -112,12 +112,16 @@ internal final class OTPAttachSelectionListViewController: ViewController {
         snackBarMessage: .none
       ),
       updateFrom: ComputedVariable(
-        combining: self.resourceSearchController.state,
-        and: self.localState,
-        combine: { (search: ResourceSearchState, local: LocalState) async throws -> ViewState in
-          return ViewState(
-            searchText: search.filter.text,
-            listItems: search.result.map { (item: ResourceSearchResultItem) -> TOTPAttachSelectionListItemViewModel in
+        combined: self.resourceSearchController.state,
+        with: self.localState
+      ),
+      update: { (updateView, update: Update<(ResourceSearchState, LocalState)>) in
+        do {
+          let (search, local): (ResourceSearchState, LocalState) = try update.value
+          await updateView { (viewState: inout ViewState) in
+            viewState.searchText = search.filter.text
+            viewState.listItems = search.result.map {
+              (item: ResourceSearchResultItem) -> TOTPAttachSelectionListItemViewModel in
               .init(
                 id: item.id,
                 type: item.type,
@@ -125,16 +129,18 @@ internal final class OTPAttachSelectionListViewController: ViewController {
                 username: item.username,
                 state: local.selected?.id == item.id
                   ? .selected
-                  : item.type.attachedOTPSlug != nil
+                  : item.type.attachedOTPSlug != nil && item.permission.canEdit
                     ? .none
-                    : .notAllowed  // TODO: FIXME: check editing permission!
+                    : .notAllowed
               )
             }
-          )
+          }
         }
-      ),
-      fallback: { (state: inout ViewState, error: Error) async in
-        state.snackBarMessage = .error(error)
+        catch {
+          await updateView { (viewState: inout ViewState) in
+            viewState.snackBarMessage = .error(error)
+          }
+        }
       }
     )
   }
@@ -153,10 +159,12 @@ extension OTPAttachSelectionListViewController {
   @MainActor internal func select(
     _ item: TOTPAttachSelectionListItemViewModel
   ) {
-    self.localState.selected = (
-      id: item.id,
-      type: item.type
-    )
+    self.localState.mutate { (state: inout LocalState) in
+      state.selected = (
+        id: item.id,
+        type: item.type
+      )
+    }
   }
 
   @MainActor internal func trySendForm() async {
@@ -165,7 +173,7 @@ extension OTPAttachSelectionListViewController {
         viewState.update(\.snackBarMessage, to: .error(error))
       }
     ) {
-      guard let selected: (id: Resource.ID, type: ResourceType) = self.localState.selected
+      guard let selected: (id: Resource.ID, type: ResourceType) = self.localState.value.selected
       else {
         throw
           InvalidForm
@@ -187,7 +195,7 @@ extension OTPAttachSelectionListViewController {
         viewState.update(\.snackBarMessage, to: .error(error))
       }
     ) {
-      guard let selected: (id: Resource.ID, type: ResourceType) = self.localState.selected
+      guard let selected: (id: Resource.ID, type: ResourceType) = self.localState.value.selected
       else {
         throw
           InvalidForm
@@ -223,8 +231,8 @@ extension OTPAttachSelectionListViewController {
       try await navigationToOTPResourcesList.perform()
       self.context.showMessage(
         editingContext.editedResource.isLocal || !editingContext.editedResource.hasTOTP
-          ? "otp.create.otp.created.message"
-          : "otp.create.otp.replaced.message"
+          ? "otp.edit.otp.created.message"
+          : "otp.edit.otp.replaced.message"
       )
     }
   }

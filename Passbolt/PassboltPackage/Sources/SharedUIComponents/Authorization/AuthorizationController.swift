@@ -98,7 +98,8 @@ extension AuthorizationController: UIController {
     func accountAvatarPublisher() -> AnyPublisher<Data?, Never> {
       accountDetails
         .updates
-        .map {
+        .asAnyAsyncSequence()
+        .map { _ in
           try? await accountDetails.avatarImage()
         }
         .asThrowingPublisher()
@@ -119,7 +120,8 @@ extension AuthorizationController: UIController {
     func biometricStatePublisher() -> AnyPublisher<BiometricsState, Never> {
       accountPreferences
         .updates
-        .map { () -> BiometricsState in
+        .asAnyAsyncSequence()
+        .map { _ -> BiometricsState in
           switch (biometry.availability(), accountPreferences.isPassphraseStored()) {
           case (.unavailable, _), (.unconfigured, _), (.touchID, false), (.faceID, false):
             return .unavailable

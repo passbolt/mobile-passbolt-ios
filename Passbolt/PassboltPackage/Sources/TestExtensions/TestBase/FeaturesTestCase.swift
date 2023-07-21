@@ -607,3 +607,44 @@ extension FeaturesTestCase {
     }
   }
 }
+
+// based on https://github.com/pointfreeco/swift-concurrency-extras/blob/main/Sources/ConcurrencyExtras/MainSerialExecutor.swift
+extension FeaturesTestCase {
+
+  @MainActor
+  public func withSerialTaskExecutor(
+    @_implicitSelfCapture operation: @MainActor @Sendable () async throws -> Void
+  ) async rethrows {
+    swift_task_enqueueGlobal_hook = mainSerialExecutor
+    defer { swift_task_enqueueGlobal_hook = .none }
+    try await operation()
+  }
+
+  public func withSerialTaskExecutor(
+    @_implicitSelfCapture operation: () throws -> Void
+  ) rethrows {
+    swift_task_enqueueGlobal_hook = mainSerialExecutor
+    defer { swift_task_enqueueGlobal_hook = .none }
+    try operation()
+  }
+}
+
+private typealias TaskEnqueueHook = @convention(thin) (UnownedJob, @convention(thin) (UnownedJob) -> Void) -> Void
+
+private var swift_task_enqueueGlobal_hook: TaskEnqueueHook? {
+  get { swift_task_enqueueGlobal_hook_ptr.pointee }
+  set { swift_task_enqueueGlobal_hook_ptr.pointee = newValue }
+}
+private let swift_task_enqueueGlobal_hook_ptr: UnsafeMutablePointer<TaskEnqueueHook?> =
+  dlsym(
+    dlopen(nil, 0),
+    "swift_task_enqueueGlobal_hook"
+  )
+  .assumingMemoryBound(to: TaskEnqueueHook?.self)
+
+private func mainSerialExecutor(
+  job: UnownedJob,
+  _: @convention(thin) (UnownedJob) -> Void
+) {
+  MainActor.shared.enqueue(job)
+}

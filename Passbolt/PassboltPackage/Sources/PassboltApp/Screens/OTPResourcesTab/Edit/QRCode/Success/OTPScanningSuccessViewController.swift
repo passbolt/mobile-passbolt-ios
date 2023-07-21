@@ -88,7 +88,7 @@ extension OTPScanningSuccessViewController {
     ) {
       try await self.resourceEditForm.send()
       try await self.navigationToOTPResourcesList.revert()
-      self.context.showMessage("otp.create.otp.created.message")
+      self.context.showMessage("otp.edit.otp.created.message")
     }
   }
 

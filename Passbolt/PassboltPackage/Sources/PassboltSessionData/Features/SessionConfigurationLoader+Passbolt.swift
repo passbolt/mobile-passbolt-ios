@@ -42,11 +42,12 @@ extension SessionConfigurationLoader {
     let configuration: ComputedVariable<Dictionary<AnyHashable, FeatureConfigItem>> = .init(
       // TODO: we should update only on account changes
       // not on all session changes...
-      using: session.updates,
-      //        .currentAccountSequence()
-      //        .map { _ in Void() },
-      compute: fetchConfiguration
-    )
+      transformed: session.updates
+        //        .currentAccountSequence()
+        //        .map { _ in Void() },
+    ) { _ in
+      try await fetchConfiguration()
+    }
 
     @Sendable nonisolated func fetchConfiguration() async throws -> Dictionary<AnyHashable, FeatureConfigItem> {
       Diagnostics.log(diagnostic: "Fetching server configuration...")
@@ -131,13 +132,13 @@ extension SessionConfigurationLoader {
     }
 
     @Sendable nonisolated func fetchIfNeeded() async throws {
-      _ = try await configuration.current
+      _ = try await configuration.value
     }
 
     @Sendable nonisolated func configuration(
       _ itemType: FeatureConfigItem.Type
     ) async -> FeatureConfigItem? {
-      try? await configuration.current[itemType.identifier]
+      try? await configuration.value[itemType.identifier]
     }
 
     return Self(

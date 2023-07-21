@@ -182,7 +182,7 @@ extension ResourcesListNodeController {
       )
       let resourceController: ResourceController = try await features.instance()
       try await resourceController.fetchSecretIfNeeded(force: true)
-      let resource: Resource = try await resourceController.state.current
+      let resource: Resource = try await resourceController.state.value
 
       guard let password: String = resource.firstPasswordString
       else {

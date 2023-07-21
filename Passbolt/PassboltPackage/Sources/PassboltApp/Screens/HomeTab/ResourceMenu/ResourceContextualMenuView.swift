@@ -54,7 +54,6 @@ internal struct ResourceContextualMenuView: ControlledView {
         }
       }
     )
-    .task(self.controller.activate)
   }
 }
 

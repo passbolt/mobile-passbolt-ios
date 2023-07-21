@@ -74,7 +74,8 @@ extension AccountMenuController: UIController {
     nonisolated func accountsListPublisher() -> AnyPublisher<Array<AccountsListItem>, Never> {
       accounts
         .updates
-        .map { () -> Array<AccountsListItem> in
+        .asAnyAsyncSequence()
+        .map { _ -> Array<AccountsListItem> in
           var listItems:
             Array<(accountWithProfile: AccountWithProfile, avatarImagePublisher: AnyPublisher<Data?, Never>)> = .init()
 

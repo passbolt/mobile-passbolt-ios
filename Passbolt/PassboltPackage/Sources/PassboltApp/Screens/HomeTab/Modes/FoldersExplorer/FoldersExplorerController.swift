@@ -103,7 +103,7 @@ extension FoldersExplorerController: ComponentController {
     cancellables.executeOnMainActor {
       do {
         try await combineLatest(
-          sessionData.updates,
+          sessionData.lastUpdate.asAnyAsyncSequence(),
           viewState.asAnyAsyncSequence()
         )
         .map { (_, state: ViewState) -> ResourceFoldersFilter in

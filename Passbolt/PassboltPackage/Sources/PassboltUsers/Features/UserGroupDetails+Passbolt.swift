@@ -43,12 +43,13 @@ extension UserGroupDetails {
     }
 
     let currentDetails: ComputedVariable<UserGroupDetailsDSV> = .init(
-      using: sessionData.updates,
-      compute: fetchUserGroupDetails
-    )
+      transformed: sessionData.lastUpdate
+    ) { _ in
+      try await fetchUserGroupDetails()
+    }
 
     @Sendable nonisolated func details() async throws -> UserGroupDetailsDSV {
-      try await currentDetails.current
+      try await currentDetails.value
     }
 
     return .init(

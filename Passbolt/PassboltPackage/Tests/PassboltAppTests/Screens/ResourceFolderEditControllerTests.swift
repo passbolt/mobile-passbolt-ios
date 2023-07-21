@@ -31,6 +31,7 @@ import Users
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class ResourceFolderEditControllerTests: FeaturesTestCase {
 
   override func commonPrepare() {
@@ -102,11 +103,11 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
   }
 
   func test_viewState_updates_whenFormUpdates() async throws {
-    let updatesSource: UpdatesSource = .init()
+    let updatesSource: Updates = .init()
     patch(
       \ResourceFolderEditForm.updates,
       context: .create(containingFolderID: .none),
-      with: updatesSource.updates
+      with: updatesSource
     )
     self.dynamicVariables.formState = ResourceFolderEditFormState(
       name: .valid("initial"),
@@ -129,7 +130,7 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
       location: .valid(.init()),
       permissions: .valid(.init())
     )
-    updatesSource.sendUpdate()
+    updatesSource.update()
     await self.asyncExecutionControl.executeNext()
 
     let updatedFolderName: Validated<String> = await tested.viewState.current.folderName
@@ -139,7 +140,7 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
       updatedFolderName
     )
 
-    updatesSource.terminate()
+    //    updatesSource.terminate()
     await self.asyncExecutionControl.executeAll()
   }
 }

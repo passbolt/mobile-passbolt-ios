@@ -66,17 +66,21 @@ internal final class DefaultPresentationModeSettingsViewController: ViewControll
         selectedMode: .none,
         availableModes: .init()
       ),
-      updateUsing: self.accountPreferences.updates,
+      updateFrom: self.accountPreferences.updates,
       update: {
         [homePresentation, useLastUsedHomePresentationAsDefault, defaultHomePresentation] (
-          viewState: inout ViewState
+          updateState,
+          _
         )
         in
-        viewState.selectedMode =
-          useLastUsedHomePresentationAsDefault.get(\.self)
-          ? .none
-          : defaultHomePresentation.get(\.self)
-        viewState.availableModes = homePresentation.availableHomePresentationModes()
+        let availableModes = await homePresentation.availableHomePresentationModes()
+        await updateState { (viewState: inout ViewState) in
+          viewState.selectedMode =
+            useLastUsedHomePresentationAsDefault.get(\.self)
+            ? .none
+            : defaultHomePresentation.get(\.self)
+          viewState.availableModes = availableModes
+        }
       }
     )
   }

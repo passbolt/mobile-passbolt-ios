@@ -74,8 +74,9 @@ extension WindowController: UIController {
         [lastDisposition.get()].asAnyAsyncSequence(),
         session
           .updates
+          .asAnyAsyncSequence()
           .dropFirst()  // we have initial value handled
-          .map { () -> ScreenStateDisposition in
+          .map { _ -> ScreenStateDisposition in
             async let currentAccount: Account? = session.currentAccount()
             async let currentAuthorizationRequest: SessionAuthorizationRequest? = session.pendingAuthorization()
 

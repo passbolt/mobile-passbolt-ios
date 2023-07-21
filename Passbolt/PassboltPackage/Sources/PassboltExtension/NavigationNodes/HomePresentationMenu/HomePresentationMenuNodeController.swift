@@ -49,9 +49,11 @@ internal final class HomePresentationMenuNodeController: ViewController {
         currentMode: homePresentation.currentMode.wrappedValue,
         availableModes: homePresentation.availableModes()
       ),
-      updateUsing: self.homePresentation.currentMode.updates,
-      update: { [homePresentation] (state: inout ViewState) in
-        state.currentMode = homePresentation.currentMode.get()
+      updateFrom: self.homePresentation.currentMode.updates,
+      update: { [homePresentation] (updateState, _) in
+        await updateState { (state: inout ViewState) in
+          state.currentMode = homePresentation.currentMode.get()
+        }
       }
     )
   }

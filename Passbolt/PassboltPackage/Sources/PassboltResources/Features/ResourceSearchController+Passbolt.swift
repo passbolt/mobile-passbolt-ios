@@ -45,10 +45,11 @@ extension ResourceSearchController {
       initial: context
     )
     let searchState: ComputedVariable<ResourceSearchState> = .init(
-      combining: filterState,
-      and: sessionData.lastUpdate,
-      combine: { (filter: ResourceSearchFilter, _) -> ResourceSearchState in
-        ResourceSearchState(
+      combined: filterState,
+      with: sessionData.lastUpdate,
+      combine: { (filter: Update<ResourceSearchFilter>, _) -> ResourceSearchState in
+        let filter: ResourceSearchFilter = try filter.value
+        return ResourceSearchState(
           filter: filter,
           result: try await resourcesListFetchDatabaseOperation(
             .init(
@@ -68,7 +69,7 @@ extension ResourceSearchController {
     return .init(
       state: searchState,
       refreshIfNeeded: refreshIfNeeded,
-      updateFilter: { $0(&filterState.current) }
+      updateFilter: { filterState.mutate($0) }
     )
   }
 }

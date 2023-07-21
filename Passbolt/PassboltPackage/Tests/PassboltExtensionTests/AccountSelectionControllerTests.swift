@@ -32,16 +32,16 @@ import XCTest
 @testable import PassboltExtension
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@MainActor
+@MainActor @available(iOS 16.0.0, *)
 final class AccountSelectionControllerTests: MainActorTestCase {
 
-  var accountsUpdates: UpdatesSource!
+  var accountsUpdates: Updates!
 
   override func mainActorSetUp() {
     accountsUpdates = .init()
     features.patch(
       \Accounts.updates,
-      with: accountsUpdates.updates
+      with: accountsUpdates
     )
     features.patch(
       \Accounts.storedAccounts,

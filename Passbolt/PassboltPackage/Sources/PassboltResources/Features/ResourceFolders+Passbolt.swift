@@ -47,7 +47,7 @@ extension ResourceFolders {
         of: ResourceFolderController.self,
         context: folderID
       )
-      .state.current
+      .state.value
     }
 
     @Sendable nonisolated func filteredFolderContent(

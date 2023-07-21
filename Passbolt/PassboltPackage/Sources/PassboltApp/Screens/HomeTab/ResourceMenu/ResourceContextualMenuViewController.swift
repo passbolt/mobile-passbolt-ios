@@ -118,77 +118,70 @@ internal final class ResourceContextualMenuViewController: ViewController {
         title: "",
         accessMenuItems: .init(),
         modifyMenuItems: .init()
-      )
+      ),
+      updateFrom: self.resourceController.state,
+      update: { [navigationToSelf] (updateState, update: Update<Resource>) in
+        do {
+          let resource: Resource = try update.value
+          var accessMenuItems: Array<ResourceContextualMenuItem> = .init()
+          var modifyMenuItems: Array<ResourceContextualMenuItem> = .init()
+
+          if resource.contains(\.meta.uri) {
+            accessMenuItems.append(.openURI)
+            accessMenuItems.append(.copyURI)
+          }  // else NOP
+
+          if resource.contains(\.meta.username) {
+            accessMenuItems.append(.copyUsername)
+          }  // else NOP
+
+          if resource.hasPassword {
+            accessMenuItems.append(.copyPassword)
+          }  // else NOP
+
+          if resource.contains(\.secret.description) || resource.contains(\.meta.description) {
+            accessMenuItems.append(.copyDescription)
+          }  // else NOP
+
+          if resource.hasTOTP {
+            accessMenuItems.append(.showOTPMenu)
+          }
+          else if resource.canEdit && resource.canAttachOTP {
+            modifyMenuItems.append(.addOTP)
+          }  // else NOP
+
+          modifyMenuItems.append(.toggle(favorite: resource.favorite))
+
+          if resource.permission.canShare {
+            modifyMenuItems.append(.share)
+          }  // else NOP
+
+          if resource.canEdit {
+            if resource.hasPassword {
+              modifyMenuItems.append(.editPassword)
+            }  // else NOP
+
+            modifyMenuItems.append(.delete)
+          }  // else NOP
+
+          await updateState { (viewState: inout ViewState) in
+            viewState.title = resource.name
+            viewState.accessMenuItems = accessMenuItems
+            viewState.modifyMenuItems = modifyMenuItems
+          }
+        }
+        catch {
+          await navigationToSelf.revertCatching()
+          guard let message: SnackBarMessage = .error(error)
+          else { return }
+          await context.showMessage(message)
+        }
+      }
     )
   }
 }
 
 extension ResourceContextualMenuViewController {
-
-  @Sendable internal func activate() async {
-    await Diagnostics
-      .logCatch(
-        info: .message("Resource contextual menu updates broken!"),
-        fallback: { _ in
-          try? await self.navigationToSelf.revert()
-        }
-      ) {
-        for try await resource in self.resourceController.state {
-          self.update(resource)
-        }
-      }
-  }
-
-  internal func update(
-    _ resource: Resource
-  ) {
-    var accessMenuItems: Array<ResourceContextualMenuItem> = .init()
-    var modifyMenuItems: Array<ResourceContextualMenuItem> = .init()
-
-    if resource.contains(\.meta.uri) {
-      accessMenuItems.append(.openURI)
-      accessMenuItems.append(.copyURI)
-    }  // else NOP
-
-    if resource.contains(\.meta.username) {
-      accessMenuItems.append(.copyUsername)
-    }  // else NOP
-
-    if resource.hasPassword {
-      accessMenuItems.append(.copyPassword)
-    }  // else NOP
-
-    if resource.contains(\.secret.description) || resource.contains(\.meta.description) {
-      accessMenuItems.append(.copyDescription)
-    }  // else NOP
-
-    if resource.hasTOTP {
-      accessMenuItems.append(.showOTPMenu)
-    }
-    else if resource.canEdit && resource.canAttachOTP {
-      modifyMenuItems.append(.addOTP)
-    }  // else NOP
-
-    modifyMenuItems.append(.toggle(favorite: resource.favorite))
-
-    if resource.permission.canShare {
-      modifyMenuItems.append(.share)
-    }  // else NOP
-
-    if resource.canEdit {
-      if resource.hasPassword {
-        modifyMenuItems.append(.editPassword)
-      }  // else NOP
-
-      modifyMenuItems.append(.delete)
-    }  // else NOP
-
-    self.viewState.update { (state: inout ViewState) in
-      state.title = resource.name
-      state.accessMenuItems = accessMenuItems
-      state.modifyMenuItems = modifyMenuItems
-    }
-  }
 
   internal func performAction(
     for item: ResourceContextualMenuItem
@@ -241,7 +234,7 @@ extension ResourceContextualMenuViewController {
         error.show(using: self.showMessage)
       }
     ) { () async throws -> Void in
-      var resource: Resource = try await self.resourceController.state.current
+      var resource: Resource = try await self.resourceController.state.value
 
       guard let field: ResourceFieldSpecification = resource.fieldSpecification(for: path)
       else {
@@ -256,7 +249,7 @@ extension ResourceContextualMenuViewController {
 
       if field.encrypted {
         _ = try await self.resourceController.fetchSecretIfNeeded()
-        resource = try await self.resourceController.state.current
+        resource = try await self.resourceController.state.value
       }  // else continue
 
       try await self.linkOpener.openURL(.init(rawValue: resource[keyPath: path].stringValue ?? ""))
@@ -273,7 +266,7 @@ extension ResourceContextualMenuViewController {
         error.show(using: self.showMessage)
       }
     ) { () async throws -> Void in
-      var resource: Resource = try await self.resourceController.state.current
+      var resource: Resource = try await self.resourceController.state.value
 
       guard let field: ResourceFieldSpecification = resource.fieldSpecification(for: path)
       else {
@@ -288,7 +281,7 @@ extension ResourceContextualMenuViewController {
 
       if field.encrypted {
         _ = try await self.resourceController.fetchSecretIfNeeded()
-        resource = try await self.resourceController.state.current
+        resource = try await self.resourceController.state.value
       }  // else continue
 
       self.pasteboard.put(resource[keyPath: path].stringValue ?? "")
@@ -358,7 +351,7 @@ extension ResourceContextualMenuViewController {
       }
     ) {
       try await self.resourceController.toggleFavorite()
-      let resource: Resource = try await self.resourceController.state.current
+      let resource: Resource = try await self.resourceController.state.value
       try await self.navigationToSelf.revert()
       if resource.favorite {
         self.showMessage(

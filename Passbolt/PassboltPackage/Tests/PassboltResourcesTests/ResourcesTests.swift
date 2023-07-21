@@ -30,9 +30,10 @@ import XCTest
 @testable import PassboltResources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class ResourcesControllerTests: FeaturesTestCase {
 
-  let updatesSequence: UpdatesSource = .init()
+  let updatesSequence: Variable<Timestamp> = .init(initial: 0)
 
   override func commonPrepare() {
     super.commonPrepare()
@@ -72,8 +73,8 @@ final class ResourcesControllerTests: FeaturesTestCase {
       with: always(100)
     )
     patch(
-      \SessionData.updates,
-      with: self.updatesSequence.updates
+      \SessionData.lastUpdate,
+      with: self.updatesSequence
     )
     patch(
       \SessionData.refreshIfNeeded,

@@ -79,7 +79,7 @@ extension AccountDetails {
 
       try accountsDataStore
         .updateAccountProfile(updatedProfile)
-      accountData.updatesSource.sendUpdate()
+      accountData.updates.update()
     }
 
     let avatarImageCache: ComputedVariable<Data> = .init(lazy: {
@@ -94,7 +94,7 @@ extension AccountDetails {
     })
 
     @Sendable nonisolated func avatarImage() async throws -> Data? {
-      try? await avatarImageCache.current
+      try? await avatarImageCache.value
     }
 
     return Self(

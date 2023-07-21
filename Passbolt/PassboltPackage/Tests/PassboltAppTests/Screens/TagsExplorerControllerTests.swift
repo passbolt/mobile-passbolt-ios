@@ -38,7 +38,7 @@ import XCTest
 @MainActor
 final class TagsExplorerControllerTests: MainActorTestCase {
 
-  var updates: UpdatesSource!
+  var updates: Variable<Timestamp>!
 
   override func mainActorSetUp() {
     features
@@ -49,10 +49,10 @@ final class TagsExplorerControllerTests: MainActorTestCase {
           configuration: .mock_1
         )
       )
-    updates = .init()
+    updates = .init(initial: 0)
     features.patch(
-      \SessionData.updates,
-      with: updates.updates
+      \SessionData.lastUpdate,
+      with: updates
     )
     features.patch(
       \SessionData.refreshIfNeeded,
@@ -127,7 +127,7 @@ final class TagsExplorerControllerTests: MainActorTestCase {
     )
     features.patch(
       \ResourcesController.lastUpdate,
-      with: Constant(value: 0)
+      with: Variable(initial: 0)
     )
 
     let controller: TagsExplorerController = try await testController(

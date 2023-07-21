@@ -84,7 +84,7 @@ extension ResourcePermissionsDetailsViewController {
         }
       ) {
         for try await resource in self.resourceController.state {
-          await self.update(resource)
+          try await self.update(resource.value)
         }
       }
   }

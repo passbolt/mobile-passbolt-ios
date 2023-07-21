@@ -27,6 +27,7 @@ import TestExtensions
 @testable import PassboltAccounts
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
 
   override class func testedImplementationRegister(

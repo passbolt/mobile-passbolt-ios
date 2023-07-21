@@ -29,6 +29,7 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class UpdateCheckTests: LoadableFeatureTestCase<UpdateCheck> {
 
   override class func testedImplementationRegister(

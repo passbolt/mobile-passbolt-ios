@@ -29,6 +29,7 @@ import TestExtensions
 @testable import PassboltResources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
 
   override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
@@ -39,7 +40,7 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
     registry.usePassboltResourceFolders()
   }
 
-  private var updatesSequenceSource: UpdatesSource!
+  private var updatesSequenceSource: Variable<Timestamp>!
 
   override func prepare() throws {
     self.set(
@@ -50,10 +51,10 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
       )
     )
 
-    updatesSequenceSource = .init()
+    updatesSequenceSource = .init(initial: 0)
     patch(
-      \SessionData.updates,
-      with: updatesSequenceSource.updates
+      \SessionData.lastUpdate,
+      with: updatesSequenceSource
     )
     use(ResourceFolderDetailsFetchDatabaseOperation.placeholder)
   }
