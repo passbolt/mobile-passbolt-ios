@@ -85,7 +85,7 @@ extension ComputedVariable: Updatable {
       if case .none = self.runningUpdate {
         assert(self.deliverUpdate == nil, "No one should wait if there is no update running!")
         self.deliverUpdate = awaiter
-        let generationToUpdate: UpdateGeneration = self.cachedUpdate?.generation ?? .uninitialized
+        let generationToUpdate: UpdateGeneration = .uninitialized
         self.runningUpdate = .detached { [weak self, compute] in
           await self?.deliver(compute(generationToUpdate))
         }
@@ -118,7 +118,7 @@ extension ComputedVariable: Updatable {
     else if case .none = self.runningUpdate {
       assert(self.deliverUpdate == nil, "No one should wait if there is no update running!")
       self.deliverUpdate = awaiter
-      let generationToUpdate: UpdateGeneration = self.cachedUpdate?.generation ?? .uninitialized
+			let generationToUpdate: UpdateGeneration = cachedUpdate.generation
       self.runningUpdate = .detached { [weak self, compute] in
         await self?.deliver(compute(generationToUpdate))
       }
@@ -147,13 +147,13 @@ extension ComputedVariable: Updatable {
     guard let sourceGeneration: UpdateGeneration = self.sourceGeneration()
     // if source is no longer available drop the value with cancelled
     else {
-      self.cachedUpdate = .cancelled()
+			self.cachedUpdate = .none
       self.runningUpdate.clearIfCurrent()
       let deliverUpdate: DeliverUpdate? = self.deliverUpdate
       self.deliverUpdate = .none
       self.lock.unsafe_unlock()
       // deliver update outside of lock
-      deliverUpdate?(update)
+			deliverUpdate?(.cancelled())
       return Void()
     }
     // check if the update is newer than currently stored

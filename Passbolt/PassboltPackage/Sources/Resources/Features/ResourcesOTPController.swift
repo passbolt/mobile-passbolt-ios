@@ -26,43 +26,31 @@ import Features
 
 // MARK: - Interface
 
-public struct OTPResources {
+public struct ResourcesOTPController {
 
-  /// Sequence indicating updates in the list data.
-  /// It won't contain updates in actual OTP codes.
-  public var lastUpdate: any Updatable<Timestamp>
-  /// Refresh resources data.
-  /// Current implementation uses SessionData.refreshIfNeeded.
-  public var refreshIfNeeded: @Sendable () async throws -> Void
-  /// List of OTP resources matching filter.
-  public var filteredList: @Sendable (OTPResourcesFilter) async throws -> Array<ResourceListItemDSV>
-  /// Access part of the resource secret associated with OTP.
-  /// Note that each access to secret might request
-  /// the whole resource secret from the backend.
-  public var secretFor: @Sendable (Resource.ID) async throws -> TOTPSecret
+  public var currentOTP: any Updatable<OTPValue>
+  public var revealOTP: @Sendable (Resource.ID) async throws -> OTPValue
+	public var hideOTP: @Sendable () async -> Void
 
   public init(
-    lastUpdate: any Updatable<Timestamp>,
-    refreshIfNeeded: @escaping @Sendable () async throws -> Void,
-    filteredList: @escaping @Sendable (OTPResourcesFilter) async throws -> Array<ResourceListItemDSV>,
-    secretFor: @escaping @Sendable (Resource.ID) async throws -> TOTPSecret
+		currentOTP: any Updatable<OTPValue>,
+		revealOTP: @escaping @Sendable (Resource.ID) async throws -> OTPValue,
+		hideOTP: @escaping @Sendable () async -> Void
   ) {
-    self.lastUpdate = lastUpdate
-    self.refreshIfNeeded = refreshIfNeeded
-    self.filteredList = filteredList
-    self.secretFor = secretFor
+    self.currentOTP = currentOTP
+    self.revealOTP = revealOTP
+    self.hideOTP = hideOTP
   }
 }
 
-extension OTPResources: LoadableFeature {
+extension ResourcesOTPController: LoadableFeature {
 
   #if DEBUG
   public static var placeholder: Self {
     .init(
-      lastUpdate: PlaceholderUpdatable(),
-      refreshIfNeeded: unimplemented0(),
-      filteredList: unimplemented1(),
-      secretFor: unimplemented1()
+			currentOTP: PlaceholderUpdatable(),
+			revealOTP: unimplemented1(),
+			hideOTP: unimplemented0()
     )
   }
   #endif

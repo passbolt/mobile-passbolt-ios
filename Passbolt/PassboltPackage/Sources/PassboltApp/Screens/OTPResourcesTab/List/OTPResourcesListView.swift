@@ -49,7 +49,11 @@ internal struct OTPResourcesListView: ControlledView {
     )
     .backgroundColor(.passboltBackground)
     .foregroundColor(.passboltPrimaryText)
-    .onDisappear(perform: self.controller.hideOTPCodes)
+		.onDisappear {
+			Task.detached { [weak controller] in
+				await controller?.hideOTPCodes()
+			}
+		}
   }
 
   @ViewBuilder @MainActor private var search: some View {
@@ -79,45 +83,6 @@ internal struct OTPResourcesListView: ControlledView {
       bottom: 16,
       trailing: 16
     )
-  }
-
-  @ViewBuilder @MainActor private var createOTP: some View {
-    AsyncButton(
-      action: self.controller.createOTP,
-      regularLabel: {
-        HStack(spacing: 12) {
-          Image(named: .create)
-            .resizable()
-            .frame(
-              width: 40,
-              height: 40
-            )
-            .foregroundColor(Color.passboltPrimaryBlue)
-
-          Text(
-            displayable: .localized(
-              key: .create
-            )
-          )
-          .font(
-            .inter(
-              ofSize: 14,
-              weight: .semibold
-            )
-          )
-          .multilineTextAlignment(.leading)
-          .frame(
-            maxWidth: .infinity,
-            alignment: .leading
-          )
-        }
-      }
-    )
-    .frame(
-      maxWidth: .infinity,
-      alignment: .leading
-    )
-    .commonListRowModifiers()
   }
 
   @ViewBuilder @MainActor private var emptyListPlaceholder: some View {
@@ -153,34 +118,27 @@ internal struct OTPResourcesListView: ControlledView {
 
   @ViewBuilder @MainActor private var list: some View {
     CommonList {
-      self.createOTP
+			CommonListSection {
+				CommonListCreateRow(action: self.controller.createOTP)
 
-      withEach(\.otpResources.values) { (item: TOTPResourceViewModel) in
-        TOTPResourcesListRowView(
-          title: item.name,
-          generateTOTP: item.generateTOTP,
-          action: {
-            await self.controller.revealAndCopyOTP(for: item.id)
-          },
-          accessory: {
-            AsyncButton(
-              action: {
-                await self.controller.showCentextualMenu(for: item.id)
-              },
-              regularLabel: {
-                Image(named: .more)
-                  .resizable()
-                  .frame(
-                    width: 20,
-                    height: 20
-                  )
-              }
-            )
-          }
-        )
-      } placeholder: {
-        self.emptyListPlaceholder
-      }
+				withEach(\.otpResources.values) { (item: TOTPResourceViewModel) in
+					CommonListResourceOTPView(
+						name: item.name,
+						otpGenerator: item.generateOTP,
+						contentAction: { (otp: OTPValue?) in
+							await self.controller.revealAndCopyOTP(for: item.id)
+						},
+						accessoryAction: {
+							await self.controller.showCentextualMenu(for: item.id)
+						},
+						accessory: {
+							Image(named: .more)
+						}
+					)
+				} placeholder: {
+					self.emptyListPlaceholder
+				}
+			}
     }
     .refreshable(action: self.controller.refreshList)
     .shadowTopEdgeOverlay()

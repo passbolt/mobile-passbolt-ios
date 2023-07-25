@@ -37,23 +37,11 @@ where Value: Sendable {
     generation: UpdateGeneration,
     _ content: Content
   ) {
-    assert(
-      {
-        switch content {
-        case .issue(is Cancelled), .issue(is Unavailable):
-          return generation == .uninitialized
-
-        case .value, .issue:
-          return generation != .uninitialized
-        }
-      }(),
-      "Only cancelled and unavailable updates have to have uninitialized generation!"
-    )
     self.generation = generation
     self.content = content
   }
 
-  @_transparent @usableFromInline internal init(
+  @_transparent public init(
 		generation: @autoclosure () -> UpdateGeneration,
     _ value: Value
   ) {
@@ -63,7 +51,7 @@ where Value: Sendable {
 		)
   }
 
-  @_transparent @usableFromInline internal init(
+  @_transparent public init(
 		generation: @autoclosure () -> UpdateGeneration,
     _ error: Error
   ) {
@@ -99,7 +87,7 @@ where Value: Sendable {
 		self.generation = generation()
 	}
 
-  @_transparent @usableFromInline internal init(
+  @_transparent public init(
 		generation: @autoclosure () -> UpdateGeneration
   ) where Value == Void {
 		self.init(
@@ -118,7 +106,7 @@ extension Update {
     )
   }
 
-  @_transparent @usableFromInline internal static func cancelled() -> Self {
+  @_transparent public static func cancelled() -> Self {
     .init(
       generation: .uninitialized,
       .issue(CancellationError())

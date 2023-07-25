@@ -36,6 +36,7 @@ public struct OSTime {
   public var timestamp: @Sendable () -> Timestamp
   public var waitFor: @Sendable (Seconds) async throws -> Void
   public var timerSequence: @Sendable (Seconds) -> AnyAsyncSequence<Void>
+	public var timeVariable: @Sendable (Seconds) -> TimeVariable
 }
 
 extension OSTime: StaticFeature {
@@ -45,7 +46,8 @@ extension OSTime: StaticFeature {
     Self(
       timestamp: unimplemented0(),
       waitFor: unimplemented1(),
-      timerSequence: unimplemented1()
+      timerSequence: unimplemented1(),
+			timeVariable: unimplemented1()
     )
   }
   #endif
@@ -98,7 +100,10 @@ extension OSTime {
     return Self(
       timestamp: timestamp,
       waitFor: waitFor(_:),
-      timerSequence: timerSequence(_:)
+			timerSequence: timerSequence(_:),
+			timeVariable: { (period: Seconds) in
+				TimeVariable(period: NSEC_PER_SEC * UInt64(period.rawValue))
+			}
     )
   }
 
@@ -136,7 +141,10 @@ extension OSTime {
     return Self(
       timestamp: timestamp,
       waitFor: waitFor(_:),
-      timerSequence: timerSequence(_:)
+			timerSequence: timerSequence(_:),
+			timeVariable: { (period: Seconds) in
+				TimeVariable(period: NSEC_PER_SEC * UInt64(period.rawValue))
+			}
     )
   }
 }
@@ -156,3 +164,326 @@ extension FeaturesRegistry {
     }
   }
 }
+
+import let os.CLOCK_MONOTONIC
+import func os.clock_gettime_nsec_np
+
+// TODO: change implementation from iOS 16+ and use any Updatable<Timestamp> as an interface
+public final class TimeVariable: @unchecked Sendable {
+
+	@usableFromInline internal typealias DeliverUpdate = @Sendable (Update<Void>) -> Void
+
+	@usableFromInline @inline(__always) internal var lock: UnsafeLock
+	@usableFromInline @inline(__always) internal var nextUpdateTime: UInt64
+	@usableFromInline @inline(__always) internal var lastUpdateGeneration: UpdateGeneration
+	@usableFromInline @inline(__always) internal var runningUpdate: Task<Void, Never>?
+	@usableFromInline @inline(__always) internal var deliverUpdate: DeliverUpdate?
+	@usableFromInline @inline(__always) internal let period: UInt64
+
+	internal init(
+		period: UInt64
+	) {
+		self.lock = .init()
+		self.nextUpdateTime = clock_gettime_nsec_np(CLOCK_MONOTONIC) + period
+		self.lastUpdateGeneration = .next()
+		self.deliverUpdate = .none
+		self.period = period
+	}
+
+	deinit {
+	 // resume all waiting to avoid hanging
+	 self.deliverUpdate?(.cancelled())
+ }
+}
+
+extension TimeVariable: Updatable {
+
+	public var generation: UpdateGeneration {
+		@_transparent @Sendable _read {
+			self.lock.unsafe_lock()
+			if self.nextUpdateTime <= clock_gettime_nsec_np(CLOCK_MONOTONIC) {
+				self.nextUpdateTime = self.nextUpdateTime + period
+				self.lastUpdateGeneration = .next()
+				let deliverUpdate: DeliverUpdate? = self.deliverUpdate
+				self.deliverUpdate = .none
+				let update: Update<Void> = .init(
+					generation: self.lastUpdateGeneration
+				)
+				yield self.lastUpdateGeneration
+				self.lock.unsafe_unlock()
+				// deliver update outside of lock
+				deliverUpdate?(update)
+			}
+			else {
+				yield self.lastUpdateGeneration
+				self.lock.unsafe_unlock()
+			}
+		}
+	}
+
+	public var value: Void {
+		@_transparent @Sendable get { Void() }
+	}
+
+	@Sendable public func update(
+		_ awaiter: @escaping @Sendable (Update<Void>) -> Void,
+		after generation: UpdateGeneration
+	) {
+		self.lock.unsafe_lock()
+
+		let updateToDeliver: Update<Void>?
+		if self.nextUpdateTime <= clock_gettime_nsec_np(CLOCK_MONOTONIC) {
+			self.nextUpdateTime = self.nextUpdateTime + self.period
+			self.lastUpdateGeneration = .next()
+			updateToDeliver = .init(
+				generation: self.lastUpdateGeneration
+		 )
+		}
+		else {
+			updateToDeliver = .none
+		}
+
+		// check if current can be used to fulfill immediately
+		if self.lastUpdateGeneration > generation {
+			if let updateToDeliver: Update<Void> {
+				let deliverUpdate: DeliverUpdate? = self.deliverUpdate
+				self.deliverUpdate = .none
+				self.lock.unsafe_unlock()
+				// deliver updates outside of lock
+				deliverUpdate?(updateToDeliver)
+				awaiter(updateToDeliver)
+			}
+			else {
+				self.lock.unsafe_unlock()
+				// deliver update outside of lock
+				awaiter(.init(generation: self.lastUpdateGeneration))
+			}
+		}
+		else if let updateToDeliver: Update<Void> {
+			let deliverUpdate: DeliverUpdate? = self.deliverUpdate
+			 self.deliverUpdate = .none
+			 self.lock.unsafe_unlock()
+			 // deliver updates outside of lock
+			 deliverUpdate?(updateToDeliver)
+			 awaiter(updateToDeliver)
+		 }
+		else if case .none = self.runningUpdate {
+			assert(self.deliverUpdate == nil, "No one should wait if there is no update running!")
+			self.deliverUpdate = awaiter
+			let nextUpdateTime: UInt64 = self.nextUpdateTime
+			let period: UInt64 = self.period
+			self.runningUpdate = .detached { [weak self] in
+				try? await Task.sleep(nanoseconds: nextUpdateTime - clock_gettime_nsec_np(CLOCK_MONOTONIC))
+
+				guard nextUpdateTime < clock_gettime_nsec_np(CLOCK_MONOTONIC)
+				else { return } // drop cancelled
+
+				let update: Update<UInt64> = .init(
+					generation: .next(),
+					nextUpdateTime + period
+				)
+				self?.deliver(update)
+			}
+			return self.lock.unsafe_unlock()
+		}
+		// if update is in progress wait for it
+		else if let currentDeliver: DeliverUpdate = self.deliverUpdate {
+			self.deliverUpdate = { @Sendable (update: Update<Value>) in
+				currentDeliver(update)
+				awaiter(update)
+			}
+			self.lock.unsafe_unlock()
+		}
+		else {
+			self.deliverUpdate = awaiter
+			self.lock.unsafe_unlock()
+		}
+	}
+
+	@Sendable private func deliver(
+		_ update: Update<UInt64>
+	) {
+		self.lock.unsafe_lock()
+		guard self.lastUpdateGeneration < update.generation
+		else { // drop outdated updates but resume awaiters anyway
+			self.runningUpdate.clearIfCurrent()
+			let deliverUpdate: DeliverUpdate? = self.deliverUpdate
+			self.deliverUpdate = .none
+			self.lock.unsafe_unlock()
+			// deliver update outside of lock
+			deliverUpdate?(.init(generation: update.generation))
+			return Void()
+		}
+		// time update can't produce errors
+		self.nextUpdateTime = try! update.value
+		self.lastUpdateGeneration = update.generation
+		self.runningUpdate.clearIfCurrent()
+		let deliverUpdate: DeliverUpdate? = self.deliverUpdate
+		self.deliverUpdate = .none
+		self.lock.unsafe_unlock()
+		// deliver update outside of lock
+		deliverUpdate?(.init(generation: update.generation))
+	}
+}
+
+// Version below should be used from iOS 16+
+
+//internal final class TimeVariable: @unchecked Sendable {
+//
+//	@usableFromInline internal typealias DeliverUpdate = @Sendable (Update<Void>) -> Void
+//
+//	@usableFromInline @inline(__always) internal var lock: UnsafeLock
+//	@usableFromInline @inline(__always) internal var nextUpdateTime: ContinuousClock.Instant
+//	@usableFromInline @inline(__always) internal var lastUpdateGeneration: UpdateGeneration
+//	@usableFromInline @inline(__always) internal var runningUpdate: Task<Void, Never>?
+//	@usableFromInline @inline(__always) internal var deliverUpdate: DeliverUpdate?
+//	@usableFromInline @inline(__always) internal let period: Swift.Duration
+//
+//	internal init(
+//		period: Swift.Duration
+//	) {
+//		self.lock = .init()
+//		self.nextUpdateTime = .now.advanced(by: period)
+//		self.lastUpdateGeneration = .next()
+//		self.deliverUpdate = .none
+//		self.period = period
+//	}
+//
+//	deinit {
+//	 // resume all waiting to avoid hanging
+//	 self.deliverUpdate?(.cancelled())
+// }
+//}
+//
+//extension TimeVariable: Updatable {
+//
+//	internal var generation: UpdateGeneration {
+//		@_transparent @Sendable _read {
+//			self.lock.unsafe_lock()
+//			if self.nextUpdateTime <= .now {
+//				self.nextUpdateTime = self.nextUpdateTime.advanced(by: self.period)
+//				self.lastUpdateGeneration = .next()
+//				let deliverUpdate: DeliverUpdate? = self.deliverUpdate
+//				self.deliverUpdate = .none
+//				let update: Update<Void> = .init(
+//					generation: self.lastUpdateGeneration
+//				)
+//				yield self.lastUpdateGeneration
+//				self.lock.unsafe_unlock()
+//				// deliver update outside of lock
+//				deliverUpdate?(update)
+//			}
+//			else {
+//				yield self.lastUpdateGeneration
+//				self.lock.unsafe_unlock()
+//			}
+//		}
+//	}
+//
+//	internal var value: Void {
+//		@_transparent @Sendable get { Void() }
+//	}
+//
+//	@Sendable internal func update(
+//		_ awaiter: @escaping @Sendable (Update<Void>) -> Void,
+//		after generation: UpdateGeneration
+//	) {
+//		self.lock.unsafe_lock()
+//
+//		let updateToDeliver: Update<Void>?
+//		if self.nextUpdateTime <= .now {
+//			self.nextUpdateTime = self.nextUpdateTime.advanced(by: self.period)
+//			self.lastUpdateGeneration = .next()
+//			updateToDeliver = .init(
+//				generation: self.lastUpdateGeneration
+//		 )
+//		}
+//		else {
+//			updateToDeliver = .none
+//		}
+//
+//		// check if current can be used to fulfill immediately
+//		if self.lastUpdateGeneration > generation {
+//			if let updateToDeliver: Update<Void> {
+//				let deliverUpdate: DeliverUpdate? = self.deliverUpdate
+//				self.deliverUpdate = .none
+//				self.lock.unsafe_unlock()
+//				// deliver updates outside of lock
+//				deliverUpdate?(updateToDeliver)
+//				awaiter(updateToDeliver)
+//			}
+//			else {
+//				self.lock.unsafe_unlock()
+//				// deliver update outside of lock
+//				awaiter(.init(generation: self.lastUpdateGeneration))
+//			}
+//		}
+//		else if let updateToDeliver: Update<Void> {
+//			let deliverUpdate: DeliverUpdate? = self.deliverUpdate
+//			 self.deliverUpdate = .none
+//			 self.lock.unsafe_unlock()
+//			 // deliver updates outside of lock
+//			 deliverUpdate?(updateToDeliver)
+//			 awaiter(updateToDeliver)
+//		 }
+//		else if case .none = self.runningUpdate {
+//			assert(self.deliverUpdate == nil, "No one should wait if there is no update running!")
+//			self.deliverUpdate = awaiter
+//			let nextUpdateTime: ContinuousClock.Instant = self.nextUpdateTime
+//			let period: Swift.Duration = self.period
+//			self.runningUpdate = .detached { [weak self] in
+//				let continuousClock: ContinuousClock = .init()
+//				try? await continuousClock
+//					.sleep(until: nextUpdateTime)
+//
+//				guard nextUpdateTime < .now
+//				else { return } // drop cancelled
+//
+//				let update: Update<ContinuousClock.Instant> = .init(
+//					generation: .next(),
+//					nextUpdateTime.advanced(by: period)
+//				)
+//				self?.deliver(update)
+//			}
+//			return self.lock.unsafe_unlock()
+//		}
+//		// if update is in progress wait for it
+//		else if let currentDeliver: DeliverUpdate = self.deliverUpdate {
+//			self.deliverUpdate = { @Sendable(update:Update<Value>) in
+//				currentDeliver(update)
+//				awaiter(update)
+//			}
+//			self.lock.unsafe_unlock()
+//		}
+//		else {
+//			assertionFailure("Update should not be running if no one is waiting!")
+//			self.deliverUpdate = awaiter
+//			self.lock.unsafe_unlock()
+//		}
+//	}
+//
+//	@Sendable private func deliver(
+//		_ update: Update<ContinuousClock.Instant>
+//	) {
+//		self.lock.unsafe_lock()
+//		guard self.lastUpdateGeneration < update.generation
+//		else { // drop outdated updates but resume awaiters anyway
+//			self.runningUpdate.clearIfCurrent()
+//			let deliverUpdate: DeliverUpdate? = self.deliverUpdate
+//			self.deliverUpdate = .none
+//			self.lock.unsafe_unlock()
+//			// deliver update outside of lock
+//			deliverUpdate?(.init(generation: update.generation))
+//			return Void()
+//		}
+//		// time update can't produce errors
+//		self.nextUpdateTime = try! update.value
+//		self.lastUpdateGeneration = update.generation
+//		self.runningUpdate.clearIfCurrent()
+//		let deliverUpdate: DeliverUpdate? = self.deliverUpdate
+//		self.deliverUpdate = .none
+//		self.lock.unsafe_unlock()
+//		// deliver update outside of lock
+//		deliverUpdate?(.init(generation: update.generation))
+//	}
+//}

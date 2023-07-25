@@ -21,19 +21,7 @@
 // @since         v1.0
 //
 
-import struct os.os_unfair_lock
-import func os.os_unfair_lock_lock
-import func os.os_unfair_lock_unlock
+import Features
 
-public typealias UnsafeLock = os_unfair_lock
-
-extension UnsafeLock {
-
-  @_transparent @Sendable public mutating func unsafe_lock() {
-    os_unfair_lock_lock(&self)
-  }
-
-  @_transparent @Sendable public mutating func unsafe_unlock() {
-    os_unfair_lock_unlock(&self)
-  }
-}
+// Scope for OTP resources tab.
+public enum OTPResourcesTabScope: FeaturesScope {}

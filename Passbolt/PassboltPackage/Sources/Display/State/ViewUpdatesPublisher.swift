@@ -45,7 +45,7 @@ where ViewState: Equatable {
   ) {
     assert(
       Thread.isMainThread,
-      "It seems that @MainActor does not work properly in some scenatios... yet this have to be on main!"
+      "It seems that @MainActor does not work properly in some scenatios... yet this has to be on main!"
     )
     self.subject.send(state)
   }

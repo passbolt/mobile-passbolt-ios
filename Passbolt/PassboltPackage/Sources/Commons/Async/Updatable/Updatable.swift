@@ -82,8 +82,6 @@ extension Updatable {
   }
 }
 
-#if DEBUG
-
 public final class PlaceholderUpdatable<Value>: Updatable
 where Value: Sendable {
 
@@ -98,8 +96,6 @@ where Value: Sendable {
     // never
   }
 }
-
-#endif
 
 public struct UpdatableIterator<Value>: AsyncIteratorProtocol
 where Value: Sendable {

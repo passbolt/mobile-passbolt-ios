@@ -3,7 +3,7 @@
 extension Optional
 where Wrapped == Task<Void, Never> {
 
-  @_transparent internal mutating func clearIfCurrent() {
+  @_transparent public mutating func clearIfCurrent() {
     switch self {
     case .some(let task) where task.isCurrent:
       self = .none
@@ -16,7 +16,7 @@ where Wrapped == Task<Void, Never> {
 
 extension Task {
 
-  fileprivate var isCurrent: Bool {
+  @usableFromInline internal var isCurrent: Bool {
     withUnsafeCurrentTask { (unsafeTask: UnsafeCurrentTask?) -> Bool in
       guard let unsafeTask else { return false }
 

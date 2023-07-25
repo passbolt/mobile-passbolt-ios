@@ -21,19 +21,50 @@
 // @since         v1.0
 //
 
-import struct os.os_unfair_lock
-import func os.os_unfair_lock_lock
-import func os.os_unfair_lock_unlock
+import SwiftUI
 
-public typealias UnsafeLock = os_unfair_lock
+public struct CommonListCreateRow: View {
 
-extension UnsafeLock {
+	private let contentAction: @MainActor () async -> Void
 
-  @_transparent @Sendable public mutating func unsafe_lock() {
-    os_unfair_lock_lock(&self)
-  }
+	public init(
+		action: @escaping @MainActor () async -> Void
+	) {
+		self.contentAction = action
+	}
 
-  @_transparent @Sendable public mutating func unsafe_unlock() {
-    os_unfair_lock_unlock(&self)
-  }
+	public var body: some View {
+		CommonListRow(
+			contentAction: self.contentAction,
+			content: {
+				HStack(spacing: 12) {
+					Image(named: .create)
+						.resizable()
+						.frame(
+							width: 40,
+							height: 40
+						)
+						.foregroundColor(Color.passboltPrimaryBlue)
+
+					Text(
+						displayable: .localized(
+							key: .create
+						)
+					)
+					.font(
+						.inter(
+							ofSize: 14,
+							weight: .semibold
+						)
+					)
+					.multilineTextAlignment(.leading)
+					.frame(
+						maxWidth: .infinity,
+						alignment: .leading
+					)
+				}
+				.frame(height: 64)
+			}
+		)
+	}
 }

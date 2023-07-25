@@ -35,7 +35,7 @@ extension FeaturesRegistry {
     self.usePassboltResourceTags()
     self.usePassboltResourceFolderDetails()
     self.usePassboltResourceFolderEditForm()
-    self.usePassboltOTPResources()
+    self.usePassboltResourcesOTPController()
     self.usePassboltHOTPCodeGenerator()
     self.usePassboltTOTPCodeGenerator()
     self.usePassboltResourceSearchController()

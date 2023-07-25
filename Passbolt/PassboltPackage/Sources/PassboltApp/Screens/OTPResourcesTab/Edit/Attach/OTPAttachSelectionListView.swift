@@ -93,61 +93,34 @@ internal struct OTPAttachSelectionListView: ControlledView {
     }
     .padding(16)
   }
+
   @MainActor @ViewBuilder internal var list: some View {
     CommonList {
       CommonListSection {
         withEach(\.listItems) { item in
-          CommonListRow(
-            contentAction: {
-              self.controller.select(item)
-            },
-            content: {
-              HStack(spacing: 8) {
-                LetterIconView(text: item.name)
-                  .frame(
-                    width: 40,
-                    height: 40,
-                    alignment: .center
-                  )
-                VStack(alignment: .leading, spacing: 4) {
-                  Text(item.name)
-                    .lineLimit(1)
-                    .font(.inter(ofSize: 14, weight: .semibold))
-                    .foregroundColor(Color.passboltPrimaryText)
-                  Text(
-                    item.username
-                      ?? DisplayableString
-                      .localized(key: "resource.list.username.empty.placeholder")
-                      .string()
-                  )
-                  .lineLimit(1)
-                  .font(
-                    item.username == nil
-                      ? .interItalic(ofSize: 12, weight: .regular)
-                      : .inter(ofSize: 12, weight: .regular)
-                  )
-                  .foregroundColor(Color.passboltSecondaryText)
-                }
-              }
-              .frame(height: 64)
-            },
-            accessory: {
-              switch item.state {
-              case .none:
-                Image(named: .circleUnselected)
-                  .foregroundColor(.passboltIcon)
+					CommonListResourceView(
+						name: item.name,
+						username: item.username,
+						contentAction: {
+							self.controller.select(item)
+						},
+						accessory: {
+							switch item.state {
+							case .none:
+								Image(named: .circleUnselected)
+									.foregroundColor(.passboltIcon)
 
-              case .notAllowed:
-                Image(named: .lockedLock)
-                  .foregroundColor(.passboltIcon)
+							case .notAllowed:
+								Image(named: .lockedLock)
+									.foregroundColor(.passboltIcon)
 
-              case .selected:
-                Image(named: .circleSelected)
-                  .foregroundColor(.passboltPrimaryBlue)
-              }
-            }
-          )
-          .disabled(item.state.disabled)
+							case .selected:
+								Image(named: .circleSelected)
+									.foregroundColor(.passboltPrimaryBlue)
+							}
+						}
+					)
+					.disabled(item.state.disabled)
         }
       }
     }

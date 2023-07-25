@@ -35,7 +35,7 @@ internal final class OTPResourcesTabController: ViewController {
   ) throws {
     try features.ensureScope(SessionScope.self)
 
-    self.features = features
+		self.features = features.branch(scope: OTPResourcesTabScope.self)
   }
 }
 

@@ -49,6 +49,7 @@ internal final class OTPResourcesListViewController: ViewController {
 
   private let accountDetails: AccountDetails
   private let resourceSearchController: ResourceSearchController
+	private let resourcesOTPController: ResourcesOTPController
   private let resourceEditPreparation: ResourceEditPreparation
 
   private let navigationToAccountMenu: NavigationToAccountMenu
@@ -77,6 +78,7 @@ internal final class OTPResourcesListViewController: ViewController {
         includedTypes: [.totp, .passwordWithTOTP]
       )
     )
+		self.resourcesOTPController = try features.instance()
     self.resourceEditPreparation = try features.instance()
 
     self.navigationToAccountMenu = try features.instance()
@@ -89,16 +91,33 @@ internal final class OTPResourcesListViewController: ViewController {
         snackBarMessage: .none
       ),
       updateFrom: self.resourceSearchController.state,
-      update: { (updateState, update: Update<ResourceSearchState>) in
+      update: { [resourcesOTPController] (updateState, update: Update<ResourceSearchState>) in
         do {
           let searchState: ResourceSearchState = try update.value
           var otpResources: OrderedDictionary<Resource.ID, TOTPResourceViewModel> = .init()
           otpResources.reserveCapacity(searchState.result.count)
           for item: ResourceSearchResultItem in searchState.result {
+						let otpIterator: AnyAsyncIterator<OTPValue?> = resourcesOTPController
+							.currentOTP
+							.asAnyAsyncSequence()
+							.map { (update: Update<OTPValue>) -> OTPValue? in
+								if let otp: OTPValue = try? update.value, otp.resourceID == item.id {
+									return otp
+								}
+								else {
+									return .none
+								}
+							}
+							.removeDuplicates()
+							.makeAsyncIterator()
+							.asAnyAsyncIterator()
+
             otpResources[item.id] = .init(
               id: item.id,
               name: item.name,
-              generateTOTP: .none
+							generateOTP: { () async -> OTPValue? in
+								(try? await otpIterator.next())?.flatMap { $0 }
+							}
             )
           }
           await updateState { (viewState: inout ViewState) in
@@ -166,62 +185,12 @@ extension OTPResourcesListViewController {
 
   private func revealOTP(
     for resourceID: Resource.ID
-  ) async throws -> TOTPValue {
-    guard let resourceItem = await self.viewState.current.otpResources[resourceID]
-    else {
-      throw
-        MissingResourceData
-        .error("Attempting to reveal OTP for not visible item!")
-    }
-
-    // no need to update if there is already reveqaled
-    if let generator: @Sendable () -> TOTPValue = resourceItem.generateTOTP {
-      return generator()
-    }
-    else {
-      let features: Features =
-        self.features.branchIfNeeded(
-          scope: ResourceDetailsScope.self,
-          context: resourceID
-        ) ?? features
-
-      let resource: ResourceController = try features.instance()
-      try await resource.fetchSecretIfNeeded()
-
-      guard let totpSecret: TOTPSecret = try await resource.firstTOTPSecret()
-      else {
-        throw
-          ResourceSecretInvalid
-          .error("Failed to acecss TOTP secret!")
-      }
-
-      let generator: @Sendable () -> TOTPValue =
-        try features
-        .instance(
-          of: TOTPCodeGenerator.self,
-          context: .init(
-            resourceID: resourceID,
-            totpSecret: totpSecret
-          )
-        )
-        .generate
-
-      self.viewState.update { (viewState: inout ViewState) in
-        for key in viewState.otpResources.keys {
-          if key == resourceItem.id {
-            viewState.otpResources[key]?.generateTOTP = generator
-          }
-          else {  // clear revealed otp
-            viewState.otpResources[key]?.generateTOTP = .none
-          }
-        }
-      }
-      return generator()
-    }
+  ) async throws -> OTPValue {
+		try await self.resourcesOTPController.revealOTP(resourceID)
   }
 
-  private func copyTOTP(
-    _ value: TOTPValue
+  private func copyOTP(
+    _ value: OTPValue
   ) async throws {
     pasteboard.put(value.otp.rawValue)
     self.viewState
@@ -243,8 +212,8 @@ extension OTPResourcesListViewController {
       fallback: { [viewState] (error: Error) in
         viewState.update(\.snackBarMessage, to: .error(error))
       }
-    ) {
-      try await self.copyTOTP(self.revealOTP(for: resourceID))
+		) {
+      try await self.copyOTP(self.revealOTP(for: resourceID))
     }
   }
 
@@ -257,7 +226,7 @@ extension OTPResourcesListViewController {
         viewState.update(\.snackBarMessage, to: .error(error))
       }
     ) {
-      hideOTPCodes()
+			await self.hideOTPCodes()
       let features: Features =
         features.branchIfNeeded(
           scope: ResourceDetailsScope.self,
@@ -286,17 +255,13 @@ extension OTPResourcesListViewController {
         viewState.update(\.snackBarMessage, to: .error(error))
       }
     ) {
-      hideOTPCodes()
+			await self.hideOTPCodes()
       try await navigationToAccountMenu.perform()
     }
   }
 
-  internal func hideOTPCodes() {
-    self.viewState.update { (viewState: inout ViewState) in
-      for key in viewState.otpResources.keys {
-        viewState.otpResources[key]?.generateTOTP = .none
-      }
-    }
+  internal func hideOTPCodes() async {
+		await self.resourcesOTPController.hideOTP()
   }
 }
 
@@ -304,7 +269,7 @@ internal struct TOTPResourceViewModel {
 
   internal var id: Resource.ID
   internal var name: String
-  internal var generateTOTP: (@Sendable () -> TOTPValue)?
+	internal var generateOTP: @Sendable () async -> OTPValue?
 }
 
 extension TOTPResourceViewModel: Equatable {
@@ -315,9 +280,6 @@ extension TOTPResourceViewModel: Equatable {
   ) -> Bool {
     lhs.id == rhs.id
       && lhs.name == rhs.name
-      // those are not equal if one has generator and other does not
-      // can't verify if both generators are the same though
-      && (lhs.generateTOTP == nil && rhs.generateTOTP == nil)
   }
 }
 
