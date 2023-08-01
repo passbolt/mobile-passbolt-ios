@@ -41,7 +41,7 @@ final class AccountSelectionControllerTests: MainActorTestCase {
     accountsUpdates = .init()
     features.patch(
       \Accounts.updates,
-      with: accountsUpdates
+      with: accountsUpdates.asAnyUpdatable()
     )
     features.patch(
       \Accounts.storedAccounts,

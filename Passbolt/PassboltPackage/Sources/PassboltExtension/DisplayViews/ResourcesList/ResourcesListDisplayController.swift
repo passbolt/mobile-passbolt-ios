@@ -89,7 +89,7 @@ extension ResourcesListDisplayController {
   internal struct Context {
 
     internal var baseFilter: ResourcesFilter
-    internal var filterTextSource: any Updatable<String>
+    internal var filterTextSource: AnyUpdatable<String>
     internal var suggestionFilter: (ResourceListItemDSV) -> Bool
     internal var createResource: (() -> Void)?
     internal var selectResource: (Resource.ID) -> Void

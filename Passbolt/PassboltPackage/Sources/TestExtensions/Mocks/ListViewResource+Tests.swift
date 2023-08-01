@@ -29,8 +29,8 @@ extension Array where Element == ResourceListItemDSV {
     [
       .init(
         id: .mock_1,
-				type: .mock_default,
-				permission: .owner,
+        type: .mock_default,
+        permission: .owner,
         parentFolderID: .none,
         name: "test",
         username: "test",
@@ -44,7 +44,7 @@ extension Array where Element == ResourceListItemDSV {
       .init(
         id: .mock_1,
         type: .mock_default,
-				permission: .owner,
+        permission: .owner,
         parentFolderID: .none,
         name: "test",
         username: "test",
@@ -53,7 +53,7 @@ extension Array where Element == ResourceListItemDSV {
       .init(
         id: .mock_2,
         type: .mock_default,
-				permission: .owner,
+        permission: .owner,
         parentFolderID: .none,
         name: "testAlt",
         username: "testAlt",

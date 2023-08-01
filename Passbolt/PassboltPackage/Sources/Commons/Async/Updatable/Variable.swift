@@ -24,11 +24,11 @@
 public final class Variable<Value>: @unchecked Sendable
 where Value: Sendable {
 
-  @usableFromInline internal typealias DeliverUpdate = @Sendable (Update<Value>) -> Void
+  @usableFromInline internal typealias Delivery = UpdateDelivery<Value>
 
   @usableFromInline @inline(__always) internal var lock: UnsafeLock
   @usableFromInline @inline(__always) internal var currentUpdate: Update<Value>
-  @usableFromInline @inline(__always) internal var deliverUpdate: DeliverUpdate?
+  @usableFromInline @inline(__always) internal var updateDelivery: Delivery?
 
   public init(
     initial: Value
@@ -38,12 +38,12 @@ where Value: Sendable {
       generation: .next(),
       initial
     )
-    self.deliverUpdate = .none
+    self.updateDelivery = .none
   }
 
   deinit {
     // resume all waiting to avoid hanging
-    self.deliverUpdate?(.cancelled())
+    self.updateDelivery?.deliver(.cancelled())
   }
 }
 
@@ -53,17 +53,17 @@ extension Variable: Updatable {
     @_transparent @Sendable _read {
       self.lock.unsafe_lock()
       yield self.currentUpdate.generation
-			self.lock.unsafe_unlock()
+      self.lock.unsafe_unlock()
     }
   }
 
   public var value: Value {
     @_transparent _read {
       self.lock.unsafe_lock()
-      defer { self.lock.unsafe_unlock() }
       // Variable can't produce errors
       let value: Value = try! self.currentUpdate.value
       yield value
+      self.lock.unsafe_unlock()
     }
     @_transparent _modify {
       self.lock.unsafe_lock()
@@ -75,11 +75,11 @@ extension Variable: Updatable {
         newValue
       )
       self.currentUpdate = update
-      let deliverUpdate: DeliverUpdate? = self.deliverUpdate
-      self.deliverUpdate = .none
+      let updateDelivery: Delivery? = self.updateDelivery
+      self.updateDelivery = .none
       self.lock.unsafe_unlock()
       // deliver update outside of lock
-      deliverUpdate?(update)
+      updateDelivery?.deliver(update)
     }
   }
 
@@ -87,7 +87,7 @@ extension Variable: Updatable {
     @_transparent @Sendable _read {
       self.lock.unsafe_lock()
       yield self.currentUpdate
-			self.lock.unsafe_unlock()
+      self.lock.unsafe_unlock()
     }
   }
 
@@ -107,11 +107,11 @@ extension Variable: Updatable {
         newValue
       )
       self.currentUpdate = update
-      let deliverUpdate: DeliverUpdate? = self.deliverUpdate
-      self.deliverUpdate = .none
+      let updateDelivery: Delivery? = self.updateDelivery
+      self.updateDelivery = .none
       self.lock.unsafe_unlock()
       // deliver update outside of lock
-      deliverUpdate?(update)
+      updateDelivery?.deliver(update)
     }
     else {
       // drop old value, newer value was already delivered
@@ -139,11 +139,11 @@ extension Variable: Updatable {
         currentValue
       )
       self.currentUpdate = update
-      let deliverUpdate: DeliverUpdate? = self.deliverUpdate
-      self.deliverUpdate = .none
+      let updateDelivery: Delivery? = self.updateDelivery
+      self.updateDelivery = .none
       self.lock.unsafe_unlock()
       // deliver update outside of lock
-      deliverUpdate?(update)
+      updateDelivery?.deliver(update)
     }
     else {
       // drop old value, newer value was already delivered
@@ -177,35 +177,33 @@ extension Variable: Updatable {
       updatedValue
     )
     self.currentUpdate = update
-    let deliverUpdate: DeliverUpdate? = self.deliverUpdate
-    self.deliverUpdate = .none
+    let updateDelivery: Delivery? = self.updateDelivery
+    self.updateDelivery = .none
     self.lock.unsafe_unlock()
     // deliver update outside of lock
-    deliverUpdate?(update)
+    updateDelivery?.deliver(update)
     return returned
   }
 
-  @Sendable public func update(
+  @Sendable public func notify(
     _ awaiter: @escaping @Sendable (Update<Value>) -> Void,
     after generation: UpdateGeneration
   ) {
     self.lock.unsafe_lock()
     // check if current value can be used to fulfill immediately
     if self.currentUpdate.generation > generation {
+      let currentUpdate: Update<Value> = self.currentUpdate
       self.lock.unsafe_unlock()
       // deliver update outside of lock
-      awaiter(self.currentUpdate)
+      awaiter(currentUpdate)
     }
     // otherwise go to the waiting queue
-    else if let currentDeliver: DeliverUpdate = self.deliverUpdate {
-      self.deliverUpdate = { @Sendable(update:Update<Value>) in
-        currentDeliver(update)
-        awaiter(update)
-      }
-      self.lock.unsafe_unlock()
-    }
+
     else {
-      self.deliverUpdate = awaiter
+      self.updateDelivery = .init(
+        awaiter: awaiter,
+        next: self.updateDelivery
+      )
       self.lock.unsafe_unlock()
     }
   }

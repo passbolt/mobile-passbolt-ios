@@ -50,12 +50,12 @@ where ViewState: Equatable {
   @MainActor private var runningUpdate: Task<Void, Never>?
   private let sourceRef: AnyObject?
 
-  @MainActor public init<SourceValue>(
+  @MainActor public init<Source>(
     initial: ViewState,
-    updateFrom source: any Updatable<SourceValue>,
-    update: @escaping @Sendable (@MainActor (@MainActor (inout ViewState) -> Void) -> Void, Update<SourceValue>) async
+    updateFrom source: Source,
+    update: @escaping @Sendable (@MainActor (@MainActor (inout ViewState) -> Void) -> Void, Update<Source.Value>) async
       -> Void
-  ) where SourceValue: Sendable {
+  ) where Source: Updatable {
     // always keep reference to source to prevent unexpected
     // deallocation, however it should be kept only if uniquely referenced
     // revisit on iOS 16+ with Swift 5.9+
@@ -68,7 +68,7 @@ where ViewState: Equatable {
     self.updateFromSource = { @MainActor [weak source] (mutate: (@MainActor (inout ViewState) -> Void) -> Void) async in
 
       await withLogCatch {
-        guard let sourceUpdate: Update<SourceValue> = try await source?.lastUpdate
+        guard let sourceUpdate: Update<Source.Value> = try await source?.lastUpdate
         else { return }  // can't update without source
         lastUpdateGeneration = sourceUpdate.generation
         await update(mutate, sourceUpdate)

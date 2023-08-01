@@ -28,12 +28,12 @@ import Features
 
 public struct ResourcesController {
 
-  public var lastUpdate: any Updatable<Timestamp>
+  public var lastUpdate: AnyUpdatable<Timestamp>
   public var filteredResourcesList: @Sendable (ResourcesFilter) async throws -> Array<ResourceListItemDSV>
   public var delete: @Sendable (Resource.ID) async throws -> Void
 
   public init(
-    lastUpdate: any Updatable<Timestamp>,
+    lastUpdate: AnyUpdatable<Timestamp>,
     filteredResourcesList: @escaping @Sendable (ResourcesFilter) async throws -> Array<ResourceListItemDSV>,
     delete: @escaping @Sendable (Resource.ID) async throws -> Void
   ) {
@@ -50,7 +50,7 @@ extension ResourcesController: LoadableFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      lastUpdate: PlaceholderUpdatable(),
+      lastUpdate: PlaceholderUpdatable().asAnyUpdatable(),
       filteredResourcesList: unimplemented1(),
       delete: unimplemented1()
     )

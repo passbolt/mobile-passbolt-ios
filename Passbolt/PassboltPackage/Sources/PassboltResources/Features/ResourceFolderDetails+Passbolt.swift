@@ -50,7 +50,7 @@ extension ResourceFolderController {
     }
 
     return Self(
-      state: state
+      state: state.asAnyUpdatable()
     )
   }
 }

@@ -113,15 +113,11 @@ final class MFARootControllerTests: MainActorTestCase {
   }
 
   func test_closeSession_succeeds() async throws {
-    var result: Void?
-    let unchecedSendableResult: UncheckedSendable<Void?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<Void> = .init()
     features.patch(
       \Session.close,
       with: { _ in
-        unchecedSendableResult.variable = Void()
+        result.value = Void()
       }
     )
 
@@ -134,7 +130,7 @@ final class MFARootControllerTests: MainActorTestCase {
     controller.closeSession()
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-    XCTAssertNotNil(result)
+    XCTAssertNotNil(result.value)
   }
 
   func test_isProviderSwitchingAvailable_returnsFalse_whenNoProvidersArePresent() async throws {

@@ -49,7 +49,7 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
     patch(
       \AccountPreferences.updates,
       context: .mock_ada,
-      with: accountPreferencesUpdates
+      with: accountPreferencesUpdates.asAnyUpdatable()
     )
     patch(
       \AccountPreferences.isPassphraseStored,
@@ -76,7 +76,7 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
     patch(
       \AccountPreferences.updates,
       context: .mock_ada,
-      with: accountPreferencesUpdates
+      with: accountPreferencesUpdates.asAnyUpdatable()
     )
     patch(
       \AccountPreferences.isPassphraseStored,
@@ -101,7 +101,7 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
     patch(
       \AccountPreferences.updates,
       context: .mock_ada,
-      with: accountPreferencesUpdates
+      with: accountPreferencesUpdates.asAnyUpdatable()
     )
     patch(
       \OSBiometry.availability,

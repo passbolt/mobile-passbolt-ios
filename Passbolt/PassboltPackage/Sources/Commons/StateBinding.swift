@@ -29,7 +29,7 @@ import enum Combine.Publishers
 @propertyWrapper
 public struct StateBinding<Value> {
 
-  public let updates: any Updatable<Void>
+  public let updates: AnyUpdatable<Void>
   private let read: @Sendable () -> Value
   private let write: @Sendable (Value) -> Void
   private let updatesSource: Updates
@@ -52,7 +52,7 @@ public struct StateBinding<Value> {
     let updatesSource: Updates = .init()
 
     return .init(
-      updates: updatesSource,
+      updates: updatesSource.asAnyUpdatable(),
       read: { state.get() },
       write: { (newValue: Value) in
         let updated: Bool = state.access { (value: inout Value) in
@@ -78,7 +78,7 @@ public struct StateBinding<Value> {
     let updatesSource: Updates = .init()
 
     return .init(
-      updates: updatesSource,
+      updates: updatesSource.asAnyUpdatable(),
       read: read,
       write: { (newValue: Value) in
         write(newValue)
@@ -90,7 +90,7 @@ public struct StateBinding<Value> {
 
   // make sure that proper duplicates filtering is applied
   private init(
-    updates: any Updatable<Void>,
+    updates: AnyUpdatable<Void>,
     read: @escaping @Sendable () -> Value,
     write: @escaping @Sendable (Value) -> Void,
     updatesSource: Updates
@@ -199,7 +199,7 @@ extension StateBinding {
   #if DEBUG
   public static var placeholder: Self {
     .init(
-      updates: PlaceholderUpdatable(),
+      updates: PlaceholderUpdatable().asAnyUpdatable(),
       read: unimplemented0(),
       write: unimplemented1(),
       updatesSource: .init()

@@ -28,10 +28,10 @@ import Features
 
 public struct ResourceFolderController {
 
-  public var state: any Updatable<ResourceFolder>
+  public var state: AnyUpdatable<ResourceFolder>
 
   public init(
-    state: any Updatable<ResourceFolder>
+    state: AnyUpdatable<ResourceFolder>
   ) {
     self.state = state
   }
@@ -45,7 +45,7 @@ extension ResourceFolderController: LoadableFeature {
 
   public static var placeholder: Self {
     Self(
-      state: PlaceholderUpdatable()
+      state: PlaceholderUpdatable().asAnyUpdatable()
     )
   }
   #endif

@@ -191,7 +191,7 @@ extension SessionData {
     }
 
     return Self(
-      lastUpdate: lastUpdate,
+      lastUpdate: lastUpdate.asAnyUpdatable(),
       refreshIfNeeded: refreshIfNeeded
     )
   }

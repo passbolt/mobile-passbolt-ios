@@ -25,6 +25,7 @@
 @_exported import Accounts
 @_exported import CommonModels
 @_exported import Commons
+@_exported import CoreTest
 @_exported import Crypto
 @_exported import Database
 @_exported import DatabaseOperations

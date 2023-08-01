@@ -53,7 +53,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     )
     patch(
       \SessionData.lastUpdate,
-      with: Variable<Timestamp>(initial: 0)
+      with: Variable<Timestamp>(initial: 0).asAnyUpdatable()
     )
   }
 
@@ -117,7 +117,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     let updatesSource: Variable<Timestamp> = .init(initial: 0)
     patch(
       \SessionData.lastUpdate,
-      with: updatesSource
+      with: updatesSource.asAnyUpdatable()
     )
     let expectedResult_0: Resource = {
       var resource: Resource = .mock_1
@@ -186,7 +186,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     let updatesSource: Variable<Timestamp> = .init(initial: 0)
     patch(
       \SessionData.lastUpdate,
-      with: updatesSource
+      with: updatesSource.asAnyUpdatable()
     )
     let expectedResult: Resource = .mock_1
     patch(

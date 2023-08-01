@@ -30,7 +30,7 @@ public struct Accounts {
 
   /// Updates in stored accounts.
   /// Includes adding and removing accounts.
-  public var updates: any Updatable<Void>
+  public var updates: AnyUpdatable<Void>
   /// Accounts data integrity check.
   /// Cleans up any leftover data
   /// and removes inproperly stored accounts.
@@ -46,7 +46,7 @@ public struct Accounts {
   public var removeAccount: @Sendable (Account) throws -> Void
 
   public init(
-    updates: any Updatable<Void>,
+    updates: AnyUpdatable<Void>,
     verifyDataIntegrity: @escaping @Sendable () throws -> Void,
     storedAccounts: @escaping @Sendable () -> Array<Account>,
     lastUsedAccount: @escaping @Sendable () -> Account?,
@@ -69,7 +69,7 @@ extension Accounts: LoadableFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(
-      updates: PlaceholderUpdatable(),
+      updates: PlaceholderUpdatable().asAnyUpdatable(),
       verifyDataIntegrity: unimplemented0(),
       storedAccounts: unimplemented0(),
       lastUsedAccount: unimplemented0(),

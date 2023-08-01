@@ -43,7 +43,7 @@ final class AccountSelectionScreenTests: MainActorTestCase {
     accountsUpdates = .init()
     features.patch(
       \Accounts.updates,
-      with: accountsUpdates
+      with: accountsUpdates.asAnyUpdatable()
     )
     features.patch(
       \Session.currentAccount,
@@ -222,19 +222,17 @@ final class AccountSelectionScreenTests: MainActorTestCase {
   }
 
   func test_removeStoredAccount_Succeeds() async throws {
-    var storedAccounts: Array<Account> = [Account.mock_ada, Account.mock_frances]
-    let uncheckedSendableStoredAccounts: UncheckedSendable<Array<Account>> = .init(
-      get: { storedAccounts },
-      set: { storedAccounts = $0 }
+    let storedAccounts: UnsafeSendable<Array<Account>> = .init(
+      [Account.mock_ada, Account.mock_frances]
     )
     features.patch(
       \Accounts.storedAccounts,
-      with: always(storedAccounts)
+      with: always(storedAccounts.value ?? .init())
     )
     features.patch(
       \Accounts.removeAccount,
       with: { account in
-        uncheckedSendableStoredAccounts.variable.removeAll { $0 == account }
+        storedAccounts.value?.removeAll { $0 == account }
       }
     )
 
@@ -264,19 +262,17 @@ final class AccountSelectionScreenTests: MainActorTestCase {
   }
 
   func test_removeStoredAccount_updatesAccountsList() async throws {
-    var storedAccounts: Array<Account> = [Account.mock_ada, Account.mock_frances]
-    let uncheckedSendableStoredAccounts: UncheckedSendable<Array<Account>> = .init(
-      get: { storedAccounts },
-      set: { storedAccounts = $0 }
+    let storedAccounts: UnsafeSendable<Array<Account>> = .init(
+      [Account.mock_ada, Account.mock_frances]
     )
     features.patch(
       \Accounts.storedAccounts,
-      with: always(storedAccounts)
+      with: always(storedAccounts.value ?? .init())
     )
     features.patch(
       \Accounts.removeAccount,
       with: { account in
-        uncheckedSendableStoredAccounts.variable.removeAll { $0 == account }
+        storedAccounts.value?.removeAll { $0 == account }
       }
     )
 

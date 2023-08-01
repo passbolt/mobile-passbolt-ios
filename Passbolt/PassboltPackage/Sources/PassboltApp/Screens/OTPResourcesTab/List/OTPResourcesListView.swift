@@ -49,11 +49,7 @@ internal struct OTPResourcesListView: ControlledView {
     )
     .backgroundColor(.passboltBackground)
     .foregroundColor(.passboltPrimaryText)
-		.onDisappear {
-			Task.detached { [weak controller] in
-				await controller?.hideOTPCodes()
-			}
-		}
+    .onDisappear(perform: self.controller.hideOTPCodes)
   }
 
   @ViewBuilder @MainActor private var search: some View {
@@ -118,27 +114,27 @@ internal struct OTPResourcesListView: ControlledView {
 
   @ViewBuilder @MainActor private var list: some View {
     CommonList {
-			CommonListSection {
-				CommonListCreateRow(action: self.controller.createOTP)
+      CommonListSection {
+        CommonListCreateRow(action: self.controller.createOTP)
 
-				withEach(\.otpResources.values) { (item: TOTPResourceViewModel) in
-					CommonListResourceOTPView(
-						name: item.name,
-						otpGenerator: item.generateOTP,
-						contentAction: { (otp: OTPValue?) in
-							await self.controller.revealAndCopyOTP(for: item.id)
-						},
-						accessoryAction: {
-							await self.controller.showCentextualMenu(for: item.id)
-						},
-						accessory: {
-							Image(named: .more)
-						}
-					)
-				} placeholder: {
-					self.emptyListPlaceholder
-				}
-			}
+        withEach(\.otpResources.values) { (item: TOTPResourceViewModel) in
+          CommonListResourceOTPView(
+            name: item.name,
+            otpGenerator: item.generateOTP,
+            contentAction: { (otp: OTPValue?) in
+              await self.controller.revealAndCopyOTP(for: item.id)
+            },
+            accessoryAction: {
+              await self.controller.showCentextualMenu(for: item.id)
+            },
+            accessory: {
+              Image(named: .more)
+            }
+          )
+        } placeholder: {
+          self.emptyListPlaceholder
+        }
+      }
     }
     .refreshable(action: self.controller.refreshList)
     .shadowTopEdgeOverlay()

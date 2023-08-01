@@ -24,25 +24,24 @@
 public final class ComputedVariable<Value>: @unchecked Sendable
 where Value: Sendable {
 
-  @usableFromInline internal typealias DeliverUpdate = @Sendable (Update<Value>) -> Void
+  @usableFromInline internal typealias Delivery = UpdateDelivery<Value>
 
   @usableFromInline @inline(__always) internal var lock: UnsafeLock
-  @usableFromInline @inline(__always) internal var cachedUpdate: Update<Value>?
+  @usableFromInline @inline(__always) internal var cachedUpdate: Update<Value>
   @usableFromInline @inline(__always) internal var runningUpdate: Task<Void, Never>?
-  @usableFromInline @inline(__always) internal var deliverUpdate: DeliverUpdate?
+  @usableFromInline @inline(__always) internal var updateDelivery: Delivery?
 
-  @usableFromInline @inline(__always) internal let sourceGeneration: @Sendable () -> UpdateGeneration?
+  @usableFromInline @inline(__always) internal let sourceGeneration: @Sendable () -> UpdateGeneration
   @usableFromInline @inline(__always) internal let compute: @Sendable (UpdateGeneration) async -> Update<Value>
 
   @inline(__always) private init(
-    sourceGeneration: @escaping @Sendable () -> UpdateGeneration?,
-    cachedUpdate: Update<Value>?,
+    sourceGeneration: @escaping @Sendable () -> UpdateGeneration,
     compute: @escaping @Sendable (UpdateGeneration) async -> Update<Value>
   ) {
     self.lock = .init()
-    self.cachedUpdate = .none
+    self.cachedUpdate = .uninitialized()
     self.runningUpdate = .none
-    self.deliverUpdate = .none
+    self.updateDelivery = .none
     self.sourceGeneration = sourceGeneration
     self.compute = compute
   }
@@ -51,7 +50,7 @@ where Value: Sendable {
     // cancel running update
     self.runningUpdate?.cancel()
     // resume all waiting to avoid hanging
-    self.deliverUpdate?(.cancelled())
+    self.updateDelivery?.deliver(.cancelled())
   }
 }
 
@@ -59,56 +58,20 @@ extension ComputedVariable: Updatable {
 
   public var generation: UpdateGeneration {
     @_transparent @Sendable _read {
-      yield self.sourceGeneration()  // check source generation only
-        ?? .uninitialized  // it is uninitialized if source is unavailable
+      yield self.sourceGeneration()
     }
   }
 
-  @Sendable public func update(
+  @Sendable public func notify(
     _ awaiter: @escaping @Sendable (Update<Value>) -> Void,
     after generation: UpdateGeneration
   ) {
     self.lock.unsafe_lock()
-    // load source generation - check if source is available
-    guard let sourceGeneration: UpdateGeneration = self.sourceGeneration()
-    // if the source is no longer available then end cancelled
-    else {
-      self.lock.unsafe_unlock()
-      // deliver update outside of lock
-      return awaiter(.cancelled())
-    }
-    // check the cache availability
-    guard let cachedUpdate: Update<Value> = self.cachedUpdate
-    // if there is nothing in cache request update
-    else {
-      // if no update is running, request a new one
-      if case .none = self.runningUpdate {
-        assert(self.deliverUpdate == nil, "No one should wait if there is no update running!")
-        self.deliverUpdate = awaiter
-        let generationToUpdate: UpdateGeneration = .uninitialized
-        self.runningUpdate = .detached { [weak self, compute] in
-          await self?.deliver(compute(generationToUpdate))
-        }
-        return self.lock.unsafe_unlock()
-      }
-      // if update is in progress wait for it
-      else if let currentDeliver: DeliverUpdate = self.deliverUpdate {
-        self.deliverUpdate = { @Sendable(update:Update<Value>) in
-          currentDeliver(update)
-          awaiter(update)
-        }
-        return self.lock.unsafe_unlock()
-      }
-      // just in case of running update without waiting
-      else {
-        assertionFailure("Update should not be running if no one is waiting!")
-        self.deliverUpdate = awaiter
-        return self.lock.unsafe_unlock()
-      }
-    }
+    // load source generation
+    let sourceGeneration: UpdateGeneration = self.sourceGeneration()
 
     // verify if cached is latest and can be used to fulfill immediately
-    if cachedUpdate.generation == sourceGeneration, cachedUpdate.generation > generation {
+    if sourceGeneration > generation, cachedUpdate.generation == sourceGeneration {
       // if cached is latest use it
       self.lock.unsafe_unlock()
       // deliver update outside of lock
@@ -116,25 +79,24 @@ extension ComputedVariable: Updatable {
     }
     // otherwise if no update is running request a new one
     else if case .none = self.runningUpdate {
-      assert(self.deliverUpdate == nil, "No one should wait if there is no update running!")
-      self.deliverUpdate = awaiter
-			let generationToUpdate: UpdateGeneration = cachedUpdate.generation
+      assert(self.updateDelivery == nil, "No one should wait if there is no update running!")
+      self.updateDelivery = .init(
+        awaiter: awaiter,
+        next: self.updateDelivery
+      )
+      let generationToUpdate: UpdateGeneration = cachedUpdate.generation
       self.runningUpdate = .detached { [weak self, compute] in
         await self?.deliver(compute(generationToUpdate))
       }
       return self.lock.unsafe_unlock()
     }
     // if update is in progress wait for it
-    else if let currentDeliver: DeliverUpdate = self.deliverUpdate {
-      self.deliverUpdate = { @Sendable(update:Update<Value>) in
-        currentDeliver(update)
-        awaiter(update)
-      }
-      self.lock.unsafe_unlock()
-    }
     else {
-      assertionFailure("Update should not be running if no one is waiting!")
-      self.deliverUpdate = awaiter
+      assert(self.updateDelivery != nil, "Update should not be running if no one is waiting!")
+      self.updateDelivery = .init(
+        awaiter: awaiter,
+        next: self.updateDelivery
+      )
       self.lock.unsafe_unlock()
     }
   }
@@ -143,38 +105,24 @@ extension ComputedVariable: Updatable {
     _ update: Update<Value>
   ) {
     self.lock.unsafe_lock()
-    // check the source availability
-    guard let sourceGeneration: UpdateGeneration = self.sourceGeneration()
-    // if source is no longer available drop the value with cancelled
-    else {
-			self.cachedUpdate = .none
-      self.runningUpdate.clearIfCurrent()
-      let deliverUpdate: DeliverUpdate? = self.deliverUpdate
-      self.deliverUpdate = .none
-      self.lock.unsafe_unlock()
-      // deliver update outside of lock
-			deliverUpdate?(.cancelled())
-      return Void()
-    }
     // check if the update is newer than currently stored
-    guard update.generation >= self.cachedUpdate?.generation ?? .uninitialized
+    guard update.generation >= self.cachedUpdate.generation
     // drop outdated values without any action
     else {
-      assert(self.deliverUpdate == nil, "verify - hanging due to cancelled not propagated")
-      self.runningUpdate.clearIfCurrent()
+      self.runningUpdate = .none
       return self.lock.unsafe_unlock()
     }
 
     // check if update is the latest from source
-    if update.generation == sourceGeneration {
+    if update.generation == self.sourceGeneration() {
       // use the update
       self.cachedUpdate = update
       self.runningUpdate.clearIfCurrent()
-      let deliverUpdate: DeliverUpdate? = self.deliverUpdate
-      self.deliverUpdate = .none
+      let updateDelivery: Delivery? = self.updateDelivery
+      self.updateDelivery = .none
       self.lock.unsafe_unlock()
       // deliver update outside of lock
-      deliverUpdate?(update)
+      updateDelivery?.deliver(update)
     }
     // if source has been updated request a new update dropping received
     else {
@@ -199,348 +147,279 @@ extension ComputedVariable {
     let resolvedGeneration: UpdateGeneration = .next()
     self.init(
       sourceGeneration: { resolvedGeneration },
-      cachedUpdate: .none,
       compute: { @Sendable(generation:UpdateGeneration) async -> Update<Value> in
-				return await Update<Value>(
-					generation: resolvedGeneration
-				) {
-					try await compute()
-				}
+        return await Update<Value>(
+          generation: resolvedGeneration
+        ) {
+          try await compute()
+        }
       }
     )
   }
 
-  public convenience init<SourceValue>(
-    transformed source: any Updatable<SourceValue>,
-    _ transform: @escaping @Sendable (Update<SourceValue>) async throws -> Value
-  ) where SourceValue: Sendable {
+  public convenience init<Source>(
+    transformed source: Source,
+    _ transform: @escaping @Sendable (Update<Source.Value>) async throws -> Value
+  ) where Source: Updatable {
     self.init(
-      sourceGeneration: { [weak source] () -> UpdateGeneration? in
-        source?.generation
+      sourceGeneration: { [source] () -> UpdateGeneration in
+        source.generation
       },
-      cachedUpdate: .none,
-      compute: { @Sendable [weak source] (generation: UpdateGeneration) async -> Update<Value> in
-        guard let source else { return .cancelled() }
+      compute: { @Sendable [source, transform] (generation: UpdateGeneration) async -> Update<Value> in
         do {
-          let sourceUpdate: Update<SourceValue> = try await source.update(after: generation)
-					return await Update<Value>(
-						generation: sourceUpdate.generation
-					) {
-						try await transform(sourceUpdate)
-					}
-        }
-        catch is Cancelled {
-          return .cancelled()
+          let sourceUpdate: Update<Source.Value> = try await source.notify(after: generation)
+          return await Update<Value>(
+            generation: sourceUpdate.generation
+          ) {
+            try await transform(sourceUpdate)
+          }
         }
         catch {
-          return Update<Value>(
-            generation: .next(),
-            error
-              .asTheError()
-              .asAssertionFailure(message: "Errors shouldn't occur here!")
-          )
+          assert(error is CancellationError)
+          return .cancelled()
         }
       }
     )
   }
 
-  public convenience init(
-    merged sourceA: any Updatable<Value>,
-    with sourceB: any Updatable<Value>
-  ) {
+  public convenience init<SourceA, SourceB>(
+    merged sourceA: SourceA,
+    with sourceB: SourceB
+  )
+  where SourceA: Updatable, SourceA.Value == Value, SourceB: Updatable, SourceB.Value == Value {
     self.init(
-      sourceGeneration: { [weak sourceA, weak sourceB] () -> UpdateGeneration? in
-        if let sourceA, let sourceB {
-          return Swift.max(
-            sourceA.generation,
-            sourceB.generation
-          )
-        }
-        else {
-          return .none
-        }
+      sourceGeneration: { [sourceA, sourceB] () -> UpdateGeneration in
+        Swift.max(
+          sourceA.generation,
+          sourceB.generation
+        )
       },
-      cachedUpdate: .none,
-      compute: { @Sendable [weak sourceA, weak sourceB] (generation: UpdateGeneration) async -> Update<Value> in
+      compute: { @Sendable [sourceA, sourceB] (generation: UpdateGeneration) async -> Update<Value> in
         do {
-          guard let sourceA, let sourceB
-          else { return .cancelled() }
           // race - ask both for the latest
           return try await future { (fulfill: @escaping @Sendable (Update<Value>) -> Void) in
             // request an update from the one with higher generation first
             // since it might be fulfilled immediately and cause a loop
             if sourceA.generation > sourceB.generation {
-              sourceA.update(fulfill, after: generation)
-              sourceB.update(fulfill, after: generation)
+              sourceA.notify(fulfill, after: generation)
+              sourceB.notify(fulfill, after: generation)
             }
             else {
-              sourceB.update(fulfill, after: generation)
-              sourceA.update(fulfill, after: generation)
+              sourceB.notify(fulfill, after: generation)
+              sourceA.notify(fulfill, after: generation)
             }
           }
         }
-        catch is Cancelled {
-          return .cancelled()
-        }
         catch {
-          return Update<Value>(
-            generation: .next(),
-            error
-              .asTheError()
-              .asAssertionFailure(message: "Errors shouldn't occur here!")
-          )
+          assert(error is CancellationError)
+          return .cancelled()
         }
       }
     )
   }
 
-  public convenience init<SourceValue>(
-    merged sourceA: any Updatable<SourceValue>,
-    with sourceB: any Updatable<SourceValue>,
-    transform: @escaping @Sendable (Update<SourceValue>) async throws -> Value
-  ) where SourceValue: Sendable {
+  public convenience init<SourceA, SourceB>(
+    merged sourceA: SourceA,
+    with sourceB: SourceB,
+    transform: @escaping @Sendable (Update<SourceA.Value>) async throws -> Value
+  ) where SourceA: Updatable, SourceB: Updatable, SourceA.Value == SourceB.Value {
     self.init(
-      sourceGeneration: { [weak sourceA, weak sourceB] () -> UpdateGeneration? in
-        if let sourceA, let sourceB {
-          return Swift.max(
-            sourceA.generation,
-            sourceB.generation
-          )
-        }
-        else {
-          return .none
-        }
+      sourceGeneration: { [sourceA, sourceB] () -> UpdateGeneration in
+        Swift.max(
+          sourceA.generation,
+          sourceB.generation
+        )
       },
-      cachedUpdate: .none,
-      compute: { @Sendable [weak sourceA, weak sourceB] (generation: UpdateGeneration) async -> Update<Value> in
+      compute: { @Sendable [sourceA, sourceB, transform] (generation: UpdateGeneration) async -> Update<Value> in
         do {
-          guard let sourceA, let sourceB
-          else { return .cancelled() }
           // race - ask both for the latest
-          let sourceUpdate: Update<SourceValue> = try await future {
-            (fulfill: @escaping @Sendable (Update<SourceValue>) -> Void) in
+          let sourceUpdate: Update<SourceA.Value> = try await future {
+            (fulfill: @escaping @Sendable (Update<SourceA.Value>) -> Void) in
             // request an update from the one with higher generation first
             // since it might be fulfilled immediately and cause a loop
             if sourceA.generation > sourceB.generation {
-              sourceA.update(fulfill, after: generation)
-              sourceB.update(fulfill, after: generation)
+              sourceA.notify(fulfill, after: generation)
+              sourceB.notify(fulfill, after: generation)
             }
             else {
-              sourceB.update(fulfill, after: generation)
-              sourceA.update(fulfill, after: generation)
+              sourceB.notify(fulfill, after: generation)
+              sourceA.notify(fulfill, after: generation)
             }
           }
 
-					return await Update<Value>(
-						generation: sourceUpdate.generation
-					) {
-						try await transform(sourceUpdate)
-					}
-        }
-        catch is Cancelled {
-          return .cancelled()
+          return await Update<Value>(
+            generation: sourceUpdate.generation
+          ) {
+            try await transform(sourceUpdate)
+          }
         }
         catch {
-          return Update<Value>(
-            generation: .next(),
-            error
-              .asTheError()
-              .asAssertionFailure(message: "Errors shouldn't occur here!")
-          )
+          assert(error is CancellationError)
+          return .cancelled()
         }
       }
     )
   }
 
-  public convenience init<SourceAValue, SourceBValue>(
-    combined sourceA: any Updatable<SourceAValue>,
-    with sourceB: any Updatable<SourceBValue>,
-    combine: @escaping @Sendable ((Update<SourceAValue>, Update<SourceBValue>)) async throws -> Value
-  ) where SourceAValue: Sendable, SourceBValue: Sendable {
+  public convenience init<SourceA, SourceB>(
+    combined sourceA: SourceA,
+    with sourceB: SourceB,
+    combine: @escaping @Sendable ((Update<SourceA.Value>, Update<SourceB.Value>)) async throws -> Value
+  ) where SourceA: Updatable, SourceB: Updatable {
     self.init(
-      sourceGeneration: { [weak sourceA, weak sourceB] () -> UpdateGeneration? in
-        if let sourceA, let sourceB {
-          return Swift.max(
-            sourceA.generation,
-            sourceB.generation
-          )
-        }
-        else {
-          return .none
-        }
+      sourceGeneration: { [sourceA, sourceB] () -> UpdateGeneration in
+        Swift.max(
+          sourceA.generation,
+          sourceB.generation
+        )
       },
-      cachedUpdate: .none,
-      compute: { @Sendable [weak sourceA, weak sourceB] (generation: UpdateGeneration) async -> Update<Value> in
-        guard let sourceA, let sourceB
-        else { return .cancelled() }
+      compute: { @Sendable [sourceA, sourceB, combine] (generation: UpdateGeneration) async -> Update<Value> in
+        let sourceUpdate: (left: Update<SourceA.Value>, right: Update<SourceB.Value>)
+        let sourceGeneration: UpdateGeneration = Swift.max(
+          sourceA.generation,
+          sourceB.generation
+        )
+
         do {
-          let sourceGeneration: UpdateGeneration = Swift.max(
-            sourceA.generation,
-            sourceB.generation
-          )
-          let sourceUpdate:
-            (
-              left: Update<SourceAValue>,
-              right: Update<SourceBValue>
-            )
+          // check if any of sources can be updated immediately
           if sourceGeneration > generation {
-            async let sourceAUpdate: Update<SourceAValue> = sourceA.lastUpdate
-            async let sourceBUpdate: Update<SourceBValue> = sourceB.lastUpdate
+            // if so just grab the latest values from both
+            async let sourceAUpdate: Update<SourceA.Value> = sourceA.lastUpdate
+            async let sourceBUpdate: Update<SourceB.Value> = sourceB.lastUpdate
             sourceUpdate = try await (
               left: sourceAUpdate,
               right: sourceBUpdate
             )
           }
+          // otherwise wait with race for the closest update
           else {
             sourceUpdate = try await withThrowingTaskGroup(
-              of: (Update<SourceAValue>, Update<SourceBValue>).self
-            ) { (group: inout ThrowingTaskGroup<(Update<SourceAValue>, Update<SourceBValue>), Error>) in
+              of: (Update<SourceA.Value>, Update<SourceB.Value>).self
+            ) { (group: inout ThrowingTaskGroup<(Update<SourceA.Value>, Update<SourceB.Value>), Error>) in
               group.addTask {
-                async let sourceAUpdate: Update<SourceAValue> = try await sourceA.update(after: generation)
-                async let sourceBUpdate: Update<SourceBValue> = sourceB.lastUpdate
+                async let sourceAUpdate: Update<SourceA.Value> = try await sourceA.notify(after: generation)
+                async let sourceBUpdate: Update<SourceB.Value> = sourceB.lastUpdate
                 return try await (
                   left: sourceAUpdate,
                   right: sourceBUpdate
                 )
               }
               group.addTask {
-                async let sourceBUpdate: Update<SourceBValue> = try await sourceB.update(after: generation)
-                async let sourceAUpdate: Update<SourceAValue> = sourceA.lastUpdate
+                async let sourceBUpdate: Update<SourceB.Value> = try await sourceB.notify(after: generation)
+                async let sourceAUpdate: Update<SourceA.Value> = sourceA.lastUpdate
                 return try await (
                   left: sourceAUpdate,
                   right: sourceBUpdate
                 )
               }
+
+              // first finished wins
               if let first = try await group.next() {
                 group.cancelAll()
                 return first
               }
-              else if let second = try await group.next() {
-                return second
-              }
+              // should not happen but just in case cancel otherwise
               else {
                 throw Cancelled.error()
               }
             }
           }
 
-					return await Update<Value>(
-						generation: Swift.max(
-							sourceUpdate.left.generation,
-							sourceUpdate.right.generation
-						)
-					) {
-						try await combine(sourceUpdate)
-					}
-        }
-        catch is Cancelled {
-          return .cancelled()
+          return await Update<Value>(
+            generation: Swift.max(
+              sourceUpdate.left.generation,
+              sourceUpdate.right.generation
+            )
+          ) {
+            try await combine(sourceUpdate)
+          }
         }
         catch {
-          return Update<Value>(
-            generation: .next(),
-            error
-              .asTheError()
-              .asAssertionFailure(message: "Errors shouldn't occur here!")
-          )
+          assert(error is CancellationError)
+          return .cancelled()
         }
       }
     )
   }
 
-  public convenience init<SourceAValue, SourceBValue>(
-    combined sourceA: any Updatable<SourceAValue>,
-    with sourceB: any Updatable<SourceBValue>
-  ) where SourceAValue: Sendable, SourceBValue: Sendable, Value == (SourceAValue, SourceBValue) {
+  public convenience init<SourceA, SourceB>(
+    combined sourceA: SourceA,
+    with sourceB: SourceB
+  ) where SourceA: Updatable, SourceB: Updatable, Value == (SourceA.Value, SourceB.Value) {
     self.init(
-      sourceGeneration: { [weak sourceA, weak sourceB] () -> UpdateGeneration? in
-        if let sourceA, let sourceB {
-          return Swift.max(
-            sourceA.generation,
-            sourceB.generation
-          )
-        }
-        else {
-          return .none
-        }
+      sourceGeneration: { [sourceA, sourceB] () -> UpdateGeneration in
+        Swift.max(
+          sourceA.generation,
+          sourceB.generation
+        )
       },
-      cachedUpdate: .none,
-      compute: { @Sendable [weak sourceA, weak sourceB] (generation: UpdateGeneration) async -> Update<Value> in
-        guard let sourceA, let sourceB
-        else { return .cancelled() }
+      compute: { @Sendable [sourceA, sourceB] (generation: UpdateGeneration) async -> Update<Value> in
+        let sourceUpdate: (left: Update<SourceA.Value>, right: Update<SourceB.Value>)
+        let sourceGeneration: UpdateGeneration = Swift.max(
+          sourceA.generation,
+          sourceB.generation
+        )
+
         do {
-          let sourceGeneration: UpdateGeneration = Swift.max(
-            sourceA.generation,
-            sourceB.generation
-          )
-          let sourceUpdate:
-            (
-              left: Update<SourceAValue>,
-              right: Update<SourceBValue>
-            )
+          // check if any of sources can be updated immediately
           if sourceGeneration > generation {
-            async let sourceAUpdate: Update<SourceAValue> = sourceA.lastUpdate
-            async let sourceBUpdate: Update<SourceBValue> = sourceB.lastUpdate
+            // if so just grab the latest values from both
+            async let sourceAUpdate: Update<SourceA.Value> = sourceA.lastUpdate
+            async let sourceBUpdate: Update<SourceB.Value> = sourceB.lastUpdate
             sourceUpdate = try await (
               left: sourceAUpdate,
               right: sourceBUpdate
             )
           }
+          // otherwise wait with race for the closest update
           else {
             sourceUpdate = try await withThrowingTaskGroup(
-              of: (Update<SourceAValue>, Update<SourceBValue>).self
-            ) { (group: inout ThrowingTaskGroup<(Update<SourceAValue>, Update<SourceBValue>), Error>) in
+              of: (Update<SourceA.Value>, Update<SourceB.Value>).self
+            ) { (group: inout ThrowingTaskGroup<(Update<SourceA.Value>, Update<SourceB.Value>), Error>) in
               group.addTask {
-                async let sourceAUpdate: Update<SourceAValue> = try await sourceA.update(after: generation)
-                async let sourceBUpdate: Update<SourceBValue> = sourceB.lastUpdate
+                async let sourceAUpdate: Update<SourceA.Value> = try await sourceA.notify(after: generation)
+                async let sourceBUpdate: Update<SourceB.Value> = sourceB.lastUpdate
                 return try await (
                   left: sourceAUpdate,
                   right: sourceBUpdate
                 )
               }
               group.addTask {
-                async let sourceBUpdate: Update<SourceBValue> = try await sourceB.update(after: generation)
-                async let sourceAUpdate: Update<SourceAValue> = sourceA.lastUpdate
+                async let sourceBUpdate: Update<SourceB.Value> = try await sourceB.notify(after: generation)
+                async let sourceAUpdate: Update<SourceA.Value> = sourceA.lastUpdate
                 return try await (
                   left: sourceAUpdate,
                   right: sourceBUpdate
                 )
               }
+
+              // first finished wins
               if let first = try await group.next() {
                 group.cancelAll()
                 return first
               }
-              else if let second = try await group.next() {
-                return second
-              }
+              // should not happen but just in case cancel otherwise
               else {
                 throw Cancelled.error()
               }
             }
           }
 
-					return Update<Value>(
-						generation: Swift.max(
-							sourceUpdate.left.generation,
-							sourceUpdate.right.generation
-						)
-					) {
-						try (
-							left: sourceUpdate.left.value,
-							right: sourceUpdate.right.value
-						)
-					}
-        }
-        catch is Cancelled {
-          return .cancelled()
+          return Update<Value>(
+            generation: Swift.max(
+              sourceUpdate.left.generation,
+              sourceUpdate.right.generation
+            )
+          ) {
+            try (
+              left: sourceUpdate.left.value,
+              right: sourceUpdate.right.value
+            )
+          }
         }
         catch {
-          return Update<Value>(
-            generation: .next(),
-            error
-              .asTheError()
-              .asAssertionFailure(message: "Errors shouldn't occur here!")
-          )
+          assert(error is CancellationError)
+          return .cancelled()
         }
       }
     )

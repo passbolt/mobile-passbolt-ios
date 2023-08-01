@@ -179,7 +179,7 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
     await self.asyncExecutionControl.executeAll()
 
     XCTAssertEqual(
-      SnackBarMessage.error(.testMessage()),
+      SnackBarMessage.error("generic.error"),
       tested.viewState.value.snackBarMessage
     )
   }
@@ -245,7 +245,7 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
     await self.asyncExecutionControl.executeAll()
 
     XCTAssertEqual(
-      SnackBarMessage.error(.testMessage()),
+      SnackBarMessage.error("generic.error"),
       tested.viewState.value.snackBarMessage
     )
   }

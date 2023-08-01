@@ -42,7 +42,7 @@ final class SplashScreenTests: MainActorTestCase {
     updates = .init()
     features.patch(
       \Session.updates,
-      with: updates
+      with: updates.asAnyUpdatable()
     )
     features.patch(
       \Session.currentAccount,

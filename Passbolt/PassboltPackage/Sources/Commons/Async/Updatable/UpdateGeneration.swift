@@ -41,8 +41,7 @@ public struct UpdateGeneration: RawRepresentable {
 
   public typealias RawValue = UInt64
 
-  @inline(__always)
-  public let rawValue: RawValue
+  @inline(__always) public let rawValue: RawValue
 
   @_transparent
   public init(

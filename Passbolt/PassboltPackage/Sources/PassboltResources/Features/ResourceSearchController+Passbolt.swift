@@ -67,7 +67,7 @@ extension ResourceSearchController {
     }
 
     return .init(
-      state: searchState,
+      state: searchState.asAnyUpdatable(),
       refreshIfNeeded: refreshIfNeeded,
       updateFilter: { filterState.mutate($0) }
     )

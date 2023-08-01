@@ -49,7 +49,7 @@ final class ResourceDeleteAlertControllerTests: FeaturesTestCase {
     testedAction.action()
     await self.asyncExecutionControl.executeAll()
 
-    XCTAssertEqual(self.dynamicVariables.message, SnackBarMessage.error("testLocalizationKey"))
+    XCTAssertEqual(self.dynamicVariables.message, SnackBarMessage.error("generic.error"))
   }
 
   func test_deleteAction_succeedsWithMessage_whenDeleteSucceeds() async throws {

@@ -44,7 +44,7 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
     updates = .init(initial: 0)
     features.patch(
       \SessionData.lastUpdate,
-      with: updates
+      with: updates.asAnyUpdatable()
     )
     features.patch(
       \SessionData.refreshIfNeeded,

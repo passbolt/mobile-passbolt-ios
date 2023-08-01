@@ -62,15 +62,11 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
   }
 
   func test_verifyAccountsDataIntegrity_verifiesAccountsDataStore() async throws {
-    var result: Void?
-    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<Void> = .init()
     patch(
       \AccountsDataStore.verifyDataIntegrity,
       with: {
-        uncheckedSendableResult.variable = Void()
+        result.value = Void()
       }
     )
     patch(
@@ -82,7 +78,7 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
 
     _ = try? accounts.verifyDataIntegrity()
 
-    XCTAssertNotNil(result)
+    XCTAssertNotNil(result.value)
   }
 
   func test_addAccount_storesDataInAccountsDataStore() async throws {
@@ -97,16 +93,11 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
       avatarImageURL: AccountWithProfile.mock_ada.avatarImageURL,
       fingerprint: AccountWithProfile.mock_ada.fingerprint
     )
-    var result: (account: Account, details: AccountProfile, armoredKey: ArmoredPGPPrivateKey)?
-    let uncheckedSendableResult:
-      UncheckedSendable<(account: Account, details: AccountProfile, armoredKey: ArmoredPGPPrivateKey)?> = .init(
-        get: { result },
-        set: { result = $0 }
-      )
+    let result: UnsafeSendable<(account: Account, details: AccountProfile, armoredKey: ArmoredPGPPrivateKey)> = .init()
     patch(
       \AccountsDataStore.storeAccount,
       with: { account, details, key in
-        uncheckedSendableResult.variable = (account, details, key)
+        result.value = (account, details, key)
       }
     )
     patch(
@@ -143,9 +134,9 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
         )
       )
 
-    XCTAssertEqual(result?.account, expectedResult.account)
-    XCTAssertEqual(result?.details, expectedResult.profile)
-    XCTAssertEqual(result?.armoredKey, validPrivateKey)
+    XCTAssertEqual(result.value?.account, expectedResult.account)
+    XCTAssertEqual(result.value?.details, expectedResult.profile)
+    XCTAssertEqual(result.value?.armoredKey, validPrivateKey)
   }
 
   func test_addAccount_continuesWithoutStoring_whenAccountAlreadyStored() async throws {
@@ -193,15 +184,11 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
   }
 
   func test_removeAccount_removesDataFromAccountsDataStore() async throws {
-    var result: Account.LocalID?
-    let uncheckedSendableResult: UncheckedSendable<Account.LocalID?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<Account.LocalID> = .init()
     patch(
       \AccountsDataStore.deleteAccount,
       with: {
-        uncheckedSendableResult.variable = $0
+        result.value = $0
       }
     )
     patch(
@@ -213,7 +200,7 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
 
     _ = try? await accounts.removeAccount(Account.mock_ada)
 
-    XCTAssertEqual(result, Account.mock_ada.localID)
+    XCTAssertEqual(result.value, Account.mock_ada.localID)
   }
 }
 

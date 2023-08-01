@@ -54,7 +54,7 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
     self.updatesSequence = .init(initial: 0)
     patch(
       \SessionData.lastUpdate,
-      with: self.updatesSequence
+      with: self.updatesSequence.asAnyUpdatable()
     )
     use(ResourceTagDetailsFetchDatabaseOperation.placeholder)
   }
@@ -66,15 +66,11 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
   func test_filteredTagsList_fetchesData_withGivenFilter() async throws {
     let expectedResult: String = "filter"
 
-    var result: String?
-    let uncheckedSendableResult: UncheckedSendable<String?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<String?> = .init()
     patch(
       \ResourceTagsListFetchDatabaseOperation.execute,
       with: { (input) async throws in
-        uncheckedSendableResult.variable = input
+        result.value = input
         return []
       }
     )
@@ -83,7 +79,7 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
 
     _ = try await feature.filteredTagsList(expectedResult)
 
-    XCTAssertEqual(result, expectedResult)
+    XCTAssertEqual(result.value, expectedResult)
   }
 
   func test_filteredTagsList_throws_whenDatabaseFetchFails() async throws {

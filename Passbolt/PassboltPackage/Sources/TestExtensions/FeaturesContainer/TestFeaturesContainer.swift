@@ -64,7 +64,7 @@ extension TestFeaturesContainer: FeaturesContainer {
       }
       else {
         throw
-          MockIssue
+          Unavailable
           .error(
             "Required scope is not available",
             file: file,
@@ -87,7 +87,7 @@ extension TestFeaturesContainer: FeaturesContainer {
       }
       else {
         throw
-          MockIssue
+          Unavailable
           .error(
             "Required scope context is not available",
             file: file,

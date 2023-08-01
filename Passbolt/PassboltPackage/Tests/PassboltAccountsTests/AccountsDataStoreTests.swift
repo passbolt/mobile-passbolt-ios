@@ -253,7 +253,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
   func test_storeAccount_savesDataProperly() async throws {
     let dataStore: AccountsDataStore = try testedInstance()
 
-    let result: Result<Void, Error> = await .async {
+    let result: Result<Void, Error> = await .init {
       try dataStore.storeAccount(
         Account.mock_ada,
         AccountProfile.mock_ada,
@@ -280,7 +280,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
 
     let dataStore: AccountsDataStore = try testedInstance()
 
-    let result: Result<Void, Error> = await .async {
+    let result: Result<Void, Error> = await .init {
       try dataStore.storeAccount(
         Account.mock_ada,
         AccountProfile.mock_ada,
@@ -413,7 +413,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
 
     let dataStore: AccountsDataStore = try testedInstance()
 
-    let result: Result<Void, Error> = await .async {
+    let result: Result<Void, Error> = await .init {
       try dataStore.storeServerFingerprint(Account.mock_ada.localID, serverFingerprint)
     }
 
@@ -423,7 +423,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
   func test_verifyDataIntegrity_succeedsWithNoData() async throws {
     let dataStore: AccountsDataStore = try testedInstance()
 
-    let result: Result<Void, Error> = await .async {
+    let result: Result<Void, Error> = await .init {
       try dataStore.verifyDataIntegrity()
     }
 
@@ -452,7 +452,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     ]
     let dataStore: AccountsDataStore = try testedInstance()
 
-    let result: Result<Void, Error> = await .async {
+    let result: Result<Void, Error> = await .init {
       try dataStore.verifyDataIntegrity()
     }
 
@@ -523,7 +523,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     ]
     let dataStore: AccountsDataStore = try testedInstance()
 
-    let result: Result<Void, Error> = await .async {
+    let result: Result<Void, Error> = await .init {
       try dataStore.verifyDataIntegrity()
     }
 
@@ -553,7 +553,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
 
     let dataStore: AccountsDataStore = try testedInstance()
 
-    let result: Result<Void, Error> = await .async {
+    let result: Result<Void, Error> = await .init {
       try await dataStore.verifyDataIntegrity()
     }
 
@@ -583,7 +583,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
 
     let dataStore: AccountsDataStore = try testedInstance()
 
-    let result: Result<Void, Error> = await .async {
+    let result: Result<Void, Error> = await .init {
       try dataStore.verifyDataIntegrity()
     }
 
@@ -652,7 +652,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     ]
     let dataStore: AccountsDataStore = try testedInstance()
 
-    let result: Result<Void, Error> = await .async {
+    let result: Result<Void, Error> = await .init {
       try dataStore.verifyDataIntegrity()
     }
 

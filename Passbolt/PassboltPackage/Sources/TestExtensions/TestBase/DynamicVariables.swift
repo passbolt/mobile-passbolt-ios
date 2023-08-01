@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-import Commons
+import class Foundation.NSLock
 
 @dynamicMemberLookup
 public final class DynamicVariables: @unchecked Sendable {
@@ -82,36 +82,41 @@ public final class DynamicVariables: @unchecked Sendable {
     }
   }
 
-  private let state: CriticalState<Dictionary<StaticString, Value>> = .init(.init())
-  private let variableNames: VariableNames = .init()
-  private var values: Dictionary<StaticString, Value> {
-    get { self.state.get() }
-    set { self.state.set(newValue) }
-  }
+  private let lock: NSLock
+  private var state: Dictionary<StaticString, Value>
+  private let variableNames: VariableNames
 
-  public init() {}
+  public init() {
+    self.lock = .init()
+    self.state = .init()
+    self.variableNames = .init()
+  }
 
   public subscript<Variable>(
     dynamicMember name: StaticString
   ) -> Variable {
     get {
-      switch self.values[name] {
-      case let .some(variable):
-        return variable.get(Variable.self)
+      self.lock.withLock {
+        switch self.state[name] {
+        case let .some(variable):
+          return variable.get(Variable.self)
 
-      case .none:
-        fatalError("Undefined variable \"\(name)\" of type: \(Variable.self)")
+        case .none:
+          fatalError("Undefined variable \"\(name)\" of type: \(Variable.self)")
+        }
       }
     }
     set {
-      if let value: Value = self.values[name] {
-        value.set(newValue)
-      }
-      else {
-        self.values[name] = .init(
-          name: name,
-          value: newValue
-        )
+      self.lock.withLock {
+        if let value: Value = self.state[name] {
+          value.set(newValue)
+        }
+        else {
+          self.state[name] = .init(
+            name: name,
+            value: newValue
+          )
+        }
       }
     }
   }
@@ -146,15 +151,19 @@ public final class DynamicVariables: @unchecked Sendable {
   public func clear(
     _ member: KeyPath<DynamicVariables.VariableNames, StaticString>
   ) {
-    let name: StaticString = self.variableNames[keyPath: member]
-    self.values[name] = .none
+    self.lock.withLock {
+      let name: StaticString = self.variableNames[keyPath: member]
+      self.state[name] = .none
+    }
   }
 
   public func contains<Value>(
     _ member: KeyPath<DynamicVariables.VariableNames, StaticString>,
     of type: Value.Type = Value.self
   ) -> Bool {
-    let name: StaticString = self.variableNames[keyPath: member]
-    return self.values[name]?.type == type
+    self.lock.withLock {
+      let name: StaticString = self.variableNames[keyPath: member]
+      return self.state[name]?.type == type
+    }
   }
 }

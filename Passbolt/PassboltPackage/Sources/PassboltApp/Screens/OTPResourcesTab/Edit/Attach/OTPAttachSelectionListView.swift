@@ -98,29 +98,29 @@ internal struct OTPAttachSelectionListView: ControlledView {
     CommonList {
       CommonListSection {
         withEach(\.listItems) { item in
-					CommonListResourceView(
-						name: item.name,
-						username: item.username,
-						contentAction: {
-							self.controller.select(item)
-						},
-						accessory: {
-							switch item.state {
-							case .none:
-								Image(named: .circleUnselected)
-									.foregroundColor(.passboltIcon)
+          CommonListResourceView(
+            name: item.name,
+            username: item.username,
+            contentAction: {
+              self.controller.select(item)
+            },
+            accessory: {
+              switch item.state {
+              case .none:
+                Image(named: .circleUnselected)
+                  .foregroundColor(.passboltIcon)
 
-							case .notAllowed:
-								Image(named: .lockedLock)
-									.foregroundColor(.passboltIcon)
+              case .notAllowed:
+                Image(named: .lockedLock)
+                  .foregroundColor(.passboltIcon)
 
-							case .selected:
-								Image(named: .circleSelected)
-									.foregroundColor(.passboltPrimaryBlue)
-							}
-						}
-					)
-					.disabled(item.state.disabled)
+              case .selected:
+                Image(named: .circleSelected)
+                  .foregroundColor(.passboltPrimaryBlue)
+              }
+            }
+          )
+          .disabled(item.state.disabled)
         }
       }
     }

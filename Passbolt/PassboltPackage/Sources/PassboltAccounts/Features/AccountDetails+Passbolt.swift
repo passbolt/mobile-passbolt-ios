@@ -98,7 +98,7 @@ extension AccountDetails {
     }
 
     return Self(
-      updates: accountData.updates,
+      updates: accountData.updates.asAnyUpdatable(),
       profile: profile,
       updateProfile: updateProfile,
       avatarImage: avatarImage

@@ -54,13 +54,13 @@ final class AuthorizationScreenTests: MainActorTestCase {
     features.patch(
       \AccountDetails.updates,
       context: .mock_ada,
-      with: detailsUpdates
+      with: detailsUpdates.asAnyUpdatable()
     )
     preferencesUpdates = .init()
     features.patch(
       \AccountPreferences.updates,
       context: .mock_ada,
-      with: preferencesUpdates
+      with: preferencesUpdates.asAnyUpdatable()
     )
     features.patch(
       \AccountPreferences.isPassphraseStored,

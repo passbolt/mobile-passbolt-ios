@@ -25,46 +25,46 @@ import SwiftUI
 
 public struct CommonListCreateRow: View {
 
-	private let contentAction: @MainActor () async -> Void
+  private let contentAction: @MainActor () async -> Void
 
-	public init(
-		action: @escaping @MainActor () async -> Void
-	) {
-		self.contentAction = action
-	}
+  public init(
+    action: @escaping @MainActor () async -> Void
+  ) {
+    self.contentAction = action
+  }
 
-	public var body: some View {
-		CommonListRow(
-			contentAction: self.contentAction,
-			content: {
-				HStack(spacing: 12) {
-					Image(named: .create)
-						.resizable()
-						.frame(
-							width: 40,
-							height: 40
-						)
-						.foregroundColor(Color.passboltPrimaryBlue)
+  public var body: some View {
+    CommonListRow(
+      contentAction: self.contentAction,
+      content: {
+        HStack(spacing: 12) {
+          Image(named: .create)
+            .resizable()
+            .frame(
+              width: 40,
+              height: 40
+            )
+            .foregroundColor(Color.passboltPrimaryBlue)
 
-					Text(
-						displayable: .localized(
-							key: .create
-						)
-					)
-					.font(
-						.inter(
-							ofSize: 14,
-							weight: .semibold
-						)
-					)
-					.multilineTextAlignment(.leading)
-					.frame(
-						maxWidth: .infinity,
-						alignment: .leading
-					)
-				}
-				.frame(height: 64)
-			}
-		)
-	}
+          Text(
+            displayable: .localized(
+              key: .create
+            )
+          )
+          .font(
+            .inter(
+              ofSize: 14,
+              weight: .semibold
+            )
+          )
+          .multilineTextAlignment(.leading)
+          .frame(
+            maxWidth: .infinity,
+            alignment: .leading
+          )
+        }
+        .frame(height: 64)
+      }
+    )
+  }
 }

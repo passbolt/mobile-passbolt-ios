@@ -29,7 +29,7 @@ import Features
 public struct ResourceEditForm {
 
   // Access current resource state and updates
-  public var state: any Updatable<Resource>
+  public var state: AnyUpdatable<Resource>
   // Change the resource type
   public var updateType: @Sendable (ResourceType) throws -> Void
   // Validate form state
@@ -41,7 +41,7 @@ public struct ResourceEditForm {
   internal var updateField: @Sendable (Resource.FieldPath, JSON) -> Validated<JSON>
 
   public init(
-    state: any Updatable<Resource>,
+    state: AnyUpdatable<Resource>,
     updateField: @escaping @Sendable (Resource.FieldPath, JSON) -> Validated<JSON>,
     updateType: @escaping @Sendable (ResourceType) throws -> Void,
     validateForm: @escaping @Sendable () async throws -> Void,
@@ -62,7 +62,7 @@ extension ResourceEditForm: LoadableFeature {
   #if DEBUG
   public static var placeholder: Self {
     .init(
-      state: PlaceholderUpdatable(),
+      state: PlaceholderUpdatable().asAnyUpdatable(),
       updateField: unimplemented2(),
       updateType: unimplemented1(),
       validateForm: unimplemented0(),

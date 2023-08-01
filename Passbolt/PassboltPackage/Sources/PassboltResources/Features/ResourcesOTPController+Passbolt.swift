@@ -37,74 +37,86 @@ extension ResourcesOTPController {
     try features.ensureScope(SessionScope.self)
 
     let sessionData: SessionData = try features.instance()
-		let timeTicks: TimeVariable = features.instance(of: OSTime.self).timeVariable(Seconds(rawValue: 1))
+    let timeTicks: TimeVariable = features.instance(of: OSTime.self).timeVariable(Seconds(rawValue: 1))
 
-		let revealedResourceID: PatchableVariable<Resource.ID?> = .init(
-			updatingFrom: sessionData.lastUpdate
-		) { (_: Update<Resource.ID?>, _: Update<Timestamp>) async throws  -> Resource.ID? in
-			.none // clear each time session data refreshes
-		}
+    // this variable holds last requested resource ID
+    let lastRequestedResourceID: Variable<Resource.ID?> = .init(initial: .none)
+    // this variable holds currently revealed resource ID
+    let revealedResourceID: ComputedVariable<Resource.ID?> = .init(
+      combined: sessionData.lastUpdate,
+      with: lastRequestedResourceID
+    ) { (dataUpdate: Update<Timestamp>, revealedUpdate: Update<Resource.ID?>) throws -> Resource.ID? in
+      // check if session was updated after last reveal request
+      if dataUpdate.generation > revealedUpdate.generation {
+        // clear on session data updates
+        return .none
+      }
+      else {
+        // use requested after session data update
+        return try revealedUpdate.value
+      }
+    }
 
-		let currentOTP: FlattenedVariable<OTPValue> = .init(
-			transformed: revealedResourceID
-		) { (revealedResourceID: Update<Resource.ID?>) async throws -> ComputedVariable<OTPValue> in
-			// load resource details
-			guard
-				let resourceID: Resource.ID = try? revealedResourceID.value,
-				let resourceController: ResourceController = try? await (features
-					.branchIfNeeded(
-						scope: ResourceDetailsScope.self,
-						context: resourceID
-					)
-					?? features)
-					.instance()
-			else {
-				throw Cancelled.error()
-			}
+    // this variable holds OTP generator
+    // for currently revealed resource ID
+    let otpGenerator: ComputedVariable<() -> OTPValue> = .init(
+      transformed: revealedResourceID
+    ) { (revealed: Update<Resource.ID?>) async throws -> () -> OTPValue in
+      guard let resourceID: Resource.ID = try revealed.value
+      else { throw Cancelled.error() }
 
-			// load secret
-			try await resourceController.fetchSecretIfNeeded()
+      // load resource controller to access its details
+      let resourceController: ResourceController = try await
+        (features
+        .branchIfNeeded(
+          scope: ResourceDetailsScope.self,
+          context: resourceID
+        ) ?? features)
+        .instance()
 
-			guard let totpSecret: TOTPSecret = try await resourceController.state.value.firstTOTPSecret
-			else {
-				throw Cancelled.error()
-			}
+      // load resource secret
+      try await resourceController.fetchSecretIfNeeded()
 
-			// prepare otp generator
-			let otpGenerator: TOTPCodeGenerator = try await features.instance(
-				context: .init(
-					resourceID: resourceID,
-					totpSecret: totpSecret
-				)
-			)
+      // look for the OTP secret
+      guard let totpSecret: TOTPSecret = try await resourceController.state.value.firstTOTPSecret
+      else {
+        throw Cancelled.error()
+      }
 
-			// combine generator with time ticks
-			return ComputedVariable<OTPValue>(
-				transformed: timeTicks
-			) { (_: Update<Void>) async throws -> OTPValue in
-				.totp(otpGenerator.generate())
-			}
-		}
+      // prepare otp generator
+      let otpGenerator: TOTPCodeGenerator = try await features.instance(
+        context: .init(
+          resourceID: resourceID,
+          totpSecret: totpSecret
+        )
+      )
 
-		@Sendable nonisolated func revealOTP(
-			_ resourceID: Resource.ID
-		) async throws -> OTPValue {
-			await revealedResourceID.patch { (_: Update<Resource.ID?>) -> Resource.ID? in
-				resourceID // set revealed resource ID
-			}
-			return try await currentOTP.value
-		}
+      return { .totp(otpGenerator.generate()) }
+    }
 
-		@Sendable nonisolated func hideOTP() async {
-			await revealedResourceID.patch { (_: Update<Resource.ID?>) -> Resource.ID?? in
-				Optional<Optional<Resource.ID>>.some(.none) // clear revealed resource ID
-			}
-		}
+    // combine time ticks with current OTP generator
+    let currentOTP: ComputedVariable<OTPValue> = .init(
+      combined: timeTicks,
+      with: otpGenerator
+    ) { (_: Update<Void>, generator: Update<() -> OTPValue>) in
+      try generator.value()
+    }
+
+    @Sendable nonisolated func revealOTP(
+      _ resourceID: Resource.ID
+    ) async throws -> OTPValue {
+      lastRequestedResourceID.value = resourceID
+      return try await currentOTP.value
+    }
+
+    @Sendable nonisolated func hideOTP() {
+      lastRequestedResourceID.value = .none
+    }
 
     return Self(
-     currentOTP: currentOTP,
-		 revealOTP: revealOTP(_:),
-		 hideOTP: hideOTP
+      currentOTP: currentOTP.asAnyUpdatable(),
+      revealOTP: revealOTP(_:),
+      hideOTP: hideOTP
     )
   }
 }
@@ -114,17 +126,17 @@ extension FeaturesRegistry {
   internal mutating func usePassboltResourcesOTPController() {
     self.use(
       .disposable(
-				ResourcesOTPController.self,
+        ResourcesOTPController.self,
         load: ResourcesOTPController.load(features:)
       ),
       in: OTPResourcesTabScope.self
     )
-		self.use(
-			.disposable(
-				ResourcesOTPController.self,
-				load: ResourcesOTPController.load(features:)
-			),
-			in: ResourceDetailsScope.self
-		)
+    self.use(
+      .disposable(
+        ResourcesOTPController.self,
+        load: ResourcesOTPController.load(features:)
+      ),
+      in: ResourceDetailsScope.self
+    )
   }
 }

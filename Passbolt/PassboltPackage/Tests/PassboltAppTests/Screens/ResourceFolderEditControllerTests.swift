@@ -107,7 +107,7 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
     patch(
       \ResourceFolderEditForm.updates,
       context: .create(containingFolderID: .none),
-      with: updatesSource
+      with: updatesSource.asAnyUpdatable()
     )
     self.dynamicVariables.formState = ResourceFolderEditFormState(
       name: .valid("initial"),

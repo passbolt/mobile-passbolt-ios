@@ -42,58 +42,58 @@ where Value: Sendable {
   }
 
   @_transparent public init(
-		generation: @autoclosure () -> UpdateGeneration,
+    generation: UpdateGeneration,
     _ value: Value
   ) {
-		self.init(
-			generation: generation(),
-			.value(value)
-		)
+    self.init(
+      generation: generation,
+      .value(value)
+    )
   }
 
   @_transparent public init(
-		generation: @autoclosure () -> UpdateGeneration,
+    generation: UpdateGeneration,
     _ error: Error
   ) {
-		self.init(
-			generation: generation(),
-			.issue(error)
-		)
+    self.init(
+      generation: generation,
+      .issue(error)
+    )
   }
 
-	@_transparent @usableFromInline internal init(
-		generation: @autoclosure () -> UpdateGeneration,
-		_ resolve: () throws -> Value
-	) {
-		do {
-			self.content = try .value(resolve())
-		}
-		catch {
-			self.content = .issue(error)
-		}
-		self.generation = generation()
-	}
+  @_transparent @usableFromInline internal init(
+    generation: @autoclosure () -> UpdateGeneration,
+    _ resolve: () throws -> Value
+  ) {
+    do {
+      self.content = try .value(resolve())
+    }
+    catch {
+      self.content = .issue(error)
+    }
+    self.generation = generation()
+  }
 
-	@_transparent @usableFromInline internal init(
-		generation: @autoclosure () -> UpdateGeneration,
-		_ resolve: () async throws -> Value
-	) async {
-		do {
-			self.content = try await .value(resolve())
-		}
-		catch {
-			self.content = .issue(error)
-		}
-		self.generation = generation()
-	}
+  @_transparent @usableFromInline internal init(
+    generation: @autoclosure () -> UpdateGeneration,
+    _ resolve: () async throws -> Value
+  ) async {
+    do {
+      self.content = try await .value(resolve())
+    }
+    catch {
+      self.content = .issue(error)
+    }
+    self.generation = generation()
+  }
 
   @_transparent public init(
-		generation: @autoclosure () -> UpdateGeneration
+    generation: UpdateGeneration
   ) where Value == Void {
-		self.init(
-			generation: generation(),
-			.value(Void())
-		)
+    self.init(
+      generation: generation,
+      .value(Void())
+    )
   }
 }
 

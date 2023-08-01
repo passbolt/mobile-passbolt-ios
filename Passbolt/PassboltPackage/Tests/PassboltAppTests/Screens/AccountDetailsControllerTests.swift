@@ -50,7 +50,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
     features.patch(
       \AccountDetails.updates,
       context: Account.mock_ada,
-      with: detailsUpdates
+      with: detailsUpdates.asAnyUpdatable()
     )
     features.patch(
       \AccountDetails.avatarImage,
@@ -66,7 +66,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
     features.patch(
       \AccountPreferences.updates,
       context: Account.mock_ada,
-      with: preferencesUpdates
+      with: preferencesUpdates.asAnyUpdatable()
     )
   }
 
@@ -78,16 +78,12 @@ final class AccountDetailsControllerTests: MainActorTestCase {
 
   func test_currentAcountAvatarImagePublisher_usesAccountDetailsToRequestImage() async throws {
 
-    var result: Void?
-    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<Void?> = .init()
     features.patch(
       \AccountDetails.avatarImage,
       context: Account.mock_ada,
       with: { () async throws in
-        uncheckedSendableResult.variable = Void()
+        result.value = Void()
         return .init()
       }
     )
@@ -98,7 +94,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
       .currentAcountAvatarImagePublisher()
       .asAsyncValue()
 
-    XCTAssertNotNil(result)
+    XCTAssertNotNil(result.value)
   }
 
   func test_validatedAccountLabelPublisher_publishesInitialAccountLabel() async throws {
@@ -184,16 +180,12 @@ final class AccountDetailsControllerTests: MainActorTestCase {
   }
 
   func test_saveChanges_usesDefaultLabel_whenLabelIsEmpty() async throws {
-    var result: String?
-    let uncheckedSendableResult: UncheckedSendable<String?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<String> = .init()
     features.patch(
       \AccountPreferences.setLocalAccountLabel,
       context: Account.mock_ada,
       with: { label in
-        uncheckedSendableResult.variable = label
+        result.value = label
       }
     )
 
@@ -205,7 +197,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
       .saveChanges()
       .asAsyncValue()
 
-    XCTAssertEqual(result, "\(AccountWithProfile.mock_ada.firstName) \(AccountWithProfile.mock_ada.lastName)")
+    XCTAssertEqual(result.value, "\(AccountWithProfile.mock_ada.firstName) \(AccountWithProfile.mock_ada.lastName)")
   }
 
   func test_saveChanges_fails_whenLabelSaveFails() async throws {
@@ -232,16 +224,12 @@ final class AccountDetailsControllerTests: MainActorTestCase {
   }
 
   func test_saveChanges_succeeds_whenLabelSaveSucceeds() async throws {
-    var result: String?
-    let uncheckedSendableResult: UncheckedSendable<String?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<String> = .init()
     features.patch(
       \AccountPreferences.setLocalAccountLabel,
       context: Account.mock_ada,
       with: { label in
-        uncheckedSendableResult.variable = label
+        result.value = label
       }
     )
 
@@ -251,6 +239,6 @@ final class AccountDetailsControllerTests: MainActorTestCase {
       .saveChanges()
       .asAsyncValue()
 
-    XCTAssertEqual(result, AccountWithProfile.mock_ada.label)
+    XCTAssertEqual(result.value, AccountWithProfile.mock_ada.label)
   }
 }

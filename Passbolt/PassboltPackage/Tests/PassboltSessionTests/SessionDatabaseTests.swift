@@ -41,7 +41,7 @@ final class SessionDatabaseTests: LoadableFeatureTestCase<SessionDatabase> {
     use(Session.placeholder)
     patch(
       \Session.updates,
-      with: Updates()
+      with: Updates().asAnyUpdatable()
     )
     use(SessionState.placeholder)
     use(SessionStateEnsurance.placeholder)
@@ -116,7 +116,7 @@ final class SessionDatabaseTests: LoadableFeatureTestCase<SessionDatabase> {
     let sessionUpdates: Updates = .init()
     patch(
       \Session.updates,
-      with: sessionUpdates
+      with: sessionUpdates.asAnyUpdatable()
     )
     patch(
       \SessionState.account,

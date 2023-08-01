@@ -41,7 +41,7 @@ final class WindowTests: MainActorTestCase {
     updates = .init()
     features.patch(
       \Session.updates,
-      with: updates
+      with: updates.asAnyUpdatable()
     )
     features.patch(
       \Session.currentAccount,
@@ -155,15 +155,13 @@ final class WindowTests: MainActorTestCase {
   func test_screenStateDispositionSequence_returnsUseInitialScreenState_whenAccountSessionStateChangesToAuthorized()
     async throws
   {
-    var currentAccount: Account?
-    let uncheckedSendableCurrentAccount: UncheckedSendable<Account?> = .init(
-      get: { currentAccount },
-      set: { currentAccount = $0 }
+    let currentAccount: UnsafeSendable<Account> = .init(
+      .mock_ada
     )
     features.patch(
       \Session.currentAccount,
       with: { () async throws in
-        if let currentAccount = uncheckedSendableCurrentAccount.variable {
+        if let currentAccount = currentAccount.value {
           return currentAccount
         }
         else {
@@ -181,7 +179,7 @@ final class WindowTests: MainActorTestCase {
 
     result = try await iterator.next()
 
-    currentAccount = Account.mock_ada
+    currentAccount.value = Account.mock_ada
     Task {
       // Temporary wait related to implementation
       // of merge from async algorithms 0.1.0
@@ -199,15 +197,13 @@ final class WindowTests: MainActorTestCase {
     test_screenStateDispositionSequence_returnsUseCachedScreenState_whenAccountSessionStateChangesToAuthorized_andPendingAuthorizationHadSameAccountPassphraseRequest()
     async throws
   {
-    var currentAccount: Account? = Account.mock_ada
-    let uncheckedSendableCurrentAccount: UncheckedSendable<Account?> = .init(
-      get: { currentAccount },
-      set: { currentAccount = $0 }
+    let currentAccount: UnsafeSendable<Account> = .init(
+      .mock_ada
     )
     features.patch(
       \Session.currentAccount,
       with: { () async throws in
-        if let currentAccount = uncheckedSendableCurrentAccount.variable {
+        if let currentAccount = currentAccount.value {
           return currentAccount
         }
         else {
@@ -240,7 +236,7 @@ final class WindowTests: MainActorTestCase {
 
     result = try await iterator.next()
 
-    currentAccount = Account.mock_ada
+    currentAccount.value = Account.mock_ada
     pendingAuthorization = .none
     updates.update()
 
@@ -254,15 +250,13 @@ final class WindowTests: MainActorTestCase {
     test_screenStateDispositionSequence_returnsUseCachedScreenState_whenAccountSessionStateChangesToAuthorized_andPendingAuthorizationHadSameAccountMFARequest()
     async throws
   {
-    var currentAccount: Account? = Account.mock_ada
-    let uncheckedSendableCurrentAccount: UncheckedSendable<Account?> = .init(
-      get: { currentAccount },
-      set: { currentAccount = $0 }
+    let currentAccount: UnsafeSendable<Account> = .init(
+      .mock_ada
     )
     features.patch(
       \Session.currentAccount,
       with: { () async throws in
-        if let currentAccount = uncheckedSendableCurrentAccount.variable {
+        if let currentAccount = currentAccount.value {
           return currentAccount
         }
         else {
@@ -298,7 +292,7 @@ final class WindowTests: MainActorTestCase {
 
     result = try await iterator.next()
 
-    currentAccount = Account.mock_ada
+    currentAccount.value = Account.mock_ada
     pendingAuthorization = .none
     Task {
       // Temporary wait related to implementation

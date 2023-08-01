@@ -21,25 +21,34 @@
 // @since         v1.0
 //
 
-extension Result where Failure == Never {
+import class Foundation.NSLock
 
-  public static func `async`(
-    _ result: () async -> Success
-  ) async -> Self {
-    return await .success(result())
+public final class SendableCounter: @unchecked Sendable {
+
+  private let lock: NSLock = .init()
+  private var _value: Int
+
+  public init(
+    initial: Int = 0
+  ) {
+    self._value = initial
   }
-}
 
-extension Result where Failure == Error {
+  @Sendable public func increment() {
+    self.lock.withLock {
+      self._value += 1
+    }
+  }
 
-  public static func `async`(
-    _ result: () async throws -> Success
-  ) async -> Self {
-    do {
-      return try await .success(result())
+  @Sendable public func set(
+    _ value: Int
+  ) {
+    self.lock.withLock {
+      self._value = value
     }
-    catch {
-      return .failure(error)
-    }
+  }
+
+  public var value: Int {
+    @Sendable get { self.lock.withLock { self._value } }
   }
 }

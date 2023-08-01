@@ -56,7 +56,7 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
     features.patch(
       \AccountPreferences.updates,
       context: Account.mock_ada,
-      with: preferencesUpdates
+      with: preferencesUpdates.asAnyUpdatable()
     )
     features.patch(
       \AccountInitialSetup.completeSetup,
@@ -181,16 +181,12 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
   }
 
   func test_setupBiometrics_setsBiometricsAsEnabled() async throws {
-    var result: Bool?
-    let uncheckedSendableResult: UncheckedSendable<Bool?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<Bool> = .init()
     features.patch(
       \AccountPreferences.storePassphrase,
       context: Account.mock_ada,
       with: { (store) async throws in
-        uncheckedSendableResult.variable = store
+        result.value = store
       }
     )
     features.patch(
@@ -204,7 +200,7 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
       .setupBiometrics()
       .asAsyncValue()
 
-    XCTAssertTrue(result)
+    XCTAssertTrue(result.value)
   }
 
   func test_setupBiometrics_fails_whenBiometricsEnableFails() async throws {

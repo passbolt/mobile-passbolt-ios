@@ -53,7 +53,7 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
     )
     patch(
       \SessionData.lastUpdate,
-      with: updatesSequence
+      with: updatesSequence.asAnyUpdatable()
     )
     use(Session.placeholder)
     use(ResourceUserGroupsListFetchDatabaseOperation.placeholder)

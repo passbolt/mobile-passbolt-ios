@@ -782,7 +782,7 @@ import XCTest
 //    )
 //
 //    var result: Resource.ID?
-//    let uncheckedSendableResult: UncheckedSendable<Resource.ID?> = .init(
+//    let uncheckedSendableResult: UnsafeSendable<Resource.ID?> = .init(
 //      get: { result },
 //      set: { result = $0 }
 //    )
@@ -883,7 +883,7 @@ import XCTest
 //      }
 //    )
 //
-//    let result: UncheckedSendable<Void?> = .init(.none)
+//    let result: UnsafeSendable<Void?> = .init(.none)
 //    patch(
 //      \SessionData.refreshIfNeeded,
 //      with: { () async throws in

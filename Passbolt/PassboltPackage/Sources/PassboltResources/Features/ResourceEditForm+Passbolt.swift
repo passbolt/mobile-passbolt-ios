@@ -254,7 +254,7 @@ extension ResourceEditForm {
     }
 
     return .init(
-      state: formState,
+      state: formState.asAnyUpdatable(),
       updateField: update(_:to:),
       updateType: updateType(to:),
       validateForm: validateForm,

@@ -53,7 +53,7 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
     updates = .init(initial: 0)
     features.patch(
       \SessionData.lastUpdate,
-      with: updates
+      with: updates.asAnyUpdatable()
     )
     features.patch(
       \SessionData.refreshIfNeeded,
@@ -129,7 +129,7 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
     )
     features.patch(
       \ResourcesController.lastUpdate,
-      with: Variable(initial: 0)
+      with: Variable(initial: 0).asAnyUpdatable()
     )
 
     let controller: ResourceUserGroupsExplorerController = try await testController(

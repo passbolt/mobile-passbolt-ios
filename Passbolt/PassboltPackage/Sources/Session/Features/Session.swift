@@ -30,7 +30,7 @@ public struct Session {
   /// Async sequence distributing new values
   /// each time session state changes including
   /// requesting authorization and authorizing.
-  public var updates: any Updatable<Void>
+  public var updates: AnyUpdatable<Void>
   /// Check if there is any pending
   /// authorization request.
   public var pendingAuthorization: @SessionActor () -> SessionAuthorizationRequest?
@@ -55,7 +55,7 @@ public struct Session {
   public var close: @SessionActor (_ account: Account?) async -> Void
 
   public init(
-    updates: any Updatable<Void>,
+    updates: AnyUpdatable<Void>,
     pendingAuthorization: @escaping @SessionActor () -> SessionAuthorizationRequest?,
     currentAccount: @escaping @SessionActor () async throws -> Account,
     authorize: @escaping @SessionActor (SessionAuthorizationMethod) async throws -> Void,
@@ -88,7 +88,7 @@ extension Session: LoadableFeature {
   #if DEBUG
   public nonisolated static var placeholder: Self {
     Self(
-      updates: PlaceholderUpdatable(),
+      updates: PlaceholderUpdatable().asAnyUpdatable(),
       pendingAuthorization: unimplemented0(),
       currentAccount: unimplemented0(),
       authorize: unimplemented1(),

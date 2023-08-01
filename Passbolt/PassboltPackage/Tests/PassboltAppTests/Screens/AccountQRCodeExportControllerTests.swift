@@ -53,7 +53,7 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
     let updatesSource: Updates = .init()
     patch(
       \AccountChunkedExport.updates,
-      with: updatesSource
+      with: updatesSource.asAnyUpdatable()
     )
     patch(
       \AccountChunkedExport.status,
@@ -89,7 +89,7 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
     let updatesSource: Updates = .init()
     patch(
       \AccountChunkedExport.updates,
-      with: updatesSource
+      with: updatesSource.asAnyUpdatable()
     )
     patch(
       \AccountChunkedExport.status,
@@ -107,7 +107,7 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
     let updatesSource: Updates = .init()
     patch(
       \AccountChunkedExport.updates,
-      with: updatesSource
+      with: updatesSource.asAnyUpdatable()
     )
     patch(
       \AccountChunkedExport.status,

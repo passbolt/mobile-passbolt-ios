@@ -307,7 +307,7 @@ extension ResourceFolderEditForm {
     }
 
     return Self(
-      updates: formUpdates,
+      updates: formUpdates.asAnyUpdatable(),
       formState: accessFormState,
       setFolderName: setFolderName(_:),
       sendForm: sendForm

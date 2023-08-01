@@ -85,7 +85,7 @@ internal final class ResourcesListNodeController: ViewController {
       context: .init(
         baseFilter: context.baseFilter,
         filterTextSource: self.searchController
-          .searchText,
+          .searchText.asAnyUpdatable(),
         suggestionFilter: { (resource: ResourceListItemDSV) -> Bool in
           requestedServiceIdentifiers.matches(resource)
         },

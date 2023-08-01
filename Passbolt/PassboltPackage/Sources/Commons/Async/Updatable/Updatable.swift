@@ -31,7 +31,7 @@ public protocol Updatable<Value>: AnyObject, Sendable, AsyncSequence {
   var value: Value { @Sendable get async throws }
   var lastUpdate: Update<Value> { @Sendable get async throws }
 
-  @Sendable func update(
+  @Sendable func notify(
     _ awaiter: @escaping @Sendable (Update<Value>) -> Void,
     after generation: UpdateGeneration
   )
@@ -47,20 +47,18 @@ extension Updatable {
 
   public var lastUpdate: Update<Value> {
     @_transparent @Sendable get async throws {
-      try await future { (fulfill: @escaping @Sendable (Update<Value>) -> Void) in
-        // uninitialized will always deliver latest known
-        self.update(fulfill, after: .uninitialized)
-      }
+      // uninitialized will always deliver latest known
+      try await self.notify(after: .uninitialized)
     }
   }
 
-	@_transparent @Sendable public func update(
-		after generation: UpdateGeneration
-	) async throws -> Update<Value> {
-		try await future { (fulfill: @escaping @Sendable (Update<Value>) -> Void) in
-			self.update(fulfill, after: generation)
-		}
-	}
+  @_transparent @Sendable public func notify(
+    after generation: UpdateGeneration
+  ) async throws -> Update<Value> {
+    try await future { (awaiter: @escaping @Sendable (Update<Value>) -> Void) in
+      self.notify(awaiter, after: generation)
+    }
+  }
 }
 
 extension Updatable {
@@ -70,30 +68,15 @@ extension Updatable {
   public typealias Element = Update<Value>
   public typealias AsyncIterator = UpdatableIterator<Value>
 
-  public func makeAsyncIterator() -> UpdatableIterator<Value> {
+  @Sendable public func makeAsyncIterator() -> UpdatableIterator<Value> {
     UpdatableIterator(source: self)
   }
 }
 
 extension Updatable {
 
-  public var publisher: UpdatablePublisher<Value> {
-    .init(source: self)
-  }
-}
-
-public final class PlaceholderUpdatable<Value>: Updatable
-where Value: Sendable {
-
-  public init() {}
-
-  public let generation: UpdateGeneration = .uninitialized
-
-  @Sendable public func update(
-    _ awaiter: @escaping @Sendable (Update<Value>) -> Void,
-    after generation: UpdateGeneration
-  ) {
-    // never
+  public var publisher: UpdatablePublisher<Self> {
+    UpdatablePublisher(source: self)
   }
 }
 
@@ -103,19 +86,19 @@ where Value: Sendable {
   public typealias Element = Update<Value>
 
   private var generation: UpdateGeneration
-  private let source: any Updatable<Value>
+  private let notifyAfter: @Sendable (@escaping @Sendable (Update<Value>) -> Void, UpdateGeneration) -> Void
 
-  internal init(
-    source: any Updatable<Value>
-  ) {
+  internal init<Source>(
+    source: Source
+  ) where Source: Updatable, Source.Value == Value {
     self.generation = .uninitialized
-    self.source = source
+    self.notifyAfter = source.notify(_:after:)
   }
 
   public mutating func next() async -> Element? {
     do {
-      let element: Element = try await future { (fulfill: @escaping @Sendable (Element) -> Void) in
-        self.source.update(fulfill, after: self.generation)
+      let element: Element = try await future { (fulfill: @escaping @Sendable (Update<Value>) -> Void) in
+        self.notifyAfter(fulfill, self.generation)
       }
       self.generation = element.generation
       return element
@@ -129,37 +112,23 @@ where Value: Sendable {
   }
 }
 
-public final class UpdatablePublisher<Value>: ConnectablePublisher
-where Value: Sendable {
+@usableFromInline internal final class UpdateDelivery<Value> where Value: Sendable {
 
-  public typealias Output = Update<Value>
-  public typealias Failure = Never
-
-  private let subject: PassthroughSubject<Output, Failure> = .init()
-  private let iteratorNext: () async -> Output?
+  private let awaiter: @Sendable (Update<Value>) -> Void
+  private var next: UpdateDelivery?
 
   @usableFromInline internal init(
-    source: any Updatable<Value>
+    awaiter: @escaping @Sendable (Update<Value>) -> Void,
+    next: UpdateDelivery?
   ) {
-    var iterator: UpdatableIterator<Value> = source.makeAsyncIterator()
-    self.iteratorNext = { await iterator.next() }
+    self.awaiter = awaiter
+    self.next = next
   }
 
-  public func receive<S>(
-    subscriber: S
-  ) where S: Subscriber, S.Input == Output, S.Failure == Failure {
-    self.subject
-      .receive(subscriber: subscriber)
-  }
-
-  public func connect() -> Cancellable {
-    let task: Task<Void, Never> = .init {
-      while case .some(let update) = await self.iteratorNext() {
-        self.subject.send(update)
-      }
-      self.subject.send(completion: .finished)
-    }
-
-    return AnyCancellable(task.cancel)
+  @usableFromInline @Sendable internal func deliver(
+    _ update: Update<Value>
+  ) {
+    self.awaiter(update)
+    self.next?.deliver(update)
   }
 }

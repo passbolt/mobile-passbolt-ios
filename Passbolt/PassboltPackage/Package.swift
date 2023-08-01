@@ -118,6 +118,10 @@ let package = Package(
       name: "TestExtensions",
       targets: ["TestExtensions"]
     ),
+    .library(
+      name: "CoreTest",
+      targets: ["CoreTest"]
+    ),
   ],
   dependencies: [
     // MARK: - External
@@ -151,6 +155,7 @@ let package = Package(
       name: "CryptoTests",
       dependencies: [
         "Crypto",
+        "CoreTest",
         "TestExtensions",
       ]
     ),
@@ -167,6 +172,7 @@ let package = Package(
       name: "NFCTests",
       dependencies: [
         "NFC",
+        "CoreTest",
         "TestExtensions",
       ]
     ),
@@ -187,6 +193,7 @@ let package = Package(
       name: "SharedUIComponentsTests",
       dependencies: [
         "SharedUIComponents",
+        "CoreTest",
         "TestExtensions",
       ]
     ),
@@ -673,6 +680,10 @@ let package = Package(
       ]
     ),
     .target(
+      name: "CoreTest",
+      dependencies: []
+    ),
+    .target(
       name: "TestExtensions",
       dependencies: [
         // Legacy
@@ -694,12 +705,14 @@ let package = Package(
         "NetworkOperations",
         // Test
         "MockData",
+        "CoreTest",
       ]
     ),
     .testTarget(
       name: "PassboltAppTests",
       dependencies: [
         "PassboltApp",
+        "CoreTest",
         "TestExtensions",
       ]
     ),
@@ -707,6 +720,7 @@ let package = Package(
       name: "PassboltExtensionTests",
       dependencies: [
         "PassboltExtension",
+        "CoreTest",
         "TestExtensions",
       ]
     ),
@@ -714,6 +728,7 @@ let package = Package(
       name: "CommonsTests",
       dependencies: [
         "Commons",
+        "CoreTest",
         "TestExtensions",
       ]
     ),
@@ -721,6 +736,7 @@ let package = Package(
       name: "CommonModelsTests",
       dependencies: [
         "CommonModels",
+        "CoreTest",
         "TestExtensions",
       ]
     ),
@@ -728,6 +744,7 @@ let package = Package(
       name: "FeaturesTests",
       dependencies: [
         "Features",
+        "CoreTest",
         "TestExtensions",
       ]
     ),
@@ -735,6 +752,7 @@ let package = Package(
       name: "PassboltAccountsTests",
       dependencies: [
         "PassboltAccounts",
+        "CoreTest",
         "TestExtensions",
       ]
     ),
@@ -742,6 +760,7 @@ let package = Package(
       name: "PassboltAccountSetupTests",
       dependencies: [
         "PassboltAccountSetup",
+        "CoreTest",
         "TestExtensions",
       ]
     ),
@@ -749,6 +768,7 @@ let package = Package(
       name: "PassboltSessionTests",
       dependencies: [
         "PassboltSession",
+        "CoreTest",
         "TestExtensions",
       ]
     ),
@@ -756,6 +776,7 @@ let package = Package(
       name: "PassboltUsersTests",
       dependencies: [
         "PassboltUsers",
+        "CoreTest",
         "TestExtensions",
       ]
     ),
@@ -763,6 +784,7 @@ let package = Package(
       name: "PassboltResourcesTests",
       dependencies: [
         "PassboltResources",
+        "CoreTest",
         "TestExtensions",
       ]
     ),

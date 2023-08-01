@@ -30,7 +30,7 @@ import OSFeatures
 /// For internal use only.
 internal struct SessionState {
   /// Session updates sequence.
-  internal var updates: any Updatable<Void>
+  internal var updates: AnyUpdatable<Void>
   /// Currently used account.
   internal var account: @SessionActor () -> Account?
   /// Get cached passphrase.
@@ -106,7 +106,7 @@ extension SessionState: LoadableFeature {
   #if DEBUG
   nonisolated static var placeholder: Self {
     Self(
-      updates: PlaceholderUpdatable(),
+      updates: PlaceholderUpdatable().asAnyUpdatable(),
       account: unimplemented0(),
       passphrase: unimplemented0(),
       validAccessToken: unimplemented0(),
@@ -421,7 +421,7 @@ extension SessionState {
     }
 
     return Self(
-      updates: updatesSource,
+      updates: updatesSource.asAnyUpdatable(),
       account: account,
       passphrase: passphrase,
       validAccessToken: validAccessToken,

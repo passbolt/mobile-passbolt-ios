@@ -28,14 +28,14 @@ import Features
 
 public struct ResourcesOTPController {
 
-  public var currentOTP: any Updatable<OTPValue>
+  public var currentOTP: AnyUpdatable<OTPValue>
   public var revealOTP: @Sendable (Resource.ID) async throws -> OTPValue
-	public var hideOTP: @Sendable () async -> Void
+  public var hideOTP: @Sendable () -> Void
 
   public init(
-		currentOTP: any Updatable<OTPValue>,
-		revealOTP: @escaping @Sendable (Resource.ID) async throws -> OTPValue,
-		hideOTP: @escaping @Sendable () async -> Void
+    currentOTP: AnyUpdatable<OTPValue>,
+    revealOTP: @escaping @Sendable (Resource.ID) async throws -> OTPValue,
+    hideOTP: @escaping @Sendable () -> Void
   ) {
     self.currentOTP = currentOTP
     self.revealOTP = revealOTP
@@ -48,9 +48,9 @@ extension ResourcesOTPController: LoadableFeature {
   #if DEBUG
   public static var placeholder: Self {
     .init(
-			currentOTP: PlaceholderUpdatable(),
-			revealOTP: unimplemented1(),
-			hideOTP: unimplemented0()
+      currentOTP: PlaceholderUpdatable().asAnyUpdatable(),
+      revealOTP: unimplemented1(),
+      hideOTP: unimplemented0()
     )
   }
   #endif

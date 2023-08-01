@@ -87,7 +87,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     resource.permissions = expectedResult
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -134,7 +134,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -196,7 +196,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -232,7 +232,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -255,7 +255,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
     patch(
       \UserGroups.groupMembers,
@@ -289,7 +289,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
     patch(
       \UserGroups.groupMembers,
@@ -329,7 +329,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
     patch(
       \UserGroups.groupMembers,
@@ -375,7 +375,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
     patch(
       \UserGroups.groupMembers,
@@ -430,7 +430,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
     patch(
       \ResourceShareNetworkOperation.execute,
@@ -441,16 +441,12 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       with: always(Void())
     )
 
-    var result: Void?
-    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<Void?> = .init()
 
     patch(
       \ResourceController.fetchSecretIfNeeded,
       with: { (_: Bool) async throws in
-        uncheckedSendableResult.variable = Void()
+        result.value = Void()
         throw MockIssue.error()
       }
     )
@@ -459,7 +455,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
 
     try await feature.sendForm()
 
-    XCTAssertNil(result)
+    XCTAssertNil(result.value)
   }
 
   func test_sendForm_succeeds_whenAllOperationSucceed() async throws {
@@ -473,7 +469,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
     patch(
       \UserGroups.groupMembers,
@@ -516,7 +512,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -558,7 +554,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -611,7 +607,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -658,7 +654,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -700,7 +696,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -747,7 +743,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -783,7 +779,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -825,7 +821,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -878,7 +874,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -925,7 +921,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -967,7 +963,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
@@ -1014,7 +1010,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     patch(
       \ResourceController.state,
-      with: Variable(initial: resource)
+      with: Variable(initial: resource).asAnyUpdatable()
     )
 
     let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)

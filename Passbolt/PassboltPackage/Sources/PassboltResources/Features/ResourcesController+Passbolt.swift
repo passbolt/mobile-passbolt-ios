@@ -61,6 +61,9 @@ extension ResourcesController {
           includedTypeSlugs: filter.otpOnly
             ? [.totp, .passwordWithTOTP]
             : [],
+          excludedTypeSlugs: filter.otpOnly
+            ? []
+            : [.totp],
           permissions: Set(filter.permissions),
           tags: filter.tags,
           userGroups: filter.userGroups,

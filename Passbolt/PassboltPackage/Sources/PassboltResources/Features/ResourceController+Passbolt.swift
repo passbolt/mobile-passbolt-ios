@@ -52,9 +52,9 @@ extension ResourceController {
     let resourceFavoriteDeleteNetworkOperation: ResourceFavoriteDeleteNetworkOperation = try features.instance()
     let resourceSetFavoriteDatabaseOperation: ResourceSetFavoriteDatabaseOperation = try features.instance()
 
-    let state: PatchableVariable<Resource> = .init(
+    let state: PatchableVariable = .init(
       updatingFrom: sessionData.lastUpdate
-    ) { (_: Update<Resource>, _: Update<Timestamp>) in
+    ) { (_: Update<Resource>, _: Update<Timestamp>) async throws -> Resource in
       try await fetchMeta()
     }
 
@@ -155,7 +155,7 @@ extension ResourceController {
     }
 
     return Self(
-      state: state,
+      state: state.asAnyUpdatable(),
       fetchSecretIfNeeded: fetchSecretIfNeeded,
       loadUserPermissionsDetails: loadUserPermissionsDetails,
       loadUserGroupPermissionsDetails: loadUserGroupPermissionsDetails,

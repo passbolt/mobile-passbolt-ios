@@ -56,7 +56,7 @@ final class HomeSearchControllerTests: MainActorTestCase {
     features.patch(
       \AccountDetails.updates,
       context: Account.mock_ada,
-      with: detailsUpdates
+      with: detailsUpdates.asAnyUpdatable()
     )
     features.patch(
       \AccountDetails.profile,
@@ -75,12 +75,12 @@ final class HomeSearchControllerTests: MainActorTestCase {
   }
 
   func test_presentAccountMenu_navigatesToAccountMenu() async throws {
-    let result: UncheckedSendable<Void?> = .init(.none)
+    let result: UnsafeSendable<Void?> = .init(.none)
     self.features
       .patch(
         \NavigationToAccountMenu.mockPerform,
         with: { _, _ async throws -> Void in
-          result.variable = Void()
+          result.value = Void()
         }
       )
 
@@ -92,7 +92,7 @@ final class HomeSearchControllerTests: MainActorTestCase {
 
     await self.mockExecutionControl.executeAll()
 
-    XCTAssertNotNil(result.variable)
+    XCTAssertNotNil(result.value)
   }
 
   func test_homePresentationMenuPresentationPublisher_doesNotPublish_initially() async throws {

@@ -74,7 +74,7 @@ final class ResourcesControllerTests: FeaturesTestCase {
     )
     patch(
       \SessionData.lastUpdate,
-      with: self.updatesSequence
+      with: self.updatesSequence.asAnyUpdatable()
     )
     patch(
       \SessionData.refreshIfNeeded,
@@ -98,15 +98,11 @@ final class ResourcesControllerTests: FeaturesTestCase {
   }
 
   func test_filteredResourcesList_usesFilterWhenAccessingDatabase() async throws {
-    var result: ResourcesDatabaseFilter?
-    let uncheckedSendableResult: UncheckedSendable<ResourcesDatabaseFilter?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<ResourcesDatabaseFilter> = .init()
     patch(
       \ResourcesListFetchDatabaseOperation.execute,
       with: { (input) async throws in
-        uncheckedSendableResult.variable = input
+        result.value = input
         return .testResources
       }
     )
@@ -115,7 +111,7 @@ final class ResourcesControllerTests: FeaturesTestCase {
 
     _ = try await feature.filteredResourcesList(testFilter)
 
-    XCTAssertEqual(result, testDatabaseFilter)
+    XCTAssertEqual(result.value, testDatabaseFilter)
   }
 
   func test_filteredResourcesList_throws_onDatabaseError() async throws {
@@ -134,15 +130,11 @@ final class ResourcesControllerTests: FeaturesTestCase {
   }
 
   func test_delete_triggersRefreshIfNeeded_whenDeletion_succeeds() async throws {
-    var result: Void?
-    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<Void> = .init()
     patch(
       \SessionData.refreshIfNeeded,
       with: { () async throws in
-        uncheckedSendableResult.variable = Void()
+        result.value = Void()
       }
     )
     patch(
@@ -154,19 +146,15 @@ final class ResourcesControllerTests: FeaturesTestCase {
 
     try await feature.delete(.mock_1)
 
-    XCTAssertNotNil(result)
+    XCTAssertNotNil(result.value)
   }
 
   func test_delete_refreshesSessionData_whenDeleteSucceeded() async throws {
-    var result: Void?
-    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<Void> = .init()
     patch(
       \SessionData.refreshIfNeeded,
       with: { () async throws in
-        uncheckedSendableResult.variable = Void()
+        result.value = Void()
       }
     )
     patch(
@@ -178,7 +166,7 @@ final class ResourcesControllerTests: FeaturesTestCase {
 
     try await feature.delete(.mock_1)
 
-    XCTAssertNotNil(result)
+    XCTAssertNotNil(result.value)
   }
 
   func test_delete_fails_whenDeleteFails() async throws {

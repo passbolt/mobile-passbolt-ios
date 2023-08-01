@@ -286,7 +286,7 @@ extension AccountChunkedExport {
     }
 
     return .init(
-      updates: updatesSource,
+      updates: updatesSource.asAnyUpdatable(),
       status: status,
       authorize: authorize(authorizationMethod:),
       cancel: cancel

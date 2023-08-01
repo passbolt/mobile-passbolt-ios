@@ -21,34 +21,9 @@
 // @since         v1.0
 //
 
-// THIS IS NOT THREAD SAFE
-// used for satisfying compiler requirements
-// in unit tests where data races are not possible
-public final class UncheckedSendable<Variable>: @unchecked Sendable {
+public struct MockIssue: Error {
 
-  public var variable: Variable {
-    get { get() }
-    set { set(newValue) }
-  }
-
-  private let get: () -> Variable
-  private let set: (Variable) -> Void
-
-  public convenience init(
-    _ variable: Variable
-  ) {
-    var variable: Variable = variable
-    self.init(
-      get: { variable },
-      set: { (newValue: Variable) in variable = newValue }
-    )
-  }
-
-  public init(
-    get: @escaping () -> Variable,
-    set: @escaping (Variable) -> Void
-  ) {
-    self.get = get
-    self.set = set
+  public static func error() -> Self {
+    Self()
   }
 }

@@ -93,7 +93,7 @@ extension AccountPreferences {
       )
 
     return Self(
-      updates: accountData.updates,
+      updates: accountData.updates.asAnyUpdatable(),
       setLocalAccountLabel: setLocalAccountLabel(_:),
       isPassphraseStored: isPassphraseStored,
       storePassphrase: storePassphrase(_:),

@@ -54,7 +54,7 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
     updatesSequenceSource = .init(initial: 0)
     patch(
       \SessionData.lastUpdate,
-      with: updatesSequenceSource
+      with: updatesSequenceSource.asAnyUpdatable()
     )
     use(ResourceFolderDetailsFetchDatabaseOperation.placeholder)
   }

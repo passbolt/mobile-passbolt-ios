@@ -26,140 +26,140 @@ import SwiftUI
 
 public struct OTPValueView: View {
 
-	public enum Accessory {
-		case contextual
-		case toggle
-		case loader
-	}
+  public enum Accessory {
+    case contextual
+    case toggle
+    case loader
+  }
 
-	private let value: OTPValue?
-	private let accessory: Accessory
+  private let value: OTPValue?
+  private let accessory: Accessory
 
-	public init(
-		value: OTPValue?,  // none is covered value
-		accessory: Accessory
-	) {
-		self.value = value
-		self.accessory = accessory
-	}
+  public init(
+    value: OTPValue?,  // none is covered value
+    accessory: Accessory
+  ) {
+    self.value = value
+    self.accessory = accessory
+  }
 
-	public var body: some View {
-		switch self.value {
-		case .totp(let totp):
-			HStack(spacing: 12) {
-				Text(totp.otp.rawValue.split(every: 3).joined(separator: " "))
-					.multilineTextAlignment(.leading)
-					.font(
-						.inconsolata(
-							ofSize: 24,
-							weight: .semibold
-						)
-					)
+  public var body: some View {
+    switch self.value {
+    case .totp(let totp):
+      HStack(spacing: 12) {
+        Text(totp.otp.rawValue.split(every: 3).joined(separator: " "))
+          .multilineTextAlignment(.leading)
+          .font(
+            .inconsolata(
+              ofSize: 24,
+              weight: .semibold
+            )
+          )
 
-				switch self.accessory {
-				case .contextual:
-					CountdownCircleView(
-						current: totp.timeLeft.rawValue,
-						max: totp.period.rawValue
-					)
+        switch self.accessory {
+        case .contextual:
+          CountdownCircleView(
+            current: totp.timeLeft.rawValue,
+            max: totp.period.rawValue
+          )
 
-				case .toggle:
-					Image(named: .eyeSlash)
-						.frame(
-							width: 24,
-							height: 24
-						)
+        case .toggle:
+          Image(named: .eyeSlash)
+            .frame(
+              width: 24,
+              height: 24
+            )
 
-				case .loader:
-					SwiftUI.ProgressView()
-						.progressViewStyle(.circular)
-						.frame(
-							width: 24,
-							height: 24
-						)
-				}
-			}
-			.frame(
-				maxWidth: .infinity,
-				alignment: .leading
-			)
-			.foregroundColor(
-				totp.timeLeft > 5
-				? Color.passboltPrimaryText
-				: Color.passboltSecondaryRed
-			)
+        case .loader:
+          SwiftUI.ProgressView()
+            .progressViewStyle(.circular)
+            .frame(
+              width: 24,
+              height: 24
+            )
+        }
+      }
+      .frame(
+        maxWidth: .infinity,
+        alignment: .leading
+      )
+      .foregroundColor(
+        totp.timeLeft > 5
+          ? Color.passboltPrimaryText
+          : Color.passboltSecondaryRed
+      )
 
-		case .hotp(let hotp):
-			HStack(spacing: 12) {
-				Text(hotp.otp.rawValue.split(every: 3).joined(separator: " "))
-					.multilineTextAlignment(.leading)
-					.font(
-						.inconsolata(
-							ofSize: 24,
-							weight: .semibold
-						)
-					)
+    case .hotp(let hotp):
+      HStack(spacing: 12) {
+        Text(hotp.otp.rawValue.split(every: 3).joined(separator: " "))
+          .multilineTextAlignment(.leading)
+          .font(
+            .inconsolata(
+              ofSize: 24,
+              weight: .semibold
+            )
+          )
 
-				switch self.accessory {
-				case .contextual:
-					EmptyView()
+        switch self.accessory {
+        case .contextual:
+          EmptyView()
 
-				case .toggle:
-					Image(named: .eyeSlash)
-						.frame(
-							width: 24,
-							height: 24
-						)
+        case .toggle:
+          Image(named: .eyeSlash)
+            .frame(
+              width: 24,
+              height: 24
+            )
 
-				case .loader:
-					SwiftUI.ProgressView()
-						.progressViewStyle(.circular)
-						.frame(
-							width: 24,
-							height: 24
-						)
-				}
-			}
-			.frame(
-				maxWidth: .infinity,
-				alignment: .leading
-			)
+        case .loader:
+          SwiftUI.ProgressView()
+            .progressViewStyle(.circular)
+            .frame(
+              width: 24,
+              height: 24
+            )
+        }
+      }
+      .frame(
+        maxWidth: .infinity,
+        alignment: .leading
+      )
 
-		case .none:
-			HStack(spacing: 12) {
-				Text("••• •••")
-					.multilineTextAlignment(.leading)
-					.font(
-						.inconsolata(
-							ofSize: 24,
-							weight: .semibold
-						)
-					)
+    case .none:
+      HStack(spacing: 12) {
+        Text("••• •••")
+          .multilineTextAlignment(.leading)
+          .font(
+            .inconsolata(
+              ofSize: 24,
+              weight: .semibold
+            )
+          )
 
-				switch self.accessory {
-				case .contextual:
-					EmptyView()
+        switch self.accessory {
+        case .contextual:
+          EmptyView()
 
-				case .toggle:
-					Image(named: .eye)
-						.frame(
-							width: 24,
-							height: 24
-						)
+        case .toggle:
+          Image(named: .eye)
+            .frame(
+              width: 24,
+              height: 24
+            )
 
-				case .loader:
-					SwiftUI.ProgressView()
-						.progressViewStyle(.circular)
-						.frame(
-							width: 24,
-							height: 24
-						)
-				}
-			}
-			.frame(
-				maxWidth: .infinity,
-				alignment: .leading
-			)
-		}
-	}
+        case .loader:
+          SwiftUI.ProgressView()
+            .progressViewStyle(.circular)
+            .frame(
+              width: 24,
+              height: 24
+            )
+        }
+      }
+      .frame(
+        maxWidth: .infinity,
+        alignment: .leading
+      )
+    }
+  }
 }

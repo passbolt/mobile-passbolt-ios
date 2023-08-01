@@ -117,7 +117,7 @@ extension Accounts {
     }
 
     return Self(
-      updates: updatesSource,
+      updates: updatesSource.asAnyUpdatable(),
       verifyDataIntegrity: verifyAccountsDataIntegrity,
       storedAccounts: storedAccounts,
       lastUsedAccount: lastUsedAccount,

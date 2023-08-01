@@ -21,37 +21,27 @@
 // @since         v1.0
 //
 
-import CommonModels
+extension Result
+where Failure == Never {
 
-public struct MockIssue: TheError {
-
-  public static func error(
-    _ message: StaticString = "MockIssue",
-    file: StaticString = "Mock",
-    line: UInt = 42
-  ) -> Self {
-    Self(
-      context: .context(
-        .message(
-          message,
-          file: file,
-          line: line
-        )
-      ),
-      displayableMessage: .testMessage()
-    )
+  public init(
+    _ result: () async -> Success
+  ) async {
+    self = await .success(result())
   }
-
-  public var context: DiagnosticsContext
-  public var displayableMessage: DisplayableString
 }
 
-extension TheError {
+extension Result
+where Failure == Error {
 
-  public static func mock(
-    file: StaticString,
-    line: UInt
-  ) -> TheError {
-    MockIssue.error(file: file, line: line)
+  public init(
+    _ result: () async throws -> Success
+  ) async {
+    do {
+      self = try await .success(result())
+    }
+    catch {
+      self = .failure(error)
+    }
   }
 }
