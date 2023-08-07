@@ -38,7 +38,7 @@ public struct OSTime {
   public var timestamp: @Sendable () -> Timestamp
   public var waitFor: @Sendable (Seconds) async throws -> Void
   public var timerSequence: @Sendable (Seconds) -> AnyAsyncSequence<Void>
-  public var timeVariable: @Sendable (Seconds) -> TimeVariable
+  public var timeVariable: @Sendable (Seconds) -> AnyUpdatable<Void>
 }
 
 extension OSTime: StaticFeature {
@@ -105,6 +105,7 @@ extension OSTime {
       timerSequence: timerSequence(_:),
       timeVariable: { (period: Seconds) in
         TimeVariable(period: NSEC_PER_SEC * UInt64(period.rawValue))
+          .asAnyUpdatable()
       }
     )
   }
@@ -146,6 +147,7 @@ extension OSTime {
       timerSequence: timerSequence(_:),
       timeVariable: { (period: Seconds) in
         TimeVariable(period: NSEC_PER_SEC * UInt64(period.rawValue))
+          .asAnyUpdatable()
       }
     )
   }

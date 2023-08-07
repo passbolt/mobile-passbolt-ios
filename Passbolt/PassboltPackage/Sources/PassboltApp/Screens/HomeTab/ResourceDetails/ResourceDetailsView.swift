@@ -80,11 +80,15 @@ internal struct ResourceDetailsView: ControlledView {
       CommonListRow {
         with(\.name) { (name: String) in
           VStack(spacing: 8) {
-            ZStack(alignment: .topTrailing) {
-              LetterIconView(text: name)
-                .padding(top: 16)
-
-              with(\.favorite) { (favorite: Bool) in
+            with(\.favorite) { (favorite: Bool) in
+              ZStack(alignment: .topTrailing) {
+                LetterIconView(text: name)
+                  .padding(
+                    top: 16,
+                    leading: favorite
+                      ? 16
+                      : 0
+                    )
                 if favorite {
                   Image(named: .starFilled)
                     .foregroundColor(.passboltSecondaryOrange)

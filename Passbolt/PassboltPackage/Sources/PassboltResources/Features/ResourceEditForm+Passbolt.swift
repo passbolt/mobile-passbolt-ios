@@ -114,7 +114,14 @@ extension ResourceEditForm {
           try await usersPGPMessages
           .encryptMessageForResourceUsers(resourceID, resourceSecret)
 
-        let updatedResourceID: Resource.ID = try await resourceEditNetworkOperation(
+        guard encryptedSecrets.count == resource.permissions.count
+        else {
+          throw
+            InvalidResourceSecret
+            .error(message: "Failed to encrypt secret for all required users!")
+        }
+
+        _ = try await resourceEditNetworkOperation(
           .init(
             resourceID: resourceID,
             resourceTypeID: resource.type.id,
@@ -126,7 +133,6 @@ extension ResourceEditForm {
             secrets: encryptedSecrets.map { (userID: $0.recipient, data: $0.message) }
           )
         )
-        .resourceID
       }
       else {
         guard
@@ -154,7 +160,15 @@ extension ResourceEditForm {
           )
         )
 
-        if let folderID: ResourceFolder.ID = resource.parentFolderID {
+        folder: if let folderID: ResourceFolder.ID = resource.parentFolderID {
+          let folderPermissions: Array<ResourceFolderPermission> =
+            try await resourceFolderPermissionsFetchDatabaseOperation(folderID)
+
+          // do not share if folder has only a single person
+          // it has to be the current user
+          guard folderPermissions.count > 1
+          else { break folder }
+
           let encryptedSecrets: OrderedSet<EncryptedMessage> =
             try await usersPGPMessages
             .encryptMessageForResourceFolderUsers(folderID, resourceSecret)
@@ -162,9 +176,6 @@ extension ResourceEditForm {
               encryptedMessage.recipient != currentAccount.userID
             }
             .asOrderedSet()
-
-          let folderPermissions: Array<ResourceFolderPermission> =
-            try await resourceFolderPermissionsFetchDatabaseOperation(folderID)
 
           let newPermissions: Array<NewGenericPermissionDTO> =
             folderPermissions

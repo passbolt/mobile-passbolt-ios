@@ -27,10 +27,9 @@ import Features
 import XCTest
 
 @MainActor
-open class FeaturesTestCase: XCTestCase {
+open class FeaturesTestCase: TestCase {
 
   public let asyncExecutionControl: AsyncExecutor.MockExecutionControl = .init()
-  public nonisolated let dynamicVariables: DynamicVariables = .init()
   public var cancellables: Cancellables { self.testFeatures.cancellables }  // for legacy elements
 
   private let testFeatures: TestFeaturesContainer = .init()
@@ -364,26 +363,43 @@ extension FeaturesTestCase {
     }
   }
 
+  nonisolated public var mockWasExecuted: Bool {
+    @Sendable get {
+      self.loadOrDefine(
+        \.executedCount,
+        of: UInt.self,
+        defaultValue: 0
+      ) > 0
+    }
+  }
+
+  nonisolated public var mockExecutedCount: UInt {
+    @Sendable get {
+      self.loadOrDefine(
+        \.executedCount,
+        defaultValue: 0
+      )
+    }
+  }
+
   @Sendable nonisolated public func mockExecuted() {
-    if let count: UInt = self.dynamicVariables.getIfPresent(\.executed, of: UInt.self) {
-      self.dynamicVariables.set(\.mockExecuted, of: UInt.self, to: count + 1)
-    }
-    else {
-      self.dynamicVariables.set(\.mockExecuted, of: UInt.self, to: 1)
-    }
-    self.dynamicVariables.set(\.mockExecutedArgument, to: Void())
+    let count: UInt = self.loadOrDefine(
+      \.executedCount,
+      defaultValue: 0
+    )
+    self.executedCount = count + 1
+    self.setOrDefine(\.executedArgument, value: Void())
   }
 
   @Sendable nonisolated public func mockExecuted<Argument>(
     with argument: Argument
   ) {
-    if let count: UInt = self.dynamicVariables.getIfPresent(\.executed, of: UInt.self) {
-      self.dynamicVariables.set(\.mockExecuted, of: UInt.self, to: count + 1)
-    }
-    else {
-      self.dynamicVariables.set(\.mockExecuted, of: UInt.self, to: 1)
-    }
-    self.dynamicVariables.set(\.mockExecutedArgument, to: argument)
+    let count: UInt = self.loadOrDefine(
+      \.executedCount,
+      defaultValue: 0
+    )
+    self.executedCount = count + 1
+    self.setOrDefine(\.executedArgument, value: argument)
   }
 
   public func withInstance<Controller>(
@@ -398,7 +414,10 @@ extension FeaturesTestCase {
       try await test(self.testedInstance())
       XCTAssertEqual(
         mockExecuted,
-        self.dynamicVariables.getIfPresent(\.mockExecuted, of: UInt.self) ?? 0,
+        self.loadOrDefine(
+          \.executedCount,
+          defaultValue: 0
+        ),
         "Executed count was not matching expected",
         file: file,
         line: line
@@ -426,7 +445,10 @@ extension FeaturesTestCase {
       try await test(self.testedInstance(context: context))
       XCTAssertEqual(
         mockExecuted,
-        self.dynamicVariables.getIfPresent(\.mockExecuted, of: UInt.self) ?? 0,
+        self.loadOrDefine(
+          \.executedCount,
+          defaultValue: 0
+        ),
         "Executed count was not matching expected",
         file: file,
         line: line
@@ -453,7 +475,10 @@ extension FeaturesTestCase {
       try await test(self.testedInstance())
       XCTAssertEqual(
         mockExecutedWith,
-        self.dynamicVariables.getIfPresent(\.mockExecutedArgument, of: Argument.self),
+        self.loadIfDefined(
+          \.executedArgument,
+          of: Argument.self
+        ),
         "Executed argument was invalid or missing",
         file: file,
         line: line
@@ -481,7 +506,10 @@ extension FeaturesTestCase {
       try await test(self.testedInstance(context: context))
       XCTAssertEqual(
         mockExecutedWith,
-        self.dynamicVariables.getIfPresent(\.mockExecutedArgument, of: Argument.self),
+        self.loadIfDefined(
+          \.executedArgument,
+          of: Argument.self
+        ),
         "Executed argument was invalid or missing",
         file: file,
         line: line

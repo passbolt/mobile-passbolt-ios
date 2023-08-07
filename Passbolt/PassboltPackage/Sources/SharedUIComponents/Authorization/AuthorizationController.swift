@@ -150,15 +150,6 @@ extension AuthorizationController: UIController {
                 .init(rawValue: passphrase)
               )
             )
-            do {
-              Diagnostics.log(diagnostic: "Updating account profile data...")
-              try await accountDetails.updateProfile()
-              Diagnostics.log(diagnostic: "...account profile data updated!")
-            }
-            catch {
-              Diagnostics.log(error: error)
-              Diagnostics.log(diagnostic: "...account profile data update failed!")
-            }
             return false
           }
           catch is SessionMFAAuthorizationRequired {
@@ -187,15 +178,6 @@ extension AuthorizationController: UIController {
             .authorize(
               .biometrics(account)
             )
-          do {
-            Diagnostics.log(diagnostic: "Updating account profile data...")
-            try await accountDetails.updateProfile()
-            Diagnostics.log(diagnostic: "...account profile data updated!")
-          }
-          catch {
-            Diagnostics.log(error: error)
-            Diagnostics.log(diagnostic: "...account profile data update failed!")
-          }
           return false
         }
         catch is SessionMFAAuthorizationRequired {

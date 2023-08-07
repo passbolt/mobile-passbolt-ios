@@ -21,25 +21,57 @@
 // @since         v1.0
 //
 
-import Commons
+public final class Constant<Value>: @unchecked Sendable
+where Value: Sendable {
 
-extension ResourceFolderPermission {
+  @usableFromInline @inline(__always) internal let currentUpdate: Update<Value>
 
-  public static var mock_user_1_owner: Self = .user(
-    id: .mock_1,
-    permission: .owner,
-    permissionID: .init(uuidString: "3D1DF8D0-1C86-443B-8A38-B72C971BA48C")
-  )
+  public init(
+    _ value: Value
+  ) {
+    self.currentUpdate = .init(
+      generation: .next(),
+      value
+    )
+  }
 
-  public static var mock_user_1_reader: Self = .user(
-    id: .mock_1,
-    permission: .read,
-    permissionID: .init(uuidString: "3D1DF8D0-1C86-443B-8A38-B72C971BA48C")
-  )
+  public init(
+    _ issue: Error
+  ) {
+    self.currentUpdate = .init(
+      generation: .next(),
+      issue
+    )
+  }
+}
 
-  public static var mock_user_2_owner: Self = user(
-    id: .mock_2,
-    permission: .owner,
-    permissionID: .init(uuidString: "D7A12567-364D-4DAE-B6C8-5E1F1044429C")
-  )
+extension Constant: Updatable {
+
+  public var generation: UpdateGeneration {
+    @_transparent @Sendable _read {
+      yield self.currentUpdate.generation
+    }
+  }
+
+  public var value: Value {
+    @_transparent get throws {
+      try self.currentUpdate.value
+    }
+  }
+
+  public var lastUpdate: Update<Value> {
+    @_transparent @Sendable _read {
+      yield self.currentUpdate
+    }
+  }
+
+  @Sendable public func notify(
+    _ awaiter: @escaping @Sendable (Update<Value>) -> Void,
+    after generation: UpdateGeneration
+  ) {
+    // check if current value can be used to fulfill immediately
+    if self.currentUpdate.generation > generation {
+      awaiter(self.currentUpdate)
+    }  // else noop - otherwise wait forever
+  }
 }

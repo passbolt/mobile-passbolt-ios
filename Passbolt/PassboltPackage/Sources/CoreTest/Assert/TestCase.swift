@@ -53,6 +53,54 @@ import XCTest
       )
   }
 
+  @Sendable public nonisolated final func isDefined<Value>(
+    _ keyPath: KeyPath<DynamicVariables.Names, String>,
+    of _: Value.Type = Value.self
+  ) -> Bool {
+    self.dynamicVariables
+      .isDefined(
+        keyPath,
+        of: Value.self
+      )
+  }
+
+  @Sendable public nonisolated final func loadOrDefine<Value>(
+    _ keyPath: KeyPath<DynamicVariables.Names, String>,
+    of _: Value.Type = Value.self,
+    defaultValue: Value
+  ) -> Value {
+    self.dynamicVariables
+      .loadOrDefine(
+        keyPath,
+        of: Value.self,
+        defaultValue: defaultValue
+      )
+  }
+
+  @Sendable public nonisolated final func loadIfDefined<Value>(
+    _ keyPath: KeyPath<DynamicVariables.Names, String>,
+    of _: Value.Type = Value.self
+  ) -> Value? {
+    self.dynamicVariables
+      .loadIfDefined(
+        keyPath,
+        of: Value.self
+      )
+  }
+
+  @Sendable public nonisolated final func setOrDefine<Value>(
+    _ keyPath: KeyPath<DynamicVariables.Names, String>,
+    of _: Value.Type = Value.self,
+    value: Value
+  ) {
+    self.dynamicVariables
+      .setOrDefine(
+        keyPath,
+        of: Value.self,
+        value: value
+      )
+  }
+
   @Sendable public nonisolated final func withLock<Returned>(
     _ execute: () throws -> Returned
   ) rethrows -> Returned {
@@ -89,12 +137,15 @@ extension TestCase {
 
     public subscript<Value>(
       dynamicMember keyPath: KeyPath<Names, String>
-    ) -> Value {
+    ) -> Value! {
       @Sendable _read {
         self.lock.lock()
         let storageKey: String = self.names[keyPath: keyPath]
         guard let stored: Any = self.storage[storageKey]
-        else { fatalError("Attempting to access undefined variable \(storageKey)!") }
+        else {
+          yield .none
+          return self.lock.unlock()
+        }
         guard let value: Value = stored as? Value
         else {
           fatalError(
@@ -107,34 +158,23 @@ extension TestCase {
       @Sendable _modify {
         self.lock.lock()
         let storageKey: String = self.names[keyPath: keyPath]
-        guard let stored: Any = self.storage[storageKey]
-        else { fatalError("Attempting to access undefined variable \(storageKey)!") }
-        guard var value: Value = stored as? Value
+        let stored: Any = self.storage[storageKey] as Any
+        if let value: Value = stored as? Value {
+          var value: Value? = value
+          yield &value
+          self.storage[storageKey] = value
+          self.lock.unlock()
+        }
+        else if case .some(var value) = stored as? Value? {
+          yield &value
+          self.storage[storageKey] = value
+          self.lock.unlock()
+        }
         else {
           fatalError(
             "Attempting to access variable \(storageKey) of type \(Value.self) while storing \(type(of: stored))"
           )
         }
-        yield &value
-        self.storage[storageKey] = value
-        self.lock.unlock()
-      }
-      @Sendable set {
-        self.lock.lock()
-        let storageKey: String = self.names[keyPath: keyPath]
-        guard let stored: Any = self.storage[storageKey]
-        else {
-          self.define(keyPath, initial: newValue)
-          return self.lock.unlock()
-        }
-        guard stored is Value
-        else {
-          fatalError(
-            "Attempting to access variable \(storageKey) of type \(Value.self) while storing \(type(of: stored))"
-          )
-        }
-        self.storage[storageKey] = newValue
-        self.lock.unlock()
       }
     }
 
@@ -143,17 +183,128 @@ extension TestCase {
       of _: Value.Type = Value.self,
       initial: Value
     ) {
-      self.lock.lock()
       let storageKey: String = self.names[keyPath: keyPath]
+      self.lock.lock()
       guard case .none = self.storage[storageKey]
       else { fatalError("Attempting to redefine already defined variable \(storageKey)!") }
       self.storage[storageKey] = initial
       self.lock.unlock()
     }
+
+    @Sendable public nonisolated final func isDefined<Value>(
+      _ keyPath: KeyPath<Names, String>,
+      of _: Value.Type = Value.self
+    ) -> Bool {
+      let storageKey: String = self.names[keyPath: keyPath]
+      self.lock.lock()
+      if case .some(let stored) = self.storage[storageKey] {
+        self.lock.unlock()
+        guard stored is Value || stored is Value?
+        else {
+          fatalError(
+            "Attempting to access variable \(storageKey) of type \(Value.self) while storing \(type(of: stored))"
+          )
+        }
+        return true
+      }
+      else {
+        self.lock.unlock()
+        return false
+      }
+    }
+
+    @Sendable public nonisolated final func loadOrDefine<Value>(
+      _ keyPath: KeyPath<Names, String>,
+      of _: Value.Type = Value.self,
+      defaultValue: Value
+    ) -> Value {
+      let storageKey: String = self.names[keyPath: keyPath]
+      self.lock.lock()
+      if case .some(let stored) = self.storage[storageKey] {
+        self.lock.unlock()
+        if let value: Value = stored as? Value {
+          return value
+        }
+        else if case .some(.some(let value)) = stored as? Value? {
+          return value
+        }
+        else {
+          fatalError(
+            "Attempting to access variable \(storageKey) of type \(Value.self) while storing \(type(of: stored))"
+          )
+        }
+      }
+      else {
+        self.storage[storageKey] = defaultValue
+        self.lock.unlock()
+        return defaultValue
+      }
+    }
+
+    @Sendable public nonisolated final func loadIfDefined<Value>(
+      _ keyPath: KeyPath<Names, String>,
+      of _: Value.Type = Value.self
+    ) -> Value? {
+      let storageKey: String = self.names[keyPath: keyPath]
+      self.lock.lock()
+      if case .some(let stored) = self.storage[storageKey] {
+        self.lock.unlock()
+        if let value: Value = stored as? Value {
+          return value
+        }
+        else if case .some(let value) = stored as? Value? {
+          return value
+        }
+        else {
+          fatalError(
+            "Attempting to access variable \(storageKey) of type \(Value.self) while storing \(type(of: stored))"
+          )
+        }
+      }
+      else {
+        self.lock.unlock()
+        return .none
+      }
+    }
+
+    @Sendable public nonisolated final func setOrDefine<Value>(
+      _ keyPath: KeyPath<Names, String>,
+      of _: Value.Type = Value.self,
+      value: Value
+    ) {
+      let storageKey: String = self.names[keyPath: keyPath]
+      self.lock.lock()
+      if case .some(let stored) = self.storage[storageKey] {
+        guard stored is Value || stored is Value?
+        else {
+          fatalError(
+            "Attempting to access variable \(storageKey) of type \(Value.self) while storing \(type(of: stored))"
+          )
+        }
+        self.storage[storageKey] = value
+        self.lock.unlock()
+      }
+      else {
+        self.storage[storageKey] = value
+        self.lock.unlock()
+      }
+    }
   }
 }
 
 extension TestCase {
+
+  @_transparent public nonisolated final func verificationFailure(
+    _ message: @autoclosure () -> String,
+    _ file: StaticString = #filePath,
+    _ line: UInt = #line
+  ) {
+    XCTFail(
+      message(),
+      file: file,
+      line: line
+    )
+  }
 
   @_transparent @Sendable public nonisolated final func verify(
     @_inheritActorContext @_implicitSelfCapture _ expression: @autoclosure () throws -> Bool?,
@@ -614,7 +765,6 @@ extension TestCase {
 
   @_disfavoredOverload
   @_transparent @MainActor public final func verifyIfIsNotNone<Expected>(
-    equal expected: Expected,
     _ expression: @autoclosure @MainActor () async throws -> Expected?,
     _ message: @autoclosure () -> String = "Value is none!",
     _ file: StaticString = #filePath,

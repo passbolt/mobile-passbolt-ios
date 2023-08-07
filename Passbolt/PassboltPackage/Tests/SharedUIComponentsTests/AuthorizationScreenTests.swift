@@ -45,11 +45,6 @@ final class AuthorizationScreenTests: MainActorTestCase {
       context: .mock_ada,
       with: always(.mock_ada)
     )
-    features.patch(
-      \AccountDetails.updateProfile,
-      context: .mock_ada,
-      with: always(Void())
-    )
     detailsUpdates = .init()
     features.patch(
       \AccountDetails.updates,

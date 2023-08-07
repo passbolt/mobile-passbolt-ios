@@ -98,8 +98,8 @@ final class ResourcesControllerTests: FeaturesTestCase {
   }
 
   func test_filteredResourcesList_usesFilterWhenAccessingDatabase() async throws {
-		var expectedResult: ResourcesDatabaseFilter = testDatabaseFilter
-		expectedResult.excludedTypeSlugs = [.totp]
+    var expectedResult: ResourcesDatabaseFilter = testDatabaseFilter
+    expectedResult.excludedTypeSlugs = [.totp]
     let result: UnsafeSendable<ResourcesDatabaseFilter> = .init()
     patch(
       \ResourcesListFetchDatabaseOperation.execute,
@@ -113,7 +113,7 @@ final class ResourcesControllerTests: FeaturesTestCase {
 
     _ = try await feature.filteredResourcesList(testFilter)
 
-    XCTAssertEqual(result.value, testDatabaseFilter)
+    XCTAssertEqual(result.value, expectedResult)
   }
 
   func test_filteredResourcesList_throws_onDatabaseError() async throws {

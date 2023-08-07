@@ -66,6 +66,7 @@ extension MainTabsController: UIController {
     let features: Features = features
     let currentAccount: Account = try features.sessionAccount()
     let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
+    let accountDetails: AccountDetails = try features.instance(context: currentAccount)
 
     let accountInitialSetup: AccountInitialSetup = try features.instance(context: currentAccount)
     let osBiometry: OSBiometry = features.instance()
@@ -85,6 +86,16 @@ extension MainTabsController: UIController {
     func initialModalPresentation() -> AnyPublisher<ModalPresentation?, Never> {
       Future<ModalPresentation?, Never> { promise in
         Task {
+          do {
+            Diagnostics.log(diagnostic: "Updating account profile data...")
+            try await accountDetails.updateProfile()
+            Diagnostics.log(diagnostic: "...account profile data updated!")
+          }
+          catch {
+            Diagnostics.log(error: error)
+            Diagnostics.log(diagnostic: "...account profile data update failed!")
+          }
+
           let unfinishedSetupElements: Set<AccountInitialSetup.SetupElement> =
             await accountInitialSetup.unfinishedSetupElements()
 

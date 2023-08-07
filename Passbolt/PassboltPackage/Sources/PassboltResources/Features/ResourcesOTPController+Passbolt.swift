@@ -37,7 +37,7 @@ extension ResourcesOTPController {
     try features.ensureScope(SessionScope.self)
 
     let sessionData: SessionData = try features.instance()
-    let timeTicks: TimeVariable = features.instance(of: OSTime.self).timeVariable(Seconds(rawValue: 1))
+    let timeTicks: AnyUpdatable<Void> = features.instance(of: OSTime.self).timeVariable(Seconds(rawValue: 1))
 
     // this variable holds last requested resource ID
     let lastRequestedResourceID: Variable<Resource.ID?> = .init(initial: .none)

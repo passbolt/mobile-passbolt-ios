@@ -38,7 +38,7 @@ final class ResourceDeleteAlertControllerTests: FeaturesTestCase {
       context: .init(
         resourceID: .mock_1,
         showMessage: { (message: SnackBarMessage) in
-          self.dynamicVariables.message = message
+          self.message = message
         }
       )
     )
@@ -49,7 +49,7 @@ final class ResourceDeleteAlertControllerTests: FeaturesTestCase {
     testedAction.action()
     await self.asyncExecutionControl.executeAll()
 
-    XCTAssertEqual(self.dynamicVariables.message, SnackBarMessage.error("generic.error"))
+    XCTAssertEqual(self.message, SnackBarMessage.error("generic.error"))
   }
 
   func test_deleteAction_succeedsWithMessage_whenDeleteSucceeds() async throws {
@@ -61,7 +61,7 @@ final class ResourceDeleteAlertControllerTests: FeaturesTestCase {
       context: .init(
         resourceID: .mock_1,
         showMessage: { (message: SnackBarMessage) in
-          self.dynamicVariables.message = message
+          self.message = message
         }
       )
     )
@@ -71,6 +71,6 @@ final class ResourceDeleteAlertControllerTests: FeaturesTestCase {
 
     testedAction.action()
     await self.asyncExecutionControl.executeAll()
-    XCTAssertEqual(self.dynamicVariables.message, SnackBarMessage.info("resource.delete.succeeded"))
+    XCTAssertEqual(self.message, SnackBarMessage.info("resource.delete.succeeded"))
   }
 }

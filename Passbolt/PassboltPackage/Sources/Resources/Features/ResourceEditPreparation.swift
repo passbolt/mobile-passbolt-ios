@@ -82,3 +82,5 @@ public struct ResourceEditingContext {
     self.availableTypes = availableTypes
   }
 }
+
+extension ResourceEditingContext: Equatable {}

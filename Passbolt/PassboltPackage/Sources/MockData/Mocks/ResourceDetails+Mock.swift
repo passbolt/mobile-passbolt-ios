@@ -106,7 +106,7 @@ extension Resource {
     )
     mock.meta.name = .string("Mock_totp")
     mock.secret.totp.algorithm = .string(HOTPAlgorithm.sha1.rawValue)
-    mock.secret.totp.secrey_key = .string("SECRET")
+    mock.secret.totp.secret_key = .string("SECRET")
     mock.secret.totp.digits = .integer(6)
     mock.secret.totp.period = .integer(30)
     return mock

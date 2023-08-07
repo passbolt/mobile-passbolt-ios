@@ -60,21 +60,21 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
     patch(
       \ResourceFolderEditForm.setFolderName,
       context: .create(containingFolderID: .none),
-      with: always(self.dynamicVariables.set(\.executed, to: true))
+      with: always(self.setOrDefine(\.executed, value: true))
     )
 
     let tested: ResourceFolderEditController = try self.testedInstance(context: .create(containingFolderID: .none))
 
     tested.setFolderName("folder name")
     await self.asyncExecutionControl.executeAll()
-    XCTAssertTrue(self.dynamicVariables.get(\.executed, of: Bool.self))
+    XCTAssertTrue(self.loadIfDefined(\.executed, of: Bool.self))
   }
 
   func test_saveChanges_sendsForm() async throws {
     patch(
       \ResourceFolderEditForm.sendForm,
       context: .create(containingFolderID: .none),
-      with: always(self.dynamicVariables.set(\.executed, to: true))
+      with: always(self.setOrDefine(\.executed, value: true))
     )
 
     let tested: ResourceFolderEditController = try self.testedInstance(context: .create(containingFolderID: .none))
@@ -109,7 +109,7 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
       context: .create(containingFolderID: .none),
       with: updatesSource.asAnyUpdatable()
     )
-    self.dynamicVariables.formState = ResourceFolderEditFormState(
+    self.formState = ResourceFolderEditFormState(
       name: .valid("initial"),
       location: .valid(.init()),
       permissions: .valid(.init())
@@ -117,7 +117,7 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
     patch(
       \ResourceFolderEditForm.formState,
       context: .create(containingFolderID: .none),
-      with: always(self.dynamicVariables.formState)
+      with: always(self.formState)
     )
 
     let tested: ResourceFolderEditController = try self.testedInstance(context: .create(containingFolderID: .none))
@@ -125,7 +125,7 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
     await self.asyncExecutionControl.executeNext()
     let initialFolderName: Validated<String> = await tested.viewState.current.folderName
 
-    self.dynamicVariables.formState = ResourceFolderEditFormState(
+    self.formState = ResourceFolderEditFormState(
       name: .valid("edited"),
       location: .valid(.init()),
       permissions: .valid(.init())

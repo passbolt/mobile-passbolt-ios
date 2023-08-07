@@ -119,14 +119,14 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
   func test_cancelTransfer_cancelsDataExport() async throws {
     patch(
       \AccountChunkedExport.cancel,
-      with: always(self.dynamicVariables.set(\.executed, to: true))
+      with: always(self.mockExecuted())
     )
 
     let tested: AccountQRCodeExportController = try self.testedInstance()
 
     tested.cancelTransfer()
     await self.asyncExecutionControl.executeAll()
-    XCTAssertTrue(self.dynamicVariables.get(\.executed, of: Bool.self))
+    XCTAssertTrue(self.mockWasExecuted)
   }
 
   func test_cancelTransfer_navigates() async throws {

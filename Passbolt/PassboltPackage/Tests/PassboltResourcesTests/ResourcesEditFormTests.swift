@@ -21,908 +21,597 @@
 // @since         v1.0
 //
 
-import CommonModels
-import Crypto
-import Features
-import SessionData
 import TestExtensions
-import Users
-import XCTest
 
-@testable import Accounts
 @testable import PassboltResources
-@testable import Resources
 
-#warning("[MOB-1301] TODO: to rewrite!")
-// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-//final class ResourcesEditFormTests: FeaturesTestCase {
-//
-//  override func commonPrepare() {
-//    super.commonPrepare()
-//    register(
-//      { $0.usePassboltResourceEditForm() },
-//      for: ResourceEditForm.self
-//    )
-//    self.set(
-//      SessionScope.self,
-//      context: .init(
-//        account: .mock_ada,
-//        configuration: .mock_1
-//      )
-//    )
-//  }
-//
-//  func test_initialState_fails_whenNoResourceTypesAvailable() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .create(
-//        folderID: .none,
-//        uri: .none
-//      )
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([])
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertError(matches: InvalidResourceType.self) {
-//      try await feature.state.value
-//    }
-//  }
-//
-//  func test_initialState_returnsDefaultResourceType_whenAvailable() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .create(
-//        folderID: .none,
-//        uri: .none
-//      )
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultResourceType])
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertValue(equal: defaultResourceType) {
-//      try await feature.state.value.type
-//    }
-//  }
-//
-//  func test_validatedFieldValue_returnsInvalid_whenResourceFieldUnavailable() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .create(
-//        folderID: .none,
-//        uri: .none
-//      )
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultResourceType])
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertError(matches: InvalidValue.self) {
-//      try await feature.state.value
-//        .validatedValue(forField: "unavailable")
-//        .validValue  // access to trigger validation error throw
-//    }
-//  }
-//
-//  func test_validatedFieldValue_returnsUnknownValue_whenResourceFieldNotSet() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .create(
-//        folderID: .none,
-//        uri: .none
-//      )
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultResourceType])
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertValue(equal: .string("")) {
-//      try await feature.state.value
-//        .value(forField: "name")
-//    }
-//  }
-//
-//  func test_validatedFieldValue_returnsEncryptedValue_whenResourceEncrtpedFieldNotSet() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .create(
-//        folderID: .none,
-//        uri: .none
-//      )
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultResourceType])
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertValue(equal: .string("")) {
-//      try await feature.state.value
-//        .value(forField: "password")
-//    }
-//  }
-//
-//  func test_validatedFieldValue_returnsInitialValue_whenResourceFieldAvailable() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .edit(.mock_1)
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultResourceType])
-//    )
-//    patch(
-//      \ResourceDetails.details,
-//      context: .mock_1,
-//      with: always(.mock_1)
-//    )
-//    patch(
-//      \ResourceDetails.secret,
-//      context: .mock_1,
-//      with: always(resourceSecret)
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertValue(equal: .string("Mock_1")) {
-//      try await feature.state.value
-//        .value(forField: "name")
-//    }
-//  }
-//
-//  func test_resourceEdit_succeeds_whenLoadingResourceDataSucceeds() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .edit(.mock_1)
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultResourceType])
-//    )
-//    patch(
-//      \ResourceDetails.details,
-//      context: .mock_1,
-//      with: always(.mock_1)
-//    )
-//    patch(
-//      \ResourceDetails.secret,
-//      context: .mock_1,
-//      with: always(resourceSecret)
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertNoError {
-//      try await feature.state.value
-//    }
-//  }
-//
-//  func test_resourceEdit_fails_whenLoadingResourceDataFails() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .edit(.mock_1)
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultResourceType])
-//    )
-//    patch(
-//      \ResourceDetails.details,
-//      context: .mock_1,
-//      with: alwaysThrow(MockIssue.error())
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertError(matches: MockIssue.self) {
-//      try await feature.state.value
-//    }
-//  }
-//
-//  func test_resourceEdit_fails_whenLoadingResourceSecretFails() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .edit(.mock_1)
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultResourceType])
-//    )
-//    patch(
-//      \ResourceDetails.details,
-//      context: .mock_1,
-//      with: always(.mock_1)
-//    )
-//    patch(
-//      \ResourceDetails.secret,
-//      context: .mock_1,
-//      with: alwaysThrow(MockIssue.error())
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertError(matches: MockIssue.self) {
-//      try await feature.state.value
-//    }
-//  }
-//
-//  func test_update_updatesFieldValue_whenFieldAvailable() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .edit(.mock_1)
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultResourceType])
-//    )
-//    patch(
-//      \ResourceDetails.details,
-//      context: .mock_1,
-//      with: always(.mock_1)
-//    )
-//    patch(
-//      \ResourceDetails.secret,
-//      context: .mock_1,
-//      with: always(resourceSecret)
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//    try await feature.update(
-//      defaultResourceType.field(named: "name")!,
-//      to: .string("Updated!")
-//    )
-//
-//    await XCTAssertValue(equal: .string("Updated!")) {
-//      try await feature.state.value
-//        .value(forField: "name")
-//    }
-//  }
-//
-//  func test_update_returnsValidatedValue_whenFieldAvailable() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .edit(.mock_1)
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultResourceType])
-//    )
-//    patch(
-//      \ResourceDetails.details,
-//      context: .mock_1,
-//      with: always(.mock_1)
-//    )
-//    patch(
-//      \ResourceDetails.secret,
-//      context: .mock_1,
-//      with: always(resourceSecret)
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertValue(equal: .string("Updated!")) {
-//      try await feature.update(
-//        defaultResourceType.field(named: "name")!,
-//        to: .string("Updated!")
-//      )
-//      .validValue
-//    }
-//  }
-//
-//  func test_update_throws_whenFieldUnavailable() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .edit(.mock_1)
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultResourceType])
-//    )
-//    patch(
-//      \ResourceDetails.details,
-//      context: .mock_1,
-//      with: always(.mock_1)
-//    )
-//    patch(
-//      \ResourceDetails.secret,
-//      context: .mock_1,
-//      with: always(resourceSecret)
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertError(matches: InvalidResourceData.self) {
-//      try await feature.update(
-//        .init(
-//          name: "Unavailable",
-//          content: .unknown(
-//            encrypted: false,
-//            required: true
-//          )
-//        ),
-//        to: .string("Updated!")
-//      )
-//    }
-//  }
-//
-//  func test_update_throws_whenValueTypeInvalid() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .edit(.mock_1)
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultResourceType])
-//    )
-//    patch(
-//      \ResourceDetails.details,
-//      context: .mock_1,
-//      with: always(.mock_1)
-//    )
-//    patch(
-//      \ResourceDetails.secret,
-//      context: .mock_1,
-//      with: always(resourceSecret)
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertError(matches: InvalidResourceData.self) {
-//      try await feature.update(
-//        defaultResourceType.field(named: "name")!,
-//        to: .encrypted
-//      )
-//    }
-//  }
-//
-//  func test_sendForm_fails_whenLoadingOperationFails() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .create(
-//        folderID: .none,
-//        uri: .none
-//      )
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: alwaysThrow(MockIssue.error())
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertError(matches: MockIssue.self) {
-//      try await feature.sendForm()
-//    }
-//  }
-//
-//  func test_sendForm_fails_whenFieldsValidationFails() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .create(
-//        folderID: .none,
-//        uri: .none
-//      )
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultResourceType])
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertError(matches: InvalidForm.self) {
-//      try await feature.sendForm()
-//    }
-//  }
-//
-//  func test_sendForm_fails_whenEncryptMessageForUserFails() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .create(
-//        folderID: .none,
-//        uri: .none
-//      )
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultShrinkedResourceType])
-//    )
-//    patch(
-//      \UsersPGPMessages.encryptMessageForUsers,
-//      with: alwaysThrow(MockIssue.error())
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    try await feature.update(
-//      defaultShrinkedResourceType.field(named: "name")!,
-//      to: .string("name")
-//    )
-//
-//    await XCTAssertError(matches: MockIssue.self) {
-//      try await feature.sendForm()
-//    }
-//  }
-//
-//  func test_sendForm_fails_whenCreateResourceRequestFails() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .create(
-//        folderID: .none,
-//        uri: .none
-//      )
-//    )
-//
-//    patch(
-//      \Session.currentAccount,
-//      with: always(.mock_ada)
-//    )
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultShrinkedResourceType])
-//    )
-//    patch(
-//      \UsersPGPMessages.encryptMessageForUsers,
-//      with: always(
-//        [
-//          .init(
-//            recipient: .mock_1,
-//            message: "encrypted-message"
-//          )
-//        ]
-//      )
-//    )
-//    patch(
-//      \ResourceCreateNetworkOperation.execute,
-//      with: alwaysThrow(MockIssue.error())
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    try await feature.update(
-//      defaultShrinkedResourceType.field(named: "name")!,
-//      to: .string("name")
-//    )
-//
-//    await XCTAssertError(matches: MockIssue.self) {
-//      try await feature.sendForm()
-//    }
-//  }
-//
-//  func test_sendForm_succeeds_whenAllOperationsSucceed() async throws {
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultShrinkedResourceType])
-//    )
-//    patch(
-//      \UsersPGPMessages.encryptMessageForUsers,
-//      with: always(
-//        [
-//          .init(
-//            recipient: .mock_1,
-//            message: "encrypted-message"
-//          )
-//        ]
-//      )
-//    )
-//    patch(
-//      \ResourceCreateNetworkOperation.execute,
-//      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
-//    )
-//    patch(
-//      \SessionData.refreshIfNeeded,
-//      with: always(Void())
-//    )
-//    set(
-//      ResourceEditScope.self,
-//      context: .create(
-//        folderID: .none,
-//        uri: .none
-//      )
-//    )
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    try await feature.update(
-//      defaultShrinkedResourceType.field(named: "name")!,
-//      to: .string("name")
-//    )
-//
-//    await XCTAssertValue(equal: .mock_1) {
-//      try await feature.sendForm()
-//    }
-//  }
-//
-//  func test_resourceEdit_fails_whenFetchingResourceFromDatabaseFails() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .edit(.mock_1)
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultResourceType])
-//    )
-//    patch(
-//      \ResourceDetails.details,
-//      context: .mock_1,
-//      with: alwaysThrow(MockIssue.error())
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertError(matches: MockIssue.self) {
-//      try await feature.state.value
-//    }
-//  }
-//
-//  func test_resourceEdit_fails_whenFetchingResourceSecretFails() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .edit(.mock_1)
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultResourceType])
-//    )
-//    patch(
-//      \ResourceDetails.details,
-//      context: .mock_1,
-//      with: alwaysThrow(MockIssue.error())
-//    )
-//    patch(
-//      \Resources.loadResourceSecret,
-//      with: always(
-//        Fail(error: MockIssue.error())
-//          .eraseToAnyPublisher()
-//      )
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertError(matches: MockIssue.self) {
-//      try await feature.state.value
-//    }
-//  }
-//
-//  func test_createResource_fails_whenLoadingLocationFromDatabaseFails() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .create(
-//        folderID: .mock_2,
-//        uri: .none
-//      )
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultResourceType])
-//    )
-//    patch(
-//      \ResourceFolderPathFetchDatabaseOperation.execute,
-//      with: alwaysThrow(MockIssue.error())
-//    )
-//    patch(
-//      \ResourceDetails.details,
-//      context: .mock_1,
-//      with: always(.mock_1)
-//    )
-//    patch(
-//      \ResourceDetails.secret,
-//      context: .mock_1,
-//      with: always(resourceSecret)
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertError(matches: MockIssue.self) {
-//      try await feature.state.value
-//    }
-//  }
-//
-//  func test_createResource_loadsLocationFromDatabase() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .create(
-//        folderID: .mock_2,
-//        uri: .none
-//      )
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultResourceType])
-//    )
-//    patch(
-//      \ResourceFolderPathFetchDatabaseOperation.execute,
-//      with: always([.mock_1, .mock_2])
-//    )
-//    patch(
-//      \ResourceDetails.details,
-//      context: .mock_1,
-//      with: always(.mock_1)
-//    )
-//    patch(
-//      \ResourceDetails.secret,
-//      context: .mock_1,
-//      with: always(resourceSecret)
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertValue(equal: [.mock_1, .mock_2]) {
-//      try await feature.state.value.path
-//    }
-//  }
-//
-//  func test_createResource_usesPredefinedURL() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .create(
-//        folderID: .none,
-//        uri: "https://passbolt.com/predefined"
-//      )
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultResourceType])
-//    )
-//    patch(
-//      \ResourceDetails.details,
-//      context: .mock_1,
-//      with: always(.mock_1)
-//    )
-//    patch(
-//      \ResourceDetails.secret,
-//      context: .mock_1,
-//      with: always(resourceSecret)
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertValue(equal: "https://passbolt.com/predefined") {
-//      try await feature.state.value.value(forField: "uri").stringValue
-//    }
-//  }
-//
-//  func test_createResource_usesDefaultResourceTypeIfAble() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .create(
-//        folderID: .none,
-//        uri: "https://passbolt.com/predefined"
-//      )
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([.mock_1, defaultResourceType, .mock_2])
-//    )
-//    patch(
-//      \ResourceDetails.details,
-//      context: .mock_1,
-//      with: always(.mock_1)
-//    )
-//    patch(
-//      \ResourceDetails.secret,
-//      context: .mock_1,
-//      with: always(resourceSecret)
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertValue(equal: ResourceType.Slug.default) {
-//      try await feature.state.value.type.slug
-//    }
-//  }
-//
-//  func test_sendForm_updatesResource_whenEditingResource() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .edit(.mock_1)
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultResourceType])
-//    )
-//    patch(
-//      \ResourceDetails.details,
-//      context: .mock_1,
-//      with: always(.mock_1)
-//    )
-//    patch(
-//      \ResourceDetails.secret,
-//      context: .mock_1,
-//      with: always(resourceSecret)
-//    )
-//    patch(
-//      \UsersPGPMessages.encryptMessageForResourceUsers,
-//      with: always([
-//        .init(
-//          recipient: .mock_1,
-//          message: "encrypted-message"
-//        )
-//      ])
-//    )
-//    patch(
-//      \SessionData.refreshIfNeeded,
-//      with: always(Void())
-//    )
-//
-//    var result: Resource.ID?
-//    let uncheckedSendableResult: UnsafeSendable<Resource.ID?> = .init(
-//      get: { result },
-//      set: { result = $0 }
-//    )
-//    patch(
-//      \ResourceEditNetworkOperation.execute,
-//      with: { (variable) async throws in
-//        uncheckedSendableResult.variable = variable.resourceID
-//        return .init(
-//          resourceID: variable.resourceID
-//        )
-//      }
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertNoError {
-//      try await feature.sendForm()
-//    }
-//    XCTAssertNotNil(result)
-//  }
-//
-//  func test_sendForm_fails_whenUpdateResourceRequestFails() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .edit(.mock_1)
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultResourceType])
-//    )
-//    patch(
-//      \ResourceDetails.details,
-//      context: .mock_1,
-//      with: always(.mock_1)
-//    )
-//    patch(
-//      \ResourceDetails.secret,
-//      context: .mock_1,
-//      with: always(resourceSecret)
-//    )
-//    patch(
-//      \UsersPGPMessages.encryptMessageForResourceUsers,
-//      with: always([
-//        .init(
-//          recipient: .mock_1,
-//          message: "encrypted-message"
-//        )
-//      ])
-//    )
-//    patch(
-//      \ResourceEditNetworkOperation.execute,
-//      with: alwaysThrow(MockIssue.error())
-//    )
-//
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertError(matches: MockIssue.self) {
-//      try await feature.sendForm()
-//    }
-//  }
-//
-//  func test_sendForm_triggersRefreshIfNeeded_whenSendingFormSucceeds() async throws {
-//    set(
-//      ResourceEditScope.self,
-//      context: .edit(.mock_1)
-//    )
-//
-//    patch(
-//      \ResourceTypesFetchDatabaseOperation.execute,
-//      with: always([defaultResourceType])
-//    )
-//    patch(
-//      \ResourceDetails.details,
-//      context: .mock_1,
-//      with: always(.mock_1)
-//    )
-//    patch(
-//      \ResourceDetails.secret,
-//      context: .mock_1,
-//      with: always(resourceSecret)
-//    )
-//    patch(
-//      \UsersPGPMessages.encryptMessageForResourceUsers,
-//      with: always([
-//        .init(
-//          recipient: .mock_1,
-//          message: "encrypted-message"
-//        )
-//      ])
-//    )
-//    patch(
-//      \ResourceEditNetworkOperation.execute,
-//      with: { (variable) async throws in
-//        return .init(
-//          resourceID: variable.resourceID
-//        )
-//      }
-//    )
-//
-//    let result: UnsafeSendable<Void?> = .init(.none)
-//    patch(
-//      \SessionData.refreshIfNeeded,
-//      with: { () async throws in
-//        result.variable = Void()
-//      }
-//    )
-//    let feature: ResourceEditForm = try testedInstance()
-//
-//    await XCTAssertNoError {
-//      try await feature.sendForm()
-//    }
-//
-//    XCTAssertNotNil(result.variable)
-//  }
-//}
-//
-//private let defaultShrinkedResourceType: ResourceTypeDTO = .init(
-//  id: .mock_1,
-//  slug: "password-and-description",
-//  name: "password-and-description-shrinked",
-//  fields: [
-//    .name
-//  ]
-//)
-//
-//private let defaultResourceType: ResourceTypeDTO = .init(
-//  id: .mock_2,
-//  slug: "password-and-description",
-//  name: "password-and-description",
-//  fields: [
-//    .name,
-//    .uri,
-//    .username,
-//    .password,
-//    .descriptionEncrypted,
-//  ]
-//)
-//
-//private let resourceSecret: ResourceSecret = try! .from(
-//  decrypted: #"{"password": "passbolt", "description": "encrypted"}"#,
-//  using: .init()
-//)
+final class ResourcesEditFormTests: FeaturesTestCase {
+
+  var editedResource: Resource = .mock_1
+  lazy var editedResourceType: ResourceType = self.editedResource.type
+
+  override func commonPrepare() {
+    super.commonPrepare()
+    register(
+      { $0.usePassboltResourceEditForm() },
+      for: ResourceEditForm.self
+    )
+    set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_default
+      )
+    )
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType, Resource.mock_2.type]
+      )
+    )
+  }
+
+  func test_state_isEqualEditedResource_initially() async throws {
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIf(
+      try await tested.state.value,
+      isEqual: editedResource
+    )
+  }
+
+  func test_state_updates_whenFormIsUpdated() async throws {
+    let tested: ResourceEditForm = try self.testedInstance()
+    var expectedResult: Resource = editedResource
+    expectedResult.meta.name = "updated"
+    expectedResult.secret.password = "modified"
+    tested.update(\.meta.name, to: "updated")
+    tested.update(\.secret.password, to: "modified")
+    await verifyIf(
+      try await tested.state.value,
+      isEqual: expectedResult
+    )
+  }
+
+  func test_update_ignoresMutations_whenFieldIsNotInSpecification() async throws {
+    let tested: ResourceEditForm = try self.testedInstance()
+    tested.update(\.meta.unknown, to: "updated")
+    tested.update(\.secret.undefined, to: "modified")
+    await verifyIf(
+      try await tested.state.value,
+      isEqual: editedResource
+    )
+  }
+
+  func test_update_returnsValidatedJSON() async throws {
+    let tested: ResourceEditForm = try self.testedInstance()
+    let validated: Validated<JSON> = tested.update(\.meta.name, to: "updated")
+    await verifyIf(
+      validated,
+      isEqual: .valid("updated")
+    )
+  }
+
+  func test_update_returnsValidatedValue() async throws {
+    let tested: ResourceEditForm = try self.testedInstance()
+    let validated: Validated<String> = tested.update(\.meta.name, to: "updated")
+    await verifyIf(
+      validated,
+      isEqual: .valid("updated")
+    )
+  }
+
+  func test_update_returnsValidatedValue_withErrorIfNotValid() async throws {
+    let tested: ResourceEditForm = try self.testedInstance()
+    let validated: Validated<String> = tested.update(\.meta.name, to: "")
+
+    await verifyIf(
+      validated,
+      isEqual: .invalid(
+        "",
+        error:
+          InvalidResourceField
+          .error(
+            "InvalidResourceField-required",
+            specification: Resource.mock_1.type.fieldSpecification(for: \.meta.name)!,
+            path: \.meta.name,
+            value: "",
+            displayable: .localized(
+              key: "error.resource.field.empty",
+              arguments: [
+                Resource.mock_1.type.fieldSpecification(for: \.meta.name)!.name.displayable.string()
+              ]
+            )
+          )
+      )
+    )
+  }
+
+  func test_validateForm_throws_withInvalidForm() async throws {
+    let tested: ResourceEditForm = try self.testedInstance()
+    tested.update(\.meta.name, to: "")
+
+    await verifyIf(
+      try await tested.validateForm(),
+      throws: InvalidForm.self
+    )
+  }
+
+  func test_validateForm_notThrows_withValidForm() async throws {
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIfNotThrows(
+      try await tested.validateForm()
+    )
+  }
+
+  func test_updateType_updatesEditedResourceTypeAndFields() async throws {
+    let editedResourceType: ResourceType = .init(
+      id: .mock_1,
+      specification: .init(
+        slug: "edited",
+        metaFields: [
+          .init(
+            path: \.meta.name,
+            name: "name",
+            content: .string(),
+            required: true,
+            encrypted: false
+          )
+        ],
+        secretFields: [
+          .init(
+            path: \.secret.message,
+            name: "message",
+            content: .string(),
+            required: true,
+            encrypted: true
+          ),
+          .init(
+            path: \.secret.temporary,
+            name: "temporary",
+            content: .string(),
+            required: true,
+            encrypted: true
+          ),
+        ]
+      )
+    )
+    let editedResource: Resource = .init(
+      id: .mock_1,
+      type: editedResourceType,
+      permission: .owner,
+      meta: [
+        "name": "edited"
+      ],
+      secret: [
+        "message": "encrypted",
+        "temporary": "whatever",
+      ]
+    )
+    let selectedResourceType: ResourceType = .init(
+      id: .mock_1,
+      specification: .init(
+        slug: "selected",
+        metaFields: [
+          .init(
+            path: \.meta.name,
+            name: "name",
+            content: .string(),
+            required: true,
+            encrypted: false
+          ),
+          .init(
+            path: \.meta.uri,
+            name: "uri",
+            content: .string(),
+            required: true,
+            encrypted: false
+          ),
+        ],
+        secretFields: [
+          .init(
+            path: \.secret.message,
+            name: "message",
+            content: .string(),
+            required: true,
+            encrypted: true
+          ),
+          .init(
+            path: \.secret.extra,
+            name: "extra",
+            content: .string(),
+            required: true,
+            encrypted: true
+          ),
+        ]
+      )
+    )
+    let updatedResource: Resource = .init(
+      id: .mock_1,
+      type: selectedResourceType,
+      permission: .owner,
+      meta: [
+        "name": "edited",
+        "uri": "new",
+      ],
+      secret: [
+        "message": "encrypted",
+        "extra": "new",
+      ]
+    )
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType, selectedResourceType]
+      )
+    )
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIfNotThrows(
+      try tested.updateType(selectedResourceType)
+    )
+    tested.update(\.meta.uri, to: "new")
+    tested.update(\.secret.extra, to: "new")
+    await verifyIf(
+      try await tested.state.value,
+      isEqual: updatedResource
+    )
+  }
+
+  func test_sendForm_throws_withInvalidForm() async throws {
+    let tested: ResourceEditForm = try self.testedInstance()
+    tested.update(\.meta.name, to: "")
+
+    await verifyIf(
+      try await tested.sendForm(),
+      throws: InvalidForm.self
+    )
+  }
+
+  func test_sendForm_throws_whenEncryptingEditedMessageFails() async throws {
+    patch(
+      \UsersPGPMessages.encryptMessageForResourceUsers,
+      with: alwaysThrow(MockIssue.error())
+    )
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIf(
+      try await tested.sendForm(),
+      throws: MockIssue.self
+    )
+  }
+
+  func test_sendForm_throws_whenEncryptingEditedMessageProducesInvalidResult() async throws {
+    patch(
+      \UsersPGPMessages.encryptMessageForResourceUsers,
+      with: always([])
+    )
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIf(
+      try await tested.sendForm(),
+      throws: InvalidResourceSecret.self
+    )
+  }
+
+  func test_sendForm_throws_whenEditNetworkRequestFails() async throws {
+    patch(
+      \UsersPGPMessages.encryptMessageForResourceUsers,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceEditNetworkOperation.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIf(
+      try await tested.sendForm(),
+      throws: MockIssue.self
+    )
+  }
+
+  func test_sendForm_notThrows_whenEditingSucceeds() async throws {
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \UsersPGPMessages.encryptMessageForResourceUsers,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceEditNetworkOperation.execute,
+      with: always(.init(resourceID: .mock_1))
+    )
+
+    patch(  // not throws regardless of error in refresh
+      \SessionData.refreshIfNeeded,
+      with: alwaysThrow(MockIssue.error())
+    )
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIfNotThrows(
+      try await tested.sendForm()
+    )
+  }
+
+  func test_sendForm_throws_whenCreateNetworkRequestFails() async throws {
+    var editedResource: Resource = self.editedResource
+    editedResource.id = .none
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \UsersPGPMessages.encryptMessageForUsers,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceCreateNetworkOperation.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIf(
+      try await tested.sendForm(),
+      throws: MockIssue.self
+    )
+  }
+
+  func test_sendForm_throws_whenAccessingFolderPermissionsFails() async throws {
+    var editedResource: Resource = self.editedResource
+    editedResource.id = .none
+    editedResource.path = [.mock_1]
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \UsersPGPMessages.encryptMessageForUsers,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceCreateNetworkOperation.execute,
+      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
+    )
+    patch(
+      \ResourceFolderPermissionsFetchDatabaseOperation.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIf(
+      try await tested.sendForm(),
+      throws: MockIssue.self
+    )
+  }
+
+  func test_sendForm_throws_whenEncryptingSharedMessageFails() async throws {
+    var editedResource: Resource = self.editedResource
+    editedResource.id = .none
+    editedResource.path = [.mock_1]
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \UsersPGPMessages.encryptMessageForUsers,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceCreateNetworkOperation.execute,
+      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
+    )
+    patch(
+      \ResourceFolderPermissionsFetchDatabaseOperation.execute,
+      with: always([.mock_user_1_owner, .mock_user_2_owner])
+    )
+    patch(
+      \UsersPGPMessages.encryptMessageForResourceFolderUsers,
+      with: alwaysThrow(MockIssue.error())
+    )
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIf(
+      try await tested.sendForm(),
+      throws: MockIssue.self
+    )
+  }
+
+  func test_sendForm_skipsSharing_whenCreatingInFolderWithSingleUser() async throws {
+    var editedResource: Resource = self.editedResource
+    editedResource.id = .none
+    editedResource.path = [.mock_1]
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \UsersPGPMessages.encryptMessageForUsers,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceCreateNetworkOperation.execute,
+      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
+    )
+    patch(
+      \ResourceFolderPermissionsFetchDatabaseOperation.execute,
+      with: always([.mock_user_1_owner])
+    )
+    patch(
+      \UsersPGPMessages.encryptMessageForResourceFolderUsers,
+      with: { _, _ in
+        self.verificationFailure("Should not be executed")
+        throw MockIssue.error()
+      }
+    )
+    patch(  // not throws regardless of error in refresh
+      \SessionData.refreshIfNeeded,
+      with: alwaysThrow(MockIssue.error())
+    )
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIfNotThrows(
+      try await tested.sendForm()
+    )
+  }
+
+  func test_sendForm_throws_whenSharingFails() async throws {
+    var editedResource: Resource = self.editedResource
+    editedResource.id = .none
+    editedResource.path = [.mock_1]
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \UsersPGPMessages.encryptMessageForUsers,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceCreateNetworkOperation.execute,
+      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
+    )
+    patch(
+      \ResourceFolderPermissionsFetchDatabaseOperation.execute,
+      with: always([.mock_user_1_owner, .mock_user_2_owner])
+    )
+    patch(
+      \UsersPGPMessages.encryptMessageForResourceFolderUsers,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceShareNetworkOperation.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
+    patch(  // not throws regardless of error in refresh
+      \SessionData.refreshIfNeeded,
+      with: alwaysThrow(MockIssue.error())
+    )
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIf(
+      try await tested.sendForm(),
+      throws: MockIssue.self
+    )
+  }
+
+  func test_sendForm_changesOwnPermission_accordingToFolderPermissions() async throws {
+    var editedResource: Resource = self.editedResource
+    editedResource.id = .none
+    editedResource.path = [.mock_1]
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \UsersPGPMessages.encryptMessageForUsers,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceCreateNetworkOperation.execute,
+      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
+    )
+    patch(
+      \ResourceFolderPermissionsFetchDatabaseOperation.execute,
+      with: always([.mock_user_1_reader, .mock_user_2_owner])
+    )
+    patch(
+      \UsersPGPMessages.encryptMessageForResourceFolderUsers,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceShareNetworkOperation.execute,
+      with: { request in
+        self.verify(request.body.deletedPermissions.contains { $0.id == .mock_1 })
+        self.verify(request.body.newPermissions.count == 2)
+        self.verify(request.body.newSecrets.count == 1)
+        throw MockIssue.error()
+      }
+    )
+    let tested: ResourceEditForm = try self.testedInstance()
+    _ = try? await tested.sendForm()
+  }
+
+  func test_sendForm_notThrows_whenCreatingSucceeds() async throws {
+    var editedResource: Resource = self.editedResource
+    editedResource.id = .none
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \UsersPGPMessages.encryptMessageForUsers,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceCreateNetworkOperation.execute,
+      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
+    )
+    patch(  // not throws regardless of error in refresh
+      \SessionData.refreshIfNeeded,
+      with: alwaysThrow(MockIssue.error())
+    )
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIfNotThrows(
+      try await tested.sendForm()
+    )
+  }
+
+  func test_sendForm_notThrows_whenCreatingAndSharingSucceeds() async throws {
+    var editedResource: Resource = self.editedResource
+    editedResource.id = .none
+    editedResource.path = [.mock_1]
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \UsersPGPMessages.encryptMessageForUsers,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceCreateNetworkOperation.execute,
+      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
+    )
+    patch(
+      \ResourceFolderPermissionsFetchDatabaseOperation.execute,
+      with: always([.mock_user_1_owner, .mock_user_2_owner])
+    )
+    patch(
+      \UsersPGPMessages.encryptMessageForResourceFolderUsers,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceShareNetworkOperation.execute,
+      with: always(Void())
+    )
+    patch(  // not throws regardless of error in refresh
+      \SessionData.refreshIfNeeded,
+      with: alwaysThrow(MockIssue.error())
+    )
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIfNotThrows(
+      try await tested.sendForm()
+    )
+  }
+}

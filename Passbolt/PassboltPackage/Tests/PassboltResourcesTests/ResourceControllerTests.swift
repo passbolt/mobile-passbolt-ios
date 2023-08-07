@@ -137,16 +137,15 @@ final class ResourceControllerTests: FeaturesTestCase {
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
       with: { _ in
-        let executionCount: Int = self.dynamicVariables.getIfPresent(\.executionCount, of: Int.self) ?? 0
-        self.dynamicVariables.set(\.executionCount, to: executionCount + 1)
-        switch executionCount {
-        case 0:
+        self.mockExecuted()
+        switch self.mockExecutedCount {
+        case 1:
           return expectedResult_0
 
-        case 1:
+        case 2:
           return expectedResult_1
 
-        case 2:
+        case 3:
           return expectedResult_2
 
         case _:
@@ -179,7 +178,7 @@ final class ResourceControllerTests: FeaturesTestCase {
       try await feature.state.value
     }
 
-    XCTAssertEqual(self.dynamicVariables.getIfPresent(\.executionCount, of: Int.self), 3)
+    XCTAssertEqual(self.mockExecutedCount, 3)
   }
 
   func test_state_breaks_whenSessionDataUpdatesFail() async throws {
@@ -192,10 +191,9 @@ final class ResourceControllerTests: FeaturesTestCase {
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
       with: { _ in
-        let executionCount: Int = self.dynamicVariables.getIfPresent(\.executionCount, of: Int.self) ?? 0
-        self.dynamicVariables.set(\.executionCount, to: executionCount + 1)
-        switch executionCount {
-        case 0:
+        self.mockExecuted()
+        switch self.mockExecutedCount {
+        case 1:
           return expectedResult
 
         case _:
@@ -220,7 +218,7 @@ final class ResourceControllerTests: FeaturesTestCase {
       try await feature.state.value
     }
 
-    XCTAssertEqual(self.dynamicVariables.getIfPresent(\.executionCount, of: Int.self), 2)
+    XCTAssertEqual(self.mockExecutedCount, 2)
   }
 
   func test_fetchSecretIfNeeded_failsWhenFetchingSecretFromNetworkFails() async throws {
@@ -356,8 +354,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     patch(
       \ResourceSecretFetchNetworkOperation.execute,
       with: { _ in
-        let iteration: Int = self.dynamicVariables.getIfPresent(\.executedCount, of: Int.self) ?? 0
-        self.dynamicVariables.set(\.executedCount, to: iteration + 1)
+        self.mockExecuted()
         return .init(data: "encrypted_secret")
       }
     )
@@ -375,7 +372,7 @@ final class ResourceControllerTests: FeaturesTestCase {
     ) {
       try await feature.fetchSecretIfNeeded(force: true)
     }
-    XCTAssertEqual(self.dynamicVariables.getIfPresent(\.executedCount, of: Int.self), 1)
+    XCTAssertEqual(self.mockExecutedCount, 1)
   }
 
   func test_toggleFavorite_throws_whenNetworkRequestThrows_whenAddingFavorite() async throws {

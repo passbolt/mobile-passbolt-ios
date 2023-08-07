@@ -78,7 +78,7 @@ extension ResourceEditForm {
   @Sendable public func update(
     _ field: Resource.FieldPath,
     to value: JSON
-  ) async throws -> Validated<JSON> {
+  ) -> Validated<JSON> {
     self.updateField(field, value)
   }
 

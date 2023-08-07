@@ -66,7 +66,7 @@ extension Validation {
     _ validations: Validations,
     for keyPath: WritableKeyPath<Subject, Validated<Value>>
   ) -> Self
-	where Validations: Sequence<Self> {
+  where Validations: Sequence<Self> {
     let validations: Array<Self> = validations.filter { $0.keyPath == keyPath }
     return .init(
       keyPath: keyPath,
