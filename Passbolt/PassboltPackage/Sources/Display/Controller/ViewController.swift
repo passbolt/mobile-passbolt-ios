@@ -59,9 +59,10 @@ extension ViewController /* Hashable */ {
     lhs === rhs
   }
 
-  public nonisolated func equal(
-    to other: any ViewController
-  ) -> Bool {
+  public nonisolated func equal<Other>(
+    to other: Other
+  ) -> Bool
+	where Other: ViewController {
     return self === other
   }
 
