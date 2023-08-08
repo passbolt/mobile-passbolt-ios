@@ -102,11 +102,8 @@ extension ResourceDTO: Decodable {
       )
       self.favoriteID = try favoriteContainer.decode(Resource.Favorite.ID.self, forKey: .id)
     }
-    catch DecodingError.typeMismatch {
+    catch {  // if decoding favorite fails there is no favorite
       self.favoriteID = .none
-    }
-    catch {
-      throw error
     }
     self.name = try container.decode(
       String.self,
