@@ -71,6 +71,7 @@ extension MainTabsController: UIController {
     let accountInitialSetup: AccountInitialSetup = try features.instance(context: currentAccount)
     let osBiometry: OSBiometry = features.instance()
     let sessionData: SessionData = try features.instance()
+    let resourcesCountFetchDatabaseOperation: ResourcesCountFetchDatabaseOperation = try features.instance()
     let resourceTypesFetchDatabaseOperation: ResourceTypesFetchDatabaseOperation = try features.instance()
 
     let activeTabSubject: CurrentValueSubject<MainTab, Never> = .init(.home)
@@ -123,16 +124,24 @@ extension MainTabsController: UIController {
     }
 
     func otpTabAvailable() async -> Bool {
-      guard sessionConfiguration.totpEnabled
-      else { return false }
       do {
         try await sessionData.refreshIfNeeded()
+        // If a user has access to otp resources just show
+        // them regardless of feature flag
+        let count: Int = try await resourcesCountFetchDatabaseOperation([.totp, .passwordWithTOTP])
+        guard count == 0
+        else { return true }
+        // if there is no otp resource yet, check the flag
+        guard sessionConfiguration.totpEnabled
+        else { return false }
+        // finally check if resource type is available
         let availableResourceTypes: Array<ResourceType> = try await resourceTypesFetchDatabaseOperation()
         return
           availableResourceTypes
-          .contains(where: { $0.specification.slug == .totp })
+          .contains { $0.specification.slug == .totp }
       }
       catch {
+        Diagnostics.log(error: error)
         return false
       }
     }

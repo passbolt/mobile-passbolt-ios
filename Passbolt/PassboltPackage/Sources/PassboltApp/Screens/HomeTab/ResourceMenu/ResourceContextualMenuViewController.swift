@@ -82,6 +82,8 @@ internal final class ResourceContextualMenuViewController: ViewController {
   private let showMessage: @MainActor (SnackBarMessage) -> Void
   private let resourceID: Resource.ID
 
+  private let sessionConfiguration: SessionConfiguration
+
   private let features: Features
 
   private let context: Context
@@ -96,6 +98,8 @@ internal final class ResourceContextualMenuViewController: ViewController {
     self.context = context
 
     self.features = features.takeOwned()
+
+    self.sessionConfiguration = try features.sessionConfiguration()
 
     self.showMessage = context.showMessage
 
@@ -120,7 +124,7 @@ internal final class ResourceContextualMenuViewController: ViewController {
         modifyMenuItems: .init()
       ),
       updateFrom: self.resourceController.state,
-      update: { [navigationToSelf] (updateState, update: Update<Resource>) in
+      update: { [sessionConfiguration, navigationToSelf] (updateState, update: Update<Resource>) in
         do {
           let resource: Resource = try update.value
           var accessMenuItems: Array<ResourceContextualMenuItem> = .init()
@@ -146,7 +150,7 @@ internal final class ResourceContextualMenuViewController: ViewController {
           if resource.hasTOTP {
             accessMenuItems.append(.showOTPMenu)
           }
-          else if resource.canEdit && resource.canAttachOTP {
+          else if sessionConfiguration.totpEnabled && resource.canEdit && resource.canAttachOTP {
             modifyMenuItems.append(.addOTP)
           }  // else NOP
 

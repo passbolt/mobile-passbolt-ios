@@ -88,7 +88,7 @@ internal struct ResourceDetailsView: ControlledView {
                     leading: favorite
                       ? 16
                       : 0
-                    )
+                  )
                 if favorite {
                   Image(named: .starFilled)
                     .foregroundColor(.passboltSecondaryOrange)

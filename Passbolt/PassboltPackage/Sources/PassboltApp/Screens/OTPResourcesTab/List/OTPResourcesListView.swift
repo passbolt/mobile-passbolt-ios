@@ -115,7 +115,9 @@ internal struct OTPResourcesListView: ControlledView {
   @ViewBuilder @MainActor private var list: some View {
     CommonList {
       CommonListSection {
-        CommonListCreateRow(action: self.controller.createOTP)
+        if self.controller.createAvailable {
+          CommonListCreateRow(action: self.controller.createOTP)
+        }  // else no view
 
         withEach(\.otpResources.values) { (item: TOTPResourceViewModel) in
           CommonListResourceOTPView(

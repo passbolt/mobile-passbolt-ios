@@ -70,6 +70,8 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
   private let showMessage: @MainActor (SnackBarMessage) -> Void
   private let resourceID: Resource.ID
 
+  private let sessionConfiguration: SessionConfiguration
+
   private let features: Features
 
   internal init(
@@ -80,6 +82,8 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
     self.resourceID = try features.context(of: ResourceDetailsScope.self)
 
     self.features = features.takeOwned()
+
+    self.sessionConfiguration = try features.sessionConfiguration()
 
     self.revealOTP = context.revealOTP
     self.showMessage = context.showMessage
@@ -102,7 +106,7 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
         modifyMenuItems: .init()
       ),
       updateFrom: self.resourceController.state,
-      update: { [revealOTP, navigationToSelf] (updateState, update: Update<Resource>) in
+      update: { [revealOTP, sessionConfiguration, navigationToSelf] (updateState, update: Update<Resource>) in
         do {
           let resource: Resource = try update.value
           var accessMenuItems: Array<ResourceOTPContextualMenuItem> = .init()
@@ -116,7 +120,7 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
 
           var modifyMenuItems: Array<ResourceOTPContextualMenuItem> = .init()
 
-          if resource.canEdit {
+          if sessionConfiguration.totpEnabled && resource.canEdit {
             if resource.hasTOTP {
               modifyMenuItems.append(.editOTP)
             }  // else NOP

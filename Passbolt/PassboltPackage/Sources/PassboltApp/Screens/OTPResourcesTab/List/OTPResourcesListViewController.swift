@@ -42,6 +42,8 @@ internal final class OTPResourcesListViewController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
 
+  internal let createAvailable: Bool
+
   private let currentAccount: Account
 
   private let asyncExecutor: AsyncExecutor
@@ -64,6 +66,8 @@ internal final class OTPResourcesListViewController: ViewController {
     try features.ensureScope(SessionScope.self)
 
     self.features = features
+
+    self.createAvailable = try features.sessionConfiguration().totpEnabled
 
     self.pasteboard = features.instance()
 

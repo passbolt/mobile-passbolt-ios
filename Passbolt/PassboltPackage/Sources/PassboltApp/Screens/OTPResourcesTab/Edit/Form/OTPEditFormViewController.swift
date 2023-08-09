@@ -219,14 +219,14 @@ extension OTPEditFormViewController {
       }
     ) {
       do {
-				let editedResource: Resource = try await resourceEditForm.state.value
+        let editedResource: Resource = try await resourceEditForm.state.value
         try await resourceEditForm.send()
         try await navigationToSelf.revert()
-				self.context.showMessage(
-					editedResource.isLocal || !editedResource.hasTOTP
-						? "otp.edit.otp.created.message"
-						: "otp.edit.otp.replaced.message"
-				)
+        self.context.showMessage(
+          editedResource.isLocal || !editedResource.hasTOTP
+            ? "otp.edit.otp.created.message"
+            : "otp.edit.otp.replaced.message"
+        )
       }
       catch let error as InvalidForm {
         self.localState.mutate { (state: inout LocalState) in
