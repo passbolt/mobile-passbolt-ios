@@ -39,7 +39,7 @@ internal final class CodeScanningExitConfirmationViewController:
           handler: {}
         ),
         .action(
-          .localized(key: "account.import.exit.confirmation.confirm.button.title"),
+          .localized(key: "transfer.account.import.exit.confirmation.confirm.button.title"),
           style: .destructive,
           accessibilityIdentifier: "alert.button.confirm",
           handler: { [weak self] in

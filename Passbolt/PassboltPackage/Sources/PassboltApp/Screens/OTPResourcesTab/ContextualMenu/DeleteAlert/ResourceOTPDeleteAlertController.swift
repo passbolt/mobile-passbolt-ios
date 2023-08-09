@@ -85,7 +85,7 @@ internal struct ResourceOTPDeleteAlertController: AlertController {
             .error(message: "Attempting to delete OTP in a resource without OTP delete action supported!")
         }
 
-        context.showMessage("otp.create.otp.deleted.message")
+        context.showMessage("otp.edit.otp.deleted.message")
       }
       catch {
         error.logAndShow(using: context.showMessage)

@@ -136,7 +136,7 @@ extension OTPConfigurationScanningViewController {
           do {
             try await resourceEditForm.send()
             try await navigationToSelf.revert()
-            await context.showMessage("otp.create.otp.replaced.message")
+            await context.showMessage("otp.edit.otp.replaced.message")
           }
           catch {
             await viewState
