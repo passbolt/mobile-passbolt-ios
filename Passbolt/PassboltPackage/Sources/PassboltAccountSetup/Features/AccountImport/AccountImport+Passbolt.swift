@@ -45,7 +45,7 @@ extension AccountImport {
 
     #warning("Legacy implementation, to be split and refined...")
 
-    Diagnostics.log(diagnostic: "Beginning new account transfer...")
+    Diagnostics.logger.info("Beginning new account transfer...")
     #if DEBUG
     let mdmConfiguration: MDMConfiguration = features.instance()
     #endif
@@ -102,7 +102,7 @@ extension AccountImport {
         }
       }
       else {
-        Diagnostics.debugLog("Skipping account transfer bypass - duplicate account")
+        Diagnostics.debug("Skipping account transfer bypass - duplicate account")
       }
     }
     else {
@@ -159,7 +159,7 @@ extension AccountImport {
     nonisolated func processPayload(
       _ payload: String
     ) -> AnyPublisher<Never, Error> {
-      Diagnostics.log(diagnostic: "Processing QR code payload...")
+      Diagnostics.logger.info("Processing QR code payload...")
       switch processQRCodePayload(payload, in: transferState.value) {
       case var .success(updatedState):
         // if we have config we can ask for profile,
@@ -183,7 +183,7 @@ extension AccountImport {
 
           guard !accountAlreadyStored
           else {
-            Diagnostics.log(diagnostic: "...duplicate account detected, aborting!")
+            Diagnostics.logger.info("...duplicate account detected, aborting!")
             requestCancelation(
               with: configuration,
               lastPage: transferState.value.lastScanningPage ?? transferState.value.configurationScanningPage,
@@ -215,7 +215,7 @@ extension AccountImport {
 
           guard !updatedState.scanningFinished
           else {
-            Diagnostics.log(diagnostic: "...missing profile data, aborting!")
+            Diagnostics.logger.info("...missing profile data, aborting!")
             transferState
               .send(
                 completion: .failure(
@@ -226,7 +226,7 @@ extension AccountImport {
               .eraseToAnyPublisher()
           }
 
-          Diagnostics.log(diagnostic: "...processing succeeded, continuing transfer...")
+          Diagnostics.logger.info("...processing succeeded, continuing transfer...")
           return requestNextPageWithUserProfile(
             for: updatedState,
             using: accountTransferUpdateNetworkOperation
@@ -250,7 +250,7 @@ extension AccountImport {
           .eraseToAnyPublisher()
         }
         else {
-          Diagnostics.log(diagnostic: "...processing succeeded, continuing transfer...")
+          Diagnostics.logger.info("...processing succeeded, continuing transfer...")
           return requestNextPage(
             for: updatedState,
             using: accountTransferUpdateNetworkOperation
@@ -264,7 +264,7 @@ extension AccountImport {
         }
       case let .failure(error)
       where error is Cancelled:
-        Diagnostics.log(diagnostic: "...processing canceled!")
+        Diagnostics.logger.info("...processing canceled!")
         return Fail<Never, Error>(error: error)
           .collectErrorLog(using: Diagnostics.shared)
           .eraseToAnyPublisher()
@@ -272,13 +272,13 @@ extension AccountImport {
       case let .failure(error)
       where error is AccountTransferScanningIssue || error is AccountTransferScanningContentIssue
         || error is AccountTransferScanningDomainIssue:
-        Diagnostics.log(diagnostic: "...processing failed, recoverable!")
+        Diagnostics.logger.info("...processing failed, recoverable!")
         return Fail<Never, Error>(error: error)
           .collectErrorLog(using: Diagnostics.shared)
           .eraseToAnyPublisher()
 
       case let .failure(error):
-        Diagnostics.log(diagnostic: "...processing failed, aborting!")
+        Diagnostics.logger.info("...processing failed, aborting!")
         if let configuration: AccountTransferConfiguration = transferState.value.configuration {
           return requestCancelation(
             with: configuration,
@@ -305,13 +305,13 @@ extension AccountImport {
     }
 
     nonisolated func completeTransfer(_ passphrase: Passphrase) -> AnyPublisher<Never, Error> {
-      Diagnostics.log(diagnostic: "Completing account transfer...")
+      Diagnostics.logger.info("Completing account transfer...")
       guard
         let configuration = transferState.value.configuration,
         let account = transferState.value.account,
         let profile = transferState.value.profile
       else {
-        Diagnostics.log(diagnostic: "...missing required data!")
+        Diagnostics.logger.info("...missing required data!")
         return Fail<Never, Error>(
           error: AccountTransferScanningFailure.error()
         )
@@ -326,7 +326,7 @@ extension AccountImport {
               break  // continue process
 
             case let .failure(error):
-              Diagnostics.log(diagnostic: "...invalid passphrase!")
+              Diagnostics.logger.info("...invalid passphrase!")
               throw
                 error
                 .asTheError()
@@ -354,22 +354,19 @@ extension AccountImport {
                 .adHoc(addedAccount, passphrase, account.armoredKey)
               )
 
-            Diagnostics.log(diagnostic: "...account transfer succeeded!")
+            Diagnostics.logger.info("...account transfer succeeded!")
             transferState.send(completion: .finished)
           }
           catch let error as AccountDuplicate {
-            Diagnostics.log(error: error)
-            Diagnostics.log(diagnostic: "...account transfer failed!")
+						Diagnostics.logger.info("...account transfer failed!")
             transferState.send(completion: .failure(error))
           }
-          catch let error as SessionMFAAuthorizationRequired {
-            Diagnostics.log(error: error)
-            Diagnostics.log(diagnostic: "...account transfer finished, requesting MFA...")
+          catch is SessionMFAAuthorizationRequired {
+						Diagnostics.logger.info("...account transfer finished, requesting MFA...")
             transferState.send(completion: .finished)
           }
           catch {
-            Diagnostics.log(error: error)
-            Diagnostics.log(diagnostic: "...account transfer failed!")
+						Diagnostics.logger.info("...account transfer failed!")
             throw error
           }
         }

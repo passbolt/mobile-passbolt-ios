@@ -141,7 +141,7 @@ extension AccountExportAuthorizationController {
           state.passphrase = validatedPassphrase
           state.snackBarMessage = .error(error)
         }
-        Diagnostics.log(error: error)
+        error.logged()
       }
     }
   }

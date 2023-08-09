@@ -101,7 +101,7 @@ extension HelpMenuController: UIController {
               .openURL("https://help.passbolt.com")
           }
           catch {
-            Diagnostics.log(error: error)
+            error.logged()
           }
         }
         .eraseToAnyPublisher()

@@ -46,13 +46,9 @@ extension AccountInjection {
           _ = try accounts.addAccount(account)
         }
         catch {
-          Diagnostics
-            .log(
-              error:
-                error
-                .asTheError()
-                .pushing(.message("Failed to add preconfigured account."))
-            )
+          error.logged(
+            info: .message("Failed to add preconfigured account.")
+          )
         }
       }
       mdmConfiguration.clear()

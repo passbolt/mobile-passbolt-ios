@@ -35,7 +35,14 @@ extension CancellationError: TheError {
     get { .context(.message("Cancelled")) }
     set { /* unsupported */  }
   }
+
   public var displayableMessage: DisplayableString {
     .localized(key: .genericErrorCancelled)
+  }
+
+  @discardableResult
+  public func log() -> Self {
+    // cancelled error is ignored in logs
+    return self
   }
 }

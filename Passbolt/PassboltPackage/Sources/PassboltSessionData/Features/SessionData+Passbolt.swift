@@ -63,46 +63,36 @@ extension SessionData {
         try await refreshIfNeeded()
       }
       catch {
-        Diagnostics.log(error: error)
+        error.logged()
       }
     }
 
     @Sendable nonisolated func refreshUsers() async throws {
-      Diagnostics.log(diagnostic: "Refreshing users data...")
+      Diagnostics.logger.info("Refreshing users data...")
       do {
         try await usersStoreDatabaseOperation(
           usersFetchNetworkOperation()
             .compactMap(\.asFilteredDSO)
         )
-        Diagnostics.log(diagnostic: "...users data refresh finished!")
+        Diagnostics.logger.info("...users data refresh finished!")
       }
       catch {
-        Diagnostics.log(
-          error: error,
-          info: .message(
-            "...users data refresh failed!"
-          )
-        )
-        throw error
+				Diagnostics.logger.info("...users data refresh failed!")
+				throw error
       }
     }
 
     @Sendable nonisolated func refreshUserGroups() async throws {
-      Diagnostics.log(diagnostic: "Refreshing user groups data...")
+      Diagnostics.logger.info("Refreshing user groups data...")
       do {
         try await userGroupsStoreDatabaseOperation(
           userGroupsFetchNetworkOperation()
         )
 
-        Diagnostics.log(diagnostic: "...user groups data refresh finished!")
+        Diagnostics.logger.info("...user groups data refresh finished!")
       }
       catch {
-        Diagnostics.log(
-          error: error,
-          info: .message(
-            "...user groups data refresh failed!"
-          )
-        )
+				Diagnostics.logger.info("...user groups data refresh failed!")
         throw error
       }
     }
@@ -110,29 +100,24 @@ extension SessionData {
     @Sendable nonisolated func refreshFolders() async throws {
       guard configuration.foldersEnabled
       else {
-        return Diagnostics.log(diagnostic: "Refreshing folders skipped, feature disabled!")
+        return Diagnostics.logger.info("Refreshing folders skipped, feature disabled!")
       }
-      Diagnostics.log(diagnostic: "Refreshing folders data...")
+      Diagnostics.logger.info("Refreshing folders data...")
       do {
         try await resourceFoldersStoreDatabaseOperation(
           resourceFoldersFetchNetworkOperation()
         )
 
-        Diagnostics.log(diagnostic: "...folders data refresh finished!")
+        Diagnostics.logger.info("...folders data refresh finished!")
       }
       catch {
-        Diagnostics.log(
-          error: error,
-          info: .message(
-            "...folders data refresh failed!"
-          )
-        )
+				Diagnostics.logger.info("...folders data refresh failed!")
         throw error
       }
     }
 
     @Sendable nonisolated func refreshResources() async throws {
-      Diagnostics.log(diagnostic: "Refreshing resources data...")
+      Diagnostics.logger.info("Refreshing resources data...")
       do {
         try await resourceTypesStoreDatabaseOperation(
           resourceTypesFetchNetworkOperation()
@@ -142,15 +127,10 @@ extension SessionData {
           resourcesFetchNetworkOperation()
         )
 
-        Diagnostics.log(diagnostic: "...resources data refresh finished!")
+        Diagnostics.logger.info("...resources data refresh finished!")
       }
       catch {
-        Diagnostics.log(
-          error: error,
-          info: .message(
-            "...resources data refresh failed!"
-          )
-        )
+				Diagnostics.logger.info("...resources data refresh failed!")
         throw error
       }
     }

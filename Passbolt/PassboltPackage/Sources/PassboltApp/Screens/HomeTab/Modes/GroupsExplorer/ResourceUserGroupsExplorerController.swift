@@ -148,7 +148,7 @@ extension ResourceUserGroupsExplorerController: ComponentController {
           .refreshIfNeeded()
       }
       catch {
-        Diagnostics.log(error: error)
+        error.logged()
         viewState.snackBarMessage = .error(error.asTheError().displayableMessage)
       }
     }
@@ -238,14 +238,11 @@ extension ResourceUserGroupsExplorerController: ComponentController {
 
     @MainActor func presentAccountMenu() {
       asyncExecutor.schedule(.reuse) {
-        await Diagnostics
-          .logCatch(
-            info: .message(
-              "Navigation to account menu failed!"
-            )
-          ) {
-            try await navigationToAccountMenu.perform()
-          }
+        await withLogCatch(
+          failInfo: "Navigation to account menu failed!"
+        ) {
+          try await navigationToAccountMenu.perform()
+        }
       }
     }
 

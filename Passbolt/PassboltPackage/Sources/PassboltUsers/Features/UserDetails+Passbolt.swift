@@ -68,8 +68,7 @@ extension UserDetails {
             )
         }
         catch {
-          Diagnostics.log(
-            error: error,
+          error.logged(
             info: .message("Failed to fetch user avatar image!")
           )
           throw error

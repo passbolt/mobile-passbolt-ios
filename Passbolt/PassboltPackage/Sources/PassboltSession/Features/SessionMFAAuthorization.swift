@@ -109,7 +109,7 @@ extension SessionMFAAuthorization {
     @SessionActor func authorizeMFA(
       _ method: SessionMFAAuthorizationMethod
     ) async throws {
-      Diagnostics.log(diagnostic: "Starting MFA authorization...")
+      Diagnostics.logger.info("Starting MFA authorization...")
       do {
         let mfaToken: SessionMFAToken
         let account: Account
@@ -141,11 +141,12 @@ extension SessionMFAAuthorization {
           account: account,
           saveLocally: rememberDevice
         )
-        Diagnostics.log(diagnostic: "...MFA authorization succeeded!")
+        Diagnostics.logger.info("...MFA authorization succeeded!")
       }
       catch {
-        Diagnostics.log(error: error)
-        Diagnostics.log(diagnostic: "...MFA authorization failed!")
+        error.logged(
+          info: .message("...MFA authorization failed!")
+        )
         throw error
       }
     }

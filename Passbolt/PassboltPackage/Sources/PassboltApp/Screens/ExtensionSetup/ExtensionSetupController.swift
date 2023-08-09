@@ -64,7 +64,7 @@ extension ExtensionSetupController: UIController {
               .openSystemSettings()
           }
           catch {
-            Diagnostics.log(error: error)
+            error.logged()
           }
         }
         .map { (_: Void) -> AnyPublisher<Bool, Never> in

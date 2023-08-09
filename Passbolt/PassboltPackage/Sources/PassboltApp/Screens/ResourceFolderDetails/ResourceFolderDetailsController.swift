@@ -77,7 +77,7 @@ internal final class ResourceFolderDetailsController: ViewController {
           return try await users.userAvatarImage(userID)
         }
         catch {
-          Diagnostics.log(error: error)
+          error.logged()
           return nil
         }
       }

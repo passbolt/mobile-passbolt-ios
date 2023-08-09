@@ -112,39 +112,32 @@ extension AsyncExecutor {
       file: file,
       line: line,
       {
-        await Diagnostics
-          .logCatch(
-            info:
-              failMessage
-              .map { (message: StaticString) -> DiagnosticsInfo in
-                .message(
-                  message,
-                  file: file,
-                  line: line
-                )
-              }
-          ) {
-            do {
-              guard let nextElement: Element = try await iterator.next()
-              else { return }
-              try await handleNext(nextElement)
-              // if it not failed schedule recursively for next
-              self.scheduleRecursiveNextCatching(
-                using: iterator,
-                failMessage: failMessage,
-                failAction: failAction,
-                behavior: behavior,
-                function: function,
-                file: file,
-                line: line,
-                handleNext
-              )
-            }
-            catch {
-              await failAction?(error)
-              throw error
-            }
+        await withLogCatch(
+          failInfo: failMessage,
+          file: file,
+          line: line
+        ) {
+          do {
+            guard let nextElement: Element = try await iterator.next()
+            else { return }
+            try await handleNext(nextElement)
+            // if it not failed schedule recursively for next
+            self.scheduleRecursiveNextCatching(
+              using: iterator,
+              failMessage: failMessage,
+              failAction: failAction,
+              behavior: behavior,
+              function: function,
+              file: file,
+              line: line,
+              handleNext
+            )
           }
+          catch {
+            await failAction?(error)
+            throw error
+          }
+        }
       }
     )
   }
@@ -165,26 +158,19 @@ extension AsyncExecutor {
       file: file,
       line: line,
       {
-        await Diagnostics
-          .logCatch(
-            info:
-              failMessage
-              .map { (message: StaticString) -> DiagnosticsInfo in
-                .message(
-                  message,
-                  file: file,
-                  line: line
-                )
-              }
-          ) {
-            do {
-              try await task()
-            }
-            catch {
-              await failAction?(error)
-              throw error
-            }
+        await withLogCatch(
+          failInfo: failMessage,
+          file: file,
+          line: line
+        ) {
+          do {
+            try await task()
           }
+          catch {
+            await failAction?(error)
+            throw error
+          }
+        }
       }
     )
   }
@@ -203,26 +189,19 @@ extension AsyncExecutor {
       .custom(identifier),
       behavior,
       {
-        await Diagnostics
-          .logCatch(
-            info:
-              failMessage
-              .map { (message: StaticString) -> DiagnosticsInfo in
-                .message(
-                  message,
-                  file: file,
-                  line: line
-                )
-              }
-          ) {
-            do {
-              try await task()
-            }
-            catch {
-              await failAction?(error)
-              throw error
-            }
+        await withLogCatch(
+          failInfo: failMessage,
+          file: file,
+          line: line
+        ) {
+          do {
+            try await task()
           }
+          catch {
+            await failAction?(error)
+            throw error
+          }
+        }
       }
     )
   }
@@ -243,20 +222,13 @@ extension AsyncExecutor {
       file: file,
       line: line,
       {
-        await Diagnostics
-          .logCatch(
-            info:
-              failMessage
-              .map { (message: StaticString) -> DiagnosticsInfo in
-                .message(
-                  message,
-                  file: file,
-                  line: line
-                )
-              }
-          ) {
-            try await task()
-          }
+        await withLogCatch(
+          failInfo: failMessage,
+          file: file,
+          line: line
+        ) {
+          try await task()
+        }
       }
     )
   }

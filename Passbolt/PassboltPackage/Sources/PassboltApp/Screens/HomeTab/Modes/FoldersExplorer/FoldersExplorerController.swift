@@ -137,11 +137,9 @@ extension FoldersExplorerController: ComponentController {
         }
       }
       catch {
-        Diagnostics
-          .log(
-            error: error,
-            info: .message("Folders explorer updates broken")
-          )
+        error.logged(
+          info: .message("Folders explorer updates broken")
+        )
       }
     }
 
@@ -152,7 +150,7 @@ extension FoldersExplorerController: ComponentController {
           .refreshIfNeeded()
       }
       catch {
-        Diagnostics.log(error: error)
+        error.logged()
         viewState.snackBarMessage = .error(error.asTheError().displayableMessage)
       }
     }
@@ -183,7 +181,7 @@ extension FoldersExplorerController: ComponentController {
           )
         }
         catch {
-          Diagnostics.log(error: error)
+          error.logged()
         }
       }
     }
@@ -208,7 +206,7 @@ extension FoldersExplorerController: ComponentController {
 
     @MainActor func presentResourceMenu(_ resourceID: Resource.ID) {
       cancellables.executeOnMainActor {
-        await Diagnostics.logCatch {
+        await withLogCatch {
           let features: Features =
             features
             .branchIfNeeded(
@@ -239,14 +237,11 @@ extension FoldersExplorerController: ComponentController {
 
     @MainActor func presentAccountMenu() {
       asyncExecutor.schedule(.reuse) {
-        await Diagnostics
-          .logCatch(
-            info: .message(
-              "Navigation to account menu failed!"
-            )
-          ) {
-            try await navigationToAccountMenu.perform()
-          }
+        await withLogCatch(
+          failInfo: "Navigation to account menu failed!"
+        ) {
+          try await navigationToAccountMenu.perform()
+        }
       }
     }
 
@@ -269,7 +264,7 @@ extension FoldersExplorerController: ComponentController {
           )
         }
         catch {
-          Diagnostics.log(error: error)
+          error.logged()
         }
       }
     }

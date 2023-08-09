@@ -180,13 +180,11 @@ extension AutofillRootNavigationNodeController {
               }
             }
             catch {
-              Diagnostics
-                .log(
-                  error: error,
-                  info: .message(
-                    "Root navigation failed."
-                  )
+              error.logged(
+                info: .message(
+                  "Root navigation failed."
                 )
+              )
             }
           }
       }

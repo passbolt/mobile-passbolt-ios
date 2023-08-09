@@ -93,9 +93,9 @@ extension Accounts {
           updatesSource.update()
         }
         catch {
-          Diagnostics.log(diagnostic: "...failed to store account data...")
-          Diagnostics.debugLog(
-            "Failed to save account: \(account.localID): \(error)"
+					Diagnostics.logger.info("...failed to store account data...")
+          Diagnostics.debug(
+            "Failed to save account: \(account.localID)"
           )
           throw error
         }
@@ -106,14 +106,14 @@ extension Accounts {
     @Sendable nonisolated func remove(
       account: Account
     ) throws {
-      Diagnostics.log(diagnostic: "Removing local account data...")
+      Diagnostics.logger.info("Removing local account data...")
       Task {
         #warning("TODO: manage spawning tasks")
         await session.close(account)
       }
       dataStore.deleteAccount(account.localID)
       updatesSource.update()
-      Diagnostics.log(diagnostic: "...removing local account data succeeded!")
+      Diagnostics.logger.info("...removing local account data succeeded!")
     }
 
     return Self(

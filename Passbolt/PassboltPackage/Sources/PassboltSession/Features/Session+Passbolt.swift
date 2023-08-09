@@ -118,7 +118,7 @@ extension Session {
           }
           catch {
             // ignore errors it won't be able to retry anyway
-            Diagnostics.log(error: error)
+            error.logged()
           }
         }
       }  // else NOP

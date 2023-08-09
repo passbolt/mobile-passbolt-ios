@@ -54,8 +54,8 @@ extension Initialization {
   ) -> Self {
 
     @MainActor func initialize() {
-      Diagnostics.log(diagnostic: "Initializing the app extension...")
-      defer { Diagnostics.log(diagnostic: "...app extension initialization completed!") }
+      Diagnostics.logger.info("Initializing the app extension...")
+      defer { Diagnostics.logger.info("...app extension initialization completed!") }
 
       setupApplicationAppearance()
       analytics()

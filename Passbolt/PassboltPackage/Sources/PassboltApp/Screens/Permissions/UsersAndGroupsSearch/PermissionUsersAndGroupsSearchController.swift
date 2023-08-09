@@ -88,7 +88,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
           return try await users.userAvatarImage(userID)
         }
         catch {
-          Diagnostics.log(error: error)
+          error.logged()
           return nil
         }
       }
@@ -114,7 +114,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
           .filteredUserGroups(.init(userID: .none, text: searchText))
       }
       catch {
-        Diagnostics.log(error: error)
+        error.logged()
         viewState.set(
           \.snackBarMessage,
           to: .error(error)

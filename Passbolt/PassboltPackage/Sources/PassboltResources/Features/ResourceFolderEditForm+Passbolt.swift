@@ -148,7 +148,7 @@ extension ResourceFolderEditForm {
         formUpdates.update()
       }
       catch {
-        Diagnostics.log(error: error)
+        error.logged()
       }
     }
 

@@ -96,8 +96,7 @@ extension SessionNetworkAuthorization {
     @Sendable nonisolated func fetchServerPublicPGPKeyAndTimeDiff(
       for account: Account
     ) async throws -> (ArmoredPGPPublicKey, Seconds) {
-      Diagnostics
-        .log(diagnostic: "...fetching server public PGP key...")
+      Diagnostics.logger.info("...fetching server public PGP key...")
 
       let localTimestampBefore: Timestamp = time.timestamp()
       let response: ServerPGPPublicKeyFetchNetworkOperationResult = try await serverPGPPublicKeyFetchNetworkOperation(
@@ -105,8 +104,8 @@ extension SessionNetworkAuthorization {
       )
       let localTimestampAfter: Timestamp = time.timestamp()
       let executionTime: Seconds = .init(rawValue: localTimestampAfter.rawValue - localTimestampBefore.rawValue)
-      Diagnostics.log(diagnostic: "Local timestamp:", .unsafeVariable("\(localTimestampAfter.rawValue)"))
-      Diagnostics.log(diagnostic: "Server timestamp:", .unsafeVariable("\(response.serverTime.rawValue)"))
+      Diagnostics.logger.info("Local timestamp: \(localTimestampAfter.rawValue, privacy: .public)")
+      Diagnostics.logger.info("Server timestamp: \(response.serverTime.rawValue, privacy: .public)")
       // this is not a very precise time synchronization,
       // but it is good enough to solve the most of the timing issues
       // with PGP we encountered which are caused by client and server being out of sync
@@ -121,7 +120,7 @@ extension SessionNetworkAuthorization {
             serverURL: account.domain
           )
       }
-      Diagnostics.log(diagnostic: "Using time diff for session:", .unsafeVariable("\(timeDiff)"))
+      Diagnostics.logger.info("Using time diff for session: \(timeDiff, privacy: .public)")
 
       let publicKey: ArmoredPGPPublicKey = .init(rawValue: response.keyData)
 
@@ -137,8 +136,7 @@ extension SessionNetworkAuthorization {
       _ publicKey: ArmoredPGPPublicKey,
       for account: Account
     ) throws {
-      Diagnostics
-        .log(diagnostic: "...verifying server public PGP key...")
+      Diagnostics.logger.info("...verifying server public PGP key...")
 
       let serverFingerprint: Fingerprint
       do {
@@ -190,8 +188,7 @@ extension SessionNetworkAuthorization {
     @Sendable nonisolated func fetchServerPublicRSAKey(
       for account: Account
     ) async throws -> PEMRSAPublicKey {
-      Diagnostics
-        .log(diagnostic: "...fetching server public RSA key...")
+      Diagnostics.logger.info("...fetching server public RSA key...")
 
       return PEMRSAPublicKey(
         rawValue: try await serverRSAPublicKeyFetchNetworkOperation(.init(domain: account.domain))
@@ -223,8 +220,7 @@ extension SessionNetworkAuthorization {
         }
       }
 
-      Diagnostics
-        .log(diagnostic: "...preparing authorization challenge...")
+      Diagnostics.logger.info("...preparing authorization challenge...")
       do {
         let challengeData: Data =
           try jsonEncoder

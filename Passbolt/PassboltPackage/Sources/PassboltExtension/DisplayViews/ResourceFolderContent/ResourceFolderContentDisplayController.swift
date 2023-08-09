@@ -134,11 +134,8 @@ extension ResourceFolderContentDisplayController {
       try await self.sessionData.refreshIfNeeded()
     }
     catch {
-      Diagnostics.log(
-        error: error,
-        info: .message(
-          "Failed to refresh session data."
-        )
+      error.logged(
+        info: .message("Failed to refresh session data.")
       )
       self.context.showMessage(.error(error))
     }

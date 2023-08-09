@@ -78,7 +78,7 @@ internal final class ResourceSearchDisplayController: ViewController {
           }
         }
         catch {
-          Diagnostics.log(debug: error)
+          error.logged()
         }
       }
     )
@@ -112,11 +112,8 @@ extension ResourceSearchDisplayController {
       }
     }
     catch {
-      Diagnostics.log(
-        error: error,
-        info: .message(
-          "Failed to load account avatar image, using placeholder."
-        )
+      error.logged(
+        info: .message("Failed to load account avatar image, using placeholder.")
       )
     }
   }

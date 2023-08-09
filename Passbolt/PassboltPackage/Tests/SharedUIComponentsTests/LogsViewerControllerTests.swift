@@ -34,7 +34,7 @@ final class LogsViewerControllerTests: FeaturesTestCase {
 
   func test_refreshLogs_triggersDiagnosticLogsRead() async throws {
     var result: Void?
-    Diagnostics.shared.diagnosticsInfo = { () -> Array<String> in
+    Diagnostics.shared.info = { () -> Array<String> in
       result = Void()
       return []
     }
@@ -63,7 +63,7 @@ final class LogsViewerControllerTests: FeaturesTestCase {
   }
 
   func test_logsPublisher_publishesCachedValue_afterRefreshingLogs() async throws {
-    Diagnostics.shared.diagnosticsInfo = { () -> Array<String> in
+    Diagnostics.shared.info = { () -> Array<String> in
       []
     }
 
@@ -118,7 +118,7 @@ final class LogsViewerControllerTests: FeaturesTestCase {
   func test_shareMenuPresentationPublisher_publishesJoinedLogs_afterCallingPresentShareMenu_withLogsInCache()
     async throws
   {
-    Diagnostics.shared.diagnosticsInfo = { () -> Array<String> in
+    Diagnostics.shared.info = { () -> Array<String> in
       ["test", "another"]
     }
 

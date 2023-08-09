@@ -152,11 +152,9 @@ extension ResourcesListNodeController {
                   }
                 }
                 else {
-                  Diagnostics.log(
-                    error:
-                      ResourceSecretInvalid
-                      .error("Missing resource password in secret.")
-                  )
+                  ResourceSecretInvalid
+                    .error("Missing resource password in secret.")
+                    .log()
                 }
               }
             ),

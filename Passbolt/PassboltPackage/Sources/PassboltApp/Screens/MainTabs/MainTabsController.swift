@@ -88,13 +88,15 @@ extension MainTabsController: UIController {
       Future<ModalPresentation?, Never> { promise in
         Task {
           do {
-            Diagnostics.log(diagnostic: "Updating account profile data...")
+            Diagnostics.logger.info("Updating account profile data...")
             try await accountDetails.updateProfile()
-            Diagnostics.log(diagnostic: "...account profile data updated!")
+            Diagnostics.logger.info("...account profile data updated!")
           }
           catch {
-            Diagnostics.log(error: error)
-            Diagnostics.log(diagnostic: "...account profile data update failed!")
+            error
+              .logged(
+                info: .message("...account profile data update failed!")
+              )
           }
 
           let unfinishedSetupElements: Set<AccountInitialSetup.SetupElement> =
@@ -141,7 +143,7 @@ extension MainTabsController: UIController {
           .contains { $0.specification.slug == .totp }
       }
       catch {
-        Diagnostics.log(error: error)
+        error.logged()
         return false
       }
     }

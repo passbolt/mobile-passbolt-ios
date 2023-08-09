@@ -199,8 +199,8 @@ public final class ResourceEditViewController: ViewController {
   }
 
   @MainActor internal func discardForm() async {
-    await Diagnostics.logCatch(
-      info: .message("Failed to discard resource edit form!"),
+    await withLogCatch(
+      failInfo: "Failed to discard resource edit form!",
       fallback: { [viewState] error in
         viewState.update(\.snackBarMessage, to: .error(error))
       }

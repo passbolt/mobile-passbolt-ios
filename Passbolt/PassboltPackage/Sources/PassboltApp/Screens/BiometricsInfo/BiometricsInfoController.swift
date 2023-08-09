@@ -79,7 +79,7 @@ extension BiometricsInfoController: UIController {
               .openSystemSettings()
           }
           catch {
-            Diagnostics.log(error: error)
+            error.logged()
           }
         }
         .map { opened -> AnyPublisher<Bool, Never> in

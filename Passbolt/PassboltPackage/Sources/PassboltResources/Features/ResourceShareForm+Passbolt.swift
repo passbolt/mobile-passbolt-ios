@@ -66,7 +66,7 @@ extension ResourceShareForm {
         return try await resourceController.state.value.permissions
       }
       catch {
-        Diagnostics.log(error: error)
+        error.logged()
         return .init()
       }
     }

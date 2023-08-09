@@ -73,7 +73,7 @@ extension TransferInfoCameraRequiredAlertController: UIController {
             try await linkOpener.openApplicationSettings()
           }
           catch {
-            Diagnostics.log(error: error)
+            error.logged()
           }
         }
       }

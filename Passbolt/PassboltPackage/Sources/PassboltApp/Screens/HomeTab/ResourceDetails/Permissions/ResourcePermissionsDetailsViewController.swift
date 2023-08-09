@@ -76,17 +76,16 @@ internal final class ResourcePermissionsDetailsViewController: ViewController {
 extension ResourcePermissionsDetailsViewController {
 
   @Sendable internal func activate() async {
-    await Diagnostics
-      .logCatch(
-        info: .message("Resource permissions details updates broken!"),
-        fallback: { _ in
-          try? await self.navigationToSelf.revert()
-        }
-      ) {
-        for try await resource in self.resourceController.state {
-          try await self.update(resource.value)
-        }
+    await withLogCatch(
+      failInfo: "Resource permissions details updates broken!",
+      fallback: { _ in
+        try? await self.navigationToSelf.revert()
       }
+    ) {
+      for try await resource in self.resourceController.state {
+        try await self.update(resource.value)
+      }
+    }
   }
 
   internal func update(

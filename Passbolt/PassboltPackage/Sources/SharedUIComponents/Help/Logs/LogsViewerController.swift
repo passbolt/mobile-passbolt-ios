@@ -52,7 +52,7 @@ extension LogsViewerController: UIController {
 
     func refreshLogs() {
       executor.schedule {
-        diagnosticsInfoCacheSubject.send(Diagnostics.shared.diagnosticsInfo())
+        diagnosticsInfoCacheSubject.send(Diagnostics.shared.info())
       }
     }
 

@@ -31,7 +31,7 @@ internal final class CodeScanningExitConfirmationViewController:
     mut(self) {
       .combined(
         .title(.localized(key: "transfer.account.exit.confirmation.title")),
-        .message(.localized(key: "transfer.account.import.exit.confirmation.message")),
+        .message(.localized(key: "transfer.account.exit.confirmation.message")),
         .action(
           .localized(key: .cancel),
           style: .cancel,

@@ -93,7 +93,6 @@ extension BiometricsSetupController: UIController {
             try await accountPreferences.storePassphrase(true)
           }
           catch {
-            Diagnostics.log(error: error)
             return promise(.failure(error))
           }
           if await extensions.autofillExtensionEnabled() {

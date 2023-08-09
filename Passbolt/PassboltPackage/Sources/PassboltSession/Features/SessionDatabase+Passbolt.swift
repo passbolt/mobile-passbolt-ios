@@ -75,7 +75,7 @@ extension SessionDatabase {
           .openConnection(account.localID, key)
       }
       catch {
-        Diagnostics.log(error: error)
+        error.logged()
         return .none
       }
     }

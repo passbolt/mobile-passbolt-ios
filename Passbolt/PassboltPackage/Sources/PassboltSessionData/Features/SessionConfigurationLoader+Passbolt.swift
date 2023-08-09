@@ -50,10 +50,10 @@ extension SessionConfigurationLoader {
     }
 
     @Sendable nonisolated func fetchConfiguration() async throws -> Dictionary<AnyHashable, FeatureConfigItem> {
-      Diagnostics.log(diagnostic: "Fetching server configuration...")
+      Diagnostics.logger.info("Fetching server configuration...")
       guard case .some = try? await session.currentAccount()
       else {
-        Diagnostics.log(diagnostic: "...server configuration fetching skipped!")
+        Diagnostics.logger.info("...server configuration fetching skipped!")
         return .init()
       }
       let rawConfiguration: ConfigurationFetchNetworkOperationResult.Config
@@ -61,8 +61,7 @@ extension SessionConfigurationLoader {
         rawConfiguration = try await configurationFetchNetworkOperation().config
       }
       catch {
-        Diagnostics.log(error: error)
-        Diagnostics.log(diagnostic: "...server configuration fetching failed!")
+				Diagnostics.logger.info("...server configuration fetching failed!")
         throw error
       }
 
@@ -126,7 +125,7 @@ extension SessionConfigurationLoader {
         configuration[FeatureFlags.TOTP.identifier] = FeatureFlags.TOTP.default
       }
 
-      Diagnostics.log(diagnostic: "...server configuration fetched!")
+      Diagnostics.logger.info("...server configuration fetched!")
 
       return configuration
     }

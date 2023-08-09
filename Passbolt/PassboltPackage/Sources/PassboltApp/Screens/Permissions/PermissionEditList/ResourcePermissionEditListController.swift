@@ -187,7 +187,7 @@ extension ResourcePermissionEditListController: ComponentController {
           viewState.set(\.loading, to: false)
         }
         catch {
-          Diagnostics.log(error: error)
+          error.logged()
           viewState.withValue { (state: inout ViewState) in
             state.loading = false
             state.snackBarMessage = .error(error)

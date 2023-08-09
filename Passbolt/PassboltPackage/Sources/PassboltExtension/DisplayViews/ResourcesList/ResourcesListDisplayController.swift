@@ -112,8 +112,7 @@ extension ResourcesListDisplayController {
       try await self.sessionData.refreshIfNeeded()
     }
     catch {
-      Diagnostics.log(
-        error: error,
+      error.logged(
         info: .message(
           "Failed to refresh session data."
         )

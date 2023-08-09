@@ -57,7 +57,7 @@ extension UserGroups {
             )
           }
           catch {
-            Diagnostics.log(error: error)
+            error.logged()
             userGroups = .init()
           }
 

@@ -162,34 +162,33 @@ internal final class ResourceDetailsViewController: ViewController {
 extension ResourceDetailsViewController {
 
   internal func showMenu() async {
-    await Diagnostics
-      .logCatch(
-        info: .message("Failed to present resource menu!"),
-        fallback: { @MainActor [viewState] (error: Error) async -> Void in
-          viewState.update(\.snackBarMessage, to: .error(error))
-        }
-      ) {
-        let revealOTPAction: (@MainActor () async -> Void)?
-        let resource: Resource = try await self.resourceController.state.value
-        if let totpPath: ResourceType.FieldPath = resource.firstTOTPPath {
-          revealOTPAction = { [weak self] in
-            await self?.revealFieldValue(path: totpPath)
-          }
-        }
-        else {
-          revealOTPAction = .none
-        }
-
-        try await self.navigationToResourceContextualMenu
-          .perform(
-            context: .init(
-              revealOTP: revealOTPAction,
-              showMessage: { [viewState] (message: SnackBarMessage?) in
-                viewState.update(\.snackBarMessage, to: message)
-              }
-            )
-          )
+    await withLogCatch(
+      failInfo: "Failed to present resource menu!",
+      fallback: { @MainActor [viewState] (error: Error) async -> Void in
+        viewState.update(\.snackBarMessage, to: .error(error))
       }
+    ) {
+      let revealOTPAction: (@MainActor () async -> Void)?
+      let resource: Resource = try await self.resourceController.state.value
+      if let totpPath: ResourceType.FieldPath = resource.firstTOTPPath {
+        revealOTPAction = { [weak self] in
+          await self?.revealFieldValue(path: totpPath)
+        }
+      }
+      else {
+        revealOTPAction = .none
+      }
+
+      try await self.navigationToResourceContextualMenu
+        .perform(
+          context: .init(
+            revealOTP: revealOTPAction,
+            showMessage: { [viewState] (message: SnackBarMessage?) in
+              viewState.update(\.snackBarMessage, to: message)
+            }
+          )
+        )
+    }
   }
 
   internal func showLocationDetails() async {

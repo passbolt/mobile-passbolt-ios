@@ -259,7 +259,7 @@ extension ResourceEditForm {
       catch {
         // we don't want to fail sending form when refreshing data fails
         // but if we can't access updated data then it seemes to be an issue
-        Diagnostics.log(error: error)
+        error.logged()
         return resource
       }
     }

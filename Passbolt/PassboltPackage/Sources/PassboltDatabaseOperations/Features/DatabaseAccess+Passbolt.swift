@@ -90,8 +90,10 @@ extension DatabaseAccess {
           )
       }
       catch {
-        Diagnostics.log(error: error)
-        Diagnostics.log(diagnostic: "Failed to open database, cleaning up...")
+        error.logged(
+          info: .message("Failed to open database, cleaning up...")
+        )
+
         try osFiles.deleteFile(location)
         // single retry after deleting previous database, fail if it fails
         databaseConnection =

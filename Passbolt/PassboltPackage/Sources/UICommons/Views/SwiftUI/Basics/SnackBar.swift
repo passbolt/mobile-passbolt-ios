@@ -83,8 +83,7 @@ extension Error {
       return self
 
     case let error:
-      let theError: TheError = error.asTheError()
-      Diagnostics.log(error: theError)
+      let theError: TheError = error.logged()
       showMessage(.error(theError.displayableMessage))
       return self
     }

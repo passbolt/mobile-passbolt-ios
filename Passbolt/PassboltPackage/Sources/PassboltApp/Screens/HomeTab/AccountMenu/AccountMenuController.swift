@@ -119,13 +119,11 @@ extension AccountMenuController: UIController {
           try await navigationToSelf.revert()
         }
         catch {
-          Diagnostics
-            .log(
-              error: error,
-              info: .message(
-                "Navigation back from account menu failed!"
-              )
+          error.logged(
+            info: .message(
+              "Navigation back from account menu failed!"
             )
+          )
         }
       }
     }
@@ -137,13 +135,11 @@ extension AccountMenuController: UIController {
           try await navigationToAccountDetails.perform()
         }
         catch {
-          Diagnostics
-            .log(
-              error: error,
-              info: .message(
-                "Navigation to account details failed!"
-              )
+          error.logged(
+            info: .message(
+              "Navigation to account details failed!"
             )
+          )
         }
       }
     }
@@ -161,13 +157,11 @@ extension AccountMenuController: UIController {
           try await navigationToAuthorization.perform(context: account)
         }
         catch {
-          Diagnostics
-            .log(
-              error: error,
-              info: .message(
-                "Navigation to account switch failed!"
-              )
+          error.logged(
+            info: .message(
+              "Navigation to account switch failed!"
             )
+          )
         }
       }
     }
@@ -179,13 +173,11 @@ extension AccountMenuController: UIController {
           try await navigationToManageAccounts.perform()
         }
         catch {
-          Diagnostics
-            .log(
-              error: error,
-              info: .message(
-                "Navigation to manage accounts failed!"
-              )
+          error.logged(
+            info: .message(
+              "Navigation to manage accounts failed!"
             )
+          )
         }
       }
     }

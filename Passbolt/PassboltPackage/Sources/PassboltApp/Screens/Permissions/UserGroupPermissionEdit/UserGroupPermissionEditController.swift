@@ -64,7 +64,7 @@ extension UserGroupPermissionEditController: ComponentController {
           return try await users.userAvatarImage(userID)
         }
         catch {
-          Diagnostics.log(error: error)
+          error.logged()
           return nil
         }
       }

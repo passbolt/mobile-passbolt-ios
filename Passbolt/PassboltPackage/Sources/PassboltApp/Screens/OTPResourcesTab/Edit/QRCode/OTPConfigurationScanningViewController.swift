@@ -164,7 +164,7 @@ extension OTPConfigurationScanningViewController {
           with: .idle,
           when: .processing
         )
-      Diagnostics.log(error: error)
+      error.logged()
       self.asyncExecutor.schedule(.reuse, identifier: #function) { [viewState] in
         await viewState
           .update(

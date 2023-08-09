@@ -88,7 +88,6 @@ extension AccountDetails {
         return try await mediaDownloadNetworkOperation.execute(profile.avatarImageURL)
       }
       catch {
-        Diagnostics.log(error: error)
         throw error
       }
     })
