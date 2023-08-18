@@ -31,7 +31,6 @@ final class ResourceTests: XCTestCase {
     var resource: Resource = .init(
       type: .init(
         id: .init(),
-        name: "TEST",
         specification: .init(
           slug: "test",
           metaFields: [
@@ -92,9 +91,9 @@ final class ResourceTests: XCTestCase {
 
   func test_validate_failsWhenNeeded() throws {
     var resource: Resource = .init(
+			id: .init(uuidString: UUID().uuidString),
       type: .init(
         id: .init(),
-        name: "TEST",
         specification: .init(
           slug: "test",
           metaFields: [
@@ -157,7 +156,7 @@ final class ResourceTests: XCTestCase {
       guard let validationError: InvalidResourceField = $0 as? InvalidResourceField
       else { return XCTFail("Unexpected error reveived") }
       XCTAssertEqual(validationError.path, \.meta.name)
-      XCTAssertEqual(resource[keyPath: validationError.path], nil)
+      XCTAssertEqual(resource[keyPath: validationError.path], "")
     }
 
     resource.meta.name = "tooLongName"
@@ -230,7 +229,6 @@ final class ResourceTests: XCTestCase {
     var resource: Resource = .init(
       type: .init(
         id: .init(),
-        name: "Password",
         specification: .password
       )
     )
