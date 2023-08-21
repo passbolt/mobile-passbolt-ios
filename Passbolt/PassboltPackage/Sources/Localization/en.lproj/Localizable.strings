@@ -237,8 +237,8 @@
 "resource.menu.item.copy.password" = "Copy password";
 "resource.menu.item.copy.username" = "Copy username";
 "resource.menu.item.copy.description" = "Copy description";
-"resource.menu.item.reveal.otp" = "Reveal OTP";
-"resource.menu.item.copy.otp" = "Copy OTP";
+"resource.menu.item.reveal.otp" = "Reveal TOTP";
+"resource.menu.item.copy.otp" = "Copy TOTP";
 "resource.menu.item.add.favorite" = "Add to favorite";
 "resource.menu.item.remove.favorite" = "Remove from favorite";
 "resource.menu.item.share" = "Share password";
@@ -247,7 +247,7 @@
 "resource.menu.item.edit.otp" = "Edit TOTP";
 "resource.menu.item.otp.menu" = "Manage TOTP";
 "resource.menu.item.delete.resource" = "Delete password";
-"resource.menu.item.delete.otp" = "Delete OTP";
+"resource.menu.item.delete.otp" = "Delete TOTP";
 "resource.menu.item.password" = "Password";
 "resource.menu.item.username" = "Username";
 "resource.menu.item.description" = "Description";
@@ -538,6 +538,7 @@ Contact your administrator for more information.";
 scanned!";
 "otp.scanning.success.create.button.title" = "Create a standalone TOTP";
 "otp.scanning.success.link.button.title" = "Link TOTP to a password";
+"otp.code.scanning.title" = "Scan QR code";
 "otp.code.scanning.initial.message" = "Aim the camera at the QR Code";
 
 // OTP form
