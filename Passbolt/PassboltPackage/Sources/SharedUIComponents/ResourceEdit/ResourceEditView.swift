@@ -149,6 +149,7 @@ public struct ResourceEditView: ControlledView {
                 title: fieldModel.name,
                 prompt: fieldModel.placeholder,
                 mandatory: fieldModel.requiredMark,
+								encrypted: fieldModel.encryptedMark,
                 state: self.validatedOptionalBinding(
                   to: \.validatedString,
                   in: \.fields[fieldModel.path],
