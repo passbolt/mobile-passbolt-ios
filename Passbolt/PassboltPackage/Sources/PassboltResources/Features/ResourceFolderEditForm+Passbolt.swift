@@ -56,7 +56,7 @@ extension ResourceFolderEditForm {
       )
     )
 
-    asyncExecutor.schedule { @MainActor in
+		asyncExecutor.schedule(.unmanaged) { @MainActor in
       do {
         switch context {
         case .create(.none):
