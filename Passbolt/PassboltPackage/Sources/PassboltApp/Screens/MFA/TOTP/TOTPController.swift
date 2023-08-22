@@ -80,7 +80,7 @@ extension TOTPController: UIController {
                   .authorizeMFA(
                     .totp(
                       session.currentAccount(),
-                      otp,
+											code: otp,
                       rememberDevice: rememberDevice
                     )
                   )

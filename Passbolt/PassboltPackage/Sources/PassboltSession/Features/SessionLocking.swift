@@ -28,17 +28,17 @@ import OSFeatures
 
 internal struct SessionLocking {
 
-  internal var ensureAutolock: @Sendable () -> Void
+  internal var ensureLocking: @Sendable (Account) -> Void
 }
 
 extension SessionLocking: LoadableFeature {
 
-  internal typealias Context = Account
+	internal typealias Context = ContextlessLoadableFeatureContext
 
   #if DEBUG
   internal nonisolated static var placeholder: Self {
     Self(
-      ensureAutolock: unimplemented0()
+			ensureLocking: unimplemented1()
     )
   }
   #endif
@@ -46,53 +46,71 @@ extension SessionLocking: LoadableFeature {
 
 extension SessionLocking {
 
+	private struct LockingTask {
+
+		fileprivate let account: Account
+		fileprivate let task: Task<Void, Never>
+	}
+
   @MainActor fileprivate static func load(
     features: Features,
-    context account: Account,
     cancellables: Cancellables
   ) throws -> Self {
-    let asyncExecutor: AsyncExecutor = try features.instance()
-    let appLifecycle: ApplicationLifecycle = features.instance()
-    let sesionState: SessionState = try features.instance()
-    #warning("TODO: FIXME: scopes! - it should be only in session scope but it is trigerred from authorization, it has to be adjusting to session state")
-    let observationStart: Once = .init {
-      appLifecycle
-        .lifecyclePublisher()
-        .sink { transition in
-          asyncExecutor.schedule(.replace) { @SessionActor in
-            switch transition {
-            case .didBecomeActive, .willResignActive, .willTerminate:
-              break  // NOP
+		let appLifecycle: ApplicationLifecycle = features.instance()
+		let sessionState: SessionState = try features.instance()
 
-            case .didEnterBackground:
-              sesionState.passphraseWipe()
+		let lockingTask: CriticalState<LockingTask?> = .init(.none)
 
-            case .willEnterForeground:
-              do {
-                try sesionState
-                  .authorizationRequested(.passphrase(account))
-              }
-              catch is SessionClosed {
-                // ignore, expected
-              }
-              catch {
-                // ignore errors
-                error
-                  .asTheError()
-                  .asAssertionFailure()
-              }
-            }
-          }
-        }
-        .store(in: cancellables)
-    }
+    @Sendable nonisolated func ensureLocking(
+			for account: Account
+		) {
+			lockingTask.access { (currentTask: inout LockingTask?) in
+				guard currentTask?.account != account else { return }
+				currentTask = .init(
+					account: account,
+					task: .detached { @SessionActor in
+						Diagnostics.logger.info("Session auto locking enabled!")
+						let updates = combineLatest(
+							sessionState.updates,
+							appLifecycle.lifecycle
+						)
+						do {
+							for try await update in updates {
+								switch (sessionState.account(), update.1) {
+								case (account, .didEnterBackground):
+									sessionState.passphraseWipe()
 
-    @Sendable nonisolated func ensureAutolock() {
-      observationStart.executeIfNeeded()
+								case (account, .willEnterForeground):
+									try sessionState
+										.authorizationRequested(.passphrase(account))
+
+								case (account, _):
+									break // ignore
+
+								case _:
+									lockingTask.access { (currentTask: inout LockingTask?) in
+										guard currentTask?.account == account else { return }
+										currentTask?.task.cancel()
+										currentTask = .none
+									}
+								}
+							}
+						}
+						catch is Cancelled {
+							// NOP - just cancelled
+						}
+						catch {
+							error.logged(
+								info: .message("Session locking broken!")
+							)
+						}
+					}
+				)
+			}
     }
 
     return Self(
-      ensureAutolock: ensureAutolock
+      ensureLocking: ensureLocking(for:)
     )
   }
 }
@@ -104,7 +122,7 @@ extension FeaturesRegistry {
       .lazyLoaded(
         SessionLocking.self,
         load: SessionLocking
-          .load(features:context:cancellables:)
+          .load(features:cancellables:)
       )
     )
   }

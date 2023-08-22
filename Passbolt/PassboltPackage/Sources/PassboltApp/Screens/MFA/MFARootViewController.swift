@@ -100,10 +100,25 @@ internal final class MFARootViewController: PlainViewController, UIComponent {
                 await self.addChild(YubiKeyViewController.self) { parent, child in
                   parent.setContent(view: child)
                 }
+
               case .totp:
                 await self.addChild(TOTPViewController.self) { parent, child in
                   parent.setContent(view: child)
                 }
+
+							case .duo:
+								let viewController: UIHostingController = try .init(
+									rootView: DUOAuthorizationView(
+										controller: .init(
+											context: Void(),
+											features: self.components.features
+										)
+									)
+								)
+								self.addChild(viewController)
+								viewController.loadViewIfNeeded()
+								self.contentView.setContent(view: viewController.view)
+								viewController.didMove(toParent: self)
               }
             }
         }

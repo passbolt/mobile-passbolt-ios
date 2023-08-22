@@ -113,4 +113,5 @@ extension ImageNameConstant {
   public static var permissionReadIcon: Self { "PermissionReadIcon" }
   public static var permissionWriteIcon: Self { "PermissionWriteIcon" }
   public static var permissionOwnIcon: Self { "PermissionOwnIcon" }
+	public static var logoDUO: Self { "LogoDUO" }
 }

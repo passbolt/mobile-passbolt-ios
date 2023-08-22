@@ -178,7 +178,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
       try await testedInstance.authorizeMFA(
         .totp(
           Account.mock_ada,
-          "totp",
+					code: "totp",
           rememberDevice: false
         )
       )
@@ -197,7 +197,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
       try await testedInstance.authorizeMFA(
         .totp(
           Account.mock_ada,
-          "totp",
+					code: "totp",
           rememberDevice: false
         )
       )
@@ -220,7 +220,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
       try await testedInstance.authorizeMFA(
         .totp(
           Account.mock_ada,
-          "totp",
+					code: "totp",
           rememberDevice: false
         )
       )
@@ -243,7 +243,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
       try await testedInstance.authorizeMFA(
         .totp(
           Account.mock_ada,
-          "totp",
+					code: "totp",
           rememberDevice: false
         )
       )

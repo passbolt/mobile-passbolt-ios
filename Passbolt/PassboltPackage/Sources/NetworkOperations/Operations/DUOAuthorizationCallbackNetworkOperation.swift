@@ -21,30 +21,48 @@
 // @since         v1.0
 //
 
-import Commons
+import Features
+import Session
+import struct Foundation.URL
 
-public struct HTTPResponseInvalid: TheError {
+// MARK: - Interface
 
-  public static func error(
-    _ message: StaticString = "HTTPResponseInvalid",
-		request: HTTPRequest? = .none,
-    file: StaticString = #fileID,
-    line: UInt = #line
-  ) -> Self {
-    Self(
-      context: .context(
-        .message(
-          message,
-          file: file,
-          line: line
-        )
-      ),
-      displayableMessage: .localized(key: "error.http.response.invalid"),
-      request: request
-    )
-  }
+public typealias DUOAuthorizationCallbackNetworkOperation =
+	NetworkOperation<DUOAuthorizationCallbackNetworkOperationDescription>
 
-  public var context: DiagnosticsContext
-  public var displayableMessage: DisplayableString
-  public var request: HTTPRequest?
+public enum DUOAuthorizationCallbackNetworkOperationDescription: NetworkOperationDescription {
+
+	public typealias Input = DUOAuthorizationCallbackNetworkOperationVariable
+	public typealias Output = DUOAuthorizationCallbackNetworkOperationResult
+}
+
+public struct DUOAuthorizationCallbackNetworkOperationVariable {
+
+	public var duoCode: String
+	public var duoToken: String
+	public var passboltToken: String
+	public var remember: Bool
+
+	public init(
+		duoCode: String,
+		duoToken: String,
+		passboltToken: String,
+		remember: Bool
+	) {
+		self.duoCode = duoCode
+		self.duoToken = duoToken
+		self.passboltToken = passboltToken
+		self.remember = remember
+	}
+}
+
+public struct DUOAuthorizationCallbackNetworkOperationResult {
+
+	public var mfaToken: SessionMFAToken
+
+	public init(
+		mfaToken: SessionMFAToken
+	) {
+		self.mfaToken = mfaToken
+	}
 }

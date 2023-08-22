@@ -54,5 +54,7 @@ extension FeaturesRegistry {
     self.usePassboltResourceFolderShareNetworkOperation()
     self.useAccountChunkedExportInitializeNetworkOperation()
     self.usePassboltAccountChunkedExportStatusNetworkOperation()
+		self.usePassboltDUOAuthorizationPromptNetworkOperation()
+		self.usePassboltDUOAuthorizationCallbackNetworkOperation()
   }
 }

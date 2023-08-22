@@ -93,7 +93,6 @@ extension ResourcesListDisplayController {
     internal var suggestionFilter: (ResourceListItemDSV) -> Bool
     internal var createResource: (() -> Void)?
     internal var selectResource: (Resource.ID) -> Void
-    internal var openResourceMenu: ((Resource.ID) -> Void)?
     internal var showMessage: (SnackBarMessage?) -> Void
   }
 
@@ -129,11 +128,5 @@ extension ResourcesListDisplayController {
     _ id: Resource.ID
   ) {
     self.context.selectResource(id)
-  }
-
-  internal final func openResourceMenu(
-    _ id: Resource.ID
-  ) {
-    self.context.openResourceMenu?(id)
   }
 }

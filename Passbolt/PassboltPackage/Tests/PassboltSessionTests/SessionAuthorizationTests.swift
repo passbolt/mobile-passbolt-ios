@@ -213,8 +213,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(Void())
     )
     patch(
-      \SessionLocking.ensureAutolock,
-      context: .mock_ada,
+      \SessionLocking.ensureLocking,
       with: always(Void())
     )
 
@@ -267,8 +266,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(Void())
     )
     patch(
-      \SessionLocking.ensureAutolock,
-      context: .mock_ada,
+      \SessionLocking.ensureLocking,
       with: always(Void())
     )
 
@@ -342,8 +340,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       }
     )
     patch(
-      \SessionLocking.ensureAutolock,
-      context: .mock_ada,
+      \SessionLocking.ensureLocking,
       with: always(Void())
     )
 
@@ -400,8 +397,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(Void())
     )
     patch(
-      \SessionLocking.ensureAutolock,
-      context: .mock_ada,
+      \SessionLocking.ensureLocking,
       with: always(self.executed())
     )
 
@@ -676,8 +672,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(Void())
     )
     patch(
-      \SessionLocking.ensureAutolock,
-      context: .mock_ada,
+      \SessionLocking.ensureLocking,
       with: always(Void())
     )
 
@@ -753,8 +748,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(Void())
     )
     patch(
-      \SessionLocking.ensureAutolock,
-      context: .mock_ada,
+      \SessionLocking.ensureLocking,
       with: always(self.executed())
     )
 
@@ -881,8 +875,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(Void())
     )
     patch(
-      \SessionLocking.ensureAutolock,
-      context: .mock_ada,
+      \SessionLocking.ensureLocking,
       with: always(Void())
     )
 
@@ -933,8 +926,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(Void())
     )
     patch(
-      \SessionLocking.ensureAutolock,
-      context: .mock_ada,
+      \SessionLocking.ensureLocking,
       with: always(Void())
     )
     patch(

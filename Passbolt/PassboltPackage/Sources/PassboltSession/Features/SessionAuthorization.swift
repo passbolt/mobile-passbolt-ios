@@ -207,21 +207,20 @@ extension SessionAuthorization {
         mfaProviders
       )
 
-      do {
-        try await features
-          .instance(
-            of: SessionLocking.self,
-            context: account
-          )
-          .ensureAutolock()
-      }
-      catch {
-        // ignore errors,
-        // it can fail only if feature fails to load
-        error
-          .asTheError()
-          .asAssertionFailure()
-      }
+			if mfaProviders.isEmpty {
+				do {
+					try await features
+						.instance(of: SessionLocking.self)
+						.ensureLocking(account)
+				}
+				catch {
+					// ignore errors,
+					// it can fail only if feature fails to load
+					error
+						.asTheError()
+						.asAssertionFailure()
+				}
+			} // else NOP
     }
 
     @SessionActor func handleRefresh(

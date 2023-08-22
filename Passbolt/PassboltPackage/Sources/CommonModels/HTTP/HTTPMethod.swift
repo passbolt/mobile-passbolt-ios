@@ -23,9 +23,9 @@
 
 public struct HTTPMethod: RawRepresentable {
 
-  public var rawValue: StaticString
+  public var rawValue: String
 
-  public init(rawValue: StaticString) {
+  public init(rawValue: String) {
     self.rawValue = rawValue
   }
 }
@@ -34,7 +34,7 @@ extension HTTPMethod: Hashable {}
 
 extension HTTPMethod: ExpressibleByStringLiteral {
 
-  public init(stringLiteral value: StaticString) {
+  public init(stringLiteral value: String) {
     self.init(rawValue: value)
   }
 }

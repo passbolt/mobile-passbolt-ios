@@ -281,7 +281,7 @@ extension SessionNetworkAuthorization {
       refreshToken: SessionRefreshToken,
       mfaProviders: Array<SessionMFAProvider>
     ) {
-      struct Tokens: Codable, Equatable {
+      struct Tokens: Decodable, Equatable {
 
         var version: String
         var domain: String

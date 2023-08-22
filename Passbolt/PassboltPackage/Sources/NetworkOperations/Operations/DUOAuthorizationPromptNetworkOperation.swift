@@ -21,30 +21,31 @@
 // @since         v1.0
 //
 
-import Commons
+import Features
+import Session
+import struct Foundation.URL
 
-public struct HTTPResponseInvalid: TheError {
+// MARK: - Interface
 
-  public static func error(
-    _ message: StaticString = "HTTPResponseInvalid",
-		request: HTTPRequest? = .none,
-    file: StaticString = #fileID,
-    line: UInt = #line
-  ) -> Self {
-    Self(
-      context: .context(
-        .message(
-          message,
-          file: file,
-          line: line
-        )
-      ),
-      displayableMessage: .localized(key: "error.http.response.invalid"),
-      request: request
-    )
-  }
+public typealias DUOAuthorizationPromptNetworkOperation =
+	NetworkOperation<DUOAuthorizationPromptNetworkOperationDescription>
 
-  public var context: DiagnosticsContext
-  public var displayableMessage: DisplayableString
-  public var request: HTTPRequest?
+public enum DUOAuthorizationPromptNetworkOperationDescription: NetworkOperationDescription {
+
+	public typealias Input = Void
+	public typealias Output = DUOAuthorizationPromptNetworkOperationResult
+}
+
+public struct DUOAuthorizationPromptNetworkOperationResult {
+
+	public var authorizationURL: URL
+	public var stateID: String
+
+	public init(
+		authorizationURL: URL,
+		stateID: String
+	) {
+		self.authorizationURL = authorizationURL
+		self.stateID = stateID
+	}
 }

@@ -306,6 +306,8 @@ NFC for this to work.";
 "mfa.unsupported.provider.title" = "Your MFA provider is not supported";
 "mfa.unsupported.provider.description" = "Please setup another provider using the web app.
 Contact your administrator for more information.";
+"mfa.duo.authorization.title" = "Duo multi-factor authentication";
+"mfa.duo.authorization.button.title" = "Authenticate with Duo";
 
 "account.menu.title" = "Switch account";
 "account.menu.account.details.button.title" = "See details";

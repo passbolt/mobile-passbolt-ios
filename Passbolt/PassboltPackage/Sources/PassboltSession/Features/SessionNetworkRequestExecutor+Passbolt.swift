@@ -132,6 +132,11 @@ extension SessionNetworkRequestExecutor {
         )
       }
       catch let redirect as HTTPRedirect {
+				// redirect handling exceptpion for DUO
+				if redirect.request.url?.path.hasSuffix("/mfa/verify/duo/prompt") ?? false {
+					return redirect.response
+				} // else continue error handling
+
         let locationURLString: URLString = redirect.location.urlString
 
         guard locationURLString.rawValue.hasSuffix("/mfa/verify/error.json")

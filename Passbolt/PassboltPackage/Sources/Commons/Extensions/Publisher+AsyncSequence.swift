@@ -23,11 +23,20 @@
 
 import Combine
 
+extension Publisher
+where Failure == Never {
+
+	public func asAsyncSequence() -> AnyAsyncSequence<Output> {
+		AnyAsyncSequence(self)
+	}
+}
+
 extension Publisher {
 
-  public func asAsyncSequence() -> AnyAsyncSequence<Output> {
-    AnyAsyncSequence(self)
-  }
+	@_disfavoredOverload
+	public func asAsyncSequence() -> AnyAsyncSequence<Output> {
+		AnyAsyncSequence(self)
+	}
 }
 
 extension AsyncSequence {

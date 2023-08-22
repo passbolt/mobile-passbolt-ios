@@ -27,28 +27,17 @@ import TestExtensions
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 @available(iOS 16.0.0, *)
-final class SessionLockingTests: LoadableFeatureTestCase<SessionLocking> {
+final class SessionLockingTests: FeaturesTestCase {
 
-  override class func testedImplementationRegister(
-    _ registry: inout FeaturesRegistry
-  ) {
-    registry.usePassboltSessionLocking()
-  }
+	override func commonPrepare() {
+		super.commonPrepare()
+		register(
+			{ $0.usePassboltSessionLocking() },
+			for: SessionLocking.self
+		)
+	}
 
-  var executionMockControl: AsyncExecutor.MockExecutionControl!
-
-  override func prepare() throws {
-    self.executionMockControl = .init()
-    use(AsyncExecutor.mock(executionMockControl))
-    use(SessionAuthorizationState.placeholder)
-    use(SessionState.placeholder)
-  }
-
-  override func cleanup() throws {
-    self.executionMockControl = .none
-  }
-
-  func test_ensureAutolock_doesNotAffectAnythingByItsOwn() {
+  func test_ensureAutolock_doesNotAffectAnythingWithoutTrigger() async throws {
     patch(
       \ApplicationLifecycle.lifecyclePublisher,
       with: always(
@@ -56,56 +45,96 @@ final class SessionLockingTests: LoadableFeatureTestCase<SessionLocking> {
           .eraseToAnyPublisher()
       )
     )
+		patch(
+			\SessionState.updates,
+			 with: Variable(initial: Void())
+				.asAnyUpdatable()
+		)
+		patch(
+			\SessionState.account,
+			 with: always(.mock_ada)
+		)
 
-    withTestedInstance(
-      context: Account.mock_ada
-    ) { (testedInstance: SessionLocking) in
-      testedInstance.ensureAutolock()
-    }
+		await withSerialTaskExecutor {
+			await withInstance { (feature: SessionLocking) in
+				feature.ensureLocking(.mock_ada)
+				// sleeping beacause of actor switching
+				// inside tasks causing the test to finish
+				// prematurely Task.yield is not enough here
+				try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
+			}
+		}
   }
 
-  func test_ensureAutolock_clearsPassphrase_whenEnteringBackground() {
+  func test_ensureAutolock_clearsPassphrase_whenEnteringBackground() async throws {
     patch(
-      \ApplicationLifecycle.lifecyclePublisher,
-      with: always(
-        CurrentValueSubject(ApplicationLifecycle.Transition.didEnterBackground)
-          .eraseToAnyPublisher()
-      )
+      \ApplicationLifecycle.lifecycle,
+      with: CurrentValueSubject(ApplicationLifecycle.Transition.didEnterBackground)
+          .asAsyncSequence()
     )
     patch(
       \SessionState.passphraseWipe,
-      with: always(self.executed())
+      with: always(self.mockExecuted())
     )
-    withTestedInstanceExecuted(
-      context: Account.mock_ada
-    ) { (testedInstance: SessionLocking) in
-      try await self.executionMockControl.execute {
-        testedInstance.ensureAutolock()
-      }
-    }
-  }
+		patch(
+			\SessionState.pendingAuthorization,
+			with: always(.none)
+		)
+		patch(
+			\SessionState.updates,
+			 with: Variable(initial: Void())
+				.asAnyUpdatable()
+		)
+		patch(
+			\SessionState.account,
+			 with: always(.mock_ada)
+		)
 
-  func test_ensureAutolock_clearsPassphrase_whenEnteringForeground() {
-    patch(
-      \ApplicationLifecycle.lifecyclePublisher,
-      with: always(
-        CurrentValueSubject(ApplicationLifecycle.Transition.willEnterForeground)
-          .eraseToAnyPublisher()
-      )
-    )
-    patch(
-      \SessionState.authorizationRequested,
-      with: { (request: SessionAuthorizationRequest) in
-        self.executed(using: request)
-      }
-    )
-    withTestedInstanceExecuted(
-      using: SessionAuthorizationRequest.passphrase(.mock_ada),
-      context: Account.mock_ada
-    ) { (testedInstance: SessionLocking) in
-      try await self.executionMockControl.execute {
-        testedInstance.ensureAutolock()
-      }
-    }
-  }
+		await withSerialTaskExecutor {
+			await withInstance(mockExecuted: 1) { (testedInstance: SessionLocking) in
+				testedInstance.ensureLocking(.mock_ada)
+				// sleeping beacause of actor switching
+				// inside tasks causing the test to finish
+				// prematurely Task.yield is not enough here
+				try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
+			}
+		}
+	}
+
+	func test_ensureAutolock_clearsPassphrase_whenEnteringForeground() async {
+		patch(
+			\ApplicationLifecycle.lifecycle,
+			with: CurrentValueSubject(ApplicationLifecycle.Transition.willEnterForeground)
+					.asAsyncSequence()
+		)
+		patch(
+			\SessionState.authorizationRequested,
+			 with: { (request: SessionAuthorizationRequest) in
+				 self.mockExecuted(with: request)
+			 }
+		)
+		patch(
+			\SessionState.pendingAuthorization,
+			 with: always(.none)
+		)
+		patch(
+			\SessionState.updates,
+			 with: Variable(initial: Void())
+				.asAnyUpdatable()
+		)
+		patch(
+			\SessionState.account,
+			 with: always(.mock_ada)
+		)
+
+		await withSerialTaskExecutor {
+			await withInstance(mockExecutedWith: SessionAuthorizationRequest.passphrase(.mock_ada)) { (testedInstance: SessionLocking) in
+				testedInstance.ensureLocking(.mock_ada)
+				// sleeping beacause of actor switching
+				// inside tasks causing the test to finish
+				// prematurely Task.yield is not enough here
+				try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
+			}
+		}
+	}
 }

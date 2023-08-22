@@ -211,6 +211,9 @@ extension AuthorizationController: UIController {
       accountNotFoundScreenPresentationSubject.eraseToAnyPublisher()
     }
 
+		// automatically sign in for test accounts in debug builds
+		// put the code below in a breakpoint action here
+//		Task { let accountWithProfile: AccountWithProfile = try accountDetails.profile(); try await session.authorize(.passphrase(accountWithProfile.account, Passphrase(rawValue: accountWithProfile.username))) }
     return Self(
       accountWithProfilePublisher: accountWithProfilePublisher,
       accountAvatarPublisher: accountAvatarPublisher,

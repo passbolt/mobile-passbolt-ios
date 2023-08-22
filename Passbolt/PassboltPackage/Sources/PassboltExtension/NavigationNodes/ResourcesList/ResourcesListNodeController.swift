@@ -91,7 +91,6 @@ internal final class ResourcesListNodeController: ViewController {
         },
         createResource: self.createResource,
         selectResource: self.selectResource(_:),
-        openResourceMenu: .none,
         showMessage: { (message: SnackBarMessage?) in
           viewState.update { viewState in
             viewState.snackBarMessage = message

@@ -58,6 +58,7 @@ extension SessionMFAAuthorization {
     let yubiKey: YubiKey = features.instance()
     let totpAuthorizationNetworkOperation: TOTPAuthorizationNetworkOperation = try features.instance()
     let yubiKeyAuthorizationNetworkOperation: YubiKeyAuthorizationNetworkOperation = try features.instance()
+		let duoAuthorizationCallbackNetworkOperation: DUOAuthorizationCallbackNetworkOperation = try features.instance()
 
     @SessionActor func authorizeMFAWithYubiKey(
       saveLocally: Bool
@@ -87,6 +88,23 @@ extension SessionMFAAuthorization {
       )
       .mfaToken
     }
+
+		@SessionActor func authorizeMFAWithDuo(
+			duoCode: String,
+			duoToken: String,
+			passboltToken: String,
+			saveLocally: Bool
+		) async throws -> SessionMFAToken {
+			try await duoAuthorizationCallbackNetworkOperation(
+				.init(
+					duoCode: duoCode,
+					duoToken: duoToken,
+					passboltToken: passboltToken,
+					remember: saveLocally
+				)
+			)
+			.mfaToken
+		}
 
     @SessionActor func useMFAToken(
       _ mfaToken: SessionMFAToken,
@@ -134,6 +152,19 @@ extension SessionMFAAuthorization {
           )
           account = requestedAccount
           rememberDevice = remember
+
+				case .duo(let requestedAccount, let duoCode, let duoToken, let passboltToken, let remember):
+					guard requestedAccount == sessionState.account()
+					else { throw SessionClosed.error(account: requestedAccount) }
+
+					mfaToken = try await authorizeMFAWithDuo(
+						duoCode: duoCode,
+						duoToken: duoToken,
+						passboltToken: passboltToken,
+						saveLocally: remember
+					)
+					account = requestedAccount
+					rememberDevice = remember
         }
 
         try useMFAToken(
@@ -142,6 +173,18 @@ extension SessionMFAAuthorization {
           saveLocally: rememberDevice
         )
         Diagnostics.logger.info("...MFA authorization succeeded!")
+				do {
+					try await features
+						.instance(of: SessionLocking.self)
+						.ensureLocking(account)
+				}
+				catch {
+					// ignore errors,
+					// it can fail only if feature fails to load
+					error
+						.asTheError()
+						.asAssertionFailure()
+				}
       }
       catch {
         error.logged(
