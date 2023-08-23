@@ -30,7 +30,7 @@ extension Binding {
     .init(
       get: { self.wrappedValue != nil },
       set: { (newValue: Bool) in
-        guard newValue else { return }  // can't set not nil
+        guard !newValue else { return }  // can't set not nil
         self.wrappedValue = .none
       }
     )
