@@ -37,7 +37,7 @@ extension AccountInitialSetup {
 
     #warning("TODO: refine with account related storage")
     let unfinishedSetupElementsProperty: StoredProperty<Array<String>> = try features.instance(
-      context: "unfinishedSetup-\(context.userID)"
+      context: "unfinishedSetup-\(context.localID)"
     )
 
     let osExtensions: OSExtensions = features.instance()
@@ -46,7 +46,7 @@ extension AccountInitialSetup {
     @Sendable func unfinishedSetupElements() async -> Set<SetupElement> {
       var unfinishedElements: Set<SetupElement> =
         unfinishedSetupElementsProperty
-        .get(withDefault: [])
+				.get(withDefault: [])
         .compactMap(SetupElement.init(rawValue:))
         .asSet()
 
