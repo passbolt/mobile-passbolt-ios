@@ -237,7 +237,7 @@
 "resource.menu.item.copy.password" = "Copy password";
 "resource.menu.item.copy.username" = "Copy username";
 "resource.menu.item.copy.description" = "Copy description";
-"resource.menu.item.reveal.otp" = "Reveal TOTP";
+"resource.menu.item.reveal.otp" = "Show TOTP";
 "resource.menu.item.copy.otp" = "Copy TOTP";
 "resource.menu.item.add.favorite" = "Add to favorite";
 "resource.menu.item.remove.favorite" = "Remove from favorite";

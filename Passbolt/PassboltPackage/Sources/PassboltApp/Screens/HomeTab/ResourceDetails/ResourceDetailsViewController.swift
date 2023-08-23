@@ -264,7 +264,7 @@ extension ResourceDetailsViewController {
         viewState.update(\.snackBarMessage, to: .error(error))
       }
     ) {
-      var resource: Resource = try await self.resourceController.state.value
+      let resource: Resource = try await self.resourceController.state.value
 
       // ensure having secret if field is part of it
       if resource.isEncrypted(path) {

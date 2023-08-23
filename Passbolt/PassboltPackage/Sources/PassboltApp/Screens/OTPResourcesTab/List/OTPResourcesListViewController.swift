@@ -187,6 +187,7 @@ extension OTPResourcesListViewController {
     }
   }
 
+	@discardableResult
   private func revealOTP(
     for resourceID: Resource.ID
   ) async throws -> OTPValue {
@@ -230,7 +231,7 @@ extension OTPResourcesListViewController {
         viewState.update(\.snackBarMessage, to: .error(error))
       }
     ) {
-      await self.hideOTPCodes()
+      self.hideOTPCodes()
       let features: Features =
         features.branchIfNeeded(
           scope: ResourceDetailsScope.self,
@@ -240,7 +241,14 @@ extension OTPResourcesListViewController {
       try await navigationToContextualMenu.perform(
         context: .init(
           revealOTP: { [self] in
-            await self.revealAndCopyOTP(for: resourceID)
+						await withLogCatch(
+							failInfo: "Failed to reveal OTP.",
+							fallback: { [viewState] (error: Error) in
+								viewState.update(\.snackBarMessage, to: .error(error))
+							}
+						) {
+							try await self.revealOTP(for: resourceID)
+						}
           },
           showMessage: { [viewState] (message: SnackBarMessage?) in
             viewState.update { state in
