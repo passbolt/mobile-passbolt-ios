@@ -2,11 +2,16 @@
 
 ## Added
 - Attaching OTP to an existing resource
-- Editing OTP
+- Editing standalone and attached OTP
+- OTP display in resource details and on the OTP list
 
 ## Improved
 - Refined logging which should gather more informations
 - Data validation and invalid data handling
+
+## Security
+- Improved data validation
+- Improved invalid data filtering and handling
 
 ## Fixed
 - Missing english localization strings
