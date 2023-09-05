@@ -36,7 +36,6 @@
 		B23A853D2A24DD3500C65133 /* TermsAndLicensesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B23A853C2A24DD3500C65133 /* TermsAndLicensesTests.swift */; };
 		B23C4F6429BA45C1001D9687 /* TransferAccountTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B23C4F6329BA45C1001D9687 /* TransferAccountTests.swift */; };
 		B28F789E2A1FBABD0095FE07 /* AccountsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B28F789D2A1FBABD0095FE07 /* AccountsTests.swift */; };
-		B29439912A2A1EF3009B9736 /* TermsAndLicensesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B29439902A2A1EF3009B9736 /* TermsAndLicensesTests.swift */; };
 		DD38F942261746C400A6C627 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD38F941261746C400A6C627 /* AppDelegate.swift */; };
 		DD38F944261746C400A6C627 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD38F943261746C400A6C627 /* SceneDelegate.swift */; };
 		DD38F94B261746C500A6C627 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DD38F94A261746C500A6C627 /* Assets.xcassets */; };
@@ -101,7 +100,6 @@
 		B23A853C2A24DD3500C65133 /* TermsAndLicensesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TermsAndLicensesTests.swift; sourceTree = "<group>"; };
 		B23C4F6329BA45C1001D9687 /* TransferAccountTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferAccountTests.swift; sourceTree = "<group>"; };
 		B28F789D2A1FBABD0095FE07 /* AccountsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountsTests.swift; sourceTree = "<group>"; };
-		B29439902A2A1EF3009B9736 /* TermsAndLicensesTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TermsAndLicensesTests.swift; path = PassboltUITests/Scenarios/Settings/TermsAndLicenses/TermsAndLicensesTests.swift; sourceTree = SOURCE_ROOT; };
 		DD38F93E261746C400A6C627 /* Passbolt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Passbolt.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD38F941261746C400A6C627 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		DD38F943261746C400A6C627 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -215,14 +213,6 @@
 				B28F789D2A1FBABD0095FE07 /* AccountsTests.swift */,
 			);
 			path = Accounts;
-			sourceTree = "<group>";
-		};
-		B294398F2A2A1E8C009B9736 /* TermsAndLicences */ = {
-			isa = PBXGroup;
-			children = (
-				B29439902A2A1EF3009B9736 /* TermsAndLicensesTests.swift */,
-			);
-			path = TermsAndLicences;
 			sourceTree = "<group>";
 		};
 		DD38F935261746C400A6C627 = {
@@ -773,7 +763,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.15.0;
+				MARKETING_VERSION = 1.16.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = com.passbolt.mobile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -801,7 +791,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.15.0;
+				MARKETING_VERSION = 1.16.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = com.passbolt.mobile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -827,7 +817,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.15.0;
+				MARKETING_VERSION = 1.16.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = com.passbolt.mobile.autofill;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -852,7 +842,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.15.0;
+				MARKETING_VERSION = 1.16.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = com.passbolt.mobile.autofill;
 				PRODUCT_NAME = "$(TARGET_NAME)";
