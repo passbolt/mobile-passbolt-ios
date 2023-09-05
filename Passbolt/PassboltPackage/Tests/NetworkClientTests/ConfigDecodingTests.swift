@@ -59,7 +59,7 @@ final class ConfigDecodingTests: XCTestCase {
       """
       .data(using: .utf8)!
 
-    let config: Config? = try? JSONDecoder().decode(Config.self, from: rawJSON)
+    let config: Config? = try? JSONDecoder.default.decode(Config.self, from: rawJSON)
 
     let legal: Config.Legal = .init(
       privacyPolicy: .init(url: "https://www.passbolt.com/privacy"),
@@ -87,7 +87,7 @@ final class ConfigDecodingTests: XCTestCase {
       """
       .data(using: .utf8)!
 
-    let config: Config? = try? JSONDecoder().decode(Config.self, from: rawJSON)
+    let config: Config? = try? JSONDecoder.default.decode(Config.self, from: rawJSON)
 
     XCTAssertNil(config!.legal)
     XCTAssertTrue(config!.plugins.isEmpty)
@@ -112,7 +112,7 @@ final class ConfigDecodingTests: XCTestCase {
       """
       .data(using: .utf8)!
 
-    let config: Config? = try? JSONDecoder().decode(Config.self, from: rawJSON)
+    let config: Config? = try? JSONDecoder.default.decode(Config.self, from: rawJSON)
 
     XCTAssertNil(config)
   }

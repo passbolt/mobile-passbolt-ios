@@ -55,10 +55,9 @@ extension AccountTransferAccount {
           .pushing(.message("Data validation fail - invalid account data hash"))
       )
     }
-    let jsonDecoder: JSONDecoder = .init()
     do {
       return .success(
-        try jsonDecoder
+        try JSONDecoder.default
           .decode(
             Self.self,
             from: joinedDataParts

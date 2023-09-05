@@ -90,9 +90,6 @@ extension SessionNetworkAuthorization {
     let sessionRefreshNetworkOperation: SessionRefreshNetworkOperation = try features.instance()
     let sessionCloseNetworkOperation: SessionCloseNetworkOperation = try features.instance()
 
-    let jsonEncoder: JSONEncoder = .init()
-    let jsonDecoder: JSONDecoder = .init()
-
     @Sendable nonisolated func fetchServerPublicPGPKeyAndTimeDiff(
       for account: Account
     ) async throws -> (ArmoredPGPPublicKey, Seconds) {
@@ -223,7 +220,7 @@ extension SessionNetworkAuthorization {
       Diagnostics.logger.info("...preparing authorization challenge...")
       do {
         let challengeData: Data =
-          try jsonEncoder
+				try JSONEncoder.default
           .encode(
             Challenge(
               version: "1.0.0",  // Protocol version 1.0.0
@@ -315,7 +312,7 @@ extension SessionNetworkAuthorization {
           .data(using: .utf8) ?? Data()
 
         tokens =
-          try jsonDecoder
+          try JSONDecoder.default
           .decode(
             Tokens.self,
             from: decryptedPayloadData

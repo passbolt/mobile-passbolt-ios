@@ -42,11 +42,10 @@ extension AccountTransferConfiguration {
   internal static func from(
     _ part: AccountTransferScanningPart
   ) -> Result<Self, Error> {
-    let jsonDecoder: JSONDecoder = .init()
     var decoded: Self
     do {
       decoded =
-        try jsonDecoder
+        try JSONDecoder.default
         .decode(
           Self.self,
           from: part.payload

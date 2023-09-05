@@ -42,9 +42,6 @@ extension JWT {
   }
 }
 
-private let jsonDecoder: JSONDecoder = .init()
-private let jsonEncoder: JSONEncoder = .init()
-
 extension JWT {
 
   private static func decode(
@@ -98,7 +95,7 @@ extension JWT {
 
     return Result(
       catching: {
-        try jsonDecoder.decode(type, from: preprocessed)
+				try JSONDecoder.default.decode(type, from: preprocessed)
 
       })
       .mapError { error in

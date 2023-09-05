@@ -380,19 +380,13 @@ final class AccountChunkedExportTests: LoadableFeatureTestCase<AccountChunkedExp
   }
 }
 
-let mockDataEncoder: JSONEncoder = {
-  let encoder: JSONEncoder = .init()
-  encoder.keyEncodingStrategy = .convertToSnakeCase
-  return encoder
-}()
-
 let mockDataContentHash: String = AccountTransferConfiguration.mock_ada.hash
 nonisolated let mockDataPart_0: Data =
   "100".data(using: .ascii)!
-  + (try! mockDataEncoder.encode(AccountTransferConfiguration.mock_ada))  // current mock data fits in one page
+  + (try! JSONEncoder.snake.encode(AccountTransferConfiguration.mock_ada))  // current mock data fits in one page
 let mockDataPart_1: Data =
   "101".data(using: .ascii)!
-  + (try! mockDataEncoder.encode(AccountTransferAccount.mock_ada))  // current mock data fits in one page
+  + (try! JSONEncoder.snake.encode(AccountTransferAccount.mock_ada))  // current mock data fits in one page
 
 extension AccountChunkedExportInitializeRequestData: Equatable {
 

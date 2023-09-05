@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public struct FeaturesRegistry {
+@MainActor public struct FeaturesRegistry {
 
   private var statics: Dictionary<FeatureIdentifier, StaticFeature> = .init()
   private var scopes: Dictionary<FeaturesScopeIdentifier, Dictionary<FeatureIdentifier, FeatureLoader>> = .init()

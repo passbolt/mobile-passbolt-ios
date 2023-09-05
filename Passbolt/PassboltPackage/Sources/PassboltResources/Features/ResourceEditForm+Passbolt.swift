@@ -32,8 +32,6 @@ import Resources
 import SessionData
 import Users
 
-import class Foundation.JSONEncoder
-
 // MARK: - Implementation
 
 extension ResourceEditForm {

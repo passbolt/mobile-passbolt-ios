@@ -253,7 +253,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
   func test_storeAccount_savesDataProperly() async throws {
     let dataStore: AccountsDataStore = try testedInstance()
 
-    let result: Result<Void, Error> = await .init {
+    let result: Result<Void, Error> = .init {
       try dataStore.storeAccount(
         Account.mock_ada,
         AccountProfile.mock_ada,
@@ -665,10 +665,10 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
 }
 
 // keychain wrapper encodes values within own structure putting value under "v" key
-private let validAccountKeychainData: Data = try! JSONEncoder().encode(["v": Account.mock_ada])
+private let validAccountKeychainData: Data = try! JSONEncoder.default.encode(["v": Account.mock_ada])
 
 // keychain wrapper encodes values within own structure putting value under "v" key
-private let validAccountProfileKeychainData: Data = try! JSONEncoder().encode(["v": AccountProfile.mock_ada])
+private let validAccountProfileKeychainData: Data = try! JSONEncoder.default.encode(["v": AccountProfile.mock_ada])
 
 private let validPrivateKey: ArmoredPGPPrivateKey =
   """
@@ -735,6 +735,6 @@ private let validPrivateKey: ArmoredPGPPrivateKey =
 
 private let serverFingerprint: Fingerprint = .init(rawValue: "E8FE388E385841B382B674ADB02DADCD9565E1B8")
 
-private let validServerFingerprint: Data = try! JSONEncoder().encode(["v": serverFingerprint])
+private let validServerFingerprint: Data = try! JSONEncoder.default.encode(["v": serverFingerprint])
 // keychain wrapper encodes values within own structure putting value under "v" key
-private let validPrivateKeyKeychainData: Data = try! JSONEncoder().encode(["v": validPrivateKey])
+private let validPrivateKeyKeychainData: Data = try! JSONEncoder.default.encode(["v": validPrivateKey])

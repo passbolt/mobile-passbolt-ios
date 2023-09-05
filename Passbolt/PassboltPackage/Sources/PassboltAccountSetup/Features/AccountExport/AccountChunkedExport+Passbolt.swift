@@ -55,9 +55,6 @@ extension AccountChunkedExport {
     let transferInitializeNetworkOperation: AccountChunkedExportInitializeNetworkOperation = try features.instance()
     let transferStatusNetworkOperation: AccountChunkedExportStatusNetworkOperation = try features.instance()
 
-    let dataEncoder: JSONEncoder = .init()
-    dataEncoder.keyEncodingStrategy = .convertToSnakeCase
-
     let updatesSource: Updates = .init()
     let state: CriticalState<State> = .init(
       .init(
@@ -95,7 +92,7 @@ extension AccountChunkedExport {
         fingerprint: transferData.fingerprint,
         armoredKey: transferData.armoredKey
       )
-      let encodedPayload: Data = try dataEncoder.encode(payload)
+			let encodedPayload: Data = try JSONEncoder.snake.encode(payload)
 
       let payloadDataHash: String =
         SHA512
@@ -135,7 +132,7 @@ extension AccountChunkedExport {
         domain: domain,
         hash: payloadDataHash
       )
-      let encodedConfiguration: Data = try dataEncoder.encode(configuration)
+			let encodedConfiguration: Data = try JSONEncoder.snake.encode(configuration)
 
       var transferDataChunks: Array<Data> = [
         "100".data(using: .ascii)! /* it can't fail */

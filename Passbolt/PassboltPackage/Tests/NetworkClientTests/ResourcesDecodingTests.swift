@@ -88,7 +88,7 @@ final class ResourcesDecodingTests: XCTestCase {
       """
       .data(using: .utf8)!
 
-    let decodedData: ResourceTypeDTO? = try? JSONDecoder()
+    let decodedData: ResourceTypeDTO? = try? JSONDecoder.default
       .decode(
         ResourceTypeDTO.self,
         from: rawJSON
@@ -228,7 +228,7 @@ final class ResourcesDecodingTests: XCTestCase {
       """
       .data(using: .utf8)!
 
-    let decodedData: ResourceTypeDTO? = try? JSONDecoder()
+    let decodedData: ResourceTypeDTO? = try? JSONDecoder.default
       .decode(
         ResourceTypeDTO.self,
         from: rawJSON

@@ -165,7 +165,7 @@ extension OSKeychain {
         do {
           return try .success(
             items.map { item in
-              try jsonDecoder.decode(
+              try JSONDecoder.default.decode(
                 JSONWrapper<Value>.self,
                 from: item
               )
@@ -197,7 +197,7 @@ extension OSKeychain {
         else { return .success(nil) }
         do {
           return try .success(
-            jsonDecoder.decode(
+						JSONDecoder.default.decode(
               JSONWrapper<Value>.self,
               from: firstItem
             )
@@ -236,7 +236,7 @@ extension OSKeychain {
   where Value: Codable {
     do {
       return try save(
-        jsonEncoder.encode(JSONWrapper(value)),
+				JSONEncoder.default.encode(JSONWrapper(value)),
         query
       )
     }
@@ -271,9 +271,6 @@ private struct JSONWrapper<Value: Codable>: Codable {
     self.v = value
   }
 }
-
-private let jsonEncoder = JSONEncoder()
-private let jsonDecoder = JSONDecoder()
 
 @inline(__always)
 private func loadKeychainData(

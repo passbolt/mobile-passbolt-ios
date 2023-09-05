@@ -21,19 +21,38 @@
 // @since         v1.0
 //
 
-import CommonModels
+import class Foundation.JSONEncoder
 
-@testable import PassboltAccountSetup
+extension JSONEncoder {
 
-extension AccountTransferConfiguration {
+	public static var `default`: JSONEncoder {
+		@_transparent _read { yield defaultJSONEncoder }
+	}
 
-  public static let mock_ada: Self = .init(
-    transferID: "TRANSFER_ID",
-    pagesCount: 2,
-    userID: Account.mock_ada.userID,
-    authenticationToken: "TRANSFER_TOKEN",
-    domain: Account.mock_ada.domain,
-    hash:
-      "c6ed55cdbc7b97aaf2b9f6445a20ea11a659962f7eef22b83ec65dc212f7e505e1996969af949dda25dfecd7f482cff7ea4ca744322bdd22b67d6437eae91c6a"
-  )
+	public static var snake: JSONEncoder {
+		@_transparent _read { yield snakeJSONEncoder }
+	}
+
+	public static var pretty: JSONEncoder {
+		@_transparent _read { yield prettyJSONEncoder }
+	}
 }
+
+@usableFromInline internal let defaultJSONEncoder: JSONEncoder = {
+	let encoder: JSONEncoder = .init()
+	encoder.outputFormatting = .sortedKeys
+	return encoder
+}()
+
+@usableFromInline internal let snakeJSONEncoder: JSONEncoder = {
+	let encoder: JSONEncoder = .init()
+	encoder.outputFormatting = .sortedKeys
+	encoder.keyEncodingStrategy = .convertToSnakeCase
+	return encoder
+}()
+
+@usableFromInline internal let prettyJSONEncoder: JSONEncoder = {
+	let encoder: JSONEncoder = .init()
+	encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+	return encoder
+}()

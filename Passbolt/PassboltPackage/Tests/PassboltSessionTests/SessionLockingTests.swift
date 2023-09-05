@@ -39,11 +39,9 @@ final class SessionLockingTests: FeaturesTestCase {
 
   func test_ensureAutolock_doesNotAffectAnythingWithoutTrigger() async throws {
     patch(
-      \ApplicationLifecycle.lifecyclePublisher,
-      with: always(
-        Empty<ApplicationLifecycle.Transition, Never>()
-          .eraseToAnyPublisher()
-      )
+      \ApplicationLifecycle.lifecycle,
+      with: Empty<ApplicationLifecycle.Transition, Never>()
+				.asAsyncSequence()
     )
 		patch(
 			\SessionState.updates,
@@ -61,7 +59,7 @@ final class SessionLockingTests: FeaturesTestCase {
 				// sleeping beacause of actor switching
 				// inside tasks causing the test to finish
 				// prematurely Task.yield is not enough here
-				try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
+				try await Task.sleep(nanoseconds: 10 * NSEC_PER_MSEC)
 			}
 		}
   }
@@ -96,7 +94,7 @@ final class SessionLockingTests: FeaturesTestCase {
 				// sleeping beacause of actor switching
 				// inside tasks causing the test to finish
 				// prematurely Task.yield is not enough here
-				try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
+				try await Task.sleep(nanoseconds: 10 * NSEC_PER_MSEC)
 			}
 		}
 	}
@@ -133,7 +131,7 @@ final class SessionLockingTests: FeaturesTestCase {
 				// sleeping beacause of actor switching
 				// inside tasks causing the test to finish
 				// prematurely Task.yield is not enough here
-				try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
+				try await Task.sleep(nanoseconds: 10 * NSEC_PER_MSEC)
 			}
 		}
 	}

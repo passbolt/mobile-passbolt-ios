@@ -27,7 +27,7 @@ import XCTest
 final class JSONTests: XCTestCase {
 
   func test_decoding() throws {
-    let json: JSON = try JSONDecoder()
+    let json: JSON = try JSONDecoder.default
       .decode(
         JSON.self,
         from: """
@@ -124,8 +124,8 @@ final class JSONTests: XCTestCase {
       ],
     ]
 
-    let encoded: Data = try JSONEncoder().encode(json)
-    let decoded: JSON = try JSONDecoder().decode(JSON.self, from: encoded)
+		let encoded: Data = try JSONEncoder.default.encode(json)
+    let decoded: JSON = try JSONDecoder.default.decode(JSON.self, from: encoded)
 
     XCTAssertEqual(
       json,
@@ -134,7 +134,7 @@ final class JSONTests: XCTestCase {
   }
 
   func test_paths() throws {
-    let json: JSON = try JSONDecoder()
+    let json: JSON = try JSONDecoder.default
       .decode(
         JSON.self,
         from: """
@@ -193,7 +193,7 @@ final class JSONTests: XCTestCase {
     ]
 
     XCTAssertEqual(
-      try JSONDecoder()
+      try JSONDecoder.default
         .decode(
           JSON.self,
           from: json

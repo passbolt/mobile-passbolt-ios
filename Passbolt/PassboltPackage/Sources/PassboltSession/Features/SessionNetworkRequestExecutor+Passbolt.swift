@@ -38,7 +38,6 @@ extension SessionNetworkRequestExecutor {
     let sessionStateEnsurance: SessionStateEnsurance = try features.instance()
     let sessionAuthorizationState: SessionAuthorizationState = try features.instance()
     let networkRequestExecutor: NetworkRequestExecutor = try features.instance()
-    let jsonDecoder: JSONDecoder = .init()
 
     @SessionActor @Sendable func prepareRequest(
       _ mutation: Mutation<HTTPRequest>,
@@ -114,7 +113,7 @@ extension SessionNetworkRequestExecutor {
         )
       }
       catch let forbidden as HTTPForbidden {
-        guard let mfaResponse: MFARequiredResponse = decodeMFARequired(from: forbidden.response, using: jsonDecoder)
+        guard let mfaResponse: MFARequiredResponse = decodeMFARequired(from: forbidden.response, using: JSONDecoder.default)
         else { throw forbidden }
 
         sessionState.mfaTokenInvalidate()
@@ -162,7 +161,7 @@ extension SessionNetworkRequestExecutor {
               )
             )
 
-          guard let mfaResponse: MFARequiredResponse = decodeMFARequired(from: redirectResponse, using: jsonDecoder)
+          guard let mfaResponse: MFARequiredResponse = decodeMFARequired(from: redirectResponse, using: JSONDecoder.default)
           else { throw redirect }
 
           sessionState.mfaTokenInvalidate()
@@ -190,7 +189,7 @@ extension SessionNetworkRequestExecutor {
           )
         }
         catch let forbidden as HTTPForbidden {
-          guard let mfaResponse: MFARequiredResponse = decodeMFARequired(from: forbidden.response, using: jsonDecoder)
+          guard let mfaResponse: MFARequiredResponse = decodeMFARequired(from: forbidden.response, using: JSONDecoder.default)
           else { throw forbidden }
 
           sessionState.mfaTokenInvalidate()

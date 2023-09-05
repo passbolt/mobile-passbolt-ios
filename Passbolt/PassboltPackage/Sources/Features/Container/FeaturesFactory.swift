@@ -34,7 +34,7 @@ where Scope: FeaturesScope {
   private var loaders: Dictionary<FeatureIdentifier, FeatureLoader>
   private var cache: Dictionary<CacheKey, CacheItem>
 
-  nonisolated public init(
+	@MainActor public init(
     registrySetup: (inout FeaturesRegistry) -> Void
   ) where Scope == RootFeaturesScope {
     var registry: FeaturesRegistry = .init()

@@ -162,19 +162,19 @@ extension Mutation where Subject == HTTPRequest {
 
   public static func jsonBody<Body>(
     from body: Body,
-    using encoder: JSONEncoder = .init()
+    using encoder: JSONEncoder = .default
   ) -> Self
   where Body: Encodable {
     Self { request in
       #if DEBUG
       do {
-        request.body = try JSONEncoder().encode(body)
+        request.body = try encoder.encode(body)
       }
       catch {
         unreachable("Failing request body encoding")
       }
       #else
-      request.body = (try? JSONEncoder().encode(body)) ?? Data()
+      request.body = (try? encoder.encode(body)) ?? Data()
       #endif
       request.headers["Content-Type"] = "application/json"
     }

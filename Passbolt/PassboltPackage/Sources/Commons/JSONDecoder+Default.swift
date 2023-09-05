@@ -21,19 +21,14 @@
 // @since         v1.0
 //
 
-import CommonModels
 
-@testable import PassboltAccountSetup
+import class Foundation.JSONDecoder
 
-extension AccountTransferConfiguration {
+extension JSONDecoder {
 
-  public static let mock_ada: Self = .init(
-    transferID: "TRANSFER_ID",
-    pagesCount: 2,
-    userID: Account.mock_ada.userID,
-    authenticationToken: "TRANSFER_TOKEN",
-    domain: Account.mock_ada.domain,
-    hash:
-      "c6ed55cdbc7b97aaf2b9f6445a20ea11a659962f7eef22b83ec65dc212f7e505e1996969af949dda25dfecd7f482cff7ea4ca744322bdd22b67d6437eae91c6a"
-  )
+	public static var `default`: JSONDecoder {
+		@_transparent _read { yield defaultJSONDecoder }
+	}
 }
+
+@usableFromInline internal let defaultJSONDecoder: JSONDecoder = .init()

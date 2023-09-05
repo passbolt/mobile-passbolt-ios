@@ -90,7 +90,7 @@ extension ResourceController {
         return .string(decryptedSecret)
       }
       else {
-        return try JSONDecoder()
+        return try JSONDecoder.default
           .decode(
             JSON.self,
             from:

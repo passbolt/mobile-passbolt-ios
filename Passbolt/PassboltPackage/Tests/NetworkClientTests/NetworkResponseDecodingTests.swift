@@ -235,7 +235,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
         body: body
       )
 
-    let httpBody: Data = try! JSONEncoder().encode(response)
+		let httpBody: Data = try! JSONEncoder.predictable.encode(response)
 
     do {
       _ =
@@ -280,7 +280,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
         body: body
       )
 
-    let httpBody: Data = try! JSONEncoder().encode(response)
+		let httpBody: Data = try! JSONEncoder.predictable.encode(response)
 
     do {
       _ =

@@ -27,7 +27,6 @@ import OSFeatures
 import Session
 
 import struct Foundation.Data
-import class Foundation.JSONEncoder
 
 // MARK: - Implementation
 

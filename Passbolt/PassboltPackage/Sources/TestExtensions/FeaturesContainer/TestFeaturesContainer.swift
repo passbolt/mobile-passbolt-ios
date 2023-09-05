@@ -156,7 +156,7 @@ extension TestFeaturesContainer: FeaturesContainer {
 
 extension TestFeaturesContainer {
 
-  public func register<Feature>(
+  @MainActor public func register<Feature>(
     _ register: (inout FeaturesRegistry) -> Void,
     for _: Feature.Type
   ) where Feature: LoadableFeature {
