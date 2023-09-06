@@ -46,10 +46,9 @@ extension AccountDetailsController: UIController {
     cancellables: Cancellables
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
-    let currentAccount: Account = try features.sessionAccount()
 
-    let accountDetails: AccountDetails = try features.instance(context: currentAccount)
-    let accountPreferences: AccountPreferences = try features.instance(context: currentAccount)
+    let accountDetails: AccountDetails = try features.instance()
+    let accountPreferences: AccountPreferences = try features.instance()
 
     let currentAccountWithProfile: AccountWithProfile = try accountDetails.profile()
 

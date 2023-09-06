@@ -26,102 +26,110 @@ import Localization
 
 public struct Validator<Value> {
 
-  public var validate: (Value) -> Validated<Value>
+	public var validate: (Value) -> Validated<Value>
 
-  public init(
-    validate: @escaping (Value) -> Validated<Value>
-  ) {
-    self.validate = validate
-  }
+	public init(
+		validate: @escaping (Value) -> Validated<Value>
+	) {
+		self.validate = validate
+	}
 
-  public init(
-    validate: @escaping (Value) throws -> Void
-  ) {
-    self.init { (value: Value) -> Validated<Value> in
-      do {
-        try validate(value)
-        return .valid(value)
-      }
-      catch {
-        return .invalid(
-          value,
-          error: error.asTheError()
-        )
-      }
-    }
-  }
+	public init(
+		validate: @escaping (Value) throws -> Void
+	) {
+		self.init { (value: Value) -> Validated<Value> in
+			do {
+				try validate(value)
+				return .valid(value)
+			}
+			catch {
+				return .invalid(
+					value,
+					error: error.asTheError()
+				)
+			}
+		}
+	}
 }
 
 extension Validator {
 
-  public func callAsFunction(
-    _ value: Value
-  ) -> Validated<Value> {
-    validate(value)
-  }
+	public func callAsFunction(
+		_ value: Value
+	) -> Validated<Value> {
+		validate(value)
+	}
 
-  public func callAsFunction(
-    _ validated: Validated<Value>
-  ) -> Validated<Value> {
-    validate(validated.value)
-  }
+	public func callAsFunction(
+		_ validated: Validated<Value>
+	) -> Validated<Value> {
+		validate(validated.value)
+	}
+
+	public func ensureValid(
+		_ value: Value
+	) throws {
+		if let error: Error = validate(value).error {
+			throw error
+		} // else valid
+	}
 }
 
 extension Validator {
 
-  public func contraMap<MappedValue>(
-    _ mapping: @escaping (MappedValue) -> Value
-  ) -> Validator<MappedValue> {
-    Validator<MappedValue> { mappedValue in
-      if let error: TheError = self.validate(mapping(mappedValue)).error {
-        return .invalid(mappedValue, error: error)
-      }
-      else {
-        return .valid(mappedValue)
-      }
-    }
-  }
+	public func contraMap<MappedValue>(
+		_ mapping: @escaping (MappedValue) -> Value
+	) -> Validator<MappedValue> {
+		Validator<MappedValue> { mappedValue in
+			if let error: TheError = self.validate(mapping(mappedValue)).error {
+				return .invalid(mappedValue, error: error)
+			}
+			else {
+				return .valid(mappedValue)
+			}
+		}
+	}
 }
 
 public func zip<Value>(
-  _ validators: Validator<Value>...
+	_ validators: Validator<Value>...
 ) -> Validator<Value> {
-  Validator<Value> { value in
-    for validator in validators {
-      if let error: TheError = validator(value).error {
-        return .invalid(value, error: error)
-      }
-      else {
-        continue
-      }
-    }
-    return .valid(value)
-  }
+	Validator<Value> { value in
+		for validator in validators {
+			if let error: TheError = validator(value).error {
+				return .invalid(value, error: error)
+			}
+			else {
+				continue
+			}
+		}
+		return .valid(value)
+	}
 }
 
 extension Validator {
 
-  public static var alwaysValid: Self {
-    Self { value in
-      .valid(value)
-    }
-  }
+	public static var alwaysValid: Self {
+		Self { value in
+			.valid(value)
+		}
+	}
 
-  public static func alwaysInvalid(
-    displayable: DisplayableString,
-    file: StaticString = #fileID,
-    line: UInt = #line
-  ) -> Self {
-    Self { value in
-      .invalid(
-        value,
-        error: InvalidValue.alwaysInvalid(
-          value: value,
-          displayable: displayable,
-          file: file,
-          line: line
-        )
-      )
-    }
-  }
+	public static func alwaysInvalid(
+		displayable: DisplayableString,
+		file: StaticString = #fileID,
+		line: UInt = #line
+	) -> Self {
+		Self { value in
+			.invalid(
+				value,
+				error: InvalidValue.alwaysInvalid(
+					value: value,
+					displayable: displayable,
+					file: file,
+					line: line
+				)
+			)
+		}
+	}
 }

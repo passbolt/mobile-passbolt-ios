@@ -47,7 +47,7 @@ internal final class HomeNavigationNodeController: ViewController {
     features: Features
   ) throws {
     let features: Features =
-      features
+      try features
       .branch(
         scope: SessionScope.self,
         context: context

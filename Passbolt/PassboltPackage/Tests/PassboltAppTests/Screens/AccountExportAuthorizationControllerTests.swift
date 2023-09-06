@@ -41,12 +41,10 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
     )
     patch(
       \AccountDetails.profile,
-      context: .mock_ada,
       with: always(.mock_ada)
     )
     patch(
       \AccountDetails.avatarImage,
-      context: .mock_ada,
       with: always(.none)
     )
     patch(
@@ -55,7 +53,6 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
     )
     patch(
       \AccountPreferences.isPassphraseStored,
-      context: .mock_ada,
       with: always(false)
     )
   }
@@ -87,7 +84,6 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
     )
     patch(
       \AccountPreferences.isPassphraseStored,
-      context: Account.mock_ada,
       with: always(false)
     )
 
@@ -109,7 +105,6 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
     )
     patch(
       \AccountPreferences.isPassphraseStored,
-      context: Account.mock_ada,
       with: always(true)
     )
 

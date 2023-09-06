@@ -45,7 +45,6 @@ public struct ResourcesController {
 
 extension ResourcesController: LoadableFeature {
 
-  public typealias Context = ContextlessLoadableFeatureContext
 
   #if DEBUG
   public static var placeholder: Self {

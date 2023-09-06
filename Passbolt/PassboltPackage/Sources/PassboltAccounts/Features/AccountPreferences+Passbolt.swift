@@ -24,6 +24,7 @@
 import Accounts
 import OSFeatures
 import Session
+import FeatureScopes
 
 // MARK: - Implementation
 
@@ -31,13 +32,12 @@ extension AccountPreferences {
 
   @MainActor fileprivate static func load(
     features: Features,
-    context account: Account,
     cancellables: Cancellables
   ) throws -> Self {
-
-    let accountData: AccountData = try features.instance(context: account)
+		let account: Account = try features.sessionAccount()
+    let accountData: AccountData = try features.instance()
     let accountsDataStore: AccountsDataStore = try features.instance()
-    let sessionPassphrase: SessionPassphrase = try features.instance(context: .init(account: account))
+    let sessionPassphrase: SessionPassphrase = try features.instance()
 
     @Sendable nonisolated func setLocalAccountLabel(
       _ label: String
@@ -62,23 +62,17 @@ extension AccountPreferences {
       accountData.updates.update()
     }
 
-    let useLastHomePresentationAsDefaultProperty: StoredProperty<Bool> =
-      try features
-      .instance(
-        context: "UseLastUsedHomePresentationAsDefault-\(account)"
-      )
+    let useLastHomePresentationAsDefaultProperty: UseLastUsedHomePresentationAsDefaultStoredProperty =
+      try features.instance()
     let useLastHomePresentationAsDefault: StateBinding<Bool> = useLastHomePresentationAsDefaultProperty
       .binding
       .convert(
         read: unwrapped(default: true),
-        write: identity
+        write: { $0 }
       )
 
-    let defaultHomePresentationProperty: StoredProperty<String> =
-      try features
-      .instance(
-        context: "DefaultHomePresentationProperty-\(account)"
-      )
+    let defaultHomePresentationProperty: DefaultHomeModeStoredProperty =
+      try features.instance()
     let defaultHomePresentation: StateBinding<HomePresentationMode> = defaultHomePresentationProperty
       .binding
       .convert(
@@ -109,8 +103,35 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         AccountPreferences.self,
-        load: AccountPreferences.load(features:context:cancellables:)
-      )
+        load: AccountPreferences.load(features:cancellables:)
+      ),
+			in: SessionScope.self
     )
+		self.usePassboltStoredProperty(
+			UseLastUsedHomePresentationAsDefaultStoredPropertyDescription.self,
+			in: SessionScope.self
+		)
+		self.usePassboltStoredProperty(
+			DefaultHomeModeStoredPropertyDescription.self,
+			in: SessionScope.self
+		)
   }
+}
+
+internal typealias DefaultHomeModeStoredProperty = StoredProperty<DefaultHomeModeStoredPropertyDescription>
+
+internal enum DefaultHomeModeStoredPropertyDescription: StoredPropertyDescription {
+
+	public typealias Value = String
+
+	public static var key: OSStoredPropertyKey { "DefaultHomePresentationProperty" }
+}
+
+internal typealias UseLastUsedHomePresentationAsDefaultStoredProperty = StoredProperty<UseLastUsedHomePresentationAsDefaultStoredPropertyDescription>
+
+internal enum UseLastUsedHomePresentationAsDefaultStoredPropertyDescription: StoredPropertyDescription {
+
+	public typealias Value = Bool
+
+	public static var key: OSStoredPropertyKey { "UseLastUsedHomePresentationAsDefault" }
 }

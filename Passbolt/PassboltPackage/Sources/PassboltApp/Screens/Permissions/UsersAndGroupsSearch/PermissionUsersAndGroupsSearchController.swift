@@ -50,7 +50,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
 
     let navigation: DisplayNavigation = try features.instance()
     let executor: AsyncExecutor = try features.instance()
-    let resourceShareForm: ResourceShareForm = try features.instance(context: context)
+    let resourceShareForm: ResourceShareForm = try features.instance()
     let users: Users = try features.instance()
     let userGroups: UserGroups = try features.instance()
 

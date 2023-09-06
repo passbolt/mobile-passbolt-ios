@@ -40,12 +40,9 @@ extension ResourceShareForm {
 
   @MainActor fileprivate static func load(
     features: Features,
-    context resourceID: Context,
     cancellables: Cancellables
   ) throws -> Self {
-    try features.ensureScope(SessionScope.self)
-    try features.ensureScope(ResourceDetailsScope.self)
-    try features.ensureScope(ResourceShareScope.self)
+		let resourceID: Resource.ID = try features.resourceContext()
 
     let sessionData: SessionData = try features.instance()
     let resourceController: ResourceController = try features.instance()
@@ -466,7 +463,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         ResourceShareForm.self,
-        load: ResourceShareForm.load(features:context:cancellables:)
+        load: ResourceShareForm.load(features:cancellables:)
       ),
       in: ResourceShareScope.self
     )

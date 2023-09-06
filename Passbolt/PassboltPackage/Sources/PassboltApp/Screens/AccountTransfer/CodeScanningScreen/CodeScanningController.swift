@@ -44,7 +44,7 @@ extension CodeScanningController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
-    features = features.branch(scope: AccountTransferScope.self)
+    features = try features.branch(scope: AccountTransferScope.self)
 
     let accountTransfer: AccountImport = try features.instance()
     let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()

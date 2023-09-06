@@ -27,6 +27,7 @@ import OSFeatures
 import Resources
 import UIComponents
 import Users
+import FeatureScopes
 
 internal struct UserPermissionEditController {
 
@@ -53,8 +54,12 @@ extension UserPermissionEditController: ComponentController {
     let features: Features = features
 
     let navigation: DisplayNavigation = try features.instance()
-    let userDetails: UserDetails = try features.instance(context: context.permissionDetails.id)
-    let resourceShareForm: ResourceShareForm = try features.instance(context: context.resourceID)
+		let userDetails: UserDetails = try features
+			.branchIfNeeded(
+				scope: UserScope.self,
+				context: context.permissionDetails.id
+			).instance()
+    let resourceShareForm: ResourceShareForm = try features.instance()
 
     let viewState: ObservableValue<ViewState> = .init(
       initial: .init(

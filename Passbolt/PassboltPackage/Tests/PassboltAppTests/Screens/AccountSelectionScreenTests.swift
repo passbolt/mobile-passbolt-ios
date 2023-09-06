@@ -52,29 +52,13 @@ final class AccountSelectionScreenTests: MainActorTestCase {
     features.patch(
       \Accounts.storedAccounts,
       with: always([
-        Account.mock_ada, Account.mock_frances,
+        AccountWithProfile.mock_ada, AccountWithProfile.mock_frances,
       ])
     )
-    features.patch(
-      \AccountDetails.profile,
-      context: Account.mock_ada,
-      with: always(AccountWithProfile.mock_ada)
-    )
-    features.patch(
-      \AccountDetails.avatarImage,
-      context: Account.mock_ada,
-      with: always(.init())
-    )
-    features.patch(
-      \AccountDetails.profile,
-      context: Account.mock_frances,
-      with: always(AccountWithProfile.mock_frances)
-    )
-    features.patch(
-      \AccountDetails.avatarImage,
-      context: Account.mock_frances,
-      with: always(.init())
-    )
+		features.patch(
+			\MediaDownloadNetworkOperation.execute,
+			with: always(.init())
+		)
   }
 
   override func mainActorTearDown() {
@@ -82,16 +66,10 @@ final class AccountSelectionScreenTests: MainActorTestCase {
   }
 
   func test_accountsPublisher_publishesItemsWithImage_inSelectionMode() async throws {
-    features.patch(
-      \AccountDetails.avatarImage,
-      context: Account.mock_ada,
-      with: always(.init())
-    )
-    features.patch(
-      \AccountDetails.avatarImage,
-      context: Account.mock_frances,
-      with: always(.init())
-    )
+		features.patch(
+			\MediaDownloadNetworkOperation.execute,
+			with: always(.init())
+		)
 
     let controller: AccountSelectionController = try await testController(context: .init(value: false))
     var result: Array<AccountSelectionListItem> = []
@@ -127,13 +105,7 @@ final class AccountSelectionScreenTests: MainActorTestCase {
 
   func test_accountsPublisher_publishesItemsWithoutImage_inSelectionMode() async throws {
     features.patch(
-      \AccountDetails.avatarImage,
-      context: Account.mock_ada,
-      with: alwaysThrow(MockIssue.error())
-    )
-    features.patch(
-      \AccountDetails.avatarImage,
-      context: Account.mock_frances,
+      \MediaDownloadNetworkOperation.execute,
       with: alwaysThrow(MockIssue.error())
     )
 
@@ -222,8 +194,8 @@ final class AccountSelectionScreenTests: MainActorTestCase {
   }
 
   func test_removeStoredAccount_Succeeds() async throws {
-    let storedAccounts: UnsafeSendable<Array<Account>> = .init(
-      [Account.mock_ada, Account.mock_frances]
+    let storedAccounts: UnsafeSendable<Array<AccountWithProfile>> = .init(
+      [AccountWithProfile.mock_ada, .mock_frances]
     )
     features.patch(
       \Accounts.storedAccounts,
@@ -232,7 +204,7 @@ final class AccountSelectionScreenTests: MainActorTestCase {
     features.patch(
       \Accounts.removeAccount,
       with: { account in
-        storedAccounts.value?.removeAll { $0 == account }
+				storedAccounts.value?.removeAll { $0.account == account }
       }
     )
 
@@ -262,8 +234,8 @@ final class AccountSelectionScreenTests: MainActorTestCase {
   }
 
   func test_removeStoredAccount_updatesAccountsList() async throws {
-    let storedAccounts: UnsafeSendable<Array<Account>> = .init(
-      [Account.mock_ada, Account.mock_frances]
+    let storedAccounts: UnsafeSendable<Array<AccountWithProfile>> = .init(
+      [AccountWithProfile.mock_ada, .mock_frances]
     )
     features.patch(
       \Accounts.storedAccounts,
@@ -272,7 +244,7 @@ final class AccountSelectionScreenTests: MainActorTestCase {
     features.patch(
       \Accounts.removeAccount,
       with: { account in
-        storedAccounts.value?.removeAll { $0 == account }
+				storedAccounts.value?.removeAll { $0.account == account }
       }
     )
 

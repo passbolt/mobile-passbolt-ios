@@ -55,17 +55,14 @@ final class HomeSearchControllerTests: MainActorTestCase {
     detailsUpdates = .init()
     features.patch(
       \AccountDetails.updates,
-      context: Account.mock_ada,
       with: detailsUpdates.asAnyUpdatable()
     )
     features.patch(
       \AccountDetails.profile,
-      context: Account.mock_ada,
       with: always(AccountWithProfile.mock_ada)
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: Account.mock_ada,
       with: always(.init())
     )
   }
@@ -178,7 +175,6 @@ final class HomeSearchControllerTests: MainActorTestCase {
     let data: Data = .init([65, 66])
     features.patch(
       \AccountDetails.avatarImage,
-      context: Account.mock_ada,
       with: always(data)
     )
     let controller: HomeSearchController = try await testController(
@@ -196,7 +192,6 @@ final class HomeSearchControllerTests: MainActorTestCase {
   func test_avatarImagePublisher_fails_whenMediaDownloadFails() async throws {
     features.patch(
       \AccountDetails.avatarImage,
-      context: Account.mock_ada,
       with: alwaysThrow(MockIssue.error())
     )
 

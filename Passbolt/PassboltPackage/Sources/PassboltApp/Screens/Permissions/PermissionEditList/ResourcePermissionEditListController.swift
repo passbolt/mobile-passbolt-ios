@@ -50,19 +50,16 @@ extension ResourcePermissionEditListController: ComponentController {
     cancellables: Cancellables
   ) throws -> Self {
     features =
-      features
+      try features
       .branch(
-        scope: ResourceDetailsScope.self,
+        scope: ResourceScope.self,
         context: context
       )
-      .branch(
-        scope: ResourceShareScope.self,
-        context: context
-      )
+      .branch(scope: ResourceShareScope.self)
     let features: Features = features
     let navigation: DisplayNavigation = try features.instance()
 
-    let resourceShareForm: ResourceShareForm = try features.instance(context: context)
+    let resourceShareForm: ResourceShareForm = try features.instance()
 
     let viewState: ObservableValue<ViewState>
 
@@ -84,10 +81,11 @@ extension ResourcePermissionEditListController: ComponentController {
             case let .user(userID, permission, _):
               let userDetails: UserDetails =
                 try await features
-                .instance(
-                  of: UserDetails.self,
-                  context: userID
-                )
+								.branch(
+									scope: UserScope.self,
+									context: userID
+								)
+                .instance(of: UserDetails.self)
 
               let details: UserDetailsDSV =
                 try await userDetails
@@ -112,10 +110,11 @@ extension ResourcePermissionEditListController: ComponentController {
             case let .userGroup(userGroupID, permission, _):
               let details: UserGroupDetailsDSV =
                 try await features
-                .instance(
-                  of: UserGroupDetails.self,
-                  context: userGroupID
-                )
+								.branchIfNeeded(
+									scope: UserGroupScope.self,
+									context: userGroupID
+								)
+                .instance(of: UserGroupDetails.self)
                 .details()
 
               listItems

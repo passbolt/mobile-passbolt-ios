@@ -42,10 +42,10 @@ internal struct ResourceOTPDeleteAlertController: AlertController {
     using features: Features
   ) throws {
     let features: Features =
-      features.branchIfNeeded(
-        scope: ResourceDetailsScope.self,
+      try features.branchIfNeeded(
+        scope: ResourceScope.self,
         context: context.resourceID
-      ) ?? features.takeOwned()
+      )
 
     let resourceController: ResourceController = try features.instance()
 
@@ -70,10 +70,10 @@ internal struct ResourceOTPDeleteAlertController: AlertController {
               .error(message: "Attempting to detach OTP from a resource which has none or unavailable detached type!")
           }
           let features: Features =
-            features.branchIfNeeded(
+            try features.branchIfNeeded(
               scope: ResourceEditScope.self,
               context: editingContext
-            ) ?? features
+            )
 
           let resourceEditForm: ResourceEditForm = try features.instance()
           try resourceEditForm.updateType(detachedType)

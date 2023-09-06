@@ -51,15 +51,16 @@ final class HOTPCodeGeneratorTests: LoadableFeatureTestCase<HOTPCodeGenerator> {
         resourceID: .mock_1,
         otp: "755224",
         counter: 0
-      ),
-      context: .init(
-        resourceID: .mock_1,
-        sharedSecret: "12345678901234567890",
-        algorithm: .sha1,
-        digits: 6
       )
     ) { (feature: HOTPCodeGenerator) in
-      feature.generate(0)
+      feature.prepare(
+				.init(
+					resourceID: .mock_1,
+					sharedSecret: "12345678901234567890",
+					algorithm: .sha1,
+					digits: 6
+				)
+			)(0)
     }
   }
 
@@ -75,15 +76,16 @@ final class HOTPCodeGeneratorTests: LoadableFeatureTestCase<HOTPCodeGenerator> {
         resourceID: .mock_1,
         otp: "287082",
         counter: 1
-      ),
-      context: .init(
-        resourceID: .mock_1,
-        sharedSecret: "12345678901234567890",
-        algorithm: .sha1,
-        digits: 6
       )
     ) { (feature: HOTPCodeGenerator) in
-      feature.generate(1)
+      feature.prepare(
+				.init(
+					resourceID: .mock_1,
+					sharedSecret: "12345678901234567890",
+					algorithm: .sha1,
+					digits: 6
+				)
+			)(1)
     }
   }
 
@@ -99,15 +101,16 @@ final class HOTPCodeGeneratorTests: LoadableFeatureTestCase<HOTPCodeGenerator> {
         resourceID: .mock_1,
         otp: "359152",
         counter: 2
-      ),
-      context: .init(
-        resourceID: .mock_1,
-        sharedSecret: "12345678901234567890",
-        algorithm: .sha1,
-        digits: 6
       )
     ) { (feature: HOTPCodeGenerator) in
-      feature.generate(2)
+			feature.prepare(
+				.init(
+					resourceID: .mock_1,
+					sharedSecret: "12345678901234567890",
+					algorithm: .sha1,
+					digits: 6
+				)
+			)(2)
     }
   }
 
@@ -123,15 +126,16 @@ final class HOTPCodeGeneratorTests: LoadableFeatureTestCase<HOTPCodeGenerator> {
         resourceID: .mock_1,
         otp: "969429",
         counter: 3
-      ),
-      context: .init(
-        resourceID: .mock_1,
-        sharedSecret: "12345678901234567890",
-        algorithm: .sha1,
-        digits: 6
       )
     ) { (feature: HOTPCodeGenerator) in
-      feature.generate(3)
+      feature.prepare(
+				.init(
+					resourceID: .mock_1,
+					sharedSecret: "12345678901234567890",
+					algorithm: .sha1,
+					digits: 6
+				)
+			)(3)
     }
   }
 
@@ -147,15 +151,16 @@ final class HOTPCodeGeneratorTests: LoadableFeatureTestCase<HOTPCodeGenerator> {
         resourceID: .mock_1,
         otp: "338314",
         counter: 4
-      ),
-      context: .init(
-        resourceID: .mock_1,
-        sharedSecret: "12345678901234567890",
-        algorithm: .sha1,
-        digits: 6
       )
     ) { (feature: HOTPCodeGenerator) in
-      feature.generate(4)
+      feature.prepare(
+				.init(
+					resourceID: .mock_1,
+					sharedSecret: "12345678901234567890",
+					algorithm: .sha1,
+					digits: 6
+				)
+			)(4)
     }
   }
 
@@ -171,15 +176,16 @@ final class HOTPCodeGeneratorTests: LoadableFeatureTestCase<HOTPCodeGenerator> {
         resourceID: .mock_1,
         otp: "254676",
         counter: 5
-      ),
-      context: .init(
-        resourceID: .mock_1,
-        sharedSecret: "12345678901234567890",
-        algorithm: .sha1,
-        digits: 6
       )
     ) { (feature: HOTPCodeGenerator) in
-      feature.generate(5)
+      feature.prepare(
+				.init(
+					resourceID: .mock_1,
+					sharedSecret: "12345678901234567890",
+					algorithm: .sha1,
+					digits: 6
+				)
+			)(5)
     }
   }
 }

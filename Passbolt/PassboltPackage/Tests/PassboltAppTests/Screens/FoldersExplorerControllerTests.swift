@@ -85,7 +85,6 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
     features
       .patch(
         \AccountDetails.avatarImage,
-        context: Account.mock_ada,
         with: always(.init())
       )
   }

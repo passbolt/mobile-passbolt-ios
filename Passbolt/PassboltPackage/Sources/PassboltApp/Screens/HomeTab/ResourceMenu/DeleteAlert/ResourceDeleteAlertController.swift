@@ -42,10 +42,10 @@ internal struct ResourceDeleteAlertController: AlertController {
     using features: Features
   ) throws {
     let features: Features =
-      features.branchIfNeeded(
-        scope: ResourceDetailsScope.self,
+      try features.branchIfNeeded(
+        scope: ResourceScope.self,
         context: context.resourceID
-      ) ?? features
+      )
     let asyncExecutor: AsyncExecutor = try features.instance()
     let resourceController: ResourceController = try features.instance()
 

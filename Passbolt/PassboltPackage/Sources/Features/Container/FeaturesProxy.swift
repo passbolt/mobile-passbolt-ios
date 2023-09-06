@@ -109,11 +109,10 @@ extension FeaturesProxy: Features {
     context: RequestedScope.Context,
     file: StaticString,
     line: UInt
-  ) -> FeaturesContainer
+  ) throws -> FeaturesContainer
   where RequestedScope: FeaturesScope {
     if let container: Features = self.container {
-      return
-        container
+      return try container
         .branch(
           scope: RequestedScope.self,
           context: context,
@@ -178,7 +177,6 @@ extension FeaturesProxy: Features {
 
   @MainActor public func instance<Feature>(
     of featureType: Feature.Type,
-    context: Feature.Context,
     file: StaticString,
     line: UInt
   ) throws -> Feature
@@ -188,7 +186,6 @@ extension FeaturesProxy: Features {
         try container
         .instance(
           of: Feature.self,
-          context: context,
           file: file,
           line: line
         )

@@ -60,7 +60,7 @@ extension AccountDataExport {
     let account: Account = try features.sessionAccount()
 
     let session: Session = try features.instance()
-    let accountDetails: AccountDetails = try features.instance(context: account)
+    let accountDetails: AccountDetails = try features.instance()
     let accountsData: AccountsDataStore = try features.instance()
 
     @Sendable nonisolated func exportAccountData(

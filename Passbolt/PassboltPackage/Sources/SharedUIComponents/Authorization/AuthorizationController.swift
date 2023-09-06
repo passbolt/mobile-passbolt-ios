@@ -27,6 +27,7 @@ import Crypto
 import OSFeatures
 import Session
 import UIComponents
+import FeatureScopes
 
 public struct AuthorizationController {
 
@@ -63,8 +64,11 @@ extension AuthorizationController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let accountDetails: AccountDetails = try features.instance(context: context)
-    let accountPreferences: AccountPreferences = try features.instance(context: context)
+		let features: Features = try features.branchIfNeeded(
+			scope: AccountScope.self,
+			context: context
+		)
+    let accountDetails: AccountDetails = try features.instance()
     let session: Session = try features.instance()
     let biometry: OSBiometry = features.instance()
 
@@ -77,7 +81,7 @@ extension AuthorizationController: UIController {
       )
     )
 
-    let account: Account = context
+		let account: Account = context
     let accountWithProfileSubject: CurrentValueSubject<AccountWithProfile, Never> = try .init(
       accountDetails.profile()
     )
@@ -118,11 +122,11 @@ extension AuthorizationController: UIController {
     }
 
     func biometricStatePublisher() -> AnyPublisher<BiometricsState, Never> {
-      accountPreferences
+			accountDetails
         .updates
         .asAnyAsyncSequence()
         .map { _ -> BiometricsState in
-          switch (biometry.availability(), accountPreferences.isPassphraseStored()) {
+          switch (biometry.availability(), accountDetails.isPassphraseStored()) {
           case (.unavailable, _), (.unconfigured, _), (.touchID, false), (.faceID, false):
             return .unavailable
 
@@ -163,7 +167,7 @@ extension AuthorizationController: UIController {
         .handleErrors { error in
           switch error {
           case is HTTPNotFound:
-            accountNotFoundScreenPresentationSubject.send(context)
+						accountNotFoundScreenPresentationSubject.send(account)
           case _:
             return /* NOP */
           }
@@ -191,7 +195,7 @@ extension AuthorizationController: UIController {
       .handleErrors { error in
         switch error {
         case is HTTPNotFound:
-          accountNotFoundScreenPresentationSubject.send(context)
+					accountNotFoundScreenPresentationSubject.send(account)
         case _:
           return /* NOP */
         }

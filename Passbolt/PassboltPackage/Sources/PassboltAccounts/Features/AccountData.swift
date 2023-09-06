@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import FeatureScopes
 
 // TODO: future replacement for AccountsDataStore
 internal struct AccountData {
@@ -31,8 +32,6 @@ internal struct AccountData {
 }
 
 extension AccountData: LoadableFeature {
-
-  public typealias Context = Account
 
   #if DEBUG
   nonisolated static var placeholder: Self {
@@ -47,7 +46,6 @@ extension AccountData {
 
   @MainActor fileprivate static func load(
     features: Features,
-    context account: Account,
     cancellables: Cancellables
   ) throws -> Self {
 
@@ -65,8 +63,9 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         AccountData.self,
-        load: AccountData.load(features:context:cancellables:)
-      )
+        load: AccountData.load(features:cancellables:)
+      ),
+			in: AccountScope.self
     )
   }
 }

@@ -55,14 +55,13 @@ extension TagsExplorerController: ComponentController {
     cancellables: Cancellables
   ) throws -> Self {
     let features: Features = features
-    let currentAccount: Account = try features.sessionAccount()
 
     let asyncExecutor: AsyncExecutor = try features.instance()
 
     let navigationToAccountMenu: NavigationToAccountMenu = try features.instance()
 
     let navigation: DisplayNavigation = try features.instance()
-    let accountDetails: AccountDetails = try features.instance(context: currentAccount)
+    let accountDetails: AccountDetails = try features.instance()
     let resources: ResourcesController = try features.instance()
     let resourceTags: ResourceTags = try features.instance()
     let sessionData: SessionData = try features.instance()
@@ -212,12 +211,12 @@ extension TagsExplorerController: ComponentController {
     @MainActor func presentResourceMenu(_ resourceID: Resource.ID) {
       cancellables.executeOnMainActor {
         let features: Features =
-          features
+          try features
           .branchIfNeeded(
-            scope: ResourceDetailsScope.self,
+            scope: ResourceScope.self,
             context: resourceID
           )
-          ?? features
+
         let navigationToResourceContextualMenu: NavigationToResourceContextualMenu = try features.instance()
         try await navigationToResourceContextualMenu.perform(
           context: .init(

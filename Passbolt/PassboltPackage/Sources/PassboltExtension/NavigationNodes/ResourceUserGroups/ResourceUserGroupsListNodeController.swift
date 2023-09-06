@@ -28,6 +28,7 @@ import Session
 import SessionData
 import SharedUIComponents
 import Users
+import FeatureScopes
 
 internal final class ResourceUserGroupsListNodeController: ViewController {
 
@@ -131,7 +132,12 @@ extension ResourceUserGroupsListNodeController {
       },
       behavior: .replace
     ) { [features, context, navigationTree] in
-      let userGroup: UserGroupDetails = try await features.instance(context: userGroupID)
+      let userGroup: UserGroupDetails = try await features
+				.branch(
+					scope: UserGroupScope.self,
+					context: userGroupID
+				)
+				.instance()
       let userGroupDetails: UserGroupDetailsDSV = try await userGroup.details()
 
       let nodeController: ResourcesListNodeController =

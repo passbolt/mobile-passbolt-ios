@@ -29,124 +29,92 @@ import Users
 
 internal final class ResourceFolderEditController: ViewController {
 
-  internal nonisolated let viewState: ViewStateSource<ViewState>
+	internal nonisolated let viewState: ViewStateSource<ViewState>
 
-  private let asyncExecutor: AsyncExecutor
-  private let navigation: DisplayNavigation
-  private let users: Users
-  private let resourceFolderEditForm: ResourceFolderEditForm
+	private let navigation: DisplayNavigation
+	private let users: Users
+	private let resourceFolderEditForm: ResourceFolderEditForm
 
-  private let context: ResourceFolderEditForm.Context
-  private let features: Features
+	private let features: Features
 
-  internal init(
-    context: ResourceFolderEditForm.Context,
-    features: Features
-  ) throws {
-    let features: FeaturesContainer = features.branch(
-      scope: ResourceFolderEditScope.self,
-      context: context.editedFolderID
-    )
-    self.context = context
-    self.features = features
+	internal init(
+		context: Void,
+		features: Features
+	) throws {
+		self.features = features.takeOwned()
+		self.navigation = try features.instance()
+		self.users = try features.instance()
+		self.resourceFolderEditForm = try features.instance()
 
-    self.asyncExecutor = try features.instance()
-    self.navigation = try features.instance()
-    self.users = try features.instance()
-    let resourceFolderEditForm: ResourceFolderEditForm = try features.instance(context: context)
-    self.resourceFolderEditForm = resourceFolderEditForm
+		self.viewState = .init(
+			initial: .init(
+				folderName: .valid(""),
+				folderLocation: .init(),
+				folderPermissionItems: .init()
+			),
+			updateFrom: self.resourceFolderEditForm.state,
+			update: { [users] (updateState, formState) in
+				await updateState { (viewState: inout ViewState) in
+					do {
+						let resourceFolder: ResourceFolder = try formState.value
+						viewState.folderName = resourceFolder.nameValidator.validate(resourceFolder.name)
+						viewState.folderLocation = resourceFolder.path.map(\.name)
+						viewState.folderPermissionItems = resourceFolder
+							.permissions
+							.map { (permission: ResourceFolderPermission) -> OverlappingAvatarStackView.Item in
+								switch permission {
+								case let .user(id: userID, _, _):
+									return .user(
+										userID,
+										avatarImage: { try? await users.userAvatarImage(userID) }
+									)
 
-    var initialState: ViewState = .init(
-      folderName: .valid(""),
-      folderLocation: .init(),
-      folderPermissionItems: .init(),
-      loading: false
-    )
-    Self.update(
-      viewState: &initialState,
-      using: resourceFolderEditForm.formState(),
-      users: users
-    )
-    self.viewState = .init(
-      initial: initialState,
-      updateFrom: self.resourceFolderEditForm.updates,
-      update: { [users, resourceFolderEditForm] (updateState, _) in
-        await updateState { (viewState: inout ViewState) in
-          Self.update(
-            viewState: &viewState,
-            using: resourceFolderEditForm.formState(),
-            users: users
-          )
-        }
-      }
-    )
-  }
+								case let .userGroup(id: userGroupID, _, _):
+									return .userGroup(
+										userGroupID
+									)
+								}
+							}
+					}
+					catch {
+						viewState.snackBarMessage = .error(error.logged())
+					}
+				}
+			}
+		)
+	}
 }
 
 extension ResourceFolderEditController {
 
-  internal struct ViewState: Equatable {
+	internal struct ViewState: Equatable {
 
-    internal var folderName: Validated<String>
-    internal var folderLocation: Array<String>
-    internal var folderPermissionItems: Array<OverlappingAvatarStackView.Item>
-    internal var loading: Bool
-    internal var snackBarMessage: SnackBarMessage?
-  }
+		internal var folderName: Validated<String>
+		internal var folderLocation: Array<String>
+		internal var folderPermissionItems: Array<OverlappingAvatarStackView.Item>
+		internal var snackBarMessage: SnackBarMessage?
+	}
 }
 
 extension ResourceFolderEditController {
 
-  @Sendable nonisolated static func update(
-    viewState: inout ViewState,
-    using formState: ResourceFolderEditFormState,
-    users: Users
-  ) {
-    viewState.folderName = formState.name
-    viewState.folderLocation = formState.location.value.map(\.folderName)
-    viewState.folderPermissionItems = formState
-      .permissions
-      .value
-      .map { (permission: ResourceFolderPermission) -> OverlappingAvatarStackView.Item in
-        switch permission {
-        case let .user(id: userID, _, _):
-          return .user(
-            userID,
-            avatarImage: { try? await users.userAvatarImage(userID) }
-          )
+	@Sendable nonisolated internal final func setFolderName(
+		_ folderName: String
+	) {
+		self.resourceFolderEditForm.setFolderName(folderName)
+	}
 
-        case let .userGroup(id: userGroupID, _, _):
-          return .userGroup(
-            userGroupID
-          )
-        }
-      }
-  }
-
-  @Sendable nonisolated internal final func setFolderName(
-    _ folderName: String
-  ) {
-    self.resourceFolderEditForm.setFolderName(folderName)
-  }
-
-  internal final func saveChanges() {
-    self.asyncExecutor.schedule(.reuse) { [viewState, resourceFolderEditForm, navigation] in
-      await viewState.update { viewState in
-        viewState.loading = true
-      }
-      do {
-        try await resourceFolderEditForm.sendForm()
-        await navigation.pop(ResourceFolderEditView.self)
-        await viewState.update { viewState in
-          viewState.loading = false
-        }
-      }
-      catch {
-        await viewState.update { viewState in
-          viewState.loading = false
-          viewState.snackBarMessage = .error(error)
-        }
-      }
-    }
-  }
+	internal final func saveChanges() async {
+		do {
+			try await resourceFolderEditForm.sendForm()
+			await navigation.pop(ResourceFolderEditView.self)
+			await viewState.update { viewState in
+			}
+		}
+		catch {
+			await viewState.update { viewState in
+				viewState.snackBarMessage = .error(error)
+			}
+		}
+	}
 }

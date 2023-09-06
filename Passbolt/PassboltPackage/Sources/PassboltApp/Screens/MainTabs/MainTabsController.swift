@@ -58,17 +58,20 @@ extension MainTabsController: UIController {
     cancellables: Cancellables
   ) throws -> Self {
     features =
-      features
+      try features
+			.branch(
+				scope: AccountScope.self,
+				context: context.account
+			)
       .branch(
         scope: SessionScope.self,
         context: context
       )
     let features: Features = features
-    let currentAccount: Account = try features.sessionAccount()
     let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
-    let accountDetails: AccountDetails = try features.instance(context: currentAccount)
+    let accountDetails: AccountDetails = try features.instance()
 
-    let accountInitialSetup: AccountInitialSetup = try features.instance(context: currentAccount)
+    let accountInitialSetup: AccountInitialSetup = try features.instance()
     let osBiometry: OSBiometry = features.instance()
     let sessionData: SessionData = try features.instance()
     let resourcesCountFetchDatabaseOperation: ResourcesCountFetchDatabaseOperation = try features.instance()

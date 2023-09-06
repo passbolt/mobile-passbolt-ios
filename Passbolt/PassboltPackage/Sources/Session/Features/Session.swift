@@ -73,7 +73,6 @@ public struct Session {
 
 extension Session: LoadableFeature {
 
-  public typealias Context = ContextlessLoadableFeatureContext
 
   public struct SessionAccountOutboundTransferData: Equatable {
     public let hash: String

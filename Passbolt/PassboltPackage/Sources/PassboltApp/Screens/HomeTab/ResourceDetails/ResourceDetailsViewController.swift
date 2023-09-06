@@ -70,8 +70,8 @@ internal final class ResourceDetailsViewController: ViewController {
     context: Resource.ID,
     features: Features
   ) throws {
-    let features: Features = features.branch(
-      scope: ResourceDetailsScope.self,
+    let features: Features = try features.branch(
+      scope: ResourceScope.self,
       context: context
     )
     let passwordPreviewEnabled: Bool =
@@ -222,14 +222,13 @@ extension ResourceDetailsViewController {
       let fieldValue: JSON = resource[keyPath: path]
       if let totpSecret: TOTPSecret = fieldValue.totpSecretValue {
         let totpValue: TOTPValue = try self.features
-          .instance(
-            of: TOTPCodeGenerator.self,
-            context: .init(
-              resourceID: resource.id,
-              totpSecret: totpSecret
-            )
-          )
-          .generate()
+          .instance(of: TOTPCodeGenerator.self)
+          .prepare(
+						.init(
+							resourceID: resourceID,
+							secret: totpSecret
+						)
+					)()
         self.pasteboard.put(totpValue.otp.rawValue)
       }
       else {
@@ -316,13 +315,15 @@ extension ResourceDetailsViewController {
             revealedFields: revealedFields,
             passwordPreviewEnabled: passwordPreviewEnabled,
             prepareTOTPGenerator: { [features] totpSecret in
-              let generator: TOTPCodeGenerator = try features.instance(
-                context: .init(
-                  resourceID: resource.id,
-                  totpSecret: totpSecret
-                )
-              )
-              return generator.generate
+							let generateOTP: @Sendable () -> TOTPValue = try features
+								.instance(of: TOTPCodeGenerator.self)
+								.prepare(
+									.init(
+										resourceID: resource.id,
+										secret: totpSecret
+									)
+								)
+              return generateOTP
             }
           )
         }

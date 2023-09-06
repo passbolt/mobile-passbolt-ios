@@ -55,7 +55,6 @@ final class BiometricsInfoScreenTests: MainActorTestCase {
     )
     features.patch(
       \AccountInitialSetup.completeSetup,
-      context: Account.mock_ada,
       with: always(Void())
     )
     features.usePlaceholder(for: ApplicationLifecycle.self)

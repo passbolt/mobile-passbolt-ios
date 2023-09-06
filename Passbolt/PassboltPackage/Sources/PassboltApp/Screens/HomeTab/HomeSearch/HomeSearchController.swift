@@ -48,13 +48,12 @@ extension HomeSearchController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let currentAccount: Account = try features.sessionAccount()
 
     let asyncExecutor: AsyncExecutor = try features.instance()
 
     let navigationToAccountMenu: NavigationToAccountMenu = try features.instance()
 
-    let accountDetails: AccountDetails = try features.instance(context: currentAccount)
+    let accountDetails: AccountDetails = try features.instance()
     let homePresentation: HomePresentation = try features.instance()
 
     let searchTextSubject: CurrentValueSubject<String, Never> = .init("")

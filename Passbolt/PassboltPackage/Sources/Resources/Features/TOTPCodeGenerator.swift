@@ -28,35 +28,55 @@ import Features
 
 public struct TOTPCodeGenerator {
 
-  public var generate: @Sendable () -> TOTPValue
+	public struct Parameters {
 
-  public init(
-    generate: @escaping @Sendable () -> TOTPValue
-  ) {
-    self.generate = generate
-  }
+		public var resourceID: Resource.ID?
+		public var sharedSecret: String
+		public var algorithm: HOTPAlgorithm
+		public var digits: UInt
+		public var period: Seconds
+
+		public init(
+			resourceID: Resource.ID?,
+			sharedSecret: String,
+			algorithm: HOTPAlgorithm,
+			digits: UInt,
+			period: Seconds
+		) {
+			self.resourceID = resourceID
+			self.sharedSecret = sharedSecret
+			self.algorithm = algorithm
+			self.digits = digits
+			self.period = period
+		}
+
+		public init(
+			resourceID: Resource.ID?,
+			secret: TOTPSecret
+		) {
+			self.resourceID = resourceID
+			self.sharedSecret = secret.sharedSecret
+			self.algorithm = secret.algorithm
+			self.digits = secret.digits
+			self.period = secret.period
+		}
+	}
+
+	public var prepare: @Sendable (Parameters) -> @Sendable () -> TOTPValue
+
+	public init(
+		prepare: @escaping @Sendable (Parameters) -> @Sendable () -> TOTPValue
+	) {
+		self.prepare = prepare
+	}
 }
 
 extension TOTPCodeGenerator: LoadableFeature {
 
-  public struct Context {
-
-    public var resourceID: Resource.ID?
-    public var totpSecret: TOTPSecret
-
-    public init(
-      resourceID: Resource.ID?,
-      totpSecret: TOTPSecret
-    ) {
-      self.resourceID = resourceID
-      self.totpSecret = totpSecret
-    }
-  }
-
   #if DEBUG
   public nonisolated static var placeholder: Self {
     .init(
-      generate: unimplemented0()
+			prepare: unimplemented1()
     )
   }
   #endif

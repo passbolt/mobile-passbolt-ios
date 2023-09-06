@@ -59,7 +59,6 @@ final class HomePresentationTests: LoadableFeatureTestCase<HomePresentation> {
     )
     await patch(
       \AccountPreferences.defaultHomePresentation,
-      context: Account.mock_ada,
       with: .variable(initial: HomePresentationMode.ownedResourcesList)
     )
     await patch(

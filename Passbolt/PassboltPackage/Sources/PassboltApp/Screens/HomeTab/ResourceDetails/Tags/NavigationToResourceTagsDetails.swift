@@ -45,7 +45,7 @@ extension FeaturesRegistry {
   internal mutating func useLiveNavigationToResourceTagsDetails() {
     self.use(
       NavigationToResourceTagsDetails.live,
-      in: ResourceDetailsScope.self
+      in: ResourceScope.self
     )
   }
 }

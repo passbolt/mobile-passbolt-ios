@@ -75,7 +75,6 @@ final class AccountDataExportTests: LoadableFeatureTestCase<AccountDataExport> {
     )
     patch(
       \AccountDetails.profile,
-      context: .mock_ada,
       with: alwaysThrow(MockIssue.error())
     )
     withTestedInstanceThrows(
@@ -92,7 +91,6 @@ final class AccountDataExportTests: LoadableFeatureTestCase<AccountDataExport> {
     )
     patch(
       \AccountDetails.profile,
-      context: .mock_ada,
       with: always(.mock_ada)
     )
     patch(
@@ -113,7 +111,6 @@ final class AccountDataExportTests: LoadableFeatureTestCase<AccountDataExport> {
     )
     patch(
       \AccountDetails.profile,
-      context: .mock_ada,
       with: always(.mock_ada)
     )
     patch(

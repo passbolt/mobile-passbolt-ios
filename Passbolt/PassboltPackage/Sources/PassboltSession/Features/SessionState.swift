@@ -101,7 +101,6 @@ extension SessionState {
 
 extension SessionState: LoadableFeature {
 
-  public typealias Context = ContextlessLoadableFeatureContext
 
   #if DEBUG
   nonisolated static var placeholder: Self {

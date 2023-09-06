@@ -26,6 +26,8 @@ import Accounts
 import Session
 import SharedUIComponents
 import UIComponents
+import FeatureScopes
+import NetworkOperations
 
 internal struct AccountSelectionController {
 
@@ -60,6 +62,7 @@ extension AccountSelectionController: UIController {
     let features: Features = features
     let accounts: Accounts = try features.instance()
     let session: Session = try features.instance()
+		let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
 
     let listModeSubject: CurrentValueSubject<AccountSelectionListMode, Never> = .init(.selection)
     let removeAccountAlertPresentationSubject: PassthroughSubject<Void, Never> = .init()
@@ -73,18 +76,15 @@ extension AccountSelectionController: UIController {
           let currentAccount: Account? = try? await session.currentAccount()
           var listItems: Array<AccountSelectionListItem> = .init()
           for storedAccount in accounts.storedAccounts() {
-            let accountDetails: AccountDetails = try features.instance(context: storedAccount)
-            let accountWithProfile: AccountWithProfile = try accountDetails.profile()
-
             let item: AccountSelectionCellItem = AccountSelectionCellItem(
-              account: accountWithProfile.account,
-              title: accountWithProfile.label,
-              subtitle: accountWithProfile.username,
-              isCurrentAccount: storedAccount == currentAccount,
+              account: storedAccount.account,
+              title: storedAccount.label,
+              subtitle: storedAccount.username,
+							isCurrentAccount: storedAccount.account == currentAccount,
               imagePublisher:
                 Just(Void())
                 .asyncMap {
-                  try? await accountDetails.avatarImage()
+									try? await mediaDownloadNetworkOperation.execute(storedAccount.avatarImageURL)
                 }
                 .eraseToAnyPublisher(),
               listModePublisher: listModeSubject.eraseToAnyPublisher()

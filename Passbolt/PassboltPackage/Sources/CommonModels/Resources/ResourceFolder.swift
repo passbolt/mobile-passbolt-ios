@@ -25,37 +25,98 @@ import Commons
 
 public struct ResourceFolder {
 
-  public typealias ID = Tagged<PassboltID, Self>
+	public typealias ID = Tagged<PassboltID, Self>
 
-  public var id: ID?  // none is local, not synchronized resource folder
-  public var name: String
-  public var path: OrderedSet<ResourceFolderPathItem>
-  public var shared: Bool
-  public var permission: Permission
-  public var permissions: OrderedSet<ResourceFolderPermission>
+	public var id: ID? {
+		didSet { self.isLocallyEdited = true }
+	}
+	public var name: String {
+		didSet { self.isLocallyEdited = true }
+	}
+	public var path: OrderedSet<ResourceFolderPathItem> {
+		didSet { self.isLocallyEdited = true }
+	}
+	public var permission: Permission {
+		didSet { self.isLocallyEdited = true }
+	}
+	public var permissions: OrderedSet<ResourceFolderPermission> {
+		didSet { self.isLocallyEdited = true }
+	}
+	public private(set) var isLocallyEdited: Bool
 
-  public init(
-    id: ID? = .none,
-    name: String,
-    path: OrderedSet<ResourceFolderPathItem>,
-    shared: Bool,
-    permission: Permission,
-    permissions: OrderedSet<ResourceFolderPermission>
-  ) {
-    self.id = id
-    self.name = name
-    self.path = path
-    self.shared = shared
-    self.permission = permission
-    self.permissions = permissions
-  }
+	public init(
+		id: ID?,
+		name: String,
+		path: OrderedSet<ResourceFolderPathItem>,
+		permission: Permission,
+		permissions: OrderedSet<ResourceFolderPermission>
+	) {
+		self.id = id
+		self.name = name
+		self.path = path
+		self.permission = permission
+		self.permissions = permissions
+		// if creating new local it is always locally edited
+		self.isLocallyEdited = id == nil
+	}
 }
 
 extension ResourceFolder: Equatable {}
 
+// MARK: - Common info
+
 extension ResourceFolder {
 
-  public var parentFolderID: ID? {
-    self.path.last?.id
-  }
+	public var isLocal: Bool {
+		self.id == .none
+	}
+
+	public var parentFolderID: ID? {
+		self.path.last?.id
+	}
+
+	public var shared: Bool {
+		self.permissions.count > 1
+		|| self.permissions.contains { (permission: ResourceFolderPermission) in
+			switch permission {
+			case .user:
+				return false
+
+			case .userGroup:
+				return true
+			}
+		}
+	}
+}
+
+// MARK: - Validation
+
+extension ResourceFolder {
+
+	public func validate() throws {
+		try self.nameValidator.ensureValid(self.name)
+		try self.permissionsValidator.ensureValid(self.permissions)
+	}
+
+	public var nameValidator: Validator<String> {
+		zip(
+			.nonEmpty(displayable: "error.validation.folder.name.empty"),
+			.maxLength(
+				256,
+				displayable: "error.validation.folder.name.too.long"
+			)
+		)
+	}
+
+	public var permissionsValidator: Validator<OrderedSet<ResourceFolderPermission>> {
+		zip(
+			.nonEmpty(
+				displayable: "error.validation.permissions.empty"
+			),
+			.contains(
+				where: \.permission.isOwner,
+				displayable: "error.resource.folder.owner.missing"
+			)
+		)
+	}
 }

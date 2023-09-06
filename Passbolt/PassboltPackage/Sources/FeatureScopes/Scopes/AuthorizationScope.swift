@@ -26,5 +26,17 @@ import Features
 // Scope for authorization.
 public enum AuthorizationScope: FeaturesScope {
 
-  public typealias Context = Void
+	@MainActor public static func verified<Branch>(
+		branch features: Branch,
+		file: StaticString,
+		line: UInt
+	) throws -> Branch
+	where Branch: Features {
+		try features.ensureScope(
+			AccountScope.self,
+			file: file,
+			line: line
+		)
+		return features
+	}
 }

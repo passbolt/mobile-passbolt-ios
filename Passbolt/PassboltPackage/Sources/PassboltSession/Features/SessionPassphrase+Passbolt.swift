@@ -23,15 +23,16 @@
 
 import Accounts
 import Session
+import FeatureScopes
 
 // MARK: - Implementation
 
 extension SessionPassphrase {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    context: Context
+    features: Features
   ) throws -> Self {
+		let account: Account = try features.sessionAccount()
     let sessionState: SessionState = try features.instance()
     let sessionStateEnsurance: SessionStateEnsurance = try features.instance()
     let accountsDataStore: AccountsDataStore = try features.instance()
@@ -42,16 +43,16 @@ extension SessionPassphrase {
       guard let currentAccount: Account = sessionState.account()
       else { throw SessionMissing.error() }
 
-      guard currentAccount == context.account
-      else { throw SessionClosed.error(account: context.account) }
+      guard currentAccount == account
+      else { throw SessionClosed.error(account: account) }
 
       if store {
-        let passphrase: Passphrase = try await sessionStateEnsurance.passphrase(context.account)
+        let passphrase: Passphrase = try await sessionStateEnsurance.passphrase(account)
 
-        return try accountsDataStore.storeAccountPassphrase(context.account.localID, passphrase)
+        return try accountsDataStore.storeAccountPassphrase(account.localID, passphrase)
       }
       else {
-        return try accountsDataStore.deleteAccountPassphrase(context.account.localID)
+        return try accountsDataStore.deleteAccountPassphrase(account.localID)
       }
     }
 
@@ -68,8 +69,9 @@ extension FeaturesRegistry {
       .disposable(
         SessionPassphrase.self,
         load: SessionPassphrase
-          .load(features:context:)
-      )
+          .load(features:)
+      ),
+			in: SessionScope.self
     )
   }
 }

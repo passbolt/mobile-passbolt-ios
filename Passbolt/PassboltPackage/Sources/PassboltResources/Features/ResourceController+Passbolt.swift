@@ -37,7 +37,7 @@ extension ResourceController {
     features: Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let resourceID: Resource.ID = try features.context(of: ResourceDetailsScope.self)
+    let resourceID: Resource.ID = try features.context(of: ResourceScope.self)
 
     let sessionData: SessionData = try features.instance()
     let sessionCryptography: SessionCryptography = try features.instance()
@@ -173,7 +173,7 @@ extension FeaturesRegistry {
         ResourceController.self,
         load: ResourceController.load(features:cancellables:)
       ),
-      in: ResourceDetailsScope.self
+      in: ResourceScope.self
     )
   }
 }

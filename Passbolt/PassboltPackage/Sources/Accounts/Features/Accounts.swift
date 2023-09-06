@@ -36,9 +36,9 @@ public struct Accounts {
   /// and removes inproperly stored accounts.
   public var verifyDataIntegrity: @Sendable () throws -> Void
   /// List of currently stored accounts.
-  public var storedAccounts: @Sendable () -> Array<Account>
+  public var storedAccounts: @Sendable () -> Array<AccountWithProfile>
   /// Last used account if any and still stored.
-  public var lastUsedAccount: @Sendable () -> Account?
+  public var lastUsedAccount: @Sendable () -> AccountWithProfile?
   /// Saves account data locally.
   public var addAccount: @Sendable (AccountTransferData) throws -> Account
   /// Delete locally stored data for given account.
@@ -48,8 +48,8 @@ public struct Accounts {
   public init(
     updates: AnyUpdatable<Void>,
     verifyDataIntegrity: @escaping @Sendable () throws -> Void,
-    storedAccounts: @escaping @Sendable () -> Array<Account>,
-    lastUsedAccount: @escaping @Sendable () -> Account?,
+    storedAccounts: @escaping @Sendable () -> Array<AccountWithProfile>,
+    lastUsedAccount: @escaping @Sendable () -> AccountWithProfile?,
     addAccount: @escaping @Sendable (AccountTransferData) throws -> Account,
     removeAccount: @escaping @Sendable (Account) throws -> Void
   ) {
@@ -64,7 +64,6 @@ public struct Accounts {
 
 extension Accounts: LoadableFeature {
 
-  public typealias Context = ContextlessLoadableFeatureContext
 
   #if DEBUG
   nonisolated public static var placeholder: Self {

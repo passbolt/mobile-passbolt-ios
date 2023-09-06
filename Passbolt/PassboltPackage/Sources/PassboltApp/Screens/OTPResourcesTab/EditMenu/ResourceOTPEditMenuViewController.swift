@@ -59,10 +59,10 @@ internal final class ResourceOTPEditMenuViewController: ViewController {
   ) throws {
     try features.ensureScope(SessionScope.self)
     let features: Features =
-      features.branchIfNeeded(
+      try features.branchIfNeeded(
         scope: ResourceEditScope.self,
         context: context.editingContext
-      ) ?? features.takeOwned()
+      )
     self.features = features
 
     self.creatingNew = context.editingContext.editedResource.isLocal || !context.editingContext.editedResource.hasTOTP

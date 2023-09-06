@@ -46,9 +46,9 @@ internal final class ResourceFolderDetailsController: ViewController {
     features: Features
   ) throws {
     let features: Features =
-      features
+      try features
       .branch(
-        scope: ResourceFolderDetailsScope.self,
+        scope: ResourceFolderScope.self,
         context: context
       )
     self.context = context
@@ -58,7 +58,7 @@ internal final class ResourceFolderDetailsController: ViewController {
     self.sessionData = try features.instance()
     self.navigation = try features.instance()
     self.users = try features.instance()
-    self.resourceFolderController = try features.instance(context: context)
+    self.resourceFolderController = try features.instance()
 
     self.viewState = .init(
       initial: .init(

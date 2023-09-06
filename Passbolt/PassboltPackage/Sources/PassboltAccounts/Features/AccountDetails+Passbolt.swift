@@ -24,6 +24,7 @@
 import Accounts
 import NetworkOperations
 import OSFeatures
+import FeatureScopes
 
 import struct Foundation.Data
 
@@ -33,12 +34,11 @@ extension AccountDetails {
 
   @MainActor fileprivate static func load(
     features: Features,
-    context account: Account,
     cancellables: Cancellables
   ) throws -> Self {
-
+		let account: Account = try features.accountContext()
     let accountsDataStore: AccountsDataStore = try features.instance()
-    let accountData: AccountData = try features.instance(context: account)
+    let accountData: AccountData = try features.instance()
     let userDetailsFetchNetworkOperation: UserDetailsFetchNetworkOperation = try features.instance()
     let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
 
@@ -50,6 +50,10 @@ extension AccountDetails {
           .loadAccountProfile(account.localID)
       )
     }
+
+		@Sendable nonisolated func passphraseStored() -> Bool {
+			accountsDataStore.isAccountPassphraseStored(account.localID)
+		}
 
     @Sendable nonisolated func updateProfile() async throws {
       let storedProfile: AccountProfile =
@@ -99,6 +103,7 @@ extension AccountDetails {
     return Self(
       updates: accountData.updates.asAnyUpdatable(),
       profile: profile,
+			isPassphraseStored: passphraseStored,
       updateProfile: updateProfile,
       avatarImage: avatarImage
     )
@@ -111,8 +116,9 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         AccountDetails.self,
-        load: AccountDetails.load(features:context:cancellables:)
-      )
+        load: AccountDetails.load(features:cancellables:)
+      ),
+			in: AccountScope.self
     )
   }
 }

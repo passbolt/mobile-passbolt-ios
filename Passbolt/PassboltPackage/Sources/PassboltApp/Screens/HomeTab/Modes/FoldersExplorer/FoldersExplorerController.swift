@@ -63,7 +63,7 @@ extension FoldersExplorerController: ComponentController {
 
     let navigation: DisplayNavigation = try features.instance()
     let currentAccount: Account = try features.sessionAccount()
-    let accountDetails: AccountDetails = try features.instance(context: currentAccount)
+    let accountDetails: AccountDetails = try features.instance()
     let resources: ResourcesController = try features.instance()
     let sessionData: SessionData = try features.instance()
     let folders: ResourceFolders = try features.instance()
@@ -208,12 +208,12 @@ extension FoldersExplorerController: ComponentController {
       cancellables.executeOnMainActor {
         await withLogCatch {
           let features: Features =
-            features
+            try features
             .branchIfNeeded(
-              scope: ResourceDetailsScope.self,
+              scope: ResourceScope.self,
               context: resourceID
             )
-            ?? features
+
           let navigationToResourceContextualMenu: NavigationToResourceContextualMenu = try features.instance()
           try await navigationToResourceContextualMenu.perform(
             context: .init(

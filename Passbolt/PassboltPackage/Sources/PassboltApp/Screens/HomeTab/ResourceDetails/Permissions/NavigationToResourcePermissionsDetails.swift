@@ -47,7 +47,7 @@ extension FeaturesRegistry {
   internal mutating func useLiveNavigationToResourcePermissionsDetails() {
     self.use(
       NavigationToResourcePermissionsDetails.live,
-      in: ResourceDetailsScope.self
+      in: ResourceScope.self
     )
   }
 }

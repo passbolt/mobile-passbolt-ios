@@ -24,78 +24,107 @@
 import Features
 import Foundation
 import OSFeatures
+import FeatureScopes
 
 internal struct ApplicationRating {
-  internal var showApplicationRatingIfRequired: @MainActor () -> Void
+
+	internal var showApplicationRatingIfRequired: @MainActor () -> Void
 }
 
 extension ApplicationRating {
 
-  @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
-  ) throws -> Self {
-    var lastAppRateCheckTimestamp: StoredProperty<Timestamp> = try features.instance(
-      context: "lastAppRateCheckTimestamp"
-    )
-    let loginCount: StoredProperty<Int> = try features.instance(context: "loginCount")
-    let timeProvider: OSTime = features.instance()
-    let rateAppFeature: OSApplicationRating = features.instance()
+	@MainActor fileprivate static func load(
+		features: Features,
+		cancellables _: Cancellables
+	) throws -> Self {
+		var lastAppRateCheckTimestamp: LastAppRateCheckTimestampStoredProperty = try features.instance()
+		let loginCount: LoginCountStoredProperty = try features.instance()
+		let timeProvider: OSTime = features.instance()
+		let rateAppFeature: OSApplicationRating = features.instance()
 
-    nonisolated func incrementLoginCounter() {
-      loginCount.set(to: loginCount.get(withDefault: 0) + 1)
-    }
+		nonisolated func incrementLoginCounter() {
+			loginCount.set(to: loginCount.get(withDefault: 0) + 1)
+		}
 
-    nonisolated func fiveDaysHasPassedSinceInstall() -> Bool {
-      guard let timestamp = lastAppRateCheckTimestamp.value else {
-        lastAppRateCheckTimestamp.value = timeProvider.timestamp()
-        return false
-      }
+		nonisolated func fiveDaysHasPassedSinceInstall() -> Bool {
+			guard let timestamp = lastAppRateCheckTimestamp.value else {
+				lastAppRateCheckTimestamp.value = timeProvider.timestamp()
+				return false
+			}
 
-      let now = timeProvider.timestamp()
-      return now > timestamp + (5 * 24 * 60 * 60 as Timestamp)  // 5 days in seconds
-    }
+			let now = timeProvider.timestamp()
+			return now > timestamp + (5 * 24 * 60 * 60 as Timestamp)  // 5 days in seconds
+		}
 
-    nonisolated func fiveLoginsHasPassed() -> Bool {
-      return loginCount.value ?? 0 >= 5
-    }
+		nonisolated func fiveLoginsHasPassed() -> Bool {
+			return loginCount.value ?? 0 >= 5
+		}
 
-    @MainActor func showRateApp() {
-      incrementLoginCounter()
-      guard fiveDaysHasPassedSinceInstall(),
-        fiveLoginsHasPassed()
-      else {
-        return /* NOOP */
-      }
-      rateAppFeature.requestApplicationRating()
-    }
-    return .init(
-      showApplicationRatingIfRequired: showRateApp
-    )
-  }
+		@MainActor func showRateApp() {
+			incrementLoginCounter()
+			guard fiveDaysHasPassedSinceInstall(),
+				fiveLoginsHasPassed()
+			else {
+				return /* NOOP */
+			}
+			rateAppFeature.requestApplicationRating()
+		}
+		return .init(
+			showApplicationRatingIfRequired: showRateApp
+		)
+	}
 }
 
 extension ApplicationRating: LoadableFeature {
 
-  public typealias Context = ContextlessLoadableFeatureContext
 
-  #if DEBUG
-  nonisolated public static var placeholder: Self {
-    Self(
-      showApplicationRatingIfRequired: unimplemented0()
-    )
-  }
-  #endif
+	#if DEBUG
+	nonisolated public static var placeholder: Self {
+		Self(
+			showApplicationRatingIfRequired: unimplemented0()
+		)
+	}
+	#endif
 }
 
 extension FeaturesRegistry {
 
-  internal mutating func usePassboltApplicationRatingFeature() {
-    self.use(
-      .lazyLoaded(
-        ApplicationRating.self,
-        load: ApplicationRating.load(features:cancellables:)
-      )
-    )
-  }
+	internal mutating func usePassboltApplicationRatingFeature() {
+		self.use(
+			.lazyLoaded(
+				ApplicationRating.self,
+				load: ApplicationRating.load(features:cancellables:)
+			),
+			in: RootFeaturesScope.self
+		)
+		self.usePassboltStoredProperty(
+			LoginCountStoredPropertyDescription.self,
+			in: RootFeaturesScope.self
+		)
+		self.usePassboltStoredRawProperty(
+			LastAppRateCheckTimestampStoredPropertyDescription.self,
+			in: RootFeaturesScope.self
+		)
+	}
+}
+
+internal typealias LoginCountStoredProperty = StoredProperty<LoginCountStoredPropertyDescription>
+
+internal enum LoginCountStoredPropertyDescription: StoredPropertyDescription {
+
+	public typealias Value = Int
+
+	static var shared: Bool { true }
+	public static var key: OSStoredPropertyKey { "loginCount" }
+}
+
+
+internal typealias LastAppRateCheckTimestampStoredProperty = StoredProperty<LastAppRateCheckTimestampStoredPropertyDescription>
+
+internal enum LastAppRateCheckTimestampStoredPropertyDescription: StoredPropertyDescription {
+
+	public typealias Value = Timestamp
+
+	static var shared: Bool { true }
+	public static var key: OSStoredPropertyKey { "lastAppRateCheckTimestamp" }
 }

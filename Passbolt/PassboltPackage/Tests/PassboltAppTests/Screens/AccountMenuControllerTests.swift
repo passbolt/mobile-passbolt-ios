@@ -53,26 +53,6 @@ final class AccountMenuControllerTests: MainActorTestCase {
       \Session.currentAccount,
       with: always(.mock_ada)
     )
-    features.patch(
-      \AccountDetails.profile,
-      context: .mock_ada,
-      with: always(.mock_ada)
-    )
-    features.patch(
-      \AccountDetails.avatarImage,
-      context: .mock_ada,
-      with: always(.init())
-    )
-    features.patch(
-      \AccountDetails.profile,
-      context: .mock_frances,
-      with: always(.mock_frances)
-    )
-    features.patch(
-      \AccountDetails.avatarImage,
-      context: .mock_ada,
-      with: always(.init())
-    )
     features.set(
       SessionScope.self,
       context: .init(
@@ -80,6 +60,10 @@ final class AccountMenuControllerTests: MainActorTestCase {
         configuration: .mock_default
       )
     )
+		features.patch(
+			\AccountDetails.profile,
+			with: always(.mock_ada)
+		)
     self.features
       .patch(
         \NavigationToAccountMenu.mockRevert,
@@ -92,7 +76,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
   }
 
   func test_currentAccountWithProfile_isEqualToProvidedInContext() async throws {
-    let controller: AccountMenuController = try await testController()
+    let controller: AccountMenuController = try testController()
 
     XCTAssertEqual(controller.currentAccountWithProfile, .mock_ada)
   }
@@ -104,7 +88,6 @@ final class AccountMenuControllerTests: MainActorTestCase {
         [.mock_ada, .mock_frances]
       )
     )
-
     let controller: AccountMenuController = try await testController()
 
     var result:
@@ -128,7 +111,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
   }
 
   func test_accountsListPublisher_publishesUpdatedAccountListAterUpdatingAccounts() async throws {
-    var storedAccounts: Array<Account> = [.mock_ada]
+    var storedAccounts: Array<AccountWithProfile> = [.mock_ada]
     features.patch(
       \Accounts.storedAccounts,
       with: always(storedAccounts)
@@ -203,6 +186,10 @@ final class AccountMenuControllerTests: MainActorTestCase {
           result.value = account
         }
       )
+		features.patch(
+			\AccountDetails.profile,
+			with: always(.mock_ada)
+		)
 
     let controller: AccountMenuController = try await testController()
 
@@ -215,7 +202,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
 
   func test_signOut_closesCurrentSession() async throws {
     let result: UnsafeSendable<Void> = .init()
-    await features.patch(
+    features.patch(
       \Session.close,
       with: { _ in
         result.value = Void()

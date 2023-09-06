@@ -51,13 +51,11 @@ extension BiometricsSetupController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let currentAccount: Account = try features.sessionAccount()
-
-    let accountInitialSetup: AccountInitialSetup = try features.instance(context: currentAccount)
+    let accountInitialSetup: AccountInitialSetup = try features.instance()
     let extensions: OSExtensions = features.instance()
 
     let applicationLifecycle: ApplicationLifecycle = features.instance()
-    let accountPreferences: AccountPreferences = try features.instance(context: currentAccount)
+    let accountPreferences: AccountPreferences = try features.instance()
     let biometry: OSBiometry = features.instance()
 
     let destinationPresentationSubject: PassthroughSubject<Destination, Never> = .init()

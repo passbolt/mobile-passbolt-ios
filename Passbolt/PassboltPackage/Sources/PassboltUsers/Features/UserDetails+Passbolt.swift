@@ -36,9 +36,9 @@ extension UserDetails {
 
   @MainActor fileprivate static func load(
     features: Features,
-    context userID: Context,
     cancellables: Cancellables
   ) throws -> Self {
+		let userID: User.ID = try features.context(of: UserScope.self)
 
     let sessionData: SessionData = try features.instance()
     let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
@@ -109,9 +109,9 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         UserDetails.self,
-        load: UserDetails.load(features:context:cancellables:)
+        load: UserDetails.load(features:cancellables:)
       ),
-      in: SessionScope.self
+      in: UserScope.self
     )
   }
 }

@@ -52,8 +52,8 @@ internal final class ResourcePermissionsDetailsViewController: ViewController {
     context: Void,
     features: Features
   ) throws {
-    try features.ensureScope(ResourceDetailsScope.self)
-    self.resourceID = try features.context(of: ResourceDetailsScope.self)
+    try features.ensureScope(ResourceScope.self)
+    self.resourceID = try features.context(of: ResourceScope.self)
 
     self.navigationToSelf = try features.instance()
 

@@ -92,12 +92,7 @@ internal final class OTPAttachSelectionListViewController: ViewController {
 
     self.navigationToOTPResourcesList = try features.instance()
 
-    self.resourceSearchController = try features.instance(
-      context: .init(
-        text: .init(),
-        includedTypes: .init()
-      )
-    )
+    self.resourceSearchController = try features.instance()
     self.resourceEditPreparation = try features.instance()
 
     self.localState = .init(
@@ -214,7 +209,7 @@ extension OTPAttachSelectionListViewController {
           .error(message: "Attempting to attach OTP to a resource which has none or unavailable attached type!")
       }
 
-      let features: Features = self.features.branch(
+      let features: Features = try self.features.branch(
         scope: ResourceEditScope.self,
         context: editingContext
       )

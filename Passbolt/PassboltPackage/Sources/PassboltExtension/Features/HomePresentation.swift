@@ -39,7 +39,6 @@ internal struct HomePresentation {
 
 extension HomePresentation: LoadableFeature {
 
-  public typealias Context = ContextlessLoadableFeatureContext
 
   #if DEBUG
   internal nonisolated static var placeholder: Self {
@@ -59,10 +58,9 @@ extension HomePresentation {
     features: Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let currentAccount: Account = try features.sessionAccount()
     let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
 
-    let accountPreferences: AccountPreferences = try features.instance(context: currentAccount)
+    let accountPreferences: AccountPreferences = try features.instance()
 
     let useLastUsedHomePresentationAsDefault: StateBinding<Bool> = accountPreferences
       .useLastHomePresentationAsDefault

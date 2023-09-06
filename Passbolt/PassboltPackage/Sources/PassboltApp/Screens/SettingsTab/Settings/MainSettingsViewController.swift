@@ -43,7 +43,7 @@ internal final class MainSettingsViewController: ViewController {
     features: Features
   ) throws {
     try features.ensureScope(SessionScope.self)
-    let features: FeaturesContainer = features.branch(
+    let features: FeaturesContainer = try features.branch(
       scope: SettingsScope.self
     )
     self.features = features

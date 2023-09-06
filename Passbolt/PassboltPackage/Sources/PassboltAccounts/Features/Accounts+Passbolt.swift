@@ -45,12 +45,42 @@ extension Accounts {
       try dataStore.verifyDataIntegrity()
     }
 
-    @Sendable nonisolated func storedAccounts() -> Array<Account> {
-      dataStore.loadAccounts()
+    @Sendable nonisolated func storedAccounts() -> Array<AccountWithProfile> {
+			dataStore
+				.loadAccounts()
+				.compactMap { (account: Account) -> AccountWithProfile? in
+					do {
+						return AccountWithProfile(
+							account: account,
+							profile: try dataStore.loadAccountProfile(account.localID)
+						)
+					}
+					catch {
+						error.logged(
+							info: .message("Failed to load account profile. Account will be unavailable!")
+						)
+						return .none
+					}
+				}
     }
 
-    @Sendable nonisolated func lastUsedAccount() -> Account? {
-      dataStore.loadLastUsedAccount()
+    @Sendable nonisolated func lastUsedAccount() -> AccountWithProfile? {
+      dataStore
+				.loadLastUsedAccount()
+				.flatMap { (account: Account) -> AccountWithProfile? in
+					do {
+						return AccountWithProfile(
+							account: account,
+							profile: try dataStore.loadAccountProfile(account.localID)
+						)
+					}
+					catch {
+						error.logged(
+							info: .message("Failed to load account profile. Account will be unavailable!")
+						)
+						return .none
+					}
+				}
     }
 
     @Sendable nonisolated func addAccount(

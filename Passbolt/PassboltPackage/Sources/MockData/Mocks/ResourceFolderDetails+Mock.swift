@@ -29,7 +29,6 @@ extension ResourceFolder {
     id: .mock_1,
     name: "mock_owned",
     path: [],
-    shared: false,
     permission: .owner,
     permissions: [
       .user(
@@ -44,7 +43,6 @@ extension ResourceFolder {
     id: .mock_1,
     name: "mock_owned",
     path: [],
-    shared: false,
     permission: .owner,
     permissions: [
       .user(
@@ -64,7 +62,6 @@ extension ResourceFolder {
     id: .mock_1,
     name: "mock_owned",
     path: [],
-    shared: false,
     permission: .owner,
     permissions: [
       .userGroup(

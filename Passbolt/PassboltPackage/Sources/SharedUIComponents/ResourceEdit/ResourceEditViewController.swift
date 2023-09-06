@@ -81,7 +81,8 @@ public final class ResourceEditViewController: ViewController {
     context: Context,
     features: Features
   ) throws {
-    let features: Features = features.branch(
+    let features: Features = try features
+			.branch(
       scope: ResourceEditScope.self,
       context: context.editingContext
     )

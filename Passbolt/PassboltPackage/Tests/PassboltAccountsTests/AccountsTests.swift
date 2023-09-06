@@ -53,12 +53,25 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
       \AccountsDataStore.loadAccounts,
       with: always([.mock_ada])
     )
+		patch(
+			\AccountsDataStore.loadAccountProfile,
+			 with: {
+				 if $0 == .mock_ada {
+					 return .mock_ada
+				 } else if $0 == .mock_frances {
+					 return .mock_frances
+				 }
+				 else {
+					 throw MockIssue.error()
+				 }
+			 }
+		)
 
     let accounts: Accounts = try testedInstance()
 
-    let result: Array<Account> = accounts.storedAccounts()
+    let result: Array<AccountWithProfile> = accounts.storedAccounts()
 
-    XCTAssertEqual(result, [Account.mock_ada])
+    XCTAssertEqual(result, [AccountWithProfile.mock_ada])
   }
 
   func test_verifyAccountsDataIntegrity_verifiesAccountsDataStore() async throws {

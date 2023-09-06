@@ -48,12 +48,10 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
     let accountPreferencesUpdates: Updates = .init()
     patch(
       \AccountPreferences.updates,
-      context: .mock_ada,
       with: accountPreferencesUpdates.asAnyUpdatable()
     )
     patch(
       \AccountPreferences.isPassphraseStored,
-      context: .mock_ada,
       with: always(true)
     )
     patch(
@@ -75,12 +73,10 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
     let accountPreferencesUpdates: Updates = .init()
     patch(
       \AccountPreferences.updates,
-      context: .mock_ada,
       with: accountPreferencesUpdates.asAnyUpdatable()
     )
     patch(
       \AccountPreferences.isPassphraseStored,
-      context: .mock_ada,
       with: always(false)
     )
     patch(
@@ -100,7 +96,6 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
     let accountPreferencesUpdates: Updates = .init()
     patch(
       \AccountPreferences.updates,
-      context: .mock_ada,
       with: accountPreferencesUpdates.asAnyUpdatable()
     )
     patch(
@@ -147,7 +142,6 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
   func test_setBiometricsAuthorizationEnabled_updatesAccountPreferences() async {
     patch(
       \AccountPreferences.storePassphrase,
-      context: .mock_ada,
       with: self.mockExecuted(with:)
     )
 

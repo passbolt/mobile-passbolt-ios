@@ -28,75 +28,33 @@ import Features
 
 public struct ResourceFolderEditForm {
 
-  public var updates: AnyUpdatable<Void>
-  public var formState: @Sendable () -> ResourceFolderEditFormState
-  public var setFolderName: @Sendable (String) -> Void
+	public var state: AnyUpdatable<ResourceFolder>
+	public var setFolderName: @Sendable (String) -> Validated<String>
+	public var validateForm: @Sendable () throws -> Void
   public var sendForm: @Sendable () async throws -> Void
 
   public init(
-    updates: AnyUpdatable<Void>,
-    formState: @escaping @Sendable () -> ResourceFolderEditFormState,
-    setFolderName: @escaping @Sendable (String) -> Void,
+		state: AnyUpdatable<ResourceFolder>,
+		setFolderName: @escaping @Sendable (String) -> Validated<String>,
+		validateForm: @escaping @Sendable () throws -> Void,
     sendForm: @escaping @Sendable () async throws -> Void
   ) {
-    self.updates = updates
-    self.formState = formState
+    self.state = state
     self.setFolderName = setFolderName
+		self.validateForm = validateForm
     self.sendForm = sendForm
   }
 }
 
-public struct ResourceFolderEditFormState {
-
-  public var name: Validated<String>
-  public var location: Validated<Array<ResourceFolderLocationItem>>
-  public var permissions: Validated<OrderedSet<ResourceFolderPermission>>
-
-  public init(
-    name: Validated<String>,
-    location: Validated<Array<ResourceFolderLocationItem>>,
-    permissions: Validated<OrderedSet<ResourceFolderPermission>>
-  ) {
-    self.name = name
-    self.location = location
-    self.permissions = permissions
-  }
-
-  public var isValid: Bool {
-    self.name.isValid
-      && self.permissions.isValid
-      && self.location.isValid
-  }
-}
-
-extension ResourceFolderEditFormState: Hashable {}
-
 extension ResourceFolderEditForm: LoadableFeature {
 
-  public enum Context: LoadableFeatureContext, Hashable {
-
-    case create(containingFolderID: ResourceFolder.ID?)
-    case modify(folderID: ResourceFolder.ID)
-
-    public var editedFolderID: ResourceFolder.ID? {
-      switch self {
-      case .modify(let folderID):
-        return folderID
-
-      case .create:
-        return .none
-      }
-    }
-  }
-
   #if DEBUG
-
   public static var placeholder: Self {
     Self(
-      updates: PlaceholderUpdatable().asAnyUpdatable(),
-      formState: unimplemented0(),
-      setFolderName: unimplemented1(),
-      sendForm: unimplemented0()
+			state: PlaceholderUpdatable().asAnyUpdatable(),
+			setFolderName: unimplemented1(),
+			validateForm: unimplemented0(),
+			sendForm: unimplemented0()
     )
   }
   #endif

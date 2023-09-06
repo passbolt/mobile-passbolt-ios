@@ -120,12 +120,12 @@ extension ResourcesListController: UIController {
       resourceMenuIDSubject.send(resource.id)
       cancellables.executeOnMainActor {
         let features: Features =
-          features
+          try features
           .branchIfNeeded(
-            scope: ResourceDetailsScope.self,
+            scope: ResourceScope.self,
             context: resource.id
           )
-          ?? features
+
         let navigationToResourceContextualMenu: NavigationToResourceContextualMenu = try features.instance()
         try await navigationToResourceContextualMenu
           .perform(

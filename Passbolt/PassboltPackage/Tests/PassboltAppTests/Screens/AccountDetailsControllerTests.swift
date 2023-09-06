@@ -49,23 +49,19 @@ final class AccountDetailsControllerTests: MainActorTestCase {
     detailsUpdates = .init()
     features.patch(
       \AccountDetails.updates,
-      context: Account.mock_ada,
       with: detailsUpdates.asAnyUpdatable()
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: Account.mock_ada,
       with: always(.init())
     )
     features.patch(
       \AccountDetails.profile,
-      context: Account.mock_ada,
       with: always(.mock_ada)
     )
     preferencesUpdates = .init()
     features.patch(
       \AccountPreferences.updates,
-      context: Account.mock_ada,
       with: preferencesUpdates.asAnyUpdatable()
     )
   }
@@ -81,7 +77,6 @@ final class AccountDetailsControllerTests: MainActorTestCase {
     let result: UnsafeSendable<Void?> = .init()
     features.patch(
       \AccountDetails.avatarImage,
-      context: Account.mock_ada,
       with: { () async throws in
         result.value = Void()
         return .init()
@@ -183,7 +178,6 @@ final class AccountDetailsControllerTests: MainActorTestCase {
     let result: UnsafeSendable<String> = .init()
     features.patch(
       \AccountPreferences.setLocalAccountLabel,
-      context: Account.mock_ada,
       with: { label in
         result.value = label
       }
@@ -203,7 +197,6 @@ final class AccountDetailsControllerTests: MainActorTestCase {
   func test_saveChanges_fails_whenLabelSaveFails() async throws {
     features.patch(
       \AccountPreferences.setLocalAccountLabel,
-      context: Account.mock_ada,
       with: alwaysThrow(MockIssue.error())
     )
 
@@ -227,7 +220,6 @@ final class AccountDetailsControllerTests: MainActorTestCase {
     let result: UnsafeSendable<String> = .init()
     features.patch(
       \AccountPreferences.setLocalAccountLabel,
-      context: Account.mock_ada,
       with: { label in
         result.value = label
       }

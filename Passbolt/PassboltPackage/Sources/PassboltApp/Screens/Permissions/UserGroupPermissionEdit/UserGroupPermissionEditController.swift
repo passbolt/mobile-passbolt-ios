@@ -54,7 +54,7 @@ extension UserGroupPermissionEditController: ComponentController {
 
     let navigation: DisplayNavigation = try features.instance()
     let users: Users = try features.instance()
-    let resourceShareForm: ResourceShareForm = try features.instance(context: context.resourceID)
+    let resourceShareForm: ResourceShareForm = try features.instance()
 
     nonisolated func userAvatarImageFetch(
       _ userID: User.ID

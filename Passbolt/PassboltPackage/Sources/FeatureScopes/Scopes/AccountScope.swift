@@ -22,21 +22,24 @@
 //
 
 import Features
+import Accounts
 
-// Scope for OTP resources tab.
-public enum OTPResourcesTabScope: FeaturesScope {
+// Scope for transfering account, both import and export.
+public enum AccountScope: FeaturesScope {
+	
+	public typealias Context = Account
+}
 
-	@MainActor public static func verified<Branch>(
-		branch features: Branch,
-		file: StaticString,
-		line: UInt
-	) throws -> Branch
-	where Branch: Features {
-		try features.ensureScope(
-			SessionScope.self,
-			file: file,
-			line: line
-		)
-		return features
+extension Features {
+
+	public func accountContext(
+		file: StaticString = #fileID,
+		line: UInt = #line
+	) throws -> Account {
+			try self.context(
+				of: AccountScope.self,
+				file: file,
+				line: line
+			)
 	}
 }

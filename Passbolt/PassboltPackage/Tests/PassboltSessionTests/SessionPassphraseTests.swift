@@ -35,7 +35,18 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
     registry.usePassboltSessionPassphrase()
   }
 
+	override class var testedImplementationScope: any FeaturesScope.Type {
+		SessionScope.self
+	}
+
   override func prepare() throws {
+		set(
+			SessionScope.self,
+			context: .init(
+				account: .mock_ada,
+				configuration: .mock_1
+			)
+		)
     use(AccountsDataStore.placeholder)
     use(SessionStateEnsurance.placeholder)
   }
@@ -50,8 +61,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
       with: alwaysThrow(MockIssue.error())
     )
     withTestedInstanceThrows(
-      SessionMissing.self,
-      context: .init(account: Account.mock_ada)
+      SessionMissing.self
     ) { (testedInstance: SessionPassphrase) in
       try await testedInstance.storeWithBiometry(true)
     }
@@ -67,8 +77,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
       with: alwaysThrow(MockIssue.error())
     )
     withTestedInstanceThrows(
-      MockIssue.self,
-      context: .init(account: Account.mock_ada)
+      MockIssue.self
     ) { (testedInstance: SessionPassphrase) in
       try await testedInstance.storeWithBiometry(true)
     }
@@ -88,8 +97,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
       with: alwaysThrow(MockIssue.error())
     )
     withTestedInstanceThrows(
-      MockIssue.self,
-      context: .init(account: Account.mock_ada)
+      MockIssue.self
     ) { (testedInstance: SessionPassphrase) in
       try await testedInstance.storeWithBiometry(true)
     }
@@ -108,9 +116,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
       \AccountsDataStore.storeAccountPassphrase,
       with: always(Void())
     )
-    withTestedInstanceNotThrows(
-      context: .init(account: Account.mock_ada)
-    ) { (testedInstance: SessionPassphrase) in
+    withTestedInstanceNotThrows() { (testedInstance: SessionPassphrase) in
       try await testedInstance.storeWithBiometry(true)
     }
   }
@@ -124,9 +130,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
       \AccountsDataStore.deleteAccountPassphrase,
       with: always(Void())
     )
-    withTestedInstanceNotThrows(
-      context: .init(account: Account.mock_ada)
-    ) { (testedInstance: SessionPassphrase) in
+    withTestedInstanceNotThrows() { (testedInstance: SessionPassphrase) in
       try await testedInstance.storeWithBiometry(false)
     }
   }
@@ -141,8 +145,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
       with: alwaysThrow(MockIssue.error())
     )
     withTestedInstanceThrows(
-      MockIssue.self,
-      context: .init(account: Account.mock_ada)
+      MockIssue.self
     ) { (testedInstance: SessionPassphrase) in
       try await testedInstance.storeWithBiometry(false)
     }

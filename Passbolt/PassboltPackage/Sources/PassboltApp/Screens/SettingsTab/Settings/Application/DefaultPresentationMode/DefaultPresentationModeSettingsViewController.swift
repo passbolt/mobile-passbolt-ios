@@ -50,10 +50,8 @@ internal final class DefaultPresentationModeSettingsViewController: ViewControll
     try features.ensureScope(SettingsScope.self)
     try features.ensureScope(SessionScope.self)
 
-    let currentAccount: Account = try features.sessionAccount()
-
     self.navigationToSelf = try features.instance()
-    self.accountPreferences = try features.instance(context: currentAccount)
+    self.accountPreferences = try features.instance()
     self.homePresentation = try features.instance()
 
     self.useLastUsedHomePresentationAsDefault =

@@ -47,14 +47,12 @@ internal final class ApplicationSettingsViewController: ViewController {
     try features.ensureScope(SettingsScope.self)
     try features.ensureScope(SessionScope.self)
 
-    let currentAccount: Account = try features.sessionAccount()
-
     let osBiometry: OSBiometry = features.instance()
 
     self.navigationToAutofillSettings = try features.instance()
     self.navigationToDefaultModeSettings = try features.instance()
 
-    self.accountPreferences = try features.instance(context: currentAccount)
+    self.accountPreferences = try features.instance()
 
     self.viewState = .init(
       initial: .init(

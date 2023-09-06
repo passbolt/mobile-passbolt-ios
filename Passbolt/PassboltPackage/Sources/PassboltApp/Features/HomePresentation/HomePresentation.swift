@@ -36,16 +36,14 @@ internal struct HomePresentation {
 
 extension HomePresentation: LoadableFeature {
 
-  public typealias Context = ContextlessLoadableFeatureContext
 
   @MainActor internal static func load(
     using features: Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let currentAccount: Account = try features.sessionAccount()
     let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
 
-    let accountPreferences: AccountPreferences = try features.instance(context: currentAccount)
+    let accountPreferences: AccountPreferences = try features.instance()
 
     var useLastUsedHomePresentationAsDefault: StateBinding<Bool> = accountPreferences
       .useLastHomePresentationAsDefault

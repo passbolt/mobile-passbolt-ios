@@ -27,13 +27,13 @@ import FeatureScopes
 
 public final class TestFeaturesContainer {
 
-  private var mocks: Dictionary<MockItemKey, Any>
+  private var mocks: Dictionary<AnyHashable, Any>
   internal let cancellables: Cancellables  // for legacy elements
   private let lock: NSRecursiveLock
 
   internal init() {
     self.mocks = [  // initialize with Root scope
-      .init(RootFeaturesScope.self, .none): RootFeaturesScope.self
+			RootFeaturesScope.identifier: RootFeaturesScope.self
     ]
     self.cancellables = .init()
     self.lock = .init()
@@ -49,7 +49,7 @@ extension TestFeaturesContainer: FeaturesContainer {
   ) -> Bool where Scope: FeaturesScope {
     self.withLock {
       self.mocks.keys
-        .contains(.init(Scope.self, .none))
+				.contains(Scope.identifier)
     }
   }
 
@@ -59,7 +59,7 @@ extension TestFeaturesContainer: FeaturesContainer {
     line: UInt
   ) throws where RequestedScope: FeaturesScope {
     try self.withLock {
-      if self.mocks.keys.contains(.init(RequestedScope.self, .none)) {
+			if self.mocks.keys.contains(RequestedScope.identifier) {
         // check passed
       }
       else {
@@ -81,7 +81,7 @@ extension TestFeaturesContainer: FeaturesContainer {
   ) throws -> RequestedScope.Context
   where RequestedScope: FeaturesScope {
     try self.withLock {
-      if let context: RequestedScope.Context = self.mocks[.init(RequestedScope.self, .none)] as? RequestedScope.Context
+			if let context: RequestedScope.Context = self.mocks[RequestedScope.identifier] as? RequestedScope.Context
       {
         return context
       }
@@ -105,7 +105,7 @@ extension TestFeaturesContainer: FeaturesContainer {
   ) -> FeaturesContainer
   where RequestedScope: FeaturesScope {
     self.withLock {
-      self.mocks[.init(RequestedScope.self, .none)] = context
+			self.mocks[RequestedScope.identifier] = context
     }
     return self
   }
@@ -117,7 +117,7 @@ extension TestFeaturesContainer: FeaturesContainer {
   ) -> Feature
   where Feature: StaticFeature {
     self.withLock {
-      if let feature: Feature = self.mocks[.init(Feature.self, .none)] as? Feature {
+			if let feature: Feature = self.mocks[Feature.identifier] as? Feature {
         return feature
       }
       else {
@@ -128,22 +128,21 @@ extension TestFeaturesContainer: FeaturesContainer {
 
   public func instance<Feature>(
     of featureType: Feature.Type,
-    context: Feature.Context,
     file: StaticString,
     line: UInt
   ) throws -> Feature
   where Feature: LoadableFeature {
     try self.withLock {
-      if let feature: Feature = self.mocks[.init(Feature.self, (context as? LoadableFeatureContext)?.identifier)]
+      if let feature: Feature = self.mocks[Feature.identifier]
         as? Feature
       {
         return feature
       }
-      else if let loader: FeatureLoader = self.mocks[.init(FeatureLoader.self, Feature.identifier)] as? FeatureLoader {
-        guard let feature: Feature = try loader.load(self, context, self.cancellables) as? Feature
+      else if let loader: FeatureLoader = self.mocks[Feature.identifier] as? FeatureLoader {
+        guard let feature: Feature = try loader.load(self, self.cancellables) as? Feature
         else { fatalError("Invalid feature type from loader!") }
         if loader.cache {
-          self.mocks[.init(Feature.self, (context as? LoadableFeatureContext)?.identifier)] = feature
+          self.mocks[Feature.identifier] = feature
         }  // else continue
         return feature
       }
@@ -165,35 +164,16 @@ extension TestFeaturesContainer {
     guard let loader: FeatureLoader = registry.findFeatureLoader(for: Feature.self)
     else { return XCTFail("Failed to register requested feature!") }
     self.withLock {
-      self.mocks[.init(FeatureLoader.self, Feature.identifier)] = loader
+      self.mocks[Feature.identifier] = loader
     }
   }
 
   public func usePlaceholder<Feature>(
-    for _: Feature.Type,
-    context: Feature.Context
+    for _: Feature.Type
   ) where Feature: LoadableFeature {
     self.withLock {
-      precondition(self.mocks[.init(FeatureLoader.self, Feature.identifier)] == nil)
-      self.mocks[.init(Feature.self, (context as? LoadableFeatureContext)?.identifier)] = Feature.placeholder
-    }
-  }
-
-  public func usePlaceholder<Feature>(
-    for featureType: Feature.Type
-  ) where Feature: LoadableFeature, Feature.Context == ContextlessLoadableFeatureContext {
-    self.withLock {
-      precondition(self.mocks[.init(FeatureLoader.self, Feature.identifier)] == nil)
-      self.mocks[.init(Feature.self, ContextlessLoadableFeatureContext.instance)] = Feature.placeholder
-    }
-  }
-
-  public func usePlaceholder<Feature>(
-    for featureType: Feature.Type
-  ) where Feature: LoadableFeature, Feature.Context == Void {
-    self.withLock {
-      precondition(self.mocks[.init(FeatureLoader.self, Feature.identifier)] == nil)
-      self.mocks[.init(Feature.self, .none)] = Feature.placeholder
+			precondition(!(self.mocks[Feature.identifier] is FeatureLoader))
+      self.mocks[Feature.identifier] = Feature.placeholder
     }
   }
 
@@ -201,20 +181,19 @@ extension TestFeaturesContainer {
     for featureType: Feature.Type
   ) where Feature: StaticFeature {
     self.withLock {
-      precondition(self.mocks[.init(FeatureLoader.self, Feature.identifier)] == nil)
-      self.mocks[.init(Feature.self, .none)] = Feature.placeholder
+			precondition(!(self.mocks[Feature.identifier] is FeatureLoader))
+			self.mocks[Feature.identifier] = Feature.placeholder
     }
   }
 
   public func patch<Feature, Property>(
     _ keyPath: WritableKeyPath<Feature, Property>,
-    context: Feature.Context,
     with updated: Property
   ) where Feature: LoadableFeature {
     self.withLock {
-      precondition(self.mocks[.init(FeatureLoader.self, Feature.identifier)] == nil)
+			precondition(!(self.mocks[Feature.identifier] is FeatureLoader))
       var feature: Feature
-      if let mocked: Feature = self.mocks[.init(Feature.self, (context as? LoadableFeatureContext)?.identifier)]
+      if let mocked: Feature = self.mocks[Feature.identifier]
         as? Feature
       {
         feature = mocked
@@ -223,43 +202,7 @@ extension TestFeaturesContainer {
         feature = .placeholder
       }
       feature[keyPath: keyPath] = updated
-      self.mocks[.init(Feature.self, (context as? LoadableFeatureContext)?.identifier)] = feature
-    }
-  }
-
-  public func patch<Feature, Property>(
-    _ keyPath: WritableKeyPath<Feature, Property>,
-    with updated: Property
-  ) where Feature: LoadableFeature, Feature.Context == ContextlessLoadableFeatureContext {
-    self.withLock {
-      precondition(self.mocks[.init(FeatureLoader.self, Feature.identifier)] == nil)
-      var feature: Feature
-      if let mocked: Feature = self.mocks[.init(Feature.self, ContextlessLoadableFeatureContext.instance)] as? Feature {
-        feature = mocked
-      }
-      else {
-        feature = .placeholder
-      }
-      feature[keyPath: keyPath] = updated
-      self.mocks[.init(Feature.self, ContextlessLoadableFeatureContext.instance)] = feature
-    }
-  }
-
-  public func patch<Feature, Property>(
-    _ keyPath: WritableKeyPath<Feature, Property>,
-    with updated: Property
-  ) where Feature: LoadableFeature, Feature.Context == Void {
-    self.withLock {
-      precondition(self.mocks[.init(FeatureLoader.self, Feature.identifier)] == nil)
-      var feature: Feature
-      if let mocked: Feature = self.mocks[.init(Feature.self, .none)] as? Feature {
-        feature = mocked
-      }
-      else {
-        feature = .placeholder
-      }
-      feature[keyPath: keyPath] = updated
-      self.mocks[.init(Feature.self, .none)] = feature
+      self.mocks[Feature.identifier] = feature
     }
   }
 
@@ -268,16 +211,16 @@ extension TestFeaturesContainer {
     with updated: Property
   ) where Feature: StaticFeature {
     self.withLock {
-      precondition(self.mocks[.init(FeatureLoader.self, Feature.identifier)] == nil)
+      precondition(!(self.mocks[Feature.identifier] is FeatureLoader))
       var feature: Feature
-      if let mocked: Feature = self.mocks[.init(Feature.self, .none)] as? Feature {
+			if let mocked: Feature = self.mocks[Feature.identifier] as? Feature {
         feature = mocked
       }
       else {
         feature = .placeholder
       }
       feature[keyPath: keyPath] = updated
-      self.mocks[.init(Feature.self, .none)] = feature
+      self.mocks[Feature.identifier] = feature
     }
   }
 }
@@ -289,7 +232,7 @@ extension TestFeaturesContainer {
     context: Scope.Context
   ) where Scope: FeaturesScope {
     self.withLock {
-      self.mocks[.init(Scope.self, .none)] = context
+			self.mocks[Scope.identifier] = context
     }
   }
 
@@ -297,7 +240,7 @@ extension TestFeaturesContainer {
     _ scope: Scope.Type
   ) where Scope: FeaturesScope, Scope.Context == Void {
     self.withLock {
-      self.mocks[.init(Scope.self, .none)] = Void()
+			self.mocks[Scope.identifier] = Void()
     }
   }
 }
@@ -313,19 +256,3 @@ extension TestFeaturesContainer {
     return try execute()
   }
 }
-
-internal struct MockItemKey {
-
-  private let identifier: AnyHashable
-  private let additionalIdentifier: AnyHashable?
-
-  internal init<T>(
-    _: T.Type,
-    _ additional: AnyHashable?
-  ) {
-    self.identifier = ObjectIdentifier(T.self)
-    self.additionalIdentifier = additional
-  }
-}
-
-extension MockItemKey: Hashable {}

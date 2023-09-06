@@ -82,7 +82,7 @@ extension SplashScreenController: UIController {
         return destinationSubject.send(.featureConfigFetchError)
       }
 
-      let storedAccounts: Array<Account> = accounts.storedAccounts()
+      let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
 
       if storedAccounts.isEmpty {
         return

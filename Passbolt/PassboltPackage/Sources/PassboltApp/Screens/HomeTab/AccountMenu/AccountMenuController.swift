@@ -26,6 +26,8 @@ import Display
 import OSFeatures
 import Session
 import UIComponents
+import FeatureScopes
+import NetworkOperations
 
 internal struct AccountMenuController {
 
@@ -58,12 +60,13 @@ extension AccountMenuController: UIController {
 
     let accounts: Accounts = try features.instance()
     let session: Session = try features.instance()
-    let currentAccountDetails: AccountDetails = try features.instance(context: currentAccount)
+    let currentAccountDetails: AccountDetails = try features.instance()
 
     let navigationToSelf: NavigationToAccountMenu = try features.instance()
     let navigationToAuthorization: NavigationToAuthorization = try features.instance()
     let navigationToAccountDetails: NavigationToAccountDetails = try features.instance()
     let navigationToManageAccounts: NavigationToManageAccounts = try features.instance()
+		let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
 
     let currentAccountWithProfile = try currentAccountDetails.profile()
 
@@ -80,19 +83,16 @@ extension AccountMenuController: UIController {
             Array<(accountWithProfile: AccountWithProfile, avatarImagePublisher: AnyPublisher<Data?, Never>)> = .init()
 
           for storedAccount in accounts.storedAccounts() {
-            guard
-              storedAccount != currentAccount,
-              let accountDetails: AccountDetails = try? await features.instance(context: storedAccount),
-              let accountWithProfile: AccountWithProfile = try? accountDetails.profile()
+            guard storedAccount.account != currentAccount
             else { continue }  // skip current account
 
             listItems
               .append(
                 (
-                  accountWithProfile: accountWithProfile,
+                  accountWithProfile: storedAccount,
                   avatarImagePublisher: Just(Void())
                     .asyncMap {
-                      try? await accountDetails.avatarImage()
+											try? await mediaDownloadNetworkOperation.execute(storedAccount.avatarImageURL)
                     }
                     .eraseToAnyPublisher()
                 )

@@ -418,6 +418,7 @@ let package = Package(
         // Base
         "Commons",
         "Features",
+				"FeatureScopes",
         // External
         .product(
           name: "Aegithalos",

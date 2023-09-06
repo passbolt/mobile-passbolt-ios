@@ -33,10 +33,9 @@ extension ResourceFolderController {
 
   @MainActor fileprivate static func load(
     features: Features,
-    context resourceFolderID: Context,
     cancellables: Cancellables
   ) throws -> Self {
-    #warning("TODO: remove context in favor of scope")
+		let resourceFolderID: ResourceFolder.ID = try features.context(of: ResourceFolderScope.self)
     let sessionData: SessionData = try features.instance()
     let resourceFolderDetailsFetchDatabaseOperation: ResourceFolderDetailsFetchDatabaseOperation =
       try features.instance()
@@ -61,9 +60,9 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         ResourceFolderController.self,
-        load: ResourceFolderController.load(features:context:cancellables:)
+        load: ResourceFolderController.load(features:cancellables:)
       ),
-      in: SessionScope.self
+      in: ResourceFolderScope.self
     )
   }
 }

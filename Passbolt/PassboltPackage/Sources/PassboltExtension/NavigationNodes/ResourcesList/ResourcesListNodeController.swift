@@ -173,8 +173,8 @@ extension ResourcesListNodeController {
       },
       behavior: .replace
     ) { [features, autofillContext] in
-      let features: Features = await features.branch(
-        scope: ResourceDetailsScope.self,
+      let features: Features = try await features.branch(
+        scope: ResourceScope.self,
         context: resourceID
       )
       let resourceController: ResourceController = try await features.instance()

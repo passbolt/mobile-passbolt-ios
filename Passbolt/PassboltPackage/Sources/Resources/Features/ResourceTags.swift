@@ -42,7 +42,6 @@ public struct ResourceTags {
 
 extension ResourceTags: LoadableFeature {
 
-  public typealias Context = ContextlessLoadableFeatureContext
 
   #if DEBUG
   public static var placeholder: Self {

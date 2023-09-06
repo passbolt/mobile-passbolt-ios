@@ -33,8 +33,6 @@ internal struct SessionLocking {
 
 extension SessionLocking: LoadableFeature {
 
-	internal typealias Context = ContextlessLoadableFeatureContext
-
   #if DEBUG
   internal nonisolated static var placeholder: Self {
     Self(

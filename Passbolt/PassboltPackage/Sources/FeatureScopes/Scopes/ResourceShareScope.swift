@@ -22,9 +22,22 @@
 //
 
 import Features
+import CommonModels
 
 // Scope for sharing resources.
 public enum ResourceShareScope: FeaturesScope {
 
-  public typealias Context = Resource.ID
+	@MainActor public static func verified<Branch>(
+		branch features: Branch,
+		file: StaticString,
+		line: UInt
+	) throws -> Branch
+	where Branch: Features {
+		try features.ensureScope(
+			ResourceScope.self,
+			file: file,
+			line: line
+		)
+		return features
+	}
 }

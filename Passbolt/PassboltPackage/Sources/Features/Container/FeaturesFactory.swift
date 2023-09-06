@@ -64,22 +64,7 @@ where Scope: FeaturesScope {
 
 extension FeaturesFactory {
 
-  private struct CacheKey: Hashable {
-
-    private let featureTypeIdentifier: FeatureIdentifier
-    private let featureContextIdentifier: AnyHashable?
-
-    fileprivate static func key<F>(
-      for featureType: F.Type,
-      context: AnyHashable? = .none
-    ) -> Self
-    where F: AnyFeature {
-      .init(
-        featureTypeIdentifier: featureType.identifier,
-        featureContextIdentifier: context
-      )
-    }
-  }
+  private typealias CacheKey = FeatureIdentifier
 
   private struct CacheItem {
 
@@ -176,14 +161,18 @@ extension FeaturesFactory: FeaturesContainer {
     context: RequestedScope.Context,
     file: StaticString,
     line: UInt
-  ) -> FeaturesContainer
+  ) throws -> FeaturesContainer
   where RequestedScope: FeaturesScope {
-    FeaturesFactory<RequestedScope>(
-      registry: self.registry,
-      scope: scope,
-      context: context,
-      parent: self
-    )
+		try RequestedScope.verified(
+			branch: FeaturesFactory<RequestedScope>(
+				registry: self.registry,
+				scope: scope,
+				context: context,
+				parent: self
+			),
+			file: file,
+			line: line
+		)
   }
 
   @MainActor public func instance<Feature>(
@@ -208,22 +197,18 @@ extension FeaturesFactory: FeaturesContainer {
 
   @MainActor public func instance<Feature>(
     of featureType: Feature.Type,
-    context: Feature.Context,
     file: StaticString,
     line: UInt
   ) throws -> Feature
   where Feature: LoadableFeature {
-    let cacheKey: CacheKey = .key(
-      for: Feature.self,
-      context: (context as? LoadableFeatureContext)?.identifier
-    )
+    let cacheKey: CacheKey = Feature.identifier
 
     if let cached: Feature = self.cache[cacheKey]?.feature as? Feature {
       return cached
     }
     else if let loader: FeatureLoader = self.loaders[Feature.identifier] {
       let cancellables: Cancellables = .init()
-      guard let loaded: Feature = try loader.load(FeaturesProxy(container: self), context, cancellables) as? Feature
+      guard let loaded: Feature = try loader.load(FeaturesProxy(container: self), cancellables) as? Feature
       else { unreachable("Cannot create wrong type of feature") }
 
       if loader.cache {
@@ -243,7 +228,6 @@ extension FeaturesFactory: FeaturesContainer {
         try parent
         .instance(
           of: Feature.self,
-          context: context,
           file: file,
           line: line
         )

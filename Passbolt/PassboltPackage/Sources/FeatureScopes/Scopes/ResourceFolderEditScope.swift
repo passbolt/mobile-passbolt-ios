@@ -22,9 +22,25 @@
 //
 
 import Features
+import CommonModels
+import Resources
 
 // Scope for editing resource folder details.
 public enum ResourceFolderEditScope: FeaturesScope {
 
-  public typealias Context = ResourceFolder.ID?
+  public typealias Context = ResourceFolderEditingContext
+}
+
+extension Features {
+
+	public func resourceFolderEditingContext(
+		file: StaticString = #fileID,
+		line: UInt = #line
+	) throws -> ResourceFolderEditingContext {
+		try self.context(
+			of: ResourceFolderEditScope.self,
+			file: file,
+			line: line
+		)
+	}
 }

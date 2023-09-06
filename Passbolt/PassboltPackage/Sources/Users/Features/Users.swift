@@ -55,7 +55,6 @@ public struct Users {
 
 extension Users: LoadableFeature {
 
-  public typealias Context = ContextlessLoadableFeatureContext
 
   #if DEBUG
 

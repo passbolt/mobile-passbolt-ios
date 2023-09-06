@@ -36,6 +36,7 @@ public struct AccountDetails {
   /// Access currently stored profile data
   /// for the context account.
   public var profile: @Sendable () throws -> AccountWithProfile
+	public var isPassphraseStored: @Sendable () -> Bool
   /// Fetch profile updates if any.
   /// Requires valid session for context account.
   public var updateProfile: @Sendable () async throws -> Void
@@ -45,11 +46,13 @@ public struct AccountDetails {
   public init(
     updates: AnyUpdatable<Void>,
     profile: @escaping @Sendable () throws -> AccountWithProfile,
+		isPassphraseStored: @escaping @Sendable () -> Bool,
     updateProfile: @escaping @Sendable () async throws -> Void,
     avatarImage: @escaping @Sendable () async throws -> Data?
   ) {
     self.updates = updates
     self.profile = profile
+		self.isPassphraseStored = isPassphraseStored
     self.updateProfile = updateProfile
     self.avatarImage = avatarImage
   }
@@ -64,6 +67,7 @@ extension AccountDetails: LoadableFeature {
     Self(
       updates: PlaceholderUpdatable().asAnyUpdatable(),
       profile: unimplemented0(),
+			isPassphraseStored: unimplemented0(),
       updateProfile: unimplemented0(),
       avatarImage: unimplemented0()
     )

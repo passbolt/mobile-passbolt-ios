@@ -54,7 +54,7 @@ internal final class ResourceFolderPermissionListController: ViewController {
     self.asyncExecutor = try features.instance()
     self.navigation = try features.instance()
     self.users = try features.instance()
-    self.resourceFolderController = try features.instance(context: context)
+    self.resourceFolderController = try features.instance()
     self.resourceFolderUserPermissionsDetailsFetch = try features.instance()
     self.resourceFolderUserGroupPermissionsDetailsFetch = try features.instance()
 

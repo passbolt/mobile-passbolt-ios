@@ -22,11 +22,12 @@
 //
 
 import Features
+import CommonModels
 
 // Scope for signed in user.
 public enum SessionScope: FeaturesScope {
 
-  public struct Context: Hashable, LoadableFeatureContext {
+  public struct Context: Hashable {
 
     public let account: Account
     public let configuration: SessionConfiguration
@@ -39,6 +40,20 @@ public enum SessionScope: FeaturesScope {
       self.configuration = configuration
     }
   }
+
+	@MainActor public static func verified<Branch>(
+		branch features: Branch,
+		file: StaticString,
+		line: UInt
+	) throws -> Branch
+	where Branch: Features {
+		try features.ensureScope(
+			AccountScope.self,
+			file: file,
+			line: line
+		)
+		return features
+	}
 }
 
 extension Features {

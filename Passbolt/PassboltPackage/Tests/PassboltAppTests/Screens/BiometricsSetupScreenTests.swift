@@ -55,12 +55,10 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
     )
     features.patch(
       \AccountPreferences.updates,
-      context: Account.mock_ada,
       with: preferencesUpdates.asAnyUpdatable()
     )
     features.patch(
       \AccountInitialSetup.completeSetup,
-      context: Account.mock_ada,
       with: always(Void())
     )
   }
@@ -133,7 +131,6 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
   func test_destinationPresentationPublisher_publishesFinish_WhenSetupSucceed_andExtensionIsEnabled() async throws {
     features.patch(
       \AccountPreferences.storePassphrase,
-      context: Account.mock_ada,
       with: always(Void())
     )
     features.patch(
@@ -159,7 +156,6 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
   {
     features.patch(
       \AccountPreferences.storePassphrase,
-      context: Account.mock_ada,
       with: always(Void())
     )
     features.patch(
@@ -184,7 +180,6 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
     let result: UnsafeSendable<Bool> = .init()
     features.patch(
       \AccountPreferences.storePassphrase,
-      context: Account.mock_ada,
       with: { (store) async throws in
         result.value = store
       }
@@ -206,7 +201,6 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
   func test_setupBiometrics_fails_whenBiometricsEnableFails() async throws {
     features.patch(
       \AccountPreferences.storePassphrase,
-      context: Account.mock_ada,
       with: alwaysThrow(MockIssue.error())
     )
     features.patch(

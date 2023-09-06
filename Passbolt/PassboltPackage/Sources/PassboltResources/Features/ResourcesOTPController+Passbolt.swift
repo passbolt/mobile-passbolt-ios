@@ -67,11 +67,11 @@ extension ResourcesOTPController {
 
       // load resource controller to access its details
       let resourceController: ResourceController = try await
-        (features
+        features
         .branchIfNeeded(
-          scope: ResourceDetailsScope.self,
+          scope: ResourceScope.self,
           context: resourceID
-        ) ?? features)
+        )
         .instance()
 
       // load resource secret
@@ -84,14 +84,16 @@ extension ResourcesOTPController {
       }
 
       // prepare otp generator
-      let otpGenerator: TOTPCodeGenerator = try await features.instance(
-        context: .init(
-          resourceID: resourceID,
-          totpSecret: totpSecret
-        )
-      )
+      let otpGenerator: TOTPCodeGenerator = try await features
+				.instance()
+			let generate: () -> TOTPValue = otpGenerator.prepare(
+				.init(
+					resourceID: resourceID,
+					secret: totpSecret
+				)
+			)
 
-      return { .totp(otpGenerator.generate()) }
+      return { .totp(generate()) }
     }
 
     // combine time ticks with current OTP generator
@@ -136,7 +138,7 @@ extension FeaturesRegistry {
         ResourcesOTPController.self,
         load: ResourcesOTPController.load(features:)
       ),
-      in: ResourceDetailsScope.self
+      in: ResourceScope.self
     )
   }
 }

@@ -141,12 +141,8 @@ final class ResourcesOTPControllerTests: FeaturesTestCase {
         period: 30
       )
     patch(
-      \TOTPCodeGenerator.generate,
-      context: .init(
-        resourceID: .mock_1,
-        totpSecret: Resource.mock_totp.firstTOTPSecret!
-      ),
-      with: always(expectedResult)
+      \TOTPCodeGenerator.prepare,
+      with: always(always(expectedResult))
     )
 
     let tested: ResourcesOTPController = try self.testedInstance()
@@ -174,12 +170,8 @@ final class ResourcesOTPControllerTests: FeaturesTestCase {
       period: 30
     )
     patch(
-      \TOTPCodeGenerator.generate,
-      context: .init(
-        resourceID: .mock_1,
-        totpSecret: Resource.mock_totp.firstTOTPSecret!
-      ),
-      with: always(self.totpValue)
+      \TOTPCodeGenerator.prepare,
+      with: always(always(self.totpValue))
     )
 
     let tested: ResourcesOTPController = try self.testedInstance()
@@ -222,12 +214,8 @@ final class ResourcesOTPControllerTests: FeaturesTestCase {
       period: 30
     )
     patch(
-      \TOTPCodeGenerator.generate,
-      context: .init(
-        resourceID: .mock_1,  // can't mock multiple times!
-        totpSecret: Resource.mock_totp.firstTOTPSecret!
-      ),
-      with: always(self.totpValue)
+      \TOTPCodeGenerator.prepare,
+      with: always(always(self.totpValue))
     )
 
     let tested: ResourcesOTPController = try self.testedInstance()
@@ -275,12 +263,8 @@ final class ResourcesOTPControllerTests: FeaturesTestCase {
       period: 30
     )
     patch(
-      \TOTPCodeGenerator.generate,
-      context: .init(
-        resourceID: .mock_1,
-        totpSecret: Resource.mock_totp.firstTOTPSecret!
-      ),
-      with: always(self.totpValue)
+      \TOTPCodeGenerator.prepare,
+      with: always(always(self.totpValue))
     )
 
     let tested: ResourcesOTPController = try self.testedInstance()
@@ -314,19 +298,15 @@ final class ResourcesOTPControllerTests: FeaturesTestCase {
       with: Constant(.mock_totp).asAnyUpdatable()
     )
     patch(
-      \TOTPCodeGenerator.generate,
-      context: .init(
-        resourceID: .mock_1,
-        totpSecret: Resource.mock_totp.firstTOTPSecret!
-      ),
-      with: always(
+      \TOTPCodeGenerator.prepare,
+      with: always(always(
         TOTPValue(
           resourceID: .mock_1,
           otp: "123",
           timeLeft: 20,
           period: 30
         )
-      )
+      ))
     )
 
     let tested: ResourcesOTPController = try self.testedInstance()

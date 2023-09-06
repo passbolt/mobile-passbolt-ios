@@ -71,12 +71,10 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
     )
     features.patch(
       \AccountDetails.profile,
-      context: Account.mock_ada,
       with: always(AccountWithProfile.mock_ada)
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: Account.mock_ada,
       with: always(.init())
     )
   }

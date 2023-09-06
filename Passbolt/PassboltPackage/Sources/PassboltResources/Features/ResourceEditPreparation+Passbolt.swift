@@ -69,10 +69,10 @@ extension ResourceEditPreparation {
       resourceID: Resource.ID
     ) async throws -> ResourceEditingContext {
       let features: Features =
-        await features.branchIfNeeded(
-          scope: ResourceDetailsScope.self,
+        try await features.branchIfNeeded(
+          scope: ResourceScope.self,
           context: resourceID
-        ) ?? features
+        )
 
       let resourceController: ResourceController = try await features.instance()
 

@@ -47,7 +47,7 @@ extension FeaturesRegistry {
   internal mutating func useLiveNavigationToResourceOTPContextualMenu() {
     self.use(
       NavigationToResourceOTPContextualMenu.live,
-      in: ResourceDetailsScope.self
+      in: ResourceScope.self
     )
   }
 }

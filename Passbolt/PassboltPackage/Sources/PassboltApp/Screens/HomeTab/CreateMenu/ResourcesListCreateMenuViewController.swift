@@ -91,16 +91,13 @@ extension ResourcesListCreateMenuViewController {
       .scheduleCatching(
         behavior: .reuse
       ) { [context, features, navigation] in
-        await navigation
-          .dismissLegacySheet(ResourcesListCreateMenuView.self)
-        try await navigation.push(
-          ResourceFolderEditView.self,
-          controller: features.instance(
-            context: .create(
-              containingFolderID: context
-            )
-          )
-        )
+				await navigation
+					.dismissLegacySheet(ResourcesListCreateMenuView.self)
+				let editingFeatures: Features = try await features.instance(of: ResourceFolderEditPreparation.self).prepareNew(context)
+				try await navigation.push(
+					ResourceFolderEditView.self,
+					controller: editingFeatures.instance()
+				)
       }
   }
 }

@@ -77,35 +77,10 @@ open class FeaturesTestCase: TestCase {
 extension FeaturesTestCase {
 
   public final func testedInstance<Feature>(
-    _ featureType: Feature.Type = Feature.self,
-    context: Feature.Context
+    _ featureType: Feature.Type = Feature.self
   ) throws -> Feature
   where Feature: LoadableFeature {
-    try self.testFeatures
-      .instance(
-        of: featureType,
-        context: context
-      )
-  }
-
-  public final func testedInstance<Feature>(
-    _ featureType: Feature.Type = Feature.self
-  ) throws -> Feature
-  where Feature: LoadableFeature, Feature.Context == Void {
-    try self.testFeatures
-      .instance(
-        of: featureType
-      )
-  }
-
-  public final func testedInstance<Feature>(
-    _ featureType: Feature.Type = Feature.self
-  ) throws -> Feature
-  where Feature: LoadableFeature, Feature.Context == ContextlessLoadableFeatureContext {
-    try self.testFeatures
-      .instance(
-        of: featureType
-      )
+    try self.testFeatures.instance(of: featureType)
   }
 
   public final func testedInstance<Alert>(
@@ -218,21 +193,9 @@ extension FeaturesTestCase {
   }
 
   public func usePlaceholder<Feature>(
-    for _: Feature.Type,
-    context: Feature.Context
+    for _: Feature.Type
   ) where Feature: LoadableFeature {
-    self.testFeatures
-      .usePlaceholder(
-        for: Feature.self,
-        context: context
-      )
-  }
-
-  public func usePlaceholder<Feature>(
-    for featureType: Feature.Type
-  ) where Feature: LoadableFeature, Feature.Context == Void {
-    self.testFeatures
-      .usePlaceholder(for: Feature.self)
+    self.testFeatures.usePlaceholder(for: Feature.self)
   }
 
   public func usePlaceholder<Feature>(
@@ -243,20 +206,8 @@ extension FeaturesTestCase {
   }
 
   public final func use<MockFeature>(
-    _ instance: MockFeature,
-    context: MockFeature.Context
-  ) where MockFeature: LoadableFeature {
-    self.testFeatures
-      .patch(
-        \MockFeature.self,
-        context: context,
-        with: instance
-      )
-  }
-
-  public final func use<MockFeature>(
     _ instance: MockFeature
-  ) where MockFeature: LoadableFeature, MockFeature.Context == Void {
+  ) where MockFeature: LoadableFeature {
     self.testFeatures
       .patch(
         \MockFeature.self,
@@ -276,33 +227,8 @@ extension FeaturesTestCase {
 
   public func patch<MockFeature, Value>(
     _ keyPath: WritableKeyPath<MockFeature, Value>,
-    context: MockFeature.Context,
     with value: Value
   ) where MockFeature: LoadableFeature {
-    self.testFeatures
-      .patch(
-        keyPath,
-        context: context,
-        with: value
-      )
-  }
-
-  public func patch<MockFeature, Value>(
-    _ keyPath: WritableKeyPath<MockFeature, Value>,
-    with value: Value
-  ) where MockFeature: LoadableFeature, MockFeature.Context == ContextlessLoadableFeatureContext {
-    self.testFeatures
-      .patch(
-        keyPath,
-        context: ContextlessLoadableFeatureContext.instance,
-        with: value
-      )
-  }
-
-  public func patch<MockFeature, Value>(
-    _ keyPath: WritableKeyPath<MockFeature, Value>,
-    with value: Value
-  ) where MockFeature: LoadableFeature, MockFeature.Context == Void {
     self.testFeatures
       .patch(
         keyPath,
@@ -330,48 +256,9 @@ extension FeaturesTestCase {
 		line: UInt = #line,
 		test: @escaping @Sendable (Feature) async throws -> Void
 	) async
-	where Feature: LoadableFeature, Feature.Context == Void {
-		do {
-			try await test(self.testedInstance())
-		}
-		catch {
-			XCTFail(
-				"Unexpected error: \(error)",
-				file: file,
-				line: line
-			)
-		}
-	}
-
-	public func withInstance<Feature>(
-		of _: Feature.Type = Feature.self,
-		file: StaticString = #file,
-		line: UInt = #line,
-		test: @escaping @Sendable (Feature) async throws -> Void
-	) async
-	where Feature: LoadableFeature, Feature.Context == ContextlessLoadableFeatureContext {
-		do {
-			try await test(self.testedInstance())
-		}
-		catch {
-			XCTFail(
-				"Unexpected error: \(error)",
-				file: file,
-				line: line
-			)
-		}
-	}
-
-	public func withInstance<Feature>(
-		of _: Feature.Type = Feature.self,
-		context: Feature.Context,
-		file: StaticString = #file,
-		line: UInt = #line,
-		test: @escaping @Sendable (Feature) async throws -> Void
-	) async
 	where Feature: LoadableFeature {
 		do {
-			try await test(self.testedInstance(context: context))
+			try await test(self.testedInstance())
 		}
 		catch {
 			XCTFail(
@@ -451,78 +338,17 @@ extension FeaturesTestCase {
 
   @Sendable nonisolated public func mockExecuted<Argument>(
     with argument: Argument
-  ) {
-    let count: UInt = self.loadOrDefine(
-      \.executedCount,
-      defaultValue: 0
-    )
-    self.executedCount = count + 1
-    self.setOrDefine(\.executedArgument, value: argument)
-  }
-
-	public func withInstance<Feature>(
-		of _: Feature.Type = Feature.self,
-		mockExecuted: UInt,
-		file: StaticString = #file,
-		line: UInt = #line,
-		test: @escaping @Sendable (Feature) async throws -> Void
-	) async
-	where Feature: LoadableFeature, Feature.Context == Void {
-		do {
-			try await test(self.testedInstance())
-			XCTAssertEqual(
-				mockExecuted,
-				self.loadOrDefine(
-					\.executedCount,
-					defaultValue: 0
-				),
-				"Executed count was not matching expected",
-				file: file,
-				line: line
-			)
-		}
-		catch {
-			XCTFail(
-				"Unexpected error: \(error)",
-				file: file,
-				line: line
-			)
-		}
+	) {
+		let count: UInt = self.loadOrDefine(
+			\.executedCount,
+			 defaultValue: 0
+		)
+		self.executedCount = count + 1
+		self.setOrDefine(\.executedArgument, value: argument)
 	}
 
 	public func withInstance<Feature>(
 		of _: Feature.Type = Feature.self,
-		mockExecuted: UInt,
-		file: StaticString = #file,
-		line: UInt = #line,
-		test: @escaping @Sendable (Feature) async throws -> Void
-	) async
-	where Feature: LoadableFeature, Feature.Context == ContextlessLoadableFeatureContext {
-		do {
-			try await test(self.testedInstance())
-			XCTAssertEqual(
-				mockExecuted,
-				self.loadOrDefine(
-					\.executedCount,
-					defaultValue: 0
-				),
-				"Executed count was not matching expected",
-				file: file,
-				line: line
-			)
-		}
-		catch {
-			XCTFail(
-				"Unexpected error: \(error)",
-				file: file,
-				line: line
-			)
-		}
-	}
-
-	public func withInstance<Feature>(
-		of _: Feature.Type = Feature.self,
-		context: Feature.Context,
 		mockExecuted: UInt,
 		file: StaticString = #file,
 		line: UInt = #line,
@@ -530,7 +356,7 @@ extension FeaturesTestCase {
 	) async
 	where Feature: LoadableFeature {
 		do {
-			try await test(self.testedInstance(context: context))
+			try await test(self.testedInstance())
 			XCTAssertEqual(
 				mockExecuted,
 				self.loadOrDefine(
@@ -558,70 +384,9 @@ extension FeaturesTestCase {
 		line: UInt = #line,
 		test: @escaping @Sendable (Feature) async throws -> Void
 	) async
-	where Feature: LoadableFeature, Feature.Context == Void, Argument: Equatable {
-		do {
-			try await test(self.testedInstance())
-			XCTAssertEqual(
-				mockExecutedWith,
-				self.loadIfDefined(
-					\.executedArgument,
-					of: Argument.self
-				),
-				"Executed argument was invalid or missing",
-				file: file,
-				line: line
-			)
-		}
-		catch {
-			XCTFail(
-				"Unexpected error: \(error)",
-				file: file,
-				line: line
-			)
-		}
-	}
-
-	public func withInstance<Feature, Argument>(
-		of _: Feature.Type = Feature.self,
-		mockExecutedWith: Argument,
-		file: StaticString = #file,
-		line: UInt = #line,
-		test: @escaping @Sendable (Feature) async throws -> Void
-	) async
-	where Feature: LoadableFeature, Feature.Context == ContextlessLoadableFeatureContext, Argument: Equatable {
-		do {
-			try await test(self.testedInstance())
-			XCTAssertEqual(
-				mockExecutedWith,
-				self.loadIfDefined(
-					\.executedArgument,
-					of: Argument.self
-				),
-				"Executed argument was invalid or missing",
-				file: file,
-				line: line
-			)
-		}
-		catch {
-			XCTFail(
-				"Unexpected error: \(error)",
-				file: file,
-				line: line
-			)
-		}
-	}
-
-	public func withInstance<Feature, Argument>(
-		of _: Feature.Type = Feature.self,
-		context: Feature.Context,
-		mockExecutedWith: Argument,
-		file: StaticString = #file,
-		line: UInt = #line,
-		test: @escaping @Sendable (Feature) async throws -> Void
-	) async
 	where Feature: LoadableFeature, Argument: Equatable {
 		do {
-			try await test(self.testedInstance(context: context))
+			try await test(self.testedInstance())
 			XCTAssertEqual(
 				mockExecutedWith,
 				self.loadIfDefined(
@@ -644,61 +409,6 @@ extension FeaturesTestCase {
 
 	public func withInstance<Feature, Value>(
 		of _: Feature.Type = Feature.self,
-		returns: Value,
-		file: StaticString = #file,
-		line: UInt = #line,
-		test: @escaping @Sendable (Feature) async throws -> Value
-	) async
-	where Feature: LoadableFeature, Feature.Context == Void, Value: Equatable {
-		do {
-			let returned: Value = try await test(self.testedInstance())
-			XCTAssertEqual(
-				returns,
-				returned,
-				"Returned value was invalid",
-				file: file,
-				line: line
-			)
-		}
-		catch {
-			XCTFail(
-				"Unexpected error: \(error)",
-				file: file,
-				line: line
-			)
-		}
-	}
-
-	public func withInstance<Feature, Value>(
-		of _: Feature.Type = Feature.self,
-		returns: Value,
-		file: StaticString = #file,
-		line: UInt = #line,
-		test: @escaping @Sendable (Feature) async throws -> Value
-	) async
-	where Feature: LoadableFeature, Feature.Context == ContextlessLoadableFeatureContext, Value: Equatable {
-		do {
-			let returned: Value = try await test(self.testedInstance())
-			XCTAssertEqual(
-				returns,
-				returned,
-				"Returned value was invalid",
-				file: file,
-				line: line
-			)
-		}
-		catch {
-			XCTFail(
-				"Unexpected error: \(error)",
-				file: file,
-				line: line
-			)
-		}
-	}
-
-	public func withInstance<Feature, Value>(
-		of _: Feature.Type = Feature.self,
-		context: Feature.Context,
 		returns: Value,
 		file: StaticString = #file,
 		line: UInt = #line,
@@ -706,7 +416,7 @@ extension FeaturesTestCase {
 	) async
 	where Feature: LoadableFeature, Value: Equatable {
 		do {
-			let returned: Value = try await test(self.testedInstance(context: context))
+			let returned: Value = try await test(self.testedInstance())
 			XCTAssertEqual(
 				returns,
 				returned,
@@ -731,66 +441,9 @@ extension FeaturesTestCase {
 		line: UInt = #line,
 		test: @escaping @Sendable (Feature) async throws -> Value
 	) async
-	where Feature: LoadableFeature, Feature.Context == Void, Failure: Error {
-		do {
-			_ = try await test(self.testedInstance())
-			XCTFail(
-				"Expected error not thrown",
-				file: file,
-				line: line
-			)
-		}
-		catch is Failure {
-			// expected
-		}
-		catch {
-			XCTFail(
-				"Unexpected error: \(error)",
-				file: file,
-				line: line
-			)
-		}
-	}
-
-	public func withInstance<Feature, Value, Failure>(
-		of _: Feature.Type = Feature.self,
-		throws: Failure.Type,
-		file: StaticString = #file,
-		line: UInt = #line,
-		test: @escaping @Sendable (Feature) async throws -> Value
-	) async
-	where Feature: LoadableFeature, Feature.Context == ContextlessLoadableFeatureContext, Failure: Error {
-		do {
-			_ = try await test(self.testedInstance())
-			XCTFail(
-				"Expected error not thrown",
-				file: file,
-				line: line
-			)
-		}
-		catch is Failure {
-			// expected
-		}
-		catch {
-			XCTFail(
-				"Unexpected error: \(error)",
-				file: file,
-				line: line
-			)
-		}
-	}
-
-	public func withInstance<Feature, Value, Failure>(
-		of _: Feature.Type = Feature.self,
-		context: Feature.Context,
-		throws: Failure.Type,
-		file: StaticString = #file,
-		line: UInt = #line,
-		test: @escaping @Sendable (Feature) async throws -> Value
-	) async
 	where Feature: LoadableFeature, Failure: Error {
 		do {
-			_ = try await test(self.testedInstance(context: context))
+			_ = try await test(self.testedInstance())
 			XCTFail(
 				"Expected error not thrown",
 				file: file,
@@ -808,7 +461,7 @@ extension FeaturesTestCase {
 			)
 		}
 	}
-////
+
   public func withInstance<Controller>(
     of _: Controller.Type = Controller.self,
     mockExecuted: UInt,

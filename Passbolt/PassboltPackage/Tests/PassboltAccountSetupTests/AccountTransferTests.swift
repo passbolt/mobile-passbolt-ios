@@ -808,7 +808,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     )
     patch(
       \Accounts.storedAccounts,
-      with: always([transferedAccount])
+      with: always([transferedAccountWithProfile])
     )
     let accountTransfer: AccountImport = try testedInstance()
     var result: Error?
@@ -842,7 +842,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     )
     patch(
       \Accounts.storedAccounts,
-      with: always([transferedAccount])
+      with: always([transferedAccountWithProfile])
     )
 
     let accountTransfer: AccountImport = try testedInstance()
@@ -863,7 +863,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     )
     patch(
       \Accounts.storedAccounts,
-      with: always([transferedAccount])
+      with: always([transferedAccountWithProfile])
     )
 
     let accountTransfer: AccountImport = try testedInstance()
@@ -921,6 +921,18 @@ private let transferedAccount: Account = .init(
   domain: "https://localhost:8443",
   userID: .init(uuidString: "f848277c-5398-58f8-a82a-72397af2d450")!,
   fingerprint: "FINGERPRINT"
+)
+
+private let transferedAccountWithProfile: AccountWithProfile = .init(
+	account: transferedAccount,
+	profile: .init(
+		accountID: transferedAccount.localID,
+		label: "Transfered",
+		username: "transfered@account.com",
+		firstName: "Transfered",
+		lastName: "Account",
+		avatarImageURL: ""
+	)
 )
 
 private let qrCodePart0: String =

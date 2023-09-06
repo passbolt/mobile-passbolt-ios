@@ -56,7 +56,7 @@ public struct Validated<Value> {
 
 extension Validated {
 
-  public static func valid(
+  @Sendable public static func valid(
     _ value: Value
   ) -> Self {
     Self(
@@ -65,7 +65,7 @@ extension Validated {
     )
   }
 
-  public static func invalid(
+	@Sendable public static func invalid(
     _ value: Value,
     error: TheError
   ) -> Self {

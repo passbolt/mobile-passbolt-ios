@@ -21,22 +21,50 @@
 // @since         v1.0
 //
 
+import CommonModels
 import Features
 
-// Scope for OTP resources tab.
-public enum OTPResourcesTabScope: FeaturesScope {
+public struct ResourceFolderEditPreparation {
 
-	@MainActor public static func verified<Branch>(
-		branch features: Branch,
-		file: StaticString,
-		line: UInt
-	) throws -> Branch
-	where Branch: Features {
-		try features.ensureScope(
-			SessionScope.self,
-			file: file,
-			line: line
-		)
-		return features
+	public var prepareNew:
+		@Sendable (
+			_ parentFolderID: ResourceFolder.ID?
+		) async throws -> FeaturesContainer
+
+	public var prepareExisting: @Sendable (ResourceFolder.ID) async throws -> FeaturesContainer
+
+	public init(
+		prepareNew: @escaping @Sendable (
+			_ parentFolderID: ResourceFolder.ID?
+		) async throws -> FeaturesContainer,
+		prepareExisting: @escaping @Sendable (ResourceFolder.ID) async throws -> FeaturesContainer
+	) {
+		self.prepareNew = prepareNew
+		self.prepareExisting = prepareExisting
 	}
 }
+
+extension ResourceFolderEditPreparation: LoadableFeature {
+
+	#if DEBUG
+	public nonisolated static var placeholder: Self {
+		.init(
+			prepareNew: unimplemented1(),
+			prepareExisting: unimplemented1()
+		)
+	}
+	#endif
+}
+
+public struct ResourceFolderEditingContext {
+
+	public var editedResourceFolder: ResourceFolder
+
+	public init(
+		editedResourceFolder: ResourceFolder
+	) {
+		self.editedResourceFolder = editedResourceFolder
+	}
+}
+
+extension ResourceFolderEditingContext: Equatable {}

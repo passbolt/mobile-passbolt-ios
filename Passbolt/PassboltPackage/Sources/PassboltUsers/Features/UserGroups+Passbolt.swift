@@ -92,10 +92,11 @@ extension UserGroups {
       _ userGroupID: UserGroup.ID
     ) async throws -> OrderedSet<UserDetailsDSV> {
       try await features
-        .instance(
-          of: UserGroupDetails.self,
-          context: userGroupID
-        )
+				.branchIfNeeded(
+					scope: UserGroupScope.self,
+					context: userGroupID
+				)
+				.instance(of: UserGroupDetails.self)
         .details()
         .members
     }

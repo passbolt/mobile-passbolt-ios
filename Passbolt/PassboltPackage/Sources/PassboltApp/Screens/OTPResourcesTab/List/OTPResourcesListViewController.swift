@@ -75,13 +75,12 @@ internal final class OTPResourcesListViewController: ViewController {
 
     self.asyncExecutor = try features.instance()
 
-    self.accountDetails = try features.instance(context: currentAccount)
-    self.resourceSearchController = try features.instance(
-      context: .init(
-        text: .init(),
-        includedTypes: [.totp, .passwordWithTOTP]
-      )
-    )
+    self.accountDetails = try features.instance()
+    self.resourceSearchController = try features.instance()
+		self.resourceSearchController.updateFilter { filter in
+			// set initial filter
+			filter.includedTypes = [.totp, .passwordWithTOTP]
+		}
     self.resourcesOTPController = try features.instance()
     self.resourceEditPreparation = try features.instance()
 
@@ -233,10 +232,10 @@ extension OTPResourcesListViewController {
     ) {
       self.hideOTPCodes()
       let features: Features =
-        features.branchIfNeeded(
-          scope: ResourceDetailsScope.self,
+        try features.branchIfNeeded(
+          scope: ResourceScope.self,
           context: resourceID
-        ) ?? features
+        )
       let navigationToContextualMenu: NavigationToResourceOTPContextualMenu = try features.instance()
       try await navigationToContextualMenu.perform(
         context: .init(

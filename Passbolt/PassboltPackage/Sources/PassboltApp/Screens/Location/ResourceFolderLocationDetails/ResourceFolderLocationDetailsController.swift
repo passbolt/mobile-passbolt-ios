@@ -46,7 +46,7 @@ internal final class ResourceFolderLocationDetailsController: ViewController {
       )
     )
 
-    let resourceFolderController: ResourceFolderController = try features.instance(context: context)
+    let resourceFolderController: ResourceFolderController = try features.instance()
 
     self.executor
       .scheduleIteration(

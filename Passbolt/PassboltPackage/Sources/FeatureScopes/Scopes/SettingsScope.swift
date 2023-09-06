@@ -24,4 +24,19 @@
 import Features
 
 // Scope for application/account settings.
-public enum SettingsScope: FeaturesScope {}
+public enum SettingsScope: FeaturesScope {
+
+	@MainActor public static func verified<Branch>(
+		branch features: Branch,
+		file: StaticString,
+		line: UInt
+	) throws -> Branch
+	where Branch: Features {
+		try features.ensureScope(
+			SessionScope.self,
+			file: file,
+			line: line
+		)
+		return features
+	}
+}

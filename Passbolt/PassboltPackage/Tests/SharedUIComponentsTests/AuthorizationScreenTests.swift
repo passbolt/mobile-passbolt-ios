@@ -42,24 +42,20 @@ final class AuthorizationScreenTests: MainActorTestCase {
     features.usePlaceholder(for: OSBiometry.self)
     features.patch(
       \AccountDetails.profile,
-      context: .mock_ada,
       with: always(.mock_ada)
     )
     detailsUpdates = .init()
     features.patch(
       \AccountDetails.updates,
-      context: .mock_ada,
       with: detailsUpdates.asAnyUpdatable()
     )
     preferencesUpdates = .init()
     features.patch(
       \AccountPreferences.updates,
-      context: .mock_ada,
       with: preferencesUpdates.asAnyUpdatable()
     )
     features.patch(
-      \AccountPreferences.isPassphraseStored,
-      context: .mock_ada,
+      \AccountDetails.isPassphraseStored,
       with: always(true)
     )
   }
@@ -225,7 +221,6 @@ final class AuthorizationScreenTests: MainActorTestCase {
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: .mock_ada,
       with: always(testData)
     )
 
@@ -251,7 +246,6 @@ final class AuthorizationScreenTests: MainActorTestCase {
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: .mock_ada,
       with: alwaysThrow(MockIssue.error())
     )
 
@@ -302,8 +296,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
       with: always(Void())
     )
     features.patch(
-      \AccountPreferences.isPassphraseStored,
-      context: .mock_ada,
+      \AccountDetails.isPassphraseStored,
       with: always(false)
     )
     features.patch(
@@ -361,8 +354,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
       with: always(.touchID)
     )
     features.patch(
-      \AccountPreferences.isPassphraseStored,
-      context: .mock_ada,
+      \AccountDetails.isPassphraseStored,
       with: always(true)
     )
 

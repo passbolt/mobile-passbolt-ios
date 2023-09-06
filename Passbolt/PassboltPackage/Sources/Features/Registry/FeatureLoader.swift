@@ -27,46 +27,18 @@ public struct FeatureLoader {
 
   internal let identifier: FeatureIdentifier
   internal let cache: Bool
-  internal let load: @MainActor (Features, Any, Cancellables) throws -> AnyFeature
+  internal let load: @MainActor (Features, Cancellables) throws -> AnyFeature
 }
 
 extension FeatureLoader {
 
   public static func lazyLoaded<Feature>(
     _ featureType: Feature.Type,
-    load: @escaping @MainActor (Features, Feature.Context, Cancellables) throws -> Feature
-  ) -> Self
-  where Feature: LoadableFeature, Feature.Context: LoadableFeatureContext {
-    @MainActor func loadFeature(
-      _ factory: Features,
-      _ context: Any,
-      _ cancellables: Cancellables
-    ) throws -> AnyFeature {
-      guard let context: Feature.Context = context as? Feature.Context
-      else { unreachable("Type safety is guaranteed by framework") }
-
-      return try load(
-        factory,
-        context,
-        cancellables
-      )
-    }
-
-    return Self(
-      identifier: featureType.identifier,
-      cache: true,
-      load: loadFeature(_:_:_:)
-    )
-  }
-
-  public static func lazyLoaded<Feature>(
-    _ featureType: Feature.Type,
     load: @escaping @MainActor (Features, Cancellables) throws -> Feature
   ) -> Self
-  where Feature: LoadableFeature, Feature.Context == ContextlessLoadableFeatureContext {
+  where Feature: LoadableFeature {
     @MainActor func loadFeature(
       _ factory: Features,
-      _: Any,
       _ cancellables: Cancellables
     ) throws -> AnyFeature {
       try load(
@@ -78,32 +50,7 @@ extension FeatureLoader {
     return Self(
       identifier: featureType.identifier,
       cache: true,
-      load: loadFeature(_:_:_:)
-    )
-  }
-
-  public static func disposable<Feature>(
-    _ featureType: Feature.Type,
-    load: @escaping @MainActor (Features, Feature.Context) throws -> Feature
-  ) -> Self
-  where Feature: LoadableFeature {
-    @MainActor func loadFeature(
-      _ factory: Features,
-      _ context: Any,
-      _: Cancellables
-    ) throws -> AnyFeature {
-      guard let context: Feature.Context = context as? Feature.Context
-      else { unreachable("Type safety is guaranteed by framework") }
-      return try load(
-        factory,
-        context
-      )
-    }
-
-    return Self(
-      identifier: featureType.identifier,
-      cache: false,
-      load: loadFeature(_:_:_:)
+      load: loadFeature(_:_:)
     )
   }
 
@@ -111,10 +58,9 @@ extension FeatureLoader {
     _ featureType: Feature.Type,
     load: @escaping @MainActor (Features) throws -> Feature
   ) -> Self
-  where Feature: LoadableFeature, Feature.Context == Void {
+  where Feature: LoadableFeature {
     @MainActor func loadFeature(
       _ factory: Features,
-      _: Any,
       _: Cancellables
     ) throws -> AnyFeature {
       try load(factory)
@@ -123,17 +69,17 @@ extension FeatureLoader {
     return Self(
       identifier: featureType.identifier,
       cache: false,
-      load: loadFeature(_:_:_:)
+      load: loadFeature(_:_:)
     )
   }
 
+	@available(*, deprecated)
   public static func constant<Feature>(
     _ instance: Feature
   ) -> Self
-  where Feature: LoadableFeature, Feature.Context == ContextlessLoadableFeatureContext {
+  where Feature: LoadableFeature {
     @MainActor func loadFeature(
       _: Features,
-      _: Any,
       _: Cancellables
     ) throws -> AnyFeature {
       instance
@@ -142,7 +88,7 @@ extension FeatureLoader {
     return Self(
       identifier: Feature.identifier,
       cache: false,
-      load: loadFeature(_:_:_:)
+      load: loadFeature(_:_:)
     )
   }
 }

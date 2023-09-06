@@ -60,7 +60,7 @@ internal final class ResourceSearchDisplayController: ViewController {
     self.navigationTree = features.instance()
     self.asyncExecutor = try features.instance()
     self.session = try features.instance()
-    self.accountDetails = try features.instance(context: currentAccount)
+    self.accountDetails = try features.instance()
 
     self.searchText = .init(initial: .init())
     self.viewState = .init(

@@ -21,22 +21,35 @@
 // @since         v1.0
 //
 
-import Features
+public protocol FeatureImplementation {
 
-// Scope for OTP resources tab.
-public enum OTPResourcesTabScope: FeaturesScope {
+	associatedtype Feature: LoadableFeature
 
-	@MainActor public static func verified<Branch>(
-		branch features: Branch,
-		file: StaticString,
-		line: UInt
-	) throws -> Branch
-	where Branch: Features {
-		try features.ensureScope(
-			SessionScope.self,
-			file: file,
-			line: line
+	nonisolated static var cacheable: Bool { @Sendable get }
+
+	@MainActor init(using features: Features) throws
+
+	nonisolated var implementation: Feature { @Sendable get }
+}
+
+extension FeatureImplementation {
+
+	public nonisolated static var cacheable: Bool {
+		@Sendable get { true }
+	}
+
+	public nonisolated static func loader() -> FeatureLoader {
+		@MainActor func loadFeature(
+			_ features: Features,
+			_: Cancellables // legacy, to be removed
+		) throws -> Feature {
+			try Self.init(using: features).implementation
+		}
+
+		return .init(
+			identifier: Feature.identifier,
+			cache: Self.cacheable,
+			load: loadFeature(_:_:)
 		)
-		return features
 	}
 }

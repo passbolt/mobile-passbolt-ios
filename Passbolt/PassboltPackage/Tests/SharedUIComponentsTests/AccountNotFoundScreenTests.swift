@@ -35,7 +35,6 @@ final class AccountNotFoundScreenTests: MainActorTestCase {
   func test_backNavigationPresentationPublisher_doesNotPublish_initially() async throws {
     features.patch(
       \AccountDetails.profile,
-      context: .mock_ada,
       with: always(.mock_ada)
     )
 
@@ -55,7 +54,6 @@ final class AccountNotFoundScreenTests: MainActorTestCase {
   func test_backNavigationPresentationPublisher_publishes_whenNavigatingBack() async throws {
     features.patch(
       \AccountDetails.profile,
-      context: .mock_ada,
       with: always(.mock_ada)
     )
 
@@ -77,7 +75,6 @@ final class AccountNotFoundScreenTests: MainActorTestCase {
   func test_accountWithProfile_loadsAccountWithProfile_fromAccountSettings() async throws {
     features.patch(
       \AccountDetails.profile,
-      context: .mock_ada,
       with: always(.mock_ada)
     )
 

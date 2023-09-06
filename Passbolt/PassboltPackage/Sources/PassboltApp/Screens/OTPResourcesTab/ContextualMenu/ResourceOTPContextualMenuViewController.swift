@@ -78,8 +78,8 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
     context: Context,
     features: Features
   ) throws {
-    try features.ensureScope(ResourceDetailsScope.self)
-    self.resourceID = try features.context(of: ResourceDetailsScope.self)
+    try features.ensureScope(ResourceScope.self)
+    self.resourceID = try features.context(of: ResourceScope.self)
 
     self.features = features.takeOwned()
 
@@ -196,14 +196,14 @@ extension ResourceOTPContextualMenuViewController {
           .error(message: "Invalid or missing TOTP in secret")
       }
 
-      let totpCodeGenerator: TOTPCodeGenerator = try self.features.instance(
-        context: .init(
-          resourceID: resourceID,
-          totpSecret: totpSecret
-        )
-      )
+      let totpCodeGenerator: TOTPCodeGenerator = try self.features.instance()
 
-      let totp: TOTPValue = totpCodeGenerator.generate()
+			let totp: TOTPValue = totpCodeGenerator.prepare(
+				.init(
+					resourceID: resourceID,
+					secret: totpSecret
+				)
+			)()
       self.pasteboard.put(totp.otp.rawValue)
       try await self.navigationToSelf.revert(animated: true)
       self.showMessage("otp.copied.message")

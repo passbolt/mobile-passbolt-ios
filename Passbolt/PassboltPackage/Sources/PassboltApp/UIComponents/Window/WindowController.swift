@@ -55,18 +55,18 @@ extension WindowController: UIController {
     let session: Session = try features.instance()
     let accounts: Accounts = try features.instance()
 
-    let storedAccounts: Array<Account> = accounts.storedAccounts()
-    let initialAccount: Account?
-    if let lastUsedAccount: Account = accounts.lastUsedAccount() {
+    let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
+    let initialAccount: AccountWithProfile?
+    if let lastUsedAccount: AccountWithProfile = accounts.lastUsedAccount() {
       initialAccount = lastUsedAccount
     }
-    else if storedAccounts.count == 1, let singleAccount: Account = storedAccounts.first {
+    else if storedAccounts.count == 1, let singleAccount: AccountWithProfile = storedAccounts.first {
       initialAccount = singleAccount
     }
     else {
       initialAccount = .none
     }
-    let lastDisposition: CriticalState<ScreenStateDisposition> = .init(.useInitialScreenState(for: initialAccount))
+		let lastDisposition: CriticalState<ScreenStateDisposition> = .init(.useInitialScreenState(for: initialAccount?.account))
 
     func screenStateDispositionSequence() -> AnyAsyncSequence<ScreenStateDisposition> {
       merge(

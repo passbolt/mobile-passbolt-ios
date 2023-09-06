@@ -45,26 +45,10 @@ final class AccountSelectionControllerTests: MainActorTestCase {
     )
     features.patch(
       \Accounts.storedAccounts,
-      with: always([Account.mock_ada, Account.mock_frances])
+      with: always([AccountWithProfile.mock_ada, AccountWithProfile.mock_frances])
     )
     features.patch(
-      \AccountDetails.profile,
-      context: Account.mock_ada,
-      with: always(AccountWithProfile.mock_ada)
-    )
-    features.patch(
-      \AccountDetails.avatarImage,
-      context: Account.mock_ada,
-      with: always(.init())
-    )
-    features.patch(
-      \AccountDetails.profile,
-      context: Account.mock_frances,
-      with: always(AccountWithProfile.mock_frances)
-    )
-    features.patch(
-      \AccountDetails.avatarImage,
-      context: Account.mock_frances,
+      \MediaDownloadNetworkOperation.execute,
       with: always(.init())
     )
     features.patch(
@@ -106,13 +90,7 @@ final class AccountSelectionControllerTests: MainActorTestCase {
 
   func test_accountsPublisher_publishesItemsWithoutImage() async throws {
     features.patch(
-      \AccountDetails.avatarImage,
-      context: Account.mock_ada,
-      with: alwaysThrow(MockIssue.error())
-    )
-    features.patch(
-      \AccountDetails.avatarImage,
-      context: Account.mock_frances,
+      \MediaDownloadNetworkOperation.execute,
       with: alwaysThrow(MockIssue.error())
     )
 

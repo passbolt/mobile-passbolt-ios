@@ -171,7 +171,6 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
   func test_groupMembers_fails_whenLoadingDetailsFails() async throws {
     patch(
       \UserGroupDetails.details,
-      context: .mock_1,
       with: alwaysThrow(MockIssue.error())
     )
 
@@ -187,7 +186,6 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
   func test_groupMembers_fails_whenDetailsAccessFails() async throws {
     patch(
       \UserGroupDetails.details,
-      context: .mock_1,
       with: alwaysThrow(MockIssue.error())
     )
     let feature: UserGroups = try self.testedInstance()
@@ -203,7 +201,6 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
     let expectedResult: OrderedSet<UserDetailsDSV> = [.mock_1]
     patch(
       \UserGroupDetails.details,
-      context: .mock_1,
       with: always(
         .init(
           id: .mock_1,

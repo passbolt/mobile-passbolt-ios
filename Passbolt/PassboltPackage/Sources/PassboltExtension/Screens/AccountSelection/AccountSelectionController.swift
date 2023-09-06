@@ -26,6 +26,8 @@ import Display
 import Session
 import SharedUIComponents
 import UIComponents
+import FeatureScopes
+import NetworkOperations
 
 internal struct AccountSelectionController {
 
@@ -57,6 +59,7 @@ extension AccountSelectionController: UIController {
 
     let navigationTree: NavigationTree = features.instance()
     let autofillContext: AutofillExtensionContext = features.instance()
+		let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
     let accounts: Accounts = try features.instance()
     let session: Session = try features.instance()
 
@@ -67,19 +70,16 @@ extension AccountSelectionController: UIController {
         .map { _ -> Array<AccountSelectionListItem> in
           let currentAccount: Account? = try? await session.currentAccount()
           var listItems: Array<AccountSelectionListItem> = .init()
-          for storedAccount in accounts.storedAccounts() {
-            let accountDetails: AccountDetails = try await features.instance(context: storedAccount)
-            let accountWithProfile: AccountWithProfile = try accountDetails.profile()
-
+					for storedAccount: AccountWithProfile in accounts.storedAccounts() {
             let item: AccountSelectionCellItem = AccountSelectionCellItem(
-              account: accountWithProfile.account,
-              title: accountWithProfile.label,
-              subtitle: accountWithProfile.username,
-              isCurrentAccount: storedAccount == currentAccount,
+              account: storedAccount.account,
+              title: storedAccount.label,
+              subtitle: storedAccount.username,
+							isCurrentAccount: storedAccount.account == currentAccount,
               imagePublisher:
                 Just(Void())
                 .asyncMap {
-                  try? await accountDetails.avatarImage()
+									try? await mediaDownloadNetworkOperation.execute(storedAccount.avatarImageURL)
                 }
                 .eraseToAnyPublisher(),
               listModePublisher: Empty().eraseToAnyPublisher()
@@ -102,10 +102,14 @@ extension AccountSelectionController: UIController {
       _ account: Account
     ) {
       Task {
-        await navigationTree.push(
+        try await navigationTree.push(
           AuthorizationViewController.self,
           context: account,
           using: features
+						.branchIfNeeded(
+							scope: AccountScope.self,
+							context: account
+						)
         )
       }
     }

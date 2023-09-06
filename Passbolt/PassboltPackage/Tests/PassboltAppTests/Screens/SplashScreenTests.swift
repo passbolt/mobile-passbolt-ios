@@ -67,7 +67,7 @@ final class SplashScreenTests: MainActorTestCase {
     )
     features.patch(
       \Accounts.storedAccounts,
-      with: always([Account.mock_ada])
+      with: always([AccountWithProfile.mock_ada])
     )
   }
 
@@ -118,7 +118,7 @@ final class SplashScreenTests: MainActorTestCase {
   func test_navigateToAccountSelection_whenStoredAccountsPresent_withAccount_andNotAuthorized() async throws {
     features.patch(
       \Accounts.storedAccounts,
-      with: always([Account.mock_ada])
+      with: always([AccountWithProfile.mock_ada])
     )
     features.patch(
       \Session.currentAccount,
@@ -144,7 +144,7 @@ final class SplashScreenTests: MainActorTestCase {
   {
     features.patch(
       \Accounts.storedAccounts,
-      with: always([Account.mock_ada])
+      with: always([AccountWithProfile.mock_ada])
     )
     features.patch(
       \Session.currentAccount,

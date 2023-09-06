@@ -31,42 +31,61 @@ import Resources
 extension TOTPCodeGenerator {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    context: Context
+    features: Features
   ) throws -> Self {
     let time: OSTime = features.instance()
-    let hotpCodeGenerator: HOTPCodeGenerator = try features.instance(
-      context: .init(
-        resourceID: context.resourceID,
-        sharedSecret: context.totpSecret.sharedSecret,
-        algorithm: context.totpSecret.algorithm,
-        digits: context.totpSecret.digits
-      )
-    )
+    let hotpCodeGenerator: HOTPCodeGenerator = try features.instance()
+		
+		@Sendable nonisolated func prepare(
+			with parameters: Parameters
+		) -> @Sendable () -> TOTPValue {
+			let rawPeriod: Int64 = parameters.period.rawValue
+			guard rawPeriod > 0
+			else {
+				InternalInconsistency
+					.error("TOTP period should be greater than zero!")
+					.log()
+				return {
+					TOTPValue(
+						resourceID: parameters.resourceID,
+						otp: "",
+						timeLeft: 0,
+						period: 0
+					)
+				}
+			}
 
-    let rawPeriod: Int64 = context.totpSecret.period.rawValue
-    guard rawPeriod > 0
-    else { throw InternalInconsistency.error("TOTP period should be greater than zero!") }
+			let hotpGenerator: @Sendable (UInt64) -> HOTPValue = hotpCodeGenerator.prepare(
+				.init(
+					resourceID: parameters.resourceID,
+					sharedSecret: parameters.sharedSecret,
+					algorithm: parameters.algorithm,
+					digits: parameters.digits
+				)
+			)
 
-    @Sendable nonisolated func generate() -> TOTPValue {
-      let rawTimestamp: Int64 = time.timestamp().rawValue
-      // ignoring negative time (it will crash)
-      let counter: UInt64 = UInt64(rawTimestamp / rawPeriod)
+			@Sendable nonisolated func generate() -> TOTPValue {
+				let rawTimestamp: Int64 = time.timestamp().rawValue
+				// ignoring negative time (it will crash)
+				let counter: UInt64 = UInt64(rawTimestamp / rawPeriod)
 
-      let hotp: HOTPValue = hotpCodeGenerator.generate(counter)
+				let hotp: HOTPValue = hotpGenerator(counter)
 
-      return TOTPValue(
-        resourceID: context.resourceID,
-        otp: hotp.otp,
-        timeLeft: .init(
-          rawValue: rawPeriod - rawTimestamp % rawPeriod
-        ),
-        period: context.totpSecret.period
-      )
-    }
+				return TOTPValue(
+					resourceID: parameters.resourceID,
+					otp: hotp.otp,
+					timeLeft: .init(
+						rawValue: rawPeriod - rawTimestamp % rawPeriod
+					),
+					period: parameters.period
+				)
+			}
+
+			return generate
+		}
 
     return .init(
-      generate: generate
+      prepare: prepare(with:)
     )
   }
 }
@@ -77,7 +96,7 @@ extension FeaturesRegistry {
     self.use(
       .disposable(
         TOTPCodeGenerator.self,
-        load: TOTPCodeGenerator.load(features:context:)
+        load: TOTPCodeGenerator.load(features:)
       ),
       in: SessionScope.self
     )

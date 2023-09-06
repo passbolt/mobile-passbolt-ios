@@ -89,25 +89,10 @@ open class MainActorTestCase: AsyncTestCase {
   }
 
   public final func testedInstance<Feature>(
-    _ featureType: Feature.Type = Feature.self,
-    context: Feature.Context
-  ) throws -> Feature
-  where Feature: LoadableFeature {
-    try features
-      .instance(
-        of: featureType,
-        context: context
-      )
-  }
-
-  public final func testedInstance<Feature>(
     _ featureType: Feature.Type = Feature.self
   ) throws -> Feature
-  where Feature: LoadableFeature, Feature.Context == Void {
-    try features
-      .instance(
-        of: featureType
-      )
+  where Feature: LoadableFeature {
+    try features.instance(of: featureType)
   }
 
   public final func testController<Controller: UIController>(

@@ -46,7 +46,7 @@ internal final class ResourceLocationDetailsViewController: ViewController {
     context: Void,
     features: Features
   ) throws {
-    try features.ensureScope(ResourceDetailsScope.self)
+    try features.ensureScope(ResourceScope.self)
 
     self.navigationToSelf = try features.instance()
 

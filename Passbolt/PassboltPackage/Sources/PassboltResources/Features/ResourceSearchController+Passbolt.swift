@@ -33,8 +33,7 @@ import SessionData
 extension ResourceSearchController {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    context: Context
+    features: Features
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
 
@@ -42,7 +41,7 @@ extension ResourceSearchController {
     let resourcesListFetchDatabaseOperation: ResourcesListFetchDatabaseOperation = try features.instance()
 
     let filterState: Variable<ResourceSearchFilter> = .init(
-      initial: context
+			initial: .init(text: "")
     )
     let searchState: ComputedVariable<ResourceSearchState> = .init(
       combined: filterState,
@@ -80,7 +79,7 @@ extension FeaturesRegistry {
     self.use(
       .disposable(
         ResourceSearchController.self,
-        load: ResourceSearchController.load(features:context:)
+        load: ResourceSearchController.load(features:)
       ),
       in: SessionScope.self
     )

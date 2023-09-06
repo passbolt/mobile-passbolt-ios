@@ -60,7 +60,7 @@ internal final class AutofillRootNavigationNodeController: ViewController {
 extension AutofillRootNavigationNodeController {
 
   internal final func activate() async {
-    let storedAccounts: Array<Account> = accounts.storedAccounts()
+    let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
 
     if storedAccounts.isEmpty {
       await navigationTree
@@ -71,11 +71,11 @@ extension AutofillRootNavigationNodeController {
         )
     }
     else {
-      let initialAccount: Account?
-      if let lastUsedAccount: Account = accounts.lastUsedAccount() {
+      let initialAccount: AccountWithProfile?
+      if let lastUsedAccount: AccountWithProfile = accounts.lastUsedAccount() {
         initialAccount = lastUsedAccount
       }
-      else if storedAccounts.count == 1, let singleAccount: Account = storedAccounts.first {
+      else if storedAccounts.count == 1, let singleAccount: AccountWithProfile = storedAccounts.first {
         initialAccount = singleAccount
       }
       else {
@@ -89,11 +89,11 @@ extension AutofillRootNavigationNodeController {
           using: features
         )
 
-      if let account: Account = initialAccount {
+      if let account: AccountWithProfile = initialAccount {
         await navigationTree
           .push(
             AuthorizationViewController.self,
-            context: account,
+						context: account.account,
             using: features
           )
       }  // else NOP

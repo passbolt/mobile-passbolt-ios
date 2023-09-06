@@ -53,7 +53,7 @@ internal final class AccountExportAuthorizationController: ViewController {
     context: Void,
     features: Features
   ) throws {
-    let features: Features = features.branch(scope: AccountTransferScope.self)
+    let features: Features = try features.branch(scope: AccountTransferScope.self)
     self.features = features
 
     self.account = try features.sessionAccount()
@@ -61,9 +61,9 @@ internal final class AccountExportAuthorizationController: ViewController {
     self.biometry = features.instance()
     self.asyncExecutor = try features.instance()
     self.navigation = try features.instance()
-    self.accountPreferences = try features.instance(context: account)
+    self.accountPreferences = try features.instance()
 
-    self.accountDetails = try features.instance(context: account)
+    self.accountDetails = try features.instance()
     self.accountExport = try features.instance()
 
     let accountWithProfile: AccountWithProfile = try accountDetails.profile()

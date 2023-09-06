@@ -49,7 +49,7 @@ public final class ForgotPassphraseAlertViewController:
 
 public struct ForgotPassphraseAlertController {
 
-  public typealias Context = Void
+	public typealias Context = Void
 }
 
 extension ForgotPassphraseAlertController: UIController {

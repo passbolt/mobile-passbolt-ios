@@ -21,27 +21,38 @@
 // @since         v1.0
 //
 
-import Commons
+import Features
+import CommonModels
 
-public protocol LoadableFeatureContext {
+public enum UserGroupScope: FeaturesScope {
 
-  var identifier: AnyHashable { get }
+	public typealias Context = UserGroup.ID
+
+	@MainActor public static func verified<Branch>(
+		branch features: Branch,
+		file: StaticString,
+		line: UInt
+	) throws -> Branch
+	where Branch: Features {
+		try features.ensureScope(
+			SessionScope.self,
+			file: file,
+			line: line
+		)
+		return features
+	}
 }
 
-extension LoadableFeatureContext
-where Self: Hashable {
+extension Features {
 
-  public var identifier: AnyHashable {
-    self as AnyHashable
-  }
-}
-
-extension Tagged: LoadableFeatureContext
-where RawValue: Hashable {}
-
-public struct ContextlessLoadableFeatureContext: Hashable, LoadableFeatureContext {
-
-  public static let instance: Self = .init()
-
-  private init() {}
+	public func userGroupContext(
+		file: StaticString = #fileID,
+		line: UInt = #line
+	) throws ->  UserGroup.ID {
+		try self.context(
+			of: UserGroupScope.self,
+			file: file,
+			line: line
+		)
+	}
 }

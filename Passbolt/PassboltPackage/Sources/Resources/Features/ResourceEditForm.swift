@@ -57,7 +57,6 @@ public struct ResourceEditForm {
 
 extension ResourceEditForm: LoadableFeature {
 
-  public typealias Context = ContextlessLoadableFeatureContext
 
   #if DEBUG
   public static var placeholder: Self {

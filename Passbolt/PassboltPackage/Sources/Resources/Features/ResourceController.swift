@@ -54,7 +54,6 @@ public struct ResourceController {
 
 extension ResourceController: LoadableFeature {
 
-  public typealias Context = ContextlessLoadableFeatureContext
 
   #if DEBUG
 

@@ -37,10 +37,8 @@ public struct LogsViewerController {
 
 extension LogsViewerController: UIController {
 
-  public typealias Context = Void
-
   public static func instance(
-    in context: Context,
+    in context: Void,
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {

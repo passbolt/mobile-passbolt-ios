@@ -53,8 +53,7 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
       with: always(.mock_ada)
     )
     features.usePlaceholder(
-      for: AccountInitialSetup.self,
-      context: Account.mock_ada
+      for: AccountInitialSetup.self
     )
     features.usePlaceholder(for: ApplicationLifecycle.self)
   }
@@ -78,7 +77,6 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
   func test_continueSetupPresentationPublisher_publish_afterSkip() async throws {
     features.patch(
       \AccountInitialSetup.completeSetup,
-      context: Account.mock_ada,
       with: always(Void())
     )
 

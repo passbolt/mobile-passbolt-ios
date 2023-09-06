@@ -22,9 +22,11 @@
 //
 
 import Features
+import CommonModels
 
-// Scope for OTP resources tab.
-public enum OTPResourcesTabScope: FeaturesScope {
+public enum UserScope: FeaturesScope {
+
+	public typealias Context = User.ID
 
 	@MainActor public static func verified<Branch>(
 		branch features: Branch,
@@ -38,5 +40,19 @@ public enum OTPResourcesTabScope: FeaturesScope {
 			line: line
 		)
 		return features
+	}
+}
+
+extension Features {
+
+	public func userContext(
+		file: StaticString = #fileID,
+		line: UInt = #line
+	) throws -> User.ID {
+			try self.context(
+				of: UserScope.self,
+				file: file,
+				line: line
+			)
 	}
 }

@@ -30,15 +30,12 @@ import OSFeatures
 extension AccountInitialSetup {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    context: Context
+    features: Features
   ) throws -> Self {
-    let accountPreferences: AccountPreferences = try features.instance(context: context)
+    let accountPreferences: AccountPreferences = try features.instance()
 
     #warning("TODO: refine with account related storage")
-    let unfinishedSetupElementsProperty: StoredProperty<Array<String>> = try features.instance(
-      context: "unfinishedSetup-\(context.localID)"
-    )
+    let unfinishedSetupElementsProperty: AccountInitialSetupUnfinishedItemsStoredProperty = try features.instance()
 
     let osExtensions: OSExtensions = features.instance()
     let osBiometry: OSBiometry = features.instance()
@@ -104,9 +101,22 @@ extension FeaturesRegistry {
     self.use(
       .disposable(
         AccountInitialSetup.self,
-        load: AccountInitialSetup.load(features:context:)
+        load: AccountInitialSetup.load(features:)
       ),
       in: SessionScope.self
     )
+		self.usePassboltStoredProperty(
+			AccountInitialSetupUnfinishedItemsStoredPropertyDescription.self,
+			in: SessionScope.self
+		)
   }
+}
+
+internal typealias AccountInitialSetupUnfinishedItemsStoredProperty = StoredProperty<AccountInitialSetupUnfinishedItemsStoredPropertyDescription>
+
+internal enum AccountInitialSetupUnfinishedItemsStoredPropertyDescription: StoredPropertyDescription {
+
+	public typealias Value = Array<String>
+
+	public static var key: OSStoredPropertyKey { "unfinishedSetup" }
 }

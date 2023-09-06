@@ -26,8 +26,22 @@ import Features
 import Resources
 
 // Scoper for editing a resource fields including secret.
-// Usually requires also ResourceDetailsScope.
+// Usually requires also ResourceScope.
 public enum ResourceEditScope: FeaturesScope {
 
   public typealias Context = ResourceEditingContext
+}
+
+extension Features {
+
+	public func resourceEditingContext(
+		file: StaticString = #fileID,
+		line: UInt = #line
+	) throws -> ResourceEditingContext {
+			try self.context(
+				of: ResourceEditScope.self,
+				file: file,
+				line: line
+			)
+	}
 }

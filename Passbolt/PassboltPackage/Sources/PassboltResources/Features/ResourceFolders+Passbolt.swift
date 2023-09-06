@@ -43,10 +43,12 @@ extension ResourceFolders {
     @Sendable nonisolated func details(
       _ folderID: ResourceFolder.ID
     ) async throws -> ResourceFolder {
-      try await features.instance(
-        of: ResourceFolderController.self,
-        context: folderID
-      )
+      try await features
+				.branchIfNeeded(
+					scope: ResourceFolderScope.self,
+					context: folderID
+				)
+				.instance(of: ResourceFolderController.self)
       .state.value
     }
 

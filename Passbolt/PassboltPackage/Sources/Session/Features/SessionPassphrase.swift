@@ -47,17 +47,6 @@ public struct SessionPassphrase {
 
 extension SessionPassphrase: LoadableFeature {
 
-  public struct Context: LoadableFeatureContext, Hashable {
-
-    public var account: Account
-
-    public init(
-      account: Account
-    ) {
-      self.account = account
-    }
-  }
-
   #if DEBUG
   public nonisolated static var placeholder: Self {
     Self(

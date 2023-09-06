@@ -92,8 +92,8 @@ internal final class ResourceContextualMenuViewController: ViewController {
     context: Context,
     features: Features
   ) throws {
-    try features.ensureScope(ResourceDetailsScope.self)
-    self.resourceID = try features.context(of: ResourceDetailsScope.self)
+    try features.ensureScope(ResourceScope.self)
+    self.resourceID = try features.context(of: ResourceScope.self)
 
     self.context = context
 

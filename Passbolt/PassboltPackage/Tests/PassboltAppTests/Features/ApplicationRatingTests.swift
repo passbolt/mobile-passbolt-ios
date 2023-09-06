@@ -43,21 +43,19 @@ final class ApplicationRatingTests: LoadableFeatureTestCase<ApplicationRating> {
       with: { Timestamp(rawValue: 5 * 24 * 60 * 60 + 1) }
     )
     use(OSApplicationRating.placeholder)
-    use(StoredProperty<Int>.placeholder, context: "loginCount")
-    use(StoredProperty<Int>.placeholder, context: "lastAppRateCheckTimestamp")
+    use(LoginCountStoredProperty.placeholder)
+    use(LastAppRateCheckTimestampStoredProperty.placeholder)
     use(ApplicationLifecycle.placeholder)
   }
 
   func test_applicationRating_shouldTrigger_whenCriteria_areMet() {
     patch(
-      \StoredProperty<Int>.binding,
-      context: "loginCount",
+      \LoginCountStoredProperty.binding,
       with: .variable(initial: 5)
     )
 
     patch(
-      \StoredProperty<Timestamp>.binding,
-      context: "lastAppRateCheckTimestamp",
+      \LastAppRateCheckTimestampStoredProperty.binding,
       with: .variable(initial: 0)
     )
 
@@ -73,14 +71,12 @@ final class ApplicationRatingTests: LoadableFeatureTestCase<ApplicationRating> {
 
   func test_applicationRating_shouldNotTrigger_whenAtLeastOneCriteria_isNotMet() {
     patch(
-      \StoredProperty<Int>.binding,
-      context: "loginCount",
+      \LoginCountStoredProperty.binding,
       with: .variable(initial: 1)
     )
 
     patch(
-      \StoredProperty<Timestamp>.binding,
-      context: "lastAppRateCheckTimestamp",
+      \LastAppRateCheckTimestampStoredProperty.binding,
       with: .variable(initial: 0)
     )
 
@@ -98,13 +94,11 @@ final class ApplicationRatingTests: LoadableFeatureTestCase<ApplicationRating> {
     let variable: StateBinding<Int?> = StateBinding.variable(initial: 0)
 
     patch(
-      \StoredProperty<Int>.binding,
-      context: "loginCount",
+      \LoginCountStoredProperty.binding,
       with: variable
     )
     patch(
-      \StoredProperty<Timestamp>.binding,
-      context: "lastAppRateCheckTimestamp",
+      \LastAppRateCheckTimestampStoredProperty.binding,
       with: .variable(initial: 0)
     )
 

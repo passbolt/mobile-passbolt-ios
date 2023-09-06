@@ -234,7 +234,6 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
           id: id,
           name: name,
           path: path.asOrderedSet(),
-          shared: shared,
           permission: permission,
           permissions: OrderedSet(usersPermissions + userGroupsPermissions)
         )

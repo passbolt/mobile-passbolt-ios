@@ -48,7 +48,7 @@ final class ResourceControllerTests: FeaturesTestCase {
       )
     )
     set(
-      ResourceDetailsScope.self,
+      ResourceScope.self,
       context: .mock_1
     )
     patch(
