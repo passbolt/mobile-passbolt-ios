@@ -95,6 +95,11 @@ public struct PGP {
     (
       _ publicKey: ArmoredPGPPublicKey
     ) -> Result<Fingerprint, Error>
+	public var extractPublicKey:
+		(
+			_ privateKey: ArmoredPGPPrivateKey,
+			_ passphrase: Passphrase
+		) -> Result<ArmoredPGPPublicKey, Error>
 }
 
 extension PGP: StaticFeature {
@@ -111,7 +116,8 @@ extension PGP: StaticFeature {
       verifyMessage: unimplemented3(),
       verifyPassphrase: unimplemented2(),
       verifyPublicKeyFingerprint: unimplemented2(),
-      extractFingerprint: unimplemented1()
+      extractFingerprint: unimplemented1(),
+			extractPublicKey: unimplemented2()
     )
   }
   #endif
@@ -569,6 +575,49 @@ extension PGP {
       return .success(.init(rawValue: fingerprintFromKey.uppercased()))
     }
 
+		func extractPublicKey(
+			privateKey: ArmoredPGPPrivateKey,
+			passphrase: Passphrase
+		) -> Result<ArmoredPGPPublicKey, Error> {
+			defer { Gopenpgp.HelperFreeOSMemory() }
+
+			do {
+				var error: NSError?
+				
+				guard
+					let passphraseData: Data = passphrase.rawValue.data(using: .utf8),
+					let publicKey: String = try Gopenpgp.CryptoNewKeyFromArmored(
+						privateKey.rawValue,
+						&error
+					)?
+						.unlock(passphraseData)
+						.getArmoredPublicKey(&error)
+				else {
+					return .failure(
+						PGPIssue.error(
+							underlyingError:
+								PGPFingerprintInvalid
+								.error("Failed to extract public PGP key from a private key.")
+								.recording(error as Any, for: "goError")
+						)
+					)
+				}
+
+				return .success(.init(rawValue: publicKey))
+			}
+			catch {
+				return .failure(
+					PGPIssue.error(
+						underlyingError:
+							PassphraseInvalid
+							.error("Invalid passphrase")
+							.recording(passphrase, for: "passphrase")
+							.recording(error, for: "goError")
+					)
+				)
+			}
+		}
+
     return Self(
       setTimeOffset: setTimeOffset(value:),
       encryptAndSign: encryptAndSign(_:passphrase:privateKey:publicKey:),
@@ -579,7 +628,8 @@ extension PGP {
       verifyMessage: verifyMessage(_:publicKey:verifyTime:),
       verifyPassphrase: verifyPassphrase(privateKey:passphrase:),
       verifyPublicKeyFingerprint: verifyPublicKeyFingerprint(_:fingerprint:),
-      extractFingerprint: extractFingerprint(publicKey:)
+      extractFingerprint: extractFingerprint(publicKey:),
+			extractPublicKey: extractPublicKey(privateKey:passphrase:)
     )
   }
 }

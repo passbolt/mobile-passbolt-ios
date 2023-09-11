@@ -40,6 +40,8 @@ public struct AccountDetails {
   /// Fetch profile updates if any.
   /// Requires valid session for context account.
   public var updateProfile: @Sendable () async throws -> Void
+	/// Fetch account key public details.
+	public var keyDetails: @Sendable () async throws -> PGPKeyDetails
   /// Load avatar image data for the context account.
   public var avatarImage: @Sendable () async throws -> Data?
 
@@ -48,12 +50,14 @@ public struct AccountDetails {
     profile: @escaping @Sendable () throws -> AccountWithProfile,
 		isPassphraseStored: @escaping @Sendable () -> Bool,
     updateProfile: @escaping @Sendable () async throws -> Void,
+		keyDetails: @escaping @Sendable () async throws -> PGPKeyDetails,
     avatarImage: @escaping @Sendable () async throws -> Data?
   ) {
     self.updates = updates
     self.profile = profile
 		self.isPassphraseStored = isPassphraseStored
     self.updateProfile = updateProfile
+		self.keyDetails = keyDetails
     self.avatarImage = avatarImage
   }
 }
@@ -69,6 +73,7 @@ extension AccountDetails: LoadableFeature {
       profile: unimplemented0(),
 			isPassphraseStored: unimplemented0(),
       updateProfile: unimplemented0(),
+			keyDetails: unimplemented0(),
       avatarImage: unimplemented0()
     )
   }

@@ -86,8 +86,8 @@ extension UsersStoreDatabaseOperation {
           user.username,
           user.profile.firstName,
           user.profile.lastName,
-          user.gpgKey.fingerprint,
-          user.gpgKey.armoredKey,
+          user.keyFingerprint,
+          user.publicKey,
           user.profile.avatar.urlString
         )
       )

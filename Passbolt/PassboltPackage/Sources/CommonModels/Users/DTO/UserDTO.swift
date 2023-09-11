@@ -30,7 +30,7 @@ public struct UserDTO {
   public var deleted: Bool
   public var username: String
   public var profile: UserProfileDTO?
-  public var gpgKey: UserGPGKeyDTO?
+  public var key: PGPKeyDetails
 
   public init(
     id: User.ID,
@@ -38,14 +38,14 @@ public struct UserDTO {
     deleted: Bool,
     username: String,
     profile: UserProfileDTO?,
-    gpgKey: UserGPGKeyDTO?
+    key: PGPKeyDetails
   ) {
     self.id = id
     self.active = active
     self.deleted = deleted
     self.username = username
     self.profile = profile
-    self.gpgKey = gpgKey
+    self.key = key
   }
 }
 
@@ -53,7 +53,6 @@ extension UserDTO {
 
   public var asFilteredDSO: UserDSO? {
     guard
-      let gpgKey: UserGPGKeyDTO = self.gpgKey,
       let profile: UserProfileDTO = self.profile,
       self.active && !self.deleted
     else { return nil }
@@ -62,7 +61,8 @@ extension UserDTO {
       id: self.id,
       username: self.username,
       profile: profile,
-      gpgKey: gpgKey
+			publicKey: self.key.publicKey,
+			keyFingerprint: self.key.fingerprint
     )
   }
 }
@@ -76,6 +76,6 @@ extension UserDTO: Decodable {
     case deleted = "deleted"
     case username = "username"
     case profile = "profile"
-    case gpgKey = "gpgkey"
+    case key = "gpgkey"
   }
 }

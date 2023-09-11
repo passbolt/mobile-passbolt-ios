@@ -28,17 +28,20 @@ public struct UserDSO {
   public var id: User.ID
   public var username: String
   public var profile: UserProfileDTO
-  public var gpgKey: UserGPGKeyDTO
+  public var publicKey: ArmoredPGPPublicKey
+	public var keyFingerprint: Fingerprint
 
   public init(
     id: User.ID,
     username: String,
     profile: UserProfileDTO,
-    gpgKey: UserGPGKeyDTO
+		publicKey: ArmoredPGPPublicKey,
+		keyFingerprint: Fingerprint
   ) {
     self.id = id
     self.username = username
     self.profile = profile
-    self.gpgKey = gpgKey
+		self.publicKey = publicKey
+		self.keyFingerprint = keyFingerprint
   }
 }

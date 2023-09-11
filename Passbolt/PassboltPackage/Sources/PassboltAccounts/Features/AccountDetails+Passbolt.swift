@@ -96,6 +96,18 @@ extension AccountDetails {
       }
     })
 
+		@Sendable nonisolated func keyDetails() async throws -> PGPKeyDetails {
+			// this could be unified with profile update action
+			// to avoid additional network request
+			try await userDetailsFetchNetworkOperation
+				.execute(
+					.init(
+						userID: account.userID
+					)
+				)
+				.key
+		}
+
     @Sendable nonisolated func avatarImage() async throws -> Data? {
       try? await avatarImageCache.value
     }
@@ -105,6 +117,7 @@ extension AccountDetails {
       profile: profile,
 			isPassphraseStored: passphraseStored,
       updateProfile: updateProfile,
+			keyDetails: keyDetails,
       avatarImage: avatarImage
     )
   }

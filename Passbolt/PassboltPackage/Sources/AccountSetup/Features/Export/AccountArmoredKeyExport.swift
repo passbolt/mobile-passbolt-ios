@@ -21,16 +21,32 @@
 // @since         v1.0
 //
 
-@_exported import AccountSetup
-@_exported import Features
+import struct Foundation.Data
 
-extension FeaturesRegistry {
+// MARK: - Interface
 
-  public mutating func usePassboltAccountSetupModule() {
-    self.usePassboltAccountImport()
-    self.usePassboltAccountInjection()
-    self.usePassboltAccountDataExport()
-    self.usePassboltAccountChunkedExport()
-		self.usePassboltAccountArmoredKeyExport()
-  }
+/// Exporting current session account key using armored PGP format.
+public struct AccountArmoredKeyExport {
+
+	/// Export account private key by authorizing, 
+	/// it will prolong current session.
+	public var authorizePrivateKeyExport: @Sendable (AccountExportAuthorizationMethod) async throws -> ArmoredPGPPrivateKey
+
+	public init(
+		authorizePrivateKeyExport: @escaping @Sendable (AccountExportAuthorizationMethod) async throws -> ArmoredPGPPrivateKey
+	) {
+		self.authorizePrivateKeyExport = authorizePrivateKeyExport
+	}
+}
+
+extension AccountArmoredKeyExport: LoadableFeature {
+
+
+	#if DEBUG
+	public static var placeholder: Self {
+		.init(
+			authorizePrivateKeyExport: unimplemented1()
+		)
+	}
+	#endif
 }

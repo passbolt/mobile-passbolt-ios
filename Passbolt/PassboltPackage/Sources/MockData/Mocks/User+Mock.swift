@@ -42,14 +42,14 @@ extension UserDTO {
     deleted: false,
     username: "mock",
     profile: .mock_1,
-    gpgKey: .init(
-      armoredKey: .init(
-        rawValue: "MOCK_1"
-      ),
-      fingerprint: .init(
-        rawValue: "MOCK_1"
-      )
-    )
+		key: .init(
+			publicKey: "MOCK_1",
+			fingerprint: "MOCK_1",
+			length: 0,
+			algorithm: "mock",
+			created: .init(timeIntervalSince1970: 0),
+			expires: .none
+		)
   )
 
   public static let mock_ada: Self = .init(
@@ -58,14 +58,14 @@ extension UserDTO {
     deleted: false,
     username: "ada@passbolt.com",
     profile: .mock_ada,
-    gpgKey: .init(
-      armoredKey: .init(
-        rawValue: "MOCK_ADA"
-      ),
-      fingerprint: .init(
-        rawValue: "MOCK_ADA"
-      )
-    )
+		key: .init(
+			publicKey: "MOCK_ADA",
+			fingerprint: "MOCK_ADA",
+			length: 0,
+			algorithm: "mock",
+			created: .init(timeIntervalSince1970: 0),
+			expires: .none
+		)
   )
 
   public static let mock_frances: Self = .init(
@@ -74,14 +74,14 @@ extension UserDTO {
     deleted: false,
     username: "frances@passbolt.com",
     profile: .mock_frances,
-    gpgKey: .init(
-      armoredKey: .init(
-        rawValue: "MOCK_FRANCES"
-      ),
-      fingerprint: .init(
-        rawValue: "MOCK_FRANCES"
-      )
-    )
+		key: .init(
+			publicKey: "MOCK_FRANCES",
+			fingerprint: "MOCK_FRANCES",
+			length: 0,
+			algorithm: "mock",
+			created: .init(timeIntervalSince1970: 0),
+			expires: .none
+		)
   )
 }
 

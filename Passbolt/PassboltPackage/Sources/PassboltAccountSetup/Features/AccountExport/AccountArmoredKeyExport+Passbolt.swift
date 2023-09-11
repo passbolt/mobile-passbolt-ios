@@ -21,27 +21,45 @@
 // @since         v1.0
 //
 
-import Commons
+import AccountSetup
+import FeatureScopes
+import OSFeatures
+import Crypto
 
-public struct UserGPGKeyDTO {
+// MARK: - Implementation
 
-  public var armoredKey: ArmoredPGPPublicKey
-  public var fingerprint: Fingerprint
+extension AccountArmoredKeyExport {
 
-  public init(
-    armoredKey: ArmoredPGPPublicKey,
-    fingerprint: Fingerprint
-  ) {
-    self.armoredKey = armoredKey
-    self.fingerprint = fingerprint
-  }
+	@MainActor fileprivate static func load(
+		features: Features,
+		cancellables: Cancellables
+	) throws -> Self {
+		let accountDataExport: AccountDataExport = try features.instance()
+
+		@Sendable nonisolated func authorizePrivateKeyExport(
+			authorizationMethod: AccountExportAuthorizationMethod
+		) async throws -> ArmoredPGPPrivateKey {
+			try await accountDataExport
+				.exportAccountData(authorizationMethod)
+				.armoredKey
+		}
+
+		return .init(
+			authorizePrivateKeyExport: authorizePrivateKeyExport(authorizationMethod:)
+		)
+	}
 }
 
-extension UserGPGKeyDTO: Decodable {
+extension FeaturesRegistry {
 
-  public enum CodingKeys: String, CodingKey {
-
-    case armoredKey = "armored_key"
-    case fingerprint = "fingerprint"
-  }
+	internal mutating func usePassboltAccountArmoredKeyExport() {
+		self.use(
+			.lazyLoaded(
+				AccountArmoredKeyExport.self,
+				load: AccountArmoredKeyExport
+					.load(features:cancellables:)
+			),
+			in: AccountTransferScope.self
+		)
+	}
 }

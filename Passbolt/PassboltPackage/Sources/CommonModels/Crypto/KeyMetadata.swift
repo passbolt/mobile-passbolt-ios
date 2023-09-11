@@ -21,16 +21,52 @@
 // @since         v1.0
 //
 
-@_exported import AccountSetup
-@_exported import Features
+import Commons
+import struct Foundation.Date
 
-extension FeaturesRegistry {
+public struct PGPKeyDetails {
 
-  public mutating func usePassboltAccountSetupModule() {
-    self.usePassboltAccountImport()
-    self.usePassboltAccountInjection()
-    self.usePassboltAccountDataExport()
-    self.usePassboltAccountChunkedExport()
-		self.usePassboltAccountArmoredKeyExport()
-  }
+	public let publicKey: ArmoredPGPPublicKey
+	public let fingerprint: Fingerprint
+	public let length: Int
+	public let algorithm: KeyAlgorithm
+	public let created: Date
+	public let expires: Date?
+
+	public init(
+		publicKey: ArmoredPGPPublicKey,
+		fingerprint: Fingerprint,
+		length: Int,
+		algorithm: KeyAlgorithm,
+		created: Date,
+		expires: Date?
+	) {
+		self.publicKey = publicKey
+		self.fingerprint = fingerprint
+		self.length = length
+		self.algorithm = algorithm
+		self.created = created
+		self.expires = expires
+	}
 }
+
+extension PGPKeyDetails: Decodable {
+
+	public enum CodingKeys: String, CodingKey {
+
+		case publicKey = "armored_key"
+		case fingerprint = "fingerprint"
+		case length = "bits"
+		case algorithm = "type"
+		case created = "created"
+		case expires = "expires"
+	}
+}
+
+extension PGPKeyDetails: Equatable {}
+
+public enum FingerprintTag {}
+public typealias Fingerprint = Tagged<String, FingerprintTag>
+
+public enum KeyAlgorithmTag {}
+public typealias KeyAlgorithm = Tagged<String, KeyAlgorithmTag>
