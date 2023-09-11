@@ -48,6 +48,10 @@ internal final class HomeNavigationNodeController: ViewController {
   ) throws {
     let features: Features =
       try features
+			.branch(
+				scope: AccountScope.self,
+				context: context.account
+			)
       .branch(
         scope: SessionScope.self,
         context: context
