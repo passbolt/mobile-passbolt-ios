@@ -120,7 +120,7 @@ final class AccountDetailsTests: FeaturesTestCase {
 			 with: always(.mock_ada)
 		)
 
-		await withInstance(returns: UserDTO.mock_ada.key) { (feature: AccountDetails) in
+		await withInstance(returns: .mock_ada) { (feature: AccountDetails) in
 			try await feature.keyDetails()
 		}
 	}

@@ -30,9 +30,9 @@ where ContentView: View {
   private let name: DisplayableString
   private let requiredMark: Bool
   private let encryptedMark: Bool?
-  private let content: @MainActor () -> ContentView
+  private let content: ContentView
 
-  public init(
+  @MainActor public init(
     name: DisplayableString,
     requiredMark: Bool = false,
     encryptedMark: Bool? = .none,
@@ -41,8 +41,20 @@ where ContentView: View {
     self.name = name
     self.requiredMark = requiredMark
     self.encryptedMark = encryptedMark
-    self.content = content
+    self.content = content()
   }
+
+	@MainActor public init(
+		name: DisplayableString,
+		value: String,
+		requiredMark: Bool = false,
+		encryptedMark: Bool? = .none
+	) where ContentView == ResourceFieldPlainValueView {
+		self.name = name
+		self.requiredMark = requiredMark
+		self.encryptedMark = encryptedMark
+		self.content = ResourceFieldPlainValueView(value: value)
+	}
 
   public var body: some View {
     VStack(
@@ -54,7 +66,7 @@ where ContentView: View {
         requiredMark: self.requiredMark,
         encryptedMark: self.encryptedMark
       )
-      self.content()
+      self.content
         .frame(minHeight: 24)
     }
     .padding(
@@ -66,4 +78,28 @@ where ContentView: View {
       alignment: .leading
     )
   }
+}
+
+public struct ResourceFieldPlainValueView: View {
+
+	private let value: String
+
+	public init(
+		value: String
+	) {
+		self.value = value
+	}
+
+	public var body: some View {
+		Text(self.value)
+			.text(
+				.leading,
+				lines: .none,
+				font: .inter(
+					ofSize: 14,
+					weight: .regular
+				),
+				color: .passboltSecondaryText
+			)
+	}
 }

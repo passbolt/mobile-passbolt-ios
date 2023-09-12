@@ -27,16 +27,27 @@ import SwiftUI
 public struct AvatarView<ContentView>: View
 where ContentView: View {
 
-  private let contentView: () -> ContentView
+  private let contentView: ContentView
 
   public init(
     @ViewBuilder contentView: @escaping () -> ContentView
   ) {
-    self.contentView = contentView
+    self.contentView = contentView()
   }
 
+	public init(
+		avatarImage: Data?
+	) where ContentView == Image {
+		if let avatarImage {
+			self.contentView = (Image(data: avatarImage) ?? Image(named: .person)).resizable()
+		}
+		else {
+			self.contentView = Image(named: .person).resizable()
+		}
+	}
+
   public var body: some View {
-    self.contentView()
+    self.contentView
       .aspectRatio(1, contentMode: .fit)
       .foregroundColor(.passboltPrimaryText)
       .backgroundColor(.passboltBackground)

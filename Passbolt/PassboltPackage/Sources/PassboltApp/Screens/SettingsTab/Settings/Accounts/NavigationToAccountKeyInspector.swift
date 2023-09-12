@@ -21,41 +21,28 @@
 // @since         v1.0
 //
 
-import Accounts
 import Display
 import FeatureScopes
-import OSFeatures
 
-internal final class AccountsSettingsViewController: ViewController {
+internal enum AccountKeyInspectorNavigationDestination: NavigationDestination {}
 
-  private let navigationToManageAccounts: NavigationToManageAccounts
-  private let navigationToAccountExport: NavigationToAccountExport
-	private let navigationToAccountKeyInspector: NavigationToAccountKeyInspector
+internal typealias NavigationToAccountKeyInspector = NavigationTo<AccountKeyInspectorNavigationDestination>
 
-  internal init(
-    context: Void,
-    features: Features
-  ) throws {
-    try features.ensureScope(SettingsScope.self)
-    try features.ensureScope(SessionScope.self)
+extension NavigationToAccountKeyInspector {
 
-    self.navigationToManageAccounts = try features.instance()
-    self.navigationToAccountExport = try features.instance()
-		self.navigationToAccountKeyInspector = try features.instance()
-  }
+	fileprivate static var live: FeatureLoader {
+		legacyPushTransition(
+			to: AccountKeyInspectorView.self
+		)
+	}
 }
 
-extension AccountsSettingsViewController {
+extension FeaturesRegistry {
 
-  internal final func navigateToManageAccounts() async {
-		await self.navigationToManageAccounts.performCatching()
-  }
-
-  internal final func navigateToAccountExport() async {
-		await self.navigationToAccountExport.performCatching()
-  }
-
-	internal final func navigateToAccountKeyInspector() async {
-		await self.navigationToAccountKeyInspector.performCatching()
+	internal mutating func useLiveNavigationToAccountKeyInspector() {
+		self.use(
+			NavigationToAccountKeyInspector.live,
+			in: SettingsScope.self
+		)
 	}
 }

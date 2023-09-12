@@ -106,13 +106,11 @@ extension ResourceFolderEditController {
 
 	internal final func saveChanges() async {
 		do {
-			try await resourceFolderEditForm.sendForm()
-			await navigation.pop(ResourceFolderEditView.self)
-			await viewState.update { viewState in
-			}
+			try await self.resourceFolderEditForm.sendForm()
+			await self.navigation.pop(ResourceFolderEditView.self)
 		}
 		catch {
-			await viewState.update { viewState in
+			self.viewState.update { viewState in
 				viewState.snackBarMessage = .error(error)
 			}
 		}

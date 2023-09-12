@@ -45,6 +45,13 @@ internal struct AccountsSettingsView: ControlledView {
 
   @ViewBuilder @MainActor private var content: some View {
     CommonPlainList {
+			SettingsActionRowView(
+				icon: .key,
+				title: "settings.accounts.item.key.inspector.title",
+				navigation: self.controller.navigateToAccountKeyInspector
+			)
+			.accessibilityIdentifier("settings.accounts.item.key.inspector.title")
+			
       SettingsActionRowView(
         icon: .people,
         title: "settings.accounts.item.manage.title",

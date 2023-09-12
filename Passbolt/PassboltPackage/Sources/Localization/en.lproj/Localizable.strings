@@ -595,6 +595,7 @@ scanned!";
 "settings.accounts.title" = "Accounts";
 "settings.accounts.item.manage.title" = "Manage accounts";
 "settings.accounts.item.export.title" = "Transfer account to another device";
+"settings.accounts.item.key.inspector.title" = "Key inspector";
 
 // Settings - Terms & Licenses
 
@@ -602,6 +603,19 @@ scanned!";
 "settings.terms.and.licenses.item.terms.title" = "Terms & conditions";
 "settings.terms.and.licenses.item.privacy.title" = "Privacy policy";
 "settings.terms.and.licenses.item.licenses.title" = "Open source licenses";
+
+// Key Inspector
+
+"account.key.inspector.title" = "Key inspector";
+"account.key.inspector.field.uid.title" = "Uid";
+"account.key.inspector.field.fingerprint.title" = "Fingerprint";
+"account.key.inspector.field.created.title" = "Created";
+"account.key.inspector.field.expires.title" = "Expires";
+"account.key.inspector.no.exipire.placeholder" = "Never";
+"account.key.inspector.field.key.size.title" = "Key length";
+"account.key.inspector.field.algorithm.title" = "Algorithm";
+"account.key.inspector.uid.copied.message" = "Uid copied to your clipboard!";
+"account.key.inspector.fingerprint.copied.message" = "Fingerprint copied to your clipboard!";
 
 // Settings - Troubleshooting
 

@@ -61,13 +61,19 @@ extension AuthorizationController: UIController {
 
   public static func instance(
     in context: Context,
-    with features: inout Features,
+    with featuress: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
-		let features: Features = try features.branchIfNeeded(
-			scope: AccountScope.self,
-			context: context
-		)
+		let features: Features
+		if (try? featuress.accountContext() == context) ?? false {
+			features = featuress
+		}
+		else {
+			features = try featuress.branch(
+				scope: AccountScope.self,
+				context: context
+			)
+		}
     let accountDetails: AccountDetails = try features.instance()
     let session: Session = try features.instance()
     let biometry: OSBiometry = features.instance()

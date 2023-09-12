@@ -72,5 +72,6 @@ extension FeaturesRegistry {
     self.useLiveNavigationToAutofillSettings()
     self.useLiveNavigationToAccountsSettings()
     self.useLiveNavigationToAccountExport()
+		self.useLiveNavigationToAccountKeyInspector()
   }
 }

@@ -21,41 +21,70 @@
 // @since         v1.0
 //
 
-import Accounts
-import Display
-import FeatureScopes
-import OSFeatures
+import Features
 
-internal final class AccountsSettingsViewController: ViewController {
+import struct Foundation.Date
+import struct Foundation.Calendar
+import class Foundation.DateFormatter
 
-  private let navigationToManageAccounts: NavigationToManageAccounts
-  private let navigationToAccountExport: NavigationToAccountExport
-	private let navigationToAccountKeyInspector: NavigationToAccountKeyInspector
+public enum DateFormat {
 
-  internal init(
-    context: Void,
-    features: Features
-  ) throws {
-    try features.ensureScope(SettingsScope.self)
-    try features.ensureScope(SessionScope.self)
-
-    self.navigationToManageAccounts = try features.instance()
-    self.navigationToAccountExport = try features.instance()
-		self.navigationToAccountKeyInspector = try features.instance()
-  }
+	case compact
+	case medium
 }
 
-extension AccountsSettingsViewController {
+// MARK: - Interface
 
-  internal final func navigateToManageAccounts() async {
-		await self.navigationToManageAccounts.performCatching()
-  }
+public struct OSCalendar {
 
-  internal final func navigateToAccountExport() async {
-		await self.navigationToAccountExport.performCatching()
-  }
+	public var format: @Sendable (DateFormat, Date) -> String
+}
 
-	internal final func navigateToAccountKeyInspector() async {
-		await self.navigationToAccountKeyInspector.performCatching()
+extension OSCalendar: StaticFeature {
+
+	#if DEBUG
+	nonisolated public static var placeholder: Self {
+		Self(
+			format: unimplemented2()
+		)
+	}
+	#endif
+}
+
+// MARK: - Implementation
+
+extension OSCalendar {
+
+	fileprivate static var live: Self {
+		@Sendable func format(
+			_ format: DateFormat,
+			date: Date
+		) -> String {
+			let dateFormatter: DateFormatter = .init()
+			dateFormatter.calendar = .autoupdatingCurrent
+			switch format {
+			case .compact:
+				dateFormatter.dateStyle = .short
+				dateFormatter.timeStyle = .none
+
+			case .medium:
+				dateFormatter.dateStyle = .medium
+				dateFormatter.timeStyle = .short
+			}
+			return dateFormatter.string(from: date)
+		}
+
+		return Self(
+			format: format(_:date:)
+		)
+	}
+}
+
+extension FeaturesRegistry {
+
+	internal mutating func useOSCalendar() {
+		self.use(
+			OSCalendar.live
+		)
 	}
 }

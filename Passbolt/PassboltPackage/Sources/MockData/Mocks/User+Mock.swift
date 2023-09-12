@@ -58,14 +58,7 @@ extension UserDTO {
     deleted: false,
     username: "ada@passbolt.com",
     profile: .mock_ada,
-		key: .init(
-			publicKey: "MOCK_ADA",
-			fingerprint: "MOCK_ADA",
-			length: 0,
-			algorithm: "mock",
-			created: .init(timeIntervalSince1970: 0),
-			expires: .none
-		)
+		key: .mock_ada
   )
 
   public static let mock_frances: Self = .init(
@@ -74,15 +67,8 @@ extension UserDTO {
     deleted: false,
     username: "frances@passbolt.com",
     profile: .mock_frances,
-		key: .init(
-			publicKey: "MOCK_FRANCES",
-			fingerprint: "MOCK_FRANCES",
-			length: 0,
-			algorithm: "mock",
-			created: .init(timeIntervalSince1970: 0),
-			expires: .none
-		)
-  )
+		key: .mock_frances
+	)
 }
 
 extension UserProfileDTO {
@@ -110,4 +96,25 @@ extension UserProfileDTO {
       urlString: .mock_avatar_frances
     )
   )
+}
+
+extension PGPKeyDetails {
+
+	public static let mock_ada: Self = .init(
+		publicKey: "MOCK_ADA",
+		fingerprint: "MOCK_ADA",
+		length: 0,
+		algorithm: "mock",
+		created: .init(timeIntervalSince1970: 0),
+		expires: .none
+	)
+
+	public static let mock_frances: Self = .init(
+		publicKey: "MOCK_FRANCES",
+		fingerprint: "MOCK_FRANCES",
+		length: 0,
+		algorithm: "mock",
+		created: .init(timeIntervalSince1970: 0),
+		expires: .none
+	)
 }
