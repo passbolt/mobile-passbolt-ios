@@ -33,7 +33,7 @@ import Session
 /// is required.
 internal struct AccountDataExport {
 
-  internal var exportAccountData: @Sendable (AccountExportAuthorizationMethod) async throws -> AccountTransferData
+  internal var exportAccountData: @Sendable (AccountAuthorizationMethod) async throws -> AccountTransferData
 }
 
 extension AccountDataExport: LoadableFeature {
@@ -64,7 +64,7 @@ extension AccountDataExport {
     let accountsData: AccountsDataStore = try features.instance()
 
     @Sendable nonisolated func exportAccountData(
-      authorizationMethod: AccountExportAuthorizationMethod
+      authorizationMethod: AccountAuthorizationMethod
     ) async throws -> AccountTransferData {
       switch authorizationMethod {
       case .biometrics:

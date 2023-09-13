@@ -86,15 +86,11 @@ extension AccountDetails {
       accountData.updates.update()
     }
 
-    let avatarImageCache: ComputedVariable<Data> = .init(lazy: {
-      do {
-        let profile: AccountWithProfile = try profile()
-        return try await mediaDownloadNetworkOperation.execute(profile.avatarImageURL)
-      }
-      catch {
-        throw error
-      }
-    })
+		let avatarImageCache: ComputedVariable<Data> = .init(
+			transformed: accountData.updates) { _ in
+				let profile: AccountWithProfile = try profile()
+				return try await mediaDownloadNetworkOperation.execute(profile.avatarImageURL)
+		}
 
 		@Sendable nonisolated func keyDetails() async throws -> PGPKeyDetails {
 			// this could be unified with profile update action

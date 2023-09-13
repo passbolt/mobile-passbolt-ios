@@ -21,8 +21,48 @@
 // @since         v1.0
 //
 
-public enum AccountExportAuthorizationMethod {
+import Display
+import FeatureScopes
 
-  case passphrase(Passphrase)
-  case biometrics
+public struct OperationAuthorizationConfiguration: Sendable {
+
+	public var title: DisplayableString
+	public var actionLabel: DisplayableString
+	public var operation: @Sendable (AccountAuthorizationMethod) async throws -> Void
+
+	public init(
+		title: DisplayableString,
+		actionLabel: DisplayableString,
+		operation: @escaping @Sendable (AccountAuthorizationMethod) async throws -> Void
+	) {
+		self.title = title
+		self.actionLabel = actionLabel
+		self.operation = operation
+	}
+}
+
+public enum OperationAuthorizationNavigationDestination: NavigationDestination {
+
+	public typealias TransitionContext = OperationAuthorizationConfiguration
+}
+
+public typealias NavigationToOperationAuthorization = NavigationTo<OperationAuthorizationNavigationDestination>
+
+extension NavigationToOperationAuthorization {
+
+	fileprivate static var live: FeatureLoader {
+		legacyPushTransition(
+			to: OperationAuthorizationView.self
+		)
+	}
+}
+
+extension FeaturesRegistry {
+
+	public mutating func useLiveNavigationToOperationAuthorization() {
+		self.use(
+			NavigationToOperationAuthorization.live,
+			in: AccountScope.self
+		)
+	}
 }

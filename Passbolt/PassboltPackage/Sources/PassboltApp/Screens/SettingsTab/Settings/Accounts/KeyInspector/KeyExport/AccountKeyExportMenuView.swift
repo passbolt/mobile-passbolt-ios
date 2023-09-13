@@ -21,45 +21,48 @@
 // @since         v1.0
 //
 
-import AccountSetup
-import FeatureScopes
-import OSFeatures
-import Crypto
+import Display
 
-// MARK: - Implementation
+internal struct AccountKeyExportMenuView: ControlledView {
 
-extension AccountArmoredKeyExport {
+	internal var controller: AccountKeyExportMenuViewController
 
-	@MainActor fileprivate static func load(
-		features: Features,
-		cancellables: Cancellables
-	) throws -> Self {
-		let accountDataExport: AccountDataExport = try features.instance()
+	internal init(
+		controller: AccountKeyExportMenuViewController
+	) {
+		self.controller = controller
+	}
 
-		@Sendable nonisolated func authorizePrivateKeyExport(
-			authorizationMethod: AccountAuthorizationMethod
-		) async throws -> ArmoredPGPPrivateKey {
-			try await accountDataExport
-				.exportAccountData(authorizationMethod)
-				.armoredKey
-		}
+	internal var body: some View {
+		DrawerMenu(
+			closeTap: self.controller.dismiss,
+			title: {
+				Text(displayable: "account.key.export.menu.title")
+			},
+			content: {
+				DrawerMenuItemView(
+					action: self.controller.exportPrivateKey,
+					title: {
+						Text(displayable: "account.key.export.menu.export.private.action")
+					},
+					leftIcon: {
+						Image(named: .fileSave)
+							.resizable()
+					}
+				)
 
-		return .init(
-			authorizePrivateKeyExport: authorizePrivateKeyExport(authorizationMethod:)
+				DrawerMenuItemView(
+					action: self.controller.exportPublicKey,
+					title: {
+						Text(displayable: "account.key.export.menu.export.public.action")
+					},
+					leftIcon: {
+						Image(named: .fileSave)
+							.resizable()
+					}
+				)
+			}
 		)
 	}
 }
 
-extension FeaturesRegistry {
-
-	internal mutating func usePassboltAccountArmoredKeyExport() {
-		self.use(
-			.lazyLoaded(
-				AccountArmoredKeyExport.self,
-				load: AccountArmoredKeyExport
-					.load(features:cancellables:)
-			),
-			in: AccountTransferScope.self
-		)
-	}
-}

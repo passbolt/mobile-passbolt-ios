@@ -34,9 +34,9 @@ where SupportActionView: View {
   private let avatarImage: Data?
   private var passphrase: Binding<Validated<String>>
   private let mainActionLabel: DisplayableString
-  private let mainAction: () -> Void
+  private let mainAction: () async -> Void
   private let biometricsAvailability: OSBiometryAvailability
-  private let biometricsAction: () -> Void
+  private let biometricsAction: () async-> Void
   private let supportActionView: @MainActor () -> SupportActionView
 
   public init(
@@ -46,9 +46,9 @@ where SupportActionView: View {
     avatarImage: Data?,
     passphrase: Binding<Validated<String>>,
     mainActionLabel: DisplayableString,
-    mainAction: @escaping () -> Void,
+    mainAction: @escaping () async -> Void,
     biometricsAvailability: OSBiometryAvailability,
-    biometricsAction: @escaping () -> Void,
+    biometricsAction: @escaping () async -> Void,
     @ViewBuilder supportActionView: @escaping @MainActor () -> SupportActionView
   ) {
     self.label = label
@@ -112,13 +112,23 @@ where SupportActionView: View {
         EmptyView()
 
       case .faceID:
-        Button(
+        AsyncButton(
           action: self.biometricsAction,
-          label: {
+					regularLabel: {
             Image(named: .faceID)
               .resizable()
               .padding(10)
-          }
+          },
+					loadingLabel: {
+						ZStack {
+							Image(named: .faceID)
+								.resizable()
+								.padding(10)
+
+							SwiftUI.ProgressView()
+								.progressViewStyle(.circular)
+						}
+					}
         )
         .frame(width: 56, height: 56)
         .tint(.passboltPrimaryBlue)
@@ -131,13 +141,23 @@ where SupportActionView: View {
         )
 
       case .touchID:
-        Button(
+        AsyncButton(
           action: self.biometricsAction,
-          label: {
-            Image(named: .touchID)
-              .resizable()
-              .padding(10)
-          }
+					regularLabel: {
+						Image(named: .touchID)
+							.resizable()
+							.padding(10)
+					},
+					loadingLabel: {
+						ZStack {
+							Image(named: .touchID)
+								.resizable()
+								.padding(10)
+
+							SwiftUI.ProgressView()
+								.progressViewStyle(.circular)
+						}
+					}
         )
         .frame(width: 56, height: 56)
         .tint(.passboltPrimaryBlue)

@@ -24,6 +24,9 @@
 import Display
 import OSFeatures
 import Accounts
+import AccountSetup
+import FeatureScopes
+import SharedUIComponents
 
 internal final class AccountKeyInspectorViewController: ViewController {
 
@@ -42,17 +45,25 @@ internal final class AccountKeyInspectorViewController: ViewController {
 
 	internal let viewState: ViewStateSource<State>
 
+	private let navigationToAccountKeyExportMenu: NavigationToAccountKeyExportMenu
+
 	private let accountDetails: AccountDetails
 	private let pasteboard: OSPasteboard
 	private let calendar: OSCalendar
+
+	private let features: Features
 
 	internal init(
 		context: Void,
 		features: Features
 	) throws {
+		self.features = features
+
 		self.pasteboard = features.instance()
 		self.calendar = features.instance()
 		self.accountDetails = try features.instance()
+
+		self.navigationToAccountKeyExportMenu = try features.instance()
 
 		self.viewState = .init(
 			initial: .init(
@@ -110,6 +121,10 @@ internal final class AccountKeyInspectorViewController: ViewController {
 	internal func copyFingerprint() async {
 		await self.pasteboard.put(self.viewState.current.fingerprint)
 		self.viewState.update(\.snackBarMessage, to: .info("account.key.inspector.fingerprint.copied.message"))
+	}
+
+	internal func showExportMenu() async {
+		await self.navigationToAccountKeyExportMenu.performCatching()
 	}
 }
 

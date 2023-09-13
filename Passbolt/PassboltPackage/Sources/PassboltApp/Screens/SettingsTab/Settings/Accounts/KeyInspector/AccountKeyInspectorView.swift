@@ -47,6 +47,14 @@ internal struct AccountKeyInspectorView: ControlledView {
 			}
 		}
 		.navigationTitle(displayable: "account.key.inspector.title")
+		.toolbar {
+			ToolbarItemGroup(placement: .navigationBarTrailing) {
+				IconButton(
+					iconName: .more,
+					action: self.controller.showExportMenu
+				)
+			}
+		}
 	}
 
 	@MainActor @ViewBuilder private var headerView: some View {
@@ -162,4 +170,3 @@ internal struct AccountKeyInspectorView: ControlledView {
 		}
 	}
 }
-

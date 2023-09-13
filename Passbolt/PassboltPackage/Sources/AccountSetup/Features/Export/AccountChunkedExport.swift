@@ -36,7 +36,7 @@ public struct AccountChunkedExport {
   /// current session.
   /// It will start the process on the backend as well.
   /// It will throw if transfer is already in progress.
-  public var authorize: @Sendable (AccountExportAuthorizationMethod) async throws -> Void
+  public var authorize: @Sendable (AccountAuthorizationMethod) async throws -> Void
   /// Cancel current export if any.
   /// Cancelled process result in error status with CancellationError.
   public var cancel: @Sendable () -> Void
@@ -44,7 +44,7 @@ public struct AccountChunkedExport {
   public init(
     updates: AnyUpdatable<Void>,
     status: @escaping @Sendable () -> Status,
-    authorize: @escaping @Sendable (AccountExportAuthorizationMethod) async throws -> Void,
+    authorize: @escaping @Sendable (AccountAuthorizationMethod) async throws -> Void,
     cancel: @escaping @Sendable () -> Void
   ) {
     self.updates = updates

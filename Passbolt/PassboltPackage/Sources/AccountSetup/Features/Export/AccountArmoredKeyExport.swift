@@ -30,10 +30,10 @@ public struct AccountArmoredKeyExport {
 
 	/// Export account private key by authorizing, 
 	/// it will prolong current session.
-	public var authorizePrivateKeyExport: @Sendable (AccountExportAuthorizationMethod) async throws -> ArmoredPGPPrivateKey
+	public var authorizePrivateKeyExport: @Sendable (AccountAuthorizationMethod) async throws -> ArmoredPGPPrivateKey
 
 	public init(
-		authorizePrivateKeyExport: @escaping @Sendable (AccountExportAuthorizationMethod) async throws -> ArmoredPGPPrivateKey
+		authorizePrivateKeyExport: @escaping @Sendable (AccountAuthorizationMethod) async throws -> ArmoredPGPPrivateKey
 	) {
 		self.authorizePrivateKeyExport = authorizePrivateKeyExport
 	}

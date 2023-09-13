@@ -21,45 +21,28 @@
 // @since         v1.0
 //
 
-import AccountSetup
+import Display
 import FeatureScopes
-import OSFeatures
-import Crypto
 
-// MARK: - Implementation
+internal enum AccountKeyExportMenuNavigationDestination: NavigationDestination {}
 
-extension AccountArmoredKeyExport {
+internal typealias NavigationToAccountKeyExportMenu = NavigationTo<AccountKeyExportMenuNavigationDestination>
 
-	@MainActor fileprivate static func load(
-		features: Features,
-		cancellables: Cancellables
-	) throws -> Self {
-		let accountDataExport: AccountDataExport = try features.instance()
+extension NavigationToAccountKeyExportMenu {
 
-		@Sendable nonisolated func authorizePrivateKeyExport(
-			authorizationMethod: AccountAuthorizationMethod
-		) async throws -> ArmoredPGPPrivateKey {
-			try await accountDataExport
-				.exportAccountData(authorizationMethod)
-				.armoredKey
-		}
-
-		return .init(
-			authorizePrivateKeyExport: authorizePrivateKeyExport(authorizationMethod:)
+	fileprivate static var live: FeatureLoader {
+		legacyPartialSheetPresentationTransition(
+			to: AccountKeyExportMenuView.self
 		)
 	}
 }
 
 extension FeaturesRegistry {
 
-	internal mutating func usePassboltAccountArmoredKeyExport() {
+	internal mutating func useLiveNavigationToAccountKeyExportMenu() {
 		self.use(
-			.lazyLoaded(
-				AccountArmoredKeyExport.self,
-				load: AccountArmoredKeyExport
-					.load(features:cancellables:)
-			),
-			in: AccountTransferScope.self
+			NavigationToAccountKeyExportMenu.live,
+			in: SettingsScope.self
 		)
 	}
 }

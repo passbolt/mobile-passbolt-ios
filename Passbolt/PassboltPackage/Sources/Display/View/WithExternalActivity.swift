@@ -21,45 +21,34 @@
 // @since         v1.0
 //
 
-import AccountSetup
-import FeatureScopes
-import OSFeatures
-import Crypto
+import Commons
+import SwiftUI
+import UICommons
 
-// MARK: - Implementation
+public struct WithExternalActivity<ContentView>: View
+where ContentView: View {
 
-extension AccountArmoredKeyExport {
+	@ObservedObject private var viewState: TrimmedViewState<ExternalActivityConfiguration?>
+	private let binding: Binding<ExternalActivityConfiguration?>
+	private let content: @MainActor () -> ContentView
 
-	@MainActor fileprivate static func load(
-		features: Features,
-		cancellables: Cancellables
-	) throws -> Self {
-		let accountDataExport: AccountDataExport = try features.instance()
-
-		@Sendable nonisolated func authorizePrivateKeyExport(
-			authorizationMethod: AccountAuthorizationMethod
-		) async throws -> ArmoredPGPPrivateKey {
-			try await accountDataExport
-				.exportAccountData(authorizationMethod)
-				.armoredKey
-		}
-
-		return .init(
-			authorizePrivateKeyExport: authorizePrivateKeyExport(authorizationMethod:)
+	public init<Controller>(
+		from controller: Controller,
+		at keyPath: WritableKeyPath<Controller.ViewState, ExternalActivityConfiguration?>,
+		@ViewBuilder content: @escaping () -> ContentView
+	) where Controller: ViewController {
+		self._viewState = .init(
+			wrappedValue: .init(
+				from: controller.viewState,
+				at: keyPath
+			)
 		)
+		self.binding = controller.binding(to: keyPath)
+		self.content = content
 	}
-}
 
-extension FeaturesRegistry {
-
-	internal mutating func usePassboltAccountArmoredKeyExport() {
-		self.use(
-			.lazyLoaded(
-				AccountArmoredKeyExport.self,
-				load: AccountArmoredKeyExport
-					.load(features:cancellables:)
-			),
-			in: AccountTransferScope.self
-		)
+	public var body: some View {
+		self.content()
+			.withExternalActivity(self.binding)
 	}
 }

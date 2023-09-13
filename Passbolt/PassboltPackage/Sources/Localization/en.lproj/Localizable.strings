@@ -604,7 +604,7 @@ scanned!";
 "settings.terms.and.licenses.item.privacy.title" = "Privacy policy";
 "settings.terms.and.licenses.item.licenses.title" = "Open source licenses";
 
-// Key Inspector
+// Key inspector
 
 "account.key.inspector.title" = "Key inspector";
 "account.key.inspector.field.uid.title" = "Uid";
@@ -616,6 +616,14 @@ scanned!";
 "account.key.inspector.field.algorithm.title" = "Algorithm";
 "account.key.inspector.uid.copied.message" = "Uid copied to your clipboard!";
 "account.key.inspector.fingerprint.copied.message" = "Fingerprint copied to your clipboard!";
+
+// Key export
+
+"account.key.export.menu.title" = "Key inspector";
+"account.key.export.menu.export.private.action" = "Export private key";
+"account.key.export.menu.export.public.action" = "Export public key";
+"account.key.export.private.authorization.title" = "Export private key";
+"account.key.export.private.authorization.button.title" = "Export private key";
 
 // Settings - Troubleshooting
 
@@ -646,3 +654,7 @@ scanned!";
 "biometric.authorization.availability.unavailable" = "Unavailable";
 "biometric.authorization.availability.face.id" = "FaceID";
 "biometric.authorization.availability.touch.id" = "TouchID";
+
+// Operation authorization
+
+"authorization.primary.button.title" = "Authorize";

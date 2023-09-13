@@ -21,45 +21,16 @@
 // @since         v1.0
 //
 
-import AccountSetup
-import FeatureScopes
-import OSFeatures
-import Crypto
+import Display
 
-// MARK: - Implementation
+internal final class ExternalActivityNavigationViewController: ViewController {
 
-extension AccountArmoredKeyExport {
-
-	@MainActor fileprivate static func load(
-		features: Features,
-		cancellables: Cancellables
-	) throws -> Self {
-		let accountDataExport: AccountDataExport = try features.instance()
-
-		@Sendable nonisolated func authorizePrivateKeyExport(
-			authorizationMethod: AccountAuthorizationMethod
-		) async throws -> ArmoredPGPPrivateKey {
-			try await accountDataExport
-				.exportAccountData(authorizationMethod)
-				.armoredKey
-		}
-
-		return .init(
-			authorizePrivateKeyExport: authorizePrivateKeyExport(authorizationMethod:)
-		)
-	}
-}
-
-extension FeaturesRegistry {
-
-	internal mutating func usePassboltAccountArmoredKeyExport() {
-		self.use(
-			.lazyLoaded(
-				AccountArmoredKeyExport.self,
-				load: AccountArmoredKeyExport
-					.load(features:cancellables:)
-			),
-			in: AccountTransferScope.self
-		)
+	internal let configuration: ExternalActivityConfiguration
+	
+	internal init(
+		context: ExternalActivityConfiguration,
+		features: Features
+	) throws {
+		self.configuration = context
 	}
 }

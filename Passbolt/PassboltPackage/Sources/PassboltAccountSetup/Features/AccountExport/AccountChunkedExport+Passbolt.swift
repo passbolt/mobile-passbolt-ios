@@ -155,7 +155,7 @@ extension AccountChunkedExport {
     }
 
     @Sendable nonisolated func authorize(
-      authorizationMethod: AccountExportAuthorizationMethod
+      authorizationMethod: AccountAuthorizationMethod
     ) async throws {
       // Make sure it won't be called concurrently
       // it does not track ongoing attempts to authorize.

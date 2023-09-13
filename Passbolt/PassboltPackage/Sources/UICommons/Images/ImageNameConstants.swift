@@ -83,6 +83,7 @@ extension ImageNameConstant {
   public static var cog: Self { "Cog" }
   public static var chevronDown: Self { "ChevronDown" }
   public static var warning: Self { "Warning" }
+	public static var fileSave: Self { "FileSave" }
 
   // Dynamic images - rendered according to interface (Light/Dark)
   public static var accountsSkeleton: Self { "AccountsSkeleton" }
