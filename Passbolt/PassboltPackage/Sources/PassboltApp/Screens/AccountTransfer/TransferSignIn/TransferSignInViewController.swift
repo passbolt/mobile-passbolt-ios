@@ -285,22 +285,24 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
       .receive(on: RunLoop.main)
       .sink(
         receiveCompletion: { [weak self] completion in
-          self?.dismissOverlay()
+					guard let self else { return }
+          self.dismissOverlay()
 
-          self?.cancellables
-            .executeOnMainActor {
+          self.cancellables
+            .executeOnMainActor { [weak self] in
+							guard let self else { return }
               switch completion {
               case .finished:
                 break
 
               case .failure(_ as Cancelled):
-                switch self?.navigationController {
+                switch self.navigationController {
                 case .some(_ as WelcomeNavigationViewController),
                   .some(_ as AuthorizationNavigationViewController):
-                  await self?.popToRoot()
+                  await self.popToRoot()
 
                 case .some, .none:
-                  await self?
+                  await self
                     .replaceWindowRoot(
                       with: SplashScreenViewController.self,
                       in: .none
@@ -308,11 +310,21 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
                 }
 
               case let .failure(error):
-                await self?
-                  .push(
-                    AccountTransferFailureViewController.self,
-                    in: error
-                  )
+								try await self
+									.push(
+										OperationResultControlledView(
+										 controller: OperationResultViewController(
+											 context: OperationResultConfiguration(
+												 for: error.asTheError(),
+												 confirmation: { [weak self] in
+													 await self?.pop(to: TransferInfoScreenViewController.self)
+												 }
+											 ),
+											 features: self.components.features
+										 )
+									 ),
+										animated: true
+									)
               }
             }
         }

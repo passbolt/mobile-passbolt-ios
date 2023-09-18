@@ -392,6 +392,30 @@ extension AnyUIComponent {
     }
   }
 
+	@MainActor public func push<V>(
+		_ view: V,
+		animated: Bool = true
+	) async where V: SwiftUI.View {
+		guard
+			let navigationController = self as? UINavigationController
+				?? self.navigationController
+				?? self.presentingViewController?.navigationController
+		else { return assertionFailure("It is programmer error to push without navigation controller") }
+
+		return await withCheckedContinuation { continuation in
+			CATransaction.begin()
+			CATransaction.setCompletionBlock {
+				continuation.resume()
+			}
+			navigationController
+				.pushViewController(
+					UIHostingController(rootView: view),
+					animated: animated
+				)
+			CATransaction.commit()
+		}
+	}
+
   @MainActor public func replace<Component, ReplacedComponent>(
     _: ReplacedComponent.Type,
     pushing type: Component.Type,

@@ -25,6 +25,7 @@ import AccountSetup
 import Display
 import FeatureScopes
 import OSFeatures
+import SharedUIComponents
 
 internal final class AccountQRCodeExportController: ViewController {
 
@@ -62,34 +63,71 @@ internal final class AccountQRCodeExportController: ViewController {
             }
           }
           catch {
-            await navigation
-              .push(
-                legacy: AccountTransferFailureViewController.self,
-                context: error
-              )
+            try? await navigation
+							.push(
+								OperationResultControlledView.self,
+								controller: OperationResultViewController(
+									context: OperationResultConfiguration(
+										for: error.asTheError(),
+										confirmation: { [navigation] in
+											await navigation.pop(to: TransferInfoScreenViewController.self)
+										}
+									),
+									features: features
+								)
+							)
           }
 
         case .finished:
-          await navigation
-            .push(legacy: AccountTransferSuccessViewController.self)
+					try? await navigation
+						.push(
+							OperationResultControlledView.self,
+							controller: OperationResultViewController(
+								context: OperationResultConfiguration(
+									image: .successMark,
+									title: "transfer.account.result.success.title",
+									actionLabel: "transfer.account.export.exit.success.button",
+									confirmation: { [navigation] in
+											await navigation.pop(to: AccountDetailsViewController.self) // popToRoot
+									}
+								),
+								features: features
+							)
+						)
+
 
         case .error(let error):
-          await navigation
-            .push(
-              legacy: AccountTransferFailureViewController.self,
-              context: error
-            )
+					try? await navigation
+						.push(
+							OperationResultControlledView.self,
+							controller: OperationResultViewController(
+								context: OperationResultConfiguration(
+									for: error.asTheError(),
+									confirmation: { [navigation] in
+											await navigation.pop(to: TransferInfoScreenViewController.self)
+									}
+								),
+								features: features
+							)
+						)
 
         case .uninitialized:
-          await navigation
-            .push(
-              legacy: AccountTransferFailureViewController.self,
-              context:
-                InternalInconsistency
-                .error(
-                  "Account export used without initialization."
-                )
-            )
+					try? await navigation
+						.push(
+							OperationResultControlledView.self,
+							controller: OperationResultViewController(
+								context: OperationResultConfiguration(
+									for: InternalInconsistency
+										.error(
+											"Account export used without initialization."
+										),
+									confirmation: { [navigation] in
+											await navigation.pop(to: TransferInfoScreenViewController.self)
+									}
+								),
+								features: features
+							)
+						)
         }
       }
     )

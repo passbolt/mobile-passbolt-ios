@@ -21,30 +21,58 @@
 // @since         v1.0
 //
 
-import UIComponents
+import AccountSetup
+import Accounts
+import Display
+import FeatureScopes
+import OSFeatures
+import Session
 
-internal struct AccountTransferFailureController {
+public final class OperationResultViewController: ViewController {
 
-  internal var failureReason: () -> Error
-  internal var `continue`: () -> Void
-  internal var backPresentationPublisher: () -> AnyPublisher<Never, Never>
+	public struct ViewState: Equatable {
+
+		internal var image: ImageNameConstant
+		internal var title: DisplayableString
+		internal var message: DisplayableString?
+		internal var actionLabel: DisplayableString
+		internal var snackBarMessage: SnackBarMessage?
+	}
+
+	public nonisolated let viewState: ViewStateSource<ViewState>
+
+	internal let configuration: OperationResultConfiguration
+
+	private let features: Features
+
+	public init(
+		context: OperationResultConfiguration,
+		features: Features
+	) throws {
+		self.features = features
+
+		self.configuration = context
+
+		self.viewState = .init(
+			initial: .init(
+				image: configuration.image,
+				title: configuration.title,
+				message: configuration.message,
+				actionLabel: configuration.actionLabel,
+				snackBarMessage: .none
+			)
+		)
+	}
 }
 
-extension AccountTransferFailureController: UIController {
+extension OperationResultViewController {
 
-  internal typealias Context = Error
-
-  internal static func instance(
-    in context: Context,
-    with features: inout Features,
-    cancellables: Cancellables
-  ) -> Self {
-    let backPresentationSubject: PassthroughSubject<Never, Never> = .init()
-
-    return Self(
-      failureReason: { context },
-      continue: { backPresentationSubject.send(completion: .finished) },
-      backPresentationPublisher: backPresentationSubject.eraseToAnyPublisher
-    )
-  }
+	@Sendable internal func confirm() async {
+		do {
+			try await self.configuration.confirmation()
+		}
+		catch {
+			self.viewState.update(\.snackBarMessage, to: .error(error))
+		}
+	}
 }

@@ -180,48 +180,59 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
         receiveCompletion: { [weak self] completion in
           self?.cancellables
             .executeOnMainActor { [weak self] in
+							guard let self else { return }
               switch completion {
               case .finished:
-                await self?
+                await self
                   .push(
                     CodeScanningSuccessViewController.self
                   )
-                await self?.popAll(Self.self, animated: false)
+                await self.popAll(Self.self, animated: false)
 
               case let .failure(error) where error is Cancelled:
-                switch self?.navigationController {
+                switch self.navigationController {
                 case .some(_ as WelcomeNavigationViewController):
-                  await self?.popToRoot()
+                  await self.popToRoot()
 
                 case .some(_ as AuthorizationNavigationViewController):
-                  await self?.pop(to: AccountSelectionViewController.self)
+                  await self.pop(to: AccountSelectionViewController.self)
 
                 case .some:
-                  if await self?.pop(to: AccountSelectionViewController.self) ?? false {
+                  if await self.pop(to: AccountSelectionViewController.self) ?? false {
                     /* NOP */
                   }
                   else {
-                    await self?.popToRoot()
+                    await self.popToRoot()
                   }
 
                 case .none:
-                  await self?.dismiss(Self.self)
+                  await self.dismiss(Self.self)
                 }
 
               case let .failure(error) where error is AccountDuplicate:
-                await self?
+                await self
                   .push(
                     CodeScanningDuplicateViewController.self
                   )
-                await self?.popAll(Self.self, animated: false)
+                await self.popAll(Self.self, animated: false)
 
               case let .failure(error):
-                await self?
-                  .push(
-                    AccountTransferFailureViewController.self,
-                    in: error
-                  )
-              }
+								try await self
+									.push(
+										OperationResultControlledView(
+											controller: OperationResultViewController(
+												context: OperationResultConfiguration(
+													for: error.asTheError(),
+													confirmation: { [weak self] in
+														await self?.pop(to: TransferInfoScreenViewController.self)
+													}
+												),
+												features: self.components.features
+											)
+										),
+										animated: true
+									)
+							}
             }
         },
         receiveValue: { _ in }

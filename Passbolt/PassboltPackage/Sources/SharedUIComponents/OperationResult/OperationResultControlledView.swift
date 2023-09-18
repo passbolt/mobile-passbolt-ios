@@ -21,35 +21,34 @@
 // @since         v1.0
 //
 
-import Crypto
 import Display
-import Features
-import NFC
-import PassboltAccounts
-import PassboltDatabaseOperations
-import PassboltNetworkOperations
-import PassboltResources
-import PassboltSession
-import PassboltSessionData
-import PassboltUsers
 
-extension FeaturesRegistry {
+public struct OperationResultControlledView: ControlledView {
 
-  public mutating func usePassboltFeatures() {
-    self.useOSFeatures()
-    self.useNFCFeatures()
-    self.useCrypto()
-    self.usePassboltAccountsModule()
-    self.usePassboltDatabaseOperationsModule()
-    self.usePassboltNetworkOperationsModule()
-    self.usePassboltResourcesModule()
-    self.usePassboltSessionModule()
-    self.usePassboltSessionDataModule()
-    self.usePassboltUsersModule()
-    self.usePassboltHomePresentation()
-    self.usePassboltResourcesModule()
-    // it is required until navigations will become fully integrated
-    self.useLiveNavigationToResourceEdit()
-		self.useLiveNavigationToOperationResult()
-  }
+	public let controller: OperationResultViewController
+
+	public init(
+		controller: OperationResultViewController
+	) {
+		self.controller = controller
+	}
+
+	public var body: some View {
+		withSnackBarMessage(\.snackBarMessage) {
+			self.contentView
+		}
+		.navigationBarBackButtonHidden()
+	}
+
+	@ViewBuilder @MainActor private var contentView: some View {
+		with(\.self) { (viewState: OperationResultViewController.ViewState) in
+			OperationResultView(
+				image: viewState.image,
+				title: viewState.title,
+				message: viewState.message,
+				actionLabel: viewState.actionLabel,
+				action: self.controller.confirm
+			)
+		}
+	}
 }
