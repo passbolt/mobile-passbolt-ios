@@ -79,7 +79,6 @@ extension SessionNetworkAuthorization {
     features: Features
   ) throws -> Self {
 
-    let diagnostics: OSDiagnostics = features.instance()
     let accountData: AccountsDataStore = try features.instance()
     let time: OSTime = features.instance()
     let pgp: PGP = features.instance()
@@ -94,31 +93,50 @@ extension SessionNetworkAuthorization {
     let jsonEncoder: JSONEncoder = .init()
     let jsonDecoder: JSONDecoder = .init()
 
-    @Sendable nonisolated func fetchServerPublicPGPKey(
+    @Sendable nonisolated func fetchServerPublicPGPKeyAndTimeDiff(
       for account: Account
-    ) async throws -> ArmoredPGPPublicKey {
-      diagnostics
-        .log(diagnostic: "...fetching server public PGP key...")
+    ) async throws -> (ArmoredPGPPublicKey, Seconds) {
+      Diagnostics.logger.info("...fetching server public PGP key...")
 
-      let publicKey: ArmoredPGPPublicKey = try await .init(
-        rawValue: serverPGPPublicKeyFetchNetworkOperation(.init(domain: account.domain))
-          .keyData
+      let localTimestampBefore: Timestamp = time.timestamp()
+      let response: ServerPGPPublicKeyFetchNetworkOperationResult = try await serverPGPPublicKeyFetchNetworkOperation(
+        .init(domain: account.domain)
       )
+      let localTimestampAfter: Timestamp = time.timestamp()
+      let executionTime: Seconds = .init(rawValue: localTimestampAfter.rawValue - localTimestampBefore.rawValue)
+      Diagnostics.logger.info("Local timestamp: \(localTimestampAfter.rawValue, privacy: .public)")
+      Diagnostics.logger.info("Server timestamp: \(response.serverTime.rawValue, privacy: .public)")
+      // this is not a very precise time synchronization,
+      // but it is good enough to solve the most of the timing issues
+      // with PGP we encountered which are caused by client and server being out of sync
+      let timeDiff: Seconds = .init(rawValue: response.serverTime.rawValue - time.timestamp().rawValue) - executionTime
+
+      guard timeDiff <= 10 && timeDiff >= -10
+      else {
+        throw
+          ServerTimeOutOfSync
+          .error(
+            "Time difference between client and server is bigger than 10 seconds!",
+            serverURL: account.domain
+          )
+      }
+      Diagnostics.logger.info("Using time diff for session: \(timeDiff, privacy: .public)")
+
+      let publicKey: ArmoredPGPPublicKey = .init(rawValue: response.keyData)
 
       try verifyServerPublicPGPKey(
         publicKey,
         for: account
       )
 
-      return publicKey
+      return (publicKey, timeDiff)
     }
 
     @Sendable nonisolated func verifyServerPublicPGPKey(
       _ publicKey: ArmoredPGPPublicKey,
       for account: Account
     ) throws {
-      diagnostics
-        .log(diagnostic: "...verifying server public PGP key...")
+      Diagnostics.logger.info("...verifying server public PGP key...")
 
       let serverFingerprint: Fingerprint
       do {
@@ -170,8 +188,7 @@ extension SessionNetworkAuthorization {
     @Sendable nonisolated func fetchServerPublicRSAKey(
       for account: Account
     ) async throws -> PEMRSAPublicKey {
-      diagnostics
-        .log(diagnostic: "...fetching server public RSA key...")
+      Diagnostics.logger.info("...fetching server public RSA key...")
 
       return PEMRSAPublicKey(
         rawValue: try await serverRSAPublicKeyFetchNetworkOperation(.init(domain: account.domain))
@@ -203,8 +220,7 @@ extension SessionNetworkAuthorization {
         }
       }
 
-      diagnostics
-        .log(diagnostic: "...preparing authorization challenge...")
+      Diagnostics.logger.info("...preparing authorization challenge...")
       do {
         let challengeData: Data =
           try jsonEncoder
@@ -392,11 +408,17 @@ extension SessionNetworkAuthorization {
       requiredMFAProviders: Array<SessionMFAProvider>
     ) {
       let verificationToken: String = uuidGenerator.uuid()
-      // 120s is verification token's lifetime
-      let challengeExpiration: Int64 = time.timestamp().rawValue + 120
 
-      async let serverPublicPGPKey: ArmoredPGPPublicKey = fetchServerPublicPGPKey(for: authorizationData.account)
+      async let (serverPublicPGPKey, serverTimeDiff): (ArmoredPGPPublicKey, Seconds) =
+        fetchServerPublicPGPKeyAndTimeDiff(for: authorizationData.account)
       async let serverPublicRSAKey: PEMRSAPublicKey = fetchServerPublicRSAKey(for: authorizationData.account)
+
+      let timeDiff: Seconds = try await serverTimeDiff
+
+      pgp.setTimeOffset(timeDiff)
+
+      // 120s is verification token's lifetime
+      let challengeExpiration: Timestamp = time.timestamp() + (timeDiff + 120)
 
       let challenge = try await prepareEncryptedChallenge(
         account: authorizationData.account,
@@ -404,7 +426,7 @@ extension SessionNetworkAuthorization {
         accountPrivateKey: authorizationData.privateKey,
         serverPublicPGPKey: serverPublicPGPKey,
         verificationToken: verificationToken,
-        challengeExpiration: challengeExpiration
+        challengeExpiration: challengeExpiration.rawValue
       )
 
       let sessionCreationResult: SessionCreateNetworkOperationResult = try await sessionCreateNetworkOperation(
@@ -435,7 +457,7 @@ extension SessionNetworkAuthorization {
           serverPublicPGPKey: serverPublicPGPKey,
           encryptedResponse: sessionCreationResult.challenge,
           verificationToken: verificationToken,
-          challengeExpiration: challengeExpiration
+          challengeExpiration: challengeExpiration.rawValue
         )
 
       return (

@@ -22,6 +22,7 @@
 //
 
 import DatabaseOperations
+import FeatureScopes
 import Features
 import NetworkOperations
 import OSFeatures
@@ -35,7 +36,9 @@ extension SessionData {
   ) throws -> Self {
     let configuration: SessionConfiguration = try features.sessionConfiguration()
 
-    let diagnostics: OSDiagnostics = features.instance()
+    let time: OSTime = features.instance()
+    let asyncExecutor: AsyncExecutor = try features.instance()
+
     let usersStoreDatabaseOperation: UsersStoreDatabaseOperation = try features.instance()
     let userGroupsStoreDatabaseOperation: UserGroupsStoreDatabaseOperation = try features.instance()
     let resourcesStoreDatabaseOperation: ResourcesStoreDatabaseOperation = try features.instance()
@@ -47,48 +50,49 @@ extension SessionData {
     let resourceTypesFetchNetworkOperation: ResourceTypesFetchNetworkOperation = try features.instance()
     let resourceFoldersFetchNetworkOperation: ResourceFoldersFetchNetworkOperation = try features.instance()
 
-    let updatesSequenceSource: UpdatesSequenceSource = .init()
+    // when diffing endpoint becomes available
+    // we could store last update time and reuse it to avoid
+    // fetching all the data when initializing
+    let lastUpdate: Variable<Timestamp> = .init(initial: 0)
 
-    let refreshTask: ManagedTask<Void> = .init()
+    let refreshTask: CriticalState<Task<Void, Error>?> = .init(.none)
+
+    // initial refresh after loading
+    asyncExecutor.schedule {
+      do {
+        try await refreshIfNeeded()
+      }
+      catch {
+        error.logged()
+      }
+    }
 
     @Sendable nonisolated func refreshUsers() async throws {
-      diagnostics.log(diagnostic: "Refreshing users data...")
+      Diagnostics.logger.info("Refreshing users data...")
       do {
         try await usersStoreDatabaseOperation(
           usersFetchNetworkOperation()
-            .filter(\.isValid)
             .compactMap(\.asFilteredDSO)
         )
-        diagnostics.log(diagnostic: "...users data refresh finished!")
+        Diagnostics.logger.info("...users data refresh finished!")
       }
       catch {
-        diagnostics.log(
-          error: error,
-          info: .message(
-            "...users data refresh failed!"
-          )
-        )
-        throw error
+				Diagnostics.logger.info("...users data refresh failed!")
+				throw error
       }
     }
 
     @Sendable nonisolated func refreshUserGroups() async throws {
-      diagnostics.log(diagnostic: "Refreshing user groups data...")
+      Diagnostics.logger.info("Refreshing user groups data...")
       do {
         try await userGroupsStoreDatabaseOperation(
           userGroupsFetchNetworkOperation()
-            .filter(\.isValid)
         )
 
-        diagnostics.log(diagnostic: "...user groups data refresh finished!")
+        Diagnostics.logger.info("...user groups data refresh finished!")
       }
       catch {
-        diagnostics.log(
-          error: error,
-          info: .message(
-            "...user groups data refresh failed!"
-          )
-        )
+				Diagnostics.logger.info("...user groups data refresh failed!")
         throw error
       }
     }
@@ -96,30 +100,24 @@ extension SessionData {
     @Sendable nonisolated func refreshFolders() async throws {
       guard configuration.foldersEnabled
       else {
-        return diagnostics.log(diagnostic: "Refreshing folders skipped, feature disabled!")
+        return Diagnostics.logger.info("Refreshing folders skipped, feature disabled!")
       }
-      diagnostics.log(diagnostic: "Refreshing folders data...")
+      Diagnostics.logger.info("Refreshing folders data...")
       do {
         try await resourceFoldersStoreDatabaseOperation(
           resourceFoldersFetchNetworkOperation()
-            .filter(\.isValid)
         )
 
-        diagnostics.log(diagnostic: "...folders data refresh finished!")
+        Diagnostics.logger.info("...folders data refresh finished!")
       }
       catch {
-        diagnostics.log(
-          error: error,
-          info: .message(
-            "...folders data refresh failed!"
-          )
-        )
+				Diagnostics.logger.info("...folders data refresh failed!")
         throw error
       }
     }
 
     @Sendable nonisolated func refreshResources() async throws {
-      diagnostics.log(diagnostic: "Refreshing resources data...")
+      Diagnostics.logger.info("Refreshing resources data...")
       do {
         try await resourceTypesStoreDatabaseOperation(
           resourceTypesFetchNetworkOperation()
@@ -127,48 +125,54 @@ extension SessionData {
 
         try await resourcesStoreDatabaseOperation(
           resourcesFetchNetworkOperation()
-            .filter(\.isValid)
         )
 
-        diagnostics.log(diagnostic: "...resources data refresh finished!")
+        Diagnostics.logger.info("...resources data refresh finished!")
       }
       catch {
-        diagnostics.log(
-          error: error,
-          info: .message(
-            "...resources data refresh failed!"
-          )
-        )
+				Diagnostics.logger.info("...resources data refresh failed!")
         throw error
       }
     }
 
     @Sendable nonisolated func refreshIfNeeded() async throws {
-      try await refreshTask.run {
-        // TODO: when diffing endpoint becomes available
-        // there should be some additional logic
-        // to selectively update database data
+      let task: Task<Void, Error> = refreshTask.access { (task: inout Task<Void, Error>?) -> Task<Void, Error> in
+        if let runningTask: Task<Void, Error> = task {
+          return runningTask
+        }
+        else {
+          let runningTask: Task<Void, Error> = .init {
+            defer {
+              refreshTask.access { task in
+                task = .none
+              }
+            }
+            // when diffing endpoint becomes available
+            // there should be some additional logic
+            // to selectively update database data
 
-        try await refreshUsers()
-        try await refreshUserGroups()
-        try await refreshFolders()
-        try await refreshResources()
+            try await refreshUsers()
+            try await refreshUserGroups()
+            try await refreshFolders()
+            try await refreshResources()
 
-        updatesSequenceSource.sendUpdate()
+            // when diffing endpoint becomes available
+            // we should use server time instead
+            lastUpdate.mutate { (lastUpdate: inout Timestamp) in
+              lastUpdate = time.timestamp()
+            }
+          }
+          task = runningTask
+          return runningTask
+        }
       }
-    }
 
-    @Sendable func withLocalUpdate(
-      _ execute: @escaping @Sendable () async throws -> Void
-    ) async throws {
-      try await execute()
-      updatesSequenceSource.sendUpdate()
+      return try await task.value
     }
 
     return Self(
-      updatesSequence: updatesSequenceSource.updatesSequence,
-      refreshIfNeeded: refreshIfNeeded,
-      withLocalUpdate: withLocalUpdate(_:)
+      lastUpdate: lastUpdate.asAnyUpdatable(),
+      refreshIfNeeded: refreshIfNeeded
     )
   }
 }

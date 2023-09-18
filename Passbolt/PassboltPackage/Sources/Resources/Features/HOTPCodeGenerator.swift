@@ -41,13 +41,13 @@ extension HOTPCodeGenerator: LoadableFeature {
 
   public struct Context {
 
-    public var resourceID: Resource.ID
+    public var resourceID: Resource.ID?
     public var sharedSecret: String
     public var algorithm: HOTPAlgorithm
     public var digits: UInt
 
     public init(
-      resourceID: Resource.ID,
+      resourceID: Resource.ID?,
       sharedSecret: String,
       algorithm: HOTPAlgorithm,
       digits: UInt

@@ -31,19 +31,16 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 @MainActor
 final class UnsupportedMFAControllerTests: MainActorTestCase {
 
   func test_closeSession_succeeds() async throws {
-    var result: Void?
-    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<Void?> = .init()
     features.patch(
       \Session.close,
       with: { _ in
-        uncheckedSendableResult.variable = Void()
+        result.value = Void()
       }
     )
 
@@ -54,6 +51,6 @@ final class UnsupportedMFAControllerTests: MainActorTestCase {
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
-    XCTAssertNotNil(result)
+    XCTAssertNotNil(result.value)
   }
 }

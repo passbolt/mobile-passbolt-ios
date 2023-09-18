@@ -23,10 +23,17 @@
 
 public struct Once: Sendable {
 
-  private enum State {
+  private struct State: Sendable {
 
-    case executed
-    case pending(@Sendable () async -> Void)
+    fileprivate enum Execution: Sendable {
+
+      case waiting(@Sendable () async -> Void)
+      case inProgress(Task<Void, Never>)
+      case finished
+    }
+
+    fileprivate var execution: Execution
+    fileprivate var continuations: Dictionary<IID, UnsafeContinuation<Void, Error>>
   }
 
   private let state: CriticalState<State>
@@ -34,19 +41,64 @@ public struct Once: Sendable {
   public init(
     _ execute: @escaping @Sendable () async -> Void
   ) {
-    self.state = .init(.pending(execute))
+    self.state = .init(
+      .init(
+        execution: .waiting(execute),
+        continuations: .init()
+      )
+    )
   }
 
   @Sendable public func executeIfNeeded() {
     self.state.access { (state: inout State) in
-      switch state {
-      case .executed:
+      switch state.execution {
+      case .finished, .inProgress:
         return  // NOP
 
-      case let .pending(execute):
-        state = .executed
-        Task { await execute() }
+      case let .waiting(execute):
+        state.execution = .inProgress(
+          .init {
+            await execute()
+            self.state.access { (state: inout State) in
+              state.execution = .finished
+              for continuation in state.continuations.values {
+                continuation.resume(returning: Void())
+              }
+            }
+          }
+        )
       }
     }
+  }
+
+  @Sendable public func waitForCompletion() async throws {
+    let id: IID = .init()
+    try await withTaskCancellationHandler(
+      operation: {
+        try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Void, Error>) in
+          self.state.access { (state: inout State) in
+            if Task.isCancelled {
+              continuation.resume(throwing: CancellationError())
+            }
+            else {
+              switch state.execution {
+              case .finished:
+                continuation.resume(returning: Void())
+
+              case .inProgress, .waiting:
+                state.continuations[id] = continuation
+              }
+            }
+
+          }
+        }
+      },
+      onCancel: {
+        self.state.access { (state: inout State) in
+          state.continuations.removeValue(forKey: id)?
+            .resume(throwing: CancellationError())
+        }
+      }
+    )
   }
 }

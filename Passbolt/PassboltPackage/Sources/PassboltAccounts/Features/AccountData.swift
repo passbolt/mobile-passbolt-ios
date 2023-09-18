@@ -27,9 +27,7 @@ import Accounts
 internal struct AccountData {
 
   // temporararily exposing updates source for internal use
-  internal var updatesSequenceSource: UpdatesSequenceSource
-  /// Updates in the context account data.
-  internal var updates: UpdatesSequence
+  internal var updates: Updates
 }
 
 extension AccountData: LoadableFeature {
@@ -39,8 +37,7 @@ extension AccountData: LoadableFeature {
   #if DEBUG
   nonisolated static var placeholder: Self {
     Self(
-      updatesSequenceSource: .init(),
-      updates: .placeholder
+      updates: .init()
     )
   }
   #endif
@@ -54,11 +51,10 @@ extension AccountData {
     cancellables: Cancellables
   ) throws -> Self {
 
-    let updatesSequenceSource: UpdatesSequenceSource = .init()
+    let updatesSource: Updates = .init()
 
     return Self(
-      updatesSequenceSource: updatesSequenceSource,
-      updates: updatesSequenceSource.updatesSequence
+      updates: updatesSource
     )
   }
 }

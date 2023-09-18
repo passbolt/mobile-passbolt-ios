@@ -71,6 +71,12 @@ public final class CriticalState<State> {
     return try access()
   }
 
+  @inlinable @Sendable public func get() -> State {
+    os_unfair_lock_lock(self.lockPtr)
+    defer { os_unfair_lock_unlock(self.lockPtr) }
+    return self.statePtr.pointee
+  }
+
   @inlinable @Sendable public func get<Value>(
     _ keyPath: KeyPath<State, Value>
   ) -> Value {
@@ -86,6 +92,24 @@ public final class CriticalState<State> {
     os_unfair_lock_lock(self.lockPtr)
     defer { os_unfair_lock_unlock(self.lockPtr) }
     self.statePtr.pointee[keyPath: keyPath] = newValue
+  }
+
+  @inlinable @Sendable public func set(
+    _ newValue: State
+  ) {
+    os_unfair_lock_lock(self.lockPtr)
+    defer { os_unfair_lock_unlock(self.lockPtr) }
+    self.statePtr.pointee = newValue
+  }
+
+  @inlinable @Sendable public func exchange(
+    with newValue: State
+  ) -> State {
+    os_unfair_lock_lock(self.lockPtr)
+    defer { os_unfair_lock_unlock(self.lockPtr) }
+    let state: State = self.statePtr.pointee
+    self.statePtr.pointee = newValue
+    return state
   }
 
   @inlinable @Sendable public func exchange<Value>(

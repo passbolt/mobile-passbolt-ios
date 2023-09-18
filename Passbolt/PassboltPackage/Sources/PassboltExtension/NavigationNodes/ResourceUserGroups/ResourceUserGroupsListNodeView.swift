@@ -25,7 +25,7 @@ import Display
 
 internal struct ResourceUserGroupsListNodeView: ControlledView {
 
-  private let controller: ResourceUserGroupsListNodeController
+  internal let controller: ResourceUserGroupsListNodeController
 
   internal init(
     controller: ResourceUserGroupsListNodeController
@@ -45,7 +45,7 @@ internal struct ResourceUserGroupsListNodeView: ControlledView {
     ScreenView(
       titleIcon: state.titleIconName,
       title: state.title,
-      snackBarMessage: self.controller.binding(to: \.snackBarMessage),
+      snackBarMessage: self.binding(to: \.snackBarMessage),
       titleExtensionView: {
         self.searchView(with: state)
       },
@@ -62,7 +62,7 @@ internal struct ResourceUserGroupsListNodeView: ControlledView {
     )
   }
 
-  @ViewBuilder private func searchView(
+  @MainActor @ViewBuilder private func searchView(
     with state: ViewState
   ) -> some View {
     ResourceSearchDisplayView(
@@ -70,7 +70,7 @@ internal struct ResourceUserGroupsListNodeView: ControlledView {
     )
   }
 
-  @ViewBuilder private func contentView(
+  @MainActor @ViewBuilder private func contentView(
     with state: ViewState
   ) -> some View {
     ResourceUserGroupsListDisplayView(

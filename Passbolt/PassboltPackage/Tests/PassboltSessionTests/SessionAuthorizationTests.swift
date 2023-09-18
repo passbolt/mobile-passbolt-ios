@@ -26,6 +26,7 @@ import TestExtensions
 @testable import PassboltSession
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorization> {
 
   override class func testedImplementationRegister(
@@ -315,12 +316,12 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       \AccountsDataStore.storeLastUsedAccount,
       with: always(Void())
     )
-    let account: UncheckedSendable<Account?> = .init(.none)
-    let passphrase: UncheckedSendable<Passphrase?> = .init(.none)
-    let accessToken: UncheckedSendable<SessionAccessToken?> = .init(.none)
-    let refreshToken: UncheckedSendable<SessionRefreshToken?> = .init(.none)
-    let mfaToken: UncheckedSendable<SessionMFAToken?> = .init(.none)
-    let mfaProviders: UncheckedSendable<Array<SessionMFAProvider>?> = .init(.none)
+    let account: UnsafeSendable<Account> = .init(.none)
+    let passphrase: UnsafeSendable<Passphrase> = .init(.none)
+    let accessToken: UnsafeSendable<SessionAccessToken> = .init(.none)
+    let refreshToken: UnsafeSendable<SessionRefreshToken> = .init(.none)
+    let mfaToken: UnsafeSendable<SessionMFAToken> = .init(.none)
+    let mfaProviders: UnsafeSendable<Array<SessionMFAProvider>> = .init(.none)
     patch(
       \SessionState.createdSession,
       with: {
@@ -332,12 +333,12 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
           mfa: SessionMFAToken?,
           providers: Array<SessionMFAProvider>
         ) in
-        account.variable = acc
-        passphrase.variable = pass
-        accessToken.variable = accToken
-        refreshToken.variable = refToken
-        mfaToken.variable = mfa
-        mfaProviders.variable = providers
+        account.value = acc
+        passphrase.value = pass
+        accessToken.value = accToken
+        refreshToken.value = refToken
+        mfaToken.value = mfa
+        mfaProviders.value = providers
       }
     )
     patch(
@@ -348,12 +349,12 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
 
     withTestedInstance { (testedInstance: SessionAuthorization) in
       try await testedInstance.authorize(.biometrics(.mock_ada))
-      XCTAssertEqual(account.variable, .mock_ada)
-      XCTAssertEqual(passphrase.variable, "passphrase")
-      XCTAssertEqual(mfaToken.variable, "mfa_token")
-      XCTAssertEqual(accessToken.variable, .valid)
-      XCTAssertEqual(refreshToken.variable, "refresh_token")
-      XCTAssertEqual(mfaProviders.variable, [])
+      XCTAssertEqual(account.value, .mock_ada)
+      XCTAssertEqual(passphrase.value, "passphrase")
+      XCTAssertEqual(mfaToken.value, "mfa_token")
+      XCTAssertEqual(accessToken.value, .valid)
+      XCTAssertEqual(refreshToken.value, "refresh_token")
+      XCTAssertEqual(mfaProviders.value, [])
     }
   }
 

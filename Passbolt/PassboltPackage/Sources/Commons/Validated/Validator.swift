@@ -28,8 +28,27 @@ public struct Validator<Value> {
 
   public var validate: (Value) -> Validated<Value>
 
-  public init(validate: @escaping (Value) -> Validated<Value>) {
+  public init(
+    validate: @escaping (Value) -> Validated<Value>
+  ) {
     self.validate = validate
+  }
+
+  public init(
+    validate: @escaping (Value) throws -> Void
+  ) {
+    self.init { (value: Value) -> Validated<Value> in
+      do {
+        try validate(value)
+        return .valid(value)
+      }
+      catch {
+        return .invalid(
+          value,
+          error: error.asTheError()
+        )
+      }
+    }
   }
 }
 

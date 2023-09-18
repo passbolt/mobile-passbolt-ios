@@ -46,20 +46,9 @@ extension FeaturesRegistry {
     self.usePassboltSessionModule()
     self.usePassboltSessionDataModule()
     self.usePassboltUsersModule()
-
     self.usePassboltHomePresentation()
-
-    self.usePassboltAutofillRootNavigationNodeController()
-    self.usePassboltHomeNavigationNodeController()
-    self.usePassboltHomePresentationMenuNodeController()
-    self.usePassboltResourcesListDisplayController()
-    self.usePassboltResourceTagsListDisplayController()
-    self.usePassboltResourceUserGroupsListDisplayController()
-    self.usePassboltResourceFolderContentDisplayController()
-    self.usePassboltFolderContentNodeController()
-    self.usePassboltResourcesListNodeController()
-    self.usePassboltResourceSearchDisplayController()
-    self.usePassboltResourceUserGroupsListNodeController()
-    self.usePassboltResourceTagsListNodeController()
+    self.usePassboltResourcesModule()
+    // it is required until navigations will become fully integrated
+    self.useLiveNavigationToResourceEdit()
   }
 }

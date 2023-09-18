@@ -35,7 +35,6 @@ extension SessionDatabase {
     cancellables: Cancellables
   ) throws -> Self {
 
-    let diagnostics: OSDiagnostics = features.instance()
     let session: Session = try features.instance()
     let sessionState: SessionState = try features.instance()
     let sessionStateEnsurance: SessionStateEnsurance = try features.instance()
@@ -63,7 +62,7 @@ extension SessionDatabase {
       }
     }
 
-    @SessionActor func openDatabaseConnectionIfAble() async -> SQLiteConnection? {
+    @SessionActor @Sendable func openDatabaseConnectionIfAble() async -> SQLiteConnection? {
       guard let account: Account = sessionState.account()
       else { return .none }
 
@@ -76,18 +75,19 @@ extension SessionDatabase {
           .openConnection(account.localID, key)
       }
       catch {
-        diagnostics.log(error: error)
+        error.logged()
         return .none
       }
     }
 
-    let updatableDatabaseConnection: UpdatableValue<SQLiteConnection?> = .init(
-      updatesSequence: session.updatesSequence,
-      update: openDatabaseConnectionIfAble
-    )
+    let databaseConnection: ComputedVariable<SQLiteConnection?> = .init(
+      transformed: session.updates
+    ) { _ in
+      await openDatabaseConnectionIfAble()
+    }
 
     @Sendable nonisolated func currentConnection() async throws -> SQLiteConnection {
-      if let connection: SQLiteConnection = try await updatableDatabaseConnection.value {
+      if let connection: SQLiteConnection = try await databaseConnection.value {
         return connection
       }
       else {

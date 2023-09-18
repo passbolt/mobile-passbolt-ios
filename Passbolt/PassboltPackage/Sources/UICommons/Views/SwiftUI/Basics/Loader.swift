@@ -48,7 +48,7 @@ private struct Loader: ViewModifier {
               )
             VStack(spacing: 4) {
               SwiftUI.ProgressView()
-                .progressViewStyle(CircularProgressViewStyle())
+                .progressViewStyle(.circular)
               Text(
                 displayable: .localized(
                   key: .loading

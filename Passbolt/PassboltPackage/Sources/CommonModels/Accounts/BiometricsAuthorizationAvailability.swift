@@ -43,4 +43,14 @@ extension BiometricsAuthorizationAvailability {
       return false
     }
   }
+
+  public var available: Bool {
+    switch self {
+    case .enabledFaceID, .enabledTouchID, .disabledFaceID, .disabledTouchID:
+      return true
+
+    case .unavailable:
+      return false
+    }
+  }
 }

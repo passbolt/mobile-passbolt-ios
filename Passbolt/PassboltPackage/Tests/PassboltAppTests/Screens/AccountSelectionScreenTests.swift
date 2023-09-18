@@ -33,16 +33,17 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 @MainActor
 final class AccountSelectionScreenTests: MainActorTestCase {
 
-  var accountsUpdates: UpdatesSequenceSource!
+  var accountsUpdates: Updates!
 
   override func mainActorSetUp() {
     accountsUpdates = .init()
     features.patch(
       \Accounts.updates,
-      with: accountsUpdates.updatesSequence
+      with: accountsUpdates.asAnyUpdatable()
     )
     features.patch(
       \Session.currentAccount,
@@ -221,19 +222,17 @@ final class AccountSelectionScreenTests: MainActorTestCase {
   }
 
   func test_removeStoredAccount_Succeeds() async throws {
-    var storedAccounts: Array<Account> = [Account.mock_ada, Account.mock_frances]
-    let uncheckedSendableStoredAccounts: UncheckedSendable<Array<Account>> = .init(
-      get: { storedAccounts },
-      set: { storedAccounts = $0 }
+    let storedAccounts: UnsafeSendable<Array<Account>> = .init(
+      [Account.mock_ada, Account.mock_frances]
     )
     features.patch(
       \Accounts.storedAccounts,
-      with: always(storedAccounts)
+      with: always(storedAccounts.value ?? .init())
     )
     features.patch(
       \Accounts.removeAccount,
       with: { account in
-        uncheckedSendableStoredAccounts.variable.removeAll { $0 == account }
+        storedAccounts.value?.removeAll { $0 == account }
       }
     )
 
@@ -263,19 +262,17 @@ final class AccountSelectionScreenTests: MainActorTestCase {
   }
 
   func test_removeStoredAccount_updatesAccountsList() async throws {
-    var storedAccounts: Array<Account> = [Account.mock_ada, Account.mock_frances]
-    let uncheckedSendableStoredAccounts: UncheckedSendable<Array<Account>> = .init(
-      get: { storedAccounts },
-      set: { storedAccounts = $0 }
+    let storedAccounts: UnsafeSendable<Array<Account>> = .init(
+      [Account.mock_ada, Account.mock_frances]
     )
     features.patch(
       \Accounts.storedAccounts,
-      with: always(storedAccounts)
+      with: always(storedAccounts.value ?? .init())
     )
     features.patch(
       \Accounts.removeAccount,
       with: { account in
-        uncheckedSendableStoredAccounts.variable.removeAll { $0 == account }
+        storedAccounts.value?.removeAll { $0 == account }
       }
     )
 

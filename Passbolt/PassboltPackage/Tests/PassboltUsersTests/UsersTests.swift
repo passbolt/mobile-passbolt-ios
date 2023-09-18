@@ -22,12 +22,14 @@
 //
 
 import CommonModels
+import FeatureScopes
 import Features
 import TestExtensions
 
 @testable import PassboltUsers
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class UsersTests: LoadableFeatureTestCase<Users> {
 
   override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
@@ -53,7 +55,7 @@ final class UsersTests: LoadableFeatureTestCase<Users> {
   func test_userDetails_throws_whenUserDetailsThrows() async throws {
     patch(
       \UserDetails.details,
-      context: "userID",
+      context: .mock_1,
       with: alwaysThrow(MockIssue.error())
     )
 
@@ -61,7 +63,7 @@ final class UsersTests: LoadableFeatureTestCase<Users> {
 
     var result: Error?
     do {
-      _ = try await feature.userDetails("userID")
+      _ = try await feature.userDetails(.mock_1)
     }
     catch {
       result = error
@@ -74,7 +76,7 @@ final class UsersTests: LoadableFeatureTestCase<Users> {
     let expectedResult: UserDetailsDSV = .mock_1
     patch(
       \UserDetails.details,
-      context: "userID",
+      context: .mock_1,
       with: always(expectedResult)
     )
 
@@ -82,7 +84,7 @@ final class UsersTests: LoadableFeatureTestCase<Users> {
 
     var result: UserDetailsDSV?
     do {
-      result = try await feature.userDetails("userID")
+      result = try await feature.userDetails(.mock_1)
     }
     catch {
       XCTFail("\(error)")

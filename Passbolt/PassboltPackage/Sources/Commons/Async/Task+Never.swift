@@ -23,19 +23,7 @@
 
 extension Task where Failure == Never {
 
-  public static func never() async throws -> Success {
-    let awaiter: CriticalState<CheckedContinuation<Success, Swift.Error>?> = .init(.none)
-    return try await withTaskCancellationHandler(
-      operation: { () async throws -> Success in
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Success, Swift.Error>) -> Void in
-          awaiter.set(\.self, continuation)
-        }
-      },
-      onCancel: {
-        awaiter
-          .exchange(\.self, with: .none)?
-          .resume(throwing: Cancelled.error())
-      }
-    )
+  @Sendable public static func never() async throws -> Success {
+    try await future { _ in /* never fulfill */ }
   }
 }

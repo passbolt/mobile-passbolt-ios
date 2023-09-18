@@ -54,8 +54,6 @@ extension BiometricsInfoController: UIController {
   ) throws -> Self {
     let currentAccount: Account = try features.sessionAccount()
 
-    let diagnostics: OSDiagnostics = features.instance()
-
     let accountInitialSetup: AccountInitialSetup = try features.instance(context: currentAccount)
     let extensions: OSExtensions = features.instance()
     let linkOpener: OSLinkOpener = features.instance()
@@ -81,7 +79,7 @@ extension BiometricsInfoController: UIController {
               .openSystemSettings()
           }
           catch {
-            diagnostics.log(error: error)
+            error.logged()
           }
         }
         .map { opened -> AnyPublisher<Bool, Never> in

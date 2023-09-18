@@ -21,23 +21,15 @@
 // @since         v1.0
 //
 
+import FeatureScopes
 import TestExtensions
 
 @testable import PassboltApp
 
-final class TroubleshootingSettingsControllerTests: LoadableFeatureTestCase<TroubleshootingSettingsController> {
+final class TroubleshootingSettingsControllerTests: FeaturesTestCase {
 
-  override class var testedImplementationScope: any FeaturesScope.Type {
-    SettingsScope.self
-  }
-
-  override class func testedImplementationRegister(
-    _ registry: inout FeaturesRegistry
-  ) {
-    registry.useLiveTroubleshootingSettingsController()
-  }
-
-  override func prepare() throws {
+  override func commonPrepare() {
+    super.commonPrepare()
     set(
       SessionScope.self,
       context: .init(
@@ -48,25 +40,31 @@ final class TroubleshootingSettingsControllerTests: LoadableFeatureTestCase<Trou
     set(SettingsScope.self)
   }
 
-  func test_navigateToLogs_performsNavigation() {
+  func test_navigateToLogs_performsNavigation() async {
     patch(
       \NavigationToLogs.mockPerform,
-      with: always(self.executed())
+      with: always(self.mockExecuted())
     )
-    withTestedInstanceExecuted { feature in
-      feature.navigateToLogs()
-      await self.mockExecutionControl.executeAll()
+    await withInstance(
+      of: TroubleshootingSettingsViewController.self,
+      mockExecuted: 1
+    ) { feature in
+      await feature.navigateToLogs()
+      await self.asyncExecutionControl.executeAll()
     }
   }
 
-  func test_navigateToHelpSite_opensHelpURL() {
+  func test_navigateToHelpSite_opensHelpURL() async {
     patch(
       \OSLinkOpener.openURL,
-      with: always(self.executed())
+      with: always(self.mockExecuted())
     )
-    withTestedInstanceExecuted { feature in
-      feature.navigateToHelpSite()
-      await self.mockExecutionControl.executeAll()
+    await withInstance(
+      of: TroubleshootingSettingsViewController.self,
+      mockExecuted: 1
+    ) { feature in
+      await feature.navigateToHelpSite()
+      await self.asyncExecutionControl.executeAll()
     }
   }
 }

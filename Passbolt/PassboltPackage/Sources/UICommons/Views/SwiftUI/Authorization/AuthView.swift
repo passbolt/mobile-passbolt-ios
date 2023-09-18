@@ -32,7 +32,7 @@ where SupportActionView: View {
   private let username: String
   private let domain: String
   private let avatarImage: Data?
-  private let passphraseBinding: Binding<Validated<String>>
+  private var passphrase: Binding<Validated<String>>
   private let mainActionLabel: DisplayableString
   private let mainAction: () -> Void
   private let biometricsAvailability: OSBiometryAvailability
@@ -44,7 +44,7 @@ where SupportActionView: View {
     username: String,
     domain: String,
     avatarImage: Data?,
-    passphraseBinding: Binding<Validated<String>>,
+    passphrase: Binding<Validated<String>>,
     mainActionLabel: DisplayableString,
     mainAction: @escaping () -> Void,
     biometricsAvailability: OSBiometryAvailability,
@@ -55,7 +55,7 @@ where SupportActionView: View {
     self.username = username
     self.domain = domain
     self.avatarImage = avatarImage
-    self.passphraseBinding = passphraseBinding
+    self.passphrase = passphrase
     self.mainActionLabel = mainActionLabel
     self.mainAction = mainAction
     self.biometricsAvailability = biometricsAvailability
@@ -74,6 +74,7 @@ where SupportActionView: View {
       }
       .frame(width: 96, height: 96)
       .padding(top: 56)
+      .accessibilityIdentifier("authorization.passphrase.avatar")
 
       Text(self.label)
         .text(
@@ -96,13 +97,13 @@ where SupportActionView: View {
           color: .passboltSecondaryText
         )
 
-      SecureFormTextFieldView(
+      FormSecureTextFieldView(
         title: .localized(
           key: "authorization.passphrase.description.text"
         ),
+        prompt: "",
         mandatory: true,
-        text: self.passphraseBinding,
-        prompt: ""
+        state: self.passphrase
       )
       .padding(top: 16)
 
@@ -155,6 +156,7 @@ where SupportActionView: View {
         title: self.mainActionLabel,
         action: self.mainAction
       )
+      .accessibilityIdentifier("transfer.account.export.passphrase.primary.button")
 
       self.supportActionView()
         .padding(top: -8)
@@ -164,21 +166,24 @@ where SupportActionView: View {
 }
 
 #if DEBUG
+
 internal struct AuthView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    AuthView(
-      label: "AccountLabel",
-      username: "user@passbolt.com",
-      domain: "https://passbolt.com",
-      avatarImage: .none,
-      passphraseBinding: .constant(.valid("")),
-      mainActionLabel: "MainAction",
-      mainAction: {},
-      biometricsAvailability: .faceID,
-      biometricsAction: {},
-      supportActionView: EmptyView.init
-    )
+    PreviewInputState { state in
+      AuthView(
+        label: "AccountLabel",
+        username: "user@passbolt.com",
+        domain: "https://passbolt.com",
+        avatarImage: .none,
+        passphrase: state,
+        mainActionLabel: "MainAction",
+        mainAction: {},
+        biometricsAvailability: .faceID,
+        biometricsAction: {},
+        supportActionView: EmptyView.init
+      )
+    }
   }
 }
 #endif

@@ -87,6 +87,8 @@ public struct LocalizedString {
   }
 }
 
+extension LocalizedString: @unchecked Sendable {}
+
 extension LocalizedString: Hashable {
 
   public static func == (
@@ -129,7 +131,7 @@ extension LocalizedString: ExpressibleByStringLiteral {
 
 extension LocalizedString {
 
-  public struct Key {
+  public struct Key: Sendable {
 
     public var rawValue: String
   }

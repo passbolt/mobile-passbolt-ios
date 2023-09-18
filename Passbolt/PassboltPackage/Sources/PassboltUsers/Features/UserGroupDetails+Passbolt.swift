@@ -22,6 +22,7 @@
 //
 
 import DatabaseOperations
+import FeatureScopes
 import SessionData
 import Users
 
@@ -41,12 +42,11 @@ extension UserGroupDetails {
       try await userGroupDetailsFetchDatabaseOperation(userGroupID)
     }
 
-    let currentDetails: UpdatableValue<UserGroupDetailsDSV> = .init(
-      updatesSequence:
-        sessionData
-        .updatesSequence,
-      update: fetchUserGroupDetails
-    )
+    let currentDetails: ComputedVariable<UserGroupDetailsDSV> = .init(
+      transformed: sessionData.lastUpdate
+    ) { _ in
+      try await fetchUserGroupDetails()
+    }
 
     @Sendable nonisolated func details() async throws -> UserGroupDetailsDSV {
       try await currentDetails.value

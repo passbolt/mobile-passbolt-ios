@@ -30,6 +30,11 @@ public struct PGP {
   // The following functions accept private & public keys as PGP formatted strings
   // https://pkg.go.dev/github.com/ProtonMail/gopenpgp/v2#readme-documentation
 
+  // Set time offset for PGP operations to compensate
+  // difference between server and client time.
+  // NOTE: It will keep the offset as long as the application is running
+  // and apply it to all crypto operations thare are made through PGP.
+  public var setTimeOffset: (Seconds) -> Void
   // Encrypt and sign
   public var encryptAndSign:
     (
@@ -97,6 +102,7 @@ extension PGP: StaticFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
+      setTimeOffset: unimplemented1(),
       encryptAndSign: unimplemented4(),
       decryptAndVerify: unimplemented4(),
       encrypt: unimplemented2(),
@@ -114,6 +120,12 @@ extension PGP: StaticFeature {
 extension PGP {
 
   internal static func gopenPGP() -> Self {
+
+    func setTimeOffset(
+      value: Seconds
+    ) {
+      Gopenpgp.CryptoSetTimeOffset(value.rawValue)
+    }
 
     func encryptAndSign(
       _ input: String,
@@ -161,7 +173,7 @@ extension PGP {
             underlyingError:
               PassphraseInvalid
               .error("Invalid passphrase used for encryption with signature")
-              .recording(passphrase, for: "v")
+              .recording(passphrase, for: "passphrase")
               .recording(nsError, for: "goError")
           )
         )
@@ -558,6 +570,7 @@ extension PGP {
     }
 
     return Self(
+      setTimeOffset: setTimeOffset(value:),
       encryptAndSign: encryptAndSign(_:passphrase:privateKey:publicKey:),
       decryptAndVerify: decryptAndVerify(_:passphrase:privateKey:publicKey:),
       encrypt: encrypt(_:publicKey:),

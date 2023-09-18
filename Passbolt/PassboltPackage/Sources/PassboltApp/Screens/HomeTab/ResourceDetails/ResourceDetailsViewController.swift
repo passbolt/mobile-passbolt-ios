@@ -21,353 +21,479 @@
 // @since         v1.0
 //
 
-import SharedUIComponents
-import UIComponents
+import Display
+import FeatureScopes
+import OSFeatures
+import Resources
+import Users
 
-internal final class ResourceDetailsViewController: PlainViewController, UIComponent {
+internal final class ResourceDetailsViewController: ViewController {
 
-  internal typealias ContentView = ResourceDetailsView
-  internal typealias Controller = ResourceDetailsController
+  internal struct ViewState: Equatable {
 
-  internal static func instance(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self(
-      using: controller,
-      with: components,
-      cancellables: cancellables
-    )
+    internal var name: String
+    internal var favorite: Bool
+    internal var containsUndefinedFields: Bool
+    internal var fields: Array<ResourceDetailsFieldViewModel>
+    internal var location: Array<String>
+    internal var tags: Array<String>
+    internal var permissions: Array<OverlappingAvatarStackView.Item>
+    internal var snackBarMessage: SnackBarMessage?
   }
 
-  internal private(set) lazy var contentView: ContentView = .init()
+  internal let viewState: ViewStateSource<ViewState>
 
-  internal let components: UIComponentFactory
+  internal struct LocalState: Equatable {
 
-  private let controller: Controller
-  private var resourceDetailsCancellable: AnyCancellable?
+    fileprivate var revealedFields: Set<ResourceType.FieldPath>
+  }
+
+  private let localState: Variable<LocalState>
+
+  private let resourceController: ResourceController
+
+  private let navigationToSelf: NavigationToResourceDetails
+  private let navigationToResourceContextualMenu: NavigationToResourceContextualMenu
+  private let navigationToResourceLocationDetails: NavigationToResourceLocationDetails
+  private let navigationToResourceTagsDetails: NavigationToResourceTagsDetails
+  private let navigationToResourcePermissionsDetails: NavigationToResourcePermissionsDetails
+  private let pasteboard: OSPasteboard
+
+  private let asyncExecutor: AsyncExecutor
+
+  private let resourceID: Resource.ID
+  private let passwordPreviewEnabled: Bool
+
+  private let features: Features
 
   internal init(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) {
-    self.controller = controller
-    self.components = components
-    super
-      .init(
-        cancellables: cancellables
-      )
-  }
+    context: Resource.ID,
+    features: Features
+  ) throws {
+    let features: Features = features.branch(
+      scope: ResourceDetailsScope.self,
+      context: context
+    )
+    let passwordPreviewEnabled: Bool =
+      try features
+      .sessionConfiguration()
+      .passwordPreviewEnabled
+    self.passwordPreviewEnabled = passwordPreviewEnabled
 
-  internal func setupView() {
-    mut(navigationItem) {
-      .rightBarButtonItem(
-        Mutation<UIBarButtonItem>
-          .combined(
-            .style(.done),
-            .image(named: .more, from: .uiCommons),
-            .action { [weak self] in
-              self?.controller.presentResourceMenu()
+    self.resourceID = context
+
+    self.features = features
+
+    self.asyncExecutor = try features.instance()
+
+    self.pasteboard = features.instance()
+
+    self.navigationToSelf = try features.instance()
+    self.navigationToResourceContextualMenu = try features.instance()
+    self.navigationToResourceLocationDetails = try features.instance()
+    self.navigationToResourceTagsDetails = try features.instance()
+    self.navigationToResourcePermissionsDetails = try features.instance()
+
+    self.resourceController = try features.instance()
+    let users: Users = try features.instance()
+
+    self.localState = .init(
+      initial: .init(
+        revealedFields: .init()
+      )
+    )
+    self.viewState = .init(
+      initial: .init(
+        name: .init(),
+        favorite: false,
+        containsUndefinedFields: false,
+        fields: .init(),
+        location: .init(),
+        tags: .init(),
+        permissions: .init(),
+        snackBarMessage: .none
+      ),
+      updateFrom: ComputedVariable(
+        combined: self.resourceController.state,
+        with: self.localState
+      ),
+      update: { [navigationToSelf] (updateView, update: Update<(Resource, LocalState)>) in
+        do {
+          let (resource, localState): (Resource, LocalState) = try update.value
+          await updateView { (viewState: inout ViewState) in
+            viewState.name = resource.name
+            viewState.favorite = resource.favorite
+            viewState.containsUndefinedFields = resource.containsUndefinedFields
+            viewState.fields = fields(
+              for: resource,
+              using: features,
+              revealedFields: resource.secretAvailable
+                ? localState.revealedFields
+                : .init(),
+              passwordPreviewEnabled: passwordPreviewEnabled
+            )
+            viewState.location = resource.path.map(\.name)
+            viewState.tags = resource.tags.map(\.slug.rawValue)
+            viewState.permissions = resource.permissions.map { (permission: ResourcePermission) in
+              switch permission {
+              case .user(let id, _, _):
+                return .user(
+                  id,
+                  avatarImage: users.avatarImage(for: id)
+                )
+
+              case .userGroup(let id, _, _):
+                return .userGroup(id)
+              }
             }
-          )
-          .instantiate()
-      )
-    }
-
-    setupSubscriptions()
-  }
-
-  private func setupSubscriptions() {
-    resourceDetailsCancellable = controller.resourceDetailsWithConfigPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] completion in
-        guard case .failure = completion
-        else { return }
-        self?.cancellables
-          .executeOnMainActor { [weak self] in
-            self?.navigationController?.presentErrorSnackbar()
-            await self?.pop(if: Self.self)
           }
-      } receiveValue: { [weak self] resourceWithConfig in
-        self?.contentView.update(with: resourceWithConfig)
-        MainActor.execute {
-          await self?.removeAllChildren(ResourceDetailsLocationSectionView.self)
-          await self?.removeAllChildren(ResourceDetailsTagsSectionView.self)
-          await self?.removeAllChildren(ResourceDetailsSharedSectionView.self)
-
-          if let resourceID = resourceWithConfig.resource.id {
-            await self?
-              .addChild(
-                ResourceDetailsLocationSectionView.self,
-                in: resourceID
-              ) { parent, child in
-                parent.insertLocationSection(view: child)
-              }
-
-            await self?
-              .addChild(
-                ResourceDetailsTagsSectionView.self,
-                in: resourceID
-              ) { parent, child in
-                parent.insertTagsSection(view: child)
-              }
-
-            await self?
-              .addChild(
-                ResourceDetailsSharedSectionView.self,
-                in: resourceID
-              ) { parent, child in
-                parent.insertShareSection(view: child)
-              }
-          }  // else skip
+        }
+        catch {
+          await updateView { (viewState: inout ViewState) in
+            viewState.snackBarMessage = .error(error)
+          }
+          await navigationToSelf.revertCatching()
         }
       }
+    )
+  }
+}
 
-    controller
-      .resourceMenuPresentationPublisher()
-      .sink { [weak self] resourceID in
-        self?.cancellables
-          .executeOnMainActor { [weak self] in
-            await self?
-              .presentSheetMenu(
-                ResourceMenuViewController.self,
-                in: (
-                  resourceID: resourceID,
-                  showShare: { [weak self] (resourceID: Resource.ID) in
-                    self?.controller.presentResourceShare(resourceID)
-                  },
-                  showEdit: { [weak self] resourceID in
-                    self?.controller.presentResourceEdit(resourceID)
-                  },
-                  showDeleteAlert: { [weak self] resourceID in self?.controller.presentDeleteResourceAlert(resourceID)
-                  }
-                )
-              )
-          }
+extension ResourceDetailsViewController {
+
+  internal func showMenu() async {
+    await withLogCatch(
+      failInfo: "Failed to present resource menu!",
+      fallback: { @MainActor [viewState] (error: Error) async -> Void in
+        viewState.update(\.snackBarMessage, to: .error(error))
       }
-      .store(in: cancellables)
+    ) {
+      let revealOTPAction: (@MainActor () async -> Void)?
+      let resource: Resource = try await self.resourceController.state.value
+      if let totpPath: ResourceType.FieldPath = resource.firstTOTPPath {
+        revealOTPAction = { [weak self] in
+          await self?.revealFieldValue(path: totpPath)
+        }
+      }
+      else {
+        revealOTPAction = .none
+      }
 
-    contentView
-      .toggleEncryptedFieldTapPublisher
-      .map { [unowned self] field in
-        self.controller.toggleDecrypt(field)
-          .receive(on: RunLoop.main)
-          .handleEvents(
-            receiveOutput: { [weak self] value in
-              self?.contentView
-                .applyOn(
-                  field: field,
-                  buttonMutation: .combined(
-                    .when(
-                      value != nil,
-                      then: .image(named: .eyeSlash, from: .uiCommons),
-                      else: .image(named: .eye, from: .uiCommons)
-                    )
-                  ),
-                  valueTextViewMutation: .when(
-                    value != nil,
-                    then: .combined(
-                      .text(value ?? ""),
-                      .font(.inconsolata(ofSize: 14, weight: .bold))
-                    ),
-                    else: .combined(
-                      .text(String(repeating: "*", count: 10)),
-                      .font(.inter(ofSize: 14, weight: .medium))
-                    )
-                  )
-                )
+      try await self.navigationToResourceContextualMenu
+        .perform(
+          context: .init(
+            revealOTP: revealOTPAction,
+            showMessage: { [viewState] (message: SnackBarMessage?) in
+              viewState.update(\.snackBarMessage, to: message)
             }
           )
-          .handleErrors { [weak self] error in
-            switch error {
-            case is Cancelled:
-              return /* NOP */
-            case _:
-              self?.presentErrorSnackbar(error.displayableMessage)
-            }
-          }
-          .mapToVoid()
-          .replaceError(with: Void())
-      }
-      .switchToLatest()
-      .sinkDrop()
-      .store(in: cancellables)
-
-    contentView
-      .copyFieldTapPublisher
-      .map { [unowned self] field in
-        self.controller
-          .copyFieldValue(field)
-          .receive(on: RunLoop.main)
-          .handleEvents(receiveOutput: { [weak self] in
-            switch field.name {
-            case "uri":
-              self?
-                .presentInfoSnackbar(
-                  .localized("resource.menu.item.field.copied"),
-                  with: [
-                    NSLocalizedString("resource.menu.item.url", bundle: .localization, comment: "")
-                  ]
-                )
-
-            case "password", "secret":
-              self?
-                .presentInfoSnackbar(
-                  .localized("resource.menu.item.field.copied"),
-                  with: [
-                    NSLocalizedString("resource.menu.item.password", bundle: .localization, comment: "")
-                  ]
-                )
-
-            case "username":
-              self?
-                .presentInfoSnackbar(
-                  .localized("resource.menu.item.field.copied"),
-                  with: [
-                    NSLocalizedString("resource.menu.item.username", bundle: .localization, comment: "")
-                  ]
-                )
-
-            case "description":
-              self?
-                .presentInfoSnackbar(
-                  .localized("resource.menu.item.field.copied"),
-                  with: [
-                    NSLocalizedString("resource.menu.item.description", bundle: .localization, comment: "")
-                  ]
-                )
-
-            case _:
-              self?
-                .presentInfoSnackbar(
-                  .localized("resource.menu.item.field.copied"),
-                  with: [field.name]
-                )
-            }
-          })
-          .handleErrors { [weak self] error in
-            switch error {
-            case is Cancelled:
-              return /* NOP */
-            case _:
-              self?.presentErrorSnackbar(error.displayableMessage)
-            }
-          }
-          .mapToVoid()
-          .replaceError(with: Void())
-          .eraseToAnyPublisher()
-      }
-      .switchToLatest()
-      .sinkDrop()
-      .store(in: cancellables)
-
-    controller
-      .resourceSharePresentationPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] resourceID in
-        self?.cancellables
-          .executeOnMainActor { [weak self] in
-            await self?.dismiss(SheetMenuViewController<ResourceMenuViewController>.self)
-            await self?
-              .push(
-                ResourcePermissionEditListView.self,
-                in: resourceID
-              )
-          }
-      }
-      .store(in: cancellables)
-
-    controller
-      .resourceEditPresentationPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] resourceID in
-        self?.cancellables
-          .executeOnMainActor { [weak self] in
-            await self?.dismiss(SheetMenuViewController<ResourceMenuViewController>.self)
-            await self?
-              .push(
-                ResourceEditViewController.self,
-                in: (
-                  .edit(resourceID),
-                  completion: { [weak self] _ in
-                    self?.cancellables
-                      .executeOnMainActor { [weak self] in
-                        self?
-                          .presentInfoSnackbar(
-                            .localized("resource.menu.action.edited"),
-                            presentationMode: .global
-                          )
-                      }
-                  }
-                )
-              )
-          }
-      }
-      .store(in: cancellables)
-
-    controller.resourceDeleteAlertPresentationPublisher()
-      .sink { [weak self] resourceID in
-        self?.cancellables
-          .executeOnMainActor { [weak self] in
-            await self?
-              .dismiss(
-                SheetMenuViewController<ResourceMenuViewController>.self
-              )
-            await self?
-              .present(
-                ResourceDeleteAlert.self,
-                in: { [weak self] in
-                  self?.controller.resourceDeletionPublisher(resourceID)
-                    .receive(on: RunLoop.main)
-                    .handleStart { [weak self] in
-                      self?
-                        .present(
-                          overlay: LoaderOverlayView(
-                            longLoadingMessage: (
-                              message: .localized(
-                                key: .loadingLong
-                              ),
-                              delay: 5
-                            )
-                          )
-                        )
-                    }
-                    .handleErrors { [weak self] error in
-                      switch error {
-                      case is Cancelled:
-                        return /* NOP */
-                      case _:
-                        self?.presentErrorSnackbar(error.displayableMessage)
-                      }
-                    }
-                    .handleEnd { [weak self] ending in
-                      self?.resourceDetailsCancellable = nil
-
-                      self?.dismissOverlay()
-
-                      guard case .finished = ending else { return }
-
-                      self?
-                        .presentInfoSnackbar(
-                          .localized(key: "resource.menu.action.deleted"),
-                          with: [
-                            NSLocalizedString("resource.menu.item.password", bundle: .localization, comment: "")
-                          ],
-                          presentationMode: .global
-                        )
-                      self?.cancellables
-                        .executeOnMainActor { [weak self] in
-                          await self?.pop(if: Self.self)
-                        }
-                    }
-                    .sinkDrop()
-                    .store(in: self?.cancellables)
-                }
-              )
-          }
-      }
-      .store(in: cancellables)
+        )
+    }
   }
+
+  internal func showLocationDetails() async {
+    await self.navigationToResourceLocationDetails.performCatching()
+  }
+
+  internal func showTagsDetails() async {
+    await self.navigationToResourceTagsDetails.performCatching()
+  }
+
+  internal func showPermissionsDetails() async {
+    await self.navigationToResourcePermissionsDetails.performCatching()
+  }
+
+  internal func copyFieldValue(
+    path: Resource.FieldPath
+  ) async {
+    await withLogCatch(
+      failInfo: "Failed to copy resource field value!",
+      fallback: { @MainActor [viewState] (error: Error) async -> Void in
+        viewState.update(\.snackBarMessage, to: .error(error))
+      }
+    ) {
+      var resource: Resource = try await self.resourceController.state.value
+
+      // ensure having secret if field is part of it
+      if resource.isEncrypted(path) {
+        try await self.resourceController.fetchSecretIfNeeded()
+        resource = try await self.resourceController.state.value
+      }  // else NOP
+      let fieldValue: JSON = resource[keyPath: path]
+      if let totpSecret: TOTPSecret = fieldValue.totpSecretValue {
+        let totpValue: TOTPValue = try self.features
+          .instance(
+            of: TOTPCodeGenerator.self,
+            context: .init(
+              resourceID: resource.id,
+              totpSecret: totpSecret
+            )
+          )
+          .generate()
+        self.pasteboard.put(totpValue.otp.rawValue)
+      }
+      else {
+        self.pasteboard.put(fieldValue.stringValue ?? "")
+      }
+
+      self.viewState.update(
+        \.snackBarMessage,
+        to: .info(
+          .localized(
+            key: "resource.value.copied",
+            arguments: [
+              resource
+                .displayableName(forField: path)?
+                .string()
+                ?? DisplayableString
+                .localized("resource.field.name.unknown")
+                .string()
+            ]
+          )
+        )
+      )
+    }
+  }
+
+  internal func revealFieldValue(
+    path: ResourceType.FieldPath
+  ) async {
+    await withLogCatch(
+      failInfo: "Failed to reveal resource field value!",
+      fallback: { @MainActor [viewState] (error: Error) async -> Void in
+        viewState.update(\.snackBarMessage, to: .error(error))
+      }
+    ) {
+      let resource: Resource = try await self.resourceController.state.value
+
+      // ensure having secret if field is part of it
+      if resource.isEncrypted(path) {
+        try await self.resourceController.fetchSecretIfNeeded()
+      }  // else NOP
+
+      self.localState.mutate { (state: inout LocalState) in
+        state.revealedFields.insert(path)
+      }
+    }
+  }
+
+  internal func coverFieldValue(
+    path: ResourceType.FieldPath
+  ) {
+    self.localState.mutate { (state: inout LocalState) in
+      state.revealedFields.remove(path)
+    }
+  }
+
+  internal func coverAllFields() {
+    self.localState.mutate { (state: inout LocalState) in
+      state.revealedFields.removeAll()
+    }
+  }
+}
+
+@MainActor private func fields(
+  for resource: Resource,
+  using features: Features,
+  revealedFields: Set<Resource.FieldPath>,
+  passwordPreviewEnabled: Bool
+) -> Array<ResourceDetailsFieldViewModel> {
+  if resource.type.specification.slug == .placeholder {
+    return .init()  // show no fields for placeholder type
+  }
+  else {
+    return resource
+      .fields
+      .compactMap { (field: ResourceFieldSpecification) -> ResourceDetailsFieldViewModel? in
+        // remove name from fields, we already have it displayed
+        if field.isNameField {
+          return .none
+        }
+        else {
+          return .init(
+            field,
+            in: resource,
+            revealedFields: revealedFields,
+            passwordPreviewEnabled: passwordPreviewEnabled,
+            prepareTOTPGenerator: { [features] totpSecret in
+              let generator: TOTPCodeGenerator = try features.instance(
+                context: .init(
+                  resourceID: resource.id,
+                  totpSecret: totpSecret
+                )
+              )
+              return generator.generate
+            }
+          )
+        }
+      }
+  }
+}
+
+internal struct ResourceDetailsFieldViewModel {
+
+  internal enum Accessory {
+
+    case copy
+    case reveal
+    case hide
+  }
+
+  internal enum Value: Equatable {
+
+    internal static func == (
+      _ lhs: ResourceDetailsFieldViewModel.Value,
+      _ rhs: ResourceDetailsFieldViewModel.Value
+    ) -> Bool {
+      switch (lhs, rhs) {
+      case (.plain(let lString), .plain(let rString)):
+        return lString == rString
+
+      case (.encrypted, .encrypted):
+        return true
+
+      case (.password(let lString), .password(let rString)):
+        return lString == rString
+
+      case (.encryptedTOTP, .encryptedTOTP):
+        return true
+
+      case (.totp(let lHash, _), .totp(let rHash, _)):
+        return lHash == rHash
+
+      case _:
+        return false
+      }
+    }
+
+    case encrypted
+    case placeholder(String)
+    case plain(String)
+    case password(String)
+    case totp(hash: Int, generate: @Sendable () -> TOTPValue)
+    case encryptedTOTP
+    case invalid(TheError)
+  }
+
+  internal var path: ResourceType.FieldPath
+  internal var name: DisplayableString
+  internal var value: Value
+  internal var accessory: Accessory?
+
+  internal init?(
+    _ field: ResourceFieldSpecification,
+    in resource: Resource,
+    revealedFields: Set<Resource.FieldPath>,
+    passwordPreviewEnabled: Bool,
+    prepareTOTPGenerator: (TOTPSecret) throws -> @Sendable () -> TOTPValue
+  ) {
+    assert(
+      resource.type.specification.slug != .placeholder,
+      "Can't prepare fields for placeholder resources"
+    )
+    self.path = field.path
+    switch field.semantics {
+    case  // unencrypted
+    .text(let name, let placeholder, _) where !field.encrypted,
+      .longText(let name, let placeholder, _) where !field.encrypted,
+      .selection(let name, values: _, let placeholder, _) where !field.encrypted,
+      .intValue(let name, let placeholder, _) where !field.encrypted,
+      .floatValue(let name, let placeholder, _) where !field.encrypted:
+      self.name = name
+      if let stringValue = resource[keyPath: field.path].stringValue, !stringValue.isEmpty {
+        self.value = .plain(stringValue)
+        self.accessory = .copy
+      }
+      else {
+        self.value = .placeholder(placeholder.string())
+        self.accessory = .none
+      }
+
+    case  // encrypted
+    .text(let name, let placeholder, _),
+      .longText(let name, let placeholder, _),
+      .selection(let name, values: _, let placeholder, _),
+      .intValue(let name, let placeholder, _),
+      .floatValue(let name, let placeholder, _):
+      self.name = name
+      let revealed: Bool = revealedFields.contains(field.path)
+      if revealed {
+        if let stringValue = resource[keyPath: field.path].stringValue, !stringValue.isEmpty {
+          self.value = .plain(stringValue)
+        }
+        else {
+          self.value = .placeholder(placeholder.string())
+        }
+        self.accessory = .hide
+      }
+      else {
+        self.value = .encrypted
+        self.accessory = .reveal
+      }
+
+    case .password(let name, let placeholder, _):
+      self.name = name
+      let revealed: Bool = revealedFields.contains(field.path)
+      if revealed && passwordPreviewEnabled {
+        if let stringValue = resource[keyPath: field.path].stringValue, !stringValue.isEmpty {
+          self.value = .password(stringValue)
+        }
+        else {
+          self.value = .placeholder(placeholder.string())
+        }
+        self.accessory = .hide
+      }
+      else {
+        self.value = .encrypted
+        self.accessory =
+          passwordPreviewEnabled
+          ? .reveal
+          : .copy  // if not allowed use copy action accessory
+      }
+
+    case .totp(let name):
+      let revealed: Bool = revealedFields.contains(field.path)
+      self.name = name
+      if revealed {
+        if let totpSecret: TOTPSecret = resource[keyPath: field.path].totpSecretValue {
+          do {
+            self.value = .totp(
+              hash: totpSecret.hashValue,
+              generate: try prepareTOTPGenerator(totpSecret)
+            )
+          }
+          catch {
+            self.value = .invalid(error.asTheError())
+          }
+        }
+        else {
+          self.value = .invalid(
+            InvalidResourceField
+              .error(
+                "Invalid or missing TOTP field",
+                specification: field,
+                path: field.path,
+                value: nil,
+                displayable: "error.otp.configuration.invalid"
+              )
+          )
+        }
+        self.accessory = .hide
+      }
+      else {
+        self.value = .encryptedTOTP
+        self.accessory = .reveal
+      }
+
+    case .undefined:
+      return nil  // do not display undefined fields, unfortunately even a placeholder
+    }
+  }
+}
+
+extension ResourceDetailsFieldViewModel: Equatable {}
+
+extension ResourceDetailsFieldViewModel: Identifiable {
+
+  internal var id: some Hashable { self.path }
 }

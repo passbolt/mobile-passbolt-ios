@@ -31,6 +31,7 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 @MainActor
 final class TOTPControllerTests: MainActorTestCase {
 
@@ -210,15 +211,11 @@ final class TOTPControllerTests: MainActorTestCase {
   }
 
   func test_setOTP_doesNotStartProcessing_whenOTPIsShorterThanRequired() async throws {
-    var result: Void?
-    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<Void> = .init()
     features.patch(
       \Session.authorizeMFA,
       with: { (_) async throws in
-        uncheckedSendableResult.variable = Void()
+        result.value = Void()
       }
     )
 
@@ -226,19 +223,15 @@ final class TOTPControllerTests: MainActorTestCase {
 
     controller.setOTP("12345")
 
-    XCTAssertNil(result)
+    XCTAssertNil(result.value)
   }
 
   func test_setOTP_startsProcessing_whenOTPMeetsRequirements() async throws {
-    var result: Void?
-    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<Void> = .init()
     features.patch(
       \Session.authorizeMFA,
       with: { (_) async throws in
-        uncheckedSendableResult.variable = Void()
+        result.value = Void()
       }
     )
 
@@ -249,7 +242,7 @@ final class TOTPControllerTests: MainActorTestCase {
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
-    XCTAssertNotNil(result)
+    XCTAssertNotNil(result.value)
   }
 
   func test_pasteOTP_doesNotStartProcessing_whenPastedOTPIsShorterThanRequired() async throws {
@@ -258,15 +251,11 @@ final class TOTPControllerTests: MainActorTestCase {
       with: always("12345")
     )
 
-    var result: Void?
-    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<Void> = .init()
     features.patch(
       \Session.authorizeMFA,
       with: { (_) async throws in
-        uncheckedSendableResult.variable = Void()
+        result.value = Void()
       }
     )
 
@@ -274,7 +263,7 @@ final class TOTPControllerTests: MainActorTestCase {
 
     controller.pasteOTP()
 
-    XCTAssertNil(result)
+    XCTAssertNil(result.value)
   }
 
   func test_pasteOTP_startsProcessing_whenPastedOTPMeetsRequirements() async throws {
@@ -283,15 +272,11 @@ final class TOTPControllerTests: MainActorTestCase {
       with: always("123456")
     )
 
-    var result: Void?
-    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<Void> = .init()
     features.patch(
       \Session.authorizeMFA,
       with: { (_) async throws in
-        uncheckedSendableResult.variable = Void()
+        result.value = Void()
       }
     )
 
@@ -302,7 +287,7 @@ final class TOTPControllerTests: MainActorTestCase {
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
-    XCTAssertNotNil(result)
+    XCTAssertNotNil(result.value)
   }
 
   func test_pasteOTP_doesNotChangeOTP_whenPastedOTPHasInvalidCharacters() async throws {

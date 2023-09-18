@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import FeatureScopes
 import SessionData
 import TestExtensions
 
@@ -28,6 +29,7 @@ import TestExtensions
 @testable import PassboltResources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
 
   override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
@@ -38,7 +40,7 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
     registry.usePassboltResourceTags()
   }
 
-  private var updatesSequence: UpdatesSequenceSource!
+  private var updatesSequence: Variable<Timestamp>!
 
   override func prepare() throws {
     self.set(
@@ -49,10 +51,10 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
       )
     )
 
-    self.updatesSequence = .init()
+    self.updatesSequence = .init(initial: 0)
     patch(
-      \SessionData.updatesSequence,
-      with: self.updatesSequence.updatesSequence
+      \SessionData.lastUpdate,
+      with: self.updatesSequence.asAnyUpdatable()
     )
     use(ResourceTagDetailsFetchDatabaseOperation.placeholder)
   }
@@ -64,15 +66,11 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
   func test_filteredTagsList_fetchesData_withGivenFilter() async throws {
     let expectedResult: String = "filter"
 
-    var result: String?
-    let uncheckedSendableResult: UncheckedSendable<String?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<String?> = .init()
     patch(
       \ResourceTagsListFetchDatabaseOperation.execute,
       with: { (input) async throws in
-        uncheckedSendableResult.variable = input
+        result.value = input
         return []
       }
     )
@@ -81,7 +79,7 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
 
     _ = try await feature.filteredTagsList(expectedResult)
 
-    XCTAssertEqual(result, expectedResult)
+    XCTAssertEqual(result.value, expectedResult)
   }
 
   func test_filteredTagsList_throws_whenDatabaseFetchFails() async throws {
@@ -100,7 +98,7 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
   func test_filteredTagsList_returnsDataFromDabase() async throws {
     let expectedResult: Array<ResourceTagListItemDSV> = [
       .init(
-        id: "resourceID",
+        id: .mock_1,
         slug: "slug",
         shared: false,
         contentCount: 0

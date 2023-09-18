@@ -22,6 +22,7 @@
 //
 
 import Display
+import FeatureScopes
 import Resources
 import TestExtensions
 import Users
@@ -30,33 +31,17 @@ import Users
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ResourceFolderEditControllerTests: LoadableFeatureTestCase<ResourceFolderEditController> {
+@available(iOS 16.0.0, *)
+final class ResourceFolderEditControllerTests: FeaturesTestCase {
 
-  override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
-
-  override class func testedImplementationRegister(
-    _ registry: inout FeaturesRegistry
-  ) {
-    registry.usePassboltResourceFolderEditController()
-  }
-
-  var executionMockControl: AsyncExecutor.MockExecutionControl!
-
-  override func prepare() throws {
+  override func commonPrepare() {
+    super.commonPrepare()
     set(
       SessionScope.self,
       context: .init(
         account: .mock_ada,
         configuration: .mock_1
       )
-    )
-    executionMockControl = .init()
-    use(AsyncExecutor.mock(executionMockControl))
-    use(DisplayNavigation.placeholder)
-    use(Users.placeholder)
-    use(
-      ResourceFolderEditForm.placeholder,
-      context: .create(containingFolderID: .none)
     )
     patch(
       \ResourceFolderEditForm.formState,
@@ -71,63 +56,58 @@ final class ResourceFolderEditControllerTests: LoadableFeatureTestCase<ResourceF
     )
   }
 
-  override func cleanup() throws {
-    executionMockControl = .none
-  }
-
-  func test_setFolderName_setsNameInForm() {
+  func test_setFolderName_setsNameInForm() async throws {
     patch(
       \ResourceFolderEditForm.setFolderName,
       context: .create(containingFolderID: .none),
-      with: always(self.executed())
+      with: always(self.setOrDefine(\.executed, value: true))
     )
-    withTestedInstanceExecuted(
-      context: .create(containingFolderID: .none),
-      test: { (tested: ResourceFolderEditController) in
-        tested.setFolderName("folder name")
-        await self.executionMockControl.executeAll()
-      }
-    )
+
+    let tested: ResourceFolderEditController = try self.testedInstance(context: .create(containingFolderID: .none))
+
+    tested.setFolderName("folder name")
+    await self.asyncExecutionControl.executeAll()
+    XCTAssertTrue(self.loadIfDefined(\.executed, of: Bool.self))
   }
 
-  func test_saveChanges_sendsForm() {
+  func test_saveChanges_sendsForm() async throws {
     patch(
       \ResourceFolderEditForm.sendForm,
       context: .create(containingFolderID: .none),
-      with: always(self.executed())
+      with: always(self.setOrDefine(\.executed, value: true))
     )
-    withTestedInstanceExecuted(
-      context: .create(containingFolderID: .none),
-      test: { (tested: ResourceFolderEditController) in
-        tested.saveChanges()
-        await self.executionMockControl.executeAll()
-      }
-    )
+
+    let tested: ResourceFolderEditController = try self.testedInstance(context: .create(containingFolderID: .none))
+
+    tested.saveChanges()
+    await self.asyncExecutionControl.executeAll()
   }
 
-  func test_saveChanges_presentsError_whenSendingFormThrows() {
+  func test_saveChanges_presentsError_whenSendingFormThrows() async throws {
     patch(
       \ResourceFolderEditForm.sendForm,
       context: .create(containingFolderID: .none),
       with: alwaysThrow(MockIssue.error())
     )
-    withTestedInstanceReturnsEqual(
-      SnackBarMessage.error(MockIssue.error()),
-      context: .create(containingFolderID: .none),
-      test: { (tested: ResourceFolderEditController) in
-        tested.saveChanges()
-        await self.executionMockControl.executeAll()
-        return await tested.viewState.value.snackBarMessage
-      }
-    )
+
+    let tested: ResourceFolderEditController = try self.testedInstance(context: .create(containingFolderID: .none))
+
+    tested.saveChanges()
+    await self.asyncExecutionControl.executeAll()
+
+    await XCTAssertValue(
+      equal: SnackBarMessage.error(MockIssue.error())
+    ) {
+      await tested.viewState.current.snackBarMessage
+    }
   }
 
-  func test_viewState_updates_whenFormUpdates() {
-    let updatesSource: UpdatesSequenceSource = .init()
+  func test_viewState_updates_whenFormUpdates() async throws {
+    let updatesSource: Updates = .init()
     patch(
-      \ResourceFolderEditForm.formUpdates,
+      \ResourceFolderEditForm.updates,
       context: .create(containingFolderID: .none),
-      with: updatesSource.updatesSequence
+      with: updatesSource.asAnyUpdatable()
     )
     self.formState = ResourceFolderEditFormState(
       name: .valid("initial"),
@@ -140,34 +120,27 @@ final class ResourceFolderEditControllerTests: LoadableFeatureTestCase<ResourceF
       with: always(self.formState)
     )
 
-    withTestedInstance(
-      context: .create(containingFolderID: .none),
-      test: { (tested: ResourceFolderEditController) in
-        Task { await self.executionMockControl.executeAll() }
+    let tested: ResourceFolderEditController = try self.testedInstance(context: .create(containingFolderID: .none))
 
-        // wait for detached task to execute
-        try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
-        let initialFolderName: Validated<String> = await tested.viewState.value.folderName
+    await self.asyncExecutionControl.executeNext()
+    let initialFolderName: Validated<String> = await tested.viewState.current.folderName
 
-        self.formState = ResourceFolderEditFormState(
-          name: .valid("edited"),
-          location: .valid(.init()),
-          permissions: .valid(.init())
-        )
-        updatesSource.sendUpdate()
-
-        // wait for detached task to execute
-        try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
-
-        let updatedFolderName: Validated<String> = await tested.viewState.value.folderName
-
-        updatesSource.endUpdates()
-
-        XCTAssertNotEqual(
-          initialFolderName,
-          updatedFolderName
-        )
-      }
+    self.formState = ResourceFolderEditFormState(
+      name: .valid("edited"),
+      location: .valid(.init()),
+      permissions: .valid(.init())
     )
+    updatesSource.update()
+    await self.asyncExecutionControl.executeNext()
+
+    let updatedFolderName: Validated<String> = await tested.viewState.current.folderName
+
+    XCTAssertNotEqual(
+      initialFolderName,
+      updatedFolderName
+    )
+
+    //    updatesSource.terminate()
+    await self.asyncExecutionControl.executeAll()
   }
 }

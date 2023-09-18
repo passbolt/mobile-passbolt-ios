@@ -40,20 +40,6 @@ public struct UserGroupDTO {
   }
 }
 
-extension UserGroupDTO {
-
-  internal static let validator: Validator<Self> = UserGroup.ID
-    .validator
-    .contraMap(\.id)
-
-  public var isValid: Bool {
-    Self
-      .validator
-      .validate(self)
-      .isValid
-  }
-}
-
 extension UserGroupDTO: Decodable {
 
   public enum CodingKeys: String, CodingKey {

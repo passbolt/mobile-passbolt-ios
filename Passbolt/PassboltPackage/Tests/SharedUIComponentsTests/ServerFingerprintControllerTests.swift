@@ -31,7 +31,7 @@ import UIComponents
 @testable import SharedUIComponents
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@MainActor
+@MainActor @available(iOS 16.0.0, *)
 final class ServerFingerprintControllerTests: MainActorTestCase {
 
   override func mainActorSetUp() {
@@ -86,15 +86,11 @@ final class ServerFingerprintControllerTests: MainActorTestCase {
   }
 
   func test_saveFingerprintPublisher_publishes_whenSaveFingerprintEnabled_andTriggered() async throws {
-    var fingerprint: Fingerprint?
-    let uncheckedSendableFingerprint: UncheckedSendable<Fingerprint?> = .init(
-      get: { fingerprint },
-      set: { fingerprint = $0 }
-    )
+    let uncheckedSendableFingerprint: UnsafeSendable<Fingerprint> = .init()
     features.patch(
       \AccountsDataStore.storeServerFingerprint,
       with: { _, fingerprint in
-        uncheckedSendableFingerprint.variable = fingerprint
+        uncheckedSendableFingerprint.value = fingerprint
         return Void()
       }
     )
@@ -110,7 +106,7 @@ final class ServerFingerprintControllerTests: MainActorTestCase {
       .asAsyncValue()
 
     XCTAssertNotNil(result)
-    XCTAssertEqual(fingerprint, validFingerprint)
+    XCTAssertEqual(uncheckedSendableFingerprint.value, validFingerprint)
   }
 
   func test_saveFingerprintPublisher_doesNotPublish_whenSaveFingerprintDisabled_andTriggered() async throws {

@@ -26,42 +26,27 @@ import UICommons
 
 internal struct OTPEditAdvancedFormView: ControlledView {
 
-  private let controller: OTPEditAdvancedFormController
+  internal let controller: OTPEditAdvancedFormViewController
 
   internal init(
-    controller: OTPEditAdvancedFormController
+    controller: OTPEditAdvancedFormViewController
   ) {
     self.controller = controller
   }
 
   internal var body: some View {
-    WithViewState(
-      from: self.controller,
-      at: \.snackBarMessage
-    ) { (message: SnackBarMessage?) in
-      VStack(spacing: 0) {
-        ScrollView {
-          VStack(spacing: 16) {
-            WarningView(message: "otp.edit.form.edit.advanced.warning")
-            self.periodField
-            self.digitsField
-            self.algorithmField
-          }
-        }
-
-        Spacer()
-
-        self.applyButton
+    ScrollView {
+      VStack(spacing: 16) {
+        WarningView(message: "otp.edit.form.edit.advanced.warning")
+        self.periodField
+        self.digitsField
+        self.algorithmField
       }
-      .padding(16)
-      .snackBarMessage(
-        presenting: self.controller
-          .binding(
-            to: \.snackBarMessage
-          )
-      )
-      .frame(maxHeight: .infinity)
+      .autocorrectionDisabled()
+      .textInputAutocapitalization(.never)
     }
+    .padding(16)
+    .frame(maxHeight: .infinity)
     .navigationTitle(
       displayable: "otp.edit.form.edit.advanced.title"
     )
@@ -71,18 +56,19 @@ internal struct OTPEditAdvancedFormView: ControlledView {
     WithViewState(
       from: self.controller,
       at: \.period
-    ) { _ in
+    ) { (state: Validated<String>) in
       HStack {
         FormTextFieldView(
           title: "otp.edit.form.field.period.title",
           mandatory: true,
-          text: self.controller
-            .validatedBinding(
-              to: \.period,
-              updating: { (string: String) in
-                self.controller.setPeriod(string)
+          state: self.validatedBinding(
+            to: \.period,
+            updating: { (newValue: String) in
+              withAnimation {
+                self.controller.setPeriod(newValue)
               }
-            ),
+            }
+          ),
           accessory: {
             Text(displayable: "otp.edit.form.field.period.label")
               .text(
@@ -105,18 +91,19 @@ internal struct OTPEditAdvancedFormView: ControlledView {
     WithViewState(
       from: self.controller,
       at: \.digits
-    ) { _ in
+    ) { (state: Validated<String>) in
       HStack {
         FormTextFieldView(
           title: "otp.edit.form.field.digits.title",
           mandatory: true,
-          text: self.controller
-            .validatedBinding(
-              to: \.digits,
-              updating: { (string: String) in
-                self.controller.setDigits(string)
+          state: self.binding(
+            to: \.digits,
+            updating: { (newValue: Validated<String>) in
+              withAnimation {
+                self.controller.setDigits(newValue.value)
               }
-            ),
+            }
+          ),
           accessory: {
             Text(displayable: "otp.edit.form.field.digits.label")
               .text(
@@ -139,27 +126,18 @@ internal struct OTPEditAdvancedFormView: ControlledView {
     WithViewState(
       from: self.controller,
       at: \.algorithm
-    ) { (_: Validated<HOTPAlgorithm>) in
+    ) { (state: Validated<HOTPAlgorithm?>) in
       FormPickerFieldView<HOTPAlgorithm>(
         title: "otp.edit.form.field.algorithm.title",
         mandatory: true,
-        values: [HOTPAlgorithm.sha1, .sha256, .sha512],
-        selected: self.controller
-          .validatedBinding(
-            to: \.algorithm,
-            updating: {
-              self.controller.setAlgorithm($0)
-            }
-          )
+        // TODO: those should be loaded from field specification
+        values: HOTPAlgorithm.allCases,
+        state: state,
+        update: { (algorithm: HOTPAlgorithm) in
+          self.controller.setAlgorithm(algorithm)
+        }
       )
     }
-  }
-
-  @MainActor @ViewBuilder internal var applyButton: some View {
-    PrimaryButton(
-      title: "otp.edit.form.apply.button.title",
-      action: self.controller.applyChanges
-    )
   }
 }
 

@@ -25,16 +25,35 @@ import Display
 import OSFeatures
 import SharedUIComponents
 
-// MARK: - Interface
+internal final class ResourceFolderMenuController: ViewController {
 
-internal struct ResourceFolderMenuController {
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
-  internal var viewState: MutableViewState<ViewState>
-  internal var openDetails: () -> Void
-  internal var close: () -> Void
+  private let asyncExecutor: AsyncExecutor
+  private let navigation: DisplayNavigation
+
+  private let context: Context
+  private let features: Features
+
+  internal init(
+    context: Context,
+    features: Features
+  ) throws {
+    self.context = context
+    self.features = features
+
+    self.asyncExecutor = try features.instance()
+    self.navigation = try features.instance()
+
+    self.viewState = .init(
+      initial: .init(
+        folderName: context.folderName
+      )
+    )
+  }
 }
 
-extension ResourceFolderMenuController: ViewController {
+extension ResourceFolderMenuController {
 
   internal struct Context {
 
@@ -42,83 +61,36 @@ extension ResourceFolderMenuController: ViewController {
     internal var folderName: String
   }
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var folderName: String
   }
-
-  #if DEBUG
-  nonisolated static var placeholder: Self {
-    .init(
-      viewState: .placeholder(),
-      openDetails: unimplemented0(),
-      close: unimplemented0()
-    )
-  }
-  #endif
 }
-
-// MARK: - Implementation
 
 extension ResourceFolderMenuController {
 
-  @MainActor fileprivate static func load(
-    features: Features,
-    context: Context
-  ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
-    let navigation: DisplayNavigation = try features.instance()
-
-    nonisolated func openDetails() {
-      asyncExecutor.schedule(.reuse) { @MainActor in
-        do {
-          await navigation
-            .dismissLegacySheet(ResourceFolderMenuView.self)
-          try await navigation
-            .push(
-              ResourceFolderDetailsView.self,
-              controller:
-                features
-                .instance(
-                  context: context.folderID
-                )
+  internal final func openDetails() {
+    self.asyncExecutor.scheduleCatching(
+      behavior: .reuse
+    ) { [context, features, navigation] in
+      await navigation
+        .dismissLegacySheet(ResourceFolderMenuView.self)
+      try await navigation
+        .push(
+          ResourceFolderDetailsView.self,
+          controller:
+            features
+            .instance(
+              context: context.folderID
             )
-        }
-        catch {
-          diagnostics.log(error: error)
-        }
-      }
-    }
-
-    nonisolated func close() {
-      asyncExecutor.schedule(.reuse) { @MainActor in
-        await navigation
-          .dismissLegacySheet(ResourceFolderMenuView.self)
-      }
-    }
-
-    return .init(
-      viewState: .init(
-        initial: .init(
-          folderName: context.folderName
         )
-      ),
-      openDetails: openDetails,
-      close: close
-    )
+    }
   }
-}
 
-extension FeaturesRegistry {
-
-  public mutating func usePassboltResourceFolderMenuController() {
-    self.use(
-      .disposable(
-        ResourceFolderMenuController.self,
-        load: ResourceFolderMenuController.load(features:context:)
-      ),
-      in: SessionScope.self
-    )
+  internal final func close() {
+    self.asyncExecutor.schedule(.reuse) { @MainActor [navigation] in
+      await navigation
+        .dismissLegacySheet(ResourceFolderMenuView.self)
+    }
   }
 }

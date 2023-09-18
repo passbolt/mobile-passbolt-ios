@@ -21,23 +21,17 @@
 // @since         v1.0
 //
 
+import FeatureScopes
 import TestExtensions
 
+@testable import Display
 @testable import PassboltApp
 
-final class ApplicationSettingsControllerTests: LoadableFeatureTestCase<ApplicationSettingsController> {
+@available(iOS 16.0.0, *)
+final class ApplicationSettingsControllerTests: FeaturesTestCase {
 
-  override class var testedImplementationScope: any FeaturesScope.Type {
-    SettingsScope.self
-  }
-
-  override class func testedImplementationRegister(
-    _ registry: inout FeaturesRegistry
-  ) {
-    registry.useLiveApplicationSettingsController()
-  }
-
-  override func prepare() throws {
+  override func commonPrepare() {
+    super.commonPrepare()
     set(
       SessionScope.self,
       context: .init(
@@ -49,12 +43,13 @@ final class ApplicationSettingsControllerTests: LoadableFeatureTestCase<Applicat
   }
 
   func test_viewState_biometicsAuthorizationAvailability_isEnabledInitially_whenPassphraseIsStoredAndBiometryAvailable()
+    async
   {
-    let accountPreferencesUpdates: UpdatesSequenceSource = .init()
+    let accountPreferencesUpdates: Updates = .init()
     patch(
       \AccountPreferences.updates,
       context: .mock_ada,
-      with: accountPreferencesUpdates.updatesSequence
+      with: accountPreferencesUpdates.asAnyUpdatable()
     )
     patch(
       \AccountPreferences.isPassphraseStored,
@@ -65,26 +60,23 @@ final class ApplicationSettingsControllerTests: LoadableFeatureTestCase<Applicat
       \OSBiometry.availability,
       with: always(.faceID)
     )
-    withTestedInstanceReturnsEqual(
-      BiometricsAuthorizationAvailability.enabledFaceID
+    await withInstance(
+      of: ApplicationSettingsViewController.self,
+      returns: BiometricsAuthorizationAvailability.enabledFaceID
     ) { feature in
-      await self.mockExecutionControl.addTask {
-        try? await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
-        accountPreferencesUpdates.endUpdates()
-      }
-      await self.mockExecutionControl.executeAll()
-      return await feature.viewState.biometicsAuthorizationAvailability
+      return await feature.viewState.current.biometicsAuthorizationAvailability
     }
   }
 
   func
     test_viewState_biometicsAuthorizationAvailability_isDisabledInitially_whenPassphraseIsNotStoredAndBiometryAvailable()
+    async
   {
-    let accountPreferencesUpdates: UpdatesSequenceSource = .init()
+    let accountPreferencesUpdates: Updates = .init()
     patch(
       \AccountPreferences.updates,
       context: .mock_ada,
-      with: accountPreferencesUpdates.updatesSequence
+      with: accountPreferencesUpdates.asAnyUpdatable()
     )
     patch(
       \AccountPreferences.isPassphraseStored,
@@ -95,84 +87,84 @@ final class ApplicationSettingsControllerTests: LoadableFeatureTestCase<Applicat
       \OSBiometry.availability,
       with: always(.faceID)
     )
-    withTestedInstanceReturnsEqual(
-      BiometricsAuthorizationAvailability.disabledFaceID
+    await withInstance(
+      of: ApplicationSettingsViewController.self,
+      returns: BiometricsAuthorizationAvailability.disabledFaceID
     ) { feature in
-      Task {
-        await self.mockExecutionControl.executeAll()
-      }
-      await self.mockExecutionControl.addTask {
-        try? await Task.sleep(nanoseconds: 150 * NSEC_PER_MSEC)
-        accountPreferencesUpdates.endUpdates()
-      }
-      await self.mockExecutionControl.executeAll()
-      return await feature.viewState.biometicsAuthorizationAvailability
+      await feature.viewState.updateIfNeeded()
+      return await feature.viewState.current.biometicsAuthorizationAvailability
     }
   }
 
-  func test_viewState_biometicsAuthorizationAvailability_isUnavailableInitially_whenBiometryIsNotAvailable() {
-    let accountPreferencesUpdates: UpdatesSequenceSource = .init()
+  func test_viewState_biometicsAuthorizationAvailability_isUnavailableInitially_whenBiometryIsNotAvailable() async {
+    let accountPreferencesUpdates: Updates = .init()
     patch(
       \AccountPreferences.updates,
       context: .mock_ada,
-      with: accountPreferencesUpdates.updatesSequence
+      with: accountPreferencesUpdates.asAnyUpdatable()
     )
     patch(
       \OSBiometry.availability,
       with: always(.unavailable)
     )
-    withTestedInstanceReturnsEqual(
-      BiometricsAuthorizationAvailability.unavailable
+    await withInstance(
+      of: ApplicationSettingsViewController.self,
+      returns: BiometricsAuthorizationAvailability.unavailable
     ) { feature in
-      await self.mockExecutionControl.addTask {
-        accountPreferencesUpdates.endUpdates()
-      }
-      await self.mockExecutionControl.executeAll()
-      return await feature.viewState.biometicsAuthorizationAvailability
+      await self.asyncExecutionControl.executeAll()
+      return await feature.viewState.current.biometicsAuthorizationAvailability
     }
   }
 
-  func test_navigateToAutofillSettings_performsNavigation() {
+  func test_navigateToAutofillSettings_performsNavigation() async {
     patch(
       \NavigationToAutofillSettings.mockPerform,
-      with: always(self.executed())
+      with: always(self.mockExecuted())
     )
-    withTestedInstanceExecuted { feature in
-      feature.navigateToAutofillSettings()
-      await self.mockExecutionControl.executeAll()
+    await withInstance(
+      of: ApplicationSettingsViewController.self,
+      mockExecuted: 1
+    ) { feature in
+      await feature.navigateToAutofillSettings()
+      await self.asyncExecutionControl.executeAll()
     }
   }
 
-  func test_navigateToDefaultPresentationModeSettings_performsNavigation() {
+  func test_navigateToDefaultPresentationModeSettings_performsNavigation() async {
     patch(
       \NavigationToDefaultPresentationModeSettings.mockPerform,
-      with: always(self.executed())
+      with: always(self.mockExecuted())
     )
-    withTestedInstanceExecuted { feature in
-      feature.navigateToDefaultPresentationModeSettings()
-      await self.mockExecutionControl.executeAll()
+    await withInstance(
+      of: ApplicationSettingsViewController.self,
+      mockExecuted: 1
+    ) { feature in
+      await feature.navigateToDefaultPresentationModeSettings()
+      await self.asyncExecutionControl.executeAll()
     }
   }
 
-  func test_setBiometricsAuthorizationEnabled_updatesAccountPreferences() {
+  func test_setBiometricsAuthorizationEnabled_updatesAccountPreferences() async {
     patch(
       \AccountPreferences.storePassphrase,
       context: .mock_ada,
-      with: self.executed(using:)
+      with: self.mockExecuted(with:)
     )
 
-    withTestedInstanceExecuted(
-      using: true
+    await withInstance(
+      of: ApplicationSettingsViewController.self,
+      mockExecutedWith: true
     ) { feature in
-      feature.setBiometricsAuthorizationEnabled(true)
-      await self.mockExecutionControl.executeAll()
+      await feature.setBiometricsAuthorization(enabled: true)
+      await self.asyncExecutionControl.executeAll()
     }
 
-    withTestedInstanceExecuted(
-      using: false
+    await withInstance(
+      of: ApplicationSettingsViewController.self,
+      mockExecutedWith: false
     ) { feature in
-      feature.setBiometricsAuthorizationEnabled(false)
-      await self.mockExecutionControl.executeAll()
+      await feature.setBiometricsAuthorization(enabled: false)
+      await self.asyncExecutionControl.executeAll()
     }
   }
 }

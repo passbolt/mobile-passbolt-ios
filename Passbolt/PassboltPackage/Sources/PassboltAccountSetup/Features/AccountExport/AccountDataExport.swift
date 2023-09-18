@@ -23,6 +23,7 @@
 
 import AccountSetup
 import Accounts
+import FeatureScopes
 import Session
 
 // MARK: - Interface

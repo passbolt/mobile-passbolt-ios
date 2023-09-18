@@ -21,13 +21,11 @@
 // @since         v1.0
 //
 
-import Features
-import TestExtensions
-import UIComponents
+import Commons
 import XCTest
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ServerURLStringTests: MainActorTestCase {
+final class ServerURLStringTests: XCTestCase {
 
   func test_serverURL_hasCorrectValue_whenProvided_withValidURL() async throws {
     let url: URL = URL(string: "https://passbolt.com:443")!

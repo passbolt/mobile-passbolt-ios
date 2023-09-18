@@ -26,10 +26,10 @@ import UICommons
 
 internal struct OTPScanningSuccessView: ControlledView {
 
-  private let controller: OTPScanningSuccessController
+  internal let controller: OTPScanningSuccessViewController
 
   internal init(
-    controller: OTPScanningSuccessController
+    controller: OTPScanningSuccessViewController
   ) {
     self.controller = controller
   }
@@ -59,11 +59,10 @@ internal struct OTPScanningSuccessView: ControlledView {
         action: self.controller.createStandaloneOTP
       )
 
-      #warning("[MOB-1094] Disabled until allowing resource with OTP")
-      //      SecondaryButton(
-      //        title: "otp.scanning.success.link.button.title",
-      //        action: self.controller.updateExistingResource
-      //      )
+      SecondaryButton(
+        title: "otp.scanning.success.link.button.title",
+        action: self.controller.updateExistingResource
+      )
     }
     .padding(
       top: 8,
@@ -72,5 +71,13 @@ internal struct OTPScanningSuccessView: ControlledView {
       trailing: 8
     )
     .navigationBarBackButtonHidden(true)
+    .toolbar {
+      ToolbarItemGroup(placement: .navigationBarTrailing) {
+        IconButton(
+          iconName: .close,
+          action: self.controller.close
+        )
+      }
+    }
   }
 }

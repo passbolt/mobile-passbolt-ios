@@ -23,6 +23,7 @@
 
 import Accounts
 import Combine
+import FeatureScopes
 import Features
 import Resources
 import SessionData
@@ -34,10 +35,11 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 @MainActor
 final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
 
-  var updates: UpdatesSequenceSource!
+  var updates: Variable<Timestamp>!
 
   override func mainActorSetUp() {
     features
@@ -48,23 +50,21 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
           configuration: .mock_1
         )
       )
-    updates = .init()
+    updates = .init(initial: 0)
     features.patch(
-      \SessionData.updatesSequence,
-      with: updates.updatesSequence
+      \SessionData.lastUpdate,
+      with: updates.asAnyUpdatable()
     )
     features.patch(
       \SessionData.refreshIfNeeded,
       with: always(Void())
     )
-    features.usePlaceholder(for: Resources.self)
     features.patch(
       \UserGroups.filteredResourceUserGroupList,
       with: always(
         AnyAsyncSequence([])
       )
     )
-    features.usePlaceholder(for: HomePresentation.self)
     features.patch(
       \Session.currentAccount,
       with: always(Account.mock_ada)
@@ -82,7 +82,7 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
   }
 
   override func mainActorTearDown() {
-    updates = .init()
+    updates = .init(initial: 0)
   }
 
   func test_refreshIfNeeded_setsViewStateError_whenRefreshFails() async throws {
@@ -124,16 +124,17 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
 
   func test_initally_viewStateTitle_isTagSlug_forNonRootFolder() async throws {
     features.patch(
-      \Resources.filteredResourcesListPublisher,
-      with: always(
-        Just([])
-          .eraseToAnyPublisher()
-      )
+      \ResourcesController.filteredResourcesList,
+      with: always([])
+    )
+    features.patch(
+      \ResourcesController.lastUpdate,
+      with: Variable(initial: 0).asAnyUpdatable()
     )
 
     let controller: ResourceUserGroupsExplorerController = try await testController(
       context: .init(
-        id: "groupID",
+        id: .mock_1,
         name: "group",
         contentCount: 0
       )

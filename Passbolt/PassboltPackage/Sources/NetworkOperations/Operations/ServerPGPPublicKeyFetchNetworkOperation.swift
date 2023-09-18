@@ -45,17 +45,16 @@ public struct ServerPGPPublicKeyFetchNetworkOperationVariable {
   }
 }
 
-public struct ServerPGPPublicKeyFetchNetworkOperationResult: Decodable {
+public struct ServerPGPPublicKeyFetchNetworkOperationResult {
 
+  public var serverTime: Timestamp
   public var keyData: String
 
   public init(
+    serverTime: Timestamp,
     keyData: String
   ) {
+    self.serverTime = serverTime
     self.keyData = keyData
-  }
-
-  private enum CodingKeys: String, CodingKey {
-    case keyData = "keydata"
   }
 }

@@ -29,6 +29,14 @@
 		426DDBD6267CA83000EEF4F9 /* ApplicationExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 426DDBD5267CA83000EEF4F9 /* ApplicationExtension.swift */; };
 		428BD13C293615CB0040EE57 /* MockAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 428BD13B293615CB0040EE57 /* MockAccount.swift */; };
 		428BD13E293633E00040EE57 /* MockAccount+Mocks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 428BD13D293633E00040EE57 /* MockAccount+Mocks.swift */; };
+		42F1154C2A20D3BF00475E42 /* TestFailure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42F1154B2A20D3BF00475E42 /* TestFailure.swift */; };
+		42F1154E2A20F22F00475E42 /* UITestCase+CommonFlows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42F1154D2A20F22F00475E42 /* UITestCase+CommonFlows.swift */; };
+		B21C75532A1BC199006E0938 /* AppSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21C75522A1BC199006E0938 /* AppSettingsTests.swift */; };
+		B236448A2A167C6A00F0A374 /* SettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B23644892A167C6A00F0A374 /* SettingsTests.swift */; };
+		B23A853D2A24DD3500C65133 /* TermsAndLicensesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B23A853C2A24DD3500C65133 /* TermsAndLicensesTests.swift */; };
+		B23C4F6429BA45C1001D9687 /* TransferAccountTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B23C4F6329BA45C1001D9687 /* TransferAccountTests.swift */; };
+		B28F789E2A1FBABD0095FE07 /* AccountsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B28F789D2A1FBABD0095FE07 /* AccountsTests.swift */; };
+		B29439912A2A1EF3009B9736 /* TermsAndLicensesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B29439902A2A1EF3009B9736 /* TermsAndLicensesTests.swift */; };
 		DD38F942261746C400A6C627 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD38F941261746C400A6C627 /* AppDelegate.swift */; };
 		DD38F944261746C400A6C627 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD38F943261746C400A6C627 /* SceneDelegate.swift */; };
 		DD38F94B261746C500A6C627 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DD38F94A261746C500A6C627 /* Assets.xcassets */; };
@@ -85,7 +93,15 @@
 		426DDBD5267CA83000EEF4F9 /* ApplicationExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationExtension.swift; sourceTree = "<group>"; };
 		428BD13B293615CB0040EE57 /* MockAccount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockAccount.swift; sourceTree = "<group>"; };
 		428BD13D293633E00040EE57 /* MockAccount+Mocks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MockAccount+Mocks.swift"; sourceTree = "<group>"; };
+		42F1154B2A20D3BF00475E42 /* TestFailure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestFailure.swift; sourceTree = "<group>"; };
+		42F1154D2A20F22F00475E42 /* UITestCase+CommonFlows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UITestCase+CommonFlows.swift"; sourceTree = "<group>"; };
 		42F3883128C9DB4100B832CA /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		B21C75522A1BC199006E0938 /* AppSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettingsTests.swift; sourceTree = "<group>"; };
+		B23644892A167C6A00F0A374 /* SettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTests.swift; sourceTree = "<group>"; };
+		B23A853C2A24DD3500C65133 /* TermsAndLicensesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TermsAndLicensesTests.swift; sourceTree = "<group>"; };
+		B23C4F6329BA45C1001D9687 /* TransferAccountTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferAccountTests.swift; sourceTree = "<group>"; };
+		B28F789D2A1FBABD0095FE07 /* AccountsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountsTests.swift; sourceTree = "<group>"; };
+		B29439902A2A1EF3009B9736 /* TermsAndLicensesTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TermsAndLicensesTests.swift; path = PassboltUITests/Scenarios/Settings/TermsAndLicenses/TermsAndLicensesTests.swift; sourceTree = SOURCE_ROOT; };
 		DD38F93E261746C400A6C627 /* Passbolt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Passbolt.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD38F941261746C400A6C627 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		DD38F943261746C400A6C627 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -149,10 +165,64 @@
 			isa = PBXGroup;
 			children = (
 				425A58262925109000C19E05 /* UITestCase.swift */,
+				42F1154D2A20F22F00475E42 /* UITestCase+CommonFlows.swift */,
 				428BD13B293615CB0040EE57 /* MockAccount.swift */,
 				428BD13D293633E00040EE57 /* MockAccount+Mocks.swift */,
+				42F1154B2A20D3BF00475E42 /* TestFailure.swift */,
 			);
 			path = TestSupport;
+			sourceTree = "<group>";
+		};
+		B21C75512A1BC142006E0938 /* AppSettings */ = {
+			isa = PBXGroup;
+			children = (
+				B21C75522A1BC199006E0938 /* AppSettingsTests.swift */,
+			);
+			path = AppSettings;
+			sourceTree = "<group>";
+		};
+		B23C4F6129B8F4D5001D9687 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				B23644892A167C6A00F0A374 /* SettingsTests.swift */,
+				B21C75512A1BC142006E0938 /* AppSettings */,
+				B28F789C2A1FBA490095FE07 /* Accounts */,
+				B258E63F2A24DBEC00E9DAE9 /* TermsAndLicenses */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		B23C4F6229BA455B001D9687 /* TransferAccount */ = {
+			isa = PBXGroup;
+			children = (
+				B23C4F6329BA45C1001D9687 /* TransferAccountTests.swift */,
+			);
+			path = TransferAccount;
+			sourceTree = "<group>";
+		};
+		B258E63F2A24DBEC00E9DAE9 /* TermsAndLicenses */ = {
+			isa = PBXGroup;
+			children = (
+				B23A853C2A24DD3500C65133 /* TermsAndLicensesTests.swift */,
+			);
+			path = TermsAndLicenses;
+			sourceTree = "<group>";
+		};
+		B28F789C2A1FBA490095FE07 /* Accounts */ = {
+			isa = PBXGroup;
+			children = (
+				B23C4F6229BA455B001D9687 /* TransferAccount */,
+				B28F789D2A1FBABD0095FE07 /* AccountsTests.swift */,
+			);
+			path = Accounts;
+			sourceTree = "<group>";
+		};
+		B294398F2A2A1E8C009B9736 /* TermsAndLicences */ = {
+			isa = PBXGroup;
+			children = (
+				B29439902A2A1EF3009B9736 /* TermsAndLicensesTests.swift */,
+			);
+			path = TermsAndLicences;
 			sourceTree = "<group>";
 		};
 		DD38F935261746C400A6C627 = {
@@ -168,6 +238,7 @@
 				DD38F93F261746C400A6C627 /* Products */,
 			);
 			sourceTree = "<group>";
+			usesTabs = 0;
 		};
 		DD38F93F261746C400A6C627 /* Products */ = {
 			isa = PBXGroup;
@@ -217,6 +288,7 @@
 		EBD1A3E7297ACBEA00125727 /* Scenarios */ = {
 			isa = PBXGroup;
 			children = (
+				B23C4F6129B8F4D5001D9687 /* Settings */,
 				EBD1A3E8297ACBF900125727 /* CreateFolderScenario.swift */,
 			);
 			path = Scenarios;
@@ -441,11 +513,18 @@
 			buildActionMask = 2147483647;
 			files = (
 				425A581F29250FB700C19E05 /* PassboltApplicationLaunchTests.swift in Sources */,
+				B28F789E2A1FBABD0095FE07 /* AccountsTests.swift in Sources */,
+				B21C75532A1BC199006E0938 /* AppSettingsTests.swift in Sources */,
+				42F1154E2A20F22F00475E42 /* UITestCase+CommonFlows.swift in Sources */,
 				428BD13C293615CB0040EE57 /* MockAccount.swift in Sources */,
 				425A582A292550AF00C19E05 /* WelcomeScreenUITests.swift in Sources */,
+				B23A853D2A24DD3500C65133 /* TermsAndLicensesTests.swift in Sources */,
 				428BD13E293633E00040EE57 /* MockAccount+Mocks.swift in Sources */,
+				42F1154C2A20D3BF00475E42 /* TestFailure.swift in Sources */,
 				425A58272925109000C19E05 /* UITestCase.swift in Sources */,
 				EBD1A3E9297ACBF900125727 /* CreateFolderScenario.swift in Sources */,
+				B236448A2A167C6A00F0A374 /* SettingsTests.swift in Sources */,
+				B23C4F6429BA45C1001D9687 /* TransferAccountTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -694,7 +773,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.14.4;
+				MARKETING_VERSION = 1.15.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = com.passbolt.mobile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -722,7 +801,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.14.4;
+				MARKETING_VERSION = 1.15.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = com.passbolt.mobile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -748,7 +827,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.14.4;
+				MARKETING_VERSION = 1.15.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = com.passbolt.mobile.autofill;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -773,7 +852,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.14.4;
+				MARKETING_VERSION = 1.15.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = com.passbolt.mobile.autofill;
 				PRODUCT_NAME = "$(TARGET_NAME)";

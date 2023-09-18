@@ -22,6 +22,7 @@
 //
 
 import DatabaseOperations
+import FeatureScopes
 import NetworkOperations
 import OSFeatures
 import SessionData
@@ -38,7 +39,7 @@ extension UserDetails {
     context userID: Context,
     cancellables: Cancellables
   ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
+
     let sessionData: SessionData = try features.instance()
     let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
     let userDetailsFetchDatabaseOperation: UserDetailsFetchDatabaseOperation = try features.instance()
@@ -49,14 +50,31 @@ extension UserDetails {
       try await userDetailsFetchDatabaseOperation(userID)
     }
 
-    let currentDetails: UpdatableValue<UserDetailsDSV> = .init(
-      updatesSequence:
-        sessionData
-        .updatesSequence,
-      update: fetchUserDetails
-    )
+    let currentDetails: ComputedVariable<UserDetailsDSV> = .init(
+      transformed: sessionData.lastUpdate
+    ) { _ in
+      try await fetchUserDetails()
+    }
 
-    let avatarImageCache: AsyncCache<Data> = .init()
+    let avatarImageCache: ComputedVariable<Data> = .init(
+      lazy: {
+        do {
+          return
+            try await mediaDownloadNetworkOperation
+            .execute(
+              currentDetails
+                .value
+                .avatarImageURL
+            )
+        }
+        catch {
+          error.logged(
+            info: .message("Failed to fetch user avatar image!")
+          )
+          throw error
+        }
+      }
+    )
 
     @Sendable nonisolated func details() async throws -> UserDetailsDSV {
       try await currentDetails.value
@@ -74,23 +92,7 @@ extension UserDetails {
     }
 
     @Sendable nonisolated func avatarImage() async -> Data? {
-      do {
-        return
-          try await avatarImageCache
-          .valueOrUpdate {
-            return
-              try await mediaDownloadNetworkOperation
-              .execute(
-                currentDetails
-                  .value
-                  .avatarImageURL
-              )
-          }
-      }
-      catch {
-        diagnostics.log(error: error)
-        return .none
-      }
+      try? await avatarImageCache.value
     }
 
     return Self(

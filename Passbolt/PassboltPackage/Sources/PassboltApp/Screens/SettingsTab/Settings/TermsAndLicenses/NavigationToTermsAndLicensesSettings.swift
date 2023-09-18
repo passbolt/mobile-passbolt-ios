@@ -22,15 +22,19 @@
 //
 
 import Display
+import FeatureScopes
 
-internal enum TermsAndLicensesSettingsNavigationDestination: NavigationDestination {}
+internal enum TermsAndLicensesSettingsNavigationDestination: NavigationDestination {
+
+  internal typealias TransitionContext = TermsAndLicensesViewController.Context
+}
 
 internal typealias NavigationToTermsAndLicensesSettings = NavigationTo<TermsAndLicensesSettingsNavigationDestination>
 
 extension NavigationToTermsAndLicensesSettings {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(to: TermsAndLicensesSettingsView.self)
+    legacyPushTransition(to: TermsAndLicensesView.self)
   }
 }
 

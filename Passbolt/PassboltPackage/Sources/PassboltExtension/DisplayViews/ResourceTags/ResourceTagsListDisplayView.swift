@@ -25,7 +25,7 @@ import Display
 
 internal struct ResourceTagsListDisplayView: ControlledView {
 
-  private let controller: ResourceTagsListDisplayController
+  internal let controller: ResourceTagsListDisplayController
 
   internal init(
     controller: ResourceTagsListDisplayController
@@ -42,6 +42,5 @@ internal struct ResourceTagsListDisplayView: ControlledView {
         tagTapAction: self.controller.selectTag
       )
     }
-    .task(self.controller.activate)
   }
 }

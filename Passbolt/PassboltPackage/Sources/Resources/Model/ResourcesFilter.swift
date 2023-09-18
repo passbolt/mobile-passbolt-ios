@@ -28,6 +28,7 @@ public struct ResourcesFilter {
   public var sorting: ResourcesSorting
   public var text: String
   public var favoriteOnly: Bool
+  public var otpOnly: Bool
   public var permissions: OrderedSet<Permission>
   public var tags: Set<ResourceTag.ID>
   public var userGroups: Set<UserGroup.ID>
@@ -37,6 +38,7 @@ public struct ResourcesFilter {
     sorting: ResourcesSorting,
     text: String = .init(),
     favoriteOnly: Bool = false,
+    otpOnly: Bool = false,
     permissions: OrderedSet<Permission> = .init(),
     tags: Set<ResourceTag.ID> = .init(),
     userGroups: Set<UserGroup.ID> = .init(),
@@ -45,6 +47,7 @@ public struct ResourcesFilter {
     self.sorting = sorting
     self.text = text
     self.favoriteOnly = favoriteOnly
+    self.otpOnly = otpOnly
     self.permissions = permissions
     self.tags = tags
     self.userGroups = userGroups

@@ -25,7 +25,7 @@ import Display
 
 internal struct ResourceFolderMenuView: ControlledView {
 
-  private let controller: ResourceFolderMenuController
+  internal let controller: ResourceFolderMenuController
 
   internal init(
     controller: ResourceFolderMenuController
@@ -46,7 +46,7 @@ internal struct ResourceFolderMenuView: ControlledView {
           VStack(spacing: 0) {
             DrawerMenuItemView(
               action: {
-                self.controller.openDetails()
+                await self.controller.openDetails()
               },
               title: {
                 Text(

@@ -21,24 +21,20 @@
 // @since         v1.0
 //
 
+import CoreTest
 import Display
 import Features
 import XCTest
 
 @MainActor
-open class FeaturesTestCase: XCTestCase {
+open class FeaturesTestCase: TestCase {
 
   public let asyncExecutionControl: AsyncExecutor.MockExecutionControl = .init()
-  public nonisolated let dynamicVariables: DynamicVariables = .init()
   public var cancellables: Cancellables { self.testFeatures.cancellables }  // for legacy elements
 
   private let testFeatures: TestFeaturesContainer = .init()
 
   open func commonPrepare() {
-    patch(
-      \OSDiagnostics.self,
-      with: .disabled
-    )
     patch(
       \AsyncExecutor.self,
       with: .mock(self.asyncExecutionControl)
@@ -102,6 +98,16 @@ extension FeaturesTestCase {
       )
   }
 
+  public final func testedInstance<Feature>(
+    _ featureType: Feature.Type = Feature.self
+  ) throws -> Feature
+  where Feature: LoadableFeature, Feature.Context == ContextlessLoadableFeatureContext {
+    try self.testFeatures
+      .instance(
+        of: featureType
+      )
+  }
+
   public final func testedInstance<Alert>(
     _ alertType: Alert.Type = Alert.self,
     context: Alert.Context
@@ -120,6 +126,27 @@ extension FeaturesTestCase {
     try Alert(
       with: Void(),
       using: self.testFeatures
+    )
+  }
+
+  public final func testedInstance<Controller>(
+    _ featureType: Controller.Type = Controller.self,
+    context: Controller.Context
+  ) throws -> Controller
+  where Controller: ViewController {
+    try Controller(
+      context: context,
+      features: self.testFeatures
+    )
+  }
+
+  public final func testedInstance<Controller>(
+    _ featureType: Controller.Type = Controller.self
+  ) throws -> Controller
+  where Controller: ViewController, Controller.Context == Void {
+    try Controller(
+      context: Void(),
+      features: self.testFeatures
     )
   }
 }
@@ -292,5 +319,320 @@ extension FeaturesTestCase {
         keyPath,
         with: value
       )
+  }
+}
+
+extension FeaturesTestCase {
+
+  public func withInstance<Controller>(
+    of _: Controller.Type = Controller.self,
+    file: StaticString = #file,
+    line: UInt = #line,
+    test: @escaping @Sendable (Controller) async throws -> Void
+  ) async
+  where Controller: ViewController, Controller.Context == Void {
+    do {
+      try await test(self.testedInstance())
+    }
+    catch {
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
+    }
+  }
+
+  public func withInstance<Controller>(
+    of _: Controller.Type = Controller.self,
+    context: Controller.Context,
+    file: StaticString = #file,
+    line: UInt = #line,
+    test: @escaping @Sendable (Controller) async throws -> Void
+  ) async
+  where Controller: ViewController {
+    do {
+      try await test(self.testedInstance(context: context))
+    }
+    catch {
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
+    }
+  }
+
+  nonisolated public var mockWasExecuted: Bool {
+    @Sendable get {
+      self.loadOrDefine(
+        \.executedCount,
+        of: UInt.self,
+        defaultValue: 0
+      ) > 0
+    }
+  }
+
+  nonisolated public var mockExecutedCount: UInt {
+    @Sendable get {
+      self.loadOrDefine(
+        \.executedCount,
+        defaultValue: 0
+      )
+    }
+  }
+
+  @Sendable nonisolated public func mockExecuted() {
+    let count: UInt = self.loadOrDefine(
+      \.executedCount,
+      defaultValue: 0
+    )
+    self.executedCount = count + 1
+    self.setOrDefine(\.executedArgument, value: Void())
+  }
+
+  @Sendable nonisolated public func mockExecuted<Argument>(
+    with argument: Argument
+  ) {
+    let count: UInt = self.loadOrDefine(
+      \.executedCount,
+      defaultValue: 0
+    )
+    self.executedCount = count + 1
+    self.setOrDefine(\.executedArgument, value: argument)
+  }
+
+  public func withInstance<Controller>(
+    of _: Controller.Type = Controller.self,
+    mockExecuted: UInt,
+    file: StaticString = #file,
+    line: UInt = #line,
+    test: @escaping @Sendable (Controller) async throws -> Void
+  ) async
+  where Controller: ViewController, Controller.Context == Void {
+    do {
+      try await test(self.testedInstance())
+      XCTAssertEqual(
+        mockExecuted,
+        self.loadOrDefine(
+          \.executedCount,
+          defaultValue: 0
+        ),
+        "Executed count was not matching expected",
+        file: file,
+        line: line
+      )
+    }
+    catch {
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
+    }
+  }
+
+  public func withInstance<Controller>(
+    of _: Controller.Type = Controller.self,
+    context: Controller.Context,
+    mockExecuted: UInt,
+    file: StaticString = #file,
+    line: UInt = #line,
+    test: @escaping @Sendable (Controller) async throws -> Void
+  ) async
+  where Controller: ViewController {
+    do {
+      try await test(self.testedInstance(context: context))
+      XCTAssertEqual(
+        mockExecuted,
+        self.loadOrDefine(
+          \.executedCount,
+          defaultValue: 0
+        ),
+        "Executed count was not matching expected",
+        file: file,
+        line: line
+      )
+    }
+    catch {
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
+    }
+  }
+
+  public func withInstance<Controller, Argument>(
+    of _: Controller.Type = Controller.self,
+    mockExecutedWith: Argument,
+    file: StaticString = #file,
+    line: UInt = #line,
+    test: @escaping @Sendable (Controller) async throws -> Void
+  ) async
+  where Controller: ViewController, Controller.Context == Void, Argument: Equatable {
+    do {
+      try await test(self.testedInstance())
+      XCTAssertEqual(
+        mockExecutedWith,
+        self.loadIfDefined(
+          \.executedArgument,
+          of: Argument.self
+        ),
+        "Executed argument was invalid or missing",
+        file: file,
+        line: line
+      )
+    }
+    catch {
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
+    }
+  }
+
+  public func withInstance<Controller, Argument>(
+    of _: Controller.Type = Controller.self,
+    context: Controller.Context,
+    mockExecutedWith: Argument,
+    file: StaticString = #file,
+    line: UInt = #line,
+    test: @escaping @Sendable (Controller) async throws -> Void
+  ) async
+  where Controller: ViewController, Argument: Equatable {
+    do {
+      try await test(self.testedInstance(context: context))
+      XCTAssertEqual(
+        mockExecutedWith,
+        self.loadIfDefined(
+          \.executedArgument,
+          of: Argument.self
+        ),
+        "Executed argument was invalid or missing",
+        file: file,
+        line: line
+      )
+    }
+    catch {
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
+    }
+  }
+
+  public func withInstance<Controller, Value>(
+    of _: Controller.Type = Controller.self,
+    returns: Value,
+    file: StaticString = #file,
+    line: UInt = #line,
+    test: @escaping @Sendable (Controller) async throws -> Value
+  ) async
+  where Controller: ViewController, Controller.Context == Void, Value: Equatable {
+    do {
+      let returned: Value = try await test(self.testedInstance())
+      XCTAssertEqual(
+        returns,
+        returned,
+        "Returned value was invalid",
+        file: file,
+        line: line
+      )
+    }
+    catch {
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
+    }
+  }
+
+  public func withInstance<Controller, Value>(
+    of _: Controller.Type = Controller.self,
+    context: Controller.Context,
+    returns: Value,
+    file: StaticString = #file,
+    line: UInt = #line,
+    test: @escaping @Sendable (Controller) async throws -> Value
+  ) async
+  where Controller: ViewController, Value: Equatable {
+    do {
+      let returned: Value = try await test(self.testedInstance(context: context))
+      XCTAssertEqual(
+        returns,
+        returned,
+        "Returned value was invalid",
+        file: file,
+        line: line
+      )
+    }
+    catch {
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
+    }
+  }
+
+  public func withInstance<Controller, Value, Failure>(
+    of _: Controller.Type = Controller.self,
+    throws: Failure.Type,
+    file: StaticString = #file,
+    line: UInt = #line,
+    test: @escaping @Sendable (Controller) async throws -> Value
+  ) async
+  where Controller: ViewController, Controller.Context == Void, Failure: Error {
+    do {
+      _ = try await test(self.testedInstance())
+      XCTFail(
+        "Expected error not thrown",
+        file: file,
+        line: line
+      )
+    }
+    catch is Failure {
+      // expected
+    }
+    catch {
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
+    }
+  }
+
+  public func withInstance<Controller, Value, Failure>(
+    of _: Controller.Type = Controller.self,
+    context: Controller.Context,
+    throws: Failure.Type,
+    file: StaticString = #file,
+    line: UInt = #line,
+    test: @escaping @Sendable (Controller) async throws -> Value
+  ) async
+  where Controller: ViewController, Controller.Context == Void, Failure: Error {
+    do {
+      _ = try await test(self.testedInstance(context: context))
+      XCTFail(
+        "Expected error not thrown",
+        file: file,
+        line: line
+      )
+    }
+    catch is Failure {
+      // expected
+    }
+    catch {
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
+    }
   }
 }

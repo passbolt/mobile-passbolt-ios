@@ -23,25 +23,27 @@
 
 import Commons
 
-@dynamicMemberLookup
 public struct Resource {
 
-  public typealias ID = Tagged<String, Self>
+  public typealias ID = Tagged<PassboltID, Self>
 
   public enum Favorite {
 
-    public typealias ID = Tagged<String, Self>
+    public typealias ID = Tagged<PassboltID, Self>
   }
 
-  public let id: Resource.ID?  // none is local, not synchronized resource
+  public typealias FieldPath = ResourceType.ComputedFieldPath
+
+  public var id: Resource.ID?  // none is local, not synchronized resource
+  public private(set) var type: ResourceType
   public var path: OrderedSet<ResourceFolderPathItem>
-  public var type: ResourceType
   public var favoriteID: Resource.Favorite.ID?
   public var permission: Permission
   public var permissions: OrderedSet<ResourcePermission>
   public var tags: OrderedSet<ResourceTag>
   public let modified: Timestamp?  // local resources does not have modified date
-  private var fieldValues: Dictionary<ResourceField.ValuePath, ResourceFieldValue>
+  public var meta: JSON
+  public var secret: JSON  // null means that secret was not fetched yet as it is requested and filled separately
 
   public init(
     id: Resource.ID? = .none,
@@ -51,7 +53,9 @@ public struct Resource {
     permission: Permission = .owner,
     tags: OrderedSet<ResourceTag> = .init(),
     permissions: OrderedSet<ResourcePermission> = .init(),
-    modified: Timestamp? = .none
+    modified: Timestamp? = .none,
+    meta: JSON = .object([:]),
+    secret: JSON = .null  // null is secret not yet fetched
   ) {
     self.id = id
     self.path = path
@@ -61,149 +65,50 @@ public struct Resource {
     self.tags = tags
     self.permissions = permissions
     self.modified = modified
-    self.fieldValues = .init()
-    self.initializeFieldValues()
+    self.meta = meta
+    self.secret = secret
+    self.initializeFieldsIfNeeded()
   }
+}
 
-  public subscript(
-    dynamicMember keyPath: ResourceField.ValuePath
-  ) -> ResourceFieldValue? {
+extension Resource: Equatable {
+
+  public static func == (
+    _ lhs: Resource,
+    rhs: Resource
+  ) -> Bool {
+    lhs.id == rhs.id
+      && lhs.type == rhs.type
+      && lhs.favoriteID == rhs.favoriteID
+      && lhs.modified == rhs.modified
+      && lhs.meta == rhs.meta
+      && lhs.secret == rhs.secret
+      && lhs.permission == rhs.permission
+      && lhs.permissions == rhs.permissions
+      && lhs.path == rhs.path
+      && lhs.tags == rhs.tags
+  }
+}
+
+// MARK: - Common info
+
+extension Resource {
+
+  // Name field is always required, we are not supporting
+  // resources without a name inside the meta.
+  public var name: String {
     get {
-      if self.type.contains(keyPath) {
-        return self.fieldValues[keyPath]
-      }
-      else {
-        return .none
-      }
+      self[keyPath: \Resource.meta.name].stringValue
+        ?? DisplayableString
+        .localized("resource")
+        .string()
     }
-    set {
-      guard self.type.contains(keyPath) else { return }
-      self.fieldValues[keyPath] = newValue
-    }
+    set { self[keyPath: \Resource.meta.name] = .string(newValue) }
   }
 
-  public static func keyPath(
-    for field: ResourceField
-  ) -> WritableKeyPath<Resource, ResourceFieldValue?> {
-    \Resource[dynamicMember:field.valuePath]
+  public var isLocal: Bool {
+    self.id == .none
   }
-
-  public func value(
-    for field: ResourceField
-  ) -> ResourceFieldValue? {
-    value(for: field.valuePath)
-  }
-
-  public func value(
-    forField name: StaticString
-  ) -> ResourceFieldValue? {
-    value(for: ResourceField.valuePath(forName: name))
-  }
-
-  private func value(
-    for path: ResourceField.ValuePath
-  ) -> ResourceFieldValue? {
-    guard let field: ResourceField = self.type.fields.first(where: { $0.valuePath == path })
-    else { return .none }
-    return self.fieldValues[field.valuePath]
-      ?? (field.encrypted ? .encrypted : .none)
-  }
-
-  public mutating func set(
-    _ value: ResourceFieldValue?,
-    for field: ResourceField
-  ) throws {
-    try self.set(
-      value,
-      for: field.valuePath
-    )
-  }
-
-  public mutating func set(
-    _ value: ResourceFieldValue?,
-    forField name: StaticString
-  ) throws {
-    try self.set(
-      value,
-      for: ResourceField.valuePath(forName: name)
-    )
-  }
-
-  private mutating func set(
-    _ value: ResourceFieldValue?,
-    for path: ResourceField.ValuePath
-  ) throws {
-    guard let field: ResourceField = self.type.fields.first(where: { $0.valuePath == path })
-    else {
-      throw
-        InvalidResourceData
-        .error(
-          message: "Trying to set non existing field value!"
-        )
-    }
-    guard field.accepts(value)
-    else {
-      throw
-        InvalidResourceData
-        .error(
-          message: "Trying to set wrong field value!"
-        )
-    }
-    self.fieldValues[field.valuePath] = value
-  }
-
-  public func validate() throws {
-    for field in self.fields {
-      let error: TheError? = field
-        .validator
-        .contraMapOptional()
-        .validate(self.value(for: field))
-        .error
-      if let error {
-        throw error
-      }
-      else {
-        continue
-      }
-    }
-  }
-}
-
-extension Resource {
-
-  private mutating func initializeFieldValues() {
-    for field in self.fields {
-      let initialValue: ResourceFieldValue
-      switch field.content {
-      case .string(let encrypted, _, _, _):
-        if encrypted {
-          initialValue = .encrypted
-        }
-        else {
-          initialValue = .string("")
-        }
-
-      case .totp:
-        initialValue = .encrypted
-
-      case .unknown(let encrypted, _):
-        if encrypted {
-          initialValue = .encrypted
-        }
-        else {
-          initialValue = .unknown(.null)
-        }
-      }
-
-      self.fieldValues[field.valuePath] = initialValue
-    }
-  }
-}
-
-
-extension Resource: Equatable {}
-
-extension Resource {
 
   public var parentFolderID: ResourceFolder.ID? {
     self.path.last?.id
@@ -212,40 +117,364 @@ extension Resource {
   public var favorite: Bool {
     self.favoriteID != .none
   }
+}
 
-  public var fields: OrderedSet<ResourceField> {
-    self.type.fields
+// MARK: - Validation
+
+extension Resource {
+
+  public func validate() throws {
+    try self.type.validate(self)
   }
 
-  public var encryptedFields: OrderedSet<ResourceField> {
-    self.type.fields.filter(\.encrypted).asOrderedSet()
+  public func validator(
+    for path: FieldPath
+  ) -> Validator<JSON> {
+    self.type.validator(for: path)
+  }
+
+  public func validated(
+    _ path: FieldPath
+  ) -> Validated<JSON> {
+    self.type.validator(for: path)
+      .validate(self[keyPath: path])
   }
 }
 
-extension Resource.ID {
+// MARK: - Fields
 
-  internal static let validator: Validator<Self> = Validator<String>
-    .uuid()
-    .contraMap(\.rawValue)
+extension Resource {
 
-  public var isValid: Bool {
-    Self
-      .validator
-      .validate(self)
-      .isValid
+  public var fields: OrderedSet<ResourceFieldSpecification> {
+    self.type.orderedFields
+  }
+
+  public var secretAvailable: Bool {
+    // local resource always "has secret" since all the data is local
+    self.secret != .null || self.isLocal
+  }
+
+  public var canEdit: Bool {
+    self.permission.canEdit && !self.containsUndefinedFields
+  }
+
+  public var containsUndefinedFields: Bool {
+    self.type.containsUndefinedFields
+  }
+
+  public var hasUnstructuredSecret: Bool {
+    self.type.hasUnstructuredSecret
+  }
+
+  public func displayableName(
+    forField path: FieldPath
+  ) -> DisplayableString? {
+    self.type.displayableName(forField: path)
+  }
+
+  public func totpSecret(
+    forField path: FieldPath
+  ) -> TOTPSecret? {
+    // searching for predefined structure at given path
+    self[keyPath: path].totpSecretValue
+  }
+
+  public func contains(
+    _ path: FieldPath
+  ) -> Bool {
+    self.type.contains(path)
+  }
+
+  public func isEncrypted(
+    _ path: FieldPath
+  ) -> Bool {
+    self.type.fieldSpecification(for: path)?.encrypted ?? false
+  }
+
+  public func fieldSpecification(
+    for path: FieldPath
+  ) -> ResourceFieldSpecification? {
+    self.type.fieldSpecification(for: path)
   }
 }
 
-extension Resource.Favorite.ID {
+// MARK: - Updates
 
-  internal static let validator: Validator<Self> = Validator<String>
-    .uuid()
-    .contraMap(\.rawValue)
+extension Resource {
 
-  public var isValid: Bool {
-    Self
-      .validator
-      .validate(self)
-      .isValid
+  @discardableResult
+  public mutating func update(
+    _ field: FieldPath,
+    to value: JSON
+  ) -> Validated<JSON> {
+    guard let specification: ResourceFieldSpecification = self.type.fieldSpecification(for: field)
+    else {
+      return .invalid(
+        value,
+        error:
+          UnknownResourceField
+          .error(
+            "Attempting to assign a value to not existing resource field!",
+            path: field,
+            value: value
+          )
+      )
+    }
+
+    // try to auto convert if able
+    switch specification.content {
+    case .string, .stringEnum, .structure:
+      self[keyPath: specification.path] = value
+      return specification.validator.validate(value)
+
+    case .int:
+      switch value {
+      case .string(let string):
+        if let integer: Int = Int(string) {
+          let convertedValue: JSON = .integer(integer)
+          self[keyPath: specification.path] = convertedValue
+          return specification.validator.validate(convertedValue)
+        }
+        else {
+          self[keyPath: specification.path] = value
+          return specification.validator.validate(value)
+        }
+
+      case _:
+        self[keyPath: specification.path] = value
+        return specification.validator.validate(value)
+      }
+
+    case .double:
+      switch value {
+      case .string(let string):
+        if let float: Double = Double(string) {
+          let convertedValue: JSON = .float(float)
+          self[keyPath: specification.path] = convertedValue
+          return specification.validator.validate(convertedValue)
+        }
+        else {
+          self[keyPath: specification.path] = value
+          return specification.validator.validate(value)
+        }
+
+      case _:
+        self[keyPath: specification.path] = value
+        return specification.validator.validate(value)
+      }
+    }
+  }
+
+  public mutating func updateType(
+    to resourceType: ResourceType
+  ) throws {
+    guard self.type != resourceType else { return }  // no need to update
+    guard !self.type.containsUndefinedFields
+    else {  // can't update properly if current type has undefined fields
+      throw InvalidResourceType.error(
+        message: "Attempting to update a resource which has a type containing undefined fields!"
+      )
+    }
+    guard !resourceType.containsUndefinedFields
+    else {  // can't update properly if updated type has undefined fields
+      throw InvalidResourceType.error(
+        message: "Attempting to update a resource type to a type containing undefined fields!"
+      )
+    }
+
+    // remove fields that were in the old one but are not present in new one
+    let newFields: Dictionary<ResourceType.ComputedFieldPath, ResourceFieldSpecification>.Values = resourceType
+      .flattenedFields.values
+    let removedFields: Array<ResourceFieldSpecification> = self.type.flattenedFields.values.filter {
+      !newFields.contains($0)
+    }
+    for field in removedFields {
+      #warning("To verify - this should not leave any junk values!")
+      self[keyPath: field.path].remove()
+    }
+    // assign new type and initialize fields if needed
+    self.type = resourceType
+    self.initializeFieldsIfNeeded()
+  }
+}
+
+// MARK: - Computed fields
+
+// NOTE: all computed resource fields have to be read only and supported
+// inside resource type, it won't work otherwise, resource fields
+// have to return JSON, otherwise it won't be counted as actual resource
+// fields (it will be plain computed properties on Resource type, not
+// a passbolt resource fields)
+extension Resource {
+
+  // Name field is always required, we are not supporting
+  // resources without a name inside the meta.
+  public var nameField: JSON {
+    self[keyPath: \Resource.meta.name]
+  }
+
+  public var hasPassword: Bool {
+    self.firstPasswordPath != nil
+  }
+
+  // Note it will return nil if there is no password field
+  public var firstPasswordPath: ResourceType.FieldPath? {
+    self.type.fieldSpecification(for: \.firstPassword)?.path
+  }
+
+  // Note it will return nil if there is no password field
+  // or if it is encrypted and secret part is not fetched
+  public var firstPasswordString: String? {
+    self.firstPassword.stringValue
+  }
+
+  // Note it will return null if there is no password field
+  // or if it is encrypted and secret part is not fetched
+  public var firstPassword: JSON {
+    if let path: FieldPath = self.firstPasswordPath {
+      return self[keyPath: path]
+    }
+    else {
+      return .null
+    }
+  }
+
+  public var canAttachOTP: Bool {
+    self.canEdit && self.attachedOTPSlug != nil
+  }
+
+  public var attachedOTPSlug: ResourceSpecification.Slug? {
+    self.type.attachedOTPSlug
+  }
+
+  public var canDetachOTP: Bool {
+    self.canEdit && self.detachedOTPSlug != nil
+  }
+
+  public var detachedOTPSlug: ResourceSpecification.Slug? {
+    self.type.detachedOTPSlug
+  }
+
+  public var hasTOTP: Bool {
+    self.type.fieldSpecification(for: \.firstTOTP) != nil
+  }
+
+  // Note it will return nil if there is no totp field
+  public var firstTOTPPath: ResourceType.FieldPath? {
+    self.type.fieldSpecification(for: \.firstTOTP)?.path
+  }
+
+  // Note it will return nil if there is no totp field
+  // or if it is encrypted and secret part is not fetched
+  public var firstTOTPSecret: TOTPSecret? {
+    self.firstTOTP.totpSecretValue
+  }
+
+  // Note it will return null if there is no totp field
+  // or if it is encrypted and secret part is not fetched
+  public var firstTOTP: JSON {
+    if let path: FieldPath = self.firstTOTPPath {
+      return self[keyPath: path]
+    }
+    else {
+      return .null
+    }
+  }
+
+  public var hasEncryptedDescription: Bool {
+    self.type.fieldSpecification(for: \.description)?.encrypted ?? false
+  }
+
+  // Note it will return nil if there is no description field
+  public var descriptionPath: ResourceType.FieldPath? {
+    self.type.fieldSpecification(for: \.description)?.path
+  }
+
+  // Note it will return nil if there is no description field
+  // or if it is encrypted and secret part is not fetched
+  public var descriptionString: String? {
+    self.description.stringValue
+  }
+
+  // Note it will return null if there is no description field
+  // or if it is encrypted and secret part is not fetched
+  public var description: JSON {
+    if let path: FieldPath = self.descriptionPath {
+      return self[keyPath: path]
+    }
+    else {
+      return .null
+    }
+  }
+}
+
+// MARK: - internal
+
+extension Resource {
+
+  // Initialize fields is required for creating new instances
+  // of resources in order to have a proper fields structure
+  // inside JSON representation. It should not modify any data
+  // that is already provided (initialize only null fields and
+  // only if those are required) initializing fields to null
+  // seems to be unnecessary but it is required to have
+  // a proper structure inside JSON.
+  private mutating func initializeFieldsIfNeeded() {
+    for field in self.fields where self[keyPath: field.path] == .null {
+      // do not initialize secret in resources without secret
+      // unless it is local
+      guard self.isLocal || !field.encrypted || self.secretAvailable
+      else { continue }  // skip field
+
+      switch field.semantics {
+      case .text, .longText:
+        if field.required {
+          self[keyPath: field.path] = .string("")
+        }
+        else {
+          self[keyPath: field.path] = .null
+        }
+
+      case .selection:
+        // can't have default selection?
+        // selection values does not define default
+        self[keyPath: field.path] = .null
+
+      case .password:
+        if field.required {
+          self[keyPath: field.path] = .string("")
+        }
+        else {
+          self[keyPath: field.path] = .null
+        }
+
+      case .totp:
+        if field.required {
+          self[keyPath: field.path] = TOTPSecret().asJSON
+        }
+        else {
+          self[keyPath: field.path] = .null
+        }
+
+      case .intValue:
+        if field.required {
+          self[keyPath: field.path] = .integer(0)
+        }
+        else {
+          self[keyPath: field.path] = .null
+        }
+
+      case .floatValue:
+        if field.required {
+          self[keyPath: field.path] = .float(0)
+        }
+        else {
+          self[keyPath: field.path] = .null
+        }
+
+      case .undefined:
+        break  // can't initialize undefined fields
+      }
+    }
   }
 }

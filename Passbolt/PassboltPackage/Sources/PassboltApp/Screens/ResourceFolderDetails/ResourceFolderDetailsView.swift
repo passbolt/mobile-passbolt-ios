@@ -25,7 +25,7 @@ import Display
 
 internal struct ResourceFolderDetailsView: ControlledView {
 
-  private let controller: ResourceFolderDetailsController
+  internal let controller: ResourceFolderDetailsController
 
   internal init(
     controller: ResourceFolderDetailsController
@@ -37,7 +37,7 @@ internal struct ResourceFolderDetailsView: ControlledView {
     WithViewState(from: self.controller) { (state: ViewState) in
       ScreenView(
         title: "",
-        snackBarMessage: self.controller.binding(to: \.snackBarMessage),
+        snackBarMessage: self.binding(to: \.snackBarMessage),
         contentView: {
           self.contentView(using: state)
         }
@@ -112,8 +112,13 @@ internal struct ResourceFolderDetailsView: ControlledView {
         action: self.controller.openLocationDetails,
         label: {
           HStack {
-            FolderLocationView(
-              locationElements: state.folderLocation
+            ResourceFieldView(
+              name: "folder.location.title",
+              content: {
+                FolderLocationView(
+                  locationElements: state.folderLocation
+                )
+              }
             )
             Spacer()
             Image(named: .chevronRight)

@@ -22,6 +22,7 @@
 //
 
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 import Session
@@ -29,67 +30,48 @@ import SessionData
 import SharedUIComponents
 import Users
 
-internal struct ResourcesListNodeController {
+internal final class ResourcesListNodeController: ViewController {
 
-  internal var viewState: MutableViewState<ViewState>
-  internal var closeExtension: () -> Void
+  internal nonisolated let viewState: ViewStateSource<ViewState>
   internal var searchController: ResourceSearchDisplayController
-  internal var contentController: ResourcesListDisplayController
-}
+  internal var contentController: ResourcesListDisplayController!  // lazy init?
 
-extension ResourcesListNodeController: ViewController {
+  private let navigationTree: NavigationTree
+  private let asyncExecutor: AsyncExecutor
+  private let autofillContext: AutofillExtensionContext
 
-  internal struct Context {
+  private let requestedServiceIdentifiers: Array<AutofillExtensionContext.ServiceIdentifier>
 
-    internal var title: DisplayableString
-    internal var titleIconName: ImageNameConstant
-    internal var searchPrompt: DisplayableString = .localized(key: "resources.search.placeholder")
-    internal var baseFilter: ResourcesFilter
-  }
+  private let context: Context
+  private let features: Features
 
-  internal struct ViewState: Hashable {
+  internal init(
+    context: Context,
+    features: Features
+  ) throws {
+    self.context = context
+    self.features = features
 
-    internal var title: DisplayableString
-    internal var titleIconName: ImageNameConstant
-    internal var snackBarMessage: SnackBarMessage?
-  }
-
-  #if DEBUG
-  nonisolated static var placeholder: Self {
-    .init(
-      viewState: .placeholder(),
-      closeExtension: { unimplemented() },
-      searchController: .placeholder,
-      contentController: .placeholder
-    )
-  }
-  #endif
-}
-
-extension ResourcesListNodeController {
-
-  @MainActor fileprivate static func load(
-    features: Features,
-    context: Context
-  ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
-    let navigationTree: NavigationTree = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
-    let autofillContext: AutofillExtensionContext = features.instance()
+    self.navigationTree = features.instance()
+    self.asyncExecutor = try features.instance()
+    self.autofillContext = features.instance()
 
     let requestedServiceIdentifiers: Array<AutofillExtensionContext.ServiceIdentifier> =
       autofillContext.requestedServiceIdentifiers()
+    self.requestedServiceIdentifiers = requestedServiceIdentifiers
 
-    let viewState: MutableViewState<ViewState> = .init(
+    let viewState: ViewStateSource<ViewState> = .init(
       initial: .init(
         title: context.title,
         titleIconName: context.titleIconName,
         snackBarMessage: .none
       )
     )
+    self.viewState = viewState
 
-    let searchController: ResourceSearchDisplayController = try features.instance(
+    self.searchController = try features.instance(
       context: .init(
+        nodeID: context.nodeID,
         searchPrompt: context.searchPrompt,
         showMessage: { (message: SnackBarMessage?) in
           viewState.update { viewState in
@@ -99,20 +81,16 @@ extension ResourcesListNodeController {
       )
     )
 
-    let contentController: ResourcesListDisplayController = try features.instance(
+    self.contentController = try features.instance(
       context: .init(
-        filter: searchController
-          .searchText
-          .map { (text: String) -> ResourcesFilter in
-            var filter: ResourcesFilter = context.baseFilter
-            filter.text = text
-            return filter
-          },
+        baseFilter: context.baseFilter,
+        filterTextSource: self.searchController
+          .searchText.asAnyUpdatable(),
         suggestionFilter: { (resource: ResourceListItemDSV) -> Bool in
           requestedServiceIdentifiers.matches(resource)
         },
-        createResource: createResource,
-        selectResource: selectResource(_:),
+        createResource: self.createResource,
+        selectResource: self.selectResource(_:),
         openResourceMenu: .none,
         showMessage: { (message: SnackBarMessage?) in
           viewState.update { viewState in
@@ -121,89 +99,108 @@ extension ResourcesListNodeController {
         }
       )
     )
-
-    @Sendable nonisolated func createResource() {
-      asyncExecutor.schedule(.reuse) {
-        await navigationTree
-          .push(
-            ResourceEditViewController.self,
-            context: (
-              editing: .create(
-                folderID: .none,
-                uri: requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }
-              ),
-              completion: { resourceID in
-                selectResource(resourceID)
-              }
-            ),
-            using: features
-          )
-      }
-    }
-
-    @Sendable nonisolated func selectResource(
-      _ resourceID: Resource.ID
-    ) {
-      asyncExecutor.schedule(.replace) {
-        do {
-          let resourceDetails: ResourceDetails = try await features.instance(context: resourceID)
-          let resource: Resource = try await resourceDetails.details()
-          let secret: ResourceSecret = try await resourceDetails.secret()
-
-          guard
-            let passwordField: ResourceField = resource.type.password ?? resource.type.secret,
-            let password: String = secret.value(for: passwordField)?.stringValue
-          else {
-            throw
-              ResourceSecretInvalid
-              .error("Missing resource password in secret.")
-          }
-          await autofillContext
-            .completeWithCredential(
-              AutofillExtensionContext.Credential(
-                user: resource.value(forField: "username")?.stringValue ?? "",
-                password: password
-              )
-            )
-        }
-        catch {
-          diagnostics.log(
-            error: error,
-            info: .message(
-              "Failed to handle resource selection."
-            )
-          )
-          await viewState.update { viewState in
-            viewState.snackBarMessage = .error(error)
-          }
-        }
-      }
-    }
-
-    nonisolated func closeExtension() {
-      asyncExecutor.schedule(.reuse) {
-        await autofillContext.cancelAndCloseExtension()
-      }
-    }
-
-    return .init(
-      viewState: viewState,
-      closeExtension: closeExtension,
-      searchController: searchController,
-      contentController: contentController
-    )
   }
 }
 
-extension FeaturesRegistry {
+extension ResourcesListNodeController {
 
-  public mutating func usePassboltResourcesListNodeController() {
-    self.use(
-      .disposable(
-        ResourcesListNodeController.self,
-        load: ResourcesListNodeController.load(features:context:)
-      ),
-      in: SessionScope.self
-    )
+  internal struct Context {
+
+    internal var nodeID: ViewNodeID
+    internal var title: DisplayableString
+    internal var titleIconName: ImageNameConstant
+    internal var searchPrompt: DisplayableString = .localized(key: "resources.search.placeholder")
+    internal var baseFilter: ResourcesFilter
+  }
+
+  internal struct ViewState: Equatable {
+
+    internal var title: DisplayableString
+    internal var titleIconName: ImageNameConstant
+    internal var snackBarMessage: SnackBarMessage?
+  }
+}
+
+extension ResourcesListNodeController {
+
+  internal final func createResource() {
+    self.asyncExecutor
+      .scheduleCatching(
+        behavior: .reuse
+      ) { [features, requestedServiceIdentifiers, navigationTree, asyncExecutor, autofillContext] in
+        let resourceEditPreparation: ResourceEditPreparation = try await features.instance()
+        let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
+          .default,
+          .none,
+          requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }
+        )
+        try await navigationTree.push(
+          ResourceEditView.self,
+          controller: .init(
+            context: .init(
+              editingContext: editingContext,
+              success: { [asyncExecutor, autofillContext] resource in
+                if let password: String = resource.firstPasswordString {
+                  asyncExecutor.schedule(.replace) {
+                    await autofillContext
+                      .completeWithCredential(
+                        AutofillExtensionContext.Credential(
+                          user: resource.meta.username.stringValue ?? "",
+                          password: password
+                        )
+                      )
+                  }
+                }
+                else {
+                  ResourceSecretInvalid
+                    .error("Missing resource password in secret.")
+                    .log()
+                }
+              }
+            ),
+            features: features
+          )
+        )
+      }
+  }
+
+  nonisolated internal final func selectResource(
+    _ resourceID: Resource.ID
+  ) {
+    self.asyncExecutor.scheduleCatching(
+      failMessage: "Failed to handle resource selection.",
+      failAction: { [viewState] (error: Error) in
+        await viewState.update(\.snackBarMessage, to: .error(error))
+      },
+      behavior: .replace
+    ) { [features, autofillContext] in
+      let features: Features = await features.branch(
+        scope: ResourceDetailsScope.self,
+        context: resourceID
+      )
+      let resourceController: ResourceController = try await features.instance()
+      try await resourceController.fetchSecretIfNeeded(force: true)
+      let resource: Resource = try await resourceController.state.value
+
+      guard let password: String = resource.firstPasswordString
+      else {
+        throw
+          ResourceSecretInvalid
+          .error("Missing resource password in secret.")
+      }
+      await autofillContext
+        .completeWithCredential(
+          AutofillExtensionContext.Credential(
+            user: resource.meta.username.stringValue ?? "",
+            password: password
+          )
+        )
+    }
+  }
+
+  internal final func closeExtension() {
+    self.asyncExecutor.schedule(.reuse) { [autofillContext] in
+      await autofillContext.cancelAndCloseExtension()
+    }
   }
 }

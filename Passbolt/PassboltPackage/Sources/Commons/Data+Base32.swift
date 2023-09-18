@@ -54,7 +54,7 @@ extension Data {
           switch index % 8 {
           case 0:
             outputBuffer[outputIndex] = (code << 3) & 0b11111000
-            // unfinished octets does not count to output
+          // unfinished octets does not count to output
 
           case 1:
             outputBuffer[outputIndex] = outputBuffer[outputIndex] | ((code >> 2) & 0b00000111)
@@ -63,7 +63,7 @@ extension Data {
 
           case 2:
             outputBuffer[outputIndex] = outputBuffer[outputIndex] | ((code << 1) & 0b00111110)
-            // unfinished octets does not count to output
+          // unfinished octets does not count to output
 
           case 3:
             outputBuffer[outputIndex] = outputBuffer[outputIndex] | ((code >> 4) & 0b00000001)
@@ -77,7 +77,7 @@ extension Data {
 
           case 5:
             outputBuffer[outputIndex] = outputBuffer[outputIndex] | ((code << 2) & 0b01111100)
-            // unfinished octets does not count to output
+          // unfinished octets does not count to output
 
           case 6:
             outputBuffer[outputIndex] = outputBuffer[outputIndex] | ((code >> 3) & 0b00000011)

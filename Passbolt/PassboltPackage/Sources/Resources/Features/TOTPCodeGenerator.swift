@@ -41,24 +41,15 @@ extension TOTPCodeGenerator: LoadableFeature {
 
   public struct Context {
 
-    public var resourceID: Resource.ID
-    public var sharedSecret: String
-    public var algorithm: HOTPAlgorithm
-    public var digits: UInt
-    public var period: Seconds
+    public var resourceID: Resource.ID?
+    public var totpSecret: TOTPSecret
 
     public init(
-      resourceID: Resource.ID,
-      sharedSecret: String,
-      algorithm: HOTPAlgorithm,
-      digits: UInt,
-      period: Seconds
+      resourceID: Resource.ID?,
+      totpSecret: TOTPSecret
     ) {
       self.resourceID = resourceID
-      self.sharedSecret = sharedSecret
-      self.algorithm = algorithm
-      self.digits = digits
-      self.period = period
+      self.totpSecret = totpSecret
     }
   }
 

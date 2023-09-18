@@ -23,6 +23,7 @@
 
 import Accounts
 import Combine
+import FeatureScopes
 import Features
 import Resources
 import SessionData
@@ -33,24 +34,22 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 @MainActor
 final class FoldersExplorerControllerTests: MainActorTestCase {
 
-  var updates: UpdatesSequenceSource!
+  var updates: Variable<Timestamp>!
 
   override func mainActorSetUp() {
-    updates = .init()
+    updates = .init(initial: 0)
     features.patch(
-      \SessionData.updatesSequence,
-      with: updates.updatesSequence
+      \SessionData.lastUpdate,
+      with: updates.asAnyUpdatable()
     )
     features.patch(
       \SessionData.refreshIfNeeded,
       with: always(Void())
     )
-    features.usePlaceholder(for: Resources.self)
-    features.usePlaceholder(for: ResourceFolders.self)
-    features.usePlaceholder(for: HomePresentation.self)
   }
 
   override func mainActorTearDown() {
@@ -131,7 +130,7 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
   func test_initally_viewStateTitle_isFolderName_forNonRootFolder() async throws {
     let controller: FoldersExplorerController = try testController(
       context: .init(
-        id: "folder",
+        id: .mock_1,
         name: "folder",
         permission: .owner,
         shared: false,

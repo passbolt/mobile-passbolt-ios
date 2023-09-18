@@ -22,7 +22,6 @@
 //
 
 import Combine
-import TestExtensions
 import XCTest
 
 @testable import Commons
@@ -30,63 +29,123 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class AnyAsyncSequenceTests: XCTestCase {
 
-  func test_iteration_returnsEmptySequence_withEmptyPublisher() async {
+  func test_iteration_returnsEmptySequence_withEmptyPublisher() async throws {
     let sequence: AnyAsyncSequence<Int> = .init(
-      Empty<Int, Never>(completeImmediately: true)
+      Empty<Int, Error>(completeImmediately: true)
     )
 
     var result: Array<Int> = .init()
-    for await element in sequence {
+    for try await element in sequence {
       result.append(element)
     }
 
     XCTAssertEqual(result, [])
   }
 
-  func test_iteration_returnsSequenceContent_withNonemptyPublisher() async {
+  func test_iteration_throws_withError() async {
+    let sequence: AnyAsyncSequence<Int> = .init(
+      Fail<Int, Error>(error: CancellationError())
+    )
+
+    do {
+      for try await _ in sequence {}
+      XCTFail("Expected to throw an error")
+    }
+    catch {
+      // expected result
+    }
+  }
+
+  func test_iteration_returnsSequenceContent_withNonemptyPublisher() async throws {
     let sequence: AnyAsyncSequence<Int> = .init(
       [1, 2, 3]
         .publisher
     )
 
     var result: Array<Int> = .init()
-    for await element in sequence {
+    for try await element in sequence {
       result.append(element)
     }
 
     XCTAssertEqual(result, [1, 2, 3])
   }
 
-  func test_iteration_returnsSequenceContent_withEmptySequence() async {
-    let content: AsyncStream<Int> = .init { continuation in
+  func test_iteration_returnsSequencePartialContent_withNonemptyPublisherWithError() async {
+    let subject: PassthroughSubject<Int, Error> = .init()
+
+    let sequence: AnyAsyncSequence<Int> = .init(subject)
+
+    Task.detached {
+      try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+      subject.send(completion: .failure(CancellationError()))
+    }
+
+    var result: Array<Int> = .init()
+    do {
+      for try await element in sequence {
+        result.append(element)
+      }
+      XCTFail("Expected to throw an error")
+    }
+    catch {
+      // expected result
+    }
+
+    XCTAssertEqual(result, [])
+  }
+
+  func test_iteration_returnsSequenceContent_withEmptySequence() async throws {
+    let content: AsyncThrowingStream<Int, Error> = .init { continuation in
       continuation.finish()
     }
 
     let sequence: AnyAsyncSequence<Int> = .init(content)
 
     var result: Array<Int> = .init()
-    for await element in sequence {
+    for try await element in sequence {
       result.append(element)
     }
 
     XCTAssertEqual(result, [])
   }
 
-  func test_iteration_returnsSequenceContent_withNonemptySequence() async {
-    let content: AsyncStream<Int> = .init { continuation in
+  func test_iteration_returnsSequenceContent_withNonemptySequence() async throws {
+    let content: AsyncThrowingStream<Int, Error> = .init { continuation in
       continuation.yield(1)
       continuation.yield(2)
       continuation.yield(3)
       continuation.finish()
     }
-
     let sequence: AnyAsyncSequence<Int> = .init(content)
 
     var result: Array<Int> = .init()
-    for await element in sequence {
+    for try await element in sequence {
       result.append(element)
     }
 
     XCTAssertEqual(result, [1, 2, 3])
+  }
+
+  func test_iteration_returnsSequencePartialContent_withNonemptySequenceWithError() async throws {
+    let content: AsyncThrowingStream<Int, Error> = .init { continuation in
+      continuation.yield(1)
+      continuation.yield(2)
+      continuation.finish(throwing: CancellationError())
+    }
+
+    let sequence: AnyAsyncSequence<Int> = .init(content)
+
+    var result: Array<Int> = .init()
+    do {
+      for try await element in sequence {
+        result.append(element)
+      }
+      XCTFail("Expected to throw an error")
+    }
+    catch {
+      // expected result
+    }
+
+    XCTAssertEqual(result, [1, 2])
   }
 }

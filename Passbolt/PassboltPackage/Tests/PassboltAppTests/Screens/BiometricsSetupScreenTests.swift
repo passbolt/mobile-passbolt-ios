@@ -23,6 +23,7 @@
 
 import Accounts
 import Combine
+import FeatureScopes
 import Features
 import TestExtensions
 import UIComponents
@@ -30,10 +31,11 @@ import UIComponents
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 @MainActor
 final class BiometricsSetupScreenTests: MainActorTestCase {
 
-  var preferencesUpdates: UpdatesSequenceSource!
+  var preferencesUpdates: Updates!
 
   override func mainActorSetUp() {
     features
@@ -54,7 +56,7 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
     features.patch(
       \AccountPreferences.updates,
       context: Account.mock_ada,
-      with: preferencesUpdates.updatesSequence
+      with: preferencesUpdates.asAnyUpdatable()
     )
     features.patch(
       \AccountInitialSetup.completeSetup,
@@ -179,16 +181,12 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
   }
 
   func test_setupBiometrics_setsBiometricsAsEnabled() async throws {
-    var result: Bool?
-    let uncheckedSendableResult: UncheckedSendable<Bool?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<Bool> = .init()
     features.patch(
       \AccountPreferences.storePassphrase,
       context: Account.mock_ada,
       with: { (store) async throws in
-        uncheckedSendableResult.variable = store
+        result.value = store
       }
     )
     features.patch(
@@ -202,7 +200,7 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
       .setupBiometrics()
       .asAsyncValue()
 
-    XCTAssertTrue(result)
+    XCTAssertTrue(result.value)
   }
 
   func test_setupBiometrics_fails_whenBiometricsEnableFails() async throws {

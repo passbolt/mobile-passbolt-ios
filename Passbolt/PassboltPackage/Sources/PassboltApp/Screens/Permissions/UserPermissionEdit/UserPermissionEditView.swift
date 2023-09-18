@@ -115,7 +115,7 @@ internal struct UserPermissionEditView: ComponentView {
               await self.controller
                 .setPermissionType(permission)
             },
-            label: {
+            regularLabel: {
               HStack(spacing: 0) {
                 ResourcePermissionTypeView(
                   permission: permission
@@ -189,7 +189,7 @@ extension UserPermissionEditView {
   }
 }
 
-extension UserPermissionEditView.ViewState: Hashable {
+extension UserPermissionEditView.ViewState: Equatable {
 
   internal static func == (
     _ lhs: Self,

@@ -29,20 +29,11 @@ public enum OTPSecret {
     digits: UInt,
     period: Seconds
   )
-  case hotp(
-    sharedSecret: String,
-    algorithm: HOTPAlgorithm,
-    digits: UInt,
-    counter: UInt64
-  )
 
   public var sharedSecret: String {
     get {
       switch self {
       case .totp(let secret, _, _, _):
-        return secret
-
-      case .hotp(let secret, _, _, _):
         return secret
       }
     }
@@ -55,14 +46,6 @@ public enum OTPSecret {
           digits: digits,
           period: period
         )
-
-      case let .hotp(_, algorithm, digits, counter):
-        self = .hotp(
-          sharedSecret: newValue,
-          algorithm: algorithm,
-          digits: digits,
-          counter: counter
-        )
       }
     }
   }
@@ -71,9 +54,6 @@ public enum OTPSecret {
     get {
       switch self {
       case .totp(_, let algorithm, _, _):
-        return algorithm
-
-      case .hotp(_, let algorithm, _, _):
         return algorithm
       }
     }
@@ -86,14 +66,6 @@ public enum OTPSecret {
           digits: digits,
           period: period
         )
-
-      case let .hotp(sharedSecret, _, digits, counter):
-        self = .hotp(
-          sharedSecret: sharedSecret,
-          algorithm: newValue,
-          digits: digits,
-          counter: counter
-        )
       }
     }
   }
@@ -102,9 +74,6 @@ public enum OTPSecret {
     get {
       switch self {
       case .totp(_, _, let digits, _):
-        return digits
-
-      case .hotp(_, _, let digits, _):
         return digits
       }
     }
@@ -117,14 +86,6 @@ public enum OTPSecret {
           digits: newValue,
           period: period
         )
-
-      case let .hotp(sharedSecret, algorithm, _, counter):
-        self = .hotp(
-          sharedSecret: sharedSecret,
-          algorithm: algorithm,
-          digits: newValue,
-          counter: counter
-        )
       }
     }
   }
@@ -134,9 +95,6 @@ public enum OTPSecret {
       switch self {
       case .totp(_, _, _, let period):
         return period
-
-      case .hotp(_, _, _, _):
-        return .none
       }
     }
     set {
@@ -148,9 +106,6 @@ public enum OTPSecret {
           digits: digits,
           period: newValue ?? period
         )
-
-      case .hotp:
-        break
       }
     }
   }
@@ -160,23 +115,12 @@ public enum OTPSecret {
       switch self {
       case .totp(_, _, _, _):
         return .none
-
-      case .hotp(_, _, _, let counter):
-        return counter
       }
     }
     set {
       switch self {
       case .totp:
         break
-
-      case let .hotp(sharedSecret, algorithm, digits, counter):
-        self = .hotp(
-          sharedSecret: sharedSecret,
-          algorithm: algorithm,
-          digits: digits,
-          counter: newValue ?? counter
-        )
       }
     }
   }
@@ -184,68 +128,3 @@ public enum OTPSecret {
 
 extension OTPSecret: Sendable {}
 extension OTPSecret: Equatable {}
-extension OTPSecret: Codable {
-
-  public init(
-    from decoder: Decoder
-  ) throws {
-    let container: KeyedDecodingContainer<CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
-    let sharedSecret: String = try container.decode(String.self, forKey: .sharedSecret)
-    let algorithm: HOTPAlgorithm = try container.decode(HOTPAlgorithm.self, forKey: .algorithm)
-    let digits: UInt = try container.decode(UInt.self, forKey: .digits)
-
-    if let totpPeriod: Seconds = try? container.decodeIfPresent(Seconds.self, forKey: .period) {
-      self = .totp(
-        sharedSecret: sharedSecret,
-        algorithm: algorithm,
-        digits: digits,
-        period: totpPeriod
-      )
-    }
-    else if let hotpCounter: UInt64 = try? container.decodeIfPresent(UInt64.self, forKey: .counter) {
-      self = .hotp(
-        sharedSecret: sharedSecret,
-        algorithm: algorithm,
-        digits: digits,
-        counter: hotpCounter
-      )
-    }
-    else {
-      throw
-        DecodingError
-        .dataCorrupted(
-          .init(
-            codingPath: decoder.codingPath,
-            debugDescription: "OTP secret has to be either TOTP or HOTP"
-          )
-        )
-    }
-  }
-
-  public func encode(
-    to encoder: Encoder
-  ) throws {
-    var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
-    switch self {
-    case let .totp(sharedSecret, algorithm, digits, period):
-      try container.encode(sharedSecret, forKey: .sharedSecret)
-      try container.encode(algorithm, forKey: .algorithm)
-      try container.encode(digits, forKey: .digits)
-      try container.encode(period, forKey: .period)
-
-    case let .hotp(sharedSecret, algorithm, digits, counter):
-      try container.encode(sharedSecret, forKey: .sharedSecret)
-      try container.encode(algorithm, forKey: .algorithm)
-      try container.encode(digits, forKey: .digits)
-      try container.encode(counter, forKey: .counter)
-    }
-  }
-
-  private enum CodingKeys: String, CodingKey {
-    case sharedSecret = "secret_key"
-    case algorithm = "algorithm"
-    case digits = "digits"
-    case period = "period"
-    case counter = "counter"
-  }
-}

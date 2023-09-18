@@ -25,7 +25,7 @@ import Display
 
 internal struct ResourcesListDisplayView: ControlledView {
 
-  private let controller: ResourcesListDisplayController
+  internal let controller: ResourcesListDisplayController
 
   internal init(
     controller: ResourcesListDisplayController
@@ -44,6 +44,5 @@ internal struct ResourcesListDisplayView: ControlledView {
         resourceMenuAction: self.controller.openResourceMenu
       )
     }
-    .task(self.controller.activate)
   }
 }

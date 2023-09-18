@@ -26,107 +26,200 @@ import UIComponents
 
 // Same instance should not be reused between multiple
 // views - it should uniquely identify a view on display.
-public protocol ViewController: Hashable, LoadableFeature {
+@MainActor public protocol ViewController: AnyObject, Hashable {
 
   associatedtype ViewState: Equatable = Stateless
+  associatedtype Context = Void
 
-  var viewState: MutableViewState<ViewState> { get }
+  nonisolated var viewState: ViewStateSource<ViewState> { get }
+
+  @MainActor init(
+    context: Context,
+    features: Features
+  ) throws
+
+  @available(*, deprecated, message: "Do not use viewNodeID to identify views. Legacy use only!")
+  nonisolated var viewNodeID: ViewNodeID { get }
 }
 
 extension ViewController {
 
-  public var viewNodeID: ViewNodeID {
-    self.viewState.viewNodeID
+  @available(*, deprecated, message: "Do not use viewNodeID to identify views. Legacy use only!")
+  public nonisolated var viewNodeID: ViewNodeID {
+    .init(rawValue: ObjectIdentifier(self))
   }
 }
 
 extension ViewController /* Hashable */ {
 
-  public static func == (
+  public nonisolated static func == (
     _ lhs: Self,
     _ rhs: Self
   ) -> Bool {
-    lhs.viewNodeID == rhs.viewNodeID
+    lhs === rhs
   }
 
-  public func equal(
-    to other: any ViewController
-  ) -> Bool {
-    func equal<LHS: ViewController>(
-      _ lhs: LHS,
-      _ rhs: any ViewController
-    ) -> Bool {
-      lhs.viewNodeID == (rhs as? LHS)?.viewNodeID
-    }
-
-    return equal(self, other)
+  public nonisolated func equal<Other>(
+    to other: Other
+  ) -> Bool
+  where Other: ViewController {
+    return self === other
   }
 
-  public func hash(
+  public nonisolated func hash(
     into hasher: inout Hasher
   ) {
-    hasher.combine(self.viewNodeID)
+    hasher.combine(self)
+  }
+}
+
+extension ViewController
+where ViewState == Stateless {
+
+  public nonisolated var viewState: ViewStateSource<Stateless> {
+    ViewStateSource<Stateless>()
   }
 }
 
 extension ViewController {
 
-  @MainActor public func binding<Value>(
-    to keyPath: WritableKeyPath<ViewState, Value>
-  ) -> Binding<Value> {
-    self.viewState.binding(to: keyPath)
-  }
-
-  @MainActor public func binding<Value>(
+  @MainActor internal func binding<Value>(
     to keyPath: WritableKeyPath<ViewState, Value>,
-    updating setter: @escaping (Value) -> Void
+    updating setter: @escaping @MainActor (Value) -> Void
   ) -> Binding<Value> {
     .init(
-      get: {
+      get: { @MainActor in
         self.viewState.value[keyPath: keyPath]
       },
-      set: setter
+      set: { @MainActor [setter] (newValue: Value) in
+        // quick loop - update local state immediately to prevent SwiftUI issues
+        self.viewState.value[keyPath: keyPath] = newValue
+        setter(newValue)  // then pass the update to actual source of data
+      }
     )
   }
 
-  @MainActor public func validatedBinding<Value>(
+  @MainActor internal func optionalBinding<Value>(
+    to keyPath: WritableKeyPath<ViewState, Value?>,
+    default: Value,
+    updating setter: @escaping @MainActor (Value) -> Void
+  ) -> Binding<Value> {
+    .init(
+      get: { @MainActor in
+        self.viewState.value[keyPath: keyPath] ?? `default`
+      },
+      set: { @MainActor [setter] (newValue: Value) in
+        // quick loop - update local state immediately to prevent SwiftUI issues
+        self.viewState.value[keyPath: keyPath] = newValue
+        setter(newValue)  // then pass the update to actual source of data
+      }
+    )
+  }
+
+  @MainActor internal func validatedBinding<Value>(
     to keyPath: WritableKeyPath<ViewState, Validated<Value>>,
-    updating setter: @escaping (Value) -> Void
+    updating setter: @escaping @MainActor (Value) -> Void
   ) -> Binding<Validated<Value>> {
     .init(
-      get: {
+      get: { @MainActor in
         self.viewState.value[keyPath: keyPath]
       },
-      set: { (newValue: Validated<Value>) in
-        setter(newValue.value)
+      set: { @MainActor [setter] (newValue: Validated<Value>) in
+        // quick loop - update local state immediately to prevent SwiftUI issues
+        self.viewState.value[keyPath: keyPath] = newValue
+        setter(newValue.value)  // then pass the update to actual source of data
       }
     )
   }
 
-  @MainActor public func validatedStringBinding<Value, UpdateValue>(
-    with keyPath: WritableKeyPath<ViewState, Validated<Value>>,
-    updating setter: @escaping (UpdateValue) -> Void,
-    fromString: @escaping (String) -> UpdateValue?,
-    toString: @escaping (Value) -> String
-  ) -> Binding<Validated<String>> {
+  @MainActor internal func validatedOptionalBinding<Value>(
+    to keyPath: WritableKeyPath<ViewState, Validated<Value>?>,
+    default: Validated<Value>,
+    updating setter: @escaping @MainActor (Value) -> Void
+  ) -> Binding<Validated<Value>> {
     .init(
-      get: {
-        let validated: Validated<Value> = self.viewState.value[keyPath: keyPath]
-        if let error: TheError = validated.error {
-          return .invalid(
-            toString(validated.value),
-            error: error
-          )
-        }
-        else {
-          return .valid(toString(validated.value))
-        }
+      get: { @MainActor in
+        self.viewState.value[keyPath: keyPath] ?? `default`
       },
-      set: { (newValidated: Validated<String>) in
-        guard let newValue: UpdateValue = fromString(newValidated.value)
-        else { return }  // ignore
-        setter(newValue)
+      set: { @MainActor [setter] (newValue: Validated<Value>) in
+        // quick loop - update local state immediately to prevent SwiftUI issues
+        self.viewState.value[keyPath: keyPath] = newValue
+        setter(newValue.value)  // then pass the update to actual source of data
       }
+    )
+  }
+
+  @MainActor internal func validatedOptionalBinding<MidValue, Value>(
+    to nestedKeyPath: WritableKeyPath<MidValue, Validated<Value>>,
+    in keyPath: WritableKeyPath<ViewState, MidValue?>,
+    default: Validated<Value>,
+    updating setter: @escaping @MainActor (Value) -> Void
+  ) -> Binding<Validated<Value>> {
+    .init(
+      get: { @MainActor in
+        self.viewState.value[keyPath: keyPath]?[keyPath: nestedKeyPath] ?? `default`
+      },
+      set: { @MainActor [setter] (newValue: Validated<Value>) in
+        // quick loop - update local state immediately to prevent SwiftUI issues
+        self.viewState.value[keyPath: keyPath]?[keyPath: nestedKeyPath] = newValue
+        setter(newValue.value)  // then pass the update to actual source of data
+      }
+    )
+  }
+
+  @MainActor internal func validatedBinding<Value, Tag>(
+    to keyPath: WritableKeyPath<ViewState, Validated<Tagged<Value, Tag>>>,
+    updating setter: @escaping @MainActor (Tagged<Value, Tag>) -> Void
+  ) -> Binding<Validated<Value>> {
+    return .init(
+      get: { @MainActor in
+        self.viewState.value[keyPath: keyPath].map(\.rawValue)
+      },
+      set: { @MainActor [setter] (newValue: Validated<Value>) in
+        // quick loop - update local state immediately to prevent SwiftUI issues
+        let tagged: Validated<Tagged<Value, Tag>> = newValue.map(Tagged<Value, Tag>.init(rawValue:))
+        self.viewState.value[keyPath: keyPath] = tagged
+        setter(tagged.value)  // then pass the update to actual source of data
+      }
+    )
+  }
+
+  @MainActor internal func binding<Value>(
+    to keyPath: WritableKeyPath<ViewState, Value>
+  ) -> Binding<Value> {
+    Binding<Value>(
+      get: { self.viewState.value[keyPath: keyPath] },
+      set: { (newValue: Value) in
+        self.viewState.value[keyPath: keyPath] = newValue
+      }
+    )
+  }
+}
+
+extension Features {
+
+  @MainActor public func instance<Controller>(
+    of _: Controller.Type = Controller.self,
+    context: Controller.Context,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) throws -> Controller
+  where Controller: ViewController {
+    try Controller(
+      context: context,
+      features: self
+    )
+  }
+
+  @MainActor public func instance<Controller>(
+    of _: Controller.Type = Controller.self,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) throws -> Controller
+  where Controller: ViewController, Controller.Context == Void {
+    try Controller(
+      context: Void(),
+      features: self
     )
   }
 }

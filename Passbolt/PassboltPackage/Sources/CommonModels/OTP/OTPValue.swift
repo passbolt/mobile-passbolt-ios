@@ -39,7 +39,7 @@ extension OTPValue {
     }
   }
 
-  public var resourceID: Resource.ID {
+  public var resourceID: Resource.ID? {
     switch self {
     case .totp(let value):
       return value.resourceID

@@ -28,6 +28,7 @@ import TestExtensions
 @testable import PassboltSession
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class SessionDatabaseTests: LoadableFeatureTestCase<SessionDatabase> {
 
   override class func testedImplementationRegister(
@@ -38,6 +39,10 @@ final class SessionDatabaseTests: LoadableFeatureTestCase<SessionDatabase> {
 
   override func prepare() throws {
     use(Session.placeholder)
+    patch(
+      \Session.updates,
+      with: Updates().asAnyUpdatable()
+    )
     use(SessionState.placeholder)
     use(SessionStateEnsurance.placeholder)
     use(DatabaseAccess.placeholder)
@@ -108,10 +113,10 @@ final class SessionDatabaseTests: LoadableFeatureTestCase<SessionDatabase> {
   }
 
   func test_connection_throws_withActiveSessionClosing() {
-    let sessionUpdatesSequenceSource: UpdatesSequenceSource = .init()
+    let sessionUpdates: Updates = .init()
     patch(
-      \Session.updatesSequence,
-      with: sessionUpdatesSequenceSource.updatesSequence
+      \Session.updates,
+      with: sessionUpdates.asAnyUpdatable()
     )
     patch(
       \SessionState.account,
@@ -132,7 +137,7 @@ final class SessionDatabaseTests: LoadableFeatureTestCase<SessionDatabase> {
     }
 
     self.account = Optional<Account>.none
-    sessionUpdatesSequenceSource.sendUpdate()
+    sessionUpdates.update()
     withTestedInstanceThrows(DatabaseConnectionClosed.self) { (testedInstance: SessionDatabase) in
       try await testedInstance.connection()
     }

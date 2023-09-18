@@ -26,16 +26,138 @@ import SwiftUI
 public struct CommonList<Content>: View
 where Content: View {
 
-  private let content: () -> Content
+  private let content: @MainActor () -> Content
 
   public init(
-    @ViewBuilder content: @escaping () -> Content
+    @ViewBuilder content: @escaping @MainActor () -> Content
   ) {
     self.content = content
   }
 
   public var body: some View {
     List(content: self.content)
-      .commonListModifiers()
+      .listStyle(.plain)
+      .environment(\.defaultMinListRowHeight, 32)  // allows smaller rows
+      .environment(\.defaultMinListHeaderHeight, 16)  // allows smaller headers
+      .foregroundColor(.passboltPrimaryText)
+      .backgroundColor(.passboltBackground)
+      .backport.hidesKeyboardOnScroll()
+      .backport.hideScrollContentBackground()
+      .clipped()
   }
 }
+
+#if DEBUG
+
+internal struct CommonList_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    CommonList {
+      CommonListSection(
+        header: {
+          Text("Custom header")
+        },
+        content: {
+          CommonListRow(
+            content: {
+              Text("One line")
+                .padding(
+                  top: 8,
+                  bottom: 8
+                )
+            },
+            accessory: {
+              CopyButtonImage()
+            }
+          )
+        }
+      )
+
+      CommonListSection(
+        header: {
+          Text("Custom header")
+        },
+        content: {
+          CommonListRow(
+            content: {
+              Text(
+                "Item with really long text that wont fit in one or two lines but rather more to fill possible space and see how it behaves when longer string than expected with minimal size will became put inside row"
+              )
+              .padding(
+                top: 8,
+                bottom: 8
+              )
+            },
+            accessory: {
+              CopyButtonImage()
+            }
+          )
+        }
+      )
+
+      CommonListSection(
+        header: {
+          Text("List header")
+        },
+        content: {
+          ForEach((0 ... 10), id: \.self) { idx in
+            CommonListRow(
+              content: {
+                Text("Item \(idx)")
+                  .padding(
+                    top: 8,
+                    bottom: 8
+                  )
+              },
+              accessory: {
+                CopyButtonImage()
+              }
+            )
+          }
+        }
+      )
+
+      ForEach((0 ... 10), id: \.self) { idx in
+        CommonListSection {
+          CommonListRow(
+            content: {
+              Text("No header item \(idx)")
+                .padding(
+                  top: 8,
+                  bottom: 8
+                )
+            },
+            accessory: {
+              CopyButtonImage()
+            }
+          )
+        }
+      }
+
+      ForEach((0 ... 10), id: \.self) { idx in
+        CommonListSection(
+          header: {
+            Text("Header list \(idx)")
+          },
+          content: {
+            CommonListRow(
+              content: {
+                Text("Header item \(idx)")
+                  .padding(
+                    top: 8,
+                    bottom: 8
+                  )
+              },
+              accessory: {
+                CopyButtonImage()
+              }
+            )
+          }
+        )
+      }
+
+      CommonListSpacer()
+    }
+  }
+}
+#endif

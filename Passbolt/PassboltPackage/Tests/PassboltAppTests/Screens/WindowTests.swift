@@ -31,16 +31,17 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 @MainActor
 final class WindowTests: MainActorTestCase {
 
-  var updates: UpdatesSequenceSource!
+  var updates: Updates!
 
   override func mainActorSetUp() {
     updates = .init()
     features.patch(
-      \Session.updatesSequence,
-      with: updates.updatesSequence
+      \Session.updates,
+      with: updates.asAnyUpdatable()
     )
     features.patch(
       \Session.currentAccount,
@@ -69,7 +70,7 @@ final class WindowTests: MainActorTestCase {
     var result: WindowController.ScreenStateDisposition?
 
     result =
-      await controller
+      try await controller
       .screenStateDispositionSequence()
       .first()
 
@@ -94,7 +95,7 @@ final class WindowTests: MainActorTestCase {
       controller
       .screenStateDispositionSequence().makeAsyncIterator()
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
     pendingAuthorization = .passphrase(Account.mock_ada)
 
@@ -102,10 +103,10 @@ final class WindowTests: MainActorTestCase {
       // Temporary wait related to implementation
       // of merge from async algorithms 0.1.0
       try await Task.sleep(nanoseconds: NSEC_PER_MSEC * 100)
-      self.updates.sendUpdate()
+      self.updates.update()
     }
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
     guard case let .requestPassphrase(account, message) = result
     else { return XCTFail() }
@@ -130,7 +131,7 @@ final class WindowTests: MainActorTestCase {
       controller
       .screenStateDispositionSequence().makeAsyncIterator()
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
     pendingAuthorization = .mfa(
       Account.mock_ada,
@@ -140,10 +141,10 @@ final class WindowTests: MainActorTestCase {
       // Temporary wait related to implementation
       // of merge from async algorithms 0.1.0
       try await Task.sleep(nanoseconds: NSEC_PER_MSEC * 100)
-      self.updates.sendUpdate()
+      self.updates.update()
     }
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
     guard case let .requestMFA(account, providers) = result
     else { return XCTFail() }
@@ -154,15 +155,13 @@ final class WindowTests: MainActorTestCase {
   func test_screenStateDispositionSequence_returnsUseInitialScreenState_whenAccountSessionStateChangesToAuthorized()
     async throws
   {
-    var currentAccount: Account?
-    let uncheckedSendableCurrentAccount: UncheckedSendable<Account?> = .init(
-      get: { currentAccount },
-      set: { currentAccount = $0 }
+    let currentAccount: UnsafeSendable<Account> = .init(
+      .mock_ada
     )
     features.patch(
       \Session.currentAccount,
       with: { () async throws in
-        if let currentAccount = uncheckedSendableCurrentAccount.variable {
+        if let currentAccount = currentAccount.value {
           return currentAccount
         }
         else {
@@ -178,17 +177,17 @@ final class WindowTests: MainActorTestCase {
       controller
       .screenStateDispositionSequence().makeAsyncIterator()
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
-    currentAccount = Account.mock_ada
+    currentAccount.value = Account.mock_ada
     Task {
       // Temporary wait related to implementation
       // of merge from async algorithms 0.1.0
       try await Task.sleep(nanoseconds: NSEC_PER_MSEC * 100)
-      self.updates.sendUpdate()
+      self.updates.update()
     }
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
     guard case .useInitialScreenState = result
     else { return XCTFail() }
@@ -198,15 +197,13 @@ final class WindowTests: MainActorTestCase {
     test_screenStateDispositionSequence_returnsUseCachedScreenState_whenAccountSessionStateChangesToAuthorized_andPendingAuthorizationHadSameAccountPassphraseRequest()
     async throws
   {
-    var currentAccount: Account? = Account.mock_ada
-    let uncheckedSendableCurrentAccount: UncheckedSendable<Account?> = .init(
-      get: { currentAccount },
-      set: { currentAccount = $0 }
+    let currentAccount: UnsafeSendable<Account> = .init(
+      .mock_ada
     )
     features.patch(
       \Session.currentAccount,
       with: { () async throws in
-        if let currentAccount = uncheckedSendableCurrentAccount.variable {
+        if let currentAccount = currentAccount.value {
           return currentAccount
         }
         else {
@@ -227,23 +224,23 @@ final class WindowTests: MainActorTestCase {
       controller
       .screenStateDispositionSequence().makeAsyncIterator()
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
     pendingAuthorization = .passphrase(Account.mock_ada)
     Task {
       // Temporary wait related to implementation
       // of merge from async algorithms 0.1.0
       try await Task.sleep(nanoseconds: NSEC_PER_MSEC * 100)
-      self.updates.sendUpdate()
+      self.updates.update()
     }
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
-    currentAccount = Account.mock_ada
+    currentAccount.value = Account.mock_ada
     pendingAuthorization = .none
-    updates.sendUpdate()
+    updates.update()
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
     guard case .useCachedScreenState = result
     else { return XCTFail() }
@@ -253,15 +250,13 @@ final class WindowTests: MainActorTestCase {
     test_screenStateDispositionSequence_returnsUseCachedScreenState_whenAccountSessionStateChangesToAuthorized_andPendingAuthorizationHadSameAccountMFARequest()
     async throws
   {
-    var currentAccount: Account? = Account.mock_ada
-    let uncheckedSendableCurrentAccount: UncheckedSendable<Account?> = .init(
-      get: { currentAccount },
-      set: { currentAccount = $0 }
+    let currentAccount: UnsafeSendable<Account> = .init(
+      .mock_ada
     )
     features.patch(
       \Session.currentAccount,
       with: { () async throws in
-        if let currentAccount = uncheckedSendableCurrentAccount.variable {
+        if let currentAccount = currentAccount.value {
           return currentAccount
         }
         else {
@@ -282,7 +277,7 @@ final class WindowTests: MainActorTestCase {
       controller
       .screenStateDispositionSequence().makeAsyncIterator()
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
     pendingAuthorization = .mfa(
       Account.mock_ada,
@@ -292,21 +287,21 @@ final class WindowTests: MainActorTestCase {
       // Temporary wait related to implementation
       // of merge from async algorithms 0.1.0
       try await Task.sleep(nanoseconds: NSEC_PER_MSEC * 100)
-      self.updates.sendUpdate()
+      self.updates.update()
     }
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
-    currentAccount = Account.mock_ada
+    currentAccount.value = Account.mock_ada
     pendingAuthorization = .none
     Task {
       // Temporary wait related to implementation
       // of merge from async algorithms 0.1.0
       try await Task.sleep(nanoseconds: NSEC_PER_MSEC * 100)
-      self.updates.sendUpdate()
+      self.updates.update()
     }
 
-    result = await iterator.next()
+    result = try await iterator.next()
 
     guard case .useCachedScreenState = result
     else { return XCTFail() }

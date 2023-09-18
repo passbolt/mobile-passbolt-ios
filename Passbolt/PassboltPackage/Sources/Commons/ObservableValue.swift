@@ -25,7 +25,7 @@ import Combine
 
 import class Foundation.RunLoop
 
-@available(*, deprecated, message: "Please switch to `MutableViewState`")
+@available(*, deprecated, message: "Please switch to `ViewStateVariable`")
 @MainActor @dynamicMemberLookup
 public final class ObservableValue<Value>: ObservableObject
 where Value: Equatable {

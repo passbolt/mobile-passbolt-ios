@@ -22,12 +22,14 @@
 //
 
 import DatabaseOperations
+import FeatureScopes
 import SessionData
 import TestExtensions
 
 @testable import PassboltResources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
 
   override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
@@ -38,7 +40,7 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
     registry.usePassboltResourceFolders()
   }
 
-  private var updatesSequenceSource: UpdatesSequenceSource!
+  private var updatesSequenceSource: Variable<Timestamp>!
 
   override func prepare() throws {
     self.set(
@@ -49,10 +51,10 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
       )
     )
 
-    updatesSequenceSource = .init()
+    updatesSequenceSource = .init(initial: 0)
     patch(
-      \SessionData.updatesSequence,
-      with: updatesSequenceSource.updatesSequence
+      \SessionData.lastUpdate,
+      with: updatesSequenceSource.asAnyUpdatable()
     )
     use(ResourceFolderDetailsFetchDatabaseOperation.placeholder)
   }
@@ -70,12 +72,12 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
     let filter: ResourceFoldersFilter = .init(
       sorting: .nameAlphabetically,
       text: "",
-      folderID: .init(rawValue: "FilterFolderID"),
+      folderID: .mock_1,
       flattenContent: false,
       permissions: .init()
     )
 
-    let feature: ResourceFolders = try await self.testedInstance()
+    let feature: ResourceFolders = try self.testedInstance()
 
     await XCTAssertError(matches: MockIssue.self) {
       try await feature.filteredFolderContent(filter)
@@ -95,12 +97,12 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
     let filter: ResourceFoldersFilter = .init(
       sorting: .nameAlphabetically,
       text: "",
-      folderID: .init(rawValue: "FilterFolderID"),
+      folderID: .mock_1,
       flattenContent: false,
       permissions: .init()
     )
 
-    let feature: ResourceFolders = try await self.testedInstance()
+    let feature: ResourceFolders = try self.testedInstance()
 
     await XCTAssertError(matches: MockIssue.self) {
       try await feature.filteredFolderContent(filter)
@@ -124,12 +126,12 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
     let filter: ResourceFoldersFilter = .init(
       sorting: .nameAlphabetically,
       text: "",
-      folderID: .init(rawValue: "FilterFolderID"),
+      folderID: .mock_1,
       flattenContent: false,
       permissions: .init()
     )
 
-    let feature: ResourceFolders = try await self.testedInstance()
+    let feature: ResourceFolders = try self.testedInstance()
 
     let result: ResourceFolderContent = try await feature.filteredFolderContent(filter)
 
@@ -161,12 +163,12 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
     let filter: ResourceFoldersFilter = .init(
       sorting: .nameAlphabetically,
       text: "",
-      folderID: .init(rawValue: "FilterFolderID"),
+      folderID: .mock_1,
       flattenContent: false,
       permissions: .init()
     )
 
-    let feature: ResourceFolders = try await self.testedInstance()
+    let feature: ResourceFolders = try self.testedInstance()
 
     let result: ResourceFolderContent = try await feature.filteredFolderContent(filter)
 
@@ -199,20 +201,20 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
       .init(
         sorting: .nameAlphabetically,
         text: "",
-        folderID: .init(rawValue: "FilterFolderID"),
+        folderID: .mock_1,
         flattenContent: false,
         permissions: .init()
       ),
       .init(
         sorting: .nameAlphabetically,
         text: "",
-        folderID: .init(rawValue: "OtherFilterFolderID"),
+        folderID: .mock_2,
         flattenContent: false,
         permissions: .init()
       ),
     ]
 
-    let feature: ResourceFolders = try await self.testedInstance()
+    let feature: ResourceFolders = try self.testedInstance()
 
     var result: Array<ResourceFolderContent> = .init()
     try await result.append(feature.filteredFolderContent(filters[0]))

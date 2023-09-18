@@ -58,7 +58,7 @@ internal struct UserGroupMembersListRowView_Previews: PreviewProvider {
     UserGroupMembersListRowView(
       .init(
         userDetails: .init(
-          id: "mock_1",
+          id: .init(),
           username: "ada@passbolt.com",
           firstName: "Ada",
           lastName: "Lovelance",

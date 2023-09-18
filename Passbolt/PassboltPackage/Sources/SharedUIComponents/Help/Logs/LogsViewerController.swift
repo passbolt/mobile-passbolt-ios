@@ -44,7 +44,7 @@ extension LogsViewerController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
+
     let executor: AsyncExecutor = try features.instance()
 
     let diagnosticsInfoCacheSubject: CurrentValueSubject<Array<String>?, Never> = .init(nil)
@@ -52,7 +52,7 @@ extension LogsViewerController: UIController {
 
     func refreshLogs() {
       executor.schedule {
-        diagnosticsInfoCacheSubject.send(diagnostics.diagnosticsInfo())
+        diagnosticsInfoCacheSubject.send(Diagnostics.shared.info())
       }
     }
 

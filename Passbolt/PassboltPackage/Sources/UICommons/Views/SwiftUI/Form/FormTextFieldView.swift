@@ -27,38 +27,38 @@ import SwiftUI
 public struct FormTextFieldView<Accessory>: View
 where Accessory: View {
 
-  private let title: DisplayableString
+  private let title: String
+  private let prompt: String?
   private let mandatory: Bool
-  private let prompt: DisplayableString?
+  @Binding private var state: Validated<String>
   private let accessory: () -> Accessory
-  @Binding private var text: Validated<String>
   @FocusState private var focused: Bool
   @State private var editing: Bool = false
 
   public init(
     title: DisplayableString = .raw(""),
+    prompt: DisplayableString? = nil,
     mandatory: Bool = false,
-    text: Binding<Validated<String>>,
-    prompt: DisplayableString? = nil
+    state: Binding<Validated<String>>
   ) where Accessory == EmptyView {
-    self._text = text
-    self.title = title
+    self.title = title.string()
+    self.prompt = prompt?.string()
     self.mandatory = mandatory
-    self.prompt = prompt
+    self._state = state
     self.accessory = EmptyView.init
   }
 
   public init(
     title: DisplayableString = .raw(""),
-    mandatory: Bool = false,
-    text: Binding<Validated<String>>,
     prompt: DisplayableString? = nil,
+    mandatory: Bool = false,
+    state: Binding<Validated<String>>,
     @ViewBuilder accessory: @escaping () -> Accessory
   ) {
-    self._text = text
-    self.title = title
+    self.title = title.string()
+    self.prompt = prompt?.string()
     self.mandatory = mandatory
-    self.prompt = prompt
+    self._state = state
     self.accessory = accessory
   }
 
@@ -67,11 +67,9 @@ where Accessory: View {
       alignment: .leading,
       spacing: 0
     ) {
-      let title: String = self.title.string()
-
-      if !title.isEmpty {
+      if !self.title.isEmpty {
         Group {
-          Text(title)
+          Text(self.title)
             + Text(self.mandatory ? " *" : "")
             .foregroundColor(Color.passboltSecondaryRed)
         }
@@ -80,28 +78,30 @@ where Accessory: View {
             ofSize: 12,
             weight: .medium
           ),
-          color: self.text.isValid
+          color: self.state.isValid
             ? Color.passboltPrimaryText
             : Color.passboltSecondaryRed
         )
         .padding(
           top: 4,
-          bottom: 4
+          bottom: 6
         )
       }  // else skip
 
       HStack {
         SwiftUI.TextField(
-          title,
+          self.title,
           text: .init(
-            get: { self.text.value },
-            set: { newValue in
-              self.text.value = newValue
+            get: {
+              self.state.value
+            },
+            set: { (newValue: String) in
+              self.state.value = newValue
             }
           ),
           prompt: self.prompt
             .map {
-              Text(displayable: $0)
+              Text($0)
                 .text(
                   font: .inter(
                     ofSize: 14,
@@ -126,13 +126,14 @@ where Accessory: View {
             self.editing = focused
           }
         }
+        .frame(height: 20)
         .padding(12)
         .overlay(
           RoundedRectangle(cornerRadius: 4)
             .stroke(
               self.editing
                 ? Color.passboltPrimaryBlue
-                : self.text.isValid
+                : self.state.isValid
                   ? Color.passboltDivider
                   : Color.passboltSecondaryRed,
               lineWidth: 1
@@ -152,24 +153,29 @@ where Accessory: View {
         self.accessory()
       }
 
-      if let errorMessage: DisplayableString = self.text.displayableErrorMessage {
-        Text(displayable: errorMessage)
-          .multilineTextAlignment(.leading)
+      if let message: String = self.state.displayableErrorMessage?.string() {
+        Text(message)
           .text(
+            .leading,
             font: .inter(
               ofSize: 12,
               weight: .regular
             ),
             color: .passboltSecondaryRed
           )
-          .padding(
-            top: 4,
-            bottom: 4
+          .frame(
+            maxWidth: .infinity,
+            alignment: .leading
           )
-          .accessibilityIdentifier("form.textfield.error")
-      }  // else no view
+          .padding(top: 4)
+          .accessibilityIdentifier("form.field.error")
+      }  // else NOP
     }
     .frame(maxWidth: .infinity)
+    .animation(
+      .easeIn,
+      value: self.state.displayableErrorMessage
+    )
   }
 }
 
@@ -178,99 +184,155 @@ where Accessory: View {
 internal struct FormTextFieldView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    VStack(spacing: 8) {
-      FormTextFieldView(
-        title: "Some field title",
-        text: .constant(.valid("edited")),
-        prompt: "editedText"
-      )
-
-      FormTextFieldView(
-        title: "Some required",
-        mandatory: true,
-        text: .constant(.valid("edited")),
-        prompt: "editedText"
-      )
-
-      FormTextFieldView(
-        title: "Some required",
-        mandatory: true,
-        text: .constant(
-          .invalid(
-            "invalidText",
-            error:
-              InvalidValue
-              .error(
-                validationRule: "PREVIEW",
-                value: "VALUE",
-                displayable: "invalid value"
-              )
+    ScrollView {
+      VStack(spacing: 8) {
+        PreviewInputState { state in
+          FormTextFieldView(
+            title: "Some field title",
+            prompt: "Live to edit in preview!",
+            state: state
           )
-        ),
-        prompt: "editedText"
-      )
+        }
 
-      FormTextFieldView(
-        text: .constant(.valid("edited")),
-        prompt: "editedText"
-      )
+        FormTextFieldView(
+          title: "Some required",
+          prompt: "editedText",
+          mandatory: true,
+          state: .constant(.valid("edited"))
+        )
 
-      FormTextFieldView(
-        text: .constant(.valid("")),
-        prompt: "emptyText"
-      )
-
-      FormTextFieldView(
-        text: .constant(.valid("validText"))
-      )
-
-      FormTextFieldView(
-        text: .constant(
-          .invalid(
-            "",
-            error:
-              InvalidValue
-              .empty(
-                value: "",
-                displayable: "empty"
-              )
-          )
-        ),
-        prompt: "emptyInvalidText"
-      )
-
-      FormTextFieldView(
-        text: .constant(
-          .invalid(
-            "invalidText",
-            error:
-              InvalidValue
-              .error(
-                validationRule: "PREVIEW",
-                value: "VALUE",
-                displayable: "invalid value"
-              )
+        FormTextFieldView(
+          title: "Some required",
+          prompt: "editedText",
+          mandatory: true,
+          state: .constant(
+            .invalid(
+              "invalidText",
+              error:
+                InvalidValue
+                .error(
+                  validationRule: "PREVIEW",
+                  value: "VALUE",
+                  displayable: "invalid value"
+                )
+            )
           )
         )
-      )
 
-      FormTextFieldView(
-        text: .constant(
-          .invalid(
-            "invalidLongText",
-            error:
-              InvalidValue
-              .error(
-                validationRule: "PREVIEW",
-                value: "VALUE",
-                displayable:
-                  "invalid value with some long message displayed to see how it goes when message is really long and will start line breaking with even more than two lines"
-              )
+        FormTextFieldView(
+          title: "Some accessory",
+          state: .constant(
+            .invalid(
+              "invalidText",
+              error:
+                InvalidValue
+                .error(
+                  validationRule: "PREVIEW",
+                  value: "VALUE",
+                  displayable: "invalid value"
+                )
+            )
+          ),
+          accessory: {
+            Button(
+              action: {},
+              label: {
+                Image(named: .dice)
+                  .tint(.passboltPrimaryText)
+                  .padding(12)
+                  .backgroundColor(.passboltDivider)
+                  .cornerRadius(4)
+              }
+            )
+          }
+        )
+
+        FormTextFieldView(
+          title: "Some accessory",
+          state: .constant(.valid("")),
+          accessory: {
+            Button(
+              action: {},
+              label: {
+                Image(named: .dice)
+                  .tint(.passboltPrimaryText)
+                  .padding(12)
+                  .backgroundColor(.passboltDivider)
+                  .cornerRadius(4)
+              }
+            )
+          }
+        )
+
+        FormTextFieldView(
+          prompt: "accessory with no name",
+          state: .constant(.valid("")),
+          accessory: {
+            Button(
+              action: {},
+              label: {
+                Image(named: .dice)
+                  .tint(.passboltPrimaryText)
+                  .padding(12)
+                  .backgroundColor(.passboltDivider)
+                  .cornerRadius(4)
+              }
+            )
+          }
+        )
+
+        FormTextFieldView(
+          state: .constant(.valid("validText"))
+        )
+
+        FormTextFieldView(
+          prompt: "emptyInvalidText",
+          state: .constant(
+            .invalid(
+              "",
+              error:
+                InvalidValue
+                .empty(
+                  value: "",
+                  displayable: "empty"
+                )
+            )
           )
         )
-      )
+
+        FormTextFieldView(
+          state: .constant(
+            .invalid(
+              "invalidText",
+              error:
+                InvalidValue
+                .error(
+                  validationRule: "PREVIEW",
+                  value: "VALUE",
+                  displayable: "invalid value"
+                )
+            )
+          )
+        )
+
+        FormTextFieldView(
+          state: .constant(
+            .invalid(
+              "invalidLongText",
+              error:
+                InvalidValue
+                .error(
+                  validationRule: "PREVIEW",
+                  value: "VALUE",
+                  displayable:
+                    "invalid value with some long message displayed to see how it goes when message is really long and will start line breaking with even more than two lines"
+                )
+            )
+          )
+        )
+      }
+      .padding(8)
     }
-    .padding(8)
   }
 }
 #endif

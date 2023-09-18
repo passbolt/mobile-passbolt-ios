@@ -32,7 +32,7 @@ import struct Foundation.URL
 public struct AccountDetails {
 
   /// Updates in the context account details.
-  public var updates: UpdatesSequence
+  public var updates: AnyUpdatable<Void>
   /// Access currently stored profile data
   /// for the context account.
   public var profile: @Sendable () throws -> AccountWithProfile
@@ -43,7 +43,7 @@ public struct AccountDetails {
   public var avatarImage: @Sendable () async throws -> Data?
 
   public init(
-    updates: UpdatesSequence,
+    updates: AnyUpdatable<Void>,
     profile: @escaping @Sendable () throws -> AccountWithProfile,
     updateProfile: @escaping @Sendable () async throws -> Void,
     avatarImage: @escaping @Sendable () async throws -> Data?
@@ -62,7 +62,7 @@ extension AccountDetails: LoadableFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      updates: .placeholder,
+      updates: PlaceholderUpdatable().asAnyUpdatable(),
       profile: unimplemented0(),
       updateProfile: unimplemented0(),
       avatarImage: unimplemented0()

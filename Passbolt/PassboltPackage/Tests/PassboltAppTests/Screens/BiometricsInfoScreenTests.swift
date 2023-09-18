@@ -22,6 +22,7 @@
 //
 
 import Combine
+import FeatureScopes
 import Features
 import TestExtensions
 import UIComponents
@@ -29,6 +30,7 @@ import UIComponents
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 @MainActor
 final class BiometricsInfoScreenTests: MainActorTestCase {
 
@@ -76,15 +78,11 @@ final class BiometricsInfoScreenTests: MainActorTestCase {
   }
 
   func test_setupBiometrics_opensSystemSettings() async throws {
-    var result: Void?
-    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<Void> = .init()
     features.patch(
       \OSLinkOpener.openSystemSettings,
       with: { () async throws -> Void in
-        uncheckedSendableResult.variable = Void()
+        result.value = Void()
       }
     )
     features.patch(
@@ -114,7 +112,7 @@ final class BiometricsInfoScreenTests: MainActorTestCase {
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
-    XCTAssertNotNil(result)
+    XCTAssertNotNil(result.value)
   }
 
   func test_presentationDestinationPublisher_publishExtensionSetup_whenSkipped_andExtensionIsEnabled() async throws {

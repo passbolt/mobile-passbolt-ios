@@ -21,340 +21,287 @@
 // @since         v1.0
 //
 
-import CommonModels
-import UICommons
+import Display
 
-internal final class ResourceDetailsView: ScrolledStackView {
+internal struct ResourceDetailsView: ControlledView {
 
-  internal var toggleEncryptedFieldTapPublisher: AnyPublisher<ResourceField, Never> {
-    toggleEncryptedFieldTapSubject.eraseToAnyPublisher()
+  internal let controller: ResourceDetailsViewController
+
+  internal init(
+    controller: ResourceDetailsViewController
+  ) {
+    self.controller = controller
   }
 
-  internal var copyFieldTapPublisher: AnyPublisher<ResourceField, Never> {
-    copyFieldTapSubject.eraseToAnyPublisher()
-  }
-
-  private let favoriteStarView: ImageView = .init()
-  private let iconView: LetterIconLegacyView = .init()
-  private let titleLabel: Label = .init()
-  private let toggleEncryptedFieldTapSubject: PassthroughSubject<ResourceField, Never> = .init()
-  private let copyFieldTapSubject: PassthroughSubject<ResourceField, Never> = .init()
-  private var fieldUpdates: Dictionary<ResourceField, (Mutation<ResourceDetailsItemView>) -> Void> = [:]
-
-  // Used to identify dynamic items in the stack
-  private static let formItemTag: Int = 42
-  // Used to identify filler in the stack
-  private static let formFillerTag: Int = 43
-
-  @available(*, unavailable)
-  internal required init?(coder: NSCoder) {
-    unreachable(#function)
-  }
-
-  internal required init() {
-    super.init()
-
-    let iconContainer: ContainerView<PlainView> = .init(
-      contentView: iconView
-    )
-
-    mut(iconContainer) {
-      .combined(
-        .backgroundColor(.clear),
-        .heightAnchor(.equalTo, constant: 60)
-      )
+  internal var body: some View {
+    withSnackBarMessage(\.snackBarMessage) {
+      self.contentView
     }
-
-    mut(iconView) {
-      .combined(
-        .heightAnchor(.equalTo, constant: 60),
-        .widthAnchor(.equalTo, constant: 60)
-      )
-    }
-
-    mut(titleLabel) {
-      .combined(
-        .textColor(dynamic: .primaryText),
-        .font(.inter(ofSize: 24, weight: .semibold)),
-        .textAlignment(.center)
-      )
-    }
-
-    mut(self) {
-      .combined(
-        .backgroundColor(dynamic: .background),
-        .isLayoutMarginsRelativeArrangement(true),
-        .contentInset(.init(top: 24, left: 16, bottom: 8, right: 16)),
-        .append(iconContainer),
-        .appendSpace(of: 8),
-        .append(titleLabel),
-        .appendSpace(of: 32)
-      )
-    }
-
-    mut(favoriteStarView) {
-      .combined(
-        .image(named: .starFilled, from: .uiCommons),
-        .tintColor(.passboltSecondaryOrange),
-        .widthAnchor(.equalTo, constant: 32),
-        .heightAnchor(.equalTo, constant: 32),
-        .subview(of: self),
-        .centerXAnchor(.equalTo, iconView.centerXAnchor, constant: 30),
-        .centerYAnchor(.equalTo, iconView.centerYAnchor, constant: -30)
-      )
-    }
-  }
-
-  internal func update(with config: ResourceDetailsController.ResourceWithConfig) {
-    removeAllArrangedSubviews(withTag: Self.formItemTag)
-    removeAllArrangedSubviews(withTag: Self.formFillerTag)
-    fieldUpdates.removeAll()
-
-    let resource: Resource = config.resource
-    let resourceName: String = resource.value(forField: "name")?.stringValue ?? ""
-    favoriteStarView.isHidden = resource.favoriteID == .none
-    iconView.update(from: resourceName)
-    titleLabel.text = resourceName
-
-    let setupSteps: Array<FieldSetup> = resource.fields.compactMap { (field: ResourceField) -> FieldSetup? in
-      let encryptedPlaceholder: String = .init(repeating: "*", count: 10)
-
-      let contentButtonMutation: Mutation<ResourceDetailsItemView> = .action { [weak self] in
-        self?.copyFieldTapSubject.send(field)
-      }
-      let valueMutation: Mutation<TextView> = .combined(
-        .userInteractionEnabled(false),
-        .when(
-          field.encrypted,
-          then: .text(encryptedPlaceholder),
-          else: .text(resource.value(for: field)?.stringValue ?? "")
+    .toolbar {
+      ToolbarItemGroup(placement: .navigationBarTrailing) {
+        IconButton(
+          iconName: .more,
+          action: self.controller.showMenu
         )
-      )
-      let titleMutation: Mutation<Label>
-      let accessoryButtonMutation: Mutation<ImageButton>
-      if field.encrypted {
-        if (field.name != "password" && field.name != "secret") || config.revealPasswordEnabled {
-          accessoryButtonMutation = .combined(
-            .image(named: .eye, from: .uiCommons),
-            .action { [weak self] in
-              self?.toggleEncryptedFieldTapSubject.send(field)
-            }
-          )
-        }
-        else {
-          accessoryButtonMutation = .hidden(true)
+      }
+    }
+    .backgroundColor(.passboltBackground)
+    .foregroundColor(.passboltPrimaryText)
+    .onDisappear(perform: self.controller.coverAllFields)
+  }
+
+  @MainActor @ViewBuilder private var contentView: some View {
+    CommonList {
+      self.headerSectionView
+      with(\.containsUndefinedFields) { (containsUndefinedFields: Bool) in
+        if containsUndefinedFields {
+          self.undefinedContentSectionView
         }
       }
-      else {
-        accessoryButtonMutation = .combined(
-          .image(named: .copy, from: .uiCommons),
-          .action { [weak self] in
-            self?.copyFieldTapSubject.send(field)
+      self.fieldsSectionsView
+      self.locationSectionView
+      self.tagsSectionView
+      self.permissionsSectionView
+      CommonListSpacer(minHeight: 16)
+    }
+    .edgesIgnoringSafeArea(.bottom)
+  }
+
+  @MainActor @ViewBuilder private var undefinedContentSectionView: some View {
+    CommonListSection {
+      CommonListRow {
+        WarningView(message: "resource.detail.undefined.content.warning")
+      }
+    }
+  }
+
+  @MainActor @ViewBuilder private var headerSectionView: some View {
+    CommonListSection {
+      CommonListRow {
+        with(\.name) { (name: String) in
+          VStack(spacing: 8) {
+            with(\.favorite) { (favorite: Bool) in
+              ZStack(alignment: .topTrailing) {
+                LetterIconView(text: name)
+                  .padding(
+                    top: 16,
+                    leading: favorite
+                      ? 16
+                      : 0
+                  )
+                if favorite {
+                  Image(named: .starFilled)
+                    .foregroundColor(.passboltSecondaryOrange)
+                    .frame(
+                      width: 32,
+                      height: 32
+                    )
+                    .alignmentGuide(.trailing) { dim in
+                      dim[HorizontalAlignment.center]
+                    }
+                }  // else nothing
+              }
+            }
+
+            Text(name)
+              .multilineTextAlignment(.center)
+              .text(
+                font: .inter(
+                  ofSize: 24,
+                  weight: .semibold
+                ),
+                color: .passboltPrimaryText
+              )
+              .frame(
+                maxWidth: .infinity,
+                alignment: .center
+              )
+          }
+        }
+      }
+      .padding(
+        leading: 16,
+        bottom: 32,
+        trailing: 16
+      )
+    }
+  }
+
+  @MainActor @ViewBuilder private var fieldsSectionsView: some View {
+    CommonListSection {
+      withEach(\.fields) { (fieldModel: ResourceDetailsFieldViewModel) in
+        CommonListRow(
+          contentAction: {
+            await self.controller.copyFieldValue(path: fieldModel.path)
+          },
+          content: {
+            ResourceFieldView(
+              name: fieldModel.name,
+              content: {
+                switch fieldModel.value {
+                case .plain(let value):
+                  Text(value)
+                    .text(
+                      .leading,
+                      lines: .none,
+                      font: .inter(
+                        ofSize: 14,
+                        weight: .regular
+                      ),
+                      color: .passboltSecondaryText
+                    )
+
+                case .encrypted:
+                  Text("••••••••")
+                    .text(
+                      .leading,
+                      lines: 1,
+                      font: .inter(
+                        ofSize: 14,
+                        weight: .regular
+                      ),
+                      color: .passboltSecondaryText
+                    )
+
+                case .password(let value):
+                  // password has specific font to be displayed
+                  Text(value)
+                    .text(
+                      .leading,
+                      lines: .none,
+                      font: .inconsolata(
+                        ofSize: 14,
+                        weight: .regular
+                      ),
+                      color: .passboltSecondaryText
+                    )
+
+                case .encryptedTOTP:
+                  TOTPValueView(value: .none)
+
+                case .totp(hash: _, let generateTOTP):
+                  AutoupdatingTOTPValueView(generateTOTP: generateTOTP)
+
+                case .placeholder(let value):
+                  Text(value)
+                    .text(
+                      .leading,
+                      lines: .none,
+                      font: .interItalic(
+                        ofSize: 12,
+                        weight: .regular
+                      ),
+                      color: .passboltSecondaryText
+                    )
+
+                case .invalid(let error):
+                  Text(displayable: error.displayableMessage)
+                    .text(
+                      .leading,
+                      lines: .none,
+                      font: .interItalic(
+                        ofSize: 14,
+                        weight: .regular
+                      ),
+                      color: .passboltSecondaryRed
+                    )
+                }
+              }
+            )
+          },
+          accessoryAction: fieldModel.accessory.map { accessory in
+            switch accessory {
+            case .copy:
+              return {
+                await self.controller.copyFieldValue(path: fieldModel.path)
+              }
+
+            case .reveal:
+              return {
+                await self.controller.revealFieldValue(path: fieldModel.path)
+              }
+
+            case .hide:
+              return {
+                self.controller.coverFieldValue(path: fieldModel.path)
+              }
+            }
+          },
+          accessory: {
+            switch fieldModel.accessory {
+            case .copy:
+              CopyButtonImage()
+
+            case .reveal:
+              RevealButtonImage()
+
+            case .hide:
+              CoverButtonImage()
+
+            case .none:
+              EmptyView()
+            }
           }
         )
       }
+    }
+  }
 
-      switch field.name {
-      case "name":
-        return .none  // name is displayed differently
-
-      case "username":
-        titleMutation = .text(
-          displayable: .localized(key: "resource.detail.field.username")
-        )
-
-      case "password", "secret":
-        titleMutation = .text(
-          displayable: .localized(
-            key: "resource.detail.field.passphrase"
+  @MainActor @ViewBuilder private var locationSectionView: some View {
+    CommonListSection {
+      CommonListRow(
+        contentAction: self.controller.showLocationDetails,
+        content: {
+          ResourceFieldView(
+            name: "resource.detail.section.location",
+            content: {
+              with(\.location) { (location: Array<String>) in
+                FolderLocationView(locationElements: location)
+              }
+            }
           )
-        )
-      case "uri":
-        titleMutation = .text(
-          displayable: .localized(
-            key: "resource.detail.field.uri"
+        },
+        accessory: DisclosureIndicatorImage.init
+      )
+    }
+  }
+
+  @MainActor @ViewBuilder private var tagsSectionView: some View {
+    CommonListSection {
+      CommonListRow(
+        contentAction: self.controller.showTagsDetails,
+        content: {
+          ResourceFieldView(
+            name: "resource.detail.section.tags",
+            content: {
+              with(\.tags) { (tags: Array<String>) in
+                CompactTagsView(tags: tags)
+              }
+            }
           )
-        )
+        },
+        accessory: DisclosureIndicatorImage.init
+      )
+    }
+  }
 
-      case "description":
-        titleMutation = .text(
-          displayable: .localized(
-            key: "resource.detail.field.description"
+  @MainActor @ViewBuilder private var permissionsSectionView: some View {
+    CommonListSection {
+      CommonListRow(
+        contentAction: self.controller.showPermissionsDetails,
+        content: {
+          ResourceFieldView(
+            name: "resource.detail.section.permissions",
+            content: {
+              with(\.permissions) { (permissionItems: Array<OverlappingAvatarStackView.Item>) in
+                OverlappingAvatarStackView(permissionItems)
+                  .frame(height: 40)
+              }
+            }
           )
-        )
-
-      case _:
-        titleMutation = .text(
-          displayable: .raw(field.name)
-        )
-      }
-
-      return .init(
-        field: field,
-        contentButtonMutation: contentButtonMutation,
-        titleMutation: titleMutation,
-        valueMutation: valueMutation,
-        accessoryButtonMutation: accessoryButtonMutation
-      )
-    }
-
-    typealias ItemWithUpdate = (
-      itemView: ResourceDetailsItemView,
-      fieldUpdate: (Mutation<ResourceDetailsItemView>) -> Void
-    )
-
-    let fieldViews: Array<ItemWithUpdate> = setupSteps.map { setup in
-      let itemView: ResourceDetailsItemView = .init(fieldName: setup.field)
-      itemView.tag = Self.formItemTag
-
-      let fieldUpdate: (Mutation<ResourceDetailsItemView>) -> Void = { itemMutation in
-        itemMutation.apply(on: itemView)
-      }
-
-      Mutation.combined(
-        setup.contentButtonMutation.contramap(\ResourceDetailsItemView.self),
-        setup.titleMutation.contramap(\ResourceDetailsItemView.titleLabel),
-        setup.valueMutation.contramap(\ResourceDetailsItemView.valueTextView),
-        setup.accessoryButtonMutation.contramap(\ResourceDetailsItemView.accessoryButton)
-      )
-      .apply(on: itemView)
-
-      return (itemView: itemView, fieldUpdate: fieldUpdate)
-    }
-
-    fieldViews.forEach { itemWithUpdate in
-      fieldUpdates[itemWithUpdate.itemView.fieldName] = itemWithUpdate.fieldUpdate
-    }
-
-    mut(self) {
-      .forEach(
-        in: fieldViews,
-        { itemWithUpdate in
-          .combined(
-            .append(itemWithUpdate.itemView),
-            .appendSpace(of: 16, tag: Self.formItemTag)
-          )
-        }
+        },
+        accessory: DisclosureIndicatorImage.init
       )
     }
   }
-
-  internal func applyOn(
-    field: ResourceField,
-    buttonMutation: Mutation<ImageButton>,
-    valueTextViewMutation: Mutation<TextView>
-  ) {
-    guard let itemViewUpdate = fieldUpdates[field]
-    else { return }
-
-    itemViewUpdate(
-      .combined(
-        buttonMutation.contramap(\ResourceDetailsItemView.accessoryButton),
-        valueTextViewMutation.contramap(\ResourceDetailsItemView.valueTextView)
-      )
-    )
-  }
-
-  internal func insertShareSection(
-    view: UIView
-  ) {
-    removeAllArrangedSubviews(withTag: Self.formFillerTag)
-    self.append(view)
-    self.appendFiller(tag: Self.formFillerTag)
-  }
-
-  internal func insertTagsSection(
-    view: UIView
-  ) {
-    removeAllArrangedSubviews(withTag: Self.formFillerTag)
-    self.append(view)
-    self.appendFiller(tag: Self.formFillerTag)
-  }
-
-  internal func insertLocationSection(
-    view: UIView
-  ) {
-    removeAllArrangedSubviews(withTag: Self.formFillerTag)
-    self.append(view)
-    self.appendFiller(tag: Self.formFillerTag)
-  }
-}
-
-internal final class ResourceDetailsItemView: PlainButton {
-
-  fileprivate var fieldName: ResourceField
-  fileprivate var titleLabel: Label = .init()
-  fileprivate var valueTextView: TextView = .init()
-  fileprivate var accessoryButton: ImageButton = .init()
-
-  @available(*, unavailable)
-  internal required init?(coder: NSCoder) {
-    unreachable(#function)
-  }
-
-  @available(*, unavailable, message: "Use init(fieldName:)")
-  internal required init() {
-    unreachable(#function)
-  }
-
-  internal init(fieldName: ResourceField) {
-    self.fieldName = fieldName
-    super.init()
-
-    mut(self) {
-      .combined(
-        .backgroundColor(dynamic: .background),
-        .subview(titleLabel, valueTextView, accessoryButton),
-        .heightAnchor(.greaterThanOrEqualTo, constant: 52)
-      )
-    }
-
-    mut(titleLabel) {
-      .combined(
-        .leadingAnchor(.equalTo, leadingAnchor),
-        .trailingAnchor(.equalTo, accessoryButton.leadingAnchor, constant: -8),
-        .topAnchor(.equalTo, topAnchor, constant: 4),
-        .bottomAnchor(.equalTo, valueTextView.topAnchor, constant: -8),
-        .textColor(dynamic: .primaryText),
-        .font(.inter(ofSize: 12, weight: .semibold))
-      )
-    }
-
-    mut(valueTextView) {
-      .combined(
-        .leadingAnchor(.equalTo, titleLabel.leadingAnchor),
-        .trailingAnchor(.equalTo, titleLabel.trailingAnchor),
-        .heightAnchor(.greaterThanOrEqualTo, constant: 20),
-        .bottomAnchor(.equalTo, bottomAnchor, constant: -8),
-        .textColor(dynamic: .secondaryText),
-        .lineBreakMode(.byWordWrapping),
-        .font(.inter(ofSize: 14, weight: .medium)),
-        .set(\.contentInset, to: .zero),
-        .set(\.textContainerInset, to: .init(top: 0, left: -5, bottom: 0, right: 0)),
-        .set(\.isScrollEnabled, to: false),
-        .set(\.isEditable, to: false)
-      )
-    }
-
-    mut(accessoryButton) {
-      .combined(
-        .trailingAnchor(.equalTo, trailingAnchor),
-        .centerYAnchor(.equalTo, centerYAnchor),
-        .widthAnchor(.equalTo, constant: 32),
-        .heightAnchor(.equalTo, constant: 32),
-        .tintColor(dynamic: .iconAlternative),
-        .imageContentMode(.scaleAspectFit),
-        .imageInsets(.init(top: 4, left: 4, bottom: -4, right: -4))
-      )
-    }
-  }
-}
-
-private struct FieldSetup {
-
-  fileprivate var field: ResourceField
-  fileprivate var contentButtonMutation: Mutation<ResourceDetailsItemView>
-  fileprivate var titleMutation: Mutation<Label>
-  fileprivate var valueMutation: Mutation<TextView>
-  fileprivate var accessoryButtonMutation: Mutation<ImageButton>
 }

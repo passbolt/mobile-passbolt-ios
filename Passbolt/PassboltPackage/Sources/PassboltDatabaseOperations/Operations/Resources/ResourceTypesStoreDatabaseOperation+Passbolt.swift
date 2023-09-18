@@ -22,6 +22,7 @@
 //
 
 import DatabaseOperations
+import FeatureScopes
 import Session
 
 // MARK: - Implementation
@@ -33,7 +34,6 @@ extension ResourceTypesStoreDatabaseOperation {
     connection: SQLiteConnection
   ) throws {
     // cleanup existing types as preparation for update
-    try connection.execute("DELETE FROM resourceFields;")
     try connection.execute("DELETE FROM resourceTypes;")
 
     for resourceType in input {
@@ -43,93 +43,25 @@ extension ResourceTypesStoreDatabaseOperation {
           INSERT INTO
             resourceTypes(
               id,
-              slug,
-              name
+              slug
             )
           VALUES
             (
               ?1,
-              ?2,
-              ?3
+              ?2
             )
           ON CONFLICT
             (
               id
             )
           DO UPDATE SET
-            slug=?2,
-            name=?3
+            slug=?2
           ;
           """,
           arguments: resourceType.id,
-          resourceType.slug,
-          resourceType._name
+          resourceType.specification.slug
         )
       )
-
-      for field in resourceType.fields {
-        let resourceFieldID: Int? =
-          try connection.fetchFirst(
-            using: .statement(
-              """
-              INSERT INTO
-                resourceFields(
-                  name,
-                  valueType,
-                  encrypted,
-                  required,
-                  minimum,
-                  maximum
-                )
-              VALUES
-                (
-                  ?1,
-                  ?2,
-                  ?3,
-                  ?4,
-                  ?5,
-                  ?6
-                )
-              RETURNING
-                id AS id
-              ;
-              """,
-              arguments: field.name,
-              field.valueTypeName,
-              field.encrypted,
-              field.required,
-              field.minimum,
-              field.maximum
-            )
-          )?
-          .id
-
-        guard let resourceFieldID: Int = resourceFieldID
-        else {
-          throw
-            DatabaseResultInvalid
-            .error("Failed to get inserted resource field id")
-        }
-        try connection.execute(
-          .statement(
-            """
-            INSERT INTO
-              resourceTypesFields(
-                resourceTypeID,
-                resourceFieldID
-              )
-            VALUES
-              (
-                ?1,
-                ?2
-              )
-            ;
-            """,
-            arguments: resourceType.id,
-            resourceFieldID
-          )
-        )
-      }
     }
   }
 }

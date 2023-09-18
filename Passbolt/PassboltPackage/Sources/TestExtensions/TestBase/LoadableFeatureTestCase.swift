@@ -21,13 +21,14 @@
 // @since         v1.0
 //
 
+import FeatureScopes
 import UIComponents
 import XCTest
 
 @testable import Features
 
 /// Base class for preparing unit tests of features.
-@MainActor
+@MainActor @available(iOS 16.0.0, *)
 open class LoadableFeatureTestCase<Feature>: AsyncTestCase
 where Feature: LoadableFeature {
 
@@ -91,11 +92,6 @@ where Feature: LoadableFeature {
 
     self.mockExecutionControl = .init()
     self.features = .init()
-    self.features
-      .patch(
-        \OSDiagnostics.self,
-        with: OSDiagnostics.disabled
-      )
 
     self.features
       .patch(
@@ -147,6 +143,7 @@ where Feature: LoadableFeature {
   }
 }
 
+@available(iOS 16.0.0, *)
 extension LoadableFeatureTestCase {
 
   @available(*, deprecated, message: "UIController should be migrated to a proper feature")
@@ -437,6 +434,7 @@ extension LoadableFeatureTestCase {
   }
 }
 
+@available(iOS 16.0.0, *)
 extension LoadableFeatureTestCase {
 
   public func withTestedInstance(

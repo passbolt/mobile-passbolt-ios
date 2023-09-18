@@ -123,6 +123,20 @@ extension DiagnosticsContext {
   }
 }
 
+extension DiagnosticsContext {
+
+  public var diagnosticsDescription: String {
+    "\(Self.self):\(self.infoStack.reduce(into: "", { $0.append("\n•\($1.diagnosticsDescription.replacingOccurrences(of: "\n", with: "\n⮑"))")}))"
+  }
+}
+
+extension DiagnosticsContext: CustomStringConvertible {
+
+  public var description: String {
+    "\(Self.self)\n\(self.infoStack.reduce(into: "", { $0.append("\($1.description)\n")}))\n"
+  }
+}
+
 extension DiagnosticsContext: CustomDebugStringConvertible {
 
   public var debugDescription: String {

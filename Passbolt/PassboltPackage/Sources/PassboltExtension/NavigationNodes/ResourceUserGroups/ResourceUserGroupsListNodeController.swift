@@ -29,57 +29,33 @@ import SessionData
 import SharedUIComponents
 import Users
 
-internal struct ResourceUserGroupsListNodeController {
+internal final class ResourceUserGroupsListNodeController: ViewController {
 
-  internal var viewState: MutableViewState<ViewState>
-  internal var closeExtension: () -> Void
+  internal nonisolated let viewState: ViewStateSource<ViewState>
   internal var searchController: ResourceSearchDisplayController
-  internal var contentController: ResourceUserGroupsListDisplayController
-}
+  internal var contentController: ResourceUserGroupsListDisplayController!  // lazy?
 
-extension ResourceUserGroupsListNodeController: ViewController {
+  private let asyncExecutor: AsyncExecutor
+  private let navigationTree: NavigationTree
+  private let autofillContext: AutofillExtensionContext
+  private let currentAccount: Account
 
-  internal struct Context {
+  private let context: Context
+  private let features: Features
 
-    internal var title: DisplayableString = .localized(
-      key: "home.presentation.mode.resource.user.groups.explorer.title"
-    )
-    internal var searchPrompt: DisplayableString = .localized(key: "resources.search.placeholder")
-    internal var titleIconName: ImageNameConstant = .userGroup
-  }
+  internal init(
+    context: Context,
+    features: Features
+  ) throws {
+    self.context = context
+    self.features = features
 
-  internal struct ViewState: Hashable {
+    self.asyncExecutor = try features.instance()
+    self.navigationTree = features.instance()
+    self.autofillContext = features.instance()
+    self.currentAccount = try features.sessionAccount()
 
-    internal var title: DisplayableString
-    internal var titleIconName: ImageNameConstant
-    internal var snackBarMessage: SnackBarMessage?
-  }
-
-  #if DEBUG
-  nonisolated static var placeholder: Self {
-    .init(
-      viewState: .placeholder(),
-      closeExtension: { unimplemented() },
-      searchController: .placeholder,
-      contentController: .placeholder
-    )
-  }
-  #endif
-}
-
-extension ResourceUserGroupsListNodeController {
-
-  @MainActor fileprivate static func load(
-    features: Features,
-    context: Context
-  ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
-    let navigationTree: NavigationTree = features.instance()
-    let autofillContext: AutofillExtensionContext = features.instance()
-    let currentAccount: Account = try features.sessionAccount()
-
-    let viewState: MutableViewState<ViewState> = .init(
+    self.viewState = .init(
       initial: .init(
         title: context.title,
         titleIconName: context.titleIconName,
@@ -87,10 +63,11 @@ extension ResourceUserGroupsListNodeController {
       )
     )
 
-    let searchController: ResourceSearchDisplayController = try features.instance(
+    self.searchController = try features.instance(
       context: .init(
+        nodeID: context.nodeID,
         searchPrompt: context.searchPrompt,
-        showMessage: { (message: SnackBarMessage?) in
+        showMessage: { [viewState] (message: SnackBarMessage?) in
           viewState.update { viewState in
             viewState.snackBarMessage = message
           }
@@ -98,91 +75,91 @@ extension ResourceUserGroupsListNodeController {
       )
     )
 
-    let contentController: ResourceUserGroupsListDisplayController = try features.instance(
+    self.contentController = try features.instance(
       context: .init(
-        filter: searchController
+        filter: self.searchController
           .searchText
+          .asAnyAsyncSequence()
+          .compactMap { try? $0.value }
           .map { (text: String) -> UserGroupsFilter in
             .init(
-              userID: currentAccount.userID,
+              userID: self.currentAccount.userID,
               text: text
             )
-          },
-        selectGroup: selectUserGroup(_:),
-        showMessage: { (message: SnackBarMessage?) in
+          }
+          .asAnyAsyncSequence(),
+        selectGroup: self.selectUserGroup(_:),
+        showMessage: { [viewState] (message: SnackBarMessage?) in
           viewState.update { viewState in
             viewState.snackBarMessage = message
           }
         }
       )
-    )
-
-    @Sendable nonisolated func selectUserGroup(
-      _ userGroupID: UserGroup.ID
-    ) {
-      asyncExecutor.schedule(.replace) {
-        do {
-          let userGroup: UserGroupDetails = try await features.instance(context: userGroupID)
-          let userGroupDetails: UserGroupDetailsDSV = try await userGroup.details()
-
-          let nodeController: ResourcesListNodeController =
-            try await features
-            .instance(
-              of: ResourcesListNodeController.self,
-              context: .init(
-                title: .raw(userGroupDetails.name),
-                titleIconName: .userGroup,
-                baseFilter: .init(
-                  sorting: .nameAlphabetically,
-                  userGroups: [userGroupID]
-                )
-              )
-            )
-
-          await navigationTree
-            .push(
-              ResourcesListNodeView.self,
-              controller: nodeController
-            )
-        }
-        catch {
-          diagnostics.log(
-            error: error,
-            info: .message(
-              "Failed to handle user group selection."
-            )
-          )
-          await viewState.update { viewState in
-            viewState.snackBarMessage = .error(error)
-          }
-        }
-      }
-    }
-
-    nonisolated func closeExtension() {
-      asyncExecutor.schedule(.reuse) {
-        await autofillContext.cancelAndCloseExtension()
-      }
-    }
-
-    return .init(
-      viewState: viewState,
-      closeExtension: closeExtension,
-      searchController: searchController,
-      contentController: contentController
     )
   }
 }
 
-extension FeaturesRegistry {
+extension ResourceUserGroupsListNodeController {
 
-  public mutating func usePassboltResourceUserGroupsListNodeController() {
-    self.use(
-      .disposable(
-        ResourceUserGroupsListNodeController.self,
-        load: ResourceUserGroupsListNodeController.load(features:context:)
-      ),
-      in: SessionScope.self
+  internal struct Context {
+
+    internal var nodeID: ViewNodeID
+    internal var title: DisplayableString = .localized(
+      key: "home.presentation.mode.resource.user.groups.explorer.title"
     )
+    internal var searchPrompt: DisplayableString = .localized(key: "resources.search.placeholder")
+    internal var titleIconName: ImageNameConstant = .userGroup
+  }
+
+  internal struct ViewState: Equatable {
+
+    internal var title: DisplayableString
+    internal var titleIconName: ImageNameConstant
+    internal var snackBarMessage: SnackBarMessage?
+  }
+}
+
+extension ResourceUserGroupsListNodeController {
+
+  @Sendable internal nonisolated func selectUserGroup(
+    _ userGroupID: UserGroup.ID
+  ) {
+    self.asyncExecutor.scheduleCatching(
+      failMessage: "Failed to handle user group selection.",
+      failAction: { [viewState] (error: Error) in
+        await viewState.update(\.snackBarMessage, to: .error(error))
+      },
+      behavior: .replace
+    ) { [features, context, navigationTree] in
+      let userGroup: UserGroupDetails = try await features.instance(context: userGroupID)
+      let userGroupDetails: UserGroupDetailsDSV = try await userGroup.details()
+
+      let nodeController: ResourcesListNodeController =
+        try await features
+        .instance(
+          of: ResourcesListNodeController.self,
+          context: .init(
+            nodeID: context.nodeID,
+            title: .raw(userGroupDetails.name),
+            titleIconName: .userGroup,
+            baseFilter: .init(
+              sorting: .nameAlphabetically,
+              userGroups: [userGroupID]
+            )
+          )
+        )
+
+      await navigationTree
+        .push(
+          ResourcesListNodeView.self,
+          controller: nodeController
+        )
+    }
+  }
+
+  internal final func closeExtension() {
+    self.asyncExecutor.schedule(.reuse) { [autofillContext] in
+      await autofillContext.cancelAndCloseExtension()
+    }
   }
 }

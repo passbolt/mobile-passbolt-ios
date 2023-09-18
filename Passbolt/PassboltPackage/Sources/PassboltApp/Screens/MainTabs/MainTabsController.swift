@@ -23,6 +23,7 @@
 
 import Accounts
 import DatabaseOperations
+import FeatureScopes
 import Features
 import OSFeatures
 import Session
@@ -65,10 +66,12 @@ extension MainTabsController: UIController {
     let features: Features = features
     let currentAccount: Account = try features.sessionAccount()
     let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
+    let accountDetails: AccountDetails = try features.instance(context: currentAccount)
 
     let accountInitialSetup: AccountInitialSetup = try features.instance(context: currentAccount)
     let osBiometry: OSBiometry = features.instance()
     let sessionData: SessionData = try features.instance()
+    let resourcesCountFetchDatabaseOperation: ResourcesCountFetchDatabaseOperation = try features.instance()
     let resourceTypesFetchDatabaseOperation: ResourceTypesFetchDatabaseOperation = try features.instance()
 
     let activeTabSubject: CurrentValueSubject<MainTab, Never> = .init(.home)
@@ -84,6 +87,18 @@ extension MainTabsController: UIController {
     func initialModalPresentation() -> AnyPublisher<ModalPresentation?, Never> {
       Future<ModalPresentation?, Never> { promise in
         Task {
+          do {
+            Diagnostics.logger.info("Updating account profile data...")
+            try await accountDetails.updateProfile()
+            Diagnostics.logger.info("...account profile data updated!")
+          }
+          catch {
+            error
+              .logged(
+                info: .message("...account profile data update failed!")
+              )
+          }
+
           let unfinishedSetupElements: Set<AccountInitialSetup.SetupElement> =
             await accountInitialSetup.unfinishedSetupElements()
 
@@ -111,16 +126,24 @@ extension MainTabsController: UIController {
     }
 
     func otpTabAvailable() async -> Bool {
-      guard sessionConfiguration.totpEnabled
-      else { return false }
       do {
         try await sessionData.refreshIfNeeded()
+        // If a user has access to otp resources just show
+        // them regardless of feature flag
+        let count: Int = try await resourcesCountFetchDatabaseOperation([.totp, .passwordWithTOTP])
+        guard count == 0
+        else { return true }
+        // if there is no otp resource yet, check the flag
+        guard sessionConfiguration.totpEnabled
+        else { return false }
+        // finally check if resource type is available
         let availableResourceTypes: Array<ResourceType> = try await resourceTypesFetchDatabaseOperation()
         return
           availableResourceTypes
-          .contains(where: { $0.slug == .totp || $0.slug == .hotp })
+          .contains { $0.specification.slug == .totp }
       }
       catch {
+        error.logged()
         return false
       }
     }

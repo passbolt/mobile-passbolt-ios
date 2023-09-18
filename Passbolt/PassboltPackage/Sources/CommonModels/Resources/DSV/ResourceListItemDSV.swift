@@ -26,6 +26,8 @@ import Commons
 public struct ResourceListItemDSV {
 
   public let id: Resource.ID
+  public let type: ResourceType
+  public let permission: Permission
   public var parentFolderID: ResourceFolder.ID?
   public var name: String
   public var username: String?
@@ -33,12 +35,16 @@ public struct ResourceListItemDSV {
 
   public init(
     id: Resource.ID,
+    type: ResourceType,
+    permission: Permission,
     parentFolderID: ResourceFolder.ID?,
     name: String,
     username: String?,
     url: String?
   ) {
     self.id = id
+    self.type = type
+    self.permission = permission
     self.parentFolderID = parentFolderID
     self.name = name
     self.username = username
@@ -46,4 +52,5 @@ public struct ResourceListItemDSV {
   }
 }
 
-extension ResourceListItemDSV: Hashable {}
+extension ResourceListItemDSV: Equatable {}
+extension ResourceListItemDSV: Sendable {}

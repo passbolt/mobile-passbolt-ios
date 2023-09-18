@@ -25,7 +25,7 @@ import Display
 
 internal struct AccountExportAuthorizationView: ControlledView {
 
-  private let controller: AccountExportAuthorizationController
+  internal let controller: AccountExportAuthorizationController
 
   internal init(
     controller: AccountExportAuthorizationController
@@ -37,7 +37,7 @@ internal struct AccountExportAuthorizationView: ControlledView {
     WithViewState(from: self.controller) { (state: ViewState) in
       ScreenView(
         title: .localized(key: "authorization.title"),
-        snackBarMessage: self.controller.binding(to: \.snackBarMessage),
+        snackBarMessage: self.binding(to: \.snackBarMessage),
         contentView: {
           self.contentView(using: state)
         }
@@ -53,10 +53,10 @@ internal struct AccountExportAuthorizationView: ControlledView {
       username: state.accountUsername,
       domain: state.accountDomain,
       avatarImage: state.accountAvatarImage,
-      passphraseBinding: .init(
-        get: { state.passphrase.map(\.rawValue) },
-        set: { (passphrase: Validated<String>) in
-          self.controller.setPassphrase(passphrase.map(Passphrase.init(rawValue:)).value)
+      passphrase: self.validatedBinding(
+        to: \.passphrase,
+        updating: { (newValue: Passphrase) in
+          self.controller.setPassphrase(newValue)
         }
       ),
       mainActionLabel: .localized(
@@ -78,13 +78,3 @@ internal struct AccountExportAuthorizationView: ControlledView {
     }
   }
 }
-
-#if DEBUG
-internal struct AccountExportAuthorizationView_Previews: PreviewProvider {
-  internal static var previews: some View {
-    AccountExportAuthorizationView(
-      controller: .placeholder
-    )
-  }
-}
-#endif

@@ -122,11 +122,21 @@ where Value: Hashable {
 extension Validated {
 
   public func map<NewValue>(
-    _ transform: @escaping (Value) -> NewValue
+    _ transform: (Value) -> NewValue
   ) -> Validated<NewValue> {
     .init(
       value: transform(self.value),
       error: self.error
+    )
+  }
+
+  public func flatMap<NewValue>(
+    _ transform: (Value) -> Validated<NewValue>
+  ) -> Validated<NewValue> {
+    let inner: Validated<NewValue> = transform(self.value)
+    return .init(
+      value: inner.value,
+      error: self.error ?? inner.error
     )
   }
 

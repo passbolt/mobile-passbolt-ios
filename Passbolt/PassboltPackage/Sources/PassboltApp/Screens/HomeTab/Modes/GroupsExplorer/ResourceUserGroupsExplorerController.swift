@@ -23,6 +23,7 @@
 
 import Accounts
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 import Session
@@ -54,18 +55,19 @@ extension ResourceUserGroupsExplorerController: ComponentController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
+    let features: Features = features
     let currentAccount: Account = try features.sessionAccount()
 
-    let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
 
     let navigationToAccountMenu: NavigationToAccountMenu = try features.instance()
 
     let navigation: DisplayNavigation = try features.instance()
     let accountDetails: AccountDetails = try features.instance(context: currentAccount)
-    let resources: Resources = try features.instance()
+    let resources: ResourcesController = try features.instance()
     let userGroups: UserGroups = try features.instance()
     let sessionData: SessionData = try features.instance()
+    let navigationToResourceDetails: NavigationToResourceDetails = try features.instance()
 
     let viewState: ObservableValue<ViewState>
 
@@ -94,9 +96,10 @@ extension ResourceUserGroupsExplorerController: ComponentController {
           .removeDuplicates()
           .asAnyAsyncSequence()
 
-        try await resources
-          .filteredResourcesListPublisher(filterSequence.asPublisher())
-          .asAnyAsyncSequence()
+        try await combineLatest(filterSequence, resources.lastUpdate.asAnyAsyncSequence())
+          .map { (filter, _) in
+            try await resources.filteredResourcesList(filter)
+          }
           .forEach { resourcesList in
             await viewState.withValue { state in
               state.resources = resourcesList
@@ -145,7 +148,7 @@ extension ResourceUserGroupsExplorerController: ComponentController {
           .refreshIfNeeded()
       }
       catch {
-        diagnostics.log(error: error)
+        error.logged()
         viewState.snackBarMessage = .error(error.asTheError().displayableMessage)
       }
     }
@@ -160,7 +163,30 @@ extension ResourceUserGroupsExplorerController: ComponentController {
     }
 
     @MainActor func presentResourceCreationFrom() {
-      presentResourceEditingForm(for: .create(folderID: .none, uri: .none))
+      cancellables.executeOnMainActor {
+        let resourceEditPreparation: ResourceEditPreparation = try features.instance()
+        let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
+          .default,
+          .none,
+          .none
+        )
+        try await features
+          .instance(of: NavigationToResourceEdit.self)
+          .perform(
+            context: .init(
+              editingContext: editingContext,
+              success: { _ in
+                cancellables.executeOnMainActor {
+                  viewState.snackBarMessage = .info(
+                    .localized(
+                      key: "resource.form.new.password.created"
+                    )
+                  )
+                }
+              }
+            )
+          )
+      }
     }
 
     @MainActor func presentResourceShareForm(
@@ -174,81 +200,27 @@ extension ResourceUserGroupsExplorerController: ComponentController {
       }
     }
 
-    @MainActor func presentResourceEditingForm(
-      for context: ResourceEditScope.Context
-    ) {
-      cancellables.executeOnMainActor {
-        await navigation.push(
-          legacy: ResourceEditViewController.self,
-          context: (
-            context,
-            completion: { _ in
-              viewState.snackBarMessage = .info(
-                .localized(
-                  key: "resource.form.new.password.created"
-                )
-              )
-            }
-          )
-        )
-      }
-    }
-
     @MainActor func presentResourceDetails(_ resourceID: Resource.ID) {
       cancellables.executeOnMainActor {
-        await navigation.push(
-          legacy: ResourceDetailsViewController.self,
-          context: resourceID
-        )
+        try await navigationToResourceDetails
+          .perform(context: resourceID)
       }
     }
 
     @MainActor func presentResourceMenu(_ resourceID: Resource.ID) {
       cancellables.executeOnMainActor {
-        await navigation.presentSheetMenu(
-          ResourceMenuViewController.self,
-          in: (
-            resourceID: resourceID,
-            showShare: { (resourceID: Resource.ID) in
-              cancellables.executeOnMainActor {
-                await navigation
-                  .dismiss(
-                    SheetMenuViewController<ResourceMenuViewController>.self
-                  )
-                presentResourceShareForm(for: resourceID)
-              }
-            },
-            showEdit: { (resourceID: Resource.ID) in
-              cancellables.executeOnMainActor {
-                await navigation
-                  .dismiss(
-                    SheetMenuViewController<ResourceMenuViewController>.self
-                  )
-                presentResourceEditingForm(for: .edit(resourceID))
-              }
-            },
-            showDeleteAlert: { (resourceID: Resource.ID) in
-              cancellables.executeOnMainActor {
-                await navigation
-                  .dismiss(
-                    SheetMenuViewController<ResourceMenuViewController>.self
-                  )
-                await navigation.present(
-                  ResourceDeleteAlert.self,
-                  in: {
-                    Task {
-                      do {
-                        try await resources
-                          .deleteResource(resourceID)
-                          .asAsyncValue()
-                      }
-                      catch {
-                        viewState.snackBarMessage = .error(error.asTheError().displayableMessage)
-                      }
-                    }
-                  }
-                )
-              }
+        let features: Features =
+          features
+          .branchIfNeeded(
+            scope: ResourceDetailsScope.self,
+            context: resourceID
+          )
+          ?? features
+        let navigationToResourceContextualMenu: NavigationToResourceContextualMenu = try features.instance()
+        try await navigationToResourceContextualMenu.perform(
+          context: .init(
+            showMessage: { (message: SnackBarMessage?) in
+              viewState.snackBarMessage = message
             }
           )
         )
@@ -266,14 +238,11 @@ extension ResourceUserGroupsExplorerController: ComponentController {
 
     @MainActor func presentAccountMenu() {
       asyncExecutor.schedule(.reuse) {
-        await diagnostics
-          .withLogCatch(
-            info: .message(
-              "Navigation to account menu failed!"
-            )
-          ) {
-            try await navigationToAccountMenu.perform()
-          }
+        await withLogCatch(
+          failInfo: "Navigation to account menu failed!"
+        ) {
+          try await navigationToAccountMenu.perform()
+        }
       }
     }
 

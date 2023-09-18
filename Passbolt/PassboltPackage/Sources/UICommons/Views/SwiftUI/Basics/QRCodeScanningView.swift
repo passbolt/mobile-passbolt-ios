@@ -27,10 +27,10 @@ import UIKit
 
 public struct QRCodeScanningView: UIViewControllerRepresentable {
 
-  private let process: (String) -> Void
+  private let process: @Sendable (String) -> Void
 
   public init(
-    process: @escaping (String) -> Void
+    process: @escaping @Sendable (String) -> Void
   ) {
     self.process = process
   }
@@ -78,10 +78,10 @@ internal final class QRCodeScanningViewController: UIViewController {
     return session
   }()
 
-  private let process: (String) -> Void
+  private let process: @Sendable (String) -> Void
 
   public init(
-    process: @escaping (String) -> Void
+    process: @escaping @Sendable (String) -> Void
   ) {
     self.process = process
     super

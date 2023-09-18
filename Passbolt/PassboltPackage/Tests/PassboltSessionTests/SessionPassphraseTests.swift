@@ -26,6 +26,7 @@ import TestExtensions
 @testable import PassboltSession
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
 
   override class func testedImplementationRegister(

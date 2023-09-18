@@ -46,3 +46,13 @@ extension Date {
     )
   }
 }
+
+extension Timestamp {
+
+  public static func + (
+    _ lhs: Timestamp,
+    _ rhs: Seconds
+  ) -> Timestamp {
+    .init(rawValue: lhs.rawValue + rhs.rawValue)
+  }
+}

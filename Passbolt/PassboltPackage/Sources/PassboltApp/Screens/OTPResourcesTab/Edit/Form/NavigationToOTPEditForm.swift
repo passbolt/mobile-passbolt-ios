@@ -22,8 +22,12 @@
 //
 
 import Display
+import FeatureScopes
 
-internal enum OTPEditFormNavigationDestination: NavigationDestination {}
+internal enum OTPEditFormNavigationDestination: NavigationDestination {
+
+  internal typealias TransitionContext = OTPEditFormViewController.Context
+}
 
 internal typealias NavigationToOTPEditForm = NavigationTo<OTPEditFormNavigationDestination>
 
@@ -41,7 +45,7 @@ extension FeaturesRegistry {
   internal mutating func useLiveNavigationToOTPEditForm() {
     self.use(
       NavigationToOTPEditForm.live,
-      in: SessionScope.self
+      in: ResourceEditScope.self
     )
   }
 }

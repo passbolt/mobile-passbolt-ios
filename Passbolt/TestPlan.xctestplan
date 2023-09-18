@@ -13,6 +13,9 @@
     }
   ],
   "defaultOptions" : {
+    "defaultTestExecutionTimeAllowance" : 60,
+    "mainThreadCheckerEnabled" : false,
+    "maximumTestExecutionTimeAllowance" : 60,
     "testExecutionOrdering" : "random",
     "testTimeoutsEnabled" : true
   },
@@ -34,13 +37,7 @@
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:PassboltPackage",
-        "identifier" : "UIComponentsTests",
-        "name" : "UIComponentsTests"
-      }
-    },
-    {
+      "parallelizable" : true,
       "target" : {
         "containerPath" : "container:PassboltPackage",
         "identifier" : "CommonsTests",
@@ -48,6 +45,7 @@
       }
     },
     {
+      "parallelizable" : true,
       "target" : {
         "containerPath" : "container:PassboltPackage",
         "identifier" : "CryptoTests",
@@ -55,6 +53,7 @@
       }
     },
     {
+      "parallelizable" : true,
       "target" : {
         "containerPath" : "container:PassboltPackage",
         "identifier" : "FeaturesTests",
@@ -62,6 +61,7 @@
       }
     },
     {
+      "parallelizable" : true,
       "target" : {
         "containerPath" : "container:PassboltPackage",
         "identifier" : "SharedUIComponentsTests",
@@ -69,6 +69,7 @@
       }
     },
     {
+      "parallelizable" : true,
       "target" : {
         "containerPath" : "container:PassboltPackage",
         "identifier" : "NFCTests",
@@ -76,6 +77,7 @@
       }
     },
     {
+      "parallelizable" : true,
       "target" : {
         "containerPath" : "container:PassboltPackage",
         "identifier" : "PassboltAccountsTests",
@@ -83,6 +85,7 @@
       }
     },
     {
+      "parallelizable" : true,
       "target" : {
         "containerPath" : "container:PassboltPackage",
         "identifier" : "PassboltResourcesTests",
@@ -90,6 +93,7 @@
       }
     },
     {
+      "parallelizable" : true,
       "target" : {
         "containerPath" : "container:PassboltPackage",
         "identifier" : "PassboltSessionTests",
@@ -97,6 +101,7 @@
       }
     },
     {
+      "parallelizable" : true,
       "target" : {
         "containerPath" : "container:PassboltPackage",
         "identifier" : "PassboltUsersTests",
@@ -104,10 +109,19 @@
       }
     },
     {
+      "parallelizable" : true,
       "target" : {
         "containerPath" : "container:PassboltPackage",
         "identifier" : "PassboltAccountSetupTests",
         "name" : "PassboltAccountSetupTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "CommonModelsTests",
+        "name" : "CommonModelsTests"
       }
     }
   ],

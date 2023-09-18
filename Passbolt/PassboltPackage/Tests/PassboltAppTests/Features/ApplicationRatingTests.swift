@@ -29,6 +29,7 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class ApplicationRatingTests: LoadableFeatureTestCase<ApplicationRating> {
   override class func testedImplementationRegister(
     _ registry: inout FeaturesRegistry
@@ -39,7 +40,7 @@ final class ApplicationRatingTests: LoadableFeatureTestCase<ApplicationRating> {
   override func prepare() throws {
     patch(
       \OSTime.timestamp,
-      with: { 5 * 24 * 60 * 60 + 1 }
+      with: { Timestamp(rawValue: 5 * 24 * 60 * 60 + 1) }
     )
     use(OSApplicationRating.placeholder)
     use(StoredProperty<Int>.placeholder, context: "loginCount")

@@ -22,6 +22,7 @@
 //
 
 import DatabaseOperations
+import FeatureScopes
 import Users
 
 import struct Foundation.Data

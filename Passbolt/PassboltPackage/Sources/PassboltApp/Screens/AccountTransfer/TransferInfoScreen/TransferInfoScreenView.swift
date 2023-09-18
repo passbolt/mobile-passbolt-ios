@@ -91,7 +91,8 @@ public final class TransferInfoScreenView: ScrolledStackView {
       mutation: .combined(
         .image(named: .qrCodeSample, from: .uiCommons),
         .contentMode(.scaleAspectFit),
-        .widthAnchor(.equalTo, imageView.heightAnchor)
+        .widthAnchor(.equalTo, imageView.heightAnchor),
+        .accessibilityIdentifier("transfer.account.import.image")
       ),
       widthMultiplier: 0.6,
       heightMultiplier: 1
@@ -250,7 +251,10 @@ public final class TransferInfoScreenView: ScrolledStackView {
         )
       }
       mut(button) {
-        .text(displayable: .localized(key: "transfer.account.export.scan.qr.button"))
+        .combined(
+          .text(displayable: .localized(key: "transfer.account.export.scan.qr.button")),
+          .accessibilityIdentifier("transfer.account.export.scan.qr.button")
+        )
       }
     }
   }

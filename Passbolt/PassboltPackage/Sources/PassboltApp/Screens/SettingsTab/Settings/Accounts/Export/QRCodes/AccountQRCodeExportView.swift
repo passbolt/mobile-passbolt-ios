@@ -26,7 +26,7 @@ import Display
 internal struct AccountQRCodeExportView: ControlledView {
 
   @EnvironmentObject var displayViewBridgeHandle: DisplayViewBridgeHandle<Self>
-  private let controller: AccountQRCodeExportController
+  internal let controller: AccountQRCodeExportController
 
   internal init(
     controller: AccountQRCodeExportController
@@ -57,6 +57,7 @@ internal struct AccountQRCodeExportView: ControlledView {
         .interpolation(.none)
         .resizable()
         .aspectRatio(contentMode: .fit)
+        .accessibilityIdentifier("transfer.account.export.qrcode.image")
       Spacer()
       PrimaryButton(
         title: .localized("transfer.account.export.cancel.button"),
@@ -65,10 +66,12 @@ internal struct AccountQRCodeExportView: ControlledView {
           controller.showCancelConfirmation()
         }
       )
+      .accessibilityIdentifier("transfer.account.export.cancel.button")
     }
     .padding(16)
     .alert(
-      presenting: self.controller
+      presenting:
+        self
         .binding(to: \.exitConfirmationAlertPresented)
         .map(
           get: { (presented: Bool) -> ConfirmationAlertMessage? in

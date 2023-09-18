@@ -44,14 +44,13 @@ where Destination: NavigationDestination {
 
 extension NavigationTo: LoadableFeature {
 
-  #if DEBUG
   public nonisolated static var placeholder: Self {
     .init(
       performAnimated: unimplemented4(),
       revertAnimated: unimplemented3()
     )
   }
-
+  #if DEBUG
   public var mockPerform: @Sendable (Bool, Destination.TransitionContext) async throws -> Void {
     get { unimplemented2("Mock can't be used, it is intended only as a helper to patch in test.") }
     set {
@@ -90,6 +89,27 @@ extension NavigationTo {
   }
 
   @_transparent
+  @Sendable public func performCatching(
+    animated: Bool = true,
+    context: Destination.TransitionContext,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) async {
+    await withLogCatch(
+      failInfo: "Navigation perform failed!",
+      file: file,
+      line: line
+    ) {
+      try await self.performAnimated(
+        animated,
+        context,
+        file,
+        line
+      )
+    }
+  }
+
+  @_transparent
   @Sendable public func perform(
     animated: Bool = true,
     file: StaticString = #fileID,
@@ -105,6 +125,27 @@ extension NavigationTo {
   }
 
   @_transparent
+  @Sendable public func performCatching(
+    animated: Bool = true,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) async
+  where Destination.TransitionContext == Void {
+    await withLogCatch(
+      failInfo: "Navigation perform failed!",
+      file: file,
+      line: line
+    ) {
+      try await self.performAnimated(
+        animated,
+        Void(),
+        file,
+        line
+      )
+    }
+  }
+
+  @_transparent
   @Sendable public func revert(
     animated: Bool = true,
     file: StaticString = #fileID,
@@ -115,6 +156,25 @@ extension NavigationTo {
       file,
       line
     )
+  }
+
+  @_transparent
+  @Sendable public func revertCatching(
+    animated: Bool = true,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) async {
+    await withLogCatch(
+      failInfo: "Navigation revert failed!",
+      file: file,
+      line: line
+    ) {
+      try await self.revertAnimated(
+        animated,
+        file,
+        line
+      )
+    }
   }
 }
 
@@ -168,31 +228,6 @@ extension NavigationTo {
           performAnimated: perform(animated:context:file:line:),
           revertAnimated: revert(animated:file:line:)
         )
-      }
-    )
-  }
-
-  public static func legacyPushTransition<DestinationView>(
-    to: DestinationView.Type
-  ) -> FeatureLoader
-  where DestinationView: ControlledView, DestinationView.Controller.Context == ContextlessLoadableFeatureContext {
-    Self.legacyPushTransition(
-      to: DestinationView.self,
-      { features, _ in
-        try DestinationView(controller: features.instance())
-      }
-    )
-  }
-
-  @_disfavoredOverload
-  public static func legacyPushTransition<DestinationView>(
-    to: DestinationView.Type
-  ) -> FeatureLoader
-  where DestinationView: ControlledView, DestinationView.Controller.Context == Void {
-    Self.legacyPushTransition(
-      to: DestinationView.self,
-      { features, _ in
-        try DestinationView(controller: features.instance())
       }
     )
   }
@@ -257,18 +292,6 @@ extension NavigationTo {
           performAnimated: perform(animated:context:file:line:),
           revertAnimated: revert(animated:file:line:)
         )
-      }
-    )
-  }
-
-  public static func legacySheetPresentationTransition<DestinationView>(
-    to: DestinationView.Type
-  ) -> FeatureLoader
-  where DestinationView: ControlledView, DestinationView.Controller.Context == ContextlessLoadableFeatureContext {
-    Self.legacySheetPresentationTransition(
-      to: DestinationView.self,
-      { features, _ in
-        try DestinationView(controller: features.instance())
       }
     )
   }
@@ -367,14 +390,18 @@ extension NavigationTo {
   public static func legacySheetPresentationTransition<DestinationViewController>(
     toLegacy: DestinationViewController.Type = DestinationViewController.self
   ) -> FeatureLoader
-  where DestinationViewController: UIComponent, DestinationViewController.Controller.Context == Void {
+  where
+    DestinationViewController: UIComponent,
+    DestinationViewController.Controller.Context == Destination.TransitionContext
+  {
     self.legacySheetPresentationTransition(
       toLegacy: DestinationViewController.self,
-      { features, _ in
+      { features, context in
         var features: Features = features
         let cancellables: Cancellables = .init()
 
         let controller: DestinationViewController.Controller = try .instance(
+          in: context,
           with: &features,
           cancellables: cancellables
         )
@@ -411,16 +438,13 @@ extension NavigationTo {
             anchor = UIHostingController(
               rootView: try prepareTransitionView(features, context)
             )
-
             anchor.sheetPresentationController?.detents = [
               navigationResolver.dynamicLegacySheetDetent(for: anchor)
             ]
           }
           else {
-            anchor = try PartialSheetViewController(
-              wrapping: UIHostingController(
-                rootView: prepareTransitionView(features, context)
-              )
+            anchor = try UIHostingController(
+              rootView: prepareTransitionView(features, context)
             )
           }
 
@@ -780,14 +804,18 @@ extension NavigationTo {
   public static func legacyPushTransition<DestinationViewController>(
     toLegacy: DestinationViewController.Type = DestinationViewController.self
   ) -> FeatureLoader
-  where DestinationViewController: UIComponent, DestinationViewController.Controller.Context == Void {
+  where
+    DestinationViewController: UIComponent,
+    DestinationViewController.Controller.Context == Destination.TransitionContext
+  {
     self.legacyPushTransition(
       toLegacy: DestinationViewController.self,
-      { features, _ in
+      { features, context in
         var features: Features = features
         let cancellables: Cancellables = .init()
 
         let controller: DestinationViewController.Controller = try .instance(
+          in: context,
           with: &features,
           cancellables: cancellables
         )
@@ -799,6 +827,46 @@ extension NavigationTo {
             with: .init(features: features),
             cancellables: cancellables
           )
+      }
+    )
+  }
+
+  public static func legacyPopTransition<DestinationView>(
+    to: DestinationView.Type = DestinationView.self
+  ) -> FeatureLoader
+  where DestinationView: ControlledView {
+    .disposable(
+      Self.self,
+      load: { features in
+        let navigationResolver: NavigationResolver = try features.instance()
+
+        @MainActor @Sendable func perform(
+          animated: Bool,
+          context: Destination.TransitionContext,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          try await navigationResolver
+            .pop(
+              to: Destination.identifier,
+              animated: animated,
+              file: file,
+              line: line
+            )
+        }
+
+        @MainActor @Sendable func revert(
+          animated: Bool,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          throw InternalInconsistency.error("Can't revert pop transition!")
+        }
+
+        return .init(
+          performAnimated: perform(animated:context:file:line:),
+          revertAnimated: revert(animated:file:line:)
+        )
       }
     )
   }

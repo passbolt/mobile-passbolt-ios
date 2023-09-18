@@ -37,7 +37,6 @@ extension AccountDetails {
     cancellables: Cancellables
   ) throws -> Self {
 
-    let diagnostics: OSDiagnostics = features.instance()
     let accountsDataStore: AccountsDataStore = try features.instance()
     let accountData: AccountData = try features.instance(context: account)
     let userDetailsFetchNetworkOperation: UserDetailsFetchNetworkOperation = try features.instance()
@@ -80,29 +79,25 @@ extension AccountDetails {
 
       try accountsDataStore
         .updateAccountProfile(updatedProfile)
-      accountData.updatesSequenceSource.sendUpdate()
+      accountData.updates.update()
     }
 
-    let avatarImageCache: AsyncCache<Data> = .init()
-    @Sendable nonisolated func avatarImage() async throws -> Data? {
+    let avatarImageCache: ComputedVariable<Data> = .init(lazy: {
       do {
-        return
-          try await avatarImageCache
-          .valueOrUpdate {
-            let profile: AccountWithProfile = try profile()
-            return
-              try await mediaDownloadNetworkOperation
-              .execute(profile.avatarImageURL)
-          }
+        let profile: AccountWithProfile = try profile()
+        return try await mediaDownloadNetworkOperation.execute(profile.avatarImageURL)
       }
       catch {
-        diagnostics.log(error: error)
-        return .none
+        throw error
       }
+    })
+
+    @Sendable nonisolated func avatarImage() async throws -> Data? {
+      try? await avatarImageCache.value
     }
 
     return Self(
-      updates: accountData.updates,
+      updates: accountData.updates.asAnyUpdatable(),
       profile: profile,
       updateProfile: updateProfile,
       avatarImage: avatarImage

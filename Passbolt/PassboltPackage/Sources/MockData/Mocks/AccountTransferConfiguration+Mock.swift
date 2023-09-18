@@ -34,6 +34,6 @@ extension AccountTransferConfiguration {
     authenticationToken: "TRANSFER_TOKEN",
     domain: Account.mock_ada.domain,
     hash:
-      "a960a8890b43b5f31e2b09ed23c618e37336a00e3a581d595cdd2a49581b06ebb19e596c76a8ec929ba4a6e20b40f4166d24c60334a258e078ffd94a286f4fec"
+      "382f6a26bf10736f89292d59d324885d769f7f1e6968be8ebdc194a9a2e1fe7431c39385d204b234ab8d9f49b8735debbd0fe76c9d987cc32f5963f3e0037d7b"
   )
 }

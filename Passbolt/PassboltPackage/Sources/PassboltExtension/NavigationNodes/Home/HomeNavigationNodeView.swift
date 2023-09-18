@@ -25,7 +25,7 @@ import Display
 
 internal struct HomeNavigationNodeView: ControlledView {
 
-  private let controller: HomeNavigationNodeController
+  internal let controller: HomeNavigationNodeController
 
   internal init(
     controller: HomeNavigationNodeController
@@ -37,7 +37,6 @@ internal struct HomeNavigationNodeView: ControlledView {
     WithViewState(from: self.controller) { state in
       self.bodyView(with: state)
     }
-    .task(self.controller.activate)
   }
 
   @ViewBuilder private func bodyView(

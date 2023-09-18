@@ -44,7 +44,7 @@ extension UserGroupPermissionDetailsController: ComponentController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
+
     let navigation: DisplayNavigation = try features.instance()
     let users: Users = try features.instance()
 
@@ -56,7 +56,7 @@ extension UserGroupPermissionDetailsController: ComponentController {
           return try await users.userAvatarImage(userID)
         }
         catch {
-          diagnostics.log(error: error)
+          error.logged()
           return nil
         }
       }

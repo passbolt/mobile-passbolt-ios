@@ -26,20 +26,18 @@ import UICommons
 
 internal struct MainSettingsView: ControlledView {
 
-  private let controller: MainSettingsController
+  internal let controller: MainSettingsViewController
   @State private var signOutConfirmationPresented: Bool = false
 
   internal init(
-    controller: MainSettingsController
+    controller: MainSettingsViewController
   ) {
     self.controller = controller
   }
 
   internal var body: some View {
     ScreenView(
-      title: .localized(
-        key: "settings.main.title"
-      ),
+      title: "settings.main.title",
       contentView: {
         self.content
       }
@@ -47,99 +45,62 @@ internal struct MainSettingsView: ControlledView {
   }
 
   @ViewBuilder @MainActor private var content: some View {
-    CommonList {
+    CommonPlainList {
       SettingsActionRowView(
         icon: .settings,
-        title: .localized(
-          key: "settings.main.item.application.title"
-        ),
-        action: self.controller.navigateToApplicationSettings,
-        accessory: {
-          Image(named: .disclosureIndicator)
-            .frame(
-              width: 24,
-              height: 24
-            )
-        }
+        title: "settings.main.item.application.title",
+        navigation: self.controller.navigateToApplicationSettings
       )
+      .accessibilityIdentifier("settings.main.item.application.title")
 
       SettingsActionRowView(
         icon: .people,
-        title: .localized(
-          key: "settings.main.item.accounts.title"
-        ),
-        action: self.controller.navigateToAccountsSettings,
-        accessory: {
-          Image(named: .disclosureIndicator)
-            .frame(
-              width: 24,
-              height: 24
-            )
-        }
+        title: "settings.main.item.accounts.title",
+        navigation: self.controller.navigateToAccountsSettings
       )
+      .accessibilityIdentifier("settings.main.item.accounts.title")
 
       SettingsActionRowView(
         icon: .info,
-        title: .localized(
-          key: "settings.main.item.terms.and.licenses.title"
-        ),
-        action: self.controller.navigateToTermsAndLicenses,
-        accessory: {
-          Image(named: .disclosureIndicator)
-            .frame(
-              width: 24,
-              height: 24
-            )
-        }
+        title: "settings.main.item.terms.and.licenses.title",
+        navigation: self.controller.navigateToTermsAndLicenses
       )
+      .accessibilityIdentifier("settings.main.item.terms.and.licenses.title")
 
       SettingsActionRowView(
         icon: .bug,
-        title: .localized(
-          key: "settings.main.item.troubleshooting.title"
-        ),
-        action: self.controller.navigateToTroubleshooting,
-        accessory: {
-          Image(named: .disclosureIndicator)
-            .frame(
-              width: 24,
-              height: 24
-            )
-        }
+        title: "settings.main.item.troubleshooting.title",
+        navigation: self.controller.navigateToTroubleshooting
       )
 
       SettingsActionRowView(
         icon: .exit,
-        title: .localized(
-          key: "settings.main.item.sign.out.title"
-        ),
+        title: "settings.main.item.sign.out.title",
         action: {
           self.signOutConfirmationPresented = true
         }
       )
+      .accessibilityIdentifier("settings.main.item.sign.out.title")
       .alert(
         isPresented: self.$signOutConfirmationPresented,
-        title: .localized(
-          key: "settings.main.sign.out.alert.title"
-        ),
-        message: .localized(
-          key: "settings.main.sign.out.alert.message"
-        ),
+        title: "settings.main.sign.out.alert.title",
+        message: "settings.main.sign.out.alert.message",
         actions: {
-          Button(
-            displayable: .localized(
-              key: "settings.main.sign.out.alert.confirm.title"
-            ),
+          AsyncButton(
             role: .destructive,
-            action: self.controller.signOut
+            action: self.controller.signOut,
+            regularLabel: {
+              Text(displayable: "settings.main.sign.out.alert.confirm.title")
+            }
           )
+          .accessibilityIdentifier("settings.main.sign.out.alert.confirm.title")
+
           Button(
-            displayable: .localized(
-              key: .cancel
-            ),
+            displayable: .localized(key: .cancel),
             role: .cancel,
             action: { /* NOP */  }
           )
+          .accessibilityIdentifier("settings.main.sign.out.alert.cancel.button")
         }
       )
     }

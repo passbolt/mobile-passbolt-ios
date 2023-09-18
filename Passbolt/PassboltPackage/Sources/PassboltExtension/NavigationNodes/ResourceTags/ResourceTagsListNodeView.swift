@@ -25,7 +25,7 @@ import Display
 
 internal struct ResourceTagsListNodeView: ControlledView {
 
-  private let controller: ResourceTagsListNodeController
+  internal let controller: ResourceTagsListNodeController
 
   internal init(
     controller: ResourceTagsListNodeController
@@ -45,7 +45,7 @@ internal struct ResourceTagsListNodeView: ControlledView {
     ScreenView(
       titleIcon: state.titleIconName,
       title: state.title,
-      snackBarMessage: self.controller.binding(to: \.snackBarMessage),
+      snackBarMessage: self.binding(to: \.snackBarMessage),
       titleExtensionView: {
         self.searchView(with: state)
       },
@@ -62,7 +62,7 @@ internal struct ResourceTagsListNodeView: ControlledView {
     )
   }
 
-  @ViewBuilder private func searchView(
+  @MainActor @ViewBuilder private func searchView(
     with state: ViewState
   ) -> some View {
     ResourceSearchDisplayView(
@@ -70,7 +70,7 @@ internal struct ResourceTagsListNodeView: ControlledView {
     )
   }
 
-  @ViewBuilder private func contentView(
+  @MainActor @ViewBuilder private func contentView(
     with state: ViewState
   ) -> some View {
     ResourceTagsListDisplayView(

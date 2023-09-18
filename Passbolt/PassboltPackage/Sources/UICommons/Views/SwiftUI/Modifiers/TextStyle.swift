@@ -26,10 +26,14 @@ import SwiftUI
 extension View {
 
   public func text(
+    _ alignment: TextAlignment = .leading,
+    lines: Int? = .none,
     font: Font,
     color: Color? = .none
   ) -> some View {
     self
+      .multilineTextAlignment(alignment)
+      .lineLimit(lines)
       .font(font)
       .foregroundColor(color)
   }

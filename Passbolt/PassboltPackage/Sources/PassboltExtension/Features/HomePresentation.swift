@@ -25,6 +25,7 @@ import Accounts
 import CommonModels
 import Commons
 import Display
+import FeatureScopes
 import Session
 import SessionData
 

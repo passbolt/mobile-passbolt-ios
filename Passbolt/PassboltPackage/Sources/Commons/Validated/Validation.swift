@@ -62,10 +62,11 @@ extension Validation {
     )
   }
 
-  internal static func combine<Value>(
-    _ validations: any Sequence<Self>,
+  internal static func combine<Validations, Value>(
+    _ validations: Validations,
     for keyPath: WritableKeyPath<Subject, Validated<Value>>
-  ) -> Self {
+  ) -> Self
+  where Validations: Sequence<Self> {
     let validations: Array<Self> = validations.filter { $0.keyPath == keyPath }
     return .init(
       keyPath: keyPath,

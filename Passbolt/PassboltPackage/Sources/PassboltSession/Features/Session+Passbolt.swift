@@ -37,7 +37,7 @@ extension Session {
     features: Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
+
     let asyncExecutor: AsyncExecutor = try features.instance()
     let sessionState: SessionState = try features.instance()
     let sessionAuthorizationState: SessionAuthorizationState = try features.instance()
@@ -118,7 +118,7 @@ extension Session {
           }
           catch {
             // ignore errors it won't be able to retry anyway
-            diagnostics.log(error: error)
+            error.logged()
           }
         }
       }  // else NOP
@@ -127,7 +127,7 @@ extension Session {
     }
 
     return Self(
-      updatesSequence: sessionState.updatesSequence,
+      updates: sessionState.updates,
       pendingAuthorization: pendingAuthorization,
       currentAccount: currentAccount,
       authorize: authorize(_:),

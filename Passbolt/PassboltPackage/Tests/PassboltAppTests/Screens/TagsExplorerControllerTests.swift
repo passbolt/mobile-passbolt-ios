@@ -23,6 +23,7 @@
 
 import Accounts
 import Combine
+import FeatureScopes
 import Features
 import Resources
 import SessionData
@@ -33,10 +34,11 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 @MainActor
 final class TagsExplorerControllerTests: MainActorTestCase {
 
-  var updates: UpdatesSequenceSource!
+  var updates: Variable<Timestamp>!
 
   override func mainActorSetUp() {
     features
@@ -47,10 +49,10 @@ final class TagsExplorerControllerTests: MainActorTestCase {
           configuration: .mock_1
         )
       )
-    updates = .init()
+    updates = .init(initial: 0)
     features.patch(
-      \SessionData.updatesSequence,
-      with: updates.updatesSequence
+      \SessionData.lastUpdate,
+      with: updates.asAnyUpdatable()
     )
     features.patch(
       \SessionData.refreshIfNeeded,
@@ -64,7 +66,6 @@ final class TagsExplorerControllerTests: MainActorTestCase {
       \ResourceTags.filteredTagsList,
       with: always([])
     )
-    features.usePlaceholder(for: Resources.self)
     features.usePlaceholder(for: HomePresentation.self)
     features.patch(
       \AccountDetails.profile,
@@ -120,17 +121,18 @@ final class TagsExplorerControllerTests: MainActorTestCase {
   }
 
   func test_initally_viewStateTitle_isTagSlug_forNonRootFolder() async throws {
-    await features.patch(
-      \Resources.filteredResourcesListPublisher,
-      with: always(
-        Just([])
-          .eraseToAnyPublisher()
-      )
+    features.patch(
+      \ResourcesController.filteredResourcesList,
+      with: always([])
+    )
+    features.patch(
+      \ResourcesController.lastUpdate,
+      with: Variable(initial: 0).asAnyUpdatable()
     )
 
     let controller: TagsExplorerController = try await testController(
       context: .init(
-        id: "tagID",
+        id: .mock_1,
         slug: "tag",
         shared: false
       )

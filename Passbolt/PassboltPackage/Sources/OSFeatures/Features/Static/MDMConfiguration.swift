@@ -78,7 +78,7 @@ extension MDMConfiguration {
         accountsConfiguration
         .compactMap { (configuration: Dictionary<String, Any>) -> AccountTransferData? in
           guard
-            let userID: String = configuration["userID"] as? String,
+            let userID: PassboltID = (configuration["userID"] as? String).flatMap(PassboltID.init(uuidString:)),
             let domain: String = configuration["domain"] as? String,
             let username: String = configuration["username"] as? String,
             let firstName: String = configuration["firstName"] as? String,

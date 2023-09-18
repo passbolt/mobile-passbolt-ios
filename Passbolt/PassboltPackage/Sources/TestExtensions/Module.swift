@@ -25,9 +25,11 @@
 @_exported import Accounts
 @_exported import CommonModels
 @_exported import Commons
+@_exported import CoreTest
 @_exported import Crypto
 @_exported import Database
 @_exported import DatabaseOperations
+@_exported import FeatureScopes
 @_exported import Foundation
 @_exported import MockData
 @_exported import NFC
@@ -35,6 +37,7 @@
 @_exported import OSFeatures
 @_exported import Resources
 @_exported import Session
+@_exported import SessionData
 @_exported import UICommons
 @_exported import Users
 @_exported import XCTest

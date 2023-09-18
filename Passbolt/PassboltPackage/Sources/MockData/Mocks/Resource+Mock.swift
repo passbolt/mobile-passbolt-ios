@@ -25,16 +25,16 @@ import CommonModels
 
 extension Resource.ID {
 
-  public static let mock_1: Self = .init(rawValue: "CA5AE528-6EF9-48BB-AF4F-4167D73CFF6F")
+  public static let mock_1: Self = .init(uuidString: "CA5AE528-6EF9-48BB-AF4F-4167D73CFF6F")!
 
-  public static let mock_2: Self = .init(rawValue: "EF94676E-8475-462D-87FF-15A128C3ACBA")
+  public static let mock_2: Self = .init(uuidString: "EF94676E-8475-462D-87FF-15A128C3ACBA")!
 
-  public static let mock_3: Self = .init(rawValue: "58C4204F-75B6-40F0-8642-874C934001CA")
+  public static let mock_3: Self = .init(uuidString: "58C4204F-75B6-40F0-8642-874C934001CA")!
 }
 
 extension Resource.Favorite.ID {
 
-  public static let mock_1: Self = .init(rawValue: "CEB02F9B-81D1-4C43-9BDC-30D95848897F")
+  public static let mock_1: Self = .init(uuidString: "CEB02F9B-81D1-4C43-9BDC-30D95848897F")!
 
-  public static let mock_2: Self = .init(rawValue: "3143E120-CD28-436C-875F-40B0BD5B9BC8")
+  public static let mock_2: Self = .init(uuidString: "3143E120-CD28-436C-875F-40B0BD5B9BC8")!
 }

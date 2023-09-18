@@ -25,7 +25,7 @@ import Display
 
 internal struct ResourceFolderContentDisplayView: ControlledView {
 
-  private let controller: ResourceFolderContentDisplayController
+  internal let controller: ResourceFolderContentDisplayController
 
   internal init(
     controller: ResourceFolderContentDisplayController
@@ -44,12 +44,11 @@ internal struct ResourceFolderContentDisplayView: ControlledView {
         directResources: state.directResources,
         nestedResources: state.nestedResources,
         refreshAction: self.controller.refresh,
-        createAction: self.controller.create,
+        createAction: self.controller.createResource,
         folderTapAction: self.controller.selectFolder,
         resourceTapAction: self.controller.selectResource,
         resourceMenuAction: self.controller.openResourceMenu
       )
     }
-    .task(self.controller.activate)
   }
 }

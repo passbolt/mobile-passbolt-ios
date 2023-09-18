@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import FeatureScopes
 import Features
 import TestExtensions
 import XCTest
@@ -28,6 +29,7 @@ import XCTest
 @testable import NetworkOperations
 @testable import PassboltAccountSetup
 
+@available(iOS 16.0.0, *)
 final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
 
   override class var testedImplementationScope: any FeaturesScope.Type { AccountTransferScope.self }
@@ -312,15 +314,11 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
   }
 
   func test_processPayload_sendsNextPageRequest_withValidContent() async throws {
-    var result: AccountTransferUpdateNetworkOperationVariable?
-    let uncheckedSendableResult: UncheckedSendable<AccountTransferUpdateNetworkOperationVariable?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<AccountTransferUpdateNetworkOperationVariable> = .init()
     patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: { (input) async throws in
-        uncheckedSendableResult.variable = input
+        result.value = input
         return accountTransferUpdateResponse
       }
     )
@@ -336,20 +334,16 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
-    XCTAssertEqual(result?.currentPage, 1)
-    XCTAssertEqual(result?.status, .inProgress)
+    XCTAssertEqual(result.value?.currentPage, 1)
+    XCTAssertEqual(result.value?.status, .inProgress)
   }
 
   func test_processPayload_ignoresInvalidContentInTheMiddleWithValidConfiguration() async throws {
-    var result: AccountTransferUpdateNetworkOperationVariable?
-    let uncheckedSendableResult: UncheckedSendable<AccountTransferUpdateNetworkOperationVariable?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<AccountTransferUpdateNetworkOperationVariable> = .init()
     patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: { (input) async throws in
-        uncheckedSendableResult.variable = input
+        result.value = input
         return accountTransferUpdateResponse
       }
     )
@@ -367,8 +361,8 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
-    XCTAssertEqual(result?.currentPage, 1)
-    XCTAssertEqual(result?.status, .inProgress)
+    XCTAssertEqual(result.value?.currentPage, 1)
+    XCTAssertEqual(result.value?.status, .inProgress)
   }
 
   func test_processPayload_fails_withInvalidVersionByte() async throws {
@@ -716,15 +710,11 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
   }
 
   func test_cancelTransfer_sendsCancelationRequest_withConfigurationAvailable() async throws {
-    var result: AccountTransferUpdateNetworkOperationVariable?
-    let uncheckedSendableResult: UncheckedSendable<AccountTransferUpdateNetworkOperationVariable?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<AccountTransferUpdateNetworkOperationVariable> = .init()
     patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: { (input) async throws in
-        uncheckedSendableResult.variable = input
+        result.value = input
         return accountTransferUpdateResponse
       }
     )
@@ -742,8 +732,8 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
-    XCTAssertEqual(result?.currentPage, 0)
-    XCTAssertEqual(result?.status, .cancel)
+    XCTAssertEqual(result.value?.currentPage, 0)
+    XCTAssertEqual(result.value?.status, .cancel)
   }
 
   func test_processPayload_fails_withUnexpectedPage() async throws {
@@ -842,15 +832,11 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
   }
 
   func test_processPayload_sendsCancelationRequest_withDuplicateAccount() async throws {
-    var result: AccountTransferUpdateNetworkOperationVariable?
-    let uncheckedSendableResult: UncheckedSendable<AccountTransferUpdateNetworkOperationVariable?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<AccountTransferUpdateNetworkOperationVariable> = .init()
     patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: { (input) async throws in
-        uncheckedSendableResult.variable = input
+        result.value = input
         return accountTransferUpdateResponse
       }
     )
@@ -866,8 +852,8 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
-    XCTAssertEqual(result?.currentPage, 0)
-    XCTAssertEqual(result?.status, .cancel)
+    XCTAssertEqual(result.value?.currentPage, 0)
+    XCTAssertEqual(result.value?.status, .cancel)
   }
 
   func test_processPayload_finishesTransferWithDuplicateError_withDuplicateAccount() async throws {
@@ -904,6 +890,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
   }
 }
 
+@available(iOS 16.0.0, *)
 extension AccountTransferTests {
 
   private func processPart(
@@ -932,7 +919,7 @@ private let accountTransferUpdateResponse: AccountTransferUpdateNetworkOperation
 private let transferedAccount: Account = .init(
   localID: .init(rawValue: UUID.test.uuidString),
   domain: "https://localhost:8443",
-  userID: "f848277c-5398-58f8-a82a-72397af2d450",
+  userID: .init(uuidString: "f848277c-5398-58f8-a82a-72397af2d450")!,
   fingerprint: "FINGERPRINT"
 )
 

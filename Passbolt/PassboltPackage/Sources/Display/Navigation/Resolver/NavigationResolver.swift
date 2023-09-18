@@ -46,26 +46,11 @@ extension NavigationResolver {
   @MainActor internal func dynamicLegacySheetDetent(
     for anchor: NavigationAnchor
   ) -> UISheetPresentationController.Detent {
-    let height: CGFloat? = UIApplication.shared
-      .connectedScenes
-      .compactMap { scene in
-        (scene as? UIWindowScene)?.keyWindow?.frame.width
-      }
-      .first?
-      .flatMap { (width: CGFloat) in
-        anchor.view.sizeThatFits(
-          .init(
-            width: width,
-            height: .greatestFiniteMagnitude
-          )
-        )
-      }?
-      .height
-
-    return .custom { context in
-      height.map {
-        min($0, context.maximumDetentValue)
-      }
+    .custom { context in
+      min(
+        anchor.view.intrinsicContentSize.height,
+        context.maximumDetentValue
+      )
     }
   }
 
@@ -109,6 +94,21 @@ extension NavigationResolver {
     try await self.activeLeafAnchor()?
       .push(
         anchor,
+        animated: animated,
+        file: file,
+        line: line
+      )
+  }
+
+  @MainActor internal func pop(
+    to identifier: NavigationDestinationIdentifier,
+    animated: Bool,
+    file: StaticString,
+    line: UInt
+  ) async throws {
+    try await self.rootAnchor()?
+      .pop(
+        to: identifier,
         animated: animated,
         file: file,
         line: line

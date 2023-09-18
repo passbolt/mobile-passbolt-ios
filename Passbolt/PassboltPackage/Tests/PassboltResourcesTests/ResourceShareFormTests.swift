@@ -23,6 +23,7 @@
 
 import Accounts
 import CommonModels
+import FeatureScopes
 import Features
 import SessionData
 import TestExtensions
@@ -33,6 +34,7 @@ import XCTest
 @testable import Resources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
 
   override class var testedImplementationScope: any FeaturesScope.Type { ResourceShareScope.self }
@@ -42,8 +44,6 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   ) {
     registry.usePassboltResourceShareForm()
   }
-
-  var resource: Resource!
 
   override func prepare() throws {
     self.set(
@@ -57,24 +57,17 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       ResourceShareScope.self,
       context: .mock_1
     )
-
-    self.resource = .mock_1
+    self.set(
+      ResourceDetailsScope.self,
+      context: .mock_1
+    )
     use(UserGroups.placeholder)
     use(UsersPGPMessages.placeholder)
     use(ResourceShareNetworkOperation.placeholder)
     patch(
-      \ResourceDetails.details,
-      context: self.resource.id!,
-      with: always(self.resource)
-    )
-    patch(
       \SessionData.refreshIfNeeded,
       with: always(Void())
     )
-  }
-
-  override func cleanup() throws {
-    self.resource = .none
   }
 
   func test_permissionsSequence_providesCurrentPermissionsInitially() async throws {
@@ -90,16 +83,21 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         permissionID: .mock_2
       ),
     ]
-    self.resource.permissions = expectedResult
+    var resource: Resource = .mock_1
+    resource.permissions = expectedResult
+    patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     let permissionsSequence: AnyAsyncSequence<OrderedSet<ResourcePermission>> = feature.permissionsSequence()
 
     await XCTAssertValue(
       equal: expectedResult
     ) {
-      await permissionsSequence.first()
+      try? await permissionsSequence.first()
     }
   }
 
@@ -121,7 +119,8 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         permissionID: .none
       ),
     ]
-    self.resource.permissions = [
+    var resource: Resource = .mock_1
+    resource.permissions = [
       .userGroup(
         id: .mock_1,
         permission: .read,
@@ -133,8 +132,12 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         permissionID: .mock_2
       ),
     ]
+    patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     let permissionsSequence: AnyAsyncSequence<OrderedSet<ResourcePermission>> = feature.permissionsSequence()
 
@@ -150,7 +153,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     await XCTAssertValue(
       equal: expectedResult
     ) {
-      await permissionsSequence
+      try? await permissionsSequence
         .first()
     }
   }
@@ -158,57 +161,64 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_permissionsSequence_providesSortedPermissions() async throws {
     let expectedResult: OrderedSet<ResourcePermission> = [
       .userGroup(
-        id: "existing-group",
+        id: .mock_1,
         permission: .read,
-        permissionID: "existing-group"
+        permissionID: .mock_1
       ),
       .userGroup(
-        id: "new-group",
+        id: .mock_2,
         permission: .write,
         permissionID: .none
       ),
       .user(
-        id: "existing-user",
+        id: .mock_1,
         permission: .owner,
-        permissionID: "existing-user"
+        permissionID: .mock_1
       ),
       .user(
-        id: "new-user",
+        id: .mock_2,
         permission: .read,
         permissionID: .none
       ),
     ]
-    self.resource.permissions = [
+    var resource: Resource = .mock_1
+    resource.permissions = [
       .user(
-        id: "existing-user",
+        id: .mock_1,
         permission: .owner,
-        permissionID: "existing-user"
+        permissionID: .mock_1
       ),
       .userGroup(
-        id: "existing-group",
+        id: .mock_1,
         permission: .read,
-        permissionID: "existing-group"
+        permissionID: .mock_1
       ),
     ]
+    patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     await feature
-      .setUserPermission("new-user", .read)
+      .setUserPermission(.mock_2, .read)
     await feature
-      .setUserGroupPermission("new-group", .write)
+      .setUserGroupPermission(.mock_2, .write)
 
     let permissionsSequence: AnyAsyncSequence<OrderedSet<ResourcePermission>> = feature.permissionsSequence()
 
     await XCTAssertValue(
       equal: expectedResult
     ) {
-      await permissionsSequence.first()
+      try? await permissionsSequence.first()
     }
   }
 
   func test_sendForm_fails_withoutOwnerPermission() async throws {
-    self.resource.permissions = [
+
+    var resource: Resource = .mock_1
+    resource.permissions = [
       .user(
         id: .mock_1,
         permission: .read,
@@ -220,8 +230,12 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         permissionID: .mock_2
       ),
     ]
+    patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     await XCTAssertError(
       matches: MissingResourceOwner.self
@@ -231,7 +245,8 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   }
 
   func test_sendForm_fails_whenFetchingNewGroupMembersFailsWithNewPermissions() async throws {
-    self.resource.permissions = [
+    var resource: Resource = .mock_1
+    resource.permissions = [
       .user(
         id: .mock_1,
         permission: .owner,
@@ -239,13 +254,17 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       )
     ]
     patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
+    patch(
       \UserGroups.groupMembers,
       with: alwaysThrow(
         MockIssue.error()
       )
     )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     await feature.setUserGroupPermission(
       .mock_1,
@@ -260,7 +279,8 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   }
 
   func test_sendForm_fails_whenAccessingSecretFailsWithNewPermissions() async throws {
-    self.resource.permissions = [
+    var resource: Resource = .mock_1
+    resource.permissions = [
       .user(
         id: .mock_1,
         permission: .owner,
@@ -268,20 +288,23 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       )
     ]
     patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
+    patch(
       \UserGroups.groupMembers,
       with: always(
         [.mock_1, .mock_1]
       )
     )
     patch(
-      \ResourceDetails.secret,
-      context: resource.id!,
+      \ResourceController.fetchSecretIfNeeded,
       with: alwaysThrow(
         MockIssue.error()
       )
     )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     await feature.setUserGroupPermission(
       .mock_1,
@@ -296,7 +319,8 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   }
 
   func test_sendForm_fails_whenEncryptingSecretFailsWithNewPermissions() async throws {
-    self.resource.permissions = [
+    var resource: Resource = .mock_1
+    resource.permissions = [
       .user(
         id: .mock_1,
         permission: .owner,
@@ -304,20 +328,20 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       )
     ]
     patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
+    patch(
       \UserGroups.groupMembers,
       with: always(
         [.mock_1, .mock_1]
       )
     )
     patch(
-      \ResourceDetails.secret,
-      context: resource.id!,
-      with: always(
-        .init(
-          rawValue: "{\"password\":\"secret\"}",
-          values: ["password": .string("secret")]
-        )
-      )
+      \ResourceController.fetchSecretIfNeeded,
+      with: always([
+        "password": "secret"
+      ])
     )
     patch(
       \UsersPGPMessages.encryptMessageForUsers,
@@ -326,7 +350,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       )
     )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     await feature.setUserGroupPermission(
       .mock_1,
@@ -341,7 +365,8 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   }
 
   func test_sendForm_fails_whenNetworkRequestFails() async throws {
-    self.resource.permissions = [
+    var resource: Resource = .mock_1
+    resource.permissions = [
       .user(
         id: .mock_1,
         permission: .owner,
@@ -349,20 +374,20 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       )
     ]
     patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
+    patch(
       \UserGroups.groupMembers,
       with: always(
         [.mock_1, .mock_1]
       )
     )
     patch(
-      \ResourceDetails.secret,
-      context: resource.id!,
-      with: always(
-        .init(
-          rawValue: "{\"password\":\"secret\"}",
-          values: ["password": .string("secret")]
-        )
-      )
+      \ResourceController.fetchSecretIfNeeded,
+      with: always([
+        "password": "secret"
+      ])
     )
     patch(
       \UsersPGPMessages.encryptMessageForUsers,
@@ -375,7 +400,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     await feature.setUserGroupPermission(
       .mock_1,
@@ -390,7 +415,8 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   }
 
   func test_sendForm_doesNotRequestSecret_withoutNewPermissions() async throws {
-    self.resource.permissions = [
+    var resource: Resource = .mock_1
+    resource.permissions = [
       .user(
         id: .mock_1,
         permission: .owner,
@@ -403,6 +429,10 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       ),
     ]
     patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
+    patch(
       \ResourceShareNetworkOperation.execute,
       with: always(Void())
     )
@@ -411,29 +441,26 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       with: always(Void())
     )
 
-    var result: Void?
-    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<Void?> = .init()
+
     patch(
-      \ResourceDetails.secret,
-      context: resource.id!,
-      with: { () async throws in
-        uncheckedSendableResult.variable = Void()
+      \ResourceController.fetchSecretIfNeeded,
+      with: { (_: Bool) async throws in
+        result.value = Void()
         throw MockIssue.error()
       }
     )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     try await feature.sendForm()
 
-    XCTAssertNil(result)
+    XCTAssertNil(result.value)
   }
 
   func test_sendForm_succeeds_whenAllOperationSucceed() async throws {
-    self.resource.permissions = [
+    var resource: Resource = .mock_1
+    resource.permissions = [
       .user(
         id: .mock_1,
         permission: .owner,
@@ -441,20 +468,20 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       )
     ]
     patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
+    patch(
       \UserGroups.groupMembers,
       with: always(
         [.mock_1, .mock_1]
       )
     )
     patch(
-      \ResourceDetails.secret,
-      context: resource.id!,
-      with: always(
-        .init(
-          rawValue: "{\"password\":\"secret\"}",
-          values: ["password": .string("secret")]
-        )
-      )
+      \ResourceController.fetchSecretIfNeeded,
+      with: always([
+        "password": "secret"
+      ])
     )
     patch(
       \UsersPGPMessages.encryptMessageForUsers,
@@ -467,7 +494,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       with: always(Void())
     )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     await XCTAssertNoError {
       try await feature.sendForm()
@@ -475,15 +502,20 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   }
 
   func test_setUserPermission_addsNewPermission_whenGivenUserHasNoPermissionYet() async throws {
-    self.resource.permissions = [
+    var resource: Resource = .mock_1
+    resource.permissions = [
       .user(
         id: .mock_1,
         permission: .owner,
         permissionID: .mock_1
       )
     ]
+    patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     await feature
       .setUserPermission(
@@ -505,22 +537,27 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-      await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
   }
 
   func test_setUserPermission_replacesNewPermission_whenGivenUserHasNewPermission() async throws {
-    self.resource.permissions = [
+    var resource: Resource = .mock_1
+    resource.permissions = [
       .user(
         id: .mock_1,
         permission: .owner,
         permissionID: .mock_1
       )
     ]
+    patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     await feature
       .setUserPermission(
@@ -548,14 +585,15 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-      await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
   }
 
   func test_setUserPermission_doesNotChangePermission_whenGivenUserHasPermissionWithSameType() async throws {
-    self.resource.permissions = [
+    var resource: Resource = .mock_1
+    resource.permissions = [
       .user(
         id: .mock_1,
         permission: .owner,
@@ -567,8 +605,12 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         permissionID: .mock_2
       ),
     ]
+    patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     await feature
       .setUserPermission(
@@ -590,14 +632,15 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-      await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
   }
 
   func test_setUserPermission_updatesPermission_whenGivenUserHasPermissionWithDifferentType() async throws {
-    self.resource.permissions = [
+    var resource: Resource = .mock_1
+    resource.permissions = [
       .user(
         id: .mock_1,
         permission: .owner,
@@ -609,8 +652,12 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         permissionID: .mock_2
       ),
     ]
+    patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     await feature
       .setUserPermission(
@@ -632,22 +679,27 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-      await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
   }
 
   func test_deleteUserPermission_removesPermission_whenGivenUserHasNewPermission() async throws {
-    self.resource.permissions = [
+    var resource: Resource = .mock_1
+    resource.permissions = [
       .user(
         id: .mock_1,
         permission: .owner,
         permissionID: .mock_1
       )
     ]
+    patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     await feature
       .setUserPermission(
@@ -669,14 +721,15 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         )
       ]
     ) {
-      await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
   }
 
   func test_deleteUserPermission_removesPermission_whenGivenUserHasPermission() async throws {
-    self.resource.permissions = [
+    var resource: Resource = .mock_1
+    resource.permissions = [
       .user(
         id: .mock_1,
         permission: .owner,
@@ -688,8 +741,12 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         permissionID: .mock_2
       ),
     ]
+    patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     await feature
       .deleteUserPermission(
@@ -705,22 +762,27 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         )
       ]
     ) {
-      await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
   }
 
   func test_setUserGroupPermission_addsNewPermission_whenGivenUserGroupHasNoPermissionYet() async throws {
-    self.resource.permissions = [
+    var resource: Resource = .mock_1
+    resource.permissions = [
       .userGroup(
         id: .mock_1,
         permission: .owner,
         permissionID: .mock_1
       )
     ]
+    patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     await feature
       .setUserGroupPermission(
@@ -742,22 +804,27 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-      await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
   }
 
   func test_setUserGroupPermission_replacesNewPermission_whenGivenUserGroupHasNewPermission() async throws {
-    self.resource.permissions = [
+    var resource: Resource = .mock_1
+    resource.permissions = [
       .userGroup(
         id: .mock_1,
         permission: .owner,
         permissionID: .mock_1
       )
     ]
+    patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     await feature
       .setUserGroupPermission(
@@ -785,14 +852,15 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-      await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
   }
 
   func test_setUserGroupPermission_doesNotChangePermission_whenGivenUserGroupHasPermissionWithSameType() async throws {
-    self.resource.permissions = [
+    var resource: Resource = .mock_1
+    resource.permissions = [
       .userGroup(
         id: .mock_1,
         permission: .owner,
@@ -804,8 +872,12 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         permissionID: .mock_2
       ),
     ]
+    patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     await feature
       .setUserGroupPermission(
@@ -827,14 +899,15 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-      await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
   }
 
   func test_setUserGroupPermission_updatesPermission_whenGivenUserGroupHasPermissionWithDifferentType() async throws {
-    self.resource.permissions = [
+    var resource: Resource = .mock_1
+    resource.permissions = [
       .userGroup(
         id: .mock_1,
         permission: .owner,
@@ -846,8 +919,12 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         permissionID: .mock_2
       ),
     ]
+    patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     await feature
       .setUserGroupPermission(
@@ -869,22 +946,27 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         ),
       ]
     ) {
-      await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
   }
 
   func test_deleteUserGroupPermission_removesPermission_whenGivenUserGroupHasNewPermission() async throws {
-    self.resource.permissions = [
+    var resource: Resource = .mock_1
+    resource.permissions = [
       .userGroup(
         id: .mock_1,
         permission: .owner,
         permissionID: .mock_1
       )
     ]
+    patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     await feature
       .setUserGroupPermission(
@@ -906,14 +988,15 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         )
       ]
     ) {
-      await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }
   }
 
   func test_deleteUserGroupPermission_removesPermission_whenGivenUserGroupHasPermission() async throws {
-    self.resource.permissions = [
+    var resource: Resource = .mock_1
+    resource.permissions = [
       .userGroup(
         id: .mock_1,
         permission: .owner,
@@ -925,8 +1008,12 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         permissionID: .mock_2
       ),
     ]
+    patch(
+      \ResourceController.state,
+      with: Variable(initial: resource).asAnyUpdatable()
+    )
 
-    let feature: ResourceShareForm = try self.testedInstance(context: resource.id!)
+    let feature: ResourceShareForm = try self.testedInstance(context: .mock_1)
 
     await feature
       .deleteUserGroupPermission(
@@ -942,7 +1029,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         )
       ]
     ) {
-      await feature
+      try? await feature
         .permissionsSequence()
         .first()
     }

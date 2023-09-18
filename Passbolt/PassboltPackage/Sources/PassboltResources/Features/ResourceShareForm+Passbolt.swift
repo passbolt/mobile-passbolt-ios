@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import FeatureScopes
 import NetworkOperations
 import Resources
 import SessionData
@@ -43,16 +44,16 @@ extension ResourceShareForm {
     cancellables: Cancellables
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
+    try features.ensureScope(ResourceDetailsScope.self)
     try features.ensureScope(ResourceShareScope.self)
 
-    let diagnostics: OSDiagnostics = features.instance()
     let sessionData: SessionData = try features.instance()
-    let resourceDetails: ResourceDetails = try features.instance(context: resourceID)
+    let resourceController: ResourceController = try features.instance()
     let usersPGPMessages: UsersPGPMessages = try features.instance()
     let userGroups: UserGroups = try features.instance()
     let resourceShareNetworkOperation: ResourceShareNetworkOperation = try features.instance()
 
-    let formState: AsyncVariable<FormState> = .init(
+    let formState: Variable<FormState> = .init(
       initial: .init(
         resourceID: resourceID,
         editedPermissions: .init(),
@@ -62,16 +63,18 @@ extension ResourceShareForm {
 
     @Sendable func existingPermissions() async -> OrderedSet<ResourcePermission> {
       do {
-        return try await resourceDetails.details().permissions
+        return try await resourceController.state.value.permissions
       }
       catch {
-        diagnostics.log(error: error)
+        error.logged()
         return .init()
       }
     }
 
     nonisolated func permissionsSequence() -> AnyAsyncSequence<OrderedSet<ResourcePermission>> {
       formState
+        .asAnyAsyncSequence()
+        .compactMap { try? $0.value }
         .map { (formState: FormState) -> OrderedSet<ResourcePermission> in
           let existingPermissions: Array<ResourcePermission> = await existingPermissions()
             .filter { (permission: ResourcePermission) -> Bool in
@@ -166,9 +169,8 @@ extension ResourceShareForm {
         )
       }
 
-      return
-        formState
-        .withValue { (state: inout FormState) in
+      formState
+        .mutate { (state: inout FormState) in
           state
             .editedPermissions
             .removeAll { (permission: ResourcePermission) in
@@ -192,7 +194,7 @@ extension ResourceShareForm {
       let existingPermissions: OrderedSet<ResourcePermission> = await existingPermissions()
 
       formState
-        .withValue { (state: inout FormState) in
+        .mutate { (state: inout FormState) in
           state
             .editedPermissions
             .removeAll { (permission: ResourcePermission) in
@@ -238,9 +240,8 @@ extension ResourceShareForm {
         )
       }
 
-      return
-        formState
-        .withValue { (state: inout FormState) in
+      formState
+        .mutate { (state: inout FormState) in
           state
             .editedPermissions
             .removeAll { (permission: ResourcePermission) in
@@ -264,7 +265,7 @@ extension ResourceShareForm {
       let existingPermissions: OrderedSet<ResourcePermission> = await existingPermissions()
 
       formState
-        .withValue { (state: inout FormState) in
+        .mutate { (state: inout FormState) in
           state
             .editedPermissions
             .removeAll { (permission: ResourcePermission) in
@@ -339,13 +340,19 @@ extension ResourceShareForm {
       guard !uniqueNewUsers.isEmpty
       else { return .init() }
 
-      let secret: ResourceSecret = try await resourceDetails.secret()
+      guard
+        let resourceSecret: String = try await resourceController.fetchSecretIfNeeded(force: true).resourceSecretString
+      else {
+        throw
+          InvalidInputData
+          .error(message: "Invalid or missing resource secret")
+      }
 
       return
         try await usersPGPMessages
         .encryptMessageForUsers(
           uniqueNewUsers,
-          secret.rawValue
+          resourceSecret
         )
     }
 

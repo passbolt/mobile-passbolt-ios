@@ -30,6 +30,7 @@ public enum DisplayableString {
   case localized(LocalizedString)
 }
 
+extension DisplayableString: Sendable {}
 extension DisplayableString: Hashable {}
 
 extension DisplayableString: ExpressibleByStringInterpolation {

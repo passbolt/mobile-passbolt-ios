@@ -30,5 +30,5 @@ public typealias ResourceFolderDetailsFetchDatabaseOperation = DatabaseOperation
 public enum ResourceFolderDetailsFetchDatabaseOperationDescription: DatabaseOperationDescription {
 
   public typealias Input = ResourceFolder.ID
-  public typealias Output = ResourceFolderDetailsDSV
+  public typealias Output = ResourceFolder
 }

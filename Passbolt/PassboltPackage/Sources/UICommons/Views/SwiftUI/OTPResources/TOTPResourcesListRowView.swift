@@ -28,18 +28,18 @@ public struct TOTPResourcesListRowView<Accessory>: View
 where Accessory: View {
 
   private let title: String
-  private let value: TOTPValue?  // .none means hidden
-  private let action: () -> Void
+  private let generateTOTP: (@Sendable () -> TOTPValue)?  // .none means hidden
+  private let action: () async -> Void
   private let accessory: () -> Accessory
 
   public init(
     title: String,
-    value: TOTPValue?,
-    action: @escaping () -> Void,
+    generateTOTP: (@Sendable () -> TOTPValue)?,
+    action: @escaping () async -> Void,
     @ViewBuilder accessory: @escaping () -> Accessory
   ) {
     self.title = title
-    self.value = value
+    self.generateTOTP = generateTOTP
     self.action = action
     self.accessory = accessory
   }
@@ -66,57 +66,14 @@ where Accessory: View {
             )
           )
 
-        Button(
+        AsyncButton(
           action: self.action,
-          label: {
-            if let totpValue: TOTPValue = self.value {
-              HStack(spacing: 12) {
-                Text(totpValue.otp.rawValue.split(every: 3).joined(separator: " "))
-                  .multilineTextAlignment(.leading)
-                  .font(
-                    .inconsolata(
-                      ofSize: 24,
-                      weight: .semibold
-                    )
-                  )
-
-                CountdownCircleView(
-                  current: totpValue.timeLeft.rawValue,
-                  max: totpValue.period.rawValue
-                )
-              }
-              .frame(
-                maxWidth: .infinity,
-                alignment: .leading
-              )
-              .foregroundColor(
-                totpValue.timeLeft > 5
-                  ? Color.passboltPrimaryText
-                  : Color.passboltSecondaryRed
-              )
+          regularLabel: {
+            if let generateTOTP: () -> TOTPValue = self.generateTOTP {
+              AutoupdatingTOTPValueView(generateTOTP: generateTOTP)
             }
             else {
-              HStack(spacing: 12) {
-                Text("••• •••")
-                  .multilineTextAlignment(.leading)
-                  .font(
-                    .inconsolata(
-                      ofSize: 24,
-                      weight: .semibold
-                    )
-                  )
-
-                Image(named: .eye)
-                  .resizable()
-                  .frame(
-                    width: 20,
-                    height: 20
-                  )
-              }
-              .frame(
-                maxWidth: .infinity,
-                alignment: .leading
-              )
+              TOTPValueView(value: .none)
             }
           }
         )
@@ -172,12 +129,14 @@ internal struct TOTPResourcesListRowView_Previews: PreviewProvider {
       RunningTimerView { value in
         TOTPResourcesListRowView(
           title: "Revealed running",
-          value: .init(
-            resourceID: "ResourceID",
-            otp: "123456",
-            timeLeft: value,
-            period: 30
-          ),
+          generateTOTP: {
+            .init(
+              resourceID: .init(),
+              otp: "123456",
+              timeLeft: value,
+              period: 30
+            )
+          },
           action: {},
           accessory: {
             Button(
@@ -197,7 +156,7 @@ internal struct TOTPResourcesListRowView_Previews: PreviewProvider {
 
       TOTPResourcesListRowView(
         title: "Item hidden",
-        value: .none,
+        generateTOTP: .none,
         action: {},
         accessory: {
           Button(
@@ -216,12 +175,14 @@ internal struct TOTPResourcesListRowView_Previews: PreviewProvider {
 
       TOTPResourcesListRowView(
         title: "Revealed",
-        value: .init(
-          resourceID: "ResourceID",
-          otp: "123456",
-          timeLeft: 23,
-          period: 30
-        ),
+        generateTOTP: {
+          .init(
+            resourceID: .init(),
+            otp: "123456",
+            timeLeft: 30,
+            period: 30
+          )
+        },
         action: {},
         accessory: {
           Button(
@@ -240,12 +201,14 @@ internal struct TOTPResourcesListRowView_Previews: PreviewProvider {
 
       TOTPResourcesListRowView(
         title: "Revealed with very long title which won't fit in one line",
-        value: .init(
-          resourceID: "ResourceID",
-          otp: "123456",
-          timeLeft: 23,
-          period: 30
-        ),
+        generateTOTP: {
+          .init(
+            resourceID: .init(),
+            otp: "123456",
+            timeLeft: 23,
+            period: 30
+          )
+        },
         action: {},
         accessory: {
           Button(
@@ -264,12 +227,14 @@ internal struct TOTPResourcesListRowView_Previews: PreviewProvider {
 
       TOTPResourcesListRowView(
         title: "Low Time Revealed",
-        value: .init(
-          resourceID: "ResourceID",
-          otp: "123456",
-          timeLeft: 3,
-          period: 30
-        ),
+        generateTOTP: {
+          .init(
+            resourceID: .init(),
+            otp: "123456",
+            timeLeft: 3,
+            period: 30
+          )
+        },
         action: {},
         accessory: {
           Button(

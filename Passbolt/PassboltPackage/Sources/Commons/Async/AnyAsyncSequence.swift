@@ -23,21 +23,17 @@
 
 import Combine
 
-public struct AnyAsyncSequence<Element> {
+public struct AnyAsyncSequence<Element>
+where Element: Sendable {
 
-  private let makeIterator: () -> AsyncIterator
+  private let makeIterator: () -> AnyAsyncIterator<Element>
 
   public init<Upstream: Publisher>(
     _ upstream: Upstream,
     bufferingPolicy: AsyncStream<Element>.Continuation.BufferingPolicy = .unbounded
-  ) where Upstream.Output == Element, Upstream.Failure == Never {
+  ) where Upstream.Output == Element {
     self.makeIterator = {
-      var iterator: AsyncPublisher<Upstream>.Iterator = upstream.values.makeAsyncIterator()
-      return AnyAsyncIterator<Element>(
-        nextElement: {
-          await iterator.next()
-        }
-      )
+      upstream.values.makeAsyncIterator().asAnyAsyncIterator()
     }
   }
 
@@ -45,29 +41,7 @@ public struct AnyAsyncSequence<Element> {
     _ content: Content
   ) where Content: AsyncSequence, Content.Element == Element {
     self.makeIterator = {
-      var iterator: Content.AsyncIterator = content.makeAsyncIterator()
-      return AnyAsyncIterator<Element>(
-        nextElement: {
-          do {
-            return try await iterator.next()
-          }
-          catch _ as CancellationError {
-            // treated as sequence end since we can't rethrow
-            return nil
-          }
-          catch {
-            // we can't get the details if Content sequence is throwing or not
-            // so if it is it will be treated as sequence end since we can't rethrow
-            error
-              .asTheError()
-              .asAssertionFailure(
-                message:
-                  "AnyAsyncSequence should not use throwing sequences, please use AnyAsyncThrowingSequence instead"
-              )
-            return nil
-          }
-        }
-      )
+      content.makeAsyncIterator().asAnyAsyncIterator()
     }
   }
 
@@ -85,10 +59,10 @@ public struct AnyAsyncSequence<Element> {
   }
 
   public init(
-    _ next: @escaping @Sendable () async -> Element?
+    _ next: @escaping @Sendable () async throws -> Element?
   ) {
     self.makeIterator = {
-      return AnyAsyncIterator<Element>(
+      AnyAsyncIterator<Element>(
         nextElement: next
       )
     }
@@ -112,11 +86,26 @@ extension Sequence {
 extension AsyncSequence {
 
   public func asAnyAsyncSequence() -> AnyAsyncSequence<Element> {
-    AnyAsyncSequence(self)
+    if let sequence: AnyAsyncSequence<Element> = self as? AnyAsyncSequence<Element> {
+      return sequence
+    }
+    else {
+      return AnyAsyncSequence(self)
+    }
+  }
+
+  public func asAnyValueAsyncSequence<Value>() -> AnyAsyncSequence<Value>
+  where Self.Element == Update<Value> {
+    if let sequence: AnyAsyncSequence<Value> = self as? AnyAsyncSequence<Value> {
+      return sequence
+    }
+    else {
+      return AnyAsyncSequence(self.map { try $0.value })
+    }
   }
 }
 
-extension Publisher where Failure == Never {
+extension Publisher {
 
   public func asAnyAsyncSequence() -> AnyAsyncSequence<Output> {
     AnyAsyncSequence(self)

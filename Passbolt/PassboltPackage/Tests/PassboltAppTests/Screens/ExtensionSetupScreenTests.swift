@@ -22,6 +22,7 @@
 //
 
 import Combine
+import FeatureScopes
 import Features
 import TestExtensions
 import UIComponents
@@ -29,6 +30,7 @@ import UIComponents
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 @MainActor
 final class ExtensionSetupScreenTests: MainActorTestCase {
 

@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import FeatureScopes
 import OSFeatures
 
 // MARK: Implementation
@@ -45,7 +46,7 @@ extension AccountInitialSetup {
     @Sendable func unfinishedSetupElements() async -> Set<SetupElement> {
       var unfinishedElements: Set<SetupElement> =
         unfinishedSetupElementsProperty
-        .get(withDefault: [])
+				.get(withDefault: [])
         .compactMap(SetupElement.init(rawValue:))
         .asSet()
 

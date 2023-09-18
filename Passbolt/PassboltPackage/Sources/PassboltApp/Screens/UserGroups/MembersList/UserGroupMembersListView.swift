@@ -120,7 +120,7 @@ internal struct UserGroupMembersListView: ComponentView {
 
 extension UserGroupMembersListView {
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var groupName: String
     internal var items: Array<UserGroupMembersListRowItem>

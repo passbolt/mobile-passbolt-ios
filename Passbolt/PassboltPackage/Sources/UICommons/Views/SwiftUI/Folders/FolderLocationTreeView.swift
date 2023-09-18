@@ -41,13 +41,13 @@ public struct FolderLocationTreeView: View {
         if let child: Node = self.node.child {
           if case .some = child.child {
             FolderLocationTreeView(location: child)
-              .padding(leading: 16)  // indent next level
+              .padding(leading: 8)  // indent next level
           }
           else {  // leaf can't be expanded
             self.labelView(for: child)
               .padding(
                 top: 8,
-                leading: 16,  // indent next level
+                leading: 8,  // indent next level
                 bottom: 8
               )
           }
@@ -55,12 +55,13 @@ public struct FolderLocationTreeView: View {
       },
       label: {
         self.labelView(for: self.node)
+          .padding(
+            top: 8,
+            bottom: 8
+          )
       }
     )
-    .padding(
-      top: 8,
-      bottom: 8
-    )
+
   }
 
   @ViewBuilder private func labelView(
@@ -134,7 +135,7 @@ extension FolderLocationTreeView {
       }
     }
 
-    internal var name: String? {
+    public var name: String? {
       switch self {
       case .root:
         return .none
@@ -147,7 +148,7 @@ extension FolderLocationTreeView {
       }
     }
 
-    internal var shared: Bool {
+    public var shared: Bool {
       switch self {
       case .root:
         return false
@@ -160,7 +161,7 @@ extension FolderLocationTreeView {
       }
     }
 
-    internal var child: Node? {
+    public var child: Node? {
       switch self {
       case .root(let child):
         return child

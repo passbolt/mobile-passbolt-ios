@@ -73,29 +73,40 @@ extension DiagnosticsInfo {
 }
 #endif
 
+extension DiagnosticsInfo {
+
+  public var diagnosticsDescription: String {
+    #if DEBUG
+    self.debugDescription
+    #else
+    self.description
+    #endif
+  }
+}
+
 extension DiagnosticsInfo: CustomStringConvertible {
 
   public var description: String {
-    "\(self.file):\(self.line)-\(self.message)"
+    "\(self.message) \(self.file):\(self.line)"
   }
 }
 
 extension DiagnosticsInfo: CustomDebugStringConvertible {
 
   public var debugDescription: String {
-    #if DEBUG
-    return "\(self.file):\(self.line)-\(self.message)"
+		#if DEBUG
+		self.description
       .appending(
         self.values
           .reduce(
             into: String(),
             { (result, value) in
-              result.append("\n - \(value.key): \(value.value)")
+              result.append("\n 🧩 \(value.key): \(value.value)")
             }
           )
       )
-    #else
-    return self.description
-    #endif
+		#else
+		self.description
+		#endif
   }
 }

@@ -31,3 +31,11 @@ public enum HOTPAlgorithm: String {
 extension HOTPAlgorithm: Hashable {}
 extension HOTPAlgorithm: Sendable {}
 extension HOTPAlgorithm: Codable {}
+extension HOTPAlgorithm: CaseIterable {
+
+  public static var allCases: Array<HOTPAlgorithm> = [
+    .sha1,
+    .sha256,
+    .sha512,
+  ]
+}

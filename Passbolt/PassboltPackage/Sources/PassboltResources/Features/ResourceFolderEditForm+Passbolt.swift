@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import FeatureScopes
 import NetworkOperations
 import Resources
 import Session
@@ -40,14 +41,13 @@ extension ResourceFolderEditForm {
 
     let currentAccount: Account = try features.sessionAccount()
 
-    let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
 
     let sessionData: SessionData = try features.instance()
     let resourceFolderCreateNetworkOperation: ResourceFolderCreateNetworkOperation = try features.instance()
     let resourceFolderShareNetworkOperation: ResourceFolderShareNetworkOperation = try features.instance()
 
-    let formUpdates: UpdatesSequenceSource = .init()
+    let formUpdates: Updates = .init()
     let formState: CriticalState<ResourceFolderEditFormState> = .init(
       .init(
         name: .valid(.init()),
@@ -56,7 +56,7 @@ extension ResourceFolderEditForm {
       )
     )
 
-    asyncExecutor.schedule { @MainActor in
+		asyncExecutor.schedule(.unmanaged) { @MainActor in
       do {
         switch context {
         case .create(.none):
@@ -73,12 +73,12 @@ extension ResourceFolderEditForm {
           }
 
         case let .create(.some(enclosingFolderID)):
-          let enclosingFolderDetails: ResourceFolderDetailsDSV =
+          let enclosingFolderDetails: ResourceFolder =
             try await features.instance(
-              of: ResourceFolderDetails.self,
+              of: ResourceFolderController.self,
               context: enclosingFolderID
             )
-            .details()
+            .state.value
 
           let location =
             enclosingFolderDetails.path
@@ -88,12 +88,14 @@ extension ResourceFolderEditForm {
                 folderName: item.name
               )
             }
-            + [
-              ResourceFolderLocationItem(
-                folderID: enclosingFolderDetails.id,
-                folderName: enclosingFolderDetails.name
-              )
-            ]
+            + (enclosingFolderDetails.id.map { id in
+              [
+                ResourceFolderLocationItem(
+                  folderID: id,
+                  folderName: enclosingFolderDetails.name
+                )
+              ]
+            } ?? [])
 
           let permissions = enclosingFolderDetails
             .permissions
@@ -122,12 +124,12 @@ extension ResourceFolderEditForm {
           }
 
         case let .modify(folderID):
-          let folderDetails: ResourceFolderDetailsDSV =
+          let folderDetails: ResourceFolder =
             try await features.instance(
-              of: ResourceFolderDetails.self,
+              of: ResourceFolderController.self,
               context: folderID
             )
-            .details()
+            .state.value
 
           let location = folderDetails.path
             .map { (item: ResourceFolderPathItem) -> ResourceFolderLocationItem in
@@ -143,10 +145,10 @@ extension ResourceFolderEditForm {
             state.permissions = .valid(folderDetails.permissions)
           }
         }
-        formUpdates.sendUpdate()
+        formUpdates.update()
       }
       catch {
-        diagnostics.log(error: error)
+        error.logged()
       }
     }
 
@@ -183,7 +185,7 @@ extension ResourceFolderEditForm {
     ) -> ResourceFolderEditFormState {
       form.name = nameValidator.validate(form.name.value)
       form.permissions = permissionsValidator.validate(form.permissions.value)
-      formUpdates.sendUpdate()
+      formUpdates.update()
       return form
     }
 
@@ -197,7 +199,7 @@ extension ResourceFolderEditForm {
       formState.access { (state: inout ResourceFolderEditFormState) in
         state.name = nameValidator.validate(folderName)
       }
-      formUpdates.sendUpdate()
+      formUpdates.update()
     }
 
     @Sendable func sendForm() async throws {
@@ -305,7 +307,7 @@ extension ResourceFolderEditForm {
     }
 
     return Self(
-      formUpdates: formUpdates.updatesSequence,
+      updates: formUpdates.asAnyUpdatable(),
       formState: accessFormState,
       setFolderName: setFolderName(_:),
       sendForm: sendForm

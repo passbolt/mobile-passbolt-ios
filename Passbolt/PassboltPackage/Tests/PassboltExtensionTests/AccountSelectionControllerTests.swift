@@ -32,16 +32,16 @@ import XCTest
 @testable import PassboltExtension
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@MainActor
+@MainActor @available(iOS 16.0.0, *)
 final class AccountSelectionControllerTests: MainActorTestCase {
 
-  var accountsUpdates: UpdatesSequenceSource!
+  var accountsUpdates: Updates!
 
   override func mainActorSetUp() {
     accountsUpdates = .init()
     features.patch(
       \Accounts.updates,
-      with: accountsUpdates.updatesSequence
+      with: accountsUpdates.asAnyUpdatable()
     )
     features.patch(
       \Accounts.storedAccounts,
@@ -71,7 +71,6 @@ final class AccountSelectionControllerTests: MainActorTestCase {
       \Session.currentAccount,
       with: always(Account.mock_ada)
     )
-    features.usePlaceholder(for: NavigationTree.self)
     features.usePlaceholder(for: AutofillExtensionContext.self)
   }
 

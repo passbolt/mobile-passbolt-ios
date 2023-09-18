@@ -35,11 +35,11 @@ extension Accounts {
     cancellables: Cancellables
   ) throws -> Self {
     let uuidGenerator: UUIDGenerator = features.instance()
-    let diagnostics: OSDiagnostics = features.instance()
+
     let session: Session = try features.instance()
     let dataStore: AccountsDataStore = try features.instance()
 
-    let updatesSequenceSource: UpdatesSequenceSource = .init()
+    let updatesSource: Updates = .init()
 
     @Sendable nonisolated func verifyAccountsDataIntegrity() throws {
       try dataStore.verifyDataIntegrity()
@@ -90,12 +90,12 @@ extension Accounts {
         do {
           try dataStore
             .storeAccount(account, accountProfile, transferedAccount.armoredKey)
-          updatesSequenceSource.sendUpdate()
+          updatesSource.update()
         }
         catch {
-          diagnostics.log(diagnostic: "...failed to store account data...")
-          diagnostics.debugLog(
-            "Failed to save account: \(account.localID): \(error)"
+					Diagnostics.logger.info("...failed to store account data...")
+          Diagnostics.debug(
+            "Failed to save account: \(account.localID)"
           )
           throw error
         }
@@ -106,18 +106,18 @@ extension Accounts {
     @Sendable nonisolated func remove(
       account: Account
     ) throws {
-      diagnostics.log(diagnostic: "Removing local account data...")
+      Diagnostics.logger.info("Removing local account data...")
       Task {
         #warning("TODO: manage spawning tasks")
         await session.close(account)
       }
       dataStore.deleteAccount(account.localID)
-      updatesSequenceSource.sendUpdate()
-      diagnostics.log(diagnostic: "...removing local account data succeeded!")
+      updatesSource.update()
+      Diagnostics.logger.info("...removing local account data succeeded!")
     }
 
     return Self(
-      updates: updatesSequenceSource.updatesSequence,
+      updates: updatesSource.asAnyUpdatable(),
       verifyDataIntegrity: verifyAccountsDataIntegrity,
       storedAccounts: storedAccounts,
       lastUsedAccount: lastUsedAccount,

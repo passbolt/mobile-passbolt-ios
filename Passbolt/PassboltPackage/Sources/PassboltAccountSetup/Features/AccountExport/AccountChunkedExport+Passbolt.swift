@@ -22,6 +22,7 @@
 //
 
 import AccountSetup
+import FeatureScopes
 import NetworkOperations
 import OSFeatures
 
@@ -57,7 +58,7 @@ extension AccountChunkedExport {
     let dataEncoder: JSONEncoder = .init()
     dataEncoder.keyEncodingStrategy = .convertToSnakeCase
 
-    let updatesSource: UpdatesSequenceSource = .init()
+    let updatesSource: Updates = .init()
     let state: CriticalState<State> = .init(
       .init(
         transferID: .none,
@@ -207,7 +208,7 @@ extension AccountChunkedExport {
         state.currentTransferPage = 0
       }
       startBackendPolling()
-      updatesSource.sendUpdate()
+      updatesSource.update()
     }
 
     @Sendable nonisolated func startBackendPolling() {
@@ -234,7 +235,7 @@ extension AccountChunkedExport {
               state.access { (state: inout State) in
                 guard case .none = state.error else { return }
                 state.currentTransferPage = updatedStatus.currentPage
-                updatesSource.sendUpdate()
+                updatesSource.update()
               }
 
             case .inProgress:
@@ -244,16 +245,15 @@ extension AccountChunkedExport {
               state.access { (state: inout State) in
                 guard case .none = state.error else { return }
                 state.currentTransferPage = updatedStatus.currentPage
-                updatesSource.sendUpdate()
+                updatesSource.update()
               }
 
             case .complete:
               state.access { (state: inout State) in
                 guard case .none = state.error else { return }
                 state.currentTransferPage = state.transferDataChunks.count
-                updatesSource.sendUpdate()
+                updatesSource.update()
               }
-              updatesSource.endUpdates()
               return  // finished
 
             case .error:
@@ -270,9 +270,8 @@ extension AccountChunkedExport {
           state.access { (state: inout State) in
             guard case .none = state.error else { return }
             state.error = error.asTheError()
-            updatesSource.sendUpdate()
+            updatesSource.update()
           }
-          updatesSource.endUpdates()
         }
       }
     }
@@ -282,13 +281,12 @@ extension AccountChunkedExport {
       state.access { (state: inout State) in
         guard case .none = state.error else { return }
         state.error = Cancelled.error()
-        updatesSource.sendUpdate()
+        updatesSource.update()
       }
-      updatesSource.endUpdates()
     }
 
     return .init(
-      updates: updatesSource.updatesSequence,
+      updates: updatesSource.asAnyUpdatable(),
       status: status,
       authorize: authorize(authorizationMethod:),
       cancel: cancel

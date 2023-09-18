@@ -29,7 +29,7 @@ import struct Foundation.Data
 public struct AccountChunkedExport {
 
   /// Updates in account export process.
-  public var updates: UpdatesSequence
+  public var updates: AnyUpdatable<Void>
   /// Current status of exporting.
   public var status: @Sendable () -> Status
   /// Initialize export by authorizing, it will prolong
@@ -42,7 +42,7 @@ public struct AccountChunkedExport {
   public var cancel: @Sendable () -> Void
 
   public init(
-    updates: UpdatesSequence,
+    updates: AnyUpdatable<Void>,
     status: @escaping @Sendable () -> Status,
     authorize: @escaping @Sendable (AccountExportAuthorizationMethod) async throws -> Void,
     cancel: @escaping @Sendable () -> Void
@@ -91,7 +91,7 @@ extension AccountChunkedExport: LoadableFeature {
   #if DEBUG
   public static var placeholder: Self {
     .init(
-      updates: .placeholder,
+      updates: PlaceholderUpdatable().asAnyUpdatable(),
       status: unimplemented0(),
       authorize: unimplemented1(),
       cancel: unimplemented0()

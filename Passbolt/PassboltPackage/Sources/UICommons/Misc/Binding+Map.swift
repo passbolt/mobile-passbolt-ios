@@ -25,6 +25,17 @@ import SwiftUI
 
 extension Binding {
 
+  public func some<Wrapped>() -> Binding<Bool>
+  where Value == Optional<Wrapped> {
+    .init(
+      get: { self.wrappedValue != nil },
+      set: { (newValue: Bool) in
+        guard !newValue else { return }  // can't set not nil
+        self.wrappedValue = .none
+      }
+    )
+  }
+
   public func map<NewValue>(
     get: @escaping (Value) -> NewValue,
     set: @escaping (NewValue) -> Value

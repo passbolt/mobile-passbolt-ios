@@ -30,7 +30,7 @@ internal protocol NavigationAnchor: UIViewController {
 
 extension UIViewController: NavigationAnchor {
 
-  internal var destinationIdentifier: NavigationDestinationIdentifier? {
+  public var destinationIdentifier: NavigationDestinationIdentifier? {
     get {
       objc_getAssociatedObject(
         self,
@@ -58,6 +58,14 @@ extension NavigationAnchor {
     file: StaticString,
     line: UInt
   ) async {
+    defer {
+      if #available(iOS 16.0, *) {
+        presentedAnchor.sheetPresentationController?
+          .animateChanges {
+            presentedAnchor.sheetPresentationController?.invalidateDetents()
+          }
+      }  // else NOP
+    }
     return await withCheckedContinuation { continuation in
       (self.navigationTabs
         ?? self.navigationStack
@@ -96,6 +104,45 @@ extension NavigationAnchor {
       CATransaction.setCompletionBlock(continuation.resume)
       stack.pushViewController(
         pushedAnchor,
+        animated: animated
+      )
+      CATransaction.commit()
+    }
+  }
+
+  @MainActor internal func pop(
+    to identifier: NavigationDestinationIdentifier,
+    animated: Bool,
+    file: StaticString,
+    line: UInt
+  ) async throws {
+    guard let destinationAnchor = self.leafAnchor(with: identifier)
+    else {
+      throw
+        InternalInconsistency
+        .error(
+          "Invalid navigation - missing destination!",
+          file: file,
+          line: line
+        )
+        .asAssertionFailure()
+    }
+    guard let stack: UINavigationController = destinationAnchor.navigationStack
+    else {
+      throw
+        InternalInconsistency
+        .error(
+          "Invalid navigation - missing stack!",
+          file: file,
+          line: line
+        )
+        .asAssertionFailure()
+    }
+    return await withCheckedContinuation { continuation in
+      CATransaction.begin()
+      CATransaction.setCompletionBlock(continuation.resume)
+      stack.popToViewController(
+        destinationAnchor,
         animated: animated
       )
       CATransaction.commit()

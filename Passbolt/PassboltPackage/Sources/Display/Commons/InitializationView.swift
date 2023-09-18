@@ -25,18 +25,19 @@ import SwiftUI
 
 public struct InitializationView: ControlledView {
 
-  public struct Controller: ViewController {
+  public final class Controller: ViewController {
 
-    @Stateless public var viewState
-
-    #if DEBUG
-    public static var placeholder: Self {
-      .init()
+    public init(
+      context: Void,
+      features: Features
+    ) throws {
+      // NOP
     }
-    #endif
+
+    internal nonisolated init() {}
   }
 
-  private let controller: Controller
+  public let controller: Controller
 
   public init(
     controller: Controller

@@ -25,22 +25,23 @@ import SwiftUI
 
 public struct LoaderView: ControlledView {
 
-  public struct Controller: ViewController {
+  public final class Controller: ViewController {
 
-    @Stateless public var viewState
-
-    #if DEBUG
-    public static var placeholder: Self {
-      .init()
+    public init(
+      context: Void,
+      features: Features
+    ) throws {
+      // NOP
     }
-    #endif
+
+    fileprivate nonisolated init() {}
   }
 
   public static func instance() -> Self {
     .init(controller: .init())
   }
 
-  private let controller: Controller
+  public let controller: Controller
 
   public init(
     controller: Controller

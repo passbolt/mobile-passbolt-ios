@@ -22,80 +22,42 @@
 //
 
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 import SessionData
 
-// MARK: - Interface
+internal final class ResourceFolderContentDisplayController: ViewController {
 
-internal struct ResourceFolderContentDisplayController {
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
-  internal var viewState: MutableViewState<ViewState>
-  internal var activate: @Sendable () async -> Void
-  internal var refresh: @Sendable () async -> Void
-  internal var create: (() -> Void)?
+  internal var createFolder: (() -> Void)?
+  internal var createResource: (() -> Void)?
   internal var selectFolder: (ResourceFolder.ID) -> Void
   internal var selectResource: (Resource.ID) -> Void
   internal var openResourceMenu: ((Resource.ID) -> Void)?
-}
 
-extension ResourceFolderContentDisplayController: ViewController {
+  private let asyncExecutor: AsyncExecutor
+  private let sessionData: SessionData
+  private let resourceFolders: ResourceFolders
 
-  internal struct Context {
+  private let context: Context
+  private let features: Features
 
-    internal var folderName: DisplayableString
-    internal var filter: ObservableViewState<ResourceFoldersFilter>
-    internal var suggestionFilter: (ResourceListItemDSV) -> Bool
-    internal var createFolder: (() -> Void)?
-    internal var createResource: (() -> Void)?
-    internal var selectFolder: (ResourceFolder.ID) -> Void
-    internal var selectResource: (Resource.ID) -> Void
-    internal var openResourceMenu: ((Resource.ID) -> Void)?
-    internal var showMessage: (SnackBarMessage?) -> Void
-  }
-
-  internal struct ViewState: Hashable {
-
-    internal var folderName: DisplayableString
-    internal var isSearchResult: Bool
-    internal var directFolders: Array<ResourceFolderListItemDSV>
-    internal var nestedFolders: Array<ResourceFolderListItemDSV>
-    internal var suggestedResources: Array<ResourceListItemDSV>
-    internal var directResources: Array<ResourceListItemDSV>
-    internal var nestedResources: Array<ResourceListItemDSV>
-  }
-
-  #if DEBUG
-  nonisolated static var placeholder: Self {
-    .init(
-      viewState: .placeholder(),
-      activate: { unimplemented() },
-      refresh: { unimplemented() },
-      create: { unimplemented() },
-      selectFolder: { _ in unimplemented() },
-      selectResource: { _ in unimplemented() },
-      openResourceMenu: { _ in unimplemented() }
-    )
-  }
-  #endif
-}
-
-// MARK: - Implementation
-
-extension ResourceFolderContentDisplayController {
-
-  @MainActor fileprivate static func load(
-    features: Features,
-    context: Context
-  ) throws -> Self {
+  @MainActor public init(
+    context: Context,
+    features: Features
+  ) throws {
     try features.ensureScope(SessionScope.self)
 
-    let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
-    let sessionData: SessionData = try features.instance()
-    let resourceFolders: ResourceFolders = try features.instance()
+    self.context = context
+    self.features = features
 
-    let viewState: MutableViewState<ViewState> = .init(
+    self.asyncExecutor = try features.instance()
+    self.sessionData = try features.instance()
+    self.resourceFolders = try features.instance()
+
+    self.viewState = .init(
       initial: .init(
         folderName: context.folderName,
         isSearchResult: false,
@@ -107,97 +69,75 @@ extension ResourceFolderContentDisplayController {
       )
     )
 
-    context
-      .filter
-      .valuesPublisher()
-      .sink { (filter: ResourceFoldersFilter) in
-        updateDisplayedItems(filter)
-      }
-      .store(in: viewState.cancellables)
+    self.createFolder = context.createFolder
+    self.createResource = context.createResource
+    self.selectFolder = context.selectFolder
+    self.selectResource = context.selectResource
+    self.openResourceMenu = context.openResourceMenu
 
-    @Sendable nonisolated func activate() async {
-      await sessionData
-        .updatesSequence
-        .forEach {
-          await updateDisplayedItems(
-            context.filter.value
-          )
-        }
-    }
-
-    @Sendable nonisolated func refresh() async {
-      do {
-        try await sessionData.refreshIfNeeded()
-      }
-      catch {
-        diagnostics.log(
-          error: error,
-          info: .message(
-            "Failed to refresh session data."
-          )
-        )
+    self.asyncExecutor.scheduleIteration(
+      over: combineLatest(context.filter.asAnyAsyncSequence(), sessionData.lastUpdate.asAnyAsyncSequence()),
+      failMessage: "Resource folders list updates broken!",
+      failAction: { [context] (error: Error) in
         context.showMessage(.error(error))
       }
-    }
+    ) { [viewState, resourceFolders] (filter: ResourceFoldersFilter, _) in
+      let filteredResourceFolderContent: ResourceFolderContent = try await resourceFolders.filteredFolderContent(filter)
 
-    @Sendable nonisolated func updateDisplayedItems(
-      _ filter: ResourceFoldersFilter
-    ) {
-      asyncExecutor.schedule(.replace) {
-        do {
-          try Task.checkCancellation()
-
-          let filteredResourceFolderContent: ResourceFolderContent =
-            try await resourceFolders.filteredFolderContent(filter)
-
-          try Task.checkCancellation()
-
-          await viewState.update { (viewState: inout ViewState) in
-            viewState.isSearchResult = !filter.text.isEmpty
-            viewState.suggestedResources = filteredResourceFolderContent.resources.filter(context.suggestionFilter)
-            viewState.directFolders = filteredResourceFolderContent.subfolders
-              .filter { $0.parentFolderID == filter.folderID }
-            viewState.nestedFolders = filteredResourceFolderContent.subfolders
-              .filter { $0.parentFolderID != filter.folderID }
-            viewState.directResources = filteredResourceFolderContent.resources
-              .filter { $0.parentFolderID == filter.folderID }
-            viewState.nestedResources = filteredResourceFolderContent.resources
-              .filter { $0.parentFolderID != filter.folderID }
-          }
-        }
-        catch {
-          diagnostics.log(
-            error: error,
-            info: .message(
-              "Failed to access resources list."
-            )
-          )
-          context.showMessage(.error(error))
-        }
+      await viewState.update { (viewState: inout ViewState) in
+        viewState.isSearchResult = !filter.text.isEmpty
+        viewState.suggestedResources = filteredResourceFolderContent.resources.filter(self.context.suggestionFilter)
+        viewState.directFolders = filteredResourceFolderContent.subfolders
+          .filter { $0.parentFolderID == filter.folderID }
+        viewState.nestedFolders = filteredResourceFolderContent.subfolders
+          .filter { $0.parentFolderID != filter.folderID }
+        viewState.directResources = filteredResourceFolderContent.resources
+          .filter { $0.parentFolderID == filter.folderID }
+        viewState.nestedResources = filteredResourceFolderContent.resources
+          .filter { $0.parentFolderID != filter.folderID }
       }
     }
-
-    return .init(
-      viewState: viewState,
-      activate: activate,
-      refresh: refresh,
-      create: context.createResource,
-      selectFolder: context.selectFolder,
-      selectResource: context.selectResource,
-      openResourceMenu: context.openResourceMenu
-    )
   }
 }
 
-extension FeaturesRegistry {
+extension ResourceFolderContentDisplayController {
 
-  public mutating func usePassboltResourceFolderContentDisplayController() {
-    self.use(
-      .disposable(
-        ResourceFolderContentDisplayController.self,
-        load: ResourceFolderContentDisplayController.load(features:context:)
-      ),
-      in: SessionScope.self
-    )
+  internal struct Context {
+
+    internal var folderName: DisplayableString
+    internal var filter: AnyAsyncSequence<ResourceFoldersFilter>
+    internal var suggestionFilter: (ResourceListItemDSV) -> Bool
+    internal var createFolder: (() -> Void)?
+    internal var createResource: (() -> Void)?
+    internal var selectFolder: (ResourceFolder.ID) -> Void
+    internal var selectResource: (Resource.ID) -> Void
+    internal var openResourceMenu: ((Resource.ID) -> Void)?
+    internal var showMessage: (SnackBarMessage?) -> Void
+  }
+
+  internal struct ViewState: Equatable {
+
+    internal var folderName: DisplayableString
+    internal var isSearchResult: Bool
+    internal var directFolders: Array<ResourceFolderListItemDSV>
+    internal var nestedFolders: Array<ResourceFolderListItemDSV>
+    internal var suggestedResources: Array<ResourceListItemDSV>
+    internal var directResources: Array<ResourceListItemDSV>
+    internal var nestedResources: Array<ResourceListItemDSV>
+  }
+}
+
+extension ResourceFolderContentDisplayController {
+
+  internal final func refresh() async {
+    do {
+      try await self.sessionData.refreshIfNeeded()
+    }
+    catch {
+      error.logged(
+        info: .message("Failed to refresh session data.")
+      )
+      self.context.showMessage(.error(error))
+    }
   }
 }

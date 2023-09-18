@@ -69,20 +69,6 @@ public struct ResourceDTO {
   }
 }
 
-extension ResourceDTO {
-
-  internal static let validator: Validator<Self> = Resource.ID
-    .validator
-    .contraMap(\.id)
-
-  public var isValid: Bool {
-    Self
-      .validator
-      .validate(self)
-      .isValid
-  }
-}
-
 extension ResourceDTO: Decodable {
 
   public init(
@@ -105,7 +91,7 @@ extension ResourceDTO: Decodable {
     self.parentFolderID =
       try container
       .decodeIfPresent(
-        String.self,
+        UUID.self,
         forKey: .parentFolderID
       )
       .map(ResourceFolder.ID.init(rawValue:))
@@ -116,11 +102,8 @@ extension ResourceDTO: Decodable {
       )
       self.favoriteID = try favoriteContainer.decode(Resource.Favorite.ID.self, forKey: .id)
     }
-    catch DecodingError.typeMismatch {
+    catch {  // if decoding favorite fails there is no favorite
       self.favoriteID = .none
-    }
-    catch {
-      throw error
     }
     self.name = try container.decode(
       String.self,

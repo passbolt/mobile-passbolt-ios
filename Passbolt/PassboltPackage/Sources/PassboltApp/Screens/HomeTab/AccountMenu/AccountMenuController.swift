@@ -54,7 +54,6 @@ extension AccountMenuController: UIController {
 
     let currentAccount: Account = try features.sessionAccount()
 
-    let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
 
     let accounts: Accounts = try features.instance()
@@ -75,7 +74,8 @@ extension AccountMenuController: UIController {
     nonisolated func accountsListPublisher() -> AnyPublisher<Array<AccountsListItem>, Never> {
       accounts
         .updates
-        .map { () -> Array<AccountsListItem> in
+        .asAnyAsyncSequence()
+        .map { _ -> Array<AccountsListItem> in
           var listItems:
             Array<(accountWithProfile: AccountWithProfile, avatarImagePublisher: AnyPublisher<Data?, Never>)> = .init()
 
@@ -100,7 +100,9 @@ extension AccountMenuController: UIController {
           }
           return listItems
         }
-        .asPublisher()
+        .asThrowingPublisher()
+        .replaceError(with: .init())
+        .eraseToAnyPublisher()
     }
 
     func currentAcountAvatarImagePublisher() -> AnyPublisher<Data?, Never> {
@@ -117,13 +119,11 @@ extension AccountMenuController: UIController {
           try await navigationToSelf.revert()
         }
         catch {
-          diagnostics
-            .log(
-              error: error,
-              info: .message(
-                "Navigation back from account menu failed!"
-              )
+          error.logged(
+            info: .message(
+              "Navigation back from account menu failed!"
             )
+          )
         }
       }
     }
@@ -135,13 +135,11 @@ extension AccountMenuController: UIController {
           try await navigationToAccountDetails.perform()
         }
         catch {
-          diagnostics
-            .log(
-              error: error,
-              info: .message(
-                "Navigation to account details failed!"
-              )
+          error.logged(
+            info: .message(
+              "Navigation to account details failed!"
             )
+          )
         }
       }
     }
@@ -159,13 +157,11 @@ extension AccountMenuController: UIController {
           try await navigationToAuthorization.perform(context: account)
         }
         catch {
-          diagnostics
-            .log(
-              error: error,
-              info: .message(
-                "Navigation to account switch failed!"
-              )
+          error.logged(
+            info: .message(
+              "Navigation to account switch failed!"
             )
+          )
         }
       }
     }
@@ -177,13 +173,11 @@ extension AccountMenuController: UIController {
           try await navigationToManageAccounts.perform()
         }
         catch {
-          diagnostics
-            .log(
-              error: error,
-              info: .message(
-                "Navigation to manage accounts failed!"
-              )
+          error.logged(
+            info: .message(
+              "Navigation to manage accounts failed!"
             )
+          )
         }
       }
     }

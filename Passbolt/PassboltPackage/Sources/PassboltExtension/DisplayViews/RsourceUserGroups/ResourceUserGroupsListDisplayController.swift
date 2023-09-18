@@ -22,145 +22,94 @@
 //
 
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 import SessionData
 import Users
 
-// MARK: - Interface
+internal final class ResourceUserGroupsListDisplayController: ViewController {
 
-internal struct ResourceUserGroupsListDisplayController {
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
-  internal var viewState: MutableViewState<ViewState>
-  internal var activate: @Sendable () async -> Void
-  internal var refresh: @Sendable () async -> Void
-  internal var selectGroup: (UserGroup.ID) -> Void
-}
+  private let asyncExecutor: AsyncExecutor
+  private let sessionData: SessionData
+  private let userGroups: UserGroups
 
-extension ResourceUserGroupsListDisplayController: ViewController {
+  private let context: Context
+  private let features: Features
 
-  internal struct Context {
-
-    internal var filter: ObservableViewState<UserGroupsFilter>
-    internal var selectGroup: (UserGroup.ID) -> Void
-    internal var showMessage: (SnackBarMessage?) -> Void
-  }
-
-  internal struct ViewState: Hashable {
-
-    internal var userGroups: Array<ResourceUserGroupListItemDSV>
-  }
-
-  #if DEBUG
-  nonisolated static var placeholder: Self {
-    .init(
-      viewState: .placeholder(),
-      activate: { unimplemented() },
-      refresh: { unimplemented() },
-      selectGroup: { _ in unimplemented() }
-    )
-  }
-  #endif
-}
-
-// MARK: - Implementation
-
-extension ResourceUserGroupsListDisplayController {
-
-  @MainActor fileprivate static func load(
-    features: Features,
-    context: Context
-  ) throws -> Self {
+  internal init(
+    context: Context,
+    features: Features
+  ) throws {
     try features.ensureScope(SessionScope.self)
 
-    let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
-    let sessionData: SessionData = try features.instance()
-    let userGroups: UserGroups = try features.instance()
+    self.context = context
+    self.features = features
 
-    let viewState: MutableViewState<ViewState> = .init(
+    self.asyncExecutor = try features.instance()
+    self.sessionData = try features.instance()
+    self.userGroups = try features.instance()
+
+    self.viewState = .init(
       initial: .init(
         userGroups: .init()
       )
     )
 
-    context
-      .filter
-      .valuesPublisher()
-      .sink { (filter: UserGroupsFilter) in
-        updateDisplayedUserGroups(filter)
-      }
-      .store(in: viewState.cancellables)
-
-    @Sendable nonisolated func activate() async {
-      await sessionData
-        .updatesSequence
-        .forEach {
-          await updateDisplayedUserGroups(context.filter.value)
-        }
-    }
-
-    @Sendable nonisolated func refresh() async {
-      do {
-        try await sessionData.refreshIfNeeded()
-      }
-      catch {
-        diagnostics.log(
-          error: error,
-          info: .message(
-            "Failed to refresh session data."
-          )
-        )
+    self.asyncExecutor.scheduleIteration(
+      over: combineLatest(context.filter, sessionData.lastUpdate.asAnyAsyncSequence()),
+      failMessage: "User groups list updates broken!",
+      failAction: { [context] (error: Error) in
         context.showMessage(.error(error))
       }
-    }
+    ) { [viewState, userGroups] (filter: UserGroupsFilter, _) in
+      let filteredUserGroups: Array<ResourceUserGroupListItemDSV> = try await userGroups.filteredResourceUserGroups(
+        filter
+      )
 
-    @Sendable nonisolated func updateDisplayedUserGroups(
-      _ filter: UserGroupsFilter
-    ) {
-      asyncExecutor.schedule(.replace) {
-        do {
-          try Task.checkCancellation()
-
-          let filteredUserGroups: Array<ResourceUserGroupListItemDSV> =
-            try await userGroups.filteredResourceUserGroups(filter)
-
-          try Task.checkCancellation()
-
-          await viewState.update { viewState in
-            viewState.userGroups = filteredUserGroups
-          }
-        }
-        catch {
-          diagnostics.log(
-            error: error,
-            info: .message(
-              "Failed to access resource user groups list."
-            )
-          )
-          context.showMessage(.error(error))
-        }
+      await viewState.update { viewState in
+        viewState.userGroups = filteredUserGroups
       }
     }
-
-    return .init(
-      viewState: viewState,
-      activate: activate,
-      refresh: refresh,
-      selectGroup: context.selectGroup
-    )
   }
 }
 
-extension FeaturesRegistry {
+extension ResourceUserGroupsListDisplayController {
 
-  public mutating func usePassboltResourceUserGroupsListDisplayController() {
-    self.use(
-      .disposable(
-        ResourceUserGroupsListDisplayController.self,
-        load: ResourceUserGroupsListDisplayController.load(features:context:)
-      ),
-      in: SessionScope.self
-    )
+  internal struct Context {
+
+    internal var filter: AnyAsyncSequence<UserGroupsFilter>
+    internal var selectGroup: (UserGroup.ID) -> Void
+    internal var showMessage: (SnackBarMessage?) -> Void
+  }
+
+  internal struct ViewState: Equatable {
+
+    internal var userGroups: Array<ResourceUserGroupListItemDSV>
+  }
+}
+
+extension ResourceUserGroupsListDisplayController {
+
+  internal final func refresh() async {
+    do {
+      try await self.sessionData.refreshIfNeeded()
+    }
+    catch {
+      error.logged(
+        info: .message(
+          "Failed to refresh session data."
+        )
+      )
+      self.context.showMessage(.error(error))
+    }
+  }
+
+  internal final func selectGroup(
+    _ id: UserGroup.ID
+  ) {
+    self.context.selectGroup(id)
   }
 }

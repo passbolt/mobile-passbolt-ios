@@ -26,10 +26,10 @@ import UICommons
 
 internal struct OTPResourcesListView: ControlledView {
 
-  private let controller: OTPResourcesListController
+  internal let controller: OTPResourcesListViewController
 
   internal init(
-    controller: OTPResourcesListController
+    controller: OTPResourcesListViewController
   ) {
     self.controller = controller
   }
@@ -39,18 +39,11 @@ internal struct OTPResourcesListView: ControlledView {
       titleIcon: .otp,
       title: "otp.resources.list.title",
       contentView: {
-        WithViewState(
-          from: self.controller,
-          at: \.snackBarMessage
-        ) { _ in
+        withSnackBarMessage(\.snackBarMessage) {
           VStack(spacing: 0) {
             self.search
             self.list
           }
-          .snackBarMessage(
-            with: self.controller
-              .binding(to: \.snackBarMessage)
-          )
         }
       }
     )
@@ -60,22 +53,18 @@ internal struct OTPResourcesListView: ControlledView {
   }
 
   @ViewBuilder @MainActor private var search: some View {
-    WithViewState(
-      from: self.controller,
-      at: \.searchText
-    ) { (searchText: String) in
+    with(\.searchText) { (searchText: String) in
       SearchView(
         prompt: "otp.resources.search.placeholder",
-        text: self.controller
-          .binding(to: \.searchText),
+        text: self.binding(
+          to: \.searchText,
+          updating: self.controller.setSearch(text:)
+        ),
         rightAccessory: {
-          Button(
+          AsyncButton(
             action: self.controller.showAccountMenu,
-            label: {
-              WithViewState(
-                from: self.controller,
-                at: \.accountAvatarImage
-              ) { (accountAvatarImage: Data?) in
+            regularLabel: {
+              with(\.accountAvatarImage) { (accountAvatarImage: Data?) in
                 UserAvatarView(
                   imageData: accountAvatarImage
                 )
@@ -90,45 +79,6 @@ internal struct OTPResourcesListView: ControlledView {
       bottom: 16,
       trailing: 16
     )
-  }
-
-  @ViewBuilder @MainActor private var createOTP: some View {
-    Button(
-      action: self.controller.createOTP,
-      label: {
-        HStack(spacing: 12) {
-          Image(named: .create)
-            .resizable()
-            .frame(
-              width: 40,
-              height: 40
-            )
-
-          Text(
-            displayable: .localized(
-              key: .create
-            )
-          )
-          .font(
-            .inter(
-              ofSize: 14,
-              weight: .semibold
-            )
-          )
-          .multilineTextAlignment(.leading)
-          .frame(
-            maxWidth: .infinity,
-            alignment: .leading
-          )
-        }
-      }
-    )
-    .foregroundColor(Color.passboltPrimaryBlue)
-    .frame(
-      maxWidth: .infinity,
-      alignment: .leading
-    )
-    .commonListRowModifiers()
   }
 
   @ViewBuilder @MainActor private var emptyListPlaceholder: some View {
@@ -164,40 +114,27 @@ internal struct OTPResourcesListView: ControlledView {
 
   @ViewBuilder @MainActor private var list: some View {
     CommonList {
-      self.createOTP
+      CommonListSection {
+        if self.controller.createAvailable {
+          CommonListCreateRow(action: self.controller.createOTP)
+        }  // else no view
 
-      WithViewState(
-        from: self.controller,
-        at: \.otpResources
-      ) { (resources: Array<TOTPResourceViewModel>) in
-        if resources.isEmpty {
+        withEach(\.otpResources.values) { (item: TOTPResourceViewModel) in
+          CommonListResourceOTPView(
+            name: item.name,
+            otpGenerator: item.generateOTP,
+            contentAction: { (otp: OTPValue?) in
+              await self.controller.revealAndCopyOTP(for: item.id)
+            },
+            accessoryAction: {
+              await self.controller.showCentextualMenu(for: item.id)
+            },
+            accessory: {
+              Image(named: .more)
+            }
+          )
+        } placeholder: {
           self.emptyListPlaceholder
-        }
-        else {
-          ForEach(resources) { (resource: TOTPResourceViewModel) in
-            TOTPResourcesListRowView(
-              title: resource.name,
-              value: resource.totpValue,
-              action: {
-                self.controller.revealAndCopyOTP(resource.id)
-              },
-              accessory: {
-                Button(
-                  action: {
-                    self.controller.showCentextualMenu(resource.id)
-                  },
-                  label: {
-                    Image(named: .more)
-                      .resizable()
-                      .frame(
-                        width: 20,
-                        height: 20
-                      )
-                  }
-                )
-              }
-            )
-          }
         }
       }
     }

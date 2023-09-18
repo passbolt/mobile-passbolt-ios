@@ -26,7 +26,7 @@ import UICommons
 
 internal struct ResourceFolderPermissionListView: ControlledView {
 
-  private let controller: ResourceFolderPermissionListController
+  internal let controller: ResourceFolderPermissionListController
 
   internal init(
     controller: ResourceFolderPermissionListController
@@ -39,38 +39,34 @@ internal struct ResourceFolderPermissionListView: ControlledView {
       title: .localized(
         key: "resource.permission.list.title"
       ),
-      snackBarMessage: self.controller.binding(to: \.snackBarMessage)
+      snackBarMessage: self.binding(to: \.snackBarMessage)
     ) {
       self.contentView
     }
   }
 
   @ViewBuilder private var contentView: some View {
-    VStack(spacing: 0) {
-      WithViewState(from: self.controller) { viewState in
-        List(
-          content: {
-            ForEach(
-              viewState.permissionListItems,
-              id: \PermissionListRowItem.self
-            ) { item in
-              PermissionListRowView(
-                item,
-                action: {
-                  switch item {
-                  case let .user(details, _):
-                    self.controller.showUserPermissionDetails(details)
+    WithViewState(from: self.controller) { viewState in
+      CommonList {
+        CommonListSection {
+          ForEach(
+            viewState.permissionListItems,
+            id: \PermissionListRowItem.self
+          ) { item in
+            PermissionListRowView(
+              item,
+              action: {
+                switch item {
+                case let .user(details, _):
+                  self.controller.showUserPermissionDetails(details)
 
-                  case let .userGroup(details):
-                    self.controller.showUserGroupPermissionDetails(details)
-                  }
+                case let .userGroup(details):
+                  self.controller.showUserGroupPermissionDetails(details)
                 }
-              )
-            }
+              }
+            )
           }
-        )
-        .listStyle(.plain)
-        .environment(\.defaultMinListRowHeight, 20)
+        }
       }
     }
   }

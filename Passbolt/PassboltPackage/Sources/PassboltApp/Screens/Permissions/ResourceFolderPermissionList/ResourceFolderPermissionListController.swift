@@ -29,149 +29,126 @@ import Resources
 import UIComponents
 import Users
 
-internal struct ResourceFolderPermissionListController {
+internal final class ResourceFolderPermissionListController: ViewController {
 
-  internal var viewState: MutableViewState<ViewState>
-  internal var showUserPermissionDetails: (UserPermissionDetailsDSV) -> Void
-  internal var showUserGroupPermissionDetails: (UserGroupPermissionDetailsDSV) -> Void
-  internal var navigateBack: () -> Void
-}
+  internal var viewState: ViewStateSource<ViewState>
 
-extension ResourceFolderPermissionListController: ViewController {
+  private let asyncExecutor: AsyncExecutor
+  private let navigation: DisplayNavigation
+  private let users: Users
+  private let resourceFolderController: ResourceFolderController
+  private let resourceFolderUserPermissionsDetailsFetch: ResourceFolderUserPermissionsDetailsFetchDatabaseOperation
+  private let resourceFolderUserGroupPermissionsDetailsFetch:
+    ResourceFolderUserGroupPermissionsDetailsFetchDatabaseOperation
 
-  internal typealias Context = ResourceFolder.ID
+  private let context: ResourceFolder.ID
+  private let features: Features
 
-  internal struct ViewState: Hashable {
+  internal init(
+    context: ResourceFolder.ID,
+    features: Features
+  ) throws {
+    self.context = context
+    self.features = features
 
-    internal var permissionListItems: Array<PermissionListRowItem>
-    internal var snackBarMessage: SnackBarMessage? = .none
-  }
+    self.asyncExecutor = try features.instance()
+    self.navigation = try features.instance()
+    self.users = try features.instance()
+    self.resourceFolderController = try features.instance(context: context)
+    self.resourceFolderUserPermissionsDetailsFetch = try features.instance()
+    self.resourceFolderUserGroupPermissionsDetailsFetch = try features.instance()
 
-  #if DEBUG
-  static var placeholder: Self {
-    .init(
-      viewState: .placeholder(),
-      showUserPermissionDetails: unimplemented1(),
-      showUserGroupPermissionDetails: unimplemented1(),
-      navigateBack: unimplemented0()
-    )
-  }
-  #endif
-}
-
-extension ResourceFolderPermissionListController {
-
-  @MainActor static func load(
-    features: Features,
-    context: Context
-  ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
-    let navigation: DisplayNavigation = try features.instance()
-    let users: Users = try features.instance()
-    let resourceFolderDetails: ResourceFolderDetails = try features.instance(context: context)
-    let resourceFolderUserPermissionsDetailsFetch: ResourceFolderUserPermissionsDetailsFetchDatabaseOperation =
-      try features.instance()
-    let resourceFolderUserGroupPermissionsDetailsFetch:
-      ResourceFolderUserGroupPermissionsDetailsFetchDatabaseOperation =
-        try features.instance()
-
-    func userAvatarImageFetch(
+    @Sendable nonisolated func userAvatarImageFetch(
       _ userID: User.ID
     ) -> () async -> Data? {
-      {
+      { [users] in
         do {
           return try await users.userAvatarImage(userID)
         }
         catch {
-          diagnostics.log(error: error)
+          error.logged()
           return nil
         }
       }
     }
 
-    let viewState: MutableViewState<ViewState> = .init(
+    self.viewState = .init(
       initial: .init(
         permissionListItems: [],
         snackBarMessage: .none
       )
     )
 
-    asyncExecutor.schedule { @MainActor in
-      do {
-        let userGroupPermissionsDetails: Array<PermissionListRowItem> =
-          try await resourceFolderUserGroupPermissionsDetailsFetch(context)
-          .map { details in
-            .userGroup(details: details)
-          }
+    self.asyncExecutor.scheduleIteration(
+      over: self.resourceFolderController.state,
+      failMessage: "Resource folder permissions list updates broken!",
+      failAction: { [viewState] (error: Error) in
+        await viewState.update(\.snackBarMessage, to: .error(error))
+      }
+    ) {
+      [viewState, resourceFolderUserGroupPermissionsDetailsFetch, resourceFolderUserPermissionsDetailsFetch] (
+        update: Update<ResourceFolder>
+      ) in
+      let userGroupPermissionsDetails: Array<PermissionListRowItem> =
+        try await resourceFolderUserGroupPermissionsDetailsFetch(context)
+        .map { details in
+          .userGroup(details: details)
+        }
 
-        let userPermissionsDetails: Array<PermissionListRowItem> =
-          try await resourceFolderUserPermissionsDetailsFetch(context)
-          .map { details in
-            .user(
-              details: details,
-              imageData: userAvatarImageFetch(details.id)
-            )
-          }
-
-        viewState
-          .update(
-            \.permissionListItems,
-            to: userGroupPermissionsDetails + userPermissionsDetails
+      let userPermissionsDetails: Array<PermissionListRowItem> =
+        try await resourceFolderUserPermissionsDetailsFetch(context)
+        .map { details in
+          .user(
+            details: details,
+            imageData: userAvatarImageFetch(details.id)
           )
-      }
-      catch {
-        diagnostics.log(error: error)
-        await navigation.pop(ResourceFolderPermissionListView.self)
-      }
-    }
+        }
 
-    nonisolated func showUserPermissionDetails(
-      _ details: UserPermissionDetailsDSV
-    ) {
-      asyncExecutor.schedule(.reuse) {
-        await navigation.push(
-          legacy: UserPermissionDetailsView.self,
-          context: details
+      await viewState
+        .update(
+          \.permissionListItems,
+          to: userGroupPermissionsDetails + userPermissionsDetails
         )
-      }
     }
-
-    nonisolated func showUserGroupPermissionDetails(
-      _ details: UserGroupPermissionDetailsDSV
-    ) {
-      asyncExecutor.schedule(.reuse) {
-        await navigation.push(
-          legacy: UserGroupPermissionDetailsView.self,
-          context: details
-        )
-      }
-    }
-
-    nonisolated func navigateBack() {
-      asyncExecutor.schedule(.reuse) {
-        await navigation.pop(ResourceFolderPermissionListView.self)
-      }
-    }
-
-    return Self(
-      viewState: viewState,
-      showUserPermissionDetails: showUserPermissionDetails(_:),
-      showUserGroupPermissionDetails: showUserGroupPermissionDetails(_:),
-      navigateBack: navigateBack
-    )
   }
 }
 
-extension FeaturesRegistry {
+extension ResourceFolderPermissionListController {
 
-  public mutating func usePassboltResourceFolderPermissionListController() {
-    self.use(
-      .disposable(
-        ResourceFolderPermissionListController.self,
-        load: ResourceFolderPermissionListController.load(features:context:)
-      ),
-      in: SessionScope.self
-    )
+  internal struct ViewState: Equatable {
+
+    internal var permissionListItems: Array<PermissionListRowItem>
+    internal var snackBarMessage: SnackBarMessage? = .none
+  }
+}
+
+extension ResourceFolderPermissionListController {
+
+  internal final func showUserPermissionDetails(
+    _ details: UserPermissionDetailsDSV
+  ) {
+    self.asyncExecutor.schedule(.reuse) { [navigation] in
+      await navigation.push(
+        legacy: UserPermissionDetailsView.self,
+        context: details
+      )
+    }
+  }
+
+  internal final func showUserGroupPermissionDetails(
+    _ details: UserGroupPermissionDetailsDSV
+  ) {
+    self.asyncExecutor.schedule(.reuse) { [navigation] in
+      await navigation.push(
+        legacy: UserGroupPermissionDetailsView.self,
+        context: details
+      )
+    }
+  }
+
+  internal final func navigateBack() {
+    self.asyncExecutor.schedule(.reuse) { [navigation] in
+      await navigation.pop(ResourceFolderPermissionListView.self)
+    }
   }
 }

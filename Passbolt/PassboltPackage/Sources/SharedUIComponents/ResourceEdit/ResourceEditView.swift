@@ -21,367 +21,215 @@
 // @since         v1.0
 //
 
-import Accounts
-import CommonModels
-import Crypto
-import Features
-import UICommons
+import Display
 
-public final class ResourceEditView: KeyboardAwareView {
+public struct ResourceEditView: ControlledView {
 
-  internal typealias FieldWithView = (field: ResourceField, view: PlainView)
+  public let controller: ResourceEditViewController
+  @State private var discardFormAlertVisible: Bool
 
-  internal var generateTapPublisher: AnyPublisher<Void, Never> { generateButton.tapPublisher }
-  internal var lockTapPublisher: AnyPublisher<Bool, Never> { lockTapSubject.eraseToAnyPublisher() }
-  internal var createTapPublisher: AnyPublisher<Void, Never> { createButton.tapPublisher }
+  public init(
+    controller: ResourceEditViewController
+  ) {
+    self.controller = controller
+    self.discardFormAlertVisible = false
+  }
 
-  private let lockTapSubject: PassthroughSubject<Bool, Never> = .init()
-  private let scrolledStack: ScrolledStackView = .init()
-  private let entropyView: EntropyView = .init()
-  private let generateButton: ImageButton = .init()
-  private let createButton: TextButton = .init()
-
-  private var fieldViews: OrderedDictionary<ResourceField, PlainView> = .init()
-
-  internal required init(createsNewResource: Bool) {
-    super.init()
-
-    mut(scrolledStack) {
-      .combined(
-        .clipsToBounds(true),
-        .subview(of: self),
-        .leadingAnchor(.equalTo, leadingAnchor),
-        .trailingAnchor(.equalTo, trailingAnchor),
-        .topAnchor(.equalTo, safeAreaLayoutGuide.topAnchor),
-        .bottomAnchor(.equalTo, keyboardLayoutGuide.topAnchor),
-        .isLayoutMarginsRelativeArrangement(true),
-        .contentInset(.init(top: 0, left: 16, bottom: 16, right: 16)),
-        .backgroundColor(dynamic: .background)
-      )
+  public var body: some View {
+    WithSnackBarMessage(
+      from: self.controller,
+      at: \.snackBarMessage
+    ) {
+      self.contentView
     }
-
-    mut(createButton) {
-      .combined(
-        .primaryStyle(),
-        .when(
-          createsNewResource,
-          then: .when(
-            isInExtensionContext,
-            then: .text(
-              displayable: .localized(
-                key: "resource.form.create.and.fill.button.title"
-              )
-            ),
-            else: .text(
-              displayable: .localized(
-                key: "resource.form.create.button.title"
-              )
-            )
-          ),
-          else: .text(
-            displayable: .localized(
-              key: "resource.form.update.button.title"
-            )
-          )
+    .alert(
+      isPresented: self.$discardFormAlertVisible,
+      title: "generic.are.you.sure",
+      message: "resource.edit.exit.confirmation.message",
+      actions: {
+        Button(
+          displayable: "resource.edit.exit.confirmation.button.edit.title",
+          role: .cancel,
+          action: { /* NOP */  }
         )
-      )
-    }
-
-    mut(generateButton) {
-      .combined(
-        .imageContentMode(.center),
-        .imageInsets(.init(top: 8, left: 8, bottom: -8, right: -8)),
-        .image(named: .dice, from: .uiCommons),
-        .tintColor(dynamic: .iconAlternative),
-        .backgroundColor(dynamic: .divider),
-        .border(dynamic: .divider, width: 1),
-        .cornerRadius(4)
-      )
-    }
-  }
-
-  @available(*, unavailable)
-  required init() {
-    unreachable("use init(createsNewResource:)")
-  }
-
-  internal func update(with fields: OrderedSet<ResourceField>) {
-    fieldViews =
-      fields
-      .compactMap { resourceField -> (field: ResourceField, view: PlainView)? in
-        switch resourceField.editor {
-        case .textField(encrypted: false, let required):
-          return (
-            field: resourceField,
-            view: Mutation<TextInput>
-              .combined(
-                .backgroundColor(dynamic: .background),
-                .isRequired(required),
-                .custom { (input: TextInput) in
-                  input.applyOn(
-                    text: .combined(
-                      .primaryStyle(),
-                      .attributedPlaceholderString(
-                        .displayable(
-                          resourceField.displayablePlaceholder ?? .raw(""),
-                          font: .inter(ofSize: 14, weight: .medium),
-                          color: .secondaryText
-                        )
-                      )
-                    )
-                  )
-                  input.applyOn(
-                    description: .text(displayable: resourceField.displayableName)
-                  )
-                }
-              )
-              .instantiate()
+        AsyncButton(
+          role: .destructive,
+          action: {
+            await self.controller.discardForm()
+          },
+          regularLabel: {
+            Text(displayable: "resource.edit.exit.confirmation.button.revert.title")
+          }
+        )
+      }
+    )
+    .navigationBarBackButtonHidden()
+    .toolbar {  // replace back button
+      ToolbarItemGroup(placement: .navigationBarLeading) {
+        WithViewState(
+          from: self.controller,
+          at: \.edited
+        ) { (edited: Bool) in
+          BackButton(
+            action: {
+              if edited {
+                self.discardFormAlertVisible = true
+              }
+              else {
+                await self.controller.discardForm()
+              }
+            }
           )
-
-        case .textField(encrypted: true, let required):
-          return (
-            field: resourceField,
-            view: Mutation<SecureTextInput>
-              .combined(
-                .backgroundColor(dynamic: .background),
-                .isRequired(required),
-                .custom { (input: TextInput) in
-                  input.applyOn(
-                    text: .combined(
-                      .primaryStyle(),
-                      .attributedPlaceholderString(
-                        .displayable(
-                          resourceField.displayablePlaceholder ?? .raw(""),
-                          font: .inter(ofSize: 14, weight: .medium),
-                          color: .secondaryText
-                        )
-                      )
-                    )
-                  )
-                  input.applyOn(
-                    description: .text(displayable: resourceField.displayableName)
-                  )
-                }
-              )
-              .instantiate()
-          )
-
-        case .longTextField(let encrypted, let required) where resourceField.name == "description":
-          return (
-            field: resourceField,
-            view: Mutation<TextViewInput>
-              .combined(
-                .isRequired(required),
-                .attributedPlaceholder(
-                  .displayable(
-                    resourceField.displayablePlaceholder ?? .raw(""),
-                    font: .inter(ofSize: 14, weight: .medium),
-                    color: .secondaryText
-                  )
-                ),
-                .custom { (input: TextViewInput) in
-                  input.applyOn(
-                    text: .formStyle()
-                  )
-                  input.applyOn(
-                    description: .text(
-                      displayable: resourceField.displayableName
-                    )
-                  )
-                  input.set(
-                    accessory: Mutation<ImageButton>
-                      .combined(
-                        .enabled(),
-                        .action { [weak self] in
-                          self?.lockTapSubject.send(resourceField.encrypted)
-                        },
-                        .image(
-                          named: encrypted
-                            ? .lockedLock
-                            : .unlockedLock,
-                          from: .uiCommons
-                        ),
-                        .tintColor(dynamic: .iconAlternative),
-                        .aspectRatio(1),
-                        .heightAnchor(.equalTo, constant: 16)
-                      )
-                      .instantiate(),
-                    with: .zero
-                  )
-                }
-              )
-              .instantiate()
-          )
-
-        case .longTextField(_, let required):
-          return (
-            field: resourceField,
-            view: Mutation<TextViewInput>
-              .combined(
-                .isRequired(required),
-                .attributedPlaceholder(
-                  .displayable(
-                    resourceField.displayablePlaceholder ?? .raw(""),
-                    font: .inter(ofSize: 14, weight: .medium),
-                    color: .secondaryText
-                  )
-                ),
-                .custom { (input: TextViewInput) in
-                  input.applyOn(
-                    text: .formStyle()
-                  )
-                  input.applyOn(
-                    description: .text(
-                      displayable: resourceField.displayableName
-                    )
-                  )
-                }
-              )
-              .instantiate()
-          )
-
-        case .totp:
-          return .none
-
-        case .undefined:
-          return .none
         }
       }
-      .reduce(
-        into: OrderedDictionary<ResourceField, PlainView>(),
-        { (partialResult, fieldWithView: FieldWithView) in
-          partialResult[fieldWithView.field] = fieldWithView.view
+    }
+    .navigationTitle(
+      displayable: self.controller.editsExisting
+        ? "resource.edit.title"
+        : "resource.edit.create.title"
+    )
+    .backgroundColor(.passboltBackground)
+    .foregroundColor(.passboltPrimaryText)
+  }
+
+  @MainActor @ViewBuilder private var contentView: some View {
+    VStack(spacing: 8) {
+      CommonList {
+        WithViewState(
+          from: self.controller,
+          at: \.containsUndefinedFields
+        ) { (containsUndefinedFields: Bool) in
+          if containsUndefinedFields {
+            self.undefinedContentSectionView
+          }
         }
-      )
+        self.fieldsSectionsView
+        CommonListSpacer(minHeight: 16)
+      }
+      self.actionButtonView
+    }
+  }
 
-    scrolledStack.removeAllArrangedSubviews()
+  @MainActor @ViewBuilder private var undefinedContentSectionView: some View {
+    CommonListSection {
+      CommonListRow {
+        WarningView(message: "resource.form.undefined.content.warning")
+      }
+    }
+  }
 
-    mut(scrolledStack) {
-      .combined(
-        .forEach(
-          in: fieldViews.elements,
-          { [unowned self] fieldView in
-            switch fieldView.key.name {
-            case "password", "secret":
-              let container: PlainView =
-                Mutation
-                .combined(
-                  .backgroundColor(dynamic: .background)
+  @MainActor @ViewBuilder private var fieldsSectionsView: some View {
+    CommonListSection {
+      withEach(\.fields) { (fieldModel: ResourceEditFieldViewModel) in
+        CommonListRow(
+          content: {
+            switch fieldModel.value {
+            case .plainShort(let state):
+              FormTextFieldView(
+                title: fieldModel.name,
+                prompt: fieldModel.placeholder,
+                mandatory: fieldModel.requiredMark,
+                state: self.validatedOptionalBinding(
+                  to: \.validatedString,
+                  in: \.fields[fieldModel.path],
+                  default: state,
+                  updating: { (newValue: String) in
+                    withAnimation {
+                      self.controller.set(newValue, for: fieldModel.path)
+                    }
+                  }
                 )
-                .instantiate()
-
-              mut(fieldView.value) {
-                .combined(
-                  .subview(of: container),
-                  .leadingAnchor(.equalTo, container.leadingAnchor),
-                  .trailingAnchor(.equalTo, container.trailingAnchor, constant: -60),
-                  .topAnchor(.equalTo, container.topAnchor)
-                )
-              }
-
-              let textFieldCenterYAnchor: NSLayoutYAxisAnchor =
-                (fieldView.value as? TextInput)?.textFieldCenterYAnchor ?? fieldView.value.centerYAnchor
-
-              mut(self.generateButton) {
-                .combined(
-                  .subview(of: container),
-                  .trailingAnchor(.equalTo, container.trailingAnchor),
-                  .centerYAnchor(.equalTo, textFieldCenterYAnchor),
-                  .widthAnchor(.equalTo, constant: 48),
-                  .aspectRatio(1)
-                )
-              }
-
-              mut(self.entropyView) {
-                .combined(
-                  .subview(of: container),
-                  .leadingAnchor(.equalTo, container.leadingAnchor),
-                  .trailingAnchor(.equalTo, fieldView.value.trailingAnchor),
-                  .topAnchor(.equalTo, fieldView.value.bottomAnchor),
-                  .bottomAnchor(.equalTo, container.bottomAnchor)
-                )
-              }
-
-              return .combined(
-                .append(container),
-                .appendSpace(of: 4)
               )
+              .textInputAutocapitalization(.never)
+              .autocorrectionDisabled()
+              .padding(bottom: 8)
 
-            case _:
-              return .combined(
-                .append(fieldView.value),
-                .appendSpace(of: 4)
+            case .plainLong(let state):
+              FormLongTextFieldView(
+                title: fieldModel.name,
+                prompt: fieldModel.placeholder,
+                mandatory: fieldModel.requiredMark,
+								encrypted: fieldModel.encryptedMark,
+                state: self.validatedOptionalBinding(
+                  to: \.validatedString,
+                  in: \.fields[fieldModel.path],
+                  default: state,
+                  updating: { (newValue: String) in
+                    withAnimation {
+                      self.controller.set(newValue, for: fieldModel.path)
+                    }
+                  }
+                )
               )
+              .textInputAutocapitalization(.sentences)
+              .padding(bottom: 8)
+
+            case .password(let state, let entropy):
+              VStack(spacing: 4) {
+                FormSecureTextFieldView(
+                  title: fieldModel.name,
+                  prompt: fieldModel.placeholder,
+                  mandatory: fieldModel.requiredMark,
+                  state: self.validatedOptionalBinding(
+                    to: \.validatedString,
+                    in: \.fields[fieldModel.path],
+                    default: state,
+                    updating: { (newValue: String) in
+                      withAnimation {
+                        self.controller.set(newValue, for: fieldModel.path)
+                      }
+                    }
+                  ),
+                  accessory: {
+                    Button(
+                      action: {
+                        self.controller.generatePassword(for: fieldModel.path)
+                      },
+                      label: {
+                        Image(named: .dice)
+                          .tint(.passboltPrimaryText)
+                          .padding(12)
+                          .backgroundColor(.passboltDivider)
+                          .cornerRadius(4)
+                      }
+                    )
+                  }
+                )
+
+                EntropyView(entropy: entropy)
+              }
+              .padding(bottom: 8)
+
+            case .selection(let state, let values):
+              FormPickerFieldView(
+                title: fieldModel.name,
+                prompt: fieldModel.placeholder,
+                mandatory: fieldModel.requiredMark,
+                values: values,
+                state: state,
+                update: { (string: String) in
+                  withAnimation {
+                    self.controller.set(string, for: fieldModel.path)
+                  }
+                }
+              )
+              .padding(bottom: 8)
             }
           }
-        ),
-        .appendFiller(minSize: 20),
-        .append(createButton)
-      )
+        )
+      }
     }
   }
 
-  internal func update(
-    validated: Validated<String>,
-    for field: ResourceField
-  ) {
-    guard let fieldView: PlainView = fieldViews.first(where: { $0.key == field })?.value
-    else {
-      assertionFailure("Missing field for key: \(field)")
-      return
-    }
-
-    switch field.name {
-    case "description":
-      guard let textViewInput: TextViewInput = fieldView as? TextViewInput
-      else {
-        assertionFailure("Field is not a TextViewInput")
-        return
-      }
-
-      textViewInput.update(from: validated)
-    case _:
-      guard let textInput: TextInput = fieldView as? TextInput
-      else {
-        assertionFailure("Field is not a TextInput")
-        return
-      }
-
-      textInput.update(from: validated)
-    }
-  }
-
-  internal func fieldValuePublisher(
-    for field: ResourceField
-  ) -> AnyPublisher<String, Never> {
-    guard let fieldView: PlainView = fieldViews.first(where: { $0.key == field })?.value
-    else {
-      return Empty()
-        .eraseToAnyPublisher()
-    }
-
-    switch field.name {
-    case "description":
-      guard let textViewInput: TextViewInput = fieldView as? TextViewInput
-      else {
-        return Empty()
-          .eraseToAnyPublisher()
-      }
-
-      return textViewInput.textPublisher
-
-    case _:
-      guard let textInput: TextInput = fieldView as? TextInput
-      else {
-        return Empty()
-          .eraseToAnyPublisher()
-      }
-
-      return textInput.textPublisher
-    }
-  }
-
-  internal func update(entropy: Entropy) {
-    entropyView.update(entropy: entropy)
+  @MainActor @ViewBuilder private var actionButtonView: some View {
+    PrimaryButton(
+      title: self.controller.editsExisting
+        ? "resource.form.update.button.title"
+        : isInExtensionContext
+          ? "resource.form.create.and.fill.button.title"
+          : "resource.form.create.button.title",
+      action: self.controller.sendForm
+    )
+    .padding(16)
   }
 }

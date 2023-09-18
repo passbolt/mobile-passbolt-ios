@@ -50,7 +50,6 @@ extension HomeSearchController: UIController {
   ) throws -> Self {
     let currentAccount: Account = try features.sessionAccount()
 
-    let diagnostics: OSDiagnostics = try features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
 
     let navigationToAccountMenu: NavigationToAccountMenu = try features.instance()
@@ -60,7 +59,6 @@ extension HomeSearchController: UIController {
 
     let searchTextSubject: CurrentValueSubject<String, Never> = .init("")
     let homePresentationMenuPresentationSubject: PassthroughSubject<Void, Never> = .init()
-    let accountMenuPresentationSubject: PassthroughSubject<Void, Never> = .init()
 
     searchTextSubject
       .sink { text in
@@ -104,14 +102,11 @@ extension HomeSearchController: UIController {
 
     func presentAccountMenu() {
       asyncExecutor.schedule(.reuse) {
-        await diagnostics
-          .withLogCatch(
-            info: .message(
-              "Navigation to account menu failed!"
-            )
-          ) {
-            try await navigationToAccountMenu.perform()
-          }
+        await withLogCatch(
+          failInfo: "Navigation to account menu failed!"
+        ) {
+          try await navigationToAccountMenu.perform()
+        }
       }
     }
 

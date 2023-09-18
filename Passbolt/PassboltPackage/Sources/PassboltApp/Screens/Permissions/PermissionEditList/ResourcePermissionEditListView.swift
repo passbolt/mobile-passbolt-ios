@@ -62,12 +62,13 @@ internal struct ResourcePermissionEditListView: ComponentView {
         )
       }
       else {
-        List(
-          content: {
+        CommonList {
+          CommonListSection {
             self.addPermissionButton
               .listRowSeparator(.hidden)
               .listRowInsets(EdgeInsets())
               .buttonStyle(.plain)
+
             ForEach(
               self.state.permissionListItems,
               id: \PermissionListRowItem.self
@@ -86,9 +87,7 @@ internal struct ResourcePermissionEditListView: ComponentView {
               )
             }
           }
-        )
-        .listStyle(.plain)
-        .environment(\.defaultMinListRowHeight, 20)
+        }
       }
 
       PrimaryButton(
@@ -108,42 +107,39 @@ internal struct ResourcePermissionEditListView: ComponentView {
   }
 
   private var addPermissionButton: some View {
-    ListRowView(
-      leftAccessory: {
-        Image(named: .create)
-          .resizable()
-          .frame(
-            width: 40,
-            height: 40,
-            alignment: .center
-          )
-      },
+    CommonListRow(
       contentAction: self.controller.addPermission,
       content: {
-        Text(
-          displayable: .localized(
-            key: "resource.permission.edit.list.add.button.title"
-          )
-        )
-        .font(
-          .inter(
-            ofSize: 14,
-            weight: .semibold
-          )
-        )
-        .foregroundColor(.passboltPrimaryBlue)
-        .padding(
-          leading: 8,
-          trailing: 8
-        )
+        HStack(spacing: 8) {
+          Image(named: .create)
+            .resizable()
+            .frame(
+              width: 40,
+              height: 40,
+              alignment: .center
+            )
+          Text(displayable: "resource.permission.edit.list.add.button.title")
+            .text(
+              font: .inter(
+                ofSize: 14,
+                weight: .semibold
+              ),
+              color: .passboltPrimaryText
+            )
+        }
       }
     )
+    .padding(
+      top: 8,
+      bottom: 8
+    )
+    .frame(height: 64)
   }
 }
 
 extension ResourcePermissionEditListView {
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var permissionListItems: Array<PermissionListRowItem>
     internal var loading: Bool = false

@@ -26,9 +26,7 @@ import Combine
 extension Publisher {
 
   public func asAsyncValue() async throws -> Output {
-    let sequence: AnyAsyncThrowingSequence<Output> =
-      self
-      .asAsyncThrowingSequence()
+    let sequence: AnyAsyncSequence<Output> = self.asAsyncSequence()
 
     if let output: Output = try await sequence.first() {
       return output

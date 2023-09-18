@@ -31,11 +31,11 @@ import XCTest
 @testable import SharedUIComponents
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@MainActor
+@MainActor @available(iOS 16.0.0, *)
 final class AuthorizationScreenTests: MainActorTestCase {
 
-  var detailsUpdates: UpdatesSequenceSource!
-  var preferencesUpdates: UpdatesSequenceSource!
+  var detailsUpdates: Updates!
+  var preferencesUpdates: Updates!
 
   override func mainActorSetUp() {
     features.usePlaceholder(for: Accounts.self)
@@ -45,22 +45,17 @@ final class AuthorizationScreenTests: MainActorTestCase {
       context: .mock_ada,
       with: always(.mock_ada)
     )
-    features.patch(
-      \AccountDetails.updateProfile,
-      context: .mock_ada,
-      with: always(Void())
-    )
     detailsUpdates = .init()
     features.patch(
       \AccountDetails.updates,
       context: .mock_ada,
-      with: detailsUpdates.updatesSequence
+      with: detailsUpdates.asAnyUpdatable()
     )
     preferencesUpdates = .init()
     features.patch(
       \AccountPreferences.updates,
       context: .mock_ada,
-      with: preferencesUpdates.updatesSequence
+      with: preferencesUpdates.asAnyUpdatable()
     )
     features.patch(
       \AccountPreferences.isPassphraseStored,

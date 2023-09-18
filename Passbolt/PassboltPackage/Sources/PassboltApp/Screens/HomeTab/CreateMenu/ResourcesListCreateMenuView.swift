@@ -25,65 +25,63 @@ import Display
 
 internal struct ResourcesListCreateMenuView: ControlledView {
 
-  private let controller: ResourcesListCreateMenuController
+  internal let controller: ResourcesListCreateMenuViewController
 
   internal init(
-    controller: ResourcesListCreateMenuController
+    controller: ResourcesListCreateMenuViewController
   ) {
     self.controller = controller
   }
 
   internal var body: some View {
-    WithViewState(from: self.controller) { (state: ViewState) in
-      DrawerMenu(
-        closeTap: {
-          self.controller.close()
-        },
-        title: {
-          Text(
-            displayable: .localized(
-              key: "resource.folders.add.menu.title"
-            )
+    DrawerMenu(
+      closeTap: {
+        self.controller.close()
+      },
+      title: {
+        Text(
+          displayable: .localized(
+            key: "resource.folders.add.menu.title"
           )
-        },
-        content: {
-          VStack(spacing: 0) {
-            DrawerMenuItemView(
-              action: {
-                self.controller.createResource()
-              },
-              title: {
-                Text(
-                  displayable: .localized(
-                    key: "resource.folders.add.menu.password.label"
-                  )
+        )
+      },
+      content: {
+        VStack(spacing: 0) {
+          DrawerMenuItemView(
+            action: {
+              await self.controller.createResource()
+            },
+            title: {
+              Text(
+                displayable: .localized(
+                  key: "resource.folders.add.menu.password.label"
                 )
-              },
-              leftIcon: {
-                Image(named: .key)
-              }
-            )
-            .accessibilityIdentifier("resource.folders.add.password")
+              )
+            },
+            leftIcon: {
+              Image(named: .key)
+            }
+          )
+          .accessibilityIdentifier("resource.folders.add.password")
 
-            DrawerMenuItemView(
-              action: {
-                self.controller.createFolder()
-              },
-              title: {
-                Text(
-                  displayable: .localized(
-                    key: "resource.folders.add.menu.folder.label"
-                  )
+          DrawerMenuItemView(
+            action: {
+              await self.controller.createFolder()
+            },
+            title: {
+              Text(
+                displayable: .localized(
+                  key: "resource.folders.add.menu.folder.label"
                 )
-              },
-              leftIcon: {
-                Image(named: .folder)
-              }
-            )
-            .accessibilityIdentifier("resource.folders.add.folder")
-          }
+              )
+            },
+            leftIcon: {
+              Image(named: .folder)
+            }
+          )
+          .accessibilityIdentifier("resource.folders.add.folder")
         }
-      )
-    }
+      }
+    )
   }
 }

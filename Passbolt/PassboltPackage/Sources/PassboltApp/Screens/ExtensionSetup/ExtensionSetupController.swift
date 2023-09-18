@@ -42,7 +42,6 @@ extension ExtensionSetupController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
 
     let currentAccount: Account = try features.sessionAccount()
     let accountInitialSetup: AccountInitialSetup = try features.instance(context: currentAccount)
@@ -65,7 +64,7 @@ extension ExtensionSetupController: UIController {
               .openSystemSettings()
           }
           catch {
-            diagnostics.log(error: error)
+            error.logged()
           }
         }
         .map { (_: Void) -> AnyPublisher<Bool, Never> in

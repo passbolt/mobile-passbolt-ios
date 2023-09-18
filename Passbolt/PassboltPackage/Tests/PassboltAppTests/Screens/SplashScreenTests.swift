@@ -32,16 +32,17 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 @MainActor
 final class SplashScreenTests: MainActorTestCase {
 
-  var updates: UpdatesSequenceSource!
+  var updates: Updates!
 
   override func mainActorSetUp() {
     updates = .init()
     features.patch(
-      \Session.updatesSequence,
-      with: updates.updatesSequence
+      \Session.updates,
+      with: updates.asAnyUpdatable()
     )
     features.patch(
       \Session.currentAccount,
@@ -80,7 +81,7 @@ final class SplashScreenTests: MainActorTestCase {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let controller: SplashScreenController = try await testController(context: .none)
+    let controller: SplashScreenController = try testController(context: .none)
     var result: SplashScreenController.Destination?
 
     controller.navigationDestinationPublisher()
@@ -89,8 +90,7 @@ final class SplashScreenTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    await self.mockExecutionControl.executeAll()
 
     XCTAssertEqual(result, .diagnostics)
   }
@@ -101,7 +101,7 @@ final class SplashScreenTests: MainActorTestCase {
       with: always([])
     )
 
-    let controller: SplashScreenController = try await testController(context: .none)
+    let controller: SplashScreenController = try testController(context: .none)
     var result: SplashScreenController.Destination!
 
     controller.navigationDestinationPublisher()
@@ -110,8 +110,7 @@ final class SplashScreenTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    await self.mockExecutionControl.executeAll()
 
     XCTAssertEqual(result, .accountSetup)
   }
@@ -126,7 +125,7 @@ final class SplashScreenTests: MainActorTestCase {
       with: alwaysThrow(SessionMissing.error())
     )
 
-    let controller: SplashScreenController = try await testController(context: Account.mock_ada)
+    let controller: SplashScreenController = try testController(context: Account.mock_ada)
 
     var result: SplashScreenController.Destination?
 
@@ -136,8 +135,7 @@ final class SplashScreenTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    await self.mockExecutionControl.executeAll()
 
     XCTAssertEqual(result, .accountSelection(Account.mock_ada, message: nil))
   }
@@ -153,7 +151,7 @@ final class SplashScreenTests: MainActorTestCase {
       with: alwaysThrow(SessionMissing.error())
     )
 
-    let controller: SplashScreenController = try await testController(context: .none)
+    let controller: SplashScreenController = try testController(context: .none)
     var result: SplashScreenController.Destination?
 
     controller.navigationDestinationPublisher()
@@ -162,8 +160,7 @@ final class SplashScreenTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    await self.mockExecutionControl.executeAll()
 
     XCTAssertEqual(result, .accountSelection(nil, message: nil))
   }
@@ -178,7 +175,7 @@ final class SplashScreenTests: MainActorTestCase {
       with: always(Void())
     )
 
-    let controller: SplashScreenController = try await testController(context: .none)
+    let controller: SplashScreenController = try testController(context: .none)
     var result: SplashScreenController.Destination!
 
     controller.navigationDestinationPublisher()
@@ -187,8 +184,7 @@ final class SplashScreenTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    await self.mockExecutionControl.executeAll()
 
     XCTAssertEqual(result, .home(.init(account: .mock_ada, configuration: .mock_default)))
   }
@@ -203,7 +199,7 @@ final class SplashScreenTests: MainActorTestCase {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let controller: SplashScreenController = try await testController(context: .none)
+    let controller: SplashScreenController = try testController(context: .none)
     var result: SplashScreenController.Destination?
 
     controller.navigationDestinationPublisher()
@@ -212,8 +208,7 @@ final class SplashScreenTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    await self.mockExecutionControl.executeAll()
 
     XCTAssertEqual(result, .featureConfigFetchError)
   }
@@ -223,13 +218,12 @@ final class SplashScreenTests: MainActorTestCase {
       \Session.currentAccount,
       with: always(Account.mock_ada)
     )
-    let uncheckedSendableIndex: UncheckedSendable<Int> = .init(0)
     features.patch(
       \SessionConfigurationLoader.fetchIfNeeded,
       with: always(Void())
     )
 
-    let controller: SplashScreenController = try await testController(context: .none)
+    let controller: SplashScreenController = try testController(context: .none)
     var destination: SplashScreenController.Destination?
 
     controller
@@ -242,8 +236,7 @@ final class SplashScreenTests: MainActorTestCase {
 
     try? await controller.retryFetchConfiguration()
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    await self.mockExecutionControl.executeAll()
 
     XCTAssertEqual(destination, .home(.init(account: .mock_ada, configuration: .mock_default)))
   }
@@ -258,7 +251,7 @@ final class SplashScreenTests: MainActorTestCase {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let controller: SplashScreenController = try await testController(context: .none)
+    let controller: SplashScreenController = try testController(context: .none)
     var result: SplashScreenController.Destination!
 
     controller.navigationDestinationPublisher()
@@ -269,8 +262,7 @@ final class SplashScreenTests: MainActorTestCase {
 
     try? await controller.retryFetchConfiguration()
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    await self.mockExecutionControl.executeAll()
 
     XCTAssertEqual(result, .featureConfigFetchError)
   }

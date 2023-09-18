@@ -34,13 +34,10 @@ final class LogsViewerControllerTests: FeaturesTestCase {
 
   func test_refreshLogs_triggersDiagnosticLogsRead() async throws {
     var result: Void?
-    patch(
-      \OSDiagnostics.diagnosticsInfo,
-      with: { () -> Array<String> in
-        result = Void()
-        return []
-      }
-    )
+    Diagnostics.shared.info = { () -> Array<String> in
+      result = Void()
+      return []
+    }
 
     let controller: LogsViewerController = try testedInstance()
 
@@ -66,10 +63,9 @@ final class LogsViewerControllerTests: FeaturesTestCase {
   }
 
   func test_logsPublisher_publishesCachedValue_afterRefreshingLogs() async throws {
-    patch(
-      \OSDiagnostics.diagnosticsInfo,
-      with: always([])
-    )
+    Diagnostics.shared.info = { () -> Array<String> in
+      []
+    }
 
     let controller: LogsViewerController = try testedInstance()
 
@@ -122,10 +118,9 @@ final class LogsViewerControllerTests: FeaturesTestCase {
   func test_shareMenuPresentationPublisher_publishesJoinedLogs_afterCallingPresentShareMenu_withLogsInCache()
     async throws
   {
-    patch(
-      \OSDiagnostics.diagnosticsInfo,
-      with: always(["test", "another"])
-    )
+    Diagnostics.shared.info = { () -> Array<String> in
+      ["test", "another"]
+    }
 
     let controller: LogsViewerController = try testedInstance()
 

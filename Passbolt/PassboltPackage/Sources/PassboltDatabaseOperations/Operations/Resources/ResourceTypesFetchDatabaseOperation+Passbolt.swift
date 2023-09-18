@@ -22,6 +22,7 @@
 //
 
 import DatabaseOperations
+import FeatureScopes
 import Session
 
 // MARK: - Implementation
@@ -37,18 +38,14 @@ extension ResourceTypesFetchDatabaseOperation {
         using: """
           SELECT
             id,
-            slug,
-            name,
-            fields
+            slug
           FROM
-            resourceTypesView;
+            resourceTypes;
           """
       ) { dataRow in
         guard
-          let id: ResourceType.ID = dataRow.id.flatMap(ResourceType.ID.init(rawValue:)),
-          let slug: ResourceType.Slug = dataRow.slug.flatMap(ResourceType.Slug.init(rawValue:)),
-          let name: String = dataRow.name,
-          let rawFields: String = dataRow.fields
+          let id: ResourceType.ID = dataRow.id,
+          let slug: ResourceSpecification.Slug = dataRow.slug
         else {
           throw
             DatabaseDataInvalid
@@ -56,13 +53,9 @@ extension ResourceTypesFetchDatabaseOperation {
             .recording(dataRow, for: "dataRow")
         }
 
-        return try ResourceType(
+        return .init(
           id: id,
-          slug: slug,
-          name: name,
-          fields:
-            ResourceField
-            .decodeOrderedSetFrom(rawString: rawFields)
+          slug: slug
         )
       }
   }

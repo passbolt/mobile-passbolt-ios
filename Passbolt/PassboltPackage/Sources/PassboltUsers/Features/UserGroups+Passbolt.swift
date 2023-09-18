@@ -22,6 +22,7 @@
 //
 
 import DatabaseOperations
+import FeatureScopes
 import OSFeatures
 import Session
 import SessionData
@@ -35,7 +36,6 @@ extension UserGroups {
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
 
-    let diagnostics: OSDiagnostics = features.instance()
     let session: Session = try features.instance()
     let sessionData: SessionData = try features.instance()
     let resourceUserGroupsListFetchDatabaseOperation: ResourceUserGroupsListFetchDatabaseOperation =
@@ -45,7 +45,7 @@ extension UserGroups {
     @Sendable nonisolated func filteredResourceUserGroupList(
       filters: AnyAsyncSequence<String>
     ) -> AnyAsyncSequence<Array<ResourceUserGroupListItemDSV>> {
-      combineLatest(sessionData.updatesSequence, filters)
+      combineLatest(sessionData.lastUpdate.asAnyAsyncSequence(), filters)
         .map { (_, filterText: String) async -> Array<ResourceUserGroupListItemDSV> in
           let userGroups: Array<ResourceUserGroupListItemDSV>
           do {
@@ -57,7 +57,7 @@ extension UserGroups {
             )
           }
           catch {
-            diagnostics.log(error: error)
+            error.logged()
             userGroups = .init()
           }
 

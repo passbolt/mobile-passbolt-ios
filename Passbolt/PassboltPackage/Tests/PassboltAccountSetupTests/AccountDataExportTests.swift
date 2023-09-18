@@ -21,11 +21,13 @@
 // @since         v1.0
 //
 
+import FeatureScopes
 import TestExtensions
 
 @testable import PassboltAccountSetup
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class AccountDataExportTests: LoadableFeatureTestCase<AccountDataExport> {
 
   override class var testedImplementationScope: any FeaturesScope.Type {

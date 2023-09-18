@@ -26,14 +26,14 @@ import SwiftUI
 public struct DrawerMenuItemView<TitleView, LeftIconView, RightIconView>: View
 where TitleView: View, LeftIconView: View, RightIconView: View {
 
-  private let action: () -> Void
+  private let action: @MainActor () async -> Void
   private let title: () -> TitleView
   private let leftIcon: () -> LeftIconView
   private let rightIcon: () -> RightIconView
   private let isSelected: Bool
 
   public init(
-    action: @escaping () -> Void,
+    @_inheritActorContext action: @escaping @MainActor () async -> Void,
     @ViewBuilder title: @escaping () -> TitleView,
     @ViewBuilder leftIcon: @escaping () -> LeftIconView,
     @ViewBuilder rightIcon: @escaping () -> RightIconView,
@@ -47,7 +47,7 @@ where TitleView: View, LeftIconView: View, RightIconView: View {
   }
 
   public init(
-    action: @escaping () -> Void,
+    action: @escaping @MainActor () async -> Void,
     @ViewBuilder title: @escaping () -> TitleView,
     @ViewBuilder leftIcon: @escaping () -> LeftIconView,
     isSelected: Bool = false
@@ -60,9 +60,9 @@ where TitleView: View, LeftIconView: View, RightIconView: View {
   }
 
   public var body: some View {
-    Button(
+    AsyncButton(
       action: self.action,
-      label: {
+      regularLabel: {
         HStack {
           self.leftIcon()
             .frame(maxWidth: 24, maxHeight: 24)
@@ -72,7 +72,23 @@ where TitleView: View, LeftIconView: View, RightIconView: View {
           self.rightIcon()
             .frame(maxWidth: 24, maxHeight: 24)
         }
-
+      },
+      loadingLabel: {
+        HStack {
+          SwiftUI.ProgressView()
+            .progressViewStyle(.circular)
+            .tint(
+              self.isSelected
+                ? Color.passboltPrimaryTextInverted
+                : Color.passboltPrimaryText
+            )
+            .frame(maxWidth: 24, maxHeight: 24)
+          self.title()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding([.leading, .trailing], 8)
+          self.rightIcon()
+            .frame(maxWidth: 24, maxHeight: 24)
+        }
       }
     )
     .padding(

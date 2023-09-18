@@ -27,7 +27,7 @@ internal struct ResourceSearchDisplayView: ControlledView {
 
   internal typealias Controller = ResourceSearchDisplayController
 
-  private let controller: ResourceSearchDisplayController
+  internal let controller: ResourceSearchDisplayController
 
   internal init(
     controller: ResourceSearchDisplayController
@@ -47,9 +47,10 @@ internal struct ResourceSearchDisplayView: ControlledView {
   ) -> some View {
     SearchView(
       prompt: .localized(key: "resources.search.placeholder"),
-      text: self.controller
-        .viewState
-        .binding(to: \.searchText),
+      text: self.binding(
+        to: \.searchText,
+        updating: self.controller.updateSearchText
+      ),
       leftAccessory: {
         Button(
           action: self.controller.showPresentationMenu,

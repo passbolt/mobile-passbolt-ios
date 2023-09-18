@@ -25,7 +25,7 @@ import Commons
 
 public enum Permission: Int {
 
-  public typealias ID = Tagged<String, Self>
+  public typealias ID = Tagged<PassboltID, Self>
 
   case read = 1
   case write = 7
@@ -77,19 +77,5 @@ extension Permission {
     case .owner:
       return true
     }
-  }
-}
-
-extension Permission.ID {
-
-  internal static let validator: Validator<Self> = Validator<String>
-    .uuid()
-    .contraMap(\.rawValue)
-
-  public var isValid: Bool {
-    Self
-      .validator
-      .validate(self)
-      .isValid
   }
 }

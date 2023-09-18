@@ -25,7 +25,7 @@ import Display
 
 internal struct ResourceFolderEditView: ControlledView {
 
-  private let controller: ResourceFolderEditController
+  internal let controller: ResourceFolderEditController
 
   internal init(
     controller: ResourceFolderEditController
@@ -40,7 +40,7 @@ internal struct ResourceFolderEditView: ControlledView {
           key: "folder.edit.form.create.title"
         ),
         loading: state.loading,
-        snackBarMessage: self.controller.binding(to: \.snackBarMessage),
+        snackBarMessage: self.binding(to: \.snackBarMessage),
         contentView: {
           self.contentView(using: state)
         }
@@ -53,23 +53,24 @@ internal struct ResourceFolderEditView: ControlledView {
   ) -> some View {
     VStack(spacing: 16) {
       FormTextFieldView(
-        title: .localized(
-          key: "form.field.name.title"
-        ),
+        title: "form.field.name.title",
+        prompt: "folder.edit.form.name.field.placeholder",
         mandatory: true,
-        text: .init(
-          get: { state.folderName },
-          set: { (newValue: Validated<String>) in
-            self.controller.setFolderName(newValue.value)
+        state: self.validatedBinding(
+          to: \.folderName,
+          updating: { (newValue: String) in
+            self.controller.setFolderName(newValue)
           }
-        ),
-        prompt: .localized(
-          key: "folder.edit.form.name.field.placeholder"
         )
       )
 
-      FolderLocationView(
-        locationElements: state.folderLocation
+      ResourceFieldView(
+        name: "folder.location.title",
+        content: {
+          FolderLocationView(
+            locationElements: state.folderLocation
+          )
+        }
       )
 
       PermissionAvatarsView(

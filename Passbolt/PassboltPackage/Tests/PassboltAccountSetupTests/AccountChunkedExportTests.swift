@@ -21,11 +21,13 @@
 // @since         v1.0
 //
 
+import FeatureScopes
 import TestExtensions
 
 @testable import PassboltAccountSetup
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class AccountChunkedExportTests: LoadableFeatureTestCase<AccountChunkedExport> {
 
   override class var testedImplementationScope: any FeaturesScope.Type {
@@ -199,8 +201,9 @@ final class AccountChunkedExportTests: LoadableFeatureTestCase<AccountChunkedExp
       try await feature.authorize(.biometrics)
       Task { await self.mockExecutionControl.executeAll() }
       return
-        await feature
+        try await feature
         .updates
+        .asAnyValueAsyncSequence()
         .map { feature.status() }
         .dropFirst()  // skip initial
         .first()  // take first after the update
@@ -239,8 +242,9 @@ final class AccountChunkedExportTests: LoadableFeatureTestCase<AccountChunkedExp
       try await feature.authorize(.biometrics)
       Task { await self.mockExecutionControl.executeAll() }
       return
-        await feature
+        try await feature
         .updates
+        .asAnyValueAsyncSequence()
         .map { feature.status() }
         .dropFirst()  // skip initial
         .first()  // take first after the update
@@ -279,8 +283,9 @@ final class AccountChunkedExportTests: LoadableFeatureTestCase<AccountChunkedExp
       try await feature.authorize(.biometrics)
       Task { await self.mockExecutionControl.executeAll() }
       return
-        await feature
+        try await feature
         .updates
+        .asAnyValueAsyncSequence()
         .map { feature.status() }
         .dropFirst()  // skip initial
         .first()  // take first after the update
@@ -318,8 +323,9 @@ final class AccountChunkedExportTests: LoadableFeatureTestCase<AccountChunkedExp
       try await feature.authorize(.biometrics)
       Task { await self.mockExecutionControl.executeAll() }
       return
-        await feature
+        try await feature
         .updates
+        .asAnyValueAsyncSequence()
         .map { feature.status() }
         .dropFirst()  // skip initial
         .first()  // take first after the update
@@ -364,8 +370,9 @@ final class AccountChunkedExportTests: LoadableFeatureTestCase<AccountChunkedExp
       }
       try await feature.authorize(.biometrics)
       return
-        await feature
+        try await feature
         .updates
+        .asAnyValueAsyncSequence()
         .map { feature.status() }
         .dropFirst()  // skip initial
         .first()  // take first from reminder

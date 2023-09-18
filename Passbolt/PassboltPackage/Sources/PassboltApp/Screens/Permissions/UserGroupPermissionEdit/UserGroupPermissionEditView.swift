@@ -92,7 +92,7 @@ internal struct UserGroupPermissionEditView: ComponentView {
             action: {
               await self.controller.showGroupMembers()
             },
-            label: {
+            regularLabel: {
               OverlappingAvatarStackView(self.state.groupMembersPreviewItems)
             }
           )
@@ -143,7 +143,7 @@ internal struct UserGroupPermissionEditView: ComponentView {
               await self.controller
                 .setPermissionType(permission)
             },
-            label: {
+            regularLabel: {
               HStack(spacing: 0) {
                 ResourcePermissionTypeView(
                   permission: permission
@@ -205,7 +205,7 @@ internal struct UserGroupPermissionEditView: ComponentView {
 
 extension UserGroupPermissionEditView {
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var name: DisplayableString
     internal var permission: Permission

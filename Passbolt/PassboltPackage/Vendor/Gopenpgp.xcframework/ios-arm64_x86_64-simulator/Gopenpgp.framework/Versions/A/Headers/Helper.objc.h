@@ -212,6 +212,14 @@ data and an error on signature verification failure.
 FOUNDATION_EXPORT HelperExplicitVerifyMessage* _Nullable HelperDecryptExplicitVerify(CryptoPGPMessage* _Nullable pgpMessage, CryptoKeyRing* _Nullable privateKeyRing, CryptoKeyRing* _Nullable publicKeyRing, int64_t verifyTime, NSError* _Nullable* _Nullable error);
 
 /**
+ * DecryptExplicitVerifyWithContext decrypts a PGP message given a private keyring
+and a public keyring to verify the embedded signature. Returns the plain
+data and an error on signature verification failure.
+The caller can provide a context that will be used to verify the signature.
+ */
+FOUNDATION_EXPORT HelperExplicitVerifyMessage* _Nullable HelperDecryptExplicitVerifyWithContext(CryptoPGPMessage* _Nullable pgpMessage, CryptoKeyRing* _Nullable privateKeyRing, CryptoKeyRing* _Nullable publicKeyRing, int64_t verifyTime, CryptoVerificationContext* _Nullable verificationContext, NSError* _Nullable* _Nullable error);
+
+/**
  * DecryptMessageArmored decrypts an armored PGP message given a private key
 and its passphrase.
  */
@@ -236,6 +244,14 @@ and a public keyring to verify the embedded signature. Returns the plain data an
 an error on signature verification failure.
  */
 FOUNDATION_EXPORT HelperExplicitVerifyMessage* _Nullable HelperDecryptSessionKeyExplicitVerify(NSData* _Nullable dataPacket, CryptoSessionKey* _Nullable sessionKey, CryptoKeyRing* _Nullable publicKeyRing, int64_t verifyTime, NSError* _Nullable* _Nullable error);
+
+/**
+ * DecryptSessionKeyExplicitVerifyWithContext decrypts a PGP data packet given a session key
+and a public keyring to verify the embedded signature. Returns the plain data and
+an error on signature verification failure.
+The caller can provide a context that will be used to verify the signature.
+ */
+FOUNDATION_EXPORT HelperExplicitVerifyMessage* _Nullable HelperDecryptSessionKeyExplicitVerifyWithContext(NSData* _Nullable dataPacket, CryptoSessionKey* _Nullable sessionKey, CryptoKeyRing* _Nullable publicKeyRing, int64_t verifyTime, CryptoVerificationContext* _Nullable verificationContext, NSError* _Nullable* _Nullable error);
 
 /**
  * DecryptVerifyArmoredDetached decrypts an armored pgp message

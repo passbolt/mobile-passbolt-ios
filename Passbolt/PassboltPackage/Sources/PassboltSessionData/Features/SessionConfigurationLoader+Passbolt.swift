@@ -35,24 +35,25 @@ extension SessionConfigurationLoader {
     features: Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
+
     let session: Session = try features.instance()
     let configurationFetchNetworkOperation: ConfigurationFetchNetworkOperation = try features.instance()
 
-    let configuration: UpdatableValue<Dictionary<AnyHashable, FeatureConfigItem>> = .init(
+    let configuration: ComputedVariable<Dictionary<AnyHashable, FeatureConfigItem>> = .init(
       // TODO: we should update only on account changes
       // not on all session changes...
-      updatesSequence: session.updatesSequence,
-      //        .currentAccountSequence()
-      //        .map { _ in Void() },
-      update: fetchConfiguration
-    )
+      transformed: session.updates
+        //        .currentAccountSequence()
+        //        .map { _ in Void() },
+    ) { _ in
+      try await fetchConfiguration()
+    }
 
     @Sendable nonisolated func fetchConfiguration() async throws -> Dictionary<AnyHashable, FeatureConfigItem> {
-      diagnostics.log(diagnostic: "Fetching server configuration...")
+      Diagnostics.logger.info("Fetching server configuration...")
       guard case .some = try? await session.currentAccount()
       else {
-        diagnostics.log(diagnostic: "...server configuration fetching skipped!")
+        Diagnostics.logger.info("...server configuration fetching skipped!")
         return .init()
       }
       let rawConfiguration: ConfigurationFetchNetworkOperationResult.Config
@@ -60,8 +61,7 @@ extension SessionConfigurationLoader {
         rawConfiguration = try await configurationFetchNetworkOperation().config
       }
       catch {
-        diagnostics.log(error: error)
-        diagnostics.log(diagnostic: "...server configuration fetching failed!")
+				Diagnostics.logger.info("...server configuration fetching failed!")
         throw error
       }
 
@@ -125,7 +125,7 @@ extension SessionConfigurationLoader {
         configuration[FeatureFlags.TOTP.identifier] = FeatureFlags.TOTP.default
       }
 
-      diagnostics.log(diagnostic: "...server configuration fetched!")
+      Diagnostics.logger.info("...server configuration fetched!")
 
       return configuration
     }

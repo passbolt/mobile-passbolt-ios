@@ -26,55 +26,40 @@ import UICommons
 
 internal struct TroubleshootingSettingsView: ControlledView {
 
-  private let controller: TroubleshootingSettingsController
+  internal let controller: TroubleshootingSettingsViewController
 
   internal init(
-    controller: TroubleshootingSettingsController
+    controller: TroubleshootingSettingsViewController
   ) {
     self.controller = controller
   }
 
   internal var body: some View {
     ScreenView(
-      title: .localized(
-        key: "settings.troubleshooting.title"
-      ),
+      title: "settings.troubleshooting.title",
       contentView: {
-        self.content
+        WithSnackBarMessage(
+          from: self.controller,
+          at: \.self
+        ) {
+          self.content
+        }
       }
     )
   }
 
   @ViewBuilder @MainActor private var content: some View {
-    CommonList {
+    CommonPlainList {
       SettingsActionRowView(
         icon: .file,
-        title: .localized(
-          key: "settings.troubleshooting.item.logs.title"
-        ),
-        action: self.controller.navigateToLogs,
-        accessory: {
-          Image(named: .disclosureIndicator)
-            .frame(
-              width: 24,
-              height: 24
-            )
-        }
+        title: "settings.troubleshooting.item.logs.title",
+        navigation: self.controller.navigateToLogs
       )
 
       SettingsActionRowView(
         icon: .link,
-        title: .localized(
-          key: "settings.troubleshooting.item.help.site.title"
-        ),
-        action: self.controller.navigateToHelpSite,
-        accessory: {
-          Image(named: .disclosureIndicator)
-            .frame(
-              width: 24,
-              height: 24
-            )
-        }
+        title: "settings.troubleshooting.item.help.site.title",
+        navigation: self.controller.navigateToHelpSite
       )
     }
   }

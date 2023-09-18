@@ -30,7 +30,7 @@ import OSFeatures
 /// For internal use only.
 internal struct SessionState {
   /// Session updates sequence.
-  internal var updatesSequence: UpdatesSequence
+  internal var updates: AnyUpdatable<Void>
   /// Currently used account.
   internal var account: @SessionActor () -> Account?
   /// Get cached passphrase.
@@ -106,7 +106,7 @@ extension SessionState: LoadableFeature {
   #if DEBUG
   nonisolated static var placeholder: Self {
     Self(
-      updatesSequence: .placeholder,
+      updates: PlaceholderUpdatable().asAnyUpdatable(),
       account: unimplemented0(),
       passphrase: unimplemented0(),
       validAccessToken: unimplemented0(),
@@ -138,7 +138,7 @@ extension SessionState {
 
     let osTime: OSTime = features.instance()
 
-    let updatesSequenceSource: UpdatesSequenceSource = .init()
+    let updatesSource: Updates = .init()
 
     // access only using SessionActor
     var currentAccount: Account? = .none
@@ -225,7 +225,7 @@ extension SessionState {
           providers: mfaProviders
         )
       }
-      updatesSequenceSource.sendUpdate()
+      updatesSource.update()
     }
 
     @SessionActor func refreshedSession(
@@ -256,11 +256,11 @@ extension SessionState {
 
       case .passphrase:
         currentPendingAuthorization = .none
-        updatesSequenceSource.sendUpdate()
+        updatesSource.update()
 
       case .passphraseWithMFA(_, let mfaProviders):
         currentPendingAuthorization = .mfa(for: account, providers: mfaProviders)
-        updatesSequenceSource.sendUpdate()
+        updatesSource.update()
       }
     }
 
@@ -282,11 +282,11 @@ extension SessionState {
 
       case .passphrase:
         currentPendingAuthorization = .none
-        updatesSequenceSource.sendUpdate()
+        updatesSource.update()
 
       case .passphraseWithMFA(_, let mfaProviders):
         currentPendingAuthorization = .mfa(for: account, providers: mfaProviders)
-        updatesSequenceSource.sendUpdate()
+        updatesSource.update()
       }
     }
 
@@ -307,11 +307,11 @@ extension SessionState {
 
       case .mfa:
         currentPendingAuthorization = .none
-        updatesSequenceSource.sendUpdate()
+        updatesSource.update()
 
       case .passphraseWithMFA(let account, _):
         currentPendingAuthorization = .passphrase(for: account)
-        updatesSequenceSource.sendUpdate()
+        updatesSource.update()
       }
     }
 
@@ -333,12 +333,12 @@ extension SessionState {
           currentPassphrase = .none
           currentPassphraseExpiration = 0
           currentPendingAuthorization = .passphrase(for: currentAccount)
-          updatesSequenceSource.sendUpdate()
+          updatesSource.update()
 
         case .mfa(currentAccount, let mfaProviders):
           currentMFAToken = .none
           currentPendingAuthorization = .mfa(for: currentAccount, providers: mfaProviders)
-          updatesSequenceSource.sendUpdate()
+          updatesSource.update()
 
         case .passphrase, .mfa:
           throw
@@ -356,7 +356,7 @@ extension SessionState {
         where account == currentAccount:
           currentMFAToken = .none
           currentPendingAuthorization = .passphraseWithMFA(for: account, providers: mfaProviders)
-          updatesSequenceSource.sendUpdate()
+          updatesSource.update()
 
         case .passphrase, .mfa:
           throw
@@ -372,7 +372,7 @@ extension SessionState {
           currentPassphrase = .none
           currentPassphraseExpiration = 0
           currentPendingAuthorization = .passphraseWithMFA(for: account, providers: mfaProviders)
-          updatesSequenceSource.sendUpdate()
+          updatesSource.update()
 
         case .mfa(currentAccount, mfaProviders):
           return  // NOP - ignore (refined providers?)
@@ -417,11 +417,11 @@ extension SessionState {
       currentRefreshToken = .none
       currentMFAToken = .none
       currentPendingAuthorization = .none
-      updatesSequenceSource.sendUpdate()
+      updatesSource.update()
     }
 
     return Self(
-      updatesSequence: updatesSequenceSource.updatesSequence,
+      updates: updatesSource.asAnyUpdatable(),
       account: account,
       passphrase: passphrase,
       validAccessToken: validAccessToken,

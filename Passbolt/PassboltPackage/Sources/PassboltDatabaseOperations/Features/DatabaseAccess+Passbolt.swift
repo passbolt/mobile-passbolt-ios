@@ -34,7 +34,7 @@ extension DatabaseAccess {
     features: Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
+
     let osFiles: OSFiles = features.instance()
 
     nonisolated func databaseLocation(
@@ -90,8 +90,10 @@ extension DatabaseAccess {
           )
       }
       catch {
-        diagnostics.log(error: error)
-        diagnostics.log(diagnostic: "Failed to open database, cleaning up...")
+        error.logged(
+          info: .message("Failed to open database, cleaning up...")
+        )
+
         try osFiles.deleteFile(location)
         // single retry after deleting previous database, fail if it fails
         databaseConnection =

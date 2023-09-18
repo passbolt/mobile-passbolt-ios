@@ -27,6 +27,7 @@ import TestExtensions
 @testable import PassboltSession
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class SessionStateTests: LoadableFeatureTestCase<SessionState> {
 
   override class func testedImplementationRegister(

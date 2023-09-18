@@ -22,8 +22,12 @@
 //
 
 import Display
+import FeatureScopes
 
-internal enum OTPScanningSuccessNavigationDestination: NavigationDestination {}
+internal enum OTPScanningSuccessNavigationDestination: NavigationDestination {
+
+  internal typealias TransitionContext = OTPScanningSuccessViewController.Context
+}
 
 internal typealias NavigationToOTPScanningSuccess = NavigationTo<OTPScanningSuccessNavigationDestination>
 
@@ -41,7 +45,7 @@ extension FeaturesRegistry {
   internal mutating func useLiveNavigationToOTPScanningSuccess() {
     self.use(
       NavigationToOTPScanningSuccess.live,
-      in: OTPEditScope.self
+      in: ResourceEditScope.self
     )
   }
 }

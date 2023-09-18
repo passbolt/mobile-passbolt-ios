@@ -22,6 +22,7 @@
 //
 
 import DatabaseOperations
+import FeatureScopes
 import Session
 
 // MARK: - Implementation
@@ -64,8 +65,11 @@ extension ResourcesListFetchDatabaseOperation {
                   resourceFolders.parentFolderID IS flattenedResourceFolders.id
               )
             SELECT DISTINCT
-              resources.id,
-              resources.parentFolderID,
+              resources.id AS id,
+              resourceTypes.id AS typeID,
+              resourceTypes.slug AS typeSlug,
+              resources.permission AS permission,
+              resources.parentFolderID AS parentFolderID,
               resources.name AS name,
               resources.username AS username,
               resources.uri AS uri
@@ -75,6 +79,10 @@ extension ResourcesListFetchDatabaseOperation {
               flattenedResourceFolders
             ON
               resources.parentFolderID IS flattenedResourceFolders.id
+            JOIN
+              resourceTypes
+            ON
+              resources.typeID = resourceTypes.id
             WHERE
               1 -- equivalent of true, used to simplify dynamic query building
           """
@@ -85,13 +93,20 @@ extension ResourcesListFetchDatabaseOperation {
       else {
         statement = """
             SELECT
-              resources.id,
-              resources.parentFolderID,
+              resources.id AS id,
+              resourceTypes.id AS typeID,
+              resourceTypes.slug AS typeSlug,
+              resources.permission AS permission,
+              resources.parentFolderID AS parentFolderID,
               resources.name AS name,
               resources.username AS username,
               resources.uri AS uri
             FROM
               resources
+            JOIN
+              resourceTypes
+            ON
+              resources.typeID = resourceTypes.id
             WHERE
               resources.parentFolderID IS ?
           """
@@ -101,13 +116,20 @@ extension ResourcesListFetchDatabaseOperation {
     else {
       statement = """
           SELECT
-            resources.id,
-            resources.parentFolderID,
+            resources.id AS id,
+            resourceTypes.id AS typeID,
+            resourceTypes.slug AS typeSlug,
+            resources.permission AS permission,
+            resources.parentFolderID AS parentFolderID,
             resources.name AS name,
             resources.username AS username,
             resources.uri AS uri
           FROM
             resources
+          JOIN
+            resourceTypes
+          ON
+            resources.typeID = resourceTypes.id
           WHERE
             1 -- equivalent of true, used to simplify dynamic query building
         """
@@ -209,7 +231,7 @@ extension ResourcesListFetchDatabaseOperation {
       }
       statement.append(") LIMIT 1 )")
     }
-    else if let includedTypeSlug: ResourceType.Slug = input.includedTypeSlugs.first {
+    else if let includedTypeSlug: ResourceSpecification.Slug = input.includedTypeSlugs.first {
       statement.append(
         """
         AND (
@@ -258,7 +280,7 @@ extension ResourcesListFetchDatabaseOperation {
       }
       statement.append(") LIMIT 1 )")
     }
-    else if let excludedTypeSlug: ResourceType.Slug = input.excludedTypeSlugs.first {
+    else if let excludedTypeSlug: ResourceSpecification.Slug = input.excludedTypeSlugs.first {
       statement.append(
         """
         AND (
@@ -419,7 +441,10 @@ extension ResourcesListFetchDatabaseOperation {
       try connection
       .fetch(using: statement) { dataRow -> ResourceListItemDSV in
         guard
-          let id: Resource.ID = dataRow.id.flatMap(Resource.ID.init(rawValue:)),
+          let id: Resource.ID = dataRow.id,
+          let permission: Permission = dataRow.permission,
+          let typeID: ResourceType.ID = dataRow.typeID,
+          let typeSlug: ResourceSpecification.Slug = dataRow.typeSlug,
           let name: String = dataRow.name
         else {
           throw
@@ -434,6 +459,11 @@ extension ResourcesListFetchDatabaseOperation {
 
         return ResourceListItemDSV(
           id: id,
+          type: .init(
+            id: typeID,
+            slug: typeSlug
+          ),
+          permission: permission,
           parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:)),
           name: name,
           username: dataRow.username,

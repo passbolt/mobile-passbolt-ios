@@ -29,7 +29,7 @@ import Features
 public struct AccountPreferences {
 
   /// Updates in the context account preferences.
-  public var updates: UpdatesSequence
+  public var updates: AnyUpdatable<Void>
   /// Assign local label for the context account.
   public var setLocalAccountLabel: @Sendable (_ label: String) throws -> Void
   /// Check if account passphrase is stored
@@ -46,7 +46,7 @@ public struct AccountPreferences {
   public var defaultHomePresentation: StateBinding<HomePresentationMode>
 
   public init(
-    updates: UpdatesSequence,
+    updates: AnyUpdatable<Void>,
     setLocalAccountLabel: @escaping @Sendable (_ label: String) throws -> Void,
     isPassphraseStored: @escaping @Sendable () -> Bool,
     storePassphrase: @escaping @Sendable (_ store: Bool) async throws -> Void,
@@ -69,7 +69,7 @@ extension AccountPreferences: LoadableFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(
-      updates: .placeholder,
+      updates: PlaceholderUpdatable().asAnyUpdatable(),
       setLocalAccountLabel: unimplemented1(),
       isPassphraseStored: unimplemented0(),
       storePassphrase: unimplemented1(),

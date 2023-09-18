@@ -22,144 +22,93 @@
 //
 
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 import SessionData
 
-// MARK: - Interface
+internal final class ResourceTagsListDisplayController: ViewController {
 
-internal struct ResourceTagsListDisplayController {
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
-  internal var viewState: MutableViewState<ViewState>
-  internal var activate: @Sendable () async -> Void
-  internal var refresh: @Sendable () async -> Void
-  internal var selectTag: (ResourceTag.ID) -> Void
-}
+  private let asyncExecutor: AsyncExecutor
+  private let sessionData: SessionData
+  private let resourceTags: ResourceTags
 
-extension ResourceTagsListDisplayController: ViewController {
+  private let context: Context
+  private let features: Features
 
-  internal struct Context {
-
-    internal var filter: ObservableViewState<String>
-    internal var selectTag: (ResourceTag.ID) -> Void
-    internal var showMessage: (SnackBarMessage?) -> Void
-  }
-
-  internal struct ViewState: Hashable {
-
-    internal var resourceTags: Array<ResourceTagListItemDSV>
-  }
-
-  #if DEBUG
-  nonisolated static var placeholder: Self {
-    .init(
-      viewState: .placeholder(),
-      activate: { unimplemented() },
-      refresh: { unimplemented() },
-      selectTag: { _ in unimplemented() }
-    )
-  }
-  #endif
-}
-
-// MARK: - Implementation
-
-extension ResourceTagsListDisplayController {
-
-  @MainActor fileprivate static func load(
-    features: Features,
-    context: Context
-  ) throws -> Self {
+  internal init(
+    context: Context,
+    features: Features
+  ) throws {
     try features.ensureScope(SessionScope.self)
+    self.context = context
+    self.features = features
 
-    let diagnostics: OSDiagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
-    let sessionData: SessionData = try features.instance()
-    let resourceTags: ResourceTags = try features.instance()
+    self.asyncExecutor = try features.instance()
+    self.sessionData = try features.instance()
+    self.resourceTags = try features.instance()
 
-    let viewState: MutableViewState<ViewState> = .init(
+    self.viewState = .init(
       initial: .init(
         resourceTags: .init()
       )
     )
 
-    context
-      .filter
-      .valuesPublisher()
-      .sink { (filter: String) in
-        updateDisplayedResourceTags(filter)
-      }
-      .store(in: viewState.cancellables)
-
-    @Sendable nonisolated func activate() async {
-      await sessionData
-        .updatesSequence
-        .forEach {
-          await updateDisplayedResourceTags(context.filter.value)
-        }
-    }
-
-    @Sendable nonisolated func refresh() async {
-      do {
-        try await sessionData.refreshIfNeeded()
-      }
-      catch {
-        diagnostics.log(
-          error: error,
-          info: .message(
-            "Failed to refresh session data."
-          )
-        )
+    self.asyncExecutor.scheduleIteration(
+      over: combineLatest(
+        context.filter,
+        sessionData.lastUpdate.asAnyAsyncSequence()
+      ),
+      failMessage: "Resource tags list updates broken!",
+      failAction: { [context] (error: Error) in
         context.showMessage(.error(error))
       }
-    }
+    ) { [viewState, resourceTags] (filter: String, _) in
+      let filteredResourceTags: Array<ResourceTagListItemDSV> = try await resourceTags.filteredTagsList(filter)
 
-    @Sendable nonisolated func updateDisplayedResourceTags(
-      _ filter: String
-    ) {
-      asyncExecutor.schedule(.replace) {
-        do {
-          try Task.checkCancellation()
-
-          let filteredResourceTags: Array<ResourceTagListItemDSV> =
-            try await resourceTags.filteredTagsList(filter)
-
-          try Task.checkCancellation()
-
-          await viewState.update { viewState in
-            viewState.resourceTags = filteredResourceTags
-          }
-        }
-        catch {
-          diagnostics.log(
-            error: error,
-            info: .message(
-              "Failed to access resource tags list."
-            )
-          )
-          context.showMessage(.error(error))
-        }
+      await viewState.update { viewState in
+        viewState.resourceTags = filteredResourceTags
       }
     }
-
-    return .init(
-      viewState: viewState,
-      activate: activate,
-      refresh: refresh,
-      selectTag: context.selectTag
-    )
   }
 }
 
-extension FeaturesRegistry {
+extension ResourceTagsListDisplayController {
 
-  public mutating func usePassboltResourceTagsListDisplayController() {
-    self.use(
-      .disposable(
-        ResourceTagsListDisplayController.self,
-        load: ResourceTagsListDisplayController.load(features:context:)
-      ),
-      in: SessionScope.self
-    )
+  internal struct Context {
+
+    internal var filter: AnyAsyncSequence<String>
+    internal var selectTag: (ResourceTag.ID) -> Void
+    internal var showMessage: (SnackBarMessage?) -> Void
+  }
+
+  internal struct ViewState: Equatable {
+
+    internal var resourceTags: Array<ResourceTagListItemDSV>
+  }
+}
+
+extension ResourceTagsListDisplayController {
+
+  internal final func refresh() async {
+    do {
+      try await self.sessionData.refreshIfNeeded()
+    }
+    catch {
+      error.logged(
+        info: .message(
+          "Failed to refresh session data."
+        )
+      )
+      self.context.showMessage(.error(error))
+    }
+  }
+
+  internal final func selectTag(
+    _ id: ResourceTag.ID
+  ) {
+    self.context.selectTag(id)
   }
 }

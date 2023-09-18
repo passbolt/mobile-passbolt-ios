@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import FeatureScopes
 import TestExtensions
 import UIComponents
 import XCTest
@@ -29,17 +30,18 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 @MainActor
 final class AccountMenuControllerTests: MainActorTestCase {
 
-  var accountUpdates: UpdatesSequenceSource!
+  var accountUpdates: Updates!
 
   override func mainActorSetUp() {
     accountUpdates = .init()
     features.usePlaceholder(for: Session.self)
     features.patch(
       \Accounts.updates,
-      with: accountUpdates.updatesSequence
+      with: accountUpdates.asAnyUpdatable()
     )
     features.patch(
       \Accounts.storedAccounts,
@@ -135,7 +137,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
     let controller: AccountMenuController = try await testController()
 
     storedAccounts = [.mock_ada, .mock_frances]
-    accountUpdates.sendUpdate()
+    accountUpdates.update()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -155,12 +157,12 @@ final class AccountMenuControllerTests: MainActorTestCase {
   }
 
   func test_presentAccountDetails_navigatesToAccountDetails() async throws {
-    let result: UncheckedSendable<Void?> = .init(.none)
+    let result: UnsafeSendable<Void> = .init(.none)
     self.features
       .patch(
         \NavigationToAccountDetails.mockPerform,
         with: { _, _ async throws -> Void in
-          result.variable = Void()
+          result.value = Void()
         }
       )
 
@@ -170,16 +172,16 @@ final class AccountMenuControllerTests: MainActorTestCase {
 
     await mockExecutionControl.executeAll()
 
-    XCTAssertNotNil(result.variable)
+    XCTAssertNotNil(result.value)
   }
 
   func test_presentAccountSwitch_performsAccountAuthorization() async throws {
-    let result: UncheckedSendable<Account?> = .init(.none)
+    let result: UnsafeSendable<Account> = .init(.none)
     self.features
       .patch(
         \NavigationToAuthorization.mockPerform,
         with: { _, account async throws -> Void in
-          result.variable = account
+          result.value = account
         }
       )
 
@@ -189,16 +191,16 @@ final class AccountMenuControllerTests: MainActorTestCase {
 
     await mockExecutionControl.executeAll()
 
-    XCTAssertEqual(result.variable, .mock_frances)
+    XCTAssertEqual(result.value, .mock_frances)
   }
 
   func test_presentManageAccounts_performsNavigationToManageAccounts() async throws {
-    let result: UncheckedSendable<Void?> = .init(.none)
+    let result: UnsafeSendable<Void> = .init(.none)
     self.features
       .patch(
         \NavigationToManageAccounts.mockPerform,
         with: { _, account async throws -> Void in
-          result.variable = account
+          result.value = account
         }
       )
 
@@ -208,19 +210,15 @@ final class AccountMenuControllerTests: MainActorTestCase {
 
     await mockExecutionControl.executeAll()
 
-    XCTAssertNotNil(result.variable)
+    XCTAssertNotNil(result.value)
   }
 
   func test_signOut_closesCurrentSession() async throws {
-    var result: Void?
-    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
-      get: { result },
-      set: { result = $0 }
-    )
+    let result: UnsafeSendable<Void> = .init()
     await features.patch(
       \Session.close,
       with: { _ in
-        uncheckedSendableResult.variable = Void()
+        result.value = Void()
       }
     )
     let controller: AccountMenuController = try await testController()
@@ -228,6 +226,6 @@ final class AccountMenuControllerTests: MainActorTestCase {
     controller.signOut()
     // temporary wait for detached tasks, to be removed
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-    XCTAssertNotNil(result)
+    XCTAssertNotNil(result.value)
   }
 }

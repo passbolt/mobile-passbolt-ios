@@ -25,7 +25,7 @@ import Display
 
 internal struct HomePresentationMenuNodeView: ControlledView {
 
-  private let controller: HomePresentationMenuNodeController
+  internal let controller: HomePresentationMenuNodeController
 
   internal init(
     controller: HomePresentationMenuNodeController
@@ -39,7 +39,7 @@ internal struct HomePresentationMenuNodeView: ControlledView {
     }
   }
 
-  @ViewBuilder private func content(
+  @MainActor @ViewBuilder private func content(
     with state: ViewState
   ) -> some View {
     DrawerMenu(
@@ -65,7 +65,7 @@ internal struct HomePresentationMenuNodeView: ControlledView {
             }  // else { /* NOP */ }
             DrawerMenuItemView(
               action: {
-                self.controller.selectMode(mode)
+                await self.controller.selectMode(mode)
               },
               title: {
                 Text(displayable: mode.title)

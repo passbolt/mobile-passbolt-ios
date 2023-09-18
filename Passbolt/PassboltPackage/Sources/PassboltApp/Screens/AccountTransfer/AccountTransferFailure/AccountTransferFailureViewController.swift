@@ -64,25 +64,37 @@ internal final class AccountTransferFailureViewController: PlainViewController, 
     }
     contentView
       .applyOn(
-        image: .image(named: .failureMark, from: .uiCommons)
+        image: .combined(
+          .image(named: .failureMark, from: .uiCommons),
+          .accessibilityIdentifier("transfer.account.result.failure.image")
+        )
       )
 
     contentView
       .applyOn(
-        title: .text(displayable: .localized(key: .genericError))
+        title: .combined(
+          .text(displayable: .localized(key: .genericError)),
+          .accessibilityIdentifier("generic.error")
+        )
       )
     let failureReason: Error = controller.failureReason()
     if failureReason is Cancelled {
 
       contentView
         .applyOn(
-          message: .text(displayable: .localized(key: "transfer.account.result.canceled.title"))
+          message: .combined(
+            .text(displayable: .localized(key: "transfer.account.result.canceled.title")),
+            .accessibilityIdentifier("transfer.account.result.failure.message")
+          )
         )
     }
     else {
       contentView
         .applyOn(
-          message: .text(displayable: failureReason.asTheError().displayableMessage)
+          message: .combined(
+            .text(displayable: failureReason.asTheError().displayableMessage),
+            .accessibilityIdentifier("transfer.account.result.failure.message")
+          )
         )
     }
 
@@ -92,7 +104,8 @@ internal final class AccountTransferFailureViewController: PlainViewController, 
           .text(
             displayable: .localized(key: .continue)
           ),
-          .action(controller.continue)
+          .action(controller.continue),
+          .accessibilityIdentifier("transfer.account.result.failure.continiue.button")
         )
       )
     setupSubscriptions()

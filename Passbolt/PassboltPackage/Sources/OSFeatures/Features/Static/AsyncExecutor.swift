@@ -26,7 +26,7 @@ import Commons
 public struct AsyncExecutor {
 
   public let cancelTasks: @Sendable () -> Void
-  private let execute:
+  @usableFromInline internal let execute:
     @Sendable (ExecutionIdentifier, OngoingExecutionBehavior, @escaping @Sendable () async -> Void) -> Execution
 }
 
@@ -72,10 +72,80 @@ extension AsyncExecutor {
     )
   }
 
-  @discardableResult @_transparent
-  public func scheduleCatchingWith(
-    _ diagnostics: OSDiagnostics,
+  @_transparent
+  public func scheduleIteration<S>(
+    over sequence: S,
     failMessage: StaticString? = .none,
+    failAction: ((Error) async -> Void)? = .none,
+    behavior: OngoingExecutionBehavior = .concurrent,
+    function: StaticString = #function,
+    file: StaticString = #fileID,
+    line: UInt = #line,
+    _ handleNext: @escaping @Sendable (S.Element) async throws -> Void
+  ) where S: AsyncSequence {
+    self.scheduleRecursiveNextCatching(
+      using: sequence.makeAsyncIterator().asAnyAsyncIterator(),
+      failMessage: failMessage,
+      failAction: failAction,
+      behavior: behavior,
+      function: function,
+      file: file,
+      line: line,
+      handleNext
+    )
+  }
+
+  @usableFromInline
+  internal func scheduleRecursiveNextCatching<Element>(
+    using iterator: AnyAsyncIterator<Element>,
+    failMessage: StaticString?,
+    failAction: ((Error) async -> Void)?,
+    behavior: OngoingExecutionBehavior,
+    function: StaticString,
+    file: StaticString,
+    line: UInt,
+    _ handleNext: @escaping @Sendable (Element) async throws -> Void
+  ) {
+    self.schedule(
+      behavior,
+      function: function,
+      file: file,
+      line: line,
+      {
+        await withLogCatch(
+          failInfo: failMessage,
+          file: file,
+          line: line
+        ) {
+          do {
+            guard let nextElement: Element = try await iterator.next()
+            else { return }
+            try await handleNext(nextElement)
+            // if it not failed schedule recursively for next
+            self.scheduleRecursiveNextCatching(
+              using: iterator,
+              failMessage: failMessage,
+              failAction: failAction,
+              behavior: behavior,
+              function: function,
+              file: file,
+              line: line,
+              handleNext
+            )
+          }
+          catch {
+            await failAction?(error)
+            throw error
+          }
+        }
+      }
+    )
+  }
+
+  @discardableResult @_transparent
+  public func scheduleCatching(
+    failMessage: StaticString? = .none,
+    failAction: (@Sendable (Error) async -> Void)? = .none,
     behavior: OngoingExecutionBehavior = .concurrent,
     function: StaticString = #function,
     file: StaticString = #fileID,
@@ -88,20 +158,77 @@ extension AsyncExecutor {
       file: file,
       line: line,
       {
-        await diagnostics
-          .withLogCatch(
-            info:
-              failMessage
-              .map { (message: StaticString) -> DiagnosticsInfo in
-                .message(
-                  message,
-                  file: file,
-                  line: line
-                )
-              }
-          ) {
+        await withLogCatch(
+          failInfo: failMessage,
+          file: file,
+          line: line
+        ) {
+          do {
             try await task()
           }
+          catch {
+            await failAction?(error)
+            throw error
+          }
+        }
+      }
+    )
+  }
+
+  @discardableResult @_transparent
+  public func scheduleCatching(
+    failMessage: StaticString? = .none,
+    failAction: (@Sendable (Error) async -> Void)? = .none,
+    identifier: AnyHashable,
+    behavior: OngoingExecutionBehavior = .concurrent,
+    file: StaticString = #fileID,
+    line: UInt = #line,
+    _ task: @escaping @Sendable () async throws -> Void
+  ) -> Execution {
+    self.execute(
+      .custom(identifier),
+      behavior,
+      {
+        await withLogCatch(
+          failInfo: failMessage,
+          file: file,
+          line: line
+        ) {
+          do {
+            try await task()
+          }
+          catch {
+            await failAction?(error)
+            throw error
+          }
+        }
+      }
+    )
+  }
+
+  @discardableResult @_transparent
+  public func scheduleCatching(
+    failMessage: StaticString? = .none,
+    behavior: OngoingExecutionBehavior = .concurrent,
+    identifier: ExecutionIdentifier,
+    function: StaticString = #function,
+    file: StaticString = #fileID,
+    line: UInt = #line,
+    _ task: @escaping @Sendable () async throws -> Void
+  ) -> Execution {
+    self.schedule(
+      behavior,
+      function: function,
+      file: file,
+      line: line,
+      {
+        await withLogCatch(
+          failInfo: failMessage,
+          file: file,
+          line: line
+        ) {
+          try await task()
+        }
       }
     )
   }
@@ -241,6 +368,14 @@ extension AsyncExecutor {
         identifier: IID()
       )
     }
+
+    public static func custom(
+      _ identifier: AnyHashable
+    ) -> Self {
+      .init(
+        identifier: identifier
+      )
+    }
   }
 
   public struct Execution: Sendable {
@@ -274,7 +409,7 @@ extension AsyncExecutor.ExecutionIdentifier: ExpressibleByStringInterpolation {
 extension AsyncExecutor {
 
   public func updates(
-    using sequence: UpdatesSequence,
+    using sequence: Updates,
     update: @escaping @Sendable () async throws -> Void,
     finish: @escaping @Sendable (TheError?) -> Void = { _ in /* NOP */ }
   ) {
@@ -297,7 +432,7 @@ extension AsyncExecutor {
 
       @IID fileprivate var id
       fileprivate let execute: @Sendable () async -> Void
-      fileprivate let completion: AsyncVariable<Void?>
+      fileprivate let completion: Once
     }
 
     private let executionQueue: CriticalState<Array<QueueItem>> = .init(
@@ -357,11 +492,11 @@ extension AsyncExecutor {
     @Sendable public func addTask(
       _ task: @escaping @Sendable () async -> Void
     ) -> Execution {
-      let completion: AsyncVariable<Void?> = .init(initial: .none)
+      let completion: Once = .init({ /* Void */  })
       let queueItem: QueueItem = .init(
         execute: {
           await task()
-          completion.send(Void())
+          completion.executeIfNeeded()
         },
         completion: completion
       )
@@ -378,13 +513,11 @@ extension AsyncExecutor {
         cancellation: {
           self.executionQueue.access { state in
             state.removeAll(where: { $0.id == queueItem.id })
-            completion.send(Void())
+            completion.executeIfNeeded()
           }
         },
         waitForCompletion: {
-          await completion
-            .compactMap(identity)
-            .first()
+          try? await completion.waitForCompletion()
         }
       )
     }

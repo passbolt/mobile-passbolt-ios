@@ -25,7 +25,7 @@ import UIKit
 
 @main
 internal class AppDelegate: UIResponder, UIApplicationDelegate {
-  
+
   internal func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -33,7 +33,7 @@ internal class AppDelegate: UIResponder, UIApplicationDelegate {
     UIApplication.shared.ignoreSnapshotOnNextApplicationLaunch()
     return Application.shared.initialize()
   }
-  
+
   internal func application(
     _ application: UIApplication,
     configurationForConnecting connectingSceneSession: UISceneSession,

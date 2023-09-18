@@ -30,7 +30,7 @@ public struct Session {
   /// Async sequence distributing new values
   /// each time session state changes including
   /// requesting authorization and authorizing.
-  public var updatesSequence: UpdatesSequence
+  public var updates: AnyUpdatable<Void>
   /// Check if there is any pending
   /// authorization request.
   public var pendingAuthorization: @SessionActor () -> SessionAuthorizationRequest?
@@ -55,14 +55,14 @@ public struct Session {
   public var close: @SessionActor (_ account: Account?) async -> Void
 
   public init(
-    updatesSequence: UpdatesSequence,
+    updates: AnyUpdatable<Void>,
     pendingAuthorization: @escaping @SessionActor () -> SessionAuthorizationRequest?,
     currentAccount: @escaping @SessionActor () async throws -> Account,
     authorize: @escaping @SessionActor (SessionAuthorizationMethod) async throws -> Void,
     authorizeMFA: @escaping @SessionActor (SessionMFAAuthorizationMethod) async throws -> Void,
     close: @escaping @SessionActor (_ account: Account?) async -> Void
   ) {
-    self.updatesSequence = updatesSequence
+    self.updates = updates
     self.pendingAuthorization = pendingAuthorization
     self.currentAccount = currentAccount
     self.authorize = authorize
@@ -88,7 +88,7 @@ extension Session: LoadableFeature {
   #if DEBUG
   public nonisolated static var placeholder: Self {
     Self(
-      updatesSequence: .placeholder,
+      updates: PlaceholderUpdatable().asAnyUpdatable(),
       pendingAuthorization: unimplemented0(),
       currentAccount: unimplemented0(),
       authorize: unimplemented1(),
@@ -101,16 +101,18 @@ extension Session: LoadableFeature {
 
 extension Session {
 
-  @Sendable public func currentAccountSequence() -> AnyAsyncThrowingSequence<Account?> {
-    self.updatesSequence
-      .map { try await self.currentAccount() }
+  @Sendable public func currentAccountSequence() -> AnyAsyncSequence<Account?> {
+    self.updates
+      .asAnyAsyncSequence()
+      .map { _ in try await self.currentAccount() }
       .removeDuplicates()
-      .asAnyAsyncThrowingSequence()
+      .asAnyAsyncSequence()
   }
 
   @Sendable public func authorizationRequestSequence() -> AnyAsyncSequence<SessionAuthorizationRequest?> {
-    self.updatesSequence
-      .map { await self.pendingAuthorization() }
+    self.updates
+      .asAnyAsyncSequence()
+      .map { _ in await self.pendingAuthorization() }
       .removeDuplicates()
       .asAnyAsyncSequence()
   }

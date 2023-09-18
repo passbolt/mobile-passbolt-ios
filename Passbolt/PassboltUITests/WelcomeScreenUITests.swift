@@ -25,15 +25,17 @@ import XCTest
 
 final class WelcomeScreenUITests: UITestCase {
 
+  override var initialAccounts: Array<MockAccount> { [] }
+
   func testThatAsAMobileUserICanSeeTheWelcomeScreenWhenIOpenTheApplicationAndNoAccountIsSetup() throws {
     self.assert(
       "label.title",
-      textMatches: "Welcome!"
+      textEqual: "Welcome!"
     )
 
     self.assert(
       "label.description",
-      textMatches:
+      textEqual:
         "You need an existing account to get started. Sign in with your existing account on the desktop browser extension to connect it with the mobile device."
     )
 
@@ -47,7 +49,7 @@ final class WelcomeScreenUITests: UITestCase {
   }
 
   func testThatAsAMobileUserICanSeeAnExplanationWhyICannotCreateAnAccountOnTheMobileApp() throws {
-    self.tap(
+    try self.tap(
       "button.account.none"
     )
 

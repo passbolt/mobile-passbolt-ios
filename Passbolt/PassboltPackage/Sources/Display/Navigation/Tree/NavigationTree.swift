@@ -32,15 +32,22 @@ import UIKit
 )
 public struct NavigationTree {
 
-  internal var state: MutableViewState<NavigationTreeState>
+  internal var state: ViewStateSource<NavigationTreeState>
 }
 
 extension NavigationTree: StaticFeature {
 
   #if DEBUG
   public static var placeholder: Self {
-    return .init(
-      state: .placeholder()
+    .init(
+      state: .init(
+        initial: .init(
+          root: .just(
+            id: ViewNodeID(rawValue: ObjectIdentifier(NavigationTree.self)),
+            view: EmptyView()
+          )
+        )
+      )
     )
   }
   #endif

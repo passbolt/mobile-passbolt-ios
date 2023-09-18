@@ -23,6 +23,7 @@
 
 import Accounts
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 import Session
@@ -56,7 +57,6 @@ extension FoldersExplorerController: ComponentController {
   ) throws -> Self {
     let features: Features = features
 
-    let diagnostics: OSDiagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = try features.instance()
 
     let navigationToAccountMenu: NavigationToAccountMenu = try features.instance()
@@ -64,9 +64,10 @@ extension FoldersExplorerController: ComponentController {
     let navigation: DisplayNavigation = try features.instance()
     let currentAccount: Account = try features.sessionAccount()
     let accountDetails: AccountDetails = try features.instance(context: currentAccount)
-    let resources: Resources = try features.instance()
+    let resources: ResourcesController = try features.instance()
     let sessionData: SessionData = try features.instance()
     let folders: ResourceFolders = try features.instance()
+    let navigationToResourceDetails: NavigationToResourceDetails = try features.instance()
 
     let viewState: ObservableValue<ViewState>
 
@@ -102,7 +103,7 @@ extension FoldersExplorerController: ComponentController {
     cancellables.executeOnMainActor {
       do {
         try await combineLatest(
-          sessionData.updatesSequence,
+          sessionData.lastUpdate.asAnyAsyncSequence(),
           viewState.asAnyAsyncSequence()
         )
         .map { (_, state: ViewState) -> ResourceFoldersFilter in
@@ -136,11 +137,9 @@ extension FoldersExplorerController: ComponentController {
         }
       }
       catch {
-        diagnostics
-          .log(
-            error: error,
-            info: .message("Folders explorer updates broken")
-          )
+        error.logged(
+          info: .message("Folders explorer updates broken")
+        )
       }
     }
 
@@ -151,7 +150,7 @@ extension FoldersExplorerController: ComponentController {
           .refreshIfNeeded()
       }
       catch {
-        diagnostics.log(error: error)
+        error.logged()
         viewState.snackBarMessage = .error(error.asTheError().displayableMessage)
       }
     }
@@ -176,13 +175,13 @@ extension FoldersExplorerController: ComponentController {
             controller:
               features
               .instance(
-                of: ResourcesListCreateMenuController.self,
+                of: ResourcesListCreateMenuViewController.self,
                 context: folderID
               )
           )
         }
         catch {
-          diagnostics.log(error: error)
+          error.logged()
         }
       }
     }
@@ -198,84 +197,32 @@ extension FoldersExplorerController: ComponentController {
       }
     }
 
-    @MainActor func presentResourceEditingForm(
-      for context: ResourceEditScope.Context
-    ) {
-      cancellables.executeOnMainActor {
-        await navigation.push(
-          legacy: ResourceEditViewController.self,
-          context: (
-            context,
-            completion: { _ in
-              viewState.snackBarMessage = .info(
-                .localized(
-                  key: "resource.form.new.password.created"
-                )
-              )
-            }
-          )
-        )
-      }
-    }
-
     @MainActor func presentResourceDetails(_ resourceID: Resource.ID) {
       cancellables.executeOnMainActor {
-        await navigation.push(
-          legacy: ResourceDetailsViewController.self,
-          context: resourceID
-        )
+        try await navigationToResourceDetails
+          .perform(context: resourceID)
       }
     }
 
     @MainActor func presentResourceMenu(_ resourceID: Resource.ID) {
       cancellables.executeOnMainActor {
-        await navigation.presentSheetMenu(
-          ResourceMenuViewController.self,
-          in: (
-            resourceID: resourceID,
-            showShare: { (resourceID: Resource.ID) in
-              cancellables.executeOnMainActor {
-                await navigation
-                  .dismiss(
-                    SheetMenuViewController<ResourceMenuViewController>.self
-                  )
-                presentResourceShareForm(for: resourceID)
+        await withLogCatch {
+          let features: Features =
+            features
+            .branchIfNeeded(
+              scope: ResourceDetailsScope.self,
+              context: resourceID
+            )
+            ?? features
+          let navigationToResourceContextualMenu: NavigationToResourceContextualMenu = try features.instance()
+          try await navigationToResourceContextualMenu.perform(
+            context: .init(
+              showMessage: { (message: SnackBarMessage?) in
+                viewState.snackBarMessage = message
               }
-            },
-            showEdit: { (resourceID: Resource.ID) in
-              cancellables.executeOnMainActor {
-                await navigation
-                  .dismiss(
-                    SheetMenuViewController<ResourceMenuViewController>.self
-                  )
-                presentResourceEditingForm(for: .edit(resourceID))
-              }
-            },
-            showDeleteAlert: { (resourceID: Resource.ID) in
-              cancellables.executeOnMainActor {
-                await navigation
-                  .dismiss(
-                    SheetMenuViewController<ResourceMenuViewController>.self
-                  )
-                await navigation.present(
-                  ResourceDeleteAlert.self,
-                  in: {
-                    Task {
-                      do {
-                        try await resources
-                          .deleteResource(resourceID)
-                          .asAsyncValue()
-                      }
-                      catch {
-                        viewState.snackBarMessage = .error(error.asTheError().displayableMessage)
-                      }
-                    }
-                  }
-                )
-              }
-            }
+            )
           )
-        )
+        }
       }
     }
 
@@ -290,14 +237,11 @@ extension FoldersExplorerController: ComponentController {
 
     @MainActor func presentAccountMenu() {
       asyncExecutor.schedule(.reuse) {
-        await diagnostics
-          .withLogCatch(
-            info: .message(
-              "Navigation to account menu failed!"
-            )
-          ) {
-            try await navigationToAccountMenu.perform()
-          }
+        await withLogCatch(
+          failInfo: "Navigation to account menu failed!"
+        ) {
+          try await navigationToAccountMenu.perform()
+        }
       }
     }
 
@@ -320,7 +264,7 @@ extension FoldersExplorerController: ComponentController {
           )
         }
         catch {
-          diagnostics.log(error: error)
+          error.logged()
         }
       }
     }

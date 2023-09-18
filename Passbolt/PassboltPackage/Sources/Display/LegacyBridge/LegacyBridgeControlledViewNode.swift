@@ -31,19 +31,14 @@ import UIKit
 internal struct LegacyBridgeControlledView<Component>: ControlledView
 where Component: UIComponent {
 
-  internal struct Controller: ViewController {
+  internal final class Controller: ViewController {
 
-    @Stateless internal var viewState
-
-    internal init() {
-      unimplemented()
+    public init(
+      context: Void,
+      features: Features
+    ) throws {
+      // NOP
     }
-
-    #if DEBUG
-    internal static var placeholder: Self {
-      unimplemented()
-    }
-    #endif
   }
 
   private let legacyBridge: LegacyNavigationNodeBridgeView<Component>
@@ -53,6 +48,8 @@ where Component: UIComponent {
   ) {
     self.legacyBridge = legacyBridge
   }
+
+  internal var controller: Controller { unimplemented() }
 
   internal init(
     controller: Controller

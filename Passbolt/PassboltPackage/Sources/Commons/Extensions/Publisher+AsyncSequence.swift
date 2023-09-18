@@ -25,82 +25,8 @@ import Combine
 
 extension Publisher {
 
-  public func asAsyncThrowingSequence() -> AnyAsyncThrowingSequence<Output> {
-    AnyAsyncThrowingSequence(self)
-  }
-}
-
-extension Publisher where Failure == Never {
-
   public func asAsyncSequence() -> AnyAsyncSequence<Output> {
     AnyAsyncSequence(self)
-  }
-}
-
-extension AsyncSequence {
-
-  // file:line captured only for diagnostics
-  public func asPublisher(
-    file: StaticString = #file,
-    line: UInt = #line
-  ) -> AnyPublisher<Element, Never> {
-    SequencePublisher(
-      sequence: self,
-      file: file,
-      line: line
-    )
-    .autoconnect()
-    .eraseToAnyPublisher()
-  }
-}
-
-private struct SequencePublisher<PublishedSequence>: ConnectablePublisher
-where PublishedSequence: AsyncSequence {
-
-  fileprivate typealias Output = PublishedSequence.Element
-  fileprivate typealias Failure = Never
-
-  private let subject: CurrentValueSubject<Output?, Failure> = .init(.none)
-  private let sequence: PublishedSequence
-  private let file: StaticString
-  private let line: UInt
-
-  fileprivate init(
-    sequence: PublishedSequence,
-    file: StaticString,
-    line: UInt
-  ) {
-    self.sequence = sequence
-    self.file = file
-    self.line = line
-  }
-
-  public func receive<S>(
-    subscriber: S
-  ) where S: Subscriber, S.Input == Output, S.Failure == Failure {
-    self.subject
-      .compactMap({ $0 })
-      .receive(subscriber: subscriber)
-  }
-
-  public func connect() -> Cancellable {
-    let task: Task<Void, Never> = .init {
-      do {
-        for try await element: Output in self.sequence where !Task.isCancelled {
-          self.subject.send(element)
-        }
-        self.subject.send(completion: .finished)
-      }
-      catch {
-        unreachable(
-          "Cannot throw using nonthrowing publisher, please switch to throwing counterpart",
-          file: self.file,
-          line: self.line
-        )
-      }
-    }
-
-    return AnyCancellable(task.cancel)
   }
 }
 

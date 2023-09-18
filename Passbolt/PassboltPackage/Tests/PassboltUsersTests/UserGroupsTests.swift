@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import FeatureScopes
 import Features
 import SessionData
 import TestExtensions
@@ -28,6 +29,7 @@ import TestExtensions
 @testable import PassboltUsers
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+@available(iOS 16.0.0, *)
 final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
 
   override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
@@ -38,9 +40,10 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
     registry.usePassboltUserGroups()
   }
 
-  var updatesSequence: UpdatesSequenceSource!
+  var updatesSequence: Variable<Timestamp>!
 
   override func prepare() throws {
+    self.updatesSequence = .init(initial: 0)
     self.set(
       SessionScope.self,
       context: .init(
@@ -48,10 +51,9 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
         configuration: .mock_1
       )
     )
-    self.updatesSequence = .init()
     patch(
-      \SessionData.updatesSequence,
-      with: updatesSequence.updatesSequence
+      \SessionData.lastUpdate,
+      with: updatesSequence.asAnyUpdatable()
     )
     use(Session.placeholder)
     use(ResourceUserGroupsListFetchDatabaseOperation.placeholder)
@@ -73,12 +75,14 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let filtersSequence: AsyncVariable<String> = .init(initial: "filter")
+    let filtersSequence: Variable<String> = .init(initial: "filter")
 
     let feature: UserGroups = try await self.testedInstance()
 
     let result: Array<ResourceUserGroupListItemDSV>? =
-      await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
+      try await feature.filteredResourceUserGroupList(
+        filtersSequence.asAnyAsyncSequence().compactMap { try? $0.value }.asAnyAsyncSequence()
+      )
       .first()
 
     XCTAssertEqual(
@@ -104,12 +108,12 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
       with: always(expectedResult)
     )
 
-    let filtersSequence: AsyncVariable<String> = .init(initial: "filter")
+    let filtersSequence: Variable<String> = .init(initial: "filter")
 
     let feature: UserGroups = try await self.testedInstance()
 
     let result: Array<ResourceUserGroupListItemDSV>? =
-      await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
+      try await feature.filteredResourceUserGroupList(filtersSequence.asAnyValueAsyncSequence())
       .first()
 
     XCTAssertEqual(
@@ -124,14 +128,14 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
       with: always(.mock_ada)
     )
     var expectedResult: Array<ResourceUserGroupListItemDSV> = []
-    let filtersSequence: AsyncVariable<String> = .init(initial: "filter")
+    let filtersSequence: Variable<String> = .init(initial: "filter")
 
     let nextResult: () -> Array<ResourceUserGroupListItemDSV> = {
       defer {
         if expectedResult.isEmpty {
           expectedResult.append(
             .init(
-              id: "id",
+              id: .mock_1,
               name: "name",
               contentCount: 0
             )
@@ -149,13 +153,13 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
 
     let feature: UserGroups = try await self.testedInstance()
 
-    _ = await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
+    _ = await try feature.filteredResourceUserGroupList(filtersSequence.asAnyValueAsyncSequence())
       .first()
 
-    filtersSequence.send("changed")
+    filtersSequence.assign("changed")
 
     let result: Array<ResourceUserGroupListItemDSV>? =
-      await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
+      try await feature.filteredResourceUserGroupList(filtersSequence.asAnyValueAsyncSequence())
       .first()
 
     XCTAssertEqual(
@@ -167,31 +171,31 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
   func test_groupMembers_fails_whenLoadingDetailsFails() async throws {
     patch(
       \UserGroupDetails.details,
-      context: "groupID",
+      context: .mock_1,
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: UserGroups = try await self.testedInstance()
+    let feature: UserGroups = try self.testedInstance()
 
     await XCTAssertError(
       matches: MockIssue.self
     ) {
-      try await feature.groupMembers("groupID")
+      try await feature.groupMembers(.mock_1)
     }
   }
 
   func test_groupMembers_fails_whenDetailsAccessFails() async throws {
     patch(
       \UserGroupDetails.details,
-      context: "groupID",
+      context: .mock_1,
       with: alwaysThrow(MockIssue.error())
     )
-    let feature: UserGroups = try await self.testedInstance()
+    let feature: UserGroups = try self.testedInstance()
 
     await XCTAssertError(
       matches: MockIssue.self
     ) {
-      try await feature.groupMembers("groupID")
+      try await feature.groupMembers(.mock_1)
     }
   }
 
@@ -199,22 +203,22 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
     let expectedResult: OrderedSet<UserDetailsDSV> = [.mock_1]
     patch(
       \UserGroupDetails.details,
-      context: "groupID",
+      context: .mock_1,
       with: always(
         .init(
-          id: "groupID",
+          id: .mock_1,
           name: "group",
           members: expectedResult
         )
       )
     )
 
-    let feature: UserGroups = try await self.testedInstance()
+    let feature: UserGroups = try self.testedInstance()
 
     await XCTAssertValue(
       equal: expectedResult
     ) {
-      try await feature.groupMembers("groupID")
+      try await feature.groupMembers(.mock_1)
     }
   }
 }

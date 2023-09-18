@@ -153,7 +153,10 @@ where RawValue: ExpressibleByNilLiteral {
 extension Tagged: Encodable
 where RawValue: Encodable {
 
-  public func encode(to encoder: Encoder) throws {
+  @_disfavoredOverload
+  public func encode(
+    to encoder: Encoder
+  ) throws {
     try rawValue.encode(to: encoder)
   }
 }
@@ -161,7 +164,9 @@ where RawValue: Encodable {
 extension Tagged: Decodable
 where RawValue: Decodable {
 
-  public init(from decoder: Decoder) throws {
+  public init(
+    from decoder: Decoder
+  ) throws {
     self.rawValue = try RawValue(from: decoder)
   }
 }

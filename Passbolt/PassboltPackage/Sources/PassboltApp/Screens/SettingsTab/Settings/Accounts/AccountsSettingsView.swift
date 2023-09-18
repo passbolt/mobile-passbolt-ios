@@ -26,19 +26,17 @@ import UICommons
 
 internal struct AccountsSettingsView: ControlledView {
 
-  private let controller: AccountsSettingsController
+  internal let controller: AccountsSettingsViewController
 
   internal init(
-    controller: AccountsSettingsController
+    controller: AccountsSettingsViewController
   ) {
     self.controller = controller
   }
 
   internal var body: some View {
     ScreenView(
-      title: .localized(
-        key: "settings.accounts.title"
-      ),
+      title: "settings.accounts.title",
       contentView: {
         self.content
       }
@@ -46,36 +44,20 @@ internal struct AccountsSettingsView: ControlledView {
   }
 
   @ViewBuilder @MainActor private var content: some View {
-    CommonList {
+    CommonPlainList {
       SettingsActionRowView(
         icon: .people,
-        title: .localized(
-          key: "settings.accounts.item.manage.title"
-        ),
-        action: self.controller.navigateToManageAccounts,
-        accessory: {
-          Image(named: .disclosureIndicator)
-            .frame(
-              width: 24,
-              height: 24
-            )
-        }
+        title: "settings.accounts.item.manage.title",
+        navigation: self.controller.navigateToManageAccounts
       )
+      .accessibilityIdentifier("settings.accounts.item.manage.title")
 
       SettingsActionRowView(
         icon: .mobileTransfer,
-        title: .localized(
-          key: "settings.accounts.item.export.title"
-        ),
-        action: self.controller.navigateToAccountExport,
-        accessory: {
-          Image(named: .disclosureIndicator)
-            .frame(
-              width: 24,
-              height: 24
-            )
-        }
+        title: "settings.accounts.item.export.title",
+        navigation: self.controller.navigateToAccountExport
       )
+      .accessibilityIdentifier("settings.accounts.item.export.title")
     }
   }
 }

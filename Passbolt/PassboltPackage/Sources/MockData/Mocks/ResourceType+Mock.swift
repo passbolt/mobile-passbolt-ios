@@ -25,14 +25,16 @@ import CommonModels
 
 extension ResourceType.ID {
 
-  public static let mock_1: Self = .init(rawValue: "F9B39DCA-CD93-4CD4-B91D-8AAE7B7AA813")
+  public static let mock_1: Self = .init(uuidString: "F9B39DCA-CD93-4CD4-B91D-8AAE7B7AA813")!
 
-  public static let mock_2: Self = .init(rawValue: "59C8F6AE-AEE8-4905-983B-795A675EE0E2")
+  public static let mock_2: Self = .init(uuidString: "59C8F6AE-AEE8-4905-983B-795A675EE0E2")!
 
-  public static let mock_3: Self = .init(rawValue: "C3673B6B-B918-4BF4-9162-0178B8D18399")
+  public static let mock_3: Self = .init(uuidString: "C3673B6B-B918-4BF4-9162-0178B8D18399")!
+
+  public static let mock_4: Self = .init(uuidString: "A6626564-8CE2-4FC0-870C-5C299F04AB0C")!
 }
 
-extension ResourceType.Slug {
+extension ResourceSpecification.Slug {
 
   public static let mock_1: Self = .init(rawValue: "mock_1")
 
@@ -44,44 +46,56 @@ extension ResourceType {
   public static let mock_1: Self = .init(
     id: .mock_1,
     slug: .mock_1,
-    name: "mock_1",
-    fields: [
-      .name,
-      .password,
+    metaFields: [
+      .init(
+        path: \.meta.name,
+        name: "name",
+        content: .string(maxLength: 1024),
+        required: true,
+        encrypted: false
+      )
+    ],
+    secretFields: [
+      .init(
+        path: \.secret.password,
+        name: "password",
+        content: .string(maxLength: 4096),
+        required: true,
+        encrypted: true
+      )
     ]
   )
 
   public static let mock_2: Self = .init(
     id: .mock_2,
     slug: .mock_2,
-    name: "mock_2",
-    fields: [
-      .name,
-      .password,
+    metaFields: [
+      .init(
+        path: \.meta.name,
+        name: "name",
+        content: .string(maxLength: 1024),
+        required: true,
+        encrypted: false
+      )
+    ],
+    secretFields: [
+      .init(
+        path: \.secret.password,
+        name: "password",
+        content: .string(maxLength: 4096),
+        required: true,
+        encrypted: true
+      )
     ]
   )
 
   public static let mock_default: Self = .init(
-    id: "password-and-description",
-    slug: "password-and-description",
-    name: "password-and-description",
-    fields: [
-      .name,
-      .uri,
-      .username,
-      .password,
-      .descriptionEncrypted,
-    ]
+    id: .mock_3,
+    slug: .passwordWithDescription
   )
 
   public static let mock_totp: Self = .init(
-    id: .mock_3,
-    slug: .totp,
-    name: "mock_totp",
-    fields: [
-      .name,
-      .uri,
-      .totp,
-    ]
+    id: .mock_4,
+    slug: .totp
   )
 }

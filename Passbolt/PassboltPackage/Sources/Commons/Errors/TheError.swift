@@ -34,12 +34,12 @@ public protocol TheError: Error, LocalizedError, CustomDebugStringConvertible {
 
   /// String which can be desplayed to the user when presenting this error on screen.
   var displayableMessage: DisplayableString { get }
-  /// OSDiagnostics context containing additional informations related with error.
+  /// Diagnostics context containing additional informations related with error.
   /// Used to prepare diagnostic messages for logger.
   var context: DiagnosticsContext { get set }
-  /// Stack of diagnostic messages to be used with diagnostic log.
+  /// Log this error using Diagnostics
   /// Default implementaion is based on current `context` value.
-  var diagnosticMessages: Array<StaticString> { get }
+  @discardableResult func log() -> Self
 }
 
 extension TheError {
@@ -48,12 +48,25 @@ extension TheError {
     .localized(key: "generic.error")
   }
 
-  public var diagnosticMessages: Array<StaticString> {
-    self.context.infoStack.map(\.message)
-  }
-
   public var localizedDescription: String {
     self.displayableMessage.string()
+  }
+
+  @discardableResult
+  public func log() -> Self {
+    Diagnostics.logger
+      .log(
+        level: .error,
+        "⚠️ \(self.diagnosticsDescription, privacy: .public)"
+      )
+    return self
+  }
+}
+
+extension TheError {
+
+  public var diagnosticsDescription: String {
+    "\(Self.self)\n\(self.context.diagnosticsDescription)"
   }
 }
 
@@ -83,20 +96,17 @@ extension TheError {
   ///   - line: Line in given source code file.
   ///   Filled automatically based on compile time constants.
   public func asFatalError(
-    message: @autoclosure () -> StaticString = .init(),
+    message: @autoclosure @escaping () -> StaticString = "Fatal error!",
     file: StaticString = #fileID,
     line: UInt = #line
   ) -> Never {
-    logFatal(
-      error: self,
-      info: .message(
-        message(),
-        file: file,
-        line: line
+    Diagnostics.logger
+      .log(
+        level: .fault,
+        "\(message(), privacy: .public) \(self.diagnosticsDescription, privacy: .public)"
       )
-    )
     fatalError(
-      "\(message())\n\(self.debugDescription)",
+      "\(message())\n\(self.diagnosticsDescription)",
       file: file,
       line: line
     )
@@ -225,14 +235,11 @@ extension Error {
     file: StaticString = #fileID,
     line: UInt = #line
   ) -> TheError {
-    (self as? TheError)?
-      .recording("\(file):\(line)", for: "Casting from Error")
+    (self as? TheError)
       ?? (self as? CancellationError)
       .map { _ in
         Cancelled
           .error()
-          .recording(self, for: "underlyingError")
-          .recording("\(file):\(line)", for: "Casting from Error")
       }
       ?? self.asUnidentified(file: file, line: line)
   }

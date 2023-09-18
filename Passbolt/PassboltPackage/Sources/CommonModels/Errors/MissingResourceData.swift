@@ -24,6 +24,7 @@
 public struct MissingResourceData: TheError {
 
   public static func error(
+    _ message: StaticString = "MissingResourceData",
     underlyingError: Error? = .none,
     file: StaticString = #fileID,
     line: UInt = #line
@@ -31,7 +32,7 @@ public struct MissingResourceData: TheError {
     Self(
       context: .context(
         .message(
-          "MissingResourceData",
+          message,
           file: file,
           line: line
         )

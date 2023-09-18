@@ -44,6 +44,7 @@
 "generic.user.search.list.empty" = "User not found.";
 "generic.paste.value.invalid" = "Trying to paste invalid value";
 "generic.are.you.sure" = "Are you sure?";
+"generic.picker.select.placeholder" = "Select";
 
 "account.selection.title" = "Welcome back!";
 "account.selection.subtitle" = "Choose an account to sign in!";
@@ -72,10 +73,21 @@
 "resource.detail.field.passphrase" = "Password";
 "resource.detail.field.uri" = "Website URL";
 "resource.detail.field.description" = "Description";
-"resource.details.copied" = "%@ copied!";
+"resource.show.field.uri.placeholder" = "No URL";
+"resource.show.field.username.placeholder" = "No username";
+"resource.show.field.password.placeholder" = "No password";
+"resource.show.field.description.placeholder" = "No description";
+"resource.value.copied" = "%@ copied to your clipboard!";
 "resource.details.value" = "Value";
-"resource.detail.section.shared" = "Shared with";
+"resource.detail.section.location" = "Location";
+"resource.detail.section.permissions" = "Shared with";
 "resource.detail.section.tags" = "Tags";
+"resource.detail.undefined.content.warning" = "Unsupported type, unknown fields are hidden!";
+
+"resource.delete.succeeded" = "Resource has been deleted.";
+
+"resource.field.name.unknown" = "Value";
+"section.tags.empty" = "No tags";
 
 "server.key.fingerprint.changed.title" = "Sorry, the server key has changed.";
 "server.key.fingerprint.changed.description" = "For security reasons please check with your administrator that this is a change that they initiated. The new fingerprint:";
@@ -83,17 +95,18 @@
 "server.key.fingerprint.accept.new.key" = "Accept new key";
 
 "resource.form.password.strength" = "Password strength";
-"resource.form.strength.very.weak" = "very weak";
-"resource.form.strength.weak" = "weak";
-"resource.form.strength.fair" = "fair";
-"resource.form.strength.strong" = "strong";
-"resource.form.strength.very.strong" = "very strong";
+"resource.form.strength.very.weak" = "Very weak";
+"resource.form.strength.weak" = "Weak";
+"resource.form.strength.fair" = "Fair";
+"resource.form.strength.strong" = "Strong";
+"resource.form.strength.very.strong" = "Very strong";
 "resource.form.create.button.title" = "Create";
 "resource.form.create.and.fill.button.title" = "Create and fill";
 "resource.form.update.button.title" = "Save";
 "resource.form.new.password.created" = "New password has been created";
 "resource.form.description.encrypted" = "Description is encrypted";
 "resource.form.description.unencrypted" = "Description is not encrypted";
+"resource.form.undefined.content.warning" = "Unsupported type, unknown fields are hidden!";
 
 "feedback.alert.title" = "Device may be jailbroken";
 "feedback.alert.message" = "We suspect your device may be jailbroken. Please be aware that it lowers overall device security and can be maliciously used to acquire your passwords.";
@@ -114,6 +127,7 @@
 "resource.edit.field.username.label" = "Username";
 "resource.edit.field.password.label" = "Password";
 "resource.edit.field.description.label" = "Description";
+"resource.edit.field.totp.label" = "TOTP";
 "resource.edit.field.name.placeholder" = "Enter a name";
 "resource.edit.field.uri.placeholder" = "Enter URL";
 "resource.edit.field.username.placeholder" = "Enter username";
@@ -223,16 +237,26 @@
 "resource.menu.item.copy.password" = "Copy password";
 "resource.menu.item.copy.username" = "Copy username";
 "resource.menu.item.copy.description" = "Copy description";
+"resource.menu.item.reveal.otp" = "Show TOTP";
+"resource.menu.item.copy.otp" = "Copy TOTP";
 "resource.menu.item.add.favorite" = "Add to favorite";
 "resource.menu.item.remove.favorite" = "Remove from favorite";
 "resource.menu.item.share" = "Share password";
-"resource.menu.item.edit" = "Edit password";
-"resource.menu.item.delete.password" = "Delete password";
+"resource.menu.item.edit.password" = "Edit password";
+"resource.menu.item.add.otp" = "Add TOTP";
+"resource.menu.item.edit.otp" = "Edit TOTP";
+"resource.menu.item.otp.menu" = "Manage TOTP";
+"resource.menu.item.delete.resource" = "Delete password";
+"resource.menu.item.delete.otp" = "Delete TOTP";
 "resource.menu.item.password" = "Password";
 "resource.menu.item.username" = "Username";
 "resource.menu.item.description" = "Description";
 "resource.menu.item.url" = "URL";
-"resource.menu.item.field.copied" = "%@ copied!";
+"resource.menu.item.field.copied" = "%@ copied to your clipboard!";
+
+"resource" = "Resource";
+"resource.menu.action.favorite.added" = "%@ has been added to favorites!";
+"resource.menu.action.favorite.removed" = "%@ has been removed from favorites!";
 
 "resource.menu.action.edited" = "This password was successfully edited.";
 "resource.menu.action.deleted" = "%@ has been deleted!";
@@ -373,6 +397,7 @@ Contact your administrator for more information.";
 "error.internet.connection.issue" = "Cannot connect to the internet.";
 "error.client.certificate.invalid" = "Client certificate invalid.";
 "error.server.connection.issue" = "Cannot connect with the server.";
+"error.server.time.issue" = "Server and client time is out of sync, please contact your administrator.";
 "error.server.response.invalid" = "Invalid server response";
 "error.server.response.timeout" = "Server response timeout.";
 "error.server.certificate.invalid" = "Invalid server certificate.";
@@ -400,6 +425,7 @@ Contact your administrator for more information.";
 "error.data.invalid" = "Invalid data provided.";
 "error.resource.permission.required" = "Permission required.";
 "error.resource.secret.invalid" = "Resource secret is invalid.";
+"error.resource.permission.invalid" = "Resource permission is invalid.";
 "error.resource.owner.missing" = "Resource has to have at least one owner.";
 "error.system.feature.inaccessible" = "System feature inaccessible.";
 "error.system.feature.permission.not.granted" = "System feature permission not granted.";
@@ -448,9 +474,13 @@ Contact your administrator for more information.";
 // Validation errors
 
 "error.resource.field.empty" = "%@ cannot be empty!";
-"error.resource.field.range.greater" = "%@ has to be greater than %d";
-"error.resource.field.range.between" = "%@ has to be between %d and %d";
-"error.resource.field.characters.invalid" = "%@ contains invalid characters.";
+"error.resource.field.length.lower" = "%@ cannot have more than %d characters!";
+"error.resource.field.length.higher" = "%@ cannot have less than %d characters!";
+"error.resource.field.range.lower" = "%@ has to be lower than %d!";
+"error.resource.field.range.greater" = "%@ has to be greater than %d!";
+"error.resource.field.content.invalid" = "%@ has invalid content!";
+"error.resource.field.selection.invalid" = "%@ has to be one of the valid options!";
+"error.resource.field.unknown" = "Unknown fields are not expected!";
 
 // Home - presentation mode menu
 
@@ -481,19 +511,26 @@ Contact your administrator for more information.";
 "otp.contextual.menu.copy.title" = "Copy TOTP";
 "otp.copied.message" = "TOTP copied to your clipboard!";
 "otp.contextual.menu.reveal.title" = "Show TOTP";
+"otp.contextual.menu.edit.title" = "Edit TOTP";
 "otp.contextual.menu.delete.title" = "Delete TOTP";
 "otp.contextual.menu.delete.confirm.title" = "Are you sure?";
 "otp.contextual.menu.delete.confirm.message" = "This action will pernamently delete the TOTP.";
 "otp.contextual.menu.delete.confirm.action.delete" = "Delete TOTP";
 "otp.contextual.menu.delete.succeeded" = "TOTP was deleted.";
 
-// OTP create menu
+// OTP edit menu
 
-"otp.create.menu.title" = "Create TOTP";
-"otp.create.menu.scanning.title" = "Scan QR code";
-"otp.create.menu.manual.title" = "Create TOTP manually";
-"otp.create.code.scanning.title" = "Scan QR code";
-"otp.create.code.scanning.initial.message" = "Aim the camera at the QR Codes";
+"otp.edit.menu.create.title" = "Create TOTP";
+"otp.edit.menu.edit.title" = "Edit TOTP";
+"otp.edit.menu.scanning.title" = "Scan QR code";
+"otp.edit.menu.create.manual.title" = "Create TOTP manually";
+"otp.edit.menu.edit.manual.title" = "Edit TOTP manually";
+"otp.edit.code.scanning.title" = "Edit TOTP manually";
+"otp.edit.code.scanning.initial.message" = "Scan QR code";
+"otp.edit.menu.title" = "Aim the camera at the QR Codes";
+"otp.edit.otp.created.message" = "TOTP has beed created.";
+"otp.edit.otp.replaced.message" = "TOTP has been replaced.";
+"otp.edit.otp.deleted.message" = "TOTP has been deleted.";
 
 // OTP scanning
 
@@ -501,10 +538,13 @@ Contact your administrator for more information.";
 scanned!";
 "otp.scanning.success.create.button.title" = "Create a standalone TOTP";
 "otp.scanning.success.link.button.title" = "Link TOTP to a password";
+"otp.code.scanning.title" = "Scan QR code";
+"otp.code.scanning.initial.message" = "Aim the camera at the QR Code";
 
 // OTP form
 
 "otp.edit.form.create.title" = "Create TOTP";
+"otp.edit.form.edit.title" = "Edit TOTP";
 "otp.edit.form.field.name.title" = "Name (Label)";
 "otp.edit.form.field.name.prompt" = "Name";
 "otp.edit.form.field.uri.title" = "URL (Issuer)";
@@ -513,7 +553,8 @@ scanned!";
 "otp.edit.form.field.secret.prompt" = "Secret";
 "otp.edit.form.advanced.button.title" = "Advanced settings";
 "otp.edit.form.create.button.title" = "Create standalone TOTP";
-"otp.edit.form.edit.advanced.title" = "Create TOTP - advanced settings";
+"otp.edit.form.edit.button.title" = "Save";
+"otp.edit.form.edit.advanced.title" = "Edit TOTP - advanced settings";
 "otp.edit.form.edit.advanced.warning" = "Advanced settings have to match your TOTP provider settings otherwise it won’t work.";
 "otp.edit.form.field.digits.title" = "TOTP length";
 "otp.edit.form.field.digits.label" = "digits.";
@@ -521,6 +562,16 @@ scanned!";
 "otp.edit.form.field.period.label" = "seconds until the TOTP expires.";
 "otp.edit.form.field.algorithm.title" = "Algorithm";
 "otp.edit.form.apply.button.title" = "Apply";
+
+// OTP attach
+
+"otp.attach.list.title" = "Add TOTP to a password";
+"otp.attach.alert.attach.title" = "Are you sure?";
+"otp.attach.alert.attach.message" = "If you add TOTP to this resource, the TOTP will inherit the same sharing  permissions.";
+"otp.attach.alert.attach.button.title" = "Add TOTP";
+"otp.attach.alert.replace.title" = "Replace TOTP?";
+"otp.attach.alert.replace.message" = "A TOTP is already associated with this resource, do you want to override it?";
+"otp.attach.alert.replace.button.title" = "Replace TOTP";
 
 // Settings - Main
 

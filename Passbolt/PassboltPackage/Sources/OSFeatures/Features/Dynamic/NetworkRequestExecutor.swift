@@ -74,7 +74,6 @@ extension NetworkRequestExecutor {
     features: Features,
     cancellables _: Cancellables
   ) throws -> Self {
-    let diagnostics: OSDiagnostics = features.instance()
 
     let urlSessionConfiguration: URLSessionConfiguration = .ephemeral
     urlSessionConfiguration.networkServiceType = .responsiveData
@@ -160,28 +159,27 @@ extension NetworkRequestExecutor {
       _ execute: @escaping @Sendable (HTTPRequest) async throws -> HTTPResponse
     ) -> @Sendable (HTTPRequest) async throws -> HTTPResponse {
       { (httpRequest: HTTPRequest) async throws -> HTTPResponse in
-        let trace: OSDiagnostics.Trace = diagnostics.trace()
-        trace.log(
-          diagnostic: "HTTP",
-          unsafe: httpRequest.method.rawValue,
-          httpRequest.path
-        )
-        trace.log(debug: "Network request: \(httpRequest.debugDescription)")
+        let tracingID: String = UUID().uuidString
+        Diagnostics.logger
+          .info(
+            "[\(tracingID, privacy: .public)] HTTP \(httpRequest.method.rawValue, privacy: .public) \(httpRequest.path, privacy: .public)"
+          )
+        Diagnostics.debug("[\(tracingID)] Request: \(httpRequest.debugDescription)")
+
         do {
           let httpResponse: HTTPResponse = try await execute(httpRequest)
-          trace.log(
-            diagnostic: "HTTP",
-            unsafe: httpResponse.statusCode,
-            httpRequest.path
-          )
-          trace.log(debug: "Network response: \(httpResponse.debugDescription)")
+          Diagnostics.logger
+            .info(
+              "[\(tracingID, privacy: .public)] HTTP \(httpResponse.statusCode, privacy: .public) \(httpRequest.path, privacy: .public)"
+            )
+          Diagnostics.debug("[\(tracingID)] Response: \(httpResponse.debugDescription)")
           return httpResponse
         }
         catch {
-          trace.log(
-            error: error,
-            info: .message("Network call failed.")
-          )
+          Diagnostics.logger
+            .error(
+              "[\(tracingID, privacy: .public)] \(error.asTheError().diagnosticsDescription, privacy: .public)"
+            )
           throw error
         }
       }

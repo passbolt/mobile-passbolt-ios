@@ -28,7 +28,7 @@ import UIComponents
 @testable import PassboltExtension
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@MainActor
+@MainActor @available(iOS 16.0.0, *)
 final class ExtensionSetupControllerTests: MainActorTestCase {
 
   func test_closeConfiguration_closesExtension() async throws {

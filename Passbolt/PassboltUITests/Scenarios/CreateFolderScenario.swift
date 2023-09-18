@@ -24,39 +24,33 @@
 import Foundation
 
 final class CreateFolderScenario: UITestCase {
-  override var initialAccounts: Array<MockAccount> {
-    [
-      .automation
-    ]
+
+  override func beforeEachTestCase() throws {
+    try signIn()
+    try tap("search.view.menu")
+    try tap("foldersExplorer")
+    try tap("folder.explore.create.new")
+    try tap("resource.folders.add.folder")
   }
 
-  override func beforeEachTestCase() {
-    // in case this tests starts with already set up single account, we mark it as optional
-    selectCollectionViewItem(identifier: "account.selection.collectionview", at: 0, required: false)
-    typeTo("input", text: MockAccount.automation.username)
-    tap("button.signin.passphrase")
-    tap("biometrics.info.later.button", required: false, timeout: 2.0)
-    tap("biometrics.setup.later.button", required: false, timeout: 2.0)
-    tap("extension.setup.later.button", required: false, timeout: 2.0)
-    tap("search.view.menu", timeout: 5.0)
-    tap("foldersExplorer")
-    tap("folder.explore.create.new")
-    tap("resource.folders.add.folder")
-  }
-
-  func test_folderCannotBeCreated_withInvalidname() {
-    waitForElementExist("folder.edit.form.button")
-    tap("folder.edit.form.button")
+  func test_folderCannotBeCreated_withInvalidname() throws {
+    try tap("folder.edit.form.button")
     assertExists("form.textfield.error")
-    assert("form.textfield.error", textMatches: "Folder name cannot be empty.")
-    assertPresentsString(matching: "Form is not valid.")
+    assert(
+      "form.textfield.error",
+      textEqual: "Folder name cannot be empty."
+    )
+    assertPresentsString(
+      matching: "Form is not valid."
+    )
   }
 
-  func test_folderIsCreated_whenNameProvided() {
-    waitForElementExist("form.textfield.text")
-    typeTo("form.textfield.text", text: "Automation test folder")
-    tap("folder.edit.form.button")
+  func test_folderIsCreated_whenNameProvided() throws {
+    try type(
+      text: "Automation test folder",
+      to: "form.textfield.text"
+    )
+    try tap("folder.edit.form.button")
     assertNotExists("form.textfield.error")
   }
-
 }

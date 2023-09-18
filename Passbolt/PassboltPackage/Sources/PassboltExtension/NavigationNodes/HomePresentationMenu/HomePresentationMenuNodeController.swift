@@ -24,92 +24,64 @@
 import Display
 import OSFeatures
 
-// MARK: - Interface
+internal final class HomePresentationMenuNodeController: ViewController {
 
-internal struct HomePresentationMenuNodeController {
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
-  internal var viewState: MutableViewState<ViewState>
-  internal var selectMode: (HomePresentationMode) -> Void
-  internal var dismissView: () -> Void
+  private let asyncExecutor: AsyncExecutor
+  private let navigationTree: NavigationTree
+  private let homePresentation: HomePresentation
+
+  private let context: ViewNodeID
+
+  internal init(
+    context: ViewNodeID,
+    features: Features
+  ) throws {
+    self.context = context
+
+    self.asyncExecutor = try features.instance()
+    self.navigationTree = features.instance()
+    self.homePresentation = try features.instance()
+
+    self.viewState = .init(
+      initial: .init(
+        currentMode: homePresentation.currentMode.wrappedValue,
+        availableModes: homePresentation.availableModes()
+      ),
+      updateFrom: self.homePresentation.currentMode.updates,
+      update: { [homePresentation] (updateState, _) in
+        await updateState { (state: inout ViewState) in
+          state.currentMode = homePresentation.currentMode.get()
+        }
+      }
+    )
+  }
 }
 
-extension HomePresentationMenuNodeController: ViewController {
+extension HomePresentationMenuNodeController {
 
-  internal struct ViewState: Hashable {
+  internal struct ViewState: Equatable {
 
     internal var currentMode: HomePresentationMode
     internal var availableModes: OrderedSet<HomePresentationMode>
   }
-
-  #if DEBUG
-  nonisolated static var placeholder: Self {
-    .init(
-      viewState: .placeholder(),
-      selectMode: { _ in unimplemented() },
-      dismissView: { unimplemented() }
-    )
-  }
-  #endif
 }
-
-// MARK: - Implementation
 
 extension HomePresentationMenuNodeController {
 
-  @MainActor fileprivate static func load(
-    features: Features
-  ) throws -> Self {
-    let asyncExecutor: AsyncExecutor = try features.instance()
-    let navigationTree: NavigationTree = features.instance()
-    let homePresentation: HomePresentation = try features.instance()
-
-    let viewState: MutableViewState<ViewState> = .init(
-      initial: .init(
-        currentMode: homePresentation.currentMode.wrappedValue,
-        availableModes: homePresentation.availableModes()
-      )
-    )
-    viewState.cancellables.addCleanup(asyncExecutor.cancelTasks)
-
-    homePresentation
-      .currentMode
-      .sink { (mode: HomePresentationMode) in
-        viewState.update(\.currentMode, to: mode)
-      }
-      .store(in: viewState.cancellables)
-
-    nonisolated func selectMode(
-      _ mode: HomePresentationMode
-    ) {
-      homePresentation.currentMode.set(to: mode)
-      asyncExecutor.schedule(.reuse) {
-        await navigationTree.dismiss(viewState.viewNodeID)
-      }
+  internal final func selectMode(
+    _ mode: HomePresentationMode
+  ) {
+    self.homePresentation.currentMode.set(to: mode)
+    self.asyncExecutor.schedule(.reuse) { [viewState, context, navigationTree] in
+      await navigationTree.dismiss(upTo: context)
     }
-
-    nonisolated func dismissView() {
-      asyncExecutor.schedule(.reuse) {
-        await navigationTree.dismiss(viewState.viewNodeID)
-      }
-    }
-
-    return .init(
-      viewState: viewState,
-      selectMode: selectMode(_:),
-      dismissView: dismissView
-    )
   }
-}
 
-extension FeaturesRegistry {
-
-  public mutating func usePassboltHomePresentationMenuNodeController() {
-    self.use(
-      .disposable(
-        HomePresentationMenuNodeController.self,
-        load: HomePresentationMenuNodeController.load(features:)
-      ),
-      in: SessionScope.self
-    )
+  internal nonisolated func dismissView() {
+    self.asyncExecutor.schedule(.reuse) { [viewNodeID, navigationTree] in
+      await navigationTree.dismiss(viewNodeID)
+    }
   }
 }

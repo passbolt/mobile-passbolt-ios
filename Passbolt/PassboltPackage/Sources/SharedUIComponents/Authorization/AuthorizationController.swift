@@ -67,7 +67,6 @@ extension AuthorizationController: UIController {
     let accountPreferences: AccountPreferences = try features.instance(context: context)
     let session: Session = try features.instance()
     let biometry: OSBiometry = features.instance()
-    let diagnostics: OSDiagnostics = features.instance()
 
     let passphraseSubject: CurrentValueSubject<String, Never> = .init("")
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
@@ -84,7 +83,7 @@ extension AuthorizationController: UIController {
     )
 
     cancellables.executeAsync {
-      for await _ in accountDetails.updates {
+      for try await _ in accountDetails.updates {
         try accountWithProfileSubject
           .send(
             accountDetails.profile()
@@ -99,10 +98,13 @@ extension AuthorizationController: UIController {
     func accountAvatarPublisher() -> AnyPublisher<Data?, Never> {
       accountDetails
         .updates
-        .map {
+        .asAnyAsyncSequence()
+        .map { _ in
           try? await accountDetails.avatarImage()
         }
-        .asPublisher()
+        .asThrowingPublisher()
+        .replaceError(with: .none)
+        .eraseToAnyPublisher()
     }
 
     func updatePassphrase(_ passphrase: String) {
@@ -118,7 +120,8 @@ extension AuthorizationController: UIController {
     func biometricStatePublisher() -> AnyPublisher<BiometricsState, Never> {
       accountPreferences
         .updates
-        .map { () -> BiometricsState in
+        .asAnyAsyncSequence()
+        .map { _ -> BiometricsState in
           switch (biometry.availability(), accountPreferences.isPassphraseStored()) {
           case (.unavailable, _), (.unconfigured, _), (.touchID, false), (.faceID, false):
             return .unavailable
@@ -130,7 +133,9 @@ extension AuthorizationController: UIController {
             return .faceID
           }
         }
-        .asPublisher()
+        .asThrowingPublisher()
+        .replaceError(with: .unavailable)
+        .eraseToAnyPublisher()
     }
 
     func performSignIn() -> AnyPublisher<Bool, Error> {
@@ -145,15 +150,6 @@ extension AuthorizationController: UIController {
                 .init(rawValue: passphrase)
               )
             )
-            do {
-              diagnostics.log(diagnostic: "Updating account profile data...")
-              try await accountDetails.updateProfile()
-              diagnostics.log(diagnostic: "...account profile data updated!")
-            }
-            catch {
-              diagnostics.log(error: error)
-              diagnostics.log(diagnostic: "...account profile data update failed!")
-            }
             return false
           }
           catch is SessionMFAAuthorizationRequired {
@@ -163,7 +159,7 @@ extension AuthorizationController: UIController {
             throw error
           }
         }
-        .collectErrorLog(using: diagnostics)
+        .collectErrorLog(using: Diagnostics.shared)
         .handleErrors { error in
           switch error {
           case is HTTPNotFound:
@@ -182,15 +178,6 @@ extension AuthorizationController: UIController {
             .authorize(
               .biometrics(account)
             )
-          do {
-            diagnostics.log(diagnostic: "Updating account profile data...")
-            try await accountDetails.updateProfile()
-            diagnostics.log(diagnostic: "...account profile data updated!")
-          }
-          catch {
-            diagnostics.log(error: error)
-            diagnostics.log(diagnostic: "...account profile data update failed!")
-          }
           return false
         }
         catch is SessionMFAAuthorizationRequired {
@@ -200,7 +187,7 @@ extension AuthorizationController: UIController {
           throw error
         }
       }
-      .collectErrorLog(using: diagnostics)
+      .collectErrorLog(using: Diagnostics.shared)
       .handleErrors { error in
         switch error {
         case is HTTPNotFound:

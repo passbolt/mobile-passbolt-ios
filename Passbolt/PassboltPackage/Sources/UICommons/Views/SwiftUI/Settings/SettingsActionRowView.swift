@@ -28,14 +28,14 @@ where Accessory: View {
 
   private let iconName: ImageNameConstant
   private let title: DisplayableString
-  private let action: () -> Void
-  private let accessory: () -> Accessory
+  private let action: @MainActor () async -> Void
+  private let accessory: @MainActor () -> Accessory
 
   public init(
     icon: ImageNameConstant,
     title: DisplayableString,
-    action: @escaping () -> Void,
-    @ViewBuilder accessory: @escaping () -> Accessory
+    action: @escaping @MainActor () async -> Void,
+    @ViewBuilder accessory: @escaping @MainActor () -> Accessory
   ) {
     self.iconName = icon
     self.title = title
@@ -46,7 +46,7 @@ where Accessory: View {
   public init(
     icon: ImageNameConstant,
     title: DisplayableString,
-    action: @escaping () -> Void
+    action: @escaping @MainActor () async -> Void
   ) where Accessory == EmptyView {
     self.iconName = icon
     self.title = title
@@ -54,10 +54,21 @@ where Accessory: View {
     self.accessory = EmptyView.init
   }
 
+  public init(
+    icon: ImageNameConstant,
+    title: DisplayableString,
+    navigation: @escaping @MainActor () async -> Void
+  ) where Accessory == DisclosureIndicatorImage {
+    self.iconName = icon
+    self.title = title
+    self.action = navigation
+    self.accessory = DisclosureIndicatorImage.init
+  }
+
   public var body: some View {
-    Button(
-      action: self.action,
-      label: {
+    CommonListRow(
+      contentAction: self.action,
+      content: {
         HStack(spacing: 12) {
           Image(named: self.iconName)
             .frame(
@@ -71,19 +82,17 @@ where Accessory: View {
               alignment: .leading
             )
             .multilineTextAlignment(.leading)
-
-          self.accessory()
         }
-      }
+        .font(
+          .inter(
+            ofSize: 14,
+            weight: .semibold
+          )
+        )
+        .frame(height: 64)
+      },
+      accessory: self.accessory
     )
-    .contentShape(Rectangle())
-    .font(
-      .inter(
-        ofSize: 14,
-        weight: .semibold
-      )
-    )
-    .commonListRowModifiers()
   }
 }
 

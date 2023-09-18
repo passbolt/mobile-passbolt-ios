@@ -26,101 +26,98 @@ import UICommons
 
 internal struct OTPEditFormView: ControlledView {
 
-  private let controller: OTPEditFormController
+  internal let controller: OTPEditFormViewController
 
   internal init(
-    controller: OTPEditFormController
+    controller: OTPEditFormViewController
   ) {
     self.controller = controller
   }
 
   internal var body: some View {
-    WithViewState(
-      from: self.controller,
-      at: \.snackBarMessage
-    ) { (message: SnackBarMessage?) in
-      VStack(spacing: 0) {
-        ScrollView {
-          VStack(spacing: 16) {
-            self.nameField
-            self.uriField
-            self.secretField
-            self.advancedLink
+    with(\.isEditing) { (isEditing: Bool) in
+      withSnackBarMessage(\.snackBarMessage) {
+        VStack(spacing: 0) {
+          ScrollView {
+            VStack(spacing: 16) {
+              self.nameField
+              self.uriField
+              self.secretField
+              self.advancedLink
+            }
           }
+
+          Spacer()
+
+          self.sendForm(editng: isEditing)
         }
-
-        Spacer()
-
-        self.sendForm
+        .padding(16)
+        .frame(maxHeight: .infinity)
       }
-      .padding(16)
-      .snackBarMessage(
-        presenting: self.controller
-          .binding(
-            to: \.snackBarMessage
-          )
+      .navigationTitle(
+        displayable: isEditing
+          ? "otp.edit.form.edit.title"
+          : "otp.edit.form.create.title"
       )
-      .frame(maxHeight: .infinity)
     }
-    .navigationTitle(
-      displayable: "otp.edit.form.create.title"
-    )
   }
 
   @MainActor @ViewBuilder internal var nameField: some View {
-    WithViewState(
-      from: self.controller,
-      at: \.nameField
-    ) { (_: Validated<String>) in
+    with(\.nameField) { (state: Validated<String>) in
       FormTextFieldView(
         title: "otp.edit.form.field.name.title",
+        prompt: "otp.edit.form.field.name.prompt",
         mandatory: true,
-        text: self.controller
-          .validatedBinding(
-            to: \.nameField,
-            updating: self.controller.setNameField
-          ),
-        prompt: "otp.edit.form.field.name.prompt"
+        state: self.validatedBinding(
+          to: \.nameField,
+          updating: { (newValue: String) in
+            withAnimation {
+              self.controller.setName(newValue)
+            }
+          }
+        )
       )
       .textInputAutocapitalization(.sentences)
     }
   }
 
   @MainActor @ViewBuilder internal var uriField: some View {
-    WithViewState(
-      from: self.controller,
-      at: \.uriField
-    ) { (_: Validated<String>) in
+    with(\.uriField) { (state: Validated<String>) in
       FormTextFieldView(
         title: "otp.edit.form.field.uri.title",
+        prompt: "otp.edit.form.field.uri.prompt",
         mandatory: false,
-        text: self.controller
-          .validatedBinding(
-            to: \.uriField,
-            updating: self.controller.setURIField
-          ),
-        prompt: "otp.edit.form.field.uri.prompt"
+        state: self.binding(
+          to: \.uriField,
+          updating: { (newValue: Validated<String>) in
+            withAnimation {
+              self.controller.setURI(newValue.value)
+            }
+          }
+        )
       )
       .textInputAutocapitalization(.never)
+      .autocorrectionDisabled()
     }
   }
 
   @MainActor @ViewBuilder internal var secretField: some View {
-    WithViewState(
-      from: self.controller,
-      at: \.secretField
-    ) { (_: Validated<String>) in
+    with(\.secretField) { (state: Validated<String>) in
       FormTextFieldView(
         title: "otp.edit.form.field.secret.title",
+        prompt: "otp.edit.form.field.secret.prompt",
         mandatory: true,
-        text: self.controller
-          .validatedBinding(
-            to: \.secretField,
-            updating: self.controller.setSecretField
-          ),
-        prompt: "otp.edit.form.field.secret.prompt"
+        state: self.validatedBinding(
+          to: \.secretField,
+          updating: { (newValue: String) in
+            withAnimation {
+              self.controller.setSecret(newValue)
+            }
+          }
+        )
       )
       .textInputAutocapitalization(.never)
+      .autocorrectionDisabled()
     }
   }
 
@@ -132,10 +129,26 @@ internal struct OTPEditFormView: ControlledView {
     )
   }
 
-  @MainActor @ViewBuilder internal var sendForm: some View {
-    PrimaryButton(
-      title: "otp.edit.form.create.button.title",
-      action: self.controller.sendForm
-    )
+  @MainActor @ViewBuilder internal func sendForm(
+    editng isEditing: Bool
+  ) -> some View {
+    if isEditing {
+      PrimaryButton(
+        title: "otp.edit.form.edit.button.title",
+        action: self.controller.createOrUpdateOTP
+      )
+    }
+    else {
+      VStack(spacing: 8) {
+        PrimaryButton(
+          title: "otp.edit.form.create.button.title",
+          action: self.controller.createOrUpdateOTP
+        )
+        SecondaryButton(
+          title: "otp.scanning.success.link.button.title",
+          action: self.controller.selectResourceToAttach
+        )
+      }
+    }
   }
 }

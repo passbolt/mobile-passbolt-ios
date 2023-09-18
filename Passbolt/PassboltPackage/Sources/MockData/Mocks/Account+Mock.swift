@@ -42,7 +42,7 @@ extension Account {
   public static let mock_static: Self = .init(
     localID: "3EDBC019-BFF4-49AF-B8DF-DD283423E8F3",
     domain: .mock_passbolt_alt,
-    userID: "F8B8F377-8045-49A1-BAAA-D04270406675",
+    userID: .init(uuidString: "F8B8F377-8045-49A1-BAAA-D04270406675")!,
     fingerprint: "FINGERPRINT_MOCK_FRANCES"
   )
 }

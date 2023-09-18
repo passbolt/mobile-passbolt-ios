@@ -49,13 +49,53 @@ extension SnackBarMessage {
   }
 }
 
+extension SnackBarMessage: ExpressibleByStringLiteral {
+
+  public init(
+    stringLiteral value: String
+  ) {
+    self = .info(DisplayableString(stringLiteral: value))
+  }
+}
+
+extension Error {
+
+  @discardableResult
+  @MainActor public func show(
+    using showMessage: @MainActor (SnackBarMessage) -> Void
+  ) -> Self {
+    switch self {
+    case is CancellationError, is Cancelled:
+      return self
+
+    case let error:
+      showMessage(.error(error.asTheError().displayableMessage))
+      return self
+    }
+  }
+
+  @discardableResult
+  @MainActor public func logAndShow(
+    using showMessage: @MainActor (SnackBarMessage) -> Void
+  ) -> Self {
+    switch self {
+    case is CancellationError, is Cancelled:
+      return self
+
+    case let error:
+      let theError: TheError = error.logged()
+      showMessage(.error(theError.displayableMessage))
+      return self
+    }
+  }
+}
+
 private struct SnackBar<SnackBarModel, SnackBarView>: ViewModifier
 where SnackBarView: View {
 
   private var presenting: Binding<SnackBarModel?>
   private let autoDismissDelaySeconds: UInt64
   private let snackBar: (SnackBarModel) -> SnackBarView
-  private var dismissTask: ManagedTask<Void> = .init()
 
   fileprivate init(
     presenting: Binding<SnackBarModel?>,
@@ -82,14 +122,9 @@ where SnackBarView: View {
             }
             .task {
               guard self.autoDismissDelaySeconds > 0 else { return }
-              await Task {
-                try await self.dismissTask.run { @MainActor in
-                  try? await Task.sleep(seconds: self.autoDismissDelaySeconds)
-                  guard !Task.isCancelled else { return }
-                  self.presenting.wrappedValue = nil
-                }
-              }
-              .waitForCompletion()
+              try? await Task.sleep(seconds: self.autoDismissDelaySeconds)
+              guard !Task.isCancelled else { return }
+              self.presenting.wrappedValue = nil
             }  // else no snack bar
         }
       }

@@ -25,6 +25,7 @@ import CommonModels
 import SQLCipher
 
 import struct Foundation.Data
+import struct Foundation.UUID
 
 @dynamicMemberLookup
 public struct SQLiteRow {
@@ -165,6 +166,253 @@ extension SQLiteRow {
   ) -> Bool? {
     (values[column] as? Int64)
       .map { $0 != 0 }
+  }
+
+  public subscript(
+    dynamicMember column: String
+  ) -> PassboltID? {
+    if let data: Data = values[column] as? Data,
+      data.count == 16
+    {
+      return .init(
+        rawValue: .init(
+          uuid: (
+            data[0],
+            data[1],
+            data[2],
+            data[3],
+            data[4],
+            data[5],
+            data[6],
+            data[7],
+            data[8],
+            data[9],
+            data[10],
+            data[11],
+            data[12],
+            data[13],
+            data[14],
+            data[15]
+          )
+        )
+      )
+    }
+    else {
+      return .none
+    }
+  }
+
+  public subscript<Tag>(
+    dynamicMember column: String
+  ) -> Tagged<Data, Tag>? {
+    (values[column] as? Data)
+      .flatMap(Tagged.init(rawValue:))
+  }
+
+  public subscript<Tag>(
+    dynamicMember column: String
+  ) -> Tagged<String, Tag>? {
+    (values[column] as? String)
+      .flatMap(Tagged.init(rawValue:))
+  }
+
+  public subscript<Tag>(
+    dynamicMember column: String
+  ) -> Tagged<Int64, Tag>? {
+    (values[column] as? Int64)
+      .flatMap(Tagged.init(rawValue:))
+  }
+
+  public subscript<Tag>(
+    dynamicMember column: String
+  ) -> Tagged<Int, Tag>? {
+    (values[column] as? Int64)
+      .map(Int.init)
+      .flatMap(Tagged.init(rawValue:))
+  }
+
+  public subscript<Tag>(
+    dynamicMember column: String
+  ) -> Tagged<UInt, Tag>? {
+    (values[column] as? Int64)
+      .map(UInt.init)
+      .flatMap(Tagged.init(rawValue:))
+  }
+
+  public subscript<Tag>(
+    dynamicMember column: String
+  ) -> Tagged<Double, Tag>? {
+    (values[column] as? Double)
+      .flatMap(Tagged.init(rawValue:))
+  }
+
+  public subscript<Tag>(
+    dynamicMember column: String
+  ) -> Tagged<Bool, Tag>? {
+    (values[column] as? Int64)
+      .map { $0 != 0 }
+      .flatMap(Tagged.init(rawValue:))
+  }
+
+  public subscript<Tag>(
+    dynamicMember column: String
+  ) -> Tagged<PassboltID, Tag>? {
+    if let data: Data = values[column] as? Data,
+      data.count == 16
+    {
+      return .init(
+        rawValue: .init(
+          rawValue: .init(
+            uuid: (
+              data[0],
+              data[1],
+              data[2],
+              data[3],
+              data[4],
+              data[5],
+              data[6],
+              data[7],
+              data[8],
+              data[9],
+              data[10],
+              data[11],
+              data[12],
+              data[13],
+              data[14],
+              data[15]
+            )
+          )
+        )
+      )
+    }
+    else {
+      return .none
+    }
+  }
+
+  public subscript<Value>(
+    dynamicMember column: String
+  ) -> Value?
+  where Value: RawRepresentable, Value.RawValue == Data {
+    (values[column] as? Data)
+      .flatMap(Value.init(rawValue:))
+  }
+
+  public subscript<Value>(
+    dynamicMember column: String
+  ) -> Value?
+  where Value: RawRepresentable, Value.RawValue == String {
+    (values[column] as? String)
+      .flatMap(Value.init(rawValue:))
+  }
+
+  public subscript<Value>(
+    dynamicMember column: String
+  ) -> Value?
+  where Value: RawRepresentable, Value.RawValue == Int64 {
+    (values[column] as? Int64)
+      .flatMap(Value.init(rawValue:))
+  }
+
+  public subscript<Value>(
+    dynamicMember column: String
+  ) -> Value?
+  where Value: RawRepresentable, Value.RawValue == Int {
+    (values[column] as? Int64)
+      .map(Int.init)
+      .flatMap(Value.init(rawValue:))
+  }
+
+  public subscript<Value>(
+    dynamicMember column: String
+  ) -> Value?
+  where Value: RawRepresentable, Value.RawValue == UInt {
+    (values[column] as? Int64)
+      .map(UInt.init)
+      .flatMap(Value.init(rawValue:))
+  }
+
+  public subscript<Value>(
+    dynamicMember column: String
+  ) -> Value?
+  where Value: RawRepresentable, Value.RawValue == Double {
+    (values[column] as? Double)
+      .flatMap(Value.init(rawValue:))
+  }
+
+  public subscript<Value>(
+    dynamicMember column: String
+  ) -> Value?
+  where Value: RawRepresentable, Value.RawValue == Bool {
+    (values[column] as? Int64)
+      .map { $0 != 0 }
+      .flatMap(Value.init(rawValue:))
+  }
+
+  public subscript<Value, Tag>(
+    dynamicMember column: String
+  ) -> Tagged<Value, Tag>?
+  where Value: RawRepresentable, Value.RawValue == Data {
+    (values[column] as? Data)
+      .flatMap(Value.init(rawValue:))
+      .flatMap(Tagged.init(rawValue:))
+  }
+
+  public subscript<Value, Tag>(
+    dynamicMember column: String
+  ) -> Tagged<Value, Tag>?
+  where Value: RawRepresentable, Value.RawValue == String {
+    (values[column] as? String)
+      .flatMap(Value.init(rawValue:))
+      .flatMap(Tagged.init(rawValue:))
+  }
+
+  public subscript<Value, Tag>(
+    dynamicMember column: String
+  ) -> Tagged<Value, Tag>?
+  where Value: RawRepresentable, Value.RawValue == Int64 {
+    (values[column] as? Int64)
+      .flatMap(Value.init(rawValue:))
+      .flatMap(Tagged.init(rawValue:))
+  }
+
+  public subscript<Value, Tag>(
+    dynamicMember column: String
+  ) -> Tagged<Value, Tag>?
+  where Value: RawRepresentable, Value.RawValue == Int {
+    (values[column] as? Int64)
+      .map(Int.init)
+      .flatMap(Value.init(rawValue:))
+      .flatMap(Tagged.init(rawValue:))
+  }
+
+  public subscript<Value, Tag>(
+    dynamicMember column: String
+  ) -> Tagged<Value, Tag>?
+  where Value: RawRepresentable, Value.RawValue == UInt {
+    (values[column] as? Int64)
+      .map(UInt.init)
+      .flatMap(Value.init(rawValue:))
+      .flatMap(Tagged.init(rawValue:))
+  }
+
+  public subscript<Value, Tag>(
+    dynamicMember column: String
+  ) -> Tagged<Value, Tag>?
+  where Value: RawRepresentable, Value.RawValue == Double {
+    (values[column] as? Double)
+      .flatMap(Value.init(rawValue:))
+      .flatMap(Tagged.init(rawValue:))
+  }
+
+  public subscript<Value, Tag>(
+    dynamicMember column: String
+  ) -> Tagged<Value, Tag>?
+  where Value: RawRepresentable, Value.RawValue == Bool {
+    (values[column] as? Int64)
+      .map { $0 != 0 }
+      .flatMap(Value.init(rawValue:))
+      .flatMap(Tagged.init(rawValue:))
   }
 }
 

@@ -21,23 +21,15 @@
 // @since         v1.0
 //
 
+import FeatureScopes
 import TestExtensions
 
 @testable import PassboltApp
 
-final class MainSettingsControllerTests: LoadableFeatureTestCase<MainSettingsController> {
+final class MainSettingsControllerTests: FeaturesTestCase {
 
-  override class var testedImplementationScope: any FeaturesScope.Type {
-    SessionScope.self
-  }
-
-  override class func testedImplementationRegister(
-    _ registry: inout FeaturesRegistry
-  ) {
-    registry.useLiveMainSettingsController()
-  }
-
-  override func prepare() throws {
+  override func commonPrepare() {
+    super.commonPrepare()
     set(
       SessionScope.self,
       context: .init(
@@ -45,49 +37,62 @@ final class MainSettingsControllerTests: LoadableFeatureTestCase<MainSettingsCon
         configuration: .mock_default
       )
     )
+    set(SettingsScope.self)
   }
 
-  func test_navigateToAccountsSettings_performsNavigation() {
+  func test_navigateToAccountsSettings_performsNavigation() async {
     patch(
       \NavigationToAccountsSettings.mockPerform,
-      with: always(self.executed())
+      with: always(self.mockExecuted())
     )
-    withTestedInstanceExecuted { feature in
-      feature.navigateToAccountsSettings()
-      await self.mockExecutionControl.executeAll()
+    await withInstance(
+      of: MainSettingsViewController.self,
+      mockExecuted: 1
+    ) { feature in
+      await feature.navigateToAccountsSettings()
+      await self.asyncExecutionControl.executeAll()
     }
   }
 
-  func test_navigateToTroubleshooting_performsNavigation() {
+  func test_navigateToTroubleshooting_performsNavigation() async {
     patch(
       \NavigationToTroubleshootingSettings.mockPerform,
-      with: always(self.executed())
+      with: always(self.mockExecuted())
     )
-    withTestedInstanceExecuted { feature in
-      feature.navigateToTroubleshooting()
-      await self.mockExecutionControl.executeAll()
+    await withInstance(
+      of: MainSettingsViewController.self,
+      mockExecuted: 1
+    ) { feature in
+      await feature.navigateToTroubleshooting()
+      await self.asyncExecutionControl.executeAll()
     }
   }
 
-  func test_navigateToApplicationSettings_performsNavigation() {
+  func test_navigateToApplicationSettings_performsNavigation() async {
     patch(
       \NavigationToApplicationSettings.mockPerform,
-      with: always(self.executed())
+      with: always(self.mockExecuted())
     )
-    withTestedInstanceExecuted { feature in
-      feature.navigateToApplicationSettings()
-      await self.mockExecutionControl.executeAll()
+    await withInstance(
+      of: MainSettingsViewController.self,
+      mockExecuted: 1
+    ) { feature in
+      await feature.navigateToApplicationSettings()
+      await self.asyncExecutionControl.executeAll()
     }
   }
 
-  func test_navigateToTermsAndLicenses_performsNavigation() {
+  func test_navigateToTermsAndLicenses_performsNavigation() async {
     patch(
       \NavigationToTermsAndLicensesSettings.mockPerform,
-      with: always(self.executed())
+      with: always(self.mockExecuted())
     )
-    withTestedInstanceExecuted { feature in
-      feature.navigateToTermsAndLicenses()
-      await self.mockExecutionControl.executeAll()
+    await withInstance(
+      of: MainSettingsViewController.self,
+      mockExecuted: 1
+    ) { feature in
+      await feature.navigateToTermsAndLicenses()
+      await self.asyncExecutionControl.executeAll()
     }
   }
 }
