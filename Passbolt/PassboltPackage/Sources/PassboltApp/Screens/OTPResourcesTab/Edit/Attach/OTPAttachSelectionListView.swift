@@ -67,13 +67,11 @@ internal struct OTPAttachSelectionListView: ControlledView {
         }
       }
     ) {
-      withSnackBarMessage(\.snackBarMessage) {
-        VStack(spacing: 0) {
-          self.search
-          self.list
-          self.actionButton
-        }
-      }
+			VStack(spacing: 0) {
+				self.search
+				self.list
+				self.actionButton
+			}
     }
     .frame(maxHeight: .infinity)
     .navigationTitle(

@@ -231,7 +231,7 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
               return  // ignore, handled by window controller
 
             case _:
-              self?.presentErrorSnackbar(error.displayableMessage)
+							SnackBarMessageEvent.send(.error(error))
             }
           }
           .sinkDrop()

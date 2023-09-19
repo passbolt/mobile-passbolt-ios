@@ -86,10 +86,8 @@ internal final class MFARootViewController: PlainViewController, UIComponent {
       .sink(
         receiveCompletion: { [weak self] completion in
           guard case .failure = completion
-          else {
-            return
-          }
-          self?.presentErrorSnackbar()
+          else { return }
+          SnackBarMessageEvent.send(.error(.localized(key: .genericError)))
         },
         receiveValue: { [weak self] provider in
           self?.cancellables

@@ -38,12 +38,7 @@ internal struct TermsAndLicensesView: ControlledView {
     ScreenView(
       title: "settings.terms.and.licenses.title",
       contentView: {
-        WithSnackBarMessage(
-          from: self.controller,
-          at: \.self
-        ) {
-          self.content
-        }
+				self.content
       }
     )
   }

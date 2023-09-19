@@ -112,32 +112,37 @@ extension AsyncExecutor {
       file: file,
       line: line,
       {
-        await withLogCatch(
-          failInfo: failMessage,
-          file: file,
-          line: line
-        ) {
-          do {
-            guard let nextElement: Element = try await iterator.next()
-            else { return }
-            try await handleNext(nextElement)
-            // if it not failed schedule recursively for next
-            self.scheduleRecursiveNextCatching(
-              using: iterator,
-              failMessage: failMessage,
-              failAction: failAction,
-              behavior: behavior,
-              function: function,
-              file: file,
-              line: line,
-              handleNext
-            )
-          }
-          catch {
-            await failAction?(error)
-            throw error
-          }
-        }
+				do {
+					guard let nextElement: Element = try await iterator.next()
+					else { return }
+					try await handleNext(nextElement)
+					// schedule recursively if operation has not failed
+					self.scheduleRecursiveNextCatching(
+						using: iterator,
+						failMessage: failMessage,
+						failAction: failAction,
+						behavior: behavior,
+						function: function,
+						file: file,
+						line: line,
+						handleNext
+					)
+				}
+				catch {
+					if let failMessage {
+						error.logged(
+							info: .message(
+								failMessage,
+								file: file,
+								line: line
+							)
+						)
+					}
+					else {
+						error.logged()
+					}
+					await failAction?(error)
+				}
       }
     )
   }
@@ -158,19 +163,24 @@ extension AsyncExecutor {
       file: file,
       line: line,
       {
-        await withLogCatch(
-          failInfo: failMessage,
-          file: file,
-          line: line
-        ) {
-          do {
-            try await task()
-          }
-          catch {
-            await failAction?(error)
-            throw error
-          }
-        }
+				do {
+					try await task()
+				}
+				catch {
+					if let failMessage {
+						error.logged(
+							info: .message(
+								failMessage,
+								file: file,
+								line: line
+							)
+						)
+					}
+					else {
+						error.logged()
+					}
+					await failAction?(error)
+				}
       }
     )
   }
@@ -189,19 +199,24 @@ extension AsyncExecutor {
       .custom(identifier),
       behavior,
       {
-        await withLogCatch(
-          failInfo: failMessage,
-          file: file,
-          line: line
-        ) {
-          do {
-            try await task()
-          }
-          catch {
-            await failAction?(error)
-            throw error
-          }
-        }
+        do {
+					try await task()
+				}
+				catch {
+					if let failMessage {
+						error.logged(
+							info: .message(
+								failMessage,
+								file: file,
+								line: line
+							)
+						)
+					}
+					else {
+						error.logged()
+					}
+					await failAction?(error)
+				}
       }
     )
   }
@@ -222,13 +237,23 @@ extension AsyncExecutor {
       file: file,
       line: line,
       {
-        await withLogCatch(
-          failInfo: failMessage,
-          file: file,
-          line: line
-        ) {
-          try await task()
-        }
+        do {
+					try await task()
+				}
+				catch {
+					if let failMessage {
+						error.logged(
+							info: .message(
+								failMessage,
+								file: file,
+								line: line
+							)
+						)
+					}
+					else {
+						error.logged()
+					}
+				}
       }
     )
   }

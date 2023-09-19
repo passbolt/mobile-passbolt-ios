@@ -53,7 +53,6 @@ internal final class ResourceContextualMenuViewController: ViewController {
   internal struct Context {
 
     internal var revealOTP: (@MainActor () async -> Void)?
-    internal var showMessage: @MainActor (SnackBarMessage) -> Void
   }
 
   internal struct ViewState: Equatable {
@@ -79,7 +78,6 @@ internal final class ResourceContextualMenuViewController: ViewController {
 
   private let asyncExecutor: AsyncExecutor
 
-  private let showMessage: @MainActor (SnackBarMessage) -> Void
   private let resourceID: Resource.ID
 
   private let sessionConfiguration: SessionConfiguration
@@ -100,8 +98,6 @@ internal final class ResourceContextualMenuViewController: ViewController {
     self.features = features.takeOwned()
 
     self.sessionConfiguration = try features.sessionConfiguration()
-
-    self.showMessage = context.showMessage
 
     self.linkOpener = features.instance()
     self.pasteboard = features.instance()
@@ -176,9 +172,7 @@ internal final class ResourceContextualMenuViewController: ViewController {
         }
         catch {
           await navigationToSelf.revertCatching()
-          guard let message: SnackBarMessage = .error(error)
-          else { return }
-          await context.showMessage(message)
+          SnackBarMessageEvent.send(.error(error))
         }
       }
     )
@@ -233,11 +227,7 @@ extension ResourceContextualMenuViewController {
   private func openURL(
     field path: Resource.FieldPath
   ) async {
-    await withLogCatch(
-      fallback: { @MainActor (error: Error) async -> Void in
-        error.show(using: self.showMessage)
-      }
-    ) { () async throws -> Void in
+    await consumingErrors { () async throws -> Void in
       var resource: Resource = try await self.resourceController.state.value
 
       guard let field: ResourceFieldSpecification = resource.fieldSpecification(for: path)
@@ -265,11 +255,7 @@ extension ResourceContextualMenuViewController {
   private func copy(
     field path: Resource.FieldPath
   ) async {
-    await withLogCatch(
-      fallback: { @MainActor (error: Error) async -> Void in
-        error.show(using: self.showMessage)
-      }
-    ) { () async throws -> Void in
+    await consumingErrors { () async throws -> Void in
       var resource: Resource = try await self.resourceController.state.value
 
       guard let field: ResourceFieldSpecification = resource.fieldSpecification(for: path)
@@ -292,8 +278,8 @@ extension ResourceContextualMenuViewController {
 
       try await self.navigationToSelf.revert()
 
-      self.showMessage(
-        .info(
+			SnackBarMessageEvent.send(
+			.info(
           .localized(
             key: "resource.menu.item.field.copied",
             arguments: [
@@ -301,16 +287,12 @@ extension ResourceContextualMenuViewController {
             ]
           )
         )
-      )
+			)
     }
   }
 
   private final func addOTP() async {
-    await withLogCatch(
-      fallback: { @MainActor (error: Error) async -> Void in
-        error.show(using: self.showMessage)
-      }
-    ) { [resourceID] in
+    await consumingErrors { [resourceID] in
       let resourceEditPreparation: ResourceEditPreparation = try features.instance()
       let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareExisting(resourceID)
       guard editingContext.editedResource.canAttachOTP
@@ -323,52 +305,40 @@ extension ResourceContextualMenuViewController {
       try await self.navigationToSelf.revert()
       try await self.navigationToResourceOTPEditMenu.perform(
         context: .init(
-          editingContext: editingContext,
-          showMessage: self.showMessage
+          editingContext: editingContext
         )
       )
     }
   }
 
   private final func showOTPMenu() async {
-    await withLogCatch(
-      fallback: { @MainActor (error: Error) async -> Void in
-        error.show(using: self.showMessage)
-      }
-    ) {
+    await consumingErrors {
       try await self.navigationToSelf.revert()
       try await self.navigationToResourceOTPMenu.perform(
         context: .init(
-          revealOTP: self.context.revealOTP,
-          showMessage: { [showMessage] (message: SnackBarMessage) in
-            showMessage(message)
-          }
+          revealOTP: self.context.revealOTP
         )
       )
     }
   }
 
   private func toggleFavorite() async {
-    await withLogCatch(
-      fallback: { @MainActor (error: Error) async -> Void in
-        error.show(using: self.showMessage)
-      }
-    ) {
+    await consumingErrors {
       try await self.resourceController.toggleFavorite()
       let resource: Resource = try await self.resourceController.state.value
       try await self.navigationToSelf.revert()
       if resource.favorite {
-        self.showMessage(
-          .info(
+				SnackBarMessageEvent.send(
+				.info(
             .localized(
               key: "resource.menu.action.favorite.added",
               arguments: [resource.name]
             )
           )
-        )
+				)
       }
       else {
-        self.showMessage(
+        SnackBarMessageEvent.send(
           .info(
             .localized(
               key: "resource.menu.action.favorite.removed",
@@ -381,47 +351,31 @@ extension ResourceContextualMenuViewController {
   }
 
   private func share() async {
-    await withLogCatch(
-      fallback: { @MainActor (error: Error) async -> Void in
-        error.show(using: self.showMessage)
-      }
-    ) {
+    await consumingErrors {
       try await self.navigationToSelf.revert()
       try await self.navigationToShare.perform(context: self.resourceID)
     }
   }
 
   private func editPassword() async {
-    await withLogCatch(
-      fallback: { @MainActor (error: Error) async -> Void in
-        error.show(using: self.showMessage)
-      }
-    ) { [resourceID] in
+    await consumingErrors { [resourceID] in
       let resourceEditPreparation: ResourceEditPreparation = try features.instance()
       let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareExisting(resourceID)
       try await self.navigationToSelf.revert()
       try await self.navigationToResourceEdit.perform(
         context: .init(
-          editingContext: editingContext,
-          success: { [showMessage] (resource: Resource) in
-            await showMessage("resource.menu.action.edited")
-          }
+          editingContext: editingContext
         )
       )
     }
   }
 
   private func delete() async {
-    await withLogCatch(
-      fallback: { @MainActor (error: Error) async -> Void in
-        error.show(using: self.showMessage)
-      }
-    ) {
+    await consumingErrors {
       try await self.navigationToSelf.revert(animated: true)
       try await self.navigationToDeleteAlert.perform(
         context: .init(
-          resourceID: self.resourceID,
-          showMessage: self.showMessage
+          resourceID: self.resourceID
         )
       )
     }

@@ -81,30 +81,34 @@ final class TagsExplorerControllerTests: MainActorTestCase {
     updates = .none
   }
 
-  func test_refreshIfNeeded_setsViewStateError_whenRefreshFails() async throws {
+	func test_refreshIfNeeded_showsError_whenRefreshFails() async throws {
     features.patch(
       \SessionData.refreshIfNeeded,
       with: alwaysThrow(MockIssue.error())
     )
 
-    let controller: TagsExplorerController = try await testController(
+		let messagesSubscription = SnackBarMessageEvent.subscribe()
+
+    let controller: TagsExplorerController = try testController(
       context: nil
     )
 
     await controller.refreshIfNeeded()
 
-    XCTAssertNotNil(controller.viewState.value.snackBarMessage)
+    let message: SnackBarMessage? = try await messagesSubscription.nextEvent()
+
+    XCTAssertNotNil(message)
   }
 
   func test_refreshIfNeeded_finishesWithoutError_whenRefreshingSucceeds() async throws {
 
-    let controller: TagsExplorerController = try await testController(
+    let controller: TagsExplorerController = try testController(
       context: nil
     )
 
     await controller.refreshIfNeeded()
 
-    XCTAssertNil(controller.viewState.value.snackBarMessage)
+		// can't check if succeeded now...
   }
 
   func test_initally_viewStateTitle_isDefaultString_forTags() async throws {

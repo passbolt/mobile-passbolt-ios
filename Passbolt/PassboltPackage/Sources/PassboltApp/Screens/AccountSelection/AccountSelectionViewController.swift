@@ -159,30 +159,11 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
 
           return self.controller
             .removeAccount(item.account)
-            .handleValues { [weak self] in
-              self?.cancellables
-                .executeOnMainActor { [weak self] in
-                  self?
-                    .presentInfoSnackbar(
-                      .localized(
-                        key: "account.selection.account.removed"
-                      )
-                    )
-                }
+            .handleValues {
+							SnackBarMessageEvent.send("account.selection.account.removed")
             }
-            .handleErrors { [weak self] error in
-              self?.cancellables
-                .executeOnMainActor { [weak self] in
-                  self?
-                    .present(
-                      snackbar: Mutation<ContentView>
-                        .snackBarErrorMessage(
-                          error.displayableMessage
-                        )
-                        .instantiate(),
-                      hideAfter: 2
-                    )
-                }
+            .handleErrors { error in
+							SnackBarMessageEvent.send(.error(error))
             }
             .replaceError(with: Void())
             .eraseToAnyPublisher()
@@ -212,10 +193,7 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
         self?.cancellables
           .executeOnMainActor { [weak self] in
             if accountTransferInProgress {
-              self?
-                .presentErrorSnackbar(
-                  .localized("error.another.account.transfer.in.progress")
-                )
+            SnackBarMessageEvent.send(.error("error.another.account.transfer.in.progress"))
             }
             else {
               await self?

@@ -62,8 +62,8 @@ internal final class ResourceTagsListDisplayController: ViewController {
         sessionData.lastUpdate.asAnyAsyncSequence()
       ),
       failMessage: "Resource tags list updates broken!",
-      failAction: { [context] (error: Error) in
-        context.showMessage(.error(error))
+      failAction: { (error: Error) in
+				SnackBarMessageEvent.send(.error(error))
       }
     ) { [viewState, resourceTags] (filter: String, _) in
       let filteredResourceTags: Array<ResourceTagListItemDSV> = try await resourceTags.filteredTagsList(filter)
@@ -81,7 +81,6 @@ extension ResourceTagsListDisplayController {
 
     internal var filter: AnyAsyncSequence<String>
     internal var selectTag: (ResourceTag.ID) -> Void
-    internal var showMessage: (SnackBarMessage?) -> Void
   }
 
   internal struct ViewState: Equatable {
@@ -97,12 +96,9 @@ extension ResourceTagsListDisplayController {
       try await self.sessionData.refreshIfNeeded()
     }
     catch {
-      error.logged(
-        info: .message(
-          "Failed to refresh session data."
-        )
+      error.consume(
+        context: "Failed to refresh session data."
       )
-      self.context.showMessage(.error(error))
     }
   }
 

@@ -31,21 +31,11 @@ internal final class OTPConfigurationScanningViewController: ViewController {
   internal struct Context {
 
     internal var totpPath: ResourceType.FieldPath
-    internal var showMessage: @MainActor (SnackBarMessage) -> Void
-
-    internal init(
-      totpPath: ResourceType.FieldPath,
-      showMessage: @escaping @MainActor (SnackBarMessage) -> Void
-    ) {
-      self.totpPath = totpPath
-      self.showMessage = showMessage
-    }
   }
 
   internal struct ViewState: Equatable {
 
     internal var loading: Bool
-    internal var snackBarMessage: SnackBarMessage?
   }
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
@@ -79,11 +69,9 @@ internal final class OTPConfigurationScanningViewController: ViewController {
     self.scanningState = .init(.idle)
 
     self.resourceEditForm = try features.instance()
-
     self.viewState = .init(
       initial: .init(
-        loading: false,
-        snackBarMessage: "otp.code.scanning.initial.message"
+        loading: false
       )
     )
   }
@@ -122,8 +110,7 @@ extension OTPConfigurationScanningViewController {
           try await navigationToScanningSuccess
             .perform(
               context: .init(
-                totpConfiguration: configuration,
-                showMessage: context.showMessage
+                totpConfiguration: configuration
               )
             )
         }
@@ -136,7 +123,7 @@ extension OTPConfigurationScanningViewController {
           do {
             try await resourceEditForm.send()
             try await navigationToSelf.revert()
-            await context.showMessage("otp.edit.otp.replaced.message")
+            SnackBarMessageEvent.send("otp.edit.otp.replaced.message")
           }
           catch {
             await viewState
@@ -164,14 +151,8 @@ extension OTPConfigurationScanningViewController {
           with: .idle,
           when: .processing
         )
-      error.logged()
-      self.asyncExecutor.schedule(.reuse, identifier: #function) { [viewState] in
-        await viewState
-          .update(
-            \.snackBarMessage,
-            to: .error(error)
-          )
-      }
+
+      error.consume()
     }
   }
 }

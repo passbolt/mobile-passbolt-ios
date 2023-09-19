@@ -44,7 +44,6 @@ internal struct UserGroupMembersListView: ComponentView {
       self.contentView
     }
     .backgroundColor(.passboltBackground)
-    .snackBarMessage(presenting: self.$state.snackBarMessage)
   }
 
   @ViewBuilder private var titleView: some View {
@@ -124,7 +123,6 @@ extension UserGroupMembersListView {
 
     internal var groupName: String
     internal var items: Array<UserGroupMembersListRowItem>
-    internal var snackBarMessage: SnackBarMessage? = .none
   }
 }
 
@@ -135,12 +133,5 @@ extension UserGroupMembersListView.ViewState {
     _ rhs: Self
   ) -> Bool {
     lhs.items == rhs.items
-      && lhs.snackBarMessage == rhs.snackBarMessage
-  }
-  internal func hash(
-    into hasher: inout Hasher
-  ) {
-    hasher.combine(self.items)
-    hasher.combine(self.snackBarMessage)
   }
 }

@@ -30,7 +30,6 @@ internal struct ResourceOTPDeleteAlertController: AlertController {
 
   internal struct Context {
     internal var resourceID: Resource.ID
-    internal var showMessage: @MainActor (SnackBarMessage) -> Void
   }
 
   internal let title: Localization.DisplayableString
@@ -85,10 +84,10 @@ internal struct ResourceOTPDeleteAlertController: AlertController {
             .error(message: "Attempting to delete OTP in a resource without OTP delete action supported!")
         }
 
-        context.showMessage("otp.edit.otp.deleted.message")
+        SnackBarMessageEvent.send("otp.edit.otp.deleted.message")
       }
       catch {
-        error.logAndShow(using: context.showMessage)
+        error.consume()
       }
     }
 

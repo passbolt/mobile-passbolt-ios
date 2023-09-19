@@ -79,15 +79,7 @@ internal final class AuthorizationNavigationViewController: NavigationViewContro
 
   public func activate() {
     if let message: DisplayableString = controller.message {
-      present(
-        snackbar: Mutation<UICommons.PlainView>
-          .snackBarMessage(
-            message,
-            backgroundColor: .primaryText,
-            textColor: .primaryTextAlternative
-          )
-          .instantiate()
-      )
+			SnackBarMessageEvent.send(.info(message))
     }
     else {
       /* NOP */

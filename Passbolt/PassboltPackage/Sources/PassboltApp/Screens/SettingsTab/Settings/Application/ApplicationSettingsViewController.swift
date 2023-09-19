@@ -31,7 +31,6 @@ internal final class ApplicationSettingsViewController: ViewController {
   internal struct ViewState: Equatable {
 
     internal var biometicsAuthorizationAvailability: BiometricsAuthorizationAvailability
-    internal var snackBarMessage: SnackBarMessage?
   }
 
   internal let viewState: ViewStateSource<ViewState>
@@ -56,8 +55,7 @@ internal final class ApplicationSettingsViewController: ViewController {
 
     self.viewState = .init(
       initial: .init(
-        biometicsAuthorizationAvailability: .unavailable,
-        snackBarMessage: .none
+        biometicsAuthorizationAvailability: .unavailable
       ),
       updateFrom: self.accountPreferences.updates,
       update: { [accountPreferences] (updateState, _) in
@@ -93,12 +91,9 @@ extension ApplicationSettingsViewController {
   internal final func setBiometricsAuthorization(
     enabled: Bool
   ) async {
-    await withLogCatch(
-      failInfo: "Toggling biometric authorization failed!",
-      fallback: { (error: Error) async in
-        self.viewState.update(\.snackBarMessage, to: .error(error))
-      }
-    ) {
+    await consumingErrors(
+      errorDiagnostics: "Toggling biometric authorization failed!"
+      ) {
       try await self.accountPreferences.storePassphrase(enabled)
     }
   }

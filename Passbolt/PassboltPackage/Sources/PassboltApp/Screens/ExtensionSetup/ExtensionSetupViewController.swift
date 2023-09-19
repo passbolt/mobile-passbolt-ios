@@ -73,19 +73,9 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
         self.controller
           .setupExtension()
           .sink(
-            receiveCompletion: { [weak self] completion in
+            receiveCompletion: { completion in
               guard case .failure = completion else { return }
-              self?
-                .present(
-                  snackbar: Mutation<UICommons.PlainView>
-                    .snackBarErrorMessage(
-                      .localized(
-                        key: .genericError
-                      )
-                    )
-                    .instantiate(),
-                  hideAfter: 3
-                )
+              SnackBarMessageEvent.send(.error(.localized(key: .genericError)))
             }
           )
           .store(in: self.cancellables)

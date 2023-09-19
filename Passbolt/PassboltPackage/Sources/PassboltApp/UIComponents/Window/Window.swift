@@ -46,6 +46,7 @@ internal final class Window {
     self.components = components
     self.cancellables = cancellables
     self.window.rootViewController = rootViewController
+    setupSnackBarMessages(within: self.window)
 
     cancellables.executeAsync { @MainActor [weak self] in
       let controller: WindowController = lazyController()

@@ -83,11 +83,11 @@ internal final class YubiKeyViewController: PlainViewController, UIComponent {
       .map { [unowned self] _ -> AnyPublisher<Void, Never> in
         self.controller.authorizeUsingOTP()
           .receive(on: RunLoop.main)
-          .handleEvents(receiveCompletion: { [weak self] completion in
+          .handleEvents(receiveCompletion: { completion in
             guard case let .failure(error) = completion
             else { return }
 
-            self?.parent?.presentErrorSnackbar(error.asTheError().displayableMessage)
+						SnackBarMessageEvent.send(.error(error))
           })
           .replaceError(with: ())
           .eraseToAnyPublisher()

@@ -64,7 +64,6 @@ internal struct ResourceUserGroupsExplorerView: ComponentView {
       self.contentView
     }
     .backgroundColor(.passboltBackground)
-    .snackBarMessage(presenting: self.$state.snackBarMessage)
   }
 
   @ViewBuilder private var titleView: some View {
@@ -213,7 +212,6 @@ extension ResourceUserGroupsExplorerView {
     internal var searchText: String = ""
     internal var groups: Array<ResourceUserGroupListItemDSV> = .init()
     internal var resources: Array<ResourceListItemDSV> = .init()
-    internal var snackBarMessage: SnackBarMessage? = .none
   }
 }
 

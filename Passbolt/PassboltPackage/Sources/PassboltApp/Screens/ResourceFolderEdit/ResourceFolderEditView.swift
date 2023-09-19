@@ -39,7 +39,6 @@ internal struct ResourceFolderEditView: ControlledView {
         title: .localized(
           key: "folder.edit.form.create.title"
         ),
-        snackBarMessage: self.binding(to: \.snackBarMessage),
         contentView: {
           self.contentView(using: state)
         }

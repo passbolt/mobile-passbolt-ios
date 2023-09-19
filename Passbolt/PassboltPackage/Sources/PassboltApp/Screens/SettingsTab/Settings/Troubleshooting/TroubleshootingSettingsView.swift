@@ -38,12 +38,7 @@ internal struct TroubleshootingSettingsView: ControlledView {
     ScreenView(
       title: "settings.troubleshooting.title",
       contentView: {
-        WithSnackBarMessage(
-          from: self.controller,
-          at: \.self
-        ) {
-          self.content
-        }
+				self.content
       }
     )
   }

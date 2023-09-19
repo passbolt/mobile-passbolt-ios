@@ -38,7 +38,6 @@ internal final class OperationAuthorizationViewController: ViewController {
 		internal var accountAvatarImage: Data?
 		internal var biometricsAvailability: OSBiometryAvailability
 		internal var passphrase: Validated<String>
-		internal var snackBarMessage: SnackBarMessage?
 	}
 
 	internal nonisolated let viewState: ViewStateSource<ViewState>
@@ -90,14 +89,9 @@ internal final class OperationAuthorizationViewController: ViewController {
 					}
 				}
 				catch {
-					error.logged(
-						info: .message(
-							"Failed to update account profile details!"
-						)
+					error.consume(
+						context: "Failed to update account profile details!"
 					)
-					await updateView { (viewState: inout ViewState) in
-						viewState.snackBarMessage = .error(error)
-					}
 				}
 
 				let biometricsAvailability: OSBiometryAvailability
@@ -154,11 +148,7 @@ extension OperationAuthorizationViewController {
 			try await self.configuration.operation(.passphrase(.init(rawValue: passphrase)))
 		}
 		catch {
-			self.viewState.update { (state: inout ViewState) in
-				state.passphrase = validatedPassphrase
-				state.snackBarMessage = .error(error)
-			}
-			error.logged()
+			error.consume()
 		}
 	}
 
@@ -169,10 +159,7 @@ extension OperationAuthorizationViewController {
 			try await self.configuration.operation(.biometrics)
 		}
 		catch {
-			self.viewState.update { (state: inout ViewState) in
-				state.snackBarMessage = .error(error)
-			}
-			error.logged()
+			error.consume()
 		}
 	}
 }

@@ -31,15 +31,6 @@ internal final class ResourceOTPEditMenuViewController: ViewController {
   internal struct Context {
 
     internal var editingContext: ResourceEditingContext
-    internal var showMessage: @MainActor (SnackBarMessage) -> Void
-
-    internal init(
-      editingContext: ResourceEditingContext,
-      showMessage: @escaping @MainActor (SnackBarMessage) -> Void
-    ) {
-      self.editingContext = editingContext
-      self.showMessage = showMessage
-    }
   }
 
   internal let creatingNew: Bool
@@ -101,13 +92,12 @@ extension ResourceOTPEditMenuViewController {
 
       try await self.navigationToQRCodeCreateOTPView.perform(
         context: .init(
-          totpPath: totpPath,
-          showMessage: self.context.showMessage
+          totpPath: totpPath
         )
       )
     }
     catch {
-      error.logAndShow(using: self.context.showMessage)
+      error.consume()
     }
   }
 
@@ -133,13 +123,12 @@ extension ResourceOTPEditMenuViewController {
 
       try await self.navigationToOTPEditForm.perform(
         context: .init(
-          totpPath: totpPath,
-          showMessage: self.context.showMessage
+          totpPath: totpPath
         )
       )
     }
     catch {
-      error.logAndShow(using: self.context.showMessage)
+      error.consume()
     }
   }
 

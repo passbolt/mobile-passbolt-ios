@@ -58,23 +58,21 @@ extension EventList {
 		}
 	}
 
-	@_transparent @usableFromInline internal func subscribe() -> EventSubscription<Description> {
+	@_transparent @usableFromInline internal func subscribe(
+		bufferSize: Int
+	) -> EventSubscription<Description> {
 		let id: IID = .init()
-		let stream: AsyncStream<Description.Payload> = .init(
-			bufferingPolicy: .unbounded
-		) { (continuation: AsyncStream<Description.Payload>.Continuation) in
-			continuation.onTermination = { [self] _ in
+		let subscription: EventSubscription<Description> = .init(
+			bufferSize: bufferSize,
+			unsubscribe: { [self] in
 				self.unsubscribe(id)
 			}
-			self.subscriptions.set(
-				\.[id],
-				 { @Sendable (eventPayload: Description.Payload) in
-					 continuation.yield(eventPayload)
-				 }
-			)
-		}
-		let subscription: EventSubscription<Description> = .init(
-			stream: stream
+		)
+		self.subscriptions.set(
+			\.[id],
+			 { @Sendable (eventPayload: Description.Payload) in
+				 subscription.deliver(eventPayload)
+			 }
 		)
 		return subscription
 	}

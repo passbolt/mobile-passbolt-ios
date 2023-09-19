@@ -43,7 +43,6 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
   internal struct Context {
 
     internal var revealOTP: (@MainActor () async -> Void)?
-    internal var showMessage: @MainActor (SnackBarMessage) -> Void
   }
 
   internal struct ViewState: Equatable {
@@ -67,7 +66,6 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
   private let asyncExecutor: AsyncExecutor
 
   private let revealOTP: (@MainActor () async -> Void)?
-  private let showMessage: @MainActor (SnackBarMessage) -> Void
   private let resourceID: Resource.ID
 
   private let sessionConfiguration: SessionConfiguration
@@ -86,7 +84,6 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
     self.sessionConfiguration = try features.sessionConfiguration()
 
     self.revealOTP = context.revealOTP
-    self.showMessage = context.showMessage
 
     self.linkOpener = features.instance()
     self.pasteboard = features.instance()
@@ -163,11 +160,7 @@ extension ResourceOTPContextualMenuViewController {
   }
 
   internal func revealOTPCode() async {
-    await withLogCatch(
-      fallback: { @MainActor (error: Error) async -> Void in
-        error.show(using: self.showMessage)
-      }
-    ) { @MainActor in
+    await consumingErrors { @MainActor in
       guard let revealOTP = self.revealOTP
       else {
         throw
@@ -180,11 +173,7 @@ extension ResourceOTPContextualMenuViewController {
   }
 
   internal func copyOTPCode() async {
-    await withLogCatch(
-      fallback: { @MainActor (error: Error) async -> Void in
-        error.show(using: self.showMessage)
-      }
-    ) {
+    await consumingErrors {
       try await self.resourceController.fetchSecretIfNeeded()
       let resource: Resource = try await self.resourceController.state.value
 
@@ -206,40 +195,30 @@ extension ResourceOTPContextualMenuViewController {
 			)()
       self.pasteboard.put(totp.otp.rawValue)
       try await self.navigationToSelf.revert(animated: true)
-      self.showMessage("otp.copied.message")
+      SnackBarMessageEvent.send("otp.copied.message")
     }
   }
 
   internal func editOTP() async {
-    await withLogCatch(
-      fallback: { @MainActor (error: Error) async -> Void in
-        error.show(using: self.showMessage)
-      }
-    ) { [resourceID] in
+    await consumingErrors { [resourceID] in
       let resourceEditPreparation: ResourceEditPreparation = try features.instance()
       let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareExisting(resourceID)
 
       try await self.navigationToSelf.revert()
       try await self.navigationToTOTPEditMenu.perform(
         context: .init(
-          editingContext: editingContext,
-          showMessage: self.showMessage
+          editingContext: editingContext
         )
       )
     }
   }
 
   internal func deleteOTP() async {
-    await withLogCatch(
-      fallback: { @MainActor (error: Error) async -> Void in
-        error.show(using: self.showMessage)
-      }
-    ) {
+    await consumingErrors {
       try await self.navigationToSelf.revert()
       try await navigationToResourceOTPDeleteAlert.perform(
         context: .init(
-          resourceID: self.resourceID,
-          showMessage: self.showMessage
+          resourceID: self.resourceID
         )
       )
     }

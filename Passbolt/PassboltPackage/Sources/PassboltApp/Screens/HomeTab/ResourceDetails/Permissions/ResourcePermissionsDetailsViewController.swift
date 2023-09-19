@@ -33,7 +33,6 @@ internal final class ResourcePermissionsDetailsViewController: ViewController {
 
     internal var editable: Bool
     internal var permissionListItems: Array<PermissionListRowItem>
-    internal var snackBarMessage: SnackBarMessage?
   }
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
@@ -66,8 +65,7 @@ internal final class ResourcePermissionsDetailsViewController: ViewController {
     self.viewState = .init(
       initial: .init(
         editable: false,
-        permissionListItems: .init(),
-        snackBarMessage: .none
+        permissionListItems: .init()
       )
     )
   }
@@ -76,9 +74,9 @@ internal final class ResourcePermissionsDetailsViewController: ViewController {
 extension ResourcePermissionsDetailsViewController {
 
   @Sendable internal func activate() async {
-    await withLogCatch(
-      failInfo: "Resource permissions details updates broken!",
-      fallback: { _ in
+    await consumingErrors(
+          errorDiagnostics: "Resource permissions details updates broken!",
+      fallback: {
         try? await self.navigationToSelf.revert()
       }
     ) {
@@ -121,7 +119,7 @@ extension ResourcePermissionsDetailsViewController {
       }
     }
     catch {
-      self.viewState.update(\.snackBarMessage, to: .error(error))
+			SnackBarMessageEvent.send(.error(error))
     }
   }
 

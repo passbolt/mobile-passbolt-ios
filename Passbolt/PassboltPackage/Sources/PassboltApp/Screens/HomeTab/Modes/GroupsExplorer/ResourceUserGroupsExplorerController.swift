@@ -142,14 +142,10 @@ extension ResourceUserGroupsExplorerController: ComponentController {
     }
 
     @MainActor func refreshIfNeeded() async {
-      do {
-        try await sessionData
+			await consumingErrors {
+				try await sessionData
           .refreshIfNeeded()
-      }
-      catch {
-        error.logged()
-        viewState.snackBarMessage = .error(error.asTheError().displayableMessage)
-      }
+			}
     }
 
     @MainActor func presentGroupContent(_ userGroup: ResourceUserGroupListItemDSV) {
@@ -173,16 +169,7 @@ extension ResourceUserGroupsExplorerController: ComponentController {
           .instance(of: NavigationToResourceEdit.self)
           .perform(
             context: .init(
-              editingContext: editingContext,
-              success: { _ in
-                cancellables.executeOnMainActor {
-                  viewState.snackBarMessage = .info(
-                    .localized(
-                      key: "resource.form.new.password.created"
-                    )
-                  )
-                }
-              }
+              editingContext: editingContext
             )
           )
       }
@@ -217,11 +204,7 @@ extension ResourceUserGroupsExplorerController: ComponentController {
 
         let navigationToResourceContextualMenu: NavigationToResourceContextualMenu = try features.instance()
         try await navigationToResourceContextualMenu.perform(
-          context: .init(
-            showMessage: { (message: SnackBarMessage?) in
-              viewState.snackBarMessage = message
-            }
-          )
+          context: .init()
         )
       }
     }
@@ -237,8 +220,8 @@ extension ResourceUserGroupsExplorerController: ComponentController {
 
     @MainActor func presentAccountMenu() {
       asyncExecutor.schedule(.reuse) {
-        await withLogCatch(
-          failInfo: "Navigation to account menu failed!"
+        await consumingErrors(
+          errorDiagnostics: "Navigation to account menu failed!"
         ) {
           try await navigationToAccountMenu.perform()
         }

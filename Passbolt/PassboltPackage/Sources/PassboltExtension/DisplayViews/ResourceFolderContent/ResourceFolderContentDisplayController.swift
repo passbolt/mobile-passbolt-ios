@@ -78,8 +78,9 @@ internal final class ResourceFolderContentDisplayController: ViewController {
     self.asyncExecutor.scheduleIteration(
       over: combineLatest(context.filter.asAnyAsyncSequence(), sessionData.lastUpdate.asAnyAsyncSequence()),
       failMessage: "Resource folders list updates broken!",
-      failAction: { [context] (error: Error) in
-        context.showMessage(.error(error))
+      failAction: { (error: Error) in
+
+        SnackBarMessageEvent.send(.error(error))
       }
     ) { [viewState, resourceFolders] (filter: ResourceFoldersFilter, _) in
       let filteredResourceFolderContent: ResourceFolderContent = try await resourceFolders.filteredFolderContent(filter)
@@ -112,7 +113,6 @@ extension ResourceFolderContentDisplayController {
     internal var selectFolder: (ResourceFolder.ID) -> Void
     internal var selectResource: (Resource.ID) -> Void
     internal var openResourceMenu: ((Resource.ID) -> Void)?
-    internal var showMessage: (SnackBarMessage?) -> Void
   }
 
   internal struct ViewState: Equatable {
@@ -134,10 +134,9 @@ extension ResourceFolderContentDisplayController {
       try await self.sessionData.refreshIfNeeded()
     }
     catch {
-      error.logged(
-        info: .message("Failed to refresh session data.")
-      )
-      self.context.showMessage(.error(error))
+			error.consume(
+				context: "Failed to refresh session data."
+			)
     }
   }
 }

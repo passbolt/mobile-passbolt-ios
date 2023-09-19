@@ -68,8 +68,7 @@ internal final class ResourceFolderContentNodeController: ViewController {
     let viewState: ViewStateSource<ViewState> = .init(
       initial: .init(
         folderName: folderName,
-        folderShared: context.folderDetails?.shared ?? false,
-        snackBarMessage: .none
+        folderShared: context.folderDetails?.shared ?? false
       )
     )
     self.viewState = viewState
@@ -77,12 +76,7 @@ internal final class ResourceFolderContentNodeController: ViewController {
     self.searchController = try features.instance(
       context: .init(
         nodeID: context.nodeID,
-        searchPrompt: context.searchPrompt,
-        showMessage: { (message: SnackBarMessage?) in
-          viewState.update { viewState in
-            viewState.snackBarMessage = message
-          }
-        }
+        searchPrompt: context.searchPrompt
       )
     )
 
@@ -112,12 +106,7 @@ internal final class ResourceFolderContentNodeController: ViewController {
           : .none,
         selectFolder: self.selectFolder(_:),
         selectResource: self.selectResource(_:),
-        openResourceMenu: .none,
-        showMessage: { (message: SnackBarMessage?) in
-          viewState.update { viewState in
-            viewState.snackBarMessage = message
-          }
-        }
+        openResourceMenu: .none
       )
     )
   }
@@ -137,7 +126,6 @@ extension ResourceFolderContentNodeController {
 
     internal var folderName: DisplayableString
     internal var folderShared: Bool
-    internal var snackBarMessage: SnackBarMessage?
   }
 }
 
@@ -189,8 +177,8 @@ extension ResourceFolderContentNodeController {
   ) {
     self.asyncExecutor.scheduleCatching(
       failMessage: "Failed to handle resource selection.",
-      failAction: { [viewState] (error: Error) in
-        await viewState.update(\.snackBarMessage, to: .error(error))
+      failAction: { (error: Error) in
+      SnackBarMessageEvent.send(.error(error))
       },
       behavior: .replace
     ) { [features, autofillContext] in
@@ -223,8 +211,8 @@ extension ResourceFolderContentNodeController {
   ) {
     self.asyncExecutor.scheduleCatching(
       failMessage: "Failed to handle resource folder selection.",
-      failAction: { [viewState] (error: Error) in
-        await viewState.update(\.snackBarMessage, to: .error(error))
+      failAction: { (error: Error) in
+      SnackBarMessageEvent.send(.error(error))
       },
       behavior: .replace
     ) { [features, context, resourceFolders, navigationTree] in

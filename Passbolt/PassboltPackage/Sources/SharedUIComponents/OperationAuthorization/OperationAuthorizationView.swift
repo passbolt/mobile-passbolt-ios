@@ -34,9 +34,7 @@ internal struct OperationAuthorizationView: ControlledView {
 	}
 
 	internal var body: some View {
-		withSnackBarMessage(\.snackBarMessage) {
-			self.contentView
-		}
+		self.contentView
 		.navigationTitle(displayable: self.controller.configuration.title)
 		.task{
 			await self.controller.authorizeWithBiometrics()

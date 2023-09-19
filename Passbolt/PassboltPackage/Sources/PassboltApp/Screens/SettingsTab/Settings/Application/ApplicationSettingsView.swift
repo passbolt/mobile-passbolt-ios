@@ -39,12 +39,7 @@ internal struct ApplicationSettingsView: ControlledView {
     ScreenView(
       title: "settings.application.title",
       contentView: {
-        WithSnackBarMessage(
-          from: self.controller,
-          at: \.snackBarMessage
-        ) {
-          self.content
-        }
+				self.content
       }
     )
   }

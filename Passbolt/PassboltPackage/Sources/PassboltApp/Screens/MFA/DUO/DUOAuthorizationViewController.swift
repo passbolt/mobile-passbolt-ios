@@ -31,7 +31,6 @@ internal final class DUOAuthorizationViewController: ViewController {
 	internal struct ViewState: Equatable {
 
 		internal var request: DUOWebAuthorizationRequest?
-		internal var snackBarMessage: SnackBarMessage?
 	}
 
 	internal let viewState: ViewStateSource<ViewState>
@@ -50,8 +49,7 @@ internal final class DUOAuthorizationViewController: ViewController {
 
 		self.viewState = .init(
 			initial: .init(
-				request: .none,
-				snackBarMessage: .none
+				request: .none
 			)
 		)
 	}
@@ -92,12 +90,14 @@ extension DUOAuthorizationViewController {
 			self.finishAuthorization = .none
 			self.viewState.update { (viewState: inout ViewState) in
 				viewState.request = .none
-				viewState.snackBarMessage = .error(
+			}
+			SnackBarMessageEvent.send(
+				.error(
 					error.logged(
 						info: .message("DUO authorization failed!")
 					)
 				)
-			}
+			)
 		}
 	}
 

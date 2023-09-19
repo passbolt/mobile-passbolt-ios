@@ -42,8 +42,7 @@ internal struct UserGroupPermissionEditView: ComponentView {
     ScreenView(
       title: .localized(
         key: "resource.permission.details.title"
-      ),
-      snackBarMessage: self.$state.snackBarMessage
+      )
     ) {
       self.contentView
     }
@@ -211,6 +210,5 @@ extension UserGroupPermissionEditView {
     internal var permission: Permission
     internal var groupMembersPreviewItems: Array<OverlappingAvatarStackView.Item>
     internal var deleteConfirmationAlert: ConfirmationAlertMessage? = .none
-    internal var snackBarMessage: SnackBarMessage? = .none
   }
 }

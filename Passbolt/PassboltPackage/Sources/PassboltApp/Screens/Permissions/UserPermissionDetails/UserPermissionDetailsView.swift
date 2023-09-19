@@ -42,8 +42,7 @@ internal struct UserPermissionDetailsView: ComponentView {
     ScreenView(
       title: .localized(
         key: "resource.permission.details.title"
-      ),
-      snackBarMessage: self.$state.snackBarMessage
+      )
     ) {
       self.contentView
     }
@@ -132,7 +131,6 @@ extension UserPermissionDetailsView {
 
     internal var permissionDetails: UserPermissionDetailsDSV
     internal var avatarImageFetch: () async -> Data?
-    internal var snackBarMessage: SnackBarMessage? = .none
   }
 }
 
@@ -143,12 +141,5 @@ extension UserPermissionDetailsView.ViewState {
     _ rhs: Self
   ) -> Bool {
     lhs.permissionDetails == rhs.permissionDetails
-      && lhs.snackBarMessage == rhs.snackBarMessage
-  }
-  internal func hash(
-    into hasher: inout Hasher
-  ) {
-    hasher.combine(self.permissionDetails)
-    hasher.combine(self.snackBarMessage)
   }
 }

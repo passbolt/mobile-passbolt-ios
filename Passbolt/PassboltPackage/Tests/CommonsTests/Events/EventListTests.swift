@@ -57,7 +57,7 @@ final class EventListTests: TestCase {
 
 		try await withSerialTaskExecutor {
 			TestEvent.send(0)
-			var subscription: EventSubscription = TestEvent.subscribe()
+			let subscription: EventSubscription = TestEvent.subscribe()
 			Task.detached {
 				await Task.yield()
 				TestEvent.send(42)
@@ -79,7 +79,7 @@ final class EventListTests: TestCase {
 
 		try await withSerialTaskExecutor {
 			TestEvent.send(0)
-			var subscription: EventSubscription = TestEvent.subscribe()
+			let subscription: EventSubscription = TestEvent.subscribe()
 			TestEvent.send(42)
 			try await verifyIf(
 				await subscription.nextEvent(),
@@ -98,7 +98,7 @@ final class EventListTests: TestCase {
 
 		try await withSerialTaskExecutor {
 			TestEvent.send(0)
-			var subscription: EventSubscription = TestEvent.subscribe(bufferSize: 100)
+			let subscription: EventSubscription = TestEvent.subscribe(bufferSize: 100)
 			for i in 1 ..< 100 {
 				TestEvent.send(i)
 			}
@@ -141,7 +141,7 @@ final class EventListTests: TestCase {
 				}
 				else {
 					group.addTask {
-						var subscription: TestEvent.Subscription = TestEvent
+						let subscription: TestEvent.Subscription = TestEvent
 							.subscribe()
 						while !Task.isCancelled {
 							_ = try? await subscription.nextEvent()
@@ -173,13 +173,13 @@ final class EventListTests: TestCase {
 			TestEvent.send(0)
 			var subscriptions: Array<TestEvent.Subscription> = .init()
 			for _ in 0 ..< 100 {
-				subscriptions.append(TestEvent.subscribe())
+				subscriptions.append(TestEvent.subscribe(bufferSize: 100))
 			}
 
 			for i in 1 ..< 100 {
 				TestEvent.send(i)
 			}
-			for var subscription in subscriptions {
+			for subscription in subscriptions {
 				for i in 1 ..< 100 {
 					try await verifyIf(
 						await subscription.nextEvent(),

@@ -37,7 +37,6 @@ internal final class OTPResourcesListViewController: ViewController {
     internal var accountAvatarImage: Data?
     internal var searchText: String
     internal var otpResources: OrderedDictionary<Resource.ID, TOTPResourceViewModel>
-    internal var snackBarMessage: SnackBarMessage?
   }
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
@@ -90,8 +89,7 @@ internal final class OTPResourcesListViewController: ViewController {
     self.viewState = .init(
       initial: .init(
         searchText: .init(),
-        otpResources: .init(),
-        snackBarMessage: .none
+        otpResources: .init()
       ),
       updateFrom: self.resourceSearchController.state,
       update: { [resourcesOTPController] (updateState, update: Update<ResourceSearchState>) in
@@ -128,9 +126,7 @@ internal final class OTPResourcesListViewController: ViewController {
           }
         }
         catch {
-          await updateState { (viewState: inout ViewState) in
-            viewState.snackBarMessage = .error(error)
-          }
+					SnackBarMessageEvent.send(.error(error))
         }
       }
     )
@@ -152,11 +148,7 @@ internal final class OTPResourcesListViewController: ViewController {
 extension OTPResourcesListViewController {
 
   @Sendable internal func refreshList() async {
-    await withLogCatch(
-      fallback: { (error: Error) in
-        self.viewState.update(\.snackBarMessage, to: .error(error))
-      }
-    ) {
+    await consumingErrors {
       try await self.resourceSearchController.refreshIfNeeded()
     }
   }
@@ -169,18 +161,11 @@ extension OTPResourcesListViewController {
   }
 
   internal func createOTP() async {
-    await withLogCatch(
-      fallback: { [viewState] (error: Error) in
-        viewState.update(\.snackBarMessage, to: .error(error))
-      }
-    ) {
+    await consumingErrors {
       let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(.totp, .none, .none)
       await self.navigationToOTPEditMenu.performCatching(
         context: .init(
-          editingContext: editingContext,
-          showMessage: { [viewState] (message: SnackBarMessage?) in
-            viewState.update(\.snackBarMessage, to: message)
-          }
+          editingContext: editingContext
         )
       )
     }
@@ -197,26 +182,15 @@ extension OTPResourcesListViewController {
     _ value: OTPValue
   ) async throws {
     pasteboard.put(value.otp.rawValue)
-    self.viewState
-      .update(
-        \.snackBarMessage,
-        to: .info(
-          .localized(
-            key: "otp.value.copied.message"
-          )
-        )
-      )
+    SnackBarMessageEvent.send("otp.value.copied.message")
   }
 
   internal func revealAndCopyOTP(
     for resourceID: Resource.ID
   ) async {
-    await withLogCatch(
-      failInfo: "Failed to reveal or copy OTP.",
-      fallback: { [viewState] (error: Error) in
-        viewState.update(\.snackBarMessage, to: .error(error))
-      }
-    ) {
+    await consumingErrors(
+      errorDiagnostics: "Failed to reveal or copy OTP."
+		) {
       try await self.copyOTP(self.revealOTP(for: resourceID))
     }
   }
@@ -224,12 +198,9 @@ extension OTPResourcesListViewController {
   internal func showCentextualMenu(
     for resourceID: Resource.ID
   ) async {
-    await withLogCatch(
-      failInfo: "Failed to navigate to OTP contextual menu.",
-      fallback: { [viewState] (error: Error) in
-        viewState.update(\.snackBarMessage, to: .error(error))
-      }
-    ) {
+    await consumingErrors(
+      errorDiagnostics: "Failed to navigate to OTP contextual menu."
+		) {
       self.hideOTPCodes()
       let features: Features =
         try features.branchIfNeeded(
@@ -240,19 +211,11 @@ extension OTPResourcesListViewController {
       try await navigationToContextualMenu.perform(
         context: .init(
           revealOTP: { [self] in
-						await withLogCatch(
-							failInfo: "Failed to reveal OTP.",
-							fallback: { [viewState] (error: Error) in
-								viewState.update(\.snackBarMessage, to: .error(error))
-							}
+						await consumingErrors(
+							errorDiagnostics: "Failed to reveal OTP."
 						) {
 							try await self.revealOTP(for: resourceID)
 						}
-          },
-          showMessage: { [viewState] (message: SnackBarMessage?) in
-            viewState.update { state in
-              state.snackBarMessage = message
-            }
           }
         )
       )
@@ -260,12 +223,9 @@ extension OTPResourcesListViewController {
   }
 
   internal func showAccountMenu() async {
-    await withLogCatch(
-      failInfo: "Failed to navigate to account menu.",
-      fallback: { [viewState] (error: Error) in
-        viewState.update(\.snackBarMessage, to: .error(error))
-      }
-    ) {
+    await consumingErrors(
+      errorDiagnostics: "Failed to navigate to account menu."
+		) {
       self.hideOTPCodes()
       try await navigationToAccountMenu.perform()
     }

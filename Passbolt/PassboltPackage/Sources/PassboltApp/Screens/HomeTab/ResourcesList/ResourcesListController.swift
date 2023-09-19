@@ -98,12 +98,7 @@ extension ResourcesListController: UIController {
           .instance(of: NavigationToResourceEdit.self)
           .perform(
             context: .init(
-              editingContext: editingContext,
-              success: { _ in
-                cancellables.executeOnMainActor {
-                  #warning("TODO: show snack bar message")
-                }
-              }
+              editingContext: editingContext
             )
           )
       }
@@ -129,11 +124,7 @@ extension ResourcesListController: UIController {
         let navigationToResourceContextualMenu: NavigationToResourceContextualMenu = try features.instance()
         try await navigationToResourceContextualMenu
           .perform(
-            context: .init(
-              showMessage: { (message: SnackBarMessage?) in
-                #warning("TODO: FIXME: show snackbar!")
-              }
-            )
+            context: .init()
           )
       }
     }

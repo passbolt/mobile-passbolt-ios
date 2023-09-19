@@ -29,8 +29,8 @@ import Resources
 internal struct ResourceDeleteAlertController: AlertController {
 
   internal struct Context {
+  
     internal var resourceID: Resource.ID
-    internal var showMessage: @MainActor (SnackBarMessage) -> Void
   }
 
   internal let title: Localization.DisplayableString
@@ -63,10 +63,10 @@ internal struct ResourceDeleteAlertController: AlertController {
           asyncExecutor.schedule(.unmanaged) { @MainActor in
             do {
               try await resourceController.delete()
-              context.showMessage("resource.delete.succeeded")
+              SnackBarMessageEvent.send("resource.delete.succeeded")
             }
             catch {
-              error.logAndShow(using: context.showMessage)
+              error.consume()
             }
           }
         }

@@ -38,8 +38,7 @@ internal struct ResourceFolderPermissionListView: ControlledView {
     ScreenView(
       title: .localized(
         key: "resource.permission.list.title"
-      ),
-      snackBarMessage: self.binding(to: \.snackBarMessage)
+      )
     ) {
       self.contentView
     }

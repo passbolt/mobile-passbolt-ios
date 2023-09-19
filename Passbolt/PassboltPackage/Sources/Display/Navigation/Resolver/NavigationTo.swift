@@ -95,18 +95,19 @@ extension NavigationTo {
     file: StaticString = #fileID,
     line: UInt = #line
   ) async {
-    await withLogCatch(
-      failInfo: "Navigation perform failed!",
+    await consumingErrors(
+			errorDiagnostics: "Navigation perform failed!",
+			{
+				try await self.performAnimated(
+					animated,
+					context,
+					file,
+					line
+				)
+			},
       file: file,
       line: line
-    ) {
-      try await self.performAnimated(
-        animated,
-        context,
-        file,
-        line
-      )
-    }
+    )
   }
 
   @_transparent
@@ -131,18 +132,19 @@ extension NavigationTo {
     line: UInt = #line
   ) async
   where Destination.TransitionContext == Void {
-    await withLogCatch(
-      failInfo: "Navigation perform failed!",
-      file: file,
-      line: line
-    ) {
+    await consumingErrors(
+      errorDiagnostics: "Navigation perform failed!",
+      {
       try await self.performAnimated(
         animated,
         Void(),
         file,
         line
       )
-    }
+    },
+      file: file,
+      line: line
+    )
   }
 
   @_transparent
@@ -164,17 +166,18 @@ extension NavigationTo {
     file: StaticString = #fileID,
     line: UInt = #line
   ) async {
-    await withLogCatch(
-      failInfo: "Navigation revert failed!",
-      file: file,
-      line: line
-    ) {
+    await consumingErrors(
+      errorDiagnostics: "Navigation revert failed!",
+      {
       try await self.revertAnimated(
         animated,
         file,
         line
       )
-    }
+    },
+      file: file,
+      line: line
+    )
   }
 }
 

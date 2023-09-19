@@ -21,26 +21,80 @@
 // @since         v1.0
 //
 
-public struct EventSubscription<Description>
+public final class EventSubscription<Description>
 where Description: EventDescription {
 
-	@usableFromInline internal var iterator: AsyncStream<Description.Payload>.AsyncIterator
+	@usableFromInline internal let criticalSection: CriticalState<Void>
+	@usableFromInline internal let bufferSize: Int
+	@usableFromInline internal var buffer: Array<Description.Payload>
+	@usableFromInline internal var pendingContinuation: UnsafeContinuation<Description.Payload, Error>?
+	private let unsubscribe: @Sendable () -> Void
 
 	@usableFromInline internal init(
-		stream: AsyncStream<Description.Payload>
+		bufferSize: Int,
+		unsubscribe: @escaping @Sendable () -> Void
 	) {
-		self.iterator = stream.makeAsyncIterator()
+		precondition(bufferSize > 0, "Buffer can't be empty!")
+		self.criticalSection = .init(Void())
+		self.bufferSize = bufferSize
+		self.buffer = .init()
+		self.buffer.reserveCapacity(bufferSize)
+		self.pendingContinuation = .none
+		self.unsubscribe = unsubscribe
+	}
+
+	deinit {
+		precondition(self.pendingContinuation == nil)
+		self.unsubscribe()
 	}
 }
 
 extension EventSubscription {
 
-	@_transparent public mutating func nextEvent() async throws -> Description.Payload {
-		if let payload: Description.Payload = await self.iterator.next() {
-			return payload
-		}
-		else {
-			throw Cancelled.error()
+	@_transparent public func nextEvent() async throws -> Description.Payload {
+		try await withTaskCancellationHandler(
+			operation: {
+				try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Description.Payload, Error>) in
+					self.criticalSection.access { _ in
+						assert(self.pendingContinuation == nil, "Reusing subscriptions is forbidden!")
+						if self.buffer.isEmpty {
+							self.pendingContinuation = continuation
+						}
+						else {
+							continuation.resume(returning: self.buffer.removeFirst())
+						}
+					}
+				}
+			},
+			onCancel: {
+				self.criticalSection.access { _ in
+					self.pendingContinuation?
+						.resume(throwing: CancellationError())
+					self.pendingContinuation = .none
+				}
+			}
+		)
+	}
+}
+
+extension EventSubscription {
+
+	@usableFromInline @Sendable internal func deliver(
+		_ payload: Description.Payload
+	) {
+		self.criticalSection.access { _ in
+			if let pendingContinuation: UnsafeContinuation<Description.Payload, Error> = self.pendingContinuation {
+				assert(self.buffer.isEmpty, "There should be no pending continuation if events are stored in buffer!")
+				self.pendingContinuation = .none
+				pendingContinuation.resume(returning: payload)
+			}
+			else if self.bufferSize > self.buffer.count {
+				self.buffer.append(payload)
+			}
+			else {
+				self.buffer.removeFirst()
+				self.buffer.append(payload)
+			}
 		}
 	}
 }

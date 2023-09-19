@@ -27,8 +27,6 @@ import OSFeatures
 
 internal final class TermsAndLicensesViewController: ViewController {
 
-  internal let viewState: ViewStateSource<SnackBarMessage?>
-
   internal let termsAndConditionsLinkAvailable: Bool
   internal let privacyPolicyLinkAvailable: Bool
 
@@ -49,18 +47,14 @@ internal final class TermsAndLicensesViewController: ViewController {
     self.privacyPolicyLinkAvailable = !(sessionConfiguration.privacyPolicyURL?.isEmpty ?? true)
 
     self.linkOpener = features.instance()
-    self.viewState = .init(initial: .none)
   }
 }
 
 extension TermsAndLicensesViewController {
 
   internal final func navigateToTermsAndConditions() async {
-    await withLogCatch(
-      failInfo: "Failed to open terms and conditions!",
-      fallback: { [viewState] (error: Error) async in
-        viewState.update(\.self, to: .error(error))
-      }
+		await consumingErrors(
+			errorDiagnostics: "Failed to open terms and conditions!"
     ) {
       guard
         let url: URLString = sessionConfiguration.termsURL,
@@ -75,11 +69,8 @@ extension TermsAndLicensesViewController {
   }
 
   internal final func navigateToPrivacyPolicy() async {
-    await withLogCatch(
-      failInfo: "Failed to open privacy policy!",
-      fallback: { [viewState] (error: Error) async in
-        viewState.update(\.self, to: .error(error))
-      }
+    await consumingErrors(
+          errorDiagnostics: "Failed to open privacy policy!"
     ) {
       guard
         let url: URLString = sessionConfiguration.privacyPolicyURL,
@@ -94,11 +85,8 @@ extension TermsAndLicensesViewController {
   }
 
   internal final func navigateToLicenses() async {
-    await withLogCatch(
-      failInfo: "Failed to open application settings!",
-      fallback: { [viewState] (error: Error) async in
-        viewState.update(\.self, to: .error(error))
-      }
+    await consumingErrors(
+          errorDiagnostics: "Failed to open application settings!"
     ) {
       try await self.linkOpener.openApplicationSettings()
     }

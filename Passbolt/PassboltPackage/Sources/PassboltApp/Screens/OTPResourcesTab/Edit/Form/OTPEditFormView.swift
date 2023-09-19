@@ -36,7 +36,6 @@ internal struct OTPEditFormView: ControlledView {
 
   internal var body: some View {
     with(\.isEditing) { (isEditing: Bool) in
-      withSnackBarMessage(\.snackBarMessage) {
         VStack(spacing: 0) {
           ScrollView {
             VStack(spacing: 16) {
@@ -53,7 +52,6 @@ internal struct OTPEditFormView: ControlledView {
         }
         .padding(16)
         .frame(maxHeight: .infinity)
-      }
       .navigationTitle(
         displayable: isEditing
           ? "otp.edit.form.edit.title"

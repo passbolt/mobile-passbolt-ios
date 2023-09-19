@@ -40,19 +40,6 @@ extension ControlledView {
 extension ControlledView {
 
   @_transparent
-  public func withSnackBarMessage<ContentView>(
-    _ keyPath: WritableKeyPath<ViewState, SnackBarMessage?>,
-    @ViewBuilder content contentView: @escaping () -> ContentView
-  ) -> some View
-  where Controller: ViewController, ContentView: View {
-    WithSnackBarMessage(
-      from: self.controller,
-      at: keyPath,
-      content: contentView
-    )
-  }
-
-  @_transparent
   public func with<State, StateView>(
     _ keyPath: KeyPath<ViewState, State>,
     @ViewBuilder content stateView: @escaping (State) -> StateView

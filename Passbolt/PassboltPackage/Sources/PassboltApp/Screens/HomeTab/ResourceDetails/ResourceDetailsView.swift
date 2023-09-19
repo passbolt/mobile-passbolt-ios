@@ -34,20 +34,18 @@ internal struct ResourceDetailsView: ControlledView {
   }
 
   internal var body: some View {
-    withSnackBarMessage(\.snackBarMessage) {
-      self.contentView
-    }
-    .toolbar {
-      ToolbarItemGroup(placement: .navigationBarTrailing) {
-        IconButton(
-          iconName: .more,
-          action: self.controller.showMenu
-        )
-      }
-    }
-    .backgroundColor(.passboltBackground)
-    .foregroundColor(.passboltPrimaryText)
-    .onDisappear(perform: self.controller.coverAllFields)
+		self.contentView
+			.toolbar {
+				ToolbarItemGroup(placement: .navigationBarTrailing) {
+					IconButton(
+						iconName: .more,
+						action: self.controller.showMenu
+					)
+				}
+			}
+			.backgroundColor(.passboltBackground)
+			.foregroundColor(.passboltPrimaryText)
+			.onDisappear(perform: self.controller.coverAllFields)
   }
 
   @MainActor @ViewBuilder private var contentView: some View {

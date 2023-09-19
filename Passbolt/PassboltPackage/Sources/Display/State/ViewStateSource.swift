@@ -67,7 +67,7 @@ where ViewState: Equatable {
     }
     self.updateFromSource = { @MainActor [weak source] (mutate: (@MainActor (inout ViewState) -> Void) -> Void) async in
 
-      await withLogCatch {
+      await consumingErrors {
         guard let sourceUpdate: Update<Source.Value> = try await source?.lastUpdate
         else { return }  // can't update without source
         lastUpdateGeneration = sourceUpdate.generation

@@ -44,7 +44,6 @@ internal final class OTPEditAdvancedFormViewController: ViewController {
     internal var algorithm: Validated<HOTPAlgorithm?>
     internal var period: Validated<String>
     internal var digits: Validated<String>
-    internal var snackBarMessage: SnackBarMessage?
   }
 
   internal let viewState: ViewStateSource<ViewState>
@@ -74,8 +73,7 @@ internal final class OTPEditAdvancedFormViewController: ViewController {
       initial: .init(
         algorithm: .valid(.none),
         period: .valid(""),
-        digits: .valid(""),
-        snackBarMessage: .none
+        digits: .valid("")
       ),
       updateFrom: self.resourceEditForm.state,
       update: { (updateState, update: Update<Resource>) async in
@@ -97,9 +95,7 @@ internal final class OTPEditAdvancedFormViewController: ViewController {
           }
         }
         catch {
-          await updateState { (viewState: inout ViewState) in
-            viewState.snackBarMessage = .error(error)
-          }
+					SnackBarMessageEvent.send(.error(error))
         }
       }
     )

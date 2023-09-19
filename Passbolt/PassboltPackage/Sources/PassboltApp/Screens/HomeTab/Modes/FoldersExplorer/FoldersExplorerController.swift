@@ -150,8 +150,7 @@ extension FoldersExplorerController: ComponentController {
           .refreshIfNeeded()
       }
       catch {
-        error.logged()
-        viewState.snackBarMessage = .error(error.asTheError().displayableMessage)
+				error.consume()
       }
     }
 
@@ -206,7 +205,7 @@ extension FoldersExplorerController: ComponentController {
 
     @MainActor func presentResourceMenu(_ resourceID: Resource.ID) {
       cancellables.executeOnMainActor {
-        await withLogCatch {
+        await consumingErrors {
           let features: Features =
             try features
             .branchIfNeeded(
@@ -216,11 +215,7 @@ extension FoldersExplorerController: ComponentController {
 
           let navigationToResourceContextualMenu: NavigationToResourceContextualMenu = try features.instance()
           try await navigationToResourceContextualMenu.perform(
-            context: .init(
-              showMessage: { (message: SnackBarMessage?) in
-                viewState.snackBarMessage = message
-              }
-            )
+            context: .init()
           )
         }
       }
@@ -237,8 +232,8 @@ extension FoldersExplorerController: ComponentController {
 
     @MainActor func presentAccountMenu() {
       asyncExecutor.schedule(.reuse) {
-        await withLogCatch(
-          failInfo: "Navigation to account menu failed!"
+        await consumingErrors(
+					errorDiagnostics: "Navigation to account menu failed!"
         ) {
           try await navigationToAccountMenu.perform()
         }

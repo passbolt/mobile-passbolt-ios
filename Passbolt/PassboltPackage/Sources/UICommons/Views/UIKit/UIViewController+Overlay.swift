@@ -34,7 +34,6 @@ extension UIViewController {
       return
     }
 
-    dismissSnackbar(animated: true)
     dismissOverlay()
     window._overlayView = overlay
     _overlayView = overlay

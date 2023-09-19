@@ -31,15 +31,6 @@ internal final class OTPEditFormViewController: ViewController {
   internal struct Context {
 
     internal var totpPath: ResourceType.FieldPath
-    internal var showMessage: @MainActor (SnackBarMessage) -> Void
-
-    internal init(
-      totpPath: ResourceType.FieldPath,
-      showMessage: @escaping @MainActor (SnackBarMessage) -> Void
-    ) {
-      self.totpPath = totpPath
-      self.showMessage = showMessage
-    }
   }
 
   internal struct ViewState: Equatable {
@@ -48,7 +39,6 @@ internal final class OTPEditFormViewController: ViewController {
     internal var nameField: Validated<String>
     internal var uriField: Validated<String>
     internal var secretField: Validated<String>
-    internal var snackBarMessage: SnackBarMessage?
   }
 
   internal var viewState: ViewStateSource<ViewState>
@@ -160,9 +150,7 @@ internal final class OTPEditFormViewController: ViewController {
           }
         }
         catch {
-          await updateState { (viewState: inout ViewState) in
-            viewState.snackBarMessage = .error(error)
-          }
+					SnackBarMessageEvent.send(.error(error))
         }
       }
     )
@@ -213,17 +201,13 @@ extension OTPEditFormViewController {
   }
 
   @MainActor internal func createOrUpdateOTP() async {
-    await withLogCatch(
-      fallback: { [viewState] (error: Error) in
-        viewState.update(\.snackBarMessage, to: .error(error))
-      }
-    ) {
+    await consumingErrors {
       do {
         let editedResource: Resource = try await resourceEditForm.state.value
         try await resourceEditForm.send()
         try await navigationToSelf.revert()
-        self.context.showMessage(
-          editedResource.isLocal || !editedResource.hasTOTP
+        SnackBarMessageEvent.send(
+					editedResource.isLocal || !editedResource.hasTOTP
             ? "otp.edit.otp.created.message"
             : "otp.edit.otp.replaced.message"
         )
@@ -241,12 +225,9 @@ extension OTPEditFormViewController {
   }
 
   internal func selectResourceToAttach() async {
-    await withLogCatch(
-      failInfo: "Failed to navigate to adding OTP to a resource",
-      fallback: { [viewState] (error: Error) in
-        viewState.update(\.snackBarMessage, to: .error(error))
-      }
-    ) {
+    await consumingErrors(
+      errorDiagnostics: "Failed to navigate to adding OTP to a resource"
+		) {
       do {
         try await resourceEditForm.validateForm()
         guard
@@ -259,8 +240,7 @@ extension OTPEditFormViewController {
         }
         try await self.navigationToAttach.perform(
           context: .init(
-            totpSecret: totpSecret,
-            showMessage: self.context.showMessage
+            totpSecret: totpSecret
           )
         )
       }

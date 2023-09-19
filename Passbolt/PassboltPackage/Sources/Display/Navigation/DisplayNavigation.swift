@@ -177,18 +177,6 @@ extension DisplayNavigation {
       )
   }
 
-  @MainActor public func presentInfoSnackbar(
-    _ displayable: DisplayableString,
-    with arguments: Array<CVarArg> = .init()
-  ) {
-    self.legacyBridge
-      .bridgeComponent()?
-      .presentInfoSnackbar(
-        displayable,
-        with: arguments
-      )
-  }
-
   @MainActor public func dismiss<Component>(
     _ type: Component.Type,
     animated: Bool = true

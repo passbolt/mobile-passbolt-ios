@@ -31,7 +31,6 @@ where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, Titl
   @Environment(\.isInNavigationTreeContext) var isInNavigationTreeContext: Bool
   private let title: DisplayableString
   private let loading: Bool
-  private let snackBarMessage: Binding<SnackBarMessage?>
   private let titleCenterView: () -> TitleCenterView
   private let titleBottomView: () -> TitleBottomView
   private let titleLeadingItem: () -> TitleLeadingItem
@@ -41,7 +40,6 @@ where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, Titl
   public init(
     title: DisplayableString,
     loading: Bool = false,
-    snackBarMessage: Binding<SnackBarMessage?> = .constant(.none),
     @ViewBuilder titleCenterView: @escaping () -> TitleCenterView,
     @ViewBuilder titleBottomView: @escaping () -> TitleBottomView,
     @ViewBuilder titleLeadingItem: @escaping () -> TitleLeadingItem,
@@ -50,7 +48,6 @@ where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, Titl
   ) {
     self.title = title
     self.loading = loading
-    self.snackBarMessage = snackBarMessage
     self.titleCenterView = titleCenterView
     self.titleBottomView = titleBottomView
     self.titleLeadingItem = titleLeadingItem
@@ -62,7 +59,6 @@ where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, Titl
     titleIcon: ImageNameConstant,
     title: DisplayableString,
     loading: Bool = false,
-    snackBarMessage: Binding<SnackBarMessage?> = .constant(.none),
     @ViewBuilder titleExtensionView: @escaping () -> TitleBottomView,
     @ViewBuilder titleLeadingItem: @escaping () -> TitleLeadingItem,
     @ViewBuilder titleTrailingItem: @escaping () -> TitleTrailingItem,
@@ -90,14 +86,12 @@ where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, Titl
     self.titleTrailingItem = titleTrailingItem
     self.contentView = contentView
     self.loading = loading
-    self.snackBarMessage = snackBarMessage
   }
 
   public init(
     titleIcon: ImageNameConstant,
     title: DisplayableString,
     loading: Bool = false,
-    snackBarMessage: Binding<SnackBarMessage?> = .constant(.none),
     @ViewBuilder contentView: @escaping () -> ContentView
   )
   where
@@ -128,14 +122,12 @@ where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, Titl
     self.titleTrailingItem = EmptyView.init
     self.contentView = contentView
     self.loading = loading
-    self.snackBarMessage = snackBarMessage
   }
 
   public init(
     title: DisplayableString,
     loading: Bool = false,
     backButtonAction: @escaping () -> Void,
-    snackBarMessage: Binding<SnackBarMessage?> = .constant(.none),
     @ViewBuilder contentView: @escaping () -> ContentView
   )
   where
@@ -167,14 +159,12 @@ where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, Titl
     self.titleTrailingItem = EmptyView.init
     self.contentView = contentView
     self.loading = loading
-    self.snackBarMessage = snackBarMessage
   }
 
   public init(
     title: DisplayableString,
     loading: Bool = false,
     dismissButtonAction: @escaping () -> Void,
-    snackBarMessage: Binding<SnackBarMessage?> = .constant(.none),
     @ViewBuilder contentView: @escaping () -> ContentView
   )
   where
@@ -206,13 +196,11 @@ where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, Titl
     }
     self.contentView = contentView
     self.loading = loading
-    self.snackBarMessage = snackBarMessage
   }
 
   public init(
     title: DisplayableString,
     loading: Bool = false,
-    snackBarMessage: Binding<SnackBarMessage?> = .constant(.none),
     @ViewBuilder contentView: @escaping () -> ContentView
   )
   where
@@ -239,7 +227,6 @@ where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, Titl
     self.titleTrailingItem = EmptyView.init
     self.contentView = contentView
     self.loading = loading
-    self.snackBarMessage = snackBarMessage
   }
 
   public var body: some View {
@@ -255,7 +242,6 @@ where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, Titl
             alignment: .top
           )
       }
-      .snackBarMessage(presenting: self.snackBarMessage)
       .loader(visible: self.loading)
       .navigationBarTitleDisplayMode(.inline)
       .navigationTitle(Text(displayable: self.title))
@@ -297,7 +283,6 @@ where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, Titl
         )
     }
     .backgroundColor(.passboltBackground)
-    .snackBarMessage(presenting: self.snackBarMessage)
     .loader(visible: self.loading)
   }
 }

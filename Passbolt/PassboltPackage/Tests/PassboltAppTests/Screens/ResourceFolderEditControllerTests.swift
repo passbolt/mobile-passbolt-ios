@@ -87,12 +87,13 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
       \ResourceFolderEditForm.sendForm,
       with: alwaysThrow(MockIssue.error())
     )
+    let messagesSubscription = SnackBarMessageEvent.subscribe()
 
 		await withInstance(
 			returns: SnackBarMessage.error(MockIssue.error())
 		) { (tested: ResourceFolderEditController) in
 			await tested.saveChanges()
-			return await tested.viewState.current.snackBarMessage
+			return try await messagesSubscription.nextEvent()
 		}
   }
 

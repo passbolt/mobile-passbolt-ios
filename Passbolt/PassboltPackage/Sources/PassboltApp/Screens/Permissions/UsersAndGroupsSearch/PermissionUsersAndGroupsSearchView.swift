@@ -43,7 +43,6 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
       title: .localized(
         key: "resource.permission.edit.user.and.group.search.title"
       ),
-      snackBarMessage: self.$state.snackBarMessage,
       contentView: {
         VStack(spacing: 0) {
           self.searchBar
@@ -223,7 +222,6 @@ extension PermissionUsersAndGroupsSearchView {
     internal var selectedItems: Array<OverlappingAvatarStackView.Item>
     internal var listSelectionRowViewModels: Array<SelectionRowViewModel>
     internal var listExistingRowViewModels: Array<ExistingPermissionRowViewModel>
-    internal var snackBarMessage: SnackBarMessage? = .none
   }
 }
 

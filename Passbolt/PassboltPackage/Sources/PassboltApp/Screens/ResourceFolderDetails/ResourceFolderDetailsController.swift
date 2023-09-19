@@ -86,8 +86,8 @@ internal final class ResourceFolderDetailsController: ViewController {
     self.asyncExecutor.scheduleIteration(
       over: self.resourceFolderController.state,
       failMessage: "Resource folder details updates broken!",
-      failAction: { [viewState] (error: Error) in
-        await viewState.update(\.snackBarMessage, to: .error(error))
+      failAction: { (error: Error) in
+				SnackBarMessageEvent.send(.error(error))
       }
     ) { [viewState] (update: Update<ResourceFolder>) in
       let resourceFolder: ResourceFolder = try update.value
@@ -124,7 +124,6 @@ extension ResourceFolderDetailsController {
     internal var folderLocation: Array<String>
     internal var folderPermissionItems: Array<OverlappingAvatarStackView.Item>
     internal var folderShared: Bool
-    internal var snackBarMessage: SnackBarMessage?
   }
 }
 

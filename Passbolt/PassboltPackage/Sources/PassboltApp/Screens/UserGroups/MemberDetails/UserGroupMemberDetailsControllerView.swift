@@ -45,7 +45,6 @@ internal struct UserGroupMemberDetailsView: ComponentView {
       self.contentView
     }
     .backgroundColor(.passboltBackground)
-    .snackBarMessage(presenting: self.$state.snackBarMessage)
   }
 
   @ViewBuilder private var titleView: some View {
@@ -134,7 +133,6 @@ extension UserGroupMemberDetailsView {
 
     internal var userDetails: UserDetailsDSV
     internal var avatarImageFetch: () async -> Data?
-    internal var snackBarMessage: SnackBarMessage? = .none
   }
 }
 
@@ -145,12 +143,5 @@ extension UserGroupMemberDetailsView.ViewState {
     _ rhs: Self
   ) -> Bool {
     lhs.userDetails == rhs.userDetails
-      && lhs.snackBarMessage == rhs.snackBarMessage
-  }
-  internal func hash(
-    into hasher: inout Hasher
-  ) {
-    hasher.combine(self.userDetails)
-    hasher.combine(self.snackBarMessage)
   }
 }

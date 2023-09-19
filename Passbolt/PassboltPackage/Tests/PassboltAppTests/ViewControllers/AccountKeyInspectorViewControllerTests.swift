@@ -79,8 +79,7 @@ final class AccountKeyInspectorViewControllerTests: FeaturesTestCase {
 				crationDate: "DATE",
 				expirationDate: .none,
 				keySize: "0",
-				algorithm: "mock",
-				snackBarMessage: .none
+				algorithm: "mock"
 			)
 		) { feature in
 			await feature.viewState.current

@@ -74,16 +74,15 @@ internal final class ResourceFolderPermissionListController: ViewController {
 
     self.viewState = .init(
       initial: .init(
-        permissionListItems: [],
-        snackBarMessage: .none
+        permissionListItems: []
       )
     )
 
     self.asyncExecutor.scheduleIteration(
       over: self.resourceFolderController.state,
       failMessage: "Resource folder permissions list updates broken!",
-      failAction: { [viewState] (error: Error) in
-        await viewState.update(\.snackBarMessage, to: .error(error))
+      failAction: { (error: Error) in
+				SnackBarMessageEvent.send(.error(error))
       }
     ) {
       [viewState, resourceFolderUserGroupPermissionsDetailsFetch, resourceFolderUserPermissionsDetailsFetch] (
@@ -118,7 +117,6 @@ extension ResourceFolderPermissionListController {
   internal struct ViewState: Equatable {
 
     internal var permissionListItems: Array<PermissionListRowItem>
-    internal var snackBarMessage: SnackBarMessage? = .none
   }
 }
 

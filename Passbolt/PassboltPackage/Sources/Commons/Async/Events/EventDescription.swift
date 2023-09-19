@@ -48,15 +48,16 @@ extension EventDescription {
 	}
 
 	@_transparent @Sendable public nonisolated static func subscribe(
-		bufferSize: UInt = 1
+		bufferSize: Int = 1
 	) -> EventSubscription<Self> {
-		Self.eventList.subscribe()
+		Self.eventList.subscribe(bufferSize: bufferSize)
 	}
 
 	@_transparent @Sendable public nonisolated static func subscribe(
+		bufferSize: Int = 1,
 		_ handler: @escaping @Sendable (Self.Payload) async -> Void
 	) async throws {
-		var subscription: EventSubscription<Self> = Self.eventList.subscribe()
+		let subscription: EventSubscription<Self> = Self.eventList.subscribe(bufferSize: bufferSize)
 		while true {
 			try Task.checkCancellation()
 			try await handler(subscription.nextEvent())

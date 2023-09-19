@@ -34,7 +34,6 @@ internal struct AccountKeyInspectorView: ControlledView {
 	}
 
 	internal var body: some View {
-		withSnackBarMessage(\.snackBarMessage) {
 			VStack(spacing: 0) {
 				self.headerView
 					.padding(
@@ -45,7 +44,6 @@ internal struct AccountKeyInspectorView: ControlledView {
 					self.propertiesView
 				}
 			}
-		}
 		.navigationTitle(displayable: "account.key.inspector.title")
 		.toolbar {
 			ToolbarItemGroup(placement: .navigationBarTrailing) {

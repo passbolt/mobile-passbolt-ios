@@ -91,17 +91,12 @@ public final class ServerFingerprintViewController: PlainViewController, UICompo
       .switchToLatest()
       .eraseToAnyPublisher()
       .sink(
-        receiveCompletion: { [weak self] completion in
+        receiveCompletion: { completion in
           guard case .failure = completion
           else {
             return
           }
-          self?
-            .presentErrorSnackbar(
-              .localized(
-                key: "server.fingerprint.save.failed"
-              )
-            )
+          SnackBarMessageEvent.send(.error("server.fingerprint.save.failed"))
         },
         receiveValue: { [weak self] in
           self?.cancellables

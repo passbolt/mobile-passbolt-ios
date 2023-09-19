@@ -40,7 +40,6 @@ internal final class AccountKeyInspectorViewController: ViewController {
 		internal var expirationDate: String?
 		internal var keySize: String
 		internal var algorithm: String
-		internal var snackBarMessage: SnackBarMessage?
 	}
 
 	internal let viewState: ViewStateSource<State>
@@ -74,8 +73,7 @@ internal final class AccountKeyInspectorViewController: ViewController {
 				crationDate: "",
 				expirationDate: "",
 				keySize: "",
-				algorithm: "",
-				snackBarMessage: .none
+				algorithm: ""
 			),
 			updateFrom: self.accountDetails.updates,
 			update: { [accountDetails, calendar] (updateView, _) in
@@ -100,14 +98,9 @@ internal final class AccountKeyInspectorViewController: ViewController {
 					}
 				}
 				catch {
-					error.logged(
-						info: .message(
-							"Failed to update account key details!"
-						)
+					error.consume(
+						context: "Failed to update account key details!"
 					)
-					await updateView { (viewState: inout State) in
-						viewState.snackBarMessage = .error(error)
-					}
 				}
 			}
 		)
@@ -115,12 +108,16 @@ internal final class AccountKeyInspectorViewController: ViewController {
 
 	internal func copyUserID() async {
 		await self.pasteboard.put(self.viewState.current.userID)
-		self.viewState.update(\.snackBarMessage, to: .info("account.key.inspector.uid.copied.message"))
+		SnackBarMessageEvent.send(
+			"account.key.inspector.uid.copied.message"
+		)
 	}
 
 	internal func copyFingerprint() async {
 		await self.pasteboard.put(self.viewState.current.fingerprint)
-		self.viewState.update(\.snackBarMessage, to: .info("account.key.inspector.fingerprint.copied.message"))
+		SnackBarMessageEvent.send(
+			"account.key.inspector.fingerprint.copied.message"
+		)
 	}
 
 	internal func showExportMenu() async {

@@ -39,7 +39,7 @@ public final class ResourceEditViewController: ViewController {
 
     public init(
       editingContext: ResourceEditingContext,
-      success: @escaping @Sendable (Resource) async -> Void
+      success: @escaping @Sendable (Resource) async -> Void = { _ in }
     ) {
       self.editingContext = editingContext
       self.success = success
@@ -51,7 +51,6 @@ public final class ResourceEditViewController: ViewController {
     internal var fields: IdentifiedArray<ResourceEditFieldViewModel>
     internal var containsUndefinedFields: Bool
     internal var edited: Bool
-    internal var snackBarMessage: SnackBarMessage?
   }
 
   public let viewState: ViewStateSource<ViewState>
@@ -140,9 +139,7 @@ public final class ResourceEditViewController: ViewController {
           }
         }
         catch {
-          await updateState { (viewState: inout ViewState) in
-            viewState.snackBarMessage = .error(error)
-          }
+					error.consume()
         }
       }
     )
@@ -173,11 +170,8 @@ public final class ResourceEditViewController: ViewController {
   }
 
   @MainActor internal func sendForm() async {
-    await withLogCatch(
-      failInfo: "Failed to send resource edit form!",
-      fallback: { [viewState] error in
-        viewState.update(\.snackBarMessage, to: .error(error))
-      }
+    await consumingErrors(
+			errorDiagnostics: "Failed to send resource edit form!"
     ) {
       do {
         let resource: Resource = try await self.resourceEditForm.sendForm()
@@ -185,7 +179,13 @@ public final class ResourceEditViewController: ViewController {
           // TODO: unify navigation between app and extnsion
           try await self.navigationToSelf.revert()
         }  // else NOP
-        await self.success(resource)
+
+				SnackBarMessageEvent.send(
+					resource.isLocal
+					? "resource.form.new.password.created"
+					: "resource.menu.action.edited"
+				)
+				await self.success(resource)
       }
       catch let error as InvalidForm {
         self.localState.mutate { (state: inout LocalState) in
@@ -200,12 +200,9 @@ public final class ResourceEditViewController: ViewController {
   }
 
   @MainActor internal func discardForm() async {
-    await withLogCatch(
-      failInfo: "Failed to discard resource edit form!",
-      fallback: { [viewState] error in
-        viewState.update(\.snackBarMessage, to: .error(error))
-      }
-    ) {
+    await consumingErrors(
+			errorDiagnostics: "Failed to discard resource edit form!"
+		) {
       if isInExtensionContext {
         // TODO: unify navigation between app and extnsion
         self.features.instance(of: NavigationTree.self)

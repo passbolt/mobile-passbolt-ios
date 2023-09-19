@@ -34,9 +34,7 @@ public struct OperationResultControlledView: ControlledView {
 	}
 
 	public var body: some View {
-		withSnackBarMessage(\.snackBarMessage) {
-			self.contentView
-		}
+		self.contentView
 		.navigationBarBackButtonHidden()
 	}
 

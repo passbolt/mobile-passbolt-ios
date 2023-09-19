@@ -31,15 +31,6 @@ internal final class OTPAttachSelectionListViewController: ViewController {
   internal struct Context {
 
     internal var totpSecret: TOTPSecret
-    internal var showMessage: @MainActor (SnackBarMessage) -> Void
-
-    internal init(
-      totpSecret: TOTPSecret,
-      showMessage: @escaping @MainActor (SnackBarMessage) -> Void
-    ) {
-      self.totpSecret = totpSecret
-      self.showMessage = showMessage
-    }
   }
 
   internal struct ViewState: Equatable {
@@ -52,7 +43,6 @@ internal final class OTPAttachSelectionListViewController: ViewController {
     internal var searchText: String
     internal var listItems: Array<TOTPAttachSelectionListItemViewModel>
     internal var confirmationAlert: Confirmation?
-    internal var snackBarMessage: SnackBarMessage?
   }
 
   internal let viewState: ViewStateSource<ViewState>
@@ -103,8 +93,7 @@ internal final class OTPAttachSelectionListViewController: ViewController {
     self.viewState = .init(
       initial: .init(
         searchText: .init(),
-        listItems: .init(),
-        snackBarMessage: .none
+        listItems: .init()
       ),
       updateFrom: ComputedVariable(
         combined: self.resourceSearchController.state,
@@ -132,9 +121,7 @@ internal final class OTPAttachSelectionListViewController: ViewController {
           }
         }
         catch {
-          await updateView { (viewState: inout ViewState) in
-            viewState.snackBarMessage = .error(error)
-          }
+					SnackBarMessageEvent.send(.error(error))
         }
       }
     )
@@ -163,11 +150,7 @@ extension OTPAttachSelectionListViewController {
   }
 
   @MainActor internal func trySendForm() async {
-    withLogCatch(
-      fallback: { [viewState] (error: Error) in
-        viewState.update(\.snackBarMessage, to: .error(error))
-      }
-    ) {
+    consumingErrors {
       guard let selected: (id: Resource.ID, type: ResourceType) = self.localState.value.selected
       else {
         throw
@@ -185,11 +168,7 @@ extension OTPAttachSelectionListViewController {
   }
 
   @MainActor internal func sendForm() async {
-    await withLogCatch(
-      fallback: { [viewState] (error: Error) in
-        viewState.update(\.snackBarMessage, to: .error(error))
-      }
-    ) {
+    await consumingErrors {
       guard let selected: (id: Resource.ID, type: ResourceType) = self.localState.value.selected
       else {
         throw
@@ -224,7 +203,7 @@ extension OTPAttachSelectionListViewController {
 
       try await resourceEditForm.send()
       try await navigationToOTPResourcesList.perform()
-      self.context.showMessage(
+      SnackBarMessageEvent.send(
         editingContext.editedResource.isLocal || !editingContext.editedResource.hasTOTP
           ? "otp.edit.otp.created.message"
           : "otp.edit.otp.replaced.message"

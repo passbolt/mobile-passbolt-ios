@@ -58,7 +58,7 @@ extension ResourcesListCreateMenuViewController {
   internal final func createResource() {
     self.asyncExecutor.scheduleCatching(
       behavior: .reuse
-    ) { @MainActor [context, features, navigation] in
+    ) { @MainActor [features, navigation] in
       let resourceEditPreparation: ResourceEditPreparation = try features.instance()
       let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
         .default,
@@ -71,16 +71,7 @@ extension ResourcesListCreateMenuViewController {
         .instance(of: NavigationToResourceEdit.self)
         .perform(
           context: .init(
-            editingContext: editingContext,
-            success: { _ in
-              MainActor.execute {
-                navigation.presentInfoSnackbar(
-                  .localized(
-                    key: "resource.form.new.password.created"
-                  )
-                )
-              }
-            }
+            editingContext: editingContext
           )
         )
     }

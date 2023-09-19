@@ -114,12 +114,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
           .filteredUserGroups(.init(userID: .none, text: searchText))
       }
       catch {
-        error.logged()
-        viewState.set(
-          \.snackBarMessage,
-          to: .error(error)
-        )
-        return
+				return error.consume()
       }
       let existingPermissions: OrderedSet<ResourcePermission> =
         await resourceShareForm

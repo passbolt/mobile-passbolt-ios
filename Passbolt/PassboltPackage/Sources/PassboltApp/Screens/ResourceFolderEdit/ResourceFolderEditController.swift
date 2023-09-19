@@ -77,7 +77,7 @@ internal final class ResourceFolderEditController: ViewController {
 							}
 					}
 					catch {
-						viewState.snackBarMessage = .error(error.logged())
+						error.consume()
 					}
 				}
 			}
@@ -92,7 +92,6 @@ extension ResourceFolderEditController {
 		internal var folderName: Validated<String>
 		internal var folderLocation: Array<String>
 		internal var folderPermissionItems: Array<OverlappingAvatarStackView.Item>
-		internal var snackBarMessage: SnackBarMessage?
 	}
 }
 
@@ -110,9 +109,7 @@ extension ResourceFolderEditController {
 			await self.navigation.pop(ResourceFolderEditView.self)
 		}
 		catch {
-			self.viewState.update { viewState in
-				viewState.snackBarMessage = .error(error)
-			}
+			error.consume()
 		}
 	}
 }

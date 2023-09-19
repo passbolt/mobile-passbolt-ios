@@ -58,20 +58,14 @@ internal final class ResourceTagsListNodeController: ViewController {
     self.viewState = .init(
       initial: .init(
         title: context.title,
-        titleIconName: context.titleIconName,
-        snackBarMessage: .none
+        titleIconName: context.titleIconName
       )
     )
 
     self.searchController = try features.instance(
       context: .init(
         nodeID: context.nodeID,
-        searchPrompt: context.searchPrompt,
-        showMessage: { [viewState] (message: SnackBarMessage?) in
-          viewState.update { viewState in
-            viewState.snackBarMessage = message
-          }
-        }
+        searchPrompt: context.searchPrompt
       )
     )
 
@@ -81,12 +75,7 @@ internal final class ResourceTagsListNodeController: ViewController {
           .asAnyAsyncSequence()
           .compactMap { try? $0.value }
           .asAnyAsyncSequence(),
-        selectTag: self.selectResourceTag(_:),
-        showMessage: { [viewState] (message: SnackBarMessage?) in
-          viewState.update { viewState in
-            viewState.snackBarMessage = message
-          }
-        }
+        selectTag: self.selectResourceTag(_:)
       )
     )
   }
@@ -106,7 +95,6 @@ extension ResourceTagsListNodeController {
 
     internal var title: DisplayableString
     internal var titleIconName: ImageNameConstant
-    internal var snackBarMessage: SnackBarMessage?
   }
 }
 
@@ -117,8 +105,8 @@ extension ResourceTagsListNodeController {
   ) {
     self.asyncExecutor.scheduleCatching(
       failMessage: "Failed to handle resource selection.",
-      failAction: { [viewState] (error: Error) in
-        await viewState.update(\.snackBarMessage, to: .error(error))
+      failAction: { (error: Error) in
+        SnackBarMessageEvent.send(.error(error))
       },
       behavior: .replace
     ) { [features, context, resourceTags, navigationTree] in

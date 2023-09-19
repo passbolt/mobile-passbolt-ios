@@ -35,7 +35,6 @@ internal struct DUOAuthorizationView: ControlledView {
 	}
 
 	internal var body: some View {
-		withSnackBarMessage(\.snackBarMessage) {
 			with(\.request) { (request: DUOWebAuthorizationRequest?) in
 				VStack {
 					Spacer(minLength: 64)
@@ -102,7 +101,6 @@ internal struct DUOAuthorizationView: ControlledView {
 						.ignoresSafeArea(.container, edges: .bottom)
 					}
 				)
-			}
 		}
 	}
 }

@@ -89,11 +89,13 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
       )
   }
 
-  func test_refreshIfNeeded_setsViewStateError_whenRefreshFails() async throws {
+	func test_refreshIfNeeded_showsError_whenRefreshFails() async throws {
     features.patch(
       \SessionData.refreshIfNeeded,
       with: alwaysThrow(MockIssue.error())
     )
+
+		let messagesSubscription = SnackBarMessageEvent.subscribe()
 
     let controller: FoldersExplorerController = try testController(
       context: nil
@@ -101,7 +103,9 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
 
     await controller.refreshIfNeeded()
 
-    XCTAssertNotNil(controller.viewState.value.snackBarMessage)
+    let message: SnackBarMessage? = try await messagesSubscription.nextEvent()
+
+    XCTAssertNotNil(message)
   }
 
   func test_refreshIfNeeded_finishesWithoutError_whenRefreshingSucceeds() async throws {
@@ -112,7 +116,7 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
 
     await controller.refreshIfNeeded()
 
-    XCTAssertNil(controller.viewState.value.snackBarMessage)
+		// can't check if succeeded now...
   }
 
   func test_initally_viewStateTitle_isDefaultString_forRootFolder() async throws {

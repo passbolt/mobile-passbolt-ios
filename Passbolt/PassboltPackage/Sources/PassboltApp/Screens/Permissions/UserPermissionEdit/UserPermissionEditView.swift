@@ -42,8 +42,7 @@ internal struct UserPermissionEditView: ComponentView {
     ScreenView(
       title: .localized(
         key: "resource.permission.details.title"
-      ),
-      snackBarMessage: self.$state.snackBarMessage
+      )
     ) {
       self.contentView
     }
@@ -185,7 +184,6 @@ extension UserPermissionEditView {
     internal var permission: Permission
     internal var avatarImageFetch: () async -> Data?
     internal var deleteConfirmationAlert: ConfirmationAlertMessage? = .none
-    internal var snackBarMessage: SnackBarMessage? = .none
   }
 }
 
@@ -200,17 +198,5 @@ extension UserPermissionEditView.ViewState: Equatable {
       && lhs.fingerprint == rhs.fingerprint
       && lhs.permission == rhs.permission
       && lhs.deleteConfirmationAlert == rhs.deleteConfirmationAlert
-      && lhs.snackBarMessage == rhs.snackBarMessage
-  }
-
-  internal func hash(
-    into hasher: inout Hasher
-  ) {
-    hasher.combine(self.name)
-    hasher.combine(self.username)
-    hasher.combine(self.fingerprint)
-    hasher.combine(self.permission)
-    hasher.combine(self.deleteConfirmationAlert)
-    hasher.combine(self.snackBarMessage)
   }
 }

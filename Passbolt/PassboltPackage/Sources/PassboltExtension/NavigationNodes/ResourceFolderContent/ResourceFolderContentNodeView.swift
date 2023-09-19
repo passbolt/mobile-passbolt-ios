@@ -47,7 +47,6 @@ internal struct ResourceFolderContentNodeView: ControlledView {
         ? .sharedFolder
         : .folder,
       title: state.folderName,
-      snackBarMessage: self.binding(to: \.snackBarMessage),
       titleExtensionView: {
         self.searchView(with: state)
       },

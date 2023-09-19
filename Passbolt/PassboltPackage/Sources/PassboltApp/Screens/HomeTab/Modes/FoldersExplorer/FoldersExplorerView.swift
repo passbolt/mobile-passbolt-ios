@@ -82,7 +82,6 @@ internal struct FoldersExplorerView: ComponentView {
       }
     }
     .backgroundColor(.passboltBackground)
-    .snackBarMessage(presenting: self.$state.snackBarMessage)
   }
 
   @ViewBuilder private var titleView: some View {
@@ -372,7 +371,6 @@ extension FoldersExplorerView {
     internal var nestedFolders: Array<ResourceFolderListItemDSV> = .init()
     internal var directResources: Array<ResourceListItemDSV> = .init()
     internal var nestedResources: Array<ResourceListItemDSV> = .init()
-    internal var snackBarMessage: SnackBarMessage? = .none
   }
 }
 

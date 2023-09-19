@@ -92,17 +92,7 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
     self.cancellables.executeOnMainActor { [weak self] in
       if let cameraSession: AVCaptureSession = self?.cameraSession {
         cameraSession.startRunning()
-        self?
-          .present(
-            snackbar: Mutation<UICommons.PlainView>
-              .snackBarMessage(
-                .localized("code.scanning.begin"),
-                backgroundColor: .background,
-                textColor: .primaryText
-              )
-              .instantiate(),
-            hideAfter: 2
-          )
+        SnackBarMessageEvent.send("code.scanning.begin")
       }
       else {
         await self?
@@ -140,18 +130,7 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
       .processPayload(payload)
       .subscribe(on: RunLoop.main)
       .handleEvents(receiveSubscription: { [weak self] _ in
-        self?
-          .present(
-            snackbar: Mutation<UICommons.PlainView>
-              .snackBarMessage(
-                .localized("code.scanning.processing.in.progress"),
-                backgroundColor: .background,
-                textColor: .primaryText
-              )
-              .instantiate(),
-            hideAfter: 2,
-            replaceCurrent: false
-          )
+				SnackBarMessageEvent.send("code.scanning.processing.in.progress")
       })
       .receive(on: RunLoop.main)
       .handleErrors { [weak self] error in
@@ -178,7 +157,7 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
           }
 
         case _:
-          self?.presentErrorSnackbar(error.displayableMessage)
+        SnackBarMessageEvent.send(.error(error))
         }
       }
       .handleEnd { [weak self] ending in

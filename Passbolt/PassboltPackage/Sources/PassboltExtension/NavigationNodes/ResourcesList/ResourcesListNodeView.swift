@@ -45,7 +45,6 @@ internal struct ResourcesListNodeView: ControlledView {
     ScreenView(
       titleIcon: state.titleIconName,
       title: state.title,
-      snackBarMessage: self.binding(to: \.snackBarMessage),
       titleExtensionView: {
         self.searchView(with: state)
       },

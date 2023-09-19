@@ -100,9 +100,8 @@ internal final class AccountDetailsViewController: PlainViewController, UICompon
         self.controller
           .saveChanges()
           .receive(on: RunLoop.main)
-          .handleErrors { [weak self] error in
-            guard !(error is Cancelled) else { return }
-            self?.presentErrorSnackbar(error.displayableMessage)
+          .handleErrors { error in
+            SnackBarMessageEvent.send(.error(error))
           }
           .handleEnd { [weak self] ending in
             guard case .finished = ending else { return }

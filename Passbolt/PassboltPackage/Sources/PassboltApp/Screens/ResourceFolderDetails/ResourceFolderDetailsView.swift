@@ -37,7 +37,6 @@ internal struct ResourceFolderDetailsView: ControlledView {
     WithViewState(from: self.controller) { (state: ViewState) in
       ScreenView(
         title: "",
-        snackBarMessage: self.binding(to: \.snackBarMessage),
         contentView: {
           self.contentView(using: state)
         }

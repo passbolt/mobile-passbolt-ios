@@ -36,7 +36,6 @@ public final class OperationResultViewController: ViewController {
 		internal var title: DisplayableString
 		internal var message: DisplayableString?
 		internal var actionLabel: DisplayableString
-		internal var snackBarMessage: SnackBarMessage?
 	}
 
 	public nonisolated let viewState: ViewStateSource<ViewState>
@@ -58,8 +57,7 @@ public final class OperationResultViewController: ViewController {
 				image: configuration.image,
 				title: configuration.title,
 				message: configuration.message,
-				actionLabel: configuration.actionLabel,
-				snackBarMessage: .none
+				actionLabel: configuration.actionLabel
 			)
 		)
 	}
@@ -72,7 +70,7 @@ extension OperationResultViewController {
 			try await self.configuration.confirmation()
 		}
 		catch {
-			self.viewState.update(\.snackBarMessage, to: .error(error))
+			error.consume()
 		}
 	}
 }

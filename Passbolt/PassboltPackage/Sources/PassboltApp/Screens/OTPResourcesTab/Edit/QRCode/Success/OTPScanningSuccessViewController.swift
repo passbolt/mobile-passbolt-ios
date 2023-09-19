@@ -31,15 +31,7 @@ internal final class OTPScanningSuccessViewController: ViewController {
   internal struct Context {
 
     internal var totpConfiguration: TOTPConfiguration
-    internal var showMessage: @MainActor (SnackBarMessage) -> Void
   }
-
-  internal struct ViewState: Equatable {
-
-    internal var snackBarMessage: SnackBarMessage?
-  }
-
-  internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private let resourceEditPreparation: ResourceEditPreparation
   private let resourceEditForm: ResourceEditForm
@@ -70,39 +62,28 @@ internal final class OTPScanningSuccessViewController: ViewController {
 
     self.resourceEditPreparation = try features.instance()
     self.resourceEditForm = try features.instance()
-
-    self.viewState = .init(
-      initial: .init()
-    )
   }
 }
 
 extension OTPScanningSuccessViewController {
 
   internal func createStandaloneOTP() async {
-    await withLogCatch(
-      failInfo: "Failed to create standalone OTP",
-      fallback: { [viewState] (error: Error) in
-        viewState.update(\.snackBarMessage, to: .error(error))
-      }
+    await consumingErrors(
+      errorDiagnostics: "Failed to create standalone OTP"
     ) {
       try await self.resourceEditForm.send()
       try await self.navigationToOTPResourcesList.perform()
-      self.context.showMessage("otp.edit.otp.created.message")
+      SnackBarMessageEvent.send("otp.edit.otp.created.message")
     }
   }
 
   internal func updateExistingResource() async {
-    await withLogCatch(
-      failInfo: "Failed to navigate to adding OTP to a resource",
-      fallback: { [viewState] (error: Error) in
-        viewState.update(\.snackBarMessage, to: .error(error))
-      }
-    ) {
+    await consumingErrors(
+			errorDiagnostics: "Failed to navigate to adding OTP to a resource"
+		) {
       try await self.navigationToAttach.perform(
         context: .init(
-          totpSecret: self.context.totpConfiguration.secret,
-          showMessage: self.context.showMessage
+          totpSecret: self.context.totpConfiguration.secret
         )
       )
     }

@@ -43,8 +43,7 @@ internal struct ResourcePermissionEditListView: ComponentView {
       title: .localized(
         key: "resource.permission.edit.list.title"
       ),
-      loading: self.state.loading,
-      snackBarMessage: self.$state.snackBarMessage
+      loading: self.state.loading
     ) {
       self.contentView
     }
@@ -143,6 +142,5 @@ extension ResourcePermissionEditListView {
 
     internal var permissionListItems: Array<PermissionListRowItem>
     internal var loading: Bool = false
-    internal var snackBarMessage: SnackBarMessage? = .none
   }
 }

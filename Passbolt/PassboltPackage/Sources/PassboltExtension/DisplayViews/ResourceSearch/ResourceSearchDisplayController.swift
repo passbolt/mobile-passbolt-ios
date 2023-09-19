@@ -91,7 +91,6 @@ extension ResourceSearchDisplayController {
 
     internal var nodeID: ViewNodeID
     internal var searchPrompt: DisplayableString
-    internal var showMessage: (SnackBarMessage?) -> Void
   }
 
   internal struct ViewState: Equatable {
@@ -128,8 +127,8 @@ extension ResourceSearchDisplayController {
 
   internal final func showPresentationMenu() {
     self.asyncExecutor.scheduleCatching(
-      failAction: { [context] (error: Error) in
-        await context.showMessage(.error(error))
+      failAction: { (error: Error) in
+				SnackBarMessageEvent.send(.error(error))
       },
       behavior: .reuse
     ) { [features, context, navigationTree] in

@@ -36,12 +36,7 @@ public struct ResourceEditView: ControlledView {
   }
 
   public var body: some View {
-    WithSnackBarMessage(
-      from: self.controller,
-      at: \.snackBarMessage
-    ) {
-      self.contentView
-    }
+		self.contentView
     .alert(
       isPresented: self.$discardFormAlertVisible,
       title: "generic.are.you.sure",

@@ -113,7 +113,6 @@ extension AccountExportAuthorizationController {
     internal var accountAvatarImage: Data?
     internal var biometricsAvailability: OSBiometryAvailability
     internal var passphrase: Validated<Passphrase>
-    internal var snackBarMessage: SnackBarMessage?
   }
 }
 
@@ -139,9 +138,8 @@ extension AccountExportAuthorizationController {
       catch {
         await self.viewState.update { (state: inout ViewState) in
           state.passphrase = validatedPassphrase
-          state.snackBarMessage = .error(error)
         }
-        error.logged()
+        error.consume()
       }
     }
   }
@@ -149,7 +147,7 @@ extension AccountExportAuthorizationController {
   internal final func authorizeWithBiometrics() {
     self.asyncExecutor.scheduleCatching(
       failAction: { (error: Error) in
-        await self.viewState.update(\.snackBarMessage, to: .error(error))
+				SnackBarMessageEvent.send(.error(error))
       },
       behavior: .reuse
     ) { [features, accountExport, navigation] in

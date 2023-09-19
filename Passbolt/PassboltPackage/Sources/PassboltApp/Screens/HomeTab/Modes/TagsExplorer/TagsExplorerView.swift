@@ -63,7 +63,6 @@ internal struct TagsExplorerView: ComponentView {
       self.contentView
     }
     .backgroundColor(.passboltBackground)
-    .snackBarMessage(presenting: self.$state.snackBarMessage)
   }
 
   @ViewBuilder private var titleView: some View {
@@ -220,7 +219,6 @@ extension TagsExplorerView {
     internal var searchText: String = ""
     internal var tags: Array<ResourceTagListItemDSV> = .init()
     internal var resources: Array<ResourceListItemDSV> = .init()
-    internal var snackBarMessage: SnackBarMessage? = .none
   }
 }
 

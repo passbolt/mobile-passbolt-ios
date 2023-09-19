@@ -33,7 +33,7 @@ public final class CriticalState<State> {
   private let cleanup: @Sendable (State) -> Void
 
   public init(
-    _ initial: State,
+    _ initial: consuming State,
     cleanup: @escaping @Sendable (State) -> Void = { _ in }
   ) {
     assert(
@@ -87,7 +87,7 @@ public final class CriticalState<State> {
 
   @inlinable @Sendable public func set<Value>(
     _ keyPath: WritableKeyPath<State, Value>,
-    _ newValue: Value
+    _ newValue: consuming Value
   ) {
     os_unfair_lock_lock(self.lockPtr)
     defer { os_unfair_lock_unlock(self.lockPtr) }
@@ -95,7 +95,7 @@ public final class CriticalState<State> {
   }
 
   @inlinable @Sendable public func set(
-    _ newValue: State
+    _ newValue: consuming State
   ) {
     os_unfair_lock_lock(self.lockPtr)
     defer { os_unfair_lock_unlock(self.lockPtr) }
@@ -103,7 +103,7 @@ public final class CriticalState<State> {
   }
 
   @inlinable @Sendable public func exchange(
-    with newValue: State
+    with newValue: consuming State
   ) -> State {
     os_unfair_lock_lock(self.lockPtr)
     defer { os_unfair_lock_unlock(self.lockPtr) }
@@ -114,7 +114,7 @@ public final class CriticalState<State> {
 
   @inlinable @Sendable public func exchange<Value>(
     _ keyPath: WritableKeyPath<State, Value>,
-    with newValue: Value
+    with newValue: consuming Value
   ) -> Value {
     os_unfair_lock_lock(self.lockPtr)
     defer { os_unfair_lock_unlock(self.lockPtr) }
@@ -125,7 +125,7 @@ public final class CriticalState<State> {
 
   @discardableResult @inlinable @Sendable public func exchange<Value>(
     _ keyPath: WritableKeyPath<State, Value>,
-    with newValue: Value,
+    with newValue: consuming Value,
     when expectedValue: Value
   ) -> Bool
   where Value: Equatable {

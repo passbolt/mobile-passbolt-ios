@@ -61,8 +61,8 @@ internal final class ResourceUserGroupsListDisplayController: ViewController {
     self.asyncExecutor.scheduleIteration(
       over: combineLatest(context.filter, sessionData.lastUpdate.asAnyAsyncSequence()),
       failMessage: "User groups list updates broken!",
-      failAction: { [context] (error: Error) in
-        context.showMessage(.error(error))
+      failAction: { (error: Error) in
+      SnackBarMessageEvent.send(.error(error))
       }
     ) { [viewState, userGroups] (filter: UserGroupsFilter, _) in
       let filteredUserGroups: Array<ResourceUserGroupListItemDSV> = try await userGroups.filteredResourceUserGroups(
@@ -82,7 +82,6 @@ extension ResourceUserGroupsListDisplayController {
 
     internal var filter: AnyAsyncSequence<UserGroupsFilter>
     internal var selectGroup: (UserGroup.ID) -> Void
-    internal var showMessage: (SnackBarMessage?) -> Void
   }
 
   internal struct ViewState: Equatable {
@@ -98,12 +97,9 @@ extension ResourceUserGroupsListDisplayController {
       try await self.sessionData.refreshIfNeeded()
     }
     catch {
-      error.logged(
-        info: .message(
-          "Failed to refresh session data."
+      error.consume(
+          context: "Failed to refresh session data."
         )
-      )
-      self.context.showMessage(.error(error))
     }
   }
 

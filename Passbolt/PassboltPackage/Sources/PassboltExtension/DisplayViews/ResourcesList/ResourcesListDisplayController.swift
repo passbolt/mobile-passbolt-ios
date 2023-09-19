@@ -54,8 +54,7 @@ internal final class ResourcesListDisplayController: ViewController {
     self.viewState = .init(
       initial: .init(
         suggested: .init(),
-        resources: .init(),
-        snackBarMessage: .none
+        resources: .init()
       ),
       updateFrom: ComputedVariable(
         combined: context.filterTextSource,
@@ -75,9 +74,7 @@ internal final class ResourcesListDisplayController: ViewController {
           }
         }
         catch {
-          await updateState { (viewState: inout ViewState) in
-            viewState.snackBarMessage = .error(error)
-          }
+					error.consume()
         }
       }
     )
@@ -93,14 +90,12 @@ extension ResourcesListDisplayController {
     internal var suggestionFilter: (ResourceListItemDSV) -> Bool
     internal var createResource: (() -> Void)?
     internal var selectResource: (Resource.ID) -> Void
-    internal var showMessage: (SnackBarMessage?) -> Void
   }
 
   internal struct ViewState: Equatable {
 
     internal var suggested: Array<ResourceListItemDSV>
     internal var resources: Array<ResourceListItemDSV>
-    internal var snackBarMessage: SnackBarMessage?
   }
 }
 
@@ -111,12 +106,9 @@ extension ResourcesListDisplayController {
       try await self.sessionData.refreshIfNeeded()
     }
     catch {
-      error.logged(
-        info: .message(
-          "Failed to refresh session data."
-        )
-      )
-      self.context.showMessage(.error(error))
+			error.consume(
+				context: "Failed to refresh session data."
+			)
     }
   }
 

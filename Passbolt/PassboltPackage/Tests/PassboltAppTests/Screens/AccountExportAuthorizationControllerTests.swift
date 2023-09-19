@@ -70,8 +70,7 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
         accountDomain: AccountWithProfile.mock_ada.domain.rawValue,
         accountAvatarImage: .none,
         biometricsAvailability: .unavailable,
-        passphrase: .valid(""),
-        snackBarMessage: .none
+        passphrase: .valid("")
       ),
       tested.viewState.value
     )
@@ -162,48 +161,49 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
     )
   }
 
-  func test_authorizeWithBiometrics_failsWithMessage_whenAuthorizationFails() async throws {
-    patch(
-      \AccountChunkedExport.authorize,
-      with: alwaysThrow(MockIssue.error())
-    )
+	func test_authorizeWithBiometrics_failsWithMessage_whenAuthorizationFails() async throws {
+		patch(
+			\AccountChunkedExport.authorize,
+			 with: alwaysThrow(MockIssue.error())
+		)
 
-    let tested: AccountExportAuthorizationController = try self.testedInstance()
+		var messagesSubscription = SnackBarMessageEvent.subscribe()
 
-    tested.authorizeWithBiometrics()
-    await self.asyncExecutionControl.executeAll()
+		let tested: AccountExportAuthorizationController = try self.testedInstance()
 
-    XCTAssertEqual(
-      SnackBarMessage.error("generic.error"),
-      tested.viewState.value.snackBarMessage
-    )
-  }
+		tested.authorizeWithBiometrics()
+		await self.asyncExecutionControl.executeAll()
 
-  func test_authorizeWithBiometrics_succeeds_whenAuthorizationSucceeds() async throws {
-    #warning("TODO: there should be test that checks if navigation was triggered, but that requires update in app navigation to be verified")
-    patch(
-      \AccountChunkedExport.authorize,
-      with: always(Void())
-    )
+		let message: SnackBarMessage? = try await messagesSubscription.nextEvent()
+		XCTAssertEqual(
+			SnackBarMessage.error("generic.error"),
+			message
+		)
+	}
 
-    let tested: AccountExportAuthorizationController = try self.testedInstance()
+	func test_authorizeWithBiometrics_succeeds_whenAuthorizationSucceeds() async throws {
+#warning("TODO: there should be test that checks if navigation was triggered, but that requires update in app navigation to be verified")
+		patch(
+			\AccountChunkedExport.authorize,
+			 with: always(Void())
+		)
 
-    tested.authorizeWithBiometrics()
-    await self.asyncExecutionControl.executeAll()
+		let tested: AccountExportAuthorizationController = try self.testedInstance()
 
-    XCTAssertNil(
-      tested.viewState.value.snackBarMessage
-    )
+		tested.authorizeWithBiometrics()
+		await self.asyncExecutionControl.executeAll()
 
-    // Temporary fix for pending tasks on queue, will be removed after using proper navigation
-    await self.asyncExecutionControl.executeAll()
-  }
+		// Temporary fix for pending tasks on queue, will be removed after using proper navigation
+		await self.asyncExecutionControl.executeAll()
+	}
 
   func test_authorizeWithPassphrase_failsWithMessage_whenPassphraseIsInvalid() async throws {
     patch(
       \AccountChunkedExport.authorize,
       with: alwaysThrow(MockIssue.error())
     )
+
+		var messagesSubscription = SnackBarMessageEvent.subscribe()
 
     let tested: AccountExportAuthorizationController = try self.testedInstance()
 
@@ -213,6 +213,7 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
     tested.authorizeWithPassphrase()
     await self.asyncExecutionControl.executeAll()
 
+		let message: SnackBarMessage? = try await messagesSubscription.nextEvent()
     XCTAssertEqual(
       SnackBarMessage
         .error(
@@ -220,7 +221,7 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
             key: "authorization.passphrase.error"
           )
         ),
-      tested.viewState.value.snackBarMessage
+      message
     )
   }
 
@@ -229,6 +230,8 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
       \AccountChunkedExport.authorize,
       with: alwaysThrow(MockIssue.error())
     )
+
+		var messagesSubscription = SnackBarMessageEvent.subscribe()
 
     let tested: AccountExportAuthorizationController = try self.testedInstance()
 
@@ -239,9 +242,10 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
     tested.authorizeWithPassphrase()
     await self.asyncExecutionControl.executeAll()
 
+		let message: SnackBarMessage? = try await messagesSubscription.nextEvent()
     XCTAssertEqual(
       SnackBarMessage.error("generic.error"),
-      tested.viewState.value.snackBarMessage
+      message
     )
   }
 
@@ -257,10 +261,6 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
     tested.setPassphrase("valid_passphrase")
     tested.authorizeWithBiometrics()
     await self.asyncExecutionControl.executeAll()
-
-    XCTAssertNil(
-      tested.viewState.value.snackBarMessage
-    )
 
     // Temporary fix for pending tasks on queue, will be removed after using proper navigation
     await self.asyncExecutionControl.executeAll()

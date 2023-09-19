@@ -38,7 +38,6 @@ internal final class ResourceDetailsViewController: ViewController {
     internal var location: Array<String>
     internal var tags: Array<String>
     internal var permissions: Array<OverlappingAvatarStackView.Item>
-    internal var snackBarMessage: SnackBarMessage?
   }
 
   internal let viewState: ViewStateSource<ViewState>
@@ -110,8 +109,7 @@ internal final class ResourceDetailsViewController: ViewController {
         fields: .init(),
         location: .init(),
         tags: .init(),
-        permissions: .init(),
-        snackBarMessage: .none
+        permissions: .init()
       ),
       updateFrom: ComputedVariable(
         combined: self.resourceController.state,
@@ -149,9 +147,7 @@ internal final class ResourceDetailsViewController: ViewController {
           }
         }
         catch {
-          await updateView { (viewState: inout ViewState) in
-            viewState.snackBarMessage = .error(error)
-          }
+          SnackBarMessageEvent.send(.error(error))
           await navigationToSelf.revertCatching()
         }
       }
@@ -162,11 +158,8 @@ internal final class ResourceDetailsViewController: ViewController {
 extension ResourceDetailsViewController {
 
   internal func showMenu() async {
-    await withLogCatch(
-      failInfo: "Failed to present resource menu!",
-      fallback: { @MainActor [viewState] (error: Error) async -> Void in
-        viewState.update(\.snackBarMessage, to: .error(error))
-      }
+    await consumingErrors(
+      errorDiagnostics: "Failed to present resource menu!"
     ) {
       let revealOTPAction: (@MainActor () async -> Void)?
       let resource: Resource = try await self.resourceController.state.value
@@ -182,10 +175,7 @@ extension ResourceDetailsViewController {
       try await self.navigationToResourceContextualMenu
         .perform(
           context: .init(
-            revealOTP: revealOTPAction,
-            showMessage: { [viewState] (message: SnackBarMessage?) in
-              viewState.update(\.snackBarMessage, to: message)
-            }
+            revealOTP: revealOTPAction
           )
         )
     }
@@ -206,11 +196,8 @@ extension ResourceDetailsViewController {
   internal func copyFieldValue(
     path: Resource.FieldPath
   ) async {
-    await withLogCatch(
-      failInfo: "Failed to copy resource field value!",
-      fallback: { @MainActor [viewState] (error: Error) async -> Void in
-        viewState.update(\.snackBarMessage, to: .error(error))
-      }
+    await consumingErrors(
+      errorDiagnostics: "Failed to copy resource field value!"
     ) {
       var resource: Resource = try await self.resourceController.state.value
 
@@ -235,33 +222,29 @@ extension ResourceDetailsViewController {
         self.pasteboard.put(fieldValue.stringValue ?? "")
       }
 
-      self.viewState.update(
-        \.snackBarMessage,
-        to: .info(
-          .localized(
-            key: "resource.value.copied",
-            arguments: [
-              resource
-                .displayableName(forField: path)?
-                .string()
-                ?? DisplayableString
-                .localized("resource.field.name.unknown")
-                .string()
-            ]
-          )
-        )
-      )
+			SnackBarMessageEvent.send(
+				.info(
+					.localized(
+						key: "resource.value.copied",
+						arguments: [
+							resource
+								.displayableName(forField: path)?
+								.string()
+							?? DisplayableString
+								.localized("resource.field.name.unknown")
+								.string()
+						]
+					)
+				)
+			)
     }
   }
 
   internal func revealFieldValue(
     path: ResourceType.FieldPath
   ) async {
-    await withLogCatch(
-      failInfo: "Failed to reveal resource field value!",
-      fallback: { @MainActor [viewState] (error: Error) async -> Void in
-        viewState.update(\.snackBarMessage, to: .error(error))
-      }
+    await consumingErrors(
+      errorDiagnostics: "Failed to reveal resource field value!"
     ) {
       let resource: Resource = try await self.resourceController.state.value
 

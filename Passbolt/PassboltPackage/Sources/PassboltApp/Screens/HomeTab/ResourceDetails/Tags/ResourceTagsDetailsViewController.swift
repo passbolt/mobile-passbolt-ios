@@ -66,9 +66,9 @@ internal final class ResourceTagsDetailsViewController: ViewController {
 extension ResourceTagsDetailsViewController {
 
   @Sendable internal func activate() async {
-    await withLogCatch(
-      failInfo: "Resource tags details updates broken!",
-      fallback: { _ in
+    await consumingErrors(
+			errorDiagnostics: "Resource tags details updates broken!",
+      fallback: {
         try? await self.navigationToSelf.revert()
       }
     ) {

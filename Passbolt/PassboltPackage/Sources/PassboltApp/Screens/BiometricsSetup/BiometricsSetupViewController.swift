@@ -82,20 +82,10 @@ internal final class BiometricsSetupViewController: PlainViewController, UICompo
         self.controller
           .setupBiometrics()
           .receive(on: RunLoop.main)
-          .sink(receiveCompletion: { [weak self] completion in
+          .sink(receiveCompletion: { completion in
             guard case .failure = completion
             else { return }
-            self?
-              .present(
-                snackbar: Mutation<UICommons.PlainView>
-                  .snackBarErrorMessage(
-                    .localized(
-                      key: .genericError
-                    )
-                  )
-                  .instantiate(),
-                hideAfter: 2
-              )
+            SnackBarMessageEvent.send(.error(.localized(key: .genericError)))
           })
           .store(in: self.cancellables)
       }
