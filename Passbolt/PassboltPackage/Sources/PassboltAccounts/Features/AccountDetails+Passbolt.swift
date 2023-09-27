@@ -94,13 +94,20 @@ extension AccountDetails {
 		@Sendable nonisolated func keyDetails() async throws -> PGPKeyDetails {
 			// this could be unified with profile update action
 			// to avoid additional network request
-			try await userDetailsFetchNetworkOperation
+			let key: PGPKeyDetails? = try await userDetailsFetchNetworkOperation
 				.execute(
 					.init(
 						userID: account.userID
 					)
 				)
 				.key
+			if let key {
+				return key
+			}
+			else {
+				throw AccountDataMissing
+					.error("Account key missing")
+			}
 		}
 
     @Sendable nonisolated func avatarImage() async throws -> Data? {

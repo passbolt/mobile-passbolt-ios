@@ -30,7 +30,7 @@ public struct UserDTO {
   public var deleted: Bool
   public var username: String
   public var profile: UserProfileDTO?
-  public var key: PGPKeyDetails
+  public var key: PGPKeyDetails?
 
   public init(
     id: User.ID,
@@ -38,7 +38,7 @@ public struct UserDTO {
     deleted: Bool,
     username: String,
     profile: UserProfileDTO?,
-    key: PGPKeyDetails
+    key: PGPKeyDetails?
   ) {
     self.id = id
     self.active = active
@@ -54,6 +54,7 @@ extension UserDTO {
   public var asFilteredDSO: UserDSO? {
     guard
       let profile: UserProfileDTO = self.profile,
+      let key: PGPKeyDetails = self.key,
       self.active && !self.deleted
     else { return nil }
 
@@ -61,8 +62,8 @@ extension UserDTO {
       id: self.id,
       username: self.username,
       profile: profile,
-			publicKey: self.key.publicKey,
-			keyFingerprint: self.key.fingerprint
+			publicKey: key.publicKey,
+			keyFingerprint: key.fingerprint
     )
   }
 }
