@@ -70,8 +70,7 @@ extension NetworkRequestExecutor: LoadableFeature {
 extension NetworkRequestExecutor {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables _: Cancellables
+    features: Features
   ) throws -> Self {
 
     let urlSessionConfiguration: URLSessionConfiguration = .ephemeral
@@ -197,7 +196,7 @@ extension FeaturesRegistry {
       .lazyLoaded(
         NetworkRequestExecutor.self,
         load: NetworkRequestExecutor
-          .load(features:cancellables:)
+          .load(features:)
       )
     )
   }

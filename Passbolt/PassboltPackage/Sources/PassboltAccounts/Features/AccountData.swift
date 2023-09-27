@@ -45,8 +45,7 @@ extension AccountData: LoadableFeature {
 extension AccountData {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
 
     let updatesSource: Updates = .init()
@@ -63,7 +62,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         AccountData.self,
-        load: AccountData.load(features:cancellables:)
+        load: AccountData.load(features:)
       ),
 			in: AccountScope.self
     )

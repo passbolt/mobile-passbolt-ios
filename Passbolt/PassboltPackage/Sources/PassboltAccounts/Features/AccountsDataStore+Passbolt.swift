@@ -32,8 +32,7 @@ import struct Foundation.URL
 extension AccountsDataStore {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
     let keychain: OSKeychain = features.instance()
     let files: OSFiles = features.instance()
@@ -806,7 +805,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         AccountsDataStore.self,
-        load: AccountsDataStore.load(features:cancellables:)
+        load: AccountsDataStore.load(features:)
       )
     )
   }

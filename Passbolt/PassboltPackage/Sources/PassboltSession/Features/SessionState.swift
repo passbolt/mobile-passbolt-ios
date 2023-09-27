@@ -131,8 +131,7 @@ extension SessionState: LoadableFeature {
 extension SessionState {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
 
     let osTime: OSTime = features.instance()
@@ -447,7 +446,7 @@ extension FeaturesRegistry {
       .lazyLoaded(
         SessionState.self,
         load: SessionState
-          .load(features:cancellables:)
+          .load(features:)
       )
     )
   }

@@ -31,8 +31,7 @@ import Users
 extension UserGroups {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
 
@@ -116,7 +115,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         UserGroups.self,
-        load: UserGroups.load(features:cancellables:)
+        load: UserGroups.load(features:)
       ),
       in: SessionScope.self
     )

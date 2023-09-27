@@ -40,8 +40,7 @@ extension FeatureImplementation {
 
 	public nonisolated static func loader() -> FeatureLoader {
 		@MainActor func loadFeature(
-			_ features: Features,
-			_: Cancellables // legacy, to be removed
+			_ features: Features
 		) throws -> Feature {
 			try Self.init(using: features).implementation
 		}
@@ -49,7 +48,7 @@ extension FeatureImplementation {
 		return .init(
 			identifier: Feature.identifier,
 			cache: Self.cacheable,
-			load: loadFeature(_:_:)
+			load: loadFeature(_:)
 		)
 	}
 }

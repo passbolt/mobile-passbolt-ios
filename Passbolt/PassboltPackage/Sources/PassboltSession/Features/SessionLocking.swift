@@ -51,8 +51,7 @@ extension SessionLocking {
 	}
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
 		let appLifecycle: ApplicationLifecycle = features.instance()
 		let sessionState: SessionState = try features.instance()
@@ -120,7 +119,7 @@ extension FeaturesRegistry {
       .lazyLoaded(
         SessionLocking.self,
         load: SessionLocking
-          .load(features:cancellables:)
+          .load(features:)
       )
     )
   }

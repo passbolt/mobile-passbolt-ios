@@ -139,7 +139,7 @@ extension TestFeaturesContainer: FeaturesContainer {
         return feature
       }
       else if let loader: FeatureLoader = self.mocks[Feature.identifier] as? FeatureLoader {
-        guard let feature: Feature = try loader.load(self, self.cancellables) as? Feature
+        guard let feature: Feature = try loader.load(self) as? Feature
         else { fatalError("Invalid feature type from loader!") }
         if loader.cache {
           self.mocks[Feature.identifier] = feature

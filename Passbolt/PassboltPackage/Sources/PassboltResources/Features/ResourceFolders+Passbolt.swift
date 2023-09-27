@@ -31,8 +31,7 @@ import SessionData
 extension ResourceFolders {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
 
@@ -104,7 +103,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         ResourceFolders.self,
-        load: ResourceFolders.load(features:cancellables:)
+        load: ResourceFolders.load(features:)
       ),
       in: SessionScope.self
     )

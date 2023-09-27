@@ -55,8 +55,7 @@ extension HomePresentation: LoadableFeature {
 extension HomePresentation {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
     let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
 
@@ -104,20 +103,21 @@ extension HomePresentation {
 
     let currentModeBinding: StateBinding<HomePresentationMode> = .variable(initial: initialPresentationMode)
 
-    currentModeBinding
-      .sink { mode in
-        if useLastUsedHomePresentationAsDefault.get() {
-          defaultHomePresentation.set(to: mode)
-        }  // else NOP
-      }
-      .store(in: cancellables)
-
     @Sendable nonisolated func availableModes() -> OrderedSet<HomePresentationMode> {
       availablePresentationModes
     }
 
     return Self(
-      currentMode: currentModeBinding,
+      currentMode: currentModeBinding
+      .convert(
+				read: { $0 },
+				write: {
+					if useLastUsedHomePresentationAsDefault.get() {
+						defaultHomePresentation.set(to: $0)
+					}  // else NOP
+					return $0
+				}
+			),
       availableModes: availableModes
     )
   }
@@ -129,7 +129,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         HomePresentation.self,
-        load: HomePresentation.load(features:cancellables:)
+        load: HomePresentation.load(features:)
       ),
       in: SessionScope.self
     )

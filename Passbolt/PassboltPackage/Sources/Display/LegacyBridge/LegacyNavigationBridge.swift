@@ -52,7 +52,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         LegacyNavigationBridge.self,
-        load: { _, context in
+        load: { _ in
           @MainActor func topmostViewComponent() -> AnyUIComponent? {
             guard
               var current: UIViewController = UIApplication.shared.connectedScenes

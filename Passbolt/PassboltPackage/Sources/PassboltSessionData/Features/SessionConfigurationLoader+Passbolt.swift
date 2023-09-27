@@ -32,8 +32,7 @@ import struct Foundation.URL
 extension SessionConfigurationLoader {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
 
     let session: Session = try features.instance()
@@ -153,7 +152,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         SessionConfigurationLoader.self,
-        load: SessionConfigurationLoader.load(features:cancellables:)
+        load: SessionConfigurationLoader.load(features:)
       )
     )
   }

@@ -31,8 +31,7 @@ import Users
 extension UserGroupDetails {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
 		let userGroupID: UserGroup.ID = try features.context(of: UserGroupScope.self)
     let sessionData: SessionData = try features.instance()
@@ -64,7 +63,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         UserGroupDetails.self,
-        load: UserGroupDetails.load(features:cancellables:)
+        load: UserGroupDetails.load(features:)
       ),
       in: UserGroupScope.self
     )

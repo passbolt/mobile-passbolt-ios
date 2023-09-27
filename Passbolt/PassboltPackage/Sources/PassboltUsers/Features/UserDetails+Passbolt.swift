@@ -35,8 +35,7 @@ import struct Foundation.Data
 extension UserDetails {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
 		let userID: User.ID = try features.context(of: UserScope.self)
 
@@ -109,7 +108,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         UserDetails.self,
-        load: UserDetails.load(features:cancellables:)
+        load: UserDetails.load(features:)
       ),
       in: UserScope.self
     )

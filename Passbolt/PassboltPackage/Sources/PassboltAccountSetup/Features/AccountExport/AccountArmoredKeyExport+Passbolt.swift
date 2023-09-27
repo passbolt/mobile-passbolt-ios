@@ -31,8 +31,7 @@ import Crypto
 extension AccountArmoredKeyExport {
 
 	@MainActor fileprivate static func load(
-		features: Features,
-		cancellables: Cancellables
+		features: Features
 	) throws -> Self {
 		let accountDataExport: AccountDataExport = try features.instance()
 
@@ -57,7 +56,7 @@ extension FeaturesRegistry {
 			.lazyLoaded(
 				AccountArmoredKeyExport.self,
 				load: AccountArmoredKeyExport
-					.load(features:cancellables:)
+					.load(features:)
 			),
 			in: AccountTransferScope.self
 		)

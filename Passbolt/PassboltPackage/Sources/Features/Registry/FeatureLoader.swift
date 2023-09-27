@@ -27,30 +27,28 @@ public struct FeatureLoader {
 
   internal let identifier: FeatureIdentifier
   internal let cache: Bool
-  internal let load: @MainActor (Features, Cancellables) throws -> AnyFeature
+  internal let load: @MainActor (Features) throws -> AnyFeature
 }
 
 extension FeatureLoader {
 
   public static func lazyLoaded<Feature>(
     _ featureType: Feature.Type,
-    load: @escaping @MainActor (Features, Cancellables) throws -> Feature
+    load: @escaping @MainActor (Features) throws -> Feature
   ) -> Self
   where Feature: LoadableFeature {
     @MainActor func loadFeature(
-      _ factory: Features,
-      _ cancellables: Cancellables
+      _ factory: Features
     ) throws -> AnyFeature {
       try load(
-        factory,
-        cancellables
+        factory
       )
     }
 
     return Self(
       identifier: featureType.identifier,
       cache: true,
-      load: loadFeature(_:_:)
+      load: loadFeature(_:)
     )
   }
 
@@ -60,8 +58,7 @@ extension FeatureLoader {
   ) -> Self
   where Feature: LoadableFeature {
     @MainActor func loadFeature(
-      _ factory: Features,
-      _: Cancellables
+      _ factory: Features
     ) throws -> AnyFeature {
       try load(factory)
     }
@@ -69,7 +66,7 @@ extension FeatureLoader {
     return Self(
       identifier: featureType.identifier,
       cache: false,
-      load: loadFeature(_:_:)
+      load: loadFeature(_:)
     )
   }
 
@@ -79,8 +76,7 @@ extension FeatureLoader {
   ) -> Self
   where Feature: LoadableFeature {
     @MainActor func loadFeature(
-      _: Features,
-      _: Cancellables
+      _: Features
     ) throws -> AnyFeature {
       instance
     }
@@ -88,7 +84,7 @@ extension FeatureLoader {
     return Self(
       identifier: Feature.identifier,
       cache: false,
-      load: loadFeature(_:_:)
+      load: loadFeature(_:)
     )
   }
 }

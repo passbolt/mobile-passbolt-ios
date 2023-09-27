@@ -31,8 +31,7 @@ import Session
 extension Accounts {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
     let uuidGenerator: UUIDGenerator = features.instance()
 
@@ -163,7 +162,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         Accounts.self,
-        load: Accounts.load(features:cancellables:)
+        load: Accounts.load(features:)
       )
     )
   }

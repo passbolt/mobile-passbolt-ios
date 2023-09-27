@@ -33,8 +33,7 @@ import struct Foundation.Data
 extension Session {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
 
     let asyncExecutor: AsyncExecutor = try features.instance()
@@ -143,7 +142,7 @@ extension FeaturesRegistry {
       .lazyLoaded(
         Session.self,
         load: Session
-          .load(features:cancellables:)
+          .load(features:)
       )
     )
   }

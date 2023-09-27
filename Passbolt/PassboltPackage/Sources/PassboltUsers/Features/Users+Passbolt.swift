@@ -32,8 +32,7 @@ import struct Foundation.Data
 extension Users {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
 
@@ -98,7 +97,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         Users.self,
-        load: Users.load(features:cancellables:)
+        load: Users.load(features:)
       ),
       in: SessionScope.self
     )

@@ -31,8 +31,7 @@ import class Foundation.JSONDecoder
 extension SessionNetworkRequestExecutor {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
     let sessionState: SessionState = try features.instance()
     let sessionStateEnsurance: SessionStateEnsurance = try features.instance()
@@ -228,7 +227,7 @@ extension FeaturesRegistry {
       .lazyLoaded(
         SessionNetworkRequestExecutor.self,
         load: SessionNetworkRequestExecutor
-          .load(features:cancellables:)
+          .load(features:)
       )
     )
   }

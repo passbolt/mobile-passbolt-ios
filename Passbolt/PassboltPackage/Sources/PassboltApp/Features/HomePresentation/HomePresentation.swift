@@ -38,8 +38,7 @@ extension HomePresentation: LoadableFeature {
 
 
   @MainActor internal static func load(
-    using features: Features,
-    cancellables: Cancellables
+    using features: Features
   ) throws -> Self {
     let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
 
@@ -140,7 +139,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         HomePresentation.self,
-        load: HomePresentation.load(using:cancellables:)
+        load: HomePresentation.load(using:)
       ),
       in: SessionScope.self
     )

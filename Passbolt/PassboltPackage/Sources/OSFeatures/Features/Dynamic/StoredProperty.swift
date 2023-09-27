@@ -187,7 +187,7 @@ extension FeaturesRegistry {
 			.lazyLoaded(
 				StoredProperty<Description>.self,
 				load: {
-					(features: Features, _: Cancellables) -> StoredProperty in
+					(features: Features) -> StoredProperty in
 					try StoredProperty<Description>
 						.load(
 							features: features,
@@ -219,7 +219,7 @@ extension FeaturesRegistry {
 			.lazyLoaded(
 				StoredProperty<Description>.self,
 				load: {
-					(features: Features, _: Cancellables) -> StoredProperty in
+					(features: Features) -> StoredProperty in
 					try StoredProperty<Description>
 						.loadRaw(
 							features: features,

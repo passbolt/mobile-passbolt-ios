@@ -33,8 +33,7 @@ import SessionData
 extension ResourcesController {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
 
@@ -98,7 +97,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         ResourcesController.self,
-        load: ResourcesController.load(features:cancellables:)
+        load: ResourcesController.load(features:)
       ),
       in: SessionScope.self
     )

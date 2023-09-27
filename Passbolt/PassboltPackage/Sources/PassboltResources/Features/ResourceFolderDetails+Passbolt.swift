@@ -32,8 +32,7 @@ import SessionData
 extension ResourceFolderController {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
 		let resourceFolderID: ResourceFolder.ID = try features.context(of: ResourceFolderScope.self)
     let sessionData: SessionData = try features.instance()
@@ -60,7 +59,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         ResourceFolderController.self,
-        load: ResourceFolderController.load(features:cancellables:)
+        load: ResourceFolderController.load(features:)
       ),
       in: ResourceFolderScope.self
     )

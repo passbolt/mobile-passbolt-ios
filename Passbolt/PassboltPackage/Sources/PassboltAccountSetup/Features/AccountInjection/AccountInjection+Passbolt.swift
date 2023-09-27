@@ -30,8 +30,7 @@ import OSFeatures
 extension AccountInjection {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
 
     let mdmConfiguration: MDMConfiguration = features.instance()
@@ -67,7 +66,7 @@ extension FeaturesRegistry {
       .lazyLoaded(
         AccountInjection.self,
         load: AccountInjection
-          .load(features:cancellables:)
+          .load(features:)
       )
     )
   }

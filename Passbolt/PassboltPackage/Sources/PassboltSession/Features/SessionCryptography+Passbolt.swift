@@ -31,8 +31,7 @@ import Session
 extension SessionCryptography {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
 
@@ -107,7 +106,7 @@ extension FeaturesRegistry {
       .lazyLoaded(
         SessionCryptography.self,
         load: SessionCryptography
-          .load(features:cancellables:)
+          .load(features:)
       ),
       in: SessionScope.self
     )

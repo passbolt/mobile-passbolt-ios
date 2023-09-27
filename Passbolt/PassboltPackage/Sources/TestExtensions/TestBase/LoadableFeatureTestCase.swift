@@ -68,7 +68,7 @@ where Feature: LoadableFeature {
         return .init(
           identifier: Feature.identifier,
           cache: false,
-          load: { _, _ in
+          load: { _ in
             throw
               FeatureUndefined
               .error(
@@ -175,7 +175,7 @@ extension LoadableFeatureTestCase {
       return instance
     }
     else {
-      let instance: Feature = try self.testedImplementation.load(self.features, self.cancellables) as! Feature
+      let instance: Feature = try self.testedImplementation.load(self.features) as! Feature
       self.instance = instance
       return instance
     }

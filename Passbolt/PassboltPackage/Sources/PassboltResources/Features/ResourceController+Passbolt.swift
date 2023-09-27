@@ -34,8 +34,7 @@ import class Foundation.JSONDecoder
 extension ResourceController {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
     let resourceID: Resource.ID = try features.context(of: ResourceScope.self)
 
@@ -171,7 +170,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         ResourceController.self,
-        load: ResourceController.load(features:cancellables:)
+        load: ResourceController.load(features:)
       ),
       in: ResourceScope.self
     )

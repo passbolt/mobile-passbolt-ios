@@ -32,8 +32,7 @@ import SessionData
 extension ResourceTags {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
 
@@ -67,7 +66,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         ResourceTags.self,
-        load: ResourceTags.load(features:cancellables:)
+        load: ResourceTags.load(features:)
       ),
       in: SessionScope.self
     )

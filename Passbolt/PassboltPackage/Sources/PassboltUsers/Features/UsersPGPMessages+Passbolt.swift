@@ -29,8 +29,7 @@ import Users
 extension UsersPGPMessages {
 
   @MainActor public static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
 
@@ -122,7 +121,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         UsersPGPMessages.self,
-        load: UsersPGPMessages.load(features:cancellables:)
+        load: UsersPGPMessages.load(features:)
       ),
       in: SessionScope.self
     )

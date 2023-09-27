@@ -33,8 +33,7 @@ import struct Foundation.Data
 extension AccountDetails {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
 		let account: Account = try features.accountContext()
     let accountsDataStore: AccountsDataStore = try features.instance()
@@ -125,7 +124,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         AccountDetails.self,
-        load: AccountDetails.load(features:cancellables:)
+        load: AccountDetails.load(features:)
       ),
 			in: AccountScope.self
     )

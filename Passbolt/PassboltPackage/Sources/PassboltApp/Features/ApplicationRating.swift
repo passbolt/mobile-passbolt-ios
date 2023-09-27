@@ -34,8 +34,7 @@ internal struct ApplicationRating {
 extension ApplicationRating {
 
 	@MainActor fileprivate static func load(
-		features: Features,
-		cancellables _: Cancellables
+		features: Features
 	) throws -> Self {
 		var lastAppRateCheckTimestamp: LastAppRateCheckTimestampStoredProperty = try features.instance()
 		let loginCount: LoginCountStoredProperty = try features.instance()
@@ -93,7 +92,7 @@ extension FeaturesRegistry {
 		self.use(
 			.lazyLoaded(
 				ApplicationRating.self,
-				load: ApplicationRating.load(features:cancellables:)
+				load: ApplicationRating.load(features:)
 			),
 			in: RootFeaturesScope.self
 		)

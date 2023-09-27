@@ -65,12 +65,7 @@ where Scope: FeaturesScope {
 extension FeaturesFactory {
 
   private typealias CacheKey = FeatureIdentifier
-
-  private struct CacheItem {
-
-    fileprivate var feature: AnyFeature
-    fileprivate var cancellables: Cancellables = .init()
-  }
+  private typealias CacheItem = AnyFeature
 }
 
 extension FeaturesFactory: FeaturesContainer {
@@ -203,19 +198,15 @@ extension FeaturesFactory: FeaturesContainer {
   where Feature: LoadableFeature {
     let cacheKey: CacheKey = Feature.identifier
 
-    if let cached: Feature = self.cache[cacheKey]?.feature as? Feature {
+    if let cached: Feature = self.cache[cacheKey] as? Feature {
       return cached
     }
     else if let loader: FeatureLoader = self.loaders[Feature.identifier] {
-      let cancellables: Cancellables = .init()
-      guard let loaded: Feature = try loader.load(FeaturesProxy(container: self), cancellables) as? Feature
+      guard let loaded: Feature = try loader.load(FeaturesProxy(container: self)) as? Feature
       else { unreachable("Cannot create wrong type of feature") }
 
       if loader.cache {
-        self.cache[cacheKey] = .init(
-          feature: loaded,
-          cancellables: cancellables
-        )
+        self.cache[cacheKey] = loaded
 
         return loaded
       }

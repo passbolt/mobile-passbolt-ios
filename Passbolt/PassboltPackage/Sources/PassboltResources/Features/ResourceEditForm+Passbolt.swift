@@ -37,8 +37,7 @@ import Users
 extension ResourceEditForm {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
     try features.ensureScope(ResourceEditScope.self)
@@ -278,7 +277,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         ResourceEditForm.self,
-        load: ResourceEditForm.load(features:cancellables:)
+        load: ResourceEditForm.load(features:)
       ),
       in: ResourceEditScope.self
     )

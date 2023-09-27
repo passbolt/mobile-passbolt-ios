@@ -55,8 +55,7 @@ extension SessionStateEnsurance: LoadableFeature {
 extension SessionStateEnsurance {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
 
     let sessionState: SessionState = try features.instance()
@@ -125,7 +124,7 @@ extension FeaturesRegistry {
       .lazyLoaded(
         SessionStateEnsurance.self,
         load: SessionStateEnsurance
-          .load(features:cancellables:)
+          .load(features:)
       )
     )
   }

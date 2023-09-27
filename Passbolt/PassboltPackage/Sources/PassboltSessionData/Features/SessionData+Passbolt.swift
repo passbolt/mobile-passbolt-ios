@@ -31,8 +31,7 @@ import SessionData
 extension SessionData {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
     let configuration: SessionConfiguration = try features.sessionConfiguration()
 
@@ -183,7 +182,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         SessionData.self,
-        load: SessionData.load(features:cancellables:)
+        load: SessionData.load(features:)
       ),
       in: SessionScope.self
     )

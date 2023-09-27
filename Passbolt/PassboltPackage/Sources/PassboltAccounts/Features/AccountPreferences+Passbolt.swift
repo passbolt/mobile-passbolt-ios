@@ -31,8 +31,7 @@ import FeatureScopes
 extension AccountPreferences {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
 		let account: Account = try features.sessionAccount()
     let accountData: AccountData = try features.instance()
@@ -103,7 +102,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         AccountPreferences.self,
-        load: AccountPreferences.load(features:cancellables:)
+        load: AccountPreferences.load(features:)
       ),
 			in: SessionScope.self
     )

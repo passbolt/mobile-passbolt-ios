@@ -80,8 +80,7 @@ extension SessionAuthorizationState {
   @TaskLocal private static var authorizationIID: IID? = .none
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
     let sessionState: SessionState = try features.instance()
 
@@ -343,7 +342,7 @@ extension FeaturesRegistry {
       .lazyLoaded(
         SessionAuthorizationState.self,
         load: SessionAuthorizationState
-          .load(features:cancellables:)
+          .load(features:)
       )
     )
   }

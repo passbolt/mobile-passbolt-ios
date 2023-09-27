@@ -38,13 +38,12 @@ import Dispatch
 extension AccountImport {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
     try features.ensureScope(AccountTransferScope.self)
 
     #warning("Legacy implementation, to be split and refined...")
-
+		let cancellables: Cancellables = .init()
     Diagnostics.logger.info("Beginning new account transfer...")
     #if DEBUG
     let mdmConfiguration: MDMConfiguration = features.instance()
@@ -618,7 +617,7 @@ extension FeaturesRegistry {
       .lazyLoaded(
         AccountImport.self,
         load: AccountImport
-          .load(features:cancellables:)
+          .load(features:)
       ),
       in: AccountTransferScope.self
     )

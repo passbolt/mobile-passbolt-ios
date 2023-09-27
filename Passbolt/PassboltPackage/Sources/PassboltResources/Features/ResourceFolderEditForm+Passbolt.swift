@@ -32,8 +32,7 @@ import SessionData
 extension ResourceFolderEditForm {
 
   @MainActor fileprivate static func load(
-    features: Features,
-		cancellables _: Cancellables
+    features: Features
   ) throws -> Self {
 		let currentAccount: Account = try features.sessionAccount()
 		let editedResourceFolder: ResourceFolder = try features.resourceFolderEditingContext().editedResourceFolder
@@ -172,7 +171,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         ResourceFolderEditForm.self,
-				load: ResourceFolderEditForm.load(features:cancellables:)
+				load: ResourceFolderEditForm.load(features:)
       ),
       in: ResourceFolderEditScope.self
     )

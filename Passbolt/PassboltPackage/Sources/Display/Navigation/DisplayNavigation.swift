@@ -343,8 +343,7 @@ extension DisplayNavigation {
 extension DisplayNavigation {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
 
     let legacyBridge: LegacyNavigationBridge = try features.instance()
@@ -361,7 +360,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         DisplayNavigation.self,
-        load: DisplayNavigation.load(features:cancellables:)
+        load: DisplayNavigation.load(features:)
       )
     )
   }

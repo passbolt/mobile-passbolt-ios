@@ -31,8 +31,7 @@ import struct Foundation.URL
 extension DatabaseAccess {
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
 
     let osFiles: OSFiles = features.instance()
@@ -127,7 +126,7 @@ extension FeaturesRegistry {
       .lazyLoaded(
         DatabaseAccess.self,
         load: DatabaseAccess
-          .load(features:cancellables:)
+          .load(features:)
       )
     )
   }

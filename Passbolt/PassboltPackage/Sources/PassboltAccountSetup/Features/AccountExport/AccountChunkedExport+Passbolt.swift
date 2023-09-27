@@ -43,8 +43,7 @@ extension AccountChunkedExport {
   }
 
   @MainActor fileprivate static func load(
-    features: Features,
-    cancellables: Cancellables
+    features: Features
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
     try features.ensureScope(AccountTransferScope.self)
@@ -298,7 +297,7 @@ extension FeaturesRegistry {
       .lazyLoaded(
         AccountChunkedExport.self,
         load: AccountChunkedExport
-          .load(features:cancellables:)
+          .load(features:)
       ),
       in: AccountTransferScope.self
     )
