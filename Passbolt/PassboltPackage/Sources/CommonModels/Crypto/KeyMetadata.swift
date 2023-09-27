@@ -27,6 +27,7 @@ import struct Foundation.Date
 public struct PGPKeyDetails {
 
 	public let publicKey: ArmoredPGPPublicKey
+	public let userID: String
 	public let fingerprint: Fingerprint
 	public let length: Int
 	public let algorithm: KeyAlgorithm
@@ -35,6 +36,7 @@ public struct PGPKeyDetails {
 
 	public init(
 		publicKey: ArmoredPGPPublicKey,
+		userID: String,
 		fingerprint: Fingerprint,
 		length: Int,
 		algorithm: KeyAlgorithm,
@@ -42,6 +44,7 @@ public struct PGPKeyDetails {
 		expires: Date?
 	) {
 		self.publicKey = publicKey
+		self.userID = userID
 		self.fingerprint = fingerprint
 		self.length = length
 		self.algorithm = algorithm
@@ -55,6 +58,7 @@ extension PGPKeyDetails: Decodable {
 	public enum CodingKeys: String, CodingKey {
 
 		case publicKey = "armored_key"
+		case userID = "uid"
 		case fingerprint = "fingerprint"
 		case length = "bits"
 		case algorithm = "type"

@@ -44,6 +44,7 @@ extension UserDTO {
     profile: .mock_1,
 		key: .init(
 			publicKey: "MOCK_1",
+			userID: "mock_1",
 			fingerprint: "MOCK_1",
 			length: 0,
 			algorithm: "mock",
@@ -102,6 +103,7 @@ extension PGPKeyDetails {
 
 	public static let mock_ada: Self = .init(
 		publicKey: "MOCK_ADA",
+		userID: "mock_ada",
 		fingerprint: "MOCK_ADA",
 		length: 0,
 		algorithm: "mock",
@@ -111,6 +113,7 @@ extension PGPKeyDetails {
 
 	public static let mock_frances: Self = .init(
 		publicKey: "MOCK_FRANCES",
+		userID: "mock_frances",
 		fingerprint: "MOCK_FRANCES",
 		length: 0,
 		algorithm: "mock",

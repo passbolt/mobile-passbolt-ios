@@ -81,10 +81,10 @@ internal final class AccountKeyInspectorViewController: ViewController {
 					let accountWithProfile: AccountWithProfile = try accountDetails.profile()
 					await updateView { (viewState: inout State) in
 						viewState.name = "\(accountWithProfile.firstName) \(accountWithProfile.lastName)"
-						viewState.userID = "\(accountWithProfile.firstName) \(accountWithProfile.lastName) <\(accountWithProfile.username)>"
 					}
 					let keyDetails: PGPKeyDetails = try await accountDetails.keyDetails()
 					await updateView { (viewState: inout State) in
+						viewState.userID = keyDetails.userID
 						viewState.fingerprint = formatFingerprint(keyDetails.fingerprint)
 						viewState.crationDate = calendar.format(.medium, keyDetails.created)
 						viewState.expirationDate = keyDetails.expires

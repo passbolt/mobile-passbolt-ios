@@ -74,7 +74,7 @@ final class AccountKeyInspectorViewControllerTests: FeaturesTestCase {
 			returns: AccountKeyInspectorViewController.State(
 				avatarImage: .none,
 				name: "Ada Lovelance",
-				userID: "Ada Lovelance <ada@passbolt.com>",
+				userID: "mock_ada",
 				fingerprint: "MOCK _ADA",
 				crationDate: "DATE",
 				expirationDate: .none,
