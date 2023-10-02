@@ -27,13 +27,19 @@ import UIComponents
 @MainActor
 internal final class Window {
 
+	private enum ScreenCache {
+
+		case cached(AnyUIComponent, for: Account)
+	}
+
   private static let transitionDuration: TimeInterval = 0.3
 
   private let window: UIWindow
   private let components: UIComponentFactory
   private let cancellables: Cancellables
   private let maskView: SplashScreenView = .init()
-  private var screenStateCache: AnyUIComponent?
+  private var screenStateAccount: Account?
+  private var screenStateCache: ScreenCache?
 
   internal init(
     in scene: UIWindowScene,
@@ -46,50 +52,59 @@ internal final class Window {
     self.components = components
     self.cancellables = cancellables
     self.window.rootViewController = rootViewController
+    self.screenStateAccount = .none
+    self.screenStateCache = .none
     setupSnackBarMessages(within: self.window)
 
-    cancellables.executeAsync { @MainActor [weak self] in
+    cancellables.executeAsync { @MainActor [self] in
       let controller: WindowController = lazyController()
-      for try await disposition
-        in controller
-        .screenStateDispositionSequence()
-      {
-        guard let self = self else { return }
+			try self.replaceRoot(
+				with: self.components
+					.instance(
+						of: SplashScreenViewController.self,
+						in: controller.initialAccount()
+					)
+			)
+      for try await disposition in controller.screenStateDispositionSequence() {
         switch disposition {
         // Use last state for same session after authorization.
-        case let .useCachedScreenState(account):
-          if let cachedScreen: AnyUIComponent = self.screenStateCache {
-            self.screenStateCache = nil
-            self.replaceRoot(with: cachedScreen)
-          }
-          else {
-            // fallback to initial screen state if there is none cached
-            guard !self.isSplashScreenDisplayed || self.isErrorDisplayed
-            else { return }
-            try self.replaceRoot(
-              with: self.components
-                .instance(
-                  of: SplashScreenViewController.self,
-                  in: account
-                )
-            )
-          }
+        case let .useAuthorizedScreenState(account):
+					self.screenStateAccount = account
+					switch self.screenStateCache {
+					case .cached(let cached, for: account):
+						self.screenStateCache = .none
+            self.replaceRoot(with: cached)
+
+					case .cached, .none:
+						// fallback to initial screen state if there is none cached
+						guard !self.isSplashScreenDisplayed || self.isErrorDisplayed
+						else { return }
+						self.screenStateCache = .none
+						try self.replaceRoot(
+							with: self.components
+								.instance(
+									of: SplashScreenViewController.self,
+									in: account
+								)
+						)
+					}
+
 
         // Go to initial screen state (through Splash)
         // which will be one of:
         // - welcome (no accounts)
         // - home (for authorized)
         // - account selection (for unauthorized)
-        case let .useInitialScreenState(account):
-          self.screenStateCache = nil
-
+        case .useInitialScreenState:
           guard !self.isSplashScreenDisplayed || self.isErrorDisplayed
           else { return }
+
+          self.screenStateCache = .none
           try self.replaceRoot(
             with: self.components
               .instance(
                 of: SplashScreenViewController.self,
-                in: account
+                in: .none
               )
           )
 
@@ -100,18 +115,24 @@ internal final class Window {
             !self.isAuthorizationDisplayed
           else { return }
 
-          if !self.isMFAPromptDisplayed {
-            assert(
-              self.screenStateCache == nil,
-              "Cannot replace screen state cache, it has to be empty"
-            )
-            guard let rootComponent: AnyUIComponent = self.window.rootViewController as? AnyUIComponent
-            else { unreachable("Window root has to be an instance of UIComponent") }
-            self.screenStateCache = rootComponent
-          }
-          else {
-            /* NOP - reuse previous cache if any if previous screen was mfa prompt */
-          }
+					if self.screenStateAccount == account {
+						if !self.isMFAPromptDisplayed {
+							assert(
+								self.screenStateCache == nil,
+								"Cannot replace screen state cache, it has to be empty"
+							)
+							guard let rootComponent: AnyUIComponent = self.window.rootViewController as? AnyUIComponent
+							else { unreachable("Window root has to be an instance of UIComponent") }
+							self.screenStateCache = .cached(rootComponent, for: account)
+						}
+						else {
+							/* NOP - reuse previous cache if any if previous screen was mfa prompt */
+						}
+					}
+					else {
+						self.screenStateCache = .none
+						self.screenStateAccount = account
+					}
 
           try self.replaceRoot(
             with: self.components
@@ -122,7 +143,7 @@ internal final class Window {
           )
 
         // Prompt user with mfa screen if it is not already displayed.
-        case let .requestMFA(_, providers):
+        case let .requestMFA(account, providers):
           guard
             !self.isSplashScreenDisplayed,
             !self.isMFAPromptDisplayed
@@ -167,13 +188,19 @@ internal final class Window {
             }
           }
           else {
-            assert(
-              self.screenStateCache == nil,
-              "Cannot replace screen state cache, it has to be empty"
-            )
-            guard let rootComponent: AnyUIComponent = self.window.rootViewController as? AnyUIComponent
-            else { unreachable("Window root has to be an instance of UIComponent") }
-            self.screenStateCache = rootComponent
+						if self.screenStateAccount == account {
+							assert(
+								self.screenStateCache == nil,
+								"Cannot replace screen state cache, it has to be empty"
+							)
+							guard let rootComponent: AnyUIComponent = self.window.rootViewController as? AnyUIComponent
+							else { unreachable("Window root has to be an instance of UIComponent") }
+							self.screenStateCache = .cached(rootComponent, for: account)
+						}
+						else {
+							self.screenStateCache = .none
+							self.screenStateAccount = account
+						}
 
             if providers.isEmpty {
               try self.replaceRoot(

@@ -98,3 +98,20 @@ extension EventSubscription {
 		}
 	}
 }
+
+extension EventSubscription: AsyncIteratorProtocol {
+
+	public typealias Element = Description.Payload
+
+	public func next() async throws -> Element? {
+		try await self.nextEvent()
+	}
+}
+extension EventSubscription: AsyncSequence {
+
+	public typealias AsyncIterator = EventSubscription
+
+	public func makeAsyncIterator() -> AsyncIterator {
+		self
+	}
+}

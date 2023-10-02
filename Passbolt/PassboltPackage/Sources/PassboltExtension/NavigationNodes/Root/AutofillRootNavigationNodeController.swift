@@ -59,140 +59,118 @@ internal final class AutofillRootNavigationNodeController: ViewController {
 
 extension AutofillRootNavigationNodeController {
 
-  internal final func activate() async {
-    let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
+	internal final func activate() async {
+		let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
 
-    if storedAccounts.isEmpty {
-      await navigationTree
-        .replaceRoot(
-          pushing: NoAccountsViewController.self,
-          context: Void(),
-          using: features
-        )
-    }
-    else {
-      let initialAccount: AccountWithProfile?
-      if let lastUsedAccount: AccountWithProfile = accounts.lastUsedAccount() {
-        initialAccount = lastUsedAccount
-      }
-      else if storedAccounts.count == 1, let singleAccount: AccountWithProfile = storedAccounts.first {
-        initialAccount = singleAccount
-      }
-      else {
-        initialAccount = .none
-      }
+		if storedAccounts.isEmpty {
+			await navigationTree
+				.replaceRoot(
+					pushing: NoAccountsViewController.self,
+					context: Void(),
+					using: features
+				)
+		}
+		else {
+			let initialAccount: AccountWithProfile?
+			if let lastUsedAccount: AccountWithProfile = accounts.lastUsedAccount() {
+				initialAccount = lastUsedAccount
+			}
+			else if storedAccounts.count == 1, let singleAccount: AccountWithProfile = storedAccounts.first {
+				initialAccount = singleAccount
+			}
+			else {
+				initialAccount = .none
+			}
 
-      await navigationTree
-        .replaceRoot(
-          pushing: AccountSelectionViewController.self,
-          context: .signIn,
-          using: features
-        )
+			await navigationTree
+				.replaceRoot(
+					pushing: AccountSelectionViewController.self,
+					context: .signIn,
+					using: features
+				)
 
-      if let account: AccountWithProfile = initialAccount {
-        await navigationTree
-          .push(
-            AuthorizationViewController.self,
+			if let account: AccountWithProfile = initialAccount {
+				await navigationTree
+					.push(
+						AuthorizationViewController.self,
 						context: account.account,
-            using: features
-          )
-      }  // else NOP
-    }
+						using: features
+					)
+			}  // else NOP
+		}
 
-    self.asyncExecutor.schedule(.unmanaged) { [self] () async -> Void in
-      do {
-        try await self.session.updates
-          .asAnyAsyncSequence()
-          .dropFirst()
-          .forEach { @SessionActor _ in
-            do {
-              let currentAccount: Account? =
-                try? await self.session
-                .currentAccount()
-              let pendingAuthorization: SessionAuthorizationRequest? =
-                self.session
-                .pendingAuthorization()
-
-              switch (currentAccount, pendingAuthorization) {
-              case let (.some(currentAccount), .none):
-                if let (account, tree): (Account, NavigationTreeState) = self.authorizationPromptRecoveryTreeState
-                  .get(),
-                  account == currentAccount
-                {
-                  self.authorizationPromptRecoveryTreeState.set(.none)
-                  await self.navigationTree.set(treeState: tree)
-                }
-                else {
-                  #warning("FIXME: application has a dedicated screen for configuration load fail, this should not break the extension so ignoring the error for now using fallback to defaults")
-                  try? await self.sessionConfigurationLoader.fetchIfNeeded()
-                  try await self.navigationTree.replaceRoot(
-                    pushing: HomeNavigationNodeView.self,
-                    controller: self.features.instance(
-                      context: .init(
-                        account: currentAccount,
-                        configuration: self.sessionConfigurationLoader.sessionConfiguration()
-                      )
-                    )
-                  )
-                }
-
-              case let (.some(account), .passphrase):
-                await self.authorizationPromptRecoveryTreeState.set((account, self.navigationTree.treeState))
-                await self.navigationTree
-                  .replaceRoot(
-                    pushing: AccountSelectionViewController.self,
-                    context: .signIn,
-                    using: self.features
-                  )
-                await self.navigationTree
-                  .push(
-                    AuthorizationViewController.self,
-                    context: account,
-                    using: self.features
-                  )
-
-              case (.some, .mfa):
-                await self.navigationTree
-                  .replaceRoot(
-                    pushing: MFARequiredViewController.self,
-                    context: Void(),
-                    using: self.features
-                  )
-
-              case (.none, _):
-                self.authorizationPromptRecoveryTreeState.set(.none)
-                if self.accounts.storedAccounts().isEmpty {
-                  await self.navigationTree
-                    .replaceRoot(
-                      pushing: NoAccountsViewController.self,
-                      context: Void(),
-                      using: self.features
-                    )
-                }
-                else {
-                  await self.navigationTree
-                    .replaceRoot(
-                      pushing: AccountSelectionViewController.self,
-                      context: .signIn,
-                      using: self.features
-                    )
-                }
-              }
-            }
-            catch {
-              error.logged(
-                info: .message(
-                  "Root navigation failed."
-                )
-              )
-            }
-          }
-      }
-      catch {
-        error
-          .asTheError()
-          .asFatalError(message: "Session monitoring broken.")
-      }
-    }
-  }
+		self.asyncExecutor.schedule(.unmanaged) {
+			do {
+				try await SessionStateChangeEvent.subscribe { (event: SessionStateChangeEvent) async throws in
+					switch event {
+					case .authorized(let account):
+						if let (previousAccount, tree): (Account, NavigationTreeState) = self.authorizationPromptRecoveryTreeState
+							.get(),
+							 account == previousAccount
+						{
+							self.authorizationPromptRecoveryTreeState.set(.none)
+							await self.navigationTree.set(treeState: tree)
+						}
+						else {
+							#warning("FIXME: application has a dedicated screen for configuration load fail, this should not break the extension so ignoring the error for now using fallback to defaults")
+							try? await self.sessionConfigurationLoader.fetchIfNeeded()
+							try await self.navigationTree.replaceRoot(
+								pushing: HomeNavigationNodeView.self,
+								controller: self.features.instance(
+									context: .init(
+										account: account,
+										configuration: self.sessionConfigurationLoader.sessionConfiguration()
+									)
+								)
+							)
+						}
+					case .requestedPassphrase(let account):
+						await self.authorizationPromptRecoveryTreeState.set((account, self.navigationTree.treeState))
+						await self.navigationTree
+							.replaceRoot(
+								pushing: AccountSelectionViewController.self,
+								context: .signIn,
+								using: self.features
+							)
+						await self.navigationTree
+							.push(
+								AuthorizationViewController.self,
+								context: account,
+								using: self.features
+							)
+					case .requestedMFA(let account, let providers):
+						await self.navigationTree
+							.replaceRoot(
+								pushing: MFARequiredViewController.self,
+								context: Void(),
+								using: self.features
+							)
+					case .closed:
+						self.authorizationPromptRecoveryTreeState.set(.none)
+						if self.accounts.storedAccounts().isEmpty {
+							await self.navigationTree
+								.replaceRoot(
+									pushing: NoAccountsViewController.self,
+									context: Void(),
+									using: self.features
+								)
+						}
+						else {
+							await self.navigationTree
+								.replaceRoot(
+									pushing: AccountSelectionViewController.self,
+									context: .signIn,
+									using: self.features
+								)
+						}
+					}
+				}
+			}
+			catch {
+				error
+					.asTheError()
+					.asFatalError(message: "Session monitoring broken.")
+			}
+		}
+	}
 }

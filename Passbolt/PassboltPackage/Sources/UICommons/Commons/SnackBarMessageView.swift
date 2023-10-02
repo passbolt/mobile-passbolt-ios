@@ -33,10 +33,7 @@ import UIKit
 @MainActor public func setupSnackBarMessages(
 	within presentingView: UIView
 ) {
-	precondition(
-		snackBarsTask == nil,
-		"Can't configure messages handling more than once!"
-	)
+	snackBarsTask?.cancel()
 	presentingView.isUserInteractionEnabled = true
 	snackBarsTask = Task<Void, Error>.detached {
 		try await SnackBarMessageEvent.subscribe(bufferSize: 8) { (message: SnackBarMessage?) in

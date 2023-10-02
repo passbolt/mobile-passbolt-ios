@@ -29,6 +29,7 @@ import UIComponents
 
 internal struct WindowController {
 
+	internal var initialAccount: @Sendable () -> Account?
   internal var screenStateDispositionSequence: @MainActor () -> AnyAsyncSequence<ScreenStateDisposition>
 }
 
@@ -36,8 +37,8 @@ extension WindowController {
 
   internal enum ScreenStateDisposition: Equatable {
 
-    case useInitialScreenState(for: Account?)
-    case useCachedScreenState(for: Account)
+    case useInitialScreenState
+    case useAuthorizedScreenState(for: Account)
     case requestPassphrase(Account, message: DisplayableString?)
     case requestMFA(Account, providers: Array<SessionMFAProvider>)
   }
@@ -52,73 +53,42 @@ extension WindowController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let session: Session = try features.instance()
     let accounts: Accounts = try features.instance()
+		let sessionStateChangeSubscription: EventSubscription<SessionStateChangeEvent> = SessionStateChangeEvent.subscribe()
 
-    let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
-    let initialAccount: AccountWithProfile?
-    if let lastUsedAccount: AccountWithProfile = accounts.lastUsedAccount() {
-      initialAccount = lastUsedAccount
-    }
-    else if storedAccounts.count == 1, let singleAccount: AccountWithProfile = storedAccounts.first {
-      initialAccount = singleAccount
-    }
-    else {
-      initialAccount = .none
-    }
-		let lastDisposition: CriticalState<ScreenStateDisposition> = .init(.useInitialScreenState(for: initialAccount?.account))
 
-    func screenStateDispositionSequence() -> AnyAsyncSequence<ScreenStateDisposition> {
-      merge(
-        // initial state
-        [lastDisposition.get()].asAnyAsyncSequence(),
-        session
-          .updates
-          .asAnyAsyncSequence()
-          .dropFirst()  // we have initial value handled
-          .map { _ -> ScreenStateDisposition in
-            async let currentAccount: Account? = session.currentAccount()
-            async let currentAuthorizationRequest: SessionAuthorizationRequest? = session.pendingAuthorization()
+		@Sendable nonisolated func initialAccount() -> Account? {
+			let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
+			if let lastUsedAccount: AccountWithProfile = accounts.lastUsedAccount() {
+				return lastUsedAccount.account
+			}
+			else if storedAccounts.count == 1, let singleAccount: AccountWithProfile = storedAccounts.first {
+				return singleAccount.account
+			}
+			else {
+				return .none
+			}
+		}
 
-            switch (try? await currentAccount, await currentAuthorizationRequest, lastDisposition.get()) {
-
-            case  // fully authorized after prompting
-            (.some(let account), .none, .requestPassphrase(let previousAccount, _)),
-              (.some(let account), .none, .requestMFA(let previousAccount, _)):
-              if account == previousAccount {
-                return .useCachedScreenState(for: account)
-              }
-              else {
-                return .useInitialScreenState(for: account)
-              }
-
-            case  // fully authorized initially
-            let (.some(account), .none, .useCachedScreenState),
-              let (.some(account), .none, .useInitialScreenState):
-              return .useInitialScreenState(for: account)
-
-            case  // passphrase required
-            let (.some, .passphrase(account), _):
-              return .requestPassphrase(account, message: .none)
-
-            case  // mfa required
-            let (.some, .mfa(account, providers), _):
-              return .requestMFA(account, providers: providers)
-
-            case  // signed out
-            (.none, _, _):
-              return .useInitialScreenState(for: .none)
-            }
-          }
-          .map { (disposition: ScreenStateDisposition) -> ScreenStateDisposition in
-            lastDisposition.set(disposition)
-            return disposition
-          }
-      )
-      .asAnyAsyncSequence()
+    @Sendable nonisolated func screenStateDispositionSequence() -> AnyAsyncSequence<ScreenStateDisposition> {
+			sessionStateChangeSubscription
+				.map { (event: SessionStateChangeEvent) -> ScreenStateDisposition in
+					switch event {
+					case .authorized(let account):
+						return .useAuthorizedScreenState(for: account)
+					case .requestedPassphrase(let account):
+						return .requestPassphrase(account, message: .none)
+					case .requestedMFA(let account, let providers):
+						return .requestMFA(account, providers: providers)
+					case .closed:
+						return .useInitialScreenState
+					}
+				}
+				.asAnyAsyncSequence()
     }
 
     return Self(
+			initialAccount: initialAccount,
       screenStateDispositionSequence: screenStateDispositionSequence
     )
   }

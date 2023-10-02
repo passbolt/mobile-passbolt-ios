@@ -58,10 +58,7 @@ extension OSApplicationRating {
           .filter({ $0.activationState == .foregroundActive })
           .compactMap({ $0 as? UIWindowScene })
           .first
-      else {
-        assertionFailure("UIApplication has no foreground window active")
-        return
-      }
+      else { return }
       SKStoreReviewController.requestReview(in: scene)
     }
 

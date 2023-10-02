@@ -63,33 +63,24 @@ extension SessionLocking {
 		) {
 			lockingTask.access { (currentTask: inout LockingTask?) in
 				guard currentTask?.account != account else { return }
+				currentTask?.task.cancel()
 				currentTask = .init(
 					account: account,
 					task: .detached { @SessionActor in
 						Diagnostics.logger.info("Session auto locking enabled!")
-						let updates = combineLatest(
-							sessionState.updates,
-							appLifecycle.lifecycle
-						)
 						do {
-							for try await update in updates {
-								switch (sessionState.account(), update.1) {
-								case (account, .didEnterBackground):
+							for try await update in appLifecycle.lifecycle {
+								guard sessionState.account() == account
+								else { break } // account has changed
+								switch (sessionState.pendingAuthorization(), update) {
+								case (.none, .didEnterBackground):
 									sessionState.passphraseWipe()
 
-								case (account, .willEnterForeground):
-									try sessionState
-										.authorizationRequested(.passphrase(account))
-
-								case (account, _):
-									break // ignore
+								case (.none, .willEnterForeground):
+									try sessionState.authorizationRequested(.passphrase(account))
 
 								case _:
-									lockingTask.access { (currentTask: inout LockingTask?) in
-										guard currentTask?.account == account else { return }
-										currentTask?.task.cancel()
-										currentTask = .none
-									}
+									break // ignore
 								}
 							}
 						}

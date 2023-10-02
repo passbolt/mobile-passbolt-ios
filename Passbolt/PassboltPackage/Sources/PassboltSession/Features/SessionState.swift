@@ -155,6 +155,7 @@ extension SessionState {
         return currentPassphrase
       }
       else {
+				Diagnostics.logger.info("Passphrase cache expired...")
         currentPassphrase = .none
         return .none
       }
@@ -166,6 +167,7 @@ extension SessionState {
     @SessionActor func validAccessToken() -> SessionAccessToken? {
       if let token: SessionAccessToken = currentAccessToken {
         if token.isExpired(timestamp: osTime.timestamp(), leeway: 10) {
+					Diagnostics.logger.info("Access token expired...")
           currentAccessToken = .none
           return .none
         }
@@ -208,6 +210,8 @@ extension SessionState {
       mfaToken: SessionMFAToken?,
       mfaRequiredWithProviders mfaProviders: Array<SessionMFAProvider>
     ) {
+			Diagnostics.logger.info("Session created...")
+
       currentAccount = account
       currentPassphrase = passphrase
       currentPassphraseExpiration = osTime.timestamp() + passphraseExpirationTime
@@ -216,14 +220,17 @@ extension SessionState {
       currentMFAToken = mfaToken
       if mfaProviders.isEmpty {
         currentPendingAuthorization = .none
+        updatesSource.update()
+        SessionStateChangeEvent.send(.authorized(account))
       }
       else {
         currentPendingAuthorization = .mfa(
           for: account,
           providers: mfaProviders
-        )
+				)
+				updatesSource.update()
+        SessionStateChangeEvent.send(.requestedMFA(for: account, providers: mfaProviders))
       }
-      updatesSource.update()
     }
 
     @SessionActor func refreshedSession(
@@ -239,6 +246,7 @@ extension SessionState {
           SessionClosed
           .error(account: account)
       }
+			Diagnostics.logger.info("Session refreshed...")
       if let passphrase: Passphrase = passphrase {
         // extend passphrase cache expire time if provided
         currentPassphrase = passphrase
@@ -255,10 +263,12 @@ extension SessionState {
       case .passphrase:
         currentPendingAuthorization = .none
         updatesSource.update()
+				SessionStateChangeEvent.send(.authorized(account))
 
       case .passphraseWithMFA(_, let mfaProviders):
         currentPendingAuthorization = .mfa(for: account, providers: mfaProviders)
         updatesSource.update()
+				SessionStateChangeEvent.send(.requestedMFA(for: account, providers: mfaProviders))
       }
     }
 
@@ -272,6 +282,7 @@ extension SessionState {
           SessionClosed
           .error(account: account)
       }
+      Diagnostics.logger.info("Passphrase provided...")
       currentPassphrase = passphrase
       currentPassphraseExpiration = osTime.timestamp() + passphraseExpirationTime
       switch currentPendingAuthorization {
@@ -281,10 +292,12 @@ extension SessionState {
       case .passphrase:
         currentPendingAuthorization = .none
         updatesSource.update()
+				SessionStateChangeEvent.send(.authorized(account))
 
       case .passphraseWithMFA(_, let mfaProviders):
         currentPendingAuthorization = .mfa(for: account, providers: mfaProviders)
         updatesSource.update()
+				SessionStateChangeEvent.send(.requestedMFA(for: account, providers: mfaProviders))
       }
     }
 
@@ -298,6 +311,7 @@ extension SessionState {
           SessionClosed
           .error(account: account)
       }
+      Diagnostics.logger.info("MFA token provided...")
       currentMFAToken = mfaToken
       switch currentPendingAuthorization {
       case .none, .passphrase:
@@ -306,10 +320,12 @@ extension SessionState {
       case .mfa:
         currentPendingAuthorization = .none
         updatesSource.update()
+        SessionStateChangeEvent.send(.authorized(account))
 
       case .passphraseWithMFA(let account, _):
         currentPendingAuthorization = .passphrase(for: account)
         updatesSource.update()
+				SessionStateChangeEvent.send(.requestedPassphrase(for: account))
       }
     }
 
@@ -322,6 +338,7 @@ extension SessionState {
           SessionClosed
           .error(account: request.account)
       }
+			Diagnostics.logger.info("Requesting authorization...")
 
       switch currentPendingAuthorization {
       // new request when there is none
@@ -332,11 +349,13 @@ extension SessionState {
           currentPassphraseExpiration = 0
           currentPendingAuthorization = .passphrase(for: currentAccount)
           updatesSource.update()
+          SessionStateChangeEvent.send(.requestedPassphrase(for: currentAccount))
 
         case .mfa(currentAccount, let mfaProviders):
           currentMFAToken = .none
           currentPendingAuthorization = .mfa(for: currentAccount, providers: mfaProviders)
           updatesSource.update()
+          SessionStateChangeEvent.send(.requestedMFA(for: currentAccount, providers: mfaProviders))
 
         case .passphrase, .mfa:
           throw
@@ -393,20 +412,24 @@ extension SessionState {
     }
 
     @SessionActor func passphraseWipe() {
+			Diagnostics.logger.info("Wiping passphrase cache...")
       currentPassphrase = .none
       currentPassphraseExpiration = 0
     }
 
     @SessionActor func accessTokenInvalidate() {
+			Diagnostics.logger.info("Invalidating access token...")
       currentAccessToken = .none
     }
 
     @SessionActor func mfaTokenInvalidate() {
+			Diagnostics.logger.info("Invalidating mfa token...")
       currentMFAToken = .none
     }
 
     @SessionActor func closedSession() {
-      guard case .some = currentAccount
+			Diagnostics.logger.info("Closing session...")
+      guard let account: Account = currentAccount
       else { return }
       currentAccount = .none
       currentPassphrase = .none
@@ -416,6 +439,7 @@ extension SessionState {
       currentMFAToken = .none
       currentPendingAuthorization = .none
       updatesSource.update()
+      SessionStateChangeEvent.send(.closed)
     }
 
     return Self(

@@ -22,35 +22,18 @@
 //
 
 import Commons
+import CommonModels
 
-// Immutable part of account, used to identify account and associated server.
-// WARNING: Do not add new or rename fields in this structure
-// - it will cause data wipe on devices after update.
-public struct Account {
+/// - warning: Do not send those events manually!
+/// Those are supposed to be sent ONLY by ``SessionState`` itself.
+public enum SessionStateChangeEvent: EventDescription, Sendable {
 
-  public typealias UserID = User.ID
-  public typealias LocalID = Tagged<String, Self>
+	public typealias Payload = Self
 
-  public let localID: LocalID
-  public let domain: URLString
-  public let userID: UserID
-  public let fingerprint: Fingerprint
+	public nonisolated static let eventList: EventList<Self> = .init()
 
-  public init(
-    localID: LocalID,
-    domain: URLString,
-    userID: UserID,
-    fingerprint: Fingerprint
-  ) {
-    self.localID = localID
-    self.domain = domain
-    self.userID = userID
-    self.fingerprint = fingerprint
-  }
+	case authorized(Account)
+	case requestedPassphrase(for: Account)
+	case requestedMFA(for: Account, providers: Array<SessionMFAProvider>)
+	case closed
 }
-
-extension Account: Hashable {}
-
-extension Account: Codable {}
-
-extension Account: Sendable {}

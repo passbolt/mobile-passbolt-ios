@@ -30,3 +30,4 @@ public enum SessionMFAProvider: String {
 
 extension SessionMFAProvider: Hashable {}
 extension SessionMFAProvider: Decodable {}
+extension SessionMFAProvider: Sendable {}
