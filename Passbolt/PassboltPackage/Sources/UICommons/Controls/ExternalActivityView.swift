@@ -58,10 +58,11 @@ public struct ExternalActivityConfiguration {
 		privateKey: ArmoredPGPPrivateKey
 	) -> Self {
 		let itemProvider: NSItemProvider = .init(
-			item: privateKey.rawValue as NSString,
-			typeIdentifier: UTType.text.identifier
+			object: StringShareItem(
+				privateKey: privateKey
+			)
 		)
-		itemProvider.suggestedName = "private_key.txt"
+		itemProvider.suggestedName = "private_key"
 
 		let itemsConfiguration: UIActivityItemsConfiguration = .init(
 			itemProviders: [itemProvider]
@@ -122,14 +123,16 @@ public struct ExternalActivityConfiguration {
 		publicKey: ArmoredPGPPublicKey
 	) -> Self {
 		let itemProvider: NSItemProvider = .init(
-			item: publicKey.rawValue as NSString,
-			typeIdentifier: UTType.text.identifier
+			object: StringShareItem(
+				publicKey: publicKey
+			)
 		)
-		itemProvider.suggestedName = "public_key.txt"
+		itemProvider.suggestedName = "public_key"
 
 		let itemsConfiguration: UIActivityItemsConfiguration = .init(
 			itemProviders: [itemProvider]
 		)
+
 		itemsConfiguration.metadataProvider = { (key: UIActivityItemsConfigurationMetadataKey) -> Any? in
 			switch key {
 			case .title:
@@ -216,5 +219,42 @@ public struct ExternalActivityView: UIViewControllerRepresentable {
 		context: Context
 	) {
 		// NOP - can't be updated
+	}
+}
+
+private final class StringShareItem: NSObject, NSItemProviderWriting {
+
+	fileprivate static let writableTypeIdentifiersForItemProvider: Array<String> = [UTType.text.identifier]
+
+	fileprivate func loadData(
+		withTypeIdentifier typeIdentifier: String,
+		forItemProviderCompletionHandler completionHandler: @escaping @Sendable (Data?, Error?) -> Void
+	) -> Progress? {
+		switch typeIdentifier {
+			case UTType.text.identifier:
+				completionHandler(
+					self.rawString.data(using: .utf8),
+					.none
+				)
+				return .init()
+			case _:
+				return .none
+		}
+	}
+	
+	private let rawString: String
+
+	fileprivate init(
+		privateKey: ArmoredPGPPrivateKey
+	) {
+		self.rawString = privateKey.rawValue
+		super.init()
+	}
+
+	fileprivate init(
+		publicKey: ArmoredPGPPublicKey
+	) {
+		self.rawString = publicKey.rawValue
+		super.init()
 	}
 }
