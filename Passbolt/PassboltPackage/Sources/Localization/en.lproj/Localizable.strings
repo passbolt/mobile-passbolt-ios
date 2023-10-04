@@ -531,7 +531,7 @@ Contact your administrator for more information.";
 "otp.edit.code.scanning.title" = "Edit TOTP manually";
 "otp.edit.code.scanning.initial.message" = "Scan QR code";
 "otp.edit.menu.title" = "Aim the camera at the QR Codes";
-"otp.edit.otp.created.message" = "TOTP has beed created.";
+"otp.edit.otp.created.message" = "TOTP has been created.";
 "otp.edit.otp.replaced.message" = "TOTP has been replaced.";
 "otp.edit.otp.deleted.message" = "TOTP has been deleted.";
 

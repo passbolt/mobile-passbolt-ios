@@ -25,7 +25,7 @@ import TestExtensions
 
 @testable import PassboltResources
 
-final class ResourcesEditFormTests: FeaturesTestCase {
+final class ResourceEditFormTests: FeaturesTestCase {
 
   var editedResource: Resource = .mock_1
   lazy var editedResourceType: ResourceType = self.editedResource.type
