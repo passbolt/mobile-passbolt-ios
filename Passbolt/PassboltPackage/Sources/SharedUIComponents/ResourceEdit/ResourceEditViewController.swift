@@ -181,9 +181,9 @@ public final class ResourceEditViewController: ViewController {
         }  // else NOP
 
 				SnackBarMessageEvent.send(
-					resource.isLocal
-					? "resource.form.new.password.created"
-					: "resource.menu.action.edited"
+					self.editsExisting
+					? "resource.menu.action.edited"
+					: "resource.form.new.password.created"
 				)
 				await self.success(resource)
       }
