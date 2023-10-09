@@ -33,6 +33,7 @@
 "generic.loading.long" = "Está tardando más de lo normal...";
 "generic.continue" = "Continuar";
 "generic.retry" = "Volver a intentar";
+"generic.try.again" = "Volver a intentarlo";
 "generic.delete" = "Eliminar";
 "generic.got.it" = "Entendido";
 "generic.settings" = "Ajustes";
@@ -44,6 +45,7 @@
 "generic.user.search.list.empty" = "Usuario no encontrado.";
 "generic.paste.value.invalid" = "Intentando pegar un valor no válido";
 "generic.are.you.sure" = "¿Está seguro?";
+"generic.picker.select.placeholder" = "Seleccionar";
 
 "account.selection.title" = "¡Bienvenido de nuevo!";
 "account.selection.subtitle" = "¡Elija una cuenta para iniciar sesión!";
@@ -72,11 +74,21 @@
 "resource.detail.field.passphrase" = "Contraseña";
 "resource.detail.field.uri" = "URL del sitio web";
 "resource.detail.field.description" = "Descripción";
-"resource.value.copied" = "%@ copiado!";
+"resource.show.field.uri.placeholder" = "Sin URL";
+"resource.show.field.username.placeholder" = "Sin nombre de usuario";
+"resource.show.field.password.placeholder" = "Sin contraseña";
+"resource.show.field.description.placeholder" = "Sin descripción";
+"resource.value.copied" = "¡%@ copiado a su portapapeles!";
 "resource.details.value" = "Valor";
 "resource.detail.section.location" = "Ubicación";
 "resource.detail.section.permissions" = "Compartido con";
 "resource.detail.section.tags" = "Etiquetas";
+"resource.detail.undefined.content.warning" = "Tipo no soportado, ¡los campos desconocidos están ocultos!";
+
+"resource.delete.succeeded" = "Se ha eliminado el recurso.";
+
+"resource.field.name.unknown" = "Valor";
+"section.tags.empty" = "Sin etiquetas";
 
 "server.key.fingerprint.changed.title" = "Lo sentimos, la clave del servidor ha cambiado.";
 "server.key.fingerprint.changed.description" = "Por razones de seguridad, por favor compruebe con su administrador que este es un cambio que iniciaron. La nueva huella digital:";
@@ -86,7 +98,7 @@
 "resource.form.password.strength" = "Fortaleza de la contraseña";
 "resource.form.strength.very.weak" = "Muy débil";
 "resource.form.strength.weak" = "Débil";
-"resource.form.strength.fair" = "Justa";
+"resource.form.strength.fair" = "Fácil";
 "resource.form.strength.strong" = "Fuerte";
 "resource.form.strength.very.strong" = "Muy fuerte";
 "resource.form.create.button.title" = "Crear";
@@ -95,6 +107,7 @@
 "resource.form.new.password.created" = "Se ha creado una nueva contraseña";
 "resource.form.description.encrypted" = "La descripción está cifrada";
 "resource.form.description.unencrypted" = "La descripción no está cifrada";
+"resource.form.undefined.content.warning" = "Tipo no soportado, ¡los campos desconocidos están ocultos!";
 
 "feedback.alert.title" = "El dispositivo puede tener jailbreak";
 "feedback.alert.message" = "Sospechamos que su dispositivo puede tener jailbreak. Tenga en cuenta que reduce la seguridad general del dispositivo y puede ser utilizado maliciosamente para adquirir sus contraseñas.";
@@ -116,9 +129,9 @@
 "resource.edit.field.password.label" = "Contraseña";
 "resource.edit.field.description.label" = "Descripción";
 "resource.edit.field.totp.label" = "TOTP";
-"resource.edit.field.name.placeholder" = "Introducir un nombre";
-"resource.edit.field.uri.placeholder" = "Introducir URL";
-"resource.edit.field.username.placeholder" = "Introducir nombre de usuario";
+"resource.edit.field.name.placeholder" = "Introduzca un nombre";
+"resource.edit.field.uri.placeholder" = "Introduzca una URL";
+"resource.edit.field.username.placeholder" = "Introduzca un nombre de usuario";
 "resource.edit.field.password.placeholder" = "Introduzca una contraseña";
 "resource.edit.field.description.placeholder" = "Introduzca una descripción";
 "resource.edit.exit.confirmation.message" = "Sus modificaciones no se guardarán.";
@@ -225,16 +238,26 @@
 "resource.menu.item.copy.password" = "Copiar contraseña";
 "resource.menu.item.copy.username" = "Copiar nombre de usuario";
 "resource.menu.item.copy.description" = "Copiar descripción";
+"resource.menu.item.reveal.otp" = "Mostrar TOTP";
+"resource.menu.item.copy.otp" = "Copiar TOTP";
 "resource.menu.item.add.favorite" = "Añadir a favoritos";
 "resource.menu.item.remove.favorite" = "Eliminar de favoritos";
 "resource.menu.item.share" = "Compartir contraseña";
-"resource.menu.item.edit" = "Editar contraseña";
-"resource.menu.item.delete" = "Eliminar contraseña";
+"resource.menu.item.edit.password" = "Editar contraseña";
+"resource.menu.item.add.otp" = "Añadir TOTP";
+"resource.menu.item.edit.otp" = "Editar TOTP";
+"resource.menu.item.otp.menu" = "Gestionar TOTP";
+"resource.menu.item.delete.resource" = "Eliminar contraseña";
+"resource.menu.item.delete.otp" = "Eliminar TOTP";
 "resource.menu.item.password" = "Contraseña";
 "resource.menu.item.username" = "Nombre de usuario";
 "resource.menu.item.description" = "Descripción";
 "resource.menu.item.url" = "URL";
-"resource.menu.item.field.copied" = "%@ copiado!";
+"resource.menu.item.field.copied" = "¡%@ copiado a su portapapeles!";
+
+"resource" = "Recurso";
+"resource.menu.action.favorite.added" = "¡%@ ha sido añadido a favoritos!";
+"resource.menu.action.favorite.removed" = "¡%@ ha sido eliminado de favoritos!";
 
 "resource.menu.action.edited" = "Esta contraseña se ha editado correctamente.";
 "resource.menu.action.deleted" = "¡%@ ha sido eliminado!";
@@ -284,6 +307,8 @@ NFC para que esto funcione.";
 "mfa.unsupported.provider.title" = "Su proveedor MFA no es compatible";
 "mfa.unsupported.provider.description" = "Por favor, configure otro proveedor usando la aplicación web.
 Póngase en contacto con su administrador para obtener más información.";
+"mfa.duo.authorization.title" = "Autenticación Duo de múltiples factores";
+"mfa.duo.authorization.button.title" = "Authenticate with Duo";
 
 "account.menu.title" = "Cambiar de cuenta";
 "account.menu.account.details.button.title" = "Ver detalles";
@@ -348,7 +373,7 @@ Póngase en contacto con su administrador para obtener más información.";
 "generic.error" = "¡Algo salió mal!";
 "generic.error.retry" = "Algo salió mal. Por favor, inténtelo de nuevo.";
 "generic.error.report" = "Algo salió mal. Por favor, informe del error.";
-"generic.error.cancelled" = "La operación fue cancelada.";
+"generic.error.cancelled" = "Operation has been cancelled.";
 "sign.in.error.message" = "El inicio de sesión falló";
 "sign.in.error.biometrics.changed.message" = "Parece que los datos biométricos de su dispositivo han cambiado. Por favor, introduzca su contraseña y vuelva a configurar la biometría";
 "sign.in.error.passphrase.invalid.message" = "Contraseña no válida.";
@@ -375,7 +400,7 @@ Póngase en contacto con su administrador para obtener más información.";
 "error.internet.connection.issue" = "No es posible conectarse a internet.";
 "error.client.certificate.invalid" = "Certificado de cliente no válido.";
 "error.server.connection.issue" = "No es posible conectarse con el servidor.";
-"error.server.time.issue" = "Server and client time is out of sync, please contact your administrator.";
+"error.server.time.issue" = "La hora del servidor y del cliente no está sincronizada, por favor contacte con su administrador.";
 "error.server.response.invalid" = "Respuesta del servidor no válida";
 "error.server.response.timeout" = "Tiempo de espera de respuesta del servidor expirado.";
 "error.server.certificate.invalid" = "Certificado de servidor no válido.";
@@ -403,6 +428,7 @@ Póngase en contacto con su administrador para obtener más información.";
 "error.data.invalid" = "Datos proporcionados no válidos.";
 "error.resource.permission.required" = "Se necesita permiso.";
 "error.resource.secret.invalid" = "El secreto del recurso no es válido.";
+"error.resource.permission.invalid" = "El permiso del recurso no es válido.";
 "error.resource.owner.missing" = "El recurso debe tener al menos un propietario.";
 "error.system.feature.inaccessible" = "Característica del sistema no accesible.";
 "error.system.feature.permission.not.granted" = "Permiso de la característica del sistema no concedido.";
@@ -451,9 +477,13 @@ Póngase en contacto con su administrador para obtener más información.";
 // Validation errors
 
 "error.resource.field.empty" = "¡%@ no puede estar vacía!";
-"error.resource.field.range.greater" = "%@ tiene que ser mayor que %d";
-"error.resource.field.range.between" = "%@ tiene que estar entre %d y %d";
-"error.resource.field.characters.invalid" = "%@ contiene caracteres no válidos.";
+"error.resource.field.length.lower" = "¡%@ no puede tener más de %d caracteres!";
+"error.resource.field.length.higher" = "¡%@ no puede tener menos de %d caracteres!";
+"error.resource.field.range.lower" = "¡%@ tiene que ser menor que %d!";
+"error.resource.field.range.greater" = "%@ tiene que ser mayor que %d!";
+"error.resource.field.content.invalid" = "¡%@ tiene contenido no válido!";
+"error.resource.field.selection.invalid" = "¡%@ tiene que ser una de las opciones válidas!";
+"error.resource.field.unknown" = "¡No se esperaban los campos desconocidos!";
 
 // Home - presentation mode menu
 
@@ -491,19 +521,27 @@ Póngase en contacto con su administrador para obtener más información.";
 "otp.contextual.menu.delete.confirm.action.delete" = "Eliminar TOTP";
 "otp.contextual.menu.delete.succeeded" = "El TOTP ha sido eliminado.";
 
-// OTP create menu
+// OTP edit menu
 
-"otp.create.menu.title" = "Crear TOTP";
-"otp.create.menu.scanning.title" = "Escanear código QR";
-"otp.create.menu.manual.title" = "Crear TOTP manualmente";
-"otp.create.code.scanning.title" = "Escanear código QR";
-"otp.create.code.scanning.initial.message" = "Apunte con la cámara a los códigos QR";
+"otp.edit.menu.create.title" = "Crear TOTP";
+"otp.edit.menu.edit.title" = "Editar TOTP";
+"otp.edit.menu.scanning.title" = "Escanear código QR";
+"otp.edit.menu.create.manual.title" = "Crear TOTP manualmente";
+"otp.edit.menu.edit.manual.title" = "Editar TOTP manualmente";
+"otp.edit.code.scanning.title" = "Editar TOTP manualmente";
+"otp.edit.code.scanning.initial.message" = "Escanear código QR";
+"otp.edit.menu.title" = "Apunte con la cámara a los códigos QR";
+"otp.edit.otp.created.message" = "El TOTP ha sido creado.";
+"otp.edit.otp.replaced.message" = "El TOTP ha sido reemplazado.";
+"otp.edit.otp.deleted.message" = "El TOTP ha sido eliminado.";
 
 // OTP scanning
 
 "otp.scanning.success.title" = "¡Su TOTP ha sido escaneado!";
 "otp.scanning.success.create.button.title" = "Crear un TOTP independiente";
 "otp.scanning.success.link.button.title" = "Vincular TOTP con una contraseña";
+"otp.code.scanning.title" = "Escanear código QR";
+"otp.code.scanning.initial.message" = "Apunte con la cámara al código QR";
 
 // OTP form
 
@@ -518,13 +556,24 @@ Póngase en contacto con su administrador para obtener más información.";
 "otp.edit.form.advanced.button.title" = "Configuración avanzada";
 "otp.edit.form.create.button.title" = "Crear TOTP independiente";
 "otp.edit.form.edit.button.title" = "Guardar";
-"otp.edit.form.edit.advanced.title" = "Crear TOTP - configuración avanzada";
+"otp.edit.form.edit.advanced.title" = "Editar TOTP - configuración avanzada";
+"otp.edit.form.edit.advanced.warning" = "Los ajustes avanzados tienen que coincidir con los ajustes de su proveedor TOTP, de lo contrario no funcionará.";
 "otp.edit.form.field.digits.title" = "Longitud del TOTP";
 "otp.edit.form.field.digits.label" = "dígitos.";
 "otp.edit.form.field.period.title" = "Caducidad TOTP";
 "otp.edit.form.field.period.label" = "segundos hasta que el TOTP caduque.";
 "otp.edit.form.field.algorithm.title" = "Algoritmo";
 "otp.edit.form.apply.button.title" = "Aplicar";
+
+// OTP attach
+
+"otp.attach.list.title" = "Añadir TOTP a una contraseña";
+"otp.attach.alert.attach.title" = "¿Está seguro?";
+"otp.attach.alert.attach.message" = "Si añade un TOTP a este recurso, el TOTP heredará los mismos permisos para compartir.";
+"otp.attach.alert.attach.button.title" = "Añadir TOTP";
+"otp.attach.alert.replace.title" = "¿Reemplazar TOTP?";
+"otp.attach.alert.replace.message" = "Un TOTP ya está asociado con este recurso, ¿quiere reemplazarlo?";
+"otp.attach.alert.replace.button.title" = "Reemplazar TOTP";
 
 // Settings - Main
 
@@ -546,6 +595,7 @@ Póngase en contacto con su administrador para obtener más información.";
 "settings.accounts.title" = "Cuentas";
 "settings.accounts.item.manage.title" = "Gestionar cuentas";
 "settings.accounts.item.export.title" = "Transferir cuenta a otro dispositivo";
+"settings.accounts.item.key.inspector.title" = "Key inspector";
 
 // Settings - Terms & Licenses
 
@@ -553,6 +603,27 @@ Póngase en contacto con su administrador para obtener más información.";
 "settings.terms.and.licenses.item.terms.title" = "Términos y condiciones";
 "settings.terms.and.licenses.item.privacy.title" = "Política de privacidad";
 "settings.terms.and.licenses.item.licenses.title" = "Licencias de código abierto";
+
+// Key inspector
+
+"account.key.inspector.title" = "Key inspector";
+"account.key.inspector.field.uid.title" = "Uid";
+"account.key.inspector.field.fingerprint.title" = "Huella";
+"account.key.inspector.field.created.title" = "Creado";
+"account.key.inspector.field.expires.title" = "Caduca";
+"account.key.inspector.no.exipire.placeholder" = "Nunca";
+"account.key.inspector.field.key.size.title" = "Longitud de la clave";
+"account.key.inspector.field.algorithm.title" = "Algoritmo";
+"account.key.inspector.uid.copied.message" = "Uid copied to your clipboard!";
+"account.key.inspector.fingerprint.copied.message" = "Fingerprint copied to your clipboard!";
+
+// Key export
+
+"account.key.export.menu.title" = "Key inspector";
+"account.key.export.menu.export.private.action" = "Export private key";
+"account.key.export.menu.export.public.action" = "Export public key";
+"account.key.export.private.authorization.title" = "Export private key";
+"account.key.export.private.authorization.button.title" = "Export private key";
 
 // Settings - Troubleshooting
 
@@ -583,3 +654,7 @@ Póngase en contacto con su administrador para obtener más información.";
 "biometric.authorization.availability.unavailable" = "No disponible";
 "biometric.authorization.availability.face.id" = "FaceID";
 "biometric.authorization.availability.touch.id" = "TouchID";
+
+// Operation authorization
+
+"authorization.primary.button.title" = "Authorize";
