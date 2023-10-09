@@ -62,7 +62,7 @@ extension PGPKeyDetails: Decodable {
 		case fingerprint = "fingerprint"
 		case length = "bits"
 		case algorithm = "type"
-		case created = "created"
+		case created = "key_created"
 		case expires = "expires"
 	}
 }
