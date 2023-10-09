@@ -66,7 +66,7 @@ internal final class OTPResourcesListViewController: ViewController {
 
     self.features = features
 
-    self.createAvailable = try features.sessionConfiguration().totpEnabled
+    self.createAvailable = try features.sessionConfiguration().resources.totpEnabled
 
     self.pasteboard = features.instance()
 

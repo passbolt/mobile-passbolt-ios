@@ -61,9 +61,9 @@ final class HomePresentationTests: LoadableFeatureTestCase<HomePresentation> {
       \AccountPreferences.defaultHomePresentation,
       with: .variable(initial: HomePresentationMode.ownedResourcesList)
     )
-    await patch(
-      \SessionConfigurationLoader.configuration,
-      with: always(FeatureFlags.Folders.disabled)
+    patch(
+      \SessionConfigurationLoader.sessionConfiguration,
+      with: alwaysThrow(MockIssue.error())
     )
 
     let feature: HomePresentation = try testedInstance()

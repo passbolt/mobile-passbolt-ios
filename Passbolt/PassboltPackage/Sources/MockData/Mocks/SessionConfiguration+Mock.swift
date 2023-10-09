@@ -25,21 +25,24 @@ import CommonModels
 
 extension SessionConfiguration {
 
-  public static let mock_default: Self = .init(
-    foldersEnabled: false,
-    tagsEnabled: false,
-    totpEnabled: false,
-    passwordPreviewEnabled: true,
-    termsURL: .none,
-    privacyPolicyURL: .none
-  )
+  public static let mock_default: Self = .default
 
-  public static let mock_1: Self = .init(
-    foldersEnabled: true,
-    tagsEnabled: true,
-    totpEnabled: true,
-    passwordPreviewEnabled: true,
-    termsURL: "https://passbolt.com/terms",
-    privacyPolicyURL: "https://passbolt.com/privacy"
+	public static let mock_1: Self = .init(
+		termsURL: "https://passbolt.com/terms",
+		privacyPolicyURL: "https://passbolt.com/privacy",
+		resources: .init(
+			passwordRevealEnabled: true,
+			passwordCopyEnabled: true,
+			totpEnabled: true
+		),
+		folders: .init(
+			enabled: true
+		),
+		tags: .init(
+			enabled: true
+		),
+		share: .init(
+			showMembersList: true
+		)
   )
 }

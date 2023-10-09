@@ -774,6 +774,14 @@ let package = Package(
       ]
     ),
     .testTarget(
+      name: "PassboltSessionDataTests",
+      dependencies: [
+        "PassboltSessionData",
+        "CoreTest",
+        "TestExtensions",
+      ]
+    ),
+    .testTarget(
       name: "PassboltUsersTests",
       dependencies: [
         "PassboltUsers",

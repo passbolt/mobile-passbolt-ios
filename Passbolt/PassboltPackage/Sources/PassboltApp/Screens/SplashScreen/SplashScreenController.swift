@@ -75,13 +75,6 @@ extension SplashScreenController: UIController {
           .send(.diagnostics)
       }
 
-      do {
-        try await fetchConfiguration()
-      }
-      catch {
-        return destinationSubject.send(.featureConfigFetchError)
-      }
-
       let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
 
       if storedAccounts.isEmpty {
@@ -95,16 +88,20 @@ extension SplashScreenController: UIController {
       {
         switch await session.pendingAuthorization() {
         case .none:
-          return
-            await destinationSubject
-            .send(
-              .home(
-                .init(
-                  account: currentAccount,
-                  configuration: sessionConfigurationLoader.sessionConfiguration()
-                )
-              )
-            )
+					do {
+						return try await destinationSubject
+							.send(
+								.home(
+									.init(
+										account: currentAccount,
+										configuration: sessionConfigurationLoader.sessionConfiguration()
+									)
+								)
+							)
+					}
+					catch {
+						return destinationSubject.send(.featureConfigFetchError)
+					}
 
         case let .mfa(_, mfaProviders):
           return
@@ -134,13 +131,8 @@ extension SplashScreenController: UIController {
       }
     }
 
-    @Sendable nonisolated func fetchConfiguration() async throws {
-      try await sessionConfigurationLoader.fetchIfNeeded()
-    }
-
     @Sendable nonisolated func retryFetchConfiguration() async throws {
-      try await fetchConfiguration()
-      await destinationSubject
+      try await destinationSubject
         .send(
           .home(
             .init(

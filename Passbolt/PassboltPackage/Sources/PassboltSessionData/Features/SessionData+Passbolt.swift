@@ -97,7 +97,7 @@ extension SessionData {
     }
 
     @Sendable nonisolated func refreshFolders() async throws {
-      guard configuration.foldersEnabled
+      guard configuration.folders.enabled
       else {
         return Diagnostics.logger.info("Refreshing folders skipped, feature disabled!")
       }

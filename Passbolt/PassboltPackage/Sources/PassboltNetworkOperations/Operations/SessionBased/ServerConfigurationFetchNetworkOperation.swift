@@ -21,14 +21,45 @@
 // @since         v1.0
 //
 
-public protocol FeatureConfigItem {
+import NetworkOperations
 
-  static var `default`: Self { get }
+// MARK: Implementation
+
+extension ServerConfigurationFetchNetworkOperation {
+
+  @Sendable fileprivate static func requestPreparation(
+    _ input: Input
+  ) -> Mutation<HTTPRequest> {
+    .combined(
+      .pathSuffix("/settings.json"),
+      .queryItem("api-version", value: "v2"),
+      .method(.get)
+    )
+  }
+
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    try NetworkResponseDecoder<Input, CommonNetworkResponse<Output>>
+      .bodyAsJSON()
+      .decode(
+        input,
+        response
+      )
+      .body
+  }
 }
 
-extension FeatureConfigItem {
+extension FeaturesRegistry {
 
-  public static var identifier: AnyHashable {
-    ObjectIdentifier(Self.self)
+  internal mutating func usePassboltServerConfigurationFetchNetworkOperation() {
+    self.use(
+      .networkOperationWithSession(
+        of: ServerConfigurationFetchNetworkOperation.self,
+        requestPreparation: ServerConfigurationFetchNetworkOperation.requestPreparation(_:),
+        responseDecoding: ServerConfigurationFetchNetworkOperation.responseDecoder(_:_:)
+      )
+    )
   }
 }

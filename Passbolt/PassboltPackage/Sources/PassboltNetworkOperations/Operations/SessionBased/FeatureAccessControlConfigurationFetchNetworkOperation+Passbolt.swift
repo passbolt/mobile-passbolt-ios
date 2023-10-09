@@ -21,55 +21,45 @@
 // @since         v1.0
 //
 
-public struct SessionConfiguration {
+import NetworkOperations
 
-	public var termsURL: URLString?
-  public var privacyPolicyURL: URLString?
+// MARK: Implementation
 
-	public var resources: ResourcesFeatureConfiguration
-	public var folders: FoldersFeatureConfiguration
-	public var tags: TagsFeatureConfiguration
-	public var share: ShareFeatureConfiguration
+extension FeatureAccessControlConfigurationFetchNetworkOperation {
 
-  public init(
-    termsURL: URLString?,
-    privacyPolicyURL: URLString?,
-		resources: ResourcesFeatureConfiguration,
-		folders: FoldersFeatureConfiguration,
-		tags: TagsFeatureConfiguration,
-		share: ShareFeatureConfiguration
-  ) {
-    self.termsURL = termsURL
-    self.privacyPolicyURL = privacyPolicyURL
-		self.resources = resources
-		self.folders = folders
-		self.tags = tags
-		self.share = share
+  @Sendable fileprivate static func requestPreparation(
+    _ input: Input
+  ) -> Mutation<HTTPRequest> {
+    .combined(
+      .pathSuffix("/rbacs/me.json"),
+      .queryItem("api-version", value: "v2"),
+      .method(.get)
+    )
+  }
+
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    try NetworkResponseDecoder<Input, CommonNetworkResponse<Output>>
+      .bodyAsJSON()
+      .decode(
+        input,
+        response
+      )
+      .body
   }
 }
 
-extension SessionConfiguration: Equatable {}
+extension FeaturesRegistry {
 
-extension SessionConfiguration {
-
-	public static var `default`: Self {
-		.init(
-			termsURL: .none,
-			privacyPolicyURL: .none,
-			resources: .init(
-				passwordRevealEnabled: true,
-				passwordCopyEnabled: true,
-				totpEnabled: false
-			),
-			folders: .init(
-				enabled: false
-			),
-			tags: .init(
-				enabled: false
-			),
-			share: .init(
-				showMembersList: true
-			)
-		)
-	}
+  internal mutating func usePassboltFeatureAccessControlConfigurationFetchNetworkOperation() {
+    self.use(
+      .networkOperationWithSession(
+        of: FeatureAccessControlConfigurationFetchNetworkOperation.self,
+        requestPreparation: FeatureAccessControlConfigurationFetchNetworkOperation.requestPreparation(_:),
+        responseDecoding: FeatureAccessControlConfigurationFetchNetworkOperation.responseDecoder(_:_:)
+      )
+    )
+  }
 }

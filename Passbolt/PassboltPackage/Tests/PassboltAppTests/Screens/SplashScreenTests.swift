@@ -54,12 +54,8 @@ final class SplashScreenTests: MainActorTestCase {
     )
     features.usePlaceholder(for: UpdateCheck.self)
     features.patch(
-      \SessionConfigurationLoader.configuration,
-      with: always(.none)
-    )
-    features.patch(
-      \SessionConfigurationLoader.fetchIfNeeded,
-      with: always(Void())
+      \SessionConfigurationLoader.sessionConfiguration,
+      with: alwaysThrow(MockIssue.error())
     )
     features.patch(
       \Accounts.verifyDataIntegrity,
@@ -171,8 +167,8 @@ final class SplashScreenTests: MainActorTestCase {
       with: always(Account.mock_ada)
     )
     features.patch(
-      \SessionConfigurationLoader.fetchIfNeeded,
-      with: always(Void())
+      \SessionConfigurationLoader.sessionConfiguration,
+      with: always(.default)
     )
 
     let controller: SplashScreenController = try testController(context: .none)
@@ -195,7 +191,7 @@ final class SplashScreenTests: MainActorTestCase {
       with: always(Account.mock_ada)
     )
     features.patch(
-      \SessionConfigurationLoader.fetchIfNeeded,
+      \SessionConfigurationLoader.sessionConfiguration,
       with: alwaysThrow(MockIssue.error())
     )
 
@@ -219,8 +215,8 @@ final class SplashScreenTests: MainActorTestCase {
       with: always(Account.mock_ada)
     )
     features.patch(
-      \SessionConfigurationLoader.fetchIfNeeded,
-      with: always(Void())
+      \SessionConfigurationLoader.sessionConfiguration,
+      with: always(.default)
     )
 
     let controller: SplashScreenController = try testController(context: .none)
@@ -247,7 +243,7 @@ final class SplashScreenTests: MainActorTestCase {
       with: always(Account.mock_ada)
     )
     features.patch(
-      \SessionConfigurationLoader.fetchIfNeeded,
+      \SessionConfigurationLoader.sessionConfiguration,
       with: alwaysThrow(MockIssue.error())
     )
 

@@ -21,45 +21,15 @@
 // @since         v1.0
 //
 
-import NetworkOperations
+public struct TagsFeatureConfiguration {
 
-// MARK: Implementation
+	public var enabled: Bool
 
-extension ConfigurationFetchNetworkOperation {
-
-  @Sendable fileprivate static func requestPreparation(
-    _ input: Input
-  ) -> Mutation<HTTPRequest> {
-    .combined(
-      .pathSuffix("/settings.json"),
-      .queryItem("api-version", value: "v2"),
-      .method(.get)
-    )
-  }
-
-  @Sendable fileprivate static func responseDecoder(
-    _ input: Input,
-    _ response: HTTPResponse
-  ) throws -> Output {
-    try NetworkResponseDecoder<Input, CommonNetworkResponse<Output>>
-      .bodyAsJSON()
-      .decode(
-        input,
-        response
-      )
-      .body
-  }
+	public init(
+		enabled: Bool
+	) {
+		self.enabled = enabled
+	}
 }
 
-extension FeaturesRegistry {
-
-  internal mutating func usePassboltConfigurationFetchNetworkOperation() {
-    self.use(
-      .networkOperationWithSession(
-        of: ConfigurationFetchNetworkOperation.self,
-        requestPreparation: ConfigurationFetchNetworkOperation.requestPreparation(_:),
-        responseDecoding: ConfigurationFetchNetworkOperation.responseDecoder(_:_:)
-      )
-    )
-  }
-}
+extension TagsFeatureConfiguration: Equatable {}

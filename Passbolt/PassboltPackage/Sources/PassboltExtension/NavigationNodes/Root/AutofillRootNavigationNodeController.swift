@@ -112,8 +112,7 @@ extension AutofillRootNavigationNodeController {
 							await self.navigationTree.set(treeState: tree)
 						}
 						else {
-							#warning("FIXME: application has a dedicated screen for configuration load fail, this should not break the extension so ignoring the error for now using fallback to defaults")
-							try? await self.sessionConfigurationLoader.fetchIfNeeded()
+							#warning("FIXME: application has a dedicated screen for configuration load fail, this should not break the extension!")
 							try await self.navigationTree.replaceRoot(
 								pushing: HomeNavigationNodeView.self,
 								controller: self.features.instance(

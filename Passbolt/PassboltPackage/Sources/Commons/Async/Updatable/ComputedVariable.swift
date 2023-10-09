@@ -141,6 +141,21 @@ extension ComputedVariable: Updatable {
 
 extension ComputedVariable {
 
+	public func invalidateCache() {
+		self.lock.unsafe_lock()
+		if case .none = self.runningUpdate {
+			self.cachedUpdate = .uninitialized()
+			self.lock.unsafe_unlock()
+		}
+		else {
+			// ignore when update is running
+			self.lock.unsafe_unlock()
+		}
+	}
+}
+
+extension ComputedVariable {
+
   public convenience init(
     lazy compute: @escaping @Sendable () async throws -> Value
   ) {

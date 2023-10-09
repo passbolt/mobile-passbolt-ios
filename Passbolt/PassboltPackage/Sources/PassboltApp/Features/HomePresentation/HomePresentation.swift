@@ -58,11 +58,11 @@ extension HomePresentation: LoadableFeature {
         .ownedResourcesList,
       ]
 
-      if sessionConfiguration.foldersEnabled {
+      if sessionConfiguration.folders.enabled {
         availableModes.append(.foldersExplorer)
       }  // else NOP
 
-      if sessionConfiguration.tagsEnabled {
+      if sessionConfiguration.tags.enabled {
         availableModes.append(.tagsExplorer)
       }  // else NOP
 

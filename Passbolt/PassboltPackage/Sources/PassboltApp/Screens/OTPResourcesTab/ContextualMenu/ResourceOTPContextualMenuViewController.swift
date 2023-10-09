@@ -117,7 +117,7 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
 
           var modifyMenuItems: Array<ResourceOTPContextualMenuItem> = .init()
 
-          if sessionConfiguration.totpEnabled && resource.canEdit {
+          if sessionConfiguration.resources.totpEnabled && resource.canEdit {
             if resource.hasTOTP {
               modifyMenuItems.append(.editOTP)
             }  // else NOP

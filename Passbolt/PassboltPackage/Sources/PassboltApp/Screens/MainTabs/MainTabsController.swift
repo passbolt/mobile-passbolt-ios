@@ -137,7 +137,7 @@ extension MainTabsController: UIController {
         guard count == 0
         else { return true }
         // if there is no otp resource yet, check the flag
-        guard sessionConfiguration.totpEnabled
+        guard sessionConfiguration.resources.totpEnabled
         else { return false }
         // finally check if resource type is available
         let availableResourceTypes: Array<ResourceType> = try await resourceTypesFetchDatabaseOperation()

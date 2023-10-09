@@ -76,7 +76,7 @@ internal final class ResourceDetailsViewController: ViewController {
     let passwordPreviewEnabled: Bool =
       try features
       .sessionConfiguration()
-      .passwordPreviewEnabled
+      .resources.passwordRevealEnabled
     self.passwordPreviewEnabled = passwordPreviewEnabled
 
     self.resourceID = context

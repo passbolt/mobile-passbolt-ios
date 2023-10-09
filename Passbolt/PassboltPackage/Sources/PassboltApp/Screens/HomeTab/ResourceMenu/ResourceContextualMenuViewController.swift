@@ -146,7 +146,7 @@ internal final class ResourceContextualMenuViewController: ViewController {
           if resource.hasTOTP {
             accessMenuItems.append(.showOTPMenu)
           }
-          else if sessionConfiguration.totpEnabled && resource.canEdit && resource.canAttachOTP {
+          else if sessionConfiguration.resources.totpEnabled && resource.canEdit && resource.canAttachOTP {
             modifyMenuItems.append(.addOTP)
           }  // else NOP
 

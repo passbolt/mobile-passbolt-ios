@@ -27,7 +27,7 @@ import CommonModels
 // Scope for signed in user.
 public enum SessionScope: FeaturesScope {
 
-  public struct Context: Hashable {
+  public struct Context: Equatable {
 
     public let account: Account
     public let configuration: SessionConfiguration
