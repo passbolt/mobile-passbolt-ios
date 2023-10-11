@@ -51,6 +51,9 @@ internal final class ResourceFolderDetailsController: ViewController {
         scope: ResourceFolderScope.self,
         context: context
       )
+
+		let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
+
     self.context = context
     self.features = features
 
@@ -64,6 +67,7 @@ internal final class ResourceFolderDetailsController: ViewController {
       initial: .init(
         folderName: "",
         folderLocation: .init(),
+        permissionsListVisible: sessionConfiguration.share.showMembersList,
         folderPermissionItems: .init(),
         folderShared: false
       )
@@ -122,6 +126,7 @@ extension ResourceFolderDetailsController {
 
     internal var folderName: String
     internal var folderLocation: Array<String>
+    internal var permissionsListVisible: Bool
     internal var folderPermissionItems: Array<OverlappingAvatarStackView.Item>
     internal var folderShared: Bool
   }

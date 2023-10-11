@@ -39,6 +39,23 @@ extension ControlledView {
 
 extension ControlledView {
 
+ @_transparent
+  public func when<OptionalView>(
+    _ keyPath: KeyPath<ViewState, Bool>,
+    @ViewBuilder content optionalView: @escaping () -> OptionalView
+  ) -> some View
+  where OptionalView: View {
+    WithViewState(
+      from: self.controller,
+      at: keyPath,
+      content: { (enabled: Bool) in
+				if enabled {
+					optionalView()
+				} // else no view
+			}
+    )
+  }
+
   @_transparent
   public func with<State, StateView>(
     _ keyPath: KeyPath<ViewState, State>,

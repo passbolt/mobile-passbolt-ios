@@ -35,8 +35,11 @@ internal final class ResourceDetailsViewController: ViewController {
     internal var favorite: Bool
     internal var containsUndefinedFields: Bool
     internal var fields: Array<ResourceDetailsFieldViewModel>
+    internal var locationAvailable: Bool
     internal var location: Array<String>
+    internal var tagsAvailable: Bool
     internal var tags: Array<String>
+    internal var permissionsListVisible: Bool
     internal var permissions: Array<OverlappingAvatarStackView.Item>
   }
 
@@ -61,7 +64,7 @@ internal final class ResourceDetailsViewController: ViewController {
   private let asyncExecutor: AsyncExecutor
 
   private let resourceID: Resource.ID
-  private let passwordPreviewEnabled: Bool
+  private let sessionConfiguration: SessionConfiguration
 
   private let features: Features
 
@@ -73,11 +76,7 @@ internal final class ResourceDetailsViewController: ViewController {
       scope: ResourceScope.self,
       context: context
     )
-    let passwordPreviewEnabled: Bool =
-      try features
-      .sessionConfiguration()
-      .resources.passwordRevealEnabled
-    self.passwordPreviewEnabled = passwordPreviewEnabled
+    self.sessionConfiguration = try features.sessionConfiguration()
 
     self.resourceID = context
 
@@ -107,15 +106,18 @@ internal final class ResourceDetailsViewController: ViewController {
         favorite: false,
         containsUndefinedFields: false,
         fields: .init(),
+        locationAvailable: self.sessionConfiguration.folders.enabled,
         location: .init(),
+        tagsAvailable: self.sessionConfiguration.tags.enabled,
         tags: .init(),
+        permissionsListVisible: self.sessionConfiguration.share.showMembersList,
         permissions: .init()
       ),
       updateFrom: ComputedVariable(
         combined: self.resourceController.state,
         with: self.localState
       ),
-      update: { [navigationToSelf] (updateView, update: Update<(Resource, LocalState)>) in
+      update: { [navigationToSelf, sessionConfiguration] (updateView, update: Update<(Resource, LocalState)>) in
         do {
           let (resource, localState): (Resource, LocalState) = try update.value
           await updateView { (viewState: inout ViewState) in
@@ -128,7 +130,7 @@ internal final class ResourceDetailsViewController: ViewController {
               revealedFields: resource.secretAvailable
                 ? localState.revealedFields
                 : .init(),
-              passwordPreviewEnabled: passwordPreviewEnabled
+              sessionConfiguration: sessionConfiguration
             )
             viewState.location = resource.path.map(\.name)
             viewState.tags = resource.tags.map(\.slug.rawValue)
@@ -278,7 +280,7 @@ extension ResourceDetailsViewController {
   for resource: Resource,
   using features: Features,
   revealedFields: Set<Resource.FieldPath>,
-  passwordPreviewEnabled: Bool
+  sessionConfiguration: SessionConfiguration
 ) -> Array<ResourceDetailsFieldViewModel> {
   if resource.type.specification.slug == .placeholder {
     return .init()  // show no fields for placeholder type
@@ -296,7 +298,7 @@ extension ResourceDetailsViewController {
             field,
             in: resource,
             revealedFields: revealedFields,
-            passwordPreviewEnabled: passwordPreviewEnabled,
+            configuration: sessionConfiguration.resources,
             prepareTOTPGenerator: { [features] totpSecret in
 							let generateOTP: @Sendable () -> TOTPValue = try features
 								.instance(of: TOTPCodeGenerator.self)
@@ -316,7 +318,7 @@ extension ResourceDetailsViewController {
 
 internal struct ResourceDetailsFieldViewModel {
 
-  internal enum Accessory {
+  internal enum Action {
 
     case copy
     case reveal
@@ -362,13 +364,14 @@ internal struct ResourceDetailsFieldViewModel {
   internal var path: ResourceType.FieldPath
   internal var name: DisplayableString
   internal var value: Value
-  internal var accessory: Accessory?
+  internal var mainAction: Action?
+  internal var accessoryAction: Action?
 
   internal init?(
     _ field: ResourceFieldSpecification,
     in resource: Resource,
     revealedFields: Set<Resource.FieldPath>,
-    passwordPreviewEnabled: Bool,
+    configuration: ResourcesFeatureConfiguration,
     prepareTOTPGenerator: (TOTPSecret) throws -> @Sendable () -> TOTPValue
   ) {
     assert(
@@ -386,11 +389,13 @@ internal struct ResourceDetailsFieldViewModel {
       self.name = name
       if let stringValue = resource[keyPath: field.path].stringValue, !stringValue.isEmpty {
         self.value = .plain(stringValue)
-        self.accessory = .copy
+        self.mainAction = .copy
+        self.accessoryAction = .copy
       }
       else {
         self.value = .placeholder(placeholder.string())
-        self.accessory = .none
+        self.mainAction = .none
+        self.accessoryAction = .none
       }
 
     case  // encrypted
@@ -408,31 +413,42 @@ internal struct ResourceDetailsFieldViewModel {
         else {
           self.value = .placeholder(placeholder.string())
         }
-        self.accessory = .hide
+        self.mainAction = .copy
+        self.accessoryAction = .hide
       }
       else {
         self.value = .encrypted
-        self.accessory = .reveal
+        self.mainAction = .copy
+        self.accessoryAction = .reveal
       }
 
     case .password(let name, let placeholder, _):
       self.name = name
       let revealed: Bool = revealedFields.contains(field.path)
-      if revealed && passwordPreviewEnabled {
+      if revealed && configuration.passwordRevealEnabled {
         if let stringValue = resource[keyPath: field.path].stringValue, !stringValue.isEmpty {
           self.value = .password(stringValue)
         }
         else {
           self.value = .placeholder(placeholder.string())
         }
-        self.accessory = .hide
+
+        self.mainAction = configuration.passwordCopyEnabled
+          ? .copy
+          : .none
+				self.accessoryAction = .hide
       }
       else {
         self.value = .encrypted
-        self.accessory =
-          passwordPreviewEnabled
+				self.mainAction = configuration.passwordCopyEnabled
+          ? .copy
+          : .none
+        self.accessoryAction =
+          configuration.passwordRevealEnabled
           ? .reveal
-          : .copy  // if not allowed use copy action accessory
+          : configuration.passwordCopyEnabled
+          ? .copy  // if not allowed to reveal use copy
+          : .none
       }
 
     case .totp(let name):
@@ -462,11 +478,13 @@ internal struct ResourceDetailsFieldViewModel {
               )
           )
         }
-        self.accessory = .hide
+				self.mainAction = .copy
+        self.accessoryAction = .hide
       }
       else {
         self.value = .encryptedTOTP
-        self.accessory = .reveal
+        self.mainAction = .copy
+        self.accessoryAction = .reveal
       }
 
     case .undefined:

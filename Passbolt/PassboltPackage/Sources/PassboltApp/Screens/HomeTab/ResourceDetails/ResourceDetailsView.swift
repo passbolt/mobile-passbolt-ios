@@ -57,9 +57,15 @@ internal struct ResourceDetailsView: ControlledView {
         }
       }
       self.fieldsSectionsView
-      self.locationSectionView
-      self.tagsSectionView
-      self.permissionsSectionView
+      when(\.locationAvailable) {
+				self.locationSectionView
+      }
+      when(\.tagsAvailable) {
+				self.tagsSectionView
+      }
+      when(\.permissionsListVisible) {
+				self.permissionsSectionView
+      }
       CommonListSpacer(minHeight: 16)
     }
     .edgesIgnoringSafeArea(.bottom)
@@ -129,8 +135,23 @@ internal struct ResourceDetailsView: ControlledView {
     CommonListSection {
       withEach(\.fields) { (fieldModel: ResourceDetailsFieldViewModel) in
         CommonListRow(
-          contentAction: {
-            await self.controller.copyFieldValue(path: fieldModel.path)
+					contentAction: fieldModel.mainAction.map { action in
+						switch action {
+						case .copy:
+							return {
+								await self.controller.copyFieldValue(path: fieldModel.path)
+							}
+
+						case .reveal:
+							return {
+								await self.controller.revealFieldValue(path: fieldModel.path)
+							}
+
+						case .hide:
+							return {
+								self.controller.coverFieldValue(path: fieldModel.path)
+							}
+						}
           },
           content: {
             ResourceFieldView(
@@ -207,8 +228,8 @@ internal struct ResourceDetailsView: ControlledView {
               }
             )
           },
-          accessoryAction: fieldModel.accessory.map { accessory in
-            switch accessory {
+          accessoryAction: fieldModel.accessoryAction.map { action in
+            switch action {
             case .copy:
               return {
                 await self.controller.copyFieldValue(path: fieldModel.path)
@@ -226,7 +247,7 @@ internal struct ResourceDetailsView: ControlledView {
             }
           },
           accessory: {
-            switch fieldModel.accessory {
+            switch fieldModel.accessoryAction {
             case .copy:
               CopyButtonImage()
 

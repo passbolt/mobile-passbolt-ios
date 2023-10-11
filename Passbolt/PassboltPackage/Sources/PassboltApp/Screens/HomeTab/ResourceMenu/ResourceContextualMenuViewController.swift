@@ -135,7 +135,7 @@ internal final class ResourceContextualMenuViewController: ViewController {
             accessMenuItems.append(.copyUsername)
           }  // else NOP
 
-          if resource.hasPassword {
+          if resource.hasPassword && sessionConfiguration.resources.passwordCopyEnabled {
             accessMenuItems.append(.copyPassword)
           }  // else NOP
 
