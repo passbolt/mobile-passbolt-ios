@@ -29,16 +29,12 @@ import XCTest
 @MainActor
 open class FeaturesTestCase: TestCase {
 
-  public let asyncExecutionControl: AsyncExecutor.MockExecutionControl = .init()
   public var cancellables: Cancellables { self.testFeatures.cancellables }  // for legacy elements
 
   private let testFeatures: TestFeaturesContainer = .init()
 
   open func commonPrepare() {
-    patch(
-      \AsyncExecutor.self,
-      with: .mock(self.asyncExecutionControl)
-    )
+    // to override
   }
 
   final override public class func setUp() {
@@ -66,11 +62,6 @@ open class FeaturesTestCase: TestCase {
     // casting to specify correct method to be called,
     // by default async one is selected by the compiler
     (super.tearDown as () -> Void)()
-    XCTAssertEqual(
-      self.asyncExecutionControl.scheduledTasksCount,
-      0,
-      "All scheduled async tasks should be finished."
-    )
   }
 }
 

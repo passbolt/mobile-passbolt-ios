@@ -45,7 +45,6 @@ internal final class OTPResourcesListViewController: ViewController {
 
   private let currentAccount: Account
 
-  private let asyncExecutor: AsyncExecutor
   private let pasteboard: OSPasteboard
 
   private let accountDetails: AccountDetails
@@ -72,8 +71,6 @@ internal final class OTPResourcesListViewController: ViewController {
 
     self.currentAccount = try features.sessionAccount()
 
-    self.asyncExecutor = try features.instance()
-
     self.accountDetails = try features.instance()
     self.resourceSearchController = try features.instance()
 		self.resourceSearchController.updateFilter { filter in
@@ -92,7 +89,7 @@ internal final class OTPResourcesListViewController: ViewController {
         otpResources: .init()
       ),
       updateFrom: self.resourceSearchController.state,
-      update: { [resourcesOTPController] (updateState, update: Update<ResourceSearchState>) in
+      update: { [accountDetails, resourcesOTPController] (updateView, update: Update<ResourceSearchState>) in
         do {
           let searchState: ResourceSearchState = try update.value
           var otpResources: OrderedDictionary<Resource.ID, TOTPResourceViewModel> = .init()
@@ -121,8 +118,12 @@ internal final class OTPResourcesListViewController: ViewController {
               }
             )
           }
-          await updateState { (viewState: inout ViewState) in
+          await updateView { (viewState: inout ViewState) in
             viewState.otpResources = otpResources
+          }
+					let avatarImage: Data? = try await accountDetails.avatarImage()
+					await updateView { (viewState: inout ViewState) in
+            viewState.accountAvatarImage = avatarImage
           }
         }
         catch {
@@ -130,18 +131,6 @@ internal final class OTPResourcesListViewController: ViewController {
         }
       }
     )
-
-    // load avatar image for search icon
-    self.asyncExecutor.scheduleCatching(
-      failMessage: "Failed to get account avatar image!"
-    ) { [viewState, accountDetails] in
-      let avatarImage: Data? = try await accountDetails.avatarImage()
-      await viewState
-        .update(
-          \.accountAvatarImage,
-          to: avatarImage
-        )
-    }
   }
 }
 

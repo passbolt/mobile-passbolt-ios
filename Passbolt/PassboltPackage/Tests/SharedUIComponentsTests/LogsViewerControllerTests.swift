@@ -41,9 +41,7 @@ final class LogsViewerControllerTests: FeaturesTestCase {
 
     let controller: LogsViewerController = try testedInstance()
 
-    controller
-      .refreshLogs()
-    await asyncExecutionControl.executeAll()
+    await controller.refreshLogs()
 
     XCTAssertNotNil(result)
   }
@@ -69,8 +67,7 @@ final class LogsViewerControllerTests: FeaturesTestCase {
 
     let controller: LogsViewerController = try testedInstance()
 
-    controller.refreshLogs()
-    await asyncExecutionControl.executeAll()
+    await controller.refreshLogs()
 
     var result: Array<String>?
     controller
@@ -132,8 +129,7 @@ final class LogsViewerControllerTests: FeaturesTestCase {
       }
       .store(in: cancellables)
 
-    controller.refreshLogs()
-    await asyncExecutionControl.executeAll()
+    await controller.refreshLogs()
     controller.presentShareMenu()
 
     XCTAssertEqual(result, "Passbolt:\ntest\nanother")

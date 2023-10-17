@@ -44,7 +44,7 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
         exitConfirmationAlertPresented: false
       )
     ) {
-      await self.asyncExecutionControl.executeAll()
+      
       return await tested.viewState.current
     }
   }
@@ -77,7 +77,6 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
       return await tested.viewState.current
     }
     //    updatesSource.terminate()
-    await self.asyncExecutionControl.executeAll()
   }
 
   func test_controller_navigates_whenTransferStateUpdatesToError() async throws {
@@ -125,7 +124,6 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
     let tested: AccountQRCodeExportController = try self.testedInstance()
 
     tested.cancelTransfer()
-    await self.asyncExecutionControl.executeAll()
     XCTAssertTrue(self.mockWasExecuted)
   }
 
@@ -142,6 +140,5 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
     let tested: AccountQRCodeExportController = try self.testedInstance()
 
     tested.cancelTransfer()
-    await self.asyncExecutionControl.executeAll()
   }
 }

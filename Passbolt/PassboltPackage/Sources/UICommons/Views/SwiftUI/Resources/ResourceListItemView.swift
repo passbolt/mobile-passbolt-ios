@@ -29,15 +29,15 @@ public struct ResourceListItemView<AccessoryView>: View where AccessoryView: Vie
 
   private let name: String
   private let username: String?
-  private let contentAction: @MainActor () -> Void
-  private let rightAction: (@MainActor () -> Void)?
+  private let contentAction: @MainActor () async throws -> Void
+  private let rightAction: (@MainActor () async throws -> Void)?
   private let rightAccessory: () -> AccessoryView
 
   public init(
     name: String,
     username: String?,
-    contentAction: @escaping @MainActor () -> Void,
-    rightAction: (@MainActor () -> Void)? = .none,
+    contentAction: @escaping @MainActor () async throws -> Void,
+    rightAction: (@MainActor () async throws -> Void)? = .none,
     @ViewBuilder rightAccessory: @escaping () -> AccessoryView
   ) {
     self.name = name

@@ -93,17 +93,15 @@ internal struct TagsExplorerView: ComponentView {
           action: {
             await self.controller.presentHomePresentationMenu()
           },
-          regularLabel: {
+          label: {
             ImageWithPadding(4, named: .filter)
           }
         )
       },
       rightAccessory: {
         AsyncButton(
-          action: {
-            await self.controller.presentAccountMenu()
-          },
-          regularLabel: {
+          action: self.controller.presentAccountMenu,
+          label: {
             UserAvatarView(imageData: self.state.userAvatarImage)
               .padding(
                 top: 0,

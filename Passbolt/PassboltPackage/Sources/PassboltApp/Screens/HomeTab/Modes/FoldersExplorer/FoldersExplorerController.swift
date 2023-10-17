@@ -36,13 +36,13 @@ internal struct FoldersExplorerController {
 
   internal let viewState: ObservableValue<ViewState>
   internal var refreshIfNeeded: @MainActor () async -> Void
-  internal var presentFolderContent: @MainActor (ResourceFolderListItemDSV) -> Void
-  internal var presentAddNew: @MainActor (ResourceFolder.ID?) -> Void
-  internal var presentResourceDetails: @MainActor (Resource.ID) -> Void
-  internal var presentResourceMenu: @MainActor (Resource.ID) -> Void
-  internal var presentHomePresentationMenu: @MainActor () -> Void
-  internal var presentAccountMenu: @MainActor () -> Void
-  internal var presentResourceFolderMenu: () -> Void
+  internal var presentFolderContent: @MainActor (ResourceFolderListItemDSV) async throws -> Void
+  internal var presentAddNew: @MainActor (ResourceFolder.ID?) async throws -> Void
+  internal var presentResourceDetails: @MainActor (Resource.ID) async throws -> Void
+  internal var presentResourceMenu: @MainActor (Resource.ID) async throws -> Void
+  internal var presentHomePresentationMenu: @MainActor () async throws -> Void
+  internal var presentAccountMenu: @MainActor () async throws -> Void
+  internal var presentResourceFolderMenu: () async throws -> Void
 }
 
 extension FoldersExplorerController: ComponentController {
@@ -56,8 +56,6 @@ extension FoldersExplorerController: ComponentController {
     cancellables: Cancellables
   ) throws -> Self {
     let features: Features = features
-
-    let asyncExecutor: AsyncExecutor = try features.instance()
 
     let navigationToAccountMenu: NavigationToAccountMenu = try features.instance()
 
@@ -230,14 +228,8 @@ extension FoldersExplorerController: ComponentController {
       }
     }
 
-    @MainActor func presentAccountMenu() {
-      asyncExecutor.schedule(.reuse) {
-        await consumingErrors(
-					errorDiagnostics: "Navigation to account menu failed!"
-        ) {
-          try await navigationToAccountMenu.perform()
-        }
-      }
+    @MainActor func presentAccountMenu() async throws {
+			try await navigationToAccountMenu.perform()
     }
 
     nonisolated func presentResourceFolderMenu() {

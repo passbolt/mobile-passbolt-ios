@@ -68,7 +68,7 @@ where Accessory: View {
 
         AsyncButton(
           action: self.action,
-          regularLabel: {
+          label: {
             if let generateTOTP: () -> TOTPValue = self.generateTOTP {
               AutoupdatingTOTPValueView(generateTOTP: generateTOTP)
             }

@@ -57,7 +57,6 @@ extension SplashScreenController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let asyncExecutor: AsyncExecutor = try features.instance()
     let accounts: Accounts = try features.instance()
     let session: Session = try features.instance()
     let sessionConfigurationLoader: SessionConfigurationLoader = try features.instance()
@@ -65,7 +64,7 @@ extension SplashScreenController: UIController {
 
     let destinationSubject: CurrentValueSubject<Destination?, Never> = .init(nil)
 
-    asyncExecutor.schedule(.unmanaged) { () async -> Void in
+    Task { // no need to track
       do {
         try accounts.verifyDataIntegrity()
       }

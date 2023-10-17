@@ -50,7 +50,7 @@ final class TermsAndLicensesSettingsControllerTests: FeaturesTestCase {
       mockExecuted: 1
     ) { feature in
       await feature.navigateToLicenses()
-      await self.asyncExecutionControl.executeAll()
+      
     }
   }
 
@@ -71,7 +71,7 @@ final class TermsAndLicensesSettingsControllerTests: FeaturesTestCase {
       mockExecuted: 1
     ) { feature in
       await feature.navigateToTermsAndConditions()
-      await self.asyncExecutionControl.executeAll()
+      
     }
   }
 
@@ -92,7 +92,7 @@ final class TermsAndLicensesSettingsControllerTests: FeaturesTestCase {
       mockExecuted: 1
     ) { feature in
       await feature.navigateToPrivacyPolicy()
-      await self.asyncExecutionControl.executeAll()
+      
     }
   }
 
@@ -109,7 +109,7 @@ final class TermsAndLicensesSettingsControllerTests: FeaturesTestCase {
       of: TermsAndLicensesViewController.self
     ) { feature in
       await feature.navigateToTermsAndConditions()
-      await self.asyncExecutionControl.executeAll()
+      
     }
   }
 
@@ -131,7 +131,7 @@ final class TermsAndLicensesSettingsControllerTests: FeaturesTestCase {
       mockExecuted: 0
     ) { feature in
       await feature.navigateToPrivacyPolicy()
-      await self.asyncExecutionControl.executeAll()
+      
     }
   }
 }

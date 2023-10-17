@@ -91,20 +91,16 @@ internal struct ResourceUserGroupsExplorerView: ComponentView {
       text: self.$state.searchText,
       leftAccessory: {
         AsyncButton(
-          action: {
-            await self.controller.presentHomePresentationMenu()
-          },
-          regularLabel: {
+          action: self.controller.presentHomePresentationMenu,
+          label: {
             ImageWithPadding(4, named: .filter)
           }
         )
       },
       rightAccessory: {
         AsyncButton(
-          action: {
-            await self.controller.presentAccountMenu()
-          },
-          regularLabel: {
+          action: self.controller.presentAccountMenu,
+          label: {
             UserAvatarView(imageData: self.state.userAvatarImage)
               .padding(
                 top: 0,

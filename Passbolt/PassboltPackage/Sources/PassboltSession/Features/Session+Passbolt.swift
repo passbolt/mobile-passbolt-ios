@@ -36,7 +36,6 @@ extension Session {
     features: Features
   ) throws -> Self {
 
-    let asyncExecutor: AsyncExecutor = try features.instance()
     let sessionState: SessionState = try features.instance()
     let sessionAuthorizationState: SessionAuthorizationState = try features.instance()
     let sessionAuthorization: SessionAuthorization = try features.instance()
@@ -105,23 +104,24 @@ extension Session {
       sessionAuthorizationState.cancelAuthorization()
       // if we have refresh token, invalidate session
       if let refreshToken: SessionRefreshToken = sessionState.refreshToken() {
-        // don't wait for the result
-        asyncExecutor.schedule(.unmanaged) {
-          do {
-            try await sessionNetworkAuthorization
-              .invalidateSessionTokens(
-                currentAccount,
-                refreshToken
-              )
-          }
-          catch {
-            // ignore errors it won't be able to retry anyway
-            error.logged()
-          }
-        }
-      }  // else NOP
-      // clear all session data
-      sessionState.closedSession()
+				// clear all session data
+				sessionState.closedSession()
+				do {
+					try await sessionNetworkAuthorization
+						.invalidateSessionTokens(
+							currentAccount,
+							refreshToken
+						)
+				}
+				catch {
+					// ignore errors it won't be able to retry anyway
+					error.logged()
+				}
+      }
+      else {
+				// clear all session data
+				sessionState.closedSession()
+      }
     }
 
     return Self(

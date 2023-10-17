@@ -61,8 +61,6 @@ internal final class ResourceDetailsViewController: ViewController {
   private let navigationToResourcePermissionsDetails: NavigationToResourcePermissionsDetails
   private let pasteboard: OSPasteboard
 
-  private let asyncExecutor: AsyncExecutor
-
   private let resourceID: Resource.ID
   private let sessionConfiguration: SessionConfiguration
 
@@ -81,8 +79,6 @@ internal final class ResourceDetailsViewController: ViewController {
     self.resourceID = context
 
     self.features = features
-
-    self.asyncExecutor = try features.instance()
 
     self.pasteboard = features.instance()
 

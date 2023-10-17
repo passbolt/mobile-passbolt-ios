@@ -107,7 +107,7 @@ internal struct ResourceFolderDetailsView: ControlledView {
       .frame(height: 36)
       .padding(bottom: 24)
 
-      Button(
+      AsyncButton(
         action: self.controller.openLocationDetails,
         label: {
           HStack {
@@ -138,7 +138,7 @@ internal struct ResourceFolderDetailsView: ControlledView {
 
 			with(\.permissionsListVisible) { permissionsVisible in
 				if permissionsVisible {
-					Button(
+					AsyncButton(
 						action: self.controller.openPermissionDetails,
 						label: {
 							HStack {

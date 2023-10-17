@@ -82,7 +82,7 @@ internal struct ApplicationSettingsView: ControlledView {
               action: {
                 await self.controller.setBiometricsAuthorization(enabled: false)
               },
-              regularLabel: {
+              label: {
                 Text(displayable: .localized(key: .confirm))
               }
             )

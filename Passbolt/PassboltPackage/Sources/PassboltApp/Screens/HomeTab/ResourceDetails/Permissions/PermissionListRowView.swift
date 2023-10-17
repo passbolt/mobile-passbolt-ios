@@ -27,11 +27,11 @@ import UICommons
 internal struct PermissionListRowView: View {
 
   private let item: PermissionListRowItem
-  private let action: @MainActor () async -> Void
+  private let action: @MainActor () async throws -> Void
 
   internal init(
     _ item: PermissionListRowItem,
-    action: @escaping @MainActor () async -> Void
+    action: @escaping @MainActor () async throws -> Void
   ) {
     self.item = item
     self.action = action

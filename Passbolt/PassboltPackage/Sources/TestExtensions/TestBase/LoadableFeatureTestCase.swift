@@ -46,7 +46,6 @@ where Feature: LoadableFeature {
     fatalError("You have to override either `testedImplementation` or `testedImplementationRegister`")
   }
 
-  public private(set) var mockExecutionControl: AsyncExecutor.MockExecutionControl!
   private var features: TestFeaturesContainer!
   private var instance: Feature!
   public private(set) var cancellables: Cancellables!
@@ -88,15 +87,8 @@ where Feature: LoadableFeature {
   // prevent overriding
   public final override func setUp() async throws {
     try await super.setUp()
-
-    self.mockExecutionControl = .init()
     self.features = .init()
 
-    self.features
-      .patch(
-        \AsyncExecutor.self,
-        with: .mock(self.mockExecutionControl)
-      )
     self.cancellables = .init()
     do {
       try self.prepare()
@@ -118,7 +110,6 @@ where Feature: LoadableFeature {
     catch {
       XCTFail("\(error)")
     }
-    self.mockExecutionControl = .none
     self.features = .none
     self.instance = .none
     self.cancellables = .none

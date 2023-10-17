@@ -89,7 +89,7 @@ internal struct MainSettingsView: ControlledView {
           AsyncButton(
             role: .destructive,
             action: self.controller.signOut,
-            regularLabel: {
+            label: {
               Text(displayable: "settings.main.sign.out.alert.confirm.title")
             }
           )

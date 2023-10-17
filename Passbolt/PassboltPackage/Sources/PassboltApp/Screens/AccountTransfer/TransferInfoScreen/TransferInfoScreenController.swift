@@ -50,7 +50,6 @@ extension TransferInfoScreenController: UIController {
     let features: Features = features
 
     let navigation: DisplayNavigation = try features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
     let camera: OSCamera = features.instance()
     let presentNoCameraPermissionAlertSubject: PassthroughSubject<Bool, Never> = .init()
 
@@ -60,7 +59,7 @@ extension TransferInfoScreenController: UIController {
 
     func requestOrNavigatePublisher() -> AnyPublisher<Bool, Never> {
       Future<Bool, Never> { completion in
-        asyncExecutor.schedule {
+        Task {
           do {
             try await camera.ensurePermission()
             completion(.success(true))

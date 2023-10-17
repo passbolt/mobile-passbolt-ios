@@ -28,13 +28,13 @@ where RegularView: View, LoadingView: View {
 
   @State private var runningTask: Task<Void, Never>?
   private let role: ButtonRole?
-  private let action: () async -> Void
+  private let action: () async throws -> Void
   private let regularLabel: () -> RegularView
   private let loadingLabel: () -> LoadingView
 
   public init(
     role: ButtonRole? = .none,
-    @_inheritActorContext action: @escaping () async -> Void,
+    @_inheritActorContext action: @escaping () async throws -> Void,
     @ViewBuilder regularLabel: @escaping () -> RegularView,
     @ViewBuilder loadingLabel: @escaping () -> LoadingView
   ) {
@@ -46,12 +46,12 @@ where RegularView: View, LoadingView: View {
 
   public init(
     role: ButtonRole? = .none,
-    @_inheritActorContext action: @escaping () async -> Void,
-    @ViewBuilder regularLabel: @escaping () -> RegularView
+    @_inheritActorContext action: @escaping () async throws -> Void,
+    @ViewBuilder label: @escaping () -> RegularView
   ) where LoadingView == EmptyView {
     self.role = role
     self.action = action
-    self.regularLabel = regularLabel
+    self.regularLabel = label
     self.loadingLabel = EmptyView.init
   }
 
@@ -61,7 +61,9 @@ where RegularView: View, LoadingView: View {
       action: {
         if case .none = self.runningTask {
           self.runningTask = .detached { @MainActor [action] () async -> Void in
-            await action()
+						await consumingErrors {
+							try await action()
+						}
             self.runningTask = .none
           }
         }
@@ -110,7 +112,7 @@ internal struct AsyncButton_Previews: PreviewProvider {
         action: {
           try? await Task.never()
         },
-        regularLabel: {
+        label: {
           Text("Infinite")
         }
       )

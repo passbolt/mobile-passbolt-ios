@@ -85,9 +85,7 @@ final class HomeSearchControllerTests: MainActorTestCase {
       context: { _ in /* NOP */ }
     )
 
-    controller.presentAccountMenu()
-
-    await self.mockExecutionControl.executeAll()
+    try await controller.presentAccountMenu()
 
     XCTAssertNotNil(result.value)
   }

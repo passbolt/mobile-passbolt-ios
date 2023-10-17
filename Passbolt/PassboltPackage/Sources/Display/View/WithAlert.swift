@@ -166,7 +166,7 @@ where AlertState: Equatable, ContentView: View {
             AsyncButton(
               role: action.role,
               action: action.perform,
-              regularLabel: {
+              label: {
                 Text(displayable: action.title)
               }
             )

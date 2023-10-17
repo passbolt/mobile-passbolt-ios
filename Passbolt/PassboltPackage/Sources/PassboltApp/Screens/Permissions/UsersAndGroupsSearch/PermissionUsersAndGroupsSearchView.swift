@@ -205,10 +205,7 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
       title: .localized(
         key: .apply
       ),
-      action: {
-        self.controller
-          .saveSelection()
-      }
+      action: self.controller.saveSelection
     )
     .padding(16)
   }

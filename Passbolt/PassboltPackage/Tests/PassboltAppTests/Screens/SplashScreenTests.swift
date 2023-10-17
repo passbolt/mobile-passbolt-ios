@@ -77,16 +77,11 @@ final class SplashScreenTests: MainActorTestCase {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let controller: SplashScreenController = try testController(context: .none)
-    var result: SplashScreenController.Destination?
-
-    controller.navigationDestinationPublisher()
-      .sink { destination in
-        result = destination
-      }
-      .store(in: cancellables)
-
-    await self.mockExecutionControl.executeAll()
+		let controller: SplashScreenController = try testController(context: .none)
+		let result: SplashScreenController.Destination? = try await controller
+			.navigationDestinationPublisher()
+			.asAsyncSequence()
+			.first()
 
     XCTAssertEqual(result, .diagnostics)
   }
@@ -98,15 +93,10 @@ final class SplashScreenTests: MainActorTestCase {
     )
 
     let controller: SplashScreenController = try testController(context: .none)
-    var result: SplashScreenController.Destination!
-
-    controller.navigationDestinationPublisher()
-      .sink { destination in
-        result = destination
-      }
-      .store(in: cancellables)
-
-    await self.mockExecutionControl.executeAll()
+    let result: SplashScreenController.Destination? = try await controller
+			.navigationDestinationPublisher()
+			.asAsyncSequence()
+			.first()
 
     XCTAssertEqual(result, .accountSetup)
   }
@@ -123,15 +113,10 @@ final class SplashScreenTests: MainActorTestCase {
 
     let controller: SplashScreenController = try testController(context: Account.mock_ada)
 
-    var result: SplashScreenController.Destination?
-
-    controller.navigationDestinationPublisher()
-      .sink { destination in
-        result = destination
-      }
-      .store(in: cancellables)
-
-    await self.mockExecutionControl.executeAll()
+    let result: SplashScreenController.Destination? = try await controller
+			.navigationDestinationPublisher()
+			.asAsyncSequence()
+			.first()
 
     XCTAssertEqual(result, .accountSelection(Account.mock_ada, message: nil))
   }
@@ -148,15 +133,10 @@ final class SplashScreenTests: MainActorTestCase {
     )
 
     let controller: SplashScreenController = try testController(context: .none)
-    var result: SplashScreenController.Destination?
-
-    controller.navigationDestinationPublisher()
-      .sink { destination in
-        result = destination
-      }
-      .store(in: cancellables)
-
-    await self.mockExecutionControl.executeAll()
+    let result: SplashScreenController.Destination? = try await controller
+			.navigationDestinationPublisher()
+			.asAsyncSequence()
+			.first()
 
     XCTAssertEqual(result, .accountSelection(nil, message: nil))
   }
@@ -172,15 +152,10 @@ final class SplashScreenTests: MainActorTestCase {
     )
 
     let controller: SplashScreenController = try testController(context: .none)
-    var result: SplashScreenController.Destination!
-
-    controller.navigationDestinationPublisher()
-      .sink { destination in
-        result = destination
-      }
-      .store(in: cancellables)
-
-    await self.mockExecutionControl.executeAll()
+    let result: SplashScreenController.Destination? = try await controller
+			.navigationDestinationPublisher()
+			.asAsyncSequence()
+			.first()
 
     XCTAssertEqual(result, .home(.init(account: .mock_ada, configuration: .mock_default)))
   }
@@ -196,15 +171,10 @@ final class SplashScreenTests: MainActorTestCase {
     )
 
     let controller: SplashScreenController = try testController(context: .none)
-    var result: SplashScreenController.Destination?
-
-    controller.navigationDestinationPublisher()
-      .sink { destination in
-        result = destination
-      }
-      .store(in: cancellables)
-
-    await self.mockExecutionControl.executeAll()
+    let result: SplashScreenController.Destination? = try await controller
+			.navigationDestinationPublisher()
+			.asAsyncSequence()
+			.first()
 
     XCTAssertEqual(result, .featureConfigFetchError)
   }
@@ -220,21 +190,14 @@ final class SplashScreenTests: MainActorTestCase {
     )
 
     let controller: SplashScreenController = try testController(context: .none)
-    var destination: SplashScreenController.Destination?
-
-    controller
-      .navigationDestinationPublisher()
-      .dropFirst()
-      .sink { value in
-        destination = value
-      }
-      .store(in: cancellables)
+    let result: SplashScreenController.Destination? = try await controller
+			.navigationDestinationPublisher()
+			.asAsyncSequence()
+			.first()
 
     try? await controller.retryFetchConfiguration()
 
-    await self.mockExecutionControl.executeAll()
-
-    XCTAssertEqual(destination, .home(.init(account: .mock_ada, configuration: .mock_default)))
+    XCTAssertEqual(result, .home(.init(account: .mock_ada, configuration: .mock_default)))
   }
 
   func test_navigationDestinationPublisher_doesNotPublish_whenRetryFetchConfigurationFails() async throws {
@@ -248,17 +211,12 @@ final class SplashScreenTests: MainActorTestCase {
     )
 
     let controller: SplashScreenController = try testController(context: .none)
-    var result: SplashScreenController.Destination!
-
-    controller.navigationDestinationPublisher()
-      .sink { value in
-        result = value
-      }
-      .store(in: cancellables)
+    let result: SplashScreenController.Destination? = try await controller
+			.navigationDestinationPublisher()
+			.asAsyncSequence()
+			.first()
 
     try? await controller.retryFetchConfiguration()
-
-    await self.mockExecutionControl.executeAll()
 
     XCTAssertEqual(result, .featureConfigFetchError)
   }

@@ -52,7 +52,7 @@ public struct ResourceEditView: ControlledView {
           action: {
             await self.controller.discardForm()
           },
-          regularLabel: {
+          label: {
             Text(displayable: "resource.edit.exit.confirmation.button.revert.title")
           }
         )

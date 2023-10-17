@@ -33,7 +33,6 @@ internal final class ResourceFolderPermissionListController: ViewController {
 
   internal var viewState: ViewStateSource<ViewState>
 
-  private let asyncExecutor: AsyncExecutor
   private let navigation: DisplayNavigation
   private let users: Users
   private let resourceFolderController: ResourceFolderController
@@ -51,44 +50,19 @@ internal final class ResourceFolderPermissionListController: ViewController {
     self.context = context
     self.features = features
 
-    self.asyncExecutor = try features.instance()
     self.navigation = try features.instance()
     self.users = try features.instance()
     self.resourceFolderController = try features.instance()
     self.resourceFolderUserPermissionsDetailsFetch = try features.instance()
     self.resourceFolderUserGroupPermissionsDetailsFetch = try features.instance()
 
-    @Sendable nonisolated func userAvatarImageFetch(
-      _ userID: User.ID
-    ) -> () async -> Data? {
-      { [users] in
-        do {
-          return try await users.userAvatarImage(userID)
-        }
-        catch {
-          error.logged()
-          return nil
-        }
-      }
-    }
-
     self.viewState = .init(
       initial: .init(
         permissionListItems: []
-      )
-    )
-
-    self.asyncExecutor.scheduleIteration(
-      over: self.resourceFolderController.state,
-      failMessage: "Resource folder permissions list updates broken!",
-      failAction: { (error: Error) in
-				SnackBarMessageEvent.send(.error(error))
-      }
-    ) {
-      [viewState, resourceFolderUserGroupPermissionsDetailsFetch, resourceFolderUserPermissionsDetailsFetch] (
-        update: Update<ResourceFolder>
-      ) in
-      let userGroupPermissionsDetails: Array<PermissionListRowItem> =
+      ),
+      updateFrom: self.resourceFolderController.state,
+			update: { [resourceFolderUserGroupPermissionsDetailsFetch, resourceFolderUserPermissionsDetailsFetch, users] updateView, update in
+				let userGroupPermissionsDetails: Array<PermissionListRowItem> =
         try await resourceFolderUserGroupPermissionsDetailsFetch(context)
         .map { details in
           .userGroup(details: details)
@@ -99,16 +73,17 @@ internal final class ResourceFolderPermissionListController: ViewController {
         .map { details in
           .user(
             details: details,
-            imageData: userAvatarImageFetch(details.id)
+            imageData: {
+							try? await users.userAvatarImage(details.id)
+            }
           )
         }
 
-      await viewState
-        .update(
-          \.permissionListItems,
-          to: userGroupPermissionsDetails + userPermissionsDetails
-        )
-    }
+      await updateView { viewState in
+        viewState.permissionListItems = userGroupPermissionsDetails + userPermissionsDetails
+        }
+			}
+    )
   }
 }
 
@@ -124,29 +99,23 @@ extension ResourceFolderPermissionListController {
 
   internal final func showUserPermissionDetails(
     _ details: UserPermissionDetailsDSV
-  ) {
-    self.asyncExecutor.schedule(.reuse) { [navigation] in
-      await navigation.push(
-        legacy: UserPermissionDetailsView.self,
-        context: details
-      )
-    }
+  ) async {
+		await self.navigation.push(
+			legacy: UserPermissionDetailsView.self,
+			context: details
+		)
   }
 
   internal final func showUserGroupPermissionDetails(
     _ details: UserGroupPermissionDetailsDSV
-  ) {
-    self.asyncExecutor.schedule(.reuse) { [navigation] in
-      await navigation.push(
-        legacy: UserGroupPermissionDetailsView.self,
-        context: details
-      )
-    }
+  ) async {
+		await navigation.push(
+			legacy: UserGroupPermissionDetailsView.self,
+			context: details
+		)
   }
 
-  internal final func navigateBack() {
-    self.asyncExecutor.schedule(.reuse) { [navigation] in
-      await navigation.pop(ResourceFolderPermissionListView.self)
-    }
+  internal final func navigateBack() async {
+		await self.navigation.pop(ResourceFolderPermissionListView.self)
   }
 }

@@ -26,14 +26,14 @@ import SwiftUI
 public struct DrawerMenuItemView<TitleView, LeftIconView, RightIconView>: View
 where TitleView: View, LeftIconView: View, RightIconView: View {
 
-  private let action: @MainActor () async -> Void
+  private let action: @MainActor () async throws -> Void
   private let title: () -> TitleView
   private let leftIcon: () -> LeftIconView
   private let rightIcon: () -> RightIconView
   private let isSelected: Bool
 
   public init(
-    @_inheritActorContext action: @escaping @MainActor () async -> Void,
+    @_inheritActorContext action: @escaping @MainActor () async throws -> Void,
     @ViewBuilder title: @escaping () -> TitleView,
     @ViewBuilder leftIcon: @escaping () -> LeftIconView,
     @ViewBuilder rightIcon: @escaping () -> RightIconView,
@@ -47,7 +47,7 @@ where TitleView: View, LeftIconView: View, RightIconView: View {
   }
 
   public init(
-    action: @escaping @MainActor () async -> Void,
+    action: @escaping @MainActor () async throws -> Void,
     @ViewBuilder title: @escaping () -> TitleView,
     @ViewBuilder leftIcon: @escaping () -> LeftIconView,
     isSelected: Bool = false

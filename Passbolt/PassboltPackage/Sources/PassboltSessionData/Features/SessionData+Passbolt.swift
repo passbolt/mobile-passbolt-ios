@@ -36,7 +36,6 @@ extension SessionData {
     let configuration: SessionConfiguration = try features.sessionConfiguration()
 
     let time: OSTime = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
 
     let usersStoreDatabaseOperation: UsersStoreDatabaseOperation = try features.instance()
     let userGroupsStoreDatabaseOperation: UserGroupsStoreDatabaseOperation = try features.instance()
@@ -56,14 +55,13 @@ extension SessionData {
 
     let refreshTask: CriticalState<Task<Void, Error>?> = .init(.none)
 
-    // initial refresh after loading
-    asyncExecutor.schedule {
-      do {
-        try await refreshIfNeeded()
-      }
-      catch {
-        error.logged()
-      }
+    Task { // initial refresh after loading
+			do {
+				try await refreshIfNeeded()
+			}
+			catch {
+				error.logged()
+			}
     }
 
     @Sendable nonisolated func refreshUsers() async throws {

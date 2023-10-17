@@ -28,7 +28,6 @@ internal final class HomePresentationMenuNodeController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
 
-  private let asyncExecutor: AsyncExecutor
   private let navigationTree: NavigationTree
   private let homePresentation: HomePresentation
 
@@ -40,7 +39,6 @@ internal final class HomePresentationMenuNodeController: ViewController {
   ) throws {
     self.context = context
 
-    self.asyncExecutor = try features.instance()
     self.navigationTree = features.instance()
     self.homePresentation = try features.instance()
 
@@ -70,18 +68,14 @@ extension HomePresentationMenuNodeController {
 
 extension HomePresentationMenuNodeController {
 
-  internal final func selectMode(
+  internal func selectMode(
     _ mode: HomePresentationMode
   ) {
     self.homePresentation.currentMode.set(to: mode)
-    self.asyncExecutor.schedule(.reuse) { [viewState, context, navigationTree] in
-      await navigationTree.dismiss(upTo: context)
-    }
+		self.navigationTree.dismiss(upTo: self.context)
   }
 
-  internal nonisolated func dismissView() {
-    self.asyncExecutor.schedule(.reuse) { [viewNodeID, navigationTree] in
-      await navigationTree.dismiss(viewNodeID)
-    }
+  internal func dismissView() {
+		self.navigationTree.dismiss(self.viewNodeID)
   }
 }

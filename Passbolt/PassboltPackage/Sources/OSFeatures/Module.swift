@@ -47,7 +47,6 @@ extension FeaturesRegistry {
     self.useMDMConfiguration()
     self.usePassboltNetworkRequestExecutor()
     self.usePassboltSharedOSStoredProperties()
-    self.usePassboltAsyncExecutor()
     self.useQRCodeGenerator()
   }
 }

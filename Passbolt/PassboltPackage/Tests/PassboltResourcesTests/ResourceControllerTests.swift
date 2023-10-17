@@ -66,8 +66,6 @@ final class ResourceControllerTests: FeaturesTestCase {
 
     let feature: ResourceController = try self.testedInstance()
 
-    // execute scheduled automatic updates
-    await self.asyncExecutionControl.executeNext()
     await XCTAssertValue(
       equal: expectedResult
     ) {
@@ -83,8 +81,6 @@ final class ResourceControllerTests: FeaturesTestCase {
 
     let feature: ResourceController = try self.testedInstance()
 
-    // execute scheduled automatic updates
-    await self.asyncExecutionControl.executeNext()
     await XCTAssertError(
       matches: MockIssue.self
     ) {
@@ -104,8 +100,6 @@ final class ResourceControllerTests: FeaturesTestCase {
 
     let feature: ResourceController = try self.testedInstance()
 
-    // execute scheduled automatic updates
-    await self.asyncExecutionControl.executeNext()
     await XCTAssertError(
       matches: InvalidResourceField.self
     ) {
@@ -235,8 +229,6 @@ final class ResourceControllerTests: FeaturesTestCase {
 
     let feature: ResourceController = try self.testedInstance()
 
-    // execute scheduled automatic updates
-    await self.asyncExecutionControl.executeNext()
     await XCTAssertError(
       matches: MockIssue.self
     ) {
@@ -262,8 +254,6 @@ final class ResourceControllerTests: FeaturesTestCase {
 
     let feature: ResourceController = try self.testedInstance()
 
-    // execute scheduled automatic updates
-    await self.asyncExecutionControl.executeNext()
     await XCTAssertError(
       matches: MockIssue.self
     ) {
@@ -289,8 +279,6 @@ final class ResourceControllerTests: FeaturesTestCase {
 
     let feature: ResourceController = try self.testedInstance()
 
-    // execute scheduled automatic updates
-    await self.asyncExecutionControl.executeNext()
     await XCTAssertError(
       matches: InvalidResourceField.self
     ) {
@@ -316,8 +304,6 @@ final class ResourceControllerTests: FeaturesTestCase {
 
     let feature: ResourceController = try self.testedInstance()
 
-    // execute scheduled automatic updates
-    await self.asyncExecutionControl.executeNext()
     await XCTAssertValue(
       equal: ["password": "decrypted"]
     ) {
@@ -335,8 +321,6 @@ final class ResourceControllerTests: FeaturesTestCase {
 
     let feature: ResourceController = try self.testedInstance()
 
-    // execute scheduled automatic updates
-    await self.asyncExecutionControl.executeNext()
     await XCTAssertValue(
       equal: ["password": "initial"]
     ) {
@@ -365,8 +349,6 @@ final class ResourceControllerTests: FeaturesTestCase {
 
     let feature: ResourceController = try self.testedInstance()
 
-    // execute scheduled automatic updates
-    await self.asyncExecutionControl.executeNext()
     await XCTAssertValue(
       equal: ["password": "decrypted"]
     ) {
@@ -389,8 +371,6 @@ final class ResourceControllerTests: FeaturesTestCase {
 
     let feature: ResourceController = try self.testedInstance()
 
-    // execute scheduled automatic updates
-    await self.asyncExecutionControl.executeNext()
     await XCTAssertError(
       matches: MockIssue.self
     ) {
@@ -412,8 +392,6 @@ final class ResourceControllerTests: FeaturesTestCase {
 
     let feature: ResourceController = try self.testedInstance()
 
-    // execute scheduled automatic updates
-    await self.asyncExecutionControl.executeNext()
     await XCTAssertError(
       matches: MockIssue.self
     ) {
@@ -439,8 +417,6 @@ final class ResourceControllerTests: FeaturesTestCase {
 
     let feature: ResourceController = try self.testedInstance()
 
-    // execute scheduled automatic updates
-    await self.asyncExecutionControl.executeNext()
     await XCTAssertNoError {
       try await feature.toggleFavorite()
     }
@@ -469,8 +445,6 @@ final class ResourceControllerTests: FeaturesTestCase {
 
     let feature: ResourceController = try self.testedInstance()
 
-    // execute scheduled automatic updates
-    await self.asyncExecutionControl.executeNext()
     await XCTAssertNoError {
       try await feature.toggleFavorite()
     }
@@ -499,8 +473,6 @@ final class ResourceControllerTests: FeaturesTestCase {
 
     let feature: ResourceController = try self.testedInstance()
 
-    // execute scheduled automatic updates
-    await self.asyncExecutionControl.executeNext()
     await XCTAssertError(
       matches: MockIssue.self
     ) {
@@ -526,8 +498,6 @@ final class ResourceControllerTests: FeaturesTestCase {
 
     let feature: ResourceController = try self.testedInstance()
 
-    // execute scheduled automatic updates
-    await self.asyncExecutionControl.executeNext()
     await XCTAssertNoError {
       try await feature.delete()
     }

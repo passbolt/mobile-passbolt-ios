@@ -36,7 +36,6 @@ internal final class ResourceUserGroupsListNodeController: ViewController {
   internal var searchController: ResourceSearchDisplayController
   internal var contentController: ResourceUserGroupsListDisplayController!  // lazy?
 
-  private let asyncExecutor: AsyncExecutor
   private let navigationTree: NavigationTree
   private let autofillContext: AutofillExtensionContext
   private let currentAccount: Account
@@ -51,7 +50,6 @@ internal final class ResourceUserGroupsListNodeController: ViewController {
     self.context = context
     self.features = features
 
-    self.asyncExecutor = try features.instance()
     self.navigationTree = features.instance()
     self.autofillContext = features.instance()
     self.currentAccount = try features.sessionAccount()
@@ -72,17 +70,15 @@ internal final class ResourceUserGroupsListNodeController: ViewController {
 
     self.contentController = try features.instance(
       context: .init(
-        filter: self.searchController
-          .searchText
-          .asAnyAsyncSequence()
-          .compactMap { try? $0.value }
-          .map { (text: String) -> UserGroupsFilter in
-            .init(
-              userID: self.currentAccount.userID,
-              text: text
+        filter: ComputedVariable(
+        transformed: self.searchController
+					.searchText) { [currentAccount] update -> UserGroupsFilter in
+						try .init(
+              userID: currentAccount.userID,
+              text: update.value
             )
-          }
-          .asAnyAsyncSequence(),
+					}
+          .asAnyUpdatable(),
         selectGroup: self.selectUserGroup(_:)
       )
     )
@@ -112,48 +108,38 @@ extension ResourceUserGroupsListNodeController {
 
   @Sendable internal nonisolated func selectUserGroup(
     _ userGroupID: UserGroup.ID
-  ) {
-    self.asyncExecutor.scheduleCatching(
-      failMessage: "Failed to handle user group selection.",
-      failAction: { (error: Error) in
-        SnackBarMessageEvent.send(.error(error))
-      },
-      behavior: .replace
-    ) { [features, context, navigationTree] in
-      let userGroup: UserGroupDetails = try await features
-				.branch(
-					scope: UserGroupScope.self,
-					context: userGroupID
+  ) async throws {
+		let userGroup: UserGroupDetails = try await self.features
+			.branch(
+				scope: UserGroupScope.self,
+				context: userGroupID
+			)
+			.instance()
+		let userGroupDetails: UserGroupDetailsDSV = try await userGroup.details()
+
+		let nodeController: ResourcesListNodeController =
+		try await self.features
+			.instance(
+				of: ResourcesListNodeController.self,
+				context: .init(
+					nodeID: context.nodeID,
+					title: .raw(userGroupDetails.name),
+					titleIconName: .userGroup,
+					baseFilter: .init(
+						sorting: .nameAlphabetically,
+						userGroups: [userGroupID]
+					)
 				)
-				.instance()
-      let userGroupDetails: UserGroupDetailsDSV = try await userGroup.details()
+			)
 
-      let nodeController: ResourcesListNodeController =
-        try await features
-        .instance(
-          of: ResourcesListNodeController.self,
-          context: .init(
-            nodeID: context.nodeID,
-            title: .raw(userGroupDetails.name),
-            titleIconName: .userGroup,
-            baseFilter: .init(
-              sorting: .nameAlphabetically,
-              userGroups: [userGroupID]
-            )
-          )
-        )
-
-      await navigationTree
-        .push(
-          ResourcesListNodeView.self,
-          controller: nodeController
-        )
-    }
+		await self.navigationTree
+			.push(
+				ResourcesListNodeView.self,
+				controller: nodeController
+			)
   }
 
   internal final func closeExtension() {
-    self.asyncExecutor.schedule(.reuse) { [autofillContext] in
-      await autofillContext.cancelAndCloseExtension()
-    }
+		self.autofillContext.cancelAndCloseExtension()
   }
 }

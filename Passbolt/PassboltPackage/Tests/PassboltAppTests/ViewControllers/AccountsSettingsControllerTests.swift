@@ -50,7 +50,7 @@ final class AccountsSettingsControllerTests: FeaturesTestCase {
       mockExecuted: 1
     ) { feature in
       await feature.navigateToAccountExport()
-      await self.asyncExecutionControl.executeAll()
+      
     }
   }
 
@@ -64,7 +64,7 @@ final class AccountsSettingsControllerTests: FeaturesTestCase {
       mockExecuted: 1
     ) { feature in
       await feature.navigateToManageAccounts()
-      await self.asyncExecutionControl.executeAll()
+      
     }
   }
 }

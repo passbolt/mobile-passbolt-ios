@@ -60,9 +60,6 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
   func test_viewState_equalsMockedData_initially() async throws {
     let tested: AccountExportAuthorizationController = try self.testedInstance()
 
-    // execute all scheduled tasks
-    await self.asyncExecutionControl.executeAll()
-
     XCTAssertEqual(
       AccountExportAuthorizationController.ViewState(
         accountLabel: AccountWithProfile.mock_ada.label,
@@ -88,9 +85,6 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
 
     let tested: AccountExportAuthorizationController = try self.testedInstance()
 
-    // execute all scheduled tasks
-    await self.asyncExecutionControl.executeAll()
-
     XCTAssertEqual(
       .unavailable,
       tested.viewState.value.biometricsAvailability
@@ -109,9 +103,6 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
 
     let tested: AccountExportAuthorizationController = try self.testedInstance()
 
-    // execute all scheduled tasks
-    await self.asyncExecutionControl.executeAll()
-
     XCTAssertEqual(
       .faceID,
       tested.viewState.value.biometricsAvailability
@@ -120,9 +111,6 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
 
   func test_setPassphrase_updatesViewState() async throws {
     let tested: AccountExportAuthorizationController = try self.testedInstance()
-
-    // execute all scheduled tasks
-    await self.asyncExecutionControl.executeAll()
 
     tested.setPassphrase("updated_passphrase")
     XCTAssertEqual(
@@ -134,8 +122,6 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
   func test_setPassphrase_validatesPassphrase() async throws {
     let tested: AccountExportAuthorizationController = try self.testedInstance()
 
-    // execute all scheduled tasks
-    await self.asyncExecutionControl.executeAll()
 
     tested.setPassphrase("valid_passphrase")
     XCTAssertEqual(
@@ -171,8 +157,8 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
 
 		let tested: AccountExportAuthorizationController = try self.testedInstance()
 
-		tested.authorizeWithBiometrics()
-		await self.asyncExecutionControl.executeAll()
+		try await tested.authorizeWithBiometrics()
+
 
 		let message: SnackBarMessage? = try await messagesSubscription.nextEvent()
 		XCTAssertEqual(
@@ -190,11 +176,11 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
 
 		let tested: AccountExportAuthorizationController = try self.testedInstance()
 
-		tested.authorizeWithBiometrics()
-		await self.asyncExecutionControl.executeAll()
+		await tested.authorizeWithBiometrics()
+		
 
 		// Temporary fix for pending tasks on queue, will be removed after using proper navigation
-		await self.asyncExecutionControl.executeAll()
+		
 	}
 
   func test_authorizeWithPassphrase_failsWithMessage_whenPassphraseIsInvalid() async throws {
@@ -207,11 +193,8 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
 
     let tested: AccountExportAuthorizationController = try self.testedInstance()
 
-    // execute all scheduled tasks
-    await self.asyncExecutionControl.executeAll()
 
-    tested.authorizeWithPassphrase()
-    await self.asyncExecutionControl.executeAll()
+    await tested.authorizeWithPassphrase()
 
 		let message: SnackBarMessage? = try await messagesSubscription.nextEvent()
     XCTAssertEqual(
@@ -235,12 +218,9 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
 
     let tested: AccountExportAuthorizationController = try self.testedInstance()
 
-    // execute all scheduled tasks
-    await self.asyncExecutionControl.executeAll()
 
     tested.setPassphrase("valid_passphrase")
-    tested.authorizeWithPassphrase()
-    await self.asyncExecutionControl.executeAll()
+    try await tested.authorizeWithPassphrase()
 
 		let message: SnackBarMessage? = try await messagesSubscription.nextEvent()
     XCTAssertEqual(
@@ -259,10 +239,8 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
     let tested: AccountExportAuthorizationController = try self.testedInstance()
 
     tested.setPassphrase("valid_passphrase")
-    tested.authorizeWithBiometrics()
-    await self.asyncExecutionControl.executeAll()
+    await tested.authorizeWithBiometrics()
 
     // Temporary fix for pending tasks on queue, will be removed after using proper navigation
-    await self.asyncExecutionControl.executeAll()
   }
 }

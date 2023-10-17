@@ -112,20 +112,16 @@ internal struct FoldersExplorerView: ComponentView {
       text: self.$state.searchText,
       leftAccessory: {
         AsyncButton(
-          action: {
-            await self.controller.presentHomePresentationMenu()
-          },
-          regularLabel: {
+          action: self.controller.presentHomePresentationMenu,
+          label: {
             ImageWithPadding(4, named: .filter)
           }
         )
       },
       rightAccessory: {
         AsyncButton(
-          action: {
-            await self.controller.presentAccountMenu()
-          },
-          regularLabel: {
+          action: self.controller.presentAccountMenu,
+          label: {
             UserAvatarView(imageData: self.state.userAvatarImage)
               .padding(
                 top: 0,
@@ -150,7 +146,7 @@ internal struct FoldersExplorerView: ComponentView {
       content: {
         if self.state.canCreateResources {
           ResourceListAddView {
-            self.controller.presentAddNew(self.state.folderID)
+            try await self.controller.presentAddNew(self.state.folderID)
           }
           .accessibilityIdentifier("folder.explore.create.new")
         }  // else { /* NOP */ }
@@ -270,7 +266,7 @@ internal struct FoldersExplorerView: ComponentView {
           contentCount: folder.contentCount,
           locationString: folder.location,
           action: {
-            self.controller.presentFolderContent(folder)
+            try await self.controller.presentFolderContent(folder)
           }
         )
       }
@@ -287,10 +283,10 @@ internal struct FoldersExplorerView: ComponentView {
           name: resource.name,
           username: resource.username,
           contentAction: {
-            self.controller.presentResourceDetails(resource.id)
+            try await self.controller.presentResourceDetails(resource.id)
           },
           rightAction: {
-            self.controller.presentResourceMenu(resource.id)
+            try await self.controller.presentResourceMenu(resource.id)
           },
           rightAccessory: {
             Image(named: .more)
@@ -319,7 +315,7 @@ internal struct FoldersExplorerView: ComponentView {
           contentCount: folder.contentCount,
           locationString: folder.location,
           action: {
-            self.controller.presentFolderContent(folder)
+            try await self.controller.presentFolderContent(folder)
           }
         )
       }
@@ -336,10 +332,10 @@ internal struct FoldersExplorerView: ComponentView {
           name: resource.name,
           username: resource.username,
           contentAction: {
-            self.controller.presentResourceDetails(resource.id)
+            try await self.controller.presentResourceDetails(resource.id)
           },
           rightAction: {
-            self.controller.presentResourceMenu(resource.id)
+            try await self.controller.presentResourceMenu(resource.id)
           },
           rightAccessory: {
             Image(named: .more)

@@ -37,10 +37,10 @@ internal struct AccountMenuController {
     () -> AnyPublisher<
       Array<(accountWithProfile: AccountWithProfile, avatarImagePublisher: AnyPublisher<Data?, Never>)>, Never
     >
-  internal var presentAccountDetails: @MainActor () -> Void
-  internal var signOut: @MainActor () -> Void
-  internal var presentAccountSwitch: @MainActor (Account) -> Void
-  internal var presentManageAccounts: @MainActor () -> Void
+  internal var presentAccountDetails: @MainActor () async throws -> Void
+  internal var signOut: @MainActor () async throws -> Void
+  internal var presentAccountSwitch: @MainActor (Account) async throws -> Void
+  internal var presentManageAccounts: @MainActor () async throws -> Void
 }
 
 extension AccountMenuController: UIController {
@@ -55,8 +55,6 @@ extension AccountMenuController: UIController {
     let features: Features = features
 
     let currentAccount: Account = try features.sessionAccount()
-
-    let asyncExecutor: AsyncExecutor = try features.instance()
 
     let accounts: Accounts = try features.instance()
     let session: Session = try features.instance()
@@ -113,73 +111,65 @@ extension AccountMenuController: UIController {
         .eraseToAnyPublisher()
     }
 
-    func dismiss() {
-      asyncExecutor.schedule(.reuse) {
-        do {
-          try await navigationToSelf.revert()
-        }
-        catch {
-          error.logged(
-            info: .message(
-              "Navigation back from account menu failed!"
-            )
-          )
-        }
+		func dismiss() async {
+			do {
+				try await navigationToSelf.revert()
+			}
+			catch {
+				error.logged(
+					info: .message(
+						"Navigation back from account menu failed!"
+					)
+				)
+			}
+    }
+
+    func presentAccountDetails() async {
+			do {
+				try await navigationToSelf.revert()
+				try await navigationToAccountDetails.perform()
+			}
+			catch {
+				error.logged(
+					info: .message(
+						"Navigation to account details failed!"
+					)
+				)
+			}
+    }
+
+    func signOut() async {
+			await session.close(.none)
+    }
+
+    func presentAccountSwitch(
+			account: Account
+		) async {
+			do {
+				try await navigationToSelf.revert()
+				try await navigationToAuthorization.perform(context: account)
+			}
+			catch {
+				error.logged(
+					info: .message(
+						"Navigation to account switch failed!"
+					)
+				)
       }
     }
 
-    func presentAccountDetails() {
-      asyncExecutor.schedule(.reuse) {
-        do {
-          try await navigationToSelf.revert()
-          try await navigationToAccountDetails.perform()
-        }
-        catch {
-          error.logged(
-            info: .message(
-              "Navigation to account details failed!"
-            )
-          )
-        }
-      }
-    }
-
-    func signOut() {
-      cancellables.executeAsync {
-        await session.close(.none)
-      }
-    }
-
-    func presentAccountSwitch(account: Account) {
-      asyncExecutor.schedule(.reuse) {
-        do {
-          try await navigationToSelf.revert()
-          try await navigationToAuthorization.perform(context: account)
-        }
-        catch {
-          error.logged(
-            info: .message(
-              "Navigation to account switch failed!"
-            )
-          )
-        }
-      }
-    }
-
-    func presentManageAccounts() {
-      asyncExecutor.schedule(.reuse) {
-        do {
-          try await navigationToSelf.revert()
-          try await navigationToManageAccounts.perform()
-        }
-        catch {
-          error.logged(
-            info: .message(
-              "Navigation to manage accounts failed!"
-            )
-          )
-        }
-      }
+		func presentManageAccounts() async {
+			do {
+				try await navigationToSelf.revert()
+				try await navigationToManageAccounts.perform()
+			}
+			catch {
+				error.logged(
+					info: .message(
+						"Navigation to manage accounts failed!"
+					)
+				)
+			}
     }
 
     return Self(

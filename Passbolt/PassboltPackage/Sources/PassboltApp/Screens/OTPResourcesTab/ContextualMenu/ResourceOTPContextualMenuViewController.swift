@@ -63,8 +63,6 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
   private let linkOpener: OSLinkOpener
   private let pasteboard: OSPasteboard
 
-  private let asyncExecutor: AsyncExecutor
-
   private let revealOTP: (@MainActor () async -> Void)?
   private let resourceID: Resource.ID
 
@@ -87,8 +85,6 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
 
     self.linkOpener = features.instance()
     self.pasteboard = features.instance()
-
-    self.asyncExecutor = try features.instance()
 
     self.navigationToSelf = try features.instance()
     self.navigationToResourceOTPDeleteAlert = try features.instance()

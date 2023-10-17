@@ -31,7 +31,6 @@ internal final class AccountQRCodeExportController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
 
-  private let asyncExecutor: AsyncExecutor
   private let navigation: DisplayNavigation
   private let accountExport: AccountChunkedExport
   private let qrCodeGenerator: QRCodeGenerator
@@ -42,7 +41,6 @@ internal final class AccountQRCodeExportController: ViewController {
   ) throws {
     try features.ensureScope(AccountTransferScope.self)
 
-    self.asyncExecutor = try features.instance()
     self.navigation = try features.instance()
     self.accountExport = try features.instance()
     self.qrCodeGenerator = features.instance()
@@ -145,15 +143,13 @@ extension AccountQRCodeExportController {
 
 extension AccountQRCodeExportController {
 
-  nonisolated func showCancelConfirmation() {
-    self.asyncExecutor.schedule(.reuse) { [unowned self] in
-      await self.viewState.update { (state: inout ViewState) in
-        state.exitConfirmationAlertPresented = true
-      }
-    }
+	@MainActor internal func showCancelConfirmation() {
+		self.viewState.update { (state: inout ViewState) in
+			state.exitConfirmationAlertPresented = true
+		}
   }
 
-  nonisolated func cancelTransfer() {
+  @MainActor internal func cancelTransfer() {
     self.accountExport.cancel()
   }
 }

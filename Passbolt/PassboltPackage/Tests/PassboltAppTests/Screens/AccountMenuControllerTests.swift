@@ -149,11 +149,9 @@ final class AccountMenuControllerTests: MainActorTestCase {
         }
       )
 
-    let controller: AccountMenuController = try await testController()
+    let controller: AccountMenuController = try testController()
 
-    controller.presentAccountDetails()
-
-    await mockExecutionControl.executeAll()
+    try await controller.presentAccountDetails()
 
     XCTAssertNotNil(result.value)
   }
@@ -168,11 +166,9 @@ final class AccountMenuControllerTests: MainActorTestCase {
         }
       )
 
-    let controller: AccountMenuController = try await testController()
+    let controller: AccountMenuController = try testController()
 
-    controller.presentAccountSwitch(.mock_frances)
-
-    await mockExecutionControl.executeAll()
+    try await controller.presentAccountSwitch(.mock_frances)
 
     XCTAssertEqual(result.value, .mock_frances)
   }
@@ -193,9 +189,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
 
     let controller: AccountMenuController = try await testController()
 
-    controller.presentManageAccounts()
-
-    await mockExecutionControl.executeAll()
+    try await controller.presentManageAccounts()
 
     XCTAssertNotNil(result.value)
   }
@@ -210,7 +204,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
     )
     let controller: AccountMenuController = try await testController()
 
-    controller.signOut()
+    try await controller.signOut()
     // temporary wait for detached tasks, to be removed
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
     XCTAssertNotNil(result.value)

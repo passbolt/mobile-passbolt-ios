@@ -30,12 +30,12 @@ public struct SecondaryButton: View {
 
   private let icon: Image?
   private let title: DisplayableString
-  private let action: @MainActor () async -> Void
+  private let action: @MainActor () async throws -> Void
 
   public init(
     title: DisplayableString,
     iconName: ImageNameConstant? = .none,
-    action: @escaping @MainActor () async -> Void
+    action: @escaping @MainActor () async throws -> Void
   ) {
     self.icon = iconName.map(Image.init(named:))
     self.title = title

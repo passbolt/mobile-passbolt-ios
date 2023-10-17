@@ -33,8 +33,8 @@ internal struct PermissionUsersAndGroupsSearchController {
   internal var viewState: ObservableValue<ViewState>
   internal var toggleUserSelection: @MainActor (User.ID) -> Void
   internal var toggleUserGroupSelection: @MainActor (UserGroup.ID) -> Void
-  internal var saveSelection: @MainActor () -> Void
-  internal var navigateBack: () -> Void
+  internal var saveSelection: @MainActor () async throws -> Void
+  internal var navigateBack: @MainActor () async -> Void
 }
 
 extension PermissionUsersAndGroupsSearchController: ComponentController {
@@ -49,7 +49,6 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
   ) throws -> Self {
 
     let navigation: DisplayNavigation = try features.instance()
-    let executor: AsyncExecutor = try features.instance()
     let resourceShareForm: ResourceShareForm = try features.instance()
     let users: Users = try features.instance()
     let userGroups: UserGroups = try features.instance()
@@ -63,7 +62,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
       )
     )
 
-    executor.schedule { @MainActor in
+		viewState.cancellables.executeOnMainActor { [unowned viewState] in
       let existingPermissions: OrderedSet<ResourcePermission> =
         await resourceShareForm
         .currentPermissions()
@@ -91,121 +90,120 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
           error.logged()
           return nil
         }
-      }
-    }
+			}
+		}
 
-    let searchTextSequence =
-      viewState
-      .asAnyAsyncSequence()
-      .map(\.searchText)
-    executor.scheduleIteration(
-      over: searchTextSequence,
-      failMessage: "Search updates broken!"
-    ) { @MainActor (searchText: String) async throws -> Void in
-      let matchingUserGroups: Array<UserGroupDetailsDSV>
-      let matchingUsers: Array<UserDetailsDSV>
+		let searchTextSequence =
+		viewState
+			.asAnyAsyncSequence()
+			.map(\.searchText)
+		viewState.cancellables.executeOnMainActor { [unowned viewState] in
+			for try await searchText in searchTextSequence {
+				let matchingUserGroups: Array<UserGroupDetailsDSV>
+				let matchingUsers: Array<UserDetailsDSV>
 
-      do {
-        matchingUsers =
-          try await users
-          .filteredUsers(.init(text: searchText))
-        matchingUserGroups =
-          try await userGroups
-          .filteredUserGroups(.init(userID: .none, text: searchText))
-      }
-      catch {
-				return error.consume()
-      }
-      let existingPermissions: OrderedSet<ResourcePermission> =
-        await resourceShareForm
-        .currentPermissions()
+				do {
+					matchingUsers =
+					try await users
+						.filteredUsers(.init(text: searchText))
+					matchingUserGroups =
+					try await userGroups
+						.filteredUserGroups(.init(userID: .none, text: searchText))
+				}
+				catch {
+					return error.consume()
+				}
+				let existingPermissions: OrderedSet<ResourcePermission> =
+				await resourceShareForm
+					.currentPermissions()
 
-      let selectableUsersAndGroups: Array<ControlledView.SelectionRowViewModel> =
-        matchingUserGroups
-        .compactMap { (userGroupDetails: UserGroupDetailsDSV) -> ControlledView.SelectionRowViewModel? in
-          let permissionExists: Bool = existingPermissions.contains {
-            (permission: ResourcePermission) -> Bool in
-            permission.userGroupID == userGroupDetails.id
-          }
+				let selectableUsersAndGroups: Array<ControlledView.SelectionRowViewModel> =
+				matchingUserGroups
+					.compactMap { (userGroupDetails: UserGroupDetailsDSV) -> ControlledView.SelectionRowViewModel? in
+						let permissionExists: Bool = existingPermissions.contains {
+							(permission: ResourcePermission) -> Bool in
+							permission.userGroupID == userGroupDetails.id
+						}
 
-          guard !permissionExists
-          else { return .none }
+						guard !permissionExists
+						else { return .none }
 
-          return .userGroup(
-            .init(
-              id: userGroupDetails.id,
-              name: "\(userGroupDetails.name)"
-            )
-          )
-        }
-        + matchingUsers
-        .compactMap { (userDetails: UserDetailsDSV) -> ControlledView.SelectionRowViewModel? in
-          let permissionExists: Bool = existingPermissions.contains {
-            (permission: ResourcePermission) -> Bool in
-            permission.userID == userDetails.id
-          }
+						return .userGroup(
+							.init(
+								id: userGroupDetails.id,
+								name: "\(userGroupDetails.name)"
+							)
+						)
+					}
+				+ matchingUsers
+					.compactMap { (userDetails: UserDetailsDSV) -> ControlledView.SelectionRowViewModel? in
+						let permissionExists: Bool = existingPermissions.contains {
+							(permission: ResourcePermission) -> Bool in
+							permission.userID == userDetails.id
+						}
 
-          guard !permissionExists
-          else { return .none }
+						guard !permissionExists
+						else { return .none }
 
-          return .user(
-            .init(
-              id: userDetails.id,
-              fullName: "\(userDetails.firstName) \(userDetails.lastName)",
-              username: "\(userDetails.username)",
-              avatarImageFetch: userAvatarImageFetch(userDetails.id)
-            )
-          )
-        }
+						return .user(
+							.init(
+								id: userDetails.id,
+								fullName: "\(userDetails.firstName) \(userDetails.lastName)",
+								username: "\(userDetails.username)",
+								avatarImageFetch: userAvatarImageFetch(userDetails.id)
+							)
+						)
+					}
 
-      let existingUsersAndGroupsPermissions: Array<ControlledView.ExistingPermissionRowViewModel> =
-        matchingUserGroups
-        .compactMap { (userGroupDetails: UserGroupDetailsDSV) -> ControlledView.ExistingPermissionRowViewModel? in
-          let matchingPermission: ResourcePermission? =
-            existingPermissions.first { (permission: ResourcePermission) -> Bool in
-              permission.userGroupID == userGroupDetails.id
-            }
+				let existingUsersAndGroupsPermissions: Array<ControlledView.ExistingPermissionRowViewModel> =
+				matchingUserGroups
+					.compactMap { (userGroupDetails: UserGroupDetailsDSV) -> ControlledView.ExistingPermissionRowViewModel? in
+						let matchingPermission: ResourcePermission? =
+						existingPermissions.first { (permission: ResourcePermission) -> Bool in
+							permission.userGroupID == userGroupDetails.id
+						}
 
-          guard let permission: ResourcePermission = matchingPermission
-          else { return .none }
+						guard let permission: ResourcePermission = matchingPermission
+						else { return .none }
 
-          return .userGroup(
-            .init(
-              id: userGroupDetails.id,
-              name: "\(userGroupDetails.name)"
-            ),
-            permission: permission.permission
-          )
-        }
-        + matchingUsers
-        .compactMap { (userDetails: UserDetailsDSV) -> ControlledView.ExistingPermissionRowViewModel? in
-          let matchingPermission: ResourcePermission? =
-            existingPermissions.first { (permission: ResourcePermission) -> Bool in
-              permission.userID == userDetails.id
-            }
+						return .userGroup(
+							.init(
+								id: userGroupDetails.id,
+								name: "\(userGroupDetails.name)"
+							),
+							permission: permission.permission
+						)
+					}
+				+ matchingUsers
+					.compactMap { (userDetails: UserDetailsDSV) -> ControlledView.ExistingPermissionRowViewModel? in
+						let matchingPermission: ResourcePermission? =
+						existingPermissions.first { (permission: ResourcePermission) -> Bool in
+							permission.userID == userDetails.id
+						}
 
-          guard let permission: ResourcePermission = matchingPermission
-          else { return .none }
+						guard let permission: ResourcePermission = matchingPermission
+						else { return .none }
 
-          guard let permission = matchingPermission
-          else { return .none }
+						guard let permission = matchingPermission
+						else { return .none }
 
-          return .user(
-            .init(
-              id: userDetails.id,
-              fullName: "\(userDetails.firstName) \(userDetails.lastName)",
-              username: "\(userDetails.username)",
-              avatarImageFetch: userAvatarImageFetch(userDetails.id)
-            ),
-            permission: permission.permission
-          )
-        }
+						return .user(
+							.init(
+								id: userDetails.id,
+								fullName: "\(userDetails.firstName) \(userDetails.lastName)",
+								username: "\(userDetails.username)",
+								avatarImageFetch: userAvatarImageFetch(userDetails.id)
+							),
+							permission: permission.permission
+						)
+					}
 
-      viewState.withValue { (state: inout ViewState) in
-        state.listSelectionRowViewModels = selectableUsersAndGroups
-        state.listExistingRowViewModels = existingUsersAndGroupsPermissions
-      }
-    }
+				viewState.withValue { (state: inout ViewState) in
+					state.listSelectionRowViewModels = selectableUsersAndGroups
+					state.listExistingRowViewModels = existingUsersAndGroupsPermissions
+				}
+			}
+		}
 
     @MainActor func toggleUserSelection(
       _ userID: User.ID
@@ -257,42 +255,38 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
       }
     }
 
-    @MainActor func saveSelection() {
-      executor.schedule(.reuse) { @MainActor in
-        let existingPermissions: OrderedSet<ResourcePermission> =
-          await resourceShareForm
-          .currentPermissions()
-        let newSelections =
-          viewState
-          .selectedItems
-          .dropFirst(existingPermissions.count)
+    @MainActor func saveSelection() async throws {
+			let existingPermissions: OrderedSet<ResourcePermission> =
+			await resourceShareForm
+				.currentPermissions()
+			let newSelections =
+			viewState
+				.selectedItems
+				.dropFirst(existingPermissions.count)
 
-        for row in newSelections {
-          switch row {
-          case let .user(userID, _):
-            await resourceShareForm
-              .setUserPermission(
-                userID,
-                .read
-              )
-          case let .userGroup(userGroupID):
-            await resourceShareForm
-              .setUserGroupPermission(
-                userGroupID,
-                .read
-              )
-          }
+			for row in newSelections {
+				switch row {
+				case let .user(userID, _):
+					await resourceShareForm
+						.setUserPermission(
+							userID,
+							.read
+						)
+				case let .userGroup(userGroupID):
+					await resourceShareForm
+						.setUserGroupPermission(
+							userGroupID,
+							.read
+						)
+				}
 
-        }
+			}
 
-        await navigation.pop(if: ControlledView.self)
-      }
+			await navigation.pop(if: ControlledView.self)
     }
 
-    nonisolated func navigateBack() {
-      executor.schedule(.reuse) {
-        await navigation.pop(if: PermissionUsersAndGroupsSearchView.self)
-      }
+    @MainActor func navigateBack() async {
+			await navigation.pop(if: PermissionUsersAndGroupsSearchView.self)
     }
 
     return .init(

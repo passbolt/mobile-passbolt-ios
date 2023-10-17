@@ -66,10 +66,10 @@ internal struct AccountExportAuthorizationView: ControlledView {
       biometricsAction: self.controller.authorizeWithBiometrics,
       supportActionView: EmptyView.init
     )
-    .onAppear {  // auto use biometrics when able
+    .task {  // auto use biometrics when able
       switch state.biometricsAvailability {
       case .faceID, .touchID:
-        self.controller.authorizeWithBiometrics()
+        await self.controller.authorizeWithBiometrics()
 
       case .unavailable, .unconfigured:
         break  // NOP

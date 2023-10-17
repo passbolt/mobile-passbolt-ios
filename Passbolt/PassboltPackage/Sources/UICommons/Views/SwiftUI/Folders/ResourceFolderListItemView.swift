@@ -30,7 +30,7 @@ public struct ResourceFolderListItemView: View {
   private let shared: Bool
   private let contentCount: Int
   private let locationString: String
-  private let action: @MainActor () -> Void
+  private let action: @MainActor () async throws -> Void
 
   private var locationDisplayable: String {
     let root: DisplayableString = .localized(key: "folder.root.name")
@@ -47,7 +47,7 @@ public struct ResourceFolderListItemView: View {
     shared: Bool,
     contentCount: Int,
     locationString: String,
-    action: @escaping () -> Void
+    action: @escaping () async throws -> Void
   ) {
     self.name = name
     self.shared = shared

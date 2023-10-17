@@ -30,7 +30,6 @@ import SharedUIComponents
 
 internal final class AutofillRootNavigationNodeController: ViewController {
 
-  private let asyncExecutor: AsyncExecutor
   private let navigationTree: NavigationTree
   private let accounts: Accounts
   private let session: Session
@@ -44,8 +43,6 @@ internal final class AutofillRootNavigationNodeController: ViewController {
     features: Features
   ) throws {
     self.features = features
-
-    self.asyncExecutor = try features.instance()
 
     self.navigationTree = features.instance()
     self.accounts = try features.instance()
@@ -99,7 +96,7 @@ extension AutofillRootNavigationNodeController {
 			}  // else NOP
 		}
 
-		self.asyncExecutor.schedule(.unmanaged) {
+		Task {
 			do {
 				try await SessionStateChangeEvent.subscribe { (event: SessionStateChangeEvent) async throws in
 					switch event {

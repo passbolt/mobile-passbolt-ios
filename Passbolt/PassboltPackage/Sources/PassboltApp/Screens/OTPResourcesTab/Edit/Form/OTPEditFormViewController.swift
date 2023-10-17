@@ -52,7 +52,6 @@ internal final class OTPEditFormViewController: ViewController {
 
   private let allFields: Set<Resource.FieldPath>
 
-  private let asyncExecutor: AsyncExecutor
   private let navigationToSelf: NavigationToOTPEditForm
   private let navigationToAttach: NavigationToOTPAttachSelectionList
   private let navigationToAdvanced: NavigationToOTPEditAdvancedForm
@@ -72,8 +71,6 @@ internal final class OTPEditFormViewController: ViewController {
     self.features = features.takeOwned()
 
     self.context = context
-
-    self.asyncExecutor = try features.instance()
 
     self.navigationToSelf = try features.instance()
     self.navigationToAttach = try features.instance()

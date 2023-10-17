@@ -106,7 +106,7 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
       of: ApplicationSettingsViewController.self,
       returns: BiometricsAuthorizationAvailability.unavailable
     ) { feature in
-      await self.asyncExecutionControl.executeAll()
+      
       return await feature.viewState.current.biometicsAuthorizationAvailability
     }
   }
@@ -121,7 +121,7 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
       mockExecuted: 1
     ) { feature in
       await feature.navigateToAutofillSettings()
-      await self.asyncExecutionControl.executeAll()
+      
     }
   }
 
@@ -135,7 +135,7 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
       mockExecuted: 1
     ) { feature in
       await feature.navigateToDefaultPresentationModeSettings()
-      await self.asyncExecutionControl.executeAll()
+      
     }
   }
 
@@ -150,7 +150,7 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
       mockExecutedWith: true
     ) { feature in
       await feature.setBiometricsAuthorization(enabled: true)
-      await self.asyncExecutionControl.executeAll()
+      
     }
 
     await withInstance(
@@ -158,7 +158,7 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
       mockExecutedWith: false
     ) { feature in
       await feature.setBiometricsAuthorization(enabled: false)
-      await self.asyncExecutionControl.executeAll()
+      
     }
   }
 }

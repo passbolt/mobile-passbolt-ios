@@ -31,11 +31,11 @@ import Aegithalos
 public struct LegacyNavigationBarButtonBridge {
 
   public var icon: ImageNameConstant
-  public var action: () -> Void
+  public var action: () async throws -> Void
 
   public init(
     icon: ImageNameConstant,
-    action: @escaping () -> Void
+    action: @escaping () async throws -> Void
   ) {
     self.icon = icon
     self.action = action

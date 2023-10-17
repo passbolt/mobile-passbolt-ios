@@ -40,8 +40,6 @@ internal final class OTPConfigurationScanningViewController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
 
-  private let asyncExecutor: AsyncExecutor
-
   private let resourceEditForm: ResourceEditForm
 
   private let navigationToScanningSuccess: NavigationToOTPScanningSuccess
@@ -61,8 +59,6 @@ internal final class OTPConfigurationScanningViewController: ViewController {
     self.features = features.takeOwned()
 
     self.context = context
-
-    self.asyncExecutor = try features.instance()
 
     self.navigationToScanningSuccess = try features.instance()
     self.navigationToSelf = try features.instance()
@@ -98,10 +94,7 @@ extension OTPConfigurationScanningViewController {
           with: .finished,
           when: .processing
         )
-      self.asyncExecutor.scheduleCatching(
-        behavior: .reuse,
-        identifier: #function
-      ) { [viewState, context, resourceEditForm, navigationToSelf, navigationToScanningSuccess] in
+      Task { [viewState, context, resourceEditForm, navigationToSelf, navigationToScanningSuccess] in
         resourceEditForm.update(context.totpPath, to: configuration.secret)
         if try await resourceEditForm.state.value.isLocal {
           resourceEditForm.update(\.nameField, to: configuration.account)

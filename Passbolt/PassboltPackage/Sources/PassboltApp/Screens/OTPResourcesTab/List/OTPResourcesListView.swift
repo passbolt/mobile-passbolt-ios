@@ -61,7 +61,7 @@ internal struct OTPResourcesListView: ControlledView {
         rightAccessory: {
           AsyncButton(
             action: self.controller.showAccountMenu,
-            regularLabel: {
+            label: {
               with(\.accountAvatarImage) { (accountAvatarImage: Data?) in
                 UserAvatarView(
                   imageData: accountAvatarImage

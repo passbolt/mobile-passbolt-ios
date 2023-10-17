@@ -42,7 +42,7 @@ internal struct ResourceUserGroupsExplorerController {
   internal var presentResourceDetails: @MainActor (Resource.ID) -> Void
   internal var presentResourceMenu: @MainActor (Resource.ID) -> Void
   internal var presentHomePresentationMenu: @MainActor () -> Void
-  internal var presentAccountMenu: @MainActor () -> Void
+  internal var presentAccountMenu: @MainActor () async throws -> Void
 }
 
 extension ResourceUserGroupsExplorerController: ComponentController {
@@ -56,8 +56,6 @@ extension ResourceUserGroupsExplorerController: ComponentController {
     cancellables: Cancellables
   ) throws -> Self {
     let features: Features = features
-
-    let asyncExecutor: AsyncExecutor = try features.instance()
 
     let navigationToAccountMenu: NavigationToAccountMenu = try features.instance()
 
@@ -218,14 +216,8 @@ extension ResourceUserGroupsExplorerController: ComponentController {
       }
     }
 
-    @MainActor func presentAccountMenu() {
-      asyncExecutor.schedule(.reuse) {
-        await consumingErrors(
-          errorDiagnostics: "Navigation to account menu failed!"
-        ) {
-          try await navigationToAccountMenu.perform()
-        }
-      }
+    @MainActor func presentAccountMenu() async throws {
+			try await navigationToAccountMenu.perform()
     }
 
     return Self(

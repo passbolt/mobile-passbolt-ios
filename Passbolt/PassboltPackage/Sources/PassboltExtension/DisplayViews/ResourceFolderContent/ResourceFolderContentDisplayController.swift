@@ -31,13 +31,12 @@ internal final class ResourceFolderContentDisplayController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
 
-  internal var createFolder: (() -> Void)?
-  internal var createResource: (() -> Void)?
-  internal var selectFolder: (ResourceFolder.ID) -> Void
-  internal var selectResource: (Resource.ID) -> Void
-  internal var openResourceMenu: ((Resource.ID) -> Void)?
+  internal var createFolder: (() async throws -> Void)?
+  internal var createResource: (() async throws -> Void)?
+  internal var selectFolder: (ResourceFolder.ID) async throws -> Void
+  internal var selectResource: (Resource.ID) async throws -> Void
+  internal var openResourceMenu: ((Resource.ID) async throws -> Void)?
 
-  private let asyncExecutor: AsyncExecutor
   private let sessionData: SessionData
   private let resourceFolders: ResourceFolders
 
@@ -53,9 +52,14 @@ internal final class ResourceFolderContentDisplayController: ViewController {
     self.context = context
     self.features = features
 
-    self.asyncExecutor = try features.instance()
     self.sessionData = try features.instance()
     self.resourceFolders = try features.instance()
+
+    self.createFolder = context.createFolder
+    self.createResource = context.createResource
+    self.selectFolder = context.selectFolder
+    self.selectResource = context.selectResource
+    self.openResourceMenu = context.openResourceMenu
 
     self.viewState = .init(
       initial: .init(
@@ -66,39 +70,30 @@ internal final class ResourceFolderContentDisplayController: ViewController {
         suggestedResources: .init(),
         directResources: .init(),
         nestedResources: .init()
-      )
-    )
+      ),
+      updateFrom: ComputedVariable(
+				combined: context.filter,
+				with: self.sessionData.lastUpdate
+			),
+			update: { [resourceFolders, context] updateView, update in
+				let filter: ResourceFoldersFilter = try update.value.0
+				let filteredResourceFolderContent: ResourceFolderContent = try await resourceFolders.filteredFolderContent(filter)
 
-    self.createFolder = context.createFolder
-    self.createResource = context.createResource
-    self.selectFolder = context.selectFolder
-    self.selectResource = context.selectResource
-    self.openResourceMenu = context.openResourceMenu
-
-    self.asyncExecutor.scheduleIteration(
-      over: combineLatest(context.filter.asAnyAsyncSequence(), sessionData.lastUpdate.asAnyAsyncSequence()),
-      failMessage: "Resource folders list updates broken!",
-      failAction: { (error: Error) in
-
-        SnackBarMessageEvent.send(.error(error))
-      }
-    ) { [viewState, resourceFolders] (filter: ResourceFoldersFilter, _) in
-      let filteredResourceFolderContent: ResourceFolderContent = try await resourceFolders.filteredFolderContent(filter)
-
-      await viewState.update { (viewState: inout ViewState) in
-        viewState.isSearchResult = !filter.text.isEmpty
-        viewState.suggestedResources = filteredResourceFolderContent.resources.filter(self.context.suggestionFilter)
-        viewState.directFolders = filteredResourceFolderContent.subfolders
-          .filter { $0.parentFolderID == filter.folderID }
-        viewState.nestedFolders = filteredResourceFolderContent.subfolders
-          .filter { $0.parentFolderID != filter.folderID }
-        viewState.directResources = filteredResourceFolderContent.resources
-          .filter { $0.parentFolderID == filter.folderID }
-        viewState.nestedResources = filteredResourceFolderContent.resources
-          .filter { $0.parentFolderID != filter.folderID }
-      }
-    }
-  }
+				await updateView { (viewState: inout ViewState) in
+					viewState.isSearchResult = !filter.text.isEmpty
+					viewState.suggestedResources = filteredResourceFolderContent.resources.filter(context.suggestionFilter)
+					viewState.directFolders = filteredResourceFolderContent.subfolders
+						.filter { $0.parentFolderID == filter.folderID }
+					viewState.nestedFolders = filteredResourceFolderContent.subfolders
+						.filter { $0.parentFolderID != filter.folderID }
+					viewState.directResources = filteredResourceFolderContent.resources
+						.filter { $0.parentFolderID == filter.folderID }
+					viewState.nestedResources = filteredResourceFolderContent.resources
+						.filter { $0.parentFolderID != filter.folderID }
+				}
+			}
+		)
+	}
 }
 
 extension ResourceFolderContentDisplayController {
@@ -106,13 +101,13 @@ extension ResourceFolderContentDisplayController {
   internal struct Context {
 
     internal var folderName: DisplayableString
-    internal var filter: AnyAsyncSequence<ResourceFoldersFilter>
+    internal var filter: AnyUpdatable<ResourceFoldersFilter>
     internal var suggestionFilter: (ResourceListItemDSV) -> Bool
-    internal var createFolder: (() -> Void)?
-    internal var createResource: (() -> Void)?
-    internal var selectFolder: (ResourceFolder.ID) -> Void
-    internal var selectResource: (Resource.ID) -> Void
-    internal var openResourceMenu: ((Resource.ID) -> Void)?
+    internal var createFolder: (() async throws -> Void)?
+    internal var createResource: (() async throws -> Void)?
+    internal var selectFolder: (ResourceFolder.ID) async throws -> Void
+    internal var selectResource: (Resource.ID) async throws -> Void
+    internal var openResourceMenu: ((Resource.ID) async throws -> Void)?
   }
 
   internal struct ViewState: Equatable {

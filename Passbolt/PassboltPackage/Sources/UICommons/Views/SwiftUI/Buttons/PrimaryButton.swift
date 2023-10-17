@@ -30,13 +30,13 @@ public struct PrimaryButton: View {
   private let icon: Image?
   private let title: DisplayableString
   private let style: Style
-  private let action: @MainActor () async -> Void
+  private let action: @MainActor () async throws -> Void
 
   public init(
     title: DisplayableString,
     iconName: ImageNameConstant? = .none,
     style: Style = .regular,
-    action: @escaping @MainActor () async -> Void
+    action: @escaping @MainActor () async throws -> Void
   ) {
     self.icon = iconName.map(Image.init(named:))
     self.title = title

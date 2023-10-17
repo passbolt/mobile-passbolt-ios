@@ -138,17 +138,17 @@ internal struct ResourceDetailsView: ControlledView {
 					contentAction: fieldModel.mainAction.map { action in
 						switch action {
 						case .copy:
-							return {
+							return { () async throws -> Void in
 								await self.controller.copyFieldValue(path: fieldModel.path)
 							}
 
 						case .reveal:
-							return {
+							return { () async throws -> Void in
 								await self.controller.revealFieldValue(path: fieldModel.path)
 							}
 
 						case .hide:
-							return {
+							return { () async throws -> Void in
 								self.controller.coverFieldValue(path: fieldModel.path)
 							}
 						}
@@ -231,17 +231,17 @@ internal struct ResourceDetailsView: ControlledView {
           accessoryAction: fieldModel.accessoryAction.map { action in
             switch action {
             case .copy:
-              return {
+              return { () async throws -> Void in
                 await self.controller.copyFieldValue(path: fieldModel.path)
               }
 
             case .reveal:
-              return {
+              return { () async throws -> Void in
                 await self.controller.revealFieldValue(path: fieldModel.path)
               }
 
             case .hide:
-              return {
+              return { () async throws -> Void in
                 self.controller.coverFieldValue(path: fieldModel.path)
               }
             }

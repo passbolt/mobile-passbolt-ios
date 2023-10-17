@@ -39,10 +39,10 @@ public struct ResourceFolderContentView: View {
   private let directContentEmpty: Bool
   private let nestedContentEmpty: Bool
   private let refreshAction: () async -> Void
-  private let createAction: (() -> Void)?
-  private let folderTapAction: (ResourceFolder.ID) -> Void
-  private let resourceTapAction: (Resource.ID) -> Void
-  private let resourceMenuAction: ((Resource.ID) -> Void)?
+  private let createAction: (() async throws -> Void)?
+  private let folderTapAction: (ResourceFolder.ID) async throws -> Void
+  private let resourceTapAction: (Resource.ID) async throws -> Void
+  private let resourceMenuAction: ((Resource.ID) async throws -> Void)?
 
   public init(
     folderName: DisplayableString,
@@ -53,10 +53,10 @@ public struct ResourceFolderContentView: View {
     directResources: Array<ResourceListItemDSV>,
     nestedResources: Array<ResourceListItemDSV>,
     refreshAction: @escaping () async -> Void,
-    createAction: (() -> Void)?,
-    folderTapAction: @escaping (ResourceFolder.ID) -> Void,
-    resourceTapAction: @escaping (Resource.ID) -> Void,
-    resourceMenuAction: ((Resource.ID) -> Void)?
+    createAction: (() async throws -> Void)?,
+    folderTapAction: @escaping (ResourceFolder.ID) async throws -> Void,
+    resourceTapAction: @escaping (Resource.ID) async throws -> Void,
+    resourceMenuAction: ((Resource.ID) async throws -> Void)?
   ) {
     self.folderName = folderName
     self.isSearchResult = isSearchResult
@@ -87,7 +87,7 @@ public struct ResourceFolderContentView: View {
 
   public var body: some View {
     List {
-      if let createAction: () -> Void = self.createAction {
+      if let createAction: () async throws -> Void = self.createAction {
         ResourceListAddView(action: createAction)
       }  // else no create row
 

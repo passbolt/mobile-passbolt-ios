@@ -315,13 +315,11 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
     self.refreshToken = Optional<SessionRefreshToken>.none
     withTestedInstanceNotExecuted { (testedInstance: Session) in
       await testedInstance.close(.none)
-      await self.mockExecutionControl.executeAll()
     }
 
     self.refreshToken = "SessionRefreshToken" as SessionRefreshToken
     withTestedInstanceExecuted { (testedInstance: Session) in
       await testedInstance.close(.none)
-      await self.mockExecutionControl.executeAll()
     }
   }
 }

@@ -43,8 +43,6 @@ internal final class ResourcePermissionsDetailsViewController: ViewController {
   private let users: Users
   private let legacyNavigation: DisplayNavigation
 
-  private let asyncExecutor: AsyncExecutor
-
   private let resourceID: Resource.ID
 
   internal init(
@@ -55,8 +53,6 @@ internal final class ResourcePermissionsDetailsViewController: ViewController {
     self.resourceID = try features.context(of: ResourceScope.self)
 
     self.navigationToSelf = try features.instance()
-
-    self.asyncExecutor = try features.instance()
 
     self.resourceController = try features.instance()
     self.users = try features.instance()

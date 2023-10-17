@@ -41,7 +41,13 @@ internal final class TransferInfoCameraRequiredAlertViewController:
         .action(
           .localized(key: .settings),
           accessibilityIdentifier: "alert.button.confirm",
-          handler: controller.showSettings
+          handler: { [controller] in
+						Task { [controller] in
+							await consumingErrors {
+								try await controller?.showSettings()
+							}
+						}
+          }
         )
       )
     }
@@ -50,7 +56,7 @@ internal final class TransferInfoCameraRequiredAlertViewController:
 
 internal struct TransferInfoCameraRequiredAlertController {
 
-  internal var showSettings: () -> Void
+  internal var showSettings: () async throws -> Void
 }
 
 extension TransferInfoCameraRequiredAlertController: UIController {
@@ -62,20 +68,11 @@ extension TransferInfoCameraRequiredAlertController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
-
-    let asyncExecutor: AsyncExecutor = try features.instance()
     let linkOpener: OSLinkOpener = features.instance()
 
     return Self(
       showSettings: {
-        asyncExecutor.schedule(.reuse) {
-          do {
-            try await linkOpener.openApplicationSettings()
-          }
-          catch {
-            error.logged()
-          }
-        }
+        try await linkOpener.openApplicationSettings()
       }
     )
   }
