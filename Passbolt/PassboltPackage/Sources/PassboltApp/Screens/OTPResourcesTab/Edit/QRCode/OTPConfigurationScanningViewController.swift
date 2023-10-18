@@ -160,7 +160,10 @@ extension OTPConfigurationScanningViewController {
 private func parseTOTPConfiguration(
   from string: String
 ) throws -> TOTPConfiguration {
-  let string: String = string.removingPercentEncoding ?? string
+  let string: String = string
+		.replacingOccurrences(of: "+", with: " ")
+		.removingPercentEncoding
+		?? string
   var reminder: Substring = string[string.startIndex ..< string.endIndex]
 
   // check and remove scheme substring
@@ -267,7 +270,7 @@ private func parseTOTPConfiguration(
     else {
       throw
         InvalidOTPConfiguration
-        .error("Invalid OTP configuration - wrong scheme")
+        .error("Invalid OTP configuration - issuer does not match")
     }
     issuer = issuerParameter
   }  // else use whatever was in label
