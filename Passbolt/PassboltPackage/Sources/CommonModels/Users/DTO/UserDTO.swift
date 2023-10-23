@@ -31,6 +31,7 @@ public struct UserDTO {
   public var username: String
   public var profile: UserProfileDTO?
   public var key: PGPKeyDetails?
+    public var role: String?
 
   public init(
     id: User.ID,
@@ -38,7 +39,8 @@ public struct UserDTO {
     deleted: Bool,
     username: String,
     profile: UserProfileDTO?,
-    key: PGPKeyDetails?
+    key: PGPKeyDetails?,
+    role: String?
   ) {
     self.id = id
     self.active = active
@@ -46,6 +48,7 @@ public struct UserDTO {
     self.username = username
     self.profile = profile
     self.key = key
+      self.role = role
   }
 }
 
@@ -70,6 +73,17 @@ extension UserDTO {
 
 extension UserDTO: Decodable {
 
+    public init(from decoder: Decoder) throws {
+      let container: KeyedDecodingContainer<CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+      self.id = try container.decode(User.ID.self, forKey: .id)
+      self.active = try container.decode(Bool.self, forKey: .active)
+      self.deleted = try container.decode(Bool.self, forKey: .deleted)
+      self.username = try container.decode(String.self, forKey: .username)
+      self.profile = try container.decode(UserProfileDTO?.self, forKey: .profile)
+      self.key = try container.decode(PGPKeyDetails?.self, forKey: .key)
+        self.role = try container.decode(UserRole?.self, forKey: .role)?.name
+    }
+
   private enum CodingKeys: String, CodingKey {
 
     case id = "id"
@@ -78,5 +92,10 @@ extension UserDTO: Decodable {
     case username = "username"
     case profile = "profile"
     case key = "gpgkey"
+      case role = "role"
   }
+
+    private struct UserRole: Decodable {
+        let name: String?
+    }
 }

@@ -21,113 +21,127 @@
 // @since         v1.0
 //
 
-import UIComponents
+import Display
+import Accounts
 
-internal final class AccountDetailsViewController: PlainViewController, UIComponent {
+internal final class AccountDetailsViewController: ViewController {
 
-  internal typealias ContentView = AccountDetailsView
-  internal typealias Controller = AccountDetailsController
-
-  internal static func instance(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self(
-      using: controller,
-      with: components,
-      cancellables: cancellables
-    )
-  }
-
-  internal private(set) lazy var contentView: ContentView = .init(
-    accountWithProfile: controller.currentAccountWithProfile
-  )
-  internal let components: UIComponentFactory
-
-  private let controller: Controller
-
-  internal init(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) {
-    self.controller = controller
-    self.components = components
-    super
-      .init(
-        cancellables: cancellables
-      )
-  }
-
-  internal func setupView() {
-    mut(self) {
-      .title(.localized(key: "account.details.title"))
+    internal struct State: Equatable {
+        internal var avatarImage: Data?
+        internal var domain: String
+        internal var currentAccountLabel: Validated<String>
+        internal var name: String
+        internal var username: String
+        internal var role: String?
     }
-    setupSubscriptions()
-  }
 
-  private func setupSubscriptions() {
-    controller
-      .validatedAccountLabelPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] label in
-        self?.contentView.updateAccountLabel(text: label)
-      }
-      .store(in: cancellables)
+    internal let viewState: ViewStateSource<State>
+    private let features: Features
 
-    controller
-      .currentAcountAvatarImagePublisher()
-      .map { (data: Data?) -> UIImage? in
-        data.flatMap { UIImage(data: $0) }
-      }
-      .receive(on: RunLoop.main)
-      .sink { [weak self] image in
-        self?.contentView.updateAccountAvatar(image: image)
-      }
-      .store(in: cancellables)
+    private let accountDetails: AccountDetails
+    private let accountPreferences: AccountPreferences
+    private let navigationToTransferInfo: NavigationToTransferInfo
+    private let navigationToSelf: NavigationToAccountDetails
 
-    contentView
-      .accountLabelPublisher
-      .sink { [weak self] label in
-        self?.controller.updateCurrentAccountLabel(label)
-      }
-      .store(in: cancellables)
+    private let accountLabelValidator: Validator<String> =
+      .maxLength(
+        80,
+        displayable: .localized(
+          key: "form.field.error.max.length"
+        )
+      )
 
-    contentView
-      .saveChangesPublisher
-      .map { [unowned self] in
-        self.controller
-          .saveChanges()
-          .receive(on: RunLoop.main)
-          .handleErrors { error in
-            SnackBarMessageEvent.send(.error(error))
-          }
-          .handleEnd { [weak self] ending in
-            guard case .finished = ending else { return }
-            self?.cancellables
-              .executeOnMainActor { [weak self] in
-                await self?.pop(if: Self.self)
-              }
-          }
-          .replaceError(with: Void())
-      }
-      .switchToLatest()
-      .sinkDrop()
-      .store(in: cancellables)
+    internal init(
+        context: Void,
+        features: Features
+    ) throws {
+        self.features = features
+        self.accountDetails = try features.instance()
+        self.accountPreferences = try features.instance()
 
-    contentView
-      .transferAccountPublisher
-      .sink { [weak self] in
-        self?.cancellables
-          .executeOnMainActor { [weak self] in
-            await self?
-              .push(
-                TransferInfoScreenViewController.self,
-                in: .export
-              )
-          }
-      }
-      .store(in: cancellables)
-  }
+        self.navigationToTransferInfo = try features.instance()
+        self.navigationToSelf = try features.instance()
+
+        self.viewState = .init(
+            initial:
+                    .init(avatarImage: .none,
+                          domain: "",
+                          currentAccountLabel: .valid(""),
+                          name: "",
+                          username: "",
+                          role: .none),
+            updateFrom: accountDetails.updates,
+            update: {  [accountDetails] (updateView, _) in
+                do {
+                    let accountWithProfile: AccountWithProfile = try accountDetails.profile()
+                    await updateView { (viewState: inout State) in
+                        viewState.name = "\(accountWithProfile.firstName) \(accountWithProfile.lastName)"
+                        viewState.username = accountWithProfile.username
+                        viewState.currentAccountLabel = .valid(accountWithProfile.label)
+                        viewState.domain = accountWithProfile.domain.rawValue
+                    }
+
+                    let role: String? = try await accountDetails.role()
+                    await updateView { (viewState: inout State) in
+                        viewState.role = role
+                    }
+
+                    let accountAvatarImage: Data? = try await accountDetails.avatarImage()
+                    await updateView { (viewState: inout State) in
+                        viewState.avatarImage = accountAvatarImage
+                    }
+                }
+                catch {
+                    error.consume(
+                        context: "Failed to update account details!"
+                    )
+                }
+            })
+    }
+}
+extension AccountDetailsViewController {
+    internal func saveChanges() async {
+        do {
+            let currentAccountLabel = await viewState.current.currentAccountLabel
+            let label: String
+            if currentAccountLabel.value.isEmpty {
+                let currentName = await viewState.current.name
+                label = currentName
+            }
+            else if currentAccountLabel.isValid {
+              label = currentAccountLabel.value
+            }
+            else {
+              throw
+                InvalidForm
+                .error(
+                  displayable: .localized(
+                    key: "form.error.invalid"
+                  )
+                )
+            }
+            try accountPreferences.setLocalAccountLabel(label)
+            try await self.navigationToSelf.revert()
+        } catch {
+            error.consume()
+        }
+    }
+    internal func transferAccount() async {
+        do {
+            try await self.navigationToTransferInfo.perform(context: .export)
+        } catch {
+            error.consume()
+        }
+    }
+}
+
+extension AccountDetailsViewController {
+
+    internal final func setCurrentAccountLabel(
+        _ label: String
+    ) {
+        self.viewState.update { (state: inout ViewState) in
+            state.currentAccountLabel = accountLabelValidator.validate(label)
+        }
+    }
 }

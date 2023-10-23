@@ -54,6 +54,15 @@ extension AccountDetails {
 			accountsDataStore.isAccountPassphraseStored(account.localID)
 		}
 
+    let userDetailsCache: ComputedVariable<UserDTO> = .init {
+      return try await userDetailsFetchNetworkOperation
+        .execute(
+          .init(
+            userID: account.userID
+          )
+        )
+    }
+
     @Sendable nonisolated func updateProfile() async throws {
       let storedProfile: AccountProfile =
         try accountsDataStore
@@ -94,13 +103,7 @@ extension AccountDetails {
 		@Sendable nonisolated func keyDetails() async throws -> PGPKeyDetails {
 			// this could be unified with profile update action
 			// to avoid additional network request
-			let key: PGPKeyDetails? = try await userDetailsFetchNetworkOperation
-				.execute(
-					.init(
-						userID: account.userID
-					)
-				)
-				.key
+      let key: PGPKeyDetails? = try await userDetailsCache.value.key
 			if let key {
 				return key
 			}
@@ -109,6 +112,10 @@ extension AccountDetails {
 					.error("Account key missing")
 			}
 		}
+    
+    @Sendable nonisolated func role() async throws -> String? {
+      try await userDetailsCache.value.role
+    }
 
     @Sendable nonisolated func avatarImage() async throws -> Data? {
       try? await avatarImageCache.value
@@ -119,7 +126,8 @@ extension AccountDetails {
       profile: profile,
 			isPassphraseStored: passphraseStored,
       updateProfile: updateProfile,
-			keyDetails: keyDetails,
+      keyDetails: keyDetails, 
+      role: role,
       avatarImage: avatarImage
     )
   }

@@ -24,25 +24,25 @@
 import Display
 import FeatureScopes
 
-internal enum AccountDetailsNavigationDestination: NavigationDestination {}
+internal enum TransferInfoNavigationDestination: NavigationDestination {
+    internal typealias TransitionContext = TransferInfoScreenController.Context
+}
 
-internal typealias NavigationToAccountDetails = NavigationTo<AccountDetailsNavigationDestination>
+internal typealias NavigationToTransferInfo = NavigationTo<TransferInfoNavigationDestination>
 
-extension NavigationToAccountDetails {
+extension NavigationToTransferInfo {
 
     fileprivate static var live: FeatureLoader {
-      legacyPushTransition(
-        to: AccountDetailsView.self
-      )
+        legacyPushTransition(toLegacy: TransferInfoScreenViewController.self)
     }
 }
 
 extension FeaturesRegistry {
 
-  internal mutating func useLiveNavigationToAccountDetails() {
+  internal mutating func useLiveNavigationToTransferInfo() {
     self.use(
-      NavigationToAccountDetails.live,
-      in: SessionScope.self
+        NavigationToTransferInfo.live,
+        in: SessionScope.self
     )
   }
 }

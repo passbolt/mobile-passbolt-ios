@@ -88,7 +88,7 @@ internal final class AccountQRCodeExportController: ViewController {
 									title: "transfer.account.result.success.title",
 									actionLabel: "transfer.account.export.exit.success.button",
 									confirmation: { [navigation] in
-											await navigation.pop(to: AccountDetailsViewController.self) // popToRoot
+                                        await navigation.pop(to: AccountDetailsView.self) // popToRoot
 									}
 								),
 								features: features

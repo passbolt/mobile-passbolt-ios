@@ -32,6 +32,7 @@ extension FeaturesRegistry {
 		self.useLiveNavigationToOperationAuthorization()
 		self.useLiveNavigationToExternalActivity()
 		self.useLiveNavigationToOperationResult()
+      self.useLiveNavigationToTransferInfo()
 
     // MARK: - Session
     self.useLiveNavigationToAccountMenu()

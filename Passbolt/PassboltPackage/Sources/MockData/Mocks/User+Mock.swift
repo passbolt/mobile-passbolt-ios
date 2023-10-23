@@ -50,7 +50,8 @@ extension UserDTO {
 			algorithm: "mock",
 			created: .init(timeIntervalSince1970: 0),
 			expires: .none
-		)
+		),
+    role: "User"
   )
 
   public static let mock_ada: Self = .init(
@@ -59,7 +60,8 @@ extension UserDTO {
     deleted: false,
     username: "ada@passbolt.com",
     profile: .mock_ada,
-		key: .mock_ada
+		key: .mock_ada,
+    role: "user"
   )
 
   public static let mock_frances: Self = .init(
@@ -68,7 +70,8 @@ extension UserDTO {
     deleted: false,
     username: "frances@passbolt.com",
     profile: .mock_frances,
-		key: .mock_frances
+		key: .mock_frances,
+    role: "user"
 	)
 }
 
