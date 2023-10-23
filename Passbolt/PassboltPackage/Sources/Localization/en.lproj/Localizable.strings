@@ -595,6 +595,7 @@ scanned!";
 // Settings - Accounts
 
 "settings.accounts.title" = "Accounts";
+"settings.accounts.item.details.title" = "See account details";
 "settings.accounts.item.manage.title" = "Manage accounts";
 "settings.accounts.item.export.title" = "Transfer account to another device";
 "settings.accounts.item.key.inspector.title" = "Key inspector";

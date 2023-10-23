@@ -31,6 +31,7 @@ internal final class AccountsSettingsViewController: ViewController {
   private let navigationToManageAccounts: NavigationToManageAccounts
   private let navigationToAccountExport: NavigationToAccountExport
 	private let navigationToAccountKeyInspector: NavigationToAccountKeyInspector
+  private let navigationToAccountDetails: NavigationToAccountDetails
 
   internal init(
     context: Void,
@@ -42,6 +43,7 @@ internal final class AccountsSettingsViewController: ViewController {
     self.navigationToManageAccounts = try features.instance()
     self.navigationToAccountExport = try features.instance()
 		self.navigationToAccountKeyInspector = try features.instance()
+    self.navigationToAccountDetails = try features.instance()
   }
 }
 
@@ -53,6 +55,10 @@ extension AccountsSettingsViewController {
 
   internal final func navigateToAccountExport() async {
 		await self.navigationToAccountExport.performCatching()
+  }
+
+  internal final func navigateToAccountDetails() async {
+    await self.navigationToAccountDetails.performCatching()
   }
 
 	internal final func navigateToAccountKeyInspector() async {

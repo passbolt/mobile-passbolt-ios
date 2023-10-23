@@ -51,7 +51,14 @@ internal struct AccountsSettingsView: ControlledView {
 				navigation: self.controller.navigateToAccountKeyInspector
 			)
 			.accessibilityIdentifier("settings.accounts.item.key.inspector.title")
-			
+
+      SettingsActionRowView(
+        icon: .user,
+        title: "settings.accounts.item.details.title",
+        navigation: self.controller.navigateToAccountDetails
+      )
+      .accessibilityIdentifier("settings.accounts.item.details.title")
+
       SettingsActionRowView(
         icon: .people,
         title: "settings.accounts.item.manage.title",
