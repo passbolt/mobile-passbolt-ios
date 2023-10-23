@@ -106,6 +106,8 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
   internal func deactivate() {
     payloadProcessingCancellable = nil
     cameraSession?.stopRunning()
+    // clear current messages if any
+		SnackBarMessageEvent.send(.clear)
   }
 }
 
@@ -129,7 +131,7 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
       controller
       .processPayload(payload)
       .subscribe(on: RunLoop.main)
-      .handleEvents(receiveSubscription: { [weak self] _ in
+      .handleEvents(receiveSubscription: { _ in
 				SnackBarMessageEvent.send("code.scanning.processing.in.progress")
       })
       .receive(on: RunLoop.main)
@@ -157,7 +159,7 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
           }
 
         case _:
-        SnackBarMessageEvent.send(.error(error))
+					SnackBarMessageEvent.send(.error(error))
         }
       }
       .handleEnd { [weak self] ending in

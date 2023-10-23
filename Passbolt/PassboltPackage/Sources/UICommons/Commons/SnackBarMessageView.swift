@@ -36,14 +36,19 @@ import UIKit
 	snackBarsTask?.cancel()
 	presentingView.isUserInteractionEnabled = true
 	snackBarsTask = Task<Void, Error>.detached {
-		try await SnackBarMessageEvent.subscribe(bufferSize: 8) { (message: SnackBarMessage?) in
-			// filter .none - convenience for constructing optional error messages
-			guard let message: SnackBarMessage else { return }
-			await SnackBarMessageView()
-				.present(
-					message,
-					within: presentingView
-				)
+		try await SnackBarMessageEvent.subscribe(bufferSize: 8) { @MainActor (event: SnackBarMessageEvent.Payload) -> Void in
+			switch event {
+			case .show(let message):
+				SnackBarMessageView()
+					.present(
+						message,
+						within: presentingView
+					)
+			case .clear:
+				for view in presentingView.subviews {
+					(view as? SnackBarMessageView)?.dismiss()
+				}
+			}
 		}
 	}
 }
@@ -74,7 +79,7 @@ private final class SnackBarMessageView: UIView {
 
 		let tapGesture: UITapGestureRecognizer = .init(
 			target: self,
-			action: #selector(self.dismiss(sender:))
+			action: #selector(self.dismiss)
 		)
 		tapGesture.numberOfTapsRequired = 1
 		tapGesture.numberOfTouchesRequired = 1
@@ -155,9 +160,7 @@ private final class SnackBarMessageView: UIView {
 		)
 	}
 
-	@objc private func dismiss(
-		sender: UIGestureRecognizer
-	) {
+	@objc fileprivate func dismiss() {
 		UIView.animate(
 			withDuration: 0.3,
 			delay: 0,

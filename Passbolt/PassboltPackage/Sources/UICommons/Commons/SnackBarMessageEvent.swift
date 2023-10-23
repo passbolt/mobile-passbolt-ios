@@ -27,17 +27,32 @@ import Commons
 /// a message inside the application. You can send it
 /// from any place to display given message on screen.
 /// Messages disappear automatically after 3 seconds.
+/// You can send `clear` event to manuall dismiss currently visible
+/// messages if any (it does not affect pending messages).
 /// When multiple events are sent at once (or within
 /// 3 second period) the latest will cover the other.
-/// Sending `.none` does not affect display, it is allowed
-/// for convenicnce since CancelledError is removed from
-/// displaying by default (SnackBarMessage produces `.none`
-/// for that error type.
 public enum SnackBarMessageEvent: EventDescription {
 
-	public typealias Payload = SnackBarMessage?
+	public enum Payload {
+		case show(SnackBarMessage) // show message
+		case clear // dismiss currently displayed message
+	}
 
 	public nonisolated static let eventList: EventList<SnackBarMessageEvent> = .init()
+}
+
+extension SnackBarMessageEvent {
+
+	/// Sending `.none` does not affect display, it is allowed
+	/// for convenicnce since CancelledError is removed from
+	/// displaying by default (SnackBarMessage produces `.none`
+	/// for that error type.
+	@Sendable public static func send(
+		_ message: SnackBarMessage?
+	) {
+		guard let message else { return }
+		self.send(.show(message))
+	}
 }
 
 /// Execute provided operation with automatically
