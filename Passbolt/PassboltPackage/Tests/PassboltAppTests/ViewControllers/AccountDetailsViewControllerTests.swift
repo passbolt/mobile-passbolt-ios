@@ -31,202 +31,203 @@ import Features
 @available(iOS 16.0.0, *)
 
 final class AccountDetailsViewControllerTests: FeaturesTestCase {
-
-  override func commonPrepare() {
-    super.commonPrepare()
-    set(
-      SessionScope.self,
-      context: .init(
-        account: .mock_ada,
-        configuration: .mock_default
-      )
-    )
-    set(
-      AccountScope.self,
-      context: .mock_ada
-    )
-    set(SettingsScope.self)
-    patch(
-      \AccountDetails.updates,
-       with: Variable(initial: Void())
-        .asAnyUpdatable()
-    )
-    patch(
-      \AccountDetails.avatarImage,
-       with: always(.none)
-    )
-    patch(
-      \AccountDetails.role,
-       with: always(.none)
-    )
-  }
-
-  func test_viewState_loadsFromAccountDetails() async {
-    patch(
-      \AccountDetails.profile,
-       with: always(.mock_ada)
-    )
-
-    await withInstance(
-      of: AccountDetailsViewController.self,
-      returns: AccountDetailsViewController.State(
-        avatarImage: .none,
-        domain: "https://passbolt.com",
-        currentAccountLabel: .valid("Ada Lovelance"),
-        name: "Ada Lovelance",
-        username: "ada@passbolt.com",
-        role: .none
-      )
-    ) { feature in
-      await feature.viewState.current
-    }
-  }
-
-  func test_setCurrentAccountLabel_updatesValidValueWhenLabelIsValid() async throws {
-    patch(
-      \AccountDetails.profile,
-       with: always(.mock_ada)
-    )
-
-    patch(
-      \AccountDetails.updates,
-       with: PlaceholderUpdatable().asAnyUpdatable()
-    )
-
-    await withInstance(of: AccountDetailsViewController.self,
-                       returns: Validated<String>.valid("valid label")
-    ) { feature in
-      await feature.setCurrentAccountLabel("valid label")
-      return await feature.viewState.current.currentAccountLabel
-    }
-  }
-
-  func test_setCurrentAccountLabel_updatesInValidValueWhenLabelIsNotValid() async throws {
-    patch(
-      \AccountDetails.profile,
-       with: always(.mock_ada)
-    )
-    patch(
-      \AccountDetails.updates,
-       with: PlaceholderUpdatable().asAnyUpdatable()
-    )
-    let invalidLabelToSet = "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901"
-
-    await withInstance(of: AccountDetailsViewController.self,
-                       returns: Validated<String>.invalid(invalidLabelToSet, error: InvalidForm.error(displayable: "form.field.error.max.length"))
-    ) { feature in
-      await feature.setCurrentAccountLabel(invalidLabelToSet)
-      return await feature.viewState.current.currentAccountLabel
-    }
-  }
-
-  func test_saveChanges_fails_whenLabelValidationFails() async throws {
-    patch(
-      \AccountDetails.profile,
-       with: always(.mock_ada)
-    )
-    patch(
-        \AccountDetails.updates,
-         with: PlaceholderUpdatable().asAnyUpdatable()
-    )
-    let result: UnsafeSendable<String> = .init()
-    patch(
-      \AccountPreferences.setLocalAccountLabel,
-       with: { store in
-         result.value = store
-       }
-    )
-    patch(\NavigationToAccountDetails.mockRevert,
-      with: always(self.mockExecuted())
-    )
-    let invalidLabelToSet = "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901"
-
-    let messagesSubscription = SnackBarMessageEvent.subscribe()
-
-    await withInstance(of: AccountDetailsViewController.self,
-                       returns: SnackBarMessage.error(InvalidForm.error(displayable: "form.error.invalid"))
-    ) { feature in
-      await feature.setCurrentAccountLabel(invalidLabelToSet)
-      await feature.saveChanges()
-      return try await messagesSubscription.nextEvent()
-    }
-  }
-
-  func test_saveChanges_usesDefaultLabel_whenLabelIsEmpty() async throws {
-    let result: UnsafeSendable<String> = .init()
-    patch(
-      \AccountDetails.profile,
-       with: always(.mockWith(.mock_ada, label: ""))
-    )
-    patch(
-      \AccountPreferences.setLocalAccountLabel,
-       with: { store in
-         result.value = store
-       }
-    )
-    patch(\NavigationToAccountDetails.mockRevert,
-      with: always(self.mockExecuted())
-    )
-
-    await withInstance(of: AccountDetailsViewController.self,
-                       returns: Optional("Ada Lovelance")
-    ) { feature in
-      await feature.saveChanges()
-      return result.value
-    }
-  }
-
-  func test_saveChanges_fails_whenLabelSaveFails() async throws {
-    patch(
-      \AccountDetails.profile,
-       with: always(.mock_ada)
-    )
-    patch(
-      \AccountPreferences.setLocalAccountLabel,
-      with: alwaysThrow(MockIssue.error())
-    )
-
-    patch(\NavigationToAccountDetails.mockRevert,
-      with: always(self.mockExecuted())
-    )
-
-    let messagesSubscription = SnackBarMessageEvent.subscribe()
-
-    await withInstance(of: AccountDetailsViewController.self,
-                       returns: SnackBarMessage.error(MockIssue.error())
-    ) { feature in
-      await feature.saveChanges()
-      return try await messagesSubscription.nextEvent()
-    }
-  }
-
-  func test_saveChanges_succeeds_whenLabelSaveSucceeds() async throws {
-    let accountLabelToSet = "Test current account label"
-    let result: UnsafeSendable<String> = .init()
-    patch(
-      \AccountDetails.profile,
-       with: always(.mock_ada)
-    )
-    patch(
-      \AccountPreferences.setLocalAccountLabel,
-       with: { store in
-         result.value = store
-       }
-    )
-    patch(\NavigationToAccountDetails.mockRevert,
-           with: always(self.mockExecuted())
-    )
-    patch(
-      \AccountDetails.updates,
-       with: PlaceholderUpdatable().asAnyUpdatable()
-    )
-
-    await withInstance(of: AccountDetailsViewController.self,
-                       returns: Optional(accountLabelToSet)
-    ) { feature in
-      await feature.setCurrentAccountLabel(accountLabelToSet)
-      await feature.saveChanges()
-      return result.value
-    }
-  }
+	
+	override func commonPrepare() {
+		super.commonPrepare()
+		set(
+			SessionScope.self,
+			context: .init(
+				account: .mock_ada,
+				configuration: .mock_default
+			)
+		)
+		set(
+			AccountScope.self,
+			context: .mock_ada
+		)
+		set(SettingsScope.self)
+		patch(
+			\AccountDetails.updates,
+			 with: Variable(initial: Void())
+				.asAnyUpdatable()
+		)
+		patch(
+			\AccountDetails.avatarImage,
+			 with: always(.none)
+		)
+		patch(
+			\AccountDetails.role,
+			 with: always(.none)
+		)
+	}
+	
+	func test_viewState_loadsFromAccountDetails() async {
+		patch(
+			\AccountDetails.profile,
+			 with: always(.mock_ada)
+		)
+		
+		await withInstance(
+			of: AccountDetailsViewController.self,
+			returns: AccountDetailsViewController.State(
+				avatarImage: .none,
+				domain: "https://passbolt.com",
+				currentAccountLabel: .valid("Ada Lovelance"),
+				name: "Ada Lovelance",
+				username: "ada@passbolt.com",
+				role: .none
+			)
+		) { feature in
+			await feature.viewState.current
+		}
+	}
+	
+	func test_setCurrentAccountLabel_updatesValidValueWhenLabelIsValid() async throws {
+		patch(
+			\AccountDetails.profile,
+			 with: always(.mock_ada)
+		)
+		
+		patch(
+			\AccountDetails.updates,
+			 with: PlaceholderUpdatable().asAnyUpdatable()
+		)
+		
+		await withInstance(
+			of: AccountDetailsViewController.self,
+			returns: Validated<String>.valid("valid label")
+		) { feature in
+			await feature.setCurrentAccountLabel("valid label")
+			return await feature.viewState.current.currentAccountLabel
+		}
+	}
+	
+	func test_setCurrentAccountLabel_updatesInValidValueWhenLabelIsNotValid() async throws {
+		patch(
+			\AccountDetails.profile,
+			 with: always(.mock_ada)
+		)
+		patch(
+			\AccountDetails.updates,
+			 with: PlaceholderUpdatable().asAnyUpdatable()
+		)
+		let invalidLabelToSet = "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901"
+		
+		await withInstance(
+			of: AccountDetailsViewController.self,
+			returns: Validated<String>.invalid(invalidLabelToSet, error: InvalidForm.error(displayable: "form.field.error.max.length"))
+		) { feature in
+			await feature.setCurrentAccountLabel(invalidLabelToSet)
+			return await feature.viewState.current.currentAccountLabel
+		}
+	}
+	
+	func test_saveChanges_fails_whenLabelValidationFails() async throws {
+		patch(
+			\AccountDetails.profile,
+			 with: always(.mock_ada)
+		)
+		patch(
+			\AccountDetails.updates,
+			 with: PlaceholderUpdatable().asAnyUpdatable()
+		)
+		let result: UnsafeSendable<String> = .init()
+		patch(
+			\AccountPreferences.setLocalAccountLabel,
+			 with: { store in
+				 result.value = store
+			 }
+		)
+		patch(\NavigationToAccountDetails.mockRevert,
+					 with: always(self.mockExecuted())
+		)
+		let invalidLabelToSet = "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901"
+		
+		await withInstance(
+			of: AccountDetailsViewController.self,
+			throws: InvalidForm.self
+		) { feature in
+			await feature.setCurrentAccountLabel(invalidLabelToSet)
+			try await feature.saveChanges()
+		}
+	}
+	
+	func test_saveChanges_usesDefaultLabel_whenLabelIsEmpty() async throws {
+		let result: UnsafeSendable<String> = .init()
+		patch(
+			\AccountDetails.profile,
+			 with: always(.mockWith(.mock_ada, label: ""))
+		)
+		patch(
+			\AccountPreferences.setLocalAccountLabel,
+			 with: { store in
+				 result.value = store
+			 }
+		)
+		patch(\NavigationToAccountDetails.mockRevert,
+					 with: always(self.mockExecuted())
+		)
+		
+		await withInstance(
+			of: AccountDetailsViewController.self,
+			returns: Optional("Ada Lovelance")
+		) { feature in
+			try await feature.saveChanges()
+			return result.value
+		}
+	}
+	
+	func test_saveChanges_fails_whenLabelSaveFails() async throws {
+		patch(
+			\AccountDetails.profile,
+			 with: always(.mock_ada)
+		)
+		patch(
+			\AccountPreferences.setLocalAccountLabel,
+			 with: alwaysThrow(MockIssue.error())
+		)
+		
+		patch(\NavigationToAccountDetails.mockRevert,
+					 with: always(self.mockExecuted())
+		)
+		
+		await withInstance(
+			of: AccountDetailsViewController.self,
+			throws: MockIssue.self
+			
+		) { feature in
+			try await feature.saveChanges()
+		}
+	}
+	
+	func test_saveChanges_succeeds_whenLabelSaveSucceeds() async throws {
+		let accountLabelToSet = "Test current account label"
+		let result: UnsafeSendable<String> = .init()
+		patch(
+			\AccountDetails.profile,
+			 with: always(.mock_ada)
+		)
+		patch(
+			\AccountPreferences.setLocalAccountLabel,
+			 with: { store in
+				 result.value = store
+			 }
+		)
+		patch(\NavigationToAccountDetails.mockRevert,
+					 with: always(self.mockExecuted())
+		)
+		patch(
+			\AccountDetails.updates,
+			 with: PlaceholderUpdatable().asAnyUpdatable()
+		)
+		
+		await withInstance(
+			of: AccountDetailsViewController.self,
+			returns: Optional(accountLabelToSet)
+		) { feature in
+			await feature.setCurrentAccountLabel(accountLabelToSet)
+			try await feature.saveChanges()
+			return result.value
+		}
+	}
 }
