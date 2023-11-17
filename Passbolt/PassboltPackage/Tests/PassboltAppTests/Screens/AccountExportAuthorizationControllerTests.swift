@@ -160,10 +160,10 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
 		try await tested.authorizeWithBiometrics()
 
 
-		let message: SnackBarMessage? = try await messagesSubscription.nextEvent()
+    let payload: SnackBarMessageEvent.Payload? = try await messagesSubscription.nextEvent()
 		XCTAssertEqual(
-			SnackBarMessage.error("generic.error"),
-			message
+      SnackBarMessageEvent.Payload.show(SnackBarMessage.error("generic.error")),
+      payload
 		)
 	}
 
@@ -196,15 +196,15 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
 
     await tested.authorizeWithPassphrase()
 
-		let message: SnackBarMessage? = try await messagesSubscription.nextEvent()
+		let payload: SnackBarMessageEvent.Payload? = try await messagesSubscription.nextEvent()
     XCTAssertEqual(
-      SnackBarMessage
+      SnackBarMessageEvent.Payload.show(SnackBarMessage
         .error(
           .localized(
             key: "authorization.passphrase.error"
           )
-        ),
-      message
+        )),
+      payload
     )
   }
 
@@ -222,10 +222,10 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
     tested.setPassphrase("valid_passphrase")
     try await tested.authorizeWithPassphrase()
 
-		let message: SnackBarMessage? = try await messagesSubscription.nextEvent()
+		let payload: SnackBarMessageEvent.Payload? = try await messagesSubscription.nextEvent()
     XCTAssertEqual(
-      SnackBarMessage.error("generic.error"),
-      message
+      SnackBarMessageEvent.Payload.show(SnackBarMessage.error("generic.error")),
+      payload
     )
   }
 

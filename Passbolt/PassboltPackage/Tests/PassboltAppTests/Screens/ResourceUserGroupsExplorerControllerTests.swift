@@ -97,7 +97,7 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
 
     await controller.refreshIfNeeded()
 
-    let message: SnackBarMessage? = try await messagesSubscription.nextEvent()
+    let message: SnackBarMessageEvent.Payload? = try await messagesSubscription.nextEvent()
 
     XCTAssertNotNil(message)
   }

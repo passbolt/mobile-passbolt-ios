@@ -48,8 +48,8 @@ final class ResourceDeleteAlertControllerTests: FeaturesTestCase {
 
     testedAction.action()
 
-		let message: SnackBarMessage? = try await messagesSubscription.nextEvent()
-    XCTAssertEqual(message, SnackBarMessage.error("generic.error"))
+		let message: SnackBarMessageEvent.Payload? = try await messagesSubscription.nextEvent()
+    XCTAssertEqual(message, SnackBarMessageEvent.Payload.show(.error("generic.error")))
   }
 
   func test_deleteAction_succeedsWithMessage_whenDeleteSucceeds() async throws {
@@ -71,7 +71,7 @@ final class ResourceDeleteAlertControllerTests: FeaturesTestCase {
 
     testedAction.action()
 
-    let message: SnackBarMessage? = try await messagesSubscription.nextEvent()
-    XCTAssertEqual(message, SnackBarMessage.info("resource.delete.succeeded"))
+    let message: SnackBarMessageEvent.Payload? = try await messagesSubscription.nextEvent()
+    XCTAssertEqual(message, SnackBarMessageEvent.Payload.show(.info("resource.delete.succeeded")))
   }
 }

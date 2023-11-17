@@ -90,7 +90,7 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
     let messagesSubscription = SnackBarMessageEvent.subscribe()
 
 		await withInstance(
-			returns: SnackBarMessage.error(MockIssue.error())
+      returns: SnackBarMessageEvent.Payload.show(.error(MockIssue.error())!)
 		) { (tested: ResourceFolderEditController) in
 			await tested.saveChanges()
 			return try await messagesSubscription.nextEvent()
