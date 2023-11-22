@@ -297,6 +297,9 @@
 
 "yubiKey.scan.instruction" = "Place your YubiKey on your device.";
 "yubiKey.scan.success" = "Scan success";
+"yubiKey.scan.notRecognized.title" = "Yubikey is not recognized";
+"yubiKey.scan.notRecognized.button.ok" = "Got it";
+"yubiKey.scan.notRecognized.message" = "Your Yubikey is not recognized by the server.\nPlease try with another Yubikey or another provider.";
 "mfa.yubiKey.title" = "YubiKey OTP";
 "mfa.yubiKey.description" = "Please note that your YubiKey must support
 NFC for this to work.";
