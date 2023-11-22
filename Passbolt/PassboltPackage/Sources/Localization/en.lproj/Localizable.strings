@@ -579,6 +579,9 @@ scanned!";
 "otp.attach.alert.replace.title" = "Replace TOTP?";
 "otp.attach.alert.replace.message" = "A TOTP is already associated with this resource, do you want to override it?";
 "otp.attach.alert.replace.button.title" = "Replace TOTP";
+"otp.attach.error.notAllowed" = "You are not allowed to edit this resource.";
+"otp.attach.error.notCompatible" = "This resource is not compatible with TOTP.";
+
 
 // Settings - Main
 
