@@ -99,8 +99,10 @@ public final class LogsViewerViewController: PlainViewController, UIComponent {
     setupSubscriptions()
   }
 
-  public func activate() async {
-    await self.controller.refreshLogs()
+  public func activate() {
+    Task { [weak self] in
+      await self?.controller.refreshLogs()
+    }
   }
 
   private func setupSubscriptions() {
