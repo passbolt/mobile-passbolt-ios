@@ -116,7 +116,20 @@ internal final class ResourceDetailsViewController: ViewController {
       update: { [navigationToSelf, sessionConfiguration] (updateView, update: Update<(Resource, LocalState)>) in
         do {
           let (resource, localState): (Resource, LocalState) = try update.value
-          await updateView { (viewState: inout ViewState) in
+          let resourcePermissions: Array<OverlappingAvatarStackView.Item> = try await resource.permissions.asyncMap { (permission: ResourcePermission) in
+            switch permission {
+            case .user(let id, _, _):
+              return await .user(
+                id,
+                avatarImage: users.avatarImage(for: id),
+                isSuspended: try users.userDetails(id).isSuspended
+              )
+
+            case .userGroup(let id, _, _):
+              return .userGroup(id)
+            }
+          }
+          updateView { (viewState: inout ViewState) in
             viewState.name = resource.name
             viewState.favorite = resource.favorite
             viewState.containsUndefinedFields = resource.containsUndefinedFields
@@ -130,18 +143,8 @@ internal final class ResourceDetailsViewController: ViewController {
             )
             viewState.location = resource.path.map(\.name)
             viewState.tags = resource.tags.map(\.slug.rawValue)
-            viewState.permissions = resource.permissions.map { (permission: ResourcePermission) in
-              switch permission {
-              case .user(let id, _, _):
-                return .user(
-                  id,
-                  avatarImage: users.avatarImage(for: id)
-                )
 
-              case .userGroup(let id, _, _):
-                return .userGroup(id)
-              }
-            }
+            viewState.permissions = resourcePermissions
           }
         }
         catch {

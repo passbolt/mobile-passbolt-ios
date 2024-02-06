@@ -53,33 +53,31 @@ internal final class ResourceFolderEditController: ViewController {
 				folderPermissionItems: .init()
 			),
 			updateFrom: self.resourceFolderEditForm.state,
-			update: { [users] (updateState, formState) in
-				await updateState { (viewState: inout ViewState) in
-					do {
-						let resourceFolder: ResourceFolder = try formState.value
-						viewState.folderName = resourceFolder.nameValidator.validate(resourceFolder.name)
-						viewState.folderLocation = resourceFolder.path.map(\.name)
-						viewState.folderPermissionItems = resourceFolder
-							.permissions
-							.map { (permission: ResourceFolderPermission) -> OverlappingAvatarStackView.Item in
-								switch permission {
-								case let .user(id: userID, _, _):
-									return .user(
-										userID,
-										avatarImage: { try? await users.userAvatarImage(userID) }
-									)
+      update: { [users] (updateState, formState) in
+        do {
+          let resourceFolder: ResourceFolder = try formState.value
+          let resourceFolderPermissions: Array<OverlappingAvatarStackView.Item> = try await resourceFolder.permissions.asyncMap { (permission: ResourceFolderPermission) in
+            switch permission {
+            case .user(let id, _, _):
+              return await .user(
+                id,
+                avatarImage: users.avatarImage(for: id),
+                isSuspended: try users.userDetails(id).isSuspended
+              )
 
-								case let .userGroup(id: userGroupID, _, _):
-									return .userGroup(
-										userGroupID
-									)
-								}
-							}
-					}
-					catch {
-						error.consume()
-					}
-				}
+            case .userGroup(let id, _, _):
+              return .userGroup(id)
+            }
+          }
+          updateState { (viewState: inout ViewState) in
+            viewState.folderName = resourceFolder.nameValidator.validate(resourceFolder.name)
+            viewState.folderLocation = resourceFolder.path.map(\.name)
+            viewState.folderPermissionItems = resourceFolderPermissions
+          }
+      }
+        catch {
+          error.consume()
+        }
 			}
 		)
 	}

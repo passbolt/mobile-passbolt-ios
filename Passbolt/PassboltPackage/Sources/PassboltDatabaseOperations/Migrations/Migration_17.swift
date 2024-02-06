@@ -21,30 +21,24 @@
 // @since         v1.0
 //
 
-import Commons
+import Database
 
-public struct UserDSO {
+// swift-format-ignore: AlwaysUseLowerCamelCase
+extension SQLiteMigration {
 
-  public var id: User.ID
-  public var username: String
-  public var profile: UserProfileDTO
-  public var publicKey: ArmoredPGPPublicKey
-	public var keyFingerprint: Fingerprint
-  public var isSuspended: Bool
-
-  public init(
-    id: User.ID,
-    username: String,
-    profile: UserProfileDTO,
-		publicKey: ArmoredPGPPublicKey,
-		keyFingerprint: Fingerprint,
-    isSuspended: Bool
-  ) {
-    self.id = id
-    self.username = username
-    self.profile = profile
-		self.publicKey = publicKey
-		self.keyFingerprint = keyFingerprint
-    self.isSuspended = isSuspended
+  internal static var migration_17: Self {
+    [
+      // add isSuspended flag to user
+      """
+            ALTER TABLE
+              users
+            ADD
+              isSuspended BOOL DEFAULT false;
+            """,
+      // - version bump - //
+      """
+            PRAGMA user_version = 18; -- persistent, used to track schema version
+            """,
+    ]
   }
 }

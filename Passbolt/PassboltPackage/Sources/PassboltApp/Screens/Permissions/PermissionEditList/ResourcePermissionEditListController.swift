@@ -101,7 +101,8 @@ extension ResourcePermissionEditListController: ComponentController {
                       lastName: details.lastName,
                       fingerprint: details.fingerprint,
                       avatarImageURL: details.avatarImageURL,
-                      permission: permission
+                      permission: permission,
+                      isSuspended: details.isSuspended
                     ),
                     imageData: userDetails.avatarImage
                   )

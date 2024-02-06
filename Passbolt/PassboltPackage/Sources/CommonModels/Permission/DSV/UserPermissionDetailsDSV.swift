@@ -32,6 +32,7 @@ public struct UserPermissionDetailsDSV {
   public var fingerprint: Fingerprint
   public var avatarImageURL: URLString
   public var permission: Permission
+  public var isSuspended: Bool
 
   public init(
     id: User.ID,
@@ -40,7 +41,8 @@ public struct UserPermissionDetailsDSV {
     lastName: String,
     fingerprint: Fingerprint,
     avatarImageURL: URLString,
-    permission: Permission
+    permission: Permission,
+    isSuspended: Bool
   ) {
     self.id = id
     self.username = username
@@ -49,6 +51,7 @@ public struct UserPermissionDetailsDSV {
     self.fingerprint = fingerprint
     self.avatarImageURL = avatarImageURL
     self.permission = permission
+    self.isSuspended = isSuspended
   }
 }
 
@@ -63,7 +66,8 @@ extension UserPermissionDetailsDSV {
       firstName: self.firstName,
       lastName: self.lastName,
       fingerprint: self.fingerprint,
-      avatarImageURL: self.avatarImageURL
+      avatarImageURL: self.avatarImageURL, 
+      isSuspended: self.isSuspended
     )
   }
 }

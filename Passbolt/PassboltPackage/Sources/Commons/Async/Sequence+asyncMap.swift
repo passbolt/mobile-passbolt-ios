@@ -21,30 +21,15 @@
 // @since         v1.0
 //
 
-import Commons
+extension Sequence {
+    public func asyncMap<T>(
+        _ transform: (Element) async throws -> T
+    ) async rethrows -> Array<T> {
+        var values: Array<T> = .init()
 
-public struct UserDSO {
-
-  public var id: User.ID
-  public var username: String
-  public var profile: UserProfileDTO
-  public var publicKey: ArmoredPGPPublicKey
-	public var keyFingerprint: Fingerprint
-  public var isSuspended: Bool
-
-  public init(
-    id: User.ID,
-    username: String,
-    profile: UserProfileDTO,
-		publicKey: ArmoredPGPPublicKey,
-		keyFingerprint: Fingerprint,
-    isSuspended: Bool
-  ) {
-    self.id = id
-    self.username = username
-    self.profile = profile
-		self.publicKey = publicKey
-		self.keyFingerprint = keyFingerprint
-    self.isSuspended = isSuspended
-  }
+        for element in self {
+            try await values.append(transform(element))
+        }
+        return values
+    }
 }

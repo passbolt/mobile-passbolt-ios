@@ -21,6 +21,7 @@
 // @since         v1.0
 
 import Accounts
+import FeatureScopes
 import UIComponents
 
 internal struct AccountNotFoundController {
@@ -39,6 +40,12 @@ extension AccountNotFoundController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
+    let features: Features =
+      try features
+      .branch(
+        scope: AccountScope.self,
+        context: context
+      )
     let accountProfile: AccountDetails = try features.instance()
 
     let backNavigationPresentationSubject: PassthroughSubject<Void, Never> = .init()

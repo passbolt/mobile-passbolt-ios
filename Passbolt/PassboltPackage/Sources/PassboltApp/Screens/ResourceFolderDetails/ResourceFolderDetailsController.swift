@@ -73,25 +73,27 @@ internal final class ResourceFolderDetailsController: ViewController {
       update: { [users] updateView, update in
 				await consumingErrors {
 					let resourceFolder: ResourceFolder = try update.value
-					await updateView { viewState in
+          let folderPermissionsItems = try await resourceFolder
+            .permissions
+            .asyncMap { (permission: ResourceFolderPermission) -> OverlappingAvatarStackView.Item in
+              switch permission {
+              case let .user(userID, _, _):
+                return .user(
+                  userID,
+                  avatarImage: { try? await users.userAvatarImage(userID) },
+                  isSuspended: try await users.userDetails(userID).isSuspended
+                )
+
+              case let .userGroup(userGroupID, _, _):
+                return .userGroup(
+                  userGroupID
+                )
+              }
+            }
+					updateView { viewState in
 						viewState.folderName = resourceFolder.name
 						viewState.folderLocation = resourceFolder.path.map(\.name)
-						viewState.folderPermissionItems = resourceFolder
-							.permissions
-							.map { (permission: ResourceFolderPermission) -> OverlappingAvatarStackView.Item in
-								switch permission {
-								case let .user(userID, _, _):
-									return .user(
-										userID,
-										avatarImage: { try? await users.userAvatarImage(userID) }
-									)
-
-								case let .userGroup(userGroupID, _, _):
-									return .userGroup(
-										userGroupID
-									)
-								}
-							}
+						viewState.folderPermissionItems = folderPermissionsItems
 						viewState.folderShared = resourceFolder.shared
 					}
 				}

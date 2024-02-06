@@ -72,9 +72,9 @@ internal struct PermissionAvatarsView_Previews: PreviewProvider {
     VStack(spacing: 8) {
       PermissionAvatarsView(
         items: [
-          .user(.init(), avatarImage: { .none }),
+          .user(.init(), avatarImage: { .none }, isSuspended: false),
           .userGroup(.init()),
-          .user(.init(), avatarImage: { .none }),
+          .user(.init(), avatarImage: { .none }, isSuspended: true),
         ]
       )
 

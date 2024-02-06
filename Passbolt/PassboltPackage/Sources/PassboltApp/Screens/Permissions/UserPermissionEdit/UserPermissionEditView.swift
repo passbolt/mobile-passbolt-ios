@@ -51,27 +51,30 @@ internal struct UserPermissionEditView: ComponentView {
 
   @ViewBuilder private var contentView: some View {
     VStack(spacing: 0) {
-      AsyncUserAvatarView(
-        imageLoad: self.state.avatarImageFetch
-      )
-      .frame(
-        width: 96,
-        height: 96,
-        alignment: .center
-      )
-      .padding(8)
+      VStack(spacing: 0) {
+        AsyncUserAvatarView(
+          imageLoad: self.state.avatarImageFetch
+        )
+        .frame(
+          width: 96,
+          height: 96,
+          alignment: .center
+        )
+        .padding(8)
 
-      Text(
-        displayable: self.state.name
-      )
-      .text(
-        font: .inter(
-          ofSize: 20,
-          weight: .semibold
-        ),
-        color: .passboltPrimaryText
-      )
-      .padding(8)
+        Text(
+          displayable: self.state.name
+        )
+        .text(
+          font: .inter(
+            ofSize: 20,
+            weight: .semibold
+          ),
+          color: .passboltPrimaryText
+        )
+        .padding(8)
+      }
+      .opacity(self.state.isSuspended ? 0.5 : 1)
 
       Text(
         displayable: self.state.username
@@ -183,6 +186,7 @@ extension UserPermissionEditView {
     internal var permission: Permission
     internal var avatarImageFetch: () async -> Data?
     internal var deleteConfirmationAlert: ConfirmationAlertMessage? = .none
+    internal var isSuspended: Bool
   }
 }
 
@@ -197,5 +201,6 @@ extension UserPermissionEditView.ViewState: Equatable {
       && lhs.fingerprint == rhs.fingerprint
       && lhs.permission == rhs.permission
       && lhs.deleteConfirmationAlert == rhs.deleteConfirmationAlert
+      && lhs.isSuspended == rhs.isSuspended
   }
 }

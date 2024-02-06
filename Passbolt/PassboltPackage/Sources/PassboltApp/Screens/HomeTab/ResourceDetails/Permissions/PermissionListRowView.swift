@@ -51,10 +51,10 @@ internal struct PermissionListRowView: View {
               )
 
             ListRowTitleWithSubtitleView(
-              title: "\(details.firstName) \(details.lastName)",
+              title: DisplayableString(stringLiteral: details.title),
               subtitle: "\(details.username)"
             )
-          }
+          } .opacity(details.isSuspended ? 0.6 : 1)
         },
         accessory: {
           HStack(spacing: 4) {
@@ -129,3 +129,11 @@ internal struct PermissionListRowView_Previews: PreviewProvider {
   }
 }
 #endif
+
+private extension UserPermissionDetailsDSV {
+  var title: String {
+    let nameTitle = "\(firstName) \(lastName)"
+    let suspendedMark = isSuspended ? " (suspended)" : ""
+    return nameTitle + suspendedMark
+  }
+}

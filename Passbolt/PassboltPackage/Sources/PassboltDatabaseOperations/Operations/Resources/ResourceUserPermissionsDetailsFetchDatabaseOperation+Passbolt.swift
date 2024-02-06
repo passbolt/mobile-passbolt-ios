@@ -43,7 +43,8 @@ extension ResourceUserPermissionsDetailsFetchDatabaseOperation {
           users.lastName AS lastName,
           users.publicPGPKeyFingerprint AS fingerprint,
           users.avatarImageURL AS avatarImageURL,
-          usersResources.permission AS permission
+          usersResources.permission AS permission,
+          users.isSuspended AS isSuspended
         FROM
           usersResources
         INNER JOIN
@@ -67,7 +68,8 @@ extension ResourceUserPermissionsDetailsFetchDatabaseOperation {
           let lastName: String = dataRow.lastName,
           let fingerprint: Fingerprint = dataRow.fingerprint.flatMap(Fingerprint.init(rawValue:)),
           let avatarImageURL: URLString = dataRow.avatarImageURL.flatMap(URLString.init(rawValue:)),
-          let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:))
+          let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:)),
+          let isSuspended: Bool = dataRow.isSuspended
         else {
           throw
             DatabaseDataInvalid
@@ -82,7 +84,8 @@ extension ResourceUserPermissionsDetailsFetchDatabaseOperation {
           lastName: lastName,
           fingerprint: fingerprint,
           avatarImageURL: avatarImageURL,
-          permission: permission
+          permission: permission,
+          isSuspended: isSuspended
         )
       }
   }

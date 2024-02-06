@@ -31,6 +31,7 @@ extension UserDetailsDSV {
     firstName: "mock",
     lastName: "1",
     fingerprint: "MOCK_1",
-    avatarImageURL: .mock_apple
+    avatarImageURL: .mock_apple, 
+    isSuspended: false
   )
 }

@@ -31,7 +31,7 @@ import Users
 internal struct PermissionUsersAndGroupsSearchController {
 
   internal var viewState: ObservableValue<ViewState>
-  internal var toggleUserSelection: @MainActor (User.ID) -> Void
+  internal var toggleUserSelection: @MainActor (UserListRowViewModel) -> Void
   internal var toggleUserGroupSelection: @MainActor (UserGroup.ID) -> Void
   internal var saveSelection: @MainActor () async throws -> Void
   internal var navigateBack: @MainActor () async -> Void
@@ -66,16 +66,19 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
       let existingPermissions: OrderedSet<ResourcePermission> =
         await resourceShareForm
         .currentPermissions()
-      let selectedItems: Array<OverlappingAvatarStackView.Item> =
-        existingPermissions
-        .map { permission in
-          switch permission {
-          case let .user(userID, _, _):
-            return .user(userID, avatarImage: userAvatarImageFetch(userID))
-          case let .userGroup(userGroupID, _, _):
-            return .userGroup(userGroupID)
-          }
+      let selectedItems: Array<OverlappingAvatarStackView.Item> = try await existingPermissions.asyncMap { permission in
+        switch permission {
+        case .user(let id, _, _):
+          return await .user(
+            id,
+            avatarImage: users.avatarImage(for: id),
+            isSuspended: try users.userDetails(id).isSuspended
+          )
+
+        case .userGroup(let id, _, _):
+          return .userGroup(id)
         }
+      }
       viewState.value.selectedItems = selectedItems
     }
 
@@ -144,13 +147,17 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
 
 						guard !permissionExists
 						else { return .none }
+            
+            let isSuspended = userDetails.isSuspended
+            let suspendedMark = isSuspended ? " (\(DisplayableString.localized("resource.permission.details.user.suspended").string()))" : ""
 
 						return .user(
 							.init(
 								id: userDetails.id,
-								fullName: "\(userDetails.firstName) \(userDetails.lastName)",
+								fullName: "\(userDetails.firstName) \(userDetails.lastName)\(suspendedMark)",
 								username: "\(userDetails.username)",
-								avatarImageFetch: userAvatarImageFetch(userDetails.id)
+                avatarImageFetch: userAvatarImageFetch(userDetails.id), 
+                isSuspended: isSuspended
 							)
 						)
 					}
@@ -184,15 +191,16 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
 						guard let permission: ResourcePermission = matchingPermission
 						else { return .none }
 
-						guard let permission = matchingPermission
-						else { return .none }
+            let isSuspended = userDetails.isSuspended
+            let suspendedMark = isSuspended ? " (\(DisplayableString.localized("resource.permission.details.user.suspended").string()))" : ""
 
 						return .user(
 							.init(
 								id: userDetails.id,
-								fullName: "\(userDetails.firstName) \(userDetails.lastName)",
+								fullName: "\(userDetails.firstName) \(userDetails.lastName)\(suspendedMark)",
 								username: "\(userDetails.username)",
-								avatarImageFetch: userAvatarImageFetch(userDetails.id)
+                avatarImageFetch: userAvatarImageFetch(userDetails.id), 
+                isSuspended: isSuspended
 							),
 							permission: permission.permission
 						)
@@ -206,11 +214,12 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
 		}
 
     @MainActor func toggleUserSelection(
-      _ userID: User.ID
+      _ userListRowViewModel: UserListRowViewModel
     ) {
+      let userID = userListRowViewModel.id
       if viewState.selectedItems.contains(where: { item in
         switch item {
-        case let .user(id, _):
+        case let .user(id, _, _):
           return userID == id
         case .userGroup:
           return false
@@ -218,7 +227,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
       }) {
         viewState.selectedItems.removeAll(where: { item in
           switch item {
-          case let .user(id, _):
+          case let .user(id, _, _):
             return userID == id
           case .userGroup:
             return false
@@ -226,7 +235,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
         })
       }
       else {
-        viewState.selectedItems.append(.user(userID, avatarImage: userAvatarImageFetch(userID)))
+        viewState.selectedItems.append(.user(userID, avatarImage: userAvatarImageFetch(userID), isSuspended: userListRowViewModel.isSuspended))
       }
     }
 
@@ -266,7 +275,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
 
 			for row in newSelections {
 				switch row {
-				case let .user(userID, _):
+				case let .user(userID, _, _):
 					await resourceShareForm
 						.setUserPermission(
 							userID,

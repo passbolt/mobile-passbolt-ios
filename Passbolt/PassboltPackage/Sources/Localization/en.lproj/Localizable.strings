@@ -114,7 +114,7 @@
 "feedback.alert.button.title" = "I understand";
 
 "account.not.found.title.label" = "The account doesn’t exist";
-"account.not.found.message.label" = "The account has been deleted";
+"account.not.found.message.label" = "The account has been deleted or suspended";
 "account.not.found.action.button.title" = "Connect to an existing account";
 
 "server.not.reachable.alert.title" = "Server was not reachable!";
@@ -277,9 +277,11 @@
 "resource.permission.delete.user.group.permission.confirmation.message" = "The password will no longer be shared with this group.";
 
 "resource.permission.details.title" = "Permission";
+"resource.permission.details.user.suspended" = "suspended";
 
 "permission.details.type.section.title" = "Permission";
 "permission.details.group.members.section.title" = "Group members";
+"permission.details.user.suspended" = "suspended";
 
 "resource.permission.edit.button.delete.title" = "Delete permssion";
 

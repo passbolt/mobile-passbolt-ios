@@ -63,7 +63,8 @@ internal struct UserGroupMembersListRowView_Previews: PreviewProvider {
           firstName: "Ada",
           lastName: "Lovelance",
           fingerprint: "FINGERPRINT",
-          avatarImageURL: "https://passbolt.com/image/ada.png"
+          avatarImageURL: "https://passbolt.com/image/ada.png", 
+          isSuspended: false
         ),
         avatarImageData: { .none }
       ),

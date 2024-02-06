@@ -57,7 +57,8 @@ extension UsersStoreDatabaseOperation {
               lastName,
               publicPGPKeyFingerprint,
               armoredPublicPGPKey,
-              avatarImageURL
+              avatarImageURL,
+              isSuspended
             )
           VALUES
             (
@@ -67,7 +68,8 @@ extension UsersStoreDatabaseOperation {
               ?4,
               ?5,
               ?6,
-              ?7
+              ?7,
+              ?8
             )
           ON CONFLICT
             (
@@ -79,7 +81,8 @@ extension UsersStoreDatabaseOperation {
             lastName=?4,
             publicPGPKeyFingerprint=?5,
             armoredPublicPGPKey=?6,
-            avatarImageURL=?7
+            avatarImageURL=?7,
+            isSuspended=?8
           ;
           """,
           arguments: user.id,
@@ -88,7 +91,8 @@ extension UsersStoreDatabaseOperation {
           user.profile.lastName,
           user.keyFingerprint,
           user.publicKey,
-          user.profile.avatar.urlString
+          user.profile.avatar.urlString,
+          user.isSuspended
         )
       )
     }

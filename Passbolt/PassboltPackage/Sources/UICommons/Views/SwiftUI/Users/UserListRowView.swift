@@ -56,6 +56,7 @@ where RightAccessoryView: View {
         AsyncUserAvatarView(
           imageLoad: self.model.avatarImageFetch
         )
+        .opacity(self.model.isSuspended ? 0.5 : 1)
       },
       contentAction: self.contentAction,
       rightAction: self.rightAction,
@@ -74,7 +75,8 @@ internal struct UserListRowView_Previews: PreviewProvider {
         id: .init(),
         fullName: "John Doe",
         username: "johndoe@email.com",
-        avatarImageFetch: { nil }
+        avatarImageFetch: { nil }, 
+        isSuspended: false
       ),
       contentAction: {},
       rightAccesory: {
