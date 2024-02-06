@@ -42,7 +42,6 @@ extension NavigationResolver: LoadableFeature {
 
 extension NavigationResolver {
 
-  @available(iOS 16.0, *)
   @MainActor internal func dynamicLegacySheetDetent(
     for anchor: NavigationAnchor
   ) -> UISheetPresentationController.Detent {

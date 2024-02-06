@@ -28,7 +28,6 @@ import TestExtensions
 @testable import PassboltSession
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@available(iOS 16.0.0, *)
 final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptography> {
 
   override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }

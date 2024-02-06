@@ -453,19 +453,12 @@ extension NavigationTo {
           line: UInt
         ) async throws {
           let anchor: NavigationAnchor
-          if #available(iOS 16.0, *) {
-            anchor = UIHostingController(
-              rootView: try prepareTransitionView(features, context)
-            )
-            anchor.sheetPresentationController?.detents = [
-              navigationResolver.dynamicLegacySheetDetent(for: anchor)
-            ]
-          }
-          else {
-            anchor = try UIHostingController(
-              rootView: prepareTransitionView(features, context)
-            )
-          }
+          anchor = UIHostingController(
+            rootView: try prepareTransitionView(features, context)
+          )
+          anchor.sheetPresentationController?.detents = [
+            navigationResolver.dynamicLegacySheetDetent(for: anchor)
+          ]
 
           anchor.destinationIdentifier = Destination.identifier
           try await navigationResolver
@@ -529,19 +522,11 @@ extension NavigationTo {
           file: StaticString,
           line: UInt
         ) async throws {
-          let anchor: NavigationAnchor
-          if #available(iOS 16.0, *) {
-            anchor = try prepareTransitionView(features, context)
+          let anchor: NavigationAnchor = try prepareTransitionView(features, context)
 
-            anchor.sheetPresentationController?.detents = [
-              navigationResolver.dynamicLegacySheetDetent(for: anchor)
-            ]
-          }
-          else {
-            anchor = try PartialSheetViewController(
-              wrapping: prepareTransitionView(features, context)
-            )
-          }
+          anchor.sheetPresentationController?.detents = [
+            navigationResolver.dynamicLegacySheetDetent(for: anchor)
+          ]
 
           anchor.destinationIdentifier = Destination.identifier
           try await navigationResolver

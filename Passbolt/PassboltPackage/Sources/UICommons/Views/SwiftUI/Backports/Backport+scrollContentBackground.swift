@@ -25,11 +25,6 @@ import SwiftUI
 
 extension Backport where Content: View {
   @ViewBuilder func hideScrollContentBackground() -> some View {
-    if #available(iOS 16, *) {
-      content.scrollContentBackground(.hidden)
-    }
-    else {
-      content
-    }
+    content.scrollContentBackground(.hidden)
   }
 }

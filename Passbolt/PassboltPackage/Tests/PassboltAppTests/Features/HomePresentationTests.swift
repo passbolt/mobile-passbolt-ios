@@ -31,7 +31,6 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@available(iOS 16.0.0, *)
 final class HomePresentationTests: LoadableFeatureTestCase<HomePresentation> {
 
   override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }

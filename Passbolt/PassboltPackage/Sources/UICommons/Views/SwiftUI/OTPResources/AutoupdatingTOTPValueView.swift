@@ -81,25 +81,15 @@ public struct AutoupdatingTOTPValueView: View {
         return
       }  // no updates available
 
-      if #available(iOS 16.0, *) {
-        var iterator: AsyncTimerSequence<ContinuousClock>.Iterator = AsyncTimerSequence(
-          interval: .seconds(1),
-          clock: .continuous
-        )
+      var iterator: AsyncTimerSequence<ContinuousClock>.Iterator = AsyncTimerSequence(
+        interval: .seconds(1),
+        clock: .continuous
+      )
         .makeAsyncIterator()
-        repeat {
-          self.value = generateTOTP()
-        }
-        while await iterator.next() != nil
-
+      repeat {
+        self.value = generateTOTP()
       }
-      else {
-        // this is not fully correct, it will drift quickly but it is about to be dropped
-        repeat {
-          self.value = generateTOTP()
-        }
-        while (try? await Task.sleep(nanoseconds: NSEC_PER_SEC)) != nil
-      }
+      while await iterator.next() != nil
     }
   }
 }

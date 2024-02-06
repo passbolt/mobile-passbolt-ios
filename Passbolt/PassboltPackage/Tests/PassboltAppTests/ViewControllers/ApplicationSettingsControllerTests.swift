@@ -27,7 +27,6 @@ import TestExtensions
 @testable import Display
 @testable import PassboltApp
 
-@available(iOS 16.0.0, *)
 final class ApplicationSettingsControllerTests: FeaturesTestCase {
 
   override func commonPrepare() {

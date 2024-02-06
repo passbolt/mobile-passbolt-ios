@@ -28,8 +28,6 @@ import Features
 @testable import Display
 @testable import PassboltApp
 
-@available(iOS 16.0.0, *)
-
 final class AccountDetailsViewControllerTests: FeaturesTestCase {
 	
 	override func commonPrepare() {

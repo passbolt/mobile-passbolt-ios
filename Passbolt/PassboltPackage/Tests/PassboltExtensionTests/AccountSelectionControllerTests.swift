@@ -32,7 +32,6 @@ import XCTest
 @testable import PassboltExtension
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@MainActor @available(iOS 16.0.0, *)
 final class AccountSelectionControllerTests: MainActorTestCase {
 
   var accountsUpdates: Updates!

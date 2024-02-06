@@ -30,7 +30,6 @@ import XCTest
 @testable import PassboltResources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@available(iOS 16.0.0, *)
 final class ResourcesControllerTests: FeaturesTestCase {
 
   let updatesSequence: Variable<Timestamp> = .init(initial: 0)

@@ -24,7 +24,7 @@
 import Commons
 import XCTest
 
-@dynamicMemberLookup @available(iOS 16.0.0, *)
+@dynamicMemberLookup
 open class AsyncTestCase: XCTestCase {
 
   private var currentTestTask: Task<Void, Error>? {

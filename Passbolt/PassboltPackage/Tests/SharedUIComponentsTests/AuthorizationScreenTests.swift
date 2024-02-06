@@ -31,7 +31,6 @@ import XCTest
 @testable import SharedUIComponents
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@MainActor @available(iOS 16.0.0, *)
 final class AuthorizationScreenTests: MainActorTestCase {
 
   var detailsUpdates: Updates!

@@ -48,23 +48,13 @@ internal struct NavigationTreeAnchorView: View {
         .id(id)
 
     case let .stack(stackNode), let .overlay(_, covering: .stack(stackNode)):
-      if #available(iOS 16.0, *) {
-        #warning("TODO: use NavigationStack")
-        NavigationView {
-          NavigationStackAnchorView(
-            node: stackNode
-          )
-        }
-        .navigationViewStyle(.stack)
+      #warning("TODO: MOB-1578: Use NavigationStack")
+      NavigationView {
+        NavigationStackAnchorView(
+          node: stackNode
+        )
       }
-      else {
-        NavigationView {
-          NavigationStackAnchorView(
-            node: stackNode
-          )
-        }
-        .navigationViewStyle(.stack)
-      }
+      .navigationViewStyle(.stack)
 
     case let .overlay(_, covering: .overlay(.sheet(overlayNode), covering: coveredNode)):
       NavigationTreeAnchorView(

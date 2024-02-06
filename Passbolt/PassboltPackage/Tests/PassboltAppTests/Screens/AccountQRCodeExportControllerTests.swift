@@ -27,7 +27,6 @@ import TestExtensions
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@available(iOS 16.0.0, *)
 final class AccountQRCodeExportControllerTests: FeaturesTestCase {
 
   override func commonPrepare() {

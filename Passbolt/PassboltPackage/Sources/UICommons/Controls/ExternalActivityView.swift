@@ -80,42 +80,24 @@ public struct ExternalActivityConfiguration {
 		return .init(
 			itemsConfiguration: itemsConfiguration,
 			excludedActivities: {
-				if #available(iOS 16.0, *) {
-					return [
-						.addToReadingList,
-						.assignToContact,
-						.collaborationCopyLink,
-						.collaborationInviteWithLink,
-						.markupAsPDF,
-						.message,
-						.openInIBooks,
-						.saveToCameraRoll,
-						.sharePlay,
-						.postToVimeo,
-						.postToWeibo,
-						.postToFlickr,
-						.postToTwitter,
-						.postToFacebook,
-						.postToTencentWeibo,
-					 ]
-				}
-				else {
-					return [
-						.addToReadingList,
-						.assignToContact,
-						.markupAsPDF,
-						.message,
-						.openInIBooks,
-						.saveToCameraRoll,
-						.postToVimeo,
-						.postToWeibo,
-						.postToFlickr,
-						.postToTwitter,
-						.postToFacebook,
-						.postToTencentWeibo,
-					 ]
-				}
-			}()
+        return [
+          .addToReadingList,
+          .assignToContact,
+          .collaborationCopyLink,
+          .collaborationInviteWithLink,
+          .markupAsPDF,
+          .message,
+          .openInIBooks,
+          .saveToCameraRoll,
+          .sharePlay,
+          .postToVimeo,
+          .postToWeibo,
+          .postToFlickr,
+          .postToTwitter,
+          .postToFacebook,
+          .postToTencentWeibo,
+        ]
+      }()
 		)
 	}
 
@@ -146,38 +128,23 @@ public struct ExternalActivityConfiguration {
 		return .init(
 			itemsConfiguration: itemsConfiguration,
 			excludedActivities: {
-				if #available(iOS 16.0, *) {
-					return [
-						.addToReadingList,
-						.collaborationCopyLink,
-						.collaborationInviteWithLink,
-						.markupAsPDF,
-						.openInIBooks,
-						.saveToCameraRoll,
-						.sharePlay,
-						.postToVimeo,
-						.postToWeibo,
-						.postToFlickr,
-						.postToTwitter,
-						.postToFacebook,
-						.postToTencentWeibo,
-					 ]
-				}
-				else {
-					return [
-						.addToReadingList,
-						.markupAsPDF,
-						.openInIBooks,
-						.saveToCameraRoll,
-						.postToVimeo,
-						.postToWeibo,
-						.postToFlickr,
-						.postToTwitter,
-						.postToFacebook,
-						.postToTencentWeibo,
-					 ]
-				}
-			}()
+        return [
+          .addToReadingList,
+          .collaborationCopyLink,
+          .collaborationInviteWithLink,
+          .markupAsPDF,
+          .openInIBooks,
+          .saveToCameraRoll,
+          .sharePlay,
+          .postToVimeo,
+          .postToWeibo,
+          .postToFlickr,
+          .postToTwitter,
+          .postToFacebook,
+          .postToTencentWeibo,
+        ]
+
+      }()
 		)
 	}
 }
