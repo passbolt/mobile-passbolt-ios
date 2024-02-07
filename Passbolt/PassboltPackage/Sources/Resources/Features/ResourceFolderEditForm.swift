@@ -28,20 +28,20 @@ import Features
 
 public struct ResourceFolderEditForm {
 
-	public var state: AnyUpdatable<ResourceFolder>
-	public var setFolderName: @Sendable (String) -> Validated<String>
-	public var validateForm: @Sendable () throws -> Void
+  public var state: AnyUpdatable<ResourceFolder>
+  public var setFolderName: @Sendable (String) -> Validated<String>
+  public var validateForm: @Sendable () throws -> Void
   public var sendForm: @Sendable () async throws -> Void
 
   public init(
-		state: AnyUpdatable<ResourceFolder>,
-		setFolderName: @escaping @Sendable (String) -> Validated<String>,
-		validateForm: @escaping @Sendable () throws -> Void,
+    state: AnyUpdatable<ResourceFolder>,
+    setFolderName: @escaping @Sendable (String) -> Validated<String>,
+    validateForm: @escaping @Sendable () throws -> Void,
     sendForm: @escaping @Sendable () async throws -> Void
   ) {
     self.state = state
     self.setFolderName = setFolderName
-		self.validateForm = validateForm
+    self.validateForm = validateForm
     self.sendForm = sendForm
   }
 }
@@ -51,10 +51,10 @@ extension ResourceFolderEditForm: LoadableFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-			state: PlaceholderUpdatable().asAnyUpdatable(),
-			setFolderName: unimplemented1(),
-			validateForm: unimplemented0(),
-			sendForm: unimplemented0()
+      state: PlaceholderUpdatable().asAnyUpdatable(),
+      setFolderName: unimplemented1(),
+      validateForm: unimplemented0(),
+      sendForm: unimplemented0()
     )
   }
   #endif

@@ -73,10 +73,10 @@ internal final class OTPResourcesListViewController: ViewController {
 
     self.accountDetails = try features.instance()
     self.resourceSearchController = try features.instance()
-		self.resourceSearchController.updateFilter { filter in
-			// set initial filter
-			filter.includedTypes = [.totp, .passwordWithTOTP]
-		}
+    self.resourceSearchController.updateFilter { filter in
+      // set initial filter
+      filter.includedTypes = [.totp, .passwordWithTOTP]
+    }
     self.resourcesOTPController = try features.instance()
     self.resourceEditPreparation = try features.instance()
 
@@ -121,13 +121,13 @@ internal final class OTPResourcesListViewController: ViewController {
           await updateView { (viewState: inout ViewState) in
             viewState.otpResources = otpResources
           }
-					let avatarImage: Data? = try await accountDetails.avatarImage()
-					await updateView { (viewState: inout ViewState) in
+          let avatarImage: Data? = try await accountDetails.avatarImage()
+          await updateView { (viewState: inout ViewState) in
             viewState.accountAvatarImage = avatarImage
           }
         }
         catch {
-					SnackBarMessageEvent.send(.error(error))
+          SnackBarMessageEvent.send(.error(error))
         }
       }
     )
@@ -160,7 +160,7 @@ extension OTPResourcesListViewController {
     }
   }
 
-	@discardableResult
+  @discardableResult
   private func revealOTP(
     for resourceID: Resource.ID
   ) async throws -> OTPValue {
@@ -179,7 +179,7 @@ extension OTPResourcesListViewController {
   ) async {
     await consumingErrors(
       errorDiagnostics: "Failed to reveal or copy OTP."
-		) {
+    ) {
       try await self.copyOTP(self.revealOTP(for: resourceID))
     }
   }
@@ -189,7 +189,7 @@ extension OTPResourcesListViewController {
   ) async {
     await consumingErrors(
       errorDiagnostics: "Failed to navigate to OTP contextual menu."
-		) {
+    ) {
       self.hideOTPCodes()
       let features: Features =
         try features.branchIfNeeded(
@@ -200,11 +200,11 @@ extension OTPResourcesListViewController {
       try await navigationToContextualMenu.perform(
         context: .init(
           revealOTP: { [self] in
-						await consumingErrors(
-							errorDiagnostics: "Failed to reveal OTP."
-						) {
-							try await self.revealOTP(for: resourceID)
-						}
+            await consumingErrors(
+              errorDiagnostics: "Failed to reveal OTP."
+            ) {
+              try await self.revealOTP(for: resourceID)
+            }
           }
         )
       )
@@ -214,7 +214,7 @@ extension OTPResourcesListViewController {
   internal func showAccountMenu() async {
     await consumingErrors(
       errorDiagnostics: "Failed to navigate to account menu."
-		) {
+    ) {
       self.hideOTPCodes()
       try await navigationToAccountMenu.perform()
     }

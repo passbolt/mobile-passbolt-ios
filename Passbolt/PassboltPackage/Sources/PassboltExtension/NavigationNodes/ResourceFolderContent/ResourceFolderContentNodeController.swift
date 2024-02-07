@@ -82,18 +82,20 @@ internal final class ResourceFolderContentNodeController: ViewController {
       context: .init(
         folderName: folderName,
         filter: ComputedVariable(
-        transformed: searchController
-					.searchText, { update -> ResourceFoldersFilter in
-					let text: String = try update.value
-						return ResourceFoldersFilter(
+          transformed: searchController
+            .searchText,
+          { update -> ResourceFoldersFilter in
+            let text: String = try update.value
+            return ResourceFoldersFilter(
               sorting: .nameAlphabetically,
               text: text,
               folderID: context.folderDetails?.id,
               flattenContent: !text.isEmpty,
               permissions: []
             )
-					})
-          .asAnyUpdatable(),
+          }
+        )
+        .asAnyUpdatable(),
         suggestionFilter: { (resource: ResourceListItemDSV) -> Bool in
           requestedServiceIdentifiers.matches(resource)
         },
@@ -129,87 +131,87 @@ extension ResourceFolderContentNodeController {
 extension ResourceFolderContentNodeController {
 
   internal final func createResource() async throws {
-		let resourceEditPreparation: ResourceEditPreparation = try self.features.instance()
-		let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
-			.default,
-			self.context.folderDetails?.id,
-			requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }
-		)
-		try self.navigationTree.push(
-			ResourceEditView.self,
-			controller: .init(
-				context: .init(
-					editingContext: editingContext,
-					success: { [autofillContext] resource in
-						if let password: String = resource.firstPasswordString {
-							await autofillContext
-								.completeWithCredential(
-									AutofillExtensionContext.Credential(
-										user: resource.meta.username.stringValue ?? "",
-										password: password
-									)
-								)
-						}
-						else {
-							ResourceSecretInvalid
-								.error("Missing resource password in secret.")
-								.consume()
-						}
-					}
-				),
-				features: self.features
-			)
-		)
+    let resourceEditPreparation: ResourceEditPreparation = try self.features.instance()
+    let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
+      .default,
+      self.context.folderDetails?.id,
+      requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }
+    )
+    try self.navigationTree.push(
+      ResourceEditView.self,
+      controller: .init(
+        context: .init(
+          editingContext: editingContext,
+          success: { [autofillContext] resource in
+            if let password: String = resource.firstPasswordString {
+              await autofillContext
+                .completeWithCredential(
+                  AutofillExtensionContext.Credential(
+                    user: resource.meta.username.stringValue ?? "",
+                    password: password
+                  )
+                )
+            }
+            else {
+              ResourceSecretInvalid
+                .error("Missing resource password in secret.")
+                .consume()
+            }
+          }
+        ),
+        features: self.features
+      )
+    )
   }
 
   @Sendable internal func selectResource(
     _ resourceID: Resource.ID
   ) async throws {
-		let features: Features = try self.features.branch(
-			scope: ResourceScope.self,
-			context: resourceID
-		)
-		let resourceController: ResourceController = try features.instance()
-		try await resourceController.fetchSecretIfNeeded(force: true)
-		let resource: Resource = try await resourceController.state.value
+    let features: Features = try self.features.branch(
+      scope: ResourceScope.self,
+      context: resourceID
+    )
+    let resourceController: ResourceController = try features.instance()
+    try await resourceController.fetchSecretIfNeeded(force: true)
+    let resource: Resource = try await resourceController.state.value
 
-		guard let password: String = resource.firstPasswordString
-		else {
-			throw
-			ResourceSecretInvalid
-				.error("Missing resource password in secret.")
-		}
-		self.autofillContext
-			.completeWithCredential(
-				AutofillExtensionContext.Credential(
-					user: resource.meta.username.stringValue ?? "",
-					password: password
-				)
-			)
+    guard let password: String = resource.firstPasswordString
+    else {
+      throw
+        ResourceSecretInvalid
+        .error("Missing resource password in secret.")
+    }
+    self.autofillContext
+      .completeWithCredential(
+        AutofillExtensionContext.Credential(
+          user: resource.meta.username.stringValue ?? "",
+          password: password
+        )
+      )
   }
 
   internal final func selectFolder(
     _ resourceFolderID: ResourceFolder.ID
   ) async throws {
-		let folderDetails: ResourceFolder = try await self.resourceFolders.details(resourceFolderID)
+    let folderDetails: ResourceFolder = try await self.resourceFolders.details(resourceFolderID)
 
-		let nodeController: ResourceFolderContentNodeController =
-		try self.features
-			.instance(
-				of: ResourceFolderContentNodeController.self,
-				context: .init(
-					nodeID: self.context.nodeID,
-					folderDetails: folderDetails
-				)
-			)
-		self.navigationTree
-			.push(
-				ResourceFolderContentNodeView.self,
-				controller: nodeController
-			)
+    let nodeController: ResourceFolderContentNodeController =
+      try self.features
+      .instance(
+        of: ResourceFolderContentNodeController.self,
+        context: .init(
+          nodeID: self.context.nodeID,
+          folderDetails: folderDetails
+        )
+      )
+    self.navigationTree
+      .push(
+        ResourceFolderContentNodeView.self,
+        controller: nodeController
+      )
   }
 
   internal func closeExtension() {
-		self.autofillContext.cancelAndCloseExtension()
+    self.autofillContext.cancelAndCloseExtension()
   }
 }

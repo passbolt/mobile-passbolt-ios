@@ -43,7 +43,7 @@ extension AccountImport {
     try features.ensureScope(AccountTransferScope.self)
 
     #warning("Legacy implementation, to be split and refined...")
-		let cancellables: Cancellables = .init()
+    let cancellables: Cancellables = .init()
     Diagnostics.logger.info("Beginning new account transfer...")
     #if DEBUG
     let mdmConfiguration: MDMConfiguration = features.instance()
@@ -357,15 +357,15 @@ extension AccountImport {
             transferState.send(completion: .finished)
           }
           catch let error as AccountDuplicate {
-						Diagnostics.logger.info("...account transfer failed!")
+            Diagnostics.logger.info("...account transfer failed!")
             transferState.send(completion: .failure(error))
           }
           catch is SessionMFAAuthorizationRequired {
-						Diagnostics.logger.info("...account transfer finished, requesting MFA...")
+            Diagnostics.logger.info("...account transfer finished, requesting MFA...")
             transferState.send(completion: .finished)
           }
           catch {
-						Diagnostics.logger.info("...account transfer failed!")
+            Diagnostics.logger.info("...account transfer failed!")
             throw error
           }
         }

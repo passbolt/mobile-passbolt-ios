@@ -55,7 +55,6 @@ public struct NetworkRequestExecutor {
 
 extension NetworkRequestExecutor: LoadableFeature {
 
-
   #if DEBUG
   public nonisolated static var placeholder: Self {
     Self(

@@ -27,72 +27,71 @@ import SwiftUI
 public struct WithSheet<State, SheetView, ContentView>: View
 where State: Equatable & Identifiable, SheetView: View, ContentView: View {
 
-	@ObservedObject private var viewState: TrimmedViewState<State?>
-	private let binding: Binding<State?>
-	private let sheet: @MainActor (State) -> SheetView
-	private let content: @MainActor () -> ContentView
+  @ObservedObject private var viewState: TrimmedViewState<State?>
+  private let binding: Binding<State?>
+  private let sheet: @MainActor (State) -> SheetView
+  private let content: @MainActor () -> ContentView
 
-	public init<Controller>(
-		from controller: Controller,
-		at keyPath: WritableKeyPath<Controller.ViewState, State?>,
-		@ViewBuilder sheet: @escaping (State) -> SheetView,
-		@ViewBuilder content: @escaping () -> ContentView
-	) where Controller: ViewController {
-		self._viewState = .init(
-			wrappedValue: .init(
-				from: controller.viewState,
-				at: keyPath
-			)
-		)
-		self.binding = controller.binding(to: keyPath)
-		self.sheet = sheet
-		self.content = content
-	}
+  public init<Controller>(
+    from controller: Controller,
+    at keyPath: WritableKeyPath<Controller.ViewState, State?>,
+    @ViewBuilder sheet: @escaping (State) -> SheetView,
+    @ViewBuilder content: @escaping () -> ContentView
+  ) where Controller: ViewController {
+    self._viewState = .init(
+      wrappedValue: .init(
+        from: controller.viewState,
+        at: keyPath
+      )
+    )
+    self.binding = controller.binding(to: keyPath)
+    self.sheet = sheet
+    self.content = content
+  }
 
-	public var body: some View {
-		self.content()
-			.sheet(
-				item: self.binding,
-				content: { (state: State) in
-					self.sheet(state)
-				}
-			)
-	}
+  public var body: some View {
+    self.content()
+      .sheet(
+        item: self.binding,
+        content: { (state: State) in
+          self.sheet(state)
+        }
+      )
+  }
 }
-
 
 public struct WithToggledSheet<SheetView, ContentView>: View
 where SheetView: View, ContentView: View {
 
-	@ObservedObject private var viewState: TrimmedViewState<Bool>
-	private let binding: Binding<Bool>
-	private let sheet: @MainActor () -> SheetView
-	private let content: @MainActor () -> ContentView
+  @ObservedObject private var viewState: TrimmedViewState<Bool>
+  private let binding: Binding<Bool>
+  private let sheet: @MainActor () -> SheetView
+  private let content: @MainActor () -> ContentView
 
-	public init<Controller>(
-		from controller: Controller,
-		at keyPath: WritableKeyPath<Controller.ViewState, Bool>,
-		@ViewBuilder sheet: @escaping () -> SheetView,
-		@ViewBuilder content: @escaping () -> ContentView
-	) where Controller: ViewController {
-		self._viewState = .init(
-			wrappedValue: .init(
-				from: controller.viewState,
-				at: keyPath
-			)
-		)
-		self.binding = controller.binding(to: keyPath)
-		self.sheet = sheet
-		self.content = content
-	}
+  public init<Controller>(
+    from controller: Controller,
+    at keyPath: WritableKeyPath<Controller.ViewState, Bool>,
+    @ViewBuilder sheet: @escaping () -> SheetView,
+    @ViewBuilder content: @escaping () -> ContentView
+  ) where Controller: ViewController {
+    self._viewState = .init(
+      wrappedValue: .init(
+        from: controller.viewState,
+        at: keyPath
+      )
+    )
+    self.binding = controller.binding(to: keyPath)
+    self.sheet = sheet
+    self.content = content
+  }
 
-	public var body: some View {
-		self.content()
-			.sheet(
-				isPresented: self.binding,
-				content: {
-					self.sheet()
-				}
-			)
-	}
+  public var body: some View {
+    self.content()
+      .sheet(
+        isPresented: self.binding,
+        content: {
+          self.sheet()
+        }
+      )
+  }
 }

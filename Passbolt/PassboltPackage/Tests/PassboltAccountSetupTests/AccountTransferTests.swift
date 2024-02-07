@@ -922,15 +922,15 @@ private let transferedAccount: Account = .init(
 )
 
 private let transferedAccountWithProfile: AccountWithProfile = .init(
-	account: transferedAccount,
-	profile: .init(
-		accountID: transferedAccount.localID,
-		label: "Transfered",
-		username: "transfered@account.com",
-		firstName: "Transfered",
-		lastName: "Account",
-		avatarImageURL: ""
-	)
+  account: transferedAccount,
+  profile: .init(
+    accountID: transferedAccount.localID,
+    label: "Transfered",
+    username: "transfered@account.com",
+    firstName: "Transfered",
+    lastName: "Account",
+    avatarImageURL: ""
+  )
 )
 
 private let qrCodePart0: String =

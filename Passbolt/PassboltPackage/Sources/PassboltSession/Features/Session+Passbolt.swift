@@ -104,23 +104,23 @@ extension Session {
       sessionAuthorizationState.cancelAuthorization()
       // if we have refresh token, invalidate session
       if let refreshToken: SessionRefreshToken = sessionState.refreshToken() {
-				// clear all session data
-				sessionState.closedSession()
-				do {
-					try await sessionNetworkAuthorization
-						.invalidateSessionTokens(
-							currentAccount,
-							refreshToken
-						)
-				}
-				catch {
-					// ignore errors it won't be able to retry anyway
-					error.logged()
-				}
+        // clear all session data
+        sessionState.closedSession()
+        do {
+          try await sessionNetworkAuthorization
+            .invalidateSessionTokens(
+              currentAccount,
+              refreshToken
+            )
+        }
+        catch {
+          // ignore errors it won't be able to retry anyway
+          error.logged()
+        }
       }
       else {
-				// clear all session data
-				sessionState.closedSession()
+        // clear all session data
+        sessionState.closedSession()
       }
     }
 

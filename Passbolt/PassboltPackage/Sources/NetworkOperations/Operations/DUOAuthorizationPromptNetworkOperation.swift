@@ -23,29 +23,30 @@
 
 import Features
 import Session
+
 import struct Foundation.URL
 
 // MARK: - Interface
 
 public typealias DUOAuthorizationPromptNetworkOperation =
-	NetworkOperation<DUOAuthorizationPromptNetworkOperationDescription>
+  NetworkOperation<DUOAuthorizationPromptNetworkOperationDescription>
 
 public enum DUOAuthorizationPromptNetworkOperationDescription: NetworkOperationDescription {
 
-	public typealias Input = Void
-	public typealias Output = DUOAuthorizationPromptNetworkOperationResult
+  public typealias Input = Void
+  public typealias Output = DUOAuthorizationPromptNetworkOperationResult
 }
 
 public struct DUOAuthorizationPromptNetworkOperationResult {
 
-	public var authorizationURL: URL
-	public var stateID: String
+  public var authorizationURL: URL
+  public var stateID: String
 
-	public init(
-		authorizationURL: URL,
-		stateID: String
-	) {
-		self.authorizationURL = authorizationURL
-		self.stateID = stateID
-	}
+  public init(
+    authorizationURL: URL,
+    stateID: String
+  ) {
+    self.authorizationURL = authorizationURL
+    self.stateID = stateID
+  }
 }

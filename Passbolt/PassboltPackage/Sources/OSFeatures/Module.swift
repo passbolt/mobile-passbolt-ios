@@ -30,7 +30,7 @@ extension FeaturesRegistry {
 
   public mutating func useOSFeatures() {
     self.useOSTime()
-		self.useOSCalendar()
+    self.useOSCalendar()
     self.useOSFiles()
     self.useOSCamera()
     self.useOSBiometry()

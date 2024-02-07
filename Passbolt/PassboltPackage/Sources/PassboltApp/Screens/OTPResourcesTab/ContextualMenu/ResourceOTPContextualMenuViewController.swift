@@ -183,12 +183,13 @@ extension ResourceOTPContextualMenuViewController {
 
       let totpCodeGenerator: TOTPCodeGenerator = try self.features.instance()
 
-			let totp: TOTPValue = totpCodeGenerator.prepare(
-				.init(
-					resourceID: resourceID,
-					secret: totpSecret
-				)
-			)()
+      let totp: TOTPValue =
+        totpCodeGenerator.prepare(
+          .init(
+            resourceID: resourceID,
+            secret: totpSecret
+          )
+        )()
       self.pasteboard.put(totp.otp.rawValue)
       try await self.navigationToSelf.revert(animated: true)
       SnackBarMessageEvent.send("otp.copied.message")

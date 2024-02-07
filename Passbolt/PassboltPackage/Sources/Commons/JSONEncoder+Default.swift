@@ -25,34 +25,34 @@ import class Foundation.JSONEncoder
 
 extension JSONEncoder {
 
-	public static var `default`: JSONEncoder {
-		@_transparent _read { yield defaultJSONEncoder }
-	}
+  public static var `default`: JSONEncoder {
+    @_transparent _read { yield defaultJSONEncoder }
+  }
 
-	public static var snake: JSONEncoder {
-		@_transparent _read { yield snakeJSONEncoder }
-	}
+  public static var snake: JSONEncoder {
+    @_transparent _read { yield snakeJSONEncoder }
+  }
 
-	public static var pretty: JSONEncoder {
-		@_transparent _read { yield prettyJSONEncoder }
-	}
+  public static var pretty: JSONEncoder {
+    @_transparent _read { yield prettyJSONEncoder }
+  }
 }
 
 @usableFromInline internal let defaultJSONEncoder: JSONEncoder = {
-	let encoder: JSONEncoder = .init()
-	encoder.outputFormatting = .sortedKeys
-	return encoder
+  let encoder: JSONEncoder = .init()
+  encoder.outputFormatting = .sortedKeys
+  return encoder
 }()
 
 @usableFromInline internal let snakeJSONEncoder: JSONEncoder = {
-	let encoder: JSONEncoder = .init()
-	encoder.outputFormatting = .sortedKeys
-	encoder.keyEncodingStrategy = .convertToSnakeCase
-	return encoder
+  let encoder: JSONEncoder = .init()
+  encoder.outputFormatting = .sortedKeys
+  encoder.keyEncodingStrategy = .convertToSnakeCase
+  return encoder
 }()
 
 @usableFromInline internal let prettyJSONEncoder: JSONEncoder = {
-	let encoder: JSONEncoder = .init()
-	encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-	return encoder
+  let encoder: JSONEncoder = .init()
+  encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+  return encoder
 }()

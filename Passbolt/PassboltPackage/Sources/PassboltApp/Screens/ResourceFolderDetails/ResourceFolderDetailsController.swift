@@ -51,7 +51,7 @@ internal final class ResourceFolderDetailsController: ViewController {
         context: context
       )
 
-		let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
+    let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
 
     self.context = context
     self.features = features
@@ -71,9 +71,10 @@ internal final class ResourceFolderDetailsController: ViewController {
       ),
       updateFrom: self.resourceFolderController.state,
       update: { [users] updateView, update in
-				await consumingErrors {
-					let resourceFolder: ResourceFolder = try update.value
-          let folderPermissionsItems = try await resourceFolder
+        await consumingErrors {
+          let resourceFolder: ResourceFolder = try update.value
+          let folderPermissionsItems =
+            try await resourceFolder
             .permissions
             .asyncMap { (permission: ResourceFolderPermission) -> OverlappingAvatarStackView.Item in
               switch permission {
@@ -90,13 +91,13 @@ internal final class ResourceFolderDetailsController: ViewController {
                 )
               }
             }
-					updateView { viewState in
-						viewState.folderName = resourceFolder.name
-						viewState.folderLocation = resourceFolder.path.map(\.name)
-						viewState.folderPermissionItems = folderPermissionsItems
-						viewState.folderShared = resourceFolder.shared
-					}
-				}
+          updateView { viewState in
+            viewState.folderName = resourceFolder.name
+            viewState.folderLocation = resourceFolder.path.map(\.name)
+            viewState.folderPermissionItems = folderPermissionsItems
+            viewState.folderShared = resourceFolder.shared
+          }
+        }
       }
     )
   }
@@ -117,22 +118,22 @@ extension ResourceFolderDetailsController {
 extension ResourceFolderDetailsController {
 
   internal final func openLocationDetails() async throws {
-		try await self.navigation
-			.push(
-				ResourceFolderLocationDetailsView.self,
-				controller:
-					self.features
-					.instance(context: context)
-			)
+    try await self.navigation
+      .push(
+        ResourceFolderLocationDetailsView.self,
+        controller:
+          self.features
+          .instance(context: context)
+      )
   }
 
-  internal final func openPermissionDetails() async throws{
-		try await self.navigation
-			.push(
-				ResourceFolderPermissionListView.self,
-				controller:
-					self.features
-					.instance(context: context)
-			)
+  internal final func openPermissionDetails() async throws {
+    try await self.navigation
+      .push(
+        ResourceFolderPermissionListView.self,
+        controller:
+          self.features
+          .instance(context: context)
+      )
   }
 }

@@ -142,10 +142,10 @@ extension TagsExplorerController: ComponentController {
     }
 
     @MainActor func refreshIfNeeded() async {
-			await consumingErrors {
+      await consumingErrors {
         try await sessionData
           .refreshIfNeeded()
-			}
+      }
     }
 
     @MainActor func presentTagContent(_ tag: ResourceTag) {
@@ -219,7 +219,7 @@ extension TagsExplorerController: ComponentController {
     }
 
     @MainActor func presentAccountMenu() async throws {
-			try await navigationToAccountMenu.perform()
+      try await navigationToAccountMenu.perform()
     }
 
     return Self(

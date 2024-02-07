@@ -64,7 +64,7 @@ extension SplashScreenController: UIController {
 
     let destinationSubject: CurrentValueSubject<Destination?, Never> = .init(nil)
 
-    Task { // no need to track
+    Task {  // no need to track
       do {
         try accounts.verifyDataIntegrity()
       }
@@ -87,20 +87,21 @@ extension SplashScreenController: UIController {
       {
         switch await session.pendingAuthorization() {
         case .none:
-					do {
-						return try await destinationSubject
-							.send(
-								.home(
-									.init(
-										account: currentAccount,
-										configuration: sessionConfigurationLoader.sessionConfiguration()
-									)
-								)
-							)
-					}
-					catch {
-						return destinationSubject.send(.featureConfigFetchError)
-					}
+          do {
+            return
+              try await destinationSubject
+              .send(
+                .home(
+                  .init(
+                    account: currentAccount,
+                    configuration: sessionConfigurationLoader.sessionConfiguration()
+                  )
+                )
+              )
+          }
+          catch {
+            return destinationSubject.send(.featureConfigFetchError)
+          }
 
         case let .mfa(_, mfaProviders):
           return

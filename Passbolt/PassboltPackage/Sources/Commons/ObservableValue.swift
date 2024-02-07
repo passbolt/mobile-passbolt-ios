@@ -49,7 +49,7 @@ where Value: Equatable {
     self.valueSetter = valueSetter
     self.valuePublisher = valuePublisher
     self.cancellables = .init()
-      valuePublisher
+    valuePublisher
       .sink { [weak self] _ in
         self?.objectWillChange.send()
       }

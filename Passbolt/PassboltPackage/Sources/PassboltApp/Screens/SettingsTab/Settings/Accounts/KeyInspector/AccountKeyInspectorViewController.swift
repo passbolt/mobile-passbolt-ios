@@ -21,131 +21,133 @@
 // @since         v1.0
 //
 
-import Display
-import OSFeatures
-import Accounts
 import AccountSetup
+import Accounts
+import Display
 import FeatureScopes
+import OSFeatures
 import SharedUIComponents
 
 internal final class AccountKeyInspectorViewController: ViewController {
 
-	internal struct State: Equatable {
+  internal struct State: Equatable {
 
-		internal var avatarImage: Data?
-		internal var name: String
-		internal var userID: String
-		internal var fingerprint: String
-		internal var crationDate: String
-		internal var expirationDate: String?
-		internal var keySize: String
-		internal var algorithm: String
-	}
+    internal var avatarImage: Data?
+    internal var name: String
+    internal var userID: String
+    internal var fingerprint: String
+    internal var crationDate: String
+    internal var expirationDate: String?
+    internal var keySize: String
+    internal var algorithm: String
+  }
 
-	internal let viewState: ViewStateSource<State>
+  internal let viewState: ViewStateSource<State>
 
-	private let navigationToAccountKeyExportMenu: NavigationToAccountKeyExportMenu
+  private let navigationToAccountKeyExportMenu: NavigationToAccountKeyExportMenu
 
-	private let accountDetails: AccountDetails
-	private let pasteboard: OSPasteboard
-	private let calendar: OSCalendar
+  private let accountDetails: AccountDetails
+  private let pasteboard: OSPasteboard
+  private let calendar: OSCalendar
 
-	private let features: Features
+  private let features: Features
 
-	internal init(
-		context: Void,
-		features: Features
-	) throws {
-		self.features = features
+  internal init(
+    context: Void,
+    features: Features
+  ) throws {
+    self.features = features
 
-		self.pasteboard = features.instance()
-		self.calendar = features.instance()
-		self.accountDetails = try features.instance()
+    self.pasteboard = features.instance()
+    self.calendar = features.instance()
+    self.accountDetails = try features.instance()
 
-		self.navigationToAccountKeyExportMenu = try features.instance()
+    self.navigationToAccountKeyExportMenu = try features.instance()
 
-		self.viewState = .init(
-			initial: .init(
-				avatarImage: .none,
-				name: "",
-				userID: "",
-				fingerprint: "",
-				crationDate: "",
-				expirationDate: "",
-				keySize: "",
-				algorithm: ""
-			),
-			updateFrom: self.accountDetails.updates,
-			update: { [accountDetails, calendar] (updateView, _) in
-				do {
-					let accountWithProfile: AccountWithProfile = try accountDetails.profile()
-					await updateView { (viewState: inout State) in
-						viewState.name = "\(accountWithProfile.firstName) \(accountWithProfile.lastName)"
-					}
-					let keyDetails: PGPKeyDetails = try await accountDetails.keyDetails()
-					await updateView { (viewState: inout State) in
-						viewState.userID = keyDetails.userID
-						viewState.fingerprint = formatFingerprint(keyDetails.fingerprint)
-						viewState.crationDate = calendar.format(.medium, keyDetails.created)
-						viewState.expirationDate = keyDetails.expires
-							.map { calendar.format(.medium, $0) }
-						viewState.keySize = "\(keyDetails.length)"
-						viewState.algorithm = keyDetails.algorithm.rawValue
-					}
-					let accountAvatarImage: Data? = try await accountDetails.avatarImage()
-					await updateView { (viewState: inout State) in
-						viewState.avatarImage = accountAvatarImage
-					}
-				}
-				catch {
-					error.consume(
-						context: "Failed to update account key details!"
-					)
-				}
-			}
-		)
-	}
+    self.viewState = .init(
+      initial: .init(
+        avatarImage: .none,
+        name: "",
+        userID: "",
+        fingerprint: "",
+        crationDate: "",
+        expirationDate: "",
+        keySize: "",
+        algorithm: ""
+      ),
+      updateFrom: self.accountDetails.updates,
+      update: { [accountDetails, calendar] (updateView, _) in
+        do {
+          let accountWithProfile: AccountWithProfile = try accountDetails.profile()
+          await updateView { (viewState: inout State) in
+            viewState.name = "\(accountWithProfile.firstName) \(accountWithProfile.lastName)"
+          }
+          let keyDetails: PGPKeyDetails = try await accountDetails.keyDetails()
+          await updateView { (viewState: inout State) in
+            viewState.userID = keyDetails.userID
+            viewState.fingerprint = formatFingerprint(keyDetails.fingerprint)
+            viewState.crationDate = calendar.format(.medium, keyDetails.created)
+            viewState.expirationDate = keyDetails.expires
+              .map { calendar.format(.medium, $0) }
+            viewState.keySize = "\(keyDetails.length)"
+            viewState.algorithm = keyDetails.algorithm.rawValue
+          }
+          let accountAvatarImage: Data? = try await accountDetails.avatarImage()
+          await updateView { (viewState: inout State) in
+            viewState.avatarImage = accountAvatarImage
+          }
+        }
+        catch {
+          error.consume(
+            context: "Failed to update account key details!"
+          )
+        }
+      }
+    )
+  }
 
-	internal func copyUserID() async {
-		await self.pasteboard.put(self.viewState.current.userID)
-		SnackBarMessageEvent.send(
-			"account.key.inspector.uid.copied.message"
-		)
-	}
+  internal func copyUserID() async {
+    await self.pasteboard.put(self.viewState.current.userID)
+    SnackBarMessageEvent.send(
+      "account.key.inspector.uid.copied.message"
+    )
+  }
 
-	internal func copyFingerprint() async {
-		await self.pasteboard.put(self.viewState.current.fingerprint)
-		SnackBarMessageEvent.send(
-			"account.key.inspector.fingerprint.copied.message"
-		)
-	}
+  internal func copyFingerprint() async {
+    await self.pasteboard.put(self.viewState.current.fingerprint)
+    SnackBarMessageEvent.send(
+      "account.key.inspector.fingerprint.copied.message"
+    )
+  }
 
-	internal func showExportMenu() async {
-		await self.navigationToAccountKeyExportMenu.performCatching()
-	}
+  internal func showExportMenu() async {
+    await self.navigationToAccountKeyExportMenu.performCatching()
+  }
 }
 
 private func formatFingerprint(
-	_ fingerprint: Fingerprint
+  _ fingerprint: Fingerprint
 ) -> String {
-	var formattedString: String = fingerprint.rawValue
-	var currentIndex: String.Index = formattedString.startIndex
-	while let nextIndex: String.Index = formattedString
-		.index(
-			currentIndex,
-			offsetBy: 4,
-			limitedBy: formattedString.endIndex
-		)
-	{
-		guard nextIndex != formattedString.endIndex else { break }
-		formattedString.insert(" ", at: nextIndex)
-		currentIndex = formattedString
-			.index(
-				nextIndex,
-				offsetBy: 1,
-				limitedBy: formattedString.endIndex
-			) ?? nextIndex
-	}
+  var formattedString: String = fingerprint.rawValue
+  var currentIndex: String.Index = formattedString.startIndex
+  while let nextIndex: String.Index =
+    formattedString
+    .index(
+      currentIndex,
+      offsetBy: 4,
+      limitedBy: formattedString.endIndex
+    )
+  {
+    guard nextIndex != formattedString.endIndex else { break }
+    formattedString.insert(" ", at: nextIndex)
+    currentIndex =
+      formattedString
+      .index(
+        nextIndex,
+        offsetBy: 1,
+        limitedBy: formattedString.endIndex
+      ) ?? nextIndex
+  }
 
-	return formattedString
+  return formattedString
 }

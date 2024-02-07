@@ -43,8 +43,8 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
         exitConfirmationAlertPresented: false
       )
     ) {
-      
-      return await tested.viewState.current
+
+      await tested.viewState.current
     }
   }
 
@@ -73,7 +73,7 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
         exitConfirmationAlertPresented: false
       )
     ) {
-      return await tested.viewState.current
+      await tested.viewState.current
     }
     //    updatesSource.terminate()
   }

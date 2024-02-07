@@ -39,7 +39,7 @@ internal struct ApplicationSettingsView: ControlledView {
     ScreenView(
       title: "settings.application.title",
       contentView: {
-				self.content
+        self.content
       }
     )
   }

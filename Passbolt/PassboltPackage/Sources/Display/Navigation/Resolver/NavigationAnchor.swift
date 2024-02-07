@@ -59,7 +59,7 @@ extension NavigationAnchor {
     line: UInt
   ) async {
     defer {
-      
+
       presentedAnchor.sheetPresentationController?
         .animateChanges {
           presentedAnchor.sheetPresentationController?.invalidateDetents()

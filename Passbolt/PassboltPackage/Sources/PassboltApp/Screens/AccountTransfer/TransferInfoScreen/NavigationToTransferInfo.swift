@@ -25,24 +25,24 @@ import Display
 import FeatureScopes
 
 internal enum TransferInfoNavigationDestination: NavigationDestination {
-    internal typealias TransitionContext = TransferInfoScreenController.Context
+  internal typealias TransitionContext = TransferInfoScreenController.Context
 }
 
 internal typealias NavigationToTransferInfo = NavigationTo<TransferInfoNavigationDestination>
 
 extension NavigationToTransferInfo {
 
-    fileprivate static var live: FeatureLoader {
-        legacyPushTransition(toLegacy: TransferInfoScreenViewController.self)
-    }
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(toLegacy: TransferInfoScreenViewController.self)
+  }
 }
 
 extension FeaturesRegistry {
 
   internal mutating func useLiveNavigationToTransferInfo() {
     self.use(
-        NavigationToTransferInfo.live,
-        in: SessionScope.self
+      NavigationToTransferInfo.live,
+      in: SessionScope.self
     )
   }
 }

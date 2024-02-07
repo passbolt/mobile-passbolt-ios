@@ -358,7 +358,7 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
             }
 
         case _:
-					SnackBarMessageEvent.send(.error(error))
+          SnackBarMessageEvent.send(.error(error))
         }
       }
       .handleEnd { [weak self] ending in

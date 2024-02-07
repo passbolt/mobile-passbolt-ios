@@ -28,30 +28,30 @@ import Features
 
 public struct HOTPCodeGenerator {
 
-	public struct Parameters {
+  public struct Parameters {
 
-		public var resourceID: Resource.ID?
-		public var sharedSecret: String
-		public var algorithm: HOTPAlgorithm
-		public var digits: UInt
+    public var resourceID: Resource.ID?
+    public var sharedSecret: String
+    public var algorithm: HOTPAlgorithm
+    public var digits: UInt
 
-		public init(
-			resourceID: Resource.ID?,
-			sharedSecret: String,
-			algorithm: HOTPAlgorithm,
-			digits: UInt
-		) {
-			self.resourceID = resourceID
-			self.sharedSecret = sharedSecret
-			self.algorithm = algorithm
-			self.digits = digits
-		}
-	}
+    public init(
+      resourceID: Resource.ID?,
+      sharedSecret: String,
+      algorithm: HOTPAlgorithm,
+      digits: UInt
+    ) {
+      self.resourceID = resourceID
+      self.sharedSecret = sharedSecret
+      self.algorithm = algorithm
+      self.digits = digits
+    }
+  }
 
   public var prepare: @Sendable (Parameters) -> @Sendable (UInt64) -> HOTPValue
 
   public init(
-		prepare: @escaping @Sendable (Parameters) -> @Sendable (UInt64) -> HOTPValue
+    prepare: @escaping @Sendable (Parameters) -> @Sendable (UInt64) -> HOTPValue
   ) {
     self.prepare = prepare
   }
@@ -62,7 +62,7 @@ extension HOTPCodeGenerator: LoadableFeature {
   #if DEBUG
   public nonisolated static var placeholder: Self {
     .init(
-			prepare: unimplemented1()
+      prepare: unimplemented1()
     )
   }
   #endif

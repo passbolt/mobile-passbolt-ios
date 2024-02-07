@@ -36,55 +36,55 @@ public struct ResourceEditView: ControlledView {
   }
 
   public var body: some View {
-		self.contentView
-    .alert(
-      isPresented: self.$discardFormAlertVisible,
-      title: "generic.are.you.sure",
-      message: "resource.edit.exit.confirmation.message",
-      actions: {
-        Button(
-          displayable: "resource.edit.exit.confirmation.button.edit.title",
-          role: .cancel,
-          action: { /* NOP */  }
-        )
-        AsyncButton(
-          role: .destructive,
-          action: {
-            await self.controller.discardForm()
-          },
-          label: {
-            Text(displayable: "resource.edit.exit.confirmation.button.revert.title")
-          }
-        )
-      }
-    )
-    .navigationBarBackButtonHidden()
-    .toolbar {  // replace back button
-      ToolbarItemGroup(placement: .navigationBarLeading) {
-        WithViewState(
-          from: self.controller,
-          at: \.edited
-        ) { (edited: Bool) in
-          BackButton(
+    self.contentView
+      .alert(
+        isPresented: self.$discardFormAlertVisible,
+        title: "generic.are.you.sure",
+        message: "resource.edit.exit.confirmation.message",
+        actions: {
+          Button(
+            displayable: "resource.edit.exit.confirmation.button.edit.title",
+            role: .cancel,
+            action: { /* NOP */  }
+          )
+          AsyncButton(
+            role: .destructive,
             action: {
-              if edited {
-                self.discardFormAlertVisible = true
-              }
-              else {
-                await self.controller.discardForm()
-              }
+              await self.controller.discardForm()
+            },
+            label: {
+              Text(displayable: "resource.edit.exit.confirmation.button.revert.title")
             }
           )
         }
+      )
+      .navigationBarBackButtonHidden()
+      .toolbar {  // replace back button
+        ToolbarItemGroup(placement: .navigationBarLeading) {
+          WithViewState(
+            from: self.controller,
+            at: \.edited
+          ) { (edited: Bool) in
+            BackButton(
+              action: {
+                if edited {
+                  self.discardFormAlertVisible = true
+                }
+                else {
+                  await self.controller.discardForm()
+                }
+              }
+            )
+          }
+        }
       }
-    }
-    .navigationTitle(
-      displayable: self.controller.editsExisting
-        ? "resource.edit.title"
-        : "resource.edit.create.title"
-    )
-    .backgroundColor(.passboltBackground)
-    .foregroundColor(.passboltPrimaryText)
+      .navigationTitle(
+        displayable: self.controller.editsExisting
+          ? "resource.edit.title"
+          : "resource.edit.create.title"
+      )
+      .backgroundColor(.passboltBackground)
+      .foregroundColor(.passboltPrimaryText)
   }
 
   @MainActor @ViewBuilder private var contentView: some View {
@@ -144,7 +144,7 @@ public struct ResourceEditView: ControlledView {
                 title: fieldModel.name,
                 prompt: fieldModel.placeholder,
                 mandatory: fieldModel.requiredMark,
-								encrypted: fieldModel.encryptedMark,
+                encrypted: fieldModel.encryptedMark,
                 state: self.validatedOptionalBinding(
                   to: \.validatedString,
                   in: \.fields[fieldModel.path],

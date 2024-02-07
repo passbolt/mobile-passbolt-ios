@@ -48,24 +48,26 @@ internal final class ResourceTagsListDisplayController: ViewController {
     self.sessionData = try features.instance()
     self.resourceTags = try features.instance()
 
-		self.viewState = .init(
-			initial: .init(
-				resourceTags: .init()
-			),
-			updateFrom: ComputedVariable(
-				combined: context.filter,
-				with: self.sessionData.lastUpdate
-			),
-			update: { [resourceTags] (updateView, update) in
-				await consumingErrors {
-					let filteredResourceTags: Array<ResourceTagListItemDSV> = try await resourceTags.filteredTagsList(update.value.0)
+    self.viewState = .init(
+      initial: .init(
+        resourceTags: .init()
+      ),
+      updateFrom: ComputedVariable(
+        combined: context.filter,
+        with: self.sessionData.lastUpdate
+      ),
+      update: { [resourceTags] (updateView, update) in
+        await consumingErrors {
+          let filteredResourceTags: Array<ResourceTagListItemDSV> = try await resourceTags.filteredTagsList(
+            update.value.0
+          )
 
-					await updateView { viewState in
-						viewState.resourceTags = filteredResourceTags
-					}
-				}
-			}
-		)
+          await updateView { viewState in
+            viewState.resourceTags = filteredResourceTags
+          }
+        }
+      }
+    )
   }
 }
 

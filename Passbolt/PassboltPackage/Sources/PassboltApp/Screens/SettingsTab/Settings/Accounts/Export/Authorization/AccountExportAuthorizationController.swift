@@ -90,13 +90,13 @@ internal final class AccountExportAuthorizationController: ViewController {
           biometricsAvailability: biometricsAvailability,
           passphrase: .valid("")
         ),
-        updateFrom: self.accountDetails.updates,
-			update: { [accountDetails] updateView, _ in
-				let avatarImage: Data? = try? await accountDetails.avatarImage()
-				await updateView { (state: inout ViewState) in
-					state.accountAvatarImage = avatarImage
-				}
-			}
+      updateFrom: self.accountDetails.updates,
+      update: { [accountDetails] updateView, _ in
+        let avatarImage: Data? = try? await accountDetails.avatarImage()
+        await updateView { (state: inout ViewState) in
+          state.accountAvatarImage = avatarImage
+        }
+      }
     )
   }
 }
@@ -123,33 +123,33 @@ extension AccountExportAuthorizationController {
   }
 
   internal final func authorizeWithPassphrase() async {
-		let validatedPassphrase: Validated<Passphrase> = await self.passphraseValidator(self.viewState.current.passphrase)
-		do {
-			let passphrase: Passphrase = try validatedPassphrase.validValue
-			try await self.accountExport.authorize(.passphrase(passphrase))
-			try await self.navigation.push(
-				AccountQRCodeExportView.self,
-				controller: self.features.instance()
-			)
-		}
-		catch {
-			self.viewState.update { (state: inout ViewState) in
-				state.passphrase = validatedPassphrase
-			}
-			error.consume()
-		}
+    let validatedPassphrase: Validated<Passphrase> = await self.passphraseValidator(self.viewState.current.passphrase)
+    do {
+      let passphrase: Passphrase = try validatedPassphrase.validValue
+      try await self.accountExport.authorize(.passphrase(passphrase))
+      try await self.navigation.push(
+        AccountQRCodeExportView.self,
+        controller: self.features.instance()
+      )
+    }
+    catch {
+      self.viewState.update { (state: inout ViewState) in
+        state.passphrase = validatedPassphrase
+      }
+      error.consume()
+    }
   }
 
   internal final func authorizeWithBiometrics() async {
-		do {
-			try await accountExport.authorize(.biometrics)
-			try await navigation.push(
-				AccountQRCodeExportView.self,
-				controller: features.instance()
-			)
-		}
-		catch {
-			error.consume()
-		}
+    do {
+      try await accountExport.authorize(.biometrics)
+      try await navigation.push(
+        AccountQRCodeExportView.self,
+        controller: features.instance()
+      )
+    }
+    catch {
+      error.consume()
+    }
   }
 }

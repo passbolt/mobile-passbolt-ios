@@ -25,150 +25,150 @@ import Display
 
 internal struct OperationAuthorizationView: ControlledView {
 
-	internal let controller: OperationAuthorizationViewController
+  internal let controller: OperationAuthorizationViewController
 
-	internal init(
-		controller: OperationAuthorizationViewController
-	) {
-		self.controller = controller
-	}
+  internal init(
+    controller: OperationAuthorizationViewController
+  ) {
+    self.controller = controller
+  }
 
-	internal var body: some View {
-		self.contentView
-		.navigationTitle(displayable: self.controller.configuration.title)
-		.task{
-			await self.controller.authorizeWithBiometrics()
-		}
-	}
+  internal var body: some View {
+    self.contentView
+      .navigationTitle(displayable: self.controller.configuration.title)
+      .task {
+        await self.controller.authorizeWithBiometrics()
+      }
+  }
 
-	@ViewBuilder @MainActor private var contentView: some View {
-		VStack(spacing: 16) {
-			with(\.accountAvatarImage) { (accountAvatarImage) in
-				AvatarView(avatarImage: accountAvatarImage)
-			}
-			.frame(width: 96, height: 96)
-			.padding(top: 56)
-			.accessibilityIdentifier("authorization.avatar")
+  @ViewBuilder @MainActor private var contentView: some View {
+    VStack(spacing: 16) {
+      with(\.accountAvatarImage) { (accountAvatarImage) in
+        AvatarView(avatarImage: accountAvatarImage)
+      }
+      .frame(width: 96, height: 96)
+      .padding(top: 56)
+      .accessibilityIdentifier("authorization.avatar")
 
-			with(\.accountLabel) { (label: String) in
-				Text(label)
-					.text(
-						font: .inter(
-							ofSize: 20,
-							weight: .semibold
-						),
-						color: .passboltPrimaryText
-					)
-			}
-			.accessibilityIdentifier("authorization.label")
+      with(\.accountLabel) { (label: String) in
+        Text(label)
+          .text(
+            font: .inter(
+              ofSize: 20,
+              weight: .semibold
+            ),
+            color: .passboltPrimaryText
+          )
+      }
+      .accessibilityIdentifier("authorization.label")
 
-			with(\.accountUsername) { (username: String) in
-				Text(username)
-					.text(
-						font: .inter(ofSize: 14),
-						color: .passboltSecondaryText
-					)
-			}
-			.accessibilityIdentifier("authorization.username")
+      with(\.accountUsername) { (username: String) in
+        Text(username)
+          .text(
+            font: .inter(ofSize: 14),
+            color: .passboltSecondaryText
+          )
+      }
+      .accessibilityIdentifier("authorization.username")
 
-			with(\.accountDomain) { (domain: String) in
-				Text(domain)
-					.text(
-						font: .inter(ofSize: 14),
-						color: .passboltSecondaryText
-					)
-			}
-			.accessibilityIdentifier("authorization.domain")
+      with(\.accountDomain) { (domain: String) in
+        Text(domain)
+          .text(
+            font: .inter(ofSize: 14),
+            color: .passboltSecondaryText
+          )
+      }
+      .accessibilityIdentifier("authorization.domain")
 
-			withValidatedBinding(
-				\.passphrase,
-				 updating: self.controller.setPassphrase(_:)
-			) { (passphrase: Binding<Validated<String>>) in
-				FormSecureTextFieldView(
-					title: "authorization.passphrase.description.text",
-					prompt: "",
-					mandatory: true,
-					state: passphrase
-				)
-			}
-			.padding(top: 16)
-			.accessibilityIdentifier("authorization.passphrase.input")
+      withValidatedBinding(
+        \.passphrase,
+        updating: self.controller.setPassphrase(_:)
+      ) { (passphrase: Binding<Validated<String>>) in
+        FormSecureTextFieldView(
+          title: "authorization.passphrase.description.text",
+          prompt: "",
+          mandatory: true,
+          state: passphrase
+        )
+      }
+      .padding(top: 16)
+      .accessibilityIdentifier("authorization.passphrase.input")
 
-			with(\.biometricsAvailability) { (biometricsAvailability) in
-				switch biometricsAvailability {
-				case .unavailable, .unconfigured:
-					EmptyView()
+      with(\.biometricsAvailability) { (biometricsAvailability) in
+        switch biometricsAvailability {
+        case .unavailable, .unconfigured:
+          EmptyView()
 
-				case .faceID:
-					AsyncButton(
-						action: self.controller.authorizeWithBiometrics,
-						regularLabel: {
-							Image(named: .faceID)
-								.resizable()
-								.padding(10)
-						},
-						loadingLabel: {
-							ZStack {
-								Image(named: .faceID)
-									.resizable()
-									.padding(10)
+        case .faceID:
+          AsyncButton(
+            action: self.controller.authorizeWithBiometrics,
+            regularLabel: {
+              Image(named: .faceID)
+                .resizable()
+                .padding(10)
+            },
+            loadingLabel: {
+              ZStack {
+                Image(named: .faceID)
+                  .resizable()
+                  .padding(10)
 
-								SwiftUI.ProgressView()
-									.progressViewStyle(.circular)
-							}
-						}
-					)
-					.frame(width: 56, height: 56)
-					.tint(.passboltPrimaryBlue)
-					.overlay(
-						Circle()
-							.stroke(
-								Color.passboltDivider,
-								lineWidth: 1
-							)
-					)
-					.accessibilityIdentifier("authorization.biometrics.button")
+                SwiftUI.ProgressView()
+                  .progressViewStyle(.circular)
+              }
+            }
+          )
+          .frame(width: 56, height: 56)
+          .tint(.passboltPrimaryBlue)
+          .overlay(
+            Circle()
+              .stroke(
+                Color.passboltDivider,
+                lineWidth: 1
+              )
+          )
+          .accessibilityIdentifier("authorization.biometrics.button")
 
-				case .touchID:
-					AsyncButton(
-						action: self.controller.authorizeWithBiometrics,
-						regularLabel: {
-							Image(named: .touchID)
-								.resizable()
-								.padding(10)
-						},
-						loadingLabel: {
-							ZStack {
-								Image(named: .touchID)
-									.resizable()
-									.padding(10)
+        case .touchID:
+          AsyncButton(
+            action: self.controller.authorizeWithBiometrics,
+            regularLabel: {
+              Image(named: .touchID)
+                .resizable()
+                .padding(10)
+            },
+            loadingLabel: {
+              ZStack {
+                Image(named: .touchID)
+                  .resizable()
+                  .padding(10)
 
-								SwiftUI.ProgressView()
-									.progressViewStyle(.circular)
-							}
-						}
-					)
-					.frame(width: 56, height: 56)
-					.tint(.passboltPrimaryBlue)
-					.overlay(
-						Circle()
-							.stroke(
-								Color.passboltDivider,
-								lineWidth: 1
-							)
-					)
-					.accessibilityIdentifier("authorization.biometrics.button")
-				}
-			}
+                SwiftUI.ProgressView()
+                  .progressViewStyle(.circular)
+              }
+            }
+          )
+          .frame(width: 56, height: 56)
+          .tint(.passboltPrimaryBlue)
+          .overlay(
+            Circle()
+              .stroke(
+                Color.passboltDivider,
+                lineWidth: 1
+              )
+          )
+          .accessibilityIdentifier("authorization.biometrics.button")
+        }
+      }
 
-			Spacer()
+      Spacer()
 
-			PrimaryButton(
-				title: self.controller.configuration.actionLabel,
-				action: self.controller.authorizeWithPassphrase
-			)
-			.accessibilityIdentifier("authorization.primary.button")
-		}
-		.padding(16)
-	}
+      PrimaryButton(
+        title: self.controller.configuration.actionLabel,
+        action: self.controller.authorizeWithPassphrase
+      )
+      .accessibilityIdentifier("authorization.primary.button")
+    }
+    .padding(16)
+  }
 }

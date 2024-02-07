@@ -39,7 +39,7 @@ extension ControlledView {
 
 extension ControlledView {
 
- @_transparent
+  @_transparent
   public func when<OptionalView>(
     _ keyPath: KeyPath<ViewState, Bool>,
     @ViewBuilder content optionalView: @escaping () -> OptionalView
@@ -49,10 +49,10 @@ extension ControlledView {
       from: self.controller,
       at: keyPath,
       content: { (enabled: Bool) in
-				if enabled {
-					optionalView()
-				} // else no view
-			}
+        if enabled {
+          optionalView()
+        }  // else no view
+      }
     )
   }
 
@@ -69,48 +69,48 @@ extension ControlledView {
     )
   }
 
-	@_transparent
-	public func withBinding<State, StateView>(
-		_ keyPath: WritableKeyPath<ViewState, State>,
-		@ViewBuilder content stateView: @escaping (Binding<State>) -> StateView
-	) -> some View
-	where State: Equatable, StateView: View {
-		WithBindingState(
-			from: self.controller,
-			at: keyPath,
-			content: stateView
-		)
-	}
+  @_transparent
+  public func withBinding<State, StateView>(
+    _ keyPath: WritableKeyPath<ViewState, State>,
+    @ViewBuilder content stateView: @escaping (Binding<State>) -> StateView
+  ) -> some View
+  where State: Equatable, StateView: View {
+    WithBindingState(
+      from: self.controller,
+      at: keyPath,
+      content: stateView
+    )
+  }
 
-	@_transparent
-	public func withBinding<State, StateView>(
-		_ keyPath: WritableKeyPath<ViewState, State>,
-		updating: @escaping @MainActor (State) -> Void,
-		@ViewBuilder content stateView: @escaping (Binding<State>) -> StateView
-	) -> some View
-	where State: Equatable, StateView: View {
-		WithBindingState(
-			from: self.controller,
-			at: keyPath,
-			updating: updating,
-			content: stateView
-		)
-	}
+  @_transparent
+  public func withBinding<State, StateView>(
+    _ keyPath: WritableKeyPath<ViewState, State>,
+    updating: @escaping @MainActor (State) -> Void,
+    @ViewBuilder content stateView: @escaping (Binding<State>) -> StateView
+  ) -> some View
+  where State: Equatable, StateView: View {
+    WithBindingState(
+      from: self.controller,
+      at: keyPath,
+      updating: updating,
+      content: stateView
+    )
+  }
 
-	@_transparent
-	public func withValidatedBinding<State, StateView>(
-		_ keyPath: WritableKeyPath<ViewState, Validated<State>>,
-		updating: @escaping @MainActor (State) -> Void,
-		@ViewBuilder content stateView: @escaping (Binding<Validated<State>>) -> StateView
-	) -> some View
-	where State: Equatable, StateView: View {
-		WithBindingState(
-			from: self.controller,
-			atValidated: keyPath,
-			updating: updating,
-			content: stateView
-		)
-	}
+  @_transparent
+  public func withValidatedBinding<State, StateView>(
+    _ keyPath: WritableKeyPath<ViewState, Validated<State>>,
+    updating: @escaping @MainActor (State) -> Void,
+    @ViewBuilder content stateView: @escaping (Binding<Validated<State>>) -> StateView
+  ) -> some View
+  where State: Equatable, StateView: View {
+    WithBindingState(
+      from: self.controller,
+      atValidated: keyPath,
+      updating: updating,
+      content: stateView
+    )
+  }
 
   @_transparent
   public func withEach<State, StateView>(
@@ -161,47 +161,47 @@ extension ControlledView {
     )
   }
 
-	@_transparent
-	public func withSheet<State, SheetView, ContentView>(
-		_ keyPath: WritableKeyPath<ViewState, State?>,
-		@ViewBuilder sheet sheetView: @escaping (State) -> SheetView,
-		@ViewBuilder content contentView: @escaping () -> ContentView
-	) -> some View
-	where Controller: ViewController, State: Equatable & Identifiable, SheetView: View, ContentView: View {
-		WithSheet(
-			from: self.controller,
-			at: keyPath,
-			sheet: sheetView,
-			content: contentView
-		)
-	}
+  @_transparent
+  public func withSheet<State, SheetView, ContentView>(
+    _ keyPath: WritableKeyPath<ViewState, State?>,
+    @ViewBuilder sheet sheetView: @escaping (State) -> SheetView,
+    @ViewBuilder content contentView: @escaping () -> ContentView
+  ) -> some View
+  where Controller: ViewController, State: Equatable & Identifiable, SheetView: View, ContentView: View {
+    WithSheet(
+      from: self.controller,
+      at: keyPath,
+      sheet: sheetView,
+      content: contentView
+    )
+  }
 
-	@_transparent
-	public func withSheet<SheetView, ContentView>(
-		_ keyPath: WritableKeyPath<ViewState, Bool>,
-		@ViewBuilder sheet sheetView: @escaping () -> SheetView,
-		@ViewBuilder content contentView: @escaping () -> ContentView
-	) -> some View
-	where Controller: ViewController, SheetView: View, ContentView: View {
-		WithToggledSheet(
-			from: self.controller,
-			at: keyPath,
-			sheet: sheetView,
-			content: contentView
-		)
-	}
+  @_transparent
+  public func withSheet<SheetView, ContentView>(
+    _ keyPath: WritableKeyPath<ViewState, Bool>,
+    @ViewBuilder sheet sheetView: @escaping () -> SheetView,
+    @ViewBuilder content contentView: @escaping () -> ContentView
+  ) -> some View
+  where Controller: ViewController, SheetView: View, ContentView: View {
+    WithToggledSheet(
+      from: self.controller,
+      at: keyPath,
+      sheet: sheetView,
+      content: contentView
+    )
+  }
 
-	@ViewBuilder @MainActor public func withExternalActivity<ContentView>(
-		_ keyPath: WritableKeyPath<ViewState, ExternalActivityConfiguration?>,
-		@ViewBuilder content contentView: @escaping () -> ContentView
-	) -> some View 
-	where ContentView: View {
-		WithExternalActivity(
-			from: self.controller,
-			at: keyPath,
-			content: contentView
-		)
-	}
+  @ViewBuilder @MainActor public func withExternalActivity<ContentView>(
+    _ keyPath: WritableKeyPath<ViewState, ExternalActivityConfiguration?>,
+    @ViewBuilder content contentView: @escaping () -> ContentView
+  ) -> some View
+  where ContentView: View {
+    WithExternalActivity(
+      from: self.controller,
+      at: keyPath,
+      content: contentView
+    )
+  }
 }
 
 extension ControlledView {

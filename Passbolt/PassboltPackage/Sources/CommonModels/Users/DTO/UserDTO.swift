@@ -69,8 +69,8 @@ extension UserDTO {
       id: self.id,
       username: self.username,
       profile: profile,
-			publicKey: key.publicKey,
-      keyFingerprint: key.fingerprint, 
+      publicKey: key.publicKey,
+      keyFingerprint: key.fingerprint,
       isSuspended: isSuspended
     )
   }
@@ -78,18 +78,18 @@ extension UserDTO {
 
 extension UserDTO: Decodable {
 
-    public init(from decoder: Decoder) throws {
-      let container: KeyedDecodingContainer<CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
-      self.id = try container.decode(User.ID.self, forKey: .id)
-      self.active = try container.decode(Bool.self, forKey: .active)
-      self.deleted = try container.decode(Bool.self, forKey: .deleted)
-      self.username = try container.decode(String.self, forKey: .username)
-      self.profile = try container.decode(UserProfileDTO?.self, forKey: .profile)
-      self.key = try container.decode(PGPKeyDetails?.self, forKey: .key)
-      self.role = try container.decode(UserRole?.self, forKey: .role)?.name
-      let dateString = try container.decode(String?.self, forKey: .isSuspended)
-      self.isSuspended = UserSuspensionDeterminer.isUserSuspended(from: dateString)
-    }
+  public init(from decoder: Decoder) throws {
+    let container: KeyedDecodingContainer<CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+    self.id = try container.decode(User.ID.self, forKey: .id)
+    self.active = try container.decode(Bool.self, forKey: .active)
+    self.deleted = try container.decode(Bool.self, forKey: .deleted)
+    self.username = try container.decode(String.self, forKey: .username)
+    self.profile = try container.decode(UserProfileDTO?.self, forKey: .profile)
+    self.key = try container.decode(PGPKeyDetails?.self, forKey: .key)
+    self.role = try container.decode(UserRole?.self, forKey: .role)?.name
+    let dateString = try container.decode(String?.self, forKey: .isSuspended)
+    self.isSuspended = UserSuspensionDeterminer.isUserSuspended(from: dateString)
+  }
 
   private enum CodingKeys: String, CodingKey {
 
@@ -103,15 +103,15 @@ extension UserDTO: Decodable {
     case isSuspended = "disabled"
   }
 
-    private struct UserRole: Decodable {
-        let name: String?
-    }
+  private struct UserRole: Decodable {
+    let name: String?
+  }
 }
 
-fileprivate struct UserSuspensionDeterminer {
+private struct UserSuspensionDeterminer {
   static func isUserSuspended(from suspensionDateString: String?) -> Bool {
     guard let suspensionDateString,
-          let date = ISO8601DateFormatter().date(from: suspensionDateString)
+      let date = ISO8601DateFormatter().date(from: suspensionDateString)
     else { return false }
     return date < .now
   }

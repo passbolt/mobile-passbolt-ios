@@ -75,8 +75,8 @@ extension OTPScanningSuccessViewController {
 
   internal func updateExistingResource() async {
     await consumingErrors(
-			errorDiagnostics: "Failed to navigate to adding OTP to a resource"
-		) {
+      errorDiagnostics: "Failed to navigate to adding OTP to a resource"
+    ) {
       try await self.navigationToAttach.perform(
         context: .init(
           totpSecret: self.context.totpConfiguration.secret

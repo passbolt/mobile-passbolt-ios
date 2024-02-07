@@ -61,7 +61,7 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
       of: ApplicationSettingsViewController.self,
       returns: BiometricsAuthorizationAvailability.enabledFaceID
     ) { feature in
-      return await feature.viewState.current.biometicsAuthorizationAvailability
+      await feature.viewState.current.biometicsAuthorizationAvailability
     }
   }
 
@@ -105,8 +105,8 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
       of: ApplicationSettingsViewController.self,
       returns: BiometricsAuthorizationAvailability.unavailable
     ) { feature in
-      
-      return await feature.viewState.current.biometicsAuthorizationAvailability
+
+      await feature.viewState.current.biometicsAuthorizationAvailability
     }
   }
 
@@ -120,7 +120,7 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
       mockExecuted: 1
     ) { feature in
       await feature.navigateToAutofillSettings()
-      
+
     }
   }
 
@@ -134,7 +134,7 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
       mockExecuted: 1
     ) { feature in
       await feature.navigateToDefaultPresentationModeSettings()
-      
+
     }
   }
 
@@ -149,7 +149,7 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
       mockExecutedWith: true
     ) { feature in
       await feature.setBiometricsAuthorization(enabled: true)
-      
+
     }
 
     await withInstance(
@@ -157,7 +157,7 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
       mockExecutedWith: false
     ) { feature in
       await feature.setBiometricsAuthorization(enabled: false)
-      
+
     }
   }
 }

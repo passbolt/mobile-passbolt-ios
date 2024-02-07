@@ -25,7 +25,8 @@ import OSFeatures
 import UIComponents
 
 internal final class YubiKeyNotRecognizedAlertViewController:
-  AlertViewController<YubiKeyNotRecognizedAlertController>, UIComponent {
+  AlertViewController<YubiKeyNotRecognizedAlertController>, UIComponent
+{
 
   internal func setup() {
     mut(self) {
@@ -53,6 +54,6 @@ extension YubiKeyNotRecognizedAlertController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
-    return Self()
+    Self()
   }
 }

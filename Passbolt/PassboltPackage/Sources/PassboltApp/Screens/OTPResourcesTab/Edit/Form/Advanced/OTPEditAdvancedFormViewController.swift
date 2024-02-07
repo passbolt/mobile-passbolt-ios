@@ -93,7 +93,7 @@ internal final class OTPEditAdvancedFormViewController: ViewController {
           }
         }
         catch {
-					SnackBarMessageEvent.send(.error(error))
+          SnackBarMessageEvent.send(.error(error))
         }
       }
     )

@@ -23,19 +23,19 @@
 
 public struct ResourcesFeatureConfiguration {
 
-	public var passwordRevealEnabled: Bool
-	public var passwordCopyEnabled: Bool
-	public var totpEnabled: Bool
+  public var passwordRevealEnabled: Bool
+  public var passwordCopyEnabled: Bool
+  public var totpEnabled: Bool
 
-	public init(
-		passwordRevealEnabled: Bool,
-		passwordCopyEnabled: Bool,
-		totpEnabled: Bool
-	) {
-		self.passwordRevealEnabled = passwordRevealEnabled
-		self.passwordCopyEnabled = passwordCopyEnabled
-		self.totpEnabled = totpEnabled
-	}
+  public init(
+    passwordRevealEnabled: Bool,
+    passwordCopyEnabled: Bool,
+    totpEnabled: Bool
+  ) {
+    self.passwordRevealEnabled = passwordRevealEnabled
+    self.passwordCopyEnabled = passwordCopyEnabled
+    self.totpEnabled = totpEnabled
+  }
 }
 
 extension ResourcesFeatureConfiguration: Equatable {}

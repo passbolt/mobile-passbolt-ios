@@ -55,13 +55,13 @@ extension SessionData {
 
     let refreshTask: CriticalState<Task<Void, Error>?> = .init(.none)
 
-    Task { // initial refresh after loading
-			do {
-				try await refreshIfNeeded()
-			}
-			catch {
-				error.logged()
-			}
+    Task {  // initial refresh after loading
+      do {
+        try await refreshIfNeeded()
+      }
+      catch {
+        error.logged()
+      }
     }
 
     @Sendable nonisolated func refreshUsers() async throws {
@@ -74,8 +74,8 @@ extension SessionData {
         Diagnostics.logger.info("...users data refresh finished!")
       }
       catch {
-				Diagnostics.logger.info("...users data refresh failed!")
-				throw error
+        Diagnostics.logger.info("...users data refresh failed!")
+        throw error
       }
     }
 
@@ -89,7 +89,7 @@ extension SessionData {
         Diagnostics.logger.info("...user groups data refresh finished!")
       }
       catch {
-				Diagnostics.logger.info("...user groups data refresh failed!")
+        Diagnostics.logger.info("...user groups data refresh failed!")
         throw error
       }
     }
@@ -108,7 +108,7 @@ extension SessionData {
         Diagnostics.logger.info("...folders data refresh finished!")
       }
       catch {
-				Diagnostics.logger.info("...folders data refresh failed!")
+        Diagnostics.logger.info("...folders data refresh failed!")
         throw error
       }
     }
@@ -127,7 +127,7 @@ extension SessionData {
         Diagnostics.logger.info("...resources data refresh finished!")
       }
       catch {
-				Diagnostics.logger.info("...resources data refresh failed!")
+        Diagnostics.logger.info("...resources data refresh failed!")
         throw error
       }
     }

@@ -53,7 +53,8 @@ where ViewState: Equatable {
   @MainActor public init<Source>(
     initial: ViewState,
     updateFrom source: Source,
-    update: @escaping @MainActor (@MainActor (@MainActor (inout ViewState) -> Void) -> Void, Update<Source.Value>) async throws
+    update: @escaping @MainActor (@MainActor (@MainActor (inout ViewState) -> Void) -> Void, Update<Source.Value>)
+      async throws
       -> Void
   ) where Source: Updatable {
     // always keep reference to source to prevent unexpected

@@ -25,28 +25,28 @@ import Display
 
 public struct OperationResultControlledView: ControlledView {
 
-	public let controller: OperationResultViewController
+  public let controller: OperationResultViewController
 
-	public init(
-		controller: OperationResultViewController
-	) {
-		self.controller = controller
-	}
+  public init(
+    controller: OperationResultViewController
+  ) {
+    self.controller = controller
+  }
 
-	public var body: some View {
-		self.contentView
-		.navigationBarBackButtonHidden()
-	}
+  public var body: some View {
+    self.contentView
+      .navigationBarBackButtonHidden()
+  }
 
-	@ViewBuilder @MainActor private var contentView: some View {
-		with(\.self) { (viewState: OperationResultViewController.ViewState) in
-			OperationResultView(
-				image: viewState.image,
-				title: viewState.title,
-				message: viewState.message,
-				actionLabel: viewState.actionLabel,
-				action: self.controller.confirm
-			)
-		}
-	}
+  @ViewBuilder @MainActor private var contentView: some View {
+    with(\.self) { (viewState: OperationResultViewController.ViewState) in
+      OperationResultView(
+        image: viewState.image,
+        title: viewState.title,
+        message: viewState.message,
+        actionLabel: viewState.actionLabel,
+        action: self.controller.confirm
+      )
+    }
+  }
 }

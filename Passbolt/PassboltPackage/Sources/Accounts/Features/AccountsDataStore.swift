@@ -95,7 +95,6 @@ public struct AccountsDataStore {
 
 extension AccountsDataStore: LoadableFeature {
 
-
   #if DEBUG
   public static var placeholder: Self {
     Self(

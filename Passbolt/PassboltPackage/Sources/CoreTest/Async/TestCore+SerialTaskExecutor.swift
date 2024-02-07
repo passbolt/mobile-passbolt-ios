@@ -26,19 +26,19 @@ import Foundation
 // based on https://github.com/pointfreeco/swift-concurrency-extras/blob/main/Sources/ConcurrencyExtras/MainSerialExecutor.swift
 
 @MainActor public func withSerialTaskExecutor<Returned>(
-	@_implicitSelfCapture operation: @MainActor @Sendable () async throws -> Returned
+  @_implicitSelfCapture operation: @MainActor @Sendable () async throws -> Returned
 ) async rethrows -> Returned {
-	swift_task_enqueueGlobal_hook = mainSerialExecutor
-	defer { swift_task_enqueueGlobal_hook = .none }
-	return try await operation()
+  swift_task_enqueueGlobal_hook = mainSerialExecutor
+  defer { swift_task_enqueueGlobal_hook = .none }
+  return try await operation()
 }
 
 public nonisolated func withSerialTaskExecutor<Returned>(
-	@_implicitSelfCapture operation: () throws -> Returned
+  @_implicitSelfCapture operation: () throws -> Returned
 ) rethrows -> Returned {
-	swift_task_enqueueGlobal_hook = mainSerialExecutor
-	defer { swift_task_enqueueGlobal_hook = .none }
-	return try operation()
+  swift_task_enqueueGlobal_hook = mainSerialExecutor
+  defer { swift_task_enqueueGlobal_hook = .none }
+  return try operation()
 }
 
 private typealias TaskEnqueueHook = @convention(thin) (UnownedJob, @convention(thin) (UnownedJob) -> Void) -> Void

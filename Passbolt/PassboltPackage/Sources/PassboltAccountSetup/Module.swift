@@ -31,6 +31,6 @@ extension FeaturesRegistry {
     self.usePassboltAccountInjection()
     self.usePassboltAccountDataExport()
     self.usePassboltAccountChunkedExport()
-		self.usePassboltAccountArmoredKeyExport()
+    self.usePassboltAccountArmoredKeyExport()
   }
 }

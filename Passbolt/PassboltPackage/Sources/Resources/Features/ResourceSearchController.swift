@@ -66,7 +66,7 @@ public struct ResourceSearchFilter: Sendable, Equatable {
 
   public init(
     text: String = "",
-		includedTypes: Set<ResourceSpecification.Slug> = .init()
+    includedTypes: Set<ResourceSpecification.Slug> = .init()
   ) {
     self.text = text
     self.includedTypes = includedTypes

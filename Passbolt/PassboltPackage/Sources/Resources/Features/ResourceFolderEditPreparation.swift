@@ -26,45 +26,45 @@ import Features
 
 public struct ResourceFolderEditPreparation {
 
-	public var prepareNew:
-		@Sendable (
-			_ parentFolderID: ResourceFolder.ID?
-		) async throws -> FeaturesContainer
+  public var prepareNew:
+    @Sendable (
+      _ parentFolderID: ResourceFolder.ID?
+    ) async throws -> FeaturesContainer
 
-	public var prepareExisting: @Sendable (ResourceFolder.ID) async throws -> FeaturesContainer
+  public var prepareExisting: @Sendable (ResourceFolder.ID) async throws -> FeaturesContainer
 
-	public init(
-		prepareNew: @escaping @Sendable (
-			_ parentFolderID: ResourceFolder.ID?
-		) async throws -> FeaturesContainer,
-		prepareExisting: @escaping @Sendable (ResourceFolder.ID) async throws -> FeaturesContainer
-	) {
-		self.prepareNew = prepareNew
-		self.prepareExisting = prepareExisting
-	}
+  public init(
+    prepareNew: @escaping @Sendable (
+      _ parentFolderID: ResourceFolder.ID?
+    ) async throws -> FeaturesContainer,
+    prepareExisting: @escaping @Sendable (ResourceFolder.ID) async throws -> FeaturesContainer
+  ) {
+    self.prepareNew = prepareNew
+    self.prepareExisting = prepareExisting
+  }
 }
 
 extension ResourceFolderEditPreparation: LoadableFeature {
 
-	#if DEBUG
-	public nonisolated static var placeholder: Self {
-		.init(
-			prepareNew: unimplemented1(),
-			prepareExisting: unimplemented1()
-		)
-	}
-	#endif
+  #if DEBUG
+  public nonisolated static var placeholder: Self {
+    .init(
+      prepareNew: unimplemented1(),
+      prepareExisting: unimplemented1()
+    )
+  }
+  #endif
 }
 
 public struct ResourceFolderEditingContext {
 
-	public var editedResourceFolder: ResourceFolder
+  public var editedResourceFolder: ResourceFolder
 
-	public init(
-		editedResourceFolder: ResourceFolder
-	) {
-		self.editedResourceFolder = editedResourceFolder
-	}
+  public init(
+    editedResourceFolder: ResourceFolder
+  ) {
+    self.editedResourceFolder = editedResourceFolder
+  }
 }
 
 extension ResourceFolderEditingContext: Equatable {}

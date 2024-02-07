@@ -59,10 +59,10 @@ extension MainTabsController: UIController {
   ) throws -> Self {
     features =
       try features
-			.branch(
-				scope: AccountScope.self,
-				context: context.account
-			)
+      .branch(
+        scope: AccountScope.self,
+        context: context.account
+      )
       .branch(
         scope: SessionScope.self,
         context: context

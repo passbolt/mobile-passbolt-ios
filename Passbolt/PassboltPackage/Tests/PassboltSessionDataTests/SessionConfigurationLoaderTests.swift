@@ -21,363 +21,365 @@
 // @since         v1.0
 //
 
-@testable import PassboltSessionData
-import TestExtensions
 import CoreTest
+import TestExtensions
+
+@testable import PassboltSessionData
 
 final class SessionConfigurationLoaderTests: FeaturesTestCase {
 
-	override func commonPrepare() {
-		super.commonPrepare()
-		patch(
-			\Session.updates,
-			with: Variable(initial: Void()).asAnyUpdatable()
-		)
-		register(
-			{ $0.usePassboltSessionConfigurationLoader() },
-			for: SessionConfigurationLoader.self
-		)
-	}
+  override func commonPrepare() {
+    super.commonPrepare()
+    patch(
+      \Session.updates,
+      with: Variable(initial: Void()).asAnyUpdatable()
+    )
+    register(
+      { $0.usePassboltSessionConfigurationLoader() },
+      for: SessionConfigurationLoader.self
+    )
+  }
 
-	func test_sessionConfiguration_isDefault_whenAccessingCurrentAccountFails() async throws {
-		patch(
-			\Session.currentAccount,
-			with: alwaysThrow(MockIssue.error())
-		)
-		let feature: SessionConfigurationLoader = try self.testedInstance()
+  func test_sessionConfiguration_isDefault_whenAccessingCurrentAccountFails() async throws {
+    patch(
+      \Session.currentAccount,
+      with: alwaysThrow(MockIssue.error())
+    )
+    let feature: SessionConfigurationLoader = try self.testedInstance()
 
-		await verifyIf(
-			try await feature.sessionConfiguration(),
-			isEqual: .default
-		)
-	}
+    await verifyIf(
+      try await feature.sessionConfiguration(),
+      isEqual: .default
+    )
+  }
 
-	func test_sessionConfiguration_throws_whenFetchingServerConfigurationFails() async throws {
-		patch(
-			\Session.currentAccount,
-			with: always(.mock_ada)
-		)
-		patch(
-			\ServerConfigurationFetchNetworkOperation.execute,
-			 with: alwaysThrow(MockIssue.error())
-		)
-		let feature: SessionConfigurationLoader = try self.testedInstance()
+  func test_sessionConfiguration_throws_whenFetchingServerConfigurationFails() async throws {
+    patch(
+      \Session.currentAccount,
+      with: always(.mock_ada)
+    )
+    patch(
+      \ServerConfigurationFetchNetworkOperation.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
+    let feature: SessionConfigurationLoader = try self.testedInstance()
 
-		await verifyIf(
-			try await feature.sessionConfiguration(),
-			throws: MockIssue.self
-		)
-	}
+    await verifyIf(
+      try await feature.sessionConfiguration(),
+      throws: MockIssue.self
+    )
+  }
 
-	func test_sessionConfiguration_isDefault_whenNoLegalOrPluginsAvailable() async throws {
-		patch(
-			\Session.currentAccount,
-			with: always(.mock_ada)
-		)
-		patch(
-			\ServerConfigurationFetchNetworkOperation.execute,
-			 with: always(
-				.init(
-					legal: .init(
-						privacyPolicy: .none,
-						terms: .none
-					),
-					plugins: .init(
-						passwordPreview: .none,
-						folders: .none,
-						tags: .none,
-						totpResources: .none,
-						rbacs: .none
-					)
-				)
-			 )
-		)
+  func test_sessionConfiguration_isDefault_whenNoLegalOrPluginsAvailable() async throws {
+    patch(
+      \Session.currentAccount,
+      with: always(.mock_ada)
+    )
+    patch(
+      \ServerConfigurationFetchNetworkOperation.execute,
+      with: always(
+        .init(
+          legal: .init(
+            privacyPolicy: .none,
+            terms: .none
+          ),
+          plugins: .init(
+            passwordPreview: .none,
+            folders: .none,
+            tags: .none,
+            totpResources: .none,
+            rbacs: .none
+          )
+        )
+      )
+    )
 
-		let feature: SessionConfigurationLoader = try self.testedInstance()
+    let feature: SessionConfigurationLoader = try self.testedInstance()
 
-		await verifyIf(
-			try await feature.sessionConfiguration(),
-			isEqual: .default
-		)
-	}
+    await verifyIf(
+      try await feature.sessionConfiguration(),
+      isEqual: .default
+    )
+  }
 
-	func test_sessionConfiguration_matchesLegal_whenLegalAvailable() async throws {
-		patch(
-			\Session.currentAccount,
-			with: always(.mock_ada)
-		)
-		patch(
-			\ServerConfigurationFetchNetworkOperation.execute,
-			 with: always(
-				.init(
-					legal: .init(
-						privacyPolicy: "https://passbolt.com/privacyPolicy",
-						terms: "https://passbolt.com/terms"
-					),
-					plugins: .init(
-						passwordPreview: .init(
-							enabled: false
-						),
-						folders: .init(
-							enabled: true
-						),
-						tags: .init(
-							enabled: true
-						),
-						totpResources: .init(
-							enabled: true
-						),
-						rbacs: .init(
-							enabled: false
-						)
-					)
-				)
-			 )
-		)
+  func test_sessionConfiguration_matchesLegal_whenLegalAvailable() async throws {
+    patch(
+      \Session.currentAccount,
+      with: always(.mock_ada)
+    )
+    patch(
+      \ServerConfigurationFetchNetworkOperation.execute,
+      with: always(
+        .init(
+          legal: .init(
+            privacyPolicy: "https://passbolt.com/privacyPolicy",
+            terms: "https://passbolt.com/terms"
+          ),
+          plugins: .init(
+            passwordPreview: .init(
+              enabled: false
+            ),
+            folders: .init(
+              enabled: true
+            ),
+            tags: .init(
+              enabled: true
+            ),
+            totpResources: .init(
+              enabled: true
+            ),
+            rbacs: .init(
+              enabled: false
+            )
+          )
+        )
+      )
+    )
 
-		let feature: SessionConfigurationLoader = try self.testedInstance()
+    let feature: SessionConfigurationLoader = try self.testedInstance()
 
-		await verifyIf(
-			try await feature.sessionConfiguration(),
-			isEqual: .init(
-				termsURL: "https://passbolt.com/terms",
-				privacyPolicyURL: "https://passbolt.com/privacyPolicy",
-				resources: .init(
-					passwordRevealEnabled: false,
-					passwordCopyEnabled: true,
-					totpEnabled: true
-				),
-				folders: .init(
-					enabled: true
-				),
-				tags: .init(
-					enabled: true
-				),
-				share: .init(
-					showMembersList: true
-				)
-			)
-		)
-	}
+    await verifyIf(
+      try await feature.sessionConfiguration(),
+      isEqual: .init(
+        termsURL: "https://passbolt.com/terms",
+        privacyPolicyURL: "https://passbolt.com/privacyPolicy",
+        resources: .init(
+          passwordRevealEnabled: false,
+          passwordCopyEnabled: true,
+          totpEnabled: true
+        ),
+        folders: .init(
+          enabled: true
+        ),
+        tags: .init(
+          enabled: true
+        ),
+        share: .init(
+          showMembersList: true
+        )
+      )
+    )
+  }
 
-	func test_sessionConfiguration_matchesPlugins_whenPluginsAvailable() async throws {
-		patch(
-			\Session.currentAccount,
-			with: always(.mock_ada)
-		)
-		patch(
-			\ServerConfigurationFetchNetworkOperation.execute,
-			 with: always(
-				.init(
-					legal: .init(
-						privacyPolicy: .none,
-						terms: .none
-					),
-					plugins: .init(
-						passwordPreview: .init(
-							enabled: false
-						),
-						folders: .init(
-							enabled: true
-						),
-						tags: .init(
-							enabled: true
-						),
-						totpResources: .init(
-							enabled: true
-						),
-						rbacs: .init(
-							enabled: false
-						)
-					)
-				)
-			 )
-		)
+  func test_sessionConfiguration_matchesPlugins_whenPluginsAvailable() async throws {
+    patch(
+      \Session.currentAccount,
+      with: always(.mock_ada)
+    )
+    patch(
+      \ServerConfigurationFetchNetworkOperation.execute,
+      with: always(
+        .init(
+          legal: .init(
+            privacyPolicy: .none,
+            terms: .none
+          ),
+          plugins: .init(
+            passwordPreview: .init(
+              enabled: false
+            ),
+            folders: .init(
+              enabled: true
+            ),
+            tags: .init(
+              enabled: true
+            ),
+            totpResources: .init(
+              enabled: true
+            ),
+            rbacs: .init(
+              enabled: false
+            )
+          )
+        )
+      )
+    )
 
-		let feature: SessionConfigurationLoader = try self.testedInstance()
+    let feature: SessionConfigurationLoader = try self.testedInstance()
 
-		await verifyIf(
-			try await feature.sessionConfiguration(),
-			isEqual: .init(
-				termsURL: .none,
-				privacyPolicyURL: .none,
-				resources: .init(
-					passwordRevealEnabled: false,
-					passwordCopyEnabled: true,
-					totpEnabled: true
-				),
-				folders: .init(
-					enabled: true
-				),
-				tags: .init(
-					enabled: true
-				),
-				share: .init(
-					showMembersList: true
-				)
-			)
-		)
-	}
+    await verifyIf(
+      try await feature.sessionConfiguration(),
+      isEqual: .init(
+        termsURL: .none,
+        privacyPolicyURL: .none,
+        resources: .init(
+          passwordRevealEnabled: false,
+          passwordCopyEnabled: true,
+          totpEnabled: true
+        ),
+        folders: .init(
+          enabled: true
+        ),
+        tags: .init(
+          enabled: true
+        ),
+        share: .init(
+          showMembersList: true
+        )
+      )
+    )
+  }
 
-	func test_sessionConfiguration_throws_whenFetchingRBACSFails() async throws {
-		patch(
-			\Session.currentAccount,
-			with: always(.mock_ada)
-		)
-		patch(
-			\ServerConfigurationFetchNetworkOperation.execute,
-			 with: always(
-				.init(
-					legal: .init(
-						privacyPolicy: .none,
-						terms: .none
-					),
-					plugins: .init(
-						passwordPreview: .none,
-						folders: .none,
-						tags: .none,
-						totpResources: .none,
-						rbacs: .init(
-							enabled: true
-						)
-					)
-				)
-			 )
-		)
-		patch(
-			\FeatureAccessControlConfigurationFetchNetworkOperation.execute,
-			with: alwaysThrow(MockIssue.error())
-		)
+  func test_sessionConfiguration_throws_whenFetchingRBACSFails() async throws {
+    patch(
+      \Session.currentAccount,
+      with: always(.mock_ada)
+    )
+    patch(
+      \ServerConfigurationFetchNetworkOperation.execute,
+      with: always(
+        .init(
+          legal: .init(
+            privacyPolicy: .none,
+            terms: .none
+          ),
+          plugins: .init(
+            passwordPreview: .none,
+            folders: .none,
+            tags: .none,
+            totpResources: .none,
+            rbacs: .init(
+              enabled: true
+            )
+          )
+        )
+      )
+    )
+    patch(
+      \FeatureAccessControlConfigurationFetchNetworkOperation.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
 
-		let feature: SessionConfigurationLoader = try self.testedInstance()
+    let feature: SessionConfigurationLoader = try self.testedInstance()
 
-		await verifyIf(
-			try await feature.sessionConfiguration(),
-			throws: MockIssue.self
-		)
-	}
+    await verifyIf(
+      try await feature.sessionConfiguration(),
+      throws: MockIssue.self
+    )
+  }
 
-	func test_sessionConfiguration_respectsRBACS_whenFetchingRBACSSucceeds() async throws {
-		patch(
-			\Session.currentAccount,
-			with: always(.mock_ada)
-		)
-		patch(
-			\ServerConfigurationFetchNetworkOperation.execute,
-			 with: always(
-				.init(
-					legal: .init(
-						privacyPolicy: .none,
-						terms: .none
-					),
-					plugins: .init(
-						passwordPreview: .init(
-							enabled: true
-						),
-						folders: .init(
-							enabled: true
-						),
-						tags: .init(
-							enabled: true
-						),
-						totpResources: .init(
-							enabled: true
-						),
-						rbacs: .init(
-							enabled: true
-						)
-					)
-				)
-			 )
-		)
-		patch(
-			\FeatureAccessControlConfigurationFetchNetworkOperation.execute,
-			 with: always(
-				.init(
-					folders: .deny,
-					tags: .deny,
-					copySecrets: .deny,
-					previewSecrets: .deny,
-					viewShareList: .deny
-				)
-			)
-		)
+  func test_sessionConfiguration_respectsRBACS_whenFetchingRBACSSucceeds() async throws {
+    patch(
+      \Session.currentAccount,
+      with: always(.mock_ada)
+    )
+    patch(
+      \ServerConfigurationFetchNetworkOperation.execute,
+      with: always(
+        .init(
+          legal: .init(
+            privacyPolicy: .none,
+            terms: .none
+          ),
+          plugins: .init(
+            passwordPreview: .init(
+              enabled: true
+            ),
+            folders: .init(
+              enabled: true
+            ),
+            tags: .init(
+              enabled: true
+            ),
+            totpResources: .init(
+              enabled: true
+            ),
+            rbacs: .init(
+              enabled: true
+            )
+          )
+        )
+      )
+    )
+    patch(
+      \FeatureAccessControlConfigurationFetchNetworkOperation.execute,
+      with: always(
+        .init(
+          folders: .deny,
+          tags: .deny,
+          copySecrets: .deny,
+          previewSecrets: .deny,
+          viewShareList: .deny
+        )
+      )
+    )
 
-		let feature: SessionConfigurationLoader = try self.testedInstance()
+    let feature: SessionConfigurationLoader = try self.testedInstance()
 
-		await verifyIf(
-			try await feature.sessionConfiguration(),
-			isEqual: .init(
-				termsURL: .none,
-				privacyPolicyURL: .none,
-				resources: .init(
-					passwordRevealEnabled: false,
-					passwordCopyEnabled: false,
-					totpEnabled: true
-				),
-				folders: .init(
-					enabled: false
-				),
-				tags: .init(
-					enabled: false
-				),
-				share: .init(
-					showMembersList: false
-				)
-			)
-		)
-	}
+    await verifyIf(
+      try await feature.sessionConfiguration(),
+      isEqual: .init(
+        termsURL: .none,
+        privacyPolicyURL: .none,
+        resources: .init(
+          passwordRevealEnabled: false,
+          passwordCopyEnabled: false,
+          totpEnabled: true
+        ),
+        folders: .init(
+          enabled: false
+        ),
+        tags: .init(
+          enabled: false
+        ),
+        share: .init(
+          showMembersList: false
+        )
+      )
+    )
+  }
 
-	func test_sessionConfiguration_retriesFetchingAfterFailure() async throws {
-		patch(
-			\Session.currentAccount,
-			 with: always(.mock_ada)
-		)
-		patch(
-			\ServerConfigurationFetchNetworkOperation.execute,
-			 with: {
-				 self.mockExecuted()
-				 return try self.loadOrDefine(
-					\.serverConfigurationNetworkOperationResult,
-					 of: Result<ServerConfiguration, Error>.self,
-					 defaultValue: .failure(MockIssue.error())
-				 )
-				 .get()
-			 }
-		)
+  func test_sessionConfiguration_retriesFetchingAfterFailure() async throws {
+    patch(
+      \Session.currentAccount,
+      with: always(.mock_ada)
+    )
+    patch(
+      \ServerConfigurationFetchNetworkOperation.execute,
+      with: {
+        self.mockExecuted()
+        return
+          try self.loadOrDefine(
+            \.serverConfigurationNetworkOperationResult,
+            of: Result<ServerConfiguration, Error>.self,
+            defaultValue: .failure(MockIssue.error())
+          )
+          .get()
+      }
+    )
 
-		let feature: SessionConfigurationLoader = try self.testedInstance()
+    let feature: SessionConfigurationLoader = try self.testedInstance()
 
-		await verifyIf(
-			try await feature.sessionConfiguration(),
-			throws: MockIssue.self
-		)
+    await verifyIf(
+      try await feature.sessionConfiguration(),
+      throws: MockIssue.self
+    )
 
-		self.serverConfigurationNetworkOperationResult = Result<ServerConfiguration, Error>
-			.success(
-				.init(
-					legal: .init(
-						privacyPolicy: .none,
-						terms: .none
-					),
-					plugins: .init(
-						passwordPreview: .none,
-						folders: .none,
-						tags: .none,
-						totpResources: .none,
-						rbacs: .none
-					)
-				)
-			)
+    self.serverConfigurationNetworkOperationResult = Result<ServerConfiguration, Error>
+      .success(
+        .init(
+          legal: .init(
+            privacyPolicy: .none,
+            terms: .none
+          ),
+          plugins: .init(
+            passwordPreview: .none,
+            folders: .none,
+            tags: .none,
+            totpResources: .none,
+            rbacs: .none
+          )
+        )
+      )
 
-		await verifyIf(
-			try await feature.sessionConfiguration(),
-			isEqual: .default
-		)
+    await verifyIf(
+      try await feature.sessionConfiguration(),
+      isEqual: .default
+    )
 
-		await verifyIf(
-			self.mockExecutedCount,
-			isEqual: 2
-		)
-	}
+    await verifyIf(
+      self.mockExecutedCount,
+      isEqual: 2
+    )
+  }
 }

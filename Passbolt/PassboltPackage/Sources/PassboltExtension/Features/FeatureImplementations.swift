@@ -50,6 +50,6 @@ extension FeaturesRegistry {
     self.usePassboltResourcesModule()
     // it is required until navigations will become fully integrated
     self.useLiveNavigationToResourceEdit()
-		self.useLiveNavigationToOperationResult()
+    self.useLiveNavigationToOperationResult()
   }
 }

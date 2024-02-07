@@ -215,7 +215,7 @@ extension TimeVariable: Updatable {
   }
 
   public var value: Void {
-    @_transparent @Sendable get { Void() }
+    Void()
   }
 
   @Sendable public func notify(
@@ -281,7 +281,7 @@ extension TimeVariable: Updatable {
     }
     // if update is in progress wait for it
     else if let currentDeliver: DeliverUpdate = self.deliverUpdate {
-      self.deliverUpdate = { @Sendable(update:Update<Value>) in
+      self.deliverUpdate = { @Sendable(update: Update<Value>) in
         currentDeliver(update)
         awaiter(update)
       }

@@ -92,12 +92,12 @@ where HostedView: ComponentView {
             .style(.done),
             .image(named: legacyButton.icon, from: .uiCommons),
             .action {
-							Task {
-								await consumingErrors {
-									try await legacyButton.action()
-								}
-							}
-						}
+              Task {
+                await consumingErrors {
+                  try await legacyButton.action()
+                }
+              }
+            }
           )
           .instantiate()
       }  // else no button

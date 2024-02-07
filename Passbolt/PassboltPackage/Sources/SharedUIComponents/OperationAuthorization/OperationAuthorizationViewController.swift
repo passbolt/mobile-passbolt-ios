@@ -30,136 +30,136 @@ import Session
 
 internal final class OperationAuthorizationViewController: ViewController {
 
-	internal struct ViewState: Equatable {
+  internal struct ViewState: Equatable {
 
-		internal var accountLabel: String
-		internal var accountUsername: String
-		internal var accountDomain: String
-		internal var accountAvatarImage: Data?
-		internal var biometricsAvailability: OSBiometryAvailability
-		internal var passphrase: Validated<String>
-	}
+    internal var accountLabel: String
+    internal var accountUsername: String
+    internal var accountDomain: String
+    internal var accountAvatarImage: Data?
+    internal var biometricsAvailability: OSBiometryAvailability
+    internal var passphrase: Validated<String>
+  }
 
-	internal nonisolated let viewState: ViewStateSource<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
-	private nonisolated let passphraseValidator: Validator<String> = .nonEmpty(
-		displayable: .localized(
-			key: "authorization.passphrase.error"
-		)
-	)
+  private nonisolated let passphraseValidator: Validator<String> = .nonEmpty(
+    displayable: .localized(
+      key: "authorization.passphrase.error"
+    )
+  )
 
-	internal let configuration: OperationAuthorizationConfiguration
+  internal let configuration: OperationAuthorizationConfiguration
 
-	private let biometry: OSBiometry
-	private let accountDetails: AccountDetails
-	private let account: Account
+  private let biometry: OSBiometry
+  private let accountDetails: AccountDetails
+  private let account: Account
 
-	private let features: Features
+  private let features: Features
 
-	internal init(
-		context: OperationAuthorizationConfiguration,
-		features: Features
-	) throws {
-		self.features = features
+  internal init(
+    context: OperationAuthorizationConfiguration,
+    features: Features
+  ) throws {
+    self.features = features
 
-		self.configuration = context
+    self.configuration = context
 
-		self.account = try features.accountContext()
+    self.account = try features.accountContext()
 
-		self.biometry = features.instance()
+    self.biometry = features.instance()
 
-		self.accountDetails = try features.instance()
+    self.accountDetails = try features.instance()
 
-		self.viewState = .init(
-			initial: .init(
-				accountLabel: "",
-				accountUsername: "",
-				accountDomain: "",
-				accountAvatarImage: .none,
-				biometricsAvailability: .unavailable,
-				passphrase: .valid("")
-			),
-			updateFrom: self.accountDetails.updates,
-			update: { [accountDetails, biometry] (updateView, _) in
-				do {
-					let accountWithProfile: AccountWithProfile = try accountDetails.profile()
-					await updateView { (viewState: inout ViewState) in
-						viewState.accountLabel = accountWithProfile.label
-						viewState.accountUsername = accountWithProfile.username
-					}
-				}
-				catch {
-					error.consume(
-						context: "Failed to update account profile details!"
-					)
-				}
+    self.viewState = .init(
+      initial: .init(
+        accountLabel: "",
+        accountUsername: "",
+        accountDomain: "",
+        accountAvatarImage: .none,
+        biometricsAvailability: .unavailable,
+        passphrase: .valid("")
+      ),
+      updateFrom: self.accountDetails.updates,
+      update: { [accountDetails, biometry] (updateView, _) in
+        do {
+          let accountWithProfile: AccountWithProfile = try accountDetails.profile()
+          await updateView { (viewState: inout ViewState) in
+            viewState.accountLabel = accountWithProfile.label
+            viewState.accountUsername = accountWithProfile.username
+          }
+        }
+        catch {
+          error.consume(
+            context: "Failed to update account profile details!"
+          )
+        }
 
-				let biometricsAvailability: OSBiometryAvailability
-				if accountDetails.isPassphraseStored() {
-					switch biometry.availability() {
-					case .unavailable, .unconfigured:
-						biometricsAvailability = .unavailable
-					case .faceID:
-						biometricsAvailability = .faceID
+        let biometricsAvailability: OSBiometryAvailability
+        if accountDetails.isPassphraseStored() {
+          switch biometry.availability() {
+          case .unavailable, .unconfigured:
+            biometricsAvailability = .unavailable
+          case .faceID:
+            biometricsAvailability = .faceID
 
-					case .touchID:
-						biometricsAvailability = .touchID
-					}
-				}
-				else {
-					biometricsAvailability = .unavailable
-				}
+          case .touchID:
+            biometricsAvailability = .touchID
+          }
+        }
+        else {
+          biometricsAvailability = .unavailable
+        }
 
-				await updateView { (viewState: inout ViewState) in
-					viewState.biometricsAvailability = biometricsAvailability
-				}
+        await updateView { (viewState: inout ViewState) in
+          viewState.biometricsAvailability = biometricsAvailability
+        }
 
-				do {
-					let accountAvatarImage: Data? = try await accountDetails.avatarImage()
-					await updateView { (viewState: inout ViewState) in
-						viewState.accountAvatarImage = accountAvatarImage
-					}
-				}
-				catch {
-					// do not present that on screen
-					error.logged(
-						info: .message(
-							"Failed to update account avatar!"
-						)
-					)
-				}
-			}
-		)
-	}
+        do {
+          let accountAvatarImage: Data? = try await accountDetails.avatarImage()
+          await updateView { (viewState: inout ViewState) in
+            viewState.accountAvatarImage = accountAvatarImage
+          }
+        }
+        catch {
+          // do not present that on screen
+          error.logged(
+            info: .message(
+              "Failed to update account avatar!"
+            )
+          )
+        }
+      }
+    )
+  }
 }
 
 extension OperationAuthorizationViewController {
 
-	internal final func setPassphrase(
-		_ passphrase: String
-	) {
-		self.viewState.update(\.passphrase, to: passphraseValidator(passphrase))
-	}
+  internal final func setPassphrase(
+    _ passphrase: String
+  ) {
+    self.viewState.update(\.passphrase, to: passphraseValidator(passphrase))
+  }
 
-	internal final func authorizeWithPassphrase() async {
-		let validatedPassphrase: Validated<String> = await self.passphraseValidator(self.viewState.current.passphrase)
-		do {
-			let passphrase: String = try validatedPassphrase.validValue
-			try await self.configuration.operation(.passphrase(.init(rawValue: passphrase)))
-		}
-		catch {
-			error.consume()
-		}
-	}
+  internal final func authorizeWithPassphrase() async {
+    let validatedPassphrase: Validated<String> = await self.passphraseValidator(self.viewState.current.passphrase)
+    do {
+      let passphrase: String = try validatedPassphrase.validValue
+      try await self.configuration.operation(.passphrase(.init(rawValue: passphrase)))
+    }
+    catch {
+      error.consume()
+    }
+  }
 
-	internal final func authorizeWithBiometrics() async {
-		guard self.accountDetails.isPassphraseStored()
-		else { return } // can't use biometry without passphrase
-		do {
-			try await self.configuration.operation(.biometrics)
-		}
-		catch {
-			error.consume()
-		}
-	}
+  internal final func authorizeWithBiometrics() async {
+    guard self.accountDetails.isPassphraseStored()
+    else { return }  // can't use biometry without passphrase
+    do {
+      try await self.configuration.operation(.biometrics)
+    }
+    catch {
+      error.consume()
+    }
+  }
 }

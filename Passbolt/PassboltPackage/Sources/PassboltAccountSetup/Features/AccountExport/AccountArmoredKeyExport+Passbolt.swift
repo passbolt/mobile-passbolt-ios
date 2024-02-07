@@ -22,43 +22,43 @@
 //
 
 import AccountSetup
+import Crypto
 import FeatureScopes
 import OSFeatures
-import Crypto
 
 // MARK: - Implementation
 
 extension AccountArmoredKeyExport {
 
-	@MainActor fileprivate static func load(
-		features: Features
-	) throws -> Self {
-		let accountDataExport: AccountDataExport = try features.instance()
+  @MainActor fileprivate static func load(
+    features: Features
+  ) throws -> Self {
+    let accountDataExport: AccountDataExport = try features.instance()
 
-		@Sendable nonisolated func authorizePrivateKeyExport(
-			authorizationMethod: AccountAuthorizationMethod
-		) async throws -> ArmoredPGPPrivateKey {
-			try await accountDataExport
-				.exportAccountData(authorizationMethod)
-				.armoredKey
-		}
+    @Sendable nonisolated func authorizePrivateKeyExport(
+      authorizationMethod: AccountAuthorizationMethod
+    ) async throws -> ArmoredPGPPrivateKey {
+      try await accountDataExport
+        .exportAccountData(authorizationMethod)
+        .armoredKey
+    }
 
-		return .init(
-			authorizePrivateKeyExport: authorizePrivateKeyExport(authorizationMethod:)
-		)
-	}
+    return .init(
+      authorizePrivateKeyExport: authorizePrivateKeyExport(authorizationMethod:)
+    )
+  }
 }
 
 extension FeaturesRegistry {
 
-	internal mutating func usePassboltAccountArmoredKeyExport() {
-		self.use(
-			.lazyLoaded(
-				AccountArmoredKeyExport.self,
-				load: AccountArmoredKeyExport
-					.load(features:)
-			),
-			in: AccountTransferScope.self
-		)
-	}
+  internal mutating func usePassboltAccountArmoredKeyExport() {
+    self.use(
+      .lazyLoaded(
+        AccountArmoredKeyExport.self,
+        load: AccountArmoredKeyExport
+          .load(features:)
+      ),
+      in: AccountTransferScope.self
+    )
+  }
 }

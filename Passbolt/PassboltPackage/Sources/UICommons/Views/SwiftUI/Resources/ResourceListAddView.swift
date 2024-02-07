@@ -26,10 +26,10 @@ import SwiftUI
 
 public struct ResourceListAddView: View {
 
-  private let action: @MainActor () async throws-> Void
+  private let action: @MainActor () async throws -> Void
 
   public init(
-    action: @escaping @MainActor () async throws-> Void
+    action: @escaping @MainActor () async throws -> Void
   ) {
     self.action = action
   }

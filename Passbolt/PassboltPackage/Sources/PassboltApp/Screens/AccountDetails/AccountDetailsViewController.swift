@@ -21,122 +21,124 @@
 // @since         v1.0
 //
 
-import Display
 import Accounts
+import Display
 
 internal final class AccountDetailsViewController: ViewController {
 
-	internal struct State: Equatable {
-		internal var avatarImage: Data?
-		internal var domain: String
-		internal var currentAccountLabel: Validated<String>
-		internal var name: String
-		internal var username: String
-		internal var role: String?
-	}
+  internal struct State: Equatable {
+    internal var avatarImage: Data?
+    internal var domain: String
+    internal var currentAccountLabel: Validated<String>
+    internal var name: String
+    internal var username: String
+    internal var role: String?
+  }
 
-	internal let viewState: ViewStateSource<State>
-	private let features: Features
+  internal let viewState: ViewStateSource<State>
+  private let features: Features
 
-	private let accountDetails: AccountDetails
-	private let accountPreferences: AccountPreferences
-	private let navigationToTransferInfo: NavigationToTransferInfo
-	private let navigationToSelf: NavigationToAccountDetails
+  private let accountDetails: AccountDetails
+  private let accountPreferences: AccountPreferences
+  private let navigationToTransferInfo: NavigationToTransferInfo
+  private let navigationToSelf: NavigationToAccountDetails
 
-	private let accountLabelValidator: Validator<String> =
-		.maxLength(
-			80,
-			displayable: .localized(
-				key: "form.field.error.max.length"
-			)
-		)
+  private let accountLabelValidator: Validator<String> =
+    .maxLength(
+      80,
+      displayable: .localized(
+        key: "form.field.error.max.length"
+      )
+    )
 
-	internal init(
-		context: Void,
-		features: Features
-	) throws {
-		self.features = features
-		self.accountDetails = try features.instance()
-		self.accountPreferences = try features.instance()
+  internal init(
+    context: Void,
+    features: Features
+  ) throws {
+    self.features = features
+    self.accountDetails = try features.instance()
+    self.accountPreferences = try features.instance()
 
-		self.navigationToTransferInfo = try features.instance()
-		self.navigationToSelf = try features.instance()
+    self.navigationToTransferInfo = try features.instance()
+    self.navigationToSelf = try features.instance()
 
-		self.viewState = .init(
-			initial:
-					.init(
-						avatarImage: .none,
-						domain: "",
-						currentAccountLabel: .valid(""),
-						name: "",
-						username: "",
-						role: .none
-					),
-			updateFrom: accountDetails.updates,
-			update: { [accountDetails] (updateView, _) in
-				do {
-					let accountWithProfile: AccountWithProfile = try accountDetails.profile()
-					updateView { (viewState: inout State) in
-						viewState.name = "\(accountWithProfile.firstName) \(accountWithProfile.lastName)"
-						viewState.username = accountWithProfile.username
-						viewState.currentAccountLabel = .valid(accountWithProfile.label)
-						viewState.domain = accountWithProfile.domain.rawValue
-					}
+    self.viewState = .init(
+      initial:
+        .init(
+          avatarImage: .none,
+          domain: "",
+          currentAccountLabel: .valid(""),
+          name: "",
+          username: "",
+          role: .none
+        ),
+      updateFrom: accountDetails.updates,
+      update: { [accountDetails] (updateView, _) in
+        do {
+          let accountWithProfile: AccountWithProfile = try accountDetails.profile()
+          updateView { (viewState: inout State) in
+            viewState.name = "\(accountWithProfile.firstName) \(accountWithProfile.lastName)"
+            viewState.username = accountWithProfile.username
+            viewState.currentAccountLabel = .valid(accountWithProfile.label)
+            viewState.domain = accountWithProfile.domain.rawValue
+          }
 
-					let role: String? = try await accountDetails.role()
-					updateView { (viewState: inout State) in
-						viewState.role = role
-					}
+          let role: String? = try await accountDetails.role()
+          updateView { (viewState: inout State) in
+            viewState.role = role
+          }
 
-					let accountAvatarImage: Data? = try await accountDetails.avatarImage()
-					updateView { (viewState: inout State) in
-						viewState.avatarImage = accountAvatarImage
-					}
-				}
-				catch {
-					error.consume(
-						context: "Failed to update account details!"
-					)
-				}
-			})
-	}
+          let accountAvatarImage: Data? = try await accountDetails.avatarImage()
+          updateView { (viewState: inout State) in
+            viewState.avatarImage = accountAvatarImage
+          }
+        }
+        catch {
+          error.consume(
+            context: "Failed to update account details!"
+          )
+        }
+      }
+    )
+  }
 }
 extension AccountDetailsViewController {
 
-	internal func saveChanges() async throws {
-		let currentAccountLabel = await viewState.current.currentAccountLabel
-		let label: String
-		if currentAccountLabel.value.isEmpty {
-			let currentName = await viewState.current.name
-			label = currentName
-		}
-		else if currentAccountLabel.isValid {
-			label = currentAccountLabel.value
-		}
-		else {
-			throw InvalidForm
-				.error(
-					displayable: .localized(
-						key: "form.error.invalid"
-					)
-				)
-		}
-		try accountPreferences.setLocalAccountLabel(label)
-		try await self.navigationToSelf.revert()
-	}
+  internal func saveChanges() async throws {
+    let currentAccountLabel = await viewState.current.currentAccountLabel
+    let label: String
+    if currentAccountLabel.value.isEmpty {
+      let currentName = await viewState.current.name
+      label = currentName
+    }
+    else if currentAccountLabel.isValid {
+      label = currentAccountLabel.value
+    }
+    else {
+      throw
+        InvalidForm
+        .error(
+          displayable: .localized(
+            key: "form.error.invalid"
+          )
+        )
+    }
+    try accountPreferences.setLocalAccountLabel(label)
+    try await self.navigationToSelf.revert()
+  }
 
-	internal func transferAccount() async throws {
-		try await self.navigationToTransferInfo.perform(context: .export)
-	}
+  internal func transferAccount() async throws {
+    try await self.navigationToTransferInfo.perform(context: .export)
+  }
 }
 
 extension AccountDetailsViewController {
 
-	internal final func setCurrentAccountLabel(
-		_ label: String
-	) {
-		self.viewState.update { (state: inout ViewState) in
-			state.currentAccountLabel = accountLabelValidator.validate(label)
-		}
-	}
+  internal final func setCurrentAccountLabel(
+    _ label: String
+  ) {
+    self.viewState.update { (state: inout ViewState) in
+      state.currentAccountLabel = accountLabelValidator.validate(label)
+    }
+  }
 }

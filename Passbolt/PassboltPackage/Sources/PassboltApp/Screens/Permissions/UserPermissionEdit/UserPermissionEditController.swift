@@ -23,11 +23,11 @@
 
 import Accounts
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 import UIComponents
 import Users
-import FeatureScopes
 
 internal struct UserPermissionEditController {
 
@@ -54,11 +54,13 @@ extension UserPermissionEditController: ComponentController {
     let features: Features = features
 
     let navigation: DisplayNavigation = try features.instance()
-		let userDetails: UserDetails = try features
-			.branchIfNeeded(
-				scope: UserScope.self,
-				context: context.permissionDetails.id
-			).instance()
+    let userDetails: UserDetails =
+      try features
+      .branchIfNeeded(
+        scope: UserScope.self,
+        context: context.permissionDetails.id
+      )
+      .instance()
     let resourceShareForm: ResourceShareForm = try features.instance()
 
     let viewState: ObservableValue<ViewState> = .init(
@@ -66,13 +68,14 @@ extension UserPermissionEditController: ComponentController {
         name: .raw(
           context.permissionDetails.firstName
             + " "
-          + context.permissionDetails.lastName
-          + (context.permissionDetails.isSuspended ? " (\(DisplayableString.localized("resource.permission.details.user.suspended").string()))" : "")
+            + context.permissionDetails.lastName
+            + (context.permissionDetails.isSuspended
+              ? " (\(DisplayableString.localized("resource.permission.details.user.suspended").string()))" : "")
         ),
         username: .raw(context.permissionDetails.username),
         fingerprint: context.permissionDetails.fingerprint,
         permission: context.permissionDetails.permission,
-        avatarImageFetch: userDetails.avatarImage, 
+        avatarImageFetch: userDetails.avatarImage,
         isSuspended: context.permissionDetails.isSuspended
       )
     )

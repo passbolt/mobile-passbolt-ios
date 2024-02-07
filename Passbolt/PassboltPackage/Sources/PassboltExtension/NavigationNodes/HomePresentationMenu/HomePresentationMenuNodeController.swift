@@ -72,10 +72,10 @@ extension HomePresentationMenuNodeController {
     _ mode: HomePresentationMode
   ) {
     self.homePresentation.currentMode.set(to: mode)
-		self.navigationTree.dismiss(upTo: self.context)
+    self.navigationTree.dismiss(upTo: self.context)
   }
 
   internal func dismissView() {
-		self.navigationTree.dismiss(self.viewNodeID)
+    self.navigationTree.dismiss(self.viewNodeID)
   }
 }

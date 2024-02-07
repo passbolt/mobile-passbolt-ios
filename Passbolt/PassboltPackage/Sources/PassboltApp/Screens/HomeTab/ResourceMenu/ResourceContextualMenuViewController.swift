@@ -274,8 +274,8 @@ extension ResourceContextualMenuViewController {
 
       try await self.navigationToSelf.revert()
 
-			SnackBarMessageEvent.send(
-			.info(
+      SnackBarMessageEvent.send(
+        .info(
           .localized(
             key: "resource.menu.item.field.copied",
             arguments: [
@@ -283,7 +283,7 @@ extension ResourceContextualMenuViewController {
             ]
           )
         )
-			)
+      )
     }
   }
 
@@ -324,14 +324,14 @@ extension ResourceContextualMenuViewController {
       let resource: Resource = try await self.resourceController.state.value
       try await self.navigationToSelf.revert()
       if resource.favorite {
-				SnackBarMessageEvent.send(
-				.info(
+        SnackBarMessageEvent.send(
+          .info(
             .localized(
               key: "resource.menu.action.favorite.added",
               arguments: [resource.name]
             )
           )
-				)
+        )
       }
       else {
         SnackBarMessageEvent.send(

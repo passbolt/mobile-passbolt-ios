@@ -36,7 +36,6 @@ internal struct HomePresentation {
 
 extension HomePresentation: LoadableFeature {
 
-
   @MainActor internal static func load(
     using features: Features
   ) throws -> Self {
@@ -104,7 +103,7 @@ extension HomePresentation: LoadableFeature {
     }
 
     @MainActor func availableHomePresentationModes() -> OrderedSet<HomePresentationMode> {
-      return availablePresentationModes
+      availablePresentationModes
     }
 
     return Self(

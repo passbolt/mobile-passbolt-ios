@@ -75,7 +75,7 @@ internal struct UserListRowView_Previews: PreviewProvider {
         id: .init(),
         fullName: "John Doe",
         username: "johndoe@email.com",
-        avatarImageFetch: { nil }, 
+        avatarImageFetch: { nil },
         isSuspended: false
       ),
       contentAction: {},

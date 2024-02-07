@@ -25,7 +25,7 @@ public enum SessionMFAProvider: String {
 
   case totp = "totp"
   case yubiKey = "yubikey"
-	case duo = "duo"
+  case duo = "duo"
 }
 
 extension SessionMFAProvider: Hashable {}

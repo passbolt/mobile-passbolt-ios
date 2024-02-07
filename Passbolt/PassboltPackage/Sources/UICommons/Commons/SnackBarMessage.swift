@@ -28,14 +28,14 @@ import Commons
 /// on the screen.
 public enum SnackBarMessage {
 
-	/// Info message uses neutral background color
-	/// and can be used to indicate system events
-	/// and successful results of operations.
-	case info(DisplayableString)
-	/// Error message uses red background color
-	/// and should be used to indicate errors, invalid
-	/// states and issues within the application.
-	case error(DisplayableString = .localized(key: .genericError))
+  /// Info message uses neutral background color
+  /// and can be used to indicate system events
+  /// and successful results of operations.
+  case info(DisplayableString)
+  /// Error message uses red background color
+  /// and should be used to indicate errors, invalid
+  /// states and issues within the application.
+  case error(DisplayableString = .localized(key: .genericError))
 }
 
 extension SnackBarMessage: Sendable {}
@@ -44,34 +44,34 @@ extension SnackBarMessage: Equatable {}
 
 extension SnackBarMessage {
 
-	/// Automatically convert any error to
-	/// the message that can be displayed.
-	/// Message presented on screen is provided
-	/// by `TheError.displayableMessage`.
-	/// `CancellationError` / `Cancelled` errors
-	/// are ignored and does not produce a message.
-	public static func error(
-		_ error: Error
-	) -> Self? {
-		switch error {
-		case is CancellationError, is Cancelled:
-			return .none
+  /// Automatically convert any error to
+  /// the message that can be displayed.
+  /// Message presented on screen is provided
+  /// by `TheError.displayableMessage`.
+  /// `CancellationError` / `Cancelled` errors
+  /// are ignored and does not produce a message.
+  public static func error(
+    _ error: Error
+  ) -> Self? {
+    switch error {
+    case is CancellationError, is Cancelled:
+      return .none
 
-		case let error:
-			return .error(
-				error
-					.asTheError()
-					.displayableMessage
-			)
-		}
-	}
+    case let error:
+      return .error(
+        error
+          .asTheError()
+          .displayableMessage
+      )
+    }
+  }
 }
 
 extension SnackBarMessage: ExpressibleByStringLiteral {
 
-	public init(
-		stringLiteral value: String
-	) {
-		self = .info(DisplayableString(stringLiteral: value))
-	}
+  public init(
+    stringLiteral value: String
+  ) {
+    self = .info(DisplayableString(stringLiteral: value))
+  }
 }

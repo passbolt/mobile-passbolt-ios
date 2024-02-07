@@ -44,7 +44,7 @@ internal final class ResourceFolderLocationDetailsController: ViewController {
         folderShared: false
       ),
       updateFrom: resourceFolderController.state,
-			update: { updateView, update in
+      update: { updateView, update in
         let resourceFolder: ResourceFolder = try update.value
         var path: FolderLocationTreeView.Node = resourceFolder.path.reduce(
           into: FolderLocationTreeView.Node.root()

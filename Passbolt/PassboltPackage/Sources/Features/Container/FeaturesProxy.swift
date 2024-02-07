@@ -112,7 +112,8 @@ extension FeaturesProxy: Features {
   ) throws -> FeaturesContainer
   where RequestedScope: FeaturesScope {
     if let container: Features = self.container {
-      return try container
+      return
+        try container
         .branch(
           scope: RequestedScope.self,
           context: context,

@@ -42,32 +42,32 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
         configuration: .mock_1
       )
     )
-		set(
-			ResourceFolderEditScope.self,
-			context: .init(
-				editedResourceFolder: .init(
-					id: .none,
-					name: "",
-					path: [],
-					permission: .owner,
-					permissions: []
-				)
-			)
-		)
+    set(
+      ResourceFolderEditScope.self,
+      context: .init(
+        editedResourceFolder: .init(
+          id: .none,
+          name: "",
+          path: [],
+          permission: .owner,
+          permissions: []
+        )
+      )
+    )
   }
 
   func test_setFolderName_setsNameInForm() async throws {
     patch(
       \ResourceFolderEditForm.setFolderName,
-			 with: {
-				 self.mockExecuted()
-				 return .valid($0)
-			 }
+      with: {
+        self.mockExecuted()
+        return .valid($0)
+      }
     )
 
-		await withInstance(mockExecuted: 1) { (tested: ResourceFolderEditController) in
-			tested.setFolderName("folder name")
-		}
+    await withInstance(mockExecuted: 1) { (tested: ResourceFolderEditController) in
+      tested.setFolderName("folder name")
+    }
   }
 
   func test_saveChanges_sendsForm() async throws {
@@ -76,9 +76,9 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
       with: always(self.mockExecuted())
     )
 
-		await withInstance(mockExecuted: 1) { (tested: ResourceFolderEditController) in
-			await tested.saveChanges()
-		}
+    await withInstance(mockExecuted: 1) { (tested: ResourceFolderEditController) in
+      await tested.saveChanges()
+    }
   }
 
   func test_saveChanges_presentsError_whenSendingFormThrows() async throws {
@@ -88,35 +88,35 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
     )
     let messagesSubscription = SnackBarMessageEvent.subscribe()
 
-		await withInstance(
+    await withInstance(
       returns: SnackBarMessageEvent.Payload.show(.error(MockIssue.error())!)
-		) { (tested: ResourceFolderEditController) in
-			await tested.saveChanges()
-			return try await messagesSubscription.nextEvent()
-		}
+    ) { (tested: ResourceFolderEditController) in
+      await tested.saveChanges()
+      return try await messagesSubscription.nextEvent()
+    }
   }
 
   func test_viewState_updates_whenFormUpdates() async throws {
-		let formState: Variable<ResourceFolder> = Variable(
-			initial: ResourceFolder(
-				id: .none,
-				name: "",
-				path: [],
-				permission: .owner,
-				permissions: []
-			)
-		)
+    let formState: Variable<ResourceFolder> = Variable(
+      initial: ResourceFolder(
+        id: .none,
+        name: "",
+        path: [],
+        permission: .owner,
+        permissions: []
+      )
+    )
 
     patch(
       \ResourceFolderEditForm.state,
       with: formState.asAnyUpdatable()
     )
 
-		await withInstance(
-			returns: Validated.valid("edited")
-		) { (tested: ResourceFolderEditController) in
-			formState.assign("edited", to: \.name)
-			return await tested.viewState.current.folderName
-		}
+    await withInstance(
+      returns: Validated.valid("edited")
+    ) { (tested: ResourceFolderEditController) in
+      formState.assign("edited", to: \.name)
+      return await tested.viewState.current.folderName
+    }
   }
 }

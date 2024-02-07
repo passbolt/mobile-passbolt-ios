@@ -153,10 +153,11 @@ extension OTPConfigurationScanningViewController {
 private func parseTOTPConfiguration(
   from string: String
 ) throws -> TOTPConfiguration {
-  let string: String = string
-		.replacingOccurrences(of: "+", with: " ")
-		.removingPercentEncoding
-		?? string
+  let string: String =
+    string
+    .replacingOccurrences(of: "+", with: " ")
+    .removingPercentEncoding
+    ?? string
   var reminder: Substring = string[string.startIndex ..< string.endIndex]
 
   // check and remove scheme substring

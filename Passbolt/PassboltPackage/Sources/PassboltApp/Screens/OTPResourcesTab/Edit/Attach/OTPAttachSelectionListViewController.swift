@@ -113,13 +113,13 @@ internal final class OTPAttachSelectionListViewController: ViewController {
                 username: item.username,
                 state: local.selected?.id == item.id
                   ? .selected
-                : mapDeselectedState(of: item)
+                  : mapDeselectedState(of: item)
               )
             }
           }
         }
         catch {
-					SnackBarMessageEvent.send(.error(error))
+          SnackBarMessageEvent.send(.error(error))
         }
 
         func mapDeselectedState(of item: ResourceSearchResultItem) -> TOTPAttachSelectionListItemViewModel.State {

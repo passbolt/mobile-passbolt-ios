@@ -30,11 +30,11 @@ internal typealias NavigationToAccountDetails = NavigationTo<AccountDetailsNavig
 
 extension NavigationToAccountDetails {
 
-    fileprivate static var live: FeatureLoader {
-      legacyPushTransition(
-        to: AccountDetailsView.self
-      )
-    }
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(
+      to: AccountDetailsView.self
+    )
+  }
 }
 
 extension FeaturesRegistry {

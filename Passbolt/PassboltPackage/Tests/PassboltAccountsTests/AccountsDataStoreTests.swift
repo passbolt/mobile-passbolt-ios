@@ -42,7 +42,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     patch(
       \OSKeychain.load,
       with: { [unowned self] query in
-        return .success(
+        .success(
           self.mockKeychainStore
             .filter {
               $0.query.key == query.key
@@ -56,7 +56,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     patch(
       \OSKeychain.loadMeta,
       with: { [unowned self] query in
-        return .success(
+        .success(
           self.mockKeychainStore
             .filter { $0.query.key == query.key && ($0.query.tag == query.tag || query.tag == nil) }
             .map {

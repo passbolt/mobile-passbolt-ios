@@ -71,7 +71,7 @@ extension ResourcePermissionsDetailsViewController {
 
   @Sendable internal func activate() async {
     await consumingErrors(
-          errorDiagnostics: "Resource permissions details updates broken!",
+      errorDiagnostics: "Resource permissions details updates broken!",
       fallback: {
         try? await self.navigationToSelf.revert()
       }
@@ -115,7 +115,7 @@ extension ResourcePermissionsDetailsViewController {
       }
     }
     catch {
-			SnackBarMessageEvent.send(.error(error))
+      SnackBarMessageEvent.send(.error(error))
     }
   }
 

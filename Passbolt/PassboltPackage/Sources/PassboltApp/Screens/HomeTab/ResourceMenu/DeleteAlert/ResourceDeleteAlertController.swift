@@ -29,7 +29,7 @@ import Resources
 internal struct ResourceDeleteAlertController: AlertController {
 
   internal struct Context {
-  
+
     internal var resourceID: Resource.ID
   }
 
@@ -60,7 +60,7 @@ internal struct ResourceDeleteAlertController: AlertController {
         role: .destructive,
         action: {
           Task { @MainActor in
-						await consumingErrors {
+            await consumingErrors {
               try await resourceController.delete()
               SnackBarMessageEvent.send("resource.delete.succeeded")
             }

@@ -99,7 +99,7 @@ extension UsersListFetchDatabaseOperation {
           firstName: firstName,
           lastName: lastName,
           fingerprint: fingerprint,
-          avatarImageURL: avatarImageURL, 
+          avatarImageURL: avatarImageURL,
           isSuspended: isSuspended
         )
       }

@@ -55,7 +55,6 @@ public struct Users {
 
 extension Users: LoadableFeature {
 
-
   #if DEBUG
 
   public nonisolated static var placeholder: Self {

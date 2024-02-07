@@ -72,28 +72,30 @@ internal final class ResourceFolderContentDisplayController: ViewController {
         nestedResources: .init()
       ),
       updateFrom: ComputedVariable(
-				combined: context.filter,
-				with: self.sessionData.lastUpdate
-			),
-			update: { [resourceFolders, context] updateView, update in
-				let filter: ResourceFoldersFilter = try update.value.0
-				let filteredResourceFolderContent: ResourceFolderContent = try await resourceFolders.filteredFolderContent(filter)
+        combined: context.filter,
+        with: self.sessionData.lastUpdate
+      ),
+      update: { [resourceFolders, context] updateView, update in
+        let filter: ResourceFoldersFilter = try update.value.0
+        let filteredResourceFolderContent: ResourceFolderContent = try await resourceFolders.filteredFolderContent(
+          filter
+        )
 
-				await updateView { (viewState: inout ViewState) in
-					viewState.isSearchResult = !filter.text.isEmpty
-					viewState.suggestedResources = filteredResourceFolderContent.resources.filter(context.suggestionFilter)
-					viewState.directFolders = filteredResourceFolderContent.subfolders
-						.filter { $0.parentFolderID == filter.folderID }
-					viewState.nestedFolders = filteredResourceFolderContent.subfolders
-						.filter { $0.parentFolderID != filter.folderID }
-					viewState.directResources = filteredResourceFolderContent.resources
-						.filter { $0.parentFolderID == filter.folderID }
-					viewState.nestedResources = filteredResourceFolderContent.resources
-						.filter { $0.parentFolderID != filter.folderID }
-				}
-			}
-		)
-	}
+        await updateView { (viewState: inout ViewState) in
+          viewState.isSearchResult = !filter.text.isEmpty
+          viewState.suggestedResources = filteredResourceFolderContent.resources.filter(context.suggestionFilter)
+          viewState.directFolders = filteredResourceFolderContent.subfolders
+            .filter { $0.parentFolderID == filter.folderID }
+          viewState.nestedFolders = filteredResourceFolderContent.subfolders
+            .filter { $0.parentFolderID != filter.folderID }
+          viewState.directResources = filteredResourceFolderContent.resources
+            .filter { $0.parentFolderID == filter.folderID }
+          viewState.nestedResources = filteredResourceFolderContent.resources
+            .filter { $0.parentFolderID != filter.folderID }
+        }
+      }
+    )
+  }
 }
 
 extension ResourceFolderContentDisplayController {
@@ -129,9 +131,9 @@ extension ResourceFolderContentDisplayController {
       try await self.sessionData.refreshIfNeeded()
     }
     catch {
-			error.consume(
-				context: "Failed to refresh session data."
-			)
+      error.consume(
+        context: "Failed to refresh session data."
+      )
     }
   }
 }

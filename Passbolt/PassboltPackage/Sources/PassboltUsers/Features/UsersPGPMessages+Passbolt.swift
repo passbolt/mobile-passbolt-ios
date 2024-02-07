@@ -63,7 +63,7 @@ extension UsersPGPMessages {
       ) { (group: inout ThrowingTaskGroup<EncryptedMessage, Error>) in
         for userKey: UserPublicKeyDSV in usersKeys {
           group.addTask {
-            return try await EncryptedMessage(
+            try await EncryptedMessage(
               recipient: userKey.userID,
               message:
                 sessionCryptography

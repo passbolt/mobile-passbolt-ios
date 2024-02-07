@@ -148,7 +148,7 @@ extension FoldersExplorerController: ComponentController {
           .refreshIfNeeded()
       }
       catch {
-				error.consume()
+        error.consume()
       }
     }
 
@@ -229,7 +229,7 @@ extension FoldersExplorerController: ComponentController {
     }
 
     @MainActor func presentAccountMenu() async throws {
-			try await navigationToAccountMenu.perform()
+      try await navigationToAccountMenu.perform()
     }
 
     nonisolated func presentResourceFolderMenu() {

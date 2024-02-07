@@ -38,7 +38,7 @@ internal struct TroubleshootingSettingsView: ControlledView {
     ScreenView(
       title: "settings.troubleshooting.title",
       contentView: {
-				self.content
+        self.content
       }
     )
   }

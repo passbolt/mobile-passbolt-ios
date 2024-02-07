@@ -124,14 +124,14 @@ extension ResourceSearchDisplayController {
   }
 
   internal final func showPresentationMenu() async throws {
-		try self.navigationTree.present(
-			.sheet,
-			HomePresentationMenuNodeView.self,
-			controller: self.features.instance(context: context.nodeID)
-		)
+    try self.navigationTree.present(
+      .sheet,
+      HomePresentationMenuNodeView.self,
+      controller: self.features.instance(context: context.nodeID)
+    )
   }
 
   internal final func signOut() async {
-		await self.session.close(.none)
+    await self.session.close(.none)
   }
 }

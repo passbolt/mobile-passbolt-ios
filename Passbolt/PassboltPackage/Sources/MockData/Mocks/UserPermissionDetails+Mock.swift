@@ -32,7 +32,7 @@ extension UserPermissionDetailsDSV {
     lastName: "1",
     fingerprint: "MOCK_1",
     avatarImageURL: .mock_apple,
-    permission: .owner, 
+    permission: .owner,
     isSuspended: false
   )
 }

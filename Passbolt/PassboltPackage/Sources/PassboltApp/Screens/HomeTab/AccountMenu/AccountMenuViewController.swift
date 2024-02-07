@@ -28,115 +28,115 @@ import UIKit
 
 internal final class AccountMenuViewController: PlainViewController, UIComponent {
 
-	internal typealias ContentView = AccountMenuView
-	internal typealias Controller = AccountMenuController
+  internal typealias ContentView = AccountMenuView
+  internal typealias Controller = AccountMenuController
 
-	internal static func instance(
-		using controller: Controller,
-		with components: UIComponentFactory,
-		cancellables: Cancellables
-	) -> Self {
-		Self(
-			using: controller,
-			with: components,
-			cancellables: cancellables
-		)
-	}
+  internal static func instance(
+    using controller: Controller,
+    with components: UIComponentFactory,
+    cancellables: Cancellables
+  ) -> Self {
+    Self(
+      using: controller,
+      with: components,
+      cancellables: cancellables
+    )
+  }
 
-	internal private(set) lazy var contentView: ContentView = .init(
-		currentAcountWithProfile: controller.currentAccountWithProfile,
-		currentAcountAvatarImagePublisher:
-			controller
-			.currentAcountAvatarImagePublisher()
-			.map { data -> UIImage? in
-				data.flatMap { UIImage(data: $0) }
-			}
-			.eraseToAnyPublisher()
-	)
-	internal let components: UIComponentFactory
-	private let controller: Controller
+  internal private(set) lazy var contentView: ContentView = .init(
+    currentAcountWithProfile: controller.currentAccountWithProfile,
+    currentAcountAvatarImagePublisher:
+      controller
+      .currentAcountAvatarImagePublisher()
+      .map { data -> UIImage? in
+        data.flatMap { UIImage(data: $0) }
+      }
+      .eraseToAnyPublisher()
+  )
+  internal let components: UIComponentFactory
+  private let controller: Controller
 
-	internal init(
-		using controller: Controller,
-		with components: UIComponentFactory,
-		cancellables: Cancellables
-	) {
-		self.controller = controller
-		self.components = components
-		super
-			.init(
-				cancellables: cancellables
-			)
-		self.isModalInPresentation = false
-	}
+  internal init(
+    using controller: Controller,
+    with components: UIComponentFactory,
+    cancellables: Cancellables
+  ) {
+    self.controller = controller
+    self.components = components
+    super
+      .init(
+        cancellables: cancellables
+      )
+    self.isModalInPresentation = false
+  }
 
-	internal func setupView() {
-		title =
-		DisplayableString
-			.localized("account.menu.title")
-			.string()
+  internal func setupView() {
+    title =
+      DisplayableString
+      .localized("account.menu.title")
+      .string()
 
-		contentView
-			.signOutTapPublisher
-			.asyncMap { [weak self] in
-				await consumingErrors {
-					try await self?.controller.signOut()
-				}
-			}
-			.sinkDrop()
-			.store(in: cancellables)
+    contentView
+      .signOutTapPublisher
+      .asyncMap { [weak self] in
+        await consumingErrors {
+          try await self?.controller.signOut()
+        }
+      }
+      .sinkDrop()
+      .store(in: cancellables)
 
-		contentView
-			.accountDetailsTapPublisher
-			.asyncMap { [weak self] in
-				await consumingErrors {
-					try await self?.controller.presentAccountDetails()
-				}
-			}
-			.sinkDrop()
-			.store(in: cancellables)
+    contentView
+      .accountDetailsTapPublisher
+      .asyncMap { [weak self] in
+        await consumingErrors {
+          try await self?.controller.presentAccountDetails()
+        }
+      }
+      .sinkDrop()
+      .store(in: cancellables)
 
-		contentView
-			.accountSwitchTapPublisher
-			.asyncMap { [weak self] account in
-				await consumingErrors {
-					try await self?.controller.presentAccountSwitch(account)
-				}
-			}
-			.sinkDrop()
-			.store(in: cancellables)
+    contentView
+      .accountSwitchTapPublisher
+      .asyncMap { [weak self] account in
+        await consumingErrors {
+          try await self?.controller.presentAccountSwitch(account)
+        }
+      }
+      .sinkDrop()
+      .store(in: cancellables)
 
-		contentView
-			.manageAccountsTapPublisher
-			.asyncMap { [weak self] in
-				await consumingErrors {
-					try await self?.controller.presentManageAccounts()
-				}
-			}
-			.sinkDrop()
-			.store(in: cancellables)
+    contentView
+      .manageAccountsTapPublisher
+      .asyncMap { [weak self] in
+        await consumingErrors {
+          try await self?.controller.presentManageAccounts()
+        }
+      }
+      .sinkDrop()
+      .store(in: cancellables)
 
-		controller
-			.accountsListPublisher()
-			.receive(on: RunLoop.main)
-			.sink { [weak self] accounts in
-				self?.contentView
-					.updateAccountsList(
-						accounts:
-							accounts
-							.map { account in
-								(
-									accountWithProfile: account.accountWithProfile,
-									avatarImagePublisher: account
-										.avatarImagePublisher
-										.map { data -> UIImage? in
-											data.flatMap(UIImage.init(data:))
-										}
-										.eraseToAnyPublisher()
-								)
-							}
-					)
-			}
-			.store(in: cancellables)
-	}
+    controller
+      .accountsListPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] accounts in
+        self?.contentView
+          .updateAccountsList(
+            accounts:
+              accounts
+              .map { account in
+                (
+                  accountWithProfile: account.accountWithProfile,
+                  avatarImagePublisher: account
+                    .avatarImagePublisher
+                    .map { data -> UIImage? in
+                      data.flatMap(UIImage.init(data:))
+                    }
+                    .eraseToAnyPublisher()
+                )
+              }
+          )
+      }
+      .store(in: cancellables)
+  }
 }

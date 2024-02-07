@@ -39,7 +39,6 @@ internal struct HomePresentation {
 
 extension HomePresentation: LoadableFeature {
 
-
   #if DEBUG
   internal nonisolated static var placeholder: Self {
     .init(
@@ -108,16 +107,17 @@ extension HomePresentation {
     }
 
     return Self(
-      currentMode: currentModeBinding
-      .convert(
-				read: { $0 },
-				write: {
-					if useLastUsedHomePresentationAsDefault.get() {
-						defaultHomePresentation.set(to: $0)
-					}  // else NOP
-					return $0
-				}
-			),
+      currentMode:
+        currentModeBinding
+        .convert(
+          read: { $0 },
+          write: {
+            if useLastUsedHomePresentationAsDefault.get() {
+              defaultHomePresentation.set(to: $0)
+            }  // else NOP
+            return $0
+          }
+        ),
       availableModes: availableModes
     )
   }

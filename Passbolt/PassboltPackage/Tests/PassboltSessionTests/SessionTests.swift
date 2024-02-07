@@ -81,7 +81,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
     self.pendingAuthorization = SessionState.PendingAuthorization.passphrase(for: Account.mock_ada)
     withTestedInstanceReturnsEqual(SessionAuthorizationRequest.passphrase(Account.mock_ada)) {
       (testedInstance: Session) in
-      return await testedInstance.pendingAuthorization()
+      await testedInstance.pendingAuthorization()
     }
   }
 
@@ -177,7 +177,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
       try await testedInstance.authorizeMFA(
         .totp(
           Account.mock_ada,
-					code: "totp",
+          code: "totp",
           rememberDevice: false
         )
       )
@@ -196,7 +196,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
       try await testedInstance.authorizeMFA(
         .totp(
           Account.mock_ada,
-					code: "totp",
+          code: "totp",
           rememberDevice: false
         )
       )
@@ -219,7 +219,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
       try await testedInstance.authorizeMFA(
         .totp(
           Account.mock_ada,
-					code: "totp",
+          code: "totp",
           rememberDevice: false
         )
       )
@@ -242,7 +242,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
       try await testedInstance.authorizeMFA(
         .totp(
           Account.mock_ada,
-					code: "totp",
+          code: "totp",
           rememberDevice: false
         )
       )

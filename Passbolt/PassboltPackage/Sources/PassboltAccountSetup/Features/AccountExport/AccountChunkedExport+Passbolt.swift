@@ -34,295 +34,295 @@ import class Foundation.JSONEncoder
 
 extension AccountChunkedExport {
 
-	fileprivate struct State {
+  fileprivate struct State {
 
-		fileprivate var transferID: String?
-		fileprivate var currentTransferPage: Int
-		fileprivate var transferDataChunks: Array<Data>
-		fileprivate var error: TheError?
-	}
+    fileprivate var transferID: String?
+    fileprivate var currentTransferPage: Int
+    fileprivate var transferDataChunks: Array<Data>
+    fileprivate var error: TheError?
+  }
 
-	@MainActor fileprivate static func load(
-		features: Features
-	) throws -> Self {
-		try features.ensureScope(SessionScope.self)
-		try features.ensureScope(AccountTransferScope.self)
+  @MainActor fileprivate static func load(
+    features: Features
+  ) throws -> Self {
+    try features.ensureScope(SessionScope.self)
+    try features.ensureScope(AccountTransferScope.self)
 
-		let pollingTask: CriticalState<Task<Void, Never>?> = .init(.none)
+    let pollingTask: CriticalState<Task<Void, Never>?> = .init(.none)
 
-		let accountDataExport: AccountDataExport = try features.instance()
-		let transferInitializeNetworkOperation: AccountChunkedExportInitializeNetworkOperation = try features.instance()
-		let transferStatusNetworkOperation: AccountChunkedExportStatusNetworkOperation = try features.instance()
+    let accountDataExport: AccountDataExport = try features.instance()
+    let transferInitializeNetworkOperation: AccountChunkedExportInitializeNetworkOperation = try features.instance()
+    let transferStatusNetworkOperation: AccountChunkedExportStatusNetworkOperation = try features.instance()
 
-		let updatesSource: Updates = .init()
-		let state: CriticalState<State> = .init(
-			.init(
-				transferID: .none,
-				currentTransferPage: 0,
-				transferDataChunks: .init(),
-				error: .none
-			)
-		)
+    let updatesSource: Updates = .init()
+    let state: CriticalState<State> = .init(
+      .init(
+        transferID: .none,
+        currentTransferPage: 0,
+        transferDataChunks: .init(),
+        error: .none
+      )
+    )
 
-		@Sendable nonisolated func status() -> Status {
-			state.access { (state: inout State) -> Status in
-				if let error: TheError = state.error {
-					return .error(error)
-				}
-				else if state.transferDataChunks.isEmpty || state.transferID == .none {
-					return .uninitialized
-				}
-				else if state.currentTransferPage == state.transferDataChunks.count {
-					return .finished
-				}
-				else {
-					let page: Int = state.currentTransferPage
-					return .part(page, content: state.transferDataChunks[page])
-				}
-			}
-		}
+    @Sendable nonisolated func status() -> Status {
+      state.access { (state: inout State) -> Status in
+        if let error: TheError = state.error {
+          return .error(error)
+        }
+        else if state.transferDataChunks.isEmpty || state.transferID == .none {
+          return .uninitialized
+        }
+        else if state.currentTransferPage == state.transferDataChunks.count {
+          return .finished
+        }
+        else {
+          let page: Int = state.currentTransferPage
+          return .part(page, content: state.transferDataChunks[page])
+        }
+      }
+    }
 
-		@Sendable nonisolated func encodePayload(
-			_ transferData: AccountTransferData,
-			chunkSize: Int
-		) throws -> (encodedData: Data, pagesCount: Int, dataHash: String) {
-			let payload: AccountTransferAccount = .init(
-				userID: transferData.userID,
-				fingerprint: transferData.fingerprint,
-				armoredKey: transferData.armoredKey
-			)
-			let encodedPayload: Data = try JSONEncoder.snake.encode(payload)
+    @Sendable nonisolated func encodePayload(
+      _ transferData: AccountTransferData,
+      chunkSize: Int
+    ) throws -> (encodedData: Data, pagesCount: Int, dataHash: String) {
+      let payload: AccountTransferAccount = .init(
+        userID: transferData.userID,
+        fingerprint: transferData.fingerprint,
+        armoredKey: transferData.armoredKey
+      )
+      let encodedPayload: Data = try JSONEncoder.snake.encode(payload)
 
-			let payloadDataHash: String =
-			SHA512
-				.hash(data: encodedPayload)
-				.compactMap { String(format: "%02x", $0) }
-				.joined()
+      let payloadDataHash: String =
+        SHA512
+        .hash(data: encodedPayload)
+        .compactMap { String(format: "%02x", $0) }
+        .joined()
 
-			let numberOfPages: Int =
-			encodedPayload.count / chunkSize
-			+ (encodedPayload.count % chunkSize == 0
-				 ? 0 : 1)  // add reminder page if needed
+      let numberOfPages: Int =
+        encodedPayload.count / chunkSize
+        + (encodedPayload.count % chunkSize == 0
+          ? 0 : 1)  // add reminder page if needed
 
-			return (
-				encodedPayload,
-				numberOfPages,
-				payloadDataHash
-			)
-		}
+      return (
+        encodedPayload,
+        numberOfPages,
+        payloadDataHash
+      )
+    }
 
-		@Sendable nonisolated func prepareDataChunks(
-			transferID: String,
-			userID: User.ID,
-			authenticationToken: String,
-			domain: URLString,
-			chunkSize: Int,
-			chunkCount: Int,
-			payload: Data,
-			payloadDataHash: String
-		) throws -> Array<Data> {
-			let chunckedPayload: Array<Data> = payload.split(chunkSize: chunkSize)
+    @Sendable nonisolated func prepareDataChunks(
+      transferID: String,
+      userID: User.ID,
+      authenticationToken: String,
+      domain: URLString,
+      chunkSize: Int,
+      chunkCount: Int,
+      payload: Data,
+      payloadDataHash: String
+    ) throws -> Array<Data> {
+      let chunckedPayload: Array<Data> = payload.split(chunkSize: chunkSize)
 
-			let configuration: AccountTransferConfiguration = .init(
-				transferID: transferID,
-				pagesCount: chunkCount,
-				userID: userID,
-				authenticationToken: authenticationToken,
-				domain: domain,
-				hash: payloadDataHash
-			)
-			let encodedConfiguration: Data = try JSONEncoder.snake.encode(configuration)
+      let configuration: AccountTransferConfiguration = .init(
+        transferID: transferID,
+        pagesCount: chunkCount,
+        userID: userID,
+        authenticationToken: authenticationToken,
+        domain: domain,
+        hash: payloadDataHash
+      )
+      let encodedConfiguration: Data = try JSONEncoder.snake.encode(configuration)
 
-			var transferDataChunks: Array<Data> = [
-				"100".data(using: .ascii)! /* it can't fail */
-				+ encodedConfiguration
-			]
+      var transferDataChunks: Array<Data> = [
+        "100".data(using: .ascii)! /* it can't fail */
+          + encodedConfiguration
+      ]
 
-			for (idx, chunk) in chunckedPayload.enumerated() {
-				transferDataChunks
-					.append(
-						String(
-							format: "1%02X",
-							arguments: [idx + 1]
-						)
-						.data(using: .ascii)! /* it can't fail */
-						+ chunk
-					)
-			}
+      for (idx, chunk) in chunckedPayload.enumerated() {
+        transferDataChunks
+          .append(
+            String(
+              format: "1%02X",
+              arguments: [idx + 1]
+            )
+            .data(using: .ascii)! /* it can't fail */
+              + chunk
+          )
+      }
 
-			return transferDataChunks
-		}
+      return transferDataChunks
+    }
 
-		@Sendable nonisolated func authorize(
-			authorizationMethod: AccountAuthorizationMethod
-		) async throws {
-			// Make sure it won't be called concurrently
-			// it does not track ongoing attempts to authorize.
-			if let error: TheError = state.get(\.error) {
-				throw error
-			}
-			else if !state.get(\.transferDataChunks.isEmpty) {
-				throw
-				InternalInconsistency
-					.error(
-						"Attempting to authorize with ongoing account transfer!"
-					)
-			}  // else continue
+    @Sendable nonisolated func authorize(
+      authorizationMethod: AccountAuthorizationMethod
+    ) async throws {
+      // Make sure it won't be called concurrently
+      // it does not track ongoing attempts to authorize.
+      if let error: TheError = state.get(\.error) {
+        throw error
+      }
+      else if !state.get(\.transferDataChunks.isEmpty) {
+        throw
+          InternalInconsistency
+          .error(
+            "Attempting to authorize with ongoing account transfer!"
+          )
+      }  // else continue
 
-			let transferPayload: AccountTransferData = try await accountDataExport.exportAccountData(authorizationMethod)
+      let transferPayload: AccountTransferData = try await accountDataExport.exportAccountData(authorizationMethod)
 
-			let chunkSize: Int = 1462  // size without chunk prefix which is always 3 bytes ("1" and page number)
-			let (encodedPayload, payloadChunkCount, payloadDataHash): (Data, Int, String) = try encodePayload(
-				transferPayload,
-				chunkSize: chunkSize
-			)
+      let chunkSize: Int = 1462  // size without chunk prefix which is always 3 bytes ("1" and page number)
+      let (encodedPayload, payloadChunkCount, payloadDataHash): (Data, Int, String) = try encodePayload(
+        transferPayload,
+        chunkSize: chunkSize
+      )
 
-			let chunkCount: Int = payloadChunkCount + 1  // add configuration chunk to total count
+      let chunkCount: Int = payloadChunkCount + 1  // add configuration chunk to total count
 
-			let initializationResult: AccountChunkedExportInitializeResponseData =
-			try await transferInitializeNetworkOperation(
-				.init(
-					payloadHash: payloadDataHash,
-					totalPagesCount: chunkCount
-				)
-			)
+      let initializationResult: AccountChunkedExportInitializeResponseData =
+        try await transferInitializeNetworkOperation(
+          .init(
+            payloadHash: payloadDataHash,
+            totalPagesCount: chunkCount
+          )
+        )
 
-			let chunkedData: Array<Data> = try prepareDataChunks(
-				transferID: initializationResult.id,
-				userID: transferPayload.userID,
-				authenticationToken: initializationResult.token,
-				domain: transferPayload.domain,
-				chunkSize: chunkSize,
-				chunkCount: chunkCount,
-				payload: encodedPayload,
-				payloadDataHash: payloadDataHash
-			)
+      let chunkedData: Array<Data> = try prepareDataChunks(
+        transferID: initializationResult.id,
+        userID: transferPayload.userID,
+        authenticationToken: initializationResult.token,
+        domain: transferPayload.domain,
+        chunkSize: chunkSize,
+        chunkCount: chunkCount,
+        payload: encodedPayload,
+        payloadDataHash: payloadDataHash
+      )
 
-			state.access { (state: inout State) in
-				state.transferID = initializationResult.id
-				state.transferDataChunks = chunkedData
-				state.currentTransferPage = 0
-			}
-			startBackendPolling()
-			updatesSource.update()
-		}
+      state.access { (state: inout State) in
+        state.transferID = initializationResult.id
+        state.transferDataChunks = chunkedData
+        state.currentTransferPage = 0
+      }
+      startBackendPolling()
+      updatesSource.update()
+    }
 
-		@Sendable nonisolated func startBackendPolling() {
-			pollingTask.access { pollingTask in
-				pollingTask?.cancel()
-				pollingTask = Task {
-					do {
-						guard let transferID: String = state.get(\.transferID)
-						else {
-							throw
-							InternalInconsistency
-								.error(
-									"Attempting to poll transfer status without initializing!"
-								)
-						}
-						while case .part = status() {
-							try await Task.sleep(nanoseconds: 500 * NSEC_PER_MSEC)
-							let updatedStatus = try await transferStatusNetworkOperation(
-								.init(
-									transferID: transferID
-								)
-							)
+    @Sendable nonisolated func startBackendPolling() {
+      pollingTask.access { pollingTask in
+        pollingTask?.cancel()
+        pollingTask = Task {
+          do {
+            guard let transferID: String = state.get(\.transferID)
+            else {
+              throw
+                InternalInconsistency
+                .error(
+                  "Attempting to poll transfer status without initializing!"
+                )
+            }
+            while case .part = status() {
+              try await Task.sleep(nanoseconds: 500 * NSEC_PER_MSEC)
+              let updatedStatus = try await transferStatusNetworkOperation(
+                .init(
+                  transferID: transferID
+                )
+              )
 
-							switch updatedStatus.status {
-							case .start:
-								state.access { (state: inout State) in
-									guard case .none = state.error else { return }
-									state.currentTransferPage = updatedStatus.currentPage
-									updatesSource.update()
-								}
+              switch updatedStatus.status {
+              case .start:
+                state.access { (state: inout State) in
+                  guard case .none = state.error else { return }
+                  state.currentTransferPage = updatedStatus.currentPage
+                  updatesSource.update()
+                }
 
-							case .inProgress:
-								state.access { (state: inout State) in
-									state.currentTransferPage = updatedStatus.currentPage
-								}
-								state.access { (state: inout State) in
-									guard case .none = state.error else { return }
-									state.currentTransferPage = updatedStatus.currentPage
-									updatesSource.update()
-								}
+              case .inProgress:
+                state.access { (state: inout State) in
+                  state.currentTransferPage = updatedStatus.currentPage
+                }
+                state.access { (state: inout State) in
+                  guard case .none = state.error else { return }
+                  state.currentTransferPage = updatedStatus.currentPage
+                  updatesSource.update()
+                }
 
-							case .complete:
-								state.access { (state: inout State) in
-									guard case .none = state.error else { return }
-									state.currentTransferPage = state.transferDataChunks.count
-									updatesSource.update()
-								}
-								return  // finished
+              case .complete:
+                state.access { (state: inout State) in
+                  guard case .none = state.error else { return }
+                  state.currentTransferPage = state.transferDataChunks.count
+                  updatesSource.update()
+                }
+                return  // finished
 
-							case .error:
-								throw
-								AccountExportFailure
-									.error()
+              case .error:
+                throw
+                  AccountExportFailure
+                  .error()
 
-							case .cancel:
-								throw Cancelled.error()
-							}
-						}
-					}
-					catch {
-						state.access { (state: inout State) in
-							guard case .none = state.error else { return }
-							state.error = error.asTheError()
-							updatesSource.update()
-						}
-					}
-				}
-			}
-		}
+              case .cancel:
+                throw Cancelled.error()
+              }
+            }
+          }
+          catch {
+            state.access { (state: inout State) in
+              guard case .none = state.error else { return }
+              state.error = error.asTheError()
+              updatesSource.update()
+            }
+          }
+        }
+      }
+    }
 
-		@Sendable nonisolated func cancel() {
-			pollingTask.exchange(with: .none)?.cancel()
-			state.access { (state: inout State) in
-				guard case .none = state.error else { return }
-				state.error = Cancelled.error()
-				updatesSource.update()
-			}
-		}
+    @Sendable nonisolated func cancel() {
+      pollingTask.exchange(with: .none)?.cancel()
+      state.access { (state: inout State) in
+        guard case .none = state.error else { return }
+        state.error = Cancelled.error()
+        updatesSource.update()
+      }
+    }
 
-		return .init(
-			updates: updatesSource.asAnyUpdatable(),
-			status: status,
-			authorize: authorize(authorizationMethod:),
-			cancel: cancel
-		)
-	}
+    return .init(
+      updates: updatesSource.asAnyUpdatable(),
+      status: status,
+      authorize: authorize(authorizationMethod:),
+      cancel: cancel
+    )
+  }
 }
 
 extension FeaturesRegistry {
 
-	internal mutating func usePassboltAccountChunkedExport() {
-		self.use(
-			.lazyLoaded(
-				AccountChunkedExport.self,
-				load: AccountChunkedExport
-					.load(features:)
-			),
-			in: AccountTransferScope.self
-		)
-	}
+  internal mutating func usePassboltAccountChunkedExport() {
+    self.use(
+      .lazyLoaded(
+        AccountChunkedExport.self,
+        load: AccountChunkedExport
+          .load(features:)
+      ),
+      in: AccountTransferScope.self
+    )
+  }
 }
 
 extension Data {
 
-	fileprivate func split(
-		chunkSize: Int
-	) -> Array<Data> {
-		let size: Int = self.count
-		var offset: Int = 0
-		var chunked: Array<Data> = .init()
-		while offset < size {
-			chunked.append(
-				self[
-					offset ..< Swift.min(offset + chunkSize, size)
-				]
-			)
-			offset += chunkSize
-		}
-		return chunked
-	}
+  fileprivate func split(
+    chunkSize: Int
+  ) -> Array<Data> {
+    let size: Int = self.count
+    var offset: Int = 0
+    var chunked: Array<Data> = .init()
+    while offset < size {
+      chunked.append(
+        self[
+          offset ..< Swift.min(offset + chunkSize, size)
+        ]
+      )
+      offset += chunkSize
+    }
+    return chunked
+  }
 }

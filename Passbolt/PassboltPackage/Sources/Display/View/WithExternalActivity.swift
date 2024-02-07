@@ -28,27 +28,27 @@ import UICommons
 public struct WithExternalActivity<ContentView>: View
 where ContentView: View {
 
-	@ObservedObject private var viewState: TrimmedViewState<ExternalActivityConfiguration?>
-	private let binding: Binding<ExternalActivityConfiguration?>
-	private let content: @MainActor () -> ContentView
+  @ObservedObject private var viewState: TrimmedViewState<ExternalActivityConfiguration?>
+  private let binding: Binding<ExternalActivityConfiguration?>
+  private let content: @MainActor () -> ContentView
 
-	public init<Controller>(
-		from controller: Controller,
-		at keyPath: WritableKeyPath<Controller.ViewState, ExternalActivityConfiguration?>,
-		@ViewBuilder content: @escaping () -> ContentView
-	) where Controller: ViewController {
-		self._viewState = .init(
-			wrappedValue: .init(
-				from: controller.viewState,
-				at: keyPath
-			)
-		)
-		self.binding = controller.binding(to: keyPath)
-		self.content = content
-	}
+  public init<Controller>(
+    from controller: Controller,
+    at keyPath: WritableKeyPath<Controller.ViewState, ExternalActivityConfiguration?>,
+    @ViewBuilder content: @escaping () -> ContentView
+  ) where Controller: ViewController {
+    self._viewState = .init(
+      wrappedValue: .init(
+        from: controller.viewState,
+        at: keyPath
+      )
+    )
+    self.binding = controller.binding(to: keyPath)
+    self.content = content
+  }
 
-	public var body: some View {
-		self.content()
-			.withExternalActivity(self.binding)
-	}
+  public var body: some View {
+    self.content()
+      .withExternalActivity(self.binding)
+  }
 }

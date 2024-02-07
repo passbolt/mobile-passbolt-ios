@@ -46,36 +46,37 @@ internal final class ResourcesListCreateMenuViewController: ViewController {
 
 extension ResourcesListCreateMenuViewController {
 
-	internal final func close() async {
-		await self.navigation
-			.dismissLegacySheet(ResourcesListCreateMenuView.self)
+  internal final func close() async {
+    await self.navigation
+      .dismissLegacySheet(ResourcesListCreateMenuView.self)
   }
 
   internal final func createResource() async throws {
-		let resourceEditPreparation: ResourceEditPreparation = try self.features.instance()
-		let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
-			.default,
-			self.context,
-			.none
-		)
-		await self.navigation
-			.dismissLegacySheet(ResourcesListCreateMenuView.self)
-		try await self.features
-			.instance(of: NavigationToResourceEdit.self)
-			.perform(
-				context: .init(
-					editingContext: editingContext
-				)
-			)
+    let resourceEditPreparation: ResourceEditPreparation = try self.features.instance()
+    let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
+      .default,
+      self.context,
+      .none
+    )
+    await self.navigation
+      .dismissLegacySheet(ResourcesListCreateMenuView.self)
+    try await self.features
+      .instance(of: NavigationToResourceEdit.self)
+      .perform(
+        context: .init(
+          editingContext: editingContext
+        )
+      )
   }
 
   internal final func createFolder() async throws {
-		await self.navigation
-			.dismissLegacySheet(ResourcesListCreateMenuView.self)
-		let editingFeatures: Features = try await self.features.instance(of: ResourceFolderEditPreparation.self).prepareNew(context)
-		try await self.navigation.push(
-			ResourceFolderEditView.self,
-			controller: editingFeatures.instance()
-		)
+    await self.navigation
+      .dismissLegacySheet(ResourcesListCreateMenuView.self)
+    let editingFeatures: Features = try await self.features.instance(of: ResourceFolderEditPreparation.self)
+      .prepareNew(context)
+    try await self.navigation.push(
+      ResourceFolderEditView.self,
+      controller: editingFeatures.instance()
+    )
   }
 }

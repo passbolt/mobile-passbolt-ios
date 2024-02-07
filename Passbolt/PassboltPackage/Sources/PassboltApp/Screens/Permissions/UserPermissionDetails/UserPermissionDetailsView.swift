@@ -72,7 +72,8 @@ internal struct UserPermissionDetailsView: ComponentView {
           color: .passboltPrimaryText
         )
         .padding(8)
-      }.opacity(self.state.permissionDetails.isSuspended ? 0.5 : 1)
+      }
+      .opacity(self.state.permissionDetails.isSuspended ? 0.5 : 1)
 
       Text(
         "\(self.state.permissionDetails.username)"
@@ -146,11 +147,11 @@ extension UserPermissionDetailsView.ViewState {
   }
 }
 
-private extension UserPermissionDetailsDSV {
-  var title: String {
+extension UserPermissionDetailsDSV {
+  fileprivate var title: String {
     let nameTitle = "\(firstName) \(lastName)"
-    let suspendedMark = isSuspended ? " (\(DisplayableString.localized("permission.details.user.suspended").string()))" : ""
-
+    let suspendedMark =
+      isSuspended ? " (\(DisplayableString.localized("permission.details.user.suspended").string()))" : ""
 
     return nameTitle + suspendedMark
   }

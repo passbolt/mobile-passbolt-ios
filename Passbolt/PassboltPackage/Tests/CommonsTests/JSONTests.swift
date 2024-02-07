@@ -31,22 +31,22 @@ final class JSONTests: XCTestCase {
       .decode(
         JSON.self,
         from: """
-          				{
-          					"string": "answer",
-          					"number": 42,
-          					"nested": {
-          						"nestedString": "nestedAnswer",
-          						"nestedNumber": 8
-          					},
-          					"array": [
-          						42,
-          						{
-          							"nestedInArrayString": "nestedInArrayAnswer",
-          							"nestedInArrayNumber": 39
-          						}
-          					]
-          				}
-          				"""
+          {
+          	"string": "answer",
+          	"number": 42,
+          	"nested": {
+          		"nestedString": "nestedAnswer",
+          		"nestedNumber": 8
+          	},
+          	"array": [
+          		42,
+          		{
+          			"nestedInArrayString": "nestedInArrayAnswer",
+          			"nestedInArrayNumber": 39
+          		}
+          	]
+          }
+          """
           .data(using: .utf8)!
       )
 
@@ -124,7 +124,7 @@ final class JSONTests: XCTestCase {
       ],
     ]
 
-		let encoded: Data = try JSONEncoder.default.encode(json)
+    let encoded: Data = try JSONEncoder.default.encode(json)
     let decoded: JSON = try JSONDecoder.default.decode(JSON.self, from: encoded)
 
     XCTAssertEqual(
@@ -138,22 +138,22 @@ final class JSONTests: XCTestCase {
       .decode(
         JSON.self,
         from: """
-          				{
-          					"string": "answer",
-          					"number": 42,
-          					"nested": {
-          						"nestedString": "nestedAnswer",
-          						"nestedNumber": 8.5
-          					},
-          					"array": [
-          						true,
-          						{
-          							"nestedInArrayString": "nestedInArrayAnswer",
-          							"nestedInArrayNumber": 39
-          						}
-          					]
-          				}
-          				"""
+          {
+          	"string": "answer",
+          	"number": 42,
+          	"nested": {
+          		"nestedString": "nestedAnswer",
+          		"nestedNumber": 8.5
+          	},
+          	"array": [
+          		true,
+          		{
+          			"nestedInArrayString": "nestedInArrayAnswer",
+          			"nestedInArrayNumber": 39
+          		}
+          	]
+          }
+          """
           .data(using: .utf8)!
       )
 

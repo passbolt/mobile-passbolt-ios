@@ -96,15 +96,15 @@ extension NavigationTo {
     line: UInt = #line
   ) async {
     await consumingErrors(
-			errorDiagnostics: "Navigation perform failed!",
-			{
-				try await self.performAnimated(
-					animated,
-					context,
-					file,
-					line
-				)
-			},
+      errorDiagnostics: "Navigation perform failed!",
+      {
+        try await self.performAnimated(
+          animated,
+          context,
+          file,
+          line
+        )
+      },
       file: file,
       line: line
     )
@@ -135,13 +135,13 @@ extension NavigationTo {
     await consumingErrors(
       errorDiagnostics: "Navigation perform failed!",
       {
-      try await self.performAnimated(
-        animated,
-        Void(),
-        file,
-        line
-      )
-    },
+        try await self.performAnimated(
+          animated,
+          Void(),
+          file,
+          line
+        )
+      },
       file: file,
       line: line
     )
@@ -169,12 +169,12 @@ extension NavigationTo {
     await consumingErrors(
       errorDiagnostics: "Navigation revert failed!",
       {
-      try await self.revertAnimated(
-        animated,
-        file,
-        line
-      )
-    },
+        try await self.revertAnimated(
+          animated,
+          file,
+          line
+        )
+      },
       file: file,
       line: line
     )
@@ -299,7 +299,7 @@ extension NavigationTo {
     )
   }
 
-	@_disfavoredOverload
+  @_disfavoredOverload
   public static func legacySheetPresentationTransition<DestinationView>(
     to: DestinationView.Type
   ) -> FeatureLoader
@@ -312,20 +312,21 @@ extension NavigationTo {
     )
   }
 
-	public static func legacySheetPresentationTransition<DestinationView>(
-		to: DestinationView.Type
-	) -> FeatureLoader
-	where DestinationView: ControlledView, DestinationView.Controller.Context == Destination.TransitionContext {
-		Self.legacySheetPresentationTransition(
-			to: DestinationView.self,
-			{ features, context in
-				try DestinationView(
-					controller: features
-						.instance(context: context)
-				)
-			}
-		)
-	}
+  public static func legacySheetPresentationTransition<DestinationView>(
+    to: DestinationView.Type
+  ) -> FeatureLoader
+  where DestinationView: ControlledView, DestinationView.Controller.Context == Destination.TransitionContext {
+    Self.legacySheetPresentationTransition(
+      to: DestinationView.self,
+      { features, context in
+        try DestinationView(
+          controller:
+            features
+            .instance(context: context)
+        )
+      }
+    )
+  }
 
   public static func legacySheetPresentationTransition<DestinationViewController>(
     toLegacy: DestinationViewController.Type = DestinationViewController.self,

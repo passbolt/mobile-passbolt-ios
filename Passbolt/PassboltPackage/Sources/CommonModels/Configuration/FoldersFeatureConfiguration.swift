@@ -23,13 +23,13 @@
 
 public struct FoldersFeatureConfiguration {
 
-	public var enabled: Bool
+  public var enabled: Bool
 
-	public init(
-		enabled: Bool
-	) {
-		self.enabled = enabled
-	}
+  public init(
+    enabled: Bool
+  ) {
+    self.enabled = enabled
+  }
 }
 
 extension FoldersFeatureConfiguration: Equatable {}

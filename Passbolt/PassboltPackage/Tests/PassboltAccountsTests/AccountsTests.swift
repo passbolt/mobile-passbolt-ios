@@ -52,19 +52,20 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
       \AccountsDataStore.loadAccounts,
       with: always([.mock_ada])
     )
-		patch(
-			\AccountsDataStore.loadAccountProfile,
-			 with: {
-				 if $0 == .mock_ada {
-					 return .mock_ada
-				 } else if $0 == .mock_frances {
-					 return .mock_frances
-				 }
-				 else {
-					 throw MockIssue.error()
-				 }
-			 }
-		)
+    patch(
+      \AccountsDataStore.loadAccountProfile,
+      with: {
+        if $0 == .mock_ada {
+          return .mock_ada
+        }
+        else if $0 == .mock_frances {
+          return .mock_frances
+        }
+        else {
+          throw MockIssue.error()
+        }
+      }
+    )
 
     let accounts: Accounts = try testedInstance()
 

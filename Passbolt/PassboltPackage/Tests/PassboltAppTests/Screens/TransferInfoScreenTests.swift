@@ -84,8 +84,8 @@ final class TransferInfoScreenTests: MainActorTestCase {
     let controller: TransferInfoScreenController = try testController(context: .import)
 
     _ = try await controller.requestOrNavigatePublisher()
-    .asAsyncSequence()
-    .first()
+      .asAsyncSequence()
+      .first()
 
     XCTAssertNotNil(result)
   }
@@ -97,7 +97,8 @@ final class TransferInfoScreenTests: MainActorTestCase {
     )
 
     let controller: TransferInfoScreenController = try testController(context: .import)
-    let result: Bool? = try await controller
+    let result: Bool? =
+      try await controller
       .requestOrNavigatePublisher()
       .asAsyncSequence()
       .first()

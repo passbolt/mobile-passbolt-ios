@@ -104,19 +104,19 @@ internal final class MFARootViewController: PlainViewController, UIComponent {
                   parent.setContent(view: child)
                 }
 
-							case .duo:
-								let viewController: UIHostingController = try .init(
-									rootView: DUOAuthorizationView(
-										controller: .init(
-											context: Void(),
-											features: self.components.features
-										)
-									)
-								)
-								self.addChild(viewController)
-								viewController.loadViewIfNeeded()
-								self.contentView.setContent(view: viewController.view)
-								viewController.didMove(toParent: self)
+              case .duo:
+                let viewController: UIHostingController = try .init(
+                  rootView: DUOAuthorizationView(
+                    controller: .init(
+                      context: Void(),
+                      features: self.components.features
+                    )
+                  )
+                )
+                self.addChild(viewController)
+                viewController.loadViewIfNeeded()
+                self.contentView.setContent(view: viewController.view)
+                viewController.didMove(toParent: self)
               }
             }
         }

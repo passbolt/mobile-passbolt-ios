@@ -24,94 +24,94 @@
 public final class EventSubscription<Description>
 where Description: EventDescription {
 
-	@usableFromInline internal let criticalSection: CriticalState<Void>
-	@usableFromInline internal let bufferSize: Int
-	@usableFromInline internal var buffer: Array<Description.Payload>
-	@usableFromInline internal var pendingContinuation: UnsafeContinuation<Description.Payload, Error>?
-	private let unsubscribe: @Sendable () -> Void
+  @usableFromInline internal let criticalSection: CriticalState<Void>
+  @usableFromInline internal let bufferSize: Int
+  @usableFromInline internal var buffer: Array<Description.Payload>
+  @usableFromInline internal var pendingContinuation: UnsafeContinuation<Description.Payload, Error>?
+  private let unsubscribe: @Sendable () -> Void
 
-	@usableFromInline internal init(
-		bufferSize: Int,
-		unsubscribe: @escaping @Sendable () -> Void
-	) {
-		precondition(bufferSize > 0, "Buffer can't be empty!")
-		self.criticalSection = .init(Void())
-		self.bufferSize = bufferSize
-		self.buffer = .init()
-		self.buffer.reserveCapacity(bufferSize)
-		self.pendingContinuation = .none
-		self.unsubscribe = unsubscribe
-	}
+  @usableFromInline internal init(
+    bufferSize: Int,
+    unsubscribe: @escaping @Sendable () -> Void
+  ) {
+    precondition(bufferSize > 0, "Buffer can't be empty!")
+    self.criticalSection = .init(Void())
+    self.bufferSize = bufferSize
+    self.buffer = .init()
+    self.buffer.reserveCapacity(bufferSize)
+    self.pendingContinuation = .none
+    self.unsubscribe = unsubscribe
+  }
 
-	deinit {
-		precondition(self.pendingContinuation == nil)
-		self.unsubscribe()
-	}
+  deinit {
+    precondition(self.pendingContinuation == nil)
+    self.unsubscribe()
+  }
 }
 
 extension EventSubscription {
 
-	@_transparent public func nextEvent() async throws -> Description.Payload {
-		try await withTaskCancellationHandler(
-			operation: {
-				try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Description.Payload, Error>) in
-					self.criticalSection.access { _ in
-						assert(self.pendingContinuation == nil, "Reusing subscriptions is forbidden!")
-						if self.buffer.isEmpty {
-							self.pendingContinuation = continuation
-						}
-						else {
-							continuation.resume(returning: self.buffer.removeFirst())
-						}
-					}
-				}
-			},
-			onCancel: {
-				self.criticalSection.access { _ in
-					self.pendingContinuation?
-						.resume(throwing: CancellationError())
-					self.pendingContinuation = .none
-				}
-			}
-		)
-	}
+  @_transparent public func nextEvent() async throws -> Description.Payload {
+    try await withTaskCancellationHandler(
+      operation: {
+        try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Description.Payload, Error>) in
+          self.criticalSection.access { _ in
+            assert(self.pendingContinuation == nil, "Reusing subscriptions is forbidden!")
+            if self.buffer.isEmpty {
+              self.pendingContinuation = continuation
+            }
+            else {
+              continuation.resume(returning: self.buffer.removeFirst())
+            }
+          }
+        }
+      },
+      onCancel: {
+        self.criticalSection.access { _ in
+          self.pendingContinuation?
+            .resume(throwing: CancellationError())
+          self.pendingContinuation = .none
+        }
+      }
+    )
+  }
 }
 
 extension EventSubscription {
 
-	@usableFromInline @Sendable internal func deliver(
-		_ payload: Description.Payload
-	) {
-		self.criticalSection.access { _ in
-			if let pendingContinuation: UnsafeContinuation<Description.Payload, Error> = self.pendingContinuation {
-				assert(self.buffer.isEmpty, "There should be no pending continuation if events are stored in buffer!")
-				self.pendingContinuation = .none
-				pendingContinuation.resume(returning: payload)
-			}
-			else if self.bufferSize > self.buffer.count {
-				self.buffer.append(payload)
-			}
-			else {
-				self.buffer.removeFirst()
-				self.buffer.append(payload)
-			}
-		}
-	}
+  @usableFromInline @Sendable internal func deliver(
+    _ payload: Description.Payload
+  ) {
+    self.criticalSection.access { _ in
+      if let pendingContinuation: UnsafeContinuation<Description.Payload, Error> = self.pendingContinuation {
+        assert(self.buffer.isEmpty, "There should be no pending continuation if events are stored in buffer!")
+        self.pendingContinuation = .none
+        pendingContinuation.resume(returning: payload)
+      }
+      else if self.bufferSize > self.buffer.count {
+        self.buffer.append(payload)
+      }
+      else {
+        self.buffer.removeFirst()
+        self.buffer.append(payload)
+      }
+    }
+  }
 }
 
 extension EventSubscription: AsyncIteratorProtocol {
 
-	public typealias Element = Description.Payload
+  public typealias Element = Description.Payload
 
-	public func next() async throws -> Element? {
-		try await self.nextEvent()
-	}
+  public func next() async throws -> Element? {
+    try await self.nextEvent()
+  }
 }
 extension EventSubscription: AsyncSequence {
 
-	public typealias AsyncIterator = EventSubscription
+  public typealias AsyncIterator = EventSubscription
 
-	public func makeAsyncIterator() -> AsyncIterator {
-		self
-	}
+  public func makeAsyncIterator() -> AsyncIterator {
+    self
+  }
 }

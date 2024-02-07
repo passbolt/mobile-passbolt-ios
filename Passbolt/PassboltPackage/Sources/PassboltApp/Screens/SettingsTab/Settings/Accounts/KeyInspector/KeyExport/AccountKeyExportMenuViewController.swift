@@ -21,91 +21,91 @@
 // @since         v1.0
 //
 
-import Display
-import OSFeatures
-import Accounts
 import AccountSetup
+import Accounts
+import Display
 import FeatureScopes
+import OSFeatures
 import SharedUIComponents
 
 internal final class AccountKeyExportMenuViewController: ViewController {
 
-	private let navigationToOperationAuthorization: NavigationToOperationAuthorization
-	private let navigationToExternalActivity: NavigationToExternalActivity
-	private let navigationToSelf: NavigationToAccountKeyExportMenu
+  private let navigationToOperationAuthorization: NavigationToOperationAuthorization
+  private let navigationToExternalActivity: NavigationToExternalActivity
+  private let navigationToSelf: NavigationToAccountKeyExportMenu
 
-	private let accountDetails: AccountDetails
+  private let accountDetails: AccountDetails
 
-	private let features: Features
+  private let features: Features
 
-	internal init(
-		context: Void,
-		features: Features
-	) throws {
-		self.features = features
+  internal init(
+    context: Void,
+    features: Features
+  ) throws {
+    self.features = features
 
-		self.accountDetails = try features.instance()
+    self.accountDetails = try features.instance()
 
-		self.navigationToOperationAuthorization = try features.instance()
-		self.navigationToExternalActivity = try features.instance()
-		self.navigationToSelf = try features.instance()
-	}
+    self.navigationToOperationAuthorization = try features.instance()
+    self.navigationToExternalActivity = try features.instance()
+    self.navigationToSelf = try features.instance()
+  }
 }
 
 extension AccountKeyExportMenuViewController {
 
-	internal func dismiss() async {
-		await self.navigationToSelf.revertCatching()
-	}
+  internal func dismiss() async {
+    await self.navigationToSelf.revertCatching()
+  }
 
-	internal func exportPrivateKey() async {
-		await self.navigationToSelf.revertCatching()
-		do {
-			let features: Features = try self.features.branch(scope: AccountTransferScope.self)
-			let accountKeyExport: AccountArmoredKeyExport = try features.instance()
-			await self.navigationToOperationAuthorization.performCatching(
-				context: .init(
-					title: "account.key.export.private.authorization.title",
-					actionLabel: "account.key.export.private.authorization.button.title",
-					operation: { [self] (authorizationMethod: AccountAuthorizationMethod) in
-						try await self.authorizePrivateKeyExport(
-							authorizationMethod,
-							using: accountKeyExport
-						)
-					}
-				)
-			)
-		}
-		catch {
-			error.logged()
-		}
-	}
+  internal func exportPrivateKey() async {
+    await self.navigationToSelf.revertCatching()
+    do {
+      let features: Features = try self.features.branch(scope: AccountTransferScope.self)
+      let accountKeyExport: AccountArmoredKeyExport = try features.instance()
+      await self.navigationToOperationAuthorization.performCatching(
+        context: .init(
+          title: "account.key.export.private.authorization.title",
+          actionLabel: "account.key.export.private.authorization.button.title",
+          operation: { [self] (authorizationMethod: AccountAuthorizationMethod) in
+            try await self.authorizePrivateKeyExport(
+              authorizationMethod,
+              using: accountKeyExport
+            )
+          }
+        )
+      )
+    }
+    catch {
+      error.logged()
+    }
+  }
 
-	private func authorizePrivateKeyExport(
-		_ authorizationMethod: AccountAuthorizationMethod,
-		using accountKeyExport: AccountArmoredKeyExport
-	) async throws {
-		let privateKey: ArmoredPGPPrivateKey = try await accountKeyExport.authorizePrivateKeyExport(authorizationMethod)
-		try await navigationToOperationAuthorization.revert()
-		try await navigationToExternalActivity.perform(
-			context: .share(
-				privateKey: privateKey
-			)
-		)
-	}
+  private func authorizePrivateKeyExport(
+    _ authorizationMethod: AccountAuthorizationMethod,
+    using accountKeyExport: AccountArmoredKeyExport
+  ) async throws {
+    let privateKey: ArmoredPGPPrivateKey = try await accountKeyExport.authorizePrivateKeyExport(authorizationMethod)
+    try await navigationToOperationAuthorization.revert()
+    try await navigationToExternalActivity.perform(
+      context: .share(
+        privateKey: privateKey
+      )
+    )
+  }
 
-	internal func exportPublicKey() async {
-		await self.navigationToSelf.revertCatching()
-		do {
-			let publicKey: ArmoredPGPPublicKey = try await self.accountDetails.keyDetails().publicKey
-			try await navigationToExternalActivity.perform(
-				context: .share(
-					publicKey: publicKey
-				)
-			)
-		}
-		catch {
-			error.logged()
-		}
-	}
+  internal func exportPublicKey() async {
+    await self.navigationToSelf.revertCatching()
+    do {
+      let publicKey: ArmoredPGPPublicKey = try await self.accountDetails.keyDetails().publicKey
+      try await navigationToExternalActivity.perform(
+        context: .share(
+          publicKey: publicKey
+        )
+      )
+    }
+    catch {
+      error.logged()
+    }
+  }
 }

@@ -165,11 +165,12 @@ extension OSKeychain {
         do {
           return try .success(
             items.map { item in
-              try JSONDecoder.default.decode(
-                JSONWrapper<Value>.self,
-                from: item
-              )
-              .v
+              try JSONDecoder.default
+                .decode(
+                  JSONWrapper<Value>.self,
+                  from: item
+                )
+                .v
             }
           )
         }
@@ -197,11 +198,12 @@ extension OSKeychain {
         else { return .success(nil) }
         do {
           return try .success(
-						JSONDecoder.default.decode(
-              JSONWrapper<Value>.self,
-              from: firstItem
-            )
-            .v
+            JSONDecoder.default
+              .decode(
+                JSONWrapper<Value>.self,
+                from: firstItem
+              )
+              .v
           )
         }
         catch {  // if any of values are invalid we treat it as error
@@ -236,7 +238,7 @@ extension OSKeychain {
   where Value: Codable {
     do {
       return try save(
-				JSONEncoder.default.encode(JSONWrapper(value)),
+        JSONEncoder.default.encode(JSONWrapper(value)),
         query
       )
     }

@@ -67,10 +67,10 @@ internal final class SettingsAutoFillViewController: PlainViewController, UIComp
     contentView
       .setupTapPublisher
       .asyncMap { [weak self] in
-				await consumingErrors {
-					try await self?.controller.openSystemSettings()
-				}
-			}
+        await consumingErrors {
+          try await self?.controller.openSystemSettings()
+        }
+      }
       .sinkDrop()
       .store(in: cancellables)
   }

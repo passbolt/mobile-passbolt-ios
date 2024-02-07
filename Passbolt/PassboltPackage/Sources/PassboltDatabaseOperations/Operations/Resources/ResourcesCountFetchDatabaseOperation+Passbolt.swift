@@ -34,33 +34,33 @@ extension ResourcesCountFetchDatabaseOperation {
     connection: SQLiteConnection
   ) throws -> Int {
     var statement: SQLiteStatement = """
-      		 SELECT
-      			COUNT(*) as count
-      		 FROM
-      			resources
-      		 JOIN
-      			resourceTypes
-      		 ON
-      			resources.typeID = resourceTypes.id
-      		 WHERE
-      			1 -- equivalent of true, used to simplify dynamic query building
-      		"""
+       SELECT
+      	COUNT(*) as count
+       FROM
+      	resources
+       JOIN
+      	resourceTypes
+       ON
+      	resources.typeID = resourceTypes.id
+       WHERE
+      	1 -- equivalent of true, used to simplify dynamic query building
+      """
 
     // since we cannot use array in query directly
     // we are preparing it manually as argument for each element
     if input.count > 1 {
       statement.append(
         """
-        				AND (
-        						SELECT
-        							1
-        						FROM
-        							resourceTypes
-        						WHERE
-        							resourceTypes.id == resources.typeID
-        						AND
-        							resourceTypes.slug IN (
-        				"""
+        AND (
+        		SELECT
+        			1
+        		FROM
+        			resourceTypes
+        		WHERE
+        			resourceTypes.id == resources.typeID
+        		AND
+        			resourceTypes.slug IN (
+        """
       )
       for index in input.indices {
         if index == input.startIndex {
@@ -76,18 +76,18 @@ extension ResourcesCountFetchDatabaseOperation {
     else if let includedTypeSlug: ResourceSpecification.Slug = input.first {
       statement.append(
         """
-        				AND (
-        					SELECT
-        						1
-        					FROM
-        						resourceTypes
-        					WHERE
-        						resourceTypes.id == resources.typeID
-        					AND
-        						resourceTypes.slug == ?
-        					LIMIT 1
-        				)
-        				"""
+        AND (
+        	SELECT
+        		1
+        	FROM
+        		resourceTypes
+        	WHERE
+        		resourceTypes.id == resources.typeID
+        	AND
+        		resourceTypes.slug == ?
+        	LIMIT 1
+        )
+        """
       )
       statement.appendArgument(includedTypeSlug)
     }

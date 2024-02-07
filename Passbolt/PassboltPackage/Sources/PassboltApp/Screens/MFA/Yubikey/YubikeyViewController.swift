@@ -93,7 +93,8 @@ internal final class YubiKeyViewController: PlainViewController, UIComponent {
                     YubiKeyNotRecognizedAlertViewController.self
                   )
               }
-            } else {
+            }
+            else {
               SnackBarMessageEvent.send(.error(error))
             }
           })
@@ -108,10 +109,12 @@ internal final class YubiKeyViewController: PlainViewController, UIComponent {
 
   private func isYubiKeyNotRecognizedError(_ error: Error) -> Bool {
     if let error = error as? NetworkRequestValidationFailure,
-       let body = error.validationViolations["body"] as? Dictionary<String, Any>,
-       let hotp = body["hotp"] as? Dictionary<String, Any> {
-       return hotp["isSameYubikeyId"] as? String != nil
-    } else {
+      let body = error.validationViolations["body"] as? Dictionary<String, Any>,
+      let hotp = body["hotp"] as? Dictionary<String, Any>
+    {
+      return hotp["isSameYubikeyId"] as? String != nil
+    }
+    else {
       return false
     }
   }

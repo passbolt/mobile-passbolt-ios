@@ -30,15 +30,15 @@ extension SQLiteMigration {
     [
       // add isSuspended flag to user
       """
-            ALTER TABLE
-              users
-            ADD
-              isSuspended BOOL DEFAULT false;
-            """,
+      ALTER TABLE
+        users
+      ADD
+        isSuspended BOOL DEFAULT false;
+      """,
       // - version bump - //
       """
-            PRAGMA user_version = 18; -- persistent, used to track schema version
-            """,
+      PRAGMA user_version = 18; -- persistent, used to track schema version
+      """,
     ]
   }
 }

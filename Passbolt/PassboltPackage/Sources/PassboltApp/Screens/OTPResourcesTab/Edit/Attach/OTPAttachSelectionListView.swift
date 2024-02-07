@@ -67,11 +67,11 @@ internal struct OTPAttachSelectionListView: ControlledView {
         }
       }
     ) {
-			VStack(spacing: 0) {
-				self.search
-				self.list
-				self.actionButton
-			}
+      VStack(spacing: 0) {
+        self.search
+        self.list
+        self.actionButton
+      }
     }
     .frame(maxHeight: .infinity)
     .navigationTitle(
@@ -111,7 +111,6 @@ internal struct OTPAttachSelectionListView: ControlledView {
               case .notAllowed, .notCompatibleWithTotp:
                 Image(named: .lockedLock)
                   .foregroundColor(.passboltIcon)
-                
 
               case .selected:
                 Image(named: .circleSelected)

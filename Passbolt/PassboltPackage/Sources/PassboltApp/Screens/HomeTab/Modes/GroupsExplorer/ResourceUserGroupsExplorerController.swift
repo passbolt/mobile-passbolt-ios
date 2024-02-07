@@ -140,10 +140,10 @@ extension ResourceUserGroupsExplorerController: ComponentController {
     }
 
     @MainActor func refreshIfNeeded() async {
-			await consumingErrors {
-				try await sessionData
+      await consumingErrors {
+        try await sessionData
           .refreshIfNeeded()
-			}
+      }
     }
 
     @MainActor func presentGroupContent(_ userGroup: ResourceUserGroupListItemDSV) {
@@ -217,7 +217,7 @@ extension ResourceUserGroupsExplorerController: ComponentController {
     }
 
     @MainActor func presentAccountMenu() async throws {
-			try await navigationToAccountMenu.perform()
+      try await navigationToAccountMenu.perform()
     }
 
     return Self(

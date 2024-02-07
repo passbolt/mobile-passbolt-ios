@@ -31,145 +31,146 @@ import struct Foundation.URL
 
 extension SessionConfigurationLoader {
 
-	@MainActor fileprivate static func load(
-		features: Features
-	) throws -> Self {
-		let session: Session = try features.instance()
-		let serverConfigurationFetchNetworkOperation: ServerConfigurationFetchNetworkOperation = try features.instance()
-		let featureAccessControlConfigurationFetchNetworkOperation: FeatureAccessControlConfigurationFetchNetworkOperation = try features.instance()
+  @MainActor fileprivate static func load(
+    features: Features
+  ) throws -> Self {
+    let session: Session = try features.instance()
+    let serverConfigurationFetchNetworkOperation: ServerConfigurationFetchNetworkOperation = try features.instance()
+    let featureAccessControlConfigurationFetchNetworkOperation: FeatureAccessControlConfigurationFetchNetworkOperation =
+      try features.instance()
 
-		let configuration: ComputedVariable<SessionConfiguration> = .init(
-			// TODO: we should update only on account changes
-			// not on all session changes...
-			// ...hovever this is an Updatable and it will
-			// recompute its value only if asked for new one.
-			// Since we typically access configuration
-			// from the session scope context it might not be an issue
-			transformed: session.updates
-		) { _ in
-			try await fetchConfiguration()
-		}
+    let configuration: ComputedVariable<SessionConfiguration> = .init(
+      // TODO: we should update only on account changes
+      // not on all session changes...
+      // ...hovever this is an Updatable and it will
+      // recompute its value only if asked for new one.
+      // Since we typically access configuration
+      // from the session scope context it might not be an issue
+      transformed: session.updates
+    ) { _ in
+      try await fetchConfiguration()
+    }
 
-		@Sendable nonisolated func fetchConfiguration() async throws -> SessionConfiguration {
-			Diagnostics.logger.info("Fetching server configuration...")
-			guard case .some = try? await session.currentAccount()
-			else {
-				Diagnostics.logger.info("...server configuration fetching skipped!")
-				return .default
-			}
+    @Sendable nonisolated func fetchConfiguration() async throws -> SessionConfiguration {
+      Diagnostics.logger.info("Fetching server configuration...")
+      guard case .some = try? await session.currentAccount()
+      else {
+        Diagnostics.logger.info("...server configuration fetching skipped!")
+        return .default
+      }
 
-			let serverConfiguration: ServerConfiguration
-			do {
-				serverConfiguration = try await serverConfigurationFetchNetworkOperation()
-			}
-			catch {
-				Diagnostics.logger.info("...server configuration fetching failed!")
-				throw error
-			}
+      let serverConfiguration: ServerConfiguration
+      do {
+        serverConfiguration = try await serverConfigurationFetchNetworkOperation()
+      }
+      catch {
+        Diagnostics.logger.info("...server configuration fetching failed!")
+        throw error
+      }
 
-			Diagnostics.logger.info("...server configuration fetched!")
+      Diagnostics.logger.info("...server configuration fetched!")
 
-			var configuration: SessionConfiguration = .init(
-				termsURL: serverConfiguration.legal.terms,
-				privacyPolicyURL: serverConfiguration.legal.privacyPolicy,
-				resources: .init(
-					passwordRevealEnabled: serverConfiguration.plugins.passwordPreview?.enabled ?? true,
-					passwordCopyEnabled: true,
-					totpEnabled: serverConfiguration.plugins.totpResources?.enabled ?? false
-				),
-				folders: .init(
-					enabled: serverConfiguration.plugins.folders?.enabled ?? false
-				),
-				tags: .init(
-					enabled: serverConfiguration.plugins.tags?.enabled ?? false
-				),
-				share: .init(
-					showMembersList: true
-				)
-			)
+      var configuration: SessionConfiguration = .init(
+        termsURL: serverConfiguration.legal.terms,
+        privacyPolicyURL: serverConfiguration.legal.privacyPolicy,
+        resources: .init(
+          passwordRevealEnabled: serverConfiguration.plugins.passwordPreview?.enabled ?? true,
+          passwordCopyEnabled: true,
+          totpEnabled: serverConfiguration.plugins.totpResources?.enabled ?? false
+        ),
+        folders: .init(
+          enabled: serverConfiguration.plugins.folders?.enabled ?? false
+        ),
+        tags: .init(
+          enabled: serverConfiguration.plugins.tags?.enabled ?? false
+        ),
+        share: .init(
+          showMembersList: true
+        )
+      )
 
-			if serverConfiguration.plugins.rbacs?.enabled ?? false {
-				Diagnostics.logger.info("Fetching rbacs configuration...")
-				let accessConfiguration: FeatureAccessControlConfiguration
-				do {
-					accessConfiguration = try await featureAccessControlConfigurationFetchNetworkOperation()
-				}
-				catch {
-					Diagnostics.logger.info("...rbacs configuration fetching failed!")
-					throw error
-				}
+      if serverConfiguration.plugins.rbacs?.enabled ?? false {
+        Diagnostics.logger.info("Fetching rbacs configuration...")
+        let accessConfiguration: FeatureAccessControlConfiguration
+        do {
+          accessConfiguration = try await featureAccessControlConfigurationFetchNetworkOperation()
+        }
+        catch {
+          Diagnostics.logger.info("...rbacs configuration fetching failed!")
+          throw error
+        }
 
-				Diagnostics.logger.info("...rbacs configuration fetched!")
+        Diagnostics.logger.info("...rbacs configuration fetched!")
 
-				switch accessConfiguration.folders {
-				case .allow:
-					break // keep the state from plugins
+        switch accessConfiguration.folders {
+        case .allow:
+          break  // keep the state from plugins
 
-				case .deny:
-					configuration.folders.enabled = false
-				}
+        case .deny:
+          configuration.folders.enabled = false
+        }
 
-				switch accessConfiguration.tags {
-				case .allow:
-					break // keep the state from plugins
+        switch accessConfiguration.tags {
+        case .allow:
+          break  // keep the state from plugins
 
-				case .deny:
-					configuration.tags.enabled = false
-				}
+        case .deny:
+          configuration.tags.enabled = false
+        }
 
-				switch accessConfiguration.copySecrets {
-				case .allow:
-					break // keep the state from plugins
+        switch accessConfiguration.copySecrets {
+        case .allow:
+          break  // keep the state from plugins
 
-				case .deny:
-					configuration.resources.passwordCopyEnabled = false
-				}
+        case .deny:
+          configuration.resources.passwordCopyEnabled = false
+        }
 
-				switch accessConfiguration.previewSecrets {
-				case .allow:
-					break // keep the state from plugins
+        switch accessConfiguration.previewSecrets {
+        case .allow:
+          break  // keep the state from plugins
 
-				case .deny:
-					configuration.resources.passwordRevealEnabled = false
-				}
+        case .deny:
+          configuration.resources.passwordRevealEnabled = false
+        }
 
-				switch accessConfiguration.viewShareList {
-				case .allow:
-					break // keep the state from plugins
+        switch accessConfiguration.viewShareList {
+        case .allow:
+          break  // keep the state from plugins
 
-				case .deny:
-					configuration.share.showMembersList = false
-				}
-			} // else no RBAC
+        case .deny:
+          configuration.share.showMembersList = false
+        }
+      }  // else no RBAC
 
-			return configuration
-		}
+      return configuration
+    }
 
-		@Sendable nonisolated func sessionConfiguration() async throws -> SessionConfiguration {
-			do {
-				return try await configuration.value
-			}
-			catch {
-				// allow retrying on error
-				configuration.invalidateCache()
-				throw error
-			}
-		}
+    @Sendable nonisolated func sessionConfiguration() async throws -> SessionConfiguration {
+      do {
+        return try await configuration.value
+      }
+      catch {
+        // allow retrying on error
+        configuration.invalidateCache()
+        throw error
+      }
+    }
 
-		return Self(
-			sessionConfiguration: sessionConfiguration
-		)
-	}
+    return Self(
+      sessionConfiguration: sessionConfiguration
+    )
+  }
 }
 
 extension FeaturesRegistry {
 
-	internal mutating func usePassboltSessionConfigurationLoader() {
-		self.use(
-			.lazyLoaded(
-				SessionConfigurationLoader.self,
-				load: SessionConfigurationLoader.load(features:)
-			)
-		)
-	}
+  internal mutating func usePassboltSessionConfigurationLoader() {
+    self.use(
+      .lazyLoaded(
+        SessionConfigurationLoader.self,
+        load: SessionConfigurationLoader.load(features:)
+      )
+    )
+  }
 }

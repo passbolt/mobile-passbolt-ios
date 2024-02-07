@@ -28,196 +28,194 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class AccountDetailsTests: FeaturesTestCase {
 
-	override func commonPrepare() {
-		super.commonPrepare()
-		set(
-			AccountScope.self,
-			context: .mock_ada
-		)
-		register(
-			{ $0.usePassboltAccountDetails() },
-			for: AccountDetails.self
-		)
-	}
+  override func commonPrepare() {
+    super.commonPrepare()
+    set(
+      AccountScope.self,
+      context: .mock_ada
+    )
+    register(
+      { $0.usePassboltAccountDetails() },
+      for: AccountDetails.self
+    )
+  }
 
-	func test_avatarImage_returnsNone_whenLoadingProfileFails() async {
-		patch(
-			\AccountsDataStore.loadAccountProfile,
-			 with: alwaysThrow(MockIssue.error())
-		)
+  func test_avatarImage_returnsNone_whenLoadingProfileFails() async {
+    patch(
+      \AccountsDataStore.loadAccountProfile,
+      with: alwaysThrow(MockIssue.error())
+    )
 
-		await withInstance(returns: .none) { (feature: AccountDetails) in
-			try await feature.avatarImage()
-		}
-	}
+    await withInstance(returns: .none) { (feature: AccountDetails) in
+      try await feature.avatarImage()
+    }
+  }
 
-	func test_avatarImage_returnsNone_whenMediaDownloadFails() async {
-		patch(
-			\AccountsDataStore.loadAccountProfile,
-			 with: always(.mock_ada)
-		)
-		patch(
-			\MediaDownloadNetworkOperation.execute,
-			 with: alwaysThrow(MockIssue.error())
-		)
+  func test_avatarImage_returnsNone_whenMediaDownloadFails() async {
+    patch(
+      \AccountsDataStore.loadAccountProfile,
+      with: always(.mock_ada)
+    )
+    patch(
+      \MediaDownloadNetworkOperation.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
 
-		await withInstance(returns: .none) { (feature: AccountDetails) in
-			try await feature.avatarImage()
-		}
-	}
+    await withInstance(returns: .none) { (feature: AccountDetails) in
+      try await feature.avatarImage()
+    }
+  }
 
-	func test_avatarImage_returnsData_whenMediaDownloadSucceeds() async {
-		patch(
-			\AccountsDataStore.loadAccountProfile,
-			 with: always(.mock_ada)
-		)
-		patch(
-			\MediaDownloadNetworkOperation.execute,
-			 with: always(Data([0x65, 0x66]))
-		)
+  func test_avatarImage_returnsData_whenMediaDownloadSucceeds() async {
+    patch(
+      \AccountsDataStore.loadAccountProfile,
+      with: always(.mock_ada)
+    )
+    patch(
+      \MediaDownloadNetworkOperation.execute,
+      with: always(Data([0x65, 0x66]))
+    )
 
-		await withInstance(returns: Data([0x65, 0x66])) { (feature: AccountDetails) in
-			try await feature.avatarImage()
-		}
-	}
+    await withInstance(returns: Data([0x65, 0x66])) { (feature: AccountDetails) in
+      try await feature.avatarImage()
+    }
+  }
 
-	func test_isPassphraseStored_returnsTrue_whenAccountDataStoresPassphrase() async {
-		patch(
-			\AccountsDataStore.isAccountPassphraseStored,
-			 with: always(true)
-		)
+  func test_isPassphraseStored_returnsTrue_whenAccountDataStoresPassphrase() async {
+    patch(
+      \AccountsDataStore.isAccountPassphraseStored,
+      with: always(true)
+    )
 
-		await withInstance(returns: true) { (feature: AccountDetails) in
-			feature.isPassphraseStored()
-		}
-	}
+    await withInstance(returns: true) { (feature: AccountDetails) in
+      feature.isPassphraseStored()
+    }
+  }
 
-	func test_isPassphraseStored_returnsFalse_whenAccountDataDoesNotStirePassphrase() async {
-		patch(
-			\AccountsDataStore.isAccountPassphraseStored,
-			 with: always(false)
-		)
+  func test_isPassphraseStored_returnsFalse_whenAccountDataDoesNotStirePassphrase() async {
+    patch(
+      \AccountsDataStore.isAccountPassphraseStored,
+      with: always(false)
+    )
 
-		await withInstance(returns: false) { (feature: AccountDetails) in
-			feature.isPassphraseStored()
-		}
-	}
+    await withInstance(returns: false) { (feature: AccountDetails) in
+      feature.isPassphraseStored()
+    }
+  }
 
-	func test_keyDetails_fails_whenFetchingDataFails() async {
-		patch(
-			\UserDetailsFetchNetworkOperation.execute,
-			 with: alwaysThrow(MockIssue.error())
-		)
+  func test_keyDetails_fails_whenFetchingDataFails() async {
+    patch(
+      \UserDetailsFetchNetworkOperation.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
 
-		await withInstance(throws: MockIssue.self) { (feature: AccountDetails) in
-			try await feature.keyDetails()
-		}
-	}
+    await withInstance(throws: MockIssue.self) { (feature: AccountDetails) in
+      try await feature.keyDetails()
+    }
+  }
 
-	func test_keyDetails_succeeds_whenFetchingDataSucceeds() async {
-		patch(
-			\UserDetailsFetchNetworkOperation.execute,
-			 with: always(.mock_ada)
-		)
+  func test_keyDetails_succeeds_whenFetchingDataSucceeds() async {
+    patch(
+      \UserDetailsFetchNetworkOperation.execute,
+      with: always(.mock_ada)
+    )
 
-		await withInstance(returns: .mock_ada) { (feature: AccountDetails) in
-			try await feature.keyDetails()
-		}
-	}
+    await withInstance(returns: .mock_ada) { (feature: AccountDetails) in
+      try await feature.keyDetails()
+    }
+  }
 
-	func test_profile_fails_whenLoadingProfileDataFails() async {
-		patch(
-			\AccountsDataStore.loadAccountProfile,
-			 with: alwaysThrow(MockIssue.error())
-		)
+  func test_profile_fails_whenLoadingProfileDataFails() async {
+    patch(
+      \AccountsDataStore.loadAccountProfile,
+      with: alwaysThrow(MockIssue.error())
+    )
 
-		await withInstance(throws: MockIssue.self) { (feature: AccountDetails) in
-			try feature.profile()
-		}
-	}
+    await withInstance(throws: MockIssue.self) { (feature: AccountDetails) in
+      try feature.profile()
+    }
+  }
 
-	func test_profile_loadsStoredProfile() async {
-		patch(
-			\AccountsDataStore.loadAccountProfile,
-			 with: always(.mock_ada)
-		)
+  func test_profile_loadsStoredProfile() async {
+    patch(
+      \AccountsDataStore.loadAccountProfile,
+      with: always(.mock_ada)
+    )
 
-		await withInstance(returns: .mock_ada) { (feature: AccountDetails) in
-			try feature.profile()
-		}
-	}
+    await withInstance(returns: .mock_ada) { (feature: AccountDetails) in
+      try feature.profile()
+    }
+  }
 
-	func test_updateProfile_throws_whenFetchingDataFails() async {
-		patch(
-			\AccountsDataStore.loadAccountProfile,
-			 with: alwaysThrow(MockIssue.error())
-		)
+  func test_updateProfile_throws_whenFetchingDataFails() async {
+    patch(
+      \AccountsDataStore.loadAccountProfile,
+      with: alwaysThrow(MockIssue.error())
+    )
 
-		await withInstance(throws: MockIssue.self) { (feature: AccountDetails) in
-			try await feature.updateProfile()
-		}
-	}
+    await withInstance(throws: MockIssue.self) { (feature: AccountDetails) in
+      try await feature.updateProfile()
+    }
+  }
 
-	func test_updateProfile_throws_whenFetchingProfileUpdateFails() async {
-		patch(
-			\AccountsDataStore.loadAccountProfile,
-			 with: always(.mock_ada)
-		)
-		patch(
-			\UserDetailsFetchNetworkOperation.execute,
-			 with: alwaysThrow(MockIssue.error())
-		)
+  func test_updateProfile_throws_whenFetchingProfileUpdateFails() async {
+    patch(
+      \AccountsDataStore.loadAccountProfile,
+      with: always(.mock_ada)
+    )
+    patch(
+      \UserDetailsFetchNetworkOperation.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
 
-		await withInstance(throws: MockIssue.self) { (feature: AccountDetails) in
-			try await feature.updateProfile()
-		}
-	}
+    await withInstance(throws: MockIssue.self) { (feature: AccountDetails) in
+      try await feature.updateProfile()
+    }
+  }
 
-	func test_updateProfile_throws_whenStoringProfileUpdateFails() async {
-		patch(
-			\AccountsDataStore.loadAccountProfile,
-			 with: always(.mock_ada)
-		)
-		patch(
-			\UserDetailsFetchNetworkOperation.execute,
-			 with: always(.mock_ada)
-		)
-		patch(
-			\AccountsDataStore.updateAccountProfile,
-			 with: alwaysThrow(MockIssue.error())
-		)
-		patch(
-			\AccountsDataStore.updateAccountProfile,
-			 with: alwaysThrow(MockIssue.error())
-		)
+  func test_updateProfile_throws_whenStoringProfileUpdateFails() async {
+    patch(
+      \AccountsDataStore.loadAccountProfile,
+      with: always(.mock_ada)
+    )
+    patch(
+      \UserDetailsFetchNetworkOperation.execute,
+      with: always(.mock_ada)
+    )
+    patch(
+      \AccountsDataStore.updateAccountProfile,
+      with: alwaysThrow(MockIssue.error())
+    )
+    patch(
+      \AccountsDataStore.updateAccountProfile,
+      with: alwaysThrow(MockIssue.error())
+    )
 
-		await withInstance(throws: MockIssue.self) { (feature: AccountDetails) in
-			try await feature.updateProfile()
-		}
-	}
+    await withInstance(throws: MockIssue.self) { (feature: AccountDetails) in
+      try await feature.updateProfile()
+    }
+  }
 
-	func test_updateProfile_succeeds_whenStoringProfileUpdateSucceeds() async {
-		patch(
-			\AccountsDataStore.loadAccountProfile,
-			 with: always(.mock_ada)
-		)
-		patch(
-			\UserDetailsFetchNetworkOperation.execute,
-			 with: always(.mock_ada)
-		)
-		patch(
-			\AccountsDataStore.updateAccountProfile,
-			 with: alwaysThrow(MockIssue.error())
-		)
-		patch(
-			\AccountsDataStore.updateAccountProfile,
-			 with: always(Void())
-		)
+  func test_updateProfile_succeeds_whenStoringProfileUpdateSucceeds() async {
+    patch(
+      \AccountsDataStore.loadAccountProfile,
+      with: always(.mock_ada)
+    )
+    patch(
+      \UserDetailsFetchNetworkOperation.execute,
+      with: always(.mock_ada)
+    )
+    patch(
+      \AccountsDataStore.updateAccountProfile,
+      with: alwaysThrow(MockIssue.error())
+    )
+    patch(
+      \AccountsDataStore.updateAccountProfile,
+      with: always(Void())
+    )
 
-		await withInstance { (feature: AccountDetails) in
-			try await feature.updateProfile()
-		}
-	}
+    await withInstance { (feature: AccountDetails) in
+      try await feature.updateProfile()
+    }
+  }
 }
-
-

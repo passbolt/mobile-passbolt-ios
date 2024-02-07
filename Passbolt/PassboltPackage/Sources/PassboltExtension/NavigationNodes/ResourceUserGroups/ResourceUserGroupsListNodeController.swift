@@ -22,13 +22,13 @@
 //
 
 import Display
+import FeatureScopes
 import OSFeatures
 import Resources
 import Session
 import SessionData
 import SharedUIComponents
 import Users
-import FeatureScopes
 
 internal final class ResourceUserGroupsListNodeController: ViewController {
 
@@ -71,14 +71,15 @@ internal final class ResourceUserGroupsListNodeController: ViewController {
     self.contentController = try features.instance(
       context: .init(
         filter: ComputedVariable(
-        transformed: self.searchController
-					.searchText) { [currentAccount] update -> UserGroupsFilter in
-						try .init(
-              userID: currentAccount.userID,
-              text: update.value
-            )
-					}
-          .asAnyUpdatable(),
+          transformed: self.searchController
+            .searchText
+        ) { [currentAccount] update -> UserGroupsFilter in
+          try .init(
+            userID: currentAccount.userID,
+            text: update.value
+          )
+        }
+        .asAnyUpdatable(),
         selectGroup: self.selectUserGroup(_:)
       )
     )
@@ -109,37 +110,37 @@ extension ResourceUserGroupsListNodeController {
   @Sendable internal nonisolated func selectUserGroup(
     _ userGroupID: UserGroup.ID
   ) async throws {
-		let userGroup: UserGroupDetails = try await self.features
-			.branch(
-				scope: UserGroupScope.self,
-				context: userGroupID
-			)
-			.instance()
-		let userGroupDetails: UserGroupDetailsDSV = try await userGroup.details()
+    let userGroup: UserGroupDetails = try await self.features
+      .branch(
+        scope: UserGroupScope.self,
+        context: userGroupID
+      )
+      .instance()
+    let userGroupDetails: UserGroupDetailsDSV = try await userGroup.details()
 
-		let nodeController: ResourcesListNodeController =
-		try await self.features
-			.instance(
-				of: ResourcesListNodeController.self,
-				context: .init(
-					nodeID: context.nodeID,
-					title: .raw(userGroupDetails.name),
-					titleIconName: .userGroup,
-					baseFilter: .init(
-						sorting: .nameAlphabetically,
-						userGroups: [userGroupID]
-					)
-				)
-			)
+    let nodeController: ResourcesListNodeController =
+      try await self.features
+      .instance(
+        of: ResourcesListNodeController.self,
+        context: .init(
+          nodeID: context.nodeID,
+          title: .raw(userGroupDetails.name),
+          titleIconName: .userGroup,
+          baseFilter: .init(
+            sorting: .nameAlphabetically,
+            userGroups: [userGroupID]
+          )
+        )
+      )
 
-		await self.navigationTree
-			.push(
-				ResourcesListNodeView.self,
-				controller: nodeController
-			)
+    await self.navigationTree
+      .push(
+        ResourcesListNodeView.self,
+        controller: nodeController
+      )
   }
 
   internal final func closeExtension() {
-		self.autofillContext.cancelAndCloseExtension()
+    self.autofillContext.cancelAndCloseExtension()
   }
 }

@@ -220,7 +220,7 @@ extension SessionNetworkAuthorization {
       Diagnostics.logger.info("...preparing authorization challenge...")
       do {
         let challengeData: Data =
-				try JSONEncoder.default
+          try JSONEncoder.default
           .encode(
             Challenge(
               version: "1.0.0",  // Protocol version 1.0.0

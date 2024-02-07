@@ -232,7 +232,7 @@ extension NavigationResolver {
   @MainActor fileprivate static func load(
     features: Features
   ) throws -> Self {
-    return .init()
+    .init()
   }
 }
 

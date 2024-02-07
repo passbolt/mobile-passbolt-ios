@@ -46,29 +46,29 @@ internal final class ResourceUserGroupsListDisplayController: ViewController {
 
     self.context = context
     self.features = features
-    
+
     self.sessionData = try features.instance()
     self.userGroups = try features.instance()
 
     self.viewState = .init(
       initial: .init(
         userGroups: .init()
-			),
-			updateFrom: ComputedVariable(
-				combined: context.filter,
-				with: self.sessionData.lastUpdate
-			),
-			update: { [userGroups] (updateView, update) in
-				await consumingErrors {
-					let filteredUserGroups: Array<ResourceUserGroupListItemDSV> = try await userGroups.filteredResourceUserGroups(
-						update.value.0
-					)
+      ),
+      updateFrom: ComputedVariable(
+        combined: context.filter,
+        with: self.sessionData.lastUpdate
+      ),
+      update: { [userGroups] (updateView, update) in
+        await consumingErrors {
+          let filteredUserGroups: Array<ResourceUserGroupListItemDSV> = try await userGroups.filteredResourceUserGroups(
+            update.value.0
+          )
 
-					await updateView { viewState in
-						viewState.userGroups = filteredUserGroups
-					}
-				}
-			}
+          await updateView { viewState in
+            viewState.userGroups = filteredUserGroups
+          }
+        }
+      }
     )
   }
 }
@@ -95,8 +95,8 @@ extension ResourceUserGroupsListDisplayController {
     }
     catch {
       error.consume(
-          context: "Failed to refresh session data."
-        )
+        context: "Failed to refresh session data."
+      )
     }
   }
 

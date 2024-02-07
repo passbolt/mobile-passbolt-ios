@@ -62,70 +62,70 @@ internal final class AccountQRCodeExportController: ViewController {
           }
           catch {
             try? await navigation
-							.push(
-								OperationResultControlledView.self,
-								controller: OperationResultViewController(
-									context: OperationResultConfiguration(
-										for: error.asTheError(),
-										confirmation: { [navigation] in
-											await navigation.pop(to: TransferInfoScreenViewController.self)
-										}
-									),
-									features: features
-								)
-							)
+              .push(
+                OperationResultControlledView.self,
+                controller: OperationResultViewController(
+                  context: OperationResultConfiguration(
+                    for: error.asTheError(),
+                    confirmation: { [navigation] in
+                      await navigation.pop(to: TransferInfoScreenViewController.self)
+                    }
+                  ),
+                  features: features
+                )
+              )
           }
 
         case .finished:
-					try? await navigation
-						.push(
-							OperationResultControlledView.self,
-							controller: OperationResultViewController(
-								context: OperationResultConfiguration(
-									image: .successMark,
-									title: "transfer.account.result.success.title",
-									actionLabel: "transfer.account.export.exit.success.button",
-									confirmation: { [navigation] in
-                                        await navigation.popToRoot()
-									}
-								),
-								features: features
-							)
-						)
-
+          try? await navigation
+            .push(
+              OperationResultControlledView.self,
+              controller: OperationResultViewController(
+                context: OperationResultConfiguration(
+                  image: .successMark,
+                  title: "transfer.account.result.success.title",
+                  actionLabel: "transfer.account.export.exit.success.button",
+                  confirmation: { [navigation] in
+                    await navigation.popToRoot()
+                  }
+                ),
+                features: features
+              )
+            )
 
         case .error(let error):
-					try? await navigation
-						.push(
-							OperationResultControlledView.self,
-							controller: OperationResultViewController(
-								context: OperationResultConfiguration(
-									for: error.asTheError(),
-									confirmation: { [navigation] in
-											await navigation.pop(to: TransferInfoScreenViewController.self)
-									}
-								),
-								features: features
-							)
-						)
+          try? await navigation
+            .push(
+              OperationResultControlledView.self,
+              controller: OperationResultViewController(
+                context: OperationResultConfiguration(
+                  for: error.asTheError(),
+                  confirmation: { [navigation] in
+                    await navigation.pop(to: TransferInfoScreenViewController.self)
+                  }
+                ),
+                features: features
+              )
+            )
 
         case .uninitialized:
-					try? await navigation
-						.push(
-							OperationResultControlledView.self,
-							controller: OperationResultViewController(
-								context: OperationResultConfiguration(
-									for: InternalInconsistency
-										.error(
-											"Account export used without initialization."
-										),
-									confirmation: { [navigation] in
-											await navigation.pop(to: TransferInfoScreenViewController.self)
-									}
-								),
-								features: features
-							)
-						)
+          try? await navigation
+            .push(
+              OperationResultControlledView.self,
+              controller: OperationResultViewController(
+                context: OperationResultConfiguration(
+                  for:
+                    InternalInconsistency
+                    .error(
+                      "Account export used without initialization."
+                    ),
+                  confirmation: { [navigation] in
+                    await navigation.pop(to: TransferInfoScreenViewController.self)
+                  }
+                ),
+                features: features
+              )
+            )
         }
       }
     )
@@ -143,10 +143,10 @@ extension AccountQRCodeExportController {
 
 extension AccountQRCodeExportController {
 
-	@MainActor internal func showCancelConfirmation() {
-		self.viewState.update { (state: inout ViewState) in
-			state.exitConfirmationAlertPresented = true
-		}
+  @MainActor internal func showCancelConfirmation() {
+    self.viewState.update { (state: inout ViewState) in
+      state.exitConfirmationAlertPresented = true
+    }
   }
 
   @MainActor internal func cancelTransfer() {

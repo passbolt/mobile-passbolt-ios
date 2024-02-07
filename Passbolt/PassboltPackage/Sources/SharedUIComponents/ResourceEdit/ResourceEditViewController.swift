@@ -80,11 +80,12 @@ public final class ResourceEditViewController: ViewController {
     context: Context,
     features: Features
   ) throws {
-    let features: Features = try features
-			.branch(
-      scope: ResourceEditScope.self,
-      context: context.editingContext
-    )
+    let features: Features =
+      try features
+      .branch(
+        scope: ResourceEditScope.self,
+        context: context.editingContext
+      )
     self.features = features  // keep the branch alive
 
     self.success = context.success
@@ -120,22 +121,22 @@ public final class ResourceEditViewController: ViewController {
         combined: self.resourceEditForm.state,
         with: self.localState
       ),
-			update: { @MainActor (updateState, update: Update<(Resource, LocalState)>) async throws -> Void in
-				let update: (resource: Resource, localState: LocalState) = try update.value
-				assert(update.resource.secretAvailable, "Can't edit resource without secret!")
-				let fields = fields(
-					for: update.resource,
-					using: features,
-					edited: update.localState.editedFields,
-					countEntropy: { [randomGenerator] (input: String) -> Entropy in
-						randomGenerator.entropy(input, CharacterSets.all)
-					}
-				)
-				updateState { (viewState: inout ViewState) in
-					viewState.fields = fields
-					viewState.containsUndefinedFields = update.resource.containsUndefinedFields
-					viewState.edited = !update.localState.editedFields.isEmpty
-				}
+      update: { @MainActor (updateState, update: Update<(Resource, LocalState)>) async throws -> Void in
+        let update: (resource: Resource, localState: LocalState) = try update.value
+        assert(update.resource.secretAvailable, "Can't edit resource without secret!")
+        let fields = fields(
+          for: update.resource,
+          using: features,
+          edited: update.localState.editedFields,
+          countEntropy: { [randomGenerator] (input: String) -> Entropy in
+            randomGenerator.entropy(input, CharacterSets.all)
+          }
+        )
+        updateState { (viewState: inout ViewState) in
+          viewState.fields = fields
+          viewState.containsUndefinedFields = update.resource.containsUndefinedFields
+          viewState.edited = !update.localState.editedFields.isEmpty
+        }
       }
     )
   }
@@ -165,35 +166,35 @@ public final class ResourceEditViewController: ViewController {
   }
 
   @MainActor internal func sendForm() async throws {
-		do {
-			let resource: Resource = try await self.resourceEditForm.sendForm()
-			if !isInExtensionContext {
-				// TODO: unify navigation between app and extnsion
-				try await self.navigationToSelf.revert()
-			}  // else NOP
+    do {
+      let resource: Resource = try await self.resourceEditForm.sendForm()
+      if !isInExtensionContext {
+        // TODO: unify navigation between app and extnsion
+        try await self.navigationToSelf.revert()
+      }  // else NOP
 
-			SnackBarMessageEvent.send(
-				self.editsExisting
-				? "resource.menu.action.edited"
-				: "resource.form.new.password.created"
-			)
-			await self.success(resource)
-		}
-		catch let error as InvalidForm {
-			self.localState.mutate { (state: inout LocalState) in
-				state.editedFields = self.allFields
-			}
-			throw error
-		}
-		catch {
-			throw error
-		}
+      SnackBarMessageEvent.send(
+        self.editsExisting
+          ? "resource.menu.action.edited"
+          : "resource.form.new.password.created"
+      )
+      await self.success(resource)
+    }
+    catch let error as InvalidForm {
+      self.localState.mutate { (state: inout LocalState) in
+        state.editedFields = self.allFields
+      }
+      throw error
+    }
+    catch {
+      throw error
+    }
   }
 
   @MainActor internal func discardForm() async {
     await consumingErrors(
-			errorDiagnostics: "Failed to discard resource edit form!"
-		) {
+      errorDiagnostics: "Failed to discard resource edit form!"
+    ) {
       if isInExtensionContext {
         // TODO: unify navigation between app and extnsion
         self.features.instance(of: NavigationTree.self)

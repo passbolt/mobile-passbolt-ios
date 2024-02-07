@@ -27,62 +27,62 @@ import SharedUIComponents
 
 internal final class ResourceFolderMenuController: ViewController {
 
-	internal nonisolated let viewState: ViewStateSource<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
-	private let navigation: DisplayNavigation
+  private let navigation: DisplayNavigation
 
-	private let context: Context
-	private let features: Features
+  private let context: Context
+  private let features: Features
 
-	internal init(
-		context: Context,
-		features: Features
-	) throws {
-		self.context = context
-		self.features = features
+  internal init(
+    context: Context,
+    features: Features
+  ) throws {
+    self.context = context
+    self.features = features
 
-		self.navigation = try features.instance()
+    self.navigation = try features.instance()
 
-		self.viewState = .init(
-			initial: .init(
-				folderName: context.folderName
-			)
-		)
-	}
+    self.viewState = .init(
+      initial: .init(
+        folderName: context.folderName
+      )
+    )
+  }
 }
 
 extension ResourceFolderMenuController {
 
-	internal struct Context {
+  internal struct Context {
 
-		internal var folderID: ResourceFolder.ID
-		internal var folderName: String
-	}
+    internal var folderID: ResourceFolder.ID
+    internal var folderName: String
+  }
 
-	internal struct ViewState: Equatable {
+  internal struct ViewState: Equatable {
 
-		internal var folderName: String
-	}
+    internal var folderName: String
+  }
 }
 
 extension ResourceFolderMenuController {
 
-	internal final func openDetails() async throws {
-		await self.navigation
-			.dismissLegacySheet(ResourceFolderMenuView.self)
-		try await self.navigation
-			.push(
-				ResourceFolderDetailsView.self,
-				controller:
-					self.features
-					.instance(
-						context: self.context.folderID
-					)
-			)
-	}
+  internal final func openDetails() async throws {
+    await self.navigation
+      .dismissLegacySheet(ResourceFolderMenuView.self)
+    try await self.navigation
+      .push(
+        ResourceFolderDetailsView.self,
+        controller:
+          self.features
+          .instance(
+            context: self.context.folderID
+          )
+      )
+  }
 
-	internal final func close() async {
-		await self.navigation
-			.dismissLegacySheet(ResourceFolderMenuView.self)
-	}
+  internal final func close() async {
+    await self.navigation
+      .dismissLegacySheet(ResourceFolderMenuView.self)
+  }
 }

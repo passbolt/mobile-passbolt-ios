@@ -94,8 +94,8 @@ extension DiagnosticsInfo: CustomStringConvertible {
 extension DiagnosticsInfo: CustomDebugStringConvertible {
 
   public var debugDescription: String {
-		#if DEBUG
-		self.description
+    #if DEBUG
+    self.description
       .appending(
         self.values
           .reduce(
@@ -105,8 +105,8 @@ extension DiagnosticsInfo: CustomDebugStringConvertible {
             }
           )
       )
-		#else
-		self.description
-		#endif
+    #else
+    self.description
+    #endif
   }
 }

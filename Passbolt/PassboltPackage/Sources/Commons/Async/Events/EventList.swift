@@ -24,65 +24,65 @@
 public struct EventList<Description>
 where Description: EventDescription {
 
-	@usableFromInline internal typealias Subscription = @Sendable (Description.Payload) -> Void
+  @usableFromInline internal typealias Subscription = @Sendable (Description.Payload) -> Void
 
-	@usableFromInline internal let subscriptions: CriticalState<Dictionary<IID, Subscription>>
+  @usableFromInline internal let subscriptions: CriticalState<Dictionary<IID, Subscription>>
 
-	public init() {
-		self.subscriptions = .init(.init())
-	}
+  public init() {
+    self.subscriptions = .init(.init())
+  }
 }
 
 extension EventList: Sendable {}
 
 extension EventList {
 
-	@_transparent @usableFromInline internal func sendEvent(
-		payload: consuming Description.Payload
-	) {
-		for subscription: Subscription in self.subscriptions.get(\.values) {
-			subscription(payload)
-		}
-	}
+  @_transparent @usableFromInline internal func sendEvent(
+    payload: consuming Description.Payload
+  ) {
+    for subscription: Subscription in self.subscriptions.get(\.values) {
+      subscription(payload)
+    }
+  }
 
-	@_transparent @usableFromInline internal func nextEvent() async throws -> Description.Payload {
-		try await future { (fulfill: @escaping (Result<Description.Payload, Error>) -> Void) in
-			let id: IID = .init()
-			self.subscriptions.set(
-				\.[id],
-				{ @Sendable [self, fulfill] (eventPayload: Description.Payload) in
-					self.unsubscribe(id)
-					fulfill(.success(eventPayload))
-				}
-			)
-		}
-	}
+  @_transparent @usableFromInline internal func nextEvent() async throws -> Description.Payload {
+    try await future { (fulfill: @escaping (Result<Description.Payload, Error>) -> Void) in
+      let id: IID = .init()
+      self.subscriptions.set(
+        \.[id],
+        { @Sendable [self, fulfill] (eventPayload: Description.Payload) in
+          self.unsubscribe(id)
+          fulfill(.success(eventPayload))
+        }
+      )
+    }
+  }
 
-	@_transparent @usableFromInline internal func subscribe(
-		bufferSize: Int
-	) -> EventSubscription<Description> {
-		let id: IID = .init()
-		let subscription: EventSubscription<Description> = .init(
-			bufferSize: bufferSize,
-			unsubscribe: { [self] in
-				self.unsubscribe(id)
-			}
-		)
-		self.subscriptions.set(
-			\.[id],
-			 { @Sendable (eventPayload: Description.Payload) in
-				 subscription.deliver(eventPayload)
-			 }
-		)
-		return subscription
-	}
+  @_transparent @usableFromInline internal func subscribe(
+    bufferSize: Int
+  ) -> EventSubscription<Description> {
+    let id: IID = .init()
+    let subscription: EventSubscription<Description> = .init(
+      bufferSize: bufferSize,
+      unsubscribe: { [self] in
+        self.unsubscribe(id)
+      }
+    )
+    self.subscriptions.set(
+      \.[id],
+      { @Sendable(eventPayload: Description.Payload) in
+        subscription.deliver(eventPayload)
+      }
+    )
+    return subscription
+  }
 
-	@_transparent @usableFromInline internal func unsubscribe(
-		_ id: IID
-	) {
-		self.subscriptions.set(
-			\.[id],
-			 .none
-		)
-	}
+  @_transparent @usableFromInline internal func unsubscribe(
+    _ id: IID
+  ) {
+    self.subscriptions.set(
+      \.[id],
+      .none
+    )
+  }
 }

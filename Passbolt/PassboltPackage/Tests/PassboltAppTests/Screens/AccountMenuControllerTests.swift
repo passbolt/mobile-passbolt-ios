@@ -59,10 +59,10 @@ final class AccountMenuControllerTests: MainActorTestCase {
         configuration: .mock_default
       )
     )
-		features.patch(
-			\AccountDetails.profile,
-			with: always(.mock_ada)
-		)
+    features.patch(
+      \AccountDetails.profile,
+      with: always(.mock_ada)
+    )
     self.features
       .patch(
         \NavigationToAccountMenu.mockRevert,
@@ -181,10 +181,10 @@ final class AccountMenuControllerTests: MainActorTestCase {
           result.value = account
         }
       )
-		features.patch(
-			\AccountDetails.profile,
-			with: always(.mock_ada)
-		)
+    features.patch(
+      \AccountDetails.profile,
+      with: always(.mock_ada)
+    )
 
     let controller: AccountMenuController = try await testController()
 

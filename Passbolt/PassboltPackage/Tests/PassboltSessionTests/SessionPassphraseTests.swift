@@ -34,18 +34,18 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
     registry.usePassboltSessionPassphrase()
   }
 
-	override class var testedImplementationScope: any FeaturesScope.Type {
-		SessionScope.self
-	}
+  override class var testedImplementationScope: any FeaturesScope.Type {
+    SessionScope.self
+  }
 
   override func prepare() throws {
-		set(
-			SessionScope.self,
-			context: .init(
-				account: .mock_ada,
-				configuration: .mock_1
-			)
-		)
+    set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1
+      )
+    )
     use(AccountsDataStore.placeholder)
     use(SessionStateEnsurance.placeholder)
   }
@@ -115,7 +115,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
       \AccountsDataStore.storeAccountPassphrase,
       with: always(Void())
     )
-    withTestedInstanceNotThrows() { (testedInstance: SessionPassphrase) in
+    withTestedInstanceNotThrows { (testedInstance: SessionPassphrase) in
       try await testedInstance.storeWithBiometry(true)
     }
   }
@@ -129,7 +129,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
       \AccountsDataStore.deleteAccountPassphrase,
       with: always(Void())
     )
-    withTestedInstanceNotThrows() { (testedInstance: SessionPassphrase) in
+    withTestedInstanceNotThrows { (testedInstance: SessionPassphrase) in
       try await testedInstance.storeWithBiometry(false)
     }
   }

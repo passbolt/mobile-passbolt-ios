@@ -35,16 +35,16 @@ where ContentView: View {
     self.contentView = contentView()
   }
 
-	public init(
-		avatarImage: Data?
-	) where ContentView == Image {
-		if let avatarImage {
-			self.contentView = (Image(data: avatarImage) ?? Image(named: .person)).resizable()
-		}
-		else {
-			self.contentView = Image(named: .person).resizable()
-		}
-	}
+  public init(
+    avatarImage: Data?
+  ) where ContentView == Image {
+    if let avatarImage {
+      self.contentView = (Image(data: avatarImage) ?? Image(named: .person)).resizable()
+    }
+    else {
+      self.contentView = Image(named: .person).resizable()
+    }
+  }
 
   public var body: some View {
     self.contentView

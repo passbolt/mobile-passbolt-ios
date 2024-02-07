@@ -23,7 +23,6 @@
 
 public enum AccountAuthorizationMethod {
 
-	case passphrase(Passphrase)
-	case biometrics
+  case passphrase(Passphrase)
+  case biometrics
 }
-

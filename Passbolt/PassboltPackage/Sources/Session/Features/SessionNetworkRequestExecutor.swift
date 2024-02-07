@@ -47,7 +47,6 @@ public struct SessionNetworkRequestExecutor {
 
 extension SessionNetworkRequestExecutor: LoadableFeature {
 
-
   #if DEBUG
   public nonisolated static var placeholder: Self {
     Self(

@@ -116,13 +116,13 @@ internal final class HomeSearchViewController: PlainViewController, UIComponent 
       .store(in: cancellables)
 
     contentView
-			.accountMenuTapPublisher
-			.asyncMap { [weak self] in
-				await consumingErrors {
-					self?.view.endEditing(true)
-					try await self?.controller.presentAccountMenu()
-				}
-			}
+      .accountMenuTapPublisher
+      .asyncMap { [weak self] in
+        await consumingErrors {
+          self?.view.endEditing(true)
+          try await self?.controller.presentAccountMenu()
+        }
+      }
       .sinkDrop()
       .store(in: cancellables)
   }

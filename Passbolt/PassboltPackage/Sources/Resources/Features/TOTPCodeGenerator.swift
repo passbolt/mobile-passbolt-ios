@@ -28,47 +28,47 @@ import Features
 
 public struct TOTPCodeGenerator {
 
-	public struct Parameters {
+  public struct Parameters {
 
-		public var resourceID: Resource.ID?
-		public var sharedSecret: String
-		public var algorithm: HOTPAlgorithm
-		public var digits: UInt
-		public var period: Seconds
+    public var resourceID: Resource.ID?
+    public var sharedSecret: String
+    public var algorithm: HOTPAlgorithm
+    public var digits: UInt
+    public var period: Seconds
 
-		public init(
-			resourceID: Resource.ID?,
-			sharedSecret: String,
-			algorithm: HOTPAlgorithm,
-			digits: UInt,
-			period: Seconds
-		) {
-			self.resourceID = resourceID
-			self.sharedSecret = sharedSecret
-			self.algorithm = algorithm
-			self.digits = digits
-			self.period = period
-		}
+    public init(
+      resourceID: Resource.ID?,
+      sharedSecret: String,
+      algorithm: HOTPAlgorithm,
+      digits: UInt,
+      period: Seconds
+    ) {
+      self.resourceID = resourceID
+      self.sharedSecret = sharedSecret
+      self.algorithm = algorithm
+      self.digits = digits
+      self.period = period
+    }
 
-		public init(
-			resourceID: Resource.ID?,
-			secret: TOTPSecret
-		) {
-			self.resourceID = resourceID
-			self.sharedSecret = secret.sharedSecret
-			self.algorithm = secret.algorithm
-			self.digits = secret.digits
-			self.period = secret.period
-		}
-	}
+    public init(
+      resourceID: Resource.ID?,
+      secret: TOTPSecret
+    ) {
+      self.resourceID = resourceID
+      self.sharedSecret = secret.sharedSecret
+      self.algorithm = secret.algorithm
+      self.digits = secret.digits
+      self.period = secret.period
+    }
+  }
 
-	public var prepare: @Sendable (Parameters) -> @Sendable () -> TOTPValue
+  public var prepare: @Sendable (Parameters) -> @Sendable () -> TOTPValue
 
-	public init(
-		prepare: @escaping @Sendable (Parameters) -> @Sendable () -> TOTPValue
-	) {
-		self.prepare = prepare
-	}
+  public init(
+    prepare: @escaping @Sendable (Parameters) -> @Sendable () -> TOTPValue
+  ) {
+    self.prepare = prepare
+  }
 }
 
 extension TOTPCodeGenerator: LoadableFeature {
@@ -76,7 +76,7 @@ extension TOTPCodeGenerator: LoadableFeature {
   #if DEBUG
   public nonisolated static var placeholder: Self {
     .init(
-			prepare: unimplemented1()
+      prepare: unimplemented1()
     )
   }
   #endif

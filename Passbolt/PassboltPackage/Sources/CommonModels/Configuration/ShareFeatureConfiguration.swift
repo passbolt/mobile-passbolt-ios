@@ -23,13 +23,13 @@
 
 public struct ShareFeatureConfiguration {
 
-	public var showMembersList: Bool
+  public var showMembersList: Bool
 
-	public init(
-		showMembersList: Bool
-	) {
-		self.showMembersList = showMembersList
-	}
+  public init(
+    showMembersList: Bool
+  ) {
+    self.showMembersList = showMembersList
+  }
 }
 
 extension ShareFeatureConfiguration: Equatable {}

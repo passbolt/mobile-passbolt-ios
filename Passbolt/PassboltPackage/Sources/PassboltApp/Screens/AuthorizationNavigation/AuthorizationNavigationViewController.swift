@@ -79,7 +79,7 @@ internal final class AuthorizationNavigationViewController: NavigationViewContro
 
   public func activate() {
     if let message: DisplayableString = controller.message {
-			SnackBarMessageEvent.send(.info(message))
+      SnackBarMessageEvent.send(.info(message))
     }
     else {
       /* NOP */

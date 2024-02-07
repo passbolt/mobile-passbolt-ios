@@ -231,7 +231,7 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
               return  // ignore, handled by window controller
 
             case _:
-							SnackBarMessageEvent.send(.error(error))
+              SnackBarMessageEvent.send(.error(error))
             }
           }
           .sinkDrop()
@@ -285,12 +285,12 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
       .receive(on: RunLoop.main)
       .sink(
         receiveCompletion: { [weak self] completion in
-					guard let self else { return }
+          guard let self else { return }
           self.dismissOverlay()
 
           self.cancellables
             .executeOnMainActor { [weak self] in
-							guard let self else { return }
+              guard let self else { return }
               switch completion {
               case .finished:
                 break
@@ -310,21 +310,21 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
                 }
 
               case let .failure(error):
-								try await self
-									.push(
-										OperationResultControlledView(
-										 controller: OperationResultViewController(
-											 context: OperationResultConfiguration(
-												 for: error.asTheError(),
-												 confirmation: { [weak self] in
-													 await self?.pop(to: TransferInfoScreenViewController.self)
-												 }
-											 ),
-											 features: self.components.features
-										 )
-									 ),
-										animated: true
-									)
+                try await self
+                  .push(
+                    OperationResultControlledView(
+                      controller: OperationResultViewController(
+                        context: OperationResultConfiguration(
+                          for: error.asTheError(),
+                          confirmation: { [weak self] in
+                            await self?.pop(to: TransferInfoScreenViewController.self)
+                          }
+                        ),
+                        features: self.components.features
+                      )
+                    ),
+                    animated: true
+                  )
               }
             }
         }

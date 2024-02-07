@@ -61,28 +61,31 @@ internal final class ResourceFolderPermissionListController: ViewController {
         permissionListItems: []
       ),
       updateFrom: self.resourceFolderController.state,
-			update: { [resourceFolderUserGroupPermissionsDetailsFetch, resourceFolderUserPermissionsDetailsFetch, users] updateView, update in
-				let userGroupPermissionsDetails: Array<PermissionListRowItem> =
-        try await resourceFolderUserGroupPermissionsDetailsFetch(context)
-        .map { details in
-          .userGroup(details: details)
-        }
+      update: {
+        [resourceFolderUserGroupPermissionsDetailsFetch, resourceFolderUserPermissionsDetailsFetch, users]
+        updateView,
+        update in
+        let userGroupPermissionsDetails: Array<PermissionListRowItem> =
+          try await resourceFolderUserGroupPermissionsDetailsFetch(context)
+          .map { details in
+            .userGroup(details: details)
+          }
 
-      let userPermissionsDetails: Array<PermissionListRowItem> =
-        try await resourceFolderUserPermissionsDetailsFetch(context)
-        .map { details in
-          .user(
-            details: details,
-            imageData: {
-							try? await users.userAvatarImage(details.id)
-            }
-          )
-        }
+        let userPermissionsDetails: Array<PermissionListRowItem> =
+          try await resourceFolderUserPermissionsDetailsFetch(context)
+          .map { details in
+            .user(
+              details: details,
+              imageData: {
+                try? await users.userAvatarImage(details.id)
+              }
+            )
+          }
 
-      await updateView { viewState in
-        viewState.permissionListItems = userGroupPermissionsDetails + userPermissionsDetails
+        await updateView { viewState in
+          viewState.permissionListItems = userGroupPermissionsDetails + userPermissionsDetails
         }
-			}
+      }
     )
   }
 }
@@ -100,22 +103,22 @@ extension ResourceFolderPermissionListController {
   internal final func showUserPermissionDetails(
     _ details: UserPermissionDetailsDSV
   ) async {
-		await self.navigation.push(
-			legacy: UserPermissionDetailsView.self,
-			context: details
-		)
+    await self.navigation.push(
+      legacy: UserPermissionDetailsView.self,
+      context: details
+    )
   }
 
   internal final func showUserGroupPermissionDetails(
     _ details: UserGroupPermissionDetailsDSV
   ) async {
-		await navigation.push(
-			legacy: UserGroupPermissionDetailsView.self,
-			context: details
-		)
+    await navigation.push(
+      legacy: UserGroupPermissionDetailsView.self,
+      context: details
+    )
   }
 
   internal final func navigateBack() async {
-		await self.navigation.pop(ResourceFolderPermissionListView.self)
+    await self.navigation.pop(ResourceFolderPermissionListView.self)
   }
 }

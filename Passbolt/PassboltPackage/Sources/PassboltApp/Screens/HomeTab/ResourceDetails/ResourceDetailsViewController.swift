@@ -116,7 +116,8 @@ internal final class ResourceDetailsViewController: ViewController {
       update: { [navigationToSelf, sessionConfiguration] (updateView, update: Update<(Resource, LocalState)>) in
         do {
           let (resource, localState): (Resource, LocalState) = try update.value
-          let resourcePermissions: Array<OverlappingAvatarStackView.Item> = try await resource.permissions.asyncMap { (permission: ResourcePermission) in
+          let resourcePermissions: Array<OverlappingAvatarStackView.Item> = try await resource.permissions.asyncMap {
+            (permission: ResourcePermission) in
             switch permission {
             case .user(let id, _, _):
               return await .user(
@@ -209,35 +210,36 @@ extension ResourceDetailsViewController {
       }  // else NOP
       let fieldValue: JSON = resource[keyPath: path]
       if let totpSecret: TOTPSecret = fieldValue.totpSecretValue {
-        let totpValue: TOTPValue = try self.features
+        let totpValue: TOTPValue =
+          try self.features
           .instance(of: TOTPCodeGenerator.self)
           .prepare(
-						.init(
-							resourceID: resourceID,
-							secret: totpSecret
-						)
-					)()
+            .init(
+              resourceID: resourceID,
+              secret: totpSecret
+            )
+          )()
         self.pasteboard.put(totpValue.otp.rawValue)
       }
       else {
         self.pasteboard.put(fieldValue.stringValue ?? "")
       }
 
-			SnackBarMessageEvent.send(
-				.info(
-					.localized(
-						key: "resource.value.copied",
-						arguments: [
-							resource
-								.displayableName(forField: path)?
-								.string()
-							?? DisplayableString
-								.localized("resource.field.name.unknown")
-								.string()
-						]
-					)
-				)
-			)
+      SnackBarMessageEvent.send(
+        .info(
+          .localized(
+            key: "resource.value.copied",
+            arguments: [
+              resource
+                .displayableName(forField: path)?
+                .string()
+                ?? DisplayableString
+                .localized("resource.field.name.unknown")
+                .string()
+            ]
+          )
+        )
+      )
     }
   }
 
@@ -299,14 +301,15 @@ extension ResourceDetailsViewController {
             revealedFields: revealedFields,
             configuration: sessionConfiguration.resources,
             prepareTOTPGenerator: { [features] totpSecret in
-							let generateOTP: @Sendable () -> TOTPValue = try features
-								.instance(of: TOTPCodeGenerator.self)
-								.prepare(
-									.init(
-										resourceID: resource.id,
-										secret: totpSecret
-									)
-								)
+              let generateOTP: @Sendable () -> TOTPValue =
+                try features
+                .instance(of: TOTPCodeGenerator.self)
+                .prepare(
+                  .init(
+                    resourceID: resource.id,
+                    secret: totpSecret
+                  )
+                )
               return generateOTP
             }
           )
@@ -432,22 +435,24 @@ internal struct ResourceDetailsFieldViewModel {
           self.value = .placeholder(placeholder.string())
         }
 
-        self.mainAction = configuration.passwordCopyEnabled
+        self.mainAction =
+          configuration.passwordCopyEnabled
           ? .copy
           : .none
-				self.accessoryAction = .hide
+        self.accessoryAction = .hide
       }
       else {
         self.value = .encrypted
-				self.mainAction = configuration.passwordCopyEnabled
+        self.mainAction =
+          configuration.passwordCopyEnabled
           ? .copy
           : .none
         self.accessoryAction =
           configuration.passwordRevealEnabled
           ? .reveal
           : configuration.passwordCopyEnabled
-          ? .copy  // if not allowed to reveal use copy
-          : .none
+            ? .copy  // if not allowed to reveal use copy
+            : .none
       }
 
     case .totp(let name):
@@ -477,7 +482,7 @@ internal struct ResourceDetailsFieldViewModel {
               )
           )
         }
-				self.mainAction = .copy
+        self.mainAction = .copy
         self.accessoryAction = .hide
       }
       else {

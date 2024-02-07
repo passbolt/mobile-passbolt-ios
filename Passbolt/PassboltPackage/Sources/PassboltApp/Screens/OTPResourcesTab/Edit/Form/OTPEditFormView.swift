@@ -36,22 +36,22 @@ internal struct OTPEditFormView: ControlledView {
 
   internal var body: some View {
     with(\.isEditing) { (isEditing: Bool) in
-        VStack(spacing: 0) {
-          ScrollView {
-            VStack(spacing: 16) {
-              self.nameField
-              self.uriField
-              self.secretField
-              self.advancedLink
-            }
+      VStack(spacing: 0) {
+        ScrollView {
+          VStack(spacing: 16) {
+            self.nameField
+            self.uriField
+            self.secretField
+            self.advancedLink
           }
-
-          Spacer()
-
-          self.sendForm(editng: isEditing)
         }
-        .padding(16)
-        .frame(maxHeight: .infinity)
+
+        Spacer()
+
+        self.sendForm(editng: isEditing)
+      }
+      .padding(16)
+      .frame(maxHeight: .infinity)
       .navigationTitle(
         displayable: isEditing
           ? "otp.edit.form.edit.title"

@@ -114,7 +114,7 @@ internal struct UserPermissionEditView: ComponentView {
         ) { (permission: Permission) in
           AsyncButton(
             action: {
-							self.controller.setPermissionType(permission)
+              self.controller.setPermissionType(permission)
             },
             label: {
               HStack(spacing: 0) {

@@ -39,17 +39,17 @@ internal struct OTPConfigurationScanningView: ControlledView {
       from: self.controller,
       at: \.loading
     ) { (loading: Bool) in
-			QRCodeScanningView(
-				process: self.controller.process(payload:)
-			)
-			.edgesIgnoringSafeArea(.bottom)
+      QRCodeScanningView(
+        process: self.controller.process(payload:)
+      )
+      .edgesIgnoringSafeArea(.bottom)
       .loader(visible: loading)
     }
     .navigationTitle(
       displayable: "otp.code.scanning.title"
     )
-		.onAppear {
-			SnackBarMessageEvent.send("otp.code.scanning.initial.message")
-		}
+    .onAppear {
+      SnackBarMessageEvent.send("otp.code.scanning.initial.message")
+    }
   }
 }

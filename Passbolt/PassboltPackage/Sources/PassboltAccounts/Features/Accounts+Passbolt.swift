@@ -45,41 +45,41 @@ extension Accounts {
     }
 
     @Sendable nonisolated func storedAccounts() -> Array<AccountWithProfile> {
-			dataStore
-				.loadAccounts()
-				.compactMap { (account: Account) -> AccountWithProfile? in
-					do {
-						return AccountWithProfile(
-							account: account,
-							profile: try dataStore.loadAccountProfile(account.localID)
-						)
-					}
-					catch {
-						error.logged(
-							info: .message("Failed to load account profile. Account will be unavailable!")
-						)
-						return .none
-					}
-				}
+      dataStore
+        .loadAccounts()
+        .compactMap { (account: Account) -> AccountWithProfile? in
+          do {
+            return AccountWithProfile(
+              account: account,
+              profile: try dataStore.loadAccountProfile(account.localID)
+            )
+          }
+          catch {
+            error.logged(
+              info: .message("Failed to load account profile. Account will be unavailable!")
+            )
+            return .none
+          }
+        }
     }
 
     @Sendable nonisolated func lastUsedAccount() -> AccountWithProfile? {
       dataStore
-				.loadLastUsedAccount()
-				.flatMap { (account: Account) -> AccountWithProfile? in
-					do {
-						return AccountWithProfile(
-							account: account,
-							profile: try dataStore.loadAccountProfile(account.localID)
-						)
-					}
-					catch {
-						error.logged(
-							info: .message("Failed to load account profile. Account will be unavailable!")
-						)
-						return .none
-					}
-				}
+        .loadLastUsedAccount()
+        .flatMap { (account: Account) -> AccountWithProfile? in
+          do {
+            return AccountWithProfile(
+              account: account,
+              profile: try dataStore.loadAccountProfile(account.localID)
+            )
+          }
+          catch {
+            error.logged(
+              info: .message("Failed to load account profile. Account will be unavailable!")
+            )
+            return .none
+          }
+        }
     }
 
     @Sendable nonisolated func addAccount(
@@ -122,7 +122,7 @@ extension Accounts {
           updatesSource.update()
         }
         catch {
-					Diagnostics.logger.info("...failed to store account data...")
+          Diagnostics.logger.info("...failed to store account data...")
           Diagnostics.debug(
             "Failed to save account: \(account.localID)"
           )

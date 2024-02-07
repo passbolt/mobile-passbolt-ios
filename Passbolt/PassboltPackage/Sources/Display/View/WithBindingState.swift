@@ -27,75 +27,75 @@ import SwiftUI
 public struct WithBindingState<State, ContentView>: View
 where State: Equatable, ContentView: View {
 
-	@ObservedObject private var viewState: TrimmedViewState<State>
-	private let binding: Binding<State>
-	private let content: (Binding<State>) -> ContentView
+  @ObservedObject private var viewState: TrimmedViewState<State>
+  private let binding: Binding<State>
+  private let content: (Binding<State>) -> ContentView
 
-	public init<Controller>(
-		from controller: Controller,
-		@ViewBuilder content: @escaping (Binding<State>) -> ContentView
-	) where Controller: ViewController, Controller.ViewState == State {
-		self._viewState = .init(
-			wrappedValue: .init(from: controller.viewState)
-		)
-		self.binding = controller.binding(to: \.self)
-		self.content = content
-	}
+  public init<Controller>(
+    from controller: Controller,
+    @ViewBuilder content: @escaping (Binding<State>) -> ContentView
+  ) where Controller: ViewController, Controller.ViewState == State {
+    self._viewState = .init(
+      wrappedValue: .init(from: controller.viewState)
+    )
+    self.binding = controller.binding(to: \.self)
+    self.content = content
+  }
 
-	public init<Controller>(
-		from controller: Controller,
-		at keyPath: WritableKeyPath<Controller.ViewState, State>,
-		@ViewBuilder content: @escaping (Binding<State>) -> ContentView
-	) where Controller: ViewController {
-		self._viewState = .init(
-			wrappedValue: .init(
-				from: controller.viewState,
-				at: keyPath
-			)
-		)
-		self.binding = controller.binding(to: keyPath)
-		self.content = content
-	}
+  public init<Controller>(
+    from controller: Controller,
+    at keyPath: WritableKeyPath<Controller.ViewState, State>,
+    @ViewBuilder content: @escaping (Binding<State>) -> ContentView
+  ) where Controller: ViewController {
+    self._viewState = .init(
+      wrappedValue: .init(
+        from: controller.viewState,
+        at: keyPath
+      )
+    )
+    self.binding = controller.binding(to: keyPath)
+    self.content = content
+  }
 
-	public init<Controller>(
-		from controller: Controller,
-		at keyPath: WritableKeyPath<Controller.ViewState, State>,
-		updating: @escaping @MainActor (State) -> Void,
-		@ViewBuilder content: @escaping (Binding<State>) -> ContentView
-	) where Controller: ViewController {
-		self._viewState = .init(
-			wrappedValue: .init(
-				from: controller.viewState,
-				at: keyPath
-			)
-		)
-		self.binding = controller.binding(
-			to: keyPath,
-			updating: updating
-		)
-		self.content = content
-	}
+  public init<Controller>(
+    from controller: Controller,
+    at keyPath: WritableKeyPath<Controller.ViewState, State>,
+    updating: @escaping @MainActor (State) -> Void,
+    @ViewBuilder content: @escaping (Binding<State>) -> ContentView
+  ) where Controller: ViewController {
+    self._viewState = .init(
+      wrappedValue: .init(
+        from: controller.viewState,
+        at: keyPath
+      )
+    )
+    self.binding = controller.binding(
+      to: keyPath,
+      updating: updating
+    )
+    self.content = content
+  }
 
-	public init<Controller, ValidatedState>(
-		from controller: Controller,
-		atValidated keyPath: WritableKeyPath<Controller.ViewState, Validated<ValidatedState>>,
-		updating: @escaping @MainActor (ValidatedState) -> Void,
-		@ViewBuilder content: @escaping (Binding<Validated<ValidatedState>>) -> ContentView
-	) where Controller: ViewController, State == Validated<ValidatedState> {
-		self._viewState = .init(
-			wrappedValue: .init(
-				from: controller.viewState,
-				at: keyPath
-			)
-		)
-		self.binding = controller.validatedBinding(
-			to: keyPath,
-			updating: updating
-		)
-		self.content = content
-	}
+  public init<Controller, ValidatedState>(
+    from controller: Controller,
+    atValidated keyPath: WritableKeyPath<Controller.ViewState, Validated<ValidatedState>>,
+    updating: @escaping @MainActor (ValidatedState) -> Void,
+    @ViewBuilder content: @escaping (Binding<Validated<ValidatedState>>) -> ContentView
+  ) where Controller: ViewController, State == Validated<ValidatedState> {
+    self._viewState = .init(
+      wrappedValue: .init(
+        from: controller.viewState,
+        at: keyPath
+      )
+    )
+    self.binding = controller.validatedBinding(
+      to: keyPath,
+      updating: updating
+    )
+    self.content = content
+  }
 
-	public var body: some View {
-		self.content(self.binding)
-	}
+  public var body: some View {
+    self.content(self.binding)
+  }
 }

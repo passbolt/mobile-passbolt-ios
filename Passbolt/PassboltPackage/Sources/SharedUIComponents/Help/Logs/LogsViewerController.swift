@@ -47,10 +47,10 @@ extension LogsViewerController: UIController {
     let shareMenuPresentationSubject: PassthroughSubject<String?, Never> = .init()
 
     func refreshLogs() async {
-			await Task {
+      await Task {
         diagnosticsInfoCacheSubject.send(Diagnostics.shared.info())
-			}
-			.waitForCompletion()
+      }
+      .waitForCompletion()
     }
 
     func logsPublisher() -> AnyPublisher<Array<String>?, Never> {

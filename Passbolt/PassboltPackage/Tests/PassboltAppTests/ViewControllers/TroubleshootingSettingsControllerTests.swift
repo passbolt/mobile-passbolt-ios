@@ -50,7 +50,7 @@ final class TroubleshootingSettingsControllerTests: FeaturesTestCase {
       mockExecuted: 1
     ) { feature in
       await feature.navigateToLogs()
-      
+
     }
   }
 
@@ -64,7 +64,7 @@ final class TroubleshootingSettingsControllerTests: FeaturesTestCase {
       mockExecuted: 1
     ) { feature in
       await feature.navigateToHelpSite()
-      
+
     }
   }
 }

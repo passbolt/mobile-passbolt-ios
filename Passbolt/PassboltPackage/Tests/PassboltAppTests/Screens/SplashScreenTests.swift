@@ -76,11 +76,12 @@ final class SplashScreenTests: MainActorTestCase {
       with: alwaysThrow(MockIssue.error())
     )
 
-		let controller: SplashScreenController = try testController(context: .none)
-		let result: SplashScreenController.Destination? = try await controller
-			.navigationDestinationPublisher()
-			.asAsyncSequence()
-			.first()
+    let controller: SplashScreenController = try testController(context: .none)
+    let result: SplashScreenController.Destination? =
+      try await controller
+      .navigationDestinationPublisher()
+      .asAsyncSequence()
+      .first()
 
     XCTAssertEqual(result, .diagnostics)
   }
@@ -92,10 +93,11 @@ final class SplashScreenTests: MainActorTestCase {
     )
 
     let controller: SplashScreenController = try testController(context: .none)
-    let result: SplashScreenController.Destination? = try await controller
-			.navigationDestinationPublisher()
-			.asAsyncSequence()
-			.first()
+    let result: SplashScreenController.Destination? =
+      try await controller
+      .navigationDestinationPublisher()
+      .asAsyncSequence()
+      .first()
 
     XCTAssertEqual(result, .accountSetup)
   }
@@ -112,10 +114,11 @@ final class SplashScreenTests: MainActorTestCase {
 
     let controller: SplashScreenController = try testController(context: Account.mock_ada)
 
-    let result: SplashScreenController.Destination? = try await controller
-			.navigationDestinationPublisher()
-			.asAsyncSequence()
-			.first()
+    let result: SplashScreenController.Destination? =
+      try await controller
+      .navigationDestinationPublisher()
+      .asAsyncSequence()
+      .first()
 
     XCTAssertEqual(result, .accountSelection(Account.mock_ada, message: nil))
   }
@@ -132,10 +135,11 @@ final class SplashScreenTests: MainActorTestCase {
     )
 
     let controller: SplashScreenController = try testController(context: .none)
-    let result: SplashScreenController.Destination? = try await controller
-			.navigationDestinationPublisher()
-			.asAsyncSequence()
-			.first()
+    let result: SplashScreenController.Destination? =
+      try await controller
+      .navigationDestinationPublisher()
+      .asAsyncSequence()
+      .first()
 
     XCTAssertEqual(result, .accountSelection(nil, message: nil))
   }
@@ -151,10 +155,11 @@ final class SplashScreenTests: MainActorTestCase {
     )
 
     let controller: SplashScreenController = try testController(context: .none)
-    let result: SplashScreenController.Destination? = try await controller
-			.navigationDestinationPublisher()
-			.asAsyncSequence()
-			.first()
+    let result: SplashScreenController.Destination? =
+      try await controller
+      .navigationDestinationPublisher()
+      .asAsyncSequence()
+      .first()
 
     XCTAssertEqual(result, .home(.init(account: .mock_ada, configuration: .mock_default)))
   }
@@ -170,10 +175,11 @@ final class SplashScreenTests: MainActorTestCase {
     )
 
     let controller: SplashScreenController = try testController(context: .none)
-    let result: SplashScreenController.Destination? = try await controller
-			.navigationDestinationPublisher()
-			.asAsyncSequence()
-			.first()
+    let result: SplashScreenController.Destination? =
+      try await controller
+      .navigationDestinationPublisher()
+      .asAsyncSequence()
+      .first()
 
     XCTAssertEqual(result, .featureConfigFetchError)
   }
@@ -189,10 +195,11 @@ final class SplashScreenTests: MainActorTestCase {
     )
 
     let controller: SplashScreenController = try testController(context: .none)
-    let result: SplashScreenController.Destination? = try await controller
-			.navigationDestinationPublisher()
-			.asAsyncSequence()
-			.first()
+    let result: SplashScreenController.Destination? =
+      try await controller
+      .navigationDestinationPublisher()
+      .asAsyncSequence()
+      .first()
 
     try? await controller.retryFetchConfiguration()
 
@@ -210,10 +217,11 @@ final class SplashScreenTests: MainActorTestCase {
     )
 
     let controller: SplashScreenController = try testController(context: .none)
-    let result: SplashScreenController.Destination? = try await controller
-			.navigationDestinationPublisher()
-			.asAsyncSequence()
-			.first()
+    let result: SplashScreenController.Destination? =
+      try await controller
+      .navigationDestinationPublisher()
+      .asAsyncSequence()
+      .first()
 
     try? await controller.retryFetchConfiguration()
 

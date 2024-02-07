@@ -70,7 +70,7 @@ extension FeatureLoader {
     )
   }
 
-	@available(*, deprecated)
+  @available(*, deprecated)
   public static func constant<Feature>(
     _ instance: Feature
   ) -> Self

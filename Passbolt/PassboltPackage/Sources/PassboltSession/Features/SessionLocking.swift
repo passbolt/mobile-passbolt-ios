@@ -36,7 +36,7 @@ extension SessionLocking: LoadableFeature {
   #if DEBUG
   internal nonisolated static var placeholder: Self {
     Self(
-			ensureLocking: unimplemented1()
+      ensureLocking: unimplemented1()
     )
   }
   #endif
@@ -44,57 +44,57 @@ extension SessionLocking: LoadableFeature {
 
 extension SessionLocking {
 
-	private struct LockingTask {
+  private struct LockingTask {
 
-		fileprivate let account: Account
-		fileprivate let task: Task<Void, Never>
-	}
+    fileprivate let account: Account
+    fileprivate let task: Task<Void, Never>
+  }
 
   @MainActor fileprivate static func load(
     features: Features
   ) throws -> Self {
-		let appLifecycle: ApplicationLifecycle = features.instance()
-		let sessionState: SessionState = try features.instance()
+    let appLifecycle: ApplicationLifecycle = features.instance()
+    let sessionState: SessionState = try features.instance()
 
-		let lockingTask: CriticalState<LockingTask?> = .init(.none)
+    let lockingTask: CriticalState<LockingTask?> = .init(.none)
 
     @Sendable nonisolated func ensureLocking(
-			for account: Account
-		) {
-			lockingTask.access { (currentTask: inout LockingTask?) in
-				guard currentTask?.account != account else { return }
-				currentTask?.task.cancel()
-				currentTask = .init(
-					account: account,
-					task: .detached { @SessionActor in
-						Diagnostics.logger.info("Session auto locking enabled!")
-						do {
-							for try await update in appLifecycle.lifecycle {
-								guard sessionState.account() == account
-								else { break } // account has changed
-								switch (sessionState.pendingAuthorization(), update) {
-								case (.none, .didEnterBackground):
-									sessionState.passphraseWipe()
+      for account: Account
+    ) {
+      lockingTask.access { (currentTask: inout LockingTask?) in
+        guard currentTask?.account != account else { return }
+        currentTask?.task.cancel()
+        currentTask = .init(
+          account: account,
+          task: .detached { @SessionActor in
+            Diagnostics.logger.info("Session auto locking enabled!")
+            do {
+              for try await update in appLifecycle.lifecycle {
+                guard sessionState.account() == account
+                else { break }  // account has changed
+                switch (sessionState.pendingAuthorization(), update) {
+                case (.none, .didEnterBackground):
+                  sessionState.passphraseWipe()
 
-								case (.none, .willEnterForeground):
-									try sessionState.authorizationRequested(.passphrase(account))
+                case (.none, .willEnterForeground):
+                  try sessionState.authorizationRequested(.passphrase(account))
 
-								case _:
-									break // ignore
-								}
-							}
-						}
-						catch is Cancelled {
-							// NOP - just cancelled
-						}
-						catch {
-							error.logged(
-								info: .message("Session locking broken!")
-							)
-						}
-					}
-				)
-			}
+                case _:
+                  break  // ignore
+                }
+              }
+            }
+            catch is Cancelled {
+              // NOP - just cancelled
+            }
+            catch {
+              error.logged(
+                info: .message("Session locking broken!")
+              )
+            }
+          }
+        )
+      }
     }
 
     return Self(

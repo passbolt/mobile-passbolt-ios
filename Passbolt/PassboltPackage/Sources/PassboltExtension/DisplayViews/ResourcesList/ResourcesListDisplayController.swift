@@ -72,7 +72,7 @@ internal final class ResourcesListDisplayController: ViewController {
           }
         }
         catch {
-					error.consume()
+          error.consume()
         }
       }
     )
@@ -104,9 +104,9 @@ extension ResourcesListDisplayController {
       try await self.sessionData.refreshIfNeeded()
     }
     catch {
-			error.consume(
-				context: "Failed to refresh session data."
-			)
+      error.consume(
+        context: "Failed to refresh session data."
+      )
     }
   }
 

@@ -81,10 +81,10 @@ extension ResourcePermissionEditListController: ComponentController {
             case let .user(userID, permission, _):
               let userDetails: UserDetails =
                 try await features
-								.branch(
-									scope: UserScope.self,
-									context: userID
-								)
+                .branch(
+                  scope: UserScope.self,
+                  context: userID
+                )
                 .instance(of: UserDetails.self)
 
               let details: UserDetailsDSV =
@@ -111,10 +111,10 @@ extension ResourcePermissionEditListController: ComponentController {
             case let .userGroup(userGroupID, permission, _):
               let details: UserGroupDetailsDSV =
                 try await features
-								.branchIfNeeded(
-									scope: UserGroupScope.self,
-									context: userGroupID
-								)
+                .branchIfNeeded(
+                  scope: UserGroupScope.self,
+                  context: userGroupID
+                )
                 .instance(of: UserGroupDetails.self)
                 .details()
 
@@ -187,7 +187,7 @@ extension ResourcePermissionEditListController: ComponentController {
           viewState.set(\.loading, to: false)
         }
         catch {
-					error.consume()
+          error.consume()
           viewState.withValue { (state: inout ViewState) in
             state.loading = false
           }

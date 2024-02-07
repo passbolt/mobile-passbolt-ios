@@ -85,7 +85,7 @@ public struct AutoupdatingTOTPValueView: View {
         interval: .seconds(1),
         clock: .continuous
       )
-        .makeAsyncIterator()
+      .makeAsyncIterator()
       repeat {
         self.value = generateTOTP()
       }

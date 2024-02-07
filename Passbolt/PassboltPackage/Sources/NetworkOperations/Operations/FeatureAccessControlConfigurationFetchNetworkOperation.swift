@@ -35,178 +35,180 @@ public enum FeatureAccessControlConfigurationFetchNetworkOperationDescription: N
 
 public struct FeatureAccessControlConfiguration: Decodable {
 
-	public var folders: Folders
-	public var tags: Tags
-	public var copySecrets: CopySecrets
-	public var previewSecrets: PreviewSecrets
-	public var viewShareList: ViewShareList
+  public var folders: Folders
+  public var tags: Tags
+  public var copySecrets: CopySecrets
+  public var previewSecrets: PreviewSecrets
+  public var viewShareList: ViewShareList
 
-	public init(
-		folders: Folders,
-		tags: Tags,
-		copySecrets: CopySecrets,
-		previewSecrets: PreviewSecrets,
-		viewShareList: ViewShareList
-	) {
-		self.folders = folders
-		self.tags = tags
-		self.copySecrets = copySecrets
-		self.previewSecrets = previewSecrets
-		self.viewShareList = viewShareList
-	}
+  public init(
+    folders: Folders,
+    tags: Tags,
+    copySecrets: CopySecrets,
+    previewSecrets: PreviewSecrets,
+    viewShareList: ViewShareList
+  ) {
+    self.folders = folders
+    self.tags = tags
+    self.copySecrets = copySecrets
+    self.previewSecrets = previewSecrets
+    self.viewShareList = viewShareList
+  }
 
-	public init(
-		from decoder: Decoder
-	) throws {
-		let accessControl: Array<FeatureAccessControlConfigurationItem> = try Array<FeatureAccessControlConfigurationItem>(from: decoder)
-		
-		self.folders = .decode(from: accessControl)
-		self.tags = .decode(from: accessControl)
-		self.copySecrets = .decode(from: accessControl)
-		self.previewSecrets = .decode(from: accessControl)
-		self.viewShareList = .decode(from: accessControl)
-	}
+  public init(
+    from decoder: Decoder
+  ) throws {
+    let accessControl: Array<FeatureAccessControlConfigurationItem> = try Array<FeatureAccessControlConfigurationItem>(
+      from: decoder
+    )
+
+    self.folders = .decode(from: accessControl)
+    self.tags = .decode(from: accessControl)
+    self.copySecrets = .decode(from: accessControl)
+    self.previewSecrets = .decode(from: accessControl)
+    self.viewShareList = .decode(from: accessControl)
+  }
 }
 
 extension FeatureAccessControlConfiguration {
 
-	public enum Folders: FeatureAccessControlConfigurationElement {
+  public enum Folders: FeatureAccessControlConfigurationElement {
 
-		fileprivate static func decode(
-			from accessControl: Array<FeatureAccessControlConfigurationItem>
-		) -> Self {
-			switch accessControl.first(where: { $0.name == "Folders.use" })?.control {
-			case "Deny":
-				return .deny
+    fileprivate static func decode(
+      from accessControl: Array<FeatureAccessControlConfigurationItem>
+    ) -> Self {
+      switch accessControl.first(where: { $0.name == "Folders.use" })?.control {
+      case "Deny":
+        return .deny
 
-			case _:
-				return .allow
-			}
-		}
+      case _:
+        return .allow
+      }
+    }
 
-		case allow
-		case deny
-	}
+    case allow
+    case deny
+  }
 
-	public enum Tags: FeatureAccessControlConfigurationElement {
+  public enum Tags: FeatureAccessControlConfigurationElement {
 
-		fileprivate static func decode(
-			from accessControl: Array<FeatureAccessControlConfigurationItem>
-		) -> Self {
-			switch accessControl.first(where: { $0.name == "Tags.use" })?.control {
-			case "Deny":
-				return .deny
+    fileprivate static func decode(
+      from accessControl: Array<FeatureAccessControlConfigurationItem>
+    ) -> Self {
+      switch accessControl.first(where: { $0.name == "Tags.use" })?.control {
+      case "Deny":
+        return .deny
 
-			case _:
-				return .allow
-			}
-		}
+      case _:
+        return .allow
+      }
+    }
 
-		case allow
-		case deny
-	}
+    case allow
+    case deny
+  }
 
-	public enum CopySecrets: FeatureAccessControlConfigurationElement {
+  public enum CopySecrets: FeatureAccessControlConfigurationElement {
 
-		fileprivate static func decode(
-			from accessControl: Array<FeatureAccessControlConfigurationItem>
-		) -> Self {
-			switch accessControl.first(where: { $0.name == "Secrets.copy" })?.control {
-			case "Deny":
-				return .deny
+    fileprivate static func decode(
+      from accessControl: Array<FeatureAccessControlConfigurationItem>
+    ) -> Self {
+      switch accessControl.first(where: { $0.name == "Secrets.copy" })?.control {
+      case "Deny":
+        return .deny
 
-			case _:
-				return .allow
-			}
-		}
-		
-		case allow
-		case deny
-	}
+      case _:
+        return .allow
+      }
+    }
 
-	public enum PreviewSecrets: FeatureAccessControlConfigurationElement {
+    case allow
+    case deny
+  }
 
-		fileprivate static func decode(
-			from accessControl: Array<FeatureAccessControlConfigurationItem>
-		) -> Self {
-			switch accessControl.first(where: { $0.name == "Secrets.preview" })?.control {
-			case "Deny":
-				return .deny
+  public enum PreviewSecrets: FeatureAccessControlConfigurationElement {
 
-			case _:
-				return .allow
-			}
-		}
-		
-		case allow
-		case deny
-	}
+    fileprivate static func decode(
+      from accessControl: Array<FeatureAccessControlConfigurationItem>
+    ) -> Self {
+      switch accessControl.first(where: { $0.name == "Secrets.preview" })?.control {
+      case "Deny":
+        return .deny
 
-	public enum ViewShareList: FeatureAccessControlConfigurationElement {
+      case _:
+        return .allow
+      }
+    }
 
-		fileprivate static func decode(
-			from accessControl: Array<FeatureAccessControlConfigurationItem>
-		) -> Self {
-			switch accessControl.first(where: { $0.name == "Share.viewList" })?.control {
-			case "Deny":
-				return .deny
+    case allow
+    case deny
+  }
 
-			case _:
-				return .allow
-			}
-		}
+  public enum ViewShareList: FeatureAccessControlConfigurationElement {
 
-		case allow
-		case deny
-	}
+    fileprivate static func decode(
+      from accessControl: Array<FeatureAccessControlConfigurationItem>
+    ) -> Self {
+      switch accessControl.first(where: { $0.name == "Share.viewList" })?.control {
+      case "Deny":
+        return .deny
+
+      case _:
+        return .allow
+      }
+    }
+
+    case allow
+    case deny
+  }
 }
 
 private protocol FeatureAccessControlConfigurationElement {
 
-	static func decode(
-		from accessControl: Array<FeatureAccessControlConfigurationItem>
-	) -> Self
+  static func decode(
+    from accessControl: Array<FeatureAccessControlConfigurationItem>
+  ) -> Self
 }
 
 private struct FeatureAccessControlConfigurationItem: Decodable {
 
-	fileprivate var name: String
-	fileprivate var control: String
+  fileprivate var name: String
+  fileprivate var control: String
 
-	fileprivate init(
-		name: String,
-		control: String
-	) {
-		self.name = name
-		self.control = control
-	}
+  fileprivate init(
+    name: String,
+    control: String
+  ) {
+    self.name = name
+    self.control = control
+  }
 
-	fileprivate init(
-		from decoder: Decoder
-	) throws {
-		let container = try decoder.container(keyedBy: CodingKeys.self)
-		self.control = try container.decode(
-			String.self,
-			forKey: .control
-		)
-		let elementContainer = try container.nestedContainer(
-			keyedBy: ElementCodingKeys.self,
-			forKey: .element
-		)
-		self.name = try elementContainer.decode(
-			String.self,
-			forKey: .name
-		)
-	}
+  fileprivate init(
+    from decoder: Decoder
+  ) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    self.control = try container.decode(
+      String.self,
+      forKey: .control
+    )
+    let elementContainer = try container.nestedContainer(
+      keyedBy: ElementCodingKeys.self,
+      forKey: .element
+    )
+    self.name = try elementContainer.decode(
+      String.self,
+      forKey: .name
+    )
+  }
 
-	private enum CodingKeys: String, CodingKey {
+  private enum CodingKeys: String, CodingKey {
 
-		case control = "control_function"
-		case element = "ui_action"
-	}
+    case control = "control_function"
+    case element = "ui_action"
+  }
 
-	private enum ElementCodingKeys: String, CodingKey {
+  private enum ElementCodingKeys: String, CodingKey {
 
-		case name = "name"
-	}
+    case name = "name"
+  }
 }

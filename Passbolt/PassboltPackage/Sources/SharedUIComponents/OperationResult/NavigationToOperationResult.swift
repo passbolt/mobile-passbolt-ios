@@ -26,59 +26,59 @@ import FeatureScopes
 
 public struct OperationResultConfiguration: Sendable {
 
-	public var image: ImageNameConstant
-	public var title: DisplayableString
-	public var message: DisplayableString?
-	public var actionLabel: DisplayableString
-	public var confirmation: @Sendable () async throws -> Void
+  public var image: ImageNameConstant
+  public var title: DisplayableString
+  public var message: DisplayableString?
+  public var actionLabel: DisplayableString
+  public var confirmation: @Sendable () async throws -> Void
 
-	public init(
-		image: ImageNameConstant,
-		title: DisplayableString,
-		message: DisplayableString? = .none,
-		actionLabel: DisplayableString,
-		confirmation: @escaping @Sendable () async throws -> Void
-	) {
-		self.image = image
-		self.title = title
-		self.message = message
-		self.actionLabel = actionLabel
-		self.confirmation = confirmation
-	}
+  public init(
+    image: ImageNameConstant,
+    title: DisplayableString,
+    message: DisplayableString? = .none,
+    actionLabel: DisplayableString,
+    confirmation: @escaping @Sendable () async throws -> Void
+  ) {
+    self.image = image
+    self.title = title
+    self.message = message
+    self.actionLabel = actionLabel
+    self.confirmation = confirmation
+  }
 
-	public init(
-		for error: TheError,
-		confirmation: @escaping @Sendable () async throws -> Void
-	) {
-		self.image = .failureMark
-		self.title = "generic.error"
-		self.message = error.displayableMessage
-		self.actionLabel = "generic.try.again"
-		self.confirmation = confirmation
-	}
+  public init(
+    for error: TheError,
+    confirmation: @escaping @Sendable () async throws -> Void
+  ) {
+    self.image = .failureMark
+    self.title = "generic.error"
+    self.message = error.displayableMessage
+    self.actionLabel = "generic.try.again"
+    self.confirmation = confirmation
+  }
 }
 
 public enum OperationResultNavigationDestination: NavigationDestination {
 
-	public typealias TransitionContext = OperationResultConfiguration
+  public typealias TransitionContext = OperationResultConfiguration
 }
 
 public typealias NavigationToOperationResult = NavigationTo<OperationResultNavigationDestination>
 
 extension NavigationToOperationResult {
 
-	fileprivate static var live: FeatureLoader {
-		legacyPushTransition(
-			to: OperationResultControlledView.self
-		)
-	}
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(
+      to: OperationResultControlledView.self
+    )
+  }
 }
 
 extension FeaturesRegistry {
 
-	public mutating func useLiveNavigationToOperationResult() {
-		self.use(
-			NavigationToOperationResult.live
-		)
-	}
+  public mutating func useLiveNavigationToOperationResult() {
+    self.use(
+      NavigationToOperationResult.live
+    )
+  }
 }

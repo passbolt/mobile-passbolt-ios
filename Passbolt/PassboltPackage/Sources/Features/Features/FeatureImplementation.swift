@@ -23,32 +23,32 @@
 
 public protocol FeatureImplementation {
 
-	associatedtype Feature: LoadableFeature
+  associatedtype Feature: LoadableFeature
 
-	nonisolated static var cacheable: Bool { @Sendable get }
+  nonisolated static var cacheable: Bool { @Sendable get }
 
-	@MainActor init(using features: Features) throws
+  @MainActor init(using features: Features) throws
 
-	nonisolated var implementation: Feature { @Sendable get }
+  nonisolated var implementation: Feature { @Sendable get }
 }
 
 extension FeatureImplementation {
 
-	public nonisolated static var cacheable: Bool {
-		@Sendable get { true }
-	}
+  public nonisolated static var cacheable: Bool {
+    true
+  }
 
-	public nonisolated static func loader() -> FeatureLoader {
-		@MainActor func loadFeature(
-			_ features: Features
-		) throws -> Feature {
-			try Self.init(using: features).implementation
-		}
+  public nonisolated static func loader() -> FeatureLoader {
+    @MainActor func loadFeature(
+      _ features: Features
+    ) throws -> Feature {
+      try Self.init(using: features).implementation
+    }
 
-		return .init(
-			identifier: Feature.identifier,
-			cache: Self.cacheable,
-			load: loadFeature(_:)
-		)
-	}
+    return .init(
+      identifier: Feature.identifier,
+      cache: Self.cacheable,
+      load: loadFeature(_:)
+    )
+  }
 }

@@ -100,7 +100,7 @@ final class ResourcesDecodingTests: XCTestCase {
     XCTAssertTrue(
       decodedData?.fields
         .contains(where: { field in
-          return field.valueType == .string
+          field.valueType == .string
             && field.name == .name
             && field.required == true
             && field.encrypted == false
@@ -240,7 +240,7 @@ final class ResourcesDecodingTests: XCTestCase {
     XCTAssertTrue(
       decodedData?.fields
         .contains(where: { field in
-          return field.valueType == .string
+          field.valueType == .string
             && field.name == .name
             && field.required == true
             && field.encrypted == false

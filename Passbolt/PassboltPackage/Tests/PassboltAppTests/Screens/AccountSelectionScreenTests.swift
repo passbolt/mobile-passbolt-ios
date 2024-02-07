@@ -54,10 +54,10 @@ final class AccountSelectionScreenTests: MainActorTestCase {
         AccountWithProfile.mock_ada, AccountWithProfile.mock_frances,
       ])
     )
-		features.patch(
-			\MediaDownloadNetworkOperation.execute,
-			with: always(.init())
-		)
+    features.patch(
+      \MediaDownloadNetworkOperation.execute,
+      with: always(.init())
+    )
   }
 
   override func mainActorTearDown() {
@@ -65,10 +65,10 @@ final class AccountSelectionScreenTests: MainActorTestCase {
   }
 
   func test_accountsPublisher_publishesItemsWithImage_inSelectionMode() async throws {
-		features.patch(
-			\MediaDownloadNetworkOperation.execute,
-			with: always(.init())
-		)
+    features.patch(
+      \MediaDownloadNetworkOperation.execute,
+      with: always(.init())
+    )
 
     let controller: AccountSelectionController = try await testController(context: .init(value: false))
     var result: Array<AccountSelectionListItem> = []
@@ -203,7 +203,7 @@ final class AccountSelectionScreenTests: MainActorTestCase {
     features.patch(
       \Accounts.removeAccount,
       with: { account in
-				storedAccounts.value?.removeAll { $0.account == account }
+        storedAccounts.value?.removeAll { $0.account == account }
       }
     )
 
@@ -243,7 +243,7 @@ final class AccountSelectionScreenTests: MainActorTestCase {
     features.patch(
       \Accounts.removeAccount,
       with: { account in
-				storedAccounts.value?.removeAll { $0.account == account }
+        storedAccounts.value?.removeAll { $0.account == account }
       }
     )
 

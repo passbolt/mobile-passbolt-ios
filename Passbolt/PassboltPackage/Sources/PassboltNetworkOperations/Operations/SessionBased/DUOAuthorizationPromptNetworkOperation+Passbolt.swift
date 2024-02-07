@@ -22,70 +22,71 @@
 //
 
 import NetworkOperations
+
 import struct Foundation.URL
 
 // MARK: Implementation
 
 extension DUOAuthorizationPromptNetworkOperation {
 
-	@Sendable fileprivate static func requestPreparation(
-		_ input: Input
-	) -> Mutation<HTTPRequest> {
-		.combined(
-			.pathSuffix("/mfa/verify/duo/prompt"),
-			.queryItem("mobile", value: "1"),
-			.method(.post)
-		)
-	}
+  @Sendable fileprivate static func requestPreparation(
+    _ input: Input
+  ) -> Mutation<HTTPRequest> {
+    .combined(
+      .pathSuffix("/mfa/verify/duo/prompt"),
+      .queryItem("mobile", value: "1"),
+      .method(.post)
+    )
+  }
 
-	@Sendable fileprivate static func responseDecoder(
-		_ input: Input,
-		_ response: HTTPResponse
-	) throws -> Output {
-		guard
-			let redirectURL: URL = response.headers["Location"].flatMap(URL.init(string:))
-		else {
-			throw
-				NetworkResponseDecodingFailure
-				.error(
-					"Failed to find DUO redirect URL",
-					response: response
-				)
-		}
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    guard
+      let redirectURL: URL = response.headers["Location"].flatMap(URL.init(string:))
+    else {
+      throw
+        NetworkResponseDecodingFailure
+        .error(
+          "Failed to find DUO redirect URL",
+          response: response
+        )
+    }
 
-		guard
-			let cookieHeaderValue: String = response.headers["Set-Cookie"],
-			let cookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_duo_state=")
-		else {
-			throw
-				NetworkResponseDecodingFailure
-				.error(
-					"Failed to find DUO state cookie",
-					response: response
-				)
-		}
+    guard
+      let cookieHeaderValue: String = response.headers["Set-Cookie"],
+      let cookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_duo_state=")
+    else {
+      throw
+        NetworkResponseDecodingFailure
+        .error(
+          "Failed to find DUO state cookie",
+          response: response
+        )
+    }
 
-		return .init(
-			authorizationURL: redirectURL,
-			stateID: String(
-				cookieHeaderValue[cookieBounds.upperBound...]
-					 .prefix(
-						 while: { !$0.isWhitespace && $0 != "," && $0 != ";" }
-					 )
-			 )
-		)
-	}
+    return .init(
+      authorizationURL: redirectURL,
+      stateID: String(
+        cookieHeaderValue[cookieBounds.upperBound...]
+          .prefix(
+            while: { !$0.isWhitespace && $0 != "," && $0 != ";" }
+          )
+      )
+    )
+  }
 }
 
 extension FeaturesRegistry {
 
-	internal mutating func usePassboltDUOAuthorizationPromptNetworkOperation() {
-		self.use(
-			.networkOperationWithSession(
-				of: DUOAuthorizationPromptNetworkOperation.self,
-				requestPreparation: DUOAuthorizationPromptNetworkOperation.requestPreparation(_:),
-				responseDecoding: DUOAuthorizationPromptNetworkOperation.responseDecoder(_:_:)
-			)
-		)
-	}
+  internal mutating func usePassboltDUOAuthorizationPromptNetworkOperation() {
+    self.use(
+      .networkOperationWithSession(
+        of: DUOAuthorizationPromptNetworkOperation.self,
+        requestPreparation: DUOAuthorizationPromptNetworkOperation.requestPreparation(_:),
+        responseDecoding: DUOAuthorizationPromptNetworkOperation.responseDecoder(_:_:)
+      )
+    )
+  }
 }

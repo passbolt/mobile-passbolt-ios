@@ -23,13 +23,13 @@
 
 public struct TagsFeatureConfiguration {
 
-	public var enabled: Bool
+  public var enabled: Bool
 
-	public init(
-		enabled: Bool
-	) {
-		self.enabled = enabled
-	}
+  public init(
+    enabled: Bool
+  ) {
+    self.enabled = enabled
+  }
 }
 
 extension TagsFeatureConfiguration: Equatable {}

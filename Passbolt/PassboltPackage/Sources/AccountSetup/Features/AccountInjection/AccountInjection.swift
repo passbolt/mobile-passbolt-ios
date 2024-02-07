@@ -38,7 +38,6 @@ public struct AccountInjection {
 
 extension AccountInjection: LoadableFeature {
 
-
   #if DEBUG
   public nonisolated static var placeholder: Self {
     .init(

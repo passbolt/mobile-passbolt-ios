@@ -23,42 +23,42 @@
 
 public protocol EventDescription: Sendable {
 
-	associatedtype Payload: Sendable = Void
+  associatedtype Payload: Sendable = Void
 
-	static nonisolated var eventList: EventList<Self> { @Sendable get }
+  static nonisolated var eventList: EventList<Self> { @Sendable get }
 }
 
 extension EventDescription {
 
-	public typealias Subscription = EventSubscription<Self>
+  public typealias Subscription = EventSubscription<Self>
 
-	@_transparent @Sendable public nonisolated static func send(
-		_ payload: consuming Self.Payload
-	) {
-		Self.eventList.sendEvent(payload: payload)
-	}
+  @_transparent @Sendable public nonisolated static func send(
+    _ payload: consuming Self.Payload
+  ) {
+    Self.eventList.sendEvent(payload: payload)
+  }
 
-	@_transparent @Sendable public nonisolated static func send()
-	where Payload == Void {
-		Self.eventList.sendEvent(payload: Void())
-	}
+  @_transparent @Sendable public nonisolated static func send()
+  where Payload == Void {
+    Self.eventList.sendEvent(payload: Void())
+  }
 
-	@_transparent @Sendable public nonisolated static func next() async throws -> Self.Payload {
-		try await Self.eventList.nextEvent()
-	}
+  @_transparent @Sendable public nonisolated static func next() async throws -> Self.Payload {
+    try await Self.eventList.nextEvent()
+  }
 
-	@_transparent @Sendable public nonisolated static func subscribe(
-		bufferSize: Int = 1
-	) -> EventSubscription<Self> {
-		Self.eventList.subscribe(bufferSize: bufferSize)
-	}
+  @_transparent @Sendable public nonisolated static func subscribe(
+    bufferSize: Int = 1
+  ) -> EventSubscription<Self> {
+    Self.eventList.subscribe(bufferSize: bufferSize)
+  }
 
-	@_transparent @Sendable public nonisolated static func subscribe(
-		bufferSize: Int = 1,
-		_ handler: @escaping @Sendable (Self.Payload) async throws -> Void
-	) async throws {
-		for try await event in Self.eventList.subscribe(bufferSize: bufferSize) {
-			try await handler(event)
-		}
-	}
+  @_transparent @Sendable public nonisolated static func subscribe(
+    bufferSize: Int = 1,
+    _ handler: @escaping @Sendable (Self.Payload) async throws -> Void
+  ) async throws {
+    for try await event in Self.eventList.subscribe(bufferSize: bufferSize) {
+      try await handler(event)
+    }
+  }
 }

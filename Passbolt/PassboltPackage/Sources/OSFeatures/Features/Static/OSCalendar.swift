@@ -23,68 +23,68 @@
 
 import Features
 
-import struct Foundation.Date
 import struct Foundation.Calendar
+import struct Foundation.Date
 import class Foundation.DateFormatter
 
 public enum DateFormat {
 
-	case compact
-	case medium
+  case compact
+  case medium
 }
 
 // MARK: - Interface
 
 public struct OSCalendar {
 
-	public var format: @Sendable (DateFormat, Date) -> String
+  public var format: @Sendable (DateFormat, Date) -> String
 }
 
 extension OSCalendar: StaticFeature {
 
-	#if DEBUG
-	nonisolated public static var placeholder: Self {
-		Self(
-			format: unimplemented2()
-		)
-	}
-	#endif
+  #if DEBUG
+  nonisolated public static var placeholder: Self {
+    Self(
+      format: unimplemented2()
+    )
+  }
+  #endif
 }
 
 // MARK: - Implementation
 
 extension OSCalendar {
 
-	fileprivate static var live: Self {
-		@Sendable func format(
-			_ format: DateFormat,
-			date: Date
-		) -> String {
-			let dateFormatter: DateFormatter = .init()
-			dateFormatter.calendar = .autoupdatingCurrent
-			switch format {
-			case .compact:
-				dateFormatter.dateStyle = .short
-				dateFormatter.timeStyle = .none
+  fileprivate static var live: Self {
+    @Sendable func format(
+      _ format: DateFormat,
+      date: Date
+    ) -> String {
+      let dateFormatter: DateFormatter = .init()
+      dateFormatter.calendar = .autoupdatingCurrent
+      switch format {
+      case .compact:
+        dateFormatter.dateStyle = .short
+        dateFormatter.timeStyle = .none
 
-			case .medium:
-				dateFormatter.dateStyle = .medium
-				dateFormatter.timeStyle = .short
-			}
-			return dateFormatter.string(from: date)
-		}
+      case .medium:
+        dateFormatter.dateStyle = .medium
+        dateFormatter.timeStyle = .short
+      }
+      return dateFormatter.string(from: date)
+    }
 
-		return Self(
-			format: format(_:date:)
-		)
-	}
+    return Self(
+      format: format(_:date:)
+    )
+  }
 }
 
 extension FeaturesRegistry {
 
-	internal mutating func useOSCalendar() {
-		self.use(
-			OSCalendar.live
-		)
-	}
+  internal mutating func useOSCalendar() {
+    self.use(
+      OSCalendar.live
+    )
+  }
 }

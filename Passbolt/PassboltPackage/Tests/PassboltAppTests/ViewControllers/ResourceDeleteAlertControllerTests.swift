@@ -36,7 +36,7 @@ final class ResourceDeleteAlertControllerTests: FeaturesTestCase {
     )
 
     var messagesSubscription = SnackBarMessageEvent.subscribe()
-    
+
     let tested: ResourceDeleteAlertController = try self.testedInstance(
       context: .init(
         resourceID: .mock_1
@@ -48,7 +48,7 @@ final class ResourceDeleteAlertControllerTests: FeaturesTestCase {
 
     testedAction.action()
 
-		let message: SnackBarMessageEvent.Payload? = try await messagesSubscription.nextEvent()
+    let message: SnackBarMessageEvent.Payload? = try await messagesSubscription.nextEvent()
     XCTAssertEqual(message, SnackBarMessageEvent.Payload.show(.error("generic.error")))
   }
 

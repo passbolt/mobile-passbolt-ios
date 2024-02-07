@@ -98,27 +98,27 @@ extension ResourceTagsListNodeController {
   internal final func selectResourceTag(
     _ resourceTagID: ResourceTag.ID
   ) async throws {
-		let tagDetails: ResourceTag = try await self.resourceTags.details(resourceTagID)
+    let tagDetails: ResourceTag = try await self.resourceTags.details(resourceTagID)
 
-		let nodeController: ResourcesListNodeController =
-		try self.features
-			.instance(
-				of: ResourcesListNodeController.self,
-				context: .init(
-					nodeID: self.context.nodeID,
-					title: .raw(tagDetails.slug.rawValue),
-					titleIconName: .tag,
-					baseFilter: .init(
-						sorting: .nameAlphabetically,
-						tags: [resourceTagID]
-					)
-				)
-			)
-		self.navigationTree
-			.push(
-				ResourcesListNodeView.self,
-				controller: nodeController
-			)
+    let nodeController: ResourcesListNodeController =
+      try self.features
+      .instance(
+        of: ResourcesListNodeController.self,
+        context: .init(
+          nodeID: self.context.nodeID,
+          title: .raw(tagDetails.slug.rawValue),
+          titleIconName: .tag,
+          baseFilter: .init(
+            sorting: .nameAlphabetically,
+            tags: [resourceTagID]
+          )
+        )
+      )
+    self.navigationTree
+      .push(
+        ResourcesListNodeView.self,
+        controller: nodeController
+      )
   }
 
   internal final func closeExtension() {

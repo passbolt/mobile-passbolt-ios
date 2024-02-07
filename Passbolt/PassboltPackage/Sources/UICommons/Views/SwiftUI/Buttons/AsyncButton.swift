@@ -61,9 +61,9 @@ where RegularView: View, LoadingView: View {
       action: {
         if case .none = self.runningTask {
           self.runningTask = .detached { @MainActor [action] () async -> Void in
-						await consumingErrors {
-							try await action()
-						}
+            await consumingErrors {
+              try await action()
+            }
             self.runningTask = .none
           }
         }

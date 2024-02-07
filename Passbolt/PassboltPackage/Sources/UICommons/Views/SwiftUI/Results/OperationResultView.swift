@@ -25,100 +25,99 @@ import SwiftUI
 
 public struct OperationResultView: View {
 
-	private let image: ImageNameConstant
-	private let title: DisplayableString
-	private let message: DisplayableString?
-	private let actionLabel: DisplayableString
-	private let action: @Sendable () async -> Void
+  private let image: ImageNameConstant
+  private let title: DisplayableString
+  private let message: DisplayableString?
+  private let actionLabel: DisplayableString
+  private let action: @Sendable () async -> Void
 
-	public init(
-		image: ImageNameConstant,
-		title: DisplayableString,
-		message: DisplayableString? = .none,
-		actionLabel: DisplayableString,
-		action: @escaping @Sendable () async -> Void
-	) {
-		self.image = image
-		self.title = title
-		self.message = message
-		self.actionLabel = actionLabel
-		self.action = action
-	}
+  public init(
+    image: ImageNameConstant,
+    title: DisplayableString,
+    message: DisplayableString? = .none,
+    actionLabel: DisplayableString,
+    action: @escaping @Sendable () async -> Void
+  ) {
+    self.image = image
+    self.title = title
+    self.message = message
+    self.actionLabel = actionLabel
+    self.action = action
+  }
 
-	public var body: some View {
-		VStack(spacing: 16) {
-			Spacer()
+  public var body: some View {
+    VStack(spacing: 16) {
+      Spacer()
 
-			Image(named: self.image)
+      Image(named: self.image)
 
-			Text(displayable: self.title)
-				.text(
-					.center,
-					lines: .none,
-					font: .inter(
-						ofSize: 24,
-						weight: .semibold
-					),
-					color: .passboltPrimaryText
-				)
+      Text(displayable: self.title)
+        .text(
+          .center,
+          lines: .none,
+          font: .inter(
+            ofSize: 24,
+            weight: .semibold
+          ),
+          color: .passboltPrimaryText
+        )
 
-			if let message: DisplayableString = self.message {
-				Text(displayable: message)
-					.text(
-						.center,
-						lines: .none,
-						font: .inter(
-							ofSize: 14,
-							weight: .light
-						),
-						color: .passboltSecondaryText
-					)
-			} // else NOP
+      if let message: DisplayableString = self.message {
+        Text(displayable: message)
+          .text(
+            .center,
+            lines: .none,
+            font: .inter(
+              ofSize: 14,
+              weight: .light
+            ),
+            color: .passboltSecondaryText
+          )
+      }  // else NOP
 
-			Spacer()
+      Spacer()
 
-			PrimaryButton(
-				title: self.actionLabel,
-				action: self.action
-			)
+      PrimaryButton(
+        title: self.actionLabel,
+        action: self.action
+      )
 
-		}
-		.padding(
-			leading: 16,
-			bottom: 16,
-			trailing: 16
-		)
-	}
+    }
+    .padding(
+      leading: 16,
+      bottom: 16,
+      trailing: 16
+    )
+  }
 }
 
 #if DEBUG
 
 internal struct OperationResultView_Previews: PreviewProvider {
 
-	internal static var previews: some View {
-		OperationResultView(
-			image: .failureMark,
-			title: "Transfer failed",
-			message: "Account transfer failed",
-			actionLabel: "Try again",
-			action: {}
-		)
+  internal static var previews: some View {
+    OperationResultView(
+      image: .failureMark,
+      title: "Transfer failed",
+      message: "Account transfer failed",
+      actionLabel: "Try again",
+      action: {}
+    )
 
-		OperationResultView(
-			image: .successMark,
-			title: "Transfer finished",
-			message: "Account transfer is completed",
-			actionLabel: "Continue",
-			action: {}
-		)
+    OperationResultView(
+      image: .successMark,
+      title: "Transfer finished",
+      message: "Account transfer is completed",
+      actionLabel: "Continue",
+      action: {}
+    )
 
-		OperationResultView(
-			image: .successMark,
-			title: "Success!",
-			actionLabel: "Continue",
-			action: {}
-		)
-	}
+    OperationResultView(
+      image: .successMark,
+      title: "Success!",
+      actionLabel: "Continue",
+      action: {}
+    )
+  }
 }
 #endif
-

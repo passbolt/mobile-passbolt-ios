@@ -36,7 +36,6 @@ internal struct LegacyNavigationBridge {
 
 extension LegacyNavigationBridge: LoadableFeature {
 
-
   #if DEBUG
   internal static var placeholder: Self {
     .init(

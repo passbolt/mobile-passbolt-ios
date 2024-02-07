@@ -27,22 +27,22 @@ extension SessionConfiguration {
 
   public static let mock_default: Self = .default
 
-	public static let mock_1: Self = .init(
-		termsURL: "https://passbolt.com/terms",
-		privacyPolicyURL: "https://passbolt.com/privacy",
-		resources: .init(
-			passwordRevealEnabled: true,
-			passwordCopyEnabled: true,
-			totpEnabled: true
-		),
-		folders: .init(
-			enabled: true
-		),
-		tags: .init(
-			enabled: true
-		),
-		share: .init(
-			showMembersList: true
-		)
+  public static let mock_1: Self = .init(
+    termsURL: "https://passbolt.com/terms",
+    privacyPolicyURL: "https://passbolt.com/privacy",
+    resources: .init(
+      passwordRevealEnabled: true,
+      passwordCopyEnabled: true,
+      totpEnabled: true
+    ),
+    folders: .init(
+      enabled: true
+    ),
+    tags: .init(
+      enabled: true
+    ),
+    share: .init(
+      showMembersList: true
+    )
   )
 }

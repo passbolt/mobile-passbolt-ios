@@ -66,7 +66,7 @@ extension UserPermissionDetailsDSV {
       firstName: self.firstName,
       lastName: self.lastName,
       fingerprint: self.fingerprint,
-      avatarImageURL: self.avatarImageURL, 
+      avatarImageURL: self.avatarImageURL,
       isSuspended: self.isSuspended
     )
   }

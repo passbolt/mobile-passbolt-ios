@@ -98,7 +98,7 @@ extension HomeSearchController: UIController {
     }
 
     func presentAccountMenu() async throws {
-			try await navigationToAccountMenu.perform()
+      try await navigationToAccountMenu.perform()
     }
 
     return Self(

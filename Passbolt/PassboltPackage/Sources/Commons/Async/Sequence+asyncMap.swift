@@ -22,14 +22,14 @@
 //
 
 extension Sequence {
-    public func asyncMap<T>(
-        _ transform: (Element) async throws -> T
-    ) async rethrows -> Array<T> {
-        var values: Array<T> = .init()
+  public func asyncMap<T>(
+    _ transform: (Element) async throws -> T
+  ) async rethrows -> Array<T> {
+    var values: Array<T> = .init()
 
-        for element in self {
-            try await values.append(transform(element))
-        }
-        return values
+    for element in self {
+      try await values.append(transform(element))
     }
+    return values
+  }
 }

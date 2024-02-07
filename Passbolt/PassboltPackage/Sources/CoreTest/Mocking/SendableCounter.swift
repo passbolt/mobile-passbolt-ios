@@ -49,6 +49,6 @@ public final class SendableCounter: @unchecked Sendable {
   }
 
   public var value: Int {
-    @Sendable get { self.lock.withLock { self._value } }
+    self.lock.withLock { self._value }
   }
 }

@@ -52,12 +52,12 @@ internal struct AccountsSettingsView: ControlledView {
       )
       .accessibilityIdentifier("settings.accounts.item.details.title")
 
-			SettingsActionRowView(
-				icon: .key,
-				title: "settings.accounts.item.key.inspector.title",
-				navigation: self.controller.navigateToAccountKeyInspector
-			)
-			.accessibilityIdentifier("settings.accounts.item.key.inspector.title")
+      SettingsActionRowView(
+        icon: .key,
+        title: "settings.accounts.item.key.inspector.title",
+        navigation: self.controller.navigateToAccountKeyInspector
+      )
+      .accessibilityIdentifier("settings.accounts.item.key.inspector.title")
 
       SettingsActionRowView(
         icon: .people,

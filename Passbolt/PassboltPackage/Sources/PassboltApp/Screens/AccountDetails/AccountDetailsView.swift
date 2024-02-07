@@ -24,105 +24,107 @@
 import Display
 
 internal struct AccountDetailsView: ControlledView {
-    internal var controller: AccountDetailsViewController
+  internal var controller: AccountDetailsViewController
 
-    internal init(
-        controller: AccountDetailsViewController
-    ) {
-        self.controller = controller
+  internal init(
+    controller: AccountDetailsViewController
+  ) {
+    self.controller = controller
+  }
+
+  internal var body: some View {
+    VStack(spacing: 0) {
+      CommonList {
+        self.headerView
+        self.propertiesView
+      }
+      Spacer()
+      self.bottomButtons
     }
+    .navigationTitle(displayable: "account.details.title")
+  }
 
-    internal var body: some View {
-            VStack(spacing: 0) {
-                CommonList {
-                    self.headerView
-                    self.propertiesView
-                }
-                Spacer()
-                self.bottomButtons
-            }
-        .navigationTitle(displayable: "account.details.title")
-    }
-
-    @MainActor @ViewBuilder private var propertiesView: some View {
-        CommonListSection {
-            CommonListRow(
-                content: {
-                  self.labelInput
-                }
-            )
-
-            CommonListRow(
-                content: {
-                    self.with(\.name) { (name: String) in
-                        ResourceFieldView(
-                            name: "account.details.field.name.title",
-                            value: name
-                        )
-                    }
-                }
-            )
-
-            CommonListRow(
-                content: {
-                    self.with(\.username) { (username: String) in
-                        ResourceFieldView(
-                            name: "account.details.field.email.title",
-                            value: username
-                        )
-                    }
-                }
-            )
-            self.with(\.role) { (role: String?) in
-                if let role {
-                    CommonListRow(
-                        content: {
-                            ResourceFieldView(
-                                name: "account.details.field.role.title",
-                                value: role
-                            )
-                        }
-                    )
-                } // else NOP
-            }
-            
-            CommonListRow(
-                content: {
-                    self.with(\.domain) { (domain: String) in
-                        ResourceFieldView(
-                            name: "account.details.field.url.title",
-                            value: domain
-                        )
-                    }
-                }
-            )
+  @MainActor @ViewBuilder private var propertiesView: some View {
+    CommonListSection {
+      CommonListRow(
+        content: {
+          self.labelInput
         }
-    }
+      )
 
-    @MainActor @ViewBuilder private var headerView: some View {
-        CommonListSection {
-            HStack {
-                Spacer()
-                self.with(\.avatarImage) { (avatarImage: Data?) in
-                    AvatarView(avatarImage: avatarImage)
-                }
-                .frame(
-                    width: 96,
-                    height: 96,
-                    alignment: .center
-                ).padding(
-                    top: 16,
-                    bottom: 16
-                )
-                Spacer()
-            }
+      CommonListRow(
+        content: {
+          self.with(\.name) { (name: String) in
+            ResourceFieldView(
+              name: "account.details.field.name.title",
+              value: name
+            )
+          }
         }
+      )
+
+      CommonListRow(
+        content: {
+          self.with(\.username) { (username: String) in
+            ResourceFieldView(
+              name: "account.details.field.email.title",
+              value: username
+            )
+          }
+        }
+      )
+      self.with(\.role) { (role: String?) in
+        if let role {
+          CommonListRow(
+            content: {
+              ResourceFieldView(
+                name: "account.details.field.role.title",
+                value: role
+              )
+            }
+          )
+        }  // else NOP
+      }
+
+      CommonListRow(
+        content: {
+          self.with(\.domain) { (domain: String) in
+            ResourceFieldView(
+              name: "account.details.field.url.title",
+              value: domain
+            )
+          }
+        }
+      )
     }
+  }
+
+  @MainActor @ViewBuilder private var headerView: some View {
+    CommonListSection {
+      HStack {
+        Spacer()
+        self.with(\.avatarImage) { (avatarImage: Data?) in
+          AvatarView(avatarImage: avatarImage)
+        }
+        .frame(
+          width: 96,
+          height: 96,
+          alignment: .center
+        )
+        .padding(
+          top: 16,
+          bottom: 16
+        )
+        Spacer()
+      }
+    }
+  }
 
   @MainActor @ViewBuilder private var labelInput: some View {
     VStack(spacing: 8) {
-      self.withValidatedBinding(\.currentAccountLabel,
-                                 updating: self.controller.setCurrentAccountLabel(_:)
+      self.withValidatedBinding(
+        \.currentAccountLabel,
+        updating: self.controller.setCurrentAccountLabel(_:)
       ) { (label: Binding<Validated<String>>) in
         FormTextFieldView(
           title: "account.details.field.label.title",
@@ -135,25 +137,30 @@ internal struct AccountDetailsView: ControlledView {
         )
       )
       .font(.inter(ofSize: 12, weight: .regular))
-      .text(font: .inter(ofSize: 12, weight: .regular),
-            color: .passboltSecondaryText)
+      .text(
+        font: .inter(ofSize: 12, weight: .regular),
+        color: .passboltSecondaryText
+      )
       .lineLimit(0)
     }
   }
 
-    @MainActor @ViewBuilder private var bottomButtons: some View {
-        VStack(spacing: 8) {
-            PrimaryButton(
-              title: "account.details.button.save.title",
-              action: self.controller.saveChanges
-            )
-            SecondaryButton(title: "settings.accounts.item.export.title",
-                            action: self.controller.transferAccount)
-        }.padding(
-            top: 0,
-            leading: 16,
-            bottom: 16,
-            trailing: 16
-        )
+  @MainActor @ViewBuilder private var bottomButtons: some View {
+    VStack(spacing: 8) {
+      PrimaryButton(
+        title: "account.details.button.save.title",
+        action: self.controller.saveChanges
+      )
+      SecondaryButton(
+        title: "settings.accounts.item.export.title",
+        action: self.controller.transferAccount
+      )
     }
+    .padding(
+      top: 0,
+      leading: 16,
+      bottom: 16,
+      trailing: 16
+    )
+  }
 }

@@ -35,34 +35,34 @@ public enum ServerConfigurationFetchNetworkOperationDescription: NetworkOperatio
 
 public struct ServerConfiguration: Decodable {
 
-	public var legal: Legal
-	public var plugins: Plugins
+  public var legal: Legal
+  public var plugins: Plugins
 
   public init(
     legal: Legal,
-		plugins: Plugins
+    plugins: Plugins
   ) {
     self.legal = legal
     self.plugins = plugins
   }
 
-	public init(
-		from decoder: Decoder
-	) throws {
-		let container = try decoder.container(keyedBy: CodingKeys.self)
-		let nestedContainer = try container.nestedContainer(
-			keyedBy: NestedCodingKeys.self,
-			forKey: .configuration
-		)
-		self.legal = try nestedContainer.decode(
-			Legal.self,
-			forKey: .legal
-		)
-		self.plugins = try nestedContainer.decode(
-			Plugins.self,
-			forKey: .plugins
-		)
-	}
+  public init(
+    from decoder: Decoder
+  ) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    let nestedContainer = try container.nestedContainer(
+      keyedBy: NestedCodingKeys.self,
+      forKey: .configuration
+    )
+    self.legal = try nestedContainer.decode(
+      Legal.self,
+      forKey: .legal
+    )
+    self.plugins = try nestedContainer.decode(
+      Plugins.self,
+      forKey: .plugins
+    )
+  }
 
   private enum CodingKeys: String, CodingKey {
 
@@ -72,93 +72,95 @@ public struct ServerConfiguration: Decodable {
   private enum NestedCodingKeys: String, CodingKey {
 
     case legal = "legal"
-		case plugins = "plugins"
+    case plugins = "plugins"
   }
 }
 
 extension ServerConfiguration {
 
-	public struct Legal: Decodable, Equatable {
+  public struct Legal: Decodable, Equatable {
 
-		public var privacyPolicy: URLString?
-		public var terms: URLString?
+    public var privacyPolicy: URLString?
+    public var terms: URLString?
 
-		public init(
-			privacyPolicy: URLString?,
-			terms: URLString?
-		) {
-			self.privacyPolicy = privacyPolicy
-			self.terms = terms
-		}
+    public init(
+      privacyPolicy: URLString?,
+      terms: URLString?
+    ) {
+      self.privacyPolicy = privacyPolicy
+      self.terms = terms
+    }
 
-		public init(
-			from decoder: Decoder
-		) throws {
-			let container: KeyedDecodingContainer<CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
-			self.privacyPolicy = try container.nestedContainer(
-				keyedBy: ItemCodingKeys.self,
-				forKey: .privacyPolicy
-			)
-			.decodeIfPresent(
-				URLString.self,
-				forKey: .url
-			)
-			self.terms = try container.nestedContainer(
-				keyedBy: ItemCodingKeys.self,
-				forKey: .terms
-			)
-			.decodeIfPresent(
-				URLString.self,
-				forKey: .url
-			)
-		}
+    public init(
+      from decoder: Decoder
+    ) throws {
+      let container: KeyedDecodingContainer<CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+      self.privacyPolicy =
+        try container.nestedContainer(
+          keyedBy: ItemCodingKeys.self,
+          forKey: .privacyPolicy
+        )
+        .decodeIfPresent(
+          URLString.self,
+          forKey: .url
+        )
+      self.terms =
+        try container.nestedContainer(
+          keyedBy: ItemCodingKeys.self,
+          forKey: .terms
+        )
+        .decodeIfPresent(
+          URLString.self,
+          forKey: .url
+        )
+    }
 
-		private enum CodingKeys: String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
 
-			case privacyPolicy = "privacy_policy"
-			case terms = "terms"
-		}
+      case privacyPolicy = "privacy_policy"
+      case terms = "terms"
+    }
 
-		private enum ItemCodingKeys: String, CodingKey {
+    private enum ItemCodingKeys: String, CodingKey {
 
-			case url = "url"
-		}
-	}
+      case url = "url"
+    }
+  }
 }
 
 extension ServerConfiguration {
 
-	public struct Plugins: Decodable {
+  public struct Plugins: Decodable {
 
-		public var passwordPreview: PasswordPreview?
-		public var folders: Folders?
-		public var tags: Tags?
-		public var totpResources: TOTPResources?
-		public var rbacs: RBAC?
+    public var passwordPreview: PasswordPreview?
+    public var folders: Folders?
+    public var tags: Tags?
+    public var totpResources: TOTPResources?
+    public var rbacs: RBAC?
 
-		public init(
-			passwordPreview: PasswordPreview?,
-			folders: Folders?,
-			tags: Tags?,
-			totpResources: TOTPResources?,
-			rbacs: RBAC?
-		) {
-			self.passwordPreview = passwordPreview
-			self.folders = folders
-			self.tags = tags
-			self.totpResources = totpResources
-			self.rbacs = rbacs
-		}
+    public init(
+      passwordPreview: PasswordPreview?,
+      folders: Folders?,
+      tags: Tags?,
+      totpResources: TOTPResources?,
+      rbacs: RBAC?
+    ) {
+      self.passwordPreview = passwordPreview
+      self.folders = folders
+      self.tags = tags
+      self.totpResources = totpResources
+      self.rbacs = rbacs
+    }
 
-		private enum CodingKeys: String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
 
-			case passwordPreview = "previewPassword"
-			case folders = "folders"
-			case tags = "tags"
-			case totpResources = "totpResourceTypes"
-			case rbacs = "rbacs"
-		}
-	}
+      case passwordPreview = "previewPassword"
+      case folders = "folders"
+      case tags = "tags"
+      case totpResources = "totpResourceTypes"
+      case rbacs = "rbacs"
+    }
+  }
 }
 
 extension ServerConfiguration.Plugins {
@@ -168,10 +170,10 @@ extension ServerConfiguration.Plugins {
     public var enabled: Bool
 
     public init(
-			enabled: Bool
-		) {
-			self.enabled = enabled
-		}
+      enabled: Bool
+    ) {
+      self.enabled = enabled
+    }
   }
 
   public struct Folders: Decodable {
@@ -179,10 +181,10 @@ extension ServerConfiguration.Plugins {
     public var enabled: Bool
 
     public init(
-			enabled: Bool
-		) {
-			self.enabled = enabled
-		}
+      enabled: Bool
+    ) {
+      self.enabled = enabled
+    }
   }
 
   public struct Tags: Decodable {
@@ -190,10 +192,10 @@ extension ServerConfiguration.Plugins {
     public var enabled: Bool
 
     public init(
-			enabled: Bool
-		) {
-			self.enabled = enabled
-		}
+      enabled: Bool
+    ) {
+      self.enabled = enabled
+    }
   }
 
   public struct TOTPResources: Decodable {
@@ -201,10 +203,10 @@ extension ServerConfiguration.Plugins {
     public var enabled: Bool
 
     public init(
-			enabled: Bool
-		) {
-			self.enabled = enabled
-		}
+      enabled: Bool
+    ) {
+      self.enabled = enabled
+    }
   }
 
   public struct RBAC: Decodable {
@@ -212,9 +214,9 @@ extension ServerConfiguration.Plugins {
     public var enabled: Bool
 
     public init(
-			enabled: Bool
-		) {
-			self.enabled = enabled
-		}
+      enabled: Bool
+    ) {
+      self.enabled = enabled
+    }
   }
 }

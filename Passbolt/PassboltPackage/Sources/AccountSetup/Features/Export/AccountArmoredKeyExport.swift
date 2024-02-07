@@ -28,25 +28,24 @@ import struct Foundation.Data
 /// Exporting current session account key using armored PGP format.
 public struct AccountArmoredKeyExport {
 
-	/// Export account private key by authorizing, 
-	/// it will prolong current session.
-	public var authorizePrivateKeyExport: @Sendable (AccountAuthorizationMethod) async throws -> ArmoredPGPPrivateKey
+  /// Export account private key by authorizing,
+  /// it will prolong current session.
+  public var authorizePrivateKeyExport: @Sendable (AccountAuthorizationMethod) async throws -> ArmoredPGPPrivateKey
 
-	public init(
-		authorizePrivateKeyExport: @escaping @Sendable (AccountAuthorizationMethod) async throws -> ArmoredPGPPrivateKey
-	) {
-		self.authorizePrivateKeyExport = authorizePrivateKeyExport
-	}
+  public init(
+    authorizePrivateKeyExport: @escaping @Sendable (AccountAuthorizationMethod) async throws -> ArmoredPGPPrivateKey
+  ) {
+    self.authorizePrivateKeyExport = authorizePrivateKeyExport
+  }
 }
 
 extension AccountArmoredKeyExport: LoadableFeature {
 
-
-	#if DEBUG
-	public static var placeholder: Self {
-		.init(
-			authorizePrivateKeyExport: unimplemented1()
-		)
-	}
-	#endif
+  #if DEBUG
+  public static var placeholder: Self {
+    .init(
+      authorizePrivateKeyExport: unimplemented1()
+    )
+  }
+  #endif
 }

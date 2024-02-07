@@ -30,15 +30,15 @@ extension SQLiteMigration {
     [
       // remove name from resource types
       """
-      			ALTER TABLE
-      				resourceTypes
-      			DROP COLUMN
-      				name;
-      			""",
+      ALTER TABLE
+      	resourceTypes
+      DROP COLUMN
+      	name;
+      """,
       // - version bump - //
       """
-      			PRAGMA user_version = 17; -- persistent, used to track schema version
-      			""",
+      PRAGMA user_version = 17; -- persistent, used to track schema version
+      """,
     ]
   }
 }

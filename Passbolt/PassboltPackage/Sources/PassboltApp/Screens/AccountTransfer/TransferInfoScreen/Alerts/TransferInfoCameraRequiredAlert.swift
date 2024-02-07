@@ -42,11 +42,11 @@ internal final class TransferInfoCameraRequiredAlertViewController:
           .localized(key: .settings),
           accessibilityIdentifier: "alert.button.confirm",
           handler: { [controller] in
-						Task { [controller] in
-							await consumingErrors {
-								try await controller?.showSettings()
-							}
-						}
+            Task { [controller] in
+              await consumingErrors {
+                try await controller?.showSettings()
+              }
+            }
           }
         )
       )

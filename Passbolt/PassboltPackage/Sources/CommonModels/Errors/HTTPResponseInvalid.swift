@@ -27,7 +27,7 @@ public struct HTTPResponseInvalid: TheError {
 
   public static func error(
     _ message: StaticString = "HTTPResponseInvalid",
-		request: HTTPRequest? = .none,
+    request: HTTPRequest? = .none,
     file: StaticString = #fileID,
     line: UInt = #line
   ) -> Self {

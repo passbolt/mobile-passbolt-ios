@@ -29,59 +29,59 @@ import TestExtensions
 
 final class AccountKeyInspectorViewControllerTests: FeaturesTestCase {
 
-	override func commonPrepare() {
-		super.commonPrepare()
-		set(
-			SessionScope.self,
-			context: .init(
-				account: .mock_ada,
-				configuration: .mock_default
-			)
-		)
-		set(
-			AccountScope.self,
-			context: .mock_ada
-		)
-		set(SettingsScope.self)
-		patch(
-			\AccountDetails.updates,
-			 with: Variable(initial: Void())
-				.asAnyUpdatable()
-		)
-		patch(
-			\OSCalendar.format,
-			 with: always("DATE")
-		)
-		patch(
-			\AccountDetails.avatarImage,
-			 with: always(.none)
-		)
-	}
+  override func commonPrepare() {
+    super.commonPrepare()
+    set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_default
+      )
+    )
+    set(
+      AccountScope.self,
+      context: .mock_ada
+    )
+    set(SettingsScope.self)
+    patch(
+      \AccountDetails.updates,
+      with: Variable(initial: Void())
+        .asAnyUpdatable()
+    )
+    patch(
+      \OSCalendar.format,
+      with: always("DATE")
+    )
+    patch(
+      \AccountDetails.avatarImage,
+      with: always(.none)
+    )
+  }
 
-	func test_viewState_loadsFromAccountDetails() async {
-		patch(
-			\AccountDetails.profile,
-			 with: always(.mock_ada)
-		)
-		patch(
-			\AccountDetails.keyDetails,
-			 with: always(.mock_ada)
-		)
+  func test_viewState_loadsFromAccountDetails() async {
+    patch(
+      \AccountDetails.profile,
+      with: always(.mock_ada)
+    )
+    patch(
+      \AccountDetails.keyDetails,
+      with: always(.mock_ada)
+    )
 
-		await withInstance(
-			of: AccountKeyInspectorViewController.self,
-			returns: AccountKeyInspectorViewController.State(
-				avatarImage: .none,
-				name: "Ada Lovelance",
-				userID: "mock_ada",
-				fingerprint: "MOCK _ADA",
-				crationDate: "DATE",
-				expirationDate: .none,
-				keySize: "0",
-				algorithm: "mock"
-			)
-		) { feature in
-			await feature.viewState.current
-		}
-	}
+    await withInstance(
+      of: AccountKeyInspectorViewController.self,
+      returns: AccountKeyInspectorViewController.State(
+        avatarImage: .none,
+        name: "Ada Lovelance",
+        userID: "mock_ada",
+        fingerprint: "MOCK _ADA",
+        crationDate: "DATE",
+        expirationDate: .none,
+        keySize: "0",
+        algorithm: "mock"
+      )
+    ) { feature in
+      await feature.viewState.current
+    }
+  }
 }

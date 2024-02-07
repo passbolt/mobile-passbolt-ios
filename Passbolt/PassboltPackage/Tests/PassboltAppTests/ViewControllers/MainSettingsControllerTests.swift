@@ -50,7 +50,7 @@ final class MainSettingsControllerTests: FeaturesTestCase {
       mockExecuted: 1
     ) { feature in
       await feature.navigateToAccountsSettings()
-      
+
     }
   }
 
@@ -64,7 +64,7 @@ final class MainSettingsControllerTests: FeaturesTestCase {
       mockExecuted: 1
     ) { feature in
       await feature.navigateToTroubleshooting()
-      
+
     }
   }
 
@@ -78,7 +78,7 @@ final class MainSettingsControllerTests: FeaturesTestCase {
       mockExecuted: 1
     ) { feature in
       await feature.navigateToApplicationSettings()
-      
+
     }
   }
 
@@ -92,7 +92,7 @@ final class MainSettingsControllerTests: FeaturesTestCase {
       mockExecuted: 1
     ) { feature in
       await feature.navigateToTermsAndLicenses()
-      
+
     }
   }
 }

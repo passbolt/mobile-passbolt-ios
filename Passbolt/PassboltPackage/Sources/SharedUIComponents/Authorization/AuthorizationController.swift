@@ -24,10 +24,10 @@
 import Accounts
 import CommonModels
 import Crypto
+import FeatureScopes
 import OSFeatures
 import Session
 import UIComponents
-import FeatureScopes
 
 public struct AuthorizationController {
 
@@ -64,16 +64,16 @@ extension AuthorizationController: UIController {
     with featuress: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
-		let features: Features
-		if (try? featuress.accountContext() == context) ?? false {
-			features = featuress
-		}
-		else {
-			features = try featuress.branch(
-				scope: AccountScope.self,
-				context: context
-			)
-		}
+    let features: Features
+    if (try? featuress.accountContext() == context) ?? false {
+      features = featuress
+    }
+    else {
+      features = try featuress.branch(
+        scope: AccountScope.self,
+        context: context
+      )
+    }
     let accountDetails: AccountDetails = try features.instance()
     let session: Session = try features.instance()
     let biometry: OSBiometry = features.instance()
@@ -87,7 +87,7 @@ extension AuthorizationController: UIController {
       )
     )
 
-		let account: Account = context
+    let account: Account = context
     let accountWithProfileSubject: CurrentValueSubject<AccountWithProfile, Never> = try .init(
       accountDetails.profile()
     )
@@ -128,7 +128,7 @@ extension AuthorizationController: UIController {
     }
 
     func biometricStatePublisher() -> AnyPublisher<BiometricsState, Never> {
-			accountDetails
+      accountDetails
         .updates
         .asAnyAsyncSequence()
         .map { _ -> BiometricsState in
@@ -173,7 +173,7 @@ extension AuthorizationController: UIController {
         .handleErrors { error in
           switch error {
           case is HTTPNotFound:
-						accountNotFoundScreenPresentationSubject.send(account)
+            accountNotFoundScreenPresentationSubject.send(account)
           case _:
             return /* NOP */
           }
@@ -201,7 +201,7 @@ extension AuthorizationController: UIController {
       .handleErrors { error in
         switch error {
         case is HTTPNotFound:
-					accountNotFoundScreenPresentationSubject.send(account)
+          accountNotFoundScreenPresentationSubject.send(account)
         case _:
           return /* NOP */
         }
@@ -221,9 +221,9 @@ extension AuthorizationController: UIController {
       accountNotFoundScreenPresentationSubject.eraseToAnyPublisher()
     }
 
-		// automatically sign in for test accounts in debug builds
-		// put the code below in a breakpoint action here
-//		Task { let accountWithProfile: AccountWithProfile = try accountDetails.profile(); try await session.authorize(.passphrase(accountWithProfile.account, Passphrase(rawValue: accountWithProfile.username))) }
+    // automatically sign in for test accounts in debug builds
+    // put the code below in a breakpoint action here
+    //		Task { let accountWithProfile: AccountWithProfile = try accountDetails.profile(); try await session.authorize(.passphrase(accountWithProfile.account, Passphrase(rawValue: accountWithProfile.username))) }
     return Self(
       accountWithProfilePublisher: accountWithProfilePublisher,
       accountAvatarPublisher: accountAvatarPublisher,
