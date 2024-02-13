@@ -21,10 +21,12 @@
 // @since         v1.0
 //
 
+import Features
 import UICommons
 import UIComponents
+import UniformTypeIdentifiers
 
-public final class HelpMenuViewController: PlainViewController, UIComponent {
+public final class HelpMenuViewController: PlainViewController, UIComponent, UIDocumentPickerDelegate {
 
   public typealias ContentView = HelpMenuView
   public typealias Controller = HelpMenuController
@@ -33,6 +35,7 @@ public final class HelpMenuViewController: PlainViewController, UIComponent {
 
   public let components: UIComponentFactory
   private let controller: Controller
+  public static let navigationToPassphraseValidationSubject: PassthroughSubject<Void, Never> = .init()
 
   public static func instance(
     using controller: Controller,
@@ -72,6 +75,13 @@ public final class HelpMenuViewController: PlainViewController, UIComponent {
     setupSubscriptions()
   }
 
+  // Navigation to account transfer (callback)
+  public var navigateToAccountTransfer: (() -> Void)?
+
+  /**
+   * Sets up subscriptions to various publishers from the controller.
+   * @returns {void}
+   */
   private func setupSubscriptions() {
     controller
       .logsPresentationPublisher()
@@ -98,5 +108,89 @@ public final class HelpMenuViewController: PlainViewController, UIComponent {
           }
       }
       .store(in: cancellables)
+
+    controller
+      .importAccountKitPresentationPublisher()
+      .sink { [weak self] in
+        self?.cancellables
+          .executeOnMainActor { [weak self] in
+            self?.presentDocumentPicker()
+          }
+      }
+      .store(in: cancellables)
   }
+
+  /**
+   * Presents a document picker to the user.
+   *
+   * The document picker is configured to allow the user to select any type of document, and it's presented in full-screen mode.
+   * @returns {void}
+   */
+  private func presentDocumentPicker() {
+    let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [UTType.item], asCopy: true)
+    documentPicker.delegate = self
+    documentPicker.modalPresentationStyle = .fullScreen
+    present(documentPicker, animated: true, completion: nil)
+  }
+
+  /**
+   * Handles the selection of a document in the document picker.
+   *
+   * This delegate function is called when a user picks a document using the document picker.
+   *
+   * @param {UIDocumentPickerViewController} controller - The document picker view controller.
+   * @param {URL[]} urls - An array of URLs pointing to the selected documents.
+   * @returns {void}
+   */
+  public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+    //Do not continue if the user does not select any file
+    guard let selectedFileURL = urls.first else {
+      return
+    }
+    // Retrieve the file content and launch
+    do {
+      let fileContents = try String(contentsOf: selectedFileURL, encoding: .utf8)
+      //Send file content to controller
+      self.handleAccountKitImportation(fileContents)
+    }
+    catch {
+      error.logged()
+    }
+  }
+
+  /**
+   * Handles the importation of an account kit.
+   *
+   * This function initiates the account kit importation process
+   *
+   * @param {string} payload - The payload for the account kit importation.
+   * @returns {void}
+   */
+  private func handleAccountKitImportation(_ payload: String) {
+    controller.proceedAccountKitImportationPublisher(payload)
+      .sink(
+        receiveCompletion: { [weak self] completion in
+          self?.cancellables
+            .executeOnMainActor { [weak self] in
+              guard let self else { return }
+              switch completion {
+              case .finished:
+                break
+              case .failure(let error):
+                //Send error to parent
+                NotificationCenter.default.post(name: .helpMenuActionAccountKitNotification, object: error)
+                break
+              }
+              await self.dismiss(Self.self)
+            }
+
+        },
+        receiveValue: { [weak self] accountTransferData in
+          // Handle the AccountTransferData and send it to parent
+          NotificationCenter.default.post(name: .helpMenuActionAccountKitNotification, object: accountTransferData)
+        }
+      )
+      .store(in: self.cancellables)
+  }
+
 }

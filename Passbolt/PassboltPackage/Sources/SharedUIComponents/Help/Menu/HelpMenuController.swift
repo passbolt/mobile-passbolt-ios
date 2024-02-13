@@ -21,6 +21,8 @@
 // @since         v1.0
 //
 
+import AccountSetup
+import NetworkOperations
 import OSFeatures
 import UIComponents
 
@@ -29,6 +31,8 @@ public struct HelpMenuController {
   public var actions: @MainActor () -> Array<Action>
   public var logsPresentationPublisher: @MainActor () -> AnyPublisher<Void, Never>
   public var websiteHelpPresentationPublisher: @MainActor () -> AnyPublisher<Void, Never>
+  public var importAccountKitPresentationPublisher: @MainActor () -> AnyPublisher<Void, Never>
+  public var proceedAccountKitImportationPublisher: @MainActor (String) -> AnyPublisher<AccountTransferData, Error>
 }
 
 extension HelpMenuController: UIController {
@@ -62,9 +66,14 @@ extension HelpMenuController: UIController {
   ) throws -> Self {
 
     let linkOpener: OSLinkOpener = features.instance()
-
+    //Features loaded by dependency injection
+    let transferFeature = try features.branch(scope: AccountTransferScope.self)
+    let accountKitImport: AccountKitImport = try transferFeature.instance()
+    let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
+    //Subjects
     let logsPresentationSubject: PassthroughSubject<Void, Never> = .init()
     let websiteHelpPresentationSubject: PassthroughSubject<Void, Never> = .init()
+    let importAccountKitPresentationSubject: PassthroughSubject<Void, Never> = .init()
 
     func actions() -> Array<Action> {
       context + [
@@ -75,6 +84,14 @@ extension HelpMenuController: UIController {
             key: "help.menu.show.logs.action.title"
           ),
           handler: logsPresentationSubject.send
+        ),
+        .init(
+          iconName: .importFile,
+          iconBundle: .uiCommons,
+          title: .localized(
+            key: "help.menu.show.import.account.kit.title"
+          ),
+          handler: importAccountKitPresentationSubject.send
         ),
         .init(
           iconName: .open,
@@ -90,6 +107,15 @@ extension HelpMenuController: UIController {
     func logsPresentationPublisher() -> AnyPublisher<Void, Never> {
       logsPresentationSubject
         .eraseToAnyPublisher()
+    }
+    /**
+     * Execute a publisher for the import account kit presentation event.
+     *
+     * This function provides access to a publisher that emits events related to the presentation of the import
+     * @returns {AnyPublisher<Void, Never>} An AnyPublisher that emits when the import account kit presentation is triggered.
+     */
+    func importAccountKitPresentationPublisher() -> AnyPublisher<Void, Never> {
+      importAccountKitPresentationSubject.eraseToAnyPublisher()
     }
 
     // swift-format-ignore: NeverForceUnwrap
@@ -107,10 +133,24 @@ extension HelpMenuController: UIController {
         .eraseToAnyPublisher()
     }
 
+    /**
+     * Initiates the account kit importation process and returns a publisher.
+     *
+     * This function starts the importation of an account kit using the provided payload.
+     * @param {string} payload - The payload for the account kit importation.
+     * @returns {AnyPublisher<AccountTransferData, Error>}
+     */
+    func proceedAccountKitImportationPublisher(_ payload: String) -> AnyPublisher<AccountTransferData, Error> {
+      accountKitImport.importAccountKit(payload)
+        .eraseToAnyPublisher()
+    }
+
     return Self(
       actions: actions,
       logsPresentationPublisher: logsPresentationPublisher,
-      websiteHelpPresentationPublisher: websiteHelpPresentationPublisher
+      websiteHelpPresentationPublisher: websiteHelpPresentationPublisher,
+      importAccountKitPresentationPublisher: importAccountKitPresentationPublisher,
+      proceedAccountKitImportationPublisher: proceedAccountKitImportationPublisher
     )
   }
 }

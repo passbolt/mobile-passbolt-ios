@@ -59,50 +59,7 @@ extension AccountImport {
 
     #if DEBUG
     if let mdmTransferedAccount: AccountTransferData = mdmConfiguration.preconfiguredAccounts().first {
-      let accountAlreadyStored: Bool =
-        accounts
-        .storedAccounts()
-        .contains(
-          where: { stored in
-            stored.userID.rawValue == mdmTransferedAccount.userID
-              && stored.domain == mdmTransferedAccount.domain
-          }
-        )
-      if !accountAlreadyStored {
-        // since this bypass is not a proper app feature we have a bit hacky solution
-        // where we set the state before presenting associated views and without informing it
-        // this results in view presentation issues and requires some delay
-        // which happened to be around 1 sec minimum at the time of writing this code
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-          transferState.send(
-            .init(
-              configuration: AccountTransferConfiguration(
-                transferID: "N/A",
-                pagesCount: 0,
-                userID: mdmTransferedAccount.userID,
-                authenticationToken: "N/A",
-                domain: mdmTransferedAccount.domain,
-                hash: "N/A"
-              ),
-              account: AccountTransferAccount(
-                userID: mdmTransferedAccount.userID,
-                fingerprint: mdmTransferedAccount.fingerprint,
-                armoredKey: mdmTransferedAccount.armoredKey
-              ),
-              profile: AccountTransferAccountProfile(
-                username: mdmTransferedAccount.username,
-                firstName: mdmTransferedAccount.firstName,
-                lastName: mdmTransferedAccount.lastName,
-                avatarImageURL: mdmTransferedAccount.avatarImageURL
-              ),
-              scanningParts: []
-            )
-          )
-        }
-      }
-      else {
-        Diagnostics.debug("Skipping account transfer bypass - duplicate account")
-      }
+      importAccountByPayload(mdmTransferedAccount)
     }
     else {
       /* */
@@ -373,6 +330,74 @@ extension AccountImport {
         .eraseToAnyPublisher()
     }
 
+    /**
+     * Checks if an account already exists within a given collection of accounts.
+     *
+     * This function determines if an account with the same user ID and domain already exists in the collection
+     *
+     * @param {AccountTransferData} accountTransferData - The account transfer data to check for existence.
+     * @param {Accounts} accounts - The collection of accounts to search within.
+     * @returns {boolean}
+     */
+    nonisolated func checkIfAccountExist(_ accountTransferData: AccountTransferData) -> Bool {
+      accounts
+        .storedAccounts()
+        .contains(
+          where: { stored in
+            stored.userID.rawValue == accountTransferData.userID
+              && stored.domain == accountTransferData.domain
+          }
+        )
+    }
+
+    /**
+     * Imports an account by its transfer data if it's not already stored.
+     *
+     * This function initiates an account transfer process with a delay to bypass view presentation issues.
+     *
+     * @param {AccountTransferData} accountTransferData - The account transfer data used to import the account.
+     * @returns {void}
+     */
+    nonisolated func importAccountByPayload(_ accountTransferData: AccountTransferData) {
+      // Use guard to check if the account already exists and exit early if it does
+      guard !checkIfAccountExist(accountTransferData) else {
+          Diagnostics.debug("Skipping account transfer bypass - duplicate account")
+          return
+      }
+
+      // Since this bypass is not a proper app feature, we have a bit hacky solution
+      // where we set the state before presenting associated views and without informing it
+      // this results in view presentation issues and requires some delay
+      // which happened to be around 1 sec minimum at the time of writing this code
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+          transferState.send(
+            .init(
+              configuration: AccountTransferConfiguration(
+                transferID: "N/A",
+                pagesCount: 0,
+                userID: accountTransferData.userID,
+                authenticationToken: "N/A",
+                domain: accountTransferData.domain,
+                hash: "N/A"
+              ),
+              account: AccountTransferAccount(
+                userID: accountTransferData.userID,
+                fingerprint: accountTransferData.fingerprint,
+                armoredKey: accountTransferData.armoredKey
+              ),
+              profile: AccountTransferAccountProfile(
+                username: accountTransferData.username,
+                firstName: accountTransferData.firstName,
+                lastName: accountTransferData.lastName,
+                avatarImageURL: accountTransferData.avatarImageURL ?? ""
+              ),
+              scanningParts: []
+            )
+          )
+        }
+    }
+
     nonisolated func cancelTransfer() {
       if let configuration: AccountTransferConfiguration = transferState.value.configuration,
         !transferState.value.scanningFinished
@@ -401,6 +426,8 @@ extension AccountImport {
       processPayload: processPayload(_:),
       completeTransfer: completeTransfer(_:),
       avatarPublisher: { mediaPublisher },
+      checkIfAccountExist: checkIfAccountExist,
+      importAccountByPayload: importAccountByPayload(_:),
       cancelTransfer: cancelTransfer
     )
   }

@@ -21,17 +21,35 @@
 // @since         v1.0
 //
 
-@_exported import AccountSetup
-@_exported import Features
+public struct AccountKitImportInvalidSignature: TheError {
 
-extension FeaturesRegistry {
-
-  public mutating func usePassboltAccountSetupModule() {
-    self.usePassboltAccountImport()
-    self.usePassboltAccountKitImport()
-    self.usePassboltAccountInjection()
-    self.usePassboltAccountDataExport()
-    self.usePassboltAccountChunkedExport()
-    self.usePassboltAccountArmoredKeyExport()
+  /**
+   * Creates a new error instance specific to the AccountKit domain.
+   *
+   * This static function constructs an error related to Account Kit processing
+   *
+   * @param {Error} [underlyingError] - An optional underlying error that may have caused this error.
+   * @param {StaticString} [file] - The file where the error is being created, defaults to the current file.
+   * @param {UInt} [line] - The line number in the file where the error is being created, defaults to the current  line.
+   * @returns {ErrorType} An instance of the error type, configured with the provided context and underlying error.
+   */
+  public static func error(
+    underlyingError: Error? = .none,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    Self(
+      context: .context(
+        .message(
+          "AccountKitImportInvalidSignature",
+          file: file,
+          line: line
+        )
+      ),
+      underlyingError: underlyingError
+    )
   }
+
+  public var context: DiagnosticsContext
+  public var underlyingError: Error?
 }

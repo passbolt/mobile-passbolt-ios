@@ -21,17 +21,45 @@
 // @since         v1.0
 //
 
-@_exported import AccountSetup
-@_exported import Features
+import Commons
 
-extension FeaturesRegistry {
+public struct AccountKitDTO: Codable {
 
-  public mutating func usePassboltAccountSetupModule() {
-    self.usePassboltAccountImport()
-    self.usePassboltAccountKitImport()
-    self.usePassboltAccountInjection()
-    self.usePassboltAccountDataExport()
-    self.usePassboltAccountChunkedExport()
-    self.usePassboltAccountArmoredKeyExport()
+  public var privateKeyArmored: ArmoredPGPPrivateKey
+  public var publicKeyArmored: ArmoredPGPPublicKey
+  public var firstName: String
+  public var lastname: String
+  public var userID: Account.UserID
+  public var domain: URLString
+  public var username: String
+
+  public init(
+    privateKeyArmored: ArmoredPGPPrivateKey,
+    publicKeyArmored: ArmoredPGPPublicKey,
+    firstName: String,
+    lastname: String,
+    userID: Account.UserID,
+    domain: URLString,
+    username: String
+  ) {
+    self.privateKeyArmored = privateKeyArmored
+    self.publicKeyArmored = publicKeyArmored
+    self.firstName = firstName
+    self.lastname = lastname
+    self.userID = userID
+    self.domain = domain
+    self.username = username
+  }
+}
+
+extension AccountKitDTO {
+  private enum CodingKeys: String, CodingKey {
+    case privateKeyArmored = "user_private_armored_key"
+    case publicKeyArmored = "user_public_armored_key"
+    case firstName = "first_name"
+    case lastname = "last_name"  // Corrected to match the property name
+    case userID = "user_id"
+    case domain
+    case username
   }
 }

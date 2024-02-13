@@ -143,6 +143,7 @@
 "help.menu.title" = "Help";
 "help.menu.show.logs.action.title" = "Access the logs";
 "help.menu.show.web.help.action.title" = "Visit help site";
+"help.menu.show.import.account.kit.title" = "Import your account kit";
 
 // Main application
 
@@ -183,6 +184,7 @@
 "transfer.account.result.success.title" = "Your information has been transferred!";
 "transfer.account.result.already.linked.title" = "Account is already linked to the device.";
 "transfer.account.result.canceled.title" = "Transfer has been canceled.";
+"transfer.account.kit.result.success.title" = "Your account kit has been imported!";
 
 "transfer.account.exit.confirmation.title" = "Are you sure?";
 "transfer.account.exit.confirmation.message" = "If you leave, you will need to scan QR codes again.";
@@ -458,6 +460,8 @@ Contact your administrator for more information.";
 "error.account.passphrase.missing" = "Account passphrase missing.";
 "error.account.data.missing" = "Account data missing.";
 "error.account.biometry.data.changed" = "Biometrics data has changed.";
+"error.account.kit.fail.to.import"= "Failed to import the account kit.";
+"error.account.kit.signature.verification"= "Failed to validate signature.";
 "error.users.list.empty" = "Users list can't be empty.";
 "error.user.public.key.invalid" = "Invalid user public key.";
 "error.user.public.key.missing" = "Missing user public key.";

@@ -21,17 +21,8 @@
 // @since         v1.0
 //
 
-@_exported import AccountSetup
-@_exported import Features
+import Foundation
 
-extension FeaturesRegistry {
-
-  public mutating func usePassboltAccountSetupModule() {
-    self.usePassboltAccountImport()
-    self.usePassboltAccountKitImport()
-    self.usePassboltAccountInjection()
-    self.usePassboltAccountDataExport()
-    self.usePassboltAccountChunkedExport()
-    self.usePassboltAccountArmoredKeyExport()
-  }
+extension Notification.Name {
+  public static let helpMenuActionAccountKitNotification = Notification.Name("HelpMenuActionAccountKitNotification")
 }

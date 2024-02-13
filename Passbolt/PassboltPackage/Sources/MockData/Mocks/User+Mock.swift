@@ -31,6 +31,8 @@ extension User.ID {
 
   public static let mock_ada: Self = .init(uuidString: "48BE7822-20EB-4BB7-8E6B-4F506D880C56")!
 
+  public static let mock_admin: Self = .init(uuidString: "d53c10f5-639d-5160-9c81-8a0c6c4ec856")!
+
   public static let mock_frances: Self = .init(uuidString: "4E061203-116F-4C36-9CFC-8020675453F9")!
 }
 
@@ -125,5 +127,17 @@ extension PGPKeyDetails {
     algorithm: "mock",
     created: .init(timeIntervalSince1970: 0),
     expires: .none
+  )
+}
+
+extension AccountKitDTO {
+  public static let mock_admin: Self = .init(
+    privateKeyArmored: "ArmoredPGPPrivateKey",
+    publicKeyArmored: "ArmoredPGPPublicKey",
+    firstName: "admin",
+    lastname: "admin",
+    userID: .mock_admin,
+    domain: "https://test.passbolt.com",
+    username: "admin"
   )
 }

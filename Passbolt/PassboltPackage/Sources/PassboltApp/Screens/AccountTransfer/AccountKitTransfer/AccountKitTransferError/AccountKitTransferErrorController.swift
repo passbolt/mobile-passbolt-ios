@@ -21,17 +21,29 @@
 // @since         v1.0
 //
 
-@_exported import AccountSetup
-@_exported import Features
+import UIComponents
 
-extension FeaturesRegistry {
+internal struct AccountKitTransferErrorController {
 
-  public mutating func usePassboltAccountSetupModule() {
-    self.usePassboltAccountImport()
-    self.usePassboltAccountKitImport()
-    self.usePassboltAccountInjection()
-    self.usePassboltAccountDataExport()
-    self.usePassboltAccountChunkedExport()
-    self.usePassboltAccountArmoredKeyExport()
+  internal var `continue`: () -> Void
+  // Since there is only one direction and no way back we only expect finish to navigate further
+  internal var accountListPresentationPublisher: () -> AnyPublisher<Never, Never>
+}
+
+extension AccountKitTransferErrorController: UIController {
+
+  internal typealias Context = Void
+
+  internal static func instance(
+    in context: Context,
+    with features: inout Features,
+    cancellables: Cancellables
+  ) -> Self {
+    let accountListPresentationSubject: PassthroughSubject<Never, Never> = .init()
+
+    return Self(
+      continue: { accountListPresentationSubject.send(completion: .finished) },
+      accountListPresentationPublisher: accountListPresentationSubject.eraseToAnyPublisher
+    )
   }
 }

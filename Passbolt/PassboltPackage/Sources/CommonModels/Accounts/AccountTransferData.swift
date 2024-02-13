@@ -28,7 +28,7 @@ public struct AccountTransferData: Codable {
   public let username: String
   public let firstName: String
   public let lastName: String
-  public let avatarImageURL: URLString
+  public let avatarImageURL: URLString?
   public let fingerprint: Fingerprint
   public let armoredKey: ArmoredPGPPrivateKey
 
@@ -38,7 +38,7 @@ public struct AccountTransferData: Codable {
     username: String,
     firstName: String,
     lastName: String,
-    avatarImageURL: URLString,
+    avatarImageURL: URLString?,
     fingerprint: Fingerprint,
     armoredKey: ArmoredPGPPrivateKey
   ) {

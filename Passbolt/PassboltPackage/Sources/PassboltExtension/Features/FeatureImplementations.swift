@@ -34,7 +34,7 @@ import PassboltSessionData
 import PassboltUsers
 
 extension FeaturesRegistry {
-
+  
   public mutating func usePassboltFeatures() {
     self.useOSFeatures()
     self.useNFCFeatures()

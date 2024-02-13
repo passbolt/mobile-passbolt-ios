@@ -24,7 +24,7 @@
 import AegithalosCocoa
 
 extension ImageNameConstant {
-
+  
   // Template images - filled according to contextual color
   public static var navigationBarPlaceholder: Self { "NavigationBarPlaceholder" }
   public static var arrowLeft: Self { "ArrowLeft" }
@@ -84,7 +84,8 @@ extension ImageNameConstant {
   public static var chevronDown: Self { "ChevronDown" }
   public static var warning: Self { "Warning" }
   public static var fileSave: Self { "FileSave" }
-
+  public static var importFile: Self {"Import"}
+  
   // Dynamic images - rendered according to interface (Light/Dark)
   public static var accountsSkeleton: Self { "AccountsSkeleton" }
   public static var passboltIcon: Self { "PassboltIcon" }

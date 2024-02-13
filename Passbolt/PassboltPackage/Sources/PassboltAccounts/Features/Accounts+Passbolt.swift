@@ -113,7 +113,7 @@ extension Accounts {
           username: transferedAccount.username,
           firstName: transferedAccount.firstName,
           lastName: transferedAccount.lastName,
-          avatarImageURL: transferedAccount.avatarImageURL
+          avatarImageURL: transferedAccount.avatarImageURL ?? ""
         )
 
         do {

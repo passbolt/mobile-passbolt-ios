@@ -29,7 +29,6 @@ import Gopenpgp
 public struct PGP {
   // The following functions accept private & public keys as PGP formatted strings
   // https://pkg.go.dev/github.com/ProtonMail/gopenpgp/v2#readme-documentation
-
   // Set time offset for PGP operations to compensate
   // difference between server and client time.
   // NOTE: It will keep the offset as long as the application is running
@@ -100,6 +99,14 @@ public struct PGP {
       _ privateKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
     ) -> Result<ArmoredPGPPublicKey, Error>
+  public var readCleartextMessage:
+    (
+      _ message: Data
+    ) -> Result<String, Error>
+  public var isPGPSignedClearMessage:
+    (
+      _ message: String
+    ) -> Bool
 }
 
 extension PGP: StaticFeature {
@@ -117,7 +124,9 @@ extension PGP: StaticFeature {
       verifyPassphrase: unimplemented2(),
       verifyPublicKeyFingerprint: unimplemented2(),
       extractFingerprint: unimplemented1(),
-      extractPublicKey: unimplemented2()
+      extractPublicKey: unimplemented2(),
+      readCleartextMessage: unimplemented1(),
+      isPGPSignedClearMessage: unimplemented1()
     )
   }
   #endif
@@ -618,6 +627,72 @@ extension PGP {
       }
     }
 
+    /**
+     * Reads and decodes a cleartext message from a PGP message.
+     *
+     * This function takes a PGP message in the form of a Data object, attempts to unarmor and decode it into a UTF-8 encoded string.
+     *
+     * @param {Data} message - The PGP message to be decoded.
+     * @returns {Result<String, Error>} A Result object containing either the decoded message or an error specifying the failure reason.
+     */
+    func readCleartextMessage(
+      message: Data
+    ) -> Result<String, Error> {
+      defer { Gopenpgp.HelperFreeOSMemory() }
+
+      guard let decodedString: String = .init(data: message, encoding: .utf8),
+            isPGPSignedClearMessage(decodedString) else {
+        return .failure(
+          PGPIssue.error(
+            underlyingError:
+              PGPClearTextMessageInvalid
+              .error("Decoding failed or message is not PGP signed clear message.")
+          )
+        )
+      }
+
+      let pgpMessage = Gopenpgp.CryptoNewPGPMessage(message)
+
+      var armorError: NSError?
+      guard let armoredMessage = pgpMessage?.getArmored(&armorError) else {
+        return .failure(
+          PGPIssue.error(
+            underlyingError:
+              PGPClearTextMessageInvalid
+              .error("Cannot extract armored message.")
+          ))
+      }
+
+      var unarmorError: NSError?
+      guard let decodedData = Gopenpgp.ArmorUnarmor(armoredMessage, &unarmorError),
+            let decodedMessage: String = .init(data: decodedData, encoding: .utf8) else {
+          return .failure(
+            PGPIssue.error(
+              underlyingError:
+                PGPClearTextMessageInvalid
+                .error("Cannot unarmor the message.")
+            ))
+      }
+
+      return .success(decodedMessage)
+    }
+
+    /**
+     * Check if clear message is a validate PGP Message
+     * Used because during implementation we do not have GoPGPMessage function to perform it
+     *
+     * @param {String} message - The message to verify.
+     * @returns {Bool} A boolean object.
+     */
+    func isPGPSignedClearMessage(_ message: String) -> Bool {
+      // regex for PGP message
+      let pgpMessageRegex: Regex = "[-]{5}BEGIN PGP SIGNED MESSAGE[-]{5}(.*?)[-]{5}BEGIN PGP SIGNATURE[-]{5}(.*?)[-]{5}END PGP SIGNATURE[-]{5}"
+      //Remove string \n to avoid use case from different OS formatting during export
+      let messageWithoutNewlines = message.replacingOccurrences(of: "\n", with: "")
+
+      return messageWithoutNewlines.matches(regex: pgpMessageRegex)
+    }
+
     return Self(
       setTimeOffset: setTimeOffset(value:),
       encryptAndSign: encryptAndSign(_:passphrase:privateKey:publicKey:),
@@ -629,7 +704,9 @@ extension PGP {
       verifyPassphrase: verifyPassphrase(privateKey:passphrase:),
       verifyPublicKeyFingerprint: verifyPublicKeyFingerprint(_:fingerprint:),
       extractFingerprint: extractFingerprint(publicKey:),
-      extractPublicKey: extractPublicKey(privateKey:passphrase:)
+      extractPublicKey: extractPublicKey(privateKey:passphrase:),
+      readCleartextMessage: readCleartextMessage(message:),
+      isPGPSignedClearMessage: isPGPSignedClearMessage(_:)
     )
   }
 }

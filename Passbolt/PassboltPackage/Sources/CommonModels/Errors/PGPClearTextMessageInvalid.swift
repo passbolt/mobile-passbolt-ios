@@ -21,17 +21,37 @@
 // @since         v1.0
 //
 
-@_exported import AccountSetup
-@_exported import Features
+import Localization
 
-extension FeaturesRegistry {
+public struct PGPClearTextMessageInvalid: TheError {
 
-  public mutating func usePassboltAccountSetupModule() {
-    self.usePassboltAccountImport()
-    self.usePassboltAccountKitImport()
-    self.usePassboltAccountInjection()
-    self.usePassboltAccountDataExport()
-    self.usePassboltAccountChunkedExport()
-    self.usePassboltAccountArmoredKeyExport()
+  /**
+   * Creates a new error instance specific to the AccountKit domain.
+   *
+   * This static function constructs an error related to Account Kit processing
+   *
+   * @param {Error} [underlyingError] - An optional underlying error that may have caused this error.
+   * @param {StaticString} [file] - The file where the error is being created, defaults to the current file.
+   * @param {UInt} [line] - The line number in the file where the error is being created, defaults to the current  line.
+   * @returns {ErrorType} An instance of the error type, configured with the provided context and underlying error.
+   */
+  public static func error(
+    _ message: StaticString = "PGPClearTextMessageInvalid",
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    Self(
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
+        )
+      ),
+      displayableMessage: .localized(key: "error.crypto.pgp.clearmessage.invalid")
+    )
   }
+
+  public var context: DiagnosticsContext
+  public var displayableMessage: DisplayableString
 }

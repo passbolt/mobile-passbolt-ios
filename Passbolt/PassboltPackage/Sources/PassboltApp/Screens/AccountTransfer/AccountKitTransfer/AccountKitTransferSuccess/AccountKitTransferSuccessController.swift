@@ -21,17 +21,38 @@
 // @since         v1.0
 //
 
-@_exported import AccountSetup
-@_exported import Features
+import AccountSetup
+import FeatureScopes
+import UIComponents
 
-extension FeaturesRegistry {
+internal struct AccountKitTransferSuccessController {
 
-  public mutating func usePassboltAccountSetupModule() {
-    self.usePassboltAccountImport()
-    self.usePassboltAccountKitImport()
-    self.usePassboltAccountInjection()
-    self.usePassboltAccountDataExport()
-    self.usePassboltAccountChunkedExport()
-    self.usePassboltAccountArmoredKeyExport()
+  internal var `continue`: () -> Void
+  // Since there is only one direction and no way back we only expect finish to navigate further
+  internal var signInPresentationPublisher: () -> AnyPublisher<Never, Never>
+}
+
+extension AccountKitTransferSuccessController: UIController {
+
+  internal typealias Context = AccountTransferData
+
+  internal static func instance(
+    in context: Context,
+    with features: inout Features,
+    cancellables: Cancellables
+  ) throws -> Self {
+    let signInPresentationSubject: PassthroughSubject<Never, Never> = .init()
+    let accountDataTransfer: AccountTransferData = context
+    features = try features.branch(scope: AccountTransferScope.self)
+
+    let accountTransfer: AccountImport = try features.instance()
+
+    accountTransfer.importAccountByPayload(accountDataTransfer)
+
+    return Self(
+      continue: { signInPresentationSubject.send(completion: .finished) },
+      signInPresentationPublisher: signInPresentationSubject.eraseToAnyPublisher
+    )
   }
+
 }

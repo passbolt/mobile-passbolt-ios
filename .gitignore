@@ -84,3 +84,6 @@ lint-report
 .idea
 
 # End of https://www.toptal.com/developers/gitignore/api/swiftpm,macos,xcode
+Passbolt/PassboltPackage/Vendor/gopenpgp.xcframework/ios-arm64/Gopenpgp.framework/
+
+Passbolt/PassboltPackage/Vendor/gopenpgp.xcframework/

@@ -21,17 +21,26 @@
 // @since         v1.0
 //
 
-@_exported import AccountSetup
-@_exported import Features
+import CommonModels
 
-extension FeaturesRegistry {
+import struct Foundation.Data
 
-  public mutating func usePassboltAccountSetupModule() {
-    self.usePassboltAccountImport()
-    self.usePassboltAccountKitImport()
-    self.usePassboltAccountInjection()
-    self.usePassboltAccountDataExport()
-    self.usePassboltAccountChunkedExport()
-    self.usePassboltAccountArmoredKeyExport()
+public struct AccountKitImport {
+  public var importAccountKit: (String) -> AnyPublisher<AccountTransferData, Error>
+
+  public init(
+    importAccountKit: @escaping (String) -> AnyPublisher<AccountTransferData, Error>
+  ) {
+    self.importAccountKit = importAccountKit
   }
+}
+
+extension AccountKitImport: LoadableFeature {
+  #if DEBUG
+  public static var placeholder: Self {
+    Self(
+      importAccountKit: unimplemented1()
+    )
+  }
+  #endif
 }
