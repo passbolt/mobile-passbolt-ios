@@ -21,34 +21,37 @@
 // @since         v1.0
 //
 
-internal struct AccountTransferState {
+import Foundation
 
-  internal var configuration: AccountTransferConfiguration? = nil
-  internal var account: AccountTransferAccount? = nil
-  internal var downloadLink: AccountTransferLink? = nil
-  internal var profile: AccountTransferAccountProfile? = nil
-  internal var scanningParts: Array<AccountTransferScanningPart> = .init()
+internal struct AccountTransferLink {
+  internal var accountKitURL: URLString
 }
 
-extension AccountTransferState {
-
-  // we always expect configuration to be in page 0
-  internal var configurationScanningPage: Int { 0 }
-
-  internal var nextScanningPage: Int? {
-    if scanningParts.count == configuration?.pagesCount {
-      return nil
+extension AccountTransferLink {
+  internal static func from(
+    _ payload: String
+  ) -> Result<Self, Error> {
+    do {
+      return .success(
+        try JSONDecoder.default
+          .decode(
+            Self.self,
+            from: Data(payload.utf8)
+          )
+      )
     }
-    else {
-      return scanningParts.last.map { $0.page + 1 } ?? configurationScanningPage
+    catch {
+      return .failure(
+        AccountTransferScanningFailure.error()
+          .pushing(.message("Invalid QRCode data - not a url to download"))
+      )
     }
   }
+}
 
-  internal var lastScanningPage: Int? {
-    scanningParts.last?.page
-  }
+extension AccountTransferLink: Codable {
+  internal enum CodingKeys: String, CodingKey {
 
-  internal var scanningFinished: Bool {
-    configuration != nil && account != nil
+    case accountKitURL = "account_kit_url"
   }
 }

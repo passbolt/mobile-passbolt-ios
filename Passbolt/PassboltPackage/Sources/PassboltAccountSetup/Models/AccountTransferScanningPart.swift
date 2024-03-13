@@ -48,7 +48,7 @@ extension AccountTransferScanningPart {
 
     let version: String = String(payloadPart.removeFirst())
 
-    guard version == "1"
+    guard ["1", "2"].contains(version)
     else {
       return .failure(
         AccountTransferScanningContentIssue.error()

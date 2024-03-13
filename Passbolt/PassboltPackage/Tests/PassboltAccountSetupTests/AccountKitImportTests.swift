@@ -42,6 +42,10 @@ final class AccountKitImportTests: LoadableFeatureTestCase<AccountKitImport> {
   
   override func prepare() throws {
     set(AccountTransferScope.self)
+    patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
     use(PGP.placeholder)
     use(Session.placeholder)
   }
@@ -259,10 +263,10 @@ final class AccountKitImportTests: LoadableFeatureTestCase<AccountKitImport> {
     )
     
     patch(
-      \AccountImport.checkIfAccountExist,
-       with: { _ in true }
+      \Accounts.storedAccounts,
+      with: always([transferedAccountWithProfile])
     )
-    
+
     let accountKitImport: AccountKitImport = try testedInstance()
     let base64AccountKit = (accountKit.data(using: .utf8)?.base64EncodedString())!
     
@@ -407,3 +411,22 @@ fEkkmr99xZIuU+KNO0pfjJzKswTfQ0xFKGo=
 """#
 
 private let accountKitData = AccountTransferData(userID: AccountKitDTO.mock_admin.userID, domain: AccountKitDTO.mock_admin.domain, username: AccountKitDTO.mock_admin.username, firstName: AccountKitDTO.mock_admin.firstName, lastName: AccountKitDTO.mock_admin.lastname, avatarImageURL: nil, fingerprint: "fingerPrint", armoredKey: AccountKitDTO.mock_admin.privateKeyArmored)
+
+private let transferedAccount: Account = .init(
+  localID: .init(rawValue: UUID.test.uuidString),
+  domain: accountKitData.domain,
+  userID: accountKitData.userID,
+  fingerprint: accountKitData.fingerprint
+)
+
+private let transferedAccountWithProfile: AccountWithProfile = .init(
+  account: transferedAccount,
+  profile: .init(
+    accountID: transferedAccount.localID,
+    label: "Transfered",
+    username: accountKitData.username,
+    firstName: accountKitData.firstName,
+    lastName: accountKitData.lastName,
+    avatarImageURL: ""
+  )
+)
