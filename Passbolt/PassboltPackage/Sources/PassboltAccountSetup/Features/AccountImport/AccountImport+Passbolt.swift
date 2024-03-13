@@ -132,13 +132,24 @@ extension AccountImport {
               else {
                 throw AccountTransferScanningFailure.error().pushing(.message("Account kit is empty"))
               }
-              //Reuse account kit feature to check payload
-              accountKitImport.importAccountKit(accountKitString)    .sink(receiveCompletion: { _ in }
-                , receiveValue: { accountTransferData in
-                  //Import account by payload
-                importAccountByPayload(accountTransferData)
-              })
-              .store(in: cancellables)
+                //Reuse account kit feature to check payload
+              accountKitImport
+                  .importAccountKit(accountKitString)
+                  .sink(
+                    receiveCompletion: { completion in
+                      guard case let .failure(error) = completion
+                      else { return }
+                      // we are completing transfer with error from import kit
+                      transferState.send(
+                        completion: .failure(error)
+                      )
+                    },
+                    receiveValue: { accountTransferData in
+                      //Import account by payload
+                      importAccountByPayload(accountTransferData)
+                    }
+                  )
+                  .store(in: cancellables)
             }
             .ignoreOutput()
             .eraseToAnyPublisher()
