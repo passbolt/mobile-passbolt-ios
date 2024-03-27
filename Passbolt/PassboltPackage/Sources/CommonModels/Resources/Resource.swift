@@ -44,6 +44,7 @@ public struct Resource {
   public let modified: Timestamp?  // local resources does not have modified date
   public var meta: JSON
   public var secret: JSON  // null means that secret was not fetched yet as it is requested and filled separately
+  public let expired: Timestamp?
 
   public init(
     id: Resource.ID? = .none,
@@ -55,7 +56,8 @@ public struct Resource {
     permissions: OrderedSet<ResourcePermission> = .init(),
     modified: Timestamp? = .none,
     meta: JSON = .object([:]),
-    secret: JSON = .null  // null is secret not yet fetched
+    secret: JSON = .null,  // null is secret not yet fetched
+    expired: Timestamp? = .none
   ) {
     self.id = id
     self.path = path
@@ -67,6 +69,7 @@ public struct Resource {
     self.modified = modified
     self.meta = meta
     self.secret = secret
+    self.expired = expired
     self.initializeFieldsIfNeeded()
   }
 }
@@ -87,6 +90,7 @@ extension Resource: Equatable {
       && lhs.permissions == rhs.permissions
       && lhs.path == rhs.path
       && lhs.tags == rhs.tags
+      && lhs.expired == rhs.expired
   }
 }
 

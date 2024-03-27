@@ -71,7 +71,8 @@ extension ResourcesController {
               folderID: $0.folderID,
               flattenContent: $0.flattenContent
             )
-          }
+          },
+          expiredOnly: filter.expiredOnly
         )
       )
     }

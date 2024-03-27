@@ -29,6 +29,7 @@ public struct ResourceListItemView<AccessoryView>: View where AccessoryView: Vie
 
   private let name: String
   private let username: String?
+  private let isExpired: Bool
   private let contentAction: @MainActor () async throws -> Void
   private let rightAction: (@MainActor () async throws -> Void)?
   private let rightAccessory: () -> AccessoryView
@@ -36,12 +37,14 @@ public struct ResourceListItemView<AccessoryView>: View where AccessoryView: Vie
   public init(
     name: String,
     username: String?,
+    isExpired: Bool,
     contentAction: @escaping @MainActor () async throws -> Void,
     rightAction: (@MainActor () async throws -> Void)? = .none,
     @ViewBuilder rightAccessory: @escaping () -> AccessoryView
   ) {
     self.name = name
     self.username = (username?.isEmpty ?? true) ? nil : username
+    self.isExpired = isExpired
     self.contentAction = contentAction
     self.rightAction = rightAction
     self.rightAccessory = rightAccessory
@@ -50,19 +53,43 @@ public struct ResourceListItemView<AccessoryView>: View where AccessoryView: Vie
   public var body: some View {
     ListRowView(
       leftAccessory: {
-        LetterIconView(text: self.name)
-          .frame(
-            width: 40,
-            height: 40,
-            alignment: .center
-          )
+        ZStack(alignment: .bottomTrailing) {
+          LetterIconView(text: self.name)
+            .frame(
+              width: 40,
+              height: 40,
+              alignment: .center
+            )
+          if isExpired == true {
+            Image(named: .exclamationMark)
+              .resizable()
+              .frame(
+                width: 12,
+                height: 12
+              )
+              .alignmentGuide(.trailing) { dim in
+                dim[HorizontalAlignment.center] + 2
+              }
+              .alignmentGuide(.bottom) { dim in
+                dim[VerticalAlignment.center] + 2
+              }
+          }
+        }
       },
       contentAction: self.contentAction,
       content: {
         VStack(alignment: .leading, spacing: 4) {
-          Text(name)
-            .font(.inter(ofSize: 14, weight: .semibold))
-            .foregroundColor(Color.passboltPrimaryText)
+          HStack(spacing: 4) {
+            Text(name)
+              .font(.inter(ofSize: 14, weight: .semibold))
+              .foregroundColor(Color.passboltPrimaryText)
+            if isExpired {
+              Text(displayable: "resource.expiry.expired")
+                .font(.inter(ofSize: 14, weight: .regular))
+                .foregroundColor(Color.passboltPrimaryText)
+            }
+          }
+
           Text(
             self.username
               ?? DisplayableString
@@ -91,7 +118,8 @@ internal struct ResourceListItemView_Previews: PreviewProvider {
   internal static var previews: some View {
     ResourceListItemView(
       name: "Resource",
-      username: "username",
+      username: "username", 
+      isExpired: true,
       contentAction: {
         // action
       },

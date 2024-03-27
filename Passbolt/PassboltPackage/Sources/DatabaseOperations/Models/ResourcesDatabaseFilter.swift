@@ -37,6 +37,8 @@ public struct ResourcesDatabaseFilter {
   public var username: String
   // favorite only search (AND)
   public var favoriteOnly: Bool
+  // expired only search (AND)
+  public var expiredOnly: Bool
   // included resource types search (AND) - empty ignores this parameter
   public var includedTypeSlugs: Set<ResourceSpecification.Slug>
   // excluded resource types search (AND) - empty ignores this parameter
@@ -65,7 +67,8 @@ public struct ResourcesDatabaseFilter {
     permissions: Set<Permission> = .init(),
     tags: Set<ResourceTag.ID> = .init(),
     userGroups: Set<UserGroup.ID> = .init(),
-    folders: ResourcesFolderDatabaseFilter? = .none
+    folders: ResourcesFolderDatabaseFilter? = .none,
+    expiredOnly: Bool = false
   ) {
     precondition(includedTypeSlugs.isDisjoint(with: excludedTypeSlugs))
     self.sorting = sorting
@@ -80,6 +83,7 @@ public struct ResourcesDatabaseFilter {
     self.tags = tags
     self.userGroups = userGroups
     self.folders = folders
+    self.expiredOnly = expiredOnly
   }
 }
 

@@ -70,6 +70,7 @@ extension ImageNameConstant {
   public static var starCrossed: Self { "StarCrossed" }
   public static var share: Self { "Share" }
   public static var clock: Self { "Clock" }
+  public static var expiry: Self { "Expiry" }
   public static var folder: Self { "Folder" }
   public static var sharedFolder: Self { "SharedFolder" }
   public static var tag: Self { "Tag" }
@@ -116,4 +117,5 @@ extension ImageNameConstant {
   public static var permissionWriteIcon: Self { "PermissionWriteIcon" }
   public static var permissionOwnIcon: Self { "PermissionOwnIcon" }
   public static var logoDUO: Self { "LogoDUO" }
+  public static var exclamationMark: Self { "ExclamationMark" }
 }

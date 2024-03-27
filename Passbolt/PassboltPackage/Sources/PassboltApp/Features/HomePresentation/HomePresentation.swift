@@ -55,6 +55,7 @@ extension HomePresentation: LoadableFeature {
         .modifiedResourcesList,
         .sharedResourcesList,
         .ownedResourcesList,
+        .expiredResourcesList
       ]
 
       if sessionConfiguration.folders.enabled {
