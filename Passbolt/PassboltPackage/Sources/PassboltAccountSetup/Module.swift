@@ -28,9 +28,10 @@ extension FeaturesRegistry {
 
   public mutating func usePassboltAccountSetupModule() {
     self.usePassboltAccountImport()
+    self.usePassboltAccountKitImport()
     self.usePassboltAccountInjection()
     self.usePassboltAccountDataExport()
     self.usePassboltAccountChunkedExport()
-		self.usePassboltAccountArmoredKeyExport()
+    self.usePassboltAccountArmoredKeyExport()
   }
 }

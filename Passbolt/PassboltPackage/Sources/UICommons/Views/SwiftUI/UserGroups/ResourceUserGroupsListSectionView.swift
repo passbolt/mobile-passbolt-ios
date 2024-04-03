@@ -28,12 +28,12 @@ public struct ResourceUserGroupsListSectionView: View {
 
   private let title: DisplayableString?
   private let userGroups: Array<ResourceUserGroupListItemDSV>
-  private let tapAction: (UserGroup.ID) -> Void
+  private let tapAction: (UserGroup.ID) async throws -> Void
 
   public init(
     title: DisplayableString? = .none,
     userGroups: Array<ResourceUserGroupListItemDSV>,
-    tapAction: @escaping (UserGroup.ID) -> Void
+    tapAction: @escaping (UserGroup.ID) async throws -> Void
   ) {
     self.title = title
     self.userGroups = userGroups
@@ -72,7 +72,7 @@ public struct ResourceUserGroupsListSectionView: View {
             name: item.name,
             contentCount: item.contentCount,
             action: {
-              self.tapAction(item.id)
+              try await self.tapAction(item.id)
             }
           )
         }

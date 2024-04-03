@@ -30,14 +30,14 @@ public struct ResourceUserGroupsListView: View {
   private let userGroups: Array<ResourceUserGroupListItemDSV>
   private let contentEmpty: Bool
   private let refreshAction: () async -> Void
-  private let createAction: (() -> Void)?
-  private let groupTapAction: (UserGroup.ID) -> Void
+  private let createAction: (() async throws -> Void)?
+  private let groupTapAction: (UserGroup.ID) async throws -> Void
 
   public init(
     userGroups: Array<ResourceUserGroupListItemDSV>,
     refreshAction: @escaping () async -> Void,
-    createAction: (() -> Void)?,
-    groupTapAction: @escaping (UserGroup.ID) -> Void
+    createAction: (() async throws -> Void)?,
+    groupTapAction: @escaping (UserGroup.ID) async throws -> Void
   ) {
     self.userGroups = userGroups
     self.contentEmpty = userGroups.isEmpty
@@ -48,7 +48,7 @@ public struct ResourceUserGroupsListView: View {
 
   public var body: some View {
     List {
-      if let createAction: () -> Void = self.createAction {
+      if let createAction: () async throws -> Void = self.createAction {
         ResourceListAddView(action: createAction)
       }  // else no create row
 

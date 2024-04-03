@@ -26,11 +26,6 @@ import SwiftUI
 extension Backport where Content: View {
 
   @ViewBuilder func hidesKeyboardOnScroll() -> some View {
-    if #available(iOS 16, *) {
-      content.scrollDismissesKeyboard(.interactively)
-    }
-    else {
-      content
-    }
+    content.scrollDismissesKeyboard(.interactively)
   }
 }

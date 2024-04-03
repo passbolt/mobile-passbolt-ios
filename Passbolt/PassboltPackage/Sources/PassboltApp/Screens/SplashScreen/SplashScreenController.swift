@@ -57,7 +57,6 @@ extension SplashScreenController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
-    let asyncExecutor: AsyncExecutor = try features.instance()
     let accounts: Accounts = try features.instance()
     let session: Session = try features.instance()
     let sessionConfigurationLoader: SessionConfigurationLoader = try features.instance()
@@ -65,7 +64,7 @@ extension SplashScreenController: UIController {
 
     let destinationSubject: CurrentValueSubject<Destination?, Never> = .init(nil)
 
-    asyncExecutor.schedule(.unmanaged) { () async -> Void in
+    Task {  // no need to track
       do {
         try accounts.verifyDataIntegrity()
       }
@@ -73,13 +72,6 @@ extension SplashScreenController: UIController {
         return
           destinationSubject
           .send(.diagnostics)
-      }
-
-      do {
-        try await fetchConfiguration()
-      }
-      catch {
-        return destinationSubject.send(.featureConfigFetchError)
       }
 
       let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
@@ -95,16 +87,21 @@ extension SplashScreenController: UIController {
       {
         switch await session.pendingAuthorization() {
         case .none:
-          return
-            await destinationSubject
-            .send(
-              .home(
-                .init(
-                  account: currentAccount,
-                  configuration: sessionConfigurationLoader.sessionConfiguration()
+          do {
+            return
+              try await destinationSubject
+              .send(
+                .home(
+                  .init(
+                    account: currentAccount,
+                    configuration: sessionConfigurationLoader.sessionConfiguration()
+                  )
                 )
               )
-            )
+          }
+          catch {
+            return destinationSubject.send(.featureConfigFetchError)
+          }
 
         case let .mfa(_, mfaProviders):
           return
@@ -134,13 +131,8 @@ extension SplashScreenController: UIController {
       }
     }
 
-    @Sendable nonisolated func fetchConfiguration() async throws {
-      try await sessionConfigurationLoader.fetchIfNeeded()
-    }
-
     @Sendable nonisolated func retryFetchConfiguration() async throws {
-      try await fetchConfiguration()
-      await destinationSubject
+      try await destinationSubject
         .send(
           .home(
             .init(

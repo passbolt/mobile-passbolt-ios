@@ -41,7 +41,7 @@ extension ResourceShareForm {
   @MainActor fileprivate static func load(
     features: Features
   ) throws -> Self {
-		let resourceID: Resource.ID = try features.resourceContext()
+    let resourceID: Resource.ID = try features.resourceContext()
 
     let sessionData: SessionData = try features.instance()
     let resourceController: ResourceController = try features.instance()

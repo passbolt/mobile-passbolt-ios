@@ -34,7 +34,7 @@ import PassboltSessionData
 import PassboltUsers
 
 extension FeaturesRegistry {
-
+  
   public mutating func usePassboltFeatures() {
     self.useOSFeatures()
     self.useNFCFeatures()
@@ -50,6 +50,6 @@ extension FeaturesRegistry {
     self.usePassboltResourcesModule()
     // it is required until navigations will become fully integrated
     self.useLiveNavigationToResourceEdit()
-		self.useLiveNavigationToOperationResult()
+    self.useLiveNavigationToOperationResult()
   }
 }

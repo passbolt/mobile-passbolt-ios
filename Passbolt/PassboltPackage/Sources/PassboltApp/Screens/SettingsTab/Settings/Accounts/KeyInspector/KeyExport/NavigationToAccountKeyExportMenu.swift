@@ -30,19 +30,19 @@ internal typealias NavigationToAccountKeyExportMenu = NavigationTo<AccountKeyExp
 
 extension NavigationToAccountKeyExportMenu {
 
-	fileprivate static var live: FeatureLoader {
-		legacyPartialSheetPresentationTransition(
-			to: AccountKeyExportMenuView.self
-		)
-	}
+  fileprivate static var live: FeatureLoader {
+    legacyPartialSheetPresentationTransition(
+      to: AccountKeyExportMenuView.self
+    )
+  }
 }
 
 extension FeaturesRegistry {
 
-	internal mutating func useLiveNavigationToAccountKeyExportMenu() {
-		self.use(
-			NavigationToAccountKeyExportMenu.live,
-			in: SettingsScope.self
-		)
-	}
+  internal mutating func useLiveNavigationToAccountKeyExportMenu() {
+    self.use(
+      NavigationToAccountKeyExportMenu.live,
+      in: SettingsScope.self
+    )
+  }
 }

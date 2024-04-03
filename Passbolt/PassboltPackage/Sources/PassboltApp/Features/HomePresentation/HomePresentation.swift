@@ -36,7 +36,6 @@ internal struct HomePresentation {
 
 extension HomePresentation: LoadableFeature {
 
-
   @MainActor internal static func load(
     using features: Features
   ) throws -> Self {
@@ -58,11 +57,11 @@ extension HomePresentation: LoadableFeature {
         .ownedResourcesList,
       ]
 
-      if sessionConfiguration.foldersEnabled {
+      if sessionConfiguration.folders.enabled {
         availableModes.append(.foldersExplorer)
       }  // else NOP
 
-      if sessionConfiguration.tagsEnabled {
+      if sessionConfiguration.tags.enabled {
         availableModes.append(.tagsExplorer)
       }  // else NOP
 
@@ -104,7 +103,7 @@ extension HomePresentation: LoadableFeature {
     }
 
     @MainActor func availableHomePresentationModes() -> OrderedSet<HomePresentationMode> {
-      return availablePresentationModes
+      availablePresentationModes
     }
 
     return Self(

@@ -25,12 +25,12 @@ import Display
 
 internal final class ExternalActivityNavigationViewController: ViewController {
 
-	internal let configuration: ExternalActivityConfiguration
-	
-	internal init(
-		context: ExternalActivityConfiguration,
-		features: Features
-	) throws {
-		self.configuration = context
-	}
+  internal let configuration: ExternalActivityConfiguration
+
+  internal init(
+    context: ExternalActivityConfiguration,
+    features: Features
+  ) throws {
+    self.configuration = context
+  }
 }

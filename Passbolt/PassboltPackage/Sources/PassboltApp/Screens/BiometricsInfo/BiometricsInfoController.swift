@@ -79,7 +79,7 @@ extension BiometricsInfoController: UIController {
           }
         }
         .map { opened -> AnyPublisher<Bool, Never> in
-          return applicationLifecycle.lifecyclePublisher()
+          applicationLifecycle.lifecyclePublisher()
             .map { (_: ApplicationLifecycle.Transition) -> Bool in
               switch biometry.availability() {
               case .unavailable, .unconfigured:

@@ -31,7 +31,6 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@available(iOS 16.0.0, *)
 @MainActor
 final class WindowTests: MainActorTestCase {
 
@@ -41,9 +40,9 @@ final class WindowTests: MainActorTestCase {
   {
     let controller: WindowController = try await testController()
 
-		SessionStateChangeEvent.send(.requestedPassphrase(for: .mock_ada))
+    SessionStateChangeEvent.send(.requestedPassphrase(for: .mock_ada))
 
-		let result: WindowController.ScreenStateDisposition? = try await controller.screenStateDispositionSequence().first()
+    let result: WindowController.ScreenStateDisposition? = try await controller.screenStateDispositionSequence().first()
 
     guard case let .requestPassphrase(account, message) = result
     else { return XCTFail() }
@@ -72,25 +71,25 @@ final class WindowTests: MainActorTestCase {
   {
     let controller: WindowController = try await testController()
 
-		SessionStateChangeEvent.send(.authorized(.mock_ada))
+    SessionStateChangeEvent.send(.authorized(.mock_ada))
 
     let result: WindowController.ScreenStateDisposition? = try await controller.screenStateDispositionSequence().first()
 
     guard case .useAuthorizedScreenState(let account) = result
     else { return XCTFail() }
     XCTAssertEqual(account, Account.mock_ada)
-	}
+  }
 
-	func test_screenStateDispositionSequence_returnsUseInitialScreenState_whenSessionCloses()
+  func test_screenStateDispositionSequence_returnsUseInitialScreenState_whenSessionCloses()
     async throws
   {
     let controller: WindowController = try await testController()
 
-		SessionStateChangeEvent.send(.closed)
+    SessionStateChangeEvent.send(.closed)
 
     let result: WindowController.ScreenStateDisposition? = try await controller.screenStateDispositionSequence().first()
 
     guard case .useInitialScreenState = result
     else { return XCTFail() }
-	}
+  }
 }

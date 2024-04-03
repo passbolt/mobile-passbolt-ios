@@ -63,7 +63,7 @@ extension ViewController /* Hashable */ {
     to other: Other
   ) -> Bool
   where Other: ViewController {
-    return self === other
+    self === other
   }
 
   public nonisolated func hash(
@@ -171,7 +171,7 @@ extension ViewController {
     to keyPath: WritableKeyPath<ViewState, Validated<Tagged<Value, Tag>>>,
     updating setter: @escaping @MainActor (Tagged<Value, Tag>) -> Void
   ) -> Binding<Validated<Value>> {
-    return .init(
+    .init(
       get: { @MainActor in
         self.viewState.value[keyPath: keyPath].map(\.rawValue)
       },

@@ -73,7 +73,6 @@ public struct Session {
 
 extension Session: LoadableFeature {
 
-
   public struct SessionAccountOutboundTransferData: Equatable {
     public let hash: String
     public let totalPages: Int

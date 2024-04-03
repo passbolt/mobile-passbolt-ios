@@ -45,7 +45,6 @@ public struct ResourcesController {
 
 extension ResourcesController: LoadableFeature {
 
-
   #if DEBUG
   public static var placeholder: Self {
     Self(

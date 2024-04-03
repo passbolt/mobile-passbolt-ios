@@ -23,11 +23,11 @@
 
 import Accounts
 import Display
+import FeatureScopes
+import NetworkOperations
 import OSFeatures
 import Session
 import UIComponents
-import FeatureScopes
-import NetworkOperations
 
 internal struct AccountMenuController {
 
@@ -37,10 +37,10 @@ internal struct AccountMenuController {
     () -> AnyPublisher<
       Array<(accountWithProfile: AccountWithProfile, avatarImagePublisher: AnyPublisher<Data?, Never>)>, Never
     >
-  internal var presentAccountDetails: @MainActor () -> Void
-  internal var signOut: @MainActor () -> Void
-  internal var presentAccountSwitch: @MainActor (Account) -> Void
-  internal var presentManageAccounts: @MainActor () -> Void
+  internal var presentAccountDetails: @MainActor () async throws -> Void
+  internal var signOut: @MainActor () async throws -> Void
+  internal var presentAccountSwitch: @MainActor (Account) async throws -> Void
+  internal var presentManageAccounts: @MainActor () async throws -> Void
 }
 
 extension AccountMenuController: UIController {
@@ -56,8 +56,6 @@ extension AccountMenuController: UIController {
 
     let currentAccount: Account = try features.sessionAccount()
 
-    let asyncExecutor: AsyncExecutor = try features.instance()
-
     let accounts: Accounts = try features.instance()
     let session: Session = try features.instance()
     let currentAccountDetails: AccountDetails = try features.instance()
@@ -66,7 +64,7 @@ extension AccountMenuController: UIController {
     let navigationToAuthorization: NavigationToAuthorization = try features.instance()
     let navigationToAccountDetails: NavigationToAccountDetails = try features.instance()
     let navigationToManageAccounts: NavigationToManageAccounts = try features.instance()
-		let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
+    let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
 
     let currentAccountWithProfile = try currentAccountDetails.profile()
 
@@ -82,9 +80,7 @@ extension AccountMenuController: UIController {
           var listItems:
             Array<(accountWithProfile: AccountWithProfile, avatarImagePublisher: AnyPublisher<Data?, Never>)> = .init()
 
-          for storedAccount in accounts.storedAccounts() {
-            guard storedAccount.account != currentAccount
-            else { continue }  // skip current account
+          for storedAccount in accounts.storedAccounts() where storedAccount.account != currentAccount {  // skip current account
 
             listItems
               .append(
@@ -92,7 +88,7 @@ extension AccountMenuController: UIController {
                   accountWithProfile: storedAccount,
                   avatarImagePublisher: Just(Void())
                     .asyncMap {
-											try? await mediaDownloadNetworkOperation.execute(storedAccount.avatarImageURL)
+                      try? await mediaDownloadNetworkOperation.execute(storedAccount.avatarImageURL)
                     }
                     .eraseToAnyPublisher()
                 )
@@ -113,72 +109,64 @@ extension AccountMenuController: UIController {
         .eraseToAnyPublisher()
     }
 
-    func dismiss() {
-      asyncExecutor.schedule(.reuse) {
-        do {
-          try await navigationToSelf.revert()
-        }
-        catch {
-          error.logged(
-            info: .message(
-              "Navigation back from account menu failed!"
-            )
+    func dismiss() async {
+      do {
+        try await navigationToSelf.revert()
+      }
+      catch {
+        error.logged(
+          info: .message(
+            "Navigation back from account menu failed!"
           )
-        }
+        )
       }
     }
 
-    func presentAccountDetails() {
-      asyncExecutor.schedule(.reuse) {
-        do {
-          try await navigationToSelf.revert()
-          try await navigationToAccountDetails.perform()
-        }
-        catch {
-          error.logged(
-            info: .message(
-              "Navigation to account details failed!"
-            )
+    func presentAccountDetails() async {
+      do {
+        try await navigationToSelf.revert()
+        try await navigationToAccountDetails.perform()
+      }
+      catch {
+        error.logged(
+          info: .message(
+            "Navigation to account details failed!"
           )
-        }
+        )
       }
     }
 
-    func signOut() {
-      cancellables.executeAsync {
-        await session.close(.none)
+    func signOut() async {
+      await session.close(.none)
+    }
+
+    func presentAccountSwitch(
+      account: Account
+    ) async {
+      do {
+        try await navigationToSelf.revert()
+        try await navigationToAuthorization.perform(context: account)
+      }
+      catch {
+        error.logged(
+          info: .message(
+            "Navigation to account switch failed!"
+          )
+        )
       }
     }
 
-    func presentAccountSwitch(account: Account) {
-      asyncExecutor.schedule(.reuse) {
-        do {
-          try await navigationToSelf.revert()
-          try await navigationToAuthorization.perform(context: account)
-        }
-        catch {
-          error.logged(
-            info: .message(
-              "Navigation to account switch failed!"
-            )
-          )
-        }
+    func presentManageAccounts() async {
+      do {
+        try await navigationToSelf.revert()
+        try await navigationToManageAccounts.perform()
       }
-    }
-
-    func presentManageAccounts() {
-      asyncExecutor.schedule(.reuse) {
-        do {
-          try await navigationToSelf.revert()
-          try await navigationToManageAccounts.perform()
-        }
-        catch {
-          error.logged(
-            info: .message(
-              "Navigation to manage accounts failed!"
-            )
+      catch {
+        error.logged(
+          info: .message(
+            "Navigation to manage accounts failed!"
           )
-        }
+        )
       }
     }
 

@@ -25,106 +25,22 @@ import Features
 
 public struct SessionConfigurationLoader {
 
-  public var fetchIfNeeded: @Sendable () async throws -> Void
-  public var configuration: @Sendable (FeatureConfigItem.Type) async -> FeatureConfigItem?
+  public var sessionConfiguration: @Sendable () async throws -> SessionConfiguration
 
   public init(
-    fetchIfNeeded: @escaping @Sendable () async throws -> Void,
-    configuration: @escaping @Sendable (FeatureConfigItem.Type) async -> FeatureConfigItem?
+    sessionConfiguration: @escaping @Sendable () async throws -> SessionConfiguration
   ) {
-    self.fetchIfNeeded = fetchIfNeeded
-    self.configuration = configuration
+    self.sessionConfiguration = sessionConfiguration
   }
 }
 
 extension SessionConfigurationLoader: LoadableFeature {
 
-
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(
-      fetchIfNeeded: unimplemented0(),
-      configuration: unimplemented1()
+      sessionConfiguration: unimplemented0()
     )
   }
   #endif
-}
-
-extension SessionConfigurationLoader {
-
-  public func sessionConfiguration() async -> SessionConfiguration {
-    let foldersEnabled: Bool = await {
-      switch await self.configuration(for: FeatureFlags.Folders.self) {
-      case .disabled:
-        return false
-      case .enabled:
-        return true
-      }
-    }()
-    let tagsEnabled: Bool = await {
-      switch await self.configuration(for: FeatureFlags.Tags.self) {
-      case .disabled:
-        return false
-      case .enabled:
-        return true
-      }
-    }()
-    let totpEnabled: Bool = await {
-      switch await self.configuration(for: FeatureFlags.TOTP.self) {
-      case .disabled:
-        return false
-      case .enabled:
-        return true
-      }
-    }()
-    let passwordPreviewEnabled: Bool = await {
-      switch await self.configuration(for: FeatureFlags.PreviewPassword.self) {
-      case .disabled:
-        return false
-      case .enabled:
-        return true
-      }
-    }()
-    let (termsURL, privacyPolicyURL): (URLString?, URLString?) = await { () -> (URLString?, URLString?) in
-      switch await self.configuration(for: FeatureFlags.Legal.self) {
-      case .both(let termsURL, let privacyPolicyURL):
-        return (
-          URLString(termsURL.absoluteString),
-          URLString(privacyPolicyURL.absoluteString)
-        )
-
-      case .terms(let url):
-        return (
-          .none,
-          URLString(url.absoluteString)
-        )
-
-      case .privacyPolicy(let url):
-        return (
-          .none,
-          URLString(url.absoluteString)
-        )
-
-      case .none:
-        return (.none, .none)
-      }
-    }()
-
-    return .init(
-      foldersEnabled: foldersEnabled,
-      tagsEnabled: tagsEnabled,
-      totpEnabled: totpEnabled,
-      passwordPreviewEnabled: passwordPreviewEnabled,
-      termsURL: termsURL,
-      privacyPolicyURL: privacyPolicyURL
-    )
-  }
-
-  @Sendable public func configuration<Item>(
-    for _: Item.Type = Item.self
-  ) async -> Item
-  where Item: FeatureConfigItem {
-    await self.configuration(Item.self) as? Item
-      ?? .default
-  }
 }

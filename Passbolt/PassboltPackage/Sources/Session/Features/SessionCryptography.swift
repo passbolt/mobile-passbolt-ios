@@ -64,7 +64,6 @@ public struct SessionCryptography {
 
 extension SessionCryptography: LoadableFeature {
 
-
   #if DEBUG
   public nonisolated static var placeholder: Self {
     Self(

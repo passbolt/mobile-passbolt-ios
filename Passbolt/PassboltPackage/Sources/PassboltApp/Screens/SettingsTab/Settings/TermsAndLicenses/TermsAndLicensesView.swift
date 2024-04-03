@@ -38,7 +38,7 @@ internal struct TermsAndLicensesView: ControlledView {
     ScreenView(
       title: "settings.terms.and.licenses.title",
       contentView: {
-				self.content
+        self.content
       }
     )
   }

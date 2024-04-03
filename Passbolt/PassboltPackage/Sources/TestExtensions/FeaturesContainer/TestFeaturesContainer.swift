@@ -33,7 +33,7 @@ public final class TestFeaturesContainer {
 
   internal init() {
     self.mocks = [  // initialize with Root scope
-			RootFeaturesScope.identifier: RootFeaturesScope.self
+      RootFeaturesScope.identifier: RootFeaturesScope.self
     ]
     self.cancellables = .init()
     self.lock = .init()
@@ -49,7 +49,7 @@ extension TestFeaturesContainer: FeaturesContainer {
   ) -> Bool where Scope: FeaturesScope {
     self.withLock {
       self.mocks.keys
-				.contains(Scope.identifier)
+        .contains(Scope.identifier)
     }
   }
 
@@ -59,7 +59,7 @@ extension TestFeaturesContainer: FeaturesContainer {
     line: UInt
   ) throws where RequestedScope: FeaturesScope {
     try self.withLock {
-			if self.mocks.keys.contains(RequestedScope.identifier) {
+      if self.mocks.keys.contains(RequestedScope.identifier) {
         // check passed
       }
       else {
@@ -81,8 +81,7 @@ extension TestFeaturesContainer: FeaturesContainer {
   ) throws -> RequestedScope.Context
   where RequestedScope: FeaturesScope {
     try self.withLock {
-			if let context: RequestedScope.Context = self.mocks[RequestedScope.identifier] as? RequestedScope.Context
-      {
+      if let context: RequestedScope.Context = self.mocks[RequestedScope.identifier] as? RequestedScope.Context {
         return context
       }
       else {
@@ -105,7 +104,7 @@ extension TestFeaturesContainer: FeaturesContainer {
   ) -> FeaturesContainer
   where RequestedScope: FeaturesScope {
     self.withLock {
-			self.mocks[RequestedScope.identifier] = context
+      self.mocks[RequestedScope.identifier] = context
     }
     return self
   }
@@ -117,7 +116,7 @@ extension TestFeaturesContainer: FeaturesContainer {
   ) -> Feature
   where Feature: StaticFeature {
     self.withLock {
-			if let feature: Feature = self.mocks[Feature.identifier] as? Feature {
+      if let feature: Feature = self.mocks[Feature.identifier] as? Feature {
         return feature
       }
       else {
@@ -172,7 +171,7 @@ extension TestFeaturesContainer {
     for _: Feature.Type
   ) where Feature: LoadableFeature {
     self.withLock {
-			precondition(!(self.mocks[Feature.identifier] is FeatureLoader))
+      precondition(!(self.mocks[Feature.identifier] is FeatureLoader))
       self.mocks[Feature.identifier] = Feature.placeholder
     }
   }
@@ -181,8 +180,8 @@ extension TestFeaturesContainer {
     for featureType: Feature.Type
   ) where Feature: StaticFeature {
     self.withLock {
-			precondition(!(self.mocks[Feature.identifier] is FeatureLoader))
-			self.mocks[Feature.identifier] = Feature.placeholder
+      precondition(!(self.mocks[Feature.identifier] is FeatureLoader))
+      self.mocks[Feature.identifier] = Feature.placeholder
     }
   }
 
@@ -191,7 +190,7 @@ extension TestFeaturesContainer {
     with updated: Property
   ) where Feature: LoadableFeature {
     self.withLock {
-			precondition(!(self.mocks[Feature.identifier] is FeatureLoader))
+      precondition(!(self.mocks[Feature.identifier] is FeatureLoader))
       var feature: Feature
       if let mocked: Feature = self.mocks[Feature.identifier]
         as? Feature
@@ -213,7 +212,7 @@ extension TestFeaturesContainer {
     self.withLock {
       precondition(!(self.mocks[Feature.identifier] is FeatureLoader))
       var feature: Feature
-			if let mocked: Feature = self.mocks[Feature.identifier] as? Feature {
+      if let mocked: Feature = self.mocks[Feature.identifier] as? Feature {
         feature = mocked
       }
       else {
@@ -232,7 +231,7 @@ extension TestFeaturesContainer {
     context: Scope.Context
   ) where Scope: FeaturesScope {
     self.withLock {
-			self.mocks[Scope.identifier] = context
+      self.mocks[Scope.identifier] = context
     }
   }
 
@@ -240,7 +239,7 @@ extension TestFeaturesContainer {
     _ scope: Scope.Type
   ) where Scope: FeaturesScope, Scope.Context == Void {
     self.withLock {
-			self.mocks[Scope.identifier] = Void()
+      self.mocks[Scope.identifier] = Void()
     }
   }
 }

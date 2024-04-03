@@ -31,7 +31,6 @@ open class MainActorTestCase: AsyncTestCase {
 
   public var features: TestFeaturesContainer!
   public var cancellables: Cancellables!
-  public var mockExecutionControl: AsyncExecutor.MockExecutionControl!
 
   open func mainActorSetUp() {
     // to be overriden
@@ -58,13 +57,7 @@ open class MainActorTestCase: AsyncTestCase {
   }
 
   open func featuresActorSetUp() async throws {
-    self.mockExecutionControl = .init()
     self.features = .init()
-    self.features
-      .patch(
-        \AsyncExecutor.self,
-        with: .mock(self.mockExecutionControl)
-      )
     self.cancellables = .init()
     self.mainActorSetUp()
   }
@@ -85,7 +78,6 @@ open class MainActorTestCase: AsyncTestCase {
     self.mainActorTearDown()
     self.features = nil
     self.cancellables = nil
-    self.mockExecutionControl = nil
   }
 
   public final func testedInstance<Feature>(

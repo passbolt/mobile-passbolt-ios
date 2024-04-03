@@ -38,7 +38,7 @@ where Value: Equatable {
   public let valuePublisher: AnyPublisher<Value, Never>
   private let valueGetter: () -> Value
   private let valueSetter: (Value) -> Void
-  private var cancellable: AnyCancellable?
+  public nonisolated let cancellables: Cancellables
 
   private nonisolated init(
     valueGetter: @escaping () -> Value,
@@ -48,11 +48,12 @@ where Value: Equatable {
     self.valueGetter = valueGetter
     self.valueSetter = valueSetter
     self.valuePublisher = valuePublisher
-    self.cancellable =
-      valuePublisher
+    self.cancellables = .init()
+    valuePublisher
       .sink { [weak self] _ in
         self?.objectWillChange.send()
       }
+      .store(in: self.cancellables)
   }
 
   public nonisolated convenience init(

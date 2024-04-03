@@ -331,8 +331,8 @@ extension AccountsDataStore {
     }
 
     @Sendable func loadLastUsedAccount() -> Account? {
-      return
-        preferences
+
+      preferences
         .load(
           Account.LocalID.self,
           for: .lastUsedAccount

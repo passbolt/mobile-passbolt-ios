@@ -21,14 +21,13 @@
 // @since         v1.0
 //
 
-
 import class Foundation.JSONDecoder
 
 extension JSONDecoder {
 
-	public static var `default`: JSONDecoder {
-		@_transparent _read { yield defaultJSONDecoder }
-	}
+  public static var `default`: JSONDecoder {
+    @_transparent _read { yield defaultJSONDecoder }
+  }
 }
 
 @usableFromInline internal let defaultJSONDecoder: JSONDecoder = .init()

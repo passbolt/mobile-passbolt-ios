@@ -125,7 +125,7 @@ public final class DynamicVariables: @unchecked Sendable {
     _ member: KeyPath<DynamicVariables.VariableNames, StaticString>,
     of type: Variable.Type = Variable.self
   ) -> Variable {
-    return self[dynamicMember: self.variableNames[keyPath: member]]
+    self[dynamicMember: self.variableNames[keyPath: member]]
   }
 
   public func getIfPresent<Variable>(

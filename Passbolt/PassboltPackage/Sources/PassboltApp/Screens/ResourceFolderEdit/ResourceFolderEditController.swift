@@ -29,87 +29,86 @@ import Users
 
 internal final class ResourceFolderEditController: ViewController {
 
-	internal nonisolated let viewState: ViewStateSource<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
-	private let navigation: DisplayNavigation
-	private let users: Users
-	private let resourceFolderEditForm: ResourceFolderEditForm
+  private let navigation: DisplayNavigation
+  private let users: Users
+  private let resourceFolderEditForm: ResourceFolderEditForm
 
-	private let features: Features
+  private let features: Features
 
-	internal init(
-		context: Void,
-		features: Features
-	) throws {
-		self.features = features.takeOwned()
-		self.navigation = try features.instance()
-		self.users = try features.instance()
-		self.resourceFolderEditForm = try features.instance()
+  internal init(
+    context: Void,
+    features: Features
+  ) throws {
+    self.features = features.takeOwned()
+    self.navigation = try features.instance()
+    self.users = try features.instance()
+    self.resourceFolderEditForm = try features.instance()
 
-		self.viewState = .init(
-			initial: .init(
-				folderName: .valid(""),
-				folderLocation: .init(),
-				folderPermissionItems: .init()
-			),
-			updateFrom: self.resourceFolderEditForm.state,
-			update: { [users] (updateState, formState) in
-				await updateState { (viewState: inout ViewState) in
-					do {
-						let resourceFolder: ResourceFolder = try formState.value
-						viewState.folderName = resourceFolder.nameValidator.validate(resourceFolder.name)
-						viewState.folderLocation = resourceFolder.path.map(\.name)
-						viewState.folderPermissionItems = resourceFolder
-							.permissions
-							.map { (permission: ResourceFolderPermission) -> OverlappingAvatarStackView.Item in
-								switch permission {
-								case let .user(id: userID, _, _):
-									return .user(
-										userID,
-										avatarImage: { try? await users.userAvatarImage(userID) }
-									)
+    self.viewState = .init(
+      initial: .init(
+        folderName: .valid(""),
+        folderLocation: .init(),
+        folderPermissionItems: .init()
+      ),
+      updateFrom: self.resourceFolderEditForm.state,
+      update: { [users] (updateState, formState) in
+        do {
+          let resourceFolder: ResourceFolder = try formState.value
+          let resourceFolderPermissions: Array<OverlappingAvatarStackView.Item> = try await resourceFolder.permissions
+            .asyncMap { (permission: ResourceFolderPermission) in
+              switch permission {
+              case .user(let id, _, _):
+                return await .user(
+                  id,
+                  avatarImage: users.avatarImage(for: id),
+                  isSuspended: try users.userDetails(id).isSuspended
+                )
 
-								case let .userGroup(id: userGroupID, _, _):
-									return .userGroup(
-										userGroupID
-									)
-								}
-							}
-					}
-					catch {
-						error.consume()
-					}
-				}
-			}
-		)
-	}
+              case .userGroup(let id, _, _):
+                return .userGroup(id)
+              }
+            }
+          updateState { (viewState: inout ViewState) in
+            viewState.folderName = resourceFolder.nameValidator.validate(resourceFolder.name)
+            viewState.folderLocation = resourceFolder.path.map(\.name)
+            viewState.folderPermissionItems = resourceFolderPermissions
+          }
+        }
+        catch {
+          error.consume()
+        }
+      }
+    )
+  }
 }
 
 extension ResourceFolderEditController {
 
-	internal struct ViewState: Equatable {
+  internal struct ViewState: Equatable {
 
-		internal var folderName: Validated<String>
-		internal var folderLocation: Array<String>
-		internal var folderPermissionItems: Array<OverlappingAvatarStackView.Item>
-	}
+    internal var folderName: Validated<String>
+    internal var folderLocation: Array<String>
+    internal var folderPermissionItems: Array<OverlappingAvatarStackView.Item>
+  }
 }
 
 extension ResourceFolderEditController {
 
-	@Sendable nonisolated internal final func setFolderName(
-		_ folderName: String
-	) {
-		self.resourceFolderEditForm.setFolderName(folderName)
-	}
+  @Sendable nonisolated internal final func setFolderName(
+    _ folderName: String
+  ) {
+    self.resourceFolderEditForm.setFolderName(folderName)
+  }
 
-	internal final func saveChanges() async {
-		do {
-			try await self.resourceFolderEditForm.sendForm()
-			await self.navigation.pop(ResourceFolderEditView.self)
-		}
-		catch {
-			error.consume()
-		}
-	}
+  internal final func saveChanges() async {
+    do {
+      try await self.resourceFolderEditForm.sendForm()
+      await self.navigation.pop(ResourceFolderEditView.self)
+    }
+    catch {
+      error.consume()
+    }
+  }
 }

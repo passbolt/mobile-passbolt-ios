@@ -29,31 +29,31 @@ public enum ResourceScope: FeaturesScope {
 
   public typealias Context = Resource.ID
 
-	@MainActor public static func verified<Branch>(
-		branch features: Branch,
-		file: StaticString,
-		line: UInt
-	) throws -> Branch
-	where Branch: Features {
-		try features.ensureScope(
-			SessionScope.self,
-			file: file,
-			line: line
-		)
-		return features
-	}
+  @MainActor public static func verified<Branch>(
+    branch features: Branch,
+    file: StaticString,
+    line: UInt
+  ) throws -> Branch
+  where Branch: Features {
+    try features.ensureScope(
+      SessionScope.self,
+      file: file,
+      line: line
+    )
+    return features
+  }
 }
 
 extension Features {
 
-	public func resourceContext(
-		file: StaticString = #fileID,
-		line: UInt = #line
-	) throws -> Resource.ID {
-			try self.context(
-				of: ResourceScope.self,
-				file: file,
-				line: line
-			)
-	}
+  public func resourceContext(
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) throws -> Resource.ID {
+    try self.context(
+      of: ResourceScope.self,
+      file: file,
+      line: line
+    )
+  }
 }

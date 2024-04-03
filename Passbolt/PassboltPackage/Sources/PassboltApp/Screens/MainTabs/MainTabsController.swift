@@ -59,10 +59,10 @@ extension MainTabsController: UIController {
   ) throws -> Self {
     features =
       try features
-			.branch(
-				scope: AccountScope.self,
-				context: context.account
-			)
+      .branch(
+        scope: AccountScope.self,
+        context: context.account
+      )
       .branch(
         scope: SessionScope.self,
         context: context
@@ -137,7 +137,7 @@ extension MainTabsController: UIController {
         guard count == 0
         else { return true }
         // if there is no otp resource yet, check the flag
-        guard sessionConfiguration.totpEnabled
+        guard sessionConfiguration.resources.totpEnabled
         else { return false }
         // finally check if resource type is available
         let availableResourceTypes: Array<ResourceType> = try await resourceTypesFetchDatabaseOperation()

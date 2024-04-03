@@ -37,7 +37,6 @@ internal final class ResourceFolderContentNodeController: ViewController {
   internal var contentController: ResourceFolderContentDisplayController!  // lazy?
 
   private let navigationTree: NavigationTree
-  private let asyncExecutor: AsyncExecutor
   private let autofillContext: AutofillExtensionContext
   private let resourceFolders: ResourceFolders
 
@@ -53,7 +52,6 @@ internal final class ResourceFolderContentNodeController: ViewController {
     self.features = features
 
     self.navigationTree = features.instance()
-    self.asyncExecutor = try features.instance()
     self.autofillContext = features.instance()
     self.resourceFolders = try features.instance()
 
@@ -83,12 +81,12 @@ internal final class ResourceFolderContentNodeController: ViewController {
     self.contentController = try features.instance(
       context: .init(
         folderName: folderName,
-        filter: searchController
-          .searchText
-          .asAnyAsyncSequence()
-          .compactMap { try? $0.value }
-          .map { (text: String) -> ResourceFoldersFilter in
-            ResourceFoldersFilter(
+        filter: ComputedVariable(
+          transformed: searchController
+            .searchText,
+          { update -> ResourceFoldersFilter in
+            let text: String = try update.value
+            return ResourceFoldersFilter(
               sorting: .nameAlphabetically,
               text: text,
               folderID: context.folderDetails?.id,
@@ -96,7 +94,8 @@ internal final class ResourceFolderContentNodeController: ViewController {
               permissions: []
             )
           }
-          .asAnyAsyncSequence(),
+        )
+        .asAnyUpdatable(),
         suggestionFilter: { (resource: ResourceListItemDSV) -> Bool in
           requestedServiceIdentifiers.matches(resource)
         },
@@ -131,113 +130,88 @@ extension ResourceFolderContentNodeController {
 
 extension ResourceFolderContentNodeController {
 
-  internal final func createResource() {
-    self.asyncExecutor
-      .scheduleCatching(
-        behavior: .reuse
-      ) { [features, requestedServiceIdentifiers, navigationTree, asyncExecutor, autofillContext] in
-        let resourceEditPreparation: ResourceEditPreparation = try await features.instance()
-        let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
-          .default,
-          self.context.folderDetails?.id,
-          requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }
-        )
-        try await navigationTree.push(
-          ResourceEditView.self,
-          controller: .init(
-            context: .init(
-              editingContext: editingContext,
-              success: { [asyncExecutor, autofillContext] resource in
-                if let password: String = resource.firstPasswordString {
-                  asyncExecutor.schedule(.replace) {
-                    await autofillContext
-                      .completeWithCredential(
-                        AutofillExtensionContext.Credential(
-                          user: resource.meta.username.stringValue ?? "",
-                          password: password
-                        )
-                      )
-                  }
-                }
-                else {
-                  ResourceSecretInvalid
-                    .error("Missing resource password in secret.")
-                    .log()
-                }
-              }
-            ),
-            features: features
-          )
-        )
-      }
+  internal final func createResource() async throws {
+    let resourceEditPreparation: ResourceEditPreparation = try self.features.instance()
+    let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
+      .default,
+      self.context.folderDetails?.id,
+      requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }
+    )
+    try self.navigationTree.push(
+      ResourceEditView.self,
+      controller: .init(
+        context: .init(
+          editingContext: editingContext,
+          success: { [autofillContext] resource in
+            if let password: String = resource.firstPasswordString {
+              await autofillContext
+                .completeWithCredential(
+                  AutofillExtensionContext.Credential(
+                    user: resource.meta.username.stringValue ?? "",
+                    password: password
+                  )
+                )
+            }
+            else {
+              ResourceSecretInvalid
+                .error("Missing resource password in secret.")
+                .consume()
+            }
+          }
+        ),
+        features: self.features
+      )
+    )
   }
 
   @Sendable internal func selectResource(
     _ resourceID: Resource.ID
-  ) {
-    self.asyncExecutor.scheduleCatching(
-      failMessage: "Failed to handle resource selection.",
-      failAction: { (error: Error) in
-      SnackBarMessageEvent.send(.error(error))
-      },
-      behavior: .replace
-    ) { [features, autofillContext] in
-      let features: Features = try await features.branch(
-        scope: ResourceScope.self,
-        context: resourceID
-      )
-      let resourceController: ResourceController = try await features.instance()
-      try await resourceController.fetchSecretIfNeeded(force: true)
-      let resource: Resource = try await resourceController.state.value
+  ) async throws {
+    let features: Features = try self.features.branch(
+      scope: ResourceScope.self,
+      context: resourceID
+    )
+    let resourceController: ResourceController = try features.instance()
+    try await resourceController.fetchSecretIfNeeded(force: true)
+    let resource: Resource = try await resourceController.state.value
 
-      guard let password: String = resource.firstPasswordString
-      else {
-        throw
-          ResourceSecretInvalid
-          .error("Missing resource password in secret.")
-      }
-      await autofillContext
-        .completeWithCredential(
-          AutofillExtensionContext.Credential(
-            user: resource.meta.username.stringValue ?? "",
-            password: password
-          )
-        )
+    guard let password: String = resource.firstPasswordString
+    else {
+      throw
+        ResourceSecretInvalid
+        .error("Missing resource password in secret.")
     }
+    self.autofillContext
+      .completeWithCredential(
+        AutofillExtensionContext.Credential(
+          user: resource.meta.username.stringValue ?? "",
+          password: password
+        )
+      )
   }
 
   internal final func selectFolder(
     _ resourceFolderID: ResourceFolder.ID
-  ) {
-    self.asyncExecutor.scheduleCatching(
-      failMessage: "Failed to handle resource folder selection.",
-      failAction: { (error: Error) in
-      SnackBarMessageEvent.send(.error(error))
-      },
-      behavior: .replace
-    ) { [features, context, resourceFolders, navigationTree] in
-      let folderDetails: ResourceFolder = try await resourceFolders.details(resourceFolderID)
+  ) async throws {
+    let folderDetails: ResourceFolder = try await self.resourceFolders.details(resourceFolderID)
 
-      let nodeController: ResourceFolderContentNodeController =
-        try await features
-        .instance(
-          of: ResourceFolderContentNodeController.self,
-          context: .init(
-            nodeID: context.nodeID,
-            folderDetails: folderDetails
-          )
+    let nodeController: ResourceFolderContentNodeController =
+      try self.features
+      .instance(
+        of: ResourceFolderContentNodeController.self,
+        context: .init(
+          nodeID: self.context.nodeID,
+          folderDetails: folderDetails
         )
-      await navigationTree
-        .push(
-          ResourceFolderContentNodeView.self,
-          controller: nodeController
-        )
-    }
+      )
+    self.navigationTree
+      .push(
+        ResourceFolderContentNodeView.self,
+        controller: nodeController
+      )
   }
 
-  nonisolated func closeExtension() {
-    self.asyncExecutor.schedule(.reuse) { [autofillContext] in
-      await autofillContext.cancelAndCloseExtension()
-    }
+  internal func closeExtension() {
+    self.autofillContext.cancelAndCloseExtension()
   }
 }

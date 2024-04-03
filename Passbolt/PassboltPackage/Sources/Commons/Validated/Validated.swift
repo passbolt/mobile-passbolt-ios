@@ -65,7 +65,7 @@ extension Validated {
     )
   }
 
-	@Sendable public static func invalid(
+  @Sendable public static func invalid(
     _ value: Value,
     error: TheError
   ) -> Self {

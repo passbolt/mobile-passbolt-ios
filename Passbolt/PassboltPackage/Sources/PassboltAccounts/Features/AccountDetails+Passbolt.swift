@@ -22,9 +22,9 @@
 //
 
 import Accounts
+import FeatureScopes
 import NetworkOperations
 import OSFeatures
-import FeatureScopes
 
 import struct Foundation.Data
 
@@ -35,7 +35,7 @@ extension AccountDetails {
   @MainActor fileprivate static func load(
     features: Features
   ) throws -> Self {
-		let account: Account = try features.accountContext()
+    let account: Account = try features.accountContext()
     let accountsDataStore: AccountsDataStore = try features.instance()
     let accountData: AccountData = try features.instance()
     let userDetailsFetchNetworkOperation: UserDetailsFetchNetworkOperation = try features.instance()
@@ -50,9 +50,19 @@ extension AccountDetails {
       )
     }
 
-		@Sendable nonisolated func passphraseStored() -> Bool {
-			accountsDataStore.isAccountPassphraseStored(account.localID)
-		}
+    @Sendable nonisolated func passphraseStored() -> Bool {
+      accountsDataStore.isAccountPassphraseStored(account.localID)
+    }
+
+    let userDetailsCache: ComputedVariable<UserDTO> = .init {
+      return
+        try await userDetailsFetchNetworkOperation
+        .execute(
+          .init(
+            userID: account.userID
+          )
+        )
+    }
 
     @Sendable nonisolated func updateProfile() async throws {
       let storedProfile: AccountProfile =
@@ -85,30 +95,30 @@ extension AccountDetails {
       accountData.updates.update()
     }
 
-		let avatarImageCache: ComputedVariable<Data> = .init(
-			transformed: accountData.updates) { _ in
-				let profile: AccountWithProfile = try profile()
-				return try await mediaDownloadNetworkOperation.execute(profile.avatarImageURL)
-		}
+    let avatarImageCache: ComputedVariable<Data> = .init(
+      transformed: accountData.updates
+    ) { _ in
+      let profile: AccountWithProfile = try profile()
+      return try await mediaDownloadNetworkOperation.execute(profile.avatarImageURL)
+    }
 
-		@Sendable nonisolated func keyDetails() async throws -> PGPKeyDetails {
-			// this could be unified with profile update action
-			// to avoid additional network request
-			let key: PGPKeyDetails? = try await userDetailsFetchNetworkOperation
-				.execute(
-					.init(
-						userID: account.userID
-					)
-				)
-				.key
-			if let key {
-				return key
-			}
-			else {
-				throw AccountDataMissing
-					.error("Account key missing")
-			}
-		}
+    @Sendable nonisolated func keyDetails() async throws -> PGPKeyDetails {
+      // this could be unified with profile update action
+      // to avoid additional network request
+      let key: PGPKeyDetails? = try await userDetailsCache.value.key
+      if let key {
+        return key
+      }
+      else {
+        throw
+          AccountDataMissing
+          .error("Account key missing")
+      }
+    }
+
+    @Sendable nonisolated func role() async throws -> String? {
+      try await userDetailsCache.value.role
+    }
 
     @Sendable nonisolated func avatarImage() async throws -> Data? {
       try? await avatarImageCache.value
@@ -117,9 +127,10 @@ extension AccountDetails {
     return Self(
       updates: accountData.updates.asAnyUpdatable(),
       profile: profile,
-			isPassphraseStored: passphraseStored,
+      isPassphraseStored: passphraseStored,
       updateProfile: updateProfile,
-			keyDetails: keyDetails,
+      keyDetails: keyDetails,
+      role: role,
       avatarImage: avatarImage
     )
   }
@@ -133,7 +144,7 @@ extension FeaturesRegistry {
         AccountDetails.self,
         load: AccountDetails.load(features:)
       ),
-			in: AccountScope.self
+      in: AccountScope.self
     )
   }
 }

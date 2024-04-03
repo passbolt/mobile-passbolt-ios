@@ -22,9 +22,9 @@
 //
 
 import Accounts
+import FeatureScopes
 import OSFeatures
 import Session
-import FeatureScopes
 
 // MARK: - Implementation
 
@@ -33,7 +33,7 @@ extension AccountPreferences {
   @MainActor fileprivate static func load(
     features: Features
   ) throws -> Self {
-		let account: Account = try features.sessionAccount()
+    let account: Account = try features.sessionAccount()
     let accountData: AccountData = try features.instance()
     let accountsDataStore: AccountsDataStore = try features.instance()
     let sessionPassphrase: SessionPassphrase = try features.instance()
@@ -104,16 +104,16 @@ extension FeaturesRegistry {
         AccountPreferences.self,
         load: AccountPreferences.load(features:)
       ),
-			in: SessionScope.self
+      in: SessionScope.self
     )
-		self.usePassboltStoredProperty(
-			UseLastUsedHomePresentationAsDefaultStoredPropertyDescription.self,
-			in: SessionScope.self
-		)
-		self.usePassboltStoredProperty(
-			DefaultHomeModeStoredPropertyDescription.self,
-			in: SessionScope.self
-		)
+    self.usePassboltStoredProperty(
+      UseLastUsedHomePresentationAsDefaultStoredPropertyDescription.self,
+      in: SessionScope.self
+    )
+    self.usePassboltStoredProperty(
+      DefaultHomeModeStoredPropertyDescription.self,
+      in: SessionScope.self
+    )
   }
 }
 
@@ -121,16 +121,18 @@ internal typealias DefaultHomeModeStoredProperty = StoredProperty<DefaultHomeMod
 
 internal enum DefaultHomeModeStoredPropertyDescription: StoredPropertyDescription {
 
-	public typealias Value = String
+  public typealias Value = String
 
-	public static var key: OSStoredPropertyKey { "DefaultHomePresentationProperty" }
+  public static var key: OSStoredPropertyKey { "DefaultHomePresentationProperty" }
 }
 
-internal typealias UseLastUsedHomePresentationAsDefaultStoredProperty = StoredProperty<UseLastUsedHomePresentationAsDefaultStoredPropertyDescription>
+internal typealias UseLastUsedHomePresentationAsDefaultStoredProperty = StoredProperty<
+  UseLastUsedHomePresentationAsDefaultStoredPropertyDescription
+>
 
 internal enum UseLastUsedHomePresentationAsDefaultStoredPropertyDescription: StoredPropertyDescription {
 
-	public typealias Value = Bool
+  public typealias Value = Bool
 
-	public static var key: OSStoredPropertyKey { "UseLastUsedHomePresentationAsDefault" }
+  public static var key: OSStoredPropertyKey { "UseLastUsedHomePresentationAsDefault" }
 }

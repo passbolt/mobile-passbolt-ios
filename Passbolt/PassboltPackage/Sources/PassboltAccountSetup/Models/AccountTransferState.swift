@@ -25,6 +25,7 @@ internal struct AccountTransferState {
 
   internal var configuration: AccountTransferConfiguration? = nil
   internal var account: AccountTransferAccount? = nil
+  internal var downloadLink: AccountTransferLink? = nil
   internal var profile: AccountTransferAccountProfile? = nil
   internal var scanningParts: Array<AccountTransferScanningPart> = .init()
 }

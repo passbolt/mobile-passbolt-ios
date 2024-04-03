@@ -29,7 +29,7 @@ import UIComponents
 
 public struct LogsViewerController {
 
-  public var refreshLogs: @MainActor () -> Void
+  public var refreshLogs: @MainActor () async -> Void
   public var logsPublisher: @MainActor () -> AnyPublisher<Array<String>?, Never>
   public var presentShareMenu: @MainActor () -> Void
   public var shareMenuPresentationPublisher: @MainActor () -> AnyPublisher<String?, Never>
@@ -43,15 +43,14 @@ extension LogsViewerController: UIController {
     cancellables: Cancellables
   ) throws -> Self {
 
-    let executor: AsyncExecutor = try features.instance()
-
     let diagnosticsInfoCacheSubject: CurrentValueSubject<Array<String>?, Never> = .init(nil)
     let shareMenuPresentationSubject: PassthroughSubject<String?, Never> = .init()
 
-    func refreshLogs() {
-      executor.schedule {
+    func refreshLogs() async {
+      await Task {
         diagnosticsInfoCacheSubject.send(Diagnostics.shared.info())
       }
+      .waitForCompletion()
     }
 
     func logsPublisher() -> AnyPublisher<Array<String>?, Never> {

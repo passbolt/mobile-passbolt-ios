@@ -27,234 +27,201 @@ import UniformTypeIdentifiers
 
 extension View {
 
-	@ViewBuilder @MainActor public func withExternalActivity(
-		_ configuration: Binding<ExternalActivityConfiguration?>
-	) -> some View {
-		self.sheet(
-			item: configuration,
-			content: { (configuration: ExternalActivityConfiguration) in
-				ExternalActivityView(with: configuration)
-			}
-		)
-	}
+  @ViewBuilder @MainActor public func withExternalActivity(
+    _ configuration: Binding<ExternalActivityConfiguration?>
+  ) -> some View {
+    self.sheet(
+      item: configuration,
+      content: { (configuration: ExternalActivityConfiguration) in
+        ExternalActivityView(with: configuration)
+      }
+    )
+  }
 }
 
 public struct ExternalActivityConfiguration {
 
-	public let id: ObjectIdentifier
-	fileprivate let itemsConfiguration: UIActivityItemsConfiguration
-	fileprivate let excludedActivities: Array<UIActivity.ActivityType>
+  public let id: ObjectIdentifier
+  fileprivate let itemsConfiguration: UIActivityItemsConfiguration
+  fileprivate let excludedActivities: Array<UIActivity.ActivityType>
 
-	fileprivate init(
-		itemsConfiguration: UIActivityItemsConfiguration,
-		excludedActivities: Array<UIActivity.ActivityType>
-	) {
-		self.itemsConfiguration = itemsConfiguration
-		self.id = ObjectIdentifier(itemsConfiguration)
-		self.excludedActivities = excludedActivities
-	}
+  fileprivate init(
+    itemsConfiguration: UIActivityItemsConfiguration,
+    excludedActivities: Array<UIActivity.ActivityType>
+  ) {
+    self.itemsConfiguration = itemsConfiguration
+    self.id = ObjectIdentifier(itemsConfiguration)
+    self.excludedActivities = excludedActivities
+  }
 
-	public static func share(
-		privateKey: ArmoredPGPPrivateKey
-	) -> Self {
-		let itemProvider: NSItemProvider = .init(
-			object: StringShareItem(
-				privateKey: privateKey
-			)
-		)
-		itemProvider.suggestedName = "private_key"
+  public static func share(
+    privateKey: ArmoredPGPPrivateKey
+  ) -> Self {
+    let itemProvider: NSItemProvider = .init(
+      object: StringShareItem(
+        privateKey: privateKey
+      )
+    )
+    itemProvider.suggestedName = "private_key"
 
-		let itemsConfiguration: UIActivityItemsConfiguration = .init(
-			itemProviders: [itemProvider]
-		)
-		itemsConfiguration.metadataProvider = { (key: UIActivityItemsConfigurationMetadataKey) -> Any? in
-			switch key {
-			case .title:
-				return "private_key"
+    let itemsConfiguration: UIActivityItemsConfiguration = .init(
+      itemProviders: [itemProvider]
+    )
+    itemsConfiguration.metadataProvider = { (key: UIActivityItemsConfigurationMetadataKey) -> Any? in
+      switch key {
+      case .title:
+        return "private_key"
 
-			case _:
-				return nil
-			}
-		}
+      case _:
+        return nil
+      }
+    }
 
-		return .init(
-			itemsConfiguration: itemsConfiguration,
-			excludedActivities: {
-				if #available(iOS 16.0, *) {
-					return [
-						.addToReadingList,
-						.assignToContact,
-						.collaborationCopyLink,
-						.collaborationInviteWithLink,
-						.markupAsPDF,
-						.message,
-						.openInIBooks,
-						.saveToCameraRoll,
-						.sharePlay,
-						.postToVimeo,
-						.postToWeibo,
-						.postToFlickr,
-						.postToTwitter,
-						.postToFacebook,
-						.postToTencentWeibo,
-					 ]
-				}
-				else {
-					return [
-						.addToReadingList,
-						.assignToContact,
-						.markupAsPDF,
-						.message,
-						.openInIBooks,
-						.saveToCameraRoll,
-						.postToVimeo,
-						.postToWeibo,
-						.postToFlickr,
-						.postToTwitter,
-						.postToFacebook,
-						.postToTencentWeibo,
-					 ]
-				}
-			}()
-		)
-	}
+    return .init(
+      itemsConfiguration: itemsConfiguration,
+      excludedActivities: {
+        [
+          .addToReadingList,
+          .assignToContact,
+          .collaborationCopyLink,
+          .collaborationInviteWithLink,
+          .markupAsPDF,
+          .message,
+          .openInIBooks,
+          .saveToCameraRoll,
+          .sharePlay,
+          .postToVimeo,
+          .postToWeibo,
+          .postToFlickr,
+          .postToTwitter,
+          .postToFacebook,
+          .postToTencentWeibo,
+        ]
+      }()
+    )
+  }
 
-	public static func share(
-		publicKey: ArmoredPGPPublicKey
-	) -> Self {
-		let itemProvider: NSItemProvider = .init(
-			object: StringShareItem(
-				publicKey: publicKey
-			)
-		)
-		itemProvider.suggestedName = "public_key"
+  public static func share(
+    publicKey: ArmoredPGPPublicKey
+  ) -> Self {
+    let itemProvider: NSItemProvider = .init(
+      object: StringShareItem(
+        publicKey: publicKey
+      )
+    )
+    itemProvider.suggestedName = "public_key"
 
-		let itemsConfiguration: UIActivityItemsConfiguration = .init(
-			itemProviders: [itemProvider]
-		)
+    let itemsConfiguration: UIActivityItemsConfiguration = .init(
+      itemProviders: [itemProvider]
+    )
 
-		itemsConfiguration.metadataProvider = { (key: UIActivityItemsConfigurationMetadataKey) -> Any? in
-			switch key {
-			case .title:
-				return "public_key"
+    itemsConfiguration.metadataProvider = { (key: UIActivityItemsConfigurationMetadataKey) -> Any? in
+      switch key {
+      case .title:
+        return "public_key"
 
-			case _:
-				return nil
-			}
-		}
+      case _:
+        return nil
+      }
+    }
 
-		return .init(
-			itemsConfiguration: itemsConfiguration,
-			excludedActivities: {
-				if #available(iOS 16.0, *) {
-					return [
-						.addToReadingList,
-						.collaborationCopyLink,
-						.collaborationInviteWithLink,
-						.markupAsPDF,
-						.openInIBooks,
-						.saveToCameraRoll,
-						.sharePlay,
-						.postToVimeo,
-						.postToWeibo,
-						.postToFlickr,
-						.postToTwitter,
-						.postToFacebook,
-						.postToTencentWeibo,
-					 ]
-				}
-				else {
-					return [
-						.addToReadingList,
-						.markupAsPDF,
-						.openInIBooks,
-						.saveToCameraRoll,
-						.postToVimeo,
-						.postToWeibo,
-						.postToFlickr,
-						.postToTwitter,
-						.postToFacebook,
-						.postToTencentWeibo,
-					 ]
-				}
-			}()
-		)
-	}
+    return .init(
+      itemsConfiguration: itemsConfiguration,
+      excludedActivities: {
+        [
+          .addToReadingList,
+          .collaborationCopyLink,
+          .collaborationInviteWithLink,
+          .markupAsPDF,
+          .openInIBooks,
+          .saveToCameraRoll,
+          .sharePlay,
+          .postToVimeo,
+          .postToWeibo,
+          .postToFlickr,
+          .postToTwitter,
+          .postToFacebook,
+          .postToTencentWeibo,
+        ]
+
+      }()
+    )
+  }
 }
 
 extension ExternalActivityConfiguration: Equatable {
-	
-	public static func == (
-		_ lhs: ExternalActivityConfiguration,
-		_ rhs: ExternalActivityConfiguration
-	) -> Bool {
-		lhs.id == rhs.id
-	}
+
+  public static func == (
+    _ lhs: ExternalActivityConfiguration,
+    _ rhs: ExternalActivityConfiguration
+  ) -> Bool {
+    lhs.id == rhs.id
+  }
 }
 
 extension ExternalActivityConfiguration: Identifiable {}
 
 public struct ExternalActivityView: UIViewControllerRepresentable {
 
-	private let configuration: ExternalActivityConfiguration
+  private let configuration: ExternalActivityConfiguration
 
-	public init(
-		with configuration: ExternalActivityConfiguration
-	) {
-		self.configuration = configuration
-	}
+  public init(
+    with configuration: ExternalActivityConfiguration
+  ) {
+    self.configuration = configuration
+  }
 
-	public func makeUIViewController(
-		context: Context
-	) -> UIActivityViewController {
-		let controller: UIActivityViewController = .init(
-			activityItemsConfiguration: self.configuration.itemsConfiguration
-		)
-		controller.excludedActivityTypes = self.configuration.excludedActivities
-		return controller
-	}
+  public func makeUIViewController(
+    context: Context
+  ) -> UIActivityViewController {
+    let controller: UIActivityViewController = .init(
+      activityItemsConfiguration: self.configuration.itemsConfiguration
+    )
+    controller.excludedActivityTypes = self.configuration.excludedActivities
+    return controller
+  }
 
-	public func updateUIViewController(
-		_ uiViewController: UIActivityViewController,
-		context: Context
-	) {
-		// NOP - can't be updated
-	}
+  public func updateUIViewController(
+    _ uiViewController: UIActivityViewController,
+    context: Context
+  ) {
+    // NOP - can't be updated
+  }
 }
 
 private final class StringShareItem: NSObject, NSItemProviderWriting {
 
-	fileprivate static let writableTypeIdentifiersForItemProvider: Array<String> = [UTType.text.identifier]
+  fileprivate static let writableTypeIdentifiersForItemProvider: Array<String> = [UTType.text.identifier]
 
-	fileprivate func loadData(
-		withTypeIdentifier typeIdentifier: String,
-		forItemProviderCompletionHandler completionHandler: @escaping @Sendable (Data?, Error?) -> Void
-	) -> Progress? {
-		switch typeIdentifier {
-			case UTType.text.identifier:
-				completionHandler(
-					self.rawString.data(using: .utf8),
-					.none
-				)
-				return .init()
-			case _:
-				return .none
-		}
-	}
-	
-	private let rawString: String
+  fileprivate func loadData(
+    withTypeIdentifier typeIdentifier: String,
+    forItemProviderCompletionHandler completionHandler: @escaping @Sendable (Data?, Error?) -> Void
+  ) -> Progress? {
+    switch typeIdentifier {
+    case UTType.text.identifier:
+      completionHandler(
+        self.rawString.data(using: .utf8),
+        .none
+      )
+      return .init()
+    case _:
+      return .none
+    }
+  }
 
-	fileprivate init(
-		privateKey: ArmoredPGPPrivateKey
-	) {
-		self.rawString = privateKey.rawValue
-		super.init()
-	}
+  private let rawString: String
 
-	fileprivate init(
-		publicKey: ArmoredPGPPublicKey
-	) {
-		self.rawString = publicKey.rawValue
-		super.init()
-	}
+  fileprivate init(
+    privateKey: ArmoredPGPPrivateKey
+  ) {
+    self.rawString = privateKey.rawValue
+    super.init()
+  }
+
+  fileprivate init(
+    publicKey: ArmoredPGPPublicKey
+  ) {
+    self.rawString = publicKey.rawValue
+    super.init()
+  }
 }

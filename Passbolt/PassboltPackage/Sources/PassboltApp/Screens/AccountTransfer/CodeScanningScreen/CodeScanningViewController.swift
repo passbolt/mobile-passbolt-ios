@@ -180,7 +180,7 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
         receiveCompletion: { [weak self] completion in
           self?.cancellables
             .executeOnMainActor { [weak self] in
-							guard let self else { return }
+              guard let self else { return }
               switch completion {
               case .finished:
                 await self
@@ -209,7 +209,7 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
                   await self.dismiss(Self.self)
                 }
 
-              case let .failure(error) where error is AccountDuplicate:
+              case let .failure(error) where error is AccountDuplicate || error is AccountKitAccountAlreadyExist:
                 await self
                   .push(
                     CodeScanningDuplicateViewController.self
@@ -217,22 +217,22 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
                 await self.popAll(Self.self, animated: false)
 
               case let .failure(error):
-								try await self
-									.push(
-										OperationResultControlledView(
-											controller: OperationResultViewController(
-												context: OperationResultConfiguration(
-													for: error.asTheError(),
-													confirmation: { [weak self] in
-														await self?.pop(to: TransferInfoScreenViewController.self)
-													}
-												),
-												features: self.components.features
-											)
-										),
-										animated: true
-									)
-							}
+                try await self
+                  .push(
+                    OperationResultControlledView(
+                      controller: OperationResultViewController(
+                        context: OperationResultConfiguration(
+                          for: error.asTheError(),
+                          confirmation: { [weak self] in
+                            await self?.pop(to: TransferInfoScreenViewController.self)
+                          }
+                        ),
+                        features: self.components.features
+                      )
+                    ),
+                    animated: true
+                  )
+              }
             }
         },
         receiveValue: { _ in }

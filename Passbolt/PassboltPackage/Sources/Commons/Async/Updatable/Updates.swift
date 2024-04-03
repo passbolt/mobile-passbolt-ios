@@ -52,7 +52,7 @@ extension Updates: Updatable {
   }
 
   public var value: Void {
-    @_transparent @Sendable get { Void() }
+    Void()
   }
 
   public var lastUpdate: Update<Void> {

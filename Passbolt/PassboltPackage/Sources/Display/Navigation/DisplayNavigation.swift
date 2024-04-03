@@ -35,7 +35,6 @@ public struct DisplayNavigation {
 
 extension DisplayNavigation: LoadableFeature {
 
-
   #if DEBUG
   public static var placeholder: Self {
     .init(
@@ -108,37 +107,38 @@ extension DisplayNavigation {
       )
   }
 
-	@MainActor public func pop<PushedView>(
-		to type: PushedView.Type
-	) async where PushedView: ControlledView {
-		await self.legacyBridge
-			.bridgeComponent()?
-			.pop(
-				to: DisplayViewBridge<PushedView>.self,
-				animated: true
-			)
-	}
+  @MainActor public func pop<PushedView>(
+    to type: PushedView.Type
+  ) async where PushedView: ControlledView {
+    await self.legacyBridge
+      .bridgeComponent()?
+      .pop(
+        to: DisplayViewBridge<PushedView>.self,
+        animated: true
+      )
+  }
 
-	@MainActor public func pop<PushedComponent>(
-		to type: PushedComponent.Type
-	) async where PushedComponent: UIComponent {
-		guard let bridge = self.legacyBridge
-			.bridgeComponent()
-		else { return }
-		
-		if await bridge.pop(to: PushedComponent.self, animated: true) {
-			return
-		}
-		else {
-			await bridge.popToRoot()
-		}
-	}
+  @MainActor public func pop<PushedComponent>(
+    to type: PushedComponent.Type
+  ) async where PushedComponent: UIComponent {
+    guard
+      let bridge = self.legacyBridge
+        .bridgeComponent()
+    else { return }
 
-	@MainActor public func popToRoot() async {
-		await self.legacyBridge
-			.bridgeComponent()?
-			.popToRoot()
-	}
+    if await bridge.pop(to: PushedComponent.self, animated: true) {
+      return
+    }
+    else {
+      await bridge.popToRoot()
+    }
+  }
+
+  @MainActor public func popToRoot() async {
+    await self.legacyBridge
+      .bridgeComponent()?
+      .popToRoot()
+  }
 
   @MainActor public func dismiss<PushedView>(
     _ type: PushedView.Type

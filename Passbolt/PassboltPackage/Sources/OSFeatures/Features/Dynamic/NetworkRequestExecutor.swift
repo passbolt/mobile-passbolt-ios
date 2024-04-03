@@ -55,7 +55,6 @@ public struct NetworkRequestExecutor {
 
 extension NetworkRequestExecutor: LoadableFeature {
 
-
   #if DEBUG
   public nonisolated static var placeholder: Self {
     Self(
@@ -83,8 +82,8 @@ extension NetworkRequestExecutor {
     urlSessionConfiguration.allowsConstrainedNetworkAccess = true
     urlSessionConfiguration.allowsExpensiveNetworkAccess = true
     urlSessionConfiguration.httpShouldUsePipelining = true
-    urlSessionConfiguration.timeoutIntervalForResource = 10
-    urlSessionConfiguration.timeoutIntervalForRequest = 10
+    urlSessionConfiguration.timeoutIntervalForResource = 30
+    urlSessionConfiguration.timeoutIntervalForRequest = 30
     urlSessionConfiguration.waitsForConnectivity = false
     let sessionDelegate: URLSessionDelegate = .init()
     let urlSession: URLSession = .init(

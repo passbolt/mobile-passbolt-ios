@@ -21,25 +21,25 @@
 // @since         v1.0
 //
 
-import Features
 import Accounts
+import Features
 
 // Scope for transfering account, both import and export.
 public enum AccountScope: FeaturesScope {
-	
-	public typealias Context = Account
+
+  public typealias Context = Account
 }
 
 extension Features {
 
-	public func accountContext(
-		file: StaticString = #fileID,
-		line: UInt = #line
-	) throws -> Account {
-			try self.context(
-				of: AccountScope.self,
-				file: file,
-				line: line
-			)
-	}
+  public func accountContext(
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) throws -> Account {
+    try self.context(
+      of: AccountScope.self,
+      file: file,
+      line: line
+    )
+  }
 }

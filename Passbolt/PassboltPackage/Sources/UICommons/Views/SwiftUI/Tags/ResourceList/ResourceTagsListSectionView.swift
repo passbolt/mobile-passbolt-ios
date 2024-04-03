@@ -28,12 +28,12 @@ public struct ResourceTagsListSectionView: View {
 
   private let title: DisplayableString?
   private let tags: Array<ResourceTagListItemDSV>
-  private let tapAction: (ResourceTag.ID) -> Void
+  private let tapAction: (ResourceTag.ID) async throws -> Void
 
   public init(
     title: DisplayableString? = .none,
     tags: Array<ResourceTagListItemDSV>,
-    tapAction: @escaping (ResourceTag.ID) -> Void
+    tapAction: @escaping (ResourceTag.ID) async throws -> Void
   ) {
     self.title = title
     self.tags = tags
@@ -73,7 +73,7 @@ public struct ResourceTagsListSectionView: View {
             shared: item.shared,
             contentCount: item.contentCount,
             action: {
-              self.tapAction(item.id)
+              try await self.tapAction(item.id)
             }
           )
         }

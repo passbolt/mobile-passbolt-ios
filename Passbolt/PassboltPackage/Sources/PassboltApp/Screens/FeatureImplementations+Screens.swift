@@ -29,9 +29,10 @@ extension FeaturesRegistry {
   public mutating func useLiveNavigation() {
     // MARK: - Global
     self.useLiveNavigationToLogs()
-		self.useLiveNavigationToOperationAuthorization()
-		self.useLiveNavigationToExternalActivity()
-		self.useLiveNavigationToOperationResult()
+    self.useLiveNavigationToOperationAuthorization()
+    self.useLiveNavigationToExternalActivity()
+    self.useLiveNavigationToOperationResult()
+    self.useLiveNavigationToTransferInfo()
 
     // MARK: - Session
     self.useLiveNavigationToAccountMenu()
@@ -75,7 +76,7 @@ extension FeaturesRegistry {
     self.useLiveNavigationToAutofillSettings()
     self.useLiveNavigationToAccountsSettings()
     self.useLiveNavigationToAccountExport()
-		self.useLiveNavigationToAccountKeyInspector()
-		self.useLiveNavigationToAccountKeyExportMenu()
+    self.useLiveNavigationToAccountKeyInspector()
+    self.useLiveNavigationToAccountKeyExportMenu()
   }
 }

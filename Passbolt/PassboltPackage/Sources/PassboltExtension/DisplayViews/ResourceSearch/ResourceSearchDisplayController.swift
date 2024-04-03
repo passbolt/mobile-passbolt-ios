@@ -39,7 +39,6 @@ internal final class ResourceSearchDisplayController: ViewController {
   private let currentAccount: Account
 
   private let navigationTree: NavigationTree
-  private let asyncExecutor: AsyncExecutor
   private let session: Session
   private let accountDetails: AccountDetails
 
@@ -58,7 +57,6 @@ internal final class ResourceSearchDisplayController: ViewController {
     self.currentAccount = try features.sessionAccount()
 
     self.navigationTree = features.instance()
-    self.asyncExecutor = try features.instance()
     self.session = try features.instance()
     self.accountDetails = try features.instance()
 
@@ -125,24 +123,15 @@ extension ResourceSearchDisplayController {
     }
   }
 
-  internal final func showPresentationMenu() {
-    self.asyncExecutor.scheduleCatching(
-      failAction: { (error: Error) in
-				SnackBarMessageEvent.send(.error(error))
-      },
-      behavior: .reuse
-    ) { [features, context, navigationTree] in
-      try await navigationTree.present(
-        .sheet,
-        HomePresentationMenuNodeView.self,
-        controller: features.instance(context: context.nodeID)
-      )
-    }
+  internal final func showPresentationMenu() async throws {
+    try self.navigationTree.present(
+      .sheet,
+      HomePresentationMenuNodeView.self,
+      controller: self.features.instance(context: context.nodeID)
+    )
   }
 
-  internal final func signOut() {
-    self.asyncExecutor.schedule(.reuse) { [unowned self] in
-      await self.session.close(.none)
-    }
+  internal final func signOut() async {
+    await self.session.close(.none)
   }
 }

@@ -31,7 +31,6 @@ import UIComponents
 @testable import SharedUIComponents
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@MainActor @available(iOS 16.0.0, *)
 final class ServerFingerprintControllerTests: MainActorTestCase {
 
   override func mainActorSetUp() {

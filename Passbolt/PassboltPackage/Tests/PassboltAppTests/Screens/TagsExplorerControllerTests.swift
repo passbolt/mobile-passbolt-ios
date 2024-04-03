@@ -34,7 +34,6 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@available(iOS 16.0.0, *)
 @MainActor
 final class TagsExplorerControllerTests: MainActorTestCase {
 
@@ -81,13 +80,13 @@ final class TagsExplorerControllerTests: MainActorTestCase {
     updates = .none
   }
 
-	func test_refreshIfNeeded_showsError_whenRefreshFails() async throws {
+  func test_refreshIfNeeded_showsError_whenRefreshFails() async throws {
     features.patch(
       \SessionData.refreshIfNeeded,
       with: alwaysThrow(MockIssue.error())
     )
 
-		let messagesSubscription = SnackBarMessageEvent.subscribe()
+    let messagesSubscription = SnackBarMessageEvent.subscribe()
 
     let controller: TagsExplorerController = try testController(
       context: nil
@@ -95,7 +94,7 @@ final class TagsExplorerControllerTests: MainActorTestCase {
 
     await controller.refreshIfNeeded()
 
-    let message: SnackBarMessage? = try await messagesSubscription.nextEvent()
+    let message: SnackBarMessageEvent.Payload? = try await messagesSubscription.nextEvent()
 
     XCTAssertNotNil(message)
   }
@@ -108,7 +107,7 @@ final class TagsExplorerControllerTests: MainActorTestCase {
 
     await controller.refreshIfNeeded()
 
-		// can't check if succeeded now...
+    // can't check if succeeded now...
   }
 
   func test_initally_viewStateTitle_isDefaultString_forTags() async throws {

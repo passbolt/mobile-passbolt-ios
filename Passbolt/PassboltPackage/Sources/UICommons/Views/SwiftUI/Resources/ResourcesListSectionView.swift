@@ -28,14 +28,14 @@ public struct ResourcesListSectionView: View {
 
   private let title: DisplayableString?
   private let resources: Array<ResourceListItemDSV>
-  private let tapAction: (Resource.ID) -> Void
-  private let menuAction: ((Resource.ID) -> Void)?
+  private let tapAction: (Resource.ID) async throws -> Void
+  private let menuAction: ((Resource.ID) async throws -> Void)?
 
   public init(
     title: DisplayableString? = .none,
     resources: Array<ResourceListItemDSV>,
-    tapAction: @escaping (Resource.ID) -> Void,
-    menuAction: ((Resource.ID) -> Void)? = .none
+    tapAction: @escaping (Resource.ID) async throws -> Void,
+    menuAction: ((Resource.ID) async throws -> Void)? = .none
   ) {
     self.title = title
     self.resources = resources
@@ -75,10 +75,10 @@ public struct ResourcesListSectionView: View {
             name: resource.name,
             username: resource.username,
             contentAction: {
-              self.tapAction(resource.id)
+              try await self.tapAction(resource.id)
             },
             rightAction: self.menuAction.map { action in
-              { action(resource.id) }
+              { try await action(resource.id) }
             },
             rightAccessory: {
               if case .none = self.menuAction {

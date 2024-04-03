@@ -32,7 +32,6 @@ internal final class ResourceUserGroupsListDisplayController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
 
-  private let asyncExecutor: AsyncExecutor
   private let sessionData: SessionData
   private let userGroups: UserGroups
 
@@ -48,31 +47,29 @@ internal final class ResourceUserGroupsListDisplayController: ViewController {
     self.context = context
     self.features = features
 
-    self.asyncExecutor = try features.instance()
     self.sessionData = try features.instance()
     self.userGroups = try features.instance()
 
     self.viewState = .init(
       initial: .init(
         userGroups: .init()
-      )
+      ),
+      updateFrom: ComputedVariable(
+        combined: context.filter,
+        with: self.sessionData.lastUpdate
+      ),
+      update: { [userGroups] (updateView, update) in
+        await consumingErrors {
+          let filteredUserGroups: Array<ResourceUserGroupListItemDSV> = try await userGroups.filteredResourceUserGroups(
+            update.value.0
+          )
+
+          await updateView { viewState in
+            viewState.userGroups = filteredUserGroups
+          }
+        }
+      }
     )
-
-    self.asyncExecutor.scheduleIteration(
-      over: combineLatest(context.filter, sessionData.lastUpdate.asAnyAsyncSequence()),
-      failMessage: "User groups list updates broken!",
-      failAction: { (error: Error) in
-      SnackBarMessageEvent.send(.error(error))
-      }
-    ) { [viewState, userGroups] (filter: UserGroupsFilter, _) in
-      let filteredUserGroups: Array<ResourceUserGroupListItemDSV> = try await userGroups.filteredResourceUserGroups(
-        filter
-      )
-
-      await viewState.update { viewState in
-        viewState.userGroups = filteredUserGroups
-      }
-    }
   }
 }
 
@@ -80,8 +77,8 @@ extension ResourceUserGroupsListDisplayController {
 
   internal struct Context {
 
-    internal var filter: AnyAsyncSequence<UserGroupsFilter>
-    internal var selectGroup: (UserGroup.ID) -> Void
+    internal var filter: AnyUpdatable<UserGroupsFilter>
+    internal var selectGroup: (UserGroup.ID) async throws -> Void
   }
 
   internal struct ViewState: Equatable {
@@ -98,14 +95,14 @@ extension ResourceUserGroupsListDisplayController {
     }
     catch {
       error.consume(
-          context: "Failed to refresh session data."
-        )
+        context: "Failed to refresh session data."
+      )
     }
   }
 
   internal final func selectGroup(
     _ id: UserGroup.ID
-  ) {
-    self.context.selectGroup(id)
+  ) async throws {
+    try await self.context.selectGroup(id)
   }
 }

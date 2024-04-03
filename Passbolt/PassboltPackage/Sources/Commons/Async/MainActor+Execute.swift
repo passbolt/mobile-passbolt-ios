@@ -23,7 +23,7 @@
 
 import Combine
 
-@available(*, deprecated, message: "Please switch to `AsyncExecutor`")
+@available(*, deprecated, message: "Please switch to `async/await and Updatable`")
 extension MainActor {
 
   public static func execute<Success>(

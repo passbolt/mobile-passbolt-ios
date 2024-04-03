@@ -30,29 +30,21 @@ internal final class ResourceFolderLocationDetailsController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
 
-  private let executor: AsyncExecutor
-
   internal init(
     context: ResourceFolder.ID,
     features: Features
   ) throws {
-    self.executor = try features.instance()
+
+    let resourceFolderController: ResourceFolderController = try features.instance()
 
     self.viewState = .init(
       initial: .init(
         folderName: "",
         folderLocation: .root(),
         folderShared: false
-      )
-    )
-
-    let resourceFolderController: ResourceFolderController = try features.instance()
-
-    self.executor
-      .scheduleIteration(
-        over: resourceFolderController.state,
-        failMessage: "Resource folder location updates broken!"
-      ) { [viewState] (update: Update<ResourceFolder>) in
+      ),
+      updateFrom: resourceFolderController.state,
+      update: { updateView, update in
         let resourceFolder: ResourceFolder = try update.value
         var path: FolderLocationTreeView.Node = resourceFolder.path.reduce(
           into: FolderLocationTreeView.Node.root()
@@ -74,12 +66,13 @@ internal final class ResourceFolderLocationDetailsController: ViewController {
             )
           )
         }  // else NOP
-        await viewState.update { (state: inout ViewState) in
+        await updateView { (state: inout ViewState) in
           state.folderName = resourceFolder.name
           state.folderLocation = path
           state.folderShared = resourceFolder.shared
         }
       }
+    )
   }
 }
 

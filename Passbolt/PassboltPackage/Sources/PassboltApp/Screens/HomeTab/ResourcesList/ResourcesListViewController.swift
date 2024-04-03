@@ -74,7 +74,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
             case is Cancelled:
               return /* NOP */
             case _:
-            SnackBarMessageEvent.send(.error(error))
+              SnackBarMessageEvent.send(.error(error))
             }
           }
           .mapToVoid()

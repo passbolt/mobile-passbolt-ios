@@ -40,7 +40,6 @@ public struct SessionData {
 
 extension SessionData: LoadableFeature {
 
-
   #if DEBUG
   nonisolated public static var placeholder: Self {
     .init(

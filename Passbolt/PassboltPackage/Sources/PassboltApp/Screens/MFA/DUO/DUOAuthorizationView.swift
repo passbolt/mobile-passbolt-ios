@@ -26,81 +26,81 @@ import UICommons
 
 internal struct DUOAuthorizationView: ControlledView {
 
-	internal var controller: DUOAuthorizationViewController
+  internal var controller: DUOAuthorizationViewController
 
-	internal init(
-		controller: DUOAuthorizationViewController
-	) {
-		self.controller = controller
-	}
+  internal init(
+    controller: DUOAuthorizationViewController
+  ) {
+    self.controller = controller
+  }
 
-	internal var body: some View {
-			with(\.request) { (request: DUOWebAuthorizationRequest?) in
-				VStack {
-					Spacer(minLength: 64)
-					Image(named: .logoDUO)
-					Text(displayable: "mfa.duo.authorization.title")
-						.text(
-							.center,
-							font: .inter(
-								ofSize: 24,
-								weight: .semibold
-							),
-							color: .passboltPrimaryText
-						)
-						.padding(
-							top: 40,
-							leading: 16,
-							trailing: 16
-						)
-					Spacer(minLength: 64)
-					PrimaryButton(
-						title: "mfa.duo.authorization.button.title",
-						action: {
-							await self.controller.requestAuthorization()
-						}
-					)
-				}
-				.sheet(
-					item: self.binding(
-						to: \.request,
-						updating: { _ in
-							self.controller.handleAuthorization(error: Cancelled.error())
-						}
-					),
-					content: { (request: DUOWebAuthorizationRequest) in
-						ZStack(alignment: .topTrailing) {
-							DUOAuthorizationWebView(
-								request: request,
-								receiveTokens: { (code: String, duoToken: String, passboltToken: String) in
-									self.controller.handleAuthorization(
-										duoCode: code,
-										duoToken: duoToken,
-										passboltToken: passboltToken
-									)
-								},
-								handleFailure: { (error: Error) in
-									self.controller.handleAuthorization(error: error)
-								}
-							)
-							.padding(
-								top: 64,
-								leading: 16,
-								trailing: 16
-							)
-							Button(
-								action: {
-									self.controller.handleAuthorization(error: Cancelled.error())
-								},
-								label: {
-									Image(named: .close)
-								}
-							)
-							.padding(16)
-						}
-						.ignoresSafeArea(.container, edges: .bottom)
-					}
-				)
-		}
-	}
+  internal var body: some View {
+    with(\.request) { (request: DUOWebAuthorizationRequest?) in
+      VStack {
+        Spacer(minLength: 64)
+        Image(named: .logoDUO)
+        Text(displayable: "mfa.duo.authorization.title")
+          .text(
+            .center,
+            font: .inter(
+              ofSize: 24,
+              weight: .semibold
+            ),
+            color: .passboltPrimaryText
+          )
+          .padding(
+            top: 40,
+            leading: 16,
+            trailing: 16
+          )
+        Spacer(minLength: 64)
+        PrimaryButton(
+          title: "mfa.duo.authorization.button.title",
+          action: {
+            await self.controller.requestAuthorization()
+          }
+        )
+      }
+      .sheet(
+        item: self.binding(
+          to: \.request,
+          updating: { _ in
+            self.controller.handleAuthorization(error: Cancelled.error())
+          }
+        ),
+        content: { (request: DUOWebAuthorizationRequest) in
+          ZStack(alignment: .topTrailing) {
+            DUOAuthorizationWebView(
+              request: request,
+              receiveTokens: { (code: String, duoToken: String, passboltToken: String) in
+                self.controller.handleAuthorization(
+                  duoCode: code,
+                  duoToken: duoToken,
+                  passboltToken: passboltToken
+                )
+              },
+              handleFailure: { (error: Error) in
+                self.controller.handleAuthorization(error: error)
+              }
+            )
+            .padding(
+              top: 64,
+              leading: 16,
+              trailing: 16
+            )
+            Button(
+              action: {
+                self.controller.handleAuthorization(error: Cancelled.error())
+              },
+              label: {
+                Image(named: .close)
+              }
+            )
+            .padding(16)
+          }
+          .ignoresSafeArea(.container, edges: .bottom)
+        }
+      )
+    }
+  }
 }

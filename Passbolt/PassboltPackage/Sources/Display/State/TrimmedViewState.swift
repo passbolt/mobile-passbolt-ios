@@ -27,8 +27,9 @@ import SwiftUI
 internal final class TrimmedViewState<ViewState>: ObservableObject
 where ViewState: Equatable {
 
+  @MainActor
   internal var value: ViewState {
-    @MainActor get { self.readState() }
+    self.readState()
   }
   internal let objectWillChange: AnyPublisher<ViewState, Never>
 

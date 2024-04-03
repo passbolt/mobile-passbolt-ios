@@ -21,23 +21,23 @@
 // @since         v1.0
 //
 
-import Features
 import CommonModels
+import Features
 
 // Scope for sharing resources.
 public enum ResourceShareScope: FeaturesScope {
 
-	@MainActor public static func verified<Branch>(
-		branch features: Branch,
-		file: StaticString,
-		line: UInt
-	) throws -> Branch
-	where Branch: Features {
-		try features.ensureScope(
-			ResourceScope.self,
-			file: file,
-			line: line
-		)
-		return features
-	}
+  @MainActor public static func verified<Branch>(
+    branch features: Branch,
+    file: StaticString,
+    line: UInt
+  ) throws -> Branch
+  where Branch: Features {
+    try features.ensureScope(
+      ResourceScope.self,
+      file: file,
+      line: line
+    )
+    return features
+  }
 }

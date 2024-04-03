@@ -26,43 +26,43 @@ import FeatureScopes
 
 public struct OperationAuthorizationConfiguration: Sendable {
 
-	public var title: DisplayableString
-	public var actionLabel: DisplayableString
-	public var operation: @Sendable (AccountAuthorizationMethod) async throws -> Void
+  public var title: DisplayableString
+  public var actionLabel: DisplayableString
+  public var operation: @Sendable (AccountAuthorizationMethod) async throws -> Void
 
-	public init(
-		title: DisplayableString,
-		actionLabel: DisplayableString,
-		operation: @escaping @Sendable (AccountAuthorizationMethod) async throws -> Void
-	) {
-		self.title = title
-		self.actionLabel = actionLabel
-		self.operation = operation
-	}
+  public init(
+    title: DisplayableString,
+    actionLabel: DisplayableString,
+    operation: @escaping @Sendable (AccountAuthorizationMethod) async throws -> Void
+  ) {
+    self.title = title
+    self.actionLabel = actionLabel
+    self.operation = operation
+  }
 }
 
 public enum OperationAuthorizationNavigationDestination: NavigationDestination {
 
-	public typealias TransitionContext = OperationAuthorizationConfiguration
+  public typealias TransitionContext = OperationAuthorizationConfiguration
 }
 
 public typealias NavigationToOperationAuthorization = NavigationTo<OperationAuthorizationNavigationDestination>
 
 extension NavigationToOperationAuthorization {
 
-	fileprivate static var live: FeatureLoader {
-		legacyPushTransition(
-			to: OperationAuthorizationView.self
-		)
-	}
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(
+      to: OperationAuthorizationView.self
+    )
+  }
 }
 
 extension FeaturesRegistry {
 
-	public mutating func useLiveNavigationToOperationAuthorization() {
-		self.use(
-			NavigationToOperationAuthorization.live,
-			in: AccountScope.self
-		)
-	}
+  public mutating func useLiveNavigationToOperationAuthorization() {
+    self.use(
+      NavigationToOperationAuthorization.live,
+      in: AccountScope.self
+    )
+  }
 }

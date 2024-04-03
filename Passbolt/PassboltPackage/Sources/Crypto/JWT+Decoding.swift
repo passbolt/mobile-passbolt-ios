@@ -95,7 +95,7 @@ extension JWT {
 
     return Result(
       catching: {
-				try JSONDecoder.default.decode(type, from: preprocessed)
+        try JSONDecoder.default.decode(type, from: preprocessed)
 
       })
       .mapError { error in

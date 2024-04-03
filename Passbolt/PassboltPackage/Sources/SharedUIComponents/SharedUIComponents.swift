@@ -22,3 +22,5 @@
 //
 
 @_exported import UIComponents
+@_exported import UICommons
+@_exported import FeatureScopes

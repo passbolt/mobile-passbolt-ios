@@ -76,7 +76,6 @@ public struct UsersPGPMessages {
 
 extension UsersPGPMessages: LoadableFeature {
 
-
   #if DEBUG
   public static var placeholder: Self {
     Self(

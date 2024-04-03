@@ -27,7 +27,6 @@ import TestExtensions
 @testable import PassboltAccounts
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@available(iOS 16.0.0, *)
 final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
 
   override class func testedImplementationRegister(
@@ -53,19 +52,20 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
       \AccountsDataStore.loadAccounts,
       with: always([.mock_ada])
     )
-		patch(
-			\AccountsDataStore.loadAccountProfile,
-			 with: {
-				 if $0 == .mock_ada {
-					 return .mock_ada
-				 } else if $0 == .mock_frances {
-					 return .mock_frances
-				 }
-				 else {
-					 throw MockIssue.error()
-				 }
-			 }
-		)
+    patch(
+      \AccountsDataStore.loadAccountProfile,
+      with: {
+        if $0 == .mock_ada {
+          return .mock_ada
+        }
+        else if $0 == .mock_frances {
+          return .mock_frances
+        }
+        else {
+          throw MockIssue.error()
+        }
+      }
+    )
 
     let accounts: Accounts = try testedInstance()
 

@@ -31,7 +31,6 @@ import UIComponents
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@available(iOS 16.0.0, *)
 @MainActor
 final class BiometricsSetupScreenTests: MainActorTestCase {
 

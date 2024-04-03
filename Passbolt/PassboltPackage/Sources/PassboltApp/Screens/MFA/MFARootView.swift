@@ -43,7 +43,7 @@ internal final class MFARootView: KeyboardAwareView {
       .backgroundColor(dynamic: .background)
     }
 
-		mut(self.button) {
+    mut(self.button) {
       .combined(
         .linkStyle(),
         .text(
@@ -63,34 +63,34 @@ internal final class MFARootView: KeyboardAwareView {
         .trailingAnchor(.equalTo, trailingAnchor),
         .topAnchor(.equalTo, safeAreaLayoutGuide.topAnchor),
         .bottomAnchor(.equalTo, keyboardLayoutGuide.topAnchor),
-				.append(self.container),
-				.when(
-					!hideButton,
-					then: .append(self.button)
-				)
+        .append(self.container),
+        .when(
+          !hideButton,
+          then: .append(self.button)
+        )
       )
     }
 
-		mut(self.container) {
-			.heightAnchor(
-				.greaterThanOrEqualTo,
-				self.safeAreaLayoutGuide.heightAnchor,
-				constant: hideButton
-				? -8 // content inset
-				: -64 // button size + content inset
-			)
-		}
+    mut(self.container) {
+      .heightAnchor(
+        .greaterThanOrEqualTo,
+        self.safeAreaLayoutGuide.heightAnchor,
+        constant: hideButton
+          ? -8  // content inset
+          : -64  // button size + content inset
+      )
+    }
   }
 
   internal func setContent(
-		view: UIView
-	) {
-		self.container.subviews.forEach { $0.removeFromSuperview() }
+    view: UIView
+  ) {
+    self.container.subviews.forEach { $0.removeFromSuperview() }
 
     mut(view) {
       .combined(
-				.subview(of: self.container),
-				.edges(equalTo: self.container)
+        .subview(of: self.container),
+        .edges(equalTo: self.container)
       )
     }
   }

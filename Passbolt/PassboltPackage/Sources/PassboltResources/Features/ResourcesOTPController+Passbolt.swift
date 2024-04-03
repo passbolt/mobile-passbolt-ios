@@ -66,8 +66,8 @@ extension ResourcesOTPController {
       else { throw Cancelled.error() }
 
       // load resource controller to access its details
-      let resourceController: ResourceController = try await
-        features
+      let resourceController: ResourceController =
+        try await features
         .branchIfNeeded(
           scope: ResourceScope.self,
           context: resourceID
@@ -84,14 +84,15 @@ extension ResourcesOTPController {
       }
 
       // prepare otp generator
-      let otpGenerator: TOTPCodeGenerator = try await features
-				.instance()
-			let generate: () -> TOTPValue = otpGenerator.prepare(
-				.init(
-					resourceID: resourceID,
-					secret: totpSecret
-				)
-			)
+      let otpGenerator: TOTPCodeGenerator =
+        try await features
+        .instance()
+      let generate: () -> TOTPValue = otpGenerator.prepare(
+        .init(
+          resourceID: resourceID,
+          secret: totpSecret
+        )
+      )
 
       return { .totp(generate()) }
     }

@@ -114,7 +114,7 @@
 "feedback.alert.button.title" = "I understand";
 
 "account.not.found.title.label" = "The account doesn’t exist";
-"account.not.found.message.label" = "The account has been deleted";
+"account.not.found.message.label" = "The account has been deleted or suspended";
 "account.not.found.action.button.title" = "Connect to an existing account";
 
 "server.not.reachable.alert.title" = "Server was not reachable!";
@@ -143,6 +143,7 @@
 "help.menu.title" = "Help";
 "help.menu.show.logs.action.title" = "Access the logs";
 "help.menu.show.web.help.action.title" = "Visit help site";
+"help.menu.show.import.account.kit.title" = "Import your account kit";
 
 // Main application
 
@@ -183,6 +184,7 @@
 "transfer.account.result.success.title" = "Your information has been transferred!";
 "transfer.account.result.already.linked.title" = "Account is already linked to the device.";
 "transfer.account.result.canceled.title" = "Transfer has been canceled.";
+"transfer.account.kit.result.success.title" = "Your account kit has been imported!";
 
 "transfer.account.exit.confirmation.title" = "Are you sure?";
 "transfer.account.exit.confirmation.message" = "If you leave, you will need to scan QR codes again.";
@@ -277,9 +279,11 @@
 "resource.permission.delete.user.group.permission.confirmation.message" = "The password will no longer be shared with this group.";
 
 "resource.permission.details.title" = "Permission";
+"resource.permission.details.user.suspended" = "suspended";
 
 "permission.details.type.section.title" = "Permission";
 "permission.details.group.members.section.title" = "Group members";
+"permission.details.user.suspended" = "suspended";
 
 "resource.permission.edit.button.delete.title" = "Delete permssion";
 
@@ -297,6 +301,9 @@
 
 "yubiKey.scan.instruction" = "Place your YubiKey on your device.";
 "yubiKey.scan.success" = "Scan success";
+"yubiKey.scan.notRecognized.title" = "Yubikey is not recognized";
+"yubiKey.scan.notRecognized.button.ok" = "Got it";
+"yubiKey.scan.notRecognized.message" = "Your Yubikey is not recognized by the server.\nPlease try with another Yubikey or another provider.";
 "mfa.yubiKey.title" = "YubiKey OTP";
 "mfa.yubiKey.description" = "Please note that your YubiKey must support
 NFC for this to work.";
@@ -321,6 +328,7 @@ Contact your administrator for more information.";
 "account.details.field.name.title" = "Name";
 "account.details.field.email.title" = "E-mail";
 "account.details.field.url.title" = "Organization URL";
+"account.details.field.role.title" = "Role";
 "account.details.button.save.title" = "Save";
 
 "update.available.title" = "New version available!";
@@ -452,6 +460,8 @@ Contact your administrator for more information.";
 "error.account.passphrase.missing" = "Account passphrase missing.";
 "error.account.data.missing" = "Account data missing.";
 "error.account.biometry.data.changed" = "Biometrics data has changed.";
+"error.account.kit.fail.to.import"= "Failed to import the account kit.";
+"error.account.kit.signature.verification"= "Failed to validate signature.";
 "error.users.list.empty" = "Users list can't be empty.";
 "error.user.public.key.invalid" = "Invalid user public key.";
 "error.user.public.key.missing" = "Missing user public key.";
@@ -575,6 +585,9 @@ scanned!";
 "otp.attach.alert.replace.title" = "Replace TOTP?";
 "otp.attach.alert.replace.message" = "A TOTP is already associated with this resource, do you want to override it?";
 "otp.attach.alert.replace.button.title" = "Replace TOTP";
+"otp.attach.error.notAllowed" = "You are not allowed to edit this resource.";
+"otp.attach.error.notCompatible" = "This resource is not compatible with TOTP.";
+
 
 // Settings - Main
 
@@ -594,6 +607,7 @@ scanned!";
 // Settings - Accounts
 
 "settings.accounts.title" = "Accounts";
+"settings.accounts.item.details.title" = "Account details";
 "settings.accounts.item.manage.title" = "Manage accounts";
 "settings.accounts.item.export.title" = "Transfer account to another device";
 "settings.accounts.item.key.inspector.title" = "Key inspector";

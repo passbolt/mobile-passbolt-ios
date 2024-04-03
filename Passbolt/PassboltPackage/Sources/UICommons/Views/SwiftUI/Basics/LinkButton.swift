@@ -44,7 +44,7 @@ public struct LinkButton: View {
   public var body: some View {
     AsyncButton(
       action: self.action,
-      regularLabel: {
+      label: {
         HStack(spacing: 8) {
           if let icon: Image = self.icon {
             icon

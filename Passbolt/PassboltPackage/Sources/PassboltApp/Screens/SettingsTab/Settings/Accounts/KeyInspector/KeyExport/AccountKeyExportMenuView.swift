@@ -25,44 +25,43 @@ import Display
 
 internal struct AccountKeyExportMenuView: ControlledView {
 
-	internal var controller: AccountKeyExportMenuViewController
+  internal var controller: AccountKeyExportMenuViewController
 
-	internal init(
-		controller: AccountKeyExportMenuViewController
-	) {
-		self.controller = controller
-	}
+  internal init(
+    controller: AccountKeyExportMenuViewController
+  ) {
+    self.controller = controller
+  }
 
-	internal var body: some View {
-		DrawerMenu(
-			closeTap: self.controller.dismiss,
-			title: {
-				Text(displayable: "account.key.export.menu.title")
-			},
-			content: {
-				DrawerMenuItemView(
-					action: self.controller.exportPrivateKey,
-					title: {
-						Text(displayable: "account.key.export.menu.export.private.action")
-					},
-					leftIcon: {
-						Image(named: .fileSave)
-							.resizable()
-					}
-				)
+  internal var body: some View {
+    DrawerMenu(
+      closeTap: self.controller.dismiss,
+      title: {
+        Text(displayable: "account.key.export.menu.title")
+      },
+      content: {
+        DrawerMenuItemView(
+          action: self.controller.exportPrivateKey,
+          title: {
+            Text(displayable: "account.key.export.menu.export.private.action")
+          },
+          leftIcon: {
+            Image(named: .fileSave)
+              .resizable()
+          }
+        )
 
-				DrawerMenuItemView(
-					action: self.controller.exportPublicKey,
-					title: {
-						Text(displayable: "account.key.export.menu.export.public.action")
-					},
-					leftIcon: {
-						Image(named: .fileSave)
-							.resizable()
-					}
-				)
-			}
-		)
-	}
+        DrawerMenuItemView(
+          action: self.controller.exportPublicKey,
+          title: {
+            Text(displayable: "account.key.export.menu.export.public.action")
+          },
+          leftIcon: {
+            Image(named: .fileSave)
+              .resizable()
+          }
+        )
+      }
+    )
+  }
 }
-

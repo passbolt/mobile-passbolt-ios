@@ -29,17 +29,20 @@ public struct UserListRowViewModel {
   public var fullName: DisplayableString
   public var username: DisplayableString
   public var avatarImageFetch: () async -> Data?
+  public let isSuspended: Bool
 
   public init(
     id: User.ID,
     fullName: DisplayableString,
     username: DisplayableString,
-    avatarImageFetch: @escaping @Sendable () async -> Data?
+    avatarImageFetch: @escaping @Sendable () async -> Data?,
+    isSuspended: Bool
   ) {
     self.id = id
     self.fullName = fullName
     self.username = username
     self.avatarImageFetch = avatarImageFetch
+    self.isSuspended = isSuspended
   }
 }
 

@@ -31,10 +31,10 @@ import Users
 internal struct PermissionUsersAndGroupsSearchController {
 
   internal var viewState: ObservableValue<ViewState>
-  internal var toggleUserSelection: @MainActor (User.ID) -> Void
+  internal var toggleUserSelection: @MainActor (UserListRowViewModel) -> Void
   internal var toggleUserGroupSelection: @MainActor (UserGroup.ID) -> Void
-  internal var saveSelection: @MainActor () -> Void
-  internal var navigateBack: () -> Void
+  internal var saveSelection: @MainActor () async throws -> Void
+  internal var navigateBack: @MainActor () async -> Void
 }
 
 extension PermissionUsersAndGroupsSearchController: ComponentController {
@@ -49,7 +49,6 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
   ) throws -> Self {
 
     let navigation: DisplayNavigation = try features.instance()
-    let executor: AsyncExecutor = try features.instance()
     let resourceShareForm: ResourceShareForm = try features.instance()
     let users: Users = try features.instance()
     let userGroups: UserGroups = try features.instance()
@@ -63,20 +62,23 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
       )
     )
 
-    executor.schedule { @MainActor in
+    viewState.cancellables.executeOnMainActor { [unowned viewState] in
       let existingPermissions: OrderedSet<ResourcePermission> =
         await resourceShareForm
         .currentPermissions()
-      let selectedItems: Array<OverlappingAvatarStackView.Item> =
-        existingPermissions
-        .map { permission in
-          switch permission {
-          case let .user(userID, _, _):
-            return .user(userID, avatarImage: userAvatarImageFetch(userID))
-          case let .userGroup(userGroupID, _, _):
-            return .userGroup(userGroupID)
-          }
+      let selectedItems: Array<OverlappingAvatarStackView.Item> = try await existingPermissions.asyncMap { permission in
+        switch permission {
+        case .user(let id, _, _):
+          return await .user(
+            id,
+            avatarImage: users.avatarImage(for: id),
+            isSuspended: try users.userDetails(id).isSuspended
+          )
+
+        case .userGroup(let id, _, _):
+          return .userGroup(id)
         }
+      }
       viewState.value.selectedItems = selectedItems
     }
 
@@ -98,121 +100,130 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
       viewState
       .asAnyAsyncSequence()
       .map(\.searchText)
-    executor.scheduleIteration(
-      over: searchTextSequence,
-      failMessage: "Search updates broken!"
-    ) { @MainActor (searchText: String) async throws -> Void in
-      let matchingUserGroups: Array<UserGroupDetailsDSV>
-      let matchingUsers: Array<UserDetailsDSV>
+    viewState.cancellables.executeOnMainActor { [unowned viewState] in
+      for try await searchText in searchTextSequence {
+        let matchingUserGroups: Array<UserGroupDetailsDSV>
+        let matchingUsers: Array<UserDetailsDSV>
 
-      do {
-        matchingUsers =
-          try await users
-          .filteredUsers(.init(text: searchText))
-        matchingUserGroups =
-          try await userGroups
-          .filteredUserGroups(.init(userID: .none, text: searchText))
-      }
-      catch {
-				return error.consume()
-      }
-      let existingPermissions: OrderedSet<ResourcePermission> =
-        await resourceShareForm
-        .currentPermissions()
-
-      let selectableUsersAndGroups: Array<ControlledView.SelectionRowViewModel> =
-        matchingUserGroups
-        .compactMap { (userGroupDetails: UserGroupDetailsDSV) -> ControlledView.SelectionRowViewModel? in
-          let permissionExists: Bool = existingPermissions.contains {
-            (permission: ResourcePermission) -> Bool in
-            permission.userGroupID == userGroupDetails.id
-          }
-
-          guard !permissionExists
-          else { return .none }
-
-          return .userGroup(
-            .init(
-              id: userGroupDetails.id,
-              name: "\(userGroupDetails.name)"
-            )
-          )
+        do {
+          matchingUsers =
+            try await users
+            .filteredUsers(.init(text: searchText))
+          matchingUserGroups =
+            try await userGroups
+            .filteredUserGroups(.init(userID: .none, text: searchText))
         }
-        + matchingUsers
-        .compactMap { (userDetails: UserDetailsDSV) -> ControlledView.SelectionRowViewModel? in
-          let permissionExists: Bool = existingPermissions.contains {
-            (permission: ResourcePermission) -> Bool in
-            permission.userID == userDetails.id
-          }
-
-          guard !permissionExists
-          else { return .none }
-
-          return .user(
-            .init(
-              id: userDetails.id,
-              fullName: "\(userDetails.firstName) \(userDetails.lastName)",
-              username: "\(userDetails.username)",
-              avatarImageFetch: userAvatarImageFetch(userDetails.id)
-            )
-          )
+        catch {
+          return error.consume()
         }
+        let existingPermissions: OrderedSet<ResourcePermission> =
+          await resourceShareForm
+          .currentPermissions()
 
-      let existingUsersAndGroupsPermissions: Array<ControlledView.ExistingPermissionRowViewModel> =
-        matchingUserGroups
-        .compactMap { (userGroupDetails: UserGroupDetailsDSV) -> ControlledView.ExistingPermissionRowViewModel? in
-          let matchingPermission: ResourcePermission? =
-            existingPermissions.first { (permission: ResourcePermission) -> Bool in
+        let selectableUsersAndGroups: Array<ControlledView.SelectionRowViewModel> =
+          matchingUserGroups
+          .compactMap { (userGroupDetails: UserGroupDetailsDSV) -> ControlledView.SelectionRowViewModel? in
+            let permissionExists: Bool = existingPermissions.contains {
+              (permission: ResourcePermission) -> Bool in
               permission.userGroupID == userGroupDetails.id
             }
 
-          guard let permission: ResourcePermission = matchingPermission
-          else { return .none }
+            guard !permissionExists
+            else { return .none }
 
-          return .userGroup(
-            .init(
-              id: userGroupDetails.id,
-              name: "\(userGroupDetails.name)"
-            ),
-            permission: permission.permission
-          )
-        }
-        + matchingUsers
-        .compactMap { (userDetails: UserDetailsDSV) -> ControlledView.ExistingPermissionRowViewModel? in
-          let matchingPermission: ResourcePermission? =
-            existingPermissions.first { (permission: ResourcePermission) -> Bool in
+            return .userGroup(
+              .init(
+                id: userGroupDetails.id,
+                name: "\(userGroupDetails.name)"
+              )
+            )
+          }
+          + matchingUsers
+          .compactMap { (userDetails: UserDetailsDSV) -> ControlledView.SelectionRowViewModel? in
+            let permissionExists: Bool = existingPermissions.contains {
+              (permission: ResourcePermission) -> Bool in
               permission.userID == userDetails.id
             }
 
-          guard let permission: ResourcePermission = matchingPermission
-          else { return .none }
+            guard !permissionExists
+            else { return .none }
 
-          guard let permission = matchingPermission
-          else { return .none }
+            let isSuspended = userDetails.isSuspended
+            let suspendedMark =
+              isSuspended
+              ? " (\(DisplayableString.localized("resource.permission.details.user.suspended").string()))" : ""
 
-          return .user(
-            .init(
-              id: userDetails.id,
-              fullName: "\(userDetails.firstName) \(userDetails.lastName)",
-              username: "\(userDetails.username)",
-              avatarImageFetch: userAvatarImageFetch(userDetails.id)
-            ),
-            permission: permission.permission
-          )
+            return .user(
+              .init(
+                id: userDetails.id,
+                fullName: "\(userDetails.firstName) \(userDetails.lastName)\(suspendedMark)",
+                username: "\(userDetails.username)",
+                avatarImageFetch: userAvatarImageFetch(userDetails.id),
+                isSuspended: isSuspended
+              )
+            )
+          }
+
+        let existingUsersAndGroupsPermissions: Array<ControlledView.ExistingPermissionRowViewModel> =
+          matchingUserGroups
+          .compactMap { (userGroupDetails: UserGroupDetailsDSV) -> ControlledView.ExistingPermissionRowViewModel? in
+            let matchingPermission: ResourcePermission? =
+              existingPermissions.first { (permission: ResourcePermission) -> Bool in
+                permission.userGroupID == userGroupDetails.id
+              }
+
+            guard let permission: ResourcePermission = matchingPermission
+            else { return .none }
+
+            return .userGroup(
+              .init(
+                id: userGroupDetails.id,
+                name: "\(userGroupDetails.name)"
+              ),
+              permission: permission.permission
+            )
+          }
+          + matchingUsers
+          .compactMap { (userDetails: UserDetailsDSV) -> ControlledView.ExistingPermissionRowViewModel? in
+            let matchingPermission: ResourcePermission? =
+              existingPermissions.first { (permission: ResourcePermission) -> Bool in
+                permission.userID == userDetails.id
+              }
+
+            guard let permission: ResourcePermission = matchingPermission
+            else { return .none }
+
+            let isSuspended = userDetails.isSuspended
+            let suspendedMark =
+              isSuspended
+              ? " (\(DisplayableString.localized("resource.permission.details.user.suspended").string()))" : ""
+
+            return .user(
+              .init(
+                id: userDetails.id,
+                fullName: "\(userDetails.firstName) \(userDetails.lastName)\(suspendedMark)",
+                username: "\(userDetails.username)",
+                avatarImageFetch: userAvatarImageFetch(userDetails.id),
+                isSuspended: isSuspended
+              ),
+              permission: permission.permission
+            )
+          }
+
+        viewState.withValue { (state: inout ViewState) in
+          state.listSelectionRowViewModels = selectableUsersAndGroups
+          state.listExistingRowViewModels = existingUsersAndGroupsPermissions
         }
-
-      viewState.withValue { (state: inout ViewState) in
-        state.listSelectionRowViewModels = selectableUsersAndGroups
-        state.listExistingRowViewModels = existingUsersAndGroupsPermissions
       }
     }
 
     @MainActor func toggleUserSelection(
-      _ userID: User.ID
+      _ userListRowViewModel: UserListRowViewModel
     ) {
+      let userID = userListRowViewModel.id
       if viewState.selectedItems.contains(where: { item in
         switch item {
-        case let .user(id, _):
+        case let .user(id, _, _):
           return userID == id
         case .userGroup:
           return false
@@ -220,7 +231,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
       }) {
         viewState.selectedItems.removeAll(where: { item in
           switch item {
-          case let .user(id, _):
+          case let .user(id, _, _):
             return userID == id
           case .userGroup:
             return false
@@ -228,7 +239,9 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
         })
       }
       else {
-        viewState.selectedItems.append(.user(userID, avatarImage: userAvatarImageFetch(userID)))
+        viewState.selectedItems.append(
+          .user(userID, avatarImage: userAvatarImageFetch(userID), isSuspended: userListRowViewModel.isSuspended)
+        )
       }
     }
 
@@ -257,42 +270,38 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
       }
     }
 
-    @MainActor func saveSelection() {
-      executor.schedule(.reuse) { @MainActor in
-        let existingPermissions: OrderedSet<ResourcePermission> =
+    @MainActor func saveSelection() async throws {
+      let existingPermissions: OrderedSet<ResourcePermission> =
+        await resourceShareForm
+        .currentPermissions()
+      let newSelections =
+        viewState
+        .selectedItems
+        .dropFirst(existingPermissions.count)
+
+      for row in newSelections {
+        switch row {
+        case let .user(userID, _, _):
           await resourceShareForm
-          .currentPermissions()
-        let newSelections =
-          viewState
-          .selectedItems
-          .dropFirst(existingPermissions.count)
-
-        for row in newSelections {
-          switch row {
-          case let .user(userID, _):
-            await resourceShareForm
-              .setUserPermission(
-                userID,
-                .read
-              )
-          case let .userGroup(userGroupID):
-            await resourceShareForm
-              .setUserGroupPermission(
-                userGroupID,
-                .read
-              )
-          }
-
+            .setUserPermission(
+              userID,
+              .read
+            )
+        case let .userGroup(userGroupID):
+          await resourceShareForm
+            .setUserGroupPermission(
+              userGroupID,
+              .read
+            )
         }
 
-        await navigation.pop(if: ControlledView.self)
       }
+
+      await navigation.pop(if: ControlledView.self)
     }
 
-    nonisolated func navigateBack() {
-      executor.schedule(.reuse) {
-        await navigation.pop(if: PermissionUsersAndGroupsSearchView.self)
-      }
+    @MainActor func navigateBack() async {
+      await navigation.pop(if: PermissionUsersAndGroupsSearchView.self)
     }
 
     return .init(

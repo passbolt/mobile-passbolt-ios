@@ -375,7 +375,7 @@ extension JSON {
       return "\(value)"
 
     case .object, .array:  // fallback for displaying unknown resource fields
-			guard let encoded: Data = try? JSONEncoder.pretty.encode(self)
+      guard let encoded: Data = try? JSONEncoder.pretty.encode(self)
       else {
         assertionFailure("JSON is always a valid json")
         return .none
@@ -464,7 +464,7 @@ extension JSON {
   public var resourceSecretString: String? {
     switch self {
     case .array, .object:
-			guard let encoded: Data = try? JSONEncoder.default.encode(self)
+      guard let encoded: Data = try? JSONEncoder.default.encode(self)
       else {
         assertionFailure("JSON is always a valid json")
         return .none

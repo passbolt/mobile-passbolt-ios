@@ -42,7 +42,6 @@ public struct ResourceFolders {
 
 extension ResourceFolders: LoadableFeature {
 
-
   #if DEBUG
   public static var placeholder: Self {
     Self(

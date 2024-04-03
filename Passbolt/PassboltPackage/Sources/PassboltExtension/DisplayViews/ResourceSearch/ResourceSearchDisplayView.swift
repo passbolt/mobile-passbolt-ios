@@ -52,13 +52,13 @@ internal struct ResourceSearchDisplayView: ControlledView {
         updating: self.controller.updateSearchText
       ),
       leftAccessory: {
-        Button(
+        AsyncButton(
           action: self.controller.showPresentationMenu,
           label: { ImageWithPadding(4, named: .filter) }
         )
       },
       rightAccessory: {
-        Button(
+        AsyncButton(
           action: self.controller.signOut,
           label: {
             UserAvatarView(imageData: state.accountAvatar)

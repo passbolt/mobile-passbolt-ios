@@ -91,7 +91,7 @@ final class ResourceTests: XCTestCase {
 
   func test_validate_failsWhenNeeded() throws {
     var resource: Resource = .init(
-			id: .init(uuidString: UUID().uuidString),
+      id: .init(uuidString: UUID().uuidString),
       type: .init(
         id: .init(),
         specification: .init(

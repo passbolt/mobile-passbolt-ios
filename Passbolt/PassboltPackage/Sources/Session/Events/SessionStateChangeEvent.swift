@@ -21,19 +21,19 @@
 // @since         v1.0
 //
 
-import Commons
 import CommonModels
+import Commons
 
 /// - warning: Do not send those events manually!
 /// Those are supposed to be sent ONLY by ``SessionState`` itself.
 public enum SessionStateChangeEvent: EventDescription, Sendable {
 
-	public typealias Payload = Self
+  public typealias Payload = Self
 
-	public nonisolated static let eventList: EventList<Self> = .init()
+  public nonisolated static let eventList: EventList<Self> = .init()
 
-	case authorized(Account)
-	case requestedPassphrase(for: Account)
-	case requestedMFA(for: Account, providers: Array<SessionMFAProvider>)
-	case closed
+  case authorized(Account)
+  case requestedPassphrase(for: Account)
+  case requestedMFA(for: Account, providers: Array<SessionMFAProvider>)
+  case closed
 }

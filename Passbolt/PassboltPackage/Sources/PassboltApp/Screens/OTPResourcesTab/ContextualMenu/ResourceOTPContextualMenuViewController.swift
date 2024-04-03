@@ -63,8 +63,6 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
   private let linkOpener: OSLinkOpener
   private let pasteboard: OSPasteboard
 
-  private let asyncExecutor: AsyncExecutor
-
   private let revealOTP: (@MainActor () async -> Void)?
   private let resourceID: Resource.ID
 
@@ -87,8 +85,6 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
 
     self.linkOpener = features.instance()
     self.pasteboard = features.instance()
-
-    self.asyncExecutor = try features.instance()
 
     self.navigationToSelf = try features.instance()
     self.navigationToResourceOTPDeleteAlert = try features.instance()
@@ -117,7 +113,7 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
 
           var modifyMenuItems: Array<ResourceOTPContextualMenuItem> = .init()
 
-          if sessionConfiguration.totpEnabled && resource.canEdit {
+          if sessionConfiguration.resources.totpEnabled && resource.canEdit {
             if resource.hasTOTP {
               modifyMenuItems.append(.editOTP)
             }  // else NOP
@@ -187,12 +183,13 @@ extension ResourceOTPContextualMenuViewController {
 
       let totpCodeGenerator: TOTPCodeGenerator = try self.features.instance()
 
-			let totp: TOTPValue = totpCodeGenerator.prepare(
-				.init(
-					resourceID: resourceID,
-					secret: totpSecret
-				)
-			)()
+      let totp: TOTPValue =
+        totpCodeGenerator.prepare(
+          .init(
+            resourceID: resourceID,
+            secret: totpSecret
+          )
+        )()
       self.pasteboard.put(totp.otp.rawValue)
       try await self.navigationToSelf.revert(animated: true)
       SnackBarMessageEvent.send("otp.copied.message")

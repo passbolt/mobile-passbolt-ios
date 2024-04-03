@@ -57,7 +57,6 @@ public struct ResourceEditForm {
 
 extension ResourceEditForm: LoadableFeature {
 
-
   #if DEBUG
   public static var placeholder: Self {
     .init(

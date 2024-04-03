@@ -50,7 +50,7 @@ final class MainSettingsControllerTests: FeaturesTestCase {
       mockExecuted: 1
     ) { feature in
       await feature.navigateToAccountsSettings()
-      await self.asyncExecutionControl.executeAll()
+
     }
   }
 
@@ -64,7 +64,7 @@ final class MainSettingsControllerTests: FeaturesTestCase {
       mockExecuted: 1
     ) { feature in
       await feature.navigateToTroubleshooting()
-      await self.asyncExecutionControl.executeAll()
+
     }
   }
 
@@ -78,7 +78,7 @@ final class MainSettingsControllerTests: FeaturesTestCase {
       mockExecuted: 1
     ) { feature in
       await feature.navigateToApplicationSettings()
-      await self.asyncExecutionControl.executeAll()
+
     }
   }
 
@@ -92,7 +92,7 @@ final class MainSettingsControllerTests: FeaturesTestCase {
       mockExecuted: 1
     ) { feature in
       await feature.navigateToTermsAndLicenses()
-      await self.asyncExecutionControl.executeAll()
+
     }
   }
 }

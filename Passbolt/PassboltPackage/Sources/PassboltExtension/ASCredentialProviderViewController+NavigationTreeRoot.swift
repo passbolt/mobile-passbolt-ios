@@ -30,7 +30,7 @@ extension ASCredentialProviderViewController: NavigationTreeRootViewAnchor {
   @MainActor public func setRoot<RootView>(
     _ view: RootView
   ) where RootView: View {
-		setupSnackBarMessages(within: self.view)
+    setupSnackBarMessages(within: self.view)
 
     let viewController: UIHostingController<RootView> = .init(rootView: view)
 

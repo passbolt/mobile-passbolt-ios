@@ -39,7 +39,6 @@ internal struct HomePresentation {
 
 extension HomePresentation: LoadableFeature {
 
-
   #if DEBUG
   internal nonisolated static var placeholder: Self {
     .init(
@@ -75,11 +74,11 @@ extension HomePresentation {
         .ownedResourcesList,
       ]
 
-      if sessionConfiguration.foldersEnabled {
+      if sessionConfiguration.folders.enabled {
         availableModes.append(.foldersExplorer)
       }  // else NOP
 
-      if sessionConfiguration.tagsEnabled {
+      if sessionConfiguration.tags.enabled {
         availableModes.append(.tagsExplorer)
       }  // else NOP
 
@@ -108,16 +107,17 @@ extension HomePresentation {
     }
 
     return Self(
-      currentMode: currentModeBinding
-      .convert(
-				read: { $0 },
-				write: {
-					if useLastUsedHomePresentationAsDefault.get() {
-						defaultHomePresentation.set(to: $0)
-					}  // else NOP
-					return $0
-				}
-			),
+      currentMode:
+        currentModeBinding
+        .convert(
+          read: { $0 },
+          write: {
+            if useLastUsedHomePresentationAsDefault.get() {
+              defaultHomePresentation.set(to: $0)
+            }  // else NOP
+            return $0
+          }
+        ),
       availableModes: availableModes
     )
   }

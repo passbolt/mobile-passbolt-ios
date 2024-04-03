@@ -29,129 +29,131 @@ import SessionData
 
 extension ResourceFolderEditPreparation {
 
-	@MainActor fileprivate static func load(
-		using features: Features
-	) throws -> ResourceFolderEditPreparation {
-		let currentAccount: Account = try features.sessionAccount()
-		let sessionData: SessionData = try features.instance()
+  @MainActor fileprivate static func load(
+    using features: Features
+  ) throws -> ResourceFolderEditPreparation {
+    let currentAccount: Account = try features.sessionAccount()
+    let sessionData: SessionData = try features.instance()
 
-		let resourceFolderDetailsFetchDatabaseOperation: ResourceFolderDetailsFetchDatabaseOperation =
-			try features.instance()
+    let resourceFolderDetailsFetchDatabaseOperation: ResourceFolderDetailsFetchDatabaseOperation =
+      try features.instance()
 
-		@Sendable nonisolated func prepareNew(
-			parentFolderID: ResourceFolder.ID?
-		) async throws -> FeaturesContainer {
-			try await sessionData.refreshIfNeeded()
-			let resourceFolder: ResourceFolder
-			if let parentFolderID {
-				let parentFolder: ResourceFolder = try await resourceFolderDetailsFetchDatabaseOperation(parentFolderID)
+    @Sendable nonisolated func prepareNew(
+      parentFolderID: ResourceFolder.ID?
+    ) async throws -> FeaturesContainer {
+      try await sessionData.refreshIfNeeded()
+      let resourceFolder: ResourceFolder
+      if let parentFolderID {
+        let parentFolder: ResourceFolder = try await resourceFolderDetailsFetchDatabaseOperation(parentFolderID)
 
-				guard parentFolder.permission.canEdit
-				else {
-					throw
-					InvalidResourceFolderPermission
-						.error(message: "Attempting to create a resource folder without edit permission in parent folder")
-						.recording(parentFolder, for: "parentFolder")
-				}
+        guard parentFolder.permission.canEdit
+        else {
+          throw
+            InvalidResourceFolderPermission
+            .error(message: "Attempting to create a resource folder without edit permission in parent folder")
+            .recording(parentFolder, for: "parentFolder")
+        }
 
-				var folderPath: OrderedSet<ResourceFolderPathItem> = parentFolder.path
-				folderPath.append(
-					.init(
-						id: parentFolderID,
-						name: parentFolder.name,
-						shared: parentFolder.shared
-					)
-				)
-				resourceFolder = .init(
-					id: .none, // local does not have ID
-					name: "",
-					path: folderPath,
-					// inherit permissions from the parent folder
-					permission: parentFolder.permission,
-					permissions: parentFolder.permissions
-						.map { (permission: ResourceFolderPermission) -> ResourceFolderPermission in
-							switch permission {
-							case .user(let id, let permission, _):
-								return .user(
-									id: id,
-									permission: permission,
-									permissionID: .none // local does not have ID
-								)
-							case .userGroup(let id, let permission, _):
-								return .userGroup(
-									id: id,
-									permission: permission,
-									permissionID: .none // local does not have ID
-								)
-							}
-						}
-						.asOrderedSet()
-				)
-			}
-			else {
-				resourceFolder = .init(
-					id: .none, // local does not have ID
-					name: "",
-					path: .init(),
-					permission: .owner,
-					permissions: [
-						.user(
-							id: currentAccount.userID,
-							permission: .owner,
-							permissionID: .none // local does not have ID
-						)
-					]
-				)
-			}
+        var folderPath: OrderedSet<ResourceFolderPathItem> = parentFolder.path
+        folderPath.append(
+          .init(
+            id: parentFolderID,
+            name: parentFolder.name,
+            shared: parentFolder.shared
+          )
+        )
+        resourceFolder = .init(
+          id: .none,  // local does not have ID
+          name: "",
+          path: folderPath,
+          // inherit permissions from the parent folder
+          permission: parentFolder.permission,
+          permissions: parentFolder.permissions
+            .map { (permission: ResourceFolderPermission) -> ResourceFolderPermission in
+              switch permission {
+              case .user(let id, let permission, _):
+                return .user(
+                  id: id,
+                  permission: permission,
+                  permissionID: .none  // local does not have ID
+                )
+              case .userGroup(let id, let permission, _):
+                return .userGroup(
+                  id: id,
+                  permission: permission,
+                  permissionID: .none  // local does not have ID
+                )
+              }
+            }
+            .asOrderedSet()
+        )
+      }
+      else {
+        resourceFolder = .init(
+          id: .none,  // local does not have ID
+          name: "",
+          path: .init(),
+          permission: .owner,
+          permissions: [
+            .user(
+              id: currentAccount.userID,
+              permission: .owner,
+              permissionID: .none  // local does not have ID
+            )
+          ]
+        )
+      }
 
-			return try await features
-				.branch(
-					scope: ResourceFolderEditScope.self,
-					context: .init(
-						editedResourceFolder: resourceFolder
-					)
-				)
-		}
+      return
+        try await features
+        .branch(
+          scope: ResourceFolderEditScope.self,
+          context: .init(
+            editedResourceFolder: resourceFolder
+          )
+        )
+    }
 
-		@Sendable nonisolated func prepareExisting(
-			resourceFolderID: ResourceFolder.ID
-		) async throws -> FeaturesContainer {
-			try await sessionData.refreshIfNeeded()
-			let resourceFolder: ResourceFolder = try await resourceFolderDetailsFetchDatabaseOperation(resourceFolderID)
+    @Sendable nonisolated func prepareExisting(
+      resourceFolderID: ResourceFolder.ID
+    ) async throws -> FeaturesContainer {
+      try await sessionData.refreshIfNeeded()
+      let resourceFolder: ResourceFolder = try await resourceFolderDetailsFetchDatabaseOperation(resourceFolderID)
 
-			guard resourceFolder.permission.canEdit
-			else {
-				throw
-				InvalidResourceFolderPermission
-					.error(message: "Attempting to edit a resource folder without edit permission")
-					.recording(resourceFolder, for: "resourceFolder")
-			}
+      guard resourceFolder.permission.canEdit
+      else {
+        throw
+          InvalidResourceFolderPermission
+          .error(message: "Attempting to edit a resource folder without edit permission")
+          .recording(resourceFolder, for: "resourceFolder")
+      }
 
-			return try await features
-				.branch(
-					scope: ResourceFolderEditScope.self,
-					context: .init(
-						editedResourceFolder: resourceFolder
-					)
-				)
-		}
+      return
+        try await features
+        .branch(
+          scope: ResourceFolderEditScope.self,
+          context: .init(
+            editedResourceFolder: resourceFolder
+          )
+        )
+    }
 
-		return .init(
-			prepareNew: prepareNew(parentFolderID:),
-			prepareExisting: prepareExisting(resourceFolderID:)
-		)
-	}
+    return .init(
+      prepareNew: prepareNew(parentFolderID:),
+      prepareExisting: prepareExisting(resourceFolderID:)
+    )
+  }
 }
 
 extension FeaturesRegistry {
 
-	internal mutating func usePassboltResourceFolderEditPreparation() {
-		self.use(
-			.disposable(
-				ResourceFolderEditPreparation.self,
-				load: ResourceFolderEditPreparation.load(using:)
-			),
-			in: SessionScope.self
-		)
-	}
+  internal mutating func usePassboltResourceFolderEditPreparation() {
+    self.use(
+      .disposable(
+        ResourceFolderEditPreparation.self,
+        load: ResourceFolderEditPreparation.load(using:)
+      ),
+      in: SessionScope.self
+    )
+  }
 }

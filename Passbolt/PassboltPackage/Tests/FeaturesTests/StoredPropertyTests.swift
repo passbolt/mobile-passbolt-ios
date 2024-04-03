@@ -27,13 +27,12 @@ import XCTest
 @testable import Features
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@available(iOS 16.0.0, *)
 final class StoredPropertyTests: LoadableFeatureTestCase<TestStoredProperty> {
 
   override class func testedImplementationRegister(
     _ registry: inout FeaturesRegistry
   ) {
-		registry.usePassboltStoredProperty(TestStoredPropertyDescription.self, in: RootFeaturesScope.self)
+    registry.usePassboltStoredProperty(TestStoredPropertyDescription.self, in: RootFeaturesScope.self)
   }
 
   func test_get_fetchesPropertyWithExpectedValue() async throws {
@@ -54,7 +53,7 @@ final class StoredPropertyTests: LoadableFeatureTestCase<TestStoredProperty> {
   }
 
   func test_get_fetchesPropertyWithExpectedKey() async throws {
-		let expectedResult: OSStoredPropertyKey = TestStoredPropertyDescription.key
+    let expectedResult: OSStoredPropertyKey = TestStoredPropertyDescription.key
     let result: CriticalState<OSStoredPropertyKey?> = .init(.none)
     self.patch(
       \OSStoredProperties.fetch,
@@ -122,47 +121,47 @@ final class StoredPropertyTests: LoadableFeatureTestCase<TestStoredProperty> {
     )
   }
 
-	func test_set_storesPropertyWithExpectedAccountKey() async throws {
-		TestStoredPropertyDescription.shared = false
-		defer { TestStoredPropertyDescription.shared = true }
-		let expectedResult: OSStoredPropertyKey = "test-\(Account.mock_ada.localID.rawValue)"
-		let result: CriticalState<OSStoredPropertyKey?> = .init(.none)
-		set(
-			SessionScope.self,
-			context: .init(
-				account: .mock_ada,
-				configuration: .mock_1
-			)
-		)
-		self.patch(
-			\OSStoredProperties.fetch,
-			with: always(result.get(\.self))
-		)
-		self.patch(
-			\OSStoredProperties.store,
-			with: { key, _ in
-				result.set(\.self, key)
-			}
-		)
+  func test_set_storesPropertyWithExpectedAccountKey() async throws {
+    TestStoredPropertyDescription.shared = false
+    defer { TestStoredPropertyDescription.shared = true }
+    let expectedResult: OSStoredPropertyKey = "test-\(Account.mock_ada.localID.rawValue)"
+    let result: CriticalState<OSStoredPropertyKey?> = .init(.none)
+    set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1
+      )
+    )
+    self.patch(
+      \OSStoredProperties.fetch,
+      with: always(result.get(\.self))
+    )
+    self.patch(
+      \OSStoredProperties.store,
+      with: { key, _ in
+        result.set(\.self, key)
+      }
+    )
 
-		var instance: TestStoredProperty = try self.testedInstance()
+    var instance: TestStoredProperty = try self.testedInstance()
 
-		instance.value = 0
+    instance.value = 0
 
-		XCTAssertEqual(
-			result.get(\.self),
-			expectedResult
-		)
-	}
+    XCTAssertEqual(
+      result.get(\.self),
+      expectedResult
+    )
+  }
 }
 
 typealias TestStoredProperty = StoredProperty<TestStoredPropertyDescription>
 
 enum TestStoredPropertyDescription: StoredPropertyDescription {
 
-	typealias Value = Int
+  typealias Value = Int
 
-	static var shared: Bool = true
+  static var shared: Bool = true
 
-	static var key: OSStoredPropertyKey { "test" }
+  static var key: OSStoredPropertyKey { "test" }
 }

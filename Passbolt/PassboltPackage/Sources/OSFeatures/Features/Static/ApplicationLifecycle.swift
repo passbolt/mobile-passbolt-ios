@@ -26,7 +26,7 @@ import UIKit
 
 public struct ApplicationLifecycle {
 
-	public var lifecycle: AnyAsyncSequence<Transition>
+  public var lifecycle: AnyAsyncSequence<Transition>
   public var lifecyclePublisher: () -> AnyPublisher<Transition, Never>
 }
 
@@ -47,7 +47,7 @@ extension ApplicationLifecycle: StaticFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-			lifecycle: Empty<Transition, Never>().asAsyncSequence(),
+      lifecycle: Empty<Transition, Never>().asAsyncSequence(),
       lifecyclePublisher: unimplemented0()
     )
   }
@@ -92,7 +92,7 @@ extension ApplicationLifecycle {
     }
 
     return Self(
-			lifecycle: lifecyclePublisher.asAsyncSequence(),
+      lifecycle: lifecyclePublisher.asAsyncSequence(),
       lifecyclePublisher: { lifecyclePublisher }
     )
   }

@@ -31,7 +31,6 @@ internal final class ResourceTagsListDisplayController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
 
-  private let asyncExecutor: AsyncExecutor
   private let sessionData: SessionData
   private let resourceTags: ResourceTags
 
@@ -46,32 +45,29 @@ internal final class ResourceTagsListDisplayController: ViewController {
     self.context = context
     self.features = features
 
-    self.asyncExecutor = try features.instance()
     self.sessionData = try features.instance()
     self.resourceTags = try features.instance()
 
     self.viewState = .init(
       initial: .init(
         resourceTags: .init()
-      )
-    )
-
-    self.asyncExecutor.scheduleIteration(
-      over: combineLatest(
-        context.filter,
-        sessionData.lastUpdate.asAnyAsyncSequence()
       ),
-      failMessage: "Resource tags list updates broken!",
-      failAction: { (error: Error) in
-				SnackBarMessageEvent.send(.error(error))
-      }
-    ) { [viewState, resourceTags] (filter: String, _) in
-      let filteredResourceTags: Array<ResourceTagListItemDSV> = try await resourceTags.filteredTagsList(filter)
+      updateFrom: ComputedVariable(
+        combined: context.filter,
+        with: self.sessionData.lastUpdate
+      ),
+      update: { [resourceTags] (updateView, update) in
+        await consumingErrors {
+          let filteredResourceTags: Array<ResourceTagListItemDSV> = try await resourceTags.filteredTagsList(
+            update.value.0
+          )
 
-      await viewState.update { viewState in
-        viewState.resourceTags = filteredResourceTags
+          await updateView { viewState in
+            viewState.resourceTags = filteredResourceTags
+          }
+        }
       }
-    }
+    )
   }
 }
 
@@ -79,8 +75,8 @@ extension ResourceTagsListDisplayController {
 
   internal struct Context {
 
-    internal var filter: AnyAsyncSequence<String>
-    internal var selectTag: (ResourceTag.ID) -> Void
+    internal var filter: AnyUpdatable<String>
+    internal var selectTag: (ResourceTag.ID) async throws -> Void
   }
 
   internal struct ViewState: Equatable {
@@ -104,7 +100,7 @@ extension ResourceTagsListDisplayController {
 
   internal final func selectTag(
     _ id: ResourceTag.ID
-  ) {
-    self.context.selectTag(id)
+  ) async throws {
+    try await self.context.selectTag(id)
   }
 }

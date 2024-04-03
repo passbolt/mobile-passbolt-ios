@@ -31,17 +31,17 @@ public struct ResourcesListView: View {
   private let resources: Array<ResourceListItemDSV>
   private let contentEmpty: Bool
   private let refreshAction: @Sendable () async -> Void
-  private let createAction: (() -> Void)?
-  private let resourceTapAction: (Resource.ID) -> Void
-  private let resourceMenuAction: ((Resource.ID) -> Void)?
+  private let createAction: (() async throws -> Void)?
+  private let resourceTapAction: (Resource.ID) async throws -> Void
+  private let resourceMenuAction: ((Resource.ID) async throws -> Void)?
 
   public init(
     suggestedResources: Array<ResourceListItemDSV>?,
     resources: Array<ResourceListItemDSV>,
     refreshAction: @escaping @Sendable () async -> Void,
-    createAction: (() -> Void)?,
-    resourceTapAction: @escaping (Resource.ID) -> Void,
-    resourceMenuAction: ((Resource.ID) -> Void)?
+    createAction: (() async throws -> Void)?,
+    resourceTapAction: @escaping (Resource.ID) async throws -> Void,
+    resourceMenuAction: ((Resource.ID) async throws -> Void)?
   ) {
     self.suggestedResources = suggestedResources
     self.resources = resources
@@ -56,7 +56,7 @@ public struct ResourcesListView: View {
 
   public var body: some View {
     List {
-      if let createAction: () -> Void = self.createAction {
+      if let createAction: () async throws -> Void = self.createAction {
         ResourceListAddView(action: createAction)
       }  // else no create row
 

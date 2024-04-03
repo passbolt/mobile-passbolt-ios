@@ -48,7 +48,7 @@ extension AccountChunkedExport {
     try features.ensureScope(SessionScope.self)
     try features.ensureScope(AccountTransferScope.self)
 
-    let asyncExecutor: AsyncExecutor = try features.instance()
+    let pollingTask: CriticalState<Task<Void, Never>?> = .init(.none)
 
     let accountDataExport: AccountDataExport = try features.instance()
     let transferInitializeNetworkOperation: AccountChunkedExportInitializeNetworkOperation = try features.instance()
@@ -91,7 +91,7 @@ extension AccountChunkedExport {
         fingerprint: transferData.fingerprint,
         armoredKey: transferData.armoredKey
       )
-			let encodedPayload: Data = try JSONEncoder.snake.encode(payload)
+      let encodedPayload: Data = try JSONEncoder.snake.encode(payload)
 
       let payloadDataHash: String =
         SHA512
@@ -131,7 +131,7 @@ extension AccountChunkedExport {
         domain: domain,
         hash: payloadDataHash
       )
-			let encodedConfiguration: Data = try JSONEncoder.snake.encode(configuration)
+      let encodedConfiguration: Data = try JSONEncoder.snake.encode(configuration)
 
       var transferDataChunks: Array<Data> = [
         "100".data(using: .ascii)! /* it can't fail */
@@ -208,72 +208,75 @@ extension AccountChunkedExport {
     }
 
     @Sendable nonisolated func startBackendPolling() {
-      asyncExecutor.schedule(.replace) {
-        do {
-          guard let transferID: String = state.get(\.transferID)
-          else {
-            throw
-              InternalInconsistency
-              .error(
-                "Attempting to poll transfer status without initializing!"
-              )
-          }
-          while case .part = status() {
-            try await Task.sleep(nanoseconds: 500 * NSEC_PER_MSEC)
-            let updatedStatus = try await transferStatusNetworkOperation(
-              .init(
-                transferID: transferID
-              )
-            )
-
-            switch updatedStatus.status {
-            case .start:
-              state.access { (state: inout State) in
-                guard case .none = state.error else { return }
-                state.currentTransferPage = updatedStatus.currentPage
-                updatesSource.update()
-              }
-
-            case .inProgress:
-              state.access { (state: inout State) in
-                state.currentTransferPage = updatedStatus.currentPage
-              }
-              state.access { (state: inout State) in
-                guard case .none = state.error else { return }
-                state.currentTransferPage = updatedStatus.currentPage
-                updatesSource.update()
-              }
-
-            case .complete:
-              state.access { (state: inout State) in
-                guard case .none = state.error else { return }
-                state.currentTransferPage = state.transferDataChunks.count
-                updatesSource.update()
-              }
-              return  // finished
-
-            case .error:
+      pollingTask.access { pollingTask in
+        pollingTask?.cancel()
+        pollingTask = Task {
+          do {
+            guard let transferID: String = state.get(\.transferID)
+            else {
               throw
-                AccountExportFailure
-                .error()
+                InternalInconsistency
+                .error(
+                  "Attempting to poll transfer status without initializing!"
+                )
+            }
+            while case .part = status() {
+              try await Task.sleep(nanoseconds: 500 * NSEC_PER_MSEC)
+              let updatedStatus = try await transferStatusNetworkOperation(
+                .init(
+                  transferID: transferID
+                )
+              )
 
-            case .cancel:
-              throw Cancelled.error()
+              switch updatedStatus.status {
+              case .start:
+                state.access { (state: inout State) in
+                  guard case .none = state.error else { return }
+                  state.currentTransferPage = updatedStatus.currentPage
+                  updatesSource.update()
+                }
+
+              case .inProgress:
+                state.access { (state: inout State) in
+                  state.currentTransferPage = updatedStatus.currentPage
+                }
+                state.access { (state: inout State) in
+                  guard case .none = state.error else { return }
+                  state.currentTransferPage = updatedStatus.currentPage
+                  updatesSource.update()
+                }
+
+              case .complete:
+                state.access { (state: inout State) in
+                  guard case .none = state.error else { return }
+                  state.currentTransferPage = state.transferDataChunks.count
+                  updatesSource.update()
+                }
+                return  // finished
+
+              case .error:
+                throw
+                  AccountExportFailure
+                  .error()
+
+              case .cancel:
+                throw Cancelled.error()
+              }
             }
           }
-        }
-        catch {
-          state.access { (state: inout State) in
-            guard case .none = state.error else { return }
-            state.error = error.asTheError()
-            updatesSource.update()
+          catch {
+            state.access { (state: inout State) in
+              guard case .none = state.error else { return }
+              state.error = error.asTheError()
+              updatesSource.update()
+            }
           }
         }
       }
     }
 
     @Sendable nonisolated func cancel() {
-      asyncExecutor.cancelTasks()
+      pollingTask.exchange(with: .none)?.cancel()
       state.access { (state: inout State) in
         guard case .none = state.error else { return }
         state.error = Cancelled.error()

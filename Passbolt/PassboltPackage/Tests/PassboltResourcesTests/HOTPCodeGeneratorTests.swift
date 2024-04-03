@@ -30,7 +30,6 @@ import XCTest
 
 // test data based on https://www.rfc-editor.org/rfc/rfc4226
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@available(iOS 16.0.0, *)
 final class HOTPCodeGeneratorTests: LoadableFeatureTestCase<HOTPCodeGenerator> {
 
   override class func testedImplementationRegister(
@@ -54,13 +53,13 @@ final class HOTPCodeGeneratorTests: LoadableFeatureTestCase<HOTPCodeGenerator> {
       )
     ) { (feature: HOTPCodeGenerator) in
       feature.prepare(
-				.init(
-					resourceID: .mock_1,
-					sharedSecret: "12345678901234567890",
-					algorithm: .sha1,
-					digits: 6
-				)
-			)(0)
+        .init(
+          resourceID: .mock_1,
+          sharedSecret: "12345678901234567890",
+          algorithm: .sha1,
+          digits: 6
+        )
+      )(0)
     }
   }
 
@@ -79,13 +78,13 @@ final class HOTPCodeGeneratorTests: LoadableFeatureTestCase<HOTPCodeGenerator> {
       )
     ) { (feature: HOTPCodeGenerator) in
       feature.prepare(
-				.init(
-					resourceID: .mock_1,
-					sharedSecret: "12345678901234567890",
-					algorithm: .sha1,
-					digits: 6
-				)
-			)(1)
+        .init(
+          resourceID: .mock_1,
+          sharedSecret: "12345678901234567890",
+          algorithm: .sha1,
+          digits: 6
+        )
+      )(1)
     }
   }
 
@@ -103,14 +102,14 @@ final class HOTPCodeGeneratorTests: LoadableFeatureTestCase<HOTPCodeGenerator> {
         counter: 2
       )
     ) { (feature: HOTPCodeGenerator) in
-			feature.prepare(
-				.init(
-					resourceID: .mock_1,
-					sharedSecret: "12345678901234567890",
-					algorithm: .sha1,
-					digits: 6
-				)
-			)(2)
+      feature.prepare(
+        .init(
+          resourceID: .mock_1,
+          sharedSecret: "12345678901234567890",
+          algorithm: .sha1,
+          digits: 6
+        )
+      )(2)
     }
   }
 
@@ -129,13 +128,13 @@ final class HOTPCodeGeneratorTests: LoadableFeatureTestCase<HOTPCodeGenerator> {
       )
     ) { (feature: HOTPCodeGenerator) in
       feature.prepare(
-				.init(
-					resourceID: .mock_1,
-					sharedSecret: "12345678901234567890",
-					algorithm: .sha1,
-					digits: 6
-				)
-			)(3)
+        .init(
+          resourceID: .mock_1,
+          sharedSecret: "12345678901234567890",
+          algorithm: .sha1,
+          digits: 6
+        )
+      )(3)
     }
   }
 
@@ -154,13 +153,13 @@ final class HOTPCodeGeneratorTests: LoadableFeatureTestCase<HOTPCodeGenerator> {
       )
     ) { (feature: HOTPCodeGenerator) in
       feature.prepare(
-				.init(
-					resourceID: .mock_1,
-					sharedSecret: "12345678901234567890",
-					algorithm: .sha1,
-					digits: 6
-				)
-			)(4)
+        .init(
+          resourceID: .mock_1,
+          sharedSecret: "12345678901234567890",
+          algorithm: .sha1,
+          digits: 6
+        )
+      )(4)
     }
   }
 
@@ -179,13 +178,13 @@ final class HOTPCodeGeneratorTests: LoadableFeatureTestCase<HOTPCodeGenerator> {
       )
     ) { (feature: HOTPCodeGenerator) in
       feature.prepare(
-				.init(
-					resourceID: .mock_1,
-					sharedSecret: "12345678901234567890",
-					algorithm: .sha1,
-					digits: 6
-				)
-			)(5)
+        .init(
+          resourceID: .mock_1,
+          sharedSecret: "12345678901234567890",
+          algorithm: .sha1,
+          digits: 6
+        )
+      )(5)
     }
   }
 }

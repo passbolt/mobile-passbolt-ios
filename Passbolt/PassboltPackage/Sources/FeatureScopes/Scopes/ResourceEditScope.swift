@@ -34,14 +34,14 @@ public enum ResourceEditScope: FeaturesScope {
 
 extension Features {
 
-	public func resourceEditingContext(
-		file: StaticString = #fileID,
-		line: UInt = #line
-	) throws -> ResourceEditingContext {
-			try self.context(
-				of: ResourceEditScope.self,
-				file: file,
-				line: line
-			)
-	}
+  public func resourceEditingContext(
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) throws -> ResourceEditingContext {
+    try self.context(
+      of: ResourceEditScope.self,
+      file: file,
+      line: line
+    )
+  }
 }

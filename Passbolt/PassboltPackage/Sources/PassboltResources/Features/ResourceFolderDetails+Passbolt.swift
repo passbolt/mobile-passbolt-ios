@@ -34,7 +34,7 @@ extension ResourceFolderController {
   @MainActor fileprivate static func load(
     features: Features
   ) throws -> Self {
-		let resourceFolderID: ResourceFolder.ID = try features.context(of: ResourceFolderScope.self)
+    let resourceFolderID: ResourceFolder.ID = try features.context(of: ResourceFolderScope.self)
     let sessionData: SessionData = try features.instance()
     let resourceFolderDetailsFetchDatabaseOperation: ResourceFolderDetailsFetchDatabaseOperation =
       try features.instance()

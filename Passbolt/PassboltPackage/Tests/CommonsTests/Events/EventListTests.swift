@@ -26,167 +26,169 @@ import CoreTest
 
 final class EventListTests: TestCase {
 
-	func test_nextEvent_deliversLatestEventAfterWaiting() async throws {
-		enum TestEvent: EventDescription {
+  func test_nextEvent_deliversLatestEventAfterWaiting() async throws {
+    enum TestEvent: EventDescription {
 
-			typealias Payload = Int
+      typealias Payload = Int
 
-			nonisolated static let eventList: EventList<TestEvent> = .init()
-		}
+      nonisolated static let eventList: EventList<TestEvent> = .init()
+    }
 
-		try await withSerialTaskExecutor {
-			TestEvent.send(0)
-			Task.detached {
-				await Task.yield()
-				TestEvent.send(42)
-			}
-			try await verifyIf(
-				await TestEvent.next(),
-				isEqual: 42
-			)
-		}
-	}
+    try await withSerialTaskExecutor {
+      TestEvent.send(0)
+      Task.detached {
+        await Task.yield()
+        TestEvent.send(42)
+      }
+      try await verifyIf(
+        await TestEvent.next(),
+        isEqual: 42
+      )
+    }
+  }
 
-	func test_subscription_nextEvent_deliversLatestEventAfterWaiting() async throws {
-		enum TestEvent: EventDescription {
+  func test_subscription_nextEvent_deliversLatestEventAfterWaiting() async throws {
+    enum TestEvent: EventDescription {
 
-			typealias Payload = Int
+      typealias Payload = Int
 
-			nonisolated static let eventList: EventList<TestEvent> = .init()
-		}
+      nonisolated static let eventList: EventList<TestEvent> = .init()
+    }
 
-		try await withSerialTaskExecutor {
-			TestEvent.send(0)
-			let subscription: EventSubscription = TestEvent.subscribe()
-			Task.detached {
-				await Task.yield()
-				TestEvent.send(42)
-			}
-			try await verifyIf(
-				await subscription.nextEvent(),
-				isEqual: 42
-			)
-		}
-	}
+    try await withSerialTaskExecutor {
+      TestEvent.send(0)
+      let subscription: EventSubscription = TestEvent.subscribe()
+      Task.detached {
+        await Task.yield()
+        TestEvent.send(42)
+      }
+      try await verifyIf(
+        await subscription.nextEvent(),
+        isEqual: 42
+      )
+    }
+  }
 
-	func test_subscription_nextEvent_deliversLatestEventAfterSubscribing() async throws {
-		enum TestEvent: EventDescription {
+  func test_subscription_nextEvent_deliversLatestEventAfterSubscribing() async throws {
+    enum TestEvent: EventDescription {
 
-			typealias Payload = Int
+      typealias Payload = Int
 
-			nonisolated static let eventList: EventList<TestEvent> = .init()
-		}
+      nonisolated static let eventList: EventList<TestEvent> = .init()
+    }
 
-		try await withSerialTaskExecutor {
-			TestEvent.send(0)
-			let subscription: EventSubscription = TestEvent.subscribe()
-			TestEvent.send(42)
-			try await verifyIf(
-				await subscription.nextEvent(),
-				isEqual: 42
-			)
-		}
-	}
+    try await withSerialTaskExecutor {
+      TestEvent.send(0)
+      let subscription: EventSubscription = TestEvent.subscribe()
+      TestEvent.send(42)
+      try await verifyIf(
+        await subscription.nextEvent(),
+        isEqual: 42
+      )
+    }
+  }
 
-	func test_subscription_nextEvent_deliversAllEventsAfterSubscribing() async throws {
-		enum TestEvent: EventDescription {
+  func test_subscription_nextEvent_deliversAllEventsAfterSubscribing() async throws {
+    enum TestEvent: EventDescription {
 
-			typealias Payload = Int
+      typealias Payload = Int
 
-			nonisolated static let eventList: EventList<TestEvent> = .init()
-		}
+      nonisolated static let eventList: EventList<TestEvent> = .init()
+    }
 
-		try await withSerialTaskExecutor {
-			TestEvent.send(0)
-			let subscription: EventSubscription = TestEvent.subscribe(bufferSize: 100)
-			for i in 1 ..< 100 {
-				TestEvent.send(i)
-			}
-			for i in 1 ..< 100 {
-				try await verifyIf(
-					await subscription.nextEvent(),
-					isEqual: i
-				)
-			}
-		}
-	}
+    try await withSerialTaskExecutor {
+      TestEvent.send(0)
+      let subscription: EventSubscription = TestEvent.subscribe(bufferSize: 100)
+      for i in 1 ..< 100 {
+        TestEvent.send(i)
+      }
+      for i in 1 ..< 100 {
+        try await verifyIf(
+          await subscription.nextEvent(),
+          isEqual: i
+        )
+      }
+    }
+  }
 
-	func test_continuousAccess_executesWithoutIssues_concurrently() async throws {
-		enum TestEvent: EventDescription {
+  func test_continuousAccess_executesWithoutIssues_concurrently() async throws {
+    enum TestEvent: EventDescription {
 
-			typealias Payload = Int
+      typealias Payload = Int
 
-			nonisolated static let eventList: EventList<TestEvent> = .init()
-		}
+      nonisolated static let eventList: EventList<TestEvent> = .init()
+    }
 
-		await withTaskGroup(of: Void.self) { group in
-			for i in 0 ..< 1_000 {
-				if i.isMultiple(of: 3) {
-					if i.isMultiple(of: 2) {
-						group.addTask {
-							let _: TestEvent.Subscription = TestEvent
-								.subscribe()
-						}
-					}
-					else {
-						group.addTask {
-							try? await TestEvent.subscribe { _ in }
-						}
-					}
-				}
-				else if i.isMultiple(of: 2) {
-					group.addTask {
-						_ = try? await TestEvent.next()
-					}
-				}
-				else {
-					group.addTask {
-						let subscription: TestEvent.Subscription = TestEvent
-							.subscribe()
-						while !Task.isCancelled {
-							_ = try? await subscription.nextEvent()
-						}
-					}
-				}
-			}
-			await Task {
-				for i in 0 ..< 10_000 {
-					try await Task.sleep(nanoseconds: 100)
-					TestEvent.send(i)
-				}
-			}
-			.waitForCompletion()
-			group.cancelAll()
-			await group.waitForAll()
-		}
-	}
+    await withTaskGroup(of: Void.self) { group in
+      for i in 0 ..< 1_000 {
+        if i.isMultiple(of: 3) {
+          if i.isMultiple(of: 2) {
+            group.addTask {
+              let _: TestEvent.Subscription =
+                TestEvent
+                .subscribe()
+            }
+          }
+          else {
+            group.addTask {
+              try? await TestEvent.subscribe { _ in }
+            }
+          }
+        }
+        else if i.isMultiple(of: 2) {
+          group.addTask {
+            _ = try? await TestEvent.next()
+          }
+        }
+        else {
+          group.addTask {
+            let subscription: TestEvent.Subscription =
+              TestEvent
+              .subscribe()
+            while !Task.isCancelled {
+              _ = try? await subscription.nextEvent()
+            }
+          }
+        }
+      }
+      await Task {
+        for i in 0 ..< 10_000 {
+          try await Task.sleep(nanoseconds: 100)
+          TestEvent.send(i)
+        }
+      }
+      .waitForCompletion()
+      group.cancelAll()
+      await group.waitForAll()
+    }
+  }
 
-	func test_subscription_nextEvent_deliversAllEventsToAllSubscriptions() async throws {
-		enum TestEvent: EventDescription {
+  func test_subscription_nextEvent_deliversAllEventsToAllSubscriptions() async throws {
+    enum TestEvent: EventDescription {
 
-			typealias Payload = Int
+      typealias Payload = Int
 
-			nonisolated static let eventList: EventList<TestEvent> = .init()
-		}
+      nonisolated static let eventList: EventList<TestEvent> = .init()
+    }
 
-		try await withSerialTaskExecutor {
-			TestEvent.send(0)
-			var subscriptions: Array<TestEvent.Subscription> = .init()
-			for _ in 0 ..< 100 {
-				subscriptions.append(TestEvent.subscribe(bufferSize: 100))
-			}
+    try await withSerialTaskExecutor {
+      TestEvent.send(0)
+      var subscriptions: Array<TestEvent.Subscription> = .init()
+      for _ in 0 ..< 100 {
+        subscriptions.append(TestEvent.subscribe(bufferSize: 100))
+      }
 
-			for i in 1 ..< 100 {
-				TestEvent.send(i)
-			}
-			for subscription in subscriptions {
-				for i in 1 ..< 100 {
-					try await verifyIf(
-						await subscription.nextEvent(),
-						isEqual: i
-					)
-				}
-			}
-		}
-	}
+      for i in 1 ..< 100 {
+        TestEvent.send(i)
+      }
+      for subscription in subscriptions {
+        for i in 1 ..< 100 {
+          try await verifyIf(
+            await subscription.nextEvent(),
+            isEqual: i
+          )
+        }
+      }
+    }
+  }
 }

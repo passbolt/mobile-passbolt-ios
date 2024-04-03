@@ -48,7 +48,6 @@ internal final class OTPEditAdvancedFormViewController: ViewController {
 
   internal let viewState: ViewStateSource<ViewState>
 
-  private let asyncExecutor: AsyncExecutor
   private let resourceEditForm: ResourceEditForm
 
   private let navigationToSelf: NavigationToOTPEditAdvancedForm
@@ -66,7 +65,6 @@ internal final class OTPEditAdvancedFormViewController: ViewController {
 
     self.navigationToSelf = try features.instance()
 
-    self.asyncExecutor = try features.instance()
     self.resourceEditForm = try features.instance()
 
     self.viewState = .init(
@@ -95,7 +93,7 @@ internal final class OTPEditAdvancedFormViewController: ViewController {
           }
         }
         catch {
-					SnackBarMessageEvent.send(.error(error))
+          SnackBarMessageEvent.send(.error(error))
         }
       }
     )

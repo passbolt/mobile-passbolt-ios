@@ -29,14 +29,14 @@ public struct ResourceTagsListView: View {
   private let tags: Array<ResourceTagListItemDSV>
   private let contentEmpty: Bool
   private let refreshAction: () async -> Void
-  private let createAction: (() -> Void)?
-  private let tagTapAction: (ResourceTag.ID) -> Void
+  private let createAction: (() async throws -> Void)?
+  private let tagTapAction: (ResourceTag.ID) async throws -> Void
 
   public init(
     tags: Array<ResourceTagListItemDSV>,
     refreshAction: @escaping () async -> Void,
-    createAction: (() -> Void)?,
-    tagTapAction: @escaping (ResourceTag.ID) -> Void
+    createAction: (() async throws -> Void)?,
+    tagTapAction: @escaping (ResourceTag.ID) async throws -> Void
   ) {
     self.tags = tags
     self.contentEmpty = tags.isEmpty
@@ -47,7 +47,7 @@ public struct ResourceTagsListView: View {
 
   public var body: some View {
     List {
-      if let createAction: () -> Void = self.createAction {
+      if let createAction: () async throws -> Void = self.createAction {
         ResourceListAddView(action: createAction)
       }  // else no create row
 

@@ -27,7 +27,6 @@ import TestExtensions
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@available(iOS 16.0.0, *)
 final class AccountQRCodeExportControllerTests: FeaturesTestCase {
 
   override func commonPrepare() {
@@ -44,8 +43,8 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
         exitConfirmationAlertPresented: false
       )
     ) {
-      await self.asyncExecutionControl.executeAll()
-      return await tested.viewState.current
+
+      await tested.viewState.current
     }
   }
 
@@ -74,10 +73,9 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
         exitConfirmationAlertPresented: false
       )
     ) {
-      return await tested.viewState.current
+      await tested.viewState.current
     }
     //    updatesSource.terminate()
-    await self.asyncExecutionControl.executeAll()
   }
 
   func test_controller_navigates_whenTransferStateUpdatesToError() async throws {
@@ -125,7 +123,6 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
     let tested: AccountQRCodeExportController = try self.testedInstance()
 
     tested.cancelTransfer()
-    await self.asyncExecutionControl.executeAll()
     XCTAssertTrue(self.mockWasExecuted)
   }
 
@@ -142,6 +139,5 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
     let tested: AccountQRCodeExportController = try self.testedInstance()
 
     tested.cancelTransfer()
-    await self.asyncExecutionControl.executeAll()
   }
 }

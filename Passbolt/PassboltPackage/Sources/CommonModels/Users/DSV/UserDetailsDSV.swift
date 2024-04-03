@@ -31,6 +31,7 @@ public struct UserDetailsDSV {
   public var lastName: String
   public var fingerprint: Fingerprint
   public var avatarImageURL: URLString
+  public var isSuspended: Bool
 
   public init(
     id: User.ID,
@@ -38,7 +39,8 @@ public struct UserDetailsDSV {
     firstName: String,
     lastName: String,
     fingerprint: Fingerprint,
-    avatarImageURL: URLString
+    avatarImageURL: URLString,
+    isSuspended: Bool
   ) {
     self.id = id
     self.username = username
@@ -46,6 +48,7 @@ public struct UserDetailsDSV {
     self.lastName = lastName
     self.fingerprint = fingerprint
     self.avatarImageURL = avatarImageURL
+    self.isSuspended = isSuspended
   }
 }
 

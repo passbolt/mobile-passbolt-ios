@@ -27,7 +27,6 @@ import TestExtensions
 @testable import PassboltAccountSetup
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@available(iOS 16.0.0, *)
 final class AccountChunkedExportTests: LoadableFeatureTestCase<AccountChunkedExport> {
 
   override class var testedImplementationScope: any FeaturesScope.Type {
@@ -49,6 +48,10 @@ final class AccountChunkedExportTests: LoadableFeatureTestCase<AccountChunkedExp
       )
     )
     set(AccountTransferScope.self)
+    patch(
+      \AccountChunkedExportStatusNetworkOperation.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
   }
 
   func test_status_returnsUninitialized_initially() {
@@ -199,7 +202,6 @@ final class AccountChunkedExportTests: LoadableFeatureTestCase<AccountChunkedExp
       timeout: 1
     ) { feature in
       try await feature.authorize(.biometrics)
-      Task { await self.mockExecutionControl.executeAll() }
       return
         try await feature
         .updates
@@ -240,7 +242,6 @@ final class AccountChunkedExportTests: LoadableFeatureTestCase<AccountChunkedExp
       timeout: 1
     ) { feature in
       try await feature.authorize(.biometrics)
-      Task { await self.mockExecutionControl.executeAll() }
       return
         try await feature
         .updates
@@ -281,7 +282,6 @@ final class AccountChunkedExportTests: LoadableFeatureTestCase<AccountChunkedExp
       timeout: 1
     ) { feature in
       try await feature.authorize(.biometrics)
-      Task { await self.mockExecutionControl.executeAll() }
       return
         try await feature
         .updates
@@ -321,7 +321,6 @@ final class AccountChunkedExportTests: LoadableFeatureTestCase<AccountChunkedExp
       timeout: 1
     ) { feature in
       try await feature.authorize(.biometrics)
-      Task { await self.mockExecutionControl.executeAll() }
       return
         try await feature
         .updates
@@ -364,10 +363,6 @@ final class AccountChunkedExportTests: LoadableFeatureTestCase<AccountChunkedExp
         ),
       timeout: 1
     ) { feature in
-      Task {
-        try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
-        await self.mockExecutionControl.executeAll()
-      }
       try await feature.authorize(.biometrics)
       return
         try await feature

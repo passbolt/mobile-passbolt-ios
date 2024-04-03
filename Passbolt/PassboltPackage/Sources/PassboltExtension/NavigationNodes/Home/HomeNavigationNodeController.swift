@@ -34,7 +34,6 @@ internal final class HomeNavigationNodeController: ViewController {
 
   internal let viewState: ViewStateSource<ViewState>
 
-  private let asyncExecutor: AsyncExecutor
   private let navigationTree: NavigationTree
   private let homePresentation: HomePresentation
   @available(*, deprecated, message: "Do not use viewNodeID to identify views. Legacy use only!")
@@ -48,10 +47,10 @@ internal final class HomeNavigationNodeController: ViewController {
   ) throws {
     let features: Features =
       try features
-			.branch(
-				scope: AccountScope.self,
-				context: context.account
-			)
+      .branch(
+        scope: AccountScope.self,
+        context: context.account
+      )
       .branch(
         scope: SessionScope.self,
         context: context
@@ -59,7 +58,6 @@ internal final class HomeNavigationNodeController: ViewController {
     self.features = features
     self.viewNodeID = .init(rawValue: .init(Self.self))
 
-    self.asyncExecutor = try features.instance()
     self.navigationTree = features.instance()
     self.homePresentation = try features.instance()
 

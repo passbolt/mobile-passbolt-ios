@@ -29,19 +29,22 @@ public struct UserDSO {
   public var username: String
   public var profile: UserProfileDTO
   public var publicKey: ArmoredPGPPublicKey
-	public var keyFingerprint: Fingerprint
+  public var keyFingerprint: Fingerprint
+  public var isSuspended: Bool
 
   public init(
     id: User.ID,
     username: String,
     profile: UserProfileDTO,
-		publicKey: ArmoredPGPPublicKey,
-		keyFingerprint: Fingerprint
+    publicKey: ArmoredPGPPublicKey,
+    keyFingerprint: Fingerprint,
+    isSuspended: Bool
   ) {
     self.id = id
     self.username = username
     self.profile = profile
-		self.publicKey = publicKey
-		self.keyFingerprint = keyFingerprint
+    self.publicKey = publicKey
+    self.keyFingerprint = keyFingerprint
+    self.isSuspended = isSuspended
   }
 }

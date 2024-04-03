@@ -64,7 +64,7 @@ extension FeaturesRegistry {
         AccountData.self,
         load: AccountData.load(features:)
       ),
-			in: AccountScope.self
+      in: AccountScope.self
     )
   }
 }

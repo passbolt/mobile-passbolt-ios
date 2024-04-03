@@ -86,8 +86,17 @@ internal final class YubiKeyViewController: PlainViewController, UIComponent {
           .handleEvents(receiveCompletion: { completion in
             guard case let .failure(error) = completion
             else { return }
-
-						SnackBarMessageEvent.send(.error(error))
+            if self.isYubiKeyNotRecognizedError(error) {
+              Task { [weak self] in
+                await self?
+                  .present(
+                    YubiKeyNotRecognizedAlertViewController.self
+                  )
+              }
+            }
+            else {
+              SnackBarMessageEvent.send(.error(error))
+            }
           })
           .replaceError(with: ())
           .eraseToAnyPublisher()
@@ -96,5 +105,17 @@ internal final class YubiKeyViewController: PlainViewController, UIComponent {
       .receive(on: RunLoop.main)
       .sinkDrop()
       .store(in: cancellables)
+  }
+
+  private func isYubiKeyNotRecognizedError(_ error: Error) -> Bool {
+    if let error = error as? NetworkRequestValidationFailure,
+      let body = error.validationViolations["body"] as? Dictionary<String, Any>,
+      let hotp = body["hotp"] as? Dictionary<String, Any>
+    {
+      return hotp["isSameYubikeyId"] as? String != nil
+    }
+    else {
+      return false
+    }
   }
 }

@@ -21,170 +21,171 @@
 // @since         v1.0
 //
 
-import SwiftUI
-import WebKit
-import CommonModels
-import UICommons
 import AegithalosCocoa
+import CommonModels
+import SwiftUI
+import UICommons
+import WebKit
 
 internal struct DUOAuthorizationWebView: UIViewRepresentable {
 
-	private let request: DUOWebAuthorizationRequest
-	private let receiveTokens: @MainActor (String, String, String) -> Void
-	private let handleFailure: @MainActor (Error) -> Void
+  private let request: DUOWebAuthorizationRequest
+  private let receiveTokens: @MainActor (String, String, String) -> Void
+  private let handleFailure: @MainActor (Error) -> Void
 
-	internal init(
-		request: DUOWebAuthorizationRequest,
-		receiveTokens: @escaping @MainActor (String, String, String) -> Void,
-		handleFailure: @escaping @MainActor (Error) -> Void
-	) {
-		self.request = request
-		self.receiveTokens = receiveTokens
-		self.handleFailure = handleFailure
-	}
+  internal init(
+    request: DUOWebAuthorizationRequest,
+    receiveTokens: @escaping @MainActor (String, String, String) -> Void,
+    handleFailure: @escaping @MainActor (Error) -> Void
+  ) {
+    self.request = request
+    self.receiveTokens = receiveTokens
+    self.handleFailure = handleFailure
+  }
 
-	internal func makeUIView(
-		context: Context
-	) -> WKWebView {
-		DUOWebView(
-			request: self.request,
-			receiveTokens: self.receiveTokens,
-			handleFailure: self.handleFailure
-		)
-	}
+  internal func makeUIView(
+    context: Context
+  ) -> WKWebView {
+    DUOWebView(
+      request: self.request,
+      receiveTokens: self.receiveTokens,
+      handleFailure: self.handleFailure
+    )
+  }
 
-	internal func updateUIView(
-		_ uiView: WKWebView,
-		context: Context
-	) {
-		guard let webView: DUOWebView = uiView as? DUOWebView
-		else { return assertionFailure("Invalid web view type!") }
-		webView.updateRequest(self.request)
-	}
+  internal func updateUIView(
+    _ uiView: WKWebView,
+    context: Context
+  ) {
+    guard let webView: DUOWebView = uiView as? DUOWebView
+    else { return assertionFailure("Invalid web view type!") }
+    webView.updateRequest(self.request)
+  }
 }
 
 internal struct DUOWebAuthorizationRequest: Equatable, Identifiable {
 
-	// each request contains token in url query
-	// allowing to identify a request just by url
-	internal var id: URL { self.url }
+  // each request contains token in url query
+  // allowing to identify a request just by url
+  internal var id: URL { self.url }
 
-	internal var url: URL
-	internal var token: String
+  internal var url: URL
+  internal var token: String
 }
 
 private final class DUOWebView: WKWebView, WKNavigationDelegate, UIScrollViewDelegate {
 
-	private var request: DUOWebAuthorizationRequest
-	private let receiveTokens: @MainActor (String, String, String) -> Void
-	private let handleFailure: @MainActor (Error) -> Void
+  private var request: DUOWebAuthorizationRequest
+  private let receiveTokens: @MainActor (String, String, String) -> Void
+  private let handleFailure: @MainActor (Error) -> Void
 
-	@MainActor fileprivate init(
-		request: DUOWebAuthorizationRequest,
-		receiveTokens: @escaping @Sendable (String, String, String) -> Void,
-		handleFailure: @escaping @Sendable (Error) -> Void
-	) {
-		self.request = request
-		self.receiveTokens = receiveTokens
-		self.handleFailure = handleFailure
-		let configuration: WKWebViewConfiguration = .init()
-		configuration.websiteDataStore = .nonPersistent()
-		super.init(
-			frame: .zero,
-			configuration: configuration
-		)
-		self.navigationDelegate = self
-		self.scrollView.isScrollEnabled = false
-		self.scrollView.minimumZoomScale = 1
-		self.scrollView.maximumZoomScale = 1
-		self.scrollView.delegate = self
-		self.requestAuthorization()
-	}
+  @MainActor fileprivate init(
+    request: DUOWebAuthorizationRequest,
+    receiveTokens: @escaping @Sendable (String, String, String) -> Void,
+    handleFailure: @escaping @Sendable (Error) -> Void
+  ) {
+    self.request = request
+    self.receiveTokens = receiveTokens
+    self.handleFailure = handleFailure
+    let configuration: WKWebViewConfiguration = .init()
+    configuration.websiteDataStore = .nonPersistent()
+    super
+      .init(
+        frame: .zero,
+        configuration: configuration
+      )
+    self.navigationDelegate = self
+    self.scrollView.isScrollEnabled = false
+    self.scrollView.minimumZoomScale = 1
+    self.scrollView.maximumZoomScale = 1
+    self.scrollView.delegate = self
+    self.requestAuthorization()
+  }
 
-	@available(*, unavailable)
-	fileprivate required init?(coder: NSCoder) {
-		fatalError("init(coder:) has not been implemented")
-	}
+  @available(*, unavailable)
+  fileprivate required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
 
-	@MainActor fileprivate func updateRequest(
-		_ request: DUOWebAuthorizationRequest
-	) {
-		guard self.request != request else { return }
-		self.request = request
-		self.requestAuthorization()
-	}
+  @MainActor fileprivate func updateRequest(
+    _ request: DUOWebAuthorizationRequest
+  ) {
+    guard self.request != request else { return }
+    self.request = request
+    self.requestAuthorization()
+  }
 
-	@MainActor private func requestAuthorization() {
-		let request: URLRequest = .init(
-			url: self.request.url,
-			cachePolicy: .reloadIgnoringLocalAndRemoteCacheData,
-			timeoutInterval: 30
-		)
-		self.load(request)
-	}
+  @MainActor private func requestAuthorization() {
+    let request: URLRequest = .init(
+      url: self.request.url,
+      cachePolicy: .reloadIgnoringLocalAndRemoteCacheData,
+      timeoutInterval: 30
+    )
+    self.load(request)
+  }
 
-	fileprivate func webView(
-		_ webView: WKWebView,
-		didFinish navigation: WKNavigation!
-	) {
-		// customize DUO css settings...
-		self.evaluateJavaScript(
-			"""
-			document.body.style.background='#ffffff';
-			document.body.children[0].style.margin='0';
-			"""
-		)
-	}
+  fileprivate func webView(
+    _ webView: WKWebView,
+    didFinish navigation: WKNavigation!
+  ) {
+    // customize DUO css settings...
+    self.evaluateJavaScript(
+      """
+      document.body.style.background='#ffffff';
+      document.body.children[0].style.margin='0';
+      """
+    )
+  }
 
-	fileprivate func webView(
-		_ webView: WKWebView,
-		didFail navigation: WKNavigation!,
-		withError error: Error
-	) {
-		self.handleFailure(error)
-	}
+  fileprivate func webView(
+    _ webView: WKWebView,
+    didFail navigation: WKNavigation!,
+    withError error: Error
+  ) {
+    self.handleFailure(error)
+  }
 
-	fileprivate func webView(
-		_ webView: WKWebView,
-		decidePolicyFor navigationAction: WKNavigationAction
-	) async -> WKNavigationActionPolicy {
-		guard // check if request is a callback to passbolt
-			case .formSubmitted = navigationAction.navigationType,
-			let url: URL = navigationAction.request.url,
-			url.relativePath.hasSuffix("/mfa/verify/duo/callback")
-		else { return .allow }
+  fileprivate func webView(
+    _ webView: WKWebView,
+    decidePolicyFor navigationAction: WKNavigationAction
+  ) async -> WKNavigationActionPolicy {
+    guard  // check if request is a callback to passbolt
+      case .formSubmitted = navigationAction.navigationType,
+      let url: URL = navigationAction.request.url,
+      url.relativePath.hasSuffix("/mfa/verify/duo/callback")
+    else { return .allow }
 
-		guard // check if it contains duo code and state token
-			let query: String = navigationAction.request.url?.query,
-			let codeRange = query.range(of: "duo_code="),
-			let stateRange = query.range(of: "state=")
-		else {
-			self.handleFailure(DUOAuthorizationFailure.error())
-			return .cancel
-		}
+    guard  // check if it contains duo code and state token
+      let query: String = navigationAction.request.url?.query,
+      let codeRange = query.range(of: "duo_code="),
+      let stateRange = query.range(of: "state=")
+    else {
+      self.handleFailure(DUOAuthorizationFailure.error())
+      return .cancel
+    }
 
-		self.receiveTokens(
-			String( // find duo code
-				query[codeRange.upperBound...]
-					.prefix(
-						while: { !$0.isWhitespace && $0 != "&" }
-					)
-			),
-			String( // find duo state token
-				query[stateRange.upperBound...]
-					.prefix(
-						while: { !$0.isWhitespace && $0 != "&" }
-					)
-			),
-			// use passbolt state token from request
-			self.request.token
-		)
-		return .cancel
-	}
+    self.receiveTokens(
+      String(  // find duo code
+        query[codeRange.upperBound...]
+          .prefix(
+            while: { !$0.isWhitespace && $0 != "&" }
+          )
+      ),
+      String(  // find duo state token
+        query[stateRange.upperBound...]
+          .prefix(
+            while: { !$0.isWhitespace && $0 != "&" }
+          )
+      ),
+      // use passbolt state token from request
+      self.request.token
+    )
+    return .cancel
+  }
 
-	fileprivate func viewForZooming(
-		in scrollView: UIScrollView
-	) -> UIView? {
-		.none // prevent zoom
-	}
+  fileprivate func viewForZooming(
+    in scrollView: UIScrollView
+  ) -> UIView? {
+    .none  // prevent zoom
+  }
 }

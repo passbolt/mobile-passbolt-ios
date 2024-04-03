@@ -36,7 +36,6 @@ extension SessionData {
     let configuration: SessionConfiguration = try features.sessionConfiguration()
 
     let time: OSTime = features.instance()
-    let asyncExecutor: AsyncExecutor = try features.instance()
 
     let usersStoreDatabaseOperation: UsersStoreDatabaseOperation = try features.instance()
     let userGroupsStoreDatabaseOperation: UserGroupsStoreDatabaseOperation = try features.instance()
@@ -56,8 +55,7 @@ extension SessionData {
 
     let refreshTask: CriticalState<Task<Void, Error>?> = .init(.none)
 
-    // initial refresh after loading
-    asyncExecutor.schedule {
+    Task {  // initial refresh after loading
       do {
         try await refreshIfNeeded()
       }
@@ -76,8 +74,8 @@ extension SessionData {
         Diagnostics.logger.info("...users data refresh finished!")
       }
       catch {
-				Diagnostics.logger.info("...users data refresh failed!")
-				throw error
+        Diagnostics.logger.info("...users data refresh failed!")
+        throw error
       }
     }
 
@@ -91,13 +89,13 @@ extension SessionData {
         Diagnostics.logger.info("...user groups data refresh finished!")
       }
       catch {
-				Diagnostics.logger.info("...user groups data refresh failed!")
+        Diagnostics.logger.info("...user groups data refresh failed!")
         throw error
       }
     }
 
     @Sendable nonisolated func refreshFolders() async throws {
-      guard configuration.foldersEnabled
+      guard configuration.folders.enabled
       else {
         return Diagnostics.logger.info("Refreshing folders skipped, feature disabled!")
       }
@@ -110,7 +108,7 @@ extension SessionData {
         Diagnostics.logger.info("...folders data refresh finished!")
       }
       catch {
-				Diagnostics.logger.info("...folders data refresh failed!")
+        Diagnostics.logger.info("...folders data refresh failed!")
         throw error
       }
     }
@@ -129,7 +127,7 @@ extension SessionData {
         Diagnostics.logger.info("...resources data refresh finished!")
       }
       catch {
-				Diagnostics.logger.info("...resources data refresh failed!")
+        Diagnostics.logger.info("...resources data refresh failed!")
         throw error
       }
     }

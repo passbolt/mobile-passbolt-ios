@@ -80,7 +80,8 @@ extension UserGroupPermissionEditController: ComponentController {
           .map { user in
             .user(
               user.id,
-              avatarImage: userAvatarImageFetch(user.id)
+              avatarImage: userAvatarImageFetch(user.id),
+              isSuspended: user.isSuspended
             )
           }
       )

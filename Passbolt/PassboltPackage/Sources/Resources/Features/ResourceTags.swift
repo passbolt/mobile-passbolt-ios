@@ -42,7 +42,6 @@ public struct ResourceTags {
 
 extension ResourceTags: LoadableFeature {
 
-
   #if DEBUG
   public static var placeholder: Self {
     Self(

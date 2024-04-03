@@ -36,18 +36,14 @@ internal struct ResourceFolderMenuView: ControlledView {
   internal var body: some View {
     WithViewState(from: self.controller) { (state: ViewState) in
       DrawerMenu(
-        closeTap: {
-          self.controller.close()
-        },
+        closeTap: self.controller.close,
         title: {
           Text(state.folderName)
         },
         content: {
           VStack(spacing: 0) {
             DrawerMenuItemView(
-              action: {
-                await self.controller.openDetails()
-              },
+              action: self.controller.openDetails,
               title: {
                 Text(
                   displayable: .localized(

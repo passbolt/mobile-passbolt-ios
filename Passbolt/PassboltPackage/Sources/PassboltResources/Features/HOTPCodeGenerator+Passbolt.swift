@@ -32,84 +32,83 @@ extension HOTPCodeGenerator {
 
   @MainActor fileprivate static func load(
     features: Features
-	) throws -> Self {
-		let hmac: HMAC = features.instance()
+  ) throws -> Self {
+    let hmac: HMAC = features.instance()
 
-		@Sendable nonisolated func prepare(
-			with parameters: Parameters
-		) -> @Sendable (UInt64) -> HOTPValue {
-			let computeHash: (_ key: Data, _ value: Data) -> Data
-			switch parameters.algorithm {
-			case .sha1:
-				computeHash = hmac.sha1
+    @Sendable nonisolated func prepare(
+      with parameters: Parameters
+    ) -> @Sendable (UInt64) -> HOTPValue {
+      let computeHash: (_ key: Data, _ value: Data) -> Data
+      switch parameters.algorithm {
+      case .sha1:
+        computeHash = hmac.sha1
 
-			case .sha256:
-				computeHash = hmac.sha256
+      case .sha256:
+        computeHash = hmac.sha256
 
-			case .sha512:
-				computeHash = hmac.sha512
-			}
+      case .sha512:
+        computeHash = hmac.sha512
+      }
 
-			let secretData: Data =
-				.init(base32Encoded: parameters.sharedSecret)
-			?? parameters
-				.sharedSecret
-				.data(using: .utf8)
-			?? .init()
+      let secretData: Data =
+        .init(base32Encoded: parameters.sharedSecret)
+        ?? parameters
+        .sharedSecret
+        .data(using: .utf8)
+        ?? .init()
 
-			let digits: Int32 = Int32(parameters.digits)
-			let digitsMultiplier: Int32 = {
-				var result: Int32 = 1
-				for _ in 0 ..< digits {
-					result *= 10
-				}
-				return result
-			}()
+      let digits: Int32 = Int32(parameters.digits)
+      let digitsMultiplier: Int32 = {
+        var result: Int32 = 1
+        for _ in 0 ..< digits {
+          result *= 10
+        }
+        return result
+      }()
 
+      @Sendable nonisolated func generate(
+        using counter: UInt64
+      ) -> HOTPValue {
+        let counterData: Data = withUnsafeBytes(
+          of: counter.bigEndian
+        ) { (bytes: UnsafeRawBufferPointer) in
+          Data(bytes)
+        }
 
-			@Sendable nonisolated func generate(
-				using counter: UInt64
-			) -> HOTPValue {
-				let counterData: Data = withUnsafeBytes(
-					of: counter.bigEndian
-				) { (bytes: UnsafeRawBufferPointer) in
-					Data(bytes)
-				}
+        let hash: Data = computeHash(secretData, counterData)
+        let offset: Int = (hash.last.map(Int.init) ?? 0) & 0x0f
 
-				let hash: Data = computeHash(secretData, counterData)
-				let offset: Int = (hash.last.map(Int.init) ?? 0) & 0x0f
+        var rawValue: Int32 = .init(littleEndian: 0)
+        withUnsafeMutableBytes(
+          of: &rawValue
+        ) { (buffer: UnsafeMutableRawBufferPointer) in
+          buffer[0] = hash[offset + 3]
+          buffer[1] = hash[offset + 2]
+          buffer[2] = hash[offset + 1]
+          buffer[3] = hash[offset] & 0x7f
+        }
 
-				var rawValue: Int32 = .init(littleEndian: 0)
-				withUnsafeMutableBytes(
-					of: &rawValue
-				) { (buffer: UnsafeMutableRawBufferPointer) in
-					buffer[0] = hash[offset + 3]
-					buffer[1] = hash[offset + 2]
-					buffer[2] = hash[offset + 1]
-					buffer[3] = hash[offset] & 0x7f
-				}
+        let rawOTP: Int32 = rawValue % digitsMultiplier
 
-				let rawOTP: Int32 = rawValue % digitsMultiplier
+        var otpString: String = .init(rawOTP)
+        while otpString.count < digits {
+          otpString = "0" + otpString
+        }
 
-				var otpString: String = .init(rawOTP)
-				while otpString.count < digits {
-					otpString = "0" + otpString
-				}
+        return HOTPValue(
+          resourceID: parameters.resourceID,
+          otp: OTP(rawValue: otpString),
+          counter: counter
+        )
+      }
 
-				return HOTPValue(
-					resourceID: parameters.resourceID,
-					otp: OTP(rawValue: otpString),
-					counter: counter
-				)
-			}
+      return generate(using:)
+    }
 
-			return generate(using:)
-		}
-
-		return .init(
-			prepare: prepare(with:)
-		)
-	}
+    return .init(
+      prepare: prepare(with:)
+    )
+  }
 }
 
 extension FeaturesRegistry {

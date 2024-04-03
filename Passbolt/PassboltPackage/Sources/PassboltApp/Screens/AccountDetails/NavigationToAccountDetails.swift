@@ -32,7 +32,7 @@ extension NavigationToAccountDetails {
 
   fileprivate static var live: FeatureLoader {
     legacyPushTransition(
-      toLegacy: AccountDetailsViewController.self
+      to: AccountDetailsView.self
     )
   }
 }

@@ -25,15 +25,15 @@ import Display
 
 internal struct ExternalActivityNavigationView: ControlledView {
 
-	internal let controller: ExternalActivityNavigationViewController
+  internal let controller: ExternalActivityNavigationViewController
 
-	init(
-		controller: ExternalActivityNavigationViewController
-	) {
-		self.controller = controller
-	}
+  init(
+    controller: ExternalActivityNavigationViewController
+  ) {
+    self.controller = controller
+  }
 
-	internal var body: some View {
-		ExternalActivityView(with: self.controller.configuration)
-	}
+  internal var body: some View {
+    ExternalActivityView(with: self.controller.configuration)
+  }
 }

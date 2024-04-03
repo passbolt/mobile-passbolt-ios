@@ -27,14 +27,14 @@ public struct CommonListRow<Content, Accessory>: View
 where Content: View, Accessory: View {
 
   private let content: @MainActor () -> Content
-  private let contentAction: (@MainActor () async -> Void)?
+  private let contentAction: (@MainActor () async throws -> Void)?
   private let accessory: @MainActor () -> Accessory
-  private let accessoryAction: (@MainActor () async -> Void)?
+  private let accessoryAction: (@MainActor () async throws -> Void)?
 
   public init(
-    contentAction: (@MainActor () async -> Void)? = .none,
+    contentAction: (@MainActor () async throws -> Void)? = .none,
     @ViewBuilder content: @escaping @MainActor () -> Content,
-    accessoryAction: (@MainActor () async -> Void)? = .none,
+    accessoryAction: (@MainActor () async throws -> Void)? = .none,
     @ViewBuilder accessory: @escaping @MainActor () -> Accessory
   ) {
     self.contentAction = contentAction
@@ -44,7 +44,7 @@ where Content: View, Accessory: View {
   }
 
   public init(
-    contentAction: (@MainActor () async -> Void)? = .none,
+    contentAction: (@MainActor () async throws -> Void)? = .none,
     @ViewBuilder content: @escaping @MainActor () -> Content
   ) where Accessory == EmptyView {
     self.contentAction = contentAction
@@ -55,7 +55,7 @@ where Content: View, Accessory: View {
 
   public init(
     label: DisplayableString,
-    contentAction: (@MainActor () async -> Void)? = .none
+    contentAction: (@MainActor () async throws -> Void)? = .none
   ) where Content == Text, Accessory == EmptyView {
     self.contentAction = contentAction
     self.content = {

@@ -21,14 +21,15 @@
 // @since         v1.0
 //
 
-public protocol FeatureConfigItem {
+public struct FoldersFeatureConfiguration {
 
-  static var `default`: Self { get }
-}
+  public var enabled: Bool
 
-extension FeatureConfigItem {
-
-  public static var identifier: AnyHashable {
-    ObjectIdentifier(Self.self)
+  public init(
+    enabled: Bool
+  ) {
+    self.enabled = enabled
   }
 }
+
+extension FoldersFeatureConfiguration: Equatable {}

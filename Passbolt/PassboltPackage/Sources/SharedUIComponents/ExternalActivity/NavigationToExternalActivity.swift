@@ -26,26 +26,26 @@ import FeatureScopes
 
 public enum ExternalActivityNavigationDestination: NavigationDestination {
 
-	public typealias TransitionContext = ExternalActivityConfiguration
+  public typealias TransitionContext = ExternalActivityConfiguration
 }
 
 public typealias NavigationToExternalActivity = NavigationTo<ExternalActivityNavigationDestination>
 
 extension NavigationToExternalActivity {
 
-	fileprivate static var live: FeatureLoader {
-		legacySheetPresentationTransition(
-			to: ExternalActivityNavigationView.self
-		)
-	}
+  fileprivate static var live: FeatureLoader {
+    legacySheetPresentationTransition(
+      to: ExternalActivityNavigationView.self
+    )
+  }
 }
 
 extension FeaturesRegistry {
 
-	public mutating func useLiveNavigationToExternalActivity() {
-		self.use(
-			NavigationToExternalActivity.live,
-			in: RootFeaturesScope.self
-		)
-	}
+  public mutating func useLiveNavigationToExternalActivity() {
+    self.use(
+      NavigationToExternalActivity.live,
+      in: RootFeaturesScope.self
+    )
+  }
 }

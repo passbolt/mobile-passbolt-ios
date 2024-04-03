@@ -22,63 +22,64 @@
 //
 
 import NetworkOperations
+
 import struct Foundation.URL
 
 // MARK: Implementation
 
 extension DUOAuthorizationCallbackNetworkOperation {
 
-	@Sendable fileprivate static func requestPreparation(
-		_ input: Input
-	) -> Mutation<HTTPRequest> {
-		.combined(
-			.pathSuffix("/mfa/verify/duo/callback"),
-			.queryItem("state", value: input.duoToken),
-			.queryItem("duo_code", value: input.duoCode),
-			.queryItem("mobile", value: "1"),
-			.header("Cookie", value: "passbolt_duo_state=\(input.passboltToken)"),
-			.method(.get)
-		)
-	}
+  @Sendable fileprivate static func requestPreparation(
+    _ input: Input
+  ) -> Mutation<HTTPRequest> {
+    .combined(
+      .pathSuffix("/mfa/verify/duo/callback"),
+      .queryItem("state", value: input.duoToken),
+      .queryItem("duo_code", value: input.duoCode),
+      .queryItem("mobile", value: "1"),
+      .header("Cookie", value: "passbolt_duo_state=\(input.passboltToken)"),
+      .method(.get)
+    )
+  }
 
-	@Sendable fileprivate static func responseDecoder(
-		_ input: Input,
-		_ response: HTTPResponse
-	) throws -> Output {
-		guard
-			let cookieHeaderValue: String = response.headers["Set-Cookie"],
-			let cookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")
-		else {
-			throw
-				NetworkResponseDecodingFailure
-				.error(
-					"Failed to find DUO mfa cookie",
-					response: response
-				)
-		}
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    guard
+      let cookieHeaderValue: String = response.headers["Set-Cookie"],
+      let cookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")
+    else {
+      throw
+        NetworkResponseDecodingFailure
+        .error(
+          "Failed to find DUO mfa cookie",
+          response: response
+        )
+    }
 
-		return .init(
-			mfaToken: .init(
-				rawValue: String(
-					cookieHeaderValue[cookieBounds.upperBound...]
-						.prefix(
-							while: { !$0.isWhitespace && $0 != "," && $0 != ";" }
-						)
-				)
-			)
-		)
-	}
+    return .init(
+      mfaToken: .init(
+        rawValue: String(
+          cookieHeaderValue[cookieBounds.upperBound...]
+            .prefix(
+              while: { !$0.isWhitespace && $0 != "," && $0 != ";" }
+            )
+        )
+      )
+    )
+  }
 }
 
 extension FeaturesRegistry {
 
-	internal mutating func usePassboltDUOAuthorizationCallbackNetworkOperation() {
-		self.use(
-			.networkOperationWithSession(
-				of: DUOAuthorizationCallbackNetworkOperation.self,
-				requestPreparation: DUOAuthorizationCallbackNetworkOperation.requestPreparation(_:),
-				responseDecoding: DUOAuthorizationCallbackNetworkOperation.responseDecoder(_:_:)
-			)
-		)
-	}
+  internal mutating func usePassboltDUOAuthorizationCallbackNetworkOperation() {
+    self.use(
+      .networkOperationWithSession(
+        of: DUOAuthorizationCallbackNetworkOperation.self,
+        requestPreparation: DUOAuthorizationCallbackNetworkOperation.requestPreparation(_:),
+        responseDecoding: DUOAuthorizationCallbackNetworkOperation.responseDecoder(_:_:)
+      )
+    )
+  }
 }

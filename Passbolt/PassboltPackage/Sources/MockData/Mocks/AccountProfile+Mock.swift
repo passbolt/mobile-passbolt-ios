@@ -69,4 +69,10 @@ extension AccountWithProfile {
     avatarImageURL: .mock_avatar_frances,
     fingerprint: "FINGERPRINT_MOCK_FRANCES"
   )
+
+  public static func mockWith(_ mock: AccountWithProfile, label: String) -> AccountWithProfile {
+    var mock = mock
+    mock.label = label
+    return mock
+  }
 }

@@ -21,45 +21,24 @@
 // @since         v1.0
 //
 
-import NetworkOperations
+import Database
 
-// MARK: Implementation
+// swift-format-ignore: AlwaysUseLowerCamelCase
+extension SQLiteMigration {
 
-extension ConfigurationFetchNetworkOperation {
-
-  @Sendable fileprivate static func requestPreparation(
-    _ input: Input
-  ) -> Mutation<HTTPRequest> {
-    .combined(
-      .pathSuffix("/settings.json"),
-      .queryItem("api-version", value: "v2"),
-      .method(.get)
-    )
-  }
-
-  @Sendable fileprivate static func responseDecoder(
-    _ input: Input,
-    _ response: HTTPResponse
-  ) throws -> Output {
-    try NetworkResponseDecoder<Input, CommonNetworkResponse<Output>>
-      .bodyAsJSON()
-      .decode(
-        input,
-        response
-      )
-      .body
-  }
-}
-
-extension FeaturesRegistry {
-
-  internal mutating func usePassboltConfigurationFetchNetworkOperation() {
-    self.use(
-      .networkOperationWithSession(
-        of: ConfigurationFetchNetworkOperation.self,
-        requestPreparation: ConfigurationFetchNetworkOperation.requestPreparation(_:),
-        responseDecoding: ConfigurationFetchNetworkOperation.responseDecoder(_:_:)
-      )
-    )
+  internal static var migration_17: Self {
+    [
+      // add isSuspended flag to user
+      """
+      ALTER TABLE
+        users
+      ADD
+        isSuspended BOOL DEFAULT false;
+      """,
+      // - version bump - //
+      """
+      PRAGMA user_version = 18; -- persistent, used to track schema version
+      """,
+    ]
   }
 }

@@ -28,7 +28,7 @@ import UIComponents
 
 internal struct SettingsAutoFillController {
 
-  internal var openSystemSettings: @MainActor () -> Void
+  internal var openSystemSettings: @MainActor () async throws -> Void
 }
 
 extension SettingsAutoFillController: UIController {
@@ -43,18 +43,10 @@ extension SettingsAutoFillController: UIController {
     try features.ensureScope(SettingsScope.self)
     try features.ensureScope(SessionScope.self)
 
-    let asyncExecutor: AsyncExecutor = try features.instance()
     let linkOpener: OSLinkOpener = features.instance()
 
-    func openSystemSettings() {
-      asyncExecutor
-        .scheduleCatching(
-          failMessage: "Navigation to system settings failed!",
-          behavior: .reuse
-        ) {
-          try await linkOpener
-            .openSystemSettings()
-        }
+    func openSystemSettings() async throws {
+      try await linkOpener.openSystemSettings()
     }
 
     return Self(

@@ -32,7 +32,6 @@ internal final class ResourceFolderDetailsController: ViewController {
 
   internal var viewState: ViewStateSource<ViewState>
 
-  private let asyncExecutor: AsyncExecutor
   private let sessionData: SessionData
   private let navigation: DisplayNavigation
   private let users: Users
@@ -51,10 +50,12 @@ internal final class ResourceFolderDetailsController: ViewController {
         scope: ResourceFolderScope.self,
         context: context
       )
+
+    let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
+
     self.context = context
     self.features = features
 
-    self.asyncExecutor = try features.instance()
     self.sessionData = try features.instance()
     self.navigation = try features.instance()
     self.users = try features.instance()
@@ -64,55 +65,41 @@ internal final class ResourceFolderDetailsController: ViewController {
       initial: .init(
         folderName: "",
         folderLocation: .init(),
+        permissionsListVisible: sessionConfiguration.share.showMembersList,
         folderPermissionItems: .init(),
         folderShared: false
-      )
-    )
+      ),
+      updateFrom: self.resourceFolderController.state,
+      update: { [users] updateView, update in
+        await consumingErrors {
+          let resourceFolder: ResourceFolder = try update.value
+          let folderPermissionsItems =
+            try await resourceFolder
+            .permissions
+            .asyncMap { (permission: ResourceFolderPermission) -> OverlappingAvatarStackView.Item in
+              switch permission {
+              case let .user(userID, _, _):
+                return .user(
+                  userID,
+                  avatarImage: { try? await users.userAvatarImage(userID) },
+                  isSuspended: try await users.userDetails(userID).isSuspended
+                )
 
-    @Sendable nonisolated func userAvatarImageFetch(
-      _ userID: User.ID
-    ) -> () async -> Data? {
-      { [users] in
-        do {
-          return try await users.userAvatarImage(userID)
-        }
-        catch {
-          error.logged()
-          return nil
-        }
-      }
-    }
-
-    self.asyncExecutor.scheduleIteration(
-      over: self.resourceFolderController.state,
-      failMessage: "Resource folder details updates broken!",
-      failAction: { (error: Error) in
-				SnackBarMessageEvent.send(.error(error))
-      }
-    ) { [viewState] (update: Update<ResourceFolder>) in
-      let resourceFolder: ResourceFolder = try update.value
-      await viewState.update { viewState in
-        viewState.folderName = resourceFolder.name
-        viewState.folderLocation = resourceFolder.path.map(\.name)
-        viewState.folderPermissionItems = resourceFolder
-          .permissions
-          .map { (permission: ResourceFolderPermission) -> OverlappingAvatarStackView.Item in
-            switch permission {
-            case let .user(userID, _, _):
-              return .user(
-                userID,
-                avatarImage: userAvatarImageFetch(userID)
-              )
-
-            case let .userGroup(userGroupID, _, _):
-              return .userGroup(
-                userGroupID
-              )
+              case let .userGroup(userGroupID, _, _):
+                return .userGroup(
+                  userGroupID
+                )
+              }
             }
+          updateView { viewState in
+            viewState.folderName = resourceFolder.name
+            viewState.folderLocation = resourceFolder.path.map(\.name)
+            viewState.folderPermissionItems = folderPermissionsItems
+            viewState.folderShared = resourceFolder.shared
           }
-        viewState.folderShared = resourceFolder.shared
+        }
       }
-    }
+    )
   }
 }
 
@@ -122,6 +109,7 @@ extension ResourceFolderDetailsController {
 
     internal var folderName: String
     internal var folderLocation: Array<String>
+    internal var permissionsListVisible: Bool
     internal var folderPermissionItems: Array<OverlappingAvatarStackView.Item>
     internal var folderShared: Bool
   }
@@ -129,31 +117,23 @@ extension ResourceFolderDetailsController {
 
 extension ResourceFolderDetailsController {
 
-  internal final func openLocationDetails() {
-    self.asyncExecutor.scheduleCatching(
-      behavior: .reuse
-    ) { [context, features, navigation] in
-      try await navigation
-        .push(
-          ResourceFolderLocationDetailsView.self,
-          controller:
-            features
-            .instance(context: context)
-        )
-    }
+  internal final func openLocationDetails() async throws {
+    try await self.navigation
+      .push(
+        ResourceFolderLocationDetailsView.self,
+        controller:
+          self.features
+          .instance(context: context)
+      )
   }
 
-  internal final func openPermissionDetails() {
-    self.asyncExecutor.scheduleCatching(
-      behavior: .reuse
-    ) { [context, features, navigation] in
-      try await navigation
-        .push(
-          ResourceFolderPermissionListView.self,
-          controller:
-            features
-            .instance(context: context)
-        )
-    }
+  internal final func openPermissionDetails() async throws {
+    try await self.navigation
+      .push(
+        ResourceFolderPermissionListView.self,
+        controller:
+          self.features
+          .instance(context: context)
+      )
   }
 }

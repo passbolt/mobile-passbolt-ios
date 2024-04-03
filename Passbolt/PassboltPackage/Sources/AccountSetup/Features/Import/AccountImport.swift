@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Accounts
 import CommonModels
 import Features
 
@@ -33,6 +34,8 @@ public struct AccountImport {
   public var processPayload: (String) -> AnyPublisher<Never, Error>
   public var completeTransfer: (Passphrase) -> AnyPublisher<Never, Error>
   public var avatarPublisher: () -> AnyPublisher<Data, Error>
+  public var checkIfAccountExist: (AccountTransferData) -> Bool
+  public var importAccountByPayload: (AccountTransferData) -> Void
   public var cancelTransfer: () -> Void
 
   public init(
@@ -41,6 +44,8 @@ public struct AccountImport {
     processPayload: @escaping (String) -> AnyPublisher<Never, Error>,
     completeTransfer: @escaping (Passphrase) -> AnyPublisher<Never, Error>,
     avatarPublisher: @escaping () -> AnyPublisher<Data, Error>,
+    checkIfAccountExist: @escaping (AccountTransferData) -> Bool,
+    importAccountByPayload: @escaping (AccountTransferData) -> Void,
     cancelTransfer: @escaping () -> Void
   ) {
     self.progressPublisher = progressPublisher
@@ -48,6 +53,8 @@ public struct AccountImport {
     self.processPayload = processPayload
     self.completeTransfer = completeTransfer
     self.avatarPublisher = avatarPublisher
+    self.checkIfAccountExist = checkIfAccountExist
+    self.importAccountByPayload = importAccountByPayload
     self.cancelTransfer = cancelTransfer
   }
 }
@@ -84,7 +91,6 @@ extension AccountImport {
 
 extension AccountImport: LoadableFeature {
 
-
   #if DEBUG
   public static var placeholder: Self {
     Self(
@@ -93,6 +99,8 @@ extension AccountImport: LoadableFeature {
       processPayload: unimplemented1(),
       completeTransfer: unimplemented1(),
       avatarPublisher: unimplemented0(),
+      checkIfAccountExist: unimplemented1(),
+      importAccountByPayload: unimplemented1(),
       cancelTransfer: unimplemented0()
     )
   }

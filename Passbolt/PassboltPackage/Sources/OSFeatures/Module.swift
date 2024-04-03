@@ -30,7 +30,7 @@ extension FeaturesRegistry {
 
   public mutating func useOSFeatures() {
     self.useOSTime()
-		self.useOSCalendar()
+    self.useOSCalendar()
     self.useOSFiles()
     self.useOSCamera()
     self.useOSBiometry()
@@ -47,7 +47,6 @@ extension FeaturesRegistry {
     self.useMDMConfiguration()
     self.usePassboltNetworkRequestExecutor()
     self.usePassboltSharedOSStoredProperties()
-    self.usePassboltAsyncExecutor()
     self.useQRCodeGenerator()
   }
 }

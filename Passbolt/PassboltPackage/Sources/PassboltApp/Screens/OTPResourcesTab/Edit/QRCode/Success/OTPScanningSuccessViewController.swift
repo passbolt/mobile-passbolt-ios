@@ -39,8 +39,6 @@ internal final class OTPScanningSuccessViewController: ViewController {
   private let navigationToAttach: NavigationToOTPAttachSelectionList
   private let navigationToOTPResourcesList: NavigationToOTPResourcesList
 
-  private let asyncExecutor: AsyncExecutor
-
   private let context: Context
 
   private let features: Features
@@ -54,8 +52,6 @@ internal final class OTPScanningSuccessViewController: ViewController {
 
     self.features = features
     self.context = context
-
-    self.asyncExecutor = try features.instance()
 
     self.navigationToAttach = try features.instance()
     self.navigationToOTPResourcesList = try features.instance()
@@ -79,8 +75,8 @@ extension OTPScanningSuccessViewController {
 
   internal func updateExistingResource() async {
     await consumingErrors(
-			errorDiagnostics: "Failed to navigate to adding OTP to a resource"
-		) {
+      errorDiagnostics: "Failed to navigate to adding OTP to a resource"
+    ) {
       try await self.navigationToAttach.perform(
         context: .init(
           totpSecret: self.context.totpConfiguration.secret

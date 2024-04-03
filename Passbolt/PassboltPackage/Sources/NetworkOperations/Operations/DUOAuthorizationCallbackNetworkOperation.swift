@@ -23,46 +23,47 @@
 
 import Features
 import Session
+
 import struct Foundation.URL
 
 // MARK: - Interface
 
 public typealias DUOAuthorizationCallbackNetworkOperation =
-	NetworkOperation<DUOAuthorizationCallbackNetworkOperationDescription>
+  NetworkOperation<DUOAuthorizationCallbackNetworkOperationDescription>
 
 public enum DUOAuthorizationCallbackNetworkOperationDescription: NetworkOperationDescription {
 
-	public typealias Input = DUOAuthorizationCallbackNetworkOperationVariable
-	public typealias Output = DUOAuthorizationCallbackNetworkOperationResult
+  public typealias Input = DUOAuthorizationCallbackNetworkOperationVariable
+  public typealias Output = DUOAuthorizationCallbackNetworkOperationResult
 }
 
 public struct DUOAuthorizationCallbackNetworkOperationVariable {
 
-	public var duoCode: String
-	public var duoToken: String
-	public var passboltToken: String
-	public var remember: Bool
+  public var duoCode: String
+  public var duoToken: String
+  public var passboltToken: String
+  public var remember: Bool
 
-	public init(
-		duoCode: String,
-		duoToken: String,
-		passboltToken: String,
-		remember: Bool
-	) {
-		self.duoCode = duoCode
-		self.duoToken = duoToken
-		self.passboltToken = passboltToken
-		self.remember = remember
-	}
+  public init(
+    duoCode: String,
+    duoToken: String,
+    passboltToken: String,
+    remember: Bool
+  ) {
+    self.duoCode = duoCode
+    self.duoToken = duoToken
+    self.passboltToken = passboltToken
+    self.remember = remember
+  }
 }
 
 public struct DUOAuthorizationCallbackNetworkOperationResult {
 
-	public var mfaToken: SessionMFAToken
+  public var mfaToken: SessionMFAToken
 
-	public init(
-		mfaToken: SessionMFAToken
-	) {
-		self.mfaToken = mfaToken
-	}
+  public init(
+    mfaToken: SessionMFAToken
+  ) {
+    self.mfaToken = mfaToken
+  }
 }

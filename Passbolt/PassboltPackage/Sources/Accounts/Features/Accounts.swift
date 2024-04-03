@@ -64,7 +64,6 @@ public struct Accounts {
 
 extension Accounts: LoadableFeature {
 
-
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(

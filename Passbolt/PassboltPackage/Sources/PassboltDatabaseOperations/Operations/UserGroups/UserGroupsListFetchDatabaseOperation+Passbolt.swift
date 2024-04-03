@@ -68,7 +68,8 @@ extension UserGroupsListFetchDatabaseOperation {
           users.firstName AS firstName,
           users.lastName AS lastName,
           users.publicPGPKeyFingerprint AS fingerprint,
-          users.avatarImageURL AS avatarImageURL
+          users.avatarImageURL AS avatarImageURL,
+          users.isSuspended AS isSuspended
         FROM
           users
         INNER JOIN
@@ -108,7 +109,8 @@ extension UserGroupsListFetchDatabaseOperation {
               let firstName: String = dataRow.firstName,
               let lastName: String = dataRow.lastName,
               let fingerprint: Fingerprint = dataRow.fingerprint.flatMap(Fingerprint.init(rawValue:)),
-              let avatarImageURL: URLString = dataRow.avatarImageURL.flatMap(URLString.init(rawValue:))
+              let avatarImageURL: URLString = dataRow.avatarImageURL.flatMap(URLString.init(rawValue:)),
+              let isSuspended: Bool = dataRow.isSuspended
             else {
               throw
                 DatabaseDataInvalid
@@ -122,7 +124,8 @@ extension UserGroupsListFetchDatabaseOperation {
               firstName: firstName,
               lastName: lastName,
               fingerprint: fingerprint,
-              avatarImageURL: avatarImageURL
+              avatarImageURL: avatarImageURL,
+              isSuspended: isSuspended
             )
           }
 

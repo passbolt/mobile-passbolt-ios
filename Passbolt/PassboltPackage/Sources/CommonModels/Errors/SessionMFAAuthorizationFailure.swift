@@ -25,23 +25,23 @@ import Commons
 
 public struct DUOAuthorizationFailure: TheError {
 
-	public static func error(
-		_ message: StaticString = "DUOAuthorizationFailure",
-		file: StaticString = #fileID,
-		line: UInt = #line
-	) -> Self {
-		Self(
-			context: .context(
-				.message(
-					message,
-					file: file,
-					line: line
-				)
-			),
-			displayableMessage: .localized(key: "error.session.authorization.failed")
-		)
-	}
+  public static func error(
+    _ message: StaticString = "DUOAuthorizationFailure",
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    Self(
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
+        )
+      ),
+      displayableMessage: .localized(key: "error.session.authorization.failed")
+    )
+  }
 
-	public var context: DiagnosticsContext
-	public var displayableMessage: DisplayableString
+  public var context: DiagnosticsContext
+  public var displayableMessage: DisplayableString
 }

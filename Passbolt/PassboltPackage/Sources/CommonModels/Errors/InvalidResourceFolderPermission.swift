@@ -23,25 +23,25 @@
 
 public struct InvalidResourceFolderPermission: TheError {
 
-	public static func error(
-		message: StaticString = "InvalidResourceFolderPermission",
-		underlyingError: Error? = .none,
-		file: StaticString = #fileID,
-		line: UInt = #line
-	) -> Self {
-		Self(
-			context: .context(
-				.message(
-					message,
-					file: file,
-					line: line
-				)
-			),
-			underlyingError: underlyingError
-		)
-	}
+  public static func error(
+    message: StaticString = "InvalidResourceFolderPermission",
+    underlyingError: Error? = .none,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    Self(
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
+        )
+      ),
+      underlyingError: underlyingError
+    )
+  }
 
-	public var context: DiagnosticsContext
-	public var underlyingError: Error?
-	public var displayableMessage: DisplayableString = .localized(key: "error.resource.folder.permission.invalid")
+  public var context: DiagnosticsContext
+  public var underlyingError: Error?
+  public var displayableMessage: DisplayableString = .localized(key: "error.resource.folder.permission.invalid")
 }

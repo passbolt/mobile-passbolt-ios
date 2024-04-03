@@ -28,20 +28,20 @@ public struct ListRowView<LeftAccessoryView, ContentView, RightAccessoryView>: V
 where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
 
   private let chevronVisible: Bool
-  private let leftAction: (@MainActor () -> Void)?
+  private let leftAction: (@MainActor () async throws -> Void)?
   private let leftAccessory: () -> LeftAccessoryView
-  private let contentAction: @MainActor () -> Void
+  private let contentAction: @MainActor () async throws -> Void
   private let content: () -> ContentView
-  private let rightAction: (@MainActor () -> Void)?
+  private let rightAction: (@MainActor () async throws -> Void)?
   private let rightAccessory: () -> RightAccessoryView
 
   public init(
     chevronVisible: Bool = false,
-    leftAction: (@MainActor () -> Void)? = .none,
+    leftAction: (@MainActor () async throws -> Void)? = .none,
     @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
-    contentAction: @escaping @MainActor () -> Void,
+    contentAction: @escaping @MainActor () async throws -> Void,
     @ViewBuilder content: @escaping () -> ContentView,
-    rightAction: (@MainActor () -> Void)? = .none,
+    rightAction: (@MainActor () async throws -> Void)? = .none,
     @ViewBuilder rightAccessory: @escaping () -> RightAccessoryView
   ) {
     self.chevronVisible = chevronVisible
@@ -55,11 +55,9 @@ where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
 
   public var body: some View {
     HStack(spacing: 0) {
-      if let leftAction: @MainActor () -> Void = self.leftAction {
-        Button(
-          action: {
-            leftAction()
-          },
+      if let leftAction: @MainActor () async throws -> Void = self.leftAction {
+        AsyncButton(
+          action: leftAction,
           label: {
             self.leftAccessory()
               .frame(
@@ -73,11 +71,9 @@ where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
           }
         )
 
-        if let rightAction: @MainActor () -> Void = self.rightAction {
-          Button(
-            action: {
-              self.contentAction()
-            },
+        if let rightAction: @MainActor () async throws -> Void = self.rightAction {
+          AsyncButton(
+            action: self.contentAction,
             label: {
               self.content()
                 .frame(
@@ -93,10 +89,8 @@ where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
             }
           )
 
-          Button(
-            action: {
-              rightAction()
-            },
+          AsyncButton(
+            action: rightAction,
             label: {
               self.rightAccessory()
                 .frame(
@@ -111,10 +105,8 @@ where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
           )
         }
         else {
-          Button(
-            action: {
-              self.contentAction()
-            },
+          AsyncButton(
+            action: self.contentAction,
             label: {
               HStack(spacing: 0) {
                 self.content()
@@ -139,11 +131,9 @@ where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
           )
         }
       }
-      else if let rightAction: @MainActor () -> Void = self.rightAction {
-        Button(
-          action: {
-            self.contentAction()
-          },
+      else if let rightAction: @MainActor () async throws -> Void = self.rightAction {
+        AsyncButton(
+          action: self.contentAction,
           label: {
             HStack(spacing: 0) {
               self.leftAccessory()
@@ -171,10 +161,8 @@ where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
           }
         )
 
-        Button(
-          action: {
-            rightAction()
-          },
+        AsyncButton(
+          action: rightAction,
           label: {
             self.rightAccessory()
               .frame(
@@ -189,10 +177,8 @@ where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
         )
       }
       else {
-        Button(
-          action: {
-            self.contentAction()
-          },
+        AsyncButton(
+          action: self.contentAction,
           label: {
             HStack(spacing: 0) {
               self.leftAccessory()

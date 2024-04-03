@@ -76,8 +76,6 @@ internal final class ResourceContextualMenuViewController: ViewController {
   private let linkOpener: OSLinkOpener
   private let pasteboard: OSPasteboard
 
-  private let asyncExecutor: AsyncExecutor
-
   private let resourceID: Resource.ID
 
   private let sessionConfiguration: SessionConfiguration
@@ -101,8 +99,6 @@ internal final class ResourceContextualMenuViewController: ViewController {
 
     self.linkOpener = features.instance()
     self.pasteboard = features.instance()
-
-    self.asyncExecutor = try features.instance()
 
     self.navigationToSelf = try features.instance()
     self.navigationToDeleteAlert = try features.instance()
@@ -135,7 +131,7 @@ internal final class ResourceContextualMenuViewController: ViewController {
             accessMenuItems.append(.copyUsername)
           }  // else NOP
 
-          if resource.hasPassword {
+          if resource.hasPassword && sessionConfiguration.resources.passwordCopyEnabled {
             accessMenuItems.append(.copyPassword)
           }  // else NOP
 
@@ -146,7 +142,7 @@ internal final class ResourceContextualMenuViewController: ViewController {
           if resource.hasTOTP {
             accessMenuItems.append(.showOTPMenu)
           }
-          else if sessionConfiguration.totpEnabled && resource.canEdit && resource.canAttachOTP {
+          else if sessionConfiguration.resources.totpEnabled && resource.canEdit && resource.canAttachOTP {
             modifyMenuItems.append(.addOTP)
           }  // else NOP
 
@@ -278,8 +274,8 @@ extension ResourceContextualMenuViewController {
 
       try await self.navigationToSelf.revert()
 
-			SnackBarMessageEvent.send(
-			.info(
+      SnackBarMessageEvent.send(
+        .info(
           .localized(
             key: "resource.menu.item.field.copied",
             arguments: [
@@ -287,7 +283,7 @@ extension ResourceContextualMenuViewController {
             ]
           )
         )
-			)
+      )
     }
   }
 
@@ -328,14 +324,14 @@ extension ResourceContextualMenuViewController {
       let resource: Resource = try await self.resourceController.state.value
       try await self.navigationToSelf.revert()
       if resource.favorite {
-				SnackBarMessageEvent.send(
-				.info(
+        SnackBarMessageEvent.send(
+          .info(
             .localized(
               key: "resource.menu.action.favorite.added",
               arguments: [resource.name]
             )
           )
-				)
+        )
       }
       else {
         SnackBarMessageEvent.send(

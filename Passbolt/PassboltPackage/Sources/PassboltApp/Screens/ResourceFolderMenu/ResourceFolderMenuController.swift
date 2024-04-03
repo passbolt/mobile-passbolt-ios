@@ -29,7 +29,6 @@ internal final class ResourceFolderMenuController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
 
-  private let asyncExecutor: AsyncExecutor
   private let navigation: DisplayNavigation
 
   private let context: Context
@@ -42,7 +41,6 @@ internal final class ResourceFolderMenuController: ViewController {
     self.context = context
     self.features = features
 
-    self.asyncExecutor = try features.instance()
     self.navigation = try features.instance()
 
     self.viewState = .init(
@@ -69,28 +67,22 @@ extension ResourceFolderMenuController {
 
 extension ResourceFolderMenuController {
 
-  internal final func openDetails() {
-    self.asyncExecutor.scheduleCatching(
-      behavior: .reuse
-    ) { [context, features, navigation] in
-      await navigation
-        .dismissLegacySheet(ResourceFolderMenuView.self)
-      try await navigation
-        .push(
-          ResourceFolderDetailsView.self,
-          controller:
-            features
-            .instance(
-              context: context.folderID
-            )
-        )
-    }
+  internal final func openDetails() async throws {
+    await self.navigation
+      .dismissLegacySheet(ResourceFolderMenuView.self)
+    try await self.navigation
+      .push(
+        ResourceFolderDetailsView.self,
+        controller:
+          self.features
+          .instance(
+            context: self.context.folderID
+          )
+      )
   }
 
-  internal final func close() {
-    self.asyncExecutor.schedule(.reuse) { @MainActor [navigation] in
-      await navigation
-        .dismissLegacySheet(ResourceFolderMenuView.self)
-    }
+  internal final func close() async {
+    await self.navigation
+      .dismissLegacySheet(ResourceFolderMenuView.self)
   }
 }

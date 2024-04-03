@@ -32,7 +32,6 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@available(iOS 16.0.0, *)
 @MainActor
 final class HomeSearchControllerTests: MainActorTestCase {
 
@@ -85,9 +84,7 @@ final class HomeSearchControllerTests: MainActorTestCase {
       context: { _ in /* NOP */ }
     )
 
-    controller.presentAccountMenu()
-
-    await self.mockExecutionControl.executeAll()
+    try await controller.presentAccountMenu()
 
     XCTAssertNotNil(result.value)
   }

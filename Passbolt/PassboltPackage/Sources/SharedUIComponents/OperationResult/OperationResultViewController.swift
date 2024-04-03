@@ -30,47 +30,47 @@ import Session
 
 public final class OperationResultViewController: ViewController {
 
-	public struct ViewState: Equatable {
+  public struct ViewState: Equatable {
 
-		internal var image: ImageNameConstant
-		internal var title: DisplayableString
-		internal var message: DisplayableString?
-		internal var actionLabel: DisplayableString
-	}
+    internal var image: ImageNameConstant
+    internal var title: DisplayableString
+    internal var message: DisplayableString?
+    internal var actionLabel: DisplayableString
+  }
 
-	public nonisolated let viewState: ViewStateSource<ViewState>
+  public nonisolated let viewState: ViewStateSource<ViewState>
 
-	internal let configuration: OperationResultConfiguration
+  internal let configuration: OperationResultConfiguration
 
-	private let features: Features
+  private let features: Features
 
-	public init(
-		context: OperationResultConfiguration,
-		features: Features
-	) throws {
-		self.features = features
+  public init(
+    context: OperationResultConfiguration,
+    features: Features
+  ) throws {
+    self.features = features
 
-		self.configuration = context
+    self.configuration = context
 
-		self.viewState = .init(
-			initial: .init(
-				image: configuration.image,
-				title: configuration.title,
-				message: configuration.message,
-				actionLabel: configuration.actionLabel
-			)
-		)
-	}
+    self.viewState = .init(
+      initial: .init(
+        image: configuration.image,
+        title: configuration.title,
+        message: configuration.message,
+        actionLabel: configuration.actionLabel
+      )
+    )
+  }
 }
 
 extension OperationResultViewController {
 
-	@Sendable internal func confirm() async {
-		do {
-			try await self.configuration.confirmation()
-		}
-		catch {
-			error.consume()
-		}
-	}
+  @Sendable internal func confirm() async {
+    do {
+      try await self.configuration.confirmation()
+    }
+    catch {
+      error.consume()
+    }
+  }
 }

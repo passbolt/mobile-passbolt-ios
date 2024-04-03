@@ -54,7 +54,6 @@ public struct ResourceController {
 
 extension ResourceController: LoadableFeature {
 
-
   #if DEBUG
 
   public static var placeholder: Self {
@@ -80,6 +79,6 @@ extension ResourceController {
   }
 
   @Sendable public func firstTOTPSecret() async throws -> TOTPSecret? {
-    return try await self.state.value.firstTOTPSecret
+    try await self.state.value.firstTOTPSecret
   }
 }

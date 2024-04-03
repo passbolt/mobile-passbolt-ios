@@ -41,7 +41,7 @@ extension ResourceSearchController {
     let resourcesListFetchDatabaseOperation: ResourcesListFetchDatabaseOperation = try features.instance()
 
     let filterState: Variable<ResourceSearchFilter> = .init(
-			initial: .init(text: "")
+      initial: .init(text: "")
     )
     let searchState: ComputedVariable<ResourceSearchState> = .init(
       combined: filterState,

@@ -21,73 +21,74 @@
 // @since         v1.0
 //
 
+import CommonModels
 import SwiftUI
 import WebKit
-import CommonModels
 
 public struct WebView: UIViewRepresentable {
 
-	@Binding private var url: URL
+  @Binding private var url: URL
 
-	public init(
-		url: Binding<URL>
-	) {
-		self._url = url
-	}
+  public init(
+    url: Binding<URL>
+  ) {
+    self._url = url
+  }
 
-	public func makeUIView(
-		context: Context
-	) -> WKWebView {
-		EmbedableWebView(
-			url: self._url
-		)
-	}
+  public func makeUIView(
+    context: Context
+  ) -> WKWebView {
+    EmbedableWebView(
+      url: self._url
+    )
+  }
 
-	public func updateUIView(
-		_ uiView: WKWebView,
-		context: Context
-	) {
-		(uiView as? EmbedableWebView)?.reloadIfNeeded()
-	}
+  public func updateUIView(
+    _ uiView: WKWebView,
+    context: Context
+  ) {
+    (uiView as? EmbedableWebView)?.reloadIfNeeded()
+  }
 }
 
 private final class EmbedableWebView: WKWebView, WKNavigationDelegate {
 
-	@Binding fileprivate var urlBinding: URL
+  @Binding fileprivate var urlBinding: URL
 
-	fileprivate init(
-		url: Binding<URL>
-	) {
-		self._urlBinding = url
-		let configuration: WKWebViewConfiguration = .init()
-		configuration.websiteDataStore = .nonPersistent()
-		super.init(
-			frame: .zero,
-			configuration: configuration
-		)
-		self.navigationDelegate = self
-		self.reloadIfNeeded()
-	}
+  fileprivate init(
+    url: Binding<URL>
+  ) {
+    self._urlBinding = url
+    let configuration: WKWebViewConfiguration = .init()
+    configuration.websiteDataStore = .nonPersistent()
+    super
+      .init(
+        frame: .zero,
+        configuration: configuration
+      )
+    self.navigationDelegate = self
+    self.reloadIfNeeded()
+  }
 
-	@available(*, unavailable)
-	fileprivate required init?(coder: NSCoder) {
-		fatalError("init(coder:) has not been implemented")
-	}
+  @available(*, unavailable)
+  fileprivate required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
 
-	fileprivate func reloadIfNeeded() {
-		guard self.url != self.urlBinding else { return }
-		self.load(
-			URLRequest(
-				url: self.urlBinding
-			)
-		)
-	}
+  fileprivate func reloadIfNeeded() {
+    guard self.url != self.urlBinding else { return }
+    self.load(
+      URLRequest(
+        url: self.urlBinding
+      )
+    )
+  }
 
-	fileprivate func webView(
-		_ webView: WKWebView,
-		didFinish navigation: WKNavigation!
-	) {
-		guard let currentURL: URL = self.url else { return }
-		self.urlBinding = currentURL
-	}
+  fileprivate func webView(
+    _ webView: WKWebView,
+    didFinish navigation: WKNavigation!
+  ) {
+    guard let currentURL: URL = self.url else { return }
+    self.urlBinding = currentURL
+  }
 }

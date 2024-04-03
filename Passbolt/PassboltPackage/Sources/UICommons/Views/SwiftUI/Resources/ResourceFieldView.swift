@@ -44,17 +44,17 @@ where ContentView: View {
     self.content = content()
   }
 
-	@MainActor public init(
-		name: DisplayableString,
-		value: String,
-		requiredMark: Bool = false,
-		encryptedMark: Bool? = .none
-	) where ContentView == ResourceFieldPlainValueView {
-		self.name = name
-		self.requiredMark = requiredMark
-		self.encryptedMark = encryptedMark
-		self.content = ResourceFieldPlainValueView(value: value)
-	}
+  @MainActor public init(
+    name: DisplayableString,
+    value: String,
+    requiredMark: Bool = false,
+    encryptedMark: Bool? = .none
+  ) where ContentView == ResourceFieldPlainValueView {
+    self.name = name
+    self.requiredMark = requiredMark
+    self.encryptedMark = encryptedMark
+    self.content = ResourceFieldPlainValueView(value: value)
+  }
 
   public var body: some View {
     VStack(
@@ -82,24 +82,24 @@ where ContentView: View {
 
 public struct ResourceFieldPlainValueView: View {
 
-	private let value: String
+  private let value: String
 
-	public init(
-		value: String
-	) {
-		self.value = value
-	}
+  public init(
+    value: String
+  ) {
+    self.value = value
+  }
 
-	public var body: some View {
-		Text(self.value)
-			.text(
-				.leading,
-				lines: .none,
-				font: .inter(
-					ofSize: 14,
-					weight: .regular
-				),
-				color: .passboltSecondaryText
-			)
-	}
+  public var body: some View {
+    Text(self.value)
+      .text(
+        .leading,
+        lines: .none,
+        font: .inter(
+          ofSize: 14,
+          weight: .regular
+        ),
+        color: .passboltSecondaryText
+      )
+  }
 }

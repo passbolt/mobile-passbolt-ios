@@ -392,29 +392,29 @@ extension AnyUIComponent {
     }
   }
 
-	@MainActor public func push<V>(
-		_ view: V,
-		animated: Bool = true
-	) async where V: SwiftUI.View {
-		guard
-			let navigationController = self as? UINavigationController
-				?? self.navigationController
-				?? self.presentingViewController?.navigationController
-		else { return assertionFailure("It is programmer error to push without navigation controller") }
+  @MainActor public func push<V>(
+    _ view: V,
+    animated: Bool = true
+  ) async where V: SwiftUI.View {
+    guard
+      let navigationController = self as? UINavigationController
+        ?? self.navigationController
+        ?? self.presentingViewController?.navigationController
+    else { return assertionFailure("It is programmer error to push without navigation controller") }
 
-		return await withCheckedContinuation { continuation in
-			CATransaction.begin()
-			CATransaction.setCompletionBlock {
-				continuation.resume()
-			}
-			navigationController
-				.pushViewController(
-					UIHostingController(rootView: view),
-					animated: animated
-				)
-			CATransaction.commit()
-		}
-	}
+    return await withCheckedContinuation { continuation in
+      CATransaction.begin()
+      CATransaction.setCompletionBlock {
+        continuation.resume()
+      }
+      navigationController
+        .pushViewController(
+          UIHostingController(rootView: view),
+          animated: animated
+        )
+      CATransaction.commit()
+    }
+  }
 
   @MainActor public func replace<Component, ReplacedComponent>(
     _: ReplacedComponent.Type,
@@ -813,7 +813,7 @@ extension UIComponent {
     _ type: Component.Type,
     animations: ((_ parent: Self.ContentView, _ removed: Component.ContentView) -> Void)? = nil
   ) async where Component: UIComponent {
-    return await withCheckedContinuation { continuation in
+    await withCheckedContinuation { continuation in
       CATransaction.begin()
       CATransaction.setCompletionBlock {
         continuation.resume()

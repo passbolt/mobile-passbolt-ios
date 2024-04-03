@@ -26,7 +26,7 @@ public enum SessionMFAAuthorizationMethod {
   /// MFA authorization using TOTP.
   case totp(
     Account,
-		code: String,
+    code: String,
     rememberDevice: Bool
   )
   /// MFA authorization using yubiKey.
@@ -34,14 +34,14 @@ public enum SessionMFAAuthorizationMethod {
     Account,
     rememberDevice: Bool
   )
-	/// MFA authorization using yubiKey.
-	case duo(
-		Account,
-		duoCode: String,
-		duoToken: String,
-		passboltToken: String,
-		rememberDevice: Bool
-	)
+  /// MFA authorization using yubiKey.
+  case duo(
+    Account,
+    duoCode: String,
+    duoToken: String,
+    passboltToken: String,
+    rememberDevice: Bool
+  )
 }
 
 extension SessionMFAAuthorizationMethod {
@@ -54,8 +54,8 @@ extension SessionMFAAuthorizationMethod {
     case let .yubiKey(account, _):
       return account
 
-		case let .duo(account, _, _, _, _):
-			return account
+    case let .duo(account, _, _, _, _):
+      return account
     }
   }
 }

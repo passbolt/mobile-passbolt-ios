@@ -25,10 +25,10 @@ import SharedUIComponents
 import UIComponents
 
 internal final class WelcomeScreenViewController: PlainViewController, UIComponent {
-
+  
   internal typealias ContentView = WelcomeScreenView
   internal typealias Controller = WelcomeScreenController
-
+  
   internal static func instance(
     using controller: Controller,
     with components: UIComponentFactory,
@@ -40,12 +40,12 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
       cancellables: cancellables
     )
   }
-
+  
   internal private(set) lazy var contentView: WelcomeScreenView = .init()
   internal let components: UIComponentFactory
-
+  
   private let controller: WelcomeScreenController
-
+  
   internal init(
     using controller: Controller,
     with components: UIComponentFactory,
@@ -57,8 +57,10 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
       .init(
         cancellables: cancellables
       )
+    // Listen to NotificationCenter for the help menu
+    NotificationCenter.default.addObserver(self, selector: #selector(handleHelpMenuAccountkitAction), name: .helpMenuActionAccountKitNotification, object: nil)
   }
-
+  
   internal func setupView() {
     mut(navigationItem) {
       .rightBarButtonItem(
@@ -75,10 +77,49 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
           .instantiate()
       )
     }
-
+    
     setupSubscriptions()
   }
-
+  
+  /**
+   * Handles the action triggered by the Help menu for AccountKit-related notifications.
+   *
+   * This function checks the type of notification and navigates to the appropriate view controller.
+   * If the notification contains `AccountTransferData`, it navigates to the success view controller.
+   * Otherwise, it checks for specific error types and navigates to corresponding error view controllers.
+   *
+   * @param notification The notification object received, which contains either `AccountTransferData`
+   *                     or an error object indicating the type of error encountered.
+   */
+  @objc private func handleHelpMenuAccountkitAction(notification: Notification) {
+    // Perform the navigation or other actions when the notification is received
+    guard let accountTransferData = notification.object as? AccountTransferData else {
+      Task {
+        // Determine the error type from the notification object
+        switch notification.object {
+        case is AccountKitImportFailure:
+          await self.push(AccountKitImportFailureViewController.self, animated: true)
+        case is AccountKitImportInvalidSignature:
+          await self.push(AccountKitSignatureErrorViewController.self, animated: true)
+        case is AccountKitAccountAlreadyExist:
+          await self.push(AccountKitAccountAlreadyExistViewController.self, animated: true)
+        default:
+          // If the error type is not recognized, do not perform any navigation
+          return
+        }
+      }
+      // Do not go further
+      return
+    }
+    // If AccountTransferData is present, navigate to the success view controller
+    Task {
+      await self.push(
+        AccountKitTransferSuccessViewController.self,
+        in: accountTransferData,
+        animated: true)
+    }
+  }
+  
   private func setupSubscriptions() {
     contentView.tapAccountPublisher
       .receive(on: RunLoop.main)
@@ -86,14 +127,14 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
         self?.controller.pushTransferInfo()
       }
       .store(in: cancellables)
-
+    
     contentView.tapNoAccountPublisher
       .receive(on: RunLoop.main)
       .sink { [weak self] in
         self?.controller.presentNoAccountAlert()
       }
       .store(in: cancellables)
-
+    
     controller.noAccountAlertPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] presented in
@@ -112,7 +153,7 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
           }
       }
       .store(in: cancellables)
-
+    
     controller.pushTransferInfoPublisher()
       .sink { [weak self] in
         self?.cancellables

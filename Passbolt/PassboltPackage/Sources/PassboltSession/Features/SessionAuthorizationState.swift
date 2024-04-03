@@ -61,7 +61,6 @@ internal struct SessionAuthorizationState {
 
 extension SessionAuthorizationState: LoadableFeature {
 
-
   #if DEBUG
   nonisolated static var placeholder: Self {
     Self(

@@ -50,10 +50,10 @@ extension Users {
       for userID: User.ID
     ) async throws -> UserDetailsDSV {
       try await features
-				.branchIfNeeded(
-					scope: UserScope.self,
-					context: userID
-				)
+        .branchIfNeeded(
+          scope: UserScope.self,
+          context: userID
+        )
         .instance(of: UserDetails.self)
         .details()
     }
@@ -63,11 +63,11 @@ extension Users {
       resourceID: Resource.ID
     ) async throws -> Permission? {
       try await features
-				.branchIfNeeded(
-					scope: UserScope.self,
-					context: userID
-				)
-				.instance(of: UserDetails.self)
+        .branchIfNeeded(
+          scope: UserScope.self,
+          context: userID
+        )
+        .instance(of: UserDetails.self)
         .permissionToResource(resourceID)
     }
 
@@ -75,11 +75,11 @@ extension Users {
       for userID: User.ID
     ) async throws -> Data? {
       try await features
-				.branchIfNeeded(
-					scope: UserScope.self,
-					context: userID
-				)
-				.instance(of: UserDetails.self)
+        .branchIfNeeded(
+          scope: UserScope.self,
+          context: userID
+        )
+        .instance(of: UserDetails.self)
         .avatarImage()
     }
 

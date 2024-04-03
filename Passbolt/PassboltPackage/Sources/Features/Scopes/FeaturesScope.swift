@@ -25,22 +25,22 @@ public protocol FeaturesScope {
 
   associatedtype Context = Void
 
-	@MainActor static func verified<Branch>(
-		branch features: Branch,
-		file: StaticString,
-		line: UInt
-	) throws -> Branch
-	where Branch: Features
+  @MainActor static func verified<Branch>(
+    branch features: Branch,
+    file: StaticString,
+    line: UInt
+  ) throws -> Branch
+  where Branch: Features
 }
 
 extension FeaturesScope {
 
-	@MainActor public static func verified<Branch>(
-		branch features: Branch,
-		file: StaticString,
-		line: UInt
-	) throws -> Branch
-	where Branch: Features { features }
+  @MainActor public static func verified<Branch>(
+    branch features: Branch,
+    file: StaticString,
+    line: UInt
+  ) throws -> Branch
+  where Branch: Features { features }
 }
 
 internal typealias FeaturesScopeIdentifier = ObjectIdentifier

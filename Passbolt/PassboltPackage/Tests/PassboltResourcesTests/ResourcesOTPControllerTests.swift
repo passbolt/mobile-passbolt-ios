@@ -299,14 +299,16 @@ final class ResourcesOTPControllerTests: FeaturesTestCase {
     )
     patch(
       \TOTPCodeGenerator.prepare,
-      with: always(always(
-        TOTPValue(
-          resourceID: .mock_1,
-          otp: "123",
-          timeLeft: 20,
-          period: 30
+      with: always(
+        always(
+          TOTPValue(
+            resourceID: .mock_1,
+            otp: "123",
+            timeLeft: 20,
+            period: 30
+          )
         )
-      ))
+      )
     )
 
     let tested: ResourcesOTPController = try self.testedInstance()

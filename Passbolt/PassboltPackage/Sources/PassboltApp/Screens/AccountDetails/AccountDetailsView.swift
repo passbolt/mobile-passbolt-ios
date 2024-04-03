@@ -21,250 +21,146 @@
 // @since         v1.0
 //
 
-import Accounts
-import UICommons
+import Display
 
-internal final class AccountDetailsView: KeyboardAwareView {
-
-  internal var accountLabelPublisher: AnyPublisher<String, Never> {
-    labelTextInput.textPublisher
-  }
-  internal let saveChangesPublisher: AnyPublisher<Void, Never>
-  internal let transferAccountPublisher: AnyPublisher<Void, Never>
-  private let avatarImageView: ImageView = .init()
-  private let labelTextInput: TextInput = .init()
-  private let cancellables: Cancellables = .init()
+internal struct AccountDetailsView: ControlledView {
+  internal var controller: AccountDetailsViewController
 
   internal init(
-    accountWithProfile: AccountWithProfile
+    controller: AccountDetailsViewController
   ) {
-    let saveChangesSubject: PassthroughSubject<Void, Never> = .init()
-    self.saveChangesPublisher = saveChangesSubject.eraseToAnyPublisher()
-    let transferAccountSubject: PassthroughSubject<Void, Never> = .init()
-    self.transferAccountPublisher = transferAccountSubject.eraseToAnyPublisher()
-    super.init()
+    self.controller = controller
+  }
 
-    mut(self) {
-      .backgroundColor(dynamic: .background)
+  internal var body: some View {
+    VStack(spacing: 0) {
+      CommonList {
+        self.headerView
+        self.propertiesView
+      }
+      Spacer()
+      self.bottomButtons
     }
+    .navigationTitle(displayable: "account.details.title")
+  }
 
-    let avatarContainer: ContainerView<ImageView> = .init(
-      contentView: avatarImageView,
-      mutation: .combined(
-        .image(named: .person, from: .uiCommons),
-        .contentMode(.scaleAspectFit),
-        .backgroundColor(.clear),
-        .border(dynamic: .divider),
-        .cornerRadius(48, masksToBounds: true),
-        .widthAnchor(.equalTo, constant: 96),
-        .heightAnchor(.equalTo, constant: 96)
-      ),
-      heightMultiplier: 1
-    )
-    mut(labelTextInput) {
-      .combined(
-        .isRequired(false),
-        .custom { (input: TextInput) in
-          input.applyOn(
-            text: .combined(
-              .primaryStyle(),
-              .attributedPlaceholderString(
-                .string(
-                  "\(accountWithProfile.firstName) \(accountWithProfile.lastName)",
-                  attributes: .init(
-                    font: .inter(ofSize: 14, weight: .medium),
-                    color: .secondaryText
-                  ),
-                  tail: .terminator
-                )
+  @MainActor @ViewBuilder private var propertiesView: some View {
+    CommonListSection {
+      CommonListRow(
+        content: {
+          self.labelInput
+        }
+      )
+
+      CommonListRow(
+        content: {
+          self.with(\.name) { (name: String) in
+            ResourceFieldView(
+              name: "account.details.field.name.title",
+              value: name
+            )
+          }
+        }
+      )
+
+      CommonListRow(
+        content: {
+          self.with(\.username) { (username: String) in
+            ResourceFieldView(
+              name: "account.details.field.email.title",
+              value: username
+            )
+          }
+        }
+      )
+      self.with(\.role) { (role: String?) in
+        if let role {
+          CommonListRow(
+            content: {
+              ResourceFieldView(
+                name: "account.details.field.role.title",
+                value: role
               )
-            )
+            }
           )
-          input.applyOn(
-            description: .text(
-              displayable: .localized(key: "account.details.field.label.title")
+        }  // else NOP
+      }
+
+      CommonListRow(
+        content: {
+          self.with(\.domain) { (domain: String) in
+            ResourceFieldView(
+              name: "account.details.field.url.title",
+              value: domain
             )
-          )
+          }
         }
       )
     }
-    let editingInfoLabel: Label = .init()
-    mut(editingInfoLabel) {
-      .combined(
-        .text(displayable: .localized(key: "account.details.field.label.editing.info")),
-        .font(.inter(ofSize: 12, weight: .regular)),
-        .textColor(dynamic: .secondaryText),
-        .numberOfLines(0)
-      )
-    }
+  }
 
-    let saveChangesButton: TextButton = .init()
-    mut(saveChangesButton) {
-      .combined(
-        .text(displayable: .localized(key: "account.details.button.save.title")),
-        .primaryStyle(),
-        .action { saveChangesSubject.send() }
-      )
-    }
-
-    let transferAccountButton: TextButton = .init()
-    mut(transferAccountButton) {
-      .combined(
-        .text(displayable: .localized(key: "settings.accounts.item.export.title")),
-        .linkStyle(),
-        .action { transferAccountSubject.send() }
-      )
-    }
-
-    let accountDetailsScrolledStack: ScrolledStackView = .init()
-    mut(accountDetailsScrolledStack) {
-      .combined(
-        .isLayoutMarginsRelativeArrangement(true),
-        .contentInset(.init(top: 24, left: 16, bottom: 8, right: 16)),
-        .subview(of: self),
-        .topAnchor(.equalTo, topAnchor),
-        .leadingAnchor(.equalTo, leadingAnchor),
-        .trailingAnchor(.equalTo, trailingAnchor),
-        .bottomAnchor(.equalTo, keyboardLayoutGuide.topAnchor, constant: -8),
-        .append(avatarContainer),
-        .appendSpace(of: 16),
-        .append(labelTextInput),
-        .append(editingInfoLabel),
-        .appendSpace(of: 16),
-        .append(
-          Mutation<KeyValueView>
-            .combined(
-              Mutation<Label>
-                .combined(
-                  .text(displayable: .localized(key: "account.details.field.name.title"))
-                )
-                .contramap(\KeyValueView.titleLabel),
-              Mutation<TextView>
-                .combined(
-                  .text("\(accountWithProfile.firstName) \(accountWithProfile.lastName)")
-                )
-                .contramap(\KeyValueView.valueTextView)
-            )
-            .instantiate()
-        ),
-        .appendSpace(of: 12),
-        .append(
-          Mutation<KeyValueView>
-            .combined(
-              Mutation<Label>
-                .combined(
-                  .text(displayable: .localized(key: "account.details.field.email.title"))
-                )
-                .contramap(\KeyValueView.titleLabel),
-              Mutation<TextView>
-                .combined(
-                  .text(accountWithProfile.username)
-                )
-                .contramap(\KeyValueView.valueTextView)
-            )
-            .instantiate()
-        ),
-        .appendSpace(of: 12),
-        .append(
-          Mutation<KeyValueView>
-            .combined(
-              Mutation<Label>
-                .combined(
-                  .text(displayable: .localized(key: "account.details.field.url.title"))
-                )
-                .contramap(\KeyValueView.titleLabel),
-              Mutation<TextView>
-                .combined(
-                  .text(accountWithProfile.domain.rawValue)
-                )
-                .contramap(\KeyValueView.valueTextView)
-            )
-            .instantiate()
-        ),
-        .appendFiller(minSize: 12),
-        .append(saveChangesButton),
-        .append(transferAccountButton)
-      )
-    }
-
-    mut(PlainView()) {
-      .combined(
-        .backgroundColor(.passboltBackground),
-        .subview(of: accountDetailsScrolledStack),
-        .topAnchor(.equalTo, accountDetailsScrolledStack.topAnchor),
-        .leadingAnchor(.equalTo, accountDetailsScrolledStack.leadingAnchor),
-        .trailingAnchor(.equalTo, accountDetailsScrolledStack.trailingAnchor),
-        .bottomAnchor(.equalTo, accountDetailsScrolledStack.safeAreaLayoutGuide.topAnchor)
-      )
+  @MainActor @ViewBuilder private var headerView: some View {
+    CommonListSection {
+      HStack {
+        Spacer()
+        self.with(\.avatarImage) { (avatarImage: Data?) in
+          AvatarView(avatarImage: avatarImage)
+        }
+        .frame(
+          width: 96,
+          height: 96,
+          alignment: .center
+        )
+        .padding(
+          top: 16,
+          bottom: 16
+        )
+        Spacer()
+      }
     }
   }
 
-  @available(*, unavailable)
-  internal required init() {
-    unreachable(#function)
-  }
-
-  internal func updateAccountLabel(text: Validated<String>) {
-    labelTextInput.update(from: text)
-  }
-
-  internal func updateAccountAvatar(image: UIImage?) {
-    mut(avatarImageView) {
-      .whenSome(
-        image,
-        then: { image in
-          .image(image)
-        },
-        else: .image(
-          named: .person,
-          from: .uiCommons
+  @MainActor @ViewBuilder private var labelInput: some View {
+    VStack(spacing: 8) {
+      self.withValidatedBinding(
+        \.currentAccountLabel,
+        updating: self.controller.setCurrentAccountLabel(_:)
+      ) { (label: Binding<Validated<String>>) in
+        FormTextFieldView(
+          title: "account.details.field.label.title",
+          state: label
+        )
+      }
+      Text(
+        displayable: .localized(
+          key: "account.details.field.label.editing.info"
         )
       )
+      .font(.inter(ofSize: 12, weight: .regular))
+      .text(
+        font: .inter(ofSize: 12, weight: .regular),
+        color: .passboltSecondaryText
+      )
+      .lineLimit(0)
     }
   }
-}
 
-private final class KeyValueView: PlainView {
-
-  fileprivate var titleLabel: Label = .init()
-  fileprivate var valueTextView: TextView = .init()
-
-  override func setup() {
-    super.setup()
-
-    mut(self) {
-      .combined(
-        .heightAnchor(.greaterThanOrEqualTo, constant: 52)
+  @MainActor @ViewBuilder private var bottomButtons: some View {
+    VStack(spacing: 8) {
+      PrimaryButton(
+        title: "account.details.button.save.title",
+        action: self.controller.saveChanges
+      )
+      SecondaryButton(
+        title: "settings.accounts.item.export.title",
+        action: self.controller.transferAccount
       )
     }
-
-    mut(titleLabel) {
-      .combined(
-        .subview(of: self),
-        .leadingAnchor(.equalTo, leadingAnchor),
-        .trailingAnchor(.equalTo, trailingAnchor),
-        .topAnchor(.equalTo, topAnchor, constant: 4),
-        .textColor(dynamic: .primaryText),
-        .font(.inter(ofSize: 12, weight: .semibold))
-      )
-    }
-
-    mut(valueTextView) {
-      .combined(
-        .subview(of: self),
-        .topAnchor(.equalTo, titleLabel.bottomAnchor, constant: 8),
-        .leadingAnchor(.equalTo, titleLabel.leadingAnchor),
-        .trailingAnchor(.equalTo, titleLabel.trailingAnchor),
-        .heightAnchor(.greaterThanOrEqualTo, constant: 20),
-        .bottomAnchor(.equalTo, bottomAnchor, constant: -8),
-        .textColor(dynamic: .secondaryText),
-        .lineBreakMode(.byWordWrapping),
-        .font(.inter(ofSize: 14, weight: .medium)),
-        .set(\.contentInset, to: .zero),
-        .set(\.textContainerInset, to: .init(top: 0, left: -5, bottom: 0, right: 0)),
-        .set(\.isScrollEnabled, to: false),
-        .set(\.isEditable, to: false)
-      )
-    }
+    .padding(
+      top: 0,
+      leading: 16,
+      bottom: 16,
+      trailing: 16
+    )
   }
 }

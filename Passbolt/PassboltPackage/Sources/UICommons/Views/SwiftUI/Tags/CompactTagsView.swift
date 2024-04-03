@@ -35,28 +35,11 @@ public struct CompactTagsView: View {
   }
 
   public var body: some View {
-    if #available(iOS 16, *) {
-      self.contentView()
-        .frame(
-          maxWidth: .infinity,
-          alignment: .leading
-        )
-    }
-    else {
-      self.contentViewLegacy()
-        .frame(
-          maxWidth: .infinity,
-          alignment: .leading
-        )
-    }
-  }
-
-  @available(iOS 16, *)
-  @ViewBuilder @MainActor private func contentView() -> some View {
-    // it will be available to use custom Layout
-    // from iOS 16 after switching to Xcode 14
-    // it has to be legacy version always for now
     self.contentViewLegacy()
+      .frame(
+        maxWidth: .infinity,
+        alignment: .leading
+      )
   }
 
   @ViewBuilder @MainActor private func contentViewLegacy() -> some View {

@@ -29,7 +29,6 @@ import XCTest
 @testable import NetworkOperations
 @testable import PassboltAccountSetup
 
-@available(iOS 16.0.0, *)
 final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
 
   override class var testedImplementationScope: any FeaturesScope.Type { AccountTransferScope.self }
@@ -890,7 +889,6 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
   }
 }
 
-@available(iOS 16.0.0, *)
 extension AccountTransferTests {
 
   private func processPart(
@@ -924,15 +922,15 @@ private let transferedAccount: Account = .init(
 )
 
 private let transferedAccountWithProfile: AccountWithProfile = .init(
-	account: transferedAccount,
-	profile: .init(
-		accountID: transferedAccount.localID,
-		label: "Transfered",
-		username: "transfered@account.com",
-		firstName: "Transfered",
-		lastName: "Account",
-		avatarImageURL: ""
-	)
+  account: transferedAccount,
+  profile: .init(
+    accountID: transferedAccount.localID,
+    label: "Transfered",
+    username: "transfered@account.com",
+    firstName: "Transfered",
+    lastName: "Account",
+    avatarImageURL: ""
+  )
 )
 
 private let qrCodePart0: String =

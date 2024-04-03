@@ -141,14 +141,29 @@ extension ComputedVariable: Updatable {
 
 extension ComputedVariable {
 
+  public func invalidateCache() {
+    self.lock.unsafe_lock()
+    if case .none = self.runningUpdate {
+      self.cachedUpdate = .uninitialized()
+      self.lock.unsafe_unlock()
+    }
+    else {
+      // ignore when update is running
+      self.lock.unsafe_unlock()
+    }
+  }
+}
+
+extension ComputedVariable {
+
   public convenience init(
     lazy compute: @escaping @Sendable () async throws -> Value
   ) {
     let resolvedGeneration: UpdateGeneration = .next()
     self.init(
       sourceGeneration: { resolvedGeneration },
-      compute: { @Sendable(generation:UpdateGeneration) async -> Update<Value> in
-        return await Update<Value>(
+      compute: { @Sendable (generation: UpdateGeneration) async -> Update<Value> in
+        await Update<Value>(
           generation: resolvedGeneration
         ) {
           try await compute()

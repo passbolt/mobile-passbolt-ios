@@ -35,7 +35,6 @@ internal final class ResourceTagsListNodeController: ViewController {
   internal var searchController: ResourceSearchDisplayController!  // lazy?
   internal var contentController: ResourceTagsListDisplayController!  // lazy?
 
-  private let asyncExecutor: AsyncExecutor
   private let navigationTree: NavigationTree
   private let autofillContext: AutofillExtensionContext
   private let resourceTags: ResourceTags
@@ -50,7 +49,6 @@ internal final class ResourceTagsListNodeController: ViewController {
     self.context = context
     self.features = features
 
-    self.asyncExecutor = try features.instance()
     self.navigationTree = features.instance()
     self.autofillContext = features.instance()
     self.resourceTags = try features.instance()
@@ -71,10 +69,7 @@ internal final class ResourceTagsListNodeController: ViewController {
 
     self.contentController = try features.instance(
       context: .init(
-        filter: self.searchController.searchText
-          .asAnyAsyncSequence()
-          .compactMap { try? $0.value }
-          .asAnyAsyncSequence(),
+        filter: self.searchController.searchText.asAnyUpdatable(),
         selectTag: self.selectResourceTag(_:)
       )
     )
@@ -102,41 +97,31 @@ extension ResourceTagsListNodeController {
 
   internal final func selectResourceTag(
     _ resourceTagID: ResourceTag.ID
-  ) {
-    self.asyncExecutor.scheduleCatching(
-      failMessage: "Failed to handle resource selection.",
-      failAction: { (error: Error) in
-        SnackBarMessageEvent.send(.error(error))
-      },
-      behavior: .replace
-    ) { [features, context, resourceTags, navigationTree] in
-      let tagDetails: ResourceTag = try await resourceTags.details(resourceTagID)
+  ) async throws {
+    let tagDetails: ResourceTag = try await self.resourceTags.details(resourceTagID)
 
-      let nodeController: ResourcesListNodeController =
-        try await features
-        .instance(
-          of: ResourcesListNodeController.self,
-          context: .init(
-            nodeID: context.nodeID,
-            title: .raw(tagDetails.slug.rawValue),
-            titleIconName: .tag,
-            baseFilter: .init(
-              sorting: .nameAlphabetically,
-              tags: [resourceTagID]
-            )
+    let nodeController: ResourcesListNodeController =
+      try self.features
+      .instance(
+        of: ResourcesListNodeController.self,
+        context: .init(
+          nodeID: self.context.nodeID,
+          title: .raw(tagDetails.slug.rawValue),
+          titleIconName: .tag,
+          baseFilter: .init(
+            sorting: .nameAlphabetically,
+            tags: [resourceTagID]
           )
         )
-      await navigationTree
-        .push(
-          ResourcesListNodeView.self,
-          controller: nodeController
-        )
-    }
+      )
+    self.navigationTree
+      .push(
+        ResourcesListNodeView.self,
+        controller: nodeController
+      )
   }
 
   internal final func closeExtension() {
-    self.asyncExecutor.schedule(.reuse) { [autofillContext] in
-      await autofillContext.cancelAndCloseExtension()
-    }
+    self.autofillContext.cancelAndCloseExtension()
   }
 }

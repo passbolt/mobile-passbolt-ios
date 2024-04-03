@@ -29,12 +29,12 @@ public struct ResourceUserGroupListItemView: View {
 
   private let name: String
   private let contentCount: Int
-  private let action: @MainActor () -> Void
+  private let action: @MainActor () async throws -> Void
 
   public init(
     name: String,
     contentCount: Int,
-    action: @escaping @MainActor () -> Void
+    action: @escaping @MainActor () async throws -> Void
   ) {
     self.name = name
     self.contentCount = contentCount

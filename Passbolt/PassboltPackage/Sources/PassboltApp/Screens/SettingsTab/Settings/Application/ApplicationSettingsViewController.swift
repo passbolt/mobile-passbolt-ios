@@ -93,7 +93,7 @@ extension ApplicationSettingsViewController {
   ) async {
     await consumingErrors(
       errorDiagnostics: "Toggling biometric authorization failed!"
-      ) {
+    ) {
       try await self.accountPreferences.storePassphrase(enabled)
     }
   }

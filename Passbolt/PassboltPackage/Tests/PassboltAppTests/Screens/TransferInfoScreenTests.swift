@@ -31,7 +31,6 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@available(iOS 16.0.0, *)
 @MainActor
 final class TransferInfoScreenTests: MainActorTestCase {
 
@@ -65,11 +64,9 @@ final class TransferInfoScreenTests: MainActorTestCase {
           result = Void()
         }
       )
-    let controller: TransferInfoCameraRequiredAlertController = try await testController()
+    let controller: TransferInfoCameraRequiredAlertController = try testController()
 
-    controller.showSettings()
-
-    await self.mockExecutionControl.executeAll()
+    try await controller.showSettings()
 
     XCTAssertNotNil(result)
   }
@@ -84,14 +81,11 @@ final class TransferInfoScreenTests: MainActorTestCase {
       }
     )
 
-    let controller: TransferInfoScreenController = try await testController(context: .import)
+    let controller: TransferInfoScreenController = try testController(context: .import)
 
-    controller.requestOrNavigatePublisher()
-      .receive(on: ImmediateScheduler.shared)
-      .sink { _ in }
-      .store(in: cancellables)
-
-    await self.mockExecutionControl.executeAll()
+    _ = try await controller.requestOrNavigatePublisher()
+      .asAsyncSequence()
+      .first()
 
     XCTAssertNotNil(result)
   }
@@ -102,18 +96,12 @@ final class TransferInfoScreenTests: MainActorTestCase {
       with: always(Void())
     )
 
-    let controller: TransferInfoScreenController = try await testController(context: .import)
-    var result: Bool?
-
-    controller
+    let controller: TransferInfoScreenController = try testController(context: .import)
+    let result: Bool? =
+      try await controller
       .requestOrNavigatePublisher()
-      .receive(on: ImmediateScheduler.shared)
-      .sink { granted in
-        result = granted
-      }
-      .store(in: cancellables)
-
-    await self.mockExecutionControl.executeAll()
+      .asAsyncSequence()
+      .first()
 
     XCTAssertTrue(result)
   }

@@ -100,11 +100,13 @@ public final class LogsViewerViewController: PlainViewController, UIComponent {
   }
 
   public func activate() {
-    controller.refreshLogs()
+    Task { [weak self] in
+      await self?.controller.refreshLogs()
+    }
   }
 
   private func setupSubscriptions() {
-    controller
+    self.controller
       .logsPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] logs in

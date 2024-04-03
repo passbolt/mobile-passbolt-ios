@@ -102,7 +102,7 @@ internal final class OTPAttachSelectionListViewController: ViewController {
       update: { (updateView, update: Update<(ResourceSearchState, LocalState)>) in
         do {
           let (search, local): (ResourceSearchState, LocalState) = try update.value
-          await updateView { (viewState: inout ViewState) in
+          updateView { (viewState: inout ViewState) in
             viewState.searchText = search.filter.text
             viewState.listItems = search.result.map {
               (item: ResourceSearchResultItem) -> TOTPAttachSelectionListItemViewModel in
@@ -113,15 +113,20 @@ internal final class OTPAttachSelectionListViewController: ViewController {
                 username: item.username,
                 state: local.selected?.id == item.id
                   ? .selected
-                  : item.type.attachedOTPSlug != nil && item.permission.canEdit
-                    ? .none
-                    : .notAllowed
+                  : mapDeselectedState(of: item)
               )
             }
           }
         }
         catch {
-					SnackBarMessageEvent.send(.error(error))
+          SnackBarMessageEvent.send(.error(error))
+        }
+
+        func mapDeselectedState(of item: ResourceSearchResultItem) -> TOTPAttachSelectionListItemViewModel.State {
+          guard item.type.attachedOTPSlug != nil else {
+            return .notCompatibleWithTotp
+          }
+          return item.permission.canEdit ? .deselected : .notAllowed
         }
       }
     )
@@ -141,12 +146,20 @@ extension OTPAttachSelectionListViewController {
   @MainActor internal func select(
     _ item: TOTPAttachSelectionListItemViewModel
   ) {
-    self.localState.mutate { (state: inout LocalState) in
-      state.selected = (
-        id: item.id,
-        type: item.type
-      )
+    switch item.state {
+    case .deselected, .selected:
+      self.localState.mutate { (state: inout LocalState) in
+        state.selected = (
+          id: item.id,
+          type: item.type
+        )
+      }
+    case .notAllowed:
+      SnackBarMessageEvent.send(.error(.localized("otp.attach.error.notAllowed")))
+    case .notCompatibleWithTotp:
+      SnackBarMessageEvent.send(.error(.localized("otp.attach.error.notCompatible")))
     }
+
   }
 
   @MainActor internal func trySendForm() async {
@@ -215,32 +228,33 @@ extension OTPAttachSelectionListViewController {
 internal struct TOTPAttachSelectionListItemViewModel: Equatable, Identifiable {
 
   internal enum State: Equatable {
-    case none
+    case deselected
     case selected
     case notAllowed
+    case notCompatibleWithTotp
 
     internal var selected: Bool {
       switch self {
-      case .none:
+      case .deselected:
         return false
 
       case .selected:
         return true
 
-      case .notAllowed:
+      case .notAllowed, .notCompatibleWithTotp:
         return false
       }
     }
 
     internal var disabled: Bool {
       switch self {
-      case .none:
+      case .deselected:
         return false
 
       case .selected:
         return false
 
-      case .notAllowed:
+      case .notAllowed, .notCompatibleWithTotp:
         return true
       }
     }

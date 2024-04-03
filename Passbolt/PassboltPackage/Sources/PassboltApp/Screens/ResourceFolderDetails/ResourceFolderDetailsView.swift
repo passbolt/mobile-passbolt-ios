@@ -107,7 +107,7 @@ internal struct ResourceFolderDetailsView: ControlledView {
       .frame(height: 36)
       .padding(bottom: 24)
 
-      Button(
+      AsyncButton(
         action: self.controller.openLocationDetails,
         label: {
           HStack {
@@ -136,24 +136,28 @@ internal struct ResourceFolderDetailsView: ControlledView {
       .frame(height: 36)
       .padding(bottom: 24)
 
-      Button(
-        action: self.controller.openPermissionDetails,
-        label: {
-          HStack {
-            PermissionAvatarsView(
-              items: state.folderPermissionItems
-            )
-            Spacer()
-            Image(named: .chevronRight)
-              .padding(
-                top: 12,
-                bottom: 12,
-                trailing: 0
-              )
-          }
-        }
-      )
-      .frame(height: 64)
+      with(\.permissionsListVisible) { permissionsVisible in
+        if permissionsVisible {
+          AsyncButton(
+            action: self.controller.openPermissionDetails,
+            label: {
+              HStack {
+                PermissionAvatarsView(
+                  items: state.folderPermissionItems
+                )
+                Spacer()
+                Image(named: .chevronRight)
+                  .padding(
+                    top: 12,
+                    bottom: 12,
+                    trailing: 0
+                  )
+              }
+            }
+          )
+          .frame(height: 64)
+        }  // else no view
+      }
     }
     .padding(16)
   }

@@ -112,7 +112,8 @@ extension SessionNetworkRequestExecutor {
         )
       }
       catch let forbidden as HTTPForbidden {
-        guard let mfaResponse: MFARequiredResponse = decodeMFARequired(from: forbidden.response, using: JSONDecoder.default)
+        guard
+          let mfaResponse: MFARequiredResponse = decodeMFARequired(from: forbidden.response, using: JSONDecoder.default)
         else { throw forbidden }
 
         sessionState.mfaTokenInvalidate()
@@ -130,10 +131,10 @@ extension SessionNetworkRequestExecutor {
         )
       }
       catch let redirect as HTTPRedirect {
-				// redirect handling exceptpion for DUO
-				if redirect.request.url?.path.hasSuffix("/mfa/verify/duo/prompt") ?? false {
-					return redirect.response
-				} // else continue error handling
+        // redirect handling exceptpion for DUO
+        if redirect.request.url?.path.hasSuffix("/mfa/verify/duo/prompt") ?? false {
+          return redirect.response
+        }  // else continue error handling
 
         let locationURLString: URLString = redirect.location.urlString
 
@@ -160,7 +161,8 @@ extension SessionNetworkRequestExecutor {
               )
             )
 
-          guard let mfaResponse: MFARequiredResponse = decodeMFARequired(from: redirectResponse, using: JSONDecoder.default)
+          guard
+            let mfaResponse: MFARequiredResponse = decodeMFARequired(from: redirectResponse, using: JSONDecoder.default)
           else { throw redirect }
 
           sessionState.mfaTokenInvalidate()
@@ -188,7 +190,11 @@ extension SessionNetworkRequestExecutor {
           )
         }
         catch let forbidden as HTTPForbidden {
-          guard let mfaResponse: MFARequiredResponse = decodeMFARequired(from: forbidden.response, using: JSONDecoder.default)
+          guard
+            let mfaResponse: MFARequiredResponse = decodeMFARequired(
+              from: forbidden.response,
+              using: JSONDecoder.default
+            )
           else { throw forbidden }
 
           sessionState.mfaTokenInvalidate()

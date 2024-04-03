@@ -33,7 +33,7 @@ extension UserGroupDetails {
   @MainActor fileprivate static func load(
     features: Features
   ) throws -> Self {
-		let userGroupID: UserGroup.ID = try features.context(of: UserGroupScope.self)
+    let userGroupID: UserGroup.ID = try features.context(of: UserGroupScope.self)
     let sessionData: SessionData = try features.instance()
     let userGroupDetailsFetchDatabaseOperation: UserGroupDetailsFetchDatabaseOperation = try features.instance()
 

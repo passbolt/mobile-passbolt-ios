@@ -36,7 +36,7 @@ where SupportActionView: View {
   private let mainActionLabel: DisplayableString
   private let mainAction: () async -> Void
   private let biometricsAvailability: OSBiometryAvailability
-  private let biometricsAction: () async-> Void
+  private let biometricsAction: () async -> Void
   private let supportActionView: @MainActor () -> SupportActionView
 
   public init(
@@ -114,21 +114,21 @@ where SupportActionView: View {
       case .faceID:
         AsyncButton(
           action: self.biometricsAction,
-					regularLabel: {
+          regularLabel: {
             Image(named: .faceID)
               .resizable()
               .padding(10)
           },
-					loadingLabel: {
-						ZStack {
-							Image(named: .faceID)
-								.resizable()
-								.padding(10)
+          loadingLabel: {
+            ZStack {
+              Image(named: .faceID)
+                .resizable()
+                .padding(10)
 
-							SwiftUI.ProgressView()
-								.progressViewStyle(.circular)
-						}
-					}
+              SwiftUI.ProgressView()
+                .progressViewStyle(.circular)
+            }
+          }
         )
         .frame(width: 56, height: 56)
         .tint(.passboltPrimaryBlue)
@@ -143,21 +143,21 @@ where SupportActionView: View {
       case .touchID:
         AsyncButton(
           action: self.biometricsAction,
-					regularLabel: {
-						Image(named: .touchID)
-							.resizable()
-							.padding(10)
-					},
-					loadingLabel: {
-						ZStack {
-							Image(named: .touchID)
-								.resizable()
-								.padding(10)
+          regularLabel: {
+            Image(named: .touchID)
+              .resizable()
+              .padding(10)
+          },
+          loadingLabel: {
+            ZStack {
+              Image(named: .touchID)
+                .resizable()
+                .padding(10)
 
-							SwiftUI.ProgressView()
-								.progressViewStyle(.circular)
-						}
-					}
+              SwiftUI.ProgressView()
+                .progressViewStyle(.circular)
+            }
+          }
         )
         .frame(width: 56, height: 56)
         .tint(.passboltPrimaryBlue)

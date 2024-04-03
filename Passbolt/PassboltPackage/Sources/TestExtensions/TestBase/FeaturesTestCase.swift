@@ -29,16 +29,12 @@ import XCTest
 @MainActor
 open class FeaturesTestCase: TestCase {
 
-  public let asyncExecutionControl: AsyncExecutor.MockExecutionControl = .init()
   public var cancellables: Cancellables { self.testFeatures.cancellables }  // for legacy elements
 
   private let testFeatures: TestFeaturesContainer = .init()
 
   open func commonPrepare() {
-    patch(
-      \AsyncExecutor.self,
-      with: .mock(self.asyncExecutionControl)
-    )
+    // to override
   }
 
   final override public class func setUp() {
@@ -66,11 +62,6 @@ open class FeaturesTestCase: TestCase {
     // casting to specify correct method to be called,
     // by default async one is selected by the compiler
     (super.tearDown as () -> Void)()
-    XCTAssertEqual(
-      self.asyncExecutionControl.scheduledTasksCount,
-      0,
-      "All scheduled async tasks should be finished."
-    )
   }
 }
 
@@ -250,24 +241,24 @@ extension FeaturesTestCase {
 
 extension FeaturesTestCase {
 
-	public func withInstance<Feature>(
-		of _: Feature.Type = Feature.self,
-		file: StaticString = #file,
-		line: UInt = #line,
-		test: @escaping @Sendable (Feature) async throws -> Void
-	) async
-	where Feature: LoadableFeature {
-		do {
-			try await test(self.testedInstance())
-		}
-		catch {
-			XCTFail(
-				"Unexpected error: \(error)",
-				file: file,
-				line: line
-			)
-		}
-	}
+  public func withInstance<Feature>(
+    of _: Feature.Type = Feature.self,
+    file: StaticString = #file,
+    line: UInt = #line,
+    test: @escaping @Sendable (Feature) async throws -> Void
+  ) async
+  where Feature: LoadableFeature {
+    do {
+      try await test(self.testedInstance())
+    }
+    catch {
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
+    }
+  }
 
   public func withInstance<Controller>(
     of _: Controller.Type = Controller.self,
@@ -309,22 +300,18 @@ extension FeaturesTestCase {
   }
 
   nonisolated public var mockWasExecuted: Bool {
-    @Sendable get {
-      self.loadOrDefine(
-        \.executedCount,
-        of: UInt.self,
-        defaultValue: 0
-      ) > 0
-    }
+    self.loadOrDefine(
+      \.executedCount,
+      of: UInt.self,
+      defaultValue: 0
+    ) > 0
   }
 
   nonisolated public var mockExecutedCount: UInt {
-    @Sendable get {
-      self.loadOrDefine(
-        \.executedCount,
-        defaultValue: 0
-      )
-    }
+    self.loadOrDefine(
+      \.executedCount,
+      defaultValue: 0
+    )
   }
 
   @Sendable nonisolated public func mockExecuted() {
@@ -338,129 +325,129 @@ extension FeaturesTestCase {
 
   @Sendable nonisolated public func mockExecuted<Argument>(
     with argument: Argument
-	) {
-		let count: UInt = self.loadOrDefine(
-			\.executedCount,
-			 defaultValue: 0
-		)
-		self.executedCount = count + 1
-		self.setOrDefine(\.executedArgument, value: argument)
-	}
+  ) {
+    let count: UInt = self.loadOrDefine(
+      \.executedCount,
+      defaultValue: 0
+    )
+    self.executedCount = count + 1
+    self.setOrDefine(\.executedArgument, value: argument)
+  }
 
-	public func withInstance<Feature>(
-		of _: Feature.Type = Feature.self,
-		mockExecuted: UInt,
-		file: StaticString = #file,
-		line: UInt = #line,
-		test: @escaping @Sendable (Feature) async throws -> Void
-	) async
-	where Feature: LoadableFeature {
-		do {
-			try await test(self.testedInstance())
-			XCTAssertEqual(
-				mockExecuted,
-				self.loadOrDefine(
-					\.executedCount,
-					defaultValue: 0
-				),
-				"Executed count was not matching expected",
-				file: file,
-				line: line
-			)
-		}
-		catch {
-			XCTFail(
-				"Unexpected error: \(error)",
-				file: file,
-				line: line
-			)
-		}
-	}
+  public func withInstance<Feature>(
+    of _: Feature.Type = Feature.self,
+    mockExecuted: UInt,
+    file: StaticString = #file,
+    line: UInt = #line,
+    test: @escaping @Sendable (Feature) async throws -> Void
+  ) async
+  where Feature: LoadableFeature {
+    do {
+      try await test(self.testedInstance())
+      XCTAssertEqual(
+        mockExecuted,
+        self.loadOrDefine(
+          \.executedCount,
+          defaultValue: 0
+        ),
+        "Executed count was not matching expected",
+        file: file,
+        line: line
+      )
+    }
+    catch {
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
+    }
+  }
 
-	public func withInstance<Feature, Argument>(
-		of _: Feature.Type = Feature.self,
-		mockExecutedWith: Argument,
-		file: StaticString = #file,
-		line: UInt = #line,
-		test: @escaping @Sendable (Feature) async throws -> Void
-	) async
-	where Feature: LoadableFeature, Argument: Equatable {
-		do {
-			try await test(self.testedInstance())
-			XCTAssertEqual(
-				mockExecutedWith,
-				self.loadIfDefined(
-					\.executedArgument,
-					of: Argument.self
-				),
-				"Executed argument was invalid or missing",
-				file: file,
-				line: line
-			)
-		}
-		catch {
-			XCTFail(
-				"Unexpected error: \(error)",
-				file: file,
-				line: line
-			)
-		}
-	}
+  public func withInstance<Feature, Argument>(
+    of _: Feature.Type = Feature.self,
+    mockExecutedWith: Argument,
+    file: StaticString = #file,
+    line: UInt = #line,
+    test: @escaping @Sendable (Feature) async throws -> Void
+  ) async
+  where Feature: LoadableFeature, Argument: Equatable {
+    do {
+      try await test(self.testedInstance())
+      XCTAssertEqual(
+        mockExecutedWith,
+        self.loadIfDefined(
+          \.executedArgument,
+          of: Argument.self
+        ),
+        "Executed argument was invalid or missing",
+        file: file,
+        line: line
+      )
+    }
+    catch {
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
+    }
+  }
 
-	public func withInstance<Feature, Value>(
-		of _: Feature.Type = Feature.self,
-		returns: Value,
-		file: StaticString = #file,
-		line: UInt = #line,
-		test: @escaping @Sendable (Feature) async throws -> Value
-	) async
-	where Feature: LoadableFeature, Value: Equatable {
-		do {
-			let returned: Value = try await test(self.testedInstance())
-			XCTAssertEqual(
-				returns,
-				returned,
-				"Returned value was invalid",
-				file: file,
-				line: line
-			)
-		}
-		catch {
-			XCTFail(
-				"Unexpected error: \(error)",
-				file: file,
-				line: line
-			)
-		}
-	}
+  public func withInstance<Feature, Value>(
+    of _: Feature.Type = Feature.self,
+    returns: Value,
+    file: StaticString = #file,
+    line: UInt = #line,
+    test: @escaping @Sendable (Feature) async throws -> Value
+  ) async
+  where Feature: LoadableFeature, Value: Equatable {
+    do {
+      let returned: Value = try await test(self.testedInstance())
+      XCTAssertEqual(
+        returns,
+        returned,
+        "Returned value was invalid",
+        file: file,
+        line: line
+      )
+    }
+    catch {
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
+    }
+  }
 
-	public func withInstance<Feature, Value, Failure>(
-		of _: Feature.Type = Feature.self,
-		throws: Failure.Type,
-		file: StaticString = #file,
-		line: UInt = #line,
-		test: @escaping @Sendable (Feature) async throws -> Value
-	) async
-	where Feature: LoadableFeature, Failure: Error {
-		do {
-			_ = try await test(self.testedInstance())
-			XCTFail(
-				"Expected error not thrown",
-				file: file,
-				line: line
-			)
-		}
-		catch is Failure {
-			// expected
-		}
-		catch {
-			XCTFail(
-				"Unexpected error: \(error)",
-				file: file,
-				line: line
-			)
-		}
-	}
+  public func withInstance<Feature, Value, Failure>(
+    of _: Feature.Type = Feature.self,
+    throws: Failure.Type,
+    file: StaticString = #file,
+    line: UInt = #line,
+    test: @escaping @Sendable (Feature) async throws -> Value
+  ) async
+  where Feature: LoadableFeature, Failure: Error {
+    do {
+      _ = try await test(self.testedInstance())
+      XCTFail(
+        "Expected error not thrown",
+        file: file,
+        line: line
+      )
+    }
+    catch is Failure {
+      // expected
+    }
+    catch {
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
+    }
+  }
 
   public func withInstance<Controller>(
     of _: Controller.Type = Controller.self,

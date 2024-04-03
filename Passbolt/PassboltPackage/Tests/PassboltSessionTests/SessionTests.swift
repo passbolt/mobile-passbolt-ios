@@ -26,7 +26,6 @@ import TestExtensions
 @testable import PassboltSession
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@available(iOS 16.0.0, *)
 final class SessionTests: LoadableFeatureTestCase<Session> {
 
   override class func testedImplementationRegister(
@@ -82,7 +81,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
     self.pendingAuthorization = SessionState.PendingAuthorization.passphrase(for: Account.mock_ada)
     withTestedInstanceReturnsEqual(SessionAuthorizationRequest.passphrase(Account.mock_ada)) {
       (testedInstance: Session) in
-      return await testedInstance.pendingAuthorization()
+      await testedInstance.pendingAuthorization()
     }
   }
 
@@ -178,7 +177,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
       try await testedInstance.authorizeMFA(
         .totp(
           Account.mock_ada,
-					code: "totp",
+          code: "totp",
           rememberDevice: false
         )
       )
@@ -197,7 +196,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
       try await testedInstance.authorizeMFA(
         .totp(
           Account.mock_ada,
-					code: "totp",
+          code: "totp",
           rememberDevice: false
         )
       )
@@ -220,7 +219,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
       try await testedInstance.authorizeMFA(
         .totp(
           Account.mock_ada,
-					code: "totp",
+          code: "totp",
           rememberDevice: false
         )
       )
@@ -243,7 +242,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
       try await testedInstance.authorizeMFA(
         .totp(
           Account.mock_ada,
-					code: "totp",
+          code: "totp",
           rememberDevice: false
         )
       )
@@ -315,13 +314,11 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
     self.refreshToken = Optional<SessionRefreshToken>.none
     withTestedInstanceNotExecuted { (testedInstance: Session) in
       await testedInstance.close(.none)
-      await self.mockExecutionControl.executeAll()
     }
 
     self.refreshToken = "SessionRefreshToken" as SessionRefreshToken
     withTestedInstanceExecuted { (testedInstance: Session) in
       await testedInstance.close(.none)
-      await self.mockExecutionControl.executeAll()
     }
   }
 }

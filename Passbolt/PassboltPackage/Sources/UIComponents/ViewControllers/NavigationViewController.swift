@@ -258,7 +258,7 @@ private final class BackBarButtonItem: UIBarButtonItem {
 
   override var menu: UIMenu? {
     set { /* NOP */  }
-    get { return nil }
+    get { nil }
   }
 }
 

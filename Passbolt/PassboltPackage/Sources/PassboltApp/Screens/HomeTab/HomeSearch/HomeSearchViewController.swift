@@ -117,10 +117,13 @@ internal final class HomeSearchViewController: PlainViewController, UIComponent 
 
     contentView
       .accountMenuTapPublisher
-      .sink { [weak self] in
-        self?.view.endEditing(true)
-        self?.controller.presentAccountMenu()
+      .asyncMap { [weak self] in
+        await consumingErrors {
+          self?.view.endEditing(true)
+          try await self?.controller.presentAccountMenu()
+        }
       }
+      .sinkDrop()
       .store(in: cancellables)
   }
 }

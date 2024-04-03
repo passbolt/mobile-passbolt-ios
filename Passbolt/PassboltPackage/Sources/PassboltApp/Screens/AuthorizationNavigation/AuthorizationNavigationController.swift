@@ -41,7 +41,7 @@ extension AuthorizationNavigationController: UIController {
   ) throws -> Self {
     let accounts: Accounts = try features.instance()
 
-		if let account = context.account, accounts.storedAccounts().contains(where: { $0.account == account }) {
+    if let account = context.account, accounts.storedAccounts().contains(where: { $0.account == account }) {
       return Self(
         selectedAccount: context.account,
         message: context.message

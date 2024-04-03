@@ -29,7 +29,7 @@ import UIComponents
 
 internal struct WindowController {
 
-	internal var initialAccount: @Sendable () -> Account?
+  internal var initialAccount: @Sendable () -> Account?
   internal var screenStateDispositionSequence: @MainActor () -> AnyAsyncSequence<ScreenStateDisposition>
 }
 
@@ -54,41 +54,40 @@ extension WindowController: UIController {
     cancellables: Cancellables
   ) throws -> Self {
     let accounts: Accounts = try features.instance()
-		let sessionStateChangeSubscription: EventSubscription<SessionStateChangeEvent> = SessionStateChangeEvent.subscribe()
+    let sessionStateChangeSubscription: EventSubscription<SessionStateChangeEvent> = SessionStateChangeEvent.subscribe()
 
-
-		@Sendable nonisolated func initialAccount() -> Account? {
-			let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
-			if let lastUsedAccount: AccountWithProfile = accounts.lastUsedAccount() {
-				return lastUsedAccount.account
-			}
-			else if storedAccounts.count == 1, let singleAccount: AccountWithProfile = storedAccounts.first {
-				return singleAccount.account
-			}
-			else {
-				return .none
-			}
-		}
+    @Sendable nonisolated func initialAccount() -> Account? {
+      let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
+      if let lastUsedAccount: AccountWithProfile = accounts.lastUsedAccount() {
+        return lastUsedAccount.account
+      }
+      else if storedAccounts.count == 1, let singleAccount: AccountWithProfile = storedAccounts.first {
+        return singleAccount.account
+      }
+      else {
+        return .none
+      }
+    }
 
     @Sendable nonisolated func screenStateDispositionSequence() -> AnyAsyncSequence<ScreenStateDisposition> {
-			sessionStateChangeSubscription
-				.map { (event: SessionStateChangeEvent) -> ScreenStateDisposition in
-					switch event {
-					case .authorized(let account):
-						return .useAuthorizedScreenState(for: account)
-					case .requestedPassphrase(let account):
-						return .requestPassphrase(account, message: .none)
-					case .requestedMFA(let account, let providers):
-						return .requestMFA(account, providers: providers)
-					case .closed:
-						return .useInitialScreenState
-					}
-				}
-				.asAnyAsyncSequence()
+      sessionStateChangeSubscription
+        .map { (event: SessionStateChangeEvent) -> ScreenStateDisposition in
+          switch event {
+          case .authorized(let account):
+            return .useAuthorizedScreenState(for: account)
+          case .requestedPassphrase(let account):
+            return .requestPassphrase(account, message: .none)
+          case .requestedMFA(let account, let providers):
+            return .requestMFA(account, providers: providers)
+          case .closed:
+            return .useInitialScreenState
+          }
+        }
+        .asAnyAsyncSequence()
     }
 
     return Self(
-			initialAccount: initialAccount,
+      initialAccount: initialAccount,
       screenStateDispositionSequence: screenStateDispositionSequence
     )
   }

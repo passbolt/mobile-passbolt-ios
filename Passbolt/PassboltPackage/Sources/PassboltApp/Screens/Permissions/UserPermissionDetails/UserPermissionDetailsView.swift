@@ -50,27 +50,30 @@ internal struct UserPermissionDetailsView: ComponentView {
 
   @ViewBuilder private var contentView: some View {
     VStack(spacing: 0) {
-      AsyncUserAvatarView(
-        imageLoad: self.state.avatarImageFetch
-      )
-      .frame(
-        width: 96,
-        height: 96,
-        alignment: .center
-      )
-      .padding(8)
+      VStack(spacing: 0) {
+        AsyncUserAvatarView(
+          imageLoad: self.state.avatarImageFetch
+        )
+        .frame(
+          width: 96,
+          height: 96,
+          alignment: .center
+        )
+        .padding(8)
 
-      Text(
-        "\(self.state.permissionDetails.firstName) \(self.state.permissionDetails.lastName)"
-      )
-      .text(
-        font: .inter(
-          ofSize: 20,
-          weight: .semibold
-        ),
-        color: .passboltPrimaryText
-      )
-      .padding(8)
+        Text(
+          self.state.permissionDetails.title
+        )
+        .text(
+          font: .inter(
+            ofSize: 20,
+            weight: .semibold
+          ),
+          color: .passboltPrimaryText
+        )
+        .padding(8)
+      }
+      .opacity(self.state.permissionDetails.isSuspended ? 0.5 : 1)
 
       Text(
         "\(self.state.permissionDetails.username)"
@@ -141,5 +144,15 @@ extension UserPermissionDetailsView.ViewState {
     _ rhs: Self
   ) -> Bool {
     lhs.permissionDetails == rhs.permissionDetails
+  }
+}
+
+extension UserPermissionDetailsDSV {
+  fileprivate var title: String {
+    let nameTitle = "\(firstName) \(lastName)"
+    let suspendedMark =
+      isSuspended ? " (\(DisplayableString.localized("permission.details.user.suspended").string()))" : ""
+
+    return nameTitle + suspendedMark
   }
 }

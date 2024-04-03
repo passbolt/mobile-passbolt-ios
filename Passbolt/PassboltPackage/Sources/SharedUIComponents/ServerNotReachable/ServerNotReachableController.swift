@@ -75,7 +75,7 @@ extension ServerNotReachableController: UIController {
     cancellables: Cancellables
   ) -> Self {
 
-    return Self(
+    Self(
       serverURL: context
     )
   }

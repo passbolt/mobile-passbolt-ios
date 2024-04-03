@@ -35,54 +35,54 @@ extension TOTPCodeGenerator {
   ) throws -> Self {
     let time: OSTime = features.instance()
     let hotpCodeGenerator: HOTPCodeGenerator = try features.instance()
-		
-		@Sendable nonisolated func prepare(
-			with parameters: Parameters
-		) -> @Sendable () -> TOTPValue {
-			let rawPeriod: Int64 = parameters.period.rawValue
-			guard rawPeriod > 0
-			else {
-				InternalInconsistency
-					.error("TOTP period should be greater than zero!")
-					.log()
-				return {
-					TOTPValue(
-						resourceID: parameters.resourceID,
-						otp: "",
-						timeLeft: 0,
-						period: 0
-					)
-				}
-			}
 
-			let hotpGenerator: @Sendable (UInt64) -> HOTPValue = hotpCodeGenerator.prepare(
-				.init(
-					resourceID: parameters.resourceID,
-					sharedSecret: parameters.sharedSecret,
-					algorithm: parameters.algorithm,
-					digits: parameters.digits
-				)
-			)
+    @Sendable nonisolated func prepare(
+      with parameters: Parameters
+    ) -> @Sendable () -> TOTPValue {
+      let rawPeriod: Int64 = parameters.period.rawValue
+      guard rawPeriod > 0
+      else {
+        InternalInconsistency
+          .error("TOTP period should be greater than zero!")
+          .log()
+        return {
+          TOTPValue(
+            resourceID: parameters.resourceID,
+            otp: "",
+            timeLeft: 0,
+            period: 0
+          )
+        }
+      }
 
-			@Sendable nonisolated func generate() -> TOTPValue {
-				let rawTimestamp: Int64 = time.timestamp().rawValue
-				// ignoring negative time (it will crash)
-				let counter: UInt64 = UInt64(rawTimestamp / rawPeriod)
+      let hotpGenerator: @Sendable (UInt64) -> HOTPValue = hotpCodeGenerator.prepare(
+        .init(
+          resourceID: parameters.resourceID,
+          sharedSecret: parameters.sharedSecret,
+          algorithm: parameters.algorithm,
+          digits: parameters.digits
+        )
+      )
 
-				let hotp: HOTPValue = hotpGenerator(counter)
+      @Sendable nonisolated func generate() -> TOTPValue {
+        let rawTimestamp: Int64 = time.timestamp().rawValue
+        // ignoring negative time (it will crash)
+        let counter: UInt64 = UInt64(rawTimestamp / rawPeriod)
 
-				return TOTPValue(
-					resourceID: parameters.resourceID,
-					otp: hotp.otp,
-					timeLeft: .init(
-						rawValue: rawPeriod - rawTimestamp % rawPeriod
-					),
-					period: parameters.period
-				)
-			}
+        let hotp: HOTPValue = hotpGenerator(counter)
 
-			return generate
-		}
+        return TOTPValue(
+          resourceID: parameters.resourceID,
+          otp: hotp.otp,
+          timeLeft: .init(
+            rawValue: rawPeriod - rawTimestamp % rawPeriod
+          ),
+          period: parameters.period
+        )
+      }
+
+      return generate
+    }
 
     return .init(
       prepare: prepare(with:)

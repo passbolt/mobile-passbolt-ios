@@ -26,7 +26,6 @@ import TestExtensions
 @testable import PassboltSession
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@available(iOS 16.0.0, *)
 final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuthorization> {
 
   override class func testedImplementationRegister(
@@ -80,10 +79,10 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       \TOTPAuthorizationNetworkOperation.execute,
       with: always(.init(mfaToken: "token"))
     )
-		patch(
-			\SessionLocking.ensureLocking,
-			with: always(Void())
-		)
+    patch(
+      \SessionLocking.ensureLocking,
+      with: always(Void())
+    )
     patch(
       \SessionState.mfaProvided,
       with: always(self.executed())
@@ -130,10 +129,10 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       \SessionState.mfaProvided,
       with: always(Void())
     )
-		patch(
-			\SessionLocking.ensureLocking,
-			with: always(Void())
-		)
+    patch(
+      \SessionLocking.ensureLocking,
+      with: always(Void())
+    )
     patch(
       \AccountsDataStore.storeAccountMFAToken,
       with: always(Void())
@@ -143,31 +142,31 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
     }
   }
 
-	func test_authorizeMFA_totp_ensuresSessionLocking_whenAuthorizationSucceeds() {
-		patch(
-			\SessionState.account,
-			with: always(.mock_ada)
-		)
-		patch(
-			\TOTPAuthorizationNetworkOperation.execute,
-			with: always(.init(mfaToken: "token"))
-		)
-		patch(
-			\SessionState.mfaProvided,
-			with: always(Void())
-		)
-		patch(
-			\SessionLocking.ensureLocking,
-			 with: always(self.executed())
-		)
-		patch(
-			\AccountsDataStore.storeAccountMFAToken,
-			with: always(Void())
-		)
-		withTestedInstanceExecuted { (testedInstance: SessionMFAAuthorization) in
-			try await testedInstance.authorizeMFA(.totp(.mock_ada, code: "totp", rememberDevice: true))
-		}
-	}
+  func test_authorizeMFA_totp_ensuresSessionLocking_whenAuthorizationSucceeds() {
+    patch(
+      \SessionState.account,
+      with: always(.mock_ada)
+    )
+    patch(
+      \TOTPAuthorizationNetworkOperation.execute,
+      with: always(.init(mfaToken: "token"))
+    )
+    patch(
+      \SessionState.mfaProvided,
+      with: always(Void())
+    )
+    patch(
+      \SessionLocking.ensureLocking,
+      with: always(self.executed())
+    )
+    patch(
+      \AccountsDataStore.storeAccountMFAToken,
+      with: always(Void())
+    )
+    withTestedInstanceExecuted { (testedInstance: SessionMFAAuthorization) in
+      try await testedInstance.authorizeMFA(.totp(.mock_ada, code: "totp", rememberDevice: true))
+    }
+  }
 
   func test_authorizeMFA_yubikey_throws_withoutSession() {
     patch(
@@ -245,10 +244,10 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       \SessionState.mfaProvided,
       with: always(self.executed())
     )
-		patch(
-			\SessionLocking.ensureLocking,
-			with: always(Void())
-		)
+    patch(
+      \SessionLocking.ensureLocking,
+      with: always(Void())
+    )
     withTestedInstanceExecuted { (testedInstance: SessionMFAAuthorization) in
       try await testedInstance.authorizeMFA(.yubiKey(.mock_ada, rememberDevice: false))
     }
@@ -307,10 +306,10 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       \SessionState.mfaProvided,
       with: always(Void())
     )
-		patch(
-			\SessionLocking.ensureLocking,
-			with: always(Void())
-		)
+    patch(
+      \SessionLocking.ensureLocking,
+      with: always(Void())
+    )
     patch(
       \AccountsDataStore.storeAccountMFAToken,
       with: alwaysThrow(MockIssue.error())
@@ -322,37 +321,37 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
     }
   }
 
-	func test_authorizeMFA_yubikey_ensuresSessionLocking_whenAuthorizationSucceeds() {
-		patch(
-			\SessionState.account,
-			with: always(.mock_ada)
-		)
-		patch(
-			\YubiKey.read,
-			with: always(
-				Just("otp")
-					.eraseErrorType()
-					.eraseToAnyPublisher()
-			)
-		)
-		patch(
-			\YubiKeyAuthorizationNetworkOperation.execute,
-			with: always(.init(mfaToken: "token"))
-		)
-		patch(
-			\SessionState.mfaProvided,
-			with: always(Void())
-		)
-		patch(
-			\SessionLocking.ensureLocking,
-			 with: always(self.executed())
-		)
-		patch(
-			\AccountsDataStore.storeAccountMFAToken,
-			with: always(Void())
-		)
-		withTestedInstanceExecuted { (testedInstance: SessionMFAAuthorization) in
-			try await testedInstance.authorizeMFA(.yubiKey(.mock_ada, rememberDevice: true))
-		}
-	}
+  func test_authorizeMFA_yubikey_ensuresSessionLocking_whenAuthorizationSucceeds() {
+    patch(
+      \SessionState.account,
+      with: always(.mock_ada)
+    )
+    patch(
+      \YubiKey.read,
+      with: always(
+        Just("otp")
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
+    patch(
+      \YubiKeyAuthorizationNetworkOperation.execute,
+      with: always(.init(mfaToken: "token"))
+    )
+    patch(
+      \SessionState.mfaProvided,
+      with: always(Void())
+    )
+    patch(
+      \SessionLocking.ensureLocking,
+      with: always(self.executed())
+    )
+    patch(
+      \AccountsDataStore.storeAccountMFAToken,
+      with: always(Void())
+    )
+    withTestedInstanceExecuted { (testedInstance: SessionMFAAuthorization) in
+      try await testedInstance.authorizeMFA(.yubiKey(.mock_ada, rememberDevice: true))
+    }
+  }
 }

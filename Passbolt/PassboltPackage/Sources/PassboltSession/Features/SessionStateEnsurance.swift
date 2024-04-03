@@ -39,7 +39,6 @@ internal struct SessionStateEnsurance {
 
 extension SessionStateEnsurance: LoadableFeature {
 
-
   #if DEBUG
   nonisolated internal static var placeholder: Self {
     Self(

@@ -34,18 +34,18 @@ internal struct ResourceDetailsView: ControlledView {
   }
 
   internal var body: some View {
-		self.contentView
-			.toolbar {
-				ToolbarItemGroup(placement: .navigationBarTrailing) {
-					IconButton(
-						iconName: .more,
-						action: self.controller.showMenu
-					)
-				}
-			}
-			.backgroundColor(.passboltBackground)
-			.foregroundColor(.passboltPrimaryText)
-			.onDisappear(perform: self.controller.coverAllFields)
+    self.contentView
+      .toolbar {
+        ToolbarItemGroup(placement: .navigationBarTrailing) {
+          IconButton(
+            iconName: .more,
+            action: self.controller.showMenu
+          )
+        }
+      }
+      .backgroundColor(.passboltBackground)
+      .foregroundColor(.passboltPrimaryText)
+      .onDisappear(perform: self.controller.coverAllFields)
   }
 
   @MainActor @ViewBuilder private var contentView: some View {
@@ -57,9 +57,15 @@ internal struct ResourceDetailsView: ControlledView {
         }
       }
       self.fieldsSectionsView
-      self.locationSectionView
-      self.tagsSectionView
-      self.permissionsSectionView
+      when(\.locationAvailable) {
+        self.locationSectionView
+      }
+      when(\.tagsAvailable) {
+        self.tagsSectionView
+      }
+      when(\.permissionsListVisible) {
+        self.permissionsSectionView
+      }
       CommonListSpacer(minHeight: 16)
     }
     .edgesIgnoringSafeArea(.bottom)
@@ -129,8 +135,23 @@ internal struct ResourceDetailsView: ControlledView {
     CommonListSection {
       withEach(\.fields) { (fieldModel: ResourceDetailsFieldViewModel) in
         CommonListRow(
-          contentAction: {
-            await self.controller.copyFieldValue(path: fieldModel.path)
+          contentAction: fieldModel.mainAction.map { action in
+            switch action {
+            case .copy:
+              return { () async throws -> Void in
+                await self.controller.copyFieldValue(path: fieldModel.path)
+              }
+
+            case .reveal:
+              return { () async throws -> Void in
+                await self.controller.revealFieldValue(path: fieldModel.path)
+              }
+
+            case .hide:
+              return { () async throws -> Void in
+                self.controller.coverFieldValue(path: fieldModel.path)
+              }
+            }
           },
           content: {
             ResourceFieldView(
@@ -207,26 +228,26 @@ internal struct ResourceDetailsView: ControlledView {
               }
             )
           },
-          accessoryAction: fieldModel.accessory.map { accessory in
-            switch accessory {
+          accessoryAction: fieldModel.accessoryAction.map { action in
+            switch action {
             case .copy:
-              return {
+              return { () async throws -> Void in
                 await self.controller.copyFieldValue(path: fieldModel.path)
               }
 
             case .reveal:
-              return {
+              return { () async throws -> Void in
                 await self.controller.revealFieldValue(path: fieldModel.path)
               }
 
             case .hide:
-              return {
+              return { () async throws -> Void in
                 self.controller.coverFieldValue(path: fieldModel.path)
               }
             }
           },
           accessory: {
-            switch fieldModel.accessory {
+            switch fieldModel.accessoryAction {
             case .copy:
               CopyButtonImage()
 

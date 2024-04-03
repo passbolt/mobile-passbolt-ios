@@ -53,8 +53,8 @@ internal final class TermsAndLicensesViewController: ViewController {
 extension TermsAndLicensesViewController {
 
   internal final func navigateToTermsAndConditions() async {
-		await consumingErrors(
-			errorDiagnostics: "Failed to open terms and conditions!"
+    await consumingErrors(
+      errorDiagnostics: "Failed to open terms and conditions!"
     ) {
       guard
         let url: URLString = sessionConfiguration.termsURL,
@@ -70,7 +70,7 @@ extension TermsAndLicensesViewController {
 
   internal final func navigateToPrivacyPolicy() async {
     await consumingErrors(
-          errorDiagnostics: "Failed to open privacy policy!"
+      errorDiagnostics: "Failed to open privacy policy!"
     ) {
       guard
         let url: URLString = sessionConfiguration.privacyPolicyURL,
@@ -86,7 +86,7 @@ extension TermsAndLicensesViewController {
 
   internal final func navigateToLicenses() async {
     await consumingErrors(
-          errorDiagnostics: "Failed to open application settings!"
+      errorDiagnostics: "Failed to open application settings!"
     ) {
       try await self.linkOpener.openApplicationSettings()
     }

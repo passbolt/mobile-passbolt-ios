@@ -34,7 +34,7 @@ where Scope: FeaturesScope {
   private var loaders: Dictionary<FeatureIdentifier, FeatureLoader>
   private var cache: Dictionary<CacheKey, CacheItem>
 
-	@MainActor public init(
+  @MainActor public init(
     registrySetup: (inout FeaturesRegistry) -> Void
   ) where Scope == RootFeaturesScope {
     var registry: FeaturesRegistry = .init()
@@ -158,16 +158,16 @@ extension FeaturesFactory: FeaturesContainer {
     line: UInt
   ) throws -> FeaturesContainer
   where RequestedScope: FeaturesScope {
-		try RequestedScope.verified(
-			branch: FeaturesFactory<RequestedScope>(
-				registry: self.registry,
-				scope: scope,
-				context: context,
-				parent: self
-			),
-			file: file,
-			line: line
-		)
+    try RequestedScope.verified(
+      branch: FeaturesFactory<RequestedScope>(
+        registry: self.registry,
+        scope: scope,
+        context: context,
+        parent: self
+      ),
+      file: file,
+      line: line
+    )
   }
 
   @MainActor public func instance<Feature>(

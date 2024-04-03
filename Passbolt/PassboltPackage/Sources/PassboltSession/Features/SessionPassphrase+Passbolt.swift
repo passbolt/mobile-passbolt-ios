@@ -22,8 +22,8 @@
 //
 
 import Accounts
-import Session
 import FeatureScopes
+import Session
 
 // MARK: - Implementation
 
@@ -32,7 +32,7 @@ extension SessionPassphrase {
   @MainActor fileprivate static func load(
     features: Features
   ) throws -> Self {
-		let account: Account = try features.sessionAccount()
+    let account: Account = try features.sessionAccount()
     let sessionState: SessionState = try features.instance()
     let sessionStateEnsurance: SessionStateEnsurance = try features.instance()
     let accountsDataStore: AccountsDataStore = try features.instance()
@@ -71,7 +71,7 @@ extension FeaturesRegistry {
         load: SessionPassphrase
           .load(features:)
       ),
-			in: SessionScope.self
+      in: SessionScope.self
     )
   }
 }

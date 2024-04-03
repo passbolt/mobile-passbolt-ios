@@ -21,38 +21,38 @@
 // @since         v1.0
 //
 
-import Features
 import CommonModels
+import Features
 
 public enum UserGroupScope: FeaturesScope {
 
-	public typealias Context = UserGroup.ID
+  public typealias Context = UserGroup.ID
 
-	@MainActor public static func verified<Branch>(
-		branch features: Branch,
-		file: StaticString,
-		line: UInt
-	) throws -> Branch
-	where Branch: Features {
-		try features.ensureScope(
-			SessionScope.self,
-			file: file,
-			line: line
-		)
-		return features
-	}
+  @MainActor public static func verified<Branch>(
+    branch features: Branch,
+    file: StaticString,
+    line: UInt
+  ) throws -> Branch
+  where Branch: Features {
+    try features.ensureScope(
+      SessionScope.self,
+      file: file,
+      line: line
+    )
+    return features
+  }
 }
 
 extension Features {
 
-	public func userGroupContext(
-		file: StaticString = #fileID,
-		line: UInt = #line
-	) throws ->  UserGroup.ID {
-		try self.context(
-			of: UserGroupScope.self,
-			file: file,
-			line: line
-		)
-	}
+  public func userGroupContext(
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) throws -> UserGroup.ID {
+    try self.context(
+      of: UserGroupScope.self,
+      file: file,
+      line: line
+    )
+  }
 }

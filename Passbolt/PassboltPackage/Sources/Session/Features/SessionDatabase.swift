@@ -44,7 +44,6 @@ public struct SessionDatabase {
 
 extension SessionDatabase: LoadableFeature {
 
-
   #if DEBUG
   public nonisolated static var placeholder: Self {
     Self(

@@ -39,7 +39,7 @@ internal struct ApplicationSettingsView: ControlledView {
     ScreenView(
       title: "settings.application.title",
       contentView: {
-				self.content
+        self.content
       }
     )
   }
@@ -82,7 +82,7 @@ internal struct ApplicationSettingsView: ControlledView {
               action: {
                 await self.controller.setBiometricsAuthorization(enabled: false)
               },
-              regularLabel: {
+              label: {
                 Text(displayable: .localized(key: .confirm))
               }
             )

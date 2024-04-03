@@ -349,6 +349,33 @@ final class PGPTests: XCTestCase {
     )
   }
 
+  func test_readCleartextMessage_succeeds_withCorrectPGPMessage() {
+    if let messageData = signedMessage.data(using: .utf8) {
+      let output: Result<String, Error> = pgp.readCleartextMessage(messageData)
+      XCTAssertSuccessEqual(output, signedMessage)
+    }
+  }
+
+  func test_readCleartextMessage_succeeds_withNonPGPMessage() {
+    if let messageData = "passbolt".data(using: .utf8) {
+      let output: Result<String, Error> = pgp.readCleartextMessage(messageData)
+      XCTAssertFailureUnderlyingError(
+        output,
+        root: PGPIssue.self,
+        matches: PGPClearTextMessageInvalid.self
+      )
+    }
+  }
+
+  func test_isPGPSignedClearMessage_succeeds_withSignedPGPMessage() {
+    let output: Bool = pgp.isPGPSignedClearMessage(signedMessage)
+    XCTAssertTrue(output)
+  }
+
+  func test_isPGPSignedClearMessage_succeeds_withoutSignedPGPMessage() {
+    let output: Bool = pgp.isPGPSignedClearMessage("passbolt")
+    XCTAssertTrue(!output)
+  }
   // MARK: Test data
 
   private let publicKey: ArmoredPGPPublicKey =

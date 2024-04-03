@@ -29,13 +29,13 @@ public struct ResourceTagListItemView: View {
   private let name: String
   private let shared: Bool
   private let contentCount: Int
-  private let action: @MainActor () -> Void
+  private let action: @MainActor () async throws -> Void
 
   public init(
     name: String,
     shared: Bool,
     contentCount: Int,
-    action: @escaping @MainActor () -> Void
+    action: @escaping @MainActor () async throws -> Void
   ) {
     self.name = name
     self.shared = shared

@@ -52,7 +52,6 @@ internal final class OTPEditFormViewController: ViewController {
 
   private let allFields: Set<Resource.FieldPath>
 
-  private let asyncExecutor: AsyncExecutor
   private let navigationToSelf: NavigationToOTPEditForm
   private let navigationToAttach: NavigationToOTPAttachSelectionList
   private let navigationToAdvanced: NavigationToOTPEditAdvancedForm
@@ -72,8 +71,6 @@ internal final class OTPEditFormViewController: ViewController {
     self.features = features.takeOwned()
 
     self.context = context
-
-    self.asyncExecutor = try features.instance()
 
     self.navigationToSelf = try features.instance()
     self.navigationToAttach = try features.instance()
@@ -150,7 +147,7 @@ internal final class OTPEditFormViewController: ViewController {
           }
         }
         catch {
-					SnackBarMessageEvent.send(.error(error))
+          SnackBarMessageEvent.send(.error(error))
         }
       }
     )
@@ -207,7 +204,7 @@ extension OTPEditFormViewController {
         try await resourceEditForm.send()
         try await navigationToSelf.revert()
         SnackBarMessageEvent.send(
-					editedResource.isLocal || !editedResource.hasTOTP
+          editedResource.isLocal || !editedResource.hasTOTP
             ? "otp.edit.otp.created.message"
             : "otp.edit.otp.replaced.message"
         )
@@ -227,7 +224,7 @@ extension OTPEditFormViewController {
   internal func selectResourceToAttach() async {
     await consumingErrors(
       errorDiagnostics: "Failed to navigate to adding OTP to a resource"
-		) {
+    ) {
       do {
         try await resourceEditForm.validateForm()
         guard

@@ -41,7 +41,7 @@ internal struct ResourcesListDisplayView: ControlledView {
         refreshAction: self.controller.refresh,
         createAction: self.controller.createResource,
         resourceTapAction: self.controller.selectResource,
-				resourceMenuAction: .none
+        resourceMenuAction: .none
       )
     }
   }

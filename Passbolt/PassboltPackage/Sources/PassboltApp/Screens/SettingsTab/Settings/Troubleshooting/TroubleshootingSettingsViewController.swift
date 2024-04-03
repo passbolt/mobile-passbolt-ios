@@ -50,7 +50,7 @@ extension TroubleshootingSettingsViewController {
 
   internal final func navigateToHelpSite() async {
     await consumingErrors(
-          errorDiagnostics: "Failed to open help site!"
+      errorDiagnostics: "Failed to open help site!"
     ) {
       try await self.linkOpener.openURL("https://help.passbolt.com/")
     }

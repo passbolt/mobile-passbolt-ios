@@ -21,105 +21,105 @@
 // @since         v1.0
 //
 
-import Display
 import CommonModels
-import NetworkOperations
+import Display
 import FeatureScopes
+import NetworkOperations
 
 internal final class DUOAuthorizationViewController: ViewController {
 
-	internal struct ViewState: Equatable {
+  internal struct ViewState: Equatable {
 
-		internal var request: DUOWebAuthorizationRequest?
-	}
+    internal var request: DUOWebAuthorizationRequest?
+  }
 
-	internal let viewState: ViewStateSource<ViewState>
+  internal let viewState: ViewStateSource<ViewState>
 
-	private var finishAuthorization: ((Result<(String, String, String), Error>) -> Void)?
+  private var finishAuthorization: ((Result<(String, String, String), Error>) -> Void)?
 
-	private let duoAuthorizationNetworkOperation: DUOAuthorizationPromptNetworkOperation
-	private let session: Session
+  private let duoAuthorizationNetworkOperation: DUOAuthorizationPromptNetworkOperation
+  private let session: Session
 
-	internal init(
-		context: Void,
-		features: Features
-	) throws {
-		self.duoAuthorizationNetworkOperation = try features.instance()
-		self.session = try features.instance()
+  internal init(
+    context: Void,
+    features: Features
+  ) throws {
+    self.duoAuthorizationNetworkOperation = try features.instance()
+    self.session = try features.instance()
 
-		self.viewState = .init(
-			initial: .init(
-				request: .none
-			)
-		)
-	}
+    self.viewState = .init(
+      initial: .init(
+        request: .none
+      )
+    )
+  }
 }
 
 extension DUOAuthorizationViewController {
 
-	internal func requestAuthorization() async {
-		assert(self.finishAuthorization == nil, "Can't begin authorization when there is one already pending.")
-		do {
-			let response: DUOAuthorizationPromptNetworkOperationResult = try await self.duoAuthorizationNetworkOperation()
+  internal func requestAuthorization() async {
+    assert(self.finishAuthorization == nil, "Can't begin authorization when there is one already pending.")
+    do {
+      let response: DUOAuthorizationPromptNetworkOperationResult = try await self.duoAuthorizationNetworkOperation()
 
-			self.viewState.update(
-				\.request,
-				to: .init(
-					url: response.authorizationURL,
-					token: response.stateID
-				)
-			)
+      self.viewState.update(
+        \.request,
+        to: .init(
+          url: response.authorizationURL,
+          token: response.stateID
+        )
+      )
 
-			let tokens: (code: String, duoToken: String, passboltToken: String) = try await future { fulfill in
-				self.finishAuthorization = fulfill
-			}
-			self.finishAuthorization = .none
-			self.viewState.update(\.request, to: .none)
+      let tokens: (code: String, duoToken: String, passboltToken: String) = try await future { fulfill in
+        self.finishAuthorization = fulfill
+      }
+      self.finishAuthorization = .none
+      self.viewState.update(\.request, to: .none)
 
-			try await self.session.authorizeMFA(
-				.duo(
-					self.session.currentAccount(),
-					duoCode: tokens.code,  // duoCode
-					duoToken: tokens.duoToken,  // duoToken
-					passboltToken: tokens.passboltToken,  // passboltToken
-					rememberDevice: false // remember option is not supported yet
-				)
-			)
-		}
-		catch {
-			self.finishAuthorization = .none
-			self.viewState.update { (viewState: inout ViewState) in
-				viewState.request = .none
-			}
-			SnackBarMessageEvent.send(
-				.error(
-					error.logged(
-						info: .message("DUO authorization failed!")
-					)
-				)
-			)
-		}
-	}
+      try await self.session.authorizeMFA(
+        .duo(
+          self.session.currentAccount(),
+          duoCode: tokens.code,  // duoCode
+          duoToken: tokens.duoToken,  // duoToken
+          passboltToken: tokens.passboltToken,  // passboltToken
+          rememberDevice: false  // remember option is not supported yet
+        )
+      )
+    }
+    catch {
+      self.finishAuthorization = .none
+      self.viewState.update { (viewState: inout ViewState) in
+        viewState.request = .none
+      }
+      SnackBarMessageEvent.send(
+        .error(
+          error.logged(
+            info: .message("DUO authorization failed!")
+          )
+        )
+      )
+    }
+  }
 
-	internal func handleAuthorization(
-		duoCode: String,
-		duoToken: String,
-		passboltToken: String
-	) {
-		self.finishAuthorization?(
-			.success(
-				(
-					duoCode: duoCode,
-					duoToken: duoToken,
-					passboltToken: passboltToken
-				)
-			)
-		)
-	}
+  internal func handleAuthorization(
+    duoCode: String,
+    duoToken: String,
+    passboltToken: String
+  ) {
+    self.finishAuthorization?(
+      .success(
+        (
+          duoCode: duoCode,
+          duoToken: duoToken,
+          passboltToken: passboltToken
+        )
+      )
+    )
+  }
 
-	internal func handleAuthorization(
-		error: Error
-	) {
-		self.finishAuthorization?(.failure(error))
-	}
+  internal func handleAuthorization(
+    error: Error
+  ) {
+    self.finishAuthorization?(.failure(error))
+  }
 }

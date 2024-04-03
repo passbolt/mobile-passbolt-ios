@@ -31,7 +31,6 @@ internal final class ResourcesListDisplayController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
 
-  private let asyncExecutor: AsyncExecutor
   private let sessionData: SessionData
   private let resources: ResourcesController
 
@@ -47,7 +46,6 @@ internal final class ResourcesListDisplayController: ViewController {
     self.context = context
     self.features = features
 
-    self.asyncExecutor = try features.instance()
     self.sessionData = try features.instance()
     self.resources = try features.instance()
 
@@ -74,7 +72,7 @@ internal final class ResourcesListDisplayController: ViewController {
           }
         }
         catch {
-					error.consume()
+          error.consume()
         }
       }
     )
@@ -88,8 +86,8 @@ extension ResourcesListDisplayController {
     internal var baseFilter: ResourcesFilter
     internal var filterTextSource: AnyUpdatable<String>
     internal var suggestionFilter: (ResourceListItemDSV) -> Bool
-    internal var createResource: (() -> Void)?
-    internal var selectResource: (Resource.ID) -> Void
+    internal var createResource: (() async throws -> Void)?
+    internal var selectResource: (Resource.ID) async throws -> Void
   }
 
   internal struct ViewState: Equatable {
@@ -106,19 +104,19 @@ extension ResourcesListDisplayController {
       try await self.sessionData.refreshIfNeeded()
     }
     catch {
-			error.consume(
-				context: "Failed to refresh session data."
-			)
+      error.consume(
+        context: "Failed to refresh session data."
+      )
     }
   }
 
-  internal final func createResource() {
-    self.context.createResource?()
+  internal final func createResource() async throws {
+    try await self.context.createResource?()
   }
 
   internal final func selectResource(
     _ id: Resource.ID
-  ) {
-    self.context.selectResource(id)
+  ) async throws {
+    try await self.context.selectResource(id)
   }
 }

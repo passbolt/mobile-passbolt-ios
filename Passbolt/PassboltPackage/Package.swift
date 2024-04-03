@@ -5,7 +5,7 @@ import PackageDescription
 let package = Package(
   name: "PassboltPackage",
   defaultLocalization: "en",
-  platforms: [.iOS(.v15)],
+  platforms: [.iOS(.v16)],
   products: [
     // MARK: - Legacy
     .library(
@@ -418,7 +418,7 @@ let package = Package(
         // Base
         "Commons",
         "Features",
-				"FeatureScopes",
+        "FeatureScopes",
         // External
         .product(
           name: "Aegithalos",
@@ -769,6 +769,14 @@ let package = Package(
       name: "PassboltSessionTests",
       dependencies: [
         "PassboltSession",
+        "CoreTest",
+        "TestExtensions",
+      ]
+    ),
+    .testTarget(
+      name: "PassboltSessionDataTests",
+      dependencies: [
+        "PassboltSessionData",
         "CoreTest",
         "TestExtensions",
       ]

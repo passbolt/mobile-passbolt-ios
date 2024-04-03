@@ -28,7 +28,6 @@ import SharedUIComponents
 
 internal final class ResourcesListCreateMenuViewController: ViewController {
 
-  private let asyncExecutor: AsyncExecutor
   private let navigation: DisplayNavigation
 
   private let context: ResourceFolder.ID?
@@ -41,54 +40,43 @@ internal final class ResourcesListCreateMenuViewController: ViewController {
     self.context = context
     self.features = features
 
-    self.asyncExecutor = try features.instance()
     self.navigation = try features.instance()
   }
 }
 
 extension ResourcesListCreateMenuViewController {
 
-  internal final func close() {
-    self.asyncExecutor.schedule(.reuse) { @MainActor [navigation] in
-      await navigation
-        .dismissLegacySheet(ResourcesListCreateMenuView.self)
-    }
+  internal final func close() async {
+    await self.navigation
+      .dismissLegacySheet(ResourcesListCreateMenuView.self)
   }
 
-  internal final func createResource() {
-    self.asyncExecutor.scheduleCatching(
-      behavior: .reuse
-    ) { @MainActor [features, navigation] in
-      let resourceEditPreparation: ResourceEditPreparation = try features.instance()
-      let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
-        .default,
-        self.context,
-        .none
-      )
-      await navigation
-        .dismissLegacySheet(ResourcesListCreateMenuView.self)
-      try await features
-        .instance(of: NavigationToResourceEdit.self)
-        .perform(
-          context: .init(
-            editingContext: editingContext
-          )
+  internal final func createResource() async throws {
+    let resourceEditPreparation: ResourceEditPreparation = try self.features.instance()
+    let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
+      .default,
+      self.context,
+      .none
+    )
+    await self.navigation
+      .dismissLegacySheet(ResourcesListCreateMenuView.self)
+    try await self.features
+      .instance(of: NavigationToResourceEdit.self)
+      .perform(
+        context: .init(
+          editingContext: editingContext
         )
-    }
+      )
   }
 
-  internal final func createFolder() {
-    self.asyncExecutor
-      .scheduleCatching(
-        behavior: .reuse
-      ) { [context, features, navigation] in
-				await navigation
-					.dismissLegacySheet(ResourcesListCreateMenuView.self)
-				let editingFeatures: Features = try await features.instance(of: ResourceFolderEditPreparation.self).prepareNew(context)
-				try await navigation.push(
-					ResourceFolderEditView.self,
-					controller: editingFeatures.instance()
-				)
-      }
+  internal final func createFolder() async throws {
+    await self.navigation
+      .dismissLegacySheet(ResourcesListCreateMenuView.self)
+    let editingFeatures: Features = try await self.features.instance(of: ResourceFolderEditPreparation.self)
+      .prepareNew(context)
+    try await self.navigation.push(
+      ResourceFolderEditView.self,
+      controller: editingFeatures.instance()
+    )
   }
 }

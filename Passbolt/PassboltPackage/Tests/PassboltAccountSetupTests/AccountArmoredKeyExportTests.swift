@@ -28,40 +28,40 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class AccountArmoredKeyExportTests: FeaturesTestCase {
 
-	override func commonPrepare() {
-		super.commonPrepare()
-		set(
-			AccountScope.self,
-			context: .mock_ada
-		)
-		set(
-			AccountTransferScope.self
-		)
-		register(
-			{ $0.usePassboltAccountArmoredKeyExport() },
-			for: AccountArmoredKeyExport.self
-		)
-	}
+  override func commonPrepare() {
+    super.commonPrepare()
+    set(
+      AccountScope.self,
+      context: .mock_ada
+    )
+    set(
+      AccountTransferScope.self
+    )
+    register(
+      { $0.usePassboltAccountArmoredKeyExport() },
+      for: AccountArmoredKeyExport.self
+    )
+  }
 
-	func test_authorizePrivateKeyExport_fails_whenExportingAccountDataFails() async {
-		patch(
-			\AccountDataExport.exportAccountData,
-			 with: alwaysThrow(MockIssue.error())
-		)
+  func test_authorizePrivateKeyExport_fails_whenExportingAccountDataFails() async {
+    patch(
+      \AccountDataExport.exportAccountData,
+      with: alwaysThrow(MockIssue.error())
+    )
 
-		await withInstance(throws: MockIssue.self) { (feature: AccountArmoredKeyExport) in
-			try await feature.authorizePrivateKeyExport(.biometrics)
-		}
-	}
+    await withInstance(throws: MockIssue.self) { (feature: AccountArmoredKeyExport) in
+      try await feature.authorizePrivateKeyExport(.biometrics)
+    }
+  }
 
-	func test_authorizePrivateKeyExport_succeeds_whenExportingAccountDataSucceeds() async {
-		patch(
-			\AccountDataExport.exportAccountData,
-			 with: always(.mock_ada)
-		)
+  func test_authorizePrivateKeyExport_succeeds_whenExportingAccountDataSucceeds() async {
+    patch(
+      \AccountDataExport.exportAccountData,
+      with: always(.mock_ada)
+    )
 
-		await withInstance(returns: AccountTransferData.mock_ada.armoredKey) { (feature: AccountArmoredKeyExport) in
-			try await feature.authorizePrivateKeyExport(.biometrics)
-		}
-	}
+    await withInstance(returns: AccountTransferData.mock_ada.armoredKey) { (feature: AccountArmoredKeyExport) in
+      try await feature.authorizePrivateKeyExport(.biometrics)
+    }
+  }
 }

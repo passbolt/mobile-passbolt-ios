@@ -43,7 +43,7 @@ extension AccountInitialSetup {
     @Sendable func unfinishedSetupElements() async -> Set<SetupElement> {
       var unfinishedElements: Set<SetupElement> =
         unfinishedSetupElementsProperty
-				.get(withDefault: [])
+        .get(withDefault: [])
         .compactMap(SetupElement.init(rawValue:))
         .asSet()
 
@@ -105,18 +105,20 @@ extension FeaturesRegistry {
       ),
       in: SessionScope.self
     )
-		self.usePassboltStoredProperty(
-			AccountInitialSetupUnfinishedItemsStoredPropertyDescription.self,
-			in: SessionScope.self
-		)
+    self.usePassboltStoredProperty(
+      AccountInitialSetupUnfinishedItemsStoredPropertyDescription.self,
+      in: SessionScope.self
+    )
   }
 }
 
-internal typealias AccountInitialSetupUnfinishedItemsStoredProperty = StoredProperty<AccountInitialSetupUnfinishedItemsStoredPropertyDescription>
+internal typealias AccountInitialSetupUnfinishedItemsStoredProperty = StoredProperty<
+  AccountInitialSetupUnfinishedItemsStoredPropertyDescription
+>
 
 internal enum AccountInitialSetupUnfinishedItemsStoredPropertyDescription: StoredPropertyDescription {
 
-	public typealias Value = Array<String>
+  public typealias Value = Array<String>
 
-	public static var key: OSStoredPropertyKey { "unfinishedSetup" }
+  public static var key: OSStoredPropertyKey { "unfinishedSetup" }
 }

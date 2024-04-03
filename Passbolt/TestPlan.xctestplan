@@ -123,6 +123,14 @@
         "identifier" : "CommonModelsTests",
         "name" : "CommonModelsTests"
       }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "PassboltSessionDataTests",
+        "name" : "PassboltSessionDataTests"
+      }
     }
   ],
   "version" : 1

@@ -53,7 +53,8 @@ where ViewState: Equatable {
   @MainActor public init<Source>(
     initial: ViewState,
     updateFrom source: Source,
-    update: @escaping @Sendable (@MainActor (@MainActor (inout ViewState) -> Void) -> Void, Update<Source.Value>) async
+    update: @escaping @MainActor (@MainActor (@MainActor (inout ViewState) -> Void) -> Void, Update<Source.Value>)
+      async throws
       -> Void
   ) where Source: Updatable {
     // always keep reference to source to prevent unexpected
@@ -71,7 +72,7 @@ where ViewState: Equatable {
         guard let sourceUpdate: Update<Source.Value> = try await source?.lastUpdate
         else { return }  // can't update without source
         lastUpdateGeneration = sourceUpdate.generation
-        await update(mutate, sourceUpdate)
+        try await update(mutate, sourceUpdate)
       }
     }
     self.viewUpdatesPublisher = .init(initial: self._value)
@@ -128,7 +129,7 @@ where ViewState: Equatable {
     guard self.checkSourceUpdate() else { return self.value }
     let runningUpdate: Task<Void, Never> = .init(
       priority: .userInitiated
-    ) { [weak self, updateFromSource] in
+    ) { @MainActor [weak self, updateFromSource] in
       await updateFromSource { @MainActor [weak self] (mutate: @MainActor (inout ViewState) -> Void) in
         self?.update(mutate)
       }

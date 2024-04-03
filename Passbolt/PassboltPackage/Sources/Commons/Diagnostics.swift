@@ -55,7 +55,7 @@ public struct Diagnostics {
     _ variable: @autoclosure @escaping () -> Variable
   ) {
     #if DEBUG
-		Self.logger.log(level: .debug, "🏴‍☠️ \(String(describing: variable()), privacy: .private)")
+    Self.logger.log(level: .debug, "🏴‍☠️ \(String(describing: variable()), privacy: .private)")
     #endif
   }
 

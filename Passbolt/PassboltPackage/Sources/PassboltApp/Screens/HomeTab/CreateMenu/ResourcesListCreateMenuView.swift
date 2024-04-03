@@ -35,9 +35,7 @@ internal struct ResourcesListCreateMenuView: ControlledView {
 
   internal var body: some View {
     DrawerMenu(
-      closeTap: {
-        self.controller.close()
-      },
+      closeTap: self.controller.close,
       title: {
         Text(
           displayable: .localized(
@@ -48,9 +46,7 @@ internal struct ResourcesListCreateMenuView: ControlledView {
       content: {
         VStack(spacing: 0) {
           DrawerMenuItemView(
-            action: {
-              await self.controller.createResource()
-            },
+            action: self.controller.createResource,
             title: {
               Text(
                 displayable: .localized(
@@ -65,9 +61,7 @@ internal struct ResourcesListCreateMenuView: ControlledView {
           .accessibilityIdentifier("resource.folders.add.password")
 
           DrawerMenuItemView(
-            action: {
-              await self.controller.createFolder()
-            },
+            action: self.controller.createFolder,
             title: {
               Text(
                 displayable: .localized(

@@ -47,7 +47,6 @@ public struct DatabaseAccess {
 
 extension DatabaseAccess: LoadableFeature {
 
-
   #if DEBUG
   public nonisolated static var placeholder: Self {
     Self(

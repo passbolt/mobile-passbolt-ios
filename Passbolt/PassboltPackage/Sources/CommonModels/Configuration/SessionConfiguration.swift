@@ -21,28 +21,55 @@
 // @since         v1.0
 //
 
-public struct SessionConfiguration: Hashable {
+public struct SessionConfiguration {
 
-  public let foldersEnabled: Bool
-  public let tagsEnabled: Bool
-  public let totpEnabled: Bool
-  public let passwordPreviewEnabled: Bool
-  public let termsURL: URLString?
-  public let privacyPolicyURL: URLString?
+  public var termsURL: URLString?
+  public var privacyPolicyURL: URLString?
+
+  public var resources: ResourcesFeatureConfiguration
+  public var folders: FoldersFeatureConfiguration
+  public var tags: TagsFeatureConfiguration
+  public var share: ShareFeatureConfiguration
 
   public init(
-    foldersEnabled: Bool,
-    tagsEnabled: Bool,
-    totpEnabled: Bool,
-    passwordPreviewEnabled: Bool,
     termsURL: URLString?,
-    privacyPolicyURL: URLString?
+    privacyPolicyURL: URLString?,
+    resources: ResourcesFeatureConfiguration,
+    folders: FoldersFeatureConfiguration,
+    tags: TagsFeatureConfiguration,
+    share: ShareFeatureConfiguration
   ) {
-    self.foldersEnabled = foldersEnabled
-    self.tagsEnabled = tagsEnabled
-    self.totpEnabled = totpEnabled
-    self.passwordPreviewEnabled = passwordPreviewEnabled
     self.termsURL = termsURL
     self.privacyPolicyURL = privacyPolicyURL
+    self.resources = resources
+    self.folders = folders
+    self.tags = tags
+    self.share = share
+  }
+}
+
+extension SessionConfiguration: Equatable {}
+
+extension SessionConfiguration {
+
+  public static var `default`: Self {
+    .init(
+      termsURL: .none,
+      privacyPolicyURL: .none,
+      resources: .init(
+        passwordRevealEnabled: true,
+        passwordCopyEnabled: true,
+        totpEnabled: false
+      ),
+      folders: .init(
+        enabled: false
+      ),
+      tags: .init(
+        enabled: false
+      ),
+      share: .init(
+        showMembersList: true
+      )
+    )
   }
 }

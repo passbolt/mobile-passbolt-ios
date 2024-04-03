@@ -37,7 +37,7 @@ extension UserDetails {
   @MainActor fileprivate static func load(
     features: Features
   ) throws -> Self {
-		let userID: User.ID = try features.context(of: UserScope.self)
+    let userID: User.ID = try features.context(of: UserScope.self)
 
     let sessionData: SessionData = try features.instance()
     let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()

@@ -109,18 +109,19 @@ extension SessionAuthorization {
       _ passphrase: Passphrase,
       forKey privateKey: ArmoredPGPPrivateKey
     ) throws {
-			do {
-				try pgp.verifyPassphrase(
-					privateKey,
-					passphrase
-				)
-				.get()
-			}
-			catch {
-				throw PassphraseInvalid
-					.error()
-					.recording(error, for: "underlyingError")
-			}
+      do {
+        try pgp.verifyPassphrase(
+          privateKey,
+          passphrase
+        )
+        .get()
+      }
+      catch {
+        throw
+          PassphraseInvalid
+          .error()
+          .recording(error, for: "underlyingError")
+      }
     }
 
     @SessionActor func isCurrentAccessTokenValid() -> Bool {
@@ -207,20 +208,20 @@ extension SessionAuthorization {
         mfaProviders
       )
 
-			if mfaProviders.isEmpty {
-				do {
-					try await features
-						.instance(of: SessionLocking.self)
-						.ensureLocking(account)
-				}
-				catch {
-					// ignore errors,
-					// it can fail only if feature fails to load
-					error
-						.asTheError()
-						.asAssertionFailure()
-				}
-			} // else NOP
+      if mfaProviders.isEmpty {
+        do {
+          try await features
+            .instance(of: SessionLocking.self)
+            .ensureLocking(account)
+        }
+        catch {
+          // ignore errors,
+          // it can fail only if feature fails to load
+          error
+            .asTheError()
+            .asAssertionFailure()
+        }
+      }  // else NOP
     }
 
     @SessionActor func handleRefresh(
@@ -381,8 +382,8 @@ extension SessionAuthorization {
         throw error
       }
       catch {
-				Diagnostics.logger.info("...authorization failed!")
-				throw	error
+        Diagnostics.logger.info("...authorization failed!")
+        throw error
       }
     }
 
@@ -467,7 +468,7 @@ extension SessionAuthorization {
         throw error
       }
       catch {
-				Diagnostics.logger.info("...session refresh failed!")
+        Diagnostics.logger.info("...session refresh failed!")
         throw error
       }
     }

@@ -23,11 +23,11 @@
 
 import Accounts
 import Display
+import FeatureScopes
+import NetworkOperations
 import Session
 import SharedUIComponents
 import UIComponents
-import FeatureScopes
-import NetworkOperations
 
 internal struct AccountSelectionController {
 
@@ -59,7 +59,7 @@ extension AccountSelectionController: UIController {
 
     let navigationTree: NavigationTree = features.instance()
     let autofillContext: AutofillExtensionContext = features.instance()
-		let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
+    let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
     let accounts: Accounts = try features.instance()
     let session: Session = try features.instance()
 
@@ -70,16 +70,16 @@ extension AccountSelectionController: UIController {
         .map { _ -> Array<AccountSelectionListItem> in
           let currentAccount: Account? = try? await session.currentAccount()
           var listItems: Array<AccountSelectionListItem> = .init()
-					for storedAccount: AccountWithProfile in accounts.storedAccounts() {
+          for storedAccount: AccountWithProfile in accounts.storedAccounts() {
             let item: AccountSelectionCellItem = AccountSelectionCellItem(
               account: storedAccount.account,
               title: storedAccount.label,
               subtitle: storedAccount.username,
-							isCurrentAccount: storedAccount.account == currentAccount,
+              isCurrentAccount: storedAccount.account == currentAccount,
               imagePublisher:
                 Just(Void())
                 .asyncMap {
-									try? await mediaDownloadNetworkOperation.execute(storedAccount.avatarImageURL)
+                  try? await mediaDownloadNetworkOperation.execute(storedAccount.avatarImageURL)
                 }
                 .eraseToAnyPublisher(),
               listModePublisher: Empty().eraseToAnyPublisher()
@@ -105,11 +105,12 @@ extension AccountSelectionController: UIController {
         try await navigationTree.push(
           AuthorizationViewController.self,
           context: account,
-          using: features
-						.branchIfNeeded(
-							scope: AccountScope.self,
-							context: account
-						)
+          using:
+            features
+            .branchIfNeeded(
+              scope: AccountScope.self,
+              context: account
+            )
         )
       }
     }

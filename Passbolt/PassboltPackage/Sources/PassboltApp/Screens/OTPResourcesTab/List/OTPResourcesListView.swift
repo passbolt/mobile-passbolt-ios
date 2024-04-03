@@ -39,10 +39,10 @@ internal struct OTPResourcesListView: ControlledView {
       titleIcon: .otp,
       title: "otp.resources.list.title",
       contentView: {
-				VStack(spacing: 0) {
-					self.search
-					self.list
-				}
+        VStack(spacing: 0) {
+          self.search
+          self.list
+        }
       }
     )
     .backgroundColor(.passboltBackground)
@@ -61,7 +61,7 @@ internal struct OTPResourcesListView: ControlledView {
         rightAccessory: {
           AsyncButton(
             action: self.controller.showAccountMenu,
-            regularLabel: {
+            label: {
               with(\.accountAvatarImage) { (accountAvatarImage: Data?) in
                 UserAvatarView(
                   imageData: accountAvatarImage

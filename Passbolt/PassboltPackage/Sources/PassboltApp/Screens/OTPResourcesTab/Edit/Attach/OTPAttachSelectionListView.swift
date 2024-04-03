@@ -67,11 +67,11 @@ internal struct OTPAttachSelectionListView: ControlledView {
         }
       }
     ) {
-			VStack(spacing: 0) {
-				self.search
-				self.list
-				self.actionButton
-			}
+      VStack(spacing: 0) {
+        self.search
+        self.list
+        self.actionButton
+      }
     }
     .frame(maxHeight: .infinity)
     .navigationTitle(
@@ -104,11 +104,11 @@ internal struct OTPAttachSelectionListView: ControlledView {
             },
             accessory: {
               switch item.state {
-              case .none:
+              case .deselected:
                 Image(named: .circleUnselected)
                   .foregroundColor(.passboltIcon)
 
-              case .notAllowed:
+              case .notAllowed, .notCompatibleWithTotp:
                 Image(named: .lockedLock)
                   .foregroundColor(.passboltIcon)
 
@@ -118,7 +118,7 @@ internal struct OTPAttachSelectionListView: ControlledView {
               }
             }
           )
-          .disabled(item.state.disabled)
+          .opacity(item.state.disabled ? 0.5 : 1)
         }
       }
     }

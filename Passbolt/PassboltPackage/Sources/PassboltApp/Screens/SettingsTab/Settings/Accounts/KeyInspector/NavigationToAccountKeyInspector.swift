@@ -30,19 +30,19 @@ internal typealias NavigationToAccountKeyInspector = NavigationTo<AccountKeyInsp
 
 extension NavigationToAccountKeyInspector {
 
-	fileprivate static var live: FeatureLoader {
-		legacyPushTransition(
-			to: AccountKeyInspectorView.self
-		)
-	}
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(
+      to: AccountKeyInspectorView.self
+    )
+  }
 }
 
 extension FeaturesRegistry {
 
-	internal mutating func useLiveNavigationToAccountKeyInspector() {
-		self.use(
-			NavigationToAccountKeyInspector.live,
-			in: SettingsScope.self
-		)
-	}
+  internal mutating func useLiveNavigationToAccountKeyInspector() {
+    self.use(
+      NavigationToAccountKeyInspector.live,
+      in: SettingsScope.self
+    )
+  }
 }

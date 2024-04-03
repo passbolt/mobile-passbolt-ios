@@ -152,20 +152,20 @@ extension Features {
       file: file,
       line: line
     )
-		if hasScope {
-			return self.takeOwned(
-				file: file,
-				line: line
-			)
-		}
-		else {
-			return try self.branch(
-				scope: scope,
-				context: context,
-				file: file,
-				line: line
-			)
-		}
+    if hasScope {
+      return self.takeOwned(
+        file: file,
+        line: line
+      )
+    }
+    else {
+      return try self.branch(
+        scope: scope,
+        context: context,
+        file: file,
+        line: line
+      )
+    }
   }
 
   @MainActor public func branchIfNeeded<Scope>(

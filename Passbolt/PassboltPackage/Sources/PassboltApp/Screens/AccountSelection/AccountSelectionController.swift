@@ -23,11 +23,11 @@
 
 import AccountSetup
 import Accounts
+import FeatureScopes
+import NetworkOperations
 import Session
 import SharedUIComponents
 import UIComponents
-import FeatureScopes
-import NetworkOperations
 
 internal struct AccountSelectionController {
 
@@ -62,7 +62,7 @@ extension AccountSelectionController: UIController {
     let features: Features = features
     let accounts: Accounts = try features.instance()
     let session: Session = try features.instance()
-		let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
+    let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
 
     let listModeSubject: CurrentValueSubject<AccountSelectionListMode, Never> = .init(.selection)
     let removeAccountAlertPresentationSubject: PassthroughSubject<Void, Never> = .init()
@@ -80,11 +80,11 @@ extension AccountSelectionController: UIController {
               account: storedAccount.account,
               title: storedAccount.label,
               subtitle: storedAccount.username,
-							isCurrentAccount: storedAccount.account == currentAccount,
+              isCurrentAccount: storedAccount.account == currentAccount,
               imagePublisher:
                 Just(Void())
                 .asyncMap {
-									try? await mediaDownloadNetworkOperation.execute(storedAccount.avatarImageURL)
+                  try? await mediaDownloadNetworkOperation.execute(storedAccount.avatarImageURL)
                 }
                 .eraseToAnyPublisher(),
               listModePublisher: listModeSubject.eraseToAnyPublisher()
@@ -133,7 +133,9 @@ extension AccountSelectionController: UIController {
 
     func addAccount() {
       cancellables.executeOnMainActor {
-        #warning("FIXME: find a way to know when account transfer is already in progress to make it unavailable to perform again")
+        #warning(
+          "FIXME: find a way to know when account transfer is already in progress to make it unavailable to perform again"
+        )
         addAccountPresentationSubject.send(false)
       }
     }

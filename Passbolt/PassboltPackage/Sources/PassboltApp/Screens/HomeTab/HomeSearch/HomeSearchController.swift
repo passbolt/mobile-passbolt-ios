@@ -36,7 +36,7 @@ internal struct HomeSearchController {
   internal var avatarImagePublisher: @MainActor () -> AnyPublisher<Data?, Never>
   internal var presentHomePresentationMenu: @MainActor () -> Void
   internal var homePresentationMenuPresentationPublisher: @MainActor () -> AnyPublisher<HomePresentationMode, Never>
-  internal var presentAccountMenu: @MainActor () -> Void
+  internal var presentAccountMenu: @MainActor () async throws -> Void
 }
 
 extension HomeSearchController: UIController {
@@ -48,8 +48,6 @@ extension HomeSearchController: UIController {
     with features: inout Features,
     cancellables: Cancellables
   ) throws -> Self {
-
-    let asyncExecutor: AsyncExecutor = try features.instance()
 
     let navigationToAccountMenu: NavigationToAccountMenu = try features.instance()
 
@@ -99,14 +97,8 @@ extension HomeSearchController: UIController {
         .eraseToAnyPublisher()
     }
 
-    func presentAccountMenu() {
-      asyncExecutor.schedule(.reuse) {
-        await consumingErrors(
-          errorDiagnostics: "Navigation to account menu failed!"
-        ) {
-          try await navigationToAccountMenu.perform()
-        }
-      }
+    func presentAccountMenu() async throws {
+      try await navigationToAccountMenu.perform()
     }
 
     return Self(

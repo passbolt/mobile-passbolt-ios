@@ -78,30 +78,42 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
 
     contentView
       .signOutTapPublisher
-      .sink { [unowned self] in
-        self.controller.signOut()
+      .asyncMap { [weak self] in
+        await consumingErrors {
+          try await self?.controller.signOut()
+        }
       }
+      .sinkDrop()
       .store(in: cancellables)
 
     contentView
       .accountDetailsTapPublisher
-      .sink { [unowned self] in
-        self.controller.presentAccountDetails()
+      .asyncMap { [weak self] in
+        await consumingErrors {
+          try await self?.controller.presentAccountDetails()
+        }
       }
+      .sinkDrop()
       .store(in: cancellables)
 
     contentView
       .accountSwitchTapPublisher
-      .sink { [unowned self] account in
-        self.controller.presentAccountSwitch(account)
+      .asyncMap { [weak self] account in
+        await consumingErrors {
+          try await self?.controller.presentAccountSwitch(account)
+        }
       }
+      .sinkDrop()
       .store(in: cancellables)
 
     contentView
       .manageAccountsTapPublisher
-      .sink { [unowned self] in
-        self.controller.presentManageAccounts()
+      .asyncMap { [weak self] in
+        await consumingErrors {
+          try await self?.controller.presentManageAccounts()
+        }
       }
+      .sinkDrop()
       .store(in: cancellables)
 
     controller

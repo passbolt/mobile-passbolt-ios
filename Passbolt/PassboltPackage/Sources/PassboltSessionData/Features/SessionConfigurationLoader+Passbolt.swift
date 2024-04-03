@@ -34,114 +34,131 @@ extension SessionConfigurationLoader {
   @MainActor fileprivate static func load(
     features: Features
   ) throws -> Self {
-
     let session: Session = try features.instance()
-    let configurationFetchNetworkOperation: ConfigurationFetchNetworkOperation = try features.instance()
+    let serverConfigurationFetchNetworkOperation: ServerConfigurationFetchNetworkOperation = try features.instance()
+    let featureAccessControlConfigurationFetchNetworkOperation: FeatureAccessControlConfigurationFetchNetworkOperation =
+      try features.instance()
 
-    let configuration: ComputedVariable<Dictionary<AnyHashable, FeatureConfigItem>> = .init(
+    let configuration: ComputedVariable<SessionConfiguration> = .init(
       // TODO: we should update only on account changes
       // not on all session changes...
+      // ...hovever this is an Updatable and it will
+      // recompute its value only if asked for new one.
+      // Since we typically access configuration
+      // from the session scope context it might not be an issue
       transformed: session.updates
-        //        .currentAccountSequence()
-        //        .map { _ in Void() },
     ) { _ in
       try await fetchConfiguration()
     }
 
-    @Sendable nonisolated func fetchConfiguration() async throws -> Dictionary<AnyHashable, FeatureConfigItem> {
+    @Sendable nonisolated func fetchConfiguration() async throws -> SessionConfiguration {
       Diagnostics.logger.info("Fetching server configuration...")
       guard case .some = try? await session.currentAccount()
       else {
         Diagnostics.logger.info("...server configuration fetching skipped!")
-        return .init()
+        return .default
       }
-      let rawConfiguration: ConfigurationFetchNetworkOperationResult.Config
+
+      let serverConfiguration: ServerConfiguration
       do {
-        rawConfiguration = try await configurationFetchNetworkOperation().config
+        serverConfiguration = try await serverConfigurationFetchNetworkOperation()
       }
       catch {
-				Diagnostics.logger.info("...server configuration fetching failed!")
+        Diagnostics.logger.info("...server configuration fetching failed!")
         throw error
-      }
-
-      var configuration: Dictionary<AnyHashable, FeatureConfigItem> = .init()
-
-      if let legal: ConfigurationFetchNetworkOperationResult.Legal = rawConfiguration.legal {
-        configuration[FeatureFlags.Legal.identifier] = { () -> FeatureFlags.Legal in
-          let termsURL: URL? = .init(string: legal.terms.url)
-          let privacyPolicyURL: URL? = .init(string: legal.privacyPolicy.url)
-
-          switch (termsURL, privacyPolicyURL) {
-          case (.none, .none):
-            return .none
-          case let (.some(termsURL), .none):
-            return .terms(termsURL)
-          case let (.none, .some(privacyPolicyURL)):
-            return .privacyPolicy(privacyPolicyURL)
-          case let (.some(termsURL), .some(privacyPolicyURL)):
-            return .both(termsURL: termsURL, privacyPolicyURL: privacyPolicyURL)
-          }
-        }()
-      }
-      else {
-        configuration[FeatureFlags.Legal.identifier] = FeatureFlags.Legal.default
-      }
-
-      if let folders: ConfigurationPlugins.Folders = rawConfiguration.plugins.firstElementOfType(), folders.enabled {
-        configuration[FeatureFlags.Folders.identifier] = FeatureFlags.Folders.enabled(
-          version: folders.version
-        )
-      }
-      else {
-        configuration[FeatureFlags.Folders.identifier] = FeatureFlags.Folders.default
-      }
-
-      if let previewPassword: ConfigurationPlugins.PreviewPassword = rawConfiguration.plugins.firstElementOfType() {
-        configuration[FeatureFlags.PreviewPassword.identifier] = { () -> FeatureFlags.PreviewPassword in
-          if previewPassword.enabled {
-            return .enabled
-          }
-          else {
-            return .disabled
-          }
-        }()
-      }
-      else {
-        configuration[FeatureFlags.PreviewPassword.identifier] = FeatureFlags.PreviewPassword.default
-      }
-
-      if let tags: ConfigurationPlugins.Tags = rawConfiguration.plugins.firstElementOfType(), tags.enabled {
-        configuration[FeatureFlags.Tags.identifier] = FeatureFlags.Tags.enabled
-      }
-      else {
-        configuration[FeatureFlags.Tags.identifier] = FeatureFlags.Tags.default
-      }
-
-      if let totp: ConfigurationPlugins.TOTP = rawConfiguration.plugins.firstElementOfType(), totp.enabled {
-        configuration[FeatureFlags.TOTP.identifier] = FeatureFlags.TOTP.enabled
-      }
-      else {
-        configuration[FeatureFlags.TOTP.identifier] = FeatureFlags.TOTP.default
       }
 
       Diagnostics.logger.info("...server configuration fetched!")
 
+      var configuration: SessionConfiguration = .init(
+        termsURL: serverConfiguration.legal.terms,
+        privacyPolicyURL: serverConfiguration.legal.privacyPolicy,
+        resources: .init(
+          passwordRevealEnabled: serverConfiguration.plugins.passwordPreview?.enabled ?? true,
+          passwordCopyEnabled: true,
+          totpEnabled: serverConfiguration.plugins.totpResources?.enabled ?? false
+        ),
+        folders: .init(
+          enabled: serverConfiguration.plugins.folders?.enabled ?? false
+        ),
+        tags: .init(
+          enabled: serverConfiguration.plugins.tags?.enabled ?? false
+        ),
+        share: .init(
+          showMembersList: true
+        )
+      )
+
+      if serverConfiguration.plugins.rbacs?.enabled ?? false {
+        Diagnostics.logger.info("Fetching rbacs configuration...")
+        let accessConfiguration: FeatureAccessControlConfiguration
+        do {
+          accessConfiguration = try await featureAccessControlConfigurationFetchNetworkOperation()
+        }
+        catch {
+          Diagnostics.logger.info("...rbacs configuration fetching failed!")
+          throw error
+        }
+
+        Diagnostics.logger.info("...rbacs configuration fetched!")
+
+        switch accessConfiguration.folders {
+        case .allow:
+          break  // keep the state from plugins
+
+        case .deny:
+          configuration.folders.enabled = false
+        }
+
+        switch accessConfiguration.tags {
+        case .allow:
+          break  // keep the state from plugins
+
+        case .deny:
+          configuration.tags.enabled = false
+        }
+
+        switch accessConfiguration.copySecrets {
+        case .allow:
+          break  // keep the state from plugins
+
+        case .deny:
+          configuration.resources.passwordCopyEnabled = false
+        }
+
+        switch accessConfiguration.previewSecrets {
+        case .allow:
+          break  // keep the state from plugins
+
+        case .deny:
+          configuration.resources.passwordRevealEnabled = false
+        }
+
+        switch accessConfiguration.viewShareList {
+        case .allow:
+          break  // keep the state from plugins
+
+        case .deny:
+          configuration.share.showMembersList = false
+        }
+      }  // else no RBAC
+
       return configuration
     }
 
-    @Sendable nonisolated func fetchIfNeeded() async throws {
-      _ = try await configuration.value
-    }
-
-    @Sendable nonisolated func configuration(
-      _ itemType: FeatureConfigItem.Type
-    ) async -> FeatureConfigItem? {
-      try? await configuration.value[itemType.identifier]
+    @Sendable nonisolated func sessionConfiguration() async throws -> SessionConfiguration {
+      do {
+        return try await configuration.value
+      }
+      catch {
+        // allow retrying on error
+        configuration.invalidateCache()
+        throw error
+      }
     }
 
     return Self(
-      fetchIfNeeded: fetchIfNeeded,
-      configuration: configuration(_:)
+      sessionConfiguration: sessionConfiguration
     )
   }
 }
@@ -155,15 +172,5 @@ extension FeaturesRegistry {
         load: SessionConfigurationLoader.load(features:)
       )
     )
-  }
-}
-
-extension Array where Element == ConfigurationPlugin {
-
-  fileprivate func firstElementOfType<T>(
-    _ ofType: T.Type = T.self
-  ) -> T?
-  where T: ConfigurationPlugin {
-    first { $0 is T } as? T
   }
 }

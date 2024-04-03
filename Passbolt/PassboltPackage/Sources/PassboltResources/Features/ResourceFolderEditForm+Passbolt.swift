@@ -34,134 +34,138 @@ extension ResourceFolderEditForm {
   @MainActor fileprivate static func load(
     features: Features
   ) throws -> Self {
-		let currentAccount: Account = try features.sessionAccount()
-		let editedResourceFolder: ResourceFolder = try features.resourceFolderEditingContext().editedResourceFolder
+    let currentAccount: Account = try features.sessionAccount()
+    let editedResourceFolder: ResourceFolder = try features.resourceFolderEditingContext().editedResourceFolder
 
-		let sessionData: SessionData = try features.instance()
+    let sessionData: SessionData = try features.instance()
 
-		let resourceFolderCreateNetworkOperation: ResourceFolderCreateNetworkOperation = try features.instance()
-		let resourceFolderShareNetworkOperation: ResourceFolderShareNetworkOperation = try features.instance()
+    let resourceFolderCreateNetworkOperation: ResourceFolderCreateNetworkOperation = try features.instance()
+    let resourceFolderShareNetworkOperation: ResourceFolderShareNetworkOperation = try features.instance()
 
-		let state: Variable<ResourceFolder> = .init(
-			initial: editedResourceFolder
-		)
+    let state: Variable<ResourceFolder> = .init(
+      initial: editedResourceFolder
+    )
 
-		@Sendable func setFolder(
-			name: String
-		) -> Validated<String> {
-			state.mutate { (folder: inout ResourceFolder) -> Validated<String> in
-				folder.name = name
-				return folder.nameValidator.validate(name)
-			}
-		}
+    @Sendable func setFolder(
+      name: String
+    ) -> Validated<String> {
+      state.mutate { (folder: inout ResourceFolder) -> Validated<String> in
+        folder.name = name
+        return folder.nameValidator.validate(name)
+      }
+    }
 
-		@Sendable func validateForm() throws {
-			try state.value.validate()
-		}
+    @Sendable func validateForm() throws {
+      try state.value.validate()
+    }
 
-		@Sendable func sendForm() async throws {
-			var editedResourceFolder: ResourceFolder = state.value
-			try editedResourceFolder.validate()
+    @Sendable func sendForm() async throws {
+      var editedResourceFolder: ResourceFolder = state.value
+      try editedResourceFolder.validate()
 
-			let newPermissions: OrderedSet<NewGenericPermissionDTO>
-			let updatedPermissions: OrderedSet<GenericPermissionDTO>
-			let deletedPermissions: OrderedSet<GenericPermissionDTO>
+      let newPermissions: OrderedSet<NewGenericPermissionDTO>
+      let updatedPermissions: OrderedSet<GenericPermissionDTO>
+      let deletedPermissions: OrderedSet<GenericPermissionDTO>
 
-			if editedResourceFolder.isLocal {
-				let createdFolderResult: ResourceFolderCreateNetworkOperationResult =
-				try await resourceFolderCreateNetworkOperation
-					.execute(
-						.init(
-							name: editedResourceFolder.name,
-							parentFolderID: editedResourceFolder.parentFolderID
-						)
-					)
-				editedResourceFolder.id = createdFolderResult.resourceFolderID
+      if editedResourceFolder.isLocal {
+        let createdFolderResult: ResourceFolderCreateNetworkOperationResult =
+          try await resourceFolderCreateNetworkOperation
+          .execute(
+            .init(
+              name: editedResourceFolder.name,
+              parentFolderID: editedResourceFolder.parentFolderID
+            )
+          )
+        editedResourceFolder.id = createdFolderResult.resourceFolderID
 
-				newPermissions = editedResourceFolder.permissions.compactMap { (permission: ResourceFolderPermission) -> NewGenericPermissionDTO? in
-					switch permission {
-					case .user(let id, let permission, permissionID: .none):
-						// current user permission is never new after creating
-						guard id != currentAccount.userID else { return .none }
-						return .userToFolder(
-							userID: id,
-							folderID: createdFolderResult.resourceFolderID,
-							permission: permission
-						)
+        newPermissions = editedResourceFolder.permissions
+          .compactMap { (permission: ResourceFolderPermission) -> NewGenericPermissionDTO? in
+            switch permission {
+            case .user(let id, let permission, permissionID: .none):
+              // current user permission is never new after creating
+              guard id != currentAccount.userID else { return .none }
+              return .userToFolder(
+                userID: id,
+                folderID: createdFolderResult.resourceFolderID,
+                permission: permission
+              )
 
-					case .userGroup(let id, let permission, permissionID: .none):
-						return .userGroupToFolder(
-							userGroupID: id,
-							folderID: createdFolderResult.resourceFolderID,
-							permission: permission
-						)
+            case .userGroup(let id, let permission, permissionID: .none):
+              return .userGroupToFolder(
+                userGroupID: id,
+                folderID: createdFolderResult.resourceFolderID,
+                permission: permission
+              )
 
-					case _:
-						assertionFailure("New resource folder can't contain existing permissions!")
-						return .none
-					}
-				}
-				.asOrderedSet()
-				// only current user permission could be updated
-				// when creating new resource folder
-				updatedPermissions = editedResourceFolder.permissions
-					.first { $0.userID == currentAccount.userID && !$0.permission.isOwner }
-					.map { (permission: ResourceFolderPermission) -> GenericPermissionDTO in
-						return .userToFolder(
-							id: createdFolderResult.ownerPermissionID,
-							userID: currentAccount.userID,
-							folderID: createdFolderResult.resourceFolderID,
-							permission: permission.permission // use the updated value
-						)
-					}
-					.map { [$0] }
-				?? .init()
-				// only current user permission could be deleted
-				// when creating new resource folder
-				deletedPermissions = editedResourceFolder.permissions
-					.contains { $0.userID == currentAccount.userID }
-				? []
-				: [
-					.userToFolder(
-						id: createdFolderResult.ownerPermissionID,
-						userID: currentAccount.userID,
-						folderID: createdFolderResult.resourceFolderID,
-						permission: .owner
-					)
-				]
-			}
-			else {
-				throw Unimplemented
-					.error("Attempting to edit a resource folder which is not supported yet.")
-			}
+            case _:
+              assertionFailure("New resource folder can't contain existing permissions!")
+              return .none
+            }
+          }
+          .asOrderedSet()
+        // only current user permission could be updated
+        // when creating new resource folder
+        updatedPermissions =
+          editedResourceFolder.permissions
+          .first { $0.userID == currentAccount.userID && !$0.permission.isOwner }
+          .map { (permission: ResourceFolderPermission) -> GenericPermissionDTO in
+            .userToFolder(
+              id: createdFolderResult.ownerPermissionID,
+              userID: currentAccount.userID,
+              folderID: createdFolderResult.resourceFolderID,
+              permission: permission.permission  // use the updated value
+            )
+          }
+          .map { [$0] }
+          ?? .init()
+        // only current user permission could be deleted
+        // when creating new resource folder
+        deletedPermissions =
+          editedResourceFolder.permissions
+            .contains { $0.userID == currentAccount.userID }
+          ? []
+          : [
+            .userToFolder(
+              id: createdFolderResult.ownerPermissionID,
+              userID: currentAccount.userID,
+              folderID: createdFolderResult.resourceFolderID,
+              permission: .owner
+            )
+          ]
+      }
+      else {
+        throw
+          Unimplemented
+          .error("Attempting to edit a resource folder which is not supported yet.")
+      }
 
-			guard let editedResourceFolderID: ResourceFolder.ID = editedResourceFolder.id
-			else { throw InternalInconsistency.error("Recently edited resource folder has no ID!") }
+      guard let editedResourceFolderID: ResourceFolder.ID = editedResourceFolder.id
+      else { throw InternalInconsistency.error("Recently edited resource folder has no ID!") }
 
-			// if permissions have changed or created new in shared folder
-			// then perform share
-			if !newPermissions.isEmpty || !updatedPermissions.isEmpty || !deletedPermissions.isEmpty {
-				try await resourceFolderShareNetworkOperation.execute(
-					.init(
-						resourceFolderID: editedResourceFolderID,
-						body: .init(
-							newPermissions: newPermissions,
-							updatedPermissions: updatedPermissions,
-							deletedPermissions: deletedPermissions
-						)
-					)
-				)
-			}  // else no permission changes required
+      // if permissions have changed or created new in shared folder
+      // then perform share
+      if !newPermissions.isEmpty || !updatedPermissions.isEmpty || !deletedPermissions.isEmpty {
+        try await resourceFolderShareNetworkOperation.execute(
+          .init(
+            resourceFolderID: editedResourceFolderID,
+            body: .init(
+              newPermissions: newPermissions,
+              updatedPermissions: updatedPermissions,
+              deletedPermissions: deletedPermissions
+            )
+          )
+        )
+      }  // else no permission changes required
 
-			try await sessionData.refreshIfNeeded()
-		}
+      try await sessionData.refreshIfNeeded()
+    }
 
-		return .init(
-			state: state.asAnyUpdatable(),
-			setFolderName: setFolder(name:),
-			validateForm: validateForm,
-			sendForm: sendForm
-		)
+    return .init(
+      state: state.asAnyUpdatable(),
+      setFolderName: setFolder(name:),
+      validateForm: validateForm,
+      sendForm: sendForm
+    )
   }
 }
 
@@ -171,7 +175,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         ResourceFolderEditForm.self,
-				load: ResourceFolderEditForm.load(features:)
+        load: ResourceFolderEditForm.load(features:)
       ),
       in: ResourceFolderEditScope.self
     )

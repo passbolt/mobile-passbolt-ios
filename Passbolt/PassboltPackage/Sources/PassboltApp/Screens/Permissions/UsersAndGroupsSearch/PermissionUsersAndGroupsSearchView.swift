@@ -98,13 +98,13 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
                 UserListRowView(
                   model: userRow,
                   contentAction: {
-                    self.controller.toggleUserSelection(userRow.id)
+                    self.controller.toggleUserSelection(userRow)
                   },
                   rightAccesory: {
                     SelectionIndicator(
                       selected: self.state.selectedItems.contains { item in
                         switch item {
-                        case let .user(id, _):
+                        case let .user(id, _, _):
                           return userRow.id == id
                         case .userGroup:
                           return false
@@ -167,7 +167,7 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
                   UserListRowView(
                     model: userRow,
                     contentAction: {
-                      self.controller.toggleUserSelection(userRow.id)
+                      self.controller.toggleUserSelection(userRow)
                     },
                     rightAccesory: {
                       ResourcePermissionTypeCompactView(
@@ -205,10 +205,7 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
       title: .localized(
         key: .apply
       ),
-      action: {
-        self.controller
-          .saveSelection()
-      }
+      action: self.controller.saveSelection
     )
     .padding(16)
   }

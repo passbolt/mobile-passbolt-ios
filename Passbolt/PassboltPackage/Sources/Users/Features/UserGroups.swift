@@ -56,7 +56,6 @@ public struct UserGroups {
 
 extension UserGroups: LoadableFeature {
 
-
   #if DEBUG
 
   public static var placeholder: Self {
