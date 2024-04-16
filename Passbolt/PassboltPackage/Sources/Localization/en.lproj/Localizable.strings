@@ -475,6 +475,7 @@ Contact your administrator for more information.";
 "error.account.duplicate" = "Duplicate account.";
 "error.server.pgp.fingerprint.invalid" = "Server PGP fingeprint invalid.";
 "error.session.authorization.failed" = "Session authorization failed.";
+"error.qrcode.invalid" = "It’s not the Passbolt QR. Try again!";
 
 "error.validation.folder.name.empty" = "Folder name cannot be empty.";
 "error.validation.folder.name.too.long" = "Folder name cannot have more than 256 characters.";
