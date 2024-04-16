@@ -209,7 +209,7 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
                   await self.dismiss(Self.self)
                 }
 
-              case let .failure(error) where error is AccountDuplicate:
+              case let .failure(error) where error is AccountDuplicate || error is AccountKitAccountAlreadyExist:
                 await self
                   .push(
                     CodeScanningDuplicateViewController.self

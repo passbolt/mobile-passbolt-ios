@@ -22,6 +22,7 @@
 //
 
 import AccountSetup
+import Accounts
 import Crypto
 import Dispatch
 import FeatureScopes
@@ -34,7 +35,7 @@ extension AccountKitImport {
   ) throws -> Self {
 
     let pgp: PGP = features.instance()
-    let accountTransfer: AccountImport = try features.instance()
+    let accounts: Accounts = try features.instance()
 
     Diagnostics.logger.info("Beginning importing account kit...")
 
@@ -84,7 +85,7 @@ extension AccountKitImport {
         )
 
         Diagnostics.logger.info("Check if importing account does not exist")
-        try checkIfAccountExist(accountTransfer, accountTransferData)
+        try checkIfAccountExist(accounts, accountTransferData)
 
         // Return the AccountTransferData as a successful result
         return Just(accountTransferData)
@@ -262,10 +263,18 @@ private func getFingerPrint(_ publicKeyArmored: ArmoredPGPPublicKey, _ pgp: PGP)
 /// @param {AccountTransferData} accountTransferData - The account transfer data to check for existence.
 /// @returns {void}
 private func checkIfAccountExist(
-  _ accountTransfer: AccountImport,
+  _ accounts: Accounts,
   _ accountTransferData: AccountTransferData
 ) throws {
-  if accountTransfer.checkIfAccountExist(accountTransferData) {
+
+  if accounts
+    .storedAccounts()
+    .contains(
+      where: { stored in
+        stored.userID.rawValue == accountTransferData.userID
+          && stored.domain == accountTransferData.domain
+      }
+    ) {
     Diagnostics.debug("Skipping account transfer bypass - duplicate account")
     throw
       AccountKitAccountAlreadyExist.error()

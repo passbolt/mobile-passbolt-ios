@@ -49,6 +49,7 @@ extension AccountImport {
     let mdmConfiguration: MDMConfiguration = features.instance()
     #endif
     let pgp: PGP = features.instance()
+    let accountKitImport: AccountKitImport = try features.instance()
     let session: Session = try features.instance()
     let accountTransferUpdateNetworkOperation: AccountTransferUpdateNetworkOperation = try features.instance()
     let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
@@ -118,9 +119,45 @@ extension AccountImport {
       Diagnostics.logger.info("Processing QR code payload...")
       switch processQRCodePayload(payload, in: transferState.value) {
       case var .success(updatedState):
+
+        //If we have a download link it means we are on version 2
+        if let downloadLink = updatedState.downloadLink {
+          return Just(Void())
+            .eraseErrorType()
+            .asyncMap {
+              //Download the account kit
+              let accountKit = try! await mediaDownloadNetworkOperation.execute(downloadLink.accountKitURL)
+              //Check if account kit is not missing
+              guard let accountKitString = String(data: accountKit, encoding: .utf8), !accountKit.isEmpty
+              else {
+                throw AccountTransferScanningFailure.error().pushing(.message("Account kit is empty"))
+              }
+                //Reuse account kit feature to check payload
+              accountKitImport
+                  .importAccountKit(accountKitString)
+                  .sink(
+                    receiveCompletion: { completion in
+                      guard case let .failure(error) = completion
+                      else { return }
+                      // we are completing transfer with error from import kit
+                      transferState.send(
+                        completion: .failure(error)
+                      )
+                    },
+                    receiveValue: { accountTransferData in
+                      //Import account by payload
+                      importAccountByPayload(accountTransferData)
+                    }
+                  )
+                  .store(in: cancellables)
+            }
+            .ignoreOutput()
+            .eraseToAnyPublisher()
+        }
         // if we have config we can ask for profile,
         // there is no need to do it every time
         // so doing it once when requesting for the next page first time
+        // process payload version 1
         if let configuration: AccountTransferConfiguration = updatedState.configuration,
           updatedState.profile == nil
         {
@@ -487,8 +524,32 @@ private func updated(
   state: AccountTransferState,
   with part: AccountTransferScanningPart
 ) -> Result<AccountTransferState, Error> {
-  var state: AccountTransferState = state  // make state mutable in scope
-  state.scanningParts.append(part)
+  var mutableState = state  // make state mutable in scope
+  mutableState.scanningParts.append(part)
+
+  //We support two kind of version regarding QR code version 1 and version 2
+  if part.version == "1" {
+    return handleVersion1(state: &mutableState, part: part)
+  } else if part.version == "2" {
+    return handleAccountKitQRCode(state: &mutableState, part: part)
+  }
+  return .failure(
+    AccountTransferScanningFailure.error()
+      .pushing(.message("Unsupported QRCode version"))
+  )
+}
+
+/**
+ Handles the version 1 account transfer process by processing the given scanning part and updating the state accordingly.
+
+ - Parameter state: The current account transfer state. This will be updated with any new information extracted from the scanning part.
+ - Parameter part: The scanning part to process.
+ - Returns: A `Result` object indicating whether the processing was successful or not. If successful, the updated state will be returned. If not, an error will be returned.
+ */
+private func handleVersion1(
+  state: inout AccountTransferState,
+  part: AccountTransferScanningPart
+) -> Result<AccountTransferState, Error> {
 
   switch part.page {
   case 0:
@@ -524,6 +585,35 @@ private func updated(
       return .success(state)
     }
   }
+}
+
+/**
+ Handles the version 2 account transfer process by processing the given scanning part and updating the state accordingly.
+
+ - Parameter state: The current account transfer state. This will be updated with any new information extracted from the scanning part.
+ - Parameter part: The scanning part to process.
+ - Returns: A `Result` object indicating whether the processing was successful or not. If successful, the updated state will be returned. If not, an error will be returned.
+ */
+private func handleAccountKitQRCode(
+  state: inout AccountTransferState,
+  part: AccountTransferScanningPart
+) -> Result<AccountTransferState, Error> {
+  //Scan is finished download payload from gist
+  guard let payload = String(data: part.payload, encoding: .utf8) else {
+    return .failure(
+      AccountTransferScanningFailure.error()
+        .pushing(.message("Invalid payload type"))
+    )
+  }
+  do {
+    state.downloadLink = try AccountTransferLink.from(payload).get()
+  } catch {
+    return .failure(
+      AccountTransferScanningFailure.error()
+        .pushing(.message("Failed to extract download link from payload"))
+    )
+  }
+  return .success(state)
 }
 
 private func requestNextPage(
