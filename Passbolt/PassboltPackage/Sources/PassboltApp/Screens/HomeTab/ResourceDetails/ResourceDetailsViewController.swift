@@ -58,10 +58,11 @@ internal final class ResourceDetailsViewController: ViewController {
       guard let numberIndex else { return nil }
       let numberString = String(expiryParts[numberIndex])
       expiryParts.remove(at: numberIndex)
-
+      //We just keep the time string "month", "day"
+      let expiryTimeFormat = expiryParts.joined(separator: " ").replacingOccurrences(of: "in", with: "")
       return .init(
         number: numberString,
-        localizedRelativeString: expiryParts.joined(separator: " "))
+        localizedRelativeString: expiryTimeFormat)
     }
 
   }

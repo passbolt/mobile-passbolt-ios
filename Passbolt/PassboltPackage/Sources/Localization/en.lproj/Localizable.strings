@@ -85,7 +85,7 @@
 "resource.detail.section.tags" = "Tags";
 "resource.detail.section.expiry" = "Expiry";
 "resource.detail.section.expiry.expired" = "Expired";
-"resource.detail.section.expiry.willExpire" = "Expires";
+"resource.detail.section.expiry.willExpire" = "Expires in";
 "resource.detail.undefined.content.warning" = "Unsupported type, unknown fields are hidden!";
 
 "resource.expiry.expired" = "(expired)";
