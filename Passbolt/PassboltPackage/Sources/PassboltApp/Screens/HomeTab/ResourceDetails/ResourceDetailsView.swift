@@ -319,7 +319,6 @@ internal struct ResourceDetailsView: ControlledView {
       if let isExpired {
         CommonListSection {
           CommonListRow(
-            contentAction: self.controller.showLocationDetails,
             content: {
               ResourceFieldView(
                 name: "resource.detail.section.expiry",
