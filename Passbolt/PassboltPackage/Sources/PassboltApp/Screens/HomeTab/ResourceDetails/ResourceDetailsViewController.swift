@@ -37,10 +37,34 @@ internal final class ResourceDetailsViewController: ViewController {
     internal var fields: Array<ResourceDetailsFieldViewModel>
     internal var locationAvailable: Bool
     internal var location: Array<String>
+    internal var expirationDate: Date?
     internal var tagsAvailable: Bool
     internal var tags: Array<String>
     internal var permissionsListVisible: Bool
     internal var permissions: Array<OverlappingAvatarStackView.Item>
+
+    internal var isExpired: Bool? {
+      guard let expirationDate else { return nil }
+      return expirationDate.timeIntervalSinceNow < 0
+    }
+    internal var expiryRelativeFormattedDate: RelativeDateDisplayableFormat? {
+      guard let expirationDate else { return nil }
+      let interval = expirationDate.timeIntervalSinceNow
+      let relativeFormattedString = RelativeDateTimeFormatter().localizedString(fromTimeInterval: interval)
+
+      var expiryParts = relativeFormattedString.split(separator: " ")
+      let numberIndex = expiryParts.firstIndex { Int($0) != nil }
+
+      guard let numberIndex else { return nil }
+      let numberString = String(expiryParts[numberIndex])
+      expiryParts.remove(at: numberIndex)
+      //We just keep the time string "month", "day"
+      let expiryTimeFormat = expiryParts.joined(separator: " ").replacingOccurrences(of: "in", with: "")
+      return .init(
+        number: numberString,
+        localizedRelativeString: expiryTimeFormat)
+    }
+
   }
 
   internal let viewState: ViewStateSource<ViewState>
@@ -144,7 +168,7 @@ internal final class ResourceDetailsViewController: ViewController {
             )
             viewState.location = resource.path.map(\.name)
             viewState.tags = resource.tags.map(\.slug.rawValue)
-
+            viewState.expirationDate = resource.expired?.asDate
             viewState.permissions = resourcePermissions
           }
         }
@@ -502,4 +526,9 @@ extension ResourceDetailsFieldViewModel: Equatable {}
 extension ResourceDetailsFieldViewModel: Identifiable {
 
   internal var id: some Hashable { self.path }
+}
+
+internal struct RelativeDateDisplayableFormat: Equatable {
+  public let number: String
+  public let localizedRelativeString: String
 }

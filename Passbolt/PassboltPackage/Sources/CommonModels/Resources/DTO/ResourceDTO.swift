@@ -39,6 +39,7 @@ public struct ResourceDTO {
   public var description: String?
   public var tags: OrderedSet<ResourceTag>
   public let modified: Date
+  public let expired: Date?
 
   public init(
     id: Resource.ID,
@@ -52,7 +53,8 @@ public struct ResourceDTO {
     username: String?,
     description: String?,
     tags: OrderedSet<ResourceTag>,
-    modified: Date
+    modified: Date,
+    expired: Date?
   ) {
     self.id = id
     self.typeID = typeID
@@ -66,6 +68,7 @@ public struct ResourceDTO {
     self.description = description
     self.tags = tags
     self.modified = modified
+    self.expired = expired
   }
 }
 
@@ -155,6 +158,13 @@ extension ResourceDTO: Decodable {
         Date.self,
         forKey: .modified
       )
+    self.expired =
+      try container
+      .decode(
+        Date?.self,
+        forKey: .expired
+      )
+
   }
 
   private enum CodingKeys: String, CodingKey {
@@ -171,6 +181,7 @@ extension ResourceDTO: Decodable {
     case description = "description"
     case tags = "tags"
     case modified = "modified"
+    case expired = "expired"
   }
 
   private enum PermissionCodingKeys: String, CodingKey {

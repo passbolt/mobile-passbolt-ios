@@ -93,6 +93,7 @@ final class TransferAccountTests: UITestCase {
     assertInteractive("Confirm passphrase")
   }
 
+
   /// https://passbolt.testrail.io/index.php?/cases/view/8151
   func test_asAUserIShouldSeeTransferringYourAccountDetailsScreen() throws {
     //    Given I’m on “Transfer account details” process
@@ -169,7 +170,7 @@ final class TransferAccountTests: UITestCase {
     //      When    there is an error during the transfer process
     try openTransferFailureScreen()
     //      Then    I see an unsuccessful “Something went wrong!” screen with a corresponding title
-    assertInteractive("Something went wrong!")
+    assertInteractive("It’s not the Passbolt QR. Try again!")
     //      And     I see an unsuccessful illustration
     assertInteractive("transfer.account.result.failure.image")
     //      And     I see an error message

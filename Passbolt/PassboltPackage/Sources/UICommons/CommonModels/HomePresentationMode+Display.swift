@@ -42,6 +42,9 @@ extension HomePresentationMode {
     case .ownedResourcesList:
       return .localized(key: "home.presentation.mode.owned.resources.title")
 
+    case .expiredResourcesList:
+      return .localized(key: "home.presentation.mode.owned.resources.expiry")
+
     case .foldersExplorer:
       return .localized(key: "home.presentation.mode.folders.explorer.title")
 
@@ -69,6 +72,9 @@ extension HomePresentationMode {
 
     case .ownedResourcesList:
       return .user
+
+    case .expiredResourcesList:
+      return .expiry
 
     case .foldersExplorer:
       return .folder

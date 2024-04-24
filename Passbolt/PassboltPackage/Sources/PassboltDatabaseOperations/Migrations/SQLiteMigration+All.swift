@@ -45,6 +45,7 @@ extension SQLiteMigration: CaseIterable {
       .migration_15,
       .migration_16,
       .migration_17,
+      .migration_18
     ]
   }
 }

@@ -303,6 +303,7 @@ final class ResourcesDecodingTests: XCTestCase {
         },
         "favorite": null,
         "modified": "2022-02-15T13:28:15+00:00",
+        "expired": "2024-02-15T14:18:56+00:00",
         "permissions": [
           {
             "id": "04c81a81-0cf0-4463-a693-7ea49401f319",
@@ -338,7 +339,9 @@ final class ResourcesDecodingTests: XCTestCase {
     XCTAssertEqual(decodedData.typeID, "e2aa01a9-84ec-55f8-aaed-24ee23259339")
     XCTAssertEqual(decodedData.permissionType, .owner)
     XCTAssertEqual(decodedData.favorite, false)
-    XCTAssertEqual(decodedData.modified, .init(timeIntervalSince1970: 1_644_931_695))
+    XCTAssertEqual(decodedData.modified, .init(timeIntervalSince1970: 1_644_931_695)),
+    XCTAssertEqual(decodedData.expired, .init(timeIntervalSince1970: 1708003136))
+    1708003136
     XCTAssertEqual(
       decodedData.permissions,
       [

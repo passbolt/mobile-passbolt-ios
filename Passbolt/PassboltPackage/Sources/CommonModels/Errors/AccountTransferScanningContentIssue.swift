@@ -21,6 +21,8 @@
 // @since         v1.0
 //
 
+import Commons
+
 public struct AccountTransferScanningContentIssue: TheError {
 
   public static func error(
@@ -36,10 +38,10 @@ public struct AccountTransferScanningContentIssue: TheError {
           line: line
         )
       ),
-      underlyingError: underlyingError
+      displayableMessage: .localized(key: "error.qrcode.invalid")
     )
   }
 
   public var context: DiagnosticsContext
-  public var underlyingError: Error?
+  public var displayableMessage: DisplayableString
 }

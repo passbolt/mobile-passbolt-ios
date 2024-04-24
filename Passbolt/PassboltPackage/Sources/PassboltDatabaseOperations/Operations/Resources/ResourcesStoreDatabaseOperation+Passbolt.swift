@@ -62,7 +62,8 @@ extension ResourcesStoreDatabaseOperation {
               parentFolderID,
               favoriteID,
               permission,
-              modified
+              modified,
+              expired
             )
           VALUES
             (
@@ -83,7 +84,8 @@ extension ResourcesStoreDatabaseOperation {
               ),
               ?8,
               ?9,
-              ?10
+              ?10,
+              ?11
             )
           ON CONFLICT
             (
@@ -106,7 +108,8 @@ extension ResourcesStoreDatabaseOperation {
             ),
             favoriteID=?8,
             permission=?9,
-            modified=?10
+            modified=?10,
+            expired=?11
           ;
           """,
           arguments: resource.id,
@@ -118,7 +121,8 @@ extension ResourcesStoreDatabaseOperation {
           resource.parentFolderID,
           resource.favoriteID,
           resource.permission.rawValue,
-          resource.modified
+          resource.modified,
+          resource.expired
         )
       )
 

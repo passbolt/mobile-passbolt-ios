@@ -32,6 +32,7 @@ public struct ResourceListItemDSV {
   public var name: String
   public var username: String?
   public var url: String?
+  public var isExpired: Bool
 
   public init(
     id: Resource.ID,
@@ -40,7 +41,8 @@ public struct ResourceListItemDSV {
     parentFolderID: ResourceFolder.ID?,
     name: String,
     username: String?,
-    url: String?
+    url: String?,
+    isExpired: Bool
   ) {
     self.id = id
     self.type = type
@@ -49,6 +51,7 @@ public struct ResourceListItemDSV {
     self.name = name
     self.username = username
     self.url = url
+    self.isExpired = isExpired
   }
 }
 

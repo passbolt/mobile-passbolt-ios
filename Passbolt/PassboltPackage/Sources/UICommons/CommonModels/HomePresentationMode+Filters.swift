@@ -62,6 +62,12 @@ extension HomePresentationMode {
         text: searchText,
         permissions: [.owner]
       )
+    case .expiredResourcesList:
+      return .init(
+        sorting: .nameAlphabetically,
+        text: searchText,
+        expiredOnly: true
+      )
 
     case .foldersExplorer:
       return .none

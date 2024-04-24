@@ -21,39 +21,45 @@
 // @since         v1.0
 //
 
-import Database
+import Accounts
+import Resources
+import UIComponents
 
-/// Operations executed on SQLite database opening.
-/// Useful to define database views which won't be persisted
-/// so editing it won't require migrations.
-internal enum SQLiteOpeningOperations {
+import struct Foundation.Data
 
-  public static var all: Array<SQLiteStatement> {
-    [
-      // - add resourceDetailsView - //
-      """
-      CREATE TEMPORARY VIEW
-        resourcesView
-      AS
-      SELECT
-        resources.id AS id,
-        resources.name AS name,
-        resources.favoriteID AS favoriteID,
-        resources.permission AS permission,
-        resources.uri AS uri,
-        resources.username AS username,
-        resources.description AS description,
-        resources.modified AS modified,
-        resources.expired AS expired,
-        resourceTypes.id AS typeID,
-        resourceTypes.slug AS typeSlug
-      FROM
-        resources
-      JOIN
-        resourceTypes
-      ON
-        resources.typeID == resourceTypes.id;
-      """
-    ]
+internal struct ExpiredResourcesListController {
+
+  internal var resourcesFilterPublisher: @MainActor () -> AnyPublisher<ResourcesFilter, Never>
+  internal var setSearchText: @MainActor (String) -> Void
+}
+
+extension ExpiredResourcesListController: UIController {
+
+  internal typealias Context = Void
+
+  internal static func instance(
+    in context: Context,
+    with features: inout Features,
+    cancellables: Cancellables
+  ) -> Self {
+    let resourcesFilterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
+      .init(sorting: .modifiedRecently, expiredOnly: true)
+    )
+
+    func resourcesFilterPublisher() -> AnyPublisher<ResourcesFilter, Never> {
+      resourcesFilterSubject
+        .removeDuplicates()
+        .eraseToAnyPublisher()
+    }
+
+    func setSearchText(_ text: String) {
+      resourcesFilterSubject.value.text = text
+    }
+
+    return Self(
+      resourcesFilterPublisher: resourcesFilterPublisher,
+      setSearchText: setSearchText(_:)
+    )
   }
 }
+

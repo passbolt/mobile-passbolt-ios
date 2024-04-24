@@ -28,6 +28,7 @@ public enum HomePresentationMode: String {
   case modifiedResourcesList
   case sharedResourcesList
   case ownedResourcesList
+  case expiredResourcesList
   case foldersExplorer
   case tagsExplorer
   case resourceUserGroupsExplorer

@@ -23,37 +23,23 @@
 
 import Database
 
-/// Operations executed on SQLite database opening.
-/// Useful to define database views which won't be persisted
-/// so editing it won't require migrations.
-internal enum SQLiteOpeningOperations {
+// swift-format-ignore: AlwaysUseLowerCamelCase
+extension SQLiteMigration {
 
-  public static var all: Array<SQLiteStatement> {
+  internal static var migration_18: Self {
     [
-      // - add resourceDetailsView - //
       """
-      CREATE TEMPORARY VIEW
-        resourcesView
-      AS
-      SELECT
-        resources.id AS id,
-        resources.name AS name,
-        resources.favoriteID AS favoriteID,
-        resources.permission AS permission,
-        resources.uri AS uri,
-        resources.username AS username,
-        resources.description AS description,
-        resources.modified AS modified,
-        resources.expired AS expired,
-        resourceTypes.id AS typeID,
-        resourceTypes.slug AS typeSlug
-      FROM
+      ALTER TABLE
         resources
-      JOIN
-        resourceTypes
-      ON
-        resources.typeID == resourceTypes.id;
+      ADD
+        expired INTEGER DEFAULT NULL;
+      """,
+
+      // - version bump - //
       """
+      PRAGMA user_version = 19; -- persistent, used to track schema version
+      """,
     ]
   }
 }
+

@@ -193,6 +193,21 @@ extension HomeNavigationNodeController {
               )
             )
           )
+      case .expiredResourcesList:
+        return
+          try features
+          .instance(
+            of: ResourcesListNodeController.self,
+            context: .init(
+              nodeID: nodeID,
+              title: mode.title,
+              titleIconName: mode.iconName,
+              baseFilter: .init(
+                sorting: .nameAlphabetically,
+                expiredOnly: true
+              )
+            )
+          )
 
       case .tagsExplorer:
         return

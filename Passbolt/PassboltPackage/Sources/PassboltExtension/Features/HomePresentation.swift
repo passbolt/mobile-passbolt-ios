@@ -72,6 +72,7 @@ extension HomePresentation {
         .modifiedResourcesList,
         .sharedResourcesList,
         .ownedResourcesList,
+        .expiredResourcesList
       ]
 
       if sessionConfiguration.folders.enabled {

@@ -73,7 +73,8 @@ public struct ResourcesListSectionView: View {
         ) { resource in
           ResourceListItemView(
             name: resource.name,
-            username: resource.username,
+            username: resource.username, 
+            isExpired: resource.isExpired,
             contentAction: {
               try await self.tapAction(resource.id)
             },

@@ -39,6 +39,7 @@ internal struct ResourcesResourceListItemDSVItem {
   public let id: ID
   public var name: String
   public var username: String?
+  public var isExpired: Bool
 
   public init(
     from resource: ResourceListItemDSV
@@ -46,18 +47,21 @@ internal struct ResourcesResourceListItemDSVItem {
     self.init(
       id: resource.id,
       name: resource.name,
-      username: resource.username
+      username: resource.username,
+      isExpired: resource.isExpired
     )
   }
 
   public init(
     id: ID,
     name: String,
-    username: String?
+    username: String?,
+    isExpired: Bool
   ) {
     self.id = id
     self.name = name
     self.username = username
+    self.isExpired = isExpired
   }
 }
 

@@ -51,6 +51,7 @@ internal struct ResourceDetailsView: ControlledView {
   @MainActor @ViewBuilder private var contentView: some View {
     CommonList {
       self.headerSectionView
+      self.expirationDateSectionView
       with(\.containsUndefinedFields) { (containsUndefinedFields: Bool) in
         if containsUndefinedFields {
           self.undefinedContentSectionView
@@ -83,51 +84,79 @@ internal struct ResourceDetailsView: ControlledView {
     CommonListSection {
       CommonListRow {
         with(\.name) { (name: String) in
-          VStack(spacing: 8) {
-            with(\.favorite) { (favorite: Bool) in
-              ZStack(alignment: .topTrailing) {
-                LetterIconView(text: name)
-                  .padding(
-                    top: 16,
-                    leading: favorite
-                      ? 16
-                      : 0
-                  )
-                if favorite {
-                  Image(named: .starFilled)
-                    .foregroundColor(.passboltSecondaryOrange)
-                    .frame(
-                      width: 32,
-                      height: 32
+          with(\.isExpired) { isExpired in
+            VStack(spacing: 8) {
+              with(\.favorite) { (favorite: Bool) in
+                ZStack(alignment: .topTrailing) {
+                  LetterIconView(text: name)
+                    .padding(
+                      top: 16,
+                      leading: favorite
+                        ? 16
+                        : 0
                     )
-                    .alignmentGuide(.trailing) { dim in
-                      dim[HorizontalAlignment.center]
-                    }
-                }  // else nothing
-              }
-            }
+                  VStack {
+                    if favorite {
+                      Image(named: .starFilled)
+                        .foregroundColor(.passboltSecondaryOrange)
+                        .frame(
+                          width: 32,
+                          height: 32
+                        )
+                    }  
+                    // else nothing
 
-            Text(name)
-              .multilineTextAlignment(.center)
-              .text(
-                font: .inter(
-                  ofSize: 24,
-                  weight: .semibold
-                ),
-                color: .passboltPrimaryText
-              )
+                    if isExpired == true {
+                      Image(named: .exclamationMark)
+                        .resizable()
+                        .frame(
+                          width: 18,
+                          height: 18
+                        )
+                        .padding(.top, 65)
+                    }
+                  }.alignmentGuide(.trailing) { dim in
+                    dim[HorizontalAlignment.center]
+                  }
+                  // else nothing
+                }
+              }
+              HStack {
+                Text(name)
+                  .multilineTextAlignment(.center)
+                  .text(
+                    font: .inter(
+                      ofSize: 24,
+                      weight: .semibold
+                    ),
+                    color: .passboltPrimaryText
+                  )
+                  if isExpired == true {
+                    Text(displayable: "resource.expiry.expired")
+                      .text(
+                        font: .inter(
+                          ofSize: 24,
+                          weight: .regular
+                        ),
+                        color: .passboltPrimaryText
+                      )
+                }
+                // else nothing
+              }
               .frame(
                 maxWidth: .infinity,
                 alignment: .center
               )
+            }
           }
         }
+        .padding(
+          leading: 16,
+          bottom: 32,
+          trailing: 16
+        )
       }
-      .padding(
-        leading: 16,
-        bottom: 32,
-        trailing: 16
-      )
+
     }
   }
 
@@ -285,6 +314,29 @@ internal struct ResourceDetailsView: ControlledView {
     }
   }
 
+  @MainActor @ViewBuilder private var expirationDateSectionView: some View {
+    with(\.isExpired) { isExpired in
+      if let isExpired {
+        CommonListSection {
+          CommonListRow(
+            content: {
+              ResourceFieldView(
+                name: "resource.detail.section.expiry",
+                content: {
+                  with(\.expiryRelativeFormattedDate) { expiryFormat in
+                    if let expiryFormat {
+                      ResourceRelativeDateView(viewModel: expiryFormat.viewModel(isExpired: isExpired))
+                    }
+                  }
+                }
+              )
+            }
+          )
+        }
+      }
+    }
+  }
+
   @MainActor @ViewBuilder private var tagsSectionView: some View {
     CommonListSection {
       CommonListRow(
@@ -322,5 +374,17 @@ internal struct ResourceDetailsView: ControlledView {
         accessory: DisclosureIndicatorImage.init
       )
     }
+  }
+}
+
+private extension RelativeDateDisplayableFormat {
+  func viewModel(isExpired: Bool) -> ResourceRelativeDateViewModel {
+    ResourceRelativeDateViewModel(
+      relativeDate: localizedRelativeString,
+      intervalNumber: number,
+      pastDatePrefix: "resource.detail.section.expiry.expired",
+      futureDatePrefix: "resource.detail.section.expiry.willExpire",
+      isPastDate: isExpired
+    )
   }
 }

@@ -29,6 +29,7 @@ internal final class ResourcesListResourceCell: CollectionViewCell {
   private let iconView: LetterIconLegacyView = .init()
   private let titleLabel: Label = .init()
   private let subtitleLabel: Label = .init()
+  private var expiryView: ImageView = .init()
   private var tapAction: (() -> Void)?
   private var menuTapAction: (() -> Void)?
   private var titleCenterConstraint: NSLayoutConstraint?
@@ -75,12 +76,23 @@ internal final class ResourcesListResourceCell: CollectionViewCell {
       )
     }
 
+    mut(expiryView) {
+      .combined(
+        .subview(of: iconContainer),
+        .image(named: .exclamationMark, from: .uiCommons),
+        .contentMode(.scaleAspectFit),
+        .centerYAnchor(.equalTo, iconContainer.bottomAnchor, constant: -2),
+        .centerXAnchor(.equalTo, iconContainer.trailingAnchor, constant: -2),
+        .widthAnchor(.equalTo, constant: 12),
+        .heightAnchor(.equalTo, constant: 12)
+      )
+    }
+
     mut(titleLabel) {
       .combined(
         .numberOfLines(1),
         .font(.inter(ofSize: 14, weight: .semibold)),
         .textColor(dynamic: .primaryText),
-        .lineBreakMode(.byTruncatingTail),
         .subview(of: contentButton),
         .centerYAnchor(.equalTo, iconContainer.centerYAnchor, referenceOutput: &self.titleCenterConstraint),
         .leadingAnchor(.equalTo, iconContainer.trailingAnchor, constant: 12),
@@ -126,7 +138,23 @@ internal final class ResourcesListResourceCell: CollectionViewCell {
     menuTapAction: @escaping (() -> Void)
   ) {
     self.iconView.update(from: item.name)
-    self.titleLabel.text = item.name
+
+    let attributes = [NSAttributedString.Key.font: UIFont.inter(ofSize: 14, weight: .semibold)]
+    let itemNameAttributedString = NSMutableAttributedString(string: item.name, attributes: attributes)
+    if item.isExpired {
+      let expiredAttributes = [NSAttributedString.Key.font: UIFont.inter(ofSize: 14, weight: .regular)]
+      let expiredAttributedString = NSAttributedString(
+        string: " \(DisplayableString.localized("resource.expiry.expired").string(with: []))",
+        attributes: expiredAttributes
+      )
+
+      itemNameAttributedString.append(expiredAttributedString)
+
+    }
+    self.titleLabel.lineBreakMode = item.isExpired ? .byTruncatingMiddle : .byTruncatingTail
+    self.expiryView.isHidden = !item.isExpired
+    self.titleLabel.attributedText = itemNameAttributedString
+
     if let username: String = item.username, !username.isEmpty {
       self.titleCenterConstraint?.constant = -10
       mut(self.subtitleLabel) {
@@ -159,5 +187,6 @@ internal final class ResourcesListResourceCell: CollectionViewCell {
     self.subtitleLabel.text = nil
     self.tapAction = nil
     self.menuTapAction = nil
+    self.expiryView.isHidden = true
   }
 }

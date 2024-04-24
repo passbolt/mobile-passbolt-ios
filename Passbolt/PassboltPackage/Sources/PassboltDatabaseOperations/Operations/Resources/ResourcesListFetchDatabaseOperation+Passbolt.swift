@@ -24,6 +24,7 @@
 import DatabaseOperations
 import FeatureScopes
 import Session
+import Foundation
 
 // MARK: - Implementation
 
@@ -72,7 +73,8 @@ extension ResourcesListFetchDatabaseOperation {
               resources.parentFolderID AS parentFolderID,
               resources.name AS name,
               resources.username AS username,
-              resources.uri AS uri
+              resources.uri AS uri,
+              resources.expired AS expired
             FROM
               resources
             JOIN
@@ -100,7 +102,8 @@ extension ResourcesListFetchDatabaseOperation {
               resources.parentFolderID AS parentFolderID,
               resources.name AS name,
               resources.username AS username,
-              resources.uri AS uri
+              resources.uri AS uri,
+              resources.expired AS expired
             FROM
               resources
             JOIN
@@ -123,7 +126,8 @@ extension ResourcesListFetchDatabaseOperation {
             resources.parentFolderID AS parentFolderID,
             resources.name AS name,
             resources.username AS username,
-            resources.uri AS uri
+            resources.uri AS uri,
+            resources.expired AS expired
           FROM
             resources
           JOIN
@@ -200,6 +204,13 @@ extension ResourcesListFetchDatabaseOperation {
     if input.favoriteOnly {
       statement.append("AND resources.favoriteID IS NOT NULL ")
     }
+
+    if input.expiredOnly {
+      let currentDate = Date.now.timeIntervalSince1970
+      statement.append("AND resources.expired < ? ")
+      statement.appendArgument(currentDate)
+    }
+
     else {
       /* NOP */
     }
@@ -457,6 +468,11 @@ extension ResourcesListFetchDatabaseOperation {
             .recording(dataRow, for: "dataRow")
         }
 
+        let isExpired: Bool? = dataRow.expired.flatMap {
+          let timestamp = Timestamp.init(rawValue: $0)
+          return timestamp.asDate.timeIntervalSinceNow < 0
+        }
+
         return ResourceListItemDSV(
           id: id,
           type: .init(
@@ -467,7 +483,8 @@ extension ResourcesListFetchDatabaseOperation {
           parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:)),
           name: name,
           username: dataRow.username,
-          url: dataRow.uri
+          url: dataRow.uri,
+          isExpired: isExpired ?? false
         )
       }
   }

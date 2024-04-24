@@ -44,6 +44,7 @@ extension ResourceDetailsFetchDatabaseOperation {
           resources.uri AS uri,
           resources.username AS username,
           resources.description AS description,
+          resources.expired AS expired,
           resourceTypes.id AS typeID,
           resourceTypes.slug AS typeSlug
         FROM
@@ -264,7 +265,7 @@ extension ResourceDetailsFetchDatabaseOperation {
             .error(for: Resource.self)
             .recording(dataRow, for: "dataRow")
         }
-
+   
         var resource: Resource = .init(
           id: id,
           path: path,
@@ -278,7 +279,8 @@ extension ResourceDetailsFetchDatabaseOperation {
           permissions: OrderedSet(
             usersPermissions + userGroupsPermissions
           ),
-          modified: dataRow.modified.flatMap(Timestamp.init(rawValue:))
+          modified: dataRow.modified.flatMap(Timestamp.init(rawValue:)),
+          expired: dataRow.expired.flatMap(Timestamp.init(rawValue:))
         )
         // set field values if able, ignore missing fields
         resource.meta.name = .string(name)

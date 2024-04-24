@@ -108,6 +108,11 @@ internal final class HomeTabNavigationViewController: NavigationViewController, 
                 with: OwnedResourcesListViewController.self,
                 animated: false
               )
+            case .expiredResourcesList:
+              await self.replaceNavigationRoot(
+                with: ExpiredResourcesListViewController.self,
+                animated: false
+              )
 
             case .foldersExplorer:
               await self.replaceNavigationRoot(
