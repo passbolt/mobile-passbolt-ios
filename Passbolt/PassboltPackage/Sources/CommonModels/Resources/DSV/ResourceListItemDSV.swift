@@ -42,7 +42,7 @@ public struct ResourceListItemDSV {
     name: String,
     username: String?,
     url: String?,
-    isExpired: Bool
+    isExpired: Bool? = false
   ) {
     self.id = id
     self.type = type
@@ -51,7 +51,7 @@ public struct ResourceListItemDSV {
     self.name = name
     self.username = username
     self.url = url
-    self.isExpired = isExpired
+    self.isExpired = isExpired ?? false
   }
 }
 
