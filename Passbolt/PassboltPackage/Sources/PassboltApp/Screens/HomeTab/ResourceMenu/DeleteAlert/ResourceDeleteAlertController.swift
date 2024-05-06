@@ -56,7 +56,7 @@ internal struct ResourceDeleteAlertController: AlertController {
         role: .cancel
       ),
       .init(
-        title: "generic.confirm",
+        title: "generic.delete",
         role: .destructive,
         action: {
           Task { @MainActor in
