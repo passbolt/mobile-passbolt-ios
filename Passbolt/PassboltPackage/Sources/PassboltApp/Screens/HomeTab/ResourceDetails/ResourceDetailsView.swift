@@ -123,7 +123,6 @@ internal struct ResourceDetailsView: ControlledView {
               }
               HStack {
                 Text(name)
-                  .multilineTextAlignment(.center)
                   .text(
                     font: .inter(
                       ofSize: 24,
@@ -131,6 +130,7 @@ internal struct ResourceDetailsView: ControlledView {
                     ),
                     color: .passboltPrimaryText
                   )
+                  .lineLimit(1)
                   if isExpired == true {
                     Text(displayable: "resource.expiry.expired")
                       .text(
@@ -143,6 +143,7 @@ internal struct ResourceDetailsView: ControlledView {
                 }
                 // else nothing
               }
+              .multilineTextAlignment(.center)
               .frame(
                 maxWidth: .infinity,
                 alignment: .center
