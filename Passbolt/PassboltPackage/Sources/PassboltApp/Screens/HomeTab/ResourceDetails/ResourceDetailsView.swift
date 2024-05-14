@@ -27,6 +27,14 @@ internal struct ResourceDetailsView: ControlledView {
 
   internal let controller: ResourceDetailsViewController
 
+
+  private struct IconProps {
+      static let bagdeWidth: CGFloat = 32
+      static let bagdeHeight: CGFloat = 32
+      static let paddingExpiredIcon: CGFloat = 65
+      static let padddingExpiredIconWithFavorite: CGFloat = 33
+  }
+
   internal init(
     controller: ResourceDetailsViewController
   ) {
@@ -100,8 +108,8 @@ internal struct ResourceDetailsView: ControlledView {
                       Image(named: .starFilled)
                         .foregroundColor(.passboltSecondaryOrange)
                         .frame(
-                          width: 32,
-                          height: 32
+                          width: IconProps.bagdeWidth,
+                          height: IconProps.bagdeHeight
                         )
                     }  
                     // else nothing
@@ -113,7 +121,7 @@ internal struct ResourceDetailsView: ControlledView {
                           width: 18,
                           height: 18
                         )
-                        .padding(.top, 65)
+                        .padding(.top, favorite ? IconProps.padddingExpiredIconWithFavorite : IconProps.paddingExpiredIcon )
                     }
                   }.alignmentGuide(.trailing) { dim in
                     dim[HorizontalAlignment.center]
