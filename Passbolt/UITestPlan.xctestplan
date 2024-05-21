@@ -4,7 +4,20 @@
       "id" : "B372FB81-A1F2-4130-8577-2ECEE63C19F9",
       "name" : "UITests",
       "options" : {
-
+        "environmentVariableEntries" : [
+          {
+            "key" : "TEST_RUNNER_DOMAIN",
+            "value" : "$(DOMAIN)"
+          },
+          {
+            "key" : "TEST_RUNNER_USERNAME",
+            "value" : "$(USERNAME)"
+          },
+          {
+            "key" : "TEST_RUNNER_PASSPHRASE",
+            "value" : "$(PASSPHRASE)"
+          }
+        ]
       }
     }
   ],

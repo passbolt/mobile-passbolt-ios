@@ -26,6 +26,7 @@ internal struct MockAccount: Encodable {
   internal let userID: String
   internal let domain: String
   internal let username: String
+  internal let password: String
   internal let firstName: String
   internal let lastName: String
   internal let avatarImageURL: String

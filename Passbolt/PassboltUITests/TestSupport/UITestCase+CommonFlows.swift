@@ -26,7 +26,7 @@ import XCTest
 extension UITestCase {
 
   internal final func signIn(
-    password: String = MockAccount.automation.username,
+    password: String = MockAccount.automation.password,
     index: Int = 0
   ) throws {
     ignoreFailure("Test can start already on login screen") {
@@ -39,6 +39,7 @@ extension UITestCase {
       text: password,
       to: "input"
     )
+    try tap("input.secure.button.eye")
     try tap("button.signin.passphrase")
     ignoreFailure("Passing initial setup popup is optional") {
     }

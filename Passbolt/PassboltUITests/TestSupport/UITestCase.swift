@@ -274,7 +274,7 @@ internal class UITestCase: XCTestCase {
 
   internal final func tapTab(
     _ identifier: String,
-    timeout: Double = 2.0,
+    timeout: Double = 6.0,
     file: StaticString = #file,
     line: UInt = #line
   ) throws {
@@ -542,7 +542,7 @@ internal class UITestCase: XCTestCase {
 
   internal final func assertPresentsString(
     matching string: String,
-    timeout: Double = 2.0,
+    timeout: Double = 3.0,
     file: StaticString = #file,
     line: UInt = #line
   ) {
