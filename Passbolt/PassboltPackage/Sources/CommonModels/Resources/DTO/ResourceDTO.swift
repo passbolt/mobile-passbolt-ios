@@ -160,8 +160,8 @@ extension ResourceDTO: Decodable {
       )
     self.expired =
       try container
-      .decode(
-        Date?.self,
+      .decodeIfPresent(
+        Date.self,
         forKey: .expired
       )
 
