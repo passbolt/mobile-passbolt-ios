@@ -1,7 +1,4 @@
-# Passbolt 1.18.0 release notes
+# Passbolt 1.18.1 release notes
 
-## Added
-- As MU, I should see when passwords are expired
-
-## Improved
-- As a mobile user I can get help if I scan a non-passbolt QR code - wrong error message
+## Fix
+- As a mobile user I should not be impacted by the password expired if my server does not support it
