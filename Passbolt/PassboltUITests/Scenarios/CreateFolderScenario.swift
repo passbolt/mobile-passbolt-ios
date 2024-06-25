@@ -27,7 +27,7 @@ final class CreateFolderScenario: UITestCase {
 
   override func beforeEachTestCase() throws {
     try signIn()
-    try tap("search.view.menu")
+    try tap("search.view.menu", timeout: 4.0)
     try tap("foldersExplorer")
     try tap("folder.explore.create.new")
     try tap("resource.folders.add.folder")
@@ -36,12 +36,12 @@ final class CreateFolderScenario: UITestCase {
   func test_folderCannotBeCreated_withInvalidname() throws {
     try tap("folder.edit.form.button")
     assertExists("form.textfield.error")
+    assertPresentsString(
+      matching: "Form is not valid."
+    )
     assert(
       "form.textfield.error",
       textEqual: "Folder name cannot be empty."
-    )
-    assertPresentsString(
-      matching: "Form is not valid."
     )
   }
 

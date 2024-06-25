@@ -357,6 +357,31 @@ internal class UITestCase: XCTestCase {
     element.tap()  // to gain focus
     element.typeText(value)
   }
+    
+    /*!
+     * When testing in the XCode Cloud the driver is skipping some letters from the password
+     * It forces us to use copy-paste method when filling the secureTextField
+     */
+    internal final func typePassphrase(
+      text value: String,
+      to identifier: String,
+      inside specifier: String? = .none,
+      timeout: Double = 2.0,
+      file: StaticString = #file,
+      line: UInt = #line
+    ) throws {
+      let element: XCUIElement = try self.element(
+        identifier,
+        inside: specifier,
+        timeout: timeout,
+        file: file,
+        line: line
+      )
+        UIPasteboard.general.string = value
+        element.tap() // to gain focus
+        element.doubleTap() // to trigger text menu
+        XCUIApplication().menuItems.element(boundBy: 0).tap() // to paste passphrase
+    }
 
   // MARK: - Verify
 

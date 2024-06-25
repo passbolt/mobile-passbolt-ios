@@ -167,7 +167,7 @@ public struct FormLongTextFieldView: View {
       .onTapGesture {
         self.focused = true
       }
-      .accessibilityIdentifier("form.textfield.text")
+      .accessibilityIdentifier("form.textfield.long.text")
 
       if let message: String = self.state.displayableErrorMessage?.string() {
         Text(message)

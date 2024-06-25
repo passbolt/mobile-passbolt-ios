@@ -1,6 +1,6 @@
 //
 // Passbolt - Open source password manager for teams
-// Copyright (c) 2021 Passbolt SA
+// Copyright (c) 2021, 2024 Passbolt SA
 //
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
 // Public License (AGPL) as published by the Free Software Foundation version 3.
@@ -29,21 +29,34 @@ extension UITestCase {
     password: String = MockAccount.automation.password,
     index: Int = 0
   ) throws {
-    ignoreFailure("Test can start already on login screen") {
-      try selectCollectionViewItem(
-        identifier: "account.selection.collectionview",
-        at: index
-      )
-    }
-    try type(
+    try takeFirstAccount()
+    try typePassphrase(
       text: password,
       to: "input"
     )
-    try tap("input.secure.button.eye")
     try tap("button.signin.passphrase")
+    try avoidTutorial()
     ignoreFailure("Passing initial setup popup is optional") {
     }
   }
+    
+   internal final func takeFirstAccount(
+ ) throws {
+    ignoreFailure("Test can start already on login screen") {
+       try selectCollectionViewItem(
+            identifier: "account.selection.collectionview",
+            at: 0
+          )
+       }
+      }
+    
+  internal final func avoidTutorial(
+  ) throws {
+    ignoreFailure("Test can start on tutorial screens") {
+     try tap("biometrics.info.later.button", timeout: 6)
+     try tap("extension.setup.later.button")
+     }
+    }
 
   internal final func allowCookies()
     throws

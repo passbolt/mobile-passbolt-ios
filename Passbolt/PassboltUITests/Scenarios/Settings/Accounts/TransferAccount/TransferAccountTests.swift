@@ -194,13 +194,15 @@ final class TransferAccountTests: UITestCase {
     )
   }
 
-  private func openStopTransferPrompt() throws {
+  private func openStopTransferPrompt(
+    password: String = MockAccount.automation.password
+    ) throws {
     try tap("settings.main.item.accounts.title")
     try tap("settings.accounts.item.export.title")
     try tap("transfer.account.export.scan.qr.button")
-    try type(
-      text: MockAccount.automation.username + "\n",
-      to: "form.textfield.field"
+    try typePassphrase(
+      text: password,
+      to: "form.textfield.secure.text"
     )
     try tap("transfer.account.export.passphrase.primary.button")
     try tap("transfer.account.export.cancel.button")
