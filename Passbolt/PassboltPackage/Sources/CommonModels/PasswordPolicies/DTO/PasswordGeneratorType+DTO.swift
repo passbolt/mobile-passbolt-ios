@@ -20,33 +20,19 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 //
-
-import Database
-
-extension SQLiteMigration: CaseIterable {
-
-  public static var allCases: Array<SQLiteMigration> {
-    [
-      .migration_0,
-      .migration_1,
-      .migration_2,
-      .migration_3,
-      .migration_4,
-      .migration_5,
-      .migration_6,
-      .migration_7,
-      .migration_8,
-      .migration_9,
-      .migration_10,
-      .migration_11,
-      .migration_12,
-      .migration_13,
-      .migration_14,
-      .migration_15,
-      .migration_16,
-      .migration_17,
-      .migration_18,
-      .migration_19
-    ]
-  }
+extension PasswordGeneratorType: Decodable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let stringValue = try container.decode(String.self)
+        guard let type = PasswordGeneratorType(rawValue: stringValue) else {
+            throw DecodingError.typeMismatch(
+                PasswordGeneratorType.self,
+                DecodingError.Context(
+                    codingPath: decoder.codingPath,
+                    debugDescription: "Invalid PasswordGeneratorType value: \(stringValue)"
+                )
+            )
+        }
+        self = type
+    }
 }

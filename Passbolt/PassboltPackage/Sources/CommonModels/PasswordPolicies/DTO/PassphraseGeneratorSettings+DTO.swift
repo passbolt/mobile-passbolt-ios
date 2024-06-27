@@ -21,32 +21,19 @@
 // @since         v1.0
 //
 
-import Database
+import Commons
 
-extension SQLiteMigration: CaseIterable {
+extension PassphraseGeneratorSettings: Decodable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.words = try container.decode(Int.self, forKey: .words)
+        self.wordSeparator = try container.decode(String.self, forKey: .wordSeparator)
+        self.wordCase = try container.decode(PasswordGeneratorCase.self, forKey: .wordCase)
+    }
 
-  public static var allCases: Array<SQLiteMigration> {
-    [
-      .migration_0,
-      .migration_1,
-      .migration_2,
-      .migration_3,
-      .migration_4,
-      .migration_5,
-      .migration_6,
-      .migration_7,
-      .migration_8,
-      .migration_9,
-      .migration_10,
-      .migration_11,
-      .migration_12,
-      .migration_13,
-      .migration_14,
-      .migration_15,
-      .migration_16,
-      .migration_17,
-      .migration_18,
-      .migration_19
-    ]
-  }
+    private enum CodingKeys: String, CodingKey {
+        case words = "words"
+        case wordSeparator = "word_separator"
+        case wordCase = "word_case"
+    }
 }

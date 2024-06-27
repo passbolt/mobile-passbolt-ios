@@ -137,19 +137,25 @@ extension ServerConfiguration {
     public var tags: Tags?
     public var totpResources: TOTPResources?
     public var rbacs: RBAC?
+    public var passwordPolicies: PasswordPolicies?
+    public var passwordPoliciesUpdate: PasswordPoliciesUpdate?
 
     public init(
       passwordPreview: PasswordPreview?,
       folders: Folders?,
       tags: Tags?,
       totpResources: TOTPResources?,
-      rbacs: RBAC?
+      rbacs: RBAC?,
+      passwordPolicies: PasswordPolicies?,
+      passwordPoliciesUpdate: PasswordPoliciesUpdate?
     ) {
       self.passwordPreview = passwordPreview
       self.folders = folders
       self.tags = tags
       self.totpResources = totpResources
       self.rbacs = rbacs
+      self.passwordPolicies = passwordPolicies
+      self.passwordPoliciesUpdate = passwordPoliciesUpdate
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -159,6 +165,8 @@ extension ServerConfiguration {
       case tags = "tags"
       case totpResources = "totpResourceTypes"
       case rbacs = "rbacs"
+      case passwordPolicies = "passwordPolicies"
+      case passwordPoliciesUpdate = "passwordPoliciesUpdate"
     }
   }
 }
@@ -199,6 +207,28 @@ extension ServerConfiguration.Plugins {
   }
 
   public struct TOTPResources: Decodable {
+
+    public var enabled: Bool
+
+    public init(
+      enabled: Bool
+    ) {
+      self.enabled = enabled
+    }
+  }
+
+  public struct PasswordPolicies: Decodable {
+
+    public var enabled: Bool
+
+    public init(
+      enabled: Bool
+    ) {
+      self.enabled = enabled
+    }
+  }
+
+  public struct PasswordPoliciesUpdate: Decodable {
 
     public var enabled: Bool
 

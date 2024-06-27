@@ -42,11 +42,13 @@ extension SessionData {
     let resourcesStoreDatabaseOperation: ResourcesStoreDatabaseOperation = try features.instance()
     let resourceTypesStoreDatabaseOperation: ResourceTypesStoreDatabaseOperation = try features.instance()
     let resourceFoldersStoreDatabaseOperation: ResourceFoldersStoreDatabaseOperation = try features.instance()
+    let passwordPoliciesStoreDatabaseOperation: PasswordPoliciesStoreDatabaseOperation = try features.instance()
     let usersFetchNetworkOperation: UsersFetchNetworkOperation = try features.instance()
     let userGroupsFetchNetworkOperation: UserGroupsFetchNetworkOperation = try features.instance()
     let resourcesFetchNetworkOperation: ResourcesFetchNetworkOperation = try features.instance()
     let resourceTypesFetchNetworkOperation: ResourceTypesFetchNetworkOperation = try features.instance()
     let resourceFoldersFetchNetworkOperation: ResourceFoldersFetchNetworkOperation = try features.instance()
+    let passwordPoliciesFetchNetworkOperation: PasswordPoliciesFetchNetworkOperation = try features.instance()
 
     // when diffing endpoint becomes available
     // we could store last update time and reuse it to avoid
@@ -132,6 +134,21 @@ extension SessionData {
       }
     }
 
+    @Sendable nonisolated func refreshPasswordPolicies() async throws {
+      Diagnostics.logger.info("Refreshing password policies data...")
+      do {
+        try await passwordPoliciesStoreDatabaseOperation(
+          passwordPoliciesFetchNetworkOperation()
+        )
+
+        Diagnostics.logger.info("...password policies data refresh finished!")
+      }
+      catch {
+        Diagnostics.logger.info("...password policies refresh failed!")
+        throw error
+      }
+    }
+
     @Sendable nonisolated func refreshIfNeeded() async throws {
       let task: Task<Void, Error> = refreshTask.access { (task: inout Task<Void, Error>?) -> Task<Void, Error> in
         if let runningTask: Task<Void, Error> = task {
@@ -152,6 +169,9 @@ extension SessionData {
             try await refreshUserGroups()
             try await refreshFolders()
             try await refreshResources()
+            if(configuration.passwordPolicies.passwordPoliciesEnabled) {
+              try await refreshPasswordPolicies()
+            }
 
             // when diffing endpoint becomes available
             // we should use server time instead

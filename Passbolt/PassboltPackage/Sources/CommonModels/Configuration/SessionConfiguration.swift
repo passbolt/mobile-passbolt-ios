@@ -30,6 +30,7 @@ public struct SessionConfiguration {
   public var folders: FoldersFeatureConfiguration
   public var tags: TagsFeatureConfiguration
   public var share: ShareFeatureConfiguration
+  public var passwordPolicies: PasswordPoliciesFeatureConfiguration
 
   public init(
     termsURL: URLString?,
@@ -37,7 +38,8 @@ public struct SessionConfiguration {
     resources: ResourcesFeatureConfiguration,
     folders: FoldersFeatureConfiguration,
     tags: TagsFeatureConfiguration,
-    share: ShareFeatureConfiguration
+    share: ShareFeatureConfiguration,
+    passwordPolicies: PasswordPoliciesFeatureConfiguration
   ) {
     self.termsURL = termsURL
     self.privacyPolicyURL = privacyPolicyURL
@@ -45,6 +47,7 @@ public struct SessionConfiguration {
     self.folders = folders
     self.tags = tags
     self.share = share
+    self.passwordPolicies = passwordPolicies
   }
 }
 
@@ -69,6 +72,10 @@ extension SessionConfiguration {
       ),
       share: .init(
         showMembersList: true
+      ),
+      passwordPolicies: .init(
+        passwordPoliciesEnabled: false,
+        passwordPoliciesUpdateEnabled: false
       )
     )
   }

@@ -21,32 +21,18 @@
 // @since         v1.0
 //
 
-import Database
+import Features
 
-extension SQLiteMigration: CaseIterable {
+import struct Foundation.Data
 
-  public static var allCases: Array<SQLiteMigration> {
-    [
-      .migration_0,
-      .migration_1,
-      .migration_2,
-      .migration_3,
-      .migration_4,
-      .migration_5,
-      .migration_6,
-      .migration_7,
-      .migration_8,
-      .migration_9,
-      .migration_10,
-      .migration_11,
-      .migration_12,
-      .migration_13,
-      .migration_14,
-      .migration_15,
-      .migration_16,
-      .migration_17,
-      .migration_18,
-      .migration_19
-    ]
-  }
+// MARK: - Interface
+
+public typealias PasswordPoliciesFetchNetworkOperation =
+  NetworkOperation<PasswordPoliciesFetchNetworkOperationDescription>
+
+public enum PasswordPoliciesFetchNetworkOperationDescription: NetworkOperationDescription {
+
+  public typealias Output = PasswordPoliciesFetchNetworkResult
 }
+
+public typealias PasswordPoliciesFetchNetworkResult = PasswordPoliciesDTO

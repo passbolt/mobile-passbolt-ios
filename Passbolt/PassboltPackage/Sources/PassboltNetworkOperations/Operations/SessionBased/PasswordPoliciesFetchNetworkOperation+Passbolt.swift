@@ -21,32 +21,44 @@
 // @since         v1.0
 //
 
-import Database
+import NetworkOperations
 
-extension SQLiteMigration: CaseIterable {
+// MARK: Implementation
 
-  public static var allCases: Array<SQLiteMigration> {
-    [
-      .migration_0,
-      .migration_1,
-      .migration_2,
-      .migration_3,
-      .migration_4,
-      .migration_5,
-      .migration_6,
-      .migration_7,
-      .migration_8,
-      .migration_9,
-      .migration_10,
-      .migration_11,
-      .migration_12,
-      .migration_13,
-      .migration_14,
-      .migration_15,
-      .migration_16,
-      .migration_17,
-      .migration_18,
-      .migration_19
-    ]
+extension PasswordPoliciesFetchNetworkOperation {
+
+  @Sendable fileprivate static func requestPreparation(
+    _ input: Input
+  ) -> Mutation<HTTPRequest> {
+    .combined(
+      .pathSuffix("/password-policies/settings.json"),
+      .method(.get)
+    )
+  }
+
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    try NetworkResponseDecoder<Input, CommonNetworkResponse<Output>>
+      .bodyAsJSON()
+      .decode(
+        input,
+        response
+      )
+      .body
+  }
+}
+
+extension FeaturesRegistry {
+
+  internal mutating func usePassboltPasswordPoliciesFetchNetworkOperation() {
+    self.use(
+      .networkOperationWithSession(
+        of: PasswordPoliciesFetchNetworkOperation.self,
+        requestPreparation: PasswordPoliciesFetchNetworkOperation.requestPreparation(_:),
+        responseDecoding: PasswordPoliciesFetchNetworkOperation.responseDecoder(_:_:)
+      )
+    )
   }
 }

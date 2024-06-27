@@ -48,6 +48,7 @@ extension FeaturesRegistry {
     self.usePassboltUserDetailsFetchNetworkOperation()
     self.usePassboltUsersFetchNetworkOperation()
     self.usePassboltYubiKeyAuthorizationNetworkOperation()
+    self.usePassboltPasswordPoliciesFetchNetworkOperation()
     self.usePassboltResourceFavoriteDeleteNetworkOperation()
     self.usePassboltResourceFavoriteAddNetworkOperation()
     self.usePassboltResourceFolderCreateNetworkOperation()

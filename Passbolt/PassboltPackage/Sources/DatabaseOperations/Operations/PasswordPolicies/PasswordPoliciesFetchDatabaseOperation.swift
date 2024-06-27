@@ -21,32 +21,13 @@
 // @since         v1.0
 //
 
-import Database
+import CommonModels
 
-extension SQLiteMigration: CaseIterable {
+public typealias PasswordPoliciesFetchDatabaseOperation = DatabaseOperation<PasswordPoliciesFetchDatabaseOperationDescription>
 
-  public static var allCases: Array<SQLiteMigration> {
-    [
-      .migration_0,
-      .migration_1,
-      .migration_2,
-      .migration_3,
-      .migration_4,
-      .migration_5,
-      .migration_6,
-      .migration_7,
-      .migration_8,
-      .migration_9,
-      .migration_10,
-      .migration_11,
-      .migration_12,
-      .migration_13,
-      .migration_14,
-      .migration_15,
-      .migration_16,
-      .migration_17,
-      .migration_18,
-      .migration_19
-    ]
-  }
+public enum PasswordPoliciesFetchDatabaseOperationDescription: DatabaseOperationDescription {
+
+  public typealias Output = PasswordPoliciesDSV
 }
+
+public typealias ResourcesFetchNetworkOperationResult = Array<ResourceDTO>

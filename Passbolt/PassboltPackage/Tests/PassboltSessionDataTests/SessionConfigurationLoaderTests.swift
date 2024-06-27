@@ -88,7 +88,9 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
             folders: .none,
             tags: .none,
             totpResources: .none,
-            rbacs: .none
+            rbacs: .none,
+            passwordPolicies: .none,
+            passwordPoliciesUpdate: .none
           )
         )
       )
@@ -130,6 +132,12 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
             ),
             rbacs: .init(
               enabled: false
+            ),
+            passwordPolicies: .init(
+              enabled: true
+            ),
+            passwordPoliciesUpdate: .init(
+              enabled: true
             )
           )
         )
@@ -156,6 +164,10 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
         ),
         share: .init(
           showMembersList: true
+        ), 
+        passwordPolicies: .init(
+          passwordPoliciesEnabled: true,
+          passwordPoliciesUpdateEnabled: true
         )
       )
     )
@@ -189,6 +201,12 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
             ),
             rbacs: .init(
               enabled: false
+            ),
+            passwordPolicies: .init(
+              enabled: true
+            ),
+            passwordPoliciesUpdate: .init(
+              enabled: true
             )
           )
         )
@@ -215,6 +233,10 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
         ),
         share: .init(
           showMembersList: true
+        ), 
+        passwordPolicies: .init(
+          passwordPoliciesEnabled: true,
+          passwordPoliciesUpdateEnabled: true
         )
       )
     )
@@ -240,7 +262,9 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
             totpResources: .none,
             rbacs: .init(
               enabled: true
-            )
+            ),
+            passwordPolicies: .none,
+            passwordPoliciesUpdate: .none
           )
         )
       )
@@ -286,6 +310,12 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
             ),
             rbacs: .init(
               enabled: true
+            ),
+            passwordPolicies: .init(
+              enabled: true
+            ),
+            passwordPoliciesUpdate: .init(
+              enabled: true
             )
           )
         )
@@ -324,6 +354,10 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
         ),
         share: .init(
           showMembersList: false
+        ), 
+        passwordPolicies: .init(
+          passwordPoliciesEnabled: true,
+          passwordPoliciesUpdateEnabled: true
         )
       )
     )
@@ -367,7 +401,9 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
             folders: .none,
             tags: .none,
             totpResources: .none,
-            rbacs: .none
+            rbacs: .none,
+            passwordPolicies: .none,
+            passwordPoliciesUpdate: .none
           )
         )
       )

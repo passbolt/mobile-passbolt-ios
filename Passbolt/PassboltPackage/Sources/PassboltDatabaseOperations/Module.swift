@@ -58,5 +58,6 @@ extension FeaturesRegistry {
     self.usePassboltResourceFolderUserGroupPermissionsDetailsFetchDatabaseOperation()
     self.usePassboltResourceFolderPathFetchDatabaseOperation()
     self.usePassboltResourcesCountFetchDatabaseOperation()
+    self.usePassboltPasswordPoliciesStoreDatabaseOperation()
   }
 }

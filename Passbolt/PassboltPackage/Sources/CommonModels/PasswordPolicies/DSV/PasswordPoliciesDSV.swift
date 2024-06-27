@@ -21,32 +21,29 @@
 // @since         v1.0
 //
 
-import Database
 
-extension SQLiteMigration: CaseIterable {
+import Commons
 
-  public static var allCases: Array<SQLiteMigration> {
-    [
-      .migration_0,
-      .migration_1,
-      .migration_2,
-      .migration_3,
-      .migration_4,
-      .migration_5,
-      .migration_6,
-      .migration_7,
-      .migration_8,
-      .migration_9,
-      .migration_10,
-      .migration_11,
-      .migration_12,
-      .migration_13,
-      .migration_14,
-      .migration_15,
-      .migration_16,
-      .migration_17,
-      .migration_18,
-      .migration_19
-    ]
+public struct PasswordPoliciesDSV {
+
+  public var id: Tagged<PassboltID, Self>
+  public var defaultGenerator: PasswordGeneratorType
+  public var passwordGeneratorSettings: PasswordGeneratorSettings
+  public var passphraseGeneratorSettings: PassphraseGeneratorSettings
+  public var externalDictionaryCheck: Bool
+
+  public init(
+    id: Tagged<PassboltID, Self>,
+    defaultGenerator: PasswordGeneratorType,
+    passwordGeneratorSettings: PasswordGeneratorSettings,
+    passphraseGeneratorSettings: PassphraseGeneratorSettings,
+    externalDictionaryCheck: Bool
+  ) {
+    self.id = id
+    self.defaultGenerator = defaultGenerator
+    self.passwordGeneratorSettings = passwordGeneratorSettings
+    self.passphraseGeneratorSettings = passphraseGeneratorSettings
+    self.externalDictionaryCheck = externalDictionaryCheck
   }
 }
+

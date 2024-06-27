@@ -37,6 +37,7 @@ import class Foundation.URLSession
 import class Foundation.URLSessionConfiguration
 import class Foundation.URLSessionTask
 import protocol Foundation.URLSessionTaskDelegate
+import Foundation
   
 // MARK: - Interface
 
@@ -214,6 +215,7 @@ private final class URLSessionDelegate: NSObject, URLSessionTaskDelegate {
     completionHandler(nil)
   }
 }
+
 
 extension HTTPRequest {
 

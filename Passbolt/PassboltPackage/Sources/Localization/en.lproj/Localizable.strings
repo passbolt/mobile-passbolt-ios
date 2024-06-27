@@ -500,6 +500,8 @@ Contact your administrator for more information.";
 "error.resource.field.content.invalid" = "%@ has invalid content!";
 "error.resource.field.selection.invalid" = "%@ has to be one of the valid options!";
 "error.resource.field.unknown" = "Unknown fields are not expected!";
+"error.validation.password.length.invalid" = "Invalid password length settings!";
+"error.validation.password.mask.empty" = "Password expiry mask cannot be empty!";
 
 // Home - presentation mode menu
 
