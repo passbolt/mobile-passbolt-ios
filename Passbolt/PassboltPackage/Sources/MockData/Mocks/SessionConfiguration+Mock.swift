@@ -43,6 +43,10 @@ extension SessionConfiguration {
     ),
     share: .init(
       showMembersList: true
+    ), 
+    passwordPolicies: .init(
+      passwordPoliciesEnabled: true,
+      passwordPoliciesUpdateEnabled: true
     )
   )
 }
