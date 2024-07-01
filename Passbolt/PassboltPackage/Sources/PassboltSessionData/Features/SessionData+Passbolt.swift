@@ -118,12 +118,19 @@ extension SessionData {
     @Sendable nonisolated func refreshResources() async throws {
       Diagnostics.logger.info("Refreshing resources data...")
       do {
+        // Retrieve resourceTypes for ID
+        let resourceTypes = try await resourceTypesFetchNetworkOperation()
+        // Store resource type for sql association
         try await resourceTypesStoreDatabaseOperation(
-          resourceTypesFetchNetworkOperation()
+          resourceTypes
         )
 
+        // Retrieve resources
+        let resources = try await resourcesFetchNetworkOperation()
+        
+        // Store resources into db
         try await resourcesStoreDatabaseOperation(
-          resourcesFetchNetworkOperation()
+          resources
         )
 
         Diagnostics.logger.info("...resources data refresh finished!")

@@ -193,4 +193,43 @@ extension ResourceDTO: Decodable {
 
     case id = "id"
   }
+
+  // Use to validate resource DTO before insertion on DB
+  public func validate(resourceTypes: Array<ResourceTypeDTO>) throws {
+    guard let resourceType = resourceTypes.first(where: { $0.id == self.typeID }) else {
+      throw InvalidResourceType.error(
+        message: "Cannot find the resource type associated"
+      )
+    }
+
+    let path: OrderedSet<ResourceFolderPathItem> = self.parentFolderID.map {
+    .init(arrayLiteral: .init(id: $0, name: "Unknown", shared: false))} ?? .init()
+
+    //Reuse Resource type for validation
+    var resource = Resource(
+        id: self.id,
+        path: path,
+        favoriteID: self.favoriteID,
+        type: ResourceType(id: self.typeID, slug: resourceType.specification.slug),
+        permission: self.permission,
+        tags: self.tags,
+        modified: self.modified.asTimestamp,
+        expired: self.expired?.asTimestamp
+    )
+
+    // Apply meta fields
+    resource.meta.name = .string(self.name)
+    if let uri = self.uri {
+        resource.meta.uri = .string(uri)
+    }
+    if let username = self.username {
+        resource.meta.username = .string(username)
+    }
+    if let description = self.description {
+        resource.meta.description = .string(description)
+    }
+
+    // Validate field based on type
+    try resource.validate()
+  }
 }
