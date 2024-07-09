@@ -173,7 +173,11 @@ internal final class ResourceDetailsViewController: ViewController {
           }
         }
         catch {
-          SnackBarMessageEvent.send(.error(error))
+          let message = error.asTheError().displayableMessage.string()
+          //When deletion happen it display the error message instead of the correct message. We skip this error message to avoid confusion
+          if(message != DisplayableString.localized(key: "error.database.result.empty").string()) {
+            SnackBarMessageEvent.send(.error(error))
+          }
           await navigationToSelf.revertCatching()
         }
       }
