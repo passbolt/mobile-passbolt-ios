@@ -24,6 +24,8 @@
 import Foundation
 
 final class TransferAccountTests: UITestCase {
+    
+    var password: String = MockAccount.automation.password
 
   override func beforeEachTestCase() throws {
     try signIn()
@@ -103,7 +105,7 @@ final class TransferAccountTests: UITestCase {
     try tap("transfer.account.export.scan.qr.button")
     //    When  I click “Confirm passphrase” or provide valid biometric authentication
     try type(
-      text: MockAccount.automation.username + "\n",
+      text: password + "\n",
       to: "form.textfield.field"
     )
     try tap("transfer.account.export.passphrase.primary.button")
@@ -125,7 +127,7 @@ final class TransferAccountTests: UITestCase {
     try tap("settings.accounts.item.export.title")
     try tap("transfer.account.export.scan.qr.button")
     try type(
-      text: MockAccount.automation.username + "\n",
+      text: password + "\n",
       to: "form.textfield.field"
     )
     try tap("transfer.account.export.passphrase.primary.button")
@@ -156,12 +158,12 @@ final class TransferAccountTests: UITestCase {
     //       Then    the prompt is dismissed
     assertNotExists("Stop transfer")
     //       And     the process is stopped
-    try waitForElement("transfer.account.result.failure.image")
+    try waitForElement("FailureMark")
     assertNotExists("Transfer account details")
     //       And     I see “Failed feedback” screen
-    assertInteractive("transfer.account.result.failure.image")
+    assertInteractive("Something went wrong!")
     //       And     I see “Transfer cancelled” explanation
-    assertInteractive("transfer.account.result.failure.message")
+    assertInteractive("Operation has been cancelled.")
   }
 
   // https://passbolt.testrail.io/index.php?/cases/view/8156
@@ -170,13 +172,13 @@ final class TransferAccountTests: UITestCase {
     //      When    there is an error during the transfer process
     try openTransferFailureScreen()
     //      Then    I see an unsuccessful “Something went wrong!” screen with a corresponding title
-    assertInteractive("It’s not the Passbolt QR. Try again!")
+    assertInteractive("Something went wrong!")
     //      And     I see an unsuccessful illustration
-    assertInteractive("transfer.account.result.failure.image")
+    assertInteractive("FailureMark")
     //      And     I see an error message
-    assertInteractive("transfer.account.result.failure.message")
+    assertInteractive("Operation has been cancelled.")
     //      And     I see a “Go back to my account”
-    assertInteractive("transfer.account.result.failure.continiue.button")
+    assertInteractive("Try again")
   }
 
   // https://passbolt.testrail.io/index.php?/cases/view/C8157
@@ -187,22 +189,20 @@ final class TransferAccountTests: UITestCase {
     //      And     I see an unsuccessful “Something went wrong!” screen
     assertInteractive("Something went wrong!")
     //      When    I click a “Go back to my account”
-    try tap("transfer.account.result.failure.continiue.button")
+    try tap("Try again")
     //      Then    I see the Account details page
     assertPresentsString(
       matching: "Transfer account details"
     )
   }
 
-  private func openStopTransferPrompt(
-    password: String = MockAccount.automation.password
-    ) throws {
+  private func openStopTransferPrompt() throws {
     try tap("settings.main.item.accounts.title")
     try tap("settings.accounts.item.export.title")
     try tap("transfer.account.export.scan.qr.button")
     try typePassphrase(
       text: password,
-      to: "form.textfield.secure.text"
+      to: "form.textfield.field"
     )
     try tap("transfer.account.export.passphrase.primary.button")
     try tap("transfer.account.export.cancel.button")

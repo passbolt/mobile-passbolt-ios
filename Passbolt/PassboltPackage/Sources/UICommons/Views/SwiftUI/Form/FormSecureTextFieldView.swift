@@ -150,7 +150,6 @@ where Accessory: View {
           self.focused = true
         }
         .frame(minWidth: 65)
-        .accessibilityIdentifier("form.textfield.secure.text")
 
         self.accessory()
       }
