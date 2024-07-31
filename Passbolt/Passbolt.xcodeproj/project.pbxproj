@@ -49,7 +49,7 @@
 		DD673CFB26F0B58C0051EEB5 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = DD673CFD26F0B58C0051EEB5 /* InfoPlist.strings */; };
 		DD8979C6270F13E600D95978 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = DD8979C5270F13E600D95978 /* Settings.bundle */; };
 		DDB2A675263B09500014C895 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DDB2A674263B09500014C895 /* Launch Screen.storyboard */; };
-		EBD1A3E9297ACBF900125727 /* CreateFolderScenario.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBD1A3E8297ACBF900125727 /* CreateFolderScenario.swift */; };
+		EBD1A3E9297ACBF900125727 /* FolderCreationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBD1A3E8297ACBF900125727 /* FolderCreationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -117,7 +117,7 @@
 		DD87927E262983CF006ECC0A /* TestPlan.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TestPlan.xctestplan; sourceTree = "<group>"; };
 		DD8979C5270F13E600D95978 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		DDB2A674263B09500014C895 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
-		EBD1A3E8297ACBF900125727 /* CreateFolderScenario.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateFolderScenario.swift; sourceTree = "<group>"; };
+		EBD1A3E8297ACBF900125727 /* FolderCreationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderCreationTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -217,6 +217,38 @@
 			path = Accounts;
 			sourceTree = "<group>";
 		};
+		B29AAABF2C5018F400A3FE0F /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				B29AAAC02C50190100A3FE0F /* Filters */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		B29AAAC02C50190100A3FE0F /* Filters */ = {
+			isa = PBXGroup;
+			children = (
+				B29AAAC12C50191400A3FE0F /* Folders */,
+			);
+			path = Filters;
+			sourceTree = "<group>";
+		};
+		B29AAAC12C50191400A3FE0F /* Folders */ = {
+			isa = PBXGroup;
+			children = (
+				B29AAAC22C501B0100A3FE0F /* FolderCreation */,
+			);
+			path = Folders;
+			sourceTree = "<group>";
+		};
+		B29AAAC22C501B0100A3FE0F /* FolderCreation */ = {
+			isa = PBXGroup;
+			children = (
+				EBD1A3E8297ACBF900125727 /* FolderCreationTests.swift */,
+			);
+			path = FolderCreation;
+			sourceTree = "<group>";
+		};
 		DD38F935261746C400A6C627 = {
 			isa = PBXGroup;
 			children = (
@@ -280,8 +312,8 @@
 		EBD1A3E7297ACBEA00125727 /* Scenarios */ = {
 			isa = PBXGroup;
 			children = (
+				B29AAABF2C5018F400A3FE0F /* Home */,
 				B23C4F6129B8F4D5001D9687 /* Settings */,
-				EBD1A3E8297ACBF900125727 /* CreateFolderScenario.swift */,
 			);
 			path = Scenarios;
 			sourceTree = "<group>";
@@ -515,7 +547,7 @@
 				428BD13E293633E00040EE57 /* MockAccount+Mocks.swift in Sources */,
 				42F1154C2A20D3BF00475E42 /* TestFailure.swift in Sources */,
 				425A58272925109000C19E05 /* UITestCase.swift in Sources */,
-				EBD1A3E9297ACBF900125727 /* CreateFolderScenario.swift in Sources */,
+				EBD1A3E9297ACBF900125727 /* FolderCreationTests.swift in Sources */,
 				B236448A2A167C6A00F0A374 /* SettingsTests.swift in Sources */,
 				B23C4F6429BA45C1001D9687 /* TransferAccountTests.swift in Sources */,
 			);

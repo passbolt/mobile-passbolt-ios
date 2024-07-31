@@ -1,6 +1,6 @@
 //
 // Passbolt - Open source password manager for teams
-// Copyright (c) 2021 Passbolt SA
+// Copyright (c) 2021, 2024 Passbolt SA
 //
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
 // Public License (AGPL) as published by the Free Software Foundation version 3.
@@ -45,20 +45,6 @@ internal struct ResourcesListCreateMenuView: ControlledView {
       },
       content: {
         VStack(spacing: 0) {
-          DrawerMenuItemView(
-            action: self.controller.createResource,
-            title: {
-              Text(
-                displayable: .localized(
-                  key: "resource.folders.add.menu.password.label"
-                )
-              )
-            },
-            leftIcon: {
-              Image(named: .key)
-            }
-          )
-          .accessibilityIdentifier("resource.folders.add.password")
 
           DrawerMenuItemView(
             action: self.controller.createFolder,
@@ -74,6 +60,21 @@ internal struct ResourcesListCreateMenuView: ControlledView {
             }
           )
           .accessibilityIdentifier("resource.folders.add.folder")
+            
+            DrawerMenuItemView(
+              action: self.controller.createResource,
+              title: {
+                Text(
+                  displayable: .localized(
+                    key: "resource.folders.add.menu.password.label"
+                  )
+                )
+              },
+              leftIcon: {
+                Image(named: .key)
+              }
+            )
+            .accessibilityIdentifier("resource.folders.add.password")
         }
       }
     )

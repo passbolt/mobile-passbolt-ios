@@ -24,8 +24,8 @@
 import Foundation
 
 final class TransferAccountTests: UITestCase {
-    
-    var password: String = MockAccount.automation.password
+
+  var password: String = MockAccount.automation.password
 
   override func beforeEachTestCase() throws {
     try signIn()
@@ -94,7 +94,6 @@ final class TransferAccountTests: UITestCase {
     //    And   I see a “Confirm passphrase” primary action button
     assertInteractive("Confirm passphrase")
   }
-
 
   /// https://passbolt.testrail.io/index.php?/cases/view/8151
   func test_asAUserIShouldSeeTransferringYourAccountDetailsScreen() throws {

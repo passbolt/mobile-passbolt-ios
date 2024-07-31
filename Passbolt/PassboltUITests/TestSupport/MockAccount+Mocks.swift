@@ -25,13 +25,13 @@ import Foundation
 
 extension MockAccount {
 
-//    When testing locally use your real domain and username strings. Those environment variables are not accessible locally during build phase. They are put here for XCode Cloud use
-//    When testing locally you can use your "PASSPHRASE" environment variable. You can set it for your UITestPlan.xctestplan in "Confogurations" >> Shared settings >> Environment Variables
+  //    When testing locally use your real domain and username strings. Those environment variables are not accessible locally during build phase. They are put here for XCode Cloud use
+  //    When testing locally you can use your "PASSPHRASE" environment variable. You can set it for your UITestPlan.xctestplan in "Confogurations" >> Shared settings >> Environment Variables
   internal static var automation: Self {
     .init(
       userID: "8a774f7b-c639-4540-b429-e7a9f07601e5",
       domain: ProcessInfo.processInfo.environment["DOMAIN"]!,
-      username: ProcessInfo.processInfo.environment["USERNAME"]!, 
+      username: ProcessInfo.processInfo.environment["USERNAME"]!,
       password: ProcessInfo.processInfo.environment["PASSPHRASE"]!,
       firstName: "Betty",
       lastName: "Automated",

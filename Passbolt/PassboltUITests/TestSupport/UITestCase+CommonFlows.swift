@@ -39,24 +39,22 @@ extension UITestCase {
     ignoreFailure("Passing initial setup popup is optional") {
     }
   }
-    
-   internal final func takeFirstAccount(
- ) throws {
+
+  internal final func takeFirstAccount() throws {
     ignoreFailure("Test can start already on login screen") {
-       try selectCollectionViewItem(
-            identifier: "account.selection.collectionview",
-            at: 0
-          )
-       }
-      }
-    
-  internal final func avoidTutorial(
-  ) throws {
-    ignoreFailure("Test can start on tutorial screens") {
-     try tap("biometrics.info.later.button", timeout: 6)
-     try tap("extension.setup.later.button")
-     }
+      try selectCollectionViewItem(
+        identifier: "account.selection.collectionview",
+        at: 0
+      )
     }
+  }
+
+  internal final func avoidTutorial() throws {
+    ignoreFailure("Test can start on tutorial screens") {
+      try tap("biometrics.info.later.button", timeout: 6)
+      try tap("extension.setup.later.button")
+    }
+  }
 
   internal final func allowCookies()
     throws

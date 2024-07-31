@@ -293,8 +293,8 @@
 "resource.permission.edit.button.delete.title" = "Delete permssion";
 
 "resource.folders.add.menu.title" = "Create";
-"resource.folders.add.menu.password.label" = "Create password";
-"resource.folders.add.menu.folder.label" = "Create folder";
+"resource.folders.add.menu.password.label" = "Add password";
+"resource.folders.add.menu.folder.label" = "Add folder";
 
 "group.members.list.title" = "Group members";
 "group.members.member.details.title" = "Group member";
