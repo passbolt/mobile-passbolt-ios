@@ -58,6 +58,29 @@ final class TOTPDrawerTests: UITestCase {
     assertExists("Trash")
   }
 
+  ///    https://passbolt.testrail.io/index.php?/cases/view/9184
+  func test_asALoggedInUserICanSeeTheEditTOTPDrawer() throws {
+    //        Given   that I am a [logged in user on the TOTP page with resources]
+    //        And     I am on a TOTP resource drawer
+    try type(text: "A Standalone", to: "search.view.input")
+    try selectCollectionViewButton(identifier: "totp.collection.view", buttonIdentifier: "More", at: 1)
+    //        When    I click on 'Edit TOTP' list item
+    try tap("resource.menu.item.edit.otp")
+    //        Then    I see the Edit TOTP drawer
+    //        And     I see the title of the drawer with a close button
+    assertPresentsString(matching: "Edit TOTP")
+    assertExists("Close")
+    //        And     I see a <menu item> list item with a <graphic> icon
+    //
+    //        | menu item              | graphic           |
+    //        | Scan a new QR code     | camera            |
+    assertExists("Scan QR code")
+    assertExists("Camera")
+    //        | Edit the TOTP manually | square and pencil |
+    assertExists("Edit TOTP manually")
+    assertExists("EditAlt")
+  }
+
   ///    https://passbolt.testrail.io/index.php?/cases/view/9190
   func test_asALoggedInUserICanDeleteATotp() throws {
     // create TOTP with pseudo-random name
@@ -78,7 +101,7 @@ final class TOTPDrawerTests: UITestCase {
     // TODO: rewrite assertNotExists as it is not respecting timeout correctly then remove sleep https://app.clickup.com/t/86c00e3cg
     sleep(3)
     assertNotExists(randomDeleteName, inside: "totp.collection.view")
-    //        And I see a snackbar telling me the TOTP was deleted 
+    //        And I see a snackbar telling me the TOTP was deleted
     // TODO: There is no snackbar Accessibility ID https://app.clickup.com/t/2593179/MOB-1985
   }
 }

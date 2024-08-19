@@ -106,6 +106,7 @@ extension ResourceOTPContextualMenuItem {
             .resizable()
         }
       )
+      .accessibilityIdentifier("resource.menu.item.edit.otp")
 
     case .deleteOTP:
       DrawerMenuItemView(
