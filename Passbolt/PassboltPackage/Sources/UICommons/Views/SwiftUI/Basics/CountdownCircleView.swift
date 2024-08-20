@@ -83,6 +83,7 @@ public struct CountdownCircleView: View {
       width: 24,
       height: 24
     )
+    .accessibilityIdentifier("totp.loader.circle")
   }
 }
 

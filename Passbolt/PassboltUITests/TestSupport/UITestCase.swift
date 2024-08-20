@@ -251,7 +251,29 @@ internal class UITestCase: XCTestCase {
       line: line
     )
     .children(matching: .cell)
-    .element(boundBy: 0)
+    .element(boundBy: index)
+    .tap()
+  }
+
+  internal final func selectCollectionViewButton(
+    identifier: String,  // The identifier of the collection view itself.
+    inside specifier: String? = .none,  // An optional identifier of a parent element containing the collection view.
+    buttonIdentifier: String,
+    at index: Int,
+    timeout: Double = 2.0,
+    file: StaticString = #file,
+    line: UInt = #line
+  ) throws {
+    try element(
+      identifier,
+      inside: specifier,
+      timeout: timeout,
+      file: file,
+      line: line
+    )
+    .children(matching: .cell)
+    .element(boundBy: index)
+    .buttons[buttonIdentifier]
     .tap()
   }
 
@@ -657,6 +679,47 @@ internal class UITestCase: XCTestCase {
           line: line
         )
     }  // else passes
+  }
+
+  internal final func assertExistsWithPattern(
+    _ identifier: String,
+    pattern: String = "\\d{3} \\d{3}",
+    inside specifier: String? = .none,
+    timeout: TimeInterval = 4.0,
+    file: StaticString = #file,
+    line: UInt = #line
+  ) {
+    let element = self.application
+      .descendants(matching: .any)
+      .element(
+        matching: .any,
+        identifier: identifier
+      )
+
+    let exists = element.waitForExistence(timeout: timeout)
+
+    if !exists {
+      XCTFail(
+        "Required element \"\(identifier)\" inside \"\(String(describing: specifier))\" does not exist!",
+        file: file,
+        line: line
+      )
+      return
+    }
+
+    let predicate = NSPredicate(format: "label MATCHES %@", pattern)
+
+    let success =
+      XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: predicate, object: element)], timeout: timeout)
+      == .completed
+
+    if !success {
+      XCTFail(
+        "Element \"\(identifier)\" does not match the pattern \"\(pattern)\" within the timeout period!",
+        file: file,
+        line: line
+      )
+    }
   }
 
   internal final func ignoreFailure(

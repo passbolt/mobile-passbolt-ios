@@ -115,6 +115,7 @@ internal struct OTPResourcesListView: ControlledView {
       CommonListSection {
         if self.controller.createAvailable {
           CommonListCreateRow(action: self.controller.createOTP)
+            .accessibilityIdentifier("totp.create.button")
         }  // else no view
 
         withEach(\.otpResources.values) { (item: TOTPResourceViewModel) in
@@ -138,5 +139,6 @@ internal struct OTPResourcesListView: ControlledView {
     }
     .refreshable(action: self.controller.refreshList)
     .shadowTopEdgeOverlay()
+    .accessibilityIdentifier("totp.collection.view")
   }
 }

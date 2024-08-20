@@ -96,7 +96,6 @@ private final class SnackBarMessageView: UIView {
     self.label.numberOfLines = 0
     self.label.lineBreakMode = .byWordWrapping
     self.label.translatesAutoresizingMaskIntoConstraints = false
-    self.label.accessibilityIdentifier = "snackbar.message"
     self.label.isUserInteractionEnabled = false
     self.addSubview(self.label)
     NSLayoutConstraint.activate([

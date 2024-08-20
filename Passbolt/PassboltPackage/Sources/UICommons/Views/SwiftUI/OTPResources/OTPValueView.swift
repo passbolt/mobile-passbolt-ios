@@ -55,6 +55,7 @@ public struct OTPValueView: View {
               weight: .semibold
             )
           )
+          .accessibilityIdentifier("totp.digits")
 
         switch self.accessory {
         case .contextual:
