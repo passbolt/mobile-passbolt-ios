@@ -119,7 +119,7 @@ final class FolderCreationTests: UITestCase {
     //        And I clicked on the create folder button
     try tap("resource.folders.add.folder")
     //        And I filled out mandatory ‘Name’ field
-    try type(text: "Automated tests folder iOS", to: "form.textfield.text")
+    try type(text: "Automated tests folder iOS", to: "form.textfield.text.Name")
     //        When I click ‘Save’ button
     try tap("folder.edit.form.button")
     //        Then I see ‘New folder {folder’s name} has been created!’ in @green //INFO: we can't check colour on iOS via XCUITest

@@ -52,7 +52,9 @@ final class TermsAndLicensesTests: UITestCase {
     assertExists("Info")
     assertExists("ChevronRight", inside: "settings.terms.and.licenses.item.terms.title")
     //        | Privacy policy | lock | caret |
-    assertInteractive("settings.terms.and.licenses.item.privacy.title")
+    ignoreFailure("PP is disabled on the cloud instance") {
+      assertInteractive("settings.terms.and.licenses.item.privacy.title")
+    }
     assertExists("LockedLock")
     assertExists("ChevronRight", inside: "settings.terms.and.licenses.item.privacy.title")
     //        | Open Source Licences | feather | caret |

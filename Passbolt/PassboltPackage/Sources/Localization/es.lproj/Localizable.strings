@@ -73,7 +73,6 @@
 "resource.detail.field.username" = "Nombre de usuario";
 "resource.detail.field.passphrase" = "Contraseña";
 "resource.detail.field.uri" = "URL del sitio web";
-"resource.detail.field.description" = "Descripción";
 "resource.show.field.uri.placeholder" = "Sin URL";
 "resource.show.field.username.placeholder" = "Sin nombre de usuario";
 "resource.show.field.password.placeholder" = "Sin contraseña";
@@ -514,7 +513,6 @@ Póngase en contacto con su administrador para obtener más información.";
 "otp.contextual.menu.copy.title" = "Copiar TOTP";
 "otp.copied.message" = "¡TOTP copiado a su portapapeles!";
 "otp.contextual.menu.reveal.title" = "Mostrar TOTP";
-"otp.contextual.menu.edit.title" = "Editar TOTP";
 "otp.contextual.menu.delete.title" = "Eliminar TOTP";
 "otp.contextual.menu.delete.confirm.title" = "¿Está seguro?";
 "otp.contextual.menu.delete.confirm.message" = "Esta acción eliminará el TOTP de forma permanente.";

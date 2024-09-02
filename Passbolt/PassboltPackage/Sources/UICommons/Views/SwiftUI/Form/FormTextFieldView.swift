@@ -148,8 +148,7 @@ where Accessory: View {
           self.focused = true
         }
         .frame(minWidth: 65)
-        .accessibilityIdentifier("form.textfield.text")
-
+        .accessibilityIdentifier("form.textfield.text.\(self.title)")
         self.accessory()
       }
 

@@ -243,16 +243,41 @@ internal class UITestCase: XCTestCase {
     file: StaticString = #file,
     line: UInt = #line
   ) throws {
-    try element(
+    let collectionView = try element(
       identifier,
       inside: specifier,
       timeout: timeout,
       file: file,
       line: line
     )
-    .children(matching: .cell)
-    .element(boundBy: index)
-    .tap()
+
+    guard collectionView.exists else {
+      throw TestFailure.error(
+        message: "Collection view \"\(identifier)\" not found!",
+        file: file,
+        line: line
+      )
+    }
+
+    let cells = collectionView.children(matching: .cell)
+    guard cells.count > index else {
+      throw TestFailure.error(
+        message: "Cell at index \(index) not found in collection view \"\(identifier)\"!",
+        file: file,
+        line: line
+      )
+    }
+
+    let cell = cells.element(boundBy: index)
+    guard cell.waitForExistence(timeout: timeout) else {
+      throw TestFailure.error(
+        message: "Cell at index \(index) not found or not hittable!",
+        file: file,
+        line: line
+      )
+    }
+
+    cell.tap()
   }
 
   internal final func selectCollectionViewButton(
@@ -327,6 +352,43 @@ internal class UITestCase: XCTestCase {
     }
   }
 
+  /**
+     Taps a button inside a specific container.
+     Use this when elements aren't directly accessible without specifying `containerIndex` like when you get `multiple matching elements found for <XCUIElementQuery: >`
+     */
+  internal final func tapButton(
+    _ identifier: String,
+    containerIndex: Int = 1,
+    timeout: Double = 2.0,
+    file: StaticString = #file,
+    line: UInt = #line
+  ) throws {
+    let upgradeButtonContainer = self.application
+      .descendants(matching: .any)
+      .containing(.button, identifier: identifier)
+      .element(boundBy: containerIndex)
+
+    let exists: Bool =
+      upgradeButtonContainer.exists
+      ? true
+      : upgradeButtonContainer.waitForExistence(timeout: timeout)
+
+    if !exists {
+      throw
+        TestFailure
+        .error(
+          message: "Required element \"\(upgradeButtonContainer)\" does not exists!",
+          file: file,
+          line: line
+        )
+    }
+    else {
+      upgradeButtonContainer
+        .buttons[identifier]
+        .tap()
+    }
+  }
+
   internal final func swipeUp(
     _ identifier: String,
     inside specifier: String? = .none,
@@ -334,14 +396,14 @@ internal class UITestCase: XCTestCase {
     file: StaticString = #file,
     line: UInt = #line
   ) throws {
-    try self.element(
+    let element = try self.element(
       identifier,
       inside: specifier,
       timeout: timeout,
       file: file,
       line: line
     )
-    .swipeUp()
+    element.swipeUp()
   }
 
   internal final func swipeDown(
@@ -402,7 +464,20 @@ internal class UITestCase: XCTestCase {
     UIPasteboard.general.string = value
     element.tap()  // to gain focus
     element.doubleTap()  // to trigger text menu
-    XCUIApplication().menuItems.element(boundBy: 0).tap()  // to paste passphrase
+
+    let pasteMenuItem = XCUIApplication().menuItems.element(boundBy: 0)
+    let menuExists: Bool =
+      pasteMenuItem.exists
+      ? true
+      : pasteMenuItem.waitForExistence(timeout: timeout)
+    if !menuExists {
+      throw TestFailure.error(
+        message: "Paste menu did not appear after attempting to double-tap the element \"\(identifier)\"",
+        file: file,
+        line: line
+      )
+    }
+    pasteMenuItem.tap()
   }
 
   // MARK: - Verify
@@ -623,7 +698,7 @@ internal class UITestCase: XCTestCase {
   }
 
   internal final func assertPresentsSafari(
-    timeout: Double = 2.0,
+    timeout: Double = 3.0,
     file: StaticString = #file,
     line: UInt = #line
   ) throws {

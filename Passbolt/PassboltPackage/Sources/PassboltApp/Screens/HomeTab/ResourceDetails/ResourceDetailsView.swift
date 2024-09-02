@@ -27,12 +27,11 @@ internal struct ResourceDetailsView: ControlledView {
 
   internal let controller: ResourceDetailsViewController
 
-
   private struct IconProps {
-      static let bagdeWidth: CGFloat = 32
-      static let bagdeHeight: CGFloat = 32
-      static let paddingExpiredIcon: CGFloat = 65
-      static let padddingExpiredIconWithFavorite: CGFloat = 33
+    static let bagdeWidth: CGFloat = 32
+    static let bagdeHeight: CGFloat = 32
+    static let paddingExpiredIcon: CGFloat = 65
+    static let padddingExpiredIconWithFavorite: CGFloat = 33
   }
 
   internal init(
@@ -49,6 +48,7 @@ internal struct ResourceDetailsView: ControlledView {
             iconName: .more,
             action: self.controller.showMenu
           )
+          .accessibility(identifier: "resource.details.more.button")
         }
       }
       .backgroundColor(.passboltBackground)
@@ -111,7 +111,7 @@ internal struct ResourceDetailsView: ControlledView {
                           width: IconProps.bagdeWidth,
                           height: IconProps.bagdeHeight
                         )
-                    }  
+                    }
                     // else nothing
 
                     if isExpired == true {
@@ -121,9 +121,13 @@ internal struct ResourceDetailsView: ControlledView {
                           width: 18,
                           height: 18
                         )
-                        .padding(.top, favorite ? IconProps.padddingExpiredIconWithFavorite : IconProps.paddingExpiredIcon )
+                        .padding(
+                          .top,
+                          favorite ? IconProps.padddingExpiredIconWithFavorite : IconProps.paddingExpiredIcon
+                        )
                     }
-                  }.alignmentGuide(.trailing) { dim in
+                  }
+                  .alignmentGuide(.trailing) { dim in
                     dim[HorizontalAlignment.center]
                   }
                   // else nothing
@@ -139,15 +143,15 @@ internal struct ResourceDetailsView: ControlledView {
                     color: .passboltPrimaryText
                   )
                   .lineLimit(1)
-                  if isExpired == true {
-                    Text(displayable: "resource.expiry.expired")
-                      .text(
-                        font: .inter(
-                          ofSize: 24,
-                          weight: .regular
-                        ),
-                        color: .passboltPrimaryText
-                      )
+                if isExpired == true {
+                  Text(displayable: "resource.expiry.expired")
+                    .text(
+                      font: .inter(
+                        ofSize: 24,
+                        weight: .regular
+                      ),
+                      color: .passboltPrimaryText
+                    )
                 }
                 // else nothing
               }
@@ -219,6 +223,7 @@ internal struct ResourceDetailsView: ControlledView {
                       ),
                       color: .passboltSecondaryText
                     )
+                    .accessibilityIdentifier("text.encrypted.\(fieldModel.name.string())")
 
                 case .password(let value):
                   // password has specific font to be displayed
@@ -288,12 +293,15 @@ internal struct ResourceDetailsView: ControlledView {
             switch fieldModel.accessoryAction {
             case .copy:
               CopyButtonImage()
+                .accessibilityIdentifier("copy.button.\(fieldModel.name.string())")
 
             case .reveal:
               RevealButtonImage()
+                .accessibilityIdentifier("reveal.button.\(fieldModel.name.string())")
 
             case .hide:
               CoverButtonImage()
+                .accessibilityIdentifier("hide.button.\(fieldModel.name.string())")
 
             case .none:
               EmptyView()
@@ -386,8 +394,8 @@ internal struct ResourceDetailsView: ControlledView {
   }
 }
 
-private extension RelativeDateDisplayableFormat {
-  func viewModel(isExpired: Bool) -> ResourceRelativeDateViewModel {
+extension RelativeDateDisplayableFormat {
+  fileprivate func viewModel(isExpired: Bool) -> ResourceRelativeDateViewModel {
     ResourceRelativeDateViewModel(
       relativeDate: localizedRelativeString,
       intervalNumber: number,

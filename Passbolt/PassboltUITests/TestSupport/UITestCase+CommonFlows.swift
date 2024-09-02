@@ -63,4 +63,24 @@ extension UITestCase {
       safari.buttons["Allow selection"].tap()
     }
   }
+
+  internal final func createResource(
+    name: String = "",
+    username: String = "",
+    uri: String = "",
+    password: String = "",
+    description: String = ""
+  )
+    throws
+  {
+    try tap("search.view.menu")
+    try tap("plainResourcesList")
+    try tap("Create")
+    try type(text: name, to: "Enter a name")
+    try type(text: username, to: "Enter username")
+    try type(text: uri, to: "Enter URL")
+    try type(text: password, to: "Enter password")
+    //        try type(text: description, to: "Enter description") //TODO: the description field is not hittable as for now, needs more investigation.
+    try tap("Create")
+  }
 }

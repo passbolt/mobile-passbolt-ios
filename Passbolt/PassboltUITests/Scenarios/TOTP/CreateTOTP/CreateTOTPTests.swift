@@ -76,7 +76,7 @@ final class CreateTOTPTests: UITestCase {
     //        When    I click on the “Create a standalone TOTP” primary button
     try tap("Create standalone TOTP")
     //        Then    I see the main TOTP page
-    try type(text: randomName, to: "search.view.input")
+    try type(text: randomName, to: "search.view.input", timeout: 4)
     //        And I see the TOTP resource I created manually
     assertPresentsString(matching: randomName)
     //        And I see the TOTP value hidden
