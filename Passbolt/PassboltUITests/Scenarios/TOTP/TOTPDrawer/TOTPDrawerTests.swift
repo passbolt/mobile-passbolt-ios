@@ -98,9 +98,8 @@ final class TOTPDrawerTests: UITestCase {
     try tap("Trash")
     try tap("Delete TOTP")
     //        Then    I see the main TOTP page
-    // TODO: rewrite assertNotExists as it is not respecting timeout correctly then remove sleep https://app.clickup.com/t/86c00e3cg
-    sleep(3)
-    assertNotExists(randomDeleteName, inside: "totp.collection.view")
+    try waitForElement("totp.collection.view")
+    assertNotExists(randomDeleteName, inside: "totp.collection.view", timeout: 5)
     //        And I see a snackbar telling me the TOTP was deleted
     // TODO: There is no snackbar Accessibility ID https://app.clickup.com/t/2593179/MOB-1985
   }

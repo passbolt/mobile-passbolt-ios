@@ -591,39 +591,6 @@ internal class UITestCase: XCTestCase {
     }
   }
 
-  internal final func assertNotExists(
-    _ identifier: String,
-    inside specifier: String? = .none,
-    // shorter default timeout, we expect it to not be there but still wan't to wait a while to be sure
-    timeout: Double = 0.5,
-    file: StaticString = #file,
-    line: UInt = #line
-  ) {
-    do {
-      try self.waitForElement(
-        identifier,
-        inside: specifier,
-        timeout: timeout,
-        file: file,
-        line: line
-      )
-
-      TestFailure
-        .error(
-          message: "Not expected element \"\(identifier)\"\(specifier.map { " inside \"\($0)\" " } ?? "") exists!",
-          file: file,
-          line: line
-        )
-        .asTestFailure(
-          file: file,
-          line: line
-        )
-    }
-    catch {
-      // not existing passes
-    }
-  }
-
   internal final func assertInteractive(
     _ identifier: String,
     inside specifier: String? = .none,

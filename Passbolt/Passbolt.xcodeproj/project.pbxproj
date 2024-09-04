@@ -42,6 +42,7 @@
 		B28F789E2A1FBABD0095FE07 /* AccountsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B28F789D2A1FBABD0095FE07 /* AccountsTests.swift */; };
 		B2EC08302C7C84800046C414 /* EditResourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2EC082F2C7C84800046C414 /* EditResourceTests.swift */; };
 		B2EC08332C80B59A0046C414 /* DeleteResourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2EC08322C80B59A0046C414 /* DeleteResourceTests.swift */; };
+		B2EC08352C874BC00046C414 /* UITestCase+NonExistenceAssertions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2EC08342C874BC00046C414 /* UITestCase+NonExistenceAssertions.swift */; };
 		B90996BF2B63A524006ACE70 /* PassboltAccountSetup in Frameworks */ = {isa = PBXBuildFile; productRef = B90996BE2B63A524006ACE70 /* PassboltAccountSetup */; };
 		DD38F942261746C400A6C627 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD38F941261746C400A6C627 /* AppDelegate.swift */; };
 		DD38F944261746C400A6C627 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD38F943261746C400A6C627 /* SceneDelegate.swift */; };
@@ -113,6 +114,7 @@
 		B28F789D2A1FBABD0095FE07 /* AccountsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountsTests.swift; sourceTree = "<group>"; };
 		B2EC082F2C7C84800046C414 /* EditResourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditResourceTests.swift; sourceTree = "<group>"; };
 		B2EC08322C80B59A0046C414 /* DeleteResourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteResourceTests.swift; sourceTree = "<group>"; };
+		B2EC08342C874BC00046C414 /* UITestCase+NonExistenceAssertions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UITestCase+NonExistenceAssertions.swift"; sourceTree = "<group>"; };
 		DD38F93E261746C400A6C627 /* Passbolt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Passbolt.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD38F941261746C400A6C627 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		DD38F943261746C400A6C627 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -178,6 +180,7 @@
 			children = (
 				425A58262925109000C19E05 /* UITestCase.swift */,
 				42F1154D2A20F22F00475E42 /* UITestCase+CommonFlows.swift */,
+				B2EC08342C874BC00046C414 /* UITestCase+NonExistenceAssertions.swift */,
 				428BD13B293615CB0040EE57 /* MockAccount.swift */,
 				428BD13D293633E00040EE57 /* MockAccount+Mocks.swift */,
 				42F1154B2A20D3BF00475E42 /* TestFailure.swift */,
@@ -626,6 +629,7 @@
 				B26894292C610C4D00B4FE65 /* ViewResourceDetailsTests.swift in Sources */,
 				42F1154E2A20F22F00475E42 /* UITestCase+CommonFlows.swift in Sources */,
 				428BD13C293615CB0040EE57 /* MockAccount.swift in Sources */,
+				B2EC08352C874BC00046C414 /* UITestCase+NonExistenceAssertions.swift in Sources */,
 				B26BE26A2C5B8C9B00138744 /* TOTPDrawerTests.swift in Sources */,
 				425A582A292550AF00C19E05 /* WelcomeScreenUITests.swift in Sources */,
 				B23A853D2A24DD3500C65133 /* TermsAndLicensesTests.swift in Sources */,

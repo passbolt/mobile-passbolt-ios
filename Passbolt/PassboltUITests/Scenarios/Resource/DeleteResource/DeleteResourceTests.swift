@@ -83,9 +83,7 @@ final class DeleteResourceTests: UITestCase {
 
     try tap("Delete")
     //          Then I am back on the resource view page
-    sleep(5)  // TODO: add better NotExist method https://app.clickup.com/t/2593179/MOB-1986
-    ignoreFailure("The string may still be visible in the search box") {
-      assertNotExists(randomName)
-    }
+    try waitForElement("resource.list.collection.view")
+    assertNotExists(randomName, inside: "resource.list.collection.view")
   }
 }
