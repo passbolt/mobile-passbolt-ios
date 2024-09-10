@@ -38,7 +38,7 @@ import class Foundation.URLSessionConfiguration
 import class Foundation.URLSessionTask
 import protocol Foundation.URLSessionTaskDelegate
 import Foundation
-  
+
 // MARK: - Interface
 
 /// NetworkRequestExecutor provides access

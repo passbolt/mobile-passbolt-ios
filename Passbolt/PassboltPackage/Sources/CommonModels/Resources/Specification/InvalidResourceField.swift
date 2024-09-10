@@ -40,7 +40,12 @@ public struct InvalidResourceField: TheError {
           .message(
             message,
             file: file,
-            line: line
+            line: line,
+            details: [
+              specification.name.displayable.string().lowercased(): [
+                message: displayable.string()
+              ]
+            ]
           )
         )
         .recording(specification.name, for: "name")
@@ -85,7 +90,7 @@ extension InvalidResourceField {
     line: UInt = #line
   ) -> Self {
     .error(
-      "InvalidResourceField-required",
+      "required",
       specification: specification,
       path: path,
       value: value,
@@ -106,7 +111,7 @@ extension InvalidResourceField {
     line: UInt = #line
   ) -> Self {
     .error(
-      "InvalidResourceField-type",
+      "type",
       specification: specification,
       path: path,
       value: value,
@@ -128,7 +133,7 @@ extension InvalidResourceField {
     line: UInt = #line
   ) -> Self {
     .error(
-      "InvalidResourceField-minimum",
+      "minimum",
       specification: specification,
       path: path,
       value: value,
@@ -151,7 +156,7 @@ extension InvalidResourceField {
     line: UInt = #line
   ) -> Self {
     .error(
-      "InvalidResourceField-minimum",
+      "maximum",
       specification: specification,
       path: path,
       value: value,
@@ -174,7 +179,7 @@ extension InvalidResourceField {
     line: UInt = #line
   ) -> Self {
     .error(
-      "InvalidResourceField-minimum",
+      "minimum",
       specification: specification,
       path: path,
       value: value,
@@ -197,7 +202,7 @@ extension InvalidResourceField {
     line: UInt = #line
   ) -> Self {
     .error(
-      "InvalidResourceField-minimum",
+      "maximum",
       specification: specification,
       path: path,
       value: value,
@@ -220,7 +225,7 @@ extension InvalidResourceField {
     line: UInt = #line
   ) -> Self {
     .error(
-      "InvalidResourceField-minimumLength",
+      "minLength",
       specification: specification,
       path: path,
       value: value,
@@ -243,7 +248,7 @@ extension InvalidResourceField {
     line: UInt = #line
   ) -> Self {
     .error(
-      "InvalidResourceField-minimumLength",
+      "maxLength",
       specification: specification,
       path: path,
       value: value,
@@ -265,7 +270,7 @@ extension InvalidResourceField {
     line: UInt = #line
   ) -> Self {
     .error(
-      "InvalidResourceField-notListed",
+      "notListed",
       specification: specification,
       path: path,
       value: value,

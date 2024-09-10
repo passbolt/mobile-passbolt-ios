@@ -82,6 +82,25 @@ extension TheError /* CustomDebugStringConvertible */ {
   public var debugDescription: String {
     "\(Self.self)\n\(self.displayableMessage.string())\n\(self.context.debugDescription)"
   }
+
+  ///
+  /// Get details from error
+  /// The details are used for support to identify the issue
+  ///
+  public func getDetails() -> Dictionary<String, Any>? {
+      // Check if the last item in the stack exists and has details
+    if let lastInfo = self.context.infoStack.last, let details = lastInfo.details {
+          return details
+      }
+      return nil
+  }
+
+  ///
+  /// Get original message to catch it to entity validation
+  ///
+  public func getMessage() -> StaticString {
+    return self.context.infoStack.last?.message ?? ""
+  }
 }
 
 extension TheError {

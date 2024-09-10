@@ -127,10 +127,28 @@ extension SessionData {
 
         // Retrieve resources
         let resources = try await resourcesFetchNetworkOperation()
-        
-        // Store resources into db
+        // Initialize resourcesCollection to add the validated entity
+        var resourcesCollection: Array<ResourceDTO> = []
+
+        for (index, resourceDTO) in resources.enumerated() {
+          do {
+            let resource: ResourceDTO = try resourceDTO.validate(resourceTypes: resourceTypes)
+            resourcesCollection.append(resource)
+          } catch {
+            //Do not break it and continue the loop
+            CollectionValidationError.error(
+              message: "Cannot validate resource collection",
+              underlyingError: .none,
+              details: [
+                index.formatted(): error.asTheError().getDetails()!
+              ]
+            ).logged()
+          }
+        }
+
+        // Store resources into db which has been validated
         try await resourcesStoreDatabaseOperation(
-          resources
+          resourcesCollection
         )
 
         Diagnostics.logger.info("...resources data refresh finished!")

@@ -112,7 +112,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
         error:
           InvalidResourceField
           .error(
-            "InvalidResourceField-required",
+            "required",
             specification: Resource.mock_1.type.fieldSpecification(for: \.meta.name)!,
             path: \.meta.name,
             value: "",

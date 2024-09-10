@@ -25,21 +25,21 @@ import Commons
 
 import struct Foundation.Date
 
-public struct ResourceDTO {
+  public struct ResourceDTO {
 
-  public let id: Resource.ID
-  public var typeID: ResourceType.ID
-  public var parentFolderID: ResourceFolder.ID?
-  public var name: String
-  public var permission: Permission
-  public var permissions: OrderedSet<GenericPermissionDTO>
-  public var favoriteID: Resource.Favorite.ID?
-  public var uri: String?
-  public var username: String?
-  public var description: String?
-  public var tags: OrderedSet<ResourceTag>
-  public let modified: Date
-  public let expired: Date?
+    public let id: Resource.ID
+    public var typeID: ResourceType.ID
+    public var parentFolderID: ResourceFolder.ID?
+    public var name: String
+    public var permission: Permission
+    public var permissions: OrderedSet<GenericPermissionDTO>
+    public var favoriteID: Resource.Favorite.ID?
+    public var uri: String?
+    public var username: String?
+    public var description: String?
+    public var tags: OrderedSet<ResourceTag>
+    public let modified: Date
+    public let expired: Date?
 
   public init(
     id: Resource.ID,
@@ -195,10 +195,49 @@ extension ResourceDTO: Decodable {
   }
 
   // Use to validate resource DTO before insertion on DB
-  public func validate(resourceTypes: Array<ResourceTypeDTO>) throws {
+  public func validate(resourceTypes: Array<ResourceTypeDTO>) throws -> ResourceDTO {
+    let uuidValidator = Validator<String>.uuid()
+    do {
+      //First validate ID to avoid log injection
+      try uuidValidator.ensureValid(self.id.rawValue.rawValue.uuidString.lowercased())
+    } catch {
+      throw EntityValidationError.error(
+        message: "Resource id is not a valid UUID",
+        underlyingError: .none,
+        details: [
+            "id": [
+              "type": "The id is not a valid UUID"
+            ],
+        ]
+      )
+    }
+
+    do {
+      //First validate type ID to avoid log injection
+      try uuidValidator.ensureValid(self.typeID.rawValue.rawValue.uuidString.lowercased())
+    } catch {
+      throw EntityValidationError.error(
+        message: "Resource type id is not a valid UUID",
+        underlyingError: .none,
+        details: [
+            "id": [
+              "type": "The type id is not a valid UUID"
+            ],
+        ]
+      )
+    }
+
     guard let resourceType = resourceTypes.first(where: { $0.id == self.typeID }) else {
-      throw InvalidResourceType.error(
-        message: "Cannot find the resource type associated"
+      throw EntityValidationError.error(
+        message: "Cannot find the resource type associated",
+        underlyingError: .none,
+        details: [
+            "resourceId": self.id,
+            "typeId": [
+              "id": self.typeID,
+              "exist": "The type does not match any stored type id"
+            ],
+        ]
       )
     }
 
@@ -229,7 +268,21 @@ extension ResourceDTO: Decodable {
         resource.meta.description = .string(description)
     }
 
-    // Validate field based on type
-    try resource.validate()
+    do {
+      // Validate field based on type
+      try resource.validate()
+    } catch {
+      var details: Dictionary<String, Any> = ["id": self.id]
+      if let errorDetails = error.asTheError().getDetails() {
+          details.merge(errorDetails) { (current, _) in current } // Retains existing values in case of conflict
+      }
+      throw EntityValidationError.error(
+        message: error.asTheError().getMessage(),
+        underlyingError: .none,
+        details: details
+      )
+    }
+
+    return self
   }
 }

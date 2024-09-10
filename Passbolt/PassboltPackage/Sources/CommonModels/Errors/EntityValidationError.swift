@@ -21,11 +21,11 @@
 // @since         v1.0
 //
 
-public struct InvalidResourceType: TheError {
+public struct EntityValidationError: TheError {
   public static func error(
-    message: StaticString = "InvalidResourceType",
+    message: StaticString = "EntityValidationError",
     underlyingError: Error? = .none,
-    details: Dictionary<String, Any>? = nil, // Add optional details
+    details: Dictionary<String, Any>,
     file: StaticString = #fileID,
     line: UInt = #line
   ) -> Self {
