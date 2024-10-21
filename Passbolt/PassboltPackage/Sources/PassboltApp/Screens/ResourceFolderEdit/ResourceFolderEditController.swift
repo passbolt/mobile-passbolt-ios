@@ -27,7 +27,7 @@ import OSFeatures
 import Resources
 import Users
 
-internal final class ResourceFolderEditController: ViewController {
+internal final class ResourceFolderEditController: ViewController, Sendable {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
 
@@ -99,13 +99,24 @@ extension ResourceFolderEditController {
   @Sendable nonisolated internal final func setFolderName(
     _ folderName: String
   ) {
-    self.resourceFolderEditForm.setFolderName(folderName)
+    _ = self.resourceFolderEditForm.setFolderName(folderName)
   }
 
   internal final func saveChanges() async {
     do {
       try await self.resourceFolderEditForm.sendForm()
       await self.navigation.pop(ResourceFolderEditView.self)
+      let folderName = try await self.resourceFolderEditForm.state.value.name
+      SnackBarMessageEvent.send(
+        .info(
+          .localized(
+            key: "folder.edit.form.created",
+            arguments: [
+              folderName
+            ]
+          )
+        )
+      )
     }
     catch {
       error.consume()

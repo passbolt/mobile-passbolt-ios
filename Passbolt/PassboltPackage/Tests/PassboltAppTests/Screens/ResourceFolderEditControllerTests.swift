@@ -71,6 +71,21 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
   }
 
   func test_saveChanges_sendsForm() async throws {
+    let formState: Variable<ResourceFolder> = Variable(
+      initial: ResourceFolder(
+        id: .none,
+        name: "",
+        path: [],
+        permission: .owner,
+        permissions: []
+      )
+    )
+    
+    patch(
+      \ResourceFolderEditForm.state,
+      with: formState.asAnyUpdatable()
+    )
+    
     patch(
       \ResourceFolderEditForm.sendForm,
       with: always(self.mockExecuted())
@@ -78,6 +93,48 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
 
     await withInstance(mockExecuted: 1) { (tested: ResourceFolderEditController) in
       await tested.saveChanges()
+    }
+  }
+  
+  func test_saveChanges_presentsSuccessMessage() async throws {
+    let newFolderName = "New Folder"
+    let formState: Variable<ResourceFolder> = Variable(
+      initial: ResourceFolder(
+        id: .none,
+        name: newFolderName,
+        path: [],
+        permission: .owner,
+        permissions: []
+      )
+    )
+
+    patch(
+      \ResourceFolderEditForm.sendForm,
+       with: always(self.mockExecuted())
+    )
+    
+    patch(
+      \ResourceFolderEditForm.state,
+      with: formState.asAnyUpdatable()
+    )
+    
+    let messagesSubscription = SnackBarMessageEvent.subscribe()
+    let expectedMessage = SnackBarMessageEvent.Payload.show(
+      .info(
+        .localized(
+          key: "folder.edit.form.created",
+          arguments: [
+            newFolderName
+          ]
+        )
+      )
+    )
+    
+    await withInstance(
+      returns: expectedMessage
+    ) { (tested: ResourceFolderEditController) in
+      await tested.saveChanges()
+      return try await messagesSubscription.nextEvent()
     }
   }
 
