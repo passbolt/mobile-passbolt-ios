@@ -21,30 +21,26 @@
 // @since         v1.0
 //
 
-import CommonModels
+import AccountSetup
+import Commons
+import FeatureScopes
 
-import struct Foundation.Data
-
-public struct AccountKitImport {
-  public var isImportAccountKitAvailable: () -> Bool
-  public var importAccountKit: (String) -> AnyPublisher<AccountTransferData, Error>
-
-  public init(
-    isImportAccountKitAvailable: @escaping () -> Bool,
-    importAccountKit: @escaping (String) -> AnyPublisher<AccountTransferData, Error>
-  ) {
-    self.isImportAccountKitAvailable = isImportAccountKitAvailable
-    self.importAccountKit = importAccountKit
-  }
-}
-
-extension AccountKitImport: LoadableFeature {
-  #if DEBUG
-  public static var placeholder: Self {
-    Self(
-      isImportAccountKitAvailable: unimplemented0(),
-      importAccountKit: unimplemented1()
+extension FeaturesRegistry {
+  internal mutating func usePassboltExtensionAccountKitImport() {
+    self.use(
+      .lazyLoaded(
+        AccountKitImport.self,
+        load: { _ in
+            .init(
+              isImportAccountKitAvailable: { false },
+              importAccountKit: { _ in
+                Fail(error: Unavailable.error("Account import is not available in extension."))
+                  .eraseToAnyPublisher()
+              }
+            )
+        }
+      ),
+      in: AccountTransferScope.self
     )
   }
-  #endif
 }

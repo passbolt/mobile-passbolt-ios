@@ -48,6 +48,7 @@ extension FeaturesRegistry {
     self.usePassboltUsersModule()
     self.usePassboltHomePresentation()
     self.usePassboltResourcesModule()
+    self.usePassboltExtensionAccountKitImport()
     // it is required until navigations will become fully integrated
     self.useLiveNavigationToResourceEdit()
     self.useLiveNavigationToOperationResult()

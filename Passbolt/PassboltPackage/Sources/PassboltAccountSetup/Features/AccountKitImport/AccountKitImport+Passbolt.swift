@@ -101,6 +101,7 @@ extension AccountKitImport {
     }
 
     return .init(
+      isImportAccountKitAvailable: { true },
       importAccountKit: importAccountKit(_:)
     )
   }

@@ -69,7 +69,7 @@ extension HelpMenuController: UIController {
     //Features loaded by dependency injection
     let transferFeature = try features.branch(scope: AccountTransferScope.self)
     let accountKitImport: AccountKitImport = try transferFeature.instance()
-    let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
+    
     //Subjects
     let logsPresentationSubject: PassthroughSubject<Void, Never> = .init()
     let websiteHelpPresentationSubject: PassthroughSubject<Void, Never> = .init()
@@ -85,14 +85,16 @@ extension HelpMenuController: UIController {
           ),
           handler: logsPresentationSubject.send
         ),
-        .init(
-          iconName: .importFile,
-          iconBundle: .uiCommons,
-          title: .localized(
-            key: "help.menu.show.import.account.kit.title"
-          ),
-          handler: importAccountKitPresentationSubject.send
-        ),
+        accountKitImport.isImportAccountKitAvailable()
+        ? .init(
+            iconName: .importFile,
+            iconBundle: .uiCommons,
+            title: .localized(
+              key: "help.menu.show.import.account.kit.title"
+            ),
+            handler: importAccountKitPresentationSubject.send
+          )
+        : nil,
         .init(
           iconName: .open,
           iconBundle: .uiCommons,
@@ -101,7 +103,7 @@ extension HelpMenuController: UIController {
           ),
           handler: websiteHelpPresentationSubject.send
         ),
-      ]
+      ].compactMap { $0 }
     }
 
     func logsPresentationPublisher() -> AnyPublisher<Void, Never> {
