@@ -82,7 +82,7 @@ extension ResourceOTPEditMenuViewController {
         let totpPath: ResourceType.FieldPath = attachType.fieldSpecification(for: \.firstTOTP)?.path
       else {
         throw
-          InvalidResourceType
+          InvalidResourceTypeError
           .error(message: "Attempting to attach OTP to a resource which has none or unavailable attached type!")
       }
 
@@ -113,7 +113,7 @@ extension ResourceOTPEditMenuViewController {
         let totpPath: ResourceType.FieldPath = attachType.fieldSpecification(for: \.firstTOTP)?.path
       else {
         throw
-          InvalidResourceType
+          InvalidResourceTypeError
           .error(message: "Attempting to attach OTP to a resource which has none or unavailable attached type!")
       }
 

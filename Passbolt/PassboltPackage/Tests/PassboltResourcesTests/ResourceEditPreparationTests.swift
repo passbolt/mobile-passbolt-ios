@@ -74,7 +74,7 @@ final class ResourceEditPreparationTests: FeaturesTestCase {
     let tested: ResourceEditPreparation = try self.testedInstance()
     await verifyIf(
       try await tested.prepareNew("unavailable", .none, .none),
-      throws: InvalidResourceType.self
+      throws: InvalidResourceTypeError.self
     )
   }
 

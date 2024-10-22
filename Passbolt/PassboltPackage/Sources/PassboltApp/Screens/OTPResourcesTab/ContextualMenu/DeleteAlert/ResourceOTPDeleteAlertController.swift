@@ -65,7 +65,7 @@ internal struct ResourceOTPDeleteAlertController: AlertController {
             })
           else {
             throw
-              InvalidResourceType
+              InvalidResourceTypeError
               .error(message: "Attempting to detach OTP from a resource which has none or unavailable detached type!")
           }
           let features: Features =
@@ -80,7 +80,7 @@ internal struct ResourceOTPDeleteAlertController: AlertController {
         }
         else {
           throw
-            InvalidResourceType
+            InvalidResourceTypeError
             .error(message: "Attempting to delete OTP in a resource without OTP delete action supported!")
         }
 

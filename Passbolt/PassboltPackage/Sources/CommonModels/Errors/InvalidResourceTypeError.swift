@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public struct InvalidResourceType: TheError {
+public struct InvalidResourceTypeError: TheError {
   public static func error(
     message: StaticString = "InvalidResourceType",
     underlyingError: Error? = .none,

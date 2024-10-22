@@ -275,13 +275,13 @@ extension Resource {
     guard self.type != resourceType else { return }  // no need to update
     guard !self.type.containsUndefinedFields
     else {  // can't update properly if current type has undefined fields
-      throw InvalidResourceType.error(
+      throw InvalidResourceTypeError.error(
         message: "Attempting to update a resource which has a type containing undefined fields!"
       )
     }
     guard !resourceType.containsUndefinedFields
     else {  // can't update properly if updated type has undefined fields
-      throw InvalidResourceType.error(
+      throw InvalidResourceTypeError.error(
         message: "Attempting to update a resource type to a type containing undefined fields!"
       )
     }

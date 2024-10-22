@@ -42,7 +42,7 @@ extension ResourceEditPreparation {
       let resourceTypes: Array<ResourceType> = try await resourceTypesFetchDatabaseOperation()
 
       guard let resourceType: ResourceType = resourceTypes.first(where: { $0.specification.slug == slug })
-      else { throw InvalidResourceType.error() }
+      else { throw InvalidResourceTypeError.error() }
       let folderPath: OrderedSet<ResourceFolderPathItem>
       if let parentFolderID {
         folderPath = try await resourceFolderPathFetchDatabaseOperation.execute(parentFolderID)

@@ -197,7 +197,7 @@ extension OTPAttachSelectionListViewController {
           editingContext.availableTypes.first(where: { $0.specification.slug == attachedOTPSlug })
       else {
         throw
-          InvalidResourceType
+          InvalidResourceTypeError
           .error(message: "Attempting to attach OTP to a resource which has none or unavailable attached type!")
       }
 

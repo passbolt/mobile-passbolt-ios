@@ -294,7 +294,7 @@ extension ResourceContextualMenuViewController {
       guard editingContext.editedResource.canAttachOTP
       else {
         throw
-          InvalidResourceType
+          InvalidResourceTypeError
           .error(message: "Can't attach OTP, no permission or transition undefined.")
       }
 

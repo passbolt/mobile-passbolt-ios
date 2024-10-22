@@ -80,7 +80,7 @@ internal final class OTPEditAdvancedFormViewController: ViewController {
           guard resource.contains(context.totpPath)
           else {
             throw
-              InvalidResourceType
+              InvalidResourceTypeError
               .error(message: "Resource without TOTP, can't edit it.")
           }
           await updateState { (viewState: inout ViewState) in
