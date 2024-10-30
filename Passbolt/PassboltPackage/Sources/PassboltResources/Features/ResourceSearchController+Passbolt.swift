@@ -52,7 +52,7 @@ extension ResourceSearchController {
           filter: filter,
           result: try await resourcesListFetchDatabaseOperation(
             .init(
-              sorting: .modifiedRecently,
+              sorting: .nameAlphabetically,
               text: filter.text,
               includedTypeSlugs: filter.includedTypes
             )
