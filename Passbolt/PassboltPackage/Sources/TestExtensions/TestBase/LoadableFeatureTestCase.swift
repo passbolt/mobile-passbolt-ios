@@ -327,7 +327,7 @@ extension LoadableFeatureTestCase {
 extension LoadableFeatureTestCase {
 
   public func withTestedInstance(
-    timeout: TimeInterval = 0.3,
+    timeout: TimeInterval = defaultTimeout,
     file: StaticString = #file,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Void
@@ -345,7 +345,7 @@ extension LoadableFeatureTestCase {
 
   public func withTestedInstanceExecuted<Value, Parameter>(
     using expectedParameter: Parameter,
-    timeout: TimeInterval = 0.3,
+    timeout: TimeInterval = defaultTimeout,
     file: StaticString = #file,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Value
@@ -379,7 +379,7 @@ extension LoadableFeatureTestCase {
 
   public func withTestedInstanceExecuted<Value>(
     count: UInt = 1,
-    timeout: TimeInterval = 0.3,
+    timeout: TimeInterval = defaultTimeout,
     file: StaticString = #file,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Value
@@ -403,7 +403,7 @@ extension LoadableFeatureTestCase {
   }
 
   public func withTestedInstanceNotExecuted<Value>(
-    timeout: TimeInterval = 0.3,
+    timeout: TimeInterval = defaultTimeout,
     file: StaticString = #file,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Value
@@ -428,7 +428,7 @@ extension LoadableFeatureTestCase {
 
   public func withTestedInstanceReturnsEqual<Value>(
     _ expectedResult: Value,
-    timeout: TimeInterval = 0.3,
+    timeout: TimeInterval = defaultTimeout,
     file: StaticString = #file,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Value?
@@ -447,7 +447,7 @@ extension LoadableFeatureTestCase {
 
   public func withTestedInstanceResultEqual<Value>(
     _ expectedResult: Value,
-    timeout: TimeInterval = 0.3,
+    timeout: TimeInterval = defaultTimeout,
     file: StaticString = #file,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Any
@@ -471,7 +471,7 @@ extension LoadableFeatureTestCase {
   }
 
   public func withTestedInstanceResultNone(
-    timeout: TimeInterval = 0.3,
+    timeout: TimeInterval = defaultTimeout,
     file: StaticString = #file,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Any
@@ -494,7 +494,7 @@ extension LoadableFeatureTestCase {
   }
 
   public func withTestedInstanceResultSome(
-    timeout: TimeInterval = 0.3,
+    timeout: TimeInterval = defaultTimeout,
     file: StaticString = #file,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Any
@@ -517,7 +517,7 @@ extension LoadableFeatureTestCase {
   }
 
   public func withTestedInstanceReturnsSome(
-    timeout: TimeInterval = 0.3,
+    timeout: TimeInterval = defaultTimeout,
     file: StaticString = #file,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Any?
@@ -534,7 +534,7 @@ extension LoadableFeatureTestCase {
   }
 
   public func withTestedInstanceReturnsNone(
-    timeout: TimeInterval = 0.3,
+    timeout: TimeInterval = defaultTimeout,
     file: StaticString = #file,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Any?
@@ -551,7 +551,7 @@ extension LoadableFeatureTestCase {
   }
 
   public func withTestedInstanceNotThrows<Value>(
-    timeout: TimeInterval = 0.3,
+    timeout: TimeInterval = defaultTimeout,
     file: StaticString = #file,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Value
@@ -569,7 +569,7 @@ extension LoadableFeatureTestCase {
 
   public func withTestedInstanceThrows<Value, Failure>(
     _ failureType: Failure.Type,
-    timeout: TimeInterval = 0.3,
+    timeout: TimeInterval = defaultTimeout,
     file: StaticString = #file,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Value

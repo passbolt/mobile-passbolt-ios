@@ -52,6 +52,11 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     use(Accounts.placeholder)
     use(Session.placeholder)
   }
+  
+  private var sleepDuration: UInt64 {
+    /// defaultTimeout is in seconds
+    UInt64(AccountTransferTests.defaultTimeout * 100) * NSEC_PER_MSEC
+  }
 
   func test_scanningProgressPublisher_publishesConfigurationValue_initially() async throws {
     patch(
@@ -183,7 +188,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     accountTransfer.cancelTransfer()
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: sleepDuration)
 
     XCTAssertError(result, matches: Cancelled.self)
   }
@@ -219,7 +224,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
       .store(in: cancellables)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: sleepDuration)
 
     XCTAssertNil(result)
   }
@@ -307,7 +312,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
       .store(in: cancellables)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: sleepDuration)
 
     XCTAssertNotNil(result)
   }
@@ -331,7 +336,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     try? await processPart(qrCodePart0, using: accountTransfer)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: sleepDuration)
 
     XCTAssertEqual(result.value?.currentPage, 1)
     XCTAssertEqual(result.value?.status, .inProgress)
@@ -358,7 +363,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     try? await processPart(qrCodePartInvalidPageBytes, using: accountTransfer)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: sleepDuration)
 
     XCTAssertEqual(result.value?.currentPage, 1)
     XCTAssertEqual(result.value?.status, .inProgress)
@@ -700,7 +705,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     }
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: sleepDuration)
 
     XCTAssertError(
       result,
@@ -729,7 +734,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     accountTransfer.cancelTransfer()
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: sleepDuration)
 
     XCTAssertEqual(result.value?.currentPage, 0)
     XCTAssertEqual(result.value?.status, .cancel)
@@ -795,7 +800,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
       .store(in: cancellables)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: sleepDuration)
 
     XCTAssertError(result, matches: Cancelled.self)
   }
@@ -825,7 +830,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
       .store(in: cancellables)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: sleepDuration)
 
     XCTAssertError(result, matches: AccountDuplicate.self)
   }
@@ -849,7 +854,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     try? await processPart(qrCodePart0, using: accountTransfer)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: sleepDuration)
 
     XCTAssertEqual(result.value?.currentPage, 0)
     XCTAssertEqual(result.value?.status, .cancel)
@@ -883,7 +888,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     try? await processPart(qrCodePart0, using: accountTransfer)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: sleepDuration)
 
     XCTAssertError(result, matches: AccountDuplicate.self)
   }

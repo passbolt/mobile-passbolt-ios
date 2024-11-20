@@ -49,11 +49,10 @@ extension HOTPCodeGenerator {
       case .sha512:
         computeHash = hmac.sha512
       }
-
+      let sharedSecretWithTrimmedSpaces: String = parameters.sharedSecret.replacingOccurrences(of: " ", with: "")
       let secretData: Data =
-        .init(base32Encoded: parameters.sharedSecret)
-        ?? parameters
-        .sharedSecret
+        .init(base32Encoded: sharedSecretWithTrimmedSpaces)
+        ?? sharedSecretWithTrimmedSpaces
         .data(using: .utf8)
         ?? .init()
 

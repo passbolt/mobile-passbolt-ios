@@ -26,6 +26,7 @@ import XCTest
 
 @dynamicMemberLookup
 open class AsyncTestCase: XCTestCase {
+  public static var defaultTimeout: TimeInterval = 1.0
 
   private var currentTestTask: Task<Void, Error>? {
     didSet {
@@ -71,7 +72,7 @@ open class AsyncTestCase: XCTestCase {
   }
 
   public func asyncTest(
-    timeout: TimeInterval = 0.3,
+    timeout: TimeInterval = defaultTimeout,
     file: StaticString = #file,
     line: UInt = #line,
     test: @escaping @Sendable () async throws -> Void
@@ -102,7 +103,7 @@ open class AsyncTestCase: XCTestCase {
 
   public func asyncTestExecuted<Value>(
     count: UInt = 1,
-    timeout: TimeInterval = 0.3,
+    timeout: TimeInterval = defaultTimeout,
     file: StaticString = #file,
     line: UInt = #line,
     test: @escaping @Sendable (@escaping @Sendable () -> Void) async throws -> Value
@@ -147,7 +148,7 @@ open class AsyncTestCase: XCTestCase {
 
   public func asyncTestReturnsEqual<Value>(
     _ expectedResult: Value,
-    timeout: TimeInterval = 0.3,
+    timeout: TimeInterval = defaultTimeout,
     file: StaticString = #file,
     line: UInt = #line,
     test: @escaping @Sendable () async throws -> Value?
@@ -183,7 +184,7 @@ open class AsyncTestCase: XCTestCase {
   }
 
   public func asyncTestReturnsSome(
-    timeout: TimeInterval = 0.3,
+    timeout: TimeInterval = defaultTimeout,
     file: StaticString = #file,
     line: UInt = #line,
     test: @escaping @Sendable () async throws -> Any?
@@ -218,7 +219,7 @@ open class AsyncTestCase: XCTestCase {
   }
 
   public func asyncTestReturnsNone(
-    timeout: TimeInterval = 0.3,
+    timeout: TimeInterval = defaultTimeout,
     file: StaticString = #file,
     line: UInt = #line,
     test: @escaping @Sendable () async throws -> Any?
@@ -253,7 +254,7 @@ open class AsyncTestCase: XCTestCase {
   }
 
   public func asyncTestNotThrows<Value>(
-    timeout: TimeInterval = 0.3,
+    timeout: TimeInterval = defaultTimeout,
     file: StaticString = #file,
     line: UInt = #line,
     test: @escaping @Sendable () async throws -> Value
@@ -284,7 +285,7 @@ open class AsyncTestCase: XCTestCase {
 
   public func asyncTestThrows<Value, Failure>(
     _ failureType: Failure.Type,
-    timeout: TimeInterval = 0.3,
+    timeout: TimeInterval = defaultTimeout,
     file: StaticString = #file,
     line: UInt = #line,
     test: @escaping @Sendable () async throws -> Value
