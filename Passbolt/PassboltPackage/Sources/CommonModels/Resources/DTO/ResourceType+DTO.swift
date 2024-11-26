@@ -70,4 +70,8 @@ extension ResourceTypeDTO: Decodable {
     case id = "id"
     case slug = "slug"
   }
+  
+  public var isSupported: Bool {
+    specification.slug.isSupported
+  }
 }

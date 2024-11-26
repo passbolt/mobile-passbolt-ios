@@ -119,20 +119,26 @@ extension SessionData {
       Diagnostics.logger.info("Refreshing resources data...")
       do {
         // Retrieve resourceTypes for ID
-        let resourceTypes = try await resourceTypesFetchNetworkOperation()
+        let allResourceTypes: [ResourceTypeDTO] = try await resourceTypesFetchNetworkOperation()
+        let supportedResourceTypes = allResourceTypes.filter { $0.isSupported }
         // Store resource type for sql association
         try await resourceTypesStoreDatabaseOperation(
-          resourceTypes
+          supportedResourceTypes
         )
 
         // Retrieve resources
         let resources = try await resourcesFetchNetworkOperation()
+        // Filter resources with supported types
+        let supportedTypesIDs = supportedResourceTypes.map(\.id)
+        let resourcesWithSupportedTypes = resources.filter { resource in
+          supportedTypesIDs.contains(resource.typeID)
+        }
         // Initialize resourcesCollection to add the validated entity
         var resourcesCollection: Array<ResourceDTO> = []
 
-        for (index, resourceDTO) in resources.enumerated() {
+        for (index, resourceDTO) in resourcesWithSupportedTypes.enumerated() {
           do {
-            let resource: ResourceDTO = try resourceDTO.validate(resourceTypes: resourceTypes)
+            let resource: ResourceDTO = try resourceDTO.validate(resourceTypes: supportedResourceTypes)
             resourcesCollection.append(resource)
           } catch {
             //Do not break it and continue the loop

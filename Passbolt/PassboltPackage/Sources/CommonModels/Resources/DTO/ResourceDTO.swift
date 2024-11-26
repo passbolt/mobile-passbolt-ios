@@ -25,21 +25,22 @@ import Commons
 
 import struct Foundation.Date
 
-  public struct ResourceDTO {
+public struct ResourceDTO {
 
-    public let id: Resource.ID
-    public var typeID: ResourceType.ID
-    public var parentFolderID: ResourceFolder.ID?
-    public var name: String
-    public var permission: Permission
-    public var permissions: OrderedSet<GenericPermissionDTO>
-    public var favoriteID: Resource.Favorite.ID?
-    public var uri: String?
-    public var username: String?
-    public var description: String?
-    public var tags: OrderedSet<ResourceTag>
-    public let modified: Date
-    public let expired: Date?
+  public let id: Resource.ID
+  public var typeID: ResourceType.ID
+  public var parentFolderID: ResourceFolder.ID?
+  public var permission: Permission
+  public var permissions: OrderedSet<GenericPermissionDTO>
+  public var favoriteID: Resource.Favorite.ID?
+  public var tags: OrderedSet<ResourceTag>
+  public let modified: Date
+  public let expired: Date?
+  // V4 metadata fields
+  public var name: String?
+  public var uri: String?
+  public var username: String?
+  public var description: String?
 
   public init(
     id: Resource.ID,
@@ -108,10 +109,6 @@ extension ResourceDTO: Decodable {
     catch {  // if decoding favorite fails there is no favorite
       self.favoriteID = .none
     }
-    self.name = try container.decode(
-      String.self,
-      forKey: .name
-    )
     let permissionContainer =
       try container
       .nestedContainer(
@@ -129,22 +126,6 @@ extension ResourceDTO: Decodable {
       .decode(
         OrderedSet<GenericPermissionDTO>.self,
         forKey: .permissions
-      )
-    self.uri = try container.decodeIfPresent(
-      String.self,
-      forKey: .uri
-    )
-    self.username =
-      try container
-      .decodeIfPresent(
-        String.self,
-        forKey: .username
-      )
-    self.description =
-      try container
-      .decodeIfPresent(
-        String.self,
-        forKey: .description
       )
     self.tags =
       try container.decodeIfPresent(
@@ -164,7 +145,27 @@ extension ResourceDTO: Decodable {
         Date.self,
         forKey: .expired
       )
-
+    // V4 metadata fields
+    self.name = try container.decodeIfPresent(
+      String.self,
+      forKey: .name
+    )
+    self.uri = try container.decodeIfPresent(
+      String.self,
+      forKey: .uri
+    )
+    self.username =
+      try container
+      .decodeIfPresent(
+        String.self,
+        forKey: .username
+      )
+    self.description =
+      try container
+      .decodeIfPresent(
+        String.self,
+        forKey: .description
+      )
   }
 
   private enum CodingKeys: String, CodingKey {
@@ -257,7 +258,9 @@ extension ResourceDTO: Decodable {
     )
 
     // Apply meta fields
-    resource.meta.name = .string(self.name)
+    if let name = self.name {
+      resource.meta.name = .string(name)
+    }
     if let uri = self.uri {
         resource.meta.uri = .string(uri)
     }

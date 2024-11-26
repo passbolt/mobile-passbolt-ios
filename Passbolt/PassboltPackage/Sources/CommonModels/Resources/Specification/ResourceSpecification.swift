@@ -57,6 +57,11 @@ extension ResourceSpecification.Slug {
   public static let passwordWithDescription: Self = "password-and-description"
   public static let totp: Self = "totp"
   public static let passwordWithTOTP: Self = "password-description-totp"
+  
+  public var isSupported: Bool {
+    let v4Types: [Self] = [.password, .passwordWithDescription, .totp, .passwordWithTOTP]
+    return v4Types.contains(self)
+  }
 }
 
 extension ResourceSpecification {
