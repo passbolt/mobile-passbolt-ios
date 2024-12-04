@@ -24,6 +24,7 @@
 import DatabaseOperations
 import FeatureScopes
 import Session
+import Commons
 
 // MARK: - Implementation
 
@@ -49,18 +50,8 @@ extension ResourceFoldersStoreDatabaseOperation {
     // tree integrity is verified by database foreign
     // key constraints it has to be inserted in a valid
     // order for operation to succeed (from root to leaf)
-    var inputReminder: Array<ResourceFolderDTO> = input
-    var sortedFolders: Array<ResourceFolderDTO> = .init()
-
-    func isValidFolder(_ folder: ResourceFolderDTO) -> Bool {
-      folder.parentID == nil
-        || sortedFolders.contains(where: { $0.id == folder.parentID })
-    }
-
-    while let index: Array<ResourceFolderDTO>.Index = inputReminder.firstIndex(where: isValidFolder(_:)) {
-      sortedFolders.append(inputReminder.remove(at: index))
-    }
-
+    let sortedFolders: Array<ResourceFolderDTO> = input.topoSort(idPath: \.id, parentIdPath: \.parentID)
+    
     for folder in sortedFolders {
       try connection.execute(
         .statement(
