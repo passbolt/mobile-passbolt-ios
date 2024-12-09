@@ -22,32 +22,38 @@
 //
 
 import Database
+// swift-format-ignore: AlwaysUseLowerCamelCase
+extension SQLiteMigration {
 
-extension SQLiteMigration: CaseIterable {
-
-  public static var allCases: Array<SQLiteMigration> {
+  internal static var migration_20: Self {
     [
-      .migration_0,
-      .migration_1,
-      .migration_2,
-      .migration_3,
-      .migration_4,
-      .migration_5,
-      .migration_6,
-      .migration_7,
-      .migration_8,
-      .migration_9,
-      .migration_10,
-      .migration_11,
-      .migration_12,
-      .migration_13,
-      .migration_14,
-      .migration_15,
-      .migration_16,
-      .migration_17,
-      .migration_18,
-      .migration_19,
-      .migration_20,
+      """
+      CREATE TABLE
+        resourceMetadata
+      (
+        resource_id BLOB NOT NULL UNIQUE,
+        data BLOB NOT NULL,
+        name TEXT NOT NULL,
+        username TEXT,
+        description TEXT,
+        FOREIGN KEY(resource_id) REFERENCES resources(id) ON DELETE CASCADE
+      ); -- create resourceMetadata table
+      """,
+      """
+      CREATE TABLE
+        resourceURI
+      (
+        resource_id TEXT NOT NULL,
+        uri TEXT NOT NULL,
+        FOREIGN KEY(resource_id) REFERENCES resources(id) ON DELETE CASCADE
+        UNIQUE(resource_id, uri)
+      ); -- create resourceURI table
+      """,
+      // - version bump - //
+      """
+      PRAGMA user_version = 21; -- persistent, used to track schema version
+      """,
     ]
   }
 }
+

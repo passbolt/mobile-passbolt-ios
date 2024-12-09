@@ -27,7 +27,7 @@ import struct Foundation.Data
 import class Foundation.JSONEncoder
 
 @dynamicMemberLookup
-public enum JSON {
+public enum JSON: Sendable {
 
   case null
   case bool(Bool)
