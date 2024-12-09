@@ -60,14 +60,14 @@ final class ResourceMetadataDTOTests: TestCase {
     let resource = createResourceDTO(name: name)
     
     let metadata = try ResourceMetadataDTO(resource: resource)
-    assertThrowsValidationError(try metadata.validate(), validationRule: ResourceMetadataDTO.ValidationRule.nameTooLong)
+    verifyIfTriggersValidationError(try metadata.validate(), validationRule: ResourceMetadataDTO.ValidationRule.nameTooLong)
   }
   
   func test_resourceValidation_nameMustNotBeEmpty() throws {
     let resource = createResourceDTO(name: "")
     
     let metadata = try ResourceMetadataDTO(resource: resource)
-    assertThrowsValidationError(try metadata.validate(), validationRule: ResourceMetadataDTO.ValidationRule.nameEmpty)
+    verifyIfTriggersValidationError(try metadata.validate(), validationRule: ResourceMetadataDTO.ValidationRule.nameEmpty)
   }
   
   func test_resourceValidation_usernameMustHaveLessThan256Characters() throws {
@@ -75,7 +75,7 @@ final class ResourceMetadataDTOTests: TestCase {
     let resource = createResourceDTO(name: "test name", username: username)
     
     let metadata = try ResourceMetadataDTO(resource: resource)
-    assertThrowsValidationError(try metadata.validate(), validationRule: ResourceMetadataDTO.ValidationRule.usernameTooLong)
+    verifyIfTriggersValidationError(try metadata.validate(), validationRule: ResourceMetadataDTO.ValidationRule.usernameTooLong)
   }
   
   func test_resourceValidation_descriptionMustHaveLessThan10kCharacters() throws {
@@ -83,7 +83,7 @@ final class ResourceMetadataDTOTests: TestCase {
     let resource = createResourceDTO(name: "test name", description: description)
     
     let metadata = try ResourceMetadataDTO(resource: resource)
-    assertThrowsValidationError(try metadata.validate(), validationRule: ResourceMetadataDTO.ValidationRule.descriptionTooLong)
+    verifyIfTriggersValidationError(try metadata.validate(), validationRule: ResourceMetadataDTO.ValidationRule.descriptionTooLong)
   }
   
   private func createResourceDTO(name: String, description: String? = nil, username: String? = nil) -> ResourceDTO {
@@ -102,21 +102,5 @@ final class ResourceMetadataDTOTests: TestCase {
       modified: .init(),
       expired: nil
     )
-  }
-  
-  private func assertThrowsValidationError(
-    _ operation: @autoclosure () throws -> Void,
-    validationRule: StaticString,
-    _ file: StaticString = #filePath,
-    _ line: UInt = #line
-  ) {
-    XCTAssertThrowsError(try operation()) { error in
-      guard let error = error as? InvalidValue
-      else {
-        XCTFail("Unexpected error: \(error)");
-        return
-      }
-      XCTAssertEqual(error.validationRule, validationRule, "Unexpected validation rule triggered", file: file, line: line)
-    }
   }
 }

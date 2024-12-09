@@ -26,12 +26,13 @@ import struct Foundation.Data
 import class Foundation.JSONDecoder
 import class Foundation.JSONEncoder
 
-struct ResourceMetadataDTO: Sendable {
-  let resourceId: Resource.ID
-  let name: String
-  let description: String?
-  let username: String?
-  let data: Data
+public struct ResourceMetadataDTO: Sendable {
+  public let resourceId: Resource.ID
+  public let name: String
+  public let description: String?
+  public let username: String?
+  public let data: Data
+  public let uris: [ResourceURIDTO]
   
   /// Initialize a new resource metadata DTO from decrypted JSON data.
   /// - Parameters:
@@ -57,13 +58,14 @@ struct ResourceMetadataDTO: Sendable {
     self.description = json[keyPath: \.description].stringValue
     self.username = json[keyPath: \.username].stringValue
     self.name = name
+    self.uris = json[keyPath: \.uris].arrayValue?.compactMap { ResourceURIDTO(resourceId: resourceId, json: $0) } ?? []
   }
   
   /// Initialize a new resource metadata DTO from Resource DTO.
   /// - Parameter resource: The resource DTO.
   ///
   /// Throws: `EntityValidationError` if the resource name is missing.
-  init(resource: ResourceDTO) throws {
+  public init(resource: ResourceDTO) throws {
     resourceId = resource.id
     guard let name = resource.name
     else {
@@ -84,6 +86,12 @@ struct ResourceMetadataDTO: Sendable {
     }
     if let username = resource.username {
       json[keyPath: \.username] = .string(username)
+    }
+    if let uri = resource.uri {
+      json[keyPath: \.uris] = .array([.string(uri)])
+      self.uris = [.init(resourceId: resourceId, uri: uri)]
+    } else {
+      self.uris = []
     }
     data = try JSONEncoder.default.encode(json)
   }

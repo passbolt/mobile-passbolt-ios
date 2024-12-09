@@ -394,6 +394,14 @@ extension JSON {
       return .none
     }
   }
+  
+  public var arrayValue: [JSON]? {
+    guard case .array(let array) = self
+    else {
+      return .none
+    }
+    return array
+  }
 }
 
 extension JSON: ExpressibleByNilLiteral {
