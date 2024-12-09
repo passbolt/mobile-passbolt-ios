@@ -187,7 +187,7 @@ private func parseTOTPConfiguration(
 
   // split label to issuer and account
   var issuer: String
-  let account: String
+  var account: String
   if let splitIndex: Substring.Index = label.firstIndex(of: ":") {
     issuer = String(label[label.startIndex ..< splitIndex])
     account = String(label[label.index(after: splitIndex) ..< label.endIndex])
@@ -260,11 +260,8 @@ private func parseTOTPConfiguration(
 
   if let issuerParameter: String = parameters.first(where: { key, _ in key == "issuer" }).flatMap({ String($0.value) })
   {
-    guard issuer.isEmpty || issuer == issuerParameter
-    else {
-      throw
-        InvalidOTPConfiguration
-        .error("Invalid OTP configuration - issuer does not match")
+    if issuer != issuerParameter {
+      account = "\(issuer):\(account)"
     }
     issuer = issuerParameter
   }  // else use whatever was in label
