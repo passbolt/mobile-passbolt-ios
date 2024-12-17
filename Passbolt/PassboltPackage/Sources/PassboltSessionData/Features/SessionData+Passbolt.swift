@@ -133,10 +133,23 @@ extension SessionData {
         let resourcesWithSupportedTypes = resources.filter { resource in
           supportedTypesIDs.contains(resource.typeID)
         }
+        let resourcesWithMetadata = resourcesWithSupportedTypes.compactMap { resource in
+          do {
+            if nil != resource.metadataArmoredMessage {
+              // TODO: decrypt v5 metadata
+            } else {
+              var resource = resource
+              resource.metadata = try .init(resource: resource)
+              return resource
+            }
+          } catch {
+            InternalInconsistency.error("Cannot decode metadata").logged()
+          }
+          return nil
+        }
         // Initialize resourcesCollection to add the validated entity
         var resourcesCollection: Array<ResourceDTO> = []
-
-        for (index, resourceDTO) in resourcesWithSupportedTypes.enumerated() {
+        for (index, resourceDTO) in resourcesWithMetadata.enumerated() {
           do {
             let resource: ResourceDTO = try resourceDTO.validate(resourceTypes: supportedResourceTypes)
             resourcesCollection.append(resource)

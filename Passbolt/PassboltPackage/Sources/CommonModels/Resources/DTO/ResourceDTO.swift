@@ -36,6 +36,8 @@ public struct ResourceDTO {
   public var tags: OrderedSet<ResourceTag>
   public let modified: Date
   public let expired: Date?
+  public var metadata: ResourceMetadataDTO?
+  public let metadataArmoredMessage: String?
   // V4 metadata fields
   public var name: String?
   public var uri: String?
@@ -70,6 +72,7 @@ public struct ResourceDTO {
     self.tags = tags
     self.modified = modified
     self.expired = expired
+    self.metadataArmoredMessage = nil
   }
 }
 
@@ -166,6 +169,7 @@ extension ResourceDTO: Decodable {
         String.self,
         forKey: .description
       )
+    self.metadataArmoredMessage = nil
   }
 
   private enum CodingKeys: String, CodingKey {
@@ -258,16 +262,16 @@ extension ResourceDTO: Decodable {
     )
 
     // Apply meta fields
-    if let name = self.name {
+    if let name = self.metadata?.name {
       resource.meta.name = .string(name)
     }
     if let uri = self.uri {
         resource.meta.uri = .string(uri)
     }
-    if let username = self.username {
+    if let username = self.metadata?.username {
         resource.meta.username = .string(username)
     }
-    if let description = self.description {
+    if let description = self.metadata?.description {
         resource.meta.description = .string(description)
     }
 

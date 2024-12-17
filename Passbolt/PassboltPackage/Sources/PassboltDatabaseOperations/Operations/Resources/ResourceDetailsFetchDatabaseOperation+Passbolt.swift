@@ -38,12 +38,11 @@ extension ResourceDetailsFetchDatabaseOperation {
         """
         SELECT
           resources.id AS id,
-          resources.name AS name,
+          resourceMetadata.name AS name,
           resources.favoriteID AS favoriteID,
           resources.permission AS permission,
-          resources.uri AS uri,
-          resources.username AS username,
-          resources.description AS description,
+          resourceMetadata.username AS username,
+          resourceMetadata.description AS description,
           resources.expired AS expired,
           resourceTypes.id AS typeID,
           resourceTypes.slug AS typeSlug
@@ -53,6 +52,10 @@ extension ResourceDetailsFetchDatabaseOperation {
           resourceTypes
         ON
           resources.typeID == resourceTypes.id
+        JOIN
+          resourceMetadata
+        ON
+          resources.id == resourceMetadata.resource_id
         WHERE
           resources.id == ?1
         LIMIT
@@ -158,7 +161,19 @@ extension ResourceDetailsFetchDatabaseOperation {
         """,
         arguments: input
       )
-
+    let selectResourceURIsStatement: SQLiteStatement =
+      .statement(
+        """
+        SELECT
+          resourceURI.resource_id,
+          resourceURI.uri
+        FROM
+          resourceURI
+        WHERE
+          resourceURI.resource_id == ?;
+        """,
+        arguments: input
+      )
     let path: OrderedSet<ResourceFolderPathItem> = try OrderedSet(
       connection.fetch(
         using: selectResourcePathStatement
@@ -248,6 +263,23 @@ extension ResourceDetailsFetchDatabaseOperation {
         )
       }
     )
+    
+    let uris: [String] = try connection.fetch(
+      using: selectResourceURIsStatement,
+      mapping: { dataRow in
+        guard
+          let _: Resource.ID = dataRow.resource_id.flatMap(Resource.ID.init(rawValue:)),
+          let uri: String = dataRow.uri
+        else {
+          throw
+            DatabaseDataInvalid
+            .error(for: ResourceURIDTO.self)
+            .recording(dataRow, for: "dataRow")
+        }
+        
+        return uri
+      }
+    )
 
     let record: Resource? =
       try connection.fetchFirst(
@@ -284,7 +316,8 @@ extension ResourceDetailsFetchDatabaseOperation {
         )
         // set field values if able, ignore missing fields
         resource.meta.name = .string(name)
-        if let uri: String = dataRow.uri {
+        if let uri: String = uris.first {
+          // for now, only first URI will be displayed
           resource.meta.uri = .string(uri)
         }  // else NOP
 

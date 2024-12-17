@@ -55,10 +55,7 @@ extension ResourcesStoreDatabaseOperation {
             resources(
               id,
               name,
-              uri,
-              username,
               typeID,
-              description,
               parentFolderID,
               favoriteID,
               permission,
@@ -70,22 +67,19 @@ extension ResourcesStoreDatabaseOperation {
               ?1,
               ?2,
               ?3,
-              ?4,
-              ?5,
-              ?6,
               (
                 SELECT
                   id
                 FROM
                   resourceFolders
                 WHERE
-                  id == ?7
+                  id == ?4
                 LIMIT 1
               ),
-              ?8,
-              ?9,
-              ?10,
-              ?11
+              ?5,
+              ?6,
+              ?7,
+              ?8
             )
           ON CONFLICT
             (
@@ -93,31 +87,25 @@ extension ResourcesStoreDatabaseOperation {
             )
           DO UPDATE SET
             name=?2,
-            uri=?3,
-            username=?4,
-            typeID=?5,
-            description=?6,
+            typeID=?3,
             parentFolderID=(
               SELECT
                 id
               FROM
                 resourceFolders
               WHERE
-                id == ?7
+                id == ?4
               LIMIT 1
             ),
-            favoriteID=?8,
-            permission=?9,
-            modified=?10,
-            expired=?11
+            favoriteID=?5,
+            permission=?6,
+            modified=?7,
+            expired=?8
           ;
           """,
           arguments: resource.id,
           resource.name,
-          resource.uri,
-          resource.username,
           resource.typeID,
-          resource.description,
           resource.parentFolderID,
           resource.favoriteID,
           resource.permission.rawValue,
@@ -125,7 +113,57 @@ extension ResourcesStoreDatabaseOperation {
           resource.expired
         )
       )
-
+      if let metadata = resource.metadata {
+        try connection.execute(
+          .statement(
+          """
+          INSERT INTO
+            resourceMetadata(
+              resource_id,
+              data,
+              name,
+              username,
+              description
+            )
+          VALUES
+            (
+              ?1,
+              ?2,
+              ?3,
+              ?4,
+              ?5
+            )
+          """,
+          arguments:
+            metadata.resourceId,
+            metadata.data,
+            metadata.name,
+            metadata.username,
+            metadata.description
+          )
+        )
+        
+        for uri in metadata.uris {
+          try connection.execute(
+            .statement(
+            """
+              INSERT INTO
+                resourceURI(
+                  resource_id,
+                  uri
+                )
+              VALUES (
+                ?1,
+                ?2
+              )
+            """,
+            arguments:
+              uri.resourceId,
+              uri.uri
+            )
+          )
+        }
+      }
       for resourceTag in resource.tags {
         try connection
           .execute(

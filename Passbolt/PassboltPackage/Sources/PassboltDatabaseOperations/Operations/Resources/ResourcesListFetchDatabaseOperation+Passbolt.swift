@@ -71,9 +71,8 @@ extension ResourcesListFetchDatabaseOperation {
               resourceTypes.slug AS typeSlug,
               resources.permission AS permission,
               resources.parentFolderID AS parentFolderID,
-              resources.name AS name,
-              resources.username AS username,
-              resources.uri AS uri,
+              resourceMetadata.name AS name,
+              resourceMetadata.username AS username,
               resources.expired AS expired
             FROM
               resources
@@ -85,6 +84,10 @@ extension ResourcesListFetchDatabaseOperation {
               resourceTypes
             ON
               resources.typeID = resourceTypes.id
+            JOIN
+              resourceMetadata
+            ON
+              resources.id = resourceMetadata.resource_id
             WHERE
               1 -- equivalent of true, used to simplify dynamic query building
           """
@@ -100,9 +103,8 @@ extension ResourcesListFetchDatabaseOperation {
               resourceTypes.slug AS typeSlug,
               resources.permission AS permission,
               resources.parentFolderID AS parentFolderID,
-              resources.name AS name,
-              resources.username AS username,
-              resources.uri AS uri,
+              resourceMetadata.name AS name,
+              resourceMetadata.username AS username,
               resources.expired AS expired
             FROM
               resources
@@ -110,6 +112,10 @@ extension ResourcesListFetchDatabaseOperation {
               resourceTypes
             ON
               resources.typeID = resourceTypes.id
+            JOIN
+              resourceMetadata
+            ON
+              resources.id = resourceMetadata.resource_id
             WHERE
               resources.parentFolderID IS ?
           """
@@ -124,9 +130,8 @@ extension ResourcesListFetchDatabaseOperation {
             resourceTypes.slug AS typeSlug,
             resources.permission AS permission,
             resources.parentFolderID AS parentFolderID,
-            resources.name AS name,
-            resources.username AS username,
-            resources.uri AS uri,
+            resourceMetadata.name AS name,
+            resourceMetadata.username AS username,
             resources.expired AS expired
           FROM
             resources
@@ -134,6 +139,10 @@ extension ResourcesListFetchDatabaseOperation {
             resourceTypes
           ON
             resources.typeID = resourceTypes.id
+          JOIN
+            resourceMetadata
+          ON
+            resources.id = resourceMetadata.resource_id
           WHERE
             1 -- equivalent of true, used to simplify dynamic query building
         """
@@ -146,7 +155,16 @@ extension ResourcesListFetchDatabaseOperation {
           AND
           (
              resources.name LIKE '%' || ? || '%'
-          OR resources.uri LIKE '%' || ? || '%'
+          OR (
+            SELECT
+              1
+            FROM
+              resourceURI
+            WHERE
+              resourceURI.resource_id == resources.id
+            AND
+              resourceURI.uri LIKE '%' || ? || '%'
+          )
           OR resources.username LIKE '%' || ? || '%'
           OR (
             SELECT
@@ -483,7 +501,7 @@ extension ResourcesListFetchDatabaseOperation {
           parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:)),
           name: name,
           username: dataRow.username,
-          url: dataRow.uri,
+          url: nil,
           isExpired: isExpired ?? false
         )
       }
