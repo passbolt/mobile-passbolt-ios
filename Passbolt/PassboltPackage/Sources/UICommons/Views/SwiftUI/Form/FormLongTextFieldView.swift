@@ -90,7 +90,6 @@ public struct FormLongTextFieldView: View {
           bottom: 6
         )
       }  // else skip
-
       ZStack {
         SwiftUI.TextEditor(
           text: .init(
@@ -101,10 +100,6 @@ public struct FormLongTextFieldView: View {
               self.state.value = newValue
             }
           )
-        )
-        .fixedSize(
-          horizontal: false,
-          vertical: true
         )
         .text(
           font: .inter(
@@ -117,6 +112,10 @@ public struct FormLongTextFieldView: View {
         .focused(self.$focused)
         .backport.hideScrollContentBackground()
         .frame(minHeight: 34)
+        .fixedSize(
+          horizontal: false,
+          vertical: true
+        )
 
         if self.state.value.isEmpty, let prompt {
           Text(prompt)
