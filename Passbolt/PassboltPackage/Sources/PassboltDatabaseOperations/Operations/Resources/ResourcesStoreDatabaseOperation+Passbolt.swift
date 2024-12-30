@@ -54,7 +54,6 @@ extension ResourcesStoreDatabaseOperation {
           INSERT INTO
             resources(
               id,
-              name,
               typeID,
               parentFolderID,
               favoriteID,
@@ -66,45 +65,42 @@ extension ResourcesStoreDatabaseOperation {
             (
               ?1,
               ?2,
-              ?3,
               (
                 SELECT
                   id
                 FROM
                   resourceFolders
                 WHERE
-                  id == ?4
+                  id == ?3
                 LIMIT 1
               ),
+              ?4,
               ?5,
               ?6,
-              ?7,
-              ?8
+              ?7
             )
           ON CONFLICT
             (
               id
             )
           DO UPDATE SET
-            name=?2,
-            typeID=?3,
+            typeID=?2,
             parentFolderID=(
               SELECT
                 id
               FROM
                 resourceFolders
               WHERE
-                id == ?4
+                id == ?3
               LIMIT 1
             ),
-            favoriteID=?5,
-            permission=?6,
-            modified=?7,
-            expired=?8
+            favoriteID=?4,
+            permission=?5,
+            modified=?6,
+            expired=?7
           ;
           """,
           arguments: resource.id,
-          resource.name,
           resource.typeID,
           resource.parentFolderID,
           resource.favoriteID,

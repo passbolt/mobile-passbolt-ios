@@ -23,7 +23,7 @@
 
 import Commons
 
-public enum Permission: Int {
+public enum Permission: Int, Sendable {
 
   public typealias ID = Tagged<PassboltID, Self>
 

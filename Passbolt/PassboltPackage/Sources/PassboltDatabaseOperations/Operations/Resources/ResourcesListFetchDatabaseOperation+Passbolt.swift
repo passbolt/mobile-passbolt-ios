@@ -154,7 +154,7 @@ extension ResourcesListFetchDatabaseOperation {
           """
           AND
           (
-             resources.name LIKE '%' || ? || '%'
+             resourceMetadata.name LIKE '%' || ? || '%'
           OR (
             SELECT
               1
@@ -196,7 +196,7 @@ extension ResourcesListFetchDatabaseOperation {
     }
 
     if !input.name.isEmpty {
-      statement.append("AND resources.name LIKE '%' || ? || '%' ")
+      statement.append("AND resourceMetadata.name LIKE '%' || ? || '%' ")
       statement.appendArgument(input.name)
     }
     else {
@@ -457,7 +457,7 @@ extension ResourcesListFetchDatabaseOperation {
 
     switch input.sorting {
     case .nameAlphabetically:
-      statement.append("ORDER BY resources.name COLLATE NOCASE ASC")
+      statement.append("ORDER BY resourceMetadata.name COLLATE NOCASE ASC")
 
     case .modifiedRecently:
       statement.append("ORDER BY resources.modified DESC")
