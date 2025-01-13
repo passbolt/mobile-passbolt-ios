@@ -54,7 +54,7 @@ extension ResourceEditForm {
     let resourceShareNetworkOperation: ResourceShareNetworkOperation = try features.instance()
     let resourceFolderPermissionsFetchDatabaseOperation: ResourceFolderPermissionsFetchDatabaseOperation =
       try features.instance()
-
+    let resourceUserIdsFetchDatabaseOperation: ResourceUsersIDFetchDatabaseOperation = try features.instance()
     let formState: Variable<Resource> = .init(initial: context.editedResource)
 
     @Sendable nonisolated func update(
@@ -110,8 +110,8 @@ extension ResourceEditForm {
         let encryptedSecrets: OrderedSet<EncryptedMessage> =
           try await usersPGPMessages
           .encryptMessageForResourceUsers(resourceID, resourceSecret)
-
-        guard encryptedSecrets.count == resource.permissions.count
+        let expectedEncryptedSecretsCount = (try await resourceUserIdsFetchDatabaseOperation(resourceID)).count
+        guard encryptedSecrets.count == expectedEncryptedSecretsCount
         else {
           throw
             InvalidResourceSecret

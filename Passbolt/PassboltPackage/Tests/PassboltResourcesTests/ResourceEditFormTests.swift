@@ -285,6 +285,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
       \UsersPGPMessages.encryptMessageForResourceUsers,
       with: always([])
     )
+    patch(
+      \ResourceUsersIDFetchDatabaseOperation.execute,
+       with: always([.mock_1])
+    )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIf(
       try await tested.sendForm(),
@@ -296,6 +300,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
     patch(
       \UsersPGPMessages.encryptMessageForResourceUsers,
       with: always([.mock_1])
+    )
+    patch(
+      \ResourceUsersIDFetchDatabaseOperation.execute,
+       with: always([.mock_1])
     )
     patch(
       \ResourceEditNetworkOperation.execute,
@@ -319,6 +327,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
     patch(
       \UsersPGPMessages.encryptMessageForResourceUsers,
       with: always([.mock_1])
+    )
+    patch(
+      \ResourceUsersIDFetchDatabaseOperation.execute,
+       with: always([.mock_1])
     )
     patch(
       \ResourceEditNetworkOperation.execute,
@@ -350,6 +362,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
       with: always([.mock_1])
     )
     patch(
+      \ResourceUsersIDFetchDatabaseOperation.execute,
+       with: always([.mock_1])
+    )
+    patch(
       \ResourceCreateNetworkOperation.execute,
       with: alwaysThrow(MockIssue.error())
     )
@@ -374,6 +390,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
     patch(
       \UsersPGPMessages.encryptMessageForUsers,
       with: always([.mock_1])
+    )
+    patch(
+      \ResourceUsersIDFetchDatabaseOperation.execute,
+       with: always([.mock_1])
     )
     patch(
       \ResourceCreateNetworkOperation.execute,
