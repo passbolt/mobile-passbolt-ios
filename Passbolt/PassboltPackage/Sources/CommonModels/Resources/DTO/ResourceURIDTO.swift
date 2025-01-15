@@ -33,7 +33,7 @@ public struct ResourceURIDTO: Sendable {
   }
   
   init?(resourceId: Resource.ID, json: JSON) {
-    guard let uri = json[keyPath: \.uri].stringValue else { return nil }
+    guard let uri = json.stringValue else { return nil }
     self.resourceId = resourceId
     self.uri = uri
   }

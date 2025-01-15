@@ -21,25 +21,17 @@
 // @since         v1.0
 //
 
-@_exported import Resources
+extension Sequence {
+  public func asyncCompactMap<T>(
+    _ transform: (Element) async throws -> T?
+  ) async rethrows -> Array<T> {
+    var values: Array<T> = .init()
 
-extension FeaturesRegistry {
-
-  public mutating func usePassboltResourcesModule() {
-    self.usePassboltResourceController()
-    self.usePassboltResourceShareForm()
-    self.usePassboltResourceEditPreparation()
-    self.usePassboltResourceEditForm()
-    self.usePassboltResourceFolders()
-    self.usePassboltResources()
-    self.usePassboltResourceTags()
-    self.usePassboltResourceFolderDetails()
-    self.usePassboltResourceFolderEditForm()
-    self.usePassboltResourcesOTPController()
-    self.usePassboltHOTPCodeGenerator()
-    self.usePassboltTOTPCodeGenerator()
-    self.usePassboltResourceSearchController()
-    self.usePassboltResourceFolderEditPreparation()
-    self.usePassboltMetadataKeysService()
+    for element in self {
+      if let value = try await transform(element) {
+        values.append(value)
+      }
+    }
+    return values
   }
 }

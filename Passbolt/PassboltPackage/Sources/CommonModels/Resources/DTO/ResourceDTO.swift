@@ -38,6 +38,7 @@ public struct ResourceDTO {
   public let expired: Date?
   public var metadata: ResourceMetadataDTO?
   public let metadataArmoredMessage: String?
+  public let metadataKeyId: MetadataKeyDTO.ID?
   // V4 metadata fields
   public var name: String?
   public var uri: String?
@@ -73,6 +74,7 @@ public struct ResourceDTO {
     self.modified = modified
     self.expired = expired
     self.metadataArmoredMessage = nil
+    self.metadataKeyId = nil
   }
 }
 
@@ -169,7 +171,8 @@ extension ResourceDTO: Decodable {
         String.self,
         forKey: .description
       )
-    self.metadataArmoredMessage = nil
+    self.metadataArmoredMessage = try container.decodeIfPresent(String.self, forKey: .metadataArmoredMessage)
+    self.metadataKeyId = try container.decodeIfPresent(MetadataKeyDTO.ID.self, forKey: .metadataKeyId)
   }
 
   private enum CodingKeys: String, CodingKey {
@@ -187,6 +190,8 @@ extension ResourceDTO: Decodable {
     case tags = "tags"
     case modified = "modified"
     case expired = "expired"
+    case metadataArmoredMessage = "metadata"
+    case metadataKeyId = "metadata_key_id"
   }
 
   private enum PermissionCodingKeys: String, CodingKey {

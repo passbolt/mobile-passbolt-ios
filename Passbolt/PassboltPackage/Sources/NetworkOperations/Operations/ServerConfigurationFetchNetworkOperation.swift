@@ -139,6 +139,7 @@ extension ServerConfiguration {
     public var rbacs: RBAC?
     public var passwordPolicies: PasswordPolicies?
     public var passwordPoliciesUpdate: PasswordPoliciesUpdate?
+    public var metadata: Metadata?
 
     public init(
       passwordPreview: PasswordPreview?,
@@ -147,7 +148,8 @@ extension ServerConfiguration {
       totpResources: TOTPResources?,
       rbacs: RBAC?,
       passwordPolicies: PasswordPolicies?,
-      passwordPoliciesUpdate: PasswordPoliciesUpdate?
+      passwordPoliciesUpdate: PasswordPoliciesUpdate?,
+      metadata: Metadata?
     ) {
       self.passwordPreview = passwordPreview
       self.folders = folders
@@ -156,6 +158,7 @@ extension ServerConfiguration {
       self.rbacs = rbacs
       self.passwordPolicies = passwordPolicies
       self.passwordPoliciesUpdate = passwordPoliciesUpdate
+      self.metadata = metadata
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -167,6 +170,7 @@ extension ServerConfiguration {
       case rbacs = "rbacs"
       case passwordPolicies = "passwordPolicies"
       case passwordPoliciesUpdate = "passwordPoliciesUpdate"
+      case metadata
     }
   }
 }
@@ -249,4 +253,16 @@ extension ServerConfiguration.Plugins {
       self.enabled = enabled
     }
   }
+  
+  public struct Metadata: Decodable {
+
+    public var enabled: Bool
+
+    public init(
+      enabled: Bool
+    ) {
+      self.enabled = enabled
+    }
+  }
+
 }

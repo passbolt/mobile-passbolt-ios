@@ -21,25 +21,10 @@
 // @since         v1.0
 //
 
-@_exported import Resources
+import Features
 
-extension FeaturesRegistry {
+public typealias MetadataKeysFetchNetworkOperation = NetworkOperation<MetadataKeysFetchNetworkOperationDescription>
 
-  public mutating func usePassboltResourcesModule() {
-    self.usePassboltResourceController()
-    self.usePassboltResourceShareForm()
-    self.usePassboltResourceEditPreparation()
-    self.usePassboltResourceEditForm()
-    self.usePassboltResourceFolders()
-    self.usePassboltResources()
-    self.usePassboltResourceTags()
-    self.usePassboltResourceFolderDetails()
-    self.usePassboltResourceFolderEditForm()
-    self.usePassboltResourcesOTPController()
-    self.usePassboltHOTPCodeGenerator()
-    self.usePassboltTOTPCodeGenerator()
-    self.usePassboltResourceSearchController()
-    self.usePassboltResourceFolderEditPreparation()
-    self.usePassboltMetadataKeysService()
-  }
+public enum MetadataKeysFetchNetworkOperationDescription: NetworkOperationDescription {
+  public typealias Output = Array<MetadataKeyDTO>
 }

@@ -90,7 +90,8 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
             totpResources: .none,
             rbacs: .none,
             passwordPolicies: .none,
-            passwordPoliciesUpdate: .none
+            passwordPoliciesUpdate: .none,
+            metadata: .none
           )
         )
       )
@@ -138,7 +139,8 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
             ),
             passwordPoliciesUpdate: .init(
               enabled: true
-            )
+            ),
+            metadata: .init(enabled: false)
           )
         )
       )
@@ -168,7 +170,8 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
         passwordPolicies: .init(
           passwordPoliciesEnabled: true,
           passwordPoliciesUpdateEnabled: true
-        )
+        ),
+        metadata: .init(enabled: false)
       )
     )
   }
@@ -207,7 +210,8 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
             ),
             passwordPoliciesUpdate: .init(
               enabled: true
-            )
+            ),
+            metadata: .init(enabled: true)
           )
         )
       )
@@ -237,7 +241,8 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
         passwordPolicies: .init(
           passwordPoliciesEnabled: true,
           passwordPoliciesUpdateEnabled: true
-        )
+        ),
+        metadata: .init(enabled: true)
       )
     )
   }
@@ -264,7 +269,8 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
               enabled: true
             ),
             passwordPolicies: .none,
-            passwordPoliciesUpdate: .none
+            passwordPoliciesUpdate: .none,
+            metadata: .none
           )
         )
       )
@@ -316,6 +322,9 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
             ),
             passwordPoliciesUpdate: .init(
               enabled: true
+            ),
+            metadata: .init(
+              enabled: false
             )
           )
         )
@@ -358,6 +367,9 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
         passwordPolicies: .init(
           passwordPoliciesEnabled: true,
           passwordPoliciesUpdateEnabled: true
+        ),
+        metadata: .init(
+          enabled: false
         )
       )
     )
@@ -403,7 +415,8 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
             totpResources: .none,
             rbacs: .none,
             passwordPolicies: .none,
-            passwordPoliciesUpdate: .none
+            passwordPoliciesUpdate: .none,
+            metadata: .none
           )
         )
       )

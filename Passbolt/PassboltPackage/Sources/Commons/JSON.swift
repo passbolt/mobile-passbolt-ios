@@ -396,11 +396,12 @@ extension JSON {
   }
   
   public var arrayValue: [JSON]? {
-    guard case .array(let array) = self
-    else {
+    switch self {
+    case .array(let value):
+      return value
+    default:
       return .none
     }
-    return array
   }
 }
 

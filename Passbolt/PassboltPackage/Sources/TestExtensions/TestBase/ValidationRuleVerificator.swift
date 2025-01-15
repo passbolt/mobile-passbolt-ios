@@ -21,25 +21,35 @@
 // @since         v1.0
 //
 
-@_exported import Resources
+import Commons
 
-extension FeaturesRegistry {
+public protocol ValidationRuleVerificator {
+  func verifyIfTriggersValidationError(
+   _ operation: @autoclosure () throws -> Void,
+   validationRule: StaticString,
+   _ file: StaticString,
+   _ line: UInt
+ )
+}
 
-  public mutating func usePassboltResourcesModule() {
-    self.usePassboltResourceController()
-    self.usePassboltResourceShareForm()
-    self.usePassboltResourceEditPreparation()
-    self.usePassboltResourceEditForm()
-    self.usePassboltResourceFolders()
-    self.usePassboltResources()
-    self.usePassboltResourceTags()
-    self.usePassboltResourceFolderDetails()
-    self.usePassboltResourceFolderEditForm()
-    self.usePassboltResourcesOTPController()
-    self.usePassboltHOTPCodeGenerator()
-    self.usePassboltTOTPCodeGenerator()
-    self.usePassboltResourceSearchController()
-    self.usePassboltResourceFolderEditPreparation()
-    self.usePassboltMetadataKeysService()
+extension ValidationRuleVerificator {
+  public func verifyIfTriggersValidationError(
+    _ operation: @autoclosure () throws -> Void,
+    validationRule: StaticString,
+    _ file: StaticString = #filePath,
+    _ line: UInt = #line
+  ) {
+    XCTAssertThrowsError(try operation()) { error in
+      guard let error = error as? InvalidValue
+      else {
+        XCTFail("Unexpected error: \(error)");
+        return
+      }
+      XCTAssertEqual(error.validationRule, validationRule, "Unexpected validation rule triggered", file: file, line: line)
+    }
   }
 }
+
+extension TestCase: ValidationRuleVerificator { }
+
+extension AsyncTestCase: ValidationRuleVerificator { }

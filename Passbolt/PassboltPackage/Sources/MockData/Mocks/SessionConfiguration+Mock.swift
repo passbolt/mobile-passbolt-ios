@@ -47,6 +47,20 @@ extension SessionConfiguration {
     passwordPolicies: .init(
       passwordPoliciesEnabled: true,
       passwordPoliciesUpdateEnabled: true
-    )
+    ),
+    metadata: .init(enabled: false)
   )
+  
+  public func with(metadataEnabled: Bool) -> Self {
+    .init(
+      termsURL: termsURL,
+      privacyPolicyURL: privacyPolicyURL,
+      resources: resources,
+      folders: folders,
+      tags: tags,
+      share: share,
+      passwordPolicies: passwordPolicies,
+      metadata: .init(enabled: metadataEnabled)
+    )
+  }
 }

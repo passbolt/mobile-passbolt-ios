@@ -190,7 +190,8 @@ public struct ResourceType {
 
     case .passwordWithTOTP:
       specification = .passwordWithTOTP
-
+    case .v5DefaultWithTOTP, .v5Password, .v5StandaloneTOTP:
+      specification = .v5Placeholder(forSlug: slug)
     case _:
       specification = .placeholder
     }

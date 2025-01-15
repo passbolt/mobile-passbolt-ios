@@ -27,6 +27,7 @@ import Features
 import NetworkOperations
 import OSFeatures
 import SessionData
+import Resources
 
 extension SessionData {
 
@@ -49,6 +50,7 @@ extension SessionData {
     let resourceTypesFetchNetworkOperation: ResourceTypesFetchNetworkOperation = try features.instance()
     let resourceFoldersFetchNetworkOperation: ResourceFoldersFetchNetworkOperation = try features.instance()
     let passwordPoliciesFetchNetworkOperation: PasswordPoliciesFetchNetworkOperation = try features.instance()
+    let metadataKeysService: MetadataKeysService = try features.instance()
 
     // when diffing endpoint becomes available
     // we could store last update time and reuse it to avoid
@@ -133,10 +135,16 @@ extension SessionData {
         let resourcesWithSupportedTypes = resources.filter { resource in
           supportedTypesIDs.contains(resource.typeID)
         }
-        let resourcesWithMetadata = resourcesWithSupportedTypes.compactMap { resource in
+        let resourcesWithMetadata = await resourcesWithSupportedTypes.asyncCompactMap { resource in
           do {
-            if nil != resource.metadataArmoredMessage {
-              // TODO: decrypt v5 metadata
+            if let armored = resource.metadataArmoredMessage, let keyId = resource.metadataKeyId {
+              guard configuration.metadata.enabled else { return ResourceDTO?.none }
+              var resource = resource
+              if let decryptedMetadata = try await metadataKeysService.decrypt(message: armored, withKeyId: keyId) {
+                let metadata = try ResourceMetadataDTO(resourceId: resource.id, data: decryptedMetadata)
+                resource.metadata = metadata
+              }
+              return resource
             } else {
               var resource = resource
               resource.metadata = try .init(resource: resource)
@@ -211,6 +219,9 @@ extension SessionData {
 
             try await refreshUsers()
             try await refreshUserGroups()
+            if configuration.metadata.enabled {
+              try await metadataKeysService.initialize()
+            }
             try await refreshFolders()
             try await refreshResources()
             if(configuration.passwordPolicies.passwordPoliciesEnabled) {

@@ -201,6 +201,66 @@ final class SessionDataRefreshTests: FeaturesTestCase {
     try await feature.refreshIfNeeded()
     await fulfillment(of: [expectation], timeout: 1)
   }
+  
+  func test_sessionDataRefresh_shouldNotFetchMetadataKeys_ifFeatureIsDisabled() async throws {
+    set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_default.with(metadataEnabled: false)
+      )
+    )
+    
+    
+    patch(
+      \ResourceTypesFetchNetworkOperation.execute,
+       with: always([])
+    )
+   
+    patch(
+      \ResourceTypesStoreDatabaseOperation.execute,
+       with: always(Void())
+    )
+    
+    patch(
+      \MetadataKeysService.initialize,
+       with: always({
+         XCTFail("Should not be initialized")
+       }())
+    )
+    
+    let feature: SessionData = try self.testedInstance()
+    try await feature.refreshIfNeeded()
+  }
+  
+  func test_sessionDataRefresh_shouldFetchMetadataKeys_ifFeatureIsEnabled() async throws {
+    set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_default.with(metadataEnabled: true)
+      )
+    )
+    patch(
+      \ResourceTypesFetchNetworkOperation.execute,
+       with: always([])
+    )
+   
+    patch(
+      \ResourceTypesStoreDatabaseOperation.execute,
+       with: always(Void())
+    )
+
+    let expectation: XCTestExpectation = .init(description: "Should fetch metadata keys.")
+    patch(
+      \MetadataKeysService.initialize,
+       with: always({ expectation.fulfill() }())
+    )
+    
+    let feature: SessionData = try self.testedInstance()
+    try await feature.refreshIfNeeded()
+    await fulfillment(of: [expectation], timeout: 1)
+  }
 }
 
 fileprivate func mockResource(withType type: ResourceType) -> ResourceDTO {

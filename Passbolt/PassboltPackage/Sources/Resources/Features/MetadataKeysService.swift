@@ -22,21 +22,33 @@
 //
 
 import Commons
+import struct Foundation.Data
 
-extension TestCase {
-  public func verifyIfTriggersValidationError(
-    _ operation: @autoclosure () throws -> Void,
-    validationRule: StaticString,
-    _ file: StaticString = #filePath,
-    _ line: UInt = #line
+public struct MetadataKeysService {
+  public var initialize: @Sendable () async throws -> Void
+  public var decrypt: @Sendable (String, MetadataKeyDTO.ID) async throws -> Data?
+
+  public init(
+    initialize: @escaping @Sendable () async throws -> Void,
+    decrypt: @escaping @Sendable (String, MetadataKeyDTO.ID) async throws -> Data?
   ) {
-    XCTAssertThrowsError(try operation()) { error in
-      guard let error = error as? InvalidValue
-      else {
-        XCTFail("Unexpected error: \(error)");
-        return
-      }
-      XCTAssertEqual(error.validationRule, validationRule, "Unexpected validation rule triggered", file: file, line: line)
-    }
+    self.initialize = initialize
+    self.decrypt = decrypt
   }
+  
+  public func decrypt(message: String, withKeyId: MetadataKeyDTO.ID) async throws -> Data? {
+    try await decrypt(message, withKeyId)
+  }
+}
+
+extension MetadataKeysService: LoadableFeature {
+
+  #if DEBUG
+  public nonisolated static var placeholder: Self {
+    .init(
+      initialize: unimplemented0(),
+      decrypt: unimplemented2()
+    )
+  }
+  #endif
 }

@@ -42,7 +42,7 @@ public struct ResourceMetadataDTO: Sendable {
   ///  > Throws:
   ///  > - `InternalInconsistency` if the resource name is missing.
   ///  > - `DecodingError` if the JSON data cannot be decoded.
-  init(resourceId: Resource.ID, data: Data) throws {
+  public init(resourceId: Resource.ID, data: Data) throws {
     self.resourceId = resourceId
     self.data = data
     let json = try JSONDecoder.default.decode(JSON.self, from: data)

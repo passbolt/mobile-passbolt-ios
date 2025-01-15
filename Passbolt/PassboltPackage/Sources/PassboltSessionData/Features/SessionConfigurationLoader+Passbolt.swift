@@ -70,27 +70,31 @@ extension SessionConfigurationLoader {
 
       Diagnostics.logger.info("...server configuration fetched!")
 
-      var resources: ResourcesFeatureConfiguration = .init(
+      let resources: ResourcesFeatureConfiguration = .init(
         passwordRevealEnabled: serverConfiguration.plugins.passwordPreview?.enabled ?? true,
         passwordCopyEnabled: true,
         totpEnabled: serverConfiguration.plugins.totpResources?.enabled ?? false
       )
 
-      var folders: FoldersFeatureConfiguration = .init(
+      let folders: FoldersFeatureConfiguration = .init(
         enabled: serverConfiguration.plugins.folders?.enabled ?? false
       )
 
-      var tags: TagsFeatureConfiguration = .init(
+      let tags: TagsFeatureConfiguration = .init(
         enabled: serverConfiguration.plugins.tags?.enabled ?? false
       )
 
-      var share: ShareFeatureConfiguration = .init(
+      let share: ShareFeatureConfiguration = .init(
         showMembersList: true
       )
 
-      var passwordPolicies: PasswordPoliciesFeatureConfiguration = .init(
+      let passwordPolicies: PasswordPoliciesFeatureConfiguration = .init(
         passwordPoliciesEnabled: serverConfiguration.plugins.passwordPolicies?.enabled ?? false,
         passwordPoliciesUpdateEnabled: serverConfiguration.plugins.passwordPoliciesUpdate?.enabled ?? false
+      )
+      
+      let metadata: MetadataFeatureConfiguration = .init(
+        enabled: serverConfiguration.plugins.metadata?.enabled ?? false
       )
 
       var configuration: SessionConfiguration = .init(
@@ -100,7 +104,8 @@ extension SessionConfigurationLoader {
         folders: folders,
         tags: tags,
         share: share,
-        passwordPolicies: passwordPolicies
+        passwordPolicies: passwordPolicies,
+        metadata: metadata
       )
 
       if serverConfiguration.plugins.rbacs?.enabled ?? false {
