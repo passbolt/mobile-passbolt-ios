@@ -179,19 +179,14 @@ public struct ResourceType {
   ) {
     let specification: ResourceSpecification
     switch slug {
-    case .password:
+    case .password, .v5Password:
       specification = .password
-
-    case .passwordWithDescription:
+    case .passwordWithDescription, .v5Default:
       specification = .passwordWithDescription
-
-    case .totp:
+    case .totp, .v5StandaloneTOTP:
       specification = .totp
-
-    case .passwordWithTOTP:
+    case .passwordWithTOTP, .v5DefaultWithTOTP:
       specification = .passwordWithTOTP
-    case .v5DefaultWithTOTP, .v5Password, .v5StandaloneTOTP:
-      specification = .v5Placeholder(forSlug: slug)
     case _:
       specification = .placeholder
     }

@@ -21,26 +21,10 @@
 // @since         v1.0
 //
 
-@_exported import Resources
+import Features
 
-extension FeaturesRegistry {
+public typealias MetadataTypesSettingsFetchNetworkOperation = NetworkOperation<MetadataTypesSettingsFetchNetworkOperationDescription>
 
-  public mutating func usePassboltResourcesModule() {
-    self.usePassboltResourceController()
-    self.usePassboltResourceShareForm()
-    self.usePassboltResourceEditPreparation()
-    self.usePassboltResourceEditForm()
-    self.usePassboltResourceFolders()
-    self.usePassboltResources()
-    self.usePassboltResourceTags()
-    self.usePassboltResourceFolderDetails()
-    self.usePassboltResourceFolderEditForm()
-    self.usePassboltResourcesOTPController()
-    self.usePassboltHOTPCodeGenerator()
-    self.usePassboltTOTPCodeGenerator()
-    self.usePassboltResourceSearchController()
-    self.usePassboltResourceFolderEditPreparation()
-    self.usePassboltMetadataKeysService()
-    self.usePassboltMetadataSettingsService()
-  }
+public enum MetadataTypesSettingsFetchNetworkOperationDescription: NetworkOperationDescription {
+  public typealias Output = MetadataTypesSettings
 }

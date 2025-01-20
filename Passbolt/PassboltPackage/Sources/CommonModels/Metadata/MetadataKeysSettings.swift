@@ -21,26 +21,31 @@
 // @since         v1.0
 //
 
-@_exported import Resources
-
-extension FeaturesRegistry {
-
-  public mutating func usePassboltResourcesModule() {
-    self.usePassboltResourceController()
-    self.usePassboltResourceShareForm()
-    self.usePassboltResourceEditPreparation()
-    self.usePassboltResourceEditForm()
-    self.usePassboltResourceFolders()
-    self.usePassboltResources()
-    self.usePassboltResourceTags()
-    self.usePassboltResourceFolderDetails()
-    self.usePassboltResourceFolderEditForm()
-    self.usePassboltResourcesOTPController()
-    self.usePassboltHOTPCodeGenerator()
-    self.usePassboltTOTPCodeGenerator()
-    self.usePassboltResourceSearchController()
-    self.usePassboltResourceFolderEditPreparation()
-    self.usePassboltMetadataKeysService()
-    self.usePassboltMetadataSettingsService()
+public struct MetadataKeysSettings: Decodable, Sendable, Equatable {
+  public let allowUsageOfPersonalKeys: Bool
+  public let zeroKnowledgeKeyShare: Bool
+  
+  public init(allowUsageOfPersonalKeys: Bool, zeroKnowledgeKeyShare: Bool) {
+    self.allowUsageOfPersonalKeys = allowUsageOfPersonalKeys
+    self.zeroKnowledgeKeyShare = zeroKnowledgeKeyShare
+  }
+  
+  public init(from decoder: any Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    self.allowUsageOfPersonalKeys = try container.decode(Bool.self, forKey: CodingKeys.allowUsageOfPersonalKeys)
+    self.zeroKnowledgeKeyShare = try container.decode(Bool.self, forKey: CodingKeys.zeroKnowledgeKeyShare)
+  }
+  
+  private enum CodingKeys: String, CodingKey {
+    case allowUsageOfPersonalKeys = "allow_usage_of_personal_keys"
+    case zeroKnowledgeKeyShare = "zero_knowledge_key_share"
   }
 }
+
+extension MetadataKeysSettings {
+  public static let `default`: Self = .init(
+    allowUsageOfPersonalKeys: true,
+    zeroKnowledgeKeyShare: false
+  )
+}
+  

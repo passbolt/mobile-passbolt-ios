@@ -57,6 +57,7 @@ extension ResourceSpecification.Slug {
   public static let passwordWithDescription: Self = "password-and-description"
   public static let totp: Self = "totp"
   public static let passwordWithTOTP: Self = "password-description-totp"
+  public static let v5Default: Self = "v5-default"
   public static let v5DefaultWithTOTP: Self = "v5-default-with-totp"
   public static let v5StandaloneTOTP: Self = "v5-totp-standalone"
   public static let v5Password: Self = "v5-password-string"
@@ -71,7 +72,7 @@ extension ResourceSpecification.Slug {
   }
   
   public static var v5Types: [Self] {
-    [.v5StandaloneTOTP, .v5DefaultWithTOTP, .v5Password]
+    [.v5StandaloneTOTP, .v5DefaultWithTOTP, .v5Password, .v5Default]
   }
 }
 
@@ -298,29 +299,8 @@ extension ResourceSpecification {
   public static func v5Placeholder(forSlug slug: ResourceSpecification.Slug) -> Self {
     .init(
       slug: slug,
-      metaFields: [
-        .init(
-          // name is required for all resources
-          path: \.meta.name,
-          name: "name",
-          // it won't be edited, using no validation to avoid issues
-          content: .string(),
-          required: true,
-          encrypted: false
-        )
-      ],
-      secretFields: [
-        .init(
-          // using handling similar to legacy resource type
-          // treat the whole secret as a string instead of decoding internals
-          path: \.secret,
-          name: "secret",
-          // it won't be edited, using no validation to avoid issues
-          content: .string(),
-          required: true,
-          encrypted: true
-        )
-      ]
+      metaFields: [],
+      secretFields: []
     )
   }
 

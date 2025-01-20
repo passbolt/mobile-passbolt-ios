@@ -21,26 +21,38 @@
 // @since         v1.0
 //
 
-@_exported import Resources
+import NetworkOperations
+
+extension MetadataKeysSettingsFetchNetworkOperation {
+  @Sendable fileprivate static func requestPreparation(_ input: Input) -> Mutation<HTTPRequest> {
+    .combined(
+      .pathSuffix("/metadata/keys/settings.json"),
+      .method(.get)
+    )
+  }
+  
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    try NetworkResponseDecoder<Input, CommonNetworkResponse<Output>>
+      .bodyAsJSON()
+      .decode(
+        input,
+        response
+      )
+      .body
+  }
+}
 
 extension FeaturesRegistry {
-
-  public mutating func usePassboltResourcesModule() {
-    self.usePassboltResourceController()
-    self.usePassboltResourceShareForm()
-    self.usePassboltResourceEditPreparation()
-    self.usePassboltResourceEditForm()
-    self.usePassboltResourceFolders()
-    self.usePassboltResources()
-    self.usePassboltResourceTags()
-    self.usePassboltResourceFolderDetails()
-    self.usePassboltResourceFolderEditForm()
-    self.usePassboltResourcesOTPController()
-    self.usePassboltHOTPCodeGenerator()
-    self.usePassboltTOTPCodeGenerator()
-    self.usePassboltResourceSearchController()
-    self.usePassboltResourceFolderEditPreparation()
-    self.usePassboltMetadataKeysService()
-    self.usePassboltMetadataSettingsService()
+  internal mutating func usePassboltMetadataKeysSettingsFetchNetworkOperation() {
+    self.use(
+      .networkOperationWithSession(
+        of: MetadataKeysSettingsFetchNetworkOperation.self,
+        requestPreparation: MetadataKeysSettingsFetchNetworkOperation.requestPreparation(_:),
+        responseDecoding: MetadataKeysSettingsFetchNetworkOperation.responseDecoder(_:_:)
+      )
+    )
   }
 }

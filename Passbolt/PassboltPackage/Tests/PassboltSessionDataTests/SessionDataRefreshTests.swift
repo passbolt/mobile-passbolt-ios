@@ -68,6 +68,14 @@ final class SessionDataRefreshTests: FeaturesTestCase {
       \OSTime.timestamp,
        with: always(0)
     )
+    patch(
+      \MetadataSettingsService.fetchKeysSettings,
+       with: always(())
+    )
+    patch(
+      \MetadataSettingsService.fetchTypesSettings,
+       with: always(())
+    )
   }
   
   func test_sessionDataRefersh_handlesKnownResourceTypes() async throws {

@@ -59,5 +59,7 @@ extension FeaturesRegistry {
     self.usePassboltDUOAuthorizationCallbackNetworkOperation()
     self.usePassboltFeatureAccessControlConfigurationFetchNetworkOperation()
     self.usePassboltMetadataKeysFetchNetworkOperation()
+    self.usePassboltMetadataKeysSettingsFetchNetworkOperation()
+    self.usePassboltMetadataTypesSettingsFetchNetworkOperation()
   }
 }

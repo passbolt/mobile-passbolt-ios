@@ -51,6 +51,7 @@ extension SessionData {
     let resourceFoldersFetchNetworkOperation: ResourceFoldersFetchNetworkOperation = try features.instance()
     let passwordPoliciesFetchNetworkOperation: PasswordPoliciesFetchNetworkOperation = try features.instance()
     let metadataKeysService: MetadataKeysService = try features.instance()
+    let metadataSettings: MetadataSettingsService = try features.instance()
 
     // when diffing endpoint becomes available
     // we could store last update time and reuse it to avoid
@@ -216,10 +217,10 @@ extension SessionData {
             // when diffing endpoint becomes available
             // there should be some additional logic
             // to selectively update database data
-
             try await refreshUsers()
             try await refreshUserGroups()
             if configuration.metadata.enabled {
+              try await metadataSettings.fetchSettings()
               try await metadataKeysService.initialize()
             }
             try await refreshFolders()
