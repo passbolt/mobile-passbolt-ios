@@ -138,12 +138,23 @@ extension SessionData {
         }
         let resourcesWithMetadata = await resourcesWithSupportedTypes.asyncCompactMap { resource in
           do {
-            if let armored = resource.metadataArmoredMessage, let keyId = resource.metadataKeyId {
+            if let armored = resource.metadataArmoredMessage, 
+               let keyId = resource.metadataKeyId,
+               let keyType = resource.metadataKeyType
+            {
               guard configuration.metadata.enabled else { return ResourceDTO?.none }
               var resource = resource
-              if let decryptedMetadata = try await metadataKeysService.decrypt(message: armored, withKeyId: keyId) {
-                let metadata = try ResourceMetadataDTO(resourceId: resource.id, data: decryptedMetadata)
-                resource.metadata = metadata
+              switch keyType {
+              case .shared:
+                if let decryptedMetadata = try await metadataKeysService.decrypt(message: armored, withSharedKeyId: keyId) {
+                  let metadata = try ResourceMetadataDTO(resourceId: resource.id, data: decryptedMetadata)
+                  resource.metadata = metadata
+                }
+              case .user:
+                if let decryptedMetadata = try await metadataKeysService.decryptWithUserKey(armored) {
+                  let metadata = try ResourceMetadataDTO(resourceId: resource.id, data: decryptedMetadata)
+                  resource.metadata = metadata
+                }
               }
               return resource
             } else {

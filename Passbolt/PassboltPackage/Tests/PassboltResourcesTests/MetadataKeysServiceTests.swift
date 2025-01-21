@@ -64,7 +64,7 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     
     let testedInstance = try self.testedInstance()
     try await testedInstance.initialize()
-    let decrypted = try await testedInstance.decrypt(message: "TestMessage", withKeyId: metadataKey.id)
+    let decrypted = try await testedInstance.decrypt(message: "TestMessage", withSharedKeyId: metadataKey.id)
     XCTAssertNotNil(decrypted)
   }
   
@@ -77,8 +77,14 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     
     let testedInstance = try self.testedInstance()
     try await testedInstance.initialize()
-    let decrypted = try await testedInstance.decrypt(message: "TestMessage", withKeyId: metadataKey.id)
+    let decrypted = try await testedInstance.decrypt(message: "TestMessage", withSharedKeyId: metadataKey.id)
     XCTAssertNil(decrypted)
+  }
+  
+  func testMessageEncryptedWithUserKey_shouldBeDecrypted() async throws {
+    let testedInstance = try self.testedInstance()
+    let decrypted = try await testedInstance.decryptWithUserKey("TestMessage")
+    XCTAssertNotNil(decrypted)
   }
   
   func testTooLongPublicKey_shouldThrowError() throws {

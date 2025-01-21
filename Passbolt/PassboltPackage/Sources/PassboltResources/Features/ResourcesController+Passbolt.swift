@@ -58,11 +58,11 @@ extension ResourcesController {
           text: filter.text,
           favoriteOnly: filter.favoriteOnly,
           includedTypeSlugs: filter.otpOnly
-            ? [.totp, .passwordWithTOTP]
+            ? [.totp, .passwordWithTOTP, .v5StandaloneTOTP, .v5DefaultWithTOTP]
             : [],
           excludedTypeSlugs: filter.otpOnly
             ? []
-            : [.totp],
+            : [.totp, .v5StandaloneTOTP],
           permissions: Set(filter.permissions),
           tags: filter.tags,
           userGroups: filter.userGroups,

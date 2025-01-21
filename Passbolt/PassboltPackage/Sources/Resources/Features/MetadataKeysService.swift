@@ -26,18 +26,21 @@ import struct Foundation.Data
 
 public struct MetadataKeysService {
   public var initialize: @Sendable () async throws -> Void
-  public var decrypt: @Sendable (String, MetadataKeyDTO.ID) async throws -> Data?
+  public var decryptWithSharedKey: @Sendable (String, MetadataKeyDTO.ID) async throws -> Data?
+  public var decryptWithUserKey: @Sendable (String) async throws -> Data?
 
   public init(
     initialize: @escaping @Sendable () async throws -> Void,
-    decrypt: @escaping @Sendable (String, MetadataKeyDTO.ID) async throws -> Data?
+    decryptWithSharedKey: @escaping @Sendable (String, MetadataKeyDTO.ID) async throws -> Data?,
+    decryptWithUserKey: @escaping @Sendable (String) async throws -> Data?
   ) {
     self.initialize = initialize
-    self.decrypt = decrypt
+    self.decryptWithSharedKey = decryptWithSharedKey
+    self.decryptWithUserKey = decryptWithUserKey
   }
   
-  public func decrypt(message: String, withKeyId: MetadataKeyDTO.ID) async throws -> Data? {
-    try await decrypt(message, withKeyId)
+  public func decrypt(message: String, withSharedKeyId sharedKeyId: MetadataKeyDTO.ID) async throws -> Data? {
+    try await decryptWithSharedKey(message, sharedKeyId)
   }
 }
 
@@ -47,7 +50,8 @@ extension MetadataKeysService: LoadableFeature {
   public nonisolated static var placeholder: Self {
     .init(
       initialize: unimplemented0(),
-      decrypt: unimplemented2()
+      decryptWithSharedKey: unimplemented2(),
+      decryptWithUserKey: unimplemented1()
     )
   }
   #endif

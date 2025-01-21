@@ -75,7 +75,7 @@ internal final class OTPResourcesListViewController: ViewController {
     self.resourceSearchController = try features.instance()
     self.resourceSearchController.updateFilter { filter in
       // set initial filter
-      filter.includedTypes = [.totp, .passwordWithTOTP]
+      filter.includedTypes = [.totp, .passwordWithTOTP, .v5StandaloneTOTP, .v5DefaultWithTOTP]
     }
     self.resourcesOTPController = try features.instance()
     self.resourceEditPreparation = try features.instance()

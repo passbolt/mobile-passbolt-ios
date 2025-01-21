@@ -55,7 +55,7 @@ extension ResourceTypeDTO: Decodable {
     case .passwordWithTOTP:
       specification = .passwordWithTOTP
 
-    case .v5DefaultWithTOTP, .v5Password, .v5StandaloneTOTP:
+    case .v5DefaultWithTOTP, .v5Password, .v5StandaloneTOTP, .v5Default:
       specification = .v5Placeholder(forSlug: slug)
     case _:
       specification = .placeholder

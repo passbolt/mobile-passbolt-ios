@@ -26,6 +26,7 @@ import NetworkOperations
 import Resources
 import FeatureScopes
 import Crypto
+import Session
 import class Foundation.JSONDecoder
 import struct Foundation.Data
 
@@ -33,11 +34,15 @@ extension MetadataKeysService {
   @MainActor static func load(
     features: Features
   ) throws -> Self {
+    let context: SessionScope.Context = try features.context(of: SessionScope.self)
+    let accountsDataStore: AccountsDataStore = try features.instance()
+    let sessionCryptography: SessionCryptography = try features.instance()
     let fetchOperation: MetadataKeysFetchNetworkOperation = try features.instance()
     let decryptor: SessionCryptography = try features.instance()
     let jsonDecoder: JSONDecoder = .default
     let pgp: PGP = features.instance()
     let refreshTask: CriticalState<Task<Void, Error>?> = .init(.none)
+    
     
     let cachedKeys: CriticalState<[CachedKeys.ID: CachedKeys]> = .init([:])
     
@@ -97,7 +102,7 @@ extension MetadataKeysService {
       return cachedKeys
     }
     
-    @Sendable nonisolated func decrypt(message: String, keyId: MetadataKeyDTO.ID) async throws -> Data? {
+    @Sendable nonisolated func decryptWithSharedKey(message: String, keyId: MetadataKeyDTO.ID) async throws -> Data? {
       guard let keys = cachedKeys.get()[keyId] else { return nil }
       if let privateKey = keys.privateKeys.first {
         let result = try pgp.decrypt(message, "", privateKey).get()
@@ -107,10 +112,15 @@ extension MetadataKeysService {
         return result.data(using: .utf8)
       }
     }
+    
+    @Sendable nonisolated func decryptWithUserKey(message: String) async throws -> Data? {
+      try await sessionCryptography.decryptMessage(.init(rawValue: message), nil).data(using: .utf8)
+    }
 
     return .init(
       initialize: initialize,
-      decrypt: decrypt
+      decryptWithSharedKey: decryptWithSharedKey,
+      decryptWithUserKey: decryptWithUserKey
     )
   }
 }
