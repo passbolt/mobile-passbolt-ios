@@ -138,7 +138,25 @@ public struct ResourceEditView: ControlledView {
               .textInputAutocapitalization(.never)
               .autocorrectionDisabled()
               .padding(bottom: 8)
-
+            case .list(let state):
+              FormTextFieldView(
+                title: fieldModel.name,
+                prompt: fieldModel.placeholder,
+                mandatory: fieldModel.requiredMark,
+                state: self.validatedOptionalBinding(
+                  to: \.validatedString,
+                  in: \.fields[fieldModel.path],
+                  default: state.first ?? .valid(""),
+                  updating: { (newValue: String) in
+                    withAnimation {
+                      self.controller.set(newValue, for: fieldModel.path)
+                    }
+                  }
+                )
+              )
+              .textInputAutocapitalization(.never)
+              .autocorrectionDisabled()
+              .padding(bottom: 8)
             case .plainLong(let state):
               FormLongTextFieldView(
                 title: fieldModel.name,

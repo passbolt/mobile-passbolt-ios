@@ -25,24 +25,25 @@ import Features
 
 // MARK: - Interface
 
-public typealias ResourceEditNetworkOperation =
-  NetworkOperation<ResourceEditNetworkOperationDescription>
+public typealias ResourceEditNetworkOperationV4 =
+  NetworkOperation<ResourceEditNetworkOperationV4Description>
 
-public enum ResourceEditNetworkOperationDescription: NetworkOperationDescription {
+public enum ResourceEditNetworkOperationV4Description: NetworkOperationDescription {
 
-  public typealias Input = ResourceEditNetworkOperationVariable
+  public typealias Input = ResourceEditNetworkOperationV4Variable
   public typealias Output = ResourceEditNetworkOperationResult
 }
 
-public struct ResourceEditNetworkOperationVariable: Encodable {
+public struct ResourceEditNetworkOperationV4Variable: Encodable {
 
   public var resourceID: Resource.ID
   public var resourceTypeID: ResourceType.ID
   public var parentFolderID: ResourceFolder.ID?
+  public var name: String
+  public var username: String?
+  public var url: URLString?
+  public var description: String?
   public var secrets: Array<Secret>
-  public var metadataKeyID: MetadataKeyDTO.ID
-  public var metadataKeyType: MetadataKeyDTO.MetadataKeyType
-  public var metadata: ArmoredPGPMessage
 
   public struct Secret: Encodable {
 
@@ -60,27 +61,46 @@ public struct ResourceEditNetworkOperationVariable: Encodable {
     resourceID: Resource.ID,
     resourceTypeID: ResourceType.ID,
     parentFolderID: ResourceFolder.ID?,
-    metadata: ArmoredPGPMessage,
-    metadataKeyID: MetadataKeyDTO.ID,
-    metadataKeyType: MetadataKeyDTO.MetadataKeyType,
+    name: String,
+    username: String?,
+    url: URLString?,
+    description: String?,
     secrets: Array<(userID: User.ID, data: ArmoredPGPMessage)>
   ) {
     self.resourceID = resourceID
     self.resourceTypeID = resourceTypeID
     self.parentFolderID = parentFolderID
-    self.metadata = metadata
-    self.metadataKeyID = metadataKeyID
-    self.metadataKeyType = metadataKeyType
+    self.name = name
+    self.username = username
+    self.url = url
+    self.description = description
     self.secrets = secrets.map { Secret(userID: $0.userID, data: $0.data) }
   }
 
   public enum CodingKeys: String, CodingKey {
 
+    case name = "name"
     case parentFolderID = "folder_parent_id"
+    case description = "description"
+    case username = "username"
+    case url = "uri"
     case resourceTypeID = "resource_type_id"
-    case metadata
-    case metadataKeyID = "metadata_key_id"
-    case metadataKeyType = "metadata_key_type"
     case secrets = "secrets"
+  }
+}
+
+public struct ResourceEditNetworkOperationResult: Decodable {
+
+  public var resourceID: Resource.ID
+
+  public init(
+    resourceID: Resource.ID
+  ) {
+    self.resourceID = resourceID
+  }
+
+  public enum CodingKeys: String, CodingKey {
+
+    case resourceID = "id"
   }
 }

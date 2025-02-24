@@ -47,4 +47,13 @@ public struct MetadataTypesSettings: Decodable, Sendable, Equatable {
 
 extension MetadataTypesSettings {
   public static let `default`: Self = .init(defaultResourceTypes: .v4)
+  
+  public var defaultResourceTypeSlug: ResourceSpecification.Slug {
+    switch defaultResourceTypes {
+    case .v4:
+      return .passwordWithDescription
+    case .v5:
+      return .v5Default
+    }
+  }
 }

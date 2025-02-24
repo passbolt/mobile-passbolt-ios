@@ -32,6 +32,7 @@ internal final class SQLiteConnectionHandle {
     key: String?,
     options: Int32
   ) throws -> SQLiteConnectionHandle {
+
     var handle: OpaquePointer?
     let openingStatus: Int32 = sqlite3_open_v2(
       path,

@@ -40,6 +40,10 @@ final class ResourceEditPreparationTests: FeaturesTestCase {
         configuration: .mock_default
       )
     )
+    patch(
+      \MetadataSettingsService.typesSettings,
+       with: always(.init(defaultResourceTypes: .v4))
+    )
   }
 
   func test_availableTypes_throws_whenLoadingTypesFails() async throws {
@@ -105,7 +109,7 @@ final class ResourceEditPreparationTests: FeaturesTestCase {
     )
     let tested: ResourceEditPreparation = try self.testedInstance()
     await verifyIf(
-      try await tested.prepareNew(.default, .mock_1, .mock_passbolt),
+      try await tested.prepareNew(.passwordWithDescription, .mock_1, .mock_passbolt),
       isEqual: .init(
         editedResource: .init(
           id: .none,
@@ -118,8 +122,10 @@ final class ResourceEditPreparationTests: FeaturesTestCase {
           modified: .none,
           meta: [
             "name": nil,
-            "uri": .string(URLString.mock_passbolt.rawValue),
+            "uris": .array([.string(URLString.mock_passbolt.rawValue)]),
             "username": nil,
+            "object_type": "PASSBOLT_RESOURCE_METADATA",
+            "resource_type_id": .string(ResourceType.mock_default.id.rawValue.rawValue.uuidString),
           ],
           secret: [
             "password": nil,

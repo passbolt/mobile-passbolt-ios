@@ -26,21 +26,29 @@ import struct Foundation.Data
 
 public struct MetadataKeysService {
   public var initialize: @Sendable () async throws -> Void
-  public var decryptWithSharedKey: @Sendable (String, MetadataKeyDTO.ID) async throws -> Data?
-  public var decryptWithUserKey: @Sendable (String) async throws -> Data?
+  public var decrypt: @Sendable (String, EncryptionType) async throws -> Data?
+  public var encrypt: @Sendable (String, EncryptionType) async throws -> ArmoredPGPMessage?
+  public var encryptForSharing: @Sendable (String) async throws -> (ArmoredPGPMessage, MetadataKeyDTO.ID)?
 
   public init(
     initialize: @escaping @Sendable () async throws -> Void,
-    decryptWithSharedKey: @escaping @Sendable (String, MetadataKeyDTO.ID) async throws -> Data?,
-    decryptWithUserKey: @escaping @Sendable (String) async throws -> Data?
+    decrypt: @escaping @Sendable (String, EncryptionType) async throws -> Data?,
+    encrypt: @escaping @Sendable (String, EncryptionType) async throws -> ArmoredPGPMessage?,
+    encryptForSharing: @escaping @Sendable (String) async throws -> (ArmoredPGPMessage, MetadataKeyDTO.ID)?
   ) {
     self.initialize = initialize
-    self.decryptWithSharedKey = decryptWithSharedKey
-    self.decryptWithUserKey = decryptWithUserKey
+    self.decrypt = decrypt
+    self.encrypt = encrypt
+    self.encryptForSharing = encryptForSharing
   }
   
   public func decrypt(message: String, withSharedKeyId sharedKeyId: MetadataKeyDTO.ID) async throws -> Data? {
-    try await decryptWithSharedKey(message, sharedKeyId)
+    try await decrypt(message, .sharedKey(sharedKeyId))
+  }
+  
+  public enum EncryptionType {
+    case sharedKey(MetadataKeyDTO.ID)
+    case userKey
   }
 }
 
@@ -50,8 +58,9 @@ extension MetadataKeysService: LoadableFeature {
   public nonisolated static var placeholder: Self {
     .init(
       initialize: unimplemented0(),
-      decryptWithSharedKey: unimplemented2(),
-      decryptWithUserKey: unimplemented1()
+      decrypt: unimplemented2(),
+      encrypt: unimplemented2(),
+      encryptForSharing: unimplemented1()
     )
   }
   #endif

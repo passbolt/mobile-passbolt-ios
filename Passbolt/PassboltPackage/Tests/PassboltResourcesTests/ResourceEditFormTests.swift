@@ -270,7 +270,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
 
   func test_sendForm_throws_whenEncryptingEditedMessageFails() async throws {
     patch(
-      \UsersPGPMessages.encryptMessageForResourceUsers,
+      \ResourceUpdatePreparation.prepareSecret,
       with: alwaysThrow(MockIssue.error())
     )
     let tested: ResourceEditForm = try self.testedInstance()
@@ -282,8 +282,8 @@ final class ResourceEditFormTests: FeaturesTestCase {
 
   func test_sendForm_throws_whenEncryptingEditedMessageProducesInvalidResult() async throws {
     patch(
-      \UsersPGPMessages.encryptMessageForResourceUsers,
-      with: always([])
+      \ResourceUpdatePreparation.prepareSecret,
+       with: alwaysThrow(InvalidResourceSecret.error())
     )
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
@@ -298,16 +298,16 @@ final class ResourceEditFormTests: FeaturesTestCase {
 
   func test_sendForm_throws_whenEditNetworkRequestFails() async throws {
     patch(
-      \UsersPGPMessages.encryptMessageForResourceUsers,
-      with: always([.mock_1])
-    )
-    patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
        with: always([.mock_1])
     )
     patch(
-      \ResourceEditNetworkOperation.execute,
+      \ResourceNetworkOperationDispatch.editResource,
       with: alwaysThrow(MockIssue.error())
+    )
+    patch(
+      \ResourceUpdatePreparation.prepareSecret,
+       with: always(.init([.mock_1]))
     )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIf(
@@ -333,8 +333,12 @@ final class ResourceEditFormTests: FeaturesTestCase {
        with: always([.mock_1])
     )
     patch(
-      \ResourceEditNetworkOperation.execute,
+      \ResourceNetworkOperationDispatch.editResource,
       with: always(.init(resourceID: .mock_1))
+    )
+    patch(
+      \ResourceUpdatePreparation.prepareSecret,
+       with: always(.init([.mock_1]))
     )
 
     patch(  // not throws regardless of error in refresh
@@ -366,7 +370,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
        with: always([.mock_1])
     )
     patch(
-      \ResourceCreateNetworkOperation.execute,
+      \ResourceNetworkOperationDispatch.createResource,
       with: alwaysThrow(MockIssue.error())
     )
     let tested: ResourceEditForm = try self.testedInstance()
@@ -396,7 +400,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
        with: always([.mock_1])
     )
     patch(
-      \ResourceCreateNetworkOperation.execute,
+      \ResourceNetworkOperationDispatch.createResource,
       with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
     )
     patch(
@@ -426,7 +430,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
       with: always([.mock_1])
     )
     patch(
-      \ResourceCreateNetworkOperation.execute,
+      \ResourceNetworkOperationDispatch.createResource,
       with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
     )
     patch(
@@ -460,7 +464,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
       with: always([.mock_1])
     )
     patch(
-      \ResourceCreateNetworkOperation.execute,
+      \ResourceNetworkOperationDispatch.createResource,
       with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
     )
     patch(
@@ -500,7 +504,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
       with: always([.mock_1])
     )
     patch(
-      \ResourceCreateNetworkOperation.execute,
+      \ResourceNetworkOperationDispatch.createResource,
       with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
     )
     patch(
@@ -542,7 +546,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
       with: always([.mock_1])
     )
     patch(
-      \ResourceCreateNetworkOperation.execute,
+      \ResourceNetworkOperationDispatch.createResource,
       with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
     )
     patch(
@@ -581,7 +585,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
       with: always([.mock_1])
     )
     patch(
-      \ResourceCreateNetworkOperation.execute,
+      \ResourceNetworkOperationDispatch.createResource,
       with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
     )
     patch(  // not throws regardless of error in refresh
@@ -610,7 +614,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
       with: always([.mock_1])
     )
     patch(
-      \ResourceCreateNetworkOperation.execute,
+      \ResourceNetworkOperationDispatch.createResource,
       with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
     )
     patch(

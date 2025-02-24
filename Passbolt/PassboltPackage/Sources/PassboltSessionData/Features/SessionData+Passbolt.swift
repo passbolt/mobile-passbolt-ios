@@ -144,22 +144,19 @@ extension SessionData {
             {
               guard configuration.metadata.enabled else { return ResourceDTO?.none }
               var resource = resource
-              switch keyType {
-              case .shared:
-                if let decryptedMetadata = try await metadataKeysService.decrypt(message: armored, withSharedKeyId: keyId) {
-                  let metadata = try ResourceMetadataDTO(resourceId: resource.id, data: decryptedMetadata)
-                  resource.metadata = metadata
-                }
-              case .user:
-                if let decryptedMetadata = try await metadataKeysService.decryptWithUserKey(armored) {
-                  let metadata = try ResourceMetadataDTO(resourceId: resource.id, data: decryptedMetadata)
-                  resource.metadata = metadata
-                }
+              let decryptionType: MetadataKeysService.EncryptionType = keyType == .shared ? .sharedKey(keyId) : .userKey
+              if let decryptedMetadata = try await metadataKeysService.decrypt(armored, decryptionType) {
+                let metadata = try ResourceMetadataDTO(resourceId: resource.id, data: decryptedMetadata)
+                try metadata.validate(with: resource)
+                resource.metadata = metadata
               }
+              
               return resource
             } else {
               var resource = resource
-              resource.metadata = try .init(resource: resource)
+              let metadata = try ResourceMetadataDTO(resource: resource)
+              try metadata.validate(with: resource)
+              resource.metadata = metadata
               return resource
             }
           } catch {

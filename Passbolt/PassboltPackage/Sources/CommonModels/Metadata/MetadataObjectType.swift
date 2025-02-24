@@ -21,28 +21,7 @@
 // @since         v1.0
 //
 
-@_exported import Resources
-
-extension FeaturesRegistry {
-
-  public mutating func usePassboltResourcesModule() {
-    self.usePassboltResourceController()
-    self.usePassboltResourceShareForm()
-    self.usePassboltResourceEditPreparation()
-    self.usePassboltResourceEditForm()
-    self.usePassboltResourceFolders()
-    self.usePassboltResources()
-    self.usePassboltResourceTags()
-    self.usePassboltResourceFolderDetails()
-    self.usePassboltResourceFolderEditForm()
-    self.usePassboltResourcesOTPController()
-    self.usePassboltHOTPCodeGenerator()
-    self.usePassboltTOTPCodeGenerator()
-    self.usePassboltResourceSearchController()
-    self.usePassboltResourceFolderEditPreparation()
-    self.usePassboltMetadataKeysService()
-    self.usePassboltMetadataSettingsService()
-    self.usePassboltResourceUpdatePreparation()
-    self.usePassboltResourceSharePreparation()
-  }
+public enum MetadataObjectType: String, Codable, Sendable, Equatable {
+  case resourceMetadata = "PASSBOLT_RESOURCE_METADATA"
+  case privateKeyMetadata = "PASSBOLT_METADATA_PRIVATE_KEY"
 }

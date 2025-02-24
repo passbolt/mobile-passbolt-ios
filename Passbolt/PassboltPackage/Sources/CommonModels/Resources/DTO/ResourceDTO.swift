@@ -39,7 +39,7 @@ public struct ResourceDTO {
   public var metadata: ResourceMetadataDTO?
   public let metadataArmoredMessage: String?
   public let metadataKeyId: MetadataKeyDTO.ID?
-  public let metadataKeyType: MetadataKeyType?
+  public let metadataKeyType: MetadataKeyDTO.MetadataKeyType?
   // V4 metadata fields
   public var name: String?
   public var uri: String?
@@ -77,13 +77,6 @@ public struct ResourceDTO {
     self.metadataArmoredMessage = nil
     self.metadataKeyId = nil
     self.metadataKeyType = nil
-  }
-}
-
-extension ResourceDTO {
-  public enum MetadataKeyType: String, Decodable {
-    case shared = "shared_key"
-    case user = "user_key"
   }
 }
 
@@ -182,7 +175,7 @@ extension ResourceDTO: Decodable {
       )
     self.metadataArmoredMessage = try container.decodeIfPresent(String.self, forKey: .metadataArmoredMessage)
     self.metadataKeyId = try container.decodeIfPresent(MetadataKeyDTO.ID.self, forKey: .metadataKeyId)
-    self.metadataKeyType = try container.decodeIfPresent(MetadataKeyType.self, forKey: .metadataKeyType)
+    self.metadataKeyType = try container.decodeIfPresent(MetadataKeyDTO.MetadataKeyType.self, forKey: .metadataKeyType)
   }
 
   private enum CodingKeys: String, CodingKey {

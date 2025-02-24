@@ -49,8 +49,6 @@ extension ResourceSpecification: Equatable {}
 
 extension ResourceSpecification.Slug {
 
-  public static let `default`: Self = .passwordWithDescription
-
   /// fallback used for undefined/unknown resource types
   public static let placeholder: Self = "placeholder"
   public static let password: Self = "password-string"
@@ -61,246 +59,238 @@ extension ResourceSpecification.Slug {
   public static let v5DefaultWithTOTP: Self = "v5-default-with-totp"
   public static let v5StandaloneTOTP: Self = "v5-totp-standalone"
   public static let v5Password: Self = "v5-password-string"
-  
+
   public var isSupported: Bool {
     Self.v4Types.contains(self)
-    || Self.v5Types.contains(self)
+      || Self.v5Types.contains(self)
   }
-  
+
   public static var v4Types: [Self] {
     [.password, .passwordWithDescription, .totp, .passwordWithTOTP]
   }
-  
+
   public static var v5Types: [Self] {
     [.v5StandaloneTOTP, .v5DefaultWithTOTP, .v5Password, .v5Default]
+  }
+
+  public static var allTOTPTypes: Set<Self> {
+    [.totp, .v5StandaloneTOTP, .passwordWithTOTP, .v5DefaultWithTOTP]
   }
 }
 
 extension ResourceSpecification {
 
-  public static let `default`: Self = .passwordWithDescription
+  public static let `default`: Self = passwordWithDescription(isV5: false)
 
-  public static let password: Self = .init(
-    slug: .password,
-    metaFields: [
-      .init(
-        path: \.meta.name,
-        name: "name",
-        content: .string(
-          minLength: .none,
-          maxLength: 255
-        ),
-        required: true,
-        encrypted: false
-      ),
-      .init(
-        path: \.meta.username,
-        name: "username",
-        content: .string(
-          minLength: .none,
-          maxLength: 255
-        ),
-        required: false,
-        encrypted: false
-      ),
-      .init(
-        path: \.meta.uri,
-        name: "uri",
-        content: .string(
-          minLength: .none,
-          maxLength: 1024
-        ),
-        required: false,
-        encrypted: false
-      ),
-      .init(
-        path: \.meta.description,
-        name: "description",
-        content: .string(
-          minLength: .none,
-          maxLength: 10000
-        ),
-        required: false,
-        encrypted: false
-      ),
-    ],
-    secretFields: [
-      .init(
-        path: \.secret,
-        name: "secret",
-        content: .string(
-          minLength: .none,
-          maxLength: 4096
-        ),
-        required: true,
-        encrypted: true
-      )
-    ]
-  )
-
-  public static let passwordWithDescription: Self = .init(
-    slug: .passwordWithDescription,
-    metaFields: [
-      .init(
-        path: \.meta.name,
-        name: "name",
-        content: .string(
-          minLength: .none,
-          maxLength: 255
-        ),
-        required: true,
-        encrypted: false
-      ),
-      .init(
-        path: \.meta.username,
-        name: "username",
-        content: .string(
-          minLength: .none,
-          maxLength: 255
-        ),
-        required: false,
-        encrypted: false
-      ),
-      .init(
-        path: \.meta.uri,
-        name: "uri",
-        content: .string(
-          minLength: .none,
-          maxLength: 1024
-        ),
-        required: false,
-        encrypted: false
-      ),
-    ],
-    secretFields: [
-      .init(
-        path: \.secret.password,
-        name: "password",
-        content: .string(
-          minLength: .none,
-          maxLength: 4096
-        ),
-        required: true,
-        encrypted: true
-      ),
-      .init(
-        path: \.secret.description,
-        name: "description",
-        content: .string(
-          minLength: .none,
-          maxLength: 10000
-        ),
-        required: false,
-        encrypted: true
-      ),
-    ]
-  )
-
-  public static let totp: Self = .init(
-    slug: .totp,
-    metaFields: [
-      .init(
-        path: \.meta.name,
-        name: "name",
-        content: .string(
-          minLength: .none,
-          maxLength: 255
-        ),
-        required: true,
-        encrypted: false
-      ),
-      .init(
-        path: \.meta.uri,
-        name: "uri",
-        content: .string(
-          minLength: .none,
-          maxLength: 1024
-        ),
-        required: false,
-        encrypted: false
-      ),
-    ],
-    secretFields: [
-      .init(
-        path: \.secret.totp,
-        name: "totp",
-        content: .totp,
-        required: true,
-        encrypted: true
-      )
-    ]
-  )
-
-  public static let passwordWithTOTP: Self = .init(
-    slug: .passwordWithTOTP,
-    metaFields: [
-      .init(
-        path: \.meta.name,
-        name: "name",
-        content: .string(
-          minLength: .none,
-          maxLength: 255
-        ),
-        required: true,
-        encrypted: false
-      ),
-      .init(
-        path: \.meta.username,
-        name: "username",
-        content: .string(
-          minLength: .none,
-          maxLength: 255
-        ),
-        required: false,
-        encrypted: false
-      ),
-      .init(
-        path: \.meta.uri,
-        name: "uri",
-        content: .string(
-          minLength: .none,
-          maxLength: 1024
-        ),
-        required: false,
-        encrypted: false
-      ),
-    ],
-    secretFields: [
-      .init(
-        path: \.secret.password,
-        name: "password",
-        content: .string(
-          minLength: .none,
-          maxLength: 4096
-        ),
-        required: true,
-        encrypted: true
-      ),
-      .init(
-        path: \.secret.totp,
-        name: "totp",
-        content: .totp,
-        required: true,
-        encrypted: true
-      ),
-      .init(
-        path: \.secret.description,
-        name: "description",
-        content: .string(
-          minLength: .none,
-          maxLength: 10000
-        ),
-        required: false,
-        encrypted: true
-      ),
-    ]
-  )
-  
-  public static func v5Placeholder(forSlug slug: ResourceSpecification.Slug) -> Self {
+  public static func password(isV5: Bool) -> Self {
     .init(
-      slug: slug,
-      metaFields: [],
-      secretFields: []
+      slug: isV5 ? .v5Password : .password,
+      metaFields: [
+        .init(
+          path: \.meta.name,
+          name: "name",
+          content: .string(
+            minLength: .none,
+            maxLength: 255
+          ),
+          required: true,
+          encrypted: false
+        ),
+        .init(
+          path: \.meta.username,
+          name: "username",
+          content: .string(
+            minLength: .none,
+            maxLength: 255
+          ),
+          required: false,
+          encrypted: false
+        ),
+        .init(
+          path: \.meta.uris,
+          name: "uri",
+          content: .list,
+          required: false,
+          encrypted: false
+        ),
+        .init(
+          path: \.meta.description,
+          name: "description",
+          content: .string(
+            minLength: .none,
+            maxLength: 10000
+          ),
+          required: false,
+          encrypted: false
+        ),
+      ],
+      secretFields: [
+        .init(
+          path: \.secret,
+          name: "secret",
+          content: .string(
+            minLength: .none,
+            maxLength: 4096
+          ),
+          required: true,
+          encrypted: true
+        )
+      ]
+    )
+  }
+
+  public static func passwordWithDescription(isV5: Bool) -> Self {
+    .init(
+      slug: isV5 ? .v5Default : .passwordWithDescription,
+      metaFields: [
+        .init(
+          path: \.meta.name,
+          name: "name",
+          content: .string(
+            minLength: .none,
+            maxLength: 255
+          ),
+          required: true,
+          encrypted: false
+        ),
+        .init(
+          path: \.meta.username,
+          name: "username",
+          content: .string(
+            minLength: .none,
+            maxLength: 255
+          ),
+          required: false,
+          encrypted: false
+        ),
+        .init(
+          path: \.meta.uris,
+          name: "uri",
+          content: .list,
+          required: false,
+          encrypted: false
+        ),
+      ],
+      secretFields: [
+        .init(
+          path: \.secret.password,
+          name: "password",
+          content: .string(
+            minLength: .none,
+            maxLength: 4096
+          ),
+          required: true,
+          encrypted: true
+        ),
+        .init(
+          path: \.secret.description,
+          name: "description",
+          content: .string(
+            minLength: .none,
+            maxLength: 10000
+          ),
+          required: false,
+          encrypted: true
+        ),
+      ]
+    )
+  }
+
+  public static func totp(isV5: Bool) -> Self {
+    .init(
+      slug: isV5 ? .v5StandaloneTOTP : .totp,
+      metaFields: [
+        .init(
+          path: \.meta.name,
+          name: "name",
+          content: .string(
+            minLength: .none,
+            maxLength: 255
+          ),
+          required: true,
+          encrypted: false
+        ),
+        .init(
+          path: \.meta.uris,
+          name: "uri",
+          content: .list,
+          required: false,
+          encrypted: false
+        ),
+      ],
+      secretFields: [
+        .init(
+          path: \.secret.totp,
+          name: "totp",
+          content: .totp,
+          required: true,
+          encrypted: true
+        )
+      ]
+    )
+  }
+
+  public static func passwordWithTOTP(isV5: Bool) -> Self {
+    .init(
+      slug: isV5 ? .v5DefaultWithTOTP : .passwordWithTOTP,
+      metaFields: [
+        .init(
+          path: \.meta.name,
+          name: "name",
+          content: .string(
+            minLength: .none,
+            maxLength: 255
+          ),
+          required: true,
+          encrypted: false
+        ),
+        .init(
+          path: \.meta.username,
+          name: "username",
+          content: .string(
+            minLength: .none,
+            maxLength: 255
+          ),
+          required: false,
+          encrypted: false
+        ),
+        .init(
+          path: \.meta.uris,
+          name: "uri",
+          content: .list,
+          required: false,
+          encrypted: false
+        ),
+      ],
+      secretFields: [
+        .init(
+          path: \.secret.password,
+          name: "password",
+          content: .string(
+            minLength: .none,
+            maxLength: 4096
+          ),
+          required: true,
+          encrypted: true
+        ),
+        .init(
+          path: \.secret.totp,
+          name: "totp",
+          content: .totp,
+          required: true,
+          encrypted: true
+        ),
+        .init(
+          path: \.secret.description,
+          name: "description",
+          content: .string(
+            minLength: .none,
+            maxLength: 10000
+          ),
+          required: false,
+          encrypted: true
+        ),
+      ]
     )
   }
 

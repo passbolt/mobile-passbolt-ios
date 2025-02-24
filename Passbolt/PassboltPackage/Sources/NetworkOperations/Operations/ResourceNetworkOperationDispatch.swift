@@ -21,28 +21,30 @@
 // @since         v1.0
 //
 
-@_exported import Resources
+import CommonModels
 
-extension FeaturesRegistry {
-
-  public mutating func usePassboltResourcesModule() {
-    self.usePassboltResourceController()
-    self.usePassboltResourceShareForm()
-    self.usePassboltResourceEditPreparation()
-    self.usePassboltResourceEditForm()
-    self.usePassboltResourceFolders()
-    self.usePassboltResources()
-    self.usePassboltResourceTags()
-    self.usePassboltResourceFolderDetails()
-    self.usePassboltResourceFolderEditForm()
-    self.usePassboltResourcesOTPController()
-    self.usePassboltHOTPCodeGenerator()
-    self.usePassboltTOTPCodeGenerator()
-    self.usePassboltResourceSearchController()
-    self.usePassboltResourceFolderEditPreparation()
-    self.usePassboltMetadataKeysService()
-    self.usePassboltMetadataSettingsService()
-    self.usePassboltResourceUpdatePreparation()
-    self.usePassboltResourceSharePreparation()
+public struct ResourceNetworkOperationDispatch {
+  public typealias Secrets = OrderedSet<EncryptedMessage>
+  public var createResource: @Sendable (Resource, Secrets) async throws -> ResourceCreateNetworkOperationResult
+  public var editResource: @Sendable (Resource, Resource.ID, Secrets) async throws -> ResourceEditNetworkOperationResult
+  
+  public init(
+    createResource: @Sendable @escaping (Resource, Secrets) async throws -> ResourceCreateNetworkOperationResult,
+    editResource: @Sendable @escaping (Resource, Resource.ID, Secrets) async throws -> ResourceEditNetworkOperationResult
+  ) {
+    self.createResource = createResource
+    self.editResource = editResource
   }
+}
+
+extension ResourceNetworkOperationDispatch: LoadableFeature {
+
+  #if DEBUG
+  public nonisolated static var placeholder: Self {
+    .init(
+      createResource: unimplemented2(),
+      editResource: unimplemented3()
+    )
+  }
+  #endif
 }

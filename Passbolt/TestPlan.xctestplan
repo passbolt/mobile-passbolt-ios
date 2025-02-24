@@ -131,6 +131,13 @@
         "identifier" : "PassboltSessionDataTests",
         "name" : "PassboltSessionDataTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "PassboltNetworkOperationsTests",
+        "name" : "PassboltNetworkOperationsTests"
+      }
     }
   ],
   "version" : 1

@@ -21,28 +21,45 @@
 // @since         v1.0
 //
 
-@_exported import Resources
+import NetworkOperations
+
+// MARK: Implementation
+
+extension ResourceEditNetworkOperationV4 {
+
+  @Sendable fileprivate static func requestPreparation(
+    _ input: Input
+  ) -> Mutation<HTTPRequest> {
+    .combined(
+      .pathSuffix("/resources/\(input.resourceID).json"),
+      .jsonBody(from: input),
+      .method(.put)
+    )
+  }
+
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    try NetworkResponseDecoder<Input, CommonNetworkResponse<Output>>
+      .bodyAsJSON()
+      .decode(
+        input,
+        response
+      )
+      .body
+  }
+}
 
 extension FeaturesRegistry {
 
-  public mutating func usePassboltResourcesModule() {
-    self.usePassboltResourceController()
-    self.usePassboltResourceShareForm()
-    self.usePassboltResourceEditPreparation()
-    self.usePassboltResourceEditForm()
-    self.usePassboltResourceFolders()
-    self.usePassboltResources()
-    self.usePassboltResourceTags()
-    self.usePassboltResourceFolderDetails()
-    self.usePassboltResourceFolderEditForm()
-    self.usePassboltResourcesOTPController()
-    self.usePassboltHOTPCodeGenerator()
-    self.usePassboltTOTPCodeGenerator()
-    self.usePassboltResourceSearchController()
-    self.usePassboltResourceFolderEditPreparation()
-    self.usePassboltMetadataKeysService()
-    self.usePassboltMetadataSettingsService()
-    self.usePassboltResourceUpdatePreparation()
-    self.usePassboltResourceSharePreparation()
+  internal mutating func usePassboltResourceEditNetworkOperationV4() {
+    self.use(
+      .networkOperationWithSession(
+        of: ResourceEditNetworkOperationV4.self,
+        requestPreparation: ResourceEditNetworkOperationV4.requestPreparation(_:),
+        responseDecoding: ResourceEditNetworkOperationV4.responseDecoder(_:_:)
+      )
+    )
   }
 }

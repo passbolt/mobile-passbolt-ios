@@ -229,7 +229,7 @@ final class ResourceTests: XCTestCase {
     var resource: Resource = .init(
       type: .init(
         id: .init(),
-        specification: .password
+        specification: .password(isV5: false)
       )
     )
     resource.secret = "initial"

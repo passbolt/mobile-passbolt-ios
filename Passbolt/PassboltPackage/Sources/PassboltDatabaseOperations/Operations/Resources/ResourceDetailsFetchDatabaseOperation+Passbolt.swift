@@ -24,6 +24,8 @@
 import DatabaseOperations
 import FeatureScopes
 import Session
+import class Foundation.JSONDecoder
+import struct Foundation.Data
 
 // MARK: - Implementation
 
@@ -45,7 +47,10 @@ extension ResourceDetailsFetchDatabaseOperation {
           resourceMetadata.description AS description,
           resources.expired AS expired,
           resourceTypes.id AS typeID,
-          resourceTypes.slug AS typeSlug
+          resourceTypes.slug AS typeSlug,
+          resourceMetadata.data AS metadata,
+          metadata_key_id,
+          metadata_key_type
         FROM
           resources
         JOIN
@@ -287,18 +292,20 @@ extension ResourceDetailsFetchDatabaseOperation {
       ) { (dataRow: SQLiteRow) throws -> Resource in
         guard
           let id: Resource.ID = dataRow.id,
-          let name: String = dataRow.name,
           let permission: Permission = dataRow.permission,
           let typeID: ResourceType.ID = dataRow.typeID,
-          let typeSlug: ResourceSpecification.Slug = dataRow.typeSlug
+          let typeSlug: ResourceSpecification.Slug = dataRow.typeSlug,
+          let metadata: Data = dataRow.metadata
         else {
           throw
             DatabaseDataInvalid
             .error(for: Resource.self)
             .recording(dataRow, for: "dataRow")
         }
+        
+        let metadataJSON = try JSONDecoder.default.decode(JSON.self, from: metadata)
    
-        var resource: Resource = .init(
+        let resource: Resource = .init(
           id: id,
           path: path,
           favoriteID: dataRow.favoriteID.flatMap(Resource.Favorite.ID.init(rawValue:)),
@@ -312,22 +319,11 @@ extension ResourceDetailsFetchDatabaseOperation {
             usersPermissions + userGroupsPermissions
           ),
           modified: dataRow.modified.flatMap(Timestamp.init(rawValue:)),
-          expired: dataRow.expired.flatMap(Timestamp.init(rawValue:))
+          meta: metadataJSON,
+          expired: dataRow.expired.flatMap(Timestamp.init(rawValue:)),
+          metadataKeyId: dataRow.metadata_key_id,
+          metadataKeyType: dataRow.metadata_key_type
         )
-        // set field values if able, ignore missing fields
-        resource.meta.name = .string(name)
-        if let uri: String = uris.first {
-          // for now, only first URI will be displayed
-          resource.meta.uri = .string(uri)
-        }  // else NOP
-
-        if let username: String = dataRow.username {
-          resource.meta.username = .string(username)
-        }  // else NOP
-
-        if let description: String = dataRow.description {
-          resource.meta.description = .string(description)
-        }  // else NOP
 
         return resource
       }

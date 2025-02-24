@@ -160,8 +160,10 @@ extension TagsExplorerController: ComponentController {
     @MainActor func presentResourceCreationFrom() {
       cancellables.executeOnMainActor {
         let resourceEditPreparation: ResourceEditPreparation = try features.instance()
+        let metadataSettingsService: MetadataSettingsService = try features.instance()
+
         let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
-          .default,
+          metadataSettingsService.typesSettings().defaultResourceTypeSlug,
           .none,
           .none
         )

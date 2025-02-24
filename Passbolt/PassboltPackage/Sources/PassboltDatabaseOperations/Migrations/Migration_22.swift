@@ -21,28 +21,30 @@
 // @since         v1.0
 //
 
-@_exported import Resources
+import Database
+// swift-format-ignore: AlwaysUseLowerCamelCase
+extension SQLiteMigration {
 
-extension FeaturesRegistry {
-
-  public mutating func usePassboltResourcesModule() {
-    self.usePassboltResourceController()
-    self.usePassboltResourceShareForm()
-    self.usePassboltResourceEditPreparation()
-    self.usePassboltResourceEditForm()
-    self.usePassboltResourceFolders()
-    self.usePassboltResources()
-    self.usePassboltResourceTags()
-    self.usePassboltResourceFolderDetails()
-    self.usePassboltResourceFolderEditForm()
-    self.usePassboltResourcesOTPController()
-    self.usePassboltHOTPCodeGenerator()
-    self.usePassboltTOTPCodeGenerator()
-    self.usePassboltResourceSearchController()
-    self.usePassboltResourceFolderEditPreparation()
-    self.usePassboltMetadataKeysService()
-    self.usePassboltMetadataSettingsService()
-    self.usePassboltResourceUpdatePreparation()
-    self.usePassboltResourceSharePreparation()
+  internal static var migration_22: Self {
+    [
+      """
+      ALTER TABLE
+        resources
+      ADD
+        metadata_key_id BLOB;
+      """,
+      """
+      ALTER TABLE
+        resources
+      ADD
+        metadata_key_type TEXT;
+      """,
+      // - version bump - //
+      """
+      PRAGMA user_version = 23; -- persistent, used to track schema version
+      """,
+    ]
   }
 }
+
+

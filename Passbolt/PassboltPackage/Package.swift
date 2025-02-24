@@ -797,5 +797,13 @@ let package = Package(
         "TestExtensions",
       ]
     ),
+    .testTarget(
+      name: "PassboltNetworkOperationsTests",
+      dependencies: [
+        "PassboltResources",
+        "CoreTest",
+        "TestExtensions",
+      ]
+    ),
   ]
 )

@@ -275,6 +275,9 @@ internal struct ResourceEditFieldViewModel {
       Validated<String>,
       values: Array<String>
     )
+    case list(
+      [Validated<String>]
+    )
   }
 
   internal var path: ResourceType.FieldPath
@@ -365,7 +368,18 @@ internal struct ResourceEditFieldViewModel {
         validated,
         values: values
       )
-
+    case .list(let name, _, let placeholder):
+      self.name = name
+      self.encryptedMark = .none  // we are not showing those currently
+      self.placeholder = placeholder
+      let currentValue = resource
+      let validated: Validated<String> =
+        edited
+        ? resource
+          .validated(field.path)
+          .map { ($0.arrayValue ?? []).first?.stringValue ?? "" }
+        : .valid(resource[keyPath: field.path].arrayValue?.first?.stringValue ?? "")
+      self.value = .plainShort(validated)
     case .totp:
       return nil  // we are not allowing editing totp here unfortunately
 
@@ -388,6 +402,8 @@ internal struct ResourceEditFieldViewModel {
 
       case .selection(let value, values: _):
         return value
+      case .list(let values):
+        return values.first ?? .valid("")
       }
     }
     set {
@@ -403,6 +419,8 @@ internal struct ResourceEditFieldViewModel {
 
       case .selection(_, let values):
         self.value = .selection(newValue, values: values)
+      case .list(let values):
+        self.value = .list(values)
       }
     }
   }

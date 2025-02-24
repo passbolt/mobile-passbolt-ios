@@ -59,7 +59,9 @@ extension ResourcesStoreDatabaseOperation {
               favoriteID,
               permission,
               modified,
-              expired
+              expired,
+              metadata_key_id,
+              metadata_key_type
             )
           VALUES
             (
@@ -77,7 +79,9 @@ extension ResourcesStoreDatabaseOperation {
               ?4,
               ?5,
               ?6,
-              ?7
+              ?7,
+              ?8,
+              ?9
             )
           ON CONFLICT
             (
@@ -97,7 +101,9 @@ extension ResourcesStoreDatabaseOperation {
             favoriteID=?4,
             permission=?5,
             modified=?6,
-            expired=?7
+            expired=?7,
+            metadata_key_id=?8,
+            metadata_key_type=?9
           ;
           """,
           arguments: resource.id,
@@ -106,7 +112,9 @@ extension ResourcesStoreDatabaseOperation {
           resource.favoriteID,
           resource.permission.rawValue,
           resource.modified,
-          resource.expired
+          resource.expired,
+          resource.metadataKeyId,
+          resource.metadataKeyType?.rawValue
         )
       )
       if let metadata = resource.metadata {

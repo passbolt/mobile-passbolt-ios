@@ -48,9 +48,8 @@ extension ResourceEditForm {
 
     let sessionData: SessionData = try features.instance()
     let usersPGPMessages: UsersPGPMessages = try features.instance()
-
-    let resourceEditNetworkOperation: ResourceEditNetworkOperation = try features.instance()
-    let resourceCreateNetworkOperation: ResourceCreateNetworkOperation = try features.instance()
+    let resourceNetworkOperationDispatch: ResourceNetworkOperationDispatch = try features.instance()
+    let resourceUpdatePreparation: ResourceUpdatePreparation = try features.instance()
     let resourceShareNetworkOperation: ResourceShareNetworkOperation = try features.instance()
     let resourceFolderPermissionsFetchDatabaseOperation: ResourceFolderPermissionsFetchDatabaseOperation =
       try features.instance()
@@ -97,8 +96,6 @@ extension ResourceEditForm {
           .error(displayable: "resource.form.error.invalid")
       }
 
-      let resourceName: String = resource.name
-
       guard let resourceSecret: String = resource.secret.resourceSecretString
       else {
         throw
@@ -107,29 +104,13 @@ extension ResourceEditForm {
       }
 
       if let resourceID: Resource.ID = resource.id {
-        let encryptedSecrets: OrderedSet<EncryptedMessage> =
-          try await usersPGPMessages
-          .encryptMessageForResourceUsers(resourceID, resourceSecret)
-        let expectedEncryptedSecretsCount = (try await resourceUserIdsFetchDatabaseOperation(resourceID)).count
-        guard encryptedSecrets.count == expectedEncryptedSecretsCount
-        else {
-          throw
-            InvalidResourceSecret
-            .error(message: "Failed to encrypt secret for all required users!")
-        }
-
-        _ = try await resourceEditNetworkOperation(
-          .init(
-            resourceID: resourceID,
-            resourceTypeID: resource.type.id,
-            parentFolderID: resource.parentFolderID,
-            name: resourceName,
-            username: resource.meta.username.stringValue,
-            url: (resource.meta.uri.stringValue).flatMap(URLString.init(rawValue:)),
-            description: resource.meta.description.stringValue,
-            secrets: encryptedSecrets.map { (userID: $0.recipient, data: $0.message) }
+        let encryptedSecrets = try await resourceUpdatePreparation.prepareSecret(resourceID, resourceSecret)
+        _ = try await resourceNetworkOperationDispatch
+          .editResource(
+            resource,
+            resourceID,
+            encryptedSecrets
           )
-        )
       }
       else {
         guard
@@ -144,18 +125,11 @@ extension ResourceEditForm {
             UserSecretMissing
             .error()
         }
-
-        let createdResourceResult = try await resourceCreateNetworkOperation(
-          .init(
-            resourceTypeID: resource.type.id,
-            parentFolderID: resource.parentFolderID,
-            name: resourceName,
-            username: resource.meta.username.stringValue,
-            url: (resource.meta.uri.stringValue).flatMap(URLString.init(rawValue:)),
-            description: resource.meta.description.stringValue,
-            secrets: [ownEncryptedMessage]
+        let createdResourceResult = try await resourceNetworkOperationDispatch
+          .createResource(
+              resource,
+              [ownEncryptedMessage]
           )
-        )
 
         folder: if let folderID: ResourceFolder.ID = resource.parentFolderID {
           let folderPermissions: Array<ResourceFolderPermission> =

@@ -45,6 +45,8 @@ public struct Resource {
   public var meta: JSON
   public var secret: JSON  // null means that secret was not fetched yet as it is requested and filled separately
   public let expired: Timestamp?
+  public let metadataKeyId: MetadataKeyDTO.ID?
+  public let metadataKeyType: MetadataKeyDTO.MetadataKeyType?
 
   public init(
     id: Resource.ID? = .none,
@@ -57,7 +59,9 @@ public struct Resource {
     modified: Timestamp? = .none,
     meta: JSON = .object([:]),
     secret: JSON = .null,  // null is secret not yet fetched
-    expired: Timestamp? = .none
+    expired: Timestamp? = .none,
+    metadataKeyId: MetadataKeyDTO.ID? = .none,
+    metadataKeyType: MetadataKeyDTO.MetadataKeyType? = .none
   ) {
     self.id = id
     self.path = path
@@ -70,6 +74,8 @@ public struct Resource {
     self.meta = meta
     self.secret = secret
     self.expired = expired
+    self.metadataKeyId = metadataKeyId
+    self.metadataKeyType = metadataKeyType
     self.initializeFieldsIfNeeded()
   }
 }
@@ -266,6 +272,9 @@ extension Resource {
         self[keyPath: specification.path] = value
         return specification.validator.validate(value)
       }
+    case .list:
+      self[keyPath: specification.path] = .array([value])
+      return .valid(value)
     }
   }
 
@@ -475,7 +484,8 @@ extension Resource {
         else {
           self[keyPath: field.path] = .null
         }
-
+      case .list:
+        self[keyPath: field.path] = .array([])
       case .undefined:
         break  // can't initialize undefined fields
       }

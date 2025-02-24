@@ -21,28 +21,26 @@
 // @since         v1.0
 //
 
-@_exported import Resources
-
-extension FeaturesRegistry {
-
-  public mutating func usePassboltResourcesModule() {
-    self.usePassboltResourceController()
-    self.usePassboltResourceShareForm()
-    self.usePassboltResourceEditPreparation()
-    self.usePassboltResourceEditForm()
-    self.usePassboltResourceFolders()
-    self.usePassboltResources()
-    self.usePassboltResourceTags()
-    self.usePassboltResourceFolderDetails()
-    self.usePassboltResourceFolderEditForm()
-    self.usePassboltResourcesOTPController()
-    self.usePassboltHOTPCodeGenerator()
-    self.usePassboltTOTPCodeGenerator()
-    self.usePassboltResourceSearchController()
-    self.usePassboltResourceFolderEditPreparation()
-    self.usePassboltMetadataKeysService()
-    self.usePassboltMetadataSettingsService()
-    self.usePassboltResourceUpdatePreparation()
-    self.usePassboltResourceSharePreparation()
+public struct ResourceUpdatePreparation: Sendable {
+  public var prepareSecret: @Sendable (Resource.ID, String) async throws -> OrderedSet<EncryptedMessage>
+  public var fetchSecret: @Sendable (Resource.ID, Bool) async throws -> JSON
+  
+  public init(
+    prepareSecret: @Sendable @escaping (Resource.ID, String) async throws -> OrderedSet<EncryptedMessage>,
+    fetchSecret: @Sendable @escaping (Resource.ID, Bool) async throws -> JSON
+  ) {
+    self.prepareSecret = prepareSecret
+    self.fetchSecret = fetchSecret
   }
+}
+
+extension ResourceUpdatePreparation: LoadableFeature {
+  #if DEBUG
+  public static var placeholder: Self {
+    Self(
+      prepareSecret: unimplemented2(),
+      fetchSecret: unimplemented2()
+    )
+  }
+  #endif
 }

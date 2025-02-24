@@ -52,11 +52,12 @@ extension ResourceEditPreparation {
       }
       var resource: Resource = .init(
         path: folderPath,
-        type: resourceType
+        type: resourceType,
+        meta: ResourceMetadataDTO.initialResourceMetadataJSON(for: resourceType)
       )
 
       if let value: JSON = uri.map({ .string($0.rawValue) }) {
-        resource.meta.uri = value
+        resource.meta.uris = JSON(arrayLiteral: value)
       }  // else skip
 
       return .init(

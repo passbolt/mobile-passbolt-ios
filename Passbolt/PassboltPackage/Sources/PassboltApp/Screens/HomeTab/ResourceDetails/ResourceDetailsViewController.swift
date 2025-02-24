@@ -410,8 +410,21 @@ internal struct ResourceDetailsFieldViewModel {
     )
     self.path = field.path
     switch field.semantics {
+    case .list(let name, let placeholder, _):
+      self.name = name
+      if let values = resource[keyPath: field.path].arrayValue, let value = values.first?.stringValue {
+        // at the moment, we support only one-item list on UI
+        self.value = .placeholder(value)
+        self.mainAction = .copy
+        self.accessoryAction = .copy
+      } else {
+        self.value = .placeholder(placeholder.string())
+        self.mainAction = .none
+        self.accessoryAction = .none
+      }
+      
     case  // unencrypted
-    .text(let name, let placeholder, _) where !field.encrypted,
+      .text(let name, let placeholder, _) where !field.encrypted,
       .longText(let name, let placeholder, _) where !field.encrypted,
       .selection(let name, values: _, let placeholder, _) where !field.encrypted,
       .intValue(let name, let placeholder, _) where !field.encrypted,

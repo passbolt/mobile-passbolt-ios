@@ -397,6 +397,10 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       \ResourceShareNetworkOperation.execute,
       with: alwaysThrow(MockIssue.error())
     )
+    patch(
+      \ResourceSharePreparation.prepareResourceForSharing,
+       with: always(Void())
+    )
 
     let feature: ResourceShareForm = try self.testedInstance()
 

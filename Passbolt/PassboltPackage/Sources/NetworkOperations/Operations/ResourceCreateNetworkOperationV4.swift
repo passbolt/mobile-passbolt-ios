@@ -25,23 +25,24 @@ import Features
 
 // MARK: - Interface
 
-public typealias ResourceCreateNetworkOperation =
-  NetworkOperation<ResourceCreateNetworkOperationDescription>
+public typealias ResourceCreateNetworkOperationV4 =
+  NetworkOperation<ResourceCreateNetworkOperationV4Description>
 
-public enum ResourceCreateNetworkOperationDescription: NetworkOperationDescription {
+public enum ResourceCreateNetworkOperationV4Description: NetworkOperationDescription {
 
-  public typealias Input = ResourceCreateNetworkOperationVariable
+  public typealias Input = ResourceCreateNetworkOperationV4Variable
   public typealias Output = ResourceCreateNetworkOperationResult
 }
 
-public struct ResourceCreateNetworkOperationVariable: Encodable {
+public struct ResourceCreateNetworkOperationV4Variable: Encodable {
 
-  public let resourceTypeID: ResourceType.ID
-  public let parentFolderID: ResourceFolder.ID?
-  public let metadata: ArmoredPGPMessage
-  public let metadataKeyID: MetadataKeyDTO.ID?
-  public let metadataKeyType: MetadataKeyDTO.MetadataKeyType
-  public let secrets: Array<Secret>
+  public var resourceTypeID: ResourceType.ID
+  public var parentFolderID: ResourceFolder.ID?
+  public var name: String
+  public var username: String?
+  public var url: URLString?
+  public var description: String?
+  public var secrets: Array<Secret>
 
   public struct Secret: Encodable {
 
@@ -58,26 +59,68 @@ public struct ResourceCreateNetworkOperationVariable: Encodable {
   public init(
     resourceTypeID: ResourceType.ID,
     parentFolderID: ResourceFolder.ID?,
-    metadata: ArmoredPGPMessage,
-    metadataKeyID: MetadataKeyDTO.ID?,
-    metadataKeyType: MetadataKeyDTO.MetadataKeyType,
+    name: String,
+    username: String?,
+    url: URLString?,
+    description: String?,
     secrets: OrderedSet<EncryptedMessage>
   ) {
     self.resourceTypeID = resourceTypeID
     self.parentFolderID = parentFolderID
-    self.metadata = metadata
-    self.metadataKeyID = metadataKeyID
-    self.metadataKeyType = metadataKeyType
+    self.name = name
+    self.username = username
+    self.url = url
+    self.description = description
     self.secrets = secrets.map { Secret(userID: $0.recipient, data: $0.message) }
   }
 
   public enum CodingKeys: String, CodingKey {
 
+    case name = "name"
     case parentFolderID = "folder_parent_id"
+    case description = "description"
+    case username = "username"
+    case url = "uri"
     case resourceTypeID = "resource_type_id"
-    case metadata
-    case metadataKeyID = "metadata_key_id"
-    case metadataKeyType = "metadata_key_type"
     case secrets = "secrets"
+  }
+}
+
+public struct ResourceCreateNetworkOperationResult: Decodable {
+
+  public var resourceID: Resource.ID
+  public var ownerPermissionID: Permission.ID
+
+  public init(
+    resourceID: Resource.ID,
+    ownerPermissionID: Permission.ID
+  ) {
+    self.resourceID = resourceID
+    self.ownerPermissionID = ownerPermissionID
+  }
+
+  public init(
+    from decoder: Decoder
+  ) throws {
+    let container: KeyedDecodingContainer<ResourceCreateNetworkOperationResult.CodingKeys> =
+      try decoder.container(keyedBy: CodingKeys.self)
+
+    self.resourceID = try container.decode(Resource.ID.self, forKey: .resourceID)
+
+    let permissionContainer: KeyedDecodingContainer<ResourceCreateNetworkOperationResult.PermissionCodingKeys> =
+      try container.nestedContainer(keyedBy: PermissionCodingKeys.self, forKey: .permission)
+
+    self.ownerPermissionID = try permissionContainer.decode(Permission.ID.self, forKey: .permissionID)
+  }
+
+  public enum CodingKeys: String, CodingKey {
+
+    case resourceID = "id"
+    case permission = "permission"
+  }
+
+  public enum PermissionCodingKeys: String, CodingKey {
+
+    case permissionID = "id"
   }
 }

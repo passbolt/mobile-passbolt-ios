@@ -34,8 +34,8 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
   ) {
     registry.usePassboltMetadataKeysService()
   }
-  
-  
+
+
   override func prepare() throws {
     self.set(
       SessionScope.self,
@@ -61,47 +61,65 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
       \MetadataKeysFetchNetworkOperation.execute,
        with: always([metadataKey])
     )
-    
+
     let testedInstance = try self.testedInstance()
     try await testedInstance.initialize()
     let decrypted = try await testedInstance.decrypt(message: "TestMessage", withSharedKeyId: metadataKey.id)
     XCTAssertNotNil(decrypted)
   }
-  
+
   func testGivenInvalidKey_MessageShouldNotBeDecrypted() async throws {
     let metadataKey = MetadataKeyDTO.mock
     patch(
       \MetadataKeysFetchNetworkOperation.execute,
        with: always([])
     )
-    
+
     let testedInstance = try self.testedInstance()
     try await testedInstance.initialize()
     let decrypted = try await testedInstance.decrypt(message: "TestMessage", withSharedKeyId: metadataKey.id)
     XCTAssertNil(decrypted)
   }
-  
+
   func testMessageEncryptedWithUserKey_shouldBeDecrypted() async throws {
     let testedInstance = try self.testedInstance()
-    let decrypted = try await testedInstance.decryptWithUserKey("TestMessage")
+    let decrypted = try await testedInstance.decrypt("TestMessage", .userKey)
     XCTAssertNotNil(decrypted)
   }
-  
+
   func testTooLongPublicKey_shouldThrowError() throws {
     let metadataKey = MetadataKeyDTO.mock(armoredKey: .init(stringLiteral: String(repeating: "a", count: 100001)))
-    verifyIfTriggersValidationError(try metadataKey.validate(withPrivateKeys: []), validationRule: MetadataKeyDTO.ValidationRule.publicKeyTooLong)
+    verifyIfTriggersValidationError(
+      try metadataKey.validate(withPrivateKeys: []),
+      validationRule: MetadataKeyDTO.ValidationRule.publicKeyTooLong
+    )
   }
-  
+
   func testTooLongPrivateKey_shouldThrowError() throws {
     let privateKey = MetadataDecryptedPrivateKey.mock(armoredKey: .init(stringLiteral: String(repeating: "a", count: 100001)))
     let metadataKey = MetadataKeyDTO.mock()
-    verifyIfTriggersValidationError(try metadataKey.validate(withPrivateKeys: [privateKey]), validationRule: MetadataKeyDTO.ValidationRule.privateKeyTooLong)
+    verifyIfTriggersValidationError(
+      try metadataKey.validate(withPrivateKeys: [privateKey]),
+      validationRule: MetadataKeyDTO.ValidationRule.privateKeyTooLong
+    )
   }
-  
+
   func testMismatchingFingerPrint_shouldThrowError() throws {
     let privateKey = MetadataDecryptedPrivateKey.mock(fingerPrint: "different")
     let metadataKey = MetadataKeyDTO.mock()
-    verifyIfTriggersValidationError(try metadataKey.validate(withPrivateKeys: [privateKey]), validationRule: MetadataKeyDTO.ValidationRule.fingerprintsMismatch)
+    verifyIfTriggersValidationError(
+      try metadataKey.validate(withPrivateKeys: [privateKey]),
+      validationRule: MetadataKeyDTO.ValidationRule.fingerprintsMismatch
+    )
+  }
+
+  func testMismatchingObjectType_shouldThrowError() throws {
+    let privateKey = MetadataDecryptedPrivateKey.mock(objectType: .resourceMetadata)
+    let metadataKey = MetadataKeyDTO.mock(fingerPrint: "fingerprint")
+    verifyIfTriggersValidationError(
+      try metadataKey.validate(withPrivateKeys: [privateKey]),
+      validationRule: MetadataKeyDTO.ValidationRule.invalidObjectType
+    )
   }
 }
 
@@ -110,26 +128,28 @@ extension MetadataKeyDTO {
     let id = MetadataKeyDTO.ID()
     let privateKeyData: JSON = [
       "fingerprint": .string("fingerprint"),
-      "armored_key": ""
+      "armored_key": "",
+      "object_type": .string(MetadataObjectType.privateKeyMetadata.rawValue)
     ]
-    
+
     let privateKey: MetadataPrivateKey = .mock(id: id, userId: .init(), encryptedData: privateKeyData)
     return .mock(id: id, fingerPrint: "fingerprint", armoredKey: .mock_ada, privateKeys: [privateKey])
   }
-  
+
   fileprivate static func mock(
     id: MetadataKeyDTO.ID = .init(),
     fingerPrint: String = "",
     armoredKey: ArmoredPGPPublicKey = .mock_ada,
     privateKeys: [MetadataKeyDTO.MetadataPrivateKey]? = nil
   ) -> Self {
-    
+
     return .init(
         id: id,
         fingerprint: fingerPrint,
         created: .now,
         modified: .now,
         deleted: nil,
+        expired: nil,
         armoredKey: armoredKey,
         privateKeys: privateKeys ?? [
           .init(
@@ -146,8 +166,12 @@ extension MetadataKeyDTO {
 }
 
 extension MetadataDecryptedPrivateKey {
-  fileprivate static func mock(fingerPrint: String = "fingerprint", armoredKey: ArmoredPGPPrivateKey = "") -> Self {
-    .init(fingerprint: fingerPrint, armoredKey: armoredKey)
+  fileprivate static func mock(
+    fingerPrint: String = "fingerprint",
+    armoredKey: ArmoredPGPPrivateKey = "",
+    objectType: MetadataObjectType = .privateKeyMetadata
+  ) -> Self {
+    .init(fingerprint: fingerPrint, armoredKey: armoredKey, objectType: objectType)
   }
 }
 
@@ -155,7 +179,7 @@ extension MetadataKeyDTO.MetadataPrivateKey {
   fileprivate static func mock(id: MetadataKeyDTO.ID = .init(), userId: Tagged<PassboltID, Self> = .init(), encryptedData: JSON = .null) -> Self {
     .init(id: id, userId: userId, encryptedData: encryptedData.stringValue!)
   }
-  
+
   fileprivate static func encryptedData(fingerprint: String, armoredKey: String) -> JSON {
     [
       "fingerprint": .string(fingerprint),

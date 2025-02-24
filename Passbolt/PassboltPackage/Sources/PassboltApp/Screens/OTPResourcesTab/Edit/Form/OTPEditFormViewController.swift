@@ -123,15 +123,15 @@ internal final class OTPEditFormViewController: ViewController {
               viewState.nameField =
                 .valid(resource[keyPath: \.meta.name].stringValue ?? "")
             }
-            if localState.editedFields.contains(\.meta.uri) {
+            if localState.editedFields.contains(\.meta.uris) {
               viewState.uriField =
                 resource
-                .validated(\.meta.uri)
-                .map { $0.stringValue ?? "" }
+                .validated(\.meta.uris)
+                .map { $0.arrayValue?.first?.stringValue ?? "" }
             }
             else {
               viewState.uriField =
-                .valid(resource[keyPath: \.meta.uri].stringValue ?? "")
+                .valid(resource[keyPath: \.meta.uris].arrayValue?.first?.stringValue ?? "")
             }
 
             if localState.editedFields.contains(context.totpPath.appending(path: \.secret_key)) {
@@ -170,9 +170,9 @@ extension OTPEditFormViewController {
     _ uri: String
   ) {
     self.resourceEditForm
-      .update(\.meta.uri, to: uri)
+      .update(\.meta.uris, to: uri)
     self.localState.mutate { (state: inout LocalState) in
-      state.editedFields.insert(\.meta.uri)
+      state.editedFields.insert(\.meta.uris)
     }
   }
 

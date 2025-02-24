@@ -48,6 +48,7 @@ extension ResourceShareForm {
     let usersPGPMessages: UsersPGPMessages = try features.instance()
     let userGroups: UserGroups = try features.instance()
     let resourceShareNetworkOperation: ResourceShareNetworkOperation = try features.instance()
+    let resourceSharePreparation: ResourceSharePreparation = try features.instance()
 
     let formState: Variable<FormState> = .init(
       initial: .init(
@@ -361,6 +362,10 @@ extension ResourceShareForm {
       let newSecrets: OrderedSet<EncryptedMessage> = try await encryptSecret(for: newPermissions)
       let updatedPermissions: Array<ResourcePermission> = formState.editedPermissions.filter {
         $0.permissionID != .none
+      }
+      
+      if newPermissions.isEmpty == false {
+        try await resourceSharePreparation.prepareResourceForSharing(resourceID)
       }
 
       try await resourceShareNetworkOperation(

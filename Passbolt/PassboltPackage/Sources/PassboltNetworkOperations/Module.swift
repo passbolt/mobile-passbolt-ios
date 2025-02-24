@@ -36,7 +36,9 @@ extension FeaturesRegistry {
     self.usePassboltSessionRefreshNetworkOperation()
     self.usePassboltServerConfigurationFetchNetworkOperation()
     self.usePassboltResourceCreateNetworkOperation()
+    self.usePassboltResourceCreateNetworkOperationV4()
     self.usePassboltResourceDeleteNetworkOperation()
+    self.usePassboltResourceEditNetworkOperationV4()
     self.usePassboltResourceEditNetworkOperation()
     self.usePassboltResourceFoldersFetchNetworkOperation()
     self.usePassboltResourceSecretFetchNetworkOperation()
@@ -61,5 +63,6 @@ extension FeaturesRegistry {
     self.usePassboltMetadataKeysFetchNetworkOperation()
     self.usePassboltMetadataKeysSettingsFetchNetworkOperation()
     self.usePassboltMetadataTypesSettingsFetchNetworkOperation()
+    self.usePassboltResourceNetworkOperationDispatch()
   }
 }

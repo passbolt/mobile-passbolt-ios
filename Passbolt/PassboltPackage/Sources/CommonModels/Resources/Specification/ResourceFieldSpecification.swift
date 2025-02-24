@@ -46,6 +46,7 @@ public struct ResourceFieldSpecification {
     case stringEnum(
       values: Array<String>
     )
+    case list
     case structure(Array<ResourceFieldSpecification>)
   }
 
@@ -112,6 +113,12 @@ public struct ResourceFieldSpecification {
         return .selection(
           name: name.displayable,
           values: values,
+          viewingPlaceholder: name.displayableViewingPlaceholder,
+          editingPlaceholder: name.displayableEditingPlaceholder
+        )
+      case .list:
+        return .list(
+          name: name.displayable,
           viewingPlaceholder: name.displayableViewingPlaceholder,
           editingPlaceholder: name.displayableEditingPlaceholder
         )
@@ -345,7 +352,9 @@ extension ResourceFieldSpecification {
         try fieldSpecification
           .validate(fieldJSON)
       }
-    }
+    case .list:
+      break
+    }    
   }
 }
 

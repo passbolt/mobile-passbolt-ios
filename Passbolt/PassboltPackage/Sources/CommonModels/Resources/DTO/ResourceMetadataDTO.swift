@@ -33,6 +33,8 @@ public struct ResourceMetadataDTO: Sendable {
   public let username: String?
   public let data: Data
   public let uris: [ResourceURIDTO]
+  public let objectType: MetadataObjectType?
+  public let resourceTypeId: ResourceType.ID?
   
   /// Initialize a new resource metadata DTO from decrypted JSON data.
   /// - Parameters:
@@ -46,6 +48,7 @@ public struct ResourceMetadataDTO: Sendable {
     self.resourceId = resourceId
     self.data = data
     let json = try JSONDecoder.default.decode(JSON.self, from: data)
+    // todo: add resource_type_id validation?
     guard let name = json[keyPath: \.name].stringValue
     else {
       throw EntityValidationError.error(
@@ -59,6 +62,8 @@ public struct ResourceMetadataDTO: Sendable {
     self.username = json[keyPath: \.username].stringValue
     self.name = name
     self.uris = json[keyPath: \.uris].arrayValue?.compactMap { ResourceURIDTO(resourceId: resourceId, json: $0) } ?? []
+    self.objectType = json[keyPath: \.object_type].stringValue.flatMap { MetadataObjectType(rawValue: $0) }
+    self.resourceTypeId = json[keyPath: \.resource_type_id].stringValue.flatMap { ResourceType.ID(uuidString: $0) }
   }
   
   /// Initialize a new resource metadata DTO from Resource DTO.
@@ -93,7 +98,29 @@ public struct ResourceMetadataDTO: Sendable {
     } else {
       self.uris = []
     }
+    objectType = .resourceMetadata
+    json[keyPath: \.object_type] = .string(MetadataObjectType.resourceMetadata.rawValue)
+    resourceTypeId = resource.typeID
+    json[keyPath: \.resource_type_id] = .string(resource.typeID.rawValue.rawValue.uuidString)
     data = try JSONEncoder.default.encode(json)
+  }
+}
+
+extension ResourceMetadataDTO {  
+  public static func initialResourceMetadataJSON(for resource: Resource) -> JSON {
+    var json: JSON = .object([:])
+    json[keyPath: \.resource_type_id] = .string(resource.type.id.rawValue.rawValue.uuidString)
+    json[keyPath: \.object_type] = .string(MetadataObjectType.resourceMetadata.rawValue)
+    json[keyPath: \.uris] = .array([])
+    return json
+  }
+  
+  public static func initialResourceMetadataJSON(for resourceType: ResourceType) -> JSON {
+    var json: JSON = .object([:])
+    json[keyPath: \.resource_type_id] = .string(resourceType.id.rawValue.rawValue.uuidString)
+    json[keyPath: \.object_type] = .string(MetadataObjectType.resourceMetadata.rawValue)
+    json[keyPath: \.uris] = .array([])
+    return json
   }
 }
 
@@ -102,7 +129,7 @@ extension ResourceMetadataDTO {
   /// > Throws:
   /// > - `EntityValidationError` if the metadata is invalid.
   /// > - `InvalidValue` if the metadata is invalid.
-  func validate() throws {
+  public func validate(with resource: ResourceDTO) throws {
     // validate internal state
     let json = try JSONDecoder.default.decode(JSON.self, from: data)
     guard json[keyPath: \.name].stringValue == name
@@ -164,6 +191,22 @@ extension ResourceMetadataDTO {
         throw InvalidValue.tooLong(validationRule: ValidationRule.descriptionTooLong, value: description, displayable: "Description is too long.")
       }
     }
+
+    if json[keyPath: \.object_type].stringValue.flatMap({ MetadataObjectType(rawValue: $0) }) != .resourceMetadata {
+      throw InvalidValue.invalid(
+        validationRule: ValidationRule.objectTypeMismatch,
+        value: json[keyPath: \.object_type].stringValue,
+        displayable: "Object type is invalid."
+      )
+    }
+    
+    if json[keyPath: \.resource_type_id].stringValue?.lowercased() != resource.typeID.rawValue.rawValue.uuidString.lowercased() {
+      throw InvalidValue.invalid(
+        validationRule: ValidationRule.resourceTypeMismatch,
+        value: json[keyPath: \.resource_type_id].stringValue,
+        displayable: "Resource type is invalid."
+      )
+    }
   }
   
   struct ValidationRule {
@@ -171,5 +214,7 @@ extension ResourceMetadataDTO {
     static let nameEmpty: StaticString = "name-empty"
     static let usernameTooLong: StaticString = "username-too-long"
     static let descriptionTooLong: StaticString = "description-too-long"
+    static let resourceTypeMismatch: StaticString = "resource-type-mismatch"
+    static let objectTypeMismatch: StaticString = "object-type-mismatch"
   }
 }

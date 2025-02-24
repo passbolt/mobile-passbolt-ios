@@ -53,8 +53,10 @@ extension ResourcesListCreateMenuViewController {
 
   internal final func createResource() async throws {
     let resourceEditPreparation: ResourceEditPreparation = try self.features.instance()
+    let metadataSettingsService: MetadataSettingsService = try self.features.instance()
+
     let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
-      .default,
+      metadataSettingsService.typesSettings().defaultResourceTypeSlug,
       self.context,
       .none
     )

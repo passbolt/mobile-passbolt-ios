@@ -145,13 +145,15 @@ extension OTPResourcesListViewController {
   internal func setSearch(text: String) {
     self.resourceSearchController.updateFilter { filter in
       filter.text = text
-      filter.includedTypes = [.totp, .passwordWithTOTP]
+      filter.includedTypes = ResourceSpecification.Slug.allTOTPTypes
     }
   }
 
   internal func createOTP() async {
     await consumingErrors {
-      let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(.totp, .none, .none)
+      let metadataTypeSettings: MetadataSettingsService = try self.features.instance()
+      let totpType: ResourceSpecification.Slug = metadataTypeSettings.typesSettings().defaultResourceTypes == .v5 ? .v5StandaloneTOTP : .totp
+      let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(totpType, .none, .none)
       await self.navigationToOTPEditMenu.performCatching(
         context: .init(
           editingContext: editingContext

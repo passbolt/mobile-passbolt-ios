@@ -96,7 +96,6 @@ where RawValue: ExpressibleByStringLiteral {
 
 extension Tagged: ExpressibleByStringInterpolation
 where RawValue: ExpressibleByStringInterpolation {
-
   public init(
     stringInterpolation value: RawValue.StringInterpolation
   ) {
@@ -336,3 +335,11 @@ where RawValue: Collection {
 
 extension Tagged: Sendable
 where RawValue: Sendable {}
+
+extension Tagged
+where RawValue == String {
+  
+  public static var empty: Self {
+    .init(rawValue: .empty)
+  }
+}

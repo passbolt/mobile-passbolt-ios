@@ -43,20 +43,18 @@ extension ResourceTypeDTO: Decodable {
     // when we introduce new resource types though.
     let specification: ResourceSpecification
     switch slug {
-    case .password:
-      specification = .password
+    case .password, .v5Password:
+      specification = .password(isV5: slug == .v5Password)
 
-    case .passwordWithDescription:
-      specification = .passwordWithDescription
+    case .passwordWithDescription, .v5Default:
+      specification = .passwordWithDescription(isV5: slug == .v5Default)
 
-    case .totp:
-      specification = .totp
+    case .totp, .v5StandaloneTOTP:
+      specification = .totp(isV5: slug == .v5StandaloneTOTP)
 
-    case .passwordWithTOTP:
-      specification = .passwordWithTOTP
+    case .passwordWithTOTP, .v5DefaultWithTOTP:
+      specification = .passwordWithTOTP(isV5: slug == .v5DefaultWithTOTP)
 
-    case .v5DefaultWithTOTP, .v5Password, .v5StandaloneTOTP, .v5Default:
-      specification = .v5Placeholder(forSlug: slug)
     case _:
       specification = .placeholder
     }
@@ -72,7 +70,7 @@ extension ResourceTypeDTO: Decodable {
     case id = "id"
     case slug = "slug"
   }
-  
+
   public var isSupported: Bool {
     specification.slug.isSupported
   }

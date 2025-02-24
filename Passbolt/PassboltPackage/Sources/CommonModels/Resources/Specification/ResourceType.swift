@@ -180,13 +180,13 @@ public struct ResourceType {
     let specification: ResourceSpecification
     switch slug {
     case .password, .v5Password:
-      specification = .password
+      specification = .password(isV5: slug == .v5Password)
     case .passwordWithDescription, .v5Default:
-      specification = .passwordWithDescription
+      specification = .passwordWithDescription(isV5: slug == .v5Default)
     case .totp, .v5StandaloneTOTP:
-      specification = .totp
+      specification = .totp(isV5: slug == .v5StandaloneTOTP)
     case .passwordWithTOTP, .v5DefaultWithTOTP:
-      specification = .passwordWithTOTP
+      specification = .passwordWithTOTP(isV5: slug == .v5DefaultWithTOTP)
     case _:
       specification = .placeholder
     }
@@ -231,8 +231,8 @@ extension ResourceType {
 
 extension ResourceType {
 
-  public var isDefault: Bool {
-    self.specification.slug == .default
+  public var isV4ResourceType: Bool {
+    ResourceSpecification.Slug.v4Types.contains(self.specification.slug)
   }
 
   public var hasUnstructuredSecret: Bool {
@@ -255,6 +255,10 @@ extension ResourceType {
 
     case .totp:
       return .totp
+    case .v5StandaloneTOTP:
+      return .v5StandaloneTOTP
+    case .v5DefaultWithTOTP:
+      return .v5DefaultWithTOTP
 
     case _:
       return .none

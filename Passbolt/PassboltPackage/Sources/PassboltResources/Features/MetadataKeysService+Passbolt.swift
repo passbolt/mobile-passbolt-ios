@@ -29,34 +29,39 @@ import Crypto
 import Session
 import class Foundation.JSONDecoder
 import struct Foundation.Data
+import struct Foundation.Date
+import Users
 
 extension MetadataKeysService {
+
   @MainActor static func load(
     features: Features
   ) throws -> Self {
     let context: SessionScope.Context = try features.context(of: SessionScope.self)
-    let accountsDataStore: AccountsDataStore = try features.instance()
     let sessionCryptography: SessionCryptography = try features.instance()
     let fetchOperation: MetadataKeysFetchNetworkOperation = try features.instance()
+    let userPGP: UsersPGPMessages = try features.instance()
     let decryptor: SessionCryptography = try features.instance()
     let jsonDecoder: JSONDecoder = .default
     let pgp: PGP = features.instance()
     let refreshTask: CriticalState<Task<Void, Error>?> = .init(.none)
-    
-    
+
     let cachedKeys: CriticalState<[CachedKeys.ID: CachedKeys]> = .init([:])
-    
+
     @Sendable func decode(encryptedMessage: String) async throws -> MetadataDecryptedPrivateKey {
-      let armoredMessage = ArmoredPGPMessage(rawValue: encryptedMessage)
-      let decryptedMessage = try await decryptor.decryptMessage(armoredMessage, nil)
-      let data = decryptedMessage.data(using: .utf8) ?? Data()
+      let armoredMessage: ArmoredPGPMessage = .init(rawValue: encryptedMessage)
+      let decryptedMessage: String = try await decryptor.decryptMessage(armoredMessage, nil)
+      let data: Data = decryptedMessage.data(using: .utf8) ?? .init()
       return try jsonDecoder.decode(MetadataDecryptedPrivateKey.self, from: data)
     }
-   
-    @Sendable func createCachedKey(publicKey: MetadataKeyDTO, privateKeys: [MetadataDecryptedPrivateKey]) async throws -> CachedKeys {
+
+    @Sendable func createCachedKey(
+      publicKey: MetadataKeyDTO,
+      privateKeys: [MetadataDecryptedPrivateKey]
+    ) async throws -> CachedKeys {
       try publicKey.validate(withPrivateKeys: privateKeys)
-      let privateKeys = privateKeys.map(\.armoredKey)
-      let keysPair: CachedKeys = .init(id: publicKey.id, publicKey: publicKey.armoredKey, privateKeys: privateKeys)
+      let privateKeys: [ArmoredPGPPrivateKey] = privateKeys.map(\.armoredKey)
+      let keysPair: CachedKeys = .init(metadataKey: publicKey, privateKeys: privateKeys)
       return keysPair
     }
 
@@ -72,7 +77,7 @@ extension MetadataKeysService {
                 task = .none
               }
             }
-            let newCachedKeys = try await fetchKeys()
+            let newCachedKeys: [CachedKeys.ID: CachedKeys] = try await fetchKeys()
             cachedKeys.access { cachedKeys in
               cachedKeys = newCachedKeys
             }
@@ -84,43 +89,71 @@ extension MetadataKeysService {
 
       return try await task.value
     }
-    
+
     @Sendable func fetchKeys() async throws -> [CachedKeys.ID: CachedKeys] {
-      let newKeys = try await fetchOperation()
-      
+      let newKeys: [MetadataKeyDTO] = try await fetchOperation()
+
       var cachedKeys: [CachedKeys.ID: CachedKeys] = [:]
       for key in newKeys {
-        let privateKeys: [MetadataDecryptedPrivateKey] = try await key.privateKeys.map { $0.encryptedData }.asyncMap(decode(encryptedMessage:))
+        let privateKeys: [MetadataDecryptedPrivateKey] = try await key.privateKeys.map { $0.encryptedData }
+          .asyncMap(decode(encryptedMessage:))
         do {
-          let cached = try await createCachedKey(publicKey: key, privateKeys: privateKeys)
+          let cached: CachedKeys = try await createCachedKey(publicKey: key, privateKeys: privateKeys)
           cachedKeys[key.id] = cached
-        } catch {
+        }
+        catch {
           // log error, but don't break the process
           error.logged()
         }
       }
       return cachedKeys
     }
-    
-    @Sendable nonisolated func decryptWithSharedKey(message: String, keyId: MetadataKeyDTO.ID) async throws -> Data? {
-      guard let keys = cachedKeys.get()[keyId] else { return nil }
-      if let privateKey = keys.privateKeys.first {
-        let result = try pgp.decrypt(message, "", privateKey).get()
-        return result.data(using: .utf8)
-      } else {
-        let result = try await decryptor.decryptMessage(ArmoredPGPMessage(rawValue: message), nil)
-        return result.data(using: .utf8)
+
+    @Sendable nonisolated func decrypt(message: String, decryptionKey: EncryptionType) async throws -> Data? {
+      if case .sharedKey(let keyId) = decryptionKey {
+        guard let keys: CachedKeys = cachedKeys.get()[keyId] else { return nil }
+        if let privateKey: ArmoredPGPPrivateKey = keys.privateKeys.first {
+          let result = try pgp.decrypt(message, .empty, privateKey).get()
+          return result.data(using: .utf8)
+        }
+        else {
+          let result: String = try await decryptor.decryptMessage(ArmoredPGPMessage(rawValue: message), nil)
+          return result.data(using: .utf8)
+        }
+      }
+      else {
+        return try await sessionCryptography.decryptMessage(.init(rawValue: message), nil).data(using: .utf8)
       }
     }
-    
-    @Sendable nonisolated func decryptWithUserKey(message: String) async throws -> Data? {
-      try await sessionCryptography.decryptMessage(.init(rawValue: message), nil).data(using: .utf8)
+
+    @Sendable func encrypt(message: String, with encryptionType: EncryptionType) async throws -> ArmoredPGPMessage? {
+      if case .sharedKey(let keyId) = encryptionType {
+        guard let keys: CachedKeys = cachedKeys.get()[keyId] else { return nil }
+        let result: String = try pgp.encrypt(message, keys.publicKey).get()
+        return .init(rawValue: result)
+      }
+      else {
+        let userId: User.ID = context.account.userID
+        return try await userPGP.encryptMessageForUsers([userId], message).first?.message
+      }
+    }
+
+    @Sendable func encryptForSharing(message: String) async throws -> (ArmoredPGPMessage, MetadataKeyDTO.ID)? {
+      guard
+        let sharedKey: CachedKeys = cachedKeys.get().values.first(where: { $0.expired != nil && $0.deleted != nil }),
+        let result: ArmoredPGPMessage = try await encrypt(message: message, with: .sharedKey(sharedKey.id))
+      else {
+        return nil
+      }
+
+      return (result, sharedKey.id)
     }
 
     return .init(
       initialize: initialize,
-      decryptWithSharedKey: decryptWithSharedKey,
-      decryptWithUserKey: decryptWithUserKey
+      decrypt: decrypt,
+      encrypt: encrypt,
+      encryptForSharing: encryptForSharing
     )
   }
 }
@@ -141,30 +174,51 @@ private struct CachedKeys: Identifiable {
   let id: MetadataKeyDTO.ID
   let publicKey: ArmoredPGPPublicKey
   let privateKeys: [ArmoredPGPPrivateKey]
+  let expired: Date?
+  let deleted: Date?
+  
+  init(metadataKey: MetadataKeyDTO, privateKeys: [ArmoredPGPPrivateKey]) {
+    self.id = metadataKey.id
+    self.publicKey = metadataKey.armoredKey
+    self.privateKeys = privateKeys
+    self.expired = metadataKey.expired
+    self.deleted = metadataKey.deleted
+  }
 }
 
 internal struct MetadataDecryptedPrivateKey: Decodable {
   let fingerprint: String
   let armoredKey: ArmoredPGPPrivateKey
-  
+  let objectType: MetadataObjectType
+
   enum CodingKeys: String, CodingKey {
     case fingerprint
     case armoredKey = "armored_key"
+    case objectType = "object_type"
   }
 }
 
 extension MetadataKeyDTO {
+
   func validate(withPrivateKeys privateKeys: [MetadataDecryptedPrivateKey]) throws {
     let maxLength: Int = 10_000
-      
+
     guard armoredKey.count <= maxLength
     else {
-      throw InvalidValue.tooLong(validationRule: ValidationRule.publicKeyTooLong, value: id, displayable: "Public key too long.")
+      throw InvalidValue.tooLong(
+        validationRule: ValidationRule.publicKeyTooLong,
+        value: id,
+        displayable: "Public key too long."
+      )
     }
     for privateKey in privateKeys {
       guard privateKey.armoredKey.count <= maxLength
       else {
-        throw InvalidValue.tooLong(validationRule: ValidationRule.privateKeyTooLong, value: id, displayable: "Private key too long.")
+        throw InvalidValue.tooLong(
+          validationRule: ValidationRule.privateKeyTooLong,
+          value: id,
+          displayable: "Private key too long."
+        )
       }
       guard privateKey.fingerprint == fingerprint
       else {
@@ -172,17 +226,26 @@ extension MetadataKeyDTO {
           validationRule: ValidationRule.fingerprintsMismatch,
           value: [
             "publicKeyFingerprint": fingerprint,
-            "privateKeyFingerprint": privateKey.fingerprint
+            "privateKeyFingerprint": privateKey.fingerprint,
           ],
           displayable: "Public and private key fingerprints mismatch."
         )
       }
+      guard privateKey.objectType == .privateKeyMetadata
+      else {
+        throw InvalidValue.invalid(
+          validationRule: ValidationRule.invalidObjectType,
+          value: privateKey.objectType,
+          displayable: "Invalid object type."
+        )
+      }
     }
   }
-  
+
   struct ValidationRule {
     static let publicKeyTooLong: StaticString = "publicKeyTooLong"
     static let privateKeyTooLong: StaticString = "privateKeyTooLong"
     static let fingerprintsMismatch: StaticString = "fingerprintsMismatch"
+    static let invalidObjectType: StaticString = "invalidObjectType"
   }
 }

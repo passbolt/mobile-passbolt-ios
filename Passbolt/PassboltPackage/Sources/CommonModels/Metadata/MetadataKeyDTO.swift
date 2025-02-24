@@ -29,6 +29,7 @@ public struct MetadataKeyDTO: Identifiable, Decodable {
   public let created: Date
   public let modified: Date
   public let deleted: Date?
+  public let expired: Date?
   public let armoredKey: ArmoredPGPPublicKey
   public let privateKeys: [MetadataPrivateKey]
   
@@ -38,6 +39,7 @@ public struct MetadataKeyDTO: Identifiable, Decodable {
     created: Date,
     modified: Date,
     deleted: Date?,
+    expired: Date?,
     armoredKey: ArmoredPGPPublicKey,
     privateKeys: [MetadataPrivateKey]
   ) {
@@ -46,24 +48,38 @@ public struct MetadataKeyDTO: Identifiable, Decodable {
     self.created = created
     self.modified = modified
     self.deleted = deleted
+    self.expired = expired
     self.armoredKey = armoredKey
     self.privateKeys = privateKeys
   }
 }
 
 extension MetadataKeyDTO {
+
+  public enum MetadataKeyType: String, Codable {
+
+    case shared = "shared_key"
+    case user = "user_key"
+  }
+}
+
+extension MetadataKeyDTO {
+
   enum CodingKeys: String, CodingKey {
+
     case id
     case fingerprint
     case created
     case modified
     case deleted
+    case expired
     case armoredKey = "armored_key"
     case privateKeys = "metadata_private_keys"
   }
 }
 
 extension MetadataKeyDTO {
+
   public struct MetadataPrivateKey: Decodable {
     public let id: MetadataKeyDTO.ID
     public let userId: Tagged<PassboltID, Self>

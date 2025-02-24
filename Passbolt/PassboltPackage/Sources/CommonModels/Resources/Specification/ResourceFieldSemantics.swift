@@ -61,6 +61,11 @@ public enum ResourceFieldSemantics {
     viewingPlaceholder: DisplayableString,
     editingPlaceholder: DisplayableString
   )
+  case list(
+    name: DisplayableString,
+    viewingPlaceholder: DisplayableString,
+    editingPlaceholder: DisplayableString
+  )
 
   case totp(name: DisplayableString)
   case undefined(name: DisplayableString)

@@ -110,8 +110,9 @@ extension ResourcesListNodeController {
 
   internal final func createResource() async throws {
     let resourceEditPreparation: ResourceEditPreparation = try self.features.instance()
+    let metadataSettingsService: MetadataSettingsService = try self.features.instance()
     let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
-      .default,
+      metadataSettingsService.typesSettings().defaultResourceTypeSlug,
       .none,
       self.requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }
     )

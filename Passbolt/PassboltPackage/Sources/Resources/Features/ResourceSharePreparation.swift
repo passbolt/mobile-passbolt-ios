@@ -21,28 +21,20 @@
 // @since         v1.0
 //
 
-@_exported import Resources
-
-extension FeaturesRegistry {
-
-  public mutating func usePassboltResourcesModule() {
-    self.usePassboltResourceController()
-    self.usePassboltResourceShareForm()
-    self.usePassboltResourceEditPreparation()
-    self.usePassboltResourceEditForm()
-    self.usePassboltResourceFolders()
-    self.usePassboltResources()
-    self.usePassboltResourceTags()
-    self.usePassboltResourceFolderDetails()
-    self.usePassboltResourceFolderEditForm()
-    self.usePassboltResourcesOTPController()
-    self.usePassboltHOTPCodeGenerator()
-    self.usePassboltTOTPCodeGenerator()
-    self.usePassboltResourceSearchController()
-    self.usePassboltResourceFolderEditPreparation()
-    self.usePassboltMetadataKeysService()
-    self.usePassboltMetadataSettingsService()
-    self.usePassboltResourceUpdatePreparation()
-    self.usePassboltResourceSharePreparation()
+public struct ResourceSharePreparation {
+  public var prepareResourceForSharing: @Sendable (Resource.ID) async throws -> Void
+  
+  public init(prepareResourceForSharing: @Sendable @escaping (Resource.ID) async throws -> Void) {
+    self.prepareResourceForSharing = prepareResourceForSharing
   }
+}
+
+extension ResourceSharePreparation: LoadableFeature {
+  #if DEBUG
+  public static var placeholder: Self {
+    Self(
+      prepareResourceForSharing: unimplemented1()
+    )
+  }
+  #endif
 }
