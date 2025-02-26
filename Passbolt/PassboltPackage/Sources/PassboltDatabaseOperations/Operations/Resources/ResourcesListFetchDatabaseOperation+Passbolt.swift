@@ -89,7 +89,7 @@ extension ResourcesListFetchDatabaseOperation {
               resourceMetadata
             ON
               resources.id = resourceMetadata.resource_id
-            JOIN
+            LEFT JOIN
               resourceURI
             ON
               resources.id = resourceURI.resource_id
@@ -123,7 +123,7 @@ extension ResourcesListFetchDatabaseOperation {
               resourceMetadata
             ON
               resources.id = resourceMetadata.resource_id
-            JOIN
+            LEFT JOIN
               resourceURI
             ON
               resources.id = resourceURI.resource_id
@@ -156,7 +156,7 @@ extension ResourcesListFetchDatabaseOperation {
             resourceMetadata
           ON
             resources.id = resourceMetadata.resource_id
-          JOIN
+          LEFT JOIN
             resourceURI
           ON
             resources.id = resourceURI.resource_id
@@ -493,8 +493,7 @@ extension ResourcesListFetchDatabaseOperation {
           let permission: Permission = dataRow.permission,
           let typeID: ResourceType.ID = dataRow.typeID,
           let typeSlug: ResourceSpecification.Slug = dataRow.typeSlug,
-          let name: String = dataRow.name,
-          let uris: String = dataRow.uris
+          let name: String = dataRow.name
         else {
           throw
             DatabaseIssue
@@ -521,7 +520,7 @@ extension ResourcesListFetchDatabaseOperation {
           parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:)),
           name: name,
           username: dataRow.username,
-          url: uris.components(separatedBy: uriDelimiter).first,
+          url: dataRow.uris?.components(separatedBy: uriDelimiter).first,
           isExpired: isExpired ?? false
         )
       }
