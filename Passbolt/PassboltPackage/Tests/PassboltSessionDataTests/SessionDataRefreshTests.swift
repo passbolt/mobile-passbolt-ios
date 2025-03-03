@@ -76,6 +76,10 @@ final class SessionDataRefreshTests: FeaturesTestCase {
       \MetadataSettingsService.fetchTypesSettings,
        with: always(())
     )
+    patch(
+      \MetadataSessionKeysFetchNetworkOperation.execute,
+       with: always([])
+    )
   }
   
   func test_sessionDataRefersh_handlesKnownResourceTypes() async throws {
@@ -259,15 +263,20 @@ final class SessionDataRefreshTests: FeaturesTestCase {
        with: always(Void())
     )
 
-    let expectation: XCTestExpectation = .init(description: "Should fetch metadata keys.")
+    let fetchKeysExpectation: XCTestExpectation = .init(description: "Should fetch metadata keys.")
+    let sendSessionKeysExpectation: XCTestExpectation = .init(description: "Should send session keys.")
     patch(
       \MetadataKeysService.initialize,
-       with: always({ expectation.fulfill() }())
+       with: always({ fetchKeysExpectation.fulfill() }())
+    )
+    patch(
+      \MetadataKeysService.sendSessionKeys,
+        with: always({ sendSessionKeysExpectation.fulfill() }())
     )
     
     let feature: SessionData = try self.testedInstance()
     try await feature.refreshIfNeeded()
-    await fulfillment(of: [expectation], timeout: 1)
+    await fulfillment(of: [fetchKeysExpectation, sendSessionKeysExpectation], timeout: 1)
   }
 }
 

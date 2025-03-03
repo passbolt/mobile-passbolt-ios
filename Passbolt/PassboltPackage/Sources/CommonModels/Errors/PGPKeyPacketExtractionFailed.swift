@@ -21,9 +21,27 @@
 // @since         v1.0
 //
 
-public enum MetadataObjectType: String, Codable, Sendable, Equatable {
+import Localization
 
-  case resourceMetadata = "PASSBOLT_RESOURCE_METADATA"
-  case privateKeyMetadata = "PASSBOLT_METADATA_PRIVATE_KEY"
-  case sessionKeys = "PASSBOLT_SESSION_KEYS"
+public struct PGPKeyPacketExtractionFailed: TheError {
+
+  public static func error(
+    _ message: StaticString = "PGPKeyPacketExtractionFailed",
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    Self(
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
+        )
+      ),
+      displayableMessage: .localized(key: "error.crypto.pgp.keypacket.extraction.failed")
+    )
+  }
+
+  public var context: DiagnosticsContext
+  public var displayableMessage: DisplayableString
 }

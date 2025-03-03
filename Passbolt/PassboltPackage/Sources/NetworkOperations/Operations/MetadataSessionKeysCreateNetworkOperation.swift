@@ -21,9 +21,21 @@
 // @since         v1.0
 //
 
-public enum MetadataObjectType: String, Codable, Sendable, Equatable {
+import Features
 
-  case resourceMetadata = "PASSBOLT_RESOURCE_METADATA"
-  case privateKeyMetadata = "PASSBOLT_METADATA_PRIVATE_KEY"
-  case sessionKeys = "PASSBOLT_SESSION_KEYS"
+public typealias MetadataSessionKeysCreateNetworkOperation = NetworkOperation<MetadataSessionKeysCreateNetworkOperationDescription>
+
+public enum MetadataSessionKeysCreateNetworkOperationDescription: NetworkOperationDescription {
+
+  public typealias Input = EncryptedSessionKeys
+  public typealias Output = Void
+}
+
+public struct EncryptedSessionKeys: Encodable {
+
+  public let data: ArmoredPGPMessage
+
+  public init(data: ArmoredPGPMessage) {
+    self.data = data
+  }
 }

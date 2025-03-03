@@ -46,6 +46,11 @@ public struct SessionCryptography {
       _ plainMessage: String,
       _ publicKey: ArmoredPGPPublicKey
     ) async throws -> ArmoredPGPMessage
+  
+  public var decryptSessionKey:
+    @SessionActor (
+      _ message: ArmoredPGPMessage
+    ) async throws -> SessionKey
 
   public init(
     decryptMessage: @escaping @SessionActor (
@@ -55,10 +60,14 @@ public struct SessionCryptography {
     encryptAndSignMessage: @escaping @SessionActor (
       _ plainMessage: String,
       _ publicKey: ArmoredPGPPublicKey
-    ) async throws -> ArmoredPGPMessage
+    ) async throws -> ArmoredPGPMessage,
+    decryptSessionKey: @escaping @SessionActor (
+      _ message: ArmoredPGPMessage
+    ) async throws -> SessionKey
   ) {
     self.decryptMessage = decryptMessage
     self.encryptAndSignMessage = encryptAndSignMessage
+    self.decryptSessionKey = decryptSessionKey
   }
 }
 
@@ -68,7 +77,8 @@ extension SessionCryptography: LoadableFeature {
   public nonisolated static var placeholder: Self {
     Self(
       decryptMessage: unimplemented2(),
-      encryptAndSignMessage: unimplemented2()
+      encryptAndSignMessage: unimplemented2(),
+      decryptSessionKey: unimplemented1()
     )
   }
   #endif

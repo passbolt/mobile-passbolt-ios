@@ -91,10 +91,19 @@ extension SessionCryptography {
         .map(ArmoredPGPMessage.init(rawValue:))
         .get()
     }
+    
+    @SessionActor func decryptSessionKey(_ message: ArmoredPGPMessage) async throws -> SessionKey {
+      let account: Account = try await session.currentAccount()
+      let passphrase: Passphrase = try await sessionStateEnsurance.passphrase(account)
+      let privateKey: ArmoredPGPPrivateKey = try accountsDataStore.loadAccountPrivateKey(account.localID)
+      
+      return try pgp.extractSessionKey(message, privateKey, passphrase).get()
+    }
 
     return Self(
       decryptMessage: decryptMessage(_:_:),
-      encryptAndSignMessage: encryptAndSignMessage(_:_:)
+      encryptAndSignMessage: encryptAndSignMessage(_:_:),
+      decryptSessionKey: decryptSessionKey(_:)
     )
   }
 }

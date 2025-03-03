@@ -28,11 +28,17 @@ import FeatureScopes
 import Crypto
 import Session
 import class Foundation.JSONDecoder
+import class Foundation.JSONEncoder
 import struct Foundation.Data
 import struct Foundation.Date
 import Users
+import struct Foundation.Date
+import Accounts
 
 extension MetadataKeysService {
+
+  private typealias KeysCache = Dictionary<CachedKeys.ID, CachedKeys>
+  private typealias SessionKeysCache = Dictionary<ForeignReference, SessionKeyData>
 
   @MainActor static func load(
     features: Features
@@ -41,26 +47,31 @@ extension MetadataKeysService {
     let sessionCryptography: SessionCryptography = try features.instance()
     let fetchOperation: MetadataKeysFetchNetworkOperation = try features.instance()
     let userPGP: UsersPGPMessages = try features.instance()
-    let decryptor: SessionCryptography = try features.instance()
     let jsonDecoder: JSONDecoder = .default
+    let jsonEncoder: JSONEncoder = .default
     let pgp: PGP = features.instance()
     let refreshTask: CriticalState<Task<Void, Error>?> = .init(.none)
 
-    let cachedKeys: CriticalState<[CachedKeys.ID: CachedKeys]> = .init([:])
+    let sessionKeysFetchNetworkOperation: MetadataSessionKeysFetchNetworkOperation = try features.instance()
+    let sessionKeysCreateNetworkOperation: MetadataSessionKeysCreateNetworkOperation = try features.instance()
+    
+    let cachedKeys: CriticalState<KeysCache> = .init([:])
+    let cachedSessionKeys: CriticalState<SessionKeysCache> = .init([:])
+    let sessionKeysModifiedDate: CriticalState<Date?> = .init(.none)
 
     @Sendable func decode(encryptedMessage: String) async throws -> MetadataDecryptedPrivateKey {
       let armoredMessage: ArmoredPGPMessage = .init(rawValue: encryptedMessage)
-      let decryptedMessage: String = try await decryptor.decryptMessage(armoredMessage, nil)
-      let data: Data = decryptedMessage.data(using: .utf8) ?? .init()
+      let decryptedMessage: String = try await sessionCryptography.decryptMessage(armoredMessage, .none)
+      let data: Data = .init(decryptedMessage.utf8)
       return try jsonDecoder.decode(MetadataDecryptedPrivateKey.self, from: data)
     }
 
     @Sendable func createCachedKey(
       publicKey: MetadataKeyDTO,
-      privateKeys: [MetadataDecryptedPrivateKey]
+      privateKeys: Array<MetadataDecryptedPrivateKey>
     ) async throws -> CachedKeys {
       try publicKey.validate(withPrivateKeys: privateKeys)
-      let privateKeys: [ArmoredPGPPrivateKey] = privateKeys.map(\.armoredKey)
+      let privateKeys: Array<ArmoredPGPPrivateKey> = privateKeys.map(\.armoredKey)
       let keysPair: CachedKeys = .init(metadataKey: publicKey, privateKeys: privateKeys)
       return keysPair
     }
@@ -77,9 +88,16 @@ extension MetadataKeysService {
                 task = .none
               }
             }
-            let newCachedKeys: [CachedKeys.ID: CachedKeys] = try await fetchKeys()
+            let newCachedKeys: KeysCache = try await fetchKeys()
             cachedKeys.access { cachedKeys in
               cachedKeys = newCachedKeys
+            }
+            let (lastModifiedDate, newCachedSessionKeys): (Date?, SessionKeysCache) = try await fetchSessionKeys()
+            cachedSessionKeys.access { cachedSessionKeys in
+              cachedSessionKeys = newCachedSessionKeys
+            }
+            if let lastModifiedDate {
+              sessionKeysModifiedDate.access { $0 = lastModifiedDate }
             }
           }
           task = runningTask
@@ -90,12 +108,13 @@ extension MetadataKeysService {
       return try await task.value
     }
 
-    @Sendable func fetchKeys() async throws -> [CachedKeys.ID: CachedKeys] {
-      let newKeys: [MetadataKeyDTO] = try await fetchOperation()
+    @Sendable func fetchKeys() async throws -> KeysCache {
+      let newKeys: Array<MetadataKeyDTO> = try await fetchOperation()
 
-      var cachedKeys: [CachedKeys.ID: CachedKeys] = [:]
+      var cachedKeys: KeysCache = .init()
       for key in newKeys {
-        let privateKeys: [MetadataDecryptedPrivateKey] = try await key.privateKeys.map { $0.encryptedData }
+        let privateKeys: Array<MetadataDecryptedPrivateKey> = try await key.privateKeys
+          .map { $0.encryptedData }
           .asyncMap(decode(encryptedMessage:))
         do {
           let cached: CachedKeys = try await createCachedKey(publicKey: key, privateKeys: privateKeys)
@@ -109,21 +128,42 @@ extension MetadataKeysService {
       return cachedKeys
     }
 
+    @Sendable nonisolated func decrypt(
+      message: String,
+      reference: ForeignReference,
+      decryptionKey: EncryptionType
+    ) async throws -> Data? {
+      if let sessionKeyData: SessionKeyData = cachedSessionKeys.get()[reference] {
+        do {
+          if let result: String = try pgp.decryptWithSessionKey(message, sessionKeyData.sessionKey) {
+            return result.data(using: .utf8)
+          }
+        } catch {
+          // don't break the process, try to use standard decryption method
+          error.logged()
+        }
+      }
+      
+      let result: Data? = try await decrypt(message: message, decryptionKey: decryptionKey)
+      if let sessionKey: SessionKey = try? await sessionCryptography.decryptSessionKey(.init(rawValue: message)) {
+        cachedSessionKeys.access { keys in
+          keys[reference] = .init(foreignModel: reference.model, foreignId: reference.id, sessionKey: sessionKey, modified: .now)
+        }
+      }
+      
+      return result
+    }
+
     @Sendable nonisolated func decrypt(message: String, decryptionKey: EncryptionType) async throws -> Data? {
       if case .sharedKey(let keyId) = decryptionKey {
-        guard let keys: CachedKeys = cachedKeys.get()[keyId] else { return nil }
+        guard let keys: CachedKeys = cachedKeys.get()[keyId] else { return .none }
         if let privateKey: ArmoredPGPPrivateKey = keys.privateKeys.first {
-          let result = try pgp.decrypt(message, .empty, privateKey).get()
-          return result.data(using: .utf8)
-        }
-        else {
-          let result: String = try await decryptor.decryptMessage(ArmoredPGPMessage(rawValue: message), nil)
+          let result: String = try pgp.decrypt(message, .empty, privateKey).get()
           return result.data(using: .utf8)
         }
       }
-      else {
-        return try await sessionCryptography.decryptMessage(.init(rawValue: message), nil).data(using: .utf8)
-      }
+
+      return try await sessionCryptography.decryptMessage(.init(rawValue: message), .none).data(using: .utf8)
     }
 
     @Sendable func encrypt(message: String, with encryptionType: EncryptionType) async throws -> ArmoredPGPMessage? {
@@ -140,7 +180,7 @@ extension MetadataKeysService {
 
     @Sendable func encryptForSharing(message: String) async throws -> (ArmoredPGPMessage, MetadataKeyDTO.ID)? {
       guard
-        let sharedKey: CachedKeys = cachedKeys.get().values.first(where: { $0.expired != nil && $0.deleted != nil }),
+        let sharedKey: CachedKeys = cachedKeys.get().values.first(where: { $0.expired == .none && $0.deleted == .none }),
         let result: ArmoredPGPMessage = try await encrypt(message: message, with: .sharedKey(sharedKey.id))
       else {
         return nil
@@ -148,17 +188,49 @@ extension MetadataKeysService {
 
       return (result, sharedKey.id)
     }
+    
+    @Sendable func fetchSessionKeys() async throws -> (Date?, SessionKeysCache) {
+      let sessionKeysResponse: Array<MetadataSessionKey> = try await sessionKeysFetchNetworkOperation()
+      guard let userSessionKeys: MetadataSessionKey = sessionKeysResponse.first(where: { $0.userId == context.account.userID })
+      else {
+        return (nil, [:])
+      }
+
+      let decryptedMessage: String = try await sessionCryptography.decryptMessage(userSessionKeys.data, nil)
+      let keys: SessionKeysCache = try jsonDecoder.decode(CachedSessionKeysMessage.self, from: Data(decryptedMessage.utf8))
+        .validated()
+        .sessionKeys
+        .reduce(into: SessionKeysCache()) {
+          $0[$1.key] = $1
+        }
+      return (userSessionKeys.modifiedAt, keys)
+    }
+    
+    @Sendable func sendSessionKeys() async throws {
+      let lastModificationDate: Date = sessionKeysModifiedDate.get() ?? .now
+      let sessionKeys: Array<SessionKeyData> = cachedSessionKeys.get().values.map { $0.with(modifiedAt: lastModificationDate) }
+      let input: CachedSessionKeysMessage = .init(sessionKeys: sessionKeys)
+      let json: Data = try jsonEncoder.encode(input)
+      guard
+        let jsonString: String = .init(data: json, encoding: .utf8),
+        let encryptedMessage: ArmoredPGPMessage = try await encrypt(message: jsonString, with: .userKey)
+      else { return }
+      
+      _ = try await sessionKeysCreateNetworkOperation(.init(data: encryptedMessage))
+    }
 
     return .init(
       initialize: initialize,
       decrypt: decrypt,
       encrypt: encrypt,
-      encryptForSharing: encryptForSharing
+      encryptForSharing: encryptForSharing,
+      sendSessionKeys: sendSessionKeys
     )
   }
 }
 
 extension FeaturesRegistry {
+
   internal mutating func usePassboltMetadataKeysService() {
     self.use(
       .lazyLoaded(
@@ -171,13 +243,14 @@ extension FeaturesRegistry {
 }
 
 private struct CachedKeys: Identifiable {
-  let id: MetadataKeyDTO.ID
-  let publicKey: ArmoredPGPPublicKey
-  let privateKeys: [ArmoredPGPPrivateKey]
-  let expired: Date?
-  let deleted: Date?
-  
-  init(metadataKey: MetadataKeyDTO, privateKeys: [ArmoredPGPPrivateKey]) {
+
+  fileprivate var id: MetadataKeyDTO.ID
+  fileprivate var publicKey: ArmoredPGPPublicKey
+  fileprivate var privateKeys: Array<ArmoredPGPPrivateKey>
+  fileprivate var expired: Date?
+  fileprivate var deleted: Date?
+
+  fileprivate init(metadataKey: MetadataKeyDTO, privateKeys: Array<ArmoredPGPPrivateKey>) {
     self.id = metadataKey.id
     self.publicKey = metadataKey.armoredKey
     self.privateKeys = privateKeys
@@ -187,11 +260,13 @@ private struct CachedKeys: Identifiable {
 }
 
 internal struct MetadataDecryptedPrivateKey: Decodable {
-  let fingerprint: String
-  let armoredKey: ArmoredPGPPrivateKey
-  let objectType: MetadataObjectType
 
-  enum CodingKeys: String, CodingKey {
+  internal var fingerprint: String
+  internal var armoredKey: ArmoredPGPPrivateKey
+  internal var objectType: MetadataObjectType
+
+  private enum CodingKeys: String, CodingKey {
+
     case fingerprint
     case armoredKey = "armored_key"
     case objectType = "object_type"
@@ -200,7 +275,7 @@ internal struct MetadataDecryptedPrivateKey: Decodable {
 
 extension MetadataKeyDTO {
 
-  func validate(withPrivateKeys privateKeys: [MetadataDecryptedPrivateKey]) throws {
+  func validate(withPrivateKeys privateKeys: Array<MetadataDecryptedPrivateKey>) throws {
     let maxLength: Int = 10_000
 
     guard armoredKey.count <= maxLength
@@ -242,10 +317,116 @@ extension MetadataKeyDTO {
     }
   }
 
-  struct ValidationRule {
-    static let publicKeyTooLong: StaticString = "publicKeyTooLong"
-    static let privateKeyTooLong: StaticString = "privateKeyTooLong"
-    static let fingerprintsMismatch: StaticString = "fingerprintsMismatch"
-    static let invalidObjectType: StaticString = "invalidObjectType"
+  internal struct ValidationRule {
+
+    internal static let publicKeyTooLong: StaticString = "publicKeyTooLong"
+    internal static let privateKeyTooLong: StaticString = "privateKeyTooLong"
+    internal static let fingerprintsMismatch: StaticString = "fingerprintsMismatch"
+    internal static let invalidObjectType: StaticString = "invalidObjectType"
+  }
+}
+
+extension MetadataKeysService {
+
+  fileprivate struct SessionKeyData: Codable, Sendable {
+
+    fileprivate var foreignModel: ForeignModel
+    fileprivate var foreignId: PassboltID
+    fileprivate var sessionKey: SessionKey
+    fileprivate var modified: Date?
+
+    fileprivate var key: ForeignReference {
+      .init(model: foreignModel, id: foreignId)
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+
+      case foreignModel = "foreign_model"
+      case foreignId = "foreign_id"
+      case sessionKey = "session_key"
+      case modified = "modified"
+    }
+    
+    fileprivate struct Key: Hashable {
+
+      fileprivate let foreignModel: ForeignModel
+      fileprivate let foreignId: PassboltID
+    }
+    
+    fileprivate func validate() throws {
+      guard foreignModel != .unknown
+      else {
+        throw InvalidValue.invalid(
+          validationRule: ValidationRule.invalidForeignModel,
+          value: foreignModel,
+          displayable: "Invalid foreign model."
+        )
+      }
+    }
+    
+    fileprivate struct ValidationRule {
+
+      static let invalidForeignModel: StaticString = "invalidForeignModel"
+    }
+    
+    fileprivate func with(modifiedAt: Date) -> Self {
+      if self.modified != nil {
+        return self
+      }
+
+      return .init(
+        foreignModel: foreignModel,
+        foreignId: foreignId,
+        sessionKey: sessionKey,
+        modified: modifiedAt
+      )
+    }
+  }
+  
+  fileprivate  struct CachedSessionKeysMessage: Codable, Sendable {
+
+    private var objectType: MetadataObjectType
+    fileprivate var sessionKeys: Array<SessionKeyData>
+
+    fileprivate init(sessionKeys: Array<SessionKeyData>) {
+      self.objectType = .sessionKeys
+      self.sessionKeys = sessionKeys
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+
+      case objectType = "object_type"
+      case sessionKeys = "session_keys"
+    }
+    
+    fileprivate func validated() throws -> Self {
+      guard objectType == .sessionKeys
+      else {
+        throw InvalidValue.invalid(
+          validationRule: ValidationRule.invalidObjectType,
+          value: objectType,
+          displayable: "Invalid object type."
+        )
+      }
+      
+      var validSessionKeys: Array<SessionKeyData> = .init()
+
+      for sessionKey in sessionKeys {
+        do {
+          try sessionKey.validate()
+          validSessionKeys.append(sessionKey)
+        } catch {
+          // consume error, but don't break process
+          error.logged()
+        }
+      }
+      
+      return .init(sessionKeys: validSessionKeys)
+    }
+          
+    fileprivate struct ValidationRule {
+
+      static let invalidObjectType: StaticString = "invalidObjectType"
+    }
   }
 }

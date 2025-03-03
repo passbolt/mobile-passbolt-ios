@@ -21,9 +21,35 @@
 // @since         v1.0
 //
 
-public enum MetadataObjectType: String, Codable, Sendable, Equatable {
+import NetworkOperations
 
-  case resourceMetadata = "PASSBOLT_RESOURCE_METADATA"
-  case privateKeyMetadata = "PASSBOLT_METADATA_PRIVATE_KEY"
-  case sessionKeys = "PASSBOLT_SESSION_KEYS"
+extension MetadataSessionKeysCreateNetworkOperation {
+
+  @Sendable fileprivate static func requestPreparation(_ input: Input) -> Mutation<HTTPRequest> {
+    .combined(
+      .pathSuffix("/metadata/session-keys.json"),
+      .method(.post),
+      .jsonBody(from: input)
+    )
+  }
+  
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    return ()
+  }
+}
+
+extension FeaturesRegistry {
+
+  internal mutating func useMetadataSessionKeysCreateNetworkOperation() {
+    self.use(
+      .networkOperationWithSession(
+        of: MetadataSessionKeysCreateNetworkOperation.self,
+        requestPreparation: MetadataSessionKeysCreateNetworkOperation.requestPreparation(_:),
+        responseDecoding: MetadataSessionKeysCreateNetworkOperation.responseDecoder(_:_:)
+      )
+    )
+  }
 }

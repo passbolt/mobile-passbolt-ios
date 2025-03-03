@@ -21,9 +21,7 @@
 // @since         v1.0
 //
 
-public enum MetadataObjectType: String, Codable, Sendable, Equatable {
+import Commons
 
-  case resourceMetadata = "PASSBOLT_RESOURCE_METADATA"
-  case privateKeyMetadata = "PASSBOLT_METADATA_PRIVATE_KEY"
-  case sessionKeys = "PASSBOLT_SESSION_KEYS"
-}
+public enum SessionKeyTag {}
+public typealias SessionKey = Tagged<String, SessionKeyTag>

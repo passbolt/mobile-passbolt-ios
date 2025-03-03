@@ -21,9 +21,11 @@
 // @since         v1.0
 //
 
-public enum MetadataObjectType: String, Codable, Sendable, Equatable {
+import Features
 
-  case resourceMetadata = "PASSBOLT_RESOURCE_METADATA"
-  case privateKeyMetadata = "PASSBOLT_METADATA_PRIVATE_KEY"
-  case sessionKeys = "PASSBOLT_SESSION_KEYS"
+public typealias MetadataSessionKeysFetchNetworkOperation = NetworkOperation<MetadataSessionKeysFetchNetworkOperationDescription>
+
+public enum MetadataSessionKeysFetchNetworkOperationDescription: NetworkOperationDescription {
+
+  public typealias Output = Array<MetadataSessionKey>
 }

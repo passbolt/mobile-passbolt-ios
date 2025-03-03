@@ -376,6 +376,40 @@ final class PGPTests: XCTestCase {
     let output: Bool = pgp.isPGPSignedClearMessage("passbolt")
     XCTAssertTrue(!output)
   }
+  
+  func test_extractingSessionKey_succeeds_withCorrectInput() {
+    let passphrase: Passphrase = "Secret"
+    let result: Result<SessionKey, Error> = pgp.extractSessionKey(.init(rawValue: signedCiphertext), privateKey, passphrase)
+    XCTAssertSuccessEqual(result, sessionKey)
+  }
+
+  func test_extractingSessionKey_fails_withInvalidInput() {
+    let passphrase: Passphrase = "Secret"
+    let result: Result<SessionKey, Error> = pgp.extractSessionKey(.init(rawValue: signedMessage), privateKey, passphrase)
+    XCTAssertFailureUnderlyingError(result, matches: PGPKeyPacketExtractionFailed.self)
+  }
+  
+  func test_extractingSessionKey_fails_withInvalidPassphrase() {
+    let passphrase: Passphrase = "InvalidPassphrase"
+    let result: Result<SessionKey, Error> = pgp.extractSessionKey(.init(rawValue: signedCiphertext), privateKey, passphrase)
+    XCTAssertFailure(result)
+  }
+
+  func test_extractingSessionKey_fails_withInvalidPrivateKey() {
+    let passphrase: Passphrase = "Secret"
+    let result: Result<SessionKey, Error> = pgp.extractSessionKey(
+      .init(rawValue: signedMessage),
+      .init(rawValue: signedCiphertext), // invalid param intentionally
+      passphrase
+    )
+    XCTAssertFailureUnderlyingError(result, matches: PGPKeyRingPreparationFailed.self)
+  }
+
+  func test_decryptingWithSessionKey_succeeds_withCorrectInput() throws {
+    let result: String? = try pgp.decryptWithSessionKey(signedCiphertext, sessionKey)
+    XCTAssertEqual(result, "passbolt\n")
+  }
+
   // MARK: Test data
 
   private let publicKey: ArmoredPGPPublicKey =
@@ -628,4 +662,6 @@ final class PGPTests: XCTestCase {
     =I81l
     -----END PGP SIGNATURE-----
     """
+  
+  private let sessionKey: SessionKey = "33991A2536F8A1D50DA44AC504F36C2FEDE5C6B1A170541DBAB74746DC5C30B1"
 }

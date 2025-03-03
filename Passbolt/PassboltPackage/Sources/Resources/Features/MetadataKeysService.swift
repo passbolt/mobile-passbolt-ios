@@ -26,24 +26,27 @@ import struct Foundation.Data
 
 public struct MetadataKeysService {
   public var initialize: @Sendable () async throws -> Void
-  public var decrypt: @Sendable (String, EncryptionType) async throws -> Data?
+  public var decrypt: @Sendable (String, ForeignReference, EncryptionType) async throws -> Data?
   public var encrypt: @Sendable (String, EncryptionType) async throws -> ArmoredPGPMessage?
   public var encryptForSharing: @Sendable (String) async throws -> (ArmoredPGPMessage, MetadataKeyDTO.ID)?
+  public var sendSessionKeys: @Sendable () async throws -> Void
 
   public init(
     initialize: @escaping @Sendable () async throws -> Void,
-    decrypt: @escaping @Sendable (String, EncryptionType) async throws -> Data?,
+    decrypt: @escaping @Sendable (String, ForeignReference, EncryptionType) async throws -> Data?,
     encrypt: @escaping @Sendable (String, EncryptionType) async throws -> ArmoredPGPMessage?,
-    encryptForSharing: @escaping @Sendable (String) async throws -> (ArmoredPGPMessage, MetadataKeyDTO.ID)?
+    encryptForSharing: @escaping @Sendable (String) async throws -> (ArmoredPGPMessage, MetadataKeyDTO.ID)?,
+    sendSessionKeys: @escaping @Sendable () async throws -> Void
   ) {
     self.initialize = initialize
     self.decrypt = decrypt
     self.encrypt = encrypt
     self.encryptForSharing = encryptForSharing
+    self.sendSessionKeys = sendSessionKeys
   }
   
-  public func decrypt(message: String, withSharedKeyId sharedKeyId: MetadataKeyDTO.ID) async throws -> Data? {
-    try await decrypt(message, .sharedKey(sharedKeyId))
+  public func decrypt(message: String, resourceId: Resource.ID, withSharedKeyId sharedKeyId: MetadataKeyDTO.ID) async throws -> Data? {
+    try await decrypt(message, .resource(resourceId), .sharedKey(sharedKeyId))
   }
   
   public enum EncryptionType {
@@ -58,10 +61,41 @@ extension MetadataKeysService: LoadableFeature {
   public nonisolated static var placeholder: Self {
     .init(
       initialize: unimplemented0(),
-      decrypt: unimplemented2(),
+      decrypt: unimplemented3(),
       encrypt: unimplemented2(),
-      encryptForSharing: unimplemented1()
+      encryptForSharing: unimplemented1(),
+      sendSessionKeys: unimplemented0()
     )
   }
   #endif
+}
+
+extension MetadataKeysService {
+
+  public struct ForeignReference: Hashable, Sendable {
+
+    public var model: ForeignModel
+    public var id: PassboltID
+
+    public init(model: ForeignModel, id: PassboltID) {
+      self.model = model
+      self.id = id
+    }
+    
+    public static func resource(_ resourceId: Resource.ID) -> Self {
+      .init(model: .resource, id: resourceId.rawValue)
+    }
+  }
+  
+  public enum ForeignModel: String, Codable, Sendable {
+
+    case resource = "Resource"
+    case unknown
+    
+    public init(from decoder: Decoder) throws {
+      let container = try decoder.singleValueContainer()
+      let rawValue = try container.decode(String.self)
+      self = Self(rawValue: rawValue) ?? .unknown
+    }
+  }
 }

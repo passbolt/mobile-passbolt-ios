@@ -28,6 +28,7 @@ import NetworkOperations
 import OSFeatures
 import SessionData
 import Resources
+import struct Foundation.Data
 
 extension SessionData {
 
@@ -145,8 +146,8 @@ extension SessionData {
               guard configuration.metadata.enabled else { return ResourceDTO?.none }
               var resource = resource
               let decryptionType: MetadataKeysService.EncryptionType = keyType == .shared ? .sharedKey(keyId) : .userKey
-              if let decryptedMetadata = try await metadataKeysService.decrypt(armored, decryptionType) {
-                let metadata = try ResourceMetadataDTO(resourceId: resource.id, data: decryptedMetadata)
+              if let decryptedMetadataData: Data = try await metadataKeysService.decrypt(armored, .resource(resource.id), decryptionType) {
+                let metadata: ResourceMetadataDTO = try .init(resourceId: resource.id, data: decryptedMetadataData)
                 try metadata.validate(with: resource)
                 resource.metadata = metadata
               }
@@ -154,7 +155,7 @@ extension SessionData {
               return resource
             } else {
               var resource = resource
-              let metadata = try ResourceMetadataDTO(resource: resource)
+              let metadata: ResourceMetadataDTO = try .init(resource: resource)
               try metadata.validate(with: resource)
               resource.metadata = metadata
               return resource
@@ -237,6 +238,9 @@ extension SessionData {
               try await refreshPasswordPolicies()
             }
 
+            if configuration.metadata.enabled {
+              try await metadataKeysService.sendSessionKeys()
+            }
             // when diffing endpoint becomes available
             // we should use server time instead
             lastUpdate.mutate { (lastUpdate: inout Timestamp) in

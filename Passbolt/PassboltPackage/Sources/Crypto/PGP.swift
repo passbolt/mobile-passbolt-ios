@@ -63,6 +63,12 @@ public struct PGP {
       _ passphrase: Passphrase,
       _ privateKey: ArmoredPGPPrivateKey
     ) -> Result<String, Error>
+  // Decrypt with session key
+  public var decryptWithSessionKey:
+    (
+      _ message: String,
+      _ sessionKey: SessionKey
+    ) throws -> String?
   // Sign cleartext message
   public var signMessage:
     (
@@ -99,6 +105,12 @@ public struct PGP {
       _ privateKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
     ) -> Result<ArmoredPGPPublicKey, Error>
+  public var extractSessionKey:
+    (
+      _ armoredMessage: ArmoredPGPMessage,
+      _ privateKey: ArmoredPGPPrivateKey,
+      _ passphrase: Passphrase
+    ) -> Result<SessionKey, Error>
   public var readCleartextMessage:
     (
       _ message: Data
@@ -119,12 +131,14 @@ extension PGP: StaticFeature {
       decryptAndVerify: unimplemented4(),
       encrypt: unimplemented2(),
       decrypt: unimplemented3(),
+      decryptWithSessionKey: unimplemented2(),
       signMessage: unimplemented3(),
       verifyMessage: unimplemented3(),
       verifyPassphrase: unimplemented2(),
       verifyPublicKeyFingerprint: unimplemented2(),
       extractFingerprint: unimplemented1(),
       extractPublicKey: unimplemented2(),
+      extractSessionKey: unimplemented3(),
       readCleartextMessage: unimplemented1(),
       isPGPSignedClearMessage: unimplemented1()
     )
@@ -693,18 +707,81 @@ extension PGP {
       return messageWithoutNewlines.matches(regex: pgpMessageRegex)
     }
 
+    func extractSessionKey(
+      from armoredMessage: ArmoredPGPMessage,
+      privateKey: ArmoredPGPPrivateKey,
+      passphrase: Passphrase
+    ) -> Result<SessionKey, Error> {
+      defer { Gopenpgp.HelperFreeOSMemory() }
+      do {
+        var error: NSError?
+        guard
+          let passphraseData: Data = passphrase.rawValue.data(using: .utf8),
+          let privateKey: CryptoKey = CryptoNewKeyFromArmored(privateKey.rawValue, &error),
+          let keyRing: CryptoKeyRing = CryptoNewKeyRing(try privateKey.unlock(passphraseData), &error)
+        else {
+          throw PGPIssue.error(
+            underlyingError:
+              PGPKeyRingPreparationFailed
+              .error("Failed to create key ring for session key extraction.")
+              .recording(error as Any, for: "goError")
+          )
+        }
+
+        guard
+          let splitMessage: CryptoPGPSplitMessage = .init(fromArmored: armoredMessage.rawValue),
+          let keyPacket: Data = splitMessage.keyPacket
+        else {
+          throw PGPIssue.error(
+            underlyingError:
+              PGPKeyPacketExtractionFailed
+              .error("Failed split message into key packet.")
+          )
+        }
+
+        let sessionKeyResult: CryptoSessionKey = try keyRing.decryptSessionKey(keyPacket)
+        if let result: String = sessionKeyResult.key?.bytesToHexString() {
+          return .success(.init(rawValue: result))
+        }
+        throw PGPIssue.error(
+          underlyingError:
+            PGPFailedToExtractSessionKey
+            .error("Failed to extract session key.")
+        )
+      }
+      catch {
+        return .failure(error)
+      }
+    }
+
+    func decryptWithSessionKey(message: String, sessionKey: SessionKey) throws -> String? {
+      defer { Gopenpgp.HelperFreeOSMemory() }
+
+      let sessionKeyData: Data = .init(hexString: sessionKey.rawValue)
+      let pgpSessionKey: CryptoSessionKey? = CryptoNewSessionKeyFromToken(sessionKeyData, ConstantsAES256)
+      let pgpMessage: CryptoPGPSplitMessage? = .init(fromArmored: message)
+
+      if let result: Data = try pgpSessionKey?.decrypt(pgpMessage?.dataPacket).data {
+        return String(data: result, encoding: .utf8)
+      }
+
+      return nil
+    }
+
     return Self(
       setTimeOffset: setTimeOffset(value:),
       encryptAndSign: encryptAndSign(_:passphrase:privateKey:publicKey:),
       decryptAndVerify: decryptAndVerify(_:passphrase:privateKey:publicKey:),
       encrypt: encrypt(_:publicKey:),
       decrypt: decrypt(_:passphrase:privateKey:),
+      decryptWithSessionKey: decryptWithSessionKey(message:sessionKey:),
       signMessage: signMessage(_:passphrase:privateKey:),
       verifyMessage: verifyMessage(_:publicKey:verifyTime:),
       verifyPassphrase: verifyPassphrase(privateKey:passphrase:),
       verifyPublicKeyFingerprint: verifyPublicKeyFingerprint(_:fingerprint:),
       extractFingerprint: extractFingerprint(publicKey:),
       extractPublicKey: extractPublicKey(privateKey:passphrase:),
+      extractSessionKey: extractSessionKey(from:privateKey:passphrase:),
       readCleartextMessage: readCleartextMessage(message:),
       isPGPSignedClearMessage: isPGPSignedClearMessage(_:)
     )

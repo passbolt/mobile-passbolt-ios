@@ -21,9 +21,34 @@
 // @since         v1.0
 //
 
-public enum MetadataObjectType: String, Codable, Sendable, Equatable {
+public struct MetadataSessionKey: Decodable, Sendable {
 
-  case resourceMetadata = "PASSBOLT_RESOURCE_METADATA"
-  case privateKeyMetadata = "PASSBOLT_METADATA_PRIVATE_KEY"
-  case sessionKeys = "PASSBOLT_SESSION_KEYS"
+  public var id: PassboltID
+  public var userId: User.ID
+  public var data: ArmoredPGPMessage
+  public var createdAt: Date
+  public var modifiedAt: Date
+
+  public init(
+    id: PassboltID,
+    userId: User.ID,
+    data: ArmoredPGPMessage,
+    createdAt: Date,
+    modifiedAt: Date
+  ) {
+    self.id = id
+    self.userId = userId
+    self.data = data
+    self.createdAt = createdAt
+    self.modifiedAt = modifiedAt
+  }
+
+  private enum CodingKeys: String, CodingKey {
+
+    case id
+    case userId = "user_id"
+    case data
+    case createdAt = "created"
+    case modifiedAt = "modified"
+  }
 }

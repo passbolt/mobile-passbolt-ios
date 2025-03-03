@@ -21,9 +21,22 @@
 // @since         v1.0
 //
 
-public enum MetadataObjectType: String, Codable, Sendable, Equatable {
+import struct Foundation.Data
 
-  case resourceMetadata = "PASSBOLT_RESOURCE_METADATA"
-  case privateKeyMetadata = "PASSBOLT_METADATA_PRIVATE_KEY"
-  case sessionKeys = "PASSBOLT_SESSION_KEYS"
+extension Data {
+
+  public func bytesToHexString(uppercased: Bool = true) -> String {
+    map {
+      let byte: UInt8 = .init($0)
+      let hexRepresentation: String = String(byte, radix: 16, uppercase: uppercased)
+      return hexRepresentation.count == 1 ? "0\(hexRepresentation)" : hexRepresentation
+    }
+    .joined()
+  }
+
+  public init(hexString: String) {
+    let hexString: String = hexString.count % 2 == 0 ? hexString : "0\(hexString)"
+    let bytes: [UInt8] = hexString.split(every: 2).compactMap { UInt8($0, radix: 16) }
+    self.init(bytes)
+  }
 }
