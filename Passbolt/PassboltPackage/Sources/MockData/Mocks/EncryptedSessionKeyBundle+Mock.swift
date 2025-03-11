@@ -22,11 +22,12 @@
 //
 
 import Resources
+import NetworkOperations
 import struct Foundation.Date
 import struct Foundation.Data
 import class Foundation.JSONEncoder
 
-extension MetadataSessionKey {
+extension EncryptedSessionKeyBundle {
 
   public static var mock_1: Self = .init(
     id: .init(uuidString: "5c3b6c3f-9c2d-4b2b-8c3e-7f1b8b9b2b0e")!,
@@ -34,6 +35,15 @@ extension MetadataSessionKey {
     data: .init(rawValue: composeSessionKeyData()),
     createdAt: .now,
     modifiedAt: .now
+  )
+}
+
+extension EncryptedSessionKeysCache {
+
+  public static var mock_1: Self = .init(
+    id: .init(uuidString: "5c3b6c3f-9c2d-4b2b-8c3e-7f1b8b9b2b0e")!,
+    modifiedAt: .now,
+    data: .init(rawValue: composeSessionKeyData())
   )
 }
 
@@ -50,6 +60,7 @@ private func composeSessionKeyData() -> String {
   let wrapper: SessionKeyDataWrapper = .init(sessionKeys: [sessionKey])
 
   let encoder: JSONEncoder = .init()
+  encoder.dateEncodingStrategy = .iso8601
   let data: Data = try! encoder.encode(wrapper)
   return .init(data: data, encoding: .utf8)!
 }

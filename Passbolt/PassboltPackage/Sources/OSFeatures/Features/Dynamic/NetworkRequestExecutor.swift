@@ -482,6 +482,14 @@ private func withVerifiedStatusCode(
         request: httpRequest,
         response: httpResponse
       )
+  } 
+  else if httpResponse.statusCode == 409 {
+    throw
+      HTTPConflict
+      .error(
+        request: httpRequest,
+        response: httpResponse
+      )
   }
   else {
     throw

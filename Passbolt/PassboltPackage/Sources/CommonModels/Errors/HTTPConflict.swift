@@ -21,11 +21,33 @@
 // @since         v1.0
 //
 
-import Features
+import Commons
 
-public typealias MetadataSessionKeysFetchNetworkOperation = NetworkOperation<MetadataSessionKeysFetchNetworkOperationDescription>
+public struct HTTPConflict: TheError {
 
-public enum MetadataSessionKeysFetchNetworkOperationDescription: NetworkOperationDescription {
+  public static func error(
+    _ message: StaticString = "Conflict",
+    request: HTTPRequest,
+    response: HTTPResponse,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    Self(
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
+        )
+      ),
+      displayableMessage: .localized(key: "error.http.response.conflict"),
+      request: request,
+      response: response
+    )
+  }
 
-  public typealias Output = Array<EncryptedSessionKeyBundle>
+  public var context: DiagnosticsContext
+  public var displayableMessage: DisplayableString
+  public var request: HTTPRequest
+  public var response: HTTPResponse
 }

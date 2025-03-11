@@ -129,7 +129,7 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
       validationRule: MetadataKeyDTO.ValidationRule.invalidObjectType
     )
   }
-  
+
   func testIfSessionKeyExists_shouldBeUsedToDecryptMessage() async throws {
     patch(
       \MetadataKeysFetchNetworkOperation.execute,
@@ -139,9 +139,9 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
       \MetadataSessionKeysFetchNetworkOperation.execute,
        with: always([.mock_1])
     )
-    
+
     let usedSessionKeyExpectation: XCTestExpectation = .init(description: "Session key should be used to decrypt message.")
-    
+
     patch(
       \PGP.decryptWithSessionKey,
        with: { input, sessionKey in
@@ -149,14 +149,14 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
          return input
        }
     )
-    
+
     let testedInstance: MetadataKeysService = try self.testedInstance()
     try await testedInstance.initialize()
     let result: Data? = try await testedInstance.decrypt("message", .resource(.mock_1), .userKey)
     await fulfillment(of: [usedSessionKeyExpectation], timeout: 1.0)
     XCTAssertEqual(String(data: result!, encoding: .utf8), "message", "Message should be decrypted.")
   }
-  
+
   func testInvalidSessionKey_shouldFallbackToStandardDecryptionMethods() async throws {
     let decryptedUsingUserKeyExpectation: XCTestExpectation = .init(description: "Message should be decrypted using user key.")
     let attempetedToDecryptUsingSessionKeyExpectation: XCTestExpectation = .init(description: "Message should be attempted to decrypt using session key.")
@@ -175,7 +175,7 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
          throw MockError()
        }
     )
-    
+
     patch(
       \SessionCryptography.decryptMessage,
        with: { input, _ in
@@ -187,10 +187,10 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     try await testedInstance.initialize()
     let result: Data? = try await testedInstance.decrypt("message", .resource(.mock_1), .userKey)
     XCTAssertEqual(String(data: result!, encoding: .utf8), "message", "Message should be decrypted.")
-    
+
     await fulfillment(of: [decryptedUsingUserKeyExpectation, attempetedToDecryptUsingSessionKeyExpectation], timeout: 1.0)
   }
-  
+
   func testMissingKeys_shouldBeSavedAfterBeingDecrypted() async throws {
     let savedSessionKeysExpectation: XCTestExpectation = .init(description: "Session keys should be saved.")
     patch(
@@ -205,30 +205,31 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
       \SessionCryptography.decryptSessionKey,
        with: always("sessionKey")
     )
-    
+
     patch(
       \UsersPGPMessages.encryptMessageForUsers,
        with: always([
         .mock_1
        ])
     )
-    
+
     patch(
-      \MetadataSessionKeysCreateNetworkOperation.execute,
+      \MetadataSessionKeysUpdateNetworkOperation.execute,
        with:
-        { input async throws -> Void in
+        { input async throws -> EncryptedSessionKeysCache in
          savedSessionKeysExpectation.fulfill()
          XCTAssert(input.data.isEmpty == false, "Session key should be saved.")
+         return .mock_1
        }
     )
-    
+
     let testedInstance: MetadataKeysService = try self.testedInstance()
     try await testedInstance.initialize()
     _ = try await testedInstance.decrypt("message", .resource(.mock_1), .userKey)
     try await testedInstance.sendSessionKeys()
     await fulfillment(of: [savedSessionKeysExpectation], timeout: 1.0)
   }
-  
+
   func testGivenMessage_whenSharingRequested_shouldBeEncryptedWithValidKey() async throws {
     let message: String = "message"
     let encryptedMessage: ArmoredPGPMessage = .init(rawValue: "encryptedMessage")
@@ -237,30 +238,73 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
       \MetadataKeysFetchNetworkOperation.execute,
        with: always([metadataKey])
     )
-    
+
     patch(
       \PGP.encrypt,
        with: { _, _ in .success(encryptedMessage.rawValue) }
     )
-    
+
     let testedInstance: MetadataKeysService = try self.testedInstance()
     try await testedInstance.initialize()
     let result: (ArmoredPGPMessage, MetadataKeyDTO.ID)? = try await testedInstance.encryptForSharing(message)
     XCTAssertEqual(result?.0, encryptedMessage)
     XCTAssertEqual(result?.1, metadataKey.id)
   }
-  
+
   func testGivenMessage_whenSharingRequestedAndNoKeysAreExpired_shouldReturnNil() async throws {
     let metadataKey: MetadataKeyDTO = .mock(expired: .now)
     patch(
       \MetadataKeysFetchNetworkOperation.execute,
        with: always([metadataKey])
     )
-    
+
     let testedInstance: MetadataKeysService = try self.testedInstance()
     try await testedInstance.initialize()
     let result: (ArmoredPGPMessage, MetadataKeyDTO.ID)? = try await testedInstance.encryptForSharing("message")
     XCTAssertNil(result)
+  }
+
+  func testSendingSessionKeys_whenReceivingHTTPConflictStatus_shouldRefreshKeysAndRetry() async throws {
+    let sendSessionKeysExpectation: XCTestExpectation = .init(description: "Session keys should be sent.")
+    let refreshKeysExpectation: XCTestExpectation = .init(description: "Keys should be refreshed.")
+    sendSessionKeysExpectation.expectedFulfillmentCount = 2
+    patch(
+        \MetadataSessionKeysFetchNetworkOperation.execute,
+         with: { () async throws -> [EncryptedSessionKeyBundle] in
+           refreshKeysExpectation.fulfill()
+           return []
+         }
+    )
+    patch(
+        \MetadataSessionKeysUpdateNetworkOperation.execute,
+         with: {
+           input async throws -> EncryptedSessionKeysCache in
+           sendSessionKeysExpectation.fulfill()
+           throw HTTPConflict.error(
+            request: .init(),
+            response: .init(
+              url: .test,
+              statusCode: 409,
+              headers: [:],
+              body: Data()
+            )
+           )
+         }
+    )
+    patch(
+      \UsersPGPMessages.encryptMessageForUsers,
+         with: always([.mock_1])
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    asyncTestThrows(
+      HTTPConflict.self,
+      test: {
+        try await testedInstance.sendSessionKeys()
+      }
+    )
+
+    await fulfillment(of: [sendSessionKeysExpectation, refreshKeysExpectation], timeout: 1.0)
   }
 }
 

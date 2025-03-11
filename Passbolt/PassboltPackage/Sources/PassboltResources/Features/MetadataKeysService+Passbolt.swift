@@ -38,7 +38,6 @@ import Accounts
 extension MetadataKeysService {
 
   private typealias KeysCache = Dictionary<CachedKeys.ID, CachedKeys>
-  private typealias SessionKeysCache = Dictionary<ForeignReference, SessionKeyData>
 
   @MainActor static func load(
     features: Features
@@ -49,15 +48,16 @@ extension MetadataKeysService {
     let userPGP: UsersPGPMessages = try features.instance()
     let jsonDecoder: JSONDecoder = .default
     let jsonEncoder: JSONEncoder = .default
+    jsonEncoder.dateEncodingStrategy = .iso8601
+    jsonDecoder.dateDecodingStrategy = .iso8601
     let pgp: PGP = features.instance()
     let refreshTask: CriticalState<Task<Void, Error>?> = .init(.none)
 
     let sessionKeysFetchNetworkOperation: MetadataSessionKeysFetchNetworkOperation = try features.instance()
-    let sessionKeysCreateNetworkOperation: MetadataSessionKeysCreateNetworkOperation = try features.instance()
-    
+    let sessionKeysUpdateNetworkOperation: MetadataSessionKeysUpdateNetworkOperation = try features.instance()
+
     let cachedKeys: CriticalState<KeysCache> = .init([:])
-    let cachedSessionKeys: CriticalState<SessionKeysCache> = .init([:])
-    let sessionKeysModifiedDate: CriticalState<Date?> = .init(.none)
+    let cachedSessionKeys: CriticalState<SessionKeysCache> = .init(.empty)
 
     @Sendable func decode(encryptedMessage: String) async throws -> MetadataDecryptedPrivateKey {
       let armoredMessage: ArmoredPGPMessage = .init(rawValue: encryptedMessage)
@@ -92,13 +92,7 @@ extension MetadataKeysService {
             cachedKeys.access { cachedKeys in
               cachedKeys = newCachedKeys
             }
-            let (lastModifiedDate, newCachedSessionKeys): (Date?, SessionKeysCache) = try await fetchSessionKeys()
-            cachedSessionKeys.access { cachedSessionKeys in
-              cachedSessionKeys = newCachedSessionKeys
-            }
-            if let lastModifiedDate {
-              sessionKeysModifiedDate.access { $0 = lastModifiedDate }
-            }
+            try await refreshSessionKeys()
           }
           task = runningTask
           return runningTask
@@ -143,14 +137,14 @@ extension MetadataKeysService {
           error.logged()
         }
       }
-      
+
       let result: Data? = try await decrypt(message: message, decryptionKey: decryptionKey)
       if let sessionKey: SessionKey = try? await sessionCryptography.decryptSessionKey(.init(rawValue: message)) {
         cachedSessionKeys.access { keys in
           keys[reference] = .init(foreignModel: reference.model, foreignId: reference.id, sessionKey: sessionKey, modified: .now)
         }
       }
-      
+
       return result
     }
 
@@ -188,35 +182,84 @@ extension MetadataKeysService {
 
       return (result, sharedKey.id)
     }
-    
-    @Sendable func fetchSessionKeys() async throws -> (Date?, SessionKeysCache) {
-      let sessionKeysResponse: Array<MetadataSessionKey> = try await sessionKeysFetchNetworkOperation()
-      guard let userSessionKeys: MetadataSessionKey = sessionKeysResponse.first(where: { $0.userId == context.account.userID })
-      else {
-        return (nil, [:])
-      }
 
-      let decryptedMessage: String = try await sessionCryptography.decryptMessage(userSessionKeys.data, nil)
-      let keys: SessionKeysCache = try jsonDecoder.decode(CachedSessionKeysMessage.self, from: Data(decryptedMessage.utf8))
+    @Sendable func decryptSessionKeysBundle(encryptedMessage: ArmoredPGPMessage) async throws -> Array<SessionKeyData> {
+      let decryptedMessage: String = try await sessionCryptography.decryptMessage(encryptedMessage, nil)
+      return try jsonDecoder.decode(CachedSessionKeysMessage.self, from: Data(decryptedMessage.utf8))
         .validated()
         .sessionKeys
-        .reduce(into: SessionKeysCache()) {
-          $0[$1.key] = $1
-        }
-      return (userSessionKeys.modifiedAt, keys)
     }
-    
-    @Sendable func sendSessionKeys() async throws {
-      let lastModificationDate: Date = sessionKeysModifiedDate.get() ?? .now
-      let sessionKeys: Array<SessionKeyData> = cachedSessionKeys.get().values.map { $0.with(modifiedAt: lastModificationDate) }
-      let input: CachedSessionKeysMessage = .init(sessionKeys: sessionKeys)
-      let json: Data = try jsonEncoder.encode(input)
+
+    @Sendable func fetchSessionKeys() async throws -> SessionKeysCache {
+      let sessionKeysResponse: Array<EncryptedSessionKeyBundle> = try await sessionKeysFetchNetworkOperation()
+        .filter({ $0.userId == context.account.userID })
+        .sorted(by: { $0.modifiedAt > $1.modifiedAt })
+
+      var keys: Dictionary<ForeignReference, SessionKeyData> = .init()
+
+      for sessionKeyBundle in sessionKeysResponse {
+        do {
+          let bundleKeysData: Array<SessionKeyData> = try await decryptSessionKeysBundle(encryptedMessage: sessionKeyBundle.data)
+
+          for bundleKey in bundleKeysData {
+            guard keys[bundleKey.key] == nil else { continue }
+            keys[bundleKey.key] = bundleKey
+          }
+        } catch {
+          error.logged()
+        }
+      }
+
+      let newestBundle: EncryptedSessionKeyBundle? = keys.isEmpty ? nil : sessionKeysResponse.first
+      let sessionKeysCache: SessionKeysCache = .init(id: newestBundle?.id, modifiedAt: newestBundle?.modifiedAt, keysByForeignReference: keys, localKeysByForeignReference: .init())
+
+      return sessionKeysCache
+    }
+
+    @Sendable func refreshSessionKeys() async throws {
+      let newSessionKeysCache: SessionKeysCache = try await fetchSessionKeys()
+      cachedSessionKeys.access { cachedSessionKeys in
+        cachedSessionKeys.merge(with: newSessionKeysCache)
+      }
+    }
+
+    @Sendable func prepareSessionKeysPayload() async throws -> EncryptedSessionKeysCache? {
+      let currentCache: SessionKeysCache = cachedSessionKeys.get()
+      let payload: CachedSessionKeysMessage = .init(sessionKeys: currentCache.allSessionKeys)
+      let json: Data = try jsonEncoder.encode(payload)
+
       guard
         let jsonString: String = .init(data: json, encoding: .utf8),
         let encryptedMessage: ArmoredPGPMessage = try await encrypt(message: jsonString, with: .userKey)
-      else { return }
-      
-      _ = try await sessionKeysCreateNetworkOperation(.init(data: encryptedMessage))
+      else { return nil }
+
+      return .init(id: currentCache.id, modifiedAt: currentCache.modifiedAt, data: encryptedMessage)
+    }
+
+    @Sendable func trySendingSessionKeys() async throws {
+      Diagnostics.logger.info("Preparing session keys for submission...")
+      guard let payload: EncryptedSessionKeysCache = try await prepareSessionKeysPayload() else { return }
+      Diagnostics.logger.info("Submitting session keys...")
+      let response: EncryptedSessionKeysCache = try await sessionKeysUpdateNetworkOperation(payload)
+      Diagnostics.logger.info("... session keys submitted.")
+      let keys: Array<SessionKeyData> = try await decryptSessionKeysBundle(encryptedMessage: response.data)
+      let keysByForeignReference: Dictionary<ForeignReference, SessionKeyData> = keys.reduce(into: .init()) {
+        $0[$1.key] = $1
+      }
+      cachedSessionKeys.access { cachedSessionKeys in
+        cachedSessionKeys = .init(id: cachedSessionKeys.id, modifiedAt: response.modifiedAt, keysByForeignReference: keysByForeignReference, localKeysByForeignReference: .init())
+      }
+    }
+
+    @Sendable func sendSessionKeys() async throws {
+      do {
+        try await trySendingSessionKeys()
+      } catch is HTTPConflict {
+        // possibly cache is updated by two different actors, attempt to refresh and re-submit - only once.
+        Diagnostics.logger.info("Conflicting session keys cache - attempting to refresh and re-submit.")
+        try await refreshSessionKeys()
+        try await trySendingSessionKeys()
+      }
     }
 
     return .init(
@@ -338,7 +381,7 @@ extension MetadataKeysService {
     fileprivate var key: ForeignReference {
       .init(model: foreignModel, id: foreignId)
     }
-    
+
     private enum CodingKeys: String, CodingKey {
 
       case foreignModel = "foreign_model"
@@ -346,13 +389,13 @@ extension MetadataKeysService {
       case sessionKey = "session_key"
       case modified = "modified"
     }
-    
+
     fileprivate struct Key: Hashable {
 
       fileprivate let foreignModel: ForeignModel
       fileprivate let foreignId: PassboltID
     }
-    
+
     fileprivate func validate() throws {
       guard foreignModel != .unknown
       else {
@@ -363,12 +406,12 @@ extension MetadataKeysService {
         )
       }
     }
-    
+
     fileprivate struct ValidationRule {
 
       static let invalidForeignModel: StaticString = "invalidForeignModel"
     }
-    
+
     fileprivate func with(modifiedAt: Date) -> Self {
       if self.modified != nil {
         return self
@@ -382,7 +425,7 @@ extension MetadataKeysService {
       )
     }
   }
-  
+
   fileprivate  struct CachedSessionKeysMessage: Codable, Sendable {
 
     private var objectType: MetadataObjectType
@@ -392,13 +435,13 @@ extension MetadataKeysService {
       self.objectType = .sessionKeys
       self.sessionKeys = sessionKeys
     }
-    
+
     private enum CodingKeys: String, CodingKey {
 
       case objectType = "object_type"
       case sessionKeys = "session_keys"
     }
-    
+
     fileprivate func validated() throws -> Self {
       guard objectType == .sessionKeys
       else {
@@ -408,7 +451,7 @@ extension MetadataKeysService {
           displayable: "Invalid object type."
         )
       }
-      
+
       var validSessionKeys: Array<SessionKeyData> = .init()
 
       for sessionKey in sessionKeys {
@@ -420,13 +463,53 @@ extension MetadataKeysService {
           error.logged()
         }
       }
-      
+
       return .init(sessionKeys: validSessionKeys)
     }
-          
+
     fileprivate struct ValidationRule {
 
       static let invalidObjectType: StaticString = "invalidObjectType"
     }
   }
+
+  private struct SessionKeysCache {
+
+    fileprivate let id: PassboltID?
+    fileprivate var modifiedAt: Date?
+    fileprivate var keysByForeignReference: Dictionary<ForeignReference, SessionKeyData>
+    fileprivate var localKeysByForeignReference: Dictionary<ForeignReference, SessionKeyData>
+
+    static fileprivate var empty: Self = .init(id: nil, keysByForeignReference: .init(), localKeysByForeignReference: .init())
+
+    fileprivate var allSessionKeys: Array<SessionKeyData> {
+      keysByForeignReference.merging(localKeysByForeignReference) { remote, local in
+        if let remoteModifiedAt = remote.modified,
+           let localModifiedAt = local.modified {
+          return remoteModifiedAt > localModifiedAt ? remote : local
+        }
+
+        return local
+      }.values.map { $0 }
+    }
+
+    subscript(key: ForeignReference) -> SessionKeyData? {
+      get {
+        localKeysByForeignReference[key] ??  keysByForeignReference[key]
+      }
+      set(newValue) {
+        keysByForeignReference[key] = newValue
+      }
+    }
+
+    mutating func merge(with newCache: Self) {
+      self = .init(
+        id: newCache.id,
+        modifiedAt: newCache.modifiedAt,
+        keysByForeignReference: newCache.keysByForeignReference,
+        localKeysByForeignReference: localKeysByForeignReference
+      )
+    }
+  }
 }
+

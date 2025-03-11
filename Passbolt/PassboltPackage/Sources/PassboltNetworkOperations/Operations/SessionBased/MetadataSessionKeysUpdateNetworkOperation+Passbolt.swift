@@ -21,34 +21,49 @@
 // @since         v1.0
 //
 
-public struct MetadataSessionKey: Decodable, Sendable {
+import NetworkOperations
 
-  public var id: PassboltID
-  public var userId: User.ID
-  public var data: ArmoredPGPMessage
-  public var createdAt: Date
-  public var modifiedAt: Date
+extension MetadataSessionKeysUpdateNetworkOperation {
 
-  public init(
-    id: PassboltID,
-    userId: User.ID,
-    data: ArmoredPGPMessage,
-    createdAt: Date,
-    modifiedAt: Date
-  ) {
-    self.id = id
-    self.userId = userId
-    self.data = data
-    self.createdAt = createdAt
-    self.modifiedAt = modifiedAt
+  @Sendable fileprivate static func requestPreparation(_ input: Input) -> Mutation<HTTPRequest> {
+    .combined(
+      .pathSuffix(
+        input.id != nil
+        ? "/metadata/session-keys/\(input.id!).json"
+        : "/metadata/session-keys.json"
+      ),
+      .method(
+        input.id != nil
+        ? .put
+        : .post
+      ),
+      .jsonBody(from: input)
+    )
   }
+  
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    try NetworkResponseDecoder<Input, CommonNetworkResponse<Output>>
+      .bodyAsJSON()
+      .decode(
+        input,
+        response
+      )
+      .body
+  }
+}
 
-  private enum CodingKeys: String, CodingKey {
+extension FeaturesRegistry {
 
-    case id
-    case userId = "user_id"
-    case data
-    case createdAt = "created"
-    case modifiedAt = "modified"
+  internal mutating func useMetadataSessionKeysCreateNetworkOperation() {
+    self.use(
+      .networkOperationWithSession(
+        of: MetadataSessionKeysUpdateNetworkOperation.self,
+        requestPreparation: MetadataSessionKeysUpdateNetworkOperation.requestPreparation(_:),
+        responseDecoding: MetadataSessionKeysUpdateNetworkOperation.responseDecoder(_:_:)
+      )
+    )
   }
 }

@@ -21,35 +21,33 @@
 // @since         v1.0
 //
 
-import NetworkOperations
+import Features
+import struct Foundation.Date
 
-extension MetadataSessionKeysCreateNetworkOperation {
+public typealias MetadataSessionKeysUpdateNetworkOperation = NetworkOperation<MetadataSessionKeysUpdateNetworkOperationDescription>
 
-  @Sendable fileprivate static func requestPreparation(_ input: Input) -> Mutation<HTTPRequest> {
-    .combined(
-      .pathSuffix("/metadata/session-keys.json"),
-      .method(.post),
-      .jsonBody(from: input)
-    )
-  }
-  
-  @Sendable fileprivate static func responseDecoder(
-    _ input: Input,
-    _ response: HTTPResponse
-  ) throws -> Output {
-    return ()
-  }
+public enum MetadataSessionKeysUpdateNetworkOperationDescription: NetworkOperationDescription {
+
+  public typealias Input = EncryptedSessionKeysCache
+  public typealias Output = EncryptedSessionKeysCache
 }
 
-extension FeaturesRegistry {
+public struct EncryptedSessionKeysCache: Codable {
 
-  internal mutating func useMetadataSessionKeysCreateNetworkOperation() {
-    self.use(
-      .networkOperationWithSession(
-        of: MetadataSessionKeysCreateNetworkOperation.self,
-        requestPreparation: MetadataSessionKeysCreateNetworkOperation.requestPreparation(_:),
-        responseDecoding: MetadataSessionKeysCreateNetworkOperation.responseDecoder(_:_:)
-      )
-    )
+  public let id: PassboltID?
+  public let modifiedAt: Date?
+  public let data: ArmoredPGPMessage
+
+  public init(id: PassboltID?, modifiedAt: Date?, data: ArmoredPGPMessage) {
+    self.id = id
+    self.modifiedAt = modifiedAt
+    self.data = data
+  }
+
+  private enum CodingKeys: String, CodingKey {
+
+    case id
+    case modifiedAt = "modified"
+    case data
   }
 }

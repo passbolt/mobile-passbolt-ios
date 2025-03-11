@@ -422,6 +422,7 @@ Contact your administrator for more information.";
 "error.http.response.invalid" = "HTTP response invalid.";
 "error.network.response.invalid" = "Invalid network response";
 "error.http.response.forbidden" = "HTTP forbidden.";
+"error.http.response.conflict" = "HTTP conflict.";
 "error.http.response.not.found" = "HTTP not found.";
 "error.http.response.redirect" = "HTTP redirect.";
 "error.http.request.invalid" = "HTTP request invalid.";

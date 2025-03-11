@@ -21,21 +21,34 @@
 // @since         v1.0
 //
 
-import Features
+public struct EncryptedSessionKeyBundle: Decodable, Sendable {
 
-public typealias MetadataSessionKeysCreateNetworkOperation = NetworkOperation<MetadataSessionKeysCreateNetworkOperationDescription>
+  public var id: PassboltID
+  public var userId: User.ID
+  public var data: ArmoredPGPMessage
+  public var createdAt: Date
+  public var modifiedAt: Date
 
-public enum MetadataSessionKeysCreateNetworkOperationDescription: NetworkOperationDescription {
-
-  public typealias Input = EncryptedSessionKeys
-  public typealias Output = Void
-}
-
-public struct EncryptedSessionKeys: Encodable {
-
-  public let data: ArmoredPGPMessage
-
-  public init(data: ArmoredPGPMessage) {
+  public init(
+    id: PassboltID,
+    userId: User.ID,
+    data: ArmoredPGPMessage,
+    createdAt: Date,
+    modifiedAt: Date
+  ) {
+    self.id = id
+    self.userId = userId
     self.data = data
+    self.createdAt = createdAt
+    self.modifiedAt = modifiedAt
+  }
+
+  private enum CodingKeys: String, CodingKey {
+
+    case id
+    case userId = "user_id"
+    case data
+    case createdAt = "created"
+    case modifiedAt = "modified"
   }
 }
