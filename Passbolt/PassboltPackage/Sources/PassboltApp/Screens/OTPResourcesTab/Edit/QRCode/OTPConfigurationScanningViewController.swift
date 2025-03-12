@@ -258,7 +258,11 @@ private func parseTOTPConfiguration(
     period = 30
   }
 
-  if let issuerParameter: String = parameters.first(where: { key, _ in key == "issuer" }).flatMap({ String($0.value) })
+  let issuerParameter: String? = parameters
+    .first(where: { key, _ in key == "issuer" })
+    .flatMap({ String($0.value) })?
+    .trimmingCharacters(in: .whitespaces)
+  if let issuerParameter, issuerParameter.isEmpty == false
   {
     if issuer != issuerParameter {
       account = "\(issuer):\(account)"

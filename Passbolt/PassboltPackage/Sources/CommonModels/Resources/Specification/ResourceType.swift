@@ -249,10 +249,12 @@ extension ResourceType {
     switch self.specification.slug {
     case .passwordWithDescription:
       return .passwordWithTOTP
-
+    case .v5Default:
+        return .v5DefaultWithTOTP
+    case .v5Password:
+      return .v5DefaultWithTOTP
     case .passwordWithTOTP:
       return .passwordWithTOTP
-
     case .totp:
       return .totp
     case .v5StandaloneTOTP:
@@ -270,7 +272,8 @@ extension ResourceType {
     switch self.specification.slug {
     case .passwordWithTOTP:
       return .passwordWithDescription
-
+    case .v5DefaultWithTOTP:
+      return .v5Default
     case .totp:
       return .none
 

@@ -51,7 +51,7 @@ internal struct ResourceOTPDeleteAlertController: AlertController {
     func deleteOTP() async {
       do {
         let resource: Resource = try await resourceController.state.value
-        if resource.type.specification.slug == .totp {
+        if ResourceSpecification.Slug.standaloneTOTPTypes.contains(resource.type.specification.slug) {
           // for standalone TOTP we delete the resource
           try await resourceController.delete()
         }

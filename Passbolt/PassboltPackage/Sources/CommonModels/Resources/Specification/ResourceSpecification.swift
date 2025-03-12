@@ -76,6 +76,10 @@ extension ResourceSpecification.Slug {
   public static var allTOTPTypes: Set<Self> {
     [.totp, .v5StandaloneTOTP, .passwordWithTOTP, .v5DefaultWithTOTP]
   }
+
+  public static var standaloneTOTPTypes: Set<Self> {
+    [.totp, .v5StandaloneTOTP]
+  }
 }
 
 extension ResourceSpecification {

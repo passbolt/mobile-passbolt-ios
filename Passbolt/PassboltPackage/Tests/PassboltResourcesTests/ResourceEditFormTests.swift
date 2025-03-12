@@ -233,6 +233,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
       meta: [
         "name": "edited",
         "uri": "new",
+        "resource_type_id": .string(selectedResourceType.id.rawValue.rawValue.uuidString)
       ],
       secret: [
         "message": "encrypted",
@@ -255,6 +256,20 @@ final class ResourceEditFormTests: FeaturesTestCase {
     await verifyIf(
       try await tested.state.value,
       isEqual: updatedResource
+    )
+  }
+
+  func test_updateType_ifResourceIsV5ResourceType_updatesMetadata() async throws {
+    let editedResourceType: ResourceType = .init(id: .mock_1, slug: .v5Default)
+    let selectedResourceType: ResourceType = .init(id: .mock_2, slug: .v5DefaultWithTOTP)
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIfNotThrows(
+      try tested.updateType(selectedResourceType)
+    )
+
+    await verifyIf(
+      try await tested.state.value.meta[keyPath: \.resource_type_id].stringValue,
+      isEqual: selectedResourceType.id.rawValue.rawValue.uuidString
     )
   }
 

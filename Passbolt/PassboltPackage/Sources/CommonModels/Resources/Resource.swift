@@ -305,6 +305,10 @@ extension Resource {
       #warning("To verify - this should not leave any junk values!")
       self[keyPath: field.path].remove()
     }
+    // update metadata resource type if needed
+    if self.type.isV4ResourceType == false {
+      self.meta[keyPath: \.resource_type_id] = .string(resourceType.id.rawValue.rawValue.uuidString)
+    }
     // assign new type and initialize fields if needed
     self.type = resourceType
     self.initializeFieldsIfNeeded()
