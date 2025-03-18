@@ -1,4 +1,4 @@
-# Passbolt 1.x.x release notes
+# Passbolt 1.21.0 release notes
 
 ## Added
 - feature/MOB-2048_v5---WP1---Filter-out-unknown-resource-types-from-treated-API-resources-types-get-request
