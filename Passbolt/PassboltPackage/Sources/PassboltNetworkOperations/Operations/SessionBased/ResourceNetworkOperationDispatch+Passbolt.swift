@@ -21,9 +21,9 @@
 // @since         v1.0
 //
 
+import FeatureScopes
 import NetworkOperations
 import Resources
-import FeatureScopes
 
 extension ResourceNetworkOperationDispatch {
   @MainActor static func load(
@@ -34,24 +34,37 @@ extension ResourceNetworkOperationDispatch {
     let resourceEditNetworkOperationV4: ResourceEditNetworkOperationV4 = try features.instance()
     let resourceEditNetworkOperation: ResourceEditNetworkOperation = try features.instance()
     let metadataKeysService: MetadataKeysService = try features.instance()
-    
-    @Sendable func createResource(resource: Resource, secrets: Secrets) async throws -> ResourceCreateNetworkOperationResult {
+
+    @Sendable func createResource(
+      resource: Resource,
+      secrets: Secrets,
+      sharing: Bool
+    ) async throws -> ResourceCreateNetworkOperationResult {
       if resource.type.isV4ResourceType {
         return try await createResourceV4(resource: resource, secrets: secrets)
-      } else {
-        return try await createResourceV5(resource: resource, secrets: secrets)
+      }
+      else {
+        return try await createResourceV5(resource: resource, secrets: secrets, sharing: sharing)
       }
     }
-    
-    @Sendable func editResource(resource: Resource, withID id: Resource.ID, secrets: Secrets) async throws -> ResourceEditNetworkOperationResult {
+
+    @Sendable func editResource(
+      resource: Resource,
+      withID id: Resource.ID,
+      secrets: Secrets
+    ) async throws -> ResourceEditNetworkOperationResult {
       if resource.type.isV4ResourceType {
         return try await editResourceV4(resource: resource, withID: id, secrets: secrets)
-      } else {
+      }
+      else {
         return try await editResourceV5(resource: resource, withID: id, secrets: secrets)
       }
     }
-    
-    @Sendable func createResourceV4(resource: Resource, secrets: Secrets) async throws -> ResourceCreateNetworkOperationResult {
+
+    @Sendable func createResourceV4(
+      resource: Resource,
+      secrets: Secrets
+    ) async throws -> ResourceCreateNetworkOperationResult {
       try await resourceCreateNetworkOperationV4(
         .init(
           resourceTypeID: resource.type.id,
@@ -64,26 +77,62 @@ extension ResourceNetworkOperationDispatch {
         )
       )
     }
-    
-    @Sendable func createResourceV5(resource: Resource,  secrets: Secrets) async throws -> ResourceCreateNetworkOperationResult {
-      guard let metadataString = resource.meta.stringValue,
-            let encryptedMetadata = try await metadataKeysService.encrypt(metadataString, .userKey)
+
+    @Sendable func createResourceV5(
+      resource: Resource,
+      secrets: Secrets,
+      sharing: Bool
+    ) async throws -> ResourceCreateNetworkOperationResult {
+      guard let metadataString: String = resource.meta.stringValue
       else {
         throw MetadataEncryptionFailure.error()
       }
+      let metadataKeyId: MetadataKeyDTO.ID?
+      let metadataKeyType: MetadataKeyDTO.MetadataKeyType
+      let encryptedMetadata: ArmoredPGPMessage
+      if sharing {
+        guard
+          let result:
+            (
+              encryptedMetadata: ArmoredPGPMessage,
+              keyId: MetadataKeyDTO.ID
+            ) = try await metadataKeysService.encryptForSharing(
+              metadataString
+            )
+        else {
+          throw MetadataEncryptionFailure.error()
+        }
+        metadataKeyId = result.keyId
+        metadataKeyType = .shared
+        encryptedMetadata = result.encryptedMetadata
+      }
+      else {
+        guard let result = try await metadataKeysService.encrypt(metadataString, .userKey)
+        else {
+          throw MetadataEncryptionFailure.error()
+        }
+        encryptedMetadata = result
+        metadataKeyId = resource.metadataKeyId
+        metadataKeyType = .user
+      }
+
       return try await resourceCreateNetworkOperation(
         .init(
           resourceTypeID: resource.type.id,
           parentFolderID: resource.parentFolderID,
           metadata: encryptedMetadata,
-          metadataKeyID: resource.metadataKeyId,
-          metadataKeyType: .user,
+          metadataKeyID: metadataKeyId,
+          metadataKeyType: metadataKeyType,
           secrets: secrets
         )
       )
     }
-    
-    @Sendable func editResourceV4(resource: Resource, withID id: Resource.ID, secrets: Secrets) async throws -> ResourceEditNetworkOperationResult {
+
+    @Sendable func editResourceV4(
+      resource: Resource,
+      withID id: Resource.ID,
+      secrets: Secrets
+    ) async throws -> ResourceEditNetworkOperationResult {
       try await resourceEditNetworkOperationV4(
         .init(
           resourceID: id,
@@ -97,12 +146,21 @@ extension ResourceNetworkOperationDispatch {
         )
       )
     }
-    
-    @Sendable func editResourceV5(resource: Resource, withID id: Resource.ID, secrets: Secrets) async throws -> ResourceEditNetworkOperationResult {
+
+    @Sendable func editResourceV5(
+      resource: Resource,
+      withID id: Resource.ID,
+      secrets: Secrets
+    ) async throws -> ResourceEditNetworkOperationResult {
       let validatedMetadataProperties: ValidatedMetadataProperties = try .init(resource: resource)
-      
+
       let encryptionType: MetadataKeysService.EncryptionType = validatedMetadataProperties.encryptionType
-      guard let encryptedMetadata = try await metadataKeysService.encrypt(validatedMetadataProperties.metadata, encryptionType) else {
+      guard
+        let encryptedMetadata: ArmoredPGPMessage = try await metadataKeysService.encrypt(
+          validatedMetadataProperties.metadata,
+          encryptionType
+        )
+      else {
         throw MetadataEncryptionFailure.error()
       }
       return try await resourceEditNetworkOperation(
@@ -119,18 +177,19 @@ extension ResourceNetworkOperationDispatch {
     }
 
     return .init(
-      createResource: createResource(resource:secrets:),
+      createResource: createResource(resource:secrets:sharing:),
       editResource: editResource(resource:withID:secrets:)
     )
   }
 }
 
 extension ResourceNetworkOperationDispatch {
+
   enum InvalidMetadataProperties: Error {
+
     case missingMetadataKeyId
     case missingMetadata
     case missingMetadataKeyType
-    
   }
 }
 
@@ -138,11 +197,11 @@ private struct ValidatedMetadataProperties {
   public let metadataKeyId: MetadataKeyDTO.ID
   public let metadata: String
   public let metadataKeyType: MetadataKeyDTO.MetadataKeyType
-  
+
   var encryptionType: MetadataKeysService.EncryptionType {
     metadataKeyType == .shared ? .sharedKey(metadataKeyId) : .userKey
   }
-  
+
   init(resource: Resource) throws {
     var diagnostics: Array<DiagnosticsContext> = []
     if resource.metadataKeyId == nil {
@@ -155,15 +214,16 @@ private struct ValidatedMetadataProperties {
         .context(.message("Missing metadata"))
       )
     }
-    
+
     if resource.metadataKeyType == nil {
       diagnostics.append(
         .context(.message("Missing metadata key type"))
       )
     }
-    guard let metadataKeyId = resource.metadataKeyId,
-          let metadata = resource.meta.stringValue,
-          let metadataKeyType = resource.metadataKeyType
+    guard
+      let metadataKeyId = resource.metadataKeyId,
+      let metadata = resource.meta.stringValue,
+      let metadataKeyType = resource.metadataKeyType
     else {
       throw InvalidMetadataProperties.error(diagnostics)
     }
@@ -173,21 +233,22 @@ private struct ValidatedMetadataProperties {
   }
 }
 
-
 struct InvalidMetadataProperties: TheError {
+
   var context: DiagnosticsContext
-  
+
   static func error(_ contexts: [DiagnosticsContext]) -> Self {
     Self(context: .merging(contexts))
   }
 }
 
 struct MetadataEncryptionFailure: TheError {
+
   var context: DiagnosticsContext
-  
+
   static func error() -> Self {
     Self(
-      context:.context(
+      context: .context(
         .message(
           "Failed to encrypt metadata"
         )
@@ -201,7 +262,7 @@ extension FeaturesRegistry {
   internal mutating func usePassboltResourceNetworkOperationDispatch() {
     self.use(
       .lazyLoaded(
-        ResourceNetworkOperationDispatch.self, 
+        ResourceNetworkOperationDispatch.self,
         load: ResourceNetworkOperationDispatch.load(features:)
       ),
       in: SessionScope.self

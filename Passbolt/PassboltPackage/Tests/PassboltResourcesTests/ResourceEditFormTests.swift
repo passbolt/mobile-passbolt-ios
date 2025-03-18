@@ -25,6 +25,7 @@ import TestExtensions
 
 @testable import PassboltResources
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ResourceEditFormTests: FeaturesTestCase {
 
   var editedResource: Resource = .mock_1
@@ -260,7 +261,6 @@ final class ResourceEditFormTests: FeaturesTestCase {
   }
 
   func test_updateType_ifResourceIsV5ResourceType_updatesMetadata() async throws {
-    let editedResourceType: ResourceType = .init(id: .mock_1, slug: .v5Default)
     let selectedResourceType: ResourceType = .init(id: .mock_2, slug: .v5DefaultWithTOTP)
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIfNotThrows(
@@ -480,7 +480,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceNetworkOperationDispatch.createResource,
-      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
+      with: { _, _, sharing async throws in
+        XCTAssertFalse(sharing, "Should not use sharing flag when creating resource in folder with single user")
+        return .init(resourceID: .mock_1, ownerPermissionID: .mock_1)
+      }
     )
     patch(
       \ResourceFolderPermissionsFetchDatabaseOperation.execute,
@@ -630,7 +633,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceNetworkOperationDispatch.createResource,
-      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
+      with: { _, _, sharing async throws in
+        XCTAssertTrue(sharing, "Should use sharing flag when creating shared resource")
+        return .init(resourceID: .mock_1, ownerPermissionID: .mock_1)
+      }
     )
     patch(
       \ResourceFolderPermissionsFetchDatabaseOperation.execute,

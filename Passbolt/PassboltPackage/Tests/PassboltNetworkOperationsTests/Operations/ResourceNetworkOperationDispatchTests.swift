@@ -24,8 +24,9 @@
 import TestExtensions
 @testable import PassboltNetworkOperations
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
-  
+
   override func commonPrepare() {
     super.commonPrepare()
     register(
@@ -40,90 +41,93 @@ final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
       )
     )
   }
-  
+
   func test_givenV4ResourceType_whenCallingCreateResource_shouldExecuteV4ResourceNetworkOperation() async throws {
     let expectation = self.expectation(description: "Should call v4 network operation")
     patch(
       \ResourceCreateNetworkOperationV4.execute,
-       with: { _ in
-         expectation.fulfill()
-         return .init(
+      with: { _ in
+        expectation.fulfill()
+        return .init(
           resourceID: .mock_1,
           ownerPermissionID: .mock_1
         )
-       }
+      }
     )
-    
+
     let sut: ResourceNetworkOperationDispatch = try self.testedInstance()
     _ = try await sut.createResource(
       .init(
         type: .init(id: .mock_1, slug: .password)
       ),
-      .init([.mock_1])
+      .init([.mock_1]),
+      false
     )
 
     await fulfillment(of: [expectation], timeout: 1)
   }
-  
+
   func test_givenV5ResourceType_whenCallingCreateResource_shouldExecuteV5ResourceNetworkOperation() async throws {
     let expectation = self.expectation(description: "Should call v5 network operation")
     patch(
       \ResourceCreateNetworkOperation.execute,
-       with: { _ in
-         expectation.fulfill()
-         return .init(
+      with: { _ in
+        expectation.fulfill()
+        return .init(
           resourceID: .mock_1,
           ownerPermissionID: .mock_1
         )
-       }
+      }
     )
     patch(
       \MetadataKeysService.encrypt,
-       with: { input, _ in .init(input) }
-     )
-    
+      with: { input, _ in .init(input) }
+    )
+
     let sut: ResourceNetworkOperationDispatch = try self.testedInstance()
     _ = try await sut.createResource(
       .init(
         type: .init(id: .mock_1, slug: .v5Default)
       ),
-      .init([.mock_1])
+      .init([.mock_1]),
+      false
     )
 
     await fulfillment(of: [expectation], timeout: 1)
   }
-  
+
   func test_givenV5ResourceType_whenEncryptionFails_shouldThrowException() async throws {
     patch(
       \MetadataKeysService.encrypt,
-       with: { _, _ in nil }
-     )
-    
+      with: { _, _ in nil }
+    )
+
     let sut: ResourceNetworkOperationDispatch = try self.testedInstance()
     await verifyIf(
-      _ = try await sut.createResource(
+      try await sut.createResource(
         .init(
           type: .init(id: .mock_1, slug: .v5Default)
         ),
-        .init([.mock_1])
+        .init([.mock_1]),
+        false
       ),
       throws: MetadataEncryptionFailure.self,
       "Should throw MetadataEncryptionFailure"
     )
   }
-  
+
   func test_givenV4ResourceType_whenCallingEditResource_shouldExecuteV4ResourceNetworkOperation() async throws {
     let expectation = self.expectation(description: "Should call v4 network operation")
     patch(
       \ResourceEditNetworkOperationV4.execute,
-       with: { _ in
-         expectation.fulfill()
-         return .init(
+      with: { _ in
+        expectation.fulfill()
+        return .init(
           resourceID: .mock_1
         )
-       }
+      }
     )
-    
+
     let sut: ResourceNetworkOperationDispatch = try self.testedInstance()
     _ = try await sut.editResource(
       .init(
@@ -135,23 +139,23 @@ final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
 
     await fulfillment(of: [expectation], timeout: 1)
   }
-  
+
   func test_givenV5ResourceType_whenCallingEditResource_shouldExecuteV5ResourceNetworkOperation() async throws {
     let expectation = self.expectation(description: "Should call v5 network operation")
     patch(
       \ResourceEditNetworkOperation.execute,
-       with: { _ in
-         expectation.fulfill()
-         return .init(
+      with: { _ in
+        expectation.fulfill()
+        return .init(
           resourceID: .mock_1
         )
-       }
+      }
     )
     patch(
       \MetadataKeysService.encrypt,
-       with: { input, _ in .init(input) }
-     )
-    
+      with: { input, _ in .init(input) }
+    )
+
     let sut: ResourceNetworkOperationDispatch = try self.testedInstance()
     _ = try await sut.editResource(
       .init(
@@ -165,16 +169,16 @@ final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
 
     await fulfillment(of: [expectation], timeout: 1)
   }
-  
+
   func test_givenV5ResourceType_whenEncryptionFailsDuringEdit_shouldThrowException() async throws {
     patch(
       \MetadataKeysService.encrypt,
-       with: { _, _ in nil }
-     )
-    
+      with: { _, _ in nil }
+    )
+
     let sut: ResourceNetworkOperationDispatch = try self.testedInstance()
     await verifyIf(
-      _ = try await sut.editResource(
+      try await sut.editResource(
         .init(
           type: .init(id: .mock_1, slug: .v5Default),
           metadataKeyId: .init(),
@@ -186,5 +190,42 @@ final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
       throws: MetadataEncryptionFailure.self,
       "Should throw MetadataEncryptionFailure"
     )
+  }
+
+  func test_givenV5ResourceType_whenCallingCreateWithSharingOption_shouldUseSharedKeyEncryption() async throws {
+    let sharedEncryptionExpectation: XCTestExpectation = .init(description: "Should call shared key encryption")
+    let createNetworkOperationExpectation: XCTestExpectation = .init(
+      description: "Should call create network operation"
+    )
+    patch(
+      \MetadataKeysService.encryptForSharing,
+      with: { input async throws in
+        sharedEncryptionExpectation.fulfill()
+        return (.init(rawValue: input), .init())
+      }
+    )
+
+    patch(
+      \ResourceCreateNetworkOperation.execute,
+      with: { input in
+        createNetworkOperationExpectation.fulfill()
+        XCTAssertEqual(input.metadataKeyType, .shared)
+
+        return .init(
+          resourceID: .mock_1,
+          ownerPermissionID: .mock_1
+        )
+      }
+    )
+
+    let sut: ResourceNetworkOperationDispatch = try self.testedInstance()
+    _ = try await sut.createResource(
+      .init(
+        type: .init(id: .mock_1, slug: .v5Default)
+      ),
+      .init([.mock_1]),
+      true
+    )
+    await fulfillment(of: [sharedEncryptionExpectation, createNetworkOperationExpectation], timeout: 1)
   }
 }

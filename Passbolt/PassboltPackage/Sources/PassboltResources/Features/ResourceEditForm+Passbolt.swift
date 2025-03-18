@@ -53,7 +53,6 @@ extension ResourceEditForm {
     let resourceShareNetworkOperation: ResourceShareNetworkOperation = try features.instance()
     let resourceFolderPermissionsFetchDatabaseOperation: ResourceFolderPermissionsFetchDatabaseOperation =
       try features.instance()
-    let resourceUserIdsFetchDatabaseOperation: ResourceUsersIDFetchDatabaseOperation = try features.instance()
     let formState: Variable<Resource> = .init(initial: context.editedResource)
 
     @Sendable nonisolated func update(
@@ -105,7 +104,8 @@ extension ResourceEditForm {
 
       if let resourceID: Resource.ID = resource.id {
         let encryptedSecrets = try await resourceUpdatePreparation.prepareSecret(resourceID, resourceSecret)
-        _ = try await resourceNetworkOperationDispatch
+        _ =
+          try await resourceNetworkOperationDispatch
           .editResource(
             resource,
             resourceID,
@@ -125,20 +125,27 @@ extension ResourceEditForm {
             UserSecretMissing
             .error()
         }
-        let createdResourceResult = try await resourceNetworkOperationDispatch
+
+        let folderPermissions: Array<ResourceFolderPermission>
+        if let folderID: ResourceFolder.ID = resource.parentFolderID {
+          folderPermissions = try await resourceFolderPermissionsFetchDatabaseOperation(folderID)
+        }
+        else {
+          folderPermissions = []
+        }
+
+        let createdResourceResult =
+          try await resourceNetworkOperationDispatch
           .createResource(
-              resource,
-              [ownEncryptedMessage]
+            resource,
+            [ownEncryptedMessage],
+            folderPermissions.count > 1
           )
 
-        folder: if let folderID: ResourceFolder.ID = resource.parentFolderID {
-          let folderPermissions: Array<ResourceFolderPermission> =
-            try await resourceFolderPermissionsFetchDatabaseOperation(folderID)
-
-          // do not share if folder has only a single person
-          // it has to be the current user
-          guard folderPermissions.count > 1
-          else { break folder }
+        // share if folder has more than a single person
+        if folderPermissions.count > 1,
+          let folderID: ResourceFolder.ID = resource.parentFolderID
+        {
 
           let encryptedSecrets: OrderedSet<EncryptedMessage> =
             try await usersPGPMessages
@@ -152,7 +159,7 @@ extension ResourceEditForm {
             folderPermissions
             .compactMap { (permission: ResourceFolderPermission) -> NewGenericPermissionDTO? in
               switch permission {
-              case let .user(id, permission, _):
+              case .user(let id, let permission, _):
                 guard id != currentAccount.userID
                 else { return .none }
                 return .userToResource(
@@ -160,7 +167,7 @@ extension ResourceEditForm {
                   resourceID: createdResourceResult.resourceID,
                   permission: permission
                 )
-              case let .userGroup(id, permission, _):
+              case .userGroup(let id, let permission, _):
                 return .userGroupToResource(
                   userGroupID: id,
                   resourceID: createdResourceResult.resourceID,
@@ -218,7 +225,7 @@ extension ResourceEditForm {
               )
             )
           )
-        }  // else continue without sharing
+        }
 
         resource.id = createdResourceResult.resourceID
       }

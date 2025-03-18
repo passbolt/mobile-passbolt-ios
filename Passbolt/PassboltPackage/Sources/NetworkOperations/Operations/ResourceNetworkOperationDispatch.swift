@@ -25,12 +25,20 @@ import CommonModels
 
 public struct ResourceNetworkOperationDispatch {
   public typealias Secrets = OrderedSet<EncryptedMessage>
-  public var createResource: @Sendable (Resource, Secrets) async throws -> ResourceCreateNetworkOperationResult
+  public var createResource: @Sendable (Resource, Secrets, Bool) async throws -> ResourceCreateNetworkOperationResult
   public var editResource: @Sendable (Resource, Resource.ID, Secrets) async throws -> ResourceEditNetworkOperationResult
-  
+
   public init(
-    createResource: @Sendable @escaping (Resource, Secrets) async throws -> ResourceCreateNetworkOperationResult,
-    editResource: @Sendable @escaping (Resource, Resource.ID, Secrets) async throws -> ResourceEditNetworkOperationResult
+    createResource: @Sendable @escaping (
+      Resource,
+      Secrets,
+      Bool
+    ) async throws -> ResourceCreateNetworkOperationResult,
+    editResource: @Sendable @escaping (
+      Resource,
+      Resource.ID,
+      Secrets
+    ) async throws -> ResourceEditNetworkOperationResult
   ) {
     self.createResource = createResource
     self.editResource = editResource
@@ -42,7 +50,7 @@ extension ResourceNetworkOperationDispatch: LoadableFeature {
   #if DEBUG
   public nonisolated static var placeholder: Self {
     .init(
-      createResource: unimplemented2(),
+      createResource: unimplemented3(),
       editResource: unimplemented3()
     )
   }
