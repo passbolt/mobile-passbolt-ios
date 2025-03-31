@@ -22,30 +22,44 @@
 //
 
 import Display
-import FeatureScopes
+import UICommons
 
-internal enum OTPEditAdvancedFormNavigationDestination: NavigationDestination {
+internal struct ResourceCreateMenuView: ControlledView {
 
-  internal typealias TransitionContext = OTPEditAdvancedFormViewController.Context
-}
+  internal let controller: ResourceCreateMenuViewController
 
-internal typealias NavigationToOTPEditAdvancedForm = NavigationTo<OTPEditAdvancedFormNavigationDestination>
-
-extension NavigationToOTPEditAdvancedForm {
-
-  fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
-      to: OTPEditAdvancedFormView.self
+  internal var body: some View {
+    DrawerMenu(
+      closeTap: self.controller.dismiss,
+      title: {
+        Text(displayable: "resource.create.menu.title")
+      },
+      content: {
+        withEach(\.menuItems) { menuItem in
+          menuItem.view(using: controller)
+        }
+      }
     )
   }
 }
 
-extension FeaturesRegistry {
+extension ResourceCreateMenuItem {
 
-  internal mutating func useLiveNavigationToOTPEditAdvancedForm() {
-    self.use(
-      NavigationToOTPEditAdvancedForm.live,
-      in: ResourceEditScope.self
+  @ViewBuilder
+  fileprivate func view(
+    using controller: ResourceCreateMenuViewController
+  ) -> some View {
+    DrawerMenuItemView(
+      action: {
+        await controller.create(self.slug)
+      },
+      title: {
+        Text(displayable: self.title)
+      },
+      leftIcon: {
+        self.icon
+          .resizable()
+      }
     )
   }
 }

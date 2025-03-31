@@ -45,7 +45,20 @@ internal struct ResourcesListCreateMenuView: ControlledView {
       },
       content: {
         VStack(spacing: 0) {
-
+          WithEachViewState(from: self.controller, at: \.menuItems) { resourceType in
+            DrawerMenuItemView(
+              action: { await self.controller.createResource(resourceType.slug) },
+              title: {
+                Text(
+                  displayable: resourceType.title
+                )
+              },
+              leftIcon: {
+                resourceType.icon
+              }
+            )
+            .accessibilityIdentifier(resourceType.slug.accessibilityIdentifier)
+          }
           DrawerMenuItemView(
             action: self.controller.createFolder,
             title: {
@@ -60,23 +73,17 @@ internal struct ResourcesListCreateMenuView: ControlledView {
             }
           )
           .accessibilityIdentifier("resource.folders.add.folder")
-            
-            DrawerMenuItemView(
-              action: self.controller.createResource,
-              title: {
-                Text(
-                  displayable: .localized(
-                    key: "resource.folders.add.menu.password.label"
-                  )
-                )
-              },
-              leftIcon: {
-                Image(named: .key)
-              }
-            )
-            .accessibilityIdentifier("resource.folders.add.password")
         }
       }
     )
+  }
+}
+
+extension ResourceSpecification.Slug {
+  fileprivate var accessibilityIdentifier: String {
+    if self.isStandaloneTOTPType {
+      return "resource.folders.add.totp"
+    }
+    return "resource.folders.add.password"
   }
 }

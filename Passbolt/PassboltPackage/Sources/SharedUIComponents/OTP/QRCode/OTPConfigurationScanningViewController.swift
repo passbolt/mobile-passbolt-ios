@@ -26,31 +26,38 @@ import FeatureScopes
 import OSFeatures
 import Resources
 
-internal final class OTPConfigurationScanningViewController: ViewController {
+public final class OTPConfigurationScanningViewController: ViewController {
 
-  internal struct Context {
+  public struct Context {
 
     internal var totpPath: ResourceType.FieldPath
+
+    public init(totpPath: ResourceType.FieldPath) {
+      self.totpPath = totpPath
+    }
   }
 
-  internal struct ViewState: Equatable {
+  public struct ViewState: Equatable {
 
     internal var loading: Bool
+    internal var isStandaloneOTP: Bool
+    internal var canEditManually: Bool
   }
 
-  internal nonisolated let viewState: ViewStateSource<ViewState>
+  public nonisolated let viewState: ViewStateSource<ViewState>
 
   private let resourceEditForm: ResourceEditForm
 
   private let navigationToScanningSuccess: NavigationToOTPScanningSuccess
   private let navigationToSelf: NavigationToOTPScanning
+  private let navigationToOTPEditForm: NavigationToOTPEditForm
   private let scanningState: CriticalState<ScanningState>
 
   private let context: Context
 
   private let features: Features
 
-  internal init(
+  public init(
     context: Context,
     features: Features
   ) throws {
@@ -62,12 +69,18 @@ internal final class OTPConfigurationScanningViewController: ViewController {
 
     self.navigationToScanningSuccess = try features.instance()
     self.navigationToSelf = try features.instance()
+    self.navigationToOTPEditForm = try features.instance()
     self.scanningState = .init(.idle)
 
     self.resourceEditForm = try features.instance()
+    let context: ResourceEditingContext = try features.context(of: ResourceEditScope.self)
+
     self.viewState = .init(
       initial: .init(
-        loading: false
+        loading: false,
+        isStandaloneOTP: context.editedResource.type.specification.slug.isStandaloneTOTPType,
+        canEditManually: context.editedResource.isLocal
+          && context.editedResource.type.specification.slug.isStandaloneTOTPType
       )
     )
   }
@@ -96,16 +109,24 @@ extension OTPConfigurationScanningViewController {
         )
       Task { [viewState, context, resourceEditForm, navigationToSelf, navigationToScanningSuccess] in
         resourceEditForm.update(context.totpPath, to: configuration.secret)
-        if try await resourceEditForm.state.value.isLocal {
+        resourceEditForm.update(\.meta.uri, to: configuration.issuer)
+        resourceEditForm.update(\.secret.totp, to: configuration.secret)
+        if await viewState.current.isStandaloneOTP {
           resourceEditForm.update(\.nameField, to: configuration.account)
-          resourceEditForm.update(\.meta.uri, to: configuration.issuer)
-          resourceEditForm.update(\.secret.totp, to: configuration.secret)
-          try await navigationToScanningSuccess
-            .perform(
-              context: .init(
-                totpConfiguration: configuration
+        }
+        if try await resourceEditForm.state.value.isLocal {
+          /// Only newly created standalone TOTP resources could be scanned  without edit form.
+          if await viewState.current.isStandaloneOTP {
+            try await navigationToScanningSuccess
+              .perform(
+                context: .init(
+                  totpConfiguration: configuration
+                )
               )
-            )
+          }
+          else {
+            try await navigationToSelf.revert()
+          }
         }
         else {
           await viewState
@@ -114,9 +135,7 @@ extension OTPConfigurationScanningViewController {
               to: true
             )
           do {
-            try await resourceEditForm.send()
             try await navigationToSelf.revert()
-            SnackBarMessageEvent.send("otp.edit.otp.replaced.message")
           }
           catch {
             await viewState
@@ -146,6 +165,17 @@ extension OTPConfigurationScanningViewController {
         )
 
       error.consume()
+    }
+  }
+
+  /// Navigate to manual TOTP configuration editing form.
+  internal func editManually() async {
+    await consumingErrors {
+      try await self.navigationToOTPEditForm.perform(
+        context: .init(
+          totpPath: context.totpPath
+        )
+      )
     }
   }
 }

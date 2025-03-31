@@ -29,7 +29,6 @@ import Resources
 internal final class OTPScanningSuccessViewController: ViewController {
 
   internal struct Context {
-
     internal var totpConfiguration: TOTPConfiguration
   }
 
@@ -37,7 +36,7 @@ internal final class OTPScanningSuccessViewController: ViewController {
   private let resourceEditForm: ResourceEditForm
 
   private let navigationToAttach: NavigationToOTPAttachSelectionList
-  private let navigationToOTPResourcesList: NavigationToOTPResourcesList
+  private let navigationToOTPScanning: NavigationToOTPScanning
 
   private let context: Context
 
@@ -54,10 +53,10 @@ internal final class OTPScanningSuccessViewController: ViewController {
     self.context = context
 
     self.navigationToAttach = try features.instance()
-    self.navigationToOTPResourcesList = try features.instance()
 
     self.resourceEditPreparation = try features.instance()
     self.resourceEditForm = try features.instance()
+    self.navigationToOTPScanning = try features.instance()
   }
 }
 
@@ -68,7 +67,7 @@ extension OTPScanningSuccessViewController {
       errorDiagnostics: "Failed to create standalone OTP"
     ) {
       try await self.resourceEditForm.send()
-      try await self.navigationToOTPResourcesList.perform()
+      try await self.navigationToOTPScanning.revert()
       SnackBarMessageEvent.send("otp.edit.otp.created.message")
     }
   }
@@ -86,6 +85,6 @@ extension OTPScanningSuccessViewController {
   }
 
   internal func close() async {
-    await navigationToOTPResourcesList.performCatching()
+    await self.navigationToOTPScanning.revertCatching()
   }
 }

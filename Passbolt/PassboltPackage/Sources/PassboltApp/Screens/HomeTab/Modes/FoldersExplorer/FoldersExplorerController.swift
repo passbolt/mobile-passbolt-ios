@@ -167,13 +167,15 @@ extension FoldersExplorerController: ComponentController {
       #warning("MOB-616 check if can create folder?")
       cancellables.executeOnMainActor {
         do {
+          let resourceCreatePreparation: ResourceCreatePreparation = try features.instance()
+          let resourceCreatingContext: ResourceCreatingContext = try await resourceCreatePreparation.prepare()
           try await navigation.presentSheet(
             ResourcesListCreateMenuView.self,
             controller:
               features
               .instance(
                 of: ResourcesListCreateMenuViewController.self,
-                context: folderID
+                context: .init(folderID: folderID, availableTypes: resourceCreatingContext.availableTypes)
               )
           )
         }

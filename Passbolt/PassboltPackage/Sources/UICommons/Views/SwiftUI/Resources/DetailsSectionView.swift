@@ -21,29 +21,47 @@
 // @since         v1.0
 //
 
-@_exported import Resources
+import SwiftUI
 
-extension FeaturesRegistry {
+public struct DetailsSectionView<ContentView>: View where ContentView: View {
 
-  public mutating func usePassboltResourcesModule() {
-    self.usePassboltResourceController()
-    self.usePassboltResourceShareForm()
-    self.usePassboltResourceEditPreparation()
-    self.usePassboltResourceEditForm()
-    self.usePassboltResourceFolders()
-    self.usePassboltResources()
-    self.usePassboltResourceTags()
-    self.usePassboltResourceFolderDetails()
-    self.usePassboltResourceFolderEditForm()
-    self.usePassboltResourcesOTPController()
-    self.usePassboltHOTPCodeGenerator()
-    self.usePassboltTOTPCodeGenerator()
-    self.usePassboltResourceSearchController()
-    self.usePassboltResourceFolderEditPreparation()
-    self.usePassboltMetadataKeysService()
-    self.usePassboltMetadataSettingsService()
-    self.usePassboltResourceUpdatePreparation()
-    self.usePassboltResourceSharePreparation()
-    self.usePassboltResourceCreatePreparation()
+  private let title: DisplayableString
+  private let content: @MainActor () -> ContentView
+
+  public init(title: DisplayableString, content: @escaping @MainActor () -> ContentView) {
+    self.title = title
+    self.content = content
+  }
+
+  public var body: some View {
+    VStack(alignment: .leading, spacing: 16) {
+      Text(displayable: title)
+        .font(.inter(ofSize: 16, weight: .bold))
+        .foregroundColor(.passboltPrimaryText)
+      VStack(alignment: .leading, spacing: 0) {
+        content()
+      }
+      .frame(maxWidth: .infinity)
+      .padding(8)
+      .background(Color.passboltBackgroundGray)
+      .cornerRadius(4)
+    }
   }
 }
+
+#if DEBUG
+
+internal struct DetailsSectionView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    CommonList {
+      DetailsSectionView(title: "Password") {
+        Text("some details")
+          .font(.inter(ofSize: 14, weight: .regular))
+          .foregroundColor(.passboltPrimaryText)
+      }
+    }
+  }
+}
+
+#endif

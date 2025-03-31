@@ -58,7 +58,7 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
 
   private let navigationToSelf: NavigationToResourceOTPContextualMenu
   private let navigationToResourceOTPDeleteAlert: NavigationToResourceOTPDeleteAlert
-  private let navigationToTOTPEditMenu: NavigationToResourceOTPEditMenu
+  private let navigateToResourceEdit: NavigationToResourceEdit
 
   private let linkOpener: OSLinkOpener
   private let pasteboard: OSPasteboard
@@ -88,7 +88,7 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
 
     self.navigationToSelf = try features.instance()
     self.navigationToResourceOTPDeleteAlert = try features.instance()
-    self.navigationToTOTPEditMenu = try features.instance()
+    self.navigateToResourceEdit = try features.instance()
 
     self.resourceController = try features.instance()
 
@@ -121,7 +121,7 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
             modifyMenuItems.append(.deleteOTP)
           }  // else NOP
 
-          await updateState { (viewState: inout ViewState) in
+          updateState { (viewState: inout ViewState) in
             viewState.title = resource.name
             viewState.accessMenuItems = accessMenuItems
             viewState.modifyMenuItems = modifyMenuItems
@@ -197,16 +197,27 @@ extension ResourceOTPContextualMenuViewController {
   }
 
   internal func editOTP() async {
-    await consumingErrors { [resourceID] in
+    await consumingErrors { [features, resourceID] in
       let resourceEditPreparation: ResourceEditPreparation = try features.instance()
       let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareExisting(resourceID)
 
       try await self.navigationToSelf.revert()
-      try await self.navigationToTOTPEditMenu.perform(
-        context: .init(
-          editingContext: editingContext
-        )
-      )
+
+      if editingContext.editedResource.isStandaloneTOTPResource,
+        let totpPath: ResourceType.FieldPath = editingContext.editedResource.firstTOTPPath
+      {
+        let features = try features.branch(scope: ResourceEditScope.self, context: editingContext)
+        let navigationToOTPEditForm: NavigationToOTPEditForm = try features.instance()
+        try await navigationToOTPEditForm
+          .perform(
+            context: .init(
+              totpPath: totpPath
+            )
+          )
+      }
+      else {
+        try await self.navigateToResourceEdit.perform(context: .init(editingContext: editingContext))
+      }
     }
   }
 

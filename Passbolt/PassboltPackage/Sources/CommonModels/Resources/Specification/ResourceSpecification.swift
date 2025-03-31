@@ -60,25 +60,35 @@ extension ResourceSpecification.Slug {
   public static let v5StandaloneTOTP: Self = "v5-totp-standalone"
   public static let v5Password: Self = "v5-password-string"
 
+  /// Checks if the resource type is v4 or v5
   public var isSupported: Bool {
     Self.v4Types.contains(self)
       || Self.v5Types.contains(self)
   }
 
+  /// V4 resource types
   public static var v4Types: [Self] {
     [.password, .passwordWithDescription, .totp, .passwordWithTOTP]
   }
 
+  /// V5 resource types
   public static var v5Types: [Self] {
     [.v5StandaloneTOTP, .v5DefaultWithTOTP, .v5Password, .v5Default]
   }
 
+  /// All resource types that include TOTP functionality
   public static var allTOTPTypes: Set<Self> {
     [.totp, .v5StandaloneTOTP, .passwordWithTOTP, .v5DefaultWithTOTP]
   }
 
+  /// Resource types that are TOTP-only without password
   public static var standaloneTOTPTypes: Set<Self> {
     [.totp, .v5StandaloneTOTP]
+  }
+
+  /// Checks if this is a standalone TOTP type without password
+  public var isStandaloneTOTPType: Bool {
+    Self.standaloneTOTPTypes.contains(self)
   }
 }
 
@@ -92,7 +102,7 @@ extension ResourceSpecification {
       metaFields: [
         .init(
           path: \.meta.name,
-          name: "name",
+          name: .name,
           content: .string(
             minLength: .none,
             maxLength: 255
@@ -101,8 +111,15 @@ extension ResourceSpecification {
           encrypted: false
         ),
         .init(
+          path: \.meta.uris,
+          name: .uri,
+          content: .list,
+          required: false,
+          encrypted: false
+        ),
+        .init(
           path: \.meta.username,
-          name: "username",
+          name: .username,
           content: .string(
             minLength: .none,
             maxLength: 255
@@ -111,15 +128,8 @@ extension ResourceSpecification {
           encrypted: false
         ),
         .init(
-          path: \.meta.uris,
-          name: "uri",
-          content: .list,
-          required: false,
-          encrypted: false
-        ),
-        .init(
           path: \.meta.description,
-          name: "description",
+          name: .description,
           content: .string(
             minLength: .none,
             maxLength: 10000
@@ -131,7 +141,7 @@ extension ResourceSpecification {
       secretFields: [
         .init(
           path: \.secret,
-          name: "secret",
+          name: .secret,
           content: .string(
             minLength: .none,
             maxLength: 4096
@@ -149,7 +159,7 @@ extension ResourceSpecification {
       metaFields: [
         .init(
           path: \.meta.name,
-          name: "name",
+          name: .name,
           content: .string(
             minLength: .none,
             maxLength: 255
@@ -158,8 +168,15 @@ extension ResourceSpecification {
           encrypted: false
         ),
         .init(
+          path: \.meta.uris,
+          name: .uri,
+          content: .list,
+          required: false,
+          encrypted: false
+        ),
+        .init(
           path: \.meta.username,
-          name: "username",
+          name: .username,
           content: .string(
             minLength: .none,
             maxLength: 255
@@ -167,18 +184,11 @@ extension ResourceSpecification {
           required: false,
           encrypted: false
         ),
-        .init(
-          path: \.meta.uris,
-          name: "uri",
-          content: .list,
-          required: false,
-          encrypted: false
-        ),
       ],
       secretFields: [
         .init(
           path: \.secret.password,
-          name: "password",
+          name: .password,
           content: .string(
             minLength: .none,
             maxLength: 4096
@@ -188,7 +198,7 @@ extension ResourceSpecification {
         ),
         .init(
           path: \.secret.description,
-          name: "description",
+          name: .description,
           content: .string(
             minLength: .none,
             maxLength: 10000
@@ -206,7 +216,7 @@ extension ResourceSpecification {
       metaFields: [
         .init(
           path: \.meta.name,
-          name: "name",
+          name: .name,
           content: .string(
             minLength: .none,
             maxLength: 255
@@ -216,7 +226,7 @@ extension ResourceSpecification {
         ),
         .init(
           path: \.meta.uris,
-          name: "uri",
+          name: .uri,
           content: .list,
           required: false,
           encrypted: false
@@ -225,7 +235,7 @@ extension ResourceSpecification {
       secretFields: [
         .init(
           path: \.secret.totp,
-          name: "totp",
+          name: .totp,
           content: .totp,
           required: true,
           encrypted: true
@@ -240,7 +250,7 @@ extension ResourceSpecification {
       metaFields: [
         .init(
           path: \.meta.name,
-          name: "name",
+          name: .name,
           content: .string(
             minLength: .none,
             maxLength: 255
@@ -249,8 +259,15 @@ extension ResourceSpecification {
           encrypted: false
         ),
         .init(
+          path: \.meta.uris,
+          name: .uri,
+          content: .list,
+          required: false,
+          encrypted: false
+        ),
+        .init(
           path: \.meta.username,
-          name: "username",
+          name: .username,
           content: .string(
             minLength: .none,
             maxLength: 255
@@ -258,18 +275,11 @@ extension ResourceSpecification {
           required: false,
           encrypted: false
         ),
-        .init(
-          path: \.meta.uris,
-          name: "uri",
-          content: .list,
-          required: false,
-          encrypted: false
-        ),
       ],
       secretFields: [
         .init(
           path: \.secret.password,
-          name: "password",
+          name: .password,
           content: .string(
             minLength: .none,
             maxLength: 4096
@@ -279,14 +289,14 @@ extension ResourceSpecification {
         ),
         .init(
           path: \.secret.totp,
-          name: "totp",
+          name: .totp,
           content: .totp,
           required: true,
           encrypted: true
         ),
         .init(
           path: \.secret.description,
-          name: "description",
+          name: .description,
           content: .string(
             minLength: .none,
             maxLength: 10000
@@ -305,7 +315,7 @@ extension ResourceSpecification {
       .init(
         // name is required for all resources
         path: \.meta.name,
-        name: "name",
+        name: .name,
         // it won't be edited, using no validation to avoid issues
         content: .string(),
         required: true,
@@ -317,7 +327,7 @@ extension ResourceSpecification {
         // using handling similar to legacy resource type
         // treat the whole secret as a string instead of decoding internals
         path: \.secret,
-        name: "secret",
+        name: .name,
         // it won't be edited, using no validation to avoid issues
         content: .string(),
         required: true,

@@ -22,30 +22,47 @@
 //
 
 import Display
-import FeatureScopes
+import UICommons
 
-internal enum OTPEditFormNavigationDestination: NavigationDestination {
+internal struct OTPConfigurationScanningView: ControlledView {
 
-  internal typealias TransitionContext = OTPEditFormViewController.Context
-}
+  internal let controller: OTPConfigurationScanningViewController
 
-internal typealias NavigationToOTPEditForm = NavigationTo<OTPEditFormNavigationDestination>
-
-extension NavigationToOTPEditForm {
-
-  fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
-      to: OTPEditFormView.self
-    )
+  internal init(
+    controller: OTPConfigurationScanningViewController
+  ) {
+    self.controller = controller
   }
-}
 
-extension FeaturesRegistry {
+  internal var body: some View {
+    WithViewState(
+      from: self.controller,
+      at: \.loading
+    ) { (loading: Bool) in
+      VStack(spacing: 8) {
+        Text(displayable: "otp.code.scanning.initial.message")
+          .font(.inter(ofSize: 16))
+          .foregroundColor(.passboltPrimaryText)
+          .offset(y: -10)
+        QRCodeScanningView(
+          process: self.controller.process(payload:)
+        )
+        .edgesIgnoringSafeArea(.bottom)
+        .loader(visible: loading)
 
-  internal mutating func useLiveNavigationToOTPEditForm() {
-    self.use(
-      NavigationToOTPEditForm.live,
-      in: ResourceEditScope.self
+        when(\.canEditManually) {
+          PrimaryButton(
+            title: "otp.code.scanning.manual.input",
+            action: {
+              await self.controller.editManually()
+            }
+          )
+          .padding(16)
+        }
+      }
+    }
+    .navigationTitle(
+      displayable: "otp.code.scanning.title"
     )
   }
 }

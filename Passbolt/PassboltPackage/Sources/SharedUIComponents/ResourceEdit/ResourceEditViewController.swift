@@ -47,10 +47,22 @@ public final class ResourceEditViewController: ViewController {
   }
 
   public struct ViewState: Equatable {
-
+    // Name field - can be edited outside of the form sections
+    internal var nameField: ResourceEditFieldViewModel?
+    // All form fields except name field
     internal var fields: IdentifiedArray<ResourceEditFieldViewModel>
+    // Flag indicating that there are undefined fields in the resource - i.e definied with new version of API
     internal var containsUndefinedFields: Bool
+    // Flag indicating that the resource has been edited
     internal var edited: Bool
+    // Flag indicating that advanced settings button can be shown
+    internal var canShowAdvancedSettings: Bool
+    // Flag indicating that advanced settings are shown
+    internal var showsAdvancedSettings: Bool
+    // Flag indicating if add TOTP button can be shown for current resource
+    internal var canShowAddTOTP: Bool
+    // Current resource type slug
+    internal var resourceTypeSlug: ResourceSpecification.Slug
   }
 
   public let viewState: ViewStateSource<ViewState>
@@ -69,6 +81,7 @@ public final class ResourceEditViewController: ViewController {
   private let resourceEditForm: ResourceEditForm
 
   private let navigationToSelf: NavigationToResourceEdit
+  private let navigationToOTPEdit: NavigationToOTPEditForm
 
   private let randomGenerator: RandomStringGenerator
 
@@ -96,9 +109,11 @@ public final class ResourceEditViewController: ViewController {
     if isInExtensionContext {
       // TODO: unify navigation between app and extnsion
       self.navigationToSelf = .placeholder
+      self.navigationToOTPEdit = .placeholder
     }
     else {
       self.navigationToSelf = try features.instance()
+      self.navigationToOTPEdit = try features.instance()
     }
 
     self.resourceEditForm = try features.instance()
@@ -113,26 +128,50 @@ public final class ResourceEditViewController: ViewController {
     )
     self.viewState = .init(
       initial: .init(
+        nameField: nil,
         fields: .init(),
         containsUndefinedFields: false,
-        edited: false
+        edited: false,
+        canShowAdvancedSettings:
+          context.editingContext.editedResource.isLocal
+          && context.editingContext.editedResource.canAttachOTP
+          && isInExtensionContext == false,
+        showsAdvancedSettings: context.editingContext.editedResource.isLocal == false,
+        canShowAddTOTP: context.editingContext.editedResource.canAttachOTP && isInExtensionContext == false,
+        resourceTypeSlug: context.editingContext.editedResource.type.specification.slug
       ),
       updateFrom: ComputedVariable(
         combined: self.resourceEditForm.state,
         with: self.localState
       ),
-      update: { @MainActor (updateState, update: Update<(Resource, LocalState)>) async throws -> Void in
+      update: {
+        @MainActor (updateState, update: Update<(Resource, LocalState)>) async throws -> Void in
         let update: (resource: Resource, localState: LocalState) = try update.value
         assert(update.resource.secretAvailable, "Can't edit resource without secret!")
-        let fields = fields(
+        guard
+          let nameFieldSpecification: ResourceFieldSpecification = update.resource.fields.first(where: {
+            $0.name == .name
+          })
+        else {
+          return
+        }
+        let countEntropy: (String) -> Entropy = { [randomGenerator] (input: String) -> Entropy in
+          randomGenerator.entropy(input, CharacterSets.all)
+        }
+        let nameField: ResourceEditFieldViewModel? = .init(
+          nameFieldSpecification,
+          in: update.resource,
+          edited: update.localState.editedFields.contains(nameFieldSpecification.path),
+          countEntropy: countEntropy
+        )
+        let fields: IdentifiedArray<ResourceEditFieldViewModel> = fields(
           for: update.resource,
           using: features,
           edited: update.localState.editedFields,
-          countEntropy: { [randomGenerator] (input: String) -> Entropy in
-            randomGenerator.entropy(input, CharacterSets.all)
-          }
+          countEntropy: countEntropy
         )
         updateState { (viewState: inout ViewState) in
+          viewState.nameField = nameField
           viewState.fields = fields
           viewState.containsUndefinedFields = update.resource.containsUndefinedFields
           viewState.edited = !update.localState.editedFields.isEmpty
@@ -205,6 +244,45 @@ public final class ResourceEditViewController: ViewController {
       }
     }
   }
+
+  /// Show advanced settings
+  @MainActor internal func showAdvancedSettings() {
+    viewState.update(\.showsAdvancedSettings, to: true)
+    viewState.update(\.canShowAdvancedSettings, to: false)
+  }
+
+  /// Navigate to TOTP create/edit form.
+  /// Note: Adding TOTP might require changing resource type to one that supports TOTP.  That might require revering if TOTP addition is cancelled.
+  @MainActor internal func createOrEditTOTP() async {
+    await consumingErrors {
+      let editingContext = try features.context(of: ResourceEditScope.self)
+
+      guard
+        let attachedOTPSlug: ResourceSpecification.Slug = editingContext.editedResource.type.attachedOTPSlug,
+        let attachedOTPType: ResourceType = editingContext.availableTypes.first(where: {
+          $0.specification.slug == attachedOTPSlug
+        }),
+        let totpPath: ResourceType.FieldPath = attachedOTPType.fieldSpecification(for: \.firstTOTP)?.path
+      else {
+        return
+      }
+      var onFormDiscarded: @Sendable () async throws -> Void = {}
+      if attachedOTPSlug != editingContext.editedResource.type.specification.slug {
+        onFormDiscarded = { [weak self] in
+          // when form is discarded, restore orignial type
+          try self?.resourceEditForm.updateType(editingContext.editedResource.type)
+        }
+        try self.resourceEditForm.updateType(attachedOTPType)
+      }
+
+      await self.navigationToOTPEdit.performCatching(
+        context: .init(
+          totpPath: totpPath,
+          onFormDiscarded: onFormDiscarded
+        )
+      )
+    }
+  }
 }
 
 @MainActor private func fields(
@@ -220,6 +298,7 @@ public final class ResourceEditViewController: ViewController {
     let fields: Array<ResourceEditFieldViewModel> =
       resource
       .fields
+      .filter { $0.name != .name }
       .compactMap { (field: ResourceFieldSpecification) -> ResourceEditFieldViewModel? in
         .init(
           field,
@@ -372,7 +451,6 @@ internal struct ResourceEditFieldViewModel {
       self.name = name
       self.encryptedMark = .none  // we are not showing those currently
       self.placeholder = placeholder
-      let currentValue = resource
       let validated: Validated<String> =
         edited
         ? resource

@@ -21,29 +21,31 @@
 // @since         v1.0
 //
 
-@_exported import Resources
+import Display
+import FeatureScopes
+
+public enum OTPEditFormNavigationDestination: NavigationDestination {
+
+  public typealias TransitionContext = OTPEditFormViewController.Context
+}
+
+public typealias NavigationToOTPEditForm = NavigationTo<OTPEditFormNavigationDestination>
+
+extension NavigationToOTPEditForm {
+
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(
+      to: OTPEditFormView.self
+    )
+  }
+}
 
 extension FeaturesRegistry {
 
-  public mutating func usePassboltResourcesModule() {
-    self.usePassboltResourceController()
-    self.usePassboltResourceShareForm()
-    self.usePassboltResourceEditPreparation()
-    self.usePassboltResourceEditForm()
-    self.usePassboltResourceFolders()
-    self.usePassboltResources()
-    self.usePassboltResourceTags()
-    self.usePassboltResourceFolderDetails()
-    self.usePassboltResourceFolderEditForm()
-    self.usePassboltResourcesOTPController()
-    self.usePassboltHOTPCodeGenerator()
-    self.usePassboltTOTPCodeGenerator()
-    self.usePassboltResourceSearchController()
-    self.usePassboltResourceFolderEditPreparation()
-    self.usePassboltMetadataKeysService()
-    self.usePassboltMetadataSettingsService()
-    self.usePassboltResourceUpdatePreparation()
-    self.usePassboltResourceSharePreparation()
-    self.usePassboltResourceCreatePreparation()
+  public mutating func useLiveNavigationToOTPEditForm() {
+    self.use(
+      NavigationToOTPEditForm.live,
+      in: ResourceEditScope.self
+    )
   }
 }

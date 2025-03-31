@@ -26,22 +26,32 @@ import FeatureScopes
 import OSFeatures
 import Resources
 
-internal final class OTPEditFormViewController: ViewController {
+public final class OTPEditFormViewController: ViewController {
 
-  internal struct Context {
+  public struct Context {
 
     internal var totpPath: ResourceType.FieldPath
+    internal var onFormDiscarded: @Sendable () async throws -> Void
+
+    public init(
+      totpPath: ResourceType.FieldPath,
+      onFormDiscarded: @escaping @Sendable () async throws -> Void = {}
+    ) {
+      self.totpPath = totpPath
+      self.onFormDiscarded = onFormDiscarded
+    }
   }
 
-  internal struct ViewState: Equatable {
+  public struct ViewState: Equatable {
 
+    internal var isStandaloneTOTP: Bool
     internal var isEditing: Bool
     internal var nameField: Validated<String>
     internal var uriField: Validated<String>
     internal var secretField: Validated<String>
   }
 
-  internal var viewState: ViewStateSource<ViewState>
+  public var viewState: ViewStateSource<ViewState>
 
   private struct LocalState: Equatable {
 
@@ -52,16 +62,17 @@ internal final class OTPEditFormViewController: ViewController {
 
   private let allFields: Set<Resource.FieldPath>
 
-  private let navigationToSelf: NavigationToOTPEditForm
+  private let navigationToOTPScanning: NavigationToOTPScanning
   private let navigationToAttach: NavigationToOTPAttachSelectionList
   private let navigationToAdvanced: NavigationToOTPEditAdvancedForm
+  private let navigationToSelf: NavigationToOTPEditForm
   private let resourceEditForm: ResourceEditForm
 
   private let context: Context
 
   private let features: Features
 
-  internal init(
+  public init(
     context: Context,
     features: Features
   ) throws {
@@ -72,9 +83,10 @@ internal final class OTPEditFormViewController: ViewController {
 
     self.context = context
 
-    self.navigationToSelf = try features.instance()
+    self.navigationToOTPScanning = try features.instance()
     self.navigationToAttach = try features.instance()
     self.navigationToAdvanced = try features.instance()
+    self.navigationToSelf = try features.instance()
 
     self.resourceEditForm = try features.instance()
 
@@ -90,6 +102,7 @@ internal final class OTPEditFormViewController: ViewController {
     )
     self.viewState = .init(
       initial: .init(
+        isStandaloneTOTP: false,
         isEditing: false,
         nameField: .valid(""),
         uriField: .valid(""),
@@ -110,8 +123,9 @@ internal final class OTPEditFormViewController: ViewController {
               InvalidResourceTypeError
               .error(message: "Resource without TOTP, can't edit its TOTP.")
           }
-          await updateState { (viewState: inout ViewState) in
+          updateState { (viewState: inout ViewState) in
             viewState.isEditing = !resource.isLocal
+            viewState.isStandaloneTOTP = resource.type.specification.slug.isStandaloneTOTPType
 
             if localState.editedFields.contains(\.meta.name) {
               viewState.nameField =
@@ -250,6 +264,46 @@ extension OTPEditFormViewController {
       catch {
         throw error
       }
+    }
+  }
+
+  /// Validate OTP secret and navigate to main resource form if valid.
+  internal func applyForm() async {
+    await consumingErrors {
+      do {
+        try await resourceEditForm.validateField(\.secret.totp.secret_key)
+        try await navigationToSelf.revert()
+      }
+      catch {
+        throw
+          InvalidForm
+          .error(displayable: "resource.form.error.invalid")
+      }
+    }
+  }
+
+  /// Navigate to OTP scanning view - only if it is new standalone TOTP resource.
+  internal func scanTOTP() async {
+    await consumingErrors {
+      let currentState = await viewState.current
+      if currentState.isEditing == false && currentState.isStandaloneTOTP {
+        try await navigationToSelf.revert()
+      }
+      else {
+        try await navigationToOTPScanning.perform(
+          context: .init(
+            totpPath: context.totpPath
+          )
+        )
+      }
+    }
+  }
+
+  /// Discard form changes and navigate back.
+  internal func discardForm() async {
+    await consumingErrors {
+      try await navigationToSelf.revert()
+      try await context.onFormDiscarded()
     }
   }
 }

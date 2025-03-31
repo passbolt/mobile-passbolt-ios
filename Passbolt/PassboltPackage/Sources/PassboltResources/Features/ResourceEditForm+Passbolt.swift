@@ -55,6 +55,11 @@ extension ResourceEditForm {
       try features.instance()
     let formState: Variable<Resource> = .init(initial: context.editedResource)
 
+    /// Updates a specific field in the resource with a new JSON value.
+    /// - Parameters:
+    ///   - field: The field path to update
+    ///   - value: New JSON value to set
+    /// - Returns: A validation result of the update operation
     @Sendable nonisolated func update(
       _ field: Resource.FieldPath,
       to value: JSON
@@ -64,6 +69,8 @@ extension ResourceEditForm {
       }
     }
 
+    /// Updates the resource type.
+    /// - Parameter resourceType: The new resource type to set
     @Sendable nonisolated func updateType(
       to resourceType: ResourceType
     ) throws {
@@ -72,6 +79,8 @@ extension ResourceEditForm {
       }
     }
 
+    /// Validates the entire resource form.
+    /// - Throws: InvalidForm error if validation fails
     @Sendable nonisolated func validateForm() async throws {
       do {
         try formState.value.validate()
@@ -80,6 +89,18 @@ extension ResourceEditForm {
         throw
           InvalidForm
           .error(displayable: "resource.form.error.invalid")
+      }
+    }
+
+    /// Validates a specific field in the resource.
+    /// - Parameter fieldPath: The path to the field to validate
+    /// - Throws: Validation error if the field value is invalid
+    @Sendable nonisolated func validate(fieldPath: Resource.FieldPath) async throws {
+      let resource: Resource = formState.value
+      let validator: Validator<JSON> = resource.validator(for: fieldPath)
+      let result: Validated<JSON> = validator.validate(resource[keyPath: fieldPath])
+      if let error = result.error {
+        throw error
       }
     }
 
@@ -247,6 +268,7 @@ extension ResourceEditForm {
       updateField: update(_:to:),
       updateType: updateType(to:),
       validateForm: validateForm,
+      validateField: validate(fieldPath:),
       sendForm: sendForm
     )
   }

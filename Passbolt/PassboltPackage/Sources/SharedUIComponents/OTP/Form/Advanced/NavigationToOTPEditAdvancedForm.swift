@@ -24,27 +24,27 @@
 import Display
 import FeatureScopes
 
-internal enum OTPScanningNavigationDestination: NavigationDestination {
+internal enum OTPEditAdvancedFormNavigationDestination: NavigationDestination {
 
-  internal typealias TransitionContext = OTPConfigurationScanningViewController.Context
+  internal typealias TransitionContext = OTPEditAdvancedFormViewController.Context
 }
 
-internal typealias NavigationToOTPScanning = NavigationTo<OTPScanningNavigationDestination>
+internal typealias NavigationToOTPEditAdvancedForm = NavigationTo<OTPEditAdvancedFormNavigationDestination>
 
-extension NavigationToOTPScanning {
+extension NavigationToOTPEditAdvancedForm {
 
   fileprivate static var live: FeatureLoader {
     legacyPushTransition(
-      to: OTPConfigurationScanningView.self
+      to: OTPEditAdvancedFormView.self
     )
   }
 }
 
 extension FeaturesRegistry {
 
-  internal mutating func useLiveNavigationToOTPScanning() {
+  public mutating func useLiveNavigationToOTPEditAdvancedForm() {
     self.use(
-      NavigationToOTPScanning.live,
+      NavigationToOTPEditAdvancedForm.live,
       in: ResourceEditScope.self
     )
   }

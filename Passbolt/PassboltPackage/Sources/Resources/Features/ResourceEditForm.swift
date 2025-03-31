@@ -34,6 +34,8 @@ public struct ResourceEditForm {
   public var updateType: @Sendable (ResourceType) throws -> Void
   // Validate form state
   public var validateForm: @Sendable () async throws -> Void
+  // Validate specific field
+  public var validateField: @Sendable (Resource.FieldPath) async throws -> Void
   // Send the form
   public var sendForm: @Sendable () async throws -> Resource
   // Update resource, publicly exposing only dedicated methods
@@ -45,12 +47,14 @@ public struct ResourceEditForm {
     updateField: @escaping @Sendable (Resource.FieldPath, JSON) -> Validated<JSON>,
     updateType: @escaping @Sendable (ResourceType) throws -> Void,
     validateForm: @escaping @Sendable () async throws -> Void,
+    validateField: @escaping @Sendable (Resource.FieldPath) async throws -> Void,
     sendForm: @escaping @Sendable () async throws -> Resource
   ) {
     self.state = state
     self.updateField = updateField
     self.updateType = updateType
     self.validateForm = validateForm
+    self.validateField = validateField
     self.sendForm = sendForm
   }
 }
@@ -64,6 +68,7 @@ extension ResourceEditForm: LoadableFeature {
       updateField: unimplemented2(),
       updateType: unimplemented1(),
       validateForm: unimplemented0(),
+      validateField: unimplemented1(),
       sendForm: unimplemented0()
     )
   }

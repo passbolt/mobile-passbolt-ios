@@ -49,7 +49,6 @@ public struct ResourceType {
     self.specification = specification
     self.orderedFields = specification.metaFields
       .union(specification.secretFields)
-      .sorted(using: ResourceFieldSpecification.Sorting())
       .asOrderedSet()
     self.containsUndefinedFields =
       specification.slug == .placeholder

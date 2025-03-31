@@ -21,29 +21,31 @@
 // @since         v1.0
 //
 
-@_exported import Resources
+import Display
+import FeatureScopes
+
+internal enum NavigationToResourceCreateMenuDestination: NavigationDestination {
+
+  internal typealias TransitionContext = ResourceCreateMenuViewController.Context
+}
+
+internal typealias NavigationToResourceCreateMenu = NavigationTo<NavigationToResourceCreateMenuDestination>
+
+extension NavigationToResourceCreateMenu {
+
+  fileprivate static var live: FeatureLoader {
+    legacyPartialSheetPresentationTransition(
+      to: ResourceCreateMenuView.self
+    )
+  }
+}
 
 extension FeaturesRegistry {
 
-  public mutating func usePassboltResourcesModule() {
-    self.usePassboltResourceController()
-    self.usePassboltResourceShareForm()
-    self.usePassboltResourceEditPreparation()
-    self.usePassboltResourceEditForm()
-    self.usePassboltResourceFolders()
-    self.usePassboltResources()
-    self.usePassboltResourceTags()
-    self.usePassboltResourceFolderDetails()
-    self.usePassboltResourceFolderEditForm()
-    self.usePassboltResourcesOTPController()
-    self.usePassboltHOTPCodeGenerator()
-    self.usePassboltTOTPCodeGenerator()
-    self.usePassboltResourceSearchController()
-    self.usePassboltResourceFolderEditPreparation()
-    self.usePassboltMetadataKeysService()
-    self.usePassboltMetadataSettingsService()
-    self.usePassboltResourceUpdatePreparation()
-    self.usePassboltResourceSharePreparation()
-    self.usePassboltResourceCreatePreparation()
+  internal mutating func useLiveNavigationToResourceCreateMenu() {
+    self.use(
+      NavigationToResourceCreateMenu.live,
+      in: SessionScope.self
+    )
   }
 }

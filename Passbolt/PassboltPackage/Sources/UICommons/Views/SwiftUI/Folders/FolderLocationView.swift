@@ -47,7 +47,7 @@ public struct FolderLocationView: View {
     Text(self.location)
       .text(
         font: .inter(
-          ofSize: 12,
+          ofSize: 14,
           weight: .regular
         ),
         color: Color.passboltSecondaryText

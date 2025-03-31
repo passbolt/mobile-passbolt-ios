@@ -21,38 +21,49 @@
 // @since         v1.0
 //
 
+import DatabaseOperations
 import Display
-import OSFeatures
+import FeatureScopes
 import Resources
 import SharedUIComponents
+import UICommons
 
-internal final class ResourcesListCreateMenuViewController: ViewController {
+/// A model representing an item in the resource creation menu.
+/// Used to display available resource types that can be created.
+internal struct ResourceCreateMenuItem: Equatable, Identifiable {
+  /// The displayed title of the menu item
+  internal var title: DisplayableString
+  /// The resource specification slug identifying the type of resource
+  internal var slug: ResourceSpecification.Slug
+  /// The icon representing this resource type
+  internal var icon: Image
 
-  private let navigation: DisplayNavigation
+  internal var id: ResourceSpecification.Slug { slug }
+}
 
-  private let context: Context
-  private let features: Features
+internal final class ResourceCreateMenuViewController: ViewController {
 
-  internal var viewState: ViewStateSource<ViewState>
+  internal typealias Context = ResourceCreatingContext
 
   internal struct ViewState: Equatable {
     var menuItems: [ResourceCreateMenuItem]
   }
 
-  internal struct Context {
-    internal let folderID: ResourceFolder.ID?
-    internal let availableTypes: [ResourceType]
-  }
+  internal var viewState: ViewStateSource<ViewState>
+
+  private let navigationToSelf: NavigationToResourceCreateMenu
+  private let features: Features
+  private let context: Context
 
   internal init(
     context: Context,
     features: Features
   ) throws {
-    self.context = context
+    try features.ensureScope(SessionScope.self)
+
+    self.navigationToSelf = try features.instance()
     self.features = features
-
-    self.navigation = try features.instance()
-
+    self.context = context
     let menuItems: Array<ResourceCreateMenuItem> = context.availableTypes.map {
       .init(
         title: $0.specification.slug.title,
@@ -64,32 +75,14 @@ internal final class ResourcesListCreateMenuViewController: ViewController {
       initial: .init(menuItems: menuItems)
     )
   }
-}
 
-extension ResourcesListCreateMenuViewController {
-
-  /// Dismisses the current resource creation menu sheet
-  internal final func close() async {
-    await self.navigation
-      .dismissLegacySheet(ResourcesListCreateMenuView.self)
+  /// Dismisses the resource creation menu
+  internal func dismiss() async {
+    await navigationToSelf.revertCatching()
   }
 
-  /// Creates a new folder at the current location
-  /// - Throws: Error when folder creation preparation fails
-  internal final func createFolder() async throws {
-    await self.navigation
-      .dismissLegacySheet(ResourcesListCreateMenuView.self)
-    let editingFeatures: Features = try await self.features.instance(of: ResourceFolderEditPreparation.self)
-      .prepareNew(context.folderID)
-    try await self.navigation.push(
-      ResourceFolderEditView.self,
-      controller: editingFeatures.instance()
-    )
-  }
-
-  /// Creates a new resource based on the provided slug type
-  /// - Parameter slug: Resource specification slug determining the type of resource to create
-  internal func createResource(_ slug: ResourceSpecification.Slug) async {
+  /// Open relevant screen to create a new resource of the given type
+  internal func create(_ slug: ResourceSpecification.Slug) async {
     await consumingErrors {
       if slug.isStandaloneTOTPType {
         try await createTOTP(slug)
@@ -100,9 +93,7 @@ extension ResourcesListCreateMenuViewController {
     }
   }
 
-  /// Creates a new TOTP resource
-  /// - Parameter slug: Resource specification slug for TOTP type
-  /// - Throws: Error when TOTP resource creation preparation fails
+  /// Prepare to create a new TOTP resource and navigate to the scanning screen
   private func createTOTP(_ slug: ResourceSpecification.Slug) async throws {
     let resourceEditPreparation: ResourceEditPreparation = try features.instance()
     let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(slug, .none, .none)
@@ -118,7 +109,7 @@ extension ResourcesListCreateMenuViewController {
       }),
       let totpPath: ResourceType.FieldPath = attachType.fieldSpecification(for: \.firstTOTP)?.path
     else { return }
-    await self.navigation.dismissLegacySheet(ResourcesListCreateMenuView.self)
+    try await self.navigationToSelf.revert()
     try await features
       .instance(of: NavigationToOTPScanning.self)
       .perform(
@@ -128,13 +119,11 @@ extension ResourcesListCreateMenuViewController {
       )
   }
 
-  /// Creates a new password resource
-  /// - Parameter slug: Resource specification slug for password type
-  /// - Throws: Error when password resource creation preparation fails
+  /// Prepare new password resource creation and navigate to the editing screen
   private func createPassword(_ slug: ResourceSpecification.Slug) async throws {
     let resourceEditPreparation: ResourceEditPreparation = try features.instance()
     let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(slug, .none, .none)
-    await self.navigation.dismissLegacySheet(ResourcesListCreateMenuView.self)
+    try await self.navigationToSelf.revert()
     try await features
       .instance(of: NavigationToResourceEdit.self)
       .perform(
@@ -142,5 +131,22 @@ extension ResourcesListCreateMenuViewController {
           editingContext: editingContext
         )
       )
+  }
+}
+
+extension ResourceSpecification.Slug {
+
+  internal var icon: Image {
+    if isStandaloneTOTPType {
+      return Image(named: .otp)
+    }
+    return Image(named: .key)
+  }
+
+  internal var title: DisplayableString {
+    if isStandaloneTOTPType {
+      return "resource.create.menu.totp"
+    }
+    return "resource.create.menu.password"
   }
 }

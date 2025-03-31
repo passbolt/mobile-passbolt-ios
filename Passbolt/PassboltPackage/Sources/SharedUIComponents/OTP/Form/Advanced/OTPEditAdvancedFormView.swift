@@ -38,9 +38,14 @@ internal struct OTPEditAdvancedFormView: ControlledView {
     ScrollView {
       VStack(spacing: 16) {
         WarningView(message: "otp.edit.form.edit.advanced.warning")
-        self.periodField
-        self.digitsField
-        self.algorithmField
+        VStack(spacing: 16) {
+          self.periodField
+          self.digitsField
+          self.algorithmField
+        }
+        .padding(16)
+        .background(Color.passboltBackgroundGray)
+        .cornerRadius(4)
       }
       .autocorrectionDisabled()
       .textInputAutocapitalization(.never)

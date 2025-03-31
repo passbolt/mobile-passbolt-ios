@@ -22,34 +22,30 @@
 //
 
 import Display
-import UICommons
+import FeatureScopes
 
-internal struct OTPConfigurationScanningView: ControlledView {
+internal enum OTPAttachSelectionListNavigationDestination: NavigationDestination {
 
-  internal let controller: OTPConfigurationScanningViewController
+  internal typealias TransitionContext = OTPAttachSelectionListViewController.Context
+}
 
-  internal init(
-    controller: OTPConfigurationScanningViewController
-  ) {
-    self.controller = controller
-  }
+internal typealias NavigationToOTPAttachSelectionList = NavigationTo<OTPAttachSelectionListNavigationDestination>
 
-  internal var body: some View {
-    WithViewState(
-      from: self.controller,
-      at: \.loading
-    ) { (loading: Bool) in
-      QRCodeScanningView(
-        process: self.controller.process(payload:)
-      )
-      .edgesIgnoringSafeArea(.bottom)
-      .loader(visible: loading)
-    }
-    .navigationTitle(
-      displayable: "otp.code.scanning.title"
+extension NavigationToOTPAttachSelectionList {
+
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(
+      to: OTPAttachSelectionListView.self
     )
-    .onAppear {
-      SnackBarMessageEvent.send("otp.code.scanning.initial.message")
-    }
+  }
+}
+
+extension FeaturesRegistry {
+
+  public mutating func useLiveNavigationToOTPAttachSelectionList() {
+    self.use(
+      NavigationToOTPAttachSelectionList.live,
+      in: ResourceEditScope.self
+    )
   }
 }

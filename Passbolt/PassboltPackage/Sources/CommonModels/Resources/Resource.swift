@@ -127,6 +127,11 @@ extension Resource {
   public var favorite: Bool {
     self.favoriteID != .none
   }
+
+  // Check if it is a TOTP resource
+  public var isStandaloneTOTPResource: Bool {
+    self.type.specification.slug.isStandaloneTOTPType
+  }
 }
 
 // MARK: - Validation

@@ -25,6 +25,7 @@ import Display
 import FeatureScopes
 import OSFeatures
 import Resources
+import SharedUIComponents
 
 internal final class OTPAttachSelectionListViewController: ViewController {
 
@@ -64,7 +65,7 @@ internal final class OTPAttachSelectionListViewController: ViewController {
   private let resourceSearchController: ResourceSearchController
   private let resourceEditPreparation: ResourceEditPreparation
 
-  private let navigationToOTPResourcesList: NavigationToOTPResourcesList
+  private let navigationToOTPScanning: NavigationToOTPScanning
 
   private let context: Context
 
@@ -80,7 +81,7 @@ internal final class OTPAttachSelectionListViewController: ViewController {
 
     self.context = context
 
-    self.navigationToOTPResourcesList = try features.instance()
+    self.navigationToOTPScanning = try features.instance()
 
     self.resourceSearchController = try features.instance()
     self.resourceEditPreparation = try features.instance()
@@ -215,7 +216,7 @@ extension OTPAttachSelectionListViewController {
       resourceEditForm.update(\.firstTOTP, to: self.context.totpSecret)
 
       try await resourceEditForm.send()
-      try await navigationToOTPResourcesList.perform()
+      try await navigationToOTPScanning.revert()
       SnackBarMessageEvent.send(
         editingContext.editedResource.isLocal || !editingContext.editedResource.hasTOTP
           ? "otp.edit.otp.created.message"

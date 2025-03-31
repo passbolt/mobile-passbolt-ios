@@ -24,27 +24,27 @@
 import Display
 import FeatureScopes
 
-internal enum OTPAttachSelectionListNavigationDestination: NavigationDestination {
+public enum OTPScanningNavigationDestination: NavigationDestination {
 
-  internal typealias TransitionContext = OTPAttachSelectionListViewController.Context
+  public typealias TransitionContext = OTPConfigurationScanningViewController.Context
 }
 
-internal typealias NavigationToOTPAttachSelectionList = NavigationTo<OTPAttachSelectionListNavigationDestination>
+public typealias NavigationToOTPScanning = NavigationTo<OTPScanningNavigationDestination>
 
-extension NavigationToOTPAttachSelectionList {
+extension NavigationToOTPScanning {
 
   fileprivate static var live: FeatureLoader {
     legacyPushTransition(
-      to: OTPAttachSelectionListView.self
+      to: OTPConfigurationScanningView.self
     )
   }
 }
 
 extension FeaturesRegistry {
 
-  internal mutating func useLiveNavigationToOTPAttachSelectionList() {
+  public mutating func useLiveNavigationToOTPScanning() {
     self.use(
-      NavigationToOTPAttachSelectionList.live,
+      NavigationToOTPScanning.live,
       in: ResourceEditScope.self
     )
   }

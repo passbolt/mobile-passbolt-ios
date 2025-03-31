@@ -27,6 +27,7 @@ public struct ResourceEditView: ControlledView {
 
   public let controller: ResourceEditViewController
   @State private var discardFormAlertVisible: Bool
+  @FocusState private var focusState
 
   public init(
     controller: ResourceEditViewController
@@ -88,20 +89,99 @@ public struct ResourceEditView: ControlledView {
   }
 
   @MainActor @ViewBuilder private var contentView: some View {
-    VStack(spacing: 8) {
-      CommonList {
-        WithViewState(
-          from: self.controller,
-          at: \.containsUndefinedFields
-        ) { (containsUndefinedFields: Bool) in
-          if containsUndefinedFields {
-            self.undefinedContentSectionView
+    CommonList {
+      CommonListSection {
+        VStack(spacing: 8) {
+          VStack(alignment: .leading, spacing: 0) {
+            WithViewState(
+              from: self.controller,
+              at: \.containsUndefinedFields
+            ) { (containsUndefinedFields: Bool) in
+              if containsUndefinedFields {
+                self.undefinedContentSectionView
+              }
+            }
+
+            with(\.nameField) { nameField in
+              if let nameField {
+                self.fieldView(for: nameField)
+              }
+            }
+            Text(displayable: "resource.edit.create.title")
+              .font(.inter(ofSize: 16, weight: .bold))
+              .padding(.vertical, 20)
+            VStack(spacing: 16) {
+              withEach(\.fields) { field in
+                self.fieldView(for: field)
+              }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .backgroundColor(.passboltBackgroundGray)
+            .cornerRadius(4)
+          }
+          when(\.canShowAdvancedSettings) {
+            SecondaryButton(
+              title: "resource.create.advanced.button",
+              action: {
+                withAnimation {
+                  self.controller.showAdvancedSettings()
+                }
+              }
+            )
+          }
+          CommonListSpacer(minHeight: 16)
+
+        }
+        .padding(.top, 16)
+      }
+      when(\.showsAdvancedSettings) {
+        CommonListSection {
+          VStack(alignment: .leading, spacing: 16) {
+            Text(displayable: "resource.create.additional.secrets.title")
+              .font(.inter(ofSize: 16, weight: .bold))
+              .padding(.vertical, 20)
+            VStack(spacing: 16) {
+              when(\.canShowAddTOTP) {
+                CommonListRow(
+                  contentAction: self.controller.createOrEditTOTP,
+                  content: {
+                    ResourceFieldView(
+                      name: nil,
+                      content: {
+                        HStack(spacing: 16) {
+                          Image(named: .otp)
+                          Text(displayable: "resource.create.advanced.add.otp")
+                            .font(.inter(ofSize: 14, weight: .semibold))
+                            .foregroundColor(.passboltPrimaryText)
+                        }
+                      }
+                    )
+                  },
+                  accessory: DisclosureIndicatorImage.init
+                )
+              }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .backgroundColor(.passboltBackgroundGray)
+            .cornerRadius(4)
           }
         }
-        self.fieldsSectionsView
-        CommonListSpacer(minHeight: 16)
       }
-      self.actionButtonView
+      .padding(.bottom, 120)
+    }
+    .overlay(alignment: .bottom) {
+      VStack {
+        Spacer()
+        VStack(spacing: 0) {
+          self.actionButtonView
+            .padding(.vertical, 16)
+        }
+        .background(.white)
+
+      }
+      .ignoresSafeArea(.keyboard)
     }
   }
 
@@ -118,119 +198,139 @@ public struct ResourceEditView: ControlledView {
       withEach(\.fields) { (fieldModel: ResourceEditFieldViewModel) in
         CommonListRow(
           content: {
-            switch fieldModel.value {
-            case .plainShort(let state):
-              FormTextFieldView(
-                title: fieldModel.name,
-                prompt: fieldModel.placeholder,
-                mandatory: fieldModel.requiredMark,
-                state: self.validatedOptionalBinding(
-                  to: \.validatedString,
-                  in: \.fields[fieldModel.path],
-                  default: state,
-                  updating: { (newValue: String) in
-                    withAnimation {
-                      self.controller.set(newValue, for: fieldModel.path)
-                    }
-                  }
-                )
-              )
-              .textInputAutocapitalization(.never)
-              .autocorrectionDisabled()
-              .padding(bottom: 8)
-            case .list(let state):
-              FormTextFieldView(
-                title: fieldModel.name,
-                prompt: fieldModel.placeholder,
-                mandatory: fieldModel.requiredMark,
-                state: self.validatedOptionalBinding(
-                  to: \.validatedString,
-                  in: \.fields[fieldModel.path],
-                  default: state.first ?? .valid(""),
-                  updating: { (newValue: String) in
-                    withAnimation {
-                      self.controller.set(newValue, for: fieldModel.path)
-                    }
-                  }
-                )
-              )
-              .textInputAutocapitalization(.never)
-              .autocorrectionDisabled()
-              .padding(bottom: 8)
-            case .plainLong(let state):
-              FormLongTextFieldView(
-                title: fieldModel.name,
-                prompt: fieldModel.placeholder,
-                mandatory: fieldModel.requiredMark,
-                encrypted: fieldModel.encryptedMark,
-                state: self.validatedOptionalBinding(
-                  to: \.validatedString,
-                  in: \.fields[fieldModel.path],
-                  default: state,
-                  updating: { (newValue: String) in
-                    withAnimation {
-                      self.controller.set(newValue, for: fieldModel.path)
-                    }
-                  }
-                )
-              )
-              .textInputAutocapitalization(.sentences)
-              .padding(bottom: 8)
-
-            case .password(let state, let entropy):
-              VStack(spacing: 4) {
-                FormSecureTextFieldView(
-                  title: fieldModel.name,
-                  prompt: fieldModel.placeholder,
-                  mandatory: fieldModel.requiredMark,
-                  state: self.validatedOptionalBinding(
-                    to: \.validatedString,
-                    in: \.fields[fieldModel.path],
-                    default: state,
-                    updating: { (newValue: String) in
-                      withAnimation {
-                        self.controller.set(newValue, for: fieldModel.path)
-                      }
-                    }
-                  ),
-                  accessory: {
-                    Button(
-                      action: {
-                        self.controller.generatePassword(for: fieldModel.path)
-                      },
-                      label: {
-                        Image(named: .dice)
-                          .tint(.passboltPrimaryText)
-                          .padding(12)
-                          .backgroundColor(.passboltDivider)
-                          .cornerRadius(4)
-                      }
-                    )
-                  }
-                )
-
-                EntropyView(entropy: entropy)
-              }
-              .padding(bottom: 8)
-
-            case .selection(let state, let values):
-              FormPickerFieldView(
-                title: fieldModel.name,
-                prompt: fieldModel.placeholder,
-                mandatory: fieldModel.requiredMark,
-                values: values,
-                state: state,
-                update: { (string: String) in
-                  withAnimation {
-                    self.controller.set(string, for: fieldModel.path)
-                  }
-                }
-              )
-              .padding(bottom: 8)
-            }
+            fieldView(for: fieldModel)
           }
         )
       }
+    }
+  }
+
+  /// Prepare the view for a specific field view model.
+  @MainActor @ViewBuilder private func fieldView(for fieldModel: ResourceEditFieldViewModel) -> some View {
+    switch fieldModel.value {
+    case .plainShort(let state):
+      FormTextFieldView(
+        title: fieldModel.name,
+        prompt: fieldModel.placeholder,
+        mandatory: fieldModel.requiredMark,
+        state: self.validatedOptionalBinding(
+          to: \.validatedString,
+          in: \.fields[fieldModel.path],
+          default: state,
+          updating: { (newValue: String) in
+            withAnimation {
+              self.controller.set(newValue, for: fieldModel.path)
+            }
+          }
+        )
+      )
+      .textInputAutocapitalization(.never)
+      .autocorrectionDisabled()
+      .padding(bottom: 8)
+    case .list(let state):
+      FormTextFieldView(
+        title: fieldModel.name,
+        prompt: fieldModel.placeholder,
+        mandatory: fieldModel.requiredMark,
+        state: self.validatedOptionalBinding(
+          to: \.validatedString,
+          in: \.fields[fieldModel.path],
+          default: state.first ?? .valid(""),
+          updating: { (newValue: String) in
+            withAnimation {
+              self.controller.set(newValue, for: fieldModel.path)
+            }
+          }
+        )
+      )
+      .textInputAutocapitalization(.never)
+      .autocorrectionDisabled()
+      .padding(bottom: 8)
+    case .plainLong(let state):
+      FormLongTextFieldView(
+        title: fieldModel.name,
+        prompt: fieldModel.placeholder,
+        mandatory: fieldModel.requiredMark,
+        encrypted: fieldModel.encryptedMark,
+        state: self.validatedOptionalBinding(
+          to: \.validatedString,
+          in: \.fields[fieldModel.path],
+          default: state,
+          updating: { (newValue: String) in
+            withAnimation {
+              self.controller.set(newValue, for: fieldModel.path)
+            }
+          }
+        )
+      )
+      .focused($focusState)
+      .toolbar {
+        ToolbarItemGroup(placement: .keyboard) {
+          HStack {
+            Spacer()
+            Button(
+              displayable: "generic.done",
+              action: {
+                self.focusState.toggle()
+              }
+            )
+            .foregroundStyle(.blue)
+          }
+        }
+      }
+      .textInputAutocapitalization(.sentences)
+      .padding(bottom: 8)
+
+    case .password(let state, let entropy):
+      VStack(spacing: 4) {
+        FormSecureTextFieldView(
+          title: fieldModel.name,
+          prompt: fieldModel.placeholder,
+          mandatory: fieldModel.requiredMark,
+          state: self.validatedOptionalBinding(
+            to: \.validatedString,
+            in: \.fields[fieldModel.path],
+            default: state,
+            updating: { (newValue: String) in
+              withAnimation {
+                self.controller.set(newValue, for: fieldModel.path)
+              }
+            }
+          ),
+          accessory: {
+            Button(
+              action: {
+                self.controller.generatePassword(for: fieldModel.path)
+              },
+              label: {
+                Image(named: .dice)
+                  .tint(.passboltPrimaryText)
+                  .padding(12)
+                  .backgroundColor(.passboltDivider)
+                  .cornerRadius(4)
+              }
+            )
+          }
+        )
+
+        EntropyView(entropy: entropy)
+      }
+      .padding(bottom: 8)
+
+    case .selection(let state, let values):
+      FormPickerFieldView(
+        title: fieldModel.name,
+        prompt: fieldModel.placeholder,
+        mandatory: fieldModel.requiredMark,
+        values: values,
+        state: state,
+        update: { (string: String) in
+          withAnimation {
+            self.controller.set(string, for: fieldModel.path)
+          }
+        }
+      )
+      .padding(bottom: 8)
     }
   }
 

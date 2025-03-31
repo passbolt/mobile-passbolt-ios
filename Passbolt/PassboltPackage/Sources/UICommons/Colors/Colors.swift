@@ -128,6 +128,10 @@ extension UIColor {
   public static var passboltBackgroundLoader: Self {
     .init(named: "backgroundLoader", in: .uiCommons, compatibleWith: .current)!
   }
+
+  public static var passboltBackgroundGray: Self {
+    .init(named: "backgroundGray", in: .uiCommons, compatibleWith: .current)!
+  }
 }
 
 extension Color {
@@ -233,5 +237,9 @@ extension Color {
 
   public static var passboltBackgroundLoader: Self {
     .init(UIColor.passboltBackgroundLoader)
+  }
+
+  public static var passboltBackgroundGray: Self {
+    .init(UIColor.passboltBackgroundGray)
   }
 }

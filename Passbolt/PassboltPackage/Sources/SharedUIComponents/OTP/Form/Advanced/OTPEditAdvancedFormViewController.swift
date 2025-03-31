@@ -26,7 +26,7 @@ import FeatureScopes
 import OSFeatures
 import Resources
 
-internal final class OTPEditAdvancedFormViewController: ViewController {
+public final class OTPEditAdvancedFormViewController: ViewController {
 
   public struct Context {
 
@@ -39,14 +39,14 @@ internal final class OTPEditAdvancedFormViewController: ViewController {
     }
   }
 
-  internal struct ViewState: Equatable {
+  public struct ViewState: Equatable {
 
     internal var algorithm: Validated<HOTPAlgorithm?>
     internal var period: Validated<String>
     internal var digits: Validated<String>
   }
 
-  internal let viewState: ViewStateSource<ViewState>
+  public let viewState: ViewStateSource<ViewState>
 
   private let resourceEditForm: ResourceEditForm
 
@@ -54,7 +54,7 @@ internal final class OTPEditAdvancedFormViewController: ViewController {
 
   private let totpPath: Resource.FieldPath
 
-  internal init(
+  public init(
     context: Context,
     features: Features
   ) throws {
@@ -83,7 +83,7 @@ internal final class OTPEditAdvancedFormViewController: ViewController {
               InvalidResourceTypeError
               .error(message: "Resource without TOTP, can't edit it.")
           }
-          await updateState { (viewState: inout ViewState) in
+          updateState { (viewState: inout ViewState) in
             viewState.algorithm = resource.validated(context.totpPath.appending(path: \.algorithm))
               .map { $0.stringValue.flatMap(HOTPAlgorithm.init(rawValue:)) }
             viewState.digits = resource.validated(context.totpPath.appending(path: \.digits))

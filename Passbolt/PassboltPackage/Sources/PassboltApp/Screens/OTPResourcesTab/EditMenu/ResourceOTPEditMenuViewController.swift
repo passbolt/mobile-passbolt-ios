@@ -25,6 +25,7 @@ import Display
 import FeatureScopes
 import OSFeatures
 import Resources
+import SharedUIComponents
 
 internal final class ResourceOTPEditMenuViewController: ViewController {
 

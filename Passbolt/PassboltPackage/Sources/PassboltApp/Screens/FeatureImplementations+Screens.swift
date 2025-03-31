@@ -51,6 +51,7 @@ extension FeaturesRegistry {
     self.useLiveNavigationToResourceDeleteAlert()
     self.useLiveNavigationToResourceShare()
     self.useLiveNavigationToResourceEdit()
+    self.useLiveNavigationToResourceCreateMenu()
 
     // MARK: - OTP Tab
     self.useLiveNavigationToOTPResourcesTab()

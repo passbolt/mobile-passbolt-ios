@@ -34,14 +34,8 @@ internal final class ResourceDetailsViewController: ViewController {
     internal var name: String
     internal var favorite: Bool
     internal var containsUndefinedFields: Bool
-    internal var fields: Array<ResourceDetailsFieldViewModel>
-    internal var locationAvailable: Bool
-    internal var location: Array<String>
+    internal var sections: Array<ResourceDetailsSectionViewModel>
     internal var expirationDate: Date?
-    internal var tagsAvailable: Bool
-    internal var tags: Array<String>
-    internal var permissionsListVisible: Bool
-    internal var permissions: Array<OverlappingAvatarStackView.Item>
 
     internal var isExpired: Bool? {
       guard let expirationDate else { return nil }
@@ -62,7 +56,8 @@ internal final class ResourceDetailsViewController: ViewController {
       let expiryTimeFormat = expiryParts.joined(separator: " ").replacingOccurrences(of: "in", with: "")
       return .init(
         number: numberString,
-        localizedRelativeString: expiryTimeFormat)
+        localizedRelativeString: expiryTimeFormat
+      )
     }
 
   }
@@ -125,13 +120,7 @@ internal final class ResourceDetailsViewController: ViewController {
         name: .init(),
         favorite: false,
         containsUndefinedFields: false,
-        fields: .init(),
-        locationAvailable: self.sessionConfiguration.folders.enabled,
-        location: .init(),
-        tagsAvailable: self.sessionConfiguration.tags.enabled,
-        tags: .init(),
-        permissionsListVisible: self.sessionConfiguration.share.showMembersList,
-        permissions: .init()
+        sections: .init()
       ),
       updateFrom: ComputedVariable(
         combined: self.resourceController.state,
@@ -158,24 +147,22 @@ internal final class ResourceDetailsViewController: ViewController {
             viewState.name = resource.name
             viewState.favorite = resource.favorite
             viewState.containsUndefinedFields = resource.containsUndefinedFields
-            viewState.fields = fields(
+            viewState.sections = sections(
               for: resource,
+              with: resourcePermissions,
               using: features,
               revealedFields: resource.secretAvailable
                 ? localState.revealedFields
                 : .init(),
               sessionConfiguration: sessionConfiguration
             )
-            viewState.location = resource.path.map(\.name)
-            viewState.tags = resource.tags.map(\.slug.rawValue)
             viewState.expirationDate = resource.expired?.asDate
-            viewState.permissions = resourcePermissions
           }
         }
         catch {
           let message = error.asTheError().displayableMessage.string()
           //When deletion happen it display the error message instead of the correct message. We skip this error message to avoid confusion
-          if(message != DisplayableString.localized(key: "error.database.result.empty").string()) {
+          if message != DisplayableString.localized(key: "error.database.result.empty").string() {
             SnackBarMessageEvent.send(.error(error))
           }
           await navigationToSelf.revertCatching()
@@ -305,25 +292,49 @@ extension ResourceDetailsViewController {
   }
 }
 
-@MainActor private func fields(
+/// Prepare sections/groupped fields for display in UI
+@MainActor private func sections(
   for resource: Resource,
+  with resourcePermissions: Array<OverlappingAvatarStackView.Item>,
   using features: Features,
   revealedFields: Set<Resource.FieldPath>,
   sessionConfiguration: SessionConfiguration
-) -> Array<ResourceDetailsFieldViewModel> {
-  if resource.type.specification.slug == .placeholder {
-    return .init()  // show no fields for placeholder type
+) -> Array<ResourceDetailsSectionViewModel> {
+  guard resource.type.specification.slug != .placeholder else {
+    return .init()  // show no sections for placeholder type
   }
-  else {
-    return resource
-      .fields
-      .compactMap { (field: ResourceFieldSpecification) -> ResourceDetailsFieldViewModel? in
-        // remove name from fields, we already have it displayed
-        if field.isNameField {
-          return .none
-        }
-        else {
-          return .init(
+
+  var passwordSection: ResourceDetailsSectionViewModel = .init(
+    title: "Password",
+    fields: .init()
+  )
+
+  var totpSection: ResourceDetailsSectionViewModel = .init(
+    title: "TOTP",
+    fields: .init()
+  )
+
+  var metadataSection: ResourceDetailsSectionViewModel = .init(
+    title: "Metadata",
+    fields: .init()
+  )
+
+  let fieldModelsByName: OrderedDictionary<ResourceFieldName, ResourceDetailsFieldViewModel> = resource
+    .fields
+    .compactMap {
+      (
+        field: ResourceFieldSpecification
+      ) -> (
+        key: ResourceFieldName,
+        value: ResourceDetailsFieldViewModel
+      )? in
+      // remove name from fields, we already have it displayed
+      if field.isNameField {
+        return .none
+      }
+      else {
+        guard
+          let spec: ResourceDetailsFieldViewModel = .init(
             field,
             in: resource,
             revealedFields: revealedFields,
@@ -341,8 +352,87 @@ extension ResourceDetailsViewController {
               return generateOTP
             }
           )
-        }
+        else { return .none }
+        return (key: field.name, value: spec)
       }
+    }
+    .reduce(into: OrderedDictionary<ResourceFieldName, ResourceDetailsFieldViewModel>()) { $0[$1.key] = $1.value }
+
+  for (fieldName, fieldModel) in fieldModelsByName {
+    if ResourceDetailsSectionViewModel.passwordSectionFields.contains(fieldName) {
+      passwordSection.fields.append(fieldModel)
+    }
+    else if ResourceDetailsSectionViewModel.totpSectionFields.contains(fieldName) {
+      totpSection.fields.append(fieldModel)
+    }
+    else {
+      metadataSection.fields.append(fieldModel)
+    }
+  }
+
+  if sessionConfiguration.folders.enabled {
+    metadataSection.virtualFields.append(
+      .location(resource.path.map(\.name))
+    )
+  }
+  if sessionConfiguration.tags.enabled {
+    metadataSection.virtualFields.append(
+      .tags(resource.tags.map(\.slug.rawValue))
+    )
+  }
+  if sessionConfiguration.share.showMembersList {
+    metadataSection.virtualFields.append(
+      .permissions(resourcePermissions)
+    )
+  }
+
+  // remove empty sections
+  return [passwordSection, totpSection, metadataSection].filter { $0.fields.isEmpty == false }
+}
+
+/// View model for a section/fields group of resource details
+internal struct ResourceDetailsSectionViewModel: Equatable, Identifiable {
+
+  internal var id: String { self.title.string() }
+  internal var title: DisplayableString
+  internal var fields: Array<ResourceDetailsFieldViewModel>
+  internal var virtualFields: Array<VirtualField> = .init()
+
+  /// Properties that are not fields but are displayed as part of the section - navigating to other screens
+  internal enum VirtualField: Equatable, Identifiable {
+
+    internal typealias ID = Tagged<String, Self>
+    case location(Array<String>)
+    case tags(Array<String>)
+    case permissions(Array<OverlappingAvatarStackView.Item>)
+
+    internal var id: ID {
+      switch self {
+      case .location:
+        return "location"
+      case .tags:
+        return "tags"
+      case .permissions:
+        return "permissions"
+      }
+    }
+  }
+
+  /// Password/main section fields
+  static fileprivate var passwordSectionFields: Array<ResourceFieldName> {
+    [
+      .username,
+      .password,
+      .secret,
+      .uri,
+    ]
+  }
+
+  /// TOTP section fields
+  static fileprivate var totpSectionFields: Array<ResourceFieldName> {
+    [
+      .totp
+    ]
   }
 }
 
@@ -417,14 +507,15 @@ internal struct ResourceDetailsFieldViewModel {
         self.value = .placeholder(value)
         self.mainAction = .copy
         self.accessoryAction = .copy
-      } else {
+      }
+      else {
         self.value = .placeholder(placeholder.string())
         self.mainAction = .none
         self.accessoryAction = .none
       }
-      
+
     case  // unencrypted
-      .text(let name, let placeholder, _) where !field.encrypted,
+    .text(let name, let placeholder, _) where !field.encrypted,
       .longText(let name, let placeholder, _) where !field.encrypted,
       .selection(let name, values: _, let placeholder, _) where !field.encrypted,
       .intValue(let name, let placeholder, _) where !field.encrypted,

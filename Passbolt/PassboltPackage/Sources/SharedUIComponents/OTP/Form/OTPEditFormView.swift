@@ -38,20 +38,47 @@ internal struct OTPEditFormView: ControlledView {
     with(\.isEditing) { (isEditing: Bool) in
       VStack(spacing: 0) {
         ScrollView {
-          VStack(spacing: 16) {
-            self.nameField
-            self.uriField
-            self.secretField
-            self.advancedLink
+          VStack(alignment: .leading, spacing: 20) {
+            with(\.isStandaloneTOTP) { (isStandaloneTOTP: Bool) in
+              if isStandaloneTOTP {
+                self.nameField
+              }
+            }
+            Text(displayable: "resource.edit.field.totp.label")
+              .font(.inter(ofSize: 16, weight: .bold))
+            VStack(spacing: 16) {
+              self.uriField
+              self.secretField
+              self.advancedLink
+            }
+            .padding(16)
+            .background(Color.passboltBackgroundGray)
+            .cornerRadius(4)
           }
         }
 
         Spacer()
-
-        self.sendForm(editng: isEditing)
+        with(\.isStandaloneTOTP) { (isStandaloneTOTP: Bool) in
+          if isStandaloneTOTP {
+            self.sendForm(editng: isEditing)
+          }
+          else {
+            self.applyForm()
+          }
+        }
       }
       .padding(16)
       .frame(maxHeight: .infinity)
+      .navigationBarBackButtonHidden()
+      .toolbar {  // replace back button
+        ToolbarItemGroup(placement: .navigationBarLeading) {
+          BackButton(
+            action: {
+              await self.controller.discardForm()
+            }
+          )
+        }
+      }
       .navigationTitle(
         displayable: isEditing
           ? "otp.edit.form.edit.title"
@@ -92,7 +119,21 @@ internal struct OTPEditFormView: ControlledView {
               self.controller.setURI(newValue.value)
             }
           }
-        )
+        ),
+        accessory: {
+          AsyncButton(
+            action: {
+              await self.controller.scanTOTP()
+            },
+            label: {
+              Image(named: .camera)
+                .tint(.passboltPrimaryText)
+                .padding(12)
+                .backgroundColor(.passboltDivider)
+                .cornerRadius(4)
+            }
+          )
+        }
       )
       .textInputAutocapitalization(.never)
       .autocorrectionDisabled()
@@ -125,6 +166,7 @@ internal struct OTPEditFormView: ControlledView {
       iconName: .cog,
       action: self.controller.showAdvancedSettings
     )
+    .padding(.vertical, 8)
   }
 
   @MainActor @ViewBuilder internal func sendForm(
@@ -148,5 +190,12 @@ internal struct OTPEditFormView: ControlledView {
         )
       }
     }
+  }
+
+  @MainActor @ViewBuilder internal func applyForm() -> some View {
+    PrimaryButton(
+      title: "otp.edit.form.apply.button.title",
+      action: self.controller.applyForm
+    )
   }
 }

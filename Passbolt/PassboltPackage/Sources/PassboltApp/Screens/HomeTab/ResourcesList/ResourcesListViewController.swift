@@ -69,7 +69,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
           .handleEnd { [weak self] _ in
             self?.contentView.finishDataRefresh()
           }
-          .handleErrors { [weak self] error in
+          .handleErrors { error in
             switch error {
             case is Cancelled:
               return /* NOP */
@@ -104,7 +104,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
     contentView
       .addTapPublisher
       .sink { [weak self] in
-        self?.controller.addResource()
+        self?.controller.presentResourceCreationMenu()
       }
       .store(in: self.cancellables)
 

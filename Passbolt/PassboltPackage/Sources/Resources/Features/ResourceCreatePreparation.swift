@@ -21,29 +21,34 @@
 // @since         v1.0
 //
 
-@_exported import Resources
+import Features
 
-extension FeaturesRegistry {
+public struct ResourceCreatePreparation: Sendable {
 
-  public mutating func usePassboltResourcesModule() {
-    self.usePassboltResourceController()
-    self.usePassboltResourceShareForm()
-    self.usePassboltResourceEditPreparation()
-    self.usePassboltResourceEditForm()
-    self.usePassboltResourceFolders()
-    self.usePassboltResources()
-    self.usePassboltResourceTags()
-    self.usePassboltResourceFolderDetails()
-    self.usePassboltResourceFolderEditForm()
-    self.usePassboltResourcesOTPController()
-    self.usePassboltHOTPCodeGenerator()
-    self.usePassboltTOTPCodeGenerator()
-    self.usePassboltResourceSearchController()
-    self.usePassboltResourceFolderEditPreparation()
-    self.usePassboltMetadataKeysService()
-    self.usePassboltMetadataSettingsService()
-    self.usePassboltResourceUpdatePreparation()
-    self.usePassboltResourceSharePreparation()
-    self.usePassboltResourceCreatePreparation()
+  // Prepare available types for creating a resource
+  public var prepare: @Sendable () async throws -> ResourceCreatingContext
+
+  public init(prepare: @Sendable @escaping () async throws -> ResourceCreatingContext) {
+    self.prepare = prepare
+  }
+}
+
+extension ResourceCreatePreparation: LoadableFeature {
+
+  #if DEBUG
+  public nonisolated static var placeholder: Self {
+    .init(
+      prepare: unimplemented0()
+    )
+  }
+  #endif
+}
+
+public struct ResourceCreatingContext: Sendable {
+
+  public var availableTypes: Array<ResourceType>
+
+  public init(availableTypes: Array<ResourceType>) {
+    self.availableTypes = availableTypes
   }
 }
