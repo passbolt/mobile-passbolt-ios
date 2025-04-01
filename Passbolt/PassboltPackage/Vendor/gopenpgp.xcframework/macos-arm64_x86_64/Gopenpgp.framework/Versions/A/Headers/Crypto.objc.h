@@ -1247,12 +1247,6 @@ FOUNDATION_EXPORT CryptoVerificationContext* _Nullable CryptoNewVerificationCont
 FOUNDATION_EXPORT NSData* _Nullable CryptoRandomToken(long size, NSError* _Nullable* _Nullable error);
 
 /**
- * SetFixedTime updates fixed time used for crypto operations.
-Setting 0 will cause system time to be used.
- */
-FOUNDATION_EXPORT void CryptoSetFixedTime(int64_t newTime);
-
-/**
  * SetKeyGenerationOffset updates the offset when generating keys.
  */
 FOUNDATION_EXPORT void CryptoSetKeyGenerationOffset(int64_t offset);
@@ -1264,9 +1258,8 @@ Offset will be applied to all crypto operations unless fixed time is used.
 FOUNDATION_EXPORT void CryptoSetTimeOffset(int64_t newOffset);
 
 /**
- * UpdateTime updates cached time,
-new time has to be after previously set or will be ignored otherwise.
-SetFixedTime and UpdateTime manages the same state but this function is kept for version compatibility.
+ * UpdateTime updates cached time, new time has to be after previously set or will be ignored otherwise.
+Calling this function will cause time used in all crypto operations to be constant equal to provided.
  */
 FOUNDATION_EXPORT void CryptoUpdateTime(int64_t newTime);
 
