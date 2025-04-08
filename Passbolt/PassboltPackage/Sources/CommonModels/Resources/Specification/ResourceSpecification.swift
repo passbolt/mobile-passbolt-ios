@@ -136,7 +136,7 @@ extension ResourceSpecification {
             minLength: .none,
             maxLength: 4096
           ),
-          required: true,
+          required: false,
           encrypted: true
         )
       ]
@@ -183,7 +183,7 @@ extension ResourceSpecification {
             minLength: .none,
             maxLength: 4096
           ),
-          required: true,
+          required: false,
           encrypted: true
         ),
         .init(
@@ -274,7 +274,7 @@ extension ResourceSpecification {
             minLength: .none,
             maxLength: 4096
           ),
-          required: true,
+          required: false,
           encrypted: true
         ),
         .init(
@@ -320,7 +320,7 @@ extension ResourceSpecification {
         name: "secret",
         // it won't be edited, using no validation to avoid issues
         content: .string(),
-        required: true,
+        required: false,
         encrypted: true
       )
     ]
