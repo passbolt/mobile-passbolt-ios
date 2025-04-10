@@ -50,7 +50,7 @@ public final class OTPConfigurationScanningViewController: ViewController {
 
   private let navigationToScanningSuccess: NavigationToOTPScanningSuccess
   private let navigationToSelf: NavigationToOTPScanning
-  private let navigationToOTPEditForm: NavigationToOTPEditForm
+  private let navigationToResourceEditForm: NavigationToResourceEdit
   private let scanningState: CriticalState<ScanningState>
 
   private let context: Context
@@ -69,7 +69,7 @@ public final class OTPConfigurationScanningViewController: ViewController {
 
     self.navigationToScanningSuccess = try features.instance()
     self.navigationToSelf = try features.instance()
-    self.navigationToOTPEditForm = try features.instance()
+    self.navigationToResourceEditForm = try features.instance()
     self.scanningState = .init(.idle)
 
     self.resourceEditForm = try features.instance()
@@ -171,9 +171,13 @@ extension OTPConfigurationScanningViewController {
   /// Navigate to manual TOTP configuration editing form.
   internal func editManually() async {
     await consumingErrors {
-      try await self.navigationToOTPEditForm.perform(
+      let context: ResourceEditingContext = try features.context(of: ResourceEditScope.self)
+      try await self.navigationToResourceEditForm.perform(
         context: .init(
-          totpPath: context.totpPath
+          editingContext: context,
+          customOnSuccessNavigation: { [weak self] in
+            try await self?.navigationToSelf.revert()
+          }
         )
       )
     }

@@ -134,6 +134,9 @@
 "resource.edit.field.password.label" = "Password";
 "resource.edit.field.description.label" = "Description";
 "resource.edit.field.totp.label" = "TOTP";
+"resource.edit.field.add.totp" = "TOTP";
+"resource.edit.field.add.note" = "Note";
+"resource.edit.field.add.password" = "Password";
 "resource.edit.field.name.placeholder" = "Enter a name";
 "resource.edit.field.uri.placeholder" = "Enter URL";
 "resource.edit.field.username.placeholder" = "Enter username";
@@ -142,6 +145,14 @@
 "resource.edit.exit.confirmation.message" = "Your modifications won’t be saved.";
 "resource.edit.exit.confirmation.button.edit.title" = "Edit";
 "resource.edit.exit.confirmation.button.revert.title" = "Revert";
+"resource.edit.note.content.title" = "Content";
+"resource.edit.note.content.disclaimer" = "This secure is part of the secret if you wan to be able to search this content, use metadata description.";
+"resource.edit.note.remove.button.title" = "Remove note";
+
+"resource.edit.section.password.title" = "Password";
+"resource.edit.section.totp.title" = "TOTP";
+"resource.edit.section.note.title" = "Note";
+"resource.edit.section.metadata.title" = "Metadata";
 
 "resource.create.advanced.button" = "View advanced settings";
 "resource.create.additional.secrets.title" = "Additional secrets";
@@ -253,6 +264,7 @@
 "resource.menu.item.copy.password" = "Copy password";
 "resource.menu.item.copy.username" = "Copy username";
 "resource.menu.item.copy.description" = "Copy description";
+"resource.menu.item.copy.note" = "Copy note";
 "resource.menu.item.reveal.otp" = "Show TOTP";
 "resource.menu.item.copy.otp" = "Copy TOTP";
 "resource.menu.item.add.favorite" = "Add to favorite";

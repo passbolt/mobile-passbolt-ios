@@ -35,6 +35,7 @@ internal final class ResourceDetailsViewController: ViewController {
     internal var favorite: Bool
     internal var containsUndefinedFields: Bool
     internal var sections: Array<ResourceDetailsSectionViewModel>
+    internal var permissions: Array<OverlappingAvatarStackView.Item>
     internal var expirationDate: Date?
 
     internal var isExpired: Bool? {
@@ -62,7 +63,7 @@ internal final class ResourceDetailsViewController: ViewController {
 
   }
 
-  internal let viewState: ViewStateSource<ViewState>
+  nonisolated internal let viewState: ViewStateSource<ViewState>
 
   internal struct LocalState: Equatable {
 
@@ -120,7 +121,8 @@ internal final class ResourceDetailsViewController: ViewController {
         name: .init(),
         favorite: false,
         containsUndefinedFields: false,
-        sections: .init()
+        sections: .init(),
+        permissions: .init()
       ),
       updateFrom: ComputedVariable(
         combined: self.resourceController.state,
@@ -149,7 +151,6 @@ internal final class ResourceDetailsViewController: ViewController {
             viewState.containsUndefinedFields = resource.containsUndefinedFields
             viewState.sections = sections(
               for: resource,
-              with: resourcePermissions,
               using: features,
               revealedFields: resource.secretAvailable
                 ? localState.revealedFields
@@ -157,6 +158,9 @@ internal final class ResourceDetailsViewController: ViewController {
               sessionConfiguration: sessionConfiguration
             )
             viewState.expirationDate = resource.expired?.asDate
+            if sessionConfiguration.share.showMembersList {
+              viewState.permissions = resourcePermissions
+            }
           }
         }
         catch {
@@ -295,7 +299,6 @@ extension ResourceDetailsViewController {
 /// Prepare sections/groupped fields for display in UI
 @MainActor private func sections(
   for resource: Resource,
-  with resourcePermissions: Array<OverlappingAvatarStackView.Item>,
   using features: Features,
   revealedFields: Set<Resource.FieldPath>,
   sessionConfiguration: SessionConfiguration
@@ -305,19 +308,21 @@ extension ResourceDetailsViewController {
   }
 
   var passwordSection: ResourceDetailsSectionViewModel = .init(
-    title: "Password",
+    title: "resource.edit.section.password.title",
     fields: .init()
   )
 
   var totpSection: ResourceDetailsSectionViewModel = .init(
-    title: "TOTP",
+    title: "resource.edit.section.totp.title",
     fields: .init()
   )
 
   var metadataSection: ResourceDetailsSectionViewModel = .init(
-    title: "Metadata",
+    title: "resource.edit.section.metadata.title",
     fields: .init()
   )
+
+  var notesSection: ResourceDetailsSectionViewModel = .init(title: "resource.edit.section.note.title", fields: .init())
 
   let fieldModelsByName: OrderedDictionary<ResourceFieldName, ResourceDetailsFieldViewModel> = resource
     .fields
@@ -365,6 +370,9 @@ extension ResourceDetailsViewController {
     else if ResourceDetailsSectionViewModel.totpSectionFields.contains(fieldName) {
       totpSection.fields.append(fieldModel)
     }
+    else if fieldName == .note {
+      notesSection.fields.append(fieldModel)
+    }
     else {
       metadataSection.fields.append(fieldModel)
     }
@@ -380,14 +388,9 @@ extension ResourceDetailsViewController {
       .tags(resource.tags.map(\.slug.rawValue))
     )
   }
-  if sessionConfiguration.share.showMembersList {
-    metadataSection.virtualFields.append(
-      .permissions(resourcePermissions)
-    )
-  }
 
   // remove empty sections
-  return [passwordSection, totpSection, metadataSection].filter { $0.fields.isEmpty == false }
+  return [passwordSection, totpSection, notesSection, metadataSection].filter { $0.fields.isEmpty == false }
 }
 
 /// View model for a section/fields group of resource details
@@ -404,7 +407,6 @@ internal struct ResourceDetailsSectionViewModel: Equatable, Identifiable {
     internal typealias ID = Tagged<String, Self>
     case location(Array<String>)
     case tags(Array<String>)
-    case permissions(Array<OverlappingAvatarStackView.Item>)
 
     internal var id: ID {
       switch self {
@@ -412,8 +414,6 @@ internal struct ResourceDetailsSectionViewModel: Equatable, Identifiable {
         return "location"
       case .tags:
         return "tags"
-      case .permissions:
-        return "permissions"
       }
     }
   }

@@ -34,6 +34,7 @@ internal enum ResourceContextualMenuItem: Hashable, Identifiable {
   case copyUsername
   case copyPassword
   case copyDescription
+  case copyNote
 
   case addOTP
   case showOTPMenu
@@ -135,8 +136,12 @@ internal final class ResourceContextualMenuViewController: ViewController {
             accessMenuItems.append(.copyPassword)
           }  // else NOP
 
-          if resource.contains(\.secret.description) || resource.contains(\.meta.description) {
+          if resource.contains(\.meta.description) {
             accessMenuItems.append(.copyDescription)
+          }  // else NOP
+
+          if resource.contains(\.secret.description) {
+            accessMenuItems.append(.copyNote)
           }  // else NOP
 
           if resource.hasTOTP {
@@ -199,6 +204,8 @@ extension ResourceContextualMenuViewController {
       // using \.description to find proper description field
       // actual description have different path
       await self.copy(field: \.description)
+    case .copyNote:
+      await self.copy(field: \.secret.description)
 
     case .addOTP:
       await self.addOTP()

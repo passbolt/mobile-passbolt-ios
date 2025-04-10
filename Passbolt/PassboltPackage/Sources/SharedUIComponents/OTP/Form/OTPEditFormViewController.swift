@@ -119,9 +119,7 @@ public final class OTPEditFormViewController: ViewController {
           let localState: LocalState = try update.value.1
           guard resource.contains(context.totpPath)
           else {
-            throw
-              InvalidResourceTypeError
-              .error(message: "Resource without TOTP, can't edit its TOTP.")
+            return
           }
           updateState { (viewState: inout ViewState) in
             viewState.isEditing = !resource.isLocal

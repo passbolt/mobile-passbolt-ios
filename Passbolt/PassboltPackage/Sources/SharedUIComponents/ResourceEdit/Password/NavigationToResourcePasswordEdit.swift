@@ -21,39 +21,31 @@
 // @since         v1.0
 //
 
-public struct MetadataTypesSettings: Decodable, Sendable, Equatable {
-  public let defaultResourceTypes: VersionType
+import Display
+import FeatureScopes
 
-  public init(
-    defaultResourceTypes: VersionType
-  ) {
-    self.defaultResourceTypes = defaultResourceTypes
-  }
+public enum ResourcePasswordEditNavigationDestination: NavigationDestination {
 
-  public init(from decoder: Decoder) throws {
-    let container = try decoder.container(keyedBy: CodingKeys.self)
-    defaultResourceTypes = try container.decode(VersionType.self, forKey: .defaultResourceTypes)
-  }
+  public typealias TransitionContext = ResourcePasswordEditViewController.Context
+}
 
-  private enum CodingKeys: String, CodingKey {
-    case defaultResourceTypes = "default_resource_types"
-  }
+public typealias NavigationToResourcePasswordEdit = NavigationTo<ResourcePasswordEditNavigationDestination>
 
-  public enum VersionType: String, Decodable, Sendable {
-    case v4
-    case v5
+extension NavigationToResourcePasswordEdit {
+
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(
+      to: ResourcePasswordEditView.self
+    )
   }
 }
 
-extension MetadataTypesSettings {
-  public static let `default`: Self = .init(defaultResourceTypes: .v4)
+extension FeaturesRegistry {
 
-  public var defaultResourceTypeSlug: ResourceSpecification.Slug {
-    switch defaultResourceTypes {
-    case .v4:
-      return .passwordWithDescription
-    case .v5:
-      return .v5Default
-    }
+  public mutating func useLiveNavigationToResourcePasswordEdit() {
+    self.use(
+      NavigationToResourcePasswordEdit.live,
+      in: ResourceEditScope.self
+    )
   }
 }

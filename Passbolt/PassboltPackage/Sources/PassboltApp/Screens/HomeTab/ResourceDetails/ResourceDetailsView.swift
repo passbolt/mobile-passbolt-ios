@@ -184,7 +184,28 @@ internal struct ResourceDetailsView: ControlledView {
         .background(Color.passboltBackgroundGray)
         .cornerRadius(4)
       }
-      CommonListSpacer(minHeight: 16)
+      CommonListSpacer(minHeight: 8)
+    }
+    with(\.permissions) { (permissions: Array<OverlappingAvatarStackView.Item>) in
+      CommonListSection {
+        Text(displayable: "resource.detail.section.permissions")
+          .font(.inter(ofSize: 16, weight: .bold))
+          .padding(.bottom, 16)
+        CommonListRow(
+          contentAction: self.controller.showPermissionsDetails,
+          content: {
+            ResourceFieldView(
+              name: "resource.detail.section.permissions",
+              content: {
+                OverlappingAvatarStackView(permissions)
+                  .frame(height: 40)
+              }
+            )
+          },
+          accessory: DisclosureIndicatorImage.init
+        )
+      }
+      CommonListSpacer(minHeight: 8)
     }
   }
 
@@ -271,20 +292,6 @@ internal struct ResourceDetailsView: ControlledView {
             name: "resource.detail.section.tags",
             content: {
               CompactTagsView(tags: tags)
-            }
-          )
-        },
-        accessory: DisclosureIndicatorImage.init
-      )
-    case .permissions(let permissionItems):
-      CommonListRow(
-        contentAction: self.controller.showPermissionsDetails,
-        content: {
-          ResourceFieldView(
-            name: "resource.detail.section.permissions",
-            content: {
-              OverlappingAvatarStackView(permissionItems)
-                .frame(height: 40)
             }
           )
         },

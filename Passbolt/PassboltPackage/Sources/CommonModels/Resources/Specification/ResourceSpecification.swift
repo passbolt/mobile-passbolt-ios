@@ -76,6 +76,10 @@ extension ResourceSpecification.Slug {
     [.v5StandaloneTOTP, .v5DefaultWithTOTP, .v5Password, .v5Default]
   }
 
+  public var isV5Type: Bool {
+    Self.v5Types.contains(self)
+  }
+
   /// All resource types that include TOTP functionality
   public static var allTOTPTypes: Set<Self> {
     [.totp, .v5StandaloneTOTP, .passwordWithTOTP, .v5DefaultWithTOTP]
@@ -184,6 +188,16 @@ extension ResourceSpecification {
           required: false,
           encrypted: false
         ),
+        .init(
+          path: \.meta.description,
+          name: .description,
+          content: .string(
+            minLength: .none,
+            maxLength: 10000
+          ),
+          required: false,
+          encrypted: false
+        ),
       ],
       secretFields: [
         .init(
@@ -198,7 +212,7 @@ extension ResourceSpecification {
         ),
         .init(
           path: \.secret.description,
-          name: .description,
+          name: .note,
           content: .string(
             minLength: .none,
             maxLength: 10000
@@ -228,6 +242,16 @@ extension ResourceSpecification {
           path: \.meta.uris,
           name: .uri,
           content: .list,
+          required: false,
+          encrypted: false
+        ),
+        .init(
+          path: \.meta.description,
+          name: .description,
+          content: .string(
+            minLength: .none,
+            maxLength: 10000
+          ),
           required: false,
           encrypted: false
         ),
@@ -275,6 +299,16 @@ extension ResourceSpecification {
           required: false,
           encrypted: false
         ),
+        .init(
+          path: \.meta.description,
+          name: .description,
+          content: .string(
+            minLength: .none,
+            maxLength: 10000
+          ),
+          required: false,
+          encrypted: false
+        ),
       ],
       secretFields: [
         .init(
@@ -296,7 +330,7 @@ extension ResourceSpecification {
         ),
         .init(
           path: \.secret.description,
-          name: .description,
+          name: .note,
           content: .string(
             minLength: .none,
             maxLength: 10000

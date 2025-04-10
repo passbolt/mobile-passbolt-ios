@@ -39,7 +39,7 @@ internal final class ResourceOTPEditMenuViewController: ViewController {
   private let resourceEditForm: ResourceEditForm
   private let navigationToSelf: NavigationToResourceOTPEditMenu
   private let navigationToQRCodeCreateOTPView: NavigationToOTPScanning
-  private let navigationToOTPEditForm: NavigationToOTPEditForm
+  private let navigationToResourceEdit: NavigationToResourceEdit
 
   private let context: Context
 
@@ -63,7 +63,7 @@ internal final class ResourceOTPEditMenuViewController: ViewController {
 
     self.navigationToSelf = try features.instance()
     self.navigationToQRCodeCreateOTPView = try features.instance()
-    self.navigationToOTPEditForm = try features.instance()
+    self.navigationToResourceEdit = try features.instance()
 
     self.resourceEditForm = try features.instance()
   }
@@ -110,8 +110,7 @@ extension ResourceOTPEditMenuViewController {
         let attachedOTPSlug: ResourceSpecification.Slug = editedResource.attachedOTPSlug,
         let attachType: ResourceType = context.editingContext.availableTypes.first(where: {
           $0.specification.slug == attachedOTPSlug
-        }),
-        let totpPath: ResourceType.FieldPath = attachType.fieldSpecification(for: \.firstTOTP)?.path
+        })
       else {
         throw
           InvalidResourceTypeError
@@ -122,11 +121,7 @@ extension ResourceOTPEditMenuViewController {
         try self.resourceEditForm.updateType(attachType)
       }  // else - use current type
 
-      try await self.navigationToOTPEditForm.perform(
-        context: .init(
-          totpPath: totpPath
-        )
-      )
+      try await self.navigationToResourceEdit.perform(context: .init(editingContext: context.editingContext))
     }
     catch {
       error.consume()

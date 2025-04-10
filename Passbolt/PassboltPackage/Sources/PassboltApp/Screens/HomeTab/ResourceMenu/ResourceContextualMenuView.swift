@@ -118,6 +118,19 @@ extension ResourceContextualMenuItem {
             .resizable()
         }
       )
+    case .copyNote:
+      DrawerMenuItemView(
+        action: {
+          await controller.performAction(for: self)
+        },
+        title: {
+          Text(displayable: "resource.menu.item.copy.note")
+        },
+        leftIcon: {
+          Image(named: .description)
+            .resizable()
+        }
+      )
 
     case .copyDescription:
       DrawerMenuItemView(

@@ -107,18 +107,21 @@ public struct ResourceEditView: ControlledView {
                 self.fieldView(for: nameField)
               }
             }
-            Text(displayable: "resource.edit.create.title")
-              .font(.inter(ofSize: 16, weight: .bold))
-              .padding(.vertical, 20)
-            VStack(spacing: 16) {
-              withEach(\.fields) { field in
-                self.fieldView(for: field)
+
+            with(\.mainForm) { mainForm in
+              Text(displayable: mainForm.title)
+                .font(.inter(ofSize: 16, weight: .bold))
+                .padding(.vertical, 20)
+              VStack(spacing: 16) {
+                withEach(\.mainForm.fields) { field in
+                  self.fieldView(for: field)
+                }
               }
+              .padding(.horizontal, 16)
+              .padding(.vertical, 8)
+              .backgroundColor(.passboltBackgroundGray)
+              .cornerRadius(4)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .backgroundColor(.passboltBackgroundGray)
-            .cornerRadius(4)
           }
           when(\.canShowAdvancedSettings) {
             SecondaryButton(
@@ -142,24 +145,8 @@ public struct ResourceEditView: ControlledView {
               .font(.inter(ofSize: 16, weight: .bold))
               .padding(.vertical, 20)
             VStack(spacing: 16) {
-              when(\.canShowAddTOTP) {
-                CommonListRow(
-                  contentAction: self.controller.createOrEditTOTP,
-                  content: {
-                    ResourceFieldView(
-                      name: nil,
-                      content: {
-                        HStack(spacing: 16) {
-                          Image(named: .otp)
-                          Text(displayable: "resource.create.advanced.add.otp")
-                            .font(.inter(ofSize: 14, weight: .semibold))
-                            .foregroundColor(.passboltPrimaryText)
-                        }
-                      }
-                    )
-                  },
-                  accessory: DisclosureIndicatorImage.init
-                )
+              withEach(\.mainForm.additionalOptions) { (additionalOption: MainFormViewModel.AdditionalOption) in
+                self.additionalActionView(for: additionalOption)
               }
             }
             .padding(.horizontal, 16)
@@ -185,22 +172,71 @@ public struct ResourceEditView: ControlledView {
     }
   }
 
+  @MainActor @ViewBuilder private func additionalActionView(
+    for additionalOption: MainFormViewModel.AdditionalOption
+  ) -> some View {
+    switch additionalOption {
+    case .addNote:
+      CommonListRow(
+        contentAction: self.controller.addNote,
+        content: {
+          ResourceFieldView(
+            name: nil,
+            content: {
+              HStack(spacing: 16) {
+                Image(named: .notes)
+                Text(displayable: "resource.edit.field.add.note")
+                  .font(.inter(ofSize: 14, weight: .semibold))
+                  .foregroundColor(.passboltPrimaryText)
+              }
+            }
+          )
+        },
+        accessory: DisclosureIndicatorImage.init
+      )
+    case .addPassword:
+      CommonListRow(
+        contentAction: self.controller.addPassword,
+        content: {
+          ResourceFieldView(
+            name: nil,
+            content: {
+              HStack(spacing: 16) {
+                Image(named: .key)
+                Text(displayable: "resource.edit.field.add.password")
+                  .font(.inter(ofSize: 14, weight: .semibold))
+                  .foregroundColor(.passboltPrimaryText)
+              }
+            }
+          )
+        },
+        accessory: DisclosureIndicatorImage.init
+      )
+    case .addTOTP:
+      CommonListRow(
+        contentAction: self.controller.createOrEditTOTP,
+        content: {
+          ResourceFieldView(
+            name: nil,
+            content: {
+              HStack(spacing: 16) {
+                Image(named: .otp)
+                Text(displayable: "resource.create.advanced.add.otp")
+                  .font(.inter(ofSize: 14, weight: .semibold))
+                  .foregroundColor(.passboltPrimaryText)
+              }
+            }
+          )
+        },
+        accessory: DisclosureIndicatorImage.init
+      )
+    }
+  }
+
   @MainActor @ViewBuilder private var undefinedContentSectionView: some View {
     CommonListSection {
       CommonListRow {
         WarningView(message: "resource.form.undefined.content.warning")
-      }
-    }
-  }
-
-  @MainActor @ViewBuilder private var fieldsSectionsView: some View {
-    CommonListSection {
-      withEach(\.fields) { (fieldModel: ResourceEditFieldViewModel) in
-        CommonListRow(
-          content: {
-            fieldView(for: fieldModel)
-          }
-        )
       }
     }
   }
@@ -215,7 +251,7 @@ public struct ResourceEditView: ControlledView {
         mandatory: fieldModel.requiredMark,
         state: self.validatedOptionalBinding(
           to: \.validatedString,
-          in: \.fields[fieldModel.path],
+          in: \.mainForm.fields[fieldModel.path],
           default: state,
           updating: { (newValue: String) in
             withAnimation {
@@ -234,7 +270,7 @@ public struct ResourceEditView: ControlledView {
         mandatory: fieldModel.requiredMark,
         state: self.validatedOptionalBinding(
           to: \.validatedString,
-          in: \.fields[fieldModel.path],
+          in: \.mainForm.fields[fieldModel.path],
           default: state.first ?? .valid(""),
           updating: { (newValue: String) in
             withAnimation {
@@ -254,7 +290,7 @@ public struct ResourceEditView: ControlledView {
         encrypted: fieldModel.encryptedMark,
         state: self.validatedOptionalBinding(
           to: \.validatedString,
-          in: \.fields[fieldModel.path],
+          in: \.mainForm.fields[fieldModel.path],
           default: state,
           updating: { (newValue: String) in
             withAnimation {
@@ -289,7 +325,7 @@ public struct ResourceEditView: ControlledView {
           mandatory: fieldModel.requiredMark,
           state: self.validatedOptionalBinding(
             to: \.validatedString,
-            in: \.fields[fieldModel.path],
+            in: \.mainForm.fields[fieldModel.path],
             default: state,
             updating: { (newValue: String) in
               withAnimation {

@@ -249,7 +249,7 @@ extension ResourceType {
     case .passwordWithDescription:
       return .passwordWithTOTP
     case .v5Default:
-        return .v5DefaultWithTOTP
+      return .v5DefaultWithTOTP
     case .v5Password:
       return .v5DefaultWithTOTP
     case .passwordWithTOTP:
@@ -278,6 +278,39 @@ extension ResourceType {
 
     case let slug:
       return slug
+    }
+  }
+
+  public func slugByAttachingNote() -> ResourceSpecification.Slug? {
+    switch self.specification.slug {
+    case .password, .passwordWithDescription:
+      return .passwordWithDescription
+    case .v5Default, .v5Password:
+      return .v5Default
+    case .passwordWithTOTP, .totp:
+      return .passwordWithTOTP
+    case .v5DefaultWithTOTP, .v5StandaloneTOTP:
+      return .v5DefaultWithTOTP
+    case _:
+      return .none
+    }
+  }
+
+  public func slugByRemovingNote() -> ResourceSpecification.Slug? {
+    switch self.specification.slug {
+    case .password, .passwordWithDescription:
+      // once moved to password description, there is no way of going back to simple password
+      return .passwordWithDescription
+    case .v5Default, .v5Password:
+      return .v5Default
+    case .v5StandaloneTOTP, .totp:
+      return .none  // shouldn't be possible to remove note from standalone OTP as it should not exist
+    case .passwordWithTOTP:
+      return .passwordWithTOTP
+    case .v5DefaultWithTOTP:
+      return .v5DefaultWithTOTP
+    case _:
+      return .none
     }
   }
 

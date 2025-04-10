@@ -67,7 +67,11 @@ extension FeaturesRegistry {
     self.useLiveNavigationToOTPScanningSuccess()
     self.useLiveNavigationToOTPEditForm()
     self.useLiveNavigationToOTPEditAdvancedForm()
+
+    // MARK: - Resource Edit
+    self.useLiveNavigationToResourceNoteEdit()
     self.useLiveNavigationToOTPAttachSelectionList()
+    self.useLiveNavigationToResourcePasswordEdit()
 
     // MARK: - Settings Tab
     self.useLiveNavigationToTroubleshootingSettings()

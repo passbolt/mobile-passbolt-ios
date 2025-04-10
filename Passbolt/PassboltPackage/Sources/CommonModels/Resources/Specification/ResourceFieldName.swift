@@ -98,6 +98,7 @@ extension ResourceFieldName {
   public static let username: ResourceFieldName = "username"
   public static let password: ResourceFieldName = "password"
   public static let description: ResourceFieldName = "description"
+  public static let note: ResourceFieldName = "note"
   public static let totp: ResourceFieldName = "totp"
   public static let secretKey: ResourceFieldName = "secret_key"
   public static let secret: ResourceFieldName = "secret"

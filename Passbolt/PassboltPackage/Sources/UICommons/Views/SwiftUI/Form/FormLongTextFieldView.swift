@@ -30,6 +30,7 @@ public struct FormLongTextFieldView: View {
   private let prompt: String?
   private let mandatory: Bool
   private let encrypted: Bool?
+  private let textFieldMinHeight: CGFloat
   @Binding private var state: Validated<String>
   @FocusState private var focused: Bool
   @State private var editing: Bool = false
@@ -39,12 +40,14 @@ public struct FormLongTextFieldView: View {
     prompt: DisplayableString? = nil,
     mandatory: Bool = false,
     encrypted: Bool? = .none,
-    state: Binding<Validated<String>>
+    state: Binding<Validated<String>>,
+    textFieldMinHeight: CGFloat = 34
   ) {
     self.title = title.string()
     self.prompt = prompt?.string()
     self.mandatory = mandatory
     self.encrypted = encrypted
+    self.textFieldMinHeight = textFieldMinHeight
     self._state = state
   }
 
@@ -111,7 +114,7 @@ public struct FormLongTextFieldView: View {
         .multilineTextAlignment(.leading)
         .focused(self.$focused)
         .backport.hideScrollContentBackground()
-        .frame(minHeight: 34)
+        .frame(minHeight: textFieldMinHeight)
         .fixedSize(
           horizontal: false,
           vertical: true
