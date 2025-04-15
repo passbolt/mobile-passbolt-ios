@@ -48,7 +48,7 @@ internal struct ResourceNoteEditView: ControlledView {
               }
             )
           }
-          .background(.white)
+          .background(.background)
           .padding(16)
         }
         .ignoresSafeArea(.keyboard)

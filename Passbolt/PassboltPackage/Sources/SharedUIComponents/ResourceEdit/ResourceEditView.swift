@@ -165,8 +165,7 @@ public struct ResourceEditView: ControlledView {
           self.actionButtonView
             .padding(.vertical, 16)
         }
-        .background(.white)
-
+        .background(.background)
       }
       .ignoresSafeArea(.keyboard)
     }
