@@ -150,10 +150,46 @@ extension PGP {
 
   internal static func gopenPGP() -> Self {
 
+    var timeOffset: Int64 = 0
     func setTimeOffset(
       value: Seconds
     ) {
-      Gopenpgp.CryptoSetTimeOffset(value.rawValue)
+      timeOffset = Int64(value.rawValue)
+    }
+
+    func now() -> Int64 {
+      Int64(Date.now.timeIntervalSince1970)
+    }
+
+    func createUnlockedPrivateKey(
+      fromArmored privateKey: ArmoredPGPPrivateKey,
+      withPassphrase passphrase: Passphrase
+    ) throws -> CryptoKey {
+      guard
+        let key: CryptoKey = CryptoKey(fromArmored: privateKey.rawValue)
+      else {
+        throw PGPKeyRingPreparationFailed.error("Cannot create CryptoKey from armored key")
+      }
+
+      do {
+        let passphraseData: Data? = passphrase.rawValue.data(using: .utf8)
+        return try key.unlock(passphraseData)
+      }
+      catch {
+        throw
+          PassphraseInvalid
+          .error("Invalid passphrase data used for encryption with signature")
+          .recording(passphrase, for: "passphrase")
+      }
+    }
+
+    func createPublicKey(fromArmored publicKey: ArmoredPGPPublicKey) throws -> CryptoKey {
+      if let key: CryptoKey = CryptoKey(fromArmored: publicKey.rawValue) {
+        return key
+      }
+      throw PGPIssue.error(
+        underlyingError: PGPGenericIssue.error("Cannot create CryptoKey from armored key")
+      )
     }
 
     func encryptAndSign(
@@ -162,64 +198,27 @@ extension PGP {
       privateKey: ArmoredPGPPrivateKey,
       publicKey: ArmoredPGPPublicKey
     ) -> Result<String, Error> {
-      defer { Gopenpgp.HelperFreeOSMemory() }
+      defer { Gopenpgp.MobileFreeOSMemory() }
 
-      guard let passphraseData: Data = passphrase.rawValue.data(using: .utf8)
-      else {
-        return .failure(
-          PGPIssue.error(
-            underlyingError:
-              PassphraseInvalid
-              .error("Invalid passphrase data used for encryption with signature")
-              .recording(passphrase, for: "passphrase")
-          )
+      do {
+        let key: CryptoKey = try createUnlockedPrivateKey(fromArmored: privateKey, withPassphrase: passphrase)
+        let publicKey: CryptoKey = try createPublicKey(fromArmored: publicKey)
+        let encryptor: CryptoPGPEncryptionProtocol = try CryptoPGPHandle.encryptor(
+          with: {
+            $0.signing(key)?
+              .recipient(publicKey)
+          }
         )
+
+        let result: CryptoPGPMessage = try encryptor.encrypt(Data(input.utf8))
+        let armoredData = try result.armorBytes()
+        encryptor.clearPrivateParams()
+        return .success(String(decoding: armoredData, as: UTF8.self))
       }
-
-      var error: NSError?
-      let result: String = Gopenpgp.HelperEncryptSignMessageArmored(
-        publicKey.rawValue,
-        privateKey.rawValue,
-        passphraseData,
-        input,
-        &error
-      )
-
-      guard let nsError: NSError = error else {
-        return .success(result)
-      }
-
-      if nsError.domain == "go",
-        // gopenpgp has multiple strings for the same error...
-        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,
-        errorDescription.contains("gopenpgp: unable to unlock key")
-          || errorDescription.contains(
-            "gopenpgp: error in unlocking key"
-          )
-      {
+      catch {
         return .failure(
           PGPIssue.error(
-            underlyingError:
-              PassphraseInvalid
-              .error("Invalid passphrase used for encryption with signature")
-              .recording(passphrase, for: "passphrase")
-              .recording(nsError, for: "goError")
-          )
-        )
-      }
-      else {
-        return .failure(
-          PGPIssue.error(
-            underlyingError:
-              Unidentified
-              .error(
-                "Data encryption with signature failed",
-                underlyingError: nsError
-              )
-              .recording(publicKey, for: "publicKey")
-              .recording(privateKey, for: "privateKey")
-              .recording(passphrase, for: "passphrase")
-              .recording(input, for: "input")
+            underlyingError: error.asTheError()
           )
         )
       }
@@ -231,66 +230,31 @@ extension PGP {
       privateKey: ArmoredPGPPrivateKey,
       publicKey: ArmoredPGPPublicKey
     ) -> Result<String, Error> {
-      defer { Gopenpgp.HelperFreeOSMemory() }
+      defer { Gopenpgp.MobileFreeOSMemory() }
 
-      guard let passphraseData: Data = passphrase.rawValue.data(using: .utf8)
-      else {
-        return .failure(
-          PGPIssue.error(
-            underlyingError:
-              PassphraseInvalid
-              .error("Invalid passphrase data used for decryption with verification")
-              .recording(passphrase, for: "passphrase")
-          )
+      do {
+        let key: CryptoKey = try createUnlockedPrivateKey(fromArmored: privateKey, withPassphrase: passphrase)
+        let publicKey: CryptoKey = try createPublicKey(fromArmored: publicKey)
+        let decryptor: CryptoPGPDecryptionProtocol = try CryptoPGPHandle.decryptor(
+          with: {
+            $0.decryptionKey(key)?
+              .verificationKey(publicKey)?
+              .verifyTime(now() + timeOffset)
+          })
+        defer { decryptor.clearPrivateParams() }
+        let inputData: Data = Data(input.utf8)
+        let result: CryptoVerifiedDataResult = try decryptor.decrypt(inputData, encoding: PGPEncoding.auto.rawValue)
+        if let data = result.bytes() {
+          return .success(String(decoding: data, as: UTF8.self))
+        }
+        throw PGPIssue.error(
+          underlyingError: PGPGenericIssue.error("Cannot decode decrypted data")
         )
       }
-
-      var error: NSError?
-      let result: String = Gopenpgp.HelperDecryptVerifyMessageArmored(
-        publicKey.rawValue,
-        privateKey.rawValue,
-        passphraseData,
-        input,
-        &error
-      )
-
-      guard let nsError: NSError = error else {
-        return .success(result)
-      }
-
-      if nsError.domain == "go",
-        // gopenpgp has multiple strings for the same error...
-        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,
-        errorDescription.contains("gopenpgp: unable to unlock key")
-          || errorDescription.contains(
-            "gopenpgp: error in unlocking key"
-          )
-      {
+      catch {
         return .failure(
           PGPIssue.error(
-            underlyingError:
-              PassphraseInvalid
-              .error(
-                "Invalid passphrase used for decryption with verification"
-              )
-              .recording(passphrase, for: "passphrase")
-              .recording(nsError, for: "goError")
-          )
-        )
-      }
-      else {
-        return .failure(
-          PGPIssue.error(
-            underlyingError:
-              Unidentified
-              .error(
-                "Data decryption with verification failed",
-                underlyingError: nsError
-              )
-              .recording(publicKey, for: "publicKey")
-              .recording(privateKey, for: "privateKey")
-              .recording(passphrase, for: "passphrase")
-              .recording(input, for: "input")
+            underlyingError: error.asTheError()
           )
         )
       }
@@ -300,31 +264,35 @@ extension PGP {
       _ input: String,
       publicKey: ArmoredPGPPublicKey
     ) -> Result<String, Error> {
-      defer { Gopenpgp.HelperFreeOSMemory() }
+      defer { Gopenpgp.MobileFreeOSMemory() }
 
-      var error: NSError?
-      let result: String = Gopenpgp.HelperEncryptMessageArmored(
-        publicKey.rawValue,
-        input,
-        &error
-      )
-
-      guard let nsError: NSError = error else {
-        return .success(result)
+      do {
+        let publicKey: CryptoKey = try createPublicKey(fromArmored: publicKey)
+        let encryptor: CryptoPGPEncryptionProtocol = try CryptoPGPHandle.encryptor(
+          with: {
+            $0.recipient(publicKey)?
+              .encryptionTime(now() + timeOffset)?
+              .signTime(now() + timeOffset)
+          })
+        defer { encryptor.clearPrivateParams() }
+        let result: CryptoPGPMessage = try encryptor.encrypt(Data(input.utf8))
+        let armoredData = try result.armorBytes()
+        return .success(String(decoding: armoredData, as: UTF8.self))
       }
-
-      return .failure(
-        PGPIssue.error(
-          underlyingError:
-            Unidentified
-            .error(
-              "Data encryption failed",
-              underlyingError: nsError
-            )
-            .recording(publicKey, for: "publicKey")
-            .recording(input, for: "input")
+      catch {
+        return .failure(
+          PGPIssue.error(
+            underlyingError:
+              Unidentified
+              .error(
+                "Data encryption failed",
+                underlyingError: error.asTheError()
+              )
+              .recording(publicKey, for: "publicKey")
+              .recording(input, for: "input")
+          )
         )
-      )
+      }
     }
 
     func decrypt(
@@ -332,62 +300,39 @@ extension PGP {
       passphrase: Passphrase,
       privateKey: ArmoredPGPPrivateKey
     ) -> Result<String, Error> {
-      defer { Gopenpgp.HelperFreeOSMemory() }
+      defer { Gopenpgp.MobileFreeOSMemory() }
 
-      guard let passphraseData: Data = passphrase.rawValue.data(using: .utf8)
-      else {
+      do {
+        let key = try createUnlockedPrivateKey(fromArmored: privateKey, withPassphrase: passphrase)
+
+        guard let inputData: Data = input.data(using: .utf8) else {
+          throw PGPIssue.error(
+            underlyingError: PGPGenericIssue.error("Cannot create Data from input string")
+          )
+        }
+
+        let decryptor: CryptoPGPDecryptionProtocol = try CryptoPGPHandle.decryptor(
+          with: {
+            $0.decryptionKey(key)?
+              .verifyTime(now() + timeOffset)
+          })
+        defer { decryptor.clearPrivateParams() }
+        let result: CryptoVerifiedDataResult = try decryptor.decrypt(inputData, encoding: PGPEncoding.auto.rawValue)
+
+        if let decryptedData: Data = result.bytes(),
+          let decryptedString: String = String(data: decryptedData, encoding: .utf8)
+        {
+          return .success(decryptedString)
+        }
+        else {
+          throw PGPGenericIssue.error("Cannot decode decrypted data")
+        }
+      }
+      catch {
         return .failure(
           PGPIssue.error(
             underlyingError:
-              PassphraseInvalid
-              .error("Invalid passphrase data used for decryption")
-              .recording(passphrase, for: "passphrase")
-          )
-        )
-      }
-
-      var error: NSError?
-      let result: String = Gopenpgp.HelperDecryptMessageArmored(
-        privateKey.rawValue,
-        passphraseData,
-        input,
-        &error
-      )
-
-      guard let nsError: NSError = error else {
-        return .success(result)
-      }
-
-      if nsError.domain == "go",
-        // gopenpgp has multiple strings for the same error...
-        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,
-        errorDescription.contains("gopenpgp: unable to unlock key")
-          || errorDescription.contains(
-            "gopenpgp: error in unlocking key"
-          )
-      {
-        return .failure(
-          PGPIssue.error(
-            underlyingError:
-              PassphraseInvalid
-              .error("Invalid passphrase used for decryption")
-              .recording(passphrase, for: "passphrase")
-              .recording(nsError, for: "goError")
-          )
-        )
-      }
-      else {
-        return .failure(
-          PGPIssue.error(
-            underlyingError:
-              Unidentified
-              .error(
-                "Data decryption failed",
-                underlyingError: nsError
-              )
-              .recording(privateKey, for: "privateKey")
-              .recording(passphrase, for: "passphrase")
-              .recording(input, for: "input")
+              error.asTheError()
           )
         )
       }
@@ -398,62 +343,23 @@ extension PGP {
       passphrase: Passphrase,
       privateKey: ArmoredPGPPrivateKey
     ) -> Result<String, Error> {
-      defer { Gopenpgp.HelperFreeOSMemory() }
+      defer { Gopenpgp.MobileFreeOSMemory() }
 
-      guard let passphraseData: Data = passphrase.rawValue.data(using: .utf8)
-      else {
+      do {
+        let key: CryptoKey = try createUnlockedPrivateKey(fromArmored: privateKey, withPassphrase: passphrase)
+        let signer: CryptoPGPSignProtocol = try CryptoPGPHandle.signer(
+          with: {
+            $0.signing(key)?
+              .signTime(now() + timeOffset)
+          })
+        defer { signer.clearPrivateParams() }
+        let armoredData: Data = try signer.signCleartext(Data(input.utf8))
+        return .success(String(decoding: armoredData, as: UTF8.self))
+      }
+      catch {
         return .failure(
           PGPIssue.error(
-            underlyingError:
-              PassphraseInvalid
-              .error("Invalid passphrase data used for preparing signature")
-              .recording(passphrase, for: "passphrase")
-          )
-        )
-      }
-
-      var error: NSError?
-      let result: String = Gopenpgp.HelperSignCleartextMessageArmored(
-        privateKey.rawValue,
-        passphraseData,
-        input,
-        &error
-      )
-
-      guard let nsError: NSError = error else {
-        return .success(result)
-      }
-
-      if nsError.domain == "go",
-        // gopenpgp has multiple strings for the same error...
-        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,
-        errorDescription.contains("gopenpgp: unable to unlock key")
-          || errorDescription.contains(
-            "gopenpgp: error in unlocking key"
-          )
-      {
-        return .failure(
-          PGPIssue.error(
-            underlyingError:
-              PassphraseInvalid
-              .error("Invalid passphrase used for preparing signature")
-              .recording(passphrase, for: "passphrase")
-              .recording(nsError, for: "goError")
-          )
-        )
-      }
-      else {
-        return .failure(
-          PGPIssue.error(
-            underlyingError:
-              Unidentified
-              .error(
-                "Data signing failed",
-                underlyingError: nsError
-              )
-              .recording(privateKey, for: "privateKey")
-              .recording(passphrase, for: "passphrase")
-              .recording(input, for: "input")
+            underlyingError: error.asTheError()
           )
         )
       }
@@ -475,67 +381,49 @@ extension PGP {
         )
       }
 
-      defer { Gopenpgp.HelperFreeOSMemory() }
+      defer { Gopenpgp.MobileFreeOSMemory() }
 
-      var error: NSError?
-      let result: String = Gopenpgp.HelperVerifyCleartextMessageArmored(
-        publicKey.rawValue,
-        input,
-        verifyTime,
-        &error
-      )
+      do {
+        let publicKey: CryptoKey = try createPublicKey(fromArmored: publicKey)
+        let verifier: CryptoPGPVerifyProtocol = try CryptoPGPHandle.verifier(
+          with: {
+            $0.verificationKey(publicKey)?
+              .verifyTime(verifyTime)
+          })
 
-      guard let nsError: NSError = error else {
-        return .success(result)
-      }
-
-      return .failure(
-        PGPIssue.error(
-          underlyingError:
-            Unidentified
-            .error(
-              "Data signature verification failed",
-              underlyingError: nsError
-            )
-            .recording(publicKey, for: "publicKey")
-            .recording(verifyTime, for: "verifyTime")
-            .recording(input, for: "input")
+        let inputData: Data = Data(input.utf8)
+        let result: CryptoVerifyCleartextResult = try verifier.verifyCleartext(inputData)
+        try result.signatureError()
+        if let data = result.cleartext() {
+          return .success(String(decoding: data, as: UTF8.self))
+        }
+        throw PGPIssue.error(
+          underlyingError: PGPGenericIssue.error("Cannot decode verified data")
         )
-      )
+      }
+      catch {
+        return .failure(
+          PGPIssue.error(
+            underlyingError: error.asTheError()
+          )
+        )
+      }
     }
 
     func verifyPassphrase(
       privateKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase
     ) -> Result<Void, Error> {
-      defer { Gopenpgp.HelperFreeOSMemory() }
-
-      guard
-        let cryptoKey: CryptoKey = Gopenpgp.CryptoKey(fromArmored: privateKey.rawValue),
-        let passphraseData: Data = passphrase.rawValue.data(using: .utf8)
-      else {
-        return .failure(
-          PGPIssue.error(
-            underlyingError:
-              PassphraseInvalid
-              .error("Invalid passphrase data used for passphrase verification")
-              .recording(passphrase, for: "passphrase")
-          )
-        )
-      }
+      defer { Gopenpgp.MobileFreeOSMemory() }
 
       do {
-        _ = try cryptoKey.unlock(passphraseData)
+        _ = try createUnlockedPrivateKey(fromArmored: privateKey, withPassphrase: passphrase)
         return .success(())
       }
       catch {
         return .failure(
           PGPIssue.error(
-            underlyingError:
-              PassphraseInvalid
-              .error("Invalid passphrase")
-              .recording(passphrase, for: "passphrase")
-              .recording(error, for: "goError")
+            underlyingError: error.asTheError()
           )
         )
       }
@@ -545,64 +433,59 @@ extension PGP {
       _ publicKey: ArmoredPGPPublicKey,
       fingerprint: Fingerprint
     ) -> Result<Bool, Error> {
-      defer { Gopenpgp.HelperFreeOSMemory() }
+      defer { Gopenpgp.MobileFreeOSMemory() }
 
-      var error: NSError?
-
-      guard
-        let fingerprintFromKey: String = Gopenpgp.CryptoNewKeyFromArmored(
-          publicKey.rawValue,
-          &error
-        )?
-        .getFingerprint()
-      else {
+      do {
+        let extractedFingerprint: Fingerprint = try extractFingerprint(publicKey: publicKey)
+        return .success(extractedFingerprint.rawValue.uppercased() == fingerprint.rawValue.uppercased())
+      }
+      catch {
         return .failure(
           PGPIssue.error(
-            underlyingError:
-              PGPFingerprintInvalid
-              .error("Failed to extract fingerptint from public PGP key")
-              .recording(publicKey, for: "publicKey")
-              .recording(error as Any, for: "goError")
+            underlyingError: error.asTheError()
           )
         )
       }
+    }
 
-      return .success(fingerprintFromKey.uppercased() == fingerprint.rawValue.uppercased())
+    func extractFingerprint(
+      publicKey: ArmoredPGPPublicKey
+    ) throws -> Fingerprint {
+      defer { Gopenpgp.MobileFreeOSMemory() }
+      do {
+        let publicKey: CryptoKey = try createPublicKey(fromArmored: publicKey)
+        return .init(rawValue: publicKey.getFingerprint().uppercased())
+      }
+      catch {
+        throw
+          PGPFingerprintInvalid
+          .error("Failed to extract fingerptint from public PGP key")
+          .recording(publicKey, for: "publicKey")
+          .recording(error as Any, for: "goError")
+      }
     }
 
     func extractFingerprint(
       publicKey: ArmoredPGPPublicKey
     ) -> Result<Fingerprint, Error> {
-      defer { Gopenpgp.HelperFreeOSMemory() }
-
-      var error: NSError?
-
-      guard
-        let fingerprintFromKey: String = Gopenpgp.CryptoNewKeyFromArmored(
-          publicKey.rawValue,
-          &error
-        )?
-        .getFingerprint()
-      else {
+      do {
+        let fingerprint: Fingerprint = try extractFingerprint(publicKey: publicKey)
+        return .success(fingerprint)
+      }
+      catch {
         return .failure(
           PGPIssue.error(
-            underlyingError:
-              PGPFingerprintInvalid
-              .error("Failed to extract fingerptint from public PGP key")
-              .recording(publicKey, for: "publicKey")
-              .recording(error as Any, for: "goError")
+            underlyingError: error.asTheError()
           )
         )
       }
-
-      return .success(.init(rawValue: fingerprintFromKey.uppercased()))
     }
 
     func extractPublicKey(
       privateKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase
     ) -> Result<ArmoredPGPPublicKey, Error> {
-      defer { Gopenpgp.HelperFreeOSMemory() }
+      defer { Gopenpgp.MobileFreeOSMemory() }
 
       do {
         var error: NSError?
@@ -641,21 +524,20 @@ extension PGP {
       }
     }
 
-    /**
-     * Reads and decodes a cleartext message from a PGP message.
-     *
-     * This function takes a PGP message in the form of a Data object, attempts to unarmor and decode it into a UTF-8 encoded string.
-     *
-     * @param {Data} message - The PGP message to be decoded.
-     * @returns {Result<String, Error>} A Result object containing either the decoded message or an error specifying the failure reason.
-     */
+    /// Reads and decodes a cleartext message from a PGP message.
+    ///
+    /// This function takes a PGP message in the form of a Data object, attempts to unarmor and decode it into a UTF-8 encoded string.
+    ///
+    /// - Parameter message: The PGP message to be decoded.
+    /// - Returns: A Result object containing either the decoded message or an error specifying the failure reason.
     func readCleartextMessage(
       message: Data
     ) -> Result<String, Error> {
-      defer { Gopenpgp.HelperFreeOSMemory() }
+      defer { Gopenpgp.MobileFreeOSMemory() }
 
       guard let decodedString: String = .init(data: message, encoding: .utf8),
-            isPGPSignedClearMessage(decodedString) else {
+        isPGPSignedClearMessage(decodedString)
+      else {
         return .failure(
           PGPIssue.error(
             underlyingError:
@@ -664,42 +546,17 @@ extension PGP {
           )
         )
       }
-
-      let pgpMessage = Gopenpgp.CryptoNewPGPMessage(message)
-
-      var armorError: NSError?
-      guard let armoredMessage = pgpMessage?.getArmored(&armorError) else {
-        return .failure(
-          PGPIssue.error(
-            underlyingError:
-              PGPClearTextMessageInvalid
-              .error("Cannot extract armored message.")
-          ))
-      }
-
-      var unarmorError: NSError?
-      guard let decodedData = Gopenpgp.ArmorUnarmor(armoredMessage, &unarmorError),
-            let decodedMessage: String = .init(data: decodedData, encoding: .utf8) else {
-          return .failure(
-            PGPIssue.error(
-              underlyingError:
-                PGPClearTextMessageInvalid
-                .error("Cannot unarmor the message.")
-            ))
-      }
-
-      return .success(decodedMessage)
+      return .success(decodedString)
     }
 
-    /**
-     * Check if clear message is a validate PGP Message
-     * Used because during implementation we do not have GoPGPMessage function to perform it
-     *
-     * @param {String} message - The message to verify.
-     * @returns {Bool} A boolean object.
-     */
+    /// Check if clear message is a validate PGP Message
+    /// Used because during implementation we do not have GoPGPMessage function to perform it
+    ///
+    /// - Parameter message: The message to verify.
+    /// - Returns: A boolean object.
     func isPGPSignedClearMessage(_ message: String) -> Bool {
       // regex for PGP message
+      // swift-format-ignore
       let pgpMessageRegex: Regex = "[-]{5}BEGIN PGP SIGNED MESSAGE[-]{5}(.*?)[-]{5}BEGIN PGP SIGNATURE[-]{5}(.*?)[-]{5}END PGP SIGNATURE[-]{5}"
       //Remove string \n to avoid use case from different OS formatting during export
       let messageWithoutNewlines = message.replacingOccurrences(of: "\n", with: "")
@@ -712,60 +569,70 @@ extension PGP {
       privateKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase
     ) -> Result<SessionKey, Error> {
-      defer { Gopenpgp.HelperFreeOSMemory() }
+      defer { Gopenpgp.MobileFreeOSMemory() }
       do {
+        let key: CryptoKey = try createUnlockedPrivateKey(fromArmored: privateKey, withPassphrase: passphrase)
+        let decryptor: CryptoPGPDecryptionProtocol = try CryptoPGPHandle.decryptor(
+          with: {
+            $0.decryptionKey(key)?
+              .verifyTime(now() + timeOffset)
+          })
+
         var error: NSError?
-        guard
-          let passphraseData: Data = passphrase.rawValue.data(using: .utf8),
-          let privateKey: CryptoKey = CryptoNewKeyFromArmored(privateKey.rawValue, &error),
-          let keyRing: CryptoKeyRing = CryptoNewKeyRing(try privateKey.unlock(passphraseData), &error)
-        else {
-          throw PGPIssue.error(
-            underlyingError:
-              PGPKeyRingPreparationFailed
-              .error("Failed to create key ring for session key extraction.")
-              .recording(error as Any, for: "goError")
-          )
+        let message = CryptoNewPGPMessageFromArmored(armoredMessage.rawValue, &error)
+        if let error {
+          throw
+            PGPKeyPacketExtractionFailed
+            .error("Failed to extract key packet.")
+            .recording(error, for: "goError")
+        }
+        let sessionKey = try decryptor.decryptSessionKey(message?.keyPacket)
+        if let sessionKeyString: String = sessionKey.key?.bytesToHexString() {
+          return .success(.init(rawValue: sessionKeyString))
         }
 
-        guard
-          let splitMessage: CryptoPGPSplitMessage = .init(fromArmored: armoredMessage.rawValue),
-          let keyPacket: Data = splitMessage.keyPacket
-        else {
-          throw PGPIssue.error(
-            underlyingError:
-              PGPKeyPacketExtractionFailed
-              .error("Failed split message into key packet.")
-          )
-        }
+        throw
+          PGPFailedToExtractSessionKey
+          .error("Failed to extract session key.")
 
-        let sessionKeyResult: CryptoSessionKey = try keyRing.decryptSessionKey(keyPacket)
-        if let result: String = sessionKeyResult.key?.bytesToHexString() {
-          return .success(.init(rawValue: result))
-        }
-        throw PGPIssue.error(
-          underlyingError:
-            PGPFailedToExtractSessionKey
-            .error("Failed to extract session key.")
-        )
       }
       catch {
-        return .failure(error)
+        return .failure(
+          PGPIssue.error(
+            underlyingError:
+              error.asTheError()
+          )
+        )
       }
     }
 
     func decryptWithSessionKey(message: String, sessionKey: SessionKey) throws -> String? {
-      defer { Gopenpgp.HelperFreeOSMemory() }
+      defer { Gopenpgp.MobileFreeOSMemory() }
 
-      let sessionKeyData: Data = .init(hexString: sessionKey.rawValue)
-      let pgpSessionKey: CryptoSessionKey? = CryptoNewSessionKeyFromToken(sessionKeyData, ConstantsAES256)
-      let pgpMessage: CryptoPGPSplitMessage? = .init(fromArmored: message)
-
-      if let result: Data = try pgpSessionKey?.decrypt(pgpMessage?.dataPacket).data {
-        return String(data: result, encoding: .utf8)
+      guard let message: Data = message.data(using: .utf8) else {
+        throw PGPIssue.error(
+          underlyingError:
+            PGPClearTextMessageInvalid
+            .error("Cannot create Data from message string")
+        )
       }
+      let sessionKeyData: Data = .init(hexString: sessionKey.rawValue)
 
+      let sessionKey = CryptoNewSessionKeyFromToken(sessionKeyData, ConstantsAES256)
+
+      let decryptor: CryptoPGPDecryptionProtocol = try CryptoPGPHandle.decryptor(
+        with: {
+          $0.sessionKey(sessionKey)?
+            .verifyTime(now() + timeOffset)
+        })
+      let result = try decryptor.decrypt(message, encoding: PGPEncoding.auto.rawValue)
+      if let decryptedData: Data = result.bytes(),
+        let decryptedString: String = String(data: decryptedData, encoding: .utf8)
+      {
+        return decryptedString
+      }
       return nil
+
     }
 
     return Self(
@@ -795,4 +662,94 @@ extension FeaturesRegistry {
       PGP.gopenPGP()
     )
   }
+}
+
+struct PGPGenericIssue: TheError {
+
+  var context: DiagnosticsContext
+  var displayableMessage: DisplayableString
+
+  public static func error(
+    _ message: StaticString,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    Self(
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
+        )
+      ),
+      displayableMessage: .localized(key: "error.crypto.error.generic")
+    )
+  }
+}
+
+// Mapping of gopenpgp encoding
+private enum PGPEncoding: Int8 {
+
+  case armor = 0
+  case bytes = 1
+  case auto = 2
+}
+
+extension CryptoPGPHandle {
+
+  fileprivate static func encryptor(
+    with optionsBuilder: (CryptoEncryptionHandleBuilder) -> CryptoEncryptionHandleBuilder?
+  ) throws -> CryptoPGPEncryptionProtocol {
+    guard
+      let pgpHandle: CryptoPGPHandle = CryptoPGPWithProfile(ProfileDefault()),
+      let builder: CryptoEncryptionHandleBuilder = pgpHandle.encryption(),
+      let configuredBuilder: CryptoEncryptionHandleBuilder = optionsBuilder(builder)
+    else {
+      throw PGPGenericIssue.error("Cannot initialize PGP")
+    }
+
+    return try configuredBuilder.new()
+  }
+
+  fileprivate static func decryptor(
+    with optionsBuilder: (CryptoDecryptionHandleBuilder) -> CryptoDecryptionHandleBuilder?
+  ) throws -> CryptoPGPDecryptionProtocol {
+    guard
+      let pgpHandle: CryptoPGPHandle = CryptoPGPWithProfile(ProfileDefault()),
+      let builder: CryptoDecryptionHandleBuilder = pgpHandle.decryption(),
+      let configuredBuilder: CryptoDecryptionHandleBuilder = optionsBuilder(builder)
+    else {
+      throw PGPGenericIssue.error("Cannot initialize PGP")
+    }
+    return try configuredBuilder.new()
+  }
+
+  fileprivate static func signer(
+    with optionsBuilder: (CryptoSignHandleBuilder) -> CryptoSignHandleBuilder?
+  ) throws -> CryptoPGPSignProtocol {
+    guard
+      let pgpHandle: CryptoPGPHandle = CryptoPGPWithProfile(ProfileDefault()),
+      let builder: CryptoSignHandleBuilder = pgpHandle.sign(),
+      let configuredBuilder: CryptoSignHandleBuilder = optionsBuilder(builder)
+    else {
+      throw PGPGenericIssue.error("Cannot initialize PGP")
+    }
+
+    return try configuredBuilder.new()
+  }
+
+  fileprivate static func verifier(
+    with optionsBuilder: (CryptoVerifyHandleBuilder) -> CryptoVerifyHandleBuilder?
+  ) throws -> CryptoPGPVerifyProtocol {
+    guard
+      let pgpHandle: CryptoPGPHandle = CryptoPGPWithProfile(ProfileDefault()),
+      let builder: CryptoVerifyHandleBuilder = pgpHandle.verify(),
+      let configuredBuilder: CryptoVerifyHandleBuilder = optionsBuilder(builder)
+    else {
+      throw PGPGenericIssue.error("Cannot initialize PGP")
+    }
+
+    return try configuredBuilder.new()
+  }
+
 }

@@ -130,7 +130,7 @@ final class PGPTests: XCTestCase {
     let input: String = "The quick brown fox jumps over the lazy dog"
     let passphrase: Passphrase = "Secret"
 
-    guard case let Result.success(encrypted) = pgp.encrypt(input, publicKey) else {
+    guard case Result.success(let encrypted) = pgp.encrypt(input, publicKey) else {
       XCTFail("Encryption failed")
       return
     }
@@ -193,7 +193,7 @@ final class PGPTests: XCTestCase {
       privateKey
     )
 
-    guard case let Result.success(message) = output else {
+    guard case Result.success(let message) = output else {
       return XCTFail("Invalid value")
     }
 
@@ -213,7 +213,7 @@ final class PGPTests: XCTestCase {
       privateKey
     )
 
-    guard case let Result.success(message) = output else {
+    guard case Result.success(let message) = output else {
       return XCTFail("Invalid value")
     }
 
@@ -264,7 +264,7 @@ final class PGPTests: XCTestCase {
   func test_verifyMessage_withCorrectlySignedInputAndEnabledTimeCheck_succeeds() {
     let input: String = signedMessage
     // A certain point in time when the key is valid
-    let verifyTime: Int64 = 1_682_603_135
+    let verifyTime: Int64 = 1_682_603_755
 
     let output: Result<String, Error> = pgp.verifyMessage(input, publicKey, verifyTime)
 
@@ -273,8 +273,8 @@ final class PGPTests: XCTestCase {
 
   func test_verifyMessage_withCorrectlySignedInputAndInvalidVerifyTime_fails() {
     let input: String = signedMessage
-    // Distant future - signature should be expired by then
-    let verifyTime: Int64 = .max
+    // Distant past - signature should be expired
+    let verifyTime: Int64 = 1_682_603_135
 
     let output: Result<String, Error> = pgp.verifyMessage(input, publicKey, verifyTime)
 
@@ -376,22 +376,38 @@ final class PGPTests: XCTestCase {
     let output: Bool = pgp.isPGPSignedClearMessage("passbolt")
     XCTAssertTrue(!output)
   }
-  
+
   func test_extractingSessionKey_succeeds_withCorrectInput() {
     let passphrase: Passphrase = "Secret"
-    let result: Result<SessionKey, Error> = pgp.extractSessionKey(.init(rawValue: signedCiphertext), privateKey, passphrase)
+    let result: Result<SessionKey, Error> = pgp.extractSessionKey(
+      .init(rawValue: signedCiphertext),
+      privateKey,
+      passphrase
+    )
     XCTAssertSuccessEqual(result, sessionKey)
   }
 
   func test_extractingSessionKey_fails_withInvalidInput() {
     let passphrase: Passphrase = "Secret"
-    let result: Result<SessionKey, Error> = pgp.extractSessionKey(.init(rawValue: signedMessage), privateKey, passphrase)
-    XCTAssertFailureUnderlyingError(result, matches: PGPKeyPacketExtractionFailed.self)
+    let result: Result<SessionKey, Error> = pgp.extractSessionKey(
+      .init(rawValue: signedMessage),
+      privateKey,
+      passphrase
+    )
+    XCTAssertFailureUnderlyingError(
+      result,
+      root: PGPIssue.self,
+      matches: PGPKeyPacketExtractionFailed.self
+    )
   }
-  
+
   func test_extractingSessionKey_fails_withInvalidPassphrase() {
     let passphrase: Passphrase = "InvalidPassphrase"
-    let result: Result<SessionKey, Error> = pgp.extractSessionKey(.init(rawValue: signedCiphertext), privateKey, passphrase)
+    let result: Result<SessionKey, Error> = pgp.extractSessionKey(
+      .init(rawValue: signedCiphertext),
+      privateKey,
+      passphrase
+    )
     XCTAssertFailure(result)
   }
 
@@ -399,7 +415,7 @@ final class PGPTests: XCTestCase {
     let passphrase: Passphrase = "Secret"
     let result: Result<SessionKey, Error> = pgp.extractSessionKey(
       .init(rawValue: signedMessage),
-      .init(rawValue: signedCiphertext), // invalid param intentionally
+      .init(rawValue: signedCiphertext),  // invalid param intentionally
       passphrase
     )
     XCTAssertFailureUnderlyingError(result, matches: PGPKeyRingPreparationFailed.self)
@@ -662,6 +678,6 @@ final class PGPTests: XCTestCase {
     =I81l
     -----END PGP SIGNATURE-----
     """
-  
+
   private let sessionKey: SessionKey = "33991A2536F8A1D50DA44AC504F36C2FEDE5C6B1A170541DBAB74746DC5C30B1"
 }
