@@ -116,6 +116,14 @@ public struct ResourceEditView: ControlledView {
                 withEach(\.mainForm.fields) { field in
                   self.fieldView(for: field)
                 }
+                when(\.isStandaloneTOTP) {
+                  LinkButton(
+                    title: "otp.edit.form.advanced.button.title",
+                    iconName: .cog,
+                    action: self.controller.navigateToOTPAdvancedSettings
+                  )
+                  .padding(.vertical, 8)
+                }
               }
               .padding(.horizontal, 16)
               .padding(.vertical, 8)

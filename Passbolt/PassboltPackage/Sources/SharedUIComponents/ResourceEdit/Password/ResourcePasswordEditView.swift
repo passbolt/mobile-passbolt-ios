@@ -69,7 +69,7 @@ internal struct ResourcePasswordEditView: ControlledView {
     CommonList {
       CommonListSection {
         VStack(alignment: .leading, spacing: 8) {
-          Text(displayable: "resource.edit.create.title")
+          Text(displayable: "resource.password.edit.title")
             .font(.inter(ofSize: 16, weight: .bold))
             .padding(.vertical, 20)
             .foregroundColor(.primary)

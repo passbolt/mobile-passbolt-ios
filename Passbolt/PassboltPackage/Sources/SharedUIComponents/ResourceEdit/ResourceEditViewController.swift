@@ -65,6 +65,10 @@ public final class ResourceEditViewController: ViewController {
     internal var showsAdvancedSettings: Bool
     // Current resource type slug
     internal var resourceTypeSlug: ResourceSpecification.Slug
+    // Flag indicating that the resource is a standalone TOTP
+    internal var isStandaloneTOTP: Bool {
+      self.resourceTypeSlug.isStandaloneTOTPType
+    }
   }
 
   public nonisolated let viewState: ViewStateSource<ViewState>
@@ -84,6 +88,7 @@ public final class ResourceEditViewController: ViewController {
 
   private let navigationToSelf: NavigationToResourceEdit
   private let navigationToOTPEdit: NavigationToOTPEditForm
+  private let navigationToOTPAdvanced: NavigationToOTPEditAdvancedForm
   private let navigationToNoteEdit: NavigationToResourceNoteEdit
   private let navigationToPasswordEdit: NavigationToResourcePasswordEdit
 
@@ -116,12 +121,14 @@ public final class ResourceEditViewController: ViewController {
       // TODO: unify navigation between app and extnsion
       self.navigationToSelf = .placeholder
       self.navigationToOTPEdit = .placeholder
+      self.navigationToOTPAdvanced = .placeholder
       self.navigationToNoteEdit = .placeholder
       self.navigationToPasswordEdit = .placeholder
     }
     else {
       self.navigationToSelf = try features.instance()
       self.navigationToOTPEdit = try features.instance()
+      self.navigationToOTPAdvanced = try features.instance()
       self.navigationToNoteEdit = try features.instance()
       self.navigationToPasswordEdit = try features.instance()
     }
@@ -353,6 +360,20 @@ public final class ResourceEditViewController: ViewController {
           onFormDiscarded: onFormDiscarded
         )
       )
+    }
+  }
+
+  @MainActor internal func navigateToOTPAdvancedSettings() async {
+    await consumingErrors {
+      let editingContext: ResourceEditingContext = try features.context(of: ResourceEditScope.self)
+      let resourceType: ResourceType = editingContext.editedResource.type
+      guard resourceType.specification.slug.isStandaloneTOTPType,
+        let totpPath: ResourceType.FieldPath = resourceType.fieldSpecification(for: \.firstTOTP)?.path
+      else {
+        return
+      }
+
+      try await self.navigationToOTPAdvanced.perform(context: .init(totpPath: totpPath))
     }
   }
 }

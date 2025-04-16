@@ -126,8 +126,9 @@
 "server.not.reachable.alert.message.server.placeholder" = "Server";
 "server.not.reachable.alert.message" = "%@ cannot be reached. Please try again";
 
-"resource.edit.create.title" = "Create a password";
-"resource.edit.title" = "Edit password";
+"resource.edit.create.title" = "Create a resource";
+"resource.edit.title" = "Edit resource";
+"resource.password.edit.title" = "Edit password";
 "resource.edit.field.name.label" = "Name";
 "resource.edit.field.uri.label" = "URL";
 "resource.edit.field.username.label" = "Username";
