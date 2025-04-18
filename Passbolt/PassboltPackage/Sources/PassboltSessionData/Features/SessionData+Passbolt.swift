@@ -26,8 +26,8 @@ import FeatureScopes
 import Features
 import NetworkOperations
 import OSFeatures
-import SessionData
 import Resources
+import SessionData
 import struct Foundation.Data
 
 extension SessionData {
@@ -139,28 +139,34 @@ extension SessionData {
         }
         let resourcesWithMetadata = await resourcesWithSupportedTypes.asyncCompactMap { resource in
           do {
-            if let armored = resource.metadataArmoredMessage, 
-               let keyId = resource.metadataKeyId,
-               let keyType = resource.metadataKeyType
+            if let armored = resource.metadataArmoredMessage,
+              let keyId = resource.metadataKeyId,
+              let keyType = resource.metadataKeyType
             {
               guard configuration.metadata.enabled else { return ResourceDTO?.none }
               var resource = resource
               let decryptionType: MetadataKeysService.EncryptionType = keyType == .shared ? .sharedKey(keyId) : .userKey
-              if let decryptedMetadataData: Data = try await metadataKeysService.decrypt(armored, .resource(resource.id), decryptionType) {
+              if let decryptedMetadataData: Data = try await metadataKeysService.decrypt(
+                armored,
+                .resource(resource.id),
+                decryptionType
+              ) {
                 let metadata: ResourceMetadataDTO = try .init(resourceId: resource.id, data: decryptedMetadataData)
                 try metadata.validate(with: resource)
                 resource.metadata = metadata
               }
-              
+
               return resource
-            } else {
+            }
+            else {
               var resource = resource
               let metadata: ResourceMetadataDTO = try .init(resource: resource)
               try metadata.validate(with: resource)
               resource.metadata = metadata
               return resource
             }
-          } catch {
+          }
+          catch {
             InternalInconsistency.error("Cannot decode metadata").logged()
           }
           return nil
@@ -171,15 +177,18 @@ extension SessionData {
           do {
             let resource: ResourceDTO = try resourceDTO.validate(resourceTypes: supportedResourceTypes)
             resourcesCollection.append(resource)
-          } catch {
+          }
+          catch {
             //Do not break it and continue the loop
+            // swift-format-ignore: NeverForceUnwrap
             CollectionValidationError.error(
               message: "Cannot validate resource collection",
               underlyingError: .none,
               details: [
                 index.formatted(): error.asTheError().getDetails()!
               ]
-            ).logged()
+            )
+            .logged()
           }
         }
 
@@ -234,7 +243,7 @@ extension SessionData {
             }
             try await refreshFolders()
             try await refreshResources()
-            if(configuration.passwordPolicies.passwordPoliciesEnabled) {
+            if configuration.passwordPolicies.passwordPoliciesEnabled {
               try await refreshPasswordPolicies()
             }
 

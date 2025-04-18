@@ -214,14 +214,15 @@ extension ResourceDTO: Decodable {
     do {
       //First validate ID to avoid log injection
       try uuidValidator.ensureValid(self.id.rawValue.rawValue.uuidString.lowercased())
-    } catch {
+    }
+    catch {
       throw EntityValidationError.error(
         message: "Resource id is not a valid UUID",
         underlyingError: .none,
         details: [
-            "id": [
-              "type": "The id is not a valid UUID"
-            ],
+          "id": [
+            "type": "The id is not a valid UUID"
+          ]
         ]
       )
     }
@@ -229,14 +230,15 @@ extension ResourceDTO: Decodable {
     do {
       //First validate type ID to avoid log injection
       try uuidValidator.ensureValid(self.typeID.rawValue.rawValue.uuidString.lowercased())
-    } catch {
+    }
+    catch {
       throw EntityValidationError.error(
         message: "Resource type id is not a valid UUID",
         underlyingError: .none,
         details: [
-            "id": [
-              "type": "The type id is not a valid UUID"
-            ],
+          "id": [
+            "type": "The type id is not a valid UUID"
+          ]
         ]
       )
     }
@@ -246,28 +248,30 @@ extension ResourceDTO: Decodable {
         message: "Cannot find the resource type associated",
         underlyingError: .none,
         details: [
-            "resourceId": self.id,
-            "typeId": [
-              "id": self.typeID,
-              "exist": "The type does not match any stored type id"
-            ],
+          "resourceId": self.id,
+          "typeId": [
+            "id": self.typeID,
+            "exist": "The type does not match any stored type id",
+          ],
         ]
       )
     }
 
-    let path: OrderedSet<ResourceFolderPathItem> = self.parentFolderID.map {
-    .init(arrayLiteral: .init(id: $0, name: "Unknown", shared: false))} ?? .init()
+    let path: OrderedSet<ResourceFolderPathItem> =
+      self.parentFolderID.map {
+        .init(arrayLiteral: .init(id: $0, name: "Unknown", shared: false))
+      } ?? .init()
 
     //Reuse Resource type for validation
     var resource = Resource(
-        id: self.id,
-        path: path,
-        favoriteID: self.favoriteID,
-        type: ResourceType(id: self.typeID, slug: resourceType.specification.slug),
-        permission: self.permission,
-        tags: self.tags,
-        modified: self.modified.asTimestamp,
-        expired: self.expired?.asTimestamp
+      id: self.id,
+      path: path,
+      favoriteID: self.favoriteID,
+      type: ResourceType(id: self.typeID, slug: resourceType.specification.slug),
+      permission: self.permission,
+      tags: self.tags,
+      modified: self.modified.asTimestamp,
+      expired: self.expired?.asTimestamp
     )
 
     // Apply meta fields
@@ -275,22 +279,23 @@ extension ResourceDTO: Decodable {
       resource.meta.name = .string(name)
     }
     if let uri = self.uri {
-        resource.meta.uri = .string(uri)
+      resource.meta.uri = .string(uri)
     }
     if let username = self.metadata?.username {
-        resource.meta.username = .string(username)
+      resource.meta.username = .string(username)
     }
     if let description = self.metadata?.description {
-        resource.meta.description = .string(description)
+      resource.meta.description = .string(description)
     }
 
     do {
       // Validate field based on type
       try resource.validate()
-    } catch {
+    }
+    catch {
       var details: Dictionary<String, Any> = ["id": self.id]
       if let errorDetails = error.asTheError().getDetails() {
-          details.merge(errorDetails) { (current, _) in current } // Retains existing values in case of conflict
+        details.merge(errorDetails) { (current, _) in current }  // Retains existing values in case of conflict
       }
       throw EntityValidationError.error(
         message: error.asTheError().getMessage(),

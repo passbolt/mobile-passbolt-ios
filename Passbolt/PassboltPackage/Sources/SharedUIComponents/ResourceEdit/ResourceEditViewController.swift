@@ -282,7 +282,11 @@ public final class ResourceEditViewController: ViewController {
         }),
         let totpPath: ResourceType.FieldPath = attachedOTPType.fieldSpecification(for: \.firstTOTP)?.path
       else {
-        return
+        let displayableString: DisplayableString =
+        editingContext.editedResource.isLocal
+          ? "resource.create.invalid.configuration"
+          : "resource.edit.invalid.configuration"
+        return SnackBarMessageEvent.send(.error(displayableString))
       }
       var onFormDiscarded: @Sendable () async throws -> Void = {}
       if attachedOTPSlug != editingContext.editedResource.type.specification.slug {
@@ -317,8 +321,11 @@ public final class ResourceEditViewController: ViewController {
               $0.specification.slug == newResourceSlug
             })
         else {
-          // TODO: log error
-          return
+          let displayableString: DisplayableString =
+          editingContext.editedResource.isLocal
+            ? "resource.create.invalid.configuration"
+            : "resource.edit.invalid.configuration"
+          return SnackBarMessageEvent.send(.error(displayableString))
         }
         onFormDiscarded = { [resourceEditForm] in
           try resourceEditForm.updateType(editingContext.editedResource.type)
@@ -347,7 +354,11 @@ public final class ResourceEditViewController: ViewController {
             $0.specification.slug == newResourceSlug
           })
       else {
-        return
+        let displayableString: DisplayableString =
+        editingContext.editedResource.isLocal
+          ? "resource.create.invalid.configuration"
+          : "resource.edit.invalid.configuration"
+        return SnackBarMessageEvent.send(.error(displayableString))
       }
 
       let onFormDiscarded: @Sendable () async throws -> Void = { [resourceEditForm] in

@@ -91,11 +91,16 @@ extension ResourcesListCreateMenuViewController {
   /// - Parameter slug: Resource specification slug determining the type of resource to create
   internal func createResource(_ slug: ResourceSpecification.Slug) async {
     await consumingErrors {
-      if slug.isStandaloneTOTPType {
-        try await createTOTP(slug)
+      do {
+        if slug.isStandaloneTOTPType {
+          try await createTOTP(slug)
+        }
+        else {
+          try await createPassword(slug)
+        }
       }
-      else {
-        try await createPassword(slug)
+      catch is InvalidResourceTypeError {
+        SnackBarMessageEvent.send(.error("resource.create.invalid.configuration"))
       }
     }
   }
@@ -117,7 +122,9 @@ extension ResourcesListCreateMenuViewController {
         $0.specification.slug == slug
       }),
       let totpPath: ResourceType.FieldPath = attachType.fieldSpecification(for: \.firstTOTP)?.path
-    else { return }
+    else {
+      throw InvalidResourceTypeError.error()
+    }
     await self.navigation.dismissLegacySheet(ResourcesListCreateMenuView.self)
     try await features
       .instance(of: NavigationToOTPScanning.self)

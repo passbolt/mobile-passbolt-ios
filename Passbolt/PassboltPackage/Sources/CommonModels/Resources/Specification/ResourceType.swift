@@ -35,6 +35,7 @@ public struct ResourceType {
   public let specification: ResourceSpecification
   public let orderedFields: OrderedSet<ResourceFieldSpecification>
   public let containsUndefinedFields: Bool
+  public let isDeleted: Bool
   // internal cache to quickly access common things
   // and provide support for special, computed fields
   internal var flattenedFields: Dictionary<ComputedFieldPath, ResourceFieldSpecification>
@@ -43,6 +44,7 @@ public struct ResourceType {
 
   public init(
     id: ID,
+    isDeleted: Bool = false,
     specification: ResourceSpecification
   ) {
     self.id = id
@@ -50,6 +52,7 @@ public struct ResourceType {
     self.orderedFields = specification.metaFields
       .union(specification.secretFields)
       .asOrderedSet()
+    self.isDeleted = isDeleted
     self.containsUndefinedFields =
       specification.slug == .placeholder
       || specification.secretFields.contains(where: { (field: ResourceFieldSpecification) in
@@ -174,6 +177,7 @@ public struct ResourceType {
 
   public init(
     id: ID,
+    isDeleted: Bool = false,
     slug: ResourceSpecification.Slug
   ) {
     let specification: ResourceSpecification
@@ -192,6 +196,7 @@ public struct ResourceType {
 
     self.init(
       id: id,
+      isDeleted: isDeleted,
       specification: specification
     )
   }
@@ -217,7 +222,7 @@ extension ResourceType: Sendable {}
 extension ResourceType: Equatable {}
 
 extension ResourceType {
-
+  // swift-format-ignore: NeverForceUnwrap
   public static var placeholder: Self {
     .init(
       id: .init(

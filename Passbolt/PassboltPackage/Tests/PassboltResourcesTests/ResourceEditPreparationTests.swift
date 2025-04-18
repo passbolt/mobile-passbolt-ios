@@ -25,6 +25,7 @@ import TestExtensions
 
 @testable import PassboltResources
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 final class ResourceEditPreparationTests: FeaturesTestCase {
 
   override func commonPrepare() {

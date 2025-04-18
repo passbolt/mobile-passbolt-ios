@@ -97,7 +97,9 @@ public final class ResourceNoteEditViewController: ViewController {
           where: {
             $0.specification.slug == newResourceTypeSlug
           })
-      else { return }
+      else {
+        return SnackBarMessageEvent.send(.error("resource.edit.invalid.configuration"))
+      }
       try self.resourceEditForm.updateType(newResourceType)
       self.resourceEditForm.update(
         \.secret.description,
