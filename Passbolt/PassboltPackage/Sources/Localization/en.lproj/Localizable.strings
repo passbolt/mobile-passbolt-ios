@@ -130,7 +130,7 @@
 "resource.edit.title" = "Edit resource";
 "resource.password.edit.title" = "Edit password";
 "resource.edit.field.name.label" = "Name";
-"resource.edit.field.uri.label" = "URL";
+"resource.edit.field.uri.label" = "Main URL";
 "resource.edit.field.username.label" = "Username";
 "resource.edit.field.password.label" = "Password";
 "resource.edit.field.description.label" = "Description";
@@ -272,7 +272,6 @@
 "resource.menu.item.remove.favorite" = "Remove from favorite";
 "resource.menu.item.share" = "Share password";
 "resource.menu.item.edit.password" = "Edit password";
-"resource.menu.item.add.otp" = "Add TOTP";
 "resource.menu.item.edit.otp" = "Edit TOTP";
 "resource.menu.item.otp.menu" = "Manage TOTP";
 "resource.menu.item.delete.resource" = "Delete password";

@@ -28,6 +28,8 @@ internal struct ResourceNoteEditView: ControlledView {
 
   internal let controller: ResourceNoteEditViewController
 
+  @FocusState private var focusState
+
   internal init(
     controller: ResourceNoteEditViewController
   ) {
@@ -89,6 +91,21 @@ internal struct ResourceNoteEditView: ControlledView {
               ),
               textFieldMinHeight: 100
             )
+            .focused($focusState)
+            .toolbar {
+              ToolbarItemGroup(placement: .keyboard) {
+                HStack {
+                  Spacer()
+                  Button(
+                    displayable: "generic.done",
+                    action: {
+                      self.focusState.toggle()
+                    }
+                  )
+                  .foregroundStyle(.blue)
+                }
+              }
+            }
 
             Text(displayable: "resource.edit.note.content.disclaimer")
               .font(.inter(ofSize: 12, weight: .regular))

@@ -36,7 +36,6 @@ internal enum ResourceContextualMenuItem: Hashable, Identifiable {
   case copyDescription
   case copyNote
 
-  case addOTP
   case showOTPMenu
 
   case toggle(favorite: Bool)
@@ -72,7 +71,6 @@ internal final class ResourceContextualMenuViewController: ViewController {
   private let navigationToShare: NavigationToResourceShare
   private let navigationToResourceEdit: NavigationToResourceEdit
   private let navigationToResourceOTPMenu: NavigationToResourceOTPContextualMenu
-  private let navigationToResourceOTPEditMenu: NavigationToResourceOTPEditMenu
 
   private let linkOpener: OSLinkOpener
   private let pasteboard: OSPasteboard
@@ -106,7 +104,6 @@ internal final class ResourceContextualMenuViewController: ViewController {
     self.navigationToShare = try features.instance()
     self.navigationToResourceEdit = try features.instance()
     self.navigationToResourceOTPMenu = try features.instance()
-    self.navigationToResourceOTPEditMenu = try features.instance()
 
     self.resourceController = try features.instance()
 
@@ -147,9 +144,6 @@ internal final class ResourceContextualMenuViewController: ViewController {
           if resource.hasTOTP {
             accessMenuItems.append(.showOTPMenu)
           }
-          else if sessionConfiguration.resources.totpEnabled && resource.canEdit && resource.canAttachOTP {
-            modifyMenuItems.append(.addOTP)
-          }  // else NOP
 
           modifyMenuItems.append(.toggle(favorite: resource.favorite))
 
@@ -165,7 +159,7 @@ internal final class ResourceContextualMenuViewController: ViewController {
             modifyMenuItems.append(.delete)
           }  // else NOP
 
-          await updateState { (viewState: inout ViewState) in
+          updateState { (viewState: inout ViewState) in
             viewState.title = resource.name
             viewState.accessMenuItems = accessMenuItems
             viewState.modifyMenuItems = modifyMenuItems
@@ -206,9 +200,6 @@ extension ResourceContextualMenuViewController {
       await self.copy(field: \.description)
     case .copyNote:
       await self.copy(field: \.secret.description)
-
-    case .addOTP:
-      await self.addOTP()
 
     case .showOTPMenu:
       await self.showOTPMenu()
@@ -289,26 +280,6 @@ extension ResourceContextualMenuViewController {
               field.name.displayable.string()
             ]
           )
-        )
-      )
-    }
-  }
-
-  private final func addOTP() async {
-    await consumingErrors { [resourceID] in
-      let resourceEditPreparation: ResourceEditPreparation = try features.instance()
-      let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareExisting(resourceID)
-      guard editingContext.editedResource.canAttachOTP
-      else {
-        throw
-          InvalidResourceTypeError
-          .error(message: "Can't attach OTP, no permission or transition undefined.")
-      }
-
-      try await self.navigationToSelf.revert()
-      try await self.navigationToResourceOTPEditMenu.perform(
-        context: .init(
-          editingContext: editingContext
         )
       )
     }

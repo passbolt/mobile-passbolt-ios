@@ -59,7 +59,6 @@ internal struct ResourceDetailsView: ControlledView {
   @MainActor @ViewBuilder private var contentView: some View {
     CommonList {
       self.headerSectionView
-      self.expirationDateSectionView
       with(\.containsUndefinedFields) { (containsUndefinedFields: Bool) in
         if containsUndefinedFields {
           self.undefinedContentSectionView
@@ -226,7 +225,7 @@ internal struct ResourceDetailsView: ControlledView {
 
     case .hide:
       return { () async throws -> Void in
-        await self.controller.coverFieldValue(path: path)
+        self.controller.coverFieldValue(path: path)
       }
     }
   }
@@ -296,6 +295,17 @@ internal struct ResourceDetailsView: ControlledView {
           )
         },
         accessory: DisclosureIndicatorImage.init
+      )
+    case .expiration(let isExpired, let expiryFormat):
+      CommonListRow(
+        content: {
+          ResourceFieldView(
+            name: "resource.detail.section.expiry",
+            content: {
+              ResourceRelativeDateView(viewModel: expiryFormat.viewModel(isExpired: isExpired))
+            }
+          )
+        }
       )
     }
   }
@@ -378,29 +388,6 @@ internal struct ResourceDetailsView: ControlledView {
         }
       }
     )
-  }
-
-  @MainActor @ViewBuilder private var expirationDateSectionView: some View {
-    with(\.isExpired) { isExpired in
-      if let isExpired {
-        CommonListSection {
-          CommonListRow(
-            content: {
-              ResourceFieldView(
-                name: "resource.detail.section.expiry",
-                content: {
-                  with(\.expiryRelativeFormattedDate) { expiryFormat in
-                    if let expiryFormat {
-                      ResourceRelativeDateView(viewModel: expiryFormat.viewModel(isExpired: isExpired))
-                    }
-                  }
-                }
-              )
-            }
-          )
-        }
-      }
-    }
   }
 
 }

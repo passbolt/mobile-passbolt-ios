@@ -215,20 +215,6 @@ extension ResourceContextualMenuItem {
         }
       )
 
-    case .addOTP:
-      DrawerMenuItemView(
-        action: {
-          await controller.performAction(for: self)
-        },
-        title: {
-          Text(displayable: "resource.menu.item.add.otp")
-        },
-        leftIcon: {
-          Image(named: .otp)
-            .resizable()
-        }
-      )
-
     case .delete:
       DrawerMenuItemView(
         action: {

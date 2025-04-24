@@ -42,24 +42,6 @@ internal final class ResourceDetailsViewController: ViewController {
       guard let expirationDate else { return nil }
       return expirationDate.timeIntervalSinceNow < 0
     }
-    internal var expiryRelativeFormattedDate: RelativeDateDisplayableFormat? {
-      guard let expirationDate else { return nil }
-      let interval = expirationDate.timeIntervalSinceNow
-      let relativeFormattedString = RelativeDateTimeFormatter().localizedString(fromTimeInterval: interval)
-
-      var expiryParts = relativeFormattedString.split(separator: " ")
-      let numberIndex = expiryParts.firstIndex { Int($0) != nil }
-
-      guard let numberIndex else { return nil }
-      let numberString = String(expiryParts[numberIndex])
-      expiryParts.remove(at: numberIndex)
-      //We just keep the time string "month", "day"
-      let expiryTimeFormat = expiryParts.joined(separator: " ").replacingOccurrences(of: "in", with: "")
-      return .init(
-        number: numberString,
-        localizedRelativeString: expiryTimeFormat
-      )
-    }
 
   }
 
@@ -324,7 +306,7 @@ extension ResourceDetailsViewController {
 
   var notesSection: ResourceDetailsSectionViewModel = .init(title: "resource.edit.section.note.title", fields: .init())
 
-  let fieldModelsByName: OrderedDictionary<ResourceFieldName, ResourceDetailsFieldViewModel> = resource
+  var fieldModelsByName: OrderedDictionary<ResourceFieldName, ResourceDetailsFieldViewModel> = resource
     .fields
     .compactMap {
       (
@@ -363,11 +345,15 @@ extension ResourceDetailsViewController {
     }
     .reduce(into: OrderedDictionary<ResourceFieldName, ResourceDetailsFieldViewModel>()) { $0[$1.key] = $1.value }
 
-  for (fieldName, fieldModel) in fieldModelsByName {
-    if ResourceDetailsSectionViewModel.passwordSectionFields.contains(fieldName) {
+  for fieldName: ResourceFieldName in ResourceDetailsSectionViewModel.passwordSectionFields {
+    if let fieldModel: ResourceDetailsFieldViewModel = fieldModelsByName[fieldName] {
       passwordSection.fields.append(fieldModel)
+      fieldModelsByName.removeValue(forKey: fieldName)
     }
-    else if ResourceDetailsSectionViewModel.totpSectionFields.contains(fieldName) {
+  }
+
+  for (fieldName, fieldModel) in fieldModelsByName {
+    if ResourceDetailsSectionViewModel.totpSectionFields.contains(fieldName) {
       totpSection.fields.append(fieldModel)
     }
     else if fieldName == .note {
@@ -389,8 +375,34 @@ extension ResourceDetailsViewController {
     )
   }
 
+  if let expirationDate = resource.expired?.asDate {
+    let isExpired: Bool = expirationDate.timeIntervalSinceNow < 0
+    let interval = expirationDate.timeIntervalSinceNow
+    let relativeFormattedString: String = RelativeDateTimeFormatter().localizedString(fromTimeInterval: interval)
+
+    var expiryParts = relativeFormattedString.split(separator: " ")
+    let numberIndex = expiryParts.firstIndex { Int($0) != nil }
+
+    if let numberIndex {
+      let numberString = String(expiryParts[numberIndex])
+      expiryParts.remove(at: numberIndex)
+      //We just keep the time string "month", "day"
+      let expiryTimeFormat = expiryParts.joined(separator: " ").replacingOccurrences(of: "in", with: "")
+      let dateFormat: RelativeDateDisplayableFormat = .init(
+        number: numberString,
+        localizedRelativeString: expiryTimeFormat
+      )
+      metadataSection.virtualFields.append(
+        .expiration(isExpired, dateFormat)
+      )
+    }
+  }
+
   // remove empty sections
-  return [passwordSection, totpSection, notesSection, metadataSection].filter { $0.fields.isEmpty == false }
+  return [passwordSection, totpSection, notesSection, metadataSection]
+    .filter {
+      $0.fields.isEmpty == false || $0.virtualFields.isEmpty == false
+    }
 }
 
 /// View model for a section/fields group of resource details
@@ -407,6 +419,7 @@ internal struct ResourceDetailsSectionViewModel: Equatable, Identifiable {
     internal typealias ID = Tagged<String, Self>
     case location(Array<String>)
     case tags(Array<String>)
+    case expiration(Bool, RelativeDateDisplayableFormat)
 
     internal var id: ID {
       switch self {
@@ -414,6 +427,8 @@ internal struct ResourceDetailsSectionViewModel: Equatable, Identifiable {
         return "location"
       case .tags:
         return "tags"
+      case .expiration:
+        return "expiration"
       }
     }
   }
@@ -502,7 +517,7 @@ internal struct ResourceDetailsFieldViewModel {
     switch field.semantics {
     case .list(let name, let placeholder, _):
       self.name = name
-      if let values = resource[keyPath: field.path].arrayValue, let value = values.first?.stringValue {
+      if let values = resource[keyPath: field.path].arrayValue, let value = values.first?.stringValue, !value.isEmpty {
         // at the moment, we support only one-item list on UI
         self.value = .placeholder(value)
         self.mainAction = .copy
@@ -527,6 +542,9 @@ internal struct ResourceDetailsFieldViewModel {
         self.accessoryAction = .copy
       }
       else {
+        if field.path == \.meta.description {
+          return nil  // do not display empty description field
+        }
         self.value = .placeholder(placeholder.string())
         self.mainAction = .none
         self.accessoryAction = .none
