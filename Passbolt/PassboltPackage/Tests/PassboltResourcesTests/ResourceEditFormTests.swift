@@ -25,7 +25,7 @@ import TestExtensions
 
 @testable import PassboltResources
 
-// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals, NeverForceUnwrap
 final class ResourceEditFormTests: FeaturesTestCase {
 
   var editedResource: Resource = .mock_1
@@ -234,7 +234,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
       meta: [
         "name": "edited",
         "uri": "new",
-        "resource_type_id": .string(selectedResourceType.id.rawValue.rawValue.uuidString)
+        "resource_type_id": .string(selectedResourceType.id.rawValue.rawValue.uuidString),
       ],
       secret: [
         "message": "encrypted",
@@ -298,11 +298,11 @@ final class ResourceEditFormTests: FeaturesTestCase {
   func test_sendForm_throws_whenEncryptingEditedMessageProducesInvalidResult() async throws {
     patch(
       \ResourceUpdatePreparation.prepareSecret,
-       with: alwaysThrow(InvalidResourceSecret.error())
+      with: alwaysThrow(InvalidResourceSecret.error())
     )
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
-       with: always([.mock_1])
+      with: always([.mock_1])
     )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIf(
@@ -314,7 +314,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
   func test_sendForm_throws_whenEditNetworkRequestFails() async throws {
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
-       with: always([.mock_1])
+      with: always([.mock_1])
     )
     patch(
       \ResourceNetworkOperationDispatch.editResource,
@@ -322,7 +322,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceUpdatePreparation.prepareSecret,
-       with: always(.init([.mock_1]))
+      with: always(.init([.mock_1]))
     )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIf(
@@ -345,7 +345,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
-       with: always([.mock_1])
+      with: always([.mock_1])
     )
     patch(
       \ResourceNetworkOperationDispatch.editResource,
@@ -353,7 +353,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceUpdatePreparation.prepareSecret,
-       with: always(.init([.mock_1]))
+      with: always(.init([.mock_1]))
     )
 
     patch(  // not throws regardless of error in refresh
@@ -382,7 +382,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
-       with: always([.mock_1])
+      with: always([.mock_1])
     )
     patch(
       \ResourceNetworkOperationDispatch.createResource,
@@ -412,7 +412,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
-       with: always([.mock_1])
+      with: always([.mock_1])
     )
     patch(
       \ResourceNetworkOperationDispatch.createResource,

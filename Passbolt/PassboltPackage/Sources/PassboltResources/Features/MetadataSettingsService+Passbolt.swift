@@ -21,9 +21,9 @@
 // @since         v1.0
 //
 
-import Resources
 import FeatureScopes
 import NetworkOperations
+import Resources
 
 extension MetadataSettingsService {
   @MainActor static func load(
@@ -33,15 +33,15 @@ extension MetadataSettingsService {
     let typesSettingsFetchOperation: MetadataTypesSettingsFetchNetworkOperation = try features.instance()
     let keysSettings: CriticalState<MetadataKeysSettings> = .init(.default)
     let typesSettings: CriticalState<MetadataTypesSettings> = .init(.default)
-    
+
     @Sendable func fetchKeysSettings() async throws {
       keysSettings.set(try await keysSettingsFetchOperation())
     }
-    
+
     @Sendable func fetchTypesSettings() async throws {
       typesSettings.set(try await typesSettingsFetchOperation())
     }
-    
+
     return .init(
       fetchKeysSettings: fetchKeysSettings,
       fetchTypesSettings: fetchTypesSettings,

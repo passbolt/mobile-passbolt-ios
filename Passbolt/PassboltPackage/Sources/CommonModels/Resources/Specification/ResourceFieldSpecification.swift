@@ -354,7 +354,7 @@ extension ResourceFieldSpecification {
       }
     case .list:
       break
-    }    
+    }
   }
 }
 

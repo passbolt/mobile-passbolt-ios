@@ -23,7 +23,7 @@
 
 public struct MetadataKeyDTO: Identifiable, Decodable {
   public typealias ID = Tagged<PassboltID, Self>
-  
+
   public let id: ID
   public let fingerprint: String
   public let created: Date
@@ -32,7 +32,7 @@ public struct MetadataKeyDTO: Identifiable, Decodable {
   public let expired: Date?
   public let armoredKey: ArmoredPGPPublicKey
   public let privateKeys: [MetadataPrivateKey]
-  
+
   public init(
     id: ID,
     fingerprint: String,
@@ -84,7 +84,7 @@ extension MetadataKeyDTO {
     public let id: MetadataKeyDTO.ID
     public let userId: Tagged<PassboltID, Self>
     public let encryptedData: String
-    
+
     public init(
       id: MetadataKeyDTO.ID,
       userId: Tagged<PassboltID, Self>,
@@ -94,7 +94,7 @@ extension MetadataKeyDTO {
       self.userId = userId
       self.encryptedData = encryptedData
     }
-    
+
     enum CodingKeys: String, CodingKey {
       case id = "metadata_key_id"
       case userId = "user_id"

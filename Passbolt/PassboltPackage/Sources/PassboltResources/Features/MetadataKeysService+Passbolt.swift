@@ -21,19 +21,19 @@
 // @since         v1.0
 //
 
+import Accounts
 import CommonModels
+import Crypto
+import FeatureScopes
 import NetworkOperations
 import Resources
-import FeatureScopes
-import Crypto
 import Session
-import class Foundation.JSONDecoder
-import class Foundation.JSONEncoder
+import Users
+
 import struct Foundation.Data
 import struct Foundation.Date
-import Users
-import struct Foundation.Date
-import Accounts
+import class Foundation.JSONDecoder
+import class Foundation.JSONEncoder
 
 extension MetadataKeysService {
 
@@ -132,7 +132,8 @@ extension MetadataKeysService {
           if let result: String = try pgp.decryptWithSessionKey(message, sessionKeyData.sessionKey) {
             return result.data(using: .utf8)
           }
-        } catch {
+        }
+        catch {
           // don't break the process, try to use standard decryption method
           error.logged()
         }
@@ -141,7 +142,12 @@ extension MetadataKeysService {
       let result: Data? = try await decrypt(message: message, decryptionKey: decryptionKey)
       if let sessionKey: SessionKey = try? await sessionCryptography.decryptSessionKey(.init(rawValue: message)) {
         cachedSessionKeys.access { keys in
-          keys[reference] = .init(foreignModel: reference.model, foreignId: reference.id, sessionKey: sessionKey, modified: .now)
+          keys[reference] = .init(
+            foreignModel: reference.model,
+            foreignId: reference.id,
+            sessionKey: sessionKey,
+            modified: .now
+          )
         }
       }
 
@@ -174,7 +180,8 @@ extension MetadataKeysService {
 
     @Sendable func encryptForSharing(message: String) async throws -> (ArmoredPGPMessage, MetadataKeyDTO.ID)? {
       guard
-        let sharedKey: CachedKeys = cachedKeys.get().values.first(where: { $0.expired == .none && $0.deleted == .none }),
+        let sharedKey: CachedKeys = cachedKeys.get()
+          .values.first(where: { $0.expired == .none && $0.deleted == .none }),
         let result: ArmoredPGPMessage = try await encrypt(message: message, with: .sharedKey(sharedKey.id))
       else {
         return nil
@@ -199,19 +206,26 @@ extension MetadataKeysService {
 
       for sessionKeyBundle in sessionKeysResponse {
         do {
-          let bundleKeysData: Array<SessionKeyData> = try await decryptSessionKeysBundle(encryptedMessage: sessionKeyBundle.data)
+          let bundleKeysData: Array<SessionKeyData> = try await decryptSessionKeysBundle(
+            encryptedMessage: sessionKeyBundle.data
+          )
 
-          for bundleKey in bundleKeysData {
-            guard keys[bundleKey.key] == nil else { continue }
+          for bundleKey in bundleKeysData where keys[bundleKey.key] == nil {
             keys[bundleKey.key] = bundleKey
           }
-        } catch {
+        }
+        catch {
           error.logged()
         }
       }
 
       let newestBundle: EncryptedSessionKeyBundle? = keys.isEmpty ? nil : sessionKeysResponse.first
-      let sessionKeysCache: SessionKeysCache = .init(id: newestBundle?.id, modifiedAt: newestBundle?.modifiedAt, keysByForeignReference: keys, localKeysByForeignReference: .init())
+      let sessionKeysCache: SessionKeysCache = .init(
+        id: newestBundle?.id,
+        modifiedAt: newestBundle?.modifiedAt,
+        keysByForeignReference: keys,
+        localKeysByForeignReference: .init()
+      )
 
       return sessionKeysCache
     }
@@ -247,14 +261,20 @@ extension MetadataKeysService {
         $0[$1.key] = $1
       }
       cachedSessionKeys.access { cachedSessionKeys in
-        cachedSessionKeys = .init(id: cachedSessionKeys.id, modifiedAt: response.modifiedAt, keysByForeignReference: keysByForeignReference, localKeysByForeignReference: .init())
+        cachedSessionKeys = .init(
+          id: cachedSessionKeys.id,
+          modifiedAt: response.modifiedAt,
+          keysByForeignReference: keysByForeignReference,
+          localKeysByForeignReference: .init()
+        )
       }
     }
 
     @Sendable func sendSessionKeys() async throws {
       do {
         try await trySendingSessionKeys()
-      } catch is HTTPConflict {
+      }
+      catch is HTTPConflict {
         // possibly cache is updated by two different actors, attempt to refresh and re-submit - only once.
         Diagnostics.logger.info("Conflicting session keys cache - attempting to refresh and re-submit.")
         try await refreshSessionKeys()
@@ -426,7 +446,7 @@ extension MetadataKeysService {
     }
   }
 
-  fileprivate  struct CachedSessionKeysMessage: Codable, Sendable {
+  fileprivate struct CachedSessionKeysMessage: Codable, Sendable {
 
     private var objectType: MetadataObjectType
     fileprivate var sessionKeys: Array<SessionKeyData>
@@ -458,7 +478,8 @@ extension MetadataKeysService {
         do {
           try sessionKey.validate()
           validSessionKeys.append(sessionKey)
-        } catch {
+        }
+        catch {
           // consume error, but don't break process
           error.logged()
         }
@@ -480,22 +501,28 @@ extension MetadataKeysService {
     fileprivate var keysByForeignReference: Dictionary<ForeignReference, SessionKeyData>
     fileprivate var localKeysByForeignReference: Dictionary<ForeignReference, SessionKeyData>
 
-    static fileprivate var empty: Self = .init(id: nil, keysByForeignReference: .init(), localKeysByForeignReference: .init())
+    static fileprivate var empty: Self = .init(
+      id: nil,
+      keysByForeignReference: .init(),
+      localKeysByForeignReference: .init()
+    )
 
     fileprivate var allSessionKeys: Array<SessionKeyData> {
       keysByForeignReference.merging(localKeysByForeignReference) { remote, local in
         if let remoteModifiedAt = remote.modified,
-           let localModifiedAt = local.modified {
+          let localModifiedAt = local.modified
+        {
           return remoteModifiedAt > localModifiedAt ? remote : local
         }
 
         return local
-      }.values.map { $0 }
+      }
+      .values.map { $0 }
     }
 
     subscript(key: ForeignReference) -> SessionKeyData? {
       get {
-        localKeysByForeignReference[key] ??  keysByForeignReference[key]
+        localKeysByForeignReference[key] ?? keysByForeignReference[key]
       }
       set(newValue) {
         keysByForeignReference[key] = newValue
@@ -512,4 +539,3 @@ extension MetadataKeysService {
     }
   }
 }
-

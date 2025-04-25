@@ -187,7 +187,7 @@ final class HOTPCodeGeneratorTests: LoadableFeatureTestCase<HOTPCodeGenerator> {
       )(5)
     }
   }
-  
+
   func test_generationFromSecretWithSpaces_generatesSameResultAsWithoutSpaces() {
     patch(
       \HMAC.sha1,
@@ -197,25 +197,31 @@ final class HOTPCodeGeneratorTests: LoadableFeatureTestCase<HOTPCodeGenerator> {
         return result
       }
     )
-    
+
     withTestedInstance { (feature: HOTPCodeGenerator) in
-      let resultWithSpaces = feature.prepare(
-        .init(
-          resourceID: .mock_1,
-          sharedSecret: "secret space test",
-          algorithm: .sha1,
-          digits: 6
-        )
-      )(0)
-      let resultWithoutSpaces = feature.prepare(
-        .init(
-          resourceID: .mock_1,
-          sharedSecret: "secretspacetest",
-          algorithm: .sha1,
-          digits: 6
-        )
-      )(0)
-      XCTAssertEqual(resultWithSpaces, resultWithoutSpaces, "OTP generation should be the same with or without spaces in the secret")
+      let resultWithSpaces =
+        feature.prepare(
+          .init(
+            resourceID: .mock_1,
+            sharedSecret: "secret space test",
+            algorithm: .sha1,
+            digits: 6
+          )
+        )(0)
+      let resultWithoutSpaces =
+        feature.prepare(
+          .init(
+            resourceID: .mock_1,
+            sharedSecret: "secretspacetest",
+            algorithm: .sha1,
+            digits: 6
+          )
+        )(0)
+      XCTAssertEqual(
+        resultWithSpaces,
+        resultWithoutSpaces,
+        "OTP generation should be the same with or without spaces in the secret"
+      )
     }
   }
 }

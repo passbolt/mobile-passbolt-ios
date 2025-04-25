@@ -26,28 +26,28 @@ import Commons
 public struct ResourceURIDTO: Sendable {
   public let resourceId: Resource.ID
   public let uri: String
-  
+
   init(resourceId: Resource.ID, uri: String) {
     self.resourceId = resourceId
     self.uri = uri
   }
-  
+
   init?(resourceId: Resource.ID, json: JSON) {
     guard let uri = json.stringValue else { return nil }
     self.resourceId = resourceId
     self.uri = uri
   }
-  
+
   func validate() throws {
     guard !uri.isEmpty else {
       throw InvalidValue.invalid(validationRule: ValidationRule.emptyUri, value: uri, displayable: "URI is empty.")
     }
-    
+
     guard uri.count <= 1024 else {
       throw InvalidValue.invalid(validationRule: ValidationRule.uriTooLong, value: uri, displayable: "URI is too long.")
     }
   }
-    
+
   struct ValidationRule {
     static let emptyUri: StaticString = "emptyUri"
     static let uriTooLong: StaticString = "uriTooLong"

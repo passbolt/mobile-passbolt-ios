@@ -28,11 +28,11 @@ import func os.os_unfair_lock_unlock
 public typealias UnsafeLock = os_unfair_lock
 
 extension UnsafeLock {
-
+  // swift-format-ignore: AlwaysUseLowerCamelCase
   @_transparent @Sendable public mutating func unsafe_lock() {
     os_unfair_lock_lock(&self)
   }
-
+  // swift-format-ignore: AlwaysUseLowerCamelCase
   @_transparent @Sendable public mutating func unsafe_unlock() {
     os_unfair_lock_unlock(&self)
   }

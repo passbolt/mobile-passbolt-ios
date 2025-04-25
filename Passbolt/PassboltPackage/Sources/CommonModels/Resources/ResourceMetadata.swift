@@ -31,27 +31,29 @@ public struct ResourceMetadata: Sendable {
       json[keyPath: \.name] = .string(name)
     }
   }
-  
+
   public var username: String? {
     didSet {
       if let username {
         json[keyPath: \.username] = .string(username)
-      } else {
+      }
+      else {
         json[keyPath: \.username] = .null
       }
     }
   }
-  
+
   public var description: String? {
     didSet {
       if let description {
         json[keyPath: \.description] = .string(description)
-      } else {
+      }
+      else {
         json[keyPath: \.description] = .null
       }
     }
   }
-  
+
   /// Initializes a new `ResourceMetadata` instance.
   /// - Parameters:
   ///  - resourceId: The resource ID.

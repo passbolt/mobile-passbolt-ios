@@ -23,6 +23,7 @@
 
 import Commons
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 extension ResourceFolderPermission {
 
   public static var mock_user_1_owner: Self = .user(

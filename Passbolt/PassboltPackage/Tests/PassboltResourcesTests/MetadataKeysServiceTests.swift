@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-import XCTest
 import TestExtensions
+import XCTest
 
 @testable import PassboltResources
 
@@ -35,7 +35,6 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     registry.usePassboltMetadataKeysService()
   }
 
-
   override func prepare() throws {
     self.set(
       SessionScope.self,
@@ -47,19 +46,19 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     // pass-through implementations
     patch(
       \SessionCryptography.decryptMessage,
-       with: { input, _ in .init(input) }
+      with: { input, _ in .init(input) }
     )
     patch(
       \PGP.decrypt,
-       with: { input, _, _ in .success(input) }
+      with: { input, _, _ in .success(input) }
     )
     patch(
       \MetadataSessionKeysFetchNetworkOperation.execute,
-       with: always([])
+      with: always([])
     )
     patch(
       \SessionCryptography.decryptSessionKey,
-       with: always("")
+      with: always("")
     )
   }
 
@@ -67,12 +66,16 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     let metadataKey = MetadataKeyDTO.mock
     patch(
       \MetadataKeysFetchNetworkOperation.execute,
-       with: always([metadataKey])
+      with: always([metadataKey])
     )
 
     let testedInstance: MetadataKeysService = try self.testedInstance()
     try await testedInstance.initialize()
-    let decrypted: Data? = try await testedInstance.decrypt(message: "TestMessage", resourceId: .mock_1, withSharedKeyId: metadataKey.id)
+    let decrypted: Data? = try await testedInstance.decrypt(
+      message: "TestMessage",
+      resourceId: .mock_1,
+      withSharedKeyId: metadataKey.id
+    )
     XCTAssertNotNil(decrypted)
   }
 
@@ -80,12 +83,16 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     let metadataKey = MetadataKeyDTO.mock
     patch(
       \MetadataKeysFetchNetworkOperation.execute,
-       with: always([])
+      with: always([])
     )
 
     let testedInstance: MetadataKeysService = try self.testedInstance()
     try await testedInstance.initialize()
-    let decrypted: Data? = try await testedInstance.decrypt(message: "TestMessage", resourceId: .mock_1, withSharedKeyId: metadataKey.id)
+    let decrypted: Data? = try await testedInstance.decrypt(
+      message: "TestMessage",
+      resourceId: .mock_1,
+      withSharedKeyId: metadataKey.id
+    )
     XCTAssertNil(decrypted)
   }
 
@@ -104,7 +111,9 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
   }
 
   func testTooLongPrivateKey_shouldThrowError() throws {
-    let privateKey: MetadataDecryptedPrivateKey = .mock(armoredKey: .init(stringLiteral: String(repeating: "a", count: 100001)))
+    let privateKey: MetadataDecryptedPrivateKey = .mock(
+      armoredKey: .init(stringLiteral: String(repeating: "a", count: 100001))
+    )
     let metadataKey: MetadataKeyDTO = .mock()
     verifyIfTriggersValidationError(
       try metadataKey.validate(withPrivateKeys: [privateKey]),
@@ -133,21 +142,23 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
   func testIfSessionKeyExists_shouldBeUsedToDecryptMessage() async throws {
     patch(
       \MetadataKeysFetchNetworkOperation.execute,
-       with: always([])
+      with: always([])
     )
     patch(
       \MetadataSessionKeysFetchNetworkOperation.execute,
-       with: always([.mock_1])
+      with: always([.mock_1])
     )
 
-    let usedSessionKeyExpectation: XCTestExpectation = .init(description: "Session key should be used to decrypt message.")
+    let usedSessionKeyExpectation: XCTestExpectation = .init(
+      description: "Session key should be used to decrypt message."
+    )
 
     patch(
       \PGP.decryptWithSessionKey,
-       with: { input, sessionKey in
-         usedSessionKeyExpectation.fulfill()
-         return input
-       }
+      with: { input, sessionKey in
+        usedSessionKeyExpectation.fulfill()
+        return input
+      }
     )
 
     let testedInstance: MetadataKeysService = try self.testedInstance()
@@ -158,69 +169,75 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
   }
 
   func testInvalidSessionKey_shouldFallbackToStandardDecryptionMethods() async throws {
-    let decryptedUsingUserKeyExpectation: XCTestExpectation = .init(description: "Message should be decrypted using user key.")
-    let attempetedToDecryptUsingSessionKeyExpectation: XCTestExpectation = .init(description: "Message should be attempted to decrypt using session key.")
+    let decryptedUsingUserKeyExpectation: XCTestExpectation = .init(
+      description: "Message should be decrypted using user key."
+    )
+    let attempetedToDecryptUsingSessionKeyExpectation: XCTestExpectation = .init(
+      description: "Message should be attempted to decrypt using session key."
+    )
     patch(
       \MetadataKeysFetchNetworkOperation.execute,
-       with: always([])
+      with: always([])
     )
     patch(
       \MetadataSessionKeysFetchNetworkOperation.execute,
-       with: always([.mock_1])
+      with: always([.mock_1])
     )
     patch(
       \PGP.decryptWithSessionKey,
-       with: { _, _ in
-         attempetedToDecryptUsingSessionKeyExpectation.fulfill()
-         throw MockError()
-       }
+      with: { _, _ in
+        attempetedToDecryptUsingSessionKeyExpectation.fulfill()
+        throw MockError()
+      }
     )
 
     patch(
       \SessionCryptography.decryptMessage,
-       with: { input, _ in
-         decryptedUsingUserKeyExpectation.fulfill()
-         return .init(input)
-       }
+      with: { input, _ in
+        decryptedUsingUserKeyExpectation.fulfill()
+        return .init(input)
+      }
     )
     let testedInstance: MetadataKeysService = try self.testedInstance()
     try await testedInstance.initialize()
     let result: Data? = try await testedInstance.decrypt("message", .resource(.mock_1), .userKey)
     XCTAssertEqual(String(data: result!, encoding: .utf8), "message", "Message should be decrypted.")
 
-    await fulfillment(of: [decryptedUsingUserKeyExpectation, attempetedToDecryptUsingSessionKeyExpectation], timeout: 1.0)
+    await fulfillment(
+      of: [decryptedUsingUserKeyExpectation, attempetedToDecryptUsingSessionKeyExpectation],
+      timeout: 1.0
+    )
   }
 
   func testMissingKeys_shouldBeSavedAfterBeingDecrypted() async throws {
     let savedSessionKeysExpectation: XCTestExpectation = .init(description: "Session keys should be saved.")
     patch(
       \MetadataKeysFetchNetworkOperation.execute,
-       with: always([])
+      with: always([])
     )
     patch(
       \MetadataSessionKeysFetchNetworkOperation.execute,
-       with: always([])
+      with: always([])
     )
     patch(
       \SessionCryptography.decryptSessionKey,
-       with: always("sessionKey")
+      with: always("sessionKey")
     )
 
     patch(
       \UsersPGPMessages.encryptMessageForUsers,
-       with: always([
+      with: always([
         .mock_1
-       ])
+      ])
     )
 
     patch(
       \MetadataSessionKeysUpdateNetworkOperation.execute,
-       with:
-        { input async throws -> EncryptedSessionKeysCache in
-         savedSessionKeysExpectation.fulfill()
-         XCTAssert(input.data.isEmpty == false, "Session key should be saved.")
-         return .mock_1
-       }
+      with: { input async throws -> EncryptedSessionKeysCache in
+        savedSessionKeysExpectation.fulfill()
+        XCTAssert(input.data.isEmpty == false, "Session key should be saved.")
+        return .mock_1
+      }
     )
 
     let testedInstance: MetadataKeysService = try self.testedInstance()
@@ -236,12 +253,12 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     let metadataKey = MetadataKeyDTO.mock
     patch(
       \MetadataKeysFetchNetworkOperation.execute,
-       with: always([metadataKey])
+      with: always([metadataKey])
     )
 
     patch(
       \PGP.encrypt,
-       with: { _, _ in .success(encryptedMessage.rawValue) }
+      with: { _, _ in .success(encryptedMessage.rawValue) }
     )
 
     let testedInstance: MetadataKeysService = try self.testedInstance()
@@ -255,7 +272,7 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     let metadataKey: MetadataKeyDTO = .mock(expired: .now)
     patch(
       \MetadataKeysFetchNetworkOperation.execute,
-       with: always([metadataKey])
+      with: always([metadataKey])
     )
 
     let testedInstance: MetadataKeysService = try self.testedInstance()
@@ -269,31 +286,31 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     let refreshKeysExpectation: XCTestExpectation = .init(description: "Keys should be refreshed.")
     sendSessionKeysExpectation.expectedFulfillmentCount = 2
     patch(
-        \MetadataSessionKeysFetchNetworkOperation.execute,
-         with: { () async throws -> [EncryptedSessionKeyBundle] in
-           refreshKeysExpectation.fulfill()
-           return []
-         }
+      \MetadataSessionKeysFetchNetworkOperation.execute,
+      with: { () async throws -> [EncryptedSessionKeyBundle] in
+        refreshKeysExpectation.fulfill()
+        return []
+      }
     )
     patch(
-        \MetadataSessionKeysUpdateNetworkOperation.execute,
-         with: {
-           input async throws -> EncryptedSessionKeysCache in
-           sendSessionKeysExpectation.fulfill()
-           throw HTTPConflict.error(
-            request: .init(),
-            response: .init(
-              url: .test,
-              statusCode: 409,
-              headers: [:],
-              body: Data()
-            )
-           )
-         }
+      \MetadataSessionKeysUpdateNetworkOperation.execute,
+      with: {
+        input async throws -> EncryptedSessionKeysCache in
+        sendSessionKeysExpectation.fulfill()
+        throw HTTPConflict.error(
+          request: .init(),
+          response: .init(
+            url: .test,
+            statusCode: 409,
+            headers: [:],
+            body: Data()
+          )
+        )
+      }
     )
     patch(
       \UsersPGPMessages.encryptMessageForUsers,
-         with: always([.mock_1])
+      with: always([.mock_1])
     )
 
     let testedInstance: MetadataKeysService = try self.testedInstance()
@@ -314,7 +331,7 @@ extension MetadataKeyDTO {
     let privateKeyData: JSON = [
       "fingerprint": .string("fingerprint"),
       "armored_key": "",
-      "object_type": .string(MetadataObjectType.privateKeyMetadata.rawValue)
+      "object_type": .string(MetadataObjectType.privateKeyMetadata.rawValue),
     ]
 
     let privateKey: MetadataPrivateKey = .mock(id: id, userId: .init(), encryptedData: privateKeyData)
@@ -329,25 +346,26 @@ extension MetadataKeyDTO {
     deleted: Date? = nil,
     privateKeys: [MetadataKeyDTO.MetadataPrivateKey]? = nil
   ) -> Self {
-
-    return .init(
-        id: id,
-        fingerprint: fingerPrint,
-        created: .now,
-        modified: .now,
-        deleted: deleted,
-        expired: expired,
-        armoredKey: armoredKey,
-        privateKeys: privateKeys ?? [
-          .init(
-            id: id,
-            userId: .init(),
-            encryptedData: MetadataPrivateKey.encryptedData(
+    .init(
+      id: id,
+      fingerprint: fingerPrint,
+      created: .now,
+      modified: .now,
+      deleted: deleted,
+      expired: expired,
+      armoredKey: armoredKey,
+      privateKeys: privateKeys ?? [
+        .init(
+          id: id,
+          userId: .init(),
+          encryptedData:
+            MetadataPrivateKey.encryptedData(
               fingerprint: fingerPrint,
               armoredKey: ""
-            ).stringValue!
-          )
-        ]
+            )
+            .stringValue!
+        )
+      ]
     )
   }
 }
@@ -358,12 +376,20 @@ extension MetadataDecryptedPrivateKey {
     armoredKey: ArmoredPGPPrivateKey = "",
     objectType: MetadataObjectType = .privateKeyMetadata
   ) -> Self {
-    .init(fingerprint: fingerPrint, armoredKey: armoredKey, objectType: objectType)
+    .init(
+      fingerprint: fingerPrint,
+      armoredKey: armoredKey,
+      objectType: objectType
+    )
   }
 }
 
 extension MetadataKeyDTO.MetadataPrivateKey {
-  fileprivate static func mock(id: MetadataKeyDTO.ID = .init(), userId: Tagged<PassboltID, Self> = .init(), encryptedData: JSON = .null) -> Self {
+  fileprivate static func mock(
+    id: MetadataKeyDTO.ID = .init(),
+    userId: Tagged<PassboltID, Self> = .init(),
+    encryptedData: JSON = .null
+  ) -> Self {
     .init(id: id, userId: userId, encryptedData: encryptedData.stringValue!)
   }
 
@@ -371,7 +397,7 @@ extension MetadataKeyDTO.MetadataPrivateKey {
     [
       "fingerprint": .string(fingerprint),
       "armored_key": .string(armoredKey),
-      "object_type": .string(MetadataObjectType.privateKeyMetadata.rawValue)
+      "object_type": .string(MetadataObjectType.privateKeyMetadata.rawValue),
     ]
   }
 }

@@ -22,6 +22,7 @@
 //
 
 import Database
+
 // swift-format-ignore: AlwaysUseLowerCamelCase
 extension SQLiteMigration {
 
@@ -56,4 +57,3 @@ extension SQLiteMigration {
     ]
   }
 }
-

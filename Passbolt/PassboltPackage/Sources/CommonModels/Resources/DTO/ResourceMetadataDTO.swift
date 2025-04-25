@@ -22,6 +22,7 @@
 //
 
 import Commons
+
 import struct Foundation.Data
 import class Foundation.JSONDecoder
 import class Foundation.JSONEncoder
@@ -35,7 +36,7 @@ public struct ResourceMetadataDTO: Sendable {
   public let uris: [ResourceURIDTO]
   public let objectType: MetadataObjectType?
   public let resourceTypeId: ResourceType.ID?
-  
+
   /// Initialize a new resource metadata DTO from decrypted JSON data.
   /// - Parameters:
   ///  - resourceId: The resource ID.
@@ -54,7 +55,7 @@ public struct ResourceMetadataDTO: Sendable {
       throw EntityValidationError.error(
         message: "Resource name is missing.",
         details: [
-          "resourceId": resourceId,
+          "resourceId": resourceId
         ]
       )
     }
@@ -65,11 +66,11 @@ public struct ResourceMetadataDTO: Sendable {
     self.objectType = json[keyPath: \.object_type].stringValue.flatMap { MetadataObjectType(rawValue: $0) }
     self.resourceTypeId = json[keyPath: \.resource_type_id].stringValue.flatMap { ResourceType.ID(uuidString: $0) }
   }
-  
+
   /// Initialize a new resource metadata DTO from Resource DTO.
   /// - Parameter resource: The resource DTO.
   ///
-  /// Throws: `EntityValidationError` if the resource name is missing.
+  /// - Throws: `EntityValidationError` if the resource name is missing.
   public init(resource: ResourceDTO) throws {
     resourceId = resource.id
     guard let name = resource.name
@@ -77,7 +78,7 @@ public struct ResourceMetadataDTO: Sendable {
       throw EntityValidationError.error(
         message: "Resource name is missing.",
         details: [
-          "resourceId": resourceId,
+          "resourceId": resourceId
         ]
       )
     }
@@ -95,7 +96,8 @@ public struct ResourceMetadataDTO: Sendable {
     if let uri = resource.uri {
       json[keyPath: \.uris] = .array([.string(uri)])
       self.uris = [.init(resourceId: resourceId, uri: uri)]
-    } else {
+    }
+    else {
       self.uris = []
     }
     objectType = .resourceMetadata
@@ -106,7 +108,7 @@ public struct ResourceMetadataDTO: Sendable {
   }
 }
 
-extension ResourceMetadataDTO {  
+extension ResourceMetadataDTO {
   public static func initialResourceMetadataJSON(for resource: Resource) -> JSON {
     var json: JSON = .object([:])
     json[keyPath: \.resource_type_id] = .string(resource.type.id.rawValue.rawValue.uuidString)
@@ -114,7 +116,7 @@ extension ResourceMetadataDTO {
     json[keyPath: \.uris] = .array([])
     return json
   }
-  
+
   public static func initialResourceMetadataJSON(for resourceType: ResourceType) -> JSON {
     var json: JSON = .object([:])
     json[keyPath: \.resource_type_id] = .string(resourceType.id.rawValue.rawValue.uuidString)
@@ -134,61 +136,80 @@ extension ResourceMetadataDTO {
     let json = try JSONDecoder.default.decode(JSON.self, from: data)
     guard json[keyPath: \.name].stringValue == name
     else {
-      throw EntityValidationError
+      throw
+        EntityValidationError
         .error(
           message: "Resource metadata name mismatch.",
           underlyingError: .none,
           details: [
             "field": name,
-            "json": json[keyPath: \.name]
+            "json": json[keyPath: \.name],
           ]
         )
     }
-    
+
     guard json[keyPath: \.description].stringValue == description
     else {
-      throw EntityValidationError
+      throw
+        EntityValidationError
         .error(
           message: "Resource metadata description mismatch.",
           underlyingError: .none,
           details: [
             "field": description as Any,
-            "json": json[keyPath: \.description]
+            "json": json[keyPath: \.description],
           ]
         )
     }
-    
+
     guard json[keyPath: \.username].stringValue == username
     else {
-      throw EntityValidationError
+      throw
+        EntityValidationError
         .error(
           message: "Resource metadata username mismatch.",
           underlyingError: .none,
           details: [
             "field": username as Any,
-            "json": json[keyPath: \.username]
+            "json": json[keyPath: \.username],
           ]
         )
     }
-    
+
     // Validate fields
     if name.count > 255 {
-      throw InvalidValue.tooLong(validationRule: ValidationRule.nameTooLong, value: name, displayable: .raw("Name is too long."))
+      throw InvalidValue.tooLong(
+        validationRule: ValidationRule.nameTooLong,
+        value: name,
+        displayable: .raw("Name is too long.")
+      )
     }
-    
+
     if name.isEmpty {
-      throw InvalidValue.invalid(validationRule: ValidationRule.nameEmpty, value: name, displayable: "Name is empty.")
+      throw InvalidValue.invalid(
+        validationRule: ValidationRule.nameEmpty,
+        value: name,
+        displayable: "Name is empty."
+      )
     }
-    
+
     if let username = username {
       if username.count > 255 {
-        throw InvalidValue.tooLong(validationRule: ValidationRule.usernameTooLong, value: username, displayable: "Username is too long.")
+        throw InvalidValue.tooLong(
+          validationRule: ValidationRule.usernameTooLong,
+          value: username,
+          displayable: "Username is too long."
+        )
       }
     }
-    
+
     if let description = description {
       if description.count > 10_000 {
-        throw InvalidValue.tooLong(validationRule: ValidationRule.descriptionTooLong, value: description, displayable: "Description is too long.")
+        throw InvalidValue.tooLong(
+          validationRule: ValidationRule.descriptionTooLong,
+          value: description,
+          displayable: "Description is too long."
+        )
       }
     }
 
@@ -199,8 +220,10 @@ extension ResourceMetadataDTO {
         displayable: "Object type is invalid."
       )
     }
-    
-    if json[keyPath: \.resource_type_id].stringValue?.lowercased() != resource.typeID.rawValue.rawValue.uuidString.lowercased() {
+
+    let resourceTypeId = resource.typeID.rawValue.rawValue.uuidString.lowercased()
+
+    if json[keyPath: \.resource_type_id].stringValue?.lowercased() != resourceTypeId {
       throw InvalidValue.invalid(
         validationRule: ValidationRule.resourceTypeMismatch,
         value: json[keyPath: \.resource_type_id].stringValue,
@@ -208,7 +231,7 @@ extension ResourceMetadataDTO {
       )
     }
   }
-  
+
   struct ValidationRule {
     static let nameTooLong: StaticString = "name-too-long"
     static let nameEmpty: StaticString = "name-empty"

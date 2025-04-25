@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-
 import Commons
 
 public struct PasswordPoliciesDSV {
@@ -46,4 +45,3 @@ public struct PasswordPoliciesDSV {
     self.externalDictionaryCheck = externalDictionaryCheck
   }
 }
-

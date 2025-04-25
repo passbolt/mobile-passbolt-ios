@@ -21,18 +21,18 @@
 // @since         v1.0
 //
 extension PasswordGeneratorType: Decodable {
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let stringValue = try container.decode(String.self)
-        guard let type = PasswordGeneratorType(rawValue: stringValue) else {
-            throw DecodingError.typeMismatch(
-                PasswordGeneratorType.self,
-                DecodingError.Context(
-                    codingPath: decoder.codingPath,
-                    debugDescription: "Invalid PasswordGeneratorType value: \(stringValue)"
-                )
-            )
-        }
-        self = type
+  public init(from decoder: Decoder) throws {
+    let container = try decoder.singleValueContainer()
+    let stringValue = try container.decode(String.self)
+    guard let type = PasswordGeneratorType(rawValue: stringValue) else {
+      throw DecodingError.typeMismatch(
+        PasswordGeneratorType.self,
+        DecodingError.Context(
+          codingPath: decoder.codingPath,
+          debugDescription: "Invalid PasswordGeneratorType value: \(stringValue)"
+        )
+      )
     }
+    self = type
+  }
 }

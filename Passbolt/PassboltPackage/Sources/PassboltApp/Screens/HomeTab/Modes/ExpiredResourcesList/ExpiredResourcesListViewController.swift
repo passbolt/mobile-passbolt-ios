@@ -125,4 +125,3 @@ internal final class ExpiredResourcesListViewController: PlainViewController, UI
     }
   }
 }
-

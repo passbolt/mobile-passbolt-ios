@@ -120,49 +120,49 @@ extension ResourcesStoreDatabaseOperation {
       if let metadata = resource.metadata {
         try connection.execute(
           .statement(
-          """
-          INSERT INTO
-            resourceMetadata(
-              resource_id,
-              data,
-              name,
-              username,
-              description
-            )
-          VALUES
-            (
-              ?1,
-              ?2,
-              ?3,
-              ?4,
-              ?5
-            )
-          """,
-          arguments:
-            metadata.resourceId,
+            """
+            INSERT INTO
+              resourceMetadata(
+                resource_id,
+                data,
+                name,
+                username,
+                description
+              )
+            VALUES
+              (
+                ?1,
+                ?2,
+                ?3,
+                ?4,
+                ?5
+              )
+            """,
+            arguments:
+              metadata.resourceId,
             metadata.data,
             metadata.name,
             metadata.username,
             metadata.description
           )
         )
-        
+
         for uri in metadata.uris {
           try connection.execute(
             .statement(
-            """
-              INSERT INTO
-                resourceURI(
-                  resource_id,
-                  uri
+              """
+                INSERT INTO
+                  resourceURI(
+                    resource_id,
+                    uri
+                  )
+                VALUES (
+                  ?1,
+                  ?2
                 )
-              VALUES (
-                ?1,
-                ?2
-              )
-            """,
-            arguments:
-              uri.resourceId,
+              """,
+              arguments:
+                uri.resourceId,
               uri.uri
             )
           )

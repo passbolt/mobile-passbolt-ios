@@ -52,7 +52,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     use(Accounts.placeholder)
     use(Session.placeholder)
   }
-  
+
   private var sleepDuration: UInt64 {
     /// defaultTimeout is in seconds
     UInt64(AccountTransferTests.defaultTimeout * 100) * NSEC_PER_MSEC

@@ -69,48 +69,50 @@ public struct PasswordGeneratorSettings {
 // MARK: - Validation
 
 extension PasswordGeneratorSettings {
-    private static let PASSWORD_GEN_MIN_PASSWORD_LENGTH = 8
-    private static let PASSWORD_GEN_MAX_PASSWORD_LENGTH = 128
+  private static let passwordGenMinPasswordLength = 8
+  private static let passwordGenMaxPasswordLength = 128
 
-    public func validate() throws {
-        try self.lengthValidator.ensureValid(self.length)
-        try self.maskValidator.ensureValid(self)
-    }
+  public func validate() throws {
+    try self.lengthValidator.ensureValid(self.length)
+    try self.maskValidator.ensureValid(self)
+  }
 
-    public var lengthValidator: Validator<Int> {
-        zip(
-            .inRange(
-              of: PasswordGeneratorSettings.PASSWORD_GEN_MIN_PASSWORD_LENGTH...PasswordGeneratorSettings.PASSWORD_GEN_MAX_PASSWORD_LENGTH,
-                displayable: "error.validation.password.length.invalid"
-            )
+  public var lengthValidator: Validator<Int> {
+    zip(
+      .inRange(
+        of: PasswordGeneratorSettings.passwordGenMinPasswordLength
+          ... PasswordGeneratorSettings.passwordGenMaxPasswordLength,
+        displayable: "error.validation.password.length.invalid"
+      )
+    )
+  }
+
+  public var maskValidator: Validator<PasswordGeneratorSettings> {
+    Validator { settings in
+      let masks = [
+        settings.maskChar1,
+        settings.maskChar2,
+        settings.maskChar3,
+        settings.maskChar4,
+        settings.maskChar5,
+        settings.maskEmoji,
+        settings.maskDigit,
+        settings.maskParenthesis,
+        settings.maskLower,
+        settings.maskUpper,
+      ]
+      if masks.contains(true) {
+        return .valid(settings)
+      }
+      else {
+        return .invalid(
+          settings,
+          error: InvalidValue.notContains(
+            value: settings,
+            displayable: DisplayableString("error.validation.password.mask.empty")
+          )
         )
-    }
-
-    public var maskValidator: Validator<PasswordGeneratorSettings> {
-      Validator { settings in
-          let masks = [
-              settings.maskChar1,
-              settings.maskChar2,
-              settings.maskChar3,
-              settings.maskChar4,
-              settings.maskChar5,
-              settings.maskEmoji,
-              settings.maskDigit,
-              settings.maskParenthesis,
-              settings.maskLower,
-              settings.maskUpper
-          ]
-          if masks.contains(true) {
-              return .valid(settings)
-          } else {
-              return .invalid(
-                  settings,
-                  error: InvalidValue.notContains(
-                      value: settings,
-                      displayable: DisplayableString("error.validation.password.mask.empty")
-                  )
-              )
-          }
       }
     }
+  }
 }

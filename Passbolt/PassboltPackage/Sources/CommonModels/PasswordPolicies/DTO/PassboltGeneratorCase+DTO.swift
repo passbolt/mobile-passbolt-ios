@@ -22,19 +22,18 @@
 //
 
 extension PasswordGeneratorCase: Decodable {
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let stringValue = try container.decode(String.self)
-        guard let type = PasswordGeneratorCase(rawValue: stringValue) else {
-            throw DecodingError.typeMismatch(
-                PasswordGeneratorCase.self,
-                DecodingError.Context(
-                    codingPath: decoder.codingPath,
-                    debugDescription: "Invalid PasswordGeneratorCase value: \(stringValue)"
-                )
-            )
-        }
-        self = type
+  public init(from decoder: Decoder) throws {
+    let container = try decoder.singleValueContainer()
+    let stringValue = try container.decode(String.self)
+    guard let type = PasswordGeneratorCase(rawValue: stringValue) else {
+      throw DecodingError.typeMismatch(
+        PasswordGeneratorCase.self,
+        DecodingError.Context(
+          codingPath: decoder.codingPath,
+          debugDescription: "Invalid PasswordGeneratorCase value: \(stringValue)"
+        )
+      )
     }
+    self = type
+  }
 }
-

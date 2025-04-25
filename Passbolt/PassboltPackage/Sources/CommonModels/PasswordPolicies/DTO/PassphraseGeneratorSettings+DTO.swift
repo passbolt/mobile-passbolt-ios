@@ -24,16 +24,16 @@
 import Commons
 
 extension PassphraseGeneratorSettings: Decodable {
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.words = try container.decode(Int.self, forKey: .words)
-        self.wordSeparator = try container.decode(String.self, forKey: .wordSeparator)
-        self.wordCase = try container.decode(PasswordGeneratorCase.self, forKey: .wordCase)
-    }
+  public init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    self.words = try container.decode(Int.self, forKey: .words)
+    self.wordSeparator = try container.decode(String.self, forKey: .wordSeparator)
+    self.wordCase = try container.decode(PasswordGeneratorCase.self, forKey: .wordCase)
+  }
 
-    private enum CodingKeys: String, CodingKey {
-        case words = "words"
-        case wordSeparator = "word_separator"
-        case wordCase = "word_case"
-    }
+  private enum CodingKeys: String, CodingKey {
+    case words = "words"
+    case wordSeparator = "word_separator"
+    case wordCase = "word_case"
+  }
 }

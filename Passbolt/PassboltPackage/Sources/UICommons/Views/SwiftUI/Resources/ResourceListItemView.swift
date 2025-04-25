@@ -118,7 +118,7 @@ internal struct ResourceListItemView_Previews: PreviewProvider {
   internal static var previews: some View {
     ResourceListItemView(
       name: "Resource",
-      username: "username", 
+      username: "username",
       isExpired: true,
       contentAction: {
         // action

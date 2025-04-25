@@ -43,7 +43,7 @@ final class ResourceEditPreparationTests: FeaturesTestCase {
     )
     patch(
       \MetadataSettingsService.typesSettings,
-       with: always(.init(defaultResourceTypes: .v4))
+      with: always(.init(defaultResourceTypes: .v4))
     )
   }
 

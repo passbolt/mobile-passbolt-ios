@@ -23,6 +23,7 @@
 
 import CommonModels
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverForceUnwrap
 extension ResourceFolder.ID {
 
   public static let mock_1: Self = .init(uuidString: "45F90157-EE77-42E8-8CB8-50E73C6819F8")!

@@ -25,22 +25,23 @@ import NetworkOperations
 
 extension MetadataSessionKeysUpdateNetworkOperation {
 
+  // swift-format-ignore: NeverForceUnwrap
   @Sendable fileprivate static func requestPreparation(_ input: Input) -> Mutation<HTTPRequest> {
     .combined(
       .pathSuffix(
         input.id != nil
-        ? "/metadata/session-keys/\(input.id!).json"
-        : "/metadata/session-keys.json"
+          ? "/metadata/session-keys/\(input.id!).json"
+          : "/metadata/session-keys.json"
       ),
       .method(
         input.id != nil
-        ? .put
-        : .post
+          ? .put
+          : .post
       ),
       .jsonBody(from: input)
     )
   }
-  
+
   @Sendable fileprivate static func responseDecoder(
     _ input: Input,
     _ response: HTTPResponse

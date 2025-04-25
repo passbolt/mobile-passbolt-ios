@@ -24,8 +24,9 @@
 import DatabaseOperations
 import FeatureScopes
 import Session
-import class Foundation.JSONDecoder
+
 import struct Foundation.Data
+import class Foundation.JSONDecoder
 
 // MARK: - Implementation
 
@@ -268,7 +269,7 @@ extension ResourceDetailsFetchDatabaseOperation {
         )
       }
     )
-    
+
     let uris: [String] = try connection.fetch(
       using: selectResourceURIsStatement,
       mapping: { dataRow in
@@ -281,7 +282,7 @@ extension ResourceDetailsFetchDatabaseOperation {
             .error(for: ResourceURIDTO.self)
             .recording(dataRow, for: "dataRow")
         }
-        
+
         return uri
       }
     )
@@ -302,9 +303,9 @@ extension ResourceDetailsFetchDatabaseOperation {
             .error(for: Resource.self)
             .recording(dataRow, for: "dataRow")
         }
-        
+
         let metadataJSON = try JSONDecoder.default.decode(JSON.self, from: metadata)
-   
+
         let resource: Resource = .init(
           id: id,
           path: path,

@@ -25,11 +25,11 @@ import Commons
 
 public protocol ValidationRuleVerificator {
   func verifyIfTriggersValidationError(
-   _ operation: @autoclosure () throws -> Void,
-   validationRule: StaticString,
-   _ file: StaticString,
-   _ line: UInt
- )
+    _ operation: @autoclosure () throws -> Void,
+    validationRule: StaticString,
+    _ file: StaticString,
+    _ line: UInt
+  )
 }
 
 extension ValidationRuleVerificator {
@@ -42,14 +42,20 @@ extension ValidationRuleVerificator {
     XCTAssertThrowsError(try operation()) { error in
       guard let error = error as? InvalidValue
       else {
-        XCTFail("Unexpected error: \(error)");
+        XCTFail("Unexpected error: \(error)")
         return
       }
-      XCTAssertEqual(error.validationRule, validationRule, "Unexpected validation rule triggered", file: file, line: line)
+      XCTAssertEqual(
+        error.validationRule,
+        validationRule,
+        "Unexpected validation rule triggered",
+        file: file,
+        line: line
+      )
     }
   }
 }
 
-extension TestCase: ValidationRuleVerificator { }
+extension TestCase: ValidationRuleVerificator {}
 
-extension AsyncTestCase: ValidationRuleVerificator { }
+extension AsyncTestCase: ValidationRuleVerificator {}

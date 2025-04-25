@@ -21,12 +21,14 @@
 // @since         v1.0
 //
 
-import Resources
 import NetworkOperations
-import struct Foundation.Date
+import Resources
+
 import struct Foundation.Data
+import struct Foundation.Date
 import class Foundation.JSONEncoder
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverForceUnwrap
 extension EncryptedSessionKeyBundle {
 
   public static var mock_1: Self = .init(
@@ -38,6 +40,7 @@ extension EncryptedSessionKeyBundle {
   )
 }
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverForceUnwrap
 extension EncryptedSessionKeysCache {
 
   public static var mock_1: Self = .init(
@@ -47,6 +50,7 @@ extension EncryptedSessionKeysCache {
   )
 }
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverForceUnwrap, NeverUseForceTry
 private func composeSessionKeyData() -> String {
 
   let resourceId: Resource.ID = .mock_1
@@ -77,7 +81,7 @@ private struct SessionKeyDataWrapper: Encodable {
   }
 }
 
-fileprivate struct SessionKeyData: Encodable {
+private struct SessionKeyData: Encodable {
 
   fileprivate let foreignModel: MetadataKeysService.ForeignModel
   fileprivate let foreignId: PassboltID

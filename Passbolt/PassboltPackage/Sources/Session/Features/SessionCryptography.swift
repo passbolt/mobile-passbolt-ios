@@ -46,7 +46,7 @@ public struct SessionCryptography {
       _ plainMessage: String,
       _ publicKey: ArmoredPGPPublicKey
     ) async throws -> ArmoredPGPMessage
-  
+
   public var decryptSessionKey:
     @SessionActor (
       _ message: ArmoredPGPMessage

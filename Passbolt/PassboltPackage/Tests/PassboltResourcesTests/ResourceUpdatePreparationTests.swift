@@ -22,8 +22,10 @@
 //
 
 import TestExtensions
+
 @testable import PassboltResources
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 final class ResourceUpdatePreparationTests: FeaturesTestCase {
 
   override func commonPrepare() {
@@ -39,53 +41,53 @@ final class ResourceUpdatePreparationTests: FeaturesTestCase {
         configuration: .mock_default
       )
     )
-    
+
     patch(
       \SessionCryptography.decryptMessage,
-       with: { message, _ in .init(message) } // pass-through
+      with: { message, _ in .init(message) }  // pass-through
     )
   }
-  
+
   func test_givenResourceIdAndSecret_whenPreparingUpdate_shouldReturnEncryptedSecretsForAllUsers() async throws {
     patch(
       \UsersPGPMessages.encryptMessageForResourceUsers,
-       with: always([.mock_1, .mock_2])
+      with: always([.mock_1, .mock_2])
     )
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
       with: always([.mock_1, .mock_2])
     )
     let sut: ResourceUpdatePreparation = try self.testedInstance()
-    
+
     await verifyIf(
       try await sut.prepareSecret(.mock_1, "secret").map { $0.recipient },
       isEqual: [.mock_1, .mock_2],
       "Should encrypt secret for all users"
     )
   }
-  
+
   func test_givenResourceIdAndSecret_whenPreparingUpdate_shouldThrowIfUsersCountIsDifferentThanExpectd() async throws {
     patch(
       \UsersPGPMessages.encryptMessageForResourceUsers,
-       with: always([.mock_1])
+      with: always([.mock_1])
     )
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
       with: always([.mock_1, .mock_2])
     )
     let sut: ResourceUpdatePreparation = try self.testedInstance()
-    
+
     await verifyIf(
       try await sut.prepareSecret(.mock_1, "secret"),
       throws: InvalidResourceSecret.self,
       "Should throw if users count is different than expected"
     )
   }
-  
+
   func test_givenResourceWithUnstructuredSecret_whenPreparingUpdate_shouldFetchSecret() async throws {
     patch(
       \ResourceSecretFetchNetworkOperation.execute,
-       with: always(.init(data: "secret"))
+      with: always(.init(data: "secret"))
     )
     let sut: ResourceUpdatePreparation = try self.testedInstance()
     await verifyIf(
@@ -94,11 +96,11 @@ final class ResourceUpdatePreparationTests: FeaturesTestCase {
       "Should fetch secret from network"
     )
   }
-  
+
   func test_givenResourceWithStructuredSecret_whenPreparingUpdate_shouldFetchSecret() async throws {
     patch(
       \ResourceSecretFetchNetworkOperation.execute,
-       with: always(.init(data: "{\"secret\":\"value\"}"))
+      with: always(.init(data: "{\"secret\":\"value\"}"))
     )
 
     let sut: ResourceUpdatePreparation = try self.testedInstance()

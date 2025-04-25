@@ -24,18 +24,18 @@
 public struct MetadataKeysSettings: Decodable, Sendable, Equatable {
   public let allowUsageOfPersonalKeys: Bool
   public let zeroKnowledgeKeyShare: Bool
-  
+
   public init(allowUsageOfPersonalKeys: Bool, zeroKnowledgeKeyShare: Bool) {
     self.allowUsageOfPersonalKeys = allowUsageOfPersonalKeys
     self.zeroKnowledgeKeyShare = zeroKnowledgeKeyShare
   }
-  
+
   public init(from decoder: any Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     self.allowUsageOfPersonalKeys = try container.decode(Bool.self, forKey: CodingKeys.allowUsageOfPersonalKeys)
     self.zeroKnowledgeKeyShare = try container.decode(Bool.self, forKey: CodingKeys.zeroKnowledgeKeyShare)
   }
-  
+
   private enum CodingKeys: String, CodingKey {
     case allowUsageOfPersonalKeys = "allow_usage_of_personal_keys"
     case zeroKnowledgeKeyShare = "zero_knowledge_key_share"
@@ -48,4 +48,3 @@ extension MetadataKeysSettings {
     zeroKnowledgeKeyShare: false
   )
 }
-  

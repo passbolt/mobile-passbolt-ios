@@ -30,7 +30,7 @@ import Users
 @testable import Commons
 @testable import PassboltApp
 
-// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals, NeverForceUnwrap
 final class ResourceFolderEditControllerTests: FeaturesTestCase {
 
   override func commonPrepare() {
@@ -80,12 +80,12 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
         permissions: []
       )
     )
-    
+
     patch(
       \ResourceFolderEditForm.state,
       with: formState.asAnyUpdatable()
     )
-    
+
     patch(
       \ResourceFolderEditForm.sendForm,
       with: always(self.mockExecuted())
@@ -95,7 +95,7 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
       await tested.saveChanges()
     }
   }
-  
+
   func test_saveChanges_presentsSuccessMessage() async throws {
     let newFolderName = "New Folder"
     let formState: Variable<ResourceFolder> = Variable(
@@ -110,14 +110,14 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
 
     patch(
       \ResourceFolderEditForm.sendForm,
-       with: always(self.mockExecuted())
+      with: always(self.mockExecuted())
     )
-    
+
     patch(
       \ResourceFolderEditForm.state,
       with: formState.asAnyUpdatable()
     )
-    
+
     let messagesSubscription = SnackBarMessageEvent.subscribe()
     let expectedMessage = SnackBarMessageEvent.Payload.show(
       .info(
@@ -129,7 +129,7 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
         )
       )
     )
-    
+
     await withInstance(
       returns: expectedMessage
     ) { (tested: ResourceFolderEditController) in

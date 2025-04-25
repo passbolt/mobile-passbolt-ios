@@ -28,7 +28,9 @@ extension PasswordGeneratorSettings: Decodable {
   public init(
     from decoder: Decoder
   ) throws {
-    let container: KeyedDecodingContainer<PasswordGeneratorSettings.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+    let container: KeyedDecodingContainer<PasswordGeneratorSettings.CodingKeys> = try decoder.container(
+      keyedBy: CodingKeys.self
+    )
 
     self.length =
       try container

@@ -23,7 +23,8 @@
 
 import CommonModels
 
-public typealias PasswordPoliciesFetchDatabaseOperation = DatabaseOperation<PasswordPoliciesFetchDatabaseOperationDescription>
+public typealias PasswordPoliciesFetchDatabaseOperation =
+  DatabaseOperation<PasswordPoliciesFetchDatabaseOperationDescription>
 
 public enum PasswordPoliciesFetchDatabaseOperationDescription: DatabaseOperationDescription {
 

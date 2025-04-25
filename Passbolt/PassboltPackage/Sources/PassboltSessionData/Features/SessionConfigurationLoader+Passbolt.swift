@@ -92,7 +92,7 @@ extension SessionConfigurationLoader {
         passwordPoliciesEnabled: serverConfiguration.plugins.passwordPolicies?.enabled ?? false,
         passwordPoliciesUpdateEnabled: serverConfiguration.plugins.passwordPoliciesUpdate?.enabled ?? false
       )
-      
+
       let metadata: MetadataFeatureConfiguration = .init(
         enabled: serverConfiguration.plugins.metadata?.enabled ?? false
       )

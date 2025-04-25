@@ -22,6 +22,7 @@
 //
 
 import TestExtensions
+
 @testable import PassboltNetworkOperations
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals

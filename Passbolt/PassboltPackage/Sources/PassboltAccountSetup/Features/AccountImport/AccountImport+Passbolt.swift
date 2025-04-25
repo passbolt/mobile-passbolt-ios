@@ -118,7 +118,7 @@ extension AccountImport {
     ) -> AnyPublisher<Never, Error> {
       Diagnostics.logger.info("Processing QR code payload...")
       switch processQRCodePayload(payload, in: transferState.value) {
-      case var .success(updatedState):
+      case .success(var updatedState):
 
         //If we have a download link it means we are on version 2
         if let downloadLink = updatedState.downloadLink {
@@ -132,24 +132,24 @@ extension AccountImport {
               else {
                 throw AccountTransferScanningFailure.error().pushing(.message("Account kit is empty"))
               }
-                //Reuse account kit feature to check payload
+              //Reuse account kit feature to check payload
               accountKitImport
-                  .importAccountKit(accountKitString)
-                  .sink(
-                    receiveCompletion: { completion in
-                      guard case let .failure(error) = completion
-                      else { return }
-                      // we are completing transfer with error from import kit
-                      transferState.send(
-                        completion: .failure(error)
-                      )
-                    },
-                    receiveValue: { accountTransferData in
-                      //Import account by payload
-                      importAccountByPayload(accountTransferData)
-                    }
-                  )
-                  .store(in: cancellables)
+                .importAccountKit(accountKitString)
+                .sink(
+                  receiveCompletion: { completion in
+                    guard case .failure(let error) = completion
+                    else { return }
+                    // we are completing transfer with error from import kit
+                    transferState.send(
+                      completion: .failure(error)
+                    )
+                  },
+                  receiveValue: { accountTransferData in
+                    //Import account by payload
+                    importAccountByPayload(accountTransferData)
+                  }
+                )
+                .store(in: cancellables)
             }
             .ignoreOutput()
             .eraseToAnyPublisher()
@@ -255,14 +255,14 @@ extension AccountImport {
           .collectErrorLog(using: Diagnostics.shared)
           .eraseToAnyPublisher()
         }
-      case let .failure(error)
+      case .failure(let error)
       where error is Cancelled:
         Diagnostics.logger.info("...processing canceled!")
         return Fail<Never, Error>(error: error)
           .collectErrorLog(using: Diagnostics.shared)
           .eraseToAnyPublisher()
 
-      case let .failure(error)
+      case .failure(let error)
       where error is AccountTransferScanningIssue || error is AccountTransferScanningContentIssue
         || error is AccountTransferScanningDomainIssue:
         Diagnostics.logger.info("...processing failed, recoverable!")
@@ -270,7 +270,7 @@ extension AccountImport {
           .collectErrorLog(using: Diagnostics.shared)
           .eraseToAnyPublisher()
 
-      case let .failure(error):
+      case .failure(let error):
         Diagnostics.logger.info("...processing failed, aborting!")
         if let configuration: AccountTransferConfiguration = transferState.value.configuration {
           return requestCancelation(
@@ -280,7 +280,7 @@ extension AccountImport {
             causedByError: error
           )
           .handleEvents(receiveCompletion: { completion in
-            guard case let .failure(error) = completion
+            guard case .failure(let error) = completion
             else { unreachable("Cannot complete without an error when processing error") }
             transferState.send(completion: .failure(error))
           })
@@ -318,7 +318,7 @@ extension AccountImport {
             case .success:
               break  // continue process
 
-            case let .failure(error):
+            case .failure(let error):
               Diagnostics.logger.info("...invalid passphrase!")
               throw
                 error
@@ -367,15 +367,13 @@ extension AccountImport {
         .eraseToAnyPublisher()
     }
 
-    /**
-     * Checks if an account already exists within a given collection of accounts.
-     *
-     * This function determines if an account with the same user ID and domain already exists in the collection
-     *
-     * @param {AccountTransferData} accountTransferData - The account transfer data to check for existence.
-     * @param {Accounts} accounts - The collection of accounts to search within.
-     * @returns {boolean}
-     */
+    /// Checks if an account already exists within a given collection of accounts.
+    ///
+    /// This function determines if an account with the same user ID and domain already exists in the collection.
+    ///  - Parameters:
+    ///   - accountTransferData: The account transfer data to check for existence.
+    ///   - accounts: The collection of accounts to search within.
+    ///  - Returns: A boolean value indicating whether the account exists.
     nonisolated func checkIfAccountExist(_ accountTransferData: AccountTransferData) -> Bool {
       accounts
         .storedAccounts()
@@ -387,19 +385,16 @@ extension AccountImport {
         )
     }
 
-    /**
-     * Imports an account by its transfer data if it's not already stored.
-     *
-     * This function initiates an account transfer process with a delay to bypass view presentation issues.
-     *
-     * @param {AccountTransferData} accountTransferData - The account transfer data used to import the account.
-     * @returns {void}
-     */
+    /// Imports an account by its transfer data if it's not already stored.
+    ///
+    /// This function initiates an account transfer process with a delay to bypass view presentation issues.
+    ///
+    /// - Parameter accountTransferData: The account transfer data used to import the account.
     nonisolated func importAccountByPayload(_ accountTransferData: AccountTransferData) {
       // Use guard to check if the account already exists and exit early if it does
       guard !checkIfAccountExist(accountTransferData) else {
-          Diagnostics.debug("Skipping account transfer bypass - duplicate account")
-          return
+        Diagnostics.debug("Skipping account transfer bypass - duplicate account")
+        return
       }
 
       // Since this bypass is not a proper app feature, we have a bit hacky solution
@@ -407,32 +402,32 @@ extension AccountImport {
       // this results in view presentation issues and requires some delay
       // which happened to be around 1 sec minimum at the time of writing this code
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-          transferState.send(
-            .init(
-              configuration: AccountTransferConfiguration(
-                transferID: "N/A",
-                pagesCount: 0,
-                userID: accountTransferData.userID,
-                authenticationToken: "N/A",
-                domain: accountTransferData.domain,
-                hash: "N/A"
-              ),
-              account: AccountTransferAccount(
-                userID: accountTransferData.userID,
-                fingerprint: accountTransferData.fingerprint,
-                armoredKey: accountTransferData.armoredKey
-              ),
-              profile: AccountTransferAccountProfile(
-                username: accountTransferData.username,
-                firstName: accountTransferData.firstName,
-                lastName: accountTransferData.lastName,
-                avatarImageURL: accountTransferData.avatarImageURL ?? ""
-              ),
-              scanningParts: []
-            )
+      DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+        transferState.send(
+          .init(
+            configuration: AccountTransferConfiguration(
+              transferID: "N/A",
+              pagesCount: 0,
+              userID: accountTransferData.userID,
+              authenticationToken: "N/A",
+              domain: accountTransferData.domain,
+              hash: "N/A"
+            ),
+            account: AccountTransferAccount(
+              userID: accountTransferData.userID,
+              fingerprint: accountTransferData.fingerprint,
+              armoredKey: accountTransferData.armoredKey
+            ),
+            profile: AccountTransferAccountProfile(
+              username: accountTransferData.username,
+              firstName: accountTransferData.firstName,
+              lastName: accountTransferData.lastName,
+              avatarImageURL: accountTransferData.avatarImageURL ?? ""
+            ),
+            scanningParts: []
           )
-        }
+        )
+      }
     }
 
     nonisolated func cancelTransfer() {
@@ -484,9 +479,9 @@ private func processQRCodePayload(
   }
 
   switch decodeQRCodePart(rawPayload, expectedPage: expectedPage) {
-  case let .success(part):
+  case .success(let part):
     return updated(state: state, with: part)
-  case let .failure(error):
+  case .failure(let error):
     return .failure(error)
   }
 }
@@ -496,7 +491,7 @@ private func decodeQRCodePart(
   expectedPage: Int
 ) -> Result<AccountTransferScanningPart, Error> {
   switch AccountTransferScanningPart.from(qrCode: rawPayload) {
-  case let .success(part):
+  case .success(let part):
     // Verify if decoded page number is the same as expected
     if part.page == expectedPage {
       /* continue */
@@ -515,7 +510,7 @@ private func decodeQRCodePart(
       )
     }
     return .success(part)
-  case let .failure(error):
+  case .failure(let error):
     return .failure(error)
   }
 }
@@ -530,7 +525,8 @@ private func updated(
   //We support two kind of version regarding QR code version 1 and version 2
   if part.version == "1" {
     return handleVersion1(state: &mutableState, part: part)
-  } else if part.version == "2" {
+  }
+  else if part.version == "2" {
     return handleAccountKitQRCode(state: &mutableState, part: part)
   }
   return .failure(
@@ -539,13 +535,12 @@ private func updated(
   )
 }
 
-/**
- Handles the version 1 account transfer process by processing the given scanning part and updating the state accordingly.
-
- - Parameter state: The current account transfer state. This will be updated with any new information extracted from the scanning part.
- - Parameter part: The scanning part to process.
- - Returns: A `Result` object indicating whether the processing was successful or not. If successful, the updated state will be returned. If not, an error will be returned.
- */
+/// Handles the version 1 account transfer process by processing the given scanning part and updating the state accordingly.
+///
+/// - Parameters:
+///   - state: The current account transfer state. This will be updated with any new information extracted from the scanning part.
+///   - part: The scanning part to process.
+/// - Returns: A `Result` object indicating whether the processing was successful or not. If successful, the updated state will be returned. If not, an error will be returned.
 private func handleVersion1(
   state: inout AccountTransferState,
   part: AccountTransferScanningPart
@@ -554,10 +549,10 @@ private func handleVersion1(
   switch part.page {
   case 0:
     switch AccountTransferConfiguration.from(part) {
-    case let .success(configuration):
+    case .success(let configuration):
       state.configuration = configuration
       return .success(state)
-    case let .failure(error):
+    case .failure(let error):
       return .failure(error)
     }
 
@@ -574,10 +569,10 @@ private func handleVersion1(
         Array(state.scanningParts[1 ..< state.scanningParts.count]),
         verificationHash: hash
       ) {
-      case let .success(account):
+      case .success(let account):
         state.account = account
         return .success(state)
-      case let .failure(error):
+      case .failure(let error):
         return .failure(error)
       }
     }
@@ -587,13 +582,12 @@ private func handleVersion1(
   }
 }
 
-/**
- Handles the version 2 account transfer process by processing the given scanning part and updating the state accordingly.
-
- - Parameter state: The current account transfer state. This will be updated with any new information extracted from the scanning part.
- - Parameter part: The scanning part to process.
- - Returns: A `Result` object indicating whether the processing was successful or not. If successful, the updated state will be returned. If not, an error will be returned.
- */
+/// Handles the version 2 account transfer process by processing the given scanning part and updating the state accordingly.
+///
+/// - Parameters:
+///   - state: The current account transfer state. This will be updated with any new information extracted from the scanning part.
+///   - part: The scanning part to process.
+/// - Returns: A `Result` object indicating whether the processing was successful or not. If successful, the updated state will be returned. If not, an error will be returned.
 private func handleAccountKitQRCode(
   state: inout AccountTransferState,
   part: AccountTransferScanningPart
@@ -607,7 +601,8 @@ private func handleAccountKitQRCode(
   }
   do {
     state.downloadLink = try AccountTransferLink.from(payload).get()
-  } catch {
+  }
+  catch {
     return .failure(
       AccountTransferScanningFailure.error()
         .pushing(.message("Failed to extract download link from payload"))

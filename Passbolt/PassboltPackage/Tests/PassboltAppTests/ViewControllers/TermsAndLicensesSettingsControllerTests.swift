@@ -26,6 +26,7 @@ import TestExtensions
 
 @testable import PassboltApp
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 final class TermsAndLicensesSettingsControllerTests: FeaturesTestCase {
 
   override func commonPrepare() {

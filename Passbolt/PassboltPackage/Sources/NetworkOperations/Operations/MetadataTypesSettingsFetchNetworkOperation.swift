@@ -23,7 +23,8 @@
 
 import Features
 
-public typealias MetadataTypesSettingsFetchNetworkOperation = NetworkOperation<MetadataTypesSettingsFetchNetworkOperationDescription>
+public typealias MetadataTypesSettingsFetchNetworkOperation =
+  NetworkOperation<MetadataTypesSettingsFetchNetworkOperationDescription>
 
 public enum MetadataTypesSettingsFetchNetworkOperationDescription: NetworkOperationDescription {
   public typealias Output = MetadataTypesSettings

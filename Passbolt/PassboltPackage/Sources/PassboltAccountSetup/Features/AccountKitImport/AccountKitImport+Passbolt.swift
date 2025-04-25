@@ -60,7 +60,7 @@ extension AccountKitImport {
         // Extract the PGPMessage from the base64
         Diagnostics.logger.info("Extracting PGPMessage...")
         let pgpMessage = try extractPGPMessage(payload, pgp).get()
-        
+
         // Extract the account kit
         Diagnostics.logger.info("Extracting account kit from PGPMessage...")
         let accountkit = try extractAccountKit(pgpMessage).get()
@@ -123,18 +123,17 @@ private func checkAccountkitFormat(
   //Check if the string is not empty
   guard !payload.isEmpty else {
     throw
-    AccountKitImportFailure.error()
+      AccountKitImportFailure.error()
       .pushing(.message("The account kit is required."))
   }
 
   // Validate the base64 format
   guard Data(base64Encoded: payload) != nil else {
     throw
-    AccountKitImportFailure.error()
+      AccountKitImportFailure.error()
       .pushing(.message("The account kit should be a base 64 format."))
   }
 }
-
 
 /// Extracts a PGP message from the provided base64 encoded payload.
 ///
@@ -182,22 +181,24 @@ private func extractAccountKit(
   //Map PGPMessage to account kit dto
 
   do {
-      let pattern = "\\{.*\\}\\}"
-      let regex = try NSRegularExpression(pattern: pattern, options: [])
-      let range = NSRange(pgpMessage.startIndex..., in: pgpMessage)
-      let matches = regex.matches(in: pgpMessage, options: [], range: range).count
-      if let match = regex.firstMatch(in: pgpMessage, options: [], range: range),
-         let matchRange = Range(match.range, in: pgpMessage) {
-          let accountKitJson = String(pgpMessage[matchRange])
-          let accountKit =
-            try JSONDecoder.default
-            .decode(
-              AccountKitDTO.self,
-              from: Data(accountKitJson.utf8)
-            )
-          return .success(accountKit)
-      }
-  } catch {
+    let pattern = "\\{.*\\}\\}"
+    let regex = try NSRegularExpression(pattern: pattern, options: [])
+    let range = NSRange(pgpMessage.startIndex..., in: pgpMessage)
+    let matches = regex.matches(in: pgpMessage, options: [], range: range).count
+    if let match = regex.firstMatch(in: pgpMessage, options: [], range: range),
+      let matchRange = Range(match.range, in: pgpMessage)
+    {
+      let accountKitJson = String(pgpMessage[matchRange])
+      let accountKit =
+        try JSONDecoder.default
+        .decode(
+          AccountKitDTO.self,
+          from: Data(accountKitJson.utf8)
+        )
+      return .success(accountKit)
+    }
+  }
+  catch {
     return .failure(
       AccountKitImportFailure.error()
         .pushing(.message("Cannot extract account kit from payload"))
@@ -275,11 +276,12 @@ private func checkIfAccountExist(
         stored.userID.rawValue == accountTransferData.userID
           && stored.domain == accountTransferData.domain
       }
-    ) {
+    )
+  {
     Diagnostics.debug("Skipping account transfer bypass - duplicate account")
     throw
       AccountKitAccountAlreadyExist.error()
-        .pushing(.message("The account kit already exist."))
+      .pushing(.message("The account kit already exist."))
   }
 }
 

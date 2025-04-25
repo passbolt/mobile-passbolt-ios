@@ -24,6 +24,7 @@
 import Commons
 import CoreTest
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseForceTry, NeverForceUnwrap
 final class ComputedVariable_Transformed_Tests: TestCase {
 
   func test_value_returnsTransformedSourceValue() async {
@@ -319,6 +320,7 @@ final class ComputedVariable_Transformed_Tests: TestCase {
   }
 }
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseForceTry, NeverForceUnwrap
 final class ComputedVariable_Merged_Tests: TestCase {
 
   func test_value_returnsTransformedSourceValue() async {
@@ -692,6 +694,7 @@ final class ComputedVariable_Merged_Tests: TestCase {
   }
 }
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseForceTry, NeverForceUnwrap
 final class ComputedVariable_Combined_Tests: TestCase {
 
   func test_value_returnsTransformedSourceValue() async {

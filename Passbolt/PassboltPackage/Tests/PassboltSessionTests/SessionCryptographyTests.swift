@@ -263,7 +263,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
       try await testedInstance.encryptAndSignMessage("plainMessage", "publicPGPKey")
     }
   }
-  
+
   func test_decrytSessionKey_succeeds_withValidData() {
     patch(
       \Session.currentAccount,
@@ -279,9 +279,9 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
     )
     patch(
       \PGP.extractSessionKey,
-       with: always(.success("sessionKey"))
+      with: always(.success("sessionKey"))
     )
-  
+
     withTestedInstance { (testedInstance: SessionCryptography) in
       let result = try await testedInstance.decryptSessionKey("encrypted message")
       XCTAssertEqual(result, "sessionKey")

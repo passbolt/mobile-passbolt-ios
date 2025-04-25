@@ -23,7 +23,7 @@
 
 public struct ResourceSharePreparation {
   public var prepareResourceForSharing: @Sendable (Resource.ID) async throws -> Void
-  
+
   public init(prepareResourceForSharing: @Sendable @escaping (Resource.ID) async throws -> Void) {
     self.prepareResourceForSharing = prepareResourceForSharing
   }

@@ -23,6 +23,7 @@
 
 import CommonModels
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverForceUnwrap
 extension User.ID {
 
   public static let mock_1: Self = .init(uuidString: "68A2680B-9800-4086-A9F9-30A4D5D7D94F")!
@@ -36,6 +37,7 @@ extension User.ID {
   public static let mock_frances: Self = .init(uuidString: "4E061203-116F-4C36-9CFC-8020675453F9")!
 }
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 extension UserDTO {
 
   public static let mock_1: Self = .init(
@@ -80,6 +82,7 @@ extension UserDTO {
   )
 }
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 extension UserProfileDTO {
 
   public static let mock_1: Self = .init(
@@ -107,6 +110,7 @@ extension UserProfileDTO {
   )
 }
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 extension PGPKeyDetails {
 
   public static let mock_ada: Self = .init(
@@ -130,6 +134,7 @@ extension PGPKeyDetails {
   )
 }
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 extension AccountKitDTO {
   public static let mock_admin: Self = .init(
     privateKeyArmored: "ArmoredPGPPrivateKey",

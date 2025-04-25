@@ -47,7 +47,8 @@ extension ResourceSharePreparation {
 
       guard
         let metadata: String = resource.meta.stringValue,
-        let (encryptedMetadata, usedKey): (ArmoredPGPMessage, MetadataKeyDTO.ID) = try await metadataKeysService.encryptForSharing(metadata)
+        let (encryptedMetadata, usedKey): (ArmoredPGPMessage, MetadataKeyDTO.ID) =
+          try await metadataKeysService.encryptForSharing(metadata)
       else {
         throw
           InternalInconsistency

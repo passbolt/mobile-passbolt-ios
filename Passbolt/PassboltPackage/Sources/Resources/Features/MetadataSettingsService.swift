@@ -28,7 +28,7 @@ public struct MetadataSettingsService {
   public var fetchTypesSettings: @Sendable () async throws -> Void
   public var keysSettings: @Sendable () -> MetadataKeysSettings
   public var typesSettings: @Sendable () -> MetadataTypesSettings
-  
+
   public init(
     fetchKeysSettings: @Sendable @escaping () async throws -> Void,
     fetchTypesSettings: @Sendable @escaping () async throws -> Void,

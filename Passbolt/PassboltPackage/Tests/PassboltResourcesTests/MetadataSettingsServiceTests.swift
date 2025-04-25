@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-import XCTest
 import TestExtensions
+import XCTest
 
 @testable import PassboltResources
 
@@ -34,7 +34,7 @@ final class MetadataSettingsServiceTests: LoadableFeatureTestCase<MetadataSettin
   ) {
     registry.usePassboltMetadataSettingsService()
   }
-  
+
   override func prepare() throws {
     self.set(
       SessionScope.self,
@@ -44,7 +44,7 @@ final class MetadataSettingsServiceTests: LoadableFeatureTestCase<MetadataSettin
       )
     )
   }
-  
+
   func test_whenSettingsNotFetched_shouldUseDefaults() async throws {
     let testedInstance = try self.testedInstance()
     let keysSettings = testedInstance.keysSettings()
@@ -52,13 +52,13 @@ final class MetadataSettingsServiceTests: LoadableFeatureTestCase<MetadataSettin
     let typesSettings = testedInstance.typesSettings()
     XCTAssertEqual(typesSettings, MetadataTypesSettings.default)
   }
-  
+
   func test_whenKeysSettingsFetched_shouldUseFetchedSettings() async throws {
     patch(
       \MetadataKeysSettingsFetchNetworkOperation.execute,
-       with: always(.init(allowUsageOfPersonalKeys: false, zeroKnowledgeKeyShare: true))
+      with: always(.init(allowUsageOfPersonalKeys: false, zeroKnowledgeKeyShare: true))
     )
-    
+
     let testedInstance = try self.testedInstance()
     try await testedInstance.fetchKeysSettings()
     let keysSettings = testedInstance.keysSettings()
@@ -66,13 +66,13 @@ final class MetadataSettingsServiceTests: LoadableFeatureTestCase<MetadataSettin
     XCTAssertEqual(keysSettings.allowUsageOfPersonalKeys, false)
     XCTAssertEqual(keysSettings.zeroKnowledgeKeyShare, true)
   }
-  
+
   func test_whenTypesSettingsFetched_shouldUseFetchedSettings() async throws {
     patch(
       \MetadataTypesSettingsFetchNetworkOperation.execute,
-       with: always(.init(defaultResourceTypes: .v5))
+      with: always(.init(defaultResourceTypes: .v5))
     )
-    
+
     let testedInstance = try self.testedInstance()
     try await testedInstance.fetchTypesSettings()
     let typesSettings = testedInstance.typesSettings()
@@ -82,5 +82,5 @@ final class MetadataSettingsServiceTests: LoadableFeatureTestCase<MetadataSettin
 }
 
 private struct MockError: Error {
-  
+
 }

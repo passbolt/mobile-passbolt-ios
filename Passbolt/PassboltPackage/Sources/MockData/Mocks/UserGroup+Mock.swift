@@ -23,6 +23,7 @@
 
 import CommonModels
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverForceUnwrap
 extension UserGroup.ID {
 
   public static let mock_1: Self = .init(uuidString: "E4FCF981-0AC1-4D93-8282-C946CCCA28B5")!

@@ -399,7 +399,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     )
     patch(
       \ResourceSharePreparation.prepareResourceForSharing,
-       with: always(Void())
+      with: always(Void())
     )
 
     let feature: ResourceShareForm = try self.testedInstance()

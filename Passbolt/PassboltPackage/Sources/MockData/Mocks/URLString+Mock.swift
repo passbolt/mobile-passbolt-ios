@@ -23,6 +23,7 @@
 
 import CommonModels
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 extension URLString {
 
   public static let mock_passbolt: Self = .init(rawValue: "https://passbolt.com")

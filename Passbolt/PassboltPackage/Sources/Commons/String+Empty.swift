@@ -22,6 +22,6 @@
 //
 
 extension String {
-  
+
   public static var empty: Self { "" }
 }

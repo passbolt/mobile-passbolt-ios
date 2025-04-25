@@ -30,7 +30,7 @@ extension MetadataKeysSettingsFetchNetworkOperation {
       .method(.get)
     )
   }
-  
+
   @Sendable fileprivate static func responseDecoder(
     _ input: Input,
     _ response: HTTPResponse

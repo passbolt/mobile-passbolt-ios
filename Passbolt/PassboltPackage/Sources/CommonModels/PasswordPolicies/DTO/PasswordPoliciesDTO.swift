@@ -50,7 +50,9 @@ extension PasswordPoliciesDTO: Decodable {
   public init(
     from decoder: Decoder
   ) throws {
-    let container: KeyedDecodingContainer<PasswordPoliciesDTO.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+    let container: KeyedDecodingContainer<PasswordPoliciesDTO.CodingKeys> = try decoder.container(
+      keyedBy: CodingKeys.self
+    )
 
     // Safely unwrapping PassboltID, crashing with a descriptive error if it fails
     guard let passboltID = PassboltID(uuidString: UUID().uuidString) else {

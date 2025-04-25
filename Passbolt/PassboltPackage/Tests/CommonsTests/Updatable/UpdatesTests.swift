@@ -24,6 +24,7 @@
 import Commons
 import CoreTest
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 final class UpdatesTests: TestCase {
 
   func test_value_returnsImmediately() {

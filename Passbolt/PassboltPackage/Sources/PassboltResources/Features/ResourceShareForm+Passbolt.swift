@@ -363,7 +363,7 @@ extension ResourceShareForm {
       let updatedPermissions: Array<ResourcePermission> = formState.editedPermissions.filter {
         $0.permissionID != .none
       }
-      
+
       if newPermissions.isEmpty == false {
         try await resourceSharePreparation.prepareResourceForSharing(resourceID)
       }

@@ -22,6 +22,7 @@
 //
 
 import Commons
+
 import struct Foundation.Data
 
 public struct MetadataKeysService {
@@ -44,11 +45,15 @@ public struct MetadataKeysService {
     self.encryptForSharing = encryptForSharing
     self.sendSessionKeys = sendSessionKeys
   }
-  
-  public func decrypt(message: String, resourceId: Resource.ID, withSharedKeyId sharedKeyId: MetadataKeyDTO.ID) async throws -> Data? {
+
+  public func decrypt(
+    message: String,
+    resourceId: Resource.ID,
+    withSharedKeyId sharedKeyId: MetadataKeyDTO.ID
+  ) async throws -> Data? {
     try await decrypt(message, .resource(resourceId), .sharedKey(sharedKeyId))
   }
-  
+
   public enum EncryptionType {
     case sharedKey(MetadataKeyDTO.ID)
     case userKey
@@ -81,17 +86,17 @@ extension MetadataKeysService {
       self.model = model
       self.id = id
     }
-    
+
     public static func resource(_ resourceId: Resource.ID) -> Self {
       .init(model: .resource, id: resourceId.rawValue)
     }
   }
-  
+
   public enum ForeignModel: String, Codable, Sendable {
 
     case resource = "Resource"
     case unknown
-    
+
     public init(from decoder: Decoder) throws {
       let container = try decoder.singleValueContainer()
       let rawValue = try container.decode(String.self)

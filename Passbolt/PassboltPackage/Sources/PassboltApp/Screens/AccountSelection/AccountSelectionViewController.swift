@@ -26,11 +26,11 @@ import UICommons
 import UIComponents
 
 @MainActor
-internal final class AccountSelectionViewController: PlainViewController, UIComponent{
-  
+internal final class AccountSelectionViewController: PlainViewController, UIComponent {
+
   internal typealias ContentView = AccountSelectionView
   internal typealias Controller = AccountSelectionController
-  
+
   internal static func instance(
     using controller: Controller,
     with components: UIComponentFactory,
@@ -42,14 +42,14 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
       cancellables: cancellables
     )
   }
-  
+
   internal private(set) lazy var contentView: AccountSelectionView = .init(
     shouldHideTitle: controller.shouldHideTitle()
   )
   internal let components: UIComponentFactory
-  
+
   private let controller: Controller
-  
+
   internal init(
     using controller: Controller,
     with components: UIComponentFactory,
@@ -62,9 +62,14 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
         cancellables: cancellables
       )
     // Listen to NotificationCenter for the help menu
-    NotificationCenter.default.addObserver(self, selector: #selector(handleHelpMenuAccountkitAction), name: .helpMenuActionAccountKitNotification, object: nil)
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(handleHelpMenuAccountkitAction),
+      name: .helpMenuActionAccountKitNotification,
+      object: nil
+    )
   }
-  
+
   internal func setupView() {
     mut(navigationItem) {
       .rightBarButtonItem(
@@ -81,10 +86,10 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
           .instantiate()
       )
     }
-    
+
     setupSubscriptions()
   }
-  
+
   /**
    * Handles the action triggered by the Help menu for AccountKit-related notifications.
    *
@@ -120,11 +125,11 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
       await self.push(
         AccountKitTransferSuccessViewController.self,
         in: accountTransferData,
-        animated: true)
+        animated: true
+      )
     }
   }
-  
-  
+
   private func setupSubscriptions() {
     controller
       .accountsPublisher()
@@ -148,7 +153,7 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
         }
       )
       .store(in: cancellables)
-    
+
     controller
       .listModePublisher()
       .receive(on: RunLoop.main)
@@ -156,7 +161,7 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
         self?.contentView.update(mode: mode)
       }
       .store(in: cancellables)
-    
+
     contentView
       .accountTapPublisher
       .sink { [weak self] item in
@@ -175,30 +180,30 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
           }
       }
       .store(in: cancellables)
-    
+
     contentView
       .removeTapPublisher
       .sink { [weak self] _ in
         self?.controller.toggleMode()
       }
       .store(in: cancellables)
-    
+
     contentView
       .doneTapPublisher
       .sink { [weak self] _ in
         self?.controller.toggleMode()
       }
       .store(in: cancellables)
-    
+
     contentView
       .removeAccountPublisher
       .sink { [weak self] item in
         let removeAccount: @MainActor () -> AnyPublisher<Void, Never> = { [weak self] in
           guard let self = self
           else { return Just(Void()).eraseToAnyPublisher() }
-          
+
           self.controller.toggleMode()
-          
+
           return self.controller
             .removeAccount(item.account)
             .handleValues {
@@ -210,7 +215,7 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
             .replaceError(with: Void())
             .eraseToAnyPublisher()
         }
-        
+
         self?.cancellables
           .executeOnMainActor { [weak self] in
             await self?
@@ -221,14 +226,14 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
           }
       }
       .store(in: cancellables)
-    
+
     contentView
       .addAccountTapPublisher
       .sink { [weak self] in
         self?.controller.addAccount()
       }
       .store(in: cancellables)
-    
+
     controller
       .addAccountPresentationPublisher()
       .sink { [weak self] accountTransferInProgress in

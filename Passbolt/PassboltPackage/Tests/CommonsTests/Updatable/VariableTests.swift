@@ -24,6 +24,7 @@
 import Commons
 import CoreTest
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseForceTry, NeverForceUnwrap
 final class VariableTests: TestCase {
 
   func test_value_returnsImmediately() {

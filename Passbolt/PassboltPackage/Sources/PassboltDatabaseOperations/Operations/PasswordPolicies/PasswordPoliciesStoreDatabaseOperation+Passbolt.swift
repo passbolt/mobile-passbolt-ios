@@ -112,7 +112,6 @@ extension PasswordPoliciesStoreDatabaseOperation {
       )
     )
 
-
     // Insert or update passphraseGeneratorSettings
     try connection.execute(
       .statement(

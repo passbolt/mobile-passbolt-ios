@@ -22,6 +22,6 @@
 //
 
 public enum PasswordGeneratorType: String, CodingKey {
-    case password = "password"
-    case passphrase = "passphrase"
+  case password = "password"
+  case passphrase = "passphrase"
 }

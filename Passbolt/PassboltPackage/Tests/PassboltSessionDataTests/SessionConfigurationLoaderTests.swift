@@ -26,6 +26,7 @@ import TestExtensions
 
 @testable import PassboltSessionData
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 final class SessionConfigurationLoaderTests: FeaturesTestCase {
 
   override func commonPrepare() {
@@ -166,7 +167,7 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
         ),
         share: .init(
           showMembersList: true
-        ), 
+        ),
         passwordPolicies: .init(
           passwordPoliciesEnabled: true,
           passwordPoliciesUpdateEnabled: true
@@ -237,7 +238,7 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
         ),
         share: .init(
           showMembersList: true
-        ), 
+        ),
         passwordPolicies: .init(
           passwordPoliciesEnabled: true,
           passwordPoliciesUpdateEnabled: true
@@ -363,7 +364,7 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
         ),
         share: .init(
           showMembersList: false
-        ), 
+        ),
         passwordPolicies: .init(
           passwordPoliciesEnabled: true,
           passwordPoliciesUpdateEnabled: true

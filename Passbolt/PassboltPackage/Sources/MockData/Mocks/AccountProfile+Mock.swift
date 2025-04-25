@@ -23,6 +23,7 @@
 
 import Accounts
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 extension AccountProfile {
 
   public static let mock_ada: Self = .init(
@@ -44,6 +45,7 @@ extension AccountProfile {
   )
 }
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 extension AccountWithProfile {
 
   public static let mock_ada: Self = .init(

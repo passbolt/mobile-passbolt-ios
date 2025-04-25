@@ -25,10 +25,10 @@ import SharedUIComponents
 import UIComponents
 
 internal final class WelcomeScreenViewController: PlainViewController, UIComponent {
-  
+
   internal typealias ContentView = WelcomeScreenView
   internal typealias Controller = WelcomeScreenController
-  
+
   internal static func instance(
     using controller: Controller,
     with components: UIComponentFactory,
@@ -40,12 +40,12 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
       cancellables: cancellables
     )
   }
-  
+
   internal private(set) lazy var contentView: WelcomeScreenView = .init()
   internal let components: UIComponentFactory
-  
+
   private let controller: WelcomeScreenController
-  
+
   internal init(
     using controller: Controller,
     with components: UIComponentFactory,
@@ -58,9 +58,14 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
         cancellables: cancellables
       )
     // Listen to NotificationCenter for the help menu
-    NotificationCenter.default.addObserver(self, selector: #selector(handleHelpMenuAccountkitAction), name: .helpMenuActionAccountKitNotification, object: nil)
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(handleHelpMenuAccountkitAction),
+      name: .helpMenuActionAccountKitNotification,
+      object: nil
+    )
   }
-  
+
   internal func setupView() {
     mut(navigationItem) {
       .rightBarButtonItem(
@@ -77,10 +82,10 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
           .instantiate()
       )
     }
-    
+
     setupSubscriptions()
   }
-  
+
   /**
    * Handles the action triggered by the Help menu for AccountKit-related notifications.
    *
@@ -116,10 +121,11 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
       await self.push(
         AccountKitTransferSuccessViewController.self,
         in: accountTransferData,
-        animated: true)
+        animated: true
+      )
     }
   }
-  
+
   private func setupSubscriptions() {
     contentView.tapAccountPublisher
       .receive(on: RunLoop.main)
@@ -127,14 +133,14 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
         self?.controller.pushTransferInfo()
       }
       .store(in: cancellables)
-    
+
     contentView.tapNoAccountPublisher
       .receive(on: RunLoop.main)
       .sink { [weak self] in
         self?.controller.presentNoAccountAlert()
       }
       .store(in: cancellables)
-    
+
     controller.noAccountAlertPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] presented in
@@ -153,7 +159,7 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
           }
       }
       .store(in: cancellables)
-    
+
     controller.pushTransferInfoPublisher()
       .sink { [weak self] in
         self?.cancellables

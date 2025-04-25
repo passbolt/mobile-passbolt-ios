@@ -21,6 +21,6 @@
 // @since         v1.0
 //
 
-@_exported import UIComponents
-@_exported import UICommons
 @_exported import FeatureScopes
+@_exported import UICommons
+@_exported import UIComponents

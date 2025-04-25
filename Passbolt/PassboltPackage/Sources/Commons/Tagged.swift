@@ -338,7 +338,7 @@ where RawValue: Sendable {}
 
 extension Tagged
 where RawValue == String {
-  
+
   public static var empty: Self {
     .init(rawValue: .empty)
   }

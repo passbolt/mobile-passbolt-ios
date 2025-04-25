@@ -27,6 +27,7 @@ import TestExtensions
 @testable import Display
 @testable import PassboltApp
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 final class ResourceDeleteAlertControllerTests: FeaturesTestCase {
 
   func test_deleteAction_failsWithMessage_whenDeleteFails() async throws {

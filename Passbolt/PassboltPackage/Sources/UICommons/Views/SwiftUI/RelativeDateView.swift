@@ -56,15 +56,14 @@ public struct ResourceRelativeDateView: View {
 
   public var body: some View {
     HStack(spacing: 4.0) {
-      Text(displayable: viewModel.isPastDate ?
-           viewModel.pastDatePrefix ?? "" : viewModel.futureDatePrefix ?? "")
-      .text(
-        font: .inter(
-          ofSize: 12,
-          weight: .regular
-        ),
-        color: Color.passboltSecondaryText
-      )
+      Text(displayable: viewModel.isPastDate ? viewModel.pastDatePrefix ?? "" : viewModel.futureDatePrefix ?? "")
+        .text(
+          font: .inter(
+            ofSize: 12,
+            weight: .regular
+          ),
+          color: Color.passboltSecondaryText
+        )
       Text("\(viewModel.intervalNumber)")
         .multilineTextAlignment(.leading)
         .lineLimit(1)
@@ -100,15 +99,15 @@ public struct ResourceRelativeDateView: View {
 internal struct ResourceRelativeDateView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    ResourceRelativeDateView(viewModel: ResourceRelativeDateViewModel(
-                                relativeDate: "days ago",
-                                intervalNumber: "4",
-                                pastDatePrefix: "Expired",
-                                futureDatePrefix: nil,
-                                isPastDate: true
-                              )
+    ResourceRelativeDateView(
+      viewModel: ResourceRelativeDateViewModel(
+        relativeDate: "days ago",
+        intervalNumber: "4",
+        pastDatePrefix: "Expired",
+        futureDatePrefix: nil,
+        isPastDate: true
+      )
     )
   }
 }
 #endif
-
