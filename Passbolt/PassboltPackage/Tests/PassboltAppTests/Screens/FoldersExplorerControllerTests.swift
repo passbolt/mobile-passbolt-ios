@@ -33,7 +33,7 @@ import XCTest
 
 @testable import PassboltApp
 
-// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionalss
 @MainActor
 final class FoldersExplorerControllerTests: MainActorTestCase {
 
@@ -99,9 +99,9 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
     let controller: FoldersExplorerController = try testController(
       context: nil
     )
-
-    await controller.refreshIfNeeded()
-
+    Task.detached {
+      await controller.refreshIfNeeded()
+    }
     let message: SnackBarMessageEvent.Payload? = try await messagesSubscription.nextEvent()
 
     XCTAssertNotNil(message)

@@ -31,14 +31,11 @@ public final class OTPEditFormViewController: ViewController {
   public struct Context {
 
     internal var totpPath: ResourceType.FieldPath
-    internal var onFormDiscarded: @Sendable () async throws -> Void
 
     public init(
-      totpPath: ResourceType.FieldPath,
-      onFormDiscarded: @escaping @Sendable () async throws -> Void = {}
+      totpPath: ResourceType.FieldPath
     ) {
       self.totpPath = totpPath
-      self.onFormDiscarded = onFormDiscarded
     }
   }
 
@@ -49,6 +46,7 @@ public final class OTPEditFormViewController: ViewController {
     internal var nameField: Validated<String>
     internal var uriField: Validated<String>
     internal var secretField: Validated<String>
+    internal var initialValues: Dictionary<Resource.FieldPath, JSON> = [:]
   }
 
   public var viewState: ViewStateSource<ViewState>
@@ -134,6 +132,7 @@ public final class OTPEditFormViewController: ViewController {
             else {
               viewState.nameField =
                 .valid(resource[keyPath: \.meta.name].stringValue ?? "")
+              viewState.initialValues[\.meta.name] = resource[keyPath: \.meta.name]
             }
             if localState.editedFields.contains(\.meta.uris) {
               viewState.uriField =
@@ -144,6 +143,7 @@ public final class OTPEditFormViewController: ViewController {
             else {
               viewState.uriField =
                 .valid(resource[keyPath: \.meta.uris].arrayValue?.first?.stringValue ?? "")
+              viewState.initialValues[\.meta.uris] = resource[keyPath: \.meta.uris].arrayValue?.first
             }
 
             if localState.editedFields.contains(context.totpPath.appending(path: \.secret_key)) {
@@ -153,8 +153,10 @@ public final class OTPEditFormViewController: ViewController {
                 .map { $0.stringValue ?? "" }
             }
             else {
+              let secretPath: Resource.FieldPath = context.totpPath.appending(path: \.secret_key)
               viewState.secretField =
-                .valid(resource[keyPath: context.totpPath.appending(path: \.secret_key)].stringValue ?? "")
+                .valid(resource[keyPath: secretPath].stringValue ?? "")
+              viewState.initialValues[secretPath] = resource[keyPath: secretPath]
             }
           }
         }
@@ -301,7 +303,42 @@ extension OTPEditFormViewController {
   internal func discardForm() async {
     await consumingErrors {
       try await navigationToSelf.revert()
-      try await context.onFormDiscarded()
+      for (field, value) in await viewState.current.initialValues {
+        self.resourceEditForm.update(field, to: value)
+      }
+      let resource: Resource = try await self.resourceEditForm.state.value
+      let editingContext: ResourceEditingContext = try features.context(of: ResourceEditScope.self)
+
+      if resource.secret.totpSecretValue == nil,
+        let newResourceTypeSlug: ResourceSpecification.Slug = resource.type.detachedOTPSlug,
+        let newResourceType = editingContext.availableTypes.first(where: { $0.specification.slug == newResourceTypeSlug })
+      {
+        try self.resourceEditForm.updateType(newResourceType)
+      }
+    }
+  }
+
+  internal func removeTOTP() async {
+    await consumingErrors {
+      let editingContext: ResourceEditingContext = try features.context(of: ResourceEditScope.self)
+      let currentState: Resource = try await self.resourceEditForm.state.value
+      if let newResourceTypeSlug: ResourceSpecification.Slug = currentState.type.slugByRemovingNote(),
+        currentState.secret.description == .null,
+        let newResourceType: ResourceType = editingContext.availableTypes.first(
+          where: {
+            $0.specification.slug == newResourceTypeSlug
+          })
+      {
+        try self.resourceEditForm.updateType(newResourceType)
+      }
+
+      if let path: Resource.FieldPath = currentState.firstTOTPPath {
+        self.resourceEditForm.update(
+          path,
+          to: .null
+        )
+      }
+      try await navigationToSelf.revert()
     }
   }
 }

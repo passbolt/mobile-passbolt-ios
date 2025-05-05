@@ -171,7 +171,7 @@ internal struct ResourceDetailsView: ControlledView {
           .padding(.bottom, 16)
         Group {
           ForEach(section.fields) { (fieldModel: ResourceDetailsFieldViewModel) in
-            rowView(for: fieldModel, hideTitles: section.fields.count == 1)
+            rowView(for: fieldModel, hideTitles: (section.fields.count + section.virtualFields.count) == 1)
           }
           ForEach(section.virtualFields) { (virtualField: ResourceDetailsSectionViewModel.VirtualField) in
             virtualFieldView(for: virtualField)
@@ -194,7 +194,7 @@ internal struct ResourceDetailsView: ControlledView {
           contentAction: self.controller.showPermissionsDetails,
           content: {
             ResourceFieldView(
-              name: "resource.detail.section.permissions",
+              name: nil,
               content: {
                 OverlappingAvatarStackView(permissions)
                   .frame(height: 40)

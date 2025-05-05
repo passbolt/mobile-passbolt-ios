@@ -92,8 +92,9 @@ final class TagsExplorerControllerTests: MainActorTestCase {
       context: nil
     )
 
-    await controller.refreshIfNeeded()
-
+    Task.detached {
+      await controller.refreshIfNeeded()
+    }
     let message: SnackBarMessageEvent.Payload? = try await messagesSubscription.nextEvent()
 
     XCTAssertNotNil(message)

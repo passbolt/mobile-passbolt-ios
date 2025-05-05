@@ -111,7 +111,7 @@ extension ResourceSpecification {
             minLength: .none,
             maxLength: 255
           ),
-          required: true,
+          required: false,
           encrypted: false
         ),
         .init(
@@ -168,7 +168,7 @@ extension ResourceSpecification {
             minLength: .none,
             maxLength: 255
           ),
-          required: true,
+          required: false,
           encrypted: false
         ),
         .init(
@@ -207,7 +207,7 @@ extension ResourceSpecification {
             minLength: .none,
             maxLength: 4096
           ),
-          required: true,
+          required: false,
           encrypted: true
         ),
         .init(
@@ -235,7 +235,7 @@ extension ResourceSpecification {
             minLength: .none,
             maxLength: 255
           ),
-          required: true,
+          required: false,
           encrypted: false
         ),
         .init(
@@ -279,7 +279,7 @@ extension ResourceSpecification {
             minLength: .none,
             maxLength: 255
           ),
-          required: true,
+          required: false,
           encrypted: false
         ),
         .init(
@@ -318,7 +318,7 @@ extension ResourceSpecification {
             minLength: .none,
             maxLength: 4096
           ),
-          required: true,
+          required: false,
           encrypted: true
         ),
         .init(

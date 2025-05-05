@@ -163,8 +163,24 @@ public struct ResourceEditView: ControlledView {
             .cornerRadius(4)
           }
         }
+        CommonListSection {
+          VStack(alignment: .leading, spacing: 16) {
+            Text(displayable: "resource.edit.section.metadata.title")
+              .font(.inter(ofSize: 16, weight: .bold))
+              .padding(.vertical, 20)
+            VStack(spacing: 16) {
+              withEach(\.mainForm.metadataOptions) { (additionalOption: MainFormViewModel.MetadataOption) in
+                self.additionalActionView(for: additionalOption)
+              }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .backgroundColor(.passboltBackgroundGray)
+            .cornerRadius(4)
+          }
+        }
+        .padding(.bottom, 120)
       }
-      .padding(.bottom, 120)
     }
     .overlay(alignment: .bottom) {
       VStack {
@@ -185,7 +201,7 @@ public struct ResourceEditView: ControlledView {
     switch additionalOption {
     case .addNote:
       CommonListRow(
-        contentAction: self.controller.addNote,
+        contentAction: self.controller.editNote,
         content: {
           ResourceFieldView(
             name: nil,
@@ -229,6 +245,31 @@ public struct ResourceEditView: ControlledView {
               HStack(spacing: 16) {
                 Image(named: .otp)
                 Text(displayable: "resource.create.advanced.add.otp")
+                  .font(.inter(ofSize: 14, weight: .semibold))
+                  .foregroundColor(.passboltPrimaryText)
+              }
+            }
+          )
+        },
+        accessory: DisclosureIndicatorImage.init
+      )
+    }
+  }
+
+  @MainActor @ViewBuilder private func additionalActionView(
+    for metadataOption: MainFormViewModel.MetadataOption
+  ) -> some View {
+    switch metadataOption {
+    case .editDescription:
+      CommonListRow(
+        contentAction: self.controller.editMetadataDescription,
+        content: {
+          ResourceFieldView(
+            name: nil,
+            content: {
+              HStack(spacing: 16) {
+                Image(named: .description)
+                Text(displayable: metadataOption.title)
                   .font(.inter(ofSize: 14, weight: .semibold))
                   .foregroundColor(.passboltPrimaryText)
               }

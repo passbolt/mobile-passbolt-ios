@@ -24,14 +24,14 @@
 import Display
 import UICommons
 
-internal struct ResourceNoteEditView: ControlledView {
+internal struct ResourceTextEditView: ControlledView {
 
-  internal let controller: ResourceNoteEditViewController
+  internal let controller: ResourceTextEditViewController
 
   @FocusState private var focusState
 
   internal init(
-    controller: ResourceNoteEditViewController
+    controller: ResourceTextEditViewController
   ) {
     self.controller = controller
   }
@@ -71,59 +71,67 @@ internal struct ResourceNoteEditView: ControlledView {
     CommonList {
       CommonListSection {
         VStack(alignment: .leading, spacing: 8) {
-          Text(displayable: "resource.edit.field.add.note")
-            .font(.inter(ofSize: 16, weight: .bold))
-            .padding(.vertical, 20)
-            .foregroundColor(.primary)
+          with(\.title) { title in
+            Text(displayable: title)
+              .font(.inter(ofSize: 16, weight: .bold))
+              .padding(.vertical, 20)
+              .foregroundColor(.primary)
+          }
           VStack(alignment: .leading, spacing: 0) {
-            FormLongTextFieldView(
-              title: "resource.edit.note.content.title",
-              prompt: nil,
-              mandatory: true,
-              encrypted: .none,
-              state: self.validatedBinding(
-                to: \.note,
-                updating: { (newValue: String) in
-                  withAnimation {
-                    self.controller.update(newValue)
-                  }
-                }
-              ),
-              textFieldMinHeight: 100
-            )
-            .focused($focusState)
-            .toolbar {
-              ToolbarItemGroup(placement: .keyboard) {
-                HStack {
-                  Spacer()
-                  Button(
-                    displayable: "generic.done",
-                    action: {
-                      self.focusState.toggle()
+            with(\.fieldName) { fieldName in
+              FormLongTextFieldView(
+                title: fieldName,
+                prompt: nil,
+                mandatory: false,
+                encrypted: .none,
+                state: self.validatedBinding(
+                  to: \.text,
+                  updating: { (newValue: String) in
+                    withAnimation {
+                      self.controller.update(newValue)
                     }
-                  )
-                  .foregroundStyle(.blue)
+                  }
+                ),
+                textFieldMinHeight: 100
+              )
+              .focused($focusState)
+              .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                  HStack {
+                    Spacer()
+                    Button(
+                      displayable: "generic.done",
+                      action: {
+                        self.focusState.toggle()
+                      }
+                    )
+                    .foregroundStyle(.blue)
+                  }
                 }
               }
             }
-
-            Text(displayable: "resource.edit.note.content.disclaimer")
-              .font(.inter(ofSize: 12, weight: .regular))
-              .foregroundColor(.primary)
-              .padding(.top, 8)
+            with(\.description) { description in
+              Text(displayable: description)
+                .font(.inter(ofSize: 12, weight: .regular))
+                .foregroundColor(.primary)
+                .padding(.top, 8)
+            }
           }
           .padding(.horizontal, 16)
           .padding(.vertical, 8)
           .backgroundColor(.passboltBackgroundGray)
           .cornerRadius(4)
-
-          SecondaryButton(
-            title: "resource.edit.note.remove.button.title",
-            iconName: .trash,
-            action: {
-              await self.controller.removeNote()
+          when(\.showAction) {
+            with(\.action) { action in
+              SecondaryButton(
+                title: action?.title ?? "",
+                iconName: action?.icon,
+                action: {
+                  await self.controller.executeAction()
+                }
+              )
             }
-          )
+          }
         }
       }
     }

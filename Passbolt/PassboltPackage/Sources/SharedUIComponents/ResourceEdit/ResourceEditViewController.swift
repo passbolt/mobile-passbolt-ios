@@ -89,8 +89,8 @@ public final class ResourceEditViewController: ViewController {
   private let navigationToSelf: NavigationToResourceEdit
   private let navigationToOTPEdit: NavigationToOTPEditForm
   private let navigationToOTPAdvanced: NavigationToOTPEditAdvancedForm
-  private let navigationToNoteEdit: NavigationToResourceNoteEdit
   private let navigationToPasswordEdit: NavigationToResourcePasswordEdit
+  private let navigationToTextEdit: NavigationToResourceTextEdit
 
   private let randomGenerator: RandomStringGenerator
 
@@ -122,15 +122,15 @@ public final class ResourceEditViewController: ViewController {
       self.navigationToSelf = .placeholder
       self.navigationToOTPEdit = .placeholder
       self.navigationToOTPAdvanced = .placeholder
-      self.navigationToNoteEdit = .placeholder
       self.navigationToPasswordEdit = .placeholder
+      self.navigationToTextEdit = .placeholder
     }
     else {
       self.navigationToSelf = try features.instance()
       self.navigationToOTPEdit = try features.instance()
       self.navigationToOTPAdvanced = try features.instance()
-      self.navigationToNoteEdit = try features.instance()
       self.navigationToPasswordEdit = try features.instance()
+      self.navigationToTextEdit = try features.instance()
     }
 
     self.resourceEditForm = try features.instance()
@@ -275,68 +275,28 @@ public final class ResourceEditViewController: ViewController {
     await consumingErrors {
       let editingContext = try features.context(of: ResourceEditScope.self)
 
+      let currentState = try await self.resourceEditForm.state.value
       guard
-        let attachedOTPSlug: ResourceSpecification.Slug = editingContext.editedResource.type.attachedOTPSlug,
+        let attachedOTPSlug: ResourceSpecification.Slug = currentState.attachedOTPSlug,
         let attachedOTPType: ResourceType = editingContext.availableTypes.first(where: {
           $0.specification.slug == attachedOTPSlug
         }),
         let totpPath: ResourceType.FieldPath = attachedOTPType.fieldSpecification(for: \.firstTOTP)?.path
       else {
         let displayableString: DisplayableString =
-        editingContext.editedResource.isLocal
+          editingContext.editedResource.isLocal
           ? "resource.create.invalid.configuration"
           : "resource.edit.invalid.configuration"
         return SnackBarMessageEvent.send(.error(displayableString))
       }
-      var onFormDiscarded: @Sendable () async throws -> Void = {}
-      if attachedOTPSlug != editingContext.editedResource.type.specification.slug {
-        onFormDiscarded = { [weak self] in
-          // when form is discarded, restore orignial type
-          try await self?.resourceEditForm.updateType(editingContext.editedResource.type)
-        }
+
+      if attachedOTPSlug != currentState.type.specification.slug {
         try self.resourceEditForm.updateType(attachedOTPType)
       }
 
       await self.navigationToOTPEdit.performCatching(
         context: .init(
-          totpPath: totpPath,
-          onFormDiscarded: onFormDiscarded
-        )
-      )
-    }
-  }
-
-  @MainActor internal func addNote() async {
-    await consumingErrors {
-      let editingContext = try features.context(of: ResourceEditScope.self)
-      var currentTypeSpecification: ResourceSpecification = editingContext.editedResource.type.specification
-      let currentTypeSpecificationSlug: ResourceSpecification.Slug = currentTypeSpecification.slug
-      let newResourceSlug = editingContext.editedResource.type.slugByAttachingNote()
-
-      var onFormDiscarded: @Sendable () async throws -> Void = {}
-      if newResourceSlug != currentTypeSpecificationSlug {
-        guard
-          let newType: ResourceType = editingContext.availableTypes.first(
-            where: {
-              $0.specification.slug == newResourceSlug
-            })
-        else {
-          let displayableString: DisplayableString =
-          editingContext.editedResource.isLocal
-            ? "resource.create.invalid.configuration"
-            : "resource.edit.invalid.configuration"
-          return SnackBarMessageEvent.send(.error(displayableString))
-        }
-        onFormDiscarded = { [resourceEditForm] in
-          try resourceEditForm.updateType(editingContext.editedResource.type)
-        }
-        try self.resourceEditForm.updateType(newType)
-        currentTypeSpecification = newType.specification
-      }
-
-      await self.navigationToNoteEdit.performCatching(
-        context: .init(
-          onFormDiscarded: onFormDiscarded
+          totpPath: totpPath
         )
       )
     }
@@ -355,7 +315,7 @@ public final class ResourceEditViewController: ViewController {
           })
       else {
         let displayableString: DisplayableString =
-        editingContext.editedResource.isLocal
+          editingContext.editedResource.isLocal
           ? "resource.create.invalid.configuration"
           : "resource.edit.invalid.configuration"
         return SnackBarMessageEvent.send(.error(displayableString))
@@ -372,6 +332,79 @@ public final class ResourceEditViewController: ViewController {
         )
       )
     }
+  }
+
+  @MainActor internal func editMetadataDescription() async {
+    await consumingErrors {
+      await self.navigationToTextEdit.performCatching(
+        context: .init(
+          textPath: \.meta.description,
+          title: "resource.edit.section.metadata.description",
+          fieldName: "resource.edit.section.metadata.description.name",
+          description: "resource.edit.section.metadata.description.description",
+          action: nil
+        )
+      )
+    }
+  }
+
+  @MainActor internal func editNote() async {
+    await consumingErrors {
+      let currentState = try await self.resourceEditForm.state.value
+      let editingContext = try features.context(of: ResourceEditScope.self)
+      let newResourceSlug = editingContext.editedResource.type.slugByAttachingNote()
+
+      if newResourceSlug != currentState.type.specification.slug {
+        guard
+          let newType: ResourceType = editingContext.availableTypes.first(
+            where: {
+              $0.specification.slug == newResourceSlug
+            })
+        else {
+          let displayableString: DisplayableString =
+            editingContext.editedResource.isLocal
+            ? "resource.create.invalid.configuration"
+            : "resource.edit.invalid.configuration"
+          return SnackBarMessageEvent.send(.error(displayableString))
+        }
+        try self.resourceEditForm.updateType(newType)
+      }
+
+      await self.navigationToTextEdit.performCatching(
+        context: .init(
+          textPath: \.secret.description,
+          title: "resource.edit.field.add.note",
+          fieldName: "resource.edit.note.content.title",
+          description: "resource.edit.note.content.disclaimer",
+          action: .init(
+            title: "resource.edit.note.remove.button.title",
+            icon: .trash,
+            action: removeNote
+          )
+        )
+      )
+    }
+  }
+
+  private func removeNote() async throws {
+    let editingContext: ResourceEditingContext = try features.context(of: ResourceEditScope.self)
+    let resource: Resource = try await self.resourceEditForm.state.value
+
+    if let newResourceTypeSlug = resource.type.slugByRemovingNote(),
+      resource.firstTOTP.secret_key.stringValue?.isEmpty == true,
+      let newResourceType = editingContext.availableTypes.first(
+        where: {
+          $0.specification.slug == newResourceTypeSlug
+        })
+    {
+      try self.resourceEditForm.updateType(newResourceType)
+    }
+
+    self.resourceEditForm.update(
+      \.secret.description,
+      to: .null
+    )
+    try await navigationToTextEdit.revert()
   }
 
   @MainActor internal func navigateToOTPAdvancedSettings() async {
@@ -460,6 +493,9 @@ internal struct MainFormViewModel: Equatable {
   internal var title: DisplayableString
   internal var fields: IdentifiedArray<ResourceEditFieldViewModel>
   internal var additionalOptions: Array<AdditionalOption>
+  internal var metadataOptions: Array<MetadataOption> {
+    [.editDescription]
+  }
 
   fileprivate init(
     title: DisplayableString,
@@ -471,8 +507,8 @@ internal struct MainFormViewModel: Equatable {
     self.additionalOptions = additionalOptions
   }
 
-  internal enum AdditionalOption: String, Identifiable, Equatable {
-    internal var id: String { rawValue }
+  internal enum AdditionalOption: Identifiable, Equatable {
+    internal var id: Self { self }
 
     case addTOTP
     case addNote
@@ -486,6 +522,19 @@ internal struct MainFormViewModel: Equatable {
         return "resource.edit.field.add.note"
       case .addPassword:
         return "resource.edit.field.add.password"
+      }
+    }
+  }
+
+  internal enum MetadataOption: Identifiable, Equatable {
+    internal var id: Self { self }
+
+    case editDescription
+
+    internal var title: DisplayableString {
+      switch self {
+      case .editDescription:
+        return "resource.edit.section.metadata.description"
       }
     }
   }

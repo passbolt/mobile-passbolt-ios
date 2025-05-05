@@ -74,7 +74,7 @@
 "resource.detail.field.passphrase" = "Password";
 "resource.detail.field.uri" = "Website URL";
 "resource.detail.field.description" = "Description";
-"resource.show.field.uri.placeholder" = "No URL";
+"resource.show.field.uri.placeholder" = "No URI";
 "resource.show.field.username.placeholder" = "No username";
 "resource.show.field.password.placeholder" = "No password";
 "resource.show.field.description.placeholder" = "No description";
@@ -130,7 +130,7 @@
 "resource.edit.title" = "Edit resource";
 "resource.password.edit.title" = "Edit password";
 "resource.edit.field.name.label" = "Name";
-"resource.edit.field.uri.label" = "Main URL";
+"resource.edit.field.uri.label" = "Main URI";
 "resource.edit.field.username.label" = "Username";
 "resource.edit.field.password.label" = "Password";
 "resource.edit.field.description.label" = "Description";
@@ -139,7 +139,7 @@
 "resource.edit.field.add.note" = "Note";
 "resource.edit.field.add.password" = "Password";
 "resource.edit.field.name.placeholder" = "Enter a name";
-"resource.edit.field.uri.placeholder" = "Enter URL";
+"resource.edit.field.uri.placeholder" = "Enter URI";
 "resource.edit.field.username.placeholder" = "Enter username";
 "resource.edit.field.password.placeholder" = "Enter password";
 "resource.edit.field.description.placeholder" = "Enter description";
@@ -154,10 +154,15 @@
 "resource.edit.section.totp.title" = "TOTP";
 "resource.edit.section.note.title" = "Note";
 "resource.edit.section.metadata.title" = "Metadata";
+"resource.edit.totp.remove.button.title" = "Remove TOTP";
 
 "resource.create.advanced.button" = "View advanced settings";
 "resource.create.additional.secrets.title" = "Additional secrets";
 "resource.create.advanced.add.otp" = "TOTP";
+
+"resource.edit.section.metadata.description" = "Description";
+"resource.edit.section.metadata.description.name" = "Metadata description";
+"resource.edit.section.metadata.description.description" = "If you want the description to be part of the secret, use the note instead.";
 
 "resource.create.menu.title" = "Create a resource";
 "resource.create.menu.password" = "Password";

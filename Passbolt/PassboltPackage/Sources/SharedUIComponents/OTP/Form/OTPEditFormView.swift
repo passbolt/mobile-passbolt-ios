@@ -57,6 +57,14 @@ internal struct OTPEditFormView: ControlledView {
           }
         }
 
+        SecondaryButton(
+          title: "resource.edit.totp.remove.button.title",
+          iconName: .trash,
+          action: {
+            await self.controller.removeTOTP()
+          }
+        )
+
         Spacer()
         with(\.isStandaloneTOTP) { (isStandaloneTOTP: Bool) in
           if isStandaloneTOTP {

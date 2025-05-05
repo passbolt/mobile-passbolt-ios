@@ -128,10 +128,7 @@ final class ResourceEditPreparationTests: FeaturesTestCase {
             "object_type": "PASSBOLT_RESOURCE_METADATA",
             "resource_type_id": .string(ResourceType.mock_default.id.rawValue.rawValue.uuidString),
           ],
-          secret: [
-            "password": nil,
-            "description": nil,
-          ]
+          secret: .null
         ),
         availableTypes: [.mock_default]
       )

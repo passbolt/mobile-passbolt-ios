@@ -69,7 +69,7 @@ extension FeaturesRegistry {
     self.useLiveNavigationToOTPEditAdvancedForm()
 
     // MARK: - Resource Edit
-    self.useLiveNavigationToResourceNoteEdit()
+    self.useLiveNavigationToResourceTextEdit()
     self.useLiveNavigationToOTPAttachSelectionList()
     self.useLiveNavigationToResourcePasswordEdit()
 

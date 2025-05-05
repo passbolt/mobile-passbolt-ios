@@ -24,27 +24,27 @@
 import Display
 import FeatureScopes
 
-public enum ResourceNoteEditNavigationDestination: NavigationDestination {
+public enum ResourceTextEditNavigationDestination: NavigationDestination {
 
-  public typealias TransitionContext = ResourceNoteEditViewController.Context
+  public typealias TransitionContext = ResourceTextEditViewController.Context
 }
 
-public typealias NavigationToResourceNoteEdit = NavigationTo<ResourceNoteEditNavigationDestination>
+public typealias NavigationToResourceTextEdit = NavigationTo<ResourceTextEditNavigationDestination>
 
-extension NavigationToResourceNoteEdit {
+extension NavigationToResourceTextEdit {
 
   fileprivate static var live: FeatureLoader {
     legacyPushTransition(
-      to: ResourceNoteEditView.self
+      to: ResourceTextEditView.self
     )
   }
 }
 
 extension FeaturesRegistry {
 
-  public mutating func useLiveNavigationToResourceNoteEdit() {
+  public mutating func useLiveNavigationToResourceTextEdit() {
     self.use(
-      NavigationToResourceNoteEdit.live,
+      NavigationToResourceTextEdit.live,
       in: ResourceEditScope.self
     )
   }
