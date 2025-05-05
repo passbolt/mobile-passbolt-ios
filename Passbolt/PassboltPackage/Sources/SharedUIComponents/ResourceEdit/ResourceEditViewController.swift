@@ -143,16 +143,18 @@ public final class ResourceEditViewController: ViewController {
         editedFields: .init()
       )
     )
+    let editedResource: Resource = context.editingContext.editedResource
+
     self.viewState = .init(
       initial: .init(
         nameField: nil,
         mainForm: .empty,
         containsUndefinedFields: false,
         edited: false,
-        showPasswordSection: context.editingContext.editedResource.isStandaloneTOTPResource == false,
-        canShowAdvancedSettings: isInExtensionContext == false && context.editingContext.editedResource.isLocal == true,
-        showsAdvancedSettings: context.editingContext.editedResource.isLocal == false,
-        resourceTypeSlug: context.editingContext.editedResource.type.specification.slug
+        showPasswordSection: editedResource.isStandaloneTOTPResource == false,
+        canShowAdvancedSettings: isInExtensionContext == false && editedResource.isLocal == true,
+        showsAdvancedSettings: editedResource.isLocal == false && editedResource.isSimplePasswordResource == false,
+        resourceTypeSlug: editedResource.type.specification.slug
       ),
       updateFrom: ComputedVariable(
         combined: self.resourceEditForm.state,

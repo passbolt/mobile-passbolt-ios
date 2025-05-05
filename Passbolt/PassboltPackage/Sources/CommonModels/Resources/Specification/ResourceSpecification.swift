@@ -94,6 +94,11 @@ extension ResourceSpecification.Slug {
   public var isStandaloneTOTPType: Bool {
     Self.standaloneTOTPTypes.contains(self)
   }
+
+  /// Checks if this is a simple password - without ability to add other secrets
+  public var isSimplePasswordType: Bool {
+    [.password, .v5Password].contains(self)
+  }
 }
 
 extension ResourceSpecification {

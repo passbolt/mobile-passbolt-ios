@@ -132,6 +132,11 @@ extension Resource {
   public var isStandaloneTOTPResource: Bool {
     self.type.specification.slug.isStandaloneTOTPType
   }
+
+  /// Checks if this is a simple password - without ability to add other secrets
+  public var isSimplePasswordResource: Bool {
+    self.type.specification.slug.isSimplePasswordType
+  }
 }
 
 // MARK: - Validation
