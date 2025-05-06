@@ -147,20 +147,22 @@ public struct ResourceEditView: ControlledView {
         .padding(.top, 16)
       }
       when(\.showsAdvancedSettings) {
-        CommonListSection {
-          VStack(alignment: .leading, spacing: 16) {
-            Text(displayable: "resource.create.additional.secrets.title")
-              .font(.inter(ofSize: 16, weight: .bold))
-              .padding(.vertical, 20)
-            VStack(spacing: 16) {
-              withEach(\.mainForm.additionalOptions) { (additionalOption: MainFormViewModel.AdditionalOption) in
-                self.additionalActionView(for: additionalOption)
+        when(\.canAddAdditionalSecrets) {
+          CommonListSection {
+            VStack(alignment: .leading, spacing: 16) {
+              Text(displayable: "resource.create.additional.secrets.title")
+                .font(.inter(ofSize: 16, weight: .bold))
+                .padding(.vertical, 20)
+              VStack(spacing: 16) {
+                withEach(\.mainForm.additionalOptions) { (additionalOption: MainFormViewModel.AdditionalOption) in
+                  self.additionalActionView(for: additionalOption)
+                }
               }
+              .padding(.horizontal, 16)
+              .padding(.vertical, 8)
+              .backgroundColor(.passboltBackgroundGray)
+              .cornerRadius(4)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .backgroundColor(.passboltBackgroundGray)
-            .cornerRadius(4)
           }
         }
         CommonListSection {

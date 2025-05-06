@@ -63,6 +63,8 @@ public final class ResourceEditViewController: ViewController {
     internal var canShowAdvancedSettings: Bool
     // Flag indicating that advanced settings are shown
     internal var showsAdvancedSettings: Bool
+    // Flag indicating if additional secrets can be added
+    internal var canAddAdditionalSecrets: Bool
     // Current resource type slug
     internal var resourceTypeSlug: ResourceSpecification.Slug
     // Flag indicating that the resource is a standalone TOTP
@@ -152,8 +154,9 @@ public final class ResourceEditViewController: ViewController {
         containsUndefinedFields: false,
         edited: false,
         showPasswordSection: editedResource.isStandaloneTOTPResource == false,
-        canShowAdvancedSettings: isInExtensionContext == false && editedResource.isLocal == true,
-        showsAdvancedSettings: editedResource.isLocal == false && editedResource.isSimplePasswordResource == false,
+        canShowAdvancedSettings: isInExtensionContext == false,
+        showsAdvancedSettings: false,
+        canAddAdditionalSecrets: editedResource.isSimplePasswordResource == false,
         resourceTypeSlug: editedResource.type.specification.slug
       ),
       updateFrom: ComputedVariable(
