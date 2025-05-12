@@ -137,6 +137,16 @@ extension ResourcesStoreDatabaseOperation {
                 ?4,
                 ?5
               )
+            ON CONFLICT
+              (
+                resource_id
+              )
+            DO UPDATE SET
+              data=?2,
+              name=?3,
+              username=?4,
+              description=?5
+            ;
             """,
             arguments:
               metadata.resourceId,
@@ -160,6 +170,12 @@ extension ResourcesStoreDatabaseOperation {
                   ?1,
                   ?2
                 )
+                ON CONFLICT
+                  (
+                    resource_id,
+                    uri
+                  )
+                DO NOTHING
               """,
               arguments:
                 uri.resourceId,
