@@ -519,7 +519,7 @@ internal struct ResourceDetailsFieldViewModel {
       self.name = name
       if let values = resource[keyPath: field.path].arrayValue, let value = values.first?.stringValue, !value.isEmpty {
         // at the moment, we support only one-item list on UI
-        self.value = .placeholder(value)
+        self.value = .plain(value)
         self.mainAction = .copy
         self.accessoryAction = .copy
       }
