@@ -147,7 +147,9 @@ internal final class ResourceContextualMenuViewController: ViewController {
 
           modifyMenuItems.append(.toggle(favorite: resource.favorite))
 
-          if resource.permission.canShare {
+          if resource.permission.canShare,
+            sessionConfiguration.share.showMembersList
+          {
             modifyMenuItems.append(.share)
           }  // else NOP
 

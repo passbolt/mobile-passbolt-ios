@@ -35,6 +35,7 @@ internal final class ResourceDetailsViewController: ViewController {
     internal var favorite: Bool
     internal var containsUndefinedFields: Bool
     internal var sections: Array<ResourceDetailsSectionViewModel>
+    internal var canShowMembersList: Bool
     internal var permissions: Array<OverlappingAvatarStackView.Item>
     internal var expirationDate: Date?
 
@@ -104,6 +105,7 @@ internal final class ResourceDetailsViewController: ViewController {
         favorite: false,
         containsUndefinedFields: false,
         sections: .init(),
+        canShowMembersList: false,
         permissions: .init()
       ),
       updateFrom: ComputedVariable(
@@ -140,6 +142,7 @@ internal final class ResourceDetailsViewController: ViewController {
               sessionConfiguration: sessionConfiguration
             )
             viewState.expirationDate = resource.expired?.asDate
+            viewState.canShowMembersList = sessionConfiguration.share.showMembersList
             if sessionConfiguration.share.showMembersList {
               viewState.permissions = resourcePermissions
             }

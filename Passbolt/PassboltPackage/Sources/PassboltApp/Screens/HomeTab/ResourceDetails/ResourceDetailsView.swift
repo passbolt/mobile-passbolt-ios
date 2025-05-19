@@ -185,26 +185,28 @@ internal struct ResourceDetailsView: ControlledView {
       }
       CommonListSpacer(minHeight: 8)
     }
-    with(\.permissions) { (permissions: Array<OverlappingAvatarStackView.Item>) in
-      CommonListSection {
-        Text(displayable: "resource.detail.section.permissions")
-          .font(.inter(ofSize: 16, weight: .bold))
-          .padding(.bottom, 16)
-        CommonListRow(
-          contentAction: self.controller.showPermissionsDetails,
-          content: {
-            ResourceFieldView(
-              name: nil,
-              content: {
-                OverlappingAvatarStackView(permissions)
-                  .frame(height: 40)
-              }
-            )
-          },
-          accessory: DisclosureIndicatorImage.init
-        )
+    when(\.canShowMembersList) {
+      with(\.permissions) { (permissions: Array<OverlappingAvatarStackView.Item>) in
+        CommonListSection {
+          Text(displayable: "resource.detail.section.permissions")
+            .font(.inter(ofSize: 16, weight: .bold))
+            .padding(.bottom, 16)
+          CommonListRow(
+            contentAction: self.controller.showPermissionsDetails,
+            content: {
+              ResourceFieldView(
+                name: nil,
+                content: {
+                  OverlappingAvatarStackView(permissions)
+                    .frame(height: 40)
+                }
+              )
+            },
+            accessory: DisclosureIndicatorImage.init
+          )
+        }
+        CommonListSpacer(minHeight: 8)
       }
-      CommonListSpacer(minHeight: 8)
     }
   }
 
