@@ -21,38 +21,49 @@
 // @since         v1.0
 //
 
-import Crypto
-import Display
 import Features
-import NFC
-import PassboltAccounts
-import PassboltDatabaseOperations
-import PassboltNetworkOperations
-import PassboltResources
-import PassboltSession
-import PassboltSessionData
-import PassboltUsers
 
-extension FeaturesRegistry {
+public typealias MetadataUpdatePrivateKeyNetworkOperation =
+  NetworkOperation<MetadataUpdatePrivateKeyNetworkOperationDescription>
 
-  public mutating func usePassboltFeatures() {
-    self.useOSFeatures()
-    self.useNFCFeatures()
-    self.useCrypto()
-    self.usePassboltAccountsModule()
-    self.usePassboltDatabaseOperationsModule()
-    self.usePassboltNetworkOperationsModule()
-    self.usePassboltResourcesModule()
-    self.usePassboltSessionModule()
-    self.usePassboltSessionDataModule()
-    self.usePassboltUsersModule()
-    self.usePassboltHomePresentation()
-    self.usePassboltResourcesModule()
-    self.usePassboltExtensionAccountKitImport()
-    // it is required until navigations will become fully integrated
-    self.useLiveNavigationToResourceEdit()
-    self.useLiveNavigationToOperationResult()
+public enum MetadataUpdatePrivateKeyNetworkOperationDescription: NetworkOperationDescription {
 
-    self.useLiveNavigationToMetadataPinnedKeyValidationDialog()
+  public struct Input: Encodable {
+
+    public let privateKeyId: MetadataKeyDTO.ID
+    public let data: String
+
+    public init(
+      privateKeyId: MetadataKeyDTO.ID,
+      data: String
+    ) {
+      self.privateKeyId = privateKeyId
+      self.data = data
+    }
+
+    public enum CodingKeys: String, CodingKey {
+      // ignoring `privateKeyId` field as it is part of the URL
+      case data
+    }
+  }
+
+  public struct Output: Decodable {
+
+    public let userId: User.ID
+    public let data: String
+    public let createdBy: User.ID?
+    public let modifiedBy: User.ID?
+
+    public init(
+      userId: User.ID,
+      data: String,
+      createdBy: User.ID?,
+      modifiedBy: User.ID?
+    ) {
+      self.userId = userId
+      self.data = data
+      self.createdBy = createdBy
+      self.modifiedBy = modifiedBy
+    }
   }
 }

@@ -69,7 +69,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
     )
     patch(
       \PGP.decryptAndVerify,
-      with: always(.success("plainMessage"))
+      with: always(.success(.valid(message: "plainMessage")))
     )
 
     withTestedInstanceReturnsEqual("plainMessage") { (testedInstance: SessionCryptography) in
@@ -286,5 +286,25 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
       let result = try await testedInstance.decryptSessionKey("encrypted message")
       XCTAssertEqual(result, "sessionKey")
     }
+  }
+}
+
+extension PGP.VerifiedMessage {
+  static func valid(message: String) -> Self {
+    .init(
+      content: message,
+      signature: .empty
+    )
+  }
+}
+
+extension PGP.Signature {
+  static var empty: Self {
+    .init(
+      signature: .empty,
+      createdAt: .now,
+      fingerprint: .empty,
+      keyID: .empty
+    )
   }
 }

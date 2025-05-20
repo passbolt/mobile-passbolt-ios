@@ -27,6 +27,7 @@ import XCTest
 @testable import PassboltResources
 
 final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysService> {
+
   override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
 
   override class func testedImplementationRegister(
@@ -59,6 +60,14 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     patch(
       \SessionCryptography.decryptSessionKey,
       with: always("")
+    )
+    patch(
+      \PGP.decryptAndVerify,
+      with: always(.failure(PGPIssue.error(underlyingError: MockError().asTheError())))
+    )
+    patch(
+      \UsersPublicKeysFetchDatabaseOperation.execute,
+      with: always([])
     )
   }
 
@@ -323,6 +332,469 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
 
     await fulfillment(of: [sendSessionKeysExpectation, refreshKeysExpectation], timeout: 1.0)
   }
+
+  func testMetadataPinnedKeyValidation_whenThereIsNoKeyOnServer_andNoKeyInLocalStorage_shouldPass() async throws {
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: always([])
+    )
+    patch(
+      \MetadataKeyDataStore.loadPinnedMetadataKey,
+      with: always(nil)
+    )
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+    await assertValid(
+      try await testedInstance.validatePinnedKey(),
+      "Validation should pass when there is no key on server and no key in local storage."
+    )
+  }
+
+  func testMetadataPinnedKeyValidation_whenThereIsNoKeyOnServer_andKeyInLocalStorageExists_shouldFail() async throws {
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: always([])
+    )
+    patch(
+      \MetadataKeyDataStore.loadPinnedMetadataKey,
+      with: always(MetadataPinnedKeyMock.mock.data)
+    )
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+    await assertInvalid(
+      try await testedInstance.validatePinnedKey(),
+      expectedFailure: .deleted,
+      "Validation should fail when there is no key on server and key in local storage exists."
+    )
+  }
+
+  func testPinnedKeyValidation_whenServerKeyIsSignedByUserAndNoKeyInLocalStorage_shouldPass() async throws {
+    let modificationDate: Date = .now
+    let serverKey: MetadataKeyDTO = .mock(
+      fingerPrint: "fingerprint",
+      modified: modificationDate,
+      modifiedBy: .mock_1
+    )
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: always([serverKey])
+    )
+    patch(
+      \MetadataKeyDataStore.loadPinnedMetadataKey,
+      with: always(nil)
+    )
+    patch(
+      \UsersPublicKeysFetchDatabaseOperation.execute,
+      with: always([.init(userID: .mock_admin, publicKey: "public key")])
+    )
+    patch(
+      \AccountsDataStore.loadAccountPassphrase,
+      with: always("passphrase")
+    )
+    patch(
+      \AccountsDataStore.loadAccountPrivateKey,
+      with: always("private key")
+    )
+    patch(
+      \PGP.decryptAndVerify,
+      with: always(
+        .success(
+          .init(
+            content: MetadataKeyDTO.MetadataPrivateKey
+              .encryptedData(
+                fingerprint: "fingerprint",
+                armoredKey: "armored_key"
+              )
+              .stringValue!,
+            signature: .init(
+              signature: "signature",
+              createdAt: .now,
+              fingerprint: "signature fingerprint",
+              keyID: "signature key id"
+            )
+          )
+        )
+      )
+    )
+
+    let savedPinnedKeyExpectation: XCTestExpectation = .init(description: "Pinned key should be saved.")
+    patch(
+      \MetadataKeyDataStore.storePinnedMetadataKey,
+      with: { _, _ throws -> Void in
+        savedPinnedKeyExpectation.fulfill()
+      }
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+
+    await assertValid(
+      try await testedInstance.validatePinnedKey(),
+      """
+      Validation should pass when there is key on server 
+      and key in local storage does not exist and key is signed by user.
+      """
+    )
+
+    await fulfillment(of: [savedPinnedKeyExpectation], timeout: 1.0)
+  }
+
+  func testPinnedKeyValidation_whenKeyOnServerAndLocalStorageExists_andKeyFingerPrintAndModificationDateMatches()
+    async throws
+  {
+    let modificationDate: Date = .now
+    let serverKey: MetadataKeyDTO = .mock(
+      fingerPrint: "fingerprint",
+      modified: modificationDate,
+      modifiedBy: .mock_admin
+    )
+    let localKey: MetadataPinnedKeyMock = .init(
+      fingerPrint: Fingerprint("fingerprint"),
+      modified: modificationDate
+    )
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: always([serverKey])
+    )
+    patch(
+      \MetadataKeyDataStore.loadPinnedMetadataKey,
+      with: always(localKey.data)
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+    await assertValid(
+      try await testedInstance.validatePinnedKey(),
+      """
+      Validation should pass when there is key on server 
+      and key in local storage exists and key fingerprint and modification date matches.
+      """
+    )
+  }
+
+  func testMetadataPinnedKeyValidation_whenKeyDataMismatches_andItIsNotSignedByUser_shouldFail() async throws {
+    let modificationDate: Date = .now
+    let serverKey: MetadataKeyDTO = .mock(
+      fingerPrint: "fingerprint",
+      modified: modificationDate,
+      modifiedBy: .mock_admin
+    )
+    let localKey: MetadataPinnedKeyMock = .init(
+      fingerPrint: Fingerprint("fingerprint"),
+      modified: modificationDate.addingTimeInterval(-120)
+    )
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: always([serverKey])
+    )
+    patch(
+      \MetadataKeyDataStore.loadPinnedMetadataKey,
+      with: always(localKey.data)
+    )
+    patch(
+      \UserDetailsFetchDatabaseOperation.execute,
+      with: always(.mock_1)
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+    await assertInvalid(
+      try await testedInstance.validatePinnedKey(),
+      expectedFailure: .changed("mock 1", "fingerprint"),
+      """
+      Validation should fail if keys fingerprint or modification date mismatches
+      and key is not signed by user.
+      """
+    )
+  }
+
+  func testMetadataPinnedKeyValidation_whenKeyDataMismatches_andItIsSignedByUserButItIsOlder_shouldFail() async throws {
+    let modificationDate: Date = .now
+    let serverKey: MetadataKeyDTO = .mock(
+      fingerPrint: "fingerprint",
+      modified: modificationDate,
+      modifiedBy: .mock_admin
+    )
+    let localKey: MetadataPinnedKeyMock = .init(
+      fingerPrint: Fingerprint("fingerprint"),
+      modified: modificationDate.addingTimeInterval(120)
+    )
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: always([serverKey])
+    )
+    patch(
+      \MetadataKeyDataStore.loadPinnedMetadataKey,
+      with: always(localKey.data)
+    )
+    patch(
+      \UsersPublicKeysFetchDatabaseOperation.execute,
+      with: always([.init(userID: .mock_admin, publicKey: "public key")])
+    )
+    patch(
+      \AccountsDataStore.loadAccountPassphrase,
+      with: always("passphrase")
+    )
+    patch(
+      \AccountsDataStore.loadAccountPrivateKey,
+      with: always("private key")
+    )
+    patch(
+      \PGP.decryptAndVerify,
+      with: always(
+        .success(
+          .init(
+            content: MetadataKeyDTO.MetadataPrivateKey
+              .encryptedData(
+                fingerprint: "fingerprint",
+                armoredKey: "armored_key"
+              )
+              .stringValue!,
+            signature: .init(
+              signature: "signature",
+              createdAt: .now,
+              fingerprint: "signature fingerprint",
+              keyID: "signature key id"
+            )
+          )
+        )
+      )
+    )
+
+    patch(
+      \UserDetailsFetchDatabaseOperation.execute,
+      with: always(.mock_1)
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+    await assertInvalid(
+      try await testedInstance.validatePinnedKey(),
+      expectedFailure: .changed("mock 1", "fingerprint"),
+      """
+      Validation should fail if keys fingerprint or modification date mismatches,
+      key is signed by user but server side key is older.
+      """
+    )
+  }
+
+  func testMetadataPinnedKeyValidation_whenKeyDataMismatches_andItIsSignedByUserButItIsNewer_shouldPassAndStoreNewKey()
+    async throws
+  {
+    let modificationDate: Date = .now
+    let serverKey: MetadataKeyDTO = .mock(
+      fingerPrint: "fingerprint",
+      modified: modificationDate,
+      modifiedBy: .mock_admin
+    )
+    let localKey: MetadataPinnedKeyMock = .init(
+      fingerPrint: Fingerprint("fingerprint"),
+      modified: modificationDate.addingTimeInterval(-120)
+    )
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: always([serverKey])
+    )
+    patch(
+      \MetadataKeyDataStore.loadPinnedMetadataKey,
+      with: always(localKey.data)
+    )
+    patch(
+      \UsersPublicKeysFetchDatabaseOperation.execute,
+      with: always([.init(userID: .mock_admin, publicKey: "public key")])
+    )
+    patch(
+      \AccountsDataStore.loadAccountPassphrase,
+      with: always("passphrase")
+    )
+    patch(
+      \AccountsDataStore.loadAccountPrivateKey,
+      with: always("private key")
+    )
+    patch(
+      \PGP.decryptAndVerify,
+      with: always(
+        .success(
+          .init(
+            content: MetadataKeyDTO.MetadataPrivateKey
+              .encryptedData(
+                fingerprint: "fingerprint",
+                armoredKey: "armored_key"
+              )
+              .stringValue!,
+            signature: .init(
+              signature: "signature",
+              createdAt: .now,
+              fingerprint: "signature fingerprint",
+              keyID: "signature key id"
+            )
+          )
+        )
+      )
+    )
+
+    let savedPinnedKeyExpectation: XCTestExpectation = .init(description: "Pinned key should be saved.")
+    patch(
+      \MetadataKeyDataStore.storePinnedMetadataKey,
+      with: { _, _ throws -> Void in
+        savedPinnedKeyExpectation.fulfill()
+      }
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+    await assertValid(
+      try await testedInstance.validatePinnedKey(),
+      """
+      Validation should pass if keys fingerprint or modification date mismatches,
+      key is signed by user and server side key is newer.
+      """
+    )
+    await fulfillment(of: [savedPinnedKeyExpectation], timeout: 1.0)
+  }
+
+  func testTrustingKey_withoutActiveKey_shouldDoNothig() async throws {
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.trustCurrentKey()
+    // no error should be thrown, no mock should be needed
+  }
+
+  func testTrustingKey_shouldStore_signKey_andSendToServer() async throws {
+    let fetchKeyExpectation: XCTestExpectation = .init(description: "Key should be fetched.")
+    fetchKeyExpectation.expectedFulfillmentCount = 2  // should be fetched on initialization and after success
+    let modificationDate: Date = .now
+    let serverKey: MetadataKeyDTO = .mock(
+      fingerPrint: "fingerprint",
+      modified: modificationDate,
+      modifiedBy: .mock_admin
+    )
+
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: { input async throws -> [MetadataKeyDTO] in
+        fetchKeyExpectation.fulfill()
+        return [serverKey]
+      }
+    )
+    patch(
+      \AccountsDataStore.loadAccountPassphrase,
+      with: always("passphrase")
+    )
+    patch(
+      \AccountsDataStore.loadAccountPrivateKey,
+      with: always("private key")
+    )
+    patch(
+      \UsersPublicKeysFetchDatabaseOperation.execute,
+      with: always([.init(userID: .mock_admin, publicKey: "public key")])
+    )
+    patch(
+      \PGP.encryptAndSign,
+      with: always(.success("signed message"))
+    )
+    patch(
+      \MetadataUpdatePrivateKeyNetworkOperation.execute,
+      with: always(.init(userId: .mock_1, data: "", createdBy: nil, modifiedBy: nil))
+    )
+
+    let storeKeyExpectation: XCTestExpectation = .init(description: "Key should be stored.")
+    patch(
+      \MetadataKeyDataStore.storePinnedMetadataKey,
+      with: { _, _ throws -> Void in
+        storeKeyExpectation.fulfill()
+      }
+    )
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+
+    try await testedInstance.trustCurrentKey()
+
+    await fulfillment(
+      of: [storeKeyExpectation, fetchKeyExpectation],
+      timeout: 1.0
+    )
+  }
+
+  func testTrustingKey_ifAlreadySigned_shouldNotSignAndSendToServer() async throws {
+    let serverKey: MetadataKeyDTO = .mock(
+      fingerPrint: "fingerprint",
+      modified: .now,
+      modifiedBy: .mock_admin
+    )
+
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: always([serverKey])
+    )
+    patch(
+      \UsersPublicKeysFetchDatabaseOperation.execute,
+      with: always([.init(userID: .mock_admin, publicKey: "public key")])
+    )
+    patch(
+      \AccountsDataStore.loadAccountPassphrase,
+      with: always("passphrase")
+    )
+    patch(
+      \AccountsDataStore.loadAccountPrivateKey,
+      with: always("private key")
+    )
+    patch(
+      \PGP.decryptAndVerify,
+      with: always(
+        .success(
+          .init(
+            content:
+              """
+              {
+                "fingerprint": "fingerprint",
+                "armored_key": "",
+                "object_type": "\(MetadataObjectType.privateKeyMetadata.rawValue)"
+              }
+              """,
+            signature: .init(signature: "", createdAt: .now, fingerprint: "signature", keyID: "key id")
+          )
+        )
+      )
+    )
+    let storeKeyExpectation: XCTestExpectation = .init(description: "Key should be stored.")
+    patch(
+      \MetadataKeyDataStore.storePinnedMetadataKey,
+      with: { _, _ throws -> Void in
+        storeKeyExpectation.fulfill()
+      }
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+
+    try await testedInstance.trustCurrentKey()
+    await fulfillment(of: [storeKeyExpectation], timeout: 1.0)
+  }
+}
+
+private struct MetadataPinnedKeyMock {
+  let fingerPrint: Fingerprint
+  let modified: Date
+
+  var data: JSON {
+    [
+      "fingerprint": .string(fingerPrint.rawValue),
+      "modified": .float(modified.timeIntervalSince1970),
+    ]
+  }
+
+  init(fingerPrint: Fingerprint, modified: Date) {
+    self.fingerPrint = fingerPrint
+    self.modified = modified
+  }
+
+  static var mock: Self {
+    .init(
+      fingerPrint: Fingerprint("fingerprint"),
+      modified: .now
+    )
+  }
+
 }
 
 extension MetadataKeyDTO {
@@ -340,17 +812,20 @@ extension MetadataKeyDTO {
 
   fileprivate static func mock(
     id: MetadataKeyDTO.ID = .init(),
-    fingerPrint: String = "",
+    fingerPrint: Fingerprint = "",
     armoredKey: ArmoredPGPPublicKey = .mock_ada,
     expired: Date? = nil,
     deleted: Date? = nil,
+    modified: Date? = nil,
+    modifiedBy: User.ID? = nil,
     privateKeys: [MetadataKeyDTO.MetadataPrivateKey]? = nil
   ) -> Self {
     .init(
       id: id,
       fingerprint: fingerPrint,
       created: .now,
-      modified: .now,
+      modified: modified ?? .now,
+      modifiedBy: modifiedBy,
       deleted: deleted,
       expired: expired,
       armoredKey: armoredKey,
@@ -393,9 +868,9 @@ extension MetadataKeyDTO.MetadataPrivateKey {
     .init(id: id, userId: userId, encryptedData: encryptedData.stringValue!)
   }
 
-  fileprivate static func encryptedData(fingerprint: String, armoredKey: String) -> JSON {
+  fileprivate static func encryptedData(fingerprint: Fingerprint, armoredKey: String) -> JSON {
     [
-      "fingerprint": .string(fingerprint),
+      "fingerprint": .string(fingerprint.rawValue),
       "armored_key": .string(armoredKey),
       "object_type": .string(MetadataObjectType.privateKeyMetadata.rawValue),
     ]
@@ -403,3 +878,47 @@ extension MetadataKeyDTO.MetadataPrivateKey {
 }
 
 private struct MockError: Error {}
+
+extension MetadataKeysServiceTests {
+
+  fileprivate typealias KeyValidationResult = MetadataKeysService.KeyValidationResult
+
+  fileprivate func assertValid(
+    _ expression: @autoclosure () async throws -> KeyValidationResult,
+    _ message: @autoclosure () -> String,
+    file: StaticString = #file,
+    line: UInt = #line
+  ) async {
+    do {
+      let result: KeyValidationResult = try await expression()
+      XCTAssertTrue(result == .valid, message(), file: file, line: line)
+    }
+    catch {
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
+    }
+  }
+
+  fileprivate func assertInvalid(
+    _ expression: @autoclosure () async throws -> KeyValidationResult,
+    expectedFailure: KeyValidationResult.FailureReason,
+    _ message: @autoclosure () -> String,
+    file: StaticString = #file,
+    line: UInt = #line
+  ) async {
+    do {
+      let result: KeyValidationResult = try await expression()
+      XCTAssertTrue(result == .invalid(expectedFailure), message(), file: file, line: line)
+    }
+    catch {
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
+    }
+  }
+}

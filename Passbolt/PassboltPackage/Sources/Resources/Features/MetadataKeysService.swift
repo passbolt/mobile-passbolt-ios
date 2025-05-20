@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
+import CommonModels
 import Commons
-
 import struct Foundation.Data
 
 public struct MetadataKeysService {
@@ -31,19 +31,28 @@ public struct MetadataKeysService {
   public var encrypt: @Sendable (String, EncryptionType) async throws -> ArmoredPGPMessage?
   public var encryptForSharing: @Sendable (String) async throws -> (ArmoredPGPMessage, MetadataKeyDTO.ID)?
   public var sendSessionKeys: @Sendable () async throws -> Void
+  public var validatePinnedKey: @Sendable () async throws -> KeyValidationResult
+  public var trustCurrentKey: @Sendable () async throws -> Void
+  public var removePinnedKey: @Sendable () async throws -> Void
 
   public init(
     initialize: @escaping @Sendable () async throws -> Void,
     decrypt: @escaping @Sendable (String, ForeignReference, EncryptionType) async throws -> Data?,
     encrypt: @escaping @Sendable (String, EncryptionType) async throws -> ArmoredPGPMessage?,
     encryptForSharing: @escaping @Sendable (String) async throws -> (ArmoredPGPMessage, MetadataKeyDTO.ID)?,
-    sendSessionKeys: @escaping @Sendable () async throws -> Void
+    sendSessionKeys: @escaping @Sendable () async throws -> Void,
+    validatePinnedKey: @escaping @Sendable () async throws -> KeyValidationResult,
+    trustCurrentKey: @escaping @Sendable () async throws -> Void,
+    removePinnedKey: @escaping @Sendable () async throws -> Void
   ) {
     self.initialize = initialize
     self.decrypt = decrypt
     self.encrypt = encrypt
     self.encryptForSharing = encryptForSharing
     self.sendSessionKeys = sendSessionKeys
+    self.validatePinnedKey = validatePinnedKey
+    self.trustCurrentKey = trustCurrentKey
+    self.removePinnedKey = removePinnedKey
   }
 
   public func decrypt(
@@ -69,7 +78,10 @@ extension MetadataKeysService: LoadableFeature {
       decrypt: unimplemented3(),
       encrypt: unimplemented2(),
       encryptForSharing: unimplemented1(),
-      sendSessionKeys: unimplemented0()
+      sendSessionKeys: unimplemented0(),
+      validatePinnedKey: unimplemented0(),
+      trustCurrentKey: unimplemented0(),
+      removePinnedKey: unimplemented0()
     )
   }
   #endif
@@ -101,6 +113,21 @@ extension MetadataKeysService {
       let container = try decoder.singleValueContainer()
       let rawValue = try container.decode(String.self)
       self = Self(rawValue: rawValue) ?? .unknown
+    }
+  }
+
+  public enum KeyValidationResult: Sendable, Equatable {
+
+    case valid
+    case invalid(FailureReason)
+
+    public enum FailureReason: Sendable, Equatable {
+
+      public typealias ModifiedBy = Tagged<String, Self>
+
+      case changed(ModifiedBy, Fingerprint)
+      case deleted
+      case unknown
     }
   }
 }

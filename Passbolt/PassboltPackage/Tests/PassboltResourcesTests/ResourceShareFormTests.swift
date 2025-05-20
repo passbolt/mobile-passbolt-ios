@@ -261,6 +261,10 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         MockIssue.error()
       )
     )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
 
     let feature: ResourceShareForm = try self.testedInstance()
 
@@ -300,6 +304,10 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       with: alwaysThrow(
         MockIssue.error()
       )
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
 
     let feature: ResourceShareForm = try self.testedInstance()
@@ -346,6 +354,10 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       with: alwaysThrow(
         MockIssue.error()
       )
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
 
     let feature: ResourceShareForm = try self.testedInstance()
@@ -401,6 +413,10 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       \ResourceSharePreparation.prepareResourceForSharing,
       with: always(Void())
     )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
 
     let feature: ResourceShareForm = try self.testedInstance()
 
@@ -452,6 +468,10 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         throw MockIssue.error()
       }
     )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
 
     let feature: ResourceShareForm = try self.testedInstance()
 
@@ -494,6 +514,10 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     patch(
       \ResourceShareNetworkOperation.execute,
       with: always(Void())
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
 
     let feature: ResourceShareForm = try self.testedInstance()

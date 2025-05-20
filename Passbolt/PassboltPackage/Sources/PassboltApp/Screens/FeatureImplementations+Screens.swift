@@ -83,5 +83,7 @@ extension FeaturesRegistry {
     self.useLiveNavigationToAccountExport()
     self.useLiveNavigationToAccountKeyInspector()
     self.useLiveNavigationToAccountKeyExportMenu()
+
+    self.useLiveNavigationToMetadataPinnedKeyValidationDialog()
   }
 }

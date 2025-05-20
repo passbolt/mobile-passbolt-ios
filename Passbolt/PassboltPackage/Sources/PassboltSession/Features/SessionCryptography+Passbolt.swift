@@ -59,6 +59,7 @@ extension SessionCryptography {
             publicKey
           )
           .get()
+          .content
       }
       else {
         return

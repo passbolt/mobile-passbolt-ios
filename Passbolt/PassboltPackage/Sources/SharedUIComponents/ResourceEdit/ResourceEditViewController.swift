@@ -93,6 +93,7 @@ public final class ResourceEditViewController: ViewController {
   private let navigationToOTPAdvanced: NavigationToOTPEditAdvancedForm
   private let navigationToPasswordEdit: NavigationToResourcePasswordEdit
   private let navigationToTextEdit: NavigationToResourceTextEdit
+  private let navigationToInvalidMetadataKey: NavigationToMetadataPinnedKeyValidationDialog
 
   private let randomGenerator: RandomStringGenerator
 
@@ -134,6 +135,8 @@ public final class ResourceEditViewController: ViewController {
       self.navigationToPasswordEdit = try features.instance()
       self.navigationToTextEdit = try features.instance()
     }
+
+    self.navigationToInvalidMetadataKey = try features.instance()
 
     self.resourceEditForm = try features.instance()
 
@@ -247,6 +250,14 @@ public final class ResourceEditViewController: ViewController {
         state.editedFields = self.allFields
       }
       throw error
+    }
+    catch let error as MetadataPinnedKeyValidationError {
+      await self.navigationToInvalidMetadataKey.performCatching(
+        context: .init(
+          reason: error.reason,
+          onTrustedKey: { [weak self] in try await self?.sendForm() }
+        )
+      )
     }
     catch {
       throw error

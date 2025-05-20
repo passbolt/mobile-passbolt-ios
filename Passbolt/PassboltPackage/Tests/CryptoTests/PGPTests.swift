@@ -71,25 +71,25 @@ final class PGPTests: XCTestCase {
     )
   }
 
-  func test_decryptionAndVerification_withCorrectPassphrase_succeeds() {
+  func test_decryptionAndVerification_withCorrectPassphrase_succeeds() throws {
     let input: String = signedCiphertext
     let passphrase: Passphrase = "Secret"
 
-    let output: Result<String, Error> = pgp.decryptAndVerify(
+    let output: Result<PGP.VerifiedMessage, Error> = pgp.decryptAndVerify(
       input,
       passphrase,
       privateKey,
       publicKey
     )
 
-    XCTAssertSuccessEqual(output, "passbolt\n")
+    XCTAssertEqual(try output.get().content, "passbolt\n")
   }
 
   func test_decryptionAndVerification_withInvalidPassphrase_fails() {
     let input: String = signedCiphertext
     let passphrase: Passphrase = "InvalidPasshrase"
 
-    let output: Result<String, Error> = pgp.decryptAndVerify(
+    let output: Result<PGP.VerifiedMessage, Error> = pgp.decryptAndVerify(
       input,
       passphrase,
       privateKey,
@@ -112,7 +112,7 @@ final class PGPTests: XCTestCase {
       """
     let passphrase: Passphrase = "Secret"
 
-    let output: Result<String, Error> = pgp.decryptAndVerify(
+    let output: Result<PGP.VerifiedMessage, Error> = pgp.decryptAndVerify(
       input,
       passphrase,
       privateKey,

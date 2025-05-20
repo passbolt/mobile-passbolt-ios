@@ -21,38 +21,13 @@
 // @since         v1.0
 //
 
-import Crypto
-import Display
-import Features
-import NFC
-import PassboltAccounts
-import PassboltDatabaseOperations
-import PassboltNetworkOperations
-import PassboltResources
-import PassboltSession
-import PassboltSessionData
-import PassboltUsers
-
-extension FeaturesRegistry {
-
-  public mutating func usePassboltFeatures() {
-    self.useOSFeatures()
-    self.useNFCFeatures()
-    self.useCrypto()
-    self.usePassboltAccountsModule()
-    self.usePassboltDatabaseOperationsModule()
-    self.usePassboltNetworkOperationsModule()
-    self.usePassboltResourcesModule()
-    self.usePassboltSessionModule()
-    self.usePassboltSessionDataModule()
-    self.usePassboltUsersModule()
-    self.usePassboltHomePresentation()
-    self.usePassboltResourcesModule()
-    self.usePassboltExtensionAccountKitImport()
-    // it is required until navigations will become fully integrated
-    self.useLiveNavigationToResourceEdit()
-    self.useLiveNavigationToOperationResult()
-
-    self.useLiveNavigationToMetadataPinnedKeyValidationDialog()
+extension Collection {
+  public func split(by length: Int) -> Array<SubSequence> {
+    stride(from: 0, to: count, by: length)
+      .map { index in
+        let startIndex: Index = self.index(startIndex, offsetBy: index)
+        let endIndex: Index = self.index(startIndex, offsetBy: length, limitedBy: endIndex) ?? endIndex
+        return self[startIndex ..< endIndex]
+      }
   }
 }

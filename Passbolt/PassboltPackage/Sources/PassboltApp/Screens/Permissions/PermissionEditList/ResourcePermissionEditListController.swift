@@ -26,6 +26,7 @@ import Display
 import FeatureScopes
 import OSFeatures
 import Resources
+import SharedUIComponents
 import UIComponents
 import Users
 
@@ -78,7 +79,7 @@ extension ResourcePermissionEditListController: ComponentController {
 
           for permission: ResourcePermission in permissions {
             switch permission {
-            case let .user(userID, permission, _):
+            case .user(let userID, let permission, _):
               let userDetails: UserDetails =
                 try await features
                 .branch(
@@ -108,7 +109,7 @@ extension ResourcePermissionEditListController: ComponentController {
                   )
                 )
 
-            case let .userGroup(userGroupID, permission, _):
+            case .userGroup(let userGroupID, let permission, _):
               let details: UserGroupDetailsDSV =
                 try await features
                 .branchIfNeeded(
@@ -185,6 +186,31 @@ extension ResourcePermissionEditListController: ComponentController {
           await navigation
             .pop(if: ResourcePermissionEditListView.self)
           viewState.set(\.loading, to: false)
+        }
+        catch let error as MetadataPinnedKeyValidationError {
+          viewState.withValue { (state: inout ViewState) in
+            state.loading = false
+          }
+          let context: MetadataPinnedKeyValidationDialogViewController.Context = .init(
+            reason: error.reason,
+            onTrustedKey: {
+              Task {
+                await navigation.pop(MetadataPinnedKeyValidationDialogView.self)
+                saveChanges()
+              }
+            },
+            onCancel: {
+              Task {
+                await navigation.pop(MetadataPinnedKeyValidationDialogView.self)
+              }
+            }
+          )
+          let controller: MetadataPinnedKeyValidationDialogViewController =
+            try .init(context: context, features: features)
+
+          Task {
+            await navigation.push(MetadataPinnedKeyValidationDialogView.self, controller: controller)
+          }
         }
         catch {
           error.consume()

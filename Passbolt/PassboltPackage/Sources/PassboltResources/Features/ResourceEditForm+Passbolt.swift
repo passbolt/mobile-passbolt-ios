@@ -55,6 +55,8 @@ extension ResourceEditForm {
       try features.instance()
     let formState: Variable<Resource> = .init(initial: context.editedResource)
 
+    let metadataKeysService: MetadataKeysService = try features.instance()
+
     /// Updates a specific field in the resource with a new JSON value.
     /// - Parameters:
     ///   - field: The field path to update
@@ -71,6 +73,7 @@ extension ResourceEditForm {
 
     /// Updates the resource type.
     /// - Parameter resourceType: The new resource type to set
+    /// - Throws: An error if the update fails
     @Sendable nonisolated func updateType(
       to resourceType: ResourceType
     ) throws {
@@ -121,6 +124,15 @@ extension ResourceEditForm {
         throw
           InvalidInputData
           .error(message: "Invalid or missing resource secret")
+      }
+
+      let result: MetadataKeysService.KeyValidationResult = try await metadataKeysService.validatePinnedKey()
+      if case .invalid(let reason) = result {
+        throw
+          MetadataPinnedKeyValidationError.error(
+            reason: reason,
+            context: .context(.message("Invalid key", details: [:]))
+          )
       }
 
       if let resourceID: Resource.ID = resource.id {

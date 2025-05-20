@@ -116,6 +116,10 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       \OSFiles.contentsOfDirectory,
       with: always([])
     )
+    patch(
+      \MetadataKeyDataStore.deletePinnedMetadataKey,
+      with: always(())
+    )
   }
 
   override func cleanup() throws {

@@ -80,6 +80,11 @@ final class TagsExplorerControllerTests: MainActorTestCase {
     updates = .none
   }
 
+  override func featuresActorTearDown() async throws {
+    self.mainActorTearDown()
+    self.features = nil
+  }
+
   func test_refreshIfNeeded_showsError_whenRefreshFails() async throws {
     features.patch(
       \SessionData.refreshIfNeeded,
@@ -92,9 +97,8 @@ final class TagsExplorerControllerTests: MainActorTestCase {
       context: nil
     )
 
-    Task.detached {
-      await controller.refreshIfNeeded()
-    }
+    await controller.refreshIfNeeded()
+
     let message: SnackBarMessageEvent.Payload? = try await messagesSubscription.nextEvent()
 
     XCTAssertNotNil(message)

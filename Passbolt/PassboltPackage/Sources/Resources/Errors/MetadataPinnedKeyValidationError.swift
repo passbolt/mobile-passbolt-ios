@@ -21,38 +21,19 @@
 // @since         v1.0
 //
 
-import Crypto
-import Display
-import Features
-import NFC
-import PassboltAccounts
-import PassboltDatabaseOperations
-import PassboltNetworkOperations
-import PassboltResources
-import PassboltSession
-import PassboltSessionData
-import PassboltUsers
+import CommonModels
+import Commons
 
-extension FeaturesRegistry {
+public struct MetadataPinnedKeyValidationError: TheError {
+  public typealias Reason = MetadataKeysService.KeyValidationResult.FailureReason
+  public let reason: Reason
+  public var context: DiagnosticsContext
 
-  public mutating func usePassboltFeatures() {
-    self.useOSFeatures()
-    self.useNFCFeatures()
-    self.useCrypto()
-    self.usePassboltAccountsModule()
-    self.usePassboltDatabaseOperationsModule()
-    self.usePassboltNetworkOperationsModule()
-    self.usePassboltResourcesModule()
-    self.usePassboltSessionModule()
-    self.usePassboltSessionDataModule()
-    self.usePassboltUsersModule()
-    self.usePassboltHomePresentation()
-    self.usePassboltResourcesModule()
-    self.usePassboltExtensionAccountKitImport()
-    // it is required until navigations will become fully integrated
-    self.useLiveNavigationToResourceEdit()
-    self.useLiveNavigationToOperationResult()
+  public var displayableMessage: DisplayableString {
+    .localized(key: .genericError)
+  }
 
-    self.useLiveNavigationToMetadataPinnedKeyValidationDialog()
+  static public func error(reason: Reason, context: DiagnosticsContext) -> Self {
+    Self.init(reason: reason, context: context)
   }
 }

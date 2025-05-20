@@ -21,38 +21,33 @@
 // @since         v1.0
 //
 
-import Crypto
-import Display
+import CommonModels
 import Features
-import NFC
-import PassboltAccounts
-import PassboltDatabaseOperations
-import PassboltNetworkOperations
-import PassboltResources
-import PassboltSession
-import PassboltSessionData
-import PassboltUsers
 
-extension FeaturesRegistry {
+public struct MetadataKeyDataStore {
+  public var loadPinnedMetadataKey: @Sendable (Account.LocalID) throws -> JSON?
+  public var storePinnedMetadataKey: @Sendable (JSON, Account.LocalID) throws -> Void
+  public var deletePinnedMetadataKey: @Sendable (Account.LocalID) throws -> Void
 
-  public mutating func usePassboltFeatures() {
-    self.useOSFeatures()
-    self.useNFCFeatures()
-    self.useCrypto()
-    self.usePassboltAccountsModule()
-    self.usePassboltDatabaseOperationsModule()
-    self.usePassboltNetworkOperationsModule()
-    self.usePassboltResourcesModule()
-    self.usePassboltSessionModule()
-    self.usePassboltSessionDataModule()
-    self.usePassboltUsersModule()
-    self.usePassboltHomePresentation()
-    self.usePassboltResourcesModule()
-    self.usePassboltExtensionAccountKitImport()
-    // it is required until navigations will become fully integrated
-    self.useLiveNavigationToResourceEdit()
-    self.useLiveNavigationToOperationResult()
-
-    self.useLiveNavigationToMetadataPinnedKeyValidationDialog()
+  public init(
+    loadPinnedMetadataKey: @escaping @Sendable (Account.LocalID) throws -> JSON?,
+    storePinnedMetadataKey: @escaping @Sendable (JSON, Account.LocalID) throws -> Void,
+    deletePinnedMetadataKey: @escaping @Sendable (Account.LocalID) throws -> Void
+  ) {
+    self.loadPinnedMetadataKey = loadPinnedMetadataKey
+    self.storePinnedMetadataKey = storePinnedMetadataKey
+    self.deletePinnedMetadataKey = deletePinnedMetadataKey
   }
+}
+
+extension MetadataKeyDataStore: LoadableFeature {
+  #if DEBUG
+  public static var placeholder: Self {
+    .init(
+      loadPinnedMetadataKey: unimplemented1(),
+      storePinnedMetadataKey: unimplemented2(),
+      deletePinnedMetadataKey: unimplemented1()
+    )
+  }
+  #endif
 }

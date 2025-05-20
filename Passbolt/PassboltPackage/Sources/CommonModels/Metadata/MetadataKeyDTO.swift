@@ -25,9 +25,10 @@ public struct MetadataKeyDTO: Identifiable, Decodable {
   public typealias ID = Tagged<PassboltID, Self>
 
   public let id: ID
-  public let fingerprint: String
+  public let fingerprint: Fingerprint
   public let created: Date
   public let modified: Date
+  public let modifiedBy: User.ID?
   public let deleted: Date?
   public let expired: Date?
   public let armoredKey: ArmoredPGPPublicKey
@@ -35,9 +36,10 @@ public struct MetadataKeyDTO: Identifiable, Decodable {
 
   public init(
     id: ID,
-    fingerprint: String,
+    fingerprint: Fingerprint,
     created: Date,
     modified: Date,
+    modifiedBy: User.ID?,
     deleted: Date?,
     expired: Date?,
     armoredKey: ArmoredPGPPublicKey,
@@ -47,6 +49,7 @@ public struct MetadataKeyDTO: Identifiable, Decodable {
     self.fingerprint = fingerprint
     self.created = created
     self.modified = modified
+    self.modifiedBy = modifiedBy
     self.deleted = deleted
     self.expired = expired
     self.armoredKey = armoredKey
@@ -71,6 +74,7 @@ extension MetadataKeyDTO {
     case fingerprint
     case created
     case modified
+    case modifiedBy = "modified_by"
     case deleted
     case expired
     case armoredKey = "armored_key"

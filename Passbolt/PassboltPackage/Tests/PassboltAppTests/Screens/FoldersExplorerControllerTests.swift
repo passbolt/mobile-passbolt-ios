@@ -55,6 +55,11 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
     updates = .none
   }
 
+  override func featuresActorTearDown() async throws {
+    self.mainActorTearDown()
+    self.features = nil
+  }
+
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
     features
@@ -99,9 +104,9 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
     let controller: FoldersExplorerController = try testController(
       context: nil
     )
-    Task.detached {
-      await controller.refreshIfNeeded()
-    }
+
+    await controller.refreshIfNeeded()
+
     let message: SnackBarMessageEvent.Payload? = try await messagesSubscription.nextEvent()
 
     XCTAssertNotNil(message)

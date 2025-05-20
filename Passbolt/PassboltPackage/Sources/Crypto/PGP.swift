@@ -49,7 +49,7 @@ public struct PGP {
       _ passphrase: Passphrase,
       _ privateKey: ArmoredPGPPrivateKey,
       _ publicKey: ArmoredPGPPublicKey
-    ) -> Result<String, Error>
+    ) -> Result<VerifiedMessage, Error>
   // Encrypt without signing
   public var encrypt:
     (
@@ -229,7 +229,7 @@ extension PGP {
       passphrase: Passphrase,
       privateKey: ArmoredPGPPrivateKey,
       publicKey: ArmoredPGPPublicKey
-    ) -> Result<String, Error> {
+    ) -> Result<VerifiedMessage, Error> {
       defer { Gopenpgp.MobileFreeOSMemory() }
 
       do {
@@ -244,8 +244,21 @@ extension PGP {
         defer { decryptor.clearPrivateParams() }
         let inputData: Data = Data(input.utf8)
         let result: CryptoVerifiedDataResult = try decryptor.decrypt(inputData, encoding: PGPEncoding.auto.rawValue)
-        if let data = result.bytes() {
-          return .success(String(decoding: data, as: UTF8.self))
+        if let data = result.bytes(),
+          let rawFingerprint = result.signedByFingerprint()?.bytesToHexString()
+        {
+          let signatureData: Data = try result.signature()
+          let signature: Signature = .init(
+            signature: String(decoding: signatureData, as: UTF8.self),
+            createdAt: Date(timeIntervalSince1970: .init(result.signatureCreationTime())),
+            fingerprint: .init(rawValue: rawFingerprint),
+            keyID: result.signedByKeyIdHex()
+          )
+          let verifiedMessage: VerifiedMessage = .init(
+            content: String(decoding: data, as: UTF8.self),
+            signature: signature
+          )
+          return .success(verifiedMessage)
         }
         throw PGPIssue.error(
           underlyingError: PGPGenericIssue.error("Cannot decode decrypted data")
@@ -752,4 +765,39 @@ extension CryptoPGPHandle {
     return try configuredBuilder.new()
   }
 
+}
+
+extension PGP {
+
+  public struct VerifiedMessage {
+    public let content: String
+    public let signature: Signature
+
+    public init(
+      content: String,
+      signature: PGP.Signature
+    ) {
+      self.content = content
+      self.signature = signature
+    }
+  }
+
+  public struct Signature {
+    public let signature: String
+    public let createdAt: Date
+    public let fingerprint: Fingerprint
+    public let keyID: String
+
+    public init(
+      signature: String,
+      createdAt: Date,
+      fingerprint: Fingerprint,
+      keyID: String
+    ) {
+      self.signature = signature
+      self.createdAt = createdAt
+      self.fingerprint = fingerprint
+      self.keyID = keyID
+    }
+  }
 }

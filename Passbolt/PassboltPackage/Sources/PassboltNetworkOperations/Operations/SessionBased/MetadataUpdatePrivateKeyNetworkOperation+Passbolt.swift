@@ -21,38 +21,42 @@
 // @since         v1.0
 //
 
-import Crypto
-import Display
-import Features
-import NFC
-import PassboltAccounts
-import PassboltDatabaseOperations
-import PassboltNetworkOperations
-import PassboltResources
-import PassboltSession
-import PassboltSessionData
-import PassboltUsers
+import NetworkOperations
+
+extension MetadataUpdatePrivateKeyNetworkOperation {
+
+  // swift-format-ignore: NeverForceUnwrap
+  @Sendable fileprivate static func requestPreparation(_ input: Input) -> Mutation<HTTPRequest> {
+    .combined(
+      .pathSuffix("/metadata/keys/private/\(input.privateKeyId).json"),
+      .method(.put),
+      .jsonBody(from: input)
+    )
+  }
+
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    try NetworkResponseDecoder<Input, CommonNetworkResponse<Output>>
+      .bodyAsJSON()
+      .decode(
+        input,
+        response
+      )
+      .body
+  }
+}
 
 extension FeaturesRegistry {
 
-  public mutating func usePassboltFeatures() {
-    self.useOSFeatures()
-    self.useNFCFeatures()
-    self.useCrypto()
-    self.usePassboltAccountsModule()
-    self.usePassboltDatabaseOperationsModule()
-    self.usePassboltNetworkOperationsModule()
-    self.usePassboltResourcesModule()
-    self.usePassboltSessionModule()
-    self.usePassboltSessionDataModule()
-    self.usePassboltUsersModule()
-    self.usePassboltHomePresentation()
-    self.usePassboltResourcesModule()
-    self.usePassboltExtensionAccountKitImport()
-    // it is required until navigations will become fully integrated
-    self.useLiveNavigationToResourceEdit()
-    self.useLiveNavigationToOperationResult()
-
-    self.useLiveNavigationToMetadataPinnedKeyValidationDialog()
+  internal mutating func useMetadataUpdatePrivateKeyNetworkOperation() {
+    self.use(
+      .networkOperationWithSession(
+        of: MetadataUpdatePrivateKeyNetworkOperation.self,
+        requestPreparation: MetadataUpdatePrivateKeyNetworkOperation.requestPreparation(_:),
+        responseDecoding: MetadataUpdatePrivateKeyNetworkOperation.responseDecoder(_:_:)
+      )
+    )
   }
 }

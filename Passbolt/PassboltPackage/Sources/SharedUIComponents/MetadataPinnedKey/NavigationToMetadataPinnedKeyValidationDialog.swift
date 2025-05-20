@@ -21,38 +21,32 @@
 // @since         v1.0
 //
 
-import Crypto
 import Display
-import Features
-import NFC
-import PassboltAccounts
-import PassboltDatabaseOperations
-import PassboltNetworkOperations
-import PassboltResources
-import PassboltSession
-import PassboltSessionData
-import PassboltUsers
+import FeatureScopes
+
+internal enum MetadataPinnedKeyValidationDialogDestination: NavigationDestination {
+
+  internal typealias TransitionContext = MetadataPinnedKeyValidationDialogViewController.Context
+}
+
+internal typealias NavigationToMetadataPinnedKeyValidationDialog =
+  NavigationTo<MetadataPinnedKeyValidationDialogDestination>
+
+extension NavigationToMetadataPinnedKeyValidationDialog {
+
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(
+      to: MetadataPinnedKeyValidationDialogView.self
+    )
+  }
+}
 
 extension FeaturesRegistry {
 
-  public mutating func usePassboltFeatures() {
-    self.useOSFeatures()
-    self.useNFCFeatures()
-    self.useCrypto()
-    self.usePassboltAccountsModule()
-    self.usePassboltDatabaseOperationsModule()
-    self.usePassboltNetworkOperationsModule()
-    self.usePassboltResourcesModule()
-    self.usePassboltSessionModule()
-    self.usePassboltSessionDataModule()
-    self.usePassboltUsersModule()
-    self.usePassboltHomePresentation()
-    self.usePassboltResourcesModule()
-    self.usePassboltExtensionAccountKitImport()
-    // it is required until navigations will become fully integrated
-    self.useLiveNavigationToResourceEdit()
-    self.useLiveNavigationToOperationResult()
-
-    self.useLiveNavigationToMetadataPinnedKeyValidationDialog()
+  public mutating func useLiveNavigationToMetadataPinnedKeyValidationDialog() {
+    self.use(
+      NavigationToMetadataPinnedKeyValidationDialog.live,
+      in: SessionScope.self
+    )
   }
 }

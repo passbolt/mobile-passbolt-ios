@@ -288,6 +288,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
       \ResourceUpdatePreparation.prepareSecret,
       with: alwaysThrow(MockIssue.error())
     )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIf(
       try await tested.sendForm(),
@@ -303,6 +307,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
       with: always([.mock_1])
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIf(
@@ -323,6 +331,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
     patch(
       \ResourceUpdatePreparation.prepareSecret,
       with: always(.init([.mock_1]))
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIf(
@@ -360,6 +372,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
       \SessionData.refreshIfNeeded,
       with: alwaysThrow(MockIssue.error())
     )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIfNotThrows(
       try await tested.sendForm()
@@ -387,6 +403,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
     patch(
       \ResourceNetworkOperationDispatch.createResource,
       with: alwaysThrow(MockIssue.error())
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIf(
@@ -422,6 +442,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
       \ResourceFolderPermissionsFetchDatabaseOperation.execute,
       with: alwaysThrow(MockIssue.error())
     )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIf(
       try await tested.sendForm(),
@@ -455,6 +479,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
     patch(
       \UsersPGPMessages.encryptMessageForResourceFolderUsers,
       with: alwaysThrow(MockIssue.error())
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIf(
@@ -500,6 +528,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
       \SessionData.refreshIfNeeded,
       with: alwaysThrow(MockIssue.error())
     )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIfNotThrows(
       try await tested.sendForm()
@@ -540,6 +572,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
     patch(  // not throws regardless of error in refresh
       \SessionData.refreshIfNeeded,
       with: alwaysThrow(MockIssue.error())
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIf(
@@ -584,6 +620,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
         throw MockIssue.error()
       }
     )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
     let tested: ResourceEditForm = try self.testedInstance()
     _ = try? await tested.sendForm()
   }
@@ -609,6 +649,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
     patch(  // not throws regardless of error in refresh
       \SessionData.refreshIfNeeded,
       with: alwaysThrow(MockIssue.error())
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIfNotThrows(
@@ -654,9 +698,36 @@ final class ResourceEditFormTests: FeaturesTestCase {
       \SessionData.refreshIfNeeded,
       with: alwaysThrow(MockIssue.error())
     )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIfNotThrows(
       try await tested.sendForm()
+    )
+  }
+
+  func test_sendForm_throws_whenPinnedKeyIsInvalid() async throws {
+    var editedResource: Resource = self.editedResource
+    editedResource.id = .none
+    editedResource.path = [.mock_1]
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.invalid(.unknown))
+    )
+
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIf(
+      try await tested.sendForm(),
+      throws: MetadataPinnedKeyValidationError.self
     )
   }
 }

@@ -717,3 +717,16 @@ scanned!";
 // Operation authorization
 
 "authorization.primary.button.title" = "Authorize";
+
+// Metadata
+"metadata.pinned.key.validation.error.title" = "The metadata key has changed.";
+"metadata.pinned.key.validation.error.message" = "The encryption key used to share metadata between users has been updated by %@.";
+"metadata.pinned.key.validation.error.disclaimer" = "If you weren't expecting this, you can verify with your administrator.";
+"metadata.pinned.key.validation.error.trust" = "Trust the key";
+"metadata.pinned.key.fingerprint" = "Key fingerprint:";
+
+"metadata.pinned.key.validation.deleted.title" = "The metadata key has been deleted.";
+"metadata.pinned.key.validation.deleted.message" = "The trusted encryption key used to share metadata between users has been deleted.";
+
+"metadata.pinned.key.validation.unknown.title" = "The metadata key has changed.";
+"metadata.pinned.key.validation.unknown.message" = "The trusted encryption key used to share metadata between users could not be validated.";
