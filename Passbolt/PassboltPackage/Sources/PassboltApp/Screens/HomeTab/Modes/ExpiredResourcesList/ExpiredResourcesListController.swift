@@ -43,7 +43,7 @@ extension ExpiredResourcesListController: UIController {
     cancellables: Cancellables
   ) -> Self {
     let resourcesFilterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
-      .init(sorting: .modifiedRecently, expiredOnly: true)
+      .init(sorting: .expiryDate, expiredOnly: true)
     )
 
     func resourcesFilterPublisher() -> AnyPublisher<ResourcesFilter, Never> {

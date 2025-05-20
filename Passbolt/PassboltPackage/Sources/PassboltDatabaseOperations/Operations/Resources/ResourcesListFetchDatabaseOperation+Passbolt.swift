@@ -480,6 +480,8 @@ extension ResourcesListFetchDatabaseOperation {
 
     case .modifiedRecently:
       statement.append("ORDER BY resources.modified DESC")
+    case .expiryDate:
+      statement.append("ORDER BY resources.expired ASC")
     }
 
     // end query

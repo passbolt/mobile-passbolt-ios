@@ -53,6 +53,8 @@ extension ResourcesController {
 
             case .nameAlphabetically:
               return .nameAlphabetically
+            case .expiryDate:
+              return .expiryDate
             }
           }(),
           text: filter.text,
