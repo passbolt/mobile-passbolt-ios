@@ -282,7 +282,6 @@
 "resource.permission.edit.button.delete.title" = "Eliminar permiso";
 
 "resource.folders.add.menu.title" = "Crear";
-"resource.folders.add.menu.password.label" = "Crear contraseña";
 "resource.folders.add.menu.folder.label" = "Crear carpeta";
 
 "group.members.list.title" = "Miembros del grupo";

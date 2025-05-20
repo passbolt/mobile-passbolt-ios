@@ -110,7 +110,11 @@ extension ResourcesListCreateMenuViewController {
   /// - Throws: Error when TOTP resource creation preparation fails
   private func createTOTP(_ slug: ResourceSpecification.Slug) async throws {
     let resourceEditPreparation: ResourceEditPreparation = try features.instance()
-    let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(slug, .none, .none)
+    let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
+      slug,
+      context.folderID,
+      .none
+    )
     let features: Features =
       try features
       .branch(
@@ -140,7 +144,11 @@ extension ResourcesListCreateMenuViewController {
   /// - Throws: Error when password resource creation preparation fails
   private func createPassword(_ slug: ResourceSpecification.Slug) async throws {
     let resourceEditPreparation: ResourceEditPreparation = try features.instance()
-    let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(slug, .none, .none)
+    let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
+      slug,
+      context.folderID,
+      .none
+    )
     await self.navigation.dismissLegacySheet(ResourcesListCreateMenuView.self)
     try await features
       .instance(of: NavigationToResourceEdit.self)
