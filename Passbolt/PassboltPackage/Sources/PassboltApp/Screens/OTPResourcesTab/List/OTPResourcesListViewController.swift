@@ -114,16 +114,17 @@ internal final class OTPResourcesListViewController: ViewController {
             otpResources[item.id] = .init(
               id: item.id,
               name: item.name,
+              isExpired: item.isExpired,
               generateOTP: { () async -> OTPValue? in
                 (try? await otpIterator.next())?.flatMap { $0 }
               }
             )
           }
-          await updateView { (viewState: inout ViewState) in
+          updateView { (viewState: inout ViewState) in
             viewState.otpResources = otpResources
           }
           let avatarImage: Data? = try await accountDetails.avatarImage()
-          await updateView { (viewState: inout ViewState) in
+          updateView { (viewState: inout ViewState) in
             viewState.accountAvatarImage = avatarImage
           }
         }
@@ -245,6 +246,7 @@ internal struct TOTPResourceViewModel {
 
   internal var id: Resource.ID
   internal var name: String
+  internal var isExpired: Bool
   internal var generateOTP: @Sendable () async -> OTPValue?
 }
 

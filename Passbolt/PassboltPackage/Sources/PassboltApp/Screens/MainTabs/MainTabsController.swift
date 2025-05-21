@@ -133,7 +133,7 @@ extension MainTabsController: UIController {
         try await sessionData.refreshIfNeeded()
         // If a user has access to otp resources just show
         // them regardless of feature flag
-        let count: Int = try await resourcesCountFetchDatabaseOperation([.totp, .passwordWithTOTP])
+        let count: Int = try await resourcesCountFetchDatabaseOperation(ResourceSpecification.Slug.allTOTPTypes)
         guard count == 0
         else { return true }
         // if there is no otp resource yet, check the flag

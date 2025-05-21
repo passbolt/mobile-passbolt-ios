@@ -121,6 +121,7 @@ internal struct OTPResourcesListView: ControlledView {
         withEach(\.otpResources.values) { (item: TOTPResourceViewModel) in
           CommonListResourceOTPView(
             name: item.name,
+            isExpired: item.isExpired,
             otpGenerator: item.generateOTP,
             contentAction: { (otp: OTPValue?) in
               await self.controller.revealAndCopyOTP(for: item.id)

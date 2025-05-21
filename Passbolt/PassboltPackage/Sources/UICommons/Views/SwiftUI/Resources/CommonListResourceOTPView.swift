@@ -27,6 +27,7 @@ import SwiftUI
 public struct CommonListResourceOTPView<AccessoryView>: View where AccessoryView: View {
 
   private let name: String
+  private let isExpired: Bool
   private let nextOTP: @Sendable () async -> OTPValue?
   private let contentAction: @MainActor (OTPValue?) async -> Void
   private let accessoryAction: (@MainActor () async -> Void)?
@@ -35,12 +36,14 @@ public struct CommonListResourceOTPView<AccessoryView>: View where AccessoryView
 
   public init(
     name: String,
+    isExpired: Bool,
     otpGenerator: @escaping @Sendable () async -> OTPValue?,
     contentAction: @escaping @MainActor (OTPValue?) async -> Void,
     accessoryAction: (@MainActor () async -> Void)? = .none,
     @ViewBuilder accessory: @escaping @MainActor () -> AccessoryView
   ) {
     self.name = name
+    self.isExpired = isExpired
     self.nextOTP = otpGenerator
     self.contentAction = contentAction
     self.accessoryAction = accessoryAction
@@ -49,10 +52,12 @@ public struct CommonListResourceOTPView<AccessoryView>: View where AccessoryView
 
   public init(
     name: String,
+    isExpired: Bool,
     otpGenerator: @escaping @Sendable () async -> OTPValue?,
     contentAction: @escaping @MainActor (OTPValue?) async -> Void
   ) where AccessoryView == EmptyView {
     self.name = name
+    self.isExpired = isExpired
     self.nextOTP = otpGenerator
     self.contentAction = contentAction
     self.accessoryAction = .none
@@ -63,12 +68,28 @@ public struct CommonListResourceOTPView<AccessoryView>: View where AccessoryView
     CommonListRow(
       content: {
         HStack(spacing: 8) {
-          LetterIconView(text: self.name)
-            .frame(
-              width: 40,
-              height: 40,
-              alignment: .center
-            )
+          ZStack(alignment: .bottomTrailing) {
+            LetterIconView(text: self.name)
+              .frame(
+                width: 40,
+                height: 40,
+                alignment: .center
+              )
+            if isExpired == true {
+              Image(named: .exclamationMark)
+                .resizable()
+                .frame(
+                  width: 12,
+                  height: 12
+                )
+                .alignmentGuide(.trailing) { dim in
+                  dim[HorizontalAlignment.center] + 2
+                }
+                .alignmentGuide(.bottom) { dim in
+                  dim[VerticalAlignment.center] + 2
+                }
+            }
+          }
 
           VStack(alignment: .leading, spacing: 4) {
             Text(name)
@@ -113,13 +134,14 @@ public struct CommonListResourceOTPView<AccessoryView>: View where AccessoryView
 
 #if DEBUG
 
+// swift-format-ignore: NeverForceUnwrap
 internal struct CommonListResourceOTPView_Previews: PreviewProvider {
-
   internal static var previews: some View {
     CommonList {
       CommonListSection {
         CommonListResourceOTPView(
           name: "Resource",
+          isExpired: false,
           otpGenerator: {
             try? await Task.never()
           },
@@ -132,6 +154,7 @@ internal struct CommonListResourceOTPView_Previews: PreviewProvider {
 
         CommonListResourceOTPView(
           name: "Very long name which will surely not fit in one line of text and should be truncated",
+          isExpired: false,
           otpGenerator: {
             try? await Task.never()
           },
@@ -144,6 +167,7 @@ internal struct CommonListResourceOTPView_Previews: PreviewProvider {
 
         CommonListResourceOTPView(
           name: "Very long name which will surely not fit in one line of text and should be truncated",
+          isExpired: false,
           otpGenerator: {
             try? await Task.never()
           },
@@ -158,6 +182,7 @@ internal struct CommonListResourceOTPView_Previews: PreviewProvider {
 
         CommonListResourceOTPView(
           name: "Very long name which will surely not fit in one line of text and should be truncated",
+          isExpired: false,
           otpGenerator: {
             try? await Task.sleep(nanoseconds: NSEC_PER_SEC)
             return .totp(
