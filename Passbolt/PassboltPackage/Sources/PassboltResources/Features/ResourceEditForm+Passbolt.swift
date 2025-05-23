@@ -119,6 +119,8 @@ extension ResourceEditForm {
           .error(displayable: "resource.form.error.invalid")
       }
 
+      resource.createSecretMetadata()
+
       guard let resourceSecret: String = resource.secret.resourceSecretString
       else {
         throw

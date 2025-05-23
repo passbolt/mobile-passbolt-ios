@@ -26,4 +26,5 @@ public enum MetadataObjectType: String, Codable, Sendable, Equatable {
   case resourceMetadata = "PASSBOLT_RESOURCE_METADATA"
   case privateKeyMetadata = "PASSBOLT_METADATA_PRIVATE_KEY"
   case sessionKeys = "PASSBOLT_SESSION_KEYS"
+  case secretData = "PASSBOLT_SECRET_DATA"
 }

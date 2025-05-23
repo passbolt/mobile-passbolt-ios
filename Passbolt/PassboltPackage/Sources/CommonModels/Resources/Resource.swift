@@ -433,6 +433,15 @@ extension Resource {
       return .null
     }
   }
+
+  public mutating func createSecretMetadata() {
+    guard case .object = self.secret
+    else {
+      return  // legacy resource secret
+    }
+
+    self.secret[keyPath: \.object_type] = .string(MetadataObjectType.secretData.rawValue)
+  }
 }
 
 // MARK: - internal

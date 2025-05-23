@@ -360,6 +360,13 @@ extension ResourceType {
       try fieldSpecification.validate(resource.secret)
     }
     else {
+      if let objectType = resource.secret[keyPath: \.object_type].stringValue,
+        objectType != MetadataObjectType.secretData.rawValue
+      {
+        throw
+          InvalidInputData
+          .error(message: "Invalid secret object type")
+      }
       for fieldSpecification in self.specification.secretFields {
         try fieldSpecification.validate(resource.secret[dynamicMember: fieldSpecification.name.rawValue])
       }
