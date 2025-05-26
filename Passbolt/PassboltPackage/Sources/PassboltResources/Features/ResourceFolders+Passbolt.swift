@@ -74,7 +74,6 @@ extension ResourceFolders {
           .init(
             sorting: .nameAlphabetically,
             text: filter.text,
-            excludedTypeSlugs: [.totp],
             folders: .init(
               folderID: filter.folderID,
               flattenContent: filter.flattenContent
