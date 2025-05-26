@@ -36,8 +36,6 @@ internal enum ResourceContextualMenuItem: Hashable, Identifiable {
   case copyDescription
   case copyNote
 
-  case showOTPMenu
-
   case toggle(favorite: Bool)
 
   case share
@@ -120,7 +118,7 @@ internal final class ResourceContextualMenuViewController: ViewController {
           var accessMenuItems: Array<ResourceContextualMenuItem> = .init()
           var modifyMenuItems: Array<ResourceContextualMenuItem> = .init()
 
-          if resource.contains(\.meta.uri) {
+          if resource.contains(\.meta.uris), resource[keyPath: \.meta.uris].arrayValue?.isEmpty == false {
             accessMenuItems.append(.openURI)
             accessMenuItems.append(.copyURI)
           }  // else NOP
@@ -140,10 +138,6 @@ internal final class ResourceContextualMenuViewController: ViewController {
           if resource.contains(\.secret.description) {
             accessMenuItems.append(.copyNote)
           }  // else NOP
-
-          if resource.hasTOTP {
-            accessMenuItems.append(.showOTPMenu)
-          }
 
           modifyMenuItems.append(.toggle(favorite: resource.favorite))
 
@@ -183,10 +177,10 @@ extension ResourceContextualMenuViewController {
   ) async {
     switch item {
     case .openURI:
-      await self.openURL(field: \.meta.uri)
+      await self.openURL(field: \.meta.uris)
 
     case .copyURI:
-      await self.copy(field: \.meta.uri)
+      await self.copy(field: \.meta.uris)
 
     case .copyUsername:
       await self.copy(field: \.meta.username)
@@ -202,9 +196,6 @@ extension ResourceContextualMenuViewController {
       await self.copy(field: \.description)
     case .copyNote:
       await self.copy(field: \.secret.description)
-
-    case .showOTPMenu:
-      await self.showOTPMenu()
 
     case .toggle(favorite: _):
       await self.toggleFavorite()
@@ -242,6 +233,12 @@ extension ResourceContextualMenuViewController {
         resource = try await self.resourceController.state.value
       }  // else continue
 
+      var path = path
+      if field.content == .list {
+        // if field is list, we take first element
+        path = path.appending(path: \.0)
+      }
+
       try await self.linkOpener.openURL(.init(rawValue: resource[keyPath: path].stringValue ?? ""))
 
       try await self.navigationToSelf.revert()
@@ -270,6 +267,12 @@ extension ResourceContextualMenuViewController {
         resource = try await self.resourceController.state.value
       }  // else continue
 
+      var path = path
+      if field.content == .list {
+        // if field is list, we take first element
+        path = path.appending(path: \.0)
+      }
+
       self.pasteboard.put(resource[keyPath: path].stringValue ?? "")
 
       try await self.navigationToSelf.revert()
@@ -282,17 +285,6 @@ extension ResourceContextualMenuViewController {
               field.name.displayable.string()
             ]
           )
-        )
-      )
-    }
-  }
-
-  private final func showOTPMenu() async {
-    await consumingErrors {
-      try await self.navigationToSelf.revert()
-      try await self.navigationToResourceOTPMenu.perform(
-        context: .init(
-          revealOTP: self.context.revealOTP
         )
       )
     }

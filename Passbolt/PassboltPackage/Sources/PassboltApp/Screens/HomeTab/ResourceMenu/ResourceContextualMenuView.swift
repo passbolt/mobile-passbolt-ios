@@ -146,19 +146,6 @@ extension ResourceContextualMenuItem {
         }
       )
 
-    case .showOTPMenu:
-      DrawerMenuItemView(
-        action: {
-          await controller.performAction(for: self)
-        },
-        title: {
-          Text(displayable: "resource.menu.item.otp.menu")
-        },
-        leftIcon: {
-          Image(named: .otp)
-            .resizable()
-        }
-      )
     case .toggle(favorite: true):
       DrawerMenuItemView(
         action: {

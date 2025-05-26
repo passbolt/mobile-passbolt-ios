@@ -281,7 +281,6 @@
 "resource.menu.item.share" = "Share password";
 "resource.menu.item.edit.password" = "Edit password";
 "resource.menu.item.edit.otp" = "Edit TOTP";
-"resource.menu.item.otp.menu" = "Manage TOTP";
 "resource.menu.item.delete.resource" = "Delete password";
 "resource.menu.item.delete.otp" = "Delete TOTP";
 "resource.menu.item.password" = "Password";
