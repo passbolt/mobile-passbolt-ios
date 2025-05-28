@@ -1,0 +1,729 @@
+//
+// Passbolt - Open source password manager for teams
+// Copyright (c) 2021 Passbolt SA
+//
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+// Public License (AGPL) as published by the Free Software Foundation version 3.
+//
+// The name "Passbolt" is a registered trademark of Passbolt SA, and Passbolt SA hereby declines to grant a trademark
+// license to "Passbolt" pursuant to the GNU Affero General Public License version 3 Section 7(e), without a separate
+// agreement with Passbolt SA.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License along with this program. If not,
+// see GNU Affero General Public License v3 (http://www.gnu.org/licenses/agpl-3.0.html).
+//
+// @copyright     Copyright (c) Passbolt SA (https://www.passbolt.com)
+// @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
+// @link          https://www.passbolt.com Passbolt (tm)
+// @since         v1.0
+//
+// Shared and commons
+
+
+"generic.done" = "Виконано";
+"generic.yes" = "Так";
+"generic.apply" = "Прийняти";
+"generic.confirm" = "Підтвердити";
+"generic.cancel" = "Скасувати";
+"generic.remove" = "Видалити";
+"generic.loading" = "Завантажується…";
+"generic.loading.long" = "Це займає більше часу, ніж звичайно…";
+"generic.continue" = "Продовжити";
+"generic.retry" = "Повторити";
+"generic.try.again" = "Спробувати знову";
+"generic.delete" = "Видалити";
+"generic.got.it" = "Зрозуміло";
+"generic.settings" = "Налаштування";
+"generic.disable" = "Вимкнути";
+"generic.sign.out" = "Вийти";
+"generic.refresh" = "Оновити";
+"generic.create" = "Створити";
+"generic.empty.list" = "Немає результатів";
+"generic.user.search.list.empty" = "Користувача не знайдено.";
+"generic.paste.value.invalid" = "Намагаєтеся вставити недійсне значення";
+"generic.are.you.sure" = "Ви впевнені?";
+"generic.picker.select.placeholder" = "Обрати";
+
+"account.selection.title" = "З поверненням!";
+"account.selection.subtitle" = "Оберіть обліковий запис для входу!";
+"account.selection.remove.account.button.title" = "Видалити обліковий запис із цього пристрою";
+"account.selection.add.account.footer.title" = "Додати новий обліковий запис";
+"account.selection.remove.account.title" = "Відʼєднати обліковий запис";
+"account.selection.remove.account.subtitle" = "Оберіть обліковий запис для відʼєднання.";
+"account.selection.remove.alert.title" = "Ви впевнені?";
+"account.selection.remove.alert.message" = "Це видалить ваш обліковий запис із цього пристрою. Ваші паролі не буде видалено.";
+"account.selection.account.removed" = "Обліковий запис було вилучено з цього пристрою.";
+
+"authorization.button.title" = "Увійти";
+"authorization.reverification.button.title" = "Підтвердити парольну фразу";
+"authorization.forgot.passphrase.button.title" = "Я забув свою парольну фразу";
+"authorization.forgot.passphrase.alert.title" = "Ви забули свою парольну фразу?";
+"authorization.forgot.passphrase.alert.message" = "На жаль, ви не можете отримати доступ до своїх даних, якщо не памʼятаєте свою парольну фразу. Зверніться до адміністратора, щоб розблокувати свій обліковий запис.";
+"authorization.passphrase.description.text" = "Парольна фраза";
+"authorization.title" = "Введіть свою парольну фразу";
+
+"sign.in.title" = "Введіть свою парольну фразу";
+
+"resource.list.username.empty.placeholder" = "немає імені користувача";
+
+"resource.detail.field.name" = "Назва";
+"resource.detail.field.username" = "Ім'я користувача";
+"resource.detail.field.passphrase" = "Пароль";
+"resource.detail.field.uri" = "URL вебсайту";
+"resource.detail.field.description" = "Опис";
+"resource.show.field.uri.placeholder" = "Немає URI";
+"resource.show.field.username.placeholder" = "Немає імені користувача";
+"resource.show.field.password.placeholder" = "Немає пароля";
+"resource.show.field.description.placeholder" = "Немає опису";
+"resource.value.copied" = "%@ скопійовано до вашого буфера обміну!";
+"resource.details.value" = "Значення";
+"resource.detail.section.location" = "Розташування";
+"resource.detail.section.permissions" = "Надано спільний доступ";
+"resource.detail.section.tags" = "Теги";
+"resource.detail.section.expiry" = "Термін дії";
+"resource.detail.section.expiry.expired" = "Прострочено";
+"resource.detail.section.expiry.willExpire" = "Спливає через";
+"resource.detail.undefined.content.warning" = "Тип не підтримується, невідомі поля приховано!";
+
+"resource.expiry.expired" = "(прострочено)";
+
+"resource.delete.succeeded" = "Ресурс було видалено.";
+
+"resource.field.name.unknown" = "Значення";
+"section.tags.empty" = "Немає тегів";
+
+"server.key.fingerprint.changed.title" = "На жаль, ключ сервера було змінено.";
+"server.key.fingerprint.changed.description" = "З міркувань безпеки зверніться до свого адміністратора, щоб переконатися, що вони ініціювали цю зміну. Новий відбиток:";
+"server.key.fingerprint.accept.check" = "Так, я перевірив, все гаразд.";
+"server.key.fingerprint.accept.new.key" = "Прийняти новий ключ";
+
+"resource.form.password.strength" = "Надійність пароля";
+"resource.form.strength.very.weak" = "Дуже слабкий";
+"resource.form.strength.weak" = "Слабкий";
+"resource.form.strength.fair" = "Посередній";
+"resource.form.strength.strong" = "Сильний";
+"resource.form.strength.very.strong" = "Дуже сильний";
+"resource.form.create.button.title" = "Створити";
+"resource.form.create.and.fill.button.title" = "Створити і заповнити";
+"resource.form.update.button.title" = "Зберегти";
+"resource.form.new.password.created" = "Новий пароль створено";
+"resource.form.description.encrypted" = "Опис зашифровано";
+"resource.form.description.unencrypted" = "Опис не зашифровано";
+"resource.form.undefined.content.warning" = "Тип не підтримується, невідомі поля приховано!";
+
+"feedback.alert.title" = "Можливо, ваш пристрій зламано (jailbreak)";
+"feedback.alert.message" = "Ми підозрюємо, що ваш пристрій може бути зламано (jailbreak). Майте на увазі, що це знижує загальний рівень безпеки пристрою і зловмисники можуть використати це, щоб отримати ваші паролі.";
+"feedback.alert.button.title" = "Я розумію";
+
+"account.not.found.title.label" = "Облікового запису не існує";
+"account.not.found.message.label" = "Обліковий запис видалено або призупинено";
+"account.not.found.action.button.title" = "Під'єднатися до наявного облікового запису";
+
+"server.not.reachable.alert.title" = "Сервер недоступний!";
+"server.not.reachable.alert.message.server.placeholder" = "Сервер";
+"server.not.reachable.alert.message" = "Неможливо під'єднатися до %@. Будь ласка, спробуйте ще раз";
+
+"resource.edit.create.title" = "Створити ресурс";
+"resource.edit.title" = "Редагувати ресурс";
+"resource.password.edit.title" = "Редагувати пароль";
+"resource.edit.field.name.label" = "Назва";
+"resource.edit.field.uri.label" = "Основний URI";
+"resource.edit.field.username.label" = "Ім'я користувача";
+"resource.edit.field.password.label" = "Пароль";
+"resource.edit.field.description.label" = "Опис";
+"resource.edit.field.totp.label" = "TOTP";
+"resource.edit.field.add.totp" = "TOTP";
+"resource.edit.field.add.note" = "Примітка";
+"resource.edit.field.add.password" = "Пароль";
+"resource.edit.field.name.placeholder" = "Введіть назву";
+"resource.edit.field.uri.placeholder" = "Введіть URI";
+"resource.edit.field.username.placeholder" = "Введіть ім'я користувача";
+"resource.edit.field.password.placeholder" = "Введіть пароль";
+"resource.edit.field.description.placeholder" = "Введіть опис";
+"resource.edit.exit.confirmation.message" = "Ваші зміни не будуть збережені.";
+"resource.edit.exit.confirmation.button.edit.title" = "Редагувати";
+"resource.edit.exit.confirmation.button.revert.title" = "Скасувати зміни";
+"resource.edit.note.content.title" = "Вміст";
+"resource.edit.note.content.disclaimer" = "Ця безпечна частина є частиною секрету. Якщо ви бажаєте мати змогу шукати цей вміст, скористайтеся описом метаданих.";
+"resource.edit.note.remove.button.title" = "Видалити примітку";
+
+"resource.edit.section.password.title" = "Пароль";
+"resource.edit.section.totp.title" = "TOTP";
+"resource.edit.section.note.title" = "Примітка";
+"resource.edit.section.metadata.title" = "Метадані";
+"resource.edit.totp.remove.button.title" = "Вилучити TOTP";
+
+"resource.create.advanced.button" = "Переглянути додаткові налаштування";
+"resource.create.additional.secrets.title" = "Додаткові секрети";
+"resource.create.advanced.add.otp" = "TOTP";
+
+"resource.edit.section.metadata.description" = "Опис";
+"resource.edit.section.metadata.description.name" = "Опис метаданих";
+"resource.edit.section.metadata.description.description" = "Якщо ви хочете, щоб опис був частиною секрету, використовуйте примітку замість нього.";
+
+"resource.create.menu.title" = "Створити ресурс";
+"resource.create.menu.password" = "Пароль";
+"resource.create.menu.totp" = "TOTP";
+
+"resource.create.invalid.configuration" = "Неможливо створити ресурс з поточною конфігурацією.";
+"resource.edit.invalid.configuration" = "Неможливо редагувати ресурс з поточною конфігурацією.";
+
+"help.logs.viewer.title" = "Журнали";
+
+"help.menu.title" = "Довідка";
+"help.menu.show.logs.action.title" = "Переглянути журнали";
+"help.menu.show.web.help.action.title" = "Перейти на сторінку довідки";
+"help.menu.show.import.account.kit.title" = "Імпортуйте комплект вашого облікового запису";
+
+// Main application
+
+"welcome.title" = "Ласкаво просимо!";
+"welcome.description" = "Потрібен наявний обліковий запис, щоб почати роботу. Увійдіть за допомогою існуючого облікового запису в розширенні браузера на компʼютері, щоб підʼєднати його до мобільного пристрою.";
+"welcome.connect.to.account" = "Підключитися до існуючого облікового запису";
+"welcome.no.account" = "У мене немає облікового запису";
+"welcome.no.account.alert.title" = "Як створити обліковий запис?";
+"welcome.no.account.alert.text" = "Створити обліковий запис за допомогою мобільного додатка зараз неможливо. Спочатку створіть обліковий запис за допомогою розширення браузера на компʼютері.";
+"code.scanning.exit.confirmation.confirm.button.title" = "Зупинити сканування";
+"code.scanning.help.menu.button.title" = "Навіщо сканувати QR-коди?";
+"code.scanning.help.title" = "Сканування QR-кодів";
+"code.scanning.help.message" = "Ви побачите послідовність QR-кодів. Ми будемо сканувати ці коди, доки смуга прогресу не буде заповнена, і тоді ви зможете увійти в систему!";
+"code.scanning.camera.unavailable" = "На жаль, вам потрібен пристрій з працюючою камерою, оскільки передавання ключа здійснюється за допомогою QR-кодів.";
+"code.scanning.begin" = "Наведіть камеру на QR-коди";
+"code.scanning.processing.in.progress" = "Сканування... Продовжуйте!";
+"code.scanning.processing.invalid.code" = "Це не QR-код Passbolt. Спробуйте ще раз!";
+
+
+"transfer.account.title" = "Передати дані облікового запису";
+"transfer.account.import.description" = "Скануйте QR-коди, щоб передати дані вашого облікового запису";
+"transfer.account.import.info.step.first" = "Увійдіть за допомогою розширення браузера";
+"transfer.account.import.info.step.second" = "Перейдіть на сторінку Профіль";
+"transfer.account.import.info.step.second.distinct" = "Профіль";
+"transfer.account.import.info.step.third" = "Перейдіть до розділу Mobile";
+"transfer.account.import.info.step.third.distinct" = "Mobile";
+"transfer.account.import.info.step.fourth" = "Відскануйте послідовність QR-кодів";
+"transfer.account.import.scan.qr.button" = "Сканувати QR-коди";
+"transfer.account.export.description" = "Показати QR-коди, щоб передати дані вашого облікового запису";
+"transfer.account.export.info.step.first" = "Встановіть застосунок на інший мобільний пристрій";
+"transfer.account.export.info.step.second" = "Запустіть застосунок";
+"transfer.account.export.info.step.third" = "Виберіть «Підключитися до існуючого облікового запису»";
+"transfer.account.export.info.step.fourth" = "Відскануйте послідовність QR-кодів";
+"transfer.account.export.scan.qr.button" = "Почати передавання";
+"transfer.account.export.cancel.button" = "Скасувати передавання";
+"transfer.account.camera.access.alert.title" = "Потрібен доступ до камери";
+"transfer.account.camera.access.alert.text" = "Перейдіть до Налаштувань/Конфіденційність/Камера, щоб дозволити доступ до камери.";
+"transfer.account.result.success.title" = "Вашу інформацію передано!";
+"transfer.account.result.already.linked.title" = "Обліковий запис уже під'єднано до пристрою.";
+"transfer.account.result.canceled.title" = "Передавання скасовано.";
+"transfer.account.kit.result.success.title" = "Ваш комплект облікового запису було імпортовано!";
+
+"transfer.account.exit.confirmation.title" = "Ви впевнені?";
+"transfer.account.exit.confirmation.message" = "Якщо ви вийдете, вам доведеться сканувати QR-коди знову.";
+"transfer.account.import.exit.confirmation.cancel.button.title" = "Продовжити налаштування";
+"transfer.account.import.exit.confirmation.confirm.button.title" = "Скасувати налаштування";
+"transfer.account.export.exit.confirmation.confirm.button.title" = "Зупинити передавання";
+"transfer.account.export.exit.success.button" = "Повернутися";
+"transfer.account.export.exit.failure.button" = "Спробувати ще раз";
+"transfer.account.export.failure.message" = "Не вдалося завершити передавання.";
+"transfer.account.export.cancelled" = "Передавання було скасовано";
+"transfer.account.exit.confirmation.cancel.button.title" = "Продовжити налаштування";
+"transfer.account.exit.confirmation.confirm.button.title" = "Скасувати налаштування";
+
+"biometrics.usage.reason" = "Ви можете використовувати біометрію для безпечного збереження вашої парольної фрази.";
+
+"biometrics.info.title" = "Налаштувати біометрію";
+"biometrics.info.description" = "Якщо ви бажаєте використовувати FaceID або TouchID як швидкий спосіб входу, налаштуйте це в Налаштуваннях.";
+"biometrics.info.setup.button" = "Налаштувати біометрію";
+"biometrics.info.later.button" = "Можливо, пізніше";
+
+"biometrics.setup.title.face" = "Використовуйте Face ID замість парольної фрази!";
+"biometrics.setup.title.finger" = "Використовуйте Touch ID замість парольної фрази!";
+"biometrics.setup.description" = "Розблокуйте свої секрети за секунду.";
+"biometrics.setup.setup.button.face" = "Використовувати FaceID";
+"biometrics.setup.setup.button.finger" = "Використовувати TouchID";
+"biometrics.setup.later.button" = "Можливо, пізніше";
+
+"extension.setup.title" = "Увійдіть у свої улюблені додатки за 3 секунди!";
+"extension.setup.settings.step" = "Перейдіть у Налаштування";
+"extension.setup.settings.step.bold" = "Налаштування";
+"extension.setup.keyboard.step" = "Відкрити автозаповнення паролів";
+"extension.setup.keyboard.step.bold" = "Автозаповнення паролів";
+"extension.setup.switch.step" = "Увімкнути автозаповнення паролів";
+"extension.setup.switch.step.bold" = "Увімкнути";
+"extension.setup.keychain.step" = "Вимкнути Keychain";
+"extension.setup.keychain.step.bold" = "Вимкнути";
+"extension.setup.passbolt.step" = "Оберіть Passbolt!";
+"extension.setup.passbolt.step.bold" = "Passbolt!";
+"extension.setup.setup.button" = "Перейдіть до налаштувань";
+"extension.setup.later.button" = "Можливо, пізніше";
+
+"tab.home" = "Головна";
+"tab.otp" = "TOTP";
+"tab.settings" = "Налаштування";
+
+"authorization.prompt.refresh.session.reason" = "Будь ласка, пройдіть автентифікацію, щоб оновити сесію";
+"authorization.prompt.biometrics.set.reason" = "Будь ласка, пройдіть автентифікацію, щоб увімкнути біометрію.";
+
+"resources.search.placeholder" = "Шукати за назвою, іменем користувача, URL або тегом…";
+
+"resource.menu.item.open.url" = "Відкрити вебсайт";
+"resource.menu.item.copy.url" = "Скопіювати URL";
+"resource.menu.item.copy.password" = "Скопіювати пароль";
+"resource.menu.item.copy.username" = "Скопіювати імʼя користувача";
+"resource.menu.item.copy.description" = "Скопіювати опис";
+"resource.menu.item.copy.note" = "Скопіювати примітку";
+"resource.menu.item.reveal.otp" = "Показати TOTP";
+"resource.menu.item.copy.otp" = "Скопіювати TOTP";
+"resource.menu.item.add.favorite" = "Додати в обране";
+"resource.menu.item.remove.favorite" = "Видалити з обраного";
+"resource.menu.item.share" = "Поділитися паролем";
+"resource.menu.item.edit.password" = "Редагувати пароль";
+"resource.menu.item.edit.otp" = "Редагувати TOTP";
+"resource.menu.item.delete.resource" = "Видалити пароль";
+"resource.menu.item.delete.otp" = "Видалити TOTP";
+"resource.menu.item.password" = "Пароль";
+"resource.menu.item.username" = "Ім'я користувача";
+"resource.menu.item.description" = "Опис";
+"resource.menu.item.url" = "URL";
+"resource.menu.item.field.copied" = "%@ скопійовано до вашого буфера обміну!";
+
+"resource" = "Ресурс";
+"resource.menu.action.favorite.added" = "%@ додано в обране!";
+"resource.menu.action.favorite.removed" = "%@ видалено з обраного!";
+
+"resource.menu.action.edited" = "Цей пароль було успішно відредаговано.";
+"resource.menu.action.deleted" = "%@ видалено!";
+
+"resource.permission.type.read.label" = "може читати";
+"resource.permission.type.write.label" = "може оновлювати";
+"resource.permission.type.own.label" = "є власником";
+"resource.permission.list.title" = "Надано спільний доступ";
+"resource.permission.list.edit.button.title" = "Редагувати дозволи";
+"resource.permission.edit.list.title" = "Поділитися паролем";
+"resource.permission.edit.list.empty.message" = "Будь ласка, переконайтеся, що є принаймні один власник.";
+"resource.permission.edit.list.add.button.title" = "Додати користувачів";
+"resource.permission.edit.user.and.group.search.title" = "Виберіть користувачів";
+"resource.permission.edit.user.and.group.search.prompt" = "Шукати користувачів...";
+"resource.permission.edit.user.and.group.search.existing.section.title" = "Вже додано";
+"resource.permission.delete.user.permission.confirmation.message" = "Пароль більше не буде спільним із цим користувачем.";
+"resource.permission.delete.user.group.permission.confirmation.message" = "Пароль більше не буде спільним із цією групою.";
+
+"resource.permission.details.title" = "Дозвіл";
+"resource.permission.details.user.suspended" = "призупинено";
+
+"permission.details.type.section.title" = "Дозвіл";
+"permission.details.group.members.section.title" = "Учасники групи";
+"permission.details.user.suspended" = "призупинено";
+
+"resource.permission.edit.button.delete.title" = "Видалити дозвіл";
+
+"resource.folders.add.menu.title" = "Створити ресурс";
+"resource.folders.add.menu.folder.label" = "Тека";
+
+"group.members.list.title" = "Учасники групи";
+"group.members.member.details.title" = "Учасник групи";
+
+"totp.title.label" = "Двофакторна автентифікація";
+"totp.message.label" = "Введіть код підтвердження:";
+"totp.paste.otp.button.label" = "Вставити код";
+"totp.remember.device.toggle.label" = "Запамʼятати цей пристрій на 30 днів";
+
+"yubiKey.scan.instruction" = "Прикладіть свій YubiKey до пристрою.";
+"yubiKey.scan.success" = "Сканування виконано успішно";
+"yubiKey.scan.notRecognized.title" = "YubiKey не розпізнано";
+"yubiKey.scan.notRecognized.button.ok" = "Зрозуміло";
+"yubiKey.scan.notRecognized.message" = "Ваш YubiKey не розпізнано сервером.\nСпробуйте інший YubiKey або іншого провайдера.";
+"mfa.yubiKey.title" = "YubiKey OTP";
+"mfa.yubiKey.description" = "Зверніть увагу, що ваш YubiKey повинен підтримувати
+NFC, щоб це працювало.";
+"mfa.yubiKey.scan" = "Скануйте ваш YubiKey";
+"mfa.yubiKey.nfc.not.supported" = "Цей пристрій не підтримує NFC.";
+"mfa.provider.try.another" = "Спробуйте іншого провайдера";
+"mfa.remember.token" = "Запамʼятати цей пристрій на 30 днів";
+"mfa.unsupported.provider.title" = "Ваш постачальник MFA не підтримується";
+"mfa.unsupported.provider.description" = "Будь ласка, налаштуйте іншого постачальника в вебдодатку.
+Зверніться до адміністратора за детальнішою інформацією.";
+"mfa.duo.authorization.title" = "Багатофакторна автентифікація Duo";
+"mfa.duo.authorization.button.title" = "Автентифікуватися через Duo";
+
+"account.menu.title" = "Перемкнути обліковий запис";
+"account.menu.account.details.button.title" = "Переглянути деталі";
+"account.menu.sign.out.button.title" = "Вийти";
+"account.menu.manage.accounts.button.title" = "Управляти обліковими записами";
+
+"account.details.title" = "Дані облікового запису";
+"account.details.field.label.title" = "Мітка";
+"account.details.field.label.editing.info" = "Мітка показуватиметься у списку облікових записів та під час автентифікації";
+"account.details.field.name.title" = "Ім'я";
+"account.details.field.email.title" = "E-mail";
+"account.details.field.url.title" = "URL організації";
+"account.details.field.role.title" = "Роль";
+"account.details.button.save.title" = "Зберегти";
+
+"update.available.title" = "Нова версія доступна!";
+"update.available.message" = "Оновіть застосунок Passbolt до останньої версії з App Store";
+
+// Autofill extension
+
+"autofill.extension.setup.completed.title" = "Автозаповнення Passbolt увімкнено!";
+"autofill.extension.setup.completed.info" = "Після того, як ви заповните форму, достатньо натиснути на поле введення, і ввімкнене автозаповнення запропонує заповнити його з облікових даних, які вже додані в застосунок Passbolt.";
+
+"autofill.extension.account.selection.switch.account.title" = "Перемкнути обліковий запис";
+"autofill.extension.account.selection.switch.account.subtitle" = "Оберіть обліковий запис, щоб перемкнутися!";
+"autofill.extension.account.selection.sign.in.title" = "Ви не авторизовані";
+"autofill.extension.account.selection.sign.in.subtitle" = "Оберіть обліковий запис для входу!";
+
+"autofill.extension.no.accounts.title" = "Не знайдено жодного облікового запису!";
+"autofill.extension.no.accounts.description" = "Для початку роботи потрібен обліковий запис. Будь ласка, відкрийте застосунок Passbolt і дотримуйтесь інструкцій з налаштування. Після цього Passbolt зможе автоматично заповнювати облікові дані.";
+
+"autofill.extension.resource.list.title" = "Оберіть пароль";
+"autofill.extension.resource.list.section.suggested.title" = "Запропоновані";
+"autofill.extension.resource.list.section.all.title" = "Інші";
+
+"autofill.extension.autofill.extension.resources.search.placeholder" = "Шукати в Passbolt…";
+
+"mfa.required.title" = "Потрібна MFA";
+"autofill.extension.mfa.required.description" = "Будь ласка, скористайтеся застосунком Passbolt, щоб завершити автентифікацію.";
+
+"folder.edit.form.create.title" = "Створити теку";
+"folder.edit.form.name.field.placeholder" = "Тека без назви";
+"folder.edit.form.created" = "Створено нову теку %@!";
+
+"resource.folder.menu.open.details.label" = "Переглянути деталі";
+
+// Common UI
+
+"folder.root.name" = "Кореневий каталог";
+
+"folder.name.title" = "Назва";
+"folder.location.title" = "Розташування";
+"permissions.avatars.view.title" = "Дозволи";
+"shared.avatars.view.title" = "Надано спільний доступ";
+
+// Forms common
+
+"form.field.name.title" = "Назва";
+
+"form.button.save.title" = "Зберегти";
+
+// Errors
+
+"generic.error" = "Щось пішло не так!";
+"generic.error.retry" = "Щось пішло не так, спробуйте ще раз.";
+"generic.error.report" = "Щось пішло не так, надішліть звіт про помилку.";
+"generic.error.cancelled" = "Операцію скасовано.";
+"sign.in.error.message" = "Не вдалося виконати вхід";
+"sign.in.error.biometrics.changed.message" = "Схоже, що біометричні дані пристрою змінилися. Будь ласка, введіть свою парольну фразу та налаштуйте біометрію знову";
+"sign.in.error.passphrase.invalid.message" = "Неправильна парольна фраза.";
+"server.fingerprint.save.failed" = "Не вдалося зберегти відбиток сервера.";
+"form.field.error.max.length" = "Перевищено максимальну довжину.";
+"form.error.invalid" = "Форму заповнено некоректно";
+"resource.form.field.error.empty" = "Це поле не може бути порожнім";
+"resource.from.field.error.invalid.value" = "Недійсне значення для цього поля";
+"resource.form.field.error.max.length" = "Перевищено максимальну довжину.";
+"resource.form.field.error.invalid" = "Недійсне значення поля";
+"resource.form.error.invalid" = "Форму заповнено некоректно";
+"authorization.passphrase.error" = "Парольна фраза невірна!";
+"account.settings.biometrics.error" = "Не вдалося налаштувати біометрію.";
+"totp.wrong.code.error" = "Неправильний код";
+"error.another.account.transfer.in.progress" = "Наразі виконується інше передавання облікового запису. Будь ласка, спочатку завершіть його.";
+"resource.menu.action.failed" = "%@ не вдалося!";
+"mfa.yubiKey.scan.failed" = "Помилка сканування";
+
+"error.internal.inconsistency" = "Внутрішня помилка, будь ласка, повідомте про помилку.";
+"error.feature.unavailable" = "Функція недоступна.";
+"error.nfc.not.supported" = "NFC не підтримується.";
+"error.nfc.payload.invalid" = "Неправильний вміст NFC.";
+"error.url.invalid" = "Неправильний URL.";
+"error.internet.connection.issue" = "Неможливо під'єднатися до інтернету.";
+"error.client.certificate.invalid" = "Недійсний клієнтський сертифікат.";
+"error.server.connection.issue" = "Неможливо під'єднатися до сервера.";
+"error.server.time.issue" = "Час сервера та клієнта не синхронізовано, зверніться до адміністратора.";
+"error.server.response.invalid" = "Неправильна відповідь сервера";
+"error.server.response.timeout" = "Час очікування відповіді сервера вичерпано.";
+"error.server.certificate.invalid" = "Недійсний сертифікат сервера.";
+"error.http.request.invalid" = "Неправильний HTTP-запит.";
+"error.http.response.invalid" = "Неправильна HTTP-відповідь.";
+"error.network.response.invalid" = "Неправильна мережева відповідь";
+"error.http.response.forbidden" = "HTTP заборонено.";
+"error.http.response.conflict" = "Конфлікт HTTP.";
+"error.http.response.not.found" = "HTTP не знайдено.";
+"error.http.response.redirect" = "HTTP переспрямування.";
+"error.http.request.invalid" = "Некоректний HTTP-запит.";
+"error.http.response.invalid" = "Некоректна HTTP-відповідь.";
+"error.http.response.status.code.unexpected" = "Неочікуваний статус-код HTTP.";
+"error.http.response.unauthorized" = "HTTP неавторизовано.";
+"error.network.response.decoding.failed" = "Не вдалося декодувати мережеву відповідь.";
+"error.network.request.validation.failure" = "Перевірка мережевого запиту не пройдена.";
+"error.session.authorization.required" = "Потрібна авторизація сесії";
+"error.session.authorization.mfa.required" = "Потрібна дворівнева авторизація сесії.";
+"error.session.missing" = "Сесія відсутня.";
+"error.crypto.data.signature.invalid" = "Неправильний підпис даних.";
+"error.crypto.passphrase.invalid" = "Недійсна парольна фраза.";
+"error.crypto.pgp.fingerprint.invalid" = "Неправильний PGP-відбиток.";
+"error.crypto.pgp.fingerprint.mismatch" = "Невідповідність PGP-відбитка.";
+"error.crypto.pgp.keyring.preparation.failed" = "Не вдалося підготувати зв'язку ключів PGP";
+"error.crypto.pgp.keypacket.extraction.failed" = "Не вдалося витягти пакет ключа PGP.";
+"error.crypto.pgp.sessionkey.extraction.failed" = "Не вдалося витягти PGP ключ сесії.";
+"error.crypto.pgp.public.key.invalid" = "Недійсний публічний PGP-ключ.";
+"error.data.empty" = "Дані не надано.";
+"error.data.invalid" = "Неправильні дані.";
+"error.resource.permission.required" = "Потрібен дозвіл.";
+"error.resource.secret.invalid" = "Секрет ресурсу неправильний.";
+"error.resource.permission.invalid" = "Дозвіл ресурсу неправильний.";
+"error.resource.owner.missing" = "У ресурсу має бути принаймні один власник.";
+"error.system.feature.inaccessible" = "Функція системи недоступна.";
+"error.system.feature.permission.not.granted" = "Дозвіл на використання функції системи не надано.";
+"error.system.feature.permission.required" = "Потрібен дозвіл на використання функції системи.";
+"error.system.feature.status.undetermined" = "Статус функції системи не визначено.";
+"error.system.file.access.issue" = "Не вдалося отримати доступ до файлу.";
+"error.system.directory.access.issue" = "Не вдалося отримати доступ до теки.";
+"error.database.statement.invalid" = "Неправильний вираз бази даних.";
+"error.database.statement.execution.failure" = "Помилка виконання виразу бази даних.";
+"error.database.migration.failure" = "Не вдалося виконати міграцію бази даних.";
+"error.database.connection.issue" = "Неможливо під'єднатися до бази даних.";
+"error.database.connection.closed" = "Підключення до бази даних закрито.";
+"error.database.binding.invalid" = "Неправильна привʼязка даних бази даних.";
+"error.database.result.empty" = "Результат запиту бази даних порожній.";
+"error.database.result.invalid" = "Неправильний результат запиту бази даних";
+"error.keychain.authorization.failed" = "Не вдалося авторизуватися в Keychain.";
+"error.keychain.failure" = "Помилка доступу до Keychain.";
+"error.keychain.query.invalid" = "Неправильний запит Keychain.";
+"error.account.private.key.missing" = "Відсутній приватний ключ облікового запису.";
+"error.account.profile.data.missing" = "Відсутні дані профілю облікового запису.";
+"error.account.passphrase.missing" = "Відсутня парольна фраза облікового запису.";
+"error.account.data.missing" = "Відсутні дані облікового запису.";
+"error.account.biometry.data.changed" = "Дані біометрії було змінено.";
+"error.account.kit.fail.to.import" = "Не вдалося імпортувати комплект облікового запису.";
+"error.account.kit.signature.verification" = "Не вдалося перевірити підпис.";
+"error.users.list.empty" = "Список користувачів не може бути порожнім.";
+"error.user.public.key.invalid" = "Недійсний публічний ключ користувача.";
+"error.user.public.key.missing" = "Відсутній публічний ключ користувача.";
+"error.user.secret.missing" = "Відсутній секрет користувача.";
+"error.session.closed" = "Сесію закрито.";
+"error.account.duplicate" = "Дубльований обліковий запис.";
+"error.server.pgp.fingerprint.invalid" = "Недійсний PGP-відбиток сервера.";
+"error.session.authorization.failed" = "Не вдалося авторизувати сесію.";
+"error.qrcode.invalid" = "Це не QR-код Passbolt. Спробуйте знову!";
+
+"error.validation.folder.name.empty" = "Назву теки не може бути порожньою.";
+"error.validation.folder.name.too.long" = "Назва теки не може містити більше ніж 256 символів.";
+
+"error.validation.permissions.empty" = "Має бути принаймні один дозвіл.";
+"error.validation.permissions.owner.required" = "Має бути принаймні один власник.";
+
+"error.validation.form.invalid" = "Форму заповнено некоректно.";
+"error.biometrics.unavailable.message" = "Біометрія недоступна";
+
+"error.qrcode.generation.generic" = "QR-код не вдалося згенерувати з наданих даних";
+
+"error.otp.configuration.invalid" = "Недійсна конфігурація OTP.";
+
+// Validation errors
+
+"error.resource.field.empty" = "%@ не може бути порожнім!";
+"error.resource.field.length.lower" = "%@ не може містити більше %d символів!";
+"error.resource.field.length.higher" = "%@ не може містити менше %d символів!";
+"error.resource.field.range.lower" = "%@ має бути меншим за %d!";
+"error.resource.field.range.greater" = "%@ має бути більшим за %d!";
+"error.resource.field.content.invalid" = "%@ має невірний вміст!";
+"error.resource.field.selection.invalid" = "%@ має бути одним із допустимих варіантів!";
+"error.resource.field.unknown" = "Невідомі поля не очікуються!";
+"error.validation.password.length.invalid" = "Невірні налаштування довжини пароля!";
+"error.validation.password.mask.empty" = "Маска терміну дії пароля не може бути порожньою!";
+
+// Home - presentation mode menu
+
+"home.presentation.mode.menu.title" = "Фільтр відображення";
+
+// Presentation modes
+
+"home.presentation.mode.plain.resources.title" = "Усі елементи";
+"home.presentation.mode.favorite.resources.title" = "Обрані";
+"home.presentation.mode.modified.resources.title" = "Нещодавно змінені";
+"home.presentation.mode.shared.resources.title" = "Надано мені";
+"home.presentation.mode.owned.resources.title" = "Мої";
+"home.presentation.mode.owned.resources.expiry" = "Термін дії";
+"home.presentation.mode.folders.explorer.title" = "Теки";
+"home.presentation.mode.folders.explorer.search.direct.results" = "у \"%@\":";
+"home.presentation.mode.folders.explorer.search.nested.results" = "у вкладених теках:";
+"home.presentation.mode.tags.explorer.title" = "Теги";
+"home.presentation.mode.resource.user.groups.explorer.title" = "Групи";
+
+// OTP resources
+
+"otp.resources.search.placeholder" = "Шукати TOTP";
+"otp.resources.list.title" = "TOTP";
+"otp.resources.list.empty.message" = "Немає TOTP";
+"otp.value.copied.message" = "TOTP скопійовано до вашого буфера обміну!";
+
+// OTP contextual menu
+
+"otp.contextual.menu.copy.title" = "Скопіювати TOTP";
+"otp.copied.message" = "TOTP скопійовано до вашого буфера обміну!";
+"otp.contextual.menu.reveal.title" = "Показати TOTP";
+"otp.contextual.menu.edit.title" = "Редагувати TOTP";
+"otp.contextual.menu.delete.title" = "Видалити TOTP";
+"otp.contextual.menu.delete.confirm.title" = "Ви впевнені?";
+"otp.contextual.menu.delete.confirm.message" = "Ця дія назавжди видалить TOTP.";
+"otp.contextual.menu.delete.confirm.action.delete" = "Видалити TOTP";
+"otp.contextual.menu.delete.succeeded" = "TOTP було видалено.";
+
+// OTP edit menu
+
+"otp.edit.menu.create.title" = "Створити TOTP";
+"otp.edit.menu.edit.title" = "Редагувати TOTP";
+"otp.edit.menu.scanning.title" = "Сканувати QR-код";
+"otp.edit.menu.create.manual.title" = "Створити TOTP вручну";
+"otp.edit.menu.edit.manual.title" = "Редагувати TOTP вручну";
+"otp.edit.code.scanning.title" = "Редагувати TOTP вручну";
+"otp.edit.code.scanning.initial.message" = "Наведіть камеру на QR-коди";
+"otp.edit.menu.title" = "Наведіть камеру на QR-коди";
+"otp.edit.otp.created.message" = "TOTP було створено.";
+"otp.edit.otp.replaced.message" = "TOTP було замінено.";
+"otp.edit.otp.deleted.message" = "TOTP було видалено.";
+
+// OTP scanning
+
+"otp.scanning.success.title" = "Ваш TOTP було проскановано!";
+"otp.scanning.success.create.button.title" = "Створити окремий TOTP";
+"otp.scanning.success.link.button.title" = "Привʼязати TOTP до пароля";
+"otp.code.scanning.title" = "Скасувати приховування TOTP";
+"otp.code.scanning.initial.message" = "Наведіть камеру на QR-код";
+"otp.code.scanning.manual.input" = "Або створити TOTP вручну";
+
+// OTP form
+
+"otp.edit.form.create.title" = "Створити TOTP";
+"otp.edit.form.edit.title" = "Редагувати TOTP";
+"otp.edit.form.field.name.title" = "Назва (Мітка)";
+"otp.edit.form.field.name.prompt" = "Назва";
+"otp.edit.form.field.uri.title" = "URL (Видавець)";
+"otp.edit.form.field.uri.prompt" = "URL";
+"otp.edit.form.field.secret.title" = "Секрет";
+"otp.edit.form.field.secret.prompt" = "Секрет";
+"otp.edit.form.advanced.button.title" = "Більше налаштувань TOTP";
+"otp.edit.form.create.button.title" = "Створити окремий TOTP";
+"otp.edit.form.apply.button.title" = "Застосувати";
+"otp.edit.form.edit.button.title" = "Зберегти";
+"otp.edit.form.edit.advanced.title" = "Редагувати TOTP - розширені налаштування";
+"otp.edit.form.edit.advanced.warning" = "Розширені налаштування повинні відповідати налаштуванням вашого провайдера TOTP, інакше воно не працюватиме.";
+"otp.edit.form.field.digits.title" = "Довжина TOTP";
+"otp.edit.form.field.digits.label" = "цифр.";
+"otp.edit.form.field.period.title" = "Час дії TOTP";
+"otp.edit.form.field.period.label" = "секунд до завершення дії TOTP.";
+"otp.edit.form.field.algorithm.title" = "Алгоритм";
+"otp.edit.form.apply.button.title" = "Прийняти";
+
+// OTP attach
+
+"otp.attach.list.title" = "Додати TOTP до пароля";
+"otp.attach.alert.attach.title" = "Ви впевнені?";
+"otp.attach.alert.attach.message" = "Якщо ви додасте TOTP до цього ресурсу, TOTP успадкує такі самі дозволи спільного доступу.";
+"otp.attach.alert.attach.button.title" = "Додати TOTP";
+"otp.attach.alert.replace.title" = "Замінити TOTP?";
+"otp.attach.alert.replace.message" = "У цьому ресурсі вже є привʼязаний TOTP, ви бажаєте його замінити?";
+"otp.attach.alert.replace.button.title" = "Замінити TOTP";
+"otp.attach.error.notAllowed" = "Вам заборонено редагувати цей ресурс.";
+"otp.attach.error.notCompatible" = "Цей ресурс несумісний із TOTP.";
+
+
+// Settings - Main
+
+"settings.main.title" = "Налаштування";
+"settings.main.item.application.title" = "Налаштування застосунку";
+"settings.main.item.accounts.title" = "Облікові записи";
+"settings.main.item.terms.and.licenses.title" = "Умови та ліцензії";
+"settings.main.item.troubleshooting.title" = "Налагодження, журнали";
+"settings.main.item.sign.out.title" = "Вийти";
+
+// Settings - Application
+
+"settings.application.title" = "Налаштування застосунку";
+"settings.application.item.autofill.title" = "Автозаповнення";
+"settings.application.item.default.mode.title" = "Фільтр за замовчуванням";
+
+// Settings - Accounts
+
+"settings.accounts.title" = "Облікові записи";
+"settings.accounts.item.details.title" = "Відомості облікового запису";
+"settings.accounts.item.manage.title" = "Управляти обліковими записами";
+"settings.accounts.item.export.title" = "Передати обліковий запис на інший пристрій";
+"settings.accounts.item.key.inspector.title" = "Інспектор ключів";
+
+// Settings - Terms & Licenses
+
+"settings.terms.and.licenses.title" = "Умови та ліцензії";
+"settings.terms.and.licenses.item.terms.title" = "Умови та положення";
+"settings.terms.and.licenses.item.privacy.title" = "Політика конфіденційності";
+"settings.terms.and.licenses.item.licenses.title" = "Ліцензії з відкритим кодом";
+
+// Key inspector
+
+"account.key.inspector.title" = "Інспектор ключа";
+"account.key.inspector.field.uid.title" = "Uid";
+"account.key.inspector.field.fingerprint.title" = "Відбиток";
+"account.key.inspector.field.created.title" = "Створено";
+"account.key.inspector.field.expires.title" = "Термін дії";
+"account.key.inspector.no.exipire.placeholder" = "Ніколи";
+"account.key.inspector.field.key.size.title" = "Довжина ключа";
+"account.key.inspector.field.algorithm.title" = "Алгоритм";
+"account.key.inspector.uid.copied.message" = "Uid скопійовано до вашого буфера обміну!";
+"account.key.inspector.fingerprint.copied.message" = "Відбиток скопійовано до вашого буфера обміну!";
+
+// Key export
+
+"account.key.export.menu.title" = "Інспектор ключів";
+"account.key.export.menu.export.private.action" = "Експортувати приватний ключ";
+"account.key.export.menu.export.public.action" = "Експортувати публічний ключ";
+"account.key.export.private.authorization.title" = "Експортувати приватний ключ";
+"account.key.export.private.authorization.button.title" = "Експортувати приватний ключ";
+
+// Settings - Troubleshooting
+
+"settings.troubleshooting.title" = "Налагодження, журнали";
+"settings.troubleshooting.item.logs.title" = "Переглянути журнали налагодження";
+"settings.troubleshooting.item.help.site.title" = "Перейти на сторінку довідки";
+
+// Settings - Default presentation mode
+
+"settings.application.default.mode.title" = "Фільтр за замовчуванням";
+"settings.application.default.mode.option.last.used.title" = "Останній використаний (за замовчуванням)";
+
+// Settings - Disable biometrics alert
+
+"settings.application.biometrics.disable.alert.title" = "Ви впевнені?";
+"settings.application.biometrics.disable.alert.message" = "Після вимкнення %@ вам доведеться входити, використовуючи парольну фразу.";
+"settings.application.biometrics.disable.alert.confirm.title" = "Вимкнути біометрію";
+"settings.application.biometrics.disable.alert.cancel.title" = "Залишити увімкненою";
+
+// Settings - Sign out alert
+
+"settings.main.sign.out.alert.title" = "Ви впевнені?";
+"settings.main.sign.out.alert.message" = "Якщо ви вийдете, то вас буде вилогінено з вашого облікового запису на цьому пристрої.";
+"settings.main.sign.out.alert.confirm.title" = "Вийти";
+
+// Biometric authorization availability
+
+"biometric.authorization.availability.unavailable" = "Недоступно";
+"biometric.authorization.availability.face.id" = "FaceID";
+"biometric.authorization.availability.touch.id" = "TouchID";
+
+// Operation authorization
+
+"authorization.primary.button.title" = "Авторизувати";
+
+// Metadata
+"metadata.pinned.key.validation.error.title" = "Ключ метаданих змінено.";
+"metadata.pinned.key.validation.error.message" = "Ключ шифрування, що використовується для обміну метаданими між користувачами було оновлено %@.";
+"metadata.pinned.key.validation.error.disclaimer" = "Якщо ви не очікували цього, можете зв'язатись зі своїм адміністратором.";
+"metadata.pinned.key.validation.error.trust" = "Довіряти ключу";
+"metadata.pinned.key.fingerprint" = "Відбиток ключа:";
+
+"metadata.pinned.key.validation.deleted.title" = "Ключ метаданих видалено.";
+"metadata.pinned.key.validation.deleted.message" = "Довірений ключ шифрування, який використовується для обміну метаданими між користувачами, було видалено.";
+
+"metadata.pinned.key.validation.unknown.title" = "Ключ метаданих змінено.";
+"metadata.pinned.key.validation.unknown.message" = "Не вдалося перевірити довірений ключ шифрування, що використовується для обміну метаданими між користувачами.";

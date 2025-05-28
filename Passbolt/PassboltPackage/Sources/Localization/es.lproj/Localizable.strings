@@ -58,14 +58,14 @@
 "account.selection.account.removed" = "La cuenta se ha eliminado de este dispositivo.";
 
 "authorization.button.title" = "Iniciar sesión";
-"authorization.reverification.button.title" = "Confirmar contraseña";
-"authorization.forgot.passphrase.button.title" = "He olvidado mi contraseña";
-"authorization.forgot.passphrase.alert.title" = "¿Ha olvidado su contraseña?";
-"authorization.forgot.passphrase.alert.message" = "Lamentablemente no puede acceder a sus datos si no recuerda su contraseña. Por favor, póngase en contacto con su administrador para desbloquear su cuenta.";
-"authorization.passphrase.description.text" = "Contraseña";
-"authorization.title" = "Introduzca su contraseña";
+"authorization.reverification.button.title" = "Confirmar frase de contraseña";
+"authorization.forgot.passphrase.button.title" = "He olvidado mi frase de contraseña";
+"authorization.forgot.passphrase.alert.title" = "¿Ha olvidado su frase de contraseña?";
+"authorization.forgot.passphrase.alert.message" = "Lamentablemente no puede acceder a sus datos si no recuerda su frase de contraseña. Por favor, póngase en contacto con su administrador para desbloquear su cuenta.";
+"authorization.passphrase.description.text" = "Frase de contraseña";
+"authorization.title" = "Introduzca su frase de contraseña";
 
-"sign.in.title" = "Introduzca su contraseña";
+"sign.in.title" = "Introduzca su frase de contraseña";
 
 "resource.list.username.empty.placeholder" = "sin nombre de usuario";
 
@@ -73,7 +73,8 @@
 "resource.detail.field.username" = "Nombre de usuario";
 "resource.detail.field.passphrase" = "Contraseña";
 "resource.detail.field.uri" = "URL del sitio web";
-"resource.show.field.uri.placeholder" = "Sin URL";
+"resource.detail.field.description" = "Descripción";
+"resource.show.field.uri.placeholder" = "Sin URI";
 "resource.show.field.username.placeholder" = "Sin nombre de usuario";
 "resource.show.field.password.placeholder" = "Sin contraseña";
 "resource.show.field.description.placeholder" = "Sin descripción";
@@ -82,7 +83,12 @@
 "resource.detail.section.location" = "Ubicación";
 "resource.detail.section.permissions" = "Compartido con";
 "resource.detail.section.tags" = "Etiquetas";
+"resource.detail.section.expiry" = "Caducidad";
+"resource.detail.section.expiry.expired" = "Caducado";
+"resource.detail.section.expiry.willExpire" = "Caduca en";
 "resource.detail.undefined.content.warning" = "Tipo no soportado, ¡los campos desconocidos están ocultos!";
+
+"resource.expiry.expired" = "(caducado)";
 
 "resource.delete.succeeded" = "Se ha eliminado el recurso.";
 
@@ -113,35 +119,64 @@
 "feedback.alert.button.title" = "Lo entiendo";
 
 "account.not.found.title.label" = "La cuenta no existe";
-"account.not.found.message.label" = "La cuenta ha sido eliminada";
+"account.not.found.message.label" = "La cuenta ha sido eliminada o suspendida";
 "account.not.found.action.button.title" = "Conectar con una cuenta existente";
 
 "server.not.reachable.alert.title" = "¡El servidor no es accesible!";
 "server.not.reachable.alert.message.server.placeholder" = "Servidor";
 "server.not.reachable.alert.message" = "No se puede acceder a %@. Por favor, inténtelo de nuevo";
 
-"resource.edit.create.title" = "Contraseña";
-"resource.edit.title" = "Editar contraseña";
+"resource.edit.create.title" = "Crear un recurso";
+"resource.edit.title" = "Editar recurso";
+"resource.password.edit.title" = "Editar contraseña";
 "resource.edit.field.name.label" = "Nombre";
-"resource.edit.field.uri.label" = "URL";
+"resource.edit.field.uri.label" = "URI principal";
 "resource.edit.field.username.label" = "Nombre de usuario";
 "resource.edit.field.password.label" = "Contraseña";
 "resource.edit.field.description.label" = "Descripción";
 "resource.edit.field.totp.label" = "TOTP";
+"resource.edit.field.add.totp" = "TOTP";
+"resource.edit.field.add.note" = "Nota";
+"resource.edit.field.add.password" = "Contraseña";
 "resource.edit.field.name.placeholder" = "Introduzca un nombre";
-"resource.edit.field.uri.placeholder" = "Introduzca una URL";
+"resource.edit.field.uri.placeholder" = "Introduzca una URI";
 "resource.edit.field.username.placeholder" = "Introduzca un nombre de usuario";
 "resource.edit.field.password.placeholder" = "Introduzca una contraseña";
 "resource.edit.field.description.placeholder" = "Introduzca una descripción";
 "resource.edit.exit.confirmation.message" = "Sus modificaciones no se guardarán.";
 "resource.edit.exit.confirmation.button.edit.title" = "Editar";
 "resource.edit.exit.confirmation.button.revert.title" = "Revertir";
+"resource.edit.note.content.title" = "Contenido";
+"resource.edit.note.content.disclaimer" = "Este seguro es parte del secreto. Si quiere poder buscar este contenido, use la descripción de metadatos.";
+"resource.edit.note.remove.button.title" = "Eliminar nota";
+
+"resource.edit.section.password.title" = "Contraseña";
+"resource.edit.section.totp.title" = "TOTP";
+"resource.edit.section.note.title" = "Nota";
+"resource.edit.section.metadata.title" = "Metadatos";
+"resource.edit.totp.remove.button.title" = "Eliminar TOTP";
+
+"resource.create.advanced.button" = "Ver configuración avanzada";
+"resource.create.additional.secrets.title" = "Secretos adicionales";
+"resource.create.advanced.add.otp" = "TOTP";
+
+"resource.edit.section.metadata.description" = "Descripción";
+"resource.edit.section.metadata.description.name" = "Descripción de metadatos";
+"resource.edit.section.metadata.description.description" = "Si desea que la descripción sea parte del secreto, utilice la nota en su lugar.";
+
+"resource.create.menu.title" = "Crear un recurso";
+"resource.create.menu.password" = "Contraseña";
+"resource.create.menu.totp" = "TOTP";
+
+"resource.create.invalid.configuration" = "No se pudo crear un recurso con la configuración actual.";
+"resource.edit.invalid.configuration" = "No se pudo editar un recurso con la configuración actual.";
 
 "help.logs.viewer.title" = "Registros";
 
 "help.menu.title" = "Ayuda";
 "help.menu.show.logs.action.title" = "Acceder a los registros";
 "help.menu.show.web.help.action.title" = "Visitar el sitio de ayuda";
+"help.menu.show.import.account.kit.title" = "Importar su kit de cuenta";
 
 // Main application
 
@@ -182,6 +217,7 @@
 "transfer.account.result.success.title" = "¡Su información ha sido transferida!";
 "transfer.account.result.already.linked.title" = "La cuenta ya está vinculada al dispositivo.";
 "transfer.account.result.canceled.title" = "La transferencia ha sido cancelada.";
+"transfer.account.kit.result.success.title" = "¡Su kit de cuenta ha sido importado!";
 
 "transfer.account.exit.confirmation.title" = "¿Está seguro?";
 "transfer.account.exit.confirmation.message" = "Si sale, necesitará escanear los códigos QR de nuevo.";
@@ -237,6 +273,7 @@
 "resource.menu.item.copy.password" = "Copiar contraseña";
 "resource.menu.item.copy.username" = "Copiar nombre de usuario";
 "resource.menu.item.copy.description" = "Copiar descripción";
+"resource.menu.item.copy.note" = "Copiar nota";
 "resource.menu.item.reveal.otp" = "Mostrar TOTP";
 "resource.menu.item.copy.otp" = "Copiar TOTP";
 "resource.menu.item.add.favorite" = "Añadir a favoritos";
@@ -244,6 +281,7 @@
 "resource.menu.item.share" = "Compartir contraseña";
 "resource.menu.item.edit.password" = "Editar contraseña";
 "resource.menu.item.edit.otp" = "Editar TOTP";
+"resource.menu.item.otp.menu" = "Gestionar TOTP";
 "resource.menu.item.delete.resource" = "Eliminar contraseña";
 "resource.menu.item.delete.otp" = "Eliminar TOTP";
 "resource.menu.item.password" = "Contraseña";
@@ -274,14 +312,17 @@
 "resource.permission.delete.user.group.permission.confirmation.message" = "La contraseña ya no se compartirá con este grupo.";
 
 "resource.permission.details.title" = "Permiso";
+"resource.permission.details.user.suspended" = "suspendido";
 
 "permission.details.type.section.title" = "Permisos";
 "permission.details.group.members.section.title" = "Miembros del grupo";
+"permission.details.user.suspended" = "suspendido";
 
 "resource.permission.edit.button.delete.title" = "Eliminar permiso";
 
 "resource.folders.add.menu.title" = "Crear";
-"resource.folders.add.menu.folder.label" = "Crear carpeta";
+"resource.folders.add.menu.password.label" = "Añadir contraseña";
+"resource.folders.add.menu.folder.label" = "Añadir carpeta";
 
 "group.members.list.title" = "Miembros del grupo";
 "group.members.member.details.title" = "Miembro del grupo";
@@ -293,6 +334,9 @@
 
 "yubiKey.scan.instruction" = "Coloque su YubiKey en su dispositivo.";
 "yubiKey.scan.success" = "Escaneo correcto";
+"yubiKey.scan.notRecognized.title" = "No se reconoce el Yubikey";
+"yubiKey.scan.notRecognized.button.ok" = "Entendido";
+"yubiKey.scan.notRecognized.message" = "Su Yubikey no es reconocido por el servidor.\nPor favor, inténtelo con otro Yubikey u otro proveedor.";
 "mfa.yubiKey.title" = "YubiKey OTP";
 "mfa.yubiKey.description" = "Tenga en cuenta que su YubiKey debe soportar
 NFC para que esto funcione.";
@@ -304,7 +348,7 @@ NFC para que esto funcione.";
 "mfa.unsupported.provider.description" = "Por favor, configure otro proveedor usando la aplicación web.
 Póngase en contacto con su administrador para obtener más información.";
 "mfa.duo.authorization.title" = "Autenticación Duo de múltiples factores";
-"mfa.duo.authorization.button.title" = "Authenticate with Duo";
+"mfa.duo.authorization.button.title" = "Autenticarse con Duo";
 
 "account.menu.title" = "Cambiar de cuenta";
 "account.menu.account.details.button.title" = "Ver detalles";
@@ -317,6 +361,7 @@ Póngase en contacto con su administrador para obtener más información.";
 "account.details.field.name.title" = "Nombre";
 "account.details.field.email.title" = "Correo electrónico";
 "account.details.field.url.title" = "URL de la organización";
+"account.details.field.role.title" = "Rol";
 "account.details.button.save.title" = "Guardar";
 
 "update.available.title" = "¡Nueva versión disponible!";
@@ -346,6 +391,7 @@ Póngase en contacto con su administrador para obtener más información.";
 
 "folder.edit.form.create.title" = "Crear carpeta";
 "folder.edit.form.name.field.placeholder" = "Carpeta sin título";
+"folder.edit.form.created" = "¡Se ha creado la nueva carpeta %@!";
 
 "resource.folder.menu.open.details.label" = "Ver detalles";
 
@@ -369,10 +415,10 @@ Póngase en contacto con su administrador para obtener más información.";
 "generic.error" = "¡Algo salió mal!";
 "generic.error.retry" = "Algo salió mal. Por favor, inténtelo de nuevo.";
 "generic.error.report" = "Algo salió mal. Por favor, informe del error.";
-"generic.error.cancelled" = "Operation has been cancelled.";
+"generic.error.cancelled" = "La operación se ha cancelado.";
 "sign.in.error.message" = "El inicio de sesión falló";
 "sign.in.error.biometrics.changed.message" = "Parece que los datos biométricos de su dispositivo han cambiado. Por favor, introduzca su contraseña y vuelva a configurar la biometría";
-"sign.in.error.passphrase.invalid.message" = "Contraseña no válida.";
+"sign.in.error.passphrase.invalid.message" = "Frase de contraseña no válida.";
 "server.fingerprint.save.failed" = "No se ha podido guardar la huella digital del servidor.";
 "form.field.error.max.length" = "Se ha superado la longitud máxima.";
 "form.error.invalid" = "El formulario no es válido";
@@ -404,6 +450,7 @@ Póngase en contacto con su administrador para obtener más información.";
 "error.http.response.invalid" = "Respuesta HTTP no válida.";
 "error.network.response.invalid" = "Respuesta de red no válida";
 "error.http.response.forbidden" = "HTTP no permitido.";
+"error.http.response.conflict" = "Conflicto HTTP.";
 "error.http.response.not.found" = "HTTP no encontrado.";
 "error.http.response.redirect" = "Redirección HTTP.";
 "error.http.request.invalid" = "Solicitud HTTP no válida.";
@@ -416,9 +463,12 @@ Póngase en contacto con su administrador para obtener más información.";
 "error.session.authorization.mfa.required" = "Autorización MFA de la sesión necesaria.";
 "error.session.missing" = "Sesión perdida.";
 "error.crypto.data.signature.invalid" = "La firma de datos no es válida.";
-"error.crypto.passphrase.invalid" = "Contraseña no válida.";
+"error.crypto.passphrase.invalid" = "Frase de contraseña no válida.";
 "error.crypto.pgp.fingerprint.invalid" = "Huella PGP no válida.";
 "error.crypto.pgp.fingerprint.mismatch" = "La huella digital PGP no coincide.";
+"error.crypto.pgp.keyring.preparation.failed" = "No se pudo preparar el llavero PGP";
+"error.crypto.pgp.keypacket.extraction.failed" = "No se pudo extraer el paquete de claves PGP.";
+"error.crypto.pgp.sessionkey.extraction.failed" = "No se pudo extraer la clave de sesión PGP.";
 "error.crypto.pgp.public.key.invalid" = "Clave PGP pública no válida.";
 "error.data.empty" = "No se proporcionaron datos.";
 "error.data.invalid" = "Datos proporcionados no válidos.";
@@ -448,6 +498,8 @@ Póngase en contacto con su administrador para obtener más información.";
 "error.account.passphrase.missing" = "Falta la contraseña de la cuenta.";
 "error.account.data.missing" = "Faltan los datos de la cuenta.";
 "error.account.biometry.data.changed" = "Los datos biométricos han cambiado.";
+"error.account.kit.fail.to.import" = "Se ha producido un error al importar su kit de cuenta.";
+"error.account.kit.signature.verification" = "Se ha producido un error al validar la firma.";
 "error.users.list.empty" = "La lista de usuarios no puede estar vacía.";
 "error.user.public.key.invalid" = "Clave pública de usuario no válida.";
 "error.user.public.key.missing" = "Falta la clave pública del usuario.";
@@ -456,6 +508,7 @@ Póngase en contacto con su administrador para obtener más información.";
 "error.account.duplicate" = "Cuenta duplicada.";
 "error.server.pgp.fingerprint.invalid" = "Huella digital PGP del servidor no válida.";
 "error.session.authorization.failed" = "La autorización de sesión ha fallado.";
+"error.qrcode.invalid" = "No es un QR de Passbolt. ¡Inténtelo de nuevo!";
 
 "error.validation.folder.name.empty" = "El nombre de la carpeta no puede estar vacío.";
 "error.validation.folder.name.too.long" = "El nombre de la carpeta no puede tener más de 256 carácteres.";
@@ -480,6 +533,8 @@ Póngase en contacto con su administrador para obtener más información.";
 "error.resource.field.content.invalid" = "¡%@ tiene contenido no válido!";
 "error.resource.field.selection.invalid" = "¡%@ tiene que ser una de las opciones válidas!";
 "error.resource.field.unknown" = "¡No se esperaban los campos desconocidos!";
+"error.validation.password.length.invalid" = "¡Configuración de longitud de la contraseña no válida!";
+"error.validation.password.mask.empty" = "¡La máscara de caducidad de la contraseña no puede estar vacía!";
 
 // Home - presentation mode menu
 
@@ -492,6 +547,7 @@ Póngase en contacto con su administrador para obtener más información.";
 "home.presentation.mode.modified.resources.title" = "Modificado recientemente";
 "home.presentation.mode.shared.resources.title" = "Compartido conmigo";
 "home.presentation.mode.owned.resources.title" = "En propiedad";
+"home.presentation.mode.owned.resources.expiry" = "Caducidad";
 "home.presentation.mode.folders.explorer.title" = "Carpetas";
 "home.presentation.mode.folders.explorer.search.direct.results" = "en \"%@\"";
 "home.presentation.mode.folders.explorer.search.nested.results" = "en subcarpetas:";
@@ -510,6 +566,7 @@ Póngase en contacto con su administrador para obtener más información.";
 "otp.contextual.menu.copy.title" = "Copiar TOTP";
 "otp.copied.message" = "¡TOTP copiado a su portapapeles!";
 "otp.contextual.menu.reveal.title" = "Mostrar TOTP";
+"otp.contextual.menu.edit.title" = "Editar TOTP";
 "otp.contextual.menu.delete.title" = "Eliminar TOTP";
 "otp.contextual.menu.delete.confirm.title" = "¿Está seguro?";
 "otp.contextual.menu.delete.confirm.message" = "Esta acción eliminará el TOTP de forma permanente.";
@@ -537,6 +594,7 @@ Póngase en contacto con su administrador para obtener más información.";
 "otp.scanning.success.link.button.title" = "Vincular TOTP con una contraseña";
 "otp.code.scanning.title" = "Escanear código QR";
 "otp.code.scanning.initial.message" = "Apunte con la cámara al código QR";
+"otp.code.scanning.manual.input" = "O crear un TOTP manualmente";
 
 // OTP form
 
@@ -548,8 +606,9 @@ Póngase en contacto con su administrador para obtener más información.";
 "otp.edit.form.field.uri.prompt" = "URL";
 "otp.edit.form.field.secret.title" = "Secreto";
 "otp.edit.form.field.secret.prompt" = "Secreto";
-"otp.edit.form.advanced.button.title" = "Configuración avanzada";
+"otp.edit.form.advanced.button.title" = "Más ajustes del TOTP";
 "otp.edit.form.create.button.title" = "Crear TOTP independiente";
+"otp.edit.form.apply.button.title" = "Aplicar";
 "otp.edit.form.edit.button.title" = "Guardar";
 "otp.edit.form.edit.advanced.title" = "Editar TOTP - configuración avanzada";
 "otp.edit.form.edit.advanced.warning" = "Los ajustes avanzados tienen que coincidir con los ajustes de su proveedor TOTP, de lo contrario no funcionará.";
@@ -569,6 +628,9 @@ Póngase en contacto con su administrador para obtener más información.";
 "otp.attach.alert.replace.title" = "¿Reemplazar TOTP?";
 "otp.attach.alert.replace.message" = "Un TOTP ya está asociado con este recurso, ¿quiere reemplazarlo?";
 "otp.attach.alert.replace.button.title" = "Reemplazar TOTP";
+"otp.attach.error.notAllowed" = "No tiene permisos para editar este recurso.";
+"otp.attach.error.notCompatible" = "Este recurso no es compatible con TOTP.";
+
 
 // Settings - Main
 
@@ -588,9 +650,10 @@ Póngase en contacto con su administrador para obtener más información.";
 // Settings - Accounts
 
 "settings.accounts.title" = "Cuentas";
+"settings.accounts.item.details.title" = "Detalles de la cuenta";
 "settings.accounts.item.manage.title" = "Gestionar cuentas";
 "settings.accounts.item.export.title" = "Transferir cuenta a otro dispositivo";
-"settings.accounts.item.key.inspector.title" = "Key inspector";
+"settings.accounts.item.key.inspector.title" = "Inspector de claves";
 
 // Settings - Terms & Licenses
 
@@ -601,24 +664,24 @@ Póngase en contacto con su administrador para obtener más información.";
 
 // Key inspector
 
-"account.key.inspector.title" = "Key inspector";
-"account.key.inspector.field.uid.title" = "Uid";
+"account.key.inspector.title" = "Inspector de claves";
+"account.key.inspector.field.uid.title" = "UID";
 "account.key.inspector.field.fingerprint.title" = "Huella";
 "account.key.inspector.field.created.title" = "Creado";
 "account.key.inspector.field.expires.title" = "Caduca";
 "account.key.inspector.no.exipire.placeholder" = "Nunca";
 "account.key.inspector.field.key.size.title" = "Longitud de la clave";
 "account.key.inspector.field.algorithm.title" = "Algoritmo";
-"account.key.inspector.uid.copied.message" = "Uid copied to your clipboard!";
-"account.key.inspector.fingerprint.copied.message" = "Fingerprint copied to your clipboard!";
+"account.key.inspector.uid.copied.message" = "¡UID copiado al portapapeles!";
+"account.key.inspector.fingerprint.copied.message" = "¡Huella digital copiada al portapapeles!";
 
 // Key export
 
-"account.key.export.menu.title" = "Key inspector";
-"account.key.export.menu.export.private.action" = "Export private key";
-"account.key.export.menu.export.public.action" = "Export public key";
-"account.key.export.private.authorization.title" = "Export private key";
-"account.key.export.private.authorization.button.title" = "Export private key";
+"account.key.export.menu.title" = "Inspector de claves";
+"account.key.export.menu.export.private.action" = "Exportar la clave privada";
+"account.key.export.menu.export.public.action" = "Exportar la clave pública";
+"account.key.export.private.authorization.title" = "Exportar la clave privada";
+"account.key.export.private.authorization.button.title" = "Exportar la clave privada";
 
 // Settings - Troubleshooting
 
@@ -652,4 +715,17 @@ Póngase en contacto con su administrador para obtener más información.";
 
 // Operation authorization
 
-"authorization.primary.button.title" = "Authorize";
+"authorization.primary.button.title" = "Autorizar";
+
+// Metadata
+"metadata.pinned.key.validation.error.title" = "La clave de metadatos ha cambiado.";
+"metadata.pinned.key.validation.error.message" = "La clave de cifrado utilizada para compartir metadatos entre usuarios ha sido actualizada por %@.";
+"metadata.pinned.key.validation.error.disclaimer" = "If you weren't expecting this, you can verify with your administrator.";
+"metadata.pinned.key.validation.error.trust" = "Confiar en la clave";
+"metadata.pinned.key.fingerprint" = "Clave de huella digital:";
+
+"metadata.pinned.key.validation.deleted.title" = "La clave de metadatos ha sido eliminada.";
+"metadata.pinned.key.validation.deleted.message" = "La clave de cifrado de confianza utilizada para compartir metadatos entre usuarios ha sido eliminada.";
+
+"metadata.pinned.key.validation.unknown.title" = "La clave de metadatos ha cambiado.";
+"metadata.pinned.key.validation.unknown.message" = "The trusted encryption key used to share metadata between users could not be validated.";

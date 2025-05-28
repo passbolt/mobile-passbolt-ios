@@ -1,0 +1,730 @@
+//
+// Passbolt - Open source password manager for teams
+// Copyright (c) 2021 Passbolt SA
+//
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+// Public License (AGPL) as published by the Free Software Foundation version 3.
+//
+// The name "Passbolt" is a registered trademark of Passbolt SA, and Passbolt SA hereby declines to grant a trademark
+// license to "Passbolt" pursuant to the GNU Affero General Public License version 3 Section 7(e), without a separate
+// agreement with Passbolt SA.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License along with this program. If not,
+// see GNU Affero General Public License v3 (http://www.gnu.org/licenses/agpl-3.0.html).
+//
+// @copyright     Copyright (c) Passbolt SA (https://www.passbolt.com)
+// @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
+// @link          https://www.passbolt.com Passbolt (tm)
+// @since         v1.0
+//
+// Shared and commons
+
+
+"generic.done" = "Готово";
+"generic.yes" = "Да";
+"generic.apply" = "Применить";
+"generic.confirm" = "Подтвердить";
+"generic.cancel" = "Отмена";
+"generic.remove" = "Удалить";
+"generic.loading" = "Загрузка...";
+"generic.loading.long" = "Это занимает больше времени, чем обычно...";
+"generic.continue" = "Продолжить";
+"generic.retry" = "Повторить";
+"generic.try.again" = "Попробуйте еще раз";
+"generic.delete" = "Удалить";
+"generic.got.it" = "Понятно";
+"generic.settings" = "Настройки";
+"generic.disable" = "Отключено";
+"generic.sign.out" = "Выйти";
+"generic.refresh" = "Обновить";
+"generic.create" = "Создать";
+"generic.empty.list" = "Нет результатов";
+"generic.user.search.list.empty" = "Пользователь не найден.";
+"generic.paste.value.invalid" = "Попытка вставить недопустимое значение";
+"generic.are.you.sure" = "Вы уверены?";
+"generic.picker.select.placeholder" = "Выбрать";
+
+"account.selection.title" = "Добро пожаловать обратно!";
+"account.selection.subtitle" = "Выберите учетную запись для входа!";
+"account.selection.remove.account.button.title" = "Удалить аккаунт с данного устройства";
+"account.selection.add.account.footer.title" = "Добавить новый аккаунт";
+"account.selection.remove.account.title" = "Отвязать аккаунт";
+"account.selection.remove.account.subtitle" = "Выберите аккаунт для отсоединения.";
+"account.selection.remove.alert.title" = "Вы уверены ?";
+"account.selection.remove.alert.message" = "Это удалит ваш аккаунт с этого устройства. Ваши пароли не будут удалены.";
+"account.selection.account.removed" = "Аккаунт был удален с этого устройства.";
+
+"authorization.button.title" = "Войти";
+"authorization.reverification.button.title" = "Подтвердите парольную фразу";
+"authorization.forgot.passphrase.button.title" = "Я забыл пароль";
+"authorization.forgot.passphrase.alert.title" = "Вы забыли свой пароль?";
+"authorization.forgot.passphrase.alert.message" = "К сожалению, вы не можете получить доступ к вашим данным, если не помните ваш пароль. Пожалуйста, обратитесь к администратору, чтобы разблокировать свой аккаунт.";
+"authorization.passphrase.description.text" = "Парольная фраза";
+"authorization.title" = "Введите свой пароль";
+
+"sign.in.title" = "Введите пароль";
+
+"resource.list.username.empty.placeholder" = "Не указано имя пользователя";
+
+"resource.detail.field.name" = "Имя";
+"resource.detail.field.username" = "Имя пользователя";
+"resource.detail.field.passphrase" = "Пароль";
+"resource.detail.field.uri" = "Адрес сайта";
+"resource.detail.field.description" = "Описание";
+"resource.show.field.uri.placeholder" = "No URI";
+"resource.show.field.username.placeholder" = "Нет имени пользователя";
+"resource.show.field.password.placeholder" = "Нет пароля";
+"resource.show.field.description.placeholder" = "Нет описания";
+"resource.value.copied" = "%@ скопирован в буфер обмена!";
+"resource.details.value" = "Значение";
+"resource.detail.section.location" = "Расположение";
+"resource.detail.section.permissions" = "Общий с";
+"resource.detail.section.tags" = "Метки";
+"resource.detail.section.expiry" = "Срок действия";
+"resource.detail.section.expiry.expired" = "Истёк";
+"resource.detail.section.expiry.willExpire" = "Истекает через";
+"resource.detail.undefined.content.warning" = "Неподдерживаемый тип, неизвестные поля скрыты!";
+
+"resource.expiry.expired" = "(истёк)";
+
+"resource.delete.succeeded" = "Ресурс был удален.";
+
+"resource.field.name.unknown" = "Значение";
+"section.tags.empty" = "Нет тегов";
+
+"server.key.fingerprint.changed.title" = "Извините, ключ сервера изменился.";
+"server.key.fingerprint.changed.description" = "Проверьте, что это сообщение произвел ваш администратор. Новый отпечаток:";
+"server.key.fingerprint.accept.check" = "Я проверил, все хорошо.";
+"server.key.fingerprint.accept.new.key" = "Принять новый ключ";
+
+"resource.form.password.strength" = "Надежность пароля";
+"resource.form.strength.very.weak" = "Очень слабый";
+"resource.form.strength.weak" = "Слабый";
+"resource.form.strength.fair" = "Справедливый";
+"resource.form.strength.strong" = "Надежный";
+"resource.form.strength.very.strong" = "Очень надежный";
+"resource.form.create.button.title" = "Создать";
+"resource.form.create.and.fill.button.title" = "Создать и заполнить";
+"resource.form.update.button.title" = "Сохранить";
+"resource.form.new.password.created" = "Новый пароль был создан";
+"resource.form.description.encrypted" = "Описание зашифровано";
+"resource.form.description.unencrypted" = "Описание не зашифровано";
+"resource.form.undefined.content.warning" = "Неподдерживаемый тип, неизвестные поля скрыты!";
+
+"feedback.alert.title" = "Устройство может быть взломано";
+"feedback.alert.message" = "Мы подозреваем, чо ваше устройство может быть взломано. Имейте в виду, это снижает общий уровень защиты и может быть использовано для кражи ваших паролей.";
+"feedback.alert.button.title" = "Я понимаю";
+
+"account.not.found.title.label" = "Такого аккаунта не существует";
+"account.not.found.message.label" = "Учетная запись была удалена или приостановлена";
+"account.not.found.action.button.title" = "Подключиться к существующему аккаунту";
+
+"server.not.reachable.alert.title" = "Сервер недоступен!";
+"server.not.reachable.alert.message.server.placeholder" = "Сервер";
+"server.not.reachable.alert.message" = "Невозможно достичь %@ . Пожалуйста, попробуйте еще раз";
+
+"resource.edit.create.title" = "Create a resource";
+"resource.edit.title" = "Изменить ресурс";
+"resource.password.edit.title" = "Изменить пароль";
+"resource.edit.field.name.label" = "Имя";
+"resource.edit.field.uri.label" = "Main URI";
+"resource.edit.field.username.label" = "Имя пользователя";
+"resource.edit.field.password.label" = "Пароль";
+"resource.edit.field.description.label" = "Описание";
+"resource.edit.field.totp.label" = "TOTP";
+"resource.edit.field.add.totp" = "TOTP";
+"resource.edit.field.add.note" = "Note";
+"resource.edit.field.add.password" = "Пароль";
+"resource.edit.field.name.placeholder" = "Введите имя";
+"resource.edit.field.uri.placeholder" = "Enter URI";
+"resource.edit.field.username.placeholder" = "Введите имя пользователя";
+"resource.edit.field.password.placeholder" = "Введите пароль";
+"resource.edit.field.description.placeholder" = "Введите описание";
+"resource.edit.exit.confirmation.message" = "Ваши изменения не будут сохранены.";
+"resource.edit.exit.confirmation.button.edit.title" = "Изменить";
+"resource.edit.exit.confirmation.button.revert.title" = "Вернуться";
+"resource.edit.note.content.title" = "Content";
+"resource.edit.note.content.disclaimer" = "This secure is part of the secret if you wan to be able to search this content, use metadata description.";
+"resource.edit.note.remove.button.title" = "Remove note";
+
+"resource.edit.section.password.title" = "Пароль";
+"resource.edit.section.totp.title" = "TOTP";
+"resource.edit.section.note.title" = "Note";
+"resource.edit.section.metadata.title" = "Метадата";
+"resource.edit.totp.remove.button.title" = "Remove TOTP";
+
+"resource.create.advanced.button" = "View advanced settings";
+"resource.create.additional.secrets.title" = "Additional secrets";
+"resource.create.advanced.add.otp" = "TOTP";
+
+"resource.edit.section.metadata.description" = "Описание";
+"resource.edit.section.metadata.description.name" = "Metadata description";
+"resource.edit.section.metadata.description.description" = "If you want the description to be part of the secret, use the note instead.";
+
+"resource.create.menu.title" = "Create a resource";
+"resource.create.menu.password" = "Пароль";
+"resource.create.menu.totp" = "TOTP";
+
+"resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
+"resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
+
+"help.logs.viewer.title" = "Логи";
+
+"help.menu.title" = "Помощь";
+"help.menu.show.logs.action.title" = "Доступ к логам";
+"help.menu.show.web.help.action.title" = "Посетить сайт помощи";
+"help.menu.show.import.account.kit.title" = "Импортировать набор аккаунта";
+
+// Main application
+
+"welcome.title" = "Добро пожаловать!";
+"welcome.description" = "Вам нужен существующий аккаунт, чтобы начать. Войдите в существующую учетную запись в браузере компьютера чтобы соединения с мобильным устройством.";
+"welcome.connect.to.account" = "Подключиться к существующему аккаунту";
+"welcome.no.account" = "У меня нет учетной записи";
+"welcome.no.account.alert.title" = "Как создать учетную запись?";
+"welcome.no.account.alert.text" = "В настоящее время невозможно создать учетную запись с помощью мобильного приложения. Для начала вам необходимо создать учетную запись, используя ваше расширение для браузера.";
+"code.scanning.exit.confirmation.confirm.button.title" = "Прекратить поиск";
+"code.scanning.help.menu.button.title" = "Зачем сканировать QR-коды?";
+"code.scanning.help.title" = "Сканирование QR-кодов";
+"code.scanning.help.message" = "Вы увидите последовательность QR-кодов. Мы будем сканировать эти коды до тех пор, пока индикатор прогресса не будет заполнен. Затем вы сможете войти в систему!";
+"code.scanning.camera.unavailable" = "Извините, для продолжения вам нужно устройство с работающей камерой, так как передача ключей осуществляется с помощью QR-кодов.";
+"code.scanning.begin" = "Наведите камеру на QR-коды";
+"code.scanning.processing.in.progress" = "Сканирование... продолжайте!";
+"code.scanning.processing.invalid.code" = "Это не QR Passbolt. Попробуйте еще раз!";
+
+
+"transfer.account.title" = "Реквизиты счета для перевода";
+"transfer.account.import.description" = "Сканируйте QR-коды, чтобы перенести данные вашей учетной записи";
+"transfer.account.import.info.step.first" = "Войти с помощью расширения браузера";
+"transfer.account.import.info.step.second" = "Перейти на страницу профиля";
+"transfer.account.import.info.step.second.distinct" = "Профиль";
+"transfer.account.import.info.step.third" = "Перейти в раздел \"Мобильный\"";
+"transfer.account.import.info.step.third.distinct" = "Мобильный";
+"transfer.account.import.info.step.fourth" = "Сканируйте последовательность QR-кодов";
+"transfer.account.import.scan.qr.button" = "Сканирование QR-кодов";
+"transfer.account.export.description" = "Показать QR-коды для передачи данных аккаунта";
+"transfer.account.export.info.step.first" = "Установите приложение на другой мобильный телефон";
+"transfer.account.export.info.step.second" = "Запустите приложение";
+"transfer.account.export.info.step.third" = "Выберите \"Подключение к существующему аккаунту”";
+"transfer.account.export.info.step.fourth" = "Сканируйте последовательность QR-кодов";
+"transfer.account.export.scan.qr.button" = "Начать передачу";
+"transfer.account.export.cancel.button" = "Отменить передачу";
+"transfer.account.camera.access.alert.title" = "Требуется доступ к камере";
+"transfer.account.camera.access.alert.text" = "Перейдите в Настройки/Конфиденциальность/Камера, чтобы разрешить доступ к камере.";
+"transfer.account.result.success.title" = "Ваша информация была передана!";
+"transfer.account.result.already.linked.title" = "Учетная запись уже привязана к устройству.";
+"transfer.account.result.canceled.title" = "Передача была отменена.";
+"transfer.account.kit.result.success.title" = "Ваш набор аккаунта был импортирован!";
+
+"transfer.account.exit.confirmation.title" = "Вы уверены?";
+"transfer.account.exit.confirmation.message" = "Если вы уйдете, вам нужно будет снова сканировать QR-коды.";
+"transfer.account.import.exit.confirmation.cancel.button.title" = "Продолжить установку";
+"transfer.account.import.exit.confirmation.confirm.button.title" = "Отменить установку";
+"transfer.account.export.exit.confirmation.confirm.button.title" = "Остановить передачу";
+"transfer.account.export.exit.success.button" = "Назад";
+"transfer.account.export.exit.failure.button" = "Повторить";
+"transfer.account.export.failure.message" = "Не удалось завершить передачу данных.";
+"transfer.account.export.cancelled" = "Передача была отменена";
+"transfer.account.exit.confirmation.cancel.button.title" = "Продолжить установку";
+"transfer.account.exit.confirmation.confirm.button.title" = "Отменить установку";
+
+"biometrics.usage.reason" = "Биометрические данные могут быть использованы для безопасного сохранения вашей ключевой фразы.";
+
+"biometrics.info.title" = "Настройка биометрических данных";
+"biometrics.info.description" = "Если вы хотите использовать Facade или TouchID в качестве метода быстрого входа, настройте его в настройках.";
+"biometrics.info.setup.button" = "Настройка биометрических данных";
+"biometrics.info.later.button" = "Возможно позже";
+
+"biometrics.setup.title.face" = "Использовать Face ID вместо ключевой фразы!";
+"biometrics.setup.title.finger" = "Использовать Touch ID вместо ключевой фразы!";
+"biometrics.setup.description" = "Раскройте свои секреты за секунду.";
+"biometrics.setup.setup.button.face" = "Использовать FaceID";
+"biometrics.setup.setup.button.finger" = "Использовать TouchID";
+"biometrics.setup.later.button" = "Возможно, позже";
+
+"extension.setup.title" = "Войдите в свои любимые приложения за 3 секунды!";
+"extension.setup.settings.step" = "Перейти к настройкам";
+"extension.setup.settings.step.bold" = "Настройки";
+"extension.setup.keyboard.step" = "Открыть автозаполнение паролей";
+"extension.setup.keyboard.step.bold" = "Автозаполнение паролей";
+"extension.setup.switch.step" = "Включить автозаполнение паролей";
+"extension.setup.switch.step.bold" = "Включить";
+"extension.setup.keychain.step" = "Выключить Keychain";
+"extension.setup.keychain.step.bold" = "Выключить";
+"extension.setup.passbolt.step" = "Выберите Passbolt!";
+"extension.setup.passbolt.step.bold" = "Passbolt!";
+"extension.setup.setup.button" = "Перейти к настройкам";
+"extension.setup.later.button" = "Возможно, позже";
+
+"tab.home" = "Главная";
+"tab.otp" = "TOTP";
+"tab.settings" = "Настройки";
+
+"authorization.prompt.refresh.session.reason" = "Пожалуйста, авторизуйтесь, чтобы обновить сессию";
+"authorization.prompt.biometrics.set.reason" = "Пожалуйста, авторизуйтесь, чтобы включить биометрические данные.";
+
+"resources.search.placeholder" = "Поиск по имени, имени пользователя, url или тегу...";
+
+"resource.menu.item.open.url" = "Открыть сайт";
+"resource.menu.item.copy.url" = "Скопировать URL-адрес";
+"resource.menu.item.copy.password" = "Скопировать пароль";
+"resource.menu.item.copy.username" = "Копировать логин";
+"resource.menu.item.copy.description" = "Скопировать описание";
+"resource.menu.item.copy.note" = "Copy note";
+"resource.menu.item.reveal.otp" = "Показать одноразовый пароль";
+"resource.menu.item.copy.otp" = "Скопировать одноразовый пароль";
+"resource.menu.item.add.favorite" = "Добавить в избранное";
+"resource.menu.item.remove.favorite" = "Убрать из избранного";
+"resource.menu.item.share" = "Поделиться паролем";
+"resource.menu.item.edit.password" = "Изменить пароль";
+"resource.menu.item.edit.otp" = "Изменить TOTP";
+"resource.menu.item.delete.resource" = "Удалить пароль";
+"resource.menu.item.delete.otp" = "Удалить одноразовый пароль";
+"resource.menu.item.password" = "Пароль";
+"resource.menu.item.username" = "Имя пользователя";
+"resource.menu.item.description" = "Описание";
+"resource.menu.item.url" = "URL-адрес";
+"resource.menu.item.field.copied" = "%@ скопирован в буфер обмена!";
+
+"resource" = "Ресурс";
+"resource.menu.action.favorite.added" = "%@ добавлен в избранное!";
+"resource.menu.action.favorite.removed" = "%@ был удален из избранного!";
+
+"resource.menu.action.edited" = "Пароль был успешно отредактирован.";
+"resource.menu.action.deleted" = "%@ удалено!";
+
+"resource.permission.type.read.label" = "может читать";
+"resource.permission.type.write.label" = "может обновить";
+"resource.permission.type.own.label" = "владелец";
+"resource.permission.list.title" = "Поделиться с";
+"resource.permission.list.edit.button.title" = "Изменить права доступа";
+"resource.permission.edit.list.title" = "Поделиться паролем";
+"resource.permission.edit.list.empty.message" = "Пожалуйста, убедитесь, что есть хотя бы один владелец.";
+"resource.permission.edit.list.add.button.title" = "Добавить пользователей";
+"resource.permission.edit.user.and.group.search.title" = "Выбрать пользователей";
+"resource.permission.edit.user.and.group.search.prompt" = "Поиск пользователей...";
+"resource.permission.edit.user.and.group.search.existing.section.title" = "Уже добавлено";
+"resource.permission.delete.user.permission.confirmation.message" = "Пароль больше не будет доступен этому пользователю.";
+"resource.permission.delete.user.group.permission.confirmation.message" = "Пароль больше не будет доступен этой группе.";
+
+"resource.permission.details.title" = "Доступ";
+"resource.permission.details.user.suspended" = "заблокирован";
+
+"permission.details.type.section.title" = "Разрешение";
+"permission.details.group.members.section.title" = "Участники группы";
+"permission.details.user.suspended" = "заблокирован";
+
+"resource.permission.edit.button.delete.title" = "Удалить разрешение";
+
+"resource.folders.add.menu.title" = "Create a resource";
+"resource.folders.add.menu.folder.label" = "Folder";
+
+"group.members.list.title" = "Участники группы";
+"group.members.member.details.title" = "Участник группы";
+
+"totp.title.label" = "Двухфакторная аутентификация";
+"totp.message.label" = "Введите код подтверждения:";
+"totp.paste.otp.button.label" = "Вставить код";
+"totp.remember.device.toggle.label" = "Запомнить это устройство на 30 дней";
+
+"yubiKey.scan.instruction" = "Разместите свой YubiKey на вашем устройстве.";
+"yubiKey.scan.success" = "Сканирование прошло успешно";
+"yubiKey.scan.notRecognized.title" = "Yubikey не распознан";
+"yubiKey.scan.notRecognized.button.ok" = "Понятно";
+"yubiKey.scan.notRecognized.message" = "Your Yubikey is not recognized by the server.\nPlease try with another Yubikey or another provider.
+Ваш Yubikey не распознан сервером.\nПожалуйста, попробуйте использовать другой Yubikey или другой провайдер.";
+"mfa.yubiKey.title" = "YubiKey OTP";
+"mfa.yubiKey.description" = "Пожалуйста, обратите внимание, что ваш YubiKey должен поддерживать
+NFC.";
+"mfa.yubiKey.scan" = "Сканируйте ваш YubiKey";
+"mfa.yubiKey.nfc.not.supported" = "Это устройство не поддерживает NFC.";
+"mfa.provider.try.another" = "Попробуйте обратиться к другому поставщику";
+"mfa.remember.token" = "Запомнить это устройство на 30 дней";
+"mfa.unsupported.provider.title" = "Ваш поставщик MFA не поддерживается";
+"mfa.unsupported.provider.description" = "Пожалуйста, настройте другого провайдера с помощью веб-приложения.
+Обратитесь к вашему администратору за дополнительной информацией.";
+"mfa.duo.authorization.title" = "Многофакторная аутентификация Duo";
+"mfa.duo.authorization.button.title" = "Войти с Duo";
+
+"account.menu.title" = "Сменить учетную запись";
+"account.menu.account.details.button.title" = "Подробнее";
+"account.menu.sign.out.button.title" = "Выйти";
+"account.menu.manage.accounts.button.title" = "Управление аккаунтами";
+
+"account.details.title" = "Данные учетной записи";
+"account.details.field.label.title" = "Метка";
+"account.details.field.label.editing.info" = "Метка будет отображаться в списке учетных записей и для аутентификации";
+"account.details.field.name.title" = "Имя";
+"account.details.field.email.title" = "E-mail";
+"account.details.field.url.title" = "URL организации";
+"account.details.field.role.title" = "Роль";
+"account.details.button.save.title" = "Сохранить";
+
+"update.available.title" = "Доступна новая версия!";
+"update.available.message" = "Пожалуйста, обновите приложение Passbook до последней версии из App Store";
+
+// Autofill extension
+
+"autofill.extension.setup.completed.title" = "Автозаполнение Passbolt включено!";
+"autofill.extension.setup.completed.info" = "Заполнив форму, просто нажмите на отправленную запись, и включенное вами автозаполнение предложит заполнить ее с помощью учетных данных для входа, которые вы уже добавили в приложение Passbolt.";
+
+"autofill.extension.account.selection.switch.account.title" = "Сменить учетную запись";
+"autofill.extension.account.selection.switch.account.subtitle" = "Выберите учетную запись для переключения!";
+"autofill.extension.account.selection.sign.in.title" = "Вы не авторизованы";
+"autofill.extension.account.selection.sign.in.subtitle" = "Выберите учетную запись для входа!";
+
+"autofill.extension.no.accounts.title" = "Аккаунт не найден!";
+"autofill.extension.no.accounts.description" = "Чтобы начать, вам нужна учетная запись. Пожалуйста, откройте приложение Passbolt и следуйте инструкциям по установке. После этого Passbolt сможет автоматически заполнять учетные данные.";
+
+"autofill.extension.resource.list.title" = "Выберите пароль";
+"autofill.extension.resource.list.section.suggested.title" = "Предлагаемый";
+"autofill.extension.resource.list.section.all.title" = "Другие";
+
+"autofill.extension.autofill.extension.resources.search.placeholder" = "Поиск в passbolt...";
+
+"mfa.required.title" = "Требуется MFA";
+"autofill.extension.mfa.required.description" = "Пожалуйста, используйте приложение Passbolt для завершения авторизации.";
+
+"folder.edit.form.create.title" = "Создать папку";
+"folder.edit.form.name.field.placeholder" = "Без названия";
+"folder.edit.form.created" = "Новая папка %@ создана!";
+
+"resource.folder.menu.open.details.label" = "Подробнее";
+
+// Common UI
+
+"folder.root.name" = "Корневой раздел";
+
+"folder.name.title" = "Имя";
+"folder.location.title" = "Расположение";
+"permissions.avatars.view.title" = "Права доступа";
+"shared.avatars.view.title" = "Поделиться с";
+
+// Forms common
+
+"form.field.name.title" = "Имя";
+
+"form.button.save.title" = "Сохранить";
+
+// Errors
+
+"generic.error" = "Что-то пошло не так!";
+"generic.error.retry" = "Что-то пошло не так, попробуйте еще раз.";
+"generic.error.report" = "Что-то пошло не так. Пожалуйста, сообщите об ошибке.";
+"generic.error.cancelled" = "Операция отменена.";
+"sign.in.error.message" = "Не удалось войти";
+"sign.in.error.biometrics.changed.message" = "Похоже, что биометрические данные вашего устройства изменились. Пожалуйста, введите пароль и настройте биометрические данные снова";
+"sign.in.error.passphrase.invalid.message" = "Неверная парольная фраза.";
+"server.fingerprint.save.failed" = "Не удалось сохранить отпечаток сервера.";
+"form.field.error.max.length" = "Превышена максимальная длина.";
+"form.error.invalid" = "Форма недействительна";
+"resource.form.field.error.empty" = "Поле не может быть пустым";
+"resource.from.field.error.invalid.value" = "Значение для этого поля является недопустимым";
+"resource.form.field.error.max.length" = "Превышена максимальная длина.";
+"resource.form.field.error.invalid" = "Значение поля недопустимо";
+"resource.form.error.invalid" = "Форма недействительна";
+"authorization.passphrase.error" = "Парольная фраза неверна!";
+"account.settings.biometrics.error" = "Не удалось установить биометрические данные.";
+"totp.wrong.code.error" = "Неверный код";
+"error.another.account.transfer.in.progress" = "Передача учетной записи уже осуществляется. Пожалуйста, сначала завершите ее.";
+"resource.menu.action.failed" = "%@ не удалось!";
+"mfa.yubiKey.scan.failed" = "Ошибка сканирования";
+
+"error.internal.inconsistency" = "Внутренняя ошибка несоответствия, пожалуйста, сообщите об ошибке.";
+"error.feature.unavailable" = "Функция недоступна.";
+"error.nfc.not.supported" = "NFC не поддерживается.";
+"error.nfc.payload.invalid" = "Данные NFC не прошли проверку.";
+"error.url.invalid" = "Неверный URL-адрес.";
+"error.internet.connection.issue" = "Не удается подключиться к Интернету.";
+"error.client.certificate.invalid" = "Недопустимый сертификат клиента.";
+"error.server.connection.issue" = "Не удается подключиться к серверу.";
+"error.server.time.issue" = "Время на сервере и клиенте не совпадают, пожалуйста, свяжитесь с администратором.";
+"error.server.response.invalid" = "Неправильный ответ сервера";
+"error.server.response.timeout" = "Время ответа сервера истекло.";
+"error.server.certificate.invalid" = "Неверный сертификат сервера.";
+"error.http.request.invalid" = "Недопустимый HTTP-запрос.";
+"error.http.response.invalid" = "Некорректный HTTP ответ.";
+"error.network.response.invalid" = "Недопустимый ответ сети";
+"error.http.response.forbidden" = "HTTP запрещен.";
+"error.http.response.conflict" = "Конфликт HTTP.";
+"error.http.response.not.found" = "HTTP не обнаружен.";
+"error.http.response.redirect" = "Переадресация HTTP.";
+"error.http.request.invalid" = "Недопустимый HTTP-запрос.";
+"error.http.response.invalid" = "Некорректный HTTP-ответ.";
+"error.http.response.status.code.unexpected" = "Неожиданный код статуса HTTP.";
+"error.http.response.unauthorized" = "HTTP не авторизован.";
+"error.network.response.decoding.failed" = "Сбой расшифровки сетевого отклика.";
+"error.network.request.validation.failure" = "Проверка сетевого запроса не удалась.";
+"error.session.authorization.required" = "Требуется авторизация сессии";
+"error.session.authorization.mfa.required" = "Требуется авторизация MFA сессии.";
+"error.session.missing" = "Отсутствует сессия.";
+"error.crypto.data.signature.invalid" = "Некорректная подпись данных.";
+"error.crypto.passphrase.invalid" = "Неверная парольная фраза.";
+"error.crypto.pgp.fingerprint.invalid" = "Неверный отпечаток PGP.";
+"error.crypto.pgp.fingerprint.mismatch" = "Несовпадение отпечатка PGP.";
+"error.crypto.pgp.keyring.preparation.failed" = "Не удалось подготовить связку ключей PGP";
+"error.crypto.pgp.keypacket.extraction.failed" = "Не удалось извлечь пакет ключа PGP.";
+"error.crypto.pgp.sessionkey.extraction.failed" = "Не удалось извлечь сессионный ключ PGP.";
+"error.crypto.pgp.public.key.invalid" = "Неверный публичный PGP ключ.";
+"error.data.empty" = "Данные не предоставлены.";
+"error.data.invalid" = "Предоставлены недопустимые данные.";
+"error.resource.permission.required" = "Необходимо разрешение.";
+"error.resource.secret.invalid" = "Неверный секретный ключ ресурса.";
+"error.resource.permission.invalid" = "Разрешение на ресурс недействительно.";
+"error.resource.owner.missing" = "Ресурс должен иметь хотя бы одного владельца.";
+"error.system.feature.inaccessible" = "Системная функция недоступна.";
+"error.system.feature.permission.not.granted" = "Доступ к системным функциям не предоставлен.";
+"error.system.feature.permission.required" = "Необходим доступ к системной функции.";
+"error.system.feature.status.undetermined" = "Состояние системных функций не определено.";
+"error.system.file.access.issue" = "Нет доступа к файлу.";
+"error.system.directory.access.issue" = "Нет доступа к папке.";
+"error.database.statement.invalid" = "Недопустимое выражение базы данных.";
+"error.database.statement.execution.failure" = "Не удалось выполнить выражение базы данных.";
+"error.database.migration.failure" = "Ошибка миграции базы данных.";
+"error.database.connection.issue" = "Не удается подключиться к базе данных.";
+"error.database.connection.closed" = "Подключение к базе данных закрыто.";
+"error.database.binding.invalid" = "Неверная привязка данных базы данных.";
+"error.database.result.empty" = "Пустой результат базы данных.";
+"error.database.result.invalid" = "Недопустимый результат базы данных";
+"error.keychain.authorization.failed" = "Ошибка авторизации через Keychain.";
+"error.keychain.failure" = "Не удалось получить доступ к Keychain.";
+"error.keychain.query.invalid" = "Неверный запрос Keychain.";
+"error.account.private.key.missing" = "Отсутствует закрытый ключ аккаунта.";
+"error.account.profile.data.missing" = "Отсутствуют данные профиля учетной записи.";
+"error.account.passphrase.missing" = "Отсутствует парольная фраза учетной записи.";
+"error.account.data.missing" = "Отсутствуют данные учетной записи.";
+"error.account.biometry.data.changed" = "Данные биометрических данных изменились.";
+"error.account.kit.fail.to.import" = "Не удалось импортировать набор аккаунта.";
+"error.account.kit.signature.verification" = "Не удалось проверить подпись.";
+"error.users.list.empty" = "Список пользователей не может быть пустым.";
+"error.user.public.key.invalid" = "Неверный публичный ключ пользователя.";
+"error.user.public.key.missing" = "Отсутствует публичный ключ пользователя.";
+"error.user.secret.missing" = "Отсутствует секретный ключ пользователя.";
+"error.session.closed" = "Сессия закрыта.";
+"error.account.duplicate" = "Дубликат аккаунта.";
+"error.server.pgp.fingerprint.invalid" = "Отпечаток PGP сервера недействителен.";
+"error.session.authorization.failed" = "Не удалось авторизовать сессию.";
+"error.qrcode.invalid" = "Это не QR-код Passbolt. Попробуйте еще раз!";
+
+"error.validation.folder.name.empty" = "Имя раздела не может быть пустым.";
+"error.validation.folder.name.too.long" = "Имя раздела не может содержать более 256 символов.";
+
+"error.validation.permissions.empty" = "Необходимо наличие хотя бы одного разрешения.";
+"error.validation.permissions.owner.required" = "Должен быть хотя бы один владелец.";
+
+"error.validation.form.invalid" = "Форма не является допустимой.";
+"error.biometrics.unavailable.message" = "Биометрические данные недоступны";
+
+"error.qrcode.generation.generic" = "QR-код не может быть создан из предоставленных данных";
+
+"error.otp.configuration.invalid" = "Неверная конфигурация одноразовых паролей.";
+
+// Validation errors
+
+"error.resource.field.empty" = "%@ не может быть пустым!";
+"error.resource.field.length.lower" = "Количество символов в %@ не может превышать %d!";
+"error.resource.field.length.higher" = "Количество символов в %@ не может меньше %d!";
+"error.resource.field.range.lower" = "%@ должно быть меньше, чем %d!";
+"error.resource.field.range.greater" = "%@ должно быть больше чем %d!";
+"error.resource.field.content.invalid" = "%@ имеет недопустимое содержимое!";
+"error.resource.field.selection.invalid" = "%@ должно быть одним из допустимых вариантов!";
+"error.resource.field.unknown" = "Неизвестные поля не принимаются!";
+"error.validation.password.length.invalid" = "Некорректные настройки длины пароля!";
+"error.validation.password.mask.empty" = "Маска истечения срока действия пароля не может быть пустой!";
+
+// Home - presentation mode menu
+
+"home.presentation.mode.menu.title" = "Фильтровать по";
+
+// Presentation modes
+
+"home.presentation.mode.plain.resources.title" = "Все элементы";
+"home.presentation.mode.favorite.resources.title" = "Избранные";
+"home.presentation.mode.modified.resources.title" = "Недавно измененные";
+"home.presentation.mode.shared.resources.title" = "Доступные мне";
+"home.presentation.mode.owned.resources.title" = "Принадлежит мне";
+"home.presentation.mode.owned.resources.expiry" = "Срок действия";
+"home.presentation.mode.folders.explorer.title" = "Папки";
+"home.presentation.mode.folders.explorer.search.direct.results" = "в \"%@\":";
+"home.presentation.mode.folders.explorer.search.nested.results" = "в подразделах:";
+"home.presentation.mode.tags.explorer.title" = "Теги";
+"home.presentation.mode.resource.user.groups.explorer.title" = "Группы";
+
+// OTP resources
+
+"otp.resources.search.placeholder" = "Поиск TOTP";
+"otp.resources.list.title" = "TOTP";
+"otp.resources.list.empty.message" = "Нет временных одноразовых паролей";
+"otp.value.copied.message" = "Временный одноразовый пароль скопирован в буфер обмена!";
+
+// OTP contextual menu
+
+"otp.contextual.menu.copy.title" = "Скопировать одноразовый пароль";
+"otp.copied.message" = "Временный одноразовый пароль скопирован в буфер обмена!";
+"otp.contextual.menu.reveal.title" = "Показать одноразовый пароль";
+"otp.contextual.menu.edit.title" = "Изменить TOTP";
+"otp.contextual.menu.delete.title" = "Удалить одноразовый пароль";
+"otp.contextual.menu.delete.confirm.title" = "Вы уверены?";
+"otp.contextual.menu.delete.confirm.message" = "Это действие окончательно удалит одноразовый пароль.";
+"otp.contextual.menu.delete.confirm.action.delete" = "Удалить одноразовый пароль";
+"otp.contextual.menu.delete.succeeded" = "Одноразовый пароль был удален.";
+
+// OTP edit menu
+
+"otp.edit.menu.create.title" = "Создать временный одноразовый пароль";
+"otp.edit.menu.edit.title" = "Изменить TOTP";
+"otp.edit.menu.scanning.title" = "Сканировать QR-код";
+"otp.edit.menu.create.manual.title" = "Создать одноразовый пароль вручную";
+"otp.edit.menu.edit.manual.title" = "Редактировать TOTP вручную";
+"otp.edit.code.scanning.title" = "Редактировать TOTP вручную";
+"otp.edit.code.scanning.initial.message" = "Сканировать QR-код";
+"otp.edit.menu.title" = "Наведите камеру на QR-коды";
+"otp.edit.otp.created.message" = "TOTP создан.";
+"otp.edit.otp.replaced.message" = "TOTP был заменен.";
+"otp.edit.otp.deleted.message" = "TOTP был удален.";
+
+// OTP scanning
+
+"otp.scanning.success.title" = "Ваш временный одноразовый пароль просканирован!";
+"otp.scanning.success.create.button.title" = "Создать автономный временный одноразовый пароль";
+"otp.scanning.success.link.button.title" = "Связать TOTP с паролем.";
+"otp.code.scanning.title" = "Сканировать QR-код";
+"otp.code.scanning.initial.message" = "Наведите камеру на QR-код";
+"otp.code.scanning.manual.input" = "Or create TOTP manually";
+
+// OTP form
+
+"otp.edit.form.create.title" = "Создать временный одноразовый пароль";
+"otp.edit.form.edit.title" = "Изменить TOTP";
+"otp.edit.form.field.name.title" = "Имя (Ярлык)";
+"otp.edit.form.field.name.prompt" = "Имя";
+"otp.edit.form.field.uri.title" = "URL (издатель)";
+"otp.edit.form.field.uri.prompt" = "URL";
+"otp.edit.form.field.secret.title" = "Секретный ключ";
+"otp.edit.form.field.secret.prompt" = "Секретный ключ";
+"otp.edit.form.advanced.button.title" = "More TOTP settings";
+"otp.edit.form.create.button.title" = "Создать независимый одноразовый пароль";
+"otp.edit.form.apply.button.title" = "Применить";
+"otp.edit.form.edit.button.title" = "Сохранить";
+"otp.edit.form.edit.advanced.title" = "Редактировать TOTP - расширенные настройки";
+"otp.edit.form.edit.advanced.warning" = "Расширенные настройки должны соответствовать настройкам провайдера TOTP, иначе он не будет работать.";
+"otp.edit.form.field.digits.title" = "Длина TOTP";
+"otp.edit.form.field.digits.label" = "цифр(ы).";
+"otp.edit.form.field.period.title" = "Окончание действия временного одноразового пароля";
+"otp.edit.form.field.period.label" = "секунд до окончания действия временного одноразового пароля.";
+"otp.edit.form.field.algorithm.title" = "Алгоритм";
+"otp.edit.form.apply.button.title" = "Применить";
+
+// OTP attach
+
+"otp.attach.list.title" = "Добавить TOTP к паролю";
+"otp.attach.alert.attach.title" = "Вы уверены?";
+"otp.attach.alert.attach.message" = "Если вы добавите TOTP к этому ресурсу, TOTP будет наследовать те же права доступа.";
+"otp.attach.alert.attach.button.title" = "Добавить TOTP";
+"otp.attach.alert.replace.title" = "Заменить TOTP?";
+"otp.attach.alert.replace.message" = "TOTP уже связан с этим ресурсом, вы хотите переопределить его?";
+"otp.attach.alert.replace.button.title" = "Заменить TOTP";
+"otp.attach.error.notAllowed" = "Вам не разрешено редактировать этот ресурс.";
+"otp.attach.error.notCompatible" = "Данный ресурс несовместим с TOTP.";
+
+
+// Settings - Main
+
+"settings.main.title" = "Настройки";
+"settings.main.item.application.title" = "Настройки приложения";
+"settings.main.item.accounts.title" = "Учетные записи";
+"settings.main.item.terms.and.licenses.title" = "Условия и лицензии";
+"settings.main.item.troubleshooting.title" = "Отладка, журналы";
+"settings.main.item.sign.out.title" = "Выйти";
+
+// Settings - Application
+
+"settings.application.title" = "Настройки приложения";
+"settings.application.item.autofill.title" = "Автозаполнение";
+"settings.application.item.default.mode.title" = "Фильтр по умолчанию";
+
+// Settings - Accounts
+
+"settings.accounts.title" = "Учетные записи";
+"settings.accounts.item.details.title" = "Данные учетной записи";
+"settings.accounts.item.manage.title" = "Управление учетными записями";
+"settings.accounts.item.export.title" = "Передать аккаунт на другое устройство";
+"settings.accounts.item.key.inspector.title" = "Инспектор ключей";
+
+// Settings - Terms & Licenses
+
+"settings.terms.and.licenses.title" = "Условия и лицензии";
+"settings.terms.and.licenses.item.terms.title" = "Условия использования";
+"settings.terms.and.licenses.item.privacy.title" = "Политика конфиденциальности";
+"settings.terms.and.licenses.item.licenses.title" = "Лицензии Open Source";
+
+// Key inspector
+
+"account.key.inspector.title" = "Инспектор ключей";
+"account.key.inspector.field.uid.title" = "UID";
+"account.key.inspector.field.fingerprint.title" = "Отпечаток пальца";
+"account.key.inspector.field.created.title" = "Создан";
+"account.key.inspector.field.expires.title" = "Истекает";
+"account.key.inspector.no.exipire.placeholder" = "Никогда";
+"account.key.inspector.field.key.size.title" = "Длина ключа";
+"account.key.inspector.field.algorithm.title" = "Алгоритм";
+"account.key.inspector.uid.copied.message" = "UID скопирован в буфер обмена!";
+"account.key.inspector.fingerprint.copied.message" = "Отпечаток скопирован в буфер обмена!";
+
+// Key export
+
+"account.key.export.menu.title" = "Инспектор ключей";
+"account.key.export.menu.export.private.action" = "Экспортировать закрытый ключ";
+"account.key.export.menu.export.public.action" = "Экспортировать открытый ключ";
+"account.key.export.private.authorization.title" = "Экспортировать закрытый ключ";
+"account.key.export.private.authorization.button.title" = "Экспортировать закрытый ключ";
+
+// Settings - Troubleshooting
+
+"settings.troubleshooting.title" = "Отладка, журналы";
+"settings.troubleshooting.item.logs.title" = "Доступ к журналам";
+"settings.troubleshooting.item.help.site.title" = "Посетить сайт помощи";
+
+// Settings - Default presentation mode
+
+"settings.application.default.mode.title" = "Фильтр по умолчанию";
+"settings.application.default.mode.option.last.used.title" = "Последнее использованное (по умолчанию)";
+
+// Settings - Disable biometrics alert
+
+"settings.application.biometrics.disable.alert.title" = "Вы уверены?";
+"settings.application.biometrics.disable.alert.message" = "После отключения %@ вам нужно войти в систему, используя вашу парольную фразу.";
+"settings.application.biometrics.disable.alert.confirm.title" = "Отключить биометрические данные";
+"settings.application.biometrics.disable.alert.cancel.title" = "Оставить";
+
+// Settings - Sign out alert
+
+"settings.main.sign.out.alert.title" = "Вы уверены?";
+"settings.main.sign.out.alert.message" = "Если вы выйдете из системы, вы выйдете из своей учетной записи на этом устройстве.";
+"settings.main.sign.out.alert.confirm.title" = "Выйти";
+
+// Biometric authorization availability
+
+"biometric.authorization.availability.unavailable" = "Недоступно";
+"biometric.authorization.availability.face.id" = "FaceID";
+"biometric.authorization.availability.touch.id" = "TouchID";
+
+// Operation authorization
+
+"authorization.primary.button.title" = "Авторизоваться";
+
+// Metadata
+"metadata.pinned.key.validation.error.title" = "The metadata key has changed.";
+"metadata.pinned.key.validation.error.message" = "The encryption key used to share metadata between users has been updated by %@.";
+"metadata.pinned.key.validation.error.disclaimer" = "If you weren't expecting this, you can verify with your administrator.";
+"metadata.pinned.key.validation.error.trust" = "Trust the key";
+"metadata.pinned.key.fingerprint" = "Key fingerprint:";
+
+"metadata.pinned.key.validation.deleted.title" = "The metadata key has been deleted.";
+"metadata.pinned.key.validation.deleted.message" = "The trusted encryption key used to share metadata between users has been deleted.";
+
+"metadata.pinned.key.validation.unknown.title" = "The metadata key has changed.";
+"metadata.pinned.key.validation.unknown.message" = "The trusted encryption key used to share metadata between users could not be validated.";

@@ -1,0 +1,729 @@
+//
+// Passbolt - Open source password manager for teams
+// Copyright (c) 2021 Passbolt SA
+//
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+// Public License (AGPL) as published by the Free Software Foundation version 3.
+//
+// The name "Passbolt" is a registered trademark of Passbolt SA, and Passbolt SA hereby declines to grant a trademark
+// license to "Passbolt" pursuant to the GNU Affero General Public License version 3 Section 7(e), without a separate
+// agreement with Passbolt SA.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License along with this program. If not,
+// see GNU Affero General Public License v3 (http://www.gnu.org/licenses/agpl-3.0.html).
+//
+// @copyright     Copyright (c) Passbolt SA (https://www.passbolt.com)
+// @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
+// @link          https://www.passbolt.com Passbolt (tm)
+// @since         v1.0
+//
+// Shared and commons
+
+
+"generic.done" = "Erledigt";
+"generic.yes" = "Ja";
+"generic.apply" = "Anwenden";
+"generic.confirm" = "Bestätigen";
+"generic.cancel" = "Abbrechen";
+"generic.remove" = "Entfernen";
+"generic.loading" = "Wird geladen...";
+"generic.loading.long" = "Es dauert länger als gewöhnlich...";
+"generic.continue" = "Weiter";
+"generic.retry" = "Wiederholen";
+"generic.try.again" = "Erneut versuchen";
+"generic.delete" = "Löschen";
+"generic.got.it" = "Verstanden";
+"generic.settings" = "Einstellungen";
+"generic.disable" = "Deaktiviert";
+"generic.sign.out" = "Abbmelden";
+"generic.refresh" = "Aktuallisieren";
+"generic.create" = "Erstellen";
+"generic.empty.list" = "Es gibt keine Ergebnisse";
+"generic.user.search.list.empty" = "Benutzer nicht gefunden.";
+"generic.paste.value.invalid" = "Versuch einen ungültigen Wert einzufügen";
+"generic.are.you.sure" = "Sind Sie sicher?";
+"generic.picker.select.placeholder" = "Auswählen";
+
+"account.selection.title" = "Willkommen zurück!";
+"account.selection.subtitle" = "Wählen Sie ein Konto, um sich anzumelden!";
+"account.selection.remove.account.button.title" = "Ein Konto von diesem Gerät entfernen";
+"account.selection.add.account.footer.title" = "Neues Konto hinzufügen";
+"account.selection.remove.account.title" = "Kontoverknüpfung aufheben";
+"account.selection.remove.account.subtitle" = "Wählen Sie einen Account zum Entfernen des Links.";
+"account.selection.remove.alert.title" = "Sind Sie sicher ?";
+"account.selection.remove.alert.message" = "Dadurch wird Ihr Konto von diesem Gerät entfernt. Ihre Passwörter werden nicht gelöscht.";
+"account.selection.account.removed" = "Das Konto wurde von diesem Gerät entfernt.";
+
+"authorization.button.title" = "Anmelden";
+"authorization.reverification.button.title" = "Passphrase bestätigen";
+"authorization.forgot.passphrase.button.title" = "Ich habe meine Passphrase vergessen";
+"authorization.forgot.passphrase.alert.title" = "Haben Sie Ihre Passphrase vergessen?";
+"authorization.forgot.passphrase.alert.message" = "Leider können Sie nicht auf Ihre Daten zugreifen, wenn Sie sich nicht mehr an Ihre Passphrase erinnern. Bitte wenden Sie sich an Ihren Administrator, um Ihr Konto freizuschalten.";
+"authorization.passphrase.description.text" = "Kennwort";
+"authorization.title" = "Geben Sie Ihre Passphrase ein";
+
+"sign.in.title" = "Geben Sie Ihre Passphrase ein";
+
+"resource.list.username.empty.placeholder" = "kein Benutzername";
+
+"resource.detail.field.name" = "Name";
+"resource.detail.field.username" = "Benutzername";
+"resource.detail.field.passphrase" = "Passwort";
+"resource.detail.field.uri" = "Webseiten URL";
+"resource.detail.field.description" = "Beschreibung";
+"resource.show.field.uri.placeholder" = "No URI";
+"resource.show.field.username.placeholder" = "Kein Nutzername";
+"resource.show.field.password.placeholder" = "Kein Passwort";
+"resource.show.field.description.placeholder" = "Keine Beschreibung";
+"resource.value.copied" = "%@ in Ihre Zwischenablage kopiert!";
+"resource.details.value" = "Wert";
+"resource.detail.section.location" = "Standort";
+"resource.detail.section.permissions" = "Freigegeben für";
+"resource.detail.section.tags" = "Tags";
+"resource.detail.section.expiry" = "Ablauf";
+"resource.detail.section.expiry.expired" = "Abgelaufen";
+"resource.detail.section.expiry.willExpire" = "Gültig bis";
+"resource.detail.undefined.content.warning" = "Nicht unterstützter Typ, unbekannte Felder sind ausgeblendet!";
+
+"resource.expiry.expired" = "(abgelaufen)";
+
+"resource.delete.succeeded" = "Die Ressource wurde gelöscht.";
+
+"resource.field.name.unknown" = "Wert";
+"section.tags.empty" = "Keine Tags";
+
+"server.key.fingerprint.changed.title" = "Der Serverschlüssel hat sich leider geändert.";
+"server.key.fingerprint.changed.description" = "Aus Sicherheitsgründen sollten Sie sich bei Ihrem Administrator vergewissern, dass diese Änderung von ihm veranlasst wurde. Der neue Fingerabdruck:";
+"server.key.fingerprint.accept.check" = "Ja, ich habe es überprüft, und es ist alles in Ordnung.";
+"server.key.fingerprint.accept.new.key" = "Neuen Schlüssel akzeptieren";
+
+"resource.form.password.strength" = "Passwortstärke";
+"resource.form.strength.very.weak" = "Sehr schwach";
+"resource.form.strength.weak" = "Schwach";
+"resource.form.strength.fair" = "O.K.";
+"resource.form.strength.strong" = "Stark";
+"resource.form.strength.very.strong" = "Sehr stark";
+"resource.form.create.button.title" = "Erstellen";
+"resource.form.create.and.fill.button.title" = "Erstellen und Ausfüllen";
+"resource.form.update.button.title" = "Speichern";
+"resource.form.new.password.created" = "Ein neues Passwort wurde erstellt";
+"resource.form.description.encrypted" = "Beschreibung ist verschlüsselt";
+"resource.form.description.unencrypted" = "Beschreibung ist nicht verschlüsselt";
+"resource.form.undefined.content.warning" = "Nicht unterstützter Typ, unbekannte Felder sind ausgeblendet!";
+
+"feedback.alert.title" = "Das Gerät ist eventuell aufgebrochen";
+"feedback.alert.message" = "Wir vermuten, dass Ihr Gerät möglicherweise aufgebrochen sein könnte. Bitte beachten Sie, dass dies die allgemeine Gerätesicherheit verringert und böswillig genutzt werden kann, um an Ihre Passwörter zu gelangen.";
+"feedback.alert.button.title" = "Verstanden";
+
+"account.not.found.title.label" = "Das Konto existiert nicht";
+"account.not.found.message.label" = "Das Konto wurde gelöscht oder gesperrt";
+"account.not.found.action.button.title" = "Mit einem bestehenden Konto verbinden";
+
+"server.not.reachable.alert.title" = "Server war nicht erreichbar!";
+"server.not.reachable.alert.message.server.placeholder" = "Server";
+"server.not.reachable.alert.message" = "%@ kann nicht erreicht werden. Bitte versuchen Sie es erneut";
+
+"resource.edit.create.title" = "Eine Ressource erstellen";
+"resource.edit.title" = "Ressource bearbeiten";
+"resource.password.edit.title" = "Passwort bearbeiten";
+"resource.edit.field.name.label" = "Name";
+"resource.edit.field.uri.label" = "Main URI";
+"resource.edit.field.username.label" = "Benutzername";
+"resource.edit.field.password.label" = "Passwort";
+"resource.edit.field.description.label" = "Beschreibung";
+"resource.edit.field.totp.label" = "TOTP";
+"resource.edit.field.add.totp" = "TOTP";
+"resource.edit.field.add.note" = "Notiz";
+"resource.edit.field.add.password" = "Passwort";
+"resource.edit.field.name.placeholder" = "Namen eingeben";
+"resource.edit.field.uri.placeholder" = "Enter URI";
+"resource.edit.field.username.placeholder" = "Benutzernamen eingeben";
+"resource.edit.field.password.placeholder" = "Passwort eingeben";
+"resource.edit.field.description.placeholder" = "Beschreibung eingeben";
+"resource.edit.exit.confirmation.message" = "Ihre Änderungen werden nicht gespeichert.";
+"resource.edit.exit.confirmation.button.edit.title" = "Bearbeiten";
+"resource.edit.exit.confirmation.button.revert.title" = "Zurücksetzen";
+"resource.edit.note.content.title" = "Inhalt";
+"resource.edit.note.content.disclaimer" = "This secure is part of the secret if you wan to be able to search this content, use metadata description.";
+"resource.edit.note.remove.button.title" = "Remove note";
+
+"resource.edit.section.password.title" = "Passwort";
+"resource.edit.section.totp.title" = "TOTP";
+"resource.edit.section.note.title" = "Notiz";
+"resource.edit.section.metadata.title" = "Metadaten";
+"resource.edit.totp.remove.button.title" = "Remove TOTP";
+
+"resource.create.advanced.button" = "View advanced settings";
+"resource.create.additional.secrets.title" = "Additional secrets";
+"resource.create.advanced.add.otp" = "TOTP";
+
+"resource.edit.section.metadata.description" = "Beschreibung";
+"resource.edit.section.metadata.description.name" = "Metadata description";
+"resource.edit.section.metadata.description.description" = "If you want the description to be part of the secret, use the note instead.";
+
+"resource.create.menu.title" = "Eine Ressource erstellen";
+"resource.create.menu.password" = "Passwort";
+"resource.create.menu.totp" = "TOTP";
+
+"resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
+"resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
+
+"help.logs.viewer.title" = "Protokollen";
+
+"help.menu.title" = "Hilfe";
+"help.menu.show.logs.action.title" = "Protokolle";
+"help.menu.show.web.help.action.title" = "Hilfeseite besuchen";
+"help.menu.show.import.account.kit.title" = "Konto importieren";
+
+// Main application
+
+"welcome.title" = "Willkommen!";
+"welcome.description" = "Sie benötigen ein bestehendes Konto, um loszulegen. Melden Sie sich mit Ihrem bestehenden Konto bei der Desktop-Browser-Erweiterung an, um sie mit dem mobilen Gerät zu verbinden.";
+"welcome.connect.to.account" = "Mit einem bestehenden Konto verbinden";
+"welcome.no.account" = "Ich habe kein Konto";
+"welcome.no.account.alert.title" = "Wie erstellt man ein Konto?";
+"welcome.no.account.alert.text" = "Es ist derzeit nicht möglich, ein Konto über die mobile App zu erstellen. Zunächst müssen Sie ein Konto über Ihre Desktop-Browser-Erweiterung erstellen.";
+"code.scanning.exit.confirmation.confirm.button.title" = "Scannen beenden";
+"code.scanning.help.menu.button.title" = "Warum QR-Codes scannen?";
+"code.scanning.help.title" = "Scannen von QR-Codes";
+"code.scanning.help.message" = "Sie werden eine Reihe von QR-Codes sehen. Wir scannen diese Codes, bis der Fortschrittsbalken voll ist. Dann können Sie sich anmelden!";
+"code.scanning.camera.unavailable" = "Leider benötigen Sie ein Gerät mit einer Kamera, um fortzufahren, da die Schlüsselübertragung über QR-Codes erfolgt.";
+"code.scanning.begin" = "Richten Sie die Kamera auf den QR-Code";
+"code.scanning.processing.in.progress" = "Scannen... Weiter so!";
+"code.scanning.processing.invalid.code" = "Es ist nicht der Passbolt QR. Versuchen Sie es noch einmal!";
+
+
+"transfer.account.title" = "Kontodaten übertragen";
+"transfer.account.import.description" = "QR-Codes scannen, um Ihre Kontodaten zu übertragen";
+"transfer.account.import.info.step.first" = "Anmeldung über die Browsererweiterung";
+"transfer.account.import.info.step.second" = "Zur Profilseite gehen";
+"transfer.account.import.info.step.second.distinct" = "Profil";
+"transfer.account.import.info.step.third" = "Zum Mobil-Bereich";
+"transfer.account.import.info.step.third.distinct" = "Mobil";
+"transfer.account.import.info.step.fourth" = "Scannen Sie die QR-Codes nacheinander";
+"transfer.account.import.scan.qr.button" = "QR-Codes scannen";
+"transfer.account.export.description" = "QR-Codes anzeigen, um Ihre Kontodaten zu übertragen";
+"transfer.account.export.info.step.first" = "App auf einem anderen Handy installieren";
+"transfer.account.export.info.step.second" = "Die App starten";
+"transfer.account.export.info.step.third" = "Wählen Sie \"Mit einem bestehenden Konto verbinden\" aus";
+"transfer.account.export.info.step.fourth" = "Scannen Sie die QR-Codes nacheinander";
+"transfer.account.export.scan.qr.button" = "Übertragung starten";
+"transfer.account.export.cancel.button" = "Übertragung abbrechen";
+"transfer.account.camera.access.alert.title" = "Zugang zur Kamera erforderlich";
+"transfer.account.camera.access.alert.text" = "Gehen Sie zu Einstellungen/Privatsphäre/Kamera, um den Zugriff auf Ihre Kamera zu aktivieren.";
+"transfer.account.result.success.title" = "Ihre Daten wurden übertragen!";
+"transfer.account.result.already.linked.title" = "Konto ist bereits mit dem Gerät verbunden.";
+"transfer.account.result.canceled.title" = "Transfer wurde abgebrochen.";
+"transfer.account.kit.result.success.title" = "Ihr Konto-Kit wurde importiert!";
+
+"transfer.account.exit.confirmation.title" = "Sind Sie sicher?";
+"transfer.account.exit.confirmation.message" = "Wenn Sie verlassen, müssen Sie QR-Codes erneut scannen.";
+"transfer.account.import.exit.confirmation.cancel.button.title" = "Einrichtung fortsetzen";
+"transfer.account.import.exit.confirmation.confirm.button.title" = "Einrichtung abbrechen";
+"transfer.account.export.exit.confirmation.confirm.button.title" = "Übertragung beenden";
+"transfer.account.export.exit.success.button" = "Zurück";
+"transfer.account.export.exit.failure.button" = "Erneut versuchen";
+"transfer.account.export.failure.message" = "Die Übertragung konnte nicht abgeschlossen werden.";
+"transfer.account.export.cancelled" = "Die Übertragung wurde abgebrochen";
+"transfer.account.exit.confirmation.cancel.button.title" = "Einrichtung fortsetzen";
+"transfer.account.exit.confirmation.confirm.button.title" = "Einrichtung abbrechen";
+
+"biometrics.usage.reason" = "Biometrische Daten können verwendet werden, um Ihre Passphrase sicher zu speichern.";
+
+"biometrics.info.title" = "Biometrische Daten konfigurieren";
+"biometrics.info.description" = "Wenn Sie FaceID oder TouchID als schnelle Anmeldemethode verwenden möchten, konfigurieren Sie diese in den Einstellungen.";
+"biometrics.info.setup.button" = "Biometrische Daten konfigurieren";
+"biometrics.info.later.button" = "Vielleicht später";
+
+"biometrics.setup.title.face" = "Face ID anstelle von Passphrase verwenden!";
+"biometrics.setup.title.finger" = "Touch ID anstelle von Passphrase verwenden!";
+"biometrics.setup.description" = "Entschlüsseln Sie Ihre Geheimnisse in einer Sekunde.";
+"biometrics.setup.setup.button.face" = "FaceID verwenden";
+"biometrics.setup.setup.button.finger" = "TouchID verwenden";
+"biometrics.setup.later.button" = "Vielleicht später";
+
+"extension.setup.title" = "Melden Sie sich in 3 Sekunden bei Ihren Lieblingsanwendungen an!";
+"extension.setup.settings.step" = "Zu den Einstellungen";
+"extension.setup.settings.step.bold" = "Einstellungen";
+"extension.setup.keyboard.step" = "Autofill-Passwörter öffnen";
+"extension.setup.keyboard.step.bold" = "Autofill-Passwörter";
+"extension.setup.switch.step" = "Autofill-Passwörter aktivieren";
+"extension.setup.switch.step.bold" = "Aktivieren";
+"extension.setup.keychain.step" = "Keychain deaktivieren";
+"extension.setup.keychain.step.bold" = "Ausschalten";
+"extension.setup.passbolt.step" = "Passbolt wählen!";
+"extension.setup.passbolt.step.bold" = "Passbolt!";
+"extension.setup.setup.button" = "Zu den Einstellungen";
+"extension.setup.later.button" = "Vielleicht später";
+
+"tab.home" = "Start";
+"tab.otp" = "TOTP";
+"tab.settings" = "Einstellungen";
+
+"authorization.prompt.refresh.session.reason" = "Bitte authentifizieren Sie sich, um die Sitzung zu aktualisieren";
+"authorization.prompt.biometrics.set.reason" = "Bitte authentifizieren Sie sich, um die Biometrie zu aktivieren.";
+
+"resources.search.placeholder" = "Suche nach Namen, Benutzernamen, URL oder Tag...";
+
+"resource.menu.item.open.url" = "Webseite öffnen";
+"resource.menu.item.copy.url" = "URL kopieren";
+"resource.menu.item.copy.password" = "Passwort kopieren";
+"resource.menu.item.copy.username" = "Benutzernamen kopieren";
+"resource.menu.item.copy.description" = "Beschreibung kopieren";
+"resource.menu.item.copy.note" = "Notiz kopieren";
+"resource.menu.item.reveal.otp" = "TOTP anzeigen";
+"resource.menu.item.copy.otp" = "TOTP kopieren";
+"resource.menu.item.add.favorite" = "Zu Favoriten hinzufügen";
+"resource.menu.item.remove.favorite" = "Aus Favoriten entfernen";
+"resource.menu.item.share" = "Passwort teilen";
+"resource.menu.item.edit.password" = "Passwort bearbeiten";
+"resource.menu.item.edit.otp" = "TOTP bearbeiten";
+"resource.menu.item.delete.resource" = "Passwort löschen";
+"resource.menu.item.delete.otp" = "TOTP löschen";
+"resource.menu.item.password" = "Passwort";
+"resource.menu.item.username" = "Benutzername";
+"resource.menu.item.description" = "Beschreibung";
+"resource.menu.item.url" = "URL";
+"resource.menu.item.field.copied" = "%@ in Ihre Zwischenablage kopiert!";
+
+"resource" = "Ressource";
+"resource.menu.action.favorite.added" = "%@ wurde zu Ihren Favoriten hinzugefügt!";
+"resource.menu.action.favorite.removed" = "%@ wurde aus Ihren Favoriten entfernt!";
+
+"resource.menu.action.edited" = "Dieses Passwort wurde erfolgreich bearbeitet.";
+"resource.menu.action.deleted" = "%@ wurde gelöscht!";
+
+"resource.permission.type.read.label" = "kann lesen";
+"resource.permission.type.write.label" = "kann aktualisieren";
+"resource.permission.type.own.label" = "ist Eigentümer:in";
+"resource.permission.list.title" = "Freigegeben für";
+"resource.permission.list.edit.button.title" = "Berechtigungen bearbeiten";
+"resource.permission.edit.list.title" = "Passwort teilen";
+"resource.permission.edit.list.empty.message" = "Bitte stellen Sie sicher, dass es mindestens einen Eigentümer gibt.";
+"resource.permission.edit.list.add.button.title" = "Benutzer hinzufügen";
+"resource.permission.edit.user.and.group.search.title" = "Benutzer wählen";
+"resource.permission.edit.user.and.group.search.prompt" = "Suche nach Benutzern...";
+"resource.permission.edit.user.and.group.search.existing.section.title" = "Bereits hinzugefügt";
+"resource.permission.delete.user.permission.confirmation.message" = "Das Passwort wird nicht mehr mit diesem Benutzer geteilt.";
+"resource.permission.delete.user.group.permission.confirmation.message" = "Das Passwort wird nicht mehr mit dieser Gruppe geteilt.";
+
+"resource.permission.details.title" = "Berechtigung";
+"resource.permission.details.user.suspended" = "gesperrt";
+
+"permission.details.type.section.title" = "Berechtigung";
+"permission.details.group.members.section.title" = "Gruppenmitglieder";
+"permission.details.user.suspended" = "gesperrt";
+
+"resource.permission.edit.button.delete.title" = "Berechtigung löschen";
+
+"resource.folders.add.menu.title" = "Create a resource";
+"resource.folders.add.menu.folder.label" = "Folder";
+
+"group.members.list.title" = "Gruppenmitglieder";
+"group.members.member.details.title" = "Gruppenmitglieder";
+
+"totp.title.label" = "Zwei-Faktor-Authentifizierung";
+"totp.message.label" = "Geben Sie den Verifizierungscode ein:";
+"totp.paste.otp.button.label" = "Code einfügen";
+"totp.remember.device.toggle.label" = "Merken Sie sich dieses Gerät für 30 Tage";
+
+"yubiKey.scan.instruction" = "Stecken Sie Ihren YubiKey in Ihrem Gerät.";
+"yubiKey.scan.success" = "Scan erfolgreich";
+"yubiKey.scan.notRecognized.title" = "Yubikey wird nicht erkannt";
+"yubiKey.scan.notRecognized.button.ok" = "Verstanden";
+"yubiKey.scan.notRecognized.message" = "Ihr Yubikey wird vom Server nicht erkannt.\nBitte versuchen Sie es mit einem anderen Yubikey oder einem anderen Provider.";
+"mfa.yubiKey.title" = "YubiKey OTP";
+"mfa.yubiKey.description" = "Bitte beachten Sie, dass Ihr YubiKey
+NFC unterstützen muss, damit dies funktioniert.";
+"mfa.yubiKey.scan" = "Scannen Sie Ihren YubiKey";
+"mfa.yubiKey.nfc.not.supported" = "Dieses Gerät unterstützt kein NFC.";
+"mfa.provider.try.another" = "Versuchen Sie es mit einem anderen Anbieter";
+"mfa.remember.token" = "Merken Sie sich dieses Gerät für 30 Tage";
+"mfa.unsupported.provider.title" = "Ihr Multi-Faktor-Authentifizierungs-Anbieter wird nicht unterstützt";
+"mfa.unsupported.provider.description" = "Bitte richten Sie einen anderen Anbieter über die Web-App ein.
+Wenden Sie sich für weitere Informationen an Ihren Administrator.";
+"mfa.duo.authorization.title" = "Duo Multi-Faktor-Authentifizierung";
+"mfa.duo.authorization.button.title" = "Mit Duo authentifizieren";
+
+"account.menu.title" = "Konto wechseln";
+"account.menu.account.details.button.title" = "Details anzeigen";
+"account.menu.sign.out.button.title" = "Abmelden";
+"account.menu.manage.accounts.button.title" = "Konten verwalten";
+
+"account.details.title" = "Kontodaten";
+"account.details.field.label.title" = "Bezeichnung";
+"account.details.field.label.editing.info" = "Die Bezeichnung wird in der Kontoliste und zur Authentifizierung angezeigt";
+"account.details.field.name.title" = "Name";
+"account.details.field.email.title" = "E-Mail";
+"account.details.field.url.title" = "URL der Organisation";
+"account.details.field.role.title" = "Rolle";
+"account.details.button.save.title" = "Speichern";
+
+"update.available.title" = "Neue Version verfügbar!";
+"update.available.message" = "Bitte aktualisieren Sie die Passbolt App auf die neueste Version aus dem App Store";
+
+// Autofill extension
+
+"autofill.extension.setup.completed.title" = "Passbolt Autofill aktiviert!";
+"autofill.extension.setup.completed.info" = "Wenn Sie ein Formular ausgefüllt haben, tippen Sie einfach auf das Eingabefeld und die Funktion zum automatischen Ausfüllen, die Sie aktiviert haben, wird vorschlagen, das Feld mit den Anmeldedaten auszufüllen, die Sie bereits zur Passbolt App hinzugefügt haben.";
+
+"autofill.extension.account.selection.switch.account.title" = "Konto wechseln";
+"autofill.extension.account.selection.switch.account.subtitle" = "Wählen Sie ein Konto zum Wechseln aus!";
+"autofill.extension.account.selection.sign.in.title" = "Sie sind nicht eingeloggt";
+"autofill.extension.account.selection.sign.in.subtitle" = "Wählen Sie ein Konto aus um sich anzumelden!";
+
+"autofill.extension.no.accounts.title" = "Kein Konto gefunden!";
+"autofill.extension.no.accounts.description" = "Sie benötigen ein Konto, um loszulegen. Bitte öffnen Sie die Passbolt-Anwendung und folgen Sie den Installationsanweisungen. Passbolt kann im Anschluss Zugangsdaten automatisch ausfüllen.";
+
+"autofill.extension.resource.list.title" = "Passwort auswählen";
+"autofill.extension.resource.list.section.suggested.title" = "Vorgeschlagen";
+"autofill.extension.resource.list.section.all.title" = "Andere";
+
+"autofill.extension.autofill.extension.resources.search.placeholder" = "Suche in Passbolt...";
+
+"mfa.required.title" = "MFA ist erforderlich";
+"autofill.extension.mfa.required.description" = "Bitte verwenden Sie die Passbolt-App, um Ihre Authentifizierung abzuschließen.";
+
+"folder.edit.form.create.title" = "Ordner anlegen";
+"folder.edit.form.name.field.placeholder" = "Unbenannter Ordner";
+"folder.edit.form.created" = "Neuer Ordner %@ wurde erstellt!";
+
+"resource.folder.menu.open.details.label" = "Details anzeigen";
+
+// Common UI
+
+"folder.root.name" = "Wurzelverzeichnis";
+
+"folder.name.title" = "Name";
+"folder.location.title" = "Standort";
+"permissions.avatars.view.title" = "Berechtigungen";
+"shared.avatars.view.title" = "Freigegeben für";
+
+// Forms common
+
+"form.field.name.title" = "Name";
+
+"form.button.save.title" = "Speichern";
+
+// Errors
+
+"generic.error" = "Etwas ist schief gelaufen!";
+"generic.error.retry" = "Etwas ist schiefgelaufen, bitte versuchen Sie es erneut.";
+"generic.error.report" = "Etwas ist schiefgelaufen, bitte melden Sie einen Bug.";
+"generic.error.cancelled" = "Der Vorgang wurde abgebrochen.";
+"sign.in.error.message" = "Anmeldung fehlgeschlagen";
+"sign.in.error.biometrics.changed.message" = "Es scheint, dass sich die biometrischen Daten Ihres Geräts geändert haben. Bitte geben Sie Ihre Passphrase ein und konfigurieren Sie die biometrischen Daten erneut";
+"sign.in.error.passphrase.invalid.message" = "Ungültige Passphrase.";
+"server.fingerprint.save.failed" = "Speichern des Server-Fingerabdrucks fehlgeschlagen.";
+"form.field.error.max.length" = "Die maximale Länge wurde überschritten.";
+"form.error.invalid" = "Ungültiges Formular";
+"resource.form.field.error.empty" = "Das Feld darf nicht leer sein";
+"resource.from.field.error.invalid.value" = "Der Wert für dieses Feld ist ungültig";
+"resource.form.field.error.max.length" = "Die maximale Länge wurde überschritten.";
+"resource.form.field.error.invalid" = "Der Feldwert ist ungültig";
+"resource.form.error.invalid" = "Ungültiges Formular";
+"authorization.passphrase.error" = "Passphrase stimmt nicht!";
+"account.settings.biometrics.error" = "Einrichten der biometrischen Daten fehlgeschlagen.";
+"totp.wrong.code.error" = "Falscher Code";
+"error.another.account.transfer.in.progress" = "Es ist eine weitere Kontoüberweisung im Gange. Bitte vervollständigen Sie diese zuerst.";
+"resource.menu.action.failed" = "%@ fehlgeschlagen!";
+"mfa.yubiKey.scan.failed" = "Scannen fehlgeschlagen";
+
+"error.internal.inconsistency" = "Interne Inkonsistenz, bitte melden Sie einen Fehler.";
+"error.feature.unavailable" = "Funktion nicht verfügbar.";
+"error.nfc.not.supported" = "NFC wird nicht unterstützt.";
+"error.nfc.payload.invalid" = "NFC payload ungültig.";
+"error.url.invalid" = "Ungültige URL.";
+"error.internet.connection.issue" = "Keine Internetverbindung möglich.";
+"error.client.certificate.invalid" = "Kundenzertifikat ungültig.";
+"error.server.connection.issue" = "Keine Verbindung zum Server möglich.";
+"error.server.time.issue" = "Server- und Clientzeit ist nicht synchronisiert, bitte kontaktieren Sie Ihren Administrator.";
+"error.server.response.invalid" = "Ungültige Server-Antwort";
+"error.server.response.timeout" = "Server Antwort-Timeout.";
+"error.server.certificate.invalid" = "Ungültiges Server-Zertifikat.";
+"error.http.request.invalid" = "HTTP-Anfrage ungültig.";
+"error.http.response.invalid" = "HTTP-Antwort ungültig.";
+"error.network.response.invalid" = "Ungültige Netzwerk-Antwort";
+"error.http.response.forbidden" = "HTTP verboten.";
+"error.http.response.conflict" = "HTTP-Konflikt.";
+"error.http.response.not.found" = "HTTP nicht gefunden.";
+"error.http.response.redirect" = "HTTP-Umleitung.";
+"error.http.request.invalid" = "HTTP-Anfrage ungültig.";
+"error.http.response.invalid" = "HTTP-Antwort ungültig.";
+"error.http.response.status.code.unexpected" = "HTTP-Statuscode unerwartet.";
+"error.http.response.unauthorized" = "HTTP nicht autorisiert.";
+"error.network.response.decoding.failed" = "Dekodierung der Netzwerkantwort fehlgeschlagen.";
+"error.network.request.validation.failure" = "Überprüfung der Netzwerkanfrage fehlgeschlagen.";
+"error.session.authorization.required" = "Sitzungsberechtigung erforderlich";
+"error.session.authorization.mfa.required" = "MFA-Autorisierung erforderlich.";
+"error.session.missing" = "Fehlende Sitzung.";
+"error.crypto.data.signature.invalid" = "Daten-Signatur ungültig.";
+"error.crypto.passphrase.invalid" = "Ungültige Passphrase.";
+"error.crypto.pgp.fingerprint.invalid" = "Ungültiger PGP-Fingerabdruck.";
+"error.crypto.pgp.fingerprint.mismatch" = "PGP-Fingerabdruck stimmt nicht überein.";
+"error.crypto.pgp.keyring.preparation.failed" = "Vorbereitung des PGP-Keyrings fehlgeschlagen";
+"error.crypto.pgp.keypacket.extraction.failed" = "Extraktion des PGP-Schlüsselpakets fehlgeschlagen.";
+"error.crypto.pgp.sessionkey.extraction.failed" = "Extraktion des PGP-Sitzungsschlüssels fehlgeschlagen.";
+"error.crypto.pgp.public.key.invalid" = "Ungültiger öffentlicher PGP-Schlüssel.";
+"error.data.empty" = "Keine Daten vorhanden.";
+"error.data.invalid" = "Ungültige Daten angegeben.";
+"error.resource.permission.required" = "Berechtigung erforderlich.";
+"error.resource.secret.invalid" = "Ressourcengeheimnis ist ungültig.";
+"error.resource.permission.invalid" = "Ressourcen-Berechtigung ist ungültig.";
+"error.resource.owner.missing" = "Ressource muss mindestens einen Eigentümer haben.";
+"error.system.feature.inaccessible" = "Systemfunktion nicht zugänglich.";
+"error.system.feature.permission.not.granted" = "Systemfunktion Berechtigung nicht erteilt.";
+"error.system.feature.permission.required" = "Systemfunktion Berechtigung erforderlich.";
+"error.system.feature.status.undetermined" = "Status der Systemfunktion unbestimmt.";
+"error.system.file.access.issue" = "Kann nicht auf die Datei zugreifen.";
+"error.system.directory.access.issue" = "Kann nicht auf das Verzeichnis zugreifen.";
+"error.database.statement.invalid" = "Datenbankanweisung ungültig.";
+"error.database.statement.execution.failure" = "Ausführung des Datenbank-Statements fehlgeschlagen.";
+"error.database.migration.failure" = "Datenbankmigration fehlgeschlagen.";
+"error.database.connection.issue" = "Keine Verbindung zur Datenbank möglich.";
+"error.database.connection.closed" = "Datenbankverbindung geschlossen.";
+"error.database.binding.invalid" = "Bindung der Datenbankdaten ungültig.";
+"error.database.result.empty" = "Datenbankergebnis leer.";
+"error.database.result.invalid" = "Datenbankergebnis ungültig";
+"error.keychain.authorization.failed" = "Keychain Autorisierung fehlgeschlagen.";
+"error.keychain.failure" = "Zugriff auf Keychain fehlgeschlagen.";
+"error.keychain.query.invalid" = "Ungültige Keychain-Anfrage.";
+"error.account.private.key.missing" = "Der private Schlüssel des Kontos fehlt.";
+"error.account.profile.data.missing" = "Profildaten des Kontos fehlen.";
+"error.account.passphrase.missing" = "Passphrase des Kontos fehlt.";
+"error.account.data.missing" = "Kontodaten fehlen.";
+"error.account.biometry.data.changed" = "Die biometrischen Daten haben sich geändert.";
+"error.account.kit.fail.to.import" = "Importieren des Konto-Kits fehlgeschlagen.";
+"error.account.kit.signature.verification" = "Fehler beim Überprüfen der Signatur.";
+"error.users.list.empty" = "Die Benutzerliste darf nicht leer sein.";
+"error.user.public.key.invalid" = "Ungültiger öffentlicher Schlüssel des Benutzers.";
+"error.user.public.key.missing" = "Fehlender öffentlicher Schlüssel des Benutzers.";
+"error.user.secret.missing" = "Fehlendes Benutzergeheimnis.";
+"error.session.closed" = "Sitzung geschlossen.";
+"error.account.duplicate" = "Doppeltes Konto.";
+"error.server.pgp.fingerprint.invalid" = "PGP-Fingerabdruck des Servers ungültig.";
+"error.session.authorization.failed" = "Sitzungsautorisierung fehlgeschlagen.";
+"error.qrcode.invalid" = "Es ist nicht der Passbolt QR. Versuchen Sie es noch einmal!";
+
+"error.validation.folder.name.empty" = "Ordnername darf nicht leer sein.";
+"error.validation.folder.name.too.long" = "Der Ordnername darf nicht mehr als 256 Zeichen enthalten.";
+
+"error.validation.permissions.empty" = "Es muss mindestens eine Berechtigung geben.";
+"error.validation.permissions.owner.required" = "Es muss mindestens einen Eigentümer geben.";
+
+"error.validation.form.invalid" = "Das Formular ist ungültig.";
+"error.biometrics.unavailable.message" = "Biometrie nicht verfügbar";
+
+"error.qrcode.generation.generic" = "QR-Code konnte nicht aus den angegebenen Daten generiert werden";
+
+"error.otp.configuration.invalid" = "Ungültige OTP Konfiguration.";
+
+// Validation errors
+
+"error.resource.field.empty" = "%@ darf nicht leer sein!";
+"error.resource.field.length.lower" = "%@ darf nicht mehr als %d Zeichen lang sein!";
+"error.resource.field.length.higher" = "%@ darf nicht weniger als %d Zeichen haben!";
+"error.resource.field.range.lower" = "%@ muss kleiner sein als %d!";
+"error.resource.field.range.greater" = "%@ muss größer als %d sein!";
+"error.resource.field.content.invalid" = "%@ hat ungültigen Inhalt!";
+"error.resource.field.selection.invalid" = "%@ muss eine der gültigen Optionen sein!";
+"error.resource.field.unknown" = "Unbekannte Felder wurden nicht erwartet!";
+"error.validation.password.length.invalid" = "Ungültige Passwort-Längeneinstellungen!";
+"error.validation.password.mask.empty" = "Passwortablaufmaske darf nicht leer sein!";
+
+// Home - presentation mode menu
+
+"home.presentation.mode.menu.title" = "Ansicht filtern nach";
+
+// Presentation modes
+
+"home.presentation.mode.plain.resources.title" = "Alle Elemente";
+"home.presentation.mode.favorite.resources.title" = "Favoriten";
+"home.presentation.mode.modified.resources.title" = "Vor kurzem geändert";
+"home.presentation.mode.shared.resources.title" = "Mit mir geteilt";
+"home.presentation.mode.owned.resources.title" = "In meinem Besitz";
+"home.presentation.mode.owned.resources.expiry" = "Ablauf";
+"home.presentation.mode.folders.explorer.title" = "Ordner";
+"home.presentation.mode.folders.explorer.search.direct.results" = "in \"%@\":";
+"home.presentation.mode.folders.explorer.search.nested.results" = "in Unterordnern:";
+"home.presentation.mode.tags.explorer.title" = "Tags";
+"home.presentation.mode.resource.user.groups.explorer.title" = "Gruppen";
+
+// OTP resources
+
+"otp.resources.search.placeholder" = "TOTP suchen";
+"otp.resources.list.title" = "TOTP";
+"otp.resources.list.empty.message" = "Es gibt kein TOTP";
+"otp.value.copied.message" = "TOTP in Ihre Zwischenablage kopiert!";
+
+// OTP contextual menu
+
+"otp.contextual.menu.copy.title" = "TOTP kopieren";
+"otp.copied.message" = "TOTP in Ihre Zwischenablage kopiert!";
+"otp.contextual.menu.reveal.title" = "TOTP anzeigen";
+"otp.contextual.menu.edit.title" = "TOTP bearbeiten";
+"otp.contextual.menu.delete.title" = "TOTP löschen";
+"otp.contextual.menu.delete.confirm.title" = "Sind Sie sicher?";
+"otp.contextual.menu.delete.confirm.message" = "Diese Aktion wird das TOTP dauerhaft löschen.";
+"otp.contextual.menu.delete.confirm.action.delete" = "TOTP löschen";
+"otp.contextual.menu.delete.succeeded" = "TOTP wurde gelöscht.";
+
+// OTP edit menu
+
+"otp.edit.menu.create.title" = "TOTP erstellen";
+"otp.edit.menu.edit.title" = "TOTP bearbeiten";
+"otp.edit.menu.scanning.title" = "QR-Code scannen";
+"otp.edit.menu.create.manual.title" = "TOTP manuell erstellen";
+"otp.edit.menu.edit.manual.title" = "TOTP manuell bearbeiten";
+"otp.edit.code.scanning.title" = "TOTP manuell bearbeiten";
+"otp.edit.code.scanning.initial.message" = "QR-Code scannen";
+"otp.edit.menu.title" = "Richten Sie die Kamera auf den QR-Code";
+"otp.edit.otp.created.message" = "TOTP wurde erstellt.";
+"otp.edit.otp.replaced.message" = "TOTP wurde ersetzt.";
+"otp.edit.otp.deleted.message" = "TOTP wurde gelöscht.";
+
+// OTP scanning
+
+"otp.scanning.success.title" = "Ihr TOTP wurde gescannt!";
+"otp.scanning.success.create.button.title" = "Ein eigenständiges TOTP erstellen";
+"otp.scanning.success.link.button.title" = "TOTP mit einem Passwort verknüpfen";
+"otp.code.scanning.title" = "QR-Code scannen";
+"otp.code.scanning.initial.message" = "Richten Sie die Kamera auf den QR-Code";
+"otp.code.scanning.manual.input" = "Or create TOTP manually";
+
+// OTP form
+
+"otp.edit.form.create.title" = "TOTP erstellen";
+"otp.edit.form.edit.title" = "TOTP bearbeiten";
+"otp.edit.form.field.name.title" = "Name (Label)";
+"otp.edit.form.field.name.prompt" = "Name";
+"otp.edit.form.field.uri.title" = "URL (Aussteller)";
+"otp.edit.form.field.uri.prompt" = "URL";
+"otp.edit.form.field.secret.title" = "Geheimnis";
+"otp.edit.form.field.secret.prompt" = "Geheimnis";
+"otp.edit.form.advanced.button.title" = "More TOTP settings";
+"otp.edit.form.create.button.title" = "Ein eigenständiges TOTP erstellen";
+"otp.edit.form.apply.button.title" = "Anwenden";
+"otp.edit.form.edit.button.title" = "Speichern";
+"otp.edit.form.edit.advanced.title" = "TOTP bearbeiten - Erweiterte Einstellungen";
+"otp.edit.form.edit.advanced.warning" = "Die erweiterten Einstellungen müssen mit Ihren TOTP-Anbietereinstellungen übereinstimmen, sonst funktioniert es nicht.";
+"otp.edit.form.field.digits.title" = "TOTP-Länge";
+"otp.edit.form.field.digits.label" = "Zeichen.";
+"otp.edit.form.field.period.title" = "TOTP Verfalldatum";
+"otp.edit.form.field.period.label" = "Sekunden bis das TOTP abläuft.";
+"otp.edit.form.field.algorithm.title" = "Algorithmus";
+"otp.edit.form.apply.button.title" = "Anwenden";
+
+// OTP attach
+
+"otp.attach.list.title" = "TOTP mit einem Passwort verknüpfen";
+"otp.attach.alert.attach.title" = "Sind Sie sicher?";
+"otp.attach.alert.attach.message" = "Wenn Sie TOTP zu dieser Ressource hinzufügen, wird das TOTP die gleichen Berechtigungen erben.";
+"otp.attach.alert.attach.button.title" = "TOTP hinzufügen";
+"otp.attach.alert.replace.title" = "TOTP ersetzen?";
+"otp.attach.alert.replace.message" = "Ein TOTP ist bereits mit dieser Ressource verknüpft, möchtest du es überschreiben?";
+"otp.attach.alert.replace.button.title" = "TOTP ersetzen";
+"otp.attach.error.notAllowed" = "Sie sind nicht berechtigt diese Ressource zu aktualisieren.";
+"otp.attach.error.notCompatible" = "Diese Ressource ist nicht mit TOTP kompatibel.";
+
+
+// Settings - Main
+
+"settings.main.title" = "Einstellungen";
+"settings.main.item.application.title" = "App-Einstellungen";
+"settings.main.item.accounts.title" = "Konten";
+"settings.main.item.terms.and.licenses.title" = "Bedingungen & Lizenzen";
+"settings.main.item.troubleshooting.title" = "Debug, Logs";
+"settings.main.item.sign.out.title" = "Abmelden";
+
+// Settings - Application
+
+"settings.application.title" = "App-Einstellungen";
+"settings.application.item.autofill.title" = "Autofill";
+"settings.application.item.default.mode.title" = "Standardfilter";
+
+// Settings - Accounts
+
+"settings.accounts.title" = "Konten";
+"settings.accounts.item.details.title" = "Kontodaten";
+"settings.accounts.item.manage.title" = "Konten verwalten";
+"settings.accounts.item.export.title" = "Konto auf ein anderes Gerät übertragen";
+"settings.accounts.item.key.inspector.title" = "Schlüsselprüfer";
+
+// Settings - Terms & Licenses
+
+"settings.terms.and.licenses.title" = "Bedingungen & Lizenzen";
+"settings.terms.and.licenses.item.terms.title" = "Geschäftsbedingungen";
+"settings.terms.and.licenses.item.privacy.title" = "Datenschutzbestimmungen";
+"settings.terms.and.licenses.item.licenses.title" = "Open-Source-Lizenzen";
+
+// Key inspector
+
+"account.key.inspector.title" = "Schlüsselprüfer";
+"account.key.inspector.field.uid.title" = "Uid";
+"account.key.inspector.field.fingerprint.title" = "Fingerabdruck";
+"account.key.inspector.field.created.title" = "Angelegt";
+"account.key.inspector.field.expires.title" = "Abläuft";
+"account.key.inspector.no.exipire.placeholder" = "Nie";
+"account.key.inspector.field.key.size.title" = "Schlüssellänge";
+"account.key.inspector.field.algorithm.title" = "Algorithmus";
+"account.key.inspector.uid.copied.message" = "Uid wurde in Ihre Zwischenablage kopiert!";
+"account.key.inspector.fingerprint.copied.message" = "Der Fingerabdruck wurde in Ihre Zwischenablage kopiert!";
+
+// Key export
+
+"account.key.export.menu.title" = "Schlüsselprüfer";
+"account.key.export.menu.export.private.action" = "Privaten Schlüssel exportieren";
+"account.key.export.menu.export.public.action" = "Öffentlichen Schlüssel exportieren";
+"account.key.export.private.authorization.title" = "Privaten Schlüssel exportieren";
+"account.key.export.private.authorization.button.title" = "Privaten Schlüssel exportieren";
+
+// Settings - Troubleshooting
+
+"settings.troubleshooting.title" = "Debug, Protokolle";
+"settings.troubleshooting.item.logs.title" = "Zugriff auf Debug-Logs";
+"settings.troubleshooting.item.help.site.title" = "Hilfeseite besuchen";
+
+// Settings - Default presentation mode
+
+"settings.application.default.mode.title" = "Standardfilter";
+"settings.application.default.mode.option.last.used.title" = "Zuletzt verwendet (Standard)";
+
+// Settings - Disable biometrics alert
+
+"settings.application.biometrics.disable.alert.title" = "Sind Sie sicher?";
+"settings.application.biometrics.disable.alert.message" = "Nach dem Deaktivieren von %@ müssen Sie sich mit Ihrer Passphrase anmelden.";
+"settings.application.biometrics.disable.alert.confirm.title" = "Biometrie deaktivieren";
+"settings.application.biometrics.disable.alert.cancel.title" = "Behalten";
+
+// Settings - Sign out alert
+
+"settings.main.sign.out.alert.title" = "Sind Sie sicher?";
+"settings.main.sign.out.alert.message" = "Wenn Sie sich abmelden, werden Sie von Ihrem Konto auf diesem Gerät abgemeldet.";
+"settings.main.sign.out.alert.confirm.title" = "Abmelden";
+
+// Biometric authorization availability
+
+"biometric.authorization.availability.unavailable" = "Nicht verfügbar";
+"biometric.authorization.availability.face.id" = "FaceID";
+"biometric.authorization.availability.touch.id" = "TouchID";
+
+// Operation authorization
+
+"authorization.primary.button.title" = "Autorisieren";
+
+// Metadata
+"metadata.pinned.key.validation.error.title" = "The metadata key has changed.";
+"metadata.pinned.key.validation.error.message" = "The encryption key used to share metadata between users has been updated by %@.";
+"metadata.pinned.key.validation.error.disclaimer" = "If you weren't expecting this, you can verify with your administrator.";
+"metadata.pinned.key.validation.error.trust" = "Trust the key";
+"metadata.pinned.key.fingerprint" = "Key fingerprint:";
+
+"metadata.pinned.key.validation.deleted.title" = "The metadata key has been deleted.";
+"metadata.pinned.key.validation.deleted.message" = "The trusted encryption key used to share metadata between users has been deleted.";
+
+"metadata.pinned.key.validation.unknown.title" = "The metadata key has changed.";
+"metadata.pinned.key.validation.unknown.message" = "The trusted encryption key used to share metadata between users could not be validated.";

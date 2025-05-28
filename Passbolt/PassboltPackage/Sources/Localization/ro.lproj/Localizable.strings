@@ -1,0 +1,730 @@
+//
+// Passbolt - Open source password manager for teams
+// Copyright (c) 2021 Passbolt SA
+//
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+// Public License (AGPL) as published by the Free Software Foundation version 3.
+//
+// The name "Passbolt" is a registered trademark of Passbolt SA, and Passbolt SA hereby declines to grant a trademark
+// license to "Passbolt" pursuant to the GNU Affero General Public License version 3 Section 7(e), without a separate
+// agreement with Passbolt SA.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License along with this program. If not,
+// see GNU Affero General Public License v3 (http://www.gnu.org/licenses/agpl-3.0.html).
+//
+// @copyright     Copyright (c) Passbolt SA (https://www.passbolt.com)
+// @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
+// @link          https://www.passbolt.com Passbolt (tm)
+// @since         v1.0
+//
+// Shared and commons
+
+
+"generic.done" = "Finalizat";
+"generic.yes" = "Da";
+"generic.apply" = "Aplicați";
+"generic.confirm" = "Confirmați";
+"generic.cancel" = "Anulează";
+"generic.remove" = "Ștergeți";
+"generic.loading" = "Încărcare...";
+"generic.loading.long" = "Durează mai mult decât de obicei...";
+"generic.continue" = "Continuați";
+"generic.retry" = "Reîncercați";
+"generic.try.again" = "Încercați din nou";
+"generic.delete" = "Ştergeţi";
+"generic.got.it" = "Am înțeles";
+"generic.settings" = "Setări";
+"generic.disable" = "Dezactivează";
+"generic.sign.out" = "Deconectare";
+"generic.refresh" = "Reîncarcă";
+"generic.create" = "Creare";
+"generic.empty.list" = "Nu există rezultate";
+"generic.user.search.list.empty" = "Utilizatorul nu a fost găsit.";
+"generic.paste.value.invalid" = "Am încercat să lipesc o valoare nevalidă";
+"generic.are.you.sure" = "Sunteți sigur?";
+"generic.picker.select.placeholder" = "Selectați";
+
+"account.selection.title" = "Bine ați revenit!";
+"account.selection.subtitle" = "Alegeți un cont pentru conectare!";
+"account.selection.remove.account.button.title" = "Șterge un cont de pe acest dispozitiv";
+"account.selection.add.account.footer.title" = "Adăugați un cont nou";
+"account.selection.remove.account.title" = "Dezasociază cont";
+"account.selection.remove.account.subtitle" = "Alegeți un cont pentru asociere.";
+"account.selection.remove.alert.title" = "Sunteți sigur ?";
+"account.selection.remove.alert.message" = "Acest lucru va elimina contul dvs. de pe acest dispozitiv. Parolele dvs. nu vor fi șterse.";
+"account.selection.account.removed" = "Contul a fost șters de pe acest dispozitiv.";
+
+"authorization.button.title" = "Conectează-te";
+"authorization.reverification.button.title" = "Confirmați parola de acces";
+"authorization.forgot.passphrase.button.title" = "Mi-am uitat parola";
+"authorization.forgot.passphrase.alert.title" = "V-ați uitat parola de acces?";
+"authorization.forgot.passphrase.alert.message" = "Din păcate nu vă puteți accesa datele dacă nu vă amintiți parola dvs. de acces. Contactați administratorul pentru a vă debloca contul.";
+"authorization.passphrase.description.text" = "Parolă";
+"authorization.title" = "Introduceți parola dvs.";
+
+"sign.in.title" = "Introduceți parola dvs.";
+
+"resource.list.username.empty.placeholder" = "niciun utilizator";
+
+"resource.detail.field.name" = "Nume";
+"resource.detail.field.username" = "Utilizator";
+"resource.detail.field.passphrase" = "Parolă";
+"resource.detail.field.uri" = "URL website";
+"resource.detail.field.description" = "Descriere";
+"resource.show.field.uri.placeholder" = "No URI";
+"resource.show.field.username.placeholder" = "Niciun utilizator";
+"resource.show.field.password.placeholder" = "Nicio parolă";
+"resource.show.field.description.placeholder" = "Nicio descriere";
+"resource.value.copied" = "%@ a fost copiat în clipboard!";
+"resource.details.value" = "Valoare";
+"resource.detail.section.location" = "Locaţie";
+"resource.detail.section.permissions" = "Partajată cu";
+"resource.detail.section.tags" = "Etichete";
+"resource.detail.section.expiry" = "Expiră";
+"resource.detail.section.expiry.expired" = "Expirat";
+"resource.detail.section.expiry.willExpire" = "Expiră în";
+"resource.detail.undefined.content.warning" = "Tip nesuportat, câmpurile necunoscute sunt ascunse!";
+
+"resource.expiry.expired" = "(expirat)";
+
+"resource.delete.succeeded" = "Resursa a fost ștearsă.";
+
+"resource.field.name.unknown" = "Valoare";
+"section.tags.empty" = "Nicio etichetă";
+
+"server.key.fingerprint.changed.title" = "Ne pare rău, cheia serverului s-a schimbat.";
+"server.key.fingerprint.changed.description" = "Din motive de securitate, te rugăm să verifici cu administratorul că aceasta este o schimbare pe care a inițiat-o. Amprenta nouă este:";
+"server.key.fingerprint.accept.check" = "Da, am verificat şi totul este în regulă.";
+"server.key.fingerprint.accept.new.key" = "Acceptați noua cheie";
+
+"resource.form.password.strength" = "Putere parolă";
+"resource.form.strength.very.weak" = "Foarte slabă";
+"resource.form.strength.weak" = "Slabă";
+"resource.form.strength.fair" = "Bună";
+"resource.form.strength.strong" = "Puternică";
+"resource.form.strength.very.strong" = "Foarte puternică";
+"resource.form.create.button.title" = "Creează";
+"resource.form.create.and.fill.button.title" = "Creați și completați";
+"resource.form.update.button.title" = "Salvați";
+"resource.form.new.password.created" = "Parola nouă a fost creată";
+"resource.form.description.encrypted" = "Descrierea este criptată";
+"resource.form.description.unencrypted" = "Descrierea nu este criptată";
+"resource.form.undefined.content.warning" = "Tip nesuportat, câmpurile necunoscute sunt ascunse!";
+
+"feedback.alert.title" = "Dispozitivul ar putea fi jailbroken";
+"feedback.alert.message" = "Suspectăm că dispozitivul tău poate fi jailbroken. Acest lucru reduce securitatea generală a dispozitivului și poate fi folosit în mod răuvoitor pentru a-ți procura parolele.";
+"feedback.alert.button.title" = "Am înțeles";
+
+"account.not.found.title.label" = "Contul nu există";
+"account.not.found.message.label" = "Contul a fost șters sau suspendat";
+"account.not.found.action.button.title" = "Conectează-te la un cont existent";
+
+"server.not.reachable.alert.title" = "Server-ul nu a putut fi accesat!";
+"server.not.reachable.alert.message.server.placeholder" = "Server";
+"server.not.reachable.alert.message" = "%@ nu poate fi accesat. Vă rugăm să încercați din nou";
+
+"resource.edit.create.title" = "Create a resource";
+"resource.edit.title" = "Modificați resursa";
+"resource.password.edit.title" = "Modifică parola";
+"resource.edit.field.name.label" = "Nume";
+"resource.edit.field.uri.label" = "Main URI";
+"resource.edit.field.username.label" = "Utilizator";
+"resource.edit.field.password.label" = "Parolă";
+"resource.edit.field.description.label" = "Descriere";
+"resource.edit.field.totp.label" = "TOTP";
+"resource.edit.field.add.totp" = "TOTP";
+"resource.edit.field.add.note" = "Note";
+"resource.edit.field.add.password" = "Parolă";
+"resource.edit.field.name.placeholder" = "Introduceți un nume";
+"resource.edit.field.uri.placeholder" = "Enter URI";
+"resource.edit.field.username.placeholder" = "Introduceți numele de utilizator";
+"resource.edit.field.password.placeholder" = "Introduceți parola";
+"resource.edit.field.description.placeholder" = "Introduceți descrierea";
+"resource.edit.exit.confirmation.message" = "Modificările tale nu vor fi salvate.";
+"resource.edit.exit.confirmation.button.edit.title" = "Editați";
+"resource.edit.exit.confirmation.button.revert.title" = "Reveniți";
+"resource.edit.note.content.title" = "Content";
+"resource.edit.note.content.disclaimer" = "This secure is part of the secret if you wan to be able to search this content, use metadata description.";
+"resource.edit.note.remove.button.title" = "Remove note";
+
+"resource.edit.section.password.title" = "Parolă";
+"resource.edit.section.totp.title" = "TOTP";
+"resource.edit.section.note.title" = "Note";
+"resource.edit.section.metadata.title" = "Metadata";
+"resource.edit.totp.remove.button.title" = "Remove TOTP";
+
+"resource.create.advanced.button" = "View advanced settings";
+"resource.create.additional.secrets.title" = "Additional secrets";
+"resource.create.advanced.add.otp" = "TOTP";
+
+"resource.edit.section.metadata.description" = "Descriere";
+"resource.edit.section.metadata.description.name" = "Metadata description";
+"resource.edit.section.metadata.description.description" = "If you want the description to be part of the secret, use the note instead.";
+
+"resource.create.menu.title" = "Create a resource";
+"resource.create.menu.password" = "Parolă";
+"resource.create.menu.totp" = "TOTP";
+
+"resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
+"resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
+
+"help.logs.viewer.title" = "Loguri";
+
+"help.menu.title" = "Ajutor";
+"help.menu.show.logs.action.title" = "Accesați log-urile";
+"help.menu.show.web.help.action.title" = "Vizitați site-ul de ajutor";
+"help.menu.show.import.account.kit.title" = "Importă-ți kitul de cont";
+
+// Main application
+
+"welcome.title" = "Bine ați venit!";
+"welcome.description" = "Aveți nevoie de un cont existent pentru a începe. Conectați-vă cu contul existent în extensia de browser pentru desktop pentru a vă conecta cu dispozitivul mobil.";
+"welcome.connect.to.account" = "Conectează-te la un cont existent";
+"welcome.no.account" = "Nu am un cont";
+"welcome.no.account.alert.title" = "Cum creezi un cont?";
+"welcome.no.account.alert.text" = "Momentan nu este posibil să creezi un cont folosind aplicația pentru mobil. Mai întâi va trebui să creezi un cont folosind extensia desktop browser.";
+"code.scanning.exit.confirmation.confirm.button.title" = "Opriți scanarea";
+"code.scanning.help.menu.button.title" = "De ce să scanați codurile QR?";
+"code.scanning.help.title" = "Se scanează codurile QR";
+"code.scanning.help.message" = "Veți vedea o secvență de coduri QR. Vom scana aceste coduri până când bara de progres este completă. Apoi vă veți putea autentifica!";
+"code.scanning.camera.unavailable" = "Ne pare rău, aveți nevoie de un dispozitiv cu cameră foto pentru a continua, deoarece transferul cheii se face folosind coduri QR.";
+"code.scanning.begin" = "Direcționează camera către codul QR";
+"code.scanning.processing.in.progress" = "Se scanează... continuă!";
+"code.scanning.processing.invalid.code" = "Nu este codul QR al Passbolt. Încercați din nou!";
+
+
+"transfer.account.title" = "Transferă detaliile contului";
+"transfer.account.import.description" = "Scanați codurile QR pentru a transfera detaliile contului";
+"transfer.account.import.info.step.first" = "Conectați-vă folosind extensia browser-ului";
+"transfer.account.import.info.step.second" = "Accesați pagina de profil";
+"transfer.account.import.info.step.second.distinct" = "Profil";
+"transfer.account.import.info.step.third" = "Accesați secțiunea Mobil";
+"transfer.account.import.info.step.third.distinct" = "Mobil";
+"transfer.account.import.info.step.fourth" = "Scanați secvența de coduri qr";
+"transfer.account.import.scan.qr.button" = "Scanează codurile QR";
+"transfer.account.export.description" = "Afișați codurile QR pentru a transfera detaliile contului";
+"transfer.account.export.info.step.first" = "Instalați aplicația pe un alt dispozitiv mobil";
+"transfer.account.export.info.step.second" = "Lansați aplicația";
+"transfer.account.export.info.step.third" = "Selectați \"Conectează-te la un cont existent\"";
+"transfer.account.export.info.step.fourth" = "Scanați secvența de coduri qr";
+"transfer.account.export.scan.qr.button" = "Porniți transferul";
+"transfer.account.export.cancel.button" = "Anulați transferul";
+"transfer.account.camera.access.alert.title" = "Este necesar accesul la camera foto";
+"transfer.account.camera.access.alert.text" = "Mergeți la Setări/Confidențialitate/Camera foto pentru a permite accesul la camera foto.";
+"transfer.account.result.success.title" = "Informațiile dvs. au fost transferate!";
+"transfer.account.result.already.linked.title" = "Contul este deja asociat cu acest dispozitiv.";
+"transfer.account.result.canceled.title" = "Transferul a fost anulat.";
+"transfer.account.kit.result.success.title" = "Kitul tău de cont a fost importat!";
+
+"transfer.account.exit.confirmation.title" = "Sunteți sigur?";
+"transfer.account.exit.confirmation.message" = "Dacă renunțați, va trebui să scanați din nou codurile QR.";
+"transfer.account.import.exit.confirmation.cancel.button.title" = "Continuați configurarea";
+"transfer.account.import.exit.confirmation.confirm.button.title" = "Anulați configurarea";
+"transfer.account.export.exit.confirmation.confirm.button.title" = "Opriți transferul";
+"transfer.account.export.exit.success.button" = "Mergeți înapoi";
+"transfer.account.export.exit.failure.button" = "Încercați din nou";
+"transfer.account.export.failure.message" = "Transferul nu a putut fi finalizat.";
+"transfer.account.export.cancelled" = "Transferul a fost anulat";
+"transfer.account.exit.confirmation.cancel.button.title" = "Continuați configurarea";
+"transfer.account.exit.confirmation.confirm.button.title" = "Anulați configurarea";
+
+"biometrics.usage.reason" = "Biometria poate fi folosită pentru a salva parola dvs. în siguranță.";
+
+"biometrics.info.title" = "Configurați biometria";
+"biometrics.info.description" = "Dacă doriți să utilizați FaceID sau TouchID ca metodă rapidă de conectare, configurați-o în setări.";
+"biometrics.info.setup.button" = "Configurare biometrie";
+"biometrics.info.later.button" = "Poate mai târziu";
+
+"biometrics.setup.title.face" = "Folosește FaceID-ul în locul parolei!";
+"biometrics.setup.title.finger" = "Folosește TouchID-ul în locul parolei!";
+"biometrics.setup.description" = "Deblochează-ți secretele într-o secundă.";
+"biometrics.setup.setup.button.face" = "Folosește FaceID";
+"biometrics.setup.setup.button.finger" = "Folosește TouchID";
+"biometrics.setup.later.button" = "Poate mai târziu";
+
+"extension.setup.title" = "Conectează-te la aplicațiile tale preferate în 3 secunde!";
+"extension.setup.settings.step" = "Accesați setările";
+"extension.setup.settings.step.bold" = "Setări";
+"extension.setup.keyboard.step" = "Deschide autocompletare parole";
+"extension.setup.keyboard.step.bold" = "Autocompletare parole";
+"extension.setup.switch.step" = "Activează autocompletare parole";
+"extension.setup.switch.step.bold" = "Activați";
+"extension.setup.keychain.step" = "Dezactivează Keychain";
+"extension.setup.keychain.step.bold" = "Dezactivați";
+"extension.setup.passbolt.step" = "Alegeți Passbolt!";
+"extension.setup.passbolt.step.bold" = "Passbolt!";
+"extension.setup.setup.button" = "Accesați setările";
+"extension.setup.later.button" = "Poate mai târziu";
+
+"tab.home" = "Start";
+"tab.otp" = "TOTP";
+"tab.settings" = "Setări";
+
+"authorization.prompt.refresh.session.reason" = "Vă rugăm să vă autentificați pentru a actualiza sesiunea";
+"authorization.prompt.biometrics.set.reason" = "Vă rugăm să vă autentificați pentru a activa biometria.";
+
+"resources.search.placeholder" = "Căutare după nume, nume de utilizator, URL sau etichetă...";
+
+"resource.menu.item.open.url" = "Lansează website";
+"resource.menu.item.copy.url" = "Copiază URL-ul";
+"resource.menu.item.copy.password" = "Copiază parola";
+"resource.menu.item.copy.username" = "Copiază nume utilizator";
+"resource.menu.item.copy.description" = "Copiază descrierea";
+"resource.menu.item.copy.note" = "Copy note";
+"resource.menu.item.reveal.otp" = "Afișați TOTP-ul";
+"resource.menu.item.copy.otp" = "Copiați TOTP-ul";
+"resource.menu.item.add.favorite" = "Adaugă la favorite";
+"resource.menu.item.remove.favorite" = "Elimină din favorite";
+"resource.menu.item.share" = "Partajează parola";
+"resource.menu.item.edit.password" = "Modifică parola";
+"resource.menu.item.edit.otp" = "Editați TOTP-ul";
+"resource.menu.item.delete.resource" = "Ştergeţi parola";
+"resource.menu.item.delete.otp" = "Ștergeți TOTP-ul";
+"resource.menu.item.password" = "Parolă";
+"resource.menu.item.username" = "Nume utilizator";
+"resource.menu.item.description" = "Descriere";
+"resource.menu.item.url" = "URL";
+"resource.menu.item.field.copied" = "%@ a fost copiat în clipboard!";
+
+"resource" = "Resursă";
+"resource.menu.action.favorite.added" = "%@ a fost adăugat la favorite!";
+"resource.menu.action.favorite.removed" = "%@ a fost eliminat din favorite!";
+
+"resource.menu.action.edited" = "Parola %s a fost modificată cu succes.";
+"resource.menu.action.deleted" = "%@ a fost ștearsă!";
+
+"resource.permission.type.read.label" = "poate citi";
+"resource.permission.type.write.label" = "poate modifica";
+"resource.permission.type.own.label" = "este proprietar";
+"resource.permission.list.title" = "Partajată cu";
+"resource.permission.list.edit.button.title" = "Modifică permisiunile";
+"resource.permission.edit.list.title" = "Partajează parola";
+"resource.permission.edit.list.empty.message" = "Asigurați-vă că există cel puțin un proprietar.";
+"resource.permission.edit.list.add.button.title" = "Adăugați utilizatori";
+"resource.permission.edit.user.and.group.search.title" = "Selectați utilizatori";
+"resource.permission.edit.user.and.group.search.prompt" = "Căutați utilizatori...";
+"resource.permission.edit.user.and.group.search.existing.section.title" = "Deja adăugată";
+"resource.permission.delete.user.permission.confirmation.message" = "Parola nu va mai fi partajată cu acest utilizator.";
+"resource.permission.delete.user.group.permission.confirmation.message" = "Parola nu va mai fi partajată cu acest grup.";
+
+"resource.permission.details.title" = "Permisiune";
+"resource.permission.details.user.suspended" = "suspendat";
+
+"permission.details.type.section.title" = "Permisiune";
+"permission.details.group.members.section.title" = "Membrii grupului";
+"permission.details.user.suspended" = "suspendat";
+
+"resource.permission.edit.button.delete.title" = "Ștergeți permisiunea";
+
+"resource.folders.add.menu.title" = "Create a resource";
+"resource.folders.add.menu.folder.label" = "Folder";
+
+"group.members.list.title" = "Membrii grupului";
+"group.members.member.details.title" = "Membru grup";
+
+"totp.title.label" = "Autentificare multi-factor";
+"totp.message.label" = "Introduceți codul de verificare:";
+"totp.paste.otp.button.label" = "Lipiți codul";
+"totp.remember.device.toggle.label" = "Memorează acest dispozitiv pentru 30 de zile";
+
+"yubiKey.scan.instruction" = "Plasați YubiKey-ul în dispozitivul dvs.";
+"yubiKey.scan.success" = "Scanare reușită";
+"yubiKey.scan.notRecognized.title" = "Yubikey nu este recunoscut";
+"yubiKey.scan.notRecognized.button.ok" = "Am înțeles";
+"yubiKey.scan.notRecognized.message" = "Yubikey-ul tău nu este recunoscut de server.\nTe rugăm să încerci cu alt Yubikey sau alt furnizor.";
+"mfa.yubiKey.title" = "OTP YubiKey";
+"mfa.yubiKey.description" = "Vă rugăm să rețineți că YubiKey trebuie să suporte
+NFC pentru ca acest lucru să funcționeze.";
+"mfa.yubiKey.scan" = "Scanați YubiKey";
+"mfa.yubiKey.nfc.not.supported" = "Acest dispozitiv nu suportă NFC.";
+"mfa.provider.try.another" = "Încercați cu un alt furnizor";
+"mfa.remember.token" = "Memorează acest dispozitiv pentru 30 de zile";
+"mfa.unsupported.provider.title" = "Furnizorul tău multi-factor nu este suportat";
+"mfa.unsupported.provider.description" = "Vă rugăm să configurați un alt furnizor folosind aplicația web.
+Contactați administratorul pentru mai multe informații.";
+"mfa.duo.authorization.title" = "Autentificarea multi-factor Duo";
+"mfa.duo.authorization.button.title" = "Autentificați-vă cu Duo";
+
+"account.menu.title" = "Schimbați contul";
+"account.menu.account.details.button.title" = "Vezi detaliile";
+"account.menu.sign.out.button.title" = "Deconectare";
+"account.menu.manage.accounts.button.title" = "Gestionare conturi";
+
+"account.details.title" = "Detalii cont";
+"account.details.field.label.title" = "Etichetă";
+"account.details.field.label.editing.info" = "Eticheta va fi afișată în lista de conturi și pentru autentificare";
+"account.details.field.name.title" = "Nume";
+"account.details.field.email.title" = "E-mail";
+"account.details.field.url.title" = "URL organizație";
+"account.details.field.role.title" = "Rol";
+"account.details.button.save.title" = "Salvare";
+
+"update.available.title" = "O nouă versiune disponibilă!";
+"update.available.message" = "Vă rugăm să actualizați aplicația Passbolt la cea mai recentă versiune din App Store";
+
+// Autofill extension
+
+"autofill.extension.setup.completed.title" = "Autocompletare Passbolt activată!";
+"autofill.extension.setup.completed.info" = "După ce ați completat un formular, apăsați pe înregistrările înregistrate și autocompletarea activată vă va sugera completarea lor din datele de autentificare pe care le-ați adăugat deja în aplicația Passbolt.";
+
+"autofill.extension.account.selection.switch.account.title" = "Schimbați contul";
+"autofill.extension.account.selection.switch.account.subtitle" = "Selectați un cont pentru a face schimbul!";
+"autofill.extension.account.selection.sign.in.title" = "Nu sunteți autentificat";
+"autofill.extension.account.selection.sign.in.subtitle" = "Selectați un cont pentru conectare!";
+
+"autofill.extension.no.accounts.title" = "Niciun cont găsit!";
+"autofill.extension.no.accounts.description" = "Aveți nevoie de un cont pentru a începe. Vă rugăm să deschideți aplicația Passbolt și să urmați instrucțiunile de configurare. Passbolt va putea să vă autocompleteze credențialele după aceea.";
+
+"autofill.extension.resource.list.title" = "Alegeţi parola";
+"autofill.extension.resource.list.section.suggested.title" = "Sugerat";
+"autofill.extension.resource.list.section.all.title" = "Altele";
+
+"autofill.extension.autofill.extension.resources.search.placeholder" = "Căutare în Passbolt...";
+
+"mfa.required.title" = "Autentificare multi-factor necesară";
+"autofill.extension.mfa.required.description" = "Vă rugăm să folosiți aplicația Passbolt pentru a finaliza autentificarea.";
+
+"folder.edit.form.create.title" = "Creați folder";
+"folder.edit.form.name.field.placeholder" = "Folder fără titlu";
+"folder.edit.form.created" = "Folder-ul nou %@ a fost creat!";
+
+"resource.folder.menu.open.details.label" = "Vezi detaliile";
+
+// Common UI
+
+"folder.root.name" = "Rădăcină";
+
+"folder.name.title" = "Nume";
+"folder.location.title" = "Locaţie";
+"permissions.avatars.view.title" = "Permisiuni";
+"shared.avatars.view.title" = "Partajată cu";
+
+// Forms common
+
+"form.field.name.title" = "Nume";
+
+"form.button.save.title" = "Salvare";
+
+// Errors
+
+"generic.error" = "Ceva nu a funcționat bine!";
+"generic.error.retry" = "Ceva nu a funcționat, vă rugăm să încercați din nou.";
+"generic.error.report" = "Ceva nu a funcționat, vă rugăm să o raportați ca eroare.";
+"generic.error.cancelled" = "Operațiunea a fost anulată.";
+"sign.in.error.message" = "Conectare eșuată";
+"sign.in.error.biometrics.changed.message" = "Se pare că datele biometrice ale dispozitivului s-au schimbat. Vă rugăm, introduceți parola de acces și configurați din nou biometria";
+"sign.in.error.passphrase.invalid.message" = "Parolă invalidă.";
+"server.fingerprint.save.failed" = "Nu s-a putut salva amprenta serverului.";
+"form.field.error.max.length" = "Lungimea maximă a fost depășită.";
+"form.error.invalid" = "Formularul este invalid";
+"resource.form.field.error.empty" = "Câmpul nu poate fi gol";
+"resource.from.field.error.invalid.value" = "Valoarea câmpului este invalidă";
+"resource.form.field.error.max.length" = "Lungimea maximă a fost depășită.";
+"resource.form.field.error.invalid" = "Valoarea câmpului este invalidă";
+"resource.form.error.invalid" = "Formularul este invalid";
+"authorization.passphrase.error" = "Parola este greșită!";
+"account.settings.biometrics.error" = "Setarea biometriei a eșuat.";
+"totp.wrong.code.error" = "Cod greșit";
+"error.another.account.transfer.in.progress" = "Există un alt transfer de cont. Vă rugăm să-l completați mai întâi.";
+"resource.menu.action.failed" = "%@ a eșuat!";
+"mfa.yubiKey.scan.failed" = "Scanare eșuată";
+
+"error.internal.inconsistency" = "Inconsistență internă, vă rugăm să o raportați ca eroare.";
+"error.feature.unavailable" = "Funcție indisponibilă.";
+"error.nfc.not.supported" = "NFC-ul nu este suportat.";
+"error.nfc.payload.invalid" = "Conținut NFC invalid.";
+"error.url.invalid" = "URL invalid.";
+"error.internet.connection.issue" = "Conectarea la internet nu este posibilă.";
+"error.client.certificate.invalid" = "Certificat client invalid.";
+"error.server.connection.issue" = "Conectarea la server nu este posibilă.";
+"error.server.time.issue" = "Timpul serverului și al clientului nu este sincronizat, vă rugăm să contactați administratorul.";
+"error.server.response.invalid" = "Răspuns server invalid";
+"error.server.response.timeout" = "Durată timeout server.";
+"error.server.certificate.invalid" = "Certificat server invalid.";
+"error.http.request.invalid" = "Cererea HTTP este invalidă.";
+"error.http.response.invalid" = "Răspuns HTTP invalid.";
+"error.network.response.invalid" = "Răspuns de rețea invalid";
+"error.http.response.forbidden" = "HTTP-ul nu este permis.";
+"error.http.response.conflict" = "Conflict HTTP.";
+"error.http.response.not.found" = "Răspunsul HTTP nu a fost găsit.";
+"error.http.response.redirect" = "Redirecționare HTTP.";
+"error.http.request.invalid" = "Cererea HTTP este invalidă.";
+"error.http.response.invalid" = "Răspuns HTTP invalid.";
+"error.http.response.status.code.unexpected" = "Răspunsul HTTP este neașteptat.";
+"error.http.response.unauthorized" = "Cererea HTTP este neautorizată.";
+"error.network.response.decoding.failed" = "Decodarea răspunsului de rețea a eșuat.";
+"error.network.request.validation.failure" = "Validarea solicitării de rețea a eșuat.";
+"error.session.authorization.required" = "Este necesară autorizarea sesiunii";
+"error.session.authorization.mfa.required" = "Este necesară autorizarea MFA pentru sesiune.";
+"error.session.missing" = "Sesiune lipsă.";
+"error.crypto.data.signature.invalid" = "Date semnătură invalide.";
+"error.crypto.passphrase.invalid" = "Parolă invalidă.";
+"error.crypto.pgp.fingerprint.invalid" = "Amprentă PGP invalidă.";
+"error.crypto.pgp.fingerprint.mismatch" = "Nepotrivire amprentă PGP.";
+"error.crypto.pgp.keyring.preparation.failed" = "Nu s-a reușit pregătirea inelului de chei PGP";
+"error.crypto.pgp.keypacket.extraction.failed" = "Nu s-a reușit extragerea pachetului de chei PGP.";
+"error.crypto.pgp.sessionkey.extraction.failed" = "Nu s-a reușit extragerea cheii de sesiune PGP.";
+"error.crypto.pgp.public.key.invalid" = "Cheie publică PGP invalidă.";
+"error.data.empty" = "Nu au fost furnizate date.";
+"error.data.invalid" = "Date incorecte introduse.";
+"error.resource.permission.required" = "Permisiune necesară.";
+"error.resource.secret.invalid" = "Secretul este invalid.";
+"error.resource.permission.invalid" = "Permisiunea resursei este nevalidă.";
+"error.resource.owner.missing" = "Resursa trebuie să aibă cel puțin un proprietar.";
+"error.system.feature.inaccessible" = "Funcția sistemului este inaccesibilă.";
+"error.system.feature.permission.not.granted" = "Permisiunea pentru funcția de sistem nu a fost acordată.";
+"error.system.feature.permission.required" = "Permisiunea pentru funcția de sistem este necesară.";
+"error.system.feature.status.undetermined" = "Starea funcției de sistem este nedeterminată.";
+"error.system.file.access.issue" = "Nu se poate accesa fișierul.";
+"error.system.directory.access.issue" = "Nu se poate accesa folder-ul.";
+"error.database.statement.invalid" = "Comandă bază de date invalidă.";
+"error.database.statement.execution.failure" = "Execuția comenzii către baza de date a eșuat.";
+"error.database.migration.failure" = "Migrarea bazei de date a eșuat.";
+"error.database.connection.issue" = "Conectarea la baza de date a eșuat.";
+"error.database.connection.closed" = "Conexiunea la baza de date a fost închisă.";
+"error.database.binding.invalid" = "Comandă bază de date invalidă.";
+"error.database.result.empty" = "Rezultatul bazei de date este gol.";
+"error.database.result.invalid" = "Rezultat bază de date invalid";
+"error.keychain.authorization.failed" = "Autorizarea Keychain a eșuat.";
+"error.keychain.failure" = "Accesul la Keychain a eșuat.";
+"error.keychain.query.invalid" = "Interogare Keychain invalidă.";
+"error.account.private.key.missing" = "Lipsește cheia privată a contului.";
+"error.account.profile.data.missing" = "Lipsesc datele profilului contului.";
+"error.account.passphrase.missing" = "Lipsește parola contului.";
+"error.account.data.missing" = "Lipsesc datele contului.";
+"error.account.biometry.data.changed" = "Datele biometrice s-au modificat.";
+"error.account.kit.fail.to.import" = "Nu s-a reușit importul kitului de cont.";
+"error.account.kit.signature.verification" = "Nu s-a reușit validarea semnăturii.";
+"error.users.list.empty" = "Lista de utilizatori nu poate fi goală.";
+"error.user.public.key.invalid" = "Cheia publică a utilizatorului este invalidă.";
+"error.user.public.key.missing" = "Lipsește cheia publică a utilizatorului.";
+"error.user.secret.missing" = "Lipsește secretul utilizatorului.";
+"error.session.closed" = "Sesiunea a fost închisă.";
+"error.account.duplicate" = "Cont duplicat.";
+"error.server.pgp.fingerprint.invalid" = "Amprenta PGP a serverului este invalidă.";
+"error.session.authorization.failed" = "Autorizarea sesiunii a eșuat.";
+"error.qrcode.invalid" = "Nu este codul QR al Passbolt. Încercați din nou!";
+
+"error.validation.folder.name.empty" = "Numele folderului nu poate fi gol.";
+"error.validation.folder.name.too.long" = "Numele folderului nu poate avea mai mult de 256 de caractere.";
+
+"error.validation.permissions.empty" = "Trebuie să existe cel puțin o permisiune.";
+"error.validation.permissions.owner.required" = "Trebuie să existe cel puțin un proprietar.";
+
+"error.validation.form.invalid" = "Formularul nu este valid.";
+"error.biometrics.unavailable.message" = "Biometrie indisponibilă";
+
+"error.qrcode.generation.generic" = "Codul QR nu a putut fi generat din datele furnizate";
+
+"error.otp.configuration.invalid" = "Configurarea OTP este invalidă.";
+
+// Validation errors
+
+"error.resource.field.empty" = "%@ nu poate fi gol!";
+"error.resource.field.length.lower" = "%@ nu poate avea mai mult de %d caractere!";
+"error.resource.field.length.higher" = "%@ nu poate avea mai puțin de %d caractere!";
+"error.resource.field.range.lower" = "%@ trebuie să fie mai mic decât %d!";
+"error.resource.field.range.greater" = "%@ trebuie să fie mai mare decât %d!";
+"error.resource.field.content.invalid" = "%@ are conținut nevalid!";
+"error.resource.field.selection.invalid" = "%@ trebuie să fie una dintre opțiunile valide!";
+"error.resource.field.unknown" = "Câmpurile necunoscute nu sunt acceptate!";
+"error.validation.password.length.invalid" = "Setări de lungime a parolei invalide!";
+"error.validation.password.mask.empty" = "Masca de expirare a parolei nu poate fi goală!";
+
+// Home - presentation mode menu
+
+"home.presentation.mode.menu.title" = "Filtrează vizualizarea după";
+
+// Presentation modes
+
+"home.presentation.mode.plain.resources.title" = "Toate articolele";
+"home.presentation.mode.favorite.resources.title" = "Favorite";
+"home.presentation.mode.modified.resources.title" = "Modificate recent";
+"home.presentation.mode.shared.resources.title" = "Partajate cu mine";
+"home.presentation.mode.owned.resources.title" = "Deținute de mine";
+"home.presentation.mode.owned.resources.expiry" = "Expiră";
+"home.presentation.mode.folders.explorer.title" = "Foldere";
+"home.presentation.mode.folders.explorer.search.direct.results" = "în \"%@\":";
+"home.presentation.mode.folders.explorer.search.nested.results" = "în subfoldere:";
+"home.presentation.mode.tags.explorer.title" = "Etichete";
+"home.presentation.mode.resource.user.groups.explorer.title" = "Grupuri";
+
+// OTP resources
+
+"otp.resources.search.placeholder" = "Căutați TOTP";
+"otp.resources.list.title" = "TOTP";
+"otp.resources.list.empty.message" = "Nu există TOTP";
+"otp.value.copied.message" = "TOTP a fost copiat în clipboard!";
+
+// OTP contextual menu
+
+"otp.contextual.menu.copy.title" = "Copiați TOTP-ul";
+"otp.copied.message" = "TOTP a fost copiat în clipboard!";
+"otp.contextual.menu.reveal.title" = "Afișați TOTP-ul";
+"otp.contextual.menu.edit.title" = "Editați TOTP-ul";
+"otp.contextual.menu.delete.title" = "Ștergeți TOTP-ul";
+"otp.contextual.menu.delete.confirm.title" = "Sunteți sigur?";
+"otp.contextual.menu.delete.confirm.message" = "Această acțiune va șterge definitiv TOTP-ul.";
+"otp.contextual.menu.delete.confirm.action.delete" = "Ștergeți TOTP-ul";
+"otp.contextual.menu.delete.succeeded" = "TOTP-ul a fost șters.";
+
+// OTP edit menu
+
+"otp.edit.menu.create.title" = "Creați TOTP";
+"otp.edit.menu.edit.title" = "Editați TOTP-ul";
+"otp.edit.menu.scanning.title" = "Scanați codul QR";
+"otp.edit.menu.create.manual.title" = "Creați TOTP manual";
+"otp.edit.menu.edit.manual.title" = "Editați TOTP-ul manual";
+"otp.edit.code.scanning.title" = "Editați TOTP-ul manual";
+"otp.edit.code.scanning.initial.message" = "Scanați codul QR";
+"otp.edit.menu.title" = "Direcționează camera către codul QR";
+"otp.edit.otp.created.message" = "TOTP-ul a fost creat.";
+"otp.edit.otp.replaced.message" = "TOTP-ul a fost înlocuit.";
+"otp.edit.otp.deleted.message" = "TOTP-ul a fost șters.";
+
+// OTP scanning
+
+"otp.scanning.success.title" = "TOTP-ul dvs. a fost
+scanat!";
+"otp.scanning.success.create.button.title" = "Creați un TOTP autonom";
+"otp.scanning.success.link.button.title" = "Asociați TOTP la o parolă";
+"otp.code.scanning.title" = "Scanați codul QR";
+"otp.code.scanning.initial.message" = "Direcționează camera către codul QR";
+"otp.code.scanning.manual.input" = "Or create TOTP manually";
+
+// OTP form
+
+"otp.edit.form.create.title" = "Creați TOTP";
+"otp.edit.form.edit.title" = "Editați TOTP-ul";
+"otp.edit.form.field.name.title" = "Nume (etichetă)";
+"otp.edit.form.field.name.prompt" = "Nume";
+"otp.edit.form.field.uri.title" = "URL (Emitent)";
+"otp.edit.form.field.uri.prompt" = "URL";
+"otp.edit.form.field.secret.title" = "Cheie secretă";
+"otp.edit.form.field.secret.prompt" = "Cheie secretă";
+"otp.edit.form.advanced.button.title" = "More TOTP settings";
+"otp.edit.form.create.button.title" = "Creați TOTP autonom";
+"otp.edit.form.apply.button.title" = "Aplicați";
+"otp.edit.form.edit.button.title" = "Salvare";
+"otp.edit.form.edit.advanced.title" = "Editați TOTP - setări avansate";
+"otp.edit.form.edit.advanced.warning" = "Setările avansate trebuie să corespundă setărilor furnizorului TOTP, altfel nu va funcționa.";
+"otp.edit.form.field.digits.title" = "Lungime TOTP";
+"otp.edit.form.field.digits.label" = "cifre.";
+"otp.edit.form.field.period.title" = "Expirare TOTP";
+"otp.edit.form.field.period.label" = "secunde până la expirarea TOTP-ului.";
+"otp.edit.form.field.algorithm.title" = "Algoritm";
+"otp.edit.form.apply.button.title" = "Aplicați";
+
+// OTP attach
+
+"otp.attach.list.title" = "Adăugați TOTP la o parolă";
+"otp.attach.alert.attach.title" = "Sunteți sigur?";
+"otp.attach.alert.attach.message" = "Dacă adăugați TOTP la această resursă, TOTP-ul va moșteni aceleași permisiuni de partajare.";
+"otp.attach.alert.attach.button.title" = "Adăugați TOTP";
+"otp.attach.alert.replace.title" = "Înlocuiți TOTP-ul?";
+"otp.attach.alert.replace.message" = "Un TOTP este deja asociat cu această resursă, doriți să-l suprascrieți?";
+"otp.attach.alert.replace.button.title" = "Înlocuiți TOTP-ul";
+"otp.attach.error.notAllowed" = "Nu ai permisiunea să editezi această resursă.";
+"otp.attach.error.notCompatible" = "Această resursă nu este compatibilă cu TOTP.";
+
+
+// Settings - Main
+
+"settings.main.title" = "Setări";
+"settings.main.item.application.title" = "Setări aplicație";
+"settings.main.item.accounts.title" = "Conturi";
+"settings.main.item.terms.and.licenses.title" = "Termeni și licențe";
+"settings.main.item.troubleshooting.title" = "Depanare, loguri";
+"settings.main.item.sign.out.title" = "Deconectează-te";
+
+// Settings - Application
+
+"settings.application.title" = "Setări aplicație";
+"settings.application.item.autofill.title" = "Autocompletare";
+"settings.application.item.default.mode.title" = "Filtru implicit";
+
+// Settings - Accounts
+
+"settings.accounts.title" = "Conturi";
+"settings.accounts.item.details.title" = "Detalii cont";
+"settings.accounts.item.manage.title" = "Gestionare conturi";
+"settings.accounts.item.export.title" = "Transferă contul pe un alt dispozitiv";
+"settings.accounts.item.key.inspector.title" = "Inspector cheie";
+
+// Settings - Terms & Licenses
+
+"settings.terms.and.licenses.title" = "Termeni și licențe";
+"settings.terms.and.licenses.item.terms.title" = "Termeni și condiții";
+"settings.terms.and.licenses.item.privacy.title" = "Politica de confidențialitate";
+"settings.terms.and.licenses.item.licenses.title" = "Licențe Open Source";
+
+// Key inspector
+
+"account.key.inspector.title" = "Inspector cheie";
+"account.key.inspector.field.uid.title" = "Uid";
+"account.key.inspector.field.fingerprint.title" = "Amprentă";
+"account.key.inspector.field.created.title" = "Creată";
+"account.key.inspector.field.expires.title" = "Expiră";
+"account.key.inspector.no.exipire.placeholder" = "Niciodată";
+"account.key.inspector.field.key.size.title" = "Lungime cheie";
+"account.key.inspector.field.algorithm.title" = "Algoritm";
+"account.key.inspector.uid.copied.message" = "Uid a fost copiat în clipboard!";
+"account.key.inspector.fingerprint.copied.message" = "Amprenta a fost copiată în clipboard!";
+
+// Key export
+
+"account.key.export.menu.title" = "Inspector cheie";
+"account.key.export.menu.export.private.action" = "Exportați cheia privată";
+"account.key.export.menu.export.public.action" = "Exportați cheia publică";
+"account.key.export.private.authorization.title" = "Exportați cheia privată";
+"account.key.export.private.authorization.button.title" = "Exportați cheia privată";
+
+// Settings - Troubleshooting
+
+"settings.troubleshooting.title" = "Depanare, loguri";
+"settings.troubleshooting.item.logs.title" = "Accesați logurile de depanare";
+"settings.troubleshooting.item.help.site.title" = "Vizitați site-ul de ajutor";
+
+// Settings - Default presentation mode
+
+"settings.application.default.mode.title" = "Filtru implicit";
+"settings.application.default.mode.option.last.used.title" = "Ultima utilizare (implicit)";
+
+// Settings - Disable biometrics alert
+
+"settings.application.biometrics.disable.alert.title" = "Sunteți sigur?";
+"settings.application.biometrics.disable.alert.message" = "După dezactivarea %@, va trebui să vă autentificați folosind parola de acces.";
+"settings.application.biometrics.disable.alert.confirm.title" = "Dezactivați biometria";
+"settings.application.biometrics.disable.alert.cancel.title" = "Păstrați";
+
+// Settings - Sign out alert
+
+"settings.main.sign.out.alert.title" = "Sunteți sigur?";
+"settings.main.sign.out.alert.message" = "Dacă vă deconectați, veți fi deconectat din cont pe acest dispozitiv.";
+"settings.main.sign.out.alert.confirm.title" = "Deconectează-te";
+
+// Biometric authorization availability
+
+"biometric.authorization.availability.unavailable" = "Indisponibil";
+"biometric.authorization.availability.face.id" = "FaceId";
+"biometric.authorization.availability.touch.id" = "TouchID";
+
+// Operation authorization
+
+"authorization.primary.button.title" = "Autorizați";
+
+// Metadata
+"metadata.pinned.key.validation.error.title" = "The metadata key has changed.";
+"metadata.pinned.key.validation.error.message" = "The encryption key used to share metadata between users has been updated by %@.";
+"metadata.pinned.key.validation.error.disclaimer" = "If you weren't expecting this, you can verify with your administrator.";
+"metadata.pinned.key.validation.error.trust" = "Trust the key";
+"metadata.pinned.key.fingerprint" = "Key fingerprint:";
+
+"metadata.pinned.key.validation.deleted.title" = "The metadata key has been deleted.";
+"metadata.pinned.key.validation.deleted.message" = "The trusted encryption key used to share metadata between users has been deleted.";
+
+"metadata.pinned.key.validation.unknown.title" = "The metadata key has changed.";
+"metadata.pinned.key.validation.unknown.message" = "The trusted encryption key used to share metadata between users could not be validated.";

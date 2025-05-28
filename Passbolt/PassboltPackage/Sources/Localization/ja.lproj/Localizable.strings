@@ -1,0 +1,728 @@
+//
+// Passbolt - Open source password manager for teams
+// Copyright (c) 2021 Passbolt SA
+//
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+// Public License (AGPL) as published by the Free Software Foundation version 3.
+//
+// The name "Passbolt" is a registered trademark of Passbolt SA, and Passbolt SA hereby declines to grant a trademark
+// license to "Passbolt" pursuant to the GNU Affero General Public License version 3 Section 7(e), without a separate
+// agreement with Passbolt SA.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License along with this program. If not,
+// see GNU Affero General Public License v3 (http://www.gnu.org/licenses/agpl-3.0.html).
+//
+// @copyright     Copyright (c) Passbolt SA (https://www.passbolt.com)
+// @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
+// @link          https://www.passbolt.com Passbolt (tm)
+// @since         v1.0
+//
+// Shared and commons
+
+
+"generic.done" = "완료";
+"generic.yes" = "はい";
+"generic.apply" = "適用";
+"generic.confirm" = "確認";
+"generic.cancel" = "キャンセル";
+"generic.remove" = "削除";
+"generic.loading" = "読み込み中...";
+"generic.loading.long" = "普段より時間がかかっています…";
+"generic.continue" = "続行";
+"generic.retry" = "再試行";
+"generic.try.again" = "もう一度やり直してください";
+"generic.delete" = "削除";
+"generic.got.it" = "了解しました";
+"generic.settings" = "設定";
+"generic.disable" = "無効化";
+"generic.sign.out" = "サインアウト";
+"generic.refresh" = "更新";
+"generic.create" = "作成";
+"generic.empty.list" = "結果がありません";
+"generic.user.search.list.empty" = "ユーザーが見つかりません。";
+"generic.paste.value.invalid" = "無効な値を貼り付けようとしています";
+"generic.are.you.sure" = "よろしいですか？";
+"generic.picker.select.placeholder" = "選択";
+
+"account.selection.title" = "おかえりなさい！";
+"account.selection.subtitle" = "サインインするアカウントを選択してください！";
+"account.selection.remove.account.button.title" = "このデバイスからアカウントを削除する";
+"account.selection.add.account.footer.title" = "新しいアカウントを追加";
+"account.selection.remove.account.title" = "アカウントのリンクを解除";
+"account.selection.remove.account.subtitle" = "リンクを解除するアカウントを選択してください。";
+"account.selection.remove.alert.title" = "よろしいですか？";
+"account.selection.remove.alert.message" = "これにより、このデバイスからアカウントが削除されます。パスワードは削除されません。";
+"account.selection.account.removed" = "アカウントはこのデバイスから削除されました。";
+
+"authorization.button.title" = "サインイン";
+"authorization.reverification.button.title" = "パスフレーズを確認";
+"authorization.forgot.passphrase.button.title" = "パスフレーズを忘れました";
+"authorization.forgot.passphrase.alert.title" = "パスフレーズを忘れましたか？";
+"authorization.forgot.passphrase.alert.message" = "残念ながらパスフレーズを覚えていない場合、データにアクセスすることはできません。アカウントのロック解除については管理者にお問い合わせください。";
+"authorization.passphrase.description.text" = "パスフレーズ";
+"authorization.title" = "パスフレーズを入力してください";
+
+"sign.in.title" = "パスフレーズを入力してください";
+
+"resource.list.username.empty.placeholder" = "ユーザー名なし";
+
+"resource.detail.field.name" = "名前";
+"resource.detail.field.username" = "ユーザー名";
+"resource.detail.field.passphrase" = "パスワード";
+"resource.detail.field.uri" = "ウェブサイトURL";
+"resource.detail.field.description" = "説明";
+"resource.show.field.uri.placeholder" = "No URI";
+"resource.show.field.username.placeholder" = "ユーザー名なし";
+"resource.show.field.password.placeholder" = "パスワードなし";
+"resource.show.field.description.placeholder" = "説明なし";
+"resource.value.copied" = "%@ がクリップボードにコピーされました！";
+"resource.details.value" = "値";
+"resource.detail.section.location" = "場所";
+"resource.detail.section.permissions" = "共有相手";
+"resource.detail.section.tags" = "タグ";
+"resource.detail.section.expiry" = "有効期限";
+"resource.detail.section.expiry.expired" = "期限切れ";
+"resource.detail.section.expiry.willExpire" = "有効期限まで";
+"resource.detail.undefined.content.warning" = "サポートされていない種類のため、不明なフィールドは非表示です！";
+
+"resource.expiry.expired" = "(期限切れ)";
+
+"resource.delete.succeeded" = "リソースが削除されました。";
+
+"resource.field.name.unknown" = "値";
+"section.tags.empty" = "タグなし";
+
+"server.key.fingerprint.changed.title" = "申し訳ありませんが、サーバーキーが変更されました。";
+"server.key.fingerprint.changed.description" = "セキュリティ上の理由から、管理者に、これが開始された変更であることを確認してください。新しい指紋:";
+"server.key.fingerprint.accept.check" = "はい、確認しました。すべて問題ありません。";
+"server.key.fingerprint.accept.new.key" = "新しい鍵を承認する";
+
+"resource.form.password.strength" = "パスワードの強度";
+"resource.form.strength.very.weak" = "非常に弱い";
+"resource.form.strength.weak" = "弱い";
+"resource.form.strength.fair" = "まあまあ";
+"resource.form.strength.strong" = "強い";
+"resource.form.strength.very.strong" = "非常に強い";
+"resource.form.create.button.title" = "作成";
+"resource.form.create.and.fill.button.title" = "作成して入力";
+"resource.form.update.button.title" = "保存";
+"resource.form.new.password.created" = "新しいパスワードが作成されました";
+"resource.form.description.encrypted" = "説明は暗号化されています";
+"resource.form.description.unencrypted" = "説明は暗号化されていません";
+"resource.form.undefined.content.warning" = "サポートされていない種類のため、不明なフィールドは非表示です！";
+
+"feedback.alert.title" = "デバイスがジェイルブレイクされている可能性があります";
+"feedback.alert.message" = "お使いのデバイスがジェイルブレイクされている可能性があります。これはデバイス全体のセキュリティを低下させ、パスワードを取得するために悪用される可能性があるのでご注意ください。";
+"feedback.alert.button.title" = "承知しました";
+
+"account.not.found.title.label" = "アカウントが存在しません";
+"account.not.found.message.label" = "アカウントは削除または停止されました";
+"account.not.found.action.button.title" = "既存のアカウントに接続";
+
+"server.not.reachable.alert.title" = "サーバーに接続できませんでした！";
+"server.not.reachable.alert.message.server.placeholder" = "サーバー";
+"server.not.reachable.alert.message" = "%@ に接続できません。もう一度お試しください";
+
+"resource.edit.create.title" = "Create a resource";
+"resource.edit.title" = "リソースを編集";
+"resource.password.edit.title" = "Edit password";
+"resource.edit.field.name.label" = "名前";
+"resource.edit.field.uri.label" = "Main URI";
+"resource.edit.field.username.label" = "ユーザー名";
+"resource.edit.field.password.label" = "パスワード";
+"resource.edit.field.description.label" = "説明";
+"resource.edit.field.totp.label" = "TOTP";
+"resource.edit.field.add.totp" = "TOTP";
+"resource.edit.field.add.note" = "Note";
+"resource.edit.field.add.password" = "パスワード";
+"resource.edit.field.name.placeholder" = "名前を入力";
+"resource.edit.field.uri.placeholder" = "Enter URI";
+"resource.edit.field.username.placeholder" = "ユーザー名を入力";
+"resource.edit.field.password.placeholder" = "パスワードを入力";
+"resource.edit.field.description.placeholder" = "説明を入力";
+"resource.edit.exit.confirmation.message" = "変更内容は保存されません。";
+"resource.edit.exit.confirmation.button.edit.title" = "編集";
+"resource.edit.exit.confirmation.button.revert.title" = "元に戻す";
+"resource.edit.note.content.title" = "Content";
+"resource.edit.note.content.disclaimer" = "This secure is part of the secret if you wan to be able to search this content, use metadata description.";
+"resource.edit.note.remove.button.title" = "Remove note";
+
+"resource.edit.section.password.title" = "パスワード";
+"resource.edit.section.totp.title" = "TOTP";
+"resource.edit.section.note.title" = "Note";
+"resource.edit.section.metadata.title" = "Metadata";
+"resource.edit.totp.remove.button.title" = "Remove TOTP";
+
+"resource.create.advanced.button" = "View advanced settings";
+"resource.create.additional.secrets.title" = "Additional secrets";
+"resource.create.advanced.add.otp" = "TOTP";
+
+"resource.edit.section.metadata.description" = "説明";
+"resource.edit.section.metadata.description.name" = "Metadata description";
+"resource.edit.section.metadata.description.description" = "If you want the description to be part of the secret, use the note instead.";
+
+"resource.create.menu.title" = "Create a resource";
+"resource.create.menu.password" = "パスワード";
+"resource.create.menu.totp" = "TOTP";
+
+"resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
+"resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
+
+"help.logs.viewer.title" = "ログ";
+
+"help.menu.title" = "ヘルプ";
+"help.menu.show.logs.action.title" = "ログにアクセス";
+"help.menu.show.web.help.action.title" = "ヘルプサイトを表示";
+"help.menu.show.import.account.kit.title" = "アカウントキットをインポート";
+
+// Main application
+
+"welcome.title" = "ようこそ！";
+"welcome.description" = "開始するには既存のアカウントが必要です。デスクトップブラウザ拡張機能で既存のアカウントにサインインし、モバイルデバイスと接続してください。";
+"welcome.connect.to.account" = "既存のアカウントに接続";
+"welcome.no.account" = "アカウントがありません";
+"welcome.no.account.alert.title" = "アカウントを作成するには？";
+"welcome.no.account.alert.text" = "現在、モバイルアプリでアカウントを作成することはできません。まずはデスクトップブラウザ拡張機能を使用してアカウントを作成する必要があります。";
+"code.scanning.exit.confirmation.confirm.button.title" = "スキャンを停止";
+"code.scanning.help.menu.button.title" = "なぜQRコードをスキャンするのですか？";
+"code.scanning.help.title" = "QRコードのスキャン";
+"code.scanning.help.message" = "連続するQRコードが表示されます。プログレスバーが満タンになるまでこれらのコードをスキャンすると、ログインできるようになります！";
+"code.scanning.camera.unavailable" = "申し訳ありませんが、キーの転送はQRコードを使用するため、カメラが正常に動作するデバイスが必要です。";
+"code.scanning.begin" = "カメラをQRコードに向けてください";
+"code.scanning.processing.in.progress" = "スキャン中...続けてください！";
+"code.scanning.processing.invalid.code" = "これはパスボルトのQRコードではありません。もう一度試してください！";
+
+
+"transfer.account.title" = "アカウント情報を転送";
+"transfer.account.import.description" = "アカウント情報を転送するためにQRコードをスキャン";
+"transfer.account.import.info.step.first" = "ブラウザ拡張機能を使用してサインイン";
+"transfer.account.import.info.step.second" = "プロフィールページに移動";
+"transfer.account.import.info.step.second.distinct" = "プロフィール";
+"transfer.account.import.info.step.third" = "モバイルセクションに移動";
+"transfer.account.import.info.step.third.distinct" = "モバイル";
+"transfer.account.import.info.step.fourth" = "QRコードシーケンスをスキャン";
+"transfer.account.import.scan.qr.button" = "QRコードをスキャン";
+"transfer.account.export.description" = "アカウント情報を転送するためにQRコードを表示";
+"transfer.account.export.info.step.first" = "別のモバイルにアプリをインストール";
+"transfer.account.export.info.step.second" = "アプリを起動";
+"transfer.account.export.info.step.third" = "「既存のアカウントに接続」を選択";
+"transfer.account.export.info.step.fourth" = "QRコードシーケンスをスキャン";
+"transfer.account.export.scan.qr.button" = "転送を開始";
+"transfer.account.export.cancel.button" = "転送をキャンセル";
+"transfer.account.camera.access.alert.title" = "カメラへのアクセスが必要です";
+"transfer.account.camera.access.alert.text" = "設定/プライバシー/カメラに移動し、カメラへのアクセスを有効にしてください。";
+"transfer.account.result.success.title" = "情報が転送されました！";
+"transfer.account.result.already.linked.title" = "アカウントはすでにこのデバイスにリンクされています。";
+"transfer.account.result.canceled.title" = "転送がキャンセルされました。";
+"transfer.account.kit.result.success.title" = "アカウントキットがインポートされました！";
+
+"transfer.account.exit.confirmation.title" = "よろしいですか？";
+"transfer.account.exit.confirmation.message" = "退出すると、再度QRコードをスキャンする必要があります。";
+"transfer.account.import.exit.confirmation.cancel.button.title" = "セットアップを続行";
+"transfer.account.import.exit.confirmation.confirm.button.title" = "セットアップをキャンセル";
+"transfer.account.export.exit.confirmation.confirm.button.title" = "転送を停止";
+"transfer.account.export.exit.success.button" = "戻る";
+"transfer.account.export.exit.failure.button" = "もう一度やり直してください";
+"transfer.account.export.failure.message" = "転送を完了できませんでした。";
+"transfer.account.export.cancelled" = "転送がキャンセルされました";
+"transfer.account.exit.confirmation.cancel.button.title" = "セットアップを続行";
+"transfer.account.exit.confirmation.confirm.button.title" = "セットアップをキャンセル";
+
+"biometrics.usage.reason" = "バイオメトリクスを使用してパスフレーズを安全に保存できます。";
+
+"biometrics.info.title" = "バイオメトリクスを設定";
+"biometrics.info.description" = "FaceIDやTouchIDを高速なサインイン方法として使用したい場合は、設定で構成してください。";
+"biometrics.info.setup.button" = "バイオメトリクスを設定";
+"biometrics.info.later.button" = "後で";
+
+"biometrics.setup.title.face" = "パスフレーズの代わりにFace IDを使用！";
+"biometrics.setup.title.finger" = "パスフレーズの代わりにTouch IDを使用！";
+"biometrics.setup.description" = "一瞬で秘密を解除。";
+"biometrics.setup.setup.button.face" = "FaceIDを使用";
+"biometrics.setup.setup.button.finger" = "TouchIDを使用";
+"biometrics.setup.later.button" = "後で";
+
+"extension.setup.title" = "3秒でお気に入りのアプリにログイン！";
+"extension.setup.settings.step" = "設定に移動";
+"extension.setup.settings.step.bold" = "設定";
+"extension.setup.keyboard.step" = "「パスワードの自動入力」を開く";
+"extension.setup.keyboard.step.bold" = "パスワードの自動入力";
+"extension.setup.switch.step" = "パスワードの自動入力を有効にする";
+"extension.setup.switch.step.bold" = "有効にする";
+"extension.setup.keychain.step" = "キーチェーンをオフにする";
+"extension.setup.keychain.step.bold" = "オフにする";
+"extension.setup.passbolt.step" = "パスボルトを選択！";
+"extension.setup.passbolt.step.bold" = "パスボルト！";
+"extension.setup.setup.button" = "設定に移動";
+"extension.setup.later.button" = "後で";
+
+"tab.home" = "ホーム";
+"tab.otp" = "TOTP";
+"tab.settings" = "設定";
+
+"authorization.prompt.refresh.session.reason" = "セッションを更新するために認証してください";
+"authorization.prompt.biometrics.set.reason" = "バイオメトリクスを有効にするために認証してください。";
+
+"resources.search.placeholder" = "名前、ユーザー名、URL、タグで検索…";
+
+"resource.menu.item.open.url" = "ウェブサイトを起動";
+"resource.menu.item.copy.url" = "URLをコピー";
+"resource.menu.item.copy.password" = "パスワードをコピー";
+"resource.menu.item.copy.username" = "ユーザー名をコピー";
+"resource.menu.item.copy.description" = "説明をコピー";
+"resource.menu.item.copy.note" = "Copy note";
+"resource.menu.item.reveal.otp" = "TOTPを表示";
+"resource.menu.item.copy.otp" = "TOTPをコピー";
+"resource.menu.item.add.favorite" = "お気に入りに追加";
+"resource.menu.item.remove.favorite" = "お気に入りから削除";
+"resource.menu.item.share" = "パスワードを共有";
+"resource.menu.item.edit.password" = "パスワードを編集";
+"resource.menu.item.edit.otp" = "TOTPを編集";
+"resource.menu.item.delete.resource" = "パスワードを削除";
+"resource.menu.item.delete.otp" = "TOTPを削除";
+"resource.menu.item.password" = "パスワード";
+"resource.menu.item.username" = "ユーザー名";
+"resource.menu.item.description" = "説明";
+"resource.menu.item.url" = "URL";
+"resource.menu.item.field.copied" = "%@ がクリップボードにコピーされました！";
+
+"resource" = "リソース";
+"resource.menu.action.favorite.added" = "%@ がお気に入りに追加されました！";
+"resource.menu.action.favorite.removed" = "%@ をお気に入りから削除しました！";
+
+"resource.menu.action.edited" = "このパスワードは正常に編集されました。";
+"resource.menu.action.deleted" = "%@ が削除されました！";
+
+"resource.permission.type.read.label" = "読み込み可能";
+"resource.permission.type.write.label" = "更新可能";
+"resource.permission.type.own.label" = "さんが所有者です";
+"resource.permission.list.title" = "共有相手";
+"resource.permission.list.edit.button.title" = "パーミッションを編集";
+"resource.permission.edit.list.title" = "パスワードを共有";
+"resource.permission.edit.list.empty.message" = "所有者が少なくとも一人いることを確認してください。";
+"resource.permission.edit.list.add.button.title" = "ユーザーを追加";
+"resource.permission.edit.user.and.group.search.title" = "ユーザーを選択";
+"resource.permission.edit.user.and.group.search.prompt" = "ユーザーを検索…";
+"resource.permission.edit.user.and.group.search.existing.section.title" = "既に追加済み";
+"resource.permission.delete.user.permission.confirmation.message" = "このユーザーとのパスワード共有は解除されます。";
+"resource.permission.delete.user.group.permission.confirmation.message" = "このグループとのパスワード共有は解除されます。";
+
+"resource.permission.details.title" = "パーミッション";
+"resource.permission.details.user.suspended" = "一時停止中";
+
+"permission.details.type.section.title" = "パーミッション";
+"permission.details.group.members.section.title" = "グループメンバー";
+"permission.details.user.suspended" = "一時停止中";
+
+"resource.permission.edit.button.delete.title" = "パーミッションを削除";
+
+"resource.folders.add.menu.title" = "Create a resource";
+"resource.folders.add.menu.folder.label" = "Folder";
+
+"group.members.list.title" = "グループメンバー";
+"group.members.member.details.title" = "グループメンバー";
+
+"totp.title.label" = "二要素認証";
+"totp.message.label" = "認証コードを入力してください：";
+"totp.paste.otp.button.label" = "コードを貼り付け";
+"totp.remember.device.toggle.label" = "この端末を30日間記憶しておきます。";
+
+"yubiKey.scan.instruction" = "デバイスにユビキーをかざしてください。";
+"yubiKey.scan.success" = "スキャンに成功しました";
+"yubiKey.scan.notRecognized.title" = "ユビキーが認識されません";
+"yubiKey.scan.notRecognized.button.ok" = "了解しました";
+"yubiKey.scan.notRecognized.message" = "サーバーで使用しているYubikeyが認識されませんでした。\n別のYubikeyまたは別のプロバイダーでお試しください。";
+"mfa.yubiKey.title" = "ユビキーOTP";
+"mfa.yubiKey.description" = "ご使用のユビキーがNFCに対応している必要がありますのでご注意ください。";
+"mfa.yubiKey.scan" = "ユビキーをスキャン";
+"mfa.yubiKey.nfc.not.supported" = "このデバイスはNFCをサポートしていません。";
+"mfa.provider.try.another" = "別のプロバイダーを試してみてください";
+"mfa.remember.token" = "この端末を30日間記憶しておきます。";
+"mfa.unsupported.provider.title" = "ご利用のMFAプロバイダーはサポートされていません";
+"mfa.unsupported.provider.description" = "別のプロバイダーをWebアプリで設定してください。
+詳細については管理者にお問い合わせください。";
+"mfa.duo.authorization.title" = "Duo多要素認証";
+"mfa.duo.authorization.button.title" = "Duoで認証";
+
+"account.menu.title" = "アカウントを切り替え";
+"account.menu.account.details.button.title" = "詳細を見る";
+"account.menu.sign.out.button.title" = "サインアウト";
+"account.menu.manage.accounts.button.title" = "アカウントを管理";
+
+"account.details.title" = "アカウント詳細";
+"account.details.field.label.title" = "ラベル";
+"account.details.field.label.editing.info" = "ラベルはアカウントリストや認証時に表示されます";
+"account.details.field.name.title" = "名前";
+"account.details.field.email.title" = "メールアドレス";
+"account.details.field.url.title" = "組織のURL";
+"account.details.field.role.title" = "ロール";
+"account.details.button.save.title" = "保存";
+
+"update.available.title" = "新しいバージョンがあります！";
+"update.available.message" = "App Storeからパスボルトアプリを最新バージョンに更新してください";
+
+// Autofill extension
+
+"autofill.extension.setup.completed.title" = "パスボルトの自動入力が有効になりました！";
+"autofill.extension.setup.completed.info" = "フォームに入力したら、そのフィールドをタップするだけで、有効にした自動入力がパスボルトアプリにすでに追加したログイン情報を使用して入力を提案します。";
+
+"autofill.extension.account.selection.switch.account.title" = "アカウントを切り替え";
+"autofill.extension.account.selection.switch.account.subtitle" = "切り替えるアカウントを選択してください！";
+"autofill.extension.account.selection.sign.in.title" = "ログインしていません";
+"autofill.extension.account.selection.sign.in.subtitle" = "サインインするアカウントを選択してください！";
+
+"autofill.extension.no.accounts.title" = "アカウントが見つかりません！";
+"autofill.extension.no.accounts.description" = "開始するにはアカウントが必要です。パスボルトアプリを開き、セットアップ手順に従ってください。その後、パスボルトは認証情報を自動入力できるようになります。";
+
+"autofill.extension.resource.list.title" = "パスワードを選択";
+"autofill.extension.resource.list.section.suggested.title" = "推奨";
+"autofill.extension.resource.list.section.all.title" = "その他";
+
+"autofill.extension.autofill.extension.resources.search.placeholder" = "パスボルトで検索…";
+
+"mfa.required.title" = "MFAが必要です";
+"autofill.extension.mfa.required.description" = "認証を完了するにはパスボルトアプリを使用してください。";
+
+"folder.edit.form.create.title" = "フォルダを作成";
+"folder.edit.form.name.field.placeholder" = "無題のフォルダ";
+"folder.edit.form.created" = "新規フォルダ%@が作成されました！";
+
+"resource.folder.menu.open.details.label" = "詳細を見る";
+
+// Common UI
+
+"folder.root.name" = "ルート";
+
+"folder.name.title" = "名前";
+"folder.location.title" = "場所";
+"permissions.avatars.view.title" = "パーミッション";
+"shared.avatars.view.title" = "共有相手";
+
+// Forms common
+
+"form.field.name.title" = "名前";
+
+"form.button.save.title" = "保存";
+
+// Errors
+
+"generic.error" = "何か問題が発生しました！";
+"generic.error.retry" = "問題が発生しました。もう一度お試しください。";
+"generic.error.report" = "問題が発生しました。バグを報告してください。";
+"generic.error.cancelled" = "操作がキャンセルされました。";
+"sign.in.error.message" = "サインインに失敗しました";
+"sign.in.error.biometrics.changed.message" = "デバイスのバイオメトリクスが変更されたようです。パスフレーズを入力し、再度バイオメトリクスを設定してください";
+"sign.in.error.passphrase.invalid.message" = "パスフレーズが無効です。";
+"server.fingerprint.save.failed" = "サーバーフィンガープリントの保存に失敗しました。";
+"form.field.error.max.length" = "最大長を超えています。";
+"form.error.invalid" = "フォームが不正です";
+"resource.form.field.error.empty" = "フィールドを空にすることはできません";
+"resource.from.field.error.invalid.value" = "このフィールドの値が無効です";
+"resource.form.field.error.max.length" = "最大長を超えています。";
+"resource.form.field.error.invalid" = "フィールド値が無効です";
+"resource.form.error.invalid" = "フォームが不正です";
+"authorization.passphrase.error" = "パスフレーズが間違っています！";
+"account.settings.biometrics.error" = "バイオメトリクスの設定に失敗しました。";
+"totp.wrong.code.error" = "コードが間違っています";
+"error.another.account.transfer.in.progress" = "別のアカウント転送が進行中です。まずそれを完了してください。";
+"resource.menu.action.failed" = "%@ に失敗しました！";
+"mfa.yubiKey.scan.failed" = "スキャンに失敗しました";
+
+"error.internal.inconsistency" = "内部不整合が発生しました。バグを報告してください。";
+"error.feature.unavailable" = "機能を使用できません。";
+"error.nfc.not.supported" = "NFCはサポートされていません。";
+"error.nfc.payload.invalid" = "NFCペイロードが無効です。";
+"error.url.invalid" = "URLが無効です。";
+"error.internet.connection.issue" = "インターネットに接続できません。";
+"error.client.certificate.invalid" = "クライアント証明書が無効です。";
+"error.server.connection.issue" = "サーバーに接続できません。";
+"error.server.time.issue" = "サーバーとクライアントの時刻が同期していません。管理者にお問い合わせください。";
+"error.server.response.invalid" = "サーバーの応答が無効です";
+"error.server.response.timeout" = "サーバー応答がタイムアウトしました。";
+"error.server.certificate.invalid" = "サーバー証明書が無効です。";
+"error.http.request.invalid" = "HTTPリクエストが無効です。";
+"error.http.response.invalid" = "HTTPレスポンスが無効です。";
+"error.network.response.invalid" = "ネットワーク応答が無効です";
+"error.http.response.forbidden" = "HTTP禁止。";
+"error.http.response.conflict" = "HTTPコンフリクト。";
+"error.http.response.not.found" = "HTTPが見つかりません。";
+"error.http.response.redirect" = "HTTPリダイレクト。";
+"error.http.request.invalid" = "HTTPリクエストが無効です。";
+"error.http.response.invalid" = "HTTPレスポンスが無効です。";
+"error.http.response.status.code.unexpected" = "HTTPステータスコードが予期しない値です。";
+"error.http.response.unauthorized" = "HTTP認証が行われていません。";
+"error.network.response.decoding.failed" = "ネットワーク応答のデコードに失敗しました。";
+"error.network.request.validation.failure" = "ネットワークリクエストの検証に失敗しました。";
+"error.session.authorization.required" = "セッションの認可が必要です";
+"error.session.authorization.mfa.required" = "セッションのMFA認可が必要です。";
+"error.session.missing" = "セッションがありません。";
+"error.crypto.data.signature.invalid" = "データ署名が無効です。";
+"error.crypto.passphrase.invalid" = "パスフレーズが無効です。";
+"error.crypto.pgp.fingerprint.invalid" = "PGPフィンガープリントが無効です。";
+"error.crypto.pgp.fingerprint.mismatch" = "PGPフィンガープリントが一致しません。";
+"error.crypto.pgp.keyring.preparation.failed" = "PGPキーリングの準備に失敗しました";
+"error.crypto.pgp.keypacket.extraction.failed" = "PGPキー・パケットの抽出に失敗しました。";
+"error.crypto.pgp.sessionkey.extraction.failed" = "PGPセッションキーの抽出に失敗しました。";
+"error.crypto.pgp.public.key.invalid" = "公開PGPキーが無効です。";
+"error.data.empty" = "データが提供されていません。";
+"error.data.invalid" = "無効なデータが提供されました。";
+"error.resource.permission.required" = "パーミッションが必要です。";
+"error.resource.secret.invalid" = "リソースのシークレットが無効です。";
+"error.resource.permission.invalid" = "リソースのパーミッションが無効です。";
+"error.resource.owner.missing" = "リソースには少なくとも1人の所有者が必要です。";
+"error.system.feature.inaccessible" = "システム機能にアクセスできません。";
+"error.system.feature.permission.not.granted" = "システム機能の権限が付与されていません。";
+"error.system.feature.permission.required" = "システム機能の権限が必要です。";
+"error.system.feature.status.undetermined" = "システム機能の状態が未確定です。";
+"error.system.file.access.issue" = "ファイルにアクセスできません。";
+"error.system.directory.access.issue" = "ディレクトリにアクセスできません。";
+"error.database.statement.invalid" = "データベースステートメントが無効です。";
+"error.database.statement.execution.failure" = "データベースステートメントの実行に失敗しました。";
+"error.database.migration.failure" = "データベースのマイグレーションに失敗しました。";
+"error.database.connection.issue" = "データベースに接続できません。";
+"error.database.connection.closed" = "データベース接続が閉じられました。";
+"error.database.binding.invalid" = "データベースのバインドが無効です。";
+"error.database.result.empty" = "データベースの結果が空です。";
+"error.database.result.invalid" = "データベースの結果が無効です";
+"error.keychain.authorization.failed" = "キーチェーンの認証に失敗しました。";
+"error.keychain.failure" = "キーチェーンへのアクセスに失敗しました。";
+"error.keychain.query.invalid" = "キーチェーンクエリが無効です。";
+"error.account.private.key.missing" = "アカウントの秘密鍵がありません。";
+"error.account.profile.data.missing" = "アカウントのプロフィールデータがありません。";
+"error.account.passphrase.missing" = "アカウントのパスフレーズがありません。";
+"error.account.data.missing" = "アカウントのデータがありません。";
+"error.account.biometry.data.changed" = "バイオメトリクスデータが変更されました。";
+"error.account.kit.fail.to.import" = "アカウントキットのインポートに失敗しました。";
+"error.account.kit.signature.verification" = "署名の検証に失敗しました。";
+"error.users.list.empty" = "ユーザーリストを空にすることはできません。";
+"error.user.public.key.invalid" = "ユーザーの公開鍵が無効です。";
+"error.user.public.key.missing" = "ユーザーの公開鍵がありません。";
+"error.user.secret.missing" = "ユーザーのシークレットがありません。";
+"error.session.closed" = "セッションが閉じられました。";
+"error.account.duplicate" = "アカウントが重複しています。";
+"error.server.pgp.fingerprint.invalid" = "サーバーPGPフィンガープリントが無効です。";
+"error.session.authorization.failed" = "セッションの認可に失敗しました。";
+"error.qrcode.invalid" = "これはPassboltのQRではありません。もう一度お試しください！";
+
+"error.validation.folder.name.empty" = "フォルダ名を空にすることはできません。";
+"error.validation.folder.name.too.long" = "フォルダ名は256文字を超えることはできません。";
+
+"error.validation.permissions.empty" = "少なくとも1つのパーミッションが必要です。";
+"error.validation.permissions.owner.required" = "少なくとも1人の所有者が必要です。";
+
+"error.validation.form.invalid" = "フォームが不正です。";
+"error.biometrics.unavailable.message" = "バイオメトリクスを利用できません";
+
+"error.qrcode.generation.generic" = "提供されたデータからQRCodeを生成できませんでした";
+
+"error.otp.configuration.invalid" = "OTP設定が無効です。";
+
+// Validation errors
+
+"error.resource.field.empty" = "%@ を空にすることはできません！";
+"error.resource.field.length.lower" = "%@ は %d 文字を超えることはできません！";
+"error.resource.field.length.higher" = "%@ は %d 文字未満にはできません！";
+"error.resource.field.range.lower" = "%@ は %d より小さい必要があります！";
+"error.resource.field.range.greater" = "%@ は %d より大きい必要があります！";
+"error.resource.field.content.invalid" = "%@ の内容が無効です！";
+"error.resource.field.selection.invalid" = "%@ は有効なオプションのいずれかである必要があります！";
+"error.resource.field.unknown" = "不明なフィールドは想定されていません！";
+"error.validation.password.length.invalid" = "パスワードの長さ設定が無効です！";
+"error.validation.password.mask.empty" = "パスワードの有効期限マスクは空にできません！";
+
+// Home - presentation mode menu
+
+"home.presentation.mode.menu.title" = "ビューをフィルタリング";
+
+// Presentation modes
+
+"home.presentation.mode.plain.resources.title" = "すべての項目";
+"home.presentation.mode.favorite.resources.title" = "お気に入り";
+"home.presentation.mode.modified.resources.title" = "最近修正されたもの";
+"home.presentation.mode.shared.resources.title" = "私と共有済み";
+"home.presentation.mode.owned.resources.title" = "私が所有";
+"home.presentation.mode.owned.resources.expiry" = "有効期限";
+"home.presentation.mode.folders.explorer.title" = "フォルダ";
+"home.presentation.mode.folders.explorer.search.direct.results" = "\"%@\"内：";
+"home.presentation.mode.folders.explorer.search.nested.results" = "サブフォルダ内：";
+"home.presentation.mode.tags.explorer.title" = "タグ";
+"home.presentation.mode.resource.user.groups.explorer.title" = "グループ";
+
+// OTP resources
+
+"otp.resources.search.placeholder" = "TOTPを検索";
+"otp.resources.list.title" = "TOTP";
+"otp.resources.list.empty.message" = "TOTPがありません";
+"otp.value.copied.message" = "TOTPがクリップボードにコピーされました！";
+
+// OTP contextual menu
+
+"otp.contextual.menu.copy.title" = "TOTPをコピー";
+"otp.copied.message" = "TOTPがクリップボードにコピーされました！";
+"otp.contextual.menu.reveal.title" = "TOTPを表示";
+"otp.contextual.menu.edit.title" = "TOTPを編集";
+"otp.contextual.menu.delete.title" = "TOTPを削除";
+"otp.contextual.menu.delete.confirm.title" = "よろしいですか？";
+"otp.contextual.menu.delete.confirm.message" = "この操作によりTOTPが完全に削除されます。";
+"otp.contextual.menu.delete.confirm.action.delete" = "TOTPを削除";
+"otp.contextual.menu.delete.succeeded" = "TOTPが削除されました。";
+
+// OTP edit menu
+
+"otp.edit.menu.create.title" = "TOTPを作成";
+"otp.edit.menu.edit.title" = "TOTPを編集";
+"otp.edit.menu.scanning.title" = "QRコードをスキャン";
+"otp.edit.menu.create.manual.title" = "TOTPを手動で作成";
+"otp.edit.menu.edit.manual.title" = "TOTPを手動で編集";
+"otp.edit.code.scanning.title" = "TOTPを手動で編集";
+"otp.edit.code.scanning.initial.message" = "QRコードをスキャン";
+"otp.edit.menu.title" = "カメラをQRコードに向けてください";
+"otp.edit.otp.created.message" = "TOTPが作成されました。";
+"otp.edit.otp.replaced.message" = "TOTPが置き換えられました。";
+"otp.edit.otp.deleted.message" = "TOTPが削除されました。";
+
+// OTP scanning
+
+"otp.scanning.success.title" = "TOTPがスキャンされました！";
+"otp.scanning.success.create.button.title" = "スタンドアロンTOTPを作成";
+"otp.scanning.success.link.button.title" = "TOTPをパスワードにリンク";
+"otp.code.scanning.title" = "QRコードをスキャン";
+"otp.code.scanning.initial.message" = "カメラをQRコードに向けてください";
+"otp.code.scanning.manual.input" = "Or create TOTP manually";
+
+// OTP form
+
+"otp.edit.form.create.title" = "TOTPを作成";
+"otp.edit.form.edit.title" = "TOTPを編集";
+"otp.edit.form.field.name.title" = "名前（ラベル）";
+"otp.edit.form.field.name.prompt" = "名前";
+"otp.edit.form.field.uri.title" = "URL（発行元）";
+"otp.edit.form.field.uri.prompt" = "URL";
+"otp.edit.form.field.secret.title" = "シークレット";
+"otp.edit.form.field.secret.prompt" = "シークレット";
+"otp.edit.form.advanced.button.title" = "More TOTP settings";
+"otp.edit.form.create.button.title" = "スタンドアロンTOTPを作成";
+"otp.edit.form.apply.button.title" = "適用";
+"otp.edit.form.edit.button.title" = "保存";
+"otp.edit.form.edit.advanced.title" = "TOTPを編集 - 詳細設定";
+"otp.edit.form.edit.advanced.warning" = "詳細設定は使用しているTOTPプロバイダの設定に合わせる必要があります。そうでないと動作しません。";
+"otp.edit.form.field.digits.title" = "TOTPの桁数";
+"otp.edit.form.field.digits.label" = "桁。";
+"otp.edit.form.field.period.title" = "TOTPの有効期限";
+"otp.edit.form.field.period.label" = "TOTPが期限切れとなるまでの秒数。";
+"otp.edit.form.field.algorithm.title" = "アルゴリズム";
+"otp.edit.form.apply.button.title" = "適用";
+
+// OTP attach
+
+"otp.attach.list.title" = "パスワードにTOTPを追加";
+"otp.attach.alert.attach.title" = "よろしいですか？";
+"otp.attach.alert.attach.message" = "このリソースにTOTPを追加すると、TOTPは同じ共有パーミッションを継承します。";
+"otp.attach.alert.attach.button.title" = "TOTPを追加";
+"otp.attach.alert.replace.title" = "TOTPを置き換えますか？";
+"otp.attach.alert.replace.message" = "このリソースには既にTOTPが関連付けられています。上書きしますか？";
+"otp.attach.alert.replace.button.title" = "TOTPを置き換え";
+"otp.attach.error.notAllowed" = "このリソースを編集することはできません。";
+"otp.attach.error.notCompatible" = "このリソースは TOTP に対応していません。";
+
+
+// Settings - Main
+
+"settings.main.title" = "設定";
+"settings.main.item.application.title" = "アプリ設定";
+"settings.main.item.accounts.title" = "アカウント";
+"settings.main.item.terms.and.licenses.title" = "利用規約＆ライセンス";
+"settings.main.item.troubleshooting.title" = "デバッグとログ";
+"settings.main.item.sign.out.title" = "サインアウト";
+
+// Settings - Application
+
+"settings.application.title" = "アプリ設定";
+"settings.application.item.autofill.title" = "自動入力";
+"settings.application.item.default.mode.title" = "デフォルトフィルタ";
+
+// Settings - Accounts
+
+"settings.accounts.title" = "アカウント";
+"settings.accounts.item.details.title" = "アカウント詳細";
+"settings.accounts.item.manage.title" = "アカウントを管理";
+"settings.accounts.item.export.title" = "別のデバイスにアカウントを転送";
+"settings.accounts.item.key.inspector.title" = "キーインスペクター";
+
+// Settings - Terms & Licenses
+
+"settings.terms.and.licenses.title" = "利用規約＆ライセンス";
+"settings.terms.and.licenses.item.terms.title" = "利用規約";
+"settings.terms.and.licenses.item.privacy.title" = "プライバシーポリシー";
+"settings.terms.and.licenses.item.licenses.title" = "オープンソースライセンス";
+
+// Key inspector
+
+"account.key.inspector.title" = "キーインスペクター";
+"account.key.inspector.field.uid.title" = "Uid";
+"account.key.inspector.field.fingerprint.title" = "指紋";
+"account.key.inspector.field.created.title" = "作成済み";
+"account.key.inspector.field.expires.title" = "有効期限";
+"account.key.inspector.no.exipire.placeholder" = "無期限";
+"account.key.inspector.field.key.size.title" = "キー長";
+"account.key.inspector.field.algorithm.title" = "アルゴリズム";
+"account.key.inspector.uid.copied.message" = "Uidがクリップボードにコピーされました！";
+"account.key.inspector.fingerprint.copied.message" = "フィンガープリントがクリップボードにコピーされました！";
+
+// Key export
+
+"account.key.export.menu.title" = "キーインスペクター";
+"account.key.export.menu.export.private.action" = "秘密鍵をエクスポート";
+"account.key.export.menu.export.public.action" = "公開鍵をエクスポート";
+"account.key.export.private.authorization.title" = "秘密鍵をエクスポート";
+"account.key.export.private.authorization.button.title" = "秘密鍵をエクスポート";
+
+// Settings - Troubleshooting
+
+"settings.troubleshooting.title" = "デバッグとログ";
+"settings.troubleshooting.item.logs.title" = "デバッグログにアクセス";
+"settings.troubleshooting.item.help.site.title" = "ヘルプサイトを表示";
+
+// Settings - Default presentation mode
+
+"settings.application.default.mode.title" = "デフォルトフィルタ";
+"settings.application.default.mode.option.last.used.title" = "最後に使用した(デフォルト)";
+
+// Settings - Disable biometrics alert
+
+"settings.application.biometrics.disable.alert.title" = "よろしいですか？";
+"settings.application.biometrics.disable.alert.message" = "%@ を無効にすると、パスフレーズを使用してログインする必要があります。";
+"settings.application.biometrics.disable.alert.confirm.title" = "バイオメトリクスを無効にする";
+"settings.application.biometrics.disable.alert.cancel.title" = "保持";
+
+// Settings - Sign out alert
+
+"settings.main.sign.out.alert.title" = "よろしいですか？";
+"settings.main.sign.out.alert.message" = "サインアウトすると、このデバイスでのアカウントからログアウトされます。";
+"settings.main.sign.out.alert.confirm.title" = "サインアウト";
+
+// Biometric authorization availability
+
+"biometric.authorization.availability.unavailable" = "利用不可";
+"biometric.authorization.availability.face.id" = "Face ID";
+"biometric.authorization.availability.touch.id" = "Touch ID";
+
+// Operation authorization
+
+"authorization.primary.button.title" = "承認";
+
+// Metadata
+"metadata.pinned.key.validation.error.title" = "The metadata key has changed.";
+"metadata.pinned.key.validation.error.message" = "The encryption key used to share metadata between users has been updated by %@.";
+"metadata.pinned.key.validation.error.disclaimer" = "If you weren't expecting this, you can verify with your administrator.";
+"metadata.pinned.key.validation.error.trust" = "Trust the key";
+"metadata.pinned.key.fingerprint" = "Key fingerprint:";
+
+"metadata.pinned.key.validation.deleted.title" = "The metadata key has been deleted.";
+"metadata.pinned.key.validation.deleted.message" = "The trusted encryption key used to share metadata between users has been deleted.";
+
+"metadata.pinned.key.validation.unknown.title" = "The metadata key has changed.";
+"metadata.pinned.key.validation.unknown.message" = "The trusted encryption key used to share metadata between users could not be validated.";

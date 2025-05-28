@@ -1,0 +1,787 @@
+//
+// Passbolt - Open source password manager for teams
+// Copyright (c) 2021 Passbolt SA
+//
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+// Public License (AGPL) as published by the Free Software Foundation version 3.
+//
+// The name "Passbolt" is a registered trademark of Passbolt SA, and Passbolt SA hereby declines to grant a trademark
+// license to "Passbolt" pursuant to the GNU Affero General Public License version 3 Section 7(e), without a separate
+// agreement with Passbolt SA.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License along with this program. If not,
+// see GNU Affero General Public License v3 (http://www.gnu.org/licenses/agpl-3.0.html).
+//
+// @copyright     Copyright (c) Passbolt SA (https://www.passbolt.com)
+// @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
+// @link          https://www.passbolt.com Passbolt (tm)
+// @since         v1.0
+//
+// Shared and commons
+
+
+"generic.done" = "Atlikta";
+"generic.yes" = "Taip";
+"generic.apply" = "Taikyti";
+"generic.confirm" = "Patvirtinti";
+"generic.cancel" = "Atšaukti";
+"generic.remove" = "Pašalinti";
+"generic.loading" = "Įkeliama...";
+"generic.loading.long" = "Tai užtrunka ilgiau nei įprastai...
+";
+"generic.continue" = "Tęsti";
+"generic.retry" = "Bandykite dar kartą
+";
+"generic.try.again" = "Pabandykite iš naujo";
+"generic.delete" = "Ištrinti";
+"generic.got.it" = "Supratau";
+"generic.settings" = "Nustatymai";
+"generic.disable" = "Išjungti";
+"generic.sign.out" = "Atsijungti";
+"generic.refresh" = "Atnaujinti";
+"generic.create" = "Sukurti";
+"generic.empty.list" = "Rezultatų nėra
+";
+"generic.user.search.list.empty" = "Vartotojas nerastas.";
+"generic.paste.value.invalid" = "Bandoma įklijuoti netinkamą vertę
+";
+"generic.are.you.sure" = "Ar esate tikras?";
+"generic.picker.select.placeholder" = "Pasirinkti";
+
+"account.selection.title" = "Sveiki sugrįžę!";
+"account.selection.subtitle" = "Norėdami prisijungti, pasirinkite paskyrą!
+";
+"account.selection.remove.account.button.title" = "Pašalinkite paskyrą iš šio įrenginio
+";
+"account.selection.add.account.footer.title" = "Pridėti naują paskyrą
+";
+"account.selection.remove.account.title" = "Atsieti paskyrą
+";
+"account.selection.remove.account.subtitle" = "Pasirinkite paskyrą, kurią norite atsieti.
+";
+"account.selection.remove.alert.title" = "Ar esate tikras ?";
+"account.selection.remove.alert.message" = "Tai pašalins jūsų paskyrą iš šio įrenginio. Jūsų slaptažodžiai nebus ištrinti.
+";
+"account.selection.account.removed" = "Paskyra pašalinta iš šio įrenginio.
+";
+
+"authorization.button.title" = "Prisijungti";
+"authorization.reverification.button.title" = "Patvirtinkite slaptafrazę
+";
+"authorization.forgot.passphrase.button.title" = "Pamiršau savo slaptafrazę
+";
+"authorization.forgot.passphrase.alert.title" = "Ar pamiršote savo slaptafrazę?
+";
+"authorization.forgot.passphrase.alert.message" = "Deja, jūs negalite pasiekti savo duomenų, jei neprisimenate slaptafrazės. Norėdami atrakinti paskyrą, susisiekite su administratoriumi.";
+"authorization.passphrase.description.text" = "Slaptafrazė";
+"authorization.title" = "Įveskite slaptafrazę
+";
+
+"sign.in.title" = "Įveskite slaptafrazę
+";
+
+"resource.list.username.empty.placeholder" = "jokio vartotojo vardo";
+
+"resource.detail.field.name" = "Vardas";
+"resource.detail.field.username" = "Vartotojo vardas";
+"resource.detail.field.passphrase" = "Slaptažodis";
+"resource.detail.field.uri" = "Svetainės URL
+";
+"resource.detail.field.description" = "Domenas";
+"resource.show.field.uri.placeholder" = "No URI";
+"resource.show.field.username.placeholder" = "Nėra vartotojo vardo";
+"resource.show.field.password.placeholder" = "Nėra slaptažodžio";
+"resource.show.field.description.placeholder" = "Nėra aprašymo";
+"resource.value.copied" = "%@ nukopijuotas į iškarpinę!";
+"resource.details.value" = "Vertė";
+"resource.detail.section.location" = "Vieta";
+"resource.detail.section.permissions" = "Pasidalinta su";
+"resource.detail.section.tags" = "Žymos
+";
+"resource.detail.section.expiry" = "Galiojimas";
+"resource.detail.section.expiry.expired" = "Pasibaigęs";
+"resource.detail.section.expiry.willExpire" = "Pasibaigs už";
+"resource.detail.undefined.content.warning" = "Nepalaikomas tipas, nežinomi laukai paslėpti!";
+
+"resource.expiry.expired" = "(pasibaigęs)";
+
+"resource.delete.succeeded" = "Išteklius ištrintas.";
+
+"resource.field.name.unknown" = "Vertė";
+"section.tags.empty" = "Nėra žymių";
+
+"server.key.fingerprint.changed.title" = "Atsiprašome, serverio raktas pasikeitė.";
+"server.key.fingerprint.changed.description" = "Saugumo sumetimais pasitarkite su administratoriumi, ar tai yra jų inicijuotas pakeitimas. Naujas piršto atspaudas:";
+"server.key.fingerprint.accept.check" = "Taip, patikrinau ir viskas gerai. ";
+"server.key.fingerprint.accept.new.key" = "Priimti naują raktą";
+
+"resource.form.password.strength" = "Slaptažodžio stiprumas
+";
+"resource.form.strength.very.weak" = "Labai silpnas";
+"resource.form.strength.weak" = "Silpnas";
+"resource.form.strength.fair" = "Vidutinis";
+"resource.form.strength.strong" = "Stiprus";
+"resource.form.strength.very.strong" = "Labai stiprus";
+"resource.form.create.button.title" = "Sukurti";
+"resource.form.create.and.fill.button.title" = "Sukurti ir užpildyti
+";
+"resource.form.update.button.title" = "Išsaugoti";
+"resource.form.new.password.created" = "Sukurtas naujas slaptažodis
+";
+"resource.form.description.encrypted" = "Aprašymas užšifruotas";
+"resource.form.description.unencrypted" = "Aprašymas nešifruotas
+";
+"resource.form.undefined.content.warning" = "Nepalaikomas tipas, nežinomi laukai paslėpti!";
+
+"feedback.alert.title" = "Įrenginys gali būti pažeistas
+";
+"feedback.alert.message" = "Įtariame, kad jūsų įrenginys gali būti pažeistas. Atminkite, kad tai sumažina bendrą įrenginio saugumą ir gali būti piktybiškai panaudota slaptažodžiams gauti.";
+"feedback.alert.button.title" = "Suprantu";
+
+"account.not.found.title.label" = "Paskyra neegzistuoja";
+"account.not.found.message.label" = "Paskyra ištrinta arba sustabdyta";
+"account.not.found.action.button.title" = "Prisijunkite prie esamos paskyros";
+
+"server.not.reachable.alert.title" = "Serveris nepasiekiamas!";
+"server.not.reachable.alert.message.server.placeholder" = "Serveris";
+"server.not.reachable.alert.message" = "%@ nepasiekiamas. Prašau, pabandykite dar kartą
+";
+
+"resource.edit.create.title" = "Create a resource";
+"resource.edit.title" = "Redaguoti šaltinį";
+"resource.password.edit.title" = "Redaguoti slaptažodį";
+"resource.edit.field.name.label" = "Vardas";
+"resource.edit.field.uri.label" = "Main URI";
+"resource.edit.field.username.label" = "Vartotojo vardas";
+"resource.edit.field.password.label" = "Slaptažodis";
+"resource.edit.field.description.label" = "Domenas";
+"resource.edit.field.totp.label" = "Laikinas vienkartinis slaptažodis (TOTP)";
+"resource.edit.field.add.totp" = "TOTP";
+"resource.edit.field.add.note" = "Note";
+"resource.edit.field.add.password" = "Slaptažodis";
+"resource.edit.field.name.placeholder" = "Įveskite vardą";
+"resource.edit.field.uri.placeholder" = "Enter URI";
+"resource.edit.field.username.placeholder" = "Įveskite vartotojo vardą";
+"resource.edit.field.password.placeholder" = "Įvesti slaptažodį
+";
+"resource.edit.field.description.placeholder" = "Įveskite aprašymą
+";
+"resource.edit.exit.confirmation.message" = "Jūsų pakeitimai nebus išsaugoti.";
+"resource.edit.exit.confirmation.button.edit.title" = "Redaguoti";
+"resource.edit.exit.confirmation.button.revert.title" = "Atšaukti pakeitimus";
+"resource.edit.note.content.title" = "Content";
+"resource.edit.note.content.disclaimer" = "This secure is part of the secret if you wan to be able to search this content, use metadata description.";
+"resource.edit.note.remove.button.title" = "Remove note";
+
+"resource.edit.section.password.title" = "Slaptažodis";
+"resource.edit.section.totp.title" = "TOTP";
+"resource.edit.section.note.title" = "Note";
+"resource.edit.section.metadata.title" = "Metadata";
+"resource.edit.totp.remove.button.title" = "Remove TOTP";
+
+"resource.create.advanced.button" = "View advanced settings";
+"resource.create.additional.secrets.title" = "Additional secrets";
+"resource.create.advanced.add.otp" = "TOTP";
+
+"resource.edit.section.metadata.description" = "Domenas";
+"resource.edit.section.metadata.description.name" = "Metadata description";
+"resource.edit.section.metadata.description.description" = "If you want the description to be part of the secret, use the note instead.";
+
+"resource.create.menu.title" = "Create a resource";
+"resource.create.menu.password" = "Slaptažodis";
+"resource.create.menu.totp" = "TOTP";
+
+"resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
+"resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
+
+"help.logs.viewer.title" = "Žurnalai";
+
+"help.menu.title" = "Pagalba";
+"help.menu.show.logs.action.title" = "Pasiekti logaritumus";
+"help.menu.show.web.help.action.title" = "Apsilankykite pagalbos svetainėje\n";
+"help.menu.show.import.account.kit.title" = "Importuokite paskyros rinkinį";
+
+// Main application
+
+"welcome.title" = "Sveiki!";
+"welcome.description" = "Norėdami pradėti, jums reikia turimos paskyros. Prisijunkite prie esamos paskyros darbalaukio naršyklės plėtinyje, kad susietumėte ją su mobiliuoju įrenginiu.";
+"welcome.connect.to.account" = "Prisijunkite prie esamos paskyros";
+"welcome.no.account" = "Aš neturiu paskyros";
+"welcome.no.account.alert.title" = "Kaip sukurti paskyrą?";
+"welcome.no.account.alert.text" = "Šiuo metu paskyros sukurti mobiliojoje programėlėje neįmanoma. Pirmiausia turite sukurti paskyrą naudodami darbalaukio naršyklės plėtinį.";
+"code.scanning.exit.confirmation.confirm.button.title" = "Nustoti skenuoti";
+"code.scanning.help.menu.button.title" = "Kodėl skenuoti QR kodus?";
+"code.scanning.help.title" = "QR kodų skenavimas";
+"code.scanning.help.message" = "Matysite seką QR kodų. Skenuosime juos, kol užsipildys progreso juosta, tada galėsite prisijungti!";
+"code.scanning.camera.unavailable" = "Atsiprašome, reikia įrenginio su veikiančia kamera, nes raktas perduodamas QR kodais.";
+"code.scanning.begin" = "Nukreipkite kamerą į QR kodus";
+"code.scanning.processing.in.progress" = "Skenuojama... tęskite!";
+"code.scanning.processing.invalid.code" = "Tai nėra Passbolt QR. Bandykite dar kartą!";
+
+
+"transfer.account.title" = "Perduoti paskyros duomenis";
+"transfer.account.import.description" = "Nuskaitykite QR kodus, kad perkeltumėte išsamią paskyros informaciją
+";
+"transfer.account.import.info.step.first" = "Prisijunkite naudodami naršyklės plėtinį
+";
+"transfer.account.import.info.step.second" = "Eikite į profilio puslapį
+";
+"transfer.account.import.info.step.second.distinct" = "Profilis";
+"transfer.account.import.info.step.third" = "Eikite į skyrių „Mobilusis“";
+"transfer.account.import.info.step.third.distinct" = "Mobilus";
+"transfer.account.import.info.step.fourth" = "Nuskaitykite qr kodų seką";
+"transfer.account.import.scan.qr.button" = "Nuskaitykite QR kodus
+";
+"transfer.account.export.description" = "Rodykite QR kodus, kad perkeltumėte išsamią paskyros informaciją
+";
+"transfer.account.export.info.step.first" = "Įdiekite programą kitame mobiliajame telefone
+";
+"transfer.account.export.info.step.second" = "Paleiskite programą
+";
+"transfer.account.export.info.step.third" = "Pasirinkite „Prisijungti prie esamos paskyros“
+";
+"transfer.account.export.info.step.fourth" = "Nuskaitykite qr kodų seką
+";
+"transfer.account.export.scan.qr.button" = "Pradėti perkėlimą
+";
+"transfer.account.export.cancel.button" = "Atšaukti perkėlimą
+";
+"transfer.account.camera.access.alert.title" = "Reikalingas kameros leidimas";
+"transfer.account.camera.access.alert.text" = "Eikite į Nustatymai/Privatumas/Kamera, kad suteiktumėte prieigą prie kameros.";
+"transfer.account.result.success.title" = "Jūsų informacija buvo perduota!";
+"transfer.account.result.already.linked.title" = "Paskyra jau susieta su įrenginiu.";
+"transfer.account.result.canceled.title" = "Perdavimas atšauktas.";
+"transfer.account.kit.result.success.title" = "Jūsų paskyros rinkinys importuotas!";
+
+"transfer.account.exit.confirmation.title" = "Ar esate tikras?";
+"transfer.account.exit.confirmation.message" = "Jei išeisite, reikės iš naujo skenuoti QR kodus.";
+"transfer.account.import.exit.confirmation.cancel.button.title" = "Tęsti sąranką
+";
+"transfer.account.import.exit.confirmation.confirm.button.title" = "Atšaukti sąranką
+";
+"transfer.account.export.exit.confirmation.confirm.button.title" = "Sustabdyti perkėlimą
+";
+"transfer.account.export.exit.success.button" = "Grįžti atgal";
+"transfer.account.export.exit.failure.button" = "Pabandykite iš naujo";
+"transfer.account.export.failure.message" = "Nepavyko užbaigti perkėlimo.";
+"transfer.account.export.cancelled" = "Perdavimas buvo atšauktas
+";
+"transfer.account.exit.confirmation.cancel.button.title" = "Tęsti sąranką\n";
+"transfer.account.exit.confirmation.confirm.button.title" = "Atšaukti sąranką\n";
+
+"biometrics.usage.reason" = "Biometrika gali būti naudojama jūsų slaptafrazei saugiai išsaugoti.";
+
+"biometrics.info.title" = "Konfigūruoti biometriką";
+"biometrics.info.description" = "Jei norite naudoti \"FaceID\" ar \"TouchID\" kaip spartų prisijungimo būdą, sukonfigūruokite tai Nustatymuose.";
+"biometrics.info.setup.button" = "Konfigūruoti biometriką";
+"biometrics.info.later.button" = "Gal vėliau";
+
+"biometrics.setup.title.face" = "Naudoti \"FaceID\" vietoje slaptafrazės!";
+"biometrics.setup.title.finger" = "Naudoti \"TouchID\" vietoje slaptafrazės!";
+"biometrics.setup.description" = "Atrakinkite savo paslaptis akimirksniu.";
+"biometrics.setup.setup.button.face" = "Naudoti \"FaceID\"";
+"biometrics.setup.setup.button.finger" = "Naudoti \"TouchID\"";
+"biometrics.setup.later.button" = "Gal vėliau";
+
+"extension.setup.title" = "Prisijunkite prie mėgstamų programų vos per 3 sekundes!";
+"extension.setup.settings.step" = "Eikite į Nustatymus";
+"extension.setup.settings.step.bold" = "Nustatymai";
+"extension.setup.keyboard.step" = "Atidarykite \"Autofill Passwords\"";
+"extension.setup.keyboard.step.bold" = "Automatinis slaptažodžių pildymas";
+"extension.setup.switch.step" = "Įjunkite \"Autofill Passwords\"";
+"extension.setup.switch.step.bold" = "Įjungti";
+"extension.setup.keychain.step" = "Išjunkite \"Keychain\"";
+"extension.setup.keychain.step.bold" = "Išjungti";
+"extension.setup.passbolt.step" = "Pasirinkite Passbolt!";
+"extension.setup.passbolt.step.bold" = "Passboltas!";
+"extension.setup.setup.button" = "Eikite į nustatymus";
+"extension.setup.later.button" = "Gal vėliau";
+
+"tab.home" = "Pradžia";
+"tab.otp" = "Laikinas vienkartinis slaptažodis (TOTP)";
+"tab.settings" = "Nustatymai";
+
+"authorization.prompt.refresh.session.reason" = "Prašome atlikti autentifikavimą, kad būtų atnaujinta sesija";
+"authorization.prompt.biometrics.set.reason" = "Prašome autentifikuotis, kad būtų galima įjungti biometriką.";
+
+"resources.search.placeholder" = "Ieškokite pagal pavadinimą, vartotojo vardą, URL ar žymą...";
+
+"resource.menu.item.open.url" = "Atidaryti svetainę";
+"resource.menu.item.copy.url" = "Kopijuoti URL";
+"resource.menu.item.copy.password" = "Kopijuoti slaptažodį";
+"resource.menu.item.copy.username" = "Kopijuoti vartotojo vardą";
+"resource.menu.item.copy.description" = "Kopijuoti aprašymą";
+"resource.menu.item.copy.note" = "Copy note";
+"resource.menu.item.reveal.otp" = "Rodyti TOTP";
+"resource.menu.item.copy.otp" = "Kopijuoti TOTP";
+"resource.menu.item.add.favorite" = "Pridėti į mėgstamiausius";
+"resource.menu.item.remove.favorite" = "Pašalinti iš mėgstamiausių";
+"resource.menu.item.share" = "Bendrinti slaptažodį";
+"resource.menu.item.edit.password" = "Redaguoti slaptažodį";
+"resource.menu.item.edit.otp" = "Redaguoti TOTP";
+"resource.menu.item.delete.resource" = "Ištrinti slaptažodį";
+"resource.menu.item.delete.otp" = "Ištrinti TOTP";
+"resource.menu.item.password" = "Slaptažodis";
+"resource.menu.item.username" = "Vartotojo vardas";
+"resource.menu.item.description" = "Domenas";
+"resource.menu.item.url" = "Universalusis adresas";
+"resource.menu.item.field.copied" = "%@ nukopijuotas į iškarpinę!";
+
+"resource" = "Ištekliai";
+"resource.menu.action.favorite.added" = "%@ pridėtas į mėgstamiausius!";
+"resource.menu.action.favorite.removed" = "%@ pašalintas iš mėgstamiausių!";
+
+"resource.menu.action.edited" = "Šis slaptažodis sėkmingai redaguotas.";
+"resource.menu.action.deleted" = "%@ ištrinta!";
+
+"resource.permission.type.read.label" = "gali skaityti";
+"resource.permission.type.write.label" = "gali atnaujinti";
+"resource.permission.type.own.label" = "yra savininkas
+";
+"resource.permission.list.title" = "Pasidalinta su";
+"resource.permission.list.edit.button.title" = "Redaguoti leidimus";
+"resource.permission.edit.list.title" = "Bendrinti slaptažodį";
+"resource.permission.edit.list.empty.message" = "Įsitikinkite, kad yra bent vienas savininkas.";
+"resource.permission.edit.list.add.button.title" = "Pridėti vartotojus";
+"resource.permission.edit.user.and.group.search.title" = "Pasirinkite vartotojus";
+"resource.permission.edit.user.and.group.search.prompt" = "Ieškoti vartotojų...";
+"resource.permission.edit.user.and.group.search.existing.section.title" = "Jau pridėti";
+"resource.permission.delete.user.permission.confirmation.message" = "Šis slaptažodis nebesidalins su šiuo vartotoju.";
+"resource.permission.delete.user.group.permission.confirmation.message" = "Šis slaptažodis nebesidalins su šia grupe.";
+
+"resource.permission.details.title" = "Leidimas";
+"resource.permission.details.user.suspended" = "sustabdyta";
+
+"permission.details.type.section.title" = "Leidimas";
+"permission.details.group.members.section.title" = "Grupės nariai";
+"permission.details.user.suspended" = "sustabdyta";
+
+"resource.permission.edit.button.delete.title" = "Ištrinti leidimą";
+
+"resource.folders.add.menu.title" = "Create a resource";
+"resource.folders.add.menu.folder.label" = "Folder";
+
+"group.members.list.title" = "Grupės nariai";
+"group.members.member.details.title" = "Grupės narys";
+
+"totp.title.label" = "Dviejų veiksnių autentifikavimas";
+"totp.message.label" = "Įveskite patvirtinimo kodą:";
+"totp.paste.otp.button.label" = "Įklijuoti kodą";
+"totp.remember.device.toggle.label" = "Prisiminkite šį įrenginį 30 dienų";
+
+"yubiKey.scan.instruction" = "Padėkite savo Yubikey ant įrenginio.";
+"yubiKey.scan.success" = "Skenavimas sėkmingas";
+"yubiKey.scan.notRecognized.title" = "Yubikey neatpažintas";
+"yubiKey.scan.notRecognized.button.ok" = "Supratau";
+"yubiKey.scan.notRecognized.message" = "Jūsų Yubikey neatpažintas serverio.\nPabandykite panaudoti kitą Yubikey arba kitą teikėją.";
+"mfa.yubiKey.title" = "YubiKey vienkartinis slaptažodis";
+"mfa.yubiKey.description" = "Atkreipkite dėmesį, kad jūsų Yubikey privalo palaikyti\nNFC, kad tai veiktų.";
+"mfa.yubiKey.scan" = "Skenuokite savo YubiKey";
+"mfa.yubiKey.nfc.not.supported" = "Šis įrenginys nepalaiko NFC.";
+"mfa.provider.try.another" = "Pabandykite su kitu teikėju";
+"mfa.remember.token" = "Prisiminkite šį įrenginį 30 dienų";
+"mfa.unsupported.provider.title" = "Jūsų MFA teikėjas nepalaikomas";
+"mfa.unsupported.provider.description" = "Prašome sukonfigūruoti kitą teikėją internetinėje programoje.\nDaugiau informacijos galite gauti iš administratoriaus.";
+"mfa.duo.authorization.title" = "„Duo“ kelių veiksnių autentifikavimas";
+"mfa.duo.authorization.button.title" = "Autentifikuotis su Duo";
+
+"account.menu.title" = "Pakeisti paskyrą";
+"account.menu.account.details.button.title" = "Žiūrėti detales";
+"account.menu.sign.out.button.title" = "Atsijungti";
+"account.menu.manage.accounts.button.title" = "Tvarkyti paskyras";
+
+"account.details.title" = "Paskyros detalės";
+"account.details.field.label.title" = "Žyma";
+"account.details.field.label.editing.info" = "Ši žyma bus rodoma paskyrų sąraše ir autentifikacijos metu";
+"account.details.field.name.title" = "Vardas";
+"account.details.field.email.title" = "El. paštas";
+"account.details.field.url.title" = "Organizacijos URL";
+"account.details.field.role.title" = "Vaidmuo";
+"account.details.button.save.title" = "Išsaugoti";
+
+"update.available.title" = "Yra naujesnė versija!";
+"update.available.message" = "Atnaujinkite Passbolt programėlę į naujausią versiją iš App Store";
+
+// Autofill extension
+
+"autofill.extension.setup.completed.title" = "Passbolt automatinis pildymas įjungtas!";
+"autofill.extension.setup.completed.info" = "Kai užpildysite formą, tiesiog bakstelėkite lauką, ir įjungtas automatinis pildymas pasiūlys užpildyti iš prisijungimo duomenų, kuriuos jau pridėjote į Passbolt programėlę.";
+
+"autofill.extension.account.selection.switch.account.title" = "Perjungti paskyrą";
+"autofill.extension.account.selection.switch.account.subtitle" = "Pasirinkite paskyrą, kurią norite perjungti!";
+"autofill.extension.account.selection.sign.in.title" = "Jūs nesate prisijungę";
+"autofill.extension.account.selection.sign.in.subtitle" = "Norėdami prisijungti, pasirinkite paskyrą!";
+
+"autofill.extension.no.accounts.title" = "Paskyra nerasta!";
+"autofill.extension.no.accounts.description" = "Norėdami pradėti, jums reikia paskyros. Atidarykite Passbolt programėlę ir vykdykite sąrankos nurodymus. Tuomet Passbolt galės automatiškai pildyti prisijungimo duomenis.";
+
+"autofill.extension.resource.list.title" = "Pasirinkti slaptažodį";
+"autofill.extension.resource.list.section.suggested.title" = "Siūloma";
+"autofill.extension.resource.list.section.all.title" = "Kita";
+
+"autofill.extension.autofill.extension.resources.search.placeholder" = "Ieškoti Passbolt...";
+
+"mfa.required.title" = "Reikalingas MFA";
+"autofill.extension.mfa.required.description" = "Prašome naudoti Passbolt programėlę, kad baigtumėte autentifikavimą.";
+
+"folder.edit.form.create.title" = "Sukurti aplanką";
+"folder.edit.form.name.field.placeholder" = "Aplankas be pavadinimo";
+"folder.edit.form.created" = "Naujas aplankas %@ sukurtas!";
+
+"resource.folder.menu.open.details.label" = "Žiūrėti detales";
+
+// Common UI
+
+"folder.root.name" = "Pagrindinis";
+
+"folder.name.title" = "Vardas";
+"folder.location.title" = "Vieta";
+"permissions.avatars.view.title" = "Leidimai";
+"shared.avatars.view.title" = "Pasidalinta su";
+
+// Forms common
+
+"form.field.name.title" = "Vardas";
+
+"form.button.save.title" = "Išsaugoti";
+
+// Errors
+
+"generic.error" = "Kažkas nepavyko!
+";
+"generic.error.retry" = "Įvyko klaida, pabandykite dar kartą.";
+"generic.error.report" = "Įvyko klaida, praneškite apie klaidą programuotojams.";
+"generic.error.cancelled" = "Operacija atšaukta.";
+"sign.in.error.message" = "Nepavyko prisijungti";
+"sign.in.error.biometrics.changed.message" = "Panašu, kad pasikeitė jūsų įrenginio biometriniai duomenys. Prašome įvesti savo slaptafrazę ir iš naujo sukonfigūruoti biometriką";
+"sign.in.error.passphrase.invalid.message" = "Neteisinga slaptafrazė.";
+"server.fingerprint.save.failed" = "Nepavyko išsaugoti serverio \"fingerprint\".";
+"form.field.error.max.length" = "Viršytas leistinas ilgis.";
+"form.error.invalid" = "Forma netinkama";
+"resource.form.field.error.empty" = "Laukas negali būti tuščias";
+"resource.from.field.error.invalid.value" = "Netinkama lauko reikšmė";
+"resource.form.field.error.max.length" = "Viršytas leistinas ilgis.";
+"resource.form.field.error.invalid" = "Netinkama lauko reikšmė";
+"resource.form.error.invalid" = "Forma netinkama";
+"authorization.passphrase.error" = "Neteisinga slaptafrazė!";
+"account.settings.biometrics.error" = "Nepavyko nustatyti biometrikos.";
+"totp.wrong.code.error" = "Neteisingas kodas";
+"error.another.account.transfer.in.progress" = "Šiuo metu vyksta kitas paskyros perdavimas. Pirmiausia užbaikite jį.";
+"resource.menu.action.failed" = "%@ nepavyko!";
+"mfa.yubiKey.scan.failed" = "Skenavimas nepavyko";
+
+"error.internal.inconsistency" = "Vidinė neatitiktis, praneškite apie klaidą programuotojams.";
+"error.feature.unavailable" = "Funkcija nepasiekiama.";
+"error.nfc.not.supported" = "NFC nepalaikoma.";
+"error.nfc.payload.invalid" = "Neteisingas NFC turinys.";
+"error.url.invalid" = "Neteisingas URL.";
+"error.internet.connection.issue" = "Nepavyksta prisijungti prie interneto.";
+"error.client.certificate.invalid" = "Neteisingas kliento sertifikatas.";
+"error.server.connection.issue" = "Nepavyksta prisijungti prie serverio.";
+"error.server.time.issue" = "Serverio ir kliento laikas nesutampa, kreipkitės į savo administratorių.";
+"error.server.response.invalid" = "Neteisingas serverio atsakymas";
+"error.server.response.timeout" = "Serverio atsakymo laikas baigėsi.";
+"error.server.certificate.invalid" = "Neteisingas serverio sertifikatas.";
+"error.http.request.invalid" = "Neteisinga HTTP užklausa.";
+"error.http.response.invalid" = "Neteisingas HTTP atsakymas.";
+"error.network.response.invalid" = "Neteisingas tinklo atsakymas";
+"error.http.response.forbidden" = "HTTP uždrausta.";
+"error.http.response.conflict" = "HTTP konfliktas.";
+"error.http.response.not.found" = "HTTP nerastas.";
+"error.http.response.redirect" = "HTTP peradresavimas.";
+"error.http.request.invalid" = "HTTP užklausa negalioja.";
+"error.http.response.invalid" = "HTTP atsakymas negalioja.";
+"error.http.response.status.code.unexpected" = "Netikėtas HTTP būsenos kodas.";
+"error.http.response.unauthorized" = "HTTP neautorizuotas.";
+"error.network.response.decoding.failed" = "Nepavyko dekoduoti tinklo atsakymo.";
+"error.network.request.validation.failure" = "Nepavyko patvirtinti tinklo užklausos.";
+"error.session.authorization.required" = "Reikalingas seanso autorizavimas";
+"error.session.authorization.mfa.required" = "Reikalingas seanso MFA autorizavimas.";
+"error.session.missing" = "Seansas nerastas.";
+"error.crypto.data.signature.invalid" = "Neteisingas duomenų parašas.";
+"error.crypto.passphrase.invalid" = "Neteisinga slaptafrazė.";
+"error.crypto.pgp.fingerprint.invalid" = "Neteisingas PGP \"fingerprint\".";
+"error.crypto.pgp.fingerprint.mismatch" = "Nesutampa PGP \"fingerprint\".";
+"error.crypto.pgp.keyring.preparation.failed" = "Nepavyko paruošti PGP raktų rinkinio";
+"error.crypto.pgp.keypacket.extraction.failed" = "Nepavyko išskleisti PGP rakto paketo.";
+"error.crypto.pgp.sessionkey.extraction.failed" = "Nepavyko išskleisti PGP sesijos rakto.";
+"error.crypto.pgp.public.key.invalid" = "Neteisingas viešasis PGP raktas.";
+"error.data.empty" = "Duomenys nepateikti.";
+"error.data.invalid" = "Neteisingi duomenys.";
+"error.resource.permission.required" = "Reikalingas leidimas.";
+"error.resource.secret.invalid" = "Neteisinga slaptažodžio paslaptis.";
+"error.resource.permission.invalid" = "Neteisingas išteklių leidimas.";
+"error.resource.owner.missing" = "Išteklius privalo turėti bent vieną savininką.";
+"error.system.feature.inaccessible" = "Sistemos funkcija nepasiekiama.";
+"error.system.feature.permission.not.granted" = "Nesuteiktas leidimas sistemos funkcijai.";
+"error.system.feature.permission.required" = "Reikalingas leidimas sistemos funkcijai.";
+"error.system.feature.status.undetermined" = "Sistemos funkcijos būsena neaiški.";
+"error.system.file.access.issue" = "Nepavyksta pasiekti failo.";
+"error.system.directory.access.issue" = "Nepavyksta pasiekti aplanko.";
+"error.database.statement.invalid" = "Neteisinga duomenų bazės užklausa.";
+"error.database.statement.execution.failure" = "Nepavyko įvykdyti duomenų bazės užklausos.";
+"error.database.migration.failure" = "Nepavyko atlikti duomenų bazės migracijos.";
+"error.database.connection.issue" = "Nepavyksta prisijungti prie duomenų bazės.";
+"error.database.connection.closed" = "Duomenų bazės ryšys uždarytas.";
+"error.database.binding.invalid" = "Neteisingas duomenų bazės susiejimas.";
+"error.database.result.empty" = "Tuščias duomenų bazės atsakymas.";
+"error.database.result.invalid" = "Neteisingas duomenų bazės rezultatas";
+"error.keychain.authorization.failed" = "Nepavyko autorizuoti raktų saugyklos.";
+"error.keychain.failure" = "Nepavyko pasiekti raktų saugyklos.";
+"error.keychain.query.invalid" = "Neteisinga raktų saugyklos užklausa.";
+"error.account.private.key.missing" = "Trūksta paskyros privataus rakto.";
+"error.account.profile.data.missing" = "Trūksta paskyros profilio duomenų.";
+"error.account.passphrase.missing" = "Trūksta paskyros slaptafrazės.";
+"error.account.data.missing" = "Trūksta paskyros duomenų.";
+"error.account.biometry.data.changed" = "Pasikeitė biometrikos duomenys.";
+"error.account.kit.fail.to.import" = "Nepavyko importuoti paskyros rinkinio.";
+"error.account.kit.signature.verification" = "Nepavyko patvirtinti parašo.";
+"error.users.list.empty" = "Vartotojų sąrašas negali būti tuščias.";
+"error.user.public.key.invalid" = "Neteisingas vartotojo viešasis raktas.
+";
+"error.user.public.key.missing" = "Trūksta vartotojo viešojo rakto.";
+"error.user.secret.missing" = "Trūksta vartotojo paslapties.";
+"error.session.closed" = "Seansas uždarytas.";
+"error.account.duplicate" = "Dublikatinė paskyra.";
+"error.server.pgp.fingerprint.invalid" = "Neteisingas serverio PGP \"fingerprint\".";
+"error.session.authorization.failed" = "Nepavyko autorizuoti seanso.";
+"error.qrcode.invalid" = "Tai ne Passbolt QR. Pabandykite dar kartą!";
+
+"error.validation.folder.name.empty" = "Aplanko pavadinimas negali būti tuščias.";
+"error.validation.folder.name.too.long" = "Aplanko pavadinimas negali viršyti 256 simbolių.";
+
+"error.validation.permissions.empty" = "Turi būti bent vienas leidimas.";
+"error.validation.permissions.owner.required" = "Turi būti bent vienas savininkas.";
+
+"error.validation.form.invalid" = "Forma netinkama.";
+"error.biometrics.unavailable.message" = "Biometriniai duomenys nepasiekiami";
+
+"error.qrcode.generation.generic" = "QR Kodo nepavyko sugeneruoti iš pateiktų duomenų
+";
+
+"error.otp.configuration.invalid" = "Negaliojanti OTP konfigūracija.";
+
+// Validation errors
+
+"error.resource.field.empty" = "%@ negali būti tuščias!";
+"error.resource.field.length.lower" = "%@ negali viršyti %d simbolių!";
+"error.resource.field.length.higher" = "%@ negali būti trumpesnis nei %d simboliai!";
+"error.resource.field.range.lower" = "%@ turi būti mažiau nei %d!";
+"error.resource.field.range.greater" = "%@ turi būti daugiau nei %d!";
+"error.resource.field.content.invalid" = "%@ turi netinkamą turinį!";
+"error.resource.field.selection.invalid" = "%@ turi būti viena iš galimų parinkčių!";
+"error.resource.field.unknown" = "Nenumatyti laukai nėra laukiami!";
+"error.validation.password.length.invalid" = "Neteisingi slaptažodžio ilgio nustatymai!";
+"error.validation.password.mask.empty" = "Slaptažodžio galiojimo šablonas negali būti tuščias!";
+
+// Home - presentation mode menu
+
+"home.presentation.mode.menu.title" = "Filtruoti rodinį pagal";
+
+// Presentation modes
+
+"home.presentation.mode.plain.resources.title" = "Visi elementai";
+"home.presentation.mode.favorite.resources.title" = "Parankiniai adresai";
+"home.presentation.mode.modified.resources.title" = "Neseniai modifikuotas
+";
+"home.presentation.mode.shared.resources.title" = "Pasidalinta su manimi";
+"home.presentation.mode.owned.resources.title" = "Man priklauso";
+"home.presentation.mode.owned.resources.expiry" = "Galiojimas";
+"home.presentation.mode.folders.explorer.title" = "Aplankai";
+"home.presentation.mode.folders.explorer.search.direct.results" = "\"%@\" aplanke:";
+"home.presentation.mode.folders.explorer.search.nested.results" = "antriniuose aplankuose:";
+"home.presentation.mode.tags.explorer.title" = "Žymos
+";
+"home.presentation.mode.resource.user.groups.explorer.title" = "Grupės";
+
+// OTP resources
+
+"otp.resources.search.placeholder" = "Ieškoti TOTP";
+"otp.resources.list.title" = "Laikinas vienkartinis slaptažodis (TOTP)";
+"otp.resources.list.empty.message" = "Nėra TOTP";
+"otp.value.copied.message" = "TOTP nukopijuotas į iškarpinę!";
+
+// OTP contextual menu
+
+"otp.contextual.menu.copy.title" = "Kopijuoti TOTP";
+"otp.copied.message" = "TOTP nukopijuotas į iškarpinę!";
+"otp.contextual.menu.reveal.title" = "Rodyti TOTP";
+"otp.contextual.menu.edit.title" = "Redaguoti TOTP";
+"otp.contextual.menu.delete.title" = "Ištrinti TOTP";
+"otp.contextual.menu.delete.confirm.title" = "Ar esate tikras?";
+"otp.contextual.menu.delete.confirm.message" = "Šis veiksmas visam laikui ištrins TOTP.
+";
+"otp.contextual.menu.delete.confirm.action.delete" = "Ištrinti TOTP";
+"otp.contextual.menu.delete.succeeded" = "TOTP ištrintas.";
+
+// OTP edit menu
+
+"otp.edit.menu.create.title" = "Sukurti TOTP";
+"otp.edit.menu.edit.title" = "Redaguoti TOTP";
+"otp.edit.menu.scanning.title" = "Nuskaitykite QR kodą";
+"otp.edit.menu.create.manual.title" = "Sukurkite TOTP rankiniu būdu";
+"otp.edit.menu.edit.manual.title" = "Redaguoti TOTP rankiniu būdu";
+"otp.edit.code.scanning.title" = "Redaguoti TOTP rankiniu būdu";
+"otp.edit.code.scanning.initial.message" = "Nuskaitykite QR kodą";
+"otp.edit.menu.title" = "Nukreipkite kamerą į QR kodus";
+"otp.edit.otp.created.message" = "TOTP sukurtas.";
+"otp.edit.otp.replaced.message" = "TOTP buvo pakeistas.";
+"otp.edit.otp.deleted.message" = "TOTP ištrintas.";
+
+// OTP scanning
+
+"otp.scanning.success.title" = "Jūsų TOTP nuskaitytas!";
+"otp.scanning.success.create.button.title" = "Sukurkite atskirą TOTP";
+"otp.scanning.success.link.button.title" = "Priskirti TOTP prie slaptažodžio";
+"otp.code.scanning.title" = "Nuskaitykite QR kodą";
+"otp.code.scanning.initial.message" = "Nukreipkite kamerą į QR kodą";
+"otp.code.scanning.manual.input" = "Or create TOTP manually";
+
+// OTP form
+
+"otp.edit.form.create.title" = "Sukurti TOTP";
+"otp.edit.form.edit.title" = "Redaguoti TOTP";
+"otp.edit.form.field.name.title" = "Vardas (etiketė)
+";
+"otp.edit.form.field.name.prompt" = "Vardas";
+"otp.edit.form.field.uri.title" = "URL (išdavėjas)";
+"otp.edit.form.field.uri.prompt" = "Universalusis adresas";
+"otp.edit.form.field.secret.title" = "Slapta";
+"otp.edit.form.field.secret.prompt" = "Slapta";
+"otp.edit.form.advanced.button.title" = "More TOTP settings";
+"otp.edit.form.create.button.title" = "Sukurti atskirą TOTP";
+"otp.edit.form.apply.button.title" = "Taikyti";
+"otp.edit.form.edit.button.title" = "Išsaugoti";
+"otp.edit.form.edit.advanced.title" = "Redaguoti TOTP - išplėstiniai nustatymai";
+"otp.edit.form.edit.advanced.warning" = "Išplėstiniai nustatymai turi sutapti su jūsų TOTP teikėjo nustatymais, kitaip tai neveiks.";
+"otp.edit.form.field.digits.title" = "TOTP ilgis";
+"otp.edit.form.field.digits.label" = "skaitmenys.";
+"otp.edit.form.field.period.title" = "TOTP galiojimo laikas baigiasi";
+"otp.edit.form.field.period.label" = "sekundės/sekundžių, kol baigsis TOTP.
+";
+"otp.edit.form.field.algorithm.title" = "Algoritmas";
+"otp.edit.form.apply.button.title" = "Taikyti";
+
+// OTP attach
+
+"otp.attach.list.title" = "Pridėti TOTP prie slaptažodžio";
+"otp.attach.alert.attach.title" = "Ar esate tikras?";
+"otp.attach.alert.attach.message" = "Jeigu pridėsite TOTP prie šio ištekliaus, jis paveldės tas pačias bendrinimo teises.";
+"otp.attach.alert.attach.button.title" = "Pridėti TOTP";
+"otp.attach.alert.replace.title" = "Pakeisti TOTP?";
+"otp.attach.alert.replace.message" = "Šiame ištekliuje jau yra susietas TOTP, ar norite jį pakeisti?";
+"otp.attach.alert.replace.button.title" = "Pakeisti TOTP";
+"otp.attach.error.notAllowed" = "Jums neleidžiama redaguoti šio šaltinio.";
+"otp.attach.error.notCompatible" = "Šis šaltinis nėra suderinamas su TOTP.";
+
+
+// Settings - Main
+
+"settings.main.title" = "Nustatymai";
+"settings.main.item.application.title" = "Programos nustatymai";
+"settings.main.item.accounts.title" = "Paskyros";
+"settings.main.item.terms.and.licenses.title" = "Sąlygos ir licencijos
+";
+"settings.main.item.troubleshooting.title" = "Derinimai, logaritmai";
+"settings.main.item.sign.out.title" = "Atsijungti";
+
+// Settings - Application
+
+"settings.application.title" = "Programos nustatymas";
+"settings.application.item.autofill.title" = "Automatinis pildymas";
+"settings.application.item.default.mode.title" = "Numatytasis filtras";
+
+// Settings - Accounts
+
+"settings.accounts.title" = "Paskyros";
+"settings.accounts.item.details.title" = "Paskyros detalės";
+"settings.accounts.item.manage.title" = "Tvarkyti paskyras";
+"settings.accounts.item.export.title" = "Perkelkite paskyrą į kitą įrenginį";
+"settings.accounts.item.key.inspector.title" = "Raktų inspektorius";
+
+// Settings - Terms & Licenses
+
+"settings.terms.and.licenses.title" = "Terms & licenses";
+"settings.terms.and.licenses.item.terms.title" = "Sąlygos ir nuostatos
+
+";
+"settings.terms.and.licenses.item.privacy.title" = "Privatumo kryptis";
+"settings.terms.and.licenses.item.licenses.title" = "Atvirojo kodo licencijos
+";
+
+// Key inspector
+
+"account.key.inspector.title" = "Raktų inspektorius";
+"account.key.inspector.field.uid.title" = "Uid";
+"account.key.inspector.field.fingerprint.title" = "Pirštų atspaudai";
+"account.key.inspector.field.created.title" = "Sukurta";
+"account.key.inspector.field.expires.title" = "Pasibaigia";
+"account.key.inspector.no.exipire.placeholder" = "Niekada";
+"account.key.inspector.field.key.size.title" = "Rakto ilgis";
+"account.key.inspector.field.algorithm.title" = "Algoritmas";
+"account.key.inspector.uid.copied.message" = "Uid nukopijuotas į iškarpinę!";
+"account.key.inspector.fingerprint.copied.message" = "„Fingerprint“ nukopijuotas į iškarpinę!";
+
+// Key export
+
+"account.key.export.menu.title" = "Raktų inspektorius";
+"account.key.export.menu.export.private.action" = "Eksportuoti privatų raktą";
+"account.key.export.menu.export.public.action" = "Eksportuoti viešąjį raktą";
+"account.key.export.private.authorization.title" = "Eksportuoti privatų raktą";
+"account.key.export.private.authorization.button.title" = "Eksportuoti privatų raktą";
+
+// Settings - Troubleshooting
+
+"settings.troubleshooting.title" = "Debug, logs
+";
+"settings.troubleshooting.item.logs.title" = "Pasiekite derinimo logaritmus";
+"settings.troubleshooting.item.help.site.title" = "Apsilankykite pagalbos svetainėje
+";
+
+// Settings - Default presentation mode
+
+"settings.application.default.mode.title" = "Numatytasis filtras";
+"settings.application.default.mode.option.last.used.title" = "Paskutinis naudotas (numatytasis)
+";
+
+// Settings - Disable biometrics alert
+
+"settings.application.biometrics.disable.alert.title" = "Ar esate tikras?";
+"settings.application.biometrics.disable.alert.message" = "Išjungę %@ turėsite prisijungti naudodami savo slaptafrazę.
+";
+"settings.application.biometrics.disable.alert.confirm.title" = "Išjungti biometrinius duomenis
+";
+"settings.application.biometrics.disable.alert.cancel.title" = "Laikyti";
+
+// Settings - Sign out alert
+
+"settings.main.sign.out.alert.title" = "Ar esate tikras?";
+"settings.main.sign.out.alert.message" = "Jei atsijungsite, būsite atjungti nuo savo paskyros šiame įrenginyje.
+";
+"settings.main.sign.out.alert.confirm.title" = "Atsijungti";
+
+// Biometric authorization availability
+
+"biometric.authorization.availability.unavailable" = "Nepasiekiama";
+"biometric.authorization.availability.face.id" = "\"FaceID\" (veido atpažinimo funkcija)";
+"biometric.authorization.availability.touch.id" = "\"TouchID\" (prisilietimo atpažinimo funkcija)";
+
+// Operation authorization
+
+"authorization.primary.button.title" = "Autorizuoti";
+
+// Metadata
+"metadata.pinned.key.validation.error.title" = "The metadata key has changed.";
+"metadata.pinned.key.validation.error.message" = "The encryption key used to share metadata between users has been updated by %@.";
+"metadata.pinned.key.validation.error.disclaimer" = "If you weren't expecting this, you can verify with your administrator.";
+"metadata.pinned.key.validation.error.trust" = "Trust the key";
+"metadata.pinned.key.fingerprint" = "Key fingerprint:";
+
+"metadata.pinned.key.validation.deleted.title" = "The metadata key has been deleted.";
+"metadata.pinned.key.validation.deleted.message" = "The trusted encryption key used to share metadata between users has been deleted.";
+
+"metadata.pinned.key.validation.unknown.title" = "The metadata key has changed.";
+"metadata.pinned.key.validation.unknown.message" = "The trusted encryption key used to share metadata between users could not be validated.";
