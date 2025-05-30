@@ -309,6 +309,26 @@ internal struct ResourceDetailsView: ControlledView {
           )
         }
       )
+    case .additionalURIs(let uris):
+      CommonListRow(
+        content: {
+          ResourceFieldView(
+            name: "resource.detail.section.additionalURIs",
+            content: {
+              Text(uris.map { "\u{2022} \($0)" }.joined(separator: "\n"))
+                .text(
+                  .leading,
+                  lines: .none,
+                  font: .inter(
+                    ofSize: 14,
+                    weight: .regular
+                  ),
+                  color: .passboltSecondaryText
+                )
+            }
+          )
+        }
+      )
     }
   }
 

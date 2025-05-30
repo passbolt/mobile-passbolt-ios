@@ -283,7 +283,12 @@ extension Resource {
         return specification.validator.validate(value)
       }
     case .list:
-      self[keyPath: specification.path] = .array([value])
+      if let arrayValue: [JSON] = value.arrayValue {
+        self[keyPath: specification.path] = .array(arrayValue)
+      } else {
+        self[keyPath: specification.path] = .array([value])
+      }
+
       return .valid(value)
     }
   }

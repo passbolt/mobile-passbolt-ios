@@ -82,6 +82,7 @@
 "resource.details.value" = "Value";
 "resource.detail.section.location" = "Location";
 "resource.detail.section.permissions" = "Shared with";
+"resource.detail.section.additionalURIs" = "Additional URI";
 "resource.detail.section.tags" = "Tags";
 "resource.detail.section.expiry" = "Expiry";
 "resource.detail.section.expiry.expired" = "Expired";
@@ -163,6 +164,16 @@
 "resource.edit.section.metadata.description" = "Description";
 "resource.edit.section.metadata.description.name" = "Metadata description";
 "resource.edit.section.metadata.description.description" = "If you want the description to be part of the secret, use the note instead.";
+
+"resource.edit.section.metadata.additional.uris" = "Additional URIs";
+
+"resource.edit.uris.title" = "Additional URIs";
+"resource.edit.uris.main.uri.title" = "Main URI";
+"resource.edit.uris.additional.uris.title" = "Additional URI";
+"resource.edit.uris.main.uri.placeholder" = "Main URI";
+"resource.edit.uris.additional.uri.placeholder" = "URI";
+"resource.edit.uris.additional.uri.add" = "Add URI";
+"resource.edit.uris.additional.uris.error.limit" = "You can add a maximum of %d additional URIs.";
 
 "resource.create.menu.title" = "Create a resource";
 "resource.create.menu.password" = "Password";

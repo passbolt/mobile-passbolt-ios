@@ -72,6 +72,7 @@ extension FeaturesRegistry {
     self.useLiveNavigationToResourceTextEdit()
     self.useLiveNavigationToOTPAttachSelectionList()
     self.useLiveNavigationToResourcePasswordEdit()
+    self.useLiveNavigationToResourceURIEdit()
 
     // MARK: - Settings Tab
     self.useLiveNavigationToTroubleshootingSettings()

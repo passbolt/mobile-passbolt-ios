@@ -94,6 +94,7 @@ public final class ResourceEditViewController: ViewController {
   private let navigationToOTPScanning: NavigationToOTPScanning
   private let navigationToPasswordEdit: NavigationToResourcePasswordEdit
   private let navigationToTextEdit: NavigationToResourceTextEdit
+  private let navigationToURIEdit: NavigationToResourceURIEdit
   private let navigationToInvalidMetadataKey: NavigationToMetadataPinnedKeyValidationDialog
 
   private let randomGenerator: RandomStringGenerator
@@ -129,6 +130,7 @@ public final class ResourceEditViewController: ViewController {
       self.navigationToPasswordEdit = .placeholder
       self.navigationToTextEdit = .placeholder
       self.navigationToOTPScanning = .placeholder
+      self.navigationToURIEdit = .placeholder
     }
     else {
       self.navigationToSelf = try features.instance()
@@ -137,6 +139,7 @@ public final class ResourceEditViewController: ViewController {
       self.navigationToPasswordEdit = try features.instance()
       self.navigationToTextEdit = try features.instance()
       self.navigationToOTPScanning = try features.instance()
+      self.navigationToURIEdit = try features.instance()
     }
 
     self.navigationToInvalidMetadataKey = try features.instance()
@@ -383,6 +386,12 @@ public final class ResourceEditViewController: ViewController {
     }
   }
 
+  @MainActor internal func editAdditionalURIs() async {
+    await consumingErrors {
+      await self.navigationToURIEdit.performCatching()
+    }
+  }
+
   @MainActor internal func editNote() async {
     await consumingErrors {
       let currentState = try await self.resourceEditForm.state.value
@@ -529,7 +538,10 @@ internal struct MainFormViewModel: Equatable {
   internal var fields: IdentifiedArray<ResourceEditFieldViewModel>
   internal var additionalOptions: Array<AdditionalOption>
   internal var metadataOptions: Array<MetadataOption> {
-    [.editDescription]
+    [
+      .editDescription,
+      .addtionalURIs,
+    ]
   }
 
   fileprivate init(
@@ -565,11 +577,14 @@ internal struct MainFormViewModel: Equatable {
     internal var id: Self { self }
 
     case editDescription
+    case addtionalURIs
 
     internal var title: DisplayableString {
       switch self {
       case .editDescription:
         return "resource.edit.section.metadata.description"
+      case .addtionalURIs:
+        return "resource.edit.section.metadata.additional.uris"
       }
     }
   }

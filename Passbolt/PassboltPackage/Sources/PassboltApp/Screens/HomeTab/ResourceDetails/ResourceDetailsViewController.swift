@@ -38,7 +38,10 @@ internal final class ResourceDetailsViewController: ViewController {
     internal var canShowMembersList: Bool
     internal var permissions: Array<OverlappingAvatarStackView.Item>
     internal var expirationDate: Date?
-
+    internal var additionalURIs: Array<String>
+    internal var hasAdditionalURIs: Bool {
+      !self.additionalURIs.isEmpty
+    }
     internal var isExpired: Bool? {
       guard let expirationDate else { return nil }
       return expirationDate.timeIntervalSinceNow < 0
@@ -106,7 +109,8 @@ internal final class ResourceDetailsViewController: ViewController {
         containsUndefinedFields: false,
         sections: .init(),
         canShowMembersList: false,
-        permissions: .init()
+        permissions: .init(),
+        additionalURIs: .init()
       ),
       updateFrom: ComputedVariable(
         combined: self.resourceController.state,
@@ -143,6 +147,7 @@ internal final class ResourceDetailsViewController: ViewController {
             )
             viewState.expirationDate = resource.expired?.asDate
             viewState.canShowMembersList = sessionConfiguration.share.showMembersList
+            viewState.additionalURIs = .init(resource.meta.uris.arrayValue?.compactMap { $0.stringValue }.dropFirst() ?? [])
             if sessionConfiguration.share.showMembersList {
               viewState.permissions = resourcePermissions
             }
@@ -377,6 +382,16 @@ extension ResourceDetailsViewController {
       .tags(resource.tags.map(\.slug.rawValue))
     )
   }
+  let uris: [String] = .init(
+    resource.meta.uris.arrayValue?
+      .compactMap { $0.stringValue }
+      .dropFirst() ?? []  // drop first one, as it is already displayed in the main URI field
+  )
+  if uris.isEmpty == false {
+    metadataSection.virtualFields.append(
+      .additionalURIs(uris)
+    )
+  }
 
   if let expirationDate = resource.expired?.asDate {
     let isExpired: Bool = expirationDate.timeIntervalSinceNow < 0
@@ -423,6 +438,7 @@ internal struct ResourceDetailsSectionViewModel: Equatable, Identifiable {
     case location(Array<String>)
     case tags(Array<String>)
     case expiration(Bool, RelativeDateDisplayableFormat)
+    case additionalURIs(Array<String>)
 
     internal var id: ID {
       switch self {
@@ -432,6 +448,8 @@ internal struct ResourceDetailsSectionViewModel: Equatable, Identifiable {
         return "tags"
       case .expiration:
         return "expiration"
+      case .additionalURIs:
+        return "additionalURIs"
       }
     }
   }

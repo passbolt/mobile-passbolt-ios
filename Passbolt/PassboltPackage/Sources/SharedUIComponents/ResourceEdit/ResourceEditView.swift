@@ -280,6 +280,24 @@ public struct ResourceEditView: ControlledView {
         },
         accessory: DisclosureIndicatorImage.init
       )
+    case .addtionalURIs:
+      CommonListRow(
+        contentAction: self.controller.editAdditionalURIs,
+        content: {
+          ResourceFieldView(
+            name: nil,
+            content: {
+              HStack(spacing: 16) {
+                Image(named: .link)
+                Text(displayable: metadataOption.title)
+                  .font(.inter(ofSize: 14, weight: .semibold))
+                  .foregroundColor(.passboltPrimaryText)
+              }
+            }
+          )
+        },
+        accessory: DisclosureIndicatorImage.init
+      )
     }
   }
 
