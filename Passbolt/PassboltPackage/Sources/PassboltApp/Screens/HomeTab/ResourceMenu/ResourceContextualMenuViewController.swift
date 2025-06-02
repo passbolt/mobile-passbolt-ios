@@ -39,7 +39,7 @@ internal enum ResourceContextualMenuItem: Hashable, Identifiable {
   case toggle(favorite: Bool)
 
   case share
-  case editPassword
+  case editResource(isStandaloneTOTP: Bool)
 
   case delete
 
@@ -149,8 +149,10 @@ internal final class ResourceContextualMenuViewController: ViewController {
 
           if resource.canEdit {
             if resource.hasPassword {
-              modifyMenuItems.append(.editPassword)
-            }  // else NOP
+              modifyMenuItems.append(.editResource(isStandaloneTOTP: false))
+            } else if resource.hasTOTP {
+              modifyMenuItems.append(.editResource(isStandaloneTOTP: true))
+            }
 
             modifyMenuItems.append(.delete)
           }  // else NOP
@@ -203,7 +205,7 @@ extension ResourceContextualMenuViewController {
     case .share:
       await self.share()
 
-    case .editPassword:
+    case .editResource(let isStandaloneTOTP):
       await self.editPassword()
 
     case .delete:

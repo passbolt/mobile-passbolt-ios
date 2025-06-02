@@ -313,6 +313,39 @@ public struct ResourceEditView: ControlledView {
       .textInputAutocapitalization(.never)
       .autocorrectionDisabled()
       .padding(bottom: 8)
+    case .totpSecret(let state):
+      FormTextFieldView(
+        title: fieldModel.name,
+        prompt: fieldModel.placeholder,
+        mandatory: fieldModel.requiredMark,
+        state: self.validatedOptionalBinding(
+          to: \.validatedString,
+          in: \.mainForm.fields[fieldModel.path],
+          default: state,
+          updating: { (newValue: String) in
+            withAnimation {
+              self.controller.set(newValue, for: fieldModel.path)
+            }
+          }
+        ),
+        accessory: {
+          AsyncButton(
+            action: {
+              await self.controller.scanTOTP()
+            },
+            label: {
+              Image(named: .camera)
+                .tint(.passboltPrimaryText)
+                .padding(12)
+                .backgroundColor(.passboltDivider)
+                .cornerRadius(4)
+            }
+          )
+        }
+      )
+      .textInputAutocapitalization(.never)
+      .autocorrectionDisabled()
+      .padding(bottom: 8)
     case .list(let state):
       FormTextFieldView(
         title: fieldModel.name,

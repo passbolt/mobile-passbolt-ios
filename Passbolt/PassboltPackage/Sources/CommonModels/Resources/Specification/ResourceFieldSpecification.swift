@@ -438,7 +438,7 @@ extension ResourceFieldSpecification.Content {
   public static let totp: Self = .structure([
     .init(
       path: \.secret.totp.algorithm,
-      name: "algorithm",
+      name: .totpAlgorithm,
       content: .stringEnum(
         values: [
           "SHA1",
@@ -451,7 +451,7 @@ extension ResourceFieldSpecification.Content {
     ),
     .init(
       path: \.secret.totp.secret_key,
-      name: "secret_key",
+      name: .totpSecretKey,
       content: .string(
         minLength: .none,
         maxLength: 1024
@@ -461,7 +461,7 @@ extension ResourceFieldSpecification.Content {
     ),
     .init(
       path: \.secret.totp.digits,
-      name: "digits",
+      name: .totpDigits,
       content: .int(
         min: 6,
         max: 8
@@ -471,7 +471,7 @@ extension ResourceFieldSpecification.Content {
     ),
     .init(
       path: \.secret.totp.period,
-      name: "period",
+      name: .totpPeriod,
       content: .int(
         min: 1,
         max: .none
@@ -480,4 +480,11 @@ extension ResourceFieldSpecification.Content {
       encrypted: true
     ),
   ])
+}
+
+extension ResourceFieldName {
+  public static let totpAlgorithm: ResourceFieldName = "algorithm"
+  public static let totpSecretKey: ResourceFieldName = "secret_key"
+  public static let totpDigits: ResourceFieldName = "digits"
+  public static let totpPeriod: ResourceFieldName = "period"
 }

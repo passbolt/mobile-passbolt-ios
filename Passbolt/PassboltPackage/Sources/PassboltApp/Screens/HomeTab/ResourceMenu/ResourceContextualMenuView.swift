@@ -188,13 +188,18 @@ extension ResourceContextualMenuItem {
         }
       )
 
-    case .editPassword:
+    case .editResource(let isStandaloneTOTP):
       DrawerMenuItemView(
         action: {
           await controller.performAction(for: self)
         },
         title: {
-          Text(displayable: "resource.menu.item.edit.password")
+          Text(
+            displayable:
+              isStandaloneTOTP
+              ? "resource.menu.item.edit.otp"
+              : "resource.menu.item.edit.password"
+          )
         },
         leftIcon: {
           Image(named: .edit)

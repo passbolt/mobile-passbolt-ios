@@ -91,6 +91,7 @@ public final class ResourceEditViewController: ViewController {
   private let navigationToSelf: NavigationToResourceEdit
   private let navigationToOTPEdit: NavigationToOTPEditForm
   private let navigationToOTPAdvanced: NavigationToOTPEditAdvancedForm
+  private let navigationToOTPScanning: NavigationToOTPScanning
   private let navigationToPasswordEdit: NavigationToResourcePasswordEdit
   private let navigationToTextEdit: NavigationToResourceTextEdit
   private let navigationToInvalidMetadataKey: NavigationToMetadataPinnedKeyValidationDialog
@@ -127,6 +128,7 @@ public final class ResourceEditViewController: ViewController {
       self.navigationToOTPAdvanced = .placeholder
       self.navigationToPasswordEdit = .placeholder
       self.navigationToTextEdit = .placeholder
+      self.navigationToOTPScanning = .placeholder
     }
     else {
       self.navigationToSelf = try features.instance()
@@ -134,6 +136,7 @@ public final class ResourceEditViewController: ViewController {
       self.navigationToOTPAdvanced = try features.instance()
       self.navigationToPasswordEdit = try features.instance()
       self.navigationToTextEdit = try features.instance()
+      self.navigationToOTPScanning = try features.instance()
     }
 
     self.navigationToInvalidMetadataKey = try features.instance()
@@ -276,6 +279,22 @@ public final class ResourceEditViewController: ViewController {
       else {
         try await self.navigationToSelf.revert()
       }
+    }
+  }
+
+  @MainActor internal func scanTOTP() async {
+    await consumingErrors {
+      let currentState: Resource = try await self.resourceEditForm.state.value
+      guard let totpPath: ResourceType.FieldPath = currentState.type.fieldSpecification(for: \.firstTOTP)?.path
+      else {
+        return
+      }
+
+      await self.navigationToOTPScanning.performCatching(
+        context: .init(
+          totpPath: totpPath
+        )
+      )
     }
   }
 
@@ -597,6 +616,7 @@ internal struct ResourceEditFieldViewModel {
     case list(
       [Validated<String>]
     )
+    case totpSecret(Validated<String>)
   }
 
   internal var path: ResourceType.FieldPath
@@ -633,7 +653,12 @@ internal struct ResourceEditFieldViewModel {
           .map { $0.stringValue ?? "" }
         : .valid(resource[keyPath: field.path].stringValue ?? "")
 
-      self.value = .plainShort(validated)
+      if field.name == .totpSecretKey {
+        self.value = .totpSecret(validated)
+      }
+      else {
+        self.value = .plainShort(validated)
+      }
 
     case .longText(let name, _, let placeholder):
       self.name = name
@@ -722,6 +747,8 @@ internal struct ResourceEditFieldViewModel {
         return value
       case .list(let values):
         return values.first ?? .valid("")
+      case .totpSecret(let value):
+        return value
       }
     }
     set {
@@ -739,6 +766,8 @@ internal struct ResourceEditFieldViewModel {
         self.value = .selection(newValue, values: values)
       case .list(let values):
         self.value = .list(values)
+      case .totpSecret:
+        self.value = .totpSecret(newValue)
       }
     }
   }
