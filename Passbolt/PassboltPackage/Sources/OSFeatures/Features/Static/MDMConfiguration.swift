@@ -29,6 +29,7 @@ public struct MDMConfiguration {
 
   public var clear: @Sendable () -> Void
   public var preconfiguredAccounts: @Sendable () -> Array<AccountTransferData>
+  public var isUpdateCheckDisabled: @Sendable () -> Bool
 }
 
 extension MDMConfiguration: StaticFeature {
@@ -37,7 +38,8 @@ extension MDMConfiguration: StaticFeature {
   nonisolated public static var placeholder: Self {
     Self(
       clear: unimplemented0(),
-      preconfiguredAccounts: unimplemented0()
+      preconfiguredAccounts: unimplemented0(),
+      isUpdateCheckDisabled: unimplemented0()
     )
   }
   #endif
@@ -48,6 +50,7 @@ extension MDMConfiguration {
   // user defaults key for MDM configuration
   private static let configurationKey: String = "com.apple.configuration.managed"
   private static let configurationAccountsKey: String = "accounts"
+  private static let disableUpdateCheckKey: String = "disableUpdateCheck"
 
   fileprivate static var live: Self {
     let defaults: UserDefaults = .standard
@@ -115,9 +118,18 @@ extension MDMConfiguration {
       return accounts
     }
 
+    @Sendable func isUpdateCheckDisabled() -> Bool {
+      let configuration: Dictionary<String, Any> = configuration()
+      if let value = configuration[MDMConfiguration.disableUpdateCheckKey] as? Bool {
+        return value
+      }
+      return false
+    }
+
     return .init(
       clear: clear,
-      preconfiguredAccounts: preconfiguredAccounts
+      preconfiguredAccounts: preconfiguredAccounts,
+      isUpdateCheckDisabled: isUpdateCheckDisabled
     )
   }
 }

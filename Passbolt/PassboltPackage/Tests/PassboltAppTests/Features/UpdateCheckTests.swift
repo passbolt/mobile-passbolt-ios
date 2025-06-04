@@ -50,7 +50,7 @@ final class UpdateCheckTests: LoadableFeatureTestCase<UpdateCheck> {
     let feature: UpdateCheck = try testedInstance()
     var result: Error?
     do {
-      try await feature.updateAvailable()
+      _ = try await feature.updateAvailable()
       XCTFail()
     }
     catch {
@@ -77,7 +77,7 @@ final class UpdateCheckTests: LoadableFeatureTestCase<UpdateCheck> {
 
     var result: Error?
     do {
-      try await feature.updateAvailable()
+      _ = try await feature.updateAvailable()
       XCTFail()
     }
     catch {
@@ -108,7 +108,7 @@ final class UpdateCheckTests: LoadableFeatureTestCase<UpdateCheck> {
 
     var result: Error?
     do {
-      try await feature.updateAvailable()
+      _ = try await feature.updateAvailable()
       XCTFail()
     }
     catch {
@@ -139,7 +139,7 @@ final class UpdateCheckTests: LoadableFeatureTestCase<UpdateCheck> {
 
     var result: Error?
     do {
-      try await feature.updateAvailable()
+      _ = try await feature.updateAvailable()
       XCTFail()
     }
     catch {
@@ -170,7 +170,7 @@ final class UpdateCheckTests: LoadableFeatureTestCase<UpdateCheck> {
 
     var result: Error?
     do {
-      try await feature.updateAvailable()
+      _ = try await feature.updateAvailable()
       XCTFail()
     }
     catch {
@@ -182,6 +182,10 @@ final class UpdateCheckTests: LoadableFeatureTestCase<UpdateCheck> {
   func test_checkRequired_returnsTrue_whenNotCheckedYet() async throws {
     usePlaceholder(for: ApplicationMeta.self)
     usePlaceholder(for: AppVersionsFetchNetworkOperation.self)
+    patch(
+      \MDMConfiguration.isUpdateCheckDisabled,
+      with: always(false)
+    )
 
     let feature: UpdateCheck = try testedInstance()
 
@@ -197,6 +201,10 @@ final class UpdateCheckTests: LoadableFeatureTestCase<UpdateCheck> {
     patch(
       \AppVersionsFetchNetworkOperation.execute,
       with: alwaysThrow(MockIssue.error())
+    )
+    patch(
+      \MDMConfiguration.isUpdateCheckDisabled,
+      with: always(false)
     )
 
     let feature: UpdateCheck = try testedInstance()
@@ -224,10 +232,27 @@ final class UpdateCheckTests: LoadableFeatureTestCase<UpdateCheck> {
         )
       )
     )
+    patch(
+      \MDMConfiguration.isUpdateCheckDisabled,
+      with: always(false)
+    )
 
     let feature: UpdateCheck = try testedInstance()
 
     _ = try await feature.updateAvailable()
+    let result = await feature.checkRequired()
+
+    XCTAssertFalse(result)
+  }
+
+  func test_checkShouldBeSkipped_ifDisabledByMDM() async throws {
+    patch(
+      \MDMConfiguration.isUpdateCheckDisabled,
+      with: always(true)
+    )
+
+    let feature: UpdateCheck = try testedInstance()
+
     let result = await feature.checkRequired()
 
     XCTAssertFalse(result)

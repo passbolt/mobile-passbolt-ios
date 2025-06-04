@@ -68,5 +68,10 @@
 	<array>
 		<string>A000000527200101</string>
 	</array>
+  <key>com.apple.configuration.managed</key>
+  <dict>
+      <key>disableUpdateCheck</key>
+      <false/>
+  </dict>
 </dict>
 </plist>
