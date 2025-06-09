@@ -54,6 +54,7 @@ extension ResourceEditForm {
     let resourceShareNetworkOperation: ResourceShareNetworkOperation = try features.instance()
     let resourceFolderPermissionsFetchDatabaseOperation: ResourceFolderPermissionsFetchDatabaseOperation =
       try features.instance()
+    let resourceUsersIDFetchDatabaseOperation: ResourceUsersIDFetchDatabaseOperation = try features.instance()
     let formState: Variable<Resource> = .init(initial: context.editedResource)
 
     let metadataKeysService: MetadataKeysService = try features.instance()
@@ -140,7 +141,8 @@ extension ResourceEditForm {
       }
 
       if let resourceID: Resource.ID = resource.id {
-        let encryptedSecrets = try await resourceUpdatePreparation.prepareSecret(resourceID, resourceSecret)
+        let userIDs: Array<User.ID> = try await resourceUsersIDFetchDatabaseOperation.execute(resourceID)
+        let encryptedSecrets = try await resourceUpdatePreparation.prepareSecret(userIDs.asOrderedSet(), resourceSecret)
         _ =
           try await resourceNetworkOperationDispatch
           .editResource(

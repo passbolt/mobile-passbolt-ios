@@ -51,6 +51,7 @@ extension ResourceShareForm {
     let resourceShareNetworkOperation: ResourceShareNetworkOperation = try features.instance()
     let resourceSharePreparation: ResourceSharePreparation = try features.instance()
     let metadataKeysService: MetadataKeysService = try features.instance()
+    let shareSimulate: ResourceSimulateShareNetworkOperation = try features.instance()
 
     let formState: Variable<FormState> = .init(
       initial: .init(
@@ -375,7 +376,13 @@ extension ResourceShareForm {
       }
 
       if newPermissions.isEmpty == false {
-        try await resourceSharePreparation.prepareResourceForSharing(resourceID)
+        try await resourceSharePreparation.prepareResourceForSharing(
+          resourceID,
+          .init(
+            changed: formState.editedPermissions.elements,
+            removed: formState.deletedPermissions.elements
+          )
+        )
       }
 
       try await resourceShareNetworkOperation(

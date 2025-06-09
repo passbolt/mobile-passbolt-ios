@@ -50,17 +50,13 @@ final class ResourceUpdatePreparationTests: FeaturesTestCase {
 
   func test_givenResourceIdAndSecret_whenPreparingUpdate_shouldReturnEncryptedSecretsForAllUsers() async throws {
     patch(
-      \UsersPGPMessages.encryptMessageForResourceUsers,
-      with: always([.mock_1, .mock_2])
-    )
-    patch(
-      \ResourceUsersIDFetchDatabaseOperation.execute,
+      \UsersPGPMessages.encryptMessageForUsers,
       with: always([.mock_1, .mock_2])
     )
     let sut: ResourceUpdatePreparation = try self.testedInstance()
 
     await verifyIf(
-      try await sut.prepareSecret(.mock_1, "secret").map { $0.recipient },
+      try await sut.prepareSecret([.mock_1, .mock_2], "secret").map { $0.recipient },
       isEqual: [.mock_1, .mock_2],
       "Should encrypt secret for all users"
     )
@@ -68,17 +64,19 @@ final class ResourceUpdatePreparationTests: FeaturesTestCase {
 
   func test_givenResourceIdAndSecret_whenPreparingUpdate_shouldThrowIfUsersCountIsDifferentThanExpectd() async throws {
     patch(
-      \UsersPGPMessages.encryptMessageForResourceUsers,
-      with: always([.mock_1])
+      \UsersPGPMessages.encryptMessageForUsers,
+      with: always(
+        [
+          .init(recipient: .mock_1, message: ""),
+          .init(recipient: .mock_2, message: ""),
+        ]
+      )
     )
-    patch(
-      \ResourceUsersIDFetchDatabaseOperation.execute,
-      with: always([.mock_1, .mock_2])
-    )
+
     let sut: ResourceUpdatePreparation = try self.testedInstance()
 
     await verifyIf(
-      try await sut.prepareSecret(.mock_1, "secret"),
+      try await sut.prepareSecret([.mock_1], "secret"),
       throws: InvalidResourceSecret.self,
       "Should throw if users count is different than expected"
     )

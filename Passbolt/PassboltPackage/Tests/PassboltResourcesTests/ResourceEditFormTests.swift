@@ -293,6 +293,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
       \MetadataKeysService.validatePinnedKey,
       with: always(.valid)
     )
+    patch(
+      \ResourceUsersIDFetchDatabaseOperation.execute,
+      with: always([.mock_1])
+    )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIf(
       try await tested.sendForm(),

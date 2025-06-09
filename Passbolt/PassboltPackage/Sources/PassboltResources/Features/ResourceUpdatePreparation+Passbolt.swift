@@ -33,19 +33,18 @@ extension ResourceUpdatePreparation {
     using features: Features
   ) throws -> Self {
     let usersPGPMessages: UsersPGPMessages = try features.instance()
-    let resourceUserIdsFetchDatabaseOperation: ResourceUsersIDFetchDatabaseOperation = try features.instance()
     let resourceSecretFetchNetworkOperation: ResourceSecretFetchNetworkOperation = try features.instance()
     let sessionCryptography: SessionCryptography = try features.instance()
 
     @Sendable func encryptSecrets(
-      resourceId: Resource.ID,
+      for userIDs: OrderedSet<User.ID>,
       resourceSecret: String
     ) async throws -> OrderedSet<EncryptedMessage> {
       let encryptedSecrets: OrderedSet<EncryptedMessage> =
         try await usersPGPMessages
-        .encryptMessageForResourceUsers(resourceId, resourceSecret)
-      let expectedEncryptedSecretsCount = (try await resourceUserIdsFetchDatabaseOperation(resourceId)).count
-      guard encryptedSecrets.count == expectedEncryptedSecretsCount
+        .encryptMessageForUsers(userIDs, resourceSecret)
+
+      guard encryptedSecrets.count == userIDs.count
       else {
         throw
           InvalidResourceSecret

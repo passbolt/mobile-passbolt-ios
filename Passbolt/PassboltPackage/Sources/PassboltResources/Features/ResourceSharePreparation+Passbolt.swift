@@ -34,11 +34,12 @@ extension ResourceSharePreparation {
   ) throws -> ResourceSharePreparation {
     let metadataKeysService: MetadataKeysService = try features.instance()
     let resourceDetailsFetch: ResourceDetailsFetchDatabaseOperation = try features.instance()
+    let shareSimulate: ResourceSimulateShareNetworkOperation = try features.instance()
     let resourceUpdateNetworkOperation: ResourceEditNetworkOperation = try features.instance()
     let resourceUpdatePreparation: ResourceUpdatePreparation = try features.instance()
     let sessionData: SessionData = try features.instance()
 
-    @Sendable nonisolated func prepareResourceForSharing(resourceID: Resource.ID) async throws {
+    @Sendable nonisolated func prepareResourceForSharing(resourceID: Resource.ID, changes: PermissionChanges) async throws {
       var resource: Resource = try await resourceDetailsFetch.execute(resourceID)
 
       guard
@@ -62,6 +63,14 @@ extension ResourceSharePreparation {
           InvalidInputData
           .error(message: "Invalid or missing resource secret")
       }
+      let sharingSimulation: ResourceSimulateShareNetworkOperation.Output = try await shareSimulate.execute(
+        .init(
+          foreignModelId: resourceID.rawValue,
+          editedPermissions: changes.changed.asOrderedSet(),
+          removedPermissions: changes.removed.asOrderedSet()
+        )
+      )
+      let userIDs: OrderedSet<User.ID> = sharingSimulation.changes[.added]?.asOrderedSet() ?? .init()
 
       _ = try await resourceUpdateNetworkOperation.execute(
         .init(
@@ -71,7 +80,7 @@ extension ResourceSharePreparation {
           metadata: encryptedMetadata,
           metadataKeyID: usedKey,
           metadataKeyType: .shared,
-          secrets: try await resourceUpdatePreparation.prepareSecret(resourceID, resourceSecret)
+          secrets: try await resourceUpdatePreparation.prepareSecret(userIDs, resourceSecret)
             .map { (userID: $0.recipient, data: $0.message) }
         )
       )

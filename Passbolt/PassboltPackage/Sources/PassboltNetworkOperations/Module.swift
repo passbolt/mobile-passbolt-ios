@@ -67,5 +67,6 @@ extension FeaturesRegistry {
     self.useMetadataSessionKeysFetchNetworkOperation()
     self.useMetadataSessionKeysCreateNetworkOperation()
     self.useMetadataUpdatePrivateKeyNetworkOperation()
+    self.usePassboltResourceSimulateShareNetworkOperation()
   }
 }

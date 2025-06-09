@@ -21,26 +21,45 @@
 // @since         v1.0
 //
 
-public struct ResourceUpdatePreparation: Sendable {
-  public var prepareSecret: @Sendable (OrderedSet<User.ID>, String) async throws -> OrderedSet<EncryptedMessage>
-  public var fetchSecret: @Sendable (Resource.ID, Bool) async throws -> JSON
+import NetworkOperations
 
-  public init(
-    prepareSecret: @Sendable @escaping (OrderedSet<User.ID>, String) async throws -> OrderedSet<EncryptedMessage>,
-    fetchSecret: @Sendable @escaping (Resource.ID, Bool) async throws -> JSON
-  ) {
-    self.prepareSecret = prepareSecret
-    self.fetchSecret = fetchSecret
+// MARK: Implementation
+
+extension ResourceSimulateShareNetworkOperation {
+
+  @Sendable fileprivate static func requestPreparation(
+    _ input: Input
+  ) -> Mutation<HTTPRequest> {
+    .combined(
+      .pathSuffix("/share/simulate/resource/\(input.foreignModelId).json"),
+      .method(.post),
+      .jsonBody(from: input.body)
+    )
+  }
+
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    try NetworkResponseDecoder<Input, CommonNetworkResponse<Output>>
+      .bodyAsJSON()
+      .decode(
+        input,
+        response
+      )
+      .body
   }
 }
 
-extension ResourceUpdatePreparation: LoadableFeature {
-  #if DEBUG
-  public static var placeholder: Self {
-    Self(
-      prepareSecret: unimplemented2(),
-      fetchSecret: unimplemented2()
+extension FeaturesRegistry {
+
+  internal mutating func usePassboltResourceSimulateShareNetworkOperation() {
+    self.use(
+      .networkOperationWithSession(
+        of: ResourceSimulateShareNetworkOperation.self,
+        requestPreparation: ResourceSimulateShareNetworkOperation.requestPreparation(_:),
+        responseDecoding: ResourceSimulateShareNetworkOperation.responseDecoder(_:_:)
+      )
     )
   }
-  #endif
 }

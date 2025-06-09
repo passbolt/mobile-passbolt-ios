@@ -23,7 +23,7 @@
 
 import Commons
 
-public enum ResourcePermission {
+public enum ResourcePermission: Sendable {
 
   case user(
     id: User.ID,
