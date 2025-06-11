@@ -22,6 +22,7 @@
 //
 
 import CoreTest
+import Metadata
 import TestExtensions
 
 @testable import PassboltSessionData
@@ -80,6 +81,10 @@ final class SessionDataRefreshTests: FeaturesTestCase {
     patch(
       \MetadataSessionKeysFetchNetworkOperation.execute,
       with: always([])
+    )
+    patch(
+      \MetadataKeysService.cleanupDecryptionCache,
+      with: always(Void())
     )
   }
 

@@ -21,27 +21,14 @@
 // @since         v1.0
 //
 
-@_exported import Resources
+@_exported import Metadata
 
 extension FeaturesRegistry {
 
-  public mutating func usePassboltResourcesModule() {
-    self.usePassboltResourceController()
-    self.usePassboltResourceShareForm()
-    self.usePassboltResourceEditPreparation()
-    self.usePassboltResourceEditForm()
-    self.usePassboltResourceFolders()
-    self.usePassboltResources()
-    self.usePassboltResourceTags()
-    self.usePassboltResourceFolderDetails()
-    self.usePassboltResourceFolderEditForm()
-    self.usePassboltResourcesOTPController()
-    self.usePassboltHOTPCodeGenerator()
-    self.usePassboltTOTPCodeGenerator()
-    self.usePassboltResourceSearchController()
-    self.usePassboltResourceFolderEditPreparation()
-    self.usePassboltResourceUpdatePreparation()
-    self.usePassboltResourceSharePreparation()
-    self.usePassboltResourceCreatePreparation()
+  public mutating func usePassboltMetadataModule() {
+    self.usePassboltMetadataKeysService()
+    self.usePassboltMetadataSettingsService()
   }
 }
+
+

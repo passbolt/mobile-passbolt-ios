@@ -23,6 +23,7 @@
 
 import DatabaseOperations
 import FeatureScopes
+import Metadata
 import Resources
 
 extension ResourceCreatePreparation {

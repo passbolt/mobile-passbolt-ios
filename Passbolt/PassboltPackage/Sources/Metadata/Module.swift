@@ -21,27 +21,6 @@
 // @since         v1.0
 //
 
-import Localization
-
-public struct PGPFailedToExtractSessionKey: TheError {
-
-  public static func error(
-    _ message: StaticString = "PGPFailedToExtractSessionKey",
-    file: StaticString = #fileID,
-    line: UInt = #line
-  ) -> Self {
-    Self(
-      context: .context(
-        .message(
-          message,
-          file: file,
-          line: line
-        )
-      ),
-      displayableMessage: .localized(key: "error.crypto.pgp.sessionkey.extraction.failed")
-    )
-  }
-
-  public var context: DiagnosticsContext
-  public var displayableMessage: DisplayableString
-}
+@_exported import CommonModels
+@_exported import Commons
+@_exported import Features

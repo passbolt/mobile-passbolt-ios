@@ -24,6 +24,7 @@
 import DatabaseOperations
 import FeatureScopes
 import Features
+import Metadata
 import NetworkOperations
 import OSFeatures
 import Resources
@@ -120,6 +121,41 @@ extension SessionData {
       }
     }
 
+    @Sendable nonisolated func process(resource: ResourceDTO) async -> ResourceDTO? {
+      do {
+        if let armored = resource.metadataArmoredMessage,
+          let keyId = resource.metadataKeyId,
+          let keyType = resource.metadataKeyType
+        {
+          guard configuration.metadata.enabled else { return ResourceDTO?.none }
+          var resource = resource
+          let decryptionType: MetadataKeysService.EncryptionType = keyType == .shared ? .sharedKey(keyId) : .userKey
+          if let decryptedMetadataData: Data = try await metadataKeysService.decrypt(
+            armored,
+            .resource(resource.id),
+            decryptionType
+          ) {
+            let metadata: ResourceMetadataDTO = try .init(resourceId: resource.id, data: decryptedMetadataData)
+            try metadata.validate(with: resource)
+            resource.metadata = metadata
+          }
+
+          return resource
+        }
+        else {
+          var resource = resource
+          let metadata: ResourceMetadataDTO = try .init(resource: resource)
+          try metadata.validate(with: resource)
+          resource.metadata = metadata
+          return resource
+        }
+      }
+      catch {
+        InternalInconsistency.error("Cannot decode metadata").logged()
+      }
+      return nil
+    }
+
     @Sendable nonisolated func refreshResources() async throws {
       Diagnostics.logger.info("Refreshing resources data...")
       do {
@@ -138,40 +174,37 @@ extension SessionData {
         let resourcesWithSupportedTypes = resources.filter { resource in
           supportedTypesIDs.contains(resource.typeID)
         }
-        let resourcesWithMetadata = await resourcesWithSupportedTypes.asyncCompactMap { resource in
-          do {
-            if let armored = resource.metadataArmoredMessage,
-              let keyId = resource.metadataKeyId,
-              let keyType = resource.metadataKeyType
-            {
-              guard configuration.metadata.enabled else { return ResourceDTO?.none }
-              var resource = resource
-              let decryptionType: MetadataKeysService.EncryptionType = keyType == .shared ? .sharedKey(keyId) : .userKey
-              if let decryptedMetadataData: Data = try await metadataKeysService.decrypt(
-                armored,
-                .resource(resource.id),
-                decryptionType
-              ) {
-                let metadata: ResourceMetadataDTO = try .init(resourceId: resource.id, data: decryptedMetadataData)
-                try metadata.validate(with: resource)
-                resource.metadata = metadata
-              }
-
-              return resource
-            }
-            else {
-              var resource = resource
-              let metadata: ResourceMetadataDTO = try .init(resource: resource)
-              try metadata.validate(with: resource)
-              resource.metadata = metadata
-              return resource
-            }
-          }
-          catch {
-            InternalInconsistency.error("Cannot decode metadata").logged()
-          }
-          return nil
+        let chunkSize: Int = 1_000
+        // divide to chunks
+        var resourcesChunks: [[ResourceDTO]] = .init()
+        for index in stride(from: 0, to: resourcesWithSupportedTypes.count, by: chunkSize) {
+          let endIndex = min(index + chunkSize, resourcesWithSupportedTypes.count)
+          let chunk = Array(resourcesWithSupportedTypes[index ..< endIndex])
+          resourcesChunks.append(chunk)
         }
+
+        let results: [[ResourceDTO]] = await withTaskGroup(of: [ResourceDTO].self, returning: [[ResourceDTO]].self) {
+          group in
+          for chunk in resourcesChunks {
+            group.addTask {
+              var localResults: [ResourceDTO] = .init()
+              for resource in chunk {
+                if let processedResource = await process(resource: resource) {
+                  localResults.append(processedResource)
+                }
+              }
+              return localResults
+            }
+          }
+          var allResults: [[ResourceDTO]] = []
+          for await result in group {
+            allResults.append(result)
+          }
+          return allResults
+        }
+
+        try await metadataKeysService.cleanupDecryptionCache()
+        let resourcesWithMetadata: [ResourceDTO] = results.flatMap { $0 }
         // Initialize resourcesCollection to add the validated entity
         var resourcesCollection: Array<ResourceDTO> = []
         for (index, resourceDTO) in resourcesWithMetadata.enumerated() {

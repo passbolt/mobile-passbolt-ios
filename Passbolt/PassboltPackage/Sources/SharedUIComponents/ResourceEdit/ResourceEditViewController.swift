@@ -25,6 +25,7 @@ import Commons
 import Crypto
 import Display
 import FeatureScopes
+import Metadata
 import OSFeatures
 import Resources
 

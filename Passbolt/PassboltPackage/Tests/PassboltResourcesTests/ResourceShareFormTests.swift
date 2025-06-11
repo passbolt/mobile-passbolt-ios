@@ -25,6 +25,7 @@ import Accounts
 import CommonModels
 import FeatureScopes
 import Features
+import Metadata
 import SessionData
 import TestExtensions
 import Users

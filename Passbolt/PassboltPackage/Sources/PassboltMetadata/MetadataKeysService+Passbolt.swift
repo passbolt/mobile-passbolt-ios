@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-import Accounts
 import CommonModels
 import Crypto
 import DatabaseOperations
@@ -48,7 +47,6 @@ extension MetadataKeysService {
     let sessionCryptography: SessionCryptography = try features.instance()
     let fetchOperation: MetadataKeysFetchNetworkOperation = try features.instance()
     let userPGP: UsersPGPMessages = try features.instance()
-    let accountDataStore: AccountsDataStore = try features.instance()
     let jsonDecoder: JSONDecoder = .default
     let jsonEncoder: JSONEncoder = .default
     jsonEncoder.dateEncodingStrategy = .iso8601
@@ -67,6 +65,7 @@ extension MetadataKeysService {
 
     let cachedKeys: CriticalState<KeysCache> = .init([:])
     let cachedSessionKeys: CriticalState<SessionKeysCache> = .init(.empty)
+    let configuredDecryptors: CriticalState<Dictionary<EncryptionType, ConfiguredDecryptor>> = .init(.init())
 
     @Sendable func activeMetadataKey() -> CachedKeys? {
       cachedKeys.get().values
@@ -79,7 +78,6 @@ extension MetadataKeysService {
       encryptedMessage: String,
       publicKey: MetadataKeyDTO
     ) async throws -> VerifiedMetadataPrivateKey? {
-      let accountId: Account.LocalID = context.account.localID
       guard
         let modifyingUserId: User.ID = publicKey.modifiedBy,
         let modifyingUserPublicKeyDSV: UserPublicKeyDSV = try await fetchUserPublicKey.execute([modifyingUserId]).first
@@ -87,18 +85,12 @@ extension MetadataKeysService {
         return .none
       }
 
-      let passphrase: Passphrase = try accountDataStore.loadAccountPassphrase(accountId)
-      let privateKey: ArmoredPGPPrivateKey = try accountDataStore.loadAccountPrivateKey(accountId)
       let publicKey: ArmoredPGPPublicKey = modifyingUserPublicKeyDSV.publicKey
 
-      let result: PGP.VerifiedMessage =
-        try pgp.decryptAndVerify(
-          encryptedMessage,
-          passphrase,
-          privateKey,
-          publicKey
-        )
-        .get()
+      let result: PGP.VerifiedMessage = try await sessionCryptography.decryptAndVerifyMessage(
+        .init(rawValue: encryptedMessage),
+        publicKey
+      )
 
       let data: Data = .init(result.content.utf8)
       let privateKeyData: MetadataDecryptedPrivateKey =
@@ -199,50 +191,6 @@ extension MetadataKeysService {
       }
 
       return cachedKeys
-    }
-
-    @Sendable nonisolated func decrypt(
-      message: String,
-      reference: ForeignReference,
-      decryptionKey: EncryptionType
-    ) async throws -> Data? {
-      if let sessionKeyData: SessionKeyData = cachedSessionKeys.get()[reference] {
-        do {
-          if let result: String = try pgp.decryptWithSessionKey(message, sessionKeyData.sessionKey) {
-            return result.data(using: .utf8)
-          }
-        }
-        catch {
-          // don't break the process, try to use standard decryption method
-          error.logged()
-        }
-      }
-
-      let result: Data? = try await decrypt(message: message, decryptionKey: decryptionKey)
-      if let sessionKey: SessionKey = try? await sessionCryptography.decryptSessionKey(.init(rawValue: message)) {
-        cachedSessionKeys.access { keys in
-          keys[reference] = .init(
-            foreignModel: reference.model,
-            foreignId: reference.id,
-            sessionKey: sessionKey,
-            modified: .now
-          )
-        }
-      }
-
-      return result
-    }
-
-    @Sendable nonisolated func decrypt(message: String, decryptionKey: EncryptionType) async throws -> Data? {
-      if case .sharedKey(let keyId) = decryptionKey {
-        guard let keys: CachedKeys = cachedKeys.get()[keyId] else { return .none }
-        if let privateKey: ArmoredPGPPrivateKey = keys.privateKeys.first?.data.armoredKey {
-          let result: String = try pgp.decrypt(message, .empty, privateKey).get()
-          return result.data(using: .utf8)
-        }
-      }
-
-      return try await sessionCryptography.decryptMessage(.init(rawValue: message), .none).data(using: .utf8)
     }
 
     @Sendable func encrypt(message: String, with encryptionType: EncryptionType) async throws -> ArmoredPGPMessage? {
@@ -428,17 +376,14 @@ extension MetadataKeysService {
 
     @Sendable func signMetadataKey(message: String) async throws -> ArmoredPGPMessage? {
       let accountId: Account.LocalID = context.account.localID
-      let passphrase: Passphrase = try accountDataStore.loadAccountPassphrase(accountId)
-      let privateKey: ArmoredPGPPrivateKey = try accountDataStore.loadAccountPrivateKey(accountId)
+
       guard
         let userPublicKeyDSV: UserPublicKeyDSV = try await fetchUserPublicKey.execute([context.account.userID]).first
       else {
-        return nil
+        return .none
       }
 
-      let result: String = try pgp.encryptAndSign(message, passphrase, privateKey, userPublicKeyDSV.publicKey).get()
-
-      return .init(rawValue: result)
+      return try await sessionCryptography.encryptAndSignMessage(message, userPublicKeyDSV.publicKey)
     }
 
     @Sendable func trustCurrentKey() async throws {
@@ -477,15 +422,90 @@ extension MetadataKeysService {
       try metadataKeyDataStore.deletePinnedMetadataKey(context.account.localID)
     }
 
+    @Sendable nonisolated func configuredDecryptor(
+      for encryptionType: EncryptionType
+    ) async throws -> ConfiguredDecryptor? {
+      if let decryptor = configuredDecryptors.get()[encryptionType] {
+        return decryptor
+      }
+      var decryptor: ConfiguredDecryptor?
+      switch encryptionType {
+      case .sharedKey(let keyId):
+        guard let keys: CachedKeys = cachedKeys.get()[keyId] else { return .none }
+        if let privateKey: ArmoredPGPPrivateKey = keys.privateKeys.first?.data.armoredKey {
+          decryptor = try pgp.configuredDecryptor(privateKey, .empty)
+        }
+
+      case .userKey:
+        decryptor = try await sessionCryptography.sessionDecryptor()
+      }
+      if let decryptor {
+        configuredDecryptors.access { decryptors in
+          decryptors[encryptionType] = decryptor
+        }
+      }
+
+      return decryptor
+    }
+
+    @Sendable nonisolated func batchDecrypt(
+      message: String,
+      reference: ForeignReference,
+      decryptionKey: EncryptionType
+    ) async throws -> Data? {
+      if let sessionKeyData: SessionKeyData = cachedSessionKeys.get()[reference] {
+        do {
+          if let result: String = try pgp.decryptWithSessionKey(message, sessionKeyData.sessionKey) {
+            return result.data(using: .utf8)
+          }
+        }
+        catch {
+          // don't break the process, try to use standard decryption method
+          error.logged()
+        }
+      }
+
+      guard
+        let decryptor: ConfiguredDecryptor = try await configuredDecryptor(for: decryptionKey),
+        let data: Data = message.data(using: .utf8)
+      else {
+        return .none
+      }
+      let result = try decryptor.decrypt(data)
+      if let sessionKey: SessionKey = result.sessionKey {
+        cachedSessionKeys.access { keys in
+          keys[reference] = .init(
+            foreignModel: reference.model,
+            foreignId: reference.id,
+            sessionKey: sessionKey,
+            modified: .now
+          )
+        }
+      }
+
+      return result.data
+    }
+
+    @Sendable nonisolated func cleanupDecryptionCache() async throws {
+      for decryptor in configuredDecryptors.get().values {
+        decryptor.deinitialize()
+      }
+      configuredDecryptors.access { decryptors in
+        decryptors.removeAll()
+      }
+      pgp.forceFreeMemory()
+    }
+
     return .init(
       initialize: initialize,
-      decrypt: decrypt,
+      decrypt: batchDecrypt,
       encrypt: encrypt,
       encryptForSharing: encryptForSharing,
       sendSessionKeys: sendSessionKeys,
       validatePinnedKey: validatePinnedKey,
       trustCurrentKey: trustCurrentKey,
-      removePinnedKey: removePinnedKey
+      removePinnedKey: removePinnedKey,
+      cleanupDecryptionCache: cleanupDecryptionCache
     )
   }
 }

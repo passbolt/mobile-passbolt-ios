@@ -94,6 +94,10 @@ let package = Package(
       targets: ["PassboltSessionData"]
     ),
     .library(
+      name: "PassboltMetadata",
+      targets: ["PassboltMetadata"]
+    ),
+    .library(
       name: "PassboltNetworkOperations",
       targets: ["PassboltNetworkOperations"]
     ),
@@ -187,6 +191,7 @@ let package = Package(
         "Session",
         "SessionData",
         "FeatureScopes",
+        "Metadata",
       ]
     ),
     .testTarget(
@@ -235,6 +240,7 @@ let package = Package(
         "PassboltDatabaseOperations",
         "PassboltUsers",
         "PassboltResources",
+        "PassboltMetadata",
       ]
     ),
     .target(
@@ -261,6 +267,7 @@ let package = Package(
         "PassboltDatabaseOperations",
         "PassboltUsers",
         "PassboltResources",
+        "PassboltMetadata",
       ]
     ),
     // MARK: - Base
@@ -363,6 +370,30 @@ let package = Package(
         "CommonModels",
         // Vendor
         "SQLCipher",
+      ]
+    ),
+    .target(
+      name: "Metadata",
+      dependencies: [
+        "CommonModels",
+        "Commons",
+        "Features",
+      ]
+    ),
+    .target(
+      name: "PassboltMetadata",
+      dependencies: [
+        // Base
+        "Crypto",
+        // Modules
+        "NetworkOperations",
+        "Metadata",
+      ]
+    ),
+    .testTarget(
+      name: "PassboltMetadataTests",
+      dependencies: [
+        "PassboltMetadata",
       ]
     ),
     // MARK: - Vendor
@@ -549,6 +580,7 @@ let package = Package(
         "Accounts",
         "Session",
         "NetworkOperations",
+        "Metadata",
       ]
     ),
     .target(
@@ -605,6 +637,7 @@ let package = Package(
         "Users",
         "Resources",
         "SessionData",
+        "Metadata",
       ]
     ),
     .target(
@@ -658,6 +691,7 @@ let package = Package(
         "NetworkOperations",
         "Users",
         "Resources",
+        "Metadata",
       ]
     ),
     // MARK: - Tests

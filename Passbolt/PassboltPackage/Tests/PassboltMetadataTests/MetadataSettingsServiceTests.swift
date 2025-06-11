@@ -24,7 +24,7 @@
 import TestExtensions
 import XCTest
 
-@testable import PassboltResources
+@testable import PassboltMetadata
 
 final class MetadataSettingsServiceTests: LoadableFeatureTestCase<MetadataSettingsService> {
   override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }

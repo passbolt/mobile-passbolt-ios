@@ -21,27 +21,11 @@
 // @since         v1.0
 //
 
-@_exported import Resources
+import CommonModels
+import struct Foundation.Data
 
-extension FeaturesRegistry {
+public struct ConfiguredDecryptor {
 
-  public mutating func usePassboltResourcesModule() {
-    self.usePassboltResourceController()
-    self.usePassboltResourceShareForm()
-    self.usePassboltResourceEditPreparation()
-    self.usePassboltResourceEditForm()
-    self.usePassboltResourceFolders()
-    self.usePassboltResources()
-    self.usePassboltResourceTags()
-    self.usePassboltResourceFolderDetails()
-    self.usePassboltResourceFolderEditForm()
-    self.usePassboltResourcesOTPController()
-    self.usePassboltHOTPCodeGenerator()
-    self.usePassboltTOTPCodeGenerator()
-    self.usePassboltResourceSearchController()
-    self.usePassboltResourceFolderEditPreparation()
-    self.usePassboltResourceUpdatePreparation()
-    self.usePassboltResourceSharePreparation()
-    self.usePassboltResourceCreatePreparation()
-  }
+  public var decrypt: @Sendable (Data) throws -> (data: Data?, sessionKey: SessionKey?)
+  public var deinitialize: @Sendable () -> Void
 }

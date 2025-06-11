@@ -22,6 +22,7 @@
 //
 
 import FeatureScopes
+import Metadata
 import NetworkOperations
 import Resources
 

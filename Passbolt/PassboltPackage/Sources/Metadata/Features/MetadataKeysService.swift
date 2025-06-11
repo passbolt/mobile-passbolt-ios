@@ -21,8 +21,6 @@
 // @since         v1.0
 //
 
-import CommonModels
-import Commons
 import struct Foundation.Data
 
 public struct MetadataKeysService {
@@ -34,6 +32,7 @@ public struct MetadataKeysService {
   public var validatePinnedKey: @Sendable () async throws -> KeyValidationResult
   public var trustCurrentKey: @Sendable () async throws -> Void
   public var removePinnedKey: @Sendable () async throws -> Void
+  public var cleanupDecryptionCache: @Sendable () async throws -> Void
 
   public init(
     initialize: @escaping @Sendable () async throws -> Void,
@@ -43,7 +42,8 @@ public struct MetadataKeysService {
     sendSessionKeys: @escaping @Sendable () async throws -> Void,
     validatePinnedKey: @escaping @Sendable () async throws -> KeyValidationResult,
     trustCurrentKey: @escaping @Sendable () async throws -> Void,
-    removePinnedKey: @escaping @Sendable () async throws -> Void
+    removePinnedKey: @escaping @Sendable () async throws -> Void,
+    cleanupDecryptionCache: @escaping @Sendable () async throws -> Void
   ) {
     self.initialize = initialize
     self.decrypt = decrypt
@@ -53,6 +53,7 @@ public struct MetadataKeysService {
     self.validatePinnedKey = validatePinnedKey
     self.trustCurrentKey = trustCurrentKey
     self.removePinnedKey = removePinnedKey
+    self.cleanupDecryptionCache = cleanupDecryptionCache
   }
 
   public func decrypt(
@@ -63,7 +64,7 @@ public struct MetadataKeysService {
     try await decrypt(message, .resource(resourceId), .sharedKey(sharedKeyId))
   }
 
-  public enum EncryptionType {
+  public enum EncryptionType: Hashable {
     case sharedKey(MetadataKeyDTO.ID)
     case userKey
   }
@@ -81,7 +82,8 @@ extension MetadataKeysService: LoadableFeature {
       sendSessionKeys: unimplemented0(),
       validatePinnedKey: unimplemented0(),
       trustCurrentKey: unimplemented0(),
-      removePinnedKey: unimplemented0()
+      removePinnedKey: unimplemented0(),
+      cleanupDecryptionCache: unimplemented0()
     )
   }
   #endif

@@ -24,6 +24,7 @@
 import Accounts
 import CommonModels
 import FeatureScopes
+import Metadata
 import Resources
 import SessionData
 import SharedUIComponents

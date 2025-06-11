@@ -23,6 +23,7 @@
 
 import DatabaseOperations
 import FeatureScopes
+import Metadata
 import NetworkOperations
 import Resources
 import SessionData

@@ -93,18 +93,36 @@ extension SessionCryptography {
         .get()
     }
 
-    @SessionActor func decryptSessionKey(_ message: ArmoredPGPMessage) async throws -> SessionKey {
+    @SessionActor func sessionDecryptor() async throws -> ConfiguredDecryptor {
       let account: Account = try await session.currentAccount()
       let passphrase: Passphrase = try await sessionStateEnsurance.passphrase(account)
       let privateKey: ArmoredPGPPrivateKey = try accountsDataStore.loadAccountPrivateKey(account.localID)
 
-      return try pgp.extractSessionKey(message, privateKey, passphrase).get()
+      return try pgp.configuredDecryptor(privateKey, passphrase)
+    }
+
+    @SessionActor func decryptAndVerifyMessage(
+      message encryptedMessage: ArmoredPGPMessage,
+      publicKey: ArmoredPGPPublicKey
+    ) async throws -> PGP.VerifiedMessage {
+      let account: Account = try await session.currentAccount()
+      let passphrase: Passphrase = try await sessionStateEnsurance.passphrase(account)
+      let privateKey: ArmoredPGPPrivateKey = try accountsDataStore.loadAccountPrivateKey(account.localID)
+
+      return try pgp.decryptAndVerify(
+        encryptedMessage.rawValue,
+        passphrase,
+        privateKey,
+        publicKey
+      )
+      .get()
     }
 
     return Self(
       decryptMessage: decryptMessage(_:_:),
       encryptAndSignMessage: encryptAndSignMessage(_:_:),
-      decryptSessionKey: decryptSessionKey(_:)
+      decryptAndVerifyMessage: decryptAndVerifyMessage(message:publicKey:),
+      sessionDecryptor: sessionDecryptor
     )
   }
 }
