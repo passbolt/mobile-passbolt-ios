@@ -97,6 +97,10 @@ public final class ResourceEditViewController: ViewController {
   private let navigationToTextEdit: NavigationToResourceTextEdit
   private let navigationToInvalidMetadataKey: NavigationToMetadataPinnedKeyValidationDialog
 
+  internal var canNavigateToOTPScanning: Bool {
+    self.navigationToOTPScanning.canPerform()
+  }
+
   private let randomGenerator: RandomStringGenerator
 
   private let success: @Sendable (Resource) async -> Void
