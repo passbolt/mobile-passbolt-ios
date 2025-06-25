@@ -40,6 +40,13 @@ where Destination: NavigationDestination {
       _ file: StaticString,
       _ line: UInt
     ) async throws -> Void
+
+  @usableFromInline internal var canPerformCheck:
+    (
+      _ file: StaticString,
+      _ line: UInt
+    ) -> Bool
+
 }
 
 extension NavigationTo: LoadableFeature {
@@ -47,7 +54,8 @@ extension NavigationTo: LoadableFeature {
   public nonisolated static var placeholder: Self {
     .init(
       performAnimated: unimplemented4(),
-      revertAnimated: unimplemented3()
+      revertAnimated: unimplemented3(),
+      canPerformCheck: unimplemented2()
     )
   }
   #if DEBUG
@@ -72,6 +80,17 @@ extension NavigationTo: LoadableFeature {
 }
 
 extension NavigationTo {
+
+  @_transparent
+  public func canPerform(
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Bool {
+    self.canPerformCheck(
+      file,
+      line
+    )
+  }
 
   @_transparent
   @Sendable public func perform(
@@ -227,9 +246,17 @@ extension NavigationTo {
             )
         }
 
+        @MainActor func canPerform(
+          file: StaticString,
+          line: UInt
+        ) -> Bool {
+          navigationResolver.exists(with: Destination.identifier) == false
+        }
+
         return .init(
           performAnimated: perform(animated:context:file:line:),
-          revertAnimated: revert(animated:file:line:)
+          revertAnimated: revert(animated:file:line:),
+          canPerformCheck: canPerform(file:line:)
         )
       }
     )
@@ -291,9 +318,17 @@ extension NavigationTo {
             )
         }
 
+        @MainActor func canPerform(
+          file: StaticString,
+          line: UInt
+        ) -> Bool {
+          navigationResolver.exists(with: Destination.identifier) == false
+        }
+
         return .init(
           performAnimated: perform(animated:context:file:line:),
-          revertAnimated: revert(animated:file:line:)
+          revertAnimated: revert(animated:file:line:),
+          canPerformCheck: canPerform(file:line:)
         )
       }
     )
@@ -371,9 +406,17 @@ extension NavigationTo {
             )
         }
 
+        @MainActor func canPerform(
+          file: StaticString,
+          line: UInt
+        ) -> Bool {
+          navigationResolver.exists(with: Destination.identifier) == false
+        }
+
         return .init(
           performAnimated: perform(animated:context:file:line:),
-          revertAnimated: revert(animated:file:line:)
+          revertAnimated: revert(animated:file:line:),
+          canPerformCheck: canPerform(file:line:)
         )
       }
     )
@@ -486,9 +529,17 @@ extension NavigationTo {
             )
         }
 
+        @MainActor func canPerform(
+          file: StaticString,
+          line: UInt
+        ) -> Bool {
+          navigationResolver.exists(with: Destination.identifier) == false
+        }
+
         return .init(
           performAnimated: perform(animated:context:file:line:),
-          revertAnimated: revert(animated:file:line:)
+          revertAnimated: revert(animated:file:line:),
+          canPerformCheck: canPerform(file:line:)
         )
       }
     )
@@ -554,9 +605,17 @@ extension NavigationTo {
             )
         }
 
+        @MainActor func canPerform(
+          file: StaticString,
+          line: UInt
+        ) -> Bool {
+          navigationResolver.exists(with: Destination.identifier) == false
+        }
+
         return .init(
           performAnimated: perform(animated:context:file:line:),
-          revertAnimated: revert(animated:file:line:)
+          revertAnimated: revert(animated:file:line:),
+          canPerformCheck: canPerform(file:line:)
         )
       }
     )
@@ -626,9 +685,17 @@ extension NavigationTo {
             .error("Invalid navigation - can't revert tab switching!")
         }
 
+        @MainActor func canPerform(
+          file: StaticString,
+          line: UInt
+        ) -> Bool {
+          navigationResolver.exists(with: Destination.identifier) == false
+        }
+
         return .init(
           performAnimated: perform(animated:context:file:line:),
-          revertAnimated: revert(animated:file:line:)
+          revertAnimated: revert(animated:file:line:),
+          canPerformCheck: canPerform(file:line:)
         )
       }
     )
@@ -696,9 +763,17 @@ extension NavigationTo {
             )
         }
 
+        @MainActor func canPerform(
+          file: StaticString,
+          line: UInt
+        ) -> Bool {
+          navigationResolver.exists(with: Destination.identifier) == false
+        }
+
         return .init(
           performAnimated: perform(animated:context:file:line:),
-          revertAnimated: revert(animated:file:line:)
+          revertAnimated: revert(animated:file:line:),
+          canPerformCheck: canPerform(file:line:)
         )
       }
     )
@@ -770,9 +845,17 @@ extension NavigationTo {
             )
         }
 
+        @MainActor func canPerform(
+          file: StaticString,
+          line: UInt
+        ) -> Bool {
+          navigationResolver.exists(with: Destination.identifier) == false
+        }
+
         return .init(
           performAnimated: perform(animated:context:file:line:),
-          revertAnimated: revert(animated:file:line:)
+          revertAnimated: revert(animated:file:line:),
+          canPerformCheck: canPerform(file:line:)
         )
       }
     )
@@ -868,9 +951,17 @@ extension NavigationTo {
           throw InternalInconsistency.error("Can't revert pop transition!")
         }
 
+        @MainActor func canPerform(
+          file: StaticString,
+          line: UInt
+        ) -> Bool {
+          navigationResolver.exists(with: Destination.identifier) == false
+        }
+
         return .init(
           performAnimated: perform(animated:context:file:line:),
-          revertAnimated: revert(animated:file:line:)
+          revertAnimated: revert(animated:file:line:),
+          canPerformCheck: canPerform(file:line:)
         )
       }
     )

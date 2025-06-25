@@ -24,7 +24,7 @@
 import TestExtensions
 import XCTest
 
-@testable import PassboltResources
+@testable import PassboltMetadata
 
 final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysService> {
 

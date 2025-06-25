@@ -27,6 +27,7 @@ import DatabaseOperations
 import FeatureScopes
 import Features
 import Foundation
+import Metadata
 import NetworkOperations
 import Resources
 import SessionData

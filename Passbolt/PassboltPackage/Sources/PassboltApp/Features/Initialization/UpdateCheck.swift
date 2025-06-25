@@ -39,7 +39,8 @@ extension UpdateCheck: LoadableFeature {
   ) throws -> Self {
     let updateChecker: UpdateChecker = try .init(
       applicationMeta: features.instance(),
-      appVersionsFetchNetworkOperation: features.instance()
+      appVersionsFetchNetworkOperation: features.instance(),
+      mdmConfiguration: features.instance()
     )
 
     return Self(
@@ -103,18 +104,25 @@ fileprivate actor UpdateChecker {
 
   private let applicationMeta: ApplicationMeta
   private let appVersionsFetchNetworkOperation: AppVersionsFetchNetworkOperation
+  private let mdmConfiguration: MDMConfiguration
   private let cancellables: Cancellables = .init()
   private var status: Status = .unknown
 
   fileprivate init(
     applicationMeta: ApplicationMeta,
-    appVersionsFetchNetworkOperation: AppVersionsFetchNetworkOperation
+    appVersionsFetchNetworkOperation: AppVersionsFetchNetworkOperation,
+    mdmConfiguration: MDMConfiguration
   ) {
     self.applicationMeta = applicationMeta
     self.appVersionsFetchNetworkOperation = appVersionsFetchNetworkOperation
+    self.mdmConfiguration = mdmConfiguration
   }
 
   fileprivate func isStatusCheckRequired() async -> Bool {
+    if mdmConfiguration.isUpdateCheckDisabled() {
+      Diagnostics.shared.logger.info("Update check is disabled by MDM configuration.")
+      return false
+    }
     switch status {
     case .unknown:
       return true
@@ -122,7 +130,7 @@ fileprivate actor UpdateChecker {
     case .updateNotAvailable, .updateAvailable:
       return false
 
-    case let .checking(task):
+    case .checking(let task):
       do {
         _ = try await task.value
         return false
@@ -168,7 +176,7 @@ fileprivate actor UpdateChecker {
     case .updateAvailable:
       return true
 
-    case let .checking(task):
+    case .checking(let task):
       return try await task.value
     }
   }

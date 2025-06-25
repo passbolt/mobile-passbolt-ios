@@ -24,6 +24,7 @@
 import CommonModels
 import Display
 import FeatureScopes
+import Metadata
 import Resources
 
 public final class MetadataPinnedKeyValidationDialogViewController: ViewController {

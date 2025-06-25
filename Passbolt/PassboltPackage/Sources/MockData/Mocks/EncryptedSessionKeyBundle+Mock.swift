@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Metadata
 import NetworkOperations
 import Resources
 

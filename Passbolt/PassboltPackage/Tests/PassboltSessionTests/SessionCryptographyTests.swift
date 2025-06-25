@@ -277,15 +277,6 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
       \AccountsDataStore.loadAccountPrivateKey,
       with: always("privatePGPKey")
     )
-    patch(
-      \PGP.extractSessionKey,
-      with: always(.success("sessionKey"))
-    )
-
-    withTestedInstance { (testedInstance: SessionCryptography) in
-      let result = try await testedInstance.decryptSessionKey("encrypted message")
-      XCTAssertEqual(result, "sessionKey")
-    }
   }
 }
 

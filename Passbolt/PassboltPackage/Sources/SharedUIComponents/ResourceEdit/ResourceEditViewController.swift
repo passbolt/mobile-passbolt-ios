@@ -25,6 +25,7 @@ import Commons
 import Crypto
 import Display
 import FeatureScopes
+import Metadata
 import OSFeatures
 import Resources
 
@@ -96,6 +97,10 @@ public final class ResourceEditViewController: ViewController {
   private let navigationToTextEdit: NavigationToResourceTextEdit
   private let navigationToURIEdit: NavigationToResourceURIEdit
   private let navigationToInvalidMetadataKey: NavigationToMetadataPinnedKeyValidationDialog
+
+  internal var canNavigateToOTPScanning: Bool {
+    self.navigationToOTPScanning.canPerform()
+  }
 
   private let randomGenerator: RandomStringGenerator
 

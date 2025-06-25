@@ -105,12 +105,7 @@ public struct PGP {
       _ privateKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
     ) -> Result<ArmoredPGPPublicKey, Error>
-  public var extractSessionKey:
-    (
-      _ armoredMessage: ArmoredPGPMessage,
-      _ privateKey: ArmoredPGPPrivateKey,
-      _ passphrase: Passphrase
-    ) -> Result<SessionKey, Error>
+
   public var readCleartextMessage:
     (
       _ message: Data
@@ -119,6 +114,14 @@ public struct PGP {
     (
       _ message: String
     ) -> Bool
+
+  public var configuredDecryptor:
+    (
+      _ privateKey: ArmoredPGPPrivateKey,
+      _ passphrase: Passphrase
+    ) throws -> ConfiguredDecryptor
+
+  public var forceFreeMemory: () -> Void
 }
 
 extension PGP: StaticFeature {
@@ -138,9 +141,10 @@ extension PGP: StaticFeature {
       verifyPublicKeyFingerprint: unimplemented2(),
       extractFingerprint: unimplemented1(),
       extractPublicKey: unimplemented2(),
-      extractSessionKey: unimplemented3(),
       readCleartextMessage: unimplemented1(),
-      isPGPSignedClearMessage: unimplemented1()
+      isPGPSignedClearMessage: unimplemented1(),
+      configuredDecryptor: unimplemented2(),
+      forceFreeMemory: unimplemented0()
     )
   }
   #endif
@@ -577,51 +581,14 @@ extension PGP {
       return messageWithoutNewlines.matches(regex: pgpMessageRegex)
     }
 
-    func extractSessionKey(
-      from armoredMessage: ArmoredPGPMessage,
-      privateKey: ArmoredPGPPrivateKey,
-      passphrase: Passphrase
-    ) -> Result<SessionKey, Error> {
-      defer { Gopenpgp.MobileFreeOSMemory() }
-      do {
-        let key: CryptoKey = try createUnlockedPrivateKey(fromArmored: privateKey, withPassphrase: passphrase)
-        let decryptor: CryptoPGPDecryptionProtocol = try CryptoPGPHandle.decryptor(
-          with: {
-            $0.decryptionKey(key)?
-              .verifyTime(now() + timeOffset)
-          })
-
-        var error: NSError?
-        let message = CryptoNewPGPMessageFromArmored(armoredMessage.rawValue, &error)
-        if let error {
-          throw
-            PGPKeyPacketExtractionFailed
-            .error("Failed to extract key packet.")
-            .recording(error, for: "goError")
-        }
-        let sessionKey = try decryptor.decryptSessionKey(message?.keyPacket)
-        if let sessionKeyString: String = sessionKey.key?.bytesToHexString() {
-          return .success(.init(rawValue: sessionKeyString))
-        }
-
-        throw
-          PGPFailedToExtractSessionKey
-          .error("Failed to extract session key.")
-
-      }
-      catch {
-        return .failure(
-          PGPIssue.error(
-            underlyingError:
-              error.asTheError()
-          )
-        )
-      }
-    }
-
+    /// Decrypts a message using a session key.
+    /// - Parameters:
+    /// - message: The message to decrypt, as a string.
+    /// - sessionKey: The session key used for decryption.
+    /// - Returns: The decrypted message as a string, or nil if decryption fails.
+    /// - Throws: An error if the message cannot be converted to Data or if decryption fails.
+    /// - Note: Remember to call `forceFreeMemory()` after using this function to free up memory used by the PGP library.
     func decryptWithSessionKey(message: String, sessionKey: SessionKey) throws -> String? {
-      defer { Gopenpgp.MobileFreeOSMemory() }
-
       guard let message: Data = message.data(using: .utf8) else {
         throw PGPIssue.error(
           underlyingError:
@@ -648,6 +615,33 @@ extension PGP {
 
     }
 
+    func configuredDecryptor(
+      privateKey: ArmoredPGPPrivateKey,
+      passphrase: Passphrase
+    ) throws -> ConfiguredDecryptor {
+      let key: CryptoKey = try createUnlockedPrivateKey(fromArmored: privateKey, withPassphrase: passphrase)
+      let decryptor: CryptoPGPDecryptionProtocol = try CryptoPGPHandle.decryptor(
+        with: {
+          $0.decryptionKey(key)?
+            .verifyTime(now() + timeOffset)
+          return $0.retrieveSessionKey()
+        })
+
+      return .init(
+        decrypt: { (input: Data) -> (data: Data?, sessionKey: SessionKey?) in
+          let result: CryptoVerifiedDataResult = try decryptor.decrypt(input, encoding: PGPEncoding.auto.rawValue)
+          var sessionKey: SessionKey? = nil
+          if let sessionKeyString: String = result.sessionKey()?.key?.bytesToHexString() {
+            sessionKey = .init(rawValue: sessionKeyString)
+          }
+          return (data: result.bytes(), sessionKey: sessionKey)
+        },
+        deinitialize: {
+          decryptor.clearPrivateParams()
+        }
+      )
+    }
+
     return Self(
       setTimeOffset: setTimeOffset(value:),
       encryptAndSign: encryptAndSign(_:passphrase:privateKey:publicKey:),
@@ -661,9 +655,10 @@ extension PGP {
       verifyPublicKeyFingerprint: verifyPublicKeyFingerprint(_:fingerprint:),
       extractFingerprint: extractFingerprint(publicKey:),
       extractPublicKey: extractPublicKey(privateKey:passphrase:),
-      extractSessionKey: extractSessionKey(from:privateKey:passphrase:),
       readCleartextMessage: readCleartextMessage(message:),
-      isPGPSignedClearMessage: isPGPSignedClearMessage(_:)
+      isPGPSignedClearMessage: isPGPSignedClearMessage(_:),
+      configuredDecryptor: configuredDecryptor(privateKey:passphrase:),
+      forceFreeMemory: { Gopenpgp.MobileFreeOSMemory() }
     )
   }
 }

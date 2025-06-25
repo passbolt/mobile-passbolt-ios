@@ -140,6 +140,7 @@ public struct ResourceEditView: ControlledView {
                 }
               }
             )
+            .padding(.bottom, 96)
           }
           CommonListSpacer(minHeight: 16)
 
@@ -347,18 +348,20 @@ public struct ResourceEditView: ControlledView {
           }
         ),
         accessory: {
-          AsyncButton(
-            action: {
-              await self.controller.scanTOTP()
-            },
-            label: {
-              Image(named: .camera)
-                .tint(.passboltPrimaryText)
-                .padding(12)
-                .backgroundColor(.passboltDivider)
-                .cornerRadius(4)
-            }
-          )
+          if self.controller.canNavigateToOTPScanning {
+            AsyncButton(
+              action: {
+                await self.controller.scanTOTP()
+              },
+              label: {
+                Image(named: .camera)
+                  .tint(.passboltPrimaryText)
+                  .padding(12)
+                  .backgroundColor(.passboltDivider)
+                  .cornerRadius(4)
+              }
+            )
+          }
         }
       )
       .textInputAutocapitalization(.never)
