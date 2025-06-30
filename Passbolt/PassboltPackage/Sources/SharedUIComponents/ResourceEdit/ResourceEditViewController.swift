@@ -96,6 +96,7 @@ public final class ResourceEditViewController: ViewController {
   private let navigationToPasswordEdit: NavigationToResourcePasswordEdit
   private let navigationToTextEdit: NavigationToResourceTextEdit
   private let navigationToURIEdit: NavigationToResourceURIEdit
+  private let navigationToIconEdit: NavigationToResourceIconEdit
   private let navigationToInvalidMetadataKey: NavigationToMetadataPinnedKeyValidationDialog
 
   internal var canNavigateToOTPScanning: Bool {
@@ -136,6 +137,7 @@ public final class ResourceEditViewController: ViewController {
       self.navigationToTextEdit = .placeholder
       self.navigationToOTPScanning = .placeholder
       self.navigationToURIEdit = .placeholder
+      self.navigationToIconEdit = .placeholder
     }
     else {
       self.navigationToSelf = try features.instance()
@@ -145,6 +147,7 @@ public final class ResourceEditViewController: ViewController {
       self.navigationToTextEdit = try features.instance()
       self.navigationToOTPScanning = try features.instance()
       self.navigationToURIEdit = try features.instance()
+      self.navigationToIconEdit = try features.instance()
     }
 
     self.navigationToInvalidMetadataKey = try features.instance()
@@ -397,6 +400,12 @@ public final class ResourceEditViewController: ViewController {
     }
   }
 
+  @MainActor internal func editIcon() async {
+    await consumingErrors {
+      await self.navigationToIconEdit.performCatching()
+    }
+  }
+
   @MainActor internal func editNote() async {
     await consumingErrors {
       let currentState = try await self.resourceEditForm.state.value
@@ -544,8 +553,9 @@ internal struct MainFormViewModel: Equatable {
   internal var additionalOptions: Array<AdditionalOption>
   internal var metadataOptions: Array<MetadataOption> {
     [
-      .editDescription,
+      .editIcon,
       .addtionalURIs,
+      .editDescription,
     ]
   }
 
@@ -583,6 +593,7 @@ internal struct MainFormViewModel: Equatable {
 
     case editDescription
     case addtionalURIs
+    case editIcon
 
     internal var title: DisplayableString {
       switch self {
@@ -590,6 +601,8 @@ internal struct MainFormViewModel: Equatable {
         return "resource.edit.section.metadata.description"
       case .addtionalURIs:
         return "resource.edit.section.metadata.additional.uris"
+      case .editIcon:
+        return "resource.edit.section.metadata.appearance"
       }
     }
   }
@@ -746,7 +759,7 @@ internal struct ResourceEditFieldViewModel {
     case .totp:
       return nil  // we are not allowing editing totp here unfortunately
 
-    case .undefined:
+    case .undefined, .hidden:
       return nil
     }
   }

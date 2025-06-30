@@ -299,6 +299,24 @@ public struct ResourceEditView: ControlledView {
         },
         accessory: DisclosureIndicatorImage.init
       )
+    case .editIcon:
+      CommonListRow(
+        contentAction: self.controller.editIcon,
+        content: {
+          ResourceFieldView(
+            name: nil,
+            content: {
+              HStack(spacing: 16) {
+                Image(named: .paintbrush)
+                Text(displayable: metadataOption.title)
+                  .font(.inter(ofSize: 14, weight: .semibold))
+                  .foregroundColor(.passboltPrimaryText)
+              }
+            }
+          )
+        },
+        accessory: DisclosureIndicatorImage.init
+      )
     }
   }
 

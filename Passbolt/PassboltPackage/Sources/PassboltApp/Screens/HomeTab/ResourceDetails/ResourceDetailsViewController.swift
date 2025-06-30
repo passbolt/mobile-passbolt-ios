@@ -32,6 +32,8 @@ internal final class ResourceDetailsViewController: ViewController {
   internal struct ViewState: Equatable {
 
     internal var name: String
+    internal var icon: ResourceIcon
+    internal var resourceTypeSlug: ResourceSpecification.Slug?
     internal var favorite: Bool
     internal var containsUndefinedFields: Bool
     internal var sections: Array<ResourceDetailsSectionViewModel>
@@ -105,6 +107,8 @@ internal final class ResourceDetailsViewController: ViewController {
     self.viewState = .init(
       initial: .init(
         name: .init(),
+        icon: .none,
+        resourceTypeSlug: nil,
         favorite: false,
         containsUndefinedFields: false,
         sections: .init(),
@@ -135,6 +139,8 @@ internal final class ResourceDetailsViewController: ViewController {
           }
           updateView { (viewState: inout ViewState) in
             viewState.name = resource.name
+            viewState.icon = .init(json: resource.meta.icon)
+            viewState.resourceTypeSlug = resource.type.specification.slug
             viewState.favorite = resource.favorite
             viewState.containsUndefinedFields = resource.containsUndefinedFields
             viewState.sections = sections(
@@ -147,7 +153,9 @@ internal final class ResourceDetailsViewController: ViewController {
             )
             viewState.expirationDate = resource.expired?.asDate
             viewState.canShowMembersList = sessionConfiguration.share.showMembersList
-            viewState.additionalURIs = .init(resource.meta.uris.arrayValue?.compactMap { $0.stringValue }.dropFirst() ?? [])
+            viewState.additionalURIs = .init(
+              resource.meta.uris.arrayValue?.compactMap { $0.stringValue }.dropFirst() ?? []
+            )
             if sessionConfiguration.share.showMembersList {
               viewState.permissions = resourcePermissions
             }
@@ -662,7 +670,7 @@ internal struct ResourceDetailsFieldViewModel {
         self.accessoryAction = .reveal
       }
 
-    case .undefined:
+    case .undefined, .hidden:
       return nil  // do not display undefined fields, unfortunately even a placeholder
     }
   }

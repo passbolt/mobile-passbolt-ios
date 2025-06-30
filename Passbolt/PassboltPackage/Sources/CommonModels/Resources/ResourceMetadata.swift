@@ -22,6 +22,7 @@
 //
 
 import Commons
+import Foundation
 
 public struct ResourceMetadata: Sendable {
   public let resourceId: Resource.ID
@@ -54,12 +55,37 @@ public struct ResourceMetadata: Sendable {
     }
   }
 
+  public var icon: ResourceIcon? {
+    didSet {
+      if let icon {
+        let iconData = try? JSONEncoder().encode(icon)
+        if let iconData = iconData,
+          let iconObject = try? JSONSerialization.jsonObject(with: iconData) as? [String: Any]
+        {
+          var iconJSON: [String: JSON] = [:]
+          for (key, value) in iconObject {
+            if let stringValue = value as? String {
+              iconJSON[key] = .string(stringValue)
+            }
+            else if let intValue = value as? Int {
+              iconJSON[key] = .integer(intValue)
+            }
+          }
+          json[keyPath: \.icon] = .object(iconJSON)
+        }
+      }
+      else {
+        json[keyPath: \.icon] = .null
+      }
+    }
+  }
+
   /// Initializes a new `ResourceMetadata` instance.
   /// - Parameters:
   ///  - resourceId: The resource ID.
   ///  - json: The JSON object.
   /// - Throws: `InternalInconsistency` if the JSON object is missing the name.
-  init(resourceId: Resource.ID, json: JSON) throws {
+  public init(resourceId: Resource.ID, json: JSON) throws {
     guard let name = json[keyPath: \.name].stringValue
     else {
       throw InternalInconsistency.error("ResourceMetadata: missing name")
@@ -69,5 +95,13 @@ public struct ResourceMetadata: Sendable {
     self.json = json
     self.username = json[keyPath: \.username].stringValue
     self.description = json[keyPath: \.description].stringValue
+
+    if case .object(let iconObject) = json[keyPath: \.icon] {
+      let iconData = try? JSONSerialization.data(withJSONObject: iconObject)
+      self.icon = iconData.flatMap { try? JSONDecoder().decode(ResourceIcon.self, from: $0) }
+    }
+    else {
+      self.icon = nil
+    }
   }
 }

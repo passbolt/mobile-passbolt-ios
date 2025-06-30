@@ -102,5 +102,6 @@ extension ResourceFieldName {
   public static let totp: ResourceFieldName = "totp"
   public static let secretKey: ResourceFieldName = "secret_key"
   public static let secret: ResourceFieldName = "secret"
+  public static let appearance: ResourceFieldName = "appearance"
 
 }

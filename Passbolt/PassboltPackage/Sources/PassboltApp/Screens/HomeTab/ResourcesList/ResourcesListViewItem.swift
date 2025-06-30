@@ -40,6 +40,8 @@ internal struct ResourcesResourceListItemDSVItem {
   public var name: String
   public var username: String?
   public var isExpired: Bool
+  public var icon: ResourceIcon
+  public var resourceTypeSlug: ResourceSpecification.Slug?
 
   public init(
     from resource: ResourceListItemDSV
@@ -48,7 +50,9 @@ internal struct ResourcesResourceListItemDSVItem {
       id: resource.id,
       name: resource.name,
       username: resource.username,
-      isExpired: resource.isExpired
+      isExpired: resource.isExpired,
+      icon: resource.icon,
+      resourceTypeSlug: resource.type.specification.slug
     )
   }
 
@@ -56,12 +60,16 @@ internal struct ResourcesResourceListItemDSVItem {
     id: ID,
     name: String,
     username: String?,
-    isExpired: Bool
+    isExpired: Bool,
+    icon: ResourceIcon,
+    resourceTypeSlug: ResourceSpecification.Slug?
   ) {
     self.id = id
     self.name = name
     self.username = username
     self.isExpired = isExpired
+    self.icon = icon
+    self.resourceTypeSlug = resourceTypeSlug
   }
 }
 

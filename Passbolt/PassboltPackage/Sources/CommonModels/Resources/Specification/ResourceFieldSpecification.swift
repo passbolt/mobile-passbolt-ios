@@ -126,7 +126,8 @@ public struct ResourceFieldSpecification {
       case .totp:
         assert(encrypted, "Unencrypted totp should not occur!")
         return .totp(name: name.displayable)
-
+      case .structure where path == \.meta.icon:
+        return .hidden
       case .structure:
         return .undefined(name: name.displayable)
       }

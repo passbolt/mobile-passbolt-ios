@@ -25,7 +25,6 @@ import Display
 import FeatureScopes
 import OSFeatures
 import Resources
-import SharedUIComponents
 
 internal final class OTPAttachSelectionListViewController: ViewController {
 
@@ -46,7 +45,7 @@ internal final class OTPAttachSelectionListViewController: ViewController {
     internal var confirmationAlert: Confirmation?
   }
 
-  internal let viewState: ViewStateSource<ViewState>
+  nonisolated internal let viewState: ViewStateSource<ViewState>
 
   private struct LocalState: Equatable {
     fileprivate static func == (
@@ -110,6 +109,7 @@ internal final class OTPAttachSelectionListViewController: ViewController {
               .init(
                 id: item.id,
                 type: item.type,
+                icon: item.icon,
                 name: item.name,
                 username: item.username,
                 state: local.selected?.id == item.id
@@ -263,6 +263,7 @@ internal struct TOTPAttachSelectionListItemViewModel: Equatable, Identifiable {
 
   internal let id: Resource.ID
   internal var type: ResourceType
+  internal var icon: ResourceIcon
   internal var name: String
   internal var username: String?
   internal var state: State

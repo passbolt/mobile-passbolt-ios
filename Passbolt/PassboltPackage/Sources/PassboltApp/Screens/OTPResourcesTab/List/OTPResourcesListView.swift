@@ -122,6 +122,8 @@ internal struct OTPResourcesListView: ControlledView {
           CommonListResourceOTPView(
             name: item.name,
             isExpired: item.isExpired,
+            icon: item.icon,
+            resourceTypeSlug: item.resourceTypeSlug,
             otpGenerator: item.generateOTP,
             contentAction: { (otp: OTPValue?) in
               await self.controller.revealAndCopyOTP(for: item.id)

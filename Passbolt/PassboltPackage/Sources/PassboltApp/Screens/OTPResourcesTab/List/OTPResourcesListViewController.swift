@@ -116,6 +116,8 @@ internal final class OTPResourcesListViewController: ViewController {
               id: item.id,
               name: item.name,
               isExpired: item.isExpired,
+              icon: item.icon,
+              resourceTypeSlug: item.type.specification.slug,
               generateOTP: { () async -> OTPValue? in
                 (try? await otpIterator.next())?.flatMap { $0 }
               }
@@ -248,6 +250,8 @@ internal struct TOTPResourceViewModel {
   internal var id: Resource.ID
   internal var name: String
   internal var isExpired: Bool
+  internal var icon: ResourceIcon
+  internal var resourceTypeSlug: ResourceSpecification.Slug?
   internal var generateOTP: @Sendable () async -> OTPValue?
 }
 

@@ -98,6 +98,8 @@ internal struct OTPAttachSelectionListView: ControlledView {
         withEach(\.listItems) { item in
           CommonListResourceView(
             name: item.name,
+            icon: item.icon,
+            resourceTypeSlug: item.type.specification.slug,
             username: item.username,
             contentAction: {
               self.controller.select(item)

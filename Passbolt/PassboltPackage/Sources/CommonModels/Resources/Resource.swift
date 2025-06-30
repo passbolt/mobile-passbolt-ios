@@ -137,6 +137,10 @@ extension Resource {
   public var isSimplePasswordResource: Bool {
     self.type.specification.slug.isSimplePasswordType
   }
+
+  public var icon: ResourceIcon {
+    .init(json: meta[keyPath: \.icon])
+  }
 }
 
 // MARK: - Validation
@@ -285,7 +289,8 @@ extension Resource {
     case .list:
       if let arrayValue: [JSON] = value.arrayValue {
         self[keyPath: specification.path] = .array(arrayValue)
-      } else {
+      }
+      else {
         self[keyPath: specification.path] = .array([value])
       }
 
@@ -514,6 +519,8 @@ extension Resource {
         }
       case .list:
         self[keyPath: field.path] = .array([])
+      case .hidden:
+        self[keyPath: field.path] = .null  // hidden fields are not initialized
       case .undefined:
         break  // can't initialize undefined fields
       }

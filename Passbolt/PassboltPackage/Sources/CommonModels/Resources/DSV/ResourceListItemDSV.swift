@@ -33,6 +33,7 @@ public struct ResourceListItemDSV {
   public var username: String?
   public var url: String?
   public var isExpired: Bool
+  public var icon: ResourceIcon
 
   public init(
     id: Resource.ID,
@@ -42,7 +43,8 @@ public struct ResourceListItemDSV {
     name: String,
     username: String?,
     url: String?,
-    isExpired: Bool? = false
+    isExpired: Bool? = false,
+    icon: ResourceIcon
   ) {
     self.id = id
     self.type = type
@@ -52,6 +54,7 @@ public struct ResourceListItemDSV {
     self.username = username
     self.url = url
     self.isExpired = isExpired ?? false
+    self.icon = icon
   }
 }
 

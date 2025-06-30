@@ -146,6 +146,13 @@ extension ResourceSpecification {
           required: false,
           encrypted: false
         ),
+        .init(
+          path: \.meta.icon,
+          name: .appearance,
+          content: .structure([]),
+          required: false,
+          encrypted: false
+        ),
       ],
       secretFields: [
         .init(
@@ -200,6 +207,13 @@ extension ResourceSpecification {
             minLength: .none,
             maxLength: 10000
           ),
+          required: false,
+          encrypted: false
+        ),
+        .init(
+          path: \.meta.icon,
+          name: .appearance,
+          content: .structure([]),
           required: false,
           encrypted: false
         ),
@@ -260,6 +274,13 @@ extension ResourceSpecification {
           required: false,
           encrypted: false
         ),
+        .init(
+          path: \.meta.icon,
+          name: .appearance,
+          content: .structure([]),
+          required: false,
+          encrypted: false
+        ),
       ],
       secretFields: [
         .init(
@@ -311,6 +332,13 @@ extension ResourceSpecification {
             minLength: .none,
             maxLength: 10000
           ),
+          required: false,
+          encrypted: false
+        ),
+        .init(
+          path: \.meta.icon,
+          name: .appearance,
+          content: .structure([]),
           required: false,
           encrypted: false
         ),

@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "password_with_totp.pdf",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

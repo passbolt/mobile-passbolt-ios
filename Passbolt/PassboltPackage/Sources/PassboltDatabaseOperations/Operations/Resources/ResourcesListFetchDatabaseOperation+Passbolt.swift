@@ -73,6 +73,9 @@ extension ResourcesListFetchDatabaseOperation {
               resources.parentFolderID AS parentFolderID,
               resourceMetadata.name AS name,
               resourceMetadata.username AS username,
+              resourceMetadata.icon_type AS iconType,
+              resourceMetadata.icon_value AS iconValue,
+              resourceMetadata.icon_background_color AS iconBackgroundColor,
               resources.expired AS expired,
               group_concat(resourceURI.uri, ?) AS uris
             FROM
@@ -112,6 +115,9 @@ extension ResourcesListFetchDatabaseOperation {
               resourceMetadata.name AS name,
               resourceMetadata.username AS username,
               resources.expired AS expired,
+              resourceMetadata.icon_type AS iconType,
+              resourceMetadata.icon_value AS iconValue,
+              resourceMetadata.icon_background_color AS iconBackgroundColor,
               group_concat(resourceURI.uri, ?) AS uris
             FROM
               resources
@@ -145,7 +151,10 @@ extension ResourcesListFetchDatabaseOperation {
             resourceMetadata.name AS name,
             resourceMetadata.username AS username,
             resources.expired AS expired,
-              group_concat(resourceURI.uri, ?) AS uris
+            resourceMetadata.icon_type AS iconType,
+            resourceMetadata.icon_value AS iconValue,
+            resourceMetadata.icon_background_color AS iconBackgroundColor,
+            group_concat(resourceURI.uri, ?) AS uris
           FROM
             resources
           JOIN
@@ -512,6 +521,12 @@ extension ResourcesListFetchDatabaseOperation {
           return timestamp.asDate.timeIntervalSinceNow < 0
         }
 
+        let resourceIcon: ResourceIcon = .init(
+          type: dataRow.iconType.flatMap { .init(rawValue: $0) },
+          value: dataRow.iconValue.flatMap(ResourceIcon.IconIdentifier.init(rawValue:)),
+          backgroundColor: dataRow.iconBackgroundColor
+        )
+
         return ResourceListItemDSV(
           id: id,
           type: .init(
@@ -523,7 +538,8 @@ extension ResourcesListFetchDatabaseOperation {
           name: name,
           username: dataRow.username,
           url: dataRow.uris?.components(separatedBy: uriDelimiter).first,
-          isExpired: isExpired ?? false
+          isExpired: isExpired ?? false,
+          icon: resourceIcon
         )
       }
   }

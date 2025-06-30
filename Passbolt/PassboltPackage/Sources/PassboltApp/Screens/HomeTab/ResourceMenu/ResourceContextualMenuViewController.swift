@@ -150,7 +150,8 @@ internal final class ResourceContextualMenuViewController: ViewController {
           if resource.canEdit {
             if resource.hasPassword {
               modifyMenuItems.append(.editResource(isStandaloneTOTP: false))
-            } else if resource.hasTOTP {
+            }
+            else if resource.hasTOTP {
               modifyMenuItems.append(.editResource(isStandaloneTOTP: true))
             }
 

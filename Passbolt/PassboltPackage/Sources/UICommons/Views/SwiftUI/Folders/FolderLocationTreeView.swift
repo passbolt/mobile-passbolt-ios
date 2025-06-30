@@ -68,8 +68,8 @@ public struct FolderLocationTreeView: View {
     for node: Node
   ) -> some View {
     HStack(spacing: 4) {
-      if case .leaf(_, let name) = node {
-        LetterIconView(text: name)
+      if case .leaf(_, _, let icon, let slug) = node {
+        ResourceIconView(resourceIcon: icon, resourceTypeSlug: slug)
           .frame(width: 40)
       }
       else {
@@ -119,7 +119,9 @@ extension FolderLocationTreeView {
     )
     case leaf(
       id: Resource.ID?,
-      name: String
+      name: String,
+      icon: ResourceIcon,
+      resourceTypeSlug: ResourceSpecification.Slug?
     )
 
     public var id: AnyHashable {
@@ -130,7 +132,7 @@ extension FolderLocationTreeView {
       case .node(let id, _, _, _):
         return id
 
-      case .leaf(let id, _):
+      case .leaf(let id, _, _, _):
         return id
       }
     }
@@ -143,7 +145,7 @@ extension FolderLocationTreeView {
       case .node(_, let name, _, _):
         return name
 
-      case .leaf(_, let name):
+      case .leaf(_, let name, _, _):
         return name
       }
     }

@@ -127,7 +127,10 @@ extension ResourcesStoreDatabaseOperation {
                 data,
                 name,
                 username,
-                description
+                description,
+                icon_type,
+                icon_value,
+                icon_background_color
               )
             VALUES
               (
@@ -135,7 +138,10 @@ extension ResourcesStoreDatabaseOperation {
                 ?2,
                 ?3,
                 ?4,
-                ?5
+                ?5,
+                ?6,
+                ?7,
+                ?8
               )
             ON CONFLICT
               (
@@ -145,7 +151,10 @@ extension ResourcesStoreDatabaseOperation {
               data=?2,
               name=?3,
               username=?4,
-              description=?5
+              description=?5,
+              icon_type=?6,
+              icon_value=?7,
+              icon_background_color=?8
             ;
             """,
             arguments:
@@ -153,7 +162,10 @@ extension ResourcesStoreDatabaseOperation {
             metadata.data,
             metadata.name,
             metadata.username,
-            metadata.description
+            metadata.description,
+            metadata.icon?.type.rawValue,
+            metadata.icon?.value?.rawValue,
+            metadata.icon?.backgroundColor
           )
         )
 

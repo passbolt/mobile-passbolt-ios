@@ -86,13 +86,22 @@ internal struct ResourceDetailsView: ControlledView {
             VStack(spacing: 8) {
               with(\.favorite) { (favorite: Bool) in
                 ZStack(alignment: .topTrailing) {
-                  LetterIconView(text: name)
-                    .padding(
-                      top: 16,
-                      leading: favorite
-                        ? 16
-                        : 0
-                    )
+                  with(\.icon) { icon in
+                    with(\.resourceTypeSlug) { resourceTypeSlug in
+
+                      ResourceIconView(
+                        resourceIcon: icon,
+                        resourceTypeSlug: resourceTypeSlug
+                      )
+                      .padding(
+                        top: 16,
+                        leading: favorite
+                          ? 16
+                          : 0
+                      )
+                    }
+                  }
+
                   VStack {
                     if favorite {
                       Image(named: .starFilled)

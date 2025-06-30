@@ -75,6 +75,8 @@ public struct ResourcesListSectionView: View {
             name: resource.name,
             username: resource.username,
             isExpired: resource.isExpired,
+            icon: resource.icon,
+            resourceTypeSlug: resource.type.specification.slug,
             contentAction: {
               try await self.tapAction(resource.id)
             },

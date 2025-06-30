@@ -34,7 +34,8 @@ extension Array where Element == ResourceListItemDSV {
         parentFolderID: .none,
         name: "test",
         username: "test",
-        url: "test"
+        url: "test",
+        icon: .none
       )
     ]
   }
@@ -48,7 +49,8 @@ extension Array where Element == ResourceListItemDSV {
         parentFolderID: .none,
         name: "test",
         username: "test",
-        url: "test"
+        url: "test",
+        icon: .none
       ),
       .init(
         id: .mock_2,
@@ -57,7 +59,8 @@ extension Array where Element == ResourceListItemDSV {
         parentFolderID: .none,
         name: "testAlt",
         username: "testAlt",
-        url: "testAlt"
+        url: "testAlt",
+        icon: .none
       ),
     ]
   }

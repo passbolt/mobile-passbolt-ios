@@ -185,6 +185,8 @@ internal struct TagsExplorerView: ComponentView {
           name: resource.name,
           username: resource.username,
           isExpired: resource.isExpired,
+          icon: resource.icon,
+          resourceTypeSlug: resource.type.specification.slug,
           contentAction: {
             self.controller.presentResourceDetails(resource.id)
           },

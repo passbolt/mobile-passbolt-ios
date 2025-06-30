@@ -311,7 +311,9 @@ extension OTPEditFormViewController {
 
       if resource.secret.totpSecretValue == nil,
         let newResourceTypeSlug: ResourceSpecification.Slug = resource.type.detachedOTPSlug,
-        let newResourceType = editingContext.availableTypes.first(where: { $0.specification.slug == newResourceTypeSlug })
+        let newResourceType = editingContext.availableTypes.first(where: {
+          $0.specification.slug == newResourceTypeSlug
+        })
       {
         try self.resourceEditForm.updateType(newResourceType)
       }
