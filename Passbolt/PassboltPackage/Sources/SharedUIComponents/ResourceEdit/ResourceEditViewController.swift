@@ -485,7 +485,8 @@ public final class ResourceEditViewController: ViewController {
   edited: Set<ResourceType.FieldPath>,
   countEntropy: (String) -> Entropy
 ) -> MainFormViewModel {
-  guard resource.type.specification.slug != .placeholder
+  let resourceTypeSlug: ResourceSpecification.Slug = resource.type.specification.slug
+  guard resourceTypeSlug != .placeholder
   else {
     return .empty
   }
@@ -528,15 +529,30 @@ public final class ResourceEditViewController: ViewController {
     ? "resource.edit.section.totp.title"
     : "resource.edit.section.password.title"
 
-  let additionalOptions: Array<MainFormViewModel.AdditionalOption> =
+  var additionalOptions: Array<MainFormViewModel.AdditionalOption> =
     isStandaloneTOTP
-    ? [.addPassword, .addNote]
-    : [.addTOTP, .addNote]
+    ? [.addPassword]
+    : [.addTOTP]
+  if resourceTypeSlug.canEditNote {
+    additionalOptions.append(.addNote)
+  }
+
+  var metadataOptions: Array<MainFormViewModel.MetadataOption> = .init()
+  if resourceTypeSlug.canEditAppearance {
+    metadataOptions.append(.editIcon)
+  }
+  if resourceTypeSlug.canEditMetadataDescription(isNewResource: resource.isLocal == true) {
+    metadataOptions.append(.editDescription)
+  }
+  if resourceTypeSlug.canEditMutlipleURIs {
+    metadataOptions.append(.addtionalURIs)
+  }
 
   return .init(
     title: title,
     fields: result,
-    additionalOptions: additionalOptions
+    additionalOptions: additionalOptions,
+    metadataOptions: metadataOptions
   )
 }
 
@@ -545,28 +561,25 @@ internal struct MainFormViewModel: Equatable {
   internal static let empty: MainFormViewModel = .init(
     title: "",
     fields: .init(),
-    additionalOptions: .init()
+    additionalOptions: .init(),
+    metadataOptions: .init()
   )
 
   internal var title: DisplayableString
   internal var fields: IdentifiedArray<ResourceEditFieldViewModel>
   internal var additionalOptions: Array<AdditionalOption>
-  internal var metadataOptions: Array<MetadataOption> {
-    [
-      .editIcon,
-      .addtionalURIs,
-      .editDescription,
-    ]
-  }
+  internal var metadataOptions: Array<MetadataOption>
 
   fileprivate init(
     title: DisplayableString,
     fields: IdentifiedArray<ResourceEditFieldViewModel>,
-    additionalOptions: Array<AdditionalOption>
+    additionalOptions: Array<AdditionalOption>,
+    metadataOptions: Array<MetadataOption>
   ) {
     self.title = title
     self.fields = fields
     self.additionalOptions = additionalOptions
+    self.metadataOptions = metadataOptions
   }
 
   internal enum AdditionalOption: Identifiable, Equatable {
@@ -811,4 +824,36 @@ extension ResourceEditFieldViewModel: Equatable {}
 extension ResourceEditFieldViewModel: Identifiable {
 
   internal var id: ResourceType.FieldPath { self.path }
+}
+
+extension ResourceSpecification.Slug {
+  fileprivate func canEditMetadataDescription(isNewResource: Bool) -> Bool {
+    switch self {
+    case .password where isNewResource == false:
+      return true
+    case .v5Password where isNewResource == false:
+      return true
+    case .v5Default, .v5DefaultWithTOTP, .v5StandaloneTOTP:
+      return true
+    default:
+      return false
+    }
+  }
+
+  fileprivate var canEditNote: Bool {
+    switch self {
+    case .passwordWithDescription, .passwordWithTOTP, .v5Default, .v5DefaultWithTOTP:
+      return true
+    default:
+      return false
+    }
+  }
+
+  fileprivate var canEditAppearance: Bool {
+    self.isV5Type
+  }
+
+  fileprivate var canEditMutlipleURIs: Bool {
+    self.isV5Type
+  }
 }

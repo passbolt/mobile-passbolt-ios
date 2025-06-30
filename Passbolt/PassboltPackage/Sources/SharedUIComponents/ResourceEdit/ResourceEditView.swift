@@ -148,38 +148,44 @@ public struct ResourceEditView: ControlledView {
         .padding(.top, 16)
       }
       when(\.showsAdvancedSettings) {
-        when(\.canAddAdditionalSecrets) {
-          CommonListSection {
-            VStack(alignment: .leading, spacing: 16) {
-              Text(displayable: "resource.create.additional.secrets.title")
-                .font(.inter(ofSize: 16, weight: .bold))
-                .padding(.vertical, 20)
-              VStack(spacing: 16) {
-                withEach(\.mainForm.additionalOptions) { (additionalOption: MainFormViewModel.AdditionalOption) in
-                  self.additionalActionView(for: additionalOption)
+        Group {
+          when(\.canAddAdditionalSecrets) {
+            CommonListSection {
+              VStack(alignment: .leading, spacing: 16) {
+                Text(displayable: "resource.create.additional.secrets.title")
+                  .font(.inter(ofSize: 16, weight: .bold))
+                  .padding(.vertical, 20)
+                VStack(spacing: 16) {
+                  withEach(\.mainForm.additionalOptions) { (additionalOption: MainFormViewModel.AdditionalOption) in
+                    self.additionalActionView(for: additionalOption)
+                  }
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .backgroundColor(.passboltBackgroundGray)
+                .cornerRadius(4)
               }
-              .padding(.horizontal, 16)
-              .padding(.vertical, 8)
-              .backgroundColor(.passboltBackgroundGray)
-              .cornerRadius(4)
             }
           }
-        }
-        CommonListSection {
-          VStack(alignment: .leading, spacing: 16) {
-            Text(displayable: "resource.edit.section.metadata.title")
-              .font(.inter(ofSize: 16, weight: .bold))
-              .padding(.vertical, 20)
-            VStack(spacing: 16) {
-              withEach(\.mainForm.metadataOptions) { (additionalOption: MainFormViewModel.MetadataOption) in
-                self.additionalActionView(for: additionalOption)
+          with(\.mainForm.metadataOptions) { metadataOptions in
+            if metadataOptions.isEmpty == false {
+              CommonListSection {
+                VStack(alignment: .leading, spacing: 16) {
+                  Text(displayable: "resource.edit.section.metadata.title")
+                    .font(.inter(ofSize: 16, weight: .bold))
+                    .padding(.vertical, 20)
+                  VStack(spacing: 16) {
+                    withEach(\.mainForm.metadataOptions) { (additionalOption: MainFormViewModel.MetadataOption) in
+                      self.additionalActionView(for: additionalOption)
+                    }
+                  }
+                  .padding(.horizontal, 16)
+                  .padding(.vertical, 8)
+                  .backgroundColor(.passboltBackgroundGray)
+                  .cornerRadius(4)
+                }
               }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .backgroundColor(.passboltBackgroundGray)
-            .cornerRadius(4)
           }
         }
         .padding(.bottom, 120)
