@@ -97,7 +97,6 @@ public final class MetadataPinnedKeyValidationDialogViewController: ViewControll
     }
   }
 
-  private let navigationToSelf: NavigationToMetadataPinnedKeyValidationDialog
   private let metadataKeyService: MetadataKeysService
 
   private let context: Context
@@ -116,7 +115,6 @@ public final class MetadataPinnedKeyValidationDialogViewController: ViewControll
 
     self.context = context
 
-    self.navigationToSelf = try features.instance()
     self.metadataKeyService = try features.instance()
 
     self.viewState = .init(
@@ -133,14 +131,28 @@ public final class MetadataPinnedKeyValidationDialogViewController: ViewControll
     else {
       try await metadataKeyService.trustCurrentKey()
     }
-    await navigationToSelf.revertCatching()
+    await revertNavigation()
 
     try await context.onTrustedKey()
   }
 
   internal func dismiss() async {
     await context.onCancel?()
-    await navigationToSelf.revertCatching()
+    await revertNavigation()
+  }
+
+  private func revertNavigation() async {
+    await consumingErrors {
+      // TODO: This is a workaround to avoid the navigation tree to be used in extension context.
+      if isInExtensionContext {
+        let navigationTree: NavigationTree = self.features.instance(of: NavigationTree.self)
+        await navigationTree.dismiss(self.viewNodeID)
+      }
+      else {
+        let navigationToSelf: NavigationToMetadataPinnedKeyValidationDialog = try self.features.instance()
+        await navigationToSelf.revertCatching()
+      }
+    }
   }
 }
 

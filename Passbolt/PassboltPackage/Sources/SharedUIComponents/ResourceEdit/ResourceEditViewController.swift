@@ -97,7 +97,6 @@ public final class ResourceEditViewController: ViewController {
   private let navigationToTextEdit: NavigationToResourceTextEdit
   private let navigationToURIEdit: NavigationToResourceURIEdit
   private let navigationToIconEdit: NavigationToResourceIconEdit
-  private let navigationToInvalidMetadataKey: NavigationToMetadataPinnedKeyValidationDialog
 
   internal var canNavigateToOTPScanning: Bool {
     self.navigationToOTPScanning.canPerform()
@@ -149,8 +148,6 @@ public final class ResourceEditViewController: ViewController {
       self.navigationToURIEdit = try features.instance()
       self.navigationToIconEdit = try features.instance()
     }
-
-    self.navigationToInvalidMetadataKey = try features.instance()
 
     self.resourceEditForm = try features.instance()
 
@@ -266,12 +263,7 @@ public final class ResourceEditViewController: ViewController {
       throw error
     }
     catch let error as MetadataPinnedKeyValidationError {
-      await self.navigationToInvalidMetadataKey.performCatching(
-        context: .init(
-          reason: error.reason,
-          onTrustedKey: { [weak self] in try await self?.sendForm() }
-        )
-      )
+      await self.navigateToMetadataPinnedKeyValidation(reason: error.reason)
     }
     catch {
       throw error
@@ -476,6 +468,36 @@ public final class ResourceEditViewController: ViewController {
       }
 
       try await self.navigationToOTPAdvanced.perform(context: .init(totpPath: totpPath))
+    }
+  }
+
+  private func navigateToMetadataPinnedKeyValidation(reason: MetadataPinnedKeyValidationError.Reason) async {
+    await consumingErrors {
+      if isInExtensionContext {
+        // TODO: unify navigation between app and extension
+        let navigationTree: NavigationTree = self.features.instance(of: NavigationTree.self)
+        try navigationTree.push(
+          MetadataPinnedKeyValidationDialogView.self,
+          controller: .init(
+            context: .init(
+              reason: reason,
+              onTrustedKey: { [weak self] in
+                try await self?.sendForm()
+              }
+            ),
+            features: features
+          )
+        )
+      }
+      else {
+        let navigationToInvalidMetadataKey: NavigationToMetadataPinnedKeyValidationDialog = try self.features.instance()
+        await navigationToInvalidMetadataKey.performCatching(
+          context: .init(
+            reason: reason,
+            onTrustedKey: { [weak self] in try await self?.sendForm() }
+          )
+        )
+      }
     }
   }
 }

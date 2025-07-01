@@ -375,8 +375,6 @@ extension MetadataKeysService {
     }
 
     @Sendable func signMetadataKey(message: String) async throws -> ArmoredPGPMessage? {
-      let accountId: Account.LocalID = context.account.localID
-
       guard
         let userPublicKeyDSV: UserPublicKeyDSV = try await fetchUserPublicKey.execute([context.account.userID]).first
       else {
