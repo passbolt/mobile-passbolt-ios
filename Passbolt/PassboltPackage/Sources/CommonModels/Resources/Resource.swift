@@ -444,13 +444,25 @@ extension Resource {
     }
   }
 
+  public mutating func createMetadata() {
+    if self.type.isV4ResourceType, self.name.isEmpty {
+      self.name = Resource.defaultName
+    }
+    else if self[keyPath: \.meta.name].stringValue?.isEmpty == true {
+      self[keyPath: \.meta.name] = .string(Resource.defaultName)
+    }
+  }
+
   public mutating func createSecretMetadata() {
-    guard case .object = self.secret
+    guard case .null = self.secret
     else {
-      return  // legacy resource secret
+      return
     }
 
     self.secret[keyPath: \.object_type] = .string(MetadataObjectType.secretData.rawValue)
+    if let passwordPath: ResourceType.FieldPath = self.firstPasswordPath {
+      self[keyPath: passwordPath] = .string("")
+    }
   }
 }
 
@@ -473,6 +485,10 @@ extension Resource {
       else { continue }  // skip field
 
       switch field.semantics {
+      case .text where field.path == \.meta.name:
+        // name is required field, but can be empty.
+        // it is not marked as required on UI
+        self[keyPath: field.path] = .string("")
       case .text, .longText:
         if field.required {
           self[keyPath: field.path] = .string("")
@@ -526,4 +542,8 @@ extension Resource {
       }
     }
   }
+}
+
+extension Resource {
+  fileprivate static let defaultName: String = "no name"
 }
