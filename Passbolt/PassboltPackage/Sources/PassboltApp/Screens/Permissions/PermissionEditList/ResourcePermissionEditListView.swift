@@ -53,7 +53,7 @@ internal struct ResourcePermissionEditListView: ComponentView {
     VStack(spacing: 0) {
       if self.state.permissionListItems.isEmpty {
         self.addPermissionButton
-
+          .padding(.horizontal, 16)
         EmptyListView(
           message: .localized(
             key: "resource.permission.edit.list.empty.message"
@@ -76,10 +76,10 @@ internal struct ResourcePermissionEditListView: ComponentView {
                 item,
                 action: {
                   switch item {
-                  case let .user(details, _):
+                  case .user(let details, _):
                     self.controller.showUserPermissionEdit(details)
 
-                  case let .userGroup(details):
+                  case .userGroup(let details):
                     self.controller.showUserGroupPermissionEdit(details)
                   }
                 }
