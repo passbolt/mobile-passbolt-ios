@@ -24,8 +24,8 @@
 import Accounts
 import Display
 import FeatureScopes
-import OSFeatures
 import Metadata
+import OSFeatures
 import Resources
 import Session
 import SessionData

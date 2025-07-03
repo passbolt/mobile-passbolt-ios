@@ -55,7 +55,7 @@ public final class AccountSelectionCollectionView: CollectionView<SingleSection,
   ) -> CollectionViewCell? {
 
     switch item {
-    case let .account(accountItem):
+    case .account(let accountItem):
       let cell: AccountSelectionCell = dequeueOrMakeReusableCell(at: indexPath)
 
       cell.setup(
@@ -70,7 +70,7 @@ public final class AccountSelectionCollectionView: CollectionView<SingleSection,
 
       return cell
 
-    case let .addAccount(addAccountItem):
+    case .addAccount(let addAccountItem):
       let cell: AccountSelectionAddAccountCell = dequeueOrMakeReusableCell(at: indexPath)
 
       cell.setup(

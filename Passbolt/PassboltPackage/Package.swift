@@ -393,7 +393,7 @@ let package = Package(
     .testTarget(
       name: "PassboltMetadataTests",
       dependencies: [
-        "PassboltMetadata",
+        "PassboltMetadata"
       ]
     ),
     // MARK: - Vendor

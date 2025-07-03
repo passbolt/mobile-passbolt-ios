@@ -65,7 +65,7 @@ extension SessionAuthorization {
       for method: SessionAuthorizationMethod
     ) throws -> AuthorizationData {
       switch method {
-      case let .adHoc(account, passphrase, privateKey):
+      case .adHoc(let account, let passphrase, let privateKey):
         try verifyPassphrase(passphrase, forKey: privateKey)
 
         return (
@@ -74,7 +74,7 @@ extension SessionAuthorization {
           privateKey: privateKey
         )
 
-      case let .passphrase(account, passphrase):
+      case .passphrase(let account, let passphrase):
         let privateKey: ArmoredPGPPrivateKey =
           try accountsData
           .loadAccountPrivateKey(account.localID)
@@ -87,7 +87,7 @@ extension SessionAuthorization {
           privateKey: privateKey
         )
 
-      case let .biometrics(account):
+      case .biometrics(let account):
         let passphrase: Passphrase =
           try accountsData
           .loadAccountPassphrase(account.localID)

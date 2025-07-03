@@ -68,7 +68,7 @@ internal final class Window {
       for try await disposition in controller.screenStateDispositionSequence() {
         switch disposition {
         // Use last state for same session after authorization.
-        case let .useAuthorizedScreenState(account):
+        case .useAuthorizedScreenState(let account):
           self.screenStateAccount = account
           switch self.screenStateCache {
           case .cached(let cached, for: account):
@@ -108,7 +108,7 @@ internal final class Window {
           )
 
         // Prompt user with authorization screen if it is not already displayed.
-        case let .requestPassphrase(account, message):
+        case .requestPassphrase(let account, let message):
           guard
             !self.isSplashScreenDisplayed,
             !self.isAuthorizationDisplayed
@@ -142,7 +142,7 @@ internal final class Window {
           )
 
         // Prompt user with mfa screen if it is not already displayed.
-        case let .requestMFA(account, providers):
+        case .requestMFA(let account, let providers):
           guard
             !self.isSplashScreenDisplayed,
             !self.isMFAPromptDisplayed

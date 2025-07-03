@@ -50,7 +50,7 @@ extension Publisher {
   where ErrorType: TheError {
     self.handleEvents(
       receiveCompletion: { completion in
-        guard case let .failure(error as ErrorType) = completion
+        guard case .failure(let error as ErrorType) = completion
         else { return }
         handler(error)
         diagnosticLog(
@@ -70,7 +70,7 @@ extension Publisher {
   ) -> Publishers.HandleEvents<Self> {
     self.handleEvents(
       receiveCompletion: { completion in
-        guard case let .failure(error) = completion
+        guard case .failure(let error) = completion
         else { return }
         let theError: TheError = error.asTheError()
         handler(theError)

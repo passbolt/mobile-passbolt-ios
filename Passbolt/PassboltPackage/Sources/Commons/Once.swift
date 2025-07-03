@@ -55,7 +55,7 @@ public struct Once: Sendable {
       case .finished, .inProgress:
         return  // NOP
 
-      case let .waiting(execute):
+      case .waiting(let execute):
         state.execution = .inProgress(
           .init {
             await execute()

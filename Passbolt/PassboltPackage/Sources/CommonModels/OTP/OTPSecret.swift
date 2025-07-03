@@ -39,7 +39,7 @@ public enum OTPSecret {
     }
     set {
       switch self {
-      case let .totp(_, algorithm, digits, period):
+      case .totp(_, let algorithm, let digits, let period):
         self = .totp(
           sharedSecret: newValue,
           algorithm: algorithm,
@@ -59,7 +59,7 @@ public enum OTPSecret {
     }
     set {
       switch self {
-      case let .totp(sharedSecret, _, digits, period):
+      case .totp(let sharedSecret, _, let digits, let period):
         self = .totp(
           sharedSecret: sharedSecret,
           algorithm: newValue,
@@ -79,7 +79,7 @@ public enum OTPSecret {
     }
     set {
       switch self {
-      case let .totp(sharedSecret, algorithm, _, period):
+      case .totp(let sharedSecret, let algorithm, _, let period):
         self = .totp(
           sharedSecret: sharedSecret,
           algorithm: algorithm,
@@ -99,7 +99,7 @@ public enum OTPSecret {
     }
     set {
       switch self {
-      case let .totp(sharedSecret, algorithm, digits, period):
+      case .totp(let sharedSecret, let algorithm, let digits, let period):
         self = .totp(
           sharedSecret: sharedSecret,
           algorithm: algorithm,

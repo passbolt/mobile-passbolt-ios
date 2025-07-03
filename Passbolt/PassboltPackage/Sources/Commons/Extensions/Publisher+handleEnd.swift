@@ -41,7 +41,7 @@ extension Publisher {
         case .finished:
           handler(.finished)
 
-        case let .failure(error):
+        case .failure(let error):
           handler(.failed(error))
         }
       },

@@ -109,7 +109,7 @@ extension AttributedString {
     switch self {
     case .terminator:
       return NSAttributedString()
-    case let .string(displayableString, attributes: attributes, tail: tail):
+    case .string(let displayableString, let attributes, let tail):
       let string: String = displayableString.string()
       var stringAttributes: Dictionary<NSAttributedString.Key, Any>? = [
         .font: attributes.font,
@@ -139,7 +139,7 @@ extension AttributedString: CustomStringConvertible {
     switch self {
     case .terminator:
       return ""
-    case let .string(string, attributes: _, tail: tail):
+    case .string(let string, attributes: _, let tail):
       return string.string() + tail.description
     }
   }
@@ -151,7 +151,7 @@ extension AttributedString: CustomDebugStringConvertible {
     switch self {
     case .terminator:
       return ""
-    case let .string(string, attributes: attributes, tail: tail):
+    case .string(let string, let attributes, let tail):
       return "^[\(attributes)]\(string)" + tail.debugDescription
     }
   }

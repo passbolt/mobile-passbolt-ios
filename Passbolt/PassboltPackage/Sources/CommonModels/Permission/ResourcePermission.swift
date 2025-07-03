@@ -43,7 +43,7 @@ extension ResourcePermission {
 
   public var userID: User.ID? {
     switch self {
-    case let .user(id, _, _):
+    case .user(let id, _, _):
       return id
 
     case .userGroup:
@@ -63,20 +63,20 @@ extension ResourcePermission {
 
   public var permissionID: Permission.ID? {
     switch self {
-    case let .user(_, _, permissionID):
+    case .user(_, _, let permissionID):
       return permissionID
 
-    case let .userGroup(_, _, permissionID):
+    case .userGroup(_, _, let permissionID):
       return permissionID
     }
   }
 
   public var permission: Permission {
     switch self {
-    case let .user(_, permission, _):
+    case .user(_, let permission, _):
       return permission
 
-    case let .userGroup(_, permission, _):
+    case .userGroup(_, let permission, _):
       return permission
     }
   }

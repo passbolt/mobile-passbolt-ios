@@ -56,10 +56,10 @@ internal struct ResourceFolderPermissionListView: ControlledView {
               item,
               action: {
                 switch item {
-                case let .user(details, _):
+                case .user(let details, _):
                   try await self.controller.showUserPermissionDetails(details)
 
-                case let .userGroup(details):
+                case .userGroup(let details):
                   try await self.controller.showUserGroupPermissionDetails(details)
                 }
               }

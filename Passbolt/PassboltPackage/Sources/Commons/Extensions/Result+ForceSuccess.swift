@@ -27,7 +27,7 @@ extension Result {
     switch self {
     case .success:
       break
-    case let .failure(error):
+    case .failure(let error):
       fatalError("Critical error, message: \(message), reason: \(error)")
     }
   }

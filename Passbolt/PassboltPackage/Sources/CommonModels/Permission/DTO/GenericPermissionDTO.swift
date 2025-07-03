@@ -56,18 +56,18 @@ extension GenericPermissionDTO {
 
   public var id: Permission.ID {
     switch self {
-    case let .userToResource(id, _, _, _),
-      let .userToFolder(id, _, _, _),
-      let .userGroupToResource(id, _, _, _),
-      let .userGroupToFolder(id, _, _, _):
+    case .userToResource(let id, _, _, _),
+      .userToFolder(let id, _, _, _),
+      .userGroupToResource(let id, _, _, _),
+      .userGroupToFolder(let id, _, _, _):
       return id
     }
   }
 
   public var userID: User.ID? {
     switch self {
-    case let .userToResource(_, userID, _, _),
-      let .userToFolder(_, userID, _, _):
+    case .userToResource(_, let userID, _, _),
+      .userToFolder(_, let userID, _, _):
       return userID
     case .userGroupToResource,
       .userGroupToFolder:
@@ -77,8 +77,8 @@ extension GenericPermissionDTO {
 
   public var userGroupID: UserGroup.ID? {
     switch self {
-    case let .userGroupToResource(_, userGroupID, _, _),
-      let .userGroupToFolder(_, userGroupID, _, _):
+    case .userGroupToResource(_, let userGroupID, _, _),
+      .userGroupToFolder(_, let userGroupID, _, _):
       return userGroupID
     case .userToResource,
       .userToFolder:
@@ -88,10 +88,10 @@ extension GenericPermissionDTO {
 
   public var permission: Permission {
     switch self {
-    case let .userToResource(_, _, _, permission),
-      let .userToFolder(_, _, _, permission),
-      let .userGroupToResource(_, _, _, permission),
-      let .userGroupToFolder(_, _, _, permission):
+    case .userToResource(_, _, _, let permission),
+      .userToFolder(_, _, _, let permission),
+      .userGroupToResource(_, _, _, let permission),
+      .userGroupToFolder(_, _, _, let permission):
       return permission
     }
   }
@@ -157,7 +157,7 @@ extension GenericPermissionDTO: Encodable {
     var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
 
     switch self {
-    case let .userToResource(id, userID, resourceID, permission):
+    case .userToResource(let id, let userID, let resourceID, let permission):
       try container.encode(id, forKey: .id)
       try container.encode("User", forKey: .subject)
       try container.encode(userID, forKey: .subjectID)
@@ -165,7 +165,7 @@ extension GenericPermissionDTO: Encodable {
       try container.encode(resourceID, forKey: .itemID)
       try container.encode(permission, forKey: .permission)
 
-    case let .userToFolder(id, userID, folderID, permission):
+    case .userToFolder(let id, let userID, let folderID, let permission):
       try container.encode(id, forKey: .id)
       try container.encode("User", forKey: .subject)
       try container.encode(userID, forKey: .subjectID)
@@ -173,7 +173,7 @@ extension GenericPermissionDTO: Encodable {
       try container.encode(folderID, forKey: .itemID)
       try container.encode(permission, forKey: .permission)
 
-    case let .userGroupToResource(id, userGroupID, resourceID, permission):
+    case .userGroupToResource(let id, let userGroupID, let resourceID, let permission):
       try container.encode(id, forKey: .id)
       try container.encode("Group", forKey: .subject)
       try container.encode(userGroupID, forKey: .subjectID)
@@ -181,7 +181,7 @@ extension GenericPermissionDTO: Encodable {
       try container.encode(resourceID, forKey: .itemID)
       try container.encode(permission, forKey: .permission)
 
-    case let .userGroupToFolder(id, userID, folderID, permission):
+    case .userGroupToFolder(let id, let userGroupID, let folderID, let permission):
       try container.encode(id, forKey: .id)
       try container.encode("Group", forKey: .subject)
       try container.encode(userID, forKey: .subjectID)

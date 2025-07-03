@@ -99,7 +99,7 @@ internal final class ResourcesListView: CollectionView<SingleSection, ResourcesL
 
       return cell
 
-    case let .resource(resource):
+    case .resource(let resource):
       let cell: ResourcesListResourceCell = dequeueOrMakeReusableCell(at: indexPath)
 
       cell.setup(

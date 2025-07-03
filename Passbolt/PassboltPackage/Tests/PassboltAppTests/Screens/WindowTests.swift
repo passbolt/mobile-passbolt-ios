@@ -44,7 +44,7 @@ final class WindowTests: MainActorTestCase {
 
     let result: WindowController.ScreenStateDisposition? = try await controller.screenStateDispositionSequence().first()
 
-    guard case let .requestPassphrase(account, message) = result
+    guard case .requestPassphrase(let account, let message) = result
     else { return XCTFail() }
     XCTAssertEqual(account, Account.mock_ada)
     XCTAssertNil(message)
@@ -60,7 +60,7 @@ final class WindowTests: MainActorTestCase {
 
     let result: WindowController.ScreenStateDisposition? = try await controller.screenStateDispositionSequence().first()
 
-    guard case let .requestMFA(account, providers) = result
+    guard case .requestMFA(let account, let providers) = result
     else { return XCTFail() }
     XCTAssertEqual(account, Account.mock_ada)
     XCTAssertEqual(providers, [])

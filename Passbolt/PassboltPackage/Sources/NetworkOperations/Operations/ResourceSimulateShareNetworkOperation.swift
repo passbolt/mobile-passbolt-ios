@@ -34,9 +34,14 @@ public enum ResourceSimulateShareNetworkOperationDescription: NetworkOperationDe
     public let body: Body
     public let foreignModelId: PassboltID
 
-    public init(foreignModelId: PassboltID, editedPermissions: OrderedSet<ResourcePermission>, removedPermissions: OrderedSet<ResourcePermission>) {
+    public init(
+      foreignModelId: PassboltID,
+      editedPermissions: OrderedSet<ResourcePermission>,
+      removedPermissions: OrderedSet<ResourcePermission>
+    ) {
       self.foreignModelId = foreignModelId
-      let editedPermissions: Array<Permission> = editedPermissions.compactMap { (permission: ResourcePermission) -> Permission? in
+      let editedPermissions: Array<Permission> = editedPermissions.compactMap {
+        (permission: ResourcePermission) -> Permission? in
         guard let aroData: (aro: ARO, foreignId: PassboltID) = permission.aroData else {
           // If aroData is nil, we cannot create a valid permission.
           return nil
@@ -50,9 +55,10 @@ public enum ResourceSimulateShareNetworkOperationDescription: NetworkOperationDe
           isNew: permission.permissionID?.rawValue == nil
         )
       }
-      let removedPermissions: Array<Permission> = removedPermissions.compactMap { (permission: ResourcePermission) -> Permission? in
+      let removedPermissions: Array<Permission> = removedPermissions.compactMap {
+        (permission: ResourcePermission) -> Permission? in
         guard let aroData: (aro: ARO, foreignId: PassboltID) = permission.aroData,
-              let id = permission.permissionID?.rawValue
+          let id = permission.permissionID?.rawValue
         else {
           // If aroData or id is nil, we cannot create a valid permission.
           return nil
@@ -134,7 +140,7 @@ public enum ResourceSimulateShareNetworkOperationDescription: NetworkOperationDe
       let container = try decoder.container(keyedBy: CodingKeys.self)
       let changesContainer = try container.nestedContainer(keyedBy: ChangeType.self, forKey: .changes)
       var changes: [ChangeType: [User.ID]] = [:]
-      
+
       for key in changesContainer.allKeys {
         var ids: [User.ID] = []
         var nestedArray = try changesContainer.nestedUnkeyedContainer(forKey: key)
@@ -176,14 +182,15 @@ extension ResourcePermission {
     if let groupId: UserGroup.ID = userGroupID {
       aro = .group
       aroForeignKey = groupId.rawValue
-    } else if let userId: User.ID = userID {
+    }
+    else if let userId: User.ID = userID {
       aro = .user
       aroForeignKey = userId.rawValue
-    } else {
+    }
+    else {
       // If neither group nor user ID is available, we cannot create a valid permission.
       return nil
     }
     return (aro: aro, foreignId: aroForeignKey)
   }
 }
-

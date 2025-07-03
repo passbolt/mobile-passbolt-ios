@@ -109,13 +109,14 @@ extension SessionCryptography {
       let passphrase: Passphrase = try await sessionStateEnsurance.passphrase(account)
       let privateKey: ArmoredPGPPrivateKey = try accountsDataStore.loadAccountPrivateKey(account.localID)
 
-      return try pgp.decryptAndVerify(
-        encryptedMessage.rawValue,
-        passphrase,
-        privateKey,
-        publicKey
-      )
-      .get()
+      return
+        try pgp.decryptAndVerify(
+          encryptedMessage.rawValue,
+          passphrase,
+          privateKey,
+          publicKey
+        )
+        .get()
     }
 
     return Self(

@@ -34,15 +34,15 @@ extension Publisher {
         case .finished:
           break
 
-        case let .failure(error)
+        case .failure(let error)
         where error is Cancelled:
           break
 
-        case let .failure(error)
+        case .failure(let error)
         where error is CancellationError:
           break
 
-        case let .failure(error):
+        case .failure(let error):
           error.logged()
         }
       })

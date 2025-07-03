@@ -309,7 +309,7 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
                     )
                 }
 
-              case let .failure(error):
+              case .failure(let error):
                 try await self
                   .push(
                     OperationResultControlledView(

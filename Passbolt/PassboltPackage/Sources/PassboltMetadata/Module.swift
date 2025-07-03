@@ -30,5 +30,3 @@ extension FeaturesRegistry {
     self.usePassboltMetadataSettingsService()
   }
 }
-
-

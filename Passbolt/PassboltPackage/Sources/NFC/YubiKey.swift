@@ -72,10 +72,10 @@ extension YubiKey {
         successMessage: DisplayableString.localized("yubiKey.scan.success").string()
       ) { readResult in
         switch readResult {
-        case let .success(otp):
+        case .success(let otp):
           otpPublisher.send(otp)
           otpPublisher.send(completion: .finished)
-        case let .failure(error):
+        case .failure(let error):
           otpPublisher.send(completion: .failure(error))
         }
       }

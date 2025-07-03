@@ -148,7 +148,7 @@ final class TOTPControllerTests: MainActorTestCase {
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
-    guard case let .error(error) = result
+    guard case .error(let error) = result
     else { return XCTFail() }
     XCTAssertError(error, matches: MockIssue.self)
   }
@@ -176,7 +176,7 @@ final class TOTPControllerTests: MainActorTestCase {
 
     controller.pasteOTP()
 
-    guard case let .error(error) = result
+    guard case .error(let error) = result
     else { return XCTFail() }
     XCTAssertError(error, matches: InvalidPasteValue.self)
   }
@@ -204,7 +204,7 @@ final class TOTPControllerTests: MainActorTestCase {
 
     controller.pasteOTP()
 
-    guard case let .error(error) = result
+    guard case .error(let error) = result
     else { return XCTFail() }
     XCTAssertError(error, matches: InvalidPasteValue.self)
   }

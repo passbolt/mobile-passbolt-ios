@@ -68,7 +68,7 @@ final class AccountSelectionControllerTests: MainActorTestCase {
       try await controller.accountsPublisher().first().asAsyncValue()
 
     let accountItems: Array<AccountSelectionCellItem> = result.compactMap {
-      guard case let .account(cellItem) = $0 else {
+      guard case .account(let cellItem) = $0 else {
         return nil
       }
       return cellItem
@@ -98,7 +98,7 @@ final class AccountSelectionControllerTests: MainActorTestCase {
       try await controller.accountsPublisher().first().asAsyncValue()
 
     let accountItems: Array<AccountSelectionCellItem> = result.compactMap {
-      guard case let .account(cellItem) = $0 else {
+      guard case .account(let cellItem) = $0 else {
         return nil
       }
       return cellItem

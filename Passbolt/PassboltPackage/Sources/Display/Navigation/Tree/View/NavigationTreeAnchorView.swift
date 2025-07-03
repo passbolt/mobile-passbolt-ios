@@ -42,7 +42,7 @@ internal struct NavigationTreeAnchorView: View {
 
   @ViewBuilder internal var nodeView: some View {
     switch node {
-    case let .just(id, nodeView), let .overlay(_, covering: .just(id, nodeView)):
+    case .just(let id, let nodeView), let .overlay(_, covering: .just(id, nodeView)):
       nodeView
         .erased()
         .id(id)
@@ -56,7 +56,7 @@ internal struct NavigationTreeAnchorView: View {
       }
       .navigationViewStyle(.stack)
 
-    case let .overlay(_, covering: .overlay(.sheet(overlayNode), covering: coveredNode)):
+    case .overlay(_, covering: .overlay(.sheet(let overlayNode), covering: let coveredNode)):
       NavigationTreeAnchorView(
         node: .overlay(
           .sheet(overlayNode),
@@ -64,7 +64,7 @@ internal struct NavigationTreeAnchorView: View {
         )
       )
 
-    case let .overlay(_, covering: .overlay(.overFullScreen(overlayNode), covering: coveredNode)):
+    case .overlay(_, covering: .overlay(.overFullScreen(let overlayNode), covering: let coveredNode)):
       NavigationTreeAnchorView(
         node: .overlay(
           .overFullScreen(overlayNode),
@@ -79,7 +79,7 @@ internal struct NavigationTreeAnchorView: View {
     case .just, .stack:
       return .none
 
-    case let .overlay(overlay, covering: _):
+    case .overlay(let overlay, covering: _):
       return overlay
     }
   }

@@ -45,13 +45,13 @@ extension SessionAuthorizationMethod {
 
   public var account: Account {
     switch self {
-    case let .adHoc(account, _, _):
+    case .adHoc(let account, _, _):
       return account
 
-    case let .passphrase(account, _):
+    case .passphrase(let account, _):
       return account
 
-    case let .biometrics(account):
+    case .biometrics(let account):
       return account
     }
   }

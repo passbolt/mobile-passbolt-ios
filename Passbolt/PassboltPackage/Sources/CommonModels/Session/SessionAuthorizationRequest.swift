@@ -34,10 +34,10 @@ extension SessionAuthorizationRequest {
 
   public var account: Account {
     switch self {
-    case let .passphrase(account):
+    case .passphrase(let account):
       return account
 
-    case let .mfa(account, providers: _):
+    case .mfa(let account, providers: _):
       return account
     }
   }

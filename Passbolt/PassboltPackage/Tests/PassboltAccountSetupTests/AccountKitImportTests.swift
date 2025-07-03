@@ -58,7 +58,7 @@ final class AccountKitImportTests: LoadableFeatureTestCase<AccountKitImport> {
       .importAccountKit("")
       .sink(
         receiveCompletion: { completion in
-          guard case let .failure(error) = completion
+          guard case .failure(let error) = completion
           else { return }
           result = error
         },
@@ -88,7 +88,7 @@ final class AccountKitImportTests: LoadableFeatureTestCase<AccountKitImport> {
       .importAccountKit("this is not a base 64")
       .sink(
         receiveCompletion: { completion in
-          guard case let .failure(error) = completion
+          guard case .failure(let error) = completion
           else { return }
           result = error
         },
@@ -125,7 +125,7 @@ final class AccountKitImportTests: LoadableFeatureTestCase<AccountKitImport> {
       .importAccountKit("VGhpcyBpcyBub3QgYSB2YWxpZCBhY2NvdW50IGtpdA==")
       .sink(
         receiveCompletion: { completion in
-          guard case let .failure(error) = completion
+          guard case .failure(let error) = completion
           else { return }
           result = error
         },
@@ -159,7 +159,7 @@ final class AccountKitImportTests: LoadableFeatureTestCase<AccountKitImport> {
       .importAccountKit(base64AccountKit)
       .sink(
         receiveCompletion: { completion in
-          guard case let .failure(error) = completion
+          guard case .failure(let error) = completion
           else { return }
           result = error
         },
@@ -194,7 +194,7 @@ final class AccountKitImportTests: LoadableFeatureTestCase<AccountKitImport> {
       .importAccountKit(base64AccountKit)
       .sink(
         receiveCompletion: { completion in
-          guard case let .failure(error) = completion
+          guard case .failure(let error) = completion
           else { return }
           result = error
         },
@@ -234,7 +234,7 @@ final class AccountKitImportTests: LoadableFeatureTestCase<AccountKitImport> {
       .importAccountKit(base64AccountKit)
       .sink(
         receiveCompletion: { completion in
-          guard case let .failure(error) = completion
+          guard case .failure(let error) = completion
           else { return }
           result = error
         },
@@ -283,7 +283,7 @@ final class AccountKitImportTests: LoadableFeatureTestCase<AccountKitImport> {
       .importAccountKit(base64AccountKit)
       .sink(
         receiveCompletion: { completion in
-          guard case let .failure(error) = completion
+          guard case .failure(let error) = completion
           else { return }
           result = error
         },

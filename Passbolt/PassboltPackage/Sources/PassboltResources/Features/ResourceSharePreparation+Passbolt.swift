@@ -39,7 +39,10 @@ extension ResourceSharePreparation {
     let resourceUpdatePreparation: ResourceUpdatePreparation = try features.instance()
     let sessionData: SessionData = try features.instance()
 
-    @Sendable nonisolated func prepareResourceForSharing(resourceID: Resource.ID, changes: PermissionChanges) async throws {
+    @Sendable nonisolated func prepareResourceForSharing(
+      resourceID: Resource.ID,
+      changes: PermissionChanges
+    ) async throws {
       var resource: Resource = try await resourceDetailsFetch.execute(resourceID)
 
       guard

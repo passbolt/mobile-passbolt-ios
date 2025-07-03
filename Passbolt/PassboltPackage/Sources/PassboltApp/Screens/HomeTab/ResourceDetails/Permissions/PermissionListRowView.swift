@@ -39,7 +39,7 @@ internal struct PermissionListRowView: View {
 
   internal var body: some View {
     switch self.item {
-    case let .user(details, imageData):
+    case .user(let details, let imageData):
       CommonListRow(
         contentAction: self.action,
         content: {
@@ -72,7 +72,7 @@ internal struct PermissionListRowView: View {
       )
       .frame(height: 64)
 
-    case let .userGroup(details):
+    case .userGroup(let details):
       CommonListRow(
         contentAction: self.action,
         content: {
