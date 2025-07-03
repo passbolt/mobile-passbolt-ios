@@ -80,6 +80,11 @@ public struct ResourceListItemView<AccessoryView>: View where AccessoryView: Vie
               }
           }
         }
+        .frame(
+          width: 40,
+          height: 40,
+          alignment: .center
+        )
       },
       contentAction: self.contentAction,
       content: {
