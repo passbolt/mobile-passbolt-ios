@@ -50,6 +50,8 @@ public enum ResourceSimulateShareNetworkOperationDescription: NetworkOperationDe
           id: permission.permissionID?.rawValue,
           aro: aroData.aro,
           aroForeignKey: aroData.foreignId,
+          aco: .resource,
+          acoForeignKey: foreignModelId,
           type: .init(from: permission.permission),
           isDeleted: false,
           isNew: permission.permissionID?.rawValue == nil
@@ -67,6 +69,8 @@ public enum ResourceSimulateShareNetworkOperationDescription: NetworkOperationDe
           id: id,
           aro: aroData.aro,
           aroForeignKey: aroData.foreignId,
+          aco: .resource,
+          acoForeignKey: foreignModelId,
           type: .init(from: permission.permission),
           isDeleted: true,
           isNew: false
@@ -84,6 +88,8 @@ public enum ResourceSimulateShareNetworkOperationDescription: NetworkOperationDe
     public let id: PassboltID?
     public let aro: ARO
     public let aroForeignKey: PassboltID
+    public let aco: ACO
+    public let acoForeignKey: PassboltID
     public let type: PermissionType
     public let isDeleted: Bool
     public let isNew: Bool
@@ -92,6 +98,8 @@ public enum ResourceSimulateShareNetworkOperationDescription: NetworkOperationDe
       id: PassboltID?,
       aro: ARO,
       aroForeignKey: PassboltID,
+      aco: ACO,
+      acoForeignKey: PassboltID,
       type: PermissionType,
       isDeleted: Bool,
       isNew: Bool
@@ -99,6 +107,8 @@ public enum ResourceSimulateShareNetworkOperationDescription: NetworkOperationDe
       self.id = id
       self.aro = aro
       self.aroForeignKey = aroForeignKey
+      self.aco = aco
+      self.acoForeignKey = acoForeignKey
       self.type = type
       self.isDeleted = isDeleted
       self.isNew = isNew
@@ -117,6 +127,10 @@ public enum ResourceSimulateShareNetworkOperationDescription: NetworkOperationDe
   public enum ARO: String, Encodable {
     case user = "User"
     case group = "Group"
+  }
+
+  public enum ACO: String, Encodable {
+    case resource = "Resource"
   }
 
   public enum PermissionType: Int, Encodable {
@@ -152,6 +166,10 @@ public enum ResourceSimulateShareNetworkOperationDescription: NetworkOperationDe
         }
         changes[key] = ids
       }
+      self.changes = changes
+    }
+
+    public init(changes: [ChangeType: [User.ID]]) {
       self.changes = changes
     }
   }

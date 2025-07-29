@@ -22,9 +22,9 @@
 //
 
 public struct ResourceSharePreparation: Sendable {
-  public var prepareResourceForSharing: @Sendable (Resource.ID, PermissionChanges) async throws -> Void
+  public var prepareResourceForSharing: @Sendable (Resource.ID) async throws -> Void
 
-  public init(prepareResourceForSharing: @Sendable @escaping (Resource.ID, PermissionChanges) async throws -> Void) {
+  public init(prepareResourceForSharing: @Sendable @escaping (Resource.ID) async throws -> Void) {
     self.prepareResourceForSharing = prepareResourceForSharing
   }
 }
@@ -48,7 +48,7 @@ extension ResourceSharePreparation: LoadableFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      prepareResourceForSharing: unimplemented2()
+      prepareResourceForSharing: unimplemented1()
     )
   }
   #endif

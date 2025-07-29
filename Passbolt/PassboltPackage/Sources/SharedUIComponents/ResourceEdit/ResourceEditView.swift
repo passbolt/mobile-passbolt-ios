@@ -188,7 +188,7 @@ public struct ResourceEditView: ControlledView {
             }
           }
         }
-        .padding(.bottom, 120)
+        Spacer(minLength: 120)
       }
     }
     .overlay(alignment: .bottom) {

@@ -402,7 +402,7 @@ public final class ResourceEditViewController: ViewController {
     await consumingErrors {
       let currentState = try await self.resourceEditForm.state.value
       let editingContext = try features.context(of: ResourceEditScope.self)
-      let newResourceSlug = editingContext.editedResource.type.slugByAttachingNote()
+      let newResourceSlug = currentState.type.slugByAttachingNote()
 
       if newResourceSlug != currentState.type.specification.slug {
         guard

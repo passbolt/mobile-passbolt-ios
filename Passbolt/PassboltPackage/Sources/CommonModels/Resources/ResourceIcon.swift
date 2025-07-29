@@ -34,7 +34,7 @@ public struct ResourceIcon: Codable, Equatable, Sendable, Hashable {
   public var json: JSON {
     var json: JSON = .object(.init())
     json[keyPath: \.type] = .string(type.rawValue)
-    json[keyPath: \.value] = value.flatMap { .string($0.rawValue) } ?? .null
+    json[keyPath: \.value] = value.flatMap { Int($0.rawValue) }.flatMap { .integer($0) } ?? .null
     json[keyPath: \.background_color] = backgroundColor.flatMap { .string($0) } ?? .null
     return json
   }

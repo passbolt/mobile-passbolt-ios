@@ -32,17 +32,16 @@ extension ResourceSharePreparation {
   @MainActor fileprivate static func load(
     using features: Features
   ) throws -> ResourceSharePreparation {
+    let context: SessionScope.Context = try features.context(of: SessionScope.self)
     let metadataKeysService: MetadataKeysService = try features.instance()
     let resourceDetailsFetch: ResourceDetailsFetchDatabaseOperation = try features.instance()
-    let shareSimulate: ResourceSimulateShareNetworkOperation = try features.instance()
     let resourceUpdateNetworkOperation: ResourceEditNetworkOperation = try features.instance()
     let resourceUpdatePreparation: ResourceUpdatePreparation = try features.instance()
-    let sessionData: SessionData = try features.instance()
 
     @Sendable nonisolated func prepareResourceForSharing(
-      resourceID: Resource.ID,
-      changes: PermissionChanges
+      resourceID: Resource.ID
     ) async throws {
+
       var resource: Resource = try await resourceDetailsFetch.execute(resourceID)
 
       guard
@@ -66,14 +65,6 @@ extension ResourceSharePreparation {
           InvalidInputData
           .error(message: "Invalid or missing resource secret")
       }
-      let sharingSimulation: ResourceSimulateShareNetworkOperation.Output = try await shareSimulate.execute(
-        .init(
-          foreignModelId: resourceID.rawValue,
-          editedPermissions: changes.changed.asOrderedSet(),
-          removedPermissions: changes.removed.asOrderedSet()
-        )
-      )
-      let userIDs: OrderedSet<User.ID> = sharingSimulation.changes[.added]?.asOrderedSet() ?? .init()
 
       _ = try await resourceUpdateNetworkOperation.execute(
         .init(
@@ -83,11 +74,10 @@ extension ResourceSharePreparation {
           metadata: encryptedMetadata,
           metadataKeyID: usedKey,
           metadataKeyType: .shared,
-          secrets: try await resourceUpdatePreparation.prepareSecret(userIDs, resourceSecret)
+          secrets: try await resourceUpdatePreparation.prepareSecret([context.account.userID], resourceSecret)
             .map { (userID: $0.recipient, data: $0.message) }
         )
       )
-      try await sessionData.refreshIfNeeded()
     }
 
     return .init(

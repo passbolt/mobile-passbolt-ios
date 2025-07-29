@@ -239,7 +239,15 @@ extension ResourceDetailsViewController {
         self.pasteboard.put(totpValue.otp.rawValue)
       }
       else {
-        self.pasteboard.put(fieldValue.stringValue ?? "")
+        if let specification: ResourceFieldSpecification = resource.fieldSpecification(for: path),
+          specification.content == .list
+        {
+          var path: Resource.FieldPath = path.appending(path: \.0)
+          self.pasteboard.put(resource[keyPath: path].stringValue ?? "")
+        }
+        else {
+          self.pasteboard.put(fieldValue.stringValue ?? "")
+        }
       }
 
       SnackBarMessageEvent.send(

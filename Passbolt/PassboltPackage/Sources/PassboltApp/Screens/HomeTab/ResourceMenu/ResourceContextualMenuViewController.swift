@@ -206,7 +206,7 @@ extension ResourceContextualMenuViewController {
     case .share:
       await self.share()
 
-    case .editResource(let isStandaloneTOTP):
+    case .editResource(_):
       await self.editPassword()
 
     case .delete:

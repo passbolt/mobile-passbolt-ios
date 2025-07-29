@@ -316,11 +316,14 @@ extension Resource {
     }
 
     // remove fields that were in the old one but are not present in new one
-    let newFields: Dictionary<ResourceType.ComputedFieldPath, ResourceFieldSpecification>.Values = resourceType
-      .flattenedFields.values
-    let removedFields: Array<ResourceFieldSpecification> = self.type.flattenedFields.values.filter {
-      !newFields.contains($0)
-    }
+    let newFields: Dictionary<ResourceType.ComputedFieldPath, ResourceFieldSpecification> = resourceType
+      .flattenedFields
+    let removedFields: Array<ResourceFieldSpecification> = self.type.flattenedFields
+      .filter {
+        newFields[$0.key] == nil
+      }
+      .values.map { $0 }
+
     for field in removedFields {
       #warning("To verify - this should not leave any junk values!")
       self[keyPath: field.path].remove()
@@ -454,14 +457,16 @@ extension Resource {
   }
 
   public mutating func createSecretMetadata() {
-    guard case .null = self.secret
-    else {
-      return
+    guard self.type.isV4ResourceType == false else { return }
+
+    if self.secret[keyPath: \.object_type] == .null {
+      self.secret[keyPath: \.object_type] = .string(MetadataObjectType.secretData.rawValue)
     }
 
-    self.secret[keyPath: \.object_type] = .string(MetadataObjectType.secretData.rawValue)
-    if let passwordPath: ResourceType.FieldPath = self.firstPasswordPath {
-      self[keyPath: passwordPath] = .string("")
+    if let passwordPath: ResourceType.FieldPath = self.firstPasswordPath,
+      self[keyPath: passwordPath] == .null
+    {
+      self[keyPath: passwordPath] = .string("")  // initialize empty password
     }
   }
 }

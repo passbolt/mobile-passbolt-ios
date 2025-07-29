@@ -309,7 +309,7 @@ extension OTPEditFormViewController {
       let resource: Resource = try await self.resourceEditForm.state.value
       let editingContext: ResourceEditingContext = try features.context(of: ResourceEditScope.self)
 
-      if resource.secret.totpSecretValue == nil,
+      if resource.secret.totp.totpSecretValue == nil,
         let newResourceTypeSlug: ResourceSpecification.Slug = resource.type.detachedOTPSlug,
         let newResourceType = editingContext.availableTypes.first(where: {
           $0.specification.slug == newResourceTypeSlug
