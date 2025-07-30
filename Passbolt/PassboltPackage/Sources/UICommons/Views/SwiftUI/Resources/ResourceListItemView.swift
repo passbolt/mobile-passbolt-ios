@@ -65,6 +65,11 @@ public struct ResourceListItemView<AccessoryView>: View where AccessoryView: Vie
             resourceIcon: self.icon,
             resourceTypeSlug: self.resourceTypeSlug
           )
+          .frame(
+            width: 40,
+            height: 40,
+            alignment: .center
+          )
           if isExpired == true {
             Image(named: .exclamationMark)
               .resizable()
@@ -80,11 +85,6 @@ public struct ResourceListItemView<AccessoryView>: View where AccessoryView: Vie
               }
           }
         }
-        .frame(
-          width: 40,
-          height: 40,
-          alignment: .center
-        )
       },
       contentAction: self.contentAction,
       content: {
