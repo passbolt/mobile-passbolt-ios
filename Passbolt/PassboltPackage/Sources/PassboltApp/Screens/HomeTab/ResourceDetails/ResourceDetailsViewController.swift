@@ -242,7 +242,7 @@ extension ResourceDetailsViewController {
         if let specification: ResourceFieldSpecification = resource.fieldSpecification(for: path),
           specification.content == .list
         {
-          var path: Resource.FieldPath = path.appending(path: \.0)
+          let path: Resource.FieldPath = path.appending(path: \.0)
           self.pasteboard.put(resource[keyPath: path].stringValue ?? "")
         }
         else {

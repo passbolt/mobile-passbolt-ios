@@ -376,7 +376,7 @@ internal struct ResourceDetailsView: ControlledView {
 
         case .password(let value):
           // password has specific font to be displayed
-          Text(value)
+          ColoredPasswordView(password: value, defaultColor: .passboltSecondaryText)
             .text(
               .leading,
               lines: .none,
@@ -384,7 +384,7 @@ internal struct ResourceDetailsView: ControlledView {
                 ofSize: 14,
                 weight: .regular
               ),
-              color: .passboltSecondaryText
+              color: .none
             )
 
         case .encryptedTOTP:
@@ -432,5 +432,55 @@ extension RelativeDateDisplayableFormat {
       futureDatePrefix: "resource.detail.section.expiry.willExpire",
       isPastDate: isExpired
     )
+  }
+}
+
+private struct ColoredPasswordView: View {
+  typealias AttributedString = Foundation.AttributedString
+  private let password: String
+  private let defaultColor: Color
+  private let rules: [String: Color] = [
+    "\\P{L}": .passboltSecondaryRed,
+    "\\p{N}": .passboltPrimaryBlue,
+  ]
+
+  fileprivate init(
+    password: String,
+    defaultColor: Color = .passboltSecondaryText
+  ) {
+    self.password = password
+    self.defaultColor = defaultColor
+  }
+
+  var body: some View {
+    Text(self.coloredPassword)
+      .text(
+        .leading,
+        lines: .none,
+        font: .inconsolata(
+          ofSize: 14,
+          weight: .regular
+        ),
+        color: .none
+      )
+  }
+
+  private var coloredPassword: AttributedString {
+    var attributed: AttributedString = .init(self.password)
+    let entireString: Range = attributed.startIndex ..< attributed.endIndex
+    attributed[entireString].foregroundColor = self.defaultColor
+
+    for (regex, color) in self.rules {
+      guard let pattern = try? NSRegularExpression(pattern: regex, options: [.useUnicodeWordBoundaries]) else { continue }
+      let range: NSRange = NSRange(self.password.startIndex..., in: self.password)
+      let matches = pattern.matches(in: self.password, options: [], range: range)
+      for match in matches {
+        if let range = Range(match.range, in: attributed) {
+          attributed[range].foregroundColor = color
+        }
+      }
+    }
+
+    return attributed
   }
 }
