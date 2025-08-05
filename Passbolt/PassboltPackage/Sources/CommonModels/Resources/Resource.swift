@@ -457,16 +457,17 @@ extension Resource {
   }
 
   public mutating func createSecretMetadata() {
-    guard self.type.isV4ResourceType == false else { return }
-
-    if self.secret[keyPath: \.object_type] == .null {
-      self.secret[keyPath: \.object_type] = .string(MetadataObjectType.secretData.rawValue)
-    }
 
     if let passwordPath: ResourceType.FieldPath = self.firstPasswordPath,
       self[keyPath: passwordPath] == .null
     {
       self[keyPath: passwordPath] = .string("")  // initialize empty password
+    }
+
+    guard self.type.isV4ResourceType == false else { return }
+
+    if self.secret[keyPath: \.object_type] == .null {
+      self.secret[keyPath: \.object_type] = .string(MetadataObjectType.secretData.rawValue)
     }
   }
 }
