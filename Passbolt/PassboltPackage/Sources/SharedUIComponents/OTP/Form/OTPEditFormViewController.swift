@@ -64,9 +64,9 @@ public final class OTPEditFormViewController: ViewController {
   private let navigationToAttach: NavigationToOTPAttachSelectionList
   private let navigationToAdvanced: NavigationToOTPEditAdvancedForm
   private let navigationToSelf: NavigationToOTPEditForm
-  private let resourceEditForm: ResourceEditForm
+  nonisolated private let resourceEditForm: ResourceEditForm
 
-  private let context: Context
+  nonisolated private let context: Context
 
   private let features: Features
 
@@ -324,8 +324,7 @@ extension OTPEditFormViewController {
     await consumingErrors {
       let editingContext: ResourceEditingContext = try features.context(of: ResourceEditScope.self)
       let currentState: Resource = try await self.resourceEditForm.state.value
-      if let newResourceTypeSlug: ResourceSpecification.Slug = currentState.type.slugByRemovingNote(),
-        currentState.secret.description == .null,
+      if let newResourceTypeSlug: ResourceSpecification.Slug = currentState.type.detachedOTPSlug,
         let newResourceType: ResourceType = editingContext.availableTypes.first(
           where: {
             $0.specification.slug == newResourceTypeSlug
