@@ -1,0 +1,745 @@
+//
+// Passbolt - Open source password manager for teams
+// Copyright (c) 2021 Passbolt SA
+//
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+// Public License (AGPL) as published by the Free Software Foundation version 3.
+//
+// The name "Passbolt" is a registered trademark of Passbolt SA, and Passbolt SA hereby declines to grant a trademark
+// license to "Passbolt" pursuant to the GNU Affero General Public License version 3 Section 7(e), without a separate
+// agreement with Passbolt SA.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License along with this program. If not,
+// see GNU Affero General Public License v3 (http://www.gnu.org/licenses/agpl-3.0.html).
+//
+// @copyright     Copyright (c) Passbolt SA (https://www.passbolt.com)
+// @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
+// @link          https://www.passbolt.com Passbolt (tm)
+// @since         v1.0
+//
+// Shared and commons
+
+
+"generic.done" = "Hotovo";
+"generic.yes" = "Ano";
+"generic.apply" = "Použít";
+"generic.confirm" = "Potvrdit";
+"generic.cancel" = "Zrušit";
+"generic.remove" = "Odstranit";
+"generic.loading" = "Načítání...";
+"generic.loading.long" = "Trvá to déle, než je obvyklé...";
+"generic.continue" = "Pokračovat";
+"generic.retry" = "Opakovat";
+"generic.try.again" = "Zkuste to znovu";
+"generic.delete" = "Odstranit";
+"generic.got.it" = "Rozumím";
+"generic.settings" = "Nastavení";
+"generic.disable" = "Zakázat";
+"generic.sign.out" = "Odhlásit se";
+"generic.refresh" = "Obnovit";
+"generic.create" = "Vytvořit";
+"generic.empty.list" = "Nejsou zde žádné výsledky";
+"generic.user.search.list.empty" = "Uživatel nebyl nalezen.";
+"generic.paste.value.invalid" = "Pokus o vložení neplatné hodnoty";
+"generic.are.you.sure" = "Jste si jisti?";
+"generic.picker.select.placeholder" = "Vybrat";
+
+"account.selection.title" = "Vítejte zpět!";
+"account.selection.subtitle" = "Vyberte účet pro přihlášení!";
+"account.selection.remove.account.button.title" = "Odstranit účet z tohoto zařízení";
+"account.selection.add.account.footer.title" = "Přidat nový účet";
+"account.selection.remove.account.title" = "Zrušit propojení účtu";
+"account.selection.remove.account.subtitle" = "Vyberte účet, který chcete odpojit.";
+"account.selection.remove.alert.title" = "Jste si jisti ?";
+"account.selection.remove.alert.message" = "Tímto odeberete váš účet z tohoto zařízení. Vaše hesla nebudou smazána.";
+"account.selection.account.removed" = "Účet byl odstraněn z tohoto zařízení.";
+
+"authorization.button.title" = "Přihlásit se";
+"authorization.reverification.button.title" = "Potvrdit přístupovou frázi";
+"authorization.forgot.passphrase.button.title" = "Zapomněl jsem svou přístupovou frázi";
+"authorization.forgot.passphrase.alert.title" = "Zapomněli jste přístupovou frázi?";
+"authorization.forgot.passphrase.alert.message" = "Bohužel nemůžete přistupovat ke svým datům, pokud si nepamatujete přístupovou frázi. Obraťte se prosím na správce pro odemknutí Vašeho účtu.";
+"authorization.passphrase.description.text" = "Přístupová fráze";
+"authorization.title" = "Zadejte svou přístupovou frázi";
+
+"sign.in.title" = "Zadejte svou přístupovou frázi";
+
+"resource.list.username.empty.placeholder" = "žádné uživatelské jméno";
+
+"resource.detail.field.name" = "Jméno";
+"resource.detail.field.username" = "Uživatelské jméno";
+"resource.detail.field.passphrase" = "Heslo";
+"resource.detail.field.uri" = "URL webového serveru";
+"resource.detail.field.description" = "Popis";
+"resource.show.field.uri.placeholder" = "Žádná URI";
+"resource.show.field.username.placeholder" = "Žádné uživatelské jméno";
+"resource.show.field.password.placeholder" = "Žádné heslo";
+"resource.show.field.description.placeholder" = "Žádný popis";
+"resource.value.copied" = "%@ zkopírováno do vaší schránky!";
+"resource.details.value" = "Hodnota";
+"resource.detail.section.location" = "Umístění";
+"resource.detail.section.permissions" = "Sdíleno s";
+"resource.detail.section.additionalURIs" = "Další URI";
+"resource.detail.section.tags" = "Štítky";
+"resource.detail.section.expiry" = "Expirace";
+"resource.detail.section.expiry.expired" = "Vypršela platnost";
+"resource.detail.section.expiry.willExpire" = "Vyprší za";
+"resource.detail.undefined.content.warning" = "Nepodporovaný typ, neznámá pole jsou skrytá!";
+
+"resource.expiry.expired" = "(vypršela platnost)";
+
+"resource.delete.succeeded" = "Prostředek byl odstraněn.";
+
+"resource.field.name.unknown" = "Hodnota";
+"section.tags.empty" = "Žádné štítky";
+
+"server.key.fingerprint.changed.title" = "Omlouváme se, ale klíč serveru se změnil.";
+"server.key.fingerprint.changed.description" = "Z bezpečnostních důvodů prosím zkontrolujte u administrátora, zda se jedná o změnu, kterou zahájil. Nový otisk prstu:";
+"server.key.fingerprint.accept.check" = "Ano, zkontroloval jsem a všechno je v pořádku.";
+"server.key.fingerprint.accept.new.key" = "Přijmout nový klíč";
+
+"resource.form.password.strength" = "Síla hesla";
+"resource.form.strength.very.weak" = "Velmi slabé";
+"resource.form.strength.weak" = "Slabé";
+"resource.form.strength.fair" = "Dobré";
+"resource.form.strength.strong" = "Silné";
+"resource.form.strength.very.strong" = "Velmi silné";
+"resource.form.create.button.title" = "Vytvořit";
+"resource.form.create.and.fill.button.title" = "Vytvořit a vyplnit";
+"resource.form.update.button.title" = "Uložit";
+"resource.form.new.password.created" = "Nové heslo bylo vytvořeno";
+"resource.form.description.encrypted" = "Popis je zašifrován";
+"resource.form.description.unencrypted" = "Popis není zašifrován";
+"resource.form.undefined.content.warning" = "Nepodporovaný typ, neznámá pole jsou skrytá!";
+
+"feedback.alert.title" = "Zařízení může být jailbreaknuté";
+"feedback.alert.message" = "Máme podezření, že vaše zařízení může být jailbreaknuté. Mějte prosím na paměti, že toto snižuje celkovou bezpečnost zařízení a může být zneužito k získání vašich hesel.";
+"feedback.alert.button.title" = "Rozumím";
+
+"account.not.found.title.label" = "Účet neexistuje";
+"account.not.found.message.label" = "Účet byl smazán nebo pozastaven";
+"account.not.found.action.button.title" = "Připojit k existujícímu účtu";
+
+"server.not.reachable.alert.title" = "Server nebyl dostupný!";
+"server.not.reachable.alert.message.server.placeholder" = "Server";
+"server.not.reachable.alert.message" = "%@ nelze načíst. Zkuste to prosím znovu";
+
+"resource.edit.create.title" = "Vytvořit zdroj";
+"resource.edit.title" = "Upravit zdroj";
+"resource.password.edit.title" = "Upravit heslo";
+"resource.edit.field.name.label" = "Jméno";
+"resource.edit.field.uri.label" = "Hlavní URI";
+"resource.edit.field.username.label" = "Uživatelské jméno";
+"resource.edit.field.password.label" = "Heslo";
+"resource.edit.field.description.label" = "Popis";
+"resource.edit.field.totp.label" = "TOTP";
+"resource.edit.field.add.totp" = "TOTP";
+"resource.edit.field.add.note" = "Poznámka";
+"resource.edit.field.add.password" = "Heslo";
+"resource.edit.field.name.placeholder" = "Zadejte název";
+"resource.edit.field.uri.placeholder" = "Zadejte URI";
+"resource.edit.field.username.placeholder" = "Zadejte uživatelské jméno";
+"resource.edit.field.password.placeholder" = "Zadejte heslo";
+"resource.edit.field.description.placeholder" = "Zadejte popis";
+"resource.edit.exit.confirmation.message" = "Vaše úpravy nebudou uloženy.";
+"resource.edit.exit.confirmation.button.edit.title" = "Upravit";
+"resource.edit.exit.confirmation.button.revert.title" = "Vrátit";
+"resource.edit.note.content.title" = "Obsah";
+"resource.edit.note.content.disclaimer" = "Tento bezpečný je součástí tajemství, pokud chcete, aby bylo možné vyhledávat tento obsah, použijte popis metadata.";
+"resource.edit.note.remove.button.title" = "Odebrat poznámku";
+
+"resource.edit.section.password.title" = "Heslo";
+"resource.edit.section.totp.title" = "TOTP";
+"resource.edit.section.note.title" = "Poznámka";
+"resource.edit.section.metadata.title" = "Metadata";
+"resource.edit.totp.remove.button.title" = "Nahradit TOTP";
+
+"resource.create.advanced.button" = "Zobrazit pokročilá nastavení";
+"resource.create.additional.secrets.title" = "Další tajemství";
+"resource.create.advanced.add.otp" = "TOTP";
+
+"resource.edit.section.metadata.description" = "Popis";
+"resource.edit.section.metadata.description.name" = "Popis metadata";
+"resource.edit.section.metadata.description.description" = "Pokud chcete, aby byl popis součástí tajemství, použijte místo toho poznámku.";
+
+"resource.edit.section.metadata.additional.uris" = "Další URI";
+"resource.edit.section.metadata.appearance" = "Vzhled";
+
+"resource.edit.uris.title" = "Další URI";
+"resource.edit.uris.main.uri.title" = "Hlavní URI";
+"resource.edit.uris.additional.uris.title" = "Další URI";
+"resource.edit.uris.main.uri.placeholder" = "Hlavní URI";
+"resource.edit.uris.additional.uri.placeholder" = "URI";
+"resource.edit.uris.additional.uri.add" = "Přidat URI";
+"resource.edit.uris.additional.uris.error.limit" = "Můžete přidat maximálně %d dalších URI.";
+
+"resource.edit.icon.title" = "Vzhled";
+"resource.edit.icon.color.select.title" = "Vybrat barvu";
+"resource.edit.icon.color.default.title" = "Výchozí barva";
+"resource.edit.icon.default.title" = "Výchozí ikona";
+
+"resource.create.menu.title" = "Vytvořit zdroj";
+"resource.create.menu.password" = "Heslo";
+"resource.create.menu.totp" = "TOTP";
+
+"resource.create.invalid.configuration" = "Nelze vytvořit zdroj s aktuální konfigurací.";
+"resource.edit.invalid.configuration" = "Nelze upravit zdroj s aktuální konfigurací.";
+
+"help.logs.viewer.title" = "Logy";
+
+"help.menu.title" = "Nápověda";
+"help.menu.show.logs.action.title" = "Přístup k logům";
+"help.menu.show.web.help.action.title" = "Navštívit stránku nápovědy";
+"help.menu.show.import.account.kit.title" = "Importovat svůj account kit";
+
+// Main application
+
+"welcome.title" = "Vítejte!";
+"welcome.description" = "Pro začátek potřebujete existující účet. Přihlaste se pomocí svého existujícího účtu v rozšíření prohlížeče pro připojení k mobilnímu zařízení.";
+"welcome.connect.to.account" = "Připojit k existujícímu účtu";
+"welcome.no.account" = "Nemám účet";
+"welcome.no.account.alert.title" = "Jak vytvořit účet?";
+"welcome.no.account.alert.text" = "V současné době není možné vytvořit účet pomocí mobilní aplikace. Nejprve budete potřebovat vytvořit účet pomocí rozšíření vašeho prohlížeče.";
+"code.scanning.exit.confirmation.confirm.button.title" = "Přestat prohledávat";
+"code.scanning.help.menu.button.title" = "Proč skenování QR kódů?";
+"code.scanning.help.title" = "Načítání QR kódů";
+"code.scanning.help.message" = "Zobrazí se řada QR kódů. Tyto kódy načítejte, dokud se nezaplní ukazatel průběhu. Pak se budete moci přihlásit!";
+"code.scanning.camera.unavailable" = "Omlouváme se, k pokračování potřebujete zařízení s fungujícím fotoaparátem, protože přenos klíčů probíhá pomocí QR kódů.";
+"code.scanning.begin" = "Namiřte kameru na QR kódy";
+"code.scanning.processing.in.progress" = "Skenování... pokračujte!";
+"code.scanning.processing.invalid.code" = "To není Passbolt QR kód. Zkuste to znovu!";
+
+
+"transfer.account.title" = "Převést detaily o účtu";
+"transfer.account.import.description" = "Naskenujte QR kódy pro přenos údajů o vašem účtu";
+"transfer.account.import.info.step.first" = "Přihlásit se pomocí rozšíření prohlížeče";
+"transfer.account.import.info.step.second" = "Přejít na profilovou stránku";
+"transfer.account.import.info.step.second.distinct" = "Profil";
+"transfer.account.import.info.step.third" = "Přejít do mobilní sekce";
+"transfer.account.import.info.step.third.distinct" = "Mobil";
+"transfer.account.import.info.step.fourth" = "Naskenujte sekvenci QR kódů";
+"transfer.account.import.scan.qr.button" = "Načíst QR kódy";
+"transfer.account.export.description" = "Zobrazit QR kódy pro přenos údajů o vašem účtu";
+"transfer.account.export.info.step.first" = "Nainstalovat aplikaci na jiném mobilu";
+"transfer.account.export.info.step.second" = "Spustit aplikaci";
+"transfer.account.export.info.step.third" = "Zvolte \"Připojit k existujícímu účtu”";
+"transfer.account.export.info.step.fourth" = "Naskenovat sekvenci QR kódů";
+"transfer.account.export.scan.qr.button" = "Zahájit přenos";
+"transfer.account.export.cancel.button" = "Zrušit přenos";
+"transfer.account.camera.access.alert.title" = "Je vyžadován přístup k fotoaparátu";
+"transfer.account.camera.access.alert.text" = "Chcete-li povolit přístup k vašemu fotoaparátu, přejděte do Nastavení/Soukromí/Fotoaparát.";
+"transfer.account.result.success.title" = "Vaše informace byly přeneseny!";
+"transfer.account.result.already.linked.title" = "Účet je již propojen s tímto zařízením.";
+"transfer.account.result.canceled.title" = "Přenos byl zrušen.";
+"transfer.account.kit.result.success.title" = "Account kit byl importován!";
+
+"transfer.account.exit.confirmation.title" = "Jste si jisti?";
+"transfer.account.exit.confirmation.message" = "Pokud odejdete, budete muset znovu načíst QR kódy.";
+"transfer.account.import.exit.confirmation.cancel.button.title" = "Pokračovat v nastavení";
+"transfer.account.import.exit.confirmation.confirm.button.title" = "Zrušit nastavení";
+"transfer.account.export.exit.confirmation.confirm.button.title" = "Zastavit přenos";
+"transfer.account.export.exit.success.button" = "Zpět";
+"transfer.account.export.exit.failure.button" = "Zkuste to znovu";
+"transfer.account.export.failure.message" = "Přenos nemohl být dokončen.";
+"transfer.account.export.cancelled" = "Přenos byl zrušen";
+"transfer.account.exit.confirmation.cancel.button.title" = "Pokračovat v nastavení";
+"transfer.account.exit.confirmation.confirm.button.title" = "Zrušit nastavení";
+
+"biometrics.usage.reason" = "Biometriku lze použít k bezpečnému uložení přístupové fráze.";
+
+"biometrics.info.title" = "Nastavení biometrie";
+"biometrics.info.description" = "Pokud chcete použít jako metodu rychlého přihlášení FaceID nebo TouchID, nakonfigurujte ji v nastavení.";
+"biometrics.info.setup.button" = "Nastavení biometrie";
+"biometrics.info.later.button" = "Možná později";
+
+"biometrics.setup.title.face" = "Použít Face ID místo přístupové fráze!";
+"biometrics.setup.title.finger" = "Použít Touch ID místo přístupové fráze!";
+"biometrics.setup.description" = "Odemkněte svá tajemství během sekundy.";
+"biometrics.setup.setup.button.face" = "Použít FaceID";
+"biometrics.setup.setup.button.finger" = "Použít TouchID";
+"biometrics.setup.later.button" = "Možná později";
+
+"extension.setup.title" = "Přihlaste se do oblíbených aplikací během 3 sekund!";
+"extension.setup.settings.step" = "Přejít do nastavení";
+"extension.setup.settings.step.bold" = "Nastavení";
+"extension.setup.keyboard.step" = "Otevřít automatického vyplňování hesel";
+"extension.setup.keyboard.step.bold" = "Automatické vyplňování hesel";
+"extension.setup.switch.step" = "Povolit automatické vyplňování hesel";
+"extension.setup.switch.step.bold" = "Povolit";
+"extension.setup.keychain.step" = "Vypnout Klíčenku";
+"extension.setup.keychain.step.bold" = "Vypnout";
+"extension.setup.passbolt.step" = "Zvolte Passbolt!";
+"extension.setup.passbolt.step.bold" = "Passbolt!";
+"extension.setup.setup.button" = "Přejít do nastavení";
+"extension.setup.later.button" = "Možná později";
+
+"tab.home" = "Domů";
+"tab.otp" = "TOTP";
+"tab.settings" = "Nastavení";
+
+"authorization.prompt.refresh.session.reason" = "Pro obnovení relace se prosím přihlaste";
+"authorization.prompt.biometrics.set.reason" = "Pro povolení biometriky se prosím přihlaste.";
+
+"resources.search.placeholder" = "Hledat podle názvu, uživatelského jména, URL nebo tagu...";
+
+"resource.menu.item.open.url" = "Otevřít web";
+"resource.menu.item.copy.url" = "Kopírovat URL";
+"resource.menu.item.copy.password" = "Kopírovat heslo";
+"resource.menu.item.copy.username" = "Kopírovat uživatelské jméno";
+"resource.menu.item.copy.description" = "Kopírovat popis";
+"resource.menu.item.copy.note" = "Kopírovat poznámku";
+"resource.menu.item.reveal.otp" = "Zobrazit TOTP";
+"resource.menu.item.copy.otp" = "Kopírovat TOTP";
+"resource.menu.item.add.favorite" = "Přidat do oblíbených";
+"resource.menu.item.remove.favorite" = "Odebrat z oblíbených";
+"resource.menu.item.share" = "Sdílet heslo";
+"resource.menu.item.edit.password" = "Upravit heslo";
+"resource.menu.item.edit.otp" = "Upravit TOTP";
+"resource.menu.item.delete.resource" = "Odstranit heslo";
+"resource.menu.item.delete.otp" = "Odstranit TOTP";
+"resource.menu.item.password" = "Heslo";
+"resource.menu.item.username" = "Uživatelské jméno";
+"resource.menu.item.description" = "Popis";
+"resource.menu.item.url" = "URL";
+"resource.menu.item.field.copied" = "%@ zkopírováno do vaší schránky!";
+
+"resource" = "Prostředek";
+"resource.menu.action.favorite.added" = "%@ bylo přidáno do oblíbených!";
+"resource.menu.action.favorite.removed" = "%@ bylo odebráno z oblíbených!";
+
+"resource.menu.action.edited" = "Heslo bylo úspěšně upraveno.";
+"resource.menu.action.deleted" = "%@ bylo odstraněno!";
+
+"resource.permission.type.read.label" = "může číst";
+"resource.permission.type.write.label" = "lze aktualizovat";
+"resource.permission.type.own.label" = "je vlastník";
+"resource.permission.list.title" = "Sdíleno s";
+"resource.permission.list.edit.button.title" = "Upravit oprávnění";
+"resource.permission.edit.list.title" = "Sdílet heslo";
+"resource.permission.edit.list.empty.message" = "Ujistěte se, že existuje alespoň jeden vlastník.";
+"resource.permission.edit.list.add.button.title" = "Přidat uživatele";
+"resource.permission.edit.user.and.group.search.title" = "Vybrat uživatele";
+"resource.permission.edit.user.and.group.search.prompt" = "Hledat uživatele...";
+"resource.permission.edit.user.and.group.search.existing.section.title" = "Již přidáno";
+"resource.permission.delete.user.permission.confirmation.message" = "Heslo již nebude sdíleno s tímto uživatelem.";
+"resource.permission.delete.user.group.permission.confirmation.message" = "Heslo již nebude sdíleno s touto skupinou.";
+
+"resource.permission.details.title" = "Oprávnění";
+"resource.permission.details.user.suspended" = "pozastaven";
+
+"permission.details.type.section.title" = "Oprávnění";
+"permission.details.group.members.section.title" = "Členové skupiny";
+"permission.details.user.suspended" = "pozastaven";
+
+"resource.permission.edit.button.delete.title" = "Odebrat oprávnění";
+
+"resource.folders.add.menu.title" = "Vytvořit zdroj";
+"resource.folders.add.menu.folder.label" = "Složka";
+
+"group.members.list.title" = "Členové skupiny";
+"group.members.member.details.title" = "Člen skupiny";
+
+"totp.title.label" = "Dvoufázové ověření";
+"totp.message.label" = "Zadejte ověřovací kód:";
+"totp.paste.otp.button.label" = "Vložit kód";
+"totp.remember.device.toggle.label" = "Pamatovat si toto zařízení po dobu 30 dní";
+
+"yubiKey.scan.instruction" = "Přiložte YubiKey ke svému zařízení.";
+"yubiKey.scan.success" = "Skenování bylo úspěšné";
+"yubiKey.scan.notRecognized.title" = "Yubikey nebyl rozpoznán";
+"yubiKey.scan.notRecognized.button.ok" = "Rozumím";
+"yubiKey.scan.notRecognized.message" = "Váš Yubikey není serverem rozpoznán.\nZkuste to s jiným Yubikey nebo jiným poskytovatelem.";
+"mfa.yubiKey.title" = "YubiKey OTP";
+"mfa.yubiKey.description" = "Všimněte si, že váš Yubikey musí podporovat NFC, aby to fungovalo.";
+"mfa.yubiKey.scan" = "Použijte svůj YubiKey";
+"mfa.yubiKey.nfc.not.supported" = "Toto zařízení nepodporuje NFC.";
+"mfa.provider.try.another" = "Vyzkoušet s jiným poskytovatelem";
+"mfa.remember.token" = "Pamatovat si toto zařízení po dobu 30 dní";
+"mfa.unsupported.provider.title" = "Váš poskytovatel MFA není podporován";
+"mfa.unsupported.provider.description" = "Prosím nastavte jiného poskytovatele pomocí webové aplikace.
+    Kontaktujte svého správce pro více informací.";
+"mfa.duo.authorization.title" = "Duo multi-faktorové ověření";
+"mfa.duo.authorization.button.title" = "Ověření s Duo";
+
+"account.menu.title" = "Přepnout účet";
+"account.menu.account.details.button.title" = "Zobrazit podrobnosti";
+"account.menu.sign.out.button.title" = "Odhlásit se";
+"account.menu.manage.accounts.button.title" = "Správa účtů";
+
+"account.details.title" = "Podrobnosti účtu";
+"account.details.field.label.title" = "Popisek";
+"account.details.field.label.editing.info" = "Štítek se zobrazí v seznamu účtů a pro ověření";
+"account.details.field.name.title" = "Jméno";
+"account.details.field.email.title" = "E-mail";
+"account.details.field.url.title" = "URL organizace";
+"account.details.field.role.title" = "Role";
+"account.details.button.save.title" = "Uložit";
+
+"update.available.title" = "Je k dispozici nová verze!";
+"update.available.message" = "Prosím, aktualizujte aplikaci Passbolt na nejnovější verzi z App Store";
+
+// Autofill extension
+
+"autofill.extension.setup.completed.title" = "Passbolt Automatické vyplňování povoleno!";
+"autofill.extension.setup.completed.info" = "Jakmile vyplníte formulář, jednoduše klepněte na pole záznamu a    povolené Automatické vyplňování jej navrhne vyplnit z přihlašovacích údajů, které jste již přidali do aplikace Passbolt.";
+
+"autofill.extension.account.selection.switch.account.title" = "Přepnout účet";
+"autofill.extension.account.selection.switch.account.subtitle" = "Pro přepnutí vyberte účet!";
+"autofill.extension.account.selection.sign.in.title" = "Nejste přihlášen(a)";
+"autofill.extension.account.selection.sign.in.subtitle" = "Vyberte účet pro přihlášení!";
+
+"autofill.extension.no.accounts.title" = "Nebyl nalezen žádný účet!";
+"autofill.extension.no.accounts.description" = "K začátku potřebujete účet. Otevřete aplikaci Passbolt a postupujte podle pokynů k nastavení. Passbolt poté bude schopen automaticky vyplňovat přihlašovací údaje.";
+
+"autofill.extension.resource.list.title" = "Zvolte heslo";
+"autofill.extension.resource.list.section.suggested.title" = "Navrhované";
+"autofill.extension.resource.list.section.all.title" = "Jiné";
+
+"autofill.extension.autofill.extension.resources.search.placeholder" = "Hledat v passboltu...";
+
+"mfa.required.title" = "MFA je povinné";
+"autofill.extension.mfa.required.description" = "Prosím použijte aplikaci Passbolt k dokončení vašeho ověření.";
+
+"folder.edit.form.create.title" = "Vytvořit složku";
+"folder.edit.form.name.field.placeholder" = "Složka bez názvu";
+"folder.edit.form.created" = "Nová složka %@ byla vytvořena!";
+
+"resource.folder.menu.open.details.label" = "Zobrazit podrobnosti";
+
+// Common UI
+
+"folder.root.name" = "Kořenový adresář";
+
+"folder.name.title" = "Jméno";
+"folder.location.title" = "Umístění";
+"permissions.avatars.view.title" = "Oprávnění";
+"shared.avatars.view.title" = "Sdíleno s";
+
+// Forms common
+
+"form.field.name.title" = "Jméno";
+
+"form.button.save.title" = "Uložit";
+
+// Errors
+
+"generic.error" = "Něco se pokazilo!";
+"generic.error.retry" = "Něco se pokazilo, zkuste to prosím znovu.";
+"generic.error.report" = "Něco se pokazilo, prosím nahlaste chybu.";
+"generic.error.cancelled" = "Operace byla zrušena.";
+"sign.in.error.message" = "Přihlášení se nezdařilo";
+"sign.in.error.biometrics.changed.message" = "Zdá se, že se změnily biometrické údaje vašeho zařízení. Zadejte prosím přístupovou frázi a znovu nastavte biometrické údaje";
+"sign.in.error.passphrase.invalid.message" = "Neplatná přístupová fráze.";
+"server.fingerprint.save.failed" = "Nepodařilo se uložit otisk prstu serveru.";
+"form.field.error.max.length" = "Maximální délka byla překročena.";
+"form.error.invalid" = "Formulář je neplatný";
+"resource.form.field.error.empty" = "Pole nemůže být prázdné";
+"resource.from.field.error.invalid.value" = "Hodnota pro toto pole není platná";
+"resource.form.field.error.max.length" = "Maximální délka byla překročena.";
+"resource.form.field.error.invalid" = "Neplatná hodnota pole";
+"resource.form.error.invalid" = "Formulář je neplatný";
+"authorization.passphrase.error" = "Přístupová fráze je špatná!";
+"account.settings.biometrics.error" = "Nastavení biometrie se nezdařilo.";
+"totp.wrong.code.error" = "Chybný kód";
+"error.another.account.transfer.in.progress" = "Jiný převod účtu již probíhá. Prosím, nejprve jej dokončete.";
+"resource.menu.action.failed" = "%@ selhalo!";
+"mfa.yubiKey.scan.failed" = "Skenování selhalo";
+
+"error.internal.inconsistency" = "Vnitřní nesrovnalost, prosím nahlaste chybu.";
+"error.feature.unavailable" = "Funkce není dostupná.";
+"error.nfc.not.supported" = "NFC není podporováno.";
+"error.nfc.payload.invalid" = "Neplatná data NFC.";
+"error.url.invalid" = "Neplatná URL adresa.";
+"error.internet.connection.issue" = "Nelze se připojit k internetu.";
+"error.client.certificate.invalid" = "Neplatný certifikát klienta.";
+"error.server.connection.issue" = "Nelze se spojit se serverem.";
+"error.server.time.issue" = "Časy serveru a klienta nejsou synchronizovány, kontaktujte prosím svého administrátora.";
+"error.server.response.invalid" = "Neplatná odpověď serveru";
+"error.server.response.timeout" = "Časový limit odezvy serveru vypršel.";
+"error.server.certificate.invalid" = "Neplatný certifikát serveru.";
+"error.http.request.invalid" = "HTTP neplatný požadavek.";
+"error.http.response.invalid" = "HTTP neplatná odpověď.";
+"error.network.response.invalid" = "Neplatná odpověď sítě";
+"error.http.response.forbidden" = "HTTP zakázáno.";
+"error.http.response.conflict" = "HTTP konflikt.";
+"error.http.response.not.found" = "HTTP nenalezeno.";
+"error.http.response.redirect" = "HTTP přesměrování.";
+"error.http.request.invalid" = "HTTP neplatný požadavek.";
+"error.http.response.invalid" = "HTTP neplatná odpověď.";
+"error.http.response.status.code.unexpected" = "HTTP neočekávaný kód stavu.";
+"error.http.response.unauthorized" = "HTTP neautorizován.";
+"error.network.response.decoding.failed" = "Dekódování odpovědi sítě selhalo.";
+"error.network.request.validation.failure" = "Ověření síťového požadavku selhalo.";
+"error.session.authorization.required" = "Vyžadována autorizace relace";
+"error.session.authorization.mfa.required" = "Vyžadována autorizace MFA relace.";
+"error.session.missing" = "Chybějící relace.";
+"error.crypto.data.signature.invalid" = "Podpis dat je neplatný.";
+"error.crypto.passphrase.invalid" = "Neplatné přístupové fráze.";
+"error.crypto.pgp.fingerprint.invalid" = "Neplatný otisk PGP.";
+"error.crypto.pgp.fingerprint.mismatch" = "PGP neodpovídá otisku prstu.";
+"error.crypto.pgp.keyring.preparation.failed" = "Nepodařilo se připravit PGP keyring";
+"error.crypto.pgp.keypacket.extraction.failed" = "Nepodařilo se extrahovat PGP key packet.";
+"error.crypto.pgp.sessionkey.extraction.failed" = "Nepodařilo se extrahovat PGP session key.";
+"error.crypto.pgp.public.key.invalid" = "Neplatný veřejný PGP klíč.";
+"error.data.empty" = "Žádná data nebyla poskytnuta.";
+"error.data.invalid" = "Poskytnuta neplatná data.";
+"error.resource.permission.required" = "Je vyžadováno oprávnění.";
+"error.resource.secret.invalid" = "Tajný klíč prostředku je neplatný.";
+"error.resource.permission.invalid" = "Oprávnění prostředku je neplatné.";
+"error.resource.owner.missing" = "Prostředek musí mít alespoň jednoho vlastníka.";
+"error.system.feature.inaccessible" = "Systémová funkce je nepřístupná.";
+"error.system.feature.permission.not.granted" = "Oprávnění k systémové funkci nebylo uděleno.";
+"error.system.feature.permission.required" = "Vyžadováno oprávnění k systémové funkci.";
+"error.system.feature.status.undetermined" = "Stav systémové funkce není určen.";
+"error.system.file.access.issue" = "Nelze získat přístup k souboru.";
+"error.system.directory.access.issue" = "Nelze získat přístup k adresáři.";
+"error.database.statement.invalid" = "Databázový příkaz je neplatný.";
+"error.database.statement.execution.failure" = "Vykonávání databázového příkazu se nezdařilo.";
+"error.database.migration.failure" = "Migrace databáze se nezdařila.";
+"error.database.connection.issue" = "Nelze se připojit k databázi.";
+"error.database.connection.closed" = "Připojení k databázi bylo ukončeno.";
+"error.database.binding.invalid" = "Připojení databázových dat je neplatné.";
+"error.database.result.empty" = "Výsledek databáze je prázdný.";
+"error.database.result.invalid" = "Výsledek databáze je neplatný";
+"error.keychain.authorization.failed" = "Autorizace Keychain se nezdařila.";
+"error.keychain.failure" = "Přístup k Keychain se nezdařil.";
+"error.keychain.query.invalid" = "Neplatný dotaz Keychain.";
+"error.account.private.key.missing" = "Soukromý klíč účtu chybí.";
+"error.account.profile.data.missing" = "Chybí údaje profilu účtu.";
+"error.account.passphrase.missing" = "Chybí heslo účtu.";
+"error.account.data.missing" = "Chybí údaje účtu.";
+"error.account.biometry.data.changed" = "Biometrická data byla změněna.";
+"error.account.kit.fail.to.import" = "Nepodařilo se importovat account kit.";
+"error.account.kit.signature.verification" = "Ověření podpisu se nezdařilo.";
+"error.users.list.empty" = "Seznam uživatelů nemůže být prázdný.";
+"error.user.public.key.invalid" = "Neplatný veřejný klíč uživatele.";
+"error.user.public.key.missing" = "Veřejný klíč uživatele chybí.";
+"error.user.secret.missing" = "Chybí uživatelské tajemství.";
+"error.session.closed" = "Relace ukončena.";
+"error.account.duplicate" = "Duplicitní účet.";
+"error.server.pgp.fingerprint.invalid" = "PGP otisk serveru je neplatný.";
+"error.session.authorization.failed" = "Autorizace relace se nezdařila.";
+"error.qrcode.invalid" = "To není Passbolt QR kód. Zkuste to znovu!";
+
+"error.validation.folder.name.empty" = "Název složky nemůže být prázdný.";
+"error.validation.folder.name.too.long" = "Název složky nemůže mít více než 256 znaků.";
+
+"error.validation.permissions.empty" = "Musí existovat alespoň jedno oprávnění.";
+"error.validation.permissions.owner.required" = "Musí existovat alespoň jeden vlastník.";
+
+"error.validation.form.invalid" = "Formulář není platný.";
+"error.biometrics.unavailable.message" = "Biometrika není k dispozici";
+
+"error.qrcode.generation.generic" = "QR kód nelze z poskytnutých dat vytvořit";
+
+"error.otp.configuration.invalid" = "Neplatná konfigurace OTP.";
+
+// Validation errors
+
+"error.resource.field.empty" = "%@ nemůže být prázdný!";
+"error.resource.field.length.lower" = "%@ nemůže mít více než %d znaků!";
+"error.resource.field.length.higher" = "%@ nemůže mít méně než %d znaků!";
+"error.resource.field.range.lower" = "%@ musí být nižší než %d!";
+"error.resource.field.range.greater" = "%@ musí být větší než %d!";
+"error.resource.field.content.invalid" = "%@ má neplatný obsah!";
+"error.resource.field.selection.invalid" = "%@ musí být jedna z platných možností!";
+"error.resource.field.unknown" = "Neznámá pole nejsou očekávána!";
+"error.validation.password.length.invalid" = "Neplatné nastavení délky hesla!";
+"error.validation.password.mask.empty" = "Maska expirace hesla nemůže být prázdná!";
+
+// Home - presentation mode menu
+
+"home.presentation.mode.menu.title" = "Filtrovat zobrazení podle";
+
+// Presentation modes
+
+"home.presentation.mode.plain.resources.title" = "Všechny položky";
+"home.presentation.mode.favorite.resources.title" = "Oblíbené";
+"home.presentation.mode.modified.resources.title" = "Naposledy upraveno";
+"home.presentation.mode.shared.resources.title" = "Sdíleno se mnou";
+"home.presentation.mode.owned.resources.title" = "Vlastněna mnou";
+"home.presentation.mode.owned.resources.expiry" = "Expirace";
+"home.presentation.mode.folders.explorer.title" = "Složky";
+"home.presentation.mode.folders.explorer.search.direct.results" = "v \"%@\":";
+"home.presentation.mode.folders.explorer.search.nested.results" = "v podsložkách:";
+"home.presentation.mode.tags.explorer.title" = "Štítky";
+"home.presentation.mode.resource.user.groups.explorer.title" = "Skupiny";
+
+// OTP resources
+
+"otp.resources.search.placeholder" = "Hledat TOTP";
+"otp.resources.list.title" = "TOTP";
+"otp.resources.list.empty.message" = "Neexistuje žádná TOTP";
+"otp.value.copied.message" = "TOTP zkopírováno do vaší schránky!";
+
+// OTP contextual menu
+
+"otp.contextual.menu.copy.title" = "Kopírovat TOTP";
+"otp.copied.message" = "TOTP zkopírováno do vaší schránky!";
+"otp.contextual.menu.reveal.title" = "Zobrazit TOTP";
+"otp.contextual.menu.edit.title" = "Upravit TOTP";
+"otp.contextual.menu.delete.title" = "Odstranit TOTP";
+"otp.contextual.menu.delete.confirm.title" = "Jste si jisti?";
+"otp.contextual.menu.delete.confirm.message" = "Tato akce permanentně odstraní TOTP.";
+"otp.contextual.menu.delete.confirm.action.delete" = "Odstranit TOTP";
+"otp.contextual.menu.delete.succeeded" = "TOTP bylo smazáno.";
+
+// OTP edit menu
+
+"otp.edit.menu.create.title" = "Vytvořit TOTP";
+"otp.edit.menu.edit.title" = "Upravit TOTP";
+"otp.edit.menu.scanning.title" = "Načíst QR kódy";
+"otp.edit.menu.create.manual.title" = "Vytvořit TOTP ručně";
+"otp.edit.menu.edit.manual.title" = "Upravit TOTP ručně";
+"otp.edit.code.scanning.title" = "Upravit TOTP ručně";
+"otp.edit.code.scanning.initial.message" = "Načíst QR kódy";
+"otp.edit.menu.title" = "Namiřte kameru na QR kódy";
+"otp.edit.otp.created.message" = "TOTP bylo vytvořeno.";
+"otp.edit.otp.replaced.message" = "TOTP bylo nahrazeno.";
+"otp.edit.otp.deleted.message" = "TOTP bylo smazáno.";
+
+// OTP scanning
+
+"otp.scanning.success.title" = "Vaše TOTP bylo naskenováno!";
+"otp.scanning.success.create.button.title" = "Vytvořit samostatné TOTP";
+"otp.scanning.success.link.button.title" = "Připojit TOTP k heslu";
+"otp.code.scanning.title" = "Načíst QR kódy";
+"otp.code.scanning.initial.message" = "Namiřte fotoaparát na QR kód";
+"otp.code.scanning.manual.input" = "nebo vytvořit TOTP ručně";
+
+// OTP form
+
+"otp.edit.form.create.title" = "Vytvořit TOTP";
+"otp.edit.form.edit.title" = "Upravit TOTP";
+"otp.edit.form.field.name.title" = "Jméno (Štítek)";
+"otp.edit.form.field.name.prompt" = "Jméno";
+"otp.edit.form.field.uri.title" = "URL (Vydavatel)";
+"otp.edit.form.field.uri.prompt" = "URL";
+"otp.edit.form.field.secret.title" = "Tajný";
+"otp.edit.form.field.secret.prompt" = "Tajný";
+"otp.edit.form.advanced.button.title" = "Další nastavení TOTP";
+"otp.edit.form.create.button.title" = "Vytvořit samostatné TOTP";
+"otp.edit.form.apply.button.title" = "Použít";
+"otp.edit.form.edit.button.title" = "Uložit";
+"otp.edit.form.edit.advanced.title" = "Upravit TOTP - pokročilá nastavení";
+"otp.edit.form.edit.advanced.warning" = "Pokročilá nastavení musí odpovídat nastavení poskytovatele TOTP, jinak nebude fungovat.";
+"otp.edit.form.field.digits.title" = "Délka TOTP";
+"otp.edit.form.field.digits.label" = "cifer.";
+"otp.edit.form.field.period.title" = "TOTP vypršení";
+"otp.edit.form.field.period.label" = "sekund, dokud TOTP nevyprší.";
+"otp.edit.form.field.algorithm.title" = "Algoritmus";
+"otp.edit.form.apply.button.title" = "Použít";
+
+// OTP attach
+
+"otp.attach.list.title" = "Přidat TOTP k heslu";
+"otp.attach.alert.attach.title" = "Jste si jisti?";
+"otp.attach.alert.attach.message" = "Pokud přidáte TOTP k této položce, TOTP zdědí stejná oprávnění ke sdílení.";
+"otp.attach.alert.attach.button.title" = "Přidat TOTP";
+"otp.attach.alert.replace.title" = "Přepsat TOTP?";
+"otp.attach.alert.replace.message" = "TOTP je již přiřazeno k této položce, chcete jej přepsat?";
+"otp.attach.alert.replace.button.title" = "Nahradit TOTP";
+"otp.attach.error.notAllowed" = "Nemáte oprávnění upravovat tento prostředek.";
+"otp.attach.error.notCompatible" = "Tento prostředek není kompatibilní s TOTP.";
+
+
+// Settings - Main
+
+"settings.main.title" = "Nastavení";
+"settings.main.item.application.title" = "Nastavení aplikace";
+"settings.main.item.accounts.title" = "Účty";
+"settings.main.item.terms.and.licenses.title" = "Podmínky a licence";
+"settings.main.item.troubleshooting.title" = "Debug, logy";
+"settings.main.item.sign.out.title" = "Odhlásit se";
+
+// Settings - Application
+
+"settings.application.title" = "Nastavení aplikace";
+"settings.application.item.autofill.title" = "Autofill";
+"settings.application.item.default.mode.title" = "Výchozí filtr";
+
+// Settings - Accounts
+
+"settings.accounts.title" = "Účty";
+"settings.accounts.item.details.title" = "Podrobnosti účtu";
+"settings.accounts.item.manage.title" = "Správa účtů";
+"settings.accounts.item.export.title" = "Převést účet do jiného zařízení";
+"settings.accounts.item.key.inspector.title" = "Klíčový inspektor";
+
+// Settings - Terms & Licenses
+
+"settings.terms.and.licenses.title" = "Podmínky a licence";
+"settings.terms.and.licenses.item.terms.title" = "Podmínky a podmínky";
+"settings.terms.and.licenses.item.privacy.title" = "Zásady ochrany soukromí";
+"settings.terms.and.licenses.item.licenses.title" = "Open source licence";
+
+// Key inspector
+
+"account.key.inspector.title" = "Klíčový inspektor";
+"account.key.inspector.field.uid.title" = "UID";
+"account.key.inspector.field.fingerprint.title" = "Otisk prstu";
+"account.key.inspector.field.created.title" = "Vytvořeno";
+"account.key.inspector.field.expires.title" = "Platnost";
+"account.key.inspector.no.exipire.placeholder" = "Nikdy";
+"account.key.inspector.field.key.size.title" = "Délka klíče";
+"account.key.inspector.field.algorithm.title" = "Algoritmus";
+"account.key.inspector.uid.copied.message" = "Uid zkopírován do schránky!";
+"account.key.inspector.fingerprint.copied.message" = "Fingerprint byl zkopírován do schránky!";
+
+// Key export
+
+"account.key.export.menu.title" = "Klíčový inspektor";
+"account.key.export.menu.export.private.action" = "Exportovat soukromý klíč";
+"account.key.export.menu.export.public.action" = "Exportovat veřejný klíč";
+"account.key.export.private.authorization.title" = "Exportovat soukromý klíč";
+"account.key.export.private.authorization.button.title" = "Exportovat soukromý klíč";
+
+// Settings - Troubleshooting
+
+"settings.troubleshooting.title" = "Debug, logy";
+"settings.troubleshooting.item.logs.title" = "Přístup k debug logům";
+"settings.troubleshooting.item.help.site.title" = "Navštívit stránku nápovědy";
+
+// Settings - Default presentation mode
+
+"settings.application.default.mode.title" = "Výchozí filtr";
+"settings.application.default.mode.option.last.used.title" = "Naposledy použito (výchozí)";
+
+// Settings - Disable biometrics alert
+
+"settings.application.biometrics.disable.alert.title" = "Jste si jisti?";
+"settings.application.biometrics.disable.alert.message" = "Po vypnutí %@ se budete muset přihlásit pomocí přístupové fráze.";
+"settings.application.biometrics.disable.alert.confirm.title" = "Vypnout biometriku";
+"settings.application.biometrics.disable.alert.cancel.title" = "Ponechat";
+
+// Settings - Sign out alert
+
+"settings.main.sign.out.alert.title" = "Jste si jisti?";
+"settings.main.sign.out.alert.message" = "Pokud se odhlásíte, budete odhlášeni z vašeho účtu na tomto zařízení.";
+"settings.main.sign.out.alert.confirm.title" = "Odhlásit se";
+
+// Biometric authorization availability
+
+"biometric.authorization.availability.unavailable" = "Nedostupné";
+"biometric.authorization.availability.face.id" = "FaceID";
+"biometric.authorization.availability.touch.id" = "TouchID";
+
+// Operation authorization
+
+"authorization.primary.button.title" = "Autorizovat";
+
+// Metadata
+"metadata.pinned.key.validation.error.title" = "Klíč metadat se změnil.";
+"metadata.pinned.key.validation.error.message" = "Šifrovací klíč používaný k sdílení metadat mezi uživateli byl aktualizován %@.";
+"metadata.pinned.key.validation.error.disclaimer" = "Pokud s tím nepočítali, můžete to ověřit u svého správce.";
+"metadata.pinned.key.validation.error.trust" = "Důvěřovat klíči";
+"metadata.pinned.key.fingerprint" = "Otisk prstu klíče:";
+
+"metadata.pinned.key.validation.deleted.title" = "Klíč metadat byl odstraněn.";
+"metadata.pinned.key.validation.deleted.message" = "Důvěryhodný šifrovací klíč používaný k sdílení metadat mezi uživateli byl odstraněn.";
+
+"metadata.pinned.key.validation.unknown.title" = "Klíč metadat se změnil.";
+"metadata.pinned.key.validation.unknown.message" = "Důvěryhodný šifrovací klíč používaný k sdílení metadat mezi uživateli nebylo možné ověřit.";
