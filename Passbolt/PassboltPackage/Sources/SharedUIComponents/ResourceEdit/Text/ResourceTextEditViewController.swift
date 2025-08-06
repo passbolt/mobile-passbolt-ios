@@ -141,12 +141,16 @@ public final class ResourceTextEditViewController: ViewController {
   }
 
   internal func apply() async {
-    await consumingErrors {
-      await self.resourceEditForm.update(
-        context.textPath,
-        to: viewState.current.text.value
-      )
+    await self.resourceEditForm.update(
+      context.textPath,
+      to: viewState.current.text.value
+    )
+    do {
+      try await self.resourceEditForm.validateField(context.textPath)
       try await navigationToSelf.revert()
+    }
+    catch {
+      SnackBarMessageEvent.send(.error(error))
     }
   }
 

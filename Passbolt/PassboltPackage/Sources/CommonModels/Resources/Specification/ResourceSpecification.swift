@@ -234,7 +234,7 @@ extension ResourceSpecification {
           name: .note,
           content: .string(
             minLength: .none,
-            maxLength: 10000
+            maxLength: isV5 ? 50_000 : 10_000
           ),
           required: false,
           encrypted: true
@@ -366,7 +366,7 @@ extension ResourceSpecification {
           name: .note,
           content: .string(
             minLength: .none,
-            maxLength: 10000
+            maxLength: isV5 ? 50_000 : 10_000
           ),
           required: false,
           encrypted: true
