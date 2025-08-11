@@ -175,6 +175,7 @@
 "resource.edit.uris.additional.uri.placeholder" = "URI";
 "resource.edit.uris.additional.uri.add" = "Add URI";
 "resource.edit.uris.additional.uris.error.limit" = "You can add a maximum of %d additional URIs.";
+"resource.edit.uris.invalid.form" = "One or more URIs are invalid.";
 
 "resource.edit.icon.title" = "Appearance";
 "resource.edit.icon.color.select.title" = "Select color";

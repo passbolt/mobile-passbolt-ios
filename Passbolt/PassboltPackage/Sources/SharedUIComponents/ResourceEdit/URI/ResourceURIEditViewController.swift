@@ -27,7 +27,7 @@ import Resources
 @MainActor
 public final class ResourceURIEditViewController: ViewController {
   /// This limit is limited by the server. Subject to change.
-  private nonisolated static let additionalURIsLimit: Int = 20
+  private nonisolated static let additionalURIsLimit: Int = 19
 
   public struct ViewState: Equatable {
     internal var mainURI: Validated<String>
@@ -36,10 +36,6 @@ public final class ResourceURIEditViewController: ViewController {
     struct IdentifiedURI: Identifiable, Equatable {
       let id: UUID = .init()
       var uri: Validated<String>
-
-      mutating func updateURI(_ uri: String) {
-        self.uri = .valid(uri)
-      }
     }
   }
 
@@ -48,6 +44,12 @@ public final class ResourceURIEditViewController: ViewController {
 
   private let resourceEditForm: ResourceEditForm
   private let navigationToSelf: NavigationToResourceURIEdit
+  private let uriValidator: Validator<String> = .maxLength(
+    1024,
+    displayable: .localized(
+      key: "form.field.error.max.length"
+    )
+  )
 
   public init(
     context _: Context,
@@ -130,21 +132,31 @@ public final class ResourceURIEditViewController: ViewController {
 
   internal func set(_ uri: String, for id: ViewState.IdentifiedURI.ID) {
     self.viewState.update { (viewState: inout ViewState) in
-      viewState.additionalURIs[id]?.updateURI(uri)
+      viewState.additionalURIs[id]?.uri = uriValidator.validate(uri)
     }
   }
 
   internal func apply() async {
     await consumingErrors {
       let viewState: ViewState = await self.viewState.current
-      let uris: Array<String> =
+
+      let allURIs: Array<Validated<String>> =
         [
-          viewState.mainURI.value
-        ] + viewState.additionalURIs.map { $0.uri.value }
+          viewState.mainURI
+        ] + viewState.additionalURIs.map { $0.uri }
+
+      guard allURIs.allSatisfy({ $0.isValid }) else {
+        SnackBarMessageEvent.send(
+          .error(
+            "resource.edit.uris.invalid.form"
+          )
+        )
+        return
+      }
 
       self.resourceEditForm.update(
         \.meta.uris,
-        to: .array(uris.map { .string($0) })
+        to: .array(allURIs.map { .string($0.value) })
       )
 
       try await navigationToSelf.revert()
