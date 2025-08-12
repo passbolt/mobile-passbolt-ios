@@ -38,11 +38,21 @@ internal struct ResourceTextEditView: ControlledView {
 
   internal var body: some View {
     self.content
-      .frame(maxHeight: .infinity)
       .overlay(alignment: .bottom) {
         VStack {
           Spacer()
-          VStack(spacing: 0) {
+          VStack(spacing: 16) {
+            when(\.showAction) {
+              with(\.action) { action in
+                SecondaryButton(
+                  title: action?.title ?? "",
+                  iconName: action?.icon,
+                  action: {
+                    await self.controller.executeAction()
+                  }
+                )
+              }
+            }
             PrimaryButton(
               title: "generic.apply",
               action: {
@@ -50,8 +60,8 @@ internal struct ResourceTextEditView: ControlledView {
               }
             )
           }
-          .background(.background)
           .padding(16)
+          .background(.background)
         }
         .ignoresSafeArea(.keyboard)
       }
@@ -92,7 +102,8 @@ internal struct ResourceTextEditView: ControlledView {
                     }
                   }
                 ),
-                textFieldMinHeight: 100
+                textFieldMinHeight: 100,
+                textFieldMaxHeight: 280
               )
               .focused($focusState)
               .toolbar {
@@ -121,17 +132,6 @@ internal struct ResourceTextEditView: ControlledView {
           .padding(.vertical, 8)
           .backgroundColor(.passboltBackgroundGray)
           .cornerRadius(4)
-          when(\.showAction) {
-            with(\.action) { action in
-              SecondaryButton(
-                title: action?.title ?? "",
-                iconName: action?.icon,
-                action: {
-                  await self.controller.executeAction()
-                }
-              )
-            }
-          }
         }
       }
     }

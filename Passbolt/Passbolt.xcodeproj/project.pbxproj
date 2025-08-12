@@ -129,6 +129,7 @@
 		C00FE53D2DE6FF7A007B3EC2 /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		C00FE53E2DE70049007B3EC2 /* uk */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = uk; path = uk.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		C00FE53F2DE70F62007B3EC2 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		C08E424E2E4B40F70044C421 /* cs */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = cs; path = cs.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		DD38F93E261746C400A6C627 /* Passbolt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Passbolt.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD38F941261746C400A6C627 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		DD38F943261746C400A6C627 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -528,6 +529,7 @@
 				sv,
 				uk,
 				"pt-BR",
+				cs,
 			);
 			mainGroup = DD38F935261746C400A6C627;
 			productRefGroup = DD38F93F261746C400A6C627 /* Products */;
@@ -728,6 +730,7 @@
 				C00FE53D2DE6FF7A007B3EC2 /* sv */,
 				C00FE53E2DE70049007B3EC2 /* uk */,
 				C00FE53F2DE70F62007B3EC2 /* pt-BR */,
+				C08E424E2E4B40F70044C421 /* cs */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
