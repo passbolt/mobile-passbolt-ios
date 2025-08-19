@@ -70,7 +70,7 @@ internal final class ResourceTagsListNodeController: ViewController {
     self.contentController = try features.instance(
       context: .init(
         filter: self.searchController.searchText.asAnyUpdatable(),
-        selectTag: self.selectResourceTag(_:)
+        selectTag: { [weak self] in try await self?.selectResourceTag($0) }
       )
     )
   }

@@ -104,8 +104,8 @@ internal final class ResourceFolderContentNodeController: ViewController {
         createResource: context.folderDetails?.permission != .read  // root or owned / write
           ? self.createResource
           : .none,
-        selectFolder: self.selectFolder(_:),
-        selectResource: self.selectResource(_:),
+        selectFolder: { [weak self] in try await self?.selectFolder($0) },
+        selectResource: { [weak self] in try await self?.selectResource($0) },
         openResourceMenu: .none
       )
     )

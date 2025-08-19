@@ -82,8 +82,8 @@ internal final class ResourcesListNodeController: ViewController {
         suggestionFilter: { (resource: ResourceListItemDSV) -> Bool in
           requestedServiceIdentifiers.matches(resource)
         },
-        createResource: self.createResource,
-        selectResource: self.selectResource(_:)
+        createResource: { [weak self] in try await self?.createResource() },
+        selectResource: { [weak self] in try await self?.selectResource($0) }
       )
     )
   }

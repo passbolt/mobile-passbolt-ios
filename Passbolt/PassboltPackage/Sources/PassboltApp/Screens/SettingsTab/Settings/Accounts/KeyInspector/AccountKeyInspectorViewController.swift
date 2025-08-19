@@ -42,7 +42,7 @@ internal final class AccountKeyInspectorViewController: ViewController {
     internal var algorithm: String
   }
 
-  internal let viewState: ViewStateSource<State>
+  internal nonisolated let viewState: ViewStateSource<State>
 
   private let navigationToAccountKeyExportMenu: NavigationToAccountKeyExportMenu
 
