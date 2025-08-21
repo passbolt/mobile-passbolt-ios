@@ -275,9 +275,11 @@ extension ResourceContextualMenuViewController {
         // if field is list, we take first element
         path = path.appending(path: \.0)
       }
-
-      self.pasteboard.put(resource[keyPath: path].stringValue ?? "")
-
+      self.pasteboard.put(
+        resource[keyPath: path].stringValue ?? "",
+        withAutoExpiration: resource.isEncrypted(path)
+      )
+      
       try await self.navigationToSelf.revert()
 
       SnackBarMessageEvent.send(

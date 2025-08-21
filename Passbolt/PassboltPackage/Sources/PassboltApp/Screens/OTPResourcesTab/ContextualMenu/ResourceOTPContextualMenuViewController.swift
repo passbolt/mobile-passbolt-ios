@@ -192,7 +192,9 @@ extension ResourceOTPContextualMenuViewController {
             secret: totpSecret
           )
         )()
-      self.pasteboard.put(totp.otp.rawValue)
+      self.pasteboard.putWithAutoExpiration(
+        totp.otp.rawValue
+      )
       try await self.navigationToSelf.revert(animated: true)
       SnackBarMessageEvent.send("otp.copied.message")
     }

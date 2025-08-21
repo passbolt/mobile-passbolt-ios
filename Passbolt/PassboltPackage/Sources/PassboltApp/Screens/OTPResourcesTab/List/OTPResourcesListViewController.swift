@@ -190,7 +190,7 @@ extension OTPResourcesListViewController {
   private func copyOTP(
     _ value: OTPValue
   ) async throws {
-    pasteboard.put(value.otp.rawValue)
+    pasteboard.putWithAutoExpiration(value.otp.rawValue)
     SnackBarMessageEvent.send("otp.value.copied.message")
   }
 

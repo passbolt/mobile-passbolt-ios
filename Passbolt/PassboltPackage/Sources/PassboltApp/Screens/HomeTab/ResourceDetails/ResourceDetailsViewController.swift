@@ -221,7 +221,8 @@ extension ResourceDetailsViewController {
       var resource: Resource = try await self.resourceController.state.value
 
       // ensure having secret if field is part of it
-      if resource.isEncrypted(path) {
+      let isEncrypted: Bool = resource.isEncrypted(path)
+      if isEncrypted {
         try await self.resourceController.fetchSecretIfNeeded()
         resource = try await self.resourceController.state.value
       }  // else NOP
@@ -236,17 +237,26 @@ extension ResourceDetailsViewController {
               secret: totpSecret
             )
           )()
-        self.pasteboard.put(totpValue.otp.rawValue)
+        self.pasteboard.put(
+          totpValue.otp.rawValue,
+          withAutoExpiration: isEncrypted
+        )
       }
       else {
         if let specification: ResourceFieldSpecification = resource.fieldSpecification(for: path),
           specification.content == .list
         {
           let path: Resource.FieldPath = path.appending(path: \.0)
-          self.pasteboard.put(resource[keyPath: path].stringValue ?? "")
+          self.pasteboard.put(
+            resource[keyPath: path].stringValue ?? "",
+            withAutoExpiration: isEncrypted
+          )
         }
         else {
-          self.pasteboard.put(fieldValue.stringValue ?? "")
+          self.pasteboard.put(
+            resource[keyPath: path].stringValue ?? "",
+            withAutoExpiration: isEncrypted
+          )
         }
       }
 

@@ -27,6 +27,19 @@ public struct OSPasteboard {
 
   public var get: () -> String?
   public var put: (String?) -> Void
+  public var putWithAutoExpiration: (String?) -> Void
+}
+
+extension OSPasteboard {
+
+  public func put(_ value: String?, withAutoExpiration: Bool) {
+    if withAutoExpiration {
+      self.putWithAutoExpiration(value)
+    }
+    else {
+      self.put(value)
+    }
+  }
 }
 
 extension OSPasteboard: StaticFeature {
@@ -35,13 +48,16 @@ extension OSPasteboard: StaticFeature {
   public static var placeholder: OSPasteboard {
     Self(
       get: unimplemented0(),
-      put: unimplemented1()
+      put: unimplemented1(),
+      putWithAutoExpiration: unimplemented1()
     )
   }
   #endif
 }
 
 extension OSPasteboard {
+
+  private static var expirationInterval: TimeInterval = 30
 
   fileprivate static var live: Self {
 
@@ -55,9 +71,29 @@ extension OSPasteboard {
       UIPasteboard.general.string = string
     }
 
+    func putWithAutoExpiration(
+      string: String?
+    ) {
+      guard let string = string else {
+        // If the string is nil, we clear the pasteboard.
+        UIPasteboard.general.string = nil
+        return
+      }
+      let pasteboard: UIPasteboard = .general
+      let provider: NSItemProvider = .init(object: string as NSString)
+      pasteboard.setItemProviders(
+        [
+          provider
+        ],
+        localOnly: true,
+        expirationDate: Date().addingTimeInterval(Self.expirationInterval)
+      )
+    }
+
     return .init(
       get: getString,
-      put: put(string:)
+      put: put(string:),
+      putWithAutoExpiration: putWithAutoExpiration(string:)
     )
   }
 }
