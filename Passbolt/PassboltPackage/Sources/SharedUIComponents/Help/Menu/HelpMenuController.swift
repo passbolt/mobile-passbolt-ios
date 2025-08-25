@@ -85,6 +85,21 @@ extension HelpMenuController: UIController {
               key: "help.menu.show.logs.action.title"
             ),
             handler: logsPresentationSubject.send
+          )
+        : nil,
+        .init(
+          iconName: .importFile,
+          iconBundle: .uiCommons,
+          title: .localized(
+            key: "help.menu.show.import.account.kit.title"
+          ),
+          handler: importAccountKitPresentationSubject.send
+        ),
+        .init(
+          iconName: .open,
+          iconBundle: .uiCommons,
+          title: .localized(
+            key: "help.menu.show.web.help.action.title"
           ),
           accountKitImport.isImportAccountKitAvailable()
             ? .init(
