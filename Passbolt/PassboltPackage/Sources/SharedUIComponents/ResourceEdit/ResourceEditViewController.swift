@@ -60,8 +60,6 @@ public final class ResourceEditViewController: ViewController {
     // Flag indicating that the resource has been edited
     internal var edited: Bool
     internal var showPasswordSection: Bool
-    // Flag indicating that advanced settings button can be shown
-    internal var canShowAdvancedSettings: Bool
     // Flag indicating that advanced settings are shown
     internal var showsAdvancedSettings: Bool
     // Flag indicating if additional secrets can be added
@@ -127,27 +125,14 @@ public final class ResourceEditViewController: ViewController {
     let randomGenerator: RandomStringGenerator = try features.instance()
     self.randomGenerator = randomGenerator
 
-    if isInExtensionContext {
-      // TODO: unify navigation between app and extnsion
-      self.navigationToSelf = .placeholder
-      self.navigationToOTPEdit = .placeholder
-      self.navigationToOTPAdvanced = .placeholder
-      self.navigationToPasswordEdit = .placeholder
-      self.navigationToTextEdit = .placeholder
-      self.navigationToOTPScanning = .placeholder
-      self.navigationToURIEdit = .placeholder
-      self.navigationToIconEdit = .placeholder
-    }
-    else {
-      self.navigationToSelf = try features.instance()
-      self.navigationToOTPEdit = try features.instance()
-      self.navigationToOTPAdvanced = try features.instance()
-      self.navigationToPasswordEdit = try features.instance()
-      self.navigationToTextEdit = try features.instance()
-      self.navigationToOTPScanning = try features.instance()
-      self.navigationToURIEdit = try features.instance()
-      self.navigationToIconEdit = try features.instance()
-    }
+    self.navigationToSelf = try features.instance()
+    self.navigationToOTPEdit = try features.instance()
+    self.navigationToOTPAdvanced = try features.instance()
+    self.navigationToPasswordEdit = try features.instance()
+    self.navigationToTextEdit = try features.instance()
+    self.navigationToOTPScanning = try features.instance()
+    self.navigationToURIEdit = try features.instance()
+    self.navigationToIconEdit = try features.instance()
 
     self.resourceEditForm = try features.instance()
 
@@ -168,7 +153,6 @@ public final class ResourceEditViewController: ViewController {
         containsUndefinedFields: false,
         edited: false,
         showPasswordSection: editedResource.isStandaloneTOTPResource == false,
-        canShowAdvancedSettings: isInExtensionContext == false,
         showsAdvancedSettings: false,
         canAddAdditionalSecrets: editedResource.isSimplePasswordResource == false,
         resourceTypeSlug: editedResource.type.specification.slug
@@ -239,15 +223,12 @@ public final class ResourceEditViewController: ViewController {
   @MainActor internal func sendForm() async throws {
     do {
       let resource: Resource = try await self.resourceEditForm.sendForm()
-      if !isInExtensionContext {
-        // TODO: unify navigation between app and extension
-        if let customOnSuccessNavigation {
-          try await customOnSuccessNavigation()
-        }
-        else {
-          try await self.navigationToSelf.revert()
-        }
-      }  // else NOP
+      if let customOnSuccessNavigation {
+        try await customOnSuccessNavigation()
+      }
+      else {
+        try await self.navigationToSelf.revert()
+      }
 
       SnackBarMessageEvent.send(
         self.editsExisting
@@ -274,14 +255,7 @@ public final class ResourceEditViewController: ViewController {
     await consumingErrors(
       errorDiagnostics: "Failed to discard resource edit form!"
     ) {
-      if isInExtensionContext {
-        // TODO: unify navigation between app and extnsion
-        self.features.instance(of: NavigationTree.self)
-          .dismiss(self.viewNodeID)
-      }
-      else {
-        try await self.navigationToSelf.revert()
-      }
+      try await self.navigationToSelf.revert()
     }
   }
 
@@ -304,7 +278,6 @@ public final class ResourceEditViewController: ViewController {
   /// Show advanced settings
   @MainActor internal func showAdvancedSettings() {
     viewState.update(\.showsAdvancedSettings, to: true)
-    viewState.update(\.canShowAdvancedSettings, to: false)
   }
 
   /// Navigate to TOTP create/edit form.
@@ -473,31 +446,13 @@ public final class ResourceEditViewController: ViewController {
 
   private func navigateToMetadataPinnedKeyValidation(reason: MetadataPinnedKeyValidationError.Reason) async {
     await consumingErrors {
-      if isInExtensionContext {
-        // TODO: unify navigation between app and extension
-        let navigationTree: NavigationTree = self.features.instance(of: NavigationTree.self)
-        try navigationTree.push(
-          MetadataPinnedKeyValidationDialogView.self,
-          controller: .init(
-            context: .init(
-              reason: reason,
-              onTrustedKey: { [weak self] in
-                try await self?.sendForm()
-              }
-            ),
-            features: features
-          )
+      let navigationToInvalidMetadataKey: NavigationToMetadataPinnedKeyValidationDialog = try self.features.instance()
+      await navigationToInvalidMetadataKey.performCatching(
+        context: .init(
+          reason: reason,
+          onTrustedKey: { [weak self] in try await self?.sendForm() }
         )
-      }
-      else {
-        let navigationToInvalidMetadataKey: NavigationToMetadataPinnedKeyValidationDialog = try self.features.instance()
-        await navigationToInvalidMetadataKey.performCatching(
-          context: .init(
-            reason: reason,
-            onTrustedKey: { [weak self] in try await self?.sendForm() }
-          )
-        )
-      }
+      )
     }
   }
 }

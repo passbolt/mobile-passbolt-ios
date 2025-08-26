@@ -42,7 +42,7 @@ extension NavigationToResourceEdit {
 
 extension FeaturesRegistry {
 
-  public mutating func useLiveNavigationToResourceEdit() {
+  internal mutating func useLiveNavigationToResourceEdit() {
     self.use(
       NavigationToResourceEdit.live,
       in: SessionScope.self

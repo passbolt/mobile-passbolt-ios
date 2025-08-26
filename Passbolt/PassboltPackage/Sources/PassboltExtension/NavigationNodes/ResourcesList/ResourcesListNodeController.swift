@@ -117,31 +117,9 @@ extension ResourcesListNodeController {
       .none,
       self.requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }
     )
-    try self.navigationTree.push(
-      ResourceEditView.self,
-      controller: .init(
-        context: .init(
-          editingContext: editingContext,
-          success: { [autofillContext] resource in
-            if let password: String = resource.firstPasswordString {
-              await autofillContext
-                .completeWithCredential(
-                  AutofillExtensionContext.Credential(
-                    user: resource.meta.username.stringValue ?? "",
-                    password: password
-                  )
-                )
-            }
-            else {
-              ResourceSecretInvalid
-                .error("Missing resource password in secret.")
-                .log()
-            }
-          }
-        ),
-        features: self.features
-      )
-    )
+    let navigationToResourceEdit: NavigationToResourceEdit = try self.features.instance()
+
+    await navigationToResourceEdit.performCatching(context: .init(editingContext: editingContext))
   }
 
   nonisolated internal final func selectResource(

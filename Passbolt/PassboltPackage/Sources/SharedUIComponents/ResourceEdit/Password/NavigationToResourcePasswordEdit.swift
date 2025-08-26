@@ -42,7 +42,7 @@ extension NavigationToResourcePasswordEdit {
 
 extension FeaturesRegistry {
 
-  public mutating func useLiveNavigationToResourcePasswordEdit() {
+  internal mutating func useLiveNavigationToResourcePasswordEdit() {
     self.use(
       NavigationToResourcePasswordEdit.live,
       in: ResourceEditScope.self

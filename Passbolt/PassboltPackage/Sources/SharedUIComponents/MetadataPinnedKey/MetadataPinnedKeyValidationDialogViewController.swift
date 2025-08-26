@@ -143,15 +143,8 @@ public final class MetadataPinnedKeyValidationDialogViewController: ViewControll
 
   private func revertNavigation() async {
     await consumingErrors {
-      // TODO: This is a workaround to avoid the navigation tree to be used in extension context.
-      if isInExtensionContext {
-        let navigationTree: NavigationTree = self.features.instance(of: NavigationTree.self)
-        await navigationTree.dismiss(self.viewNodeID)
-      }
-      else {
-        let navigationToSelf: NavigationToMetadataPinnedKeyValidationDialog = try self.features.instance()
-        await navigationToSelf.revertCatching()
-      }
+      let navigationToSelf: NavigationToMetadataPinnedKeyValidationDialog = try self.features.instance()
+      await navigationToSelf.revertCatching()
     }
   }
 }

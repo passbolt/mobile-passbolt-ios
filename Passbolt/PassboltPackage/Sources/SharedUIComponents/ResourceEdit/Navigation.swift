@@ -21,31 +21,15 @@
 // @since         v1.0
 //
 
-import Display
-import FeatureScopes
-
-public enum ResourceIconEditNavigationDestination: NavigationDestination {
-
-  public typealias TransitionContext = ResourceIconEditViewController.Context
-}
-
-public typealias NavigationToResourceIconEdit = NavigationTo<ResourceIconEditNavigationDestination>
-
-extension NavigationToResourceIconEdit {
-
-  fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
-      to: ResourceIconEditView.self
-    )
-  }
-}
+import Features
 
 extension FeaturesRegistry {
 
-  internal mutating func useLiveNavigationToResourceIconEdit() {
-    self.use(
-      NavigationToResourceIconEdit.live,
-      in: ResourceEditScope.self
-    )
+  public mutating func useResourceEditNavigation() {
+    self.useLiveNavigationToResourceEdit()
+    self.useLiveNavigationToResourceURIEdit()
+    self.useLiveNavigationToResourceTextEdit()
+    self.useLiveNavigationToResourcePasswordEdit()
+    self.useLiveNavigationToResourceIconEdit()
   }
 }

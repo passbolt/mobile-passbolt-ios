@@ -40,6 +40,7 @@ extension FeaturesRegistry {
     self.useOSFeatures()
 
     self.useLiveDisplay()
+    self.useApplicationRootAnchorProvider()
 
     self.useNFCFeatures()
     self.useCrypto()

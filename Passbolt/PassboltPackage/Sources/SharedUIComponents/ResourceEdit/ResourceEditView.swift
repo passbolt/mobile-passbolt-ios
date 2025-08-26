@@ -131,7 +131,8 @@ public struct ResourceEditView: ControlledView {
               .cornerRadius(4)
             }
           }
-          when(\.canShowAdvancedSettings) {
+
+          whenFalse(\.showsAdvancedSettings) {
             SecondaryButton(
               title: "resource.create.advanced.button",
               action: {
@@ -142,6 +143,7 @@ public struct ResourceEditView: ControlledView {
             )
             .padding(.bottom, 96)
           }
+
           CommonListSpacer(minHeight: 16)
 
         }

@@ -129,18 +129,23 @@ internal struct OTPEditFormView: ControlledView {
           }
         ),
         accessory: {
-          AsyncButton(
-            action: {
-              await self.controller.scanTOTP()
-            },
-            label: {
-              Image(named: .camera)
-                .tint(.passboltPrimaryText)
-                .padding(12)
-                .backgroundColor(.passboltDivider)
-                .cornerRadius(4)
-            }
-          )
+          if isInApplicationContext {
+            AsyncButton(
+              action: {
+                await self.controller.scanTOTP()
+              },
+              label: {
+                Image(named: .camera)
+                  .tint(.passboltPrimaryText)
+                  .padding(12)
+                  .backgroundColor(.passboltDivider)
+                  .cornerRadius(4)
+              }
+            )
+          }
+          else {
+            EmptyView()
+          }
         }
       )
       .textInputAutocapitalization(.never)

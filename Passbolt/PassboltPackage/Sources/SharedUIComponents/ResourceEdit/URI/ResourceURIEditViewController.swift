@@ -59,7 +59,7 @@ public final class ResourceURIEditViewController: ViewController {
     self.navigationToSelf = try features.instance()
     self.resourceEditForm = try features.instance()
     let editingContext: ResourceEditingContext = try features.context(of: ResourceEditScope.self)
-    self.editsExisting = editingContext.editedResource.isLocal
+    self.editsExisting = !editingContext.editedResource.isLocal
 
     self.viewState = .init(
       initial: .init(

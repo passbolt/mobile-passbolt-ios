@@ -21,109 +21,124 @@
 // @since         v1.0
 //
 
-import class AuthenticationServices.ASCredentialProviderViewController
-import class AuthenticationServices.ASCredentialServiceIdentifier
-import struct AuthenticationServices.ASExtensionError
 import Crypto
+import Display
 import Features
-
 import PassboltExtension
 import UIComponents
 
-@MainActor 
+import class AuthenticationServices.ASCredentialProviderViewController
+import class AuthenticationServices.ASCredentialServiceIdentifier
+import struct AuthenticationServices.ASExtensionError
+
+@MainActor
 internal final class ApplicationExtension {
-  
+
   private let ui: UI
   private let features: Features
-  private let requestedServiceIdentifiers: CriticalState< Array<AutofillExtensionContext.ServiceIdentifier>>
-  
+  private let requestedServiceIdentifiers:
+    CriticalState<[AutofillExtensionContext.ServiceIdentifier]>
+
   @MainActor internal init(
     rootViewController: ASCredentialProviderViewController
   ) {
-		let requestedServiceIdentifiers: CriticalState< Array<AutofillExtensionContext.ServiceIdentifier>> = .init(.init())
-		let features: Features = FeaturesFactory { (registry: inout FeaturesRegistry) in
-			registry.usePassboltFeatures()
-			registry.usePassboltInitialization()
-			registry.useLiveNavigationTree(
-				from: rootViewController
-			)
-			registry.use(
-				ConfigurationExtensionContext(
-					completeExtensionConfiguration: {
-						rootViewController
-							.extensionContext
-							.completeExtensionConfigurationRequest()
-					}
-				)
-			)
-			registry.use(
-				AutofillExtensionContext(
-					completeWithCredential: { credential in
-						rootViewController
-							.extensionContext
-							.completeRequest(
-								withSelectedCredential: .init(
-									user: credential.user,
-									password: credential.password
-								),
-								completionHandler: nil
-							)
-					},
-					completeWithError: { error in
-						rootViewController
-							.extensionContext
-							.cancelRequest(withError: error)
-					},
-					cancelAndCloseExtension: {
-						rootViewController
-							.extensionContext
-							.cancelRequest(withError: ASExtensionError(.userCanceled))
-					},
-					requestedServiceIdentifiers: {
-						requestedServiceIdentifiers.get(\.self)
-					}
-				)
-			)
-		}
+    let requestedServiceIdentifiers:
+      CriticalState<[AutofillExtensionContext.ServiceIdentifier]> = .init(
+        .init()
+      )
+    let features: Features = FeaturesFactory {
+      (registry: inout FeaturesRegistry) in
+      registry.useExtensionRootAnchorProvider()
+      registry.usePassboltFeatures()
+      registry.usePassboltInitialization()
+      registry.useLiveNavigationTree(
+        from: rootViewController
+      )
+      registry.use(
+        ConfigurationExtensionContext(
+          completeExtensionConfiguration: {
+            rootViewController
+              .extensionContext
+              .completeExtensionConfigurationRequest()
+          }
+        )
+      )
+      registry.use(
+        AutofillExtensionContext(
+          completeWithCredential: { credential in
+            rootViewController
+              .extensionContext
+              .completeRequest(
+                withSelectedCredential: .init(
+                  user: credential.user,
+                  password: credential.password
+                ),
+                completionHandler: nil
+              )
+          },
+          completeWithError: { error in
+            rootViewController
+              .extensionContext
+              .cancelRequest(withError: error)
+          },
+          cancelAndCloseExtension: {
+            rootViewController
+              .extensionContext
+              .cancelRequest(withError: ASExtensionError(.userCanceled))
+          },
+          requestedServiceIdentifiers: {
+            requestedServiceIdentifiers.get(\.self)
+          }
+        )
+      )
+      registry.useLiveDisplay()
+      registry.useResourceEditNavigation()
+      registry.useLiveNavigationToOTPEditForm()
+      registry.useLiveNavigationToOTPScanning()
+      registry.useLiveNavigationToOTPScanningSuccess()
+      registry.useLiveNavigationToOTPEditForm()
+      registry.useLiveNavigationToOTPEditAdvancedForm()
+      registry.useLiveNavigationToOTPAttachSelectionList()
+    }
     self.ui = UI(
       rootViewController: rootViewController,
       features: features
     )
     self.features = features
-		self.requestedServiceIdentifiers = requestedServiceIdentifiers
+    self.requestedServiceIdentifiers = requestedServiceIdentifiers
   }
 }
 
 extension ApplicationExtension {
-  
+
   @MainActor internal func initialize() {
-		do {
-			try self.features
-				.instance(of: Initialization.self)
-				.initialize()
-		}
-		catch {
-			error
-				.asTheError()
-				.asFatalError()
-		}
+    do {
+      try self.features
+        .instance(of: Initialization.self)
+        .initialize()
+    } catch {
+      error
+        .asTheError()
+        .asFatalError()
+    }
   }
-  
+
   internal func requestSuggestions(
-    for identifiers: Array<ASCredentialServiceIdentifier>
+    for identifiers: [ASCredentialServiceIdentifier]
   ) {
-		self.requestedServiceIdentifiers.access { requestedIdentifiers in
-			assert(
-				requestedIdentifiers.isEmpty,
-				"Requested suggestions should not change during extension lifetime"
-			)
-			requestedIdentifiers = identifiers
-				.map { identifier in
-					AutofillExtensionContext.ServiceIdentifier(
-						rawValue: identifier.identifier
-					)
-				}
-		}
+    self.requestedServiceIdentifiers.access { requestedIdentifiers in
+      assert(
+        requestedIdentifiers.isEmpty,
+        "Requested suggestions should not change during extension lifetime"
+      )
+      requestedIdentifiers =
+        identifiers
+        .map { identifier in
+          AutofillExtensionContext.ServiceIdentifier(
+            rawValue: identifier.identifier
+          )
+        }
+    }
   }
 
   internal func prepareCredentialList() {

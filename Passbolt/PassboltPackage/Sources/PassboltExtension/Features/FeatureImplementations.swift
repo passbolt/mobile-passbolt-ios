@@ -52,7 +52,7 @@ extension FeaturesRegistry {
     self.usePassboltExtensionAccountKitImport()
     self.usePassboltMetadataModule()
     // it is required until navigations will become fully integrated
-    self.useLiveNavigationToResourceEdit()
+    self.useResourceEditNavigation()
     self.useLiveNavigationToOperationResult()
 
     self.useLiveNavigationToMetadataPinnedKeyValidationDialog()

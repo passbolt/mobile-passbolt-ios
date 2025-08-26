@@ -50,7 +50,7 @@ extension FeaturesRegistry {
     self.useLiveNavigationToResourceContextualMenu()
     self.useLiveNavigationToResourceDeleteAlert()
     self.useLiveNavigationToResourceShare()
-    self.useLiveNavigationToResourceEdit()
+    self.useResourceEditNavigation()
     self.useLiveNavigationToResourceCreateMenu()
 
     // MARK: - OTP Tab
@@ -69,11 +69,7 @@ extension FeaturesRegistry {
     self.useLiveNavigationToOTPEditAdvancedForm()
 
     // MARK: - Resource Edit
-    self.useLiveNavigationToResourceTextEdit()
     self.useLiveNavigationToOTPAttachSelectionList()
-    self.useLiveNavigationToResourcePasswordEdit()
-    self.useLiveNavigationToResourceURIEdit()
-    self.useLiveNavigationToResourceIconEdit()
 
     // MARK: - Settings Tab
     self.useLiveNavigationToTroubleshootingSettings()

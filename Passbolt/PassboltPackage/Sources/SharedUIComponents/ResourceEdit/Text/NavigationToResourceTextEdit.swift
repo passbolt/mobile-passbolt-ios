@@ -42,7 +42,7 @@ extension NavigationToResourceTextEdit {
 
 extension FeaturesRegistry {
 
-  public mutating func useLiveNavigationToResourceTextEdit() {
+  internal mutating func useLiveNavigationToResourceTextEdit() {
     self.use(
       NavigationToResourceTextEdit.live,
       in: ResourceEditScope.self

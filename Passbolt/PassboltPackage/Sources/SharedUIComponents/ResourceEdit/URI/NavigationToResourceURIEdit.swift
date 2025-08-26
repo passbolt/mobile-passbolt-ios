@@ -42,7 +42,7 @@ extension NavigationToResourceURIEdit {
 
 extension FeaturesRegistry {
 
-  public mutating func useLiveNavigationToResourceURIEdit() {
+  internal mutating func useLiveNavigationToResourceURIEdit() {
     self.use(
       NavigationToResourceURIEdit.live,
       in: ResourceEditScope.self
