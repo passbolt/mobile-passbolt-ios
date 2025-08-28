@@ -21,13 +21,23 @@
 // @since         v1.0
 //
 
-@_exported import SessionData
+import NetworkOperations
 
-extension FeaturesRegistry {
+extension PaginatedResponse {
 
-  public mutating func usePassboltSessionDataModule() {
-    self.usePassboltSessionData()
-    self.usePassboltSessionConfigurationLoader()
-    self.usePassboltResourceUpdater()
+  public static func empty<Item>() -> PaginatedResponse<Array<Item>> {
+    .init(
+      items: Array<Item>(),
+      pagination: .init(page: 1, limit: 1, count: 0)
+    )
+  }
+}
+
+extension Array where Element: Sendable {
+  public var asPaginatedResponse: PaginatedResponse<Array<Element>> {
+    PaginatedResponse(
+      items: self,
+      pagination: .init(page: 1, limit: self.count, count: self.count)
+    )
   }
 }

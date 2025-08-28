@@ -21,13 +21,37 @@
 // @since         v1.0
 //
 
-@_exported import SessionData
+import Commons
+import Features
 
-extension FeaturesRegistry {
+public struct ResourceUpdater: Sendable {
 
-  public mutating func usePassboltSessionDataModule() {
-    self.usePassboltSessionData()
-    self.usePassboltSessionConfigurationLoader()
-    self.usePassboltResourceUpdater()
+  public var updateResources: @Sendable (Configuration) async throws -> Void
+
+  public init(updateResources: @Sendable @escaping (Configuration) async throws -> Void) {
+    self.updateResources = updateResources
   }
+}
+
+extension ResourceUpdater {
+  public struct Configuration: Sendable {
+    public let maximumChunkSize: Int
+    public let allowConcurrency: Bool
+
+    public init(maximumChunkSize: Int, allowConcurrency: Bool) {
+      self.maximumChunkSize = maximumChunkSize
+      self.allowConcurrency = allowConcurrency
+    }
+  }
+}
+
+extension ResourceUpdater: LoadableFeature {
+
+  #if DEBUG
+  nonisolated public static var placeholder: Self {
+    .init(
+      updateResources: unimplemented1()
+    )
+  }
+  #endif
 }

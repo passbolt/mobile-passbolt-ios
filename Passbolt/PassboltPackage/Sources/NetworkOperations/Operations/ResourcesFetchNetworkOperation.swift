@@ -29,8 +29,8 @@ public typealias ResourcesFetchNetworkOperation =
   NetworkOperation<ResourcesFetchNetworkOperationDescription>
 
 public enum ResourcesFetchNetworkOperationDescription: NetworkOperationDescription {
-
+  public typealias Input = PaginationData
   public typealias Output = ResourcesFetchNetworkOperationResult
 }
 
-public typealias ResourcesFetchNetworkOperationResult = Array<ResourceDTO>
+public typealias ResourcesFetchNetworkOperationResult = PaginatedResponse<Array<ResourceDTO>>

@@ -21,13 +21,40 @@
 // @since         v1.0
 //
 
-@_exported import SessionData
+import DatabaseOperations
+import FeatureScopes
+
+extension ResourceRemoveWithStateDatabaseOperation {
+
+  @Sendable fileprivate static func execute(
+    _ input: ResourceState,
+    connection: SQLiteConnection
+  ) throws {
+    let statement: StaticString = """
+      DELETE FROM
+        resources
+      WHERE
+        state == ?
+      """
+
+    try connection.execute(
+      .statement(
+        statement,
+        arguments: input.rawValue
+      )
+    )
+  }
+}
 
 extension FeaturesRegistry {
 
-  public mutating func usePassboltSessionDataModule() {
-    self.usePassboltSessionData()
-    self.usePassboltSessionConfigurationLoader()
-    self.usePassboltResourceUpdater()
+  internal mutating func usePassboltResourceRemoveWithStateDatabaseOperation() {
+    self.use(
+      FeatureLoader.databaseOperation(
+        of: ResourceRemoveWithStateDatabaseOperation.self,
+        execute: ResourceRemoveWithStateDatabaseOperation.execute(_:connection:)
+      ),
+      in: SessionScope.self
+    )
   }
 }

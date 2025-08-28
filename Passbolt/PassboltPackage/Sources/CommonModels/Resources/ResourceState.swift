@@ -21,13 +21,8 @@
 // @since         v1.0
 //
 
-@_exported import SessionData
+public enum ResourceState: Int, Sendable {
 
-extension FeaturesRegistry {
-
-  public mutating func usePassboltSessionDataModule() {
-    self.usePassboltSessionData()
-    self.usePassboltSessionConfigurationLoader()
-    self.usePassboltResourceUpdater()
-  }
+  case waitingForUpdate = 1
+  case updated
 }

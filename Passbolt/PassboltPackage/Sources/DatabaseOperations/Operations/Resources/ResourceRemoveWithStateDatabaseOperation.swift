@@ -21,13 +21,12 @@
 // @since         v1.0
 //
 
-@_exported import SessionData
+import CommonModels
 
-extension FeaturesRegistry {
+public typealias ResourceRemoveWithStateDatabaseOperation =
+  DatabaseOperation<ResourceRemoveWithStateDatabaseOperationDescription>
 
-  public mutating func usePassboltSessionDataModule() {
-    self.usePassboltSessionData()
-    self.usePassboltSessionConfigurationLoader()
-    self.usePassboltResourceUpdater()
-  }
+public enum ResourceRemoveWithStateDatabaseOperationDescription: DatabaseOperationDescription, Sendable {
+
+  public typealias Input = ResourceState
 }

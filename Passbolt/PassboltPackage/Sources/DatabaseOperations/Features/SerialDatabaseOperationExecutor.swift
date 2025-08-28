@@ -21,13 +21,36 @@
 // @since         v1.0
 //
 
-@_exported import SessionData
+public actor SerialDatabaseOperationExecutor<OperationDescription>
+where OperationDescription: DatabaseOperationDescription {
 
-extension FeaturesRegistry {
+  private let operation: DatabaseOperation<OperationDescription>
+  private var lastTask: Task<Void, Never> = Task {}  // Initial empty task
 
-  public mutating func usePassboltSessionDataModule() {
-    self.usePassboltSessionData()
-    self.usePassboltSessionConfigurationLoader()
-    self.usePassboltResourceUpdater()
+  public init(_ operation: DatabaseOperation<OperationDescription>) {
+    self.operation = operation
+  }
+
+  public func execute(
+    _ input: OperationDescription.Input
+  ) async throws -> OperationDescription.Output {
+    // Chain the new operation after the last one
+    let currentTask = lastTask
+    let task = Task<OperationDescription.Output, Error> {
+      // Wait for previous operation to finish
+      await currentTask.value
+      // Execute this operation
+      return try await operation(input)
+    }
+    // Update the lastTask to this one (ignoring result)
+    lastTask = Task { _ = try? await task.value }
+    return try await task.value
+  }
+}
+
+extension SerialDatabaseOperationExecutor where OperationDescription.Input == Void {
+
+  public func execute() async throws -> OperationDescription.Output {
+    try await execute(())
   }
 }

@@ -43,18 +43,15 @@ extension SessionData {
 
     let usersStoreDatabaseOperation: UsersStoreDatabaseOperation = try features.instance()
     let userGroupsStoreDatabaseOperation: UserGroupsStoreDatabaseOperation = try features.instance()
-    let resourcesStoreDatabaseOperation: ResourcesStoreDatabaseOperation = try features.instance()
-    let resourceTypesStoreDatabaseOperation: ResourceTypesStoreDatabaseOperation = try features.instance()
     let resourceFoldersStoreDatabaseOperation: ResourceFoldersStoreDatabaseOperation = try features.instance()
     let passwordPoliciesStoreDatabaseOperation: PasswordPoliciesStoreDatabaseOperation = try features.instance()
     let usersFetchNetworkOperation: UsersFetchNetworkOperation = try features.instance()
     let userGroupsFetchNetworkOperation: UserGroupsFetchNetworkOperation = try features.instance()
-    let resourcesFetchNetworkOperation: ResourcesFetchNetworkOperation = try features.instance()
-    let resourceTypesFetchNetworkOperation: ResourceTypesFetchNetworkOperation = try features.instance()
     let resourceFoldersFetchNetworkOperation: ResourceFoldersFetchNetworkOperation = try features.instance()
     let passwordPoliciesFetchNetworkOperation: PasswordPoliciesFetchNetworkOperation = try features.instance()
     let metadataKeysService: MetadataKeysService = try features.instance()
     let metadataSettings: MetadataSettingsService = try features.instance()
+    let resourceUpdater: ResourceUpdater = try features.instance()
 
     // when diffing endpoint becomes available
     // we could store last update time and reuse it to avoid
@@ -159,78 +156,9 @@ extension SessionData {
     @Sendable nonisolated func refreshResources() async throws {
       Diagnostics.logger.info("Refreshing resources data...")
       do {
-        // Retrieve resourceTypes for ID
-        let allResourceTypes: [ResourceTypeDTO] = try await resourceTypesFetchNetworkOperation()
-        let supportedResourceTypes = allResourceTypes.filter { $0.isSupported }
-        // Store resource type for sql association
-        try await resourceTypesStoreDatabaseOperation(
-          supportedResourceTypes
+        try await resourceUpdater.updateResources(
+          .init(maximumChunkSize: isInApplicationContext ? 1_000 : 100, allowConcurrency: isInApplicationContext)
         )
-
-        // Retrieve resources
-        let resources = try await resourcesFetchNetworkOperation()
-        // Filter resources with supported types
-        let supportedTypesIDs = supportedResourceTypes.map(\.id)
-        let resourcesWithSupportedTypes = resources.filter { resource in
-          supportedTypesIDs.contains(resource.typeID)
-        }
-        let chunkSize: Int = 1_000
-        // divide to chunks
-        var resourcesChunks: [[ResourceDTO]] = .init()
-        for index in stride(from: 0, to: resourcesWithSupportedTypes.count, by: chunkSize) {
-          let endIndex = min(index + chunkSize, resourcesWithSupportedTypes.count)
-          let chunk = Array(resourcesWithSupportedTypes[index ..< endIndex])
-          resourcesChunks.append(chunk)
-        }
-
-        let results: [[ResourceDTO]] = await withTaskGroup(of: [ResourceDTO].self, returning: [[ResourceDTO]].self) {
-          group in
-          for chunk in resourcesChunks {
-            group.addTask {
-              var localResults: [ResourceDTO] = .init()
-              for resource in chunk {
-                if let processedResource = await process(resource: resource) {
-                  localResults.append(processedResource)
-                }
-              }
-              return localResults
-            }
-          }
-          var allResults: [[ResourceDTO]] = []
-          for await result in group {
-            allResults.append(result)
-          }
-          return allResults
-        }
-
-        try await metadataKeysService.cleanupDecryptionCache()
-        let resourcesWithMetadata: [ResourceDTO] = results.flatMap { $0 }
-        // Initialize resourcesCollection to add the validated entity
-        var resourcesCollection: Array<ResourceDTO> = []
-        for (index, resourceDTO) in resourcesWithMetadata.enumerated() {
-          do {
-            let resource: ResourceDTO = try resourceDTO.validate(resourceTypes: supportedResourceTypes)
-            resourcesCollection.append(resource)
-          }
-          catch {
-            //Do not break it and continue the loop
-            // swift-format-ignore: NeverForceUnwrap
-            CollectionValidationError.error(
-              message: "Cannot validate resource collection",
-              underlyingError: .none,
-              details: [
-                index.formatted(): error.asTheError().getDetails()!
-              ]
-            )
-            .logged()
-          }
-        }
-
-        // Store resources into db which has been validated
-        try await resourcesStoreDatabaseOperation(
-          resourcesCollection
-        )
-
         Diagnostics.logger.info("...resources data refresh finished!")
       }
       catch {

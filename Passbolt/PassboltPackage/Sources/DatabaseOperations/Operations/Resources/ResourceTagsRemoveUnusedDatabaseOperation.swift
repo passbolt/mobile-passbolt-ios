@@ -21,13 +21,11 @@
 // @since         v1.0
 //
 
-@_exported import SessionData
+import CommonModels
 
-extension FeaturesRegistry {
+public typealias ResourceTagsRemoveUnusedDatabaseOperation =
+  DatabaseOperation<ResourceTagsRemoveUnusedDatabaseOperationDescription>
 
-  public mutating func usePassboltSessionDataModule() {
-    self.usePassboltSessionData()
-    self.usePassboltSessionConfigurationLoader()
-    self.usePassboltResourceUpdater()
-  }
+public enum ResourceTagsRemoveUnusedDatabaseOperationDescription: DatabaseOperationDescription, Sendable {
+
 }

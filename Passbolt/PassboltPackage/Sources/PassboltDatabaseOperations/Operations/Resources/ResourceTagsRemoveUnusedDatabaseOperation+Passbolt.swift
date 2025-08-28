@@ -21,13 +21,44 @@
 // @since         v1.0
 //
 
-@_exported import SessionData
+import DatabaseOperations
+import FeatureScopes
+
+extension ResourceTagsRemoveUnusedDatabaseOperation {
+
+  @Sendable fileprivate static func execute(
+    _ input: Void,
+    connection: SQLiteConnection
+  ) throws {
+    let statement: StaticString = """
+      DELETE FROM 
+        resourceTags
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM
+          resourcesTags
+        WHERE
+          resourcesTags.resourceTagID = resourceTags.id
+      )
+      """
+
+    try connection.execute(
+      .statement(
+        statement
+      )
+    )
+  }
+}
 
 extension FeaturesRegistry {
 
-  public mutating func usePassboltSessionDataModule() {
-    self.usePassboltSessionData()
-    self.usePassboltSessionConfigurationLoader()
-    self.usePassboltResourceUpdater()
+  internal mutating func usePassboltResourceTagsRemoveUnusedDatabaseOperation() {
+    self.use(
+      FeatureLoader.databaseOperation(
+        of: ResourceTagsRemoveUnusedDatabaseOperation.self,
+        execute: ResourceTagsRemoveUnusedDatabaseOperation.execute(_:connection:)
+      ),
+      in: SessionScope.self
+    )
   }
 }

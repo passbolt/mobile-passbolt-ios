@@ -59,14 +59,6 @@ final class SessionDataRefreshTests: FeaturesTestCase {
       with: always(Void())
     )
     patch(
-      \ResourcesFetchNetworkOperation.execute,
-      with: always([])
-    )
-    patch(
-      \ResourcesStoreDatabaseOperation.execute,
-      with: always(Void())
-    )
-    patch(
       \OSTime.timestamp,
       with: always(0)
     )
@@ -86,138 +78,10 @@ final class SessionDataRefreshTests: FeaturesTestCase {
       \MetadataKeysService.cleanupDecryptionCache,
       with: always(Void())
     )
-  }
-
-  func test_sessionDataRefersh_handlesKnownResourceTypes() async throws {
     patch(
-      \ResourcesFetchNetworkOperation.execute,
-      with: always([])
-    )
-    patch(
-      \ResourcesStoreDatabaseOperation.execute,
+      \ResourceUpdater.updateResources,
       with: always(Void())
     )
-
-    let expectedTypes: [ResourceTypeDTO] = [
-      .mock_totp,
-      .mock_default,
-    ]
-    patch(
-      \ResourceTypesFetchNetworkOperation.execute,
-      with: always(expectedTypes)
-    )
-
-    let expectation: XCTestExpectation = .init(description: "Known resource types should be saved.")
-    patch(
-      \ResourceTypesStoreDatabaseOperation.execute,
-      with: { types async throws in
-        XCTAssertEqual(types, expectedTypes, "All known resource types should be saved.")
-        expectation.fulfill()
-      }
-    )
-
-    let feature: SessionData = try self.testedInstance()
-    try await feature.refreshIfNeeded()
-    await fulfillment(of: [expectation], timeout: 1.0)
-  }
-
-  func test_sessionDataRefresh_handlesUnknownResourceTypes() async throws {
-    patch(
-      \ResourcesFetchNetworkOperation.execute,
-      with: always([])
-    )
-    patch(
-      \ResourcesStoreDatabaseOperation.execute,
-      with: always(Void())
-    )
-
-    let returnedTypes: [ResourceTypeDTO] = [
-      .mock_default,
-      .placeholder,
-    ]
-    let expectedTypes: [ResourceTypeDTO] = [.mock_default]
-
-    patch(
-      \ResourceTypesFetchNetworkOperation.execute,
-      with: always(returnedTypes)
-    )
-
-    let expectation: XCTestExpectation = .init(description: "Known resource types should be saved.")
-    patch(
-      \ResourceTypesStoreDatabaseOperation.execute,
-      with: { types async throws in
-        XCTAssertEqual(types, expectedTypes, "Only known resource types should be saved.")
-        expectation.fulfill()
-      }
-    )
-    let feature: SessionData = try self.testedInstance()
-    try await feature.refreshIfNeeded()
-    await fulfillment(of: [expectation], timeout: 1.0)
-  }
-
-  func test_sessionDataRefresh_ignoresUnknownResourceTypes() async throws {
-    let supportedType = ResourceType.mock_default
-    patch(
-      \ResourceTypesFetchNetworkOperation.execute,
-      with: always([supportedType, .placeholder])
-    )
-
-    patch(
-      \ResourceTypesStoreDatabaseOperation.execute,
-      with: always(Void())
-    )
-
-    let expectation: XCTestExpectation = .init(description: "Known resource types should be saved.")
-    patch(
-      \ResourcesFetchNetworkOperation.execute,
-      with: always([mockResource(withType: supportedType), mockResource(withType: .placeholder)])
-    )
-    patch(
-      \ResourcesStoreDatabaseOperation.execute,
-      with: { resourceDTOs async throws in
-        XCTAssertEqual(resourceDTOs.count, 1, "Only supported resource types should be saved.")
-        XCTAssertEqual(resourceDTOs.first?.typeID, supportedType.id)
-        expectation.fulfill()
-      }
-    )
-
-    let feature: SessionData = try self.testedInstance()
-    try await feature.refreshIfNeeded()
-    await fulfillment(of: [expectation], timeout: 1)
-  }
-
-  func test_sessionDataRefresh_ignoresResourcesWithoutName() async throws {
-    // Temporary test to ensure name is required - for transition period to v5 resource types
-    let supportedType = ResourceType.mock_default
-    var resource = mockResource(withType: supportedType)
-    resource.name = nil
-
-    patch(
-      \ResourceTypesFetchNetworkOperation.execute,
-      with: always([supportedType])
-    )
-
-    patch(
-      \ResourceTypesStoreDatabaseOperation.execute,
-      with: always(Void())
-    )
-
-    let expectation: XCTestExpectation = .init(description: "Save should be triggered.")
-    patch(
-      \ResourcesFetchNetworkOperation.execute,
-      with: always([resource])
-    )
-    patch(
-      \ResourcesStoreDatabaseOperation.execute,
-      with: { resourceDTOs async throws in
-        XCTAssertEqual(resourceDTOs.count, 0, "Resources without name should be ignored.")
-        expectation.fulfill()
-      }
-    )
-
-    let feature: SessionData = try self.testedInstance()
-    try await feature.refreshIfNeeded()
-    await fulfillment(of: [expectation], timeout: 1)
   }
 
   func test_sessionDataRefresh_shouldNotFetchMetadataKeys_ifFeatureIsDisabled() async throws {
@@ -285,22 +149,4 @@ final class SessionDataRefreshTests: FeaturesTestCase {
     try await feature.refreshIfNeeded()
     await fulfillment(of: [fetchKeysExpectation, sendSessionKeysExpectation], timeout: 1)
   }
-}
-
-private func mockResource(withType type: ResourceType) -> ResourceDTO {
-  .init(
-    id: .mock_1,
-    typeID: type.id,
-    parentFolderID: nil,
-    favoriteID: nil,
-    name: "Mock name",
-    permission: .owner,
-    permissions: [],
-    uri: nil,
-    username: nil,
-    description: nil,
-    tags: [],
-    modified: .init(),
-    expired: nil
-  )
 }

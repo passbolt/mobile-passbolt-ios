@@ -33,18 +33,18 @@ extension ResourcesStoreDatabaseOperation {
     _ input: Array<ResourceDTO>,
     connection: SQLiteConnection
   ) throws {
-    // We have to remove all previously stored data before updating
-    // due to lack of ability to get information about deleted parts.
-    // Until data diffing endpoint becomes implemented we are replacing
-    // whole data set with the new one as an update.
-    // We are getting all possible results anyway until diffing becomes implemented.
-    // Please remove later on when diffing becomes available or other method of
-    // deleting records selecively becomes implemented.
-
-    // Delete currently stored resources
-    try connection.execute("DELETE FROM resources;")
-    // Delete currently stored resource tags
-    try connection.execute("DELETE FROM resourceTags;")
+//    // We have to remove all previously stored data before updating
+//    // due to lack of ability to get information about deleted parts.
+//    // Until data diffing endpoint becomes implemented we are replacing
+//    // whole data set with the new one as an update.
+//    // We are getting all possible results anyway until diffing becomes implemented.
+//    // Please remove later on when diffing becomes available or other method of
+//    // deleting records selecively becomes implemented.
+//
+//    // Delete currently stored resources
+//    try connection.execute("DELETE FROM resources;")
+//    // Delete currently stored resource tags
+//    try connection.execute("DELETE FROM resourceTags;")
 
     // Insert or update all new resource
     for resource in input {
@@ -61,7 +61,8 @@ extension ResourcesStoreDatabaseOperation {
               modified,
               expired,
               metadata_key_id,
-              metadata_key_type
+              metadata_key_type,
+              state
             )
           VALUES
             (
@@ -81,7 +82,8 @@ extension ResourcesStoreDatabaseOperation {
               ?6,
               ?7,
               ?8,
-              ?9
+              ?9,
+              ?10
             )
           ON CONFLICT
             (
@@ -103,7 +105,8 @@ extension ResourcesStoreDatabaseOperation {
             modified=?6,
             expired=?7,
             metadata_key_id=?8,
-            metadata_key_type=?9
+            metadata_key_type=?9,
+            state = ?10
           ;
           """,
           arguments: resource.id,
@@ -114,7 +117,8 @@ extension ResourcesStoreDatabaseOperation {
           resource.modified,
           resource.expired,
           resource.metadataKeyId,
-          resource.metadataKeyType?.rawValue
+          resource.metadataKeyType?.rawValue,
+          ResourceState.updated.rawValue
         )
       )
       if let metadata = resource.metadata {

@@ -21,13 +21,41 @@
 // @since         v1.0
 //
 
-@_exported import SessionData
+import DatabaseOperations
+import FeatureScopes
+
+extension ResourceUpdateStateDatabaseOperation {
+
+  @Sendable fileprivate static func execute(
+    _ input: ResourceState?,
+    connection: SQLiteConnection
+  ) throws {
+    let statement: StaticString = """
+      UPDATE
+        resources
+      SET
+        state = ?
+      """
+    /// Prepare the statement
+
+    try connection.execute(
+      .statement(
+        statement,
+        arguments: input?.rawValue
+      )
+    )
+  }
+}
 
 extension FeaturesRegistry {
 
-  public mutating func usePassboltSessionDataModule() {
-    self.usePassboltSessionData()
-    self.usePassboltSessionConfigurationLoader()
-    self.usePassboltResourceUpdater()
+  internal mutating func usePassboltResourceUpdateStateDatabaseOperation() {
+    self.use(
+      FeatureLoader.databaseOperation(
+        of: ResourceUpdateStateDatabaseOperation.self,
+        execute: ResourceUpdateStateDatabaseOperation.execute(_:connection:)
+      ),
+      in: SessionScope.self
+    )
   }
 }

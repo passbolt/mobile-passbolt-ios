@@ -61,7 +61,7 @@ final class ResourcesControllerTests: FeaturesTestCase {
     )
     patch(
       \ResourcesFetchNetworkOperation.execute,
-      with: always([])
+      with: always(.empty())
     )
     patch(
       \ResourceTypesFetchNetworkOperation.execute,

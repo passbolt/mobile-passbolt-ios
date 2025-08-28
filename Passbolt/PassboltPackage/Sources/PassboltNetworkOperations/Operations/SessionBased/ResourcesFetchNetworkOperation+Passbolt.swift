@@ -36,6 +36,8 @@ extension ResourcesFetchNetworkOperation {
       .queryItem("contain[favorite]", value: "1"),
       .queryItem("contain[tag]", value: "1"),
       .queryItem("contain[permissions]", value: "1"),
+      .queryItem("limit", value: "\(input.limit)"),
+      .queryItem("page", value: "\(input.page)"),
       .method(.get)
     )
   }
@@ -44,13 +46,13 @@ extension ResourcesFetchNetworkOperation {
     _ input: Input,
     _ response: HTTPResponse
   ) throws -> Output {
-    try NetworkResponseDecoder<Input, CommonNetworkResponse<Output>>
+    try NetworkResponseDecoder<Input, CommonNetworkResponse<Array<ResourceDTO>>>
       .bodyAsJSON()
       .decode(
         input,
         response
       )
-      .body
+      .paginatedResponse
   }
 }
 

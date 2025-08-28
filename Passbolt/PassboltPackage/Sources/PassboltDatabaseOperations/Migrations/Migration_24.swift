@@ -21,13 +21,17 @@
 // @since         v1.0
 //
 
-@_exported import SessionData
+import Database
 
-extension FeaturesRegistry {
+// swift-format-ignore: AlwaysUseLowerCamelCase
+extension SQLiteMigration {
 
-  public mutating func usePassboltSessionDataModule() {
-    self.usePassboltSessionData()
-    self.usePassboltSessionConfigurationLoader()
-    self.usePassboltResourceUpdater()
+  internal static var migration_24: Self {
+    [
+      """
+      ALTER TABLE resources ADD COLUMN state INTEGER;
+      """,
+      "PRAGMA user_version = 25; -- persistent, used to track schema version",
+    ]
   }
 }

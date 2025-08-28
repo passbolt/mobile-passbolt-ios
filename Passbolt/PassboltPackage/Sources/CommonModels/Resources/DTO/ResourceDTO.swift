@@ -59,7 +59,10 @@ public struct ResourceDTO {
     description: String?,
     tags: OrderedSet<ResourceTag>,
     modified: Date,
-    expired: Date?
+    expired: Date?,
+    metadataArmoredMessage: String? = nil,
+    metadataKeyId: MetadataKeyDTO.ID? = nil,
+    metadataKeyType: MetadataKeyDTO.MetadataKeyType? = nil
   ) {
     self.id = id
     self.typeID = typeID
@@ -74,9 +77,9 @@ public struct ResourceDTO {
     self.tags = tags
     self.modified = modified
     self.expired = expired
-    self.metadataArmoredMessage = nil
-    self.metadataKeyId = nil
-    self.metadataKeyType = nil
+    self.metadataArmoredMessage = metadataArmoredMessage
+    self.metadataKeyId = metadataKeyId
+    self.metadataKeyType = metadataKeyType
   }
 }
 

@@ -21,13 +21,29 @@
 // @since         v1.0
 //
 
-@_exported import SessionData
+public struct PaginationData: Decodable, Sendable {
 
-extension FeaturesRegistry {
+  public let page: Int
+  public let limit: Int
+  public let count: Int
 
-  public mutating func usePassboltSessionDataModule() {
-    self.usePassboltSessionData()
-    self.usePassboltSessionConfigurationLoader()
-    self.usePassboltResourceUpdater()
+  public init(page: Int, limit: Int, count: Int = 0) {
+    self.page = page
+    self.limit = limit
+    self.count = count
+  }
+
+  public enum CodingKeys: CodingKey {
+    case page
+    case limit
+    case count
+  }
+
+  public init(from decoder: any Decoder) throws {
+    let container: KeyedDecodingContainer = try decoder.container(keyedBy: CodingKeys.self)
+    let page: Int = try container.decode(Int.self, forKey: .page)
+    let limit: Int? = try container.decode(Int?.self, forKey: .limit)
+    let count: Int = try container.decode(Int.self, forKey: .count)
+    self.init(page: page, limit: limit ?? 0, count: count)
   }
 }
