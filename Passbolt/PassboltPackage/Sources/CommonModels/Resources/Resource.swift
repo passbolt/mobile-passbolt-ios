@@ -469,6 +469,9 @@ extension Resource {
     if self.secret[keyPath: \.object_type] == .null {
       self.secret[keyPath: \.object_type] = .string(MetadataObjectType.secretData.rawValue)
     }
+    if self.secret[keyPath: \.resource_type_id] == .null {
+      self.secret[keyPath: \.resource_type_id] = .string(self.type.id.rawValue.rawValue.uuidString)
+    }
   }
 }
 

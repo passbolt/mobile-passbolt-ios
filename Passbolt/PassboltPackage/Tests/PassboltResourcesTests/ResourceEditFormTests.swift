@@ -735,4 +735,59 @@ final class ResourceEditFormTests: FeaturesTestCase {
       throws: MetadataPinnedKeyValidationError.self
     )
   }
+
+  func test_sendForm_whenEditingResource_addsResourceTypeIdToSecert() async throws {
+    let editedResource: Resource = self.editedResource
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \ResourceUsersIDFetchDatabaseOperation.execute,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceFolderPermissionsFetchDatabaseOperation.execute,
+      with: always([.mock_user_1_owner, .mock_user_2_owner])
+    )
+    patch(
+      \ResourceNetworkOperationDispatch.createResource,
+      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
+    )
+    patch(  // not throws regardless of error in refresh
+      \SessionData.refreshIfNeeded,
+      with: alwaysThrow(MockIssue.error())
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
+    patch(
+      \ResourceUpdatePreparation.prepareSecret,
+      with: { userId, secret in
+        let json: JSON = try JSONDecoder().decode(JSON.self, from: .init(secret.utf8))
+        XCTAssertEqual(
+          json[keyPath: \.resource_type_id].stringValue,
+          editedResource.type.id.rawValue.rawValue.uuidString,
+          "resource_type_id should be added to secret JSON when editing resource"
+        )
+        return .init()
+      }
+    )
+    patch(
+      \ResourceNetworkOperationDispatch.createResource,
+      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
+    )
+    patch(
+      \ResourceNetworkOperationDispatch.editResource,
+      with: always(.init(resourceID: .mock_1))
+    )
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIfNotThrows(
+      try await tested.sendForm()
+    )
+  }
 }
