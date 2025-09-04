@@ -40,6 +40,21 @@ public struct ResourceSpecification {
     self.metaFields = metaFields
     self.secretFields = secretFields
   }
+
+  public static func specification(for slug: Slug) -> Self {
+    switch slug {
+    case .password, .v5Password:
+      return .password(isV5: slug == .v5Password)
+    case .passwordWithDescription, .v5Default:
+      return .passwordWithDescription(isV5: slug == .v5Default)
+    case .totp, .v5StandaloneTOTP:
+      return .totp(isV5: slug == .v5StandaloneTOTP)
+    case .passwordWithTOTP, .v5DefaultWithTOTP:
+      return .passwordWithTOTP(isV5: slug == .v5DefaultWithTOTP)
+    case _:
+      return .placeholder
+    }
+  }
 }
 
 extension ResourceSpecification: Sendable {}

@@ -48,15 +48,14 @@ internal final class OTPAttachSelectionListViewController: ViewController {
   nonisolated internal let viewState: ViewStateSource<ViewState>
 
   private struct LocalState: Equatable {
-    fileprivate static func == (
-      _ lhs: OTPAttachSelectionListViewController.LocalState,
-      _ rhs: OTPAttachSelectionListViewController.LocalState
-    ) -> Bool {
-      lhs.selected?.id == rhs.selected?.id
-        && lhs.selected?.type == rhs.selected?.type
-    }
 
-    fileprivate var selected: (id: Resource.ID, type: ResourceType)?
+    fileprivate var selected: SelectedItem?
+  }
+
+  fileprivate struct SelectedItem: Equatable {
+
+    fileprivate var id: Resource.ID
+    fileprivate var typeInfo: ResourceTypeInfo
   }
 
   private let localState: Variable<LocalState>
@@ -108,7 +107,7 @@ internal final class OTPAttachSelectionListViewController: ViewController {
               (item: ResourceSearchResultItem) -> TOTPAttachSelectionListItemViewModel in
               .init(
                 id: item.id,
-                type: item.type,
+                typeInfo: item.typeInfo,
                 icon: item.icon,
                 name: item.name,
                 username: item.username,
@@ -124,7 +123,7 @@ internal final class OTPAttachSelectionListViewController: ViewController {
         }
 
         func mapDeselectedState(of item: ResourceSearchResultItem) -> TOTPAttachSelectionListItemViewModel.State {
-          guard item.type.attachedOTPSlug != nil else {
+          guard item.typeInfo.type.attachedOTPSlug != nil else {
             return .notCompatibleWithTotp
           }
           return item.permission.canEdit ? .deselected : .notAllowed
@@ -150,9 +149,9 @@ extension OTPAttachSelectionListViewController {
     switch item.state {
     case .deselected, .selected:
       self.localState.mutate { (state: inout LocalState) in
-        state.selected = (
+        state.selected = .init(
           id: item.id,
-          type: item.type
+          typeInfo: item.typeInfo
         )
       }
     case .notAllowed:
@@ -165,14 +164,14 @@ extension OTPAttachSelectionListViewController {
 
   @MainActor internal func trySendForm() async {
     consumingErrors {
-      guard let selected: (id: Resource.ID, type: ResourceType) = self.localState.value.selected
+      guard let selected: SelectedItem = self.localState.value.selected
       else {
         throw
           InvalidForm
           .error(displayable: "resource.form.error.invalid")
       }
 
-      if selected.type.contains(\.firstTOTP) {
+      if selected.typeInfo.type.contains(\.firstTOTP) {
         self.viewState.update(\.confirmationAlert, to: .replace)
       }
       else {
@@ -183,7 +182,7 @@ extension OTPAttachSelectionListViewController {
 
   @MainActor internal func sendForm() async {
     await consumingErrors {
-      guard let selected: (id: Resource.ID, type: ResourceType) = self.localState.value.selected
+      guard let selected: SelectedItem = self.localState.value.selected
       else {
         throw
           InvalidForm
@@ -193,7 +192,7 @@ extension OTPAttachSelectionListViewController {
       let editingContext: ResourceEditingContext = try await self.resourceEditPreparation.prepareExisting(selected.id)
 
       guard
-        let attachedOTPSlug: ResourceSpecification.Slug = selected.type.attachedOTPSlug,
+        let attachedOTPSlug: ResourceSpecification.Slug = selected.typeInfo.type.attachedOTPSlug,
         let attachedOTPType: ResourceType =
           editingContext.availableTypes.first(where: { $0.specification.slug == attachedOTPSlug })
       else {
@@ -209,7 +208,7 @@ extension OTPAttachSelectionListViewController {
 
       let resourceEditForm: ResourceEditForm = try features.instance()
 
-      if attachedOTPType != selected.type {
+      if attachedOTPType != selected.typeInfo.type {
         try resourceEditForm.updateType(attachedOTPType)
       }  // else keep current type
 
@@ -262,9 +261,25 @@ internal struct TOTPAttachSelectionListItemViewModel: Equatable, Identifiable {
   }
 
   internal let id: Resource.ID
-  internal var type: ResourceType
+  internal var typeInfo: ResourceTypeInfo
   internal var icon: ResourceIcon
   internal var name: String
   internal var username: String?
   internal var state: State
+
+  internal init(
+    id: Resource.ID,
+    typeInfo: ResourceTypeInfo,
+    icon: ResourceIcon,
+    name: String,
+    username: String? = nil,
+    state: State
+  ) {
+    self.id = id
+    self.typeInfo = typeInfo
+    self.icon = icon
+    self.name = name
+    self.username = username
+    self.state = state
+  }
 }

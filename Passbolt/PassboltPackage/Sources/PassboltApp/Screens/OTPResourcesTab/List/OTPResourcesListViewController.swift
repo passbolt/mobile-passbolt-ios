@@ -117,7 +117,7 @@ internal final class OTPResourcesListViewController: ViewController {
               name: item.name,
               isExpired: item.isExpired,
               icon: item.icon,
-              resourceTypeSlug: item.type.specification.slug,
+              resourceTypeSlug: item.typeInfo.typeSlug,
               generateOTP: { () async -> OTPValue? in
                 (try? await otpIterator.next())?.flatMap { $0 }
               }

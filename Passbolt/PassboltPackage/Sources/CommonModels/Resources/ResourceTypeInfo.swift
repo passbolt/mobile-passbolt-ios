@@ -21,42 +21,24 @@
 // @since         v1.0
 //
 
-import Commons
+public struct ResourceTypeInfo: Sendable, Equatable {
 
-public struct ResourceListItemDSV {
+  public let typeId: ResourceType.ID
+  public let typeSlug: ResourceSpecification.Slug
 
-  public let id: Resource.ID
-  public let typeInfo: ResourceTypeInfo
-  public let permission: Permission
-  public var parentFolderID: ResourceFolder.ID?
-  public var name: String
-  public var username: String?
-  public var url: String?
-  public var isExpired: Bool
-  public var icon: ResourceIcon
+  public init(typeId: ResourceType.ID, typeSlug: ResourceSpecification.Slug) {
+    self.typeId = typeId
+    self.typeSlug = typeSlug
+  }
 
-  public init(
-    id: Resource.ID,
-    type: ResourceType,
-    permission: Permission,
-    parentFolderID: ResourceFolder.ID?,
-    name: String,
-    username: String?,
-    url: String?,
-    isExpired: Bool? = false,
-    icon: ResourceIcon
-  ) {
-    self.id = id
-    self.typeInfo = type.info
-    self.permission = permission
-    self.parentFolderID = parentFolderID
-    self.name = name
-    self.username = username
-    self.url = url
-    self.isExpired = isExpired ?? false
-    self.icon = icon
+  public var type: ResourceType {
+    .init(id: typeId, slug: typeSlug)
   }
 }
 
-extension ResourceListItemDSV: Equatable {}
-extension ResourceListItemDSV: Sendable {}
+extension ResourceType {
+
+  public var info: ResourceTypeInfo {
+    .init(typeId: id, typeSlug: specification.slug)
+  }
+}

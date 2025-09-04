@@ -279,7 +279,7 @@ extension ResourceContextualMenuViewController {
         resource[keyPath: path].stringValue ?? "",
         withAutoExpiration: resource.isEncrypted(path)
       )
-      
+
       try await self.navigationToSelf.revert()
 
       SnackBarMessageEvent.send(

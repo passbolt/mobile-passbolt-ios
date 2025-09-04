@@ -21,42 +21,32 @@
 // @since         v1.0
 //
 
-import Commons
+internal actor AsyncSemaphore {
+  private var value: Int
+  private var waiters: Array<CheckedContinuation<Void, Never>> = .init()
 
-public struct ResourceListItemDSV {
+  internal init(maxConcurrentOperations value: Int) {
+    self.value = value
+  }
 
-  public let id: Resource.ID
-  public let typeInfo: ResourceTypeInfo
-  public let permission: Permission
-  public var parentFolderID: ResourceFolder.ID?
-  public var name: String
-  public var username: String?
-  public var url: String?
-  public var isExpired: Bool
-  public var icon: ResourceIcon
+  internal func wait() async {
+    if value > 0 {
+      value -= 1
+    }
+    else {
+      await withCheckedContinuation { continuation in
+        waiters.append(continuation)
+      }
+    }
+  }
 
-  public init(
-    id: Resource.ID,
-    type: ResourceType,
-    permission: Permission,
-    parentFolderID: ResourceFolder.ID?,
-    name: String,
-    username: String?,
-    url: String?,
-    isExpired: Bool? = false,
-    icon: ResourceIcon
-  ) {
-    self.id = id
-    self.typeInfo = type.info
-    self.permission = permission
-    self.parentFolderID = parentFolderID
-    self.name = name
-    self.username = username
-    self.url = url
-    self.isExpired = isExpired ?? false
-    self.icon = icon
+  internal func signal() {
+    if waiters.isEmpty {
+      value += 1
+    }
+    else {
+      let waiter = waiters.removeFirst()
+      waiter.resume()
+    }
   }
 }
-
-extension ResourceListItemDSV: Equatable {}
-extension ResourceListItemDSV: Sendable {}

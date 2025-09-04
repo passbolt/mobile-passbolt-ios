@@ -34,13 +34,14 @@ public struct ResourceUpdater: Sendable {
 }
 
 extension ResourceUpdater {
+
   public struct Configuration: Sendable {
     public let maximumChunkSize: Int
-    public let allowConcurrency: Bool
+    public let maximumConcurrentTasks: Int
 
-    public init(maximumChunkSize: Int, allowConcurrency: Bool) {
+    public init(maximumChunkSize: Int, maximumConcurrentTasks: Int) {
       self.maximumChunkSize = maximumChunkSize
-      self.allowConcurrency = allowConcurrency
+      self.maximumConcurrentTasks = maximumConcurrentTasks
     }
   }
 }

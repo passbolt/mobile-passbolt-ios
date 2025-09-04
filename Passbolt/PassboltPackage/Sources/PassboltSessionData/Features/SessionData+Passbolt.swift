@@ -157,7 +157,7 @@ extension SessionData {
       Diagnostics.logger.info("Refreshing resources data...")
       do {
         try await resourceUpdater.updateResources(
-          .init(maximumChunkSize: isInApplicationContext ? 1_000 : 100, allowConcurrency: isInApplicationContext)
+          isInApplicationContext ? .extension : .application
         )
         Diagnostics.logger.info("...resources data refresh finished!")
       }
@@ -244,4 +244,17 @@ extension FeaturesRegistry {
       in: SessionScope.self
     )
   }
+}
+
+extension ResourceUpdater.Configuration {
+
+  fileprivate static let application: Self = .init(
+    maximumChunkSize: 5_000,
+    maximumConcurrentTasks: 5
+  )
+
+  fileprivate static let `extension`: Self = .init(
+    maximumChunkSize: 1_000,
+    maximumConcurrentTasks: 1
+  )
 }

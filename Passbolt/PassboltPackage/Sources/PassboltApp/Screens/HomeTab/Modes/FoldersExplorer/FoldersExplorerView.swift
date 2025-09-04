@@ -284,7 +284,7 @@ internal struct FoldersExplorerView: ComponentView {
           username: resource.username,
           isExpired: resource.isExpired,
           icon: resource.icon,
-          resourceTypeSlug: resource.type.specification.slug,
+          resourceTypeSlug: resource.typeInfo.typeSlug,
           contentAction: {
             try await self.controller.presentResourceDetails(resource.id)
           },
@@ -336,7 +336,7 @@ internal struct FoldersExplorerView: ComponentView {
           username: resource.username,
           isExpired: resource.isExpired,
           icon: resource.icon,
-          resourceTypeSlug: resource.type.specification.slug,
+          resourceTypeSlug: resource.typeInfo.typeSlug,
           contentAction: {
             try await self.controller.presentResourceDetails(resource.id)
           },

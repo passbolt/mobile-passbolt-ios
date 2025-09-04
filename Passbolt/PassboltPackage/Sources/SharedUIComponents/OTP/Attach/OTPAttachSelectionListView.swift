@@ -99,7 +99,7 @@ internal struct OTPAttachSelectionListView: ControlledView {
           CommonListResourceView(
             name: item.name,
             icon: item.icon,
-            resourceTypeSlug: item.type.specification.slug,
+            resourceTypeSlug: item.typeInfo.typeSlug,
             username: item.username,
             contentAction: {
               self.controller.select(item)

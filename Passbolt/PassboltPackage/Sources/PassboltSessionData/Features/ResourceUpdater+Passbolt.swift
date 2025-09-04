@@ -119,7 +119,7 @@ extension ResourceUpdater {
       resourceTypes.set(supportedResourceTypes)
 
       try await resourceStateUpdateOperation.execute(.waitingForUpdate)
-
+      let batchExecutor: BatchExecutor = .init(maxConcurrentTasks: configuration.maximumConcurrentTasks)
       let firstPage: PaginatedResponse<Array<ResourceDTO>> =
         try await resourceFetchOperation
         .execute(
@@ -129,27 +129,17 @@ extension ResourceUpdater {
           )
         )
       let totalPages: Int = firstPage.totalPages
-
-      if configuration.allowConcurrency {
-        await withThrowingTaskGroup(of: Void.self) { group in
-          group.addTask { try await process(resources: firstPage.items) }
-          guard totalPages > 1 else {
-            // No more pages to fetch
-            return
-          }
-          for page in 2 ... totalPages {
-            group.addTask { try await fetchAndProcess(limit: configuration.maximumChunkSize, page: page) }
-          }
-        }
-      }
-      else {
+      await batchExecutor.addOperation {
         try await process(resources: firstPage.items)
-        if totalPages > 1 {
-          for page in 2 ... totalPages {
+      }
+      if totalPages > 1 {
+        for page in 2 ... totalPages {
+          await batchExecutor.addOperation {
             try await fetchAndProcess(limit: configuration.maximumChunkSize, page: page)
           }
         }
       }
+      try await batchExecutor.execute()
 
       try await metadataKeysService.cleanupDecryptionCache()
       try await resourcesRemoveDatabaseOperation.execute(.waitingForUpdate)

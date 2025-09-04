@@ -21,42 +21,35 @@
 // @since         v1.0
 //
 
-import Commons
+public actor BatchExecutor {
 
-public struct ResourceListItemDSV {
+  public typealias Operation = () async throws -> Void
+  private let semaphore: AsyncSemaphore
+  private var operations: Array<Operation> = .init()
 
-  public let id: Resource.ID
-  public let typeInfo: ResourceTypeInfo
-  public let permission: Permission
-  public var parentFolderID: ResourceFolder.ID?
-  public var name: String
-  public var username: String?
-  public var url: String?
-  public var isExpired: Bool
-  public var icon: ResourceIcon
+  public init(maxConcurrentTasks: Int) {
+    let maxConcurrentTasks = max(1, maxConcurrentTasks)  // at least 1
+    self.semaphore = .init(maxConcurrentOperations: maxConcurrentTasks)
+  }
 
-  public init(
-    id: Resource.ID,
-    type: ResourceType,
-    permission: Permission,
-    parentFolderID: ResourceFolder.ID?,
-    name: String,
-    username: String?,
-    url: String?,
-    isExpired: Bool? = false,
-    icon: ResourceIcon
-  ) {
-    self.id = id
-    self.typeInfo = type.info
-    self.permission = permission
-    self.parentFolderID = parentFolderID
-    self.name = name
-    self.username = username
-    self.url = url
-    self.isExpired = isExpired ?? false
-    self.icon = icon
+  public func addOperation(_ operation: @escaping Operation) {
+    operations.append(operation)
+  }
+
+  public func execute() async throws {
+    try await withThrowingTaskGroup(of: Void.self) { group in
+      while operations.count > 0 {
+        let operation: Operation = operations.removeFirst()
+        group.addTask {
+          await self.semaphore.wait()
+          defer {
+            Task { await self.semaphore.signal() }
+          }
+          try await operation()
+        }
+      }
+
+      try await group.waitForAll()
+    }
   }
 }
-
-extension ResourceListItemDSV: Equatable {}
-extension ResourceListItemDSV: Sendable {}

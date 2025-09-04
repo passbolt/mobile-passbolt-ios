@@ -471,7 +471,9 @@ private struct ColoredPasswordView: View {
     attributed[entireString].foregroundColor = self.defaultColor
 
     for (regex, color) in self.rules {
-      guard let pattern = try? NSRegularExpression(pattern: regex, options: [.useUnicodeWordBoundaries]) else { continue }
+      guard let pattern = try? NSRegularExpression(pattern: regex, options: [.useUnicodeWordBoundaries]) else {
+        continue
+      }
       let range: NSRange = NSRange(self.password.startIndex..., in: self.password)
       let matches = pattern.matches(in: self.password, options: [], range: range)
       for match in matches {

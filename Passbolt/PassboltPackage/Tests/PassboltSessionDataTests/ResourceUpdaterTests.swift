@@ -422,14 +422,14 @@ extension ResourceUpdater.Configuration {
   fileprivate static var serial: Self {
     .init(
       maximumChunkSize: 1,
-      allowConcurrency: false
+      maximumConcurrentTasks: 1
     )
   }
 
   fileprivate static var concurrent: Self {
     .init(
       maximumChunkSize: 1,
-      allowConcurrency: true
+      maximumConcurrentTasks: 2
     )
   }
 }

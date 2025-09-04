@@ -180,19 +180,7 @@ public struct ResourceType {
     isDeleted: Bool = false,
     slug: ResourceSpecification.Slug
   ) {
-    let specification: ResourceSpecification
-    switch slug {
-    case .password, .v5Password:
-      specification = .password(isV5: slug == .v5Password)
-    case .passwordWithDescription, .v5Default:
-      specification = .passwordWithDescription(isV5: slug == .v5Default)
-    case .totp, .v5StandaloneTOTP:
-      specification = .totp(isV5: slug == .v5StandaloneTOTP)
-    case .passwordWithTOTP, .v5DefaultWithTOTP:
-      specification = .passwordWithTOTP(isV5: slug == .v5DefaultWithTOTP)
-    case _:
-      specification = .placeholder
-    }
+    let specification: ResourceSpecification = .specification(for: slug)
 
     self.init(
       id: id,
