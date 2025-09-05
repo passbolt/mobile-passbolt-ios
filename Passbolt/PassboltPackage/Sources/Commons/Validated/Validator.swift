@@ -21,21 +21,20 @@
 // @since         v1.0
 //
 
-import Foundation
 import Localization
 
-public struct Validator<Value> {
+public struct Validator<Value>: Sendable where Value: Sendable {
 
-  public var validate: (Value) -> Validated<Value>
+  public let validate: @Sendable (Value) -> Validated<Value>
 
   public init(
-    validate: @escaping (Value) -> Validated<Value>
+    validate: @Sendable @escaping (Value) -> Validated<Value>
   ) {
     self.validate = validate
   }
 
   public init(
-    validate: @escaping (Value) throws -> Void
+    validate: @Sendable @escaping (Value) throws -> Void
   ) {
     self.init { (value: Value) -> Validated<Value> in
       do {

@@ -33,7 +33,8 @@ public struct ResourceFieldSpecification {
 
     case string(
       minLength: Int? = .none,
-      maxLength: Int? = .none
+      maxLength: Int? = .none,
+      validators: Array<FieldValidator<String>> = .init()
     )
     case int(
       min: Int? = .none,
@@ -81,7 +82,7 @@ public struct ResourceFieldSpecification {
           editingPlaceholder: name.displayableEditingPlaceholder
         )
 
-      case .string(_, .some(let maxLength)) where maxLength > 4096:
+      case .string(_, .some(let maxLength), _) where maxLength > 4096:
         return .longText(
           name: name.displayable,
           viewingPlaceholder: name.displayableViewingPlaceholder,
@@ -171,6 +172,7 @@ extension ResourceFieldSpecification {
     .init(validate: self.validate(_:))
   }
 
+  @Sendable
   internal func validate(
     _ json: JSON  // assuming this is proper nested element if needed
   ) throws {
@@ -191,7 +193,7 @@ extension ResourceFieldSpecification {
     }
 
     switch self.content {
-    case .string(let minLength, let maxLength):
+    case .string(let minLength, let maxLength, let validators):
       guard let stringValue: String = json.stringValue
       else {
         throw
@@ -234,6 +236,21 @@ extension ResourceFieldSpecification {
             value: json
           )
       }  // else NOP
+      do {
+        for validator in validators {
+          try validator(stringValue)
+        }
+      }
+      catch let error as FieldValidator<String>.ValidationError {
+        throw
+          InvalidResourceField
+          .custom(
+            error.message,
+            specification: self,
+            path: self.path,
+            value: json
+          )
+      }
 
     case .int(let min, let max):
       guard let intValue: Int = json.intValue
@@ -455,7 +472,8 @@ extension ResourceFieldSpecification.Content {
       name: .totpSecretKey,
       content: .string(
         minLength: .none,
-        maxLength: 1024
+        maxLength: 1024,
+        validators: [.base32]
       ),
       required: true,
       encrypted: true
