@@ -35,7 +35,7 @@ internal final class ApplicationSettingsViewController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
 
-  private let navigationToAutofillSettings: NavigationToAutofillSettings
+  private let navigationToAutofillSettings: NavigationToExtensionSetup
   private let navigationToDefaultModeSettings: NavigationToDefaultPresentationModeSettings
   private let accountPreferences: AccountPreferences
 
@@ -99,7 +99,7 @@ extension ApplicationSettingsViewController {
   }
 
   nonisolated func navigateToAutofillSettings() async {
-    await self.navigationToAutofillSettings.performCatching()
+    await self.navigationToAutofillSettings.performCatching(context: .init(allowSkipping: false))
   }
 
   nonisolated func navigateToDefaultPresentationModeSettings() async {

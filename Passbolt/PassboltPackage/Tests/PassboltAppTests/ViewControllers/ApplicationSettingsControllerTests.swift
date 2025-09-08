@@ -113,7 +113,7 @@ final class ApplicationSettingsControllerTests: FeaturesTestCase {
 
   func test_navigateToAutofillSettings_performsNavigation() async {
     patch(
-      \NavigationToAutofillSettings.mockPerform,
+      \NavigationToExtensionSetup.mockPerform,
       with: always(self.mockExecuted())
     )
     await withInstance(

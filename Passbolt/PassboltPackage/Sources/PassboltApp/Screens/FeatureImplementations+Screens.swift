@@ -39,6 +39,7 @@ extension FeaturesRegistry {
     self.useLiveNavigationToAuthorization()
     self.useLiveNavigationToAccountDetails()
     self.useLiveNavigationToManageAccounts()
+    self.useLiveNavigationToExtensionSetup()
 
     // MARK: - Resource details
     self.useLiveNavigationToResourceDetails()
@@ -76,7 +77,6 @@ extension FeaturesRegistry {
     self.useLiveNavigationToTermsAndLicensesSettings()
     self.useLiveNavigationToApplicationSettings()
     self.useLiveNavigationToDefaultPresentationModeSettings()
-    self.useLiveNavigationToAutofillSettings()
     self.useLiveNavigationToAccountsSettings()
     self.useLiveNavigationToAccountExport()
     self.useLiveNavigationToAccountKeyInspector()

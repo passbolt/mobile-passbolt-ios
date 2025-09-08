@@ -21,82 +21,76 @@
 // @since         v1.0
 //
 
+import Accounts
+import Commons
+import Display
+import OSFeatures
+import Session
 import UIComponents
 
-internal final class ExtensionSetupViewController: PlainViewController, UIComponent {
+internal final class ExtensionSetupViewController: ViewController {
 
-  internal typealias ContentView = ExtensionSetupView
-  internal typealias Controller = ExtensionSetupController
+  internal struct ViewState: Equatable {
 
-  internal static func instance(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self(
-      using: controller,
-      with: components,
-      cancellables: cancellables
-    )
+    internal var showSkipButton: Bool = false
   }
 
-  internal private(set) lazy var contentView: ContentView = .init()
-  internal let components: UIComponentFactory
+  internal struct Context: Sendable {
 
-  private let controller: Controller
+    internal let allowSkipping: Bool
+  }
+
+  internal nonisolated let viewState: ViewStateSource<ViewState>
+
+  private let accountInitialSetup: AccountInitialSetup
+  private let extensions: OSExtensions
+  private let applicationLifecycle: ApplicationLifecycle
+  private let linkOpener: OSLinkOpener
+  private let navigationToSelf: NavigationToExtensionSetup
 
   internal init(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) {
-    self.controller = controller
-    self.components = components
-    super
-      .init(
-        cancellables: cancellables
-      )
+    context: Context,
+    features: Features
+  ) throws {
+    self.accountInitialSetup = try features.instance()
+    self.extensions = features.instance()
+    self.applicationLifecycle = features.instance()
+    self.linkOpener = features.instance()
+    self.navigationToSelf = try features.instance()
+
+    self.viewState = .init(initial: .init(showSkipButton: context.allowSkipping))
   }
 
-  internal func setupView() {
-    mut(navigationItem) {
-      .hidesBackButton(true)
-    }
-    setupSubscriptions()
-  }
+  internal func setupExtension() async {
+    do {
+      try await self.linkOpener.openSystemSettings()
 
-  private func setupSubscriptions() {
-    contentView
-      .setupTapPublisher
-      .sink { [weak self] in
-        guard let self = self else { return }
-        self.controller
-          .setupExtension()
-          .sink(
-            receiveCompletion: { completion in
-              guard case .failure = completion else { return }
-              SnackBarMessageEvent.send(.error(.localized(key: .genericError)))
+      let extensionEnabled: Bool = await withTaskGroup(of: Bool.self) { group in
+        group.addTask { [applicationLifecycle, extensions] in
+          for await _ in applicationLifecycle.lifecyclePublisher().values {
+            let enabled = await extensions.autofillExtensionEnabled()
+            if enabled {
+              return true
             }
-          )
-          .store(in: self.cancellables)
-      }
-      .store(in: cancellables)
-
-    contentView
-      .skipTapPublisher
-      .sink { [weak self] in
-        self?.controller.skipSetup()
-      }
-      .store(in: cancellables)
-
-    controller
-      .continueSetupPresentationPublisher()
-      .sink { [weak self] in
-        self?.cancellables
-          .executeOnMainActor {
-            await self?.dismiss(Self.self)
           }
+          return false
+        }
+
+        return await group.next() ?? false
       }
-      .store(in: cancellables)
+
+      if extensionEnabled {
+        self.accountInitialSetup.completeSetup(.autofill)
+      }
+    }
+    catch {
+      error.logged()
+      SnackBarMessageEvent.send(.error(.localized(key: .genericError)))
+    }
+  }
+
+  internal func skipSetup() async {
+    await self.navigationToSelf.revertCatching()
+    self.accountInitialSetup.completeSetup(.autofill)
   }
 }

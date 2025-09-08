@@ -106,7 +106,10 @@ internal final class BiometricsSetupViewController: PlainViewController, UICompo
           .executeOnMainActor {
             switch destination {
             case .extensionSetup:
-              await self?.push(ExtensionSetupViewController.self)
+              guard let navigation: NavigationToExtensionSetup = try self?.components.features.instance() else {
+                return
+              }
+              await navigation.performCatching(context: .init(allowSkipping: true))
             case .finish:
               await self?.dismiss(Self.self)
             }

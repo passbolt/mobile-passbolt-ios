@@ -21,36 +21,29 @@
 // @since         v1.0
 //
 
+import Display
 import FeatureScopes
-import OSFeatures
-import UICommons
-import UIComponents
 
-internal struct SettingsAutoFillController {
+internal enum ExtensionSetupNavigationDestination: NavigationDestination {
 
-  internal var openSystemSettings: @MainActor () async throws -> Void
+  internal typealias TransitionContext = ExtensionSetupViewController.Context
 }
 
-extension SettingsAutoFillController: UIController {
+internal typealias NavigationToExtensionSetup = NavigationTo<ExtensionSetupNavigationDestination>
 
-  internal typealias Context = Void
+extension NavigationToExtensionSetup {
 
-  internal static func instance(
-    in context: Context,
-    with features: inout Features,
-    cancellables: Cancellables
-  ) throws -> SettingsAutoFillController {
-    try features.ensureScope(SettingsScope.self)
-    try features.ensureScope(SessionScope.self)
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(to: ExtensionSetupView.self)
+  }
+}
 
-    let linkOpener: OSLinkOpener = features.instance()
+extension FeaturesRegistry {
 
-    func openSystemSettings() async throws {
-      try await linkOpener.openSystemSettings()
-    }
-
-    return Self(
-      openSystemSettings: openSystemSettings
+  internal mutating func useLiveNavigationToExtensionSetup() {
+    self.use(
+      NavigationToExtensionSetup.live,
+      in: SessionScope.self
     )
   }
 }

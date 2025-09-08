@@ -197,9 +197,10 @@ extension MainTabsViewController {
               )
 
           case .autofillSetup:
-            await self?
-              .present(
-                PlainNavigationViewController<ExtensionSetupViewController>.self
+            let navigationToExtensionSetup: NavigationToExtensionSetup? = try self?.components.features.instance()
+            await navigationToExtensionSetup?
+              .performCatching(
+                context: .init(allowSkipping: true)
               )
 
           case .none:

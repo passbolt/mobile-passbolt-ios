@@ -30,171 +30,130 @@ import UIComponents
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@MainActor
-final class ExtensionSetupScreenTests: MainActorTestCase {
+final class ExtensionSetupScreenTests: FeaturesTestCase {
 
-  var extensions: OSExtensions!
-  var linkOpener: OSLinkOpener!
+  override func commonPrepare() {
 
-  override func mainActorSetUp() {
-    features
-      .set(
-        SessionScope.self,
-        context: .init(
-          account: .mock_ada,
-          configuration: .mock_1
-        )
-      )
-    features.usePlaceholder(for: OSExtensions.self)
-    features.usePlaceholder(for: OSLinkOpener.self)
-    features.patch(
-      \Session.currentAccount,
-      with: always(.mock_ada)
+  }
+
+  func test_whenSkippingAllowed_skipButtonShouldBeVisible() async throws {
+    await withInstance(
+      of: ExtensionSetupViewController.self,
+      context: .init(allowSkipping: true)
+    ) { feature in
+      let isButtonVisible = await feature.viewState.current.showSkipButton
+      XCTAssertTrue(isButtonVisible)
+    }
+  }
+
+  func test_whenSkippingIsNotAllowed_skipButtonShouldNotBeVisible() async throws {
+    await withInstance(
+      of: ExtensionSetupViewController.self,
+      context: .init(allowSkipping: false)
+    ) { feature in
+      let isButtonVisible = await feature.viewState.current.showSkipButton
+      XCTAssertFalse(isButtonVisible)
+    }
+  }
+
+  func test_openingSettings_andConfiguringExtension_shouldCompleteSetup() async throws {
+    let settingsOpened = expectation(description: "Settings opened")
+    let setupCompleted = expectation(description: "Setup completed")
+
+    patch(
+      \OSLinkOpener.openSystemSettings,
+      with: { () async throws -> Void in
+        settingsOpened.fulfill()
+      }
     )
-    features.usePlaceholder(
-      for: AccountInitialSetup.self
-    )
-    features.usePlaceholder(for: ApplicationLifecycle.self)
-  }
 
-  override func mainActorTearDown() {
-    extensions = nil
-    linkOpener = nil
-  }
-
-  func test_continueSetupPresentationPublisher_doesNotPublishInitially() async throws {
-    let controller: ExtensionSetupController = try await testController()
-
-    var result: Void!
-    controller.continueSetupPresentationPublisher()
-      .sink { result = $0 }
-      .store(in: cancellables)
-
-    XCTAssertNil(result)
-  }
-
-  func test_continueSetupPresentationPublisher_publish_afterSkip() async throws {
-    features.patch(
+    patch(
       \AccountInitialSetup.completeSetup,
-      with: always(Void())
+      with: { (element: AccountInitialSetup.SetupElement) -> Void in
+        XCTAssertEqual(element, .autofill)
+        setupCompleted.fulfill()
+      }
     )
 
-    let controller: ExtensionSetupController = try await testController()
+    patch(
+      \ApplicationLifecycle.lifecyclePublisher,
+      with: always(Just(.didBecomeActive).eraseToAnyPublisher())
+    )
 
-    var result: Void!
-    controller.continueSetupPresentationPublisher()
-      .sink { result = $0 }
-      .store(in: cancellables)
+    patch(
+      \OSExtensions.autofillExtensionEnabled,
+      with: always(true)
+    )
 
-    controller.skipSetup()
+    await withInstance(
+      of: ExtensionSetupViewController.self,
+      context: .init(allowSkipping: false)
+    ) { feature in
+      await feature.setupExtension()
+    }
 
-    XCTAssertNotNil(result)
+    await fulfillment(of: [settingsOpened, setupCompleted], timeout: 1.0)
   }
 
-  func test_continueSetupPresentationPublisher_publishes_afterEnablingExtensionInSettings() async throws {
-    features
-      .patch(
-        \OSExtensions.autofillExtensionEnabled,
-        with: always(true)
-      )
-    features
-      .patch(
-        \OSLinkOpener.openSystemSettings,
-        with: { () async throws -> Void in }
-      )
-    features.patch(
-      \ApplicationLifecycle.lifecyclePublisher,
-      with: always(
-        Just(.didBecomeActive)
-          .eraseToAnyPublisher()
-      )
+  func test_openingSettings_andNotConfiguringExtension_shouldNotCompleteSetup() async throws {
+    let settingsOpened = expectation(description: "Settings opened")
+    settingsOpened.expectedFulfillmentCount = 1
+    let setupCompleted = expectation(description: "Setup completed")
+    setupCompleted.isInverted = true
+
+    patch(
+      \OSLinkOpener.openSystemSettings,
+      with: { () async throws -> Void in
+        settingsOpened.fulfill()
+      }
     )
 
-    let controller: ExtensionSetupController = try await testController()
+    patch(
+      \ApplicationLifecycle.lifecyclePublisher,
+      with: always(Just(.didBecomeActive).eraseToAnyPublisher())
+    )
 
-    var result: Void?
-    controller
-      .continueSetupPresentationPublisher()
-      .sink { result = $0 }
-      .store(in: cancellables)
+    patch(
+      \OSExtensions.autofillExtensionEnabled,
+      with: always(false)
+    )
 
-    controller
-      .setupExtension()
-      .sink { _ in }
-      .store(in: cancellables)
+    await withInstance(
+      of: ExtensionSetupViewController.self,
+      context: .init(allowSkipping: false)
+    ) { feature in
+      await feature.setupExtension()
+    }
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    XCTAssertNotNil(result)
+    await fulfillment(of: [settingsOpened, setupCompleted], timeout: 1.0)
   }
 
-  func test_continueSetupPresentationPublisher_doesNotPublish_afterExtensionIsNotEnabledInSettings() async throws {
-    features
-      .patch(
-        \OSExtensions.autofillExtensionEnabled,
-        with: always(false)
-      )
-    features
-      .patch(
-        \OSLinkOpener.openSystemSettings,
-        with: { () async throws -> Void in }
-      )
-    features.patch(
-      \ApplicationLifecycle.lifecyclePublisher,
-      with: always(
-        Just(.didBecomeActive)
-          .eraseToAnyPublisher()
-      )
+  func test_skippingSetup_shouldCompleteSetup_andRevertNavigation() async throws {
+    let setupCompleted = expectation(description: "Setup completed")
+    let navigationReverted = expectation(description: "Navigation reverted")
+
+    patch(
+      \AccountInitialSetup.completeSetup,
+      with: { (element: AccountInitialSetup.SetupElement) -> Void in
+        XCTAssertEqual(element, .autofill)
+        setupCompleted.fulfill()
+      }
     )
 
-    let controller: ExtensionSetupController = try await testController()
-
-    var result: Void!
-    controller.continueSetupPresentationPublisher()
-      .sink { result = $0 }
-      .store(in: cancellables)
-
-    controller
-      .setupExtension()
-      .sink { _ in }
-      .store(in: cancellables)
-
-    XCTAssertNil(result)
-  }
-
-  func test_setupExtension_opensSystemSettings() async throws {
-    features
-      .patch(
-        \OSExtensions.autofillExtensionEnabled,
-        with: always(false)
-      )
-    var result: Void!
-    features
-      .patch(
-        \OSLinkOpener.openSystemSettings,
-        with: { () async throws -> Void in
-          result = Void()
-        }
-      )
-    features.patch(
-      \ApplicationLifecycle.lifecyclePublisher,
-      with: always(
-        Just(.didBecomeActive)
-          .eraseToAnyPublisher()
-      )
+    patch(
+      \NavigationToExtensionSetup.mockRevert,
+      with: { (_) -> Void in
+        navigationReverted.fulfill()
+      }
     )
 
-    let controller: ExtensionSetupController = try await testController()
+    await withInstance(
+      of: ExtensionSetupViewController.self,
+      context: .init(allowSkipping: true)
+    ) { feature in
+      await feature.skipSetup()
+    }
 
-    controller
-      .setupExtension()
-      .sink { _ in }
-      .store(in: cancellables)
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    XCTAssertNotNil(result)
+    await fulfillment(of: [setupCompleted, navigationReverted], timeout: 1.0)
   }
 }

@@ -21,182 +21,152 @@
 // @since         v1.0
 //
 
-import CommonModels
+import Display
+import Localization
+import SwiftUI
 import UICommons
 
-internal final class ExtensionSetupView: ScrolledStackView {
+internal struct ExtensionSetupView: ControlledView {
 
-  internal var setupTapPublisher: AnyPublisher<Void, Never>
-  internal var skipTapPublisher: AnyPublisher<Void, Never>
+  internal let controller: ExtensionSetupViewController
 
-  @available(*, unavailable)
-  internal required init() {
-    unreachable("use init(skipHidden:)")
+  internal init(
+    controller: ExtensionSetupViewController
+  ) {
+    self.controller = controller
   }
 
-  internal init(skipHidden: Bool = false) {
-    let setupButton: TextButton = .init()
-    let skipButton: TextButton = .init()
+  internal var body: some View {
+    VStack(alignment: .leading, spacing: 24) {
+      VStack(alignment: .leading, spacing: 24) {
+        Text(displayable: "extension.setup.title")
+          .text(
+            font: .inter(
+              ofSize: 24,
+              weight: .semibold
+            ),
+            color: .passboltPrimaryText
+          )
+          .multilineTextAlignment(.center)
 
-    self.setupTapPublisher = setupButton.tapPublisher
-    self.skipTapPublisher = skipButton.tapPublisher
-
-    super.init()
-
-    let titleLabel: Label = .init()
-    mut(titleLabel) {
-      .combined(
-        .titleStyle(),
-        .text(displayable: .localized(key: "extension.setup.title"))
-      )
-    }
-
-    let settingsStep: StepListItemView = .init()
-    mut(settingsStep) {
-      .combined(
-        .iconView(
-          Mutation<ImageView>
-            .image(named: .settingsIcon, from: .uiCommons)
-            .instantiate()
-        ),
-        .label(
-          mutatation: .attributedString(
-            .displayable(
-              .localized(key: "extension.setup.settings.step"),
-              withBoldSubstring: .localized(key: "extension.setup.settings.step.bold"),
+        VStack(alignment: .leading, spacing: 0) {
+          ExtensionStepView(
+            icon: .settingsIcon,
+            text: .displayable(
+              "extension.setup.settings.step",
+              withBoldSubstring: "extension.setup.settings.step.bold",
               fontSize: 14,
-              color: .secondaryText
+              color: .primaryText
             )
           )
-        )
-      )
-    }
-
-    let keyboardStep: StepListItemView = .init()
-    mut(keyboardStep) {
-      .combined(
-        .iconView(
-          Mutation<ImageView>
-            .image(named: .keyboardIcon, from: .uiCommons)
-            .instantiate()
-        ),
-        .label(
-          mutatation: .attributedString(
-            .displayable(
-              .localized(key: "extension.setup.keyboard.step"),
-              withBoldSubstring: .localized(key: "extension.setup.keyboard.step.bold"),
+          divider
+          ExtensionStepView(
+            icon: .keyboardIcon,
+            text: .displayable(
+              "extension.setup.keyboard.step",
+              withBoldSubstring: "extension.setup.keyboard.step.bold",
               fontSize: 14,
-              color: .secondaryText
+              color: .primaryText
             )
           )
-        )
-      )
-    }
-
-    let switchStep: StepListItemView = .init()
-    mut(switchStep) {
-      .combined(
-        .iconView(
-          Mutation<ImageView>
-            .image(named: .switchIcon, from: .uiCommons)
-            .instantiate()
-        ),
-        .label(
-          mutatation: .attributedString(
-            .displayable(
-              .localized(key: "extension.setup.switch.step"),
-              withBoldSubstring: .localized(key: "extension.setup.switch.step.bold"),
+          divider
+          ExtensionStepView(
+            icon: .switchIcon,
+            text: .displayable(
+              "extension.setup.switch.step",
+              withBoldSubstring: "extension.setup.switch.step.bold",
               fontSize: 14,
-              color: .secondaryText
+              color: .primaryText
             )
           )
-        )
-      )
-    }
-
-    let keychainStep: StepListItemView = .init()
-    mut(keychainStep) {
-      .combined(
-        .iconView(
-          Mutation<ImageView>
-            .image(named: .keychainIcon, from: .uiCommons)
-            .instantiate()
-        ),
-        .label(
-          mutatation: .attributedString(
-            .displayable(
-              .localized(key: "extension.setup.keychain.step"),
-              withBoldSubstring: .localized(key: "extension.setup.keychain.step.bold"),
+          divider
+          ExtensionStepView(
+            icon: .keychainIcon,
+            text: .displayable(
+              "extension.setup.keychain.step",
+              withBoldSubstring: "extension.setup.keychain.step.bold",
               fontSize: 14,
-              color: .secondaryText
+              color: .primaryText
             )
           )
-        )
-      )
-    }
-
-    let passboltStep: StepListItemView = .init()
-    mut(passboltStep) {
-      .combined(
-        .iconView(
-          Mutation<ImageView>
-            .image(named: .passboltIcon, from: .uiCommons)
-            .instantiate()
-        ),
-        .label(
-          mutatation: .attributedString(
-            .displayable(
-              .localized(key: "extension.setup.passbolt.step"),
-              withBoldSubstring: .localized(key: "extension.setup.passbolt.step.bold"),
+          divider
+          ExtensionStepView(
+            icon: .passboltIcon,
+            text: .displayable(
+              "extension.setup.passbolt.step",
+              withBoldSubstring: "extension.setup.passbolt.step.bold",
               fontSize: 14,
-              color: .secondaryText
+              color: .primaryText
             )
           )
+        }
+      }
+
+      Spacer(minLength: 8)
+
+      VStack(spacing: 16) {
+        PrimaryButton(
+          title: .localized(key: "extension.setup.setup.button"),
+          action: {
+            await controller.setupExtension()
+          }
         )
-      )
-    }
-
-    let stepListView: StepListView = .init()
-    mut(stepListView) {
-      .steps(
-        settingsStep,
-        keyboardStep,
-        switchStep,
-        keychainStep,
-        passboltStep
-      )
-    }
-
-    mut(setupButton) {
-      .combined(
-        .primaryStyle(),
-        .text(displayable: .localized(key: "extension.setup.setup.button")),
         .accessibilityIdentifier("extension.setup.setup.button")
-      )
+        when(\.showSkipButton) {
+          SecondaryButton(
+            title: .localized(key: "extension.setup.later.button"),
+            action: {
+              await controller.skipSetup()
+            }
+          )
+          .accessibilityIdentifier("extension.setup.later.button")
+        }
+      }
     }
+    .padding(.horizontal, 16)
+    .padding(.top, 24)
+    .padding(.bottom, 8)
+    .frame(maxHeight: .infinity)
+    .background(Color.passboltBackground)
+    .interactiveDismissDisabled()
+  }
 
-    mut(skipButton) {
-      .combined(
-        .linkStyle(),
-        .text(displayable: .localized(key: "extension.setup.later.button")),
-        .accessibilityIdentifier("extension.setup.later.button")
-      )
-    }
-    mut(self) {
-      .combined(
-        .backgroundColor(dynamic: .background),
-        .isLayoutMarginsRelativeArrangement(true),
-        .contentInset(.init(top: 24, left: 16, bottom: 8, right: 16)),
-        .append(titleLabel),
-        .appendSpace(of: 24),
-        .append(stepListView),
-        .appendFiller(minSize: 8),
-        .append(setupButton),
-        .when(
-          !skipHidden,
-          then: .append(skipButton)
+  private var divider: some View {
+    Rectangle()
+      .frame(width: 1, height: 16)
+      .foregroundColor(.passboltDivider)
+      .padding(.leading, 12)
+      .padding(.top, 8)
+      .padding(.bottom, 8)
+  }
+}
+
+private struct ExtensionStepView: View {
+  let icon: ImageNameConstant
+  let text: UICommons.AttributedString
+
+  var body: some View {
+    HStack(spacing: 16) {
+      Image(named: icon)
+        .resizable()
+        .frame(width: 24, height: 24)
+        .foregroundColor(.passboltPrimaryBlue)
+
+      Text(text.nsAttributedString(in: .unspecified).toAttributedString())
+        .text(
+          font: .inter(ofSize: 14),
+          color: .passboltSecondaryText
         )
-      )
+        .multilineTextAlignment(.leading)
+
+      Spacer()
     }
+  }
+}
+
+extension NSAttributedString {
+
+  func toAttributedString() -> SwiftUI.AttributedString {
+    AttributedString(self)
   }
 }
