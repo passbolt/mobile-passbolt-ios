@@ -38,6 +38,7 @@ public struct ResourceEditView: ControlledView {
 
   public var body: some View {
     self.contentView
+      .backgroundColor(.passboltBackground)
       .alert(
         isPresented: self.$discardFormAlertVisible,
         title: "generic.are.you.sure",
@@ -133,7 +134,6 @@ public struct ResourceEditView: ControlledView {
               }
             }
           }
-
           whenFalse(\.showsAdvancedSettings) {
             SecondaryButton(
               title: "resource.create.advanced.button",
@@ -151,16 +151,36 @@ public struct ResourceEditView: ControlledView {
         }
         .padding(.top, 16)
       }
+      .backgroundColor(.passboltBackground)
       when(\.showsAdvancedSettings) {
-        Group {
-          when(\.canAddAdditionalSecrets) {
+        when(\.canAddAdditionalSecrets) {
+          CommonListSection {
+            VStack(alignment: .leading, spacing: 16) {
+              Text(displayable: "resource.create.additional.secrets.title")
+                .font(.inter(ofSize: 16, weight: .bold))
+                .padding(.vertical, 20)
+              VStack(spacing: 16) {
+                withEach(\.mainForm.additionalOptions) { (additionalOption: MainFormViewModel.AdditionalOption) in
+                  self.additionalActionView(for: additionalOption)
+                }
+              }
+              .padding(.horizontal, 16)
+              .padding(.vertical, 8)
+              .backgroundColor(.passboltBackgroundGray)
+              .cornerRadius(4)
+            }
+          }
+          .backgroundColor(.passboltBackground)
+        }
+        with(\.mainForm.metadataOptions) { metadataOptions in
+          if metadataOptions.isEmpty == false {
             CommonListSection {
               VStack(alignment: .leading, spacing: 16) {
-                Text(displayable: "resource.create.additional.secrets.title")
+                Text(displayable: "resource.edit.section.metadata.title")
                   .font(.inter(ofSize: 16, weight: .bold))
                   .padding(.vertical, 20)
                 VStack(spacing: 16) {
-                  withEach(\.mainForm.additionalOptions) { (additionalOption: MainFormViewModel.AdditionalOption) in
+                  withEach(\.mainForm.metadataOptions) { (additionalOption: MainFormViewModel.MetadataOption) in
                     self.additionalActionView(for: additionalOption)
                   }
                 }
@@ -170,31 +190,18 @@ public struct ResourceEditView: ControlledView {
                 .cornerRadius(4)
               }
             }
-          }
-          with(\.mainForm.metadataOptions) { metadataOptions in
-            if metadataOptions.isEmpty == false {
-              CommonListSection {
-                VStack(alignment: .leading, spacing: 16) {
-                  Text(displayable: "resource.edit.section.metadata.title")
-                    .font(.inter(ofSize: 16, weight: .bold))
-                    .padding(.vertical, 20)
-                  VStack(spacing: 16) {
-                    withEach(\.mainForm.metadataOptions) { (additionalOption: MainFormViewModel.MetadataOption) in
-                      self.additionalActionView(for: additionalOption)
-                    }
-                  }
-                  .padding(.horizontal, 16)
-                  .padding(.vertical, 8)
-                  .backgroundColor(.passboltBackgroundGray)
-                  .cornerRadius(4)
-                }
-              }
-            }
+            .backgroundColor(.passboltBackground)
           }
         }
-        Spacer(minLength: 120)
+        CommonListSection {
+          Rectangle()
+            .frame(height: 120)
+            .foregroundStyle(Color.clear)
+        }
+        .backgroundColor(.passboltBackground)
       }
     }
+    .backgroundColor(.passboltBackground)
     .overlay(alignment: .bottom) {
       VStack {
         Spacer()
@@ -202,7 +209,6 @@ public struct ResourceEditView: ControlledView {
           self.actionButtonView
             .padding(.vertical, 16)
         }
-        .background(.background)
       }
       .ignoresSafeArea(.keyboard)
     }
@@ -485,6 +491,7 @@ public struct ResourceEditView: ControlledView {
           : "resource.form.create.button.title",
       action: self.controller.sendForm
     )
+    .backgroundColor(.passboltBackground)
     .padding(16)
   }
 }
