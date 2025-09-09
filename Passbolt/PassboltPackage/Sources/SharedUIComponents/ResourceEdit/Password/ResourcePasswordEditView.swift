@@ -48,7 +48,7 @@ internal struct ResourcePasswordEditView: ControlledView {
               }
             )
           }
-          .background(.background)
+          .background(Color.passboltBackground)
           .padding(16)
         }
         .ignoresSafeArea(.keyboard)
@@ -63,6 +63,7 @@ internal struct ResourcePasswordEditView: ControlledView {
           )
         }
       }
+      .backgroundColor(.passboltBackground)
   }
 
   private var content: some View {
@@ -84,6 +85,7 @@ internal struct ResourcePasswordEditView: ControlledView {
           .cornerRadius(4)
         }
       }
+      .backgroundColor(.passboltBackground)
     }
   }
   @MainActor @ViewBuilder private func fieldView(for fieldModel: ResourceEditFieldViewModel) -> some View {

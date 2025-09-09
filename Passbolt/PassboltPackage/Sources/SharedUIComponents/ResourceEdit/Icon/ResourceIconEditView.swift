@@ -51,7 +51,7 @@ internal struct ResourceIconEditView: ControlledView {
             )
           }
           .padding(16)
-          .background(.background)
+          .background(Color.passboltBackground)
         }
         .ignoresSafeArea(.keyboard)
       }
@@ -60,6 +60,7 @@ internal struct ResourceIconEditView: ControlledView {
           ? "resource.edit.title"
           : "resource.edit.create.title"
       )
+      .backgroundColor(.passboltBackground)
       .navigationBarBackButtonHidden()
       .toolbar {  // replace back button
         ToolbarItemGroup(placement: .navigationBarLeading) {
@@ -170,6 +171,7 @@ internal struct ResourceIconEditView: ControlledView {
           .padding(.bottom, 96)
         }
       }
+      .backgroundColor(.passboltBackground)
     }
   }
 

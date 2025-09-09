@@ -92,6 +92,7 @@ internal struct OTPEditFormView: ControlledView {
           ? "otp.edit.form.edit.title"
           : "otp.edit.form.create.title"
       )
+      .backgroundColor(.passboltBackground)
     }
   }
 
