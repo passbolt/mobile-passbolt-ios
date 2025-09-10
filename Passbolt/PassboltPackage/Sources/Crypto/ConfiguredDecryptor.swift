@@ -29,4 +29,12 @@ public struct ConfiguredDecryptor {
 
   public var decrypt: @Sendable (Data) throws -> (data: Data?, sessionKey: SessionKey?)
   public var deinitialize: @Sendable () -> Void
+
+  public init(
+    decrypt: @escaping @Sendable (Data) throws -> (data: Data?, sessionKey: SessionKey?),
+    deinitialize: @escaping @Sendable () -> Void
+  ) {
+    self.decrypt = decrypt
+    self.deinitialize = deinitialize
+  }
 }

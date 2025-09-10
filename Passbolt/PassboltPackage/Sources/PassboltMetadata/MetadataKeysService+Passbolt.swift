@@ -25,6 +25,7 @@ import CommonModels
 import Crypto
 import DatabaseOperations
 import FeatureScopes
+import Metadata
 import NetworkOperations
 import Resources
 import Session
@@ -62,6 +63,7 @@ extension MetadataKeysService {
     let fetchUser: UserDetailsFetchDatabaseOperation = try features.instance()
 
     let metadataKeyDataStore: MetadataKeyDataStore = try features.instance()
+    let metadataSettings: MetadataSettingsService = try features.instance()
 
     let cachedKeys: CriticalState<KeysCache> = .init([:])
     let cachedSessionKeys: CriticalState<SessionKeysCache> = .init(.empty)
@@ -494,11 +496,28 @@ extension MetadataKeysService {
       pgp.forceFreeMemory()
     }
 
+    @Sendable nonisolated func determineKeyType(_ sharedResource: Bool) -> EncryptionType? {
+      let areUserKeysAllowed: Bool = metadataSettings.keysSettings().allowUsageOfPersonalKeys
+      if sharedResource || areUserKeysAllowed == false {
+        if let sharedKey: CachedKeys = cachedKeys.get().values
+          .first(where: {
+            $0.expired == .none && $0.deleted == .none
+          })
+        {
+          return .sharedKey(sharedKey.id)
+        }
+        return nil
+      }
+
+      return .userKey
+    }
+
     return .init(
       initialize: initialize,
       decrypt: batchDecrypt,
       encrypt: encrypt,
       encryptForSharing: encryptForSharing,
+      determineKeyType: determineKeyType,
       sendSessionKeys: sendSessionKeys,
       validatePinnedKey: validatePinnedKey,
       trustCurrentKey: trustCurrentKey,

@@ -31,6 +31,7 @@ public struct MetadataKeysService {
   public var decrypt: @Sendable (String, ForeignReference, EncryptionType) async throws -> Data?
   public var encrypt: @Sendable (String, EncryptionType) async throws -> ArmoredPGPMessage?
   public var encryptForSharing: @Sendable (String) async throws -> (ArmoredPGPMessage, MetadataKeyDTO.ID)?
+  public var determineKeyType: @Sendable (Bool) -> EncryptionType?
   public var sendSessionKeys: @Sendable () async throws -> Void
   public var validatePinnedKey: @Sendable () async throws -> KeyValidationResult
   public var trustCurrentKey: @Sendable () async throws -> Void
@@ -42,6 +43,7 @@ public struct MetadataKeysService {
     decrypt: @escaping @Sendable (String, ForeignReference, EncryptionType) async throws -> Data?,
     encrypt: @escaping @Sendable (String, EncryptionType) async throws -> ArmoredPGPMessage?,
     encryptForSharing: @escaping @Sendable (String) async throws -> (ArmoredPGPMessage, MetadataKeyDTO.ID)?,
+    determineKeyType: @escaping @Sendable (Bool) -> EncryptionType?,
     sendSessionKeys: @escaping @Sendable () async throws -> Void,
     validatePinnedKey: @escaping @Sendable () async throws -> KeyValidationResult,
     trustCurrentKey: @escaping @Sendable () async throws -> Void,
@@ -52,6 +54,7 @@ public struct MetadataKeysService {
     self.decrypt = decrypt
     self.encrypt = encrypt
     self.encryptForSharing = encryptForSharing
+    self.determineKeyType = determineKeyType
     self.sendSessionKeys = sendSessionKeys
     self.validatePinnedKey = validatePinnedKey
     self.trustCurrentKey = trustCurrentKey
@@ -82,6 +85,7 @@ extension MetadataKeysService: LoadableFeature {
       decrypt: unimplemented3(),
       encrypt: unimplemented2(),
       encryptForSharing: unimplemented1(),
+      determineKeyType: unimplemented1(),
       sendSessionKeys: unimplemented0(),
       validatePinnedKey: unimplemented0(),
       trustCurrentKey: unimplemented0(),
