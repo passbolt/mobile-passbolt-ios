@@ -112,6 +112,7 @@ extension ResourcesListNodeController {
   internal final func createResource() async throws {
     let resourceEditPreparation: ResourceEditPreparation = try self.features.instance()
     let metadataSettingsService: MetadataSettingsService = try self.features.instance()
+
     let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
       metadataSettingsService.typesSettings().defaultResourceTypeSlug,
       .none,
@@ -119,7 +120,21 @@ extension ResourcesListNodeController {
     )
     let navigationToResourceEdit: NavigationToResourceEdit = try self.features.instance()
 
-    await navigationToResourceEdit.performCatching(context: .init(editingContext: editingContext))
+    await navigationToResourceEdit
+      .performCatching(
+        context: .init(
+          editingContext: editingContext,
+          success: { [weak self] (resource: Resource) in
+            guard let resourceId: Resource.ID = resource.id
+            else {
+              return
+            }
+            await consumingErrors {
+              try await self?.selectResource(resourceId)
+            }
+          }
+        )
+      )
   }
 
   nonisolated internal final func selectResource(
