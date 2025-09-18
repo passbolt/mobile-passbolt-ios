@@ -631,7 +631,14 @@ extension PGP {
         decrypt: { (input: Data) -> (data: Data?, sessionKey: SessionKey?) in
           let result: CryptoVerifiedDataResult = try decryptor.decrypt(input, encoding: PGPEncoding.auto.rawValue)
           var sessionKey: SessionKey? = nil
-          if let sessionKeyString: String = result.sessionKey()?.key?.bytesToHexString() {
+          if let sessionKeyResult: CryptoSessionKey = result.sessionKey(),
+            var sessionKeyString: String = sessionKeyResult.key?.bytesToHexString()
+          {
+            var cipherValue: Int8 = .min
+            try sessionKeyResult.getCipherFuncInt(&cipherValue)
+            if cipherValue != .min {
+              sessionKeyString = "\(cipherValue):\(sessionKeyString)"
+            }
             sessionKey = .init(rawValue: sessionKeyString)
           }
           return (data: result.bytes(), sessionKey: sessionKey)

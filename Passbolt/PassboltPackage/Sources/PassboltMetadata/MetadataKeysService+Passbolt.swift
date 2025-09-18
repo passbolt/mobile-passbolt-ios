@@ -280,6 +280,11 @@ extension MetadataKeysService {
     }
 
     @Sendable func trySendingSessionKeys() async throws {
+      guard cachedSessionKeys.get().hasNewKeys
+      else {
+        Diagnostics.logger.info("No new session keys, skipping cache update.")
+        return
+      }
       Diagnostics.logger.info("Preparing session keys for submission...")
       guard let payload: EncryptedSessionKeysCache = try await prepareSessionKeysPayload() else { return }
       Diagnostics.logger.info("Submitting session keys...")
@@ -741,6 +746,7 @@ extension MetadataKeysService {
     fileprivate var modifiedAt: Date?
     fileprivate var keysByForeignReference: Dictionary<ForeignReference, SessionKeyData>
     fileprivate var localKeysByForeignReference: Dictionary<ForeignReference, SessionKeyData>
+    fileprivate var hasNewKeys: Bool = false
 
     static fileprivate var empty: Self = .init(
       id: nil,
@@ -767,16 +773,19 @@ extension MetadataKeysService {
       }
       set(newValue) {
         keysByForeignReference[key] = newValue
+        hasNewKeys = true
       }
     }
 
     mutating func merge(with newCache: Self) {
+      let hasNewLocalKeys: Bool = self.hasNewKeys
       self = .init(
         id: newCache.id,
         modifiedAt: newCache.modifiedAt,
         keysByForeignReference: newCache.keysByForeignReference,
         localKeysByForeignReference: localKeysByForeignReference
       )
+      self.hasNewKeys = hasNewLocalKeys
     }
   }
 }

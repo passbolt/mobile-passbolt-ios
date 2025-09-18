@@ -77,7 +77,7 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
       \SessionCryptography.sessionDecryptor,
       with: {
         .init(
-          decrypt: { ($0, nil) },
+          decrypt: { ($0, .mock_1) },
           deinitialize: {}
         )
       }
@@ -405,6 +405,12 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     asyncTestThrows(
       HTTPConflict.self,
       test: {
+        // force decryption, so that there are keys to send
+        _ = try await testedInstance.decrypt(
+          "message",
+          .resource(.mock_1),
+          .userKey
+        )
         try await testedInstance.sendSessionKeys()
       }
     )
@@ -413,6 +419,21 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
       of: [sendSessionKeysExpectation, refreshKeysExpectation],
       timeout: 1.0
     )
+  }
+
+  func testSessionKeysSubmission_whenNoNewKeyIsDecrypted_shouldBeSkipped() async throws {
+    let sendSessionKeysExpectation: XCTestExpectation = expectation(description: "Session keys should not be sent.")
+    sendSessionKeysExpectation.isInverted = true
+    patch(
+      \MetadataSessionKeysUpdateNetworkOperation.execute,
+      with: { _ async throws -> EncryptedSessionKeysCache in
+        sendSessionKeysExpectation.fulfill()
+        return .mock_1
+      }
+    )
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.sendSessionKeys()
+    await fulfillment(of: [sendSessionKeysExpectation], timeout: 1.0)
   }
 
   func testMetadataPinnedKeyValidation_whenThereIsNoKeyOnServer_andNoKeyInLocalStorage_shouldPass() async throws {
