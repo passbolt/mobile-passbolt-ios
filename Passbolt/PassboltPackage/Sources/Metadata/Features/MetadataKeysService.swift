@@ -26,7 +26,7 @@ import Commons
 
 import struct Foundation.Data
 
-public struct MetadataKeysService {
+public struct MetadataKeysService: Sendable {
   public var initialize: @Sendable () async throws -> Void
   public var decrypt: @Sendable (String, ForeignReference, EncryptionType) async throws -> Data?
   public var encrypt: @Sendable (String, EncryptionType) async throws -> ArmoredPGPMessage?
@@ -70,7 +70,7 @@ public struct MetadataKeysService {
     try await decrypt(message, .resource(resourceId), .sharedKey(sharedKeyId))
   }
 
-  public enum EncryptionType: Hashable {
+  public enum EncryptionType: Hashable, Sendable {
     case sharedKey(MetadataKeyDTO.ID)
     case userKey
   }

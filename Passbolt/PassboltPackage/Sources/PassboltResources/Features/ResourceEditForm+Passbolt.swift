@@ -141,7 +141,8 @@ extension ResourceEditForm {
       }
 
       if let resourceID: Resource.ID = resource.id {
-        let userIDs: Array<User.ID> = try await resourceUsersIDFetchDatabaseOperation.execute(resourceID)
+        var userIDs: Array<User.ID> = try await resourceUsersIDFetchDatabaseOperation.execute(resourceID)
+        userIDs.append(currentAccount.userID)
         let encryptedSecrets = try await resourceUpdatePreparation.prepareSecret(userIDs.asOrderedSet(), resourceSecret)
         _ =
           try await resourceNetworkOperationDispatch
