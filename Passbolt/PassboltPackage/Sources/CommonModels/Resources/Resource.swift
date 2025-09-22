@@ -45,8 +45,8 @@ public struct Resource {
   public var meta: JSON
   public var secret: JSON  // null means that secret was not fetched yet as it is requested and filled separately
   public let expired: Timestamp?
-  public let metadataKeyId: MetadataKeyDTO.ID?
-  public let metadataKeyType: MetadataKeyDTO.MetadataKeyType?
+  public var metadataKeyId: MetadataKeyDTO.ID?
+  public var metadataKeyType: MetadataKeyDTO.MetadataKeyType?
 
   public init(
     id: Resource.ID? = .none,
@@ -597,5 +597,10 @@ extension Resource {
 }
 
 extension Resource {
+
   fileprivate static let defaultName: String = "no name"
+
+  public var isShared: Bool {
+    self.permission != .owner || self.permissions.count > 1 // owner + others
+  }
 }
