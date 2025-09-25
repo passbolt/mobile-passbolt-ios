@@ -26,7 +26,7 @@ public struct DiagnosticsInfo {
   internal let message: StaticString
   internal let file: StaticString
   internal let line: UInt
-  internal var details: Dictionary<String, Any>? // Add optional additional details
+  internal var details: Dictionary<String, Any>?  // Add optional additional details
 
   #if DEBUG
   private var values: Dictionary<StaticString, Any> = .init()
@@ -42,6 +42,7 @@ extension DiagnosticsInfo {
   ///   error context stacks.
   ///   - file: File context. Filled automatically based on invocation location.
   ///   - line: Line context. Filled automatically based on invocation location.
+  ///   - details: Optional dictionary containing additional diagnostic details.
   /// - Returns: New instance of `DiagnosticsInfo`.
   public static func message(
     _ message: StaticString,
@@ -89,44 +90,47 @@ extension DiagnosticsInfo {
 
 extension DiagnosticsInfo: CustomDebugStringConvertible {
   public var description: String {
-      var description = "\(self.message) \(self.file):\(self.line)"
+    var description = "\(self.message) \(self.file):\(self.line)"
 
-      // Append details if they exist, keep the actual behaviour to avoid side effect
-      if let details = details {
-          description.append(
-              details.reduce(
-                  into: "\n Details:",
-                  { (result, detail) in
-                      let formattedValue = formatDetailValue(detail.value, level: 1)
-                      result.append("\n \(detail.key): \(formattedValue)")
-                  }
-              )
-          )
-      }
+    // Append details if they exist, keep the actual behaviour to avoid side effect
+    if let details = details {
+      description.append(
+        details.reduce(
+          into: "\n Details:",
+          { (result, detail) in
+            let formattedValue = formatDetailValue(detail.value, level: 1)
+            result.append("\n \(detail.key): \(formattedValue)")
+          }
+        )
+      )
+    }
 
-      description.append("\n \"path\": \(self.line)")
-      description.append("\n \"file\": \(self.file)")
+    description.append("\n \"path\": \(self.line)")
+    description.append("\n \"file\": \(self.file)")
 
-      return description
+    return description
   }
 
   ///
   /// Format details logs
   ///
   private func formatDetailValue(_ value: Any, level: Int) -> String {
-      let indent = String(repeating: "    ", count: level)
-      if let dict = value as? [String: Any] {
-          let formattedDict = dict.map { "\(indent)\"\($0)\": \(formatDetailValue($1, level: level + 1))" }
-          return "{\n" + formattedDict.joined(separator: ",\n") + "\n\(indent.dropLast(4))}"
-      } else if let array = value as? [Any] {
-          return "[\n" + array.map { formatDetailValue($0, level: level + 1) }.joined(separator: ",\n") + "\n\(indent.dropLast(4))]"
-      } else if let string = value as? String {
-          return "\"\(string)\""
-      } else {
-          return "\(value)"
-      }
+    let indent = String(repeating: "    ", count: level)
+    if let dict = value as? [String: Any] {
+      let formattedDict = dict.map { "\(indent)\"\($0)\": \(formatDetailValue($1, level: level + 1))" }
+      return "{\n" + formattedDict.joined(separator: ",\n") + "\n\(indent.dropLast(4))}"
+    }
+    else if let array = value as? [Any] {
+      return "[\n" + array.map { formatDetailValue($0, level: level + 1) }.joined(separator: ",\n")
+        + "\n\(indent.dropLast(4))]"
+    }
+    else if let string = value as? String {
+      return "\"\(string)\""
+    }
+    else {
+      return "\(value)"
+    }
   }
-
 
   public var debugDescription: String {
     #if DEBUG

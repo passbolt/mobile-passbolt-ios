@@ -52,8 +52,8 @@ extension NewGenericPermissionDTO {
 
   public var userID: User.ID? {
     switch self {
-    case let .userToResource(userID, _, _),
-      let .userToFolder(userID, _, _):
+    case .userToResource(let userID, _, _),
+      .userToFolder(let userID, _, _):
       return userID
     case .userGroupToResource,
       .userGroupToFolder:
@@ -63,8 +63,8 @@ extension NewGenericPermissionDTO {
 
   public var userGroupID: UserGroup.ID? {
     switch self {
-    case let .userGroupToResource(userGroupID, _, _),
-      let .userGroupToFolder(userGroupID, _, _):
+    case .userGroupToResource(let userGroupID, _, _),
+      .userGroupToFolder(let userGroupID, _, _):
       return userGroupID
     case .userToResource,
       .userToFolder:
@@ -74,10 +74,10 @@ extension NewGenericPermissionDTO {
 
   public var permission: Permission {
     switch self {
-    case let .userToResource(_, _, permission),
-      let .userToFolder(_, _, permission),
-      let .userGroupToResource(_, _, permission),
-      let .userGroupToFolder(_, _, permission):
+    case .userToResource(_, _, let permission),
+      .userToFolder(_, _, let permission),
+      .userGroupToResource(_, _, let permission),
+      .userGroupToFolder(_, _, let permission):
       return permission
     }
   }
@@ -91,30 +91,30 @@ extension NewGenericPermissionDTO: Encodable {
     var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
 
     switch self {
-    case let .userToResource(userID, resourceID, permission):
+    case .userToResource(let userID, let resourceID, let permission):
       try container.encode("User", forKey: .subject)
       try container.encode(userID, forKey: .subjectID)
       try container.encode("Resource", forKey: .item)
       try container.encode(resourceID, forKey: .itemID)
       try container.encode(permission, forKey: .permission)
 
-    case let .userToFolder(userID, folderID, permission):
+    case .userToFolder(let userID, let folderID, let permission):
       try container.encode("User", forKey: .subject)
       try container.encode(userID, forKey: .subjectID)
       try container.encode("Folder", forKey: .item)
       try container.encode(folderID, forKey: .itemID)
       try container.encode(permission, forKey: .permission)
 
-    case let .userGroupToResource(userGroupID, resourceID, permission):
+    case .userGroupToResource(let userGroupID, let resourceID, let permission):
       try container.encode("Group", forKey: .subject)
       try container.encode(userGroupID, forKey: .subjectID)
       try container.encode("Resource", forKey: .item)
       try container.encode(resourceID, forKey: .itemID)
       try container.encode(permission, forKey: .permission)
 
-    case let .userGroupToFolder(userID, folderID, permission):
+    case .userGroupToFolder(let userGroupID, let folderID, let permission):
       try container.encode("Group", forKey: .subject)
-      try container.encode(userID, forKey: .subjectID)
+      try container.encode(userGroupID, forKey: .subjectID)
       try container.encode("Folder", forKey: .item)
       try container.encode(folderID, forKey: .itemID)
       try container.encode(permission, forKey: .permission)

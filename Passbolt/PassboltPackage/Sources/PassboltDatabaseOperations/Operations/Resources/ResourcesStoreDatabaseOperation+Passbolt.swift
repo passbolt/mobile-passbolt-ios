@@ -33,18 +33,6 @@ extension ResourcesStoreDatabaseOperation {
     _ input: Array<ResourceDTO>,
     connection: SQLiteConnection
   ) throws {
-    // We have to remove all previously stored data before updating
-    // due to lack of ability to get information about deleted parts.
-    // Until data diffing endpoint becomes implemented we are replacing
-    // whole data set with the new one as an update.
-    // We are getting all possible results anyway until diffing becomes implemented.
-    // Please remove later on when diffing becomes available or other method of
-    // deleting records selecively becomes implemented.
-
-    // Delete currently stored resources
-    try connection.execute("DELETE FROM resources;")
-    // Delete currently stored resource tags
-    try connection.execute("DELETE FROM resourceTags;")
 
     // Insert or update all new resource
     for resource in input {
@@ -61,7 +49,8 @@ extension ResourcesStoreDatabaseOperation {
               modified,
               expired,
               metadata_key_id,
-              metadata_key_type
+              metadata_key_type,
+              state
             )
           VALUES
             (
@@ -81,7 +70,8 @@ extension ResourcesStoreDatabaseOperation {
               ?6,
               ?7,
               ?8,
-              ?9
+              ?9,
+              ?10
             )
           ON CONFLICT
             (
@@ -103,7 +93,8 @@ extension ResourcesStoreDatabaseOperation {
             modified=?6,
             expired=?7,
             metadata_key_id=?8,
-            metadata_key_type=?9
+            metadata_key_type=?9,
+            state = ?10
           ;
           """,
           arguments: resource.id,
@@ -114,55 +105,84 @@ extension ResourcesStoreDatabaseOperation {
           resource.modified,
           resource.expired,
           resource.metadataKeyId,
-          resource.metadataKeyType?.rawValue
+          resource.metadataKeyType?.rawValue,
+          ResourceState.updated.rawValue
         )
       )
       if let metadata = resource.metadata {
         try connection.execute(
           .statement(
-          """
-          INSERT INTO
-            resourceMetadata(
-              resource_id,
-              data,
-              name,
-              username,
-              description
-            )
-          VALUES
-            (
-              ?1,
-              ?2,
-              ?3,
-              ?4,
-              ?5
-            )
-          """,
-          arguments:
-            metadata.resourceId,
+            """
+            INSERT INTO
+              resourceMetadata(
+                resource_id,
+                data,
+                name,
+                username,
+                description,
+                icon_type,
+                icon_value,
+                icon_background_color
+              )
+            VALUES
+              (
+                ?1,
+                ?2,
+                ?3,
+                ?4,
+                ?5,
+                ?6,
+                ?7,
+                ?8
+              )
+            ON CONFLICT
+              (
+                resource_id
+              )
+            DO UPDATE SET
+              data=?2,
+              name=?3,
+              username=?4,
+              description=?5,
+              icon_type=?6,
+              icon_value=?7,
+              icon_background_color=?8
+            ;
+            """,
+            arguments:
+              metadata.resourceId,
             metadata.data,
             metadata.name,
             metadata.username,
-            metadata.description
+            metadata.description,
+            metadata.icon?.type.rawValue,
+            metadata.icon?.value?.rawValue,
+            metadata.icon?.backgroundColor
           )
         )
-        
+
         for uri in metadata.uris {
           try connection.execute(
             .statement(
-            """
-              INSERT INTO
-                resourceURI(
-                  resource_id,
-                  uri
+              """
+                INSERT INTO
+                  resourceURI(
+                    resource_id,
+                    uri
+                  )
+                VALUES (
+                  ?1,
+                  ?2
                 )
-              VALUES (
-                ?1,
-                ?2
-              )
-            """,
-            arguments:
-              uri.resourceId,
+                ON CONFLICT
+                  (
+                    resource_id,
+                    uri
+                  )
+                DO NOTHING
+              """,
+              arguments:
+                uri.resourceId,
               uri.uri
             )
           )

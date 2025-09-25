@@ -49,28 +49,28 @@ extension SQLiteValue: SQLiteBindable {
         index
       ) == SQLITE_OK
 
-    case let .bool(value):
+    case .bool(let value):
       return sqlite3_bind_int(
         handle,
         index,
         value ? 1 : 0
       ) == SQLITE_OK
 
-    case let .int(value):
+    case .int(let value):
       return sqlite3_bind_int64(
         handle,
         index,
         Int64(value)
       ) == SQLITE_OK
 
-    case let .double(value):
+    case .double(let value):
       return sqlite3_bind_double(
         handle,
         index,
         value
       ) == SQLITE_OK
 
-    case let .string(value):
+    case .string(let value):
       return sqlite3_bind_text(
         handle,
         index,
@@ -79,14 +79,14 @@ extension SQLiteValue: SQLiteBindable {
         SQLITE_TRANSIENT
       ) == SQLITE_OK
 
-    case let .date(value):
+    case .date(let value):
       return sqlite3_bind_int64(
         handle,
         index,
         Int64(value.timeIntervalSince1970)
       ) == SQLITE_OK
 
-    case let .data(value):
+    case .data(let value):
       return sqlite3_bind_blob(
         handle,
         index,

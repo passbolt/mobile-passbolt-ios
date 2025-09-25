@@ -22,19 +22,21 @@
 //
 
 import TestExtensions
+
 @testable import CommonModels
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 final class ResourceURIDTOTests: TestCase {
   func test_emptyURI_shouldFailValidation() {
     let uri = ResourceURIDTO(resourceId: .init(), uri: "")
     verifyIfTriggersValidationError(try uri.validate(), validationRule: ResourceURIDTO.ValidationRule.emptyUri)
   }
-  
+
   func test_tooLongURI_shouldFailValidation() {
     let uri = ResourceURIDTO(resourceId: .init(), uri: String(repeating: "a", count: 1025))
     verifyIfTriggersValidationError(try uri.validate(), validationRule: ResourceURIDTO.ValidationRule.uriTooLong)
   }
-  
+
   func test_validURI_shouldPassValidation() {
     let uri = ResourceURIDTO(resourceId: .init(), uri: "https://www.passbolt.com")
     XCTAssertNoThrow(try uri.validate())

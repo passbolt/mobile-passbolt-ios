@@ -282,4 +282,26 @@ extension InvalidResourceField {
       )
     )
   }
+
+  public static func custom(
+    _ message: StaticString,
+    specification: ResourceFieldSpecification,
+    path: Resource.FieldPath,
+    value: JSON,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    .error(
+      message,
+      specification: specification,
+      path: path,
+      value: value,
+      displayable: .localized(
+        key: "error.resource.field.content.invalid",
+        arguments: [
+          specification.name.displayable.string()
+        ]
+      )
+    )
+  }
 }

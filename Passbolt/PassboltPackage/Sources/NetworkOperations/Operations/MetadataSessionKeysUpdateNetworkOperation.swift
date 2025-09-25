@@ -22,9 +22,11 @@
 //
 
 import Features
+
 import struct Foundation.Date
 
-public typealias MetadataSessionKeysUpdateNetworkOperation = NetworkOperation<MetadataSessionKeysUpdateNetworkOperationDescription>
+public typealias MetadataSessionKeysUpdateNetworkOperation =
+  NetworkOperation<MetadataSessionKeysUpdateNetworkOperationDescription>
 
 public enum MetadataSessionKeysUpdateNetworkOperationDescription: NetworkOperationDescription {
 

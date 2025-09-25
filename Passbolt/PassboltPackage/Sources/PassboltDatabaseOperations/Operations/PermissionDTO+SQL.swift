@@ -28,7 +28,7 @@ extension GenericPermissionDTO {
 
   internal var storeStatement: SQLiteStatement {
     switch self {
-    case let .userToResource(id, userID, resourceID, permission):
+    case .userToResource(let id, let userID, let resourceID, let permission):
       return .statement(
         """
         INSERT INTO
@@ -50,6 +50,12 @@ extension GenericPermissionDTO {
           resources.id == ?1
         AND
           users.id == ?2
+        ON CONFLICT
+          (
+            resourceID,
+            userID
+          )
+        DO NOTHING
         ;
         """,
         arguments: resourceID,
@@ -58,7 +64,7 @@ extension GenericPermissionDTO {
         id.rawValue
       )
 
-    case let .userToFolder(id, userID, resourceFolderID, type):
+    case .userToFolder(let id, let userID, let resourceFolderID, let type):
       return .statement(
         """
         INSERT INTO
@@ -88,7 +94,7 @@ extension GenericPermissionDTO {
         id.rawValue
       )
 
-    case let .userGroupToResource(id, userGroupID, resourceID, type):
+    case .userGroupToResource(let id, let userGroupID, let resourceID, let type):
       return .statement(
         """
         INSERT INTO
@@ -118,7 +124,7 @@ extension GenericPermissionDTO {
         id.rawValue
       )
 
-    case let .userGroupToFolder(id, userGroupID, resourceFolderID, type):
+    case .userGroupToFolder(let id, let userGroupID, let resourceFolderID, let type):
       return .statement(
         """
         INSERT INTO

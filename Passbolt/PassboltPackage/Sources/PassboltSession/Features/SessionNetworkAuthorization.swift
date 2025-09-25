@@ -309,6 +309,7 @@ extension SessionNetworkAuthorization {
             serverPublicPGPKey
           )
           .get()
+          .content
           .data(using: .utf8) ?? Data()
 
         tokens =

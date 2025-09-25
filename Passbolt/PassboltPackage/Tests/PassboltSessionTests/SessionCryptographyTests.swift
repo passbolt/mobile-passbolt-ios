@@ -69,7 +69,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
     )
     patch(
       \PGP.decryptAndVerify,
-      with: always(.success("plainMessage"))
+      with: always(.success(.valid(message: "plainMessage")))
     )
 
     withTestedInstanceReturnsEqual("plainMessage") { (testedInstance: SessionCryptography) in
@@ -263,7 +263,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
       try await testedInstance.encryptAndSignMessage("plainMessage", "publicPGPKey")
     }
   }
-  
+
   func test_decrytSessionKey_succeeds_withValidData() {
     patch(
       \Session.currentAccount,
@@ -277,14 +277,25 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
       \AccountsDataStore.loadAccountPrivateKey,
       with: always("privatePGPKey")
     )
-    patch(
-      \PGP.extractSessionKey,
-       with: always(.success("sessionKey"))
+  }
+}
+
+extension PGP.VerifiedMessage {
+  static func valid(message: String) -> Self {
+    .init(
+      content: message,
+      signature: .empty
     )
-  
-    withTestedInstance { (testedInstance: SessionCryptography) in
-      let result = try await testedInstance.decryptSessionKey("encrypted message")
-      XCTAssertEqual(result, "sessionKey")
-    }
+  }
+}
+
+extension PGP.Signature {
+  static var empty: Self {
+    .init(
+      signature: .empty,
+      createdAt: .now,
+      fingerprint: .empty,
+      keyID: .empty
+    )
   }
 }

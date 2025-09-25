@@ -35,6 +35,7 @@ public struct ResourceType {
   public let specification: ResourceSpecification
   public let orderedFields: OrderedSet<ResourceFieldSpecification>
   public let containsUndefinedFields: Bool
+  public let isDeleted: Bool
   // internal cache to quickly access common things
   // and provide support for special, computed fields
   internal var flattenedFields: Dictionary<ComputedFieldPath, ResourceFieldSpecification>
@@ -43,14 +44,15 @@ public struct ResourceType {
 
   public init(
     id: ID,
+    isDeleted: Bool = false,
     specification: ResourceSpecification
   ) {
     self.id = id
     self.specification = specification
     self.orderedFields = specification.metaFields
       .union(specification.secretFields)
-      .sorted(using: ResourceFieldSpecification.Sorting())
       .asOrderedSet()
+    self.isDeleted = isDeleted
     self.containsUndefinedFields =
       specification.slug == .placeholder
       || specification.secretFields.contains(where: { (field: ResourceFieldSpecification) in
@@ -175,24 +177,14 @@ public struct ResourceType {
 
   public init(
     id: ID,
+    isDeleted: Bool = false,
     slug: ResourceSpecification.Slug
   ) {
-    let specification: ResourceSpecification
-    switch slug {
-    case .password, .v5Password:
-      specification = .password(isV5: slug == .v5Password)
-    case .passwordWithDescription, .v5Default:
-      specification = .passwordWithDescription(isV5: slug == .v5Default)
-    case .totp, .v5StandaloneTOTP:
-      specification = .totp(isV5: slug == .v5StandaloneTOTP)
-    case .passwordWithTOTP, .v5DefaultWithTOTP:
-      specification = .passwordWithTOTP(isV5: slug == .v5DefaultWithTOTP)
-    case _:
-      specification = .placeholder
-    }
+    let specification: ResourceSpecification = .specification(for: slug)
 
     self.init(
       id: id,
+      isDeleted: isDeleted,
       specification: specification
     )
   }
@@ -218,7 +210,7 @@ extension ResourceType: Sendable {}
 extension ResourceType: Equatable {}
 
 extension ResourceType {
-
+  // swift-format-ignore: NeverForceUnwrap
   public static var placeholder: Self {
     .init(
       id: .init(
@@ -250,7 +242,7 @@ extension ResourceType {
     case .passwordWithDescription:
       return .passwordWithTOTP
     case .v5Default:
-        return .v5DefaultWithTOTP
+      return .v5DefaultWithTOTP
     case .v5Password:
       return .v5DefaultWithTOTP
     case .passwordWithTOTP:
@@ -279,6 +271,39 @@ extension ResourceType {
 
     case let slug:
       return slug
+    }
+  }
+
+  public func slugByAttachingNote() -> ResourceSpecification.Slug? {
+    switch self.specification.slug {
+    case .password, .passwordWithDescription:
+      return .passwordWithDescription
+    case .v5Default, .v5Password:
+      return .v5Default
+    case .passwordWithTOTP, .totp:
+      return .passwordWithTOTP
+    case .v5DefaultWithTOTP, .v5StandaloneTOTP:
+      return .v5DefaultWithTOTP
+    case _:
+      return .none
+    }
+  }
+
+  public func slugByRemovingNote() -> ResourceSpecification.Slug? {
+    switch self.specification.slug {
+    case .password, .passwordWithDescription:
+      // once moved to password description, there is no way of going back to simple password
+      return .passwordWithDescription
+    case .v5Default, .v5Password:
+      return .v5Default
+    case .v5StandaloneTOTP, .totp:
+      return .none  // shouldn't be possible to remove note from standalone OTP as it should not exist
+    case .passwordWithTOTP:
+      return .passwordWithTOTP
+    case .v5DefaultWithTOTP:
+      return .v5DefaultWithTOTP
+    case _:
+      return .none
     }
   }
 
@@ -323,6 +348,13 @@ extension ResourceType {
       try fieldSpecification.validate(resource.secret)
     }
     else {
+      if let objectType = resource.secret[keyPath: \.object_type].stringValue,
+        objectType != MetadataObjectType.secretData.rawValue
+      {
+        throw
+          InvalidInputData
+          .error(message: "Invalid secret object type")
+      }
       for fieldSpecification in self.specification.secretFields {
         try fieldSpecification.validate(resource.secret[dynamicMember: fieldSpecification.name.rawValue])
       }

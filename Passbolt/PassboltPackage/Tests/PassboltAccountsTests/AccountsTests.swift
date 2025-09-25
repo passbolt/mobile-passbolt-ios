@@ -281,7 +281,7 @@ private let validPrivateKey: ArmoredPGPPrivateKey =
   =6KHK
   -----END PGP PRIVATE KEY BLOCK-----
   """
-
+// swift-format-ignore: NeverUseForceTry
 private let validToken: JWT = try!
   .from(
     rawValue: """

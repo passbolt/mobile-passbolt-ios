@@ -193,22 +193,23 @@ extension JSON: Encodable {
     var container = encoder.singleValueContainer()
 
     switch self {
-    case let .object(object):
+    case .object(let object):
       try container.encode(object)
-    case let .array(array):
+    case .array(let array):
       try container.encode(array)
-    case let .string(string):
+    case .string(let string):
       try container.encode(string)
-    case let .integer(integer):
+    case .integer(let integer):
       try container.encode(integer)
-    case let .float(float):
+    case .float(let float):
       try container.encode(float)
-    case let .bool(bool):
+    case .bool(let bool):
       try container.encode(bool)
     case .null:
       try container.encodeNil()
     }
   }
+
 }
 
 extension JSON {
@@ -394,7 +395,7 @@ extension JSON {
       return .none
     }
   }
-  
+
   public var arrayValue: [JSON]? {
     switch self {
     case .array(let value):

@@ -27,6 +27,7 @@ import NFC
 import PassboltAccountSetup
 import PassboltAccounts
 import PassboltDatabaseOperations
+import PassboltMetadata
 import PassboltNetworkOperations
 import PassboltResources
 import PassboltSession
@@ -39,6 +40,7 @@ extension FeaturesRegistry {
     self.useOSFeatures()
 
     self.useLiveDisplay()
+    self.useApplicationRootAnchorProvider()
 
     self.useNFCFeatures()
     self.useCrypto()
@@ -51,6 +53,8 @@ extension FeaturesRegistry {
     self.usePassboltSessionDataModule()
     self.usePassboltUsersModule()
     self.usePassboltApplicationRatingFeature()
+
+    self.usePassboltMetadataModule()
 
     self.usePassboltHomePresentation()
 

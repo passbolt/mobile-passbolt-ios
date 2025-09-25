@@ -34,14 +34,12 @@ internal enum ResourceContextualMenuItem: Hashable, Identifiable {
   case copyUsername
   case copyPassword
   case copyDescription
-
-  case addOTP
-  case showOTPMenu
+  case copyNote
 
   case toggle(favorite: Bool)
 
   case share
-  case editPassword
+  case editResource(isStandaloneTOTP: Bool)
 
   case delete
 
@@ -71,7 +69,6 @@ internal final class ResourceContextualMenuViewController: ViewController {
   private let navigationToShare: NavigationToResourceShare
   private let navigationToResourceEdit: NavigationToResourceEdit
   private let navigationToResourceOTPMenu: NavigationToResourceOTPContextualMenu
-  private let navigationToResourceOTPEditMenu: NavigationToResourceOTPEditMenu
 
   private let linkOpener: OSLinkOpener
   private let pasteboard: OSPasteboard
@@ -105,7 +102,6 @@ internal final class ResourceContextualMenuViewController: ViewController {
     self.navigationToShare = try features.instance()
     self.navigationToResourceEdit = try features.instance()
     self.navigationToResourceOTPMenu = try features.instance()
-    self.navigationToResourceOTPEditMenu = try features.instance()
 
     self.resourceController = try features.instance()
 
@@ -122,7 +118,7 @@ internal final class ResourceContextualMenuViewController: ViewController {
           var accessMenuItems: Array<ResourceContextualMenuItem> = .init()
           var modifyMenuItems: Array<ResourceContextualMenuItem> = .init()
 
-          if resource.contains(\.meta.uri) {
+          if resource.contains(\.meta.uris), resource[keyPath: \.meta.uris].arrayValue?.isEmpty == false {
             accessMenuItems.append(.openURI)
             accessMenuItems.append(.copyURI)
           }  // else NOP
@@ -135,32 +131,34 @@ internal final class ResourceContextualMenuViewController: ViewController {
             accessMenuItems.append(.copyPassword)
           }  // else NOP
 
-          if resource.contains(\.secret.description) || resource.contains(\.meta.description) {
+          if resource.contains(\.meta.description) {
             accessMenuItems.append(.copyDescription)
           }  // else NOP
 
-          if resource.hasTOTP {
-            accessMenuItems.append(.showOTPMenu)
-          }
-          else if sessionConfiguration.resources.totpEnabled && resource.canEdit && resource.canAttachOTP {
-            modifyMenuItems.append(.addOTP)
+          if resource.contains(\.secret.description) {
+            accessMenuItems.append(.copyNote)
           }  // else NOP
 
           modifyMenuItems.append(.toggle(favorite: resource.favorite))
 
-          if resource.permission.canShare {
+          if resource.permission.canShare,
+            sessionConfiguration.share.showMembersList
+          {
             modifyMenuItems.append(.share)
           }  // else NOP
 
           if resource.canEdit {
             if resource.hasPassword {
-              modifyMenuItems.append(.editPassword)
-            }  // else NOP
+              modifyMenuItems.append(.editResource(isStandaloneTOTP: false))
+            }
+            else if resource.hasTOTP {
+              modifyMenuItems.append(.editResource(isStandaloneTOTP: true))
+            }
 
             modifyMenuItems.append(.delete)
           }  // else NOP
 
-          await updateState { (viewState: inout ViewState) in
+          updateState { (viewState: inout ViewState) in
             viewState.title = resource.name
             viewState.accessMenuItems = accessMenuItems
             viewState.modifyMenuItems = modifyMenuItems
@@ -182,10 +180,10 @@ extension ResourceContextualMenuViewController {
   ) async {
     switch item {
     case .openURI:
-      await self.openURL(field: \.meta.uri)
+      await self.openURL(field: \.meta.uris)
 
     case .copyURI:
-      await self.copy(field: \.meta.uri)
+      await self.copy(field: \.meta.uris)
 
     case .copyUsername:
       await self.copy(field: \.meta.username)
@@ -199,12 +197,8 @@ extension ResourceContextualMenuViewController {
       // using \.description to find proper description field
       // actual description have different path
       await self.copy(field: \.description)
-
-    case .addOTP:
-      await self.addOTP()
-
-    case .showOTPMenu:
-      await self.showOTPMenu()
+    case .copyNote:
+      await self.copy(field: \.secret.description)
 
     case .toggle(favorite: _):
       await self.toggleFavorite()
@@ -212,7 +206,7 @@ extension ResourceContextualMenuViewController {
     case .share:
       await self.share()
 
-    case .editPassword:
+    case .editResource(_):
       await self.editPassword()
 
     case .delete:
@@ -242,6 +236,12 @@ extension ResourceContextualMenuViewController {
         resource = try await self.resourceController.state.value
       }  // else continue
 
+      var path = path
+      if field.content == .list {
+        // if field is list, we take first element
+        path = path.appending(path: \.0)
+      }
+
       try await self.linkOpener.openURL(.init(rawValue: resource[keyPath: path].stringValue ?? ""))
 
       try await self.navigationToSelf.revert()
@@ -270,7 +270,15 @@ extension ResourceContextualMenuViewController {
         resource = try await self.resourceController.state.value
       }  // else continue
 
-      self.pasteboard.put(resource[keyPath: path].stringValue ?? "")
+      var path = path
+      if field.content == .list {
+        // if field is list, we take first element
+        path = path.appending(path: \.0)
+      }
+      self.pasteboard.put(
+        resource[keyPath: path].stringValue ?? "",
+        withAutoExpiration: resource.isEncrypted(path)
+      )
 
       try await self.navigationToSelf.revert()
 
@@ -282,37 +290,6 @@ extension ResourceContextualMenuViewController {
               field.name.displayable.string()
             ]
           )
-        )
-      )
-    }
-  }
-
-  private final func addOTP() async {
-    await consumingErrors { [resourceID] in
-      let resourceEditPreparation: ResourceEditPreparation = try features.instance()
-      let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareExisting(resourceID)
-      guard editingContext.editedResource.canAttachOTP
-      else {
-        throw
-          InvalidResourceTypeError
-          .error(message: "Can't attach OTP, no permission or transition undefined.")
-      }
-
-      try await self.navigationToSelf.revert()
-      try await self.navigationToResourceOTPEditMenu.perform(
-        context: .init(
-          editingContext: editingContext
-        )
-      )
-    }
-  }
-
-  private final func showOTPMenu() async {
-    await consumingErrors {
-      try await self.navigationToSelf.revert()
-      try await self.navigationToResourceOTPMenu.perform(
-        context: .init(
-          revealOTP: self.context.revealOTP
         )
       )
     }

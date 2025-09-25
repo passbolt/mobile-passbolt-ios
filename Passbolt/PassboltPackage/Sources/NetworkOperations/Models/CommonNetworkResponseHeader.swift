@@ -28,14 +28,17 @@ public struct CommonNetworkResponseHeader: Decodable {
   public var id: String
   public var message: String
   public var servertime: Timestamp
+  public var pagination: PaginationData?
 
   public init(
     id: String,
     message: String,
-    servertime: Timestamp
+    servertime: Timestamp,
+    pagination: PaginationData? = nil
   ) {
     self.id = id
     self.message = message
     self.servertime = servertime
+    self.pagination = pagination
   }
 }

@@ -253,7 +253,7 @@ extension ServerConfiguration.Plugins {
       self.enabled = enabled
     }
   }
-  
+
   public struct Metadata: Decodable {
 
     public var enabled: Bool

@@ -118,6 +118,19 @@ extension ResourceContextualMenuItem {
             .resizable()
         }
       )
+    case .copyNote:
+      DrawerMenuItemView(
+        action: {
+          await controller.performAction(for: self)
+        },
+        title: {
+          Text(displayable: "resource.menu.item.copy.note")
+        },
+        leftIcon: {
+          Image(named: .description)
+            .resizable()
+        }
+      )
 
     case .copyDescription:
       DrawerMenuItemView(
@@ -133,19 +146,6 @@ extension ResourceContextualMenuItem {
         }
       )
 
-    case .showOTPMenu:
-      DrawerMenuItemView(
-        action: {
-          await controller.performAction(for: self)
-        },
-        title: {
-          Text(displayable: "resource.menu.item.otp.menu")
-        },
-        leftIcon: {
-          Image(named: .otp)
-            .resizable()
-        }
-      )
     case .toggle(favorite: true):
       DrawerMenuItemView(
         action: {
@@ -188,30 +188,21 @@ extension ResourceContextualMenuItem {
         }
       )
 
-    case .editPassword:
+    case .editResource(let isStandaloneTOTP):
       DrawerMenuItemView(
         action: {
           await controller.performAction(for: self)
         },
         title: {
-          Text(displayable: "resource.menu.item.edit.password")
+          Text(
+            displayable:
+              isStandaloneTOTP
+              ? "resource.menu.item.edit.otp"
+              : "resource.menu.item.edit.password"
+          )
         },
         leftIcon: {
           Image(named: .edit)
-            .resizable()
-        }
-      )
-
-    case .addOTP:
-      DrawerMenuItemView(
-        action: {
-          await controller.performAction(for: self)
-        },
-        title: {
-          Text(displayable: "resource.menu.item.add.otp")
-        },
-        leftIcon: {
-          Image(named: .otp)
             .resizable()
         }
       )

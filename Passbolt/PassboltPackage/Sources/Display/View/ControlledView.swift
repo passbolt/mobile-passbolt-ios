@@ -57,6 +57,40 @@ extension ControlledView {
   }
 
   @_transparent
+  public func whenFalse<OptionalView>(
+    _ keyPath: KeyPath<ViewState, Bool>,
+    @ViewBuilder content optionalView: @escaping () -> OptionalView
+  ) -> some View
+  where OptionalView: View {
+    WithViewState(
+      from: self.controller,
+      at: keyPath,
+      content: { (enabled: Bool) in
+        if enabled == false {
+          optionalView()
+        }  // else no view
+      }
+    )
+  }
+
+  @_transparent
+  public func whenUnwrapped<OptionalView, Value>(
+    _ keyPath: KeyPath<ViewState, Optional<Value>>,
+    @ViewBuilder content optionalView: @escaping (Value) -> OptionalView
+  ) -> some View
+  where OptionalView: View, Value: Equatable {
+    WithViewState(
+      from: self.controller,
+      at: keyPath,
+      content: { (value: Value?) in
+        if let value {
+          optionalView(value)
+        }  // else no view
+      }
+    )
+  }
+
+  @_transparent
   public func with<State, StateView>(
     _ keyPath: KeyPath<ViewState, State>,
     @ViewBuilder content stateView: @escaping (State) -> StateView

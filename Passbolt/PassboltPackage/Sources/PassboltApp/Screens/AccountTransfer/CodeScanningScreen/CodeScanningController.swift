@@ -55,7 +55,7 @@ extension CodeScanningController: UIController {
       .progressPublisher()
       .sink(
         receiveCompletion: { completion in
-          guard case let .failure(error) = completion
+          guard case .failure(let error) = completion
           else { return }
           resultPresentationSubject.send(completion: .failure(error))
         },
@@ -75,7 +75,7 @@ extension CodeScanningController: UIController {
           case .configuration:
             return 0  // initial value
 
-          case let .scanningProgress(value):
+          case .scanningProgress(let value):
             return value
 
           case .scanningFinished:

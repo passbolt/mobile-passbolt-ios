@@ -65,7 +65,7 @@ internal struct HomePresentationMenuNodeView: ControlledView {
             }  // else { /* NOP */ }
             DrawerMenuItemView(
               action: {
-                await self.controller.selectMode(mode)
+                self.controller.selectMode(mode)
               },
               title: {
                 Text(displayable: mode.title)

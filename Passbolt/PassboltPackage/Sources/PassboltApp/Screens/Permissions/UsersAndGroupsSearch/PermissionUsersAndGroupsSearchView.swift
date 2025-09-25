@@ -94,7 +94,7 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
           Section {
             ForEach(self.state.listSelectionRowViewModels) { listRow in
               switch listRow {
-              case let .user(userRow):
+              case .user(let userRow):
                 UserListRowView(
                   model: userRow,
                   contentAction: {
@@ -104,7 +104,7 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
                     SelectionIndicator(
                       selected: self.state.selectedItems.contains { item in
                         switch item {
-                        case let .user(id, _, _):
+                        case .user(let id, _, _):
                           return userRow.id == id
                         case .userGroup:
                           return false
@@ -113,7 +113,7 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
                     )
                   }
                 )
-              case let .userGroup(userGroupRow):
+              case .userGroup(let userGroupRow):
                 UserGroupListRowView(
                   model: userGroupRow,
                   contentAction: {
@@ -123,7 +123,7 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
                     SelectionIndicator(
                       selected: self.state.selectedItems.contains { item in
                         switch item {
-                        case let .userGroup(id):
+                        case .userGroup(let id):
                           return userGroupRow.id == id
                         case .user:
                           return false
@@ -163,7 +163,7 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
 
               ForEach(self.state.listExistingRowViewModels) { listRow in
                 switch listRow {
-                case let .user(userRow, permission):
+                case .user(let userRow, let permission):
                   UserListRowView(
                     model: userRow,
                     contentAction: {
@@ -175,7 +175,7 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
                       )
                     }
                   )
-                case let .userGroup(userGroupRow, permission):
+                case .userGroup(let userGroupRow, let permission):
                   UserGroupListRowView(
                     model: userGroupRow,
                     contentAction: {
@@ -237,9 +237,9 @@ extension PermissionUsersAndGroupsSearchView.SelectionRowViewModel: Identifiable
 
   public var id: AnyHashable {
     switch self {
-    case let .user(model):
+    case .user(let model):
       return "user-\(model.id)"
-    case let .userGroup(model):
+    case .userGroup(let model):
       return "userGroup-\(model.id)"
     }
   }
@@ -260,9 +260,9 @@ extension PermissionUsersAndGroupsSearchView.ExistingPermissionRowViewModel: Ide
 
   public var id: AnyHashable {
     switch self {
-    case let .user(model, _):
+    case .user(let model, _):
       return "user-\(model.id)"
-    case let .userGroup(model, _):
+    case .userGroup(let model, _):
       return "userGroup-\(model.id)"
     }
   }

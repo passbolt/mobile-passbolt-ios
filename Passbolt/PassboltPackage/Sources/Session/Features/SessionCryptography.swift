@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Crypto
 import Features
 
 // MARK: - Interface
@@ -46,11 +47,14 @@ public struct SessionCryptography {
       _ plainMessage: String,
       _ publicKey: ArmoredPGPPublicKey
     ) async throws -> ArmoredPGPMessage
-  
-  public var decryptSessionKey:
+
+  public var decryptAndVerifyMessage:
     @SessionActor (
-      _ message: ArmoredPGPMessage
-    ) async throws -> SessionKey
+      _ encryptedMessage: ArmoredPGPMessage,
+      _ publicKey: ArmoredPGPPublicKey
+    ) async throws -> PGP.VerifiedMessage
+
+  public var sessionDecryptor: @SessionActor () async throws -> ConfiguredDecryptor
 
   public init(
     decryptMessage: @escaping @SessionActor (
@@ -61,13 +65,16 @@ public struct SessionCryptography {
       _ plainMessage: String,
       _ publicKey: ArmoredPGPPublicKey
     ) async throws -> ArmoredPGPMessage,
-    decryptSessionKey: @escaping @SessionActor (
-      _ message: ArmoredPGPMessage
-    ) async throws -> SessionKey
+    decryptAndVerifyMessage: @escaping @SessionActor (
+      _ encryptedMessage: ArmoredPGPMessage,
+      _ publicKey: ArmoredPGPPublicKey
+    ) async throws -> PGP.VerifiedMessage,
+    sessionDecryptor: @escaping @SessionActor () async throws -> ConfiguredDecryptor
   ) {
     self.decryptMessage = decryptMessage
     self.encryptAndSignMessage = encryptAndSignMessage
-    self.decryptSessionKey = decryptSessionKey
+    self.decryptAndVerifyMessage = decryptAndVerifyMessage
+    self.sessionDecryptor = sessionDecryptor
   }
 }
 
@@ -78,7 +85,8 @@ extension SessionCryptography: LoadableFeature {
     Self(
       decryptMessage: unimplemented2(),
       encryptAndSignMessage: unimplemented2(),
-      decryptSessionKey: unimplemented1()
+      decryptAndVerifyMessage: unimplemented2(),
+      sessionDecryptor: unimplemented0()
     )
   }
   #endif

@@ -53,6 +53,8 @@ extension ResourcesController {
 
             case .nameAlphabetically:
               return .nameAlphabetically
+            case .expiryDate:
+              return .expiryDate
             }
           }(),
           text: filter.text,
@@ -60,9 +62,7 @@ extension ResourcesController {
           includedTypeSlugs: filter.otpOnly
             ? [.totp, .passwordWithTOTP, .v5StandaloneTOTP, .v5DefaultWithTOTP]
             : [],
-          excludedTypeSlugs: filter.otpOnly
-            ? []
-            : [.totp, .v5StandaloneTOTP],
+          excludedTypeSlugs: [],
           permissions: Set(filter.permissions),
           tags: filter.tags,
           userGroups: filter.userGroups,

@@ -24,7 +24,7 @@
 import AegithalosCocoa
 
 extension ImageNameConstant {
-  
+
   // Template images - filled according to contextual color
   public static var navigationBarPlaceholder: Self { "NavigationBarPlaceholder" }
   public static var arrowLeft: Self { "ArrowLeft" }
@@ -32,6 +32,7 @@ extension ImageNameConstant {
   public static var home: Self { "Home" }
   public static var settings: Self { "Settings" }
   public static var otp: Self { "OTP" }
+  public static var notes: Self { "notes" }
   public static var trash: Self { "Trash" }
   public static var plus: Self { "Plus" }
   public static var exit: Self { "Exit" }
@@ -85,8 +86,8 @@ extension ImageNameConstant {
   public static var chevronDown: Self { "ChevronDown" }
   public static var warning: Self { "Warning" }
   public static var fileSave: Self { "FileSave" }
-  public static var importFile: Self {"Import"}
-  
+  public static var importFile: Self { "Import" }
+
   // Dynamic images - rendered according to interface (Light/Dark)
   public static var accountsSkeleton: Self { "AccountsSkeleton" }
   public static var passboltIcon: Self { "PassboltIcon" }
@@ -118,4 +119,6 @@ extension ImageNameConstant {
   public static var permissionOwnIcon: Self { "PermissionOwnIcon" }
   public static var logoDUO: Self { "LogoDUO" }
   public static var exclamationMark: Self { "ExclamationMark" }
+  public static var paintbrush: Self { "Paintbrush" }
+  public static var checkmark: Self { "Checkmark" }
 }

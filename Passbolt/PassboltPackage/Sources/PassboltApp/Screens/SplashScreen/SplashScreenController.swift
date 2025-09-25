@@ -103,12 +103,12 @@ extension SplashScreenController: UIController {
             return destinationSubject.send(.featureConfigFetchError)
           }
 
-        case let .mfa(_, mfaProviders):
+        case .mfa(_, let mfaProviders):
           return
             destinationSubject
             .send(.mfaAuthorization(mfaProviders))
 
-        case let .passphrase(account):
+        case .passphrase(let account):
           return
             destinationSubject
             .send(

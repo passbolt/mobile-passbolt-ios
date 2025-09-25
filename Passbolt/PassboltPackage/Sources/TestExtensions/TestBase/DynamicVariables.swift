@@ -59,7 +59,7 @@ public final class DynamicVariables: @unchecked Sendable {
 
       case let value as Optional<Value>:
         switch value {
-        case let .some(value):
+        case .some(let value):
           return value
 
         case .none:
@@ -98,7 +98,7 @@ public final class DynamicVariables: @unchecked Sendable {
     get {
       self.lock.withLock {
         switch self.state[name] {
-        case let .some(variable):
+        case .some(let variable):
           return variable.get(Variable.self)
 
         case .none:

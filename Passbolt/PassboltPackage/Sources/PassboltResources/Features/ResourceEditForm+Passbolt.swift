@@ -27,6 +27,7 @@ import DatabaseOperations
 import FeatureScopes
 import Features
 import Foundation
+import Metadata
 import NetworkOperations
 import Resources
 import SessionData
@@ -53,8 +54,16 @@ extension ResourceEditForm {
     let resourceShareNetworkOperation: ResourceShareNetworkOperation = try features.instance()
     let resourceFolderPermissionsFetchDatabaseOperation: ResourceFolderPermissionsFetchDatabaseOperation =
       try features.instance()
+    let resourceUsersIDFetchDatabaseOperation: ResourceUsersIDFetchDatabaseOperation = try features.instance()
     let formState: Variable<Resource> = .init(initial: context.editedResource)
 
+    let metadataKeysService: MetadataKeysService = try features.instance()
+
+    /// Updates a specific field in the resource with a new JSON value.
+    /// - Parameters:
+    ///   - field: The field path to update
+    ///   - value: New JSON value to set
+    /// - Returns: A validation result of the update operation
     @Sendable nonisolated func update(
       _ field: Resource.FieldPath,
       to value: JSON
@@ -64,6 +73,9 @@ extension ResourceEditForm {
       }
     }
 
+    /// Updates the resource type.
+    /// - Parameter resourceType: The new resource type to set
+    /// - Throws: An error if the update fails
     @Sendable nonisolated func updateType(
       to resourceType: ResourceType
     ) throws {
@@ -72,6 +84,8 @@ extension ResourceEditForm {
       }
     }
 
+    /// Validates the entire resource form.
+    /// - Throws: InvalidForm error if validation fails
     @Sendable nonisolated func validateForm() async throws {
       do {
         try formState.value.validate()
@@ -80,6 +94,18 @@ extension ResourceEditForm {
         throw
           InvalidForm
           .error(displayable: "resource.form.error.invalid")
+      }
+    }
+
+    /// Validates a specific field in the resource.
+    /// - Parameter fieldPath: The path to the field to validate
+    /// - Throws: Validation error if the field value is invalid
+    @Sendable nonisolated func validate(fieldPath: Resource.FieldPath) async throws {
+      let resource: Resource = formState.value
+      let validator: Validator<JSON> = resource.validator(for: fieldPath)
+      let result: Validated<JSON> = validator.validate(resource[keyPath: fieldPath])
+      if let error = result.error {
+        throw error
       }
     }
 
@@ -95,6 +121,9 @@ extension ResourceEditForm {
           .error(displayable: "resource.form.error.invalid")
       }
 
+      resource.createMetadata()
+      resource.createSecretMetadata()
+
       guard let resourceSecret: String = resource.secret.resourceSecretString
       else {
         throw
@@ -102,8 +131,18 @@ extension ResourceEditForm {
           .error(message: "Invalid or missing resource secret")
       }
 
+      let result: MetadataKeysService.KeyValidationResult = try await metadataKeysService.validatePinnedKey()
+      if case .invalid(let reason) = result {
+        throw
+          MetadataPinnedKeyValidationError.error(
+            reason: reason,
+            context: .context(.message("Invalid key", details: [:]))
+          )
+      }
+
       if let resourceID: Resource.ID = resource.id {
-        let encryptedSecrets = try await resourceUpdatePreparation.prepareSecret(resourceID, resourceSecret)
+        let userIDs: Array<User.ID> = try await resourceUsersIDFetchDatabaseOperation.execute(resourceID)
+        let encryptedSecrets = try await resourceUpdatePreparation.prepareSecret(userIDs.asOrderedSet(), resourceSecret)
         _ =
           try await resourceNetworkOperationDispatch
           .editResource(
@@ -247,6 +286,7 @@ extension ResourceEditForm {
       updateField: update(_:to:),
       updateType: updateType(to:),
       validateForm: validateForm,
+      validateField: validate(fieldPath:),
       sendForm: sendForm
     )
   }

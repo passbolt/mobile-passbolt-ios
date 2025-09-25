@@ -23,6 +23,7 @@
 
 import CommonModels
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 extension EncryptedMessage {
 
   public static let mock_1: Self = .init(

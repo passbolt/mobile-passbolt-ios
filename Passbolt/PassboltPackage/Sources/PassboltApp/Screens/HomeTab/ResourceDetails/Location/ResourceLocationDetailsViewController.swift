@@ -32,6 +32,8 @@ internal final class ResourceLocationDetailsViewController: ViewController {
   internal struct ViewState: Equatable {
 
     internal var name: String
+    internal var icon: ResourceIcon
+    internal var resourceTypeSlug: ResourceSpecification.Slug?
     internal var favorite: Bool
     internal var location: FolderLocationTreeView.Node
   }
@@ -55,6 +57,8 @@ internal final class ResourceLocationDetailsViewController: ViewController {
     self.viewState = .init(
       initial: .init(
         name: .init(),
+        icon: .none,
+        resourceTypeSlug: .none,
         favorite: false,
         location: .root()
       ),
@@ -77,12 +81,16 @@ internal final class ResourceLocationDetailsViewController: ViewController {
           path.append(
             child: .leaf(
               id: resource.id,
-              name: resourceName
+              name: resourceName,
+              icon: resource.icon,
+              resourceTypeSlug: resource.type.specification.slug
             )
           )
 
-          await updateState { (viewState: inout ViewState) in
+          updateState { (viewState: inout ViewState) in
             viewState.name = resourceName
+            viewState.icon = resource.icon
+            viewState.resourceTypeSlug = resource.type.specification.slug
             viewState.favorite = resource.favorite
             viewState.location = path
           }

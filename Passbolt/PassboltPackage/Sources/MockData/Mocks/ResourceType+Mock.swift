@@ -23,6 +23,7 @@
 
 import CommonModels
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverForceUnwrap
 extension ResourceType.ID {
 
   public static let mock_1: Self = .init(uuidString: "F9B39DCA-CD93-4CD4-B91D-8AAE7B7AA813")!
@@ -34,6 +35,7 @@ extension ResourceType.ID {
   public static let mock_4: Self = .init(uuidString: "A6626564-8CE2-4FC0-870C-5C299F04AB0C")!
 }
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 extension ResourceSpecification.Slug {
 
   public static let mock_1: Self = .init(rawValue: "mock_1")
@@ -41,6 +43,7 @@ extension ResourceSpecification.Slug {
   public static let mock_2: Self = .init(rawValue: "mock_2")
 }
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 extension ResourceType {
 
   public static let mock_1: Self = .init(

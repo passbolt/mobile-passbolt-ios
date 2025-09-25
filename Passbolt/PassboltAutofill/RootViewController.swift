@@ -25,20 +25,32 @@ import class AuthenticationServices.ASCredentialProviderViewController
 import class AuthenticationServices.ASCredentialServiceIdentifier
 import Commons
 import Foundation.NSCoder
+import UIKit
 
 @objc(RootViewController)
 @MainActor internal final class RootViewController: ASCredentialProviderViewController {
-  
+
   @MainActor private lazy var applicationExtension: ApplicationExtension = .init(rootViewController: self)
-  
+
   @MainActor internal init() {
     super.init(nibName: nil, bundle: nil)
     self.applicationExtension.initialize()
   }
-  
+
   @available(*, unavailable)
   internal required init?(coder: NSCoder) {
     unreachable(#function)
+  }
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    let placeholderViewController = UIViewController()
+    let navigationController = UINavigationController(rootViewController: placeholderViewController)
+    navigationController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    navigationController.view.frame = view.bounds
+    addChild(navigationController)
+    view.addSubview(navigationController.view)
+    navigationController.didMove(toParent: self)
   }
 
   @MainActor override internal func prepareCredentialList(

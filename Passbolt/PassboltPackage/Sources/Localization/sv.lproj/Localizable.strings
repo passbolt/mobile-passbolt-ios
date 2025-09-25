@@ -1,0 +1,727 @@
+//
+// Passbolt - Open source password manager for teams
+// Copyright (c) 2021 Passbolt SA
+//
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+// Public License (AGPL) as published by the Free Software Foundation version 3.
+//
+// The name "Passbolt" is a registered trademark of Passbolt SA, and Passbolt SA hereby declines to grant a trademark
+// license to "Passbolt" pursuant to the GNU Affero General Public License version 3 Section 7(e), without a separate
+// agreement with Passbolt SA.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License along with this program. If not,
+// see GNU Affero General Public License v3 (http://www.gnu.org/licenses/agpl-3.0.html).
+//
+// @copyright     Copyright (c) Passbolt SA (https://www.passbolt.com)
+// @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
+// @link          https://www.passbolt.com Passbolt (tm)
+// @since         v1.0
+//
+// Shared and commons
+
+
+"generic.done" = "Klar";
+"generic.yes" = "Ja";
+"generic.apply" = "Verkställ";
+"generic.confirm" = "Bekräfta";
+"generic.cancel" = "Avbryt";
+"generic.remove" = "Ta bort";
+"generic.loading" = "Laddar...";
+"generic.loading.long" = "Det tar längre tid än vanligt...";
+"generic.continue" = "Fortsätt";
+"generic.retry" = "Försök igen";
+"generic.try.again" = "Försök igen";
+"generic.delete" = "Radera";
+"generic.got.it" = "Förstått";
+"generic.settings" = "Inställningar";
+"generic.disable" = "Inaktivera";
+"generic.sign.out" = "Logga ut";
+"generic.refresh" = "Uppdatera";
+"generic.create" = "Skapa";
+"generic.empty.list" = "Det finns inga resultat";
+"generic.user.search.list.empty" = "Användaren hittades inte.";
+"generic.paste.value.invalid" = "Försöker klistra in ett ogiltigt värde";
+"generic.are.you.sure" = "Är du säker?";
+"generic.picker.select.placeholder" = "Välj";
+
+"account.selection.title" = "Välkommen tillbaka!";
+"account.selection.subtitle" = "Välj ett konto för att logga in!";
+"account.selection.remove.account.button.title" = "Ta bort ett konto från den här enheten";
+"account.selection.add.account.footer.title" = "Lägg till nytt konto";
+"account.selection.remove.account.title" = "Koppla bort ett konto";
+"account.selection.remove.account.subtitle" = "Välj ett konto att koppla bort.";
+"account.selection.remove.alert.title" = "Är du säker ?";
+"account.selection.remove.alert.message" = "Detta tar bort ditt konto från den här enheten. Dina lösenord kommer inte att raderas.";
+"account.selection.account.removed" = "Kontot har tagits bort från den här enheten.";
+
+"authorization.button.title" = "Logga in";
+"authorization.reverification.button.title" = "Bekräfta lösenfras";
+"authorization.forgot.passphrase.button.title" = "Jag har glömt min lösenfras";
+"authorization.forgot.passphrase.alert.title" = "Har du glömt din lösenfras?";
+"authorization.forgot.passphrase.alert.message" = "Tyvärr kan du inte komma åt dina data om du inte minns din lösenfras. Kontakta din administratör för att låsa upp ditt konto.";
+"authorization.passphrase.description.text" = "Lösenfras";
+"authorization.title" = "Ange din lösenfras";
+
+"sign.in.title" = "Ange din lösenfras";
+
+"resource.list.username.empty.placeholder" = "inget användarnamn";
+
+"resource.detail.field.name" = "Namn";
+"resource.detail.field.username" = "Användarnamn";
+"resource.detail.field.passphrase" = "Lösenord";
+"resource.detail.field.uri" = "Webbplatsens URL";
+"resource.detail.field.description" = "Beskrivning";
+"resource.show.field.uri.placeholder" = "No URI";
+"resource.show.field.username.placeholder" = "Inget användarnamn";
+"resource.show.field.password.placeholder" = "Inget lösenord";
+"resource.show.field.description.placeholder" = "Ingen beskrivning";
+"resource.value.copied" = "%@ kopierades till urklipp!";
+"resource.details.value" = "Värde";
+"resource.detail.section.location" = "Plats";
+"resource.detail.section.permissions" = "Delade med";
+"resource.detail.section.tags" = "Taggar";
+"resource.detail.section.expiry" = "Utgångsdatum";
+"resource.detail.section.expiry.expired" = "Utgånget";
+"resource.detail.section.expiry.willExpire" = "Utgår om";
+"resource.detail.undefined.content.warning" = "Typen stöds inte, okända fält är dolda!";
+
+"resource.expiry.expired" = "(utgånget)";
+
+"resource.delete.succeeded" = "Resursen har tagits bort.";
+
+"resource.field.name.unknown" = "Värde";
+"section.tags.empty" = "Inga taggar";
+
+"server.key.fingerprint.changed.title" = "Tyvärr, serverns nyckel har ändrats.";
+"server.key.fingerprint.changed.description" = "Av säkerhetsskäl, kontrollera med din administratör att detta är en ändring som de initierade. Det nya fingeravtrycket:";
+"server.key.fingerprint.accept.check" = "Ja jag kollade och det går bra.";
+"server.key.fingerprint.accept.new.key" = "Godkänn ny nyckel";
+
+"resource.form.password.strength" = "Lösenordsstyrka";
+"resource.form.strength.very.weak" = "Mycket svagt";
+"resource.form.strength.weak" = "Svagt";
+"resource.form.strength.fair" = "Hyfsat";
+"resource.form.strength.strong" = "Starkt";
+"resource.form.strength.very.strong" = "Mycket starkt";
+"resource.form.create.button.title" = "Skapa";
+"resource.form.create.and.fill.button.title" = "Skapa och fyll i";
+"resource.form.update.button.title" = "Spara";
+"resource.form.new.password.created" = "Nytt lösenord har skapats";
+"resource.form.description.encrypted" = "Beskrivningen är krypterad";
+"resource.form.description.unencrypted" = "Beskrivningen är inte krypterad";
+"resource.form.undefined.content.warning" = "Typen stöds inte, okända fält är dolda!";
+
+"feedback.alert.title" = "Enheten kan vara jailbreakad";
+"feedback.alert.message" = "Vi misstänker att din enhet kan vara jailbreakad. Var medveten om att detta minskar enhetens allmänna säkerhet och kan utnyttjas för att komma åt dina lösenord.";
+"feedback.alert.button.title" = "Jag förstår";
+
+"account.not.found.title.label" = "Kontot existerar inte";
+"account.not.found.message.label" = "Kontot har tagits bort eller avstängts";
+"account.not.found.action.button.title" = "Anslut till ett befintligt konto";
+
+"server.not.reachable.alert.title" = "Servern gick inte att nå!";
+"server.not.reachable.alert.message.server.placeholder" = "Servern";
+"server.not.reachable.alert.message" = "%@ kan inte nås. Försök igen";
+
+"resource.edit.create.title" = "Create a resource";
+"resource.edit.title" = "Redigera resurs";
+"resource.password.edit.title" = "Edit password";
+"resource.edit.field.name.label" = "Namn";
+"resource.edit.field.uri.label" = "Main URI";
+"resource.edit.field.username.label" = "Användarnamn";
+"resource.edit.field.password.label" = "Lösenord";
+"resource.edit.field.description.label" = "Beskrivning";
+"resource.edit.field.totp.label" = "Engångslösenord (TOTP)";
+"resource.edit.field.add.totp" = "TOTP";
+"resource.edit.field.add.note" = "Note";
+"resource.edit.field.add.password" = "Lösenord";
+"resource.edit.field.name.placeholder" = "Ange ett namn";
+"resource.edit.field.uri.placeholder" = "Enter URI";
+"resource.edit.field.username.placeholder" = "Ange användarnamn";
+"resource.edit.field.password.placeholder" = "Ange lösenord";
+"resource.edit.field.description.placeholder" = "Ange beskrivning";
+"resource.edit.exit.confirmation.message" = "Dina ändringar kommer inte att sparas.";
+"resource.edit.exit.confirmation.button.edit.title" = "Redigera";
+"resource.edit.exit.confirmation.button.revert.title" = "Återställ";
+"resource.edit.note.content.title" = "Content";
+"resource.edit.note.content.disclaimer" = "This secure is part of the secret if you wan to be able to search this content, use metadata description.";
+"resource.edit.note.remove.button.title" = "Remove note";
+
+"resource.edit.section.password.title" = "Lösenord";
+"resource.edit.section.totp.title" = "TOTP";
+"resource.edit.section.note.title" = "Note";
+"resource.edit.section.metadata.title" = "Metadata";
+"resource.edit.totp.remove.button.title" = "Remove TOTP";
+
+"resource.create.advanced.button" = "View advanced settings";
+"resource.create.additional.secrets.title" = "Additional secrets";
+"resource.create.advanced.add.otp" = "TOTP";
+
+"resource.edit.section.metadata.description" = "Beskrivning";
+"resource.edit.section.metadata.description.name" = "Metadata description";
+"resource.edit.section.metadata.description.description" = "If you want the description to be part of the secret, use the note instead.";
+
+"resource.create.menu.title" = "Create a resource";
+"resource.create.menu.password" = "Lösenord";
+"resource.create.menu.totp" = "TOTP";
+
+"resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
+"resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
+
+"help.logs.viewer.title" = "Loggar";
+
+"help.menu.title" = "Hjälp";
+"help.menu.show.logs.action.title" = "Visa loggarna";
+"help.menu.show.web.help.action.title" = "Besök hjälpsidan";
+"help.menu.show.import.account.kit.title" = "Importera ditt kontokit";
+
+// Main application
+
+"welcome.title" = "Välkommen!";
+"welcome.description" = "Du behöver ett befintligt konto för att komma igång. Logga in med ditt befintliga konto i webbläsartillägget på din dator för att ansluta det till mobilenheten.";
+"welcome.connect.to.account" = "Anslut till ett befintligt konto";
+"welcome.no.account" = "Jag har inget konto";
+"welcome.no.account.alert.title" = "Hur skapar jag ett konto?";
+"welcome.no.account.alert.text" = "Det är för närvarande inte möjligt att skapa ett konto med mobilappen. Först måste du skapa ett konto via ditt webbläsartillägg på datorn.";
+"code.scanning.exit.confirmation.confirm.button.title" = "Avbryt skanning";
+"code.scanning.help.menu.button.title" = "Varför skanna QR-koder?";
+"code.scanning.help.title" = "Skannar QR-koder";
+"code.scanning.help.message" = "Du kommer att se en serie QR-koder. Vi skannar dessa koder tills förloppsindikatorn är full, sedan kan du logga in!";
+"code.scanning.camera.unavailable" = "Tyvärr, du behöver en enhet med fungerande kamera för att fortsätta, eftersom nyckelöverföringen sker med QR-koder.";
+"code.scanning.begin" = "Rikta kameran mot QR-koderna";
+"code.scanning.processing.in.progress" = "Skannar... fortsätt!";
+"code.scanning.processing.invalid.code" = "Det är inte Passbolt-QR-koden. Försök igen!";
+
+
+"transfer.account.title" = "Överför kontoinformation";
+"transfer.account.import.description" = "Skanna QR-koder för att överföra dina kontouppgifter";
+"transfer.account.import.info.step.first" = "Logga in med webbläsartillägget";
+"transfer.account.import.info.step.second" = "Gå till profilsidan";
+"transfer.account.import.info.step.second.distinct" = "Profil";
+"transfer.account.import.info.step.third" = "Gå till avsnittet Mobil";
+"transfer.account.import.info.step.third.distinct" = "Mobil";
+"transfer.account.import.info.step.fourth" = "Skanna qr-kodsekvensen";
+"transfer.account.import.scan.qr.button" = "Skanna QR-koder";
+"transfer.account.export.description" = "Visa QR-koder för att överföra dina kontouppgifter";
+"transfer.account.export.info.step.first" = "Installera appen på en annan mobil";
+"transfer.account.export.info.step.second" = "Starta appen";
+"transfer.account.export.info.step.third" = "Välj \\\"Anslut till ett befintligt konto\\\"";
+"transfer.account.export.info.step.fourth" = "Skanna qr-kodsekvensen";
+"transfer.account.export.scan.qr.button" = "Starta överföring";
+"transfer.account.export.cancel.button" = "Avbryt överföring";
+"transfer.account.camera.access.alert.title" = "Kameråtkomst krävs";
+"transfer.account.camera.access.alert.text" = "Gå till Inställningar/Integritet/Kamera för att aktivera åtkomst till din kamera.";
+"transfer.account.result.success.title" = "Din information har överförts!";
+"transfer.account.result.already.linked.title" = "Kontot är redan länkat till enheten.";
+"transfer.account.result.canceled.title" = "Överföringen har avbrutits.";
+"transfer.account.kit.result.success.title" = "Ditt kontokit har importerats!";
+
+"transfer.account.exit.confirmation.title" = "Är du säker?";
+"transfer.account.exit.confirmation.message" = "Om du lämnar måste du skanna QR-koderna igen.";
+"transfer.account.import.exit.confirmation.cancel.button.title" = "Fortsätt konfigurera";
+"transfer.account.import.exit.confirmation.confirm.button.title" = "Avbryt konfiguration";
+"transfer.account.export.exit.confirmation.confirm.button.title" = "Stoppa överföring";
+"transfer.account.export.exit.success.button" = "Gå tillbaka";
+"transfer.account.export.exit.failure.button" = "Försök igen";
+"transfer.account.export.failure.message" = "Överföringen kunde inte slutföras.";
+"transfer.account.export.cancelled" = "Överföringen avbröts";
+"transfer.account.exit.confirmation.cancel.button.title" = "Fortsätt konfigurera";
+"transfer.account.exit.confirmation.confirm.button.title" = "Avbryt konfiguration";
+
+"biometrics.usage.reason" = "Biometri kan användas för att spara din lösenfras säkert.";
+
+"biometrics.info.title" = "Konfigurera biometri";
+"biometrics.info.description" = "Om du vill använda FaceID eller TouchID för snabb inloggning, konfigurera det i Inställningar.";
+"biometrics.info.setup.button" = "Konfigurera biometri";
+"biometrics.info.later.button" = "Kanske senare";
+
+"biometrics.setup.title.face" = "Använd Face ID istället för lösenfras!";
+"biometrics.setup.title.finger" = "Använd Touch ID istället för lösenfras!";
+"biometrics.setup.description" = "Lås upp dina hemligheter på ett ögonblick.";
+"biometrics.setup.setup.button.face" = "Använd FaceID";
+"biometrics.setup.setup.button.finger" = "Använd TouchID";
+"biometrics.setup.later.button" = "Kanske senare";
+
+"extension.setup.title" = "Logga in i dina favoritappar på 3 sekunder!";
+"extension.setup.settings.step" = "Gå till Inställningar";
+"extension.setup.settings.step.bold" = "Inställningar";
+"extension.setup.keyboard.step" = "Öppna Autofyll lösenord";
+"extension.setup.keyboard.step.bold" = "Autofyll lösenord";
+"extension.setup.switch.step" = "Aktivera Autofyll lösenord";
+"extension.setup.switch.step.bold" = "Aktivera";
+"extension.setup.keychain.step" = "Stäng av Nyckelring";
+"extension.setup.keychain.step.bold" = "Stäng av";
+"extension.setup.passbolt.step" = "Välj Passbolt!";
+"extension.setup.passbolt.step.bold" = "Passbolt™!";
+"extension.setup.setup.button" = "Gå till inställningar";
+"extension.setup.later.button" = "Kanske senare";
+
+"tab.home" = "Hem";
+"tab.otp" = "Engångslösenord (TOTP)";
+"tab.settings" = "Inställningar";
+
+"authorization.prompt.refresh.session.reason" = "Vänligen autentisera för att uppdatera sessionen";
+"authorization.prompt.biometrics.set.reason" = "Vänligen autentisera för att aktivera biometri.";
+
+"resources.search.placeholder" = "Sök efter namn, användarnamn, url eller tagg...";
+
+"resource.menu.item.open.url" = "Starta webbplats";
+"resource.menu.item.copy.url" = "Kopiera URL";
+"resource.menu.item.copy.password" = "Kopiera lösenord";
+"resource.menu.item.copy.username" = "Kopiera användarnamn";
+"resource.menu.item.copy.description" = "Kopiera beskrivning";
+"resource.menu.item.copy.note" = "Copy note";
+"resource.menu.item.reveal.otp" = "Visa TOTP";
+"resource.menu.item.copy.otp" = "Kopiera TOTP";
+"resource.menu.item.add.favorite" = "Lägg till i favoriter";
+"resource.menu.item.remove.favorite" = "Ta bort från favoriter";
+"resource.menu.item.share" = "Dela lösenord";
+"resource.menu.item.edit.password" = "Redigera lösenord";
+"resource.menu.item.edit.otp" = "Redigera TOTP";
+"resource.menu.item.delete.resource" = "Radera lösenord";
+"resource.menu.item.delete.otp" = "Radera TOTP";
+"resource.menu.item.password" = "Lösenord";
+"resource.menu.item.username" = "Användarnamn";
+"resource.menu.item.description" = "Beskrivning";
+"resource.menu.item.url" = "URL";
+"resource.menu.item.field.copied" = "%@ kopierades till urklipp!";
+
+"resource" = "Resurs";
+"resource.menu.action.favorite.added" = "%@ har lagts till i favoriter!";
+"resource.menu.action.favorite.removed" = "%@ har tagits bort från favoriter!";
+
+"resource.menu.action.edited" = "Lösenordet redigerades framgångsrikt.";
+"resource.menu.action.deleted" = "%@ har tagits bort!";
+
+"resource.permission.type.read.label" = "kan läsa";
+"resource.permission.type.write.label" = "kan uppdatera";
+"resource.permission.type.own.label" = "är ägare";
+"resource.permission.list.title" = "Delade med";
+"resource.permission.list.edit.button.title" = "Redigera behörigheter";
+"resource.permission.edit.list.title" = "Dela lösenord";
+"resource.permission.edit.list.empty.message" = "Vänligen se till att det finns minst en ägare.";
+"resource.permission.edit.list.add.button.title" = "Lägg till användare";
+"resource.permission.edit.user.and.group.search.title" = "Välj användare";
+"resource.permission.edit.user.and.group.search.prompt" = "Sök efter användare...";
+"resource.permission.edit.user.and.group.search.existing.section.title" = "Redan tillagd";
+"resource.permission.delete.user.permission.confirmation.message" = "Lösenordet kommer inte längre att delas med denna användare.";
+"resource.permission.delete.user.group.permission.confirmation.message" = "Lösenordet kommer inte längre att delas med denna grupp.";
+
+"resource.permission.details.title" = "Behörighet";
+"resource.permission.details.user.suspended" = "avstängd";
+
+"permission.details.type.section.title" = "Behörighet";
+"permission.details.group.members.section.title" = "Gruppmedlemmar";
+"permission.details.user.suspended" = "avstängd";
+
+"resource.permission.edit.button.delete.title" = "Radera behörighet";
+
+"resource.folders.add.menu.title" = "Create a resource";
+"resource.folders.add.menu.folder.label" = "Folder";
+
+"group.members.list.title" = "Gruppmedlemmar";
+"group.members.member.details.title" = "Gruppmedlem";
+
+"totp.title.label" = "Tvåfaktorsautentisering";
+"totp.message.label" = "Ange verifieringskoden:";
+"totp.paste.otp.button.label" = "Klistra in kod";
+"totp.remember.device.toggle.label" = "Kom ihåg den här enheten i 30 dagar";
+
+"yubiKey.scan.instruction" = "Placera din YubiKey på enheten.";
+"yubiKey.scan.success" = "Skanningen lyckades";
+"yubiKey.scan.notRecognized.title" = "YubiKey känns inte igen";
+"yubiKey.scan.notRecognized.button.ok" = "Förstått";
+"yubiKey.scan.notRecognized.message" = "Din Yubikey känns inte igen av servern.\nFörsök med en annan Yubikey eller en annan leverantör.";
+"mfa.yubiKey.title" = "YubiKey-OTP";
+"mfa.yubiKey.description" = "Observera att din YubiKey måste stödja\nNFC för att detta ska fungera.";
+"mfa.yubiKey.scan" = "Skanna din YubiKey";
+"mfa.yubiKey.nfc.not.supported" = "Den här enheten stöder inte NFC.";
+"mfa.provider.try.another" = "Försök med en annan leverantör";
+"mfa.remember.token" = "Kom ihåg enheten i 30 dagar";
+"mfa.unsupported.provider.title" = "Din MFA-leverantör stöds inte";
+"mfa.unsupported.provider.description" = "Vänligen konfigurera en annan leverantör via webbappen.\nKontakta din administratör för mer information.";
+"mfa.duo.authorization.title" = "Duo multi-faktor autentisering";
+"mfa.duo.authorization.button.title" = "Autentisera med Duo";
+
+"account.menu.title" = "Byt konto";
+"account.menu.account.details.button.title" = "Se detaljer";
+"account.menu.sign.out.button.title" = "Logga ut";
+"account.menu.manage.accounts.button.title" = "Hantera konton";
+
+"account.details.title" = "Kontouppgifter";
+"account.details.field.label.title" = "Etikett";
+"account.details.field.label.editing.info" = "Etiketten visas i kontolistan och vid autentisering";
+"account.details.field.name.title" = "Namn";
+"account.details.field.email.title" = "E-post";
+"account.details.field.url.title" = "Organisationens URL";
+"account.details.field.role.title" = "Roll";
+"account.details.button.save.title" = "Spara";
+
+"update.available.title" = "Ny version tillgänglig!";
+"update.available.message" = "Uppdatera Passbolt-appen till den senaste versionen från App Store";
+
+// Autofill extension
+
+"autofill.extension.setup.completed.title" = "Passbolt Autofyll aktiverad!";
+"autofill.extension.setup.completed.info" = "När du har fyllt i ett formulär behöver du bara trycka på inmatningsfältet, så kommer den aktiverade Autofyll-funktionen att föreslå ifyllning från de inloggningsuppgifter du redan har lagt till i Passbolt-appen.";
+
+"autofill.extension.account.selection.switch.account.title" = "Byt konto";
+"autofill.extension.account.selection.switch.account.subtitle" = "Välj ett konto att byta till!";
+"autofill.extension.account.selection.sign.in.title" = "Du är inte inloggad";
+"autofill.extension.account.selection.sign.in.subtitle" = "Välj ett konto att logga in!";
+
+"autofill.extension.no.accounts.title" = "Inget konto hittades!";
+"autofill.extension.no.accounts.description" = "Du behöver ett konto för att komma igång. Öppna Passbolt-applikationen och följ installationsinstruktionerna. Därefter kan Passbolt autofylla autentiseringsuppgifter.";
+
+"autofill.extension.resource.list.title" = "Välj lösenord";
+"autofill.extension.resource.list.section.suggested.title" = "Förslag på";
+"autofill.extension.resource.list.section.all.title" = "Annat";
+
+"autofill.extension.autofill.extension.resources.search.placeholder" = "Sök i Passbolt...";
+
+"mfa.required.title" = "MFA krävs";
+"autofill.extension.mfa.required.description" = "Vänligen använd Passbolt-appen för att slutföra din autentisering.";
+
+"folder.edit.form.create.title" = "Skapa mapp";
+"folder.edit.form.name.field.placeholder" = "Namnlös mapp";
+"folder.edit.form.created" = "Den nya mappen %@ har skapats!";
+
+"resource.folder.menu.open.details.label" = "Se detaljer";
+
+// Common UI
+
+"folder.root.name" = "Rot";
+
+"folder.name.title" = "Namn";
+"folder.location.title" = "Plats";
+"permissions.avatars.view.title" = "Behörigheter";
+"shared.avatars.view.title" = "Delade med";
+
+// Forms common
+
+"form.field.name.title" = "Namn";
+
+"form.button.save.title" = "Spara";
+
+// Errors
+
+"generic.error" = "Något gick fel!";
+"generic.error.retry" = "Något gick fel, försök igen.";
+"generic.error.report" = "Något gick fel, vänligen rapportera en bugg.";
+"generic.error.cancelled" = "Åtgärden har avbrutits.";
+"sign.in.error.message" = "Inloggning misslyckades";
+"sign.in.error.biometrics.changed.message" = "Det verkar som att din enhets biometriska data har ändrats. Vänligen ange din lösenfras och konfigurera biometri på nytt";
+"sign.in.error.passphrase.invalid.message" = "Ogiltig lösenfras.";
+"server.fingerprint.save.failed" = "Misslyckades med att spara serverfingeravtryck.";
+"form.field.error.max.length" = "Den maximala längden har överskridits.";
+"form.error.invalid" = "Formuläret är ogiltigt";
+"resource.form.field.error.empty" = "Fältet kan inte vara tomt";
+"resource.from.field.error.invalid.value" = "Värdet för det här fältet är ogiltigt";
+"resource.form.field.error.max.length" = "Den maximala längden har överskridits.";
+"resource.form.field.error.invalid" = "Fältets värde är ogiltigt";
+"resource.form.error.invalid" = "Formuläret är ogiltigt";
+"authorization.passphrase.error" = "Lösenfrasen är fel!";
+"account.settings.biometrics.error" = "Misslyckades med att ställa in biometri.";
+"totp.wrong.code.error" = "Fel kod";
+"error.another.account.transfer.in.progress" = "Det pågår redan en annan kontotransfer. Slutför den först.";
+"resource.menu.action.failed" = "%@ misslyckades!";
+"mfa.yubiKey.scan.failed" = "Skanning misslyckades";
+
+"error.internal.inconsistency" = "Intern inkonsekvens, vänligen rapportera en bugg.";
+"error.feature.unavailable" = "Funktion inte tillgänglig.";
+"error.nfc.not.supported" = "NFC stöds inte.";
+"error.nfc.payload.invalid" = "Ogiltig NFC-payload.";
+"error.url.invalid" = "Ogiltig URL.";
+"error.internet.connection.issue" = "Kan inte ansluta till internet.";
+"error.client.certificate.invalid" = "Ogiltigt klientcertifikat.";
+"error.server.connection.issue" = "Kan inte ansluta till servern.";
+"error.server.time.issue" = "Server- och klienttid är ur synk, kontakta din administratör.";
+"error.server.response.invalid" = "Ogiltigt serversvar";
+"error.server.response.timeout" = "Tidsgräns för serversvar överskriden.";
+"error.server.certificate.invalid" = "Ogiltigt servercertifikat.";
+"error.http.request.invalid" = "Ogiltig HTTP-begäran.";
+"error.http.response.invalid" = "Ogiltigt HTTP-svar.";
+"error.network.response.invalid" = "Ogiltigt nätverkssvar";
+"error.http.response.forbidden" = "HTTP nekad.";
+"error.http.response.conflict" = "HTTP-konflikt.";
+"error.http.response.not.found" = "HTTP hittades inte.";
+"error.http.response.redirect" = "HTTP-omdirigering.";
+"error.http.request.invalid" = "Ogiltig HTTP-begäran.";
+"error.http.response.invalid" = "Ogiltigt HTTP-svar.";
+"error.http.response.status.code.unexpected" = "Oväntad HTTP-statuskod.";
+"error.http.response.unauthorized" = "HTTP inte auktoriserad.";
+"error.network.response.decoding.failed" = "Misslyckades att avkoda nätverkssvar.";
+"error.network.request.validation.failure" = "Validering av nätverksbegäran misslyckades.";
+"error.session.authorization.required" = "Sessionsauktorisering krävs";
+"error.session.authorization.mfa.required" = "Sessionsauktorisering för MFA krävs.";
+"error.session.missing" = "Session saknas.";
+"error.crypto.data.signature.invalid" = "Ogiltig datasignatur.";
+"error.crypto.passphrase.invalid" = "Ogiltig lösenfras.";
+"error.crypto.pgp.fingerprint.invalid" = "Ogiltigt PGP-fingeravtryck.";
+"error.crypto.pgp.fingerprint.mismatch" = "PGP-fingeravtryck stämmer inte överens.";
+"error.crypto.pgp.keyring.preparation.failed" = "Det gick inte att förbereda PGP-nyckelring";
+"error.crypto.pgp.keypacket.extraction.failed" = "Det gick inte att extrahera PGP-nyckelpaket.";
+"error.crypto.pgp.sessionkey.extraction.failed" = "Det gick inte att extrahera PGP-sessionsnyckel.";
+"error.crypto.pgp.public.key.invalid" = "Ogiltig publik PGP-nyckel.";
+"error.data.empty" = "Ingen data angiven.";
+"error.data.invalid" = "Ogiltig data angiven.";
+"error.resource.permission.required" = "Behörighet krävs.";
+"error.resource.secret.invalid" = "Resurshemligheten är ogiltig.";
+"error.resource.permission.invalid" = "Resursbehörigheten är ogiltig.";
+"error.resource.owner.missing" = "Resursen måste ha minst en ägare.";
+"error.system.feature.inaccessible" = "Systemfunktion otillgänglig.";
+"error.system.feature.permission.not.granted" = "Systemfunktionstillstånd inte beviljat.";
+"error.system.feature.permission.required" = "Systemfunktionstillstånd krävs.";
+"error.system.feature.status.undetermined" = "Systemfunktionens status är obestämd.";
+"error.system.file.access.issue" = "Kan inte komma åt filen.";
+"error.system.directory.access.issue" = "Kan inte komma åt katalogen.";
+"error.database.statement.invalid" = "Ogiltigt databasuttryck.";
+"error.database.statement.execution.failure" = "Körning av databasuttryck misslyckades.";
+"error.database.migration.failure" = "Databas-migrering misslyckades.";
+"error.database.connection.issue" = "Kan inte ansluta till databasen.";
+"error.database.connection.closed" = "Databasanslutningen är stängd.";
+"error.database.binding.invalid" = "Ogiltig databasbindning.";
+"error.database.result.empty" = "Databasresultatet är tomt.";
+"error.database.result.invalid" = "Ogiltigt databasresultat";
+"error.keychain.authorization.failed" = "Nyckelringsauktorisering misslyckades.";
+"error.keychain.failure" = "Det gick inte att komma åt Nyckelring.";
+"error.keychain.query.invalid" = "Ogiltig nyckelringsförfrågan.";
+"error.account.private.key.missing" = "Kontoets privata nyckel saknas.";
+"error.account.profile.data.missing" = "Kontoprofildata saknas.";
+"error.account.passphrase.missing" = "Kontoets lösenfras saknas.";
+"error.account.data.missing" = "Kontodata saknas.";
+"error.account.biometry.data.changed" = "Biometriska data har ändrats.";
+"error.account.kit.fail.to.import" = "Det gick inte att importera kontokitet.";
+"error.account.kit.signature.verification" = "Det gick inte att validera signaturen.";
+"error.users.list.empty" = "Listan över användare kan inte vara tom.";
+"error.user.public.key.invalid" = "Ogiltig användarpublik nyckel.";
+"error.user.public.key.missing" = "Saknar användarens publika nyckel.";
+"error.user.secret.missing" = "Saknar användarens hemlighet.";
+"error.session.closed" = "Sessionen är stängd.";
+"error.account.duplicate" = "Dubblettkonto.";
+"error.server.pgp.fingerprint.invalid" = "Ogiltigt PGP-fingeravtryck för servern.";
+"error.session.authorization.failed" = "Sessionsauktorisering misslyckades.";
+"error.qrcode.invalid" = "Det är inte Passbolt QR. Försök igen!";
+
+"error.validation.folder.name.empty" = "Mappnamnet kan inte vara tomt.";
+"error.validation.folder.name.too.long" = "Mappnamnet kan inte innehålla fler än 256 tecken.";
+
+"error.validation.permissions.empty" = "Det måste finnas minst en behörighet.";
+"error.validation.permissions.owner.required" = "Det måste finnas minst en ägare.";
+
+"error.validation.form.invalid" = "Formuläret är inte giltigt.";
+"error.biometrics.unavailable.message" = "Biometri är inte tillgängligt";
+
+"error.qrcode.generation.generic" = "QRCode kunde inte genereras från den angivna datan";
+
+"error.otp.configuration.invalid" = "Ogiltig OTP-konfiguration.";
+
+// Validation errors
+
+"error.resource.field.empty" = "%@ kan inte vara tomt!";
+"error.resource.field.length.lower" = "%@ kan inte ha mer än %d tecken!";
+"error.resource.field.length.higher" = "%@ kan inte ha färre än %d tecken!";
+"error.resource.field.range.lower" = "%@ måste vara mindre än %d!";
+"error.resource.field.range.greater" = "%@ måste vara större än %d!";
+"error.resource.field.content.invalid" = "%@ har ogiltigt innehåll!";
+"error.resource.field.selection.invalid" = "%@ måste vara ett av de giltiga alternativen!";
+"error.resource.field.unknown" = "Okända fält förväntas inte!";
+"error.validation.password.length.invalid" = "Ogiltiga inställningar för lösenordslängd!";
+"error.validation.password.mask.empty" = "Mallen för lösenordets utgång får inte vara tom!";
+
+// Home - presentation mode menu
+
+"home.presentation.mode.menu.title" = "Filtrera visning efter";
+
+// Presentation modes
+
+"home.presentation.mode.plain.resources.title" = "Alla objekt";
+"home.presentation.mode.favorite.resources.title" = "Favoriter";
+"home.presentation.mode.modified.resources.title" = "Nyligen ändrad";
+"home.presentation.mode.shared.resources.title" = "Delade med mig";
+"home.presentation.mode.owned.resources.title" = "Ägs av mig";
+"home.presentation.mode.owned.resources.expiry" = "Utgångsdatum";
+"home.presentation.mode.folders.explorer.title" = "Mappar";
+"home.presentation.mode.folders.explorer.search.direct.results" = "i \"%@\":";
+"home.presentation.mode.folders.explorer.search.nested.results" = "i undermappar:";
+"home.presentation.mode.tags.explorer.title" = "Taggar";
+"home.presentation.mode.resource.user.groups.explorer.title" = "Grupper";
+
+// OTP resources
+
+"otp.resources.search.placeholder" = "Sök TOTP";
+"otp.resources.list.title" = "Engångslösenord (TOTP)";
+"otp.resources.list.empty.message" = "Det finns ingen TOTP";
+"otp.value.copied.message" = "TOTP kopierad till urklipp!";
+
+// OTP contextual menu
+
+"otp.contextual.menu.copy.title" = "Kopiera TOTP";
+"otp.copied.message" = "TOTP kopierad till urklipp!";
+"otp.contextual.menu.reveal.title" = "Visa TOTP";
+"otp.contextual.menu.edit.title" = "Redigera TOTP";
+"otp.contextual.menu.delete.title" = "Radera TOTP";
+"otp.contextual.menu.delete.confirm.title" = "Är du säker?";
+"otp.contextual.menu.delete.confirm.message" = "Den här åtgärden tar permanent bort TOTP.";
+"otp.contextual.menu.delete.confirm.action.delete" = "Radera TOTP";
+"otp.contextual.menu.delete.succeeded" = "TOTP raderades.";
+
+// OTP edit menu
+
+"otp.edit.menu.create.title" = "Skapa TOTP";
+"otp.edit.menu.edit.title" = "Redigera TOTP";
+"otp.edit.menu.scanning.title" = "Skanna QR-kod";
+"otp.edit.menu.create.manual.title" = "Skapa TOTP manuellt";
+"otp.edit.menu.edit.manual.title" = "Redigera TOTP manuellt";
+"otp.edit.code.scanning.title" = "Redigera TOTP manuellt";
+"otp.edit.code.scanning.initial.message" = "Rikta kameran mot QR-koderna";
+"otp.edit.menu.title" = "Rikta kameran mot QR-koderna";
+"otp.edit.otp.created.message" = "TOTP har skapats.";
+"otp.edit.otp.replaced.message" = "TOTP har ersatts.";
+"otp.edit.otp.deleted.message" = "TOTP har raderats.";
+
+// OTP scanning
+
+"otp.scanning.success.title" = "Din TOTP har blivit\nskannad!";
+"otp.scanning.success.create.button.title" = "Skapa en fristående TOTP";
+"otp.scanning.success.link.button.title" = "Koppla TOTP till ett lösenord";
+"otp.code.scanning.title" = "Skanna QR-kod";
+"otp.code.scanning.initial.message" = "Rikta kameran mot QR-koden";
+"otp.code.scanning.manual.input" = "Or create TOTP manually";
+
+// OTP form
+
+"otp.edit.form.create.title" = "Skapa TOTP";
+"otp.edit.form.edit.title" = "Redigera TOTP";
+"otp.edit.form.field.name.title" = "Namn (etikett)";
+"otp.edit.form.field.name.prompt" = "Namn";
+"otp.edit.form.field.uri.title" = "URL (utfärdare)";
+"otp.edit.form.field.uri.prompt" = "URL";
+"otp.edit.form.field.secret.title" = "Hemlig nyckel";
+"otp.edit.form.field.secret.prompt" = "Hemlig nyckel";
+"otp.edit.form.advanced.button.title" = "More TOTP settings";
+"otp.edit.form.create.button.title" = "Skapa fristående TOTP";
+"otp.edit.form.apply.button.title" = "Verkställ";
+"otp.edit.form.edit.button.title" = "Spara";
+"otp.edit.form.edit.advanced.title" = "Redigera TOTP - avancerade inställningar";
+"otp.edit.form.edit.advanced.warning" = "Avancerade inställningar måste överensstämma med din TOTP-leverantörs inställningar, annars fungerar det inte.";
+"otp.edit.form.field.digits.title" = "TOTP-längd";
+"otp.edit.form.field.digits.label" = "siffror.";
+"otp.edit.form.field.period.title" = "TOTP-utgång";
+"otp.edit.form.field.period.label" = "sekunder tills TOTP löper ut.";
+"otp.edit.form.field.algorithm.title" = "Algoritm";
+"otp.edit.form.apply.button.title" = "Verkställ";
+
+// OTP attach
+
+"otp.attach.list.title" = "Lägg till TOTP till ett lösenord";
+"otp.attach.alert.attach.title" = "Är du säker?";
+"otp.attach.alert.attach.message" = "Om du lägger till TOTP till denna resurs kommer TOTP att ärva samma delningsbehörigheter.";
+"otp.attach.alert.attach.button.title" = "Lägg till TOTP";
+"otp.attach.alert.replace.title" = "Ersätt TOTP?";
+"otp.attach.alert.replace.message" = "En TOTP är redan kopplad till denna resurs, vill du skriva över den?";
+"otp.attach.alert.replace.button.title" = "Ersätt TOTP";
+"otp.attach.error.notAllowed" = "Du har inte behörighet att redigera denna resurs.";
+"otp.attach.error.notCompatible" = "Denna resurs är inte kompatibel med TOTP.";
+
+
+// Settings - Main
+
+"settings.main.title" = "Inställningar";
+"settings.main.item.application.title" = "App-inställningar";
+"settings.main.item.accounts.title" = "Konton";
+"settings.main.item.terms.and.licenses.title" = "Villkor & licenser";
+"settings.main.item.troubleshooting.title" = "Felsökning, loggar";
+"settings.main.item.sign.out.title" = "Logga ut";
+
+// Settings - Application
+
+"settings.application.title" = "App-inställningar";
+"settings.application.item.autofill.title" = "Autofyll";
+"settings.application.item.default.mode.title" = "Standardfilter";
+
+// Settings - Accounts
+
+"settings.accounts.title" = "Konton";
+"settings.accounts.item.details.title" = "Kontouppgifter";
+"settings.accounts.item.manage.title" = "Hantera konton";
+"settings.accounts.item.export.title" = "Överför konto till en annan enhet";
+"settings.accounts.item.key.inspector.title" = "Nyckelinspektör";
+
+// Settings - Terms & Licenses
+
+"settings.terms.and.licenses.title" = "Villkor & licenser";
+"settings.terms.and.licenses.item.terms.title" = "Villkor";
+"settings.terms.and.licenses.item.privacy.title" = "Integritetspolicy";
+"settings.terms.and.licenses.item.licenses.title" = "Licenser för öppen källkod";
+
+// Key inspector
+
+"account.key.inspector.title" = "Nyckelinspektör";
+"account.key.inspector.field.uid.title" = "UID";
+"account.key.inspector.field.fingerprint.title" = "Fingeravtryck";
+"account.key.inspector.field.created.title" = "Skapad";
+"account.key.inspector.field.expires.title" = "Utgår";
+"account.key.inspector.no.exipire.placeholder" = "Aldrig";
+"account.key.inspector.field.key.size.title" = "Nyckellängd";
+"account.key.inspector.field.algorithm.title" = "Algoritm";
+"account.key.inspector.uid.copied.message" = "Uid kopierades till urklipp!";
+"account.key.inspector.fingerprint.copied.message" = "Fingeravtrycket kopierades till urklipp!";
+
+// Key export
+
+"account.key.export.menu.title" = "Nyckelinspektör";
+"account.key.export.menu.export.private.action" = "Exportera privat nyckel";
+"account.key.export.menu.export.public.action" = "Exportera publik nyckel";
+"account.key.export.private.authorization.title" = "Exportera privat nyckel";
+"account.key.export.private.authorization.button.title" = "Exportera privat nyckel";
+
+// Settings - Troubleshooting
+
+"settings.troubleshooting.title" = "Felsökning, loggar";
+"settings.troubleshooting.item.logs.title" = "Visa felsökningsloggar";
+"settings.troubleshooting.item.help.site.title" = "Besök hjälpsidan";
+
+// Settings - Default presentation mode
+
+"settings.application.default.mode.title" = "Standardfilter";
+"settings.application.default.mode.option.last.used.title" = "Senast använd (standard)";
+
+// Settings - Disable biometrics alert
+
+"settings.application.biometrics.disable.alert.title" = "Är du säker?";
+"settings.application.biometrics.disable.alert.message" = "När du inaktiverar %@ måste du logga in genom att använda din lösenfras.";
+"settings.application.biometrics.disable.alert.confirm.title" = "Inaktivera biometri";
+"settings.application.biometrics.disable.alert.cancel.title" = "Behåll";
+
+// Settings - Sign out alert
+
+"settings.main.sign.out.alert.title" = "Är du säker?";
+"settings.main.sign.out.alert.message" = "Om du loggar ut kommer du att loggas ut från ditt konto på den här enheten.";
+"settings.main.sign.out.alert.confirm.title" = "Logga ut";
+
+// Biometric authorization availability
+
+"biometric.authorization.availability.unavailable" = "Otillgänglig";
+"biometric.authorization.availability.face.id" = "Face ID";
+"biometric.authorization.availability.touch.id" = "Touch ID";
+
+// Operation authorization
+
+"authorization.primary.button.title" = "Auktorisera";
+
+// Metadata
+"metadata.pinned.key.validation.error.title" = "The metadata key has changed.";
+"metadata.pinned.key.validation.error.message" = "The encryption key used to share metadata between users has been updated by %@.";
+"metadata.pinned.key.validation.error.disclaimer" = "If you weren't expecting this, you can verify with your administrator.";
+"metadata.pinned.key.validation.error.trust" = "Trust the key";
+"metadata.pinned.key.fingerprint" = "Key fingerprint:";
+
+"metadata.pinned.key.validation.deleted.title" = "The metadata key has been deleted.";
+"metadata.pinned.key.validation.deleted.message" = "The trusted encryption key used to share metadata between users has been deleted.";
+
+"metadata.pinned.key.validation.unknown.title" = "The metadata key has changed.";
+"metadata.pinned.key.validation.unknown.message" = "The trusted encryption key used to share metadata between users could not be validated.";

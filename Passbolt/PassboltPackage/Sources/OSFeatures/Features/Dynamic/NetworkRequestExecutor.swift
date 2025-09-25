@@ -22,6 +22,7 @@
 //
 
 import Features
+import Foundation
 
 import struct Foundation.Data
 import class Foundation.HTTPURLResponse
@@ -37,7 +38,6 @@ import class Foundation.URLSession
 import class Foundation.URLSessionConfiguration
 import class Foundation.URLSessionTask
 import protocol Foundation.URLSessionTaskDelegate
-import Foundation
 
 // MARK: - Interface
 
@@ -215,7 +215,6 @@ private final class URLSessionDelegate: NSObject, URLSessionTaskDelegate {
     completionHandler(nil)
   }
 }
-
 
 extension HTTPRequest {
 
@@ -482,7 +481,7 @@ private func withVerifiedStatusCode(
         request: httpRequest,
         response: httpResponse
       )
-  } 
+  }
   else if httpResponse.statusCode == 409 {
     throw
       HTTPConflict

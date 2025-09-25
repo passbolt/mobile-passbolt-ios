@@ -1,0 +1,730 @@
+//
+// Passbolt - Open source password manager for teams
+// Copyright (c) 2021 Passbolt SA
+//
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+// Public License (AGPL) as published by the Free Software Foundation version 3.
+//
+// The name "Passbolt" is a registered trademark of Passbolt SA, and Passbolt SA hereby declines to grant a trademark
+// license to "Passbolt" pursuant to the GNU Affero General Public License version 3 Section 7(e), without a separate
+// agreement with Passbolt SA.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License along with this program. If not,
+// see GNU Affero General Public License v3 (http://www.gnu.org/licenses/agpl-3.0.html).
+//
+// @copyright     Copyright (c) Passbolt SA (https://www.passbolt.com)
+// @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
+// @link          https://www.passbolt.com Passbolt (tm)
+// @since         v1.0
+//
+// Shared and commons
+
+
+"generic.done" = "Klaar";
+"generic.yes" = "Ja";
+"generic.apply" = "Toepassen";
+"generic.confirm" = "Bevestigen";
+"generic.cancel" = "Annuleren";
+"generic.remove" = "Verwijderen";
+"generic.loading" = "Laden...";
+"generic.loading.long" = "Het duurt langer dan normaal...";
+"generic.continue" = "Verder";
+"generic.retry" = "Opnieuw proberen";
+"generic.try.again" = "Probeer het opnieuw";
+"generic.delete" = "Verwijderen";
+"generic.got.it" = "Begrepen";
+"generic.settings" = "Instellingen";
+"generic.disable" = "Uitschakelen";
+"generic.sign.out" = "Afmelden";
+"generic.refresh" = "Vernieuwen";
+"generic.create" = "Aanmaken";
+"generic.empty.list" = "Er zijn geen resultaten";
+"generic.user.search.list.empty" = "Gebruiker niet gevonden.";
+"generic.paste.value.invalid" = "Bezig met plakken van een ongeldige waarde";
+"generic.are.you.sure" = "Weet je het zeker?";
+"generic.picker.select.placeholder" = "Selecteer";
+
+"account.selection.title" = "Welkom terug!";
+"account.selection.subtitle" = "Kies een account om aan te melden!";
+"account.selection.remove.account.button.title" = "Verwijder een account van dit apparaat";
+"account.selection.add.account.footer.title" = "Nieuw account toevoegen";
+"account.selection.remove.account.title" = "Koppel een account los";
+"account.selection.remove.account.subtitle" = "Kies een account om los te koppelen.";
+"account.selection.remove.alert.title" = "Weet je het zeker ?";
+"account.selection.remove.alert.message" = "Dit verwijdert je account van dit apparaat. Je wachtwoorden worden niet verwijderd.";
+"account.selection.account.removed" = "Het account is van dit apparaat verwijderd.";
+
+"authorization.button.title" = "Aanmelden";
+"authorization.reverification.button.title" = "Bevestig wachtwoordzin";
+"authorization.forgot.passphrase.button.title" = "Ik ben mijn wachtwoordzin vergeten";
+"authorization.forgot.passphrase.alert.title" = "Ben je je wachtwoordzin vergeten?";
+"authorization.forgot.passphrase.alert.message" = "Helaas kun je niet bij je gegevens als je je wachtwoordzin niet meer weet. Neem contact op met je beheerder om je account te ontgrendelen.";
+"authorization.passphrase.description.text" = "Wachtwoordzin";
+"authorization.title" = "Voer je wachtwoordzin in";
+
+"sign.in.title" = "Voer je wachtwoordzin in";
+
+"resource.list.username.empty.placeholder" = "geen gebruikersnaam";
+
+"resource.detail.field.name" = "Naam";
+"resource.detail.field.username" = "Gebruikersnaam";
+"resource.detail.field.passphrase" = "Wachtwoord";
+"resource.detail.field.uri" = "Website-URL";
+"resource.detail.field.description" = "Omschrijving";
+"resource.show.field.uri.placeholder" = "No URI";
+"resource.show.field.username.placeholder" = "Geen gebruikersnaam";
+"resource.show.field.password.placeholder" = "Geen wachtwoord";
+"resource.show.field.description.placeholder" = "Geen omschrijving";
+"resource.value.copied" = "%@ gekopieerd naar je klembord!";
+"resource.details.value" = "Waarde";
+"resource.detail.section.location" = "Locatie";
+"resource.detail.section.permissions" = "Gedeeld met";
+"resource.detail.section.tags" = "Labels";
+"resource.detail.section.expiry" = "Vervaldatum";
+"resource.detail.section.expiry.expired" = "Verlopen";
+"resource.detail.section.expiry.willExpire" = "Verloopt over";
+"resource.detail.undefined.content.warning" = "Niet-ondersteund type, onbekende velden zijn verborgen!";
+
+"resource.expiry.expired" = "(verlopen)";
+
+"resource.delete.succeeded" = "Resource is verwijderd.";
+
+"resource.field.name.unknown" = "Waarde";
+"section.tags.empty" = "Geen labels";
+
+"server.key.fingerprint.changed.title" = "Sorry, de serversleutel is veranderd.";
+"server.key.fingerprint.changed.description" = "Controleer uit veiligheidsoverwegingen bij uw beheerder of die het initiatief tot deze wijziging heeft genomen. De nieuwe vingerafdruk:";
+"server.key.fingerprint.accept.check" = "Ja, ik heb het gecontroleerd en het is allemaal in orde.";
+"server.key.fingerprint.accept.new.key" = "Accepteer nieuwe sleutel";
+
+"resource.form.password.strength" = "Wachtwoordsterkte";
+"resource.form.strength.very.weak" = "Erg zwak";
+"resource.form.strength.weak" = "Zwak";
+"resource.form.strength.fair" = "Redelijk";
+"resource.form.strength.strong" = "Sterk";
+"resource.form.strength.very.strong" = "Erg sterk";
+"resource.form.create.button.title" = "Aanmaken";
+"resource.form.create.and.fill.button.title" = "Aanmaken en invullen";
+"resource.form.update.button.title" = "Opslaan";
+"resource.form.new.password.created" = "Nieuw wachtwoord is aangemaakt";
+"resource.form.description.encrypted" = "Omschrijving is versleuteld";
+"resource.form.description.unencrypted" = "Omschrijving is niet versleuteld";
+"resource.form.undefined.content.warning" = "Niet-ondersteund type, onbekende velden zijn verborgen!";
+
+"feedback.alert.title" = "Mogelijk is je apparaat jailbroken";
+"feedback.alert.message" = "We vermoeden dat je apparaat jailbroken kan zijn. Houd er rekening mee dat dit de algehele beveiliging van het apparaat verlaagt en kwaadwillig kan worden gebruikt om je wachtwoorden te bemachtigen.";
+"feedback.alert.button.title" = "Ik begrijp het";
+
+"account.not.found.title.label" = "Het account bestaat niet";
+"account.not.found.message.label" = "Het account is verwijderd of opgeschort";
+"account.not.found.action.button.title" = "Verbind met een bestaand account";
+
+"server.not.reachable.alert.title" = "Server niet bereikbaar!";
+"server.not.reachable.alert.message.server.placeholder" = "Server";
+"server.not.reachable.alert.message" = "%@ kan niet worden bereikt. Probeer het opnieuw";
+
+"resource.edit.create.title" = "Create a resource";
+"resource.edit.title" = "Middel bewerken";
+"resource.password.edit.title" = "Edit password";
+"resource.edit.field.name.label" = "Naam";
+"resource.edit.field.uri.label" = "Main URI";
+"resource.edit.field.username.label" = "Gebruikersnaam";
+"resource.edit.field.password.label" = "Wachtwoord";
+"resource.edit.field.description.label" = "Omschrijving";
+"resource.edit.field.totp.label" = "TOTP";
+"resource.edit.field.add.totp" = "TOTP";
+"resource.edit.field.add.note" = "Note";
+"resource.edit.field.add.password" = "Wachtwoord";
+"resource.edit.field.name.placeholder" = "Voer een naam in";
+"resource.edit.field.uri.placeholder" = "Enter URI";
+"resource.edit.field.username.placeholder" = "Voer een gebruikersnaam in";
+"resource.edit.field.password.placeholder" = "Voer een wachtwoord in";
+"resource.edit.field.description.placeholder" = "Voer een omschrijving in";
+"resource.edit.exit.confirmation.message" = "Je wijzigingen worden niet opgeslagen.";
+"resource.edit.exit.confirmation.button.edit.title" = "Bewerken";
+"resource.edit.exit.confirmation.button.revert.title" = "Ongedaan maken";
+"resource.edit.note.content.title" = "Content";
+"resource.edit.note.content.disclaimer" = "This secure is part of the secret if you wan to be able to search this content, use metadata description.";
+"resource.edit.note.remove.button.title" = "Remove note";
+
+"resource.edit.section.password.title" = "Wachtwoord";
+"resource.edit.section.totp.title" = "TOTP";
+"resource.edit.section.note.title" = "Note";
+"resource.edit.section.metadata.title" = "Metadata";
+"resource.edit.totp.remove.button.title" = "Remove TOTP";
+
+"resource.create.advanced.button" = "View advanced settings";
+"resource.create.additional.secrets.title" = "Additional secrets";
+"resource.create.advanced.add.otp" = "TOTP";
+
+"resource.edit.section.metadata.description" = "Omschrijving";
+"resource.edit.section.metadata.description.name" = "Metadata description";
+"resource.edit.section.metadata.description.description" = "If you want the description to be part of the secret, use the note instead.";
+
+"resource.create.menu.title" = "Create a resource";
+"resource.create.menu.password" = "Wachtwoord";
+"resource.create.menu.totp" = "TOTP";
+
+"resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
+"resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
+
+"help.logs.viewer.title" = "Logboeken";
+
+"help.menu.title" = "Help";
+"help.menu.show.logs.action.title" = "Toegang tot de logboeken";
+"help.menu.show.web.help.action.title" = "Bezoek de helppagina";
+"help.menu.show.import.account.kit.title" = "Importeer uw accountkit";
+
+// Main application
+
+"welcome.title" = "Welkom!";
+"welcome.description" = "Je hebt een bestaand account nodig om aan de slag te gaan. Meld je aan met je bestaande account in de desktopbrowserextensie om deze te koppelen aan het mobiele apparaat.";
+"welcome.connect.to.account" = "Verbind met een bestaand account";
+"welcome.no.account" = "Ik heb geen account";
+"welcome.no.account.alert.title" = "Hoe maak ik een account aan?";
+"welcome.no.account.alert.text" = "Het is momenteel niet mogelijk om een account te maken met de mobiele app. Je moet eerst met je desktopbrowserextensie een account maken.";
+"code.scanning.exit.confirmation.confirm.button.title" = "Stop scannen";
+"code.scanning.help.menu.button.title" = "Waarom QR-codes scannen?";
+"code.scanning.help.title" = "QR-codes scannen";
+"code.scanning.help.message" = "Je ziet een reeks QR-codes. We scannen ze totdat de voortgangsbalk vol is. Daarna kun je inloggen!";
+"code.scanning.camera.unavailable" = "Sorry, je hebt een apparaat met werkende camera nodig om door te gaan, omdat de sleuteloverdracht via QR-codes verloopt.";
+"code.scanning.begin" = "Richt de camera op de QR-codes";
+"code.scanning.processing.in.progress" = "Bezig met scannen... ga door!";
+"code.scanning.processing.invalid.code" = "Dit is geen Passbolt-QR. Probeer het opnieuw!";
+
+
+"transfer.account.title" = "Accountgegevens overdragen";
+"transfer.account.import.description" = "Scan QR-codes om je accountgegevens over te dragen";
+"transfer.account.import.info.step.first" = "Meld je aan met de browserextensie";
+"transfer.account.import.info.step.second" = "Ga naar de profielpagina";
+"transfer.account.import.info.step.second.distinct" = "Profiel";
+"transfer.account.import.info.step.third" = "Ga naar het mobiele gedeelte";
+"transfer.account.import.info.step.third.distinct" = "Mobiel";
+"transfer.account.import.info.step.fourth" = "Scan de reeks qr-codes";
+"transfer.account.import.scan.qr.button" = "Scan QR-codes";
+"transfer.account.export.description" = "Toon QR-codes om je accountgegevens over te dragen";
+"transfer.account.export.info.step.first" = "Installeer de app op een ander mobiel apparaat";
+"transfer.account.export.info.step.second" = "Start de app";
+"transfer.account.export.info.step.third" = "Selecteer \"Verbind met een bestaand account\"";
+"transfer.account.export.info.step.fourth" = "Scan de reeks qr-codes";
+"transfer.account.export.scan.qr.button" = "Overdracht starten";
+"transfer.account.export.cancel.button" = "Overdracht annuleren";
+"transfer.account.camera.access.alert.title" = "Cameratoegang vereist";
+"transfer.account.camera.access.alert.text" = "Ga naar Instellingen/Privacy/Camera om toegang tot je camera in te schakelen.";
+"transfer.account.result.success.title" = "Je gegevens zijn overgedragen!";
+"transfer.account.result.already.linked.title" = "Account is al aan dit apparaat gekoppeld.";
+"transfer.account.result.canceled.title" = "De overdracht is geannuleerd.";
+"transfer.account.kit.result.success.title" = "Uw accountkit is geïmporteerd!";
+
+"transfer.account.exit.confirmation.title" = "Weet je het zeker?";
+"transfer.account.exit.confirmation.message" = "Als je weggaat, moet je de QR-codes opnieuw scannen.";
+"transfer.account.import.exit.confirmation.cancel.button.title" = "Ga door met de configuratie";
+"transfer.account.import.exit.confirmation.confirm.button.title" = "Annuleer de configuratie";
+"transfer.account.export.exit.confirmation.confirm.button.title" = "Stop overdracht";
+"transfer.account.export.exit.success.button" = "Ga terug";
+"transfer.account.export.exit.failure.button" = "Probeer het opnieuw";
+"transfer.account.export.failure.message" = "De overdracht kon niet worden voltooid.";
+"transfer.account.export.cancelled" = "De overdracht is geannuleerd";
+"transfer.account.exit.confirmation.cancel.button.title" = "Ga door met de configuratie";
+"transfer.account.exit.confirmation.confirm.button.title" = "Annuleer de configuratie";
+
+"biometrics.usage.reason" = "Biometrie kan worden gebruikt om je wachtwoordzin veilig op te slaan.";
+
+"biometrics.info.title" = "Biometrie configureren";
+"biometrics.info.description" = "Als je FaceID of TouchID wilt gebruiken als snelle aanmeldmethode, configureer dit dan in de instellingen.";
+"biometrics.info.setup.button" = "Biometrie configureren";
+"biometrics.info.later.button" = "Misschien later";
+
+"biometrics.setup.title.face" = "Gebruik Face ID in plaats van een wachtwoordzin!";
+"biometrics.setup.title.finger" = "Gebruik Touch ID in plaats van een wachtwoordzin!";
+"biometrics.setup.description" = "Ontgrendel je geheimen in een oogwenk.";
+"biometrics.setup.setup.button.face" = "Gebruik FaceID";
+"biometrics.setup.setup.button.finger" = "Gebruik TouchID";
+"biometrics.setup.later.button" = "Misschien later";
+
+"extension.setup.title" = "Log in bij je favoriete apps in 3 seconden!";
+"extension.setup.settings.step" = "Ga naar de instellingen";
+"extension.setup.settings.step.bold" = "Instellingen";
+"extension.setup.keyboard.step" = "Open Automatisch invullen-wachtwoorden";
+"extension.setup.keyboard.step.bold" = "Automatisch invullen-wachtwoorden";
+"extension.setup.switch.step" = "Automatisch invullen-wachtwoorden inschakelen";
+"extension.setup.switch.step.bold" = "Inschakelen";
+"extension.setup.keychain.step" = "Schakel Sleutelhangertoegang uit";
+"extension.setup.keychain.step.bold" = "Uitschakelen";
+"extension.setup.passbolt.step" = "Kies Passbolt!";
+"extension.setup.passbolt.step.bold" = "Passbolt!";
+"extension.setup.setup.button" = "Ga naar instellingen";
+"extension.setup.later.button" = "Misschien later";
+
+"tab.home" = "Start";
+"tab.otp" = "TOTP";
+"tab.settings" = "Instellingen";
+
+"authorization.prompt.refresh.session.reason" = "Authenticeer om je sessie te vernieuwen";
+"authorization.prompt.biometrics.set.reason" = "Authenticeer om biometrie in te schakelen.";
+
+"resources.search.placeholder" = "Zoek op naam, gebruikersnaam, url of label...";
+
+"resource.menu.item.open.url" = "Website openen";
+"resource.menu.item.copy.url" = "URL kopiëren";
+"resource.menu.item.copy.password" = "Wachtwoord kopiëren";
+"resource.menu.item.copy.username" = "Kopieer gebruikersnaam";
+"resource.menu.item.copy.description" = "Omschrijving kopiëren";
+"resource.menu.item.copy.note" = "Copy note";
+"resource.menu.item.reveal.otp" = "Toon TOTP";
+"resource.menu.item.copy.otp" = "TOTP kopiëren";
+"resource.menu.item.add.favorite" = "Toevoegen aan favorieten";
+"resource.menu.item.remove.favorite" = "Verwijderen uit favorieten";
+"resource.menu.item.share" = "Wachtwoord delen";
+"resource.menu.item.edit.password" = "Wachtwoord bewerken";
+"resource.menu.item.edit.otp" = "TOTP bewerken";
+"resource.menu.item.delete.resource" = "Wachtwoord verwijderen";
+"resource.menu.item.delete.otp" = "TOTP verwijderen";
+"resource.menu.item.password" = "Wachtwoord";
+"resource.menu.item.username" = "Gebruikersnaam";
+"resource.menu.item.description" = "Omschrijving";
+"resource.menu.item.url" = "URL";
+"resource.menu.item.field.copied" = "%@ gekopieerd naar je klembord!";
+
+"resource" = "Middel";
+"resource.menu.action.favorite.added" = "%@ is toegevoegd aan favorieten!";
+"resource.menu.action.favorite.removed" = "%@ is uit favorieten verwijderd!";
+
+"resource.menu.action.edited" = "Dit wachtwoord is met succes bewerkt.";
+"resource.menu.action.deleted" = "%@ is verwijderd!";
+
+"resource.permission.type.read.label" = "kan lezen";
+"resource.permission.type.write.label" = "kan worden bijgewerkt";
+"resource.permission.type.own.label" = "is eigenaar";
+"resource.permission.list.title" = "Gedeeld met";
+"resource.permission.list.edit.button.title" = "Machtigingen bewerken";
+"resource.permission.edit.list.title" = "Wachtwoord delen";
+"resource.permission.edit.list.empty.message" = "Zorg ervoor dat er tenminste één eigenaar is.";
+"resource.permission.edit.list.add.button.title" = "Gebruikers toevoegen";
+"resource.permission.edit.user.and.group.search.title" = "Gebruikers selecteren";
+"resource.permission.edit.user.and.group.search.prompt" = "Zoek naar gebruikers...";
+"resource.permission.edit.user.and.group.search.existing.section.title" = "Al toegevoegd";
+"resource.permission.delete.user.permission.confirmation.message" = "Het wachtwoord wordt niet langer met deze gebruiker gedeeld.";
+"resource.permission.delete.user.group.permission.confirmation.message" = "Het wachtwoord wordt niet langer met deze groep gedeeld.";
+
+"resource.permission.details.title" = "Machtiging";
+"resource.permission.details.user.suspended" = "opgeschort";
+
+"permission.details.type.section.title" = "Machtiging";
+"permission.details.group.members.section.title" = "Groepsleden";
+"permission.details.user.suspended" = "opgeschort";
+
+"resource.permission.edit.button.delete.title" = "Machtiging verwijderen";
+
+"resource.folders.add.menu.title" = "Create a resource";
+"resource.folders.add.menu.folder.label" = "Folder";
+
+"group.members.list.title" = "Groepsleden";
+"group.members.member.details.title" = "Groepslid";
+
+"totp.title.label" = "Twee-factor authenticatie";
+"totp.message.label" = "Voer de verificatiecode in:";
+"totp.paste.otp.button.label" = "Code plakken";
+"totp.remember.device.toggle.label" = "Onthoud dit apparaat 30 dagen lang";
+
+"yubiKey.scan.instruction" = "Plaats je YubiKey op je apparaat.";
+"yubiKey.scan.success" = "Scannen geslaagd";
+"yubiKey.scan.notRecognized.title" = "YubiKey wordt niet herkend";
+"yubiKey.scan.notRecognized.button.ok" = "Begrepen";
+"yubiKey.scan.notRecognized.message" = "Uw Yubikey wordt niet door de server herkend.\nProbeer het met een andere Yubikey of een andere provider.";
+"mfa.yubiKey.title" = "YubiKey-OTP";
+"mfa.yubiKey.description" = "Houd er rekening mee dat je YubiKey
+NFC moet ondersteunen om dit te laten werken.";
+"mfa.yubiKey.scan" = "Scan je YubiKey";
+"mfa.yubiKey.nfc.not.supported" = "Dit apparaat ondersteunt geen NFC.";
+"mfa.provider.try.another" = "Probeer een andere aanbieder";
+"mfa.remember.token" = "Onthoud dit apparaat 30 dagen lang";
+"mfa.unsupported.provider.title" = "Je MFA-aanbieder wordt niet ondersteund";
+"mfa.unsupported.provider.description" = "Configureer een andere aanbieder via de webapp.
+Neem contact op met je beheerder voor meer informatie.";
+"mfa.duo.authorization.title" = "Duo Multi-factor Authenticatie";
+"mfa.duo.authorization.button.title" = "Authenticeren met Duo";
+
+"account.menu.title" = "Wissel van account";
+"account.menu.account.details.button.title" = "Bekijk details";
+"account.menu.sign.out.button.title" = "Afmelden";
+"account.menu.manage.accounts.button.title" = "Accounts beheren";
+
+"account.details.title" = "Accountdetails";
+"account.details.field.label.title" = "Etiket";
+"account.details.field.label.editing.info" = "Label wordt weergegeven in de accountlijst en voor authenticatie";
+"account.details.field.name.title" = "Naam";
+"account.details.field.email.title" = "E-mailadres";
+"account.details.field.url.title" = "Organisatie-URL";
+"account.details.field.role.title" = "Functie";
+"account.details.button.save.title" = "Opslaan";
+
+"update.available.title" = "Nieuwe versie beschikbaar!";
+"update.available.message" = "Werk de Passbolt-app bij naar de nieuwste versie uit de App Store";
+
+// Autofill extension
+
+"autofill.extension.setup.completed.title" = "Passbolt Automatisch invullen ingeschakeld!";
+"autofill.extension.setup.completed.info" = "Zodra je een formulier hebt ingevuld, tik je gewoon op het invoerveld en de ingeschakelde Automatisch invullen zal voorstellen om deze te vullen met de inloggegevens die je al aan de Passbolt-app hebt toegevoegd.";
+
+"autofill.extension.account.selection.switch.account.title" = "Wissel van account";
+"autofill.extension.account.selection.switch.account.subtitle" = "Selecteer een account om te wisselen!";
+"autofill.extension.account.selection.sign.in.title" = "Je bent niet aangemeld";
+"autofill.extension.account.selection.sign.in.subtitle" = "Selecteer een account om aan te melden!";
+
+"autofill.extension.no.accounts.title" = "Geen account gevonden!";
+"autofill.extension.no.accounts.description" = "Je hebt een account nodig om aan de slag te gaan. Open de Passbolt-app en volg de installatie-instructies. Passbolt kan daarna de inloggegevens automatisch invullen.";
+
+"autofill.extension.resource.list.title" = "Kies wachtwoord";
+"autofill.extension.resource.list.section.suggested.title" = "Aanbevolen";
+"autofill.extension.resource.list.section.all.title" = "Overige";
+
+"autofill.extension.autofill.extension.resources.search.placeholder" = "Zoek in Passbolt...";
+
+"mfa.required.title" = "MFA is vereist";
+"autofill.extension.mfa.required.description" = "Gebruik de Passbolt-app om je authenticatie af te ronden.";
+
+"folder.edit.form.create.title" = "Map aanmaken";
+"folder.edit.form.name.field.placeholder" = "Naamloze map";
+"folder.edit.form.created" = "Nieuwe map %@ is aangemaakt!";
+
+"resource.folder.menu.open.details.label" = "Bekijk details";
+
+// Common UI
+
+"folder.root.name" = "Hoofd";
+
+"folder.name.title" = "Naam";
+"folder.location.title" = "Locatie";
+"permissions.avatars.view.title" = "Machtigingen";
+"shared.avatars.view.title" = "Gedeeld met";
+
+// Forms common
+
+"form.field.name.title" = "Naam";
+
+"form.button.save.title" = "Opslaan";
+
+// Errors
+
+"generic.error" = "Er ging iets mis!";
+"generic.error.retry" = "Er is iets misgegaan, probeer het opnieuw.";
+"generic.error.report" = "Er is iets misgegaan, meld een bug.";
+"generic.error.cancelled" = "Bewerking is geannuleerd.";
+"sign.in.error.message" = "Aanmelding mislukt";
+"sign.in.error.biometrics.changed.message" = "Het lijkt erop dat de biometrie op je apparaat is gewijzigd. Voer je wachtwoordzin in en configureer biometrie opnieuw";
+"sign.in.error.passphrase.invalid.message" = "Ongeldige wachtwoordzin.";
+"server.fingerprint.save.failed" = "Opslaan van server-vingerafdruk mislukt.";
+"form.field.error.max.length" = "De maximumlengte is overschreden.";
+"form.error.invalid" = "Het formulier is ongeldig";
+"resource.form.field.error.empty" = "Dit veld mag niet leeg zijn";
+"resource.from.field.error.invalid.value" = "De waarde voor dit veld is ongeldig";
+"resource.form.field.error.max.length" = "De maximumlengte is overschreden.";
+"resource.form.field.error.invalid" = "De veldwaarde is ongeldig";
+"resource.form.error.invalid" = "Het formulier is ongeldig";
+"authorization.passphrase.error" = "Wachtwoordzin is onjuist!";
+"account.settings.biometrics.error" = "Instellen van biometrie mislukt.";
+"totp.wrong.code.error" = "Verkeerde code";
+"error.another.account.transfer.in.progress" = "Er is een andere accountoverdracht bezig. Rond deze eerst af.";
+"resource.menu.action.failed" = "%@ mislukt!";
+"mfa.yubiKey.scan.failed" = "Scannen mislukt";
+
+"error.internal.inconsistency" = "Interne inconsistentie, meld een bug.";
+"error.feature.unavailable" = "Functie niet beschikbaar.";
+"error.nfc.not.supported" = "NFC wordt niet ondersteund.";
+"error.nfc.payload.invalid" = "NFC-payload is ongeldig.";
+"error.url.invalid" = "Ongeldige URL.";
+"error.internet.connection.issue" = "Kan geen verbinding maken met internet.";
+"error.client.certificate.invalid" = "Cliëntcertificaat is ongeldig.";
+"error.server.connection.issue" = "Kan geen verbinding maken met de server.";
+"error.server.time.issue" = "Server- en clienttijd zijn niet gesynchroniseerd. Neem contact op met je beheerder.";
+"error.server.response.invalid" = "Ongeldige serverreactie";
+"error.server.response.timeout" = "Time-out van serverreactie.";
+"error.server.certificate.invalid" = "Ongeldig servercertificaat.";
+"error.http.request.invalid" = "HTTP-verzoek ongeldig.";
+"error.http.response.invalid" = "HTTP-reactie ongeldig.";
+"error.network.response.invalid" = "Ongeldige netwerkreactie";
+"error.http.response.forbidden" = "HTTP-toegang verboden.";
+"error.http.response.conflict" = "HTTP-conflict.";
+"error.http.response.not.found" = "HTTP niet gevonden.";
+"error.http.response.redirect" = "HTTP-omleiding.";
+"error.http.request.invalid" = "HTTP verzoek ongeldig.";
+"error.http.response.invalid" = "HTTP reactie ongeldig.";
+"error.http.response.status.code.unexpected" = "Onverwachte HTTP-statuscode.";
+"error.http.response.unauthorized" = "HTTP-autorisatie mislukt.";
+"error.network.response.decoding.failed" = "Decoderen van netwerkreactie mislukt.";
+"error.network.request.validation.failure" = "Validatie van netwerkverzoek mislukt.";
+"error.session.authorization.required" = "Sessiemachtiging vereist";
+"error.session.authorization.mfa.required" = "Sessiemachtiging MFA vereist.";
+"error.session.missing" = "Ontbrekende sessie.";
+"error.crypto.data.signature.invalid" = "Handtekening van gegevens ongeldig.";
+"error.crypto.passphrase.invalid" = "Ongeldige wachtwoordzin.";
+"error.crypto.pgp.fingerprint.invalid" = "Ongeldige PGP-vingerafdruk.";
+"error.crypto.pgp.fingerprint.mismatch" = "PGP-vingerafdruk komt niet overeen.";
+"error.crypto.pgp.keyring.preparation.failed" = "Mislukt om de PGP-sleutelhanger voor te bereiden";
+"error.crypto.pgp.keypacket.extraction.failed" = "Mislukt om het PGP-sleutelpakket uit te pakken.";
+"error.crypto.pgp.sessionkey.extraction.failed" = "Mislukt om de PGP-sessiesleutel te extraheren.";
+"error.crypto.pgp.public.key.invalid" = "Ongeldige openbare PGP-sleutel.";
+"error.data.empty" = "Geen gegevens verstrekt.";
+"error.data.invalid" = "Ongeldige gegevens verstrekt.";
+"error.resource.permission.required" = "Machtiging vereist.";
+"error.resource.secret.invalid" = "Resource-geheim is ongeldig.";
+"error.resource.permission.invalid" = "Resource-machtiging is ongeldig.";
+"error.resource.owner.missing" = "Resource moet minstens één eigenaar hebben.";
+"error.system.feature.inaccessible" = "Systeemfunctie niet toegankelijk.";
+"error.system.feature.permission.not.granted" = "Geen toestemming voor systeemfunctie verleend.";
+"error.system.feature.permission.required" = "Systeemfunctie vereist toestemming.";
+"error.system.feature.status.undetermined" = "Status van systeemfunctie is onbepaald.";
+"error.system.file.access.issue" = "Kan geen toegang krijgen tot het bestand.";
+"error.system.directory.access.issue" = "Kan geen toegang krijgen tot de map.";
+"error.database.statement.invalid" = "Databasestatement is ongeldig.";
+"error.database.statement.execution.failure" = "Uitvoering van databasestatement mislukt.";
+"error.database.migration.failure" = "Databasemigratie mislukt.";
+"error.database.connection.issue" = "Kan geen verbinding maken met de database.";
+"error.database.connection.closed" = "Databaseverbinding gesloten.";
+"error.database.binding.invalid" = "Database-gegevenskoppeling is ongeldig.";
+"error.database.result.empty" = "Leeg databaseresultaat.";
+"error.database.result.invalid" = "Ongeldig databaseresultaat";
+"error.keychain.authorization.failed" = "Machtiging voor sleutelhangertoegang mislukt.";
+"error.keychain.failure" = "Toegang tot sleutelhangertoegang mislukt.";
+"error.keychain.query.invalid" = "Ongeldig sleutelhangerverzoek.";
+"error.account.private.key.missing" = "Privésleutel van account ontbreekt.";
+"error.account.profile.data.missing" = "Accountprofielgegevens ontbreken.";
+"error.account.passphrase.missing" = "Wachtwoordzin van account ontbreekt.";
+"error.account.data.missing" = "Accountgegevens ontbreken.";
+"error.account.biometry.data.changed" = "De biometrische gegevens zijn gewijzigd.";
+"error.account.kit.fail.to.import" = "Het importeren van de accountkit is mislukt.";
+"error.account.kit.signature.verification" = "Valideren van de handtekening mislukt.";
+"error.users.list.empty" = "Gebruikerslijst kan niet leeg zijn.";
+"error.user.public.key.invalid" = "Ongeldige openbare gebruikerssleutel.";
+"error.user.public.key.missing" = "Ontbrekende openbare gebruikerssleutel.";
+"error.user.secret.missing" = "Ontbrekend geheim van gebruiker.";
+"error.session.closed" = "Sessie afgesloten.";
+"error.account.duplicate" = "Dubbel account.";
+"error.server.pgp.fingerprint.invalid" = "Ongeldige PGP-vingerafdruk van server.";
+"error.session.authorization.failed" = "Sessiemachtiging mislukt.";
+"error.qrcode.invalid" = "Dit is niet de Passbolt-QR. Probeer het opnieuw!";
+
+"error.validation.folder.name.empty" = "Mapnaam mag niet leeg zijn.";
+"error.validation.folder.name.too.long" = "Mapnaam mag niet meer dan 256 tekens bevatten.";
+
+"error.validation.permissions.empty" = "Er moet ten minste één machtiging zijn.";
+"error.validation.permissions.owner.required" = "Er moet ten minste één eigenaar zijn.";
+
+"error.validation.form.invalid" = "Formulier is niet geldig.";
+"error.biometrics.unavailable.message" = "Biometrie niet beschikbaar";
+
+"error.qrcode.generation.generic" = "Er kon geen QR-code worden gegenereerd uit de verstrekte gegevens";
+
+"error.otp.configuration.invalid" = "Ongeldige OTP-configuratie.";
+
+// Validation errors
+
+"error.resource.field.empty" = "%@ mag niet leeg zijn!";
+"error.resource.field.length.lower" = "%@ mag niet meer dan %d tekens hebben!";
+"error.resource.field.length.higher" = "%@ mag niet minder dan %d tekens hebben!";
+"error.resource.field.range.lower" = "%@ moet lager zijn dan %d!";
+"error.resource.field.range.greater" = "%@ moet groter zijn dan %d!";
+"error.resource.field.content.invalid" = "%@ heeft ongeldige inhoud!";
+"error.resource.field.selection.invalid" = "%@ moet een van de geldige opties zijn!";
+"error.resource.field.unknown" = "Onbekende velden worden niet verwacht!";
+"error.validation.password.length.invalid" = "Ongeldige instellingen voor wachtwoordlengte!";
+"error.validation.password.mask.empty" = "Het masker voor wachtwoordverval kan niet leeg zijn!";
+
+// Home - presentation mode menu
+
+"home.presentation.mode.menu.title" = "Filter weergave op";
+
+// Presentation modes
+
+"home.presentation.mode.plain.resources.title" = "Alle onderdelen";
+"home.presentation.mode.favorite.resources.title" = "Favorieten";
+"home.presentation.mode.modified.resources.title" = "Recentelijk gewijzigd";
+"home.presentation.mode.shared.resources.title" = "Met mij gedeeld";
+"home.presentation.mode.owned.resources.title" = "Van mij";
+"home.presentation.mode.owned.resources.expiry" = "Vervaldatum";
+"home.presentation.mode.folders.explorer.title" = "Mappen";
+"home.presentation.mode.folders.explorer.search.direct.results" = "In \"%@\":";
+"home.presentation.mode.folders.explorer.search.nested.results" = "in submappen:";
+"home.presentation.mode.tags.explorer.title" = "Labels";
+"home.presentation.mode.resource.user.groups.explorer.title" = "Groepen";
+
+// OTP resources
+
+"otp.resources.search.placeholder" = "Zoek TOTP";
+"otp.resources.list.title" = "TOTP";
+"otp.resources.list.empty.message" = "Er is geen TOTP";
+"otp.value.copied.message" = "TOTP gekopieerd naar je klembord!";
+
+// OTP contextual menu
+
+"otp.contextual.menu.copy.title" = "TOTP kopiëren";
+"otp.copied.message" = "TOTP is naar je klembord gekopieerd!";
+"otp.contextual.menu.reveal.title" = "Toon TOTP";
+"otp.contextual.menu.edit.title" = "TOTP bewerken";
+"otp.contextual.menu.delete.title" = "Verwijder TOTP";
+"otp.contextual.menu.delete.confirm.title" = "Weet je het zeker?";
+"otp.contextual.menu.delete.confirm.message" = "Deze actie verwijdert de TOTP permanent.";
+"otp.contextual.menu.delete.confirm.action.delete" = "TOTP verwijderen";
+"otp.contextual.menu.delete.succeeded" = "TOTP is verwijderd.";
+
+// OTP edit menu
+
+"otp.edit.menu.create.title" = "TOTP aanmaken";
+"otp.edit.menu.edit.title" = "TOTP bewerken";
+"otp.edit.menu.scanning.title" = "QR-code scannen";
+"otp.edit.menu.create.manual.title" = "Maak TOTP handmatig";
+"otp.edit.menu.edit.manual.title" = "Bewerk TOTP handmatig";
+"otp.edit.code.scanning.title" = "Bewerk TOTP handmatig";
+"otp.edit.code.scanning.initial.message" = "Scan QR-code";
+"otp.edit.menu.title" = "Richt de camera op de QR-codes";
+"otp.edit.otp.created.message" = "TOTP is aangemaakt.";
+"otp.edit.otp.replaced.message" = "TOTP is vervangen.";
+"otp.edit.otp.deleted.message" = "TOTP is verwijderd.";
+
+// OTP scanning
+
+"otp.scanning.success.title" = "Je TOTP is
+gescand!";
+"otp.scanning.success.create.button.title" = "Maak een standalone TOTP";
+"otp.scanning.success.link.button.title" = "Koppel TOTP aan een wachtwoord";
+"otp.code.scanning.title" = "QR-code scannen";
+"otp.code.scanning.initial.message" = "Richt de camera op de QR-code";
+"otp.code.scanning.manual.input" = "Or create TOTP manually";
+
+// OTP form
+
+"otp.edit.form.create.title" = "TOTP aanmaken";
+"otp.edit.form.edit.title" = "TOTP bewerken";
+"otp.edit.form.field.name.title" = "Naam (Label)";
+"otp.edit.form.field.name.prompt" = "Naam";
+"otp.edit.form.field.uri.title" = "URL (uitgever)";
+"otp.edit.form.field.uri.prompt" = "URL";
+"otp.edit.form.field.secret.title" = "Geheim";
+"otp.edit.form.field.secret.prompt" = "Geheim";
+"otp.edit.form.advanced.button.title" = "More TOTP settings";
+"otp.edit.form.create.button.title" = "Maak een standalone TOTP";
+"otp.edit.form.apply.button.title" = "Toepassen";
+"otp.edit.form.edit.button.title" = "Opslaan";
+"otp.edit.form.edit.advanced.title" = "TOTP bewerken - geavanceerde instellingen";
+"otp.edit.form.edit.advanced.warning" = "Geavanceerde instellingen moeten overeenkomen met de instellingen van je TOTP-provider, anders werkt het niet.";
+"otp.edit.form.field.digits.title" = "TOTP-lengte";
+"otp.edit.form.field.digits.label" = "cijfers.";
+"otp.edit.form.field.period.title" = "TOTP-verloop";
+"otp.edit.form.field.period.label" = "seconden tot de TOTP verloopt.";
+"otp.edit.form.field.algorithm.title" = "Algoritme";
+"otp.edit.form.apply.button.title" = "Toepassen";
+
+// OTP attach
+
+"otp.attach.list.title" = "Voeg TOTP toe aan een wachtwoord";
+"otp.attach.alert.attach.title" = "Weet je het zeker?";
+"otp.attach.alert.attach.message" = "Als je TOTP toevoegt aan deze resource, erft de TOTP dezelfde gedeelde machtigingen.";
+"otp.attach.alert.attach.button.title" = "TOTP toevoegen";
+"otp.attach.alert.replace.title" = "TOTP vervangen?";
+"otp.attach.alert.replace.message" = "Er is al een TOTP gekoppeld aan deze resource, wil je deze overschrijven?";
+"otp.attach.alert.replace.button.title" = "TOTP vervangen";
+"otp.attach.error.notAllowed" = "Je bent niet bevoegd om dit middel te bewerken.";
+"otp.attach.error.notCompatible" = "Dit middel is niet compatibel met TOTP.";
+
+
+// Settings - Main
+
+"settings.main.title" = "Instellingen";
+"settings.main.item.application.title" = "App-instellingen";
+"settings.main.item.accounts.title" = "Accounts";
+"settings.main.item.terms.and.licenses.title" = "Voorwaarden & licenties";
+"settings.main.item.troubleshooting.title" = "Debug, logboeken";
+"settings.main.item.sign.out.title" = "Afmelden";
+
+// Settings - Application
+
+"settings.application.title" = "App-instellingen";
+"settings.application.item.autofill.title" = "Automatisch invullen";
+"settings.application.item.default.mode.title" = "Standaardfilter";
+
+// Settings - Accounts
+
+"settings.accounts.title" = "Accounts";
+"settings.accounts.item.details.title" = "Accountdetails";
+"settings.accounts.item.manage.title" = "Accounts beheren";
+"settings.accounts.item.export.title" = "Account overzetten naar een ander apparaat";
+"settings.accounts.item.key.inspector.title" = "Sleutelinspecteur";
+
+// Settings - Terms & Licenses
+
+"settings.terms.and.licenses.title" = "Voorwaarden & licenties";
+"settings.terms.and.licenses.item.terms.title" = "Algemene voorwaarden";
+"settings.terms.and.licenses.item.privacy.title" = "Privacyverklaring";
+"settings.terms.and.licenses.item.licenses.title" = "Open source-licenties";
+
+// Key inspector
+
+"account.key.inspector.title" = "Sleutelinspecteur";
+"account.key.inspector.field.uid.title" = "UID";
+"account.key.inspector.field.fingerprint.title" = "Vingerafdruk";
+"account.key.inspector.field.created.title" = "Aangemaakt";
+"account.key.inspector.field.expires.title" = "Verloopt";
+"account.key.inspector.no.exipire.placeholder" = "Nooit";
+"account.key.inspector.field.key.size.title" = "Sleutellengte";
+"account.key.inspector.field.algorithm.title" = "Algoritme";
+"account.key.inspector.uid.copied.message" = "Uid is naar je klembord gekopieerd!";
+"account.key.inspector.fingerprint.copied.message" = "Vingerafdruk is naar je klembord gekopieerd!";
+
+// Key export
+
+"account.key.export.menu.title" = "Sleutelinspecteur";
+"account.key.export.menu.export.private.action" = "Exporteer privésleutel";
+"account.key.export.menu.export.public.action" = "Exporteer openbare sleutel";
+"account.key.export.private.authorization.title" = "Exporteer privésleutel";
+"account.key.export.private.authorization.button.title" = "Exporteer privésleutel";
+
+// Settings - Troubleshooting
+
+"settings.troubleshooting.title" = "Debug, logboeken";
+"settings.troubleshooting.item.logs.title" = "Toegang tot de debuglogboeken";
+"settings.troubleshooting.item.help.site.title" = "Bezoek de helppagina";
+
+// Settings - Default presentation mode
+
+"settings.application.default.mode.title" = "Standaardfilter";
+"settings.application.default.mode.option.last.used.title" = "Laatst gebruikt (standaard)";
+
+// Settings - Disable biometrics alert
+
+"settings.application.biometrics.disable.alert.title" = "Weet je het zeker?";
+"settings.application.biometrics.disable.alert.message" = "Na het uitschakelen van %@ moet je inloggen met je wachtwoordzin.";
+"settings.application.biometrics.disable.alert.confirm.title" = "Biometrie uitschakelen";
+"settings.application.biometrics.disable.alert.cancel.title" = "Behoud";
+
+// Settings - Sign out alert
+
+"settings.main.sign.out.alert.title" = "Weet je het zeker?";
+"settings.main.sign.out.alert.message" = "Als je je afmeldt, word je afgemeld van je account op dit apparaat.";
+"settings.main.sign.out.alert.confirm.title" = "Afmelden";
+
+// Biometric authorization availability
+
+"biometric.authorization.availability.unavailable" = "Niet beschikbaar";
+"biometric.authorization.availability.face.id" = "FaceID";
+"biometric.authorization.availability.touch.id" = "TouchID";
+
+// Operation authorization
+
+"authorization.primary.button.title" = "Toestaan";
+
+// Metadata
+"metadata.pinned.key.validation.error.title" = "The metadata key has changed.";
+"metadata.pinned.key.validation.error.message" = "The encryption key used to share metadata between users has been updated by %@.";
+"metadata.pinned.key.validation.error.disclaimer" = "If you weren't expecting this, you can verify with your administrator.";
+"metadata.pinned.key.validation.error.trust" = "Trust the key";
+"metadata.pinned.key.fingerprint" = "Key fingerprint:";
+
+"metadata.pinned.key.validation.deleted.title" = "The metadata key has been deleted.";
+"metadata.pinned.key.validation.deleted.message" = "The trusted encryption key used to share metadata between users has been deleted.";
+
+"metadata.pinned.key.validation.unknown.title" = "The metadata key has changed.";
+"metadata.pinned.key.validation.unknown.message" = "The trusted encryption key used to share metadata between users could not be validated.";

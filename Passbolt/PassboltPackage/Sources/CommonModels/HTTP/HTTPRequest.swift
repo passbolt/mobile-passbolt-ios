@@ -20,6 +20,7 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 //
+import Commons
 
 import struct Foundation.Data
 import struct Foundation.URL
@@ -98,7 +99,7 @@ extension HTTPRequest: CustomStringConvertible {
     \(method.rawValue) \(urlComponents.percentEncodedPath)\(urlComponents.percentEncodedQuery.map { "?\($0)" } ?? "") HTTP/1.1
     \(headers.map { "\($0.key): \($0.value)" }.joined(separator: "\n"))
 
-    \(String(data: body, encoding: .utf8) ?? "")
+    \(isInApplicationContext ? (String(data: body, encoding: .utf8) ?? "") : "\(body.count) bytes of body data")
     """
   }
 }

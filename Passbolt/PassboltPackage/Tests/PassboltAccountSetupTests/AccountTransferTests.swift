@@ -52,7 +52,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     use(Accounts.placeholder)
     use(Session.placeholder)
   }
-  
+
   private var sleepDuration: UInt64 {
     /// defaultTimeout is in seconds
     UInt64(AccountTransferTests.defaultTimeout * 100) * NSEC_PER_MSEC
@@ -110,7 +110,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
 
     try? await processPart(qrCodePart0, using: accountTransfer)
 
-    if case let .scanningProgress(progressValue) = result {
+    if case .scanningProgress(let progressValue) = result {
       XCTAssertEqual(progressValue, 1 / 7)
     }
     else {
@@ -177,7 +177,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
       .progressPublisher()
       .sink(
         receiveCompletion: { completion in
-          guard case let .failure(error) = completion
+          guard case .failure(let error) = completion
           else { return }
           result = error
         },
@@ -215,7 +215,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
       })
       .sink(
         receiveCompletion: { completion in
-          guard case let .failure(error) = completion
+          guard case .failure(let error) = completion
           else { return }
           result = error
         },
@@ -246,7 +246,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
       .processPayload(qrCodePartInvalidPageBytes)
       .sink(
         receiveCompletion: { completion in
-          guard case let .failure(error) = completion
+          guard case .failure(let error) = completion
           else { return }
           result = error
         },
@@ -382,7 +382,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
       .processPayload(qrCodePartInvalidVersionByte)
       .sink(
         receiveCompletion: { completion in
-          guard case let .failure(error) = completion
+          guard case .failure(let error) = completion
           else { return }
           result = error
         },
@@ -409,7 +409,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
       .processPayload(qrCodePartInvalidPageBytes)
       .sink(
         receiveCompletion: { completion in
-          guard case let .failure(error) = completion
+          guard case .failure(let error) = completion
           else { return }
           result = error
         },
@@ -436,7 +436,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
       .processPayload(qrCodePartInvalidPageNumber)
       .sink(
         receiveCompletion: { completion in
-          guard case let .failure(error) = completion
+          guard case .failure(let error) = completion
           else { return }
           result = error
         },
@@ -463,7 +463,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
       .processPayload(qrCodePart0InvalidConfiguration)
       .sink(
         receiveCompletion: { completion in
-          guard case let .failure(error) = completion
+          guard case .failure(let error) = completion
           else { return }
           result = error
         },
@@ -490,7 +490,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
       .processPayload(qrCodePart0InvalidJSON)
       .sink(
         receiveCompletion: { completion in
-          guard case let .failure(error) = completion
+          guard case .failure(let error) = completion
           else { return }
           result = error
         },
@@ -521,7 +521,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
       .processPayload(qrCodePart0InvalidDomain)
       .sink(
         receiveCompletion: { completion in
-          guard case let .failure(error) = completion
+          guard case .failure(let error) = completion
           else { return }
           result = error
         },
@@ -791,7 +791,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
       .processPayload(qrCodePart0)
       .sink(
         receiveCompletion: { completion in
-          guard case let .failure(error) = completion
+          guard case .failure(let error) = completion
           else { return }
           result = error
         },
@@ -821,7 +821,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
       .processPayload(qrCodePart0)
       .sink(
         receiveCompletion: { completion in
-          guard case let .failure(error) = completion
+          guard case .failure(let error) = completion
           else { return }
           result = error
         },
@@ -877,7 +877,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
       .progressPublisher()
       .sink(
         receiveCompletion: { completion in
-          guard case let .failure(error) = completion
+          guard case .failure(let error) = completion
           else { return }
           result = error
         },

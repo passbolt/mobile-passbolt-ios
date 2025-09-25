@@ -34,11 +34,11 @@ extension Publisher {
   {
     self.map { output -> AnyPublisher<Success, Failure> in
       switch transform(output) {
-      case let .success(value):
+      case .success(let value):
         return Just(value)
           .setFailureType(to: Failure.self)
           .eraseToAnyPublisher()
-      case let .failure(error):
+      case .failure(let error):
         return Fail(error: error)
           .eraseToAnyPublisher()
       }

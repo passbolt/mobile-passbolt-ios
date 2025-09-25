@@ -23,22 +23,22 @@
 
 public struct MetadataTypesSettings: Decodable, Sendable, Equatable {
   public let defaultResourceTypes: VersionType
-  
+
   public init(
     defaultResourceTypes: VersionType
   ) {
     self.defaultResourceTypes = defaultResourceTypes
   }
-  
+
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     defaultResourceTypes = try container.decode(VersionType.self, forKey: .defaultResourceTypes)
   }
-  
+
   private enum CodingKeys: String, CodingKey {
     case defaultResourceTypes = "default_resource_types"
   }
-  
+
   public enum VersionType: String, Decodable, Sendable {
     case v4
     case v5
@@ -47,7 +47,7 @@ public struct MetadataTypesSettings: Decodable, Sendable, Equatable {
 
 extension MetadataTypesSettings {
   public static let `default`: Self = .init(defaultResourceTypes: .v4)
-  
+
   public var defaultResourceTypeSlug: ResourceSpecification.Slug {
     switch defaultResourceTypes {
     case .v4:

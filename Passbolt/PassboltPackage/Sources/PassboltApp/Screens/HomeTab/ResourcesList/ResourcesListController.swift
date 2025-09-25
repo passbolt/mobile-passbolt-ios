@@ -24,6 +24,7 @@
 import Accounts
 import CommonModels
 import FeatureScopes
+import Metadata
 import Resources
 import SessionData
 import SharedUIComponents
@@ -36,6 +37,7 @@ internal struct ResourcesListController {
   internal var addResource: @MainActor () -> Void
   internal var presentResourceDetails: @MainActor (ResourcesResourceListItemDSVItem) -> Void
   internal var presentResourceMenu: @MainActor (ResourcesResourceListItemDSVItem) -> Void
+  internal var presentResourceCreationMenu: @MainActor () -> Void
   internal var presentDeleteResourceAlert: @MainActor (Resource.ID) -> Void
   internal var resourceMenuPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
   internal var resourceDeleteAlertPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
@@ -150,12 +152,27 @@ extension ResourcesListController: UIController {
       }
     }
 
+    func presentResourceCreationForm() {
+      cancellables.executeOnMainActor {
+        try features.ensureScope(SessionScope.self)
+        let resourceCreatePreparation: ResourceCreatePreparation = try features.instance()
+        let context: ResourceCreatingContext = try await resourceCreatePreparation.prepare()
+        let navigationToResourceContextualMenu: NavigationToResourceCreateMenu = try features.instance()
+
+        try await navigationToResourceContextualMenu
+          .perform(
+            context: context
+          )
+      }
+    }
+
     return Self(
       refreshResources: refreshResources,
       resourcesListPublisher: resourcesListPublisher,
       addResource: addResource,
       presentResourceDetails: presentResourceDetails,
       presentResourceMenu: presentResourceMenu,
+      presentResourceCreationMenu: presentResourceCreationForm,
       presentDeleteResourceAlert: presentDeleteResourceAlert(resourceID:),
       resourceMenuPresentationPublisher: resourceMenuPresentationPublisher,
       resourceDeleteAlertPresentationPublisher: resourceDeleteAlertPresentationPublisher,

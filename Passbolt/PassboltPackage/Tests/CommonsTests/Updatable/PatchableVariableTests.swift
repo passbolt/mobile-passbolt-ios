@@ -24,6 +24,7 @@
 import Commons
 import CoreTest
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseForceTry, NeverForceUnwrap
 final class PatchableVariableTests: TestCase {
 
   func test_value_returnsTransformedSourceValue() async {

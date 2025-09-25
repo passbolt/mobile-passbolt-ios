@@ -37,13 +37,14 @@ extension AccountsDataStore {
     let keychain: OSKeychain = features.instance()
     let files: OSFiles = features.instance()
     let preferences: OSPreferences = features.instance()
+    let metadataKeyDataStore: MetadataKeyDataStore = try features.instance()
 
     @Sendable func forceDelete(matching query: OSKeychainQuery) {
       Diagnostics.debug("Purging data for \(query.key)")
       switch keychain.delete(matching: query) {
       case .success:
         break
-      case let .failure(error):
+      case .failure(let error):
         error
           .asTheError()
           .pushing(.message("Keychain data force delete failed"))
@@ -67,9 +68,9 @@ extension AccountsDataStore {
       // storedAccounts - keychain accounts
       let storedAccounts: Array<Account.LocalID>
       switch keychain.loadAll(Account.self, matching: .accountsQuery) {
-      case let .success(accounts):
+      case .success(let accounts):
         storedAccounts = accounts.map(\.localID)
-      case let .failure(error):
+      case .failure(let error):
         error.logged(
           info: .message("Failed to load accounts data, recovering with empty list")
         )
@@ -81,9 +82,9 @@ extension AccountsDataStore {
       // storedAccountProfiles - keychain accounts metadata
       let storedAccountsProfiles: Array<Account.LocalID>
       switch keychain.loadAll(AccountProfile.self, matching: .accountsProfilesQuery) {
-      case let .success(accounts):
+      case .success(let accounts):
         storedAccountsProfiles = accounts.map(\.accountID)
-      case let .failure(error):
+      case .failure(let error):
         error
           .logged(
             info: .message("Failed to load account profiles data, recovering with empty list")
@@ -96,12 +97,12 @@ extension AccountsDataStore {
       // storedAccountMFATokens - keychain accounts mfa tokens
       let storedAccountMFATokens: Array<Account.LocalID>
       switch keychain.loadMeta(matching: .accountMFATokenQuery()) {
-      case let .success(accounts):
+      case .success(let accounts):
         storedAccountMFATokens =
           accounts
           .compactMap(\.tag?.rawValue)
           .map(Account.LocalID.init(rawValue:))
-      case let .failure(error):
+      case .failure(let error):
         error.logged(
           info: .message("Failed to load account mfa tokens data, recovering with empty list")
         )
@@ -113,12 +114,12 @@ extension AccountsDataStore {
       // storedServerFingerprints - keychain accounts server fingerprints
       let storedServerFingerprints: Array<Account.LocalID>
       switch keychain.loadMeta(matching: .serverFingerprintQuery()) {
-      case let .success(accounts):
+      case .success(let accounts):
         storedServerFingerprints =
           accounts
           .compactMap(\.tag?.rawValue)
           .map(Account.LocalID.init(rawValue:))
-      case let .failure(error):
+      case .failure(let error):
         error
           .logged(
             info: .message("Failed to load account server fingerprint data, recovering with empty list")
@@ -136,14 +137,14 @@ extension AccountsDataStore {
         requiresBiometrics: false
       )
       switch keychain.loadMeta(matching: armoredKeysQuery) {
-      case let .success(keysMeta):
+      case .success(let keysMeta):
         storedAccountKeys =
           keysMeta
           .compactMap(\.tag)
           .map { tag in
             Account.LocalID(rawValue: tag.rawValue)
           }
-      case let .failure(error):
+      case .failure(let error):
         error.logged(
           info: .message("Failed to load armored keys metadata, recovering with empty list")
         )
@@ -171,7 +172,7 @@ extension AccountsDataStore {
         switch keychain.delete(matching: .accountQuery(for: accountID)) {
         case .success:
           continue
-        case let .failure(error):
+        case .failure(let error):
           throw
             error
             .asTheError()
@@ -190,7 +191,7 @@ extension AccountsDataStore {
         switch keychain.delete(matching: .accountProfileQuery(for: accountID)) {
         case .success:
           continue
-        case let .failure(error):
+        case .failure(let error):
           throw
             error
             .asTheError()
@@ -209,7 +210,7 @@ extension AccountsDataStore {
         switch keychain.delete(matching: .accountMFATokenQuery(for: accountID)) {
         case .success:
           continue
-        case let .failure(error):
+        case .failure(let error):
           throw
             error
             .logged(
@@ -227,7 +228,7 @@ extension AccountsDataStore {
         switch keychain.delete(matching: .serverFingerprintQuery(for: accountID)) {
         case .success:
           continue
-        case let .failure(error):
+        case .failure(let error):
           throw
             error
             .asTheError()
@@ -246,7 +247,7 @@ extension AccountsDataStore {
         switch keychain.delete(matching: .accountArmoredKeyQuery(for: accountID)) {
         case .success:
           continue
-        case let .failure(error):
+        case .failure(let error):
           throw
             error
             .asTheError()
@@ -262,7 +263,7 @@ extension AccountsDataStore {
         switch keychain.delete(matching: .accountPassphraseDeletionQuery()) {
         case .success:
           break
-        case let .failure(error):
+        case .failure(let error):
           throw
             error
             .asTheError()
@@ -320,9 +321,9 @@ extension AccountsDataStore {
           matching: .accountsQuery
         )
       switch keychainLoadResult {
-      case let .success(accounts):
+      case .success(let accounts):
         return accounts
-      case let .failure(error):
+      case .failure(let error):
         error.logged(
           info: .message("Failed to load accounts")
         )
@@ -346,9 +347,9 @@ extension AccountsDataStore {
               matching: .accountQuery(for: accountID)
             )
           switch keychainResult {
-          case let .success(account):
+          case .success(let account):
             return account
-          case let .failure(error):
+          case .failure(let error):
             error.logged(
               info: .message("Failed to load last used account")
             )
@@ -596,6 +597,8 @@ extension AccountsDataStore {
         try keychain
           .delete(matching: .accountMFATokenQuery(for: accountID))
           .get()
+
+        try metadataKeyDataStore.deletePinnedMetadataKey(accountID)
 
         try keychain
           .delete(matching: .accountQuery(for: accountID))

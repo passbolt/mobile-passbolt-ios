@@ -23,6 +23,7 @@
 
 import CommonModels
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverForceUnwrap
 extension Account {
 
   public static let mock_ada: Self = .init(
@@ -47,6 +48,7 @@ extension Account {
   )
 }
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 extension Account.LocalID {
 
   public static let mock_ada: Self = .init(rawValue: "9514E95F-1A1F-40E1-965D-B596AF797F82")

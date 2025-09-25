@@ -23,6 +23,7 @@
 
 import CommonModels
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverForceUnwrap
 extension ResourceTag.ID {
 
   public static let mock_1: Self = .init(uuidString: "B8F19D78-41E1-4E71-AB42-C5B5D18EAAC0")!

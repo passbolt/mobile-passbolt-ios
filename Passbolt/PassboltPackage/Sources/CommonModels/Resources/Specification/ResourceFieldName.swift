@@ -29,45 +29,38 @@ public typealias ResourceFieldName = Tagged<String, ResourceFieldNameTag>
 extension ResourceFieldName {
 
   public var displayable: DisplayableString {
-    switch self.rawValue {
-    case "name":
+    switch self {
+    case .name:
       return "resource.edit.field.name.label"
-
-    case "uri":
+    case .uri:
       return "resource.edit.field.uri.label"
-
-    case "username":
+    case .username:
       return "resource.edit.field.username.label"
-
-    case "password", "secret":
+    case .password, .secret:
       return "resource.edit.field.password.label"
-
-    case "description":
+    case .description:
       return "resource.edit.field.description.label"
-
-    case "totp":
+    case .totp:
       return "resource.edit.field.totp.label"
-
-    case "secret_key":
+    case .secretKey:
       return "otp.edit.form.field.secret.title"
-
-    case let rawName:
-      return .raw(rawName)
+    default:
+      return .raw(self.rawValue)
     }
   }
 
   public var displayableViewingPlaceholder: DisplayableString {
-    switch self.rawValue {
-    case "uri":
+    switch self {
+    case .uri:
       return "resource.show.field.uri.placeholder"
 
-    case "username":
+    case .username:
       return "resource.show.field.username.placeholder"
 
-    case "password", "secret":
+    case .password, .secret:
       return "resource.show.field.password.placeholder"
 
-    case "description":
+    case .description:
       return "resource.show.field.description.placeholder"
 
     case _:
@@ -99,4 +92,16 @@ extension ResourceFieldName {
       return .raw("")
     }
   }
+
+  public static let name: ResourceFieldName = "name"
+  public static let uri: ResourceFieldName = "uri"
+  public static let username: ResourceFieldName = "username"
+  public static let password: ResourceFieldName = "password"
+  public static let description: ResourceFieldName = "description"
+  public static let note: ResourceFieldName = "note"
+  public static let totp: ResourceFieldName = "totp"
+  public static let secretKey: ResourceFieldName = "secret_key"
+  public static let secret: ResourceFieldName = "secret"
+  public static let appearance: ResourceFieldName = "appearance"
+
 }

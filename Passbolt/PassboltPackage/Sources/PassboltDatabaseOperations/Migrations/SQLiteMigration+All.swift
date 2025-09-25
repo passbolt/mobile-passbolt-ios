@@ -23,7 +23,7 @@
 
 import Database
 
-extension SQLiteMigration: CaseIterable {
+extension SQLiteMigration: @retroactive CaseIterable {
 
   public static var allCases: Array<SQLiteMigration> {
     [
@@ -50,6 +50,8 @@ extension SQLiteMigration: CaseIterable {
       .migration_20,
       .migration_21,
       .migration_22,
+      .migration_23,
+      .migration_24,
     ]
   }
 }

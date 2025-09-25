@@ -23,6 +23,7 @@
 
 import CommonModels
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 extension Resource {
 
   public static let mock_1: Self = {

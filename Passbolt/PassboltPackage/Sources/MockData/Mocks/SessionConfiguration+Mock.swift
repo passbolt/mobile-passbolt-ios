@@ -23,6 +23,7 @@
 
 import CommonModels
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 extension SessionConfiguration {
 
   public static let mock_default: Self = .default
@@ -43,14 +44,14 @@ extension SessionConfiguration {
     ),
     share: .init(
       showMembersList: true
-    ), 
+    ),
     passwordPolicies: .init(
       passwordPoliciesEnabled: true,
       passwordPoliciesUpdateEnabled: true
     ),
     metadata: .init(enabled: false)
   )
-  
+
   public func with(metadataEnabled: Bool) -> Self {
     .init(
       termsURL: termsURL,

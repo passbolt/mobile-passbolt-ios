@@ -59,22 +59,12 @@ internal struct ResourceDetailsView: ControlledView {
   @MainActor @ViewBuilder private var contentView: some View {
     CommonList {
       self.headerSectionView
-      self.expirationDateSectionView
       with(\.containsUndefinedFields) { (containsUndefinedFields: Bool) in
         if containsUndefinedFields {
           self.undefinedContentSectionView
         }
       }
       self.fieldsSectionsView
-      when(\.locationAvailable) {
-        self.locationSectionView
-      }
-      when(\.tagsAvailable) {
-        self.tagsSectionView
-      }
-      when(\.permissionsListVisible) {
-        self.permissionsSectionView
-      }
       CommonListSpacer(minHeight: 16)
     }
     .edgesIgnoringSafeArea(.bottom)
@@ -96,13 +86,22 @@ internal struct ResourceDetailsView: ControlledView {
             VStack(spacing: 8) {
               with(\.favorite) { (favorite: Bool) in
                 ZStack(alignment: .topTrailing) {
-                  LetterIconView(text: name)
-                    .padding(
-                      top: 16,
-                      leading: favorite
-                        ? 16
-                        : 0
-                    )
+                  with(\.icon) { icon in
+                    with(\.resourceTypeSlug) { resourceTypeSlug in
+
+                      ResourceIconView(
+                        resourceIcon: icon,
+                        resourceTypeSlug: resourceTypeSlug
+                      )
+                      .padding(
+                        top: 16,
+                        leading: favorite
+                          ? 16
+                          : 0
+                      )
+                    }
+                  }
+
                   VStack {
                     if favorite {
                       Image(named: .starFilled)
@@ -174,224 +173,254 @@ internal struct ResourceDetailsView: ControlledView {
   }
 
   @MainActor @ViewBuilder private var fieldsSectionsView: some View {
-    CommonListSection {
-      withEach(\.fields) { (fieldModel: ResourceDetailsFieldViewModel) in
-        CommonListRow(
-          contentAction: fieldModel.mainAction.map { action in
-            switch action {
-            case .copy:
-              return { () async throws -> Void in
-                await self.controller.copyFieldValue(path: fieldModel.path)
-              }
-
-            case .reveal:
-              return { () async throws -> Void in
-                await self.controller.revealFieldValue(path: fieldModel.path)
-              }
-
-            case .hide:
-              return { () async throws -> Void in
-                self.controller.coverFieldValue(path: fieldModel.path)
-              }
-            }
-          },
-          content: {
-            ResourceFieldView(
-              name: fieldModel.name,
-              content: {
-                switch fieldModel.value {
-                case .plain(let value):
-                  Text(value)
-                    .text(
-                      .leading,
-                      lines: .none,
-                      font: .inter(
-                        ofSize: 14,
-                        weight: .regular
-                      ),
-                      color: .passboltSecondaryText
-                    )
-
-                case .encrypted:
-                  Text("••••••••")
-                    .text(
-                      .leading,
-                      lines: 1,
-                      font: .inter(
-                        ofSize: 14,
-                        weight: .regular
-                      ),
-                      color: .passboltSecondaryText
-                    )
-                    .accessibilityIdentifier("text.encrypted.\(fieldModel.name.string())")
-
-                case .password(let value):
-                  // password has specific font to be displayed
-                  Text(value)
-                    .text(
-                      .leading,
-                      lines: .none,
-                      font: .inconsolata(
-                        ofSize: 14,
-                        weight: .regular
-                      ),
-                      color: .passboltSecondaryText
-                    )
-
-                case .encryptedTOTP:
-                  TOTPValueView(value: .none)
-
-                case .totp(hash: _, let generateTOTP):
-                  AutoupdatingTOTPValueView(generateTOTP: generateTOTP)
-
-                case .placeholder(let value):
-                  Text(value)
-                    .text(
-                      .leading,
-                      lines: .none,
-                      font: .interItalic(
-                        ofSize: 12,
-                        weight: .regular
-                      ),
-                      color: .passboltSecondaryText
-                    )
-
-                case .invalid(let error):
-                  Text(displayable: error.displayableMessage)
-                    .text(
-                      .leading,
-                      lines: .none,
-                      font: .interItalic(
-                        ofSize: 14,
-                        weight: .regular
-                      ),
-                      color: .passboltSecondaryRed
-                    )
-                }
-              }
-            )
-          },
-          accessoryAction: fieldModel.accessoryAction.map { action in
-            switch action {
-            case .copy:
-              return { () async throws -> Void in
-                await self.controller.copyFieldValue(path: fieldModel.path)
-              }
-
-            case .reveal:
-              return { () async throws -> Void in
-                await self.controller.revealFieldValue(path: fieldModel.path)
-              }
-
-            case .hide:
-              return { () async throws -> Void in
-                self.controller.coverFieldValue(path: fieldModel.path)
-              }
-            }
-          },
-          accessory: {
-            switch fieldModel.accessoryAction {
-            case .copy:
-              CopyButtonImage()
-                .accessibilityIdentifier("copy.button.\(fieldModel.name.string())")
-
-            case .reveal:
-              RevealButtonImage()
-                .accessibilityIdentifier("reveal.button.\(fieldModel.name.string())")
-
-            case .hide:
-              CoverButtonImage()
-                .accessibilityIdentifier("hide.button.\(fieldModel.name.string())")
-
-            case .none:
-              EmptyView()
-            }
+    withEach(\.sections) { (section: ResourceDetailsSectionViewModel) in
+      CommonListSection {
+        Text(displayable: section.title)
+          .font(.inter(ofSize: 16, weight: .bold))
+          .padding(.bottom, 16)
+        Group {
+          ForEach(section.fields) { (fieldModel: ResourceDetailsFieldViewModel) in
+            rowView(for: fieldModel, hideTitles: (section.fields.count + section.virtualFields.count) == 1)
           }
-        )
+          ForEach(section.virtualFields) { (virtualField: ResourceDetailsSectionViewModel.VirtualField) in
+            virtualFieldView(for: virtualField)
+              .padding(.horizontal, 16)
+          }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(8)
+        .background(Color.passboltBackgroundGray)
+        .cornerRadius(4)
+      }
+      CommonListSpacer(minHeight: 8)
+    }
+    when(\.canShowMembersList) {
+      with(\.permissions) { (permissions: Array<OverlappingAvatarStackView.Item>) in
+        CommonListSection {
+          Text(displayable: "resource.detail.section.permissions")
+            .font(.inter(ofSize: 16, weight: .bold))
+            .padding(.bottom, 16)
+          CommonListRow(
+            contentAction: self.controller.showPermissionsDetails,
+            content: {
+              ResourceFieldView(
+                name: nil,
+                content: {
+                  OverlappingAvatarStackView(permissions)
+                    .frame(height: 40)
+                }
+              )
+            },
+            accessory: DisclosureIndicatorImage.init
+          )
+        }
+        CommonListSpacer(minHeight: 8)
       }
     }
   }
 
-  @MainActor @ViewBuilder private var locationSectionView: some View {
-    CommonListSection {
+  private func createAction(
+    for action: ResourceDetailsFieldViewModel.Action,
+    path: ResourceType.FieldPath
+  ) -> () async throws -> Void {
+    switch action {
+    case .copy:
+      return { () async throws -> Void in
+        await self.controller.copyFieldValue(path: path)
+      }
+
+    case .reveal:
+      return { () async throws -> Void in
+        await self.controller.revealFieldValue(path: path)
+      }
+
+    case .hide:
+      return { () async throws -> Void in
+        self.controller.coverFieldValue(path: path)
+      }
+    }
+  }
+
+  @MainActor @ViewBuilder private func rowView(
+    for fieldModel: ResourceDetailsFieldViewModel,
+    hideTitles: Bool
+  ) -> some View {
+    CommonListRow(
+      contentAction: fieldModel.mainAction.map { createAction(for: $0, path: fieldModel.path) },
+      content: {
+        self.fieldView(for: fieldModel, hideTitles: hideTitles)
+          .padding(.leading, 16)
+      },
+      accessoryAction: fieldModel.accessoryAction.map { createAction(for: $0, path: fieldModel.path) },
+      accessory: {
+        Group {
+          switch fieldModel.accessoryAction {
+          case .copy:
+            CopyButtonImage()
+              .accessibilityIdentifier("copy.button.\(fieldModel.name.string())")
+
+          case .reveal:
+            RevealButtonImage()
+              .accessibilityIdentifier("reveal.button.\(fieldModel.name.string())")
+
+          case .hide:
+            CoverButtonImage()
+              .accessibilityIdentifier("hide.button.\(fieldModel.name.string())")
+
+          case .none:
+            EmptyView()
+          }
+        }
+        .padding(.trailing, 16)
+      }
+    )
+  }
+
+  @MainActor @ViewBuilder private func virtualFieldView(
+    for virtualField: ResourceDetailsSectionViewModel.VirtualField
+  ) -> some View {
+    switch virtualField {
+    case .location(let location):
       CommonListRow(
         contentAction: self.controller.showLocationDetails,
         content: {
           ResourceFieldView(
             name: "resource.detail.section.location",
             content: {
-              with(\.location) { (location: Array<String>) in
-                FolderLocationView(locationElements: location)
-              }
+              FolderLocationView(locationElements: location)
             }
           )
         },
         accessory: DisclosureIndicatorImage.init
       )
-    }
-  }
 
-  @MainActor @ViewBuilder private var expirationDateSectionView: some View {
-    with(\.isExpired) { isExpired in
-      if let isExpired {
-        CommonListSection {
-          CommonListRow(
-            content: {
-              ResourceFieldView(
-                name: "resource.detail.section.expiry",
-                content: {
-                  with(\.expiryRelativeFormattedDate) { expiryFormat in
-                    if let expiryFormat {
-                      ResourceRelativeDateView(viewModel: expiryFormat.viewModel(isExpired: isExpired))
-                    }
-                  }
-                }
-              )
-            }
-          )
-        }
-      }
-    }
-  }
-
-  @MainActor @ViewBuilder private var tagsSectionView: some View {
-    CommonListSection {
+    case .tags(let tags):
       CommonListRow(
         contentAction: self.controller.showTagsDetails,
         content: {
           ResourceFieldView(
             name: "resource.detail.section.tags",
             content: {
-              with(\.tags) { (tags: Array<String>) in
-                CompactTagsView(tags: tags)
-              }
+              CompactTagsView(tags: tags)
             }
           )
         },
         accessory: DisclosureIndicatorImage.init
+      )
+    case .expiration(let isExpired, let expiryFormat):
+      CommonListRow(
+        content: {
+          ResourceFieldView(
+            name: "resource.detail.section.expiry",
+            content: {
+              ResourceRelativeDateView(viewModel: expiryFormat.viewModel(isExpired: isExpired))
+            }
+          )
+        }
+      )
+    case .additionalURIs(let uris):
+      CommonListRow(
+        content: {
+          ResourceFieldView(
+            name: "resource.detail.section.additionalURIs",
+            content: {
+              Text(uris.map { "\u{2022} \($0)" }.joined(separator: "\n"))
+                .text(
+                  .leading,
+                  lines: .none,
+                  font: .inter(
+                    ofSize: 14,
+                    weight: .regular
+                  ),
+                  color: .passboltSecondaryText
+                )
+            }
+          )
+        }
       )
     }
   }
 
-  @MainActor @ViewBuilder private var permissionsSectionView: some View {
-    CommonListSection {
-      CommonListRow(
-        contentAction: self.controller.showPermissionsDetails,
-        content: {
-          ResourceFieldView(
-            name: "resource.detail.section.permissions",
-            content: {
-              with(\.permissions) { (permissionItems: Array<OverlappingAvatarStackView.Item>) in
-                OverlappingAvatarStackView(permissionItems)
-                  .frame(height: 40)
-              }
-            }
-          )
-        },
-        accessory: DisclosureIndicatorImage.init
-      )
-    }
+  @MainActor @ViewBuilder private func fieldView(
+    for fieldModel: ResourceDetailsFieldViewModel,
+    hideTitles: Bool
+  ) -> some View {
+    ResourceFieldView(
+      name: hideTitles ? nil : fieldModel.name,
+      content: {
+        switch fieldModel.value {
+        case .plain(let value):
+          Text(value)
+            .text(
+              .leading,
+              lines: .none,
+              font: .inter(
+                ofSize: 14,
+                weight: .regular
+              ),
+              color: .passboltSecondaryText
+            )
+
+        case .encrypted:
+          Text("••••••••")
+            .text(
+              .leading,
+              lines: 1,
+              font: .inter(
+                ofSize: 14,
+                weight: .regular
+              ),
+              color: .passboltSecondaryText
+            )
+            .accessibilityIdentifier("text.encrypted.\(fieldModel.name.string())")
+
+        case .password(let value):
+          // password has specific font to be displayed
+          ColoredPasswordView(password: value, defaultColor: .passboltSecondaryText)
+            .text(
+              .leading,
+              lines: .none,
+              font: .inconsolata(
+                ofSize: 14,
+                weight: .regular
+              ),
+              color: .none
+            )
+
+        case .encryptedTOTP:
+          TOTPValueView(value: .none)
+
+        case .totp(hash: _, let generateTOTP):
+          AutoupdatingTOTPValueView(generateTOTP: generateTOTP)
+
+        case .placeholder(let value):
+          Text(value)
+            .text(
+              .leading,
+              lines: .none,
+              font: .interItalic(
+                ofSize: 12,
+                weight: .regular
+              ),
+              color: .passboltSecondaryText
+            )
+
+        case .invalid(let error):
+          Text(displayable: error.displayableMessage)
+            .text(
+              .leading,
+              lines: .none,
+              font: .interItalic(
+                ofSize: 14,
+                weight: .regular
+              ),
+              color: .passboltSecondaryRed
+            )
+        }
+      }
+    )
   }
+
 }
 
 extension RelativeDateDisplayableFormat {
@@ -403,5 +432,57 @@ extension RelativeDateDisplayableFormat {
       futureDatePrefix: "resource.detail.section.expiry.willExpire",
       isPastDate: isExpired
     )
+  }
+}
+
+private struct ColoredPasswordView: View {
+  typealias AttributedString = Foundation.AttributedString
+  private let password: String
+  private let defaultColor: Color
+  private let rules: [String: Color] = [
+    "\\P{L}": .passboltSecondaryRed,
+    "\\p{N}": .passboltPrimaryBlue,
+  ]
+
+  fileprivate init(
+    password: String,
+    defaultColor: Color = .passboltSecondaryText
+  ) {
+    self.password = password
+    self.defaultColor = defaultColor
+  }
+
+  var body: some View {
+    Text(self.coloredPassword)
+      .text(
+        .leading,
+        lines: .none,
+        font: .inconsolata(
+          ofSize: 14,
+          weight: .regular
+        ),
+        color: .none
+      )
+  }
+
+  private var coloredPassword: AttributedString {
+    var attributed: AttributedString = .init(self.password)
+    let entireString: Range = attributed.startIndex ..< attributed.endIndex
+    attributed[entireString].foregroundColor = self.defaultColor
+
+    for (regex, color) in self.rules {
+      guard let pattern = try? NSRegularExpression(pattern: regex, options: [.useUnicodeWordBoundaries]) else {
+        continue
+      }
+      let range: NSRange = NSRange(self.password.startIndex..., in: self.password)
+      let matches = pattern.matches(in: self.password, options: [], range: range)
+      for match in matches {
+        if let range = Range(match.range, in: attributed) {
+          attributed[range].foregroundColor = color
+        }
+      }
+    }
+
+    return attributed
   }
 }

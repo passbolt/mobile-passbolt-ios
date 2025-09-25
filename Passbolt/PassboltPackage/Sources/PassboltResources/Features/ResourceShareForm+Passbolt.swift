@@ -22,6 +22,7 @@
 //
 
 import FeatureScopes
+import Metadata
 import NetworkOperations
 import Resources
 import SessionData
@@ -46,9 +47,10 @@ extension ResourceShareForm {
     let sessionData: SessionData = try features.instance()
     let resourceController: ResourceController = try features.instance()
     let usersPGPMessages: UsersPGPMessages = try features.instance()
-    let userGroups: UserGroups = try features.instance()
     let resourceShareNetworkOperation: ResourceShareNetworkOperation = try features.instance()
     let resourceSharePreparation: ResourceSharePreparation = try features.instance()
+    let metadataKeysService: MetadataKeysService = try features.instance()
+    let shareSimulate: ResourceSimulateShareNetworkOperation = try features.instance()
 
     let formState: Variable<FormState> = .init(
       initial: .init(
@@ -302,40 +304,8 @@ extension ResourceShareForm {
     }
 
     @Sendable nonisolated func encryptSecret(
-      for newPermissions: Array<ResourcePermission>
+      for userIDs: Array<User.ID>
     ) async throws -> OrderedSet<EncryptedMessage> {
-      let newUsers: OrderedSet<User.ID> = .init(
-        newPermissions
-          .compactMap(\.userID)
-      )
-      let newUserGroups: OrderedSet<UserGroup.ID> = .init(
-        newPermissions
-          .compactMap(\.userGroupID)
-      )
-
-      let uniqueNewUsers: OrderedSet<User.ID> =
-        try await withThrowingTaskGroup(
-          of: Array<User.ID>.self,
-          returning: OrderedSet<User.ID>.self
-        ) { group in
-          for userGroup in newUserGroups {
-            group.addTask {
-              try await userGroups
-                .groupMembers(userGroup)
-                .map(\.id)
-            }
-          }
-
-          var mergedUsers: OrderedSet<User.ID> = newUsers
-          for try await groupMembers in group {
-            mergedUsers.formUnion(groupMembers)
-          }
-
-          return mergedUsers
-        }
-
-      guard !uniqueNewUsers.isEmpty
-      else { return .init() }
 
       guard
         let resourceSecret: String = try await resourceController.fetchSecretIfNeeded(force: true).resourceSecretString
@@ -348,7 +318,7 @@ extension ResourceShareForm {
       return
         try await usersPGPMessages
         .encryptMessageForUsers(
-          uniqueNewUsers,
+          .init(userIDs),
           resourceSecret
         )
     }
@@ -357,15 +327,42 @@ extension ResourceShareForm {
       let formState: FormState = formState.value
 
       try await validate(formState: formState)
+      if case .invalid(let reason) = try await metadataKeysService.validatePinnedKey() {
+        throw
+          MetadataPinnedKeyValidationError
+          .error(
+            reason: reason,
+            context: .context(.message("Invalid pinned key"))
+          )
+      }
 
       let newPermissions: Array<ResourcePermission> = formState.editedPermissions.filter { $0.permissionID == .none }
-      let newSecrets: OrderedSet<EncryptedMessage> = try await encryptSecret(for: newPermissions)
       let updatedPermissions: Array<ResourcePermission> = formState.editedPermissions.filter {
         $0.permissionID != .none
       }
-      
+
       if newPermissions.isEmpty == false {
-        try await resourceSharePreparation.prepareResourceForSharing(resourceID)
+        try await resourceSharePreparation.prepareResourceForSharing(
+          resourceID
+        )
+      }
+
+      let simulationResult: ResourceSimulateShareNetworkOperation.Output =
+        try await shareSimulate(
+          .init(
+            foreignModelId: resourceID.rawValue,
+            editedPermissions: formState.editedPermissions,
+            removedPermissions: formState.deletedPermissions
+          )
+        )
+      let newSecrets: OrderedSet<EncryptedMessage>
+      if let addedPermissions: Array<User.ID> = simulationResult.changes[.added],
+        addedPermissions.isEmpty == false
+      {
+        newSecrets = try await encryptSecret(for: addedPermissions)
+      }
+      else {
+        newSecrets = .init()
       }
 
       try await resourceShareNetworkOperation(
@@ -374,14 +371,14 @@ extension ResourceShareForm {
           body: .init(
             newPermissions: newPermissions.compactMap { (permission: ResourcePermission) -> NewGenericPermissionDTO? in
               switch permission {
-              case let .user(id, permission, .none):
+              case .user(let id, let permission, .none):
                 return .userToResource(
                   userID: id,
                   resourceID: resourceID,
                   permission: permission
                 )
 
-              case let .userGroup(id, permission, .none):
+              case .userGroup(let id, let permission, .none):
                 return .userGroupToResource(
                   userGroupID: id,
                   resourceID: resourceID,
@@ -396,7 +393,7 @@ extension ResourceShareForm {
             updatedPermissions: updatedPermissions.compactMap {
               (permission: ResourcePermission) -> GenericPermissionDTO? in
               switch permission {
-              case let .user(id, permission, .some(permissionID)):
+              case .user(let id, let permission, .some(let permissionID)):
                 return .userToResource(
                   id: permissionID,
                   userID: id,
@@ -404,7 +401,7 @@ extension ResourceShareForm {
                   permission: permission
                 )
 
-              case let .userGroup(id, permission, .some(permissionID)):
+              case .userGroup(let id, let permission, .some(let permissionID)):
                 return .userGroupToResource(
                   id: permissionID,
                   userGroupID: id,
@@ -420,7 +417,7 @@ extension ResourceShareForm {
             deletedPermissions: formState.deletedPermissions.compactMap {
               (permission: ResourcePermission) -> GenericPermissionDTO? in
               switch permission {
-              case let .user(id, permission, .some(permissionID)):
+              case .user(let id, let permission, .some(let permissionID)):
                 return .userToResource(
                   id: permissionID,
                   userID: id,
@@ -428,7 +425,7 @@ extension ResourceShareForm {
                   permission: permission
                 )
 
-              case let .userGroup(id, permission, .some(permissionID)):
+              case .userGroup(let id, let permission, .some(let permissionID)):
                 return .userGroupToResource(
                   id: permissionID,
                   userGroupID: id,

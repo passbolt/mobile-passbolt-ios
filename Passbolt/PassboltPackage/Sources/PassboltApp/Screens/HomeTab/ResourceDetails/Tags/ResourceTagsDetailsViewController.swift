@@ -33,6 +33,8 @@ internal final class ResourceTagsDetailsViewController: ViewController {
   internal struct ViewState: Equatable {
 
     internal var name: String
+    internal var icon: ResourceIcon
+    internal var resourceTypeSlug: ResourceSpecification.Slug?
     internal var favorite: Bool
     internal var tags: OrderedSet<ResourceTag>
   }
@@ -56,6 +58,8 @@ internal final class ResourceTagsDetailsViewController: ViewController {
     self.viewState = .init(
       initial: .init(
         name: .init(),
+        icon: .none,
+        resourceTypeSlug: .none,
         favorite: false,
         tags: .init()
       )
@@ -70,12 +74,13 @@ extension ResourceTagsDetailsViewController {
       errorDiagnostics: "Resource tags details updates broken!",
       fallback: {
         try? await self.navigationToSelf.revert()
+      },
+      {
+        for try await resource in self.resourceController.state {
+          try self.update(resource.value)
+        }
       }
-    ) {
-      for try await resource in self.resourceController.state {
-        try self.update(resource.value)
-      }
-    }
+    )
   }
 
   internal func update(
@@ -83,6 +88,8 @@ extension ResourceTagsDetailsViewController {
   ) {
     self.viewState.update { (state: inout ViewState) in
       state.name = resource.name
+      state.icon = resource.icon
+      state.resourceTypeSlug = resource.type.specification.slug
       state.favorite = resource.favorite
       state.tags = resource.tags
     }

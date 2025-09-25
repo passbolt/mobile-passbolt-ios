@@ -84,7 +84,7 @@ internal final class YubiKeyViewController: PlainViewController, UIComponent {
         self.controller.authorizeUsingOTP()
           .receive(on: RunLoop.main)
           .handleEvents(receiveCompletion: { completion in
-            guard case let .failure(error) = completion
+            guard case .failure(let error) = completion
             else { return }
             if self.isYubiKeyNotRecognizedError(error) {
               Task { [weak self] in

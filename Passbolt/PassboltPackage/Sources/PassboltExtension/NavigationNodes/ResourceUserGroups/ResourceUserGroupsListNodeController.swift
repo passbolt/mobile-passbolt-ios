@@ -80,7 +80,7 @@ internal final class ResourceUserGroupsListNodeController: ViewController {
           )
         }
         .asAnyUpdatable(),
-        selectGroup: self.selectUserGroup(_:)
+        selectGroup: { [weak self] in try await self?.selectUserGroup($0) }
       )
     )
   }

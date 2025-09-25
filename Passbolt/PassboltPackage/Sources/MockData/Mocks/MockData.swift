@@ -23,6 +23,7 @@
 
 import struct Foundation.Data
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverForceUnwrap
 extension Data {
 
   public static let mock_avatar_1: Self = .init(

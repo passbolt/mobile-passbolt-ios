@@ -26,6 +26,7 @@ import CommonModels
 
 @testable import PassboltAccountSetup
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 extension AccountTransferAccount {
 
   public static let mock_ada: Self = .init(

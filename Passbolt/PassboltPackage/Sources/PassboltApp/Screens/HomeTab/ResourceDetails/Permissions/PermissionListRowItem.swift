@@ -43,10 +43,10 @@ extension PermissionListRowItem: Hashable {
     _ rhs: Self
   ) -> Bool {
     switch (lhs, rhs) {
-    case let (.user(lDetails, _), .user(rDetails, _)):
+    case (.user(let lDetails, _), .user(let rDetails, _)):
       return lDetails == rDetails
 
-    case let (.userGroup(lDetails), .userGroup(rDetails)):
+    case (.userGroup(let lDetails), .userGroup(let rDetails)):
       return lDetails == rDetails
 
     case _:
@@ -56,10 +56,10 @@ extension PermissionListRowItem: Hashable {
 
   internal func hash(into hasher: inout Hasher) {
     switch self {
-    case let .user(details, _):
+    case .user(let details, _):
       hasher.combine(details)
 
-    case let .userGroup(details):
+    case .userGroup(let details):
       hasher.combine(details)
     }
   }

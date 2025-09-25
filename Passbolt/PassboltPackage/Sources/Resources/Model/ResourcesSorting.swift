@@ -25,6 +25,7 @@ public enum ResourcesSorting {
 
   case nameAlphabetically
   case modifiedRecently
+  case expiryDate
 }
 
 extension ResourcesSorting: Hashable {}

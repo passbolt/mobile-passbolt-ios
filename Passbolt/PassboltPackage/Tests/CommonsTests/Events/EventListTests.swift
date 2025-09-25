@@ -24,6 +24,7 @@
 import Commons
 import CoreTest
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 final class EventListTests: TestCase {
 
   func test_nextEvent_deliversLatestEventAfterWaiting() async throws {
@@ -34,16 +35,18 @@ final class EventListTests: TestCase {
       nonisolated static let eventList: EventList<TestEvent> = .init()
     }
 
-    try await withSerialTaskExecutor {
+    withSerialTaskExecutor {
       TestEvent.send(0)
       Task.detached {
         await Task.yield()
         TestEvent.send(42)
       }
-      try await verifyIf(
-        await TestEvent.next(),
-        isEqual: 42
-      )
+      Task.detached {
+        try await self.verifyIf(
+          await TestEvent.next(),
+          isEqual: 42
+        )
+      }
     }
   }
 

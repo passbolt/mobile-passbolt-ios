@@ -223,7 +223,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
       let userID = userListRowViewModel.id
       if viewState.selectedItems.contains(where: { item in
         switch item {
-        case let .user(id, _, _):
+        case .user(let id, _, _):
           return userID == id
         case .userGroup:
           return false
@@ -231,7 +231,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
       }) {
         viewState.selectedItems.removeAll(where: { item in
           switch item {
-          case let .user(id, _, _):
+          case .user(let id, _, _):
             return userID == id
           case .userGroup:
             return false
@@ -250,7 +250,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
     ) {
       if viewState.selectedItems.contains(where: { item in
         switch item {
-        case let .userGroup(id):
+        case .userGroup(let id):
           return userGroupID == id
         case .user:
           return false
@@ -258,7 +258,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
       }) {
         viewState.selectedItems.removeAll(where: { item in
           switch item {
-          case let .userGroup(id):
+          case .userGroup(let id):
             return userGroupID == id
           case .user:
             return false
@@ -281,13 +281,13 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
 
       for row in newSelections {
         switch row {
-        case let .user(userID, _, _):
+        case .user(let userID, _, _):
           await resourceShareForm
             .setUserPermission(
               userID,
               .read
             )
-        case let .userGroup(userGroupID):
+        case .userGroup(let userGroupID):
           await resourceShareForm
             .setUserGroupPermission(
               userGroupID,

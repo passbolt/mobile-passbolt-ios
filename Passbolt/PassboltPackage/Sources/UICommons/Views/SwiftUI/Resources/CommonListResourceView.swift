@@ -21,12 +21,15 @@
 // @since         v1.0
 //
 
+import CommonModels
 import Commons
 import SwiftUI
 
 public struct CommonListResourceView<AccessoryView>: View where AccessoryView: View {
 
   private let name: String
+  private let icon: ResourceIcon
+  private let resourceTypeSlug: ResourceSpecification.Slug
   private let username: String?
   private let contentAction: @MainActor () async -> Void
   private let accessoryAction: (@MainActor () async -> Void)?
@@ -34,12 +37,16 @@ public struct CommonListResourceView<AccessoryView>: View where AccessoryView: V
 
   public init(
     name: String,
+    icon: ResourceIcon,
+    resourceTypeSlug: ResourceSpecification.Slug,
     username: String? = .none,
     contentAction: @escaping @MainActor () async -> Void,
     accessoryAction: (@MainActor () async -> Void)? = .none,
     @ViewBuilder accessory: @escaping @MainActor () -> AccessoryView
   ) {
     self.name = name
+    self.icon = icon
+    self.resourceTypeSlug = resourceTypeSlug
     self.username = username
     self.contentAction = contentAction
     self.accessoryAction = accessoryAction
@@ -48,10 +55,14 @@ public struct CommonListResourceView<AccessoryView>: View where AccessoryView: V
 
   public init(
     name: String,
+    icon: ResourceIcon,
+    resourceTypeSlug: ResourceSpecification.Slug,
     username: String? = .none,
     contentAction: @escaping @MainActor () async -> Void
   ) where AccessoryView == EmptyView {
     self.name = name
+    self.icon = icon
+    self.resourceTypeSlug = resourceTypeSlug
     self.username = username
     self.contentAction = contentAction
     self.accessoryAction = .none
@@ -63,12 +74,15 @@ public struct CommonListResourceView<AccessoryView>: View where AccessoryView: V
       contentAction: self.contentAction,
       content: {
         HStack(spacing: 8) {
-          LetterIconView(text: self.name)
-            .frame(
-              width: 40,
-              height: 40,
-              alignment: .center
-            )
+          ResourceIconView(
+            resourceIcon: self.icon,
+            resourceTypeSlug: self.resourceTypeSlug
+          )
+          .frame(
+            width: 40,
+            height: 40,
+            alignment: .center
+          )
 
           VStack(alignment: .leading, spacing: 4) {
             Text(name)
@@ -108,6 +122,8 @@ internal struct CommonListResourceView_Previews: PreviewProvider {
       CommonListSection {
         CommonListResourceView(
           name: "Resource",
+          icon: .none,
+          resourceTypeSlug: .password,
           username: "some username",
           contentAction: {
             print("contentAction")
@@ -117,6 +133,8 @@ internal struct CommonListResourceView_Previews: PreviewProvider {
 
         CommonListResourceView(
           name: "Resource",
+          icon: .none,
+          resourceTypeSlug: .totp,
           contentAction: {
             print("contentAction")
           },
@@ -125,6 +143,8 @@ internal struct CommonListResourceView_Previews: PreviewProvider {
 
         CommonListResourceView(
           name: "Very long name which will surely not fit in one line of text and should be truncated",
+          icon: .none,
+          resourceTypeSlug: .password,
           username: "Very long username which will surely not fit in one line of text and should be truncated",
           contentAction: {
             print("contentAction")
@@ -134,6 +154,8 @@ internal struct CommonListResourceView_Previews: PreviewProvider {
 
         CommonListResourceView(
           name: "Resource",
+          icon: .none,
+          resourceTypeSlug: .password,
           username: "username",
           contentAction: {
             print("contentAction")
@@ -145,6 +167,8 @@ internal struct CommonListResourceView_Previews: PreviewProvider {
 
         CommonListResourceView(
           name: "Resource",
+          icon: .none,
+          resourceTypeSlug: .password,
           username: "username",
           contentAction: {
             print("contentAction")
@@ -159,6 +183,8 @@ internal struct CommonListResourceView_Previews: PreviewProvider {
 
         CommonListResourceView(
           name: "Very long name which will surely not fit in one line of text and should be truncated",
+          icon: .none,
+          resourceTypeSlug: .password,
           username: "Very long username which will surely not fit in one line of text and should be truncated",
           contentAction: {
             print("contentAction")
@@ -173,6 +199,8 @@ internal struct CommonListResourceView_Previews: PreviewProvider {
 
         CommonListResourceView(
           name: "Resource",
+          icon: .none,
+          resourceTypeSlug: .password,
           username: "username",
           contentAction: {
             print("contentAction")
@@ -185,6 +213,8 @@ internal struct CommonListResourceView_Previews: PreviewProvider {
 
         CommonListResourceView(
           name: "Resource",
+          icon: .none,
+          resourceTypeSlug: .password,
           username: "username",
           contentAction: {
             print("contentAction")
@@ -196,6 +226,8 @@ internal struct CommonListResourceView_Previews: PreviewProvider {
 
         CommonListResourceView(
           name: "Disabled resource",
+          icon: .none,
+          resourceTypeSlug: .password,
           username: "username",
           contentAction: {
             print("contentAction")

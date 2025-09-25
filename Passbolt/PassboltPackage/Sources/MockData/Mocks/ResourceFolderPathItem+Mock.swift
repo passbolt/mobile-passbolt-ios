@@ -23,6 +23,7 @@
 
 import CommonModels
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 extension ResourceFolderPathItem {
 
   public static var mock_1: Self = .init(

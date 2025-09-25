@@ -21,11 +21,12 @@
 // @since         v1.0
 //
 
+import Metadata
 import TestExtensions
 
 @testable import PassboltResources
 
-// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals, NeverForceUnwrap
 final class ResourceEditFormTests: FeaturesTestCase {
 
   var editedResource: Resource = .mock_1
@@ -234,7 +235,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
       meta: [
         "name": "edited",
         "uri": "new",
-        "resource_type_id": .string(selectedResourceType.id.rawValue.rawValue.uuidString)
+        "resource_type_id": .string(selectedResourceType.id.rawValue.rawValue.uuidString),
       ],
       secret: [
         "message": "encrypted",
@@ -288,6 +289,14 @@ final class ResourceEditFormTests: FeaturesTestCase {
       \ResourceUpdatePreparation.prepareSecret,
       with: alwaysThrow(MockIssue.error())
     )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
+    patch(
+      \ResourceUsersIDFetchDatabaseOperation.execute,
+      with: always([.mock_1])
+    )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIf(
       try await tested.sendForm(),
@@ -298,11 +307,15 @@ final class ResourceEditFormTests: FeaturesTestCase {
   func test_sendForm_throws_whenEncryptingEditedMessageProducesInvalidResult() async throws {
     patch(
       \ResourceUpdatePreparation.prepareSecret,
-       with: alwaysThrow(InvalidResourceSecret.error())
+      with: alwaysThrow(InvalidResourceSecret.error())
     )
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
-       with: always([.mock_1])
+      with: always([.mock_1])
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIf(
@@ -314,7 +327,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
   func test_sendForm_throws_whenEditNetworkRequestFails() async throws {
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
-       with: always([.mock_1])
+      with: always([.mock_1])
     )
     patch(
       \ResourceNetworkOperationDispatch.editResource,
@@ -322,7 +335,11 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceUpdatePreparation.prepareSecret,
-       with: always(.init([.mock_1]))
+      with: always(.init([.mock_1]))
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIf(
@@ -345,7 +362,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
-       with: always([.mock_1])
+      with: always([.mock_1])
     )
     patch(
       \ResourceNetworkOperationDispatch.editResource,
@@ -353,12 +370,16 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceUpdatePreparation.prepareSecret,
-       with: always(.init([.mock_1]))
+      with: always(.init([.mock_1]))
     )
 
     patch(  // not throws regardless of error in refresh
       \SessionData.refreshIfNeeded,
       with: alwaysThrow(MockIssue.error())
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIfNotThrows(
@@ -382,11 +403,15 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
-       with: always([.mock_1])
+      with: always([.mock_1])
     )
     patch(
       \ResourceNetworkOperationDispatch.createResource,
       with: alwaysThrow(MockIssue.error())
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIf(
@@ -412,7 +437,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
-       with: always([.mock_1])
+      with: always([.mock_1])
     )
     patch(
       \ResourceNetworkOperationDispatch.createResource,
@@ -421,6 +446,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
     patch(
       \ResourceFolderPermissionsFetchDatabaseOperation.execute,
       with: alwaysThrow(MockIssue.error())
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIf(
@@ -455,6 +484,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
     patch(
       \UsersPGPMessages.encryptMessageForResourceFolderUsers,
       with: alwaysThrow(MockIssue.error())
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIf(
@@ -500,6 +533,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
       \SessionData.refreshIfNeeded,
       with: alwaysThrow(MockIssue.error())
     )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIfNotThrows(
       try await tested.sendForm()
@@ -540,6 +577,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
     patch(  // not throws regardless of error in refresh
       \SessionData.refreshIfNeeded,
       with: alwaysThrow(MockIssue.error())
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIf(
@@ -584,6 +625,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
         throw MockIssue.error()
       }
     )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
     let tested: ResourceEditForm = try self.testedInstance()
     _ = try? await tested.sendForm()
   }
@@ -609,6 +654,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
     patch(  // not throws regardless of error in refresh
       \SessionData.refreshIfNeeded,
       with: alwaysThrow(MockIssue.error())
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIfNotThrows(
@@ -653,6 +702,88 @@ final class ResourceEditFormTests: FeaturesTestCase {
     patch(  // not throws regardless of error in refresh
       \SessionData.refreshIfNeeded,
       with: alwaysThrow(MockIssue.error())
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIfNotThrows(
+      try await tested.sendForm()
+    )
+  }
+
+  func test_sendForm_throws_whenPinnedKeyIsInvalid() async throws {
+    var editedResource: Resource = self.editedResource
+    editedResource.id = .none
+    editedResource.path = [.mock_1]
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.invalid(.unknown))
+    )
+
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIf(
+      try await tested.sendForm(),
+      throws: MetadataPinnedKeyValidationError.self
+    )
+  }
+
+  func test_sendForm_whenEditingResource_addsResourceTypeIdToSecert() async throws {
+    let editedResource: Resource = self.editedResource
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \ResourceUsersIDFetchDatabaseOperation.execute,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceFolderPermissionsFetchDatabaseOperation.execute,
+      with: always([.mock_user_1_owner, .mock_user_2_owner])
+    )
+    patch(
+      \ResourceNetworkOperationDispatch.createResource,
+      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
+    )
+    patch(  // not throws regardless of error in refresh
+      \SessionData.refreshIfNeeded,
+      with: alwaysThrow(MockIssue.error())
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
+    patch(
+      \ResourceUpdatePreparation.prepareSecret,
+      with: { userId, secret in
+        let json: JSON = try JSONDecoder().decode(JSON.self, from: .init(secret.utf8))
+        XCTAssertEqual(
+          json[keyPath: \.resource_type_id].stringValue,
+          editedResource.type.id.rawValue.rawValue.uuidString,
+          "resource_type_id should be added to secret JSON when editing resource"
+        )
+        return .init()
+      }
+    )
+    patch(
+      \ResourceNetworkOperationDispatch.createResource,
+      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
+    )
+    patch(
+      \ResourceNetworkOperationDispatch.editResource,
+      with: always(.init(resourceID: .mock_1))
     )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIfNotThrows(

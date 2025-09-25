@@ -22,11 +22,11 @@
 //
 
 public struct ResourceUpdatePreparation: Sendable {
-  public var prepareSecret: @Sendable (Resource.ID, String) async throws -> OrderedSet<EncryptedMessage>
+  public var prepareSecret: @Sendable (OrderedSet<User.ID>, String) async throws -> OrderedSet<EncryptedMessage>
   public var fetchSecret: @Sendable (Resource.ID, Bool) async throws -> JSON
-  
+
   public init(
-    prepareSecret: @Sendable @escaping (Resource.ID, String) async throws -> OrderedSet<EncryptedMessage>,
+    prepareSecret: @Sendable @escaping (OrderedSet<User.ID>, String) async throws -> OrderedSet<EncryptedMessage>,
     fetchSecret: @Sendable @escaping (Resource.ID, Bool) async throws -> JSON
   ) {
     self.prepareSecret = prepareSecret

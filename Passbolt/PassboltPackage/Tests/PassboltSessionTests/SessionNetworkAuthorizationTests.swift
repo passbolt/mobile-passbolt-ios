@@ -412,7 +412,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     )
     patch(
       \PGP.decryptAndVerify,
-      with: always(.success("wrong"))
+      with: always(.success(.valid(message: "wrong")))
     )
 
     withTestedInstanceThrows(
@@ -471,16 +471,19 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       \PGP.decryptAndVerify,
       with: always(
         .success(
-          """
-          {
-            "version": "1.0.0",
-            "domain": "passbolt.dev",
-            "verify_token": "invalid",
-            "access_token": "\(SessionAccessToken.valid.rawValue)",
-            "refresh_token": "token",
-            "providers": []
-          }
-          """
+          .valid(
+            message:
+              """
+              {
+                "version": "1.0.0",
+                "domain": "passbolt.dev",
+                "verify_token": "invalid",
+                "access_token": "\(SessionAccessToken.valid.rawValue)",
+                "refresh_token": "token",
+                "providers": []
+              }
+              """
+          )
         )
       )
     )
@@ -541,16 +544,19 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       \PGP.decryptAndVerify,
       with: always(
         .success(
-          """
-          {
-            "version": "1.0.0",
-            "domain": "passbolt.dev",
-            "verify_token": "\(UUID.test.uuidString)",
-            "access_token": "\(SessionAccessToken.valid.rawValue)",
-            "refresh_token": "token",
-            "providers": []
-          }
-          """
+          .valid(
+            message:
+              """
+              {
+                "version": "1.0.0",
+                "domain": "passbolt.dev",
+                "verify_token": "\(UUID.test.uuidString)",
+                "access_token": "\(SessionAccessToken.valid.rawValue)",
+                "refresh_token": "token",
+                "providers": []
+              }
+              """
+          )
         )
       )
     )
@@ -615,16 +621,19 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       \PGP.decryptAndVerify,
       with: always(
         .success(
-          """
-          {
-            "version": "1.0.0",
-            "domain": "passbolt.dev",
-            "verify_token": "\(UUID.test.uuidString)",
-            "access_token": "\(SessionAccessToken.valid.rawValue)",
-            "refresh_token": "token",
-            "providers": []
-          }
-          """
+          .valid(
+            message:
+              """
+              {
+                "version": "1.0.0",
+                "domain": "passbolt.dev",
+                "verify_token": "\(UUID.test.uuidString)",
+                "access_token": "\(SessionAccessToken.valid.rawValue)",
+                "refresh_token": "token",
+                "providers": []
+              }
+              """
+          )
         )
       )
     )
@@ -689,16 +698,19 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       \PGP.decryptAndVerify,
       with: always(
         .success(
-          """
-          {
-            "version": "1.0.0",
-            "domain": "passbolt.dev",
-            "verify_token": "\(UUID.test.uuidString)",
-            "access_token": "\(SessionAccessToken.valid.rawValue)",
-            "refresh_token": "token",
-            "providers": ["yubikey"]
-          }
-          """
+          .valid(
+            message:
+              """
+              {
+                "version": "1.0.0",
+                "domain": "passbolt.dev",
+                "verify_token": "\(UUID.test.uuidString)",
+                "access_token": "\(SessionAccessToken.valid.rawValue)",
+                "refresh_token": "token",
+                "providers": ["yubikey"]
+              }
+              """
+          )
         )
       )
     )
@@ -762,16 +774,19 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       \PGP.decryptAndVerify,
       with: always(
         .success(
-          """
-          {
-            "version": "1.0.0",
-            "domain": "passbolt.dev",
-            "verify_token": "\(UUID.test.uuidString)",
-            "access_token": "\(SessionAccessToken.valid.rawValue)",
-            "refresh_token": "token",
-            "providers": ["yubikey"]
-          }
-          """
+          .valid(
+            message:
+              """
+              {
+                "version": "1.0.0",
+                "domain": "passbolt.dev",
+                "verify_token": "\(UUID.test.uuidString)",
+                "access_token": "\(SessionAccessToken.valid.rawValue)",
+                "refresh_token": "token",
+                "providers": ["yubikey"]
+              }
+              """
+          )
         )
       )
     )

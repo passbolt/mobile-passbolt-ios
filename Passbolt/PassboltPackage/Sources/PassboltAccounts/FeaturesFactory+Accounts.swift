@@ -32,5 +32,6 @@ extension FeaturesRegistry {
     self.usePassboltAccounts()
     self.usePassboltAccountsDataStore()
     self.usePassboltAccountInitialSetup()
+    self.usePassboltMetadataDataStore()
   }
 }

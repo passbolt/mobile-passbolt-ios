@@ -22,80 +22,94 @@
 //
 
 import TestExtensions
+
 @testable import CommonModels
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverForceUnwrap
 final class ResourceMetadataDTOTests: TestCase {
   func test_creatingResourceMetadataDTO_fromJSON() throws {
     let json = """
-    {
-      "name": "test name",
-      "description": "test description",
-      "username": "test username"
-    }
-    """
-    
+      {
+        "name": "test name",
+        "description": "test description",
+        "username": "test username"
+      }
+      """
+
     let data = json.data(using: .utf8)!
     let metadata = try ResourceMetadataDTO(resourceId: .init(), data: data)
     XCTAssertEqual(metadata.name, "test name")
     XCTAssertEqual(metadata.description, "test description")
     XCTAssertEqual(metadata.username, "test username")
   }
-  
+
   func test_creatingResourceMetadataDTO_fromResourceDTO() throws {
     let name = "test name"
     let description = "test description"
     let username = "test username"
-    
+
     let resource = createResourceDTO(name: name, description: description, username: username)
-    
+
     let metadata = try ResourceMetadataDTO(resource: resource)
     XCTAssertEqual(metadata.name, name)
     XCTAssertEqual(metadata.description, description)
     XCTAssertEqual(metadata.username, username)
     XCTAssertEqual(metadata.resourceId, resource.id)
   }
-  
+
   func test_resourceValidation_nameMustHaveLessThan256Characters() throws {
     let name = String(repeating: "a", count: 256)
     let resource = createResourceDTO(name: name)
-    
+
     let metadata = try ResourceMetadataDTO(resource: resource)
-    verifyIfTriggersValidationError(try metadata.validate(with: resource), validationRule: ResourceMetadataDTO.ValidationRule.nameTooLong)
+    verifyIfTriggersValidationError(
+      try metadata.validate(with: resource),
+      validationRule: ResourceMetadataDTO.ValidationRule.nameTooLong
+    )
   }
-  
+
   func test_resourceValidation_nameMustNotBeEmpty() throws {
     let resource = createResourceDTO(name: "")
-    
+
     let metadata = try ResourceMetadataDTO(resource: resource)
-    verifyIfTriggersValidationError(try metadata.validate(with: resource), validationRule: ResourceMetadataDTO.ValidationRule.nameEmpty)
+    verifyIfTriggersValidationError(
+      try metadata.validate(with: resource),
+      validationRule: ResourceMetadataDTO.ValidationRule.nameEmpty
+    )
   }
-  
+
   func test_resourceValidation_usernameMustHaveLessThan256Characters() throws {
     let username = String(repeating: "a", count: 256)
     let resource = createResourceDTO(name: "test name", username: username)
-    
+
     let metadata = try ResourceMetadataDTO(resource: resource)
-    verifyIfTriggersValidationError(try metadata.validate(with: resource), validationRule: ResourceMetadataDTO.ValidationRule.usernameTooLong)
+    verifyIfTriggersValidationError(
+      try metadata.validate(with: resource),
+      validationRule: ResourceMetadataDTO.ValidationRule.usernameTooLong
+    )
   }
-  
+
   func test_resourceValidation_descriptionMustHaveLessThan10kCharacters() throws {
     let description = String(repeating: "a", count: 10_001)
     let resource = createResourceDTO(name: "test name", description: description)
-    
+
     let metadata = try ResourceMetadataDTO(resource: resource)
-    verifyIfTriggersValidationError(try metadata.validate(with: resource), validationRule: ResourceMetadataDTO.ValidationRule.descriptionTooLong)
+    verifyIfTriggersValidationError(
+      try metadata.validate(with: resource),
+      validationRule: ResourceMetadataDTO.ValidationRule.descriptionTooLong
+    )
   }
-  
+
   func test_resourceValidation_resourceTypeMustMatchMetadata() throws {
     var resource = createResourceDTO(name: "test name")
     let metadata = try ResourceMetadataDTO(resource: resource)
-    resource = createResourceDTO(name: "test name") // regenerate resource to generate new typeID
+    resource = createResourceDTO(name: "test name")  // regenerate resource to generate new typeID
     verifyIfTriggersValidationError(
       try metadata.validate(with: resource),
       validationRule: ResourceMetadataDTO.ValidationRule.resourceTypeMismatch
     )
   }
-  
+
   private func createResourceDTO(name: String, description: String? = nil, username: String? = nil) -> ResourceDTO {
     ResourceDTO(
       id: .init(),

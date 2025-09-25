@@ -1,0 +1,729 @@
+//
+// Passbolt - Open source password manager for teams
+// Copyright (c) 2021 Passbolt SA
+//
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+// Public License (AGPL) as published by the Free Software Foundation version 3.
+//
+// The name "Passbolt" is a registered trademark of Passbolt SA, and Passbolt SA hereby declines to grant a trademark
+// license to "Passbolt" pursuant to the GNU Affero General Public License version 3 Section 7(e), without a separate
+// agreement with Passbolt SA.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License along with this program. If not,
+// see GNU Affero General Public License v3 (http://www.gnu.org/licenses/agpl-3.0.html).
+//
+// @copyright     Copyright (c) Passbolt SA (https://www.passbolt.com)
+// @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
+// @link          https://www.passbolt.com Passbolt (tm)
+// @since         v1.0
+//
+// Shared and commons
+
+
+"generic.done" = "완료";
+"generic.yes" = "예";
+"generic.apply" = "적용";
+"generic.confirm" = "확인";
+"generic.cancel" = "취소";
+"generic.remove" = "제거";
+"generic.loading" = "로딩 중...";
+"generic.loading.long" = "평소보다 오래 소요중...";
+"generic.continue" = "계속";
+"generic.retry" = "재시도";
+"generic.try.again" = "재시도";
+"generic.delete" = "삭제";
+"generic.got.it" = "예";
+"generic.settings" = "설정";
+"generic.disable" = "중지";
+"generic.sign.out" = "로그아웃";
+"generic.refresh" = "새로고침";
+"generic.create" = "생성";
+"generic.empty.list" = "결과 없음";
+"generic.user.search.list.empty" = "사용자 없음";
+"generic.paste.value.invalid" = "잘못된 값을 붙여 넣는 중";
+"generic.are.you.sure" = "확실합니까?";
+"generic.picker.select.placeholder" = "선택";
+
+"account.selection.title" = "다시 오신 것을 환영합니다!";
+"account.selection.subtitle" = "로그인 할 계정을 선택하세요!";
+"account.selection.remove.account.button.title" = "이 기기에서 계정 제거";
+"account.selection.add.account.footer.title" = "새 계정 추가";
+"account.selection.remove.account.title" = "계정 연결 해제";
+"account.selection.remove.account.subtitle" = "연결 해제 할 계정을 선택하세요.";
+"account.selection.remove.alert.title" = "확실합니까 ?";
+"account.selection.remove.alert.message" = "이 기기에서 계정을 제거합니다. 비밀번호는 삭제되지 않습니다.";
+"account.selection.account.removed" = "계정이 이 기기에서 제거되었습니다.";
+
+"authorization.button.title" = "로그인";
+"authorization.reverification.button.title" = "비밀문구 확인";
+"authorization.forgot.passphrase.button.title" = "비밀문구를 잊어버렸습니다";
+"authorization.forgot.passphrase.alert.title" = "비밀문구를 잊었나요?";
+"authorization.forgot.passphrase.alert.message" = "안타깝게도 비밀문구를 기억하지 못하면 데이터에 접근할 수 없습니다. 관리자에게 문의하여 계정 잠금을 해제하세요.";
+"authorization.passphrase.description.text" = "비밀문구";
+"authorization.title" = "비밀문구 입력";
+
+"sign.in.title" = "비밀문구 입력";
+
+"resource.list.username.empty.placeholder" = "사용자이름 없음";
+
+"resource.detail.field.name" = "이름";
+"resource.detail.field.username" = "사용자이름";
+"resource.detail.field.passphrase" = "비밀번호";
+"resource.detail.field.uri" = "웹사이트 URL";
+"resource.detail.field.description" = "설명";
+"resource.show.field.uri.placeholder" = "URI 없음";
+"resource.show.field.username.placeholder" = "사용자이름이 없음";
+"resource.show.field.password.placeholder" = "비밀번호가 없음";
+"resource.show.field.description.placeholder" = "설명이 없음";
+"resource.value.copied" = "%@ 가 클립보드에 복사됨!";
+"resource.details.value" = "값";
+"resource.detail.section.location" = "위치";
+"resource.detail.section.permissions" = "공유 대상";
+"resource.detail.section.tags" = "태그";
+"resource.detail.section.expiry" = "만료";
+"resource.detail.section.expiry.expired" = "만료됨";
+"resource.detail.section.expiry.willExpire" = "후 만료";
+"resource.detail.undefined.content.warning" = "지원되지 않는 유형입니다. 알 수 없는 필드가 숨겨집니다!";
+
+"resource.expiry.expired" = "(만료됨)";
+
+"resource.delete.succeeded" = "리소스가 삭제되었습니다.";
+
+"resource.field.name.unknown" = "값";
+"section.tags.empty" = "태그 없음";
+
+"server.key.fingerprint.changed.title" = "죄송합니다. 서버 키가 변경되었습니다.";
+"server.key.fingerprint.changed.description" = "보안상의 이유로 관리자가 시작한 변경 사항인지 확인하십시오. 새 지문:";
+"server.key.fingerprint.accept.check" = "네, 확인해봤는데 다 괜찮아요.";
+"server.key.fingerprint.accept.new.key" = "새 키 수락";
+
+"resource.form.password.strength" = "비밀번호 길이";
+"resource.form.strength.very.weak" = "매우 약함";
+"resource.form.strength.weak" = "취약";
+"resource.form.strength.fair" = "적합";
+"resource.form.strength.strong" = "강함";
+"resource.form.strength.very.strong" = "매우 강함";
+"resource.form.create.button.title" = "생성";
+"resource.form.create.and.fill.button.title" = "생성 및 채우기";
+"resource.form.update.button.title" = "저장";
+"resource.form.new.password.created" = "새 비밀번호가 생성됨";
+"resource.form.description.encrypted" = "설명이 암호화 됨";
+"resource.form.description.unencrypted" = "설명이 암호화 되지 않음";
+"resource.form.undefined.content.warning" = "지원되지 않는 유형입니다. 알 수 없는 필드가 숨겨집니다!";
+
+"feedback.alert.title" = "기기가 탈옥되었을 수 있습니다.";
+"feedback.alert.message" = "기기가 탈옥되었을 수 있습니다. 장치 전체 보안이 약화되고 비밀번호 획득에 악용될 수 있습니다.";
+"feedback.alert.button.title" = "이해함";
+
+"account.not.found.title.label" = "계정이 존재하지 않습니다";
+"account.not.found.message.label" = "계정이 삭제되거나 정지되었습니다";
+"account.not.found.action.button.title" = "기존 계정과 연결";
+
+"server.not.reachable.alert.title" = "서버에 접근할 수 없습니다.";
+"server.not.reachable.alert.message.server.placeholder" = "서버";
+"server.not.reachable.alert.message" = "%@에 접근이 되지 않습니다. 재시도 해주세요.";
+
+"resource.edit.create.title" = "리소스 생성";
+"resource.edit.title" = "리소스 수정";
+"resource.password.edit.title" = "비밀번호 수정";
+"resource.edit.field.name.label" = "이름";
+"resource.edit.field.uri.label" = "메인 URI";
+"resource.edit.field.username.label" = "사용자이름";
+"resource.edit.field.password.label" = "비밀번호";
+"resource.edit.field.description.label" = "설명";
+"resource.edit.field.totp.label" = "TOTP";
+"resource.edit.field.add.totp" = "TOTP";
+"resource.edit.field.add.note" = "노트";
+"resource.edit.field.add.password" = "비밀번호";
+"resource.edit.field.name.placeholder" = "이름 입력";
+"resource.edit.field.uri.placeholder" = "URI 입력";
+"resource.edit.field.username.placeholder" = "사용자이름 입력";
+"resource.edit.field.password.placeholder" = "비밀번호 입력";
+"resource.edit.field.description.placeholder" = "설명 입력";
+"resource.edit.exit.confirmation.message" = "수정내용이 저장되지 않았습니다.";
+"resource.edit.exit.confirmation.button.edit.title" = "수정";
+"resource.edit.exit.confirmation.button.revert.title" = "되돌아가기";
+"resource.edit.note.content.title" = "컨텐츠";
+"resource.edit.note.content.disclaimer" = "이 보안 항목은 기밀의 일부이므로, 해당 내용을 검색할 수 있도록 하려면 메타데이터 설명을 사용하세요.";
+"resource.edit.note.remove.button.title" = "노트 삭제";
+
+"resource.edit.section.password.title" = "비밀번호";
+"resource.edit.section.totp.title" = "TOTP";
+"resource.edit.section.note.title" = "노트";
+"resource.edit.section.metadata.title" = "메타데이터";
+"resource.edit.totp.remove.button.title" = "TOTP 삭제";
+
+"resource.create.advanced.button" = "고급 설정 보기";
+"resource.create.additional.secrets.title" = "추가 기밀";
+"resource.create.advanced.add.otp" = "TOTP";
+
+"resource.edit.section.metadata.description" = "설명";
+"resource.edit.section.metadata.description.name" = "메타데이터 설명";
+"resource.edit.section.metadata.description.description" = "설명을 비밀에 포함하려면 대신 노트를 사용하세요.";
+
+"resource.create.menu.title" = "리소스 생성";
+"resource.create.menu.password" = "비밀번호";
+"resource.create.menu.totp" = "TOTP";
+
+"resource.create.invalid.configuration" = "현재 구성으로는 리소스를 생성할 수 없습니다.";
+"resource.edit.invalid.configuration" = "현재 구성으로는 리소스를 수정할 수 없습니다.";
+
+"help.logs.viewer.title" = "로그";
+
+"help.menu.title" = "도움";
+"help.menu.show.logs.action.title" = "로그 접근";
+"help.menu.show.web.help.action.title" = "지원 사이트 방문";
+"help.menu.show.import.account.kit.title" = "계정 키트 가져오기";
+
+// Main application
+
+"welcome.title" = "어서 오세요!";
+"welcome.description" = "시작하려면 기존 계정이 필요합니다. 데스크톱 브라우저 확장프로그램에서 기존 계정으로 로그인하여 모바일 기기와 연결합니다.";
+"welcome.connect.to.account" = "기존 계정과 연결";
+"welcome.no.account" = "계정이 없습니다.";
+"welcome.no.account.alert.title" = "어떻게 계정을 만드나요?";
+"welcome.no.account.alert.text" = "현재 모바일 앱을 사용하여 계정을 만들 수 없습니다. 먼저 데스크톱 브라우저 확장프로그램을 사용하여 계정을 만들어야 합니다.";
+"code.scanning.exit.confirmation.confirm.button.title" = "스캔 중지";
+"code.scanning.help.menu.button.title" = "왜 QR 코드를 스캔합니까?";
+"code.scanning.help.title" = "QR 코드 스캔 중";
+"code.scanning.help.message" = "일련의 QR 코드를 볼 수 있습니다. 진행률 표시줄이 가득 찰 때까지 이 코드를 스캔합니다. 그리고나서 로그인할 수 있습니다!";
+"code.scanning.camera.unavailable" = "죄송합니다, QR 코드를 사용하여 키를 전송하므로 계속 진행하려면 카메라가 있는 기기가 필요합니다.";
+"code.scanning.begin" = "카메라를 QR 코드에 맞추세요.";
+"code.scanning.processing.in.progress" = "스캔 중... 계속 하세요!";
+"code.scanning.processing.invalid.code" = "패스볼트 QR코드가 아닙니다. 재 시도하세요!";
+
+
+"transfer.account.title" = "계정 세부 정보 전송";
+"transfer.account.import.description" = "QR 코드를 스캔하여 계정 세부 정보를 전송합니다.";
+"transfer.account.import.info.step.first" = "브라우저 확장프로그램을 사용하여 로그인";
+"transfer.account.import.info.step.second" = "프로필 페이지로 이동";
+"transfer.account.import.info.step.second.distinct" = "프로필";
+"transfer.account.import.info.step.third" = "모바일 섹션으로 이동";
+"transfer.account.import.info.step.third.distinct" = "모바일";
+"transfer.account.import.info.step.fourth" = "QR코드 시퀀스를 스캔";
+"transfer.account.import.scan.qr.button" = "QR 코드 스캔";
+"transfer.account.export.description" = "QR 코드를 표시하여 계정 세부 정보 전송";
+"transfer.account.export.info.step.first" = "다른 모바일기기에 앱 설치";
+"transfer.account.export.info.step.second" = "앱 열기";
+"transfer.account.export.info.step.third" = "\"기존 계정에 연결\" 선택";
+"transfer.account.export.info.step.fourth" = "QR코드 시퀀스를 스캔";
+"transfer.account.export.scan.qr.button" = "전송 시작";
+"transfer.account.export.cancel.button" = "전송 취소";
+"transfer.account.camera.access.alert.title" = "카메라 접근 필요";
+"transfer.account.camera.access.alert.text" = "카메라에 접근을 허용하도록 설정/개인정보/카메라로 이동";
+"transfer.account.result.success.title" = "당신의 정보가 전송되었습니다!";
+"transfer.account.result.already.linked.title" = "계졍이 기기와 이미 연결되었습니다.";
+"transfer.account.result.canceled.title" = "전송이 취소됨.";
+"transfer.account.kit.result.success.title" = "계정 키트를 가져왔습니다!";
+
+"transfer.account.exit.confirmation.title" = "확실하나요?";
+"transfer.account.exit.confirmation.message" = "나가게 되면 QR코드를 다시 스캔해야 합니다.";
+"transfer.account.import.exit.confirmation.cancel.button.title" = "설정 계속";
+"transfer.account.import.exit.confirmation.confirm.button.title" = "설정 취소";
+"transfer.account.export.exit.confirmation.confirm.button.title" = "전송 중지";
+"transfer.account.export.exit.success.button" = "뒤로 가기";
+"transfer.account.export.exit.failure.button" = "재시도";
+"transfer.account.export.failure.message" = "전송을 완료할 수 없습니다.";
+"transfer.account.export.cancelled" = "전송이 취소되었습니다";
+"transfer.account.exit.confirmation.cancel.button.title" = "설정 계속";
+"transfer.account.exit.confirmation.confirm.button.title" = "설정 취소";
+
+"biometrics.usage.reason" = "생체 인식을 사용하여 비밀문구를 안전하게 저장할 수 있습니다.";
+
+"biometrics.info.title" = "생체 인식 기능 설정";
+"biometrics.info.description" = "빠른 로그인 방법으로 페이스ID 또는 터치ID를 사용하려면 설정에서 구성하세요.";
+"biometrics.info.setup.button" = "생체 인식 기능 설정";
+"biometrics.info.later.button" = "나중에";
+
+"biometrics.setup.title.face" = "비밀문구 대신 페이스ID 사용!";
+"biometrics.setup.title.finger" = "비밀문구 대신 터치ID 사용!";
+"biometrics.setup.description" = "순식간에 비밀 풀기";
+"biometrics.setup.setup.button.face" = "페이스ID 사용";
+"biometrics.setup.setup.button.finger" = "터치ID 사용";
+"biometrics.setup.later.button" = "나중에";
+
+"extension.setup.title" = "3초만에 즐겨찾는 앱으로 로그인하세요!";
+"extension.setup.settings.step" = "설정으로 이동";
+"extension.setup.settings.step.bold" = "설정";
+"extension.setup.keyboard.step" = "비밀번호 자동 채우기 열기";
+"extension.setup.keyboard.step.bold" = "비밀번호 자동 채우기";
+"extension.setup.switch.step" = "비밀번호 자동 채우기 사용";
+"extension.setup.switch.step.bold" = "사용함";
+"extension.setup.keychain.step" = "키체인 끄기";
+"extension.setup.keychain.step.bold" = "끄기";
+"extension.setup.passbolt.step" = "패스볼트 선택!";
+"extension.setup.passbolt.step.bold" = "패스볼트!";
+"extension.setup.setup.button" = "설정으로 이동";
+"extension.setup.later.button" = "나중에";
+
+"tab.home" = "홈";
+"tab.otp" = "TOTP";
+"tab.settings" = "설정";
+
+"authorization.prompt.refresh.session.reason" = "세션을 새로 고치려면 인증하세요.";
+"authorization.prompt.biometrics.set.reason" = "생체 인식을 사용하려면 인증하세요.";
+
+"resources.search.placeholder" = "이름, 사용자, url 또는 태그로 검색...";
+
+"resource.menu.item.open.url" = "웹 열기";
+"resource.menu.item.copy.url" = "URL 복사";
+"resource.menu.item.copy.password" = "비밀번호 복사";
+"resource.menu.item.copy.username" = "사용자이름 복사";
+"resource.menu.item.copy.description" = "설명 복사";
+"resource.menu.item.copy.note" = "노트 복사";
+"resource.menu.item.reveal.otp" = "TOTP 보기";
+"resource.menu.item.copy.otp" = "TOTP 복사";
+"resource.menu.item.add.favorite" = "즐겨찾기 추가";
+"resource.menu.item.remove.favorite" = "즐겨찾기 제거";
+"resource.menu.item.share" = "비밀번호 공유";
+"resource.menu.item.edit.password" = "비밀번호 수정";
+"resource.menu.item.edit.otp" = "TOTP 수정";
+"resource.menu.item.delete.resource" = "비밀번호 삭제";
+"resource.menu.item.delete.otp" = "TOTP 삭제";
+"resource.menu.item.password" = "비밀번호";
+"resource.menu.item.username" = "사용자이름";
+"resource.menu.item.description" = "설명";
+"resource.menu.item.url" = "URL";
+"resource.menu.item.field.copied" = "%@ (이)가 클립보드에 복사됨!";
+
+"resource" = "리소스";
+"resource.menu.action.favorite.added" = "%@ (이)가 즐겨찾기에 추가됨!";
+"resource.menu.action.favorite.removed" = "%@ (이)가 즐겨찾기에서 삭제됨!";
+
+"resource.menu.action.edited" = "비밀번호를 정상적으로 변경하였습니다.";
+"resource.menu.action.deleted" = "%@ 가 삭제되었습니다!";
+
+"resource.permission.type.read.label" = "읽기 가능";
+"resource.permission.type.write.label" = "수정 가능";
+"resource.permission.type.own.label" = "은(는) 소유자입니다.";
+"resource.permission.list.title" = "공유 대상";
+"resource.permission.list.edit.button.title" = "권한 수정";
+"resource.permission.edit.list.title" = "비밀번호 공유";
+"resource.permission.edit.list.empty.message" = "소유자가 한 명 이상 있는지 확인하세요.";
+"resource.permission.edit.list.add.button.title" = "사용자 추가";
+"resource.permission.edit.user.and.group.search.title" = "사용자 선택";
+"resource.permission.edit.user.and.group.search.prompt" = "사용자 검색...";
+"resource.permission.edit.user.and.group.search.existing.section.title" = "이미 추가됨";
+"resource.permission.delete.user.permission.confirmation.message" = "비밀번호가 더 이상 이 사용자와 공유되지 않습니다.";
+"resource.permission.delete.user.group.permission.confirmation.message" = "비밀번호가 더 이상 이 그룹과 공유되지 않습니다.";
+
+"resource.permission.details.title" = "권한";
+"resource.permission.details.user.suspended" = "중지";
+
+"permission.details.type.section.title" = "권한";
+"permission.details.group.members.section.title" = "그룹 구성원";
+"permission.details.user.suspended" = "중지";
+
+"resource.permission.edit.button.delete.title" = "권한 제거";
+
+"resource.folders.add.menu.title" = "리소스 생성";
+"resource.folders.add.menu.folder.label" = "폴더";
+
+"group.members.list.title" = "그룹 구성원";
+"group.members.member.details.title" = "그룹 구성원";
+
+"totp.title.label" = "2단계 인증";
+"totp.message.label" = "인증 코드를 입력:";
+"totp.paste.otp.button.label" = "코드 붙여넣기";
+"totp.remember.device.toggle.label" = "이 기기를 30일 동안 기억";
+
+"yubiKey.scan.instruction" = "Yubikey를 기기에 설치.";
+"yubiKey.scan.success" = "스캔 성공";
+"yubiKey.scan.notRecognized.title" = "Yubikey가 인식되지 않습니다";
+"yubiKey.scan.notRecognized.button.ok" = "확인";
+"yubiKey.scan.notRecognized.message" = "Yubikey가 서버에서 인식되지 않습니다.\n다른 Yubikey 또는 다른 공급자로 시도해보세요.";
+"mfa.yubiKey.title" = "YubiKey OTP";
+"mfa.yubiKey.description" = "Yubikey는 다음을 지원해야 합니다.
+NFC가 있어야 작동합니다.";
+"mfa.yubiKey.scan" = "YubiKey 스캔";
+"mfa.yubiKey.nfc.not.supported" = "이 기기는 NFC를 지원하지 않습니다.";
+"mfa.provider.try.another" = "다른 공급자로 시도하세요.";
+"mfa.remember.token" = "이 기기를 30일 동안 기억";
+"mfa.unsupported.provider.title" = "다단계인증 공급자가 지원되지 않습니다.";
+"mfa.unsupported.provider.description" = "웹 앱을 사용하여 다른 공급자를 설정하세요.
+자세한 내용은 관리자에게 문의하세요.";
+"mfa.duo.authorization.title" = "Duo 다단계인증";
+"mfa.duo.authorization.button.title" = "Duo로 인증";
+
+"account.menu.title" = "계정 전환";
+"account.menu.account.details.button.title" = "자세히 보기";
+"account.menu.sign.out.button.title" = "로그아웃";
+"account.menu.manage.accounts.button.title" = "계정 관리";
+
+"account.details.title" = "계정 상세정보";
+"account.details.field.label.title" = "라벨";
+"account.details.field.label.editing.info" = "라벨이 계정 목록에 표시되며 인증을 위해 사용됩니다.";
+"account.details.field.name.title" = "이름";
+"account.details.field.email.title" = "이메일";
+"account.details.field.url.title" = "조직 URL";
+"account.details.field.role.title" = "역할";
+"account.details.button.save.title" = "저장";
+
+"update.available.title" = "새 버전 사용가능!";
+"update.available.message" = "앱 스토어에서 패스볼트 앱을 최신 버전으로 업데이트하세요.";
+
+// Autofill extension
+
+"autofill.extension.setup.completed.title" = "Passbolt 자동 채우기 활성화됨!";
+"autofill.extension.setup.completed.info" = "양식을 작성한 후, 입력란을 탭하기만 하면 활성화한 자동 채우기 기능이 Passbolt 앱에 이미 추가한 로그인 자격 증명을 사용하여 양식을 작성하도록 제안합니다.";
+
+"autofill.extension.account.selection.switch.account.title" = "계정 전환";
+"autofill.extension.account.selection.switch.account.subtitle" = "계정 전환할 계정을 선택하세요!";
+"autofill.extension.account.selection.sign.in.title" = "로그인 되지 않았습니다";
+"autofill.extension.account.selection.sign.in.subtitle" = "로그인 할 계정을 선택하세요!";
+
+"autofill.extension.no.accounts.title" = "계정이 없습니다!";
+"autofill.extension.no.accounts.description" = "시작하려면 계정이 필요합니다. Passbolt 앱을 열고 설정 지침을 따르세요. Passbolt는 그 후에 자격 증명을 자동으로 채울 수 있습니다.";
+
+"autofill.extension.resource.list.title" = "비밀번호 선택";
+"autofill.extension.resource.list.section.suggested.title" = "제안됨";
+"autofill.extension.resource.list.section.all.title" = "기타";
+
+"autofill.extension.autofill.extension.resources.search.placeholder" = "Passbolt에서 검색 중...";
+
+"mfa.required.title" = "다단계인증 필요";
+"autofill.extension.mfa.required.description" = "Passbolt 앱을 사용하여 인증을 완료하세요.";
+
+"folder.edit.form.create.title" = "폴더 생성";
+"folder.edit.form.name.field.placeholder" = "새 폴더";
+"folder.edit.form.created" = "새 폴더 %@ 이(가) 생성되었습니다!";
+
+"resource.folder.menu.open.details.label" = "자세히 보기";
+
+// Common UI
+
+"folder.root.name" = "루트";
+
+"folder.name.title" = "이름";
+"folder.location.title" = "위치";
+"permissions.avatars.view.title" = "권한";
+"shared.avatars.view.title" = "공유 대상";
+
+// Forms common
+
+"form.field.name.title" = "이름";
+
+"form.button.save.title" = "저장";
+
+// Errors
+
+"generic.error" = "문제가 발생했습니다!";
+"generic.error.retry" = "문제가 발생했으니 다시 시도하세요.";
+"generic.error.report" = "문제가 발생했으니 버그를 보고하세요.";
+"generic.error.cancelled" = "작업이 취소되었습니다.";
+"sign.in.error.message" = "로그인 실패";
+"sign.in.error.biometrics.changed.message" = "기기에 저장된 생체 인식 정보가 변경된 것 같습니다. 비밀문구를 입력하고 생체 인식을 다시 설정하세요.";
+"sign.in.error.passphrase.invalid.message" = "유효하지 않은 비밀문구입니다.";
+"server.fingerprint.save.failed" = "서버 지문을 저장하는데 실패됨.";
+"form.field.error.max.length" = "최대 길이를 초과했습니다.";
+"form.error.invalid" = "양식이 잘못되었습니다.";
+"resource.form.field.error.empty" = "필드는 비워 둘 수 없습니다";
+"resource.from.field.error.invalid.value" = "이 필드의 값이 올바르지 않습니다.";
+"resource.form.field.error.max.length" = "최대 길이를 초과했습니다.";
+"resource.form.field.error.invalid" = "필드 값이 잘못되었습니다.";
+"resource.form.error.invalid" = "양식이 잘못되었습니다.";
+"authorization.passphrase.error" = "비밀문구가 잘못되었습니다!";
+"account.settings.biometrics.error" = "생체인식 설정이 실패하였습니다.";
+"totp.wrong.code.error" = "잘못된 코드";
+"error.another.account.transfer.in.progress" = "다른 계정 전송이 진행 중입니다. 먼저 완료하세요.";
+"resource.menu.action.failed" = "%@ 실패됨!";
+"mfa.yubiKey.scan.failed" = "스캔 실패됨";
+
+"error.internal.inconsistency" = "내부 불일치. 버그를 보고하세요.";
+"error.feature.unavailable" = "기능을 사용할 수 없습니다.";
+"error.nfc.not.supported" = "NFC는 지원하지 않습니다.";
+"error.nfc.payload.invalid" = "NFC 페이로드가 잘못되었습니다.";
+"error.url.invalid" = "잘못된 URL.";
+"error.internet.connection.issue" = "인터넷에 연결할 수 없습니다.";
+"error.client.certificate.invalid" = "클라이언트 인증서가 잘못되었습니다.";
+"error.server.connection.issue" = "서버에 연결할 수 없습니다.";
+"error.server.time.issue" = "서버와 클라이언트 동기화되지 않았습니다. 관리자에게 문의하세요.";
+"error.server.response.invalid" = "잘못된 서버 응답";
+"error.server.response.timeout" = "서버 응답시간 초과";
+"error.server.certificate.invalid" = "잘못된 서버 인증서";
+"error.http.request.invalid" = "HTTP 요청 잘못됨";
+"error.http.response.invalid" = "HTTP 응답 잘못됨";
+"error.network.response.invalid" = "잘못된 네트워크 응답";
+"error.http.response.forbidden" = "HTTP 금지됨.";
+"error.http.response.conflict" = "HTTP 충돌.";
+"error.http.response.not.found" = "HTTP 없음.";
+"error.http.response.redirect" = "HTTP 리다이렉트.";
+"error.http.request.invalid" = "HTTP 요청 잘못됨.";
+"error.http.response.invalid" = "HTTP 응답 잘못됨.";
+"error.http.response.status.code.unexpected" = "HTTP 예상치 못한 상태 코드.";
+"error.http.response.unauthorized" = "HTTP 미인증";
+"error.network.response.decoding.failed" = "네트워크 응답 디코딩 실패됨.";
+"error.network.request.validation.failure" = "네크워크 요청 유효성 검사 실패됨.";
+"error.session.authorization.required" = "세션 인증 필요";
+"error.session.authorization.mfa.required" = "세션 다단계인증 필요.";
+"error.session.missing" = "세션 없음.";
+"error.crypto.data.signature.invalid" = "데이터 서명이 잘못되었습니다.";
+"error.crypto.passphrase.invalid" = "비밀문구가 잘못되었습니다.";
+"error.crypto.pgp.fingerprint.invalid" = "PGP 지문이 잘못되었습니다.";
+"error.crypto.pgp.fingerprint.mismatch" = "PGP 지문이 일치하지 않습니다.";
+"error.crypto.pgp.keyring.preparation.failed" = "PGP 키링 준비 실패";
+"error.crypto.pgp.keypacket.extraction.failed" = "PGP 키 패킷을 추출하지 못했습니다.";
+"error.crypto.pgp.sessionkey.extraction.failed" = "PGP 세션 키를 추출하지 못했습니다.";
+"error.crypto.pgp.public.key.invalid" = "공개 PGP키가 잘못되었습니다.";
+"error.data.empty" = "제공된 데이터가 없음.";
+"error.data.invalid" = "제공된 데이터가 잘못되었습니다.";
+"error.resource.permission.required" = "권한 필요.";
+"error.resource.secret.invalid" = "리소스 암호가 잘못되었습니다.";
+"error.resource.permission.invalid" = "리소스 권한이 잘못되었습니다.";
+"error.resource.owner.missing" = "리소스에 소유자가 하나 이상 있어야 합니다.";
+"error.system.feature.inaccessible" = "시스템 기능에 접근불가.";
+"error.system.feature.permission.not.granted" = "시스템 기능 권한이 부여되지 않음.";
+"error.system.feature.permission.required" = "시스템 기능 권한 필요.";
+"error.system.feature.status.undetermined" = "시스템 기능 상태 미확인됨.";
+"error.system.file.access.issue" = "파일에 접근 불가.";
+"error.system.directory.access.issue" = "디렉토리에 접근 불가.";
+"error.database.statement.invalid" = "데이타베이스 구문이 잘못됨.";
+"error.database.statement.execution.failure" = "데이타베이스 구문 실행 실패됨.";
+"error.database.migration.failure" = "데이타베이스 마이그레이션 실패됨.";
+"error.database.connection.issue" = "데이타베이스에 연결할수 없음.";
+"error.database.connection.closed" = "데이터베이스 연결 종료됨.";
+"error.database.binding.invalid" = "데이터베이스 데이터 바인딩이 잘못됨.";
+"error.database.result.empty" = "데이터베이스 결과가 비었음.";
+"error.database.result.invalid" = "데이타베이스 결과가 잘못됨";
+"error.keychain.authorization.failed" = "키체인 인증 실패됨.";
+"error.keychain.failure" = "키체인 접근 실패됨.";
+"error.keychain.query.invalid" = "잘못된 키체인 쿼리.";
+"error.account.private.key.missing" = "계정 개인 키 사라짐.";
+"error.account.profile.data.missing" = "계정 프로필 데이터 사라짐.";
+"error.account.passphrase.missing" = "계정 비밀문구 사라짐.";
+"error.account.data.missing" = "계정 데이터 사라짐.";
+"error.account.biometry.data.changed" = "생체인식 데이터가 변경됨.";
+"error.account.kit.fail.to.import" = "계정 키트를 가져오지 못했습니다.";
+"error.account.kit.signature.verification" = "서명의 유효성을 검사하지 못했습니다.";
+"error.users.list.empty" = "사용자 리스트는 비워둘수 없음.";
+"error.user.public.key.invalid" = "사용자 공개 키가 무효함.";
+"error.user.public.key.missing" = "사용자 공개 키 사라짐.";
+"error.user.secret.missing" = "사용자 기밀이 사라짐.";
+"error.session.closed" = "세션 종료됨.";
+"error.account.duplicate" = "중복 계정.";
+"error.server.pgp.fingerprint.invalid" = "서버 PGP 지문이 잘못됨.";
+"error.session.authorization.failed" = "세션 인증 실패됨.";
+"error.qrcode.invalid" = "패스볼트 QR코드가 아닙니다. 재 시도하세요!";
+
+"error.validation.folder.name.empty" = "폴더 이름은 비워질수 없습니다.";
+"error.validation.folder.name.too.long" = "폴더 이름은 256자를 초과할 수 없습니다.";
+
+"error.validation.permissions.empty" = "적어도 하나의 권한이 있어야 합니다.";
+"error.validation.permissions.owner.required" = "적어도 한 명의 소유자가 있어야 합니다.";
+
+"error.validation.form.invalid" = "폼이 유효하지 않습니다.";
+"error.biometrics.unavailable.message" = "생체 인식을 사용할 수 없음";
+
+"error.qrcode.generation.generic" = "제공된 데이터에서 QR 코드를 생성할 수 없습니다";
+
+"error.otp.configuration.invalid" = "올바르지 않은 OTP 구성.";
+
+// Validation errors
+
+"error.resource.field.empty" = "%@ (은) 는 비워 둘 수 없습니다!";
+"error.resource.field.length.lower" = "@% (은)는 %d자를 초과할 수 없습니다!";
+"error.resource.field.length.higher" = "%@ (은)는 %d자 미만을 사용할 수 없습니다!";
+"error.resource.field.range.lower" = "%@ (은)는 %d보다 작아야 합니다!";
+"error.resource.field.range.greater" = "%@ (은)는 %d보다 커야 합니다!";
+"error.resource.field.content.invalid" = "%@ 에 잘못된 내용이 있습니다!";
+"error.resource.field.selection.invalid" = "%@ (은)는 유효한 옵션 중 하나여야 합니다!";
+"error.resource.field.unknown" = "알 수 없는 필드는 필요하지 않습니다!";
+"error.validation.password.length.invalid" = "비밀번호 길이 설정이 잘못되었습니다!";
+"error.validation.password.mask.empty" = "비밀번호 만료 마스킹은 비워둘 수 없습니다!";
+
+// Home - presentation mode menu
+
+"home.presentation.mode.menu.title" = "보기 필터링 기준";
+
+// Presentation modes
+
+"home.presentation.mode.plain.resources.title" = "모든 항목";
+"home.presentation.mode.favorite.resources.title" = "즐겨찾기";
+"home.presentation.mode.modified.resources.title" = "최근 수정됨";
+"home.presentation.mode.shared.resources.title" = "나와 공유됨";
+"home.presentation.mode.owned.resources.title" = "내가 소유함";
+"home.presentation.mode.owned.resources.expiry" = "만료";
+"home.presentation.mode.folders.explorer.title" = "폴더";
+"home.presentation.mode.folders.explorer.search.direct.results" = "\"%@\" 에서:";
+"home.presentation.mode.folders.explorer.search.nested.results" = "하위폴더에서:";
+"home.presentation.mode.tags.explorer.title" = "태그";
+"home.presentation.mode.resource.user.groups.explorer.title" = "그룹";
+
+// OTP resources
+
+"otp.resources.search.placeholder" = "TOTP 검색";
+"otp.resources.list.title" = "TOTP";
+"otp.resources.list.empty.message" = "OTP가 없습니다.";
+"otp.value.copied.message" = "클립보드에 TOTP가 복사됨!";
+
+// OTP contextual menu
+
+"otp.contextual.menu.copy.title" = "TOTP 복사";
+"otp.copied.message" = "클립보드에 TOTP가 복사됨!";
+"otp.contextual.menu.reveal.title" = "TOTP 보기";
+"otp.contextual.menu.edit.title" = "TOTP 수정";
+"otp.contextual.menu.delete.title" = "TOTP 삭제";
+"otp.contextual.menu.delete.confirm.title" = "확실합니까?";
+"otp.contextual.menu.delete.confirm.message" = "이 작업을 수행하면 TOTP를 영구적으로 삭제합니다.";
+"otp.contextual.menu.delete.confirm.action.delete" = "TOTP 삭제";
+"otp.contextual.menu.delete.succeeded" = "TOTP가 삭제됨.";
+
+// OTP edit menu
+
+"otp.edit.menu.create.title" = "TOTP 생성";
+"otp.edit.menu.edit.title" = "TOTP 수정";
+"otp.edit.menu.scanning.title" = "QR 코드 스캔";
+"otp.edit.menu.create.manual.title" = "수동으로 TOTP 생성";
+"otp.edit.menu.edit.manual.title" = "수동으로 TOTP 수정";
+"otp.edit.code.scanning.title" = "수동으로 TOTP 수정";
+"otp.edit.code.scanning.initial.message" = "QR 코드 스캔";
+"otp.edit.menu.title" = "카메라를 QR 코드에 맞추세요.";
+"otp.edit.otp.created.message" = "TOPT가 생성되었습니다.";
+"otp.edit.otp.replaced.message" = "TOPT가 교체되었습니다.";
+"otp.edit.otp.deleted.message" = "TOPT가 삭제되었습니다.";
+
+// OTP scanning
+
+"otp.scanning.success.title" = "TOTP가 스캔되었습니다!";
+"otp.scanning.success.create.button.title" = "독립형 TOTP 생성";
+"otp.scanning.success.link.button.title" = "비밀번호에 TOTP 연결";
+"otp.code.scanning.title" = "QR 코드 스캔";
+"otp.code.scanning.initial.message" = "카메라를 QR 코드에 맞추세요.";
+"otp.code.scanning.manual.input" = "또는 수동으로 TOTP 생성";
+
+// OTP form
+
+"otp.edit.form.create.title" = "TOTP 생성";
+"otp.edit.form.edit.title" = "TOTP 수정";
+"otp.edit.form.field.name.title" = "이름 (레이블)";
+"otp.edit.form.field.name.prompt" = "이름";
+"otp.edit.form.field.uri.title" = "URL (발행자)";
+"otp.edit.form.field.uri.prompt" = "URL";
+"otp.edit.form.field.secret.title" = "비밀";
+"otp.edit.form.field.secret.prompt" = "비밀";
+"otp.edit.form.advanced.button.title" = "추가 TOTP 설정";
+"otp.edit.form.create.button.title" = "독립형 TOTP 생성";
+"otp.edit.form.apply.button.title" = "적용";
+"otp.edit.form.edit.button.title" = "저장";
+"otp.edit.form.edit.advanced.title" = "TOTP 수정 - 고급 설정";
+"otp.edit.form.edit.advanced.warning" = "고급 설정은 TOTP 공급자 설정과 일치해야 하며 그렇지 않으면 작동하지 않습니다.";
+"otp.edit.form.field.digits.title" = "TOTP길이";
+"otp.edit.form.field.digits.label" = "숫자들.";
+"otp.edit.form.field.period.title" = "TOTP 만료";
+"otp.edit.form.field.period.label" = "TOTP 가 만료될 때까지의 남은 초.";
+"otp.edit.form.field.algorithm.title" = "알고리즘";
+"otp.edit.form.apply.button.title" = "적용";
+
+// OTP attach
+
+"otp.attach.list.title" = "TOTP를 비밀번호에 추가";
+"otp.attach.alert.attach.title" = "확실합니까?";
+"otp.attach.alert.attach.message" = "이 리소스에 TOTP를 추가하면 TOTP가 동일한 공유 권한을 상속합니다.";
+"otp.attach.alert.attach.button.title" = "TOTP 추가";
+"otp.attach.alert.replace.title" = "TOPT를 교체하나요?";
+"otp.attach.alert.replace.message" = "TOTP가 이미 이 리소스와 연결되어 있습니다. 재정의하시겠습니까?";
+"otp.attach.alert.replace.button.title" = "TOPT를 교체";
+"otp.attach.error.notAllowed" = "이 리소스를 편집할 수 없습니다.";
+"otp.attach.error.notCompatible" = "이 리소스는 TOTP와 호환되지 않습니다.";
+
+
+// Settings - Main
+
+"settings.main.title" = "설정";
+"settings.main.item.application.title" = "앱 설정";
+"settings.main.item.accounts.title" = "계정";
+"settings.main.item.terms.and.licenses.title" = "약관과 라이선스";
+"settings.main.item.troubleshooting.title" = "디버그, 로그";
+"settings.main.item.sign.out.title" = "로그아웃";
+
+// Settings - Application
+
+"settings.application.title" = "앱 설정";
+"settings.application.item.autofill.title" = "자동 채우기";
+"settings.application.item.default.mode.title" = "기본 필터";
+
+// Settings - Accounts
+
+"settings.accounts.title" = "계정";
+"settings.accounts.item.details.title" = "계정 상세정보";
+"settings.accounts.item.manage.title" = "계정 관리";
+"settings.accounts.item.export.title" = "계정을 다른 기기로 전송";
+"settings.accounts.item.key.inspector.title" = "키 검사기";
+
+// Settings - Terms & Licenses
+
+"settings.terms.and.licenses.title" = "약관과 라이선스";
+"settings.terms.and.licenses.item.terms.title" = "이용약관";
+"settings.terms.and.licenses.item.privacy.title" = "개인정보보호정책";
+"settings.terms.and.licenses.item.licenses.title" = "오픈소스 라이선스";
+
+// Key inspector
+
+"account.key.inspector.title" = "키 검사기";
+"account.key.inspector.field.uid.title" = "Uid";
+"account.key.inspector.field.fingerprint.title" = "지문";
+"account.key.inspector.field.created.title" = "생성됨";
+"account.key.inspector.field.expires.title" = "만료";
+"account.key.inspector.no.exipire.placeholder" = "무제한";
+"account.key.inspector.field.key.size.title" = "키 길이";
+"account.key.inspector.field.algorithm.title" = "알고리즘";
+"account.key.inspector.uid.copied.message" = "클립보드에 Uid가 복사됨!";
+"account.key.inspector.fingerprint.copied.message" = "클립보드에 지문이 복사됨!";
+
+// Key export
+
+"account.key.export.menu.title" = "키 검사기";
+"account.key.export.menu.export.private.action" = "개인 키 내보내기";
+"account.key.export.menu.export.public.action" = "공개 키 내보내기";
+"account.key.export.private.authorization.title" = "개인 키 내보내기";
+"account.key.export.private.authorization.button.title" = "개인 키 내보내기";
+
+// Settings - Troubleshooting
+
+"settings.troubleshooting.title" = "디버그, 로그";
+"settings.troubleshooting.item.logs.title" = "디버그 로그 접근";
+"settings.troubleshooting.item.help.site.title" = "지원 사이트 방문";
+
+// Settings - Default presentation mode
+
+"settings.application.default.mode.title" = "기본 필터";
+"settings.application.default.mode.option.last.used.title" = "마지막으로 사용됨(기본값)";
+
+// Settings - Disable biometrics alert
+
+"settings.application.biometrics.disable.alert.title" = "확실합니까?";
+"settings.application.biometrics.disable.alert.message" = "%@ 을(를) 비활성화한 후에는 비밀문구를 사용하여 로그인해야 합니다.";
+"settings.application.biometrics.disable.alert.confirm.title" = "생체 인식 사용 안 함";
+"settings.application.biometrics.disable.alert.cancel.title" = "유지";
+
+// Settings - Sign out alert
+
+"settings.main.sign.out.alert.title" = "확실합니까?";
+"settings.main.sign.out.alert.message" = "로그아웃하면 이 기기의 계정에서 로그아웃됩니다.";
+"settings.main.sign.out.alert.confirm.title" = "로그아웃";
+
+// Biometric authorization availability
+
+"biometric.authorization.availability.unavailable" = "사용불가";
+"biometric.authorization.availability.face.id" = "페이스ID";
+"biometric.authorization.availability.touch.id" = "터치ID";
+
+// Operation authorization
+
+"authorization.primary.button.title" = "허가됨";
+
+// Metadata
+"metadata.pinned.key.validation.error.title" = "메타데이터 키가 변경되었습니다.";
+"metadata.pinned.key.validation.error.message" = "사용자 간에 메타데이터를 공유하는 데 사용되는 암호화 키가 %@에 의해 업데이트되었습니다.";
+"metadata.pinned.key.validation.error.disclaimer" = "이것이 예상치 못한 것이라면 관리자에게 확인해보세요.";
+"metadata.pinned.key.validation.error.trust" = "키 신뢰하기";
+"metadata.pinned.key.fingerprint" = "키 지문:";
+
+"metadata.pinned.key.validation.deleted.title" = "메타데이터 키가 삭제되었습니다.";
+"metadata.pinned.key.validation.deleted.message" = "사용자 간에 메타데이터를 공유하는 데 사용되는 신뢰할 수 있는 암호화 키가 삭제되었습니다.";
+
+"metadata.pinned.key.validation.unknown.title" = "메타데이터 키가 변경되었습니다.";
+"metadata.pinned.key.validation.unknown.message" = "사용자 간에 메타데이터를 공유하는 데 사용되는 신뢰할 수 있는 암호화 키를 검증할 수 없습니다.";

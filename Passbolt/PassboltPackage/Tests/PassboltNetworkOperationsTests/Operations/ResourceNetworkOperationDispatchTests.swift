@@ -21,7 +21,9 @@
 // @since         v1.0
 //
 
+import Metadata
 import TestExtensions
+
 @testable import PassboltNetworkOperations
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
@@ -83,6 +85,10 @@ final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
       \MetadataKeysService.encrypt,
       with: { input, _ in .init(input) }
     )
+    patch(
+      \MetadataKeysService.determineKeyType,
+      with: always(.userKey)
+    )
 
     let sut: ResourceNetworkOperationDispatch = try self.testedInstance()
     _ = try await sut.createResource(
@@ -100,6 +106,11 @@ final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
     patch(
       \MetadataKeysService.encrypt,
       with: { _, _ in nil }
+    )
+
+    patch(
+      \MetadataKeysService.determineKeyType,
+      with: always(.userKey)
     )
 
     let sut: ResourceNetworkOperationDispatch = try self.testedInstance()
@@ -197,11 +208,21 @@ final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
     let createNetworkOperationExpectation: XCTestExpectation = .init(
       description: "Should call create network operation"
     )
+    let sharedMetadataKeyID: MetadataKeyDTO.ID = .init()
     patch(
-      \MetadataKeysService.encryptForSharing,
-      with: { input async throws in
+      \MetadataKeysService.encrypt,
+      with: { input, key async throws in
+        XCTAssert(key == .sharedKey(sharedMetadataKeyID))
         sharedEncryptionExpectation.fulfill()
-        return (.init(rawValue: input), .init())
+        return .init(rawValue: input)
+      }
+    )
+
+    patch(
+      \MetadataKeysService.determineKeyType,
+      with: { isShared in
+        XCTAssertTrue(isShared)
+        return .sharedKey(sharedMetadataKeyID)
       }
     )
 

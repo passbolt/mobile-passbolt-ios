@@ -488,7 +488,7 @@ private func saveKeychain(
     )
   }
   switch loadKeychainData(for: key, tag: tag, in: context) {
-  case let .success(values) where !values.isEmpty:
+  case .success(let values) where !values.isEmpty:
     return updateKeychainKeyQuery(using: key, tag: tag, in: context)
       .flatMap { query in
         updateKeychainKeyAttributes(for: data)

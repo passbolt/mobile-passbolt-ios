@@ -22,6 +22,7 @@
 //
 
 import FeatureScopes
+import Metadata
 import NetworkOperations
 import Resources
 
@@ -89,31 +90,24 @@ extension ResourceNetworkOperationDispatch {
       }
       let metadataKeyId: MetadataKeyDTO.ID?
       let metadataKeyType: MetadataKeyDTO.MetadataKeyType
-      let encryptedMetadata: ArmoredPGPMessage
-      if sharing {
-        guard
-          let result:
-            (
-              encryptedMetadata: ArmoredPGPMessage,
-              keyId: MetadataKeyDTO.ID
-            ) = try await metadataKeysService.encryptForSharing(
-              metadataString
-            )
-        else {
-          throw MetadataEncryptionFailure.error()
-        }
-        metadataKeyId = result.keyId
+
+      guard
+        let encryptionType: MetadataKeysService.EncryptionType = metadataKeysService.determineKeyType(sharing),
+        let encryptedMetadata: ArmoredPGPMessage = try await metadataKeysService.encrypt(
+          metadataString,
+          encryptionType
+        )
+      else {
+        throw MetadataEncryptionFailure.error()
+      }
+
+      if case .sharedKey(let keyId) = encryptionType {
+        metadataKeyId = keyId
         metadataKeyType = .shared
-        encryptedMetadata = result.encryptedMetadata
       }
       else {
-        guard let result = try await metadataKeysService.encrypt(metadataString, .userKey)
-        else {
-          throw MetadataEncryptionFailure.error()
-        }
-        encryptedMetadata = result
-        metadataKeyId = resource.metadataKeyId
         metadataKeyType = .user
+        metadataKeyId = nil
       }
 
       return try await resourceCreateNetworkOperation(

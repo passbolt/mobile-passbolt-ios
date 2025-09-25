@@ -127,6 +127,20 @@ extension Resource {
   public var favorite: Bool {
     self.favoriteID != .none
   }
+
+  // Check if it is a TOTP resource
+  public var isStandaloneTOTPResource: Bool {
+    self.type.specification.slug.isStandaloneTOTPType
+  }
+
+  /// Checks if this is a simple password - without ability to add other secrets
+  public var isSimplePasswordResource: Bool {
+    self.type.specification.slug.isSimplePasswordType
+  }
+
+  public var icon: ResourceIcon {
+    .init(json: meta[keyPath: \.icon])
+  }
 }
 
 // MARK: - Validation
@@ -273,7 +287,13 @@ extension Resource {
         return specification.validator.validate(value)
       }
     case .list:
-      self[keyPath: specification.path] = .array([value])
+      if let arrayValue: [JSON] = value.arrayValue {
+        self[keyPath: specification.path] = .array(arrayValue)
+      }
+      else {
+        self[keyPath: specification.path] = .array([value])
+      }
+
       return .valid(value)
     }
   }
@@ -296,11 +316,14 @@ extension Resource {
     }
 
     // remove fields that were in the old one but are not present in new one
-    let newFields: Dictionary<ResourceType.ComputedFieldPath, ResourceFieldSpecification>.Values = resourceType
-      .flattenedFields.values
-    let removedFields: Array<ResourceFieldSpecification> = self.type.flattenedFields.values.filter {
-      !newFields.contains($0)
-    }
+    let newFields: Dictionary<ResourceType.ComputedFieldPath, ResourceFieldSpecification> = resourceType
+      .flattenedFields
+    let removedFields: Array<ResourceFieldSpecification> = self.type.flattenedFields
+      .filter {
+        newFields[$0.key] == nil
+      }
+      .values.map { $0 }
+
     for field in removedFields {
       #warning("To verify - this should not leave any junk values!")
       self[keyPath: field.path].remove()
@@ -423,6 +446,33 @@ extension Resource {
       return .null
     }
   }
+
+  public mutating func createMetadata() {
+    if self.type.isV4ResourceType, self.name.isEmpty {
+      self.name = Resource.defaultName
+    }
+    else if self[keyPath: \.meta.name].stringValue?.isEmpty == true {
+      self[keyPath: \.meta.name] = .string(Resource.defaultName)
+    }
+  }
+
+  public mutating func createSecretMetadata() {
+
+    if let passwordPath: ResourceType.FieldPath = self.firstPasswordPath,
+      self[keyPath: passwordPath] == .null
+    {
+      self[keyPath: passwordPath] = .string("")  // initialize empty password
+    }
+
+    guard self.type.isV4ResourceType == false else { return }
+
+    if self.secret[keyPath: \.object_type] == .null {
+      self.secret[keyPath: \.object_type] = .string(MetadataObjectType.secretData.rawValue)
+    }
+    if self.secret[keyPath: \.resource_type_id] == .null {
+      self.secret[keyPath: \.resource_type_id] = .string(self.type.id.rawValue.rawValue.uuidString)
+    }
+  }
 }
 
 // MARK: - internal
@@ -444,6 +494,10 @@ extension Resource {
       else { continue }  // skip field
 
       switch field.semantics {
+      case .text where field.path == \.meta.name:
+        // name is required field, but can be empty.
+        // it is not marked as required on UI
+        self[keyPath: field.path] = .string("")
       case .text, .longText:
         if field.required {
           self[keyPath: field.path] = .string("")
@@ -490,9 +544,15 @@ extension Resource {
         }
       case .list:
         self[keyPath: field.path] = .array([])
+      case .hidden:
+        self[keyPath: field.path] = .null  // hidden fields are not initialized
       case .undefined:
         break  // can't initialize undefined fields
       }
     }
   }
+}
+
+extension Resource {
+  fileprivate static let defaultName: String = "no name"
 }

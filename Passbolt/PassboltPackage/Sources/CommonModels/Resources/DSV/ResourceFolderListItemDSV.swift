@@ -25,7 +25,7 @@ import Commons
 
 import struct Foundation.Date
 
-public struct ResourceFolderListItemDSV {
+public struct ResourceFolderListItemDSV: Sendable {
 
   public let id: ResourceFolder.ID
   public var name: String

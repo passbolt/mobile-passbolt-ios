@@ -62,7 +62,7 @@ extension OSStoredProperties {
       _ value: Any?
     ) {
       switch value {
-      case let .some(value):
+      case .some(let value):
         #if DEBUG
         let typeOfValue: Any.Type = type(of: value)
         assert(

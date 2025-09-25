@@ -23,6 +23,7 @@
 
 import DatabaseOperations
 import FeatureScopes
+import Metadata
 import NetworkOperations
 import Resources
 import SessionData
@@ -31,13 +32,16 @@ extension ResourceSharePreparation {
   @MainActor fileprivate static func load(
     using features: Features
   ) throws -> ResourceSharePreparation {
+    let context: SessionScope.Context = try features.context(of: SessionScope.self)
     let metadataKeysService: MetadataKeysService = try features.instance()
     let resourceDetailsFetch: ResourceDetailsFetchDatabaseOperation = try features.instance()
     let resourceUpdateNetworkOperation: ResourceEditNetworkOperation = try features.instance()
     let resourceUpdatePreparation: ResourceUpdatePreparation = try features.instance()
-    let sessionData: SessionData = try features.instance()
 
-    @Sendable nonisolated func prepareResourceForSharing(resourceID: Resource.ID) async throws {
+    @Sendable nonisolated func prepareResourceForSharing(
+      resourceID: Resource.ID
+    ) async throws {
+
       var resource: Resource = try await resourceDetailsFetch.execute(resourceID)
 
       guard
@@ -47,7 +51,8 @@ extension ResourceSharePreparation {
 
       guard
         let metadata: String = resource.meta.stringValue,
-        let (encryptedMetadata, usedKey): (ArmoredPGPMessage, MetadataKeyDTO.ID) = try await metadataKeysService.encryptForSharing(metadata)
+        let (encryptedMetadata, usedKey): (ArmoredPGPMessage, MetadataKeyDTO.ID) =
+          try await metadataKeysService.encryptForSharing(metadata)
       else {
         throw
           InternalInconsistency
@@ -69,11 +74,10 @@ extension ResourceSharePreparation {
           metadata: encryptedMetadata,
           metadataKeyID: usedKey,
           metadataKeyType: .shared,
-          secrets: try await resourceUpdatePreparation.prepareSecret(resourceID, resourceSecret)
+          secrets: try await resourceUpdatePreparation.prepareSecret([context.account.userID], resourceSecret)
             .map { (userID: $0.recipient, data: $0.message) }
         )
       )
-      try await sessionData.refreshIfNeeded()
     }
 
     return .init(

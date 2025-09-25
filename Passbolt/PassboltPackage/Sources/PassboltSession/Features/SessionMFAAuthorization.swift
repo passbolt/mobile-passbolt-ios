@@ -133,7 +133,7 @@ extension SessionMFAAuthorization {
         let account: Account
         let rememberDevice: Bool
         switch method {
-        case let .totp(requestedAccount, totp, remember):
+        case .totp(let requestedAccount, let totp, let remember):
           guard requestedAccount == sessionState.account()
           else { throw SessionClosed.error(account: requestedAccount) }
           mfaToken = try await authorizeMFAWithTOTP(
@@ -143,7 +143,7 @@ extension SessionMFAAuthorization {
           account = requestedAccount
           rememberDevice = remember
 
-        case let .yubiKey(requestedAccount, remember):
+        case .yubiKey(let requestedAccount, let remember):
           guard requestedAccount == sessionState.account()
           else { throw SessionClosed.error(account: requestedAccount) }
 

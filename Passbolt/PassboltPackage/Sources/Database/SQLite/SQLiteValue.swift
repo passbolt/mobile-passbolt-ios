@@ -52,7 +52,7 @@ where Wrapped: SQLiteValueConvertible {
 
   public var asSQLiteValue: SQLiteValue {
     switch self {
-    case let .some(value):
+    case .some(let value):
       return value.asSQLiteValue
 
     case .none:

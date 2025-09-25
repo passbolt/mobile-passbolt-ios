@@ -46,17 +46,17 @@ extension NavigationTreeOverlay {
 
   internal var nodeID: ViewNodeID {
     switch self {
-    case let .sheet(node):
+    case .sheet(let node):
       return node.nodeID
 
-    case let .overFullScreen(node):
+    case .overFullScreen(let node):
       return node.nodeID
     }
   }
 
   internal var sheetNode: NavigationTreeNode? {
     switch self {
-    case let .sheet(node):
+    case .sheet(let node):
       return node
 
     case .overFullScreen:
@@ -66,7 +66,7 @@ extension NavigationTreeOverlay {
 
   internal var overFullScreenNode: NavigationTreeNode? {
     switch self {
-    case let .overFullScreen(node):
+    case .overFullScreen(let node):
       return node
 
     case .sheet:

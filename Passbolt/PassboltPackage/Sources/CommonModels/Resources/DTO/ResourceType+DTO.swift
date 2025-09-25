@@ -33,7 +33,7 @@ extension ResourceTypeDTO: Decodable {
     let container: KeyedDecodingContainer<ResourceTypeDTO.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
     let id: ResourceType.ID = try container.decode(ResourceType.ID.self, forKey: .id)
     let slug: ResourceSpecification.Slug = try container.decode(ResourceSpecification.Slug.self, forKey: .slug)
-
+    let isDeleted: Bool = try container.decodeIfPresent(Bool.self, forKey: .deleted) ?? false
     // [MOB-1283] In order to make grade D we can use hardcoded types.
     // We are using it instead of decoding JSON schema in order to avoid
     // yet unnecessary work related to decoding and interpreting it.
@@ -61,6 +61,7 @@ extension ResourceTypeDTO: Decodable {
 
     self.init(
       id: id,
+      isDeleted: isDeleted,
       specification: specification
     )
   }
@@ -69,9 +70,10 @@ extension ResourceTypeDTO: Decodable {
 
     case id = "id"
     case slug = "slug"
+    case deleted = "deleted"
   }
 
   public var isSupported: Bool {
-    specification.slug.isSupported
+    specification.slug.isSupported && isDeleted == false
   }
 }

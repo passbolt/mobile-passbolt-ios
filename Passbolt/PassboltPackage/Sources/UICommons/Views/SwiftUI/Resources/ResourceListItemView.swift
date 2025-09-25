@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import CommonModels
 import Commons
 import SwiftUI
 
@@ -30,6 +31,8 @@ public struct ResourceListItemView<AccessoryView>: View where AccessoryView: Vie
   private let name: String
   private let username: String?
   private let isExpired: Bool
+  private let icon: ResourceIcon
+  private let resourceTypeSlug: ResourceSpecification.Slug
   private let contentAction: @MainActor () async throws -> Void
   private let rightAction: (@MainActor () async throws -> Void)?
   private let rightAccessory: () -> AccessoryView
@@ -38,6 +41,8 @@ public struct ResourceListItemView<AccessoryView>: View where AccessoryView: Vie
     name: String,
     username: String?,
     isExpired: Bool,
+    icon: ResourceIcon,
+    resourceTypeSlug: ResourceSpecification.Slug,
     contentAction: @escaping @MainActor () async throws -> Void,
     rightAction: (@MainActor () async throws -> Void)? = .none,
     @ViewBuilder rightAccessory: @escaping () -> AccessoryView
@@ -45,6 +50,8 @@ public struct ResourceListItemView<AccessoryView>: View where AccessoryView: Vie
     self.name = name
     self.username = (username?.isEmpty ?? true) ? nil : username
     self.isExpired = isExpired
+    self.icon = icon
+    self.resourceTypeSlug = resourceTypeSlug
     self.contentAction = contentAction
     self.rightAction = rightAction
     self.rightAccessory = rightAccessory
@@ -54,12 +61,15 @@ public struct ResourceListItemView<AccessoryView>: View where AccessoryView: Vie
     ListRowView(
       leftAccessory: {
         ZStack(alignment: .bottomTrailing) {
-          LetterIconView(text: self.name)
-            .frame(
-              width: 40,
-              height: 40,
-              alignment: .center
-            )
+          ResourceIconView(
+            resourceIcon: self.icon,
+            resourceTypeSlug: self.resourceTypeSlug
+          )
+          .frame(
+            width: 40,
+            height: 40,
+            alignment: .center
+          )
           if isExpired == true {
             Image(named: .exclamationMark)
               .resizable()
@@ -111,20 +121,25 @@ public struct ResourceListItemView<AccessoryView>: View where AccessoryView: Vie
   }
 }
 
-#if DEBUG
-
-internal struct ResourceListItemView_Previews: PreviewProvider {
-
-  internal static var previews: some View {
-    ResourceListItemView(
-      name: "Resource",
-      username: "username", 
-      isExpired: true,
-      contentAction: {
-        // action
-      },
-      rightAccessory: EmptyView.init
-    )
-  }
-}
-#endif
+//#if DEBUG
+//
+//internal struct ResourceListItemView_Previews: PreviewProvider {
+//
+//  internal static var previews: some View {
+//    ResourceListItemView(
+//      name: "Resource",
+//      username: "username",
+//      isExpired: true,
+//      icon: .init(
+//        type: .none,
+//        value: .none,
+//        backgroundColor: .none,
+//      ),
+//      contentAction: {
+//        // action
+//      },
+//      rightAccessory: EmptyView.init
+//    )
+//  }
+//}
+//#endif

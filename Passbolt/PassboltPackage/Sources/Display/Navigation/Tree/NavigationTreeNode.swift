@@ -50,13 +50,13 @@ extension NavigationTreeNode: Identifiable {
 
   internal var nodeID: ViewNodeID {
     switch self {
-    case let .just(id, _):
+    case .just(let id, _):
       return id
 
-    case let .stack(stackNode):
+    case .stack(let stackNode):
       return stackNode.nodeID
 
-    case let .overlay(overlay, covering: _):
+    case .overlay(let overlay, covering: _):
       return overlay.nodeID
     }
   }
@@ -69,13 +69,13 @@ extension NavigationTreeNode: Hashable {
     _ rhs: NavigationTreeNode
   ) -> Bool {
     switch (lhs, rhs) {
-    case let (.just(lNodeID, _), .just(rNodeID, _)):
+    case (.just(let lNodeID, _), .just(let rNodeID, _)):
       return lNodeID == rNodeID
 
-    case let (.stack(lStackNode), .stack(rStackNode)):
+    case (.stack(let lStackNode), .stack(let rStackNode)):
       return lStackNode == rStackNode
 
-    case let (.overlay(lOverlay, covering: lCoveredTree), .overlay(rOverlay, covering: rCoveredTree)):
+    case (.overlay(let lOverlay, covering: let lCoveredTree), .overlay(let rOverlay, covering: let rCoveredTree)):
       return lOverlay == rOverlay
         && lCoveredTree == rCoveredTree
 
@@ -88,13 +88,13 @@ extension NavigationTreeNode: Hashable {
     into hasher: inout Hasher
   ) {
     switch self {
-    case let .just(id, _):
+    case .just(let id, _):
       hasher.combine(id)
 
-    case let .stack(stackNode):
+    case .stack(let stackNode):
       hasher.combine(stackNode)
 
-    case let .overlay(overlay, covering: coveredTree):
+    case .overlay(let overlay, covering: let coveredTree):
       hasher.combine(overlay)
       hasher.combine(coveredTree)
     }
@@ -109,7 +109,7 @@ extension NavigationTreeNode {
     withID id: ViewNodeID
   ) -> NavigationTreeNode {
     switch self {
-    case let .just(currentNodeID, currentNodeView):
+    case .just(let currentNodeID, let currentNodeView):
       return .stack(
         .element(
           id: currentNodeID,
@@ -122,7 +122,7 @@ extension NavigationTreeNode {
         )
       )
 
-    case let .stack(stackNode):
+    case .stack(let stackNode):
       return .stack(
         stackNode
           .appending(
@@ -131,7 +131,7 @@ extension NavigationTreeNode {
           )
       )
 
-    case let .overlay(.sheet(overlayTree), coveredTree):
+    case .overlay(.sheet(let overlayTree), let coveredTree):
       return .overlay(
         .sheet(
           overlayTree
@@ -143,7 +143,7 @@ extension NavigationTreeNode {
         covering: coveredTree
       )
 
-    case let .overlay(.overFullScreen(overlayTree), coveredTree):
+    case .overlay(.overFullScreen(let overlayTree), let coveredTree):
       return .overlay(
         .overFullScreen(
           overlayTree
@@ -227,7 +227,7 @@ extension NavigationTreeNode {
     _ nodeID: ViewNodeID
   ) -> Self? {
     switch self {
-    case let .just(id, _):
+    case .just(let id, _):
       if id == nodeID {
         return .none
       }
@@ -235,13 +235,13 @@ extension NavigationTreeNode {
         return self
       }
 
-    case let .stack(stackNode):
+    case .stack(let stackNode):
       return
         stackNode
         .prefix(to: nodeID)
         .map(NavigationTreeNode.stack)
 
-    case let .overlay(.sheet(overlayTree), coveredTree):
+    case .overlay(.sheet(let overlayTree), let coveredTree):
       if coveredTree.contains(nodeID) {
         return coveredTree.removing(nodeID)
       }
@@ -255,7 +255,7 @@ extension NavigationTreeNode {
         return coveredTree
       }
 
-    case let .overlay(.overFullScreen(overlayTree), coveredTree):
+    case .overlay(.overFullScreen(let overlayTree), let coveredTree):
       if coveredTree.contains(nodeID) {
         return coveredTree.removing(nodeID)
       }
@@ -279,13 +279,13 @@ extension NavigationTreeNode {
       // no matter what ID it has it will stay
       return self
 
-    case let .stack(stackNode):
+    case .stack(let stackNode):
       return .stack(
         stackNode
           .prefix(including: nodeID)
       )
 
-    case let .overlay(.sheet(overlayTree), coveredTree):
+    case .overlay(.sheet(let overlayTree), let coveredTree):
       if coveredTree.contains(nodeID) {
         return coveredTree.removing(upTo: nodeID)
       }
@@ -296,7 +296,7 @@ extension NavigationTreeNode {
         )
       }
 
-    case let .overlay(.overFullScreen(overlayTree), coveredTree):
+    case .overlay(.overFullScreen(let overlayTree), let coveredTree):
       if coveredTree.contains(nodeID) {
         return coveredTree.removing(upTo: nodeID)
       }
@@ -313,17 +313,17 @@ extension NavigationTreeNode {
     _ nodeID: ViewNodeID
   ) -> Bool {
     switch self {
-    case let .just(id, _):
+    case .just(let id, _):
       return id == nodeID
 
-    case let .stack(stackNode):
+    case .stack(let stackNode):
       return stackNode.contains(nodeID)
 
-    case let .overlay(.sheet(overlayTree), coveredTree):
+    case .overlay(.sheet(let overlayTree), let coveredTree):
       return overlayTree.contains(nodeID)
         || coveredTree.contains(nodeID)
 
-    case let .overlay(.overFullScreen(overlayTree), coveredTree):
+    case .overlay(.overFullScreen(let overlayTree), let coveredTree):
       return overlayTree.contains(nodeID)
         || coveredTree.contains(nodeID)
     }

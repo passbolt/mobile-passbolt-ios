@@ -21,60 +21,62 @@
 // @since         v1.0
 //
 
-import TestExtensions
 import Commons
+import TestExtensions
+
 @testable import CommonModels
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 final class ResourceMetadataTests: TestCase {
-  
+
   func test_modifyingName_shouldModifyNameInJSON() throws {
     let json: JSON = .object([
-      "name": .string("test name"),
+      "name": .string("test name")
     ])
     var metadata = try ResourceMetadata(resourceId: .init(), json: json)
     XCTAssertEqual(metadata.json[keyPath: \.name], "test name")
     metadata.name = "new name"
     XCTAssertEqual(metadata.json[keyPath: \.name], "new name")
   }
-  
+
   func test_modifyingUsername_shouldModifyUsernameInJSON() throws {
     let json: JSON = .object([
       "name": .string("test name"),
       "username": .string("test username"),
     ])
-    
+
     var metadata = try ResourceMetadata(resourceId: .init(), json: json)
     XCTAssertEqual(metadata.json[keyPath: \.username], "test username")
     metadata.username = "new username"
     XCTAssertEqual(metadata.json[keyPath: \.username], "new username")
   }
-  
+
   func test_modifyingDescription_shouldModifyDescriptionInJSON() throws {
     let json: JSON = .object([
       "name": .string("test name"),
       "description": .string("test description"),
     ])
-    
+
     var metadata = try ResourceMetadata(resourceId: .init(), json: json)
     XCTAssertEqual(metadata.json[keyPath: \.description], "test description")
     metadata.description = "new description"
     XCTAssertEqual(metadata.json[keyPath: \.description], "new description")
   }
-  
+
   func test_creatingResourceMetadata_withoutNameInJSON_shouldFail() {
     let json: JSON = .object([
-      "username": .string("test username"),
+      "username": .string("test username")
     ])
-    
+
     verifyIf(try ResourceMetadata(resourceId: .init(), json: json), throws: InternalInconsistency.self)
   }
-  
+
   func test_modifyingKnownKey_shouldNotAffectUnknownKeys() throws {
     let json: JSON = .object([
       "name": .string("test name"),
-      "unknownKey": .string("unknown key value")
+      "unknownKey": .string("unknown key value"),
     ])
-    
+
     var metadata = try ResourceMetadata(resourceId: .init(), json: json)
     XCTAssertEqual(metadata.json[keyPath: \.name], "test name")
     metadata.name = "new name"

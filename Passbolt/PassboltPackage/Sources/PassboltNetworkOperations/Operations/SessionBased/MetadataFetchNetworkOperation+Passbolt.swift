@@ -24,7 +24,7 @@
 import NetworkOperations
 
 extension MetadataKeysFetchNetworkOperation {
-  
+
   @Sendable fileprivate static func requestPreparation(_ input: Input) -> Mutation<HTTPRequest> {
     .combined(
       .pathSuffix("/metadata/keys.json"),
@@ -32,7 +32,7 @@ extension MetadataKeysFetchNetworkOperation {
       .method(.get)
     )
   }
-  
+
   @Sendable fileprivate static func responseDecoder(
     _ input: Input,
     _ response: HTTPResponse

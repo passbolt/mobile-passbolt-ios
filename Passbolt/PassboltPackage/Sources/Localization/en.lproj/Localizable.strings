@@ -74,7 +74,7 @@
 "resource.detail.field.passphrase" = "Password";
 "resource.detail.field.uri" = "Website URL";
 "resource.detail.field.description" = "Description";
-"resource.show.field.uri.placeholder" = "No URL";
+"resource.show.field.uri.placeholder" = "No URI";
 "resource.show.field.username.placeholder" = "No username";
 "resource.show.field.password.placeholder" = "No password";
 "resource.show.field.description.placeholder" = "No description";
@@ -82,6 +82,7 @@
 "resource.details.value" = "Value";
 "resource.detail.section.location" = "Location";
 "resource.detail.section.permissions" = "Shared with";
+"resource.detail.section.additionalURIs" = "Additional URI";
 "resource.detail.section.tags" = "Tags";
 "resource.detail.section.expiry" = "Expiry";
 "resource.detail.section.expiry.expired" = "Expired";
@@ -126,22 +127,67 @@
 "server.not.reachable.alert.message.server.placeholder" = "Server";
 "server.not.reachable.alert.message" = "%@ cannot be reached. Please try again";
 
-"resource.edit.create.title" = "Password";
-"resource.edit.title" = "Edit password";
+"resource.edit.create.title" = "Create a resource";
+"resource.edit.title" = "Edit resource";
+"resource.password.edit.title" = "Edit password";
 "resource.edit.field.name.label" = "Name";
-"resource.edit.field.uri.label" = "URL";
+"resource.edit.field.uri.label" = "Main URI";
 "resource.edit.field.username.label" = "Username";
 "resource.edit.field.password.label" = "Password";
 "resource.edit.field.description.label" = "Description";
 "resource.edit.field.totp.label" = "TOTP";
+"resource.edit.field.add.totp" = "TOTP";
+"resource.edit.field.add.note" = "Note";
+"resource.edit.field.add.password" = "Password";
 "resource.edit.field.name.placeholder" = "Enter a name";
-"resource.edit.field.uri.placeholder" = "Enter URL";
+"resource.edit.field.uri.placeholder" = "Enter URI";
 "resource.edit.field.username.placeholder" = "Enter username";
 "resource.edit.field.password.placeholder" = "Enter password";
 "resource.edit.field.description.placeholder" = "Enter description";
 "resource.edit.exit.confirmation.message" = "Your modifications won’t be saved.";
 "resource.edit.exit.confirmation.button.edit.title" = "Edit";
 "resource.edit.exit.confirmation.button.revert.title" = "Revert";
+"resource.edit.note.content.title" = "Content";
+"resource.edit.note.content.disclaimer" = "This secure is part of the secret if you wan to be able to search this content, use metadata description.";
+"resource.edit.note.remove.button.title" = "Remove note";
+
+"resource.edit.section.password.title" = "Password";
+"resource.edit.section.totp.title" = "TOTP";
+"resource.edit.section.note.title" = "Note";
+"resource.edit.section.metadata.title" = "Metadata";
+"resource.edit.totp.remove.button.title" = "Remove TOTP";
+
+"resource.create.advanced.button" = "View advanced settings";
+"resource.create.additional.secrets.title" = "Additional secrets";
+"resource.create.advanced.add.otp" = "TOTP";
+
+"resource.edit.section.metadata.description" = "Description";
+"resource.edit.section.metadata.description.name" = "Metadata description";
+"resource.edit.section.metadata.description.description" = "If you want the description to be part of the secret, use the note instead.";
+
+"resource.edit.section.metadata.additional.uris" = "Additional URIs";
+"resource.edit.section.metadata.appearance" = "Appearance";
+
+"resource.edit.uris.title" = "Additional URIs";
+"resource.edit.uris.main.uri.title" = "Main URI";
+"resource.edit.uris.additional.uris.title" = "Additional URI";
+"resource.edit.uris.main.uri.placeholder" = "Main URI";
+"resource.edit.uris.additional.uri.placeholder" = "URI";
+"resource.edit.uris.additional.uri.add" = "Add URI";
+"resource.edit.uris.additional.uris.error.limit" = "You can add a maximum of %d additional URIs.";
+"resource.edit.uris.invalid.form" = "One or more URIs are invalid.";
+
+"resource.edit.icon.title" = "Appearance";
+"resource.edit.icon.color.select.title" = "Select color";
+"resource.edit.icon.color.default.title" = "Default color";
+"resource.edit.icon.default.title" = "Default icon";
+
+"resource.create.menu.title" = "Create a resource";
+"resource.create.menu.password" = "Password";
+"resource.create.menu.totp" = "TOTP";
+
+"resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
+"resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
 
 "help.logs.viewer.title" = "Logs";
 
@@ -245,15 +291,14 @@
 "resource.menu.item.copy.password" = "Copy password";
 "resource.menu.item.copy.username" = "Copy username";
 "resource.menu.item.copy.description" = "Copy description";
+"resource.menu.item.copy.note" = "Copy note";
 "resource.menu.item.reveal.otp" = "Show TOTP";
 "resource.menu.item.copy.otp" = "Copy TOTP";
 "resource.menu.item.add.favorite" = "Add to favorite";
 "resource.menu.item.remove.favorite" = "Remove from favorite";
 "resource.menu.item.share" = "Share password";
 "resource.menu.item.edit.password" = "Edit password";
-"resource.menu.item.add.otp" = "Add TOTP";
 "resource.menu.item.edit.otp" = "Edit TOTP";
-"resource.menu.item.otp.menu" = "Manage TOTP";
 "resource.menu.item.delete.resource" = "Delete password";
 "resource.menu.item.delete.otp" = "Delete TOTP";
 "resource.menu.item.password" = "Password";
@@ -292,9 +337,8 @@
 
 "resource.permission.edit.button.delete.title" = "Delete permssion";
 
-"resource.folders.add.menu.title" = "Create";
-"resource.folders.add.menu.password.label" = "Add password";
-"resource.folders.add.menu.folder.label" = "Add folder";
+"resource.folders.add.menu.title" = "Create a resource";
+"resource.folders.add.menu.folder.label" = "Folder";
 
 "group.members.list.title" = "Group members";
 "group.members.member.details.title" = "Group member";
@@ -567,6 +611,7 @@ scanned!";
 "otp.scanning.success.link.button.title" = "Link TOTP to a password";
 "otp.code.scanning.title" = "Scan QR code";
 "otp.code.scanning.initial.message" = "Aim the camera at the QR Code";
+"otp.code.scanning.manual.input" = "Or create TOTP manually";
 
 // OTP form
 
@@ -578,8 +623,9 @@ scanned!";
 "otp.edit.form.field.uri.prompt" = "URL";
 "otp.edit.form.field.secret.title" = "Secret";
 "otp.edit.form.field.secret.prompt" = "Secret";
-"otp.edit.form.advanced.button.title" = "Advanced settings";
+"otp.edit.form.advanced.button.title" = "More TOTP settings";
 "otp.edit.form.create.button.title" = "Create standalone TOTP";
+"otp.edit.form.apply.button.title" = "Apply";
 "otp.edit.form.edit.button.title" = "Save";
 "otp.edit.form.edit.advanced.title" = "Edit TOTP - advanced settings";
 "otp.edit.form.edit.advanced.warning" = "Advanced settings have to match your TOTP provider settings otherwise it won’t work.";
@@ -687,3 +733,16 @@ scanned!";
 // Operation authorization
 
 "authorization.primary.button.title" = "Authorize";
+
+// Metadata
+"metadata.pinned.key.validation.error.title" = "The metadata key has changed.";
+"metadata.pinned.key.validation.error.message" = "The encryption key used to share metadata between users has been updated by %@.";
+"metadata.pinned.key.validation.error.disclaimer" = "If you weren't expecting this, you can verify with your administrator.";
+"metadata.pinned.key.validation.error.trust" = "Trust the key";
+"metadata.pinned.key.fingerprint" = "Key fingerprint:";
+
+"metadata.pinned.key.validation.deleted.title" = "The metadata key has been deleted.";
+"metadata.pinned.key.validation.deleted.message" = "The trusted encryption key used to share metadata between users has been deleted.";
+
+"metadata.pinned.key.validation.unknown.title" = "The metadata key has changed.";
+"metadata.pinned.key.validation.unknown.message" = "The trusted encryption key used to share metadata between users could not be validated.";

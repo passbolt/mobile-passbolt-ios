@@ -27,6 +27,7 @@ import TestExtensions
 @testable import Display
 @testable import PassboltApp
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 final class AccountKeyInspectorViewControllerTests: FeaturesTestCase {
 
   override func commonPrepare() {

@@ -48,13 +48,13 @@ extension SessionMFAAuthorizationMethod {
 
   public var account: Account {
     switch self {
-    case let .totp(account, _, _):
+    case .totp(let account, _, _):
       return account
 
-    case let .yubiKey(account, _):
+    case .yubiKey(let account, _):
       return account
 
-    case let .duo(account, _, _, _, _):
+    case .duo(let account, _, _, _, _):
       return account
     }
   }

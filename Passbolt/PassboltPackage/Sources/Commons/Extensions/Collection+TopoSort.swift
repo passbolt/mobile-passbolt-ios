@@ -29,14 +29,15 @@ extension Collection {
   ///  - Returns: The sorted elements.
   ///
   ///  Sorts the elements in the collection based on their parent-child relationships - children will have higher indices than parents. Supports multiple roots, but for node can have only one parent.
-  public func topoSort<ID>(idPath: KeyPath<Element, ID>, parentIdPath: KeyPath<Element, ID?>) -> [Element] where ID: Hashable {
+  public func topoSort<ID>(idPath: KeyPath<Element, ID>, parentIdPath: KeyPath<Element, ID?>) -> [Element]
+  where ID: Hashable {
     let wrappedElements: [Wrapper] = map { Wrapper(node: $0) }
     var wrappedElementsByKey: [ID: Wrapper<Element>] = [:]
     for wrapper in wrappedElements {
       let id = wrapper.node[keyPath: idPath]
       wrappedElementsByKey[id] = wrapper
     }
-    
+
     for wrapper in wrappedElementsByKey.values {
       if let parentId = wrapper.node[keyPath: parentIdPath], let parent = wrappedElementsByKey[parentId] {
         parent.addChild(wrapper)
@@ -54,16 +55,16 @@ private class Wrapper<Element> {
   let node: Element
   private(set) weak var parent: Wrapper?
   private(set) var children: [Wrapper] = []
-  
+
   init(node: Element) {
     self.node = node
   }
-  
+
   func addChild(_ child: Wrapper) {
     children.append(child)
     child.parent = self
   }
-  
+
   func sorted() -> [Element] {
     children.reduce(into: [node]) { acc, child in
       acc.append(contentsOf: child.sorted())

@@ -368,7 +368,7 @@ extension SessionState {
         case .passphrase(currentAccount):
           return  // NOP - ignore
 
-        case let .mfa(account, mfaProviders)
+        case .mfa(let account, let mfaProviders)
         where account == currentAccount:
           currentMFAToken = .none
           currentPendingAuthorization = .passphraseWithMFA(for: account, providers: mfaProviders)
@@ -383,7 +383,7 @@ extension SessionState {
       // already requested mfa
       case .mfa(currentAccount, let mfaProviders):
         switch request {
-        case let .passphrase(account)
+        case .passphrase(let account)
         where account == currentAccount:
           currentPassphrase = .none
           currentPassphraseExpiration = 0

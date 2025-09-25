@@ -303,7 +303,7 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
     signInAction()
       .receive(on: RunLoop.main)
       .handleEvents(receiveCompletion: { [weak self] completion in
-        guard case let .failure(error) = completion
+        guard case .failure(let error) = completion
         else { return }
         guard let theError = error as? ServerPGPFingeprintInvalid
         else {

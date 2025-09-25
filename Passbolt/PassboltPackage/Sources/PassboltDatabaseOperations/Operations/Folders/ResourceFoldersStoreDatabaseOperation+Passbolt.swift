@@ -21,10 +21,10 @@
 // @since         v1.0
 //
 
+import Commons
 import DatabaseOperations
 import FeatureScopes
 import Session
-import Commons
 
 // MARK: - Implementation
 
@@ -51,7 +51,7 @@ extension ResourceFoldersStoreDatabaseOperation {
     // key constraints it has to be inserted in a valid
     // order for operation to succeed (from root to leaf)
     let sortedFolders: Array<ResourceFolderDTO> = input.topoSort(idPath: \.id, parentIdPath: \.parentID)
-    
+
     for folder in sortedFolders {
       try connection.execute(
         .statement(

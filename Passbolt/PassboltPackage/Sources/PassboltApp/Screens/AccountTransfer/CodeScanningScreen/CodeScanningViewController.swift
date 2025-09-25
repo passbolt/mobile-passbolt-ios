@@ -189,7 +189,7 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
                   )
                 await self.popAll(Self.self, animated: false)
 
-              case let .failure(error) where error is Cancelled:
+              case .failure(let error) where error is Cancelled:
                 switch self.navigationController {
                 case .some(_ as WelcomeNavigationViewController):
                   await self.popToRoot()
@@ -209,14 +209,14 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
                   await self.dismiss(Self.self)
                 }
 
-              case let .failure(error) where error is AccountDuplicate || error is AccountKitAccountAlreadyExist:
+              case .failure(let error) where error is AccountDuplicate || error is AccountKitAccountAlreadyExist:
                 await self
                   .push(
                     CodeScanningDuplicateViewController.self
                   )
                 await self.popAll(Self.self, animated: false)
 
-              case let .failure(error):
+              case .failure(let error):
                 try await self
                   .push(
                     OperationResultControlledView(

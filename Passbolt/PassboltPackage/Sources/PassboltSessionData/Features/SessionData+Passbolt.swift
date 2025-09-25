@@ -24,10 +24,12 @@
 import DatabaseOperations
 import FeatureScopes
 import Features
+import Metadata
 import NetworkOperations
 import OSFeatures
-import SessionData
 import Resources
+import SessionData
+
 import struct Foundation.Data
 
 extension SessionData {
@@ -41,18 +43,15 @@ extension SessionData {
 
     let usersStoreDatabaseOperation: UsersStoreDatabaseOperation = try features.instance()
     let userGroupsStoreDatabaseOperation: UserGroupsStoreDatabaseOperation = try features.instance()
-    let resourcesStoreDatabaseOperation: ResourcesStoreDatabaseOperation = try features.instance()
-    let resourceTypesStoreDatabaseOperation: ResourceTypesStoreDatabaseOperation = try features.instance()
     let resourceFoldersStoreDatabaseOperation: ResourceFoldersStoreDatabaseOperation = try features.instance()
     let passwordPoliciesStoreDatabaseOperation: PasswordPoliciesStoreDatabaseOperation = try features.instance()
     let usersFetchNetworkOperation: UsersFetchNetworkOperation = try features.instance()
     let userGroupsFetchNetworkOperation: UserGroupsFetchNetworkOperation = try features.instance()
-    let resourcesFetchNetworkOperation: ResourcesFetchNetworkOperation = try features.instance()
-    let resourceTypesFetchNetworkOperation: ResourceTypesFetchNetworkOperation = try features.instance()
     let resourceFoldersFetchNetworkOperation: ResourceFoldersFetchNetworkOperation = try features.instance()
     let passwordPoliciesFetchNetworkOperation: PasswordPoliciesFetchNetworkOperation = try features.instance()
     let metadataKeysService: MetadataKeysService = try features.instance()
     let metadataSettings: MetadataSettingsService = try features.instance()
+    let resourceUpdater: ResourceUpdater = try features.instance()
 
     // when diffing endpoint becomes available
     // we could store last update time and reuse it to avoid
@@ -119,75 +118,47 @@ extension SessionData {
       }
     }
 
+    @Sendable nonisolated func process(resource: ResourceDTO) async -> ResourceDTO? {
+      do {
+        if let armored = resource.metadataArmoredMessage,
+          let keyId = resource.metadataKeyId,
+          let keyType = resource.metadataKeyType
+        {
+          guard configuration.metadata.enabled else { return ResourceDTO?.none }
+          var resource = resource
+          let decryptionType: MetadataKeysService.EncryptionType = keyType == .shared ? .sharedKey(keyId) : .userKey
+          if let decryptedMetadataData: Data = try await metadataKeysService.decrypt(
+            armored,
+            .resource(resource.id),
+            decryptionType
+          ) {
+            let metadata: ResourceMetadataDTO = try .init(resourceId: resource.id, data: decryptedMetadataData)
+            try metadata.validate(with: resource)
+            resource.metadata = metadata
+          }
+
+          return resource
+        }
+        else {
+          var resource = resource
+          let metadata: ResourceMetadataDTO = try .init(resource: resource)
+          try metadata.validate(with: resource)
+          resource.metadata = metadata
+          return resource
+        }
+      }
+      catch {
+        InternalInconsistency.error("Cannot decode metadata").logged()
+      }
+      return nil
+    }
+
     @Sendable nonisolated func refreshResources() async throws {
       Diagnostics.logger.info("Refreshing resources data...")
       do {
-        // Retrieve resourceTypes for ID
-        let allResourceTypes: [ResourceTypeDTO] = try await resourceTypesFetchNetworkOperation()
-        let supportedResourceTypes = allResourceTypes.filter { $0.isSupported }
-        // Store resource type for sql association
-        try await resourceTypesStoreDatabaseOperation(
-          supportedResourceTypes
+        try await resourceUpdater.updateResources(
+          isInApplicationContext ? .extension : .application
         )
-
-        // Retrieve resources
-        let resources = try await resourcesFetchNetworkOperation()
-        // Filter resources with supported types
-        let supportedTypesIDs = supportedResourceTypes.map(\.id)
-        let resourcesWithSupportedTypes = resources.filter { resource in
-          supportedTypesIDs.contains(resource.typeID)
-        }
-        let resourcesWithMetadata = await resourcesWithSupportedTypes.asyncCompactMap { resource in
-          do {
-            if let armored = resource.metadataArmoredMessage, 
-               let keyId = resource.metadataKeyId,
-               let keyType = resource.metadataKeyType
-            {
-              guard configuration.metadata.enabled else { return ResourceDTO?.none }
-              var resource = resource
-              let decryptionType: MetadataKeysService.EncryptionType = keyType == .shared ? .sharedKey(keyId) : .userKey
-              if let decryptedMetadataData: Data = try await metadataKeysService.decrypt(armored, .resource(resource.id), decryptionType) {
-                let metadata: ResourceMetadataDTO = try .init(resourceId: resource.id, data: decryptedMetadataData)
-                try metadata.validate(with: resource)
-                resource.metadata = metadata
-              }
-              
-              return resource
-            } else {
-              var resource = resource
-              let metadata: ResourceMetadataDTO = try .init(resource: resource)
-              try metadata.validate(with: resource)
-              resource.metadata = metadata
-              return resource
-            }
-          } catch {
-            InternalInconsistency.error("Cannot decode metadata").logged()
-          }
-          return nil
-        }
-        // Initialize resourcesCollection to add the validated entity
-        var resourcesCollection: Array<ResourceDTO> = []
-        for (index, resourceDTO) in resourcesWithMetadata.enumerated() {
-          do {
-            let resource: ResourceDTO = try resourceDTO.validate(resourceTypes: supportedResourceTypes)
-            resourcesCollection.append(resource)
-          } catch {
-            //Do not break it and continue the loop
-            CollectionValidationError.error(
-              message: "Cannot validate resource collection",
-              underlyingError: .none,
-              details: [
-                index.formatted(): error.asTheError().getDetails()!
-              ]
-            ).logged()
-          }
-        }
-
-        // Store resources into db which has been validated
-        try await resourcesStoreDatabaseOperation(
-          resourcesCollection
-        )
-
         Diagnostics.logger.info("...resources data refresh finished!")
       }
       catch {
@@ -234,7 +205,7 @@ extension SessionData {
             }
             try await refreshFolders()
             try await refreshResources()
-            if(configuration.passwordPolicies.passwordPoliciesEnabled) {
+            if configuration.passwordPolicies.passwordPoliciesEnabled {
               try await refreshPasswordPolicies()
             }
 
@@ -273,4 +244,17 @@ extension FeaturesRegistry {
       in: SessionScope.self
     )
   }
+}
+
+extension ResourceUpdater.Configuration {
+
+  fileprivate static let application: Self = .init(
+    maximumChunkSize: 5_000,
+    maximumConcurrentTasks: 5
+  )
+
+  fileprivate static let `extension`: Self = .init(
+    maximumChunkSize: 1_000,
+    maximumConcurrentTasks: 1
+  )
 }

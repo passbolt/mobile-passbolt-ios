@@ -25,7 +25,7 @@ public struct InvalidResourceTypeError: TheError {
   public static func error(
     message: StaticString = "InvalidResourceType",
     underlyingError: Error? = .none,
-    details: Dictionary<String, Any>? = nil, // Add optional details
+    details: Dictionary<String, Any>? = nil,  // Add optional details
     file: StaticString = #fileID,
     line: UInt = #line
   ) -> Self {

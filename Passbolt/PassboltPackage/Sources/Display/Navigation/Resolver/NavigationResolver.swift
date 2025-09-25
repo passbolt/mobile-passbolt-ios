@@ -29,7 +29,13 @@ import Features
 // with existing stuff. It will have to be rewritten
 // from scratch in future. However provided interface
 // should be kept unchanged (`NavigationTo`).
-internal struct NavigationResolver {}
+internal struct NavigationResolver {
+  fileprivate var rootAnchorProvider: RootAnchorProvider?
+
+  internal init(rootAnchorProvider: RootAnchorProvider?) {
+    self.rootAnchorProvider = rootAnchorProvider
+  }
+}
 
 extension NavigationResolver: LoadableFeature {
 
@@ -207,12 +213,7 @@ extension NavigationResolver {
 extension NavigationResolver {
 
   @MainActor fileprivate func rootAnchor() -> NavigationAnchor? {
-    UIApplication.shared
-      .connectedScenes
-      .compactMap({ scene in
-        (scene as? UIWindowScene)?.keyWindow?.rootViewController
-      })
-      .first
+    rootAnchorProvider?.rootAnchor()
   }
 
   @MainActor fileprivate func leafAnchor(
@@ -232,7 +233,10 @@ extension NavigationResolver {
   @MainActor fileprivate static func load(
     features: Features
   ) throws -> Self {
-    .init()
+    let rootAnchorProvider: RootAnchorProvider = try features.instance()
+    return .init(
+      rootAnchorProvider: rootAnchorProvider
+    )
   }
 }
 
@@ -243,6 +247,75 @@ extension FeaturesRegistry {
       .disposable(
         NavigationResolver.self,
         load: NavigationResolver.load(features:)
+      )
+    )
+  }
+}
+
+internal struct RootAnchorProvider {
+
+  /// Provides the root navigation anchor.
+  /// - Returns: The root navigation anchor.
+  internal var rootAnchor: () -> NavigationAnchor?
+
+  internal init(
+    rootAnchor: @escaping () -> NavigationAnchor?
+  ) {
+    self.rootAnchor = rootAnchor
+  }
+}
+
+extension RootAnchorProvider: LoadableFeature {
+
+  #if DEBUG
+  public static var placeholder: Self {
+    unimplemented("This type should not be used in tests at all.")
+  }
+  #endif
+
+  internal static func load(
+    features: Features
+  ) throws -> Self {
+    .init(
+      rootAnchor: {
+        UIApplication.shared
+          .connectedScenes
+          .compactMap({ scene in
+            (scene as? UIWindowScene)?.keyWindow?.rootViewController
+          })
+          .first
+      }
+    )
+  }
+
+  internal static func loadExtension(
+    feature: Features
+  ) throws -> Self {
+    .init(
+      rootAnchor: {
+        // This is temorary solution for autofill extension. Has to be refactored once navigation is moved entirely to SwiftUI.
+        UIApplication.shared.keyWindow?.rootViewController?.children.first?.children.first?.children.first
+      }
+    )
+  }
+}
+
+extension FeaturesRegistry {
+
+  public mutating func useApplicationRootAnchorProvider() {
+    self.use(
+      .disposable(
+        RootAnchorProvider.self,
+        load: RootAnchorProvider.load(features:)
+      )
+    )
+  }
+
+  public mutating func useExtensionRootAnchorProvider() {
+    self.use(
+      .lazyLoaded(
+        RootAnchorProvider.self,
+        load: RootAnchorProvider.loadExtension(feature:)
       )
     )
   }

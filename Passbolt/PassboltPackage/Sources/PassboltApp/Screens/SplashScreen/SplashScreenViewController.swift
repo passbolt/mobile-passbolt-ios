@@ -98,7 +98,7 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
       self?.cancellables
         .executeOnMainActor {
           switch destination {
-          case let .accountSelection(lastAccount, message):
+          case .accountSelection(let lastAccount, let message):
             await self?
               .replaceWindowRoot(
                 with: AuthorizationNavigationViewController.self,
@@ -127,7 +127,7 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
                 in: sessionContext
               )
 
-          case let .mfaAuthorization(mfaProviders):
+          case .mfaAuthorization(let mfaProviders):
             if mfaProviders.isEmpty {
               await self?
                 .replaceWindowRoot(

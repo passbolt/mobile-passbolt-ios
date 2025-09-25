@@ -25,7 +25,7 @@ import TestExtensions
 
 @testable import PassboltAccounts
 
-// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals, NeverForceUnwrap
 final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
 
   override class func testedImplementationRegister(
@@ -115,6 +115,10 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     patch(
       \OSFiles.contentsOfDirectory,
       with: always([])
+    )
+    patch(
+      \MetadataKeyDataStore.deletePinnedMetadataKey,
+      with: always(())
     )
   }
 
@@ -252,13 +256,13 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
   func test_storeAccount_savesDataProperly() async throws {
     let dataStore: AccountsDataStore = try testedInstance()
 
-    let result: Result<Void, Error> = .init {
+    let result: Result<Void, Error> = .init(catching: {
       try dataStore.storeAccount(
         Account.mock_ada,
         AccountProfile.mock_ada,
         validPrivateKey
       )
-    }
+    })
 
     XCTAssertSuccess(result)
     XCTAssertEqual(
@@ -279,13 +283,13 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
 
     let dataStore: AccountsDataStore = try testedInstance()
 
-    let result: Result<Void, Error> = await .init {
+    let result: Result<Void, Error> = .init(catching: {
       try dataStore.storeAccount(
         Account.mock_ada,
         AccountProfile.mock_ada,
         validPrivateKey
       )
-    }
+    })
 
     XCTAssertFailure(result)
   }
@@ -412,9 +416,9 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
 
     let dataStore: AccountsDataStore = try testedInstance()
 
-    let result: Result<Void, Error> = await .init {
+    let result: Result<Void, Error> = .init(catching: {
       try dataStore.storeServerFingerprint(Account.mock_ada.localID, serverFingerprint)
-    }
+    })
 
     XCTAssertFailure(result)
   }
@@ -422,9 +426,9 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
   func test_verifyDataIntegrity_succeedsWithNoData() async throws {
     let dataStore: AccountsDataStore = try testedInstance()
 
-    let result: Result<Void, Error> = await .init {
+    let result: Result<Void, Error> = .init(catching: {
       try dataStore.verifyDataIntegrity()
-    }
+    })
 
     XCTAssertSuccess(result)
   }
@@ -451,9 +455,9 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     ]
     let dataStore: AccountsDataStore = try testedInstance()
 
-    let result: Result<Void, Error> = await .init {
+    let result: Result<Void, Error> = .init(catching: {
       try dataStore.verifyDataIntegrity()
-    }
+    })
 
     XCTAssertSuccess(result)
   }
@@ -522,9 +526,9 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     ]
     let dataStore: AccountsDataStore = try testedInstance()
 
-    let result: Result<Void, Error> = await .init {
+    let result: Result<Void, Error> = .init(catching: {
       try dataStore.verifyDataIntegrity()
-    }
+    })
 
     XCTAssertSuccess(result)
     XCTAssertEqual(
@@ -552,9 +556,9 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
 
     let dataStore: AccountsDataStore = try testedInstance()
 
-    let result: Result<Void, Error> = await .init {
-      try await dataStore.verifyDataIntegrity()
-    }
+    let result: Result<Void, Error> = .init(catching: {
+      try dataStore.verifyDataIntegrity()
+    })
 
     XCTAssertSuccess(result)
     XCTAssertEqual(
@@ -582,9 +586,9 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
 
     let dataStore: AccountsDataStore = try testedInstance()
 
-    let result: Result<Void, Error> = await .init {
+    let result: Result<Void, Error> = .init(catching: {
       try dataStore.verifyDataIntegrity()
-    }
+    })
 
     XCTAssertSuccess(result)
     XCTAssertEqual(
@@ -651,9 +655,9 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     ]
     let dataStore: AccountsDataStore = try testedInstance()
 
-    let result: Result<Void, Error> = await .init {
+    let result: Result<Void, Error> = .init(catching: {
       try dataStore.verifyDataIntegrity()
-    }
+    })
 
     XCTAssertSuccess(result)
     XCTAssertEqual(
@@ -664,9 +668,11 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
 }
 
 // keychain wrapper encodes values within own structure putting value under "v" key
+// swift-format-ignore: NeverUseForceTry
 private let validAccountKeychainData: Data = try! JSONEncoder.default.encode(["v": Account.mock_ada])
 
 // keychain wrapper encodes values within own structure putting value under "v" key
+// swift-format-ignore: NeverUseForceTry
 private let validAccountProfileKeychainData: Data = try! JSONEncoder.default.encode(["v": AccountProfile.mock_ada])
 
 private let validPrivateKey: ArmoredPGPPrivateKey =
@@ -734,6 +740,8 @@ private let validPrivateKey: ArmoredPGPPrivateKey =
 
 private let serverFingerprint: Fingerprint = .init(rawValue: "E8FE388E385841B382B674ADB02DADCD9565E1B8")
 
+// swift-format-ignore: NeverUseForceTry
 private let validServerFingerprint: Data = try! JSONEncoder.default.encode(["v": serverFingerprint])
 // keychain wrapper encodes values within own structure putting value under "v" key
+// swift-format-ignore: NeverUseForceTry
 private let validPrivateKeyKeychainData: Data = try! JSONEncoder.default.encode(["v": validPrivateKey])

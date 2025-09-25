@@ -59,7 +59,7 @@ extension IdentifiedArray: MutableCollection {
     position: Int
   ) -> Element {
     @_transparent get {
-      self.dictionary[self.dictionary.keys[position]]!
+      self.dictionary[self.dictionary.keys[position]]!  // swiftformat-ignore-this NeverForceUnwrap
     }
     @_transparent set {
       self.dictionary[self.dictionary.keys[position]] = newValue

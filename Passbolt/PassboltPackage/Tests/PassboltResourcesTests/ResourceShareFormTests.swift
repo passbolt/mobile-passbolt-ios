@@ -25,6 +25,7 @@ import Accounts
 import CommonModels
 import FeatureScopes
 import Features
+import Metadata
 import SessionData
 import TestExtensions
 import Users
@@ -242,7 +243,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     }
   }
 
-  func test_sendForm_fails_whenFetchingNewGroupMembersFailsWithNewPermissions() async throws {
+  func test_sendForm_fails_whenSimulateShareRequestFails() async throws {
     var resource: Resource = .mock_1
     resource.permissions = [
       .user(
@@ -256,10 +257,18 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       with: Variable(initial: resource).asAnyUpdatable()
     )
     patch(
-      \UserGroups.groupMembers,
+      \ResourceSharePreparation.prepareResourceForSharing,
+      with: always(Void())
+    )
+    patch(
+      \ResourceSimulateShareNetworkOperation.execute,
       with: alwaysThrow(
         MockIssue.error()
       )
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
 
     let feature: ResourceShareForm = try self.testedInstance()
@@ -290,16 +299,22 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       with: Variable(initial: resource).asAnyUpdatable()
     )
     patch(
-      \UserGroups.groupMembers,
-      with: always(
-        [.mock_1, .mock_1]
-      )
+      \ResourceSimulateShareNetworkOperation.execute,
+      with: always(.init(changes: [.added: [.mock_1, .mock_1]]))
+    )
+    patch(
+      \ResourceSharePreparation.prepareResourceForSharing,
+      with: always(Void())
     )
     patch(
       \ResourceController.fetchSecretIfNeeded,
       with: alwaysThrow(
         MockIssue.error()
       )
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
 
     let feature: ResourceShareForm = try self.testedInstance()
@@ -330,10 +345,12 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       with: Variable(initial: resource).asAnyUpdatable()
     )
     patch(
-      \UserGroups.groupMembers,
-      with: always(
-        [.mock_1, .mock_1]
-      )
+      \ResourceSimulateShareNetworkOperation.execute,
+      with: always(.init(changes: [.added: [.mock_1, .mock_1]]))
+    )
+    patch(
+      \ResourceSharePreparation.prepareResourceForSharing,
+      with: always(Void())
     )
     patch(
       \ResourceController.fetchSecretIfNeeded,
@@ -346,6 +363,10 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       with: alwaysThrow(
         MockIssue.error()
       )
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
 
     let feature: ResourceShareForm = try self.testedInstance()
@@ -376,10 +397,8 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       with: Variable(initial: resource).asAnyUpdatable()
     )
     patch(
-      \UserGroups.groupMembers,
-      with: always(
-        [.mock_1, .mock_1]
-      )
+      \ResourceSimulateShareNetworkOperation.execute,
+      with: always(.init(changes: [.added: [.mock_1, .mock_1]]))
     )
     patch(
       \ResourceController.fetchSecretIfNeeded,
@@ -399,7 +418,11 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     )
     patch(
       \ResourceSharePreparation.prepareResourceForSharing,
-       with: always(Void())
+      with: always(Void())
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
 
     let feature: ResourceShareForm = try self.testedInstance()
@@ -435,6 +458,10 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       with: Variable(initial: resource).asAnyUpdatable()
     )
     patch(
+      \ResourceSimulateShareNetworkOperation.execute,
+      with: always(.init(changes: [:]))
+    )
+    patch(
       \ResourceShareNetworkOperation.execute,
       with: always(Void())
     )
@@ -452,12 +479,16 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         throw MockIssue.error()
       }
     )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
 
     let feature: ResourceShareForm = try self.testedInstance()
 
     try await feature.sendForm()
 
-    XCTAssertNil(result.value)
+    XCTAssertNil(result.value as Any?)
   }
 
   func test_sendForm_succeeds_whenAllOperationSucceed() async throws {
@@ -474,10 +505,8 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       with: Variable(initial: resource).asAnyUpdatable()
     )
     patch(
-      \UserGroups.groupMembers,
-      with: always(
-        [.mock_1, .mock_1]
-      )
+      \ResourceSimulateShareNetworkOperation.execute,
+      with: always(.init(changes: [.added: [.mock_1, .mock_1]]))
     )
     patch(
       \ResourceController.fetchSecretIfNeeded,
@@ -494,6 +523,10 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     patch(
       \ResourceShareNetworkOperation.execute,
       with: always(Void())
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
     )
 
     let feature: ResourceShareForm = try self.testedInstance()

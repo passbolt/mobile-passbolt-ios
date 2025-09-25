@@ -25,6 +25,7 @@ import Commons
 import Crypto
 import Display
 import FeatureScopes
+import Metadata
 import OSFeatures
 import Resources
 
@@ -36,24 +37,42 @@ public final class ResourceEditViewController: ViewController {
 
     public var editingContext: ResourceEditingContext
     public var success: @Sendable (Resource) async -> Void
+    public var customOnSuccessNavigation: (() async throws -> Void)?
 
     public init(
       editingContext: ResourceEditingContext,
-      success: @escaping @Sendable (Resource) async -> Void = { _ in }
+      success: @escaping @Sendable (Resource) async -> Void = { _ in },
+      customOnSuccessNavigation: (() async throws -> Void)? = nil
     ) {
       self.editingContext = editingContext
       self.success = success
+      self.customOnSuccessNavigation = customOnSuccessNavigation
     }
   }
 
   public struct ViewState: Equatable {
-
-    internal var fields: IdentifiedArray<ResourceEditFieldViewModel>
+    // Name field - can be edited outside of the form sections
+    internal var nameField: ResourceEditFieldViewModel?
+    // All form fields except name field
+    internal var mainForm: MainFormViewModel
+    // Flag indicating that there are undefined fields in the resource - i.e definied with new version of API
     internal var containsUndefinedFields: Bool
+    // Flag indicating that the resource has been edited
     internal var edited: Bool
+    internal var showPasswordSection: Bool
+    // Flag indicating that advanced settings are shown
+    internal var showsAdvancedSettings: Bool
+    // Flag indicating if additional secrets can be added
+    internal var canAddAdditionalSecrets: Bool
+    // Current resource type slug
+    internal var resourceTypeSlug: ResourceSpecification.Slug
+    // Flag indicating that the resource is a standalone TOTP
+    internal var isStandaloneTOTP: Bool {
+      self.resourceTypeSlug.isStandaloneTOTPType
+    }
   }
 
-  public let viewState: ViewStateSource<ViewState>
+  public nonisolated let viewState: ViewStateSource<ViewState>
 
   internal let editsExisting: Bool
 
@@ -69,10 +88,22 @@ public final class ResourceEditViewController: ViewController {
   private let resourceEditForm: ResourceEditForm
 
   private let navigationToSelf: NavigationToResourceEdit
+  private let navigationToOTPEdit: NavigationToOTPEditForm
+  private let navigationToOTPAdvanced: NavigationToOTPEditAdvancedForm
+  private let navigationToOTPScanning: NavigationToOTPScanning
+  private let navigationToPasswordEdit: NavigationToResourcePasswordEdit
+  private let navigationToTextEdit: NavigationToResourceTextEdit
+  private let navigationToURIEdit: NavigationToResourceURIEdit
+  private let navigationToIconEdit: NavigationToResourceIconEdit
+
+  internal var canNavigateToOTPScanning: Bool {
+    self.navigationToOTPScanning.canPerform()
+  }
 
   private let randomGenerator: RandomStringGenerator
 
   private let success: @Sendable (Resource) async -> Void
+  private let customOnSuccessNavigation: (() async throws -> Void)?
 
   private let features: Features
 
@@ -89,17 +120,19 @@ public final class ResourceEditViewController: ViewController {
     self.features = features  // keep the branch alive
 
     self.success = context.success
+    self.customOnSuccessNavigation = context.customOnSuccessNavigation
 
     let randomGenerator: RandomStringGenerator = try features.instance()
     self.randomGenerator = randomGenerator
 
-    if isInExtensionContext {
-      // TODO: unify navigation between app and extnsion
-      self.navigationToSelf = .placeholder
-    }
-    else {
-      self.navigationToSelf = try features.instance()
-    }
+    self.navigationToSelf = try features.instance()
+    self.navigationToOTPEdit = try features.instance()
+    self.navigationToOTPAdvanced = try features.instance()
+    self.navigationToPasswordEdit = try features.instance()
+    self.navigationToTextEdit = try features.instance()
+    self.navigationToOTPScanning = try features.instance()
+    self.navigationToURIEdit = try features.instance()
+    self.navigationToIconEdit = try features.instance()
 
     self.resourceEditForm = try features.instance()
 
@@ -111,29 +144,51 @@ public final class ResourceEditViewController: ViewController {
         editedFields: .init()
       )
     )
+    let editedResource: Resource = context.editingContext.editedResource
+
     self.viewState = .init(
       initial: .init(
-        fields: .init(),
+        nameField: nil,
+        mainForm: .empty,
         containsUndefinedFields: false,
-        edited: false
+        edited: false,
+        showPasswordSection: editedResource.isStandaloneTOTPResource == false,
+        showsAdvancedSettings: false,
+        canAddAdditionalSecrets: editedResource.isSimplePasswordResource == false,
+        resourceTypeSlug: editedResource.type.specification.slug
       ),
       updateFrom: ComputedVariable(
         combined: self.resourceEditForm.state,
         with: self.localState
       ),
-      update: { @MainActor (updateState, update: Update<(Resource, LocalState)>) async throws -> Void in
+      update: {
+        @MainActor (updateState, update: Update<(Resource, LocalState)>) async throws -> Void in
         let update: (resource: Resource, localState: LocalState) = try update.value
         assert(update.resource.secretAvailable, "Can't edit resource without secret!")
-        let fields = fields(
+        guard
+          let nameFieldSpecification: ResourceFieldSpecification = update.resource.fields.first(where: {
+            $0.name == .name
+          })
+        else {
+          return
+        }
+        let countEntropy: (String) -> Entropy = { [randomGenerator] (input: String) -> Entropy in
+          randomGenerator.entropy(input, CharacterSets.all)
+        }
+        let nameField: ResourceEditFieldViewModel? = .init(
+          nameFieldSpecification,
+          in: update.resource,
+          edited: update.localState.editedFields.contains(nameFieldSpecification.path),
+          countEntropy: countEntropy
+        )
+        let mainForm: MainFormViewModel = prepareMainFormViewModel(
           for: update.resource,
-          using: features,
           edited: update.localState.editedFields,
-          countEntropy: { [randomGenerator] (input: String) -> Entropy in
-            randomGenerator.entropy(input, CharacterSets.all)
-          }
+          countEntropy: countEntropy
         )
         updateState { (viewState: inout ViewState) in
-          viewState.fields = fields
+          viewState.nameField = nameField
+          viewState.mainForm = mainForm
           viewState.containsUndefinedFields = update.resource.containsUndefinedFields
           viewState.edited = !update.localState.editedFields.isEmpty
         }
@@ -168,10 +223,12 @@ public final class ResourceEditViewController: ViewController {
   @MainActor internal func sendForm() async throws {
     do {
       let resource: Resource = try await self.resourceEditForm.sendForm()
-      if !isInExtensionContext {
-        // TODO: unify navigation between app and extnsion
+      if let customOnSuccessNavigation {
+        try await customOnSuccessNavigation()
+      }
+      else {
         try await self.navigationToSelf.revert()
-      }  // else NOP
+      }
 
       SnackBarMessageEvent.send(
         self.editsExisting
@@ -186,6 +243,9 @@ public final class ResourceEditViewController: ViewController {
       }
       throw error
     }
+    catch let error as MetadataPinnedKeyValidationError {
+      await self.navigateToMetadataPinnedKeyValidation(reason: error.reason)
+    }
     catch {
       throw error
     }
@@ -195,45 +255,346 @@ public final class ResourceEditViewController: ViewController {
     await consumingErrors(
       errorDiagnostics: "Failed to discard resource edit form!"
     ) {
-      if isInExtensionContext {
-        // TODO: unify navigation between app and extnsion
-        self.features.instance(of: NavigationTree.self)
-          .dismiss(self.viewNodeID)
-      }
+      try await self.navigationToSelf.revert()
+    }
+  }
+
+  @MainActor internal func scanTOTP() async {
+    await consumingErrors {
+      let currentState: Resource = try await self.resourceEditForm.state.value
+      guard let totpPath: ResourceType.FieldPath = currentState.type.fieldSpecification(for: \.firstTOTP)?.path
       else {
-        try await self.navigationToSelf.revert()
+        return
       }
+
+      await self.navigationToOTPScanning.performCatching(
+        context: .init(
+          totpPath: totpPath
+        )
+      )
+    }
+  }
+
+  /// Show advanced settings
+  @MainActor internal func showAdvancedSettings() {
+    viewState.update(\.showsAdvancedSettings, to: true)
+  }
+
+  /// Navigate to TOTP create/edit form.
+  /// Note: Adding TOTP might require changing resource type to one that supports TOTP.  That might require revering if TOTP addition is cancelled.
+  @MainActor internal func createOrEditTOTP() async {
+    await consumingErrors {
+      let editingContext = try features.context(of: ResourceEditScope.self)
+
+      let currentState = try await self.resourceEditForm.state.value
+      guard
+        let attachedOTPSlug: ResourceSpecification.Slug = currentState.attachedOTPSlug,
+        let attachedOTPType: ResourceType = editingContext.availableTypes.first(where: {
+          $0.specification.slug == attachedOTPSlug
+        }),
+        let totpPath: ResourceType.FieldPath = attachedOTPType.fieldSpecification(for: \.firstTOTP)?.path
+      else {
+        let displayableString: DisplayableString =
+          editingContext.editedResource.isLocal
+          ? "resource.create.invalid.configuration"
+          : "resource.edit.invalid.configuration"
+        return SnackBarMessageEvent.send(.error(displayableString))
+      }
+
+      if attachedOTPSlug != currentState.type.specification.slug {
+        try self.resourceEditForm.updateType(attachedOTPType)
+      }
+
+      await self.navigationToOTPEdit.performCatching(
+        context: .init(
+          totpPath: totpPath
+        )
+      )
+    }
+  }
+
+  @MainActor internal func addPassword() async {
+    await consumingErrors {
+      let editingContext = try features.context(of: ResourceEditScope.self)
+      let isV5Type = editingContext.editedResource.type.specification.slug.isV5Type
+      let newResourceSlug: ResourceSpecification.Slug = isV5Type ? .v5DefaultWithTOTP : .passwordWithTOTP
+      guard
+        editingContext.editedResource.type.specification.slug.isStandaloneTOTPType,
+        let newType: ResourceType = editingContext.availableTypes.first(
+          where: {
+            $0.specification.slug == newResourceSlug
+          })
+      else {
+        let displayableString: DisplayableString =
+          editingContext.editedResource.isLocal
+          ? "resource.create.invalid.configuration"
+          : "resource.edit.invalid.configuration"
+        return SnackBarMessageEvent.send(.error(displayableString))
+      }
+
+      let onFormDiscarded: @Sendable () async throws -> Void = { [resourceEditForm] in
+        try resourceEditForm.updateType(editingContext.editedResource.type)
+      }
+      try self.resourceEditForm.updateType(newType)
+
+      await self.navigationToPasswordEdit.performCatching(
+        context: .init(
+          onFormDiscarded: onFormDiscarded
+        )
+      )
+    }
+  }
+
+  @MainActor internal func editMetadataDescription() async {
+    await consumingErrors {
+      await self.navigationToTextEdit.performCatching(
+        context: .init(
+          textPath: \.meta.description,
+          title: "resource.edit.section.metadata.description",
+          fieldName: "resource.edit.section.metadata.description.name",
+          description: "resource.edit.section.metadata.description.description",
+          action: nil
+        )
+      )
+    }
+  }
+
+  @MainActor internal func editAdditionalURIs() async {
+    await consumingErrors {
+      await self.navigationToURIEdit.performCatching()
+    }
+  }
+
+  @MainActor internal func editIcon() async {
+    await consumingErrors {
+      await self.navigationToIconEdit.performCatching()
+    }
+  }
+
+  @MainActor internal func editNote() async {
+    await consumingErrors {
+      let currentState = try await self.resourceEditForm.state.value
+      let editingContext = try features.context(of: ResourceEditScope.self)
+      let newResourceSlug = currentState.type.slugByAttachingNote()
+
+      if newResourceSlug != currentState.type.specification.slug {
+        guard
+          let newType: ResourceType = editingContext.availableTypes.first(
+            where: {
+              $0.specification.slug == newResourceSlug
+            })
+        else {
+          let displayableString: DisplayableString =
+            editingContext.editedResource.isLocal
+            ? "resource.create.invalid.configuration"
+            : "resource.edit.invalid.configuration"
+          return SnackBarMessageEvent.send(.error(displayableString))
+        }
+        try self.resourceEditForm.updateType(newType)
+      }
+
+      await self.navigationToTextEdit.performCatching(
+        context: .init(
+          textPath: \.secret.description,
+          title: "resource.edit.field.add.note",
+          fieldName: "resource.edit.note.content.title",
+          description: "resource.edit.note.content.disclaimer",
+          action: .init(
+            title: "resource.edit.note.remove.button.title",
+            icon: .trash,
+            action: removeNote
+          )
+        )
+      )
+    }
+  }
+
+  private func removeNote() async throws {
+    let editingContext: ResourceEditingContext = try features.context(of: ResourceEditScope.self)
+    let resource: Resource = try await self.resourceEditForm.state.value
+
+    if let newResourceTypeSlug = resource.type.slugByRemovingNote(),
+      resource.firstTOTP.secret_key.stringValue?.isEmpty == true,
+      let newResourceType = editingContext.availableTypes.first(
+        where: {
+          $0.specification.slug == newResourceTypeSlug
+        })
+    {
+      try self.resourceEditForm.updateType(newResourceType)
+    }
+
+    self.resourceEditForm.update(
+      \.secret.description,
+      to: .null
+    )
+    try await navigationToTextEdit.revert()
+  }
+
+  @MainActor internal func navigateToOTPAdvancedSettings() async {
+    await consumingErrors {
+      let editingContext: ResourceEditingContext = try features.context(of: ResourceEditScope.self)
+      let resourceType: ResourceType = editingContext.editedResource.type
+      guard resourceType.specification.slug.isStandaloneTOTPType,
+        let totpPath: ResourceType.FieldPath = resourceType.fieldSpecification(for: \.firstTOTP)?.path
+      else {
+        return
+      }
+
+      try await self.navigationToOTPAdvanced.perform(context: .init(totpPath: totpPath))
+    }
+  }
+
+  private func navigateToMetadataPinnedKeyValidation(reason: MetadataPinnedKeyValidationError.Reason) async {
+    await consumingErrors {
+      let navigationToInvalidMetadataKey: NavigationToMetadataPinnedKeyValidationDialog = try self.features.instance()
+      await navigationToInvalidMetadataKey.performCatching(
+        context: .init(
+          reason: reason,
+          onTrustedKey: { [weak self] in try await self?.sendForm() }
+        )
+      )
     }
   }
 }
 
-@MainActor private func fields(
+@MainActor internal func prepareMainFormViewModel(
   for resource: Resource,
-  using features: Features,
   edited: Set<ResourceType.FieldPath>,
   countEntropy: (String) -> Entropy
-) -> IdentifiedArray<ResourceEditFieldViewModel> {
-  if resource.type.specification.slug == .placeholder {
-    return .init()  // show no fields for placeholder type
-  }
+) -> MainFormViewModel {
+  let resourceTypeSlug: ResourceSpecification.Slug = resource.type.specification.slug
+  guard resourceTypeSlug != .placeholder
   else {
-    let fields: Array<ResourceEditFieldViewModel> =
-      resource
-      .fields
-      .compactMap { (field: ResourceFieldSpecification) -> ResourceEditFieldViewModel? in
-        .init(
-          field,
-          in: resource,
-          edited: edited.contains(field.path),
-          countEntropy: countEntropy
-        )
-      }
+    return .empty
+  }
+  let isStandaloneTOTP: Bool = resource.isStandaloneTOTPResource
 
-    var result: IdentifiedArray<ResourceEditFieldViewModel> = .init()
-    for field: ResourceEditFieldViewModel in fields {
-      result[field.path] = field
+  var fields: Array<ResourceEditFieldViewModel> =
+    resource
+    .fields
+    .filter { $0.name != .name && $0.name != .description && $0.name != .note }
+    .compactMap { (field: ResourceFieldSpecification) -> ResourceEditFieldViewModel? in
+      .init(
+        field,
+        in: resource,
+        edited: edited.contains(field.path),
+        countEntropy: countEntropy
+      )
     }
-    return result
+
+  if isStandaloneTOTP,
+    let secretFieldSpec = resource.type.fieldSpecification(for: \.secret.totp.secret_key)
+  {
+    let secretField: ResourceEditFieldViewModel? = .init(
+      secretFieldSpec,
+      in: resource,
+      edited: edited.contains(secretFieldSpec.path),
+      countEntropy: countEntropy
+    )
+    if let secretField {
+      fields.append(secretField)
+    }
+  }
+
+  var result: IdentifiedArray<ResourceEditFieldViewModel> = .init()
+  for field: ResourceEditFieldViewModel in fields {
+    result[field.path] = field
+  }
+
+  let title: DisplayableString =
+    isStandaloneTOTP
+    ? "resource.edit.section.totp.title"
+    : "resource.edit.section.password.title"
+
+  var additionalOptions: Array<MainFormViewModel.AdditionalOption> =
+    isStandaloneTOTP
+    ? [.addPassword]
+    : [.addTOTP]
+  if resourceTypeSlug.canEditNote {
+    additionalOptions.append(.addNote)
+  }
+
+  var metadataOptions: Array<MainFormViewModel.MetadataOption> = .init()
+  if resourceTypeSlug.canEditAppearance {
+    metadataOptions.append(.editIcon)
+  }
+  if resourceTypeSlug.canEditMetadataDescription(isNewResource: resource.isLocal == true) {
+    metadataOptions.append(.editDescription)
+  }
+  if resourceTypeSlug.canEditMutlipleURIs {
+    metadataOptions.append(.addtionalURIs)
+  }
+
+  return .init(
+    title: title,
+    fields: result,
+    additionalOptions: additionalOptions,
+    metadataOptions: metadataOptions
+  )
+}
+
+internal struct MainFormViewModel: Equatable {
+
+  internal static let empty: MainFormViewModel = .init(
+    title: "",
+    fields: .init(),
+    additionalOptions: .init(),
+    metadataOptions: .init()
+  )
+
+  internal var title: DisplayableString
+  internal var fields: IdentifiedArray<ResourceEditFieldViewModel>
+  internal var additionalOptions: Array<AdditionalOption>
+  internal var metadataOptions: Array<MetadataOption>
+
+  fileprivate init(
+    title: DisplayableString,
+    fields: IdentifiedArray<ResourceEditFieldViewModel>,
+    additionalOptions: Array<AdditionalOption>,
+    metadataOptions: Array<MetadataOption>
+  ) {
+    self.title = title
+    self.fields = fields
+    self.additionalOptions = additionalOptions
+    self.metadataOptions = metadataOptions
+  }
+
+  internal enum AdditionalOption: Identifiable, Equatable {
+    internal var id: Self { self }
+
+    case addTOTP
+    case addNote
+    case addPassword
+
+    internal var title: DisplayableString {
+      switch self {
+      case .addTOTP:
+        return "resource.edit.field.add.totp"
+      case .addNote:
+        return "resource.edit.field.add.note"
+      case .addPassword:
+        return "resource.edit.field.add.password"
+      }
+    }
+  }
+
+  internal enum MetadataOption: Identifiable, Equatable {
+    internal var id: Self { self }
+
+    case editDescription
+    case addtionalURIs
+    case editIcon
+
+    internal var title: DisplayableString {
+      switch self {
+      case .editDescription:
+        return "resource.edit.section.metadata.description"
+      case .addtionalURIs:
+        return "resource.edit.section.metadata.additional.uris"
+      case .editIcon:
+        return "resource.edit.section.metadata.appearance"
+      }
+    }
   }
 }
 
@@ -278,6 +639,7 @@ internal struct ResourceEditFieldViewModel {
     case list(
       [Validated<String>]
     )
+    case totpSecret(Validated<String>)
   }
 
   internal var path: ResourceType.FieldPath
@@ -314,7 +676,12 @@ internal struct ResourceEditFieldViewModel {
           .map { $0.stringValue ?? "" }
         : .valid(resource[keyPath: field.path].stringValue ?? "")
 
-      self.value = .plainShort(validated)
+      if field.name == .totpSecretKey {
+        self.value = .totpSecret(validated)
+      }
+      else {
+        self.value = .plainShort(validated)
+      }
 
     case .longText(let name, _, let placeholder):
       self.name = name
@@ -372,7 +739,6 @@ internal struct ResourceEditFieldViewModel {
       self.name = name
       self.encryptedMark = .none  // we are not showing those currently
       self.placeholder = placeholder
-      let currentValue = resource
       let validated: Validated<String> =
         edited
         ? resource
@@ -383,7 +749,7 @@ internal struct ResourceEditFieldViewModel {
     case .totp:
       return nil  // we are not allowing editing totp here unfortunately
 
-    case .undefined:
+    case .undefined, .hidden:
       return nil
     }
   }
@@ -404,6 +770,8 @@ internal struct ResourceEditFieldViewModel {
         return value
       case .list(let values):
         return values.first ?? .valid("")
+      case .totpSecret(let value):
+        return value
       }
     }
     set {
@@ -421,6 +789,8 @@ internal struct ResourceEditFieldViewModel {
         self.value = .selection(newValue, values: values)
       case .list(let values):
         self.value = .list(values)
+      case .totpSecret:
+        self.value = .totpSecret(newValue)
       }
     }
   }
@@ -431,4 +801,36 @@ extension ResourceEditFieldViewModel: Equatable {}
 extension ResourceEditFieldViewModel: Identifiable {
 
   internal var id: ResourceType.FieldPath { self.path }
+}
+
+extension ResourceSpecification.Slug {
+  fileprivate func canEditMetadataDescription(isNewResource: Bool) -> Bool {
+    switch self {
+    case .password where isNewResource == false:
+      return true
+    case .v5Password where isNewResource == false:
+      return true
+    case .v5Default, .v5DefaultWithTOTP, .v5StandaloneTOTP:
+      return true
+    default:
+      return false
+    }
+  }
+
+  fileprivate var canEditNote: Bool {
+    switch self {
+    case .passwordWithDescription, .passwordWithTOTP, .v5Default, .v5DefaultWithTOTP:
+      return true
+    default:
+      return false
+    }
+  }
+
+  fileprivate var canEditAppearance: Bool {
+    self.isV5Type
+  }
+
+  fileprivate var canEditMutlipleURIs: Bool {
+    self.isV5Type
+  }
 }

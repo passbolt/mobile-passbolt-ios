@@ -88,18 +88,18 @@ extension TheError /* CustomDebugStringConvertible */ {
   /// The details are used for support to identify the issue
   ///
   public func getDetails() -> Dictionary<String, Any>? {
-      // Check if the last item in the stack exists and has details
+    // Check if the last item in the stack exists and has details
     if let lastInfo = self.context.infoStack.last, let details = lastInfo.details {
-          return details
-      }
-      return nil
+      return details
+    }
+    return nil
   }
 
   ///
   /// Get original message to catch it to entity validation
   ///
   public func getMessage() -> StaticString {
-    return self.context.infoStack.last?.message ?? ""
+    self.context.infoStack.last?.message ?? ""
   }
 }
 
@@ -140,6 +140,7 @@ extension TheError {
   ///   Filled automatically based on compile time constants.
   ///   - line: Line in given source code file.
   ///   Filled automatically based on compile time constants.
+  /// - Returns: The error instance itself after triggering the assertion failure.
   @discardableResult
   public func asAssertionFailure(
     message: @autoclosure () -> String = .init(),

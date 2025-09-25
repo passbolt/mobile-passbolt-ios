@@ -80,6 +80,11 @@ final class TagsExplorerControllerTests: MainActorTestCase {
     updates = .none
   }
 
+  override func featuresActorTearDown() async throws {
+    self.mainActorTearDown()
+    self.features = nil
+  }
+
   func test_refreshIfNeeded_showsError_whenRefreshFails() async throws {
     features.patch(
       \SessionData.refreshIfNeeded,

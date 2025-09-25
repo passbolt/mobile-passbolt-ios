@@ -174,8 +174,10 @@ internal struct ResourceUserGroupsExplorerView: ComponentView {
       ) { resource in
         ResourceListItemView(
           name: resource.name,
-          username: resource.username, 
+          username: resource.username,
           isExpired: resource.isExpired,
+          icon: resource.icon,
+          resourceTypeSlug: resource.typeInfo.typeSlug,
           contentAction: {
             self.controller.presentResourceDetails(resource.id)
           },

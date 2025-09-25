@@ -22,23 +22,24 @@
 //
 
 import XCTest
+
 import struct Foundation.UUID
 
 final class Collection_TopoSortTests: XCTestCase {
   func testLargeDatasetTree() {
     // create random test input
     var nodes: [Node] = []
-    for _ in 0..<1000 {
+    for _ in 0 ..< 1000 {
       nodes.append(.init(parentId: nodes.randomElement()?.id))
     }
-    
+
     let input = nodes.shuffled()
     // created test data will be in right sorted order, ensure input is not sorted
     XCTAssertNotEqual(input, nodes, "Input should be shuffled")
-    
+
     // sort
     let topoSorted = input.topoSort(idPath: \.id, parentIdPath: \.parentId)
-    
+
     // verify if every node is after its parent
     for (index, node) in topoSorted.enumerated() {
       if let parentId = node.parentId {
@@ -47,26 +48,26 @@ final class Collection_TopoSortTests: XCTestCase {
         XCTAssertLessThan(parentIndex!, index, "Parent should be before the child")
       }
     }
-    
+
     XCTAssertEqual(nodes.count, topoSorted.count, "Count of nodes should be the same")
   }
-  
+
   func testGivenCyclicTree_shouldReturnEmptyCollection() {
     let aID: UUID = .init()
     let bID: UUID = .init()
     let cID: UUID = .init()
     let nodes = [Node(id: aID, parentId: cID), Node(id: bID, parentId: aID), Node(id: cID, parentId: bID)]
-    
+
     let topoSorted = nodes.topoSort(idPath: \.id, parentIdPath: \.parentId)
     XCTAssertTrue(topoSorted.isEmpty, "Should return empty collection")
   }
-  
+
   func testGivenNonExistingParent_shouldBeTreatedAsRoot() {
     let aID: UUID = .init()
     let bID: UUID = .init()
     let cID: UUID = .init()
     let nodes = [Node(id: aID, parentId: nil), Node(id: bID, parentId: .init()), Node(id: cID, parentId: bID)]
-    
+
     let topoSorted = nodes.topoSort(idPath: \.id, parentIdPath: \.parentId)
     XCTAssertEqual(nodes.count, topoSorted.count, "Should return all items")
   }
@@ -75,7 +76,7 @@ final class Collection_TopoSortTests: XCTestCase {
 private struct Node: Identifiable, Equatable {
   let id: UUID
   let parentId: UUID?
-  
+
   init(id: UUID = .init(), parentId: UUID? = nil) {
     self.id = id
     self.parentId = parentId

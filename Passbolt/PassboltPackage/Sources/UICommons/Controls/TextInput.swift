@@ -248,6 +248,7 @@ public final class SecureTextInput: TextInput {
     textField.autocorrectionType = .no
     textField.rightViewMode = .always
     textField.rightView = imageButton
+    textField.font = .inconsolata(ofSize: 16, weight: .semibold)
 
     buttonStyle.apply(on: imageButton)
   }

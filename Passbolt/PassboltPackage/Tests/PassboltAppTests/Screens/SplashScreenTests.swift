@@ -70,6 +70,11 @@ final class SplashScreenTests: MainActorTestCase {
     updates = .none
   }
 
+  override func featuresActorTearDown() async throws {
+    self.mainActorTearDown()
+    self.features = nil
+  }
+
   func test_navigateToDiagnostics_whenDataIntegrityCheckFails() async throws {
     features.patch(
       \Accounts.verifyDataIntegrity,

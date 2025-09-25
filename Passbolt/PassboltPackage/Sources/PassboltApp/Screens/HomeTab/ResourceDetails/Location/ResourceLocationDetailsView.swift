@@ -58,8 +58,15 @@ internal struct ResourceLocationDetailsView: ControlledView {
           ) { (name: String) in
             VStack(spacing: 8) {
               ZStack(alignment: .topTrailing) {
-                LetterIconView(text: name)
-                  .padding(top: 16)
+                with(\.icon) { (icon: ResourceIcon) in
+                  with(\.resourceTypeSlug) { (slug: ResourceSpecification.Slug?) in
+                    ResourceIconView(
+                      resourceIcon: icon,
+                      resourceTypeSlug: slug
+                    )
+                    .padding(top: 16)
+                  }
+                }
 
                 WithViewState(
                   from: self.controller,

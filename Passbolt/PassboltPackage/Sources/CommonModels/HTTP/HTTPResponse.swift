@@ -20,6 +20,7 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 //
+import Commons
 
 import struct Foundation.Data
 import struct Foundation.URL
@@ -51,7 +52,7 @@ extension HTTPResponse: CustomStringConvertible {
     HTTP/1.1 \(statusCode)
     \(headers.map { "\($0.key): \($0.value)" }.joined(separator: "\n"))
 
-    \(String(data: body, encoding: .utf8) ?? "")
+    \(isInApplicationContext ? (String(data: body, encoding: .utf8) ?? "") : "\(body.count) bytes of data")
     """
   }
 }

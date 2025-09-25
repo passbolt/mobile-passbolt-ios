@@ -33,7 +33,7 @@ internal final class ApplicationSettingsViewController: ViewController {
     internal var biometicsAuthorizationAvailability: BiometricsAuthorizationAvailability
   }
 
-  internal let viewState: ViewStateSource<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private let navigationToAutofillSettings: NavigationToAutofillSettings
   private let navigationToDefaultModeSettings: NavigationToDefaultPresentationModeSettings
@@ -61,12 +61,12 @@ internal final class ApplicationSettingsViewController: ViewController {
       update: { [accountPreferences] (updateState, _) in
         switch osBiometry.availability() {
         case .unavailable, .unconfigured:
-          await updateState { (viewState: inout ViewState) in
+          updateState { (viewState: inout ViewState) in
             viewState.biometicsAuthorizationAvailability = .unavailable
           }
 
         case .touchID:
-          await updateState { (viewState: inout ViewState) in
+          updateState { (viewState: inout ViewState) in
             viewState.biometicsAuthorizationAvailability =
               accountPreferences.isPassphraseStored()
               ? .enabledTouchID
@@ -74,7 +74,7 @@ internal final class ApplicationSettingsViewController: ViewController {
           }
 
         case .faceID:
-          await updateState { (viewState: inout ViewState) in
+          updateState { (viewState: inout ViewState) in
             viewState.biometicsAuthorizationAvailability =
               accountPreferences.isPassphraseStored()
               ? .enabledFaceID

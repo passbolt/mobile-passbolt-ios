@@ -40,9 +40,8 @@ extension FeaturesRegistry {
     self.usePassboltTOTPCodeGenerator()
     self.usePassboltResourceSearchController()
     self.usePassboltResourceFolderEditPreparation()
-    self.usePassboltMetadataKeysService()
-    self.usePassboltMetadataSettingsService()
     self.usePassboltResourceUpdatePreparation()
     self.usePassboltResourceSharePreparation()
+    self.usePassboltResourceCreatePreparation()
   }
 }

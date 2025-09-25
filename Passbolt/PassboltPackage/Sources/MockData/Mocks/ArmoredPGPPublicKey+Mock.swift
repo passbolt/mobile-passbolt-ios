@@ -23,6 +23,7 @@
 
 import CommonModels
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 extension ArmoredPGPPublicKey {
 
   public static let mock_ada: Self = .init(

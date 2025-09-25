@@ -240,4 +240,50 @@ final class ResourceTests: XCTestCase {
     resource.secret = "final"
     XCTAssertEqual(resource[keyPath: \.secret], "final")
   }
+
+  func test_givenResourceSecret_whenHasObjectType_itShouldBeValidated() throws {
+    var resource: Resource = .init(
+      type: .init(
+        id: .init(),
+        specification: .init(slug: .empty, metaFields: .init(), secretFields: .init())
+      )
+    )
+    resource.secret = ["object_type": "PASSBOLT_SECRET_DATA", "password": "some password"]
+    try resource.validate()
+    // no errors should be thrown
+  }
+
+  func test_givenResourceSecret_whenHasInvalidObjectType_itShouldThrowError() throws {
+    var resource: Resource = .init(
+      type: .init(
+        id: .init(),
+        specification: .init(slug: .empty, metaFields: .init(), secretFields: .init())
+      )
+    )
+
+    resource.secret = ["object_type": "invalid", "password": "some password"]
+    do {
+      try resource.validate()
+      XCTFail("Should throw an error as object_type is invalid")
+    }
+    catch is InvalidInputData {
+      // expected error
+    }
+    catch {
+      XCTFail("Unexpected error: \(error)")
+    }
+  }
+
+  func test_givenResourceSecret_withoutObjectType_shouldPassValidation() throws {
+    var resource: Resource = .init(
+      type: .init(
+        id: .init(),
+        specification: .init(slug: .empty, metaFields: .init(), secretFields: .init())
+      )
+    )
+
+    resource.secret = ["password": "some password"]
+    try resource.validate()
+    // no errors should be thrown
+  }
 }

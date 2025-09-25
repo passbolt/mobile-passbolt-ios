@@ -66,5 +66,7 @@ extension FeaturesRegistry {
     self.usePassboltResourceNetworkOperationDispatch()
     self.useMetadataSessionKeysFetchNetworkOperation()
     self.useMetadataSessionKeysCreateNetworkOperation()
+    self.useMetadataUpdatePrivateKeyNetworkOperation()
+    self.usePassboltResourceSimulateShareNetworkOperation()
   }
 }

@@ -25,4 +25,5 @@ public enum ResourcesDatabaseSorting {
 
   case nameAlphabetically
   case modifiedRecently
+  case expiryDate
 }

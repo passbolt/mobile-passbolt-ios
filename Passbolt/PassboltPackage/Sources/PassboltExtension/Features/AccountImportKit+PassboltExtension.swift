@@ -31,13 +31,13 @@ extension FeaturesRegistry {
       .lazyLoaded(
         AccountKitImport.self,
         load: { _ in
-            .init(
-              isImportAccountKitAvailable: { false },
-              importAccountKit: { _ in
-                Fail(error: Unavailable.error("Account import is not available in extension."))
-                  .eraseToAnyPublisher()
-              }
-            )
+          .init(
+            isImportAccountKitAvailable: { false },
+            importAccountKit: { _ in
+              Fail(error: Unavailable.error("Account import is not available in extension."))
+                .eraseToAnyPublisher()
+            }
+          )
         }
       ),
       in: AccountTransferScope.self

@@ -64,7 +64,7 @@ public func XCTAssertSuccess<T, E>(
   case .success:
     break  // success
 
-  case let .failure(error):
+  case .failure(let error):
     XCTFail(
       "Unexpected failure with error: \(error)",
       file: file,
@@ -81,14 +81,14 @@ public func XCTAssertSuccessEqual<T, E>(
   _ line: UInt = #line
 ) where T: Equatable, E: Error {
   switch lhs {
-  case let .success(value):
+  case .success(let value):
     XCTAssertEqual(
       value,
       rhs,
       file: file,
       line: line
     )
-  case let .failure(error):
+  case .failure(let error):
     XCTFail(
       "Unexpected failure with error: \(error)",
       file: file,
@@ -105,14 +105,14 @@ public func XCTAssertSuccessNotEqual<T, E>(
   _ line: UInt = #line
 ) where T: Equatable, E: Error {
   switch lhs {
-  case let .success(value):
+  case .success(let value):
     XCTAssertNotEqual(
       value,
       rhs,
       file: file,
       line: line
     )
-  case let .failure(error):
+  case .failure(let error):
     XCTFail(
       "Unexpected failure with error: \(error)",
       file: file,
@@ -128,7 +128,7 @@ public func XCTAssertFailure<T, E>(
   _ line: UInt = #line
 ) where E: Error {
   switch result {
-  case let .success(value):
+  case .success(let value):
     XCTFail(
       "Unexpected success with value: \(value)",
       file: file,
@@ -148,13 +148,13 @@ public func XCTAssertFailureEqual<T, E>(
   _ line: UInt = #line
 ) where E: Equatable & Error {
   switch lhs {
-  case let .success(value):
+  case .success(let value):
     XCTFail(
       "Unexpected success with value: \(value)",
       file: file,
       line: line
     )
-  case let .failure(error):
+  case .failure(let error):
     XCTAssertEqual(
       error,
       rhs,
@@ -172,13 +172,13 @@ public func XCTAssertFailureNotEqual<T, E>(
   _ line: UInt = #line
 ) where E: Equatable & Error {
   switch lhs {
-  case let .success(value):
+  case .success(let value):
     XCTFail(
       "Unexpected success with value: \(value)",
       file: file,
       line: line
     )
-  case let .failure(error):
+  case .failure(let error):
     XCTAssertNotEqual(
       error,
       rhs,
@@ -281,7 +281,7 @@ public func XCTAssertFailureError<Value, Failure, ExpectedError>(
   line: UInt = #line
 ) where Failure: Error, ExpectedError: Error {
   let result: Result<Value, Failure> = expression()
-  guard case let .failure(error) = result
+  guard case .failure(let error) = result
   else {
     return XCTFail(
       message() ?? "\(result)) is not a failure",
@@ -325,7 +325,7 @@ public func XCTAssertFailureUnderlyingError<Value, Failure, ExpectedError>(
   line: UInt = #line
 ) where Failure: Error, ExpectedError: Error {
   let result: Result<Value, Failure> = expression()
-  guard case let .failure(error) = result
+  guard case .failure(let error) = result
   else {
     return XCTFail(
       message() ?? "\(result)) is not a failure",
@@ -352,7 +352,7 @@ public func XCTAssertFailureUnderlyingError<Value, Failure, ExpectedRootError, E
   line: UInt = #line
 ) where Failure: Error, ExpectedRootError: TheErrorWrapper, ExpectedError: Error {
   let result: Result<Value, Failure> = expression()
-  guard case let .failure(error) = result
+  guard case .failure(let error) = result
   else {
     return XCTFail(
       message() ?? "\(result)) is not a failure",

@@ -33,7 +33,8 @@ public struct ResourceFieldSpecification {
 
     case string(
       minLength: Int? = .none,
-      maxLength: Int? = .none
+      maxLength: Int? = .none,
+      validators: Array<FieldValidator<String>> = .init()
     )
     case int(
       min: Int? = .none,
@@ -81,7 +82,7 @@ public struct ResourceFieldSpecification {
           editingPlaceholder: name.displayableEditingPlaceholder
         )
 
-      case .string(_, .some(let maxLength)) where maxLength > 4096:
+      case .string(_, .some(let maxLength), _) where maxLength > 4096:
         return .longText(
           name: name.displayable,
           viewingPlaceholder: name.displayableViewingPlaceholder,
@@ -126,7 +127,8 @@ public struct ResourceFieldSpecification {
       case .totp:
         assert(encrypted, "Unencrypted totp should not occur!")
         return .totp(name: name.displayable)
-
+      case .structure where path == \.meta.icon:
+        return .hidden
       case .structure:
         return .undefined(name: name.displayable)
       }
@@ -170,6 +172,7 @@ extension ResourceFieldSpecification {
     .init(validate: self.validate(_:))
   }
 
+  @Sendable
   internal func validate(
     _ json: JSON  // assuming this is proper nested element if needed
   ) throws {
@@ -190,7 +193,7 @@ extension ResourceFieldSpecification {
     }
 
     switch self.content {
-    case .string(let minLength, let maxLength):
+    case .string(let minLength, let maxLength, let validators):
       guard let stringValue: String = json.stringValue
       else {
         throw
@@ -233,6 +236,21 @@ extension ResourceFieldSpecification {
             value: json
           )
       }  // else NOP
+      do {
+        for validator in validators {
+          try validator(stringValue)
+        }
+      }
+      catch let error as FieldValidator<String>.ValidationError {
+        throw
+          InvalidResourceField
+          .custom(
+            error.message,
+            specification: self,
+            path: self.path,
+            value: json
+          )
+      }
 
     case .int(let min, let max):
       guard let intValue: Int = json.intValue
@@ -354,7 +372,7 @@ extension ResourceFieldSpecification {
       }
     case .list:
       break
-    }    
+    }
   }
 }
 
@@ -438,7 +456,7 @@ extension ResourceFieldSpecification.Content {
   public static let totp: Self = .structure([
     .init(
       path: \.secret.totp.algorithm,
-      name: "algorithm",
+      name: .totpAlgorithm,
       content: .stringEnum(
         values: [
           "SHA1",
@@ -451,17 +469,18 @@ extension ResourceFieldSpecification.Content {
     ),
     .init(
       path: \.secret.totp.secret_key,
-      name: "secret_key",
+      name: .totpSecretKey,
       content: .string(
         minLength: .none,
-        maxLength: 1024
+        maxLength: 1024,
+        validators: [.base32]
       ),
       required: true,
       encrypted: true
     ),
     .init(
       path: \.secret.totp.digits,
-      name: "digits",
+      name: .totpDigits,
       content: .int(
         min: 6,
         max: 8
@@ -471,7 +490,7 @@ extension ResourceFieldSpecification.Content {
     ),
     .init(
       path: \.secret.totp.period,
-      name: "period",
+      name: .totpPeriod,
       content: .int(
         min: 1,
         max: .none
@@ -480,4 +499,11 @@ extension ResourceFieldSpecification.Content {
       encrypted: true
     ),
   ])
+}
+
+extension ResourceFieldName {
+  public static let totpAlgorithm: ResourceFieldName = "algorithm"
+  public static let totpSecretKey: ResourceFieldName = "secret_key"
+  public static let totpDigits: ResourceFieldName = "digits"
+  public static let totpPeriod: ResourceFieldName = "period"
 }

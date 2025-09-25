@@ -22,13 +22,14 @@
 //
 
 import Accounts
+import SwiftUI
 import UICommons
 
 internal final class ResourcesListResourceCell: CollectionViewCell {
 
-  private let iconView: LetterIconLegacyView = .init()
-  private let titleLabel: Label = .init()
-  private let subtitleLabel: Label = .init()
+  private let iconView: ResourceIconUIKitView = .init()
+  private let titleLabel: UICommons.Label = .init()
+  private let subtitleLabel: UICommons.Label = .init()
   private var expiryView: ImageView = .init()
   private var tapAction: (() -> Void)?
   private var menuTapAction: (() -> Void)?
@@ -137,7 +138,11 @@ internal final class ResourcesListResourceCell: CollectionViewCell {
     tapAction: @escaping (() -> Void),
     menuTapAction: @escaping (() -> Void)
   ) {
-    self.iconView.update(from: item.name)
+    // Update the iconView using the ResourceIconUIKitView API
+    self.iconView.update(
+      resourceIcon: item.icon,
+      resourceTypeSlug: item.resourceTypeSlug
+    )
 
     let attributes = [NSAttributedString.Key.font: UIFont.inter(ofSize: 14, weight: .semibold)]
     let itemNameAttributedString = NSMutableAttributedString(string: item.name, attributes: attributes)
@@ -182,11 +187,85 @@ internal final class ResourcesListResourceCell: CollectionViewCell {
   override internal func prepareForReuse() {
     super.prepareForReuse()
 
-    self.iconView.update(from: "")
+    // Reset the ResourceIconUIKitView with empty values
+    self.iconView.update(resourceIcon: .none, resourceTypeSlug: nil)
     self.titleLabel.text = nil
     self.subtitleLabel.text = nil
     self.tapAction = nil
     self.menuTapAction = nil
     self.expiryView.isHidden = true
+  }
+}
+
+/// UIKit wrapper for the SwiftUI ResourceIconView
+private final class ResourceIconUIKitView: PlainView {
+
+  private var hostingController: UIHostingController<ResourceIconView>?
+  private var currentResourceIcon: ResourceIcon = .none
+  private var currentResourceTypeSlug: ResourceSpecification.Slug? = nil
+
+  required init() {
+    super.init()
+    self.backgroundColor = .clear
+  }
+
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+
+  func update(resourceIcon: ResourceIcon, resourceTypeSlug: ResourceSpecification.Slug?) {
+    // Only update if anything changed
+
+    guard
+      resourceIcon != currentResourceIcon
+        || resourceTypeSlug != currentResourceTypeSlug
+    else { return }
+
+    currentResourceIcon = resourceIcon
+
+    // Remove previous hosting controller if exists
+    hostingController?.view.removeFromSuperview()
+    hostingController?.removeFromParent()
+
+    // Create SwiftUI view
+    let resourceIconView = ResourceIconView(
+      resourceIcon: resourceIcon,
+      resourceTypeSlug: resourceTypeSlug
+    )
+
+    // Create hosting controller
+    let hosting = UIHostingController(rootView: resourceIconView)
+    hostingController = hosting
+
+    // Configure hosting view
+    hosting.view.backgroundColor = .clear
+    hosting.view.translatesAutoresizingMaskIntoConstraints = false
+
+    // Add to hierarchy
+    if let parentVC = self.findViewController() {
+      parentVC.addChild(hosting)
+    }
+    self.addSubview(hosting.view)
+
+    // Add constraints
+    NSLayoutConstraint.activate([
+      hosting.view.topAnchor.constraint(equalTo: self.topAnchor),
+      hosting.view.bottomAnchor.constraint(equalTo: self.bottomAnchor),
+      hosting.view.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+      hosting.view.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+    ])
+
+    hosting.didMove(toParent: self.findViewController())
+  }
+
+  private func findViewController() -> UIViewController? {
+    var responder: UIResponder? = self
+    while let nextResponder = responder?.next {
+      if let viewController = nextResponder as? UIViewController {
+        return viewController
+      }
+      responder = nextResponder
+    }
+    return nil
   }
 }

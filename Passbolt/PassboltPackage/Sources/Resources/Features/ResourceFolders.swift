@@ -26,7 +26,7 @@ import Features
 
 // MARK: - Interface
 
-public struct ResourceFolders {
+public struct ResourceFolders: Sendable {
 
   public var details: @Sendable (ResourceFolder.ID) async throws -> ResourceFolder
   public var filteredFolderContent: @Sendable (ResourceFoldersFilter) async throws -> ResourceFolderContent

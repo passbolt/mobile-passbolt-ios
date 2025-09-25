@@ -25,10 +25,12 @@ import Accounts
 import Display
 import FeatureScopes
 import Foundation
+import Metadata
 import OSFeatures
 import Resources
 import Session
 import SessionData
+import SharedUIComponents
 
 internal final class OTPResourcesListViewController: ViewController {
 
@@ -53,7 +55,7 @@ internal final class OTPResourcesListViewController: ViewController {
   private let resourceEditPreparation: ResourceEditPreparation
 
   private let navigationToAccountMenu: NavigationToAccountMenu
-  private let navigationToOTPEditMenu: NavigationToResourceOTPEditMenu
+  private let navigationToSelf: NavigationToOTPResourcesList
 
   private let features: Features
 
@@ -81,7 +83,7 @@ internal final class OTPResourcesListViewController: ViewController {
     self.resourceEditPreparation = try features.instance()
 
     self.navigationToAccountMenu = try features.instance()
-    self.navigationToOTPEditMenu = try features.instance()
+    self.navigationToSelf = try features.instance()
 
     self.viewState = .init(
       initial: .init(
@@ -113,16 +115,19 @@ internal final class OTPResourcesListViewController: ViewController {
             otpResources[item.id] = .init(
               id: item.id,
               name: item.name,
+              isExpired: item.isExpired,
+              icon: item.icon,
+              resourceTypeSlug: item.typeInfo.typeSlug,
               generateOTP: { () async -> OTPValue? in
                 (try? await otpIterator.next())?.flatMap { $0 }
               }
             )
           }
-          await updateView { (viewState: inout ViewState) in
+          updateView { (viewState: inout ViewState) in
             viewState.otpResources = otpResources
           }
           let avatarImage: Data? = try await accountDetails.avatarImage()
-          await updateView { (viewState: inout ViewState) in
+          updateView { (viewState: inout ViewState) in
             viewState.accountAvatarImage = avatarImage
           }
         }
@@ -152,11 +157,24 @@ extension OTPResourcesListViewController {
   internal func createOTP() async {
     await consumingErrors {
       let metadataTypeSettings: MetadataSettingsService = try self.features.instance()
-      let totpType: ResourceSpecification.Slug = metadataTypeSettings.typesSettings().defaultResourceTypes == .v5 ? .v5StandaloneTOTP : .totp
+      let totpType: ResourceSpecification.Slug =
+        metadataTypeSettings.typesSettings().defaultResourceTypes == .v5
+        ? .v5StandaloneTOTP
+        : .totp
       let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(totpType, .none, .none)
-      await self.navigationToOTPEditMenu.performCatching(
+      guard
+        let resourceType: ResourceType = editingContext.availableTypes.first(where: {
+          $0.specification.slug == totpType
+        }),
+        let totpPath: ResourceType.FieldPath = resourceType.fieldSpecification(for: \.firstTOTP)?.path
+      else {
+        return
+      }
+      let features: Features = try self.features.branchIfNeeded(scope: ResourceEditScope.self, context: editingContext)
+      let navigationToOTPScanning: NavigationToOTPScanning = try features.instance()
+      await navigationToOTPScanning.performCatching(
         context: .init(
-          editingContext: editingContext
+          totpPath: totpPath
         )
       )
     }
@@ -172,7 +190,7 @@ extension OTPResourcesListViewController {
   private func copyOTP(
     _ value: OTPValue
   ) async throws {
-    pasteboard.put(value.otp.rawValue)
+    pasteboard.putWithAutoExpiration(value.otp.rawValue)
     SnackBarMessageEvent.send("otp.value.copied.message")
   }
 
@@ -231,6 +249,9 @@ internal struct TOTPResourceViewModel {
 
   internal var id: Resource.ID
   internal var name: String
+  internal var isExpired: Bool
+  internal var icon: ResourceIcon
+  internal var resourceTypeSlug: ResourceSpecification.Slug?
   internal var generateOTP: @Sendable () async -> OTPValue?
 }
 

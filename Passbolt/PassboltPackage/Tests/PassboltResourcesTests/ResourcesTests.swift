@@ -61,7 +61,7 @@ final class ResourcesControllerTests: FeaturesTestCase {
     )
     patch(
       \ResourcesFetchNetworkOperation.execute,
-      with: always([])
+      with: always(.empty())
     )
     patch(
       \ResourceTypesFetchNetworkOperation.execute,
@@ -97,8 +97,7 @@ final class ResourcesControllerTests: FeaturesTestCase {
   }
 
   func test_filteredResourcesList_usesFilterWhenAccessingDatabase() async throws {
-    var expectedResult: ResourcesDatabaseFilter = testDatabaseFilter
-    expectedResult.excludedTypeSlugs = [.totp, .v5StandaloneTOTP]
+    let expectedResult: ResourcesDatabaseFilter = testDatabaseFilter
     let result: UnsafeSendable<ResourcesDatabaseFilter> = .init()
     patch(
       \ResourcesListFetchDatabaseOperation.execute,

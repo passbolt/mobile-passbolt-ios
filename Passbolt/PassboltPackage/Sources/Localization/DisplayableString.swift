@@ -74,7 +74,7 @@ extension DisplayableString {
     }
   ) -> String {
     switch self {
-    case let .raw(string):
+    case .raw(let string):
       if arguments.isEmpty {
         return string
       }
@@ -85,7 +85,7 @@ extension DisplayableString {
         )
       }
 
-    case let .localized(localizedString):
+    case .localized(let localizedString):
       return
         localizedString
         .resolve(

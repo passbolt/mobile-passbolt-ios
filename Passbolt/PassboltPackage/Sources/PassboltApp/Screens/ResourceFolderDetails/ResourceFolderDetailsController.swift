@@ -78,14 +78,14 @@ internal final class ResourceFolderDetailsController: ViewController {
             .permissions
             .asyncMap { (permission: ResourceFolderPermission) -> OverlappingAvatarStackView.Item in
               switch permission {
-              case let .user(userID, _, _):
+              case .user(let userID, _, _):
                 return .user(
                   userID,
                   avatarImage: { try? await users.userAvatarImage(userID) },
                   isSuspended: try await users.userDetails(userID).isSuspended
                 )
 
-              case let .userGroup(userGroupID, _, _):
+              case .userGroup(let userGroupID, _, _):
                 return .userGroup(
                   userGroupID
                 )

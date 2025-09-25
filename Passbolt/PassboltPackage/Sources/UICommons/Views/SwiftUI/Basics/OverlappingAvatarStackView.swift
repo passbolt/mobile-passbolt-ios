@@ -84,7 +84,7 @@ public struct OverlappingAvatarStackView: View {
       HStack(spacing: spacing) {
         ForEach(self.items.prefix(itemsCount)) { item in
           switch item {
-          case let .user(_, avatarImage: avatarImage, isSuspended):
+          case .user(_, let avatarImage, let isSuspended):
             AsyncUserAvatarView(imageLoad: avatarImage)
               .frame(width: itemSize, height: itemSize)
               .opacity(isSuspended ? 0.5 : 1)
@@ -136,10 +136,10 @@ extension OverlappingAvatarStackView.Item: Hashable {
     _ rhs: Self
   ) -> Bool {
     switch (lhs, rhs) {
-    case let (.user(lid, _, _), .user(rid, _, _)):
+    case (.user(let lid, _, _), .user(let rid, _, _)):
       return lid == rid
 
-    case let (.userGroup(lid), .userGroup(rid)):
+    case (.userGroup(let lid), .userGroup(let rid)):
       return lid == rid
 
     case _:
@@ -151,10 +151,10 @@ extension OverlappingAvatarStackView.Item: Hashable {
     into hasher: inout Hasher
   ) {
     switch self {
-    case let .user(id, _, _):
+    case .user(let id, _, _):
       hasher.combine(id)
 
-    case let .userGroup(id):
+    case .userGroup(let id):
       hasher.combine(id)
     }
   }
@@ -164,10 +164,10 @@ extension OverlappingAvatarStackView.Item: Identifiable {
 
   public var id: AnyHashable {
     switch self {
-    case let .user(id, _, _):
+    case .user(let id, _, _):
       return id
 
-    case let .userGroup(id):
+    case .userGroup(let id):
       return id
     }
   }

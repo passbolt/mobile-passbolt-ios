@@ -96,9 +96,9 @@ where Accessory: View {
         HStack(spacing: 8) {
           self.textField
             .text(
-              font: .inter(
-                ofSize: 14,
-                weight: .regular
+              font: .inconsolata(
+                ofSize: 16,
+                weight: .semibold
               ),
               color: .passboltPrimaryText
             )

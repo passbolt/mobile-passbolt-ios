@@ -40,6 +40,21 @@ public struct ResourceSpecification {
     self.metaFields = metaFields
     self.secretFields = secretFields
   }
+
+  public static func specification(for slug: Slug) -> Self {
+    switch slug {
+    case .password, .v5Password:
+      return .password(isV5: slug == .v5Password)
+    case .passwordWithDescription, .v5Default:
+      return .passwordWithDescription(isV5: slug == .v5Default)
+    case .totp, .v5StandaloneTOTP:
+      return .totp(isV5: slug == .v5StandaloneTOTP)
+    case .passwordWithTOTP, .v5DefaultWithTOTP:
+      return .passwordWithTOTP(isV5: slug == .v5DefaultWithTOTP)
+    case _:
+      return .placeholder
+    }
+  }
 }
 
 extension ResourceSpecification: Sendable {}
@@ -60,25 +75,44 @@ extension ResourceSpecification.Slug {
   public static let v5StandaloneTOTP: Self = "v5-totp-standalone"
   public static let v5Password: Self = "v5-password-string"
 
+  /// Checks if the resource type is v4 or v5
   public var isSupported: Bool {
     Self.v4Types.contains(self)
       || Self.v5Types.contains(self)
   }
 
+  /// V4 resource types
   public static var v4Types: [Self] {
     [.password, .passwordWithDescription, .totp, .passwordWithTOTP]
   }
 
+  /// V5 resource types
   public static var v5Types: [Self] {
     [.v5StandaloneTOTP, .v5DefaultWithTOTP, .v5Password, .v5Default]
   }
 
+  public var isV5Type: Bool {
+    Self.v5Types.contains(self)
+  }
+
+  /// All resource types that include TOTP functionality
   public static var allTOTPTypes: Set<Self> {
     [.totp, .v5StandaloneTOTP, .passwordWithTOTP, .v5DefaultWithTOTP]
   }
 
+  /// Resource types that are TOTP-only without password
   public static var standaloneTOTPTypes: Set<Self> {
     [.totp, .v5StandaloneTOTP]
+  }
+
+  /// Checks if this is a standalone TOTP type without password
+  public var isStandaloneTOTPType: Bool {
+    Self.standaloneTOTPTypes.contains(self)
+  }
+
+  /// Checks if this is a simple password - without ability to add other secrets
+  public var isSimplePasswordType: Bool {
+    [.password, .v5Password].contains(self)
   }
 }
 
@@ -92,17 +126,7 @@ extension ResourceSpecification {
       metaFields: [
         .init(
           path: \.meta.name,
-          name: "name",
-          content: .string(
-            minLength: .none,
-            maxLength: 255
-          ),
-          required: true,
-          encrypted: false
-        ),
-        .init(
-          path: \.meta.username,
-          name: "username",
+          name: .name,
           content: .string(
             minLength: .none,
             maxLength: 255
@@ -112,14 +136,24 @@ extension ResourceSpecification {
         ),
         .init(
           path: \.meta.uris,
-          name: "uri",
+          name: .uri,
           content: .list,
           required: false,
           encrypted: false
         ),
         .init(
+          path: \.meta.username,
+          name: .username,
+          content: .string(
+            minLength: .none,
+            maxLength: 255
+          ),
+          required: false,
+          encrypted: false
+        ),
+        .init(
           path: \.meta.description,
-          name: "description",
+          name: .description,
           content: .string(
             minLength: .none,
             maxLength: 10000
@@ -127,11 +161,18 @@ extension ResourceSpecification {
           required: false,
           encrypted: false
         ),
+        .init(
+          path: \.meta.icon,
+          name: .appearance,
+          content: .structure([]),
+          required: false,
+          encrypted: false
+        ),
       ],
       secretFields: [
         .init(
           path: \.secret,
-          name: "secret",
+          name: .secret,
           content: .string(
             minLength: .none,
             maxLength: 4096
@@ -149,17 +190,7 @@ extension ResourceSpecification {
       metaFields: [
         .init(
           path: \.meta.name,
-          name: "name",
-          content: .string(
-            minLength: .none,
-            maxLength: 255
-          ),
-          required: true,
-          encrypted: false
-        ),
-        .init(
-          path: \.meta.username,
-          name: "username",
+          name: .name,
           content: .string(
             minLength: .none,
             maxLength: 255
@@ -169,8 +200,35 @@ extension ResourceSpecification {
         ),
         .init(
           path: \.meta.uris,
-          name: "uri",
+          name: .uri,
           content: .list,
+          required: false,
+          encrypted: false
+        ),
+        .init(
+          path: \.meta.username,
+          name: .username,
+          content: .string(
+            minLength: .none,
+            maxLength: 255
+          ),
+          required: false,
+          encrypted: false
+        ),
+        .init(
+          path: \.meta.description,
+          name: .description,
+          content: .string(
+            minLength: .none,
+            maxLength: 10000
+          ),
+          required: false,
+          encrypted: false
+        ),
+        .init(
+          path: \.meta.icon,
+          name: .appearance,
+          content: .structure([]),
           required: false,
           encrypted: false
         ),
@@ -178,20 +236,20 @@ extension ResourceSpecification {
       secretFields: [
         .init(
           path: \.secret.password,
-          name: "password",
+          name: .password,
           content: .string(
             minLength: .none,
             maxLength: 4096
           ),
-          required: true,
+          required: false,
           encrypted: true
         ),
         .init(
           path: \.secret.description,
-          name: "description",
+          name: .note,
           content: .string(
             minLength: .none,
-            maxLength: 10000
+            maxLength: isV5 ? 50_000 : 10_000
           ),
           required: false,
           encrypted: true
@@ -206,18 +264,35 @@ extension ResourceSpecification {
       metaFields: [
         .init(
           path: \.meta.name,
-          name: "name",
+          name: .name,
           content: .string(
             minLength: .none,
             maxLength: 255
           ),
-          required: true,
+          required: false,
           encrypted: false
         ),
         .init(
           path: \.meta.uris,
-          name: "uri",
+          name: .uri,
           content: .list,
+          required: false,
+          encrypted: false
+        ),
+        .init(
+          path: \.meta.description,
+          name: .description,
+          content: .string(
+            minLength: .none,
+            maxLength: 10000
+          ),
+          required: false,
+          encrypted: false
+        ),
+        .init(
+          path: \.meta.icon,
+          name: .appearance,
+          content: .structure([]),
           required: false,
           encrypted: false
         ),
@@ -225,7 +300,7 @@ extension ResourceSpecification {
       secretFields: [
         .init(
           path: \.secret.totp,
-          name: "totp",
+          name: .totp,
           content: .totp,
           required: true,
           encrypted: true
@@ -240,17 +315,7 @@ extension ResourceSpecification {
       metaFields: [
         .init(
           path: \.meta.name,
-          name: "name",
-          content: .string(
-            minLength: .none,
-            maxLength: 255
-          ),
-          required: true,
-          encrypted: false
-        ),
-        .init(
-          path: \.meta.username,
-          name: "username",
+          name: .name,
           content: .string(
             minLength: .none,
             maxLength: 255
@@ -260,8 +325,35 @@ extension ResourceSpecification {
         ),
         .init(
           path: \.meta.uris,
-          name: "uri",
+          name: .uri,
           content: .list,
+          required: false,
+          encrypted: false
+        ),
+        .init(
+          path: \.meta.username,
+          name: .username,
+          content: .string(
+            minLength: .none,
+            maxLength: 255
+          ),
+          required: false,
+          encrypted: false
+        ),
+        .init(
+          path: \.meta.description,
+          name: .description,
+          content: .string(
+            minLength: .none,
+            maxLength: 10000
+          ),
+          required: false,
+          encrypted: false
+        ),
+        .init(
+          path: \.meta.icon,
+          name: .appearance,
+          content: .structure([]),
           required: false,
           encrypted: false
         ),
@@ -269,27 +361,27 @@ extension ResourceSpecification {
       secretFields: [
         .init(
           path: \.secret.password,
-          name: "password",
+          name: .password,
           content: .string(
             minLength: .none,
             maxLength: 4096
           ),
-          required: true,
+          required: false,
           encrypted: true
         ),
         .init(
           path: \.secret.totp,
-          name: "totp",
+          name: .totp,
           content: .totp,
           required: true,
           encrypted: true
         ),
         .init(
           path: \.secret.description,
-          name: "description",
+          name: .note,
           content: .string(
             minLength: .none,
-            maxLength: 10000
+            maxLength: isV5 ? 50_000 : 10_000
           ),
           required: false,
           encrypted: true
@@ -305,7 +397,7 @@ extension ResourceSpecification {
       .init(
         // name is required for all resources
         path: \.meta.name,
-        name: "name",
+        name: .name,
         // it won't be edited, using no validation to avoid issues
         content: .string(),
         required: true,
@@ -317,7 +409,7 @@ extension ResourceSpecification {
         // using handling similar to legacy resource type
         // treat the whole secret as a string instead of decoding internals
         path: \.secret,
-        name: "secret",
+        name: .name,
         // it won't be edited, using no validation to avoid issues
         content: .string(),
         required: true,

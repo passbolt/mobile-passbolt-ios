@@ -34,9 +34,9 @@ public enum AccountSelectionListItem: Hashable {
     rhs: AccountSelectionListItem
   ) -> Bool {
     switch (lhs, rhs) {
-    case let (.account(lhsItem), .account(rhsItem)):
+    case (.account(let lhsItem), .account(let rhsItem)):
       return lhsItem == rhsItem
-    case let (.addAccount(lhsItem), .addAccount(rhsItem)):
+    case (.addAccount(let lhsItem), .addAccount(let rhsItem)):
       return lhsItem == rhsItem
 
     case _:

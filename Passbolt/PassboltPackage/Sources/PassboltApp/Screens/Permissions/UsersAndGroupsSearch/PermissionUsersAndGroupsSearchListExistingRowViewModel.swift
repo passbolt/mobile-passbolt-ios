@@ -35,9 +35,9 @@ extension PermissionUsersAndGroupsSearchListExistingRowViewModel: Identifiable {
 
   public var id: AnyHashable {
     switch self {
-    case let .user(model, _):
+    case .user(let model, _):
       return "user-\(model.id)"
-    case let .userGroup(model, _):
+    case .userGroup(let model, _):
       return "userGroup-\(model.id)"
     }
   }

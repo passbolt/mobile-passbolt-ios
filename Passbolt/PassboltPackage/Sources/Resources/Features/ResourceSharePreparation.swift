@@ -21,11 +21,26 @@
 // @since         v1.0
 //
 
-public struct ResourceSharePreparation {
+public struct ResourceSharePreparation: Sendable {
   public var prepareResourceForSharing: @Sendable (Resource.ID) async throws -> Void
-  
+
   public init(prepareResourceForSharing: @Sendable @escaping (Resource.ID) async throws -> Void) {
     self.prepareResourceForSharing = prepareResourceForSharing
+  }
+}
+
+extension ResourceSharePreparation {
+  public struct PermissionChanges: Sendable {
+    public let changed: Array<ResourcePermission>
+    public let removed: Array<ResourcePermission>
+
+    public init(
+      changed: Array<ResourcePermission>,
+      removed: Array<ResourcePermission>
+    ) {
+      self.changed = changed
+      self.removed = removed
+    }
   }
 }
 

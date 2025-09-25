@@ -43,10 +43,12 @@ public nonisolated func withSerialTaskExecutor<Returned>(
 
 private typealias TaskEnqueueHook = @convention(thin) (UnownedJob, @convention(thin) (UnownedJob) -> Void) -> Void
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 private var swift_task_enqueueGlobal_hook: TaskEnqueueHook? {
   get { swift_task_enqueueGlobal_hook_ptr.pointee }
   set { swift_task_enqueueGlobal_hook_ptr.pointee = newValue }
 }
+// swift-format-ignore: AlwaysUseLowerCamelCase
 private let swift_task_enqueueGlobal_hook_ptr: UnsafeMutablePointer<TaskEnqueueHook?> =
   dlsym(
     dlopen(nil, 0),

@@ -113,7 +113,7 @@ extension ResourceFolderShareNetworkOperationVariable.RequestBody: Encodable {
           forKey: .new
         )
       switch newPermission {
-      case let .userToResource(userID, resourceID, type):
+      case .userToResource(let userID, let resourceID, let type):
         try permissionContainer
           .encode(
             "User",
@@ -140,7 +140,7 @@ extension ResourceFolderShareNetworkOperationVariable.RequestBody: Encodable {
             forKey: .type
           )
 
-      case let .userToFolder(userID, folderID, type):
+      case .userToFolder(let userID, let folderID, let type):
         try permissionContainer
           .encode(
             "User",
@@ -167,7 +167,7 @@ extension ResourceFolderShareNetworkOperationVariable.RequestBody: Encodable {
             forKey: .type
           )
 
-      case let .userGroupToResource(userGroupID, resourceID, type):
+      case .userGroupToResource(let userGroupID, let resourceID, let type):
         try permissionContainer
           .encode(
             "Group",
@@ -194,7 +194,7 @@ extension ResourceFolderShareNetworkOperationVariable.RequestBody: Encodable {
             forKey: .type
           )
 
-      case let .userGroupToFolder(userID, folderID, type):
+      case .userGroupToFolder(let userGroupID, let folderID, let type):
         try permissionContainer
           .encode(
             "Group",
@@ -202,7 +202,7 @@ extension ResourceFolderShareNetworkOperationVariable.RequestBody: Encodable {
           )
         try permissionContainer
           .encode(
-            userID,
+            userGroupID,
             forKey: .subjectID
           )
         try permissionContainer
@@ -231,7 +231,7 @@ extension ResourceFolderShareNetworkOperationVariable.RequestBody: Encodable {
         )
 
       switch updatedPermission {
-      case let .userToResource(id, userID, resourceID, type):
+      case .userToResource(let id, let userID, let resourceID, let type):
         try permissionContainer
           .encode(
             id,
@@ -263,7 +263,7 @@ extension ResourceFolderShareNetworkOperationVariable.RequestBody: Encodable {
             forKey: .type
           )
 
-      case let .userToFolder(id, userID, folderID, type):
+      case .userToFolder(let id, let userID, let folderID, let type):
         try permissionContainer
           .encode(
             id,
@@ -295,7 +295,7 @@ extension ResourceFolderShareNetworkOperationVariable.RequestBody: Encodable {
             forKey: .type
           )
 
-      case let .userGroupToResource(id, userGroupID, resourceID, type):
+      case .userGroupToResource(let id, let userGroupID, let resourceID, let type):
         try permissionContainer
           .encode(
             id,
@@ -327,7 +327,7 @@ extension ResourceFolderShareNetworkOperationVariable.RequestBody: Encodable {
             forKey: .type
           )
 
-      case let .userGroupToFolder(id, userID, folderID, type):
+      case .userGroupToFolder(let id, let userGroupID, let folderID, let type):
         try permissionContainer
           .encode(
             id,
@@ -340,7 +340,7 @@ extension ResourceFolderShareNetworkOperationVariable.RequestBody: Encodable {
           )
         try permissionContainer
           .encode(
-            userID,
+            userGroupID,
             forKey: .subjectID
           )
         try permissionContainer
@@ -375,7 +375,7 @@ extension ResourceFolderShareNetworkOperationVariable.RequestBody: Encodable {
         )
 
       switch deletedPermission {
-      case let .userToResource(id, userID, resourceID, type):
+      case .userToResource(let id, let userID, let resourceID, let type):
         try permissionContainer
           .encode(
             id,
@@ -407,7 +407,7 @@ extension ResourceFolderShareNetworkOperationVariable.RequestBody: Encodable {
             forKey: .type
           )
 
-      case let .userToFolder(id, userID, folderID, type):
+      case .userToFolder(let id, let userID, let folderID, let type):
         try permissionContainer
           .encode(
             id,
@@ -439,7 +439,7 @@ extension ResourceFolderShareNetworkOperationVariable.RequestBody: Encodable {
             forKey: .type
           )
 
-      case let .userGroupToResource(id, userGroupID, resourceID, type):
+      case .userGroupToResource(let id, let userGroupID, let resourceID, let type):
         try permissionContainer
           .encode(
             id,
@@ -471,7 +471,7 @@ extension ResourceFolderShareNetworkOperationVariable.RequestBody: Encodable {
             forKey: .type
           )
 
-      case let .userGroupToFolder(id, userID, folderID, type):
+      case .userGroupToFolder(let id, let userGroupID, let folderID, let type):
         try permissionContainer
           .encode(
             id,
@@ -484,7 +484,7 @@ extension ResourceFolderShareNetworkOperationVariable.RequestBody: Encodable {
           )
         try permissionContainer
           .encode(
-            userID,
+            userGroupID,
             forKey: .subjectID
           )
         try permissionContainer

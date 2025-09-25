@@ -27,11 +27,11 @@ extension Result {
 
   public var asPublisher: AnyPublisher<Success, Failure> {
     switch self {
-    case let .success(success):
+    case .success(let success):
       return Just(success)
         .setFailureType(to: Failure.self)
         .eraseToAnyPublisher()
-    case let .failure(error):
+    case .failure(let error):
       return Fail<Success, Failure>(error: error)
         .eraseToAnyPublisher()
     }

@@ -83,7 +83,7 @@ final class AccountSelectionScreenTests: MainActorTestCase {
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     let accountItems: Array<AccountSelectionCellItem> = result.compactMap {
-      guard case let .account(cellItem) = $0 else {
+      guard case .account(let cellItem) = $0 else {
         return nil
       }
       return cellItem
@@ -122,7 +122,7 @@ final class AccountSelectionScreenTests: MainActorTestCase {
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     let accountItems: Array<AccountSelectionCellItem> = result.compactMap {
-      guard case let .account(cellItem) = $0 else {
+      guard case .account(let cellItem) = $0 else {
         return nil
       }
       return cellItem
@@ -163,7 +163,7 @@ final class AccountSelectionScreenTests: MainActorTestCase {
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     let accounts: Array<Account> = result.compactMap {
-      guard case let .account(cellItem) = $0 else {
+      guard case .account(let cellItem) = $0 else {
         return nil
       }
       return cellItem.account
@@ -220,7 +220,7 @@ final class AccountSelectionScreenTests: MainActorTestCase {
       .asAsyncValue()
 
     let accounts: Array<Account> = result.compactMap {
-      guard case let .account(cellItem) = $0 else {
+      guard case .account(let cellItem) = $0 else {
         return nil
       }
       return cellItem.account
@@ -261,7 +261,7 @@ final class AccountSelectionScreenTests: MainActorTestCase {
 
     XCTAssertEqual(
       result.compactMap {
-        guard case let .account(accountItem) = $0
+        guard case .account(let accountItem) = $0
         else { return nil }
         return accountItem.account
       },

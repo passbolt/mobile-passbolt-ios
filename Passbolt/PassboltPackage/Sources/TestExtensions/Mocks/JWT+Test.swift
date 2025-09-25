@@ -25,6 +25,7 @@ import Crypto
 
 extension JWT {
 
+  // swift-format-ignore: NeverUseForceTry
   public static var valid: Self {
     try! Self.from(
       rawValue: """

@@ -376,9 +376,11 @@ final class AccountChunkedExportTests: LoadableFeatureTestCase<AccountChunkedExp
 }
 
 let mockDataContentHash: String = AccountTransferConfiguration.mock_ada.hash
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverForceUnwrap, NeverUseForceTry
 nonisolated let mockDataPart_0: Data =
   "100".data(using: .ascii)!
   + (try! JSONEncoder.snake.encode(AccountTransferConfiguration.mock_ada))  // current mock data fits in one page
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverForceUnwrap, NeverUseForceTry
 let mockDataPart_1: Data =
   "101".data(using: .ascii)!
   + (try! JSONEncoder.snake.encode(AccountTransferAccount.mock_ada))  // current mock data fits in one page

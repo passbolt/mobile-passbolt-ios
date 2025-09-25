@@ -60,9 +60,7 @@ extension FoldersExplorerController: ComponentController {
     let navigationToAccountMenu: NavigationToAccountMenu = try features.instance()
 
     let navigation: DisplayNavigation = try features.instance()
-    let currentAccount: Account = try features.sessionAccount()
     let accountDetails: AccountDetails = try features.instance()
-    let resources: ResourcesController = try features.instance()
     let sessionData: SessionData = try features.instance()
     let folders: ResourceFolders = try features.instance()
     let navigationToResourceDetails: NavigationToResourceDetails = try features.instance()
@@ -164,16 +162,17 @@ extension FoldersExplorerController: ComponentController {
     @MainActor func presentAddNew(
       folderID: ResourceFolder.ID?
     ) {
-      #warning("MOB-616 check if can create folder?")
       cancellables.executeOnMainActor {
         do {
+          let resourceCreatePreparation: ResourceCreatePreparation = try features.instance()
+          let resourceCreatingContext: ResourceCreatingContext = try await resourceCreatePreparation.prepare()
           try await navigation.presentSheet(
             ResourcesListCreateMenuView.self,
             controller:
               features
               .instance(
                 of: ResourcesListCreateMenuViewController.self,
-                context: folderID
+                context: .init(folderID: folderID, availableTypes: resourceCreatingContext.availableTypes)
               )
           )
         }

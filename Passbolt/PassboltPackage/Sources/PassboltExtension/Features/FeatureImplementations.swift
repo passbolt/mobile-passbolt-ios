@@ -27,6 +27,7 @@ import Features
 import NFC
 import PassboltAccounts
 import PassboltDatabaseOperations
+import PassboltMetadata
 import PassboltNetworkOperations
 import PassboltResources
 import PassboltSession
@@ -34,7 +35,7 @@ import PassboltSessionData
 import PassboltUsers
 
 extension FeaturesRegistry {
-  
+
   public mutating func usePassboltFeatures() {
     self.useOSFeatures()
     self.useNFCFeatures()
@@ -49,8 +50,11 @@ extension FeaturesRegistry {
     self.usePassboltHomePresentation()
     self.usePassboltResourcesModule()
     self.usePassboltExtensionAccountKitImport()
+    self.usePassboltMetadataModule()
     // it is required until navigations will become fully integrated
-    self.useLiveNavigationToResourceEdit()
+    self.useResourceEditNavigation()
     self.useLiveNavigationToOperationResult()
+
+    self.useLiveNavigationToMetadataPinnedKeyValidationDialog()
   }
 }

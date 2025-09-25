@@ -32,42 +32,26 @@ internal final class ResourceDetailsViewController: ViewController {
   internal struct ViewState: Equatable {
 
     internal var name: String
+    internal var icon: ResourceIcon
+    internal var resourceTypeSlug: ResourceSpecification.Slug?
     internal var favorite: Bool
     internal var containsUndefinedFields: Bool
-    internal var fields: Array<ResourceDetailsFieldViewModel>
-    internal var locationAvailable: Bool
-    internal var location: Array<String>
-    internal var expirationDate: Date?
-    internal var tagsAvailable: Bool
-    internal var tags: Array<String>
-    internal var permissionsListVisible: Bool
+    internal var sections: Array<ResourceDetailsSectionViewModel>
+    internal var canShowMembersList: Bool
     internal var permissions: Array<OverlappingAvatarStackView.Item>
-
+    internal var expirationDate: Date?
+    internal var additionalURIs: Array<String>
+    internal var hasAdditionalURIs: Bool {
+      !self.additionalURIs.isEmpty
+    }
     internal var isExpired: Bool? {
       guard let expirationDate else { return nil }
       return expirationDate.timeIntervalSinceNow < 0
     }
-    internal var expiryRelativeFormattedDate: RelativeDateDisplayableFormat? {
-      guard let expirationDate else { return nil }
-      let interval = expirationDate.timeIntervalSinceNow
-      let relativeFormattedString = RelativeDateTimeFormatter().localizedString(fromTimeInterval: interval)
-
-      var expiryParts = relativeFormattedString.split(separator: " ")
-      let numberIndex = expiryParts.firstIndex { Int($0) != nil }
-
-      guard let numberIndex else { return nil }
-      let numberString = String(expiryParts[numberIndex])
-      expiryParts.remove(at: numberIndex)
-      //We just keep the time string "month", "day"
-      let expiryTimeFormat = expiryParts.joined(separator: " ").replacingOccurrences(of: "in", with: "")
-      return .init(
-        number: numberString,
-        localizedRelativeString: expiryTimeFormat)
-    }
 
   }
 
-  internal let viewState: ViewStateSource<ViewState>
+  nonisolated internal let viewState: ViewStateSource<ViewState>
 
   internal struct LocalState: Equatable {
 
@@ -123,15 +107,14 @@ internal final class ResourceDetailsViewController: ViewController {
     self.viewState = .init(
       initial: .init(
         name: .init(),
+        icon: .none,
+        resourceTypeSlug: nil,
         favorite: false,
         containsUndefinedFields: false,
-        fields: .init(),
-        locationAvailable: self.sessionConfiguration.folders.enabled,
-        location: .init(),
-        tagsAvailable: self.sessionConfiguration.tags.enabled,
-        tags: .init(),
-        permissionsListVisible: self.sessionConfiguration.share.showMembersList,
-        permissions: .init()
+        sections: .init(),
+        canShowMembersList: false,
+        permissions: .init(),
+        additionalURIs: .init()
       ),
       updateFrom: ComputedVariable(
         combined: self.resourceController.state,
@@ -156,9 +139,11 @@ internal final class ResourceDetailsViewController: ViewController {
           }
           updateView { (viewState: inout ViewState) in
             viewState.name = resource.name
+            viewState.icon = .init(json: resource.meta.icon)
+            viewState.resourceTypeSlug = resource.type.specification.slug
             viewState.favorite = resource.favorite
             viewState.containsUndefinedFields = resource.containsUndefinedFields
-            viewState.fields = fields(
+            viewState.sections = sections(
               for: resource,
               using: features,
               revealedFields: resource.secretAvailable
@@ -166,16 +151,20 @@ internal final class ResourceDetailsViewController: ViewController {
                 : .init(),
               sessionConfiguration: sessionConfiguration
             )
-            viewState.location = resource.path.map(\.name)
-            viewState.tags = resource.tags.map(\.slug.rawValue)
             viewState.expirationDate = resource.expired?.asDate
-            viewState.permissions = resourcePermissions
+            viewState.canShowMembersList = sessionConfiguration.share.showMembersList
+            viewState.additionalURIs = .init(
+              resource.meta.uris.arrayValue?.compactMap { $0.stringValue }.dropFirst() ?? []
+            )
+            if sessionConfiguration.share.showMembersList {
+              viewState.permissions = resourcePermissions
+            }
           }
         }
         catch {
           let message = error.asTheError().displayableMessage.string()
           //When deletion happen it display the error message instead of the correct message. We skip this error message to avoid confusion
-          if(message != DisplayableString.localized(key: "error.database.result.empty").string()) {
+          if message != DisplayableString.localized(key: "error.database.result.empty").string() {
             SnackBarMessageEvent.send(.error(error))
           }
           await navigationToSelf.revertCatching()
@@ -232,7 +221,8 @@ extension ResourceDetailsViewController {
       var resource: Resource = try await self.resourceController.state.value
 
       // ensure having secret if field is part of it
-      if resource.isEncrypted(path) {
+      let isEncrypted: Bool = resource.isEncrypted(path)
+      if isEncrypted {
         try await self.resourceController.fetchSecretIfNeeded()
         resource = try await self.resourceController.state.value
       }  // else NOP
@@ -247,10 +237,27 @@ extension ResourceDetailsViewController {
               secret: totpSecret
             )
           )()
-        self.pasteboard.put(totpValue.otp.rawValue)
+        self.pasteboard.put(
+          totpValue.otp.rawValue,
+          withAutoExpiration: isEncrypted
+        )
       }
       else {
-        self.pasteboard.put(fieldValue.stringValue ?? "")
+        if let specification: ResourceFieldSpecification = resource.fieldSpecification(for: path),
+          specification.content == .list
+        {
+          let path: Resource.FieldPath = path.appending(path: \.0)
+          self.pasteboard.put(
+            resource[keyPath: path].stringValue ?? "",
+            withAutoExpiration: isEncrypted
+          )
+        }
+        else {
+          self.pasteboard.put(
+            resource[keyPath: path].stringValue ?? "",
+            withAutoExpiration: isEncrypted
+          )
+        }
       }
 
       SnackBarMessageEvent.send(
@@ -305,25 +312,50 @@ extension ResourceDetailsViewController {
   }
 }
 
-@MainActor private func fields(
+/// Prepare sections/groupped fields for display in UI
+@MainActor private func sections(
   for resource: Resource,
   using features: Features,
   revealedFields: Set<Resource.FieldPath>,
   sessionConfiguration: SessionConfiguration
-) -> Array<ResourceDetailsFieldViewModel> {
-  if resource.type.specification.slug == .placeholder {
-    return .init()  // show no fields for placeholder type
+) -> Array<ResourceDetailsSectionViewModel> {
+  guard resource.type.specification.slug != .placeholder else {
+    return .init()  // show no sections for placeholder type
   }
-  else {
-    return resource
-      .fields
-      .compactMap { (field: ResourceFieldSpecification) -> ResourceDetailsFieldViewModel? in
-        // remove name from fields, we already have it displayed
-        if field.isNameField {
-          return .none
-        }
-        else {
-          return .init(
+
+  var passwordSection: ResourceDetailsSectionViewModel = .init(
+    title: "resource.edit.section.password.title",
+    fields: .init()
+  )
+
+  var totpSection: ResourceDetailsSectionViewModel = .init(
+    title: "resource.edit.section.totp.title",
+    fields: .init()
+  )
+
+  var metadataSection: ResourceDetailsSectionViewModel = .init(
+    title: "resource.edit.section.metadata.title",
+    fields: .init()
+  )
+
+  var notesSection: ResourceDetailsSectionViewModel = .init(title: "resource.edit.section.note.title", fields: .init())
+
+  var fieldModelsByName: OrderedDictionary<ResourceFieldName, ResourceDetailsFieldViewModel> = resource
+    .fields
+    .compactMap {
+      (
+        field: ResourceFieldSpecification
+      ) -> (
+        key: ResourceFieldName,
+        value: ResourceDetailsFieldViewModel
+      )? in
+      // remove name from fields, we already have it displayed
+      if field.isNameField {
+        return .none
+      }
+      else {
+        guard
+          let spec: ResourceDetailsFieldViewModel = .init(
             field,
             in: resource,
             revealedFields: revealedFields,
@@ -341,8 +373,128 @@ extension ResourceDetailsViewController {
               return generateOTP
             }
           )
-        }
+        else { return .none }
+        return (key: field.name, value: spec)
       }
+    }
+    .reduce(into: OrderedDictionary<ResourceFieldName, ResourceDetailsFieldViewModel>()) { $0[$1.key] = $1.value }
+
+  for fieldName: ResourceFieldName in ResourceDetailsSectionViewModel.passwordSectionFields {
+    if let fieldModel: ResourceDetailsFieldViewModel = fieldModelsByName[fieldName] {
+      passwordSection.fields.append(fieldModel)
+      fieldModelsByName.removeValue(forKey: fieldName)
+    }
+  }
+
+  for (fieldName, fieldModel) in fieldModelsByName {
+    if ResourceDetailsSectionViewModel.totpSectionFields.contains(fieldName) {
+      totpSection.fields.append(fieldModel)
+    }
+    else if fieldName == .note {
+      notesSection.fields.append(fieldModel)
+    }
+    else {
+      metadataSection.fields.append(fieldModel)
+    }
+  }
+
+  if sessionConfiguration.folders.enabled {
+    metadataSection.virtualFields.append(
+      .location(resource.path.map(\.name))
+    )
+  }
+  if sessionConfiguration.tags.enabled {
+    metadataSection.virtualFields.append(
+      .tags(resource.tags.map(\.slug.rawValue))
+    )
+  }
+  let uris: [String] = .init(
+    resource.meta.uris.arrayValue?
+      .compactMap { $0.stringValue }
+      .dropFirst() ?? []  // drop first one, as it is already displayed in the main URI field
+  )
+  if uris.isEmpty == false {
+    metadataSection.virtualFields.append(
+      .additionalURIs(uris)
+    )
+  }
+
+  if let expirationDate = resource.expired?.asDate {
+    let isExpired: Bool = expirationDate.timeIntervalSinceNow < 0
+    let interval = expirationDate.timeIntervalSinceNow
+    let relativeFormattedString: String = RelativeDateTimeFormatter().localizedString(fromTimeInterval: interval)
+
+    var expiryParts = relativeFormattedString.split(separator: " ")
+    let numberIndex = expiryParts.firstIndex { Int($0) != nil }
+
+    if let numberIndex {
+      let numberString = String(expiryParts[numberIndex])
+      expiryParts.remove(at: numberIndex)
+      //We just keep the time string "month", "day"
+      let expiryTimeFormat = expiryParts.joined(separator: " ").replacingOccurrences(of: "in", with: "")
+      let dateFormat: RelativeDateDisplayableFormat = .init(
+        number: numberString,
+        localizedRelativeString: expiryTimeFormat
+      )
+      metadataSection.virtualFields.append(
+        .expiration(isExpired, dateFormat)
+      )
+    }
+  }
+
+  // remove empty sections
+  return [passwordSection, totpSection, notesSection, metadataSection]
+    .filter {
+      $0.fields.isEmpty == false || $0.virtualFields.isEmpty == false
+    }
+}
+
+/// View model for a section/fields group of resource details
+internal struct ResourceDetailsSectionViewModel: Equatable, Identifiable {
+
+  internal var id: String { self.title.string() }
+  internal var title: DisplayableString
+  internal var fields: Array<ResourceDetailsFieldViewModel>
+  internal var virtualFields: Array<VirtualField> = .init()
+
+  /// Properties that are not fields but are displayed as part of the section - navigating to other screens
+  internal enum VirtualField: Equatable, Identifiable {
+
+    internal typealias ID = Tagged<String, Self>
+    case location(Array<String>)
+    case tags(Array<String>)
+    case expiration(Bool, RelativeDateDisplayableFormat)
+    case additionalURIs(Array<String>)
+
+    internal var id: ID {
+      switch self {
+      case .location:
+        return "location"
+      case .tags:
+        return "tags"
+      case .expiration:
+        return "expiration"
+      case .additionalURIs:
+        return "additionalURIs"
+      }
+    }
+  }
+
+  /// Password/main section fields
+  static fileprivate var passwordSectionFields: Array<ResourceFieldName> {
+    [
+      .username,
+      .password,
+      .secret,
+      .uri,
+    ]
+  }
+
+  /// TOTP section fields
+  static fileprivate var totpSectionFields: Array<ResourceFieldName> {
+    [
+      .totp
+    ]
   }
 }
 
@@ -412,19 +564,20 @@ internal struct ResourceDetailsFieldViewModel {
     switch field.semantics {
     case .list(let name, let placeholder, _):
       self.name = name
-      if let values = resource[keyPath: field.path].arrayValue, let value = values.first?.stringValue {
+      if let values = resource[keyPath: field.path].arrayValue, let value = values.first?.stringValue, !value.isEmpty {
         // at the moment, we support only one-item list on UI
-        self.value = .placeholder(value)
+        self.value = .plain(value)
         self.mainAction = .copy
         self.accessoryAction = .copy
-      } else {
+      }
+      else {
         self.value = .placeholder(placeholder.string())
         self.mainAction = .none
         self.accessoryAction = .none
       }
-      
+
     case  // unencrypted
-      .text(let name, let placeholder, _) where !field.encrypted,
+    .text(let name, let placeholder, _) where !field.encrypted,
       .longText(let name, let placeholder, _) where !field.encrypted,
       .selection(let name, values: _, let placeholder, _) where !field.encrypted,
       .intValue(let name, let placeholder, _) where !field.encrypted,
@@ -436,6 +589,9 @@ internal struct ResourceDetailsFieldViewModel {
         self.accessoryAction = .copy
       }
       else {
+        if field.path == \.meta.description {
+          return nil  // do not display empty description field
+        }
         self.value = .placeholder(placeholder.string())
         self.mainAction = .none
         self.accessoryAction = .none
@@ -532,7 +688,7 @@ internal struct ResourceDetailsFieldViewModel {
         self.accessoryAction = .reveal
       }
 
-    case .undefined:
+    case .undefined, .hidden:
       return nil  // do not display undefined fields, unfortunately even a placeholder
     }
   }

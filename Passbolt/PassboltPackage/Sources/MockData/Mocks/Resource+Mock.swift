@@ -23,6 +23,7 @@
 
 import CommonModels
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverForceUnwrap, NeverForceUnwrap
 extension Resource.ID {
 
   public static let mock_1: Self = .init(uuidString: "CA5AE528-6EF9-48BB-AF4F-4167D73CFF6F")!
@@ -32,6 +33,7 @@ extension Resource.ID {
   public static let mock_3: Self = .init(uuidString: "58C4204F-75B6-40F0-8642-874C934001CA")!
 }
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverForceUnwrap
 extension Resource.Favorite.ID {
 
   public static let mock_1: Self = .init(uuidString: "CEB02F9B-81D1-4C43-9BDC-30D95848897F")!

@@ -26,13 +26,14 @@ import Commons
 public struct ResourceListItemDSV {
 
   public let id: Resource.ID
-  public let type: ResourceType
+  public let typeInfo: ResourceTypeInfo
   public let permission: Permission
   public var parentFolderID: ResourceFolder.ID?
   public var name: String
   public var username: String?
   public var url: String?
   public var isExpired: Bool
+  public var icon: ResourceIcon
 
   public init(
     id: Resource.ID,
@@ -42,16 +43,18 @@ public struct ResourceListItemDSV {
     name: String,
     username: String?,
     url: String?,
-    isExpired: Bool? = false
+    isExpired: Bool? = false,
+    icon: ResourceIcon
   ) {
     self.id = id
-    self.type = type
+    self.typeInfo = type.info
     self.permission = permission
     self.parentFolderID = parentFolderID
     self.name = name
     self.username = username
     self.url = url
     self.isExpired = isExpired ?? false
+    self.icon = icon
   }
 }
 

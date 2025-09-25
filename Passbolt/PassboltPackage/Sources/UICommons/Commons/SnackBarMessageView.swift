@@ -111,11 +111,11 @@ private final class SnackBarMessageView: UIView {
   ) {
     switch message {
     case .info(let message):
-      self.label.text = message.string()
+      self.label.text = message.string().capitalizedFirstLetter
       self.backgroundColor = .passboltBackgroundAlert
 
     case .error(let message):
-      self.label.text = message.string()
+      self.label.text = message.string().capitalizedFirstLetter
       self.backgroundColor = .passboltSecondaryRed
     }
   }

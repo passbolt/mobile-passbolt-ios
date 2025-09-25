@@ -23,7 +23,8 @@
 
 import CommonModels
 
-public typealias PasswordPoliciesStoreDatabaseOperation = DatabaseOperation<PasswordPoliciesStoreDatabaseOperationDescription>
+public typealias PasswordPoliciesStoreDatabaseOperation =
+  DatabaseOperation<PasswordPoliciesStoreDatabaseOperationDescription>
 
 public enum PasswordPoliciesStoreDatabaseOperationDescription: DatabaseOperationDescription {
 

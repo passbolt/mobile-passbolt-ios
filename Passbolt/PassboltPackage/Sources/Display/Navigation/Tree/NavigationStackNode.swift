@@ -61,14 +61,14 @@ extension NavigationStackNode {
 
   internal var nodeID: ViewNodeID {
     switch self {
-    case let .element(id, _, _):
+    case .element(let id, _, _):
       return id
     }
   }
 
   internal var nodeView: any View {
     switch self {
-    case let .element(_, nodeView, _):
+    case .element(let _, let nodeView, _):
       return nodeView
     }
   }
@@ -76,13 +76,13 @@ extension NavigationStackNode {
   internal var next: NavigationStackNode? {
     get {
       switch self {
-      case let .element(_, _, next):
+      case .element(let _, _, let next):
         return next
       }
     }
     set {
       switch self {
-      case let .element(id, nodeView, _):
+      case .element(let id, let nodeView, _):
         self = .element(
           id: id,
           view: nodeView,
@@ -95,13 +95,13 @@ extension NavigationStackNode {
   internal var last: NavigationStackNode {
     get {
       switch self {
-      case let .element(_, _, next):
+      case .element(_, _, let next):
         return next?.last ?? self
       }
     }
     set {
       switch self {
-      case let .element(id, nodeView, .some(next)):
+      case .element(let id, let nodeView, .some(let next)):
         var next: NavigationStackNode = next
         next.last = newValue
         self = .element(
@@ -110,7 +110,7 @@ extension NavigationStackNode {
           next: next
         )
 
-      case let .element(id, nodeView, .none):
+      case .element(let id, let nodeView, .none):
         self = .element(
           id: id,
           view: nodeView,

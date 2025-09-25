@@ -21,10 +21,12 @@
 // @since         v1.0
 //
 
+import Metadata
 import TestExtensions
 
 @testable import PassboltResources
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 final class ResourceEditPreparationTests: FeaturesTestCase {
 
   override func commonPrepare() {
@@ -42,7 +44,7 @@ final class ResourceEditPreparationTests: FeaturesTestCase {
     )
     patch(
       \MetadataSettingsService.typesSettings,
-       with: always(.init(defaultResourceTypes: .v4))
+      with: always(.init(defaultResourceTypes: .v4))
     )
   }
 
@@ -127,10 +129,7 @@ final class ResourceEditPreparationTests: FeaturesTestCase {
             "object_type": "PASSBOLT_RESOURCE_METADATA",
             "resource_type_id": .string(ResourceType.mock_default.id.rawValue.rawValue.uuidString),
           ],
-          secret: [
-            "password": nil,
-            "description": nil,
-          ]
+          secret: .null
         ),
         availableTypes: [.mock_default]
       )

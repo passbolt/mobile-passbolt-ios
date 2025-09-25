@@ -33,7 +33,7 @@ import XCTest
 
 @testable import PassboltApp
 
-// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionalss
 @MainActor
 final class FoldersExplorerControllerTests: MainActorTestCase {
 
@@ -53,6 +53,11 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
 
   override func mainActorTearDown() {
     updates = .none
+  }
+
+  override func featuresActorTearDown() async throws {
+    self.mainActorTearDown()
+    self.features = nil
   }
 
   override func featuresActorSetUp() async throws {
