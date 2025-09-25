@@ -21,9 +21,9 @@
 // @since         v1.0
 //
 
-import Foundation
+import struct Foundation.CharacterSet
 
-public enum CharacterSets {
+public enum CharacterSets: Sendable {
 
   internal static let lowercaseLetters: Set<Character> = .init([
     "a", "b", "c", "d", "e", "f",

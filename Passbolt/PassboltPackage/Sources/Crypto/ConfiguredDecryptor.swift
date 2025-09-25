@@ -25,7 +25,7 @@ import CommonModels
 
 import struct Foundation.Data
 
-public struct ConfiguredDecryptor {
+public struct ConfiguredDecryptor: Sendable {
 
   public var decrypt: @Sendable (Data) throws -> (data: Data?, sessionKey: SessionKey?)
   public var deinitialize: @Sendable () -> Void

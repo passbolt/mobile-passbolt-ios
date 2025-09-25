@@ -24,7 +24,7 @@
 import CommonModels
 import Features
 
-public struct MetadataKeyDataStore {
+public struct MetadataKeyDataStore: Sendable {
   public var loadPinnedMetadataKey: @Sendable (Account.LocalID) throws -> JSON?
   public var storePinnedMetadataKey: @Sendable (JSON, Account.LocalID) throws -> Void
   public var deletePinnedMetadataKey: @Sendable (Account.LocalID) throws -> Void

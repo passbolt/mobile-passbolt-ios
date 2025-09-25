@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public protocol NetworkOperationDescription {
+public protocol NetworkOperationDescription: Sendable {
 
   associatedtype Input = Void
   associatedtype Output = Void

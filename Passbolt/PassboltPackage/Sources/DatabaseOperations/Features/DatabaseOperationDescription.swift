@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public protocol DatabaseOperationDescription {
+public protocol DatabaseOperationDescription: Sendable {
 
   associatedtype Input = Void
   associatedtype Output = Void

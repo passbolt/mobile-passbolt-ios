@@ -28,7 +28,7 @@ import FeatureScopes
 import Metadata
 import NetworkOperations
 import Resources
-import Session
+@preconcurrency import Session
 import Users
 
 import struct Foundation.Data
@@ -552,7 +552,7 @@ extension FeaturesRegistry {
   }
 }
 
-private struct CachedKeys: Identifiable {
+private struct CachedKeys: Identifiable, Sendable {
 
   fileprivate var id: MetadataKeyDTO.ID
   fileprivate var publicKey: ArmoredPGPPublicKey
@@ -755,7 +755,7 @@ extension MetadataKeysService {
     fileprivate var localKeysByForeignReference: Dictionary<ForeignReference, SessionKeyData>
     fileprivate var hasNewKeys: Bool = false
 
-    static fileprivate var empty: Self = .init(
+    static fileprivate let empty: Self = .init(
       id: nil,
       keysByForeignReference: .init(),
       localKeysByForeignReference: .init()
@@ -797,7 +797,7 @@ extension MetadataKeysService {
   }
 }
 
-private struct VerifiedMetadataPrivateKey {
+private struct VerifiedMetadataPrivateKey: Sendable {
 
   let signature: PGP.Signature?
   let data: MetadataDecryptedPrivateKey

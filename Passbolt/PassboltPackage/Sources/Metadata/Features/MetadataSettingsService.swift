@@ -23,7 +23,7 @@
 
 import CommonModels
 
-public struct MetadataSettingsService {
+public struct MetadataSettingsService: Sendable {
   public var fetchKeysSettings: @Sendable () async throws -> Void
   public var fetchTypesSettings: @Sendable () async throws -> Void
   public var keysSettings: @Sendable () -> MetadataKeysSettings

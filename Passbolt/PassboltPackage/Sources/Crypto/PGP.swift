@@ -21,21 +21,22 @@
 // @since         v1.0
 //
 
-import CommonModels
+@preconcurrency import CommonModels
 import Features
 import Foundation
-import Gopenpgp
+@preconcurrency import Gopenpgp
 
-public struct PGP {
+public struct PGP: Sendable {
   // The following functions accept private & public keys as PGP formatted strings
   // https://pkg.go.dev/github.com/ProtonMail/gopenpgp/v2#readme-documentation
   // Set time offset for PGP operations to compensate
   // difference between server and client time.
   // NOTE: It will keep the offset as long as the application is running
   // and apply it to all crypto operations thare are made through PGP.
-  public var setTimeOffset: (Seconds) -> Void
+  public var setTimeOffset: @Sendable (Seconds) -> Void
   // Encrypt and sign
   public var encryptAndSign:
+    @Sendable
     (
       _ input: String,
       _ passphrase: Passphrase,
@@ -44,6 +45,7 @@ public struct PGP {
     ) -> Result<String, Error>
   // Decrypt and verify signature
   public var decryptAndVerify:
+    @Sendable
     (
       _ input: String,
       _ passphrase: Passphrase,
@@ -52,12 +54,14 @@ public struct PGP {
     ) -> Result<VerifiedMessage, Error>
   // Encrypt without signing
   public var encrypt:
+    @Sendable
     (
       _ input: String,
       _ publicKey: ArmoredPGPPublicKey
     ) -> Result<String, Error>
   // Decrypt without verifying signature
   public var decrypt:
+    @Sendable
     (
       _ input: String,
       _ passphrase: Passphrase,
@@ -65,12 +69,14 @@ public struct PGP {
     ) -> Result<String, Error>
   // Decrypt with session key
   public var decryptWithSessionKey:
+    @Sendable
     (
       _ message: String,
       _ sessionKey: SessionKey
     ) throws -> String?
   // Sign cleartext message
   public var signMessage:
+    @Sendable
     (
       _ input: String,
       _ passphrase: Passphrase,
@@ -78,6 +84,7 @@ public struct PGP {
     ) -> Result<String, Error>
   // Verify cleartext message
   public var verifyMessage:
+    @Sendable
     (
       _ input: String,
       _ publicKey: ArmoredPGPPublicKey,
@@ -85,43 +92,50 @@ public struct PGP {
     ) -> Result<String, Error>
   // Verify if passhrase is correct
   public var verifyPassphrase:
+    @Sendable
     (
       _ privateKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
     ) -> Result<Void, Error>
 
   public var verifyPublicKeyFingerprint:
+    @Sendable
     (
       _ publicKey: ArmoredPGPPublicKey,
       _ fingerprint: Fingerprint
     ) -> Result<Bool, Error>
 
   public var extractFingerprint:
+    @Sendable
     (
       _ publicKey: ArmoredPGPPublicKey
     ) -> Result<Fingerprint, Error>
   public var extractPublicKey:
+    @Sendable
     (
       _ privateKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
     ) -> Result<ArmoredPGPPublicKey, Error>
 
   public var readCleartextMessage:
+    @Sendable
     (
       _ message: Data
     ) -> Result<String, Error>
   public var isPGPSignedClearMessage:
+    @Sendable
     (
       _ message: String
     ) -> Bool
 
   public var configuredDecryptor:
+    @Sendable
     (
       _ privateKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
     ) throws -> ConfiguredDecryptor
 
-  public var forceFreeMemory: () -> Void
+  public var forceFreeMemory: @Sendable () -> Void
 }
 
 extension PGP: StaticFeature {
@@ -154,18 +168,18 @@ extension PGP {
 
   internal static func gopenPGP() -> Self {
 
-    var timeOffset: Int64 = 0
-    func setTimeOffset(
+    let timeOffset: CriticalState<Int64> = .init(0)
+    @Sendable func setTimeOffset(
       value: Seconds
     ) {
-      timeOffset = Int64(value.rawValue)
+      timeOffset.set(Int64(value.rawValue))
     }
 
-    func now() -> Int64 {
+    @Sendable func now() -> Int64 {
       Int64(Date.now.timeIntervalSince1970)
     }
 
-    func createUnlockedPrivateKey(
+    @Sendable func createUnlockedPrivateKey(
       fromArmored privateKey: ArmoredPGPPrivateKey,
       withPassphrase passphrase: Passphrase
     ) throws -> CryptoKey {
@@ -187,7 +201,7 @@ extension PGP {
       }
     }
 
-    func createPublicKey(fromArmored publicKey: ArmoredPGPPublicKey) throws -> CryptoKey {
+    @Sendable func createPublicKey(fromArmored publicKey: ArmoredPGPPublicKey) throws -> CryptoKey {
       if let key: CryptoKey = CryptoKey(fromArmored: publicKey.rawValue) {
         return key
       }
@@ -196,7 +210,7 @@ extension PGP {
       )
     }
 
-    func encryptAndSign(
+    @Sendable func encryptAndSign(
       _ input: String,
       passphrase: Passphrase,
       privateKey: ArmoredPGPPrivateKey,
@@ -228,7 +242,7 @@ extension PGP {
       }
     }
 
-    func decryptAndVerify(
+    @Sendable func decryptAndVerify(
       _ input: String,
       passphrase: Passphrase,
       privateKey: ArmoredPGPPrivateKey,
@@ -243,7 +257,7 @@ extension PGP {
           with: {
             $0.decryptionKey(key)?
               .verificationKey(publicKey)?
-              .verifyTime(now() + timeOffset)
+              .verifyTime(now() + timeOffset.get())
           })
         defer { decryptor.clearPrivateParams() }
         let inputData: Data = Data(input.utf8)
@@ -277,13 +291,14 @@ extension PGP {
       }
     }
 
-    func encrypt(
+    @Sendable func encrypt(
       _ input: String,
       publicKey: ArmoredPGPPublicKey
     ) -> Result<String, Error> {
       defer { Gopenpgp.MobileFreeOSMemory() }
 
       do {
+        let timeOffset: Int64 = timeOffset.get()
         let publicKey: CryptoKey = try createPublicKey(fromArmored: publicKey)
         let encryptor: CryptoPGPEncryptionProtocol = try CryptoPGPHandle.encryptor(
           with: {
@@ -312,7 +327,7 @@ extension PGP {
       }
     }
 
-    func decrypt(
+    @Sendable func decrypt(
       _ input: String,
       passphrase: Passphrase,
       privateKey: ArmoredPGPPrivateKey
@@ -331,7 +346,7 @@ extension PGP {
         let decryptor: CryptoPGPDecryptionProtocol = try CryptoPGPHandle.decryptor(
           with: {
             $0.decryptionKey(key)?
-              .verifyTime(now() + timeOffset)
+              .verifyTime(now() + timeOffset.get())
           })
         defer { decryptor.clearPrivateParams() }
         let result: CryptoVerifiedDataResult = try decryptor.decrypt(inputData, encoding: PGPEncoding.auto.rawValue)
@@ -355,7 +370,7 @@ extension PGP {
       }
     }
 
-    func signMessage(
+    @Sendable func signMessage(
       _ input: String,
       passphrase: Passphrase,
       privateKey: ArmoredPGPPrivateKey
@@ -367,7 +382,7 @@ extension PGP {
         let signer: CryptoPGPSignProtocol = try CryptoPGPHandle.signer(
           with: {
             $0.signing(key)?
-              .signTime(now() + timeOffset)
+              .signTime(now() + timeOffset.get())
           })
         defer { signer.clearPrivateParams() }
         let armoredData: Data = try signer.signCleartext(Data(input.utf8))
@@ -382,7 +397,7 @@ extension PGP {
       }
     }
 
-    func verifyMessage(
+    @Sendable func verifyMessage(
       _ input: String,
       publicKey: ArmoredPGPPublicKey,
       verifyTime: Int64
@@ -427,7 +442,7 @@ extension PGP {
       }
     }
 
-    func verifyPassphrase(
+    @Sendable func verifyPassphrase(
       privateKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase
     ) -> Result<Void, Error> {
@@ -446,7 +461,7 @@ extension PGP {
       }
     }
 
-    func verifyPublicKeyFingerprint(
+    @Sendable func verifyPublicKeyFingerprint(
       _ publicKey: ArmoredPGPPublicKey,
       fingerprint: Fingerprint
     ) -> Result<Bool, Error> {
@@ -465,7 +480,7 @@ extension PGP {
       }
     }
 
-    func extractFingerprint(
+    @Sendable func extractFingerprint(
       publicKey: ArmoredPGPPublicKey
     ) throws -> Fingerprint {
       defer { Gopenpgp.MobileFreeOSMemory() }
@@ -482,7 +497,7 @@ extension PGP {
       }
     }
 
-    func extractFingerprint(
+    @Sendable func extractFingerprint(
       publicKey: ArmoredPGPPublicKey
     ) -> Result<Fingerprint, Error> {
       do {
@@ -498,7 +513,7 @@ extension PGP {
       }
     }
 
-    func extractPublicKey(
+    @Sendable func extractPublicKey(
       privateKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase
     ) -> Result<ArmoredPGPPublicKey, Error> {
@@ -547,7 +562,7 @@ extension PGP {
     ///
     /// - Parameter message: The PGP message to be decoded.
     /// - Returns: A Result object containing either the decoded message or an error specifying the failure reason.
-    func readCleartextMessage(
+    @Sendable func readCleartextMessage(
       message: Data
     ) -> Result<String, Error> {
       defer { Gopenpgp.MobileFreeOSMemory() }
@@ -571,7 +586,7 @@ extension PGP {
     ///
     /// - Parameter message: The message to verify.
     /// - Returns: A boolean object.
-    func isPGPSignedClearMessage(_ message: String) -> Bool {
+    @Sendable func isPGPSignedClearMessage(_ message: String) -> Bool {
       // regex for PGP message
       // swift-format-ignore
       let pgpMessageRegex: Regex = "[-]{5}BEGIN PGP SIGNED MESSAGE[-]{5}(.*?)[-]{5}BEGIN PGP SIGNATURE[-]{5}(.*?)[-]{5}END PGP SIGNATURE[-]{5}"
@@ -588,7 +603,7 @@ extension PGP {
     /// - Returns: The decrypted message as a string, or nil if decryption fails.
     /// - Throws: An error if the message cannot be converted to Data or if decryption fails.
     /// - Note: Remember to call `forceFreeMemory()` after using this function to free up memory used by the PGP library.
-    func decryptWithSessionKey(message: String, sessionKey: SessionKey) throws -> String? {
+    @Sendable func decryptWithSessionKey(message: String, sessionKey: SessionKey) throws -> String? {
       guard let message: Data = message.data(using: .utf8) else {
         throw PGPIssue.error(
           underlyingError:
@@ -603,7 +618,7 @@ extension PGP {
       let decryptor: CryptoPGPDecryptionProtocol = try CryptoPGPHandle.decryptor(
         with: {
           $0.sessionKey(sessionKey)?
-            .verifyTime(now() + timeOffset)
+            .verifyTime(now() + timeOffset.get())
         })
       let result = try decryptor.decrypt(message, encoding: PGPEncoding.auto.rawValue)
       if let decryptedData: Data = result.bytes(),
@@ -615,7 +630,7 @@ extension PGP {
 
     }
 
-    func configuredDecryptor(
+    @Sendable func configuredDecryptor(
       privateKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase
     ) throws -> ConfiguredDecryptor {
@@ -623,7 +638,7 @@ extension PGP {
       let decryptor: CryptoPGPDecryptionProtocol = try CryptoPGPHandle.decryptor(
         with: {
           $0.decryptionKey(key)?
-            .verifyTime(now() + timeOffset)
+            .verifyTime(now() + timeOffset.get())
           return $0.retrieveSessionKey()
         })
 
@@ -771,7 +786,7 @@ extension CryptoPGPHandle {
 
 extension PGP {
 
-  public struct VerifiedMessage {
+  public struct VerifiedMessage: Sendable {
     public let content: String
     public let signature: Signature
 
@@ -784,7 +799,7 @@ extension PGP {
     }
   }
 
-  public struct Signature {
+  public struct Signature: Sendable {
     public let signature: String
     public let createdAt: Date
     public let fingerprint: Fingerprint

@@ -26,7 +26,7 @@ import Features
 
 import struct Foundation.Data
 
-public struct HMAC {
+public struct HMAC: Sendable {
 
   public var sha1: @Sendable (_ key: Data, _ data: Data) -> Data
   public var sha256: @Sendable (_ key: Data, _ data: Data) -> Data

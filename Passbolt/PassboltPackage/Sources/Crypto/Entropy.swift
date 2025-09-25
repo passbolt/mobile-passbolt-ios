@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public struct Entropy: RawRepresentable, Strideable, Equatable {
+public struct Entropy: RawRepresentable, Strideable, Equatable, Sendable {
 
   public typealias Stride = Double
 

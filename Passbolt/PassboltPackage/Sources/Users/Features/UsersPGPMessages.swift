@@ -26,7 +26,7 @@ import Features
 
 /// Access to current session users
 /// message encryption.
-public struct UsersPGPMessages {
+public struct UsersPGPMessages: Sendable {
 
   /// Encrypt a message for each user in the list
   /// by fetching users public keys from a local database.

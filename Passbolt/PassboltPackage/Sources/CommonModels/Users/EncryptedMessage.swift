@@ -38,3 +38,4 @@ public struct EncryptedMessage {
 }
 
 extension EncryptedMessage: Hashable {}
+extension EncryptedMessage: Sendable {}

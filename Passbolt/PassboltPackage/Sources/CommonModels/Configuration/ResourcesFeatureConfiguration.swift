@@ -39,3 +39,4 @@ public struct ResourcesFeatureConfiguration {
 }
 
 extension ResourcesFeatureConfiguration: Equatable {}
+extension ResourcesFeatureConfiguration: Sendable {}

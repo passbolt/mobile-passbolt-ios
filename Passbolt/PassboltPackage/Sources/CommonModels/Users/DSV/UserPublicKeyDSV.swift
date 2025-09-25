@@ -38,3 +38,4 @@ public struct UserPublicKeyDSV {
 }
 
 extension UserPublicKeyDSV: Hashable {}
+extension UserPublicKeyDSV: Sendable {}

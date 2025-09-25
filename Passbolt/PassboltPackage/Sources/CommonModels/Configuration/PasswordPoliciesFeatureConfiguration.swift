@@ -38,3 +38,4 @@ public struct PasswordPoliciesFeatureConfiguration {
 }
 
 extension PasswordPoliciesFeatureConfiguration: Equatable {}
+extension PasswordPoliciesFeatureConfiguration: Sendable {}

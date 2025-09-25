@@ -27,7 +27,7 @@ import Features
 // Scope for signed in user.
 public enum SessionScope: FeaturesScope {
 
-  public struct Context: Equatable {
+  public struct Context: Equatable, Sendable {
 
     public let account: Account
     public let configuration: SessionConfiguration

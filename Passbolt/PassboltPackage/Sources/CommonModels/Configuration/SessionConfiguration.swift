@@ -84,3 +84,5 @@ extension SessionConfiguration {
     )
   }
 }
+
+extension SessionConfiguration: Sendable {}

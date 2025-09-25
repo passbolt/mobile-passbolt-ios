@@ -26,8 +26,8 @@ import Features
 // MARK: - Interface
 
 /// Network based operation.
-public struct NetworkOperation<Description>
-where Description: NetworkOperationDescription {
+public struct NetworkOperation<Description>: Sendable
+where Description: NetworkOperationDescription, Description: Sendable {
 
   public typealias Input = Description.Input
   public typealias Output = Description.Output

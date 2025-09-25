@@ -33,3 +33,4 @@ public struct FoldersFeatureConfiguration {
 }
 
 extension FoldersFeatureConfiguration: Equatable {}
+extension FoldersFeatureConfiguration: Sendable {}

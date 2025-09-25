@@ -53,3 +53,4 @@ public struct UserDetailsDSV {
 }
 
 extension UserDetailsDSV: Hashable {}
+extension UserDetailsDSV: Sendable {}

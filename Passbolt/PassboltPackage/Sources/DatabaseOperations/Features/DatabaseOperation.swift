@@ -26,18 +26,18 @@ import Features
 // MARK: - Interface
 
 /// Database operation.
-public struct DatabaseOperation<Description>
-where Description: DatabaseOperationDescription {
+public struct DatabaseOperation<Description>: Sendable
+where Description: DatabaseOperationDescription, Description.Input: Sendable, Description.Output: Sendable {
 
   public typealias Input = Description.Input
   public typealias Output = Description.Output
 
   /// Execute operation for current account database.
   /// Throws if there is no session.
-  public var execute: (Input) async throws -> Output
+  public var execute: @Sendable (Input) async throws -> Output
 
   public init(
-    execute: @escaping (Input) async throws -> Output
+    execute: @Sendable @escaping (Input) async throws -> Output
   ) {
     self.execute = execute
   }

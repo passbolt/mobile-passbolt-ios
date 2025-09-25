@@ -33,3 +33,4 @@ public struct TagsFeatureConfiguration {
 }
 
 extension TagsFeatureConfiguration: Equatable {}
+extension TagsFeatureConfiguration: Sendable {}

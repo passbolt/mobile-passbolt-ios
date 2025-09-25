@@ -33,3 +33,4 @@ public struct MetadataFeatureConfiguration {
 }
 
 extension MetadataFeatureConfiguration: Equatable {}
+extension MetadataFeatureConfiguration: Sendable {}

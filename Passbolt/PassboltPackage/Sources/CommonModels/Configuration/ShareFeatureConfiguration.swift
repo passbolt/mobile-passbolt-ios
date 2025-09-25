@@ -33,3 +33,4 @@ public struct ShareFeatureConfiguration {
 }
 
 extension ShareFeatureConfiguration: Equatable {}
+extension ShareFeatureConfiguration: Sendable {}

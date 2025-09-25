@@ -1,4 +1,4 @@
-// swift-tools-version:5.7
+// swift-tools-version:6.0
 
 import PackageDescription
 
@@ -153,6 +153,9 @@ let package = Package(
         "OSFeatures",
         "Features",
         "FeatureScopes",
+      ],
+      swiftSettings: [
+        .swiftLanguageMode(.v6)
       ]
     ),
     .testTarget(
@@ -296,7 +299,10 @@ let package = Package(
     ),
     .target(
       name: "Localization",
-      dependencies: []
+      dependencies: [],
+      swiftSettings: [
+        .swiftLanguageMode(.v6)
+      ]
     ),
     .target(
       name: "Features",
@@ -378,6 +384,9 @@ let package = Package(
         "CommonModels",
         "Commons",
         "Features",
+      ],
+      swiftSettings: [
+        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -388,6 +397,10 @@ let package = Package(
         // Modules
         "NetworkOperations",
         "Metadata",
+        "Users",
+      ],
+      swiftSettings: [
+        .swiftLanguageMode(.v6)
       ]
     ),
     .testTarget(
@@ -841,5 +854,6 @@ let package = Package(
         "TestExtensions",
       ]
     ),
-  ]
+  ],
+  swiftLanguageModes: [.v5]
 )

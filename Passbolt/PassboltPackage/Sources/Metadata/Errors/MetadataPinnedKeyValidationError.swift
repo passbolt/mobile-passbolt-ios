@@ -22,7 +22,7 @@
 //
 
 import CommonModels
-import Commons
+@preconcurrency import Commons
 
 public struct MetadataPinnedKeyValidationError: TheError {
   public typealias Reason = MetadataKeysService.KeyValidationResult.FailureReason
