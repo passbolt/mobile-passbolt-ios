@@ -279,7 +279,7 @@
 "resource.menu.item.add.favorite" = "Lägg till i favoriter";
 "resource.menu.item.remove.favorite" = "Ta bort från favoriter";
 "resource.menu.item.share" = "Dela lösenord";
-"resource.menu.item.edit.password" = "Redigera lösenord";
+"resource.menu.item.edit.resource" = "Redigera lösenord";
 "resource.menu.item.edit.otp" = "Redigera TOTP";
 "resource.menu.item.delete.resource" = "Radera lösenord";
 "resource.menu.item.delete.otp" = "Radera TOTP";

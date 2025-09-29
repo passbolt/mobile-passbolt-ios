@@ -279,7 +279,7 @@
 "resource.menu.item.add.favorite" = "Dodaj med priljubljene";
 "resource.menu.item.remove.favorite" = "Odstrani iz priljubljenih";
 "resource.menu.item.share" = "Deli geslo";
-"resource.menu.item.edit.password" = "Uredi geslo";
+"resource.menu.item.edit.resource" = "Uredi geslo";
 "resource.menu.item.edit.otp" = "Uredi TOTP";
 "resource.menu.item.delete.resource" = "Izbriši geslo";
 "resource.menu.item.delete.otp" = "Izbriši TOTP";

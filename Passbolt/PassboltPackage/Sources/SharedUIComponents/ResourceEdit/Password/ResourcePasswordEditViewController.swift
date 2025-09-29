@@ -146,10 +146,11 @@ public final class ResourcePasswordEditViewController: ViewController {
     return .init()  // show no fields for placeholder type
   }
   else {
+    let excludedFields: Set<ResourceFieldName> = [.name, .description, .customFields]
     let fields: Array<ResourceEditFieldViewModel> =
       resource
       .fields
-      .filter { $0.name != .name && $0.name != .description }
+      .filter { excludedFields.contains($0.name) == false }
       .compactMap { (field: ResourceFieldSpecification) -> ResourceEditFieldViewModel? in
         .init(
           field,

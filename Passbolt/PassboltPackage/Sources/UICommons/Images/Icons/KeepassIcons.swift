@@ -27,6 +27,7 @@ public enum KeepassIcons: IconProvider {
   private static let passwordIconName: String = "key"
   private static let totpIconName: String = "totp"
   private static let passwordAndTotpIconName: String = "password_with_totp"
+  private static let customFieldsIconName: String = "custom_fields"
 
   /// Get all available keepass icon identifiers
   public static var availableIdentifiers: [String] {
@@ -45,6 +46,8 @@ public enum KeepassIcons: IconProvider {
       iconName = Self.passwordAndTotpIconName
     case .totp, .v5StandaloneTOTP:
       iconName = Self.totpIconName
+    case .v5CustomFields:
+      iconName = Self.customFieldsIconName
     default:
       iconName = Self.passwordIconName
     }

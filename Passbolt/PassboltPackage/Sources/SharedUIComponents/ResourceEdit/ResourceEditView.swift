@@ -108,27 +108,29 @@ public struct ResourceEditView: ControlledView {
               }
             }
 
-            with(\.mainForm) { mainForm in
-              Text(displayable: mainForm.title)
-                .font(.inter(ofSize: 16, weight: .bold))
-                .padding(.vertical, 20)
-              VStack(spacing: 16) {
-                withEach(\.mainForm.fields) { field in
-                  self.fieldView(for: field)
+            whenFalse(\.mainForm.fields.isEmpty) {
+              with(\.mainForm) { mainForm in
+                Text(displayable: mainForm.title)
+                  .font(.inter(ofSize: 16, weight: .bold))
+                  .padding(.vertical, 20)
+                VStack(spacing: 16) {
+                  withEach(\.mainForm.fields) { field in
+                    self.fieldView(for: field)
+                  }
+                  when(\.isStandaloneTOTP) {
+                    LinkButton(
+                      title: "otp.edit.form.advanced.button.title",
+                      iconName: .cog,
+                      action: self.controller.navigateToOTPAdvancedSettings
+                    )
+                    .padding(.vertical, 8)
+                  }
                 }
-                when(\.isStandaloneTOTP) {
-                  LinkButton(
-                    title: "otp.edit.form.advanced.button.title",
-                    iconName: .cog,
-                    action: self.controller.navigateToOTPAdvancedSettings
-                  )
-                  .padding(.vertical, 8)
-                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .backgroundColor(.passboltBackgroundGray)
+                .cornerRadius(4)
               }
-              .padding(.horizontal, 16)
-              .padding(.vertical, 8)
-              .backgroundColor(.passboltBackgroundGray)
-              .cornerRadius(4)
             }
           }
 
@@ -209,62 +211,23 @@ public struct ResourceEditView: ControlledView {
   @MainActor @ViewBuilder private func additionalActionView(
     for additionalOption: MainFormViewModel.AdditionalOption
   ) -> some View {
-    switch additionalOption {
-    case .addNote:
-      CommonListRow(
-        contentAction: self.controller.editNote,
-        content: {
-          ResourceFieldView(
-            name: nil,
-            content: {
-              HStack(spacing: 16) {
-                Image(named: .notes)
-                Text(displayable: "resource.edit.field.add.note")
-                  .font(.inter(ofSize: 14, weight: .semibold))
-                  .foregroundColor(.passboltPrimaryText)
-              }
+    CommonListRow(
+      contentAction: self.action(for: additionalOption),
+      content: {
+        ResourceFieldView(
+          name: nil,
+          content: {
+            HStack(spacing: 16) {
+              Image(named: additionalOption.iconName)
+              Text(displayable: additionalOption.title)
+                .font(.inter(ofSize: 14, weight: .semibold))
+                .foregroundColor(.passboltPrimaryText)
             }
-          )
-        },
-        accessory: DisclosureIndicatorImage.init
-      )
-    case .addPassword:
-      CommonListRow(
-        contentAction: self.controller.addPassword,
-        content: {
-          ResourceFieldView(
-            name: nil,
-            content: {
-              HStack(spacing: 16) {
-                Image(named: .key)
-                Text(displayable: "resource.edit.field.add.password")
-                  .font(.inter(ofSize: 14, weight: .semibold))
-                  .foregroundColor(.passboltPrimaryText)
-              }
-            }
-          )
-        },
-        accessory: DisclosureIndicatorImage.init
-      )
-    case .addTOTP:
-      CommonListRow(
-        contentAction: self.controller.createOrEditTOTP,
-        content: {
-          ResourceFieldView(
-            name: nil,
-            content: {
-              HStack(spacing: 16) {
-                Image(named: .otp)
-                Text(displayable: "resource.create.advanced.add.otp")
-                  .font(.inter(ofSize: 14, weight: .semibold))
-                  .foregroundColor(.passboltPrimaryText)
-              }
-            }
-          )
-        },
-        accessory: DisclosureIndicatorImage.init
-      )
-    }
+          }
+        )
+      },
+      accessory: DisclosureIndicatorImage.init
+    )
   }
 
   @MainActor @ViewBuilder private func additionalActionView(
@@ -333,6 +296,19 @@ public struct ResourceEditView: ControlledView {
       CommonListRow {
         WarningView(message: "resource.form.undefined.content.warning")
       }
+    }
+  }
+
+  @MainActor private func action(for option: MainFormViewModel.AdditionalOption) -> () async -> Void {
+    switch option {
+    case .addNote:
+      return self.controller.editNote
+    case .addPassword:
+      return self.controller.addPassword
+    case .addTOTP:
+      return self.controller.createOrEditTOTP
+    case .addCustomFields:
+      return self.controller.editCustomFields
     }
   }
 

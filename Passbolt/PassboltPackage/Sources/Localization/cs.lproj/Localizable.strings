@@ -296,7 +296,7 @@
 "resource.menu.item.add.favorite" = "Přidat do oblíbených";
 "resource.menu.item.remove.favorite" = "Odebrat z oblíbených";
 "resource.menu.item.share" = "Sdílet heslo";
-"resource.menu.item.edit.password" = "Upravit heslo";
+"resource.menu.item.edit.resource" = "Upravit heslo";
 "resource.menu.item.edit.otp" = "Upravit TOTP";
 "resource.menu.item.delete.resource" = "Odstranit heslo";
 "resource.menu.item.delete.otp" = "Odstranit TOTP";

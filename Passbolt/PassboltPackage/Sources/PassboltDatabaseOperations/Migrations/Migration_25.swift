@@ -21,16 +21,25 @@
 // @since         v1.0
 //
 
-import Features
+import Database
 
-extension FeaturesRegistry {
+// swift-format-ignore: AlwaysUseLowerCamelCase
+extension SQLiteMigration {
 
-  public mutating func useResourceEditNavigation() {
-    self.useLiveNavigationToResourceEdit()
-    self.useLiveNavigationToResourceURIEdit()
-    self.useLiveNavigationToResourceTextEdit()
-    self.useLiveNavigationToResourcePasswordEdit()
-    self.useLiveNavigationToResourceIconEdit()
-    self.useLiveNavigationToResourceCustomFieldsEdit()
+  internal static var migration_25: Self {
+    [
+      """
+      CREATE TABLE
+        resourceCustomFields
+      (
+        id BLOB NOT NULL UNIQUE,
+        resourceID TEXT NOT NULL,
+        key TEXT NOT NULL CHECK(length(key) <= 255),
+        FOREIGN KEY(resourceID) REFERENCES resources(id) ON DELETE CASCADE
+      ); -- create resourceCustomFields table
+      """,
+      // - version bump - //
+      "PRAGMA user_version = 26; -- persistent, used to track schema version",
+    ]
   }
 }

@@ -47,7 +47,7 @@ public struct ResourceFieldSpecification {
     case stringEnum(
       values: Array<String>
     )
-    case list
+    case list(maxCount: Int? = .none)
     case structure(Array<ResourceFieldSpecification>)
   }
 
@@ -370,8 +370,17 @@ extension ResourceFieldSpecification {
         try fieldSpecification
           .validate(fieldJSON)
       }
-    case .list:
-      break
+    case .list(let maxCount):
+      if let maxCount, let arrayValue: Array<JSON> = json.arrayValue, arrayValue.count > maxCount {
+        throw
+          InvalidResourceField
+          .maximumLength(
+            of: maxCount,
+            specification: self,
+            path: self.path,
+            value: json
+          )
+      }  // else NOP
     }
   }
 }

@@ -29,6 +29,7 @@ import class Foundation.JSONEncoder
 import class Foundation.JSONSerialization
 
 public struct ResourceMetadataDTO: Sendable {
+
   public let resourceId: Resource.ID
   public let name: String
   public let description: String?
@@ -38,6 +39,7 @@ public struct ResourceMetadataDTO: Sendable {
   public let objectType: MetadataObjectType?
   public let resourceTypeId: ResourceType.ID?
   public let icon: ResourceIcon?
+  public let customFields: [ResourceCustomFieldDTO]
 
   /// Initialize a new resource metadata DTO from decrypted JSON data.
   /// - Parameters:
@@ -64,10 +66,18 @@ public struct ResourceMetadataDTO: Sendable {
     self.description = json[keyPath: \.description].stringValue
     self.username = json[keyPath: \.username].stringValue
     self.name = name
-    self.uris = json[keyPath: \.uris].arrayValue?.compactMap { ResourceURIDTO(resourceId: resourceId, json: $0) } ?? []
+    self.uris =
+      json[keyPath: \.uris].arrayValue?
+      .compactMap {
+        ResourceURIDTO(resourceId: resourceId, json: $0)
+      } ?? .init()
     self.objectType = json[keyPath: \.object_type].stringValue.flatMap { MetadataObjectType(rawValue: $0) }
     self.resourceTypeId = json[keyPath: \.resource_type_id].stringValue.flatMap { ResourceType.ID(uuidString: $0) }
     self.icon = .init(json: json[keyPath: \.icon])
+
+    let customFields: Array<JSON> = json[keyPath: \.custom_fields].arrayValue ?? .init()
+    // Invalid custom fields are intentionally ignored during parsing
+    self.customFields = customFields.compactMap { .init(json: $0) }
   }
 
   /// Initialize a new resource metadata DTO from Resource DTO.
@@ -76,7 +86,7 @@ public struct ResourceMetadataDTO: Sendable {
   /// - Throws: `EntityValidationError` if the resource name is missing.
   public init(resource: ResourceDTO) throws {
     resourceId = resource.id
-    guard let name = resource.name
+    guard let name: String = resource.name
     else {
       throw EntityValidationError.error(
         message: "Resource name is missing.",
@@ -90,18 +100,18 @@ public struct ResourceMetadataDTO: Sendable {
     username = resource.username
     var json: JSON = .null
     json[keyPath: \.name] = .string(name)
-    if let description = resource.description {
+    if let description: String = resource.description {
       json[keyPath: \.description] = .string(description)
     }
-    if let username = resource.username {
+    if let username: String = resource.username {
       json[keyPath: \.username] = .string(username)
     }
-    if let uri = resource.uri {
+    if let uri: String = resource.uri {
       json[keyPath: \.uris] = .array([.string(uri)])
       self.uris = [.init(resourceId: resourceId, uri: uri)]
     }
     else {
-      self.uris = []
+      self.uris = .init()
     }
     objectType = .resourceMetadata
     json[keyPath: \.object_type] = .string(MetadataObjectType.resourceMetadata.rawValue)
@@ -109,17 +119,19 @@ public struct ResourceMetadataDTO: Sendable {
     json[keyPath: \.resource_type_id] = .string(resource.typeID.rawValue.rawValue.uuidString)
 
     self.icon = nil
+    self.customFields = .init()
 
     data = try JSONEncoder.default.encode(json)
   }
 }
 
 extension ResourceMetadataDTO {
+
   public static func initialResourceMetadataJSON(for resource: Resource) -> JSON {
-    var json: JSON = .object([:])
+    var json: JSON = .object(.init())
     json[keyPath: \.resource_type_id] = .string(resource.type.id.rawValue.rawValue.uuidString)
     json[keyPath: \.object_type] = .string(MetadataObjectType.resourceMetadata.rawValue)
-    json[keyPath: \.uris] = .array([])
+    json[keyPath: \.uris] = .array(.init())
     return json
   }
 
@@ -127,7 +139,7 @@ extension ResourceMetadataDTO {
     var json: JSON = .object([:])
     json[keyPath: \.resource_type_id] = .string(resourceType.id.rawValue.rawValue.uuidString)
     json[keyPath: \.object_type] = .string(MetadataObjectType.resourceMetadata.rawValue)
-    json[keyPath: \.uris] = .array([])
+    json[keyPath: \.uris] = .array(.init())
     return json
   }
 }
@@ -139,7 +151,7 @@ extension ResourceMetadataDTO {
   /// > - `InvalidValue` if the metadata is invalid.
   public func validate(with resource: ResourceDTO) throws {
     // validate internal state
-    let json = try JSONDecoder.default.decode(JSON.self, from: data)
+    let json: JSON = try JSONDecoder.default.decode(JSON.self, from: data)
     guard json[keyPath: \.name].stringValue == name
     else {
       throw
@@ -183,7 +195,7 @@ extension ResourceMetadataDTO {
     }
 
     // Validate fields
-    if name.count > 255 {
+    if name.count > Self.maxNameLength {
       throw InvalidValue.tooLong(
         validationRule: ValidationRule.nameTooLong,
         value: name,
@@ -200,7 +212,7 @@ extension ResourceMetadataDTO {
     }
 
     if let username = username {
-      if username.count > 255 {
+      if username.count > Self.maxUsernameLength {
         throw InvalidValue.tooLong(
           validationRule: ValidationRule.usernameTooLong,
           value: username,
@@ -210,7 +222,7 @@ extension ResourceMetadataDTO {
     }
 
     if let description = description {
-      if description.count > 10_000 {
+      if description.count > Self.maxDescriptionLength {
         throw InvalidValue.tooLong(
           validationRule: ValidationRule.descriptionTooLong,
           value: description,
@@ -225,6 +237,12 @@ extension ResourceMetadataDTO {
         value: json[keyPath: \.object_type].stringValue,
         displayable: "Object type is invalid."
       )
+    }
+
+    if let customFields: Array<ResourceCustomFieldDTO> = json[keyPath: \.custom_fields].customFieldDTOs {
+      for customField in customFields {
+        try customField.validate()
+      }
     }
 
     let resourceTypeId = resource.typeID.rawValue.rawValue.uuidString.lowercased()
@@ -246,4 +264,8 @@ extension ResourceMetadataDTO {
     static let resourceTypeMismatch: StaticString = "resource-type-mismatch"
     static let objectTypeMismatch: StaticString = "object-type-mismatch"
   }
+
+  private static let maxNameLength: Int = ResourceFieldSpecification.maxNameLength
+  private static let maxUsernameLength: Int = ResourceFieldSpecification.maxUsernameLength
+  private static let maxDescriptionLength: Int = ResourceFieldSpecification.maxDescriptionLength
 }

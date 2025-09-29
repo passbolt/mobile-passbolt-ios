@@ -198,7 +198,7 @@ extension ResourceContextualMenuItem {
             displayable:
               isStandaloneTOTP
               ? "resource.menu.item.edit.otp"
-              : "resource.menu.item.edit.password"
+              : "resource.menu.item.edit.resource"
           )
         },
         leftIcon: {

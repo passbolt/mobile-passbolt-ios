@@ -149,6 +149,11 @@ extension Resource {
 
   public func validate() throws {
     try self.type.validate(self)
+    if let customFields: [ResourceCustomFieldDTO] = combinedCustomFields {
+      for field in customFields {
+        try field.validate()
+      }
+    }
   }
 
   public func validator(
@@ -212,7 +217,7 @@ extension Resource {
   public func isEncrypted(
     _ path: FieldPath
   ) -> Bool {
-    self.type.fieldSpecification(for: path)?.encrypted ?? false
+    self.type.fieldSpecification(for: path)?.encrypted ?? customFieldsSecretPaths.contains(path)
   }
 
   public func fieldSpecification(
@@ -294,7 +299,7 @@ extension Resource {
         self[keyPath: specification.path] = .array([value])
       }
 
-      return .valid(value)
+      return specification.validator.validate(self[keyPath: specification.path])
     }
   }
 
@@ -472,6 +477,44 @@ extension Resource {
     if self.secret[keyPath: \.resource_type_id] == .null {
       self.secret[keyPath: \.resource_type_id] = .string(self.type.id.rawValue.rawValue.uuidString)
     }
+  }
+}
+
+// MARK: Custom fields
+
+extension Resource {
+
+  public func secretPath(forCustomFieldID id: ResourceCustomFieldDTO.ID) -> ResourceType.FieldPath? {
+    // ensure custom field is in meta part
+    let customFields: Array<ResourceCustomFieldDTO> =
+      self.meta
+      .custom_fields
+      .arrayValue?
+      .compactMap { .init(json: $0) } ?? .init()
+    guard let field = customFields.first(where: { $0.id == id }) else { return nil }
+    let path: ResourceType.FieldPath = \.secret.custom_fields
+    let lookup: JSON.ArrayLookup = .init(keyPath: \.id, value: .string(field.id.rawValue.uuidString.lowercased()))
+    return path.appending(path: \.[dynamicMember:lookup]).appending(path: \.secret_value)
+  }
+
+  internal var customFieldsSecretPaths: Array<ResourceType.ComputedFieldPath> {
+    self.meta
+      .custom_fields
+      .arrayValue?
+      .compactMap { ResourceCustomFieldDTO.ID(json: $0.id).flatMap { secretPath(forCustomFieldID: $0) } }
+      ?? .init()
+  }
+
+  /// Combined custom fields from meta and secret part
+  internal var combinedCustomFields: Array<ResourceCustomFieldDTO>? {
+    guard
+      let metaFields: Array<ResourceCustomFieldDTO> = self.meta.custom_fields.customFieldDTOs,
+      let secretFields: Array<ResourceCustomFieldDTO> = self.secret.custom_fields.customFieldDTOs
+    else {
+      return nil
+    }
+
+    return metaFields.combined(with: secretFields)
   }
 }
 

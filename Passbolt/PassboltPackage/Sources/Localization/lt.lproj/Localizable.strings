@@ -320,7 +320,7 @@
 "resource.menu.item.add.favorite" = "Pridėti į mėgstamiausius";
 "resource.menu.item.remove.favorite" = "Pašalinti iš mėgstamiausių";
 "resource.menu.item.share" = "Bendrinti slaptažodį";
-"resource.menu.item.edit.password" = "Redaguoti slaptažodį";
+"resource.menu.item.edit.resource" = "Redaguoti slaptažodį";
 "resource.menu.item.edit.otp" = "Redaguoti TOTP";
 "resource.menu.item.delete.resource" = "Ištrinti slaptažodį";
 "resource.menu.item.delete.otp" = "Ištrinti TOTP";

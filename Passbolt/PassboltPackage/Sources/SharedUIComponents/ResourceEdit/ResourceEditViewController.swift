@@ -95,6 +95,7 @@ public final class ResourceEditViewController: ViewController {
   private let navigationToTextEdit: NavigationToResourceTextEdit
   private let navigationToURIEdit: NavigationToResourceURIEdit
   private let navigationToIconEdit: NavigationToResourceIconEdit
+  private let navigationToCustomFieldsEdit: NavigationToResourceCustomFieldsEdit
 
   internal var canNavigateToOTPScanning: Bool {
     self.navigationToOTPScanning.canPerform()
@@ -133,6 +134,7 @@ public final class ResourceEditViewController: ViewController {
     self.navigationToOTPScanning = try features.instance()
     self.navigationToURIEdit = try features.instance()
     self.navigationToIconEdit = try features.instance()
+    self.navigationToCustomFieldsEdit = try features.instance()
 
     self.resourceEditForm = try features.instance()
 
@@ -316,10 +318,9 @@ public final class ResourceEditViewController: ViewController {
   @MainActor internal func addPassword() async {
     await consumingErrors {
       let editingContext = try features.context(of: ResourceEditScope.self)
-      let isV5Type = editingContext.editedResource.type.specification.slug.isV5Type
-      let newResourceSlug: ResourceSpecification.Slug = isV5Type ? .v5DefaultWithTOTP : .passwordWithTOTP
+
       guard
-        editingContext.editedResource.type.specification.slug.isStandaloneTOTPType,
+        let newResourceSlug: ResourceSpecification.Slug = editingContext.editedResource.type.slugByAttachingPassword(),
         let newType: ResourceType = editingContext.availableTypes.first(
           where: {
             $0.specification.slug == newResourceSlug
@@ -409,6 +410,12 @@ public final class ResourceEditViewController: ViewController {
     }
   }
 
+  @MainActor internal func editCustomFields() async {
+    await consumingErrors {
+      await self.navigationToCustomFieldsEdit.performCatching()
+    }
+  }
+
   private func removeNote() async throws {
     let editingContext: ResourceEditingContext = try features.context(of: ResourceEditScope.self)
     let resource: Resource = try await self.resourceEditForm.state.value
@@ -469,10 +476,17 @@ public final class ResourceEditViewController: ViewController {
   }
   let isStandaloneTOTP: Bool = resource.isStandaloneTOTPResource
 
+  let excludedFieldNames: Set<ResourceFieldName> = [
+    .name,
+    .description,
+    .note,
+    .customFields,
+  ]
+
   var fields: Array<ResourceEditFieldViewModel> =
     resource
     .fields
-    .filter { $0.name != .name && $0.name != .description && $0.name != .note }
+    .filter { excludedFieldNames.contains($0.name) == false }
     .compactMap { (field: ResourceFieldSpecification) -> ResourceEditFieldViewModel? in
       .init(
         field,
@@ -504,25 +518,40 @@ public final class ResourceEditViewController: ViewController {
   let title: DisplayableString =
     isStandaloneTOTP
     ? "resource.edit.section.totp.title"
-    : "resource.edit.section.password.title"
+    : (resourceTypeSlug.isCustomFieldsType
+      ? "resource.edit.section.resource.title"
+      : "resource.edit.section.password.title")
 
-  var additionalOptions: Array<MainFormViewModel.AdditionalOption> =
-    isStandaloneTOTP
-    ? [.addPassword]
-    : [.addTOTP]
+  var additionalOptions: Array<MainFormViewModel.AdditionalOption> = .init()
+  if resourceTypeSlug.isCustomFieldsType {
+    additionalOptions.append(contentsOf: [.addPassword, .addTOTP])
+  }
+  else if isStandaloneTOTP {
+    additionalOptions.append(.addPassword)
+  }
+  else {
+    additionalOptions.append(.addTOTP)
+  }
+
   if resourceTypeSlug.canEditNote {
     additionalOptions.append(.addNote)
   }
 
-  var metadataOptions: Array<MainFormViewModel.MetadataOption> = .init()
-  if resourceTypeSlug.canEditAppearance {
-    metadataOptions.append(.editIcon)
+  if resource.type.canEditCustomFields {
+    additionalOptions.append(.addCustomFields)
   }
+
+  var metadataOptions: Array<MainFormViewModel.MetadataOption> = .init()
   if resourceTypeSlug.canEditMetadataDescription(isNewResource: resource.isLocal == true) {
     metadataOptions.append(.editDescription)
   }
+
   if resourceTypeSlug.canEditMutlipleURIs {
     metadataOptions.append(.addtionalURIs)
+  }
+
+  if resourceTypeSlug.canEditAppearance {
+    metadataOptions.append(.editIcon)
   }
 
   return .init(
@@ -565,6 +594,7 @@ internal struct MainFormViewModel: Equatable {
     case addTOTP
     case addNote
     case addPassword
+    case addCustomFields
 
     internal var title: DisplayableString {
       switch self {
@@ -574,6 +604,21 @@ internal struct MainFormViewModel: Equatable {
         return "resource.edit.field.add.note"
       case .addPassword:
         return "resource.edit.field.add.password"
+      case .addCustomFields:
+        return "resource.edit.field.add.customFields"
+      }
+    }
+
+    internal var iconName: ImageNameConstant {
+      switch self {
+      case .addNote:
+        return .notes
+      case .addPassword:
+        return .key
+      case .addTOTP:
+        return .otp
+      case .addCustomFields:
+        return .table
       }
     }
   }
@@ -810,7 +855,7 @@ extension ResourceSpecification.Slug {
       return true
     case .v5Password where isNewResource == false:
       return true
-    case .v5Default, .v5DefaultWithTOTP, .v5StandaloneTOTP:
+    case .v5Default, .v5DefaultWithTOTP, .v5StandaloneTOTP, .v5CustomFields:
       return true
     default:
       return false
@@ -819,7 +864,7 @@ extension ResourceSpecification.Slug {
 
   fileprivate var canEditNote: Bool {
     switch self {
-    case .passwordWithDescription, .passwordWithTOTP, .v5Default, .v5DefaultWithTOTP:
+    case .passwordWithDescription, .passwordWithTOTP, .v5Default, .v5DefaultWithTOTP, .v5CustomFields:
       return true
     default:
       return false
@@ -832,5 +877,16 @@ extension ResourceSpecification.Slug {
 
   fileprivate var canEditMutlipleURIs: Bool {
     self.isV5Type
+  }
+
+  fileprivate var isCustomFieldsType: Bool {
+    self == .v5CustomFields
+  }
+}
+
+extension ResourceType {
+
+  fileprivate var canEditCustomFields: Bool {
+    self.specification.metaFields.contains(where: { $0.name == .customFields })
   }
 }
