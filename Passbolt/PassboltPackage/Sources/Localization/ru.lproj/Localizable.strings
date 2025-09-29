@@ -279,7 +279,7 @@
 "resource.menu.item.add.favorite" = "Добавить в избранное";
 "resource.menu.item.remove.favorite" = "Убрать из избранного";
 "resource.menu.item.share" = "Поделиться паролем";
-"resource.menu.item.edit.password" = "Изменить пароль";
+"resource.menu.item.edit.resource" = "Изменить пароль";
 "resource.menu.item.edit.otp" = "Изменить TOTP";
 "resource.menu.item.delete.resource" = "Удалить пароль";
 "resource.menu.item.delete.otp" = "Удалить одноразовый пароль";

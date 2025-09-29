@@ -21,16 +21,31 @@
 // @since         v1.0
 //
 
-import Features
+import Display
+import FeatureScopes
+
+public enum ResourceCustomFieldsEditNavigationDestination: NavigationDestination {
+
+  public typealias TransitionContext = ResourceCustomFieldsEditViewController.Context
+}
+
+public typealias NavigationToResourceCustomFieldsEdit = NavigationTo<ResourceCustomFieldsEditNavigationDestination>
+
+extension NavigationToResourceCustomFieldsEdit {
+
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(
+      to: ResourceCustomFieldsEditView.self
+    )
+  }
+}
 
 extension FeaturesRegistry {
 
-  public mutating func useResourceEditNavigation() {
-    self.useLiveNavigationToResourceEdit()
-    self.useLiveNavigationToResourceURIEdit()
-    self.useLiveNavigationToResourceTextEdit()
-    self.useLiveNavigationToResourcePasswordEdit()
-    self.useLiveNavigationToResourceIconEdit()
-    self.useLiveNavigationToResourceCustomFieldsEdit()
+  internal mutating func useLiveNavigationToResourceCustomFieldsEdit() {
+    self.use(
+      NavigationToResourceCustomFieldsEdit.live,
+      in: ResourceEditScope.self
+    )
   }
 }

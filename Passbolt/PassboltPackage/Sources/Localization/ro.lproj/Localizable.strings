@@ -279,7 +279,7 @@
 "resource.menu.item.add.favorite" = "Adaugă la favorite";
 "resource.menu.item.remove.favorite" = "Elimină din favorite";
 "resource.menu.item.share" = "Partajează parola";
-"resource.menu.item.edit.password" = "Modifică parola";
+"resource.menu.item.edit.resource" = "Modifică parola";
 "resource.menu.item.edit.otp" = "Editați TOTP-ul";
 "resource.menu.item.delete.resource" = "Ştergeţi parola";
 "resource.menu.item.delete.otp" = "Ștergeți TOTP-ul";

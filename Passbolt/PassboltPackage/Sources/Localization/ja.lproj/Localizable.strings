@@ -279,7 +279,7 @@
 "resource.menu.item.add.favorite" = "お気に入りに追加";
 "resource.menu.item.remove.favorite" = "お気に入りから削除";
 "resource.menu.item.share" = "パスワードを共有";
-"resource.menu.item.edit.password" = "パスワードを編集";
+"resource.menu.item.edit.resource" = "パスワードを編集";
 "resource.menu.item.edit.otp" = "TOTPを編集";
 "resource.menu.item.delete.resource" = "パスワードを削除";
 "resource.menu.item.delete.otp" = "TOTPを削除";

@@ -209,10 +209,21 @@ extension ResourcesListFetchDatabaseOperation {
             LIMIT 1
             )
           )
+          OR (
+            SELECT 
+              1
+            FROM
+              resourceCustomFields
+            WHERE
+              resourceCustomFields.resourceID == resources.id
+            AND
+              resourceCustomFields.key LIKE '%' || ? || '%'
+          )
           """
         )
       // adding multiple times since we can't count args when using dynamic query
       // and argument has to be used multiple times
+      statement.appendArgument(input.text)
       statement.appendArgument(input.text)
       statement.appendArgument(input.text)
       statement.appendArgument(input.text)

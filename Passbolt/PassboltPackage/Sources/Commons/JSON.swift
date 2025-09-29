@@ -27,7 +27,7 @@ import struct Foundation.Data
 import class Foundation.JSONEncoder
 
 @dynamicMemberLookup
-public enum JSON: Sendable {
+public enum JSON: Sendable, Hashable {
 
   case null
   case bool(Bool)
@@ -506,5 +506,51 @@ extension JSON {
   // remove value if able or set it to null
   public mutating func remove() {
     self = .null
+  }
+}
+
+extension JSON {
+
+  public struct ArrayLookup<T>: Hashable where T: Hashable {
+    let keyPath: KeyPath<JSON, T>
+    let value: T
+
+    public init(keyPath: KeyPath<JSON, T>, value: T) {
+      self.keyPath = keyPath
+      self.value = value
+    }
+  }
+
+  public subscript<T>(dynamicMember lookup: ArrayLookup<T>) -> JSON where T: Hashable {
+    get {
+      switch self {
+      case .array(let array):
+        return array.first { (element: JSON) in
+          element[keyPath: lookup.keyPath] == lookup.value
+        } ?? .null
+      case .object, .null, .bool, .integer, .float, .string:
+        return .null
+      }
+    }
+    set {
+      switch self {
+      case .array(var array):
+        if let index: Int = array.firstIndex(where: { (element: JSON) in
+          element[keyPath: lookup.keyPath] == lookup.value
+        }) {
+          if case .null = newValue {
+            // remove the value when assigning null
+            array.remove(at: index)
+          }
+          else {
+            array[index] = newValue
+          }
+        }
+        self = .array(array)
+      case .object, .null, .bool, .integer, .float, .string:
+        // NOP - can't set value inside non-array
+        return
+      }
+    }
   }
 }

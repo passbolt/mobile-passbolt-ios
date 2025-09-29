@@ -343,3 +343,17 @@ where RawValue == String {
     .init(rawValue: .empty)
   }
 }
+
+extension Tagged
+where RawValue == UUID {
+
+  public init?(uuidString: String) {
+    guard let uuid: UUID = .init(uuidString: uuidString) else { return nil }
+    self.init(rawValue: uuid)
+  }
+
+  public init?(json: JSON) {
+    guard let uuidString: String = json.stringValue else { return nil }
+    self.init(uuidString: uuidString)
+  }
+}

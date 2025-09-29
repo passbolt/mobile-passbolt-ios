@@ -279,7 +279,7 @@
 "resource.menu.item.add.favorite" = "Zu Favoriten hinzufügen";
 "resource.menu.item.remove.favorite" = "Aus Favoriten entfernen";
 "resource.menu.item.share" = "Passwort teilen";
-"resource.menu.item.edit.password" = "Passwort bearbeiten";
+"resource.menu.item.edit.resource" = "Passwort bearbeiten";
 "resource.menu.item.edit.otp" = "TOTP bearbeiten";
 "resource.menu.item.delete.resource" = "Passwort löschen";
 "resource.menu.item.delete.otp" = "TOTP löschen";

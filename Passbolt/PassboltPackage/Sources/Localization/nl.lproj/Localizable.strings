@@ -279,7 +279,7 @@
 "resource.menu.item.add.favorite" = "Toevoegen aan favorieten";
 "resource.menu.item.remove.favorite" = "Verwijderen uit favorieten";
 "resource.menu.item.share" = "Wachtwoord delen";
-"resource.menu.item.edit.password" = "Wachtwoord bewerken";
+"resource.menu.item.edit.resource" = "Wachtwoord bewerken";
 "resource.menu.item.edit.otp" = "TOTP bewerken";
 "resource.menu.item.delete.resource" = "Wachtwoord verwijderen";
 "resource.menu.item.delete.otp" = "TOTP verwijderen";

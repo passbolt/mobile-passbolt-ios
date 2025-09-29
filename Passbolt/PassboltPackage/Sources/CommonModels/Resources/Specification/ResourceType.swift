@@ -253,9 +253,23 @@ extension ResourceType {
       return .v5StandaloneTOTP
     case .v5DefaultWithTOTP:
       return .v5DefaultWithTOTP
-
+    case .v5CustomFields:
+      return .v5DefaultWithTOTP
     case _:
       return .none
+    }
+  }
+
+  public func slugByAttachingPassword() -> ResourceSpecification.Slug? {
+    switch self.specification.slug {
+    case .v5StandaloneTOTP:
+      return .v5DefaultWithTOTP
+    case .totp:
+      return .passwordWithTOTP
+    case .v5CustomFields:
+      return .v5Default
+    case _:
+      return .none // should not be possible, as other types already have password
     }
   }
 
@@ -278,7 +292,7 @@ extension ResourceType {
     switch self.specification.slug {
     case .password, .passwordWithDescription:
       return .passwordWithDescription
-    case .v5Default, .v5Password:
+    case .v5Default, .v5Password, .v5CustomFields:
       return .v5Default
     case .passwordWithTOTP, .totp:
       return .passwordWithTOTP
@@ -361,3 +375,5 @@ extension ResourceType {
     }
   }
 }
+
+extension KeyPath: @unchecked @retroactive Sendable {}

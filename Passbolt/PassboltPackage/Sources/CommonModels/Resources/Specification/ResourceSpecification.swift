@@ -51,6 +51,8 @@ public struct ResourceSpecification {
       return .totp(isV5: slug == .v5StandaloneTOTP)
     case .passwordWithTOTP, .v5DefaultWithTOTP:
       return .passwordWithTOTP(isV5: slug == .v5DefaultWithTOTP)
+    case .v5CustomFields:
+      return .v5CustomFields()
     case _:
       return .placeholder
     }
@@ -74,6 +76,7 @@ extension ResourceSpecification.Slug {
   public static let v5DefaultWithTOTP: Self = "v5-default-with-totp"
   public static let v5StandaloneTOTP: Self = "v5-totp-standalone"
   public static let v5Password: Self = "v5-password-string"
+  public static let v5CustomFields: Self = "v5-custom-fields"
 
   /// Checks if the resource type is v4 or v5
   public var isSupported: Bool {
@@ -88,7 +91,7 @@ extension ResourceSpecification.Slug {
 
   /// V5 resource types
   public static var v5Types: [Self] {
-    [.v5StandaloneTOTP, .v5DefaultWithTOTP, .v5Password, .v5Default]
+    [.v5StandaloneTOTP, .v5DefaultWithTOTP, .v5Password, .v5Default, .v5CustomFields]
   }
 
   public var isV5Type: Bool {
@@ -123,59 +126,14 @@ extension ResourceSpecification {
   public static func password(isV5: Bool) -> Self {
     .init(
       slug: isV5 ? .v5Password : .password,
-      metaFields: [
-        .init(
-          path: \.meta.name,
-          name: .name,
-          content: .string(
-            minLength: .none,
-            maxLength: 255
-          ),
-          required: false,
-          encrypted: false
-        ),
-        .init(
-          path: \.meta.uris,
-          name: .uri,
-          content: .list,
-          required: false,
-          encrypted: false
-        ),
-        .init(
-          path: \.meta.username,
-          name: .username,
-          content: .string(
-            minLength: .none,
-            maxLength: 255
-          ),
-          required: false,
-          encrypted: false
-        ),
-        .init(
-          path: \.meta.description,
-          name: .description,
-          content: .string(
-            minLength: .none,
-            maxLength: 10000
-          ),
-          required: false,
-          encrypted: false
-        ),
-        .init(
-          path: \.meta.icon,
-          name: .appearance,
-          content: .structure([]),
-          required: false,
-          encrypted: false
-        ),
-      ],
+      metaFields: .defaultMetaFields,
       secretFields: [
         .init(
           path: \.secret,
           name: .secret,
           content: .string(
             minLength: .none,
-            maxLength: 4096
+            maxLength: ResourceFieldSpecification.maxPasswordLength
           ),
           required: true,
           encrypted: true
@@ -187,59 +145,14 @@ extension ResourceSpecification {
   public static func passwordWithDescription(isV5: Bool) -> Self {
     .init(
       slug: isV5 ? .v5Default : .passwordWithDescription,
-      metaFields: [
-        .init(
-          path: \.meta.name,
-          name: .name,
-          content: .string(
-            minLength: .none,
-            maxLength: 255
-          ),
-          required: false,
-          encrypted: false
-        ),
-        .init(
-          path: \.meta.uris,
-          name: .uri,
-          content: .list,
-          required: false,
-          encrypted: false
-        ),
-        .init(
-          path: \.meta.username,
-          name: .username,
-          content: .string(
-            minLength: .none,
-            maxLength: 255
-          ),
-          required: false,
-          encrypted: false
-        ),
-        .init(
-          path: \.meta.description,
-          name: .description,
-          content: .string(
-            minLength: .none,
-            maxLength: 10000
-          ),
-          required: false,
-          encrypted: false
-        ),
-        .init(
-          path: \.meta.icon,
-          name: .appearance,
-          content: .structure([]),
-          required: false,
-          encrypted: false
-        ),
-      ],
+      metaFields: .defaultMetaFields,
       secretFields: [
         .init(
           path: \.secret.password,
           name: .password,
           content: .string(
             minLength: .none,
-            maxLength: 4096
+            maxLength: ResourceFieldSpecification.maxPasswordLength
           ),
           required: false,
           encrypted: true
@@ -249,7 +162,7 @@ extension ResourceSpecification {
           name: .note,
           content: .string(
             minLength: .none,
-            maxLength: isV5 ? 50_000 : 10_000
+            maxLength: isV5 ? ResourceFieldSpecification.maxNoteLength : ResourceFieldSpecification.maxV4NoteLength
           ),
           required: false,
           encrypted: true
@@ -261,42 +174,7 @@ extension ResourceSpecification {
   public static func totp(isV5: Bool) -> Self {
     .init(
       slug: isV5 ? .v5StandaloneTOTP : .totp,
-      metaFields: [
-        .init(
-          path: \.meta.name,
-          name: .name,
-          content: .string(
-            minLength: .none,
-            maxLength: 255
-          ),
-          required: false,
-          encrypted: false
-        ),
-        .init(
-          path: \.meta.uris,
-          name: .uri,
-          content: .list,
-          required: false,
-          encrypted: false
-        ),
-        .init(
-          path: \.meta.description,
-          name: .description,
-          content: .string(
-            minLength: .none,
-            maxLength: 10000
-          ),
-          required: false,
-          encrypted: false
-        ),
-        .init(
-          path: \.meta.icon,
-          name: .appearance,
-          content: .structure([]),
-          required: false,
-          encrypted: false
-        ),
-      ],
+      metaFields: .defaultMetaFields,
       secretFields: [
         .init(
           path: \.secret.totp,
@@ -304,7 +182,23 @@ extension ResourceSpecification {
           content: .totp,
           required: true,
           encrypted: true
-        )
+        ),
+        .secretCustomFields,
+      ]
+    )
+  }
+
+  public static func v5CustomFields() -> Self {
+    .init(
+      slug: .v5CustomFields,
+      metaFields: [
+        .metaName,
+        .metaDescription,
+        .metaURIs,
+        .metaCustomFields,
+      ],
+      secretFields: [
+        .secretCustomFields
       ]
     )
   }
@@ -312,59 +206,14 @@ extension ResourceSpecification {
   public static func passwordWithTOTP(isV5: Bool) -> Self {
     .init(
       slug: isV5 ? .v5DefaultWithTOTP : .passwordWithTOTP,
-      metaFields: [
-        .init(
-          path: \.meta.name,
-          name: .name,
-          content: .string(
-            minLength: .none,
-            maxLength: 255
-          ),
-          required: false,
-          encrypted: false
-        ),
-        .init(
-          path: \.meta.uris,
-          name: .uri,
-          content: .list,
-          required: false,
-          encrypted: false
-        ),
-        .init(
-          path: \.meta.username,
-          name: .username,
-          content: .string(
-            minLength: .none,
-            maxLength: 255
-          ),
-          required: false,
-          encrypted: false
-        ),
-        .init(
-          path: \.meta.description,
-          name: .description,
-          content: .string(
-            minLength: .none,
-            maxLength: 10000
-          ),
-          required: false,
-          encrypted: false
-        ),
-        .init(
-          path: \.meta.icon,
-          name: .appearance,
-          content: .structure([]),
-          required: false,
-          encrypted: false
-        ),
-      ],
+      metaFields: .defaultMetaFields,
       secretFields: [
         .init(
           path: \.secret.password,
           name: .password,
           content: .string(
             minLength: .none,
-            maxLength: 4096
+            maxLength: ResourceFieldSpecification.maxPasswordLength
           ),
           required: false,
           encrypted: true
@@ -381,7 +230,7 @@ extension ResourceSpecification {
           name: .note,
           content: .string(
             minLength: .none,
-            maxLength: isV5 ? 50_000 : 10_000
+            maxLength: isV5 ? ResourceFieldSpecification.maxNoteLength : ResourceFieldSpecification.maxV4NoteLength
           ),
           required: false,
           encrypted: true
@@ -417,4 +266,113 @@ extension ResourceSpecification {
       )
     ]
   )
+}
+
+extension ResourceFieldSpecification {
+  fileprivate static var metaName: Self {
+    .init(
+      path: \.meta.name,
+      name: .name,
+      content: .string(
+        minLength: .none,
+        maxLength: Self.maxNameLength
+      ),
+      required: false,
+      encrypted: false
+    )
+  }
+
+  fileprivate static var metaUsername: Self {
+    .init(
+      path: \.meta.username,
+      name: .username,
+      content: .string(
+        minLength: .none,
+        maxLength: Self.maxUsernameLength
+      ),
+      required: false,
+      encrypted: false
+    )
+  }
+
+  fileprivate static var metaURIs: Self {
+    .init(
+      path: \.meta.uris,
+      name: .uri,
+      content: .list(maxCount: Self.maxURIsCount),
+      required: false,
+      encrypted: false
+    )
+  }
+
+  fileprivate static var metaDescription: Self {
+    .init(
+      path: \.meta.description,
+      name: .description,
+      content: .string(
+        minLength: .none,
+        maxLength: Self.maxDescriptionLength
+      ),
+      required: false,
+      encrypted: false
+    )
+  }
+
+  fileprivate static var metaAppearance: Self {
+    .init(
+      path: \.meta.icon,
+      name: .appearance,
+      content: .structure([]),
+      required: false,
+      encrypted: false
+    )
+  }
+
+  fileprivate static var metaCustomFields: Self {
+    .init(
+      path: \.meta.custom_fields,
+      name: .customFields,
+      content: .list(maxCount: Self.maxCustomFieldsCount),
+      required: false,
+      encrypted: false
+    )
+  }
+
+  fileprivate static var secretCustomFields: Self {
+    .init(
+      path: \.secret.custom_fields,
+      name: .customFields,
+      content: .list(maxCount: Self.maxCustomFieldsCount),
+      required: false,
+      encrypted: true
+    )
+  }
+}
+
+extension OrderedSet where Element == ResourceFieldSpecification {
+
+  fileprivate static var defaultMetaFields: Self {
+    [
+      .metaName,
+      .metaURIs,
+      .metaDescription,
+      .metaAppearance,
+      .metaCustomFields,
+      .metaUsername,
+    ]
+  }
+}
+
+extension ResourceFieldSpecification {
+
+  internal static let maxNameLength: Int = 255
+  internal static let maxDescriptionLength: Int = 10_000
+  internal static let maxNoteLength: Int = 50_000
+  internal static let maxV4NoteLength: Int = 10_000
+  internal static let maxUsernameLength: Int = 255
+  internal static let maxPasswordLength: Int = 4096
+  internal static let maxCustomFieldKeyLength: Int = 255
+  internal static let maxCustomFieldValueLength: Int = 10_000
+  internal static let maxCustomFieldsCount: Int = 128
+  internal static let maxURIsCount: Int = 20
 }

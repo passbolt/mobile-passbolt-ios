@@ -21,16 +21,16 @@
 // @since         v1.0
 //
 
-import Features
+public enum ResourceCustomFieldType: String, Sendable, Decodable {
+  case text  // currently only text is supported
 
-extension FeaturesRegistry {
-
-  public mutating func useResourceEditNavigation() {
-    self.useLiveNavigationToResourceEdit()
-    self.useLiveNavigationToResourceURIEdit()
-    self.useLiveNavigationToResourceTextEdit()
-    self.useLiveNavigationToResourcePasswordEdit()
-    self.useLiveNavigationToResourceIconEdit()
-    self.useLiveNavigationToResourceCustomFieldsEdit()
+  public init?(json: JSON) {
+    guard
+      let rawValue: String = json.stringValue,
+      let value: ResourceCustomFieldType = .init(rawValue: rawValue)
+    else {
+      return nil
+    }
+    self = value
   }
 }
