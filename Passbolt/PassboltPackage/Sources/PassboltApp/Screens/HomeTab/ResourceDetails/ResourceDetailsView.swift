@@ -180,7 +180,7 @@ internal struct ResourceDetailsView: ControlledView {
           .padding(.bottom, 16)
         Group {
           ForEach(section.fields) { (fieldModel: ResourceDetailsFieldViewModel) in
-            rowView(for: fieldModel, hideTitles: (section.fields.count + section.virtualFields.count) == 1)
+            rowView(for: fieldModel, hideTitles: section.hideFieldTitles)
           }
           ForEach(section.virtualFields) { (virtualField: ResourceDetailsSectionViewModel.VirtualField) in
             virtualFieldView(for: virtualField)
