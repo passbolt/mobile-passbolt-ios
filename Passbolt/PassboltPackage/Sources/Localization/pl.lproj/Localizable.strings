@@ -65,7 +65,7 @@
 "authorization.passphrase.description.text" = "Hasło dostępu";
 "authorization.title" = "Edytuj hasło dostępu";
 
-"sign.in.title" = "Edytuj hasło dostępu";
+"sign.in.title" = "Logowanie";
 
 "resource.list.username.empty.placeholder" = "brak nazwy użytkownika";
 
@@ -74,7 +74,7 @@
 "resource.detail.field.passphrase" = "Hasło";
 "resource.detail.field.uri" = "Adres URL strony";
 "resource.detail.field.description" = "Opis";
-"resource.show.field.uri.placeholder" = "No URI";
+"resource.show.field.uri.placeholder" = "Brak adresu URI";
 "resource.show.field.username.placeholder" = "Brak nazwy użytkownika";
 "resource.show.field.password.placeholder" = "Brak hasła";
 "resource.show.field.description.placeholder" = "Brak opisu";
@@ -82,6 +82,7 @@
 "resource.details.value" = "Wartość";
 "resource.detail.section.location" = "Lokalizacja";
 "resource.detail.section.permissions" = "Współdzielone z";
+"resource.detail.section.additionalURIs" = "Dodatkowy adres URI";
 "resource.detail.section.tags" = "Tagi";
 "resource.detail.section.expiry" = "Data wygaśnięcia";
 "resource.detail.section.expiry.expired" = "Wygasłe";
@@ -96,7 +97,7 @@
 "section.tags.empty" = "Brak tagów";
 
 "server.key.fingerprint.changed.title" = "Przepraszamy, klucz serwera został zmieniony.";
-"server.key.fingerprint.changed.description" = "Ze względów bezpieczeństwa ustal ze swoim administratorem, czy ta zmiana została wprowadzona przez niego. Nowy cyfrowy odcisk palca:";
+"server.key.fingerprint.changed.description" = "Ze względów bezpieczeństwa ustal ze swoim administratorem, czy ta zmiana została wprowadzona przez niego. Nowy cyfrowy odcisk serwera:";
 "server.key.fingerprint.accept.check" = "Tak, wszystko jest sprawdzone i nie ma żadnych błędów.";
 "server.key.fingerprint.accept.new.key" = "Zaakceptuj nowy klucz";
 
@@ -126,50 +127,74 @@
 "server.not.reachable.alert.message.server.placeholder" = "Serwer";
 "server.not.reachable.alert.message" = "%@ jest nieosiągalny. Spróbuj ponownie";
 
-"resource.edit.create.title" = "Create a resource";
+"resource.edit.create.title" = "Utwórz zasób";
 "resource.edit.title" = "Edytuj zasób";
 "resource.password.edit.title" = "Edytuj hasło";
 "resource.edit.field.name.label" = "Nazwa";
-"resource.edit.field.uri.label" = "Main URI";
+"resource.edit.field.uri.label" = "Główny adres URI";
 "resource.edit.field.username.label" = "Nazwa użytkownika";
 "resource.edit.field.password.label" = "Hasło";
 "resource.edit.field.description.label" = "Opis";
 "resource.edit.field.totp.label" = "TOTP";
 "resource.edit.field.add.totp" = "TOTP";
-"resource.edit.field.add.note" = "Note";
+"resource.edit.field.add.note" = "Notatka";
 "resource.edit.field.add.password" = "Hasło";
+"resource.edit.field.add.customFields" = "Custom Fields";
 "resource.edit.field.name.placeholder" = "Wpisz nazwę";
-"resource.edit.field.uri.placeholder" = "Enter URI";
+"resource.edit.field.uri.placeholder" = "Wpisz adres URL";
 "resource.edit.field.username.placeholder" = "Wpisz nazwę użytkownika";
 "resource.edit.field.password.placeholder" = "Wpisz hasło";
 "resource.edit.field.description.placeholder" = "Wprowadź opis";
 "resource.edit.exit.confirmation.message" = "Twoje zmiany nie zostaną zapisane.";
 "resource.edit.exit.confirmation.button.edit.title" = "Edytuj";
 "resource.edit.exit.confirmation.button.revert.title" = "Cofnij";
-"resource.edit.note.content.title" = "Content";
-"resource.edit.note.content.disclaimer" = "This secure is part of the secret if you wan to be able to search this content, use metadata description.";
-"resource.edit.note.remove.button.title" = "Remove note";
+"resource.edit.note.content.title" = "Treść";
+"resource.edit.note.content.disclaimer" = "Notatka jest częścią sekretu, jeśli chcesz mieć możliwość wyszukiwania tej zawartości, użyj opisu metadanych.";
+"resource.edit.note.remove.button.title" = "Usuń notatkę";
 
+"resource.edit.section.resource.title" = "Zasób";
 "resource.edit.section.password.title" = "Hasło";
 "resource.edit.section.totp.title" = "TOTP";
-"resource.edit.section.note.title" = "Note";
+"resource.edit.section.note.title" = "Notatka";
 "resource.edit.section.metadata.title" = "Metadane";
-"resource.edit.totp.remove.button.title" = "Remove TOTP";
+"resource.edit.totp.remove.button.title" = "Usuń TOTP";
 
-"resource.create.advanced.button" = "View advanced settings";
-"resource.create.additional.secrets.title" = "Additional secrets";
+"resource.edit.customFields.title" = "Custom Fields";
+"resource.edit.customFields.error.invalid" = "Invalid value";
+"resource.edit.customFields.description" = "Edition of custom fields is currently not supported.";
+
+"resource.create.advanced.button" = "Wyświetl zaawansowane ustawienia";
+"resource.create.additional.secrets.title" = "Dodatkowe sekrety";
 "resource.create.advanced.add.otp" = "TOTP";
 
 "resource.edit.section.metadata.description" = "Opis";
-"resource.edit.section.metadata.description.name" = "Metadata description";
-"resource.edit.section.metadata.description.description" = "If you want the description to be part of the secret, use the note instead.";
+"resource.edit.section.metadata.description.name" = "Opis metadanych";
+"resource.edit.section.metadata.description.description" = "Jeśli chcesz, aby opis był częścią sekretu, użyj notatki.";
 
-"resource.create.menu.title" = "Create a resource";
+"resource.edit.section.metadata.additional.uris" = "Dodatkowe adresy URI";
+"resource.edit.section.metadata.appearance" = "Wygląd";
+"resource.edit.section.customFields.title" = "Custom Fields";
+
+"resource.edit.uris.title" = "Dodatkowe adresy URI";
+"resource.edit.uris.main.uri.title" = "Główny adres URI";
+"resource.edit.uris.additional.uris.title" = "Dodatkowy adres URI";
+"resource.edit.uris.main.uri.placeholder" = "Główny adres URI";
+"resource.edit.uris.additional.uri.placeholder" = "Adres URL";
+"resource.edit.uris.additional.uri.add" = "Dodaj URI";
+"resource.edit.uris.additional.uris.error.limit" = "Możesz dodać maksymalnie %d dodatkowych URI.";
+"resource.edit.uris.invalid.form" = "Jeden lub więcej adresów URI jest nieprawidłowy.";
+
+"resource.edit.icon.title" = "Wygląd";
+"resource.edit.icon.color.select.title" = "Wybierz kolor";
+"resource.edit.icon.color.default.title" = "Domyślny kolor";
+"resource.edit.icon.default.title" = "Domyślna ikona";
+
+"resource.create.menu.title" = "Utwórz zasób";
 "resource.create.menu.password" = "Hasło";
 "resource.create.menu.totp" = "TOTP";
 
-"resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
-"resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
+"resource.create.invalid.configuration" = "Nie można utworzyć zasobu z bieżącą konfiguracją.";
+"resource.edit.invalid.configuration" = "Nie można zaktualizować zasobu z obecną konfiguracją.";
 
 "help.logs.viewer.title" = "Rejestry";
 
@@ -240,7 +265,7 @@
 
 "biometrics.setup.title.face" = "Używaj Face ID zamiast hasła dostępu!";
 "biometrics.setup.title.finger" = "Używaj Touch ID zamiast hasła dostępu!";
-"biometrics.setup.description" = "Odblokuj sekrety w kilka chwil.";
+"biometrics.setup.description" = "Odblokuj sekrety w ułamku chwili.";
 "biometrics.setup.setup.button.face" = "Użyj FaceID";
 "biometrics.setup.setup.button.finger" = "Użyj TouchID";
 "biometrics.setup.later.button" = "Może później";
@@ -273,15 +298,15 @@
 "resource.menu.item.copy.password" = "Skopiuj hasło";
 "resource.menu.item.copy.username" = "Skopiuj nazwę użytkownika";
 "resource.menu.item.copy.description" = "Skopiuj opis";
-"resource.menu.item.copy.note" = "Copy note";
+"resource.menu.item.copy.note" = "Skopiuj notatkę";
 "resource.menu.item.reveal.otp" = "Wyświetl TOTP";
 "resource.menu.item.copy.otp" = "Skopiuj TOTP";
 "resource.menu.item.add.favorite" = "Dodaj do ulubionych";
 "resource.menu.item.remove.favorite" = "Usuń z ulubionych";
-"resource.menu.item.share" = "Udostępnij hasło";
-"resource.menu.item.edit.resource" = "Edytuj hasło";
+"resource.menu.item.share" = "Udostępnij";
+"resource.menu.item.edit.resource" = "Edytuj";
 "resource.menu.item.edit.otp" = "Edytuj TOTP";
-"resource.menu.item.delete.resource" = "Usuń hasło";
+"resource.menu.item.delete.resource" = "Usuń";
 "resource.menu.item.delete.otp" = "Usuń TOTP";
 "resource.menu.item.password" = "Hasło";
 "resource.menu.item.username" = "Nazwa użytkownika";
@@ -319,7 +344,7 @@
 
 "resource.permission.edit.button.delete.title" = "Usuń uprawnienie";
 
-"resource.folders.add.menu.title" = "Create a resource";
+"resource.folders.add.menu.title" = "Utwórz zasób";
 "resource.folders.add.menu.folder.label" = "Folder";
 
 "group.members.list.title" = "Członkowie grupy";
@@ -417,7 +442,7 @@ Skontaktuj się z administratorem, aby uzyskać więcej informacji.";
 "sign.in.error.message" = "Logowanie nie powiodło się";
 "sign.in.error.biometrics.changed.message" = "Wygląda na to, że dane biometryczne Twojego urządzenia uległy zmianie. Wprowadź hasło dostępu i ponownie skonfiguruj dane biometryczne";
 "sign.in.error.passphrase.invalid.message" = "Nieprawidłowe hasło dostępu.";
-"server.fingerprint.save.failed" = "Nie udało się zapisać odcisku palca serwera.";
+"server.fingerprint.save.failed" = "Nie udało się zapisać odcisku serwera.";
 "form.field.error.max.length" = "Maksymalna długość została przekroczona.";
 "form.error.invalid" = "Formularz jest nieprawidłowy";
 "resource.form.field.error.empty" = "Pole nie może być puste";
@@ -462,8 +487,8 @@ Skontaktuj się z administratorem, aby uzyskać więcej informacji.";
 "error.session.missing" = "Brakująca sesja.";
 "error.crypto.data.signature.invalid" = "Nieprawidłowa sygnatura danych.";
 "error.crypto.passphrase.invalid" = "Nieprawidłowe hasło dostępu.";
-"error.crypto.pgp.fingerprint.invalid" = "Nieprawidłowy odcisk palca PGP.";
-"error.crypto.pgp.fingerprint.mismatch" = "Niezgodność odcisku palca PGP.";
+"error.crypto.pgp.fingerprint.invalid" = "Nieprawidłowy odcisk PGP.";
+"error.crypto.pgp.fingerprint.mismatch" = "Niezgodność odcisku PGP.";
 "error.crypto.pgp.keyring.preparation.failed" = "Nie udało się przygotować pęku kluczy PGP";
 "error.crypto.pgp.keypacket.extraction.failed" = "Nie udało się wyodrębnić pakietu klucza PGP.";
 "error.crypto.pgp.sessionkey.extraction.failed" = "Nie udało się wyodrębnić klucza sesyjnego PGP.";
@@ -536,7 +561,7 @@ Skontaktuj się z administratorem, aby uzyskać więcej informacji.";
 
 // Home - presentation mode menu
 
-"home.presentation.mode.menu.title" = "Filtruj widok według";
+"home.presentation.mode.menu.title" = "Filtruj widok";
 
 // Presentation modes
 
@@ -592,7 +617,7 @@ Skontaktuj się z administratorem, aby uzyskać więcej informacji.";
 "otp.scanning.success.link.button.title" = "Podłącz TOTP do hasła";
 "otp.code.scanning.title" = "Skanuj kod QR";
 "otp.code.scanning.initial.message" = "Skieruj kamerę na kod QR";
-"otp.code.scanning.manual.input" = "Or create TOTP manually";
+"otp.code.scanning.manual.input" = "Utwórz TOTP ręcznie";
 
 // OTP form
 
@@ -604,7 +629,7 @@ Skontaktuj się z administratorem, aby uzyskać więcej informacji.";
 "otp.edit.form.field.uri.prompt" = "Adres URL";
 "otp.edit.form.field.secret.title" = "Sekret";
 "otp.edit.form.field.secret.prompt" = "Sekret";
-"otp.edit.form.advanced.button.title" = "More TOTP settings";
+"otp.edit.form.advanced.button.title" = "Więcej ustawień TOTP";
 "otp.edit.form.create.button.title" = "Utwórz samodzielny TOTP";
 "otp.edit.form.apply.button.title" = "Zastosuj";
 "otp.edit.form.edit.button.title" = "Zapisz";
@@ -664,14 +689,14 @@ Skontaktuj się z administratorem, aby uzyskać więcej informacji.";
 
 "account.key.inspector.title" = "Inspektor kluczy";
 "account.key.inspector.field.uid.title" = "Uid";
-"account.key.inspector.field.fingerprint.title" = "Cyfrowy odcisk palca";
+"account.key.inspector.field.fingerprint.title" = "Cyfrowy odcisk klucza";
 "account.key.inspector.field.created.title" = "Data stworzenia";
 "account.key.inspector.field.expires.title" = "Wygasa";
 "account.key.inspector.no.exipire.placeholder" = "Nigdy";
 "account.key.inspector.field.key.size.title" = "Długość klucza";
 "account.key.inspector.field.algorithm.title" = "Algorytm";
 "account.key.inspector.uid.copied.message" = "Skopiowano UID do schowka!";
-"account.key.inspector.fingerprint.copied.message" = "Skopiowano odcisk palca do schowka!";
+"account.key.inspector.fingerprint.copied.message" = "Odcisk klucza skopiowano do schowka!";
 
 // Key export
 
@@ -716,14 +741,14 @@ Skontaktuj się z administratorem, aby uzyskać więcej informacji.";
 "authorization.primary.button.title" = "Autoryzuj";
 
 // Metadata
-"metadata.pinned.key.validation.error.title" = "The metadata key has changed.";
-"metadata.pinned.key.validation.error.message" = "The encryption key used to share metadata between users has been updated by %@.";
-"metadata.pinned.key.validation.error.disclaimer" = "If you weren't expecting this, you can verify with your administrator.";
-"metadata.pinned.key.validation.error.trust" = "Trust the key";
-"metadata.pinned.key.fingerprint" = "Key fingerprint:";
+"metadata.pinned.key.validation.error.title" = "Klucz metadanych uległ zmianie.";
+"metadata.pinned.key.validation.error.message" = "Klucz szyfrowania używany do udostępniania metadanych pomiędzy użytkownikami został zaktualizowany przez %@.";
+"metadata.pinned.key.validation.error.disclaimer" = "Jeśli się tego nie spodziewałeś(-aś) możesz to zweryfikować z administratorem.";
+"metadata.pinned.key.validation.error.trust" = "Dodaj klucz do zaufanych";
+"metadata.pinned.key.fingerprint" = "Odcisk klucza:";
 
-"metadata.pinned.key.validation.deleted.title" = "The metadata key has been deleted.";
-"metadata.pinned.key.validation.deleted.message" = "The trusted encryption key used to share metadata between users has been deleted.";
+"metadata.pinned.key.validation.deleted.title" = "Klucz metadanych został skasowany.";
+"metadata.pinned.key.validation.deleted.message" = "Zaufany klucz szyfrowania używany do udostępniania metadanych pomiędzy użytkownikami został skasowany.";
 
-"metadata.pinned.key.validation.unknown.title" = "The metadata key has changed.";
-"metadata.pinned.key.validation.unknown.message" = "The trusted encryption key used to share metadata between users could not be validated.";
+"metadata.pinned.key.validation.unknown.title" = "Klucz metadanych uległ zmianie.";
+"metadata.pinned.key.validation.unknown.message" = "Nie można zweryfikować zaufanego klucza szyfrowania używanego do udostępniania metadanych pomiędzy użytkownikami.";

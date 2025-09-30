@@ -82,6 +82,7 @@
 "resource.details.value" = "값";
 "resource.detail.section.location" = "위치";
 "resource.detail.section.permissions" = "공유 대상";
+"resource.detail.section.additionalURIs" = "추가 URI";
 "resource.detail.section.tags" = "태그";
 "resource.detail.section.expiry" = "만료";
 "resource.detail.section.expiry.expired" = "만료됨";
@@ -138,6 +139,7 @@
 "resource.edit.field.add.totp" = "TOTP";
 "resource.edit.field.add.note" = "노트";
 "resource.edit.field.add.password" = "비밀번호";
+"resource.edit.field.add.customFields" = "사용자 정의 필드";
 "resource.edit.field.name.placeholder" = "이름 입력";
 "resource.edit.field.uri.placeholder" = "URI 입력";
 "resource.edit.field.username.placeholder" = "사용자이름 입력";
@@ -150,11 +152,16 @@
 "resource.edit.note.content.disclaimer" = "이 보안 항목은 기밀의 일부이므로, 해당 내용을 검색할 수 있도록 하려면 메타데이터 설명을 사용하세요.";
 "resource.edit.note.remove.button.title" = "노트 삭제";
 
+"resource.edit.section.resource.title" = "리소스";
 "resource.edit.section.password.title" = "비밀번호";
 "resource.edit.section.totp.title" = "TOTP";
 "resource.edit.section.note.title" = "노트";
 "resource.edit.section.metadata.title" = "메타데이터";
 "resource.edit.totp.remove.button.title" = "TOTP 삭제";
+
+"resource.edit.customFields.title" = "사용자 정의 필드";
+"resource.edit.customFields.error.invalid" = "잘못된 값";
+"resource.edit.customFields.description" = "현재 사용자 정의 필드의 에디션은 지원되지 않음.";
 
 "resource.create.advanced.button" = "고급 설정 보기";
 "resource.create.additional.secrets.title" = "추가 기밀";
@@ -163,6 +170,24 @@
 "resource.edit.section.metadata.description" = "설명";
 "resource.edit.section.metadata.description.name" = "메타데이터 설명";
 "resource.edit.section.metadata.description.description" = "설명을 비밀에 포함하려면 대신 노트를 사용하세요.";
+
+"resource.edit.section.metadata.additional.uris" = "추가 URI";
+"resource.edit.section.metadata.appearance" = "모양새";
+"resource.edit.section.customFields.title" = "사용자 정의 필드";
+
+"resource.edit.uris.title" = "추가 URI";
+"resource.edit.uris.main.uri.title" = "메인 URI";
+"resource.edit.uris.additional.uris.title" = "추가 URI";
+"resource.edit.uris.main.uri.placeholder" = "메인 URI";
+"resource.edit.uris.additional.uri.placeholder" = "URI";
+"resource.edit.uris.additional.uri.add" = "URI 추가";
+"resource.edit.uris.additional.uris.error.limit" = "최대 %d개의 추가 URI를 추가할 수 있습니다.";
+"resource.edit.uris.invalid.form" = "하나 이상의 URI가 잘못되었습니다.";
+
+"resource.edit.icon.title" = "모양새";
+"resource.edit.icon.color.select.title" = "색상 선택";
+"resource.edit.icon.color.default.title" = "기본 색상";
+"resource.edit.icon.default.title" = "기본 아이콘";
 
 "resource.create.menu.title" = "리소스 생성";
 "resource.create.menu.password" = "비밀번호";
@@ -193,7 +218,7 @@
 "code.scanning.camera.unavailable" = "죄송합니다, QR 코드를 사용하여 키를 전송하므로 계속 진행하려면 카메라가 있는 기기가 필요합니다.";
 "code.scanning.begin" = "카메라를 QR 코드에 맞추세요.";
 "code.scanning.processing.in.progress" = "스캔 중... 계속 하세요!";
-"code.scanning.processing.invalid.code" = "패스볼트 QR코드가 아닙니다. 재 시도하세요!";
+"code.scanning.processing.invalid.code" = "Passbolt QR코드가 아닙니다. 재 시도하세요!";
 
 
 "transfer.account.title" = "계정 세부 정보 전송";
@@ -254,7 +279,7 @@
 "extension.setup.switch.step.bold" = "사용함";
 "extension.setup.keychain.step" = "키체인 끄기";
 "extension.setup.keychain.step.bold" = "끄기";
-"extension.setup.passbolt.step" = "패스볼트 선택!";
+"extension.setup.passbolt.step" = "Passbolt 선택!";
 "extension.setup.passbolt.step.bold" = "패스볼트!";
 "extension.setup.setup.button" = "설정으로 이동";
 "extension.setup.later.button" = "나중에";
@@ -278,10 +303,10 @@
 "resource.menu.item.copy.otp" = "TOTP 복사";
 "resource.menu.item.add.favorite" = "즐겨찾기 추가";
 "resource.menu.item.remove.favorite" = "즐겨찾기 제거";
-"resource.menu.item.share" = "비밀번호 공유";
-"resource.menu.item.edit.resource" = "비밀번호 수정";
+"resource.menu.item.share" = "공유";
+"resource.menu.item.edit.resource" = "수정";
 "resource.menu.item.edit.otp" = "TOTP 수정";
-"resource.menu.item.delete.resource" = "비밀번호 삭제";
+"resource.menu.item.delete.resource" = "삭제";
 "resource.menu.item.delete.otp" = "TOTP 삭제";
 "resource.menu.item.password" = "비밀번호";
 "resource.menu.item.username" = "사용자이름";
@@ -363,7 +388,7 @@ NFC가 있어야 작동합니다.";
 "account.details.button.save.title" = "저장";
 
 "update.available.title" = "새 버전 사용가능!";
-"update.available.message" = "앱 스토어에서 패스볼트 앱을 최신 버전으로 업데이트하세요.";
+"update.available.message" = "앱 스토어에서 Passbolt 앱을 최신 버전으로 업데이트하세요";
 
 // Autofill extension
 
@@ -444,8 +469,8 @@ NFC가 있어야 작동합니다.";
 "error.server.response.invalid" = "잘못된 서버 응답";
 "error.server.response.timeout" = "서버 응답시간 초과";
 "error.server.certificate.invalid" = "잘못된 서버 인증서";
-"error.http.request.invalid" = "HTTP 요청 잘못됨";
-"error.http.response.invalid" = "HTTP 응답 잘못됨";
+"error.http.request.invalid" = "HTTP 요청 잘못됨.";
+"error.http.response.invalid" = "HTTP 응답 잘못됨.";
 "error.network.response.invalid" = "잘못된 네트워크 응답";
 "error.http.response.forbidden" = "HTTP 금지됨.";
 "error.http.response.conflict" = "HTTP 충돌.";
@@ -506,7 +531,7 @@ NFC가 있어야 작동합니다.";
 "error.account.duplicate" = "중복 계정.";
 "error.server.pgp.fingerprint.invalid" = "서버 PGP 지문이 잘못됨.";
 "error.session.authorization.failed" = "세션 인증 실패됨.";
-"error.qrcode.invalid" = "패스볼트 QR코드가 아닙니다. 재 시도하세요!";
+"error.qrcode.invalid" = "Passbolt QR코드가 아닙니다. 재 시도하세요!";
 
 "error.validation.folder.name.empty" = "폴더 이름은 비워질수 없습니다.";
 "error.validation.folder.name.too.long" = "폴더 이름은 256자를 초과할 수 없습니다.";

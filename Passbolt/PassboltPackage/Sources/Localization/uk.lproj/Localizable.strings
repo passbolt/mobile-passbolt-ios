@@ -82,6 +82,7 @@
 "resource.details.value" = "Значення";
 "resource.detail.section.location" = "Розташування";
 "resource.detail.section.permissions" = "Надано спільний доступ";
+"resource.detail.section.additionalURIs" = "Додатковий URI";
 "resource.detail.section.tags" = "Теги";
 "resource.detail.section.expiry" = "Термін дії";
 "resource.detail.section.expiry.expired" = "Прострочено";
@@ -138,6 +139,7 @@
 "resource.edit.field.add.totp" = "TOTP";
 "resource.edit.field.add.note" = "Примітка";
 "resource.edit.field.add.password" = "Пароль";
+"resource.edit.field.add.customFields" = "Custom Fields";
 "resource.edit.field.name.placeholder" = "Введіть назву";
 "resource.edit.field.uri.placeholder" = "Введіть URI";
 "resource.edit.field.username.placeholder" = "Введіть ім'я користувача";
@@ -150,11 +152,16 @@
 "resource.edit.note.content.disclaimer" = "Ця безпечна частина є частиною секрету. Якщо ви бажаєте мати змогу шукати цей вміст, скористайтеся описом метаданих.";
 "resource.edit.note.remove.button.title" = "Видалити примітку";
 
+"resource.edit.section.resource.title" = "Resource";
 "resource.edit.section.password.title" = "Пароль";
 "resource.edit.section.totp.title" = "TOTP";
 "resource.edit.section.note.title" = "Примітка";
 "resource.edit.section.metadata.title" = "Метадані";
 "resource.edit.totp.remove.button.title" = "Вилучити TOTP";
+
+"resource.edit.customFields.title" = "Custom Fields";
+"resource.edit.customFields.error.invalid" = "Invalid value";
+"resource.edit.customFields.description" = "Edition of custom fields is currently not supported.";
 
 "resource.create.advanced.button" = "Переглянути додаткові налаштування";
 "resource.create.additional.secrets.title" = "Додаткові секрети";
@@ -163,6 +170,24 @@
 "resource.edit.section.metadata.description" = "Опис";
 "resource.edit.section.metadata.description.name" = "Опис метаданих";
 "resource.edit.section.metadata.description.description" = "Якщо ви хочете, щоб опис був частиною секрету, використовуйте примітку замість нього.";
+
+"resource.edit.section.metadata.additional.uris" = "Додаткові URI";
+"resource.edit.section.metadata.appearance" = "Вигляд";
+"resource.edit.section.customFields.title" = "Custom Fields";
+
+"resource.edit.uris.title" = "Додаткові URI";
+"resource.edit.uris.main.uri.title" = "Основний URI";
+"resource.edit.uris.additional.uris.title" = "Додатковий URI";
+"resource.edit.uris.main.uri.placeholder" = "Основний URI";
+"resource.edit.uris.additional.uri.placeholder" = "URI";
+"resource.edit.uris.additional.uri.add" = "Додати URI";
+"resource.edit.uris.additional.uris.error.limit" = "Ви можете додати максимум %d додаткових URI.";
+"resource.edit.uris.invalid.form" = "One or more URIs are invalid.";
+
+"resource.edit.icon.title" = "Вигляд";
+"resource.edit.icon.color.select.title" = "Select color";
+"resource.edit.icon.color.default.title" = "Стандартний колір";
+"resource.edit.icon.default.title" = "Стандартна іконка";
 
 "resource.create.menu.title" = "Створити ресурс";
 "resource.create.menu.password" = "Пароль";
@@ -278,10 +303,10 @@
 "resource.menu.item.copy.otp" = "Скопіювати TOTP";
 "resource.menu.item.add.favorite" = "Додати в обране";
 "resource.menu.item.remove.favorite" = "Видалити з обраного";
-"resource.menu.item.share" = "Поділитися паролем";
-"resource.menu.item.edit.resource" = "Редагувати пароль";
+"resource.menu.item.share" = "Share";
+"resource.menu.item.edit.resource" = "Редагувати";
 "resource.menu.item.edit.otp" = "Редагувати TOTP";
-"resource.menu.item.delete.resource" = "Видалити пароль";
+"resource.menu.item.delete.resource" = "Видалити";
 "resource.menu.item.delete.otp" = "Видалити TOTP";
 "resource.menu.item.password" = "Пароль";
 "resource.menu.item.username" = "Ім'я користувача";
@@ -444,8 +469,8 @@ NFC, щоб це працювало.";
 "error.server.response.invalid" = "Неправильна відповідь сервера";
 "error.server.response.timeout" = "Час очікування відповіді сервера вичерпано.";
 "error.server.certificate.invalid" = "Недійсний сертифікат сервера.";
-"error.http.request.invalid" = "Неправильний HTTP-запит.";
-"error.http.response.invalid" = "Неправильна HTTP-відповідь.";
+"error.http.request.invalid" = "Некоректний HTTP-запит.";
+"error.http.response.invalid" = "Некоректна HTTP-відповідь.";
 "error.network.response.invalid" = "Неправильна мережева відповідь";
 "error.http.response.forbidden" = "HTTP заборонено.";
 "error.http.response.conflict" = "Конфлікт HTTP.";
@@ -606,7 +631,7 @@ NFC, щоб це працювало.";
 "otp.edit.form.field.secret.prompt" = "Секрет";
 "otp.edit.form.advanced.button.title" = "Більше налаштувань TOTP";
 "otp.edit.form.create.button.title" = "Створити окремий TOTP";
-"otp.edit.form.apply.button.title" = "Застосувати";
+"otp.edit.form.apply.button.title" = "Прийняти";
 "otp.edit.form.edit.button.title" = "Зберегти";
 "otp.edit.form.edit.advanced.title" = "Редагувати TOTP - розширені налаштування";
 "otp.edit.form.edit.advanced.warning" = "Розширені налаштування повинні відповідати налаштуванням вашого провайдера TOTP, інакше воно не працюватиме.";

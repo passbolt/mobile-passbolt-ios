@@ -139,6 +139,7 @@
 "resource.edit.field.add.totp" = "TOTP";
 "resource.edit.field.add.note" = "Poznámka";
 "resource.edit.field.add.password" = "Heslo";
+"resource.edit.field.add.customFields" = "Custom Fields";
 "resource.edit.field.name.placeholder" = "Zadejte název";
 "resource.edit.field.uri.placeholder" = "Zadejte URI";
 "resource.edit.field.username.placeholder" = "Zadejte uživatelské jméno";
@@ -151,11 +152,16 @@
 "resource.edit.note.content.disclaimer" = "Tento bezpečný je součástí tajemství, pokud chcete, aby bylo možné vyhledávat tento obsah, použijte popis metadata.";
 "resource.edit.note.remove.button.title" = "Odebrat poznámku";
 
+"resource.edit.section.resource.title" = "Prostředek";
 "resource.edit.section.password.title" = "Heslo";
 "resource.edit.section.totp.title" = "TOTP";
 "resource.edit.section.note.title" = "Poznámka";
 "resource.edit.section.metadata.title" = "Metadata";
 "resource.edit.totp.remove.button.title" = "Nahradit TOTP";
+
+"resource.edit.customFields.title" = "Custom Fields";
+"resource.edit.customFields.error.invalid" = "Invalid value";
+"resource.edit.customFields.description" = "Edition of custom fields is currently not supported.";
 
 "resource.create.advanced.button" = "Zobrazit pokročilá nastavení";
 "resource.create.additional.secrets.title" = "Další tajemství";
@@ -167,6 +173,7 @@
 
 "resource.edit.section.metadata.additional.uris" = "Další URI";
 "resource.edit.section.metadata.appearance" = "Vzhled";
+"resource.edit.section.customFields.title" = "Custom Fields";
 
 "resource.edit.uris.title" = "Další URI";
 "resource.edit.uris.main.uri.title" = "Hlavní URI";
@@ -175,6 +182,7 @@
 "resource.edit.uris.additional.uri.placeholder" = "URI";
 "resource.edit.uris.additional.uri.add" = "Přidat URI";
 "resource.edit.uris.additional.uris.error.limit" = "Můžete přidat maximálně %d dalších URI.";
+"resource.edit.uris.invalid.form" = "One or more URIs are invalid.";
 
 "resource.edit.icon.title" = "Vzhled";
 "resource.edit.icon.color.select.title" = "Vybrat barvu";
@@ -295,10 +303,10 @@
 "resource.menu.item.copy.otp" = "Kopírovat TOTP";
 "resource.menu.item.add.favorite" = "Přidat do oblíbených";
 "resource.menu.item.remove.favorite" = "Odebrat z oblíbených";
-"resource.menu.item.share" = "Sdílet heslo";
-"resource.menu.item.edit.resource" = "Upravit heslo";
+"resource.menu.item.share" = "Sdílet";
+"resource.menu.item.edit.resource" = "Upravit";
 "resource.menu.item.edit.otp" = "Upravit TOTP";
-"resource.menu.item.delete.resource" = "Odstranit heslo";
+"resource.menu.item.delete.resource" = "Odstranit";
 "resource.menu.item.delete.otp" = "Odstranit TOTP";
 "resource.menu.item.password" = "Heslo";
 "resource.menu.item.username" = "Uživatelské jméno";
