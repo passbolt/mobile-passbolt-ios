@@ -82,6 +82,7 @@
 "resource.details.value" = "Valor";
 "resource.detail.section.location" = "Ubicación";
 "resource.detail.section.permissions" = "Compartido con";
+"resource.detail.section.additionalURIs" = "URI adicional";
 "resource.detail.section.tags" = "Etiquetas";
 "resource.detail.section.expiry" = "Caducidad";
 "resource.detail.section.expiry.expired" = "Caducado";
@@ -138,6 +139,7 @@
 "resource.edit.field.add.totp" = "TOTP";
 "resource.edit.field.add.note" = "Nota";
 "resource.edit.field.add.password" = "Contraseña";
+"resource.edit.field.add.customFields" = "Custom Fields";
 "resource.edit.field.name.placeholder" = "Introduzca un nombre";
 "resource.edit.field.uri.placeholder" = "Introduzca una URI";
 "resource.edit.field.username.placeholder" = "Introduzca un nombre de usuario";
@@ -150,11 +152,16 @@
 "resource.edit.note.content.disclaimer" = "Este seguro es parte del secreto. Si quiere poder buscar este contenido, use la descripción de metadatos.";
 "resource.edit.note.remove.button.title" = "Eliminar nota";
 
+"resource.edit.section.resource.title" = "Recurso";
 "resource.edit.section.password.title" = "Contraseña";
 "resource.edit.section.totp.title" = "TOTP";
 "resource.edit.section.note.title" = "Nota";
 "resource.edit.section.metadata.title" = "Metadatos";
 "resource.edit.totp.remove.button.title" = "Eliminar TOTP";
+
+"resource.edit.customFields.title" = "Custom Fields";
+"resource.edit.customFields.error.invalid" = "Invalid value";
+"resource.edit.customFields.description" = "La edición de los campos personalizados no es compatible actualmente.";
 
 "resource.create.advanced.button" = "Ver configuración avanzada";
 "resource.create.additional.secrets.title" = "Secretos adicionales";
@@ -163,6 +170,24 @@
 "resource.edit.section.metadata.description" = "Descripción";
 "resource.edit.section.metadata.description.name" = "Descripción de metadatos";
 "resource.edit.section.metadata.description.description" = "Si desea que la descripción sea parte del secreto, utilice la nota en su lugar.";
+
+"resource.edit.section.metadata.additional.uris" = "URIs adicionales";
+"resource.edit.section.metadata.appearance" = "Aspecto";
+"resource.edit.section.customFields.title" = "Custom Fields";
+
+"resource.edit.uris.title" = "URIs adicionales";
+"resource.edit.uris.main.uri.title" = "URI principal";
+"resource.edit.uris.additional.uris.title" = "URI adicional";
+"resource.edit.uris.main.uri.placeholder" = "URI principal";
+"resource.edit.uris.additional.uri.placeholder" = "URI";
+"resource.edit.uris.additional.uri.add" = "Añadir URI";
+"resource.edit.uris.additional.uris.error.limit" = "Puede añadir un máximo de %d URIs adicionales.";
+"resource.edit.uris.invalid.form" = "Una o más URIs no son válidas.";
+
+"resource.edit.icon.title" = "Aspecto";
+"resource.edit.icon.color.select.title" = "Seleccione el color";
+"resource.edit.icon.color.default.title" = "Color predeterminado";
+"resource.edit.icon.default.title" = "Icono predeterminado";
 
 "resource.create.menu.title" = "Crear un recurso";
 "resource.create.menu.password" = "Contraseña";
@@ -278,11 +303,10 @@
 "resource.menu.item.copy.otp" = "Copiar TOTP";
 "resource.menu.item.add.favorite" = "Añadir a favoritos";
 "resource.menu.item.remove.favorite" = "Eliminar de favoritos";
-"resource.menu.item.share" = "Compartir contraseña";
-"resource.menu.item.edit.resource" = "Editar contraseña";
+"resource.menu.item.share" = "Compartir";
+"resource.menu.item.edit.resource" = "Editar";
 "resource.menu.item.edit.otp" = "Editar TOTP";
-"resource.menu.item.otp.menu" = "Gestionar TOTP";
-"resource.menu.item.delete.resource" = "Eliminar contraseña";
+"resource.menu.item.delete.resource" = "Eliminar";
 "resource.menu.item.delete.otp" = "Eliminar TOTP";
 "resource.menu.item.password" = "Contraseña";
 "resource.menu.item.username" = "Nombre de usuario";
@@ -321,7 +345,6 @@
 "resource.permission.edit.button.delete.title" = "Eliminar permiso";
 
 "resource.folders.add.menu.title" = "Crear";
-"resource.folders.add.menu.password.label" = "Añadir contraseña";
 "resource.folders.add.menu.folder.label" = "Añadir carpeta";
 
 "group.members.list.title" = "Miembros del grupo";
@@ -720,7 +743,7 @@ Póngase en contacto con su administrador para obtener más información.";
 // Metadata
 "metadata.pinned.key.validation.error.title" = "La clave de metadatos ha cambiado.";
 "metadata.pinned.key.validation.error.message" = "La clave de cifrado utilizada para compartir metadatos entre usuarios ha sido actualizada por %@.";
-"metadata.pinned.key.validation.error.disclaimer" = "If you weren't expecting this, you can verify with your administrator.";
+"metadata.pinned.key.validation.error.disclaimer" = "Si no esperaba esto, puede verificarlo con su administrador.";
 "metadata.pinned.key.validation.error.trust" = "Confiar en la clave";
 "metadata.pinned.key.fingerprint" = "Clave de huella digital:";
 
@@ -728,4 +751,4 @@ Póngase en contacto con su administrador para obtener más información.";
 "metadata.pinned.key.validation.deleted.message" = "La clave de cifrado de confianza utilizada para compartir metadatos entre usuarios ha sido eliminada.";
 
 "metadata.pinned.key.validation.unknown.title" = "La clave de metadatos ha cambiado.";
-"metadata.pinned.key.validation.unknown.message" = "The trusted encryption key used to share metadata between users could not be validated.";
+"metadata.pinned.key.validation.unknown.message" = "La clave de cifrado de confianza utilizada para compartir metadatos entre usuarios no pudo ser validada.";

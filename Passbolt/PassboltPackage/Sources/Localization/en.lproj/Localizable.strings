@@ -139,7 +139,6 @@
 "resource.edit.field.add.totp" = "TOTP";
 "resource.edit.field.add.note" = "Note";
 "resource.edit.field.add.password" = "Password";
-"resource.edit.field.add.customFields" = "Custom Fields";
 "resource.edit.field.name.placeholder" = "Enter a name";
 "resource.edit.field.uri.placeholder" = "Enter URI";
 "resource.edit.field.username.placeholder" = "Enter username";
@@ -152,16 +151,11 @@
 "resource.edit.note.content.disclaimer" = "This secure is part of the secret if you wan to be able to search this content, use metadata description.";
 "resource.edit.note.remove.button.title" = "Remove note";
 
-"resource.edit.section.resource.title" = "Resource";
 "resource.edit.section.password.title" = "Password";
 "resource.edit.section.totp.title" = "TOTP";
 "resource.edit.section.note.title" = "Note";
 "resource.edit.section.metadata.title" = "Metadata";
 "resource.edit.totp.remove.button.title" = "Remove TOTP";
-
-"resource.edit.customFields.title" = "Custom Fields";
-"resource.edit.customFields.error.invalid" = "Invalid value";
-"resource.edit.customFields.description" = "Edition of custom fields is currently not supported.";
 
 "resource.create.advanced.button" = "View advanced settings";
 "resource.create.additional.secrets.title" = "Additional secrets";
@@ -173,7 +167,6 @@
 
 "resource.edit.section.metadata.additional.uris" = "Additional URIs";
 "resource.edit.section.metadata.appearance" = "Appearance";
-"resource.edit.section.customFields.title" = "Custom Fields";
 
 "resource.edit.uris.title" = "Additional URIs";
 "resource.edit.uris.main.uri.title" = "Main URI";
@@ -182,7 +175,6 @@
 "resource.edit.uris.additional.uri.placeholder" = "URI";
 "resource.edit.uris.additional.uri.add" = "Add URI";
 "resource.edit.uris.additional.uris.error.limit" = "You can add a maximum of %d additional URIs.";
-"resource.edit.uris.invalid.form" = "One or more URIs are invalid.";
 
 "resource.edit.icon.title" = "Appearance";
 "resource.edit.icon.color.select.title" = "Select color";
@@ -303,10 +295,10 @@
 "resource.menu.item.copy.otp" = "Copy TOTP";
 "resource.menu.item.add.favorite" = "Add to favorite";
 "resource.menu.item.remove.favorite" = "Remove from favorite";
-"resource.menu.item.share" = "Share";
-"resource.menu.item.edit.resource" = "Edit";
+"resource.menu.item.share" = "Share password";
+"resource.menu.item.edit.password" = "Edit password";
 "resource.menu.item.edit.otp" = "Edit TOTP";
-"resource.menu.item.delete.resource" = "Delete";
+"resource.menu.item.delete.resource" = "Delete password";
 "resource.menu.item.delete.otp" = "Delete TOTP";
 "resource.menu.item.password" = "Password";
 "resource.menu.item.username" = "Username";

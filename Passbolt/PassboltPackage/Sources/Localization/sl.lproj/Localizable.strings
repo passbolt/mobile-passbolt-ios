@@ -43,7 +43,7 @@
 "generic.create" = "Ustvari";
 "generic.empty.list" = "Ni rezultatov";
 "generic.user.search.list.empty" = "Uporabnik ni bil najden.";
-"generic.paste.value.invalid" = "Poskus prilepiti neveljavno vrednost";
+"generic.paste.value.invalid" = "Neveljavna vrednost za lepljenje.";
 "generic.are.you.sure" = "Ali ste prepričani?";
 "generic.picker.select.placeholder" = "Izberi";
 
@@ -54,14 +54,14 @@
 "account.selection.remove.account.title" = "Odstrani račun";
 "account.selection.remove.account.subtitle" = "Izberite račun za odstranitev.";
 "account.selection.remove.alert.title" = "Ali ste prepričani ?";
-"account.selection.remove.alert.message" = "To bo odstranilo vaš račun z te naprave. Vaši gesli ne bodo izbrisani.";
-"account.selection.account.removed" = "Račun je bil odstranjen z te naprave.";
+"account.selection.remove.alert.message" = "To bo odstranilo vaš račun s te naprave. Vaša gesla ne bodo izbrisana.";
+"account.selection.account.removed" = "Račun je bil odstranjen s te naprave.";
 
 "authorization.button.title" = "Prijava";
 "authorization.reverification.button.title" = "Potrdi geslo";
 "authorization.forgot.passphrase.button.title" = "Pozabil sem svojo geslo";
 "authorization.forgot.passphrase.alert.title" = "Ste pozabili geslo?";
-"authorization.forgot.passphrase.alert.message" = "Žal ne morete dostopati do svojih podatkov, če se ne spomnite svojega gesla. Prosimo, kontaktirajte svojega administratorja za odklepanje vašega računa.";
+"authorization.forgot.passphrase.alert.message" = "Žal ne morete dostopati do svojih podatkov, če se ne spomnite svojega gesla. Prosimo, kontaktirajte administratorja za odklepanje vašega računa.";
 "authorization.passphrase.description.text" = "Geslo";
 "authorization.title" = "Vnesite svoje geslo";
 
@@ -78,15 +78,16 @@
 "resource.show.field.username.placeholder" = "Ni uporabniškega imena";
 "resource.show.field.password.placeholder" = "Ni gesla";
 "resource.show.field.description.placeholder" = "Ni opisa";
-"resource.value.copied" = "%@ je bil kopiran v vaš odložišče!";
+"resource.value.copied" = "%@ kopiran v vaš odložišče!";
 "resource.details.value" = "Vrednost";
 "resource.detail.section.location" = "Lokacija";
 "resource.detail.section.permissions" = "V skupni rabi z";
+"resource.detail.section.additionalURIs" = "Dodaten URI";
 "resource.detail.section.tags" = "Oznake";
 "resource.detail.section.expiry" = "Datum poteka";
 "resource.detail.section.expiry.expired" = "Poteklo";
 "resource.detail.section.expiry.willExpire" = "Poteče čez";
-"resource.detail.undefined.content.warning" = "Nepodprt tip, neznane polje so skrite!";
+"resource.detail.undefined.content.warning" = "Nepodprt tip, neznana polja so skrita!";
 
 "resource.expiry.expired" = "(poteklo)";
 
@@ -95,7 +96,7 @@
 "resource.field.name.unknown" = "Vrednost";
 "section.tags.empty" = "Ni oznak";
 
-"server.key.fingerprint.changed.title" = "Oprostite, spremenil se je ključ strežnika.";
+"server.key.fingerprint.changed.title" = "Oprostite, ključ strežnika se je spremenil.";
 "server.key.fingerprint.changed.description" = "Iz varnostnih razlogov preverite pri skrbniku, ali je on sprožil spremembo. Novi prstni odtis:";
 "server.key.fingerprint.accept.check" = "Da, preveril sem in vse je v redu.";
 "server.key.fingerprint.accept.new.key" = "Sprejmi novi ključ";
@@ -114,12 +115,12 @@
 "resource.form.description.unencrypted" = "Opis ni šifriran";
 "resource.form.undefined.content.warning" = "Nepodprt tip, neznana polja so skrita!";
 
-"feedback.alert.title" = "Naprava je morda prilagojena";
-"feedback.alert.message" = "Sumljamo, da je vaša naprava morda prilagojena. Prosimo, upoštevajte, da to zniža skupno varnost naprave in se lahko zlonamerno uporabi za pridobivanje vaših gesel.";
+"feedback.alert.title" = "Naprava je morda zlorabljena";
+"feedback.alert.message" = "Sumimo, da je vaša naprava morda zlorabljena. Prosimo, upoštevajte, da to zniža skupno varnost naprave in se lahko zlonamerno uporabi za pridobivanje vaših gesel.";
 "feedback.alert.button.title" = "Razumem";
 
 "account.not.found.title.label" = "Račun ne obstaja";
-"account.not.found.message.label" = "Račun je bil izbrisan ali suspendiran.";
+"account.not.found.message.label" = "Račun je bil izbrisan ali suspendiran";
 "account.not.found.action.button.title" = "Poveži z obstoječim računom";
 
 "server.not.reachable.alert.title" = "Strežnik ni bil dosegljiv!";
@@ -138,6 +139,7 @@
 "resource.edit.field.add.totp" = "TOTP";
 "resource.edit.field.add.note" = "Opomba";
 "resource.edit.field.add.password" = "Geslo";
+"resource.edit.field.add.customFields" = "Custom Fields";
 "resource.edit.field.name.placeholder" = "Vnesite ime";
 "resource.edit.field.uri.placeholder" = "Vnesite URI";
 "resource.edit.field.username.placeholder" = "Vnesite uporabniško ime";
@@ -150,11 +152,16 @@
 "resource.edit.note.content.disclaimer" = "Ta varen del je del skrivnosti. Če želite iskati po tej vsebini, uporabite opis metapodatkov.";
 "resource.edit.note.remove.button.title" = "Odstrani opombo";
 
+"resource.edit.section.resource.title" = "Vir";
 "resource.edit.section.password.title" = "Geslo";
 "resource.edit.section.totp.title" = "TOTP";
 "resource.edit.section.note.title" = "Opomba";
 "resource.edit.section.metadata.title" = "Metapodatki";
 "resource.edit.totp.remove.button.title" = "Odstrani TOTP";
+
+"resource.edit.customFields.title" = "Custom Fields";
+"resource.edit.customFields.error.invalid" = "Invalid value";
+"resource.edit.customFields.description" = "Edition of custom fields is currently not supported.";
 
 "resource.create.advanced.button" = "Prikaži dodatne nastavitve";
 "resource.create.additional.secrets.title" = "Dodatne skrivnosti";
@@ -162,13 +169,31 @@
 
 "resource.edit.section.metadata.description" = "Opis";
 "resource.edit.section.metadata.description.name" = "Opis metapodatkov";
-"resource.edit.section.metadata.description.description" = "Če želite, da je opis del skrivnosti, namesto tega uporabite opombo.";
+"resource.edit.section.metadata.description.description" = "Če želite, da je opis del gesla, namesto tega uporabite opombo.";
+
+"resource.edit.section.metadata.additional.uris" = "Dodatni URI";
+"resource.edit.section.metadata.appearance" = "Videz";
+"resource.edit.section.customFields.title" = "Custom Fields";
+
+"resource.edit.uris.title" = "Dodatni URI";
+"resource.edit.uris.main.uri.title" = "Glavni URI";
+"resource.edit.uris.additional.uris.title" = "Dodaten URI";
+"resource.edit.uris.main.uri.placeholder" = "Glavni URI";
+"resource.edit.uris.additional.uri.placeholder" = "URI";
+"resource.edit.uris.additional.uri.add" = "Dodaj URI";
+"resource.edit.uris.additional.uris.error.limit" = "Lahko dodate največ %d dodatnih URI-jev.";
+"resource.edit.uris.invalid.form" = "One or more URIs are invalid.";
+
+"resource.edit.icon.title" = "Videz";
+"resource.edit.icon.color.select.title" = "Select color";
+"resource.edit.icon.color.default.title" = "Privzeta barva";
+"resource.edit.icon.default.title" = "Privzeta ikona";
 
 "resource.create.menu.title" = "Ustvari vir";
 "resource.create.menu.password" = "Geslo";
 "resource.create.menu.totp" = "TOTP";
 
-"resource.create.invalid.configuration" = "Ni mogoče ustvariti vira z trenutno konfiguracijo.";
+"resource.create.invalid.configuration" = "Ni mogoče ustvariti vira s trenutno konfiguracijo.";
 "resource.edit.invalid.configuration" = "Ni mogoče urediti vira s trenutno konfiguracijo.";
 
 "help.logs.viewer.title" = "Dnevniki";
@@ -176,24 +201,24 @@
 "help.menu.title" = "Pomoč";
 "help.menu.show.logs.action.title" = "Dostop do dnevnikov";
 "help.menu.show.web.help.action.title" = "Obiščite spletno mesto za pomoč";
-"help.menu.show.import.account.kit.title" = "Uvozite svoj komplet računa";
+"help.menu.show.import.account.kit.title" = "Uvozi paket računa";
 
 // Main application
 
 "welcome.title" = "Dobrodošli!";
-"welcome.description" = "Za začetek potrebujete obstoječ račun. Prijavite se s svojim obstoječim računom v razširitvi brskalnika na namizju in ga povežite z mobilno napravo.";
+"welcome.description" = "Za začetek potrebujete obstoječ račun. Prijavite se s svojim obstoječim računom v brskalniku na namizju in ga povežite z mobilno napravo.";
 "welcome.connect.to.account" = "Poveži z obstoječim računom";
-"welcome.no.account" = "Računa nimam";
+"welcome.no.account" = "Nimam računa";
 "welcome.no.account.alert.title" = "Kako ustvariti račun?";
-"welcome.no.account.alert.text" = "Trenutno ni mogoče ustvariti računa z uporabo mobilne aplikacije. Najprej morate ustvariti račun z razširitvijo brskalnika na namizju.";
+"welcome.no.account.alert.text" = "Trenutno ni mogoče ustvariti računa z uporabo mobilne aplikacije. Najprej morate ustvariti račun v brskalniku na namizju.";
 "code.scanning.exit.confirmation.confirm.button.title" = "Ustavi skeniranje";
-"code.scanning.help.menu.button.title" = "Zakaj skenirati QR kode?";
+"code.scanning.help.menu.button.title" = "Zakaj skenirati QR-kode?";
 "code.scanning.help.title" = "Skeniranje QR kod";
-"code.scanning.help.message" = "Videli boste zaporedje QR kod. Te kode bomo skenirali, dokler se napolni napredek, nato pa boste lahko prijavljeni!";
+"code.scanning.help.message" = "Prikazalo se bo zaporedje QR kod. Skenirali jih bomo, dokler se vrstica napredka ne zapolni. Nato se boste lahko prijavili!";
 "code.scanning.camera.unavailable" = "Žal potrebujete napravo z delujočim fotoaparatom, da nadaljujete, saj se prenos ključa izvaja s QR kodami.";
 "code.scanning.begin" = "Namerite fotoaparat na QR kode";
 "code.scanning.processing.in.progress" = "Skeniranje... nadaljujte!";
-"code.scanning.processing.invalid.code" = "To ni Passbolt QR. Poskusite ponovno!";
+"code.scanning.processing.invalid.code" = "To ni Passbolt QR-koda. Poskusite znova!";
 
 
 "transfer.account.title" = "Prenesi podatke računa";
@@ -212,12 +237,12 @@
 "transfer.account.export.info.step.fourth" = "Skenirajte zaporedje QR kod";
 "transfer.account.export.scan.qr.button" = "Začnite prenos";
 "transfer.account.export.cancel.button" = "Prekliči prenos";
-"transfer.account.camera.access.alert.title" = "Dostop do kamere je obvezno";
+"transfer.account.camera.access.alert.title" = "Dostop do kamere je obvezen";
 "transfer.account.camera.access.alert.text" = "Pojdite v Nastavitve/Zasebnost/Kamera, da omogočite dostop do vaše Kamere.";
 "transfer.account.result.success.title" = "Vaši podatki so bili preneseni!";
 "transfer.account.result.already.linked.title" = "Račun je že povezan z napravo.";
 "transfer.account.result.canceled.title" = "Prenos je bil preklican.";
-"transfer.account.kit.result.success.title" = "Vaš komplet računa je bil uspešno uvožen!";
+"transfer.account.kit.result.success.title" = "Vaš paket računa je bil uspešno uvožen!";
 
 "transfer.account.exit.confirmation.title" = "Ali ste prepričani?";
 "transfer.account.exit.confirmation.message" = "Če zapustite, boste morali ponovno skenirati QR kode.";
@@ -231,16 +256,16 @@
 "transfer.account.exit.confirmation.cancel.button.title" = "Nadaljuj z nastavitvijo";
 "transfer.account.exit.confirmation.confirm.button.title" = "Prekliči nastavitev";
 
-"biometrics.usage.reason" = "Biometrija se lahko uporabi za varno shranjevanje vaše gesla.";
+"biometrics.usage.reason" = "Biometrija se lahko uporabi za varno shranjevanje vašega gesla.";
 
 "biometrics.info.title" = "Nastavi biometrijo";
-"biometrics.info.description" = "Če želite uporabiti FaceID ali TouchID kot metodo hitre prijave, jo nastavite v Nastavitvah.";
+"biometrics.info.description" = "Če želite uporabiti FaceID ali TouchID kot metodo hitre prijave, jih nastavite v Nastavitvah.";
 "biometrics.info.setup.button" = "Nastavi biometrijo";
 "biometrics.info.later.button" = "Morda kasneje";
 
 "biometrics.setup.title.face" = "Uporabi Face ID namesto gesla!";
 "biometrics.setup.title.finger" = "Uporabi Touch ID namesto gesla!";
-"biometrics.setup.description" = "Odklenite svoje skrivnosti v sekundi.";
+"biometrics.setup.description" = "Odklenite svoja gesla v sekundi.";
 "biometrics.setup.setup.button.face" = "Uporabi FaceID";
 "biometrics.setup.setup.button.finger" = "Uporabi TouchID";
 "biometrics.setup.later.button" = "Morda kasneje";
@@ -248,7 +273,7 @@
 "extension.setup.title" = "Prijava v vaše priljubljene aplikacije v 3 sekundah!";
 "extension.setup.settings.step" = "Pojdite v Nastavitve";
 "extension.setup.settings.step.bold" = "Nastavitve";
-"extension.setup.keyboard.step" = "Odpri avtomatsko izpolnjevanje gesel";
+"extension.setup.keyboard.step" = "Odpri samodejno izpolnjevanje gesel";
 "extension.setup.keyboard.step.bold" = "Avtomatsko izpolnjevanje gesel";
 "extension.setup.switch.step" = "Omogoči avtomatsko izpolnjevanje gesel";
 "extension.setup.switch.step.bold" = "Omogoči";
@@ -263,10 +288,10 @@
 "tab.otp" = "TOTP";
 "tab.settings" = "Nastavitve";
 
-"authorization.prompt.refresh.session.reason" = "Za osvežitev sezone se prosimo avtentificirajte";
-"authorization.prompt.biometrics.set.reason" = "Za omogočitev biometrije se prosimo avtentificirajte";
+"authorization.prompt.refresh.session.reason" = "Za osvežitev seje je potrebna avtentikacija.";
+"authorization.prompt.biometrics.set.reason" = "Za omogočitev biometrije je potrebna avtentikacija.";
 
-"resources.search.placeholder" = "Iskanje po imenu, uporabniku, url-ju ali oznaki...";
+"resources.search.placeholder" = "Iskanje po imenu, uporabniku, URL-ju ali oznaki...";
 
 "resource.menu.item.open.url" = "Zagon spletne strani";
 "resource.menu.item.copy.url" = "Kopiraj URL";
@@ -278,35 +303,35 @@
 "resource.menu.item.copy.otp" = "Kopiraj TOTP";
 "resource.menu.item.add.favorite" = "Dodaj med priljubljene";
 "resource.menu.item.remove.favorite" = "Odstrani iz priljubljenih";
-"resource.menu.item.share" = "Deli geslo";
-"resource.menu.item.edit.resource" = "Uredi geslo";
+"resource.menu.item.share" = "Deli";
+"resource.menu.item.edit.resource" = "Uredi";
 "resource.menu.item.edit.otp" = "Uredi TOTP";
-"resource.menu.item.delete.resource" = "Izbriši geslo";
+"resource.menu.item.delete.resource" = "Izbriši";
 "resource.menu.item.delete.otp" = "Izbriši TOTP";
 "resource.menu.item.password" = "Geslo";
 "resource.menu.item.username" = "Uporabniško ime";
 "resource.menu.item.description" = "Opis";
 "resource.menu.item.url" = "URL";
-"resource.menu.item.field.copied" = "%@ je bil kopiran v vaš odložišče!";
+"resource.menu.item.field.copied" = "%@ kopiran v odložišče!";
 
 "resource" = "Vir";
-"resource.menu.action.favorite.added" = "%@ je bil dodan med priljubljene!";
-"resource.menu.action.favorite.removed" = "%@ je bil odstranjen izmed priljubljenih!";
+"resource.menu.action.favorite.added" = "%@ dodan med priljubljene!";
+"resource.menu.action.favorite.removed" = "%@ odstranjen izmed priljubljenih!";
 
 "resource.menu.action.edited" = "To geslo je bilo uspešno urejeno.";
 "resource.menu.action.deleted" = "%@ je bil izbrisan!";
 
-"resource.permission.type.read.label" = "lahko beres";
+"resource.permission.type.read.label" = "lahko bere";
 "resource.permission.type.write.label" = "lahko ureja";
 "resource.permission.type.own.label" = "je lastnik";
 "resource.permission.list.title" = "V skupni rabi z";
 "resource.permission.list.edit.button.title" = "Uredi dovoljenja";
 "resource.permission.edit.list.title" = "Deli geslo";
-"resource.permission.edit.list.empty.message" = "Pozor, da je vsaj en lastnik.";
+"resource.permission.edit.list.empty.message" = "Poskrbite, da je vsaj en lastnik.";
 "resource.permission.edit.list.add.button.title" = "Dodaj uporabnike";
 "resource.permission.edit.user.and.group.search.title" = "Izberi uporabnike";
-"resource.permission.edit.user.and.group.search.prompt" = "Iskanje uporabnikov...";
-"resource.permission.edit.user.and.group.search.existing.section.title" = "Že dodani";
+"resource.permission.edit.user.and.group.search.prompt" = "Išči uporabnike...";
+"resource.permission.edit.user.and.group.search.existing.section.title" = "Že dodano";
 "resource.permission.delete.user.permission.confirmation.message" = "Geslo ne bo več deljeno s tem uporabnikom.";
 "resource.permission.delete.user.group.permission.confirmation.message" = "Geslo ne bo več deljeno s to skupino.";
 
@@ -314,13 +339,13 @@
 "resource.permission.details.user.suspended" = "suspendiran";
 
 "permission.details.type.section.title" = "Dovoljenje";
-"permission.details.group.members.section.title" = "Član skupine";
+"permission.details.group.members.section.title" = "Člani skupine";
 "permission.details.user.suspended" = "suspendiran";
 
 "resource.permission.edit.button.delete.title" = "Izbriši dovoljenje";
 
-"resource.folders.add.menu.title" = "Create a resource";
-"resource.folders.add.menu.folder.label" = "Folder";
+"resource.folders.add.menu.title" = "Dodaj vir";
+"resource.folders.add.menu.folder.label" = "Mapa";
 
 "group.members.list.title" = "Član skupine";
 "group.members.member.details.title" = "Član skupine";
@@ -330,21 +355,21 @@
 "totp.paste.otp.button.label" = "Prilepi kodo";
 "totp.remember.device.toggle.label" = "Zapomni si to napravo za 30 dni";
 
-"yubiKey.scan.instruction" = "Postavite svoj YubiKey na vašo napravo.";
-"yubiKey.scan.success" = "Uspešno skeniranje";
+"yubiKey.scan.instruction" = "Prislonite YubiKey na svojo napravo.";
+"yubiKey.scan.success" = "Skeniranje uspešno";
 "yubiKey.scan.notRecognized.title" = "Yubikey ni prepoznan";
 "yubiKey.scan.notRecognized.button.ok" = "Razumem";
 "yubiKey.scan.notRecognized.message" = "Vaš Yubikey ni bil prepoznan s strani strežnika.\nPoskusite z drugim Yubikeyjem ali drugim ponudnikom.";
 "mfa.yubiKey.title" = "YubiKey OTP";
-"mfa.yubiKey.description" = "Vedite, da je vaš YubiKey mora podpirati NFC, da to deluje.";
+"mfa.yubiKey.description" = "Vaš YubiKey mora podpirati NFC.";
 "mfa.yubiKey.scan" = "Skenirajte svoj YubiKey";
-"mfa.yubiKey.nfc.not.supported" = "Ta pripomoček ne podpira NFC.";
+"mfa.yubiKey.nfc.not.supported" = "Ta naprava ne podpira NFC.";
 "mfa.provider.try.another" = "Poskusite z drugim ponudnikom";
 "mfa.remember.token" = "Zapomni si to napravo za 30 dni";
-"mfa.unsupported.provider.title" = "Vaš ponudnik MFA ni podprt";
+"mfa.unsupported.provider.title" = "Vaš ponudnik MFA (Multi-factor authentication) ni podprt";
 "mfa.unsupported.provider.description" = "Nastavite drugega ponudnika z uporabo spletne aplikacije. Obiščite svojega administratorja za več informacij.";
 "mfa.duo.authorization.title" = "Duo večfaktorska avtentikacija";
-"mfa.duo.authorization.button.title" = "Avtenticirajte se z Duo";
+"mfa.duo.authorization.button.title" = "Overite se z Duo";
 
 "account.menu.title" = "Zamenjaj račun";
 "account.menu.account.details.button.title" = "Oglejte si podrobnosti";
@@ -361,7 +386,7 @@
 "account.details.button.save.title" = "Shrani";
 
 "update.available.title" = "Na voljo je nova različica!";
-"update.available.message" = "Posodobite aplikacijo Passbolt na najnovejšo različico iz Trgovine z aplikacijami";
+"update.available.message" = "Posodobite aplikacijo Passbolt na najnovejšo različico iz trgovine App Store";
 
 // Autofill extension
 
@@ -374,19 +399,19 @@
 "autofill.extension.account.selection.sign.in.subtitle" = "Izberite račun za prijavo!";
 
 "autofill.extension.no.accounts.title" = "Ni najdenega računa!";
-"autofill.extension.no.accounts.description" = "Za začetek potrebujete račun. Prosimo, odprite aplikacijo Passbolt in sledite navodilom za nastavitev. Passbolt bo nato lahko avtomatsko izpolnil prijave.";
+"autofill.extension.no.accounts.description" = "Za uporabo potrebujete račun. Prosimo, odprite aplikacijo Passbolt in sledite navodilom za nastavitev. Passbolt bo nato samodejno izpolnjeval vaše podatke za prijavo.";
 
 "autofill.extension.resource.list.title" = "Izberite geslo";
 "autofill.extension.resource.list.section.suggested.title" = "Predlagano";
 "autofill.extension.resource.list.section.all.title" = "Drugo";
 
-"autofill.extension.autofill.extension.resources.search.placeholder" = "Iskanje v passboltu...";
+"autofill.extension.autofill.extension.resources.search.placeholder" = "Išči v passboltu...";
 
-"mfa.required.title" = "MFA je obvezno";
+"mfa.required.title" = "Zahtevana je večfaktorska avtentikacija";
 "autofill.extension.mfa.required.description" = "Uporabite aplikacijo Passbolt za dokončanje avtentikacije.";
 
 "folder.edit.form.create.title" = "Ustvari mapo";
-"folder.edit.form.name.field.placeholder" = "Nepojmenovana mapa";
+"folder.edit.form.name.field.placeholder" = "Nepoimenovana mapa";
 "folder.edit.form.created" = "Nova mapa %@ je bila ustvarjena!";
 
 "resource.folder.menu.open.details.label" = "Oglejte si podrobnosti";
@@ -413,9 +438,9 @@
 "generic.error.report" = "Nekaj je šlo narobe, prosimo, prijavite hrošča.";
 "generic.error.cancelled" = "Operacija je bila preklicana.";
 "sign.in.error.message" = "Prijava ni uspela";
-"sign.in.error.biometrics.changed.message" = "Zdi se, da se je vaša naprava za biometrijo spremenila. Prosimo, vnesite geslo in ponovno nastavite biometrijo";
+"sign.in.error.biometrics.changed.message" = "Zdi se, da so se biometrični podatki vaše naprave spremenili. Prosimo, vnesite geslo in znova nastavite biometrijo";
 "sign.in.error.passphrase.invalid.message" = "Neveljavno geslo.";
-"server.fingerprint.save.failed" = "Shranjevanje odtisa strežnika ni uspelo.";
+"server.fingerprint.save.failed" = "Shranjevanje prstnega odtisa strežnika ni uspelo.";
 "form.field.error.max.length" = "Dosežena je bila največja dovoljena dolžina.";
 "form.error.invalid" = "Obrazec ni veljaven";
 "resource.form.field.error.empty" = "Polje ne more biti prazno";
@@ -430,15 +455,15 @@
 "resource.menu.action.failed" = "%@ ni uspelo!";
 "mfa.yubiKey.scan.failed" = "Skeniranje ni uspelo";
 
-"error.internal.inconsistency" = "Notranja neskladnost, prosimo, prijavite hrošča.";
+"error.internal.inconsistency" = "Notranja neskladnost, prosimo, prijavite napako.";
 "error.feature.unavailable" = "Funkcija ni na voljo.";
 "error.nfc.not.supported" = "NFC ni podprt.";
-"error.nfc.payload.invalid" = "NFC tovor ni veljaven.";
+"error.nfc.payload.invalid" = "NFC vsebina ni veljavna.";
 "error.url.invalid" = "Neveljavni URL.";
-"error.internet.connection.issue" = "Ni mogoče povezati na internet.";
-"error.client.certificate.invalid" = "Klientov certifikat ni veljaven.";
+"error.internet.connection.issue" = "Ni povezave z internetom.";
+"error.client.certificate.invalid" = "Neveljaven certifikat odjemalca.";
 "error.server.connection.issue" = "Ni mogoče povezati s strežnikom.";
-"error.server.time.issue" = "Strežnik in čas na klientu nista usklajena, prosimo, kontaktirajte svojega administratorja.";
+"error.server.time.issue" = "Čas na strežniku in odjemalcu ni usklajen, prosimo, kontaktirajte skrbnika.";
 "error.server.response.invalid" = "Neveljavni odgovor strežnika";
 "error.server.response.timeout" = "Časovni odziv strežnika je potekel.";
 "error.server.certificate.invalid" = "Neveljavni strežniški certifikat.";
@@ -449,73 +474,73 @@
 "error.http.response.conflict" = "Konflikt HTTP.";
 "error.http.response.not.found" = "HTTP ni najdeno.";
 "error.http.response.redirect" = "HTTP preusmeritev.";
-"error.http.request.invalid" = "Neveljavna zahteva HTTP.";
-"error.http.response.invalid" = "Neveljaven odziv HTTP.";
+"error.http.request.invalid" = "HTTP neveljavna zahteva.";
+"error.http.response.invalid" = "HTTP neveljaven odziv.";
 "error.http.response.status.code.unexpected" = "HTTP status koda ni pričakovana.";
 "error.http.response.unauthorized" = "HTTP neavtoriziran.";
 "error.network.response.decoding.failed" = "Dekodiranje omrežnega odziva ni uspelo.";
-"error.network.request.validation.failure" = "Preverjanje zahteve omrežja ni uspelo.";
+"error.network.request.validation.failure" = "Preverjanje omrežne zahteve ni uspelo.";
 "error.session.authorization.required" = "Avtentikacija seje je obvezna";
-"error.session.authorization.mfa.required" = "Avtentikacija seje MFA je obvezna.";
-"error.session.missing" = "Manka seje.";
+"error.session.authorization.mfa.required" = "Za sejo je potrebna večfaktorska avtorizacija.";
+"error.session.missing" = "Manjkajoča seja.";
 "error.crypto.data.signature.invalid" = "Podpis podatkov ni veljaven.";
 "error.crypto.passphrase.invalid" = "Neveljavno geslo.";
-"error.crypto.pgp.fingerprint.invalid" = "Neveljaven PGP odtis.";
-"error.crypto.pgp.fingerprint.mismatch" = "PGP odtis prinašalca ni ujeman.";
+"error.crypto.pgp.fingerprint.invalid" = "Neveljaven PGP prstni odtis.";
+"error.crypto.pgp.fingerprint.mismatch" = "PGP prstni odtis prinašalca se ne ujema.";
 "error.crypto.pgp.keyring.preparation.failed" = "Priprava obroča ključev PGP ni uspela";
-"error.crypto.pgp.keypacket.extraction.failed" = "Izvleček paketa ključa PGP ni uspel.";
-"error.crypto.pgp.sessionkey.extraction.failed" = "Izvleček sejnskega ključa PGP ni uspel.";
+"error.crypto.pgp.keypacket.extraction.failed" = "Neuspešno pridobivanje PGP ključnega paketa.";
+"error.crypto.pgp.sessionkey.extraction.failed" = "Neuspešno pridobivanje PGP sejnega ključa.";
 "error.crypto.pgp.public.key.invalid" = "Neveljavni javni PGP ključ.";
 "error.data.empty" = "Ni podanih podatkov.";
 "error.data.invalid" = "Podani podatki niso veljavni.";
 "error.resource.permission.required" = "Dovoljenje je obvezno.";
-"error.resource.secret.invalid" = "Skrivnost vira ni veljavna.";
+"error.resource.secret.invalid" = "Geslo vira ni veljavno.";
 "error.resource.permission.invalid" = "Dovoljenje vira je neveljavno.";
 "error.resource.owner.missing" = "Vir mora imeti vsaj enega lastnika.";
-"error.system.feature.inaccessible" = "Funkcija sistema ni dostopna.";
+"error.system.feature.inaccessible" = "Sistemska funkcija ni dostopna.";
 "error.system.feature.permission.not.granted" = "Sistemsko dovoljenje ni bilo dodeljeno.";
-"error.system.feature.permission.required" = "Sistemsko dovoljenje je obvezno.";
-"error.system.feature.status.undetermined" = "Stanje sistema funkcije ni določeno.";
-"error.system.file.access.issue" = "Ni mogoče dostopati do datoteke.";
-"error.system.directory.access.issue" = "Ni mogoče dostopati do mape.";
+"error.system.feature.permission.required" = "Dovoljenje za sistemsko funkcijo je obvezno.";
+"error.system.feature.status.undetermined" = "Stanje sistemske funkcije ni določeno.";
+"error.system.file.access.issue" = "Datoteke ni mogoče dostopati.";
+"error.system.directory.access.issue" = "Dostop do mape ni mogoč.";
 "error.database.statement.invalid" = "Neveljavni ukaz baze.";
 "error.database.statement.execution.failure" = "Izvajanje ukaza baze ni uspelo.";
 "error.database.migration.failure" = "Migracija baze ni uspela.";
-"error.database.connection.issue" = "Ni mogoče povezati s bazo.";
-"error.database.connection.closed" = "Povezava s bazo je bila zaprta.";
-"error.database.binding.invalid" = "Neveljavno povezovanje podatkov baze.";
-"error.database.result.empty" = "Rezultat baze je prazen.";
+"error.database.connection.issue" = "Ni mogoče povezati z bazo.";
+"error.database.connection.closed" = "Povezava z bazo je bila zaprta.";
+"error.database.binding.invalid" = "Neveljavno povezovanje podatkov v bazi.";
+"error.database.result.empty" = "Prazen rezultat baze.";
 "error.database.result.invalid" = "Rezultat baze ni veljaven";
-"error.keychain.authorization.failed" = "Avtorizacija ključnice ni uspela.";
-"error.keychain.failure" = "Dostop do ključnice ni uspel.";
-"error.keychain.query.invalid" = "Neveljavno poizvedbo ključnice.";
-"error.account.private.key.missing" = "Manjka zasebnega ključa računa.";
+"error.keychain.authorization.failed" = "Avtorizacija verižnega ključa ni uspela.";
+"error.keychain.failure" = "Dostop do verižnega ključa ni uspel.";
+"error.keychain.query.invalid" = "Neveljavno poizvedbo verižnega ključa.";
+"error.account.private.key.missing" = "Manjka zasebni ključ računa.";
 "error.account.profile.data.missing" = "Manjkajo podatki profila računa.";
-"error.account.passphrase.missing" = "Manjka gesla računa.";
+"error.account.passphrase.missing" = "Manjka geslo računa.";
 "error.account.data.missing" = "Manjkajo podatki računa.";
-"error.account.biometry.data.changed" = "Podatki biometrije so bili spremenjeni.";
-"error.account.kit.fail.to.import" = "Uvoz kompleta računa ni uspel.";
-"error.account.kit.signature.verification" = "Validacija podpisa ni uspela.";
+"error.account.biometry.data.changed" = "Biometrični podatki so se spremenili.";
+"error.account.kit.fail.to.import" = "Uvoz paketa računa ni uspel.";
+"error.account.kit.signature.verification" = "Preverjanje podpisa ni uspelo.";
 "error.users.list.empty" = "Seznam uporabnikov ne more biti prazen.";
 "error.user.public.key.invalid" = "Neveljavni javni ključ uporabnika.";
-"error.user.public.key.missing" = "Manjka javnega ključa uporabnika.";
-"error.user.secret.missing" = "Manjka skrivnosti uporabnika.";
-"error.session.closed" = "Seja je bila zaprta.";
+"error.user.public.key.missing" = "Manjka javni ključ uporabnika.";
+"error.user.secret.missing" = "Manjka geslo uporabnika.";
+"error.session.closed" = "Seja zaključena.";
 "error.account.duplicate" = "Podvojen račun.";
-"error.server.pgp.fingerprint.invalid" = "Neveljavni odtis PGP strežnika.";
+"error.server.pgp.fingerprint.invalid" = "Prstni odtis PGP strežnika ni veljaven.";
 "error.session.authorization.failed" = "Avtorizacija seje ni uspela.";
 "error.qrcode.invalid" = "To ni Passbolt QR. Poskusite ponovno!";
 
 "error.validation.folder.name.empty" = "Ime mape ne more biti prazno.";
-"error.validation.folder.name.too.long" = "Ime mape ne more imeti več kot 256 znakov.";
+"error.validation.folder.name.too.long" = "Ime mape ne sme imeti več kot 256 znakov.";
 
-"error.validation.permissions.empty" = "Mora biti vsaj eno dovoljenje.";
+"error.validation.permissions.empty" = "Zahtevano je vsaj eno dovoljenje.";
 "error.validation.permissions.owner.required" = "Mora biti vsaj en lastnik.";
 
 "error.validation.form.invalid" = "Obrazec ni veljaven.";
 "error.biometrics.unavailable.message" = "Biometrija ni na voljo";
 
-"error.qrcode.generation.generic" = "QR koda ni mogla biti ustvarjena iz podanih podatkov";
+"error.qrcode.generation.generic" = "QR kode ni mogoče ustvariti iz podanih podatkov";
 
 "error.otp.configuration.invalid" = "Neveljavna konfiguracija TOTP.";
 
@@ -528,8 +553,8 @@
 "error.resource.field.range.greater" = "%@ mora biti več kot %d!";
 "error.resource.field.content.invalid" = "%@ ima neveljavno vsebino!";
 "error.resource.field.selection.invalid" = "%@ mora biti ena izmed veljavnih možnosti!";
-"error.resource.field.unknown" = "Nepričakovana polja niso zaželena!";
-"error.validation.password.length.invalid" = "Neveljavne nastavitve dolžine gesla!";
+"error.resource.field.unknown" = "Neznana polja niso dovoljena!";
+"error.validation.password.length.invalid" = "Neveljavna nastavitev dolžine gesla!";
 "error.validation.password.mask.empty" = "Maska za potek gesla ne sme biti prazna!";
 
 // Home - presentation mode menu
@@ -546,7 +571,7 @@
 "home.presentation.mode.owned.resources.expiry" = "Datum poteka";
 "home.presentation.mode.folders.explorer.title" = "Mape";
 "home.presentation.mode.folders.explorer.search.direct.results" = "v \"%@\":";
-"home.presentation.mode.folders.explorer.search.nested.results" = "v podmapeh:";
+"home.presentation.mode.folders.explorer.search.nested.results" = "v podmapah:";
 "home.presentation.mode.tags.explorer.title" = "Oznake";
 "home.presentation.mode.resource.user.groups.explorer.title" = "Skupine";
 
@@ -555,12 +580,12 @@
 "otp.resources.search.placeholder" = "Iskanje TOTP";
 "otp.resources.list.title" = "TOTP";
 "otp.resources.list.empty.message" = "Ni TOTP";
-"otp.value.copied.message" = "TOTP je bil kopiran v vaš odložišče!";
+"otp.value.copied.message" = "TOTP kopiran v vaše odložišče!";
 
 // OTP contextual menu
 
 "otp.contextual.menu.copy.title" = "Kopiraj TOTP";
-"otp.copied.message" = "TOTP je bil kopiran v vaš odložišče!";
+"otp.copied.message" = "TOTP kopiran v vaše odložišče!";
 "otp.contextual.menu.reveal.title" = "Pokaži TOTP";
 "otp.contextual.menu.edit.title" = "Uredi TOTP";
 "otp.contextual.menu.delete.title" = "Izbriši TOTP";
@@ -578,19 +603,19 @@
 "otp.edit.menu.edit.manual.title" = "Uredi TOTP ročno";
 "otp.edit.code.scanning.title" = "Uredi TOTP ročno";
 "otp.edit.code.scanning.initial.message" = "Skeniraj QR kodo";
-"otp.edit.menu.title" = "Namerite fotoaparat na QR kode";
+"otp.edit.menu.title" = "Namerite kamero v QR kodo";
 "otp.edit.otp.created.message" = "TOTP je bil ustvarjen.";
 "otp.edit.otp.replaced.message" = "TOTP je bil zamenjan.";
 "otp.edit.otp.deleted.message" = "TOTP je bil izbrisan.";
 
 // OTP scanning
 
-"otp.scanning.success.title" = "Vaš TOTP je bil preskaniran!";
-"otp.scanning.success.create.button.title" = "Ustvari samostojni TOTP";
+"otp.scanning.success.title" = "Vaš TOTP je bil skeniran!";
+"otp.scanning.success.create.button.title" = "Ustvari standalone TOTP";
 "otp.scanning.success.link.button.title" = "Povežite TOTP z geslom";
 "otp.code.scanning.title" = "Skeniraj QR kodo";
-"otp.code.scanning.initial.message" = "Namerite fotoaparat na QR kodo";
-"otp.code.scanning.manual.input" = "Ali ustvarite TOTP ročno";
+"otp.code.scanning.initial.message" = "Namerite fotoaparat v QR kodo";
+"otp.code.scanning.manual.input" = "Ali ročno ustvarite TOTP";
 
 // OTP form
 
@@ -601,17 +626,17 @@
 "otp.edit.form.field.uri.title" = "URL (Izdajatelj)";
 "otp.edit.form.field.uri.prompt" = "URL";
 "otp.edit.form.field.secret.title" = "Skrivnost";
-"otp.edit.form.field.secret.prompt" = "Skrivnost";
+"otp.edit.form.field.secret.prompt" = "Geslo";
 "otp.edit.form.advanced.button.title" = "Več nastavitev TOTP";
 "otp.edit.form.create.button.title" = "Ustvari samostojni TOTP";
 "otp.edit.form.apply.button.title" = "Uporabi";
 "otp.edit.form.edit.button.title" = "Shrani";
 "otp.edit.form.edit.advanced.title" = "Uredi TOTP - napredne nastavitve";
-"otp.edit.form.edit.advanced.warning" = "Napredne nastavitve morajo ustrezati nastavitvam vašega ponudnika TOTP, sicer ne bo delovalo.";
+"otp.edit.form.edit.advanced.warning" = "Napredne nastavitve morajo ustrezati nastavitvam vašega TOTP ponudnika.";
 "otp.edit.form.field.digits.title" = "Dolžina TOTP";
 "otp.edit.form.field.digits.label" = "števila.";
-"otp.edit.form.field.period.title" = "Poteče TOTP";
-"otp.edit.form.field.period.label" = "sekunde, dokler TOTP ne poteče.";
+"otp.edit.form.field.period.title" = "Potek veljavnosti TOTP";
+"otp.edit.form.field.period.label" = "sekund, dokler TOTP ne poteče.";
 "otp.edit.form.field.algorithm.title" = "Algoritem";
 "otp.edit.form.apply.button.title" = "Uporabi";
 
@@ -647,7 +672,7 @@
 
 "settings.accounts.title" = "Računi";
 "settings.accounts.item.details.title" = "Podrobnosti računa";
-"settings.accounts.item.manage.title" = "Upravljaj računi";
+"settings.accounts.item.manage.title" = "Upravljaj račune";
 "settings.accounts.item.export.title" = "Prenesi račun na drugo napravo";
 "settings.accounts.item.key.inspector.title" = "Pregledovalnik ključev";
 
@@ -705,7 +730,7 @@
 
 // Biometric authorization availability
 
-"biometric.authorization.availability.unavailable" = "Ne na voljo";
+"biometric.authorization.availability.unavailable" = "Ni na voljo";
 "biometric.authorization.availability.face.id" = "FaceID";
 "biometric.authorization.availability.touch.id" = "TouchID";
 
@@ -714,14 +739,14 @@
 "authorization.primary.button.title" = "Autoriziraj";
 
 // Metadata
-"metadata.pinned.key.validation.error.title" = "The metadata key has changed.";
-"metadata.pinned.key.validation.error.message" = "The encryption key used to share metadata between users has been updated by %@.";
-"metadata.pinned.key.validation.error.disclaimer" = "If you weren't expecting this, you can verify with your administrator.";
-"metadata.pinned.key.validation.error.trust" = "Trust the key";
-"metadata.pinned.key.fingerprint" = "Key fingerprint:";
+"metadata.pinned.key.validation.error.title" = "Ključ metapodatkov se je spremenil.";
+"metadata.pinned.key.validation.error.message" = "Šifrirni ključ za deljenje metapodatkov med uporabniki, je posodobil %@.";
+"metadata.pinned.key.validation.error.disclaimer" = "Če tega niste pričakovali, se lahko za potrditev obrnete na skrbnika.";
+"metadata.pinned.key.validation.error.trust" = "Zaupaj ključu";
+"metadata.pinned.key.fingerprint" = "Prstni odtis ključa:";
 
-"metadata.pinned.key.validation.deleted.title" = "The metadata key has been deleted.";
-"metadata.pinned.key.validation.deleted.message" = "The trusted encryption key used to share metadata between users has been deleted.";
+"metadata.pinned.key.validation.deleted.title" = "Ključ metapodatkov je bil izbrisan.";
+"metadata.pinned.key.validation.deleted.message" = "Zaupan šifrirni ključ za deljenje metapodatkov med uporabniki, je bil izbrisan.";
 
-"metadata.pinned.key.validation.unknown.title" = "The metadata key has changed.";
-"metadata.pinned.key.validation.unknown.message" = "The trusted encryption key used to share metadata between users could not be validated.";
+"metadata.pinned.key.validation.unknown.title" = "Ključ metapodatkov se je spremenil.";
+"metadata.pinned.key.validation.unknown.message" = "Zaupan šifrirni ključ za deljenje metapodatkov med uporabniki, ni bil preverjen.";

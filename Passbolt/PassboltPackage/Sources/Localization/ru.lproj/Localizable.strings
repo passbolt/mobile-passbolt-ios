@@ -82,6 +82,7 @@
 "resource.details.value" = "Значение";
 "resource.detail.section.location" = "Расположение";
 "resource.detail.section.permissions" = "Общий с";
+"resource.detail.section.additionalURIs" = "Additional URI";
 "resource.detail.section.tags" = "Метки";
 "resource.detail.section.expiry" = "Срок действия";
 "resource.detail.section.expiry.expired" = "Истёк";
@@ -138,6 +139,7 @@
 "resource.edit.field.add.totp" = "TOTP";
 "resource.edit.field.add.note" = "Note";
 "resource.edit.field.add.password" = "Пароль";
+"resource.edit.field.add.customFields" = "Custom Fields";
 "resource.edit.field.name.placeholder" = "Введите имя";
 "resource.edit.field.uri.placeholder" = "Enter URI";
 "resource.edit.field.username.placeholder" = "Введите имя пользователя";
@@ -150,11 +152,16 @@
 "resource.edit.note.content.disclaimer" = "This secure is part of the secret if you wan to be able to search this content, use metadata description.";
 "resource.edit.note.remove.button.title" = "Remove note";
 
+"resource.edit.section.resource.title" = "Ресурс";
 "resource.edit.section.password.title" = "Пароль";
 "resource.edit.section.totp.title" = "TOTP";
 "resource.edit.section.note.title" = "Note";
 "resource.edit.section.metadata.title" = "Метадата";
 "resource.edit.totp.remove.button.title" = "Remove TOTP";
+
+"resource.edit.customFields.title" = "Custom Fields";
+"resource.edit.customFields.error.invalid" = "Invalid value";
+"resource.edit.customFields.description" = "Edition of custom fields is currently not supported.";
 
 "resource.create.advanced.button" = "View advanced settings";
 "resource.create.additional.secrets.title" = "Additional secrets";
@@ -163,6 +170,24 @@
 "resource.edit.section.metadata.description" = "Описание";
 "resource.edit.section.metadata.description.name" = "Metadata description";
 "resource.edit.section.metadata.description.description" = "If you want the description to be part of the secret, use the note instead.";
+
+"resource.edit.section.metadata.additional.uris" = "Additional URIs";
+"resource.edit.section.metadata.appearance" = "Appearance";
+"resource.edit.section.customFields.title" = "Custom Fields";
+
+"resource.edit.uris.title" = "Additional URIs";
+"resource.edit.uris.main.uri.title" = "Main URI";
+"resource.edit.uris.additional.uris.title" = "Additional URI";
+"resource.edit.uris.main.uri.placeholder" = "Main URI";
+"resource.edit.uris.additional.uri.placeholder" = "URI";
+"resource.edit.uris.additional.uri.add" = "Add URI";
+"resource.edit.uris.additional.uris.error.limit" = "You can add a maximum of %d additional URIs.";
+"resource.edit.uris.invalid.form" = "One or more URIs are invalid.";
+
+"resource.edit.icon.title" = "Appearance";
+"resource.edit.icon.color.select.title" = "Select color";
+"resource.edit.icon.color.default.title" = "Default color";
+"resource.edit.icon.default.title" = "Default icon";
 
 "resource.create.menu.title" = "Create a resource";
 "resource.create.menu.password" = "Пароль";
@@ -278,10 +303,10 @@
 "resource.menu.item.copy.otp" = "Скопировать одноразовый пароль";
 "resource.menu.item.add.favorite" = "Добавить в избранное";
 "resource.menu.item.remove.favorite" = "Убрать из избранного";
-"resource.menu.item.share" = "Поделиться паролем";
-"resource.menu.item.edit.resource" = "Изменить пароль";
+"resource.menu.item.share" = "Поделиться";
+"resource.menu.item.edit.resource" = "Изменить";
 "resource.menu.item.edit.otp" = "Изменить TOTP";
-"resource.menu.item.delete.resource" = "Удалить пароль";
+"resource.menu.item.delete.resource" = "Удалить";
 "resource.menu.item.delete.otp" = "Удалить одноразовый пароль";
 "resource.menu.item.password" = "Пароль";
 "resource.menu.item.username" = "Имя пользователя";
