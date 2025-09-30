@@ -339,7 +339,7 @@ extension ResourceDetailsViewController {
     fields: .init()
   )
 
-  var notesSection: ResourceDetailsSectionViewModel = .init(title: "resource.edit.section.note.title", fields: .init())
+  var notesSection: ResourceDetailsSectionViewModel = .init(title: "resource.edit.section.note.title", fields: .init(), hideFieldTitles: true)
 
   var fieldModelsByName: OrderedDictionary<ResourceFieldName, ResourceDetailsFieldViewModel> = resource
     .fields
@@ -475,6 +475,7 @@ internal struct ResourceDetailsSectionViewModel: Equatable, Identifiable {
   internal var title: DisplayableString
   internal var fields: Array<ResourceDetailsFieldViewModel>
   internal var virtualFields: Array<VirtualField> = .init()
+  internal var hideFieldTitles: Bool = false
 
   /// Properties that are not fields but are displayed as part of the section - navigating to other screens
   internal enum VirtualField: Equatable, Identifiable {
