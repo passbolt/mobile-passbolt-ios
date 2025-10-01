@@ -22,29 +22,28 @@
 //
 
 import CommonModels
+import struct Foundation.Date
 
-public typealias ResourceUpdateStateDatabaseOperation =
-  DatabaseOperation<ResourceUpdateStateDatabaseOperationDescription>
+public typealias ResourcesFetchModificationDateDatabaseOperation = DatabaseOperation<
+  ResourcesFetchModificationDateDatabaseOperationDescription
+>
 
-public enum ResourceUpdateStateDatabaseOperationDescription: DatabaseOperationDescription, Sendable {
+public enum ResourcesFetchModificationDateDatabaseOperationDescription: DatabaseOperationDescription {
 
-  public struct Input: Sendable {
-    public let state: ResourceState?
-    public let filter: Set<Resource.ID>?
+  public typealias Input = Set<Resource.ID>
+  public typealias Output = Array<ResourceModificationDate>
+}
 
-    public init(
-      state: ResourceState?,
-      filter: Set<Resource.ID>? = .none
-    ) {
-      self.state = state
-      self.filter = filter
-    }
+public struct ResourceModificationDate {
 
-    public init(
-      state: ResourceState?,
-      filter: Resource.ID...
-    ) {
-      self.init(state: state, filter: filter.isEmpty ? .none : filter.asSet())
-    }
+  public var resourceId: Resource.ID
+  public var modificationDate: Date
+
+  public init(
+    resourceId: Resource.ID,
+    modificationDate: Date
+  ) {
+    self.resourceId = resourceId
+    self.modificationDate = modificationDate
   }
 }

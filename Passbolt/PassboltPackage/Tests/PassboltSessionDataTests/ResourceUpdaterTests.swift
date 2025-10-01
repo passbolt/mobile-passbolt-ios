@@ -73,6 +73,10 @@ final class ResourceUpdaterTests: FeaturesTestCase {
       \ResourceUpdateStateDatabaseOperation.execute,
       with: always(())
     )
+    patch(
+      \ResourcesFetchModificationDateDatabaseOperation.execute,
+      with: always(.init())
+    )
   }
 
   // MARK: Preparation & update logic
@@ -105,11 +109,11 @@ final class ResourceUpdaterTests: FeaturesTestCase {
     updateExpectation.expectedFulfillmentCount = 2
     patch(
       \ResourceUpdateStateDatabaseOperation.execute,
-      with: { state in
-        if state == .waitingForUpdate {
+      with: { input in
+        if input.state == .waitingForUpdate {
           updateExpectation.fulfill()
         }
-        else if state == .none {
+        else if input.state == .none {
           updateExpectation.fulfill()
         }
       }
@@ -337,6 +341,7 @@ final class ResourceUpdaterTests: FeaturesTestCase {
     let supportedType = ResourceType.mock_default
     var resource = mockResource(withType: supportedType)
     resource.name = nil
+    let secondResource = mockResource(withType: supportedType)
 
     patch(
       \ResourceTypesFetchNetworkOperation.execute,
@@ -351,12 +356,12 @@ final class ResourceUpdaterTests: FeaturesTestCase {
     let expectation: XCTestExpectation = .init(description: "Save should be triggered.")
     patch(
       \ResourcesFetchNetworkOperation.execute,
-      with: always([resource].asPaginatedResponse)
+      with: always([resource, secondResource].asPaginatedResponse)
     )
     patch(
       \ResourcesStoreDatabaseOperation.execute,
       with: { resourceDTOs async throws in
-        XCTAssertEqual(resourceDTOs.count, 0, "Resources without name should be ignored.")
+        XCTAssertEqual(resourceDTOs.count, 1, "Resources without name should be ignored.")
         expectation.fulfill()
       }
     )
@@ -415,6 +420,114 @@ final class ResourceUpdaterTests: FeaturesTestCase {
     try await feature.updateResources(.serial)
     await fulfillment(of: [expectation], timeout: 1.0)
   }
+
+  // MARK: Utilizing `modified` field
+
+  func test_resourceUpdate_whenIncomingResourceIsModified_shouldUpdateIt() async throws {
+    let referenceDate: Date = .now
+    let resourceStored: XCTestExpectation = .init(description: "Resource should be stored.")
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1.with(metadataEnabled: true)
+      )
+    )
+    let resource: ResourceDTO = mockResource(
+      withType: .mock_default,
+      metadataArmoredMessage: "armored_message",
+      metadataKeyId: .init(),
+      metadataKeyType: .user,
+      modified: .now.addingTimeInterval(100)
+    )
+    patch(
+      \ResourcesFetchModificationDateDatabaseOperation.execute,
+      with: always([.init(resourceId: resource.id, modificationDate: referenceDate)])
+    )
+    patch(
+      \ResourceTypesFetchNetworkOperation.execute,
+      with: always([.mock_default])
+    )
+    patch(
+      \ResourcesFetchNetworkOperation.execute,
+      with: always([resource].asPaginatedResponse)
+    )
+    patch(
+      \ResourcesStoreDatabaseOperation.execute,
+      with: { resources async throws in
+        XCTAssertEqual(resources.count, 1, "Resource should be saved after metadata decryption.")
+        XCTAssertEqual(resources.first?.id, resource.id, "Saved resource should match the original one.")
+        resourceStored.fulfill()
+      }
+    )
+    let feature: ResourceUpdater = try self.testedInstance()
+    try await feature.updateResources(.serial)
+    await fulfillment(of: [resourceStored], timeout: 1.0)
+  }
+
+  func test_resourceUpdate_whenIncomingResourceIsOlder_shouldNotUpdateIt() async throws {
+    let referenceDate: Date = .now
+    let resourceStored: XCTestExpectation = .init(description: "Resource should not be stored.")
+    resourceStored.isInverted = true
+    let resourceStateShouldUpdate: XCTestExpectation = .init(description: "Resource state should be updated.")
+    resourceStateShouldUpdate.expectedFulfillmentCount = 3
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1.with(metadataEnabled: true)
+      )
+    )
+    let resource: ResourceDTO = mockResource(
+      withType: .mock_default,
+      metadataArmoredMessage: "armored_message",
+      metadataKeyId: .init(),
+      metadataKeyType: .user,
+      modified: .now.addingTimeInterval(-100)
+    )
+    patch(
+      \ResourcesFetchModificationDateDatabaseOperation.execute,
+      with: always([.init(resourceId: resource.id, modificationDate: referenceDate)])
+    )
+    patch(
+      \ResourceTypesFetchNetworkOperation.execute,
+      with: always([.mock_default])
+    )
+    patch(
+      \ResourcesFetchNetworkOperation.execute,
+      with: always([resource].asPaginatedResponse)
+    )
+    patch(
+      \ResourceUpdateStateDatabaseOperation.execute,
+      with: { input in
+        if input.state == .waitingForUpdate {
+          XCTAssertNil(input.filter)  // Initial state update
+          resourceStateShouldUpdate.fulfill()
+        }
+        else {
+          XCTAssertNil(input.state)
+          if input.filter == nil {
+            // State reset after processing
+            resourceStateShouldUpdate.fulfill()
+          }
+          else {
+            XCTAssertEqual(input.filter?.first, resource.id)
+            resourceStateShouldUpdate.fulfill()
+          }
+        }
+      }
+    )
+    patch(
+      \ResourcesStoreDatabaseOperation.execute,
+      with: { resources async throws in
+        XCTAssertEqual(resources.count, 0, "Resource should be saved after metadata decryption.")
+        resourceStored.fulfill()
+      }
+    )
+    let feature: ResourceUpdater = try self.testedInstance()
+    try await feature.updateResources(.serial)
+    await fulfillment(of: [resourceStored, resourceStateShouldUpdate], timeout: 1.0)
+  }
 }
 
 extension ResourceUpdater.Configuration {
@@ -460,7 +573,8 @@ private func mockResource(
   withType type: ResourceType,
   metadataArmoredMessage: String? = nil,
   metadataKeyId: MetadataKeyDTO.ID? = nil,
-  metadataKeyType: MetadataKeyDTO.MetadataKeyType? = nil
+  metadataKeyType: MetadataKeyDTO.MetadataKeyType? = nil,
+  modified: Date = .init()
 ) -> ResourceDTO {
   .init(
     id: .mock_1,
@@ -474,7 +588,7 @@ private func mockResource(
     username: nil,
     description: nil,
     tags: [],
-    modified: .init(),
+    modified: modified,
     expired: nil,
     metadataArmoredMessage: metadataArmoredMessage,
     metadataKeyId: metadataKeyId,

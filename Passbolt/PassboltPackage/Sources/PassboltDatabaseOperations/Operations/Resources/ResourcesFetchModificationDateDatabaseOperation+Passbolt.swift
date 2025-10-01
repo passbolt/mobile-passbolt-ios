@@ -23,31 +23,46 @@
 
 import DatabaseOperations
 import FeatureScopes
+import Session
+import struct Foundation.Date
 
-extension ResourceUpdateStateDatabaseOperation {
+// MARK: - Implementation
+
+extension ResourcesFetchModificationDateDatabaseOperation {
 
   @Sendable fileprivate static func execute(
-    _ input: Input,
+    _ input: ResourcesFetchModificationDateDatabaseOperationDescription.Input,
     connection: SQLiteConnection
-  ) throws {
-    var statement: SQLiteStatement =
-      .init("UPDATE resources SET state = ?", arguments: [input.state?.rawValue])
-
-    if let filter = input.filter {
-      statement.append(" WHERE id " + .in(filter))
+  ) throws -> ResourcesFetchModificationDateDatabaseOperation.Output {
+    guard !input.isEmpty else {
+      return .init()
     }
+    let statement: SQLiteStatement =
+      "SELECT id, modified FROM resources WHERE id" + .in(input)
 
-    try connection.execute(statement)
+    return try connection.fetch(using: statement) { (row: SQLiteRow) -> ResourceModificationDate in
+      guard
+        let id: Resource.ID = row.id,
+        let modifiedTimestamp: Timestamp = row.modified
+      else {
+        throw DatabaseIssue.error(underlyingError: DatabaseDataInvalid.error(for: ResourceModificationDate.self))
+      }
+
+      return ResourceModificationDate(
+        resourceId: id,
+        modificationDate: modifiedTimestamp.asDate
+      )
+    }
   }
 }
 
 extension FeaturesRegistry {
 
-  internal mutating func usePassboltResourceUpdateStateDatabaseOperation() {
+  internal mutating func usePassboltResourcesFetchModificationDateDatabaseOperation() {
     self.use(
       FeatureLoader.databaseOperation(
-        of: ResourceUpdateStateDatabaseOperation.self,
-        execute: ResourceUpdateStateDatabaseOperation.execute(_:connection:)
+        of: ResourcesFetchModificationDateDatabaseOperation.self,
+        execute: ResourcesFetchModificationDateDatabaseOperation.execute(_:connection:)
       ),
       in: SessionScope.self
     )
