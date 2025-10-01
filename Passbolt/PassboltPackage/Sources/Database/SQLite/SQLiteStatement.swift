@@ -184,4 +184,33 @@ extension SQLiteStatement {
   ) where Value: RawRepresentable, Value.RawValue == Data {
     self.arguments.append(value.rawValue)
   }
+
+  /// Appends an array of SQLiteValueConvertible elements as an IN clause argument.
+  /// - Parameter elements: The array of elements to append.
+  public mutating func append<Value>(in elements: Set<Value>) where Value: SQLiteValueConvertible {
+    append(.in(elements))
+  }
+}
+
+extension SQLiteStatement {
+
+  /// Generates an SQL IN clause for the provided array of elements.
+  /// - Parameter elements: The array of elements to include in the IN clause.
+  /// - Returns: An SQLiteStatement representing the IN clause.
+  public static func `in`<Value>(_ elements: Set<Value>) -> Self where Value: SQLiteValueConvertible {
+    guard !elements.isEmpty else {
+      return " IN (NULL)"
+    }
+    var statement: Self = " IN ("
+    let elementsCount: Int = elements.count
+    for (index, element) in elements.enumerated() {
+      statement.append("?")
+      if index < elementsCount - 1 {
+        statement.append(", ")
+      }
+      statement.appendArgument(element)
+    }
+    statement.append(")")
+    return statement
+  }
 }

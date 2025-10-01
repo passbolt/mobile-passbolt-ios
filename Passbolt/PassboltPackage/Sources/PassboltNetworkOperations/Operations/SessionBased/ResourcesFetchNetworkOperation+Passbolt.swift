@@ -38,6 +38,8 @@ extension ResourcesFetchNetworkOperation {
       .queryItem("contain[permissions]", value: "1"),
       .queryItem("limit", value: "\(input.limit)"),
       .queryItem("page", value: "\(input.page)"),
+      .queryItem("sort", value: "Resources.modified"),
+      .queryItem("direction", value: "desc"),
       .method(.get)
     )
   }

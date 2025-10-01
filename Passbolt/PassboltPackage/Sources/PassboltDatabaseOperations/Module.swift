@@ -62,5 +62,6 @@ extension FeaturesRegistry {
     self.usePassboltResourceFolderPathFetchDatabaseOperation()
     self.usePassboltResourcesCountFetchDatabaseOperation()
     self.usePassboltPasswordPoliciesStoreDatabaseOperation()
+    self.usePassboltResourcesFetchModificationDateDatabaseOperation()
   }
 }
