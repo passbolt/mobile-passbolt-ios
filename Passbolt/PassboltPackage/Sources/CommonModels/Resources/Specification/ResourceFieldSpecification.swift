@@ -53,6 +53,8 @@ public struct ResourceFieldSpecification {
 
   public let path: ResourceType.FieldPath
   public let name: ResourceFieldName
+  // In some cases internal field name is different from the specification name, like note vs description
+  public let specificationName: ResourceFieldName
   public let content: Content
   public let required: Bool
   public let encrypted: Bool
@@ -61,12 +63,14 @@ public struct ResourceFieldSpecification {
   public init(
     path: ResourceType.FieldPath,
     name: ResourceFieldName,
+    specificationName: ResourceFieldName? = .none,
     content: Content,
     required: Bool,
     encrypted: Bool
   ) {
     self.path = path
     self.name = name
+    self.specificationName = specificationName ?? name
     self.content = content
     self.required = required
     self.encrypted = encrypted

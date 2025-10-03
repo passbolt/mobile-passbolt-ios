@@ -45,11 +45,13 @@ extension ResourceCreatePreparation {
 
       let passwordType: ResourceType? = allResourceTypes.first { $0.specification.slug == passwordSlug }
       let totpType: ResourceType? = allResourceTypes.first { $0.specification.slug == totpSlug }
+      let standaloneNoteType: ResourceType? = allResourceTypes.first { $0.specification.slug == .v5StandaloneNote }
 
       return .init(
         availableTypes: [
           passwordType,
           totpType,
+          standaloneNoteType,
         ]
         .compactMap { $0 }
       )

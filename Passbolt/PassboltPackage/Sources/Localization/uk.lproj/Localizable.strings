@@ -192,6 +192,7 @@
 "resource.create.menu.title" = "Створити ресурс";
 "resource.create.menu.password" = "Пароль";
 "resource.create.menu.totp" = "TOTP";
+"resource.create.menu.note" = "Note";
 
 "resource.create.invalid.configuration" = "Неможливо створити ресурс з поточною конфігурацією.";
 "resource.edit.invalid.configuration" = "Неможливо редагувати ресурс з поточною конфігурацією.";

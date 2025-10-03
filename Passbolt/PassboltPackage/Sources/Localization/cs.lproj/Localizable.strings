@@ -192,6 +192,7 @@
 "resource.create.menu.title" = "Vytvořit zdroj";
 "resource.create.menu.password" = "Heslo";
 "resource.create.menu.totp" = "TOTP";
+"resource.create.menu.note" = "Note";
 
 "resource.create.invalid.configuration" = "Nelze vytvořit zdroj s aktuální konfigurací.";
 "resource.edit.invalid.configuration" = "Nelze upravit zdroj s aktuální konfigurací.";

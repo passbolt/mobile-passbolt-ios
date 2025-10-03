@@ -154,7 +154,8 @@ public final class ResourceEditViewController: ViewController {
         mainForm: .empty,
         containsUndefinedFields: false,
         edited: false,
-        showPasswordSection: editedResource.isStandaloneTOTPResource == false,
+        showPasswordSection: (editedResource.isStandaloneTOTPResource == false
+          && editedResource.type.specification.slug != .v5StandaloneNote),
         showsAdvancedSettings: false,
         canAddAdditionalSecrets: editedResource.isSimplePasswordResource == false,
         resourceTypeSlug: editedResource.type.specification.slug
@@ -224,6 +225,7 @@ public final class ResourceEditViewController: ViewController {
 
   @MainActor internal func sendForm() async throws {
     do {
+      try await self.resourceEditForm.validateForm()
       let resource: Resource = try await self.resourceEditForm.sendForm()
       if let customOnSuccessNavigation {
         try await customOnSuccessNavigation()
@@ -476,39 +478,18 @@ public final class ResourceEditViewController: ViewController {
   }
   let isStandaloneTOTP: Bool = resource.isStandaloneTOTPResource
 
-  let excludedFieldNames: Set<ResourceFieldName> = [
-    .name,
-    .description,
-    .note,
-    .customFields,
-    .allURIs,
-  ]
-
-  var fields: Array<ResourceEditFieldViewModel> =
-    resource
-    .fields
-    .filter { excludedFieldNames.contains($0.name) == false }
-    .compactMap { (field: ResourceFieldSpecification) -> ResourceEditFieldViewModel? in
-      .init(
-        field,
+  let fieldPaths: Array<ResourceType.FieldPath> = resourceTypeSlug.mainFormFields
+  let fields: Array<ResourceEditFieldViewModel> = fieldPaths.compactMap {
+    if let fieldSpec = resource.type.fieldSpecification(for: $0) {
+      return .init(
+        fieldSpec,
         in: resource,
-        edited: edited.contains(field.path),
+        edited: edited.contains(fieldSpec.path),
         countEntropy: countEntropy
       )
     }
 
-  if isStandaloneTOTP,
-    let secretFieldSpec = resource.type.fieldSpecification(for: \.secret.totp.secret_key)
-  {
-    let secretField: ResourceEditFieldViewModel? = .init(
-      secretFieldSpec,
-      in: resource,
-      edited: edited.contains(secretFieldSpec.path),
-      countEntropy: countEntropy
-    )
-    if let secretField {
-      fields.append(secretField)
-    }
+    return nil
   }
 
   var result: IdentifiedArray<ResourceEditFieldViewModel> = .init()
@@ -516,15 +497,8 @@ public final class ResourceEditViewController: ViewController {
     result[field.path] = field
   }
 
-  let title: DisplayableString =
-    isStandaloneTOTP
-    ? "resource.edit.section.totp.title"
-    : (resourceTypeSlug.isCustomFieldsType
-      ? "resource.edit.section.resource.title"
-      : "resource.edit.section.password.title")
-
   var additionalOptions: Array<MainFormViewModel.AdditionalOption> = .init()
-  if resourceTypeSlug.isCustomFieldsType {
+  if resourceTypeSlug.isCustomFieldsType || resourceTypeSlug.isStandaloneNoteType {
     additionalOptions.append(contentsOf: [.addPassword, .addTOTP])
   }
   else if isStandaloneTOTP {
@@ -556,7 +530,7 @@ public final class ResourceEditViewController: ViewController {
   }
 
   return .init(
-    title: title,
+    title: resourceTypeSlug.titleDisplayableString,
     fields: result,
     additionalOptions: additionalOptions,
     metadataOptions: metadataOptions
@@ -674,6 +648,7 @@ internal struct ResourceEditFieldViewModel {
 
     case plainShort(Validated<String>)
     case plainLong(Validated<String>)
+    case note(Validated<String>)
     case password(
       Validated<String>,
       entropy: Entropy
@@ -746,7 +721,12 @@ internal struct ResourceEditFieldViewModel {
           .map { $0.stringValue ?? "" }
         : .valid(resource[keyPath: field.path].stringValue ?? "")
 
-      self.value = .plainLong(validated)
+      if field.name == .note {
+        self.value = .note(validated)
+      }
+      else {
+        self.value = .plainLong(validated)
+      }
 
     case .password(let name, _, let placeholder):
       self.name = name
@@ -805,13 +785,10 @@ internal struct ResourceEditFieldViewModel {
       switch self.value {
       case .plainShort(let value):
         return value
-
-      case .plainLong(let value):
+      case .plainLong(let value), .note(let value):
         return value
-
       case .password(let value, entropy: _):
         return value
-
       case .selection(let value, values: _):
         return value
       case .list(let values):
@@ -824,13 +801,12 @@ internal struct ResourceEditFieldViewModel {
       switch self.value {
       case .plainShort:
         self.value = .plainShort(newValue)
-
       case .plainLong:
         self.value = .plainLong(newValue)
-
+      case .note:
+        self.value = .note(newValue)
       case .password(_, let entropy):
         self.value = .password(newValue, entropy: entropy)
-
       case .selection(_, let values):
         self.value = .selection(newValue, values: values)
       case .list(let values):
@@ -850,6 +826,7 @@ extension ResourceEditFieldViewModel: Identifiable {
 }
 
 extension ResourceSpecification.Slug {
+
   fileprivate func canEditMetadataDescription(isNewResource: Bool) -> Bool {
     switch self {
     case .password where isNewResource == false:
@@ -882,6 +859,52 @@ extension ResourceSpecification.Slug {
 
   fileprivate var isCustomFieldsType: Bool {
     self == .v5CustomFields
+  }
+
+  fileprivate var isStandaloneNoteType: Bool {
+    self == .v5StandaloneNote
+  }
+
+  fileprivate var titleDisplayableString: DisplayableString {
+    switch self {
+    case .v5StandaloneNote:
+      return "resource.edit.section.note.title"
+    case .v5CustomFields:
+      return "resource.edit.section.resource.title"
+    case _ where isStandaloneTOTPType:
+      return "resource.edit.section.totp.title"
+    default:
+      return "resource.edit.section.password.title"
+    }
+  }
+
+  // name is excluded as it is edited outside of the form
+  fileprivate var mainFormFields: Array<ResourceType.FieldPath> {
+    switch self {
+    case _ where isStandaloneTOTPType:
+      return [
+        \.meta.uris,
+        \.meta.username,
+        \.secret.totp.secret_key,
+      ]
+    case .v5StandaloneNote:
+      return [
+        \.secret.description
+      ]
+
+    case .v5CustomFields:
+      return []
+    case .v5StandaloneNote:
+      return [
+        \.secret.description
+      ]
+    default:
+      return [
+        \.meta.uris,
+        \.meta.username,
+        \.secret.password,
+      ]
+    }
   }
 }
 

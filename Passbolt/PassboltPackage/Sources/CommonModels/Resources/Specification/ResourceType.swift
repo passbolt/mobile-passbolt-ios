@@ -253,7 +253,7 @@ extension ResourceType {
       return .v5StandaloneTOTP
     case .v5DefaultWithTOTP:
       return .v5DefaultWithTOTP
-    case .v5CustomFields:
+    case .v5CustomFields, .v5StandaloneNote:
       return .v5DefaultWithTOTP
     case _:
       return .none
@@ -266,10 +266,10 @@ extension ResourceType {
       return .v5DefaultWithTOTP
     case .totp:
       return .passwordWithTOTP
-    case .v5CustomFields:
+    case .v5CustomFields, .v5StandaloneNote:
       return .v5Default
     case _:
-      return .none // should not be possible, as other types already have password
+      return .none  // should not be possible, as other types already have password
     }
   }
 
@@ -350,13 +350,14 @@ extension ResourceType {
     _ resource: Resource
   ) throws {
     for fieldSpecification in self.specification.metaFields {
-      try fieldSpecification.validate(resource.meta[dynamicMember: fieldSpecification.name.rawValue])
+      try fieldSpecification.validate(resource.meta[dynamicMember: fieldSpecification.specificationName.rawValue])
     }
     if !resource.secretAvailable {
       // skip secret validation if there is no secret
     }
     else if self.specification.secretFields.count == 1, let fieldSpecification = self.specification.secretFields.first,
-      fieldSpecification.path == \.secret
+      fieldSpecification.path == \.secret,
+      case .string = fieldSpecification.content
     {
       // fallback for legacy resource where secret was just plain field
       try fieldSpecification.validate(resource.secret)
@@ -370,7 +371,7 @@ extension ResourceType {
           .error(message: "Invalid secret object type")
       }
       for fieldSpecification in self.specification.secretFields {
-        try fieldSpecification.validate(resource.secret[dynamicMember: fieldSpecification.name.rawValue])
+        try fieldSpecification.validate(resource.secret[dynamicMember: fieldSpecification.specificationName.rawValue])
       }
     }
   }

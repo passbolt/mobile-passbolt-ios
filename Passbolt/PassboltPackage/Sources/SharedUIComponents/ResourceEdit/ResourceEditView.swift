@@ -398,39 +398,19 @@ public struct ResourceEditView: ControlledView {
       .autocorrectionDisabled()
       .padding(bottom: 8)
     case .plainLong(let state):
-      FormLongTextFieldView(
-        title: fieldModel.name,
-        prompt: fieldModel.placeholder,
-        mandatory: fieldModel.requiredMark,
-        encrypted: fieldModel.encryptedMark,
-        state: self.validatedOptionalBinding(
-          to: \.validatedString,
-          in: \.mainForm.fields[fieldModel.path],
-          default: state,
-          updating: { (newValue: String) in
-            withAnimation {
-              self.controller.set(newValue, for: fieldModel.path)
-            }
-          }
-        )
-      )
-      .focused($focusState)
-      .toolbar {
-        ToolbarItemGroup(placement: .keyboard) {
-          HStack {
-            Spacer()
-            Button(
-              displayable: "generic.done",
-              action: {
-                self.focusState.toggle()
-              }
-            )
-            .foregroundStyle(.blue)
-          }
-        }
+      textField(for: fieldModel, state: state)
+
+    case .note(let state):
+      VStack(alignment: .leading, spacing: 0) {
+        textField(for: fieldModel, state: state, customTitle: "resource.edit.note.content.title")
+        Text(displayable: "resource.edit.note.content.disclaimer")
+          .font(.inter(ofSize: 12, weight: .regular))
+          .foregroundColor(.primary)
+          .padding(.top, 8)
       }
-      .textInputAutocapitalization(.sentences)
-      .padding(bottom: 8)
+      .padding(.vertical, 8)
+      .backgroundColor(.passboltBackgroundGray)
+      .cornerRadius(4)
 
     case .password(let state, let entropy):
       VStack(spacing: 4) {
@@ -483,6 +463,48 @@ public struct ResourceEditView: ControlledView {
       )
       .padding(bottom: 8)
     }
+  }
+
+  private func textField(
+    for fieldModel: ResourceEditFieldViewModel,
+    state: Validated<String>,
+    customTitle: DisplayableString? = nil
+  ) -> some View {
+    FormLongTextFieldView(
+      title: customTitle ?? fieldModel.name,
+      prompt: fieldModel.placeholder,
+      mandatory: fieldModel.requiredMark,
+      encrypted: fieldModel.encryptedMark,
+      state: self.validatedOptionalBinding(
+        to: \.validatedString,
+        in: \.mainForm.fields[fieldModel.path],
+        default: state,
+        updating: { (newValue: String) in
+          withAnimation {
+            self.controller.set(newValue, for: fieldModel.path)
+          }
+        }
+      ),
+      textFieldMinHeight: 100,
+      textFieldMaxHeight: 280
+    )
+    .focused($focusState)
+    .toolbar {
+      ToolbarItemGroup(placement: .keyboard) {
+        HStack {
+          Spacer()
+          Button(
+            displayable: "generic.done",
+            action: {
+              self.focusState.toggle()
+            }
+          )
+          .foregroundStyle(.blue)
+        }
+      }
+    }
+    .textInputAutocapitalization(.sentences)
+    .padding(bottom: 8)
   }
 
   @MainActor @ViewBuilder private var actionButtonView: some View {

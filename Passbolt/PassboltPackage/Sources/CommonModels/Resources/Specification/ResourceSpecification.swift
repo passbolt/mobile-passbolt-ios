@@ -53,6 +53,8 @@ public struct ResourceSpecification {
       return .passwordWithTOTP(isV5: slug == .v5DefaultWithTOTP)
     case .v5CustomFields:
       return .v5CustomFields()
+    case .v5StandaloneNote:
+      return .v5StandaloneNote
     case _:
       return .placeholder
     }
@@ -77,6 +79,7 @@ extension ResourceSpecification.Slug {
   public static let v5StandaloneTOTP: Self = "v5-totp-standalone"
   public static let v5Password: Self = "v5-password-string"
   public static let v5CustomFields: Self = "v5-custom-fields"
+  public static let v5StandaloneNote: Self = "v5-note"
 
   /// Checks if the resource type is v4 or v5
   public var isSupported: Bool {
@@ -91,7 +94,7 @@ extension ResourceSpecification.Slug {
 
   /// V5 resource types
   public static var v5Types: [Self] {
-    [.v5StandaloneTOTP, .v5DefaultWithTOTP, .v5Password, .v5Default, .v5CustomFields]
+    [.v5StandaloneTOTP, .v5DefaultWithTOTP, .v5Password, .v5Default, .v5CustomFields, .v5StandaloneNote]
   }
 
   public var isV5Type: Bool {
@@ -157,16 +160,7 @@ extension ResourceSpecification {
           required: false,
           encrypted: true
         ),
-        .init(
-          path: \.secret.description,
-          name: .note,
-          content: .string(
-            minLength: .none,
-            maxLength: isV5 ? ResourceFieldSpecification.maxNoteLength : ResourceFieldSpecification.maxV4NoteLength
-          ),
-          required: false,
-          encrypted: true
-        ),
+        .secretNoteField(isV5: isV5),
       ]
     )
   }
@@ -225,16 +219,22 @@ extension ResourceSpecification {
           required: true,
           encrypted: true
         ),
-        .init(
-          path: \.secret.description,
-          name: .note,
-          content: .string(
-            minLength: .none,
-            maxLength: isV5 ? ResourceFieldSpecification.maxNoteLength : ResourceFieldSpecification.maxV4NoteLength
-          ),
-          required: false,
-          encrypted: true
-        ),
+        .secretNoteField(isV5: isV5),
+      ]
+    )
+  }
+
+  public static var v5StandaloneNote: Self {
+    .init(
+      slug: .v5StandaloneNote,
+      metaFields: [
+        .metaName,
+        .metaDescription,
+        .metaURIs,
+        .metaAppearance,
+      ],
+      secretFields: [
+        .secretNoteField(isV5: true)
       ]
     )
   }
@@ -357,6 +357,20 @@ extension ResourceFieldSpecification {
       path: \.secret.custom_fields,
       name: .customFields,
       content: .list(maxCount: Self.maxCustomFieldsCount),
+      required: false,
+      encrypted: true
+    )
+  }
+
+  fileprivate static func secretNoteField(isV5: Bool) -> Self {
+    .init(
+      path: \.secret.description,
+      name: .note,
+      specificationName: .description,
+      content: .string(
+        minLength: .none,
+        maxLength: isV5 ? Self.maxNoteLength : Self.maxV4NoteLength
+      ),
       required: false,
       encrypted: true
     )

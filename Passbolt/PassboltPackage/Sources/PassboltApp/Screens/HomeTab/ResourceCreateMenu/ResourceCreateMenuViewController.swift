@@ -137,16 +137,24 @@ internal final class ResourceCreateMenuViewController: ViewController {
 extension ResourceSpecification.Slug {
 
   internal var icon: Image {
-    if isStandaloneTOTPType {
+    switch self {
+    case .v5StandaloneNote:
+      return Image(named: .notes)
+    case _ where isStandaloneTOTPType:
       return Image(named: .otp)
+    default:
+      return Image(named: .key)
     }
-    return Image(named: .key)
   }
 
   internal var title: DisplayableString {
-    if isStandaloneTOTPType {
+    switch self {
+    case  .v5StandaloneNote:
+      return "resource.create.menu.note"
+    case _ where isStandaloneTOTPType:
       return "resource.create.menu.totp"
+    default:
+      return "resource.create.menu.password"
     }
-    return "resource.create.menu.password"
   }
 }

@@ -192,6 +192,7 @@
 "resource.create.menu.title" = "Utwórz zasób";
 "resource.create.menu.password" = "Hasło";
 "resource.create.menu.totp" = "TOTP";
+"resource.create.menu.note" = "Note";
 
 "resource.create.invalid.configuration" = "Nie można utworzyć zasobu z bieżącą konfiguracją.";
 "resource.edit.invalid.configuration" = "Nie można zaktualizować zasobu z obecną konfiguracją.";

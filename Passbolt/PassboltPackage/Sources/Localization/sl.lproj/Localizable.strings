@@ -192,6 +192,7 @@
 "resource.create.menu.title" = "Ustvari vir";
 "resource.create.menu.password" = "Geslo";
 "resource.create.menu.totp" = "TOTP";
+"resource.create.menu.note" = "Note";
 
 "resource.create.invalid.configuration" = "Ni mogoče ustvariti vira s trenutno konfiguracijo.";
 "resource.edit.invalid.configuration" = "Ni mogoče urediti vira s trenutno konfiguracijo.";

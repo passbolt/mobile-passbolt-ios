@@ -192,6 +192,7 @@
 "resource.create.menu.title" = "Criar um recurso";
 "resource.create.menu.password" = "senha";
 "resource.create.menu.totp" = "TOTP";
+"resource.create.menu.note" = "Note";
 
 "resource.create.invalid.configuration" = "Não é possível criar um recurso com a configuração atual.";
 "resource.edit.invalid.configuration" = "Não é possível editar um recurso com a configuração atual.";

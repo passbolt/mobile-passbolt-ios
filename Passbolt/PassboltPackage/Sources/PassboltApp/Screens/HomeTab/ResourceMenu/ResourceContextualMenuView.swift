@@ -188,17 +188,14 @@ extension ResourceContextualMenuItem {
         }
       )
 
-    case .editResource(let isStandaloneTOTP):
+    case .editResource(let slug):
       DrawerMenuItemView(
         action: {
           await controller.performAction(for: self)
         },
         title: {
           Text(
-            displayable:
-              isStandaloneTOTP
-              ? "resource.menu.item.edit.otp"
-              : "resource.menu.item.edit.resource"
+            displayable: slug.editDisplayableText
           )
         },
         leftIcon: {
@@ -222,6 +219,18 @@ extension ResourceContextualMenuItem {
             .foregroundColor(.passboltSecondaryRed)
         }
       )
+    }
+  }
+}
+
+extension ResourceSpecification.Slug {
+
+  fileprivate var editDisplayableText: DisplayableString {
+    switch self {
+    case _ where isStandaloneTOTPType:
+      return "resource.menu.item.edit.otp"
+    default:
+      return "resource.menu.item.edit.resource"
     }
   }
 }

@@ -40,7 +40,7 @@ internal enum ResourceContextualMenuItem: Hashable, Identifiable {
   case toggle(favorite: Bool)
 
   case share
-  case editResource(isStandaloneTOTP: Bool)
+  case editResource(slug: ResourceSpecification.Slug)
 
   case delete
 
@@ -69,7 +69,6 @@ internal final class ResourceContextualMenuViewController: ViewController {
   private let navigationToDeleteAlert: NavigationToResourceDeleteAlert
   private let navigationToShare: NavigationToResourceShare
   private let navigationToResourceEdit: NavigationToResourceEdit
-  private let navigationToResourceOTPMenu: NavigationToResourceOTPContextualMenu
 
   private let linkOpener: OSLinkOpener
   private let pasteboard: OSPasteboard
@@ -102,7 +101,6 @@ internal final class ResourceContextualMenuViewController: ViewController {
     self.navigationToDeleteAlert = try features.instance()
     self.navigationToShare = try features.instance()
     self.navigationToResourceEdit = try features.instance()
-    self.navigationToResourceOTPMenu = try features.instance()
 
     self.resourceController = try features.instance()
 
@@ -149,7 +147,7 @@ internal final class ResourceContextualMenuViewController: ViewController {
           }  // else NOP
 
           if resource.canEdit {
-            modifyMenuItems.append(.editResource(isStandaloneTOTP: resource.hasTOTP))
+            modifyMenuItems.append(.editResource(slug: resource.type.specification.slug))
             modifyMenuItems.append(.delete)
           }  // else NOP
 

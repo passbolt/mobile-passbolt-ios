@@ -192,6 +192,7 @@
 "resource.create.menu.title" = "리소스 생성";
 "resource.create.menu.password" = "비밀번호";
 "resource.create.menu.totp" = "TOTP";
+"resource.create.menu.note" = "Note";
 
 "resource.create.invalid.configuration" = "현재 구성으로는 리소스를 생성할 수 없습니다.";
 "resource.edit.invalid.configuration" = "현재 구성으로는 리소스를 수정할 수 없습니다.";

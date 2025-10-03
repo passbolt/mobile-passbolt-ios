@@ -384,10 +384,12 @@ extension ResourceDetailsViewController {
     }
     .reduce(into: OrderedDictionary<ResourceFieldName, ResourceDetailsFieldViewModel>()) { $0[$1.key] = $1.value }
 
-  for fieldName: ResourceFieldName in ResourceDetailsSectionViewModel.passwordSectionFields {
-    if let fieldModel: ResourceDetailsFieldViewModel = fieldModelsByName[fieldName] {
-      resourceSection.fields.append(fieldModel)
-      fieldModelsByName.removeValue(forKey: fieldName)
+  if resource.type.specification.slug != .v5StandaloneNote {
+    for fieldName: ResourceFieldName in ResourceDetailsSectionViewModel.passwordSectionFields {
+      if let fieldModel: ResourceDetailsFieldViewModel = fieldModelsByName[fieldName] {
+        resourceSection.fields.append(fieldModel)
+        fieldModelsByName.removeValue(forKey: fieldName)
+      }
     }
   }
 
