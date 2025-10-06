@@ -40,6 +40,7 @@ extension ResourceUpdater {
     let resourceStateUpdateOperation: ResourceUpdateStateDatabaseOperation = try features.instance()
     let resourcesStoreDatabaseOperation: ResourcesStoreDatabaseOperation = try features.instance()
     let resourceFetchOperation: ResourcesFetchNetworkOperation = try features.instance()
+    let resourceStorePermissionsOperation: ResourceStorePermissionsDatabaseOperation = try features.instance()
     let resourceTagsRemoveUnusedDatabaseOperation: ResourceTagsRemoveUnusedDatabaseOperation = try features.instance()
     let resourcesRemoveDatabaseOperation: ResourceRemoveWithStateDatabaseOperation = try features.instance()
     let resourcesModificationDatesDatabaseOperation: ResourcesFetchModificationDateDatabaseOperation =
@@ -101,10 +102,19 @@ extension ResourceUpdater {
 
       let processedResources: Array<ResourceDTO> = try await supportedResources.asyncCompactMap {
         resource in
+        // verify if shared metadata key is required and is available - otherwise resource has to be dropped
+        if resource.metadataKeyType == .shared,
+          let keyId: MetadataKeyDTO.ID = resource.metadataKeyId,
+          try await metadataKeysService.hasAccessToSharedKey(keyId) == false
+        {
+          return nil
+        }
         if let existingModificationDate: ResourceModificationDate = modificationDatesById[resource.id],
           existingModificationDate.modificationDate >= resource.modified
         {
           try await resourceStateUpdateOperation.execute(.init(state: .none, filter: resource.id))
+          // users table is truncated before resources are updated, so permissions must be re-stored
+          try await resourceStorePermissionsOperation.execute(resource.permissions)
           return nil
         }
         return await process(resource: resource)

@@ -517,6 +517,11 @@ extension MetadataKeysService {
       return .userKey
     }
 
+    @Sendable nonisolated func hasAccessToSharedKey(_ keyId: MetadataKeyDTO.ID) async throws -> Bool {
+      guard let keys: CachedKeys = cachedKeys.get()[keyId] else { return false }
+      return keys.privateKeys.isEmpty == false
+    }
+
     return .init(
       initialize: initialize,
       decrypt: batchDecrypt,
@@ -527,7 +532,8 @@ extension MetadataKeysService {
       validatePinnedKey: validatePinnedKey,
       trustCurrentKey: trustCurrentKey,
       removePinnedKey: removePinnedKey,
-      cleanupDecryptionCache: cleanupDecryptionCache
+      cleanupDecryptionCache: cleanupDecryptionCache,
+      hasAccessToSharedKey: hasAccessToSharedKey
     )
   }
 }

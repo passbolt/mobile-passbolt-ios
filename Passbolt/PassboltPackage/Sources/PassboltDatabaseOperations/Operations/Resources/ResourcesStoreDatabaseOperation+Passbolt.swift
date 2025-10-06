@@ -217,6 +217,13 @@ extension ResourcesStoreDatabaseOperation {
           )
         }
       }
+
+      let removeTagsStatement: SQLiteStatement = .statement(
+        "DELETE FROM resourcesTags WHERE resourceID = ?1",
+        arguments: resource.id
+      )
+      try connection.execute(removeTagsStatement)
+
       for resourceTag in resource.tags {
         try connection
           .execute(
