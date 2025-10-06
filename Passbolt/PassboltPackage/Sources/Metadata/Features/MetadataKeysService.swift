@@ -37,6 +37,7 @@ public struct MetadataKeysService: Sendable {
   public var trustCurrentKey: @Sendable () async throws -> Void
   public var removePinnedKey: @Sendable () async throws -> Void
   public var cleanupDecryptionCache: @Sendable () async throws -> Void
+  public var hasAccessToSharedKey: @Sendable (MetadataKeyDTO.ID) async throws -> Bool
 
   public init(
     initialize: @escaping @Sendable () async throws -> Void,
@@ -48,7 +49,8 @@ public struct MetadataKeysService: Sendable {
     validatePinnedKey: @escaping @Sendable () async throws -> KeyValidationResult,
     trustCurrentKey: @escaping @Sendable () async throws -> Void,
     removePinnedKey: @escaping @Sendable () async throws -> Void,
-    cleanupDecryptionCache: @escaping @Sendable () async throws -> Void
+    cleanupDecryptionCache: @escaping @Sendable () async throws -> Void,
+    hasAccessToSharedKey: @escaping @Sendable (MetadataKeyDTO.ID) async throws -> Bool
   ) {
     self.initialize = initialize
     self.decrypt = decrypt
@@ -60,6 +62,7 @@ public struct MetadataKeysService: Sendable {
     self.trustCurrentKey = trustCurrentKey
     self.removePinnedKey = removePinnedKey
     self.cleanupDecryptionCache = cleanupDecryptionCache
+    self.hasAccessToSharedKey = hasAccessToSharedKey
   }
 
   public func decrypt(
@@ -90,7 +93,8 @@ extension MetadataKeysService: LoadableFeature {
       validatePinnedKey: unimplemented0(),
       trustCurrentKey: unimplemented0(),
       removePinnedKey: unimplemented0(),
-      cleanupDecryptionCache: unimplemented0()
+      cleanupDecryptionCache: unimplemented0(),
+      hasAccessToSharedKey: unimplemented1()
     )
   }
   #endif

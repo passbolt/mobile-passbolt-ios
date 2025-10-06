@@ -73,5 +73,7 @@
       <key>disableUpdateCheck</key>
       <false/>
   </dict>
+  <key>UIDesignRequiresCompatibility</key>
+  <true/>
 </dict>
 </plist>

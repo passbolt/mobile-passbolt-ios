@@ -373,6 +373,51 @@ final class ResourceUpdaterTests: FeaturesTestCase {
     await fulfillment(of: [expectation], timeout: 1)
   }
 
+  func test_resourceUpdate_ignoresResourcesWithUnknownSharedKey() async throws {
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1.with(metadataEnabled: true)
+      )
+    )
+    let verifyIfKeyExists: XCTestExpectation = .init(description: "Key existence should be verified.")
+    let resource: ResourceDTO = mockResource(
+      withType: .mock_default,
+      metadataArmoredMessage: "armored_message",
+      metadataKeyId: .init(),
+      metadataKeyType: .shared
+    )
+    patch(
+      \ResourceTypesFetchNetworkOperation.execute,
+      with: always([.mock_default])
+    )
+    patch(
+      \ResourcesFetchNetworkOperation.execute,
+      with: always([resource].asPaginatedResponse)
+    )
+
+    patch(
+      \MetadataKeysService.hasAccessToSharedKey,
+      with: { keyId in
+        XCTAssertEqual(keyId, resource.metadataKeyId, "Key ID should be verified.")
+        verifyIfKeyExists.fulfill()
+        return false
+      }
+    )
+    patch(
+      \ResourcesStoreDatabaseOperation.execute,
+      with: { _ in
+        XCTFail("Resource with unknown shared key should be ignored.")
+      }
+    )
+
+    let feature: ResourceUpdater = try self.testedInstance()
+    try await feature.updateResources(.serial)
+
+    await fulfillment(of: [verifyIfKeyExists], timeout: 1.0)
+  }
+
   // MARK: Metadata decryption
 
   func test_resourceUpdate_shouldDecodeMetadataIfEnabled() async throws {
@@ -471,6 +516,8 @@ final class ResourceUpdaterTests: FeaturesTestCase {
     resourceStored.isInverted = true
     let resourceStateShouldUpdate: XCTestExpectation = .init(description: "Resource state should be updated.")
     resourceStateShouldUpdate.expectedFulfillmentCount = 3
+    let resourcePermissionsStored: XCTestExpectation = .init(description: "Resource permissions should be stored.")
+
     self.set(
       SessionScope.self,
       context: .init(
@@ -524,9 +571,15 @@ final class ResourceUpdaterTests: FeaturesTestCase {
         resourceStored.fulfill()
       }
     )
+    patch(
+      \ResourceStorePermissionsDatabaseOperation.execute,
+      with: { _ in
+        resourcePermissionsStored.fulfill()
+      }
+    )
     let feature: ResourceUpdater = try self.testedInstance()
     try await feature.updateResources(.serial)
-    await fulfillment(of: [resourceStored, resourceStateShouldUpdate], timeout: 1.0)
+    await fulfillment(of: [resourceStored, resourceStateShouldUpdate, resourcePermissionsStored], timeout: 1.0)
   }
 }
 
