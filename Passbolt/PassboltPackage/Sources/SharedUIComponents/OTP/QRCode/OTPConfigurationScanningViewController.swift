@@ -94,6 +94,47 @@ extension OTPConfigurationScanningViewController {
     case finished
   }
 
+  private func updateResource(with configuration: TOTPConfiguration) async throws {
+    resourceEditForm.update(context.totpPath, to: configuration.secret)
+    resourceEditForm.update(\.meta.uris, to: [.string(configuration.issuer)])
+    resourceEditForm.update(\.secret.totp, to: configuration.secret)
+    if await viewState.current.isStandaloneOTP {
+      resourceEditForm.update(\.nameField, to: configuration.account)
+    }
+    if try await resourceEditForm.state.value.isLocal {
+      /// Only newly created standalone TOTP resources could be scanned  without edit form.
+      if await viewState.current.isStandaloneOTP {
+        try await navigationToScanningSuccess
+          .perform(
+            context: .init(
+              totpConfiguration: configuration
+            )
+          )
+      }
+      else {
+        try await navigationToSelf.revert()
+      }
+    }
+    else {
+      viewState
+        .update(
+          \.loading,
+          to: true
+        )
+      do {
+        try await navigationToSelf.revert()
+      }
+      catch {
+        viewState
+          .update(
+            \.loading,
+            to: false
+          )
+        throw error
+      }
+    }
+  }
+
   @Sendable nonisolated internal func process(
     payload: String
   ) {
@@ -107,45 +148,8 @@ extension OTPConfigurationScanningViewController {
           with: .finished,
           when: .processing
         )
-      Task { [viewState, context, resourceEditForm, navigationToSelf, navigationToScanningSuccess] in
-        resourceEditForm.update(context.totpPath, to: configuration.secret)
-        resourceEditForm.update(\.meta.uri, to: configuration.issuer)
-        resourceEditForm.update(\.secret.totp, to: configuration.secret)
-        if await viewState.current.isStandaloneOTP {
-          resourceEditForm.update(\.nameField, to: configuration.account)
-        }
-        if try await resourceEditForm.state.value.isLocal {
-          /// Only newly created standalone TOTP resources could be scanned  without edit form.
-          if await viewState.current.isStandaloneOTP {
-            try await navigationToScanningSuccess
-              .perform(
-                context: .init(
-                  totpConfiguration: configuration
-                )
-              )
-          }
-          else {
-            try await navigationToSelf.revert()
-          }
-        }
-        else {
-          await viewState
-            .update(
-              \.loading,
-              to: true
-            )
-          do {
-            try await navigationToSelf.revert()
-          }
-          catch {
-            await viewState
-              .update(
-                \.loading,
-                to: false
-              )
-            throw error
-          }
-        }
+      Task {
+        try await self.updateResource(with: configuration)
       }
     }
     catch is Cancelled {
