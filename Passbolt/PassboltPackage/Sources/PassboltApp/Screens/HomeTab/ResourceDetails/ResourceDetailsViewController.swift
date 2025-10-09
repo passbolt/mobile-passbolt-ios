@@ -339,7 +339,11 @@ extension ResourceDetailsViewController {
     fields: .init()
   )
 
-  var notesSection: ResourceDetailsSectionViewModel = .init(title: "resource.edit.section.note.title", fields: .init(), hideFieldTitles: true)
+  var notesSection: ResourceDetailsSectionViewModel = .init(
+    title: "resource.edit.section.note.title",
+    fields: .init(),
+    hideFieldTitles: true
+  )
 
   var fieldModelsByName: OrderedDictionary<ResourceFieldName, ResourceDetailsFieldViewModel> = resource
     .fields
@@ -412,7 +416,7 @@ extension ResourceDetailsViewController {
     else if fieldName == .note {
       notesSection.fields.append(fieldModel)
     }
-    else {
+    else if fieldName != .allURIs {  // allURIs is not displayed as a field
       metadataSection.fields.append(fieldModel)
     }
   }

@@ -209,6 +209,7 @@ public struct ResourceEditView: ControlledView {
           self.actionButtonView
             .padding(.vertical, 16)
         }
+        .backgroundColor(.passboltBackground)
       }
       .ignoresSafeArea(.keyboard)
     }
