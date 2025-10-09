@@ -152,6 +152,7 @@
 "resource.edit.note.content.disclaimer" = "This secure is part of the secret if you wan to be able to search this content, use metadata description.";
 "resource.edit.note.remove.button.title" = "Remove note";
 
+"resource.edit.section.resource.title" = "Resource";
 "resource.edit.section.password.title" = "Password";
 "resource.edit.section.totp.title" = "TOTP";
 "resource.edit.section.note.title" = "Note";

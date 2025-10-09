@@ -95,6 +95,7 @@ extension ResourceFieldName {
 
   public static let name: ResourceFieldName = "name"
   public static let uri: ResourceFieldName = "uri"
+  public static let allURIs: ResourceFieldName = "all_uris"
   public static let username: ResourceFieldName = "username"
   public static let password: ResourceFieldName = "password"
   public static let description: ResourceFieldName = "description"

@@ -295,10 +295,24 @@ extension ResourceFieldSpecification {
     )
   }
 
+  fileprivate static var metaMainURI: Self {
+    .init(
+      path: \.meta.uris.0,
+      name: .uri,
+      content: .string(
+        minLength: .none,
+        maxLength: 1024,
+        validators: .init()
+      ),
+      required: false,
+      encrypted: false
+    )
+  }
+
   fileprivate static var metaURIs: Self {
     .init(
       path: \.meta.uris,
-      name: .uri,
+      name: .allURIs,
       content: .list(maxCount: Self.maxURIsCount),
       required: false,
       encrypted: false
@@ -354,6 +368,7 @@ extension OrderedSet where Element == ResourceFieldSpecification {
   fileprivate static var defaultMetaFields: Self {
     [
       .metaName,
+      .metaMainURI,
       .metaURIs,
       .metaDescription,
       .metaAppearance,

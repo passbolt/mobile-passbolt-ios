@@ -481,6 +481,7 @@ public final class ResourceEditViewController: ViewController {
     .description,
     .note,
     .customFields,
+    .allURIs,
   ]
 
   var fields: Array<ResourceEditFieldViewModel> =
