@@ -96,7 +96,19 @@ extension OTPConfigurationScanningViewController {
 
   private func updateResource(with configuration: TOTPConfiguration) async throws {
     resourceEditForm.update(context.totpPath, to: configuration.secret)
-    resourceEditForm.update(\.meta.uris, to: [.string(configuration.issuer)])
+    let urisJSON: JSON = try await resourceEditForm.state.value[keyPath: \.meta.uris]
+    if var allURIs: Array<JSON> = urisJSON.arrayValue {
+      if allURIs.isEmpty {
+        allURIs.append(.string(configuration.issuer))
+      }
+      else {
+        allURIs[0] = .string(configuration.issuer)
+      }
+      resourceEditForm.update(\.meta.uris, to: .array(allURIs))
+    }
+    else {
+      resourceEditForm.update(\.meta.uris, to: [.string(configuration.issuer)])
+    }
     resourceEditForm.update(\.secret.totp, to: configuration.secret)
     if await viewState.current.isStandaloneOTP {
       resourceEditForm.update(\.nameField, to: configuration.account)
