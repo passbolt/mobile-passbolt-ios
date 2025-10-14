@@ -226,6 +226,8 @@ public struct ResourceEditView: ControlledView {
           content: {
             HStack(spacing: 16) {
               Image(named: additionalOption.iconName)
+                .renderingMode(.template)
+                .foregroundStyle(Color.passboltPrimaryText)
               Text(displayable: additionalOption.title)
                 .font(.inter(ofSize: 14, weight: .semibold))
                 .foregroundColor(.passboltPrimaryText)

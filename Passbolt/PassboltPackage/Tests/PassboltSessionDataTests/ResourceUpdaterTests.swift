@@ -77,6 +77,10 @@ final class ResourceUpdaterTests: FeaturesTestCase {
       \ResourcesFetchModificationDateDatabaseOperation.execute,
       with: always(.init())
     )
+    patch(
+      \ResourceSetFavoriteDatabaseOperation.execute,
+      with: always(())
+    )
   }
 
   // MARK: Preparation & update logic

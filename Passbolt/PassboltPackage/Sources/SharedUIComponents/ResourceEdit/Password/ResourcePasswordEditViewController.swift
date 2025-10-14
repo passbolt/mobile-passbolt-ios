@@ -146,7 +146,12 @@ public final class ResourcePasswordEditViewController: ViewController {
     return .init()  // show no fields for placeholder type
   }
   else {
-    let excludedFields: Set<ResourceFieldName> = [.name, .description, .customFields]
+    let excludedFields: Set<ResourceFieldName> = [
+      .name,
+      .description,
+      .customFields,
+      .allURIs,
+    ]
     let fields: Array<ResourceEditFieldViewModel> =
       resource
       .fields

@@ -45,6 +45,7 @@ extension ResourceUpdater {
     let resourcesRemoveDatabaseOperation: ResourceRemoveWithStateDatabaseOperation = try features.instance()
     let resourcesModificationDatesDatabaseOperation: ResourcesFetchModificationDateDatabaseOperation =
       try features.instance()
+    let resourceSetFavoriteDatabaseOperation: ResourceSetFavoriteDatabaseOperation = try features.instance()
     let configuration: SessionConfiguration = try features.sessionConfiguration()
     let metadataKeysService: MetadataKeysService = try features.instance()
 
@@ -115,6 +116,9 @@ extension ResourceUpdater {
           try await resourceStateUpdateOperation.execute(.init(state: .none, filter: resource.id))
           // users table is truncated before resources are updated, so permissions must be re-stored
           try await resourceStorePermissionsOperation.execute(resource.permissions)
+          try await resourceSetFavoriteDatabaseOperation.execute(
+            .init(resourceID: resource.id, favoriteID: resource.favoriteID)
+          )
           return nil
         }
         return await process(resource: resource)
