@@ -81,6 +81,10 @@ final class ResourceUpdaterTests: FeaturesTestCase {
       \ResourceSetFavoriteDatabaseOperation.execute,
       with: always(())
     )
+    patch(
+      \ResourceUpdateFolderDatabaseOperation.execute,
+      with: always(())
+    )
   }
 
   // MARK: Preparation & update logic
