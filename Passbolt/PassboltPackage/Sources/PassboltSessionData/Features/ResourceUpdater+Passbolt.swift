@@ -43,6 +43,7 @@ extension ResourceUpdater {
     let resourceStorePermissionsOperation: ResourceStorePermissionsDatabaseOperation = try features.instance()
     let resourceTagsRemoveUnusedDatabaseOperation: ResourceTagsRemoveUnusedDatabaseOperation = try features.instance()
     let resourcesRemoveDatabaseOperation: ResourceRemoveWithStateDatabaseOperation = try features.instance()
+    let resourceUpdateFolderDatabaseOperation: ResourceUpdateFolderDatabaseOperation = try features.instance()
     let resourcesModificationDatesDatabaseOperation: ResourcesFetchModificationDateDatabaseOperation =
       try features.instance()
     let resourceSetFavoriteDatabaseOperation: ResourceSetFavoriteDatabaseOperation = try features.instance()
@@ -116,6 +117,10 @@ extension ResourceUpdater {
           try await resourceStateUpdateOperation.execute(.init(state: .none, filter: resource.id))
           // users table is truncated before resources are updated, so permissions must be re-stored
           try await resourceStorePermissionsOperation.execute(resource.permissions)
+          // similarly, folder relation and favorite status must be re-applied
+          try await resourceUpdateFolderDatabaseOperation.execute(
+            .init(resourceID: resource.id, folderID: resource.parentFolderID)
+          )
           try await resourceSetFavoriteDatabaseOperation.execute(
             .init(resourceID: resource.id, favoriteID: resource.favoriteID)
           )
