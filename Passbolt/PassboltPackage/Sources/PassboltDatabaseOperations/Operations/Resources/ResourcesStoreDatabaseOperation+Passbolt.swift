@@ -160,6 +160,11 @@ extension ResourcesStoreDatabaseOperation {
             metadata.icon?.backgroundColor
           )
         )
+        let removeURIsStatement: SQLiteStatement = .statement(
+          "DELETE FROM resourceURI WHERE resource_id = ?1",
+          arguments: resource.id
+        )
+        try connection.execute(removeURIsStatement)
 
         for uri in metadata.uris {
           try connection.execute(

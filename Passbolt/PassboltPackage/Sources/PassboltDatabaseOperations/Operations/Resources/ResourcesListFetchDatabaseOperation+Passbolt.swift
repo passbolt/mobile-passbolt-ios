@@ -181,7 +181,7 @@ extension ResourcesListFetchDatabaseOperation {
           """
           AND
           (
-             resourceMetadata.name LIKE '%' || ? || '%'
+          resourceMetadata.name LIKE '%' || ? || '%'
           OR (
             SELECT
               1
@@ -191,7 +191,7 @@ extension ResourcesListFetchDatabaseOperation {
               resourceURI.resource_id == resources.id
             AND
               resourceURI.uri LIKE '%' || ? || '%'
-          )
+            )
           OR resourceMetadata.username LIKE '%' || ? || '%'
           OR (
             SELECT
@@ -208,7 +208,6 @@ extension ResourcesListFetchDatabaseOperation {
               resourceTags.slug LIKE '%' || ? || '%'
             LIMIT 1
             )
-          )
           OR (
             SELECT 
               1
@@ -218,6 +217,7 @@ extension ResourcesListFetchDatabaseOperation {
               resourceCustomFields.resourceID == resources.id
             AND
               resourceCustomFields.key LIKE '%' || ? || '%'
+            )
           )
           """
         )
