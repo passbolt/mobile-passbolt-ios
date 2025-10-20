@@ -23,6 +23,7 @@
 
 import Display
 import FeatureScopes
+import Metadata
 import OSFeatures
 import Resources
 import SharedUIComponents
@@ -319,8 +320,16 @@ extension ResourceContextualMenuViewController {
 
   private func share() async {
     await consumingErrors {
-      try await self.navigationToSelf.revert()
-      try await self.navigationToShare.perform(context: self.resourceID)
+      do {
+        let resource: Resource = try await self.resourceController.state.value
+        let metadataKeysService: MetadataKeysService = try self.features.instance()
+        try await metadataKeysService.ensureCanEncrypt(resource: resource)
+        try await self.navigationToSelf.revert()
+        try await self.navigationToShare.perform(context: self.resourceID)
+      }
+      catch let error as MetadataEncryptionKeyUnavailableError {
+        SnackBarMessageEvent.send(.error(error))
+      }
     }
   }
 

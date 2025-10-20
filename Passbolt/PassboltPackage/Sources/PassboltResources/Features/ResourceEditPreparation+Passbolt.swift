@@ -24,6 +24,7 @@
 import DatabaseOperations
 import FeatureScopes
 import Features
+import Metadata
 import Resources
 
 extension ResourceEditPreparation {
@@ -33,6 +34,7 @@ extension ResourceEditPreparation {
   ) throws -> ResourceEditPreparation {
     let resourceTypesFetchDatabaseOperation: ResourceTypesFetchDatabaseOperation = try features.instance()
     let resourceFolderPathFetchDatabaseOperation: ResourceFolderPathFetchDatabaseOperation = try features.instance()
+    let metadataService: MetadataKeysService = try features.instance()
 
     @Sendable nonisolated func prepareNew(
       _ slug: ResourceSpecification.Slug,
@@ -55,6 +57,8 @@ extension ResourceEditPreparation {
         type: resourceType,
         meta: ResourceMetadataDTO.initialResourceMetadataJSON(for: resourceType)
       )
+
+      try await metadataService.ensureCanEncrypt(resource: resource)
 
       if let value: JSON = uri.map({ .string($0.rawValue) }) {
         resource.meta.uris = JSON(arrayLiteral: value)
@@ -80,6 +84,8 @@ extension ResourceEditPreparation {
       try await resourceController.fetchSecretIfNeeded(force: true)
 
       let resource: Resource = try await resourceController.state.value
+
+      try await metadataService.ensureCanEncrypt(resource: resource)
 
       guard resource.permission.canEdit
       else {

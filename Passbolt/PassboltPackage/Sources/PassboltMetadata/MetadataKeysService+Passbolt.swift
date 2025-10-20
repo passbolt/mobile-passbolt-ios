@@ -507,7 +507,8 @@ extension MetadataKeysService {
         if let sharedKey: CachedKeys = cachedKeys.get().values
           .first(where: {
             $0.expired == .none && $0.deleted == .none
-          })
+          }),
+          sharedKey.privateKeys.isEmpty == false
         {
           return .sharedKey(sharedKey.id)
         }

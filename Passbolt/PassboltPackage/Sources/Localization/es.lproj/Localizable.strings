@@ -752,3 +752,5 @@ Póngase en contacto con su administrador para obtener más información.";
 
 "metadata.pinned.key.validation.unknown.title" = "La clave de metadatos ha cambiado.";
 "metadata.pinned.key.validation.unknown.message" = "La clave de cifrado de confianza utilizada para compartir metadatos entre usuarios no pudo ser validada.";
+
+"metadata.error.encryption.key.unavailable" = "You cannot perform this action because you lack access to the shared metadata key.";

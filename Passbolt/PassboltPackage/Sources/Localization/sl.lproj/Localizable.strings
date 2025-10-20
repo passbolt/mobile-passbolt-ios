@@ -750,3 +750,5 @@
 
 "metadata.pinned.key.validation.unknown.title" = "Ključ metapodatkov se je spremenil.";
 "metadata.pinned.key.validation.unknown.message" = "Zaupan šifrirni ključ za deljenje metapodatkov med uporabniki, ni bil preverjen.";
+
+"metadata.error.encryption.key.unavailable" = "You cannot perform this action because you lack access to the shared metadata key.";

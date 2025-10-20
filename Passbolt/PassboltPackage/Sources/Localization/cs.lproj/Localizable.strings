@@ -751,3 +751,5 @@
 
 "metadata.pinned.key.validation.unknown.title" = "Klíč metadat se změnil.";
 "metadata.pinned.key.validation.unknown.message" = "Důvěryhodný šifrovací klíč používaný k sdílení metadat mezi uživateli nebylo možné ověřit.";
+
+"metadata.error.encryption.key.unavailable" = "You cannot perform this action because you lack access to the shared metadata key.";

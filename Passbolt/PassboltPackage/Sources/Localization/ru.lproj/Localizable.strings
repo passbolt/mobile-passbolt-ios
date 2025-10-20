@@ -753,3 +753,5 @@ NFC.";
 
 "metadata.pinned.key.validation.unknown.title" = "The metadata key has changed.";
 "metadata.pinned.key.validation.unknown.message" = "The trusted encryption key used to share metadata between users could not be validated.";
+
+"metadata.error.encryption.key.unavailable" = "You cannot perform this action because you lack access to the shared metadata key.";

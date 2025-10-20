@@ -752,3 +752,5 @@ NFC, щоб це працювало.";
 
 "metadata.pinned.key.validation.unknown.title" = "Ключ метаданих змінено.";
 "metadata.pinned.key.validation.unknown.message" = "Не вдалося перевірити довірений ключ шифрування, що використовується для обміну метаданими між користувачами.";
+
+"metadata.error.encryption.key.unavailable" = "You cannot perform this action because you lack access to the shared metadata key.";

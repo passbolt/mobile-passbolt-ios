@@ -752,3 +752,5 @@ Skontaktuj się z administratorem, aby uzyskać więcej informacji.";
 
 "metadata.pinned.key.validation.unknown.title" = "Klucz metadanych uległ zmianie.";
 "metadata.pinned.key.validation.unknown.message" = "Nie można zweryfikować zaufanego klucza szyfrowania używanego do udostępniania metadanych pomiędzy użytkownikami.";
+
+"metadata.error.encryption.key.unavailable" = "You cannot perform this action because you lack access to the shared metadata key.";

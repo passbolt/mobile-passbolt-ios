@@ -143,4 +143,38 @@ extension MetadataKeysService {
       case unknown
     }
   }
+
+  /// Ensures that the appropriate encryption key is available for the given resource.
+  ///
+  /// - Parameter resource: The resource to check encryption availability for
+  /// - Throws: `MetadataEncryptionKeyUnavailableError` if the required encryption key is not available
+  ///
+  /// The function determines if encryption is possible based on:
+  /// - Whether any folder in the resource's path is shared
+  /// - Whether the resource itself is shared (non-owner or multiple permissions)
+  @Sendable public nonisolated func ensureCanEncrypt(resource: Resource) async throws {
+    let isFolderShared: Bool = resource.path.contains(where: { $0.shared })
+    let isResourceShared: Bool =
+      resource.permission != .owner || resource.permissions.count > 1  // User is owner or has at least one more
+
+    guard
+      let _: MetadataKeysService.EncryptionType = determineKeyType(
+        isFolderShared || isResourceShared
+      )
+    else {
+      throw MetadataEncryptionKeyUnavailableError.error(
+        context: .context(
+          .message(
+            "Cannot edit or create resource because the required encryption key is unavailable",
+            details: [
+              "resourceId": resource.id?.rawValue ?? "(none)",
+              "isFolderShared": String(isFolderShared),
+              "isResourceShared": String(isResourceShared),
+            ]
+          )
+        )
+      )
+    }
+    // all checks passed - encryption key is available
+  }
 }

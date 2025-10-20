@@ -752,3 +752,5 @@ NFC가 있어야 작동합니다.";
 
 "metadata.pinned.key.validation.unknown.title" = "메타데이터 키가 변경되었습니다.";
 "metadata.pinned.key.validation.unknown.message" = "사용자 간에 메타데이터를 공유하는 데 사용되는 신뢰할 수 있는 암호화 키를 검증할 수 없습니다.";
+
+"metadata.error.encryption.key.unavailable" = "You cannot perform this action because you lack access to the shared metadata key.";

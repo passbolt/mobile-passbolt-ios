@@ -752,3 +752,5 @@ Wenden Sie sich für weitere Informationen an Ihren Administrator.";
 
 "metadata.pinned.key.validation.unknown.title" = "Der Metadaten-Schlüssel hat sich geändert.";
 "metadata.pinned.key.validation.unknown.message" = "Der vertraute Verschlüsselungsschlüssel, welcher verwendet wird, um Metadaten zwischen Benutzern zu teilen, konnte nicht validiert werden.";
+
+"metadata.error.encryption.key.unavailable" = "You cannot perform this action because you lack access to the shared metadata key.";

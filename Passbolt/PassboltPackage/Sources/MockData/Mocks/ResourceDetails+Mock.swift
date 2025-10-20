@@ -112,4 +112,10 @@ extension Resource {
     mock.secret.totp.period = .integer(30)
     return mock
   }()
+
+  public func with(mutation: (inout Resource) -> Void) -> Resource {
+    var mutable: Self = self
+    mutation(&mutable)
+    return mutable
+  }
 }
