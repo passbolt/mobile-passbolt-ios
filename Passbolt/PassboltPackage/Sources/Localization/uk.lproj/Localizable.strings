@@ -499,6 +499,7 @@ NFC, щоб це працювало.";
 "error.resource.secret.invalid" = "Секрет ресурсу неправильний.";
 "error.resource.permission.invalid" = "Дозвіл ресурсу неправильний.";
 "error.resource.owner.missing" = "У ресурсу має бути принаймні один власник.";
+"error.resource.update.failed" = "Resource update failed.";
 "error.system.feature.inaccessible" = "Функція системи недоступна.";
 "error.system.feature.permission.not.granted" = "Дозвіл на використання функції системи не надано.";
 "error.system.feature.permission.required" = "Потрібен дозвіл на використання функції системи.";

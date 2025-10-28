@@ -498,6 +498,7 @@
 "error.resource.secret.invalid" = "Tajný klíč prostředku je neplatný.";
 "error.resource.permission.invalid" = "Oprávnění prostředku je neplatné.";
 "error.resource.owner.missing" = "Prostředek musí mít alespoň jednoho vlastníka.";
+"error.resource.update.failed" = "Resource update failed.";
 "error.system.feature.inaccessible" = "Systémová funkce je nepřístupná.";
 "error.system.feature.permission.not.granted" = "Oprávnění k systémové funkci nebylo uděleno.";
 "error.system.feature.permission.required" = "Vyžadováno oprávnění k systémové funkci.";

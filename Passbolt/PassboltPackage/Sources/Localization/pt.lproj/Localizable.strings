@@ -498,6 +498,7 @@ Entre em contato com seu administrador para obter mais informações.";
 "error.resource.secret.invalid" = "Segredo do recurso é inválido.";
 "error.resource.permission.invalid" = "A permissão para o recurso é inválida.";
 "error.resource.owner.missing" = "O recurso precisa ter pelo menos um proprietário.";
+"error.resource.update.failed" = "Resource update failed.";
 "error.system.feature.inaccessible" = "Recurso do sistema inacessível.";
 "error.system.feature.permission.not.granted" = "Permissão de recurso do sistema não concedida.";
 "error.system.feature.permission.required" = "Permissão de recurso do sistema necessária.";

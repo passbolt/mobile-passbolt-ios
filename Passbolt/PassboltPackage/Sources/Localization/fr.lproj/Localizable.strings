@@ -499,6 +499,7 @@ Contactez votre administrateur pour plus d'informations.";
 "error.resource.secret.invalid" = "Le secret de la ressource est invalide.";
 "error.resource.permission.invalid" = "La permission de la ressource n'est pas valide.";
 "error.resource.owner.missing" = "La ressource doit avoir au moins un propriétaire.";
+"error.resource.update.failed" = "Resource update failed.";
 "error.system.feature.inaccessible" = "Fonctionnalité système inaccessible.";
 "error.system.feature.permission.not.granted" = "Autorisation de fonctionnalité système non accordée.";
 "error.system.feature.permission.required" = "Autorisation de fonctionnalité système nécessaire.";

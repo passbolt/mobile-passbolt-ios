@@ -499,6 +499,7 @@ Skontaktuj się z administratorem, aby uzyskać więcej informacji.";
 "error.resource.secret.invalid" = "Sekret zasobu jest nieprawidłowy.";
 "error.resource.permission.invalid" = "Uprawnienia do zasobów są nieprawidłowe.";
 "error.resource.owner.missing" = "Zasób musi mieć przynajmniej jednego właściciela.";
+"error.resource.update.failed" = "Resource update failed.";
 "error.system.feature.inaccessible" = "Funkcja systemu jest niedostępna.";
 "error.system.feature.permission.not.granted" = "Nie przyznano uprawnień do funkcji systemu.";
 "error.system.feature.permission.required" = "Wymagane uprawnienia do funkcji systemu.";

@@ -499,6 +499,7 @@ NFC가 있어야 작동합니다.";
 "error.resource.secret.invalid" = "리소스 암호가 잘못되었습니다.";
 "error.resource.permission.invalid" = "리소스 권한이 잘못되었습니다.";
 "error.resource.owner.missing" = "리소스에 소유자가 하나 이상 있어야 합니다.";
+"error.resource.update.failed" = "Resource update failed.";
 "error.system.feature.inaccessible" = "시스템 기능에 접근불가.";
 "error.system.feature.permission.not.granted" = "시스템 기능 권한이 부여되지 않음.";
 "error.system.feature.permission.required" = "시스템 기능 권한 필요.";

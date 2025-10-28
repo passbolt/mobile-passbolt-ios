@@ -498,6 +498,7 @@
 "error.resource.secret.invalid" = "リソースのシークレットが無効です。";
 "error.resource.permission.invalid" = "リソースのパーミッションが無効です。";
 "error.resource.owner.missing" = "リソースには少なくとも1人の所有者が必要です。";
+"error.resource.update.failed" = "Resource update failed.";
 "error.system.feature.inaccessible" = "システム機能にアクセスできません。";
 "error.system.feature.permission.not.granted" = "システム機能の権限が付与されていません。";
 "error.system.feature.permission.required" = "システム機能の権限が必要です。";

@@ -21,44 +21,27 @@
 // @since         v1.0
 //
 
-import DatabaseOperations
-import FeatureScopes
-import Session
+import Commons
 
-// MARK: - Implementation
+public struct ResourceUpdateFailed: TheError {
 
-extension ResourceSetFavoriteDatabaseOperation {
-
-  @Sendable fileprivate static func execute(
-    _ input: ResourceSetFavoriteDatabaseOperationDSO,
-    connection: SQLiteConnection
-  ) throws {
-    // cleanup existing types as preparation for update
-    try connection.execute(
-      .init(
-        """
-        UPDATE
-          resources
-        SET
-          favoriteID = ?1
-        WHERE
-          id = ?2;
-        """,
-        arguments: [input.favoriteID?.rawValue, input.resourceID.rawValue]
-      )
-    )
-  }
-}
-
-extension FeaturesRegistry {
-
-  internal mutating func usePassboltResourceSetFavoriteDatabaseOperation() {
-    self.use(
-      FeatureLoader.databaseOperation(
-        of: ResourceSetFavoriteDatabaseOperation.self,
-        execute: ResourceSetFavoriteDatabaseOperation.execute(_:connection:)
+  public static func error(
+    _ message: StaticString = "An error occurred while updating the resource.",
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    Self(
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
+        )
       ),
-      in: SessionScope.self
+      displayableMessage: .localized(key: "error.resource.update.failed")
     )
   }
+
+  public var context: DiagnosticsContext
+  public var displayableMessage: DisplayableString
 }
