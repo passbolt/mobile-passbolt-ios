@@ -244,7 +244,7 @@ extension ResourceDetailsViewController {
       }
       else {
         if let specification: ResourceFieldSpecification = resource.fieldSpecification(for: path),
-          specification.content == .list
+          case .list = specification.content
         {
           let path: Resource.FieldPath = path.appending(path: \.0)
           self.pasteboard.put(
@@ -322,9 +322,10 @@ extension ResourceDetailsViewController {
   guard resource.type.specification.slug != .placeholder else {
     return .init()  // show no sections for placeholder type
   }
+  let isCustomFieldResource: Bool = resource.type.specification.slug == .v5CustomFields
 
-  var passwordSection: ResourceDetailsSectionViewModel = .init(
-    title: "resource.edit.section.password.title",
+  var resourceSection: ResourceDetailsSectionViewModel = .init(
+    title: (isCustomFieldResource ? "resource.edit.section.resource.title" : "resource.edit.section.password.title"),
     fields: .init()
   )
 
@@ -338,7 +339,11 @@ extension ResourceDetailsViewController {
     fields: .init()
   )
 
-  var notesSection: ResourceDetailsSectionViewModel = .init(title: "resource.edit.section.note.title", fields: .init())
+  var notesSection: ResourceDetailsSectionViewModel = .init(
+    title: "resource.edit.section.note.title",
+    fields: .init(),
+    hideFieldTitles: true
+  )
 
   var fieldModelsByName: OrderedDictionary<ResourceFieldName, ResourceDetailsFieldViewModel> = resource
     .fields
@@ -381,9 +386,27 @@ extension ResourceDetailsViewController {
 
   for fieldName: ResourceFieldName in ResourceDetailsSectionViewModel.passwordSectionFields {
     if let fieldModel: ResourceDetailsFieldViewModel = fieldModelsByName[fieldName] {
-      passwordSection.fields.append(fieldModel)
+      resourceSection.fields.append(fieldModel)
       fieldModelsByName.removeValue(forKey: fieldName)
     }
+  }
+
+  var customFieldsSection: ResourceDetailsSectionViewModel = .init(
+    title: "resource.edit.section.customFields.title",
+    fields: .init()
+  )
+
+  if fieldModelsByName[.customFields] != .none {
+    let fields: Array<ResourceDetailsFieldViewModel> =
+      resource
+      .meta
+      .custom_fields
+      .arrayValue?
+      .compactMap {
+        .init(json: $0, resource: resource, revealedFields: revealedFields)
+      } ?? .init()
+    customFieldsSection.fields.append(contentsOf: fields)
+    fieldModelsByName.removeValue(forKey: .customFields)
   }
 
   for (fieldName, fieldModel) in fieldModelsByName {
@@ -393,7 +416,7 @@ extension ResourceDetailsViewController {
     else if fieldName == .note {
       notesSection.fields.append(fieldModel)
     }
-    else {
+    else if fieldName != .allURIs {  // allURIs is not displayed as a field
       metadataSection.fields.append(fieldModel)
     }
   }
@@ -443,7 +466,7 @@ extension ResourceDetailsViewController {
   }
 
   // remove empty sections
-  return [passwordSection, totpSection, notesSection, metadataSection]
+  return [resourceSection, totpSection, customFieldsSection, notesSection, metadataSection]
     .filter {
       $0.fields.isEmpty == false || $0.virtualFields.isEmpty == false
     }
@@ -456,6 +479,7 @@ internal struct ResourceDetailsSectionViewModel: Equatable, Identifiable {
   internal var title: DisplayableString
   internal var fields: Array<ResourceDetailsFieldViewModel>
   internal var virtualFields: Array<VirtualField> = .init()
+  internal var hideFieldTitles: Bool = false
 
   /// Properties that are not fields but are displayed as part of the section - navigating to other screens
   internal enum VirtualField: Equatable, Identifiable {
@@ -690,6 +714,31 @@ internal struct ResourceDetailsFieldViewModel {
 
     case .undefined, .hidden:
       return nil  // do not display undefined fields, unfortunately even a placeholder
+    }
+  }
+
+  init?(json: JSON, resource: Resource, revealedFields: Set<Resource.FieldPath>) {
+    guard
+      let key: String = json.metadata_key.stringValue,
+      let id: ResourceCustomFieldDTO.ID = .init(json: json.id),
+      let path: ResourceType.FieldPath = resource.secretPath(forCustomFieldID: id)
+    else { return nil }
+    self.path = path
+    self.name = .raw(key)
+    if revealedFields.contains(path) {
+      if let secret = resource[keyPath: path].stringValue {
+        self.value = .plain(secret)
+        self.accessoryAction = .hide
+        self.mainAction = .copy
+      }
+      else {
+        self.value = .placeholder(ResourceFieldName.secret.displayableViewingPlaceholder.string())
+      }
+    }
+    else {
+      self.value = .encrypted
+      self.accessoryAction = .reveal
+      self.mainAction = .copy
     }
   }
 }

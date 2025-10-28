@@ -38,6 +38,7 @@ public struct ResourceEditView: ControlledView {
 
   public var body: some View {
     self.contentView
+      .backgroundColor(.passboltBackground)
       .alert(
         isPresented: self.$discardFormAlertVisible,
         title: "generic.are.you.sure",
@@ -108,30 +109,31 @@ public struct ResourceEditView: ControlledView {
               }
             }
 
-            with(\.mainForm) { mainForm in
-              Text(displayable: mainForm.title)
-                .font(.inter(ofSize: 16, weight: .bold))
-                .padding(.vertical, 20)
-              VStack(spacing: 16) {
-                withEach(\.mainForm.fields) { field in
-                  self.fieldView(for: field)
+            whenFalse(\.mainForm.fields.isEmpty) {
+              with(\.mainForm) { mainForm in
+                Text(displayable: mainForm.title)
+                  .font(.inter(ofSize: 16, weight: .bold))
+                  .padding(.vertical, 20)
+                VStack(spacing: 16) {
+                  withEach(\.mainForm.fields) { field in
+                    self.fieldView(for: field)
+                  }
+                  when(\.isStandaloneTOTP) {
+                    LinkButton(
+                      title: "otp.edit.form.advanced.button.title",
+                      iconName: .cog,
+                      action: self.controller.navigateToOTPAdvancedSettings
+                    )
+                    .padding(.vertical, 8)
+                  }
                 }
-                when(\.isStandaloneTOTP) {
-                  LinkButton(
-                    title: "otp.edit.form.advanced.button.title",
-                    iconName: .cog,
-                    action: self.controller.navigateToOTPAdvancedSettings
-                  )
-                  .padding(.vertical, 8)
-                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .backgroundColor(.passboltBackgroundGray)
+                .cornerRadius(4)
               }
-              .padding(.horizontal, 16)
-              .padding(.vertical, 8)
-              .backgroundColor(.passboltBackgroundGray)
-              .cornerRadius(4)
             }
           }
-
           whenFalse(\.showsAdvancedSettings) {
             SecondaryButton(
               title: "resource.create.advanced.button",
@@ -149,16 +151,36 @@ public struct ResourceEditView: ControlledView {
         }
         .padding(.top, 16)
       }
+      .backgroundColor(.passboltBackground)
       when(\.showsAdvancedSettings) {
-        Group {
-          when(\.canAddAdditionalSecrets) {
+        when(\.canAddAdditionalSecrets) {
+          CommonListSection {
+            VStack(alignment: .leading, spacing: 16) {
+              Text(displayable: "resource.create.additional.secrets.title")
+                .font(.inter(ofSize: 16, weight: .bold))
+                .padding(.vertical, 20)
+              VStack(spacing: 16) {
+                withEach(\.mainForm.additionalOptions) { (additionalOption: MainFormViewModel.AdditionalOption) in
+                  self.additionalActionView(for: additionalOption)
+                }
+              }
+              .padding(.horizontal, 16)
+              .padding(.vertical, 8)
+              .backgroundColor(.passboltBackgroundGray)
+              .cornerRadius(4)
+            }
+          }
+          .backgroundColor(.passboltBackground)
+        }
+        with(\.mainForm.metadataOptions) { metadataOptions in
+          if metadataOptions.isEmpty == false {
             CommonListSection {
               VStack(alignment: .leading, spacing: 16) {
-                Text(displayable: "resource.create.additional.secrets.title")
+                Text(displayable: "resource.edit.section.metadata.title")
                   .font(.inter(ofSize: 16, weight: .bold))
                   .padding(.vertical, 20)
                 VStack(spacing: 16) {
-                  withEach(\.mainForm.additionalOptions) { (additionalOption: MainFormViewModel.AdditionalOption) in
+                  withEach(\.mainForm.metadataOptions) { (additionalOption: MainFormViewModel.MetadataOption) in
                     self.additionalActionView(for: additionalOption)
                   }
                 }
@@ -168,31 +190,18 @@ public struct ResourceEditView: ControlledView {
                 .cornerRadius(4)
               }
             }
-          }
-          with(\.mainForm.metadataOptions) { metadataOptions in
-            if metadataOptions.isEmpty == false {
-              CommonListSection {
-                VStack(alignment: .leading, spacing: 16) {
-                  Text(displayable: "resource.edit.section.metadata.title")
-                    .font(.inter(ofSize: 16, weight: .bold))
-                    .padding(.vertical, 20)
-                  VStack(spacing: 16) {
-                    withEach(\.mainForm.metadataOptions) { (additionalOption: MainFormViewModel.MetadataOption) in
-                      self.additionalActionView(for: additionalOption)
-                    }
-                  }
-                  .padding(.horizontal, 16)
-                  .padding(.vertical, 8)
-                  .backgroundColor(.passboltBackgroundGray)
-                  .cornerRadius(4)
-                }
-              }
-            }
+            .backgroundColor(.passboltBackground)
           }
         }
-        Spacer(minLength: 120)
+        CommonListSection {
+          Rectangle()
+            .frame(height: 120)
+            .foregroundStyle(Color.clear)
+        }
+        .backgroundColor(.passboltBackground)
       }
     }
+    .backgroundColor(.passboltBackground)
     .overlay(alignment: .bottom) {
       VStack {
         Spacer()
@@ -200,7 +209,7 @@ public struct ResourceEditView: ControlledView {
           self.actionButtonView
             .padding(.vertical, 16)
         }
-        .background(.background)
+        .backgroundColor(.passboltBackground)
       }
       .ignoresSafeArea(.keyboard)
     }
@@ -209,62 +218,25 @@ public struct ResourceEditView: ControlledView {
   @MainActor @ViewBuilder private func additionalActionView(
     for additionalOption: MainFormViewModel.AdditionalOption
   ) -> some View {
-    switch additionalOption {
-    case .addNote:
-      CommonListRow(
-        contentAction: self.controller.editNote,
-        content: {
-          ResourceFieldView(
-            name: nil,
-            content: {
-              HStack(spacing: 16) {
-                Image(named: .notes)
-                Text(displayable: "resource.edit.field.add.note")
-                  .font(.inter(ofSize: 14, weight: .semibold))
-                  .foregroundColor(.passboltPrimaryText)
-              }
+    CommonListRow(
+      contentAction: self.action(for: additionalOption),
+      content: {
+        ResourceFieldView(
+          name: nil,
+          content: {
+            HStack(spacing: 16) {
+              Image(named: additionalOption.iconName)
+                .renderingMode(.template)
+                .foregroundStyle(Color.passboltPrimaryText)
+              Text(displayable: additionalOption.title)
+                .font(.inter(ofSize: 14, weight: .semibold))
+                .foregroundColor(.passboltPrimaryText)
             }
-          )
-        },
-        accessory: DisclosureIndicatorImage.init
-      )
-    case .addPassword:
-      CommonListRow(
-        contentAction: self.controller.addPassword,
-        content: {
-          ResourceFieldView(
-            name: nil,
-            content: {
-              HStack(spacing: 16) {
-                Image(named: .key)
-                Text(displayable: "resource.edit.field.add.password")
-                  .font(.inter(ofSize: 14, weight: .semibold))
-                  .foregroundColor(.passboltPrimaryText)
-              }
-            }
-          )
-        },
-        accessory: DisclosureIndicatorImage.init
-      )
-    case .addTOTP:
-      CommonListRow(
-        contentAction: self.controller.createOrEditTOTP,
-        content: {
-          ResourceFieldView(
-            name: nil,
-            content: {
-              HStack(spacing: 16) {
-                Image(named: .otp)
-                Text(displayable: "resource.create.advanced.add.otp")
-                  .font(.inter(ofSize: 14, weight: .semibold))
-                  .foregroundColor(.passboltPrimaryText)
-              }
-            }
-          )
-        },
-        accessory: DisclosureIndicatorImage.init
-      )
-    }
+          }
+        )
+      },
+      accessory: DisclosureIndicatorImage.init
+    )
   }
 
   @MainActor @ViewBuilder private func additionalActionView(
@@ -333,6 +305,19 @@ public struct ResourceEditView: ControlledView {
       CommonListRow {
         WarningView(message: "resource.form.undefined.content.warning")
       }
+    }
+  }
+
+  @MainActor private func action(for option: MainFormViewModel.AdditionalOption) -> () async -> Void {
+    switch option {
+    case .addNote:
+      return self.controller.editNote
+    case .addPassword:
+      return self.controller.addPassword
+    case .addTOTP:
+      return self.controller.createOrEditTOTP
+    case .addCustomFields:
+      return self.controller.editCustomFields
     }
   }
 
@@ -509,6 +494,7 @@ public struct ResourceEditView: ControlledView {
           : "resource.form.create.button.title",
       action: self.controller.sendForm
     )
+    .backgroundColor(.passboltBackground)
     .padding(16)
   }
 }

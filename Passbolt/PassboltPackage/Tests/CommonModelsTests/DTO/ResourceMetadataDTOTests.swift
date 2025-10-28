@@ -110,6 +110,73 @@ final class ResourceMetadataDTOTests: TestCase {
     )
   }
 
+  func test_resourceValidation_customFieldsValidation_succeeds() throws {
+    let resource = createResourceDTO(name: "test name", description: "test description", username: "test username")
+    
+    // Create metadata from resource (this generates proper JSON with object_type and resource_type_id)
+    var metadata = try ResourceMetadataDTO(resource: resource)
+    
+    // Modify the internal data to include custom fields
+    let json = try JSONDecoder.default.decode(JSON.self, from: metadata.data)
+    var modifiedJson = json
+    modifiedJson[keyPath: \.custom_fields] = .array([
+      .object([
+        "id": .string("550e8400-e29b-41d4-a716-446655440000"),
+        "type": .string("text"),
+        "metadata_key": .string("valid_key"),
+        "metadata_value": .string("valid_value")
+      ])
+    ])
+    
+    let modifiedData = try JSONEncoder.default.encode(modifiedJson)
+    metadata = try ResourceMetadataDTO(resourceId: resource.id, data: modifiedData)
+    
+    XCTAssertNoThrow(try metadata.validate(with: resource))
+  }
+
+  func test_resourceValidation_customFieldsValidation_failsForInvalidFields() throws {
+    let resource = createResourceDTO(name: "test name", description: "test description", username: "test username")
+    
+    // Create metadata from resource
+    var metadata = try ResourceMetadataDTO(resource: resource)
+    
+    // Modify the internal data to include invalid custom fields (missing key)
+    let json = try JSONDecoder.default.decode(JSON.self, from: metadata.data)
+    var modifiedJson = json
+    modifiedJson[keyPath: \.custom_fields] = .array([
+      .object([
+        "id": .string("550e8400-e29b-41d4-a716-446655440000"),
+        "type": .string("text")
+        // Missing metadata_key and secret_key - should trigger validation error
+      ])
+    ])
+    
+    let modifiedData = try JSONEncoder.default.encode(modifiedJson)
+    metadata = try ResourceMetadataDTO(resourceId: resource.id, data: modifiedData)
+
+    verifyIfTriggersValidationError(
+      try metadata.validate(with: resource),
+      validationRule: ResourceCustomFieldDTO.ValidationRule.missingKey
+    )
+  }
+
+  func test_resourceValidation_customFieldsValidation_succeedsWithEmptyArray() throws {
+    let resource = createResourceDTO(name: "test name", description: "test description", username: "test username")
+    
+    // Create metadata from resource
+    var metadata = try ResourceMetadataDTO(resource: resource)
+    
+    // Modify the internal data to include empty custom fields array
+    let json = try JSONDecoder.default.decode(JSON.self, from: metadata.data)
+    var modifiedJson = json
+    modifiedJson[keyPath: \.custom_fields] = .array([])
+    
+    let modifiedData = try JSONEncoder.default.encode(modifiedJson)
+    metadata = try ResourceMetadataDTO(resourceId: resource.id, data: modifiedData)
+
+    XCTAssertNoThrow(try metadata.validate(with: resource))
+  }
+
   private func createResourceDTO(name: String, description: String? = nil, username: String? = nil) -> ResourceDTO {
     ResourceDTO(
       id: .init(),

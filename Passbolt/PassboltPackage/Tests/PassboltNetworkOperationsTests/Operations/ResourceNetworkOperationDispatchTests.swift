@@ -42,6 +42,10 @@ final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
         configuration: .mock_default
       )
     )
+    patch(
+      \MetadataKeysService.determineKeyType,
+      with: always(.userKey)
+    )
   }
 
   func test_givenV4ResourceType_whenCallingCreateResource_shouldExecuteV4ResourceNetworkOperation() async throws {

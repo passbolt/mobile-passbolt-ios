@@ -187,7 +187,43 @@ extension ResourcesStoreDatabaseOperation {
             )
           )
         }
+
+        for customField in metadata.customFields {
+          try connection.execute(
+            .statement(
+              """
+                INSERT INTO
+                  resourceCustomFields(
+                    id,
+                    resourceID,
+                    key
+                  )
+                VALUES (
+                  ?1,
+                  ?2,
+                  ?3
+                )
+                ON CONFLICT
+                  (
+                    id
+                  )
+                DO NOTHING
+              """,
+              arguments:
+                customField.id.rawValue.uuidString,
+              resource.id,
+              customField.metadataKey
+            )
+          )
+        }
       }
+
+      let removeTagsStatement: SQLiteStatement = .statement(
+        "DELETE FROM resourcesTags WHERE resourceID = ?1",
+        arguments: resource.id
+      )
+      try connection.execute(removeTagsStatement)
+
       for resourceTag in resource.tags {
         try connection
           .execute(

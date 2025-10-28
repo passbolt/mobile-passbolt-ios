@@ -148,13 +148,7 @@ internal final class ResourceContextualMenuViewController: ViewController {
           }  // else NOP
 
           if resource.canEdit {
-            if resource.hasPassword {
-              modifyMenuItems.append(.editResource(isStandaloneTOTP: false))
-            }
-            else if resource.hasTOTP {
-              modifyMenuItems.append(.editResource(isStandaloneTOTP: true))
-            }
-
+            modifyMenuItems.append(.editResource(isStandaloneTOTP: resource.hasTOTP))
             modifyMenuItems.append(.delete)
           }  // else NOP
 
@@ -237,7 +231,7 @@ extension ResourceContextualMenuViewController {
       }  // else continue
 
       var path = path
-      if field.content == .list {
+      if case .list = field.content {
         // if field is list, we take first element
         path = path.appending(path: \.0)
       }
@@ -271,7 +265,7 @@ extension ResourceContextualMenuViewController {
       }  // else continue
 
       var path = path
-      if field.content == .list {
+      if case .list = field.content {
         // if field is list, we take first element
         path = path.appending(path: \.0)
       }

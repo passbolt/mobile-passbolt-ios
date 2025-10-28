@@ -40,8 +40,13 @@ extension ResourceUpdater {
     let resourceStateUpdateOperation: ResourceUpdateStateDatabaseOperation = try features.instance()
     let resourcesStoreDatabaseOperation: ResourcesStoreDatabaseOperation = try features.instance()
     let resourceFetchOperation: ResourcesFetchNetworkOperation = try features.instance()
+    let resourceStorePermissionsOperation: ResourceStorePermissionsDatabaseOperation = try features.instance()
     let resourceTagsRemoveUnusedDatabaseOperation: ResourceTagsRemoveUnusedDatabaseOperation = try features.instance()
     let resourcesRemoveDatabaseOperation: ResourceRemoveWithStateDatabaseOperation = try features.instance()
+    let resourceUpdateFolderDatabaseOperation: ResourceUpdateFolderDatabaseOperation = try features.instance()
+    let resourcesModificationDatesDatabaseOperation: ResourcesFetchModificationDateDatabaseOperation =
+      try features.instance()
+    let resourceSetFavoriteDatabaseOperation: ResourceSetFavoriteDatabaseOperation = try features.instance()
     let configuration: SessionConfiguration = try features.sessionConfiguration()
     let metadataKeysService: MetadataKeysService = try features.instance()
 
@@ -90,11 +95,44 @@ extension ResourceUpdater {
         resourceTypes.get().contains { $0.id == resource.typeID }
       }
 
-      let processedResources: Array<ResourceDTO> = await supportedResources.asyncCompactMap(process(resource:))
+      let modificationDates: Array<ResourceModificationDate> = try await resourcesModificationDatesDatabaseOperation(
+        supportedResources.map(\.id).asSet()
+      )
+      let modificationDatesById: [Resource.ID: ResourceModificationDate] = Dictionary(
+        uniqueKeysWithValues: modificationDates.map { ($0.resourceId, $0) }
+      )
+
+      let processedResources: Array<ResourceDTO> = try await supportedResources.asyncCompactMap {
+        resource in
+        // verify if shared metadata key is required and is available - otherwise resource has to be dropped
+        if resource.metadataKeyType == .shared,
+          let keyId: MetadataKeyDTO.ID = resource.metadataKeyId,
+          try await metadataKeysService.hasAccessToSharedKey(keyId) == false
+        {
+          return nil
+        }
+        if let existingModificationDate: ResourceModificationDate = modificationDatesById[resource.id],
+          existingModificationDate.modificationDate >= resource.modified
+        {
+          try await resourceStateUpdateOperation.execute(.init(state: .none, filter: resource.id))
+          // users table is truncated before resources are updated, so permissions must be re-stored
+          try await resourceStorePermissionsOperation.execute(resource.permissions)
+          // similarly, folder relation and favorite status must be re-applied
+          try await resourceUpdateFolderDatabaseOperation.execute(
+            .init(resourceID: resource.id, folderID: resource.parentFolderID)
+          )
+          try await resourceSetFavoriteDatabaseOperation.execute(
+            .init(resourceID: resource.id, favoriteID: resource.favoriteID)
+          )
+          return nil
+        }
+        return await process(resource: resource)
+      }
       let validatedResources: Array<ResourceDTO> =
         try processedResources
         .compactMap { try $0.validate(resourceTypes: resourceTypes.get()) }
 
+      guard validatedResources.isEmpty == false else { return }
       try await serialOperationExecutor.execute(validatedResources)
     }
 
@@ -118,7 +156,7 @@ extension ResourceUpdater {
       )
       resourceTypes.set(supportedResourceTypes)
 
-      try await resourceStateUpdateOperation.execute(.waitingForUpdate)
+      try await resourceStateUpdateOperation.execute(.init(state: .waitingForUpdate))
       let batchExecutor: BatchExecutor = .init(maxConcurrentTasks: configuration.maximumConcurrentTasks)
       let firstPage: PaginatedResponse<Array<ResourceDTO>> =
         try await resourceFetchOperation
@@ -143,7 +181,7 @@ extension ResourceUpdater {
 
       try await metadataKeysService.cleanupDecryptionCache()
       try await resourcesRemoveDatabaseOperation.execute(.waitingForUpdate)
-      try await resourceStateUpdateOperation.execute(.none)
+      try await resourceStateUpdateOperation.execute(.init(state: .none))
       try await resourceTagsRemoveUnusedDatabaseOperation()
     }
 

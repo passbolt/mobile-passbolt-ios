@@ -27,23 +27,17 @@ import FeatureScopes
 extension ResourceUpdateStateDatabaseOperation {
 
   @Sendable fileprivate static func execute(
-    _ input: ResourceState?,
+    _ input: Input,
     connection: SQLiteConnection
   ) throws {
-    let statement: StaticString = """
-      UPDATE
-        resources
-      SET
-        state = ?
-      """
-    /// Prepare the statement
+    var statement: SQLiteStatement =
+      .init("UPDATE resources SET state = ?", arguments: [input.state?.rawValue])
 
-    try connection.execute(
-      .statement(
-        statement,
-        arguments: input?.rawValue
-      )
-    )
+    if let filter = input.filter {
+      statement.append(" WHERE id " + .in(filter))
+    }
+
+    try connection.execute(statement)
   }
 }
 

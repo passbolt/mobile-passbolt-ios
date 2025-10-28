@@ -33,8 +33,28 @@ extension ResourceTypesStoreDatabaseOperation {
     _ input: Array<ResourceType>,
     connection: SQLiteConnection
   ) throws {
-    // cleanup existing types as preparation for update
-    try connection.execute("DELETE FROM resourceTypes;")
+    let existingResourceTypeIds: Array<ResourceType.ID> = try connection.fetch(
+      using:
+        """
+          SELECT id FROM resourceTypes;
+        """
+    ) { dataRow in
+      guard let id: ResourceType.ID = dataRow.id
+      else {
+        throw DatabaseIssue.error(
+          underlyingError: DatabaseDataInvalid.error(for: ResourceType.ID.self)
+        )
+      }
+      return id
+    }
+
+    let newResourceTypeIds: Array<ResourceType.ID> = input.map(\.id)
+    let typesToDelete: Set<ResourceType.ID> =
+      existingResourceTypeIds
+      .filter {
+        newResourceTypeIds.contains($0) == false
+      }
+      .asSet()
 
     for resourceType in input {
       try connection.execute(
@@ -62,6 +82,12 @@ extension ResourceTypesStoreDatabaseOperation {
           resourceType.specification.slug
         )
       )
+    }
+
+    if !typesToDelete.isEmpty {
+      let statement: SQLiteStatement =
+        "DELETE FROM resourceTypes WHERE id" + .in(typesToDelete)
+      try connection.execute(statement)
     }
   }
 }

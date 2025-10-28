@@ -157,7 +157,7 @@ extension SessionData {
       Diagnostics.logger.info("Refreshing resources data...")
       do {
         try await resourceUpdater.updateResources(
-          isInApplicationContext ? .extension : .application
+          isInApplicationContext ? .application : .extension
         )
         Diagnostics.logger.info("...resources data refresh finished!")
       }

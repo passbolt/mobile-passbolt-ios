@@ -74,7 +74,7 @@
 "resource.detail.field.passphrase" = "Senha";
 "resource.detail.field.uri" = "URL do site";
 "resource.detail.field.description" = "Descrição";
-"resource.show.field.uri.placeholder" = "No URI";
+"resource.show.field.uri.placeholder" = "Sem URL";
 "resource.show.field.username.placeholder" = "Sem nome de usuário";
 "resource.show.field.password.placeholder" = "Sem senha";
 "resource.show.field.description.placeholder" = "Sem descrição";
@@ -82,6 +82,7 @@
 "resource.details.value" = "Valor";
 "resource.detail.section.location" = "Locais";
 "resource.detail.section.permissions" = "Compartilhado com";
+"resource.detail.section.additionalURIs" = "URI adicional";
 "resource.detail.section.tags" = "Etiquetas";
 "resource.detail.section.expiry" = "Vencimento";
 "resource.detail.section.expiry.expired" = "Expirado";
@@ -126,50 +127,74 @@
 "server.not.reachable.alert.message.server.placeholder" = "Servidor";
 "server.not.reachable.alert.message" = "%@ não pode ser alcançado. Por favor, tente novamente";
 
-"resource.edit.create.title" = "Create a resource";
+"resource.edit.create.title" = "Criar um recurso";
 "resource.edit.title" = "Editar recurso";
 "resource.password.edit.title" = "Editar senha";
 "resource.edit.field.name.label" = "Nome";
-"resource.edit.field.uri.label" = "Main URI";
+"resource.edit.field.uri.label" = "URI Principal";
 "resource.edit.field.username.label" = "Usuário";
 "resource.edit.field.password.label" = "Senha";
 "resource.edit.field.description.label" = "Descrição";
 "resource.edit.field.totp.label" = "TOTP";
 "resource.edit.field.add.totp" = "TOTP";
-"resource.edit.field.add.note" = "Note";
-"resource.edit.field.add.password" = "senha";
+"resource.edit.field.add.note" = "Anotação";
+"resource.edit.field.add.password" = "Senha";
+"resource.edit.field.add.customFields" = "Custom Fields";
 "resource.edit.field.name.placeholder" = "Digite um nome";
-"resource.edit.field.uri.placeholder" = "Enter URI";
+"resource.edit.field.uri.placeholder" = "Digite a URI";
 "resource.edit.field.username.placeholder" = "Digite o login do usuário";
 "resource.edit.field.password.placeholder" = "Digite a senha";
 "resource.edit.field.description.placeholder" = "Digite a descrição";
 "resource.edit.exit.confirmation.message" = "As suas modificações não serão salvas.";
 "resource.edit.exit.confirmation.button.edit.title" = "Editar";
 "resource.edit.exit.confirmation.button.revert.title" = "Reverter";
-"resource.edit.note.content.title" = "Content";
-"resource.edit.note.content.disclaimer" = "This secure is part of the secret if you wan to be able to search this content, use metadata description.";
-"resource.edit.note.remove.button.title" = "Remove note";
+"resource.edit.note.content.title" = "Conteúdo";
+"resource.edit.note.content.disclaimer" = "Esta segurança faz parte do segredo, se você quiser poder pesquisar este conteúdo, use a descrição de metadados.";
+"resource.edit.note.remove.button.title" = "Remover anotação";
 
-"resource.edit.section.password.title" = "senha";
+"resource.edit.section.resource.title" = "Recurso";
+"resource.edit.section.password.title" = "Senha";
 "resource.edit.section.totp.title" = "TOTP";
-"resource.edit.section.note.title" = "Note";
-"resource.edit.section.metadata.title" = "Metadata";
-"resource.edit.totp.remove.button.title" = "Remove TOTP";
+"resource.edit.section.note.title" = "Anotação";
+"resource.edit.section.metadata.title" = "Metadado";
+"resource.edit.totp.remove.button.title" = "Remover TOTP";
 
-"resource.create.advanced.button" = "View advanced settings";
-"resource.create.additional.secrets.title" = "Additional secrets";
+"resource.edit.customFields.title" = "Custom Fields";
+"resource.edit.customFields.error.invalid" = "Invalid value";
+"resource.edit.customFields.description" = "Edition of custom fields is currently not supported.";
+
+"resource.create.advanced.button" = "Mostrar configurações avançadas";
+"resource.create.additional.secrets.title" = "Segredos adicionais";
 "resource.create.advanced.add.otp" = "TOTP";
 
 "resource.edit.section.metadata.description" = "Descrição";
-"resource.edit.section.metadata.description.name" = "Metadata description";
-"resource.edit.section.metadata.description.description" = "If you want the description to be part of the secret, use the note instead.";
+"resource.edit.section.metadata.description.name" = "Descrição dos metadados";
+"resource.edit.section.metadata.description.description" = "Se você quiser que a descrição seja parte do segredo, use uma anotação.";
 
-"resource.create.menu.title" = "Create a resource";
+"resource.edit.section.metadata.additional.uris" = "URIs adicionais";
+"resource.edit.section.metadata.appearance" = "Aparência";
+"resource.edit.section.customFields.title" = "Custom Fields";
+
+"resource.edit.uris.title" = "URIs adicionais";
+"resource.edit.uris.main.uri.title" = "URI Principal";
+"resource.edit.uris.additional.uris.title" = "URI adicional";
+"resource.edit.uris.main.uri.placeholder" = "URI Principal";
+"resource.edit.uris.additional.uri.placeholder" = "URI";
+"resource.edit.uris.additional.uri.add" = "Add URI";
+"resource.edit.uris.additional.uris.error.limit" = "Você pode adicionar um máximo de %d URIs adicionais.";
+"resource.edit.uris.invalid.form" = "One or more URIs are invalid.";
+
+"resource.edit.icon.title" = "Aparência";
+"resource.edit.icon.color.select.title" = "Selecione a cor";
+"resource.edit.icon.color.default.title" = "Cor padrão";
+"resource.edit.icon.default.title" = "Ícone padrão";
+
+"resource.create.menu.title" = "Criar um recurso";
 "resource.create.menu.password" = "senha";
 "resource.create.menu.totp" = "TOTP";
 
-"resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
-"resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
+"resource.create.invalid.configuration" = "Não é possível criar um recurso com a configuração atual.";
+"resource.edit.invalid.configuration" = "Não é possível editar um recurso com a configuração atual.";
 
 "help.logs.viewer.title" = "Registros";
 
@@ -273,15 +298,15 @@
 "resource.menu.item.copy.password" = "Copiar senha";
 "resource.menu.item.copy.username" = "Copiar usuário";
 "resource.menu.item.copy.description" = "Copiar descrição";
-"resource.menu.item.copy.note" = "Copy note";
+"resource.menu.item.copy.note" = "Copiar anotação";
 "resource.menu.item.reveal.otp" = "Mostrar TOTP";
 "resource.menu.item.copy.otp" = "Copiar TOTP";
 "resource.menu.item.add.favorite" = "Adicionar aos favoritos";
 "resource.menu.item.remove.favorite" = "Remover dos favoritos";
-"resource.menu.item.share" = "Compartilhar senha";
-"resource.menu.item.edit.password" = "Editar senha";
+"resource.menu.item.share" = "Compartilhar";
+"resource.menu.item.edit.resource" = "Editar";
 "resource.menu.item.edit.otp" = "Editar TOTP";
-"resource.menu.item.delete.resource" = "Excluir senha";
+"resource.menu.item.delete.resource" = "Excluir";
 "resource.menu.item.delete.otp" = "Excluir TOTP";
 "resource.menu.item.password" = "Senha";
 "resource.menu.item.username" = "Usuário";
@@ -319,8 +344,8 @@
 
 "resource.permission.edit.button.delete.title" = "Excluir permissão";
 
-"resource.folders.add.menu.title" = "Create a resource";
-"resource.folders.add.menu.folder.label" = "Folder";
+"resource.folders.add.menu.title" = "Criar um recurso";
+"resource.folders.add.menu.folder.label" = "Pasta";
 
 "group.members.list.title" = "Membros do Grupo";
 "group.members.member.details.title" = "Membro do grupo";
@@ -591,7 +616,7 @@ Entre em contato com seu administrador para obter mais informações.";
 "otp.scanning.success.link.button.title" = "Vincular TOTP a uma senha";
 "otp.code.scanning.title" = "Leia o QR code";
 "otp.code.scanning.initial.message" = "Aponte a câmera para o QR Code";
-"otp.code.scanning.manual.input" = "Or create TOTP manually";
+"otp.code.scanning.manual.input" = "Ou crie TOTP manualmente";
 
 // OTP form
 
@@ -603,7 +628,7 @@ Entre em contato com seu administrador para obter mais informações.";
 "otp.edit.form.field.uri.prompt" = "URL";
 "otp.edit.form.field.secret.title" = "Segredo";
 "otp.edit.form.field.secret.prompt" = "Segredo";
-"otp.edit.form.advanced.button.title" = "More TOTP settings";
+"otp.edit.form.advanced.button.title" = "Mais configurações TOTP";
 "otp.edit.form.create.button.title" = "Criar TOTP independente";
 "otp.edit.form.apply.button.title" = "Aplicar";
 "otp.edit.form.edit.button.title" = "Salvar";
@@ -715,14 +740,14 @@ Entre em contato com seu administrador para obter mais informações.";
 "authorization.primary.button.title" = "Autorizar";
 
 // Metadata
-"metadata.pinned.key.validation.error.title" = "The metadata key has changed.";
-"metadata.pinned.key.validation.error.message" = "The encryption key used to share metadata between users has been updated by %@.";
-"metadata.pinned.key.validation.error.disclaimer" = "If you weren't expecting this, you can verify with your administrator.";
-"metadata.pinned.key.validation.error.trust" = "Trust the key";
-"metadata.pinned.key.fingerprint" = "Key fingerprint:";
+"metadata.pinned.key.validation.error.title" = "A chave de metadados foi alterada.";
+"metadata.pinned.key.validation.error.message" = "A chave de criptografia usada para compartilhar metadados entre usuários foi atualizada por %@.";
+"metadata.pinned.key.validation.error.disclaimer" = "Se você não estava esperando isso, você pode verificar com o seu administrador.";
+"metadata.pinned.key.validation.error.trust" = "Confiar na chave";
+"metadata.pinned.key.fingerprint" = "Impressão digital:";
 
-"metadata.pinned.key.validation.deleted.title" = "The metadata key has been deleted.";
-"metadata.pinned.key.validation.deleted.message" = "The trusted encryption key used to share metadata between users has been deleted.";
+"metadata.pinned.key.validation.deleted.title" = "A chave de metadados foi excluída.";
+"metadata.pinned.key.validation.deleted.message" = "A chave de criptografia confiável usada para compartilhar metadados entre usuários foi excluída.";
 
-"metadata.pinned.key.validation.unknown.title" = "The metadata key has changed.";
-"metadata.pinned.key.validation.unknown.message" = "The trusted encryption key used to share metadata between users could not be validated.";
+"metadata.pinned.key.validation.unknown.title" = "A chave de metadados foi alterada.";
+"metadata.pinned.key.validation.unknown.message" = "A chave de criptografia confiável usada para compartilhar metadados entre usuários não pôde ser validada.";

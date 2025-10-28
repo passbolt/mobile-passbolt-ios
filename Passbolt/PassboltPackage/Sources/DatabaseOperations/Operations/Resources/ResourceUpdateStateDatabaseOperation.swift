@@ -28,5 +28,23 @@ public typealias ResourceUpdateStateDatabaseOperation =
 
 public enum ResourceUpdateStateDatabaseOperationDescription: DatabaseOperationDescription, Sendable {
 
-  public typealias Input = ResourceState?
+  public struct Input: Sendable {
+    public let state: ResourceState?
+    public let filter: Set<Resource.ID>?
+
+    public init(
+      state: ResourceState?,
+      filter: Set<Resource.ID>? = .none
+    ) {
+      self.state = state
+      self.filter = filter
+    }
+
+    public init(
+      state: ResourceState?,
+      filter: Resource.ID...
+    ) {
+      self.init(state: state, filter: filter.isEmpty ? .none : filter.asSet())
+    }
+  }
 }

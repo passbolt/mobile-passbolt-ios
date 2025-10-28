@@ -31,5 +31,6 @@ extension FeaturesRegistry {
     self.useLiveNavigationToResourceTextEdit()
     self.useLiveNavigationToResourcePasswordEdit()
     self.useLiveNavigationToResourceIconEdit()
+    self.useLiveNavigationToResourceCustomFieldsEdit()
   }
 }

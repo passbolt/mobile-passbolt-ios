@@ -210,4 +210,138 @@ final class JSONTests: XCTestCase {
       "string"
     )
   }
+
+  func test_arrayLookupGetter() throws {
+    let json: JSON = [
+      "users": [
+        ["id": 1, "name": "Alice", "active": true],
+        ["id": 2, "name": "Bob", "active": false],
+        ["id": 3, "name": "Charlie", "active": true],
+      ]
+    ]
+
+    let lookup = JSON.ArrayLookup(keyPath: \JSON.id.intValue, value: 2)
+    let foundUser = json.users[dynamicMember: lookup]
+
+    XCTAssertEqual(foundUser.id.intValue, 2)
+    XCTAssertEqual(foundUser.name.stringValue, "Bob")
+    XCTAssertEqual(foundUser.active.boolValue, false)
+  }
+
+  func test_arrayLookupGetterNotFound() throws {
+    let json: JSON = [
+      "users": [
+        ["id": 1, "name": "Alice"],
+        ["id": 2, "name": "Bob"],
+      ]
+    ]
+
+    let lookup = JSON.ArrayLookup(keyPath: \JSON.id.intValue, value: 999)
+    let foundUser = json.users[dynamicMember: lookup]
+
+    XCTAssertEqual(foundUser, .null)
+  }
+
+  func test_arrayLookupGetterOnNonArray() throws {
+    let json: JSON = [
+      "notAnArray": "string value"
+    ]
+
+    let lookup = JSON.ArrayLookup(keyPath: \JSON.id.intValue, value: 1)
+    let result = json.notAnArray[dynamicMember: lookup]
+
+    XCTAssertEqual(result, .null)
+  }
+
+  func test_arrayLookupSetter() throws {
+    var json: JSON = [
+      "users": [
+        ["id": 1, "name": "Alice", "active": true],
+        ["id": 2, "name": "Bob", "active": false],
+        ["id": 3, "name": "Charlie", "active": true],
+      ]
+    ]
+
+    let lookup = JSON.ArrayLookup(keyPath: \JSON.id.intValue, value: 2)
+    json.users[dynamicMember: lookup] = ["id": 2, "name": "Robert", "active": true]
+
+    let updatedUser = json.users[dynamicMember: lookup]
+    XCTAssertEqual(updatedUser.id.intValue, 2)
+    XCTAssertEqual(updatedUser.name.stringValue, "Robert")
+    XCTAssertEqual(updatedUser.active.boolValue, true)
+  }
+
+  func test_arrayLookupSetterRemoveWithNull() throws {
+    var json: JSON = [
+      "users": [
+        ["id": 1, "name": "Alice"],
+        ["id": 2, "name": "Bob"],
+        ["id": 3, "name": "Charlie"],
+      ]
+    ]
+
+    let lookup = JSON.ArrayLookup(keyPath: \JSON.id.intValue, value: 2)
+    json.users[dynamicMember: lookup] = .null
+
+    XCTAssertEqual(json.users.arrayValue?.count, 2)
+    XCTAssertEqual(json.users.0.name.stringValue, "Alice")
+    XCTAssertEqual(json.users.1.name.stringValue, "Charlie")
+  }
+
+  func test_arrayLookupSetterOnNonExistentElement() throws {
+    var json: JSON = [
+      "users": [
+        ["id": 1, "name": "Alice"],
+        ["id": 2, "name": "Bob"],
+      ]
+    ]
+
+    let lookup = JSON.ArrayLookup(keyPath: \JSON.id.intValue, value: 999)
+    json.users[dynamicMember: lookup] = ["id": 999, "name": "NewUser"]
+
+    XCTAssertEqual(json.users.arrayValue?.count, 2)
+  }
+
+  func test_arrayLookupSetterOnNonArray() throws {
+    var json: JSON = [
+      "notAnArray": "string value"
+    ]
+
+    let lookup = JSON.ArrayLookup(keyPath: \JSON.id.intValue, value: 1)
+    json.notAnArray[dynamicMember: lookup] = ["id": 1, "name": "Test"]
+
+    XCTAssertEqual(json.notAnArray.stringValue, "string value")
+  }
+
+  func test_arrayLookupWithStringKeyPath() throws {
+    let json: JSON = [
+      "items": [
+        ["code": "ABC", "value": 100],
+        ["code": "XYZ", "value": 200],
+        ["code": "DEF", "value": 300],
+      ]
+    ]
+
+    let lookup = JSON.ArrayLookup(keyPath: \JSON.code.stringValue, value: "XYZ")
+    let foundItem = json.items[dynamicMember: lookup]
+
+    XCTAssertEqual(foundItem.code.stringValue, "XYZ")
+    XCTAssertEqual(foundItem.value.intValue, 200)
+  }
+
+  func test_arrayLookupWithBoolKeyPath() throws {
+    let json: JSON = [
+      "flags": [
+        ["name": "feature1", "enabled": true],
+        ["name": "feature2", "enabled": false],
+        ["name": "feature3", "enabled": true],
+      ]
+    ]
+
+    let lookup = JSON.ArrayLookup(keyPath: \JSON.enabled.boolValue, value: false)
+    let foundFlag = json.flags[dynamicMember: lookup]
+
+    XCTAssertEqual(foundFlag.name.stringValue, "feature2")
+    XCTAssertEqual(foundFlag.enabled.boolValue, false)
+  }
 }

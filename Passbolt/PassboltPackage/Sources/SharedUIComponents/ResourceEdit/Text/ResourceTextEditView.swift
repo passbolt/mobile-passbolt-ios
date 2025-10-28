@@ -61,7 +61,7 @@ internal struct ResourceTextEditView: ControlledView {
             )
           }
           .padding(16)
-          .background(.background)
+          .backgroundColor(.passboltBackground)
         }
         .ignoresSafeArea(.keyboard)
       }
@@ -75,6 +75,7 @@ internal struct ResourceTextEditView: ControlledView {
           )
         }
       }
+      .backgroundColor(.passboltBackground)
   }
 
   private var content: some View {
@@ -134,6 +135,7 @@ internal struct ResourceTextEditView: ControlledView {
           .cornerRadius(4)
         }
       }
+      .backgroundColor(.passboltBackground)
     }
   }
 }

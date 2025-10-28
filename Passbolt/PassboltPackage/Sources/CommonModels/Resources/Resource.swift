@@ -45,8 +45,8 @@ public struct Resource {
   public var meta: JSON
   public var secret: JSON  // null means that secret was not fetched yet as it is requested and filled separately
   public let expired: Timestamp?
-  public let metadataKeyId: MetadataKeyDTO.ID?
-  public let metadataKeyType: MetadataKeyDTO.MetadataKeyType?
+  public var metadataKeyId: MetadataKeyDTO.ID?
+  public var metadataKeyType: MetadataKeyDTO.MetadataKeyType?
 
   public init(
     id: Resource.ID? = .none,
@@ -149,6 +149,11 @@ extension Resource {
 
   public func validate() throws {
     try self.type.validate(self)
+    if let customFields: [ResourceCustomFieldDTO] = combinedCustomFields {
+      for field in customFields {
+        try field.validate()
+      }
+    }
   }
 
   public func validator(
@@ -212,7 +217,7 @@ extension Resource {
   public func isEncrypted(
     _ path: FieldPath
   ) -> Bool {
-    self.type.fieldSpecification(for: path)?.encrypted ?? false
+    self.type.fieldSpecification(for: path)?.encrypted ?? customFieldsSecretPaths.contains(path)
   }
 
   public func fieldSpecification(
@@ -294,7 +299,7 @@ extension Resource {
         self[keyPath: specification.path] = .array([value])
       }
 
-      return .valid(value)
+      return specification.validator.validate(self[keyPath: specification.path])
     }
   }
 
@@ -475,6 +480,44 @@ extension Resource {
   }
 }
 
+// MARK: Custom fields
+
+extension Resource {
+
+  public func secretPath(forCustomFieldID id: ResourceCustomFieldDTO.ID) -> ResourceType.FieldPath? {
+    // ensure custom field is in meta part
+    let customFields: Array<ResourceCustomFieldDTO> =
+      self.meta
+      .custom_fields
+      .arrayValue?
+      .compactMap { .init(json: $0) } ?? .init()
+    guard let field = customFields.first(where: { $0.id == id }) else { return nil }
+    let path: ResourceType.FieldPath = \.secret.custom_fields
+    let lookup: JSON.ArrayLookup = .init(keyPath: \.id, value: .string(field.id.rawValue.uuidString.lowercased()))
+    return path.appending(path: \.[dynamicMember:lookup]).appending(path: \.secret_value)
+  }
+
+  internal var customFieldsSecretPaths: Array<ResourceType.ComputedFieldPath> {
+    self.meta
+      .custom_fields
+      .arrayValue?
+      .compactMap { ResourceCustomFieldDTO.ID(json: $0.id).flatMap { secretPath(forCustomFieldID: $0) } }
+      ?? .init()
+  }
+
+  /// Combined custom fields from meta and secret part
+  internal var combinedCustomFields: Array<ResourceCustomFieldDTO>? {
+    guard
+      let metaFields: Array<ResourceCustomFieldDTO> = self.meta.custom_fields.customFieldDTOs,
+      let secretFields: Array<ResourceCustomFieldDTO> = self.secret.custom_fields.customFieldDTOs
+    else {
+      return nil
+    }
+
+    return metaFields.combined(with: secretFields)
+  }
+}
+
 // MARK: - internal
 
 extension Resource {
@@ -554,5 +597,10 @@ extension Resource {
 }
 
 extension Resource {
+
   fileprivate static let defaultName: String = "no name"
+
+  public var isShared: Bool {
+    self.permission != .owner || self.permissions.count > 1 // owner + others
+  }
 }

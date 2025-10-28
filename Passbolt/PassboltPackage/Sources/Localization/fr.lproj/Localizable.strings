@@ -82,6 +82,7 @@
 "resource.details.value" = "Valeur";
 "resource.detail.section.location" = "Emplacement";
 "resource.detail.section.permissions" = "Partagé avec";
+"resource.detail.section.additionalURIs" = "Additional URI";
 "resource.detail.section.tags" = "Tags";
 "resource.detail.section.expiry" = "Expiration";
 "resource.detail.section.expiry.expired" = "Expiré";
@@ -138,6 +139,7 @@
 "resource.edit.field.add.totp" = "TOTP";
 "resource.edit.field.add.note" = "Note";
 "resource.edit.field.add.password" = "Mot de passe";
+"resource.edit.field.add.customFields" = "Custom Fields";
 "resource.edit.field.name.placeholder" = "Tapez un nom";
 "resource.edit.field.uri.placeholder" = "Enter URI";
 "resource.edit.field.username.placeholder" = "Tapez le nom d'utilisateur";
@@ -150,11 +152,16 @@
 "resource.edit.note.content.disclaimer" = "This secure is part of the secret if you wan to be able to search this content, use metadata description.";
 "resource.edit.note.remove.button.title" = "Remove note";
 
+"resource.edit.section.resource.title" = "Ressource";
 "resource.edit.section.password.title" = "Mot de passe";
 "resource.edit.section.totp.title" = "TOTP";
 "resource.edit.section.note.title" = "Note";
 "resource.edit.section.metadata.title" = "Métadonnées";
 "resource.edit.totp.remove.button.title" = "Remove TOTP";
+
+"resource.edit.customFields.title" = "Custom Fields";
+"resource.edit.customFields.error.invalid" = "Invalid value";
+"resource.edit.customFields.description" = "Edition of custom fields is currently not supported.";
 
 "resource.create.advanced.button" = "View advanced settings";
 "resource.create.additional.secrets.title" = "Additional secrets";
@@ -163,6 +170,24 @@
 "resource.edit.section.metadata.description" = "Description";
 "resource.edit.section.metadata.description.name" = "Metadata description";
 "resource.edit.section.metadata.description.description" = "If you want the description to be part of the secret, use the note instead.";
+
+"resource.edit.section.metadata.additional.uris" = "Additional URIs";
+"resource.edit.section.metadata.appearance" = "Appearance";
+"resource.edit.section.customFields.title" = "Custom Fields";
+
+"resource.edit.uris.title" = "Additional URIs";
+"resource.edit.uris.main.uri.title" = "Main URI";
+"resource.edit.uris.additional.uris.title" = "Additional URI";
+"resource.edit.uris.main.uri.placeholder" = "Main URI";
+"resource.edit.uris.additional.uri.placeholder" = "URI";
+"resource.edit.uris.additional.uri.add" = "Add URI";
+"resource.edit.uris.additional.uris.error.limit" = "You can add a maximum of %d additional URIs.";
+"resource.edit.uris.invalid.form" = "One or more URIs are invalid.";
+
+"resource.edit.icon.title" = "Appearance";
+"resource.edit.icon.color.select.title" = "Select color";
+"resource.edit.icon.color.default.title" = "Default color";
+"resource.edit.icon.default.title" = "Default icon";
 
 "resource.create.menu.title" = "Créer une ressource";
 "resource.create.menu.password" = "Mot de passe";
@@ -278,10 +303,10 @@
 "resource.menu.item.copy.otp" = "Copier le TOTP";
 "resource.menu.item.add.favorite" = "Ajouter aux favoris";
 "resource.menu.item.remove.favorite" = "Retirer des favoris";
-"resource.menu.item.share" = "Partager le mot de passe";
-"resource.menu.item.edit.password" = "Modifier le mot de passe";
+"resource.menu.item.share" = "Partager";
+"resource.menu.item.edit.resource" = "Modifier";
 "resource.menu.item.edit.otp" = "Modifier le TOTP";
-"resource.menu.item.delete.resource" = "Supprimer le mot de passe";
+"resource.menu.item.delete.resource" = "Supprimer";
 "resource.menu.item.delete.otp" = "Supprimer le TOTP";
 "resource.menu.item.password" = "Mot de passe";
 "resource.menu.item.username" = "Nom d'utilisateur";
@@ -440,7 +465,7 @@ Contactez votre administrateur pour plus d'informations.";
 "error.internet.connection.issue" = "Impossible de se connecter à Internet.";
 "error.client.certificate.invalid" = "Certificat client invalide.";
 "error.server.connection.issue" = "Impossible de se connecter avec le serveur.";
-"error.server.time.issue" = "Le serveur et le client sont désynchronisés, veuillez contacter votre administrateur.";
+"error.server.time.issue" = "Les horloges du serveur et du client sont désynchronisées, veuillez contacter votre administrateur.";
 "error.server.response.invalid" = "Réponse du serveur invalide";
 "error.server.response.timeout" = "Délai de réponse du serveur.";
 "error.server.certificate.invalid" = "Certificat de serveur invalide.";

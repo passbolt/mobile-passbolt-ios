@@ -146,6 +146,12 @@ extension ResourceNetworkOperationDispatch {
       withID id: Resource.ID,
       secrets: Secrets
     ) async throws -> ResourceEditNetworkOperationResult {
+      var resource = resource
+
+      if let metadataKeyType = metadataKeysService.determineKeyType(resource.isShared) {
+        resource.updateMetadataKey(metadataKeyType)
+      }
+
       let validatedMetadataProperties: ValidatedMetadataProperties = try .init(resource: resource)
 
       let encryptionType: MetadataKeysService.EncryptionType = validatedMetadataProperties.encryptionType
@@ -188,42 +194,78 @@ extension ResourceNetworkOperationDispatch {
 }
 
 private struct ValidatedMetadataProperties {
-  public let metadataKeyId: MetadataKeyDTO.ID
   public let metadata: String
-  public let metadataKeyType: MetadataKeyDTO.MetadataKeyType
 
-  var encryptionType: MetadataKeysService.EncryptionType {
-    metadataKeyType == .shared ? .sharedKey(metadataKeyId) : .userKey
+  public let encryptionType: MetadataKeysService.EncryptionType
+
+  public let metadataKeyId: MetadataKeyDTO.ID
+
+  public var metadataKeyType: MetadataKeyDTO.MetadataKeyType {
+    switch encryptionType {
+    case .sharedKey:
+      return .shared
+    case .userKey:
+      return .user
+    }
   }
 
   init(resource: Resource) throws {
     var diagnostics: Array<DiagnosticsContext> = []
-    if resource.metadataKeyId == nil {
+    var encryptionType: MetadataKeysService.EncryptionType?
+    var metadataKeyId: MetadataKeyDTO.ID?
+    if let keyId = resource.metadataKeyId {
+      encryptionType = .sharedKey(keyId)
+      metadataKeyId = keyId
+    }
+    else {
       diagnostics.append(
         .context(.message("Missing metadata key ID"))
       )
     }
+    if resource.metadataKeyType == .shared, let keyId = metadataKeyId {
+      encryptionType = .sharedKey(keyId)
+    }
+    else if resource.metadataKeyType == .user {
+      encryptionType = .userKey
+    }
+    else {
+      diagnostics.append(
+        .context(.message("Invalid metadata key type"))
+      )
+    }
+
     if resource.meta.stringValue == nil {
       diagnostics.append(
         .context(.message("Missing metadata"))
       )
     }
 
-    if resource.metadataKeyType == nil {
-      diagnostics.append(
-        .context(.message("Missing metadata key type"))
-      )
-    }
     guard
-      let metadataKeyId = resource.metadataKeyId,
-      let metadata = resource.meta.stringValue,
-      let metadataKeyType = resource.metadataKeyType
+      let encryptionType = encryptionType,
+      let keyId = metadataKeyId,
+      let metadata = resource.meta.stringValue
     else {
       throw InvalidMetadataProperties.error(diagnostics)
     }
-    self.metadataKeyId = metadataKeyId
+    self.encryptionType = encryptionType
     self.metadata = metadata
-    self.metadataKeyType = metadataKeyType
+    self.metadataKeyId = keyId
+  }
+}
+
+extension Resource {
+
+  fileprivate mutating func updateMetadataKey(_ encryptionType: MetadataKeysService.EncryptionType) {
+    switch encryptionType {
+    case .sharedKey(let keyId) where self.metadataKeyType != .shared:
+      self.metadataKeyId = keyId
+      self.metadataKeyType = .shared
+    case .userKey where self.metadataKeyType != .user:
+      self.metadataKeyId = nil
+      self.metadataKeyType = .user
+    default:
+      break  // no change
+    }
   }
 }
 
