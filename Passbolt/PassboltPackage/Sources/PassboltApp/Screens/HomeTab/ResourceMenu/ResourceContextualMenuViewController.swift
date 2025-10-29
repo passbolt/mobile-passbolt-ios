@@ -321,7 +321,7 @@ extension ResourceContextualMenuViewController {
       do {
         let resource: Resource = try await self.resourceController.state.value
         let metadataKeysService: MetadataKeysService = try self.features.instance()
-        try await metadataKeysService.ensureCanEncrypt(resource: resource)
+        try await metadataKeysService.ensureCanEncrypt(resource: resource, forSharing: true)
         try await self.navigationToSelf.revert()
         try await self.navigationToShare.perform(context: self.resourceID)
       }
