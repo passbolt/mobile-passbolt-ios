@@ -40,7 +40,7 @@ public struct ResourceEditNetworkOperationVariable: Encodable {
   public var resourceTypeID: ResourceType.ID
   public var parentFolderID: ResourceFolder.ID?
   public var secrets: Array<Secret>
-  public var metadataKeyID: MetadataKeyDTO.ID
+  public var metadataKeyID: MetadataKeyDTO.ID?
   public var metadataKeyType: MetadataKeyDTO.MetadataKeyType
   public var metadata: ArmoredPGPMessage
 
@@ -61,7 +61,7 @@ public struct ResourceEditNetworkOperationVariable: Encodable {
     resourceTypeID: ResourceType.ID,
     parentFolderID: ResourceFolder.ID?,
     metadata: ArmoredPGPMessage,
-    metadataKeyID: MetadataKeyDTO.ID,
+    metadataKeyID: MetadataKeyDTO.ID?,
     metadataKeyType: MetadataKeyDTO.MetadataKeyType,
     secrets: Array<(userID: User.ID, data: ArmoredPGPMessage)>
   ) {

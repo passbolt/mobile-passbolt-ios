@@ -198,7 +198,7 @@ private struct ValidatedMetadataProperties {
 
   public let encryptionType: MetadataKeysService.EncryptionType
 
-  public let metadataKeyId: MetadataKeyDTO.ID
+  public let metadataKeyId: MetadataKeyDTO.ID?
 
   public var metadataKeyType: MetadataKeyDTO.MetadataKeyType {
     switch encryptionType {
@@ -213,14 +213,16 @@ private struct ValidatedMetadataProperties {
     var diagnostics: Array<DiagnosticsContext> = []
     var encryptionType: MetadataKeysService.EncryptionType?
     var metadataKeyId: MetadataKeyDTO.ID?
-    if let keyId = resource.metadataKeyId {
-      encryptionType = .sharedKey(keyId)
-      metadataKeyId = keyId
-    }
-    else {
-      diagnostics.append(
-        .context(.message("Missing metadata key ID"))
-      )
+    if resource.isShared {
+      if let keyId = resource.metadataKeyId {
+        encryptionType = .sharedKey(keyId)
+        metadataKeyId = keyId
+      }
+      else {
+        diagnostics.append(
+          .context(.message("Missing metadata key ID"))
+        )
+      }
     }
     if resource.metadataKeyType == .shared, let keyId = metadataKeyId {
       encryptionType = .sharedKey(keyId)
@@ -242,14 +244,13 @@ private struct ValidatedMetadataProperties {
 
     guard
       let encryptionType = encryptionType,
-      let keyId = metadataKeyId,
       let metadata = resource.meta.stringValue
     else {
       throw InvalidMetadataProperties.error(diagnostics)
     }
     self.encryptionType = encryptionType
     self.metadata = metadata
-    self.metadataKeyId = keyId
+    self.metadataKeyId = metadataKeyId
   }
 }
 

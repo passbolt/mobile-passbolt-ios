@@ -601,6 +601,8 @@ extension Resource {
   fileprivate static let defaultName: String = "no name"
 
   public var isShared: Bool {
-    self.permission != .owner || self.permissions.count > 1 // owner + others
+    self.permission != .owner
+      || self.permissions.count > 1  // owner + others
+      || self.permissions.first?.userGroupID != .none  // resource is owned by a group with single user
   }
 }

@@ -286,4 +286,63 @@ final class ResourceTests: XCTestCase {
     try resource.validate()
     // no errors should be thrown
   }
+
+  func test_resource_ifUserIsNotAnOwner_shouldBeConsideredAsShared() {
+    var resource: Resource = .empty
+    resource.permission = .read
+
+    XCTAssertTrue(resource.isShared)
+  }
+
+  func test_resource_ifUserIsAnOwner_andNoOtherPermissions_shouldBeConsideredAsNotShared() {
+    var resource: Resource = .empty
+    resource.permission = .owner
+
+    XCTAssertFalse(resource.isShared)
+  }
+
+  func test_resource_ifIsOwnedOnlyByAGroup_shouldBeConsideredAsShared() {
+    var resource: Resource = .empty
+    resource.permission = .owner
+    resource.permissions = [.userGroup(id: .mock_1, permission: .read, permissionID: .none)]
+
+    XCTAssertTrue(resource.isShared)
+  }
+
+  func test_resource_ifHasMultiplePermissions_andOneIsNotOwner_shouldBeConsideredAsShared() {
+    var resource: Resource = .empty
+    resource.permission = .owner
+    resource.permissions = [
+      .user(id: .mock_1, permission: .read, permissionID: .none),
+      .userGroup(id: .mock_1, permission: .owner, permissionID: .none),
+    ]
+
+    XCTAssertTrue(resource.isShared)
+  }
+
+  func test_resource_ifHasSinglePermission_andIsOwner_shouldBeConsideredAsNotShared() {
+    var resource: Resource = .empty
+    resource.permission = .owner
+    resource.permissions = [
+      .user(id: .mock_1, permission: .owner, permissionID: .none)
+    ]
+
+    XCTAssertFalse(resource.isShared)
+  }
+}
+
+extension Resource {
+
+  fileprivate static var empty: Self {
+    .init(
+      type: .init(
+        id: .init(),
+        specification: .init(
+          slug: .empty,
+          metaFields: .init(),
+          secretFields: .init()
+        )
+      )
+    )
+  }
 }
