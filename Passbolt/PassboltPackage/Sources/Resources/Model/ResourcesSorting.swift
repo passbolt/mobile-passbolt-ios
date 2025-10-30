@@ -29,3 +29,4 @@ public enum ResourcesSorting {
 }
 
 extension ResourcesSorting: Hashable {}
+extension ResourcesSorting: Sendable {}

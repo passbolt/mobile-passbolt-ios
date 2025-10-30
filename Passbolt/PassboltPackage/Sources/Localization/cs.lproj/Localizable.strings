@@ -345,8 +345,7 @@
 
 "resource.permission.edit.button.delete.title" = "Odebrat oprávnění";
 
-"resource.folders.add.menu.title" = "Vytvořit zdroj";
-"resource.folders.add.menu.folder.label" = "Složka";
+"resource.create.menu.add.folder.title" = "Složka";
 
 "group.members.list.title" = "Členové skupiny";
 "group.members.member.details.title" = "Člen skupiny";

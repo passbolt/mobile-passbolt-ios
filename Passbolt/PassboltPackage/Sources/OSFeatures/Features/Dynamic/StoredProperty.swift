@@ -44,7 +44,7 @@ where Description: StoredPropertyDescription {
 
   public typealias Value = Description.Value
 
-  public var binding: StateBinding<Value?>
+  public var variable: StoredVariable<Value?>
 }
 
 extension StoredProperty: LoadableFeature {
@@ -53,7 +53,7 @@ extension StoredProperty: LoadableFeature {
 
   public nonisolated static var placeholder: Self {
     Self(
-      binding: .placeholder
+      variable: .placeholder
     )
   }
   #endif
@@ -62,26 +62,26 @@ extension StoredProperty: LoadableFeature {
 extension StoredProperty {
 
   public var value: Value? {
-    get { self.binding.get() }
-    set { self.binding.set(to: newValue) }
+    get { self.variable.value }
+    set { self.variable.assign(newValue) }
   }
 
   @Sendable public func set(
     to newValue: Value?
   ) {
-    self.binding.set(to: newValue)
+    self.variable.assign(newValue)
   }
 
   @Sendable public func get(
     withDefault value: Value
   ) -> Value {
-    self.binding.get() ?? value
+    self.variable.value ?? value
   }
 
   public subscript<Property>(
     dynamicMember keyPath: KeyPath<Value, Property>
   ) -> Property? {
-    if let value: Value = self.binding.get(\.self) {
+    if let value: Value = self.variable.value {
       return value[keyPath: keyPath]
     }
     else {
@@ -121,9 +121,9 @@ extension StoredProperty {
     }
 
     return Self(
-      binding: .fromSource(
-        read: fetch,
-        write: store(_:)
+      variable: .init(
+        fetch: fetch,
+        store: store(_:)
       )
     )
   }
@@ -157,9 +157,9 @@ extension StoredProperty {
     }
 
     return Self(
-      binding: .fromSource(
-        read: fetch,
-        write: store(_:)
+      variable: .init(
+        fetch: fetch,
+        store: store(_:)
       )
     )
   }

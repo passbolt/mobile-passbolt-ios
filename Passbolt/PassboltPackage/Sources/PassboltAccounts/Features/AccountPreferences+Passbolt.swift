@@ -63,8 +63,8 @@ extension AccountPreferences {
 
     let useLastHomePresentationAsDefaultProperty: UseLastUsedHomePresentationAsDefaultStoredProperty =
       try features.instance()
-    let useLastHomePresentationAsDefault: StateBinding<Bool> = useLastHomePresentationAsDefaultProperty
-      .binding
+    let useLastHomePresentationAsDefault: StoredVariable<Bool> = useLastHomePresentationAsDefaultProperty
+      .variable
       .convert(
         read: unwrapped(default: true),
         write: { $0 }
@@ -72,8 +72,8 @@ extension AccountPreferences {
 
     let defaultHomePresentationProperty: DefaultHomeModeStoredProperty =
       try features.instance()
-    let defaultHomePresentation: StateBinding<HomePresentationMode> = defaultHomePresentationProperty
-      .binding
+    let defaultHomePresentation: StoredVariable<HomePresentationMode> = defaultHomePresentationProperty
+      .variable
       .convert(
         read: unwrappedMap(
           default: .plainResourcesList,

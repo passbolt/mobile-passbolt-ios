@@ -21,25 +21,23 @@
 // @since         v1.0
 //
 
-import UIComponents
+import Display
+import UICommons
 
-internal struct HomePresentationMenuView: ComponentView {
+internal struct HomePresentationMenuView: ControlledView {
 
-  @ObservedObject private var state: ObservableValue<State>
-  private let controller: HomePresentationMenuController
+  internal let controller: HomePresentationMenuViewController
 
   internal init(
-    state: ObservableValue<State>,
-    controller: HomePresentationMenuController
+    controller: HomePresentationMenuViewController
   ) {
-    self.state = state
     self.controller = controller
   }
 
   internal var body: some View {
     DrawerMenu(
       closeTap: {
-        self.controller.dismissView()
+        await self.controller.dismiss()
       },
       title: {
         Text(
@@ -50,43 +48,33 @@ internal struct HomePresentationMenuView: ComponentView {
       },
       content: {
         VStack(spacing: 0) {
-          ForEach(self.state.availableModes, id: \.self) { mode in
-            // TODO: [MOB-???] There might be other modes in section
-            // which require divider but those are not linked to folders
-            // rethink adding divider when adding tags or groups
-            if case .foldersExplorer = mode {
-              ListDividerView()
+          with(\.currentMode) { currentMode in
+            with(\.availableModes) { groups in
+              ForEach(Array(groups.enumerated()), id: \.offset) { index, group in
+                ForEach(group.items, id: \.self) { mode in
+                  DrawerMenuItemView(
+                    action: {
+                      await self.controller.selectMode(mode)
+                    },
+                    title: {
+                      Text(displayable: mode.title)
+                    },
+                    leftIcon: {
+                      Image(named: mode.iconName)
+                        .resizable()
+                    },
+                    isSelected: mode == currentMode
+                  )
+                  .accessibilityIdentifier(mode.rawValue)
+                }
+                if index < groups.count - 1 {
+                  ListDividerView()
+                }
+              }
             }
-            else if case .foldersExplorer = mode, !self.state.availableModes.contains(.foldersExplorer) {
-              ListDividerView()
-            }  // else { /* NOP */ }
-
-            DrawerMenuItemView(
-              action: {
-                await self.controller.selectMode(mode)
-              },
-              title: {
-                Text(displayable: mode.title)
-              },
-              leftIcon: {
-                Image(named: mode.iconName)
-                  .resizable()
-              },
-              isSelected: mode == self.state.currentMode
-            )
-            .accessibilityIdentifier(mode.rawValue)
           }
         }
       }
     )
-  }
-}
-
-extension HomePresentationMenuView {
-
-  internal struct State: Hashable {
-
-    internal var currentMode: HomePresentationMode
-    internal var availableModes: OrderedSet<HomePresentationMode>
   }
 }

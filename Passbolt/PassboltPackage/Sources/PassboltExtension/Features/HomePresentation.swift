@@ -33,7 +33,7 @@ import SessionData
 
 internal struct HomePresentation {
 
-  internal var currentMode: StateBinding<HomePresentationMode>
+  internal var currentMode: StoredVariable<HomePresentationMode>
   internal var availableModes: @Sendable () -> OrderedSet<HomePresentationMode>
 }
 
@@ -60,9 +60,9 @@ extension HomePresentation {
 
     let accountPreferences: AccountPreferences = try features.instance()
 
-    let useLastUsedHomePresentationAsDefault: StateBinding<Bool> = accountPreferences
+    let useLastUsedHomePresentationAsDefault: StoredVariable<Bool> = accountPreferences
       .useLastHomePresentationAsDefault
-    let defaultHomePresentation: StateBinding<HomePresentationMode> = accountPreferences.defaultHomePresentation
+    let defaultHomePresentation: StoredVariable<HomePresentationMode> = accountPreferences.defaultHomePresentation
 
     let availablePresentationModes: OrderedSet<HomePresentationMode> = {
       // order is preserved on display
@@ -91,7 +91,7 @@ extension HomePresentation {
     let initialPresentationMode: HomePresentationMode = {
       let defaultMode: HomePresentationMode = accountPreferences
         .defaultHomePresentation
-        .get(\.self)
+        .value
 
       if availablePresentationModes.contains(defaultMode) {
         return defaultMode
@@ -101,24 +101,22 @@ extension HomePresentation {
       }
     }()
 
-    let currentModeBinding: StateBinding<HomePresentationMode> = .variable(initial: initialPresentationMode)
+    // Create a StoredVariable that saves to preferences on changes
+    let currentModeVariable = StoredVariable<HomePresentationMode>(
+      fetch: { initialPresentationMode },
+      store: { newMode in
+        if useLastUsedHomePresentationAsDefault.value {
+          defaultHomePresentation.assign(newMode)
+        }
+      }
+    )
 
     @Sendable nonisolated func availableModes() -> OrderedSet<HomePresentationMode> {
       availablePresentationModes
     }
 
     return Self(
-      currentMode:
-        currentModeBinding
-        .convert(
-          read: { $0 },
-          write: {
-            if useLastUsedHomePresentationAsDefault.get() {
-              defaultHomePresentation.set(to: $0)
-            }  // else NOP
-            return $0
-          }
-        ),
+      currentMode: currentModeVariable,
       availableModes: availableModes
     )
   }

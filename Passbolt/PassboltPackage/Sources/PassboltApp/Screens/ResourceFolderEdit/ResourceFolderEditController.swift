@@ -31,9 +31,9 @@ internal final class ResourceFolderEditController: ViewController, Sendable {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
 
-  private let navigation: DisplayNavigation
   private let users: Users
   private let resourceFolderEditForm: ResourceFolderEditForm
+  private let navigationToSelf: NavigationToResourceFolderEdit
 
   private let features: Features
 
@@ -42,7 +42,7 @@ internal final class ResourceFolderEditController: ViewController, Sendable {
     features: Features
   ) throws {
     self.features = features.takeOwned()
-    self.navigation = try features.instance()
+    self.navigationToSelf = try features.instance()
     self.users = try features.instance()
     self.resourceFolderEditForm = try features.instance()
 
@@ -96,7 +96,7 @@ extension ResourceFolderEditController {
 
 extension ResourceFolderEditController {
 
-  @Sendable nonisolated internal final func setFolderName(
+  @MainActor internal final func setFolderName(
     _ folderName: String
   ) {
     _ = self.resourceFolderEditForm.setFolderName(folderName)
@@ -105,7 +105,7 @@ extension ResourceFolderEditController {
   internal final func saveChanges() async {
     do {
       try await self.resourceFolderEditForm.sendForm()
-      await self.navigation.pop(ResourceFolderEditView.self)
+      try await self.navigationToSelf.revert()
       let folderName = try await self.resourceFolderEditForm.state.value.name
       SnackBarMessageEvent.send(
         .info(

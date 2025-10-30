@@ -52,10 +52,12 @@ internal final class ResourceFolderContentNodeController: ViewController {
     self.context = context
     self.features = features
 
-    self.navigationTree = features.instance()
+    let navigationTree: NavigationTree = features.instance()
+    self.navigationTree = navigationTree
     self.autofillContext = features.instance()
     self.resourceFolders = try features.instance()
 
+    let session: Session = try features.instance()
     let requestedServiceIdentifiers: Array<AutofillExtensionContext.ServiceIdentifier> = self.autofillContext
       .requestedServiceIdentifiers()
     self.requestedServiceIdentifiers = requestedServiceIdentifiers
@@ -74,8 +76,17 @@ internal final class ResourceFolderContentNodeController: ViewController {
 
     self.searchController = try features.instance(
       context: .init(
-        nodeID: context.nodeID,
-        searchPrompt: context.searchPrompt
+        searchPrompt: context.searchPrompt,
+        onPresentationMenuTap: {
+          try navigationTree.present(
+            .sheet,
+            HomePresentationMenuNodeView.self,
+            controller: features.instance(context: context.nodeID)
+          )
+        },
+        onAvatarTap: {
+          await session.close(.none)
+        }
       )
     )
 

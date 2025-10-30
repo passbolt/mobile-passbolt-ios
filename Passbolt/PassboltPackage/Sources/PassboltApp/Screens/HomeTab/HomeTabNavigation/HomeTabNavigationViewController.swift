@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import Display
 import UICommons
 import UIComponents
 
@@ -78,39 +79,17 @@ internal final class HomeTabNavigationViewController: NavigationViewController, 
         self?.cancellables
           .executeOnMainActor { [weak self] in
             guard let self = self else { return }
+
             switch mode {
-            case .plainResourcesList:
+            case .plainResourcesList,
+              .favoriteResourcesList,
+              .modifiedResourcesList,
+              .sharedResourcesList,
+              .ownedResourcesList,
+              .expiredResourcesList:
               await self.replaceNavigationRoot(
-                with: PlainResourcesListViewController.self,
-                animated: false
-              )
-
-            case .favoriteResourcesList:
-              await self.replaceNavigationRoot(
-                with: FavoriteResourcesListViewController.self,
-                animated: false
-              )
-
-            case .modifiedResourcesList:
-              await self.replaceNavigationRoot(
-                with: ModifiedResourcesListViewController.self,
-                animated: false
-              )
-
-            case .sharedResourcesList:
-              await self.replaceNavigationRoot(
-                with: SharedResourcesListViewController.self,
-                animated: false
-              )
-
-            case .ownedResourcesList:
-              await self.replaceNavigationRoot(
-                with: OwnedResourcesListViewController.self,
-                animated: false
-              )
-            case .expiredResourcesList:
-              await self.replaceNavigationRoot(
-                with: ExpiredResourcesListViewController.self,
+                with: ResourcesListView.self,
+                in: .init(mode: mode),
                 animated: false
               )
 

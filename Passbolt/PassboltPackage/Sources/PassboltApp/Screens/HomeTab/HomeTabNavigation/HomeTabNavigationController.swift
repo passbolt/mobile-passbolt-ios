@@ -43,7 +43,15 @@ extension HomeTabNavigationController: UIController {
     let applicationRate: ApplicationRating = try features.instance()
 
     func currentHomePresentationModePublisher() -> AnyPublisher<HomePresentationMode, Never> {
-      homePresentation.currentPresentationModePublisher()
+      homePresentation
+        .currentPresentationModeUpdatable()
+        .publisher
+        .autoconnect()
+        .tryCompactMap {
+          try $0.value
+        }
+        .replaceError(with: .plainResourcesList)
+        .eraseToAnyPublisher()
     }
 
     func presentApplicationRateDialog() {

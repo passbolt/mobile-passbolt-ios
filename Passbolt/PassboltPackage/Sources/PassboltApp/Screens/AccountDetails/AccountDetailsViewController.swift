@@ -24,7 +24,7 @@
 import Accounts
 import Display
 
-internal final class AccountDetailsViewController: ViewController {
+internal final class AccountDetailsViewController: @MainActor ViewController {
 
   internal struct State: Equatable {
     internal var avatarImage: Data?

@@ -59,3 +59,26 @@ public struct ResourcesFilter {
 }
 
 extension ResourcesFilter: Hashable {}
+extension ResourcesFilter: Sendable {}
+
+extension HomePresentationMode {
+
+  public var baseFilter: ResourcesFilter {
+    switch self {
+    case .plainResourcesList:
+      return .init(sorting: .nameAlphabetically)
+    case .favoriteResourcesList:
+      return .init(sorting: .modifiedRecently, favoriteOnly: true)
+    case .modifiedResourcesList:
+      return .init(sorting: .modifiedRecently)
+    case .sharedResourcesList:
+      return .init(sorting: .modifiedRecently, permissions: [.read, .write])
+    case .ownedResourcesList:
+      return .init(sorting: .modifiedRecently, permissions: [.owner])
+    case .expiredResourcesList:
+      return .init(sorting: .expiryDate, expiredOnly: true)
+    default:
+      return .init(sorting: .nameAlphabetically)
+    }
+  }
+}

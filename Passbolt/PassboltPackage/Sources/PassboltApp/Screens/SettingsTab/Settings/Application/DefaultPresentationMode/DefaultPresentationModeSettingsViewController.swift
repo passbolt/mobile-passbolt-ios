@@ -40,8 +40,8 @@ internal final class DefaultPresentationModeSettingsViewController: ViewControll
   private let navigationToSelf: NavigationToDefaultPresentationModeSettings
   private let accountPreferences: AccountPreferences
   private let homePresentation: HomePresentation
-  private let useLastUsedHomePresentationAsDefault: StateBinding<Bool>
-  private let defaultHomePresentation: StateBinding<HomePresentationMode>
+  private let useLastUsedHomePresentationAsDefault: StoredVariable<Bool>
+  private let defaultHomePresentation: StoredVariable<HomePresentationMode>
 
   internal init(
     context: Void,
@@ -71,12 +71,12 @@ internal final class DefaultPresentationModeSettingsViewController: ViewControll
           _
         )
         in
-        let availableModes = await homePresentation.availableHomePresentationModes()
-        await updateState { (viewState: inout ViewState) in
+        let availableModes = homePresentation.availableHomePresentationModes()
+        updateState { (viewState: inout ViewState) in
           viewState.selectedMode =
-            useLastUsedHomePresentationAsDefault.get(\.self)
+            useLastUsedHomePresentationAsDefault.value
             ? .none
-            : defaultHomePresentation.get(\.self)
+            : defaultHomePresentation.value
           viewState.availableModes = availableModes
         }
       }
@@ -90,11 +90,11 @@ extension DefaultPresentationModeSettingsViewController {
     _ mode: HomePresentationMode?
   ) async {
     if let mode: HomePresentationMode = mode {
-      useLastUsedHomePresentationAsDefault.set(to: false)
-      defaultHomePresentation.set(to: mode)
+      useLastUsedHomePresentationAsDefault.assign(false)
+      defaultHomePresentation.assign(mode)
     }
     else {
-      useLastUsedHomePresentationAsDefault.set(to: true)
+      useLastUsedHomePresentationAsDefault.assign(true)
     }
 
     await navigationToSelf.revertCatching()

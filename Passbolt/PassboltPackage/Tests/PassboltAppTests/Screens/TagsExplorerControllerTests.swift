@@ -33,69 +33,32 @@ import XCTest
 
 @testable import PassboltApp
 
-// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@MainActor
-final class TagsExplorerControllerTests: MainActorTestCase {
+internal class TagExplorerViewControllerTests: FeaturesTestCase {
 
-  var updates: Variable<Timestamp>!
-
-  override func mainActorSetUp() {
-    features
-      .set(
-        SessionScope.self,
-        context: .init(
-          account: .mock_ada,
-          configuration: .mock_1
-        )
+  internal override func commonPrepare() {
+    super.commonPrepare()
+    set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1
       )
-    updates = .init(initial: 0)
-    features.patch(
-      \SessionData.lastUpdate,
-      with: updates.asAnyUpdatable()
     )
-    features.patch(
+    patch(
       \SessionData.refreshIfNeeded,
       with: always(Void())
     )
-    features.patch(
-      \Session.currentAccount,
-      with: always(Account.mock_ada)
-    )
-    features.patch(
-      \ResourceTags.filteredTagsList,
-      with: always([])
-    )
-    features.usePlaceholder(for: HomePresentation.self)
-    features.patch(
-      \AccountDetails.profile,
-      with: always(AccountWithProfile.mock_ada)
-    )
-    features.patch(
-      \AccountDetails.avatarImage,
-      with: always(.init())
-    )
-  }
-
-  override func mainActorTearDown() {
-    updates = .none
-  }
-
-  override func featuresActorTearDown() async throws {
-    self.mainActorTearDown()
-    self.features = nil
   }
 
   func test_refreshIfNeeded_showsError_whenRefreshFails() async throws {
-    features.patch(
+    patch(
       \SessionData.refreshIfNeeded,
       with: alwaysThrow(MockIssue.error())
     )
 
     let messagesSubscription = SnackBarMessageEvent.subscribe()
 
-    let controller: TagsExplorerController = try testController(
-      context: nil
-    )
+    let controller: TagsExplorerViewController = try testedInstance(context: .none)
 
     await controller.refreshIfNeeded()
 
@@ -104,48 +67,44 @@ final class TagsExplorerControllerTests: MainActorTestCase {
     XCTAssertNotNil(message)
   }
 
-  func test_refreshIfNeeded_finishesWithoutError_whenRefreshingSucceeds() async throws {
-
-    let controller: TagsExplorerController = try testController(
-      context: nil
-    )
-
-    await controller.refreshIfNeeded()
-
-    // can't check if succeeded now...
-  }
-
   func test_initally_viewStateTitle_isDefaultString_forTags() async throws {
-    let controller: TagsExplorerController = try await testController(
-      context: nil
+    patch(
+      \ResourceTags.filteredTagsList,
+      with: always([])
+    )
+    patch(
+      \SessionData.lastUpdate,
+      with: Variable(initial: 0).asAnyUpdatable()
     )
 
+    let controller: TagsExplorerViewController = try testedInstance(context: .none)
+    let viewState: TagsExplorerViewController.ViewState = await controller.viewState.current
     XCTAssertEqual(
-      controller.viewState.value.title,
+      viewState.title,
       .localized(key: "home.presentation.mode.tags.explorer.title")
     )
   }
 
   func test_initally_viewStateTitle_isTagSlug_forNonRootFolder() async throws {
-    features.patch(
+    patch(
       \ResourcesController.filteredResourcesList,
       with: always([])
     )
-    features.patch(
+    patch(
       \ResourcesController.lastUpdate,
       with: Variable(initial: 0).asAnyUpdatable()
     )
 
-    let controller: TagsExplorerController = try await testController(
+    let controller: TagsExplorerViewController = try testedInstance(
       context: .init(
         id: .mock_1,
         slug: "tag",
         shared: false
       )
     )
-
+    let viewState: TagsExplorerViewController.ViewState = await controller.viewState.current
     XCTAssertEqual(
-      controller.viewState.value.title,
+      viewState.title,
       .raw("tag")
     )
   }

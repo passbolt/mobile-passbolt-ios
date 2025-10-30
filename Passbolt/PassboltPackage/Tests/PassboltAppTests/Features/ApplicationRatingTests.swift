@@ -49,12 +49,12 @@ final class ApplicationRatingTests: LoadableFeatureTestCase<ApplicationRating> {
 
   func test_applicationRating_shouldTrigger_whenCriteria_areMet() {
     patch(
-      \LoginCountStoredProperty.binding,
+      \LoginCountStoredProperty.variable,
       with: .variable(initial: 5)
     )
 
     patch(
-      \LastAppRateCheckTimestampStoredProperty.binding,
+      \LastAppRateCheckTimestampStoredProperty.variable,
       with: .variable(initial: 0)
     )
 
@@ -70,12 +70,12 @@ final class ApplicationRatingTests: LoadableFeatureTestCase<ApplicationRating> {
 
   func test_applicationRating_shouldNotTrigger_whenAtLeastOneCriteria_isNotMet() {
     patch(
-      \LoginCountStoredProperty.binding,
+      \LoginCountStoredProperty.variable,
       with: .variable(initial: 1)
     )
 
     patch(
-      \LastAppRateCheckTimestampStoredProperty.binding,
+      \LastAppRateCheckTimestampStoredProperty.variable,
       with: .variable(initial: 0)
     )
 
@@ -90,14 +90,14 @@ final class ApplicationRatingTests: LoadableFeatureTestCase<ApplicationRating> {
   }
 
   func test_triggeredApplicationRating_shouldIncrementLoginCounter() {
-    let variable: StateBinding<Int?> = StateBinding.variable(initial: 0)
+    let variable: Variable<Int?> = .init(initial: 0)
 
     patch(
-      \LoginCountStoredProperty.binding,
-      with: variable
+      \LoginCountStoredProperty.variable,
+     with: .from(initial: variable)
     )
     patch(
-      \LastAppRateCheckTimestampStoredProperty.binding,
+      \LastAppRateCheckTimestampStoredProperty.variable,
       with: .variable(initial: 0)
     )
 
@@ -105,8 +105,25 @@ final class ApplicationRatingTests: LoadableFeatureTestCase<ApplicationRating> {
       1,
       test: { (testedInstance: ApplicationRating) in
         await testedInstance.showApplicationRatingIfRequired()
-        return variable.wrappedValue ?? 0
+        return variable.value ?? 0
       }
+    )
+  }
+}
+
+extension StoredVariable {
+
+  static func variable(initial: Value) -> Self {
+    .init(
+      fetch: { initial },
+      store: { _ in /* NOP */ }
+    )
+  }
+
+  static func from(initial: Variable<Value>) -> Self {
+    .init(
+      fetch: { initial.value },
+      store: { initial.assign($0) }
     )
   }
 }

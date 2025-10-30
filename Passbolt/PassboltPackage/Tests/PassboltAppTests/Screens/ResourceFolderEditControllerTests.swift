@@ -54,6 +54,10 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
         )
       )
     )
+    patch(
+      \NavigationToResourceFolderEdit.mockRevert,
+      with: always(())
+    )
   }
 
   func test_setFolderName_setsNameInForm() async throws {
@@ -66,7 +70,7 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
     )
 
     await withInstance(mockExecuted: 1) { (tested: ResourceFolderEditController) in
-      tested.setFolderName("folder name")
+      await tested.setFolderName("folder name")
     }
   }
 

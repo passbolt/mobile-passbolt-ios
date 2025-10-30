@@ -1,0 +1,142 @@
+//
+// Passbolt - Open source password manager for teams
+// Copyright (c) 2021 Passbolt SA
+//
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+// Public License (AGPL) as published by the Free Software Foundation version 3.
+//
+// The name "Passbolt" is a registered trademark of Passbolt SA, and Passbolt SA hereby declines to grant a trademark
+// license to "Passbolt" pursuant to the GNU Affero General Public License version 3 Section 7(e), without a separate
+// agreement with Passbolt SA.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License along with this program. If not,
+// see GNU Affero General Public License v3 (http://www.gnu.org/licenses/agpl-3.0.html).
+//
+// @copyright     Copyright (c) Passbolt SA (https://www.passbolt.com)
+// @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
+// @link          https://www.passbolt.com Passbolt (tm)
+// @since         v1.0
+//
+
+import Accounts
+import Display
+import FeatureScopes
+import OSFeatures
+import Resources
+import Session
+import SessionData
+import Users
+
+public final class ResourceSearchDisplayController: ViewController {
+
+  public nonisolated let viewState: ViewStateSource<ViewState>
+  public nonisolated let searchText: Variable<String>
+
+  private let currentAccount: Account
+  private let accountDetails: AccountDetails
+
+  private let context: Context
+  private let features: Features
+
+  public init(
+    context: Context,
+    features: Features
+  ) throws {
+    try features.ensureScope(SessionScope.self)
+
+    self.context = context
+    self.features = features
+
+    self.currentAccount = try features.sessionAccount()
+    self.accountDetails = try features.instance()
+
+    self.searchText = .init(initial: .init())
+    self.viewState = .init(
+      initial: .init(
+        searchPrompt: context.searchPrompt,
+        accountAvatar: .none,
+        searchText: ""
+      ),
+      updateFrom: self.searchText,
+      update: { (updateState, update: Update<String>) in
+        do {
+          let text: String = try update.value
+          updateState { (viewState: inout ViewState) in
+            viewState.searchText = text
+          }
+        }
+        catch {
+          error.logged()
+        }
+      }
+    )
+  }
+}
+
+extension ResourceSearchDisplayController {
+
+  public struct Context {
+
+    internal var searchPrompt: DisplayableString
+    internal var onPresentationMenuTap: () async throws -> Void
+    internal var onAvatarTap: () async throws -> Void
+
+    public init(
+      searchPrompt: DisplayableString,
+      onPresentationMenuTap: @escaping () async throws -> Void,
+      onAvatarTap: @escaping () async throws -> Void
+    ) {
+      self.searchPrompt = searchPrompt
+      self.onPresentationMenuTap = onPresentationMenuTap
+      self.onAvatarTap = onAvatarTap
+    }
+  }
+
+  public struct ViewState: Equatable {
+
+    internal var searchPrompt: DisplayableString
+    internal var accountAvatar: Data?
+    internal var searchText: String
+  }
+}
+
+extension ResourceSearchDisplayController {
+
+  internal final func activate() async {
+    do {
+      let avatar: Data? = try await self.accountDetails.avatarImage()
+      self.viewState.update { state in
+        state.accountAvatar = avatar
+      }
+    }
+    catch {
+      error.logged(
+        info: .message("Failed to load account avatar image, using placeholder.")
+      )
+    }
+  }
+
+  internal final func updateSearchText(
+    _ text: String
+  ) {
+    self.searchText.mutate { (current: inout String) in
+      current = text
+    }
+  }
+
+  internal final func showPresentationMenu() async throws {
+    try await self.context.onPresentationMenuTap()
+  }
+
+  internal final func signOut() async {
+    do {
+      try await self.context.onAvatarTap()
+    }
+    catch {
+      SnackBarMessageEvent.send(.error(.localized(key: .genericError)))
+    }
+  }
+}

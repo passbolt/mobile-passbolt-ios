@@ -22,6 +22,7 @@
 //
 
 import Display
+import Metadata
 import OSFeatures
 import Resources
 import Session
@@ -49,9 +50,11 @@ internal final class ResourceTagsListNodeController: ViewController {
     self.context = context
     self.features = features
 
-    self.navigationTree = features.instance()
+    let navigationTree: NavigationTree = features.instance()
+    self.navigationTree = navigationTree
     self.autofillContext = features.instance()
     self.resourceTags = try features.instance()
+    let session: Session = try features.instance()
 
     self.viewState = .init(
       initial: .init(
@@ -62,8 +65,17 @@ internal final class ResourceTagsListNodeController: ViewController {
 
     self.searchController = try features.instance(
       context: .init(
-        nodeID: context.nodeID,
-        searchPrompt: context.searchPrompt
+        searchPrompt: context.searchPrompt,
+        onPresentationMenuTap: {
+          try navigationTree.present(
+            .sheet,
+            HomePresentationMenuNodeView.self,
+            controller: features.instance(context: context.nodeID)
+          )
+        },
+        onAvatarTap: {
+          await session.close(.none)
+        }
       )
     )
 
@@ -100,28 +112,112 @@ extension ResourceTagsListNodeController {
   ) async throws {
     let tagDetails: ResourceTag = try await self.resourceTags.details(resourceTagID)
 
-    let nodeController: ResourcesListNodeController =
+    let nodeController: ResourcesListViewController =
       try self.features
       .instance(
-        of: ResourcesListNodeController.self,
+        of: ResourcesListViewController.self,
         context: .init(
-          nodeID: self.context.nodeID,
           title: .raw(tagDetails.slug.rawValue),
           titleIconName: .tag,
           baseFilter: .init(
             sorting: .nameAlphabetically,
             tags: [resourceTagID]
-          )
+          ),
+          appModeContext: .createExtensionContext(using: features, nodeId: self.context.nodeID)
         )
       )
     self.navigationTree
       .push(
-        ResourcesListNodeView.self,
+        ResourcesListView.self,
         controller: nodeController
       )
   }
 
   internal final func closeExtension() {
     self.autofillContext.cancelAndCloseExtension()
+  }
+}
+
+extension ResourcesListViewController.Callbacks {
+
+  @MainActor
+  static func createExtensionContext(using features: Features, nodeId: ViewNodeID) -> Self {
+    let autofillContext: AutofillExtensionContext = features.instance()
+    let requestedServiceIdentifiers: Array<AutofillExtensionContext.ServiceIdentifier> =
+      autofillContext.requestedServiceIdentifiers()
+    let navigationTree: NavigationTree = features.instance()
+
+    @Sendable @MainActor func selectResource(
+      _ resourceID: Resource.ID
+    ) async throws {
+      let features: Features = try features.branch(
+        scope: ResourceScope.self,
+        context: resourceID
+      )
+      let resourceController: ResourceController = try features.instance()
+      try await resourceController.fetchSecretIfNeeded(force: true)
+      let resource: Resource = try await resourceController.state.value
+
+      guard let password: String = resource.firstPasswordString
+      else {
+        throw
+          ResourceSecretInvalid
+          .error("Missing resource password in secret.")
+      }
+      autofillContext
+        .completeWithCredential(
+          AutofillExtensionContext.Credential(
+            user: resource.meta.username.stringValue ?? "",
+            password: password
+          )
+        )
+    }
+
+    return
+      .init(
+        suggestionFilter: { requestedServiceIdentifiers.matches($0) },
+        onClose: {
+          autofillContext.cancelAndCloseExtension()
+        },
+        onPresentationMenuTap: {
+          try navigationTree.present(
+            .sheet,
+            HomePresentationMenuNodeView.self,
+            controller: features.instance(context: nodeId)
+          )
+        },
+        onAvatarTap: {
+          let session: Session = try features.instance()
+          await session.close(.none)
+        },
+        createResource: {
+          let resourceEditPreparation: ResourceEditPreparation = try features.instance()
+          let metadataSettingsService: MetadataSettingsService = try features.instance()
+
+          let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
+            metadataSettingsService.typesSettings().defaultResourceTypeSlug,
+            .none,
+            requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }
+          )
+          let navigationToResourceEdit: NavigationToResourceEdit = try features.instance()
+
+          await navigationToResourceEdit
+            .performCatching(
+              context: .init(
+                editingContext: editingContext,
+                success: { (resource: Resource) in
+                  guard let resourceId: Resource.ID = resource.id
+                  else {
+                    return
+                  }
+                  await consumingErrors {
+                    try await selectResource(resourceId)
+                  }
+                }
+              )
+            )
+        },
+        selectResource: selectResource(_:)
+      )
   }
 }

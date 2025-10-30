@@ -345,8 +345,7 @@
 
 "resource.permission.edit.button.delete.title" = "Видалити дозвіл";
 
-"resource.folders.add.menu.title" = "Створити ресурс";
-"resource.folders.add.menu.folder.label" = "Тека";
+"resource.create.menu.add.folder.title" = "Тека";
 
 "group.members.list.title" = "Учасники групи";
 "group.members.member.details.title" = "Учасник групи";

@@ -22,6 +22,7 @@
 //
 
 import Display
+import SharedUIComponents
 
 internal struct HomeNavigationNodeView: ControlledView {
 
@@ -45,7 +46,7 @@ internal struct HomeNavigationNodeView: ControlledView {
     Controlled
       .by(
         state.contentController,
-        view: ResourcesListNodeView.self,
+        view: ResourcesListView.self,
         or: ResourceFolderContentNodeView.self,
         or: ResourceTagsListNodeView.self,
         or: ResourceUserGroupsListNodeView.self,

@@ -29,19 +29,18 @@ internal final class ResourceFolderMenuController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
 
-  private let navigation: DisplayNavigation
+  private let navigationToFolderDetails: NavigationToResourceFolderDetails
+  private let navigationToSelf: NavigationToResourceFolderMenu
 
   private let context: Context
-  private let features: Features
 
   internal init(
     context: Context,
     features: Features
   ) throws {
     self.context = context
-    self.features = features
-
-    self.navigation = try features.instance()
+    self.navigationToSelf = try features.instance()
+    self.navigationToFolderDetails = try features.instance()
 
     self.viewState = .init(
       initial: .init(
@@ -68,21 +67,15 @@ extension ResourceFolderMenuController {
 extension ResourceFolderMenuController {
 
   internal final func openDetails() async throws {
-    await self.navigation
-      .dismissLegacySheet(ResourceFolderMenuView.self)
-    try await self.navigation
-      .push(
-        ResourceFolderDetailsView.self,
-        controller:
-          self.features
-          .instance(
-            context: self.context.folderID
-          )
-      )
+    try await navigationToSelf.revert()
+    try await navigationToFolderDetails.perform(
+      context: self.context.folderID
+    )
   }
 
   internal final func close() async {
-    await self.navigation
-      .dismissLegacySheet(ResourceFolderMenuView.self)
+    await consumingErrors {
+      try await navigationToSelf.revert()
+    }
   }
 }

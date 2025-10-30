@@ -64,19 +64,19 @@ internal final class HomeNavigationNodeController: ViewController {
     self.viewState = .init(
       initial: .init(
         contentController: Self.contentRoot(
-          for: homePresentation.currentMode.get(),
+          for: homePresentation.currentMode.value,
           using: features,
           nodeID: self.viewNodeID
         )
       ),
-      updateFrom: self.homePresentation.currentMode.updates,
+      updateFrom: self.homePresentation.currentMode.asAnyUpdatable(),
       update: { [homePresentation, navigationTree, viewNodeID, features] (updateState, _) in
-        let contentController = await Self.contentRoot(
-          for: homePresentation.currentMode.get(),
+        let contentController = Self.contentRoot(
+          for: homePresentation.currentMode.value,
           using: features,
           nodeID: viewNodeID
         )
-        await updateState { (state: inout ViewState) in
+        updateState { (state: inout ViewState) in
           state.contentController = contentController
         }
       }
@@ -115,97 +115,19 @@ extension HomeNavigationNodeController {
     nodeID: ViewNodeID
   ) -> any ViewController {
     do {
+
       switch mode {
-      case .plainResourcesList:
+      case .plainResourcesList, .modifiedResourcesList, .favoriteResourcesList,
+        .sharedResourcesList, .ownedResourcesList, .expiredResourcesList:
         return
           try features
           .instance(
-            of: ResourcesListNodeController.self,
+            of: ResourcesListViewController.self,
             context: .init(
-              nodeID: nodeID,
               title: mode.title,
               titleIconName: mode.iconName,
-              baseFilter: .init(
-                sorting: .nameAlphabetically
-              )
-            )
-          )
-
-      case .modifiedResourcesList:
-        return
-          try features
-          .instance(
-            of: ResourcesListNodeController.self,
-            context: .init(
-              nodeID: nodeID,
-              title: mode.title,
-              titleIconName: mode.iconName,
-              baseFilter: .init(
-                sorting: .modifiedRecently
-              )
-            )
-          )
-
-      case .favoriteResourcesList:
-        return
-          try features
-          .instance(
-            of: ResourcesListNodeController.self,
-            context: .init(
-              nodeID: nodeID,
-              title: mode.title,
-              titleIconName: mode.iconName,
-              baseFilter: .init(
-                sorting: .nameAlphabetically,
-                favoriteOnly: true
-              )
-            )
-          )
-
-      case .sharedResourcesList:
-        return
-          try features
-          .instance(
-            of: ResourcesListNodeController.self,
-            context: .init(
-              nodeID: nodeID,
-              title: mode.title,
-              titleIconName: mode.iconName,
-              baseFilter: .init(
-                sorting: .nameAlphabetically,
-                permissions: [.read, .write]
-              )
-            )
-          )
-
-      case .ownedResourcesList:
-        return
-          try features
-          .instance(
-            of: ResourcesListNodeController.self,
-            context: .init(
-              nodeID: nodeID,
-              title: mode.title,
-              titleIconName: mode.iconName,
-              baseFilter: .init(
-                sorting: .nameAlphabetically,
-                permissions: [.owner]
-              )
-            )
-          )
-      case .expiredResourcesList:
-        return
-          try features
-          .instance(
-            of: ResourcesListNodeController.self,
-            context: .init(
-              nodeID: nodeID,
-              title: mode.title,
-              titleIconName: mode.iconName,
-              baseFilter: .init(
-                sorting: .nameAlphabetically,
-                expiredOnly: true
-              )
+              baseFilter: mode.baseFilter,
+              appModeContext: .createExtensionContext(using: features, nodeId: nodeID)
             )
           )
 

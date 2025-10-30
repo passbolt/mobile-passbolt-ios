@@ -21,145 +21,78 @@
 // @since         v1.0
 //
 
-import Accounts
-import UIComponents
+import Display
+import SharedUIComponents
 
-@MainActor
-internal struct FoldersExplorerView: ComponentView {
+internal struct FoldersExplorerView: ControlledView {
 
-  public static func legacyNavigaitionBarButtonBridge(
-    using controller: FoldersExplorerController
-  ) -> LegacyNavigationBarButtonBridge? {
-    if case .some = controller.viewState.value.folderID {
-      return .init(
-        icon: .more,
-        action: controller.presentResourceFolderMenu
-      )
-    }
-    else {
-      return .none
-    }
-  }
-
-  @ObservedObject private var state: ObservableValue<ViewState>
-  private let controller: FoldersExplorerController
-
-  internal init(
-    state: ObservableValue<ViewState>,
-    controller: FoldersExplorerController
-  ) {
-    self.state = state
-    self.controller = controller
-  }
+  internal let controller: FoldersExplorerViewController
 
   internal var body: some View {
-    VStack(spacing: 0) {
-      ZStack(alignment: .top) {
-        Rectangle()
-          .fill(Color.passboltBackground)
-          .shadow(
-            color: .black.opacity(0.2),
-            radius: 12,
-            x: 0,
-            y: -10
-          )
-          .ignoresSafeArea(.all, edges: .top)
-        VStack(spacing: 0) {
-          self.titleView
-          self.searchView
-        }
-        // hide under navigation bar
-        .padding(top: -42)
-      }
-      .fixedSize(horizontal: false, vertical: true)
-      .zIndex(1)
-
-      if self.state.searchText.isEmpty {
-        self.contentView
-      }
-      else {
-        self.searchContentView
-      }
+    WithViewState(from: self.controller) { state in
+      self.bodyView(with: state)
     }
-    .backgroundColor(.passboltBackground)
   }
 
-  @ViewBuilder private var titleView: some View {
-    HStack(alignment: .center, spacing: 0) {
-      Image(
-        named: self.state.folderShared
-          ? .sharedFolder
-          : .folder
-      )
-      .aspectRatio(1, contentMode: .fit)
-      .frame(width: 24)
-      .padding(trailing: 16)
-
-      Text(displayable: self.state.title)
-        .font(.inter(ofSize: 16, weight: .semibold))
-    }
-    .foregroundColor(.passboltPrimaryText)
-    .frame(height: 40)
-    .padding(
-      leading: 32,
-      trailing: 32
-    )
-  }
-
-  @ViewBuilder private var searchView: some View {
-    SearchView(
-      prompt: .localized(key: "resources.search.placeholder"),
-      text: self.$state.searchText,
-      leftAccessory: {
+  @MainActor @ViewBuilder private func bodyView(
+    with state: ViewState
+  ) -> some View {
+    ScreenView(
+      titleIcon: state.folderShared
+        ? .sharedFolder
+        : .folder,
+      title: state.title,
+      titleExtensionView: {
+        self.searchView(with: state)
+      },
+      titleLeadingItem: EmptyView.init,
+      titleTrailingItem: {
         AsyncButton(
-          action: self.controller.presentHomePresentationMenu,
-          label: {
-            ImageWithPadding(4, named: .filter)
-          }
+          action: self.controller.presentResourceFolderMenu,
+          label: { Image(named: .more) }
         )
       },
-      rightAccessory: {
-        AsyncButton(
-          action: self.controller.presentAccountMenu,
-          label: {
-            UserAvatarView(imageData: self.state.userAvatarImage)
-              .padding(
-                top: 0,
-                leading: 0,
-                bottom: 0,
-                trailing: 6
-              )
-          }
-        )
+      contentView: {
+        if state.searchText.isEmpty {
+          self.contentView(with: state)
+        }
+        else {
+          self.searchContentView(with: state)
+        }
       }
-    )
-    .padding(
-      top: 10,
-      leading: 16,
-      bottom: 16,
-      trailing: 16
     )
   }
 
-  @ViewBuilder private var contentView: some View {
+  @MainActor @ViewBuilder private func searchView(
+    with state: ViewState
+  ) -> some View {
+    ResourceSearchDisplayView(
+      controller: self.controller.searchController
+    )
+    .padding(.horizontal, 8)
+  }
+
+  @MainActor @ViewBuilder private func contentView(
+    with state: ViewState
+  ) -> some View {
     List(
       content: {
-        if self.state.canCreateResources {
+        if state.canCreateResources {
           ResourceListAddView {
-            try await self.controller.presentAddNew(self.state.folderID)
+            await self.controller.presentAddNew(folderID: state.folderID)
           }
           .accessibilityIdentifier("folder.explore.create.new")
         }  // else { /* NOP */ }
 
-        if self.state.directFolders.isEmpty,
-          self.state.directResources.isEmpty,
-          self.state.nestedFolders.isEmpty,
-          self.state.nestedResources.isEmpty
+        if state.directFolders.isEmpty,
+          state.directResources.isEmpty,
+          state.nestedFolders.isEmpty,
+          state.nestedResources.isEmpty
         {
           EmptyListView()
         }
         else {
-          self.directListContent
+          self.directListContent(with: state)
         }
       }
     )
@@ -170,25 +103,25 @@ internal struct FoldersExplorerView: ComponentView {
     }
   }
 
-  @ViewBuilder private var searchContentView: some View {
+  @ViewBuilder private func searchContentView(with state: ViewState) -> some View {
     List(
       content: {
-        if self.state.directFolders.isEmpty,
-          self.state.directResources.isEmpty,
-          self.state.nestedFolders.isEmpty,
-          self.state.nestedResources.isEmpty
+        if state.directFolders.isEmpty,
+          state.directResources.isEmpty,
+          state.nestedFolders.isEmpty,
+          state.nestedResources.isEmpty
         {
           EmptyListView()
         }
         else {
-          if !self.state.directFolders.isEmpty
-            || !self.state.directResources.isEmpty
+          if !state.directFolders.isEmpty
+            || !state.directResources.isEmpty
           {
             Text(
               displayable: .localized(
                 key: "home.presentation.mode.folders.explorer.search.direct.results"
               ),
-              arguments: self.state.title.string()
+              arguments: state.title.string()
             )
             .text(
               font: .inter(
@@ -207,10 +140,10 @@ internal struct FoldersExplorerView: ComponentView {
             .buttonStyle(.plain)
             .frame(height: 24)
 
-            self.directListContent
+            self.directListContent(with: state)
 
-            if !self.state.nestedFolders.isEmpty
-              || !self.state.nestedResources.isEmpty
+            if !state.nestedFolders.isEmpty
+              || !state.nestedResources.isEmpty
             {
               ListDividerView()
                 .padding(
@@ -220,8 +153,8 @@ internal struct FoldersExplorerView: ComponentView {
             }  // else { /* NOP */ }
           }  // else { /* NOP */ }
 
-          if !self.state.nestedFolders.isEmpty
-            || !self.state.nestedResources.isEmpty
+          if !state.nestedFolders.isEmpty
+            || !state.nestedResources.isEmpty
           {
             Text(
               displayable: .localized(
@@ -245,7 +178,7 @@ internal struct FoldersExplorerView: ComponentView {
             .buttonStyle(.plain)
             .frame(height: 24)
 
-            self.nestedListContent
+            self.nestedListContent(with: state)
           }  // else { /* NOP */ }
         }
       }
@@ -254,10 +187,10 @@ internal struct FoldersExplorerView: ComponentView {
     .environment(\.defaultMinListRowHeight, 20)
   }
 
-  @ViewBuilder private var directListContent: some View {
+  @ViewBuilder private func directListContent(with state: ViewState) -> some View {
     Section {
       ForEach(
-        self.state.directFolders,
+        state.directFolders,
         id: \ResourceFolderListItemDSV.id
       ) { folder in
         ResourceFolderListItemView(
@@ -266,7 +199,7 @@ internal struct FoldersExplorerView: ComponentView {
           contentCount: folder.contentCount,
           locationString: folder.location,
           action: {
-            try await self.controller.presentFolderContent(folder)
+            await self.controller.presentFolderContent(folder)
           }
         )
       }
@@ -276,7 +209,7 @@ internal struct FoldersExplorerView: ComponentView {
 
     Section {
       ForEach(
-        self.state.directResources,
+        state.directResources,
         id: \ResourceListItemDSV.id
       ) { (resource: ResourceListItemDSV) in
         ResourceListItemView(
@@ -286,10 +219,10 @@ internal struct FoldersExplorerView: ComponentView {
           icon: resource.icon,
           resourceTypeSlug: resource.typeInfo.typeSlug,
           contentAction: {
-            try await self.controller.presentResourceDetails(resource.id)
+            await self.controller.presentResourceDetails(resource.id)
           },
           rightAction: {
-            try await self.controller.presentResourceMenu(resource.id)
+            await self.controller.presentResourceMenu(resource.id)
           },
           rightAccessory: {
             Image(named: .more)
@@ -306,10 +239,10 @@ internal struct FoldersExplorerView: ComponentView {
     .backgroundColor(.passboltBackground)
   }
 
-  @ViewBuilder private var nestedListContent: some View {
+  @ViewBuilder private func nestedListContent(with state: ViewState) -> some View {
     Section {
       ForEach(
-        self.state.nestedFolders,
+        state.nestedFolders,
         id: \ResourceFolderListItemDSV.id
       ) { folder in
         ResourceFolderListItemView(
@@ -318,7 +251,7 @@ internal struct FoldersExplorerView: ComponentView {
           contentCount: folder.contentCount,
           locationString: folder.location,
           action: {
-            try await self.controller.presentFolderContent(folder)
+            await self.controller.presentFolderContent(folder)
           }
         )
       }
@@ -328,7 +261,7 @@ internal struct FoldersExplorerView: ComponentView {
 
     Section {
       ForEach(
-        self.state.nestedResources,
+        state.nestedResources,
         id: \ResourceListItemDSV.id
       ) { (resource: ResourceListItemDSV) in
         ResourceListItemView(
@@ -338,10 +271,10 @@ internal struct FoldersExplorerView: ComponentView {
           icon: resource.icon,
           resourceTypeSlug: resource.typeInfo.typeSlug,
           contentAction: {
-            try await self.controller.presentResourceDetails(resource.id)
+            await self.controller.presentResourceDetails(resource.id)
           },
           rightAction: {
-            try await self.controller.presentResourceMenu(resource.id)
+            await self.controller.presentResourceMenu(resource.id)
           },
           rightAccessory: {
             Image(named: .more)
@@ -358,22 +291,3 @@ internal struct FoldersExplorerView: ComponentView {
     .backgroundColor(.passboltBackground)
   }
 }
-
-extension FoldersExplorerView {
-
-  internal struct ViewState {
-
-    internal var title: DisplayableString
-    internal var folderID: ResourceFolder.ID?
-    internal var folderShared: Bool
-    internal var canCreateResources: Bool
-    internal var userAvatarImage: Data? = .none
-    internal var searchText: String = ""
-    internal var directFolders: Array<ResourceFolderListItemDSV> = .init()
-    internal var nestedFolders: Array<ResourceFolderListItemDSV> = .init()
-    internal var directResources: Array<ResourceListItemDSV> = .init()
-    internal var nestedResources: Array<ResourceListItemDSV> = .init()
-  }
-}
-
-extension FoldersExplorerView.ViewState: Equatable {}

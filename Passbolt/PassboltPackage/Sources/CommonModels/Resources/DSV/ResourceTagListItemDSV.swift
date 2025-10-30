@@ -44,3 +44,4 @@ public struct ResourceTagListItemDSV {
 }
 
 extension ResourceTagListItemDSV: Hashable {}
+extension ResourceTagListItemDSV: Sendable {}

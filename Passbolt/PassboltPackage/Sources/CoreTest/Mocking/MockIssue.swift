@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public struct MockIssue: Error {
+public struct MockIssue: Error, Sendable {
 
   public static func error() -> Self {
     Self()

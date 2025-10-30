@@ -58,3 +58,4 @@ extension AnyUpdatable: Updatable {
     self.notifyAfter(awaiter, generation)
   }
 }
+

@@ -44,3 +44,4 @@ public struct ResourceFolderContent {
 }
 
 extension ResourceFolderContent: Equatable {}
+extension ResourceFolderContent: Sendable {}

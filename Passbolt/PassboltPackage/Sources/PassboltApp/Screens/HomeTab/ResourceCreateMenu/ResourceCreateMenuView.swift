@@ -38,6 +38,22 @@ internal struct ResourceCreateMenuView: ControlledView {
         withEach(\.menuItems) { menuItem in
           menuItem.view(using: controller)
         }
+        when(\.canCreateFolders) {
+          DrawerMenuItemView(
+            action: self.controller.createFolder,
+            title: {
+              Text(
+                displayable: .localized(
+                  key: "resource.create.menu.add.folder.title"
+                )
+              )
+            },
+            leftIcon: {
+              Image(named: .folder)
+            }
+          )
+          .accessibilityIdentifier("resource.folders.add.folder")
+        }
       }
     )
   }

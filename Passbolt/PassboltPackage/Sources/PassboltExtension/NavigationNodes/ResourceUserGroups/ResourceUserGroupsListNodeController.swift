@@ -50,9 +50,11 @@ internal final class ResourceUserGroupsListNodeController: ViewController {
     self.context = context
     self.features = features
 
-    self.navigationTree = features.instance()
+    let navigationTree: NavigationTree = try features.instance()
+    self.navigationTree = navigationTree
     self.autofillContext = features.instance()
     self.currentAccount = try features.sessionAccount()
+    let session: Session = try features.instance()
 
     self.viewState = .init(
       initial: .init(
@@ -63,8 +65,17 @@ internal final class ResourceUserGroupsListNodeController: ViewController {
 
     self.searchController = try features.instance(
       context: .init(
-        nodeID: context.nodeID,
-        searchPrompt: context.searchPrompt
+        searchPrompt: context.searchPrompt,
+        onPresentationMenuTap: {
+          try navigationTree.present(
+            .sheet,
+            HomePresentationMenuNodeView.self,
+            controller: features.instance(context: context.nodeID)
+          )
+        },
+        onAvatarTap: {
+          await session.close(.none)
+        }
       )
     )
 
@@ -118,24 +129,24 @@ extension ResourceUserGroupsListNodeController {
       .instance()
     let userGroupDetails: UserGroupDetailsDSV = try await userGroup.details()
 
-    let nodeController: ResourcesListNodeController =
+    let nodeController: ResourcesListViewController =
       try await self.features
       .instance(
-        of: ResourcesListNodeController.self,
+        of: ResourcesListViewController.self,
         context: .init(
-          nodeID: context.nodeID,
           title: .raw(userGroupDetails.name),
           titleIconName: .userGroup,
           baseFilter: .init(
             sorting: .nameAlphabetically,
             userGroups: [userGroupID]
-          )
+          ),
+          appModeContext: .createExtensionContext(using: features, nodeId: context.nodeID)
         )
       )
 
     await self.navigationTree
       .push(
-        ResourcesListNodeView.self,
+        ResourcesListView.self,
         controller: nodeController
       )
   }

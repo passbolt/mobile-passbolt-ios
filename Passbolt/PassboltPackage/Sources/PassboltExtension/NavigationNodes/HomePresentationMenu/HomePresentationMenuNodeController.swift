@@ -44,13 +44,13 @@ internal final class HomePresentationMenuNodeController: ViewController {
 
     self.viewState = .init(
       initial: .init(
-        currentMode: homePresentation.currentMode.wrappedValue,
+        currentMode: homePresentation.currentMode.value,
         availableModes: homePresentation.availableModes()
       ),
-      updateFrom: self.homePresentation.currentMode.updates,
+      updateFrom: self.homePresentation.currentMode.asAnyUpdatable(),
       update: { [homePresentation] (updateState, _) in
-        await updateState { (state: inout ViewState) in
-          state.currentMode = homePresentation.currentMode.get()
+        updateState { (state: inout ViewState) in
+          state.currentMode = homePresentation.currentMode.value
         }
       }
     )
@@ -71,7 +71,7 @@ extension HomePresentationMenuNodeController {
   internal func selectMode(
     _ mode: HomePresentationMode
   ) {
-    self.homePresentation.currentMode.set(to: mode)
+    self.homePresentation.currentMode.assign(mode)
     self.navigationTree.dismiss(upTo: self.context)
   }
 

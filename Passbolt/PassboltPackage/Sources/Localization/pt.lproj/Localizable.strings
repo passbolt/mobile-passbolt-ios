@@ -345,8 +345,7 @@
 
 "resource.permission.edit.button.delete.title" = "Excluir permissão";
 
-"resource.folders.add.menu.title" = "Criar um recurso";
-"resource.folders.add.menu.folder.label" = "Pasta";
+"resource.create.menu.add.folder.title" = "Pasta";
 
 "group.members.list.title" = "Membros do Grupo";
 "group.members.member.details.title" = "Membro do grupo";

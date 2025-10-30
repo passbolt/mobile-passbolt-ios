@@ -33,75 +33,28 @@ import XCTest
 
 @testable import PassboltApp
 
-// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionalss
-@MainActor
-final class FoldersExplorerControllerTests: MainActorTestCase {
+internal final class FoldersExplorerControllerTests: FeaturesTestCase {
 
-  var updates: Variable<Timestamp>!
-
-  override func mainActorSetUp() {
-    updates = .init(initial: 0)
-    features.patch(
-      \SessionData.lastUpdate,
-      with: updates.asAnyUpdatable()
-    )
-    features.patch(
-      \SessionData.refreshIfNeeded,
-      with: always(Void())
-    )
-  }
-
-  override func mainActorTearDown() {
-    updates = .none
-  }
-
-  override func featuresActorTearDown() async throws {
-    self.mainActorTearDown()
-    self.features = nil
-  }
-
-  override func featuresActorSetUp() async throws {
-    try await super.featuresActorSetUp()
-    features
-      .set(
-        SessionScope.self,
-        context: .init(
-          account: .mock_ada,
-          configuration: .mock_1
-        )
-      )
-    features.patch(
-      \ResourceFolders.filteredFolderContent,
-      with: always(
-        .init(
-          folderID: .none,
-          flattened: false,
-          subfolders: [],
-          resources: []
-        )
+  override internal func commonPrepare() {
+    super.commonPrepare()
+    set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1
       )
     )
-    features
-      .patch(
-        \Session.currentAccount,
-        with: always(Account.mock_ada)
-      )
-    features
-      .patch(
-        \AccountDetails.avatarImage,
-        with: always(.init())
-      )
   }
 
   func test_refreshIfNeeded_showsError_whenRefreshFails() async throws {
-    features.patch(
+    patch(
       \SessionData.refreshIfNeeded,
       with: alwaysThrow(MockIssue.error())
     )
 
     let messagesSubscription = SnackBarMessageEvent.subscribe()
 
-    let controller: FoldersExplorerController = try testController(
+    let controller: FoldersExplorerViewController = try testedInstance(
       context: nil
     )
 
@@ -112,30 +65,36 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
     XCTAssertNotNil(message)
   }
 
-  func test_refreshIfNeeded_finishesWithoutError_whenRefreshingSucceeds() async throws {
-
-    let controller: FoldersExplorerController = try testController(
-      context: nil
-    )
-
-    await controller.refreshIfNeeded()
-
-    // can't check if succeeded now...
-  }
-
   func test_initally_viewStateTitle_isDefaultString_forRootFolder() async throws {
-    let controller: FoldersExplorerController = try testController(
+    patch(
+      \SessionData.lastUpdate,
+      with: Variable(initial: 0).asAnyUpdatable()
+    )
+    patch(
+      \ResourceFolders.filteredFolderContent,
+      with: always(.init(folderID: .none, flattened: false, subfolders: .init(), resources: .init()))
+    )
+    let controller: FoldersExplorerViewController = try testedInstance(
       context: nil
     )
 
+    let viewState = await controller.viewState.current
     XCTAssertEqual(
-      controller.viewState.value.title,
+      viewState.title,
       .localized(key: "home.presentation.mode.folders.explorer.title")
     )
   }
 
   func test_initally_viewStateTitle_isFolderName_forNonRootFolder() async throws {
-    let controller: FoldersExplorerController = try testController(
+    patch(
+      \SessionData.lastUpdate,
+      with: Variable(initial: 0).asAnyUpdatable()
+    )
+    patch(
+      \ResourceFolders.filteredFolderContent,
+      with: always(.init(folderID: .none, flattened: false, subfolders: .init(), resources: .init()))
+    )
+    let controller: FoldersExplorerViewController = try testedInstance(
       context: .init(
         id: .mock_1,
         name: "folder",
@@ -147,8 +106,10 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
       )
     )
 
+    let viewState = await controller.viewState.current
+
     XCTAssertEqual(
-      controller.viewState.value.title,
+      viewState.title,
       .raw("folder")
     )
   }

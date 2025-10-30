@@ -22,6 +22,7 @@
 //
 
 import Display
+import SharedUIComponents
 
 internal struct ResourceUserGroupsListNodeView: ControlledView {
 

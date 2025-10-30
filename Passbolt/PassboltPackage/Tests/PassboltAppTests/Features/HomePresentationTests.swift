@@ -51,30 +51,338 @@ final class HomePresentationTests: LoadableFeatureTestCase<HomePresentation> {
     )
   }
 
-  func test_currentPresentationModePublisher_publishesDefault_initially() async throws {
-    await patch(
+  func test_currentPresentationModeUpdatable_hasDefault_initially() async throws {
+    patch(
       \Session.currentAccount,
       with: always(Account.mock_ada)
     )
-    await patch(
+    patch(
       \AccountPreferences.defaultHomePresentation,
       with: .variable(initial: HomePresentationMode.ownedResourcesList)
-    )
-    patch(
-      \SessionConfigurationLoader.sessionConfiguration,
-      with: alwaysThrow(MockIssue.error())
     )
 
     let feature: HomePresentation = try testedInstance()
 
-    var result: HomePresentationMode?
-    await feature
-      .currentPresentationModePublisher()
-      .sink { mode in
-        result = mode
-      }
-      .store(in: self.cancellables)
+    let result: HomePresentationMode? =
+      try await feature
+      .currentPresentationModeUpdatable().value
 
     XCTAssertEqual(result, .ownedResourcesList)
+  }
+
+  func test_currentPresentationModeUpdatable_fallsBackToPlainList_whenStoredModeUnavailable() async throws {
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: SessionConfiguration.default
+      )
+    )
+    patch(
+      \Session.currentAccount,
+      with: always(Account.mock_ada)
+    )
+    patch(
+      \AccountPreferences.defaultHomePresentation,
+      with: .variable(initial: HomePresentationMode.foldersExplorer)
+    )
+    patch(
+      \AccountPreferences.useLastHomePresentationAsDefault,
+      with: .variable(initial: false)
+    )
+
+    let feature: HomePresentation = try testedInstance()
+
+    let result: HomePresentationMode =
+      try await feature
+      .currentPresentationModeUpdatable().value
+
+    XCTAssertEqual(result, .plainResourcesList)
+  }
+
+  func test_availableHomePresentationModes_includesFolders_whenFoldersEnabled() async throws {
+    patch(
+      \Session.currentAccount,
+      with: always(Account.mock_ada)
+    )
+    patch(
+      \AccountPreferences.defaultHomePresentation,
+      with: .variable(initial: HomePresentationMode.plainResourcesList)
+    )
+    patch(
+      \AccountPreferences.useLastHomePresentationAsDefault,
+      with: .variable(initial: false)
+    )
+
+    let feature: HomePresentation = try testedInstance()
+
+    let modes = feature.availableHomePresentationModes()
+
+    XCTAssertTrue(modes.contains(.foldersExplorer))
+  }
+
+  func test_availableHomePresentationModes_excludesFolders_whenFoldersDisabled() async throws {
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: SessionConfiguration.default
+      )
+    )
+    patch(
+      \Session.currentAccount,
+      with: always(Account.mock_ada)
+    )
+    patch(
+      \AccountPreferences.defaultHomePresentation,
+      with: .variable(initial: HomePresentationMode.plainResourcesList)
+    )
+    patch(
+      \AccountPreferences.useLastHomePresentationAsDefault,
+      with: .variable(initial: false)
+    )
+
+    let feature: HomePresentation = try testedInstance()
+
+    let modes = feature.availableHomePresentationModes()
+
+    XCTAssertFalse(modes.contains(.foldersExplorer))
+  }
+
+  func test_availableHomePresentationModes_includesTags_whenTagsEnabled() async throws {
+    var configuration = SessionConfiguration.default
+    configuration.tags.enabled = true
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: configuration
+      )
+    )
+    patch(
+      \Session.currentAccount,
+      with: always(Account.mock_ada)
+    )
+    patch(
+      \AccountPreferences.defaultHomePresentation,
+      with: .variable(initial: HomePresentationMode.plainResourcesList)
+    )
+    patch(
+      \AccountPreferences.useLastHomePresentationAsDefault,
+      with: .variable(initial: false)
+    )
+
+    let feature: HomePresentation = try testedInstance()
+
+    let modes = feature.availableHomePresentationModes()
+
+    XCTAssertTrue(modes.contains(.tagsExplorer))
+  }
+
+  func test_availableHomePresentationModes_excludesTags_whenTagsDisabled() async throws {
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: SessionConfiguration.default
+      )
+    )
+    patch(
+      \Session.currentAccount,
+      with: always(Account.mock_ada)
+    )
+    patch(
+      \AccountPreferences.defaultHomePresentation,
+      with: .variable(initial: HomePresentationMode.plainResourcesList)
+    )
+    patch(
+      \AccountPreferences.useLastHomePresentationAsDefault,
+      with: .variable(initial: false)
+    )
+
+    let feature: HomePresentation = try testedInstance()
+
+    let modes = feature.availableHomePresentationModes()
+
+    XCTAssertFalse(modes.contains(.tagsExplorer))
+  }
+
+  func test_availableHomePresentationModes_alwaysIncludesBasicModes() async throws {
+    patch(
+      \Session.currentAccount,
+      with: always(Account.mock_ada)
+    )
+    patch(
+      \AccountPreferences.defaultHomePresentation,
+      with: .variable(initial: HomePresentationMode.plainResourcesList)
+    )
+    patch(
+      \AccountPreferences.useLastHomePresentationAsDefault,
+      with: .variable(initial: false)
+    )
+
+    let feature: HomePresentation = try testedInstance()
+
+    let modes = feature.availableHomePresentationModes()
+
+    XCTAssertTrue(modes.contains(.plainResourcesList))
+    XCTAssertTrue(modes.contains(.favoriteResourcesList))
+    XCTAssertTrue(modes.contains(.modifiedResourcesList))
+    XCTAssertTrue(modes.contains(.sharedResourcesList))
+    XCTAssertTrue(modes.contains(.ownedResourcesList))
+    XCTAssertTrue(modes.contains(.expiredResourcesList))
+    XCTAssertTrue(modes.contains(.resourceUserGroupsExplorer))
+  }
+
+  func test_setPresentationMode_updatesCurrentMode() async throws {
+    patch(
+      \Session.currentAccount,
+      with: always(Account.mock_ada)
+    )
+    patch(
+      \AccountPreferences.defaultHomePresentation,
+      with: .variable(initial: HomePresentationMode.plainResourcesList)
+    )
+    patch(
+      \AccountPreferences.useLastHomePresentationAsDefault,
+      with: .variable(initial: false)
+    )
+
+    let feature: HomePresentation = try testedInstance()
+
+    feature.setPresentationMode(.favoriteResourcesList)
+
+    let result: HomePresentationMode =
+      try await feature
+      .currentPresentationModeUpdatable().value
+
+    XCTAssertEqual(result, .favoriteResourcesList)
+  }
+
+  func test_setPresentationMode_savesDefault_whenUseLastAsDefaultEnabled() async throws {
+    patch(
+      \Session.currentAccount,
+      with: always(Account.mock_ada)
+    )
+
+    let defaultHomePresentation: Variable<HomePresentationMode> = .init(
+      initial: HomePresentationMode.plainResourcesList
+    )
+    patch(
+      \AccountPreferences.defaultHomePresentation,
+      with: .stored(variable: defaultHomePresentation, store: { _ in })
+    )
+    patch(
+      \AccountPreferences.useLastHomePresentationAsDefault,
+      with: .variable(initial: true)
+    )
+
+    let feature: HomePresentation = try testedInstance()
+
+    feature.setPresentationMode(.ownedResourcesList)
+
+    XCTAssertEqual(defaultHomePresentation.value, .ownedResourcesList)
+  }
+
+  func test_setPresentationMode_doesNotSaveDefault_whenUseLastAsDefaultDisabled() async throws {
+    patch(
+      \Session.currentAccount,
+      with: always(Account.mock_ada)
+    )
+
+    let defaultHomePresentation: Variable<HomePresentationMode> = .init(
+      initial: HomePresentationMode.plainResourcesList
+    )
+    patch(
+      \AccountPreferences.defaultHomePresentation,
+      with: .stored(variable: defaultHomePresentation, store: { _ in })
+    )
+    patch(
+      \AccountPreferences.useLastHomePresentationAsDefault,
+      with: .variable(initial: false)
+    )
+
+    let feature: HomePresentation = try testedInstance()
+
+    feature.setPresentationMode(.ownedResourcesList)
+
+    XCTAssertEqual(defaultHomePresentation.value, .plainResourcesList)
+  }
+
+  func test_currentPresentationModeUpdatable_notifies_whenModeChanges() async throws {
+    patch(
+      \Session.currentAccount,
+      with: always(Account.mock_ada)
+    )
+    patch(
+      \AccountPreferences.defaultHomePresentation,
+      with: .variable(initial: HomePresentationMode.plainResourcesList)
+    )
+    patch(
+      \AccountPreferences.useLastHomePresentationAsDefault,
+      with: .variable(initial: false)
+    )
+
+    let feature: HomePresentation = try testedInstance()
+    let updatable = feature.currentPresentationModeUpdatable()
+
+    let expectation = XCTestExpectation(description: "Mode change notification")
+    let initialGeneration = updatable.generation
+
+    Task {
+      _ = try await updatable.notify(after: initialGeneration)
+      expectation.fulfill()
+    }
+
+    try await Task.sleep(for: .milliseconds(50))
+    feature.setPresentationMode(.favoriteResourcesList)
+
+    await fulfillment(of: [expectation], timeout: 1.0)
+  }
+
+  func test_availableHomePresentationModes_maintainsOrder() async throws {
+    patch(
+      \Session.currentAccount,
+      with: always(Account.mock_ada)
+    )
+    patch(
+      \AccountPreferences.defaultHomePresentation,
+      with: .variable(initial: HomePresentationMode.plainResourcesList)
+    )
+    patch(
+      \AccountPreferences.useLastHomePresentationAsDefault,
+      with: .variable(initial: false)
+    )
+
+    let feature: HomePresentation = try testedInstance()
+
+    let modes = feature.availableHomePresentationModes()
+
+    let expectedOrder: Array<HomePresentationMode> = [
+      .plainResourcesList,
+      .favoriteResourcesList,
+      .modifiedResourcesList,
+      .sharedResourcesList,
+      .ownedResourcesList,
+      .expiredResourcesList,
+      .foldersExplorer,
+      .tagsExplorer,
+      .resourceUserGroupsExplorer,
+    ]
+
+    XCTAssertEqual(Array(modes), expectedOrder)
+  }
+}
+
+extension StoredVariable {
+
+  static func stored(variable: Variable<Value>, store: @escaping (Value) -> Void) -> Self {
+    .init(
+      fetch: { variable.value },
+      store: { newValue in
+        variable.value = newValue
+        store(newValue)
+      }
+    )
   }
 }

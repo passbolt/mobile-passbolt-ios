@@ -345,8 +345,7 @@
 
 "resource.permission.edit.button.delete.title" = "Izbriši dovoljenje";
 
-"resource.folders.add.menu.title" = "Dodaj vir";
-"resource.folders.add.menu.folder.label" = "Mapa";
+"resource.create.menu.add.folder.title" = "Mapa";
 
 "group.members.list.title" = "Član skupine";
 "group.members.member.details.title" = "Član skupine";

@@ -21,120 +21,59 @@
 // @since         v1.0
 //
 
-import Accounts
-import UIComponents
+import Display
+import SharedUIComponents
 
-@MainActor
-internal struct TagsExplorerView: ComponentView {
+internal struct TagsExplorerView: ControlledView {
 
-  @ObservedObject private var state: ObservableValue<ViewState>
-  private let controller: TagsExplorerController
+  internal let controller: TagsExplorerViewController
 
-  internal init(
-    state: ObservableValue<ViewState>,
-    controller: TagsExplorerController
-  ) {
-    self.state = state
+  internal init(controller: TagsExplorerViewController) {
     self.controller = controller
   }
 
   internal var body: some View {
-    VStack(spacing: 0) {
-      ZStack(alignment: .top) {
-        Rectangle()
-          .fill(Color.passboltBackground)
-          .shadow(
-            color: .black.opacity(0.2),
-            radius: 12,
-            x: 0,
-            y: -10
-          )
-          .ignoresSafeArea(.all, edges: .top)
-        VStack(spacing: 0) {
-          self.titleView
-          self.searchView
-        }
-        // hide under navigation bar
-        .padding(top: -42)
-      }
-      .fixedSize(horizontal: false, vertical: true)
-      .zIndex(1)
-
-      self.contentView
+    WithViewState(from: self.controller) { state in
+      self.bodyView(with: state)
     }
-    .backgroundColor(.passboltBackground)
   }
 
-  @ViewBuilder private var titleView: some View {
-    HStack(alignment: .center, spacing: 0) {
-      Image(named: .tag)
-        .resizable()
-        .aspectRatio(1, contentMode: .fit)
-        .frame(width: 24)
-        .padding(trailing: 16)
-      Text(displayable: self.state.title)
-        .font(.inter(ofSize: 16, weight: .semibold))
-
-    }
-    .foregroundColor(.passboltPrimaryText)
-    .frame(height: 40)
-    .padding(
-      leading: 32,
-      trailing: 32
-    )
-  }
-
-  @ViewBuilder private var searchView: some View {
-    SearchView(
-      prompt: .localized(key: "resources.search.placeholder"),
-      text: self.$state.searchText,
-      leftAccessory: {
-        AsyncButton(
-          action: {
-            await self.controller.presentHomePresentationMenu()
-          },
-          label: {
-            ImageWithPadding(4, named: .filter)
-          }
-        )
+  @MainActor @ViewBuilder private func bodyView(
+    with state: ViewState
+  ) -> some View {
+    ScreenView(
+      titleIcon: .tag,
+      title: state.title,
+      titleExtensionView: {
+        self.searchView(with: state)
       },
-      rightAccessory: {
-        AsyncButton(
-          action: self.controller.presentAccountMenu,
-          label: {
-            UserAvatarView(imageData: self.state.userAvatarImage)
-              .padding(
-                top: 0,
-                leading: 0,
-                bottom: 0,
-                trailing: 6
-              )
-          }
-        )
+      titleLeadingItem: EmptyView.init,
+      titleTrailingItem: EmptyView.init,
+      contentView: {
+        self.contentView(with: state)
       }
-    )
-    .padding(
-      top: 10,
-      leading: 16,
-      bottom: 16,
-      trailing: 16
     )
   }
 
-  @ViewBuilder private var contentView: some View {
+  @MainActor @ViewBuilder private func searchView(
+    with state: ViewState
+  ) -> some View {
+    ResourceSearchDisplayView(
+      controller: self.controller.searchController
+    )
+    .padding(.horizontal, 8)
+  }
+
+  @MainActor @ViewBuilder private func contentView(
+    with state: ViewState
+  ) -> some View {
     List(
       content: {
-        if self.state.canCreateResources {
-          ResourceListAddView {
-            self.controller.presentResourceCreationFrom()
-          }
-        }  // else { /* NOP */ }
-
-        if self.state.resourceTagID != nil, !self.state.resources.isEmpty {
-          self.resourcesListContent
+        if state.resourceTagID != nil, !state.resources.isEmpty {
+          self.resourcesListContent(with: state)
         }
-        else if self.state.resourceTagID == nil, !self.state.tags.isEmpty {
-          self.tagsListContent
+        else if state.resourceTagID == nil, !state.tags.isEmpty {
+          self.tagsListContent(with: state)
         }
         else {
           EmptyListView()
@@ -148,10 +87,10 @@ internal struct TagsExplorerView: ComponentView {
     }
   }
 
-  @ViewBuilder private var tagsListContent: some View {
+  @ViewBuilder private func tagsListContent(with state: ViewState) -> some View {
     Section {
       ForEach(
-        self.state.tags,
+        state.tags,
         id: \ResourceTagListItemDSV.id
       ) { listTag in
         ResourceTagListItemView(
@@ -159,7 +98,7 @@ internal struct TagsExplorerView: ComponentView {
           shared: listTag.shared,
           contentCount: listTag.contentCount,
           action: {
-            self.controller
+            await self.controller
               .presentTagContent(
                 .init(
                   id: listTag.id,
@@ -175,10 +114,10 @@ internal struct TagsExplorerView: ComponentView {
     .backgroundColor(.passboltBackground)
   }
 
-  @ViewBuilder private var resourcesListContent: some View {
+  @ViewBuilder private func resourcesListContent(with state: ViewState) -> some View {
     Section {
       ForEach(
-        self.state.resources,
+        state.resources,
         id: \ResourceListItemDSV.id
       ) { resource in
         ResourceListItemView(
@@ -188,10 +127,10 @@ internal struct TagsExplorerView: ComponentView {
           icon: resource.icon,
           resourceTypeSlug: resource.typeInfo.typeSlug,
           contentAction: {
-            self.controller.presentResourceDetails(resource.id)
+            await self.controller.presentResourceDetails(resource.id)
           },
           rightAction: {
-            self.controller.presentResourceMenu(resource.id)
+            await self.controller.presentResourceMenu(resource.id)
           },
           rightAccessory: {
             Image(named: .more)
@@ -208,19 +147,3 @@ internal struct TagsExplorerView: ComponentView {
     .backgroundColor(.passboltBackground)
   }
 }
-
-extension TagsExplorerView {
-
-  internal struct ViewState {
-
-    internal var title: DisplayableString
-    internal var resourceTagID: ResourceTag.ID?
-    internal var canCreateResources: Bool
-    internal var userAvatarImage: Data? = .none
-    internal var searchText: String = ""
-    internal var tags: Array<ResourceTagListItemDSV> = .init()
-    internal var resources: Array<ResourceListItemDSV> = .init()
-  }
-}
-
-extension TagsExplorerView.ViewState: Equatable {}

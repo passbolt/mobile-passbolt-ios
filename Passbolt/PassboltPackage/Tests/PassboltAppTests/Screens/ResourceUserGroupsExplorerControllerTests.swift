@@ -33,64 +33,33 @@ import Users
 import XCTest
 
 @testable import PassboltApp
+internal final class ResourceUserGroupsExplorerControllerTests: FeaturesTestCase {
 
-// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@MainActor
-final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
-
-  var updates: Variable<Timestamp>!
-
-  override func mainActorSetUp() {
-    features
-      .set(
-        SessionScope.self,
-        context: .init(
-          account: .mock_ada,
-          configuration: .mock_1
-        )
-      )
-    updates = .init(initial: 0)
-    features.patch(
-      \SessionData.lastUpdate,
-      with: updates.asAnyUpdatable()
-    )
-    features.patch(
-      \SessionData.refreshIfNeeded,
-      with: always(Void())
-    )
-    features.patch(
-      \UserGroups.filteredResourceUserGroupList,
-      with: always(
-        AnyAsyncSequence([])
+  override func commonPrepare() {
+    super.commonPrepare()
+    set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1
       )
     )
-    features.patch(
+
+    patch(
       \Session.currentAccount,
-      with: always(Account.mock_ada)
+      with: always(.mock_ada)
     )
-    features.patch(
-      \AccountDetails.profile,
-      with: always(AccountWithProfile.mock_ada)
-    )
-    features.patch(
-      \AccountDetails.avatarImage,
-      with: always(.init())
-    )
-  }
-
-  override func mainActorTearDown() {
-    updates = .init(initial: 0)
   }
 
   func test_refreshIfNeeded_showsError_whenRefreshFails() async throws {
-    features.patch(
+    patch(
       \SessionData.refreshIfNeeded,
       with: alwaysThrow(MockIssue.error())
     )
 
     let messagesSubscription = SnackBarMessageEvent.subscribe()
 
-    let controller: ResourceUserGroupsExplorerController = try testController(
+    let controller: ResourceUserGroupsExplorerViewContorller = try testedInstance(
       context: nil
     )
 
@@ -101,39 +70,39 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
     XCTAssertNotNil(message)
   }
 
-  func test_refreshIfNeeded_finishesWithoutError_whenRefreshingSucceeds() async throws {
-
-    let controller: ResourceUserGroupsExplorerController = try await testController(
+  func test_initally_viewStateTitle_isDefaultString_forGroups() async throws {
+    patch(
+      \SessionData.lastUpdate,
+      with: Variable(initial: 0).asAnyUpdatable()
+    )
+    patch(
+      \UserGroups.filteredResourceUserGroups,
+      with: always([])
+    )
+    let controller: ResourceUserGroupsExplorerViewContorller = try testedInstance(
       context: nil
     )
 
-    await controller.refreshIfNeeded()
-
-    // can't check if succeeded now...
-  }
-
-  func test_initally_viewStateTitle_isDefaultString_forTags() async throws {
-    let controller: ResourceUserGroupsExplorerController = try await testController(
-      context: nil
-    )
+    let viewState: ResourceUserGroupsExplorerViewContorller.ViewState = await controller.viewState.current
 
     XCTAssertEqual(
-      controller.viewState.value.title,
+      viewState.title,
       .localized(key: "home.presentation.mode.resource.user.groups.explorer.title")
     )
   }
 
-  func test_initally_viewStateTitle_isTagSlug_forNonRootFolder() async throws {
-    features.patch(
+  func test_initally_viewStateTitle_isGroupName_forGroup() async throws {
+    patch(
       \ResourcesController.filteredResourcesList,
       with: always([])
     )
-    features.patch(
+
+    patch(
       \ResourcesController.lastUpdate,
       with: Variable(initial: 0).asAnyUpdatable()
     )
 
-    let controller: ResourceUserGroupsExplorerController = try await testController(
+    let controller: ResourceUserGroupsExplorerViewContorller = try testedInstance(
       context: .init(
         id: .mock_1,
         name: "group",
@@ -141,8 +110,10 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
       )
     )
 
+    let viewState: ResourceUserGroupsExplorerViewContorller.ViewState = await controller.viewState.current
+
     XCTAssertEqual(
-      controller.viewState.value.title,
+      viewState.title,
       .raw("group")
     )
   }

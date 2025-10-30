@@ -43,10 +43,15 @@ internal struct ResourceCreateMenuItem: Equatable, Identifiable {
 
 internal final class ResourceCreateMenuViewController: ViewController {
 
-  internal typealias Context = ResourceCreatingContext
+  internal struct Context: Sendable {
+    internal let resourceCreatingContext: ResourceCreatingContext
+    internal let folderID: ResourceFolder.ID?
+    internal let allowFolderCreation: Bool
+  }
 
   internal struct ViewState: Equatable {
-    var menuItems: [ResourceCreateMenuItem]
+    internal var menuItems: [ResourceCreateMenuItem]
+    internal var canCreateFolders: Bool
   }
 
   internal var viewState: ViewStateSource<ViewState>
@@ -64,7 +69,7 @@ internal final class ResourceCreateMenuViewController: ViewController {
     self.navigationToSelf = try features.instance()
     self.features = features
     self.context = context
-    let menuItems: Array<ResourceCreateMenuItem> = context.availableTypes.map {
+    let menuItems: Array<ResourceCreateMenuItem> = context.resourceCreatingContext.availableTypes.map {
       .init(
         title: $0.specification.slug.title,
         slug: $0.specification.slug,
@@ -72,7 +77,10 @@ internal final class ResourceCreateMenuViewController: ViewController {
       )
     }
     self.viewState = .init(
-      initial: .init(menuItems: menuItems)
+      initial: .init(
+        menuItems: menuItems,
+        canCreateFolders: context.allowFolderCreation
+      )
     )
   }
 
@@ -93,10 +101,24 @@ internal final class ResourceCreateMenuViewController: ViewController {
     }
   }
 
+  /// Creates a new folder at the current location
+  /// - Throws: Error when folder creation preparation fails
+  internal final func createFolder() async throws {
+    try await navigationToSelf.revert()
+    let editingFeatures: Features = try await self.features.instance(of: ResourceFolderEditPreparation.self)
+      .prepareNew(context.folderID)
+    let navigation: NavigationToResourceFolderEdit = try editingFeatures.instance()
+    try await navigation.perform()
+  }
+
   /// Prepare to create a new TOTP resource and navigate to the scanning screen
   private func createTOTP(_ slug: ResourceSpecification.Slug) async throws {
     let resourceEditPreparation: ResourceEditPreparation = try features.instance()
-    let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(slug, .none, .none)
+    let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
+      slug,
+      context.folderID,
+      .none
+    )
     let features: Features =
       try features
       .branch(
@@ -104,7 +126,7 @@ internal final class ResourceCreateMenuViewController: ViewController {
         context: editingContext
       )
     guard
-      let attachType: ResourceType = context.availableTypes.first(where: {
+      let attachType: ResourceType = context.resourceCreatingContext.availableTypes.first(where: {
         $0.specification.slug == slug
       }),
       let totpPath: ResourceType.FieldPath = attachType.fieldSpecification(for: \.firstTOTP)?.path
@@ -122,7 +144,11 @@ internal final class ResourceCreateMenuViewController: ViewController {
   /// Prepare new password resource creation and navigate to the editing screen
   private func createPassword(_ slug: ResourceSpecification.Slug) async throws {
     let resourceEditPreparation: ResourceEditPreparation = try features.instance()
-    let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(slug, .none, .none)
+    let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
+      slug,
+      context.folderID,
+      .none
+    )
     try await self.navigationToSelf.revert()
     try await features
       .instance(of: NavigationToResourceEdit.self)

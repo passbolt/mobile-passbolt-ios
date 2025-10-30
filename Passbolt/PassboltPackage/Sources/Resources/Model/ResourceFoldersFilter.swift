@@ -47,3 +47,4 @@ public struct ResourceFoldersFilter {
 }
 
 extension ResourceFoldersFilter: Hashable {}
+extension ResourceFoldersFilter: Sendable {}

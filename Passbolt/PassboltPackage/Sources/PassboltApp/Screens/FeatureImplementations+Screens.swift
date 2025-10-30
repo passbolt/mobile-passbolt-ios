@@ -41,6 +41,15 @@ extension FeaturesRegistry {
     self.useLiveNavigationToManageAccounts()
     self.useLiveNavigationToExtensionSetup()
 
+    // MARK: - Home
+    self.useLiveNavigationToHomePresentationMenu()
+    self.useLiveNavigationToTagContent()
+    self.useLiveNavigationToGroupContent()
+    self.useLiveNavigationToFolderContent()
+    self.useLiveNavigationToResourceFolderEdit()
+    self.useLiveNavigationToResourceFolderMenu()
+    self.useLiveNavigationToResourceFolderDetails()
+    
     // MARK: - Resource details
     self.useLiveNavigationToResourceDetails()
     self.useLiveNavigationToResourceLocationDetails()

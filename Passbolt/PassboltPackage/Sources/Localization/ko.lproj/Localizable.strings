@@ -345,8 +345,7 @@
 
 "resource.permission.edit.button.delete.title" = "권한 제거";
 
-"resource.folders.add.menu.title" = "리소스 생성";
-"resource.folders.add.menu.folder.label" = "폴더";
+"resource.create.menu.add.folder.title" = "폴더";
 
 "group.members.list.title" = "그룹 구성원";
 "group.members.member.details.title" = "그룹 구성원";

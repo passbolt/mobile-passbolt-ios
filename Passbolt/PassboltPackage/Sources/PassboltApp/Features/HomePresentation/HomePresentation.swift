@@ -29,7 +29,7 @@ import SessionData
 
 internal struct HomePresentation {
 
-  internal var currentPresentationModePublisher: @MainActor () -> AnyPublisher<HomePresentationMode, Never>
+  internal var currentPresentationModeUpdatable: @MainActor () -> AnyUpdatable<HomePresentationMode>
   internal var setPresentationMode: @MainActor (HomePresentationMode) -> Void
   internal var availableHomePresentationModes: @MainActor () -> OrderedSet<HomePresentationMode>
 }
@@ -43,9 +43,9 @@ extension HomePresentation: LoadableFeature {
 
     let accountPreferences: AccountPreferences = try features.instance()
 
-    var useLastUsedHomePresentationAsDefault: StateBinding<Bool> = accountPreferences
+    let useLastUsedHomePresentationAsDefault: StoredVariable<Bool> = accountPreferences
       .useLastHomePresentationAsDefault
-    var defaultHomePresentation: StateBinding<HomePresentationMode> = accountPreferences.defaultHomePresentation
+    let defaultHomePresentation: StoredVariable<HomePresentationMode> = accountPreferences.defaultHomePresentation
 
     let availablePresentationModes: OrderedSet<HomePresentationMode> = {
       // order is preserved on display
@@ -74,30 +74,22 @@ extension HomePresentation: LoadableFeature {
     let initialPresentationMode: HomePresentationMode = {
       let defaultMode: HomePresentationMode = accountPreferences
         .defaultHomePresentation
-        .get(\.self)
+        .value
       if availablePresentationModes.contains(defaultMode) {
         return defaultMode
       }
       else {
+        // fallback to default mode if the stored one is not available
         return .plainResourcesList
       }
     }()
-
-    let currentPresentationModeSubject: CurrentValueSubject<HomePresentationMode, Never> =
-      .init(
-        initialPresentationMode
-      )
-
-    @MainActor func currentPresentationModePublisher() -> AnyPublisher<HomePresentationMode, Never> {
-      currentPresentationModeSubject
-        .removeDuplicates()
-        .eraseToAnyPublisher()
-    }
+    let currentPresentationModeVariable: Variable<HomePresentationMode> =
+      .init(initial: initialPresentationMode)
 
     @MainActor func setPresentationMode(_ mode: HomePresentationMode) {
-      currentPresentationModeSubject.send(mode)
-      if useLastUsedHomePresentationAsDefault.get() {
-        defaultHomePresentation.set(to: mode)
+      currentPresentationModeVariable.assign(mode)
+      if useLastUsedHomePresentationAsDefault.value {
+        defaultHomePresentation.assign(mode)
       }
       else { /* NOP */
       }
@@ -108,16 +100,11 @@ extension HomePresentation: LoadableFeature {
     }
 
     return Self(
-      currentPresentationModePublisher: currentPresentationModePublisher,
+      currentPresentationModeUpdatable: { currentPresentationModeVariable.asAnyUpdatable() },
       setPresentationMode: setPresentationMode(_:),
       availableHomePresentationModes: availableHomePresentationModes
     )
   }
-}
-
-extension HomePresentation {
-
-  internal var featureUnload: @MainActor () async throws -> Void { {} }
 }
 
 #if DEBUG
@@ -125,7 +112,7 @@ extension HomePresentation {
 
   static var placeholder: Self {
     Self(
-      currentPresentationModePublisher: unimplemented0(),
+      currentPresentationModeUpdatable: unimplemented0(),
       setPresentationMode: unimplemented1(),
       availableHomePresentationModes: unimplemented0()
     )
