@@ -178,7 +178,7 @@ internal struct ResourceDetailsView: ControlledView {
         Text(displayable: section.title)
           .font(.inter(ofSize: 16, weight: .bold))
           .padding(.bottom, 16)
-        Group {
+        VStack(spacing: 0) {
           ForEach(section.fields) { (fieldModel: ResourceDetailsFieldViewModel) in
             rowView(for: fieldModel, hideTitles: section.hideFieldTitles)
           }

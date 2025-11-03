@@ -883,7 +883,7 @@ extension ResourceSpecification.Slug {
     switch self {
     case _ where isStandaloneTOTPType:
       return [
-        \.meta.uris,
+        \.meta.uris.0,
         \.meta.username,
         \.secret.totp.secret_key,
       ]
@@ -900,7 +900,7 @@ extension ResourceSpecification.Slug {
       ]
     default:
       return [
-        \.meta.uris,
+        \.meta.uris.0,
         \.meta.username,
         \.secret.password,
       ]

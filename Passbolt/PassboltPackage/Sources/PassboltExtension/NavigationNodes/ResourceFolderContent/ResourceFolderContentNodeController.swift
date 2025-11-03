@@ -151,29 +151,26 @@ extension ResourceFolderContentNodeController {
       self.context.folderDetails?.id,
       requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }
     )
-    try self.navigationTree.push(
-      ResourceEditView.self,
-      controller: .init(
-        context: .init(
-          editingContext: editingContext,
-          success: { [autofillContext] resource in
-            if let password: String = resource.firstPasswordString {
-              await autofillContext
-                .completeWithCredential(
-                  AutofillExtensionContext.Credential(
-                    user: resource.meta.username.stringValue ?? "",
-                    password: password
-                  )
+    let navigationToCreateResource: NavigationToResourceEdit = try self.features.instance()
+    try await navigationToCreateResource.perform(
+      context: .init(
+        editingContext: editingContext,
+        success: { [autofillContext] resource in
+          if let password: String = resource.firstPasswordString {
+            await autofillContext
+              .completeWithCredential(
+                AutofillExtensionContext.Credential(
+                  user: resource.meta.username.stringValue ?? "",
+                  password: password
                 )
-            }
-            else {
-              ResourceSecretInvalid
-                .error("Missing resource password in secret.")
-                .consume()
-            }
+              )
           }
-        ),
-        features: self.features
+          else {
+            ResourceSecretInvalid
+              .error("Missing resource password in secret.")
+              .consume()
+          }
+        }
       )
     )
   }
