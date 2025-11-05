@@ -219,6 +219,16 @@ extension ResourcesListFetchDatabaseOperation {
               resourceCustomFields.key LIKE '%' || ? || '%'
             )
           )
+          OR (
+            SELECT 
+              1
+            FROM
+              resourceCustomFields
+            WHERE
+              resourceCustomFields.resourceID == resources.id
+            AND
+              resourceCustomFields.key LIKE '%' || ? || '%'
+          )
           """
         )
       // adding multiple times since we can't count args when using dynamic query

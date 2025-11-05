@@ -114,16 +114,29 @@ extension ResourceUpdater {
         if let existingModificationDate: ResourceModificationDate = modificationDatesById[resource.id],
           existingModificationDate.modificationDate >= resource.modified
         {
-          try await resourceStateUpdateOperation.execute(.init(state: .none, filter: resource.id))
-          // users table is truncated before resources are updated, so permissions must be re-stored
-          try await resourceStorePermissionsOperation.execute(resource.permissions)
-          // similarly, folder relation and favorite status must be re-applied
-          try await resourceUpdateFolderDatabaseOperation.execute(
-            .init(resourceID: resource.id, folderID: resource.parentFolderID)
-          )
-          try await resourceSetFavoriteDatabaseOperation.execute(
-            .init(resourceID: resource.id, favoriteID: resource.favoriteID)
-          )
+          do {
+            try await resourceStateUpdateOperation.execute(.init(state: .none, filter: resource.id))
+            // users table is truncated before resources are updated, so permissions must be re-stored
+            try await resourceStorePermissionsOperation.execute(resource.permissions)
+            // similarly, folder relation and favorite status must be re-applied
+            try await resourceUpdateFolderDatabaseOperation.execute(
+              .init(resourceID: resource.id, folderID: resource.parentFolderID)
+            )
+            try await resourceSetFavoriteDatabaseOperation.execute(
+              .init(resourceID: resource.id, favoriteID: resource.favoriteID)
+            )
+          }
+          catch {
+            ResourceUpdateFailed
+              .error()
+              .recording(
+                values: [
+                  "resource_id": resource.id.rawValue,
+                  "underlying_error": error.asTheError().diagnosticsDescription,
+                ]
+              )
+              .logged()
+          }
           return nil
         }
         return await process(resource: resource)

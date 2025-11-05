@@ -497,6 +497,7 @@
 "error.resource.secret.invalid" = "Geslo vira ni veljavno.";
 "error.resource.permission.invalid" = "Dovoljenje vira je neveljavno.";
 "error.resource.owner.missing" = "Vir mora imeti vsaj enega lastnika.";
+"error.resource.update.failed" = "Resource update failed.";
 "error.system.feature.inaccessible" = "Sistemska funkcija ni dostopna.";
 "error.system.feature.permission.not.granted" = "Sistemsko dovoljenje ni bilo dodeljeno.";
 "error.system.feature.permission.required" = "Dovoljenje za sistemsko funkcijo je obvezno.";

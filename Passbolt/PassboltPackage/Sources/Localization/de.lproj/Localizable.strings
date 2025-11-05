@@ -499,6 +499,7 @@ Wenden Sie sich für weitere Informationen an Ihren Administrator.";
 "error.resource.secret.invalid" = "Ressourcengeheimnis ist ungültig.";
 "error.resource.permission.invalid" = "Ressourcen-Berechtigung ist ungültig.";
 "error.resource.owner.missing" = "Ressource muss mindestens einen Eigentümer haben.";
+"error.resource.update.failed" = "Resource update failed.";
 "error.system.feature.inaccessible" = "Systemfunktion nicht zugänglich.";
 "error.system.feature.permission.not.granted" = "Systemfunktion Berechtigung nicht erteilt.";
 "error.system.feature.permission.required" = "Systemfunktion Berechtigung erforderlich.";

@@ -499,6 +499,7 @@ Contactați administratorul pentru mai multe informații.";
 "error.resource.secret.invalid" = "Secretul este invalid.";
 "error.resource.permission.invalid" = "Permisiunea resursei este nevalidă.";
 "error.resource.owner.missing" = "Resursa trebuie să aibă cel puțin un proprietar.";
+"error.resource.update.failed" = "Resource update failed.";
 "error.system.feature.inaccessible" = "Funcția sistemului este inaccesibilă.";
 "error.system.feature.permission.not.granted" = "Permisiunea pentru funcția de sistem nu a fost acordată.";
 "error.system.feature.permission.required" = "Permisiunea pentru funcția de sistem este necesară.";

@@ -54,7 +54,7 @@ extension FeaturesRegistry {
 
   internal mutating func usePassboltResourceUpdateFolderDatabaseOperation() {
     self.use(
-      FeatureLoader.databaseOperationWithTransaction(
+      FeatureLoader.databaseOperation(
         of: ResourceUpdateFolderDatabaseOperation.self,
         execute: ResourceUpdateFolderDatabaseOperation.execute(_:connection:)
       ),

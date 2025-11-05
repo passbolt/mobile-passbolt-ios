@@ -501,6 +501,7 @@ Contact your administrator for more information.";
 "error.resource.secret.invalid" = "Resource secret is invalid.";
 "error.resource.permission.invalid" = "Resource permission is invalid.";
 "error.resource.owner.missing" = "Resource has to have at least one owner.";
+"error.resource.update.failed" = "Resource update failed.";
 "error.system.feature.inaccessible" = "System feature inaccessible.";
 "error.system.feature.permission.not.granted" = "System feature permission not granted.";
 "error.system.feature.permission.required" = "System feature permission required.";

@@ -499,6 +499,7 @@ Neem contact op met je beheerder voor meer informatie.";
 "error.resource.secret.invalid" = "Resource-geheim is ongeldig.";
 "error.resource.permission.invalid" = "Resource-machtiging is ongeldig.";
 "error.resource.owner.missing" = "Resource moet minstens één eigenaar hebben.";
+"error.resource.update.failed" = "Resource update failed.";
 "error.system.feature.inaccessible" = "Systeemfunctie niet toegankelijk.";
 "error.system.feature.permission.not.granted" = "Geen toestemming voor systeemfunctie verleend.";
 "error.system.feature.permission.required" = "Systeemfunctie vereist toestemming.";

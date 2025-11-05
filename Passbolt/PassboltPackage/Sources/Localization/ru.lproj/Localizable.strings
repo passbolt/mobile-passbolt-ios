@@ -500,6 +500,7 @@ NFC.";
 "error.resource.secret.invalid" = "Неверный секретный ключ ресурса.";
 "error.resource.permission.invalid" = "Разрешение на ресурс недействительно.";
 "error.resource.owner.missing" = "Ресурс должен иметь хотя бы одного владельца.";
+"error.resource.update.failed" = "Resource update failed.";
 "error.system.feature.inaccessible" = "Системная функция недоступна.";
 "error.system.feature.permission.not.granted" = "Доступ к системным функциям не предоставлен.";
 "error.system.feature.permission.required" = "Необходим доступ к системной функции.";

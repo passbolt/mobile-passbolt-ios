@@ -497,6 +497,7 @@
 "error.resource.secret.invalid" = "Il segreto della risorsa non è valido.";
 "error.resource.permission.invalid" = "L'autorizzazione della risorsa non è valida.";
 "error.resource.owner.missing" = "La risorsa deve avere almeno un proprietario.";
+"error.resource.update.failed" = "Resource update failed.";
 "error.system.feature.inaccessible" = "Funzione di sistema inaccessibile.";
 "error.system.feature.permission.not.granted" = "Autorizzazione per la funzione di sistema non concessa.";
 "error.system.feature.permission.required" = "Necessaria autorizzazione per la funzione di sistema.";

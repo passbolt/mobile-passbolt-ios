@@ -497,6 +497,7 @@
 "error.resource.secret.invalid" = "Resurshemligheten är ogiltig.";
 "error.resource.permission.invalid" = "Resursbehörigheten är ogiltig.";
 "error.resource.owner.missing" = "Resursen måste ha minst en ägare.";
+"error.resource.update.failed" = "Resource update failed.";
 "error.system.feature.inaccessible" = "Systemfunktion otillgänglig.";
 "error.system.feature.permission.not.granted" = "Systemfunktionstillstånd inte beviljat.";
 "error.system.feature.permission.required" = "Systemfunktionstillstånd krävs.";

@@ -213,6 +213,7 @@ private struct ValidatedMetadataProperties {
     var diagnostics: Array<DiagnosticsContext> = []
     var encryptionType: MetadataKeysService.EncryptionType?
     var metadataKeyId: MetadataKeyDTO.ID?
+
     if resource.isShared {
       if let keyId = resource.metadataKeyId {
         encryptionType = .sharedKey(keyId)

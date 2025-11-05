@@ -540,6 +540,7 @@
 "error.resource.secret.invalid" = "Neteisinga slaptažodžio paslaptis.";
 "error.resource.permission.invalid" = "Neteisingas išteklių leidimas.";
 "error.resource.owner.missing" = "Išteklius privalo turėti bent vieną savininką.";
+"error.resource.update.failed" = "Resource update failed.";
 "error.system.feature.inaccessible" = "Sistemos funkcija nepasiekiama.";
 "error.system.feature.permission.not.granted" = "Nesuteiktas leidimas sistemos funkcijai.";
 "error.system.feature.permission.required" = "Reikalingas leidimas sistemos funkcijai.";
