@@ -238,6 +238,7 @@ extension ResourcesListFetchDatabaseOperation {
       statement.appendArgument(input.text)
       statement.appendArgument(input.text)
       statement.appendArgument(input.text)
+      statement.appendArgument(input.text)
     }
     else {
       /* NOP */

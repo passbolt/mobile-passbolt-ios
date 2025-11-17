@@ -21,29 +21,45 @@
 // @since         v1.0
 //
 
-import Display
+internal class HomeScreen: Screen {
 
-public struct ResourcesListDisplayView: ControlledView {
-
-  public let controller: ResourcesListDisplayController
-
-  public init(
-    controller: ResourcesListDisplayController
-  ) {
-    self.controller = controller
+  internal override var requiredElements: Array<XCUIElement> {
+    [
+      createButton,
+      searchField,
+      filtersButton,
+    ]
   }
 
-  public var body: some View {
-    WithViewState(from: self.controller) { state in
-      UICommons.ResourcesListView(
-        suggestedResources: state.suggested,
-        resources: state.resources,
-        refreshAction: self.controller.refresh,
-        createAction: self.controller.createResource,
-        resourceTapAction: self.controller.selectResource,
-        resourceMenuAction: self.controller.showResourceMenu
-      )
-      .accessibilityIdentifier("resource.list.collection.view")
-    }
+  private var createButton: XCUIElement {
+    app.buttons["Create"]
+  }
+
+  private var searchField: XCUIElement {
+    app.textFields["search.view.input"]
+  }
+
+  private var filtersButton: XCUIElement {
+    app.buttons["search.view.menu"]
+  }
+
+  internal func search(for text: String) {
+    type(text, to: searchField)
+  }
+
+  internal func tapCreateButton() -> CreateResourceMenuScreen {
+    createButton.tap()
+    let resourceForm: CreateResourceMenuScreen = screen()
+    return resourceForm.ensureDisplayed()
+  }
+
+  internal func openFilters() -> HomeFilterScreen {
+    filtersButton.tap()
+    let filters: HomeFilterScreen = screen()
+    return filters.ensureDisplayed()
+  }
+
+  internal var createMenuScreen: CreateResourceMenuScreen {
+    screen()
   }
 }

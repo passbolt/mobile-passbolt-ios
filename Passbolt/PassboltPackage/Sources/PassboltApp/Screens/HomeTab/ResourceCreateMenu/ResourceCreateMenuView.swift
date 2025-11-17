@@ -77,5 +77,6 @@ extension ResourceCreateMenuItem {
           .resizable()
       }
     )
+    .accessibilityIdentifier(String(format: "resource.folders.add.%@", self.slug.rawValue))
   }
 }

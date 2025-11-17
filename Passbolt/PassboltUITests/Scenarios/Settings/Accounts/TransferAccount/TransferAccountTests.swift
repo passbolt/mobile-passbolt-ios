@@ -41,9 +41,7 @@ final class TransferAccountTests: UITestCase {
     //  Then  the “Transfer account details” explanation screen is presented with a corresponding title
     assertPresentsString(matching: "Transfer account details")
     //  And the screen has an arrow button on the top left to go back to the previous screen
-    ignoreFailure("Back arrow button can't be accessed") {
-      assertInteractive("navigation.back")
-    }
+    assertInteractive("BackButton")
     //  And   it has an explanation of the different steps of the transfer process
     assertPresentsString(
       matching: "Show QR codes to transfer your account details"
@@ -70,9 +68,7 @@ final class TransferAccountTests: UITestCase {
       matching: "Enter your passphrase"
     )
     //    And   I see a back arrow button
-    ignoreFailure("Back arrow button can't be accessed") {
-      assertInteractive("navigation.back")
-    }
+    assertInteractive("BackButton")
     //    And   I see my current user's avatar or the default avatar
     assertExists("authorization.passphrase.avatar")
     //    And   I see my current user's name
@@ -197,12 +193,16 @@ final class TransferAccountTests: UITestCase {
 
   private func openStopTransferPrompt() throws {
     try tap("settings.main.item.accounts.title")
-    try tap("settings.accounts.item.export.title")
-    try tap("transfer.account.export.scan.qr.button")
+    try tap("settings.accounts.item.export.title", timeout: 5.0)
+    try tap("transfer.account.export.scan.qr.button", timeout: 5.0)
     try typePassphrase(
       text: password,
       to: "form.textfield.field"
     )
+    if application.buttons["Return"].exists, application.buttons["Return"].isHittable {
+      try tap("Return")
+    }
+
     try tap("transfer.account.export.passphrase.primary.button")
     try tap("transfer.account.export.cancel.button")
   }

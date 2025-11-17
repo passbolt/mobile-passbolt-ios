@@ -187,6 +187,13 @@ extension OSPreferences {
   ) where Value: RawRepresentable, Value.RawValue == Int {
     save(value.map(\.rawValue), key)
   }
+
+  public func load(
+    _ type: Bool.Type = Bool.self,
+    for key: Key
+  ) -> Bool? {
+    load(key) as? Bool
+  }
 }
 
 extension FeaturesRegistry {

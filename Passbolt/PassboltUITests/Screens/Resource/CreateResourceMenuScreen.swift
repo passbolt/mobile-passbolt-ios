@@ -21,29 +21,33 @@
 // @since         v1.0
 //
 
-import Display
+internal final class CreateResourceMenuScreen: Screen {
 
-public struct ResourcesListDisplayView: ControlledView {
-
-  public let controller: ResourcesListDisplayController
-
-  public init(
-    controller: ResourcesListDisplayController
-  ) {
-    self.controller = controller
+  internal override var requiredElements: Array<XCUIElement> {
+    [
+      header,
+      passwordOption,
+      closeButton,
+    ]
   }
 
-  public var body: some View {
-    WithViewState(from: self.controller) { state in
-      UICommons.ResourcesListView(
-        suggestedResources: state.suggested,
-        resources: state.resources,
-        refreshAction: self.controller.refresh,
-        createAction: self.controller.createResource,
-        resourceTapAction: self.controller.selectResource,
-        resourceMenuAction: self.controller.showResourceMenu
-      )
-      .accessibilityIdentifier("resource.list.collection.view")
-    }
+  private var header: XCUIElement {
+    app.staticTexts["Create a resource"]
+  }
+
+  private var passwordOption: XCUIElement {
+    app.buttons["resource.folders.add.v5-default"]
+  }
+
+  private var closeButton: XCUIElement {
+    self.app.buttons["Close"]
+  }
+
+  internal func waitForDisappearance() {
+    waitForDisappearance(of: header)
+  }
+
+  internal func tapPasswordOption() {
+    passwordOption.tap()
   }
 }

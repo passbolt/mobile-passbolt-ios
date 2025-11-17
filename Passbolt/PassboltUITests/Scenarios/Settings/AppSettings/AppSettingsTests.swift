@@ -38,9 +38,8 @@ final class AppSettingsTests: UITestCase {
     //    Then  I see the “App settings” title
     assertPresentsString(matching: "App Settings")
     //    And     I see the back button to go to the main settings page
-    ignoreFailure("Back arrow button can't be accessed") {
-      assertInteractive("navigation.back")
-    }
+    assertInteractive("BackButton")
+
     //    And     I see a <list item> with an <graphic> icon and a <action item> on the right
     //
     //        Examples:

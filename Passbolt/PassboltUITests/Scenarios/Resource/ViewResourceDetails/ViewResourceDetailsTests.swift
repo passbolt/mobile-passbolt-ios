@@ -27,8 +27,7 @@ final class ViewResourceDetailsTests: UITestCase {
 
   override func beforeEachTestCase() throws {
     try signIn()
-    try tap("search.view.menu")
-    try tap("plainResourcesList")
+    selectAllItemsFilter()
   }
 
   ///    https://passbolt.testrail.io/index.php?/cases/view/2443
@@ -44,13 +43,13 @@ final class ViewResourceDetailsTests: UITestCase {
     //      And I see a “3 dots” icon on the top right corner
     assertExists("More")
     //      And I see the resource favicon or a default icon
-    assertExists("SP")
+    assertExists("KeepassIconSet/key")
     //      And I see the resource name
     assertPresentsString(matching: "Simple Password")
     //      And I see the “Website URL” list item with title, value and a copy icon
-    assertExists("URL")
-    assertPresentsString(matching: "https://passbolt.testrail.io/index.php?/cases/view/10599")
-    assertExists("copy.button.URL")
+    assertExists("Main URI")
+    assertPresentsString(matching: "https://cloud.passbolt.com/automate")
+    assertExists("copy.button.Main URI")
     //      And I see the “Username” list item with title, value and a copy icon
     assertExists("Username")
     assertPresentsString(matching: "Automate")
@@ -63,11 +62,15 @@ final class ViewResourceDetailsTests: UITestCase {
     assertExists("Description")
     assertPresentsString(matching: "Description is unencrypted this time")
     assertExists("copy.button.Description")
+    //      And I see the "Metadata" subsection with title
+    assertExists("Metadata")
+    try swipeUp("Metadata")  // Next elements can be off-screen - make sure they are visible
     //      And I see "Tags" subsection
     assertExists("Tags")
     //      And I see "Location" subsection
     assertExists("Location")
     //      And I see "Shared with" subsection
+    try swipeUp("Metadata")  // Next elements can be off-screen - make sure they are visible
     assertExists("Shared with")
     //
     //      Examples:
@@ -91,13 +94,13 @@ final class ViewResourceDetailsTests: UITestCase {
     //      And I see a “3 dots” icon on the top right corner
     assertExists("More")
     //      And I see the resource favicon or a default icon
-    assertExists("PA")
+    assertExists("KeepassIconSet/key")
     //      And I see the resource name
     assertPresentsString(matching: "Password and description")
     //      And I see the “Website URL” list item with title, value and a copy icon
-    assertExists("URL")
+    assertExists("Main URI")
     assertPresentsString(matching: "https://passbolt.testrail.io/index.php?/cases/view/10599")
-    assertExists("copy.button.URL")
+    assertExists("copy.button.Main URI")
     //      And I see the “Username” list item with title, value and a copy icon
     assertExists("Username")
     assertPresentsString(matching: "Automate")
@@ -106,14 +109,18 @@ final class ViewResourceDetailsTests: UITestCase {
     assertExists("Password")
     assertExists("••••••••", inside: "text.encrypted.Password")
     assertExists("reveal.button.Password")
-    //      And I see the “Description” list item with title, hidden value and a show icon
-    assertExists("Description")
-    assertExists("••••••••", inside: "text.encrypted.Description")
-    assertExists("reveal.button.Description")
+    //      And I see the “Note” list item with title, hidden value and a show icon
+    assertExists("Note")
+    assert("text.encrypted.note", textEqual: "••••••••")
+    assertExists("reveal.button.note")
+    try swipeUp("Note")  // Next elements can be off-screen - make sure they are visible
+    //      And I see the "Metadata" subsection with title
+    assertExists("Metadata")
     //      And I see "Tags" subsection
     assertExists("Tags")
     //      And I see "Location" subsection
     assertExists("Location")
+    try swipeUp("Metadata")  // Next elements can be off-screen - make sure they are visible
     //      And I see "Shared with" subsection
     assertExists("Shared with")
     //
@@ -138,13 +145,13 @@ final class ViewResourceDetailsTests: UITestCase {
     //      And I see a “3 dots” icon on the top right corner
     assertExists("More")
     //      And I see the resource favicon or a default icon
-    assertExists("PD")
+    assertExists("KeepassIconSet/password_with_totp")
     //      And I see the resource name
-    assertPresentsString(matching: "Password description totp")
+    assertPresentsString(matching: "Password description totp", timeout: 5.0)
     //      And I see the “Website URL” list item with title, value and a copy icon
-    assertExists("URL")
+    assertExists("Main URI")
     assertPresentsString(matching: "https://passbolt.testrail.io/index.php?/cases/view/10599")
-    assertExists("copy.button.URL")
+    assertExists("copy.button.Main URI")
     //      And I see the “Username” list item with title, value and a copy icon
     assertExists("Username")
     assertPresentsString(matching: "Automate")
@@ -153,10 +160,11 @@ final class ViewResourceDetailsTests: UITestCase {
     assertExists("Password")
     assertExists("••••••••", inside: "text.encrypted.Password")
     assertExists("reveal.button.Password")
-    //      And I see the “Description” list item with title, hidden value and a show icon
-    assertExists("Description")
-    assertExists("••••••••", inside: "text.encrypted.Description")
-    assertExists("reveal.button.Description")
+    try swipeUp("TOTP")  // Next elements can be off-screen - make sure they are visible
+    //      And I see the “Note” list item with title, hidden value and a show icon
+    assertExists("Note")
+    assert("text.encrypted.note", textEqual: "••••••••")
+    assertExists("reveal.button.note")
     //      And I see "Tags" subsection
     assertExists("Tags")
     //      And I see "Location" subsection
@@ -181,7 +189,7 @@ final class ViewResourceDetailsTests: UITestCase {
     try tap("reveal.button.Password")
     //        And   I successfully authenticate using biometric or passphrase if required
     //        Then  I should see the password displayed
-    assertPresentsString(matching: "SimplePass1234!@#$")
+    assertPresentsString(matching: "BettyPassword")
     //        And   I should observe the "show" icon change its state
     assertExists("hide.button.Password")
     //
@@ -254,21 +262,21 @@ final class ViewResourceDetailsTests: UITestCase {
     throws
   {
     //        Given I am a mobile user on the <resource> display screen
-    try type(text: "Password and description", to: "search.view.input")
+    try type(text: "Password and description", to: "search.view.input", timeout: 10.0)
     try selectCollectionViewItem(identifier: "resource.list.collection.view", at: 1)
     //        When  I click on the show icon in the “Description” item list
-    try tap("reveal.button.Description")
+    try tap("reveal.button.note")
     //        And   I successfully authenticate (if needed)
     //        Then  I should see a spinner in place of the eye icon
     //        And   I should see the description
-    assertPresentsString(matching: "Description is encrypted")
+    assertExists("Description is encrypted")
     //        And   I should see a hide icon
-    assertExists("hide.button.Description")
+    assertExists("hide.button.note")
     //
     //        When  I click on the hide icon
-    try tap("hide.button.Description")
+    try tap("hide.button.note")
     //        Then  I should see the description hidden
-    assertExists("••••••••", inside: "text.encrypted.Description")
+    assert("text.encrypted.note", textEqual: "••••••••")
     //
     //        Examples:
     //            | resource |
@@ -283,19 +291,20 @@ final class ViewResourceDetailsTests: UITestCase {
     //        Given I am a mobile user on the <resource> display screen
     try type(text: "Password description totp", to: "search.view.input")
     try selectCollectionViewItem(identifier: "resource.list.collection.view", at: 1)
+    try swipeUp("TOTP")  // Make sure the Note field is visible
     //        When  I click on the show icon in the “Description” item list
-    try tap("reveal.button.Description")
+    try tap("reveal.button.note")
     //        And   I successfully authenticate (if needed)
     //        Then  I should see a spinner in place of the eye icon
     //        And   I should see the description
-    assertPresentsString(matching: "Description encrypted - password-description-totp")
+    assertExists("Description encrypted - password-description-totp")
     //        And   I should see a hide icon
-    assertExists("hide.button.Description")
+    assertExists("hide.button.note")
     //
     //        When  I click on the hide icon
-    try tap("hide.button.Description")
+    try tap("hide.button.note")
     //        Then  I should see the description hidden
-    assertExists("••••••••", inside: "text.encrypted.Description")
+    assert("text.encrypted.note", textEqual: "••••••••")
     //
     //        Examples:
     //            | resource |

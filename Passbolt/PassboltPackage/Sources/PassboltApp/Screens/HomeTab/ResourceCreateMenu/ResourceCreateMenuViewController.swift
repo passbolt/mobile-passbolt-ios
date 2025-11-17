@@ -175,7 +175,7 @@ extension ResourceSpecification.Slug {
 
   internal var title: DisplayableString {
     switch self {
-    case  .v5StandaloneNote:
+    case .v5StandaloneNote:
       return "resource.create.menu.note"
     case _ where isStandaloneTOTPType:
       return "resource.create.menu.totp"

@@ -21,29 +21,47 @@
 // @since         v1.0
 //
 
-import Display
+internal final class HomeFilterScreen: Screen {
 
-public struct ResourcesListDisplayView: ControlledView {
-
-  public let controller: ResourcesListDisplayController
-
-  public init(
-    controller: ResourcesListDisplayController
-  ) {
-    self.controller = controller
+  internal override var requiredElements: Array<XCUIElement> {
+    [
+      header,
+      allItemsButton,
+      foldersButton,
+      closeButton,
+    ]
   }
 
-  public var body: some View {
-    WithViewState(from: self.controller) { state in
-      UICommons.ResourcesListView(
-        suggestedResources: state.suggested,
-        resources: state.resources,
-        refreshAction: self.controller.refresh,
-        createAction: self.controller.createResource,
-        resourceTapAction: self.controller.selectResource,
-        resourceMenuAction: self.controller.showResourceMenu
-      )
-      .accessibilityIdentifier("resource.list.collection.view")
-    }
+  private var header: XCUIElement {
+    self.app.staticTexts["Filter view by"]
+  }
+
+  private var allItemsButton: XCUIElement {
+    self.app.buttons["plainResourcesList"]
+  }
+
+  private var foldersButton: XCUIElement {
+    self.app.buttons["foldersExplorer"]
+  }
+
+  private var closeButton: XCUIElement {
+    self.app.buttons["Close"]
+  }
+
+  @discardableResult
+  internal func tapAllItems() -> Self {
+    self.allItemsButton.tap()
+    return self
+  }
+
+  @discardableResult
+  internal func tapFolders() -> Self {
+    self.foldersButton.tap()
+    return self
+  }
+
+  @discardableResult
+  internal func waitForDisappearance() -> Self {
+    waitForDisappearance(of: header)
   }
 }

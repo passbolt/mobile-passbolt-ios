@@ -21,29 +21,52 @@
 // @since         v1.0
 //
 
-import Display
+internal class TOTPCreateScreen: Screen {
+  private let screenIdentifier = "screen.resource.edit"
 
-public struct ResourcesListDisplayView: ControlledView {
-
-  public let controller: ResourcesListDisplayController
-
-  public init(
-    controller: ResourcesListDisplayController
-  ) {
-    self.controller = controller
+  override var requiredElements: Array<XCUIElement> {
+    [
+      header,
+      nameField,
+      totpSection,
+      secretField,
+      createButton,
+    ]
   }
 
-  public var body: some View {
-    WithViewState(from: self.controller) { state in
-      UICommons.ResourcesListView(
-        suggestedResources: state.suggested,
-        resources: state.resources,
-        refreshAction: self.controller.refresh,
-        createAction: self.controller.createResource,
-        resourceTapAction: self.controller.selectResource,
-        resourceMenuAction: self.controller.showResourceMenu
-      )
-      .accessibilityIdentifier("resource.list.collection.view")
-    }
+  private var header: XCUIElement {
+    self.app.staticTexts["Create a resource"]
+  }
+
+  private var nameField: XCUIElement {
+    self.app.textFields["form.textfield.text.Name"]
+  }
+
+  private var totpSection: XCUIElement {
+    self.app.staticTexts["TOTP"]
+  }
+
+  private var secretField: XCUIElement {
+    self.app.textFields["form.textfield.text.Secret"]
+  }
+
+  private var createButton: XCUIElement {
+    self.app.descendants(matching: .any).element(matching: .button, identifier: screenIdentifier)
+  }
+
+  internal func type(name: String) {
+    self.type(name, to: nameField)
+  }
+
+  internal func type(secret: String) {
+    self.type(secret, to: secretField)
+  }
+
+  internal func tapCreateButton() {
+    self.createButton.tap()
+  }
+
+  internal func waitForDisappearance() {
+    self.waitForDisappearance(of: createButton)
   }
 }

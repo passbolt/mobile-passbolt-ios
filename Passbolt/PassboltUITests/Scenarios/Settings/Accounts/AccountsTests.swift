@@ -39,9 +39,7 @@ final class AccountsTests: UITestCase {
     //        Then  I see the “Accounts” title
     assertPresentsString(matching: "Accounts")
     //        And     I see the back button to go to the main settings page
-    ignoreFailure("The Back Arrow button can't be automated currently") {
-      assertInteractive("navigation.back")
-    }
+    assertInteractive("BackButton")
     //        And     I see a <list item> with an <graphic> icon and a <action item> on the right
     //
     //        Examples:

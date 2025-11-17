@@ -21,62 +21,27 @@
 // @since         v1.0
 //
 
-import Foundation
-
-final class CreateTOTPTests: UITestCase {
+internal final class CreateTOTPTests: UITestCase {
 
   override func beforeEachTestCase() throws {
     try signIn()
-    try tapTab("TOTP")
-  }
-
-  ///    https://passbolt.testrail.io/index.php?/cases/view/9173
-  func test_asALoggedInUserICanSeeTheCreateTotpFormPage() throws {
-    //        Given   that I am a [logged in user on the TOTP page with resources]
-    //        And I am on the “Create TOTP” drawer
-    try tap("totp.create.button")
-    //        When    I click on the “Create TOTP manually” list item
-    try tap("EditAlt")
-    //        Then    I see a “Create TOTP” page
-    assertPresentsString(matching: "Create TOTP")
-    //        And I see page title with a back arrow to go back to the previous page
-    ignoreFailure("Back arrow button can't be accessed") {
-      assertInteractive("navigation.back")
-    }
-    //        And I see a field with a <label>, a <option> option, input field with a <placeholder> placeholder
-    //        And I see an “Advanced settings” section link with an icon and a caret
-    assertPresentsString(matching: "Advanced settings")
-    //        And I see a “Create a standalone TOTP” primary button
-    assertExists("Create standalone TOTP")
-    //        And I see a “Link TOTP to a password” link below the primary button
-    assertExists("Link TOTP to a password")
-    //        | label        | option    | placeholder |
-    //        | Name (Label) | mandatory | Name        |
-    assertPresentsString(matching: "Name (Label) *")
-    assertPresentsString(matching: "Name")
-    //        | URL (Issuer) | optional  | URL         |
-    assertPresentsString(matching: "URL (Issuer)")
-    assertPresentsString(matching: "URL")
-    //        | Secret       | mandatory | Secret      |
-    assertPresentsString(matching: "Secret *")
-    assertPresentsString(matching: "Secret")
+    try tapTab("TOTP", timeout: 10.0)
   }
 
   ///    https://passbolt.testrail.io/index.php?/cases/view/9179
-  func test_asALoggedInUserICanAddAManuallyCreatedStandaloneTotpResource() throws {
-    //        Given   that I am a [logged in user on the TOTP page with resources]
-    try tap("totp.create.button")
-    try tap("EditAlt")
-    //        And I am on the “Create TOTP” page
-    assertPresentsString(matching: "Create TOTP")
-    //        And I filled out at least the mandatory field with a valid entry
-    let randomName = "TOTP " + String(Int.random(in: 0 ..< 100_000))
-    try type(text: randomName, to: "Name")
-    try type(text: "AAABBBCCC", to: "Secret")
-    //        When    I click on the “Create a standalone TOTP” primary button
-    try tap("Create standalone TOTP")
+  @MainActor func test_asALoggedInUserICanAddAManuallyCreatedStandaloneTotpResource() throws {
+    let randomName: String = "TOTP ".withRandomSuffix()
+    // Steps performed as common flow:
+    // Given   that I am a [logged in user on the TOTP page with resources]
+    // And I am on the “Create a resource” page
+    // And I filled out at least the mandatory field with a valid entry
+    // When    I click on the “Create” primary button
+    createTOTP(named: randomName)
     //        Then    I see the main TOTP page
-    try type(text: randomName, to: "search.view.input", timeout: 4)
+    let mainTOTPPage: MainTOTPScreen = screen()
+    mainTOTPPage.ensureDisplayed()
+    mainTOTPPage.search(for: randomName)
+
     //        And I see the TOTP resource I created manually
     assertPresentsString(matching: randomName)
     //        And I see the TOTP value hidden

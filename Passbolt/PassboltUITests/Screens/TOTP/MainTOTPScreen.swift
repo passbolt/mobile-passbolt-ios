@@ -21,29 +21,38 @@
 // @since         v1.0
 //
 
-import Display
+@MainActor internal class MainTOTPScreen: Screen {
 
-public struct ResourcesListDisplayView: ControlledView {
-
-  public let controller: ResourcesListDisplayController
-
-  public init(
-    controller: ResourcesListDisplayController
-  ) {
-    self.controller = controller
+  override internal var requiredElements: Array<XCUIElement> {
+    [
+      otpIcon,
+      header,
+      createButton,
+      searchField,
+    ]
   }
 
-  public var body: some View {
-    WithViewState(from: self.controller) { state in
-      UICommons.ResourcesListView(
-        suggestedResources: state.suggested,
-        resources: state.resources,
-        refreshAction: self.controller.refresh,
-        createAction: self.controller.createResource,
-        resourceTapAction: self.controller.selectResource,
-        resourceMenuAction: self.controller.showResourceMenu
-      )
-      .accessibilityIdentifier("resource.list.collection.view")
-    }
+  private var otpIcon: XCUIElement {
+    app.images["OTP"]
+  }
+
+  private var header: XCUIElement {
+    app.staticTexts["TOTP"]
+  }
+
+  private var createButton: XCUIElement {
+    app.buttons["totp.create.button"]
+  }
+
+  private var searchField: XCUIElement {
+    app.textFields["search.view.input"]
+  }
+
+  internal func search(for text: String) {
+    type(text, to: searchField)
+  }
+
+  internal func tapCreateButton() {
+    createButton.tap()
   }
 }

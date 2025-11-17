@@ -27,7 +27,7 @@ final class TOTPListTests: UITestCase {
 
   override func beforeEachTestCase() throws {
     try signIn()
-    try tapTab("TOTP")
+    try tapTab("TOTP", timeout: 30.0)
   }
 
   ///    https://passbolt.testrail.io/index.php?/cases/view/9164
@@ -37,9 +37,9 @@ final class TOTPListTests: UITestCase {
     //      And     I see a <item> for each TOTP resource list items
     //
     //      | item                                                                   |
-    //      | icon with the first letter of the resource in a random colour  |
+    //      | default icon  |
     try type(text: "A Standalone TOTP", to: "search.view.input")
-    assertPresentsString(matching: "AS")
+    assertExists("KeepassIconSet/totp")
     //      | name of the resource with the URL in parenthesis                       |
     assertPresentsString(matching: "A Standalone TOTP")
     //      | an obfuscated TOTP value grouped by 3 symbols for a total of 6 symbols |

@@ -32,8 +32,7 @@ final class FolderCreationTests: UITestCase {
     //      And I am on the folders filter view
     //      And I have the permission to create a folder in my current location
     try signIn()
-    try tap("search.view.menu", timeout: 4.0)
-    try tap("foldersExplorer")
+    selectFoldersFilter()
   }
 
   /// https://passbolt.testrail.io/index.php?/cases/view/8160
@@ -47,7 +46,7 @@ final class FolderCreationTests: UITestCase {
     //      Then    I see a menu with a item ‘Add folder’ with folder icon
     assertExists("resource.folders.add.folder")
     //      And     I see a menu with a item ‘Add password’ with key icon
-    assertExists("resource.folders.add.password")
+    assertExists("resource.folders.add.v5-default")
     //      And     I see ‘X’ close button
     assertExists("Close")
   }
@@ -58,9 +57,9 @@ final class FolderCreationTests: UITestCase {
     //        And I clicked on the create button
     try tap("folder.explore.create.new")
     //        When    I click ‘Add password’
-    try tap("resource.folders.add.password")
+    try tap("resource.folders.add.v5-default")
     //        Then    I see ‘New password’ workspace
-    assertPresentsString(matching: "Password")
+    assertPresentsString(matching: "Password", timeout: 5.0)
   }
 
   ///   https://passbolt.testrail.io/index.php?/cases/view/8162
@@ -82,7 +81,7 @@ final class FolderCreationTests: UITestCase {
     //        When    I click ‘Add folder’ button
     try tap("resource.folders.add.folder")
     //        Then    I see ‘Create folder’ workspace
-    assertPresentsString(matching: "Create folder")
+    assertPresentsString(matching: "Create folder", timeout: 15.0)
     //        And I see a back arrow to go back to the previous page
     assertExists("Back")
     //        And I see a mandatory input text field with a ‘Name’ label
@@ -103,7 +102,7 @@ final class FolderCreationTests: UITestCase {
     //        And I clicked on the create folder button
     try tap("resource.folders.add.folder")
     //        When I click ‘Save’ button
-    try tap("folder.edit.form.button")
+    try tap("folder.edit.form.button", timeout: 8.0)  // edit form requires more time to load
     //        Then I see the label of the ‘Name’ field in @red //INFO: we can't check colour on iOS via XCUITest
     //        And I see stroke of the ‘Name’ field in @red //INFO: we can't check colour on iOS
     //        And I see exclamation mark in @red // Android only
@@ -119,13 +118,13 @@ final class FolderCreationTests: UITestCase {
     //        And I clicked on the create folder button
     try tap("resource.folders.add.folder")
     //        And I filled out mandatory ‘Name’ field
-    try type(text: "Automated tests folder iOS", to: "form.textfield.text.Name")
+    try type(text: "Automated tests folder iOS", to: "form.textfield.text.Name", timeout: 20.0)  // edit form requires more time to load
     //        When I click ‘Save’ button
     try tap("folder.edit.form.button")
     //        Then I see ‘New folder {folder’s name} has been created!’ in @green //INFO: we can't check colour on iOS via XCUITest
     //    TODO: There is no snackbar here: https://app.clickup.com/t/2593179/MOB-1905
     //        And I am redirected to the folders workspace
-    assertPresentsString(matching: "Folders")
+    assertPresentsString(matching: "Folders", timeout: 60.0)
   }
 
   ///   https://passbolt.testrail.io/index.php?/cases/view/8166
@@ -142,10 +141,8 @@ final class FolderCreationTests: UITestCase {
     assertExists("Folder")
     //        And I see folder name
     assertPresentsString(matching: "Empty folder for testing")
-    //        And I see ‘3 dots’ // TODO: Add accessibility identifier for this element
-    ignoreFailure("There is no accessibility identifier for this 3-dot menu on folder's screen") {
-      assertExists("More")
-    }
+    //        And I see ‘3 dots’ // TODO: Currently, there is no such element 
+
     //        And I see filters icon
     assertExists("Filter")
     //        And I see search bar

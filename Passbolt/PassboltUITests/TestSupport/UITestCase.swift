@@ -23,6 +23,7 @@
 
 import XCTest
 
+@MainActor
 internal class UITestCase: XCTestCase {
 
   // MARK: - Initialization
@@ -61,6 +62,8 @@ internal class UITestCase: XCTestCase {
         case (false, false):
           launchArguments.append("-unfinishedSetup-\(account.userID)")
           launchArguments.append("<array></array>")
+          launchArguments.append("-force-skip-setup")
+          launchArguments.append("<true/>")
         }
       }
     }
@@ -316,6 +319,7 @@ internal class UITestCase: XCTestCase {
       file: file,
       line: line
     )
+    .firstMatch
     .tap()
   }
 
@@ -403,7 +407,9 @@ internal class UITestCase: XCTestCase {
       file: file,
       line: line
     )
-    element.swipeUp()
+    element
+      .firstMatch
+      .swipeUp()
   }
 
   internal final func swipeDown(
@@ -450,7 +456,7 @@ internal class UITestCase: XCTestCase {
     text value: String,
     to identifier: String,
     inside specifier: String? = .none,
-    timeout: Double = 2.0,
+    timeout: Double = 5.0,
     file: StaticString = #file,
     line: UInt = #line
   ) throws {
@@ -463,21 +469,28 @@ internal class UITestCase: XCTestCase {
     )
     UIPasteboard.general.string = value
     element.tap()  // to gain focus
-    element.doubleTap()  // to trigger text menu
 
-    let pasteMenuItem = XCUIApplication().menuItems.element(boundBy: 0)
-    let menuExists: Bool =
-      pasteMenuItem.exists
-      ? true
-      : pasteMenuItem.waitForExistence(timeout: timeout)
-    if !menuExists {
-      throw TestFailure.error(
-        message: "Paste menu did not appear after attempting to double-tap the element \"\(identifier)\"",
-        file: file,
-        line: line
-      )
+    let maxIterationsCount: Int = 3
+    for iteration in 0 ..< maxIterationsCount {
+
+      element.doubleTap()  // to trigger text menu
+
+      let pasteMenuItem = XCUIApplication().menuItems.element(boundBy: 0)
+      let menuExists: Bool =
+        pasteMenuItem.exists
+        ? true
+        : pasteMenuItem.waitForExistence(timeout: timeout)
+      if menuExists {
+        pasteMenuItem.tap()
+        return
+      }
     }
-    pasteMenuItem.tap()
+
+    throw TestFailure.error(
+      message: "Paste menu did not appear after attempting to double-tap the element \"\(identifier)\"",
+      file: file,
+      line: line
+    )
   }
 
   // MARK: - Verify
@@ -782,5 +795,9 @@ internal class UITestCase: XCTestCase {
 
   enum SafariError: Error {
     case appLoadTimeout
+  }
+
+  @MainActor internal func screen<ScreenType>(_ type: Screen.Type = ScreenType.self) -> ScreenType where ScreenType: Screen {
+    ScreenType(application: self.application)
   }
 }

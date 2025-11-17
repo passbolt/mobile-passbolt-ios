@@ -21,29 +21,24 @@
 // @since         v1.0
 //
 
-import Display
+@MainActor
+extension UITestCase {
 
-public struct ResourcesListDisplayView: ControlledView {
+  internal var homeScreen: HomeScreen { screen() }
 
-  public let controller: ResourcesListDisplayController
-
-  public init(
-    controller: ResourcesListDisplayController
-  ) {
-    self.controller = controller
+  internal func selectAllItemsFilter() {
+    homeScreen
+      .ensureDisplayed()
+      .openFilters()
+      .tapAllItems()
+    homeScreen.ensureDisplayed()
   }
 
-  public var body: some View {
-    WithViewState(from: self.controller) { state in
-      UICommons.ResourcesListView(
-        suggestedResources: state.suggested,
-        resources: state.resources,
-        refreshAction: self.controller.refresh,
-        createAction: self.controller.createResource,
-        resourceTapAction: self.controller.selectResource,
-        resourceMenuAction: self.controller.showResourceMenu
-      )
-      .accessibilityIdentifier("resource.list.collection.view")
-    }
+  internal func selectFoldersFilter() {
+    homeScreen
+      .ensureDisplayed()
+      .openFilters()
+      .tapFolders()
+    homeScreen.ensureDisplayed()
   }
 }

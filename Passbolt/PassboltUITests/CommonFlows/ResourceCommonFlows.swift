@@ -21,29 +21,36 @@
 // @since         v1.0
 //
 
-import Display
+extension UITestCase {
 
-public struct ResourcesListDisplayView: ControlledView {
-
-  public let controller: ResourcesListDisplayController
-
-  public init(
-    controller: ResourcesListDisplayController
+  internal func createResource(
+    name: String,
+    mainURI: String? = nil,
+    username: String? = nil,
+    password: String? = nil
   ) {
-    self.controller = controller
-  }
+    homeScreen
+      .ensureDisplayed()
+      .tapCreateButton()
+      .tapPasswordOption()
 
-  public var body: some View {
-    WithViewState(from: self.controller) { state in
-      UICommons.ResourcesListView(
-        suggestedResources: state.suggested,
-        resources: state.resources,
-        refreshAction: self.controller.refresh,
-        createAction: self.controller.createResource,
-        resourceTapAction: self.controller.selectResource,
-        resourceMenuAction: self.controller.showResourceMenu
-      )
-      .accessibilityIdentifier("resource.list.collection.view")
+    let resourceForm: ResourceFormScreen = screen()
+    resourceForm
+      .ensureDisplayed()
+      .type(name: name)
+
+    if let mainURI {
+      resourceForm.type(mainURI: mainURI)
     }
+    if let username {
+      resourceForm.type(username: username)
+    }
+    if let password {
+      resourceForm.type(password: password)
+    }
+
+    resourceForm
+      .tapCreateButton()
+      .waitForDisappearance()
   }
 }

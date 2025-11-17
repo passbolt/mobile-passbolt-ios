@@ -32,12 +32,12 @@ extension UITestCase {
     try takeFirstAccount()
     try typePassphrase(
       text: password,
-      to: "input"
+      to: "input",
+      timeout: 10.0
     )
+    try tap("input.secure.button.eye")
     try tap("button.signin.passphrase")
     try avoidTutorial()
-    ignoreFailure("Passing initial setup popup is optional") {
-    }
   }
 
   internal final func takeFirstAccount() throws {
@@ -50,17 +50,29 @@ extension UITestCase {
   }
 
   internal final func avoidTutorial() throws {
-    ignoreFailure("Test can start on tutorial screens") {
-      try tap("biometrics.info.later.button", timeout: 6)
-      try tap("extension.setup.later.button")
+    // Test can start on tutorial screens
+    if unfinishedBiometrySetup || unfinishedAutofillSetup {
+      wait(for: application.staticTexts["Maybe later"])
+      wait(for: application.buttons["extension.setup.later.button"])
+    }
+  }
+
+  private func wait(for elementFetcher: @autoclosure () -> XCUIElement, timeout: TimeInterval = 5.0) {
+    let element: XCUIElement = elementFetcher()
+    let predicate = NSPredicate(format: "exists == true")
+    let expectation = XCTNSPredicateExpectation(predicate: predicate, object: element)
+    _ = XCTWaiter().wait(for: [expectation], timeout: timeout)
+    if element.exists {
+      element.tap()
     }
   }
 
   internal final func allowCookies()
     throws
   {
-    ignoreFailure("Cookies may be already allowed") {
-      safari.buttons["Allow selection"].tap()
+    let cookiesButton = safari.buttons["Allow selection"]
+    if cookiesButton.exists, cookiesButton.isHittable {
+      cookiesButton.tap()
     }
   }
 
@@ -76,11 +88,14 @@ extension UITestCase {
     try tap("search.view.menu")
     try tap("plainResourcesList")
     try tap("Create")
+    try tap("Password", inside: "Password")
     try type(text: name, to: "Enter a name")
     try type(text: username, to: "Enter username")
-    try type(text: uri, to: "Enter URL")
+    try type(text: uri, to: "Enter URI")
+    try tap("Return")  // Dismiss keyboard
     try type(text: password, to: "Enter password")
     //        try type(text: description, to: "Enter description") //TODO: the description field is not hittable as for now, needs more investigation.
+    try tap("Return")  // Dismiss keyboard
     try tap("Create")
   }
 }

@@ -21,29 +21,29 @@
 // @since         v1.0
 //
 
-import Display
+extension UITestCase {
 
-public struct ResourcesListDisplayView: ControlledView {
+  internal var totpScreen: MainTOTPScreen { screen() }
 
-  public let controller: ResourcesListDisplayController
-
-  public init(
-    controller: ResourcesListDisplayController
-  ) {
-    self.controller = controller
+  private var scannerScreen: TOTPScannerScreen {
+    screen()
   }
 
-  public var body: some View {
-    WithViewState(from: self.controller) { state in
-      UICommons.ResourcesListView(
-        suggestedResources: state.suggested,
-        resources: state.resources,
-        refreshAction: self.controller.refresh,
-        createAction: self.controller.createResource,
-        resourceTapAction: self.controller.selectResource,
-        resourceMenuAction: self.controller.showResourceMenu
-      )
-      .accessibilityIdentifier("resource.list.collection.view")
-    }
+  private var formScreen: TOTPCreateScreen {
+    screen()
+  }
+
+  internal func createTOTP(named name: String) {
+    totpScreen
+      .ensureDisplayed()
+      .tapCreateButton()
+
+    scannerScreen.ensureDisplayed()
+    scannerScreen.tapManualCreateButton()
+
+    formScreen.type(name: name)
+    formScreen.type(secret: "AAABBBCCC")
+    formScreen.tapCreateButton()
+    formScreen.waitForDisappearance()
   }
 }

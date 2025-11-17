@@ -33,6 +33,7 @@ extension AccountInitialSetup {
     features: Features
   ) throws -> Self {
     let accountPreferences: AccountPreferences = try features.instance()
+    let osPreferences: OSPreferences = features.instance()
 
     #warning("TODO: refine with account related storage")
     let unfinishedSetupElementsProperty: AccountInitialSetupUnfinishedItemsStoredProperty = try features.instance()
@@ -41,6 +42,10 @@ extension AccountInitialSetup {
     let osBiometry: OSBiometry = features.instance()
 
     @Sendable func unfinishedSetupElements() async -> Set<SetupElement> {
+      let forceSkipSetup: Bool = osPreferences.load(for: .forceSkipSetup) ?? false
+      if forceSkipSetup {
+        return .init()
+      }
       var unfinishedElements: Set<SetupElement> =
         unfinishedSetupElementsProperty
         .get(withDefault: [])
@@ -121,4 +126,9 @@ internal enum AccountInitialSetupUnfinishedItemsStoredPropertyDescription: Store
   public typealias Value = Array<String>
 
   public static var key: OSStoredPropertyKey { "unfinishedSetup" }
+}
+
+extension OSPreferences.Key {
+
+  fileprivate static let forceSkipSetup: Self = "force-skip-setup"
 }

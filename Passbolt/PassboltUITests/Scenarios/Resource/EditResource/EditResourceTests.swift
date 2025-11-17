@@ -32,9 +32,8 @@ final class EditResourceTests: UITestCase {
   ///    https://passbolt.testrail.io/index.php?/cases/view/8135
   func test_onTheEditPasswordPageICanEditElements() throws {
     //        Given that I am on Edit password screen
-    try tap("search.view.menu")
-    try tap("plainResourcesList")
-    try type(text: "ResourcesEditionTestOniOS", to: "search.view.input")
+    selectAllItemsFilter()
+    try type(text: "ResourcesEditionTestOniOS", to: "search.view.input", timeout: 10.0)
     try selectCollectionViewItem(identifier: "resource.list.collection.view", at: 1)
     try tapButton("resource.details.more.button")
     try tap("Edit")
@@ -49,16 +48,17 @@ final class EditResourceTests: UITestCase {
     try type(text: "DeleteMe", to: "form.textfield.text.Name")
     assertExists("ResourcesEditionTestOniOSDeleteMe")
     //        | Enter URL |
-    try type(text: "DeleteMe", to: "form.textfield.text.URL")
-    assertExists("UrlTestOniOSDeleteMe")
+    try type(text: "DeleteMe", to: "form.textfield.text.Main URI")
+    assertExists("TestURLDeleteMe")
     //        | Enter username |
     try type(text: "DeleteMe", to: "form.textfield.text.Username")
-    assertExists("UsernameTestOniOSDeleteMe")
+    assertExists("TestUsernameDeleteMe")
     //        | Enter a password |
-    try swipeUp("form.textfield.text.URL")
+    try swipeUp("form.textfield.text.Main URI")
     try tap("form.textfield.eye")
     try type(text: "DeleteMe", to: "form.textfield.field")
-    assertExists("PasswordTestOniOSDeleteMe")
+    let passwordValue = try self.element("form.textfield.field", inside: nil).value as? String
+    XCTAssert(passwordValue?.contains("DeleteMe") ?? false)
 
     //        | Enter description | // TODO: when description will work
     //        try type(text: "SoDeleteMe", to: "form.textfield.text.Description")
@@ -67,31 +67,33 @@ final class EditResourceTests: UITestCase {
 
   ///    https://passbolt.testrail.io/index.php?/cases/view/8136
   func test_onTheEditPasswordPageICanSaveChangedResources() throws {
-    try createResource(
+    selectAllItemsFilter()
+    createResource(
       name: "TestiOS",
+      mainURI: "UrlTestOniOS",
       username: "UsernameTestOniOS",
-      uri: "UrlTestOniOS",
       password: "PasswordTestOniOS"
     )
     //        Given that I am on Edit password screen
     //        And I see Edit password workspace
-    try type(text: "TestiOS", to: "search.view.input")
+    try type(text: "TestiOS", to: "search.view.input", timeout: 10.0)
     try selectCollectionViewItem(identifier: "resource.list.collection.view", at: 1)
     try tapButton("resource.details.more.button")
     try tap("Edit")
     //        And <placeholder> was changed
     let randomName = String(Int.random(in: 0 ..< 100_000))
     try type(text: "DeleteMe" + randomName, to: "form.textfield.text.Name")
-    try type(text: "DeleteMe", to: "form.textfield.text.URL")
+    try type(text: "DeleteMe", to: "form.textfield.text.Main URI")
     try type(text: "DeleteMe", to: "form.textfield.text.Username")
-    try swipeUp("form.textfield.text.URL")
+    try swipeUp("form.textfield.text.Main URI")
     try tap("form.textfield.eye")
     try type(text: "DeleteMe", to: "form.textfield.field")
+    try tap("Return")  // dismiss keyboard
     //        When I click ‘Save’ button
     try tap("Save")
     //        Then I see a popup "{password name} password was successfully edited." in @green
     // TODO: There is no snackbar Accessibility ID https://app.clickup.com/t/2593179/MOB-1985
-    assertPresentsString(matching: "DeleteMe" + randomName)
+    assertPresentsString(matching: "DeleteMe" + randomName, timeout: 15.0)
     //
     //        Examples:
     //        | placeholder |

@@ -27,8 +27,7 @@ final class DeleteResourceTests: UITestCase {
 
   override func beforeEachTestCase() throws {
     try signIn()
-    try tap("search.view.menu")
-    try tap("plainResourcesList")
+    selectAllItemsFilter()
   }
 
   ///    https://passbolt.testrail.io/index.php?/cases/view/8140
@@ -63,16 +62,22 @@ final class DeleteResourceTests: UITestCase {
   }
 
   ///    https://passbolt.testrail.io/index.php?/cases/view/8142
-  func test_onThePasswordRemovalPopupICanClickTheDeleteButton() throws {
-    let randomName = "TestiOS" + String(Int.random(in: 0 ..< 100_000))
-    try createResource(
+  @MainActor func test_onThePasswordRemovalPopupICanClickTheDeleteButton() throws {
+
+    let randomName = "TestiOS".withRandomSuffix()
+
+    createResource(
       name: randomName,
+      mainURI: "UrlTestOniOS",
       username: "UsernameTestOniOS",
-      uri: "UrlTestOniOS",
       password: "PasswordTestOniOS"
     )
+
+    let homeScreen: HomeScreen = screen()
+    homeScreen.ensureDisplayed()
+    homeScreen.search(for: randomName)
+
     //          Given that I am on removal popup
-    try type(text: randomName, to: "search.view.input")
     try selectCollectionViewItem(identifier: "resource.list.collection.view", at: 1)
     try tapButton("resource.details.more.button")
     //          When I click ‘Delete’ button in @blue
@@ -83,7 +88,7 @@ final class DeleteResourceTests: UITestCase {
 
     try tap("Delete")
     //          Then I am back on the resource view page
-    try waitForElement("resource.list.collection.view")
+    try waitForElement("resource.list.collection.view", timeout: 10.0)
     assertNotExists(randomName, inside: "resource.list.collection.view")
   }
 }

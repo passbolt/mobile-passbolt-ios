@@ -21,29 +21,24 @@
 // @since         v1.0
 //
 
-import Display
+internal class TOTPScannerScreen: Screen {
 
-public struct ResourcesListDisplayView: ControlledView {
-
-  public let controller: ResourcesListDisplayController
-
-  public init(
-    controller: ResourcesListDisplayController
-  ) {
-    self.controller = controller
+  override var requiredElements: Array<XCUIElement> {
+    [
+      header,
+      manualCreateButton
+    ]
   }
 
-  public var body: some View {
-    WithViewState(from: self.controller) { state in
-      UICommons.ResourcesListView(
-        suggestedResources: state.suggested,
-        resources: state.resources,
-        refreshAction: self.controller.refresh,
-        createAction: self.controller.createResource,
-        resourceTapAction: self.controller.selectResource,
-        resourceMenuAction: self.controller.showResourceMenu
-      )
-      .accessibilityIdentifier("resource.list.collection.view")
-    }
+  private var manualCreateButton: XCUIElement {
+    app.buttons["Or create TOTP manually"]
+  }
+
+  private var header: XCUIElement {
+    app.staticTexts["Scan QR code"]
+  }
+
+  internal func tapManualCreateButton() {
+    manualCreateButton.tap()
   }
 }
