@@ -176,69 +176,65 @@ extension ResourcesListFetchDatabaseOperation {
     }
 
     if !input.text.isEmpty {
-      statement
-        .append(
-          """
+      let nameFilter: SQLiteStatement = .statement("resourceMetadata.name LIKE '%' || ? || '%'", arguments: input.text)
+      let uriStatement: SQLiteStatement = .statement(
+        """
+          SELECT
+            1
+          FROM
+            resourceURI
+          WHERE
+            resourceURI.resource_id == resources.id
           AND
-          (
-          resourceMetadata.name LIKE '%' || ? || '%'
-          OR (
-            SELECT
-              1
-            FROM
-              resourceURI
-            WHERE
-              resourceURI.resource_id == resources.id
-            AND
-              resourceURI.uri LIKE '%' || ? || '%'
-            )
-          OR resourceMetadata.username LIKE '%' || ? || '%'
-          OR (
-            SELECT
-              1
-            FROM
-              resourcesTags
-            INNER JOIN
-              resourceTags
-            ON
-              resourcesTags.resourceTagID == resourceTags.id
-            WHERE
-              resourcesTags.resourceID == resources.id
-            AND
-              resourceTags.slug LIKE '%' || ? || '%'
-            LIMIT 1
-            )
-          OR (
-            SELECT 
-              1
-            FROM
-              resourceCustomFields
-            WHERE
-              resourceCustomFields.resourceID == resources.id
-            AND
-              resourceCustomFields.key LIKE '%' || ? || '%'
-            )
-          )
-          OR (
-            SELECT 
-              1
-            FROM
-              resourceCustomFields
-            WHERE
-              resourceCustomFields.resourceID == resources.id
-            AND
-              resourceCustomFields.key LIKE '%' || ? || '%'
-          )
-          """
-        )
-      // adding multiple times since we can't count args when using dynamic query
-      // and argument has to be used multiple times
-      statement.appendArgument(input.text)
-      statement.appendArgument(input.text)
-      statement.appendArgument(input.text)
-      statement.appendArgument(input.text)
-      statement.appendArgument(input.text)
-      statement.appendArgument(input.text)
+            resourceURI.uri LIKE '%' || ? || '%'
+        """,
+        arguments: input.text
+      )
+      let tagsStatement: SQLiteStatement = .statement(
+        """
+          SELECT
+            1
+          FROM
+            resourcesTags
+          INNER JOIN
+            resourceTags
+          ON
+            resourcesTags.resourceTagID == resourceTags.id
+          WHERE
+            resourcesTags.resourceID == resources.id
+          AND
+            resourceTags.slug LIKE '%' || ? || '%'
+          LIMIT 1
+        """,
+        arguments: input.text
+      )
+      let usernameFilter: SQLiteStatement = .statement(
+        "resourceMetadata.username LIKE '%' || ? || '%'",
+        arguments: input.text
+      )
+      let customFieldKeyStatement: SQLiteStatement = .statement(
+        """
+          SELECT 
+            1
+          FROM
+            resourceCustomFields
+          WHERE
+            resourceCustomFields.resourceID == resources.id
+          AND
+            resourceCustomFields.key LIKE '%' || ? || '%'
+        """,
+        arguments: input.text
+      )
+
+      let filters: Array<SQLiteStatement> = [
+        nameFilter,
+        uriStatement,
+        usernameFilter,
+        tagsStatement,
+        customFieldKeyStatement,
+      ]
+      let filterStatement: SQLiteStatement = .or(filters)
+      statement.append(.and(filterStatement))
     }
     else {
       /* NOP */

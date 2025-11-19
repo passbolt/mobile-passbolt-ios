@@ -194,6 +194,37 @@ extension SQLiteStatement {
 
 extension SQLiteStatement {
 
+  /// Combines multiple SQLiteStatement instances using the OR logical operator.
+  public static func or(_ statements: Array<SQLiteStatement>) -> SQLiteStatement {
+    var statement: SQLiteStatement = ""
+    guard !statements.isEmpty else {
+      return statement
+    }
+    statement.append("(")
+    for index in statements.indices {
+      if index > statements.startIndex {
+        statement.append(" OR ")
+      }
+      statement.append("(")
+      statement.append(statements[index])
+      statement.append(")")
+    }
+    statement.append(")")
+    return statement
+  }
+
+  /// Syntatic sugar for AND operator.
+  public static func and(_ statement: SQLiteStatement) -> SQLiteStatement {
+    var newStatement: SQLiteStatement = "AND "
+    newStatement.append("(")
+    newStatement.append(statement)
+    newStatement.append(")")
+    return newStatement
+  }
+}
+
+extension SQLiteStatement {
+
   /// Generates an SQL IN clause for the provided array of elements.
   /// - Parameter elements: The array of elements to include in the IN clause.
   /// - Returns: An SQLiteStatement representing the IN clause.
