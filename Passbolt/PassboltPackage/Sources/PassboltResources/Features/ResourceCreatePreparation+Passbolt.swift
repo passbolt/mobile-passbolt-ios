@@ -45,7 +45,10 @@ extension ResourceCreatePreparation {
 
       let passwordType: ResourceType? = allResourceTypes.first { $0.specification.slug == passwordSlug }
       let totpType: ResourceType? = allResourceTypes.first { $0.specification.slug == totpSlug }
-      let standaloneNoteType: ResourceType? = allResourceTypes.first { $0.specification.slug == .v5StandaloneNote }
+      let standaloneNoteType: ResourceType? = {
+        guard areV5ResourceTypesEnabled else { return nil }
+        return allResourceTypes.first { $0.specification.slug == .v5StandaloneNote }
+      }()
 
       return .init(
         availableTypes: [

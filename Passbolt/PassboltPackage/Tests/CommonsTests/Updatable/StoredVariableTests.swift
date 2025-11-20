@@ -555,13 +555,16 @@ final class StoredVariableTests: TestCase {
       },
       store: { _ in }
     )
+    let tasksCompletedExpectation: XCTestExpectation = expectation(description: "All tasks completed")
+    tasksCompletedExpectation.expectedFulfillmentCount = 1_000
 
     for _ in 0 ..< 1_000 {
       Task.detached {
         _ = storedVariable.value
+        tasksCompletedExpectation.fulfill()
       }
     }
-
+    wait(for: [tasksCompletedExpectation], timeout: 1.0)
     verifyIf(
       fetchCallCount.get(),
       isEqual: 1

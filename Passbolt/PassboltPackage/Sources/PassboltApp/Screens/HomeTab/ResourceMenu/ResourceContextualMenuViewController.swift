@@ -187,9 +187,8 @@ extension ResourceContextualMenuViewController {
       await self.copy(field: \.firstPassword)
 
     case .copyDescription:
-      // using \.description to find proper description field
-      // actual description have different path
-      await self.copy(field: \.description)
+      await self.copy(field: \.meta.description)
+
     case .copyNote:
       await self.copy(field: \.secret.description)
 
