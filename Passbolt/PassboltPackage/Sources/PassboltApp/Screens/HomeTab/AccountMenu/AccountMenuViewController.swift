@@ -21,122 +21,180 @@
 // @since         v1.0
 //
 
-import SharedUIComponents
-import UICommons
-import UIComponents
-import UIKit
+import Display
+import NetworkOperations
 
-internal final class AccountMenuViewController: PlainViewController, UIComponent {
+internal final class AccountMenuViewController: ViewController {
 
-  internal typealias ContentView = AccountMenuView
-  internal typealias Controller = AccountMenuController
+  internal struct ViewState: Equatable {
+    internal var currentUser: AccountData? = .none
+    internal var otherAccounts: [AccountData] = .init()
+  }
 
-  internal static func instance(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self(
-      using: controller,
-      with: components,
-      cancellables: cancellables
+  nonisolated let viewState: ViewStateSource<ViewState>
+
+  private let navigationToSelf: NavigationToAccountMenu
+  private let navigationToAccountDetails: NavigationToAccountDetails
+  private let navigationToManageAccounts: NavigationToManageAccounts
+  private let navigationToAuthorization: NavigationToAuthorization
+  private let session: Session
+
+  internal init(context: (), features: Features) throws {
+    let accounts: Accounts = try features.instance()
+
+    let currentAccount: Account = try features.sessionAccount()
+    let currentAccountDetails: AccountDetails = try features.instance()
+    let profile: AccountWithProfile = try currentAccountDetails.profile()
+    self.navigationToSelf = try features.instance()
+    self.navigationToAccountDetails = try features.instance()
+    self.navigationToManageAccounts = try features.instance()
+    self.navigationToAuthorization = try features.instance()
+    self.session = try features.instance()
+    let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation =
+      try features.instance()
+
+    self.viewState = .init(
+      initial: .init(
+        currentUser: .init(
+          account: currentAccount,
+          username: profile.label,
+          email: profile.username,
+          loadAvatarData: currentAccountDetails.avatarImage
+        )
+      ),
+      updateFrom: accounts.updates,
+      update: { update, _ in
+        var otherAccounts: [AccountData] = .init()
+        for storedAccount in accounts.storedAccounts()
+        where storedAccount.account != currentAccount {  // skip current account
+          otherAccounts.append(
+            .init(
+              account: storedAccount.account,
+              username: storedAccount.label,
+              email: storedAccount.username,
+              loadAvatarData: {
+                try await mediaDownloadNetworkOperation.execute(
+                  storedAccount.avatarImageURL
+                )
+              }
+            )
+          )
+        }
+        update { state in
+          state.otherAccounts = otherAccounts
+        }
+      }
     )
   }
 
-  internal private(set) lazy var contentView: ContentView = .init(
-    currentAcountWithProfile: controller.currentAccountWithProfile,
-    currentAcountAvatarImagePublisher:
-      controller
-      .currentAcountAvatarImagePublisher()
-      .map { data -> UIImage? in
-        data.flatMap { UIImage(data: $0) }
-      }
-      .eraseToAnyPublisher()
-  )
-  internal let components: UIComponentFactory
-  private let controller: Controller
-
-  internal init(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) {
-    self.controller = controller
-    self.components = components
-    super
-      .init(
-        cancellables: cancellables
+  internal func dismiss() async {
+    do {
+      try await navigationToSelf.revert()
+    }
+    catch {
+      error.logged(
+        info: .message(
+          "Navigation back from account menu failed!"
+        )
       )
-    self.isModalInPresentation = false
+    }
   }
 
-  internal func setupView() {
-    title =
-      DisplayableString
-      .localized("account.menu.title")
-      .string()
-
-    contentView
-      .signOutTapPublisher
-      .asyncMap { [weak self] in
-        await consumingErrors {
-          try await self?.controller.signOut()
-        }
-      }
-      .sinkDrop()
-      .store(in: cancellables)
-
-    contentView
-      .accountDetailsTapPublisher
-      .asyncMap { [weak self] in
-        await consumingErrors {
-          try await self?.controller.presentAccountDetails()
-        }
-      }
-      .sinkDrop()
-      .store(in: cancellables)
-
-    contentView
-      .accountSwitchTapPublisher
-      .asyncMap { [weak self] account in
-        await consumingErrors {
-          try await self?.controller.presentAccountSwitch(account)
-        }
-      }
-      .sinkDrop()
-      .store(in: cancellables)
-
-    contentView
-      .manageAccountsTapPublisher
-      .asyncMap { [weak self] in
-        await consumingErrors {
-          try await self?.controller.presentManageAccounts()
-        }
-      }
-      .sinkDrop()
-      .store(in: cancellables)
-
-    controller
-      .accountsListPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] accounts in
-        self?.contentView
-          .updateAccountsList(
-            accounts:
-              accounts
-              .map { account in
-                (
-                  accountWithProfile: account.accountWithProfile,
-                  avatarImagePublisher: account
-                    .avatarImagePublisher
-                    .map { data -> UIImage? in
-                      data.flatMap(UIImage.init(data:))
-                    }
-                    .eraseToAnyPublisher()
-                )
-              }
-          )
-      }
-      .store(in: cancellables)
+  internal func presentAccountDetails() async {
+    do {
+      try await navigationToSelf.revert()
+      try await navigationToAccountDetails.perform()
+    }
+    catch {
+      error.logged(
+        info: .message(
+          "Navigation to account details failed!"
+        )
+      )
+    }
   }
+
+  internal func signOut() async {
+    await session.close(.none)
+  }
+
+  internal func presentAccountSwitch(
+    account: Account
+  ) async {
+    do {
+      try await navigationToSelf.revert()
+      try await navigationToAuthorization.perform(context: account)
+    }
+    catch {
+      error.logged(
+        info: .message(
+          "Navigation to account switch failed!"
+        )
+      )
+    }
+  }
+
+  internal func presentManageAccounts() async {
+    do {
+      try await navigationToSelf.revert()
+      try await navigationToManageAccounts.perform()
+    }
+    catch {
+      error.logged(
+        info: .message(
+          "Navigation to manage accounts failed!"
+        )
+      )
+    }
+  }
+
+  internal func onAccountTap(account: Account) async {
+    do {
+      try await navigationToSelf.revert()
+      try await navigationToAuthorization.perform(context: account)
+    }
+    catch {
+      error.logged(
+        info: .message(
+          "Navigation to account switch failed!"
+        )
+      )
+    }
+  }
+}
+
+extension AccountMenuViewController {
+
+  internal struct AccountData: Equatable, Identifiable {
+
+    internal var id: Account.LocalID {
+      account.localID
+    }
+    internal var account: Account
+    internal var username: String
+    internal var email: String
+    internal var loadAvatarData: @Sendable () async throws -> Data?
+
+    internal init(
+      account: Account,
+      username: String,
+      email: String,
+      loadAvatarData: @escaping @Sendable () async throws -> Data?
+    ) {
+      self.account = account
+      self.username = username
+      self.email = email
+      self.loadAvatarData = loadAvatarData
+    }
+
+    static func == (
+      lhs: AccountData,
+      rhs: AccountData
+    ) -> Bool {
+      lhs.id == rhs.id
+        && lhs.username == rhs.username
+        && lhs.email == rhs.email
+    }
+  }
+
 }

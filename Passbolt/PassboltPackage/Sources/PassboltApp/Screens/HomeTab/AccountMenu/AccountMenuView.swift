@@ -22,425 +22,170 @@
 //
 
 import Accounts
-import AegithalosCocoa
-import UICommons
+import Display
+import SharedUIComponents
 
-internal final class AccountMenuView: PlainView {
+internal struct AccountMenuView: ControlledView {
 
-  internal var signOutTapPublisher: AnyPublisher<Void, Never>
-  internal var accountDetailsTapPublisher: AnyPublisher<Void, Never>
-  internal var accountSwitchTapPublisher: AnyPublisher<Account, Never> {
-    accountSwitchTapSubject.eraseToAnyPublisher()
-  }
-  private let accountSwitchTapSubject: PassthroughSubject<Account, Never> = .init()
-  internal var manageAccountsTapPublisher: AnyPublisher<Void, Never>
+  internal let controller: AccountMenuViewController
 
-  private let currentAcountWithProfile: AccountWithProfile
-  private let accountsList: ScrolledStackView = .init()
-  private let manageAccountsButton: ImageButton = .init()
-  private let cancellables: Cancellables = .init()
-  private var accountListCancellables: Cancellables = .init()
-
-  @available(*, unavailable)
-  internal required init?(coder: NSCoder) {
-    unreachable(#function)
+  internal init(controller: AccountMenuViewController) {
+    self.controller = controller
   }
 
-  @available(*, unavailable)
-  internal required init() {
-    unreachable(#function)
-  }
-
-  internal init(
-    currentAcountWithProfile: AccountWithProfile,
-    currentAcountAvatarImagePublisher: AnyPublisher<UIImage?, Never>
-  ) {
-    self.currentAcountWithProfile = currentAcountWithProfile
-
-    let signOutButton: PlainButton = .init()
-    self.signOutTapPublisher = signOutButton.tapPublisher
-
-    let accountDetailsButton: PlainButton = .init()
-    self.accountDetailsTapPublisher = accountDetailsButton.tapPublisher
-
-    self.manageAccountsTapPublisher = manageAccountsButton.tapPublisher
-
-    super.init()
-
-    let accountAvatarImageView: ImageView = .init()
-    mut(accountAvatarImageView) {
-      .combined(
-        .image(
-          named: .person,
-          from: .uiCommons
-        ),
-        .cornerRadius(20, masksToBounds: true),
-        .border(dynamic: .divider),
-        .tintColor(dynamic: .icon),
-        .subview(of: self),
-        .contentMode(.scaleAspectFit),
-        .widthAnchor(.equalTo, constant: 40),
-        .heightAnchor(.equalTo, constant: 40),
-        .leadingAnchor(.equalTo, leadingAnchor, constant: 16),
-        .topAnchor(.equalTo, topAnchor, constant: 16)
-      )
-    }
-    mut(PlainView()) {
-      .combined(
-        .backgroundColor(dynamic: .secondaryGreen),
-        .border(dynamic: .background, width: 2),
-        .cornerRadius(6, masksToBounds: true),
-        .subview(of: self),
-        .topAnchor(.equalTo, accountAvatarImageView.topAnchor),
-        .trailingAnchor(.equalTo, accountAvatarImageView.trailingAnchor),
-        .widthAnchor(.equalTo, constant: 12),
-        .heightAnchor(.equalTo, constant: 12)
-      )
-    }
-    currentAcountAvatarImagePublisher
-      .receive(on: RunLoop.main)
-      .sink { image in
-        mut(accountAvatarImageView) {
-          .whenSome(
-            image,
-            then: { image in
-              .image(image)
-            },
-            else: .image(
-              named: .person,
-              from: .uiCommons
+  internal var body: some View {
+    DrawerMenu(
+      closeTap: controller.dismiss,
+      title: {
+        Text(displayable: "account.menu.title")
+      },
+      content: {
+        VStack(spacing: 12) {
+          currentAccountView
+            .padding(.horizontal, 8)
+          Divider()
+            .padding(.horizontal, 8)
+          withEach(\.otherAccounts) { account in
+            AsyncButton(
+              action: {
+                await controller.onAccountTap(account: account.account)
+              },
+              label: {
+                profileView(account, isCurrent: false)
+              }
             )
+            .padding(.horizontal, 8)
+          }
+          DrawerMenuItemView(
+            action: controller.presentManageAccounts,
+            title: {
+              Text(displayable: "account.menu.manage.accounts.button.title")
+                .font(.inter(ofSize: 14, weight: .semibold))
+                .foregroundStyle(Color.passboltPrimaryText)
+                .padding(.leading, 8)
+            },
+            leftIcon: {
+              Image(named: "Users")
+                .resizable()
+            },
+            isSelected: false
           )
         }
       }
-      .store(in: cancellables)
+    )
+  }
 
-    let accountLabelLabel: Label = .init()
-    mut(accountLabelLabel) {
-      .combined(
-        .numberOfLines(1),
-        .text(currentAcountWithProfile.label),
-        .font(.inter(ofSize: 14, weight: .semibold)),
-        .textColor(dynamic: .primaryText),
-        .lineBreakMode(.byTruncatingMiddle)
-      )
-    }
-    let accountEmailLabel: Label = .init()
-    mut(accountEmailLabel) {
-      .combined(
-        .numberOfLines(1),
-        .text(currentAcountWithProfile.username),
-        .font(.inter(ofSize: 12, weight: .regular)),
-        .textColor(dynamic: .secondaryText),
-        .lineBreakMode(.byTruncatingMiddle)
-      )
-    }
+  private var currentAccountView: some View {
+    whenUnwrapped(\.currentUser) { currentUser in
+      VStack(alignment: .leading, spacing: 12) {
+        profileView(currentUser, isCurrent: true)
 
-    let accountLabels: StackView = .init()
-    mut(accountLabels) {
-      .combined(
-        .axis(.vertical),
-        .alignment(.leading),
-        .distribution(.equalSpacing),
-        .spacing(4),
-        .arrangedSubview(accountLabelLabel, accountEmailLabel),
-        .subview(of: self),
-        .centerYAnchor(.equalTo, accountAvatarImageView.centerYAnchor),
-        .leadingAnchor(.equalTo, accountAvatarImageView.trailingAnchor, constant: 12),
-        .trailingAnchor(.equalTo, trailingAnchor, constant: -16)
-      )
-    }
+        HStack(spacing: 12) {
+          button(
+            title: "account.menu.account.details.button.title",
+            iconName: "User",
+            action: controller.presentAccountDetails
+          )
 
-    mut(accountDetailsButton) {
-      .combined(
-        .cornerRadius(4, masksToBounds: true),
-        .backgroundColor(dynamic: .divider),
-        .subview(of: self),
-        .heightAnchor(.equalTo, constant: 40),
-        .topAnchor(.equalTo, accountAvatarImageView.bottomAnchor, constant: 16),
-        .leadingAnchor(.equalTo, leadingAnchor, constant: 16)
-      )
-    }
-
-    let accountDetailsButtonContent: PlainView = .init()
-    mut(accountDetailsButtonContent) {
-      .combined(
-        .userInteractionEnabled(false),
-        .backgroundColor(.clear),
-        .subview(of: accountDetailsButton),
-        .centerXAnchor(.equalTo, accountDetailsButton.centerXAnchor),
-        .leadingAnchor(.greaterThanOrEqualTo, accountDetailsButton.leadingAnchor, constant: 4),
-        .trailingAnchor(.lessThanOrEqualTo, accountDetailsButton.trailingAnchor, constant: -4),
-        .topAnchor(.equalTo, accountDetailsButton.topAnchor, constant: 4),
-        .bottomAnchor(.equalTo, accountDetailsButton.bottomAnchor, constant: -4)
-      )
-    }
-
-    let accountDetailsButtonIcon: ImageView = .init()
-    mut(accountDetailsButtonIcon) {
-      .combined(
-        .image(named: "User", from: .uiCommons),
-        .tintColor(dynamic: .primaryText),
-        .userInteractionEnabled(false),
-        .subview(of: accountDetailsButtonContent),
-        .widthAnchor(.equalTo, constant: 20),
-        .heightAnchor(.equalTo, constant: 20),
-        .leadingAnchor(.equalTo, accountDetailsButtonContent.leadingAnchor),
-        .centerYAnchor(.equalTo, accountDetailsButtonContent.centerYAnchor)
-      )
-    }
-    let accountDetailsButtonLabel: Label = .init()
-    mut(accountDetailsButtonLabel) {
-      .combined(
-        .text(displayable: .localized(key: "account.menu.account.details.button.title")),
-        .font(.inter(ofSize: 14, weight: .semibold)),
-        .textColor(dynamic: .primaryText),
-        .userInteractionEnabled(false),
-        .subview(of: accountDetailsButtonContent),
-        .leadingAnchor(.equalTo, accountDetailsButtonIcon.trailingAnchor, constant: 12),
-        .trailingAnchor(.equalTo, accountDetailsButtonContent.trailingAnchor, constant: -16),
-        .topAnchor(.equalTo, accountDetailsButtonContent.topAnchor),
-        .bottomAnchor(.equalTo, accountDetailsButtonContent.bottomAnchor)
-      )
-    }
-
-    mut(signOutButton) {
-      .combined(
-        .cornerRadius(4, masksToBounds: true),
-        .backgroundColor(dynamic: .divider),
-        .subview(of: self),
-        .widthAnchor(.equalTo, accountDetailsButton.widthAnchor),
-        .heightAnchor(.equalTo, constant: 40),
-        .centerYAnchor(.equalTo, accountDetailsButton.centerYAnchor),
-        .leadingAnchor(.equalTo, accountDetailsButton.trailingAnchor, constant: 12),
-        .trailingAnchor(.equalTo, trailingAnchor, constant: -16)
-      )
-    }
-
-    let signOutButtonContent: PlainView = .init()
-    mut(signOutButtonContent) {
-      .combined(
-        .userInteractionEnabled(false),
-        .backgroundColor(.clear),
-        .subview(of: signOutButton),
-        .centerXAnchor(.equalTo, signOutButton.centerXAnchor),
-        .leadingAnchor(.greaterThanOrEqualTo, signOutButton.leadingAnchor, constant: 4),
-        .trailingAnchor(.lessThanOrEqualTo, signOutButton.trailingAnchor, constant: -4),
-        .topAnchor(.equalTo, signOutButton.topAnchor, constant: 4),
-        .bottomAnchor(.equalTo, signOutButton.bottomAnchor, constant: -4)
-      )
-    }
-
-    let signOutButtonIcon: ImageView = .init()
-    mut(signOutButtonIcon) {
-      .combined(
-        .image(named: "SignOut", from: .uiCommons),
-        .tintColor(dynamic: .primaryText),
-        .userInteractionEnabled(false),
-        .subview(of: signOutButtonContent),
-        .widthAnchor(.equalTo, constant: 20),
-        .heightAnchor(.equalTo, constant: 20),
-        .leadingAnchor(.equalTo, signOutButtonContent.leadingAnchor),
-        .centerYAnchor(.equalTo, signOutButtonContent.centerYAnchor)
-      )
-    }
-    let signOutButtonLabel: Label = .init()
-    mut(signOutButtonLabel) {
-      .combined(
-        .text(displayable: .localized(key: "account.menu.sign.out.button.title")),
-        .font(.inter(ofSize: 14, weight: .semibold)),
-        .textColor(dynamic: .primaryText),
-        .userInteractionEnabled(false),
-        .subview(of: signOutButtonContent),
-        .leadingAnchor(.equalTo, signOutButtonIcon.trailingAnchor, constant: 12),
-        .trailingAnchor(.equalTo, signOutButtonContent.trailingAnchor, constant: -16),
-        .topAnchor(.equalTo, signOutButtonContent.topAnchor),
-        .bottomAnchor(.equalTo, signOutButtonContent.bottomAnchor)
-      )
-    }
-
-    mut(accountsList) {
-      .combined(
-        .backgroundColor(.clear),
-        .subview(of: self),
-        .topAnchor(.equalTo, signOutButton.bottomAnchor, constant: 16),
-        .leadingAnchor(.equalTo, leadingAnchor, constant: 16),
-        .trailingAnchor(.equalTo, trailingAnchor, constant: -16)
-      )
-    }
-
-    mut(manageAccountsButton) {
-      .combined(
-        .backgroundColor(.clear),
-        .subview(of: self),
-        .heightAnchor(.equalTo, constant: 40),
-        .topAnchor(.equalTo, accountsList.bottomAnchor, constant: 12),
-        .leadingAnchor(.equalTo, leadingAnchor, constant: 16),
-        .trailingAnchor(.equalTo, trailingAnchor, constant: -16),
-        .bottomAnchor(.equalTo, safeAreaLayoutGuide.bottomAnchor, constant: -8)
-      )
-    }
-
-    let manageAccountsButtonIcon: ImageView = .init()
-    mut(manageAccountsButtonIcon) {
-      .combined(
-        .image(named: "Users", from: .uiCommons),
-        .tintColor(dynamic: .primaryText),
-        .userInteractionEnabled(false),
-        .subview(of: manageAccountsButton),
-        .heightAnchor(.equalTo, manageAccountsButtonIcon.widthAnchor),
-        .widthAnchor(.equalTo, constant: 20),
-        .heightAnchor(.equalTo, constant: 20),
-        .leadingAnchor(.equalTo, manageAccountsButton.leadingAnchor, constant: 8),
-        .centerYAnchor(.equalTo, manageAccountsButton.centerYAnchor)
-      )
-    }
-    let manageAccountsButtonLabel: Label = .init()
-    mut(manageAccountsButtonLabel) {
-      .combined(
-        .text(displayable: .localized(key: "account.menu.manage.accounts.button.title")),
-        .font(.inter(ofSize: 14, weight: .semibold)),
-        .textColor(dynamic: .primaryText),
-        .userInteractionEnabled(false),
-        .subview(of: manageAccountsButton),
-        .leadingAnchor(.equalTo, manageAccountsButtonIcon.trailingAnchor, constant: 24),
-        .trailingAnchor(.equalTo, manageAccountsButton.trailingAnchor, constant: -16),
-        .centerYAnchor(.equalTo, manageAccountsButton.centerYAnchor)
-      )
+          button(
+            title: "account.menu.sign.out.button.title",
+            iconName: "SignOut",
+            action: controller.signOut
+          )
+          .background(
+            RoundedRectangle(cornerRadius: 4)
+              .foregroundStyle(Color.passboltDivider)
+          )
+        }
+      }
     }
   }
 
-  internal func updateAccountsList(
-    accounts: Array<(accountWithProfile: AccountWithProfile, avatarImagePublisher: AnyPublisher<UIImage?, Never>)>
-  ) {
-    accountListCancellables = .init()
-    accountsList.removeAllArrangedSubviews()
-    mut(accountsList) {
-      .combined(
-        .append(
-          Mutation<PlainView>
-            .combined(
-              .backgroundColor(dynamic: .divider),
-              .heightAnchor(.equalTo, constant: 1)
-            )
-            .instantiate()
-        ),
-        .forEach(
-          in: accounts,
-          { [unowned self] account in
-            .combined(
-              .append(
-                self.profileCell(
-                  accountWithProfile: account.accountWithProfile,
-                  avatarImagePublisher: account.avatarImagePublisher
-                )
-              ),
-              .append(
-                Mutation<PlainView>
-                  .combined(
-                    .backgroundColor(dynamic: .divider),
-                    .heightAnchor(.equalTo, constant: 1)
-                  )
-                  .instantiate()
+  private func button(
+    title: DisplayableString,
+    iconName: ImageNameConstant,
+    action: @escaping () async -> Void
+  ) -> some View {
+    AsyncButton(
+      action: action,
+      label: {
+        HStack(spacing: 8) {
+          Image(named: iconName)
+            .resizable()
+            .frame(width: 20, height: 20)
+          Text(displayable: title)
+            .font(
+              .inter(
+                ofSize: 14,
+                weight: .semibold
               )
             )
-          }
+            .foregroundStyle(Color.passboltPrimaryText)
+        }
+        .frame(
+          maxWidth: .infinity,
+          maxHeight: .infinity
         )
-      )
-    }
+        .padding(8)
+      }
+    )
+    .backgroundColor(.clear)
+    .background(
+      RoundedRectangle(cornerRadius: 4)
+        .foregroundStyle(Color.passboltDivider)
+    )
+    .frame(height: 40)
   }
 
-  private func profileCell(
-    accountWithProfile: AccountWithProfile,
-    avatarImagePublisher: AnyPublisher<UIImage?, Never>
-  ) -> PlainButton {
-    let container: PlainButton = .init()
-    mut(container) {
-      .combined(
-        .backgroundColor(.clear),
-        .action { [weak self] in
-          self?.accountSwitchTapSubject.send(accountWithProfile.account)
+  private func profileView(_ account: Controller.AccountData, isCurrent: Bool) -> some View {
+    HStack(spacing: 12) {
+      AutoloadingAvatarView(resolveImage: account.loadAvatarData)
+        .overlay(alignment: .topTrailing) {
+          isCurrent
+            ? Circle()
+              .foregroundColor(Color.passboltSecondaryGreen)
+              .frame(width: 10, height: 10)
+              .overlay {
+                Circle()
+                  .stroke(Color.white, lineWidth: 2)
+              }
+            : nil
         }
-      )
-    }
-
-    let accountAvatarImageView: ImageView = .init()
-    mut(accountAvatarImageView) {
-      .combined(
-        .image(
-          named: .person,
-          from: .uiCommons
-        ),
-        .cornerRadius(20, masksToBounds: true),
-        .border(dynamic: .divider),
-        .tintColor(dynamic: .icon),
-        .userInteractionEnabled(false),
-        .subview(of: container),
-        .contentMode(.scaleAspectFit),
-        .widthAnchor(.equalTo, constant: 40),
-        .heightAnchor(.equalTo, constant: 40),
-        .leadingAnchor(.equalTo, container.leadingAnchor),
-        .topAnchor(.equalTo, container.topAnchor, constant: 16)
-      )
-    }
-    avatarImagePublisher
-      .receive(on: RunLoop.main)
-      .sink { image in
-        mut(accountAvatarImageView) {
-          .whenSome(
-            image,
-            then: { image in
-              .image(image)
-            },
-            else: .image(
-              named: .person,
-              from: .uiCommons
-            )
-          )
-        }
+      VStack(alignment: .leading, spacing: 4) {
+        Text(account.username)
+          .font(.inter(ofSize: 14, weight: .semibold))
+          .foregroundStyle(Color.passboltPrimaryText)
+        Text(account.email)
+          .font(.inter(ofSize: 12, weight: .regular))
+          .foregroundStyle(Color.passboltSecondaryText)
       }
-      .store(in: accountListCancellables)
-
-    let accountLabelLabel: Label = .init()
-    mut(accountLabelLabel) {
-      .combined(
-        .userInteractionEnabled(false),
-        .numberOfLines(1),
-        .text(accountWithProfile.label),
-        .font(.inter(ofSize: 14, weight: .semibold)),
-        .textColor(dynamic: .primaryText),
-        .lineBreakMode(.byTruncatingMiddle)
-      )
+      Spacer()
     }
-    let accountEmailLabel: Label = .init()
-    mut(accountEmailLabel) {
-      .combined(
-        .userInteractionEnabled(false),
-        .numberOfLines(1),
-        .text(accountWithProfile.username),
-        .font(.inter(ofSize: 12, weight: .regular)),
-        .textColor(dynamic: .secondaryText),
-        .lineBreakMode(.byTruncatingMiddle)
-      )
-    }
+  }
+}
 
-    let accountLabels: StackView = .init()
-    mut(accountLabels) {
-      .combined(
-        .userInteractionEnabled(false),
-        .axis(.vertical),
-        .alignment(.leading),
-        .distribution(.equalSpacing),
-        .spacing(4),
-        .arrangedSubview(accountLabelLabel, accountEmailLabel),
-        .subview(of: container),
-        .centerYAnchor(.equalTo, accountAvatarImageView.centerYAnchor),
-        .leadingAnchor(.equalTo, accountAvatarImageView.trailingAnchor, constant: 12),
-        .trailingAnchor(.equalTo, container.trailingAnchor),
-        .bottomAnchor(.equalTo, container.bottomAnchor, constant: -16)
-      )
-    }
+@MainActor
+private struct AutoloadingAvatarView: View {
 
-    return container
+  @State private var currentImageData: Data?
+  private let resolveImage: @Sendable () async throws -> Data?
+
+  fileprivate init(
+    resolveImage: @escaping @Sendable () async throws -> Data?
+  ) {
+    self.resolveImage = resolveImage
+  }
+
+  fileprivate var body: some View {
+    AvatarView(avatarImage: currentImageData)
+      .frame(width: 40, height: 40)
+      .foregroundColor(.passboltPrimaryText)
+      .tint(.passboltPrimaryText)
+      .backgroundColor(.clear)
+      .task {
+        if let resolvedImage: Data = try? await self.resolveImage() {
+          self.currentImageData = resolvedImage
+        }  // else keep current
+      }
   }
 }
