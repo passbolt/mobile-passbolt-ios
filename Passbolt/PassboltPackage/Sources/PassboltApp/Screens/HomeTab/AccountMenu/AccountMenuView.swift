@@ -56,6 +56,10 @@ internal struct AccountMenuView: ControlledView {
             )
             .padding(.horizontal, 8)
           }
+          whenFalse(\.otherAccounts.isEmpty) {
+            Divider()
+              .padding(.horizontal, 8)
+          }
           DrawerMenuItemView(
             action: controller.presentManageAccounts,
             title: {
@@ -154,9 +158,11 @@ internal struct AccountMenuView: ControlledView {
       VStack(alignment: .leading, spacing: 4) {
         Text(account.username)
           .font(.inter(ofSize: 14, weight: .semibold))
+          .lineLimit(1)
           .foregroundStyle(Color.passboltPrimaryText)
         Text(account.email)
           .font(.inter(ofSize: 12, weight: .regular))
+          .lineLimit(1)
           .foregroundStyle(Color.passboltSecondaryText)
       }
       Spacer()
