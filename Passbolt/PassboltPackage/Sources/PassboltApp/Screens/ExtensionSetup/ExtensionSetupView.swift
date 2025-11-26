@@ -142,8 +142,21 @@ internal struct ExtensionSetupView: ControlledView {
 }
 
 private struct ExtensionStepView: View {
+
+  @Environment(\.colorScheme) var colorScheme
   let icon: ImageNameConstant
   let text: UICommons.AttributedString
+
+  private var interfaceStyle: UIUserInterfaceStyle {
+    switch colorScheme {
+    case .light:
+      return .light
+    case .dark:
+      return .dark
+    @unknown default:
+      return .unspecified
+    }
+  }
 
   var body: some View {
     HStack(spacing: 16) {
@@ -152,7 +165,7 @@ private struct ExtensionStepView: View {
         .frame(width: 24, height: 24)
         .foregroundColor(.passboltPrimaryBlue)
 
-      Text(text.nsAttributedString(in: .unspecified).toAttributedString())
+      Text(text.nsAttributedString(in: interfaceStyle).toAttributedString())
         .text(
           font: .inter(ofSize: 14),
           color: .passboltSecondaryText
