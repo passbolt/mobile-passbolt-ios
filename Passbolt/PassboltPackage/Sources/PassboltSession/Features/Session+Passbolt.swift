@@ -28,6 +28,9 @@ import Session
 
 import struct Foundation.Data
 
+/// Identifier for tasks executed in session context
+internal typealias SessionTaskID = PassboltID
+
 // MARK: - Implementation
 
 extension Session {
@@ -124,13 +127,18 @@ extension Session {
       }
     }
 
+    func execute(operation: @escaping @Sendable () async throws -> Void) -> Task<Void, Error> {
+      sessionState.execute(operation: operation)
+    }
+
     return Self(
       updates: sessionState.updates,
       pendingAuthorization: pendingAuthorization,
       currentAccount: currentAccount,
       authorize: authorize(_:),
       authorizeMFA: authorizeMFA(_:),
-      close: close(_:)
+      close: close(_:),
+      execute: execute(operation:)
     )
   }
 }

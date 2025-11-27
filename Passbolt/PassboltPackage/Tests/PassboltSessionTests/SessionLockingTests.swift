@@ -71,7 +71,9 @@ final class SessionLockingTests: FeaturesTestCase {
     )
     patch(
       \SessionState.passphraseWipe,
-      with: always(self.mockExecuted())
+      with: { (force: Bool) in
+        self.mockExecuted(with: force)
+      }
     )
     patch(
       \SessionState.pendingAuthorization,
@@ -88,7 +90,7 @@ final class SessionLockingTests: FeaturesTestCase {
     )
 
     await withSerialTaskExecutor {
-      await withInstance(mockExecuted: 1) { (testedInstance: SessionLocking) in
+      await withInstance(mockExecutedWith: false) { (testedInstance: SessionLocking) in
         testedInstance.ensureLocking(.mock_ada)
         // sleeping beacause of actor switching
         // inside tasks causing the test to finish

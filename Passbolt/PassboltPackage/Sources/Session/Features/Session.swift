@@ -53,6 +53,7 @@ public struct Session {
   /// Close session for given account if any
   /// or current session if any otherwise.
   public var close: @SessionActor (_ account: Account?) async -> Void
+  public var execute: (@escaping @Sendable () async throws -> Void) -> Task<Void, Error>
 
   public init(
     updates: AnyUpdatable<Void>,
@@ -60,7 +61,8 @@ public struct Session {
     currentAccount: @escaping @SessionActor () async throws -> Account,
     authorize: @escaping @SessionActor (SessionAuthorizationMethod) async throws -> Void,
     authorizeMFA: @escaping @SessionActor (SessionMFAAuthorizationMethod) async throws -> Void,
-    close: @escaping @SessionActor (_ account: Account?) async -> Void
+    close: @escaping @SessionActor (_ account: Account?) async -> Void,
+    execute: @escaping (@escaping @Sendable () async throws -> Void) -> Task<Void, Error>
   ) {
     self.updates = updates
     self.pendingAuthorization = pendingAuthorization
@@ -68,6 +70,7 @@ public struct Session {
     self.authorize = authorize
     self.authorizeMFA = authorizeMFA
     self.close = close
+    self.execute = execute
   }
 }
 
@@ -91,7 +94,8 @@ extension Session: LoadableFeature {
       currentAccount: unimplemented0(),
       authorize: unimplemented1(),
       authorizeMFA: unimplemented1(),
-      close: unimplemented1()
+      close: unimplemented1(),
+      execute: unimplemented1()
     )
   }
   #endif

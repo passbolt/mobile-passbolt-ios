@@ -45,6 +45,12 @@ internal struct SessionState {
   internal var mfaToken: @SessionActor () -> SessionMFAToken?
   /// Current pending authorization state.
   internal var pendingAuthorization: @SessionActor () -> PendingAuthorization?
+  /// Register a session task that has started.
+  /// Tracks the task by its unique ID.
+  internal var sessionTaskStarted: @SessionActor (SessionTaskID) -> Void
+  /// Unregister a session task that has finished.
+  /// Removes the task ID from tracking.
+  internal var sessionTaskFinished: @SessionActor (SessionTaskID) -> Void
 
   /// Update with new session data.
   internal var createdSession:
@@ -79,8 +85,8 @@ internal struct SessionState {
     ) throws -> Void
   /// Update with authorization request.
   internal var authorizationRequested: @SessionActor (SessionAuthorizationRequest) throws -> Void
-  /// Clear current passphrase data if any.
-  internal var passphraseWipe: @SessionActor () -> Void
+  /// Remove passphrase cache, pass `true` to force immediate removal even if session tasks are running.
+  internal var passphraseWipe: @SessionActor (Bool) -> Void
   /// Clear current access token data if any.
   internal var accessTokenInvalidate: @SessionActor () -> Void
   /// Clear current mfa token data if any.
@@ -111,12 +117,14 @@ extension SessionState: LoadableFeature {
       refreshToken: unimplemented0(),
       mfaToken: unimplemented0(),
       pendingAuthorization: unimplemented0(),
+      sessionTaskStarted: unimplemented1(),
+      sessionTaskFinished: unimplemented1(),
       createdSession: unimplemented6(),
       refreshedSession: unimplemented5(),
       passphraseProvided: unimplemented2(),
       mfaProvided: unimplemented2(),
       authorizationRequested: unimplemented1(),
-      passphraseWipe: unimplemented0(),
+      passphraseWipe: unimplemented1(),
       accessTokenInvalidate: unimplemented0(),
       mfaTokenInvalidate: unimplemented0(),
       closedSession: unimplemented0()
@@ -148,6 +156,15 @@ extension SessionState {
     var currentPassphrase: Passphrase? = .none
     var currentPassphraseExpiration: Timestamp = 0
     let passphraseExpirationTime: Timestamp = 5 * 60  // 5 Minutes
+    var wipePassphraseUponTaskCompletion: Bool = false
+    var runningTasks: Set<PassboltID> = .init() {
+      didSet {
+        if runningTasks.isEmpty, wipePassphraseUponTaskCompletion {
+          Diagnostics.logger.info("All session tasks completed, proceeding with deferred passphrase wipe...")
+          passphraseWipe()
+        }
+      }
+    }
 
     @SessionActor func passphrase() -> Passphrase? {
       if currentPassphraseExpiration >= osTime.timestamp() {
@@ -155,7 +172,14 @@ extension SessionState {
       }
       else {
         Diagnostics.logger.info("Passphrase cache expired...")
-        currentPassphrase = .none
+        if !runningTasks.isEmpty {
+          Diagnostics.logger.info("There are session tasks running, postponing cache removal until they complete...")
+          wipePassphraseUponTaskCompletion = true
+          return currentPassphrase  // return expired passphrase until tasks complete
+        }
+        else {
+          currentPassphrase = .none
+        }
         return .none
       }
     }
@@ -199,6 +223,16 @@ extension SessionState {
 
     @SessionActor func pendingAuthorization() -> PendingAuthorization? {
       currentPendingAuthorization
+    }
+
+    @SessionActor func taskStarted(_ taskID: SessionTaskID) {
+      runningTasks.insert(taskID)
+      Diagnostics.logger.info("Session task \(taskID.description) started (active: \(runningTasks.count))...")
+    }
+
+    @SessionActor func taskFinished(_ taskID: SessionTaskID) {
+      runningTasks.remove(taskID)
+      Diagnostics.logger.info("Session task \(taskID.description) finished (active: \(runningTasks.count))...")
     }
 
     @SessionActor func createdSession(
@@ -410,10 +444,21 @@ extension SessionState {
       }
     }
 
-    @SessionActor func passphraseWipe() {
-      Diagnostics.logger.info("Wiping passphrase cache...")
+    @SessionActor func passphraseWipe(force: Bool = false) {
+      if force == false, !runningTasks.isEmpty {
+        Diagnostics.logger.info("Requested removal of passphrase cache, postponing due to running tasks...")
+        wipePassphraseUponTaskCompletion = true
+        return
+      }
+      else if force == true {
+        Diagnostics.logger.info("Forcing wiping passphrase cache ...")
+      }
+      else {
+        Diagnostics.logger.info("Wiping passphrase cache...")
+      }
       currentPassphrase = .none
       currentPassphraseExpiration = 0
+      wipePassphraseUponTaskCompletion = false
     }
 
     @SessionActor func accessTokenInvalidate() {
@@ -449,12 +494,14 @@ extension SessionState {
       refreshToken: refreshToken,
       mfaToken: mfaToken,
       pendingAuthorization: pendingAuthorization,
+      sessionTaskStarted: taskStarted(_:),
+      sessionTaskFinished: taskFinished(_:),
       createdSession: createdSession(account:passphrase:accessToken:refreshToken:mfaToken:mfaRequiredWithProviders:),
       refreshedSession: refreshedSession(account:passphrase:accessToken:refreshToken:mfaToken:),
       passphraseProvided: passphraseProvided(account:passphrase:),
       mfaProvided: mfaProvided(account:mfaToken:),
       authorizationRequested: authorizationRequested(_:),
-      passphraseWipe: passphraseWipe,
+      passphraseWipe: passphraseWipe(force:),
       accessTokenInvalidate: accessTokenInvalidate,
       mfaTokenInvalidate: mfaTokenInvalidate,
       closedSession: closedSession
@@ -472,5 +519,21 @@ extension FeaturesRegistry {
           .load(features:)
       )
     )
+  }
+}
+
+extension SessionState {
+
+  internal func execute(operation: @escaping @Sendable () async throws -> Void) -> Task<Void, Error> {
+    let identifier: SessionTaskID = .init()
+    let task: Task<Void, Error> = .init { @SessionActor in
+      sessionTaskStarted(identifier)
+      defer {
+        sessionTaskFinished(identifier)
+      }
+      try await operation()
+    }
+
+    return task
   }
 }

@@ -594,4 +594,376 @@ final class SessionStateTests: LoadableFeatureTestCase<SessionState> {
       return await testedInstance.pendingAuthorization()
     }
   }
+
+  // MARK: - Passphrase caching with task tracking tests
+
+  func test_sessionTaskFinished_untracksTask() {
+    withTestedInstance { (testedInstance: SessionState) in
+      await testedInstance.createdSession(
+        .mock_ada,
+        "passphrase",
+        .valid,
+        "token",
+        .none,
+        .init()
+      )
+
+      let taskID: SessionTaskID = .init()
+      await testedInstance.sessionTaskStarted(taskID)
+      await testedInstance.sessionTaskFinished(taskID)
+
+      // Task is no longer tracked - passphrase wipe should work immediately
+      await testedInstance.passphraseWipe(false)
+
+      await XCTAssertValue(equal: .none) {
+        await testedInstance.passphrase()
+      }
+    }
+  }
+
+  func test_passphraseWipe_defersWipe_whenTasksRunning() {
+    withTestedInstance { (testedInstance: SessionState) in
+      await testedInstance.createdSession(
+        .mock_ada,
+        "passphrase",
+        .valid,
+        "token",
+        .none,
+        .init()
+      )
+
+      let taskID: SessionTaskID = .init()
+      await testedInstance.sessionTaskStarted(taskID)
+
+      // Request wipe without force
+      await testedInstance.passphraseWipe(false)
+
+      // Passphrase should still be present
+      await XCTAssertValue(equal: "passphrase") {
+        await testedInstance.passphrase()
+      }
+    }
+  }
+
+  func test_passphraseWipe_forcesWipe_whenTasksRunning() {
+    withTestedInstance { (testedInstance: SessionState) in
+      await testedInstance.createdSession(
+        .mock_ada,
+        "passphrase",
+        .valid,
+        "token",
+        .none,
+        .init()
+      )
+
+      let taskID: SessionTaskID = .init()
+      await testedInstance.sessionTaskStarted(taskID)
+
+      // Force wipe
+      await testedInstance.passphraseWipe(true)
+
+      // Passphrase should be wiped even with running task
+      await XCTAssertValue(equal: .none) {
+        await testedInstance.passphrase()
+      }
+    }
+  }
+
+  func test_passphraseWipe_wipesImmediately_whenNoTasksRunning() {
+    withTestedInstance { (testedInstance: SessionState) in
+      await testedInstance.createdSession(
+        .mock_ada,
+        "passphrase",
+        .valid,
+        "token",
+        .none,
+        .init()
+      )
+
+      // No tasks running - wipe should be immediate
+      await testedInstance.passphraseWipe(false)
+
+      await XCTAssertValue(equal: .none) {
+        await testedInstance.passphrase()
+      }
+    }
+  }
+
+  func test_passphraseWipe_deferredWipeCompletes_whenAllTasksFinish() {
+    withTestedInstance { (testedInstance: SessionState) in
+      await testedInstance.createdSession(
+        .mock_ada,
+        "passphrase",
+        .valid,
+        "token",
+        .none,
+        .init()
+      )
+
+      let taskID1: SessionTaskID = .init()
+      let taskID2: SessionTaskID = .init()
+
+      await testedInstance.sessionTaskStarted(taskID1)
+      await testedInstance.sessionTaskStarted(taskID2)
+
+      // Request wipe - should be deferred
+      await testedInstance.passphraseWipe(false)
+
+      // Passphrase still present with tasks running
+      await XCTAssertValue(equal: "passphrase") {
+        await testedInstance.passphrase()
+      }
+
+      // Finish first task - passphrase should still be present
+      await testedInstance.sessionTaskFinished(taskID1)
+      await XCTAssertValue(equal: "passphrase") {
+        await testedInstance.passphrase()
+      }
+
+      // Finish second task - passphrase should be wiped automatically
+      await testedInstance.sessionTaskFinished(taskID2)
+      await XCTAssertValue(equal: .none) {
+        await testedInstance.passphrase()
+      }
+    }
+  }
+
+  func test_passphrase_returnsExpiredPassphrase_whenTasksRunning() {
+    withTestedInstance { (testedInstance: SessionState) in
+      await testedInstance.createdSession(
+        .mock_ada,
+        "passphrase",
+        .valid,
+        "token",
+        .none,
+        .init()
+      )
+
+      let taskID: SessionTaskID = .init()
+      await testedInstance.sessionTaskStarted(taskID)
+
+      // Expire the passphrase
+      self.timestamp = (5 * 60 * 60) as Timestamp
+
+      // Should return expired passphrase since task is running
+      await XCTAssertValue(equal: "passphrase") {
+        await testedInstance.passphrase()
+      }
+    }
+  }
+
+  func test_passphrase_wipesExpiredPassphrase_whenTasksComplete() {
+    withTestedInstance { (testedInstance: SessionState) in
+      await testedInstance.createdSession(
+        .mock_ada,
+        "passphrase",
+        .valid,
+        "token",
+        .none,
+        .init()
+      )
+
+      let taskID: SessionTaskID = .init()
+      await testedInstance.sessionTaskStarted(taskID)
+
+      // Expire the passphrase
+      self.timestamp = (5 * 60 * 60) as Timestamp
+
+      // Access passphrase while task is running
+      await XCTAssertValue(equal: "passphrase") {
+        await testedInstance.passphrase()
+      }
+
+      // Finish the task
+      await testedInstance.sessionTaskFinished(taskID)
+
+      // Now accessing passphrase should return none (wiped automatically)
+      await XCTAssertValue(equal: .none) {
+        await testedInstance.passphrase()
+      }
+    }
+  }
+
+  func test_passphraseWipe_resetsWipeFlag_afterForceWipe() {
+    withTestedInstance { (testedInstance: SessionState) in
+      await testedInstance.createdSession(
+        .mock_ada,
+        "passphrase",
+        .valid,
+        "token",
+        .none,
+        .init()
+      )
+
+      let taskID: SessionTaskID = .init()
+      await testedInstance.sessionTaskStarted(taskID)
+
+      // Defer wipe
+      await testedInstance.passphraseWipe(false)
+
+      // Force wipe
+      await testedInstance.passphraseWipe(true)
+
+      // Set new passphrase
+      try await testedInstance.passphraseProvided(.mock_ada, "new_passphrase")
+
+      // Finish task - should not trigger wipe since flag was reset
+      await testedInstance.sessionTaskFinished(taskID)
+
+      // Passphrase should still be present
+      await XCTAssertValue(equal: "new_passphrase") {
+        await testedInstance.passphrase()
+      }
+    }
+  }
+
+  func test_executeUntracksTask_whenTaskThrows() async throws {
+    let testedInstance: SessionState = try self.testedInstance()
+    await testedInstance.createdSession(
+      .mock_ada,
+      "passphrase",
+      .valid,
+      "token",
+      .none,
+      .init()
+    )
+    // ensure passphrase is available
+    await XCTAssertValue(equal: "passphrase") {
+      await testedInstance.passphrase()
+    }
+    let passphraseCheckedExpectation: XCTestExpectation = .init(
+      description: "Passphrase checked"
+    )
+    let task = testedInstance.execute {
+      await self.fulfillment(of: [passphraseCheckedExpectation], timeout: 1.0)
+      throw MockIssue.error()
+    }
+    // Request wipe - should be deferred because task is tracked
+    await testedInstance.passphraseWipe(false)
+    // ensure passphrase is still available
+    await XCTAssertValue(equal: "passphrase") {
+      await testedInstance.passphrase()
+    }
+    passphraseCheckedExpectation.fulfill()
+    // Wait for task to complete (with error)
+    _ = try? await task.value
+    await XCTAssertValue(equal: .none) {
+      await testedInstance.passphrase()
+    }
+  }
+
+  func test_execute_tracksTaskLifecycle() async throws {
+    let testedInstance: SessionState = try self.testedInstance()
+
+    await testedInstance.createdSession(
+      .mock_ada,
+      "passphrase",
+      .valid,
+      "token",
+      .none,
+      .init()
+    )
+
+    let passphraseCheckedExpectation: XCTestExpectation = .init(
+      description: "Passphrase checked within execute"
+    )
+    let operationExecuted: CriticalState<Bool> = .init(false)
+    let task = testedInstance.execute {
+      await self.fulfillment(of: [passphraseCheckedExpectation], timeout: 1.0)
+      operationExecuted.set(true)
+    }
+
+    // Request wipe - should be deferred because task is tracked
+    await testedInstance.passphraseWipe(false)
+
+    // Passphrase still present
+    await XCTAssertValue(equal: "passphrase") {
+      await testedInstance.passphrase()
+    }
+    passphraseCheckedExpectation.fulfill()
+
+    // Wait for task to complete
+    _ = try? await task.value
+
+    XCTAssertTrue(operationExecuted.get())
+
+    // After task completes, passphrase should be wiped
+    await XCTAssertValue(equal: .none) {
+      await testedInstance.passphrase()
+    }
+  }
+
+  func test_execute_untracksTask_afterThrowingOperation() async throws {
+    let testedInstance: SessionState = try self.testedInstance()
+
+    await testedInstance.createdSession(
+      .mock_ada,
+      "passphrase",
+      .valid,
+      "token",
+      .none,
+      .init()
+    )
+
+    let task = testedInstance.execute {
+      throw MockIssue.error()
+    }
+
+    // Request wipe - should be deferred because task is tracked
+    await testedInstance.passphraseWipe(false)
+
+    // Wait for task to complete (with error)
+    _ = try? await task.value
+
+    // After task completes (even with error), passphrase should be wiped
+    await XCTAssertValue(equal: .none) {
+      await testedInstance.passphrase()
+    }
+  }
+
+  func test_multipleTasksAndDeferredWipe_complexScenario() async throws {
+    let testedInstance: SessionState = try self.testedInstance()
+
+    await testedInstance.createdSession(
+      .mock_ada,
+      "passphrase",
+      .valid,
+      "token",
+      .none,
+      .init()
+    )
+
+    let task1Executed: CriticalState<Bool> = .init(false)
+    let task2Executed: CriticalState<Bool> = .init(false)
+
+    let task1 = testedInstance.execute {
+      task1Executed.set(true)
+      try await Task.sleep(nanoseconds: 10_000_000)  // 10ms
+    }
+
+    let task2 = testedInstance.execute {
+      task2Executed.set(true)
+      try await Task.sleep(nanoseconds: 10_000_000)  // 10ms
+    }
+
+    // Request wipe while both tasks are running
+    await testedInstance.passphraseWipe(false)
+
+    // Passphrase still present
+    await XCTAssertValue(equal: "passphrase") {
+      await testedInstance.passphrase()
+    }
+
+    // Wait for both tasks to complete
+    _ = try? await task1.value
+    _ = try? await task2.value
+
+    XCTAssertTrue(task1Executed.get())
+    XCTAssertTrue(task2Executed.get())
+
+    // After all tasks complete, passphrase should be wiped
+    await XCTAssertValue(equal: .none) {
+      await testedInstance.passphrase()
+    }
+  }
 }

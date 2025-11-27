@@ -74,7 +74,7 @@ extension SessionLocking {
                 else { break }  // account has changed
                 switch (sessionState.pendingAuthorization(), update) {
                 case (.none, .didEnterBackground):
-                  sessionState.passphraseWipe()
+                  sessionState.passphraseWipe(false)
 
                 case (.none, .willEnterForeground):
                   try sessionState.authorizationRequested(.passphrase(account))

@@ -28,6 +28,7 @@ import Metadata
 import NetworkOperations
 import OSFeatures
 import Resources
+import Session
 import SessionData
 
 import struct Foundation.Data
@@ -40,6 +41,7 @@ extension SessionData {
     let configuration: SessionConfiguration = try features.sessionConfiguration()
 
     let time: OSTime = features.instance()
+    let session: Session = try features.instance()
 
     let usersStoreDatabaseOperation: UsersStoreDatabaseOperation = try features.instance()
     let userGroupsStoreDatabaseOperation: UserGroupsStoreDatabaseOperation = try features.instance()
@@ -60,12 +62,14 @@ extension SessionData {
 
     let refreshTask: CriticalState<Task<Void, Error>?> = .init(.none)
 
-    Task {  // initial refresh after loading
-      do {
-        try await refreshIfNeeded()
-      }
-      catch {
-        error.logged()
+    if isInApplicationContext {
+      Task {  // initial refresh after loading
+        do {
+          try await refreshIfNeeded()
+        }
+        catch {
+          error.logged()
+        }
       }
     }
 
@@ -188,7 +192,7 @@ extension SessionData {
           return runningTask
         }
         else {
-          let runningTask: Task<Void, Error> = .init {
+          let runningTask: Task<Void, Error> = session.execute {
             defer {
               refreshTask.access { task in
                 task = .none

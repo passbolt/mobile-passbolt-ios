@@ -82,6 +82,10 @@ final class SessionDataRefreshTests: FeaturesTestCase {
       \ResourceUpdater.updateResources,
       with: always(Void())
     )
+    patch(
+      \Session.execute,
+      with: { .init(operation: $0) }
+    )
   }
 
   func test_sessionDataRefresh_shouldNotFetchMetadataKeys_ifFeatureIsDisabled() async throws {
