@@ -22,16 +22,30 @@
 //
 
 import Display
+import FeatureScopes
 
-final internal class NoAccountsViewController: ViewController {
+internal enum NavigationToServerFingerprintInvalidDestination: NavigationDestination {
 
-  private let extensionContext: AutofillExtensionContext
+  internal typealias TransitionContext = ServerFingerprintInvalidViewController.Context
+}
 
-  internal init(context: Void, features: Features) throws {
-    self.extensionContext = features.instance()
+internal typealias NavigationToServerFingerprintInvalid = NavigationTo<NavigationToServerFingerprintInvalidDestination>
+
+extension NavigationToServerFingerprintInvalid {
+
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(
+      to: ServerFingerprintInvalidView.self
+    )
   }
+}
 
-  internal func close() {
-    self.extensionContext.cancelAndCloseExtension()
+extension FeaturesRegistry {
+
+  internal mutating func useLiveNavigationToServerFingerprintInvalid() {
+    self.use(
+      NavigationToServerFingerprintInvalid.live,
+      in: RootFeaturesScope.self
+    )
   }
 }

@@ -21,64 +21,17 @@
 // @since         v1.0
 //
 
-import AuthenticationServices
-import UICommons
-import UIComponents
+import Display
 
-internal final class MFARequiredViewController: PlainViewController, UIComponent {
+internal final class MFARequiredViewController: ViewController {
 
-  internal typealias ContentView = MFARequiredView
-  internal typealias Controller = MFARequiredController
+  private let autofillContext: AutofillExtensionContext
 
-  internal static func instance(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self(
-      using: controller,
-      with: components,
-      cancellables: cancellables
-    )
+  internal init(context: (), features: Features) throws {
+    self.autofillContext = features.instance()
   }
 
-  internal private(set) var contentView: ContentView = .init()
-  internal var components: UIComponentFactory
-
-  private let controller: Controller
-
-  internal init(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) {
-    self.controller = controller
-    self.components = components
-    super
-      .init(
-        cancellables: cancellables
-      )
-  }
-
-  internal func setup() {
-    mut(navigationItem) {
-      .combined(
-        .rightBarButtonItem(
-          Mutation<UIBarButtonItem>
-            .combined(
-              .closeStyle(),
-              .accessibilityIdentifier("button.close"),
-              .action { [weak self] in
-                self?.extensionContext?.cancelRequest(withError: ASExtensionError(.userCanceled))
-              }
-            )
-            .instantiate()
-        )
-      )
-    }
-  }
-
-  func setupView() {
-    // NOP
+  internal func closeExtension() async {
+    autofillContext.cancelAndCloseExtension()
   }
 }

@@ -21,53 +21,58 @@
 // @since         v1.0
 //
 
-import Display
+import Features
 
-internal struct MFARequiredView: ControlledView {
+public struct NavigationRestoration {
 
-  internal let controller: MFARequiredViewController
+  public var saveCurrent: () async throws -> Void
+  public var canRestore: () async throws -> Bool
+  public var restore: () async throws -> Void
+}
 
-  internal init(controller: MFARequiredViewController) {
-    self.controller = controller
+extension NavigationRestoration: LoadableFeature {
+
+  public static var placeholder: Self {
+    .init(
+      saveCurrent: unimplemented0(),
+      canRestore: unimplemented0(),
+      restore: unimplemented0()
+    )
   }
 
-  internal var body: some View {
-    VStack(spacing: 32) {
-      Spacer()
-      Image(named: .failureMark)
-      Text(displayable: "mfa.required.title")
-        .titleStyle()
-      Text(displayable: "autofill.extension.mfa.required.description")
-        .infoStyle()
+  @MainActor fileprivate static func load(
+    features: Features
+  ) throws -> Self {
 
-      Spacer()
-    }
-    .padding(.horizontal, 32)
-    .navigationBarBackButtonHidden()
-    .toolbar {
-      ToolbarItem(placement: .topBarTrailing) {
-        AsyncButton(
-          action: {
-            await self.controller.closeExtension()
-          },
-          label: {
-            Image(named: .close)
-          }
-        )
+    let restorationPoint: CriticalState<NavigationAnchor?> = .init(.none)
+    let navigationResolver: NavigationResolver = try features.instance()
+
+    return .init(
+      saveCurrent: {
+        restorationPoint.set(navigationResolver.currentRoot())
+      },
+      canRestore: {
+        restorationPoint.get() != nil
+      },
+      restore: {
+        guard let anchor: NavigationAnchor = restorationPoint.get() else {
+          return
+        }
+        try await navigationResolver.replaceRoot(anchor)
+        restorationPoint.set(.none)
       }
-    }
-    .padding(.top, 60)
+    )
   }
 }
 
-#if DEBUG
-#Preview {
-  PlaceholderView()
-    .sheet(isPresented: .constant(true)) {
-      createPreview(
-        MFARequiredView.self
+extension FeaturesRegistry {
+
+  internal mutating func useLiveNavigationRestoration() {
+    self.use(
+      .lazyLoaded(
+        NavigationRestoration.self,
+        load: NavigationRestoration.load(features:)
       )
-      .wrapInNavigationStack()
-    }
+    )
+  }
 }
-#endif

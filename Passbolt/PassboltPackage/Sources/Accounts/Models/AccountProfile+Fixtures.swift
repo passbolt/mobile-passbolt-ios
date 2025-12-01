@@ -21,36 +21,29 @@
 // @since         v1.0
 //
 
-import Display
-import SharedUIComponents
+#if DEBUG
+extension AccountProfile {
 
-internal struct HomeNavigationNodeView: ControlledView {
-
-  internal let controller: HomeNavigationNodeController
-
-  internal init(
-    controller: HomeNavigationNodeController
-  ) {
-    self.controller = controller
+  public static var ada: Self {
+    .init(
+      accountID: .ada,
+      label: "Ada Lovelace",
+      username: "ada@passbolt.com",
+      firstName: "Ada",
+      lastName: "Lovelace",
+      avatarImageURL: ""
+    )
   }
 
-  internal var body: some View {
-    WithViewState(from: self.controller) { state in
-      self.bodyView(with: state)
-    }
-  }
-
-  @ViewBuilder private func bodyView(
-    with state: ViewState
-  ) -> some View {
-    Controlled
-      .by(
-        state.contentController,
-        view: ResourcesListView.self,
-        or: ResourceFolderContentNodeView.self,
-        or: ResourceTagsListNodeView.self,
-        or: ResourceUserGroupsListNodeView.self,
-        orDefault: LoaderView.instance
-      )
+  public static var betty: Self {
+    .init(
+      accountID: .betty,
+      label: "Betty Holberton",
+      username: "betty@passbolt.com",
+      firstName: "Betty",
+      lastName: "Holberton",
+      avatarImageURL: ""
+    )
   }
 }
+#endif

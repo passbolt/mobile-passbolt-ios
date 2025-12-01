@@ -30,10 +30,12 @@ import Session
 import SessionData
 
 // MARK: - Interface
-
+// TODO: Merge with APP
 internal struct HomePresentation {
 
   internal var currentMode: StoredVariable<HomePresentationMode>
+  internal var setPresentationMode: @MainActor (HomePresentationMode) -> Void
+
   internal var availableModes: @Sendable () -> OrderedSet<HomePresentationMode>
 }
 
@@ -43,6 +45,7 @@ extension HomePresentation: LoadableFeature {
   internal nonisolated static var placeholder: Self {
     .init(
       currentMode: .placeholder,
+      setPresentationMode: unimplemented1(),
       availableModes: unimplemented0()
     )
   }
@@ -115,8 +118,18 @@ extension HomePresentation {
       availablePresentationModes
     }
 
+    @MainActor func setPresentationMode(_ mode: HomePresentationMode) {
+      currentModeVariable.assign(mode)
+      if useLastUsedHomePresentationAsDefault.value {
+        defaultHomePresentation.assign(mode)
+      }
+      else { /* NOP */
+      }
+    }
+
     return Self(
       currentMode: currentModeVariable,
+      setPresentationMode: setPresentationMode,
       availableModes: availableModes
     )
   }

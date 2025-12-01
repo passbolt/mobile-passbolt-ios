@@ -33,5 +33,6 @@ extension FeaturesRegistry {
     self.useLiveLegacyNavigationBridge()
     self.useLiveDisplayNavigation()
     self.useLiveNavigationResolver()
+    self.useLiveNavigationRestoration()
   }
 }

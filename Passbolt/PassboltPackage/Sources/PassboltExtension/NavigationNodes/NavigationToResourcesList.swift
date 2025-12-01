@@ -22,16 +22,31 @@
 //
 
 import Display
+import FeatureScopes
+import SharedUIComponents
 
-final internal class NoAccountsViewController: ViewController {
+internal enum NavigationToResourcesListDestination: NavigationDestination {
 
-  private let extensionContext: AutofillExtensionContext
+  internal typealias TransitionContext = ResourcesListViewController.Context
+}
 
-  internal init(context: Void, features: Features) throws {
-    self.extensionContext = features.instance()
+internal typealias NavigationToResourcesList = NavigationTo<NavigationToResourcesListDestination>
+
+extension NavigationToResourcesList {
+
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(
+      to: ResourcesListView.self
+    )
   }
+}
 
-  internal func close() {
-    self.extensionContext.cancelAndCloseExtension()
+extension FeaturesRegistry {
+
+  internal mutating func useLiveNavigationToResourcesList() {
+    self.use(
+      NavigationToResourcesList.live,
+      in: SessionScope.self
+    )
   }
 }

@@ -22,16 +22,31 @@
 //
 
 import Display
+import FeatureScopes
 
-final internal class NoAccountsViewController: ViewController {
+internal enum NavigationToAutofillRootDestination: NavigationDestination {
 
-  private let extensionContext: AutofillExtensionContext
+  internal typealias TransitionContext = AutofillRootNavigationNodeController.Context
+}
 
-  internal init(context: Void, features: Features) throws {
-    self.extensionContext = features.instance()
+internal typealias NavigationToAutofillRoot = NavigationTo<NavigationToAutofillRootDestination>
+
+extension NavigationToAutofillRoot {
+
+  fileprivate static var live: FeatureLoader {
+
+    replaceRoot(
+      with: AutofillRootNavigationNodeView.self
+    )
   }
+}
 
-  internal func close() {
-    self.extensionContext.cancelAndCloseExtension()
+extension FeaturesRegistry {
+
+  internal mutating func useLiveNavigationToAutofillRoot() {
+    self.use(
+      NavigationToAutofillRoot.live,
+      in: RootFeaturesScope.self
+    )
   }
 }

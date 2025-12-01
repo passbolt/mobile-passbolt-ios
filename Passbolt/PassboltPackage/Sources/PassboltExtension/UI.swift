@@ -47,12 +47,10 @@ extension UI {
 
   @MainActor public func prepareCredentialList() {
     do {
-      try self.features
-        .instance(of: NavigationTree.self)
-        .replaceRoot(
-          with: AutofillRootNavigationNodeView.self,
-          controller: self.features.instance()
-        )
+      let navigationToAutofillRoot: NavigationToAutofillRoot = try self.features.instance()
+      Task { @MainActor in
+        try await navigationToAutofillRoot.perform()
+      }
     }
     catch {
       error

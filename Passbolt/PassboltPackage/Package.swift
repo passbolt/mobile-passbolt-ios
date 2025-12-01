@@ -187,6 +187,7 @@ let package = Package(
       name: "SharedUIComponents",
       dependencies: [
         "Accounts",
+        "AccountSetup",
         "CommonModels",
         "Resources",
         "UIComponents",

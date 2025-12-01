@@ -22,16 +22,33 @@
 //
 
 import Display
+import FeatureScopes
 
-final internal class NoAccountsViewController: ViewController {
+internal enum NavigationToResourceFolderContentNodeViewDestination: NavigationDestination {
 
-  private let extensionContext: AutofillExtensionContext
+  internal typealias TransitionContext = ResourceFolderContentNodeController.Context
 
-  internal init(context: Void, features: Features) throws {
-    self.extensionContext = features.instance()
+  internal static var isUnique: Bool { false }
+}
+
+internal typealias NavigationToResourceFolderContents =
+  NavigationTo<NavigationToResourceFolderContentNodeViewDestination>
+
+extension NavigationToResourceFolderContents {
+
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(
+      to: ResourceFolderContentNodeView.self
+    )
   }
+}
 
-  internal func close() {
-    self.extensionContext.cancelAndCloseExtension()
+extension FeaturesRegistry {
+
+  internal mutating func useLiveNavigationToResourceFolderContentNodeView() {
+    self.use(
+      NavigationToResourceFolderContents.live,
+      in: SessionScope.self
+    )
   }
 }

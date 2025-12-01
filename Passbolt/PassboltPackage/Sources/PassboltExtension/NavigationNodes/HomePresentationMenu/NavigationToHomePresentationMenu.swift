@@ -22,16 +22,30 @@
 //
 
 import Display
+import FeatureScopes
 
-final internal class NoAccountsViewController: ViewController {
+internal enum NavigationToHomePresentationMenuDestination: NavigationDestination {
 
-  private let extensionContext: AutofillExtensionContext
+  internal typealias TransitionContext = Void
+}
 
-  internal init(context: Void, features: Features) throws {
-    self.extensionContext = features.instance()
+internal typealias NavigationToHomePresentationMenu = NavigationTo<NavigationToHomePresentationMenuDestination>
+
+extension NavigationToHomePresentationMenu {
+
+  fileprivate static var live: FeatureLoader {
+    legacyPartialSheetPresentationTransition(
+      to: HomePresentationMenuView.self
+    )
   }
+}
 
-  internal func close() {
-    self.extensionContext.cancelAndCloseExtension()
+extension FeaturesRegistry {
+
+  internal mutating func useLiveNavigationToHomePresentationMenu() {
+    self.use(
+      NavigationToHomePresentationMenu.live,
+      in: SessionScope.self
+    )
   }
 }

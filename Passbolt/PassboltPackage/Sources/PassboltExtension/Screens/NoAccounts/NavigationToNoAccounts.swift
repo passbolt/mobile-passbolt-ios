@@ -21,6 +21,30 @@
 // @since         v1.0
 //
 
-import UIComponents
+import Display
+import FeatureScopes
 
-internal typealias NoAccountsController = EmptyController<Void>
+internal enum NavigationToNoAccountsDestination: NavigationDestination {
+  internal typealias TransitionContext = NoAccountsViewController.Context
+}
+
+internal typealias NavigationToNoAccounts = NavigationTo<NavigationToNoAccountsDestination>
+
+extension NavigationToNoAccounts {
+
+  fileprivate static var live: FeatureLoader {
+    replaceRoot(
+      with: NoAccountsView.self
+    )
+  }
+}
+
+extension FeaturesRegistry {
+
+  internal mutating func useLiveNavigationToNoAccounts() {
+    self.use(
+      NavigationToNoAccounts.live,
+      in: RootFeaturesScope.self
+    )
+  }
+}

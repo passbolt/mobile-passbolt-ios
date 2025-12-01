@@ -22,16 +22,30 @@
 //
 
 import Display
+import FeatureScopes
 
-final internal class NoAccountsViewController: ViewController {
+internal enum NavigationToMFARequiredDestination: NavigationDestination {
 
-  private let extensionContext: AutofillExtensionContext
+  internal typealias TransitionContext = MFARequiredViewController.Context
+}
 
-  internal init(context: Void, features: Features) throws {
-    self.extensionContext = features.instance()
+internal typealias NavigationToMFARequired = NavigationTo<NavigationToMFARequiredDestination>
+
+extension NavigationToMFARequired {
+
+  fileprivate static var live: FeatureLoader {
+    replaceRoot(
+      with: MFARequiredView.self
+    )
   }
+}
 
-  internal func close() {
-    self.extensionContext.cancelAndCloseExtension()
+extension FeaturesRegistry {
+
+  internal mutating func useLiveNavigationToMFAInput() {
+    self.use(
+      NavigationToMFARequired.live,
+      in: AccountScope.self
+    )
   }
 }

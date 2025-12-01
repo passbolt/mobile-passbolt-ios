@@ -22,64 +22,47 @@
 //
 
 import Display
+import SharedUIComponents
 
-internal struct HomePresentationMenuNodeView: ControlledView {
+internal struct HomeView: ControlledView {
 
-  internal let controller: HomePresentationMenuNodeController
+  internal let controller: HomeViewController
 
   internal init(
-    controller: HomePresentationMenuNodeController
+    controller: HomeViewController
   ) {
     self.controller = controller
   }
 
   internal var body: some View {
     WithViewState(from: self.controller) { state in
-      self.content(with: state)
+      self.bodyView(with: state)
     }
   }
 
-  @MainActor @ViewBuilder private func content(
+  @ViewBuilder private func bodyView(
     with state: ViewState
   ) -> some View {
-    DrawerMenu(
-      closeTap: self.controller.dismissView,
-      title: {
-        Text(
-          displayable: .localized(
-            key: "home.presentation.mode.menu.title"
-          )
-        )
-      },
-      content: {
-        VStack(spacing: 0) {
-          ForEach(state.availableModes, id: \.self) { mode in
-            // TODO: [MOB-???] There might be other modes in section
-            // which require divider but those are not linked to folders
-            // rethink adding divider when adding tags or groups
-            if case .foldersExplorer = mode {
-              ListDividerView()
+    Controlled
+      .by(
+        state.contentController,
+        view: ResourcesListView.self,
+        or: ResourceFolderContentNodeView.self,
+        or: ResourceTagsListNodeView.self,
+        or: ResourceUserGroupsListNodeView.self,
+        orDefault: LoaderView.instance
+      )
+      .toolbar {
+        ToolbarItem(placement: .navigationBarTrailing) {
+          Button(
+            action: {
+              self.controller.closeExtension()
+            },
+            label: {
+              Image(named: .close)
             }
-            else if case .foldersExplorer = mode, !state.availableModes.contains(.foldersExplorer) {
-              ListDividerView()
-            }  // else { /* NOP */ }
-            DrawerMenuItemView(
-              action: {
-                self.controller.selectMode(mode)
-              },
-              title: {
-                Text(displayable: mode.title)
-              },
-              leftIcon: {
-                Image(named: mode.iconName)
-                  .resizable()
-              },
-              isSelected: mode == state.currentMode
-            )
-            .accessibilityIdentifier(mode.rawValue)
-          }
+          )
         }
       }
-    )
   }
 }

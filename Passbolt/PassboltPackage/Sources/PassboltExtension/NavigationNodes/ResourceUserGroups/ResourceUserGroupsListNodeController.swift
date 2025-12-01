@@ -36,7 +36,6 @@ internal final class ResourceUserGroupsListNodeController: ViewController {
   internal var searchController: ResourceSearchDisplayController
   internal var contentController: ResourceUserGroupsListDisplayController!  // lazy?
 
-  private let navigationTree: NavigationTree
   private let autofillContext: AutofillExtensionContext
   private let currentAccount: Account
 
@@ -50,10 +49,10 @@ internal final class ResourceUserGroupsListNodeController: ViewController {
     self.context = context
     self.features = features
 
-    let navigationTree: NavigationTree = try features.instance()
-    self.navigationTree = navigationTree
     self.autofillContext = features.instance()
     self.currentAccount = try features.sessionAccount()
+    let navigationToHomePresentationMenu: NavigationToHomePresentationMenu = try features.instance()
+
     let session: Session = try features.instance()
 
     self.viewState = .init(
@@ -67,11 +66,7 @@ internal final class ResourceUserGroupsListNodeController: ViewController {
       context: .init(
         searchPrompt: context.searchPrompt,
         onPresentationMenuTap: {
-          try navigationTree.present(
-            .sheet,
-            HomePresentationMenuNodeView.self,
-            controller: features.instance(context: context.nodeID)
-          )
+          try await navigationToHomePresentationMenu.perform()
         },
         onAvatarTap: {
           await session.close(.none)
@@ -101,7 +96,6 @@ extension ResourceUserGroupsListNodeController {
 
   internal struct Context {
 
-    internal var nodeID: ViewNodeID
     internal var title: DisplayableString = .localized(
       key: "home.presentation.mode.resource.user.groups.explorer.title"
     )
@@ -128,27 +122,18 @@ extension ResourceUserGroupsListNodeController {
       )
       .instance()
     let userGroupDetails: UserGroupDetailsDSV = try await userGroup.details()
-
-    let nodeController: ResourcesListViewController =
-      try await self.features
-      .instance(
-        of: ResourcesListViewController.self,
-        context: .init(
-          title: .raw(userGroupDetails.name),
-          titleIconName: .userGroup,
-          baseFilter: .init(
-            sorting: .nameAlphabetically,
-            userGroups: [userGroupID]
-          ),
-          appModeContext: .createExtensionContext(using: features, nodeId: context.nodeID)
-        )
+    let navigationToResourcesList: NavigationToResourcesList = try await features.instance()
+    try await navigationToResourcesList.perform(
+      context: .init(
+        title: .raw(userGroupDetails.name),
+        titleIconName: .userGroup,
+        baseFilter: .init(
+          sorting: .nameAlphabetically,
+          userGroups: [userGroupID]
+        ),
+        appModeContext: .createExtensionContext(using: features)
       )
-
-    await self.navigationTree
-      .push(
-        ResourcesListView.self,
-        controller: nodeController
-      )
+    )
   }
 
   internal final func closeExtension() {

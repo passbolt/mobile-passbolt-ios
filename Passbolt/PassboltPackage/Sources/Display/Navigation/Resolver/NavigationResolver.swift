@@ -65,6 +65,43 @@ extension NavigationResolver {
     self.leafAnchor(with: identifier) != nil
   }
 
+  @MainActor internal func replaceRoot(
+    _ newRoot: NavigationAnchor
+  ) async throws {
+    guard var rootViewController: UIViewController = rootAnchor()
+    else {
+      return
+    }
+
+    if let currentNavigation = rootViewController as? UINavigationController,
+      let parent = currentNavigation.parent,
+      newRoot is UINavigationController
+    {
+      rootViewController = parent
+    }
+
+    for child in rootViewController.children {
+      child.willMove(toParent: nil)
+      child.view.removeFromSuperview()
+      child.removeFromParent()
+    }
+
+    rootViewController.addChild(newRoot)
+    newRoot.view.translatesAutoresizingMaskIntoConstraints = false
+    rootViewController.view.addSubview(newRoot.view)
+
+    NSLayoutConstraint.activate([
+      newRoot.view.topAnchor.constraint(equalTo: rootViewController.view.topAnchor),
+      newRoot.view.bottomAnchor.constraint(equalTo: rootViewController.view.bottomAnchor),
+      newRoot.view.leadingAnchor.constraint(equalTo: rootViewController.view.leadingAnchor),
+      newRoot.view.trailingAnchor.constraint(equalTo: rootViewController.view.trailingAnchor),
+    ])
+  }
+
+  @MainActor internal func currentRoot() -> NavigationAnchor? {
+    self.rootAnchor()?.children.first
+  }
+
   @MainActor internal func push(
     _ anchor: NavigationAnchor,
     unique: Bool,
@@ -210,6 +247,7 @@ extension NavigationResolver {
     tabs.selectedIndex = idx
   }
 }
+
 extension NavigationResolver {
 
   @MainActor fileprivate func rootAnchor() -> NavigationAnchor? {
@@ -294,7 +332,9 @@ extension RootAnchorProvider: LoadableFeature {
     .init(
       rootAnchor: {
         // This is temorary solution for autofill extension. Has to be refactored once navigation is moved entirely to SwiftUI.
-        UIApplication.shared.keyWindow?.rootViewController?.children.first?.children.first?.children.first
+        let root: UIViewController? = UIApplication.shared.keyWindow?.rootViewController?.children.first
+
+        return root?.findFirstNavigationStack ?? root
       }
     )
   }
@@ -318,5 +358,20 @@ extension FeaturesRegistry {
         load: RootAnchorProvider.loadExtension(feature:)
       )
     )
+  }
+}
+
+extension UIViewController {
+
+  fileprivate var findFirstNavigationStack: UINavigationController? {
+    if let stack: UINavigationController = self.navigationStack {
+      return stack
+    }
+    for child in self.children {
+      if let stack: UINavigationController = child.findFirstNavigationStack {
+        return stack
+      }
+    }
+    return nil
   }
 }

@@ -53,7 +53,19 @@ extension FeaturesRegistry {
     self.usePassboltMetadataModule()
     // it is required until navigations will become fully integrated
     self.useResourceEditNavigation()
+    self.useLiveNavigationToAutofillRoot()
     self.useLiveNavigationToOperationResult()
+    self.useLiveNavigationToNoAccounts()
+    self.useLiveNavigationToAccountSelection()
+    self.useLiveNavigationToAuthorization()
+    self.useLiveNavigationToMFAInput()
+    self.useLiveNavigationToHomeView()
+    self.useLiveNavigationToHomePresentationMenu()
+    self.useLiveNavigationToServerFingerprintInvalid()
+    self.useLiveNavigationToResourceFolderContentNodeView()
+    self.useLiveNavigationToResourcesList()
+    self.useLiveNavigationToHelpMenu()
+    self.useLiveNavigationToLogsViewer()
 
     self.useLiveNavigationToMetadataPinnedKeyValidationDialog()
   }

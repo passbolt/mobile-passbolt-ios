@@ -23,40 +23,46 @@
 
 import Display
 
-internal struct MFARequiredView: ControlledView {
+internal struct HelpMenuView: ControlledView {
 
-  internal let controller: MFARequiredViewController
+  internal let controller: HelpMenuViewController
 
-  internal init(controller: MFARequiredViewController) {
+  internal init(controller: HelpMenuViewController) {
     self.controller = controller
   }
 
   internal var body: some View {
-    VStack(spacing: 32) {
-      Spacer()
-      Image(named: .failureMark)
-      Text(displayable: "mfa.required.title")
-        .titleStyle()
-      Text(displayable: "autofill.extension.mfa.required.description")
-        .infoStyle()
-
-      Spacer()
-    }
-    .padding(.horizontal, 32)
-    .navigationBarBackButtonHidden()
-    .toolbar {
-      ToolbarItem(placement: .topBarTrailing) {
-        AsyncButton(
-          action: {
-            await self.controller.closeExtension()
-          },
-          label: {
-            Image(named: .close)
+    DrawerMenu(
+      closeTap: { await self.controller.closeMenu() },
+      title: {
+        Text(displayable: "help.menu.title")
+          .font(.inter(ofSize: 18, weight: .bold))
+          .foregroundStyle(Color.passboltPrimaryText)
+      },
+      content: {
+        with(\.actions) { actions in
+          VStack(spacing: 10) {
+            ForEach(actions, id: \.self) { action in
+              DrawerMenuItemView(
+                action: action.action,
+                title: {
+                  Text(displayable: action.title)
+                    .font(.inter(ofSize: 14, weight: .semibold))
+                    .foregroundStyle(Color.passboltPrimaryText)
+                },
+                leftIcon: {
+                  Image(named: action.icon)
+                    .renderingMode(.template)
+                    .foregroundStyle(Color.passboltPrimaryText)
+                    .frame(width: 18, height: 18)
+                }
+              )
+            }
           }
-        )
+        }
       }
-    }
-    .padding(.top, 60)
+    )
+    .ignoresSafeArea()
   }
 }
 
@@ -65,7 +71,7 @@ internal struct MFARequiredView: ControlledView {
   PlaceholderView()
     .sheet(isPresented: .constant(true)) {
       createPreview(
-        MFARequiredView.self
+        HelpMenuView.self
       )
       .wrapInNavigationStack()
     }

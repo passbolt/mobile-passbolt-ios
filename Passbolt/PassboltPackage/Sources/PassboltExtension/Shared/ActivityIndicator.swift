@@ -21,17 +21,19 @@
 // @since         v1.0
 //
 
-import Display
+import SwiftUI
 
-final internal class NoAccountsViewController: ViewController {
+internal struct ActivityIndicator: UIViewRepresentable {
+  internal let style: UIActivityIndicatorView.Style
 
-  private let extensionContext: AutofillExtensionContext
-
-  internal init(context: Void, features: Features) throws {
-    self.extensionContext = features.instance()
+  internal func makeUIView(context: UIViewRepresentableContext<ActivityIndicator>) -> UIActivityIndicatorView {
+    let indicator = UIActivityIndicatorView(style: style)
+    indicator.tintColor = .passboltIcon
+    indicator.startAnimating()
+    return indicator
   }
 
-  internal func close() {
-    self.extensionContext.cancelAndCloseExtension()
+  internal func updateUIView(_ uiView: UIActivityIndicatorView, context: UIViewRepresentableContext<ActivityIndicator>) {
+    // no-op
   }
 }

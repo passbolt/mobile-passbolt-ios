@@ -19,81 +19,85 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
-import Combine
-import UICommons
+import AuthenticationServices
+import Display
 
-internal final class NoAccountsView: ScrolledStackView {
+internal struct NoAccountsView: ControlledView {
 
-  private let logoImageView: ImageView = .init()
-  private let accountsImageView: ImageView = .init()
-  private let titleLabel: Label = .init()
-  private let descriptionLabel: Label = .init()
+  internal let controller: NoAccountsViewController
 
-  override internal func setup() {
-    mut(self) {
-      .backgroundColor(dynamic: .background)
+  internal init(controller: NoAccountsViewController) {
+    self.controller = controller
+  }
+
+  internal var body: some View {
+    GeometryReader { geometry in
+      VStack(spacing: 0) {
+        Image(named: .passboltLogo)
+          .resizable()
+          .aspectRatio(contentMode: .fit)
+          .frame(width: geometry.size.width * 0.4)
+          .frame(maxWidth: .infinity, alignment: .center)
+          .padding(.top, 16)
+          .accessibilityIdentifier("no.accounts.logo.imageview")
+
+        Image(named: .accountsSkeleton)
+          .resizable()
+          .aspectRatio(contentMode: .fit)
+          .frame(width: geometry.size.width * 0.7)
+          .padding(.top, 60)
+          .accessibilityIdentifier("no.accounts.imageview")
+
+        Text(displayable: "autofill.extension.no.accounts.title")
+          .font(.inter(ofSize: 24, weight: .semibold))
+          .foregroundColor(.passboltPrimaryText)
+          .multilineTextAlignment(.center)
+          .padding(.top, 60)
+          .accessibilityIdentifier("no.accounts.title.label")
+
+        Text(displayable: "autofill.extension.no.accounts.description")
+          .font(.inter(ofSize: 14))
+          .foregroundColor(.passboltSecondaryText)
+          .multilineTextAlignment(.center)
+          .padding(.top, 16)
+          .accessibilityIdentifier("no.accounts.description.label")
+      }
+      .padding(.horizontal, 16)
+      .padding(.top, 120)
+      .navigationBarBackButtonHidden()
     }
-
-    let logoContainer: ContainerView = .init(
-      contentView: logoImageView,
-      mutation: .combined(
-        .image(named: .passboltLogo, from: .uiCommons),
-        .contentMode(.scaleAspectFit),
-        .accessibilityIdentifier("no.accounts.logo.imageview")
-      ),
-      widthMultiplier: 0.4,
-      heightMultiplier: 1
-    )
-
-    let accountsContainer: ContainerView = .init(
-      contentView: accountsImageView,
-      mutation: .combined(
-        .image(named: .accountsSkeleton, from: .uiCommons),
-        .contentMode(.scaleAspectFit),
-        .widthAnchor(.equalTo, accountsImageView.heightAnchor),
-        .accessibilityIdentifier("no.accounts.imageview")
-      ),
-      widthMultiplier: 0.7,
-      heightMultiplier: 1
-    )
-
-    mut(titleLabel) {
-      .combined(
-        .font(.inter(ofSize: 24, weight: .semibold)),
-        .textColor(dynamic: .primaryText),
-        .textAlignment(.center),
-        .text(displayable: .localized(key: "autofill.extension.no.accounts.title")),
-        .accessibilityIdentifier("no.accounts.title.label")
+    .padding(.bottom, 16)
+    .overlay(alignment: .topTrailing) {
+      AsyncButton(
+        action: {
+          self.controller.close()
+        },
+        label: {
+          Image(named: .close)
+            .renderingMode(.template)
+            .foregroundStyle(Color.passboltPrimaryText)
+            .padding(.trailing, 24)
+            .padding(.top, 24)
+        }
       )
     }
-
-    mut(descriptionLabel) {
-      .combined(
-        .font(.inter(ofSize: 14)),
-        .lineBreakMode(.byWordWrapping),
-        .textAlignment(.center),
-        .numberOfLines(0),
-        .textColor(dynamic: .secondaryText),
-        .text(displayable: .localized(key: "autofill.extension.no.accounts.description")),
-        .accessibilityIdentifier("no.accounts.description.label")
-      )
-    }
-
-    mut(self) {
-      .combined(
-        .axis(.vertical),
-        .isLayoutMarginsRelativeArrangement(true),
-        .contentInset(.init(top: 60, left: 16, bottom: 16, right: 16)),
-        .append(logoContainer),
-        .appendSpace(of: 24),
-        .append(accountsContainer),
-        .appendSpace(of: 24),
-        .append(titleLabel),
-        .appendSpace(of: 16),
-        .append(descriptionLabel),
-        .appendFiller(minSize: 8)
-      )
-    }
+    .backgroundColor(.passboltBackground)
   }
 }
+
+#if DEBUG
+#Preview {
+  PlaceholderView()
+    .sheet(isPresented: .constant(true)) {
+      createPreview(
+        NoAccountsView.self,
+        with: (),
+        using: { registry in
+          registry.usePlaceholder(for: AutofillExtensionContext.self)
+        }
+      )
+    }
+}
+#endif

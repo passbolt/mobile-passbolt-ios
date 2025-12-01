@@ -40,6 +40,10 @@ import UIComponents
 
   @available(*, deprecated, message: "Do not use viewNodeID to identify views. Legacy use only!")
   nonisolated var viewNodeID: ViewNodeID { get }
+
+  #if DEBUG
+  static func previewDependencies(_ features: inout PreviewFeaturesContainer)
+  #endif
 }
 
 extension ViewController {
@@ -381,4 +385,14 @@ public enum Controlled {
       defaultView()
     }
   }
+}
+
+extension ViewController {
+
+  #if DEBUG
+  /// Prepare dependencies  for previewing  associated view in Xcode Previews.
+  public static func previewDependencies(_ builder: inout PreviewFeaturesContainer) {
+    // no-op default implementation
+  }
+  #endif
 }

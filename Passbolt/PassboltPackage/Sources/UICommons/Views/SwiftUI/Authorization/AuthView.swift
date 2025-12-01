@@ -90,12 +90,14 @@ where SupportActionView: View {
           font: .inter(ofSize: 14),
           color: .passboltSecondaryText
         )
+        .accessibilityIdentifier("label.account.name")
 
       Text(self.domain)
         .text(
           font: .inter(ofSize: 14),
           color: .passboltSecondaryText
         )
+        .accessibilityIdentifier("label.account.url")
 
       FormSecureTextFieldView(
         title: .localized(
@@ -105,6 +107,7 @@ where SupportActionView: View {
         mandatory: true,
         state: self.passphrase
       )
+      .accessibilityIdentifier("input.text.passphrase")
       .padding(top: 16)
 
       switch self.biometricsAvailability {
@@ -174,8 +177,15 @@ where SupportActionView: View {
 
       PrimaryButton(
         title: self.mainActionLabel,
+        disabled: .init(
+          get: { !self.passphrase.wrappedValue.value.isEmpty },
+          set: { _ in
+            /** no-op **/
+          }
+        ),
         action: self.mainAction
       )
+      .disabled(passphrase.wrappedValue.value.isEmpty)
       .accessibilityIdentifier("transfer.account.export.passphrase.primary.button")
 
       self.supportActionView()

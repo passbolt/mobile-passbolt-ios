@@ -140,6 +140,10 @@ extension Color {
     .init(UIColor.passboltPrimaryBlue)
   }
 
+  public static var passboltPrimaryBlueDisabled: Self {
+    .init("primaryBlueDisabled", bundle: .module)
+  }
+
   public static var passboltSecondaryGreen: Self {
     .init(UIColor.passboltSecondaryGreen)
   }

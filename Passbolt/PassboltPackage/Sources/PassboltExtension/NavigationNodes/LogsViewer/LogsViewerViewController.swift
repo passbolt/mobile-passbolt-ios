@@ -21,6 +21,49 @@
 // @since         v1.0
 //
 
-import UIComponents
+import Display
 
-internal typealias MFARequiredController = EmptyController<Void>
+internal final class LogsViewerViewController: ViewController {
+
+  internal struct ViewState: Equatable {
+    internal var isInitialLoading: Bool = true
+    internal var diagnosticsInfo: Array<String> = .init()
+    internal var presentShareSheet: Bool = false
+    internal var sharingDiagnosticsInfo: Array<String> {
+      [
+        "Passbolt"
+      ]
+        + diagnosticsInfo
+    }
+  }
+
+  nonisolated let viewState: ViewStateSource<ViewState>
+  private let navigationToSelf: NavigationToLogsViewer
+
+  internal init(context: (), features: Features) throws {
+    self.navigationToSelf = try features.instance()
+    self.viewState = .init(
+      initial: .init()
+    )
+  }
+
+  internal func refreshLogs() async {
+    await Task {
+      viewState.update { state in
+        state.diagnosticsInfo = Diagnostics.shared.info()
+        state.isInitialLoading = false
+      }
+    }
+    .waitForCompletion()
+  }
+
+  internal func close() async {
+    await consumingErrors {
+      try await navigationToSelf.revert()
+    }
+  }
+
+  internal func share() async {
+    viewState.update(\.presentShareSheet, to: true)
+  }
+}

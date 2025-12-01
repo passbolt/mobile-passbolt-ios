@@ -21,101 +21,149 @@
 // @since         v1.0
 //
 
-import CommonModels
+import Display
 import SharedUIComponents
-import UICommons
 
-internal final class AccountSelectionView: PlainView {
+internal struct AccountSelectionView: ControlledView {
 
-  internal var accountTapPublisher: AnyPublisher<AccountSelectionCellItem, Never> { collectionView.accountTapPublisher }
-  internal var addAccountTapPublisher: AnyPublisher<Void, Never> { collectionView.addAccountPublisher }
+  internal let controller: AccountSelectionViewController
 
-  private let logoImageView: ImageView = .init()
-  private lazy var collectionView: AccountSelectionCollectionView = .init(
-    layout: UICollectionViewCompositionalLayout.accountSelectionLayout()
-  )
-
-  private let container: PlainView = .init()
-  private let titleLabel: Label = .init()
-  private let subTitleLabel: Label = .init()
-
-  @available(*, unavailable, message: "Use init(mode:)")
-  internal required init() {
-    unreachable(#function)
+  internal init(controller: AccountSelectionViewController) {
+    self.controller = controller
   }
 
-  internal init(
-    mode: AccountSelectionController.Mode
-  ) {
-    super.init()
+  internal var body: some View {
+    VStack(spacing: 0) {
+      Image(named: .passboltLogo)
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+        .frame(width: 118)
+        .padding(.top, 90)
 
-    mut(self) {
-      .backgroundColor(dynamic: .background)
-    }
+      with(\.mode) { mode in
+        Text(displayable: mode.title)
+          .titleStyle()
+          .padding(.top, 94)
 
-    mut(container) {
-      .combined(
-        .subview(of: self),
-        .edges(equalTo: self, insets: .init(top: -8, left: -16, bottom: -8, right: -16)),
-        .backgroundColor(dynamic: .background),
-        .subview(
-          titleLabel,
-          subTitleLabel,
-          collectionView
-        )
-      )
-    }
-
-    mut(titleLabel) {
-      .combined(
-        .titleStyle(),
-        .topAnchor(.equalTo, container.topAnchor, constant: 113),
-        .leadingAnchor(.equalTo, container.leadingAnchor),
-        .trailingAnchor(.equalTo, container.trailingAnchor)
-      )
-    }
-
-    mut(subTitleLabel) {
-      .combined(
-        .infoStyle(),
-        .leadingAnchor(.equalTo, container.leadingAnchor),
-        .trailingAnchor(.equalTo, container.trailingAnchor),
-        .topAnchor(.equalTo, titleLabel.bottomAnchor, constant: 16)
-      )
-    }
-
-    switch mode {
-    case .signIn:
-      mut(titleLabel) {
-        .text(displayable: .localized(key: "autofill.extension.account.selection.switch.account.title"))
+        Text(displayable: mode.subTitle)
+          .infoStyle()
+          .padding(.top, 16)
       }
 
-      mut(subTitleLabel) {
-        .text(displayable: .localized(key: "autofill.extension.account.selection.switch.account.subtitle"))
+      ScrollView {
+        VStack {
+          with(\.rows) { rows in
+            ForEach(Array(rows.enumerated()), id: \.1.self) { index, row in
+              switch row {
+              case .account(let account):
+                AsyncButton(
+                  action: {
+                    try await self.controller.selectAccount(account.account)
+                  },
+                  label: {
+                    AccountSelectionRow(account: account)
+                      .padding(.horizontal, 16)
+                  }
+                )
+              case .addAccount:
+                EmptyView()  // not supported yet
+              }
+              if index < rows.count - 1 {
+                Divider()
+                  .foregroundStyle(Color.passboltDivider)
+                  .frame(height: 2)
+                  .padding(.horizontal, 8)
+                  .padding(.bottom, 4)
+              }
+            }
+          }
+        }
+        .padding(.vertical, 16)
+        .overlay {
+          RoundedRectangle(cornerRadius: 8)
+            .stroke(Color.passboltDivider, lineWidth: 1)
+        }
       }
-
-    case .switchAccount:
-      mut(titleLabel) {
-        .text(displayable: .localized(key: "autofill.extension.account.selection.sign.in.title"))
-      }
-
-      mut(subTitleLabel) {
-        .text(displayable: .localized(key: "autofill.extension.account.selection.sign.in.subtitle"))
-      }
+      .padding(.top, 40)
     }
-
-    mut(collectionView) {
-      .combined(
-        .leadingAnchor(.equalTo, container.leadingAnchor),
-        .trailingAnchor(.equalTo, container.trailingAnchor),
-        .topAnchor(.equalTo, subTitleLabel.bottomAnchor, constant: 40),
-        .bottomAnchor(.equalTo, container.bottomAnchor, constant: -20),
-        .set(\.dynamicBackgroundColor, to: .background)
-      )
-    }
-  }
-
-  internal func update(items: Array<AccountSelectionListItem>) {
-    collectionView.update(data: items)
+    .padding(.horizontal, 16)
+    .backgroundColor(.passboltBackground)
+    Spacer()
   }
 }
+
+extension AccountSelectionViewController.Mode {
+
+  fileprivate var title: DisplayableString {
+    switch self {
+    case .signIn:
+      return "autofill.extension.account.selection.switch.account.title"
+    case .switchAccount:
+      return "autofill.extension.account.selection.sign.in.title"
+    }
+  }
+
+  fileprivate var subTitle: DisplayableString {
+    switch self {
+    case .signIn:
+      return "autofill.extension.account.selection.switch.account.subtitle"
+    case .switchAccount:
+      return "autofill.extension.account.selection.sign.in.subtitle"
+    }
+  }
+}
+
+private struct AccountSelectionRow: View {
+  @State private var currentImage: Image
+  private let account: AccountSelectionCellItem
+
+  init(account: AccountSelectionCellItem) {
+    self.account = account
+    self._currentImage = State(initialValue: Image(named: .person))
+  }
+
+  var body: some View {
+    HStack(spacing: 0) {
+      currentImage
+        .resizable()
+        .aspectRatio(contentMode: .fill)
+        .cornerRadius(20)
+        .tint(Color.passboltIcon)
+        .frame(width: 40, height: 40)
+        .overlay {
+          Circle()
+            .stroke(Color.passboltDivider, lineWidth: 1)
+        }
+
+      VStack(alignment: .leading, spacing: 4) {
+        Text(account.title)
+          .font(.inter(ofSize: 14, weight: .semibold))
+          .foregroundColor(.passboltPrimaryText)
+          .lineLimit(1)
+
+        Text(account.subtitle)
+          .font(.inter(ofSize: 12))
+          .foregroundColor(.passboltSecondaryText)
+          .lineLimit(1)
+      }
+      .padding(.leading, 12)
+      Spacer()
+    }
+    .onReceive(account.imagePublisher ?? Just(nil).eraseToAnyPublisher()) { @MainActor data in
+      currentImage = data.flatMap { Image.init(data: $0) } ?? Image(named: .person)
+    }
+  }
+}
+
+#if DEBUG
+
+#Preview {
+  PlaceholderView()
+    .sheet(isPresented: .constant(true)) {
+      createPreview(
+        AccountSelectionView.self,
+        with: .signIn
+      )
+    }
+}
+#endif

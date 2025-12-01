@@ -22,16 +22,30 @@
 //
 
 import Display
+import FeatureScopes
 
-final internal class NoAccountsViewController: ViewController {
+internal enum NavigationToAuthorizationDestination: NavigationDestination {
 
-  private let extensionContext: AutofillExtensionContext
+  internal typealias TransitionContext = AuthorizationViewController.Context
+}
 
-  internal init(context: Void, features: Features) throws {
-    self.extensionContext = features.instance()
+internal typealias NavigationToAuthorization = NavigationTo<NavigationToAuthorizationDestination>
+
+extension NavigationToAuthorization {
+
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(
+      to: AuthorizationView.self
+    )
   }
+}
 
-  internal func close() {
-    self.extensionContext.cancelAndCloseExtension()
+extension FeaturesRegistry {
+
+  internal mutating func useLiveNavigationToAuthorization() {
+    self.use(
+      NavigationToAuthorization.live,
+      in: RootFeaturesScope.self
+    )
   }
 }

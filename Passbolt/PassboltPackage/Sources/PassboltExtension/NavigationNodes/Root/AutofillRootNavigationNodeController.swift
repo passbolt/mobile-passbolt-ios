@@ -30,11 +30,11 @@ import SharedUIComponents
 
 internal final class AutofillRootNavigationNodeController: ViewController {
 
-  private let navigationTree: NavigationTree
   private let accounts: Accounts
   private let session: Session
   private let sessionConfigurationLoader: SessionConfigurationLoader
-  private let authorizationPromptRecoveryTreeState: CriticalState<(account: Account, tree: NavigationTreeState)?>
+  private let navigationRestoration: NavigationRestoration
+  private let restorationAccount: CriticalState<Account?> = .init(.none)
 
   private let features: Features
 
@@ -44,13 +44,10 @@ internal final class AutofillRootNavigationNodeController: ViewController {
   ) throws {
     self.features = features
 
-    self.navigationTree = features.instance()
     self.accounts = try features.instance()
     self.session = try features.instance()
     self.sessionConfigurationLoader = try features.instance()
-    self.authorizationPromptRecoveryTreeState = .init(
-      .none
-    )
+    self.navigationRestoration = try features.instance()
   }
 }
 
@@ -60,12 +57,10 @@ extension AutofillRootNavigationNodeController {
     let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
 
     if storedAccounts.isEmpty {
-      await navigationTree
-        .replaceRoot(
-          pushing: NoAccountsViewController.self,
-          context: Void(),
-          using: features
-        )
+      await consumingErrors {
+        let navigationToNoAccounts: NavigationToNoAccounts = try features.instance()
+        try await navigationToNoAccounts.perform()
+      }
     }
     else {
       let initialAccount: AccountWithProfile?
@@ -79,20 +74,20 @@ extension AutofillRootNavigationNodeController {
         initialAccount = .none
       }
 
-      await navigationTree
-        .replaceRoot(
-          pushing: AccountSelectionViewController.self,
-          context: .signIn,
-          using: features
+      await consumingErrors {
+        let navigationToAccountSelection: NavigationToAccountSelection = try features.instance()
+        try await navigationToAccountSelection.perform(
+          context: .signIn
         )
+      }
 
       if let account: AccountWithProfile = initialAccount {
-        await navigationTree
-          .push(
-            AuthorizationViewController.self,
-            context: account.account,
-            using: features
+        await consumingErrors {
+          let navigationToAccountSelection: NavigationToAuthorization = try features.instance()
+          try await navigationToAccountSelection.perform(
+            context: account.account
           )
+        }
       }  // else NOP
     }
 
@@ -101,65 +96,91 @@ extension AutofillRootNavigationNodeController {
         try await SessionStateChangeEvent.subscribe { (event: SessionStateChangeEvent) async throws in
           switch event {
           case .authorized(let account):
-            if let (previousAccount, tree): (Account, NavigationTreeState) = self.authorizationPromptRecoveryTreeState
+            if let restorationAccount: Account = self.restorationAccount.get(),
+              restorationAccount == account,
+              try await self.navigationRestoration.canRestore()
+            {
+              self.restorationAccount.set(.none)
+              try await self.navigationRestoration.restore()
+            }
+            else {
+              let features: Features = try await self.features
+                .branchIfNeeded(scope: AccountScope.self, context: account)
+                .branchIfNeeded(
+                  scope: SessionScope.self,
+                  context: .init(
+                    account: account,
+                    configuration: await self.sessionConfigurationLoader.sessionConfiguration()
+                  )
+                )
+              let navigationToHome: NavigationToHome = try await features.instance()
+              try await navigationToHome.perform(
+                context: .init(
+                  account: account,
+                  configuration: self.sessionConfigurationLoader.sessionConfiguration()
+                )
+              )
+            }
+
+            if let previousAccount: Account = self.restorationAccount
               .get(),
               account == previousAccount
             {
-              self.authorizationPromptRecoveryTreeState.set(.none)
-              await self.navigationTree.set(treeState: tree)
+              try await self.navigationRestoration.restore()
             }
             else {
-              #warning(
-                "FIXME: application has a dedicated screen for configuration load fail, this should not break the extension!"
-              )
-              try await self.navigationTree.replaceRoot(
-                pushing: HomeNavigationNodeView.self,
-                controller: self.features.instance(
+              let features: Features = try await self.features
+                .branchIfNeeded(scope: AccountScope.self, context: account)
+                .branchIfNeeded(
+                  scope: SessionScope.self,
                   context: .init(
                     account: account,
-                    configuration: self.sessionConfigurationLoader.sessionConfiguration()
+                    configuration: await self.sessionConfigurationLoader.sessionConfiguration()
                   )
+                )
+              let navigationToHome: NavigationToHome = try await features.instance()
+              try await navigationToHome.perform(
+                context: .init(
+                  account: account,
+                  configuration: self.sessionConfigurationLoader.sessionConfiguration()
                 )
               )
             }
           case .requestedPassphrase(let account):
-            await self.authorizationPromptRecoveryTreeState.set((account, self.navigationTree.treeState))
-            await self.navigationTree
-              .replaceRoot(
-                pushing: AccountSelectionViewController.self,
-                context: .signIn,
-                using: self.features
+            self.restorationAccount.set(account)
+
+            await consumingErrors {
+              try await self.navigationRestoration.saveCurrent()
+              let navigationToAccountSelection: NavigationToAccountSelection = try await self.features.instance()
+              try await navigationToAccountSelection.perform(
+                context: .signIn
               )
-            await self.navigationTree
-              .push(
-                AuthorizationViewController.self,
-                context: account,
-                using: self.features
-              )
-          case .requestedMFA(let account, let providers):
-            await self.navigationTree
-              .replaceRoot(
-                pushing: MFARequiredViewController.self,
-                context: Void(),
-                using: self.features
-              )
+
+              let navigationToAuthorization: NavigationToAuthorization = try await self.features.instance()
+              try await navigationToAuthorization.perform(context: account)
+
+            }
+
+          case .requestedMFA:
+            await consumingErrors {
+              let navigationToMFA: NavigationToMFARequired = try await self.features.instance()
+              try await navigationToMFA.perform()
+            }
+
           case .closed:
-            self.authorizationPromptRecoveryTreeState.set(.none)
+            self.restorationAccount.set(.none)
             if self.accounts.storedAccounts().isEmpty {
-              await self.navigationTree
-                .replaceRoot(
-                  pushing: NoAccountsViewController.self,
-                  context: Void(),
-                  using: self.features
-                )
+              let navigateToNoAccounts: NavigationToNoAccounts = try await self.features.instance()
+              try await navigateToNoAccounts.perform()
             }
             else {
-              await self.navigationTree
-                .replaceRoot(
-                  pushing: AccountSelectionViewController.self,
-                  context: .signIn,
-                  using: self.features
+              await consumingErrors {
+                try await self.navigationRestoration.saveCurrent()
+                let navigationToAccountSelection: NavigationToAccountSelection = try await self.features.instance()
+                try await navigationToAccountSelection.perform(
+                  context: .signIn
                 )
+              }
             }
           }
         }

@@ -22,16 +22,31 @@
 //
 
 import Display
+import FeatureScopes
 
-final internal class NoAccountsViewController: ViewController {
+internal enum NavigationToAccountSelectionDestination: NavigationDestination {
 
-  private let extensionContext: AutofillExtensionContext
+  internal typealias TransitionContext = AccountSelectionViewController.Context
+}
 
-  internal init(context: Void, features: Features) throws {
-    self.extensionContext = features.instance()
+internal typealias NavigationToAccountSelection = NavigationTo<NavigationToAccountSelectionDestination>
+
+extension NavigationToAccountSelection {
+
+  fileprivate static var live: FeatureLoader {
+    replaceRoot(
+      with: AccountSelectionView.self,
+      createNavigationStack: true
+    )
   }
+}
 
-  internal func close() {
-    self.extensionContext.cancelAndCloseExtension()
+extension FeaturesRegistry {
+
+  internal mutating func useLiveNavigationToAccountSelection() {
+    self.use(
+      NavigationToAccountSelection.live,
+      in: RootFeaturesScope.self
+    )
   }
 }

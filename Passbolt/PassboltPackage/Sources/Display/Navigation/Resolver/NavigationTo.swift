@@ -202,6 +202,68 @@ extension NavigationTo {
 
 extension NavigationTo {
 
+  public static func replaceRoot<DestinationView>(
+    with: DestinationView.Type = DestinationView.self,
+    createNavigationStack: Bool,
+    _ prepareTransitionView: @escaping @MainActor (Features, Destination.TransitionContext) throws -> DestinationView
+  ) -> FeatureLoader
+  where DestinationView: ControlledView {
+    .disposable(
+      Self.self,
+      load: { features in
+        let navigationResolver: NavigationResolver = try features.instance()
+
+        @MainActor @Sendable func perform(
+          animated: Bool,
+          context: Destination.TransitionContext,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          let anchor: NavigationAnchor = try UIHostingController(
+            rootView: prepareTransitionView(features, context)
+          )
+          anchor.destinationIdentifier = Destination.identifier
+
+          if createNavigationStack {
+            let navigationStack = UINavigationController()
+            navigationStack.viewControllers = [anchor]
+            try await navigationResolver
+              .replaceRoot(
+                navigationStack
+              )
+          }
+          else {
+            try await navigationResolver
+              .replaceRoot(
+                anchor
+              )
+          }
+        }
+
+        @MainActor @Sendable func revert(
+          animated: Bool,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          assertionFailure("You cannot revert a root replacement navigation!")
+        }
+
+        @MainActor func canPerform(
+          file: StaticString,
+          line: UInt
+        ) -> Bool {
+          navigationResolver.exists(with: Destination.identifier) == false
+        }
+
+        return .init(
+          performAnimated: perform(animated:context:file:line:),
+          revertAnimated: revert(animated:file:line:),
+          canPerformCheck: canPerform(file:line:)
+        )
+      }
+    )
+  }
+
   public static func legacyPushTransition<DestinationView>(
     to: DestinationView.Type = DestinationView.self,
     _ prepareTransitionView: @escaping @MainActor (Features, Destination.TransitionContext) throws -> DestinationView
@@ -258,6 +320,20 @@ extension NavigationTo {
           revertAnimated: revert(animated:file:line:),
           canPerformCheck: canPerform(file:line:)
         )
+      }
+    )
+  }
+
+  public static func replaceRoot<DestinationView>(
+    with: DestinationView.Type,
+    createNavigationStack: Bool = false
+  ) -> FeatureLoader
+  where DestinationView: ControlledView, DestinationView.Controller.Context == Destination.TransitionContext {
+    Self.replaceRoot(
+      with: DestinationView.self,
+      createNavigationStack: createNavigationStack,
+      { features, context in
+        try DestinationView(controller: features.instance(context: context))
       }
     )
   }
@@ -632,6 +708,33 @@ extension NavigationTo {
         let cancellables: Cancellables = .init()
 
         let controller: DestinationViewController.Controller = try .instance(
+          with: &features,
+          cancellables: cancellables
+        )
+
+        return
+          DestinationViewController
+          .instance(
+            using: controller,
+            with: .init(features: features),
+            cancellables: cancellables
+          )
+      }
+    )
+  }
+
+  public static func legacyPartialSheetPresentationTransition<DestinationViewController>(
+    toLegacy: DestinationViewController.Type = DestinationViewController.self
+  ) -> FeatureLoader
+  where DestinationViewController: UIComponent, Destination.TransitionContext == DestinationViewController.Controller.Context {
+    self.legacyPartialSheetPresentationTransition(
+      toLegacy: DestinationViewController.self,
+      { features, context in
+        var features: Features = features
+        let cancellables: Cancellables = .init()
+
+        let controller: DestinationViewController.Controller = try .instance(
+          in: context,
           with: &features,
           cancellables: cancellables
         )

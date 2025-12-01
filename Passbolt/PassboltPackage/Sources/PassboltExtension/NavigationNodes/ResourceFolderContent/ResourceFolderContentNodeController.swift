@@ -37,9 +37,9 @@ internal final class ResourceFolderContentNodeController: ViewController {
   internal var searchController: ResourceSearchDisplayController!  // lazy?
   internal var contentController: ResourceFolderContentDisplayController!  // lazy?
 
-  private let navigationTree: NavigationTree
   private let autofillContext: AutofillExtensionContext
   private let resourceFolders: ResourceFolders
+  private let navigationToHomePresentationMenu: NavigationToHomePresentationMenu
 
   private let requestedServiceIdentifiers: Array<AutofillExtensionContext.ServiceIdentifier>
   private let context: Context
@@ -52,10 +52,9 @@ internal final class ResourceFolderContentNodeController: ViewController {
     self.context = context
     self.features = features
 
-    let navigationTree: NavigationTree = features.instance()
-    self.navigationTree = navigationTree
     self.autofillContext = features.instance()
     self.resourceFolders = try features.instance()
+    self.navigationToHomePresentationMenu = try features.instance()
 
     let session: Session = try features.instance()
     let requestedServiceIdentifiers: Array<AutofillExtensionContext.ServiceIdentifier> = self.autofillContext
@@ -78,11 +77,7 @@ internal final class ResourceFolderContentNodeController: ViewController {
       context: .init(
         searchPrompt: context.searchPrompt,
         onPresentationMenuTap: {
-          try navigationTree.present(
-            .sheet,
-            HomePresentationMenuNodeView.self,
-            controller: features.instance(context: context.nodeID)
-          )
+          try await self.navigationToHomePresentationMenu.perform()
         },
         onAvatarTap: {
           await session.close(.none)
@@ -127,7 +122,6 @@ extension ResourceFolderContentNodeController {
 
   internal struct Context {
 
-    internal var nodeID: ViewNodeID
     // none means root
     internal var folderDetails: ResourceFolder?
     internal var searchPrompt: DisplayableString = .localized(key: "resources.search.placeholder")
@@ -206,20 +200,12 @@ extension ResourceFolderContentNodeController {
   ) async throws {
     let folderDetails: ResourceFolder = try await self.resourceFolders.details(resourceFolderID)
 
-    let nodeController: ResourceFolderContentNodeController =
-      try self.features
-      .instance(
-        of: ResourceFolderContentNodeController.self,
-        context: .init(
-          nodeID: self.context.nodeID,
-          folderDetails: folderDetails
-        )
+    let navigationToResourceFolderContents: NavigationToResourceFolderContents = try self.features.instance()
+    try await navigationToResourceFolderContents.perform(
+      context: .init(
+        folderDetails: folderDetails
       )
-    self.navigationTree
-      .push(
-        ResourceFolderContentNodeView.self,
-        controller: nodeController
-      )
+    )
   }
 
   internal func closeExtension() {

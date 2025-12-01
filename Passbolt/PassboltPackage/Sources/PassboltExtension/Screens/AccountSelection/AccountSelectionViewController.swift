@@ -21,87 +21,132 @@
 // @since         v1.0
 //
 
-import AuthenticationServices
+import Accounts
+import Display
+import NetworkOperations
+import Session
 import SharedUIComponents
-import UICommons
-import UIComponents
 
-internal final class AccountSelectionViewController: PlainViewController, UIComponent {
+internal final class AccountSelectionViewController: ViewController {
 
-  internal typealias ContentView = AccountSelectionView
-  internal typealias Controller = AccountSelectionController
+  internal typealias Context = Mode
 
-  internal static func instance(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self(
-      using: controller,
-      with: components,
-      cancellables: cancellables
+  internal struct ViewState: Equatable {
+    internal let mode: Mode
+    internal var rows: Array<AccountSelectionListItem>
+  }
+
+  nonisolated let viewState: ViewStateSource<ViewState>
+
+  private let autofillExtensionContext: AutofillExtensionContext
+  private let navigationToAuthorization: NavigationToAuthorization
+
+  internal init(context: Context, features: Features) throws {
+
+    self.autofillExtensionContext = features.instance()
+    self.navigationToAuthorization = try features.instance()
+
+    let accounts: Accounts = try features.instance()
+    let session: Session = try features.instance()
+    let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
+
+    self.viewState = .init(
+      initial: .init(
+        mode: context,
+        rows: .init()
+      ),
+      updateFrom: accounts.updates,
+      update: { updateState, _ in
+        let currentAccount: Account? = try? await session.currentAccount()
+        var listItems: Array<AccountSelectionListItem> = .init()
+        for storedAccount: AccountWithProfile in accounts.storedAccounts() {
+          let item: AccountSelectionCellItem = AccountSelectionCellItem(
+            account: storedAccount.account,
+            title: storedAccount.label,
+            subtitle: storedAccount.username,
+            isCurrentAccount: storedAccount.account == currentAccount,
+            imagePublisher:
+              Just(Void())
+              .asyncMap {
+                try? await mediaDownloadNetworkOperation.execute(storedAccount.avatarImageURL)
+              }
+              .eraseToAnyPublisher(),
+            listModePublisher: Empty().eraseToAnyPublisher()
+          )
+
+          listItems.append(.account(item))
+          updateState { state in
+            state.rows = listItems
+          }
+        }
+      }
     )
   }
 
-  internal private(set) lazy var contentView: AccountSelectionView = .init(
-    mode: controller.screenMode()
-  )
-  internal let components: UIComponentFactory
-
-  private let controller: Controller
-
-  internal init(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) {
-    self.controller = controller
-    self.components = components
-    super
-      .init(
-        cancellables: cancellables
-      )
+  internal func closeExtension() {
+    autofillExtensionContext.cancelAndCloseExtension()
   }
 
-  internal func setup() {
-    setupNavigationBar()
-  }
-
-  internal func setupView() {
-    setupSubscriptions()
-  }
-
-  private func setupNavigationBar() {
-    mut(navigationItem) {
-      .rightBarButtonItem(
-        Mutation<UIBarButtonItem>
-          .combined(
-            .image(named: .close, from: .uiCommons),
-            .action { [weak self] in
-              self?.controller.closeExtension()
-            }
-          )
-          .instantiate()
-      )
-    }
-  }
-
-  private func setupSubscriptions() {
-    controller
-      .accountsPublisher()
-      .receive(on: RunLoop.main)
-      .sink(
-        receiveValue: { [weak self] items in
-          self?.contentView.update(items: items)
-        }
-      )
-      .store(in: cancellables)
-
-    contentView
-      .accountTapPublisher
-      .sink { [weak self] item in
-        self?.controller.selectAccount(item.account)
-      }
-      .store(in: cancellables)
+  internal func selectAccount(
+    _ account: Account
+  ) async throws {
+    try await navigationToAuthorization.perform(
+      context: account
+    )
   }
 }
+
+extension AccountSelectionViewController {
+
+  internal enum Mode {
+
+    case switchAccount
+    case signIn
+  }
+}
+
+#if DEBUG
+
+extension AccountSelectionViewController {
+
+  public static func previewDependencies(
+    _ features: inout PreviewFeaturesContainer
+  ) {
+    features.usePlaceholder(for: AutofillExtensionContext.self)
+    features.patch(
+      \Accounts.storedAccounts,
+      with: {
+        [
+          .init(account: .ada, profile: .ada),
+          .init(account: .betty, profile: .betty),
+        ]
+      }
+    )
+    features.patch(
+      \Accounts.updates,
+      with: Constant(()).asAnyUpdatable()
+    )
+    features.patch(
+      \NavigationToAuthorization.mockPerform,
+      with: { _, _ in }
+    )
+
+    features.patch(
+      \Session.currentAccount,
+      with: {
+        .init(
+          localID: .empty,
+          domain: "passbolt.local",
+          userID: .init(),
+          fingerprint: .empty
+        )
+      }
+    )
+    features.patch(
+      \MediaDownloadNetworkOperation.execute,
+      with: { _ in Data() }
+    )
+  }
+}
+
+#endif

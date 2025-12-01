@@ -31,16 +31,19 @@ public struct PrimaryButton: View {
   private let title: DisplayableString
   private let style: Style
   private let action: @MainActor () async throws -> Void
+  private let isDisabled: Binding<Bool>
 
   public init(
     title: DisplayableString,
     iconName: ImageNameConstant? = .none,
     style: Style = .regular,
+    disabled: Binding<Bool> = .constant(false),
     action: @escaping @MainActor () async throws -> Void
   ) {
     self.icon = iconName.map(Image.init(named:))
     self.title = title
     self.style = style
+    self.isDisabled = disabled
     self.action = action
   }
 
@@ -55,7 +58,7 @@ public struct PrimaryButton: View {
       }
     )
     .foregroundColor(.passboltPrimaryButtonText)
-    .backgroundColor(self.style.backgroundColor)
+    .backgroundColor(self.style.backgroundColor(isDisabled: isDisabled.wrappedValue))
     .frame(height: 56)
     .cornerRadius(4)
   }
@@ -121,10 +124,10 @@ extension PrimaryButton {
 
 extension PrimaryButton.Style {
 
-  fileprivate var backgroundColor: Color {
+  fileprivate func backgroundColor(isDisabled: Bool) -> Color {
     switch self {
     case .regular:
-      return .passboltPrimaryBlue
+      return isDisabled ? .passboltPrimaryBlue : .passboltPrimaryBlueDisabled
 
     case .destructive:
       return .passboltSecondaryRed

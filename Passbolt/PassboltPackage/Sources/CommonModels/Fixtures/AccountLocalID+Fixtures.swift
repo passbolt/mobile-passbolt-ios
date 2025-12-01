@@ -21,17 +21,15 @@
 // @since         v1.0
 //
 
-import Display
+#if DEBUG
+extension Account.LocalID {
 
-final internal class NoAccountsViewController: ViewController {
-
-  private let extensionContext: AutofillExtensionContext
-
-  internal init(context: Void, features: Features) throws {
-    self.extensionContext = features.instance()
+  public static var ada: Self {
+    "3a49d6df-b08c-411e-aa3a-280b1f273ca8"
   }
 
-  internal func close() {
-    self.extensionContext.cancelAndCloseExtension()
+  public static var betty: Self {
+    "37da71cd-d538-4f01-9e30-e0c2de428af6"
   }
 }
+#endif

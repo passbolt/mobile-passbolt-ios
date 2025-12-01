@@ -36,9 +36,9 @@ internal final class ResourceTagsListNodeController: ViewController {
   internal var searchController: ResourceSearchDisplayController!  // lazy?
   internal var contentController: ResourceTagsListDisplayController!  // lazy?
 
-  private let navigationTree: NavigationTree
   private let autofillContext: AutofillExtensionContext
   private let resourceTags: ResourceTags
+  private let navigationToHomePresentationMenu: NavigationToHomePresentationMenu
 
   private let context: Context
   private let features: Features
@@ -50,10 +50,10 @@ internal final class ResourceTagsListNodeController: ViewController {
     self.context = context
     self.features = features
 
-    let navigationTree: NavigationTree = features.instance()
-    self.navigationTree = navigationTree
     self.autofillContext = features.instance()
     self.resourceTags = try features.instance()
+    self.navigationToHomePresentationMenu = try features.instance()
+
     let session: Session = try features.instance()
 
     self.viewState = .init(
@@ -67,11 +67,7 @@ internal final class ResourceTagsListNodeController: ViewController {
       context: .init(
         searchPrompt: context.searchPrompt,
         onPresentationMenuTap: {
-          try navigationTree.present(
-            .sheet,
-            HomePresentationMenuNodeView.self,
-            controller: features.instance(context: context.nodeID)
-          )
+          try await self.navigationToHomePresentationMenu.perform()
         },
         onAvatarTap: {
           await session.close(.none)
@@ -92,7 +88,6 @@ extension ResourceTagsListNodeController {
 
   internal struct Context {
 
-    internal var nodeID: ViewNodeID
     internal var title: DisplayableString = .localized(key: "home.presentation.mode.tags.explorer.title")
     internal var searchPrompt: DisplayableString = .localized(key: "resources.search.placeholder")
     internal var titleIconName: ImageNameConstant = .tag
@@ -111,26 +106,18 @@ extension ResourceTagsListNodeController {
     _ resourceTagID: ResourceTag.ID
   ) async throws {
     let tagDetails: ResourceTag = try await self.resourceTags.details(resourceTagID)
-
-    let nodeController: ResourcesListViewController =
-      try self.features
-      .instance(
-        of: ResourcesListViewController.self,
-        context: .init(
-          title: .raw(tagDetails.slug.rawValue),
-          titleIconName: .tag,
-          baseFilter: .init(
-            sorting: .nameAlphabetically,
-            tags: [resourceTagID]
-          ),
-          appModeContext: .createExtensionContext(using: features, nodeId: self.context.nodeID)
-        )
+    let navigationToResourcesList: NavigationToResourcesList = try features.instance()
+    try await navigationToResourcesList.perform(
+      context: .init(
+        title: .raw(tagDetails.slug.rawValue),
+        titleIconName: .tag,
+        baseFilter: .init(
+          sorting: .nameAlphabetically,
+          tags: [resourceTagID]
+        ),
+        appModeContext: .createExtensionContext(using: features)
       )
-    self.navigationTree
-      .push(
-        ResourcesListView.self,
-        controller: nodeController
-      )
+    )
   }
 
   internal final func closeExtension() {
@@ -141,11 +128,10 @@ extension ResourceTagsListNodeController {
 extension ResourcesListViewController.Callbacks {
 
   @MainActor
-  static func createExtensionContext(using features: Features, nodeId: ViewNodeID) -> Self {
+  static func createExtensionContext(using features: Features) -> Self {
     let autofillContext: AutofillExtensionContext = features.instance()
     let requestedServiceIdentifiers: Array<AutofillExtensionContext.ServiceIdentifier> =
       autofillContext.requestedServiceIdentifiers()
-    let navigationTree: NavigationTree = features.instance()
 
     @Sendable @MainActor func selectResource(
       _ resourceID: Resource.ID
@@ -180,11 +166,9 @@ extension ResourcesListViewController.Callbacks {
           autofillContext.cancelAndCloseExtension()
         },
         onPresentationMenuTap: {
-          try navigationTree.present(
-            .sheet,
-            HomePresentationMenuNodeView.self,
-            controller: features.instance(context: nodeId)
-          )
+          let navigationToHomePresentationMenu: NavigationToHomePresentationMenu = try features.instance()
+          await navigationToHomePresentationMenu
+            .performCatching()
         },
         onAvatarTap: {
           let session: Session = try features.instance()

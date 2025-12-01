@@ -30,15 +30,11 @@ import SessionData
 import SharedUIComponents
 import Users
 
-internal final class HomeNavigationNodeController: ViewController {
+internal final class HomeViewController: @MainActor ViewController {
 
   internal let viewState: ViewStateSource<ViewState>
 
-  private let navigationTree: NavigationTree
   private let homePresentation: HomePresentation
-  @available(*, deprecated, message: "Do not use viewNodeID to identify views. Legacy use only!")
-  public let viewNodeID: ViewNodeID
-
   private let features: Features
 
   internal init(
@@ -56,25 +52,21 @@ internal final class HomeNavigationNodeController: ViewController {
         context: context
       )
     self.features = features
-    self.viewNodeID = .init(rawValue: .init(Self.self))
 
-    self.navigationTree = features.instance()
     self.homePresentation = try features.instance()
 
     self.viewState = .init(
       initial: .init(
         contentController: Self.contentRoot(
           for: homePresentation.currentMode.value,
-          using: features,
-          nodeID: self.viewNodeID
+          using: features
         )
       ),
       updateFrom: self.homePresentation.currentMode.asAnyUpdatable(),
-      update: { [homePresentation, navigationTree, viewNodeID, features] (updateState, _) in
+      update: { [homePresentation, features] (updateState, _) in
         let contentController = Self.contentRoot(
           for: homePresentation.currentMode.value,
-          using: features,
-          nodeID: viewNodeID
+          using: features
         )
         updateState { (state: inout ViewState) in
           state.contentController = contentController
@@ -84,7 +76,7 @@ internal final class HomeNavigationNodeController: ViewController {
   }
 }
 
-extension HomeNavigationNodeController {
+extension HomeViewController {
 
   internal typealias Context = SessionScope.Context
 
@@ -107,12 +99,11 @@ extension HomeNavigationNodeController {
   }
 }
 
-extension HomeNavigationNodeController {
+extension HomeViewController {
 
   @MainActor private static func contentRoot(
     for mode: HomePresentationMode,
-    using features: Features,
-    nodeID: ViewNodeID
+    using features: Features
   ) -> any ViewController {
     do {
 
@@ -127,7 +118,7 @@ extension HomeNavigationNodeController {
               title: mode.title,
               titleIconName: mode.iconName,
               baseFilter: mode.baseFilter,
-              appModeContext: .createExtensionContext(using: features, nodeId: nodeID)
+              appModeContext: .createExtensionContext(using: features)
             )
           )
 
@@ -137,7 +128,6 @@ extension HomeNavigationNodeController {
           .instance(
             of: ResourceTagsListNodeController.self,
             context: .init(
-              nodeID: nodeID,
               title: mode.title,
               titleIconName: mode.iconName
             )
@@ -149,7 +139,6 @@ extension HomeNavigationNodeController {
           .instance(
             of: ResourceUserGroupsListNodeController.self,
             context: .init(
-              nodeID: nodeID,
               title: mode.title,
               titleIconName: mode.iconName
             )
@@ -161,7 +150,6 @@ extension HomeNavigationNodeController {
           .instance(
             of: ResourceFolderContentNodeController.self,
             context: .init(
-              nodeID: nodeID,
               folderDetails: .none
             )
           )
@@ -172,5 +160,10 @@ extension HomeNavigationNodeController {
         .asTheError()
         .asFatalError(message: "Failed to update home screen.")
     }
+  }
+
+  internal func closeExtension() {
+    let autofillExtensionContext: AutofillExtensionContext = features.instance()
+    autofillExtensionContext.cancelAndCloseExtension()
   }
 }

@@ -21,17 +21,34 @@
 // @since         v1.0
 //
 
-import Display
+#if DEBUG
+extension Account {
 
-final internal class NoAccountsViewController: ViewController {
-
-  private let extensionContext: AutofillExtensionContext
-
-  internal init(context: Void, features: Features) throws {
-    self.extensionContext = features.instance()
+  public static var `default`: Self {
+    .init(
+      localID: .empty,
+      domain: "passbolt.com",
+      userID: .init(),
+      fingerprint: .empty
+    )
   }
 
-  internal func close() {
-    self.extensionContext.cancelAndCloseExtension()
+  public static var ada: Self {
+    .init(
+      localID: .ada,
+      domain: "passbolt.com",
+      userID: .init(),
+      fingerprint: .empty
+    )
+  }
+
+  public static var betty: Self {
+    .init(
+      localID: .betty,
+      domain: "passbolt.com",
+      userID: .init(),
+      fingerprint: .empty
+    )
   }
 }
+#endif

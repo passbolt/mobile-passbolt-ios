@@ -52,3 +52,20 @@ extension Mutation where Subject: Label {
     )
   }
 }
+
+extension Text {
+
+  public func titleStyle() -> some View {
+    self
+      .font(.inter(ofSize: 24, weight: .semibold))
+      .foregroundStyle(Color.passboltPrimaryText)
+      .multilineTextAlignment(.center)
+  }
+
+  public func infoStyle() -> some View {
+    self
+      .font(.inter(ofSize: 14, weight: .light))
+      .foregroundStyle(Color.passboltSecondaryText)
+      .multilineTextAlignment(.center)
+  }
+}
