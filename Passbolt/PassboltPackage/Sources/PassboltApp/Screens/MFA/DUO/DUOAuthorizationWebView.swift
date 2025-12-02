@@ -150,7 +150,6 @@ private final class DUOWebView: WKWebView, WKNavigationDelegate, UIScrollViewDel
     decidePolicyFor navigationAction: WKNavigationAction
   ) async -> WKNavigationActionPolicy {
     guard  // check if request is a callback to passbolt
-      case .formSubmitted = navigationAction.navigationType,
       let url: URL = navigationAction.request.url,
       url.relativePath.hasSuffix("/mfa/verify/duo/callback")
     else { return .allow }
