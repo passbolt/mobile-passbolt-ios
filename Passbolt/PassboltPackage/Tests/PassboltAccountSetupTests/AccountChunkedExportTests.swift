@@ -212,7 +212,7 @@ final class AccountChunkedExportTests: LoadableFeatureTestCase<AccountChunkedExp
     }
   }
 
-  func test_status_returnsError_afterUpdatingToError() {
+  func test_status_returnsError_afterUpdatingToError() async throws {
     patch(
       \AccountDataExport.exportAccountData,
       with: always(.mock_ada)
@@ -236,20 +236,15 @@ final class AccountChunkedExportTests: LoadableFeatureTestCase<AccountChunkedExp
         )
       )
     )
-    withTestedInstanceReturnsEqual(
-      AccountChunkedExport.Status
-        .error(AccountExportFailure.error()),
-      timeout: 1
-    ) { feature in
-      try await feature.authorize(.biometrics)
-      return
-        try await feature
-        .updates
-        .asAnyValueAsyncSequence()
-        .map { feature.status() }
-        .dropFirst()  // skip initial
-        .first()  // take first after the update
-    }
+
+    let testedInstance: AccountChunkedExport = try self.testedInstance()
+    try await testedInstance.authorize(.biometrics)
+
+    // authorize method has a 500ms sleep, so we might wait a bit before checking status
+    try await verifyIf(
+      testedInstance.status(),
+      eventuallyEquals: AccountChunkedExport.Status.error(AccountExportFailure.error())
+    )
   }
 
   func test_status_ends_afterUpdatingToCancel() {

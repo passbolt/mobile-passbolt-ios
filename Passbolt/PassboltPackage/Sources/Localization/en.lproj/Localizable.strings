@@ -478,8 +478,6 @@ Contact your administrator for more information.";
 "error.http.response.conflict" = "HTTP conflict.";
 "error.http.response.not.found" = "HTTP not found.";
 "error.http.response.redirect" = "HTTP redirect.";
-"error.http.request.invalid" = "HTTP request invalid.";
-"error.http.response.invalid" = "HTTP response invalid.";
 "error.http.response.status.code.unexpected" = "HTTP status code unexpected.";
 "error.http.response.unauthorized" = "HTTP unauthorized.";
 "error.network.response.decoding.failed" = "Network response decoding failed.";
@@ -644,7 +642,6 @@ scanned!";
 "otp.edit.form.field.period.title" = "TOTP expiry";
 "otp.edit.form.field.period.label" = "seconds until the TOTP expires.";
 "otp.edit.form.field.algorithm.title" = "Algorithm";
-"otp.edit.form.apply.button.title" = "Apply";
 
 // OTP attach
 
