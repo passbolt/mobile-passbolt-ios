@@ -21,34 +21,14 @@
 // @since         v1.0
 //
 
-import Display
-import FeatureScopes
+import SwiftUI
 
-internal enum NavigationToResourceFolderContentNodeViewDestination: NavigationDestination {
+extension Binding where Value == Bool {
 
-  internal typealias TransitionContext = ResourceFolderContentNodeController.Context
-
-  internal static var isUnique: Bool { false }
-}
-
-internal typealias NavigationToResourceFolderContents =
-  NavigationTo<NavigationToResourceFolderContentNodeViewDestination>
-
-extension NavigationToResourceFolderContents {
-
-  fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
-      to: ResourceFolderContentNodeView.self
-    )
-  }
-}
-
-extension FeaturesRegistry {
-
-  internal mutating func useLiveNavigationToResourceFolderContentNodeView() {
-    self.use(
-      NavigationToResourceFolderContents.live,
-      in: SessionScope.self
+  public var negated: Binding<Bool> {
+    Binding<Bool>(
+      get: { !self.wrappedValue },
+      set: { self.wrappedValue = !$0 }
     )
   }
 }

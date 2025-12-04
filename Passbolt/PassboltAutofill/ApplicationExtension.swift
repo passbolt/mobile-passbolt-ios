@@ -51,9 +51,6 @@ internal final class ApplicationExtension {
       registry.useExtensionRootAnchorProvider()
       registry.usePassboltFeatures()
       registry.usePassboltInitialization()
-      registry.useLiveNavigationTree(
-        from: rootViewController
-      )
       registry.use(
         ConfigurationExtensionContext(
           completeExtensionConfiguration: {
@@ -101,11 +98,11 @@ internal final class ApplicationExtension {
       registry.useLiveNavigationToOTPAttachSelectionList()
     }
     self.ui = UI(
-      rootViewController: rootViewController,
       features: features
     )
     self.features = features
     self.requestedServiceIdentifiers = requestedServiceIdentifiers
+    setupSnackBarMessages(within: rootViewController.view)
   }
 }
 

@@ -21,24 +21,16 @@
 // @since         v1.0
 //
 
-import Accounts
 import Display
-import OSFeatures
-import UIComponents
-
-import class AuthenticationServices.ASPasswordCredentialIdentity
 
 @MainActor
 public final class UI {
 
-  private let rootViewController: UIViewController & NavigationTreeRootViewAnchor
   private let features: Features
 
   public init(
-    rootViewController: UIViewController & NavigationTreeRootViewAnchor,
     features: Features
   ) {
-    self.rootViewController = rootViewController
     self.features = features
   }
 }
@@ -61,37 +53,15 @@ extension UI {
 
   @MainActor public func prepareInterfaceForExtensionConfiguration() {
     do {
-      try self.setRootContent(
-        UIComponentFactory(features: self.features)
-          .instance(of: ExtensionSetupViewController.self)
-      )
+      let navigation: NavigationToExtensionSetupCompleted = try self.features.instance()
+      Task { @MainActor in
+        try await navigation.perform()
+      }
     }
     catch {
       error
         .asTheError()
         .asFatalError(message: "Failed to prepare extension configuration.")
     }
-  }
-
-  @MainActor private func setRootContent(
-    _ viewController: UIViewController
-  ) {
-    self.rootViewController.children.forEach {
-      $0.willMove(toParent: .none)
-      $0.view.removeFromSuperview()
-      $0.removeFromParent()
-    }
-    self.rootViewController.addChild(viewController)
-    mut(viewController.view) {
-      .combined(
-        .subview(of: self.rootViewController.view),
-        .edges(
-          equalTo: self.rootViewController.view,
-          usingSafeArea: false
-        )
-      )
-    }
-    self.rootViewController
-      .didMove(toParent: self.rootViewController)
   }
 }

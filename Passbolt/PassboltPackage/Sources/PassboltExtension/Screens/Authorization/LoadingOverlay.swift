@@ -23,7 +23,6 @@
 
 import Localization
 import UICommons
-import UIKit
 
 internal struct LoadingOverlay: View {
 

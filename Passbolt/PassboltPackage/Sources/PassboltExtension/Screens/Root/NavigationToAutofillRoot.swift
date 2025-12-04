@@ -22,30 +22,31 @@
 //
 
 import Display
-import SharedUIComponents
+import FeatureScopes
 
-internal struct AutofillRootNavigationNodeView: ControlledView {
+internal enum NavigationToAutofillRootDestination: NavigationDestination {
 
-  internal typealias Controller = AutofillRootNavigationNodeController
+  internal typealias TransitionContext = AutofillRootViewController.Context
+}
 
-  internal let controller: Controller
+internal typealias NavigationToAutofillRoot = NavigationTo<NavigationToAutofillRootDestination>
 
-  internal init(
-    controller: Controller
-  ) {
-    self.controller = controller
-  }
+extension NavigationToAutofillRoot {
 
-  internal var body: some View {
-    ZStack {
-      Image(named: .passboltLogo)
-    }
-    .ignoresSafeArea()
-    .frame(
-      maxWidth: .infinity,
-      maxHeight: .infinity
+  fileprivate static var live: FeatureLoader {
+
+    replaceRoot(
+      with: AutofillRootView.self
     )
-    .backgroundColor(.passboltBackground)
-    .task(self.controller.activate)
+  }
+}
+
+extension FeaturesRegistry {
+
+  internal mutating func useLiveNavigationToAutofillRoot() {
+    self.use(
+      NavigationToAutofillRoot.live,
+      in: RootFeaturesScope.self
+    )
   }
 }

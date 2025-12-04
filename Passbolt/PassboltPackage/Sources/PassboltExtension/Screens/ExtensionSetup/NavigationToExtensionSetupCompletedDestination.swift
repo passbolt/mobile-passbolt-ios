@@ -24,28 +24,28 @@
 import Display
 import FeatureScopes
 
-internal enum NavigationToAutofillRootDestination: NavigationDestination {
+internal enum NavigationToExtensionSetupCompletedDestination: NavigationDestination {
 
-  internal typealias TransitionContext = AutofillRootNavigationNodeController.Context
+  internal typealias TransitionContext = ExtensionSetupCompletedViewController.Context
 }
 
-internal typealias NavigationToAutofillRoot = NavigationTo<NavigationToAutofillRootDestination>
+internal typealias NavigationToExtensionSetupCompleted = NavigationTo<NavigationToExtensionSetupCompletedDestination>
 
-extension NavigationToAutofillRoot {
+extension NavigationToExtensionSetupCompleted {
 
   fileprivate static var live: FeatureLoader {
-
     replaceRoot(
-      with: AutofillRootNavigationNodeView.self
+      with: ExtensionSetupCompletedView.self,
+      createNavigationStack: true
     )
   }
 }
 
 extension FeaturesRegistry {
 
-  internal mutating func useLiveNavigationToAutofillRoot() {
+  internal mutating func useLiveNavigationToExtensionSetupCompleted() {
     self.use(
-      NavigationToAutofillRoot.live,
+      NavigationToExtensionSetupCompleted.live,
       in: RootFeaturesScope.self
     )
   }

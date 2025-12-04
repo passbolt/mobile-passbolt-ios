@@ -35,7 +35,7 @@ internal struct ResourceFolderContentDisplayView: ControlledView {
 
   internal var body: some View {
     WithViewState(from: self.controller) { state in
-      ResourceFolderContentView(
+      UICommons.ResourceFolderContentView(
         folderName: state.folderName,
         isSearchResult: state.isSearchResult,
         directFolders: state.directFolders,

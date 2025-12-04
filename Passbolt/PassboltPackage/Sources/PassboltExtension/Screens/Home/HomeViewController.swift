@@ -126,7 +126,7 @@ extension HomeViewController {
         return
           try features
           .instance(
-            of: ResourceTagsListNodeController.self,
+            of: ResourceTagsListViewController.self,
             context: .init(
               title: mode.title,
               titleIconName: mode.iconName
@@ -137,7 +137,7 @@ extension HomeViewController {
         return
           try features
           .instance(
-            of: ResourceUserGroupsListNodeController.self,
+            of: ResourceUserGroupsListViewController.self,
             context: .init(
               title: mode.title,
               titleIconName: mode.iconName
@@ -148,7 +148,7 @@ extension HomeViewController {
         return
           try features
           .instance(
-            of: ResourceFolderContentNodeController.self,
+            of: ResourceFolderContentViewController.self,
             context: .init(
               folderDetails: .none
             )

@@ -35,7 +35,7 @@ internal struct ResourceTagsListDisplayView: ControlledView {
 
   internal var body: some View {
     WithViewState(from: self.controller) { state in
-      ResourceTagsListView(
+      UICommons.ResourceTagsListView(
         tags: state.resourceTags,
         refreshAction: self.controller.refresh,
         createAction: .none,

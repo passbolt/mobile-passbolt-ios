@@ -21,31 +21,44 @@
 // @since         v1.0
 //
 
-import Features
-import UIComponents
+import Display
 
-internal struct ExtensionSetupController {
+internal struct ExtensionSetupCompletedView: ControlledView {
 
-  internal var closeConfiguration: @MainActor () -> Void
-}
+  internal let controller: ExtensionSetupCompletedViewController
 
-extension ExtensionSetupController: UIController {
+  internal init(controller: ExtensionSetupCompletedViewController) {
+    self.controller = controller
+  }
 
-  internal typealias Context = Void
+  internal var body: some View {
+    VStack(spacing: 0) {
+      Image(named: .successMark)
+        .aspectRatio(contentMode: .fit)
+      Text(displayable: "autofill.extension.setup.completed.title")
+        .titleStyle()
+        .padding(.top, 32)
+      Text(displayable: "autofill.extension.setup.completed.info")
+        .infoStyle()
+        .padding(.top, 16)
+      Spacer()
+      PrimaryButton(
+        title: .localized(key: .done),
+        action: controller.onDoneTapped
+      )
 
-  internal static func instance(
-    in context: Context,
-    with features: inout Features,
-    cancellables: Cancellables
-  ) throws -> Self {
-    let configurationExtensionContext: ConfigurationExtensionContext = features.instance()
-
-    func closeConfiguration() {
-      configurationExtensionContext.completeExtensionConfiguration()
+      .padding(.bottom, 16)
     }
-
-    return Self(
-      closeConfiguration: closeConfiguration
-    )
+    .padding(.top, 54)
+    .padding(.horizontal, 16)
   }
 }
+
+#if DEBUG
+#Preview {
+  PlaceholderView()
+    .sheet(isPresented: .constant(true)) {
+      createPreview(ExtensionSetupCompletedView.self)
+    }
+}
+#endif

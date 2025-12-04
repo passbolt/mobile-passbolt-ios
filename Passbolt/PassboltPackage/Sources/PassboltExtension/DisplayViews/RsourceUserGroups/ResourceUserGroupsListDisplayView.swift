@@ -35,7 +35,7 @@ internal struct ResourceUserGroupsListDisplayView: ControlledView {
 
   internal var body: some View {
     WithViewState(from: self.controller) { state in
-      ResourceUserGroupsListView(
+      UICommons.ResourceUserGroupsListView(
         userGroups: state.userGroups,
         refreshAction: self.controller.refresh,
         createAction: .none,

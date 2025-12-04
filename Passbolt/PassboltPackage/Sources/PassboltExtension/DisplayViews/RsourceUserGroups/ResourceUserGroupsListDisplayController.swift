@@ -64,7 +64,7 @@ internal final class ResourceUserGroupsListDisplayController: ViewController {
             update.value.0
           )
 
-          await updateView { viewState in
+          updateView { viewState in
             viewState.userGroups = filteredUserGroups
           }
         }

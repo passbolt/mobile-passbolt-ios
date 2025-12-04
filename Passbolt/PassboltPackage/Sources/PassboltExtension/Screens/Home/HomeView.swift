@@ -21,28 +21,48 @@
 // @since         v1.0
 //
 
-import Features
-import TestExtensions
-import UIComponents
+import Display
+import SharedUIComponents
 
-@testable import PassboltExtension
+internal struct HomeView: ControlledView {
 
-// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ExtensionSetupControllerTests: MainActorTestCase {
+  internal let controller: HomeViewController
 
-  func test_closeConfiguration_closesExtension() async throws {
-    var result: Void?
-    features.patch(
-      \ConfigurationExtensionContext.completeExtensionConfiguration,
-      with: {
-        result = Void()
+  internal init(
+    controller: HomeViewController
+  ) {
+    self.controller = controller
+  }
+
+  internal var body: some View {
+    WithViewState(from: self.controller) { state in
+      self.bodyView(with: state)
+    }
+  }
+
+  @ViewBuilder private func bodyView(
+    with state: ViewState
+  ) -> some View {
+    Controlled
+      .by(
+        state.contentController,
+        view: ResourcesListView.self,
+        or: ResourceFolderContentView.self,
+        or: ResourceTagsListView.self,
+        or: ResourceUserGroupsListView.self,
+        orDefault: LoaderView.instance
+      )
+      .toolbar {
+        ToolbarItem(placement: .navigationBarTrailing) {
+          Button(
+            action: {
+              self.controller.closeExtension()
+            },
+            label: {
+              Image(named: .close)
+            }
+          )
+        }
       }
-    )
-
-    let controller: ExtensionSetupController = try await testController()
-
-    controller.closeConfiguration()
-
-    XCTAssertNotNil(result)
   }
 }

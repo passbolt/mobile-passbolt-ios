@@ -30,11 +30,12 @@ import SessionData
 import SharedUIComponents
 import Users
 
-internal final class ResourceUserGroupsListNodeController: ViewController {
+internal final class ResourceUserGroupsListViewController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
-  internal var searchController: ResourceSearchDisplayController
-  internal var contentController: ResourceUserGroupsListDisplayController!  // lazy?
+  internal let searchController: ResourceSearchDisplayController
+  // swift-format-ignore: NeverUseImplicitlyUnwrappedOptionals
+  internal var contentController: ResourceUserGroupsListDisplayController!
 
   private let autofillContext: AutofillExtensionContext
   private let currentAccount: Account
@@ -92,7 +93,7 @@ internal final class ResourceUserGroupsListNodeController: ViewController {
   }
 }
 
-extension ResourceUserGroupsListNodeController {
+extension ResourceUserGroupsListViewController {
 
   internal struct Context {
 
@@ -110,7 +111,7 @@ extension ResourceUserGroupsListNodeController {
   }
 }
 
-extension ResourceUserGroupsListNodeController {
+extension ResourceUserGroupsListViewController {
 
   @Sendable internal nonisolated func selectUserGroup(
     _ userGroupID: UserGroup.ID

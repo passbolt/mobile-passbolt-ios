@@ -22,37 +22,30 @@
 //
 
 import Display
+import SharedUIComponents
 
-import class AuthenticationServices.ASCredentialProviderViewController
+internal struct AutofillRootView: ControlledView {
 
-extension ASCredentialProviderViewController: NavigationTreeRootViewAnchor {
+  internal typealias Controller = AutofillRootViewController
 
-  @MainActor public func setRoot<RootView>(
-    _ view: RootView
-  ) where RootView: View {
-    setupSnackBarMessages(within: self.view)
+  internal let controller: Controller
 
-    let viewController: UIHostingController<RootView> = .init(rootView: view)
+  internal init(
+    controller: Controller
+  ) {
+    self.controller = controller
+  }
 
-    viewController.view.tintColor = .passboltPrimaryText
-
-    self.children.forEach {
-      $0.willMove(toParent: .none)
-      $0.view.removeFromSuperview()
-      $0.removeFromParent()
+  internal var body: some View {
+    ZStack {
+      Image(named: .passboltLogo)
     }
-
-    self.addChild(viewController)
-    mut(viewController.view) {
-      .combined(
-        .subview(of: self.view),
-        .edges(
-          equalTo: self.view,
-          usingSafeArea: false
-        )
-      )
-    }
-    viewController
-      .didMove(toParent: self)
+    .ignoresSafeArea()
+    .frame(
+      maxWidth: .infinity,
+      maxHeight: .infinity
+    )
+    .backgroundColor(.passboltBackground)
+    .task(self.controller.activate)
   }
 }

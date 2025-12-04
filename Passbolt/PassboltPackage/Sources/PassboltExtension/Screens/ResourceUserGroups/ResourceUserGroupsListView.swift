@@ -24,12 +24,12 @@
 import Display
 import SharedUIComponents
 
-internal struct ResourceTagsListNodeView: ControlledView {
+internal struct ResourceUserGroupsListView: ControlledView {
 
-  internal let controller: ResourceTagsListNodeController
+  internal let controller: ResourceUserGroupsListViewController
 
   internal init(
-    controller: ResourceTagsListNodeController
+    controller: Controller
   ) {
     self.controller = controller
   }
@@ -73,7 +73,7 @@ internal struct ResourceTagsListNodeView: ControlledView {
   @MainActor @ViewBuilder private func contentView(
     with state: ViewState
   ) -> some View {
-    ResourceTagsListDisplayView(
+    ResourceUserGroupsListDisplayView(
       controller: self.controller.contentController
     )
     .shadowTopEdgeOverlay()

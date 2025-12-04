@@ -24,12 +24,12 @@
 import Display
 import SharedUIComponents
 
-internal struct ResourceFolderContentNodeView: ControlledView {
+internal struct ResourceTagsListView: ControlledView {
 
-  internal let controller: ResourceFolderContentNodeController
+  internal let controller: ResourceTagsListViewController
 
   internal init(
-    controller: ResourceFolderContentNodeController
+    controller: Controller
   ) {
     self.controller = controller
   }
@@ -44,10 +44,8 @@ internal struct ResourceFolderContentNodeView: ControlledView {
     with state: ViewState
   ) -> some View {
     ScreenView(
-      titleIcon: state.folderShared
-        ? .sharedFolder
-        : .folder,
-      title: state.folderName,
+      titleIcon: state.titleIconName,
+      title: state.title,
       titleExtensionView: {
         self.searchView(with: state)
       },
@@ -60,7 +58,6 @@ internal struct ResourceFolderContentNodeView: ControlledView {
       },
       contentView: {
         self.contentView(with: state)
-          .shadowTopEdgeOverlay()
       }
     )
   }
@@ -76,7 +73,7 @@ internal struct ResourceFolderContentNodeView: ControlledView {
   @MainActor @ViewBuilder private func contentView(
     with state: ViewState
   ) -> some View {
-    ResourceFolderContentDisplayView(
+    ResourceTagsListDisplayView(
       controller: self.controller.contentController
     )
     .shadowTopEdgeOverlay()

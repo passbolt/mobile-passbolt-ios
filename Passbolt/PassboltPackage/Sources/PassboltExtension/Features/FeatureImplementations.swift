@@ -62,11 +62,12 @@ extension FeaturesRegistry {
     self.useLiveNavigationToHomeView()
     self.useLiveNavigationToHomePresentationMenu()
     self.useLiveNavigationToServerFingerprintInvalid()
-    self.useLiveNavigationToResourceFolderContentNodeView()
+    self.useLiveNavigationToResourceFolderContent()
     self.useLiveNavigationToResourcesList()
     self.useLiveNavigationToHelpMenu()
     self.useLiveNavigationToLogsViewer()
 
     self.useLiveNavigationToMetadataPinnedKeyValidationDialog()
+    self.useLiveNavigationToExtensionSetupCompleted()
   }
 }

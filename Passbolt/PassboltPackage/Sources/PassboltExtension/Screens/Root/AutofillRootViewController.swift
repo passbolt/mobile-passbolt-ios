@@ -28,7 +28,7 @@ import Session
 import SessionData
 import SharedUIComponents
 
-internal final class AutofillRootNavigationNodeController: ViewController {
+internal final class AutofillRootViewController: ViewController  {
 
   private let accounts: Accounts
   private let session: Session
@@ -51,9 +51,9 @@ internal final class AutofillRootNavigationNodeController: ViewController {
   }
 }
 
-extension AutofillRootNavigationNodeController {
+extension AutofillRootViewController {
 
-  internal final func activate() async {
+  @Sendable internal final func activate() async {
     let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
 
     if storedAccounts.isEmpty {

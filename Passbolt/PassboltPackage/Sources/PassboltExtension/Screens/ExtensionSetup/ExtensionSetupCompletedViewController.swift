@@ -21,53 +21,17 @@
 // @since         v1.0
 //
 
-import UIComponents
+import Display
 
-internal final class ExtensionSetupViewController: PlainViewController, UIComponent {
+internal final class ExtensionSetupCompletedViewController: ViewController {
 
-  internal typealias ContentView = ExtensionSetupView
-  internal typealias Controller = ExtensionSetupController
+  private let configurationExtensionContext: ConfigurationExtensionContext
 
-  internal static func instance(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self(
-      using: controller,
-      with: components,
-      cancellables: cancellables
-    )
+  internal init(context: Void, features: Features) throws {
+    configurationExtensionContext = features.instance()
   }
 
-  internal init(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) {
-    self.controller = controller
-    self.components = components
-    super
-      .init(
-        cancellables: cancellables
-      )
-  }
-
-  internal private(set) lazy var contentView: ContentView = .init()
-  internal let components: UIComponentFactory
-
-  private let controller: Controller
-
-  internal func setupView() {
-    setupSubscriptions()
-  }
-
-  private func setupSubscriptions() {
-    contentView
-      .closeTapPublisher
-      .sink { [weak self] in
-        self?.controller.closeConfiguration()
-      }
-      .store(in: cancellables)
+  internal func onDoneTapped() {
+    configurationExtensionContext.completeExtensionConfiguration()
   }
 }

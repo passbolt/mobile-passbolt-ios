@@ -85,7 +85,7 @@ internal struct ServerFingerprintInvalidView: ControlledView {
         with(\.newKeyAccepted) { newKeyAccepted in
           PrimaryButton(
             title: "server.key.fingerprint.accept.new.key",
-            disabled: self.binding(to: \.newKeyAccepted),
+            disabled: self.binding(to: \.newKeyAccepted).negated,
             action: {
               await self.controller.acceptNewKey()
             }

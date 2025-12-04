@@ -33,7 +33,8 @@ internal struct ActivityIndicator: UIViewRepresentable {
     return indicator
   }
 
-  internal func updateUIView(_ uiView: UIActivityIndicatorView, context: UIViewRepresentableContext<ActivityIndicator>) {
+  internal func updateUIView(_ uiView: UIActivityIndicatorView, context: UIViewRepresentableContext<ActivityIndicator>)
+  {
     // no-op
   }
 }

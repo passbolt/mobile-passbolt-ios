@@ -178,7 +178,7 @@ where SupportActionView: View {
       PrimaryButton(
         title: self.mainActionLabel,
         disabled: .init(
-          get: { !self.passphrase.wrappedValue.value.isEmpty },
+          get: { self.passphrase.wrappedValue.value.isEmpty },
           set: { _ in
             /** no-op **/
           }

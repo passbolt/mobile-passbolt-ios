@@ -81,7 +81,7 @@ internal final class ResourceFolderContentDisplayController: ViewController {
           filter
         )
 
-        await updateView { (viewState: inout ViewState) in
+        updateView { (viewState: inout ViewState) in
           viewState.isSearchResult = !filter.text.isEmpty
           viewState.suggestedResources = filteredResourceFolderContent.resources.filter(context.suggestionFilter)
           viewState.directFolders = filteredResourceFolderContent.subfolders

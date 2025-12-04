@@ -62,7 +62,7 @@ internal final class ResourceTagsListDisplayController: ViewController {
             update.value.0
           )
 
-          await updateView { viewState in
+          updateView { viewState in
             viewState.resourceTags = filteredResourceTags
           }
         }

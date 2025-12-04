@@ -30,11 +30,13 @@ import SessionData
 import SharedUIComponents
 import Users
 
-internal final class ResourceTagsListNodeController: ViewController {
+internal final class ResourceTagsListViewController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
-  internal var searchController: ResourceSearchDisplayController!  // lazy?
-  internal var contentController: ResourceTagsListDisplayController!  // lazy?
+  // swift-format-ignore: NeverUseImplicitlyUnwrappedOptionals
+  internal var searchController: ResourceSearchDisplayController!
+  // swift-format-ignore: NeverUseImplicitlyUnwrappedOptionals
+  internal var contentController: ResourceTagsListDisplayController!
 
   private let autofillContext: AutofillExtensionContext
   private let resourceTags: ResourceTags
@@ -84,7 +86,7 @@ internal final class ResourceTagsListNodeController: ViewController {
   }
 }
 
-extension ResourceTagsListNodeController {
+extension ResourceTagsListViewController {
 
   internal struct Context {
 
@@ -100,7 +102,7 @@ extension ResourceTagsListNodeController {
   }
 }
 
-extension ResourceTagsListNodeController {
+extension ResourceTagsListViewController {
 
   internal final func selectResourceTag(
     _ resourceTagID: ResourceTag.ID

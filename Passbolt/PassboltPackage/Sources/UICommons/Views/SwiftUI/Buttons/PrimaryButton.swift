@@ -127,7 +127,7 @@ extension PrimaryButton.Style {
   fileprivate func backgroundColor(isDisabled: Bool) -> Color {
     switch self {
     case .regular:
-      return isDisabled ? .passboltPrimaryBlue : .passboltPrimaryBlueDisabled
+      return isDisabled == false ? .passboltPrimaryBlue : .passboltPrimaryBlueDisabled
 
     case .destructive:
       return .passboltSecondaryRed

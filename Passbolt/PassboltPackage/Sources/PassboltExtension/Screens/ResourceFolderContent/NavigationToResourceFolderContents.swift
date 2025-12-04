@@ -22,47 +22,33 @@
 //
 
 import Display
-import SharedUIComponents
+import FeatureScopes
 
-internal struct HomeView: ControlledView {
+internal enum NavigationToResourceFolderContentViewDestination: NavigationDestination {
 
-  internal let controller: HomeViewController
+  internal typealias TransitionContext = ResourceFolderContentViewController.Context
 
-  internal init(
-    controller: HomeViewController
-  ) {
-    self.controller = controller
+  internal static var isUnique: Bool { false }
+}
+
+internal typealias NavigationToResourceFolderContents =
+  NavigationTo<NavigationToResourceFolderContentViewDestination>
+
+extension NavigationToResourceFolderContents {
+
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(
+      to: ResourceFolderContentView.self
+    )
   }
+}
 
-  internal var body: some View {
-    WithViewState(from: self.controller) { state in
-      self.bodyView(with: state)
-    }
-  }
+extension FeaturesRegistry {
 
-  @ViewBuilder private func bodyView(
-    with state: ViewState
-  ) -> some View {
-    Controlled
-      .by(
-        state.contentController,
-        view: ResourcesListView.self,
-        or: ResourceFolderContentNodeView.self,
-        or: ResourceTagsListNodeView.self,
-        or: ResourceUserGroupsListNodeView.self,
-        orDefault: LoaderView.instance
-      )
-      .toolbar {
-        ToolbarItem(placement: .navigationBarTrailing) {
-          Button(
-            action: {
-              self.controller.closeExtension()
-            },
-            label: {
-              Image(named: .close)
-            }
-          )
-        }
-      }
+  internal mutating func useLiveNavigationToResourceFolderContent() {
+    self.use(
+      NavigationToResourceFolderContents.live,
+      in: SessionScope.self
+    )
   }
 }

@@ -23,7 +23,7 @@
 
 import Features
 
-public struct SessionConfigurationLoader {
+public struct SessionConfigurationLoader: Sendable {
 
   public var sessionConfiguration: @Sendable () async throws -> SessionConfiguration
 

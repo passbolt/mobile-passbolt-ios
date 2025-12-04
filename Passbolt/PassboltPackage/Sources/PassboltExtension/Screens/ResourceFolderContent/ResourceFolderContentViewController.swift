@@ -31,7 +31,7 @@ import SessionData
 import SharedUIComponents
 import Users
 
-internal final class ResourceFolderContentNodeController: ViewController {
+internal final class ResourceFolderContentViewController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
   internal var searchController: ResourceSearchDisplayController!  // lazy?
@@ -118,7 +118,7 @@ internal final class ResourceFolderContentNodeController: ViewController {
   }
 }
 
-extension ResourceFolderContentNodeController {
+extension ResourceFolderContentViewController {
 
   internal struct Context {
 
@@ -134,7 +134,7 @@ extension ResourceFolderContentNodeController {
   }
 }
 
-extension ResourceFolderContentNodeController {
+extension ResourceFolderContentViewController {
 
   internal final func createResource() async throws {
     let resourceEditPreparation: ResourceEditPreparation = try self.features.instance()
