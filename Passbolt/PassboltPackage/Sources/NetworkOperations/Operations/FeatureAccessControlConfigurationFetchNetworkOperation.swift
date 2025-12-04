@@ -33,7 +33,7 @@ public enum FeatureAccessControlConfigurationFetchNetworkOperationDescription: N
   public typealias Output = FeatureAccessControlConfiguration
 }
 
-public struct FeatureAccessControlConfiguration: Decodable {
+public struct FeatureAccessControlConfiguration: Decodable, Sendable {
 
   public var folders: Folders
   public var tags: Tags
@@ -72,7 +72,7 @@ public struct FeatureAccessControlConfiguration: Decodable {
 
 extension FeatureAccessControlConfiguration {
 
-  public enum Folders: FeatureAccessControlConfigurationElement {
+  public enum Folders: FeatureAccessControlConfigurationElement, Sendable {
 
     fileprivate static func decode(
       from accessControl: Array<FeatureAccessControlConfigurationItem>
@@ -90,7 +90,7 @@ extension FeatureAccessControlConfiguration {
     case deny
   }
 
-  public enum Tags: FeatureAccessControlConfigurationElement {
+  public enum Tags: FeatureAccessControlConfigurationElement, Sendable {
 
     fileprivate static func decode(
       from accessControl: Array<FeatureAccessControlConfigurationItem>
@@ -108,7 +108,7 @@ extension FeatureAccessControlConfiguration {
     case deny
   }
 
-  public enum CopySecrets: FeatureAccessControlConfigurationElement {
+  public enum CopySecrets: FeatureAccessControlConfigurationElement, Sendable {
 
     fileprivate static func decode(
       from accessControl: Array<FeatureAccessControlConfigurationItem>
@@ -126,7 +126,7 @@ extension FeatureAccessControlConfiguration {
     case deny
   }
 
-  public enum PreviewSecrets: FeatureAccessControlConfigurationElement {
+  public enum PreviewSecrets: FeatureAccessControlConfigurationElement, Sendable {
 
     fileprivate static func decode(
       from accessControl: Array<FeatureAccessControlConfigurationItem>
@@ -144,7 +144,7 @@ extension FeatureAccessControlConfiguration {
     case deny
   }
 
-  public enum ViewShareList: FeatureAccessControlConfigurationElement {
+  public enum ViewShareList: FeatureAccessControlConfigurationElement, Sendable {
 
     fileprivate static func decode(
       from accessControl: Array<FeatureAccessControlConfigurationItem>

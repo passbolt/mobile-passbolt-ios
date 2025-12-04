@@ -34,7 +34,7 @@ public enum ServerPGPPublicKeyFetchNetworkOperationDescription: NetworkOperation
   public typealias Output = ServerPGPPublicKeyFetchNetworkOperationResult
 }
 
-public struct ServerPGPPublicKeyFetchNetworkOperationVariable {
+public struct ServerPGPPublicKeyFetchNetworkOperationVariable: Sendable {
 
   public var domain: URLString
 
@@ -45,7 +45,7 @@ public struct ServerPGPPublicKeyFetchNetworkOperationVariable {
   }
 }
 
-public struct ServerPGPPublicKeyFetchNetworkOperationResult {
+public struct ServerPGPPublicKeyFetchNetworkOperationResult: Sendable {
 
   public var serverTime: Timestamp
   public var keyData: String

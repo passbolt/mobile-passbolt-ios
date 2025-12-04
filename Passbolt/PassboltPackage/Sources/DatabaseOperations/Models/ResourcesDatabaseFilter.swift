@@ -88,3 +88,4 @@ public struct ResourcesDatabaseFilter {
 }
 
 extension ResourcesDatabaseFilter: Equatable {}
+extension ResourcesDatabaseFilter: Sendable {}

@@ -34,7 +34,7 @@ public enum MetadataSessionKeysUpdateNetworkOperationDescription: NetworkOperati
   public typealias Output = EncryptedSessionKeysCache
 }
 
-public struct EncryptedSessionKeysCache: Codable {
+public struct EncryptedSessionKeysCache: Codable, Sendable {
 
   public let id: PassboltID?
   public let modifiedAt: Date?

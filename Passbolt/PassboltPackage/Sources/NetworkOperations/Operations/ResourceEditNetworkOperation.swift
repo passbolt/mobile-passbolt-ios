@@ -34,7 +34,7 @@ public enum ResourceEditNetworkOperationDescription: NetworkOperationDescription
   public typealias Output = ResourceEditNetworkOperationResult
 }
 
-public struct ResourceEditNetworkOperationVariable: Encodable {
+public struct ResourceEditNetworkOperationVariable: Encodable, Sendable {
 
   public var resourceID: Resource.ID
   public var resourceTypeID: ResourceType.ID
@@ -44,7 +44,7 @@ public struct ResourceEditNetworkOperationVariable: Encodable {
   public var metadataKeyType: MetadataKeyDTO.MetadataKeyType
   public var metadata: ArmoredPGPMessage
 
-  public struct Secret: Encodable {
+  public struct Secret: Encodable, Sendable {
 
     public var userID: User.ID
     public var data: ArmoredPGPMessage

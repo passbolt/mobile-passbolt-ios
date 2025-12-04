@@ -34,7 +34,7 @@ public enum ResourceFavoriteAddNetworkOperationDescription: NetworkOperationDesc
   public typealias Output = ResourceFavoriteAddNetworkOperationResult
 }
 
-public struct ResourceFavoriteAddNetworkOperationVariable {
+public struct ResourceFavoriteAddNetworkOperationVariable: Sendable {
 
   public var resourceID: Resource.ID
 
@@ -45,7 +45,7 @@ public struct ResourceFavoriteAddNetworkOperationVariable {
   }
 }
 
-public struct ResourceFavoriteAddNetworkOperationResult: Decodable {
+public struct ResourceFavoriteAddNetworkOperationResult: Decodable, Sendable {
 
   public var favoriteID: Resource.Favorite.ID
 

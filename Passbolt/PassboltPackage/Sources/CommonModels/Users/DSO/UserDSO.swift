@@ -23,7 +23,7 @@
 
 import Commons
 
-public struct UserDSO {
+public struct UserDSO: Sendable {
 
   public var id: User.ID
   public var username: String

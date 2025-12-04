@@ -24,7 +24,7 @@
 import struct Foundation.Data
 import struct Foundation.Date
 
-public enum SQLiteValue {
+public enum SQLiteValue: Sendable {
 
   case null
   case bool(Bool)
@@ -35,7 +35,7 @@ public enum SQLiteValue {
   case data(Data)
 }
 
-public protocol SQLiteValueConvertible {
+public protocol SQLiteValueConvertible: Sendable {
 
   var asSQLiteValue: SQLiteValue { get }
 }

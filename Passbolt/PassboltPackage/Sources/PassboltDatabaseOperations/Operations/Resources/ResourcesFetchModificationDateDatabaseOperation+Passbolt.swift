@@ -24,6 +24,7 @@
 import DatabaseOperations
 import FeatureScopes
 import Session
+
 import struct Foundation.Date
 
 // MARK: - Implementation

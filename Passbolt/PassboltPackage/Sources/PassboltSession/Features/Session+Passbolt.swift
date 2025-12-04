@@ -127,7 +127,7 @@ extension Session {
       }
     }
 
-    func execute(operation: @escaping @Sendable () async throws -> Void) -> Task<Void, Error> {
+    @Sendable func execute(operation: @escaping @Sendable () async throws -> Void) -> Task<Void, Error> {
       sessionState.execute(operation: operation)
     }
 

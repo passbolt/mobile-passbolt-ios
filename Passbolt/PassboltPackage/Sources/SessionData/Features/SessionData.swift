@@ -24,7 +24,7 @@
 import Commons
 import Features
 
-public struct SessionData {
+public struct SessionData: Sendable {
 
   public var lastUpdate: AnyUpdatable<Timestamp>
   public var refreshIfNeeded: @Sendable () async throws -> Void

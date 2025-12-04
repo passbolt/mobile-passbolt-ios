@@ -43,7 +43,7 @@ import protocol Foundation.URLSessionTaskDelegate
 
 /// NetworkRequestExecutor provides access
 /// to generic HTTPRequest execution.
-public struct NetworkRequestExecutor {
+public struct NetworkRequestExecutor: Sendable {
   /// Execute HTTPRequest using os network stack.
   public var execute: @Sendable (HTTPRequest) async throws -> HTTPResponse
 

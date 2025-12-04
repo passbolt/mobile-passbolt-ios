@@ -46,11 +46,11 @@ public struct JWT {
 
 extension JWT {
 
-  public enum Algorithm: String, Codable, CaseIterable {
+  public enum Algorithm: String, Codable, CaseIterable, Sendable {
     case rs256 = "RS256"
   }
 
-  public struct Header: Codable, Equatable {
+  public struct Header: Codable, Equatable, Sendable {
 
     public var algorithm: Algorithm
     public var type: String
@@ -61,7 +61,7 @@ extension JWT {
     }
   }
 
-  public struct Payload: Codable, Equatable {
+  public struct Payload: Codable, Equatable, Sendable {
     // https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
     public var audience: String?
     public var expiration: Int  // EPOCH
@@ -79,3 +79,4 @@ extension JWT {
 }
 
 extension JWT: Equatable {}
+extension JWT: Sendable {}

@@ -38,6 +38,7 @@ public enum ResourceFolderPermission {
 }
 
 extension ResourceFolderPermission: Hashable {}
+extension ResourceFolderPermission: Sendable {}
 
 extension ResourceFolderPermission {
 

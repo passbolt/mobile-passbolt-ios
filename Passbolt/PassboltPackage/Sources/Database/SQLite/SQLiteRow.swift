@@ -28,7 +28,7 @@ import struct Foundation.Data
 import struct Foundation.UUID
 
 @dynamicMemberLookup
-public struct SQLiteRow {
+public struct SQLiteRow: Sendable {
 
   public var columnNames: Set<String> {
     Set(self.values.keys)
@@ -352,7 +352,7 @@ extension SQLiteRow {
   public subscript<Value, Tag>(
     dynamicMember column: String
   ) -> Tagged<Value, Tag>?
-  where Value: RawRepresentable, Value.RawValue == Data {
+  where Value: RawRepresentable, Value.RawValue == Data, Value: Sendable {
     (values[column] as? Data)
       .flatMap(Value.init(rawValue:))
       .flatMap(Tagged.init(rawValue:))
@@ -361,7 +361,7 @@ extension SQLiteRow {
   public subscript<Value, Tag>(
     dynamicMember column: String
   ) -> Tagged<Value, Tag>?
-  where Value: RawRepresentable, Value.RawValue == String {
+  where Value: RawRepresentable, Value.RawValue == String, Value: Sendable {
     (values[column] as? String)
       .flatMap(Value.init(rawValue:))
       .flatMap(Tagged.init(rawValue:))
@@ -370,7 +370,7 @@ extension SQLiteRow {
   public subscript<Value, Tag>(
     dynamicMember column: String
   ) -> Tagged<Value, Tag>?
-  where Value: RawRepresentable, Value.RawValue == Int64 {
+  where Value: RawRepresentable, Value.RawValue == Int64, Value: Sendable {
     (values[column] as? Int64)
       .flatMap(Value.init(rawValue:))
       .flatMap(Tagged.init(rawValue:))
@@ -379,7 +379,7 @@ extension SQLiteRow {
   public subscript<Value, Tag>(
     dynamicMember column: String
   ) -> Tagged<Value, Tag>?
-  where Value: RawRepresentable, Value.RawValue == Int {
+  where Value: RawRepresentable, Value.RawValue == Int, Value: Sendable {
     (values[column] as? Int64)
       .map(Int.init)
       .flatMap(Value.init(rawValue:))
@@ -389,7 +389,7 @@ extension SQLiteRow {
   public subscript<Value, Tag>(
     dynamicMember column: String
   ) -> Tagged<Value, Tag>?
-  where Value: RawRepresentable, Value.RawValue == UInt {
+  where Value: RawRepresentable, Value.RawValue == UInt, Value: Sendable {
     (values[column] as? Int64)
       .map(UInt.init)
       .flatMap(Value.init(rawValue:))
@@ -399,7 +399,7 @@ extension SQLiteRow {
   public subscript<Value, Tag>(
     dynamicMember column: String
   ) -> Tagged<Value, Tag>?
-  where Value: RawRepresentable, Value.RawValue == Double {
+  where Value: RawRepresentable, Value.RawValue == Double, Value: Sendable {
     (values[column] as? Double)
       .flatMap(Value.init(rawValue:))
       .flatMap(Tagged.init(rawValue:))
@@ -408,7 +408,7 @@ extension SQLiteRow {
   public subscript<Value, Tag>(
     dynamicMember column: String
   ) -> Tagged<Value, Tag>?
-  where Value: RawRepresentable, Value.RawValue == Bool {
+  where Value: RawRepresentable, Value.RawValue == Bool, Value: Sendable {
     (values[column] as? Int64)
       .map { $0 != 0 }
       .flatMap(Value.init(rawValue:))

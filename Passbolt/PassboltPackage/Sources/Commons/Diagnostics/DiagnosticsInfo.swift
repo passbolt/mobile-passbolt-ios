@@ -21,15 +21,15 @@
 // @since         v1.0
 //
 
-public struct DiagnosticsInfo {
+public struct DiagnosticsInfo: Sendable {
 
   internal let message: StaticString
   internal let file: StaticString
   internal let line: UInt
-  internal var details: Dictionary<String, Any>?  // Add optional additional details
+  internal var details: Dictionary<String, Sendable>?  // Add optional additional details
 
   #if DEBUG
-  private var values: Dictionary<StaticString, Any> = .init()
+  private var values: Dictionary<StaticString, Sendable> = .init()
   #endif
 }
 

@@ -31,6 +31,7 @@ public struct HTTPMethod: RawRepresentable {
 }
 
 extension HTTPMethod: Hashable {}
+extension HTTPMethod: Sendable {}
 
 extension HTTPMethod: ExpressibleByStringLiteral {
 

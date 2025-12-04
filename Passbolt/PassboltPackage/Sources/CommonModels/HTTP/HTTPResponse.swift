@@ -25,7 +25,7 @@ import Commons
 import struct Foundation.Data
 import struct Foundation.URL
 
-public struct HTTPResponse {
+public struct HTTPResponse: Sendable {
 
   public var url: URL
   public var statusCode: HTTPStatusCode

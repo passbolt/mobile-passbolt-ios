@@ -34,7 +34,7 @@ public enum ResourceCreateNetworkOperationDescription: NetworkOperationDescripti
   public typealias Output = ResourceCreateNetworkOperationResult
 }
 
-public struct ResourceCreateNetworkOperationVariable: Encodable {
+public struct ResourceCreateNetworkOperationVariable: Encodable, Sendable {
 
   public let resourceTypeID: ResourceType.ID
   public let parentFolderID: ResourceFolder.ID?
@@ -43,7 +43,7 @@ public struct ResourceCreateNetworkOperationVariable: Encodable {
   public let metadataKeyType: MetadataKeyDTO.MetadataKeyType
   public let secrets: Array<Secret>
 
-  public struct Secret: Encodable {
+  public struct Secret: Encodable, Sendable {
 
     public var userID: User.ID
     public var data: ArmoredPGPMessage

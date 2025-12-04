@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public enum ResourceFoldersDatabaseSorting {
+public enum ResourceFoldersDatabaseSorting: Sendable {
 
   case nameAlphabetically
 }

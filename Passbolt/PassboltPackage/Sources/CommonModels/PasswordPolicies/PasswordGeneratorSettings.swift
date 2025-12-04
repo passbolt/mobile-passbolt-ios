@@ -23,7 +23,8 @@
 
 import Commons
 
-public struct PasswordGeneratorSettings {
+public struct PasswordGeneratorSettings: Sendable {
+
   public var length: Int
   public var maskUpper: Bool
   public var maskLower: Bool

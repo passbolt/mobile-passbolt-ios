@@ -33,7 +33,7 @@ public enum ResourceShareNetworkOperationDescription: NetworkOperationDescriptio
   public typealias Input = ResourceShareNetworkOperationVariable
 }
 
-public struct ResourceShareNetworkOperationVariable {
+public struct ResourceShareNetworkOperationVariable: Sendable {
 
   public var resourceID: Resource.ID
   public var body: RequestBody
@@ -49,7 +49,7 @@ public struct ResourceShareNetworkOperationVariable {
 
 extension ResourceShareNetworkOperationVariable {
 
-  public struct RequestBody {
+  public struct RequestBody: Sendable {
 
     public var newPermissions: Array<NewGenericPermissionDTO>
     public var updatedPermissions: Array<GenericPermissionDTO>

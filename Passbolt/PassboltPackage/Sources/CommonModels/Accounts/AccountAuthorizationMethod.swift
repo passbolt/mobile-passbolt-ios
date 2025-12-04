@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public enum AccountAuthorizationMethod {
+public enum AccountAuthorizationMethod: Sendable {
 
   case passphrase(Passphrase)
   case biometrics

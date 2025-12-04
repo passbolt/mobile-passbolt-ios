@@ -35,7 +35,7 @@ public enum SessionRefreshNetworkOperationDescription: NetworkOperationDescripti
   public typealias Output = SessionRefreshNetworkOperationResult
 }
 
-public struct SessionRefreshNetworkOperationVariable {
+public struct SessionRefreshNetworkOperationVariable: Sendable {
 
   public var domain: URLString
   public var userID: Account.UserID
@@ -55,7 +55,7 @@ public struct SessionRefreshNetworkOperationVariable {
   }
 }
 
-public struct SessionRefreshNetworkOperationResult {
+public struct SessionRefreshNetworkOperationResult: Sendable {
 
   public var accessToken: SessionAccessToken
   public var refreshToken: SessionRefreshToken

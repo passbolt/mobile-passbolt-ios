@@ -24,7 +24,7 @@
 import struct Foundation.Data
 import struct Foundation.Date
 
-public struct SQLiteStatementArguments {
+public struct SQLiteStatementArguments: Sendable {
 
   public private(set) var arguments: Array<SQLiteValue>
 }

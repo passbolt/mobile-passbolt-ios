@@ -34,7 +34,7 @@ public enum ResourceFolderCreateNetworkOperationDescription: NetworkOperationDes
   public typealias Output = ResourceFolderCreateNetworkOperationResult
 }
 
-public struct ResourceFolderCreateNetworkOperationVariable: Encodable {
+public struct ResourceFolderCreateNetworkOperationVariable: Encodable, Sendable {
 
   public var name: String
   public var parentFolderID: ResourceFolder.ID?
@@ -54,7 +54,7 @@ public struct ResourceFolderCreateNetworkOperationVariable: Encodable {
   }
 }
 
-public struct ResourceFolderCreateNetworkOperationResult: Decodable {
+public struct ResourceFolderCreateNetworkOperationResult: Decodable, Sendable {
 
   public var resourceFolderID: ResourceFolder.ID
   public var ownerPermissionID: Permission.ID

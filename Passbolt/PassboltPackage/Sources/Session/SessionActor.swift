@@ -26,5 +26,5 @@
 @globalActor
 public final actor SessionActor {
 
-  public static var shared: SessionActor = .init()
+  public static let shared: SessionActor = .init()
 }

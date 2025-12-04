@@ -44,3 +44,4 @@ public struct ResourceTag {
 }
 
 extension ResourceTag: Hashable {}
+extension ResourceTag: Sendable {}

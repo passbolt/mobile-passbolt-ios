@@ -28,13 +28,13 @@ import Features
 
 /// SessionCryptography feature allows to use
 /// cryptography operations associated with current session.
-public struct SessionCryptography {
+public struct SessionCryptography: Sendable {
   /// Decrypt message with current session if any.
   /// Optionally verify signature if public key was provided.
   /// Waits for session authorization if needed.
   /// Throws if there is no session.
   public var decryptMessage:
-    @SessionActor (
+    @Sendable @SessionActor (
       _ encryptedMessage: ArmoredPGPMessage,
       _ publicKey: ArmoredPGPPublicKey?
     ) async throws -> String
@@ -43,33 +43,33 @@ public struct SessionCryptography {
   /// Waits for session authorization if needed.
   /// Throws if there is no session.
   public var encryptAndSignMessage:
-    @SessionActor (
+    @Sendable @SessionActor (
       _ plainMessage: String,
       _ publicKey: ArmoredPGPPublicKey
     ) async throws -> ArmoredPGPMessage
 
   public var decryptAndVerifyMessage:
-    @SessionActor (
+    @Sendable @SessionActor (
       _ encryptedMessage: ArmoredPGPMessage,
       _ publicKey: ArmoredPGPPublicKey
     ) async throws -> PGP.VerifiedMessage
 
-  public var sessionDecryptor: @SessionActor () async throws -> ConfiguredDecryptor
+  public var sessionDecryptor: @Sendable @SessionActor () async throws -> ConfiguredDecryptor
 
   public init(
-    decryptMessage: @escaping @SessionActor (
+    decryptMessage: @escaping @Sendable @SessionActor (
       _ encryptedMessage: ArmoredPGPMessage,
       _ publicKey: ArmoredPGPPublicKey?
     ) async throws -> String,
-    encryptAndSignMessage: @escaping @SessionActor (
+    encryptAndSignMessage: @escaping @Sendable @SessionActor (
       _ plainMessage: String,
       _ publicKey: ArmoredPGPPublicKey
     ) async throws -> ArmoredPGPMessage,
-    decryptAndVerifyMessage: @escaping @SessionActor (
+    decryptAndVerifyMessage: @escaping @Sendable @SessionActor (
       _ encryptedMessage: ArmoredPGPMessage,
       _ publicKey: ArmoredPGPPublicKey
     ) async throws -> PGP.VerifiedMessage,
-    sessionDecryptor: @escaping @SessionActor () async throws -> ConfiguredDecryptor
+    sessionDecryptor: @escaping @Sendable @SessionActor () async throws -> ConfiguredDecryptor
   ) {
     self.decryptMessage = decryptMessage
     self.encryptAndSignMessage = encryptAndSignMessage

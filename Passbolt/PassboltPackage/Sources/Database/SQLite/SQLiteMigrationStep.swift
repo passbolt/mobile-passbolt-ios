@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public struct SQLiteMigrationStep {
+public struct SQLiteMigrationStep: Sendable {
 
   public let statement: SQLiteStatement
 

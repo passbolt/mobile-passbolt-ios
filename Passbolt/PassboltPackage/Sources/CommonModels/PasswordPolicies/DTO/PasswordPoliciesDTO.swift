@@ -22,7 +22,7 @@
 //
 import Commons
 
-public struct PasswordPoliciesDTO {
+public struct PasswordPoliciesDTO: Sendable {
 
   public let id: Tagged<PassboltID, Self>
   public var defaultGenerator: PasswordGeneratorType

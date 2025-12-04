@@ -23,7 +23,7 @@
 
 import Commons
 
-public struct UserReferenceDTO {
+public struct UserReferenceDTO: Sendable {
 
   public var id: User.ID
 

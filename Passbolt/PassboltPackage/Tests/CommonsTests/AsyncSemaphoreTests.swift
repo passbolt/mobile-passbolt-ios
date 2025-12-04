@@ -209,12 +209,13 @@ final class AsyncSemaphoreTests: XCTestCase {
     let semaphore = AsyncSemaphore(maxConcurrentOperations: 0)
     let completionOrder = ActorArray<Int>()
 
-    let tasks = (0 ..< 10).map { index in
-      Task {
-        await semaphore.wait()
-        await completionOrder.append(index)
+    let tasks = (0 ..< 10)
+      .map { index in
+        Task {
+          await semaphore.wait()
+          await completionOrder.append(index)
+        }
       }
-    }
 
     try? await Task.sleep(nanoseconds: 50 * NSEC_PER_MSEC)
 

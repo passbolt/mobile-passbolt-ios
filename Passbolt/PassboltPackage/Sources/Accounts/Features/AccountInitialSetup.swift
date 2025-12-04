@@ -41,7 +41,7 @@ public struct AccountInitialSetup {
 
 extension AccountInitialSetup {
 
-  public enum SetupElement: String, Hashable, CaseIterable {
+  public enum SetupElement: String, Hashable, CaseIterable, Sendable {
     case biometrics
     case autofill
   }

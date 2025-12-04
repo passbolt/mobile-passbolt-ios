@@ -35,8 +35,6 @@ extension ResourceTags {
     features: Features
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
-
-    let sessionData: SessionData = try features.instance()
     let resourceTagsListFetchDatabaseOperation: ResourceTagsListFetchDatabaseOperation = try features.instance()
     let resourceTagDetailsFetchDatabaseOperation: ResourceTagDetailsFetchDatabaseOperation =
       try features.instance()

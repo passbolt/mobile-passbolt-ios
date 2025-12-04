@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public protocol Features {
+public protocol Features: Sendable {
 
   func checkScope<Scope>(
     _: Scope.Type,

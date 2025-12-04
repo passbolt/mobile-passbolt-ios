@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public enum ResourcesDatabaseSorting {
+public enum ResourcesDatabaseSorting: Sendable {
 
   case nameAlphabetically
   case modifiedRecently

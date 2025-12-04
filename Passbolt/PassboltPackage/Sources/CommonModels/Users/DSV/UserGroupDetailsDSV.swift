@@ -41,3 +41,4 @@ public struct UserGroupDetailsDSV {
 }
 
 extension UserGroupDetailsDSV: Equatable {}
+extension UserGroupDetailsDSV: Sendable {}

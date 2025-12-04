@@ -39,3 +39,4 @@ public struct ResourceFolderPathItem {
 }
 
 extension ResourceFolderPathItem: Hashable {}
+extension ResourceFolderPathItem: Sendable {}

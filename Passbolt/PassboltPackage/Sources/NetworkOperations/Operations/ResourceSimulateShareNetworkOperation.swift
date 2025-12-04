@@ -30,7 +30,7 @@ public typealias ResourceSimulateShareNetworkOperation =
 
 public enum ResourceSimulateShareNetworkOperationDescription: NetworkOperationDescription {
 
-  public struct Input {
+  public struct Input: Sendable {
     public let body: Body
     public let foreignModelId: PassboltID
 
@@ -79,12 +79,12 @@ public enum ResourceSimulateShareNetworkOperationDescription: NetworkOperationDe
       self.body = Body(permissions: editedPermissions + removedPermissions)
     }
 
-    public struct Body: Encodable {
+    public struct Body: Encodable, Sendable {
       public let permissions: [Permission]
     }
   }
 
-  public struct Permission: Encodable {
+  public struct Permission: Encodable, Sendable {
     public let id: PassboltID?
     public let aro: ARO
     public let aroForeignKey: PassboltID
@@ -124,16 +124,16 @@ public enum ResourceSimulateShareNetworkOperationDescription: NetworkOperationDe
     }
   }
 
-  public enum ARO: String, Encodable {
+  public enum ARO: String, Encodable, Sendable {
     case user = "User"
     case group = "Group"
   }
 
-  public enum ACO: String, Encodable {
+  public enum ACO: String, Encodable, Sendable {
     case resource = "Resource"
   }
 
-  public enum PermissionType: Int, Encodable {
+  public enum PermissionType: Int, Encodable, Sendable {
     case read = 1
     case write = 7
     case owner = 15
@@ -147,7 +147,7 @@ public enum ResourceSimulateShareNetworkOperationDescription: NetworkOperationDe
     }
   }
 
-  public struct Output: Decodable {
+  public struct Output: Decodable, Sendable {
     public let changes: [ChangeType: [User.ID]]
 
     public init(from decoder: Decoder) throws {
@@ -178,7 +178,7 @@ public enum ResourceSimulateShareNetworkOperationDescription: NetworkOperationDe
     case changes
   }
 
-  public enum ChangeType: String, Decodable, CodingKey {
+  public enum ChangeType: String, Decodable, CodingKey, Sendable {
     case added = "added"
     case removed = "removed"
   }

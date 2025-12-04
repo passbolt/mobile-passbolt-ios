@@ -33,3 +33,4 @@ public struct UsersDatabaseFilter {
 }
 
 extension UsersDatabaseFilter: Hashable {}
+extension UsersDatabaseFilter: Sendable {}

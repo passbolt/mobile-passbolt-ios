@@ -59,9 +59,9 @@ extension ResourcesOTPController {
 
     // this variable holds OTP generator
     // for currently revealed resource ID
-    let otpGenerator: ComputedVariable<() -> OTPValue> = .init(
+    let otpGenerator: ComputedVariable<@Sendable () -> OTPValue> = .init(
       transformed: revealedResourceID
-    ) { (revealed: Update<Resource.ID?>) async throws -> () -> OTPValue in
+    ) { (revealed: Update<Resource.ID?>) async throws -> @Sendable () -> OTPValue in
       guard let resourceID: Resource.ID = try revealed.value
       else { throw Cancelled.error() }
 
@@ -87,7 +87,7 @@ extension ResourcesOTPController {
       let otpGenerator: TOTPCodeGenerator =
         try await features
         .instance()
-      let generate: () -> TOTPValue = otpGenerator.prepare(
+      let generate: @Sendable () -> TOTPValue = otpGenerator.prepare(
         .init(
           resourceID: resourceID,
           secret: totpSecret
@@ -101,7 +101,7 @@ extension ResourcesOTPController {
     let currentOTP: ComputedVariable<OTPValue> = .init(
       combined: timeTicks,
       with: otpGenerator
-    ) { (_: Update<Void>, generator: Update<() -> OTPValue>) in
+    ) { (_: Update<Void>, generator: Update<@Sendable () -> OTPValue>) in
       try generator.value()
     }
 

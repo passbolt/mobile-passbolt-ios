@@ -73,4 +73,3 @@ extension FieldValidator where Value == String {
     )
   }
 }
-

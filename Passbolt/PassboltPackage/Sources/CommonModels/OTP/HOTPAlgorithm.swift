@@ -33,7 +33,7 @@ extension HOTPAlgorithm: Sendable {}
 extension HOTPAlgorithm: Codable {}
 extension HOTPAlgorithm: CaseIterable {
 
-  public static var allCases: Array<HOTPAlgorithm> = [
+  public static let allCases: Array<HOTPAlgorithm> = [
     .sha1,
     .sha256,
     .sha512,

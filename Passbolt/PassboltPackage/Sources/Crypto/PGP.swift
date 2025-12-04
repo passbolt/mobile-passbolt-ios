@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-@preconcurrency import CommonModels
+import CommonModels
 import Features
 import Foundation
 @preconcurrency import Gopenpgp

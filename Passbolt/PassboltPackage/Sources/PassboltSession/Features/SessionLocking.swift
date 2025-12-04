@@ -66,7 +66,7 @@ extension SessionLocking {
         currentTask?.task.cancel()
         currentTask = .init(
           account: account,
-          task: .detached { @SessionActor in
+          task: .detached { @Sendable @SessionActor in
             Diagnostics.logger.info("Session auto locking enabled!")
             do {
               for try await update in appLifecycle.lifecycle {

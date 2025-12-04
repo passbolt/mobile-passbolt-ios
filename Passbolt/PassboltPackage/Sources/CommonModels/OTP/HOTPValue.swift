@@ -41,3 +41,4 @@ public struct HOTPValue {
 }
 
 extension HOTPValue: Equatable {}
+extension HOTPValue: Sendable {}

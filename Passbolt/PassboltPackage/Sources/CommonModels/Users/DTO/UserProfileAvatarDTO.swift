@@ -23,7 +23,7 @@
 
 import Commons
 
-public struct UserProfileAvatarDTO {
+public struct UserProfileAvatarDTO: Sendable {
 
   public var urlString: URLString
 

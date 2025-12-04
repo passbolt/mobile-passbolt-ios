@@ -39,7 +39,7 @@ extension FeatureLoader {
 
         let sessionDatabase: SessionDatabase = try features.instance()
 
-        nonisolated func executeAsync(
+        @Sendable nonisolated func executeAsync(
           _ input: Description.Input
         ) async throws -> Description.Output {
           try await execute(
@@ -66,7 +66,7 @@ extension FeatureLoader {
 
         let sessionDatabase: SessionDatabase = try features.instance()
 
-        nonisolated func executeAsync(
+        @Sendable nonisolated func executeAsync(
           _ input: Description.Input
         ) async throws -> Description.Output {
           try await sessionDatabase

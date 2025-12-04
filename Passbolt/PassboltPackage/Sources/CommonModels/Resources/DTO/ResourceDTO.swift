@@ -25,7 +25,7 @@ import Commons
 
 import struct Foundation.Date
 
-public struct ResourceDTO {
+public struct ResourceDTO: Sendable {
 
   public let id: Resource.ID
   public var typeID: ResourceType.ID

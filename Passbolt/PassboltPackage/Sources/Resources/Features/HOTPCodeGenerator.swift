@@ -26,9 +26,9 @@ import Features
 
 // MARK: - Interface
 
-public struct HOTPCodeGenerator {
+public struct HOTPCodeGenerator: Sendable {
 
-  public struct Parameters {
+  public struct Parameters: Sendable {
 
     public var resourceID: Resource.ID?
     public var sharedSecret: String

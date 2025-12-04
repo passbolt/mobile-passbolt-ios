@@ -30,7 +30,7 @@ import struct Foundation.Data
 
 /// Access details for a given user
 /// using current session.
-public struct UserDetails {
+public struct UserDetails: Sendable {
 
   /// Access user details data for the context user.
   public var details: @Sendable () async throws -> UserDetailsDSV

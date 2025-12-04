@@ -24,7 +24,7 @@
 import Commons
 import Foundation
 
-public struct UserDTO {
+public struct UserDTO: Sendable {
 
   public var id: User.ID
   public var active: Bool

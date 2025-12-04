@@ -206,3 +206,4 @@ extension GenericPermissionDTO {
 }
 
 extension GenericPermissionDTO: Hashable {}
+extension GenericPermissionDTO: Sendable {}

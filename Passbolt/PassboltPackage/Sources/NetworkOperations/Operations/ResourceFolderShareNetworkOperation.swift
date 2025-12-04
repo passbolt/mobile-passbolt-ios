@@ -33,7 +33,7 @@ public enum ResourceFolderShareNetworkOperationDescription: NetworkOperationDesc
   public typealias Input = ResourceFolderShareNetworkOperationVariable
 }
 
-public struct ResourceFolderShareNetworkOperationVariable {
+public struct ResourceFolderShareNetworkOperationVariable: Sendable {
 
   public var resourceFolderID: ResourceFolder.ID
   public var body: RequestBody
@@ -49,7 +49,7 @@ public struct ResourceFolderShareNetworkOperationVariable {
 
 extension ResourceFolderShareNetworkOperationVariable {
 
-  public struct RequestBody {
+  public struct RequestBody: Sendable {
 
     public var newPermissions: OrderedSet<NewGenericPermissionDTO>
     public var updatedPermissions: OrderedSet<GenericPermissionDTO>

@@ -22,7 +22,11 @@
 //
 
 public actor SerialDatabaseOperationExecutor<OperationDescription>
-where OperationDescription: DatabaseOperationDescription {
+where
+  OperationDescription: DatabaseOperationDescription,
+  OperationDescription.Input: Sendable,
+  OperationDescription.Output: Sendable
+{
 
   private let operation: DatabaseOperation<OperationDescription>
   private var lastTask: Task<Void, Never> = Task {}  // Initial empty task

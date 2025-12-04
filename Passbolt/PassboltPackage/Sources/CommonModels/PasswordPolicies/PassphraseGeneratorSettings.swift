@@ -23,7 +23,7 @@
 
 import Commons
 
-public struct PassphraseGeneratorSettings {
+public struct PassphraseGeneratorSettings: Sendable {
   public var words: Int
   public var wordSeparator: String
   public var wordCase: PasswordGeneratorCase

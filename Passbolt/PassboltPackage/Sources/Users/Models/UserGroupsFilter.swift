@@ -23,7 +23,7 @@
 
 import CommonModels
 
-public struct UserGroupsFilter {
+public struct UserGroupsFilter: Sendable {
 
   public var userID: User.ID?
   public var text: String

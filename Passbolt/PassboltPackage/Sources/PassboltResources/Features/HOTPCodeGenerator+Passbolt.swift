@@ -38,7 +38,7 @@ extension HOTPCodeGenerator {
     @Sendable nonisolated func prepare(
       with parameters: Parameters
     ) -> @Sendable (UInt64) -> HOTPValue {
-      let computeHash: (_ key: Data, _ value: Data) -> Data
+      let computeHash: @Sendable (_ key: Data, _ value: Data) -> Data
       switch parameters.algorithm {
       case .sha1:
         computeHash = hmac.sha1

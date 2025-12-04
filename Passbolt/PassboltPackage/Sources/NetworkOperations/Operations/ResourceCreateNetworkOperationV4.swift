@@ -34,7 +34,7 @@ public enum ResourceCreateNetworkOperationV4Description: NetworkOperationDescrip
   public typealias Output = ResourceCreateNetworkOperationResult
 }
 
-public struct ResourceCreateNetworkOperationV4Variable: Encodable {
+public struct ResourceCreateNetworkOperationV4Variable: Encodable, Sendable {
 
   public var resourceTypeID: ResourceType.ID
   public var parentFolderID: ResourceFolder.ID?
@@ -44,7 +44,7 @@ public struct ResourceCreateNetworkOperationV4Variable: Encodable {
   public var description: String?
   public var secrets: Array<Secret>
 
-  public struct Secret: Encodable {
+  public struct Secret: Encodable, Sendable {
 
     public var userID: User.ID
     public var data: ArmoredPGPMessage
@@ -86,7 +86,7 @@ public struct ResourceCreateNetworkOperationV4Variable: Encodable {
   }
 }
 
-public struct ResourceCreateNetworkOperationResult: Decodable {
+public struct ResourceCreateNetworkOperationResult: Decodable, Sendable {
 
   public var resourceID: Resource.ID
   public var ownerPermissionID: Permission.ID

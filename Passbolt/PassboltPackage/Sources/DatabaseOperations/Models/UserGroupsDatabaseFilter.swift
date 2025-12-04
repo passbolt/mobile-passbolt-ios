@@ -40,3 +40,4 @@ public struct UserGroupsDatabaseFilter {
 }
 
 extension UserGroupsDatabaseFilter: Hashable {}
+extension UserGroupsDatabaseFilter: Sendable {}

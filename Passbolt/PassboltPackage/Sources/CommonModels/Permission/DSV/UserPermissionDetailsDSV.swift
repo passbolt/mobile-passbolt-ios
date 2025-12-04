@@ -56,6 +56,7 @@ public struct UserPermissionDetailsDSV {
 }
 
 extension UserPermissionDetailsDSV: Hashable {}
+extension UserPermissionDetailsDSV: Sendable {}
 
 extension UserPermissionDetailsDSV {
 

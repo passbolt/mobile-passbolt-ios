@@ -26,7 +26,7 @@ import Features
 // MARK: - Interface
 
 /// Access locally stored accounts.
-public struct Accounts {
+public struct Accounts: Sendable {
 
   /// Updates in stored accounts.
   /// Includes adding and removing accounts.

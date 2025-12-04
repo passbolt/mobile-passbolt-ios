@@ -34,7 +34,7 @@ public enum ServerRSAPublicKeyFetchNetworkOperationDescription: NetworkOperation
   public typealias Output = ServerRSAPublicKeyFetchNetworkOperationResult
 }
 
-public struct ServerRSAPublicKeyFetchNetworkOperationVariable {
+public struct ServerRSAPublicKeyFetchNetworkOperationVariable: Sendable {
 
   public var domain: URLString
 
@@ -45,7 +45,7 @@ public struct ServerRSAPublicKeyFetchNetworkOperationVariable {
   }
 }
 
-public struct ServerRSAPublicKeyFetchNetworkOperationResult: Decodable {
+public struct ServerRSAPublicKeyFetchNetworkOperationResult: Decodable, Sendable {
 
   public var keyData: String
 

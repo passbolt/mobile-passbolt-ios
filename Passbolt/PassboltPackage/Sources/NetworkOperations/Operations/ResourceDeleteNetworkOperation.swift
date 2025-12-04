@@ -33,7 +33,7 @@ public enum ResourceDeleteNetworkOperationDescription: NetworkOperationDescripti
   public typealias Input = ResourceDeleteNetworkOperationVariable
 }
 
-public struct ResourceDeleteNetworkOperationVariable {
+public struct ResourceDeleteNetworkOperationVariable: Sendable {
 
   public var resourceID: Resource.ID
 

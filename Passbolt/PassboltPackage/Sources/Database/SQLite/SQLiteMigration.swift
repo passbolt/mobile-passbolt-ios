@@ -24,7 +24,7 @@
 // We might allow migration closures to perform migrations that require application
 // specific code (transformations that cannot be made on the database directly)
 // to be completed if that will be needed in future.
-public struct SQLiteMigration {
+public struct SQLiteMigration: Sendable {
 
   public let steps: Array<SQLiteMigrationStep>
 

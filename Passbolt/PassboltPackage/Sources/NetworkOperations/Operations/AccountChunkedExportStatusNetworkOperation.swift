@@ -32,7 +32,7 @@ public enum AccountChunkedExportStatusNetworkOperationDescription: NetworkOperat
   public typealias Output = AccountChunkedExportStatusNetworkOperationResponseData
 }
 
-public struct AccountChunkedExportStatusNetworkOperationRequestData {
+public struct AccountChunkedExportStatusNetworkOperationRequestData: Sendable {
 
   public let transferID: String
 
@@ -43,7 +43,7 @@ public struct AccountChunkedExportStatusNetworkOperationRequestData {
   }
 }
 
-public struct AccountChunkedExportStatusNetworkOperationResponseData: Decodable {
+public struct AccountChunkedExportStatusNetworkOperationResponseData: Decodable, Sendable {
 
   public let currentPage: Int
   public let totalPages: Int

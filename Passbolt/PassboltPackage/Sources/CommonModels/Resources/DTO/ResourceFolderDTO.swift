@@ -81,3 +81,4 @@ extension ResourceFolderDTO: Decodable {
 }
 
 extension ResourceFolderDTO: Equatable {}
+extension ResourceFolderDTO: Sendable {}

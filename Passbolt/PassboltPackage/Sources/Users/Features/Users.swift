@@ -29,16 +29,16 @@ import struct Foundation.Data
 // MARK: - Interface
 
 /// Access users data using current session.
-public struct Users {
+public struct Users: Sendable {
 
   /// Access filtered users details.
-  public var filteredUsers: (UsersFilter) async throws -> Array<UserDetailsDSV>
+  public var filteredUsers: @Sendable (UsersFilter) async throws -> Array<UserDetailsDSV>
   /// Access details for a given user.
-  public var userDetails: (User.ID) async throws -> UserDetailsDSV
+  public var userDetails: @Sendable (User.ID) async throws -> UserDetailsDSV
   /// Access permissions to a given resource for a given user.
-  public var userPermissionToResource: (User.ID, Resource.ID) async throws -> Permission?
+  public var userPermissionToResource: @Sendable (User.ID, Resource.ID) async throws -> Permission?
   /// Access avatar image for a given user.
-  public var userAvatarImage: (User.ID) async throws -> Data?
+  public var userAvatarImage: @Sendable (User.ID) async throws -> Data?
 
   public init(
     filteredUsers: @escaping @Sendable (UsersFilter) async throws -> Array<UserDetailsDSV>,

@@ -34,7 +34,7 @@ public enum UserDetailsFetchNetworkOperationDescription: NetworkOperationDescrip
   public typealias Output = UserDetailsFetchNetworkOperationResult
 }
 
-public struct UserDetailsFetchNetworkOperationVariable {
+public struct UserDetailsFetchNetworkOperationVariable: Sendable {
 
   public var userID: User.ID?
 

@@ -23,10 +23,10 @@
 
 import Combine
 
-public struct AnyAsyncSequence<Element>
+public struct AnyAsyncSequence<Element>: Sendable
 where Element: Sendable {
 
-  private let makeIterator: () -> AnyAsyncIterator<Element>
+  private let makeIterator: @Sendable () -> AnyAsyncIterator<Element>
 
   public init<Upstream: Publisher>(
     _ upstream: Upstream,

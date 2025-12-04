@@ -34,7 +34,7 @@ public enum AccountChunkedExportInitializeNetworkOperationDescription: NetworkOp
   public typealias Output = AccountChunkedExportInitializeResponseData
 }
 
-public struct AccountChunkedExportInitializeRequestData: Encodable {
+public struct AccountChunkedExportInitializeRequestData: Encodable, Sendable {
 
   public let payloadHash: String
   public let totalPagesCount: Int
@@ -54,7 +54,7 @@ public struct AccountChunkedExportInitializeRequestData: Encodable {
   }
 }
 
-public struct AccountChunkedExportInitializeResponseData: Decodable {
+public struct AccountChunkedExportInitializeResponseData: Decodable, Sendable {
 
   public let id: String
   private let authenticationToken: TransferAuthenticationToken

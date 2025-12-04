@@ -26,10 +26,11 @@ import Features
 import Foundation
 import Security
 
-public struct SignatureVerification {
+public struct SignatureVerification: Sendable {
 
   // Verify message signature
   public var verify:
+    @Sendable
     (
       _ input: Data,
       _ signature: Data,

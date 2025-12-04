@@ -29,7 +29,7 @@ import struct Foundation.Data
 import struct Foundation.URL
 
 /// Access to details associated with a stored account.
-public struct AccountDetails {
+public struct AccountDetails: Sendable {
 
   /// Updates in the context account details.
   public var updates: AnyUpdatable<Void>

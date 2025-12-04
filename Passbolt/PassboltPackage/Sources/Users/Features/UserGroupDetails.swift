@@ -28,7 +28,7 @@ import Features
 
 /// Access details for a given user group
 /// using current session.
-public struct UserGroupDetails {
+public struct UserGroupDetails: Sendable {
 
   /// Access user group details data
   /// for the context user group.

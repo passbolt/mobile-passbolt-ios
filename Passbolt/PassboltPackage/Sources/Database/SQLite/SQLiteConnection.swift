@@ -26,13 +26,13 @@ import Commons
 import Dispatch
 import SQLCipher
 
-public struct SQLiteConnection {
+public struct SQLiteConnection: Sendable {
 
-  public var execute: (SQLiteStatement) throws -> Void
-  public var fetch: (SQLiteStatement) throws -> Array<SQLiteRow>
-  public var beginTransaction: () throws -> Void
-  public var rollbackTransaction: () throws -> Void
-  public var endTransaction: () throws -> Void
+  public var execute: @Sendable (SQLiteStatement) throws -> Void
+  public var fetch: @Sendable (SQLiteStatement) throws -> Array<SQLiteRow>
+  public var beginTransaction: @Sendable () throws -> Void
+  public var rollbackTransaction: @Sendable () throws -> Void
+  public var endTransaction: @Sendable () throws -> Void
 }
 
 extension SQLiteConnection {
@@ -51,7 +51,7 @@ extension SQLiteConnection {
         options: options
       )
 
-    func execute(
+    @Sendable func execute(
       statement: SQLiteStatement
     ) throws {
       try connectionHandle.execute(
@@ -60,7 +60,7 @@ extension SQLiteConnection {
       )
     }
 
-    func fetch(
+    @Sendable func fetch(
       statement: SQLiteStatement
     ) throws -> Array<SQLiteRow> {
       try connectionHandle.fetch(
@@ -69,15 +69,15 @@ extension SQLiteConnection {
       )
     }
 
-    func beginTransaction() throws {
+    @Sendable func beginTransaction() throws {
       try connectionHandle.execute("BEGIN TRANSACTION;")
     }
 
-    func rollbackTransaction() throws {
+    @Sendable func rollbackTransaction() throws {
       try connectionHandle.execute("ROLLBACK TRANSACTION;")
     }
 
-    func endTransaction() throws {
+    @Sendable func endTransaction() throws {
       try connectionHandle.execute("END TRANSACTION;")
     }
 

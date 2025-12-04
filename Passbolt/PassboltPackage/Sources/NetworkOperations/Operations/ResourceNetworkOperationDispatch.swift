@@ -23,7 +23,7 @@
 
 import CommonModels
 
-public struct ResourceNetworkOperationDispatch {
+public struct ResourceNetworkOperationDispatch: Sendable {
   public typealias Secrets = OrderedSet<EncryptedMessage>
   public var createResource: @Sendable (Resource, Secrets, Bool) async throws -> ResourceCreateNetworkOperationResult
   public var editResource: @Sendable (Resource, Resource.ID, Secrets) async throws -> ResourceEditNetworkOperationResult

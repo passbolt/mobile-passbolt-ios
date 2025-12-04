@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public struct MetadataKeyDTO: Identifiable, Decodable {
+public struct MetadataKeyDTO: Identifiable, Decodable, Sendable {
   public typealias ID = Tagged<PassboltID, Self>
 
   public let id: ID
@@ -59,7 +59,7 @@ public struct MetadataKeyDTO: Identifiable, Decodable {
 
 extension MetadataKeyDTO {
 
-  public enum MetadataKeyType: String, Codable {
+  public enum MetadataKeyType: String, Codable, Sendable {
 
     case shared = "shared_key"
     case user = "user_key"
@@ -84,7 +84,7 @@ extension MetadataKeyDTO {
 
 extension MetadataKeyDTO {
 
-  public struct MetadataPrivateKey: Decodable {
+  public struct MetadataPrivateKey: Decodable, Sendable {
     public let id: MetadataKeyDTO.ID
     public let userId: Tagged<PassboltID, Self>
     public let encryptedData: String

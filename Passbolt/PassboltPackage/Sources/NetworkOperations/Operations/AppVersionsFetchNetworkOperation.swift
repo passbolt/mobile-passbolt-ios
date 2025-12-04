@@ -33,7 +33,7 @@ public enum AppVersionsFetchNetworkOperationDescription: NetworkOperationDescrip
   public typealias Output = AppVersionsFetchNetworkOperationResult
 }
 
-public struct AppVersionsFetchNetworkOperationResult: Decodable {
+public struct AppVersionsFetchNetworkOperationResult: Decodable, Sendable {
 
   public var results: Array<Result>
 
@@ -46,7 +46,7 @@ public struct AppVersionsFetchNetworkOperationResult: Decodable {
 
 extension AppVersionsFetchNetworkOperationResult {
 
-  public struct Result: Decodable {
+  public struct Result: Decodable, Sendable {
 
     public var version: String
 

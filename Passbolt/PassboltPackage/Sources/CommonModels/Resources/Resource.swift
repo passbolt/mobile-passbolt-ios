@@ -23,7 +23,7 @@
 
 import Commons
 
-public struct Resource {
+public struct Resource: Sendable {
 
   public typealias ID = Tagged<PassboltID, Self>
 

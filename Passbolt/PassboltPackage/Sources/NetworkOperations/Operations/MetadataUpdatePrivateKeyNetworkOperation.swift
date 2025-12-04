@@ -28,7 +28,7 @@ public typealias MetadataUpdatePrivateKeyNetworkOperation =
 
 public enum MetadataUpdatePrivateKeyNetworkOperationDescription: NetworkOperationDescription {
 
-  public struct Input: Encodable {
+  public struct Input: Encodable, Sendable {
 
     public let privateKeyId: MetadataKeyDTO.ID
     public let data: String
@@ -47,7 +47,7 @@ public enum MetadataUpdatePrivateKeyNetworkOperationDescription: NetworkOperatio
     }
   }
 
-  public struct Output: Decodable {
+  public struct Output: Decodable, Sendable {
 
     public let userId: User.ID
     public let data: String

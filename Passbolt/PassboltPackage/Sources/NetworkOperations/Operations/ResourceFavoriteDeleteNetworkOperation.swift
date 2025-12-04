@@ -33,7 +33,7 @@ public enum ResourceFavoriteDeleteNetworkOperationDescription: NetworkOperationD
   public typealias Input = ResourceFavoriteDeleteNetworkOperationVariable
 }
 
-public struct ResourceFavoriteDeleteNetworkOperationVariable {
+public struct ResourceFavoriteDeleteNetworkOperationVariable: Sendable {
 
   public var favoriteID: Resource.Favorite.ID
 

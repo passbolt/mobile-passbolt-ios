@@ -32,7 +32,7 @@ public enum ResourceSetFavoriteDatabaseOperationDescription: DatabaseOperationDe
   public typealias Input = ResourceSetFavoriteDatabaseOperationDSO
 }
 
-public struct ResourceSetFavoriteDatabaseOperationDSO {
+public struct ResourceSetFavoriteDatabaseOperationDSO: Sendable {
 
   public var resourceID: Resource.ID
   public var favoriteID: Resource.Favorite.ID?

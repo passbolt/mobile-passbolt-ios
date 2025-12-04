@@ -37,7 +37,7 @@ public enum DUOAuthorizationPromptNetworkOperationDescription: NetworkOperationD
   public typealias Output = DUOAuthorizationPromptNetworkOperationResult
 }
 
-public struct DUOAuthorizationPromptNetworkOperationResult {
+public struct DUOAuthorizationPromptNetworkOperationResult: Sendable {
 
   public var authorizationURL: URL
   public var stateID: String

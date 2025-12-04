@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public struct DiagnosticsContext {
+public struct DiagnosticsContext: Sendable {
 
   internal private(set) var infoStack: Array<DiagnosticsInfo>
 

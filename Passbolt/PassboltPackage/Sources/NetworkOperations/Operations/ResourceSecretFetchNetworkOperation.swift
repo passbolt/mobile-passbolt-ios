@@ -34,7 +34,7 @@ public enum ResourceSecretFetchNetworkOperationDescription: NetworkOperationDesc
   public typealias Output = ResourceSecretFetchNetworkOperationResult
 }
 
-public struct ResourceSecretFetchNetworkOperationVariable {
+public struct ResourceSecretFetchNetworkOperationVariable: Sendable {
 
   public var resourceID: Resource.ID
 
@@ -43,7 +43,7 @@ public struct ResourceSecretFetchNetworkOperationVariable {
   }
 }
 
-public struct ResourceSecretFetchNetworkOperationResult: Decodable {
+public struct ResourceSecretFetchNetworkOperationResult: Decodable, Sendable {
 
   public var data: String
 

@@ -62,6 +62,7 @@ public struct ResourceFolder {
 }
 
 extension ResourceFolder: Equatable {}
+extension ResourceFolder: Sendable {}
 
 // MARK: - Common info
 

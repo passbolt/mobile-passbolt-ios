@@ -32,7 +32,7 @@ public enum ResourceUpdateFolderDatabaseOperationDescription: DatabaseOperationD
   public typealias Input = ResourceUpdateFolderDatabaseOperationDSO
 }
 
-public struct ResourceUpdateFolderDatabaseOperationDSO {
+public struct ResourceUpdateFolderDatabaseOperationDSO: Sendable {
 
   public var resourceID: Resource.ID
   public var folderID: ResourceFolder.ID?

@@ -34,7 +34,7 @@ public enum SessionCloseNetworkOperationDescription: NetworkOperationDescription
   public typealias Input = SessionCloseNetworkOperationVariable
 }
 
-public struct SessionCloseNetworkOperationVariable: Encodable {
+public struct SessionCloseNetworkOperationVariable: Encodable, Sendable {
 
   public var domain: URLString  // not encoded into json
   public var refreshToken: SessionRefreshToken

@@ -25,7 +25,7 @@ import Commons
 
 import struct Foundation.Date
 
-public struct PGPKeyDetails {
+public struct PGPKeyDetails: Sendable {
 
   public let publicKey: ArmoredPGPPublicKey
   public let userID: String

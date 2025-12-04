@@ -42,3 +42,4 @@ public struct ResourcesFolderDatabaseFilter {
 }
 
 extension ResourcesFolderDatabaseFilter: Equatable {}
+extension ResourcesFolderDatabaseFilter: Sendable {}

@@ -29,7 +29,7 @@ import Features
 /// SessionNetworkRequestExecutor provides access
 /// to HTTPRequest execution associated
 /// with current session if any.
-public struct SessionNetworkRequestExecutor {
+public struct SessionNetworkRequestExecutor: Sendable {
   /// Execute HTTPRequest with current session data
   /// and provided mutation applied.
   /// Response is validated based on status codes

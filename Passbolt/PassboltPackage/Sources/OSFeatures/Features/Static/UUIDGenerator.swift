@@ -27,9 +27,9 @@ import struct Foundation.UUID
 
 // MARK: - Interface
 
-public struct UUIDGenerator {
+public struct UUIDGenerator: Sendable {
 
-  public var uuid: () -> String
+  public var uuid: @Sendable () -> String
 }
 
 extension UUIDGenerator: StaticFeature {
@@ -49,7 +49,7 @@ extension UUIDGenerator {
 
   fileprivate static var live: Self {
 
-    func uuid() -> String {
+    @Sendable func uuid() -> String {
       UUID().uuidString
     }
 

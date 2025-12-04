@@ -44,3 +44,4 @@ public struct TOTPValue {
 }
 
 extension TOTPValue: Equatable {}
+extension TOTPValue: Sendable {}

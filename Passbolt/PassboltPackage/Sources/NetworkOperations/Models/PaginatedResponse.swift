@@ -42,7 +42,7 @@ where Results: Collection, Results: Sendable, Results.Element: Sendable {
   }
 }
 
-extension CommonNetworkResponse where Body: Collection, Body.Element: Sendable {
+extension CommonNetworkResponse where Body: Collection, Body.Element: Sendable, Body: Sendable {
 
   public var paginatedResponse: PaginatedResponse<Body> {
     get throws {

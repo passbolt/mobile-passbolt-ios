@@ -192,3 +192,5 @@ extension HTTPRequest: EmptyInstantiable {
     )
   }
 }
+
+extension Mutation: @unchecked @retroactive Sendable where Subject: Sendable {}

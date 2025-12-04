@@ -25,7 +25,7 @@ import CommonModels
 
 import class Foundation.UserDefaults
 
-public struct MDMConfiguration {
+public struct MDMConfiguration: Sendable {
 
   public var clear: @Sendable () -> Void
   public var preconfiguredAccounts: @Sendable () -> Array<AccountTransferData>

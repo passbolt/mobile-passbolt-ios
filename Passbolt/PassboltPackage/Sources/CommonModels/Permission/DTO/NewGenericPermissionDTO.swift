@@ -23,7 +23,7 @@
 
 import Commons
 
-public enum NewGenericPermissionDTO {
+public enum NewGenericPermissionDTO: Sendable {
 
   case userToResource(
     userID: User.ID,

@@ -272,8 +272,8 @@ final class BatchExecutorTests: XCTestCase {
     let sequentialDuration = taskDuration * UInt64(numberOfTasks)
     let parallelDuration = taskDuration * UInt64((numberOfTasks + maxConcurrentTasks - 1) / maxConcurrentTasks)
 
-//    XCTAssertLessThan(totalDuration.components.nanoseconds, sequentialDuration)
-//    XCTAssertGreaterThan(totalDuration.components.nanoseconds, parallelDuration - 50 * NSEC_PER_MSEC)
+    //    XCTAssertLessThan(totalDuration.components.nanoseconds, sequentialDuration)
+    //    XCTAssertGreaterThan(totalDuration.components.nanoseconds, parallelDuration - 50 * NSEC_PER_MSEC)
   }
 
   func test_execute_handlesAsyncOperationsCorrectly() async throws {

@@ -26,7 +26,7 @@ import Features
 
 // MARK: - Interface
 
-public struct ResourceEditForm {
+public struct ResourceEditForm: Sendable {
 
   // Access current resource state and updates
   public var state: AnyUpdatable<Resource>

@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public enum OTPValue {
+public enum OTPValue: Sendable {
 
   case hotp(HOTPValue)
   case totp(TOTPValue)

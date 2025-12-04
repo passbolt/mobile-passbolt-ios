@@ -26,17 +26,17 @@ import Features
 // MARK: - Interface
 
 /// Session feature manages session state.
-public struct Session {
+public struct Session: Sendable {
   /// Async sequence distributing new values
   /// each time session state changes including
   /// requesting authorization and authorizing.
   public var updates: AnyUpdatable<Void>
   /// Check if there is any pending
   /// authorization request.
-  public var pendingAuthorization: @SessionActor () -> SessionAuthorizationRequest?
+  public var pendingAuthorization: @Sendable @SessionActor () -> SessionAuthorizationRequest?
   /// Get the current session account if any.
   /// Throws if there is no active session.
-  public var currentAccount: @SessionActor () async throws -> Account
+  public var currentAccount: @Sendable @SessionActor () async throws -> Account
   /// Create new session using provided method.
   /// Closes current session if used account is different.
   /// Successful authorization should change
@@ -45,24 +45,24 @@ public struct Session {
   /// Throws if provided method or data is invalid.
   /// Throws when MFA is required after successful
   /// authorization.
-  public var authorize: @SessionActor (SessionAuthorizationMethod) async throws -> Void
+  public var authorize: @Sendable @SessionActor (SessionAuthorizationMethod) async throws -> Void
   /// Creates MFA token to be used for current session.
   /// Throws if there is no session or MFA was not required.
   /// Throws if provided method or data is invalid.
-  public var authorizeMFA: @SessionActor (SessionMFAAuthorizationMethod) async throws -> Void
+  public var authorizeMFA: @Sendable @SessionActor (SessionMFAAuthorizationMethod) async throws -> Void
   /// Close session for given account if any
   /// or current session if any otherwise.
-  public var close: @SessionActor (_ account: Account?) async -> Void
-  public var execute: (@escaping @Sendable () async throws -> Void) -> Task<Void, Error>
+  public var close: @Sendable @SessionActor (_ account: Account?) async -> Void
+  public var execute: @Sendable (@escaping @Sendable () async throws -> Void) -> Task<Void, Error>
 
   public init(
     updates: AnyUpdatable<Void>,
-    pendingAuthorization: @escaping @SessionActor () -> SessionAuthorizationRequest?,
-    currentAccount: @escaping @SessionActor () async throws -> Account,
-    authorize: @escaping @SessionActor (SessionAuthorizationMethod) async throws -> Void,
-    authorizeMFA: @escaping @SessionActor (SessionMFAAuthorizationMethod) async throws -> Void,
-    close: @escaping @SessionActor (_ account: Account?) async -> Void,
-    execute: @escaping (@escaping @Sendable () async throws -> Void) -> Task<Void, Error>
+    pendingAuthorization: @escaping @Sendable @SessionActor () -> SessionAuthorizationRequest?,
+    currentAccount: @escaping @Sendable @SessionActor () async throws -> Account,
+    authorize: @escaping @Sendable @SessionActor (SessionAuthorizationMethod) async throws -> Void,
+    authorizeMFA: @escaping @Sendable @SessionActor (SessionMFAAuthorizationMethod) async throws -> Void,
+    close: @escaping @Sendable @SessionActor (_ account: Account?) async -> Void,
+    execute: @escaping @Sendable (@escaping @Sendable () async throws -> Void) -> Task<Void, Error>
   ) {
     self.updates = updates
     self.pendingAuthorization = pendingAuthorization

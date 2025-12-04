@@ -27,9 +27,9 @@ import CommonModels
 public final class FeaturesFactory<Scope>
 where Scope: FeaturesScope {
 
-  private let scopeContext: Scope.Context?
+  private nonisolated let scopeContext: Scope.Context?
   private let registry: FeaturesRegistry
-  private let parent: Features?
+  private nonisolated let parent: Features?
   private let staticFeatures: Dictionary<FeatureIdentifier, AnyFeature>
   private var loaders: Dictionary<FeatureIdentifier, FeatureLoader>
   private var cache: Dictionary<CacheKey, CacheItem>
@@ -70,7 +70,7 @@ extension FeaturesFactory {
 
 extension FeaturesFactory: FeaturesContainer {
 
-  public func checkScope<RequestedScope>(
+  public nonisolated func checkScope<RequestedScope>(
     _: RequestedScope.Type,
     file: StaticString,
     line: UInt
@@ -93,7 +93,7 @@ extension FeaturesFactory: FeaturesContainer {
     }
   }
 
-  public func ensureScope<RequestedScope>(
+  public nonisolated func ensureScope<RequestedScope>(
     _: RequestedScope.Type,
     file: StaticString,
     line: UInt
@@ -120,7 +120,7 @@ extension FeaturesFactory: FeaturesContainer {
     }
   }
 
-  public func context<RequestedScope>(
+  public nonisolated func context<RequestedScope>(
     of scope: RequestedScope.Type,
     file: StaticString,
     line: UInt

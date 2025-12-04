@@ -37,7 +37,7 @@ public enum DUOAuthorizationCallbackNetworkOperationDescription: NetworkOperatio
   public typealias Output = DUOAuthorizationCallbackNetworkOperationResult
 }
 
-public struct DUOAuthorizationCallbackNetworkOperationVariable {
+public struct DUOAuthorizationCallbackNetworkOperationVariable: Sendable {
 
   public var duoCode: String
   public var duoToken: String
@@ -57,7 +57,7 @@ public struct DUOAuthorizationCallbackNetworkOperationVariable {
   }
 }
 
-public struct DUOAuthorizationCallbackNetworkOperationResult {
+public struct DUOAuthorizationCallbackNetworkOperationResult: Sendable {
 
   public var mfaToken: SessionMFAToken
 

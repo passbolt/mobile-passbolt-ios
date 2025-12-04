@@ -22,6 +22,7 @@
 //
 
 import CommonModels
+
 import struct Foundation.Date
 
 public typealias ResourcesFetchModificationDateDatabaseOperation = DatabaseOperation<
@@ -34,7 +35,7 @@ public enum ResourcesFetchModificationDateDatabaseOperationDescription: Database
   public typealias Output = Array<ResourceModificationDate>
 }
 
-public struct ResourceModificationDate {
+public struct ResourceModificationDate: Sendable {
 
   public var resourceId: Resource.ID
   public var modificationDate: Date

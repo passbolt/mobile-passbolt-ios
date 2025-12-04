@@ -35,7 +35,7 @@ public enum TOTPAuthorizationNetworkOperationDescription: NetworkOperationDescri
   public typealias Output = TOTPAuthorizationNetworkOperationResult
 }
 
-public struct TOTPAuthorizationNetworkOperationVariable {
+public struct TOTPAuthorizationNetworkOperationVariable: Sendable {
 
   public var totp: String
   public var remember: Bool
@@ -49,7 +49,7 @@ public struct TOTPAuthorizationNetworkOperationVariable {
   }
 }
 
-public struct TOTPAuthorizationNetworkOperationResult {
+public struct TOTPAuthorizationNetworkOperationResult: Sendable {
 
   public var mfaToken: SessionMFAToken
 

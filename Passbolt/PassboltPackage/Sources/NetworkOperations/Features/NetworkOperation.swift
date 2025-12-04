@@ -27,7 +27,12 @@ import Features
 
 /// Network based operation.
 public struct NetworkOperation<Description>: Sendable
-where Description: NetworkOperationDescription, Description: Sendable {
+where
+  Description: NetworkOperationDescription,
+  Description: Sendable,
+  Description.Input: Sendable,
+  Description.Output: Sendable
+{
 
   public typealias Input = Description.Input
   public typealias Output = Description.Output

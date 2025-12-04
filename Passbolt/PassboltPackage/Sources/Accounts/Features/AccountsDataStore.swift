@@ -31,7 +31,7 @@ import let LocalAuthentication.errSecAuthFailed
 
 /// Legacy access to all acounts data storage.
 /// TODO: Split to per account features
-public struct AccountsDataStore {
+public struct AccountsDataStore: Sendable {
 
   public var verifyDataIntegrity: @Sendable () throws -> Void
   public var loadAccounts: @Sendable () -> Array<Account>

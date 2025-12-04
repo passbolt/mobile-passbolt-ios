@@ -35,7 +35,7 @@ public enum SessionCreateNetworkOperationDescription: NetworkOperationDescriptio
   public typealias Output = SessionCreateNetworkOperationResult
 }
 
-public struct SessionCreateNetworkOperationVariable {
+public struct SessionCreateNetworkOperationVariable: Sendable {
 
   public var domain: URLString
   public var userID: Account.UserID
@@ -55,7 +55,7 @@ public struct SessionCreateNetworkOperationVariable {
   }
 }
 
-public struct SessionCreateNetworkOperationResult {
+public struct SessionCreateNetworkOperationResult: Sendable {
 
   public var mfaTokenIsValid: Bool
   public var challenge: ArmoredPGPMessage

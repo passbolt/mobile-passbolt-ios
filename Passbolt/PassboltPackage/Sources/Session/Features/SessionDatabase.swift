@@ -28,7 +28,7 @@ import Features
 
 /// SessionDatabase provides access
 /// to current SQLite connection.
-public struct SessionDatabase {
+public struct SessionDatabase: Sendable {
   /// Access SQLiteConnection for the
   /// current session database if any.
   /// Waits for session authorization if needed.

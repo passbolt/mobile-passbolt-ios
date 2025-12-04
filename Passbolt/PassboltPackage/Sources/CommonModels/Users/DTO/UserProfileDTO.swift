@@ -23,7 +23,7 @@
 
 import Commons
 
-public struct UserProfileDTO {
+public struct UserProfileDTO: Sendable {
 
   public var firstName: String
   public var lastName: String

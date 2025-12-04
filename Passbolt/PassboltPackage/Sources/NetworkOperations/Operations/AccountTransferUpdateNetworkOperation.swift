@@ -34,7 +34,7 @@ public enum AccountTransferUpdateNetworkOperationDescription: NetworkOperationDe
   public typealias Output = AccountTransferUpdateNetworkOperationResult
 }
 
-public struct AccountTransferUpdateNetworkOperationVariable {
+public struct AccountTransferUpdateNetworkOperationVariable: Sendable {
 
   public var domain: URLString
   public var authenticationToken: String
@@ -62,7 +62,7 @@ public struct AccountTransferUpdateNetworkOperationVariable {
 
 extension AccountTransferUpdateNetworkOperationVariable {
 
-  public enum Status: String, Codable {
+  public enum Status: String, Codable, Sendable {
 
     case start = "start"
     case inProgress = "in progress"
@@ -72,7 +72,7 @@ extension AccountTransferUpdateNetworkOperationVariable {
   }
 }
 
-public struct AccountTransferUpdateNetworkOperationResult: Decodable {
+public struct AccountTransferUpdateNetworkOperationResult: Decodable, Sendable {
 
   public var user: User?
 
@@ -85,7 +85,7 @@ public struct AccountTransferUpdateNetworkOperationResult: Decodable {
 
 extension AccountTransferUpdateNetworkOperationResult {
 
-  public struct User: Decodable {
+  public struct User: Decodable, Sendable {
 
     public var username: String
     public var profile: UserProfileDTO

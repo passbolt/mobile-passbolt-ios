@@ -35,7 +35,7 @@ public enum YubiKeyAuthorizationNetworkOperationDescription: NetworkOperationDes
   public typealias Output = YubiKeyAuthorizationNetworkOperationResult
 }
 
-public struct YubiKeyAuthorizationNetworkOperationVariable {
+public struct YubiKeyAuthorizationNetworkOperationVariable: Sendable {
 
   public var otp: String
   public var remember: Bool
@@ -49,7 +49,7 @@ public struct YubiKeyAuthorizationNetworkOperationVariable {
   }
 }
 
-public struct YubiKeyAuthorizationNetworkOperationResult {
+public struct YubiKeyAuthorizationNetworkOperationResult: Sendable {
 
   public var mfaToken: SessionMFAToken
 

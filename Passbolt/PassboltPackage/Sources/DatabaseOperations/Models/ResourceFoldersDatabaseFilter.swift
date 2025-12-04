@@ -55,3 +55,4 @@ public struct ResourceFoldersDatabaseFilter {
 }
 
 extension ResourceFoldersDatabaseFilter: Equatable {}
+extension ResourceFoldersDatabaseFilter: Sendable {}

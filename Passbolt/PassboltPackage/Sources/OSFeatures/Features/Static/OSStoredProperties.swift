@@ -26,7 +26,7 @@ import class Foundation.UserDefaults
 
 // MARK: - Interface
 
-public struct OSStoredProperties {
+public struct OSStoredProperties: Sendable {
 
   public var fetch: @Sendable (OSStoredPropertyKey) -> Any?
   public var store: @Sendable (OSStoredPropertyKey, Any?) -> Void
@@ -128,3 +128,5 @@ extension OSStoredProperties {
   }
 }
 #endif
+
+extension UserDefaults: @retroactive @unchecked Sendable {}

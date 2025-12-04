@@ -22,7 +22,7 @@
 //
 
 /// Aurthorization reqeust required to continue using current session.
-public enum SessionAuthorizationRequest {
+public enum SessionAuthorizationRequest: Sendable {
   /// Passphrase entering is required.
   /// Passphrase request has priority over mfa request.
   case passphrase(Account)

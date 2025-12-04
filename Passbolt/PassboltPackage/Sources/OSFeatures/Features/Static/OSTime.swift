@@ -33,7 +33,7 @@ import func os.clock_gettime_nsec_np
 
 // MARK: - Interface
 
-public struct OSTime {
+public struct OSTime: Sendable {
 
   public var timestamp: @Sendable () -> Timestamp
   public var waitFor: @Sendable (Seconds) async throws -> Void
@@ -308,6 +308,7 @@ extension TimeVariable: Updatable {
       return Void()
     }
     // time update can't produce errors
+    // swift-format-ignore: NeverUseForceTry
     self.nextUpdateTime = try! update.value
     self.lastUpdateGeneration = update.generation
     self.runningUpdate.clearIfCurrent()

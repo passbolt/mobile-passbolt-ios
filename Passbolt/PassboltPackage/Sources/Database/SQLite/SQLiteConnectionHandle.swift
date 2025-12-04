@@ -25,7 +25,7 @@ import CommonModels
 import SQLCipher
 
 @usableFromInline
-internal final class SQLiteConnectionHandle {
+internal final class SQLiteConnectionHandle: @unchecked Sendable {
 
   internal static func open(
     at path: String,

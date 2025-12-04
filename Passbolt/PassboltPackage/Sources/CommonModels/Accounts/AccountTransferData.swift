@@ -54,3 +54,4 @@ public struct AccountTransferData: Codable {
 }
 
 extension AccountTransferData: Equatable {}
+extension AccountTransferData: Sendable {}

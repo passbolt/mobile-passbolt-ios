@@ -57,7 +57,7 @@ extension OSPasteboard: StaticFeature {
 
 extension OSPasteboard {
 
-  private static var expirationInterval: TimeInterval = 30
+  private static let expirationInterval: TimeInterval = 30
 
   fileprivate static var live: Self {
 

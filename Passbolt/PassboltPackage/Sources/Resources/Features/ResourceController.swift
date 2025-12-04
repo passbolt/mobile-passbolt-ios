@@ -26,7 +26,7 @@ import Features
 
 // MARK: - Interface
 
-public struct ResourceController {
+public struct ResourceController: Sendable {
 
   public var state: AnyUpdatable<Resource>
   public var fetchSecretIfNeeded: @Sendable (Bool) async throws -> JSON

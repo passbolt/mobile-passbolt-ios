@@ -33,7 +33,7 @@ public enum ServerConfigurationFetchNetworkOperationDescription: NetworkOperatio
   public typealias Output = ServerConfiguration
 }
 
-public struct ServerConfiguration: Decodable {
+public struct ServerConfiguration: Decodable, Sendable {
 
   public var legal: Legal
   public var plugins: Plugins
@@ -78,7 +78,7 @@ public struct ServerConfiguration: Decodable {
 
 extension ServerConfiguration {
 
-  public struct Legal: Decodable, Equatable {
+  public struct Legal: Decodable, Equatable, Sendable {
 
     public var privacyPolicy: URLString?
     public var terms: URLString?
@@ -130,7 +130,7 @@ extension ServerConfiguration {
 
 extension ServerConfiguration {
 
-  public struct Plugins: Decodable {
+  public struct Plugins: Decodable, Sendable {
 
     public var passwordPreview: PasswordPreview?
     public var folders: Folders?
@@ -177,7 +177,7 @@ extension ServerConfiguration {
 
 extension ServerConfiguration.Plugins {
 
-  public struct PasswordPreview: Decodable {
+  public struct PasswordPreview: Decodable, Sendable {
 
     public var enabled: Bool
 
@@ -188,7 +188,7 @@ extension ServerConfiguration.Plugins {
     }
   }
 
-  public struct Folders: Decodable {
+  public struct Folders: Decodable, Sendable {
 
     public var enabled: Bool
 
@@ -199,7 +199,7 @@ extension ServerConfiguration.Plugins {
     }
   }
 
-  public struct Tags: Decodable {
+  public struct Tags: Decodable, Sendable {
 
     public var enabled: Bool
 
@@ -210,7 +210,7 @@ extension ServerConfiguration.Plugins {
     }
   }
 
-  public struct TOTPResources: Decodable {
+  public struct TOTPResources: Decodable, Sendable {
 
     public var enabled: Bool
 
@@ -221,7 +221,7 @@ extension ServerConfiguration.Plugins {
     }
   }
 
-  public struct PasswordPolicies: Decodable {
+  public struct PasswordPolicies: Decodable, Sendable {
 
     public var enabled: Bool
 
@@ -232,7 +232,7 @@ extension ServerConfiguration.Plugins {
     }
   }
 
-  public struct PasswordPoliciesUpdate: Decodable {
+  public struct PasswordPoliciesUpdate: Decodable, Sendable {
 
     public var enabled: Bool
 
@@ -243,7 +243,7 @@ extension ServerConfiguration.Plugins {
     }
   }
 
-  public struct RBAC: Decodable {
+  public struct RBAC: Decodable, Sendable {
 
     public var enabled: Bool
 
@@ -254,7 +254,7 @@ extension ServerConfiguration.Plugins {
     }
   }
 
-  public struct Metadata: Decodable {
+  public struct Metadata: Decodable, Sendable {
 
     public var enabled: Bool
 

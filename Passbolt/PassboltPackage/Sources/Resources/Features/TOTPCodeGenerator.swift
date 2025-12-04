@@ -26,9 +26,9 @@ import Features
 
 // MARK: - Interface
 
-public struct TOTPCodeGenerator {
+public struct TOTPCodeGenerator: Sendable {
 
-  public struct Parameters {
+  public struct Parameters: Sendable {
 
     public var resourceID: Resource.ID?
     public var sharedSecret: String

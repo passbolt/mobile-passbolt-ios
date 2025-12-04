@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public struct UsersFilter {
+public struct UsersFilter: Sendable {
 
   public var text: String
 

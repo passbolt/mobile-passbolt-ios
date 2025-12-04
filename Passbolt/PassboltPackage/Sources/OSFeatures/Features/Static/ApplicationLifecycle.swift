@@ -21,18 +21,18 @@
 // @since         v1.0
 //
 
-import CommonModels
+@preconcurrency import CommonModels
 import UIKit
 
-public struct ApplicationLifecycle {
+public struct ApplicationLifecycle: Sendable {
 
   public var lifecycle: AnyAsyncSequence<Transition>
-  public var lifecyclePublisher: () -> AnyPublisher<Transition, Never>
+  public var lifecyclePublisher: @Sendable () -> AnyPublisher<Transition, Never>
 }
 
 extension ApplicationLifecycle {
 
-  public enum Transition: Equatable {
+  public enum Transition: Equatable, Sendable {
 
     case didBecomeActive
     case willResignActive

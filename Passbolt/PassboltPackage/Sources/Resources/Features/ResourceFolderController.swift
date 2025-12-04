@@ -26,7 +26,7 @@ import Features
 
 // MARK: - Interface
 
-public struct ResourceFolderController {
+public struct ResourceFolderController: Sendable {
 
   public var state: AnyUpdatable<ResourceFolder>
 
