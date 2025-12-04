@@ -299,6 +299,9 @@ let package = Package(
       dependencies: [
         // Base
         "Commons"
+      ],
+      swiftSettings: [
+        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -493,6 +496,9 @@ let package = Package(
         "Commons",
         "CommonModels",
         "Features",
+      ],
+      swiftSettings: [
+        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -509,6 +515,9 @@ let package = Package(
         "Accounts",
         "Session",
         "NetworkOperations",
+      ],
+      swiftSettings: [
+        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -540,6 +549,9 @@ let package = Package(
         "NetworkOperations",
         "DatabaseOperations",
         "Session",
+      ],
+      swiftSettings: [
+        .swiftLanguageMode(.v6)
       ]
     ),
     .target(

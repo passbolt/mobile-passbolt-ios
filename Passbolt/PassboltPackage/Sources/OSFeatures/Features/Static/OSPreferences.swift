@@ -28,13 +28,13 @@ import struct Foundation.Data
 import struct Foundation.UUID
 import class Foundation.UserDefaults
 
-public struct OSPreferences {
+public struct OSPreferences: Sendable {
 
   public typealias Key = Tagged<String, Self>
 
-  public var load: (Key) -> Any?
-  public var save: (Any, Key) -> Void
-  public var delete: (Key) -> Void
+  public var load: @Sendable (Key) -> Any?
+  public var save: @Sendable (Any, Key) -> Void
+  public var delete: @Sendable (Key) -> Void
 }
 
 extension OSPreferences: StaticFeature {
@@ -75,11 +75,11 @@ extension OSPreferences {
       ObjectIdentifier(Dictionary<String, String>?.self),
     ]
 
-    func load(for key: Key) -> Any? {
+    @Sendable func load(for key: Key) -> Any? {
       defaults.value(forKey: key.rawValue)
     }
 
-    func save(value: Any, for key: Key) {
+    @Sendable func save(value: Any, for key: Key) {
       let typeOfValue: Any.Type = type(of: value)
       assert(
         supportedTypes.contains(ObjectIdentifier(typeOfValue)),
@@ -88,7 +88,7 @@ extension OSPreferences {
       defaults.setValue(value, forKey: key.rawValue)
     }
 
-    func delete(for key: Key) {
+    @Sendable func delete(for key: Key) {
       defaults.setValue(nil, forKey: key.rawValue)
     }
 

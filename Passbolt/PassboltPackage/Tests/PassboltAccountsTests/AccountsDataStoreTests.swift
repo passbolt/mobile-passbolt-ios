@@ -41,7 +41,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     mockKeychainStore = .init()
     patch(
       \OSKeychain.load,
-      with: { [unowned self] query in
+      with: { @MainActor [unowned self] query in
         .success(
           self.mockKeychainStore
             .filter {
@@ -55,7 +55,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     )
     patch(
       \OSKeychain.loadMeta,
-      with: { [unowned self] query in
+      with: { @MainActor [unowned self] query in
         .success(
           self.mockKeychainStore
             .filter { $0.query.key == query.key && ($0.query.tag == query.tag || query.tag == nil) }
@@ -70,7 +70,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     )
     patch(
       \OSKeychain.save,
-      with: { [unowned self] data, query in
+      with: { @MainActor [unowned self] data, query in
         self.mockKeychainStore.removeAll(
           where: {
             $0.query.key == query.key
@@ -83,7 +83,7 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     )
     patch(
       \OSKeychain.delete,
-      with: { [unowned self] query in
+      with: { @MainActor [unowned self] query in
         self.mockKeychainStore.removeAll(
           where: {
             $0.query.key == query.key
@@ -97,13 +97,13 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     mockPreferencesStore = .init()
     patch(
       \OSPreferences.load,
-      with: { [unowned self] key in
+      with: { @MainActor [unowned self] key in
         self.mockPreferencesStore[key]
       }
     )
     patch(
       \OSPreferences.save,
-      with: { [unowned self] data, key in
+      with: { @MainActor [unowned self] data, key in
         self.mockPreferencesStore[key] = data
       }
     )

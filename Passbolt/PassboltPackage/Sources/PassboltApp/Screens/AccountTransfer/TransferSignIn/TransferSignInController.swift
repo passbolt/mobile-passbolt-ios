@@ -69,7 +69,7 @@ extension TransferSignInController: UIController {
       accountTransfer
         .accountDetailsPublisher()
         .map { details -> AccountImport.AccountDetails? in details }
-        .collectErrorLog(using: Diagnostics.shared)
+        .collectErrorLog()
         .replaceError(with: nil)
         .filterMapOptional()
         .eraseToAnyPublisher()
@@ -79,7 +79,7 @@ extension TransferSignInController: UIController {
       accountTransfer
         .avatarPublisher()
         .map { data -> Data? in data }
-        .collectErrorLog(using: Diagnostics.shared)
+        .collectErrorLog()
         .replaceError(with: nil)
         .eraseToAnyPublisher()
     }

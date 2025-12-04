@@ -27,7 +27,7 @@ public struct NetworkRequestValidationFailure: TheError {
 
   public static func error(
     _ message: StaticString = "NetworkRequestValidationFailure",
-    validationViolations: Dictionary<String, Any>,
+    validationViolations: Dictionary<String, Sendable>,
     file: StaticString = #fileID,
     line: UInt = #line
   ) -> Self {
@@ -46,6 +46,5 @@ public struct NetworkRequestValidationFailure: TheError {
 
   public var context: DiagnosticsContext
   public var displayableMessage: DisplayableString
-  #warning("TODO: refine validations to be more useful")
-  public var validationViolations: Dictionary<String, Any>
+  public var validationViolations: Dictionary<String, Sendable>
 }

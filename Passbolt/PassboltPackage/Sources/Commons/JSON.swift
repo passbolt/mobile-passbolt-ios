@@ -511,17 +511,17 @@ extension JSON {
 
 extension JSON {
 
-  public struct ArrayLookup<T>: Hashable where T: Hashable {
-    let keyPath: KeyPath<JSON, T>
+  public struct ArrayLookup<T>: Sendable, Hashable where T: Hashable, T: Sendable {
+    let keyPath: KeyPath<JSON, T> & Sendable
     let value: T
 
-    public init(keyPath: KeyPath<JSON, T>, value: T) {
+    public init(keyPath: KeyPath<JSON, T> & Sendable, value: T) {
       self.keyPath = keyPath
       self.value = value
     }
   }
 
-  public subscript<T>(dynamicMember lookup: ArrayLookup<T>) -> JSON where T: Hashable {
+  public subscript<T>(dynamicMember lookup: ArrayLookup<T>) -> JSON where T: Hashable, T: Sendable {
     get {
       switch self {
       case .array(let array):

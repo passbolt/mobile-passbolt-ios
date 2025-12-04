@@ -437,10 +437,10 @@ private func withVerifiedStatusCode(
       )
   }
   else if httpResponse.statusCode == 400 {
-    if let validationViolations: Dictionary<String, Any> = try JSONSerialization.jsonObject(
+    if let validationViolations: Dictionary<String, Sendable> = try JSONSerialization.jsonObject(
       with: httpResponse.body,
       options: .init()
-    ) as? Dictionary<String, Any> {
+    ) as? Dictionary<String, Sendable> {
       throw
         NetworkRequestValidationFailure
         .error(

@@ -133,12 +133,14 @@ extension AccountChunkedExport {
       )
       let encodedConfiguration: Data = try JSONEncoder.snake.encode(configuration)
 
+      // swift-format-ignore: NeverForceUnwrap
       var transferDataChunks: Array<Data> = [
         "100".data(using: .ascii)! /* it can't fail */
           + encodedConfiguration
       ]
 
       for (idx, chunk) in chunckedPayload.enumerated() {
+        // swift-format-ignore: NeverForceUnwrap
         transferDataChunks
           .append(
             String(

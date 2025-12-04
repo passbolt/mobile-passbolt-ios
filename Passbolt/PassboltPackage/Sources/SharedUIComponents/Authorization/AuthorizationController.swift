@@ -169,7 +169,7 @@ extension AuthorizationController: UIController {
             throw error
           }
         }
-        .collectErrorLog(using: Diagnostics.shared)
+        .collectErrorLog()
         .handleErrors { error in
           switch error {
           case is HTTPNotFound:
@@ -197,7 +197,7 @@ extension AuthorizationController: UIController {
           throw error
         }
       }
-      .collectErrorLog(using: Diagnostics.shared)
+      .collectErrorLog()
       .handleErrors { error in
         switch error {
         case is HTTPNotFound:

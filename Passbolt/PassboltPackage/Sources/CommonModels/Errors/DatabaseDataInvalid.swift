@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-import CommonModels
 import Commons
 
 public struct DatabaseDataInvalid: TheError {

@@ -26,10 +26,10 @@ import LocalAuthentication
 
 // MARK: - Interface
 
-public struct OSBiometry {
+public struct OSBiometry: Sendable {
 
   public var availability: @Sendable () -> OSBiometryAvailability
-  public var ensurePermission: () async throws -> Void
+  public var ensurePermission: @Sendable () async throws -> Void
 }
 
 extension OSBiometry: StaticFeature {

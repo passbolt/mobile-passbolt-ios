@@ -25,9 +25,7 @@ import CommonModels
 
 extension Publisher {
 
-  public func collectErrorLog(
-    using diagnostics: Diagnostics
-  ) -> Publishers.HandleEvents<Self> {
+  public func collectErrorLog() -> Publishers.HandleEvents<Self> {
     self.handleEvents(
       receiveCompletion: { (completion: Subscribers.Completion<Self.Failure>) -> Void in
         switch completion {

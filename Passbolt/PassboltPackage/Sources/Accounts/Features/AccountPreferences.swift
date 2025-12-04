@@ -26,7 +26,7 @@ import Features
 // MARK: - Interface
 
 /// Access to preferences associated with a stored account.
-public struct AccountPreferences {
+public struct AccountPreferences: Sendable {
 
   /// Updates in the context account preferences.
   public var updates: AnyUpdatable<Void>

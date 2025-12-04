@@ -25,13 +25,13 @@ import CommonModels
 import Foundation
 import LocalAuthentication
 
-public struct OSKeychain {
+public struct OSKeychain: Sendable {
 
-  public var load: (OSKeychainQuery) -> Result<Array<Data>, Error>
-  public var loadMeta: (OSKeychainQuery) -> Result<Array<OSKeychainItemMetadata>, Error>
-  public var checkIfExists: (OSKeychainQuery) -> Bool
-  public var save: (Data, OSKeychainQuery) -> Result<Void, Error>
-  public var delete: (OSKeychainQuery) -> Result<Void, Error>
+  public var load: @Sendable (OSKeychainQuery) -> Result<Array<Data>, Error>
+  public var loadMeta: @Sendable (OSKeychainQuery) -> Result<Array<OSKeychainItemMetadata>, Error>
+  public var checkIfExists: @Sendable (OSKeychainQuery) -> Bool
+  public var save: @Sendable (Data, OSKeychainQuery) -> Result<Void, Error>
+  public var delete: @Sendable (OSKeychainQuery) -> Result<Void, Error>
 }
 
 extension OSKeychain: StaticFeature {
@@ -52,12 +52,12 @@ extension OSKeychain: StaticFeature {
 extension OSKeychain {
 
   fileprivate static var live: Self {
-    let biometricsContext: () -> LAContext = {
+    let biometricsContext: @Sendable () -> LAContext = {
       let context: LAContext = .init()
       return context
     }
 
-    func load(
+    @Sendable func load(
       matching query: OSKeychainQuery
     ) -> Result<Array<Data>, Error> {
       let context: LAContext? =
@@ -73,7 +73,7 @@ extension OSKeychain {
       )
     }
 
-    func loadMeta(
+    @Sendable func loadMeta(
       matching query: OSKeychainQuery
     ) -> Result<Array<OSKeychainItemMetadata>, Error> {
       let context: LAContext? =
@@ -100,7 +100,7 @@ extension OSKeychain {
       }
     }
 
-    func checkIfExists(
+    @Sendable func checkIfExists(
       matching query: OSKeychainQuery
     ) -> Bool {
       let context: LAContext? =
@@ -116,7 +116,7 @@ extension OSKeychain {
       )
     }
 
-    func save(
+    @Sendable func save(
       _ data: Data,
       for query: OSKeychainQuery
     ) -> Result<Void, Error> {
@@ -134,7 +134,7 @@ extension OSKeychain {
       )
     }
 
-    func delete(
+    @Sendable func delete(
       matching query: OSKeychainQuery
     ) -> Result<Void, Error> {
       deleteKeychainData(

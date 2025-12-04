@@ -27,7 +27,7 @@ public struct ResourceType {
 
   public typealias ID = Tagged<PassboltID, Self>
   // All actual fields from the specification are read/write
-  public typealias FieldPath = WritableKeyPath<Resource, JSON>
+  public typealias FieldPath = WritableKeyPath<Resource, JSON> & Sendable
   // Computed fields are read only but it also contains all actual fields
   public typealias ComputedFieldPath = KeyPath<Resource, JSON>
 

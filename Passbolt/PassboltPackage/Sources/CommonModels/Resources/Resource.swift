@@ -492,7 +492,7 @@ extension Resource {
       .arrayValue?
       .compactMap { .init(json: $0) } ?? .init()
     guard let field = customFields.first(where: { $0.id == id }) else { return nil }
-    let path: ResourceType.FieldPath = \.secret.custom_fields
+    let path: WritableKeyPath<Resource, JSON> = \.secret.custom_fields
     let lookup: JSON.ArrayLookup = .init(keyPath: \.id, value: .string(field.id.rawValue.uuidString.lowercased()))
     return path.appending(path: \.[dynamicMember:lookup]).appending(path: \.secret_value)
   }

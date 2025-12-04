@@ -22,7 +22,7 @@
 //
 
 /// Method for authorizing session.
-public enum SessionAuthorizationMethod {
+public enum SessionAuthorizationMethod: Sendable {
   /// Authorization for not stored accounts
   /// providing both passphrase and private key.
   case adHoc(

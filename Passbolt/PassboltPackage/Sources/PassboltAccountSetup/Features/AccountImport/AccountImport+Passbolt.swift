@@ -83,7 +83,7 @@ extension AccountImport {
           return .configuration
         }
       }
-      .collectErrorLog(using: Diagnostics.shared)
+      .collectErrorLog()
       .eraseToAnyPublisher()
 
     let accountDetailsPublisher: AnyPublisher<AccountDetails, Error> =
@@ -126,7 +126,7 @@ extension AccountImport {
             .eraseErrorType()
             .asyncMap {
               //Download the account kit
-              let accountKit = try! await mediaDownloadNetworkOperation.execute(downloadLink.accountKitURL)
+              let accountKit = try await mediaDownloadNetworkOperation.execute(downloadLink.accountKitURL)
               //Check if account kit is not missing
               guard let accountKitString = String(data: accountKit, encoding: .utf8), !accountKit.isEmpty
               else {
@@ -239,7 +239,7 @@ extension AccountImport {
             }
           )
           .ignoreOutput()
-          .collectErrorLog(using: Diagnostics.shared)
+          .collectErrorLog()
           .eraseToAnyPublisher()
         }
         else {
@@ -252,14 +252,14 @@ extension AccountImport {
             guard case .finished = completion else { return }
             transferState.value = updatedState
           })
-          .collectErrorLog(using: Diagnostics.shared)
+          .collectErrorLog()
           .eraseToAnyPublisher()
         }
       case .failure(let error)
       where error is Cancelled:
         Diagnostics.logger.info("...processing canceled!")
         return Fail<Never, Error>(error: error)
-          .collectErrorLog(using: Diagnostics.shared)
+          .collectErrorLog()
           .eraseToAnyPublisher()
 
       case .failure(let error)
@@ -267,7 +267,7 @@ extension AccountImport {
         || error is AccountTransferScanningDomainIssue:
         Diagnostics.logger.info("...processing failed, recoverable!")
         return Fail<Never, Error>(error: error)
-          .collectErrorLog(using: Diagnostics.shared)
+          .collectErrorLog()
           .eraseToAnyPublisher()
 
       case .failure(let error):
@@ -285,13 +285,13 @@ extension AccountImport {
             transferState.send(completion: .failure(error))
           })
           .ignoreOutput()  // we care only about completion or failure
-          .collectErrorLog(using: Diagnostics.shared)
+          .collectErrorLog()
           .eraseToAnyPublisher()
         }
         else {  // we can't cancel if we don't have configuration yet
           transferState.send(completion: .failure(error))
           return Fail<Never, Error>(error: error)
-            .collectErrorLog(using: Diagnostics.shared)
+            .collectErrorLog()
             .eraseToAnyPublisher()
         }
       }
@@ -387,7 +387,7 @@ extension AccountImport {
 
     /// Imports an account by its transfer data if it's not already stored.
     ///
-    /// This function initiates an account transfer process with a delay to bypass view presentation issues.
+    /// This function initiates an account transfer process..
     ///
     /// - Parameter accountTransferData: The account transfer data used to import the account.
     nonisolated func importAccountByPayload(_ accountTransferData: AccountTransferData) {
@@ -397,37 +397,30 @@ extension AccountImport {
         return
       }
 
-      // Since this bypass is not a proper app feature, we have a bit hacky solution
-      // where we set the state before presenting associated views and without informing it
-      // this results in view presentation issues and requires some delay
-      // which happened to be around 1 sec minimum at the time of writing this code
-
-      DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-        transferState.send(
-          .init(
-            configuration: AccountTransferConfiguration(
-              transferID: "N/A",
-              pagesCount: 0,
-              userID: accountTransferData.userID,
-              authenticationToken: "N/A",
-              domain: accountTransferData.domain,
-              hash: "N/A"
-            ),
-            account: AccountTransferAccount(
-              userID: accountTransferData.userID,
-              fingerprint: accountTransferData.fingerprint,
-              armoredKey: accountTransferData.armoredKey
-            ),
-            profile: AccountTransferAccountProfile(
-              username: accountTransferData.username,
-              firstName: accountTransferData.firstName,
-              lastName: accountTransferData.lastName,
-              avatarImageURL: accountTransferData.avatarImageURL ?? ""
-            ),
-            scanningParts: []
-          )
+      transferState.send(
+        .init(
+          configuration: AccountTransferConfiguration(
+            transferID: "N/A",
+            pagesCount: 0,
+            userID: accountTransferData.userID,
+            authenticationToken: "N/A",
+            domain: accountTransferData.domain,
+            hash: "N/A"
+          ),
+          account: AccountTransferAccount(
+            userID: accountTransferData.userID,
+            fingerprint: accountTransferData.fingerprint,
+            armoredKey: accountTransferData.armoredKey
+          ),
+          profile: AccountTransferAccountProfile(
+            username: accountTransferData.username,
+            firstName: accountTransferData.firstName,
+            lastName: accountTransferData.lastName,
+            avatarImageURL: accountTransferData.avatarImageURL ?? ""
+          ),
+          scanningParts: []
         )
-      }
+      )
     }
 
     nonisolated func cancelTransfer() {
@@ -439,7 +432,7 @@ extension AccountImport {
           lastPage: transferState.value.lastScanningPage ?? transferState.value.configurationScanningPage,
           using: accountTransferUpdateNetworkOperation
         )
-        .collectErrorLog(using: Diagnostics.shared)
+        .collectErrorLog()
         // we don't care about response, user exits process anyway
         .sinkDrop()
       }

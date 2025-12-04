@@ -39,15 +39,12 @@ extension AccountKitImport {
 
     Diagnostics.logger.info("Beginning importing account kit...")
 
-    /**
-     * Imports an account kit and returns the account transfer data.
-     *
-     * This asynchronous function will take the payload and extract it
-     *
-     * @param {string} payload - The account kit payload to be imported.
-     * @returns {AnyPublisher<AccountTransferData, Error>}
-     *
-     */
+    /// Imports an account kit and returns the account transfer data.
+    ///
+    /// This asynchronous function will take the payload and extract it
+    ///
+    /// - Parameter payload: The account kit payload to be imported.
+    /// - Returns: AnyPublisher<AccountTransferData, Error>
     nonisolated func importAccountKit(
       _ payload: String
     ) -> AnyPublisher<AccountTransferData, Error> {
@@ -95,7 +92,7 @@ extension AccountKitImport {
       catch {
         Diagnostics.logger.info("Failed to import")
         return Fail(error: error)
-          .collectErrorLog(using: Diagnostics.shared)
+          .collectErrorLog()
           .eraseToAnyPublisher()
       }
     }
@@ -115,8 +112,8 @@ extension AccountKitImport {
 /// 3. Validates that the payload is in base64 format.
 /// If any of these checks fail, the function returns an error indicating the specific failure.
 ///
-/// @param {string} payload - The account kit payload to validate.
-/// @returns {void}
+/// - Parameter payload: The account kit payload to validate.
+/// - Returns: void
 private func checkAccountkitFormat(
   _ payload: String
 ) throws {
@@ -139,9 +136,9 @@ private func checkAccountkitFormat(
 ///
 /// This function decodes the base64 encoded payload and then uses the provided PGP instance to extract a PGP message.
 ///
-/// @param {string} payload - The base64 encoded string containing the PGP message.
-/// @param {PGP} pgp - The PGP instance used for extracting the PGP message.
-/// @returns {Result<string, Error>}
+/// - Parameter payload: The base64 encoded string containing the PGP message.
+/// - Parameter pgp: The PGP instance used for extracting the PGP message.
+/// - Returns: Result<String, Error>
 private func extractPGPMessage(
   _ payload: String,
   _ pgp: PGP
@@ -173,8 +170,8 @@ private func extractPGPMessage(
 ///
 /// This function searches for a JSON string within the PGP message and extract it
 ///
-/// @param {string} pgpMessage - The PGP message string from which the Account Kit DTO is to be extracted.
-/// @returns {Result<AccountKitDTO, Error>}
+/// - Parameter pgpMessage: The PGP message string from which the Account Kit DTO is to be extracted.
+/// - Returns: Result<AccountKitDTO, Error>
 private func extractAccountKit(
   _ pgpMessage: String
 ) -> Result<AccountKitDTO, Error> {
@@ -184,7 +181,6 @@ private func extractAccountKit(
     let pattern = "\\{.*\\}\\}"
     let regex = try NSRegularExpression(pattern: pattern, options: [])
     let range = NSRange(pgpMessage.startIndex..., in: pgpMessage)
-    let matches = regex.matches(in: pgpMessage, options: [], range: range).count
     if let match = regex.firstMatch(in: pgpMessage, options: [], range: range),
       let matchRange = Range(match.range, in: pgpMessage)
     {
@@ -214,10 +210,10 @@ private func extractAccountKit(
 ///
 /// This function attempts to verify the signature of the provided PGP message using the given armored PGP public key and a PGP instance.
 ///
-/// @param {string} pgpMessage - The PGP message whose signature is to be validated.
-/// @param {ArmoredPGPPublicKey} publicKeyArmored - The armored PGP public key used for signature verification.
-/// @param {PGP} pgp - The PGP instance used for verifying the message signature.
-/// @returns {Result<string, Error>}
+/// - Parameter pgpMessage: The PGP message whose signature is to be validated.
+/// - Parameter publicKeyArmored: The armored PGP public key used for signature verification.
+/// - Parameter pgp: The PGP instance used for verifying the message signature.
+/// - Returns: Result<String, Error>
 private func validateAccountKitSignature(
   _ pgpMessage: String,
   _ publicKeyArmored: ArmoredPGPPublicKey,
@@ -241,9 +237,9 @@ private func validateAccountKitSignature(
 ///
 /// This function uses a PGP instance to extract the fingerprint from the provided armored PGP public key.
 ///
-/// @param {ArmoredPGPPublicKey} publicKeyArmored - The armored PGP public key from which the fingerprint is to be extracted.
-/// @param {PGP} pgp - The PGP instance used for extracting the fingerprint.
-/// @returns {Result<Fingerprint, Error>}
+/// - Parameter publicKeyArmored: The armored PGP public key from which the fingerprint is to be extracted.
+/// - Parameter pgp: The PGP instance used for extracting the fingerprint.
+/// - Returns: Result<Fingerprint, Error>
 private func getFingerPrint(_ publicKeyArmored: ArmoredPGPPublicKey, _ pgp: PGP) -> Result<Fingerprint, Error> {
   do {
     let result = try pgp.extractFingerprint(publicKeyArmored).get()
@@ -261,9 +257,9 @@ private func getFingerPrint(_ publicKeyArmored: ArmoredPGPPublicKey, _ pgp: PGP)
 ///
 /// This function evaluates whether the account specified by the account transfer data already exists in the account import context.
 ///
-/// @param {AccountImport} accountTransfer - The account import context to check for the existence of the account.
-/// @param {AccountTransferData} accountTransferData - The account transfer data to check for existence.
-/// @returns {void}
+/// - Parameter accounts: The account import context to check for the existence of the account.
+/// - Parameter accountTransferData: The account transfer data to check for existence.
+/// - Returns: void
 private func checkIfAccountExist(
   _ accounts: Accounts,
   _ accountTransferData: AccountTransferData

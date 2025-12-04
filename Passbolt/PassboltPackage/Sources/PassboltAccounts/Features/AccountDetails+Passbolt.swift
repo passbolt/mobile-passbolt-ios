@@ -55,7 +55,6 @@ extension AccountDetails {
     }
 
     let userDetailsCache: ComputedVariable<UserDTO> = .init {
-      return
         try await userDetailsFetchNetworkOperation
         .execute(
           .init(

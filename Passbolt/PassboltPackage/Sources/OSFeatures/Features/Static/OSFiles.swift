@@ -30,11 +30,11 @@ import struct Foundation.URL
 
 // MARK: - Interface
 
-public struct OSFiles {
+public struct OSFiles: Sendable {
 
-  public var deleteFile: (URL) throws -> Void
-  public var contentsOfDirectory: (URL) throws -> Array<String>
-  public var applicationDataDirectory: () throws -> URL
+  public var deleteFile: @Sendable (URL) throws -> Void
+  public var contentsOfDirectory: @Sendable (URL) throws -> Array<String>
+  public var applicationDataDirectory: @Sendable () throws -> URL
 }
 
 extension OSFiles: StaticFeature {
@@ -55,13 +55,13 @@ extension OSFiles: StaticFeature {
 extension OSFiles {
 
   fileprivate static var live: Self {
-    let fileManager: FileManager = .default
+    @Sendable func currentFileManager() -> FileManager { .default }
 
-    func deleteFile(
+    @Sendable func deleteFile(
       at fileURL: URL
     ) throws {
       do {
-        try fileManager.removeItem(at: fileURL)
+        try currentFileManager().removeItem(at: fileURL)
       }
       catch let nsError as NSError where nsError.code == NSFileNoSuchFileError {
         // file does not exists
@@ -75,12 +75,12 @@ extension OSFiles {
       }
     }
 
-    func contentsOfDirectory(
+    @Sendable func contentsOfDirectory(
       _ directoryURL: URL
     ) throws -> Array<String> {
       do {
         let contents: Array<URL> =
-          try fileManager
+          try currentFileManager()
           .contentsOfDirectory(
             at: directoryURL,
             includingPropertiesForKeys: nil,
@@ -101,10 +101,10 @@ extension OSFiles {
       }
     }
 
-    func applicationDataDirectory() throws -> URL {
+    @Sendable func applicationDataDirectory() throws -> URL {
       do {
         let url: URL =
-          try fileManager
+          try currentFileManager()
           .url(
             for: .applicationSupportDirectory,
             in: .userDomainMask,

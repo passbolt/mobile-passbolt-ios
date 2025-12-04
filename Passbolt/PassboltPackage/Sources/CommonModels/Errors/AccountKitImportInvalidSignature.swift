@@ -21,18 +21,16 @@
 // @since         v1.0
 //
 
+/// Error indicating an invalid signature during AccountKit import operations.
 public struct AccountKitImportInvalidSignature: TheError {
 
-  /**
-   * Creates a new error instance specific to the AccountKit domain.
-   *
-   * This static function constructs an error related to Account Kit processing
-   *
-   * @param {Error} [underlyingError] - An optional underlying error that may have caused this error.
-   * @param {StaticString} [file] - The file where the error is being created, defaults to the current file.
-   * @param {UInt} [line] - The line number in the file where the error is being created, defaults to the current  line.
-   * @returns {ErrorType} An instance of the error type, configured with the provided context and underlying error.
-   */
+  /// Creates a new error instance specific to the AccountKit domain.
+  ///
+  /// This static function constructs an error related to Account Kit processing.
+  /// - Parameter underlyingError: An optional underlying error that may have caused this error.
+  /// - Parameter file: The file where the error is being created, defaults to the current file.
+  /// - Parameter line: The line number in the file where the error is being created, defaults to the current line.
+  /// - Returns: An instance of the error type, configured with the provided context and underlying error.
   public static func error(
     underlyingError: Error? = .none,
     file: StaticString = #fileID,
@@ -50,6 +48,8 @@ public struct AccountKitImportInvalidSignature: TheError {
     )
   }
 
+  /// The diagnostics context for this error.
   public var context: DiagnosticsContext
+  /// The underlying error, if any.
   public var underlyingError: Error?
 }

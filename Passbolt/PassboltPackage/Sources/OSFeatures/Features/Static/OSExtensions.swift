@@ -26,7 +26,7 @@ import Features
 
 // MARK: - Interface
 
-public struct OSExtensions {
+public struct OSExtensions: Sendable {
 
   public var autofillExtensionEnabled: @Sendable () async -> Bool
 }

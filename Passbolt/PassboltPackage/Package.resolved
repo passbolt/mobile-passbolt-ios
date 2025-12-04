@@ -1,0 +1,33 @@
+{
+  "originHash" : "4d995e5f04683639a24f525c6f3a9259ce7831de665c56a575eeb330f92d3e00",
+  "pins" : [
+    {
+      "identity" : "aegithalos",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/miquido/aegithalos.git",
+      "state" : {
+        "revision" : "327b70e5b5e4cf4ad54dcfd52008551bbb38ecd4",
+        "version" : "2.3.1"
+      }
+    },
+    {
+      "identity" : "swift-async-algorithms",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-async-algorithms.git",
+      "state" : {
+        "revision" : "9cfed92b026c524674ed869a4ff2dcfdeedf8a2a",
+        "version" : "0.1.0"
+      }
+    },
+    {
+      "identity" : "swift-collections",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-collections.git",
+      "state" : {
+        "revision" : "937e904258d22af6e447a0b72c0bc67583ef64a2",
+        "version" : "1.0.4"
+      }
+    }
+  ],
+  "version" : 3
+}

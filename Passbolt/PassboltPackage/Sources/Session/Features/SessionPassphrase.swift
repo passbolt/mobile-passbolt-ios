@@ -28,7 +28,7 @@ import Features
 
 /// SessionPassphrase provides access
 /// to session passphrase related methods.
-public struct SessionPassphrase {
+public struct SessionPassphrase: Sendable {
   /// Control session passphrase storage.
   /// When called with `true` current session
   /// passphrase will be stored using biometry.
