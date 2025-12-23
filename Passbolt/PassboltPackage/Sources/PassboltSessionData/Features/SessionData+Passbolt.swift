@@ -62,14 +62,12 @@ extension SessionData {
 
     let refreshTask: CriticalState<Task<Void, Error>?> = .init(.none)
 
-    if isInApplicationContext {
-      Task {  // initial refresh after loading
-        do {
-          try await refreshIfNeeded()
-        }
-        catch {
-          error.logged()
-        }
+    Task {  // initial refresh after loading
+      do {
+        try await refreshIfNeeded()
+      }
+      catch {
+        error.logged()
       }
     }
 

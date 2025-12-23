@@ -44,19 +44,14 @@ internal struct MFARequiredView: ControlledView {
     }
     .padding(.horizontal, 32)
     .navigationBarBackButtonHidden()
-    .toolbar {
-      ToolbarItem(placement: .topBarTrailing) {
-        AsyncButton(
-          action: {
-            await self.controller.closeExtension()
-          },
-          label: {
-            Image(named: .close)
-          }
-        )
-      }
-    }
     .padding(.top, 60)
+    .overlay(alignment: .topTrailing) {
+      IconButton(
+        iconName: .close,
+        action: self.controller.closeExtension
+      )
+      .padding(.top, 16)
+    }
   }
 }
 
@@ -67,7 +62,6 @@ internal struct MFARequiredView: ControlledView {
       createPreview(
         MFARequiredView.self
       )
-      .wrapInNavigationStack()
     }
 }
 #endif

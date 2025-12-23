@@ -54,13 +54,9 @@ internal struct HomeView: ControlledView {
       )
       .toolbar {
         ToolbarItem(placement: .navigationBarTrailing) {
-          Button(
-            action: {
-              self.controller.closeExtension()
-            },
-            label: {
-              Image(named: .close)
-            }
+          IconButton(
+            iconName: .close,
+            action: self.controller.closeExtension
           )
         }
       }
