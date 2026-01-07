@@ -58,7 +58,7 @@ public struct FeatureAccessControlConfiguration: Decodable, Sendable {
   public init(
     from decoder: Decoder
   ) throws {
-    let accessControl: Array<FeatureAccessControlConfigurationItem> = try Array<FeatureAccessControlConfigurationItem>(
+    let accessControl: Array<FeatureAccessControlConfigurationItem> = try .failableDecode(
       from: decoder
     )
 
