@@ -149,7 +149,10 @@ private struct AccountSelectionRow: View {
       .padding(.leading, 12)
       Spacer()
     }
-    .onReceive(account.imagePublisher ?? Just(nil).eraseToAnyPublisher()) { @MainActor data in
+    .onReceive(
+      account.imagePublisher?.receive(on: RunLoop.main).eraseToAnyPublisher()
+        ?? Just(nil).eraseToAnyPublisher()
+    ) { data in
       currentImage = data.flatMap { Image.init(data: $0) } ?? Image(named: .person)
     }
   }

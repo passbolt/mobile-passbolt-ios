@@ -161,11 +161,10 @@ extension AutofillRootViewController {
 
             }
 
-          case .requestedMFA:
-            await consumingErrors {
-              let navigationToMFA: NavigationToMFARequired = try await self.features.instance()
-              try await navigationToMFA.perform()
-            }
+          case .requestedMFA(let account, _):
+            let features: Features = try await self.features.branch(scope: AccountScope.self, context: account)
+            let navigationToMFA: NavigationToMFARequired = try await features.instance()
+            await navigationToMFA.performCatching()
 
           case .closed:
             self.restorationAccount.set(.none)

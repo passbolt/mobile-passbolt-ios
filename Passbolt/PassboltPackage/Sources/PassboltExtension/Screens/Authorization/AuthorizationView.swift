@@ -101,7 +101,7 @@ internal struct AuthorizationView: ControlledView {
         label: state.label,
         username: state.username,
         domain: state.domain,
-        avatarImage: nil,
+        avatarImage: state.avatarData,
         passphrase: binding(to: \.passphrase),
         mainActionLabel: "authorization.button.title",
         mainAction: self.controller.signIn,
