@@ -163,6 +163,9 @@ extension SessionState {
           Diagnostics.logger.info("All session tasks completed, proceeding with deferred passphrase wipe...")
           passphraseWipe()
         }
+        else if !runningTasks.isEmpty, wipePassphraseUponTaskCompletion {
+          Diagnostics.logger.info("Session tasks still running (\(runningTasks.count)), deferred wipe pending.")
+        }
       }
     }
 
@@ -173,7 +176,10 @@ extension SessionState {
       else {
         Diagnostics.logger.info("Passphrase cache expired...")
         if !runningTasks.isEmpty {
-          Diagnostics.logger.info("There are session tasks running, postponing cache removal until they complete...")
+          Diagnostics.logger
+            .info(
+              "There are \(runningTasks.count) session task(s) running, postponing cache removal until they complete."
+            )
           wipePassphraseUponTaskCompletion = true
           return currentPassphrase  // return expired passphrase until tasks complete
         }
@@ -446,12 +452,15 @@ extension SessionState {
 
     @SessionActor func passphraseWipe(force: Bool = false) {
       if force == false, !runningTasks.isEmpty {
-        Diagnostics.logger.info("Requested removal of passphrase cache, postponing due to running tasks...")
+        Diagnostics.logger
+          .info(
+            "Requested removal of passphrase cache, postponing due to \(runningTasks.count) running task(s)."
+          )
         wipePassphraseUponTaskCompletion = true
         return
       }
       else if force == true {
-        Diagnostics.logger.info("Forcing wiping passphrase cache ...")
+        Diagnostics.logger.info("Forcing wiping passphrase cache (running tasks: \(runningTasks.count))...")
       }
       else {
         Diagnostics.logger.info("Wiping passphrase cache...")
@@ -475,6 +484,14 @@ extension SessionState {
       Diagnostics.logger.info("Closing session...")
       guard let account: Account = currentAccount
       else { return }
+
+      if wipePassphraseUponTaskCompletion {
+        Diagnostics.logger.info("Session closed with pending deferred wipe - clearing flag")
+      }
+      if !runningTasks.isEmpty {
+        Diagnostics.logger.info("Session closed with \(runningTasks.count) running task(s).")
+      }
+
       currentAccount = .none
       currentPassphrase = .none
       currentPassphraseExpiration = 0
@@ -482,6 +499,8 @@ extension SessionState {
       currentRefreshToken = .none
       currentMFAToken = .none
       currentPendingAuthorization = .none
+      wipePassphraseUponTaskCompletion = false
+      runningTasks.removeAll()
       updatesSource.update()
       SessionStateChangeEvent.send(.closed)
     }

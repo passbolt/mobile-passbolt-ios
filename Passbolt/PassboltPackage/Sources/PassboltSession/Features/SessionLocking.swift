@@ -70,8 +70,13 @@ extension SessionLocking {
             Diagnostics.logger.info("Session auto locking enabled!")
             do {
               for try await update in appLifecycle.lifecycle {
+                Diagnostics.logger.info("Application transition: \(update.rawValue)")
+
+                // Check if account changed
                 guard sessionState.account() == account
-                else { break }  // account has changed
+                else {
+                  continue
+                }  // account has changed
                 switch (sessionState.pendingAuthorization(), update) {
                 case (.none, .didEnterBackground):
                   sessionState.passphraseWipe(false)

@@ -32,7 +32,7 @@ public struct ApplicationLifecycle: Sendable {
 
 extension ApplicationLifecycle {
 
-  public enum Transition: Equatable, Sendable {
+  public enum Transition: String, Equatable, Sendable {
 
     case didBecomeActive
     case willResignActive
