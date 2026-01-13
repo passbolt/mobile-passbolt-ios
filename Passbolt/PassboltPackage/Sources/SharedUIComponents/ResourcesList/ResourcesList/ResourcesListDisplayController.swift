@@ -138,9 +138,7 @@ extension ResourcesListDisplayController {
     try await self.context.selectResource(id)
   }
 
-  internal final func showResourceMenu(
-    _ id: Resource.ID
-  ) async throws {
-    try await self.context.resourceMenuAction?(id)
+  internal var showResourceMenuCallback: ((Resource.ID) async throws -> Void)? {
+    self.context.resourceMenuAction
   }
 }
