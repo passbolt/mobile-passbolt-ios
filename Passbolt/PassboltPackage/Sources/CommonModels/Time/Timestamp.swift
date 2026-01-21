@@ -55,4 +55,11 @@ extension Timestamp {
   ) -> Timestamp {
     .init(rawValue: lhs.rawValue + rhs.rawValue)
   }
+
+  public static func + (
+    _ lhs: Timestamp,
+    _ rhs: Days
+  ) -> Timestamp {
+    .init(rawValue: lhs.rawValue + rhs.inSeconds.rawValue)
+  }
 }

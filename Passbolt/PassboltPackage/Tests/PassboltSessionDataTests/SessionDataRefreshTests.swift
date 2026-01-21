@@ -93,7 +93,7 @@ final class SessionDataRefreshTests: FeaturesTestCase {
       SessionScope.self,
       context: .init(
         account: .mock_ada,
-        configuration: .mock_default.with(metadataEnabled: false)
+        configuration: .mock_default.with { $0.metadata = .init(enabled: false) }
       )
     )
 

@@ -31,6 +31,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
 
   var editedResource: Resource = .mock_1
   lazy var editedResourceType: ResourceType = self.editedResource.type
+  private static let referenceTimestamp: Timestamp = 1_768_390_000
 
   override func commonPrepare() {
     super.commonPrepare()
@@ -51,6 +52,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
         editedResource: editedResource,
         availableTypes: [editedResourceType, Resource.mock_2.type]
       )
+    )
+    patch(
+      \OSTime.timestamp,
+      with: always(Self.referenceTimestamp)
     )
   }
 
@@ -788,6 +793,205 @@ final class ResourceEditFormTests: FeaturesTestCase {
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIfNotThrows(
       try await tested.sendForm()
+    )
+  }
+
+  func test_updatingPasswordExpiry_forNewResource_withAutomaticExpiryEnabled_setsExpiryDate() async throws {
+    var editedResource: Resource = self.editedResource
+    editedResource.id = .none  // simulate new resource
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \SessionConfigurationLoader.sessionConfiguration,
+      with: always(
+        .default
+          .with {
+            $0.passwordExpiry = .init(automaticUpdate: false, automaticExpiry: true, defaultExpiryPeriod: 5)
+          }
+      )
+    )
+
+    let tested: ResourceEditForm = try self.testedInstance()
+    try await tested.updateExpiryDateIfNeeded(.init())
+
+    await verifyIf(
+      try await tested.state.value.expired?.rawValue,
+      isEqual: Self.referenceTimestamp.rawValue + 5 * 24 * 60 * 60  // 5 days later
+    )
+  }
+
+  func test_updatingPasswordExpiry_forNewResource_withAutomaticExpiryEnabled_withoutExpiryPeriod() async throws {
+    var editedResource: Resource = self.editedResource
+    editedResource.id = .none  // simulate new resource
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \SessionConfigurationLoader.sessionConfiguration,
+      with: always(
+        .default
+          .with {
+            $0.passwordExpiry = .init(automaticUpdate: false, automaticExpiry: true, defaultExpiryPeriod: .none)
+          }
+      )
+    )
+
+    let tested: ResourceEditForm = try self.testedInstance()
+    try await tested.updateExpiryDateIfNeeded(.init())
+
+    await verifyIf(
+      try await tested.state.value.expired?.rawValue,
+      isEqual: .none
+    )
+  }
+
+  func test_updatingPasswordExpiry_forNewResource_withoutAutomaticExpiryEnabled_doesNotSetExpiry() async throws {
+    var editedResource: Resource = self.editedResource
+    editedResource.id = .none  // simulate new resource
+    editedResource.expired = Self.referenceTimestamp
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \SessionConfigurationLoader.sessionConfiguration,
+      with: always(
+        .default
+          .with {
+            $0.passwordExpiry = .init(automaticUpdate: false, automaticExpiry: false, defaultExpiryPeriod: 5)
+          }
+      )
+    )
+
+    let tested: ResourceEditForm = try self.testedInstance()
+    try await tested.updateExpiryDateIfNeeded(.init())
+
+    await verifyIf(
+      try await tested.state.value.expired,
+      isEqual: Self.referenceTimestamp
+    )
+  }
+
+  func test_updatingPasswordExpiry_forExistingResource_withAutomaticUpdateEnabled_setsExpiryDate() async throws {
+    var editedResource: Resource = self.editedResource
+    editedResource.expired = Self.referenceTimestamp
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \SessionConfigurationLoader.sessionConfiguration,
+      with: always(
+        .default
+          .with {
+            $0.passwordExpiry = .init(automaticUpdate: true, automaticExpiry: false, defaultExpiryPeriod: 5)
+          }
+      )
+    )
+
+    let tested: ResourceEditForm = try self.testedInstance()
+    try await tested.updateExpiryDateIfNeeded(.init())
+
+    // as password was not edited, the original expiry date is kept
+    await verifyIf(
+      try await tested.state.value.expired,
+      isEqual: Self.referenceTimestamp
+    )
+
+    try await tested.updateExpiryDateIfNeeded([\.secret.password])
+
+    await verifyIf(
+      try await tested.state.value.expired?.rawValue,
+      isEqual: Self.referenceTimestamp.rawValue + 5 * 24 * 60 * 60  // 5 days later
+    )
+  }
+
+  func test_updatingPasswordExpiry_forExistingResource_withAutomaticUpdateEnabled_withoutExpiryPeriod() async throws {
+    var editedResource: Resource = self.editedResource
+    editedResource.expired = Self.referenceTimestamp
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \SessionConfigurationLoader.sessionConfiguration,
+      with: always(
+        .default
+          .with {
+            $0.passwordExpiry = .init(automaticUpdate: true, automaticExpiry: false, defaultExpiryPeriod: .none)
+          }
+      )
+    )
+
+    let tested: ResourceEditForm = try self.testedInstance()
+    try await tested.updateExpiryDateIfNeeded(.init())
+
+    // as password was not edited, the original expiry date is kept
+    await verifyIf(
+      try await tested.state.value.expired,
+      isEqual: Self.referenceTimestamp
+    )
+
+    try await tested.updateExpiryDateIfNeeded([\.secret.password])
+
+    await verifyIf(
+      try await tested.state.value.expired?.rawValue,
+      isEqual: .none
+    )
+  }
+
+  func test_updatingPasswordExpiry_forExistingResource_withoutAutomaticUpdateEnabled_doesNotSetExpiry() async throws {
+    var editedResource: Resource = self.editedResource
+    editedResource.id = .none  // simulate new resource
+    editedResource.expired = Self.referenceTimestamp
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \SessionConfigurationLoader.sessionConfiguration,
+      with: always(
+        .default
+          .with {
+            $0.passwordExpiry = .init(automaticUpdate: false, automaticExpiry: false, defaultExpiryPeriod: 5)
+          }
+      )
+    )
+
+    let tested: ResourceEditForm = try self.testedInstance()
+    try await tested.updateExpiryDateIfNeeded(.init())
+
+    await verifyIf(
+      try await tested.state.value.expired,
+      isEqual: Self.referenceTimestamp
+    )
+
+    try await tested.updateExpiryDateIfNeeded([\.secret.password])
+
+    await verifyIf(
+      try await tested.state.value.expired,
+      isEqual: Self.referenceTimestamp
     )
   }
 }

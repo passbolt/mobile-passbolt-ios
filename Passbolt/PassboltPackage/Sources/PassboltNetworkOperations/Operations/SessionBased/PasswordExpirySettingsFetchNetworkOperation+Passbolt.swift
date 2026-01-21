@@ -21,17 +21,40 @@
 // @since         v1.0
 //
 
-public enum TimeSecondsTag {}
+import NetworkOperations
 
-public typealias Seconds = Tagged<Int64, TimeSecondsTag>
+extension PasswordExpirySettingsFetchNetworkOperation {
 
-public enum TimeDaysTag {}
+  @Sendable fileprivate static func requestPreparation(_ input: Input) -> Mutation<HTTPRequest> {
+    .combined(
+      .pathSuffix("/password-expiry/settings.json"),
+      .method(.get)
+    )
+  }
 
-public typealias Days = Tagged<Int64, TimeDaysTag>
+  @Sendable fileprivate static func responseDecoder(
+    _ input: Input,
+    _ response: HTTPResponse
+  ) throws -> Output {
+    try NetworkResponseDecoder<Input, CommonNetworkResponse<Output>>
+      .bodyAsJSON()
+      .decode(
+        input,
+        response
+      )
+      .body
+  }
+}
 
-extension Days {
+extension FeaturesRegistry {
 
-  public var inSeconds: Seconds {
-    .init(rawValue: self.rawValue * 24 * 60 * 60)
+  internal mutating func usePassboltPasswordExpirySettingsFetchNetworkOperation() {
+    self.use(
+      .networkOperationWithSession(
+        of: PasswordExpirySettingsFetchNetworkOperation.self,
+        requestPreparation: PasswordExpirySettingsFetchNetworkOperation.requestPreparation(_:),
+        responseDecoding: PasswordExpirySettingsFetchNetworkOperation.responseDecoder(_:_:)
+      )
+    )
   }
 }

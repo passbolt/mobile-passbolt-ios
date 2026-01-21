@@ -225,6 +225,8 @@ public final class ResourceEditViewController: ViewController {
 
   @MainActor internal func sendForm() async throws {
     do {
+      let editedFields: Set<ResourceType.FieldPath> = self.localState.value.editedFields
+      try await self.resourceEditForm.updateExpiryDateIfNeeded(editedFields)
       try await self.resourceEditForm.validateForm()
       let resource: Resource = try await self.resourceEditForm.sendForm()
       if let customOnSuccessNavigation {

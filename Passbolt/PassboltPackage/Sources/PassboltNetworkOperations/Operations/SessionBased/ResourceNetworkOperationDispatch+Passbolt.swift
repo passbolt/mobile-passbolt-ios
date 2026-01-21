@@ -74,7 +74,8 @@ extension ResourceNetworkOperationDispatch {
           username: resource.meta.username.stringValue,
           url: resource.meta.uris.arrayValue?.first?.stringValue.flatMap(URLString.init(rawValue:)),
           description: resource.meta.description.stringValue,
-          secrets: secrets
+          secrets: secrets,
+          expired: resource.expired?.asDate
         )
       )
     }
@@ -117,7 +118,8 @@ extension ResourceNetworkOperationDispatch {
           metadata: encryptedMetadata,
           metadataKeyID: metadataKeyId,
           metadataKeyType: metadataKeyType,
-          secrets: secrets
+          secrets: secrets,
+          expired: resource.expired?.asDate
         )
       )
     }
@@ -136,7 +138,8 @@ extension ResourceNetworkOperationDispatch {
           username: resource.meta.username.stringValue,
           url: (resource.meta.uris.arrayValue).flatMap { $0.first?.stringValue }.flatMap(URLString.init(rawValue:)),
           description: resource.meta.description.stringValue,
-          secrets: secrets.map { (userID: $0.recipient, data: $0.message) }
+          secrets: secrets.map { (userID: $0.recipient, data: $0.message) },
+          expired: resource.expired?.asDate
         )
       )
     }
@@ -171,7 +174,8 @@ extension ResourceNetworkOperationDispatch {
           metadata: encryptedMetadata,
           metadataKeyID: validatedMetadataProperties.metadataKeyId,
           metadataKeyType: validatedMetadataProperties.metadataKeyType,
-          secrets: secrets.map { (userID: $0.recipient, data: $0.message) }
+          secrets: secrets.map { (userID: $0.recipient, data: $0.message) },
+          expired: resource.expired?.asDate
         )
       )
     }

@@ -21,17 +21,18 @@
 // @since         v1.0
 //
 
-public enum TimeSecondsTag {}
+public struct PasswordExpiryFeatureConfiguration {
 
-public typealias Seconds = Tagged<Int64, TimeSecondsTag>
+  public let enabled: Bool
 
-public enum TimeDaysTag {}
+  public var automaticExpiry: Bool = false
+  public var automaticUpdate: Bool = false
+  public var defaultExpiryPeriod: Int? = .none
 
-public typealias Days = Tagged<Int64, TimeDaysTag>
-
-extension Days {
-
-  public var inSeconds: Seconds {
-    .init(rawValue: self.rawValue * 24 * 60 * 60)
+  public init(enabled: Bool) {
+    self.enabled = enabled
   }
 }
+
+extension PasswordExpiryFeatureConfiguration: Sendable {}
+extension PasswordExpiryFeatureConfiguration: Equatable {}

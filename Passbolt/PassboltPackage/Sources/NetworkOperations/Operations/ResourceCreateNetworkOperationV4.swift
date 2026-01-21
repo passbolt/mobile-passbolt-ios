@@ -22,6 +22,7 @@
 //
 
 import Features
+import struct Foundation.Date
 
 // MARK: - Interface
 
@@ -43,6 +44,7 @@ public struct ResourceCreateNetworkOperationV4Variable: Encodable, Sendable {
   public var url: URLString?
   public var description: String?
   public var secrets: Array<Secret>
+  public var expired: Date?
 
   public struct Secret: Encodable, Sendable {
 
@@ -63,7 +65,8 @@ public struct ResourceCreateNetworkOperationV4Variable: Encodable, Sendable {
     username: String?,
     url: URLString?,
     description: String?,
-    secrets: OrderedSet<EncryptedMessage>
+    secrets: OrderedSet<EncryptedMessage>,
+    expired: Date? = .none
   ) {
     self.resourceTypeID = resourceTypeID
     self.parentFolderID = parentFolderID
@@ -72,6 +75,7 @@ public struct ResourceCreateNetworkOperationV4Variable: Encodable, Sendable {
     self.url = url
     self.description = description
     self.secrets = secrets.map { Secret(userID: $0.recipient, data: $0.message) }
+    self.expired = expired
   }
 
   public enum CodingKeys: String, CodingKey {
@@ -83,6 +87,7 @@ public struct ResourceCreateNetworkOperationV4Variable: Encodable, Sendable {
     case url = "uri"
     case resourceTypeID = "resource_type_id"
     case secrets = "secrets"
+    case expired = "expired"
   }
 }
 

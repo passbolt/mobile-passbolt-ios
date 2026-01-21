@@ -32,6 +32,7 @@ public struct SessionConfiguration {
   public var share: ShareFeatureConfiguration
   public var passwordPolicies: PasswordPoliciesFeatureConfiguration
   public var metadata: MetadataFeatureConfiguration
+  public var passwordExpiry: PasswordExpiryFeatureConfiguration
 
   public init(
     termsURL: URLString?,
@@ -41,7 +42,8 @@ public struct SessionConfiguration {
     tags: TagsFeatureConfiguration,
     share: ShareFeatureConfiguration,
     passwordPolicies: PasswordPoliciesFeatureConfiguration,
-    metadata: MetadataFeatureConfiguration
+    metadata: MetadataFeatureConfiguration,
+    passwordExpiry: PasswordExpiryFeatureConfiguration
   ) {
     self.termsURL = termsURL
     self.privacyPolicyURL = privacyPolicyURL
@@ -51,6 +53,7 @@ public struct SessionConfiguration {
     self.share = share
     self.passwordPolicies = passwordPolicies
     self.metadata = metadata
+    self.passwordExpiry = passwordExpiry
   }
 }
 
@@ -80,7 +83,8 @@ extension SessionConfiguration {
         passwordPoliciesEnabled: false,
         passwordPoliciesUpdateEnabled: false
       ),
-      metadata: .init(enabled: false)
+      metadata: .init(enabled: false),
+      passwordExpiry: .init(enabled: false)
     )
   }
 }

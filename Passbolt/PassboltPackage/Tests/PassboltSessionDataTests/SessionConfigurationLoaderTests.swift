@@ -92,7 +92,8 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
             rbacs: .none,
             passwordPolicies: .none,
             passwordPoliciesUpdate: .none,
-            metadata: .none
+            metadata: .none,
+            passwordExpiry: .none
           )
         )
       )
@@ -141,7 +142,8 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
             passwordPoliciesUpdate: .init(
               enabled: true
             ),
-            metadata: .init(enabled: false)
+            metadata: .init(enabled: false),
+            passwordExpiry: .init(enabled: false)
           )
         )
       )
@@ -172,7 +174,8 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
           passwordPoliciesEnabled: true,
           passwordPoliciesUpdateEnabled: true
         ),
-        metadata: .init(enabled: false)
+        metadata: .init(enabled: false),
+        passwordExpiry: .init(enabled: false)
       )
     )
   }
@@ -212,7 +215,8 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
             passwordPoliciesUpdate: .init(
               enabled: true
             ),
-            metadata: .init(enabled: true)
+            metadata: .init(enabled: true),
+            passwordExpiry: .init(enabled: false)
           )
         )
       )
@@ -243,7 +247,8 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
           passwordPoliciesEnabled: true,
           passwordPoliciesUpdateEnabled: true
         ),
-        metadata: .init(enabled: true)
+        metadata: .init(enabled: true),
+        passwordExpiry: .init(enabled: false)
       )
     )
   }
@@ -271,7 +276,8 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
             ),
             passwordPolicies: .none,
             passwordPoliciesUpdate: .none,
-            metadata: .none
+            metadata: .none,
+            passwordExpiry: .none
           )
         )
       )
@@ -326,7 +332,8 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
             ),
             metadata: .init(
               enabled: false
-            )
+            ),
+            passwordExpiry: .init(enabled: false)
           )
         )
       )
@@ -371,7 +378,8 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
         ),
         metadata: .init(
           enabled: false
-        )
+        ),
+        passwordExpiry: .init(enabled: false)
       )
     )
   }
@@ -417,7 +425,8 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
             rbacs: .none,
             passwordPolicies: .none,
             passwordPoliciesUpdate: .none,
-            metadata: .none
+            metadata: .none,
+            passwordExpiry: .init(enabled: false)
           )
         )
       )
@@ -430,6 +439,58 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
     await verifyIf(
       self.mockExecutedCount,
       isEqual: 2
+    )
+  }
+
+  func test_whenPasswordExpiryIsEnabled_settingsShouldBeFetched() async throws {
+    patch(
+      \Session.currentAccount,
+      with: always(.mock_ada)
+    )
+    patch(
+      \ServerConfigurationFetchNetworkOperation.execute,
+      with: always(
+        .init(
+          legal: .init(
+            privacyPolicy: .none,
+            terms: .none
+          ),
+          plugins: .init(
+            passwordPreview: .none,
+            folders: .none,
+            tags: .none,
+            totpResources: .none,
+            rbacs: .init(
+              enabled: false
+            ),
+            passwordPolicies: .none,
+            passwordPoliciesUpdate: .none,
+            metadata: .none,
+            passwordExpiry: .init(enabled: true)
+          )
+        )
+      )
+    )
+
+    patch(
+      \PasswordExpirySettingsFetchNetworkOperation.execute,
+      with: always(
+        .init(
+          automaticUpdate: true,
+          automaticExpiry: true,
+          defaultExpiryPeriod: 13
+        )
+      )
+    )
+    let feature: SessionConfigurationLoader = try self.testedInstance()
+
+    await verifyIf(
+      (try await feature.sessionConfiguration()).passwordExpiry,
+      isEqual: .init(
+        automaticUpdate: true,
+        automaticExpiry: true,
+        defaultExpiryPeriod: 13
+      )
     )
   }
 }
