@@ -21,39 +21,39 @@
 // @since         v1.0
 //
 
-import SwiftUI
+import Display
 import UICommons
 import UIComponents
 
-internal struct UserPermissionEditView: ComponentView {
+internal struct UserPermissionEditView: ControlledView {
 
-  @ObservedObject private var state: ObservableValue<ViewState>
-  private let controller: Controller
+  internal let controller: UserPermissionEditViewController
 
   internal init(
-    state: ObservableValue<ViewState>,
-    controller: UserPermissionEditController
+    controller: UserPermissionEditViewController
   ) {
-    self.state = state
     self.controller = controller
   }
 
   internal var body: some View {
-    ScreenView(
-      title: .localized(
-        key: "resource.permission.details.title"
-      )
-    ) {
-      self.contentView
+    withAlert(\.alert) {
+      ScreenView(
+        title: .localized(
+          key: "resource.permission.details.title"
+        )
+      ) {
+        WithViewState(from: controller) { state in
+          self.contentView(with: state)
+        }
+      }
     }
-    .alert(presenting: self.$state.deleteConfirmationAlert)
   }
 
-  @ViewBuilder private var contentView: some View {
+  @ViewBuilder private func contentView(with state: Controller.ViewState) -> some View {
     VStack(spacing: 0) {
       VStack(spacing: 0) {
         AsyncUserAvatarView(
-          imageLoad: self.state.avatarImageFetch
+          imageLoad: self.controller.loadAvatar
         )
         .frame(
           width: 96,
@@ -63,7 +63,7 @@ internal struct UserPermissionEditView: ComponentView {
         .padding(8)
 
         Text(
-          displayable: self.state.name
+          displayable: state.name
         )
         .text(
           font: .inter(
@@ -74,10 +74,10 @@ internal struct UserPermissionEditView: ComponentView {
         )
         .padding(8)
       }
-      .opacity(self.state.isSuspended ? 0.5 : 1)
+      .opacity(state.isSuspended ? 0.5 : 1)
 
       Text(
-        displayable: self.state.username
+        displayable: state.username
       )
       .text(
         font: .inter(
@@ -89,7 +89,7 @@ internal struct UserPermissionEditView: ComponentView {
       .padding(8)
 
       FingerprintTextView(
-        fingerprint: self.state.fingerprint
+        fingerprint: state.fingerprint
       )
       .padding(8)
 
@@ -114,7 +114,7 @@ internal struct UserPermissionEditView: ComponentView {
         ) { (permission: Permission) in
           AsyncButton(
             action: {
-              self.controller.setPermissionType(permission)
+              self.controller.set(permissionType: permission)
             },
             label: {
               HStack(spacing: 0) {
@@ -127,7 +127,7 @@ internal struct UserPermissionEditView: ComponentView {
                 )
 
                 Image(
-                  named: self.state.permission == permission
+                  named: state.permission == permission
                     ? .circleSelected
                     : .circleUnselected
                 )
@@ -151,10 +151,7 @@ internal struct UserPermissionEditView: ComponentView {
         title: .localized(
           key: .apply
         ),
-        action: {
-          self.controller
-            .saveChanges()
-        }
+        action: self.controller.saveChanges
       )
 
       SecondaryButton(
@@ -162,10 +159,7 @@ internal struct UserPermissionEditView: ComponentView {
           key: "resource.permission.edit.button.delete.title"
         ),
         iconName: .trash,
-        action: {
-          self.controller
-            .deletePermission()
-        }
+        action: self.controller.deletePermission
       )
     }
     .padding(
@@ -173,34 +167,5 @@ internal struct UserPermissionEditView: ComponentView {
       bottom: 16,
       trailing: 16
     )
-  }
-}
-
-extension UserPermissionEditView {
-
-  internal struct ViewState {
-
-    internal var name: DisplayableString
-    internal var username: DisplayableString
-    internal var fingerprint: Fingerprint
-    internal var permission: Permission
-    internal var avatarImageFetch: () async -> Data?
-    internal var deleteConfirmationAlert: ConfirmationAlertMessage? = .none
-    internal var isSuspended: Bool
-  }
-}
-
-extension UserPermissionEditView.ViewState: Equatable {
-
-  internal static func == (
-    _ lhs: Self,
-    _ rhs: Self
-  ) -> Bool {
-    lhs.name == rhs.name
-      && lhs.username == rhs.username
-      && lhs.fingerprint == rhs.fingerprint
-      && lhs.permission == rhs.permission
-      && lhs.deleteConfirmationAlert == rhs.deleteConfirmationAlert
-      && lhs.isSuspended == rhs.isSuspended
   }
 }

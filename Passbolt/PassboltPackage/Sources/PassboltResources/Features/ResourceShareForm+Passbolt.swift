@@ -70,10 +70,8 @@ extension ResourceShareForm {
       }
     }
 
-    nonisolated func permissionsSequence() -> AnyAsyncSequence<OrderedSet<ResourcePermission>> {
+    func permissionsSequence() -> AnyUpdatable<OrderedSet<ResourcePermission>> {
       formState
-        .asAnyAsyncSequence()
-        .compactMap { try? $0.value }
         .map { (formState: FormState) -> OrderedSet<ResourcePermission> in
           let existingPermissions: Array<ResourcePermission> = await existingPermissions()
             .filter { (permission: ResourcePermission) -> Bool in
@@ -104,7 +102,6 @@ extension ResourceShareForm {
                 }
             )
         }
-        .asAnyAsyncSequence()
     }
 
     @Sendable nonisolated func currentPermissions() async -> OrderedSet<ResourcePermission> {

@@ -27,41 +27,36 @@ import OSFeatures
 import UIComponents
 import Users
 
-internal struct UserGroupMembersListController {
+internal final class UserGroupMembersListViewController: @MainActor ViewController {
 
-  internal var viewState: ObservableValue<ViewState>
-  internal var showUserDetails: @MainActor (UserDetailsDSV) -> Void
-}
-
-extension UserGroupMembersListController: ComponentController {
-
-  internal typealias ControlledView = UserGroupMembersListView
   internal typealias Context = UserGroupDetailsDSV
 
-  @MainActor static func instance(
-    in context: Context,
-    with features: inout Features,
-    cancellables: Cancellables
-  ) throws -> Self {
+  internal struct ViewState: Equatable {
+    internal let groupName: String
+    internal let items: Array<UserGroupMembersListRowItem>
+  }
 
-    let navigation: DisplayNavigation = try features.instance()
+  internal let viewState: ViewStateSource<ViewState>
+
+  private let navigationToMemberDetails: NavigationToUserGroupMemberDetails
+
+  internal init(context: UserGroupDetailsDSV, features: Features) throws {
+    self.navigationToMemberDetails = try features.instance()
     let users: Users = try features.instance()
 
     func userAvatarImageFetch(
       _ userID: User.ID
-    ) -> () async -> Data? {
-      {
-        do {
-          return try await users.userAvatarImage(userID)
-        }
-        catch {
-          error.logged()
-          return nil
-        }
+    ) async -> Data? {
+      do {
+        return try await users.userAvatarImage(userID)
+      }
+      catch {
+        error.logged()
+        return nil
       }
     }
 
-    let viewState: ObservableValue<ViewState> = .init(
+    self.viewState = .init(
       initial: .init(
         groupName: context.name,
         items: context
@@ -69,27 +64,20 @@ extension UserGroupMembersListController: ComponentController {
           .map { (user: UserDetailsDSV) -> UserGroupMembersListRowItem in
             .init(
               userDetails: user,
-              avatarImageData: userAvatarImageFetch(user.id)
+              avatarImageData: {
+                await userAvatarImageFetch(user.id)
+              }
             )
           }
       )
     )
+  }
 
-    @MainActor func showUserDetails(
-      _ details: UserDetailsDSV
-    ) {
-      cancellables.executeOnMainActor {
-        await navigation
-          .push(
-            legacy: UserGroupMemberDetailsView.self,
-            context: details
-          )
-      }
+  func showUserDetails(
+    _ details: UserDetailsDSV
+  ) async {
+    await consumingErrors {
+      try await self.navigationToMemberDetails.perform(context: details)
     }
-
-    return Self(
-      viewState: viewState,
-      showUserDetails: showUserDetails(_:)
-    )
   }
 }

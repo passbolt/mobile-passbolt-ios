@@ -27,56 +27,38 @@ import OSFeatures
 import UIComponents
 import Users
 
-internal struct UserPermissionDetailsController {
+internal final class UserGroupMemberDetailsViewController: @MainActor ViewController {
 
-  internal var viewState: ObservableValue<ViewState>
-  internal var navigateBack: () -> Void
-}
+  internal typealias Context = UserDetailsDSV
 
-extension UserPermissionDetailsController: ComponentController {
+  internal struct ViewState: Equatable {
 
-  internal typealias ControlledView = UserPermissionDetailsView
-  internal typealias Context = UserPermissionDetailsDSV
+    internal let userDetails: UserDetailsDSV
 
-  @MainActor static func instance(
-    in context: Context,
-    with features: inout Features,
-    cancellables: Cancellables
-  ) throws -> Self {
+  }
 
-    let navigation: DisplayNavigation = try features.instance()
-    let users: Users = try features.instance()
+  internal let viewState: ViewStateSource<ViewState>
+  private let users: Users
+  private let context: Context
 
-    func userAvatarImageFetch(
-      _ userID: User.ID
-    ) -> () async -> Data? {
-      {
-        do {
-          return try await users.userAvatarImage(userID)
-        }
-        catch {
-          error.logged()
-          return nil
-        }
-      }
-    }
-
-    let viewState: ObservableValue<ViewState> = .init(
+  internal init(context: UserDetailsDSV, features: any Features) throws {
+    self.users = try features.instance()
+    self.context = context
+    self.viewState = .init(
       initial: .init(
-        permissionDetails: context,
-        avatarImageFetch: userAvatarImageFetch(context.id)
+        userDetails: context
       )
     )
-
-    nonisolated func navigateBack() {
-      Task {
-        await navigation.pop(if: UserPermissionDetailsView.self)
-      }
-    }
-
-    return Self(
-      viewState: viewState,
-      navigateBack: navigateBack
-    )
   }
+
+  internal func loadAvatar() async -> Data? {
+    do {
+      return try await users.userAvatarImage(context.id)
+    }
+    catch {
+      error.logged()
+      return nil
+    }
+  }
+
 }

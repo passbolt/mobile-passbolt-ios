@@ -21,56 +21,30 @@
 // @since         v1.0
 //
 
-@available(
-  *,
-  deprecated,
-  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
-)
-public enum NavigationTreeOverlayPresentation {
+import Display
+import FeatureScopes
 
-  case sheet
-  case overFullScreen
+internal enum NavigationToResourceFolderPermissionListDestination: NavigationDestination {
+
+  internal typealias TransitionContext = ResourceFolderPermissionListViewController.Context
 }
 
-extension NavigationTreeOverlayPresentation: Hashable {}
+internal typealias NavigationToResourceFolderPermissionList =
+  NavigationTo<NavigationToResourceFolderPermissionListDestination>
 
-internal enum NavigationTreeOverlay {
+extension NavigationToResourceFolderPermissionList {
 
-  case sheet(NavigationTreeNode)
-  case overFullScreen(NavigationTreeNode)
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(to: ResourceFolderPermissionListView.self)
+  }
 }
 
-extension NavigationTreeOverlay: Hashable {}
+extension FeaturesRegistry {
 
-extension NavigationTreeOverlay {
-
-  internal var nodeID: ViewNodeID {
-    switch self {
-    case .sheet(let node):
-      return node.nodeID
-
-    case .overFullScreen(let node):
-      return node.nodeID
-    }
-  }
-
-  internal var sheetNode: NavigationTreeNode? {
-    switch self {
-    case .sheet(let node):
-      return node
-
-    case .overFullScreen:
-      return .none
-    }
-  }
-
-  internal var overFullScreenNode: NavigationTreeNode? {
-    switch self {
-    case .overFullScreen(let node):
-      return node
-
-    case .sheet:
-      return .none
-    }
+  internal mutating func useLiveNavigationToResourceFolderPermissionList() {
+    self.use(
+      NavigationToResourceFolderPermissionList.live,
+      in: ResourceFolderScope.self
+    )
   }
 }

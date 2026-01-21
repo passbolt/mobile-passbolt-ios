@@ -21,27 +21,21 @@
 // @since         v1.0
 //
 
-import SwiftUI
+import Display
 import UICommons
 import UIComponents
 
-internal struct UserGroupMemberDetailsView: ComponentView {
+internal struct UserGroupMemberDetailsView: ControlledView {
 
-  @ObservedObject private var state: ObservableValue<ViewState>
-  private let controller: Controller
+  internal let controller: UserGroupMemberDetailsViewController
 
-  internal init(
-    state: ObservableValue<ViewState>,
-    controller: UserGroupMemberDetailsController
-  ) {
-    self.state = state
+  internal init(controller: UserGroupMemberDetailsViewController) {
     self.controller = controller
   }
 
   internal var body: some View {
     VStack(spacing: 0) {
       self.titleView
-
       self.contentView
     }
     .backgroundColor(.passboltBackground)
@@ -77,53 +71,53 @@ internal struct UserGroupMemberDetailsView: ComponentView {
   }
 
   @ViewBuilder private var contentView: some View {
-    VStack(spacing: 0) {
-      AsyncUserAvatarView(
-        imageLoad: self.state.avatarImageFetch
-      )
-      .frame(
-        width: 96,
-        height: 96,
-        alignment: .center
-      )
-      .padding(8)
+    with(\.userDetails) { userDetails in
+      VStack(spacing: 0) {
+        AsyncUserAvatarView(imageLoad: self.controller.loadAvatar)
+          .frame(
+            width: 96,
+            height: 96,
+            alignment: .center
+          )
+          .padding(8)
 
-      Text(
-        "\(self.state.userDetails.firstName) \(self.state.userDetails.lastName)"
-      )
-      .text(
-        font: .inter(
-          ofSize: 20,
-          weight: .semibold
-        ),
-        color: .passboltPrimaryText
-      )
-      .padding(8)
+        Text(
+          "\(userDetails.firstName) \(userDetails.lastName)"
+        )
+        .text(
+          font: .inter(
+            ofSize: 20,
+            weight: .semibold
+          ),
+          color: .passboltPrimaryText
+        )
+        .padding(8)
 
-      Text(
-        "\(self.state.userDetails.username)"
-      )
-      .text(
-        font: .inter(
-          ofSize: 14,
-          weight: .regular
-        ),
-        color: .passboltSecondaryText
-      )
-      .padding(8)
+        Text(
+          "\(userDetails.username)"
+        )
+        .text(
+          font: .inter(
+            ofSize: 14,
+            weight: .regular
+          ),
+          color: .passboltSecondaryText
+        )
+        .padding(8)
 
-      FingerprintTextView(
-        fingerprint: self.state.userDetails.fingerprint
-      )
-      .padding(8)
+        FingerprintTextView(
+          fingerprint: userDetails.fingerprint
+        )
+        .padding(8)
 
-      Spacer()
+        Spacer()
+      }
+      .padding(
+        leading: 16,
+        bottom: 16,
+        trailing: 16
+      )
     }
-    .padding(
-      leading: 16,
-      bottom: 16,
-      trailing: 16
-    )
   }
 }
 

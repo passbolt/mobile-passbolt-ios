@@ -22,51 +22,43 @@
 //
 
 import Accounts
+import Display
 import OSFeatures
 import UIComponents
 import Users
 
-internal struct UserGroupMemberDetailsController {
+internal final class UserPermissionDetailsViewController: @MainActor ViewController {
 
-  internal var viewState: ObservableValue<ViewState>
-}
+  internal typealias Context = UserPermissionDetailsDSV
 
-extension UserGroupMemberDetailsController: ComponentController {
+  internal struct ViewState: Equatable {
+    internal let permissionDetails: UserPermissionDetailsDSV
+    internal var avatarData: Data?
+  }
 
-  internal typealias ControlledView = UserGroupMemberDetailsView
-  internal typealias Context = UserDetailsDSV
+  internal let viewState: ViewStateSource<ViewState>
 
-  @MainActor static func instance(
-    in context: Context,
-    with features: inout Features,
-    cancellables: Cancellables
-  ) throws -> Self {
+  private let users: Users
+  private let context: Context
 
-    let users: Users = try features.instance()
+  init(context: UserPermissionDetailsDSV, features: Features) throws {
+    self.users = try features.instance()
+    self.context = context
 
-    func userAvatarImageFetch(
-      _ userID: User.ID
-    ) -> () async -> Data? {
-      {
-        do {
-          return try await users.userAvatarImage(userID)
-        }
-        catch {
-          error.logged()
-          return nil
-        }
-      }
-    }
-
-    let viewState: ObservableValue<ViewState> = .init(
+    self.viewState = .init(
       initial: .init(
-        userDetails: context,
-        avatarImageFetch: userAvatarImageFetch(context.id)
+        permissionDetails: context
       )
     )
+  }
 
-    return Self(
-      viewState: viewState
-    )
+  internal func loadAvatar() async -> Data? {
+    do {
+      return try await users.userAvatarImage(context.id)
+    }
+    catch {
+      error.logged()
+      return nil
+    }
   }
 }

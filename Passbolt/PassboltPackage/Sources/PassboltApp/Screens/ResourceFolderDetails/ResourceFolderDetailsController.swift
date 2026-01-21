@@ -33,9 +33,10 @@ internal final class ResourceFolderDetailsController: ViewController {
   internal var viewState: ViewStateSource<ViewState>
 
   private let sessionData: SessionData
-  private let navigation: DisplayNavigation
   private let users: Users
   private let resourceFolderController: ResourceFolderController
+  private let navigationToResourcePermissionList: NavigationToResourceFolderPermissionList
+  private let navigationToFolderLocationDetails: NavigationToResourceFolderLocationDetails
 
   private let context: ResourceFolder.ID
   private let features: Features
@@ -57,7 +58,8 @@ internal final class ResourceFolderDetailsController: ViewController {
     self.features = features
 
     self.sessionData = try features.instance()
-    self.navigation = try features.instance()
+    self.navigationToResourcePermissionList = try features.instance()
+    self.navigationToFolderLocationDetails = try features.instance()
     self.users = try features.instance()
     self.resourceFolderController = try features.instance()
 
@@ -118,22 +120,10 @@ extension ResourceFolderDetailsController {
 extension ResourceFolderDetailsController {
 
   internal final func openLocationDetails() async throws {
-    try await self.navigation
-      .push(
-        ResourceFolderLocationDetailsView.self,
-        controller:
-          self.features
-          .instance(context: context)
-      )
+    try await navigationToFolderLocationDetails.perform(context: context)
   }
 
   internal final func openPermissionDetails() async throws {
-    try await self.navigation
-      .push(
-        ResourceFolderPermissionListView.self,
-        controller:
-          self.features
-          .instance(context: context)
-      )
+    try await navigationToResourcePermissionList.perform(context: context)
   }
 }

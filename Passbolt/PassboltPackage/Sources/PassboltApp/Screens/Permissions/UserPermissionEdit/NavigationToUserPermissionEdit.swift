@@ -21,25 +21,29 @@
 // @since         v1.0
 //
 
-import SwiftUI
+import Display
+import FeatureScopes
 
-// module placement required by dependency tree
-private struct NavigationTreeBackEnvironmentKey: EnvironmentKey {
+internal enum NavigationToUserPermissionEditDestination: NavigationDestination {
 
-  static let defaultValue: NavigationTreeBack? = .none
+  internal typealias TransitionContext = UserPermissionEditViewController.Context
 }
 
-@available(
-  *,
-  deprecated,
-  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
-)
-public typealias NavigationTreeBack = @MainActor (ViewNodeID) -> Void
+internal typealias NavigationToUserPermissionEdit = NavigationTo<NavigationToUserPermissionEditDestination>
 
-extension EnvironmentValues {
+extension NavigationToUserPermissionEdit {
 
-  public var navigationTreeBack: NavigationTreeBack? {
-    get { self[NavigationTreeBackEnvironmentKey.self] }
-    set { self[NavigationTreeBackEnvironmentKey.self] = newValue }
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(to: UserPermissionEditView.self)
+  }
+}
+
+extension FeaturesRegistry {
+
+  internal mutating func useLiveNavigationToUserPermissionEdit() {
+    self.use(
+      NavigationToUserPermissionEdit.live,
+      in: ResourceShareScope.self
+    )
   }
 }

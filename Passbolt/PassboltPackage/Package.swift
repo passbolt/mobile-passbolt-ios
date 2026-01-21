@@ -439,6 +439,7 @@ let package = Package(
       // It might be updated in future see: https://github.com/sqlcipher/sqlcipher/issues/371
       name: "SQLCipher",
       cSettings: [
+        .unsafeFlags(["-w"]),  // Suppress all warnings coming from SQLCipher code
         .define("SQLITE_HAS_CODEC"),
         .define("SQLITE_TEMP_STORE", to: "3"),
         .define("SQLCIPHER_CRYPTO_CC"),

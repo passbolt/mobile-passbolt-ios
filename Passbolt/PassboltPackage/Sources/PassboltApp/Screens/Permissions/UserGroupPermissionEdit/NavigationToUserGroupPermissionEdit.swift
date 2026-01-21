@@ -21,30 +21,29 @@
 // @since         v1.0
 //
 
-import Commons
-import SwiftUI
+import Display
+import FeatureScopes
 
-@available(
-  *,
-  deprecated,
-  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
-)
-public struct NavigationTreeRootView: View {
+internal enum NavigationToUserGroupPermissionEditDestination: NavigationDestination {
 
-  private let navigationTree: NavigationTree
+  internal typealias TransitionContext = UserGroupPermissionEditViewController.Context
+}
 
-  public init(
-    navigationTree: NavigationTree
-  ) {
-    self.navigationTree = navigationTree
+internal typealias NavigationToUserGroupPermissionEdit = NavigationTo<NavigationToUserGroupPermissionEditDestination>
+
+extension NavigationToUserGroupPermissionEdit {
+
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(to: UserGroupPermissionEditView.self)
   }
+}
 
-  public var body: some View {
-    WithViewState(self.navigationTree.state) { (state: NavigationTreeState) in
-      NavigationTreeAnchorView(node: state.root)
-    }
-    .backgroundColor(.passboltBackground)
-    .environment(\.isInNavigationTreeContext, true)
-    .environment(\.navigationTreeDismiss, self.navigationTree.dismiss(_:))
+extension FeaturesRegistry {
+
+  internal mutating func useLiveNavigationToUserGroupPermissionEdit() {
+    self.use(
+      NavigationToUserGroupPermissionEdit.live,
+      in: ResourceShareScope.self
+    )
   }
 }

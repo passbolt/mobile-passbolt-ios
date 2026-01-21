@@ -42,7 +42,6 @@ internal struct UnsupportedMFAView: ControlledView {
             .frame(width: reader.size.width * 0.4)
             .frame(maxWidth: .infinity)
 
-
           Text(displayable: "mfa.unsupported.provider.title")
             .titleStyle()
             .padding(.top, 32)

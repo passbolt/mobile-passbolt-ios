@@ -345,7 +345,7 @@
 "permission.details.group.members.section.title" = "Group members";
 "permission.details.user.suspended" = "suspended";
 
-"resource.permission.edit.button.delete.title" = "Delete permssion";
+"resource.permission.edit.button.delete.title" = "Delete permission";
 
 "resource.create.menu.add.folder.title" = "Folder";
 

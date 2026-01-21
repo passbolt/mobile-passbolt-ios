@@ -21,20 +21,15 @@
 // @since         v1.0
 //
 
-import SwiftUI
+import Display
 import UICommons
 import UIComponents
 
-internal struct UserPermissionDetailsView: ComponentView {
+internal struct UserPermissionDetailsView: ControlledView {
 
-  @ObservedObject private var state: ObservableValue<ViewState>
-  private let controller: Controller
+  internal let controller: UserPermissionDetailsViewController
 
-  internal init(
-    state: ObservableValue<ViewState>,
-    controller: UserPermissionDetailsController
-  ) {
-    self.state = state
+  init(controller: UserPermissionDetailsViewController) {
     self.controller = controller
   }
 
@@ -49,82 +44,84 @@ internal struct UserPermissionDetailsView: ComponentView {
   }
 
   @ViewBuilder private var contentView: some View {
-    VStack(spacing: 0) {
+    with(\.permissionDetails) { permissionDetails in
       VStack(spacing: 0) {
-        AsyncUserAvatarView(
-          imageLoad: self.state.avatarImageFetch
+        VStack(spacing: 0) {
+          AsyncUserAvatarView(
+            imageLoad: self.controller.loadAvatar
+          )
+          .frame(
+            width: 96,
+            height: 96,
+            alignment: .center
+          )
+          .padding(8)
+
+          Text(
+            permissionDetails.title
+          )
+          .text(
+            font: .inter(
+              ofSize: 20,
+              weight: .semibold
+            ),
+            color: .passboltPrimaryText
+          )
+          .padding(8)
+        }
+        .opacity(permissionDetails.isSuspended ? 0.5 : 1)
+
+        Text(
+          "\(permissionDetails.username)"
         )
+        .text(
+          font: .inter(
+            ofSize: 14,
+            weight: .regular
+          ),
+          color: .passboltSecondaryText
+        )
+        .padding(8)
+
+        FingerprintTextView(
+          fingerprint: permissionDetails.fingerprint
+        )
+        .padding(8)
+
+        VStack(
+          alignment: .leading,
+          spacing: 8
+        ) {
+          Text(
+            displayable: .localized(key: "permission.details.type.section.title")
+          )
+          .text(
+            font: .inter(
+              ofSize: 12,
+              weight: .semibold
+            ),
+            color: .passboltPrimaryText
+          )
+
+          ResourcePermissionTypeView(
+            permission: permissionDetails.permission
+          )
+          .frame(alignment: .leading)
+        }
         .frame(
-          width: 96,
-          height: 96,
-          alignment: .center
+          maxWidth: .infinity,
+          alignment: .leading
         )
-        .padding(8)
+        .padding(top: 16)
 
-        Text(
-          self.state.permissionDetails.title
-        )
-        .text(
-          font: .inter(
-            ofSize: 20,
-            weight: .semibold
-          ),
-          color: .passboltPrimaryText
-        )
-        .padding(8)
+        Spacer()
       }
-      .opacity(self.state.permissionDetails.isSuspended ? 0.5 : 1)
-
-      Text(
-        "\(self.state.permissionDetails.username)"
+      .padding(
+        leading: 16,
+        bottom: 16,
+        trailing: 16
       )
-      .text(
-        font: .inter(
-          ofSize: 14,
-          weight: .regular
-        ),
-        color: .passboltSecondaryText
-      )
-      .padding(8)
-
-      FingerprintTextView(
-        fingerprint: self.state.permissionDetails.fingerprint
-      )
-      .padding(8)
-
-      VStack(
-        alignment: .leading,
-        spacing: 8
-      ) {
-        Text(
-          displayable: .localized(key: "permission.details.type.section.title")
-        )
-        .text(
-          font: .inter(
-            ofSize: 12,
-            weight: .semibold
-          ),
-          color: .passboltPrimaryText
-        )
-
-        ResourcePermissionTypeView(
-          permission: self.state.permissionDetails.permission
-        )
-        .frame(alignment: .leading)
-      }
-      .frame(
-        maxWidth: .infinity,
-        alignment: .leading
-      )
-      .padding(top: 16)
-
-      Spacer()
     }
-    .padding(
-      leading: 16,
-      bottom: 16,
-      trailing: 16
-    )
   }
 }
 

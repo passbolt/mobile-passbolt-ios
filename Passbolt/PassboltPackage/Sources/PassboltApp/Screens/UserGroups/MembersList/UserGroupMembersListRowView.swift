@@ -27,11 +27,11 @@ import UICommons
 internal struct UserGroupMembersListRowView: View {
 
   private let item: UserGroupMembersListRowItem
-  private let action: @MainActor () -> Void
+  private let action: () async -> Void
 
   internal init(
     _ item: UserGroupMembersListRowItem,
-    action: @escaping @MainActor () -> Void
+    action: @escaping () async -> Void
   ) {
     self.item = item
     self.action = action

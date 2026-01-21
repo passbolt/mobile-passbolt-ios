@@ -483,6 +483,10 @@ internal struct ResourceDetailsSectionViewModel: Equatable, Identifiable {
   internal var virtualFields: Array<VirtualField> = .init()
   internal var hideFieldTitles: Bool = false
 
+  internal var accessibilityIdenitifier: String {
+    id.lowercased().replacingOccurrences(of: " ", with: "_")
+  }
+
   /// Properties that are not fields but are displayed as part of the section - navigating to other screens
   internal enum VirtualField: Equatable, Identifiable {
 

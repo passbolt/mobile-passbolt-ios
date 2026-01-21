@@ -25,10 +25,10 @@ import Display
 
 internal struct ResourceFolderLocationDetailsView: ControlledView {
 
-  internal let controller: ResourceFolderLocationDetailsController
+  internal let controller: ResourceFolderLocationDetailsViewController
 
   internal init(
-    controller: ResourceFolderLocationDetailsController
+    controller: ResourceFolderLocationDetailsViewController
   ) {
     self.controller = controller
   }

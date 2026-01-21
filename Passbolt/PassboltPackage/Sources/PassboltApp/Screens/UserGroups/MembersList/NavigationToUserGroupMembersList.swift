@@ -21,16 +21,29 @@
 // @since         v1.0
 //
 
-import UIKit
+import Display
+import FeatureScopes
 
-@available(
-  *,
-  deprecated,
-  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
-)
-public protocol NavigationTreeRootViewAnchor {
+internal enum NavigationToUserGroupMembersListDestination: NavigationDestination {
 
-  @MainActor func setRoot<RootView>(
-    _ view: RootView
-  ) where RootView: View
+  internal typealias TransitionContext = UserGroupMembersListViewController.Context
+}
+
+internal typealias NavigationToUserGroupMembersList = NavigationTo<NavigationToUserGroupMembersListDestination>
+
+extension NavigationToUserGroupMembersList {
+
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(to: UserGroupMembersListView.self)
+  }
+}
+
+extension FeaturesRegistry {
+
+  internal mutating func useLiveNavigationToUserGroupMembersList() {
+    self.use(
+      NavigationToUserGroupMembersList.live,
+      in: SessionScope.self
+    )
+  }
 }

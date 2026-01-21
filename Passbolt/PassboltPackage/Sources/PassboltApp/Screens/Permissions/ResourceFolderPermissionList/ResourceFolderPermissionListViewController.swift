@@ -29,16 +29,17 @@ import Resources
 import UIComponents
 import Users
 
-internal final class ResourceFolderPermissionListController: ViewController {
+internal final class ResourceFolderPermissionListViewController: ViewController {
 
   internal var viewState: ViewStateSource<ViewState>
 
-  private let navigation: DisplayNavigation
   private let users: Users
   private let resourceFolderController: ResourceFolderController
   private let resourceFolderUserPermissionsDetailsFetch: ResourceFolderUserPermissionsDetailsFetchDatabaseOperation
   private let resourceFolderUserGroupPermissionsDetailsFetch:
     ResourceFolderUserGroupPermissionsDetailsFetchDatabaseOperation
+  private let navigationToUserPermissionDetails: NavigationToUserPermissionDetails
+  private let navigationToGroupPermissionDetails: NavigationToUserGroupPermissionDetails
 
   private let context: ResourceFolder.ID
   private let features: Features
@@ -50,11 +51,12 @@ internal final class ResourceFolderPermissionListController: ViewController {
     self.context = context
     self.features = features
 
-    self.navigation = try features.instance()
     self.users = try features.instance()
     self.resourceFolderController = try features.instance()
     self.resourceFolderUserPermissionsDetailsFetch = try features.instance()
     self.resourceFolderUserGroupPermissionsDetailsFetch = try features.instance()
+    self.navigationToUserPermissionDetails = try features.instance()
+    self.navigationToGroupPermissionDetails = try features.instance()
 
     self.viewState = .init(
       initial: .init(
@@ -82,7 +84,7 @@ internal final class ResourceFolderPermissionListController: ViewController {
             )
           }
 
-        await updateView { viewState in
+        updateView { viewState in
           viewState.permissionListItems = userGroupPermissionsDetails + userPermissionsDetails
         }
       }
@@ -90,7 +92,7 @@ internal final class ResourceFolderPermissionListController: ViewController {
   }
 }
 
-extension ResourceFolderPermissionListController {
+extension ResourceFolderPermissionListViewController {
 
   internal struct ViewState: Equatable {
 
@@ -98,27 +100,25 @@ extension ResourceFolderPermissionListController {
   }
 }
 
-extension ResourceFolderPermissionListController {
+extension ResourceFolderPermissionListViewController {
 
   internal final func showUserPermissionDetails(
     _ details: UserPermissionDetailsDSV
   ) async {
-    await self.navigation.push(
-      legacy: UserPermissionDetailsView.self,
-      context: details
-    )
+    await consumingErrors {
+      try await self.navigationToUserPermissionDetails.perform(
+        context: details
+      )
+    }
   }
 
   internal final func showUserGroupPermissionDetails(
     _ details: UserGroupPermissionDetailsDSV
   ) async {
-    await navigation.push(
-      legacy: UserGroupPermissionDetailsView.self,
-      context: details
-    )
-  }
-
-  internal final func navigateBack() async {
-    await self.navigation.pop(ResourceFolderPermissionListView.self)
+    await consumingErrors {
+      try await navigationToGroupPermissionDetails.perform(
+        context: details
+      )
+    }
   }
 }

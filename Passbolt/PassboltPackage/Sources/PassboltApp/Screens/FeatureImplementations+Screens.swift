@@ -65,7 +65,8 @@ extension FeaturesRegistry {
     self.useLiveNavigationToResourceDetails()
     self.useLiveNavigationToResourceLocationDetails()
     self.useLiveNavigationToResourceTagsDetails()
-    self.useLiveNavigationToResourcePermissionsDetails()
+    self.usePermissionsNavigation()
+    self.useLiveNavigationToResourceFolderLocationDetails()
 
     // MARK: - Resource menu
     self.useLiveNavigationToResourceContextualMenu()
