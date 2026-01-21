@@ -93,7 +93,7 @@ public struct AccountSelectionCellItem: Hashable {
 
 public struct AccountSelectionAddAccountCellItem: Hashable {
 
-  internal let title: String
+  public let title: String
 
   public static func == (
     lhs: AccountSelectionAddAccountCellItem,

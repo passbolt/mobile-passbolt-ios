@@ -28,7 +28,7 @@ import OSFeatures
 internal final class TroubleshootingSettingsViewController: ViewController {
 
   private let linkOpener: OSLinkOpener
-  private let navigationToLogs: NavigationToLogs
+  private let navigationToDiagnostics: NavigationToDiagnostics
 
   internal init(
     context: Void,
@@ -38,14 +38,16 @@ internal final class TroubleshootingSettingsViewController: ViewController {
     try features.ensureScope(SessionScope.self)
 
     self.linkOpener = features.instance()
-    self.navigationToLogs = try features.instance()
+    self.navigationToDiagnostics = try features.instance()
   }
 }
 
 extension TroubleshootingSettingsViewController {
 
   internal final func navigateToLogs() async {
-    await self.navigationToLogs.performCatching()
+    await self.navigationToDiagnostics.performCatching(
+      context: .init(useCustomNavigationBar: false)
+    )
   }
 
   internal final func navigateToHelpSite() async {

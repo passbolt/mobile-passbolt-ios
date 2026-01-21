@@ -71,7 +71,7 @@ final class TermsAndLicensesTests: UITestCase {
     //      Then    I see a “Terms & Conditions” page (as web page)
     try assertPresentsSafari()
     try allowCookies()
-    assertPresentsStringInSafari(matching: "Terms and policies")
+    assertPresentsStringInSafari(matching: "Terms and policies", timeout: 10.0)
   }
 
   /// https://passbolt.testrail.io/index.php?/cases/view/2432

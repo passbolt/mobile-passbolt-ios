@@ -22,6 +22,7 @@
 //
 
 import Display
+import SharedUIComponents
 
 internal struct AuthorizationView: ControlledView {
 
@@ -57,23 +58,13 @@ internal struct AuthorizationView: ControlledView {
 
                 ToolbarItemGroup(placement: .navigationBarLeading) {
                   BackButton(
-                    action: {
-                      await self.controller.back()
-                    }
+                    action: self.controller.back
                   )
                 }
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
-                  AsyncButton(
-                    action: {
-                      await self.controller.presentHelp()
-                    },
-                    label: {
-                      Image(named: .help)
-                        .resizable()
-                        .renderingMode(.template)
-                        .foregroundStyle(Color.passboltPrimaryText)
-                        .accessibilityIdentifier("button.help")
-                    }
+                  IconButton(
+                    iconName: .help,
+                    action: self.controller.presentHelp
                   )
                 }
               }

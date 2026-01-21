@@ -44,6 +44,10 @@
 		B2EC08332C80B59A0046C414 /* DeleteResourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2EC08322C80B59A0046C414 /* DeleteResourceTests.swift */; };
 		B2EC08352C874BC00046C414 /* UITestCase+NonExistenceAssertions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2EC08342C874BC00046C414 /* UITestCase+NonExistenceAssertions.swift */; };
 		B90996BF2B63A524006ACE70 /* PassboltAccountSetup in Frameworks */ = {isa = PBXBuildFile; productRef = B90996BE2B63A524006ACE70 /* PassboltAccountSetup */; };
+		C04F9C1C2EF4121400C916B7 /* AuthenticationScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C04F9C1B2EF4121400C916B7 /* AuthenticationScreen.swift */; };
+		C09C2B432EF53BB100FB5CD7 /* MainScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09C2B422EF53BB100FB5CD7 /* MainScreen.swift */; };
+		C09C2B452EF53C7900FB5CD7 /* SettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09C2B442EF53C7900FB5CD7 /* SettingsScreen.swift */; };
+		C09C2B472EF53F5000FB5CD7 /* AccountsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09C2B462EF53F5000FB5CD7 /* AccountsScreen.swift */; };
 		C0B4B25B2EC5E27300C91A59 /* MainTOTPScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0B4B25A2EC5E27300C91A59 /* MainTOTPScreen.swift */; };
 		C0B4B25E2EC5E3B400C91A59 /* String+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0B4B25D2EC5E3B400C91A59 /* String+Extensions.swift */; };
 		C0B4B2612EC5E64100C91A59 /* TOTPCommonFlows.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0B4B2602EC5E64100C91A59 /* TOTPCommonFlows.swift */; };
@@ -141,7 +145,11 @@
 		C00FE53D2DE6FF7A007B3EC2 /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		C00FE53E2DE70049007B3EC2 /* uk */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = uk; path = uk.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		C00FE53F2DE70F62007B3EC2 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		C04F9C1B2EF4121400C916B7 /* AuthenticationScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationScreen.swift; sourceTree = "<group>"; };
 		C08E424E2E4B40F70044C421 /* cs */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = cs; path = cs.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		C09C2B422EF53BB100FB5CD7 /* MainScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainScreen.swift; sourceTree = "<group>"; };
+		C09C2B442EF53C7900FB5CD7 /* SettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreen.swift; sourceTree = "<group>"; };
+		C09C2B462EF53F5000FB5CD7 /* AccountsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountsScreen.swift; sourceTree = "<group>"; };
 		C0B4B25A2EC5E27300C91A59 /* MainTOTPScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTOTPScreen.swift; sourceTree = "<group>"; };
 		C0B4B25D2EC5E3B400C91A59 /* String+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extensions.swift"; sourceTree = "<group>"; };
 		C0B4B2602EC5E64100C91A59 /* TOTPCommonFlows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TOTPCommonFlows.swift; sourceTree = "<group>"; };
@@ -375,6 +383,23 @@
 			path = DeleteResource;
 			sourceTree = "<group>";
 		};
+		C04F9C1A2EF411F200C916B7 /* Account */ = {
+			isa = PBXGroup;
+			children = (
+				C04F9C1B2EF4121400C916B7 /* AuthenticationScreen.swift */,
+			);
+			path = Account;
+			sourceTree = "<group>";
+		};
+		C09C2B412EF53BA200FB5CD7 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				C09C2B442EF53C7900FB5CD7 /* SettingsScreen.swift */,
+				C09C2B462EF53F5000FB5CD7 /* AccountsScreen.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
 		C0B4B25C2EC5E3AA00C91A59 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
@@ -414,9 +439,12 @@
 		C0DBE3FA2EC5DA28005B4920 /* Screens */ = {
 			isa = PBXGroup;
 			children = (
+				C09C2B412EF53BA200FB5CD7 /* Settings */,
+				C04F9C1A2EF411F200C916B7 /* Account */,
 				C0B4B2692EC5FDD500C91A59 /* Resource */,
 				C0B4B2642EC5ED3300C91A59 /* Home */,
 				C0DBE3FB2EC5DA31005B4920 /* TOTP */,
+				C09C2B422EF53BB100FB5CD7 /* MainScreen.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -713,6 +741,7 @@
 		};
 		DDBB9861261C8851008B178F /* Run Linter */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -749,6 +778,7 @@
 				B2EC08352C874BC00046C414 /* UITestCase+NonExistenceAssertions.swift in Sources */,
 				C0B4B2662EC5ED4300C91A59 /* HomeScreen.swift in Sources */,
 				B26BE26A2C5B8C9B00138744 /* TOTPDrawerTests.swift in Sources */,
+				C09C2B472EF53F5000FB5CD7 /* AccountsScreen.swift in Sources */,
 				425A582A292550AF00C19E05 /* WelcomeScreenUITests.swift in Sources */,
 				B23A853D2A24DD3500C65133 /* TermsAndLicensesTests.swift in Sources */,
 				B2EC08332C80B59A0046C414 /* DeleteResourceTests.swift in Sources */,
@@ -758,10 +788,13 @@
 				C0B4B26F2EC5FEA800C91A59 /* ResourceCommonFlows.swift in Sources */,
 				C0DBE3FD2EC5DA3F005B4920 /* TOTPScannerScreen.swift in Sources */,
 				C0E890E22EC7BC8400B59D43 /* HomeCommonFlows.swift in Sources */,
+				C09C2B432EF53BB100FB5CD7 /* MainScreen.swift in Sources */,
 				42F1154C2A20D3BF00475E42 /* TestFailure.swift in Sources */,
+				C04F9C1C2EF4121400C916B7 /* AuthenticationScreen.swift in Sources */,
 				425A58272925109000C19E05 /* UITestCase.swift in Sources */,
 				C0DBE3F62EC5D880005B4920 /* Screen.swift in Sources */,
 				B26BE2672C5A731E00138744 /* CreateTOTPTests.swift in Sources */,
+				C09C2B452EF53C7900FB5CD7 /* SettingsScreen.swift in Sources */,
 				EBD1A3E9297ACBF900125727 /* FolderCreationTests.swift in Sources */,
 				B242301E2B2781DB00796887 /* TOTPListTests.swift in Sources */,
 				C0DBE3FF2EC5DBDA005B4920 /* TOTPCreateScreen.swift in Sources */,

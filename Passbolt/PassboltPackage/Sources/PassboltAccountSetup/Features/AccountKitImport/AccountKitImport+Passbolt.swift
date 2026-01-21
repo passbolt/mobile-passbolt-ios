@@ -45,9 +45,10 @@ extension AccountKitImport {
     ///
     /// - Parameter payload: The account kit payload to be imported.
     /// - Returns: AnyPublisher<AccountTransferData, Error>
+    /// - Throws: `AccountKitImportFailure` if the payload is empty, not base64, or cannot be decoded; `AccountKitImportInvalidSignature` if the signature is invalid; `AccountKitAccountAlreadyExist` if the account already exists; or other errors encountered during import.
     nonisolated func importAccountKit(
       _ payload: String
-    ) -> AnyPublisher<AccountTransferData, Error> {
+    ) throws -> AccountTransferData {
       Diagnostics.logger.info("Processing account kit..")
       do {
         // First, check the account kit format
@@ -85,15 +86,12 @@ extension AccountKitImport {
         try checkIfAccountExist(accounts, accountTransferData)
 
         // Return the AccountTransferData as a successful result
-        return Just(accountTransferData)
-          .setFailureType(to: Error.self)
-          .eraseToAnyPublisher()
+        return accountTransferData
       }
       catch {
         Diagnostics.logger.info("Failed to import")
-        return Fail(error: error)
-          .collectErrorLog()
-          .eraseToAnyPublisher()
+        error.logged()
+        throw error
       }
     }
 

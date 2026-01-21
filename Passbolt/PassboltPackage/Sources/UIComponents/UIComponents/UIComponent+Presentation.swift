@@ -221,64 +221,6 @@ extension AnyUIComponent {
     }
   }
 
-  @MainActor public func presentSheet<Component>(
-    _ type: Component.Type,
-    animated: Bool = true
-  ) async where Component: ComponentView, Component.Controller.Context == Void {
-    await self.presentSheet(
-      ComponentHostingViewController<Component>.self,
-      in: Void(),
-      animated: animated
-    )
-  }
-
-  @MainActor public func presentSheet<Component>(
-    _ type: Component.Type,
-    in context: Component.Controller.Context,
-    animated: Bool = true
-  ) async where Component: ComponentView {
-    await self.presentSheet(
-      ComponentHostingViewController<Component>.self,
-      in: context,
-      animated: animated
-    )
-  }
-
-  @MainActor public func presentSheet<Component>(
-    _ type: Component.Type,
-    in context: SheetViewController<Component>.Controller.Context,
-    animated: Bool = true
-  ) async where Component: UIComponent {
-    await present(
-      SheetViewController<Component>.self,
-      in: context,
-      animated: animated
-    )
-  }
-
-  @MainActor public func presentSheetMenu<Component>(
-    _ type: Component.Type,
-    in context: SheetMenuViewController<Component>.Controller.Context,
-    animated: Bool = true
-  ) async where Component: UIComponent {
-    await present(
-      SheetMenuViewController<Component>.self,
-      in: context,
-      animated: animated
-    )
-  }
-
-  @MainActor public func presentSheetMenu<Component>(
-    _ type: Component.Type,
-    animated: Bool = true
-  ) async where Component: UIComponent, Component.Controller.Context == Void {
-    await present(
-      SheetMenuViewController<Component>.self,
-      in: Void(),
-      animated: animated
-    )
-  }
-
   @MainActor public func dismiss<Component>(
     _ type: Component.Type,
     animated: Bool = true

@@ -30,13 +30,11 @@ extension UITestCase {
     index: Int = 0
   ) throws {
     try takeFirstAccount()
-    try typePassphrase(
-      text: password,
-      to: "input",
-      timeout: 10.0
-    )
-    try tap("input.secure.button.eye")
-    try tap("button.signin.passphrase")
+    let authScreen: AuthenticationScreen = screen()
+    authScreen.ensureDisplayed()
+    try authScreen.enterPassphrase(password)
+    authScreen.revealPassword()
+    authScreen.tapSignIn()
     try avoidTutorial()
   }
 

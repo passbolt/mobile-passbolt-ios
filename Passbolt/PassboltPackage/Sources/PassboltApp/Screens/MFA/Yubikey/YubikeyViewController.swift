@@ -21,101 +21,60 @@
 // @since         v1.0
 //
 
-import NFC
-import UICommons
-import UIComponents
+import Display
+import Session
 
-internal final class YubiKeyViewController: PlainViewController, UIComponent {
+internal final class YubiKeyViewController: ViewController {
 
-  internal typealias ContentView = YubiKeyView
-  internal typealias Controller = YubiKeyController
-
-  internal static func instance(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self(
-      using: controller,
-      with: components,
-      cancellables: cancellables
-    )
+  internal struct ViewState: Equatable {
+    internal var alert: AlertViewModel?
+    internal var rememberDevice: Bool = false
   }
 
-  internal lazy var contentView: ContentView = .init()
+  internal nonisolated let viewState: ViewStateSource<ViewState> = .init(initial: .init())
+  private let session: Session
 
-  internal let components: UIComponentFactory
-  private let controller: Controller
-
-  internal init(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) {
-    self.controller = controller
-    self.components = components
-    super
-      .init(
-        cancellables: cancellables
-      )
+  internal init(context: (), features: Features) throws {
+    session = try features.instance()
   }
 
-  internal func setupView() {
-    setupSubscriptions()
-  }
-
-  private func setupSubscriptions() {
-    contentView.toggleRememberDevicePublisher
-      .receive(on: RunLoop.main)
-      .sink { [weak self] in
-        self?.controller.toggleRememberDevice()
-      }
-      .store(in: cancellables)
-
-    controller.rememberDevicePublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] rememberDevice in
-        self?.contentView.update(rememberDevice: rememberDevice)
-      }
-      .store(in: cancellables)
-
-    contentView.scanTapPublisher
-      .map { [unowned self] _ -> AnyPublisher<Void, Never> in
-        self.controller.authorizeUsingOTP()
-          .receive(on: RunLoop.main)
-          .handleEvents(receiveCompletion: { completion in
-            guard case .failure(let error) = completion
-            else { return }
-            if self.isYubiKeyNotRecognizedError(error) {
-              Task { [weak self] in
-                await self?
-                  .present(
-                    YubiKeyNotRecognizedAlertViewController.self
-                  )
-              }
-            }
-            else {
-              SnackBarMessageEvent.send(.error(error))
-            }
-          })
-          .replaceError(with: ())
-          .eraseToAnyPublisher()
-      }
-      .switchToLatest()
-      .receive(on: RunLoop.main)
-      .sinkDrop()
-      .store(in: cancellables)
-  }
-
-  private func isYubiKeyNotRecognizedError(_ error: Error) -> Bool {
-    if let error = error as? NetworkRequestValidationFailure,
-      let body = error.validationViolations["body"] as? Dictionary<String, Any>,
-      let hotp = body["hotp"] as? Dictionary<String, Any>
-    {
-      return hotp["isSameYubikeyId"] as? String != nil
+  internal func startScanning() async {
+    let rememberDevice = await self.viewState.current.rememberDevice
+    do {
+      try await session
+        .authorizeMFA(
+          .yubiKey(
+            session.currentAccount(),
+            rememberDevice: rememberDevice
+          )
+        )
     }
-    else {
-      return false
+    catch {
+      if let error = error as? NetworkRequestValidationFailure,
+        let body = error.validationViolations["body"] as? Dictionary<String, Any>,
+        let hotp = body["hotp"] as? Dictionary<String, Any>,
+        hotp["isSameYubikeyId"] as? String != nil
+      {
+        self.viewState.update(
+          \.alert,
+          to: .init(
+            title: "yubiKey.scan.notRecognized.title",
+            message: "yubiKey.scan.notRecognized.message",
+            actions: [
+              .regular(
+                id: .init(),
+                title: "yubiKey.scan.notRecognized.button.ok",
+                perform: {
+                  /** no-op */
+                }
+              )
+            ]
+          )
+        )
+      }
+      else {
+        SnackBarMessageEvent.send(.error(error))
+      }
     }
   }
 }

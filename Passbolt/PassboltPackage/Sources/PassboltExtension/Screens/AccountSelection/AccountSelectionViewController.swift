@@ -75,9 +75,9 @@ internal final class AccountSelectionViewController: ViewController {
           )
 
           listItems.append(.account(item))
-          updateState { state in
-            state.rows = listItems
-          }
+        }
+        updateState { state in
+          state.rows = listItems
         }
       }
     )

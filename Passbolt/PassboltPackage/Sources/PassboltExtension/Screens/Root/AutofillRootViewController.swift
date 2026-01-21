@@ -28,7 +28,7 @@ import Session
 import SessionData
 import SharedUIComponents
 
-internal final class AutofillRootViewController: ViewController  {
+internal final class AutofillRootViewController: ViewController {
 
   private let accounts: Accounts
   private let session: Session

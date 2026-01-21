@@ -25,7 +25,6 @@ import Display
 
 internal struct AccountQRCodeExportView: ControlledView {
 
-  @EnvironmentObject var displayViewBridgeHandle: DisplayViewBridgeHandle<Self>
   internal let controller: AccountQRCodeExportController
 
   internal init(
@@ -39,13 +38,14 @@ internal struct AccountQRCodeExportView: ControlledView {
       ScreenView(
         title: .localized("transfer.account.title"),
         contentView: {
-          contentView(using: state)
+          withAlert(
+            \.alert,
+            content: { contentView(using: state) }
+          )
         }
       )
     }
-    .onAppear {
-      self.displayViewBridgeHandle.setNavigationBackButton(hidden: true)
-    }
+    .navigationBarBackButtonHidden()
   }
 
   @ViewBuilder @MainActor private func contentView(
@@ -69,29 +69,5 @@ internal struct AccountQRCodeExportView: ControlledView {
       .accessibilityIdentifier("transfer.account.export.cancel.button")
     }
     .padding(16)
-    .alert(
-      presenting:
-        self
-        .binding(to: \.exitConfirmationAlertPresented)
-        .map(
-          get: { (presented: Bool) -> ConfirmationAlertMessage? in
-            if presented {
-              return .init(
-                title: .localized(key: "transfer.account.exit.confirmation.title"),
-                message: .localized(key: "transfer.account.exit.confirmation.message"),
-                destructive: true,
-                confirmAction: self.controller.cancelTransfer,
-                confirmLabel: .localized(key: "transfer.account.export.exit.confirmation.confirm.button.title")
-              )
-            }
-            else {
-              return .none
-            }
-          },
-          set: { (message: ConfirmationAlertMessage?) -> Bool in
-            message != .none
-          }
-        )
-    )
   }
 }

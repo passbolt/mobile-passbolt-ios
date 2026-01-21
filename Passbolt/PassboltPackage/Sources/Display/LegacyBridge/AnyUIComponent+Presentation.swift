@@ -90,36 +90,4 @@ extension AnyUIComponent {
       animated: animated
     )
   }
-
-  @available(
-    *,
-    deprecated,
-    message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
-  )
-  @MainActor public func presentSheet<DisplayComponent>(
-    _ type: DisplayComponent.Type,
-    controller: DisplayComponent.Controller,
-    animated: Bool = true
-  ) async where DisplayComponent: ControlledView {
-    await self.presentSheet(
-      DisplayViewBridge<DisplayComponent>.self,
-      in: controller,
-      animated: animated
-    )
-  }
-
-  @available(
-    *,
-    deprecated,
-    message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
-  )
-  @MainActor public func dismissSheet<DisplayComponent>(
-    _ type: DisplayComponent.Type,
-    animated: Bool = true
-  ) async where DisplayComponent: ControlledView {
-    await self.dismiss(
-      SheetViewController<DisplayViewBridge<DisplayComponent>>.self,
-      animated: animated
-    )
-  }
 }

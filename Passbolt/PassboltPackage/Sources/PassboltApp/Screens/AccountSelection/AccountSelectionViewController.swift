@@ -21,236 +21,203 @@
 // @since         v1.0
 //
 
+import Accounts
+import Display
+import NetworkOperations
+import Session
 import SharedUIComponents
-import UICommons
-import UIComponents
 
-@MainActor
-internal final class AccountSelectionViewController: PlainViewController, UIComponent {
+internal final class AccountSelectionViewController: ViewController {
 
-  internal typealias ContentView = AccountSelectionView
-  internal typealias Controller = AccountSelectionController
-
-  internal static func instance(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self(
-      using: controller,
-      with: components,
-      cancellables: cancellables
-    )
+  internal struct Context {
+    internal let isSignIn: Bool
   }
 
-  internal private(set) lazy var contentView: AccountSelectionView = .init(
-    shouldHideTitle: controller.shouldHideTitle()
-  )
-  internal let components: UIComponentFactory
-
-  private let controller: Controller
-
-  internal init(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) {
-    self.controller = controller
-    self.components = components
-    super
-      .init(
-        cancellables: cancellables
-      )
-    // Listen to NotificationCenter for the help menu
-    NotificationCenter.default.addObserver(
-      self,
-      selector: #selector(handleHelpMenuAccountkitAction),
-      name: .helpMenuActionAccountKitNotification,
-      object: nil
-    )
+  internal struct ViewState: Equatable {
+    internal let isSignIn: Bool
+    internal var alert: AlertViewModel?
+    internal var mode: Mode
+    internal var accounts: Array<AccountSelectionCellItem>
+    internal var canAddAccount: Bool {
+      mode == .selection
+    }
+    internal var isRemovalMode: Bool {
+      mode == .removal
+    }
   }
 
-  internal func setupView() {
-    mut(navigationItem) {
-      .rightBarButtonItem(
-        Mutation<UIBarButtonItem>
-          .combined(
-            .image(named: .help, from: .uiCommons),
-            .action { [weak self] in
-              self?.cancellables
-                .executeOnMainActor { [weak self] in
-                  await self?.presentSheetMenu(HelpMenuViewController.self, in: [])
-                }
-            }
+  nonisolated let viewState: ViewStateSource<ViewState>
+
+  private let navigationToAuthorization: NavigationToAuthorization
+  private let navigationToAccountImportInfo: NavigationToAccountImportInfo
+  private let navigationToHelp: NavigationToHelpMenu
+  private let accounts: Accounts
+
+  private let features: Features
+
+  internal init(context: Context, features: Features) throws {
+    self.features = features
+    self.navigationToAuthorization = try features.instance()
+    self.navigationToAccountImportInfo = try features.instance()
+    let navigationToWelcomeScreen: NavigationToWelcomeScreen = try features.instance()
+    let accounts: Accounts = try features.instance()
+    self.accounts = accounts
+    self.navigationToHelp = try features.instance()
+
+    let session: Session = try features.instance()
+    let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
+
+    self.viewState = .init(
+      initial: .init(
+        isSignIn: context.isSignIn,
+        mode: .selection,
+        accounts: .init()
+      ),
+      updateFrom: accounts.updates,
+      update: { [navigationToWelcomeScreen] updateState, _ in
+        let currentAccount: Account? = try? await session.currentAccount()
+        var listItems: Array<AccountSelectionCellItem> = .init()
+        for storedAccount: AccountWithProfile in accounts.storedAccounts() {
+          let item: AccountSelectionCellItem = AccountSelectionCellItem(
+            account: storedAccount.account,
+            title: storedAccount.label,
+            subtitle: storedAccount.username,
+            isCurrentAccount: storedAccount.account == currentAccount,
+            imagePublisher:
+              Just(Void())
+              .asyncMap {
+                try? await mediaDownloadNetworkOperation.execute(storedAccount.avatarImageURL)
+              }
+              .receive(on: DispatchQueue.main)
+              .eraseToAnyPublisher(),
+            listModePublisher: Empty().eraseToAnyPublisher()
           )
-          .instantiate()
-      )
-    }
+          listItems.append(item)
+        }
+        if listItems.isEmpty {
+          try await navigationToWelcomeScreen.perform()
+        }
 
-    setupSubscriptions()
-  }
-
-  /**
-   * Handles the action triggered by the Help menu for AccountKit-related notifications.
-   *
-   * This function checks the type of notification and navigates to the appropriate view controller.
-   * If the notification contains `AccountTransferData`, it navigates to the success view controller.
-   * Otherwise, it checks for specific error types and navigates to corresponding error view controllers.
-   *
-   * @param notification The notification object received, which contains either `AccountTransferData`
-   *                     or an error object indicating the type of error encountered.
-   */
-  @objc private func handleHelpMenuAccountkitAction(notification: Notification) {
-    // Perform the navigation or other actions when the notification is received
-    guard let accountTransferData = notification.object as? AccountTransferData else {
-      Task {
-        // Determine the error type from the notification object
-        switch notification.object {
-        case is AccountKitImportFailure:
-          await self.push(AccountKitImportFailureViewController.self, animated: true)
-        case is AccountKitImportInvalidSignature:
-          await self.push(AccountKitSignatureErrorViewController.self, animated: true)
-        case is AccountKitAccountAlreadyExist:
-          await self.push(AccountKitAccountAlreadyExistViewController.self, animated: true)
-        default:
-          // If the error type is not recognized, do not perform any navigation
-          return
+        updateState { state in
+          state.accounts = listItems
         }
       }
-      // Do not go further
-      return
-    }
-    // If AccountTransferData is present, navigate to the success view controller
-    Task {
-      await self.push(
-        AccountKitTransferSuccessViewController.self,
-        in: accountTransferData,
-        animated: true
-      )
+    )
+  }
+
+  internal func addAccount() async {
+    await consumingErrors {
+      try await navigationToAccountImportInfo.perform()
     }
   }
 
-  private func setupSubscriptions() {
-    controller
-      .accountsPublisher()
-      .receive(on: RunLoop.main)
-      .sink(
-        receiveValue: { [weak self] items in
-          self?.cancellables
-            .executeOnMainActor { [weak self] in
-              // After removing last account, window controller takes care of navigation to proper screen when removing current account.
-              if items.isEmpty, self?.view.window != nil {
-                await self?
-                  .replaceWindowRoot(
-                    with: SplashScreenViewController.self,
-                    in: .none
-                  )
-              }
-              else {
-                self?.contentView.update(items: items)
-              }
+  internal func selectAccount(
+    _ account: Account
+  ) async throws {
+    try await navigationToAuthorization.perform(
+      context: account
+    )
+  }
+
+  internal func toggleMode() async {
+    withAnimation {
+      viewState.update { state in
+        state.mode = state.mode == .selection ? .removal : .selection
+      }
+    }
+  }
+
+  internal func removeAccount(_ account: Account) async {
+    self.viewState.update(
+      \.alert,
+      to: .init(
+        title: "account.selection.remove.alert.title",
+        message: "account.selection.remove.alert.message",
+        actions: [
+          .cancel(id: .init(), title: .localized(key: .cancel)),
+          .destructive(
+            id: .init(),
+            title: .localized(key: .remove),
+            perform: { [weak self] in
+              await self?.confirmedAccountRemoval(account)
             }
-        }
+          ),
+        ]
       )
-      .store(in: cancellables)
+    )
+  }
 
-    controller
-      .listModePublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] mode in
-        self?.contentView.update(mode: mode)
-      }
-      .store(in: cancellables)
+  private func confirmedAccountRemoval(_ account: Account) async {
+    consumingErrors {
+      try accounts.removeAccount(account)
+    }
+  }
 
-    contentView
-      .accountTapPublisher
-      .sink { [weak self] item in
-        self?.cancellables
-          .executeOnMainActor { [weak self] in
-            if item.isCurrentAccount && !(self?.navigationController is AuthorizationNavigationViewController) {
-              await self?.popToRoot()
-            }
-            else {
-              await self?
-                .push(
-                  AuthorizationViewController.self,
-                  in: item.account
-                )
-            }
-          }
-      }
-      .store(in: cancellables)
+  internal func backButtonTapped() async {
+    await consumingErrors {
+      try features.ensureScope(SessionScope.self)
+      let navigationToSelf: NavigationToManageAccounts = try features.instance()
+      try await navigationToSelf.revert()
+    }
+  }
 
-    contentView
-      .removeTapPublisher
-      .sink { [weak self] _ in
-        self?.controller.toggleMode()
-      }
-      .store(in: cancellables)
-
-    contentView
-      .doneTapPublisher
-      .sink { [weak self] _ in
-        self?.controller.toggleMode()
-      }
-      .store(in: cancellables)
-
-    contentView
-      .removeAccountPublisher
-      .sink { [weak self] item in
-        let removeAccount: @MainActor () -> AnyPublisher<Void, Never> = { [weak self] in
-          guard let self = self
-          else { return Just(Void()).eraseToAnyPublisher() }
-
-          self.controller.toggleMode()
-
-          return self.controller
-            .removeAccount(item.account)
-            .handleValues {
-              SnackBarMessageEvent.send("account.selection.account.removed")
-            }
-            .handleErrors { error in
-              SnackBarMessageEvent.send(.error(error))
-            }
-            .replaceError(with: Void())
-            .eraseToAnyPublisher()
-        }
-
-        self?.cancellables
-          .executeOnMainActor { [weak self] in
-            await self?
-              .present(
-                RemoveAccountAlertViewController.self,
-                in: removeAccount
-              )
-          }
-      }
-      .store(in: cancellables)
-
-    contentView
-      .addAccountTapPublisher
-      .sink { [weak self] in
-        self?.controller.addAccount()
-      }
-      .store(in: cancellables)
-
-    controller
-      .addAccountPresentationPublisher()
-      .sink { [weak self] accountTransferInProgress in
-        self?.cancellables
-          .executeOnMainActor { [weak self] in
-            if accountTransferInProgress {
-              SnackBarMessageEvent.send(.error("error.another.account.transfer.in.progress"))
-            }
-            else {
-              await self?
-                .push(
-                  TransferInfoScreenViewController.self,
-                  in: .import
-                )
-            }
-          }
-      }
-      .store(in: cancellables)
+  internal func openHelp() async {
+    await consumingErrors {
+      try await navigationToHelp.perform(context: .init())
+    }
   }
 }
+
+extension AccountSelectionViewController {
+
+  internal enum Mode {
+
+    case selection
+    case removal
+  }
+}
+
+#if DEBUG
+
+extension AccountSelectionViewController {
+
+  public static func previewDependencies(
+    _ features: inout PreviewFeaturesContainer
+  ) {
+    features.patch(
+      \Accounts.storedAccounts,
+      with: {
+        [
+          .init(account: .ada, profile: .ada),
+          .init(account: .betty, profile: .betty),
+        ]
+      }
+    )
+    features.patch(
+      \Accounts.updates,
+      with: Constant(()).asAnyUpdatable()
+    )
+    features.patch(
+      \NavigationToAuthorization.mockPerform,
+      with: { _, _ in }
+    )
+
+    features.patch(
+      \Session.currentAccount,
+      with: {
+        .init(
+          localID: .empty,
+          domain: "passbolt.local",
+          userID: .init(),
+          fingerprint: .empty
+        )
+      }
+    )
+    features.patch(
+      \MediaDownloadNetworkOperation.execute,
+      with: { _ in Data() }
+    )
+  }
+}
+
+#endif

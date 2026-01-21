@@ -29,7 +29,7 @@ import OSFeatures
 internal final class AccountsSettingsViewController: ViewController {
 
   private let navigationToManageAccounts: NavigationToManageAccounts
-  private let navigationToAccountExport: NavigationToAccountExport
+  private let navigationToAccountExport: NavigationToAccountExportInfo
   private let navigationToAccountKeyInspector: NavigationToAccountKeyInspector
   private let navigationToAccountDetails: NavigationToAccountDetails
 
@@ -50,7 +50,9 @@ internal final class AccountsSettingsViewController: ViewController {
 extension AccountsSettingsViewController {
 
   internal final func navigateToManageAccounts() async {
-    await self.navigationToManageAccounts.performCatching()
+    await self.navigationToManageAccounts.performCatching(
+      context: .init(isSignIn: false)
+    )
   }
 
   internal final func navigateToAccountExport() async {

@@ -99,26 +99,28 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
         .executeOnMainActor {
           switch destination {
           case .accountSelection(let lastAccount, let message):
-            await self?
-              .replaceWindowRoot(
-                with: AuthorizationNavigationViewController.self,
-                in: (
-                  account: lastAccount,
-                  message: message
-                )
-              )
+            guard let self = self else { return }
+            let navigationToAccountSelection: NavigationToAccountSelection = try self.components.features.instance()
+            try await navigationToAccountSelection.perform(
+              context: .init(isSignIn: true)
+            )
+            if let message {
+              SnackBarMessageEvent.send(.info(message))
+            }
+            if let lastAccount {
+              let navigationToAuthorization: NavigationToAuthorization = try self.components.features.instance()
+              try await navigationToAuthorization.perform(context: lastAccount)
+            }
 
           case .accountSetup:
-            await self?
-              .replaceWindowRoot(
-                with: WelcomeNavigationViewController.self
-              )
+            guard let self = self else { return }
+            let navigationToWelcomeScreen: NavigationToWelcomeScreen = try self.components.features.instance()
+            try await navigationToWelcomeScreen.perform()
 
           case .diagnostics:
-            await self?
-              .replaceWindowRoot(
-                with: PlainNavigationViewController<LogsViewerViewController>.self
-              )
+            guard let self = self else { return }
+            let navigationToLogsViewer: NavigationToLogsViewer = try self.components.features.instance()
+            try await navigationToLogsViewer.perform(context: .init(useCustomNavigationBar: true))
 
           case .home(let sessionContext):
             await self?
@@ -129,17 +131,14 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
 
           case .mfaAuthorization(let mfaProviders):
             if mfaProviders.isEmpty {
-              await self?
-                .replaceWindowRoot(
-                  with: PlainNavigationViewController<UnsupportedMFAViewController>.self
-                )
+              guard let self = self else { return }
+              let navigationToUnsupportedMFA: NavigationToUnsupportedMFA = try self.components.features.instance()
+              try await navigationToUnsupportedMFA.perform()
             }
             else {
-              await self?
-                .replaceWindowRoot(
-                  with: PlainNavigationViewController<MFARootViewController>.self,
-                  in: mfaProviders
-                )
+              guard let self = self else { return }
+              let navigationToMFA: NavigationToMFA = try self.components.features.instance()
+              try await navigationToMFA.perform(context: mfaProviders)
             }
 
           case .featureConfigFetchError:

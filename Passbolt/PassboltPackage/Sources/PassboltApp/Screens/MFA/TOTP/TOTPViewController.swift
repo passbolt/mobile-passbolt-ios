@@ -21,141 +21,91 @@
 // @since         v1.0
 //
 
-import CommonModels
-import UIComponents
+import Display
+import OSFeatures
+import Session
 
-internal final class TOTPViewController: PlainViewController, UIComponent {
+internal final class TOTPViewController: ViewController {
 
-  internal typealias ContentView = TOTPView
-  internal typealias Controller = TOTPController
+  internal struct Context {
+    var loadingCallback: (Bool) -> Void
+  }
 
-  internal static func instance(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self(
-      using: controller,
-      with: components,
-      cancellables: cancellables
+  internal static let otpLength: Int = 6
+
+  internal struct ViewState: Equatable {
+    internal var rememberDevice: Bool = false
+    internal var otp: String = ""
+  }
+
+  internal nonisolated let viewState: ViewStateSource<ViewState>
+  private let pasteboard: OSPasteboard
+  private let session: Session
+  private let loadingCallback: (Bool) -> Void
+
+  internal init(context: Context, features: Features) throws {
+    self.loadingCallback = context.loadingCallback
+    self.pasteboard = features.instance()
+    self.session = try features.instance()
+    self.viewState = .init(
+      initial: .init()
     )
   }
 
-  internal private(set) lazy var contentView: ContentView = .init()
-  internal let components: UIComponentFactory
-
-  private let controller: Controller
-
-  internal init(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) {
-    self.controller = controller
-    self.components = components
-    super
-      .init(
-        cancellables: cancellables
-      )
+  internal func pasteOTP() {
+    if let pasted: String = pasteboard.get(),
+      pasted.rangeOfCharacter(from: CharacterSet.decimalDigits.inverted)?.isEmpty ?? true,
+      pasted.count == Self.otpLength
+    {
+      viewState.update(\.otp, to: pasted)
+      Task {
+        await verifyCode()
+      }
+    }
+    else {
+      handle(error: InvalidPasteValue.error())
+    }
   }
 
-  internal func setupView() {
-    setupSubscriptions()
+  func otpEntered(_ otp: String) {
+    viewState.update(\.otp, to: otp)
+    Task {
+      await verifyCode()
+    }
   }
 
-  internal func setupSubscriptions() {
-    controller
-      .otpPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] otp in
-        self?.contentView.update(otp: otp)
-      }
-      .store(in: cancellables)
+  internal func verifyCode() async {
+    loadingCallback(true)
+    defer {
+      loadingCallback(false)
+    }
+    let currentState: ViewState = await viewState.current
+    do {
+      try await session
+        .authorizeMFA(
+          .totp(
+            session.currentAccount(),
+            code: currentState.otp,
+            rememberDevice: currentState.rememberDevice
+          )
+        )
+    }
+    catch {
+      handle(error: error)
+    }
+  }
 
-    contentView
-      .otpPublisher
-      .sink { [weak self] otp in
-        self?.controller.setOTP(otp)
-      }
-      .store(in: cancellables)
+  private func handle(error: Error) {
+    switch error {
+    case is InvalidPasteValue:
+      SnackBarMessageEvent.send(.error(.localized(key: .invalidPasteValue)))
+    case is NetworkRequestValidationFailure:
+      SnackBarMessageEvent.send(.error("totp.wrong.code.error"))
 
-    controller
-      .rememberDevicePublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] remember in
-        self?.contentView.update(rememberDevice: remember)
-      }
-      .store(in: cancellables)
-
-    contentView
-      .rememberDeviceToggleTapPublisher
-      .sink { [weak self] in
-        self?.controller.toggleRememberDevice()
-      }
-      .store(in: cancellables)
-
-    contentView
-      .pasteOTPTapPublisher
-      .sink { [weak self] in
-        self?.view.endEditing(true)
-        self?.controller.pasteOTP()
-      }
-      .store(in: cancellables)
-
-    controller
-      .statusChangePublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] change in
-        switch change {
-        case .idle, .processing:
-          self?.contentView
-            .applyOn(
-              labels:
-                .textColor(dynamic: .primaryText)
-            )
-
-        case .error:
-          self?.contentView
-            .applyOn(
-              labels:
-                .textColor(dynamic: .secondaryRed)
-            )
-        }
-
-        switch change {
-        case .idle:
-          self?.dismissOverlay()
-
-        case .processing:
-          self?.view.endEditing(true)
-          self?
-            .present(
-              overlay: LoaderOverlayView(
-                longLoadingMessage: (
-                  message: .localized(
-                    key: .loadingLong
-                  ),
-                  delay: 15
-                )
-              )
-            )
-
-        case .error(let error) where error is InvalidPasteValue:
-          self?.dismissOverlay()
-          SnackBarMessageEvent.send(.error(.localized(key: .invalidPasteValue)))
-
-        case .error(let error) where !(error is Cancelled):
-          self?.dismissOverlay()
-          SnackBarMessageEvent.send(.error(error))
-
-        case .error(let error as NetworkRequestValidationFailure):
-          self?.dismissOverlay()
-          SnackBarMessageEvent.send(.error("totp.wrong.code.error"))
-
-        case _:
-          self?.dismissOverlay()
-        }
-      }
-      .store(in: cancellables)
+    case is Cancelled:
+      break  // actually not an error
+    default:
+      SnackBarMessageEvent.send(.error(error))
+    }
   }
 }

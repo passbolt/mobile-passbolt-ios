@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Display
 import SharedUIComponents
 import UIComponents
 
@@ -29,7 +30,7 @@ internal final class Window {
 
   private enum ScreenCache {
 
-    case cached(AnyUIComponent, for: Account)
+    case cached(UIViewController, for: Account)
   }
 
   private static let transitionDuration: TimeInterval = 0.3
@@ -77,7 +78,9 @@ internal final class Window {
 
           case .cached, .none:
             // fallback to initial screen state if there is none cached
-            guard !self.isSplashScreenDisplayed || self.isErrorDisplayed
+            guard
+              !self.isSplashScreenDisplayed ||
+                self.isErrorDisplayed
             else { return }
             self.screenStateCache = .none
             try self.replaceRoot(
@@ -108,7 +111,7 @@ internal final class Window {
           )
 
         // Prompt user with authorization screen if it is not already displayed.
-        case .requestPassphrase(let account, let message):
+        case .requestPassphrase(let account, _):
           guard
             !self.isSplashScreenDisplayed,
             !self.isAuthorizationDisplayed
@@ -120,9 +123,10 @@ internal final class Window {
                 self.screenStateCache == nil,
                 "Cannot replace screen state cache, it has to be empty"
               )
-              guard let rootComponent: AnyUIComponent = self.window.rootViewController as? AnyUIComponent
-              else { unreachable("Window root has to be an instance of UIComponent") }
-              self.screenStateCache = .cached(rootComponent, for: account)
+
+              guard let currentRootController: UIViewController = self.window.rootViewController
+              else { return }
+              self.screenStateCache = .cached(currentRootController, for: account)
             }
             else {
               /* NOP - reuse previous cache if any if previous screen was mfa prompt */
@@ -133,13 +137,11 @@ internal final class Window {
             self.screenStateAccount = account
           }
 
-          try self.replaceRoot(
-            with: self.components
-              .instance(
-                of: AuthorizationNavigationViewController.self,
-                in: (account: account, message: message)
-              )
-          )
+          let navigationToAccountSelection: NavigationToAccountSelection = try self.components.features.instance()
+          try await navigationToAccountSelection.perform(context: .init(isSignIn: true))
+
+          let navigationToAuthorization: NavigationToAuthorization = try self.components.features.instance()
+          try await navigationToAuthorization.perform(animated: false, context: account)
 
         // Prompt user with mfa screen if it is not already displayed.
         case .requestMFA(let account, let providers):
@@ -148,77 +150,29 @@ internal final class Window {
             !self.isMFAPromptDisplayed
           else { return }
 
-          if let authorizationNavigation = self.window.rootViewController
-            as? AuthorizationNavigationViewController
-          {
-            if providers.isEmpty {
-              try self.replaceRoot(
-                with: self.components
-                  .instance(
-                    of: PlainNavigationViewController<UnsupportedMFAViewController>.self
-                  )
-              )
-            }
-            else {
-              await authorizationNavigation
-                .push(
-                  MFARootViewController.self,
-                  in: providers
-                )
-            }
-          }
-          else if let welcomeNavigation = self.window.rootViewController
-            as? WelcomeNavigationViewController
-          {
-            if providers.isEmpty {
-              try self.replaceRoot(
-                with: self.components
-                  .instance(
-                    of: PlainNavigationViewController<UnsupportedMFAViewController>.self
-                  )
-              )
-            }
-            else {
-              await welcomeNavigation
-                .push(
-                  MFARootViewController.self,
-                  in: providers
-                )
-            }
-          }
-          else {
+          if !self.isAuthorizationDisplayed {
             if self.screenStateAccount == account {
               assert(
                 self.screenStateCache == nil,
                 "Cannot replace screen state cache, it has to be empty"
               )
-              guard let rootComponent: AnyUIComponent = self.window.rootViewController as? AnyUIComponent
-              else { unreachable("Window root has to be an instance of UIComponent") }
-              self.screenStateCache = .cached(rootComponent, for: account)
+              guard let currentRootController: UIViewController = self.window.rootViewController
+              else { return }
+              self.screenStateCache = .cached(currentRootController, for: account)
             }
             else {
               self.screenStateCache = .none
               self.screenStateAccount = account
             }
-
-            if providers.isEmpty {
-              try self.replaceRoot(
-                with: self.components
-                  .instance(
-                    of: PlainNavigationViewController<UnsupportedMFAViewController>.self
-                  )
-              )
-            }
-            else {
-              try self.replaceRoot(
-                with: self.components
-                  .instance(
-                    of: PlainNavigationViewController<MFARootViewController>.self,
-                    in: providers
-                  )
-              )
-            }
           }
+          if providers.isEmpty {
+            let navigationToResult: NavigationToUnsupportedMFA = try components.features.instance()
+            try await navigationToResult.perform()
+            return
+          }
+
+          let navigationToMFA: NavigationToMFA = try self.components.features.instance()
+          try await navigationToMFA.perform(context: providers)
         }
       }
     }
@@ -254,43 +208,27 @@ extension Window {
     window.rootViewController?.presentedViewController is ErrorViewController
   }
 
-  private var isAccountTransferDisplayed: Bool {
-    guard let navigation = window.rootViewController as? UINavigationController
-    else { return false }
-    return navigation.viewControllers.contains { (vc: UIViewController) -> Bool in
-      vc is TransferSignInViewController
-        || vc is TransferInfoScreenViewController
-    }
-  }
-
   private var isAuthorizationDisplayed: Bool {
     guard let navigation = window.rootViewController as? UINavigationController
     else { return false }
 
-    return navigation.viewControllers
-      .contains { (vc: UIViewController) -> Bool in
-        vc is TransferSignInViewController
-          || vc is AuthorizationViewController
-      }
-      && !navigation.viewControllers
-        .contains { (vc: UIViewController) -> Bool in
-          vc is MFARootViewController
-        }
+    if navigation.contains(AuthorizationView.self) || navigation.contains(TransferSignInView.self) {
+      return isMFAPromptDisplayed
+    }
+    return false
   }
 
   private var isMFAPromptDisplayed: Bool {
-    window.rootViewController is PlainNavigationViewController<MFARootViewController>
-      || (window.rootViewController as? AuthorizationNavigationViewController)?.viewControllers
-        .contains(where: {
-          $0 is MFARootViewController
-        }) ?? false
+    guard let navigation = window.rootViewController as? UINavigationController
+    else { return false }
+    return navigation.contains(MFAView.self)
   }
 }
 
 extension Window {
 
   private func replaceRoot(
-    with component: AnyUIComponent,
+    with component: UIViewController,
     animated: Bool = true,
     completion: (() -> Void)? = nil
   ) {
@@ -308,5 +246,12 @@ extension Window {
         currentView?.alpha = 1
       }
     )
+  }
+}
+
+extension UINavigationController {
+
+  fileprivate func contains<V>(_ view: V.Type) -> Bool where V: ControlledView {
+    viewControllers.contains { $0 is UIHostingController<V> }
   }
 }

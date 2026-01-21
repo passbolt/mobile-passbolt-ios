@@ -26,6 +26,7 @@ import Display
 import FeatureScopes
 import NetworkOperations
 import OSFeatures
+import SharedUIComponents
 
 internal final class AuthorizationViewController: ViewController {
 
@@ -48,8 +49,10 @@ internal final class AuthorizationViewController: ViewController {
 
   fileprivate let features: Features
   fileprivate let context: Context
+  fileprivate let navigationToAccountSelection: NavigationToAccountSelection
 
   internal init(context: Context, features: Features) throws {
+    self.navigationToAccountSelection = try features.instance()
     self.features = try features.branchIfNeeded(scope: AccountScope.self, context: context)
     self.context = context
 
@@ -164,7 +167,10 @@ extension AuthorizationViewController {
         try await navigationToFingerprintInvalid.perform(
           context: .init(
             accountID: error.account.localID,
-            fingerprint: error.fingerprint
+            fingerprint: error.fingerprint,
+            backAction: {
+              try await self.navigationToAccountSelection.perform(context: .signIn)
+            }
           )
         )
       }

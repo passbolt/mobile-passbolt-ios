@@ -151,32 +151,6 @@ extension DisplayNavigation {
       )
   }
 
-  @MainActor public func presentLegacySheet<DisplayComponent>(
-    _ type: DisplayComponent.Type,
-    controller: DisplayComponent.Controller,
-    animated: Bool = true
-  ) async where DisplayComponent: ControlledView {
-    await self.legacyBridge
-      .bridgeComponent()?
-      .presentSheet(
-        DisplayViewBridge<DisplayComponent>.self,
-        in: controller,
-        animated: animated
-      )
-  }
-
-  @MainActor public func dismissLegacySheet<DisplayComponent>(
-    _ type: DisplayComponent.Type,
-    animated: Bool = true
-  ) async where DisplayComponent: ControlledView {
-    await self.legacyBridge
-      .bridgeComponent()?
-      .dismissSheet(
-        DisplayComponent.self,
-        animated: animated
-      )
-  }
-
   @MainActor public func dismiss<Component>(
     _ type: Component.Type,
     animated: Bool = true
@@ -225,48 +199,6 @@ extension DisplayNavigation {
       )
   }
 
-  @MainActor public func presentSheetMenu<Component>(
-    _ type: Component.Type,
-    in context: SheetMenuViewController<Component>.Controller.Context,
-    animated: Bool = true
-  ) async where Component: UIComponent {
-    await self.legacyBridge
-      .bridgeComponent()?
-      .presentSheetMenu(
-        type,
-        in: context,
-        animated: animated
-      )
-  }
-
-  @MainActor public func presentSheetMenu<Component>(
-    _ type: Component.Type,
-    in context: SheetMenuViewController<Component>.Controller.Context,
-    animated: Bool = true
-  ) async where Component: ComponentView {
-    await self.legacyBridge
-      .bridgeComponent()?
-      .presentSheetMenu(
-        type,
-        in: context,
-        animated: animated
-      )
-  }
-
-  @MainActor public func presentSheet<DisplayComponent>(
-    _ type: DisplayComponent.Type,
-    controller: DisplayComponent.Controller,
-    animated: Bool = true
-  ) async where DisplayComponent: ControlledView {
-    await self.legacyBridge
-      .bridgeComponent()?
-      .presentSheet(
-        type,
-        controller: controller,
-        animated: animated
-      )
-  }
-
   @MainActor public func present<Component>(
     _ type: Component.Type,
     in context: Component.Controller.Context,
@@ -289,34 +221,6 @@ extension DisplayNavigation {
     await self.legacyBridge
       .bridgeComponent()?
       .present(
-        type,
-        in: context,
-        animated: animated
-      )
-  }
-
-  @MainActor public func presentSheet<Component>(
-    _ type: Component.Type,
-    in context: Component.Controller.Context,
-    animated: Bool = true
-  ) async where Component: ComponentView {
-    await self.legacyBridge
-      .bridgeComponent()?
-      .presentSheet(
-        type,
-        in: context,
-        animated: animated
-      )
-  }
-
-  @MainActor public func presentSheet<Component>(
-    _ type: Component.Type,
-    in context: Component.Controller.Context,
-    animated: Bool = true
-  ) async where Component: UIComponent {
-    await self.legacyBridge
-      .bridgeComponent()?
-      .presentSheet(
         type,
         in: context,
         animated: animated

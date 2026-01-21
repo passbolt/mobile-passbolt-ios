@@ -61,7 +61,7 @@ public struct AccountImport {
 
 extension AccountImport {
 
-  public struct AccountDetails {
+  public struct AccountDetails: Equatable {
 
     public let domain: URLString
     public let label: String

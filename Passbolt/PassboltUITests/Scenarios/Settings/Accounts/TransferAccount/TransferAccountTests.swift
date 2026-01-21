@@ -27,25 +27,31 @@ final class TransferAccountTests: UITestCase {
 
   var password: String = MockAccount.automation.password
 
+  private var mainScreen: MainScreen { screen() }
+  private var settingsScreen: SettingsScreen { screen() }
+
   override func beforeEachTestCase() throws {
     try signIn()
-    try tapTab("Settings")
+    mainScreen
+      .ensureDisplayed()
+      .openSettings()
+      .ensureDisplayed()
   }
 
   /// https://passbolt.testrail.io/index.php?/cases/view/8147
   func test_asAUserICanSeeAnExplanationOnHowToTransferAnExistingAccount() throws {
-    //  Given   I’m logged in user on Accounts screen
-    try tap("settings.main.item.accounts.title")
-    //  When    I click “Transfer account to another device”
-    try tap("settings.accounts.item.export.title")
+    settingsScreen
+      .openAccounts() //  Given   I’m logged in user on Accounts screen
+      .ensureDisplayed()
+      .tapTransferButton() //  When    I click “Transfer account to another device”
+
     //  Then  the “Transfer account details” explanation screen is presented with a corresponding title
     assertPresentsString(matching: "Transfer account details")
     //  And the screen has an arrow button on the top left to go back to the previous screen
-    assertInteractive("BackButton")
+    XCTAssertTrue(application.buttons["ArrowLeft"].isHittable)
+
     //  And   it has an explanation of the different steps of the transfer process
-    assertPresentsString(
-      matching: "Show QR codes to transfer your account details"
-    )
+
     assertPresentsString(
       matching: "Scan the qr codes sequence"
     )
@@ -59,51 +65,42 @@ final class TransferAccountTests: UITestCase {
   func test_asAMobileUserIShouldSeeEnterYourPassphraseScreenWhenTransferStarted() throws {
     //    Given I’m on mobile without any biometry enabled for the Passbolt app
     //    And   I’m logged in user on “Transfer account details” screen
-    try tap("settings.main.item.accounts.title")
-    try tap("settings.accounts.item.export.title")
+    settingsScreen
+      .openAccounts()
+      .ensureDisplayed()
+      .tapTransferButton()
     //    When  I click “Start Transfer”
     try tap("transfer.account.export.scan.qr.button")
     //    Then  I see a "Enter your passphrase" page
-    assertPresentsString(
-      matching: "Enter your passphrase"
-    )
-    //    And   I see a back arrow button
-    assertInteractive("BackButton")
-    //    And   I see my current user's avatar or the default avatar
-    assertExists("authorization.passphrase.avatar")
+    let authenticationScreen: AuthenticationScreen = screen()
+    authenticationScreen
+      .set(mode: .unlock)
+      .ensureDisplayed()
     //    And   I see my current user's name
-    assertPresentsString(
-      matching: "\(MockAccount.automation.firstName) \(MockAccount.automation.lastName)"
-    )
+      .assertLabel(equals: "\(MockAccount.automation.firstName) \(MockAccount.automation.lastName)")
+
     //    And   I see my current user's email
-    assertPresentsString(
-      matching: MockAccount.automation.username
-    )
+      .assertEmail(equals: MockAccount.automation.username)
     //    And   I see the url of the server
-    assertPresentsString(
-      matching: MockAccount.automation.domain
-    )
-    //    And   I see a passphrase input field
-    assertInteractive("form.textfield.field")
-    //    And   I see an eye icon to toggle passphrase visibility
-    assertInteractive("form.textfield.eye")
-    //    And   I see a “Confirm passphrase” primary action button
-    assertInteractive("Confirm passphrase")
+      .assertURLLabel(equals: MockAccount.automation.domain)
   }
 
   /// https://passbolt.testrail.io/index.php?/cases/view/8151
   func test_asAUserIShouldSeeTransferringYourAccountDetailsScreen() throws {
+    settingsScreen
+      .openAccounts()
+      .ensureDisplayed()
+      .tapTransferButton()
     //    Given I’m on “Transfer account details” process
-    try tap("settings.main.item.accounts.title")
-    //    And   I am on the "Enter your passphrase" page
-    try tap("settings.accounts.item.export.title")
     try tap("transfer.account.export.scan.qr.button")
     //    When  I click “Confirm passphrase” or provide valid biometric authentication
-    try type(
-      text: password + "\n",
-      to: "form.textfield.field"
-    )
-    try tap("transfer.account.export.passphrase.primary.button")
+    let authenticationScreen: AuthenticationScreen = screen()
+    try authenticationScreen
+      .set(mode: .unlock)
+      .ensureDisplayed()
+      .enterPassphrase(password)
+      .tapSignIn()
+
     //    Then  I see a “Transferring your account details” page with corresponding title
     try waitForElement("Transfer account details")
     assertPresentsString(
@@ -118,14 +115,20 @@ final class TransferAccountTests: UITestCase {
   /// https://passbolt.testrail.io/index.php?/cases/view/8153
   func test_asAUserINeedToConfirmToStopTheQrCodePresentation() throws {
     //      Given   I’m on a “Transferring your account details” page
-    try tap("settings.main.item.accounts.title")
-    try tap("settings.accounts.item.export.title")
+    settingsScreen
+      .openAccounts()
+      .ensureDisplayed()
+      .tapTransferButton()
+
     try tap("transfer.account.export.scan.qr.button")
-    try type(
-      text: password + "\n",
-      to: "form.textfield.field"
-    )
-    try tap("transfer.account.export.passphrase.primary.button")
+
+    let authenticationScreen: AuthenticationScreen = screen()
+    try authenticationScreen
+      .set(mode: .unlock)
+      .ensureDisplayed()
+      .enterPassphrase(password)
+      .tapSignIn()
+
     //      When    I click “Cancel Transfer” button
     try tap("transfer.account.export.cancel.button")
     //      Then    I see a confirmation dialog
@@ -192,18 +195,20 @@ final class TransferAccountTests: UITestCase {
   }
 
   private func openStopTransferPrompt() throws {
-    try tap("settings.main.item.accounts.title")
-    try tap("settings.accounts.item.export.title", timeout: 5.0)
-    try tap("transfer.account.export.scan.qr.button", timeout: 5.0)
-    try typePassphrase(
-      text: password,
-      to: "form.textfield.field"
-    )
-    if application.buttons["Return"].exists, application.buttons["Return"].isHittable {
-      try tap("Return")
-    }
+    settingsScreen
+      .openAccounts()
+      .ensureDisplayed()
+      .tapTransferButton()
 
-    try tap("transfer.account.export.passphrase.primary.button")
+    try tap("transfer.account.export.scan.qr.button")
+
+    let authenticationScreen: AuthenticationScreen = screen()
+    try authenticationScreen
+      .set(mode: .unlock)
+      .ensureDisplayed()
+      .enterPassphrase(password)
+      .tapSignIn()
+
     try tap("transfer.account.export.cancel.button")
   }
 

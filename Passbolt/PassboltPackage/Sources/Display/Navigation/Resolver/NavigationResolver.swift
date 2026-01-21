@@ -68,6 +68,17 @@ extension NavigationResolver {
   @MainActor internal func replaceRoot(
     _ newRoot: NavigationAnchor
   ) async throws {
+    guard let connectedScene: UIWindowScene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first
+    else {
+      return try await legacyReplaceRoot(newRoot)
+    }
+
+    connectedScene.keyWindow?.rootViewController = newRoot
+  }
+
+  @MainActor internal func legacyReplaceRoot(
+    _ newRoot: NavigationAnchor
+  ) async throws {
     guard var rootViewController: UIViewController = rootAnchor()
     else {
       return
@@ -363,7 +374,7 @@ extension FeaturesRegistry {
 
 extension UIViewController {
 
-  fileprivate var findFirstNavigationStack: UINavigationController? {
+  internal var findFirstNavigationStack: UINavigationController? {
     if let stack: UINavigationController = self.navigationStack {
       return stack
     }

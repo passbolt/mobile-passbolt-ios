@@ -88,7 +88,18 @@ internal struct AccountSelectionView: ControlledView {
     }
     .padding(.horizontal, 16)
     .backgroundColor(.passboltBackground)
-    Spacer()
+    .toolbar {
+      ToolbarItem(placement: .topBarTrailing) {
+        with(\.mode) { mode in
+          if mode == .signIn {
+            IconButton(
+              iconName: .close,
+              action: self.controller.closeExtension
+            )
+          }
+        }
+      }
+    }
   }
 }
 

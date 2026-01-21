@@ -57,6 +57,7 @@ extension FeaturesRegistry {
     self.usePassboltMetadataModule()
 
     self.usePassboltHomePresentation()
+    self.usePassboltAccountImportResultHandler()
 
     self.usePassboltInitialization()
     self.usePassboltUpdateCheck()
