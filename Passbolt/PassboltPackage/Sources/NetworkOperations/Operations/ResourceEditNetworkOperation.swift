@@ -22,6 +22,7 @@
 //
 
 import Features
+import struct Foundation.Date
 
 // MARK: - Interface
 
@@ -43,6 +44,7 @@ public struct ResourceEditNetworkOperationVariable: Encodable, Sendable {
   public var metadataKeyID: MetadataKeyDTO.ID?
   public var metadataKeyType: MetadataKeyDTO.MetadataKeyType
   public var metadata: ArmoredPGPMessage
+  public var expired: Date?
 
   public struct Secret: Encodable, Sendable {
 
@@ -63,7 +65,8 @@ public struct ResourceEditNetworkOperationVariable: Encodable, Sendable {
     metadata: ArmoredPGPMessage,
     metadataKeyID: MetadataKeyDTO.ID?,
     metadataKeyType: MetadataKeyDTO.MetadataKeyType,
-    secrets: Array<(userID: User.ID, data: ArmoredPGPMessage)>
+    secrets: Array<(userID: User.ID, data: ArmoredPGPMessage)>,
+    expired: Date? = .none
   ) {
     self.resourceID = resourceID
     self.resourceTypeID = resourceTypeID
@@ -72,6 +75,7 @@ public struct ResourceEditNetworkOperationVariable: Encodable, Sendable {
     self.metadataKeyID = metadataKeyID
     self.metadataKeyType = metadataKeyType
     self.secrets = secrets.map { Secret(userID: $0.userID, data: $0.data) }
+    self.expired = expired
   }
 
   public enum CodingKeys: String, CodingKey {
@@ -82,5 +86,6 @@ public struct ResourceEditNetworkOperationVariable: Encodable, Sendable {
     case metadataKeyID = "metadata_key_id"
     case metadataKeyType = "metadata_key_type"
     case secrets = "secrets"
+    case expired = "expired"
   }
 }

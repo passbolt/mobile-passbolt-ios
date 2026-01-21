@@ -21,17 +21,37 @@
 // @since         v1.0
 //
 
-public enum TimeSecondsTag {}
+import Features
 
-public typealias Seconds = Tagged<Int64, TimeSecondsTag>
+public typealias PasswordExpirySettingsFetchNetworkOperation
+  = NetworkOperation<PasswordExpirySettingsFetchNetworkOperationDescription>
 
-public enum TimeDaysTag {}
+public enum PasswordExpirySettingsFetchNetworkOperationDescription: NetworkOperationDescription {
 
-public typealias Days = Tagged<Int64, TimeDaysTag>
+  public typealias Output = PasswordExpirySettings
+}
 
-extension Days {
+public struct PasswordExpirySettings: Sendable, Decodable {
 
-  public var inSeconds: Seconds {
-    .init(rawValue: self.rawValue * 24 * 60 * 60)
+  public let automaticUpdate: Bool
+  public let automaticExpiry: Bool
+  public let defaultExpiryPeriod: Int?
+
+  public init(
+    automaticUpdate: Bool,
+    automaticExpiry: Bool,
+    defaultExpiryPeriod: Int?
+  ) {
+    self.automaticUpdate = automaticUpdate
+    self.automaticExpiry = automaticExpiry
+    self.defaultExpiryPeriod = defaultExpiryPeriod
+  }
+
+  private enum CodingKeys: String, CodingKey {
+
+    case automaticUpdate = "automatic_update"
+    case automaticExpiry = "automatic_expiry"
+    case defaultExpiryPeriod = "default_expiry_period"
   }
 }
+

@@ -56,7 +56,8 @@ extension ResourceEditForm {
       try features.instance()
     let resourceUsersIDFetchDatabaseOperation: ResourceUsersIDFetchDatabaseOperation = try features.instance()
     let formState: Variable<Resource> = .init(initial: context.editedResource)
-
+    let sessionConfigurationLoader: SessionConfigurationLoader = try features.instance()
+    let osTime: OSTime = features.instance()
     let metadataKeysService: MetadataKeysService = try features.instance()
 
     /// Updates a specific field in the resource with a new JSON value.
@@ -106,6 +107,38 @@ extension ResourceEditForm {
       let result: Validated<JSON> = validator.validate(resource[keyPath: fieldPath])
       if let error = result.error {
         throw error
+      }
+    }
+
+    /// Updates the expiry timestamp of the resource if needed based on edited fields and session configuration.
+    /// - Parameter editedFields: Set of field paths that were edited
+    /// - Throws: An error if session configuration loading fails
+    @Sendable nonisolated func updateExpiryTimestampIfNeeded(editedFields: Set<Resource.FieldPath>) async throws {
+      let sessionConfiguration: SessionConfiguration = try await sessionConfigurationLoader.sessionConfiguration()
+      guard sessionConfiguration.passwordExpiry.enabled
+      else {
+        return
+      }
+      let resource: Resource = formState.value
+      let passwordExpiry: PasswordExpiryFeatureConfiguration = sessionConfiguration.passwordExpiry
+      if resource.isLocal {
+        // new resource
+        if passwordExpiry.automaticExpiry {
+          formState.mutate {
+            $0.expired = passwordExpiry.calculateExpiryTimestamp(from: osTime.timestamp())
+          }
+        }
+        return
+      }
+
+      guard editedFields.contains(where: { resource.isSecret($0) }),
+        passwordExpiry.automaticUpdate
+      else {
+        // do not update expiry date if secret is not updated or automatic update is disabled
+        return
+      }
+      formState.mutate {
+        $0.expired = passwordExpiry.calculateExpiryTimestamp(from: osTime.timestamp())
       }
     }
 
@@ -288,7 +321,8 @@ extension ResourceEditForm {
       updateType: updateType(to:),
       validateForm: validateForm,
       validateField: validate(fieldPath:),
-      sendForm: sendForm
+      sendForm: sendForm,
+      updateExpiryDateIfNeeded: updateExpiryTimestampIfNeeded(editedFields:)
     )
   }
 }
@@ -303,5 +337,15 @@ extension FeaturesRegistry {
       ),
       in: ResourceEditScope.self
     )
+  }
+}
+
+extension PasswordExpiryFeatureConfiguration {
+
+  fileprivate func calculateExpiryTimestamp(from now: Timestamp) -> Timestamp? {
+    guard self.enabled, let expiryPeriodValue: Int = self.defaultExpiryPeriod else { return .none }
+
+    let expiryPeriod: Days = .init(rawValue: Int64(expiryPeriodValue))
+    return now + expiryPeriod
   }
 }
