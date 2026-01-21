@@ -27,14 +27,25 @@ import SharedUIComponents
 extension FeaturesRegistry {
 
   public mutating func useLiveNavigation() {
+    // MARK: - Initial
+    self.useLiveNavigationToWelcomeScreen()
+    self.useLiveNavigationToHelpMenu()
+    self.useLiveNavigationToLogsViewer()
+    self.useLiveNavigationToGenericResult()
+    self.useLiveNavigationToTransferSignIn()
+    self.useLiveNavigationToAccountImportInfo()
+    self.useLiveNavigationToAccountExportInfo()
+    self.useLiveNavigationToCodeScanning()
+    self.useLiveNavigationToNewUnsupportedMFA()
+    self.useLiveNavigationToServerFingerprintInvalid()
     // MARK: - Global
-    self.useLiveNavigationToLogs()
+    self.useLiveNavigationToDiagnostics()
     self.useLiveNavigationToOperationAuthorization()
     self.useLiveNavigationToExternalActivity()
-    self.useLiveNavigationToOperationResult()
-    self.useLiveNavigationToTransferInfo()
 
     // MARK: - Session
+    self.useLiveNavigationToNewAccountSelection()
+    self.useLiveNavigationToMFA()
     self.useLiveNavigationToAccountMenu()
     self.useLiveNavigationToAuthorization()
     self.useLiveNavigationToAccountDetails()
@@ -49,7 +60,7 @@ extension FeaturesRegistry {
     self.useLiveNavigationToResourceFolderEdit()
     self.useLiveNavigationToResourceFolderMenu()
     self.useLiveNavigationToResourceFolderDetails()
-    
+
     // MARK: - Resource details
     self.useLiveNavigationToResourceDetails()
     self.useLiveNavigationToResourceLocationDetails()
@@ -87,7 +98,8 @@ extension FeaturesRegistry {
     self.useLiveNavigationToApplicationSettings()
     self.useLiveNavigationToDefaultPresentationModeSettings()
     self.useLiveNavigationToAccountsSettings()
-    self.useLiveNavigationToAccountExport()
+    self.useLiveNavigationToAccountExportAuthorization()
+    self.useLiveNavigationToAccountQRCodeExport()
     self.useLiveNavigationToAccountKeyInspector()
     self.useLiveNavigationToAccountKeyExportMenu()
 

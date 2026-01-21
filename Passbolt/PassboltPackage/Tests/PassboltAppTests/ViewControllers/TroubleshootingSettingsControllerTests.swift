@@ -43,7 +43,7 @@ final class TroubleshootingSettingsControllerTests: FeaturesTestCase {
 
   func test_navigateToLogs_performsNavigation() async {
     patch(
-      \NavigationToLogs.mockPerform,
+      \NavigationToDiagnostics.mockPerform,
       with: always(self.mockExecuted())
     )
     await withInstance(

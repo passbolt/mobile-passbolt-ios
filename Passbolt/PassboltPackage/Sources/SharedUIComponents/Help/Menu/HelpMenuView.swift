@@ -21,75 +21,112 @@
 // @since         v1.0
 //
 
-import UICommons
+import Display
+import UniformTypeIdentifiers
 
-public final class HelpMenuView: ScrolledStackView {
+internal struct HelpMenuView: ControlledView {
 
-  public override func setup() {
-    mut(self) {
-      .combined(
-        .backgroundColor(.clear),
-        .axis(.vertical),
-        .isLayoutMarginsRelativeArrangement(true),
-        .contentInset(.init(top: 0, left: 16, bottom: 0, right: 16))
-      )
-    }
+  internal let controller: HelpMenuViewController
+
+  internal init(controller: HelpMenuViewController) {
+    self.controller = controller
   }
 
-  internal func setActions(_ actions: Array<HelpMenuController.Action>) {
-    removeAllArrangedSubviews()
-    mut(self) {
-      .forEach(in: actions) { action in
-        .append(HelpMenuActionCellView(action))
+  internal var body: some View {
+    withSheet(
+      \.presentAccountKitPicker,
+      sheet: {
+        DocumentPicker(
+          onDocumentSelected: self.controller.importAccountKit
+        )
+      },
+      content: {
+        drawer
       }
+    )
+  }
+
+  private var drawer: some View {
+    DrawerMenu(
+      closeTap: { await self.controller.closeMenu() },
+      title: {
+        Text(displayable: "help.menu.title")
+          .font(.inter(ofSize: 18, weight: .bold))
+          .foregroundStyle(Color.passboltPrimaryText)
+      },
+      content: {
+        with(\.actions) { actions in
+          VStack(spacing: 10) {
+            ForEach(actions, id: \.self) { action in
+              DrawerMenuItemView(
+                action: action.action,
+                title: {
+                  Text(displayable: action.title)
+                    .font(.inter(ofSize: 14, weight: .semibold))
+                    .foregroundStyle(Color.passboltPrimaryText)
+                },
+                leftIcon: {
+                  Image(named: action.icon)
+                    .renderingMode(.template)
+                    .foregroundStyle(Color.passboltPrimaryText)
+                    .frame(width: 18, height: 18)
+                }
+              )
+            }
+          }
+        }
+      }
+    )
+    .ignoresSafeArea()
+  }
+}
+
+
+private struct DocumentPicker: UIViewControllerRepresentable {
+
+  private let onDocumentSelected: (URL?) -> Void
+
+  fileprivate init(onDocumentSelected: @escaping (URL?) -> Void) {
+    self.onDocumentSelected = onDocumentSelected
+  }
+
+  fileprivate func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
+    let picker = UIDocumentPickerViewController(forOpeningContentTypes: [UTType.item], asCopy: true)
+    picker.delegate = context.coordinator
+    picker.modalPresentationStyle = .fullScreen
+    return picker
+  }
+
+  fileprivate func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {
+    // no-op
+  }
+
+  fileprivate func makeCoordinator() -> Coordinator {
+    Coordinator(self)
+  }
+
+  fileprivate class Coordinator: NSObject, UIDocumentPickerDelegate {
+    private let parent: DocumentPicker
+
+    fileprivate init(_ parent: DocumentPicker) {
+      self.parent = parent
+    }
+
+    fileprivate func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+      parent.onDocumentSelected(urls.first)
     }
   }
 }
 
-private final class HelpMenuActionCellView: PlainButton {
-
-  fileprivate let imageView: ImageView = .init()
-  fileprivate let titleLabel: Label = .init()
-
-  @available(*, unavailable, message: "Use init(operation:)")
-  required init() {
-    unreachable(#function)
-  }
-
-  fileprivate init(_ action: HelpMenuController.Action) {
-    super.init()
-
-    mut(self) {
-      .combined(
-        .backgroundColor(.clear),
-        .action(action.handler)
+#if DEBUG
+#Preview {
+  PlaceholderView()
+    .sheet(isPresented: .constant(true)) {
+      createPreview(
+        HelpMenuView.self,
+        with: .init()
       )
+      .wrapInNavigationStack()
     }
-
-    mut(imageView) {
-      .combined(
-        .image(named: action.iconName, from: action.iconBundle),
-        .tintColor(dynamic: .primaryText),
-        .subview(of: self),
-        .leadingAnchor(.equalTo, leadingAnchor),
-        .topAnchor(.equalTo, topAnchor, constant: 18),
-        .bottomAnchor(.equalTo, bottomAnchor, constant: -18),
-        .widthAnchor(.equalTo, constant: 18),
-        .heightAnchor(.equalTo, constant: 18),
-        .contentMode(.scaleAspectFit)
-      )
-    }
-
-    mut(titleLabel) {
-      .combined(
-        .text(displayable: action.title),
-        .font(.inter(ofSize: 14, weight: .semibold)),
-        .textColor(dynamic: .primaryText),
-        .subview(of: self),
-        .leadingAnchor(.equalTo, imageView.trailingAnchor, constant: 16),
-        .trailingAnchor(.equalTo, trailingAnchor),
-        .centerYAnchor(.equalTo, imageView.centerYAnchor)
-      )
-    }
-  }
 }
+#endif

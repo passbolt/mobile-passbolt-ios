@@ -482,7 +482,7 @@ extension SessionState {
 
     @SessionActor func closedSession() {
       Diagnostics.logger.info("Closing session...")
-      guard let account: Account = currentAccount
+      guard let _: Account = currentAccount
       else { return }
 
       if wipePassphraseUponTaskCompletion {

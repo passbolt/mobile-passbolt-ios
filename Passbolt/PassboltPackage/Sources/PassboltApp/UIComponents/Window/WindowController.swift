@@ -28,7 +28,6 @@ import Session
 import UIComponents
 
 internal struct WindowController {
-
   internal var initialAccount: @Sendable () -> Account?
   internal var screenStateDispositionSequence: @MainActor () -> AnyAsyncSequence<ScreenStateDisposition>
 }

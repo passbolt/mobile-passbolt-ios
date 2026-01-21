@@ -94,7 +94,7 @@ final class ApplicationRatingTests: LoadableFeatureTestCase<ApplicationRating> {
 
     patch(
       \LoginCountStoredProperty.variable,
-     with: .from(initial: variable)
+      with: .from(initial: variable)
     )
     patch(
       \LastAppRateCheckTimestampStoredProperty.variable,

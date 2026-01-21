@@ -21,314 +21,186 @@
 // @since         v1.0
 //
 
-import Session
+import AccountSetup
+import Display
 import SharedUIComponents
-import UICommons
-import UIComponents
 
-internal final class TransferSignInViewController: PlainViewController, UIComponent {
+internal final class TransferSignInViewController: ViewController {
 
-  internal typealias ContentView = AuthorizationView
-  internal typealias Controller = TransferSignInController
+  internal struct ViewState: Equatable {
+    internal var account: AccountImport.AccountDetails?
+    internal var avatarData: Data?
+    internal var passphrase: Validated<String> = .valid("")
+    internal var isLoading: Bool = false
+    internal var alert: AlertViewModel?
+  }
 
-  internal static func instance(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self(
-      using: controller,
-      with: components,
-      cancellables: cancellables
+  internal nonisolated let viewState: ViewStateSource<ViewState>
+  private var cancellables: Set<AnyCancellable> = .init()
+
+  private let navigationToHelpMenu: NavigationToHelpMenu
+  private let navigationToSelf: NavigationToTransferSignIn
+  private let navigationToResult: NavigationToGenericResult
+  private let accountTransfer: AccountImport
+
+  internal init(context: (), features: Features) throws {
+    self.navigationToHelpMenu = try features.instance()
+    self.navigationToSelf = try features.instance()
+    self.navigationToResult = try features.instance()
+    self.accountTransfer = try features.instance()
+
+    self.viewState = .init(
+      initial: .init()
+    )
+
+    accountTransfer.accountDetailsPublisher()
+      .map { details -> AccountImport.AccountDetails? in details }
+      .collectErrorLog()
+      .replaceError(with: nil)
+      .filterMapOptional()
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] details in
+        self?.viewState.update(\.account, to: details)
+      }
+      .store(in: &cancellables)
+
+    accountTransfer
+      .avatarPublisher()
+      .map { data -> Data? in data }
+      .collectErrorLog()
+      .replaceError(with: nil)
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] avatarData in
+        self?.viewState.update(\.avatarData, to: avatarData)
+      }
+      .store(in: &cancellables)
+
+    accountTransfer
+      .progressPublisher()
+      .ignoreOutput()
+      .eraseToAnyPublisher()
+      .sink(receiveCompletion: { completion in
+        switch completion {
+        case .finished:
+          break
+        case .failure(_ as Cancelled):
+          Task { [weak self] in
+            await self?.cancelTransfer()
+          }
+        case .failure(let error):
+          Task { [weak self] in
+            try await self?.navigationToResult
+              .perform(
+                context: .for(
+                  error: error,
+                  confirmation: { [weak self] in
+                    await self?.cancelTransfer()
+                  }
+                )
+              )
+          }
+        }
+      })
+      .store(in: &cancellables)
+  }
+
+  internal func backTapped() {
+    viewState.update(
+      \.alert,
+      to: .init(
+        title: "transfer.account.exit.confirmation.title",
+        message: "transfer.account.exit.confirmation.message",
+        actions: [
+          .cancel(
+            id: .init(),
+            title: "transfer.account.import.exit.confirmation.cancel.button.title"
+          ),
+          .destructive(
+            id: .init(),
+            title: "transfer.account.exit.confirmation.confirm.button.title",
+            perform: cancelTransfer
+          ),
+        ]
+      )
     )
   }
 
-  internal private(set) lazy var contentView: ContentView = .init()
-  internal var components: UIComponentFactory
+  internal func completeTransfer() async {
+    let validatedPassphrase: Validated<String> = await self.viewState.current.passphrase
+    guard validatedPassphrase.isValid
+    else { return }
+    withAnimation {
+      viewState.update(\.isLoading, to: true)
+    }
+    let passphrase: Passphrase = .init(rawValue: validatedPassphrase.value)
+    accountTransfer
+      .completeTransfer(passphrase)
+      .ignoreOutput()
+      .eraseToAnyPublisher()
+      .receive(on: DispatchQueue.main)
+      .handleErrors { [weak self] error in
+        switch error {
+        case is Cancelled:
+          return /* NOP */
 
-  private let controller: Controller
+        case let serverError as ServerConnectionIssue:
+          self?.viewState.update(\.alert, to: .serverErrorAlert(with: serverError.serverURL))
 
-  internal init(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) {
-    self.controller = controller
-    self.components = components
-    super
-      .init(
-        cancellables: cancellables
-      )
+        case let serverError as ServerResponseTimeout:
+          self?.viewState.update(\.alert, to: .serverErrorAlert(with: serverError.serverURL))
+
+        case is SessionMFAAuthorizationRequired:
+          return  // ignore, handled by window controller
+
+        case _:
+          SnackBarMessageEvent.send(.error(error))
+        }
+      }
+      .sink(receiveCompletion: { _ in
+        withAnimation {
+          self.viewState.update(\.isLoading, to: false)
+        }
+
+      })
+      .store(in: &self.cancellables)
   }
 
-  internal func setupView() {
-    mut(navigationItem) {
-      .combined(
-        .leftBarButtonItem(
-          Mutation<UIBarButtonItem>
-            .combined(
-              .backStyle(),
-              .accessibilityIdentifier("button.exit"),
-              .action { [weak self] in
-                self?.controller.presentExitConfirmation()
-              }
-            )
-            .instantiate()
-        ),
-        .title(
-          .localized(key: "sign.in.title")
-        ),
-        .rightBarButtonItem(
-          Mutation<UIBarButtonItem>
-            .combined(
-              .image(named: .help, from: .uiCommons),
-              .action { [weak self] in
-                self?.cancellables
-                  .executeOnMainActor { [weak self] in
-                    await self?.presentSheetMenu(HelpMenuViewController.self, in: [])
-                  }
-              }
-            )
-            .instantiate()
+  internal func cancelTransfer() async {
+    accountTransfer.cancelTransfer()
+    await consumingErrors {
+      try await self.navigationToResult.revert()
+      try await self.navigationToSelf.revert()
+    }
+  }
+
+  internal func presentHelpMenu() async {
+    await consumingErrors {
+      try await self.navigationToHelpMenu.perform(context: .init())
+    }
+  }
+
+  internal func forgotPassphraseTapped() {
+    viewState.update(
+      \.alert,
+      to: .forgotPasswordAlert()
+    )
+  }
+}
+
+extension AlertViewModel {
+  fileprivate static func forgotPasswordAlert() -> AlertViewModel {
+    .init(
+      title: "authorization.forgot.passphrase.alert.title",
+      message: "authorization.forgot.passphrase.alert.message",
+      actions: [
+        .regular(
+          id: .init(),
+          title: .localized(key: .gotIt),
+          perform: {
+            /** no-op */
+          }
         )
-      )
-    }
-
-    mut(contentView) {
-      .backgroundColor(dynamic: .background)
-    }
-
-    setupSubscriptions()
-  }
-
-  private func setupSubscriptions() {
-    controller
-      .accountProfilePublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] details in
-        self?.contentView.applyOn(name: .text("\(details.label)"))
-        self?.contentView.applyOn(email: .text(details.username))
-        self?.contentView.applyOn(url: .text(details.domain.rawValue))
-        self?.contentView.applyOn(biometricButtonContainer: .hidden(true))
-      }
-      .store(in: cancellables)
-
-    controller
-      .accountAvatarPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] data in
-        guard let imageData = data,
-          let image: UIImage = .init(data: imageData)
-        else {
-          return
-        }
-
-        self?.contentView.applyOn(image: .image(image))
-      }
-      .store(in: cancellables)
-
-    contentView
-      .secureTextPublisher
-      .receive(on: RunLoop.main)
-      .sink { [weak self] passphrase in
-        self?.controller.updatePassphrase(passphrase)
-      }
-      .store(in: cancellables)
-
-    controller
-      .validatedPassphrasePublisher()
-      .first()  // skipping error just to update intial value
-      .map { Validated.valid($0.value) }
-      .merge(
-        with:
-          controller
-          .validatedPassphrasePublisher()
-          .dropFirst()
-      )
-      .receive(on: RunLoop.main)
-      .sink { [weak self] validatedPassphrase in
-        self?.contentView.update(from: validatedPassphrase)
-        self?.contentView
-          .applyOn(
-            signInButton: .when(
-              validatedPassphrase.isValid,
-              then: .enabled(),
-              else: .disabled()
-            )
-          )
-      }
-      .store(in: cancellables)
-
-    controller
-      .validatedPassphrasePublisher()
-      .map(\.isValid)
-      .receive(on: RunLoop.main)
-      .sink { [weak self] isValid in
-        self?.contentView
-          .applyOn(
-            signInButton: .when(
-              isValid,
-              then: .enabled(),
-              else: .disabled()
-            )
-          )
-      }
-      .store(in: cancellables)
-
-    contentView
-      .signInTapPublisher
-      .receive(on: RunLoop.main)
-      .sink { [weak self] in
-        guard let self = self else { return }
-        self.controller
-          .completeTransfer()
-          .subscribe(on: RunLoop.main)
-          .receive(on: RunLoop.main)
-          .handleEvents(
-            receiveSubscription: { [weak self] _ in
-              self?
-                .present(
-                  overlay: LoaderOverlayView(
-                    longLoadingMessage: (
-                      message: .localized(
-                        key: .loadingLong
-                      ),
-                      delay: 5
-                    )
-                  )
-                )
-            },
-            receiveCompletion: { [weak self] _ in
-              self?.dismissOverlay()
-            }
-          )
-          .handleErrors { [weak self] error in
-            switch error {
-            case is Cancelled:
-              return /* NOP */
-
-            case let serverError as ServerConnectionIssue:
-              self?.cancellables
-                .executeOnMainActor { [weak self] in
-                  await self?
-                    .present(
-                      ServerNotReachableAlertViewController.self,
-                      in: serverError.serverURL
-                    )
-                }
-
-            case let serverError as ServerResponseTimeout:
-              self?.cancellables
-                .executeOnMainActor { [weak self] in
-                  await self?
-                    .present(
-                      ServerNotReachableAlertViewController.self,
-                      in: serverError.serverURL
-                    )
-                }
-
-            case is SessionMFAAuthorizationRequired:
-              return  // ignore, handled by window controller
-
-            case _:
-              SnackBarMessageEvent.send(.error(error))
-            }
-          }
-          .sinkDrop()
-          .store(in: self.cancellables)
-      }
-      .store(in: cancellables)
-
-    contentView
-      .forgotTapPublisher
-      .receive(on: RunLoop.main)
-      .sink { [weak self] in
-        self?.controller.presentForgotPassphraseAlert()
-      }
-      .store(in: cancellables)
-
-    controller
-      .presentForgotPassphraseAlertPublisher()
-      .sink { [weak self] presented in
-        self?.cancellables
-          .executeOnMainActor { [weak self] in
-            guard let self = self else { return }
-
-            if presented {
-              await self.present(ForgotPassphraseAlertViewController.self)
-            }
-            else {
-              await self.dismiss(ForgotPassphraseAlertViewController.self)
-            }
-          }
-      }
-      .store(in: cancellables)
-
-    controller
-      .exitConfirmationPresentationPublisher()
-      .sink { [weak self] presented in
-        self?.cancellables
-          .executeOnMainActor { [weak self] in
-            if presented {
-              await self?.present(TransferSignInExitConfirmationViewController.self)
-            }
-            else {
-              await self?.dismiss(TransferSignInExitConfirmationViewController.self)
-            }
-          }
-      }
-      .store(in: cancellables)
-
-    controller
-      .exitPublisher()
-      .subscribe(on: RunLoop.main)
-      .receive(on: RunLoop.main)
-      .sink(
-        receiveCompletion: { [weak self] completion in
-          guard let self else { return }
-          self.dismissOverlay()
-
-          self.cancellables
-            .executeOnMainActor { [weak self] in
-              guard let self else { return }
-              switch completion {
-              case .finished:
-                break
-
-              case .failure(_ as Cancelled):
-                switch self.navigationController {
-                case .some(_ as WelcomeNavigationViewController),
-                  .some(_ as AuthorizationNavigationViewController):
-                  await self.popToRoot()
-
-                case .some, .none:
-                  await self
-                    .replaceWindowRoot(
-                      with: SplashScreenViewController.self,
-                      in: .none
-                    )
-                }
-
-              case .failure(let error):
-                try await self
-                  .push(
-                    OperationResultControlledView(
-                      controller: OperationResultViewController(
-                        context: OperationResultConfiguration(
-                          for: error.asTheError(),
-                          confirmation: { [weak self] in
-                            await self?.pop(to: TransferInfoScreenViewController.self)
-                          }
-                        ),
-                        features: self.components.features
-                      )
-                    ),
-                    animated: true
-                  )
-              }
-            }
-        }
-      )
-      .store(in: cancellables)
+      ]
+    )
   }
 }

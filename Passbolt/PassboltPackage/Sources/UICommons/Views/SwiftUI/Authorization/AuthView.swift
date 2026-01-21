@@ -186,7 +186,7 @@ where SupportActionView: View {
         action: self.mainAction
       )
       .disabled(passphrase.wrappedValue.value.isEmpty)
-      .accessibilityIdentifier("transfer.account.export.passphrase.primary.button")
+      .accessibilityIdentifier("button.signIn")
 
       self.supportActionView()
         .padding(top: -8)

@@ -201,14 +201,6 @@ let package = Package(
         "Metadata",
       ]
     ),
-    .testTarget(
-      name: "SharedUIComponentsTests",
-      dependencies: [
-        "SharedUIComponents",
-        "CoreTest",
-        "TestExtensions",
-      ]
-    ),
     .target(
       name: "UIComponents",
       dependencies: [

@@ -21,96 +21,58 @@
 // @since         v1.0
 //
 
-import UICommons
+import Display
 
-internal final class YubiKeyView: PlainView {
+internal struct YubiKeyView: ControlledView {
 
-  internal var toggleRememberDevicePublisher: AnyPublisher<Void, Never> { labeledSwitch.togglePublisher }
-  internal var scanTapPublisher: AnyPublisher<Void, Never> { scanButton.tapPublisher }
+  internal let controller: YubiKeyViewController
 
-  private let imageView: ImageView = .init()
-  private let titleLabel: Label = .init()
-  private let descriptionLabel: Label = .init()
-  private let labeledSwitch: LabeledSwitch
-  private let scanButton: TextButton = .init()
-
-  internal required init() {
-    self.labeledSwitch = .init()
-    super.init()
-
-    mut(imageView) {
-      .combined(
-        .subview(of: self),
-        .topAnchor(.equalTo, safeAreaLayoutGuide.topAnchor, constant: 32),
-        .leadingAnchor(.equalTo, leadingAnchor),
-        .trailingAnchor(.equalTo, trailingAnchor),
-        .contentMode(.scaleAspectFit),
-        .image(named: .yubiKeyLogo, from: .uiCommons)
-      )
-    }
-
-    mut(titleLabel) {
-      .combined(
-        .subview(of: self),
-        .leadingAnchor(.equalTo, leadingAnchor),
-        .trailingAnchor(.equalTo, trailingAnchor),
-        .topAnchor(.equalTo, imageView.bottomAnchor, constant: 24),
-        .font(.inter(ofSize: 24, weight: .semibold)),
-        .textColor(dynamic: .primaryText),
-        .text(displayable: .localized(key: "mfa.yubiKey.title")),
-        .textAlignment(.center)
-      )
-    }
-
-    mut(descriptionLabel) {
-      .combined(
-        .subview(of: self),
-        .leadingAnchor(.equalTo, leadingAnchor),
-        .trailingAnchor(.equalTo, trailingAnchor),
-        .topAnchor(.equalTo, titleLabel.bottomAnchor, constant: 16),
-        .font(.inter(ofSize: 14)),
-        .textColor(dynamic: .primaryText),
-        .text(displayable: .localized(key: "mfa.yubiKey.description")),
-        .numberOfLines(0),
-        .lineBreakMode(.byWordWrapping),
-        .textAlignment(.center)
-      )
-    }
-
-    mut(labeledSwitch) {
-      .combined(
-        .subview(of: self),
-        .leadingAnchor(.equalTo, leadingAnchor),
-        .trailingAnchor(.equalTo, trailingAnchor),
-        .topAnchor(.greaterThanOrEqualTo, descriptionLabel.bottomAnchor, constant: 50),
-        .custom { (subject: LabeledSwitch) in
-          subject.applyOn(
-            label: .combined(
-              .font(.inter(ofSize: 14, weight: .semibold)),
-              .textColor(dynamic: .primaryText),
-              .text(
-                displayable: .localized(key: "mfa.remember.token")
-              )
-            )
-          )
-        }
-      )
-    }
-
-    mut(scanButton) {
-      .combined(
-        .subview(of: self),
-        .leadingAnchor(.equalTo, leadingAnchor),
-        .trailingAnchor(.equalTo, trailingAnchor),
-        .topAnchor(.equalTo, labeledSwitch.bottomAnchor, constant: 38),
-        .bottomAnchor(.equalTo, bottomAnchor, constant: -8),
-        .primaryStyle(),
-        .text(displayable: .localized(key: "mfa.yubiKey.scan"))
-      )
-    }
+  internal init(controller: Controller) {
+    self.controller = controller
   }
 
-  internal func update(rememberDevice: Bool) {
-    labeledSwitch.update(isOn: rememberDevice)
+  internal var body: some View {
+    withAlert(
+      \.alert,
+      content: { content }
+    )
+  }
+
+  private var content: some View {
+    VStack(spacing: 0) {
+      Image(named: .yubiKeyLogo)
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+        .frame(width: 80)
+        .frame(maxWidth: .infinity)
+        .padding(.top, 32)
+
+      Text(displayable: "mfa.yubiKey.title")
+        .font(.inter(ofSize: 24, weight: .semibold))
+        .minimumScaleFactor(0.5)
+        .lineLimit(1)
+        .foregroundStyle(Color.passboltPrimaryText)
+        .padding(.top, 24)
+
+      Text(displayable: "mfa.yubiKey.description")
+        .font(.inter(ofSize: 14, weight: .regular))
+        .multilineTextAlignment(.center)
+        .minimumScaleFactor(0.5)
+        .padding(.top, 16)
+
+      Spacer()
+
+      Toggle(isOn: self.binding(to: \.rememberDevice)) {
+        Text(displayable: "totp.remember.device.toggle.label")
+          .font(.inter(ofSize: 14, weight: .semibold))
+          .foregroundStyle(Color.passboltPrimaryText)
+      }
+      .padding(.bottom, 32)
+      PrimaryButton(
+        title: "mfa.yubiKey.scan",
+        action: self.controller.startScanning
+      )
+    }
+    .padding(.horizontal, 16)
   }
 }

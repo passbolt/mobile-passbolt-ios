@@ -241,6 +241,9 @@ extension NavigationAnchor {
         return stack
       }
     }
+    else if let stack = findFirstNavigationStack {
+      return stack
+    }
     else {
       return self
     }
@@ -276,6 +279,9 @@ extension NavigationAnchor {
       else {
         return .none
       }
+    }
+    else if let stack: UINavigationController = findFirstNavigationStack {
+      return stack.viewControllers.last(where: { $0.destinationIdentifier == identifier })
     }
     else {
       return .none

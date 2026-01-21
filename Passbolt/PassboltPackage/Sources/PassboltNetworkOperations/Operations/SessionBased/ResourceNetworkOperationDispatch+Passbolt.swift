@@ -35,6 +35,7 @@ extension ResourceNetworkOperationDispatch {
     let resourceEditNetworkOperationV4: ResourceEditNetworkOperationV4 = try features.instance()
     let resourceEditNetworkOperation: ResourceEditNetworkOperation = try features.instance()
     let metadataKeysService: MetadataKeysService = try features.instance()
+    let metadataSettingsService: MetadataSettingsService = try features.instance()
 
     @Sendable func createResource(
       resource: Resource,
@@ -155,7 +156,10 @@ extension ResourceNetworkOperationDispatch {
         resource.updateMetadataKey(metadataKeyType)
       }
 
-      let validatedMetadataProperties: ValidatedMetadataProperties = try .init(resource: resource)
+      let validatedMetadataProperties: ValidatedMetadataProperties = try .init(
+        resource: resource,
+        keysSettings: metadataSettingsService.keysSettings()
+      )
 
       let encryptionType: MetadataKeysService.EncryptionType = validatedMetadataProperties.encryptionType
       guard
@@ -213,12 +217,12 @@ private struct ValidatedMetadataProperties {
     }
   }
 
-  init(resource: Resource) throws {
+  init(resource: Resource, keysSettings: MetadataKeysSettings) throws {
     var diagnostics: Array<DiagnosticsContext> = []
     var encryptionType: MetadataKeysService.EncryptionType?
     var metadataKeyId: MetadataKeyDTO.ID?
 
-    if resource.isShared {
+    if resource.isShared || keysSettings.allowUsageOfPersonalKeys == false {
       if let keyId = resource.metadataKeyId {
         encryptionType = .sharedKey(keyId)
         metadataKeyId = keyId

@@ -19,158 +19,60 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
-import AccountSetup
+import Display
 import SharedUIComponents
-import UIComponents
 
-internal final class WelcomeScreenViewController: PlainViewController, UIComponent {
+internal final class WelcomeScreenViewController: ViewController {
 
-  internal typealias ContentView = WelcomeScreenView
-  internal typealias Controller = WelcomeScreenController
-
-  internal static func instance(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self(
-      using: controller,
-      with: components,
-      cancellables: cancellables
-    )
+  internal struct ViewState: Equatable {
+    internal var alert: AlertViewModel? = .none
   }
 
-  internal private(set) lazy var contentView: WelcomeScreenView = .init()
-  internal let components: UIComponentFactory
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
-  private let controller: WelcomeScreenController
+  private let navigationToHelpMenu: NavigationToHelpMenu
+  private let navigationToAccountImportInfo: NavigationToAccountImportInfo
 
-  internal init(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) {
-    self.controller = controller
-    self.components = components
-    super
-      .init(
-        cancellables: cancellables
-      )
-    // Listen to NotificationCenter for the help menu
-    NotificationCenter.default.addObserver(
-      self,
-      selector: #selector(handleHelpMenuAccountkitAction),
-      name: .helpMenuActionAccountKitNotification,
-      object: nil
-    )
+  internal init(context: Void, features: Features) throws {
+    self.navigationToHelpMenu = try features.instance()
+    self.navigationToAccountImportInfo = try features.instance()
+    self.viewState = .init(initial: .init())
   }
 
-  internal func setupView() {
-    mut(navigationItem) {
-      .rightBarButtonItem(
-        Mutation<UIBarButtonItem>
-          .combined(
-            .image(named: .help, from: .uiCommons),
-            .action { [weak self] in
-              self?.cancellables
-                .executeOnMainActor { [weak self] in
-                  await self?.presentSheetMenu(HelpMenuViewController.self, in: [])
-                }
-            }
-          )
-          .instantiate()
-      )
-    }
-
-    setupSubscriptions()
-  }
-
-  /**
-   * Handles the action triggered by the Help menu for AccountKit-related notifications.
-   *
-   * This function checks the type of notification and navigates to the appropriate view controller.
-   * If the notification contains `AccountTransferData`, it navigates to the success view controller.
-   * Otherwise, it checks for specific error types and navigates to corresponding error view controllers.
-   *
-   * @param notification The notification object received, which contains either `AccountTransferData`
-   *                     or an error object indicating the type of error encountered.
-   */
-  @objc private func handleHelpMenuAccountkitAction(notification: Notification) {
-    // Perform the navigation or other actions when the notification is received
-    guard let accountTransferData = notification.object as? AccountTransferData else {
-      Task {
-        // Determine the error type from the notification object
-        switch notification.object {
-        case is AccountKitImportFailure:
-          await self.push(AccountKitImportFailureViewController.self, animated: true)
-        case is AccountKitImportInvalidSignature:
-          await self.push(AccountKitSignatureErrorViewController.self, animated: true)
-        case is AccountKitAccountAlreadyExist:
-          await self.push(AccountKitAccountAlreadyExistViewController.self, animated: true)
-        default:
-          // If the error type is not recognized, do not perform any navigation
-          return
-        }
-      }
-      // Do not go further
-      return
-    }
-    // If AccountTransferData is present, navigate to the success view controller
-    Task {
-      await self.push(
-        AccountKitTransferSuccessViewController.self,
-        in: accountTransferData,
-        animated: true
-      )
+  internal func openHelpMenu() async {
+    await consumingErrors {
+      try await navigationToHelpMenu.perform(context: .init())
     }
   }
 
-  private func setupSubscriptions() {
-    contentView.tapAccountPublisher
-      .receive(on: RunLoop.main)
-      .sink { [weak self] in
-        self?.controller.pushTransferInfo()
-      }
-      .store(in: cancellables)
+  internal func showNoAccountAlert() {
+    self.viewState.update(\.alert, to: .noAccountAlert())
+  }
 
-    contentView.tapNoAccountPublisher
-      .receive(on: RunLoop.main)
-      .sink { [weak self] in
-        self?.controller.presentNoAccountAlert()
-      }
-      .store(in: cancellables)
+  internal func goToScanning() async {
+    await consumingErrors {
+      try await navigationToAccountImportInfo.perform()
+    }
+  }
+}
 
-    controller.noAccountAlertPresentationPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] presented in
-        self?.cancellables
-          .executeOnMainActor { [weak self] in
-            guard let self = self else { return }
-            if presented {
-              await self.present(
-                WelcomeScreenNoAccountAlertViewController.self,
-                in: self.controller.dismissNoAccountAlert
-              )
-            }
-            else {
-              await self.dismiss(WelcomeScreenNoAccountAlertViewController.self)
-            }
+extension AlertViewModel {
+
+  fileprivate static func noAccountAlert() -> AlertViewModel {
+    .init(
+      title: "welcome.no.account.alert.title",
+      message: "welcome.no.account.alert.text",
+      actions: [
+        .regular(
+          id: .init(),
+          title: .localized(key: .gotIt),
+          perform: {
+            /** no-op */
           }
-      }
-      .store(in: cancellables)
-
-    controller.pushTransferInfoPublisher()
-      .sink { [weak self] in
-        self?.cancellables
-          .executeOnMainActor { [weak self] in
-            await self?
-              .push(
-                TransferInfoScreenViewController.self,
-                in: .import
-              )
-          }
-      }
-      .store(in: cancellables)
+        )
+      ]
+    )
   }
 }

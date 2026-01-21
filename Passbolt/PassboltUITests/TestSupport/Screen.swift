@@ -35,6 +35,10 @@
     self.app = application
   }
 
+  internal var backButton: XCUIElement {
+    self.app.buttons["BackButton"]
+  }
+
   @discardableResult
   internal func ensureDisplayed(timeout: TimeInterval = 5.0) -> Self {
     for element in self.requiredElements {

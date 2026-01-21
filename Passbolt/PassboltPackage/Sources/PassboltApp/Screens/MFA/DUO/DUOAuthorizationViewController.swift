@@ -33,7 +33,7 @@ internal final class DUOAuthorizationViewController: ViewController {
     internal var request: DUOWebAuthorizationRequest?
   }
 
-  internal let viewState: ViewStateSource<ViewState>
+  internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private var finishAuthorization: ((Result<(String, String, String), Error>) -> Void)?
 

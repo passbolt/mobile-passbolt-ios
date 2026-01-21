@@ -23,6 +23,7 @@
 
 import Display
 import OSFeatures
+import SharedUIComponents
 
 internal final class HelpMenuViewController: ViewController {
 
@@ -45,7 +46,7 @@ internal final class HelpMenuViewController: ViewController {
             title: "help.menu.show.logs.action.title",
             icon: .bug,
             action: {
-              try await navigationToLogsViewer.perform()
+              try await navigationToLogsViewer.perform(context: .init(useCustomNavigationBar: true))
             }
           ),
           .init(

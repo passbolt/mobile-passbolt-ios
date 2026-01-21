@@ -27,9 +27,12 @@ public struct AccountKitImportInvalidSignature: TheError {
   /// Creates a new error instance specific to the AccountKit domain.
   ///
   /// This static function constructs an error related to Account Kit processing.
-  /// - Parameter underlyingError: An optional underlying error that may have caused this error.
-  /// - Parameter file: The file where the error is being created, defaults to the current file.
-  /// - Parameter line: The line number in the file where the error is being created, defaults to the current line.
+  ///
+  /// Parameters:
+  ///   - underlyingError: An optional underlying error that may have caused this error.
+  ///   - file: The file where the error is being created, defaults to the current file.
+  ///   - line: The line number in the file where the error is being created, defaults to the current line.
+  ///
   /// - Returns: An instance of the error type, configured with the provided context and underlying error.
   public static func error(
     underlyingError: Error? = .none,

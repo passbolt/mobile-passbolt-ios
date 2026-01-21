@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-import Commons
 import Foundation
 
 public enum URLStringTag {}

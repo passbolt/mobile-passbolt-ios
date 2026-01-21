@@ -34,8 +34,7 @@ extension FeaturesRegistry {
           .init(
             isImportAccountKitAvailable: { false },
             importAccountKit: { _ in
-              Fail(error: Unavailable.error("Account import is not available in extension."))
-                .eraseToAnyPublisher()
+              throw Unavailable.error("Account import is not available in extension.")
             }
           )
         }

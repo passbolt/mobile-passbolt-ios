@@ -21,163 +21,113 @@
 // @since         v1.0
 //
 
-import Combine
-import UICommons
+import Display
+import SharedUIComponents
 
-internal final class TOTPView: KeyboardAwareView {
+internal struct TOTPView: ControlledView {
 
-  internal var otpPublisher: AnyPublisher<String, Never>
-  internal var pasteOTPTapPublisher: AnyPublisher<Void, Never>
-  internal var rememberDeviceToggleTapPublisher: AnyPublisher<Void, Never>
+  internal let controller: TOTPViewController
 
-  private let otpInput: OTPInput = .init(length: TOTPController.otpLength)
-  private let labeledSwitch: LabeledSwitch = .init()
+  internal init(controller: TOTPViewController) {
+    self.controller = controller
+  }
 
-  internal required init() {
-    otpPublisher = otpInput.textPublisher
-    let pasteOTPButton: PlainButton = .init()
-    pasteOTPTapPublisher = pasteOTPButton.tapPublisher
-    rememberDeviceToggleTapPublisher = labeledSwitch.togglePublisher
-    super.init()
+  internal var body: some View {
+    VStack(spacing: 0) {
 
-    mut(self) {
-      .backgroundColor(dynamic: .background)
-    }
+      Image(named: .totp)
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+        .frame(width: 80)
+        .frame(maxWidth: .infinity)
+        .padding(.top, 32)
 
-    let imageContainer: PlainView = .init()
-    mut(imageContainer) {
-      .combined(
-        .backgroundColor(dynamic: .background),
-        .subview(of: self),
-        .topAnchor(.equalTo, safeAreaLayoutGuide.topAnchor, constant: 32),
-        .leadingAnchor(.equalTo, leadingAnchor, constant: 16),
-        .trailingAnchor(.equalTo, trailingAnchor, constant: -16)
+      Text(displayable: "totp.title.label")
+        .font(.inter(ofSize: 32, weight: .regular))
+        .minimumScaleFactor(0.5)
+        .lineLimit(1)
+        .foregroundStyle(Color.passboltPrimaryText)
+        .padding(.top, 24)
+
+      Text(displayable: "totp.message.label")
+        .font(.inter(ofSize: 16, weight: .regular))
+        .lineLimit(1)
+        .minimumScaleFactor(0.5)
+        .padding(.top, 16)
+
+      OTPInputView(
+        otpLength: TOTPViewController.otpLength,
+        onCodeEntered: self.controller.otpEntered(_:)
       )
+      .frame(height: 60)
+      .padding(.top, 16)
+      HStack {
+        Spacer()
+        AsyncButton(
+          action: {},
+          label: {
+            HStack(spacing: 8) {
+              Text(displayable: "totp.paste.otp.button.label")
+                .font(.inter(ofSize: 16, weight: .medium))
+                .foregroundStyle(Color.passboltPrimaryBlue)
+              Image(named: .copy)
+            }
+          }
+        )
+      }
+      .padding(.top, 16)
+
+      Toggle(isOn: self.binding(to: \.rememberDevice)) {
+        Text(displayable: "totp.remember.device.toggle.label")
+          .font(.inter(ofSize: 14, weight: .semibold))
+          .foregroundStyle(Color.passboltPrimaryText)
+      }
+      .padding(.top, 96)
+      Spacer()
+    }
+    .padding(.horizontal, 16)
+  }
+}
+
+private struct OTPInputView: UIViewRepresentable {
+  private let otpLength: Int
+  private let onCodeEntered: (String) -> Void
+
+  fileprivate init(otpLength: Int, onCodeEntered: @escaping (String) -> Void) {
+    self.otpLength = otpLength
+    self.onCodeEntered = onCodeEntered
+  }
+
+  fileprivate func makeUIView(context: Context) -> UICommons.OTPInput {
+    let view = UICommons.OTPInput(length: otpLength)
+    context.coordinator.configure(view)
+    return view
+  }
+
+  fileprivate func updateUIView(_ uiView: UICommons.OTPInput, context: Context) {
+    /** no-op */
+  }
+
+  fileprivate func makeCoordinator() -> Coordinator {
+    Coordinator(
+      onCodeEntered: onCodeEntered
+    )
+  }
+
+  fileprivate final class Coordinator {
+    private let onCodeEntered: (String) -> Void
+    private var cancellable: AnyCancellable?
+
+    fileprivate init(onCodeEntered: @escaping (String) -> Void) {
+      self.onCodeEntered = onCodeEntered
     }
 
-    let imageView: ImageView = .init()
-    mut(imageView) {
-      .combined(
-        .image(named: .totp, from: .uiCommons),
-        .subview(of: imageContainer),
-        .contentMode(.scaleAspectFit),
-        .topAnchor(.equalTo, imageContainer.topAnchor),
-        .bottomAnchor(.equalTo, imageContainer.bottomAnchor),
-        .centerXAnchor(.equalTo, imageContainer.centerXAnchor),
-        .widthAnchor(.lessThanOrEqualTo, imageContainer.widthAnchor, multiplier: 0.6)
-      )
-    }
-
-    let titleLabel: Label = .init()
-    mut(titleLabel) {
-      .combined(
-        .font(.inter(ofSize: 32, weight: .regular)),
-        .textColor(dynamic: .primaryText),
-        .textAlignment(.center),
-        .numberOfLines(1),
-        .text(displayable: .localized(key: "totp.title.label")),
-        .set(\.adjustsFontSizeToFitWidth, to: true),
-        .set(\.minimumScaleFactor, to: 0.5),
-        .subview(of: self),
-        .topAnchor(.equalTo, imageContainer.bottomAnchor, constant: 24),
-        .leadingAnchor(.equalTo, leadingAnchor, constant: 16),
-        .trailingAnchor(.equalTo, trailingAnchor, constant: -16)
-      )
-    }
-
-    let messageLabel: Label = .init()
-    mut(messageLabel) {
-      .combined(
-        .font(.inter(ofSize: 16, weight: .regular)),
-        .textColor(dynamic: .primaryText),
-        .textAlignment(.center),
-        .numberOfLines(1),
-        .text(displayable: .localized(key: "totp.message.label")),
-        .subview(of: self),
-        .topAnchor(.equalTo, titleLabel.bottomAnchor, constant: 16),
-        .leadingAnchor(.equalTo, leadingAnchor, constant: 16),
-        .trailingAnchor(.equalTo, trailingAnchor, constant: -16)
-      )
-    }
-
-    mut(otpInput) {
-      .combined(
-        .subview(of: self),
-        .heightAnchor(.equalTo, constant: 60),
-        .topAnchor(.equalTo, messageLabel.bottomAnchor, constant: 16),
-        .leadingAnchor(.equalTo, leadingAnchor, constant: 16),
-        .trailingAnchor(.equalTo, trailingAnchor, constant: -16)
-      )
-    }
-
-    mut(pasteOTPButton) {
-      .combined(
-        .subview(of: self),
-        .topAnchor(.equalTo, otpInput.bottomAnchor, constant: 16),
-        .leadingAnchor(.greaterThanOrEqualTo, leadingAnchor, constant: 16),
-        .trailingAnchor(.equalTo, trailingAnchor, constant: -16)
-      )
-    }
-
-    let pasteOTPLabel: Label = .init()
-    mut(pasteOTPLabel) {
-      .combined(
-        .font(.inter(ofSize: 16, weight: .medium)),
-        .textColor(dynamic: .primaryBlue),
-        .textAlignment(.natural),
-        .numberOfLines(1),
-        .text(displayable: .localized(key: "totp.paste.otp.button.label")),
-        .subview(of: pasteOTPButton),
-        .leadingAnchor(.equalTo, pasteOTPButton.leadingAnchor),
-        .topAnchor(.equalTo, pasteOTPButton.topAnchor),
-        .bottomAnchor(.equalTo, pasteOTPButton.bottomAnchor)
-      )
-    }
-
-    let pasteOTPImage: ImageView = .init()
-    mut(pasteOTPImage) {
-      .combined(
-        .image(named: .copy, from: .uiCommons),
-        .tintColor(dynamic: .primaryBlue),
-        .subview(of: pasteOTPButton),
-        .leadingAnchor(.equalTo, pasteOTPLabel.trailingAnchor, constant: 8),
-        .trailingAnchor(.equalTo, pasteOTPButton.trailingAnchor),
-        .topAnchor(.equalTo, pasteOTPButton.topAnchor),
-        .bottomAnchor(.equalTo, pasteOTPButton.bottomAnchor)
-      )
-    }
-
-    mut(labeledSwitch) {
-      .combined(
-        .subview(of: self),
-        .topAnchor(.equalTo, pasteOTPButton.bottomAnchor, constant: 96),
-        .leadingAnchor(.equalTo, leadingAnchor),
-        .trailingAnchor(.equalTo, trailingAnchor),
-        .bottomAnchor(.lessThanOrEqualTo, bottomAnchor, constant: -16),
-        .custom { (labeledSwitch: LabeledSwitch) in
-          labeledSwitch.applyOn(
-            label: .combined(
-              .font(.inter(ofSize: 14, weight: .semibold)),
-              .textColor(dynamic: .primaryText),
-              .textAlignment(.natural),
-              .numberOfLines(1),
-              .text(displayable: .localized(key: "totp.remember.device.toggle.label"))
-            )
-          )
+    fileprivate func configure(_ view: UICommons.OTPInput) {
+      cancellable = view.textPublisher
+        .filter { $0.count == view.length }
+        .sink { otp in
+          self.onCodeEntered(otp)
         }
-      )
     }
-  }
-
-  internal func update(otp: String) {
-    otpInput.text = otp
-  }
-
-  internal func update(rememberDevice: Bool) {
-    labeledSwitch.update(isOn: rememberDevice)
-  }
-
-  internal func applyOn(labels mutation: Mutation<Label>) {
-    otpInput.applyOn(labels: mutation)
   }
 }

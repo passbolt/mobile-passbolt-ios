@@ -24,17 +24,16 @@
 import Display
 import FeatureScopes
 
-internal enum ManageAccountsNavigationDestination: NavigationDestination {}
+internal enum ManageAccountsNavigationDestination: NavigationDestination {
+  typealias TransitionContext = AccountSelectionViewController.Context
+}
 
 internal typealias NavigationToManageAccounts = NavigationTo<ManageAccountsNavigationDestination>
 
 extension NavigationToManageAccounts {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
-      toLegacy: AccountSelectionViewController.self,
-      context: .init(value: true)
-    )
+    legacyPushTransition(to: AccountSelectionView.self)
   }
 }
 

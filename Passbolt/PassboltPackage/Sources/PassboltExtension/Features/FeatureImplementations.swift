@@ -54,7 +54,6 @@ extension FeaturesRegistry {
     // it is required until navigations will become fully integrated
     self.useResourceEditNavigation()
     self.useLiveNavigationToAutofillRoot()
-    self.useLiveNavigationToOperationResult()
     self.useLiveNavigationToNoAccounts()
     self.useLiveNavigationToAccountSelection()
     self.useLiveNavigationToAuthorization()
