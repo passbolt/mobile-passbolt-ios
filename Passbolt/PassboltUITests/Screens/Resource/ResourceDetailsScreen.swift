@@ -21,39 +21,37 @@
 // @since         v1.0
 //
 
-import SwiftUI
+internal final class ResourceDetailsScreen: Screen {
 
-public struct InitializationView: ControlledView {
-
-  public final class Controller: ViewController {
-
-    public init(
-      context: Void,
-      features: Features
-    ) throws {
-      // NOP
-    }
-
-    internal nonisolated init() {}
+  internal override var requiredElements: Array<XCUIElement> {
+    [
+      passwordSectionTitle
+    ]
   }
 
-  public let controller: Controller
-
-  public init(
-    controller: Controller
-  ) {
-    self.controller = controller
+  private var passwordSectionTitle: XCUIElement {
+    app.staticTexts["resource.detail.section.password.title"]
   }
 
-  public var body: some View {
-    ZStack {
-      Image(named: .passboltLogo)
-    }
-    .ignoresSafeArea()
-    .frame(
-      maxWidth: .infinity,
-      maxHeight: .infinity
-    )
-    .backgroundColor(.passboltBackground)
+  private var metadataSectionTitle: XCUIElement {
+    app.staticTexts["resource.detail.section.metadata.title"]
+  }
+
+  private var permissionsSectionTitle: XCUIElement {
+    app.staticTexts["resource.detail.section.permissions.title"]
+  }
+
+  @discardableResult
+  internal func scrollToPermissions() -> Self {
+    passwordSectionTitle.swipeUp()
+    metadataSectionTitle.swipeUp()
+    XCTAssertTrue(permissionsSectionTitle.exists)
+    return self
+  }
+
+  @discardableResult
+  internal func openPermissionDetails() -> PermissionsListScreen {
+    app.images["resource.detail.section.permissions.content"].firstMatch.tap()
+    return screen()
   }
 }

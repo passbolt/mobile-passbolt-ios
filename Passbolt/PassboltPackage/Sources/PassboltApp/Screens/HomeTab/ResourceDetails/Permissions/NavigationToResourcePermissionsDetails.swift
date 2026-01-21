@@ -29,9 +29,8 @@ internal enum NavigationToResourcePermissionsDetailsDestination: NavigationDesti
   internal typealias TransitionContext = ResourcePermissionsDetailsViewController.Context
 }
 
-internal typealias NavigationToResourcePermissionsDetails = NavigationTo<
-  NavigationToResourcePermissionsDetailsDestination
->
+internal typealias NavigationToResourcePermissionsDetails =
+  NavigationTo<NavigationToResourcePermissionsDetailsDestination>
 
 extension NavigationToResourcePermissionsDetails {
 

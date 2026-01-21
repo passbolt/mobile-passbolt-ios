@@ -29,14 +29,14 @@ where RightAccessoryView: View {
 
   private let chevronVisible: Bool
   private let model: UserGroupListRowViewModel
-  private let contentAction: @MainActor () -> Void
+  private let contentAction: @MainActor () async -> Void
   private let rightAction: (@MainActor () -> Void)?
   private let rightAccesory: () -> RightAccessoryView
 
   public init(
     chevronVisible: Bool = false,
     model: UserGroupListRowViewModel,
-    contentAction: @escaping @MainActor () -> Void,
+    contentAction: @escaping @MainActor () async -> Void,
     rightAction: (@MainActor () -> Void)? = .none,
     @ViewBuilder rightAccesory: @escaping () -> RightAccessoryView
   ) {

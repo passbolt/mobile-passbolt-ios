@@ -21,25 +21,30 @@
 // @since         v1.0
 //
 
-import SwiftUI
+import Display
+import FeatureScopes
 
-// module placement required by dependency tree
-private struct NavigationTreeDismissEnvironmentKey: EnvironmentKey {
+internal enum NavigationToResourceFolderLocationDetailsDestination: NavigationDestination {
 
-  static let defaultValue: NavigationTreeDismiss? = .none
+  internal typealias TransitionContext = ResourceFolderLocationDetailsViewController.Context
 }
 
-@available(
-  *,
-  deprecated,
-  message: "Please switch to `ViewController` and `ViewController` with `NavigationTo` from Display module"
-)
-public typealias NavigationTreeDismiss = @MainActor (ViewNodeID) -> Void
+internal typealias NavigationToResourceFolderLocationDetails =
+  NavigationTo<NavigationToResourceFolderLocationDetailsDestination>
 
-extension EnvironmentValues {
+extension NavigationToResourceFolderLocationDetails {
 
-  public var navigationTreeDismiss: NavigationTreeDismiss? {
-    get { self[NavigationTreeDismissEnvironmentKey.self] }
-    set { self[NavigationTreeDismissEnvironmentKey.self] = newValue }
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(to: ResourceFolderLocationDetailsView.self)
+  }
+}
+
+extension FeaturesRegistry {
+
+  internal mutating func useLiveNavigationToResourceFolderLocationDetails() {
+    self.use(
+      NavigationToResourceFolderLocationDetails.live,
+      in: ResourceFolderScope.self
+    )
   }
 }

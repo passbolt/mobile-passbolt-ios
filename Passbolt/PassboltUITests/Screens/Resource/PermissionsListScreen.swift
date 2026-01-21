@@ -21,50 +21,70 @@
 // @since         v1.0
 //
 
-internal class HomeScreen: Screen {
+internal final class PermissionsListScreen: Screen {
 
   internal override var requiredElements: Array<XCUIElement> {
     [
-      createButton,
-      searchField,
-      filtersButton,
+      backButton,
+      title,
+      editButton
     ]
   }
 
-  private var createButton: XCUIElement {
-    app.buttons["Create"]
+  private var title: XCUIElement {
+    app.staticTexts["Shared with"]
   }
 
-  private var searchField: XCUIElement {
-    app.textFields["search.view.input"]
+  private var editButton: XCUIElement {
+    app.buttons["Edit permissions"]
   }
 
-  private var filtersButton: XCUIElement {
-    app.buttons["search.view.menu"]
+  internal func cells() -> Array<PermissionCell> {
+    app.collectionViews.cells.asArray.map { PermissionCell(element: $0) }
   }
 
-  @discardableResult
-  internal func search(for text: String) -> Self {
-    type(text, to: searchField)
+  internal func tapEditButton() {
+    editButton.tap()
+  }
+}
+
+extension PermissionsListScreen {
+
+  @MainActor
+  final class PermissionCell {
+    private let element: XCUIElement
+
+    internal init(element: XCUIElement) {
+      self.element = element
+    }
+
+    internal var nameLabel: XCUIElement {
+      element.staticTexts.element(boundBy: 0)
+    }
+
+    internal var emailLabel: XCUIElement {
+      element.staticTexts.element(boundBy: 1)
+    }
+
+    internal var roleLabel: XCUIElement {
+      element.staticTexts.last
+    }
+  }
+}
+
+
+extension XCUIElementQuery {
+
+  public var asArray: Array<XCUIElement> {
+    var result: Array<XCUIElement> = .init()
+    for index in 0..<self.count {
+      let element = self.element(boundBy: index)
+      result.append(element)
+    }
+    return result
   }
 
-  internal func tapCreateButton() -> CreateResourceMenuScreen {
-    createButton.tap()
-    let resourceForm: CreateResourceMenuScreen = screen()
-    return resourceForm.ensureDisplayed()
-  }
-
-  internal func openFilters() -> HomeFilterScreen {
-    filtersButton.tap()
-    let filters: HomeFilterScreen = screen()
-    return filters.ensureDisplayed()
-  }
-
-  internal var createMenuScreen: CreateResourceMenuScreen {
-    screen()
-  }
-
-  internal func selectItem(at index: Int) {
-    app.collectionViews["resource.list.collection.view"].cells.element(boundBy: index).tap()
+  public var last: XCUIElement {
+    self.element(boundBy: self.count - 1)
   }
 }

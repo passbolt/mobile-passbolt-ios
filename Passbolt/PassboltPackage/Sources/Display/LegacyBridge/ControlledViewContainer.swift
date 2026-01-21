@@ -143,11 +143,4 @@ extension AnyUIComponent {
       animated: animated
     )
   }
-
-  @MainActor public func replaceNavigationRoot<View>(
-    with type: View.Type,
-    animated: Bool = true
-  ) async where View: ControlledView, View.Controller.Context == Void {
-    await replaceNavigationRoot(with: type, in: (), animated: animated)
-  }
 }

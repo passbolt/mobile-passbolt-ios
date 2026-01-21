@@ -21,20 +21,15 @@
 // @since         v1.0
 //
 
-import SwiftUI
+import Display
 import UICommons
 import UIComponents
 
-internal struct UserGroupPermissionDetailsView: ComponentView {
+internal struct UserGroupPermissionDetailsView: ControlledView {
 
-  @ObservedObject private var state: ObservableValue<ViewState>
-  private let controller: Controller
+  internal let controller: UserGroupPermissionDetailsViewController
 
-  internal init(
-    state: ObservableValue<ViewState>,
-    controller: UserGroupPermissionDetailsController
-  ) {
-    self.state = state
+  internal init(controller: Controller) {
     self.controller = controller
   }
 
@@ -49,111 +44,104 @@ internal struct UserGroupPermissionDetailsView: ComponentView {
   }
 
   @ViewBuilder private var contentView: some View {
-    VStack(spacing: 0) {
-      UserGroupAvatarView()
-        .frame(
-          width: 96,
-          height: 96,
-          alignment: .center
-        )
-        .padding(8)
-
-      Text(self.state.permissionDetails.name)
-        .text(
-          font: .inter(
-            ofSize: 20,
-            weight: .semibold
-          ),
-          color: .passboltPrimaryText
-        )
-        .padding(8)
-
-      VStack(
-        alignment: .leading,
-        spacing: 8
-      ) {
-        Text(
-          displayable: .localized(key: "permission.details.group.members.section.title")
-        )
-        .text(
-          font: .inter(
-            ofSize: 12,
-            weight: .semibold
-          ),
-          color: .passboltPrimaryText
-        )
-
-        HStack(spacing: 0) {
-          AsyncButton(
-            action: {
-              await self.controller.showGroupMembers()
-            },
-            label: {
-              OverlappingAvatarStackView(self.state.groupMembersPreviewItems)
-            }
+    with(\.permissionDetails) { permissionDetails in
+      VStack(spacing: 0) {
+        UserGroupAvatarView()
+          .frame(
+            width: 96,
+            height: 96,
+            alignment: .center
           )
-          .frame(maxWidth: .infinity)
+          .padding(8)
 
-          Image(named: .chevronRight)
-            .resizable()
-            .aspectRatio(1, contentMode: .fit)
-            .padding(
-              top: 12,
-              leading: 4,
-              bottom: 12,
-              trailing: 0
-            )
+        Text(permissionDetails.name)
+          .text(
+            font: .inter(
+              ofSize: 20,
+              weight: .semibold
+            ),
+            color: .passboltPrimaryText
+          )
+          .padding(8)
+
+        VStack(
+          alignment: .leading,
+          spacing: 8
+        ) {
+          Text(
+            displayable: .localized(key: "permission.details.group.members.section.title")
+          )
+          .text(
+            font: .inter(
+              ofSize: 12,
+              weight: .semibold
+            ),
+            color: .passboltPrimaryText
+          )
+
+          HStack(spacing: 0) {
+            with(\.groupMembersPreviewItems) { groupMembersPreviewItems in
+              AsyncButton(
+                action: self.controller.showGroupMembers,
+                label: {
+                  OverlappingAvatarStackView(groupMembersPreviewItems)
+                }
+              )
+              .frame(maxWidth: .infinity)
+            }
+
+            Image(named: .chevronRight)
+              .resizable()
+              .aspectRatio(1, contentMode: .fit)
+              .padding(
+                top: 12,
+                leading: 4,
+                bottom: 12,
+                trailing: 0
+              )
+          }
+          .frame(height: 40, alignment: .leading)
+          .padding(top: 16)
         }
-        .frame(height: 40, alignment: .leading)
+        .frame(
+          maxWidth: .infinity,
+          alignment: .leading
+        )
         .padding(top: 16)
+
+        VStack(
+          alignment: .leading,
+          spacing: 8
+        ) {
+          Text(
+            displayable: .localized(key: "permission.details.type.section.title")
+          )
+          .text(
+            font: .inter(
+              ofSize: 12,
+              weight: .semibold
+            ),
+            color: .passboltPrimaryText
+          )
+
+          ResourcePermissionTypeView(
+            permission: permissionDetails.permission
+          )
+          .frame(alignment: .leading)
+        }
+        .frame(
+          maxWidth: .infinity,
+          alignment: .leading
+        )
+        .padding(top: 16)
+
+        Spacer()
       }
-      .frame(
-        maxWidth: .infinity,
-        alignment: .leading
+      .padding(
+        leading: 16,
+        bottom: 16,
+        trailing: 16
       )
-      .padding(top: 16)
-
-      VStack(
-        alignment: .leading,
-        spacing: 8
-      ) {
-        Text(
-          displayable: .localized(key: "permission.details.type.section.title")
-        )
-        .text(
-          font: .inter(
-            ofSize: 12,
-            weight: .semibold
-          ),
-          color: .passboltPrimaryText
-        )
-
-        ResourcePermissionTypeView(
-          permission: self.state.permissionDetails.permission
-        )
-        .frame(alignment: .leading)
-      }
-      .frame(
-        maxWidth: .infinity,
-        alignment: .leading
-      )
-      .padding(top: 16)
-
-      Spacer()
     }
-    .padding(
-      leading: 16,
-      bottom: 16,
-      trailing: 16
-    )
-  }
-}
-
-extension UserGroupPermissionDetailsView {
-
-  internal struct ViewState: Equatable {
-
-    internal var permissionDetails: UserGroupPermissionDetailsDSV
-    internal var groupMembersPreviewItems: Array<OverlappingAvatarStackView.Item>
   }
 }

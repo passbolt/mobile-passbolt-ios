@@ -132,3 +132,20 @@ where Value: Sendable {
     self.next?.deliver(update)
   }
 }
+
+extension Updatable {
+
+  public func map<Transformed>(
+    _ transform: @escaping @Sendable (Value) async throws -> Transformed
+  ) -> AnyUpdatable<Transformed> {
+    ComputedVariable(
+      transformed: self,
+      { (update: Update<Value>) in
+        let value = try update.value
+        let transformedValue = try await transform(value)
+        return transformedValue
+      }
+    )
+    .asAnyUpdatable()
+  }
+}

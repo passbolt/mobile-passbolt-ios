@@ -26,10 +26,10 @@ import UICommons
 
 internal struct ResourceFolderPermissionListView: ControlledView {
 
-  internal let controller: ResourceFolderPermissionListController
+  internal let controller: ResourceFolderPermissionListViewController
 
   internal init(
-    controller: ResourceFolderPermissionListController
+    controller: ResourceFolderPermissionListViewController
   ) {
     self.controller = controller
   }
@@ -57,10 +57,10 @@ internal struct ResourceFolderPermissionListView: ControlledView {
               action: {
                 switch item {
                 case .user(let details, _):
-                  try await self.controller.showUserPermissionDetails(details)
+                  await self.controller.showUserPermissionDetails(details)
 
                 case .userGroup(let details):
-                  try await self.controller.showUserGroupPermissionDetails(details)
+                  await self.controller.showUserGroupPermissionDetails(details)
                 }
               }
             )

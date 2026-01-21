@@ -21,28 +21,31 @@
 // @since         v1.0
 //
 
-public protocol NavigationDestination {
+import Display
+import FeatureScopes
 
-  associatedtype TransitionContext: Sendable = Void
+internal enum NavigationToUserPermissionDetailsDestination: NavigationDestination {
 
-  // Used to determine if there can be more than one view
-  // for the same transition (transition done more than once).
-  // This can be required in case of "nested details".
-  // Reverting navigation with "nested details" reverts
-  // only latest/topmost element. Reverting to first
-  // or any in the middle is not supported.
-  // Such a transition requires preparing dedicated
-  // additional destination to refer to.
-  // Default implementation is true (unique).
-  static var isUnique: Bool { get }
-  static var identifier: NavigationDestinationIdentifier { get }
+  internal typealias TransitionContext = UserPermissionDetailsViewController.Context
 }
 
-extension NavigationDestination {
+internal typealias NavigationToUserPermissionDetails = NavigationTo<NavigationToUserPermissionDetailsDestination>
 
-  public static var isUnique: Bool { true }
+extension NavigationToUserPermissionDetails {
 
-  public static var identifier: NavigationDestinationIdentifier {
-    .init(Self.self)
+  fileprivate static var live: FeatureLoader {
+    legacyPushTransition(
+      to: UserPermissionDetailsView.self
+    )
+  }
+}
+
+extension FeaturesRegistry {
+
+  internal mutating func useLiveNavigationToUserPermissionDetails() {
+    self.use(
+      NavigationToUserPermissionDetails.live,
+      in: SessionScope.self
+    )
   }
 }

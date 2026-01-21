@@ -21,20 +21,15 @@
 // @since         v1.0
 //
 
-import SwiftUI
+import Display
 import UICommons
 import UIComponents
 
-internal struct UserGroupMembersListView: ComponentView {
+internal struct UserGroupMembersListView: ControlledView {
 
-  @ObservedObject private var state: ObservableValue<ViewState>
-  private let controller: Controller
+  internal let controller: UserGroupMembersListViewController
 
-  internal init(
-    state: ObservableValue<ViewState>,
-    controller: UserGroupMembersListController
-  ) {
-    self.state = state
+  internal init(controller: Controller) {
     self.controller = controller
   }
 
@@ -84,28 +79,23 @@ internal struct UserGroupMembersListView: ComponentView {
           alignment: .center
         )
         .padding(8)
-
-      Text(self.state.groupName)
-        .text(
-          font: .inter(
-            ofSize: 20,
-            weight: .semibold
-          ),
-          color: .passboltPrimaryText
-        )
-        .padding(8)
-
+      with(\.groupName) { groupName in
+        Text(groupName)
+          .text(
+            font: .inter(
+              ofSize: 20,
+              weight: .semibold
+            ),
+            color: .passboltPrimaryText
+          )
+          .padding(8)
+      }
       List(
         content: {
-          ForEach(
-            self.state.items,
-            id: \UserGroupMembersListRowItem.self
-          ) { item in
+          withEach(\.items) { item in
             UserGroupMembersListRowView(
               item,
-              action: {
-                self.controller.showUserDetails(item.userDetails)
-              }
+              action: { await self.controller.showUserDetails(item.userDetails) }
             )
           }
         }
@@ -114,24 +104,5 @@ internal struct UserGroupMembersListView: ComponentView {
       .environment(\.defaultMinListRowHeight, 20)
     }
     .padding(bottom: 16)
-  }
-}
-
-extension UserGroupMembersListView {
-
-  internal struct ViewState: Equatable {
-
-    internal var groupName: String
-    internal var items: Array<UserGroupMembersListRowItem>
-  }
-}
-
-extension UserGroupMembersListView.ViewState {
-
-  internal static func == (
-    _ lhs: Self,
-    _ rhs: Self
-  ) -> Bool {
-    lhs.items == rhs.items
   }
 }

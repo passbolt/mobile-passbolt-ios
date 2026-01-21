@@ -21,50 +21,71 @@
 // @since         v1.0
 //
 
-internal class HomeScreen: Screen {
+internal final class PermissionsEditScreen: Screen {
 
   internal override var requiredElements: Array<XCUIElement> {
     [
-      createButton,
-      searchField,
-      filtersButton,
+      backButton,
+      title,
+      addUsersButton,
+      applyButton,
     ]
   }
 
-  private var createButton: XCUIElement {
-    app.buttons["Create"]
+  private var title: XCUIElement {
+    app.staticTexts["Share password"]
   }
 
-  private var searchField: XCUIElement {
-    app.textFields["search.view.input"]
+  private var applyButton: XCUIElement {
+    app.buttons["Apply"]
   }
 
-  private var filtersButton: XCUIElement {
-    app.buttons["search.view.menu"]
+  private var addUsersButton: XCUIElement {
+    app.buttons["Add users"]
   }
 
-  @discardableResult
-  internal func search(for text: String) -> Self {
-    type(text, to: searchField)
+  internal func cells() -> Array<PermissionCell> {
+    app
+      .collectionViews
+      .cells
+      .asArray
+      .dropFirst() // remove "Add users" cell
+      .map { PermissionCell(element: $0) }
   }
 
-  internal func tapCreateButton() -> CreateResourceMenuScreen {
-    createButton.tap()
-    let resourceForm: CreateResourceMenuScreen = screen()
-    return resourceForm.ensureDisplayed()
+  internal func tapApplyButton() {
+    applyButton.tap()
   }
 
-  internal func openFilters() -> HomeFilterScreen {
-    filtersButton.tap()
-    let filters: HomeFilterScreen = screen()
-    return filters.ensureDisplayed()
+  internal func tapAddUsersButton() {
+    addUsersButton.tap()
   }
+}
 
-  internal var createMenuScreen: CreateResourceMenuScreen {
-    screen()
-  }
+extension PermissionsEditScreen {
 
-  internal func selectItem(at index: Int) {
-    app.collectionViews["resource.list.collection.view"].cells.element(boundBy: index).tap()
+  @MainActor
+  final class PermissionCell {
+    private let element: XCUIElement
+
+    internal init(element: XCUIElement) {
+      self.element = element
+    }
+
+    internal var nameLabel: XCUIElement {
+      element.staticTexts.element(boundBy: 0)
+    }
+
+    internal var emailLabel: XCUIElement {
+      element.staticTexts.element(boundBy: 1)
+    }
+
+    internal var roleLabel: XCUIElement {
+      element.staticTexts.element(boundBy: 2)
+    }
+
+    internal func tap() {
+      element.tap()
+    }
   }
 }

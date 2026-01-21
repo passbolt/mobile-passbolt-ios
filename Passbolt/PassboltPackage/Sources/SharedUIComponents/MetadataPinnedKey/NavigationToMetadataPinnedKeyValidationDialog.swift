@@ -24,12 +24,12 @@
 import Display
 import FeatureScopes
 
-internal enum MetadataPinnedKeyValidationDialogDestination: NavigationDestination {
+public enum MetadataPinnedKeyValidationDialogDestination: NavigationDestination {
 
-  internal typealias TransitionContext = MetadataPinnedKeyValidationDialogViewController.Context
+  public typealias TransitionContext = MetadataPinnedKeyValidationDialogViewController.Context
 }
 
-internal typealias NavigationToMetadataPinnedKeyValidationDialog =
+public typealias NavigationToMetadataPinnedKeyValidationDialog =
   NavigationTo<MetadataPinnedKeyValidationDialogDestination>
 
 extension NavigationToMetadataPinnedKeyValidationDialog {

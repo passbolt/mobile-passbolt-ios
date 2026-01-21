@@ -21,28 +21,19 @@
 // @since         v1.0
 //
 
-public protocol NavigationDestination {
+import Features
 
-  associatedtype TransitionContext: Sendable = Void
+extension FeaturesRegistry {
 
-  // Used to determine if there can be more than one view
-  // for the same transition (transition done more than once).
-  // This can be required in case of "nested details".
-  // Reverting navigation with "nested details" reverts
-  // only latest/topmost element. Reverting to first
-  // or any in the middle is not supported.
-  // Such a transition requires preparing dedicated
-  // additional destination to refer to.
-  // Default implementation is true (unique).
-  static var isUnique: Bool { get }
-  static var identifier: NavigationDestinationIdentifier { get }
-}
-
-extension NavigationDestination {
-
-  public static var isUnique: Bool { true }
-
-  public static var identifier: NavigationDestinationIdentifier {
-    .init(Self.self)
+  internal mutating func usePermissionsNavigation() {
+    self.useLiveNavigationToResourcePermissionsDetails()
+    self.useLiveNavigationToUserPermissionDetails()
+    self.useLiveNavigationToUserGroupPermissionDetails()
+    self.useLiveNavigationToUserGroupMembersList()
+    self.useLiveNavigationToUserGroupMemberDetails()
+    self.useLiveNavigationToPermissionUsersAndGroupsSearch()
+    self.useLiveNavigationToUserPermissionEdit()
+    self.useLiveNavigationToUserGroupPermissionEdit()
+    self.useLiveNavigationToResourceFolderPermissionList()
   }
 }

@@ -26,7 +26,7 @@ import OSFeatures
 import Resources
 import Users
 
-internal final class ResourceFolderLocationDetailsController: ViewController {
+internal final class ResourceFolderLocationDetailsViewController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
 
@@ -66,7 +66,7 @@ internal final class ResourceFolderLocationDetailsController: ViewController {
             )
           )
         }  // else NOP
-        await updateView { (state: inout ViewState) in
+        updateView { (state: inout ViewState) in
           state.folderName = resourceFolder.name
           state.folderLocation = path
           state.folderShared = resourceFolder.shared
@@ -76,7 +76,7 @@ internal final class ResourceFolderLocationDetailsController: ViewController {
   }
 }
 
-extension ResourceFolderLocationDetailsController {
+extension ResourceFolderLocationDetailsViewController {
 
   internal struct ViewState: Equatable {
 

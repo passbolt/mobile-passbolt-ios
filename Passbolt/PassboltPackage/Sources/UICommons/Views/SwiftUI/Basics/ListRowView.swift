@@ -313,7 +313,7 @@ where ContentView == ListRowTitleView {
     title: DisplayableString,
     leftAction: (@MainActor () -> Void)? = .none,
     @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
-    contentAction: @escaping @MainActor () -> Void,
+    contentAction: @escaping @MainActor () async -> Void,
     rightAction: (@MainActor () -> Void)? = .none,
     @ViewBuilder rightAccessory: @escaping () -> RightAccessoryView
   ) {
@@ -363,7 +363,7 @@ where ContentView == ListRowTitleWithSubtitleView {
     subtitle: DisplayableString,
     leftAction: (@MainActor () -> Void)? = .none,
     @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
-    contentAction: @escaping @MainActor () -> Void,
+    contentAction: @escaping @MainActor () async -> Void,
     rightAction: (@MainActor () -> Void)? = .none,
     @ViewBuilder rightAccessory: @escaping () -> RightAccessoryView
   ) {
@@ -393,7 +393,7 @@ where ContentView == ListRowTitleWithSubtitleView, RightAccessoryView == EmptyVi
     subtitle: DisplayableString,
     leftAction: (@MainActor () -> Void)? = .none,
     @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
-    contentAction: @escaping @MainActor () -> Void
+    contentAction: @escaping @MainActor () async -> Void
   ) {
     self.init(
       chevronVisible: chevronVisible,

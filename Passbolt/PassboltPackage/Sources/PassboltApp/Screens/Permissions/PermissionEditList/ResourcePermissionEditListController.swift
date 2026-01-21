@@ -31,210 +31,185 @@ import SharedUIComponents
 import UIComponents
 import Users
 
-internal struct ResourcePermissionEditListController {
+internal final class ResourcePermissionEditListController: @MainActor ViewController {
 
-  internal var viewState: ObservableValue<ViewState>
-  internal var addPermission: @MainActor () -> Void
-  internal var showUserPermissionEdit: @MainActor (UserPermissionDetailsDSV) -> Void
-  internal var showUserGroupPermissionEdit: @MainActor (UserGroupPermissionDetailsDSV) -> Void
-  internal var saveChanges: @MainActor () -> Void
-  internal var navigateBack: () -> Void
-}
-
-extension ResourcePermissionEditListController: ComponentController {
-
-  internal typealias ControlledView = ResourcePermissionEditListView
   internal typealias Context = Resource.ID
 
-  @MainActor static func instance(
-    in context: Context,
-    with features: inout Features,
-    cancellables: Cancellables
-  ) throws -> Self {
-    features =
+  internal struct ViewState: Equatable {
+
+    internal var permissionListItems: Array<PermissionListRowItem>
+    internal var loading: Bool = false
+  }
+
+  internal let viewState: ViewStateSource<ViewState>
+  private let resourceShareForm: ResourceShareForm
+  private let navigationToPermissionsSelection: NavigationToPermissionUsersAndGroupsSearch
+  private let navigationToSelf: NavigationToResourceShare
+  private let navigationToMetadataPinnedKeyValidation: NavigationToMetadataPinnedKeyValidationDialog
+  private let navigationToUserPermissionEdit: NavigationToUserPermissionEdit
+  private let navigationToUserGroupPermissionEdit: NavigationToUserGroupPermissionEdit
+  private let navigationToPermissionDetails: NavigationToResourcePermissionsDetails
+  private let context: Context
+
+  internal init(context: Resource.ID, features: Features) throws {
+    self.context = context
+    let features: Features =
       try features
       .branch(
         scope: ResourceScope.self,
         context: context
       )
       .branch(scope: ResourceShareScope.self)
-    let features: Features = features
-    let navigation: DisplayNavigation = try features.instance()
+    self.navigationToPermissionsSelection = try features.instance()
+    self.navigationToSelf = try features.instance()
+    self.navigationToMetadataPinnedKeyValidation = try features.instance()
+    self.navigationToUserPermissionEdit = try features.instance()
+    self.navigationToUserGroupPermissionEdit = try features.instance()
+    self.navigationToPermissionDetails = try features.instance()
 
     let resourceShareForm: ResourceShareForm = try features.instance()
+    self.resourceShareForm = resourceShareForm
 
-    let viewState: ObservableValue<ViewState>
-
-    viewState = .init(
-      initial: .init(
-        permissionListItems: []
-      )
-    )
-
-    cancellables.executeAsync {
-      try await resourceShareForm
-        .permissionsSequence()
-        .forEach { (permissions: OrderedSet<ResourcePermission>) in
-          var listItems: Array<PermissionListRowItem> = .init()
-          listItems.reserveCapacity(permissions.count)
-
-          for permission: ResourcePermission in permissions {
-            switch permission {
-            case .user(let userID, let permission, _):
-              let userDetails: UserDetails =
-                try await features
-                .branch(
-                  scope: UserScope.self,
-                  context: userID
-                )
-                .instance(of: UserDetails.self)
-
-              let details: UserDetailsDSV =
-                try await userDetails
-                .details()
-
-              listItems
-                .append(
-                  .user(
-                    details: .init(
-                      id: userID,
-                      username: details.username,
-                      firstName: details.firstName,
-                      lastName: details.lastName,
-                      fingerprint: details.fingerprint,
-                      avatarImageURL: details.avatarImageURL,
-                      permission: permission,
-                      isSuspended: details.isSuspended
-                    ),
-                    imageData: userDetails.avatarImage
-                  )
-                )
-
-            case .userGroup(let userGroupID, let permission, _):
-              let details: UserGroupDetailsDSV =
-                try await features
-                .branchIfNeeded(
-                  scope: UserGroupScope.self,
-                  context: userGroupID
-                )
-                .instance(of: UserGroupDetails.self)
-                .details()
-
-              listItems
-                .append(
-                  .userGroup(
-                    details: .init(
-                      id: userGroupID,
-                      name: details.name,
-                      permission: permission,
-                      members: details.members
-                    )
-                  )
-                )
-            }
-          }
-          await viewState
-            .set(
-              \.permissionListItems,
-              to: listItems
-            )
-        }
-    }
-
-    nonisolated func addPermission() {
-      cancellables.executeOnMainActor {
-        await navigation
-          .push(
-            legacy: PermissionUsersAndGroupsSearchView.self,
-            context: context
-          )
-      }
-    }
-
-    nonisolated func showUserPermissionEdit(
-      _ details: UserPermissionDetailsDSV
-    ) {
-      cancellables.executeOnMainActor {
-        await navigation.push(
-          legacy: UserPermissionEditView.self,
-          context: (
-            resourceID: context,
-            permissionDetails: details
-          )
-        )
-      }
-    }
-
-    nonisolated func showUserGroupPermissionEdit(
-      _ details: UserGroupPermissionDetailsDSV
-    ) {
-      cancellables.executeOnMainActor {
-        await navigation.push(
-          legacy: UserGroupPermissionEditView.self,
-          context: (
-            resourceID: context,
-            permissionDetails: details
-          )
-        )
-      }
-    }
-
-    @MainActor func saveChanges() {
-      viewState.set(\.loading, to: true)
-      cancellables.executeOnMainActor {
-        do {
-          try await resourceShareForm.sendForm()
-          await navigation
-            .pop(if: ResourcePermissionEditListView.self)
-          viewState.set(\.loading, to: false)
-        }
-        catch let error as MetadataPinnedKeyValidationError {
-          viewState.withValue { (state: inout ViewState) in
-            state.loading = false
-          }
-          let context: MetadataPinnedKeyValidationDialogViewController.Context = .init(
-            reason: error.reason,
-            onTrustedKey: {
-              Task {
-                await navigation.pop(MetadataPinnedKeyValidationDialogView.self)
-                saveChanges()
-              }
-            },
-            onCancel: {
-              Task {
-                await navigation.pop(MetadataPinnedKeyValidationDialogView.self)
-              }
-            }
-          )
-          let controller: MetadataPinnedKeyValidationDialogViewController =
-            try .init(context: context, features: features)
-
-          Task {
-            await navigation.push(MetadataPinnedKeyValidationDialogView.self, controller: controller)
-          }
-        }
-        catch {
-          error.consume()
-          viewState.withValue { (state: inout ViewState) in
-            state.loading = false
-          }
+    self.viewState = .init(
+      initial: .init(permissionListItems: .init()),
+      updateFrom: resourceShareForm.permissionsSequence(),
+      update: { update, permissions in
+        let listItems: Array<PermissionListRowItem> =
+          try await createListItems(from: permissions.value, using: features)
+        update { state in
+          state.permissionListItems = listItems
         }
       }
-    }
-
-    nonisolated func navigateBack() {
-      Task {
-        await navigation.pop(if: ResourcePermissionEditListView.self)
-      }
-    }
-
-    return Self(
-      viewState: viewState,
-      addPermission: addPermission,
-      showUserPermissionEdit: showUserPermissionEdit(_:),
-      showUserGroupPermissionEdit: showUserGroupPermissionEdit(_:),
-      saveChanges: saveChanges,
-      navigateBack: navigateBack
     )
   }
+
+  internal func addPermission() async {
+    await consumingErrors {
+      try await navigationToPermissionsSelection.perform(context: context)
+    }
+  }
+
+  internal func showUserPermissionEdit(_ details: UserPermissionDetailsDSV) async {
+    await consumingErrors {
+      try await navigationToUserPermissionEdit.perform(
+        context: (
+          resourceID: context,
+          permissionDetails: details
+        )
+      )
+    }
+  }
+
+  internal func showUserGroupPermissionEdit(
+    _ details: UserGroupPermissionDetailsDSV
+  ) async {
+    await consumingErrors {
+      try await self.navigationToUserGroupPermissionEdit.perform(
+        context: (
+          resourceID: context,
+          permissionDetails: details
+        )
+      )
+    }
+  }
+
+  internal func saveChanges() async {
+    viewState.update(\.loading, to: true)
+    defer {
+      viewState.update(\.loading, to: false)
+    }
+    do {
+      try await resourceShareForm.sendForm()
+      try await navigationToPermissionDetails.revert()
+      try await navigationToSelf.revert()
+    }
+    catch let error as MetadataPinnedKeyValidationError {
+
+      let context: MetadataPinnedKeyValidationDialogViewController.Context = .init(
+        reason: error.reason,
+        onTrustedKey: { [weak self] in
+          try await self?.navigationToMetadataPinnedKeyValidation.revert()
+          await self?.saveChanges()
+        },
+        onCancel: { [weak self] in
+          await consumingErrors {
+            try await self?.navigationToMetadataPinnedKeyValidation.revert()
+          }
+        }
+      )
+      await consumingErrors {
+        try await navigationToMetadataPinnedKeyValidation.perform(context: context)
+      }
+    }
+    catch {
+      error.consume()
+    }
+  }
+}
+
+private func createListItems(
+  from permissions: OrderedSet<ResourcePermission>,
+  using features: Features
+) async throws -> Array<PermissionListRowItem> {
+  var listItems: Array<PermissionListRowItem> = .init()
+  listItems.reserveCapacity(permissions.count)
+
+  for permission: ResourcePermission in permissions {
+    switch permission {
+    case .user(let userID, let permission, _):
+      let userDetails: UserDetails =
+        try await features
+        .branch(
+          scope: UserScope.self,
+          context: userID
+        )
+        .instance(of: UserDetails.self)
+
+      let details: UserDetailsDSV =
+        try await userDetails
+        .details()
+
+      listItems
+        .append(
+          .user(
+            details: .init(
+              id: userID,
+              username: details.username,
+              firstName: details.firstName,
+              lastName: details.lastName,
+              fingerprint: details.fingerprint,
+              avatarImageURL: details.avatarImageURL,
+              permission: permission,
+              isSuspended: details.isSuspended
+            ),
+            imageData: userDetails.avatarImage
+          )
+        )
+
+    case .userGroup(let userGroupID, let permission, _):
+      let details: UserGroupDetailsDSV =
+        try await features
+        .branchIfNeeded(
+          scope: UserGroupScope.self,
+          context: userGroupID
+        )
+        .instance(of: UserGroupDetails.self)
+        .details()
+
+      listItems
+        .append(
+          .userGroup(
+            details: .init(
+              id: userGroupID,
+              name: details.name,
+              permission: permission,
+              members: details.members
+            )
+          )
+        )
+    }
+
+  }
+
+  return listItems
 }
