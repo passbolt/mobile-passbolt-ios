@@ -105,7 +105,7 @@ extension ResourceSearchDisplayController {
 
 extension ResourceSearchDisplayController {
 
-  internal final func activate() async {
+  @Sendable internal final func activate() async {
     do {
       let avatar: Data? = try await self.accountDetails.avatarImage()
       self.viewState.update { state in

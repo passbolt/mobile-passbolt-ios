@@ -22,7 +22,6 @@
 //
 
 import FeatureScopes
-import UIComponents
 import XCTest
 
 @testable import Features
@@ -133,32 +132,6 @@ where Feature: LoadableFeature {
 }
 
 extension LoadableFeatureTestCase {
-
-  @available(*, deprecated, message: "UIController should be migrated to a proper feature")
-  public final func testController<Controller: UIController>(
-    _ type: Controller.Type = Controller.self,
-    context: Controller.Context
-  ) throws -> Controller {
-    var features: Features = self.features
-    return try Controller.instance(
-      in: context,
-      with: &features,
-      cancellables: cancellables
-    )
-  }
-
-  @available(*, deprecated, message: "UIController should be migrated to a proper feature")
-  public final func testController<Controller: UIController>(
-    _ type: Controller.Type = Controller.self
-  ) throws -> Controller
-  where Controller.Context == Void {
-    var features: Features = self.features
-    return try Controller.instance(
-      in: Void(),
-      with: &features,
-      cancellables: cancellables
-    )
-  }
 
   public final func testedInstance() throws -> Feature {
     if let instance: Feature = self.instance {

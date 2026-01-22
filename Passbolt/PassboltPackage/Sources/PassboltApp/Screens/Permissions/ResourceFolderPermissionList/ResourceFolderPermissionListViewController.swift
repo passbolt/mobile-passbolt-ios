@@ -26,7 +26,6 @@ import DatabaseOperations
 import Display
 import OSFeatures
 import Resources
-import UIComponents
 import Users
 
 internal final class ResourceFolderPermissionListViewController: ViewController {

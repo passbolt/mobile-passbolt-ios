@@ -26,7 +26,6 @@ import Commons
 import Display
 import OSFeatures
 import Session
-import UIComponents
 
 internal final class ExtensionSetupViewController: ViewController {
 
@@ -47,6 +46,7 @@ internal final class ExtensionSetupViewController: ViewController {
   private let applicationLifecycle: ApplicationLifecycle
   private let linkOpener: OSLinkOpener
   private let navigationToSelf: NavigationToExtensionSetup
+  private var shouldAutoDismissOnAppear: Bool = false
 
   internal init(
     context: Context,
@@ -65,9 +65,9 @@ internal final class ExtensionSetupViewController: ViewController {
     do {
       try await self.linkOpener.openSystemSettings()
 
-      let extensionEnabled: Bool = await withTaskGroup(of: Bool.self) { group in
+      let extensionEnabled: Bool = try await withThrowingTaskGroup(of: Bool.self) { group in
         group.addTask { [applicationLifecycle, extensions] in
-          for await _ in applicationLifecycle.lifecyclePublisher().values {
+          for try await _ in applicationLifecycle.lifecycle.asAnyAsyncSequence() {
             let enabled = await extensions.autofillExtensionEnabled()
             if enabled {
               return true
@@ -76,10 +76,11 @@ internal final class ExtensionSetupViewController: ViewController {
           return false
         }
 
-        return await group.next() ?? false
+        return try await group.next() ?? false
       }
 
       if extensionEnabled {
+        self.shouldAutoDismissOnAppear = true
         self.accountInitialSetup.completeSetup(.autofill)
       }
     }
@@ -92,5 +93,14 @@ internal final class ExtensionSetupViewController: ViewController {
   internal func skipSetup() async {
     await self.navigationToSelf.revertCatching()
     self.accountInitialSetup.completeSetup(.autofill)
+  }
+
+  internal func dismissIfNeeded() {
+    guard self.shouldAutoDismissOnAppear else {
+      return
+    }
+    Task {
+      try? await self.navigationToSelf.revert()
+    }
   }
 }

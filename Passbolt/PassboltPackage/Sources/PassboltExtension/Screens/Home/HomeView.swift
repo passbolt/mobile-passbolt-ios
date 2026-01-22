@@ -58,6 +58,7 @@ internal struct HomeView: ControlledView {
             iconName: .close,
             action: self.controller.closeExtension
           )
+          .tint(Color.passboltPrimaryText)
         }
       }
   }

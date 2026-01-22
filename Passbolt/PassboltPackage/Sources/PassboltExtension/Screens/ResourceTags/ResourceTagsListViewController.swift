@@ -117,7 +117,7 @@ extension ResourceTagsListViewController {
           sorting: .nameAlphabetically,
           tags: [resourceTagID]
         ),
-        appModeContext: .createExtensionContext(using: features)
+        appModeContext: .createExtensionContext(using: features, allowBack: true)
       )
     )
   }
@@ -130,7 +130,7 @@ extension ResourceTagsListViewController {
 extension ResourcesListViewController.Callbacks {
 
   @MainActor
-  static func createExtensionContext(using features: Features) -> Self {
+  static func createExtensionContext(using features: Features, allowBack: Bool) -> Self {
     let autofillContext: AutofillExtensionContext = features.instance()
     let requestedServiceIdentifiers: Array<AutofillExtensionContext.ServiceIdentifier> =
       autofillContext.requestedServiceIdentifiers()
@@ -203,7 +203,8 @@ extension ResourcesListViewController.Callbacks {
               )
             )
         },
-        selectResource: selectResource(_:)
+        selectResource: selectResource(_:),
+        backAction: allowBack ? {} : .none
       )
   }
 }

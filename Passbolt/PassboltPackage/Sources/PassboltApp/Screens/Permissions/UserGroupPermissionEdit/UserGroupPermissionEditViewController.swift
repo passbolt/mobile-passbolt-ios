@@ -25,7 +25,6 @@ import Accounts
 import Display
 import OSFeatures
 import Resources
-import UIComponents
 import Users
 
 internal final class UserGroupPermissionEditViewController: @MainActor ViewController {

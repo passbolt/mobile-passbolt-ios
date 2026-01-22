@@ -321,7 +321,7 @@ public final class ResourceEditViewController: ViewController {
 
   @MainActor internal func addPassword() async {
     await consumingErrors {
-      let editingContext = try features.context(of: ResourceEditScope.self)
+      let editingContext: ResourceEditingContext = try features.context(of: ResourceEditScope.self)
 
       guard
         let newResourceSlug: ResourceSpecification.Slug = editingContext.editedResource.type.slugByAttachingPassword(),

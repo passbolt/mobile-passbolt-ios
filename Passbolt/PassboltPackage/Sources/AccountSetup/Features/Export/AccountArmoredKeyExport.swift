@@ -26,7 +26,7 @@ import struct Foundation.Data
 // MARK: - Interface
 
 /// Exporting current session account key using armored PGP format.
-public struct AccountArmoredKeyExport {
+public struct AccountArmoredKeyExport: Sendable {
 
   /// Export account private key by authorizing,
   /// it will prolong current session.

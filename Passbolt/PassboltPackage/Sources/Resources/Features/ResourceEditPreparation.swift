@@ -65,7 +65,7 @@ extension ResourceEditPreparation: LoadableFeature {
   #endif
 }
 
-public struct ResourceEditingContext {
+public struct ResourceEditingContext: Sendable {
 
   public var editedResource: Resource
   public var availableTypes: Array<ResourceType>

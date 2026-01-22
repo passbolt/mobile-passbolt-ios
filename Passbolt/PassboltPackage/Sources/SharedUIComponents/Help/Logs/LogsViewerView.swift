@@ -25,6 +25,8 @@ import Display
 
 public struct LogsViewerView: ControlledView {
 
+  @Environment(\.dismiss) private var dismiss
+
   public let controller: LogsViewerViewController
 
   public init(controller: LogsViewerViewController) {
@@ -46,7 +48,7 @@ public struct LogsViewerView: ControlledView {
           when(\.useCustomNavigationBar) {
             HStack(spacing: 0) {
               AsyncButton(
-                action: self.controller.close,
+                action: { self.dismiss() },
                 label: {
                   Image(named: .close)
                     .resizable()
@@ -86,7 +88,7 @@ public struct LogsViewerView: ControlledView {
                 ToolbarItem(placement: .topBarLeading) {
                   IconButton(
                     iconName: .close,
-                    action: self.controller.close
+                    action: { self.dismiss() }
                   )
                 }
 

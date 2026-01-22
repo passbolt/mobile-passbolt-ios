@@ -26,6 +26,7 @@ import Display
 import FeatureScopes
 import OSFeatures
 import Session
+import SharedUIComponents
 
 internal final class DefaultPresentationModeSettingsViewController: ViewController {
 

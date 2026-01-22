@@ -23,7 +23,6 @@
 
 import Display
 import UICommons
-import UIComponents
 
 internal struct UserGroupPermissionDetailsView: ControlledView {
 

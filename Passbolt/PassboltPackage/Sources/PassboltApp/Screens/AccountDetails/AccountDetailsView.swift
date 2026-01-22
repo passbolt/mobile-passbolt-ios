@@ -42,6 +42,8 @@ internal struct AccountDetailsView: ControlledView {
       self.bottomButtons
     }
     .navigationTitle(displayable: "account.details.title")
+    .useCustomBackButton()
+    .tabbarHidden()
   }
 
   @MainActor @ViewBuilder private var propertiesView: some View {

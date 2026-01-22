@@ -23,7 +23,7 @@
 
 @preconcurrency import OrderedCollections
 
-public struct IdentifiedArray<Element: Identifiable> {
+public struct IdentifiedArray<Element: Identifiable> where Element.ID: Sendable {
 
   @usableFromInline internal var dictionary: OrderedDictionary<Element.ID, Element>
 
@@ -59,7 +59,8 @@ extension IdentifiedArray: MutableCollection {
     position: Int
   ) -> Element {
     @_transparent get {
-      self.dictionary[self.dictionary.keys[position]]!  // swiftformat-ignore-this NeverForceUnwrap
+      // swift-format-ignore: NeverForceUnwrap
+      self.dictionary[self.dictionary.keys[position]]!
     }
     @_transparent set {
       self.dictionary[self.dictionary.keys[position]] = newValue

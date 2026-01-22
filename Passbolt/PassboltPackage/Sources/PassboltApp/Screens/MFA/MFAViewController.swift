@@ -100,7 +100,7 @@ internal final class MFAViewController: ViewController {
     viewState.update(\.currentProvider, to: nextProvider)
   }
 
-  internal func close() async {
+  @Sendable internal func close() async {
     await consumingErrors {
       let session: Session = try features.instance()
       await session.close(.none)

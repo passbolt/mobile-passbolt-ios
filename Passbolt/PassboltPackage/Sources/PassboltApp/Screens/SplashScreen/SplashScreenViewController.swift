@@ -19,138 +19,195 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
+import Accounts
+import Display
+import FeatureScopes
+import Session
+import SessionData
 import SharedUIComponents
-import UIComponents
 
-internal final class SplashScreenViewController: PlainViewController, UIComponent {
+internal final class SplashScreenViewController: ViewController {
 
-  internal typealias ContentView = SplashScreenView
-  internal typealias Controller = SplashScreenController
+  internal struct ViewState: Equatable {
 
-  internal static func instance(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self(
-      using: controller,
-      with: components,
-      cancellables: cancellables
+    internal var alert: AlertViewModel?
+  }
+
+  internal nonisolated let viewState: ViewStateSource<ViewState>
+  private let accounts: Accounts
+  private let session: Session
+  private let sessionConfigurationLoader: SessionConfigurationLoader
+  private let updateCheck: UpdateCheck
+  private let context: Context
+  private let features: Features
+
+  internal init(context: Account?, features: Features) throws {
+    self.context = context
+    self.features = features
+    self.accounts = try features.instance()
+    self.session = try features.instance()
+    self.sessionConfigurationLoader = try features.instance()
+    self.updateCheck = try features.instance()
+
+    self.viewState = .init(
+      initial: .init()
     )
   }
 
-  internal private(set) lazy var contentView: SplashScreenView = .init()
-  internal let components: UIComponentFactory
-  private let controller: SplashScreenController
-
-  internal init(
-    using controller: SplashScreenController,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) {
-    self.controller = controller
-    self.components = components
-    super
-      .init(
-        cancellables: cancellables
-      )
-  }
-
-  internal func setupView() {
-    mut(contentView) {
-      .backgroundColor(dynamic: .background)
+  @Sendable internal func activate() async {
+    do {
+      try accounts.verifyDataIntegrity()
+    }
+    catch {
+      return await navigate(to: .diagnostics)
     }
 
-    setupSubscriptions()
-  }
+    let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
 
-  private func setupSubscriptions() {
-    controller
-      .navigationDestinationPublisher()
-      .delay(for: 0.3, scheduler: RunLoop.main)
-      .sink { [weak self] destination in
-        self?.cancellables
-          .executeOnMainActor { [weak self] in
-            let presentUpdateAlert: Bool = await self?.controller.shouldDisplayUpdateAlert() ?? false
-            if presentUpdateAlert {
-              await self?
-                .present(
-                  UpdateAvailableViewController.self,
-                  in: { [weak self] in
-                    self?.navigate(to: destination)
-                  }
+    if storedAccounts.isEmpty {
+      return await navigate(to: .accountSetup)
+    }
+    else if let currentAccount: Account =
+      try? await session.currentAccount(),
+      currentAccount == context || context == .none
+    {
+      switch await session.pendingAuthorization() {
+      case .none:
+        do {
+          return
+            try await navigate(
+              to: .home(
+                .init(
+                  account: currentAccount,
+                  configuration: sessionConfigurationLoader.sessionConfiguration()
                 )
-            }
-            else {
-              self?.navigate(to: destination)
-            }
-          }
+              )
+            )
+        }
+        catch {
+          return await navigate(to: .featureConfigFetchError)
+        }
 
+      case .mfa(_, let mfaProviders):
+        return await navigate(to: .mfaAuthorization(mfaProviders))
+
+      case .passphrase(let account):
+        return await navigate(to: .accountSelection(account, message: "authorization.prompt.refresh.session.reason"))
       }
-      .store(in: cancellables)
+    }
+    else {
+      return await navigate(to: .accountSelection(context, message: .none))
+    }
   }
 
-  private func navigate(
-    to destination: Controller.Destination
-  ) {
-    showFeedbackAlertIfNeeded(presentationAnchor: self) { [weak self] in
-      self?.cancellables
-        .executeOnMainActor {
-          switch destination {
-          case .accountSelection(let lastAccount, let message):
-            guard let self = self else { return }
-            let navigationToAccountSelection: NavigationToAccountSelection = try self.components.features.instance()
-            try await navigationToAccountSelection.perform(
-              context: .init(isSignIn: true)
-            )
-            if let message {
-              SnackBarMessageEvent.send(.info(message))
-            }
-            if let lastAccount {
-              let navigationToAuthorization: NavigationToAuthorization = try self.components.features.instance()
-              try await navigationToAuthorization.perform(context: lastAccount)
-            }
-
-          case .accountSetup:
-            guard let self = self else { return }
-            let navigationToWelcomeScreen: NavigationToWelcomeScreen = try self.components.features.instance()
-            try await navigationToWelcomeScreen.perform()
-
-          case .diagnostics:
-            guard let self = self else { return }
-            let navigationToLogsViewer: NavigationToLogsViewer = try self.components.features.instance()
-            try await navigationToLogsViewer.perform(context: .init(useCustomNavigationBar: true))
-
-          case .home(let sessionContext):
-            await self?
-              .replaceWindowRoot(
-                with: MainTabsViewController.self,
-                in: sessionContext
-              )
-
-          case .mfaAuthorization(let mfaProviders):
-            if mfaProviders.isEmpty {
-              guard let self = self else { return }
-              let navigationToUnsupportedMFA: NavigationToUnsupportedMFA = try self.components.features.instance()
-              try await navigationToUnsupportedMFA.perform()
-            }
-            else {
-              guard let self = self else { return }
-              let navigationToMFA: NavigationToMFA = try self.components.features.instance()
-              try await navigationToMFA.perform(context: mfaProviders)
-            }
-
-          case .featureConfigFetchError:
-            await self?
-              .present(
-                ErrorViewController.self,
-                in: { [weak self] in
-                  try await self?.controller.retryFetchConfiguration()
-                }
-              )
-          }
-        }
+  private func navigate(to destination: Destination) async {
+    try? await Task.sleep(nanoseconds: 300_000_000)  // 0.3s
+    let performNavigation: @Sendable () async -> Void = { @MainActor [weak self] in
+      await showFeedbackAlertIfNeeded {
+        try? await self?.handleNavigation(to: destination)
+      }
     }
+    let presentUpdateAlert: Bool = await self.shouldDisplayUpdateAlert()
+    if presentUpdateAlert {
+      viewState.update(
+        \.alert,
+        to: .init(
+          title: "update.available.title",
+          message: "update.available.message",
+          actions: [
+            .regular(
+              id: .init(),
+              title: .localized(key: .gotIt),
+              perform: performNavigation
+            )
+          ]
+        )
+      )
+    }
+    else {
+      await performNavigation()
+    }
+  }
+
+  private func shouldDisplayUpdateAlert() async -> Bool {
+    guard await updateCheck.checkRequired()
+    else { return false }
+
+    do {
+      return try await updateCheck.updateAvailable()
+    }
+    catch {
+      return false
+    }
+  }
+
+  private func handleNavigation(to destination: Destination) async throws {
+    switch destination {
+    case .accountSelection(let lastAccount, let message):
+      let navigationToAccountSelection: NavigationToAccountSelection = try self.features.instance()
+      try await navigationToAccountSelection.perform(
+        context: .init(isSignIn: true)
+      )
+      if let message {
+        SnackBarMessageEvent.send(.info(message))
+      }
+      if let lastAccount {
+        let navigationToAuthorization: NavigationToAuthorization = try self.features.instance()
+        try await navigationToAuthorization.perform(context: lastAccount)
+      }
+
+    case .accountSetup:
+      let navigationToWelcomeScreen: NavigationToWelcomeScreen = try self.features.instance()
+      try await navigationToWelcomeScreen.perform()
+
+    case .diagnostics:
+      let navigationToLogsViewer: NavigationToLogsViewer = try self.features.instance()
+      try await navigationToLogsViewer.perform(context: .init(useCustomNavigationBar: true))
+
+    case .home(let sessionContext):
+      let navigationToLogsViewer: NavigationToMainTabs = try self.features
+        .instance()
+      try await navigationToLogsViewer.perform(context: sessionContext)
+
+    case .mfaAuthorization(let mfaProviders):
+      if mfaProviders.isEmpty {
+        let navigationToUnsupportedMFA: NavigationToUnsupportedMFA = try self.features.instance()
+        try await navigationToUnsupportedMFA.perform()
+      }
+      else {
+        let navigationToMFA: NavigationToMFA = try self.features.instance()
+        try await navigationToMFA.perform(context: mfaProviders)
+      }
+
+    case .featureConfigFetchError:
+      let navigationToError: NavigationToStartupError = try self.features.instance()
+      try await navigationToError.perform(
+        context: { [weak self] in
+          try await self?.retryFetchConfiguration()
+        }
+      )
+    }
+  }
+
+  @Sendable nonisolated func retryFetchConfiguration() async throws {
+    try await handleNavigation(
+      to: .home(
+        .init(
+          account: try session.currentAccount(),
+          configuration: sessionConfigurationLoader.sessionConfiguration()
+        )
+      )
+    )
+  }
+
+  private enum Destination {
+    case accountSetup
+    case accountSelection(Account?, message: DisplayableString?)
+    case diagnostics
+    case home(SessionScope.Context)
+    case mfaAuthorization(Array<SessionMFAProvider>)
+    case featureConfigFetchError
   }
 }

@@ -21,20 +21,20 @@
 // @since         v1.0
 //
 
-import UIComponents
+import Features
+import SwiftUI
+import UIKit
 
 @MainActor
 public final class UI {
 
   private var windows: Dictionary<String, Window> = .init()
   private let features: Features
-  private let components: UIComponentFactory
 
   public init(
     features: Features
   ) {
     self.features = features
-    self.components = UIComponentFactory(features: features)
   }
 }
 
@@ -47,12 +47,10 @@ extension UI {
   ) {
     switch scene {
     case let windowScene as UIWindowScene:
-      let cancellables: Cancellables = .init()
       let window: Window = self.prepareWindow(
         for: windowScene,
         in: session,
-        with: options,
-        cancellables: cancellables
+        with: options
       )
       if self.windows.isEmpty {
         window.isActive = true
@@ -86,8 +84,7 @@ extension UI {
   private func prepareWindow(
     for scene: UIWindowScene,
     in session: UISceneSession,
-    with options: UIScene.ConnectionOptions,
-    cancellables: Cancellables
+    with options: UIScene.ConnectionOptions
   ) -> Window {
     Window(
       in: scene,
@@ -95,8 +92,7 @@ extension UI {
         do {
           var features: Features = self.features
           return try WindowController.instance(
-            with: &features,
-            cancellables: cancellables
+            with: &features
           )
         }
         catch {
@@ -105,9 +101,8 @@ extension UI {
             .asFatalError()
         }
       },
-      within: components,
-      rootViewController: SplashScreenViewControllerPlaceholder(),
-      cancellables: cancellables
+      with: features,
+      rootViewController: UIHostingController<SplashView>(rootView: .init())
     )
   }
 }

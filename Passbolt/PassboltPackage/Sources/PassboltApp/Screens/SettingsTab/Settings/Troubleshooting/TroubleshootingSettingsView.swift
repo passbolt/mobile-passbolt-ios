@@ -41,6 +41,7 @@ internal struct TroubleshootingSettingsView: ControlledView {
         self.content
       }
     )
+    .tabbarHidden()
   }
 
   @ViewBuilder @MainActor private var content: some View {

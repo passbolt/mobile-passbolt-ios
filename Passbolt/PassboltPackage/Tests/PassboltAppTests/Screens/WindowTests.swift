@@ -24,21 +24,25 @@
 import AccountSetup
 import Combine
 import TestExtensions
-import UIComponents
 import XCTest
 
 @testable import Accounts
 @testable import PassboltApp
 
-// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@MainActor
-final class WindowTests: MainActorTestCase {
+final class WindowTests: LoadableFeatureTestCase<WindowController> {
+
+  override class var testedImplementation: FeatureLoader? {
+    .disposable(
+      WindowController.self,
+      load: WindowController.load
+    )
+  }
 
   func
     test_screenStateDispositionSequence_returnsRequestPassphrase_whenRequestedPassphrase()
     async throws
   {
-    let controller: WindowController = try await testController()
+    let controller: WindowController = try self.testedInstance()
 
     SessionStateChangeEvent.send(.requestedPassphrase(for: .mock_ada))
 
@@ -54,7 +58,7 @@ final class WindowTests: MainActorTestCase {
     test_screenStateDispositionSequence_returnsRequestMFA_whenRequestedMFA()
     async throws
   {
-    let controller: WindowController = try await testController()
+    let controller: WindowController = try self.testedInstance()
 
     SessionStateChangeEvent.send(.requestedMFA(for: .mock_ada, providers: []))
 
@@ -69,7 +73,7 @@ final class WindowTests: MainActorTestCase {
   func test_screenStateDispositionSequence_returnsUseAuthorizedScreenState_whenAuthorized()
     async throws
   {
-    let controller: WindowController = try await testController()
+    let controller: WindowController = try self.testedInstance()
 
     SessionStateChangeEvent.send(.authorized(.mock_ada))
 
@@ -83,7 +87,7 @@ final class WindowTests: MainActorTestCase {
   func test_screenStateDispositionSequence_returnsUseInitialScreenState_whenSessionCloses()
     async throws
   {
-    let controller: WindowController = try await testController()
+    let controller: WindowController = try self.testedInstance()
 
     SessionStateChangeEvent.send(.closed)
 

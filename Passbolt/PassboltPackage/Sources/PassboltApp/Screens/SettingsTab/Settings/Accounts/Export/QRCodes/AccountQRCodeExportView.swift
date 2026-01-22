@@ -45,7 +45,7 @@ internal struct AccountQRCodeExportView: ControlledView {
         }
       )
     }
-    .navigationBarBackButtonHidden()
+    .environment(\.hideLeadingItem, true)
   }
 
   @ViewBuilder @MainActor private func contentView(

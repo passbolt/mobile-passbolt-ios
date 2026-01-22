@@ -107,9 +107,11 @@ open class ScrolledStackView: UIScrollView {
   }
 
   public func removeAllArrangedSubviews(withTag: Int? = nil) {
-    stackView.arrangedSubviews
+    let subviews: Array<UIView> = stackView.arrangedSubviews
       .filter { subview in withTag.map { subview.tag == $0 } ?? true }
-      .forEach { $0.removeFromSuperview() }
+    for subview in subviews {
+      subview.removeFromSuperview()
+    }
   }
 
   private func contentSetup() {

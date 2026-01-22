@@ -59,3 +59,16 @@ extension AnyUpdatable: Updatable {
   }
 }
 
+extension AnyAsyncSequence {
+
+  public func asAnyUpdatable(withInitial initial: Element) -> AnyUpdatable<Element> {
+    let variable: Variable<Element> = .init(initial: initial)
+    Task {
+      for try await element in self {
+        variable.assign(element)
+      }
+    }
+
+    return variable.asAnyUpdatable()
+  }
+}

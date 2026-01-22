@@ -33,7 +33,7 @@ import Commons
 /// 3 second period) the latest will cover the other.
 public enum SnackBarMessageEvent: EventDescription {
 
-  public enum Payload: Equatable {
+  public enum Payload: Equatable, Sendable {
     case show(SnackBarMessage)  // show message
     case clear  // dismiss currently displayed message
   }

@@ -41,6 +41,7 @@ internal struct AccountsSettingsView: ControlledView {
         self.content
       }
     )
+    .tabbarHidden()
   }
 
   @ViewBuilder @MainActor private var content: some View {

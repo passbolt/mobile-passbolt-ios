@@ -25,7 +25,6 @@ import Accounts
 import Display
 import FeatureScopes
 import Resources
-import UIComponents
 import Users
 
 internal final class UserPermissionEditViewController: @MainActor ViewController {

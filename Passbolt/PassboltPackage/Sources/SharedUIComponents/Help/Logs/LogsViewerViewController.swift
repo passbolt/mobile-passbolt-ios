@@ -25,7 +25,8 @@ import Display
 
 public final class LogsViewerViewController: ViewController {
 
-  public struct Context {
+  public struct Context: Sendable {
+
     internal let useCustomNavigationBar: Bool
 
     public init(useCustomNavigationBar: Bool) {
@@ -47,10 +48,8 @@ public final class LogsViewerViewController: ViewController {
   }
 
   public nonisolated let viewState: ViewStateSource<ViewState>
-  private let navigationToSelf: NavigationToLogsViewer
 
   public init(context: Context, features: Features) throws {
-    self.navigationToSelf = try features.instance()
     self.viewState = .init(
       initial: .init(
         useCustomNavigationBar: context.useCustomNavigationBar
@@ -66,12 +65,6 @@ public final class LogsViewerViewController: ViewController {
       }
     }
     .waitForCompletion()
-  }
-
-  internal func close() async {
-    await consumingErrors {
-      try await navigationToSelf.revert()
-    }
   }
 
   internal func share() async {

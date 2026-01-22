@@ -21,100 +21,139 @@
 // @since         v1.0
 //
 
-import AccountSetup
-import UIComponents
+import Accounts
+import Display
+import OSFeatures
 
-internal final class BiometricsSetupViewController: PlainViewController, UIComponent {
+internal final class BiometricsSetupViewController: ViewController {
 
-  internal typealias ContentView = BiometricsSetupView
-  internal typealias Controller = BiometricsSetupController
+  internal struct ViewState: Equatable {
 
-  internal static func instance(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self(
-      using: controller,
-      with: components,
-      cancellables: cancellables
+    internal var icon: ImageNameConstant
+    internal var title: DisplayableString
+    internal var message: DisplayableString?
+    internal var primaryButtonTitle: DisplayableString
+  }
+
+  nonisolated let viewState: ViewStateSource<ViewState>
+
+  let accountInitialSetup: AccountInitialSetup
+  let extensions: OSExtensions
+  let linkOpener: OSLinkOpener
+  let accountPreferences: AccountPreferences
+  let biometry: OSBiometry
+  let navigationToExtensionSetup: NavigationToExtensionSetup
+  let navigationToSelf: NavigationToBiometricsSetup
+
+  internal init(context: (), features: Features) throws {
+
+    let applicationLifecycle: ApplicationLifecycle = features.instance()
+    let biometry: OSBiometry = features.instance()
+    self.biometry = biometry
+    let biometryUpdatable: AnyUpdatable<OSBiometryAvailability?> =
+      applicationLifecycle
+      .lifecycle
+      .asAnyUpdatable(withInitial: .didBecomeActive)
+      .map { (transition: ApplicationLifecycle.Transition) -> OSBiometryAvailability? in
+        if case .didBecomeActive = transition {
+          return .none
+        }
+        else {
+          return biometry.availability()
+        }
+      }
+
+    self.accountInitialSetup = try features.instance()
+    self.extensions = features.instance()
+    self.linkOpener = features.instance()
+    self.accountPreferences = try features.instance()
+    self.navigationToExtensionSetup = try features.instance()
+    self.navigationToSelf = try features.instance()
+
+    self.viewState = .init(
+      initial: .init(
+        icon: .biometrics,
+        title: "",
+        message: .none,
+        primaryButtonTitle: ""
+      ),
+      updateFrom: biometryUpdatable,
+      update: { update, biometryAvailability in
+        let imageName: ImageNameConstant
+        let title: DisplayableString
+        let message: DisplayableString
+        let primaryButtonTitle: DisplayableString
+
+        switch try biometryAvailability.value {
+        case .none, .unavailable, .unconfigured:
+          imageName = .biometrics
+          title = "biometrics.info.title"
+          message = "biometrics.info.description"
+          primaryButtonTitle = "biometrics.info.setup.button"
+        case .faceID:
+          imageName = .faceIDSetup
+          title = "biometrics.setup.title.face"
+          primaryButtonTitle = "biometrics.setup.setup.button.face"
+          message = "biometrics.setup.description"
+        case .touchID:
+          imageName = .touchIDSetup
+          title = "biometrics.setup.title.finger"
+          primaryButtonTitle = "biometrics.setup.setup.button.finger"
+          message = "biometrics.setup.description"
+        }
+
+        update {
+          $0.icon = imageName
+          $0.title = title
+          $0.message = message
+          $0.primaryButtonTitle = primaryButtonTitle
+        }
+      }
     )
   }
 
-  internal private(set) lazy var contentView: ContentView = .init()
-  internal let components: UIComponentFactory
-
-  private let controller: Controller
-
-  internal init(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) {
-    self.controller = controller
-    self.components = components
-    super
-      .init(
-        cancellables: cancellables
-      )
-  }
-
-  internal func setupView() {
-    mut(navigationItem) {
-      .hidesBackButton(true)
+  internal func primaryButtonTapped() async {
+    switch biometry.availability() {
+    case .faceID, .touchID:
+      await setupBiometrics()
+    case .unconfigured, .unavailable:
+      await openSettings()
     }
-    setupSubscriptions()
   }
 
-  private func setupSubscriptions() {
-    controller
-      .biometricsStatePublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] biometricsState in
-        self?.contentView.update(for: biometricsState)
-      }
-      .store(in: cancellables)
+  internal func skipSetup() async {
+    accountInitialSetup.completeSetup(.biometrics)
+    await nextStep()
+  }
 
-    contentView
-      .setupTapPublisher
-      .sink { [weak self] in
-        guard let self = self else { return }
-        self.controller
-          .setupBiometrics()
-          .receive(on: RunLoop.main)
-          .sink(receiveCompletion: { completion in
-            guard case .failure = completion
-            else { return }
-            SnackBarMessageEvent.send(.error(.localized(key: .genericError)))
-          })
-          .store(in: self.cancellables)
-      }
-      .store(in: cancellables)
+  private func nextStep() async {
+    if await extensions.autofillExtensionEnabled() {
+      await self.navigationToSelf.revertCatching()
+    }
+    else {
+      await self.navigationToExtensionSetup.performCatching(context: .init(allowSkipping: true))
+    }
+  }
 
-    contentView
-      .skipTapPublisher
-      .sink { [weak self] in
-        guard let self = self else { return }
-        self.controller.skipSetup()
-      }
-      .store(in: cancellables)
+  internal func setupBiometrics() async {
+    accountInitialSetup.completeSetup(.biometrics)
 
-    controller
-      .destinationPresentationPublisher()
-      .sink { [weak self] destination in
-        self?.cancellables
-          .executeOnMainActor {
-            switch destination {
-            case .extensionSetup:
-              guard let navigation: NavigationToExtensionSetup = try self?.components.features.instance() else {
-                return
-              }
-              await navigation.performCatching(context: .init(allowSkipping: true))
-            case .finish:
-              await self?.dismiss(Self.self)
-            }
-          }
-      }
-      .store(in: cancellables)
+    do {
+      try await accountPreferences.storePassphrase(true)
+    }
+    catch {
+      SnackBarMessageEvent.send(.error(.localized(key: .genericError)))
+    }
+    await nextStep()
+  }
+
+  internal func openSettings() async {
+    do {
+      try await linkOpener
+        .openSystemSettings()
+    }
+    catch {
+      error.logged()
+    }
   }
 }

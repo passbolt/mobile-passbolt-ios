@@ -28,6 +28,7 @@ extension FeaturesRegistry {
 
   public mutating func useLiveNavigation() {
     // MARK: - Initial
+    self.useLiveNavigationToNewSplashScreen()
     self.useLiveNavigationToWelcomeScreen()
     self.useLiveNavigationToHelpMenu()
     self.useLiveNavigationToLogsViewer()
@@ -38,6 +39,10 @@ extension FeaturesRegistry {
     self.useLiveNavigationToCodeScanning()
     self.useLiveNavigationToNewUnsupportedMFA()
     self.useLiveNavigationToServerFingerprintInvalid()
+    self.useLiveNavigationToNewBiometricsInfo()
+    self.useLiveNavigationToStatupError()
+    self.useLiveNavigationToMainTabs()
+
     // MARK: - Global
     self.useLiveNavigationToDiagnostics()
     self.useLiveNavigationToOperationAuthorization()
@@ -53,7 +58,7 @@ extension FeaturesRegistry {
     self.useLiveNavigationToExtensionSetup()
 
     // MARK: - Home
-    self.useLiveNavigationToHomePresentationMenu()
+    self.useLiveHomePresentation()
     self.useLiveNavigationToTagContent()
     self.useLiveNavigationToGroupContent()
     self.useLiveNavigationToFolderContent()
@@ -76,7 +81,6 @@ extension FeaturesRegistry {
     self.useLiveNavigationToResourceCreateMenu()
 
     // MARK: - OTP Tab
-    self.useLiveNavigationToOTPResourcesTab()
     self.useLiveNavigationToOTPResourcesList()
 
     // MARK: - OTP menu

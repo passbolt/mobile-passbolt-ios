@@ -88,6 +88,7 @@ public struct ResourceEditView: ControlledView {
       .backgroundColor(.passboltBackground)
       .foregroundColor(.passboltPrimaryText)
       .accessibilityIdentifier("screen.resource.edit")
+      .tabbarHidden()
   }
 
   @MainActor @ViewBuilder private var contentView: some View {

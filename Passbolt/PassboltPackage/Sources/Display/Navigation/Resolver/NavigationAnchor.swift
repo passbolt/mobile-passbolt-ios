@@ -196,7 +196,7 @@ extension NavigationAnchor {
         }
       }
     }
-    else if let tabs: UITabBarController = anchorToDismiss.navigationTabs {
+    else if let _: UITabBarController = anchorToDismiss.navigationTabs {
       #warning("TODO: to implement in future - search through all tabs")
       //			return // NOP for now until required to be implemented
       InternalInconsistency
@@ -241,7 +241,7 @@ extension NavigationAnchor {
         return stack
       }
     }
-    else if let stack = findFirstNavigationStack {
+    else if let stack = findTopMostNavigationStack {
       return stack
     }
     else {
@@ -280,7 +280,7 @@ extension NavigationAnchor {
         return .none
       }
     }
-    else if let stack: UINavigationController = findFirstNavigationStack {
+    else if let stack: UINavigationController = findTopMostNavigationStack {
       return stack.viewControllers.last(where: { $0.destinationIdentifier == identifier })
     }
     else {

@@ -24,7 +24,6 @@
 import Accounts
 import Display
 import OSFeatures
-import UIComponents
 import Users
 
 internal final class UserGroupPermissionDetailsViewController: @MainActor ViewController {

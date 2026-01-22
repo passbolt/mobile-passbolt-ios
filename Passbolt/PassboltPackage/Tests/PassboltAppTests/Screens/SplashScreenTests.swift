@@ -22,214 +22,161 @@
 //
 
 import CommonModels
+import Display
 import Features
 import SessionData
+import SharedUIComponents
 import TestExtensions
-import UIComponents
-import XCTest
 
 @testable import Accounts
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-@MainActor
-final class SplashScreenTests: MainActorTestCase {
+
+final class NewSplashScreenViewTests: FeaturesTestCase {
 
   var updates: Updates!
 
-  override func mainActorSetUp() {
+  override func commonPrepare() {
+    super.commonPrepare()
     updates = .init()
-    features.patch(
+    patch(
+      \UpdateCheck.checkRequired,
+      with: always(false)
+    )
+    patch(
       \Session.updates,
       with: updates.asAnyUpdatable()
     )
-    features.patch(
+    patch(
       \Session.currentAccount,
       with: always(Account.mock_ada)
     )
-    features.patch(
+    patch(
       \Session.pendingAuthorization,
       with: always(.none)
     )
-    features.usePlaceholder(for: UpdateCheck.self)
-    features.patch(
+
+    patch(
       \SessionConfigurationLoader.sessionConfiguration,
       with: alwaysThrow(MockIssue.error())
     )
-    features.patch(
+    patch(
       \Accounts.verifyDataIntegrity,
       with: always(Void())
     )
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([AccountWithProfile.mock_ada])
     )
   }
 
-  override func mainActorTearDown() {
-    updates = .none
-  }
-
-  override func featuresActorTearDown() async throws {
-    self.mainActorTearDown()
-    self.features = nil
-  }
-
   func test_navigateToDiagnostics_whenDataIntegrityCheckFails() async throws {
-    features.patch(
+    patch(
       \Accounts.verifyDataIntegrity,
       with: alwaysThrow(MockIssue.error())
     )
 
-    let controller: SplashScreenController = try testController(context: .none)
-    let result: SplashScreenController.Destination? =
-      try await controller
-      .navigationDestinationPublisher()
-      .asAsyncSequence()
-      .first()
-
-    XCTAssertEqual(result, .diagnostics)
+    try await verifyIfTriggersNavigation(NavigationToLogsViewer.self)
   }
 
   func test_navigateToAccountSetup_whenNoStoredAccounts() async throws {
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([])
     )
 
-    let controller: SplashScreenController = try testController(context: .none)
-    let result: SplashScreenController.Destination? =
-      try await controller
-      .navigationDestinationPublisher()
-      .asAsyncSequence()
-      .first()
-
-    XCTAssertEqual(result, .accountSetup)
+    try await verifyIfTriggersNavigation(NavigationToWelcomeScreen.self)
   }
 
   func test_navigateToAccountSelection_whenStoredAccountsPresent_withAccount_andNotAuthorized() async throws {
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([AccountWithProfile.mock_ada])
     )
-    features.patch(
+    patch(
       \Session.currentAccount,
       with: alwaysThrow(SessionMissing.error())
     )
 
-    let controller: SplashScreenController = try testController(context: Account.mock_ada)
+    patch(
+      \NavigationToAuthorization.mockPerform,
+      with: always(self.mockExecuted())
+    )
 
-    let result: SplashScreenController.Destination? =
-      try await controller
-      .navigationDestinationPublisher()
-      .asAsyncSequence()
-      .first()
-
-    XCTAssertEqual(result, .accountSelection(Account.mock_ada, message: nil))
+    try await verifyIfTriggersNavigation(
+      NavigationToAccountSelection.self,
+      with: Account.mock_ada,
+      mocksTriggered: 2
+    )
   }
 
   func test_navigateToAccountSelection_whenStoredAccountsPresent_withoutLastUsedAccount_andNotAuthorized() async throws
   {
-    features.patch(
+    patch(
       \Accounts.storedAccounts,
       with: always([AccountWithProfile.mock_ada])
     )
-    features.patch(
+    patch(
       \Session.currentAccount,
       with: alwaysThrow(SessionMissing.error())
     )
 
-    let controller: SplashScreenController = try testController(context: .none)
-    let result: SplashScreenController.Destination? =
-      try await controller
-      .navigationDestinationPublisher()
-      .asAsyncSequence()
-      .first()
-
-    XCTAssertEqual(result, .accountSelection(nil, message: nil))
+    try await verifyIfTriggersNavigation(
+      NavigationToAccountSelection.self
+    )
   }
 
   func test_navigateToHome_whenAuthorized_andFeatureFlagsDownloadSucceeds() async throws {
-    features.patch(
+    patch(
       \Session.currentAccount,
       with: always(Account.mock_ada)
     )
-    features.patch(
+    patch(
       \SessionConfigurationLoader.sessionConfiguration,
       with: always(.default)
     )
 
-    let controller: SplashScreenController = try testController(context: .none)
-    let result: SplashScreenController.Destination? =
-      try await controller
-      .navigationDestinationPublisher()
-      .asAsyncSequence()
-      .first()
-
-    XCTAssertEqual(result, .home(.init(account: .mock_ada, configuration: .mock_default)))
+    try await verifyIfTriggersNavigation(
+      NavigationToMainTabs.self
+    )
   }
 
   func test_navigateToFeatureFlagsFetchError_whenAuthorized_andFeatureFlagsDownloadFails() async throws {
-    features.patch(
+    patch(
       \Session.currentAccount,
       with: always(Account.mock_ada)
     )
-    features.patch(
+    patch(
       \SessionConfigurationLoader.sessionConfiguration,
       with: alwaysThrow(MockIssue.error())
     )
 
-    let controller: SplashScreenController = try testController(context: .none)
-    let result: SplashScreenController.Destination? =
-      try await controller
-      .navigationDestinationPublisher()
-      .asAsyncSequence()
-      .first()
-
-    XCTAssertEqual(result, .featureConfigFetchError)
+    try await verifyIfTriggersNavigation(
+      NavigationToStartupError.self
+    )
   }
 
-  func test_navigationDestinationPublisher_publishesHome_whenRetryFetchConfigurationSucceeds() async throws {
-    features.patch(
-      \Session.currentAccount,
-      with: always(Account.mock_ada)
-    )
-    features.patch(
-      \SessionConfigurationLoader.sessionConfiguration,
-      with: always(.default)
-    )
-
-    let controller: SplashScreenController = try testController(context: .none)
-    let result: SplashScreenController.Destination? =
-      try await controller
-      .navigationDestinationPublisher()
-      .asAsyncSequence()
-      .first()
-
-    try? await controller.retryFetchConfiguration()
-
-    XCTAssertEqual(result, .home(.init(account: .mock_ada, configuration: .mock_default)))
-  }
-
-  func test_navigationDestinationPublisher_doesNotPublish_whenRetryFetchConfigurationFails() async throws {
-    features.patch(
-      \Session.currentAccount,
-      with: always(Account.mock_ada)
-    )
-    features.patch(
-      \SessionConfigurationLoader.sessionConfiguration,
-      with: alwaysThrow(MockIssue.error())
+  private func verifyIfTriggersNavigation<N>(
+    _: NavigationTo<N>.Type = NavigationTo<N>.self,
+    with context: SplashScreenViewController.Context = .none,
+    mocksTriggered: UInt = 1,
+    file: StaticString = #file,
+    line: UInt = #line,
+  ) async throws where N: NavigationDestination {
+    patch(
+      \NavigationTo<N>.mockPerform,
+      with: always(self.mockExecuted())
     )
 
-    let controller: SplashScreenController = try testController(context: .none)
-    let result: SplashScreenController.Destination? =
-      try await controller
-      .navigationDestinationPublisher()
-      .asAsyncSequence()
-      .first()
-
-    try? await controller.retryFetchConfiguration()
-
-    XCTAssertEqual(result, .featureConfigFetchError)
+    await withInstance(
+      of: SplashScreenViewController.self,
+      context: context,
+      mockExecuted: mocksTriggered,
+      file: file,
+      line: line
+    ) { @MainActor feature in
+      await feature.activate()
+    }
   }
 }

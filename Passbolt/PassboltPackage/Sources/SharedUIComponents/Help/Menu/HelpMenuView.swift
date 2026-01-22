@@ -81,7 +81,6 @@ internal struct HelpMenuView: ControlledView {
   }
 }
 
-
 private struct DocumentPicker: UIViewControllerRepresentable {
 
   private let onDocumentSelected: (URL?) -> Void

@@ -175,22 +175,21 @@ public func checkFeedbackAssistant() -> Bool {
 }
 
 private var feedbackAlertPresented: Bool = false
+@MainActor
 public func showFeedbackAlertIfNeeded(
-  presentationAnchor: UIViewController? = nil,
-  completion: @escaping () -> Void
-) {
+  completion: @escaping () async -> Void
+) async {
   dispatchPrecondition(condition: .onQueue(.main))
-  guard !feedbackAlertPresented else { return completion() }
+  guard !feedbackAlertPresented else { return await completion() }
   feedbackAlertPresented = true
   guard checkFeedbackAssistant()
-  else { return completion() }
+  else { return await completion() }
 
-  UIApplication
+  await UIApplication
     .showInfoAlert(
       title: .localized(key: "feedback.alert.title"),
       message: .localized(key: "feedback.alert.message"),
       buttonTitle: .localized(key: "feedback.alert.button.title"),
-      presentationAnchor: presentationAnchor,
       completion: completion
     )
 }

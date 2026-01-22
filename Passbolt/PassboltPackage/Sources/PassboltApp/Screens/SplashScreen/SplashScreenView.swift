@@ -19,27 +19,20 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
-import UICommons
+import Display
 
-internal final class SplashScreenView: PlainView {
+internal struct SplashScreenView: ControlledView {
 
-  private let imageView: ImageView = .init()
+  internal let controller: SplashScreenViewController
 
-  internal required init() {
-    super.init()
+  internal init(controller: SplashScreenViewController) {
+    self.controller = controller
+  }
 
-    mut(self) {
-      .backgroundColor(dynamic: .background)
-    }
-
-    mut(imageView) {
-      .combined(
-        .subview(of: self),
-        .image(named: .passboltLogo, from: .uiCommons),
-        .centerXAnchor(.equalTo, centerXAnchor),
-        .centerYAnchor(.equalTo, centerYAnchor)
-      )
-    }
+  internal var body: some View {
+    SplashView()
+    .task(self.controller.activate)
   }
 }

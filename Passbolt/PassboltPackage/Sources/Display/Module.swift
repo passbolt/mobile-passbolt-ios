@@ -25,12 +25,13 @@
 @_exported import Commons
 @_exported import Features
 @_exported import SwiftUI
-@_exported import UIComponents  // LegacyBridge only
+@_exported import UICommons
 
 extension FeaturesRegistry {
 
   public mutating func useLiveDisplay() {
     self.useLiveNavigationResolver()
     self.useLiveNavigationRestoration()
+    self.useLiveNavigationToRoot()
   }
 }
