@@ -212,7 +212,7 @@ extension ComputedVariable {
       compute: { @Sendable [sourceA, sourceB] (generation: UpdateGeneration) async -> Update<Value> in
         do {
           // race - ask both for the latest
-          return try await future { (fulfill: @escaping @Sendable (Update<Value>) -> Void) in
+          return try await futureValue { (fulfill: @escaping @Sendable (Update<Value>) -> Void) in
             // request an update from the one with higher generation first
             // since it might be fulfilled immediately and cause a loop
             if sourceA.generation > sourceB.generation {
@@ -248,7 +248,7 @@ extension ComputedVariable {
       compute: { @Sendable [sourceA, sourceB, transform] (generation: UpdateGeneration) async -> Update<Value> in
         do {
           // race - ask both for the latest
-          let sourceUpdate: Update<SourceA.Value> = try await future {
+          let sourceUpdate: Update<SourceA.Value> = try await futureValue {
             (fulfill: @escaping @Sendable (Update<SourceA.Value>) -> Void) in
             // request an update from the one with higher generation first
             // since it might be fulfilled immediately and cause a loop

@@ -68,6 +68,7 @@ internal struct AccountSelectionView: ControlledView {
             )
           }
         }
+        .background(Color.passboltBackground)
         .padding(.horizontal, 16)
       }
     }
@@ -163,6 +164,7 @@ internal struct AccountSelectionView: ControlledView {
       .padding(.top, 40)
     }
     .padding(.horizontal, 16)
+    .padding(.bottom, 60)
     .backgroundColor(.passboltBackground)
     Spacer()
   }

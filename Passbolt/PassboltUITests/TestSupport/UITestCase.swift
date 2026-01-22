@@ -93,14 +93,9 @@ internal class UITestCase: XCTestCase {
     // to be overriden
   }
 
-  override final func setUpWithError() throws {
-    try super.setUpWithError()
-    try beforeEachTestCase()
-  }
-
-  override final func tearDownWithError() throws {
-    try afterEachTestCase()
-    try super.tearDownWithError()
+  nonisolated override final func setUp() async throws {
+    try await super.setUp()
+    try await beforeEachTestCase()
   }
 
   // MARK: - Device
@@ -471,7 +466,7 @@ internal class UITestCase: XCTestCase {
     element.tap()  // to gain focus
 
     let maxIterationsCount: Int = 3
-    for iteration in 0 ..< maxIterationsCount {
+    for _ in 0 ..< maxIterationsCount {
 
       element.doubleTap()  // to trigger text menu
 

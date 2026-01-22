@@ -613,8 +613,6 @@ extension AccountsDataStore {
             forAccountWithID: accountID
           )
         )
-
-        #warning("TODO: Consider propagating errors outside of this function")
       }
       catch {
         error.logged(

@@ -66,7 +66,6 @@ extension SessionConfiguration {
   }
 }
 
-
 extension PasswordExpiryFeatureConfiguration {
 
   public init(

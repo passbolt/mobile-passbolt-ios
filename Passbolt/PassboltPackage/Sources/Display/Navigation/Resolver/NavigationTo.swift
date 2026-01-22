@@ -557,60 +557,6 @@ extension NavigationTo {
     )
   }
 
-  public static func legacyTabSwitch<DestinationViewController>(
-    to: DestinationViewController.Type = DestinationViewController.self
-  ) -> FeatureLoader
-  where DestinationViewController: UIViewController, Destination.TransitionContext == Void {
-    .disposable(
-      Self.self,
-      load: { features in
-        precondition(
-          Destination.isUnique,
-          "Tab switch has to be unique!"
-        )
-
-        let navigationResolver: NavigationResolver = try features.instance()
-
-        @MainActor @Sendable func perform(
-          animated: Bool,
-          context: Destination.TransitionContext,
-          file: StaticString,
-          line: UInt
-        ) async throws {
-          try await navigationResolver
-            .legacyTabSwitch(
-              to: DestinationViewController.self,
-              file: file,
-              line: line
-            )
-        }
-
-        @MainActor @Sendable func revert(
-          animated: Bool,
-          file: StaticString,
-          line: UInt
-        ) async throws {
-          throw
-            InternalInconsistency
-            .error("Invalid navigation - can't revert tab switching!")
-        }
-
-        @MainActor func canPerform(
-          file: StaticString,
-          line: UInt
-        ) -> Bool {
-          navigationResolver.exists(with: Destination.identifier) == false
-        }
-
-        return .init(
-          performAnimated: perform(animated:context:file:line:),
-          revertAnimated: revert(animated:file:line:),
-          canPerformCheck: canPerform(file:line:)
-        )
-      }
-    )
-  }
-
   public static func legacyAlertPresentationTransition<Alert>(
     using: Alert.Type = Alert.self,
     _ prepare: @escaping @MainActor (Features, Destination.TransitionContext) throws -> Alert

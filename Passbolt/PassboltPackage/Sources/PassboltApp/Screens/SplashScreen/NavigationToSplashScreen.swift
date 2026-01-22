@@ -42,7 +42,7 @@ extension NavigationToSplashScreen {
 
 extension FeaturesRegistry {
 
-  internal mutating func useLiveNavigationToNewSplashScreen() {
+  internal mutating func useLiveNavigationToSplashScreen() {
     self.use(
       NavigationToSplashScreen.live,
       in: RootFeaturesScope.self

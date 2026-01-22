@@ -75,7 +75,7 @@ internal struct AccountImportInfoView: ControlledView {
         ofSize: 14,
         weight: .regular
       ),
-      color: .secondaryText
+      color: .passboltSecondaryText
     )
   }
 
@@ -84,7 +84,7 @@ internal struct AccountImportInfoView: ControlledView {
       .localized(key: "transfer.account.import.info.step.second"),
       withBoldSubstring: .localized(key: "transfer.account.import.info.step.second.distinct"),
       fontSize: 14,
-      color: .secondaryText
+      color: .passboltSecondaryText
     )
   }
 
@@ -93,7 +93,7 @@ internal struct AccountImportInfoView: ControlledView {
       .localized(key: "transfer.account.import.info.step.third"),
       withBoldSubstring: .localized(key: "transfer.account.import.info.step.third.distinct"),
       fontSize: 14,
-      color: .secondaryText
+      color: .passboltSecondaryText
     )
   }
 
@@ -104,7 +104,7 @@ internal struct AccountImportInfoView: ControlledView {
         ofSize: 14,
         weight: .regular
       ),
-      color: .secondaryText
+      color: .passboltSecondaryText
     )
   }
 }

@@ -23,35 +23,35 @@
 
 import AegithalosCocoa
 
-extension Mutation where Subject: Label {
-
-  public static func titleStyle() -> Self {
-    .combined(
-      .font(.inter(ofSize: 24, weight: .semibold)),
-      .textColor(dynamic: .primaryText),
-      .textAlignment(.center),
-      .numberOfLines(0)
-    )
-  }
-
-  public static func infoStyle() -> Self {
-    .combined(
-      .font(.inter(ofSize: 14, weight: .light)),
-      .textColor(dynamic: .secondaryText),
-      .textAlignment(.center),
-      .numberOfLines(0)
-    )
-  }
-
-  public static func placeholderStyle() -> Self {
-    .combined(
-      .font(.inter(ofSize: 14, weight: .medium)),
-      .textColor(dynamic: .secondaryText),
-      .backgroundColor(.clear),
-      .numberOfLines(1)
-    )
-  }
-}
+//extension Mutation where Subject: Label {
+//
+//  public static func titleStyle() -> Self {
+//    .combined(
+//      .font(.inter(ofSize: 24, weight: .semibold)),
+//      .textColor(dynamic: .primaryText),
+//      .textAlignment(.center),
+//      .numberOfLines(0)
+//    )
+//  }
+//
+//  public static func infoStyle() -> Self {
+//    .combined(
+//      .font(.inter(ofSize: 14, weight: .light)),
+//      .textColor(dynamic: .secondaryText),
+//      .textAlignment(.center),
+//      .numberOfLines(0)
+//    )
+//  }
+//
+//  public static func placeholderStyle() -> Self {
+//    .combined(
+//      .font(.inter(ofSize: 14, weight: .medium)),
+//      .textColor(dynamic: .secondaryText),
+//      .backgroundColor(.clear),
+//      .numberOfLines(1)
+//    )
+//  }
+//}
 
 extension Text {
 

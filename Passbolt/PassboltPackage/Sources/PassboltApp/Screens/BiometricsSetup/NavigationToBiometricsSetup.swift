@@ -40,7 +40,7 @@ extension NavigationToBiometricsSetup {
 
 extension FeaturesRegistry {
 
-  internal mutating func useLiveNavigationToNewBiometricsInfo() {
+  internal mutating func useLiveNavigationToBiometricsInfo() {
     self.use(
       NavigationToBiometricsSetup.live,
       in: SessionScope.self

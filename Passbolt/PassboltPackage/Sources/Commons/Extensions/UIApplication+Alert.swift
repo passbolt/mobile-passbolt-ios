@@ -42,7 +42,8 @@ extension UIApplication {
       .first?
       .windows
 
-    let anchor: UIViewController? = windows?
+    let anchor: UIViewController? =
+      windows?
       .first(where: \.isKeyWindow)?
       .rootViewController
       ?? windows?

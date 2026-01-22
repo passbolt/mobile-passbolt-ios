@@ -85,7 +85,7 @@ internal final class ArrayFailableDecodeTests: XCTestCase {
     """
 
   private var json: Data {
-    return .init(self.sampleJSONString.utf8)
+    .init(self.sampleJSONString.utf8)
   }
 
   private struct TestItem: Decodable {

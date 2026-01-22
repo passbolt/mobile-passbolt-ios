@@ -35,7 +35,7 @@ extension AttributedString {
   public static func displayable(
     _ displayableString: DisplayableString,
     font: UIFont,
-    color: DynamicColor,
+    color: Color,
     isLink: Bool = false
   ) -> Self {
     .string(
@@ -53,7 +53,7 @@ extension AttributedString {
     _ displayableString: DisplayableString,
     withBoldSubstring boldDisplayableString: DisplayableString,
     fontSize: CGFloat,
-    color: DynamicColor
+    color: Color
   ) -> Self {
     let string: String = displayableString.string()
     let boldSubstring: String =
@@ -113,7 +113,7 @@ extension AttributedString {
       let string: String = displayableString.string()
       var stringAttributes: Dictionary<NSAttributedString.Key, Any>? = [
         .font: attributes.font,
-        .foregroundColor: attributes.color(in: interfaceStyle),
+        .foregroundColor: attributes.color,
       ]
 
       if attributes.isLink {
@@ -162,12 +162,12 @@ extension AttributedString {
   public struct Attributes {
 
     public var font: UIFont
-    public var color: DynamicColor
+    public var color: Color
     public var isLink: Bool
 
     public init(
       font: UIFont,
-      color: DynamicColor,
+      color: Color,
       isLink: Bool = false
     ) {
       self.font = font

@@ -272,18 +272,10 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
 
     let accountTransfer: AccountImport = try testedInstance()
 
-    var result: Error?
-    do {
-      _ =
-        try await accountTransfer
-        .processPayload(qrCodePart0)
-        .asAsyncValue()
-    }
-    catch {
-      result = error
-    }
-
-    XCTAssertError(result, matches: MockIssue.self)
+    try await verify(
+      accountTransfer.processPayload(qrCodePart0),
+      throws: MockIssue.self
+    )
   }
 
   func test_processPayload_succeeds_withValidContent() async throws {
@@ -554,19 +546,9 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     try? await processPart(qrCodePart4, using: accountTransfer)
     try? await processPart(qrCodePart5, using: accountTransfer)
 
-    var result: Error?
-    do {
-      try await accountTransfer
-        .processPayload(qrCodePart6)
-        .asAsyncValue()
-    }
-    catch {
-      result = error
-    }
-
-    XCTAssertError(
-      result,
-      matches: AccountTransferScanningFailure.self
+    try await verify(
+      accountTransfer.processPayload(qrCodePart6),
+      throws: AccountTransferScanningFailure.self
     )
   }
 
@@ -589,19 +571,9 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     try? await processPart(qrCodePart4, using: accountTransfer)
     try? await processPart(qrCodePart5, using: accountTransfer)
 
-    var result: Error?
-    do {
-      try await accountTransfer
-        .processPayload(qrCodePart6)
-        .asAsyncValue()
-    }
-    catch {
-      result = error
-    }
-
-    XCTAssertError(
-      result,
-      matches: AccountTransferScanningFailure.self
+    try await verify(
+      accountTransfer.processPayload(qrCodePart6),
+      throws: AccountTransferScanningFailure.self
     )
   }
 
@@ -624,19 +596,9 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     try? await processPart(qrCodePart4, using: accountTransfer)
     try? await processPart(qrCodePart5, using: accountTransfer)
 
-    var result: Error?
-    do {
-      try await accountTransfer
-        .processPayload(qrCodePart6InvalidJSON)
-        .asAsyncValue()
-    }
-    catch {
-      result = error
-    }
-
-    XCTAssertError(
-      result,
-      matches: AccountTransferScanningFailure.self
+    try await verify(
+      accountTransfer.processPayload(qrCodePart6InvalidJSON),
+      throws: AccountTransferScanningFailure.self
     )
   }
 
@@ -659,19 +621,9 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     try? await processPart(qrCodePart4, using: accountTransfer)
     try? await processPart(qrCodePart5, using: accountTransfer)
 
-    var result: Error?
-    do {
-      try await accountTransfer
-        .processPayload(qrCodePart6)
-        .asAsyncValue()
-    }
-    catch {
-      result = error
-    }
-
-    XCTAssertError(
-      result,
-      matches: AccountTransferScanningFailure.self
+    try await verify(
+      accountTransfer.processPayload(qrCodePart6),
+      throws: AccountTransferScanningFailure.self
     )
   }
 
@@ -694,22 +646,9 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     try? await processPart(qrCodePart4, using: accountTransfer)
     try? await processPart(qrCodePart5, using: accountTransfer)
 
-    var result: Error?
-    do {
-      try await accountTransfer
-        .processPayload(qrCodePart6)
-        .asAsyncValue()
-    }
-    catch {
-      result = error
-    }
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: sleepDuration)
-
-    XCTAssertError(
-      result,
-      matches: AccountTransferScanningFailure.self
+    try await verify(
+      accountTransfer.processPayload(qrCodePart6),
+      throws: AccountTransferScanningFailure.self
     )
   }
 
@@ -760,17 +699,10 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     try? await processPart(qrCodePart5, using: accountTransfer)
     try? await processPart(qrCodePart6, using: accountTransfer)
 
-    var result: Error?
-    do {
-      try await accountTransfer
-        .processPayload(qrCodePart7Unexpected)
-        .asAsyncValue()
-    }
-    catch {
-      result = error
-    }
-
-    XCTAssertError(result, matches: Cancelled.self)
+    try await verify(
+      accountTransfer.processPayload(qrCodePart7Unexpected),
+      throws: Cancelled.self
+    )
   }
 
   func test_processPayload_fails_withRepeatedPage() async throws {
@@ -900,9 +832,32 @@ extension AccountTransferTests {
     _ part: String,
     using accountTransfer: AccountImport
   ) async throws {
-    try await accountTransfer
+    let publisher =
+      accountTransfer
       .processPayload(part)
-      .asAsyncValue()
+    _ = try await publisher.asAsyncSequence().first()
+  }
+
+  fileprivate func verify<E>(
+    _ operation: @autoclosure () -> AnyPublisher<Never, Error>,
+    throws: E.Type,
+    file: StaticString = #file,
+    line: UInt = #line
+  ) async throws where E: Error {
+    var caughtError: Error?
+    operation()
+      .sink { result in
+        guard case .failure(let error) = result
+        else {
+          XCTFail("Expected error of type \(E.self) but got success", file: file, line: line)
+          return
+        }
+        caughtError = error
+      }
+      .store(in: cancellables)
+    try await Task.sleep(nanoseconds: sleepDuration)  // temporary wait for detached tasks
+    XCTAssertNotNil(caughtError, file: file, line: line)
+    XCTAssertTrue(caughtError is E, file: file, line: line)
   }
 }
 

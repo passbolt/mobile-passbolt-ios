@@ -55,7 +55,7 @@ internal struct TransferSignInView: ControlledView {
 
   private var content: some View {
     WithViewState(controller.viewState) { state in
-      AuthView(
+      UICommons.AuthorizationView(
         label: state.account?.label ?? "",
         username: state.account?.username ?? "",
         domain: state.account?.domain.rawValue ?? "",

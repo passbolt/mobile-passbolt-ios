@@ -88,7 +88,7 @@ internal struct AuthorizationView: ControlledView {
 
   private var content: some View {
     WithViewState(from: self.controller) { state in
-      AuthView(
+      UICommons.AuthorizationView(
         label: state.label,
         username: state.username,
         domain: state.domain,

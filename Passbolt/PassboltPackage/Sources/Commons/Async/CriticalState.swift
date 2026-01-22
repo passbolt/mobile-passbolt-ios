@@ -25,7 +25,7 @@ import struct os.os_unfair_lock
 import func os.os_unfair_lock_lock
 import func os.os_unfair_lock_unlock
 
-public final class CriticalState<State> {
+public final class CriticalState<State>: @unchecked Sendable where State: Sendable {
 
   @usableFromInline internal let statePtr: UnsafeMutablePointer<State>
   @usableFromInline internal let lockPtr: UnsafeMutablePointer<os_unfair_lock>
@@ -36,10 +36,18 @@ public final class CriticalState<State> {
     _ initial: consuming State,
     cleanup: @escaping @Sendable (State) -> Void = { _ in }
   ) {
-    assert(
-      !(State.self is AnyObject),
-      "Only value types are allowed."
-    )
+    self.statePtr = .allocate(capacity: 1)
+    self.statePtr.initialize(to: initial)
+    self.lockPtr = .allocate(capacity: 1)
+    self.lockPtr.initialize(to: os_unfair_lock())
+    self.cleanup = cleanup
+  }
+
+  public init(
+    _ initial: consuming State,
+    cleanup: @escaping @Sendable (State) -> Void = { _ in }
+  ) where State: AnyObject {
+    assertionFailure("Only value types are allowed.")
     self.statePtr = .allocate(capacity: 1)
     self.statePtr.initialize(to: initial)
     self.lockPtr = .allocate(capacity: 1)
@@ -142,4 +150,9 @@ public final class CriticalState<State> {
   }
 }
 
-extension CriticalState: Sendable where State: Sendable {}
+extension CriticalState {
+
+  public convenience init<O>(_ from: Optional<O>.Type = Optional<O>.self) where State == Optional<O> {
+    self.init(.none, cleanup: { _ in })
+  }
+}

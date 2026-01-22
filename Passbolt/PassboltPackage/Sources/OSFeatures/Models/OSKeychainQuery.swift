@@ -23,7 +23,7 @@
 
 import CommonModels
 
-public struct OSKeychainQuery {
+public struct OSKeychainQuery: Sendable {
 
   public typealias Key = Tagged<String, Self>
   public typealias Tag = Tagged<String, Key>

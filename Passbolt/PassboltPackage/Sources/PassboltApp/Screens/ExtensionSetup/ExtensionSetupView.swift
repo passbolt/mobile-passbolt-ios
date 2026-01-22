@@ -56,7 +56,7 @@ internal struct ExtensionSetupView: ControlledView {
               "extension.setup.settings.step",
               withBoldSubstring: "extension.setup.settings.step.bold",
               fontSize: 14,
-              color: .primaryText
+              color: .passboltPrimaryText
             )
           )
           divider
@@ -66,7 +66,7 @@ internal struct ExtensionSetupView: ControlledView {
               "extension.setup.keyboard.step",
               withBoldSubstring: "extension.setup.keyboard.step.bold",
               fontSize: 14,
-              color: .primaryText
+              color: .passboltPrimaryText
             )
           )
           divider
@@ -76,7 +76,7 @@ internal struct ExtensionSetupView: ControlledView {
               "extension.setup.switch.step",
               withBoldSubstring: "extension.setup.switch.step.bold",
               fontSize: 14,
-              color: .primaryText
+              color: .passboltPrimaryText
             )
           )
           divider
@@ -86,7 +86,7 @@ internal struct ExtensionSetupView: ControlledView {
               "extension.setup.keychain.step",
               withBoldSubstring: "extension.setup.keychain.step.bold",
               fontSize: 14,
-              color: .primaryText
+              color: .passboltPrimaryText
             )
           )
           divider
@@ -96,7 +96,7 @@ internal struct ExtensionSetupView: ControlledView {
               "extension.setup.passbolt.step",
               withBoldSubstring: "extension.setup.passbolt.step.bold",
               fontSize: 14,
-              color: .primaryText
+              color: .passboltPrimaryText
             )
           )
         }

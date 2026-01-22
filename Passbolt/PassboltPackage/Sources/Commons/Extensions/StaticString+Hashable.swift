@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-extension StaticString: Hashable {
+extension StaticString: @retroactive Equatable {
 
   public static func == (
     _ lhs: StaticString,
@@ -29,6 +29,9 @@ extension StaticString: Hashable {
   ) -> Bool {
     lhs.description == rhs.description  // description for StaticString is a string itself
   }
+}
+
+extension StaticString: @retroactive Hashable {
 
   public func hash(
     into hasher: inout Hasher

@@ -116,10 +116,12 @@ internal final class Window {
                 currentRootController,
                 for: account
               )
-            } else {
+            }
+            else {
               /* NOP - reuse previous cache if any if previous screen was mfa prompt */
             }
-          } else {
+          }
+          else {
             self.screenStateCache = .none
             self.screenStateAccount = account
           }
@@ -157,7 +159,8 @@ internal final class Window {
                 currentRootController,
                 for: account
               )
-            } else {
+            }
+            else {
               self.screenStateCache = .none
               self.screenStateAccount = account
             }

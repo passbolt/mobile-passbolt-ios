@@ -163,7 +163,7 @@ extension OTPAttachSelectionListViewController {
   }
 
   @MainActor internal func trySendForm() async {
-    consumingErrors {
+    await consumingErrors {
       guard let selected: SelectedItem = self.localState.value.selected
       else {
         throw

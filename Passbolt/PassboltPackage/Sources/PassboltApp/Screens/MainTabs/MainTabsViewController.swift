@@ -67,6 +67,7 @@ internal final class MainTabsViewController: ViewController {
     let appearance = UITabBarAppearance()
     appearance.configureWithOpaqueBackground()
     appearance.backgroundColor = .passboltBackground
+    appearance.shadowColor = .clear
 
     appearance.shadowImage = UIImage()
     let fontAttributes: [NSAttributedString.Key: Any] = [
@@ -146,7 +147,7 @@ internal final class MainTabsViewController: ViewController {
     do {
       let accountInitialSetup: AccountInitialSetup = try features.instance()
       let unfinishedSetupElements: Set<AccountInitialSetup.SetupElement> =
-      await accountInitialSetup.unfinishedSetupElements()
+        await accountInitialSetup.unfinishedSetupElements()
 
       if unfinishedSetupElements.contains(.biometrics) {
         return .biometrics

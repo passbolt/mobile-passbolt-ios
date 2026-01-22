@@ -35,7 +35,6 @@ extension AccountInitialSetup {
     let accountPreferences: AccountPreferences = try features.instance()
     let osPreferences: OSPreferences = features.instance()
 
-    #warning("TODO: refine with account related storage")
     let unfinishedSetupElementsProperty: AccountInitialSetupUnfinishedItemsStoredProperty = try features.instance()
 
     let osExtensions: OSExtensions = features.instance()

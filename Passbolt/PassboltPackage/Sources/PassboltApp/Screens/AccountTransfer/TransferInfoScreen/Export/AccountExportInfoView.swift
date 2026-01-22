@@ -75,7 +75,7 @@ internal struct AccountExportInfoView: ControlledView {
         ofSize: 14,
         weight: .regular
       ),
-      color: .secondaryText
+      color: .passboltSecondaryText
     )
   }
 
@@ -86,7 +86,7 @@ internal struct AccountExportInfoView: ControlledView {
         ofSize: 14,
         weight: .regular
       ),
-      color: .secondaryText
+      color: .passboltSecondaryText
     )
   }
 
@@ -97,7 +97,7 @@ internal struct AccountExportInfoView: ControlledView {
         ofSize: 14,
         weight: .regular
       ),
-      color: .secondaryText
+      color: .passboltSecondaryText
     )
   }
 
@@ -108,7 +108,7 @@ internal struct AccountExportInfoView: ControlledView {
         ofSize: 14,
         weight: .regular
       ),
-      color: .secondaryText
+      color: .passboltSecondaryText
     )
   }
 }

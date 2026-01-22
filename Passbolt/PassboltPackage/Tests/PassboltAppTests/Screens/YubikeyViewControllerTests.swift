@@ -43,12 +43,12 @@ final class YubikeyViewControllerTests: FeaturesTestCase {
     )
   }
 
-  func test_viewState_rememberDevice_isFalse_initially() async throws {
+  func test_viewState_rememberDevice_isTrue_initially() async throws {
     let tested: YubiKeyViewController = try self.testedInstance(
       context: ()
     )
 
-    XCTAssertFalse(tested.viewState.value.rememberDevice)
+    XCTAssertTrue(tested.viewState.value.rememberDevice)
   }
 
   func test_viewState_alert_isNil_initially() async throws {
@@ -60,11 +60,11 @@ final class YubikeyViewControllerTests: FeaturesTestCase {
   }
 
   func test_startScanning_callsSessionAuthorizeMFA() async throws {
-    var authorizeCalled: Bool = false
+    let authorizeCalled: CriticalState<Bool> = .init(false)
     patch(
       \Session.authorizeMFA,
       with: { _ in
-        authorizeCalled = true
+        authorizeCalled.set(true)
       }
     )
 
@@ -74,7 +74,7 @@ final class YubikeyViewControllerTests: FeaturesTestCase {
 
     await tested.startScanning()
 
-    XCTAssertTrue(authorizeCalled)
+    XCTAssertTrue(authorizeCalled.get())
   }
 
   func test_startScanning_sendsError_onGenericFailure() async throws {

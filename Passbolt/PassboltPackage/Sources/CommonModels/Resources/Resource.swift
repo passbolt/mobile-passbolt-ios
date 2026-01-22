@@ -336,7 +336,6 @@ extension Resource {
       .values.map { $0 }
 
     for field in removedFields {
-      #warning("To verify - this should not leave any junk values!")
       self[keyPath: field.path].remove()
     }
     // update metadata resource type if needed

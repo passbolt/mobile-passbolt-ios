@@ -28,7 +28,7 @@ internal final class YubiKeyViewController: ViewController {
 
   internal struct ViewState: Equatable {
     internal var alert: AlertViewModel?
-    internal var rememberDevice: Bool = false
+    internal var rememberDevice: Bool = true
   }
 
   internal nonisolated let viewState: ViewStateSource<ViewState> = .init(initial: .init())

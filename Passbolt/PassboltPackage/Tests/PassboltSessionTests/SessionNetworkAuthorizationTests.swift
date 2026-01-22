@@ -230,7 +230,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     )
     patch(
       \ServerRSAPublicKeyFetchNetworkOperation.execute,
-      with: alwaysThrow(MockIssue.error())
+      with: always(.init(keyData: "key"))
     )
     patch(
       \ServerPGPPublicKeyFetchNetworkOperation.execute,

@@ -46,12 +46,12 @@ final class TOTPViewControllerTests: FeaturesTestCase {
     )
   }
 
-  func test_viewState_rememberDevice_isFalse_initially() async throws {
+  func test_viewState_rememberDevice_isTrue_initially() async throws {
     let tested: TOTPViewController = try self.testedInstance(
       context: .init(loadingCallback: { _ in })
     )
 
-    XCTAssertFalse(tested.viewState.value.rememberDevice)
+    XCTAssertTrue(tested.viewState.value.rememberDevice)
   }
 
   func test_viewState_otp_isEmpty_initially() async throws {

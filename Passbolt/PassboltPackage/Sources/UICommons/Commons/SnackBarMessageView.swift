@@ -59,7 +59,7 @@ private var snackBarsTask: Task<Void, Error>?
 
 private final class SnackBarMessageView: UIView {
 
-  private let label: Label
+  private let label: UILabel
 
   fileprivate required init() {
     self.label = .init()

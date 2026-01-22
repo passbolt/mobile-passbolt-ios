@@ -55,18 +55,13 @@ extension Updatable {
   @_transparent @Sendable public func notify(
     after generation: UpdateGeneration
   ) async throws -> Update<Value> {
-    try await future { (awaiter: @escaping @Sendable (Update<Value>) -> Void) in
+    try await futureValue { (awaiter: @escaping @Sendable (Update<Value>) -> Void) in
       self.notify(awaiter, after: generation)
     }
   }
 }
 
 extension Updatable {
-
-  // despite the warning Swift 5.8 can't use type constraints properly
-  // and it does not compile without typealiases
-  public typealias Element = Update<Value>
-  public typealias AsyncIterator = UpdatableIterator<Value>
 
   @Sendable public func makeAsyncIterator() -> UpdatableIterator<Value> {
     UpdatableIterator(source: self)
@@ -97,7 +92,7 @@ where Value: Sendable {
 
   public mutating func next() async -> Element? {
     do {
-      let element: Element = try await future { (fulfill: @escaping @Sendable (Update<Value>) -> Void) in
+      let element: Element = try await futureValue { (fulfill: @escaping @Sendable (Update<Value>) -> Void) in
         self.notifyAfter(fulfill, self.generation)
       }
       self.generation = element.generation

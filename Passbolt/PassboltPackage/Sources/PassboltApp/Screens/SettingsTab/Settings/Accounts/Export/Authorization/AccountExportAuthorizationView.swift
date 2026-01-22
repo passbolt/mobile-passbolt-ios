@@ -47,7 +47,7 @@ internal struct AccountExportAuthorizationView: ControlledView {
   @ViewBuilder @MainActor private func contentView(
     using state: ViewState
   ) -> some View {
-    AuthView(
+    UICommons.AuthorizationView(
       label: state.accountLabel,
       username: state.accountUsername,
       domain: state.accountDomain,

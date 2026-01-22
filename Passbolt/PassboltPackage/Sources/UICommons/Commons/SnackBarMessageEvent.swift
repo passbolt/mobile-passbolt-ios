@@ -56,19 +56,6 @@ extension SnackBarMessageEvent {
 }
 
 /// Execute provided operation with automatically
-/// consumed errors.
-@_transparent public func consumingErrors(
-  @_implicitSelfCapture _ operation: () throws -> Void
-) {
-  do {
-    try operation()
-  }
-  catch {
-    error.consume()
-  }
-}
-
-/// Execute provided operation with automatically
 /// consumed errors and additional error diagnostics.
 @_transparent public func consumingErrors(
   errorDiagnostics: StaticString,

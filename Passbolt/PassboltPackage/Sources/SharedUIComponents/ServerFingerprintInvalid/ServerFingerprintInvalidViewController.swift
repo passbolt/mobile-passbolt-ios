@@ -26,12 +26,16 @@ import Display
 
 public final class ServerFingerprintInvalidViewController: ViewController {
 
-  public struct Context {
+  public struct Context: Sendable {
     internal let accountID: Account.LocalID
     internal let fingerprint: Fingerprint?
-    internal let backAction: () async throws -> Void
+    internal let backAction: @Sendable () async throws -> Void
 
-    public init(accountID: Account.LocalID, fingerprint: Fingerprint?, backAction: @escaping () async throws -> Void) {
+    public init(
+      accountID: Account.LocalID,
+      fingerprint: Fingerprint?,
+      backAction: @Sendable @escaping () async throws -> Void
+    ) {
       self.accountID = accountID
       self.fingerprint = fingerprint
       self.backAction = backAction

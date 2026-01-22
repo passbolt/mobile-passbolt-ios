@@ -31,10 +31,10 @@ where ViewState: Equatable {
   }
 
   @MainActor internal var value: ViewState {
-    @MainActor _read {
+    _read {
       yield self._value
     }
-    @MainActor _modify {
+    _modify {
       var modified: ViewState = self._value
       yield &modified
       self.viewUpdatesPublisher.send(modified)
@@ -61,7 +61,7 @@ where ViewState: Equatable {
     // always keep reference to source to prevent unexpected
     // deallocation, however it should be kept only if uniquely referenced
     // revisit on iOS 16+ with Swift 5.9+
-    self.sourceRef = source as? AnyObject  // warning due to iOS 15 support
+    self.sourceRef = source
     self._value = initial
     var lastUpdateGeneration: UpdateGeneration = .uninitialized
     self.checkSourceUpdate = { @MainActor [weak source] () -> Bool in
@@ -84,7 +84,7 @@ where ViewState: Equatable {
     self.viewUpdatesPublisher.connection = { @MainActor [weak self, weak source] in
       guard var iterator = source?.makeAsyncIterator()
       else { return }  // can't update without source
-      while let _ = await iterator.next() {
+      while let _ = try? await iterator.next() {
         await self?.updateIfNeeded()
       }
     }
@@ -96,7 +96,7 @@ where ViewState: Equatable {
     self.sourceRef = .none
     self._value = initial
     self.checkSourceUpdate = { false }
-    self.updateFromSource = { @MainActor _ in
+    self.updateFromSource = { _ in
       // NOP
     }
     self.viewUpdatesPublisher = .init(initial: self._value)
@@ -110,7 +110,7 @@ where ViewState: Equatable {
     self.sourceRef = .none
     self._value = Stateless()
     self.checkSourceUpdate = { false }
-    self.updateFromSource = { @MainActor _ in
+    self.updateFromSource = { _ in
       // NOP
     }
     self.viewUpdatesPublisher = .init(initial: self._value)

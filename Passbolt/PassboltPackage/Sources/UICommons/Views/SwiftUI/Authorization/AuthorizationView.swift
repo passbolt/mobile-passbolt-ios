@@ -24,8 +24,7 @@
 import Localization
 import SwiftUI
 
-#warning("To be renamed to AuthorizationView when current one becomes replaced.")
-public struct AuthView<SupportActionView>: View
+public struct AuthorizationView<SupportActionView>: View
 where SupportActionView: View {
 
   private let label: String
@@ -119,7 +118,9 @@ where SupportActionView: View {
           action: self.biometricsAction,
           regularLabel: {
             Image(named: .faceID)
+              .renderingMode(.template)
               .resizable()
+              .foregroundColor(.passboltPrimaryBlue)
               .padding(10)
           },
           loadingLabel: {
@@ -154,7 +155,9 @@ where SupportActionView: View {
           loadingLabel: {
             ZStack {
               Image(named: .touchID)
+                .renderingMode(.template)
                 .resizable()
+                .foregroundColor(.passboltPrimaryBlue)
                 .padding(10)
 
               SwiftUI.ProgressView()
@@ -197,11 +200,11 @@ where SupportActionView: View {
 
 #if DEBUG
 
-internal struct AuthView_Previews: PreviewProvider {
+internal struct AuthorizationView_Previews: PreviewProvider {
 
   internal static var previews: some View {
     PreviewInputState { state in
-      AuthView(
+      AuthorizationView(
         label: "AccountLabel",
         username: "user@passbolt.com",
         domain: "https://passbolt.com",

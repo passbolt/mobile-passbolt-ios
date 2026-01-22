@@ -148,8 +148,8 @@ internal final class AccountSelectionViewController: ViewController {
   }
 
   private func confirmedAccountRemoval(_ account: Account) async {
-    consumingErrors {
-      try accounts.removeAccount(account)
+    await consumingErrors {
+      try await accounts.removeAccount(account)
     }
   }
 
