@@ -34,7 +34,7 @@ internal final class TOTPViewController: ViewController {
   internal static let otpLength: Int = 6
 
   internal struct ViewState: Equatable {
-    internal var rememberDevice: Bool = false
+    internal var rememberDevice: Bool = true
     internal var otp: String = ""
   }
 

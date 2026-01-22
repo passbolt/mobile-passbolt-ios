@@ -36,7 +36,7 @@ final class ResourceDeleteAlertControllerTests: FeaturesTestCase {
       with: alwaysThrow(MockIssue.error())
     )
 
-    var messagesSubscription = SnackBarMessageEvent.subscribe()
+    let messagesSubscription = SnackBarMessageEvent.subscribe()
 
     let tested: ResourceDeleteAlertController = try self.testedInstance(
       context: .init(
@@ -59,7 +59,7 @@ final class ResourceDeleteAlertControllerTests: FeaturesTestCase {
       with: always(Void())
     )
 
-    var messagesSubscription = SnackBarMessageEvent.subscribe()
+    let messagesSubscription = SnackBarMessageEvent.subscribe()
 
     let tested: ResourceDeleteAlertController = try self.testedInstance(
       context: .init(

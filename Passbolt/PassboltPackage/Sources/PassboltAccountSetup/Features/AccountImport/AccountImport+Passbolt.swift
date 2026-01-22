@@ -364,7 +364,7 @@ extension AccountImport {
     ///   - accountTransferData: The account transfer data to check for existence.
     ///   - accounts: The collection of accounts to search within.
     ///  - Returns: A boolean value indicating whether the account exists.
-    nonisolated func checkIfAccountExist(_ accountTransferData: AccountTransferData) -> Bool {
+    @Sendable nonisolated func checkIfAccountExist(_ accountTransferData: AccountTransferData) -> Bool {
       accounts
         .storedAccounts()
         .contains(

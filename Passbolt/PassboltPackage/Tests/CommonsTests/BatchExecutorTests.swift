@@ -251,31 +251,6 @@ final class BatchExecutorTests: XCTestCase {
     XCTAssertEqual(countAfterSecondExecution, 3)
   }
 
-  func test_execute_performsOperationsInParallel_withinConcurrencyLimit() async throws {
-    let maxConcurrentTasks = 3
-    let executor = BatchExecutor(maxConcurrentTasks: maxConcurrentTasks)
-    let startTime = ContinuousClock().now
-    let taskDuration: UInt64 = 100 * NSEC_PER_MSEC
-    let numberOfTasks = 6
-
-    for _ in 0 ..< numberOfTasks {
-      await executor.addOperation {
-        try? await Task.sleep(nanoseconds: taskDuration)
-      }
-    }
-
-    try await executor.execute()
-
-    let endTime = ContinuousClock().now
-    let totalDuration = endTime - startTime
-
-    let sequentialDuration = taskDuration * UInt64(numberOfTasks)
-    let parallelDuration = taskDuration * UInt64((numberOfTasks + maxConcurrentTasks - 1) / maxConcurrentTasks)
-
-    //    XCTAssertLessThan(totalDuration.components.nanoseconds, sequentialDuration)
-    //    XCTAssertGreaterThan(totalDuration.components.nanoseconds, parallelDuration - 50 * NSEC_PER_MSEC)
-  }
-
   func test_execute_handlesAsyncOperationsCorrectly() async throws {
     let executor = BatchExecutor(maxConcurrentTasks: 2)
     let results = ActorArray<Int>()

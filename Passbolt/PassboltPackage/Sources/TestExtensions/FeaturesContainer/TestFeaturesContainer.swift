@@ -21,20 +21,20 @@
 // @since         v1.0
 //
 
-import FeatureScopes
+@preconcurrency import FeatureScopes
 
 @testable import Features
 
 public final class TestFeaturesContainer {
 
-  private var mocks: Dictionary<AnyHashable, Any>
+  private let mocks: CriticalState<Dictionary<FeaturesScopeIdentifier, Sendable>>
   internal let cancellables: Cancellables  // for legacy elements
   private let lock: NSRecursiveLock
 
   internal init() {
-    self.mocks = [  // initialize with Root scope
+    self.mocks = .init([  // initialize with Root scope
       RootFeaturesScope.identifier: RootFeaturesScope.self
-    ]
+    ])
     self.cancellables = .init()
     self.lock = .init()
   }
@@ -48,7 +48,7 @@ extension TestFeaturesContainer: FeaturesContainer {
     line: UInt
   ) -> Bool where Scope: FeaturesScope {
     self.withLock {
-      self.mocks.keys
+      self.mocks.get(\.keys)
         .contains(Scope.identifier)
     }
   }
@@ -59,7 +59,7 @@ extension TestFeaturesContainer: FeaturesContainer {
     line: UInt
   ) throws where RequestedScope: FeaturesScope {
     try self.withLock {
-      if self.mocks.keys.contains(RequestedScope.identifier) {
+      if self.mocks.get(\.keys).contains(RequestedScope.identifier) {
         // check passed
       }
       else {
@@ -253,5 +253,21 @@ extension TestFeaturesContainer {
     self.lock.lock()
     defer { self.lock.unlock() }
     return try execute()
+  }
+}
+
+extension CriticalState where State == Dictionary<FeaturesScopeIdentifier, Sendable> {
+
+  subscript(
+    _ identifier: FeaturesScopeIdentifier
+  ) -> Sendable? {
+    get {
+      self.get()[identifier]
+    }
+    set {
+      self.access { state in
+        state[identifier] = newValue
+      }
+    }
   }
 }

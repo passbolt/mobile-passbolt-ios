@@ -23,7 +23,7 @@
 
 import Combine
 
-public struct Cancellables {
+public struct Cancellables: Sendable {
 
   private typealias Cancellation = () -> Void
   private typealias Cleanup = () -> Void

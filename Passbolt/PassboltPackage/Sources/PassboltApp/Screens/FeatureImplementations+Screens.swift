@@ -28,7 +28,7 @@ extension FeaturesRegistry {
 
   public mutating func useLiveNavigation() {
     // MARK: - Initial
-    self.useLiveNavigationToNewSplashScreen()
+    self.useLiveNavigationToSplashScreen()
     self.useLiveNavigationToWelcomeScreen()
     self.useLiveNavigationToHelpMenu()
     self.useLiveNavigationToLogsViewer()
@@ -37,9 +37,9 @@ extension FeaturesRegistry {
     self.useLiveNavigationToAccountImportInfo()
     self.useLiveNavigationToAccountExportInfo()
     self.useLiveNavigationToCodeScanning()
-    self.useLiveNavigationToNewUnsupportedMFA()
+    self.useLiveNavigationToUnsupportedMFA()
     self.useLiveNavigationToServerFingerprintInvalid()
-    self.useLiveNavigationToNewBiometricsInfo()
+    self.useLiveNavigationToBiometricsInfo()
     self.useLiveNavigationToStatupError()
     self.useLiveNavigationToMainTabs()
 
@@ -49,7 +49,7 @@ extension FeaturesRegistry {
     self.useLiveNavigationToExternalActivity()
 
     // MARK: - Session
-    self.useLiveNavigationToNewAccountSelection()
+    self.useLiveNavigationToAccountSelection()
     self.useLiveNavigationToMFA()
     self.useLiveNavigationToAccountMenu()
     self.useLiveNavigationToAuthorization()

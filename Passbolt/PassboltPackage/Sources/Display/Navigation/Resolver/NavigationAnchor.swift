@@ -197,7 +197,6 @@ extension NavigationAnchor {
       }
     }
     else if let _: UITabBarController = anchorToDismiss.navigationTabs {
-      #warning("TODO: to implement in future - search through all tabs")
       //			return // NOP for now until required to be implemented
       InternalInconsistency
         .error(

@@ -23,8 +23,8 @@
 
 import Features
 
-public typealias PasswordExpirySettingsFetchNetworkOperation
-  = NetworkOperation<PasswordExpirySettingsFetchNetworkOperationDescription>
+public typealias PasswordExpirySettingsFetchNetworkOperation =
+  NetworkOperation<PasswordExpirySettingsFetchNetworkOperationDescription>
 
 public enum PasswordExpirySettingsFetchNetworkOperationDescription: NetworkOperationDescription {
 
@@ -54,4 +54,3 @@ public struct PasswordExpirySettings: Sendable, Decodable {
     case defaultExpiryPeriod = "default_expiry_period"
   }
 }
-

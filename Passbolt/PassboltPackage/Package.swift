@@ -499,6 +499,8 @@ let package = Package(
         "Commons",
         "CommonModels",
         "Features",
+        // Modules
+        "Accounts",
       ],
       swiftSettings: [
         .swiftLanguageMode(.v6)

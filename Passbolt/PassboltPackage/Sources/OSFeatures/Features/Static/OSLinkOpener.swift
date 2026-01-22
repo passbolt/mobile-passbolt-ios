@@ -27,11 +27,11 @@ import UIKit
 
 import struct Foundation.URL
 
-public struct OSLinkOpener {
+public struct OSLinkOpener: Sendable {
 
-  public var openURL: (URLString) async throws -> Void
-  public var openApplicationSettings: () async throws -> Void
-  public var openSystemSettings: () async throws -> Void
+  public var openURL: @Sendable (URLString) async throws -> Void
+  public var openApplicationSettings: @Sendable () async throws -> Void
+  public var openSystemSettings: @Sendable () async throws -> Void
 }
 
 extension OSLinkOpener: StaticFeature {
@@ -52,19 +52,8 @@ extension OSLinkOpener {
   // Legacy implementation
   fileprivate static var live: Self {
 
-    @MainActor func open(
-      url: URLString
-    ) async throws {
-      guard let url: URL = .init(string: url.rawValue)
-      else {
-        throw InvalidInputData.error()
-      }
-      guard UIApplication.shared.canOpenURL(url)
-      else {
-        throw URLOpeningFailed.error()
-      }
-
-      return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+    @Sendable @MainActor func open(_ url: URL) async throws {
+      try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
         UIApplication.shared.open(
           url,
           completionHandler: { success in
@@ -82,6 +71,20 @@ extension OSLinkOpener {
           }
         )
       }
+    }
+
+    @Sendable func open(
+      url: URLString
+    ) async throws {
+      guard let url: URL = .init(string: url.rawValue)
+      else {
+        throw InvalidInputData.error()
+      }
+      guard await UIApplication.shared.canOpenURL(url)
+      else {
+        throw URLOpeningFailed.error()
+      }
+      try await open(url)
     }
 
     return Self(

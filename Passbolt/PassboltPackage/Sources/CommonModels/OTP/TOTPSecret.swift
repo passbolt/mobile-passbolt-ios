@@ -104,3 +104,15 @@ extension JSON {
     }
   }
 }
+
+extension Optional where Wrapped == TOTPSecret {
+
+  public var isEmpty: Bool {
+    switch self {
+    case .some(let value):
+      return value.sharedSecret.isEmpty
+    case .none:
+      return true
+    }
+  }
+}

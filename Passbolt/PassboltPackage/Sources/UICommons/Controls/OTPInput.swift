@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
 import Combine
 
 public final class OTPInput: UIControl, UIKeyInput {
@@ -44,62 +43,64 @@ public final class OTPInput: UIControl, UIKeyInput {
         textSubject.value = newValue
       }
 
-      labels
-        .enumerated()
-        .forEach { idx, label in
-          if idx < newValue.count {
-            label.text = String(
-              newValue[
-                newValue.index(newValue.startIndex, offsetBy: idx)
-                  ... newValue.index(newValue.startIndex, offsetBy: idx)
-              ]
-            )
-          }
-          else {
-            label.text = "_"
-          }
+      for (idx, label) in labels.enumerated() {
+        if idx < newValue.count {
+          label.text = String(
+            newValue[
+              newValue.index(newValue.startIndex, offsetBy: idx)
+                ... newValue.index(newValue.startIndex, offsetBy: idx)
+            ]
+          )
         }
+        else {
+          label.text = "_"
+        }
+      }
     }
   }
   public let length: Int
   public var hasText: Bool { !text.isEmpty }
 
-  private let labelsContainer: StackView
-  private let labels: Array<Label>
+  private let labelsContainer: UIStackView
+  private let labels: Array<UILabel>
   private let textSubject: CurrentValueSubject<String, Never> = .init("")
 
   public required init(length: Int) {
     self.length = length
-    let labelsContainer: StackView = .init()
-    self.labelsContainer = labelsContainer
+    let container: UIStackView = .init()
+    container.axis = .horizontal
+    container.alignment = .fill
+    container.backgroundColor = .clear
+    container.isUserInteractionEnabled = false
+    container.distribution = .equalSpacing
+    container.translatesAutoresizingMaskIntoConstraints = false
+
+    self.labelsContainer = container
     self.labels = (0 ..< length)
       .map { _ in
-        Mutation<Label>
-          .combined(
-            .font(.inter(ofSize: 36, weight: .semibold)),
-            .textColor(dynamic: .primaryText),
-            .textAlignment(.center),
-            .text("_"),
-            .widthAnchor(.equalTo, constant: 40),
-            .userInteractionEnabled(false),
-            .arrangedSubview(of: labelsContainer)
-          )
-          .instantiate()
+        let label: UILabel = .init()
+        label.font = .inter(ofSize: 36, weight: .semibold)
+        label.textColor = .passboltPrimaryText
+        label.textAlignment = .center
+        label.text = "_"
+        label.isUserInteractionEnabled = false
+        NSLayoutConstraint.activate([
+          label.widthAnchor.constraint(equalToConstant: 40)
+        ])
+        return label
       }
     super.init(frame: .zero)
 
-    mut(labelsContainer) {
-      .combined(
-        .backgroundColor(.clear),
-        .axis(.horizontal),
-        .distribution(.equalSpacing),
-        .userInteractionEnabled(false),
-        .alignment(.fill),
-        .subview(of: self),
-        .edges(equalTo: self)
-      )
+    self.addSubview(container)
+    for label in labels {
+      container.addArrangedSubview(label)
     }
-
+    NSLayoutConstraint.activate([
+      container.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
+      container.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor),
+      container.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor),
+      container.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor),
+    ])
     addTarget(self, action: #selector(touchUpInside), for: .touchUpInside)
   }
 
@@ -131,20 +132,14 @@ public final class OTPInput: UIControl, UIKeyInput {
   public override func becomeFirstResponder() -> Bool {
     if super.becomeFirstResponder() {
       text = ""
-      labels.forEach {
-        mut($0) {
-          .textColor(dynamic: .primaryText)
-        }
+      for label in labels {
+        label.textColor = .passboltPrimaryText
       }
       return true
     }
     else {
       return false
     }
-  }
-
-  public func applyOn(labels mutation: Mutation<Label>) {
-    labels.forEach { mutation.apply(on: $0) }
   }
 
   @objc private func touchUpInside() {

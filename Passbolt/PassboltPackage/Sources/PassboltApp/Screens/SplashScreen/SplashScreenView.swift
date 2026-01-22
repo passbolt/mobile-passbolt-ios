@@ -33,6 +33,6 @@ internal struct SplashScreenView: ControlledView {
 
   internal var body: some View {
     SplashView()
-    .task(self.controller.activate)
+      .task(self.controller.activate)
   }
 }

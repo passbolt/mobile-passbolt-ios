@@ -76,7 +76,6 @@
 		DD673CFB26F0B58C0051EEB5 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = DD673CFD26F0B58C0051EEB5 /* InfoPlist.strings */; };
 		DD8979C6270F13E600D95978 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = DD8979C5270F13E600D95978 /* Settings.bundle */; };
 		DDB2A675263B09500014C895 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DDB2A674263B09500014C895 /* Launch Screen.storyboard */; };
-		EBD1A3E9297ACBF900125727 /* FolderCreationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBD1A3E8297ACBF900125727 /* FolderCreationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -743,6 +742,7 @@
 		};
 		42A55678272977F700FE5E6A /* Run Linter */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -819,10 +819,8 @@
 				C09C2B502EF5788B00FB5CD7 /* PermissionsEditScreen.swift in Sources */,
 				B26BE2672C5A731E00138744 /* CreateTOTPTests.swift in Sources */,
 				C09C2B452EF53C7900FB5CD7 /* SettingsScreen.swift in Sources */,
-				EBD1A3E9297ACBF900125727 /* FolderCreationTests.swift in Sources */,
 				B242301E2B2781DB00796887 /* TOTPListTests.swift in Sources */,
 				C0DBE3FF2EC5DBDA005B4920 /* TOTPCreateScreen.swift in Sources */,
-				EBD1A3E9297ACBF900125727 /* FolderCreationTests.swift in Sources */,
 				B236448A2A167C6A00F0A374 /* SettingsTests.swift in Sources */,
 				C0B4B2612EC5E64100C91A59 /* TOTPCommonFlows.swift in Sources */,
 				B23C4F6429BA45C1001D9687 /* TransferAccountTests.swift in Sources */,

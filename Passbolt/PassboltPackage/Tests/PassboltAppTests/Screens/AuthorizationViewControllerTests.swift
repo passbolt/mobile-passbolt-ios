@@ -161,7 +161,7 @@ final class AuthorizationViewControllerTests: FeaturesTestCase {
   }
 
   func test_biometricSignIn_callsSessionAuthorize_withBiometrics() async throws {
-    var authorizedWithBiometrics: CriticalState<Bool> = .init(false)
+    let authorizedWithBiometrics: CriticalState<Bool> = .init(false)
     patch(
       \Session.authorize,
       with: { method in

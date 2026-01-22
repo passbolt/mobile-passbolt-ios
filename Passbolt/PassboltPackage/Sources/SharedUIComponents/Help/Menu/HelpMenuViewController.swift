@@ -64,7 +64,7 @@ public final class HelpMenuViewController: ViewController {
               ? .init(
                 title: "help.menu.show.import.account.kit.title",
                 icon: .importFile,
-                action: {
+                action: { @MainActor in
                   click.send()
                 }
               )
@@ -116,16 +116,16 @@ public final class HelpMenuViewController: ViewController {
 
   }
 
-  public struct Action: Equatable, Hashable {
+  public struct Action: Equatable, Hashable, Sendable {
 
     internal let title: DisplayableString
     internal let icon: ImageNameConstant
-    internal let action: () async throws -> Void
+    internal let action: @Sendable () async throws -> Void
 
     public init(
       title: DisplayableString,
       icon: ImageNameConstant,
-      action: @escaping () async throws -> Void
+      action: @Sendable @escaping () async throws -> Void
     ) {
       self.title = title
       self.icon = icon
@@ -144,4 +144,8 @@ public final class HelpMenuViewController: ViewController {
       hasher.combine(self.icon)
     }
   }
+}
+
+extension ImageNameConstant: @retroactive @unchecked Sendable {
+
 }

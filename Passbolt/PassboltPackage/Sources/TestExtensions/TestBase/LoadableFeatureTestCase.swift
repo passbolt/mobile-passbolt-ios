@@ -162,18 +162,18 @@ extension LoadableFeatureTestCase {
       .set(scope)
   }
 
-  public func usePlaceholder<Feature>(
-    for _: Feature.Type
-  ) where Feature: LoadableFeature {
+  public func usePlaceholder<F>(
+    for _: F.Type
+  ) where F: LoadableFeature {
     self.features
-      .usePlaceholder(for: Feature.self)
+      .usePlaceholder(for: F.self)
   }
 
-  public func usePlaceholder<Feature>(
-    for featureType: Feature.Type
-  ) where Feature: StaticFeature {
+  public func usePlaceholder<F>(
+    for featureType: F.Type
+  ) where F: StaticFeature {
     self.features
-      .usePlaceholder(for: Feature.self)
+      .usePlaceholder(for: F.self)
   }
 
   public final func set<Value>(

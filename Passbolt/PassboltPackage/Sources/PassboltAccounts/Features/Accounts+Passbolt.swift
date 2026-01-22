@@ -134,12 +134,9 @@ extension Accounts {
 
     @Sendable nonisolated func remove(
       account: Account
-    ) throws {
+    ) async throws {
       Diagnostics.logger.info("Removing local account data...")
-      Task {
-        #warning("TODO: manage spawning tasks")
-        await session.close(account)
-      }
+      await session.close(account)
       dataStore.deleteAccount(account.localID)
       updatesSource.update()
       Diagnostics.logger.info("...removing local account data succeeded!")

@@ -76,7 +76,7 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
 
     let filtersSequence: Variable<String> = .init(initial: "filter")
 
-    let feature: UserGroups = try await self.testedInstance()
+    let feature: UserGroups = try self.testedInstance()
 
     let result: Array<ResourceUserGroupListItemDSV>? =
       try await feature.filteredResourceUserGroupList(
@@ -109,7 +109,7 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
 
     let filtersSequence: Variable<String> = .init(initial: "filter")
 
-    let feature: UserGroups = try await self.testedInstance()
+    let feature: UserGroups = try self.testedInstance()
 
     let result: Array<ResourceUserGroupListItemDSV>? =
       try await feature.filteredResourceUserGroupList(filtersSequence.asAnyValueAsyncSequence())
@@ -150,9 +150,9 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
       with: always(nextResult())
     )
 
-    let feature: UserGroups = try await self.testedInstance()
+    let feature: UserGroups = try self.testedInstance()
 
-    _ = await try feature.filteredResourceUserGroupList(filtersSequence.asAnyValueAsyncSequence())
+    _ = try await feature.filteredResourceUserGroupList(filtersSequence.asAnyValueAsyncSequence())
       .first()
 
     filtersSequence.assign("changed")

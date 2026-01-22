@@ -26,7 +26,7 @@ import struct Foundation.Data
 // MARK: - Interface
 
 /// Exporting current session account using QR codes.
-public struct AccountChunkedExport {
+public struct AccountChunkedExport: Sendable {
 
   /// Updates in account export process.
   public var updates: AnyUpdatable<Void>

@@ -137,10 +137,9 @@ extension SessionNetworkAuthorization {
 
       let serverFingerprint: Fingerprint
       do {
-        serverFingerprint =
-          try pgp
-          .extractFingerprint(publicKey)
-          .get()
+        // temporary variable to bypass Swift warning (no errors are thrown in 'do' block)
+        let result = pgp.extractFingerprint(publicKey)
+        serverFingerprint = try result.get()
       }
       catch {
         throw
@@ -407,11 +406,9 @@ extension SessionNetworkAuthorization {
     ) {
       let verificationToken: String = uuidGenerator.uuid()
 
-      async let (serverPublicPGPKey, serverTimeDiff): (ArmoredPGPPublicKey, Seconds) =
-        fetchServerPublicPGPKeyAndTimeDiff(for: authorizationData.account)
-      async let serverPublicRSAKey: PEMRSAPublicKey = fetchServerPublicRSAKey(for: authorizationData.account)
-
-      let timeDiff: Seconds = try await serverTimeDiff
+      let (serverPublicPGPKey, timeDiff): (ArmoredPGPPublicKey, Seconds) =
+        try await fetchServerPublicPGPKeyAndTimeDiff(for: authorizationData.account)
+      let serverPublicRSAKey: PEMRSAPublicKey = try await fetchServerPublicRSAKey(for: authorizationData.account)
 
       pgp.setTimeOffset(timeDiff)
 
@@ -447,7 +444,7 @@ extension SessionNetworkAuthorization {
           SessionAccessToken,
           SessionRefreshToken,
           Array<SessionMFAProvider>
-        ) = try await decodeEncryptedResponse(
+        ) = try decodeEncryptedResponse(
           account: authorizationData.account,
           passphrase: authorizationData.passphrase,
           accountPrivateKey: authorizationData.privateKey,

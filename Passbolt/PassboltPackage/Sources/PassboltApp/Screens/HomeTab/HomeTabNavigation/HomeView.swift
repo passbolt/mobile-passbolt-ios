@@ -55,33 +55,3 @@ internal struct HomeView: ControlledView {
     .task(self.controller.activate)
   }
 }
-
-
-
-//
-//import Display
-//import FeatureScopes
-
-//internal enum NavigationToResetHomeDestination: NavigationDestination {
-//
-//  internal typealias TransitionContext = ()
-//}
-//
-//internal typealias NavigationToResetHome = NavigationTo<NavigationToResetHomeDestination>
-//
-//extension NavigationToResetHome {
-//
-//  fileprivate static var live: FeatureLoader {
-//    popToRoot()
-//  }
-//}
-//
-//extension FeaturesRegistry {
-//
-//  internal mutating func useLiveNavigationToResetHome() {
-//    self.use(
-//      NavigationToResetHome.live,
-//      in: RootFeaturesScope.self
-//    )
-//  }
-//}

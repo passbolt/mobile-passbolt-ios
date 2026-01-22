@@ -307,7 +307,7 @@ extension TestCase {
   }
 
   @_transparent @Sendable public nonisolated final func verify(
-    @_inheritActorContext @_implicitSelfCapture _ expression: @autoclosure () throws -> Bool?,
+    @_implicitSelfCapture _ expression: @Sendable @autoclosure () throws -> Bool?,
     _ message: @autoclosure () -> String = "",
     _ file: StaticString = #filePath,
     _ line: UInt = #line
@@ -359,7 +359,7 @@ extension TestCase {
 extension TestCase {
 
   @_transparent @Sendable public nonisolated final func verifyIf<Expected>(
-    @_inheritActorContext _ expression: @autoclosure () throws -> Expected?,
+    _ expression: @autoclosure () throws -> Expected?,
     isEqual expected: Expected,
     _ message: @autoclosure () -> String = "Values are not equal!",
     _ file: StaticString = #filePath,
@@ -414,7 +414,7 @@ extension TestCase {
   }
 
   @_transparent @Sendable public nonisolated final func verifyIf<Expected>(
-    @_inheritActorContext _ expression: @autoclosure () throws -> Expected?,
+    _ expression: @autoclosure () throws -> Expected?,
     isNotEqual expected: Expected,
     _ message: @autoclosure () -> String = "Values are equal!",
     _ file: StaticString = #filePath,
@@ -472,7 +472,7 @@ extension TestCase {
 extension TestCase {
 
   @_transparent @Sendable public nonisolated final func verifyIf<Expected>(
-    @_inheritActorContext _ expression: @autoclosure () throws -> Expected,
+    _ expression: @autoclosure () throws -> Expected,
     isGreaterThan expected: Expected,
     _ message: @autoclosure () -> String = "Value is less than or equal!",
     _ file: StaticString = #filePath,
@@ -527,7 +527,7 @@ extension TestCase {
   }
 
   @_transparent @Sendable public nonisolated final func verifyIf<Expected>(
-    @_inheritActorContext _ expression: @autoclosure () throws -> Expected,
+    _ expression: @autoclosure () throws -> Expected,
     isLessThan expected: Expected,
     _ message: @autoclosure () -> String = "Value is greater than or equal!",
     _ file: StaticString = #filePath,
@@ -585,7 +585,7 @@ extension TestCase {
 extension TestCase {
 
   @_transparent @Sendable public nonisolated final func verifyIf<Expected, Returned>(
-    @_inheritActorContext _ expression: @autoclosure () throws -> Returned,
+    _ expression: @autoclosure () throws -> Returned,
     throws expected: Expected.Type,
     _ message: @autoclosure () -> String = "Error not thrown!",
     _ file: StaticString = #filePath,
@@ -645,7 +645,7 @@ extension TestCase {
 extension TestCase {
 
   @_transparent @Sendable public nonisolated final func verifyIfNotThrows<Returned>(
-    @_inheritActorContext _ expression: @autoclosure () throws -> Returned,
+    _ expression: @autoclosure () throws -> Returned,
     _ message: @autoclosure () -> String = "Error thrown!",
     _ file: StaticString = #filePath,
     _ line: UInt = #line
@@ -687,7 +687,7 @@ extension TestCase {
 extension TestCase {
 
   @_transparent @Sendable public nonisolated final func verifyIfIsNone<Expected>(
-    @_inheritActorContext _ expression: @autoclosure () throws -> Expected?,
+    _ expression: @autoclosure () throws -> Expected?,
     _ message: @autoclosure () -> String = "Value is not none!",
     _ file: StaticString = #filePath,
     _ line: UInt = #line
@@ -740,7 +740,7 @@ extension TestCase {
 extension TestCase {
 
   @_transparent @Sendable public nonisolated final func verifyIfIsNotNone<Expected>(
-    @_inheritActorContext _ expression: @autoclosure () throws -> Expected?,
+    _ expression: @autoclosure () throws -> Expected?,
     _ message: @autoclosure () -> String = "Value is none!",
     _ file: StaticString = #filePath,
     _ line: UInt = #line

@@ -43,20 +43,22 @@ public struct ServerFingerprintInvalidView: ControlledView {
           .titleStyle()
           .multilineTextAlignment(.center)
           .padding(.horizontal, 40)
-          .padding(.top, 24)
+          .padding(.top, 48)
 
         Text(displayable: "server.key.fingerprint.changed.description")
           .font(.inter(ofSize: 14))
+          .lineSpacing(6)
           .foregroundStyle(Color.passboltSecondaryText)
-          .multilineTextAlignment(.leading)
-          .padding(.horizontal, 40)
-          .padding(.top, 16)
+          .multilineTextAlignment(.center)
+          .padding(.horizontal, 48)
+          .padding(.top, 24)
 
         with(\.fingerprint) { fingerprint in
-          Text(fingerprint?.rawValue ?? "N/A")
-            .font(.inconsolata(ofSize: 14, weight: .semibold))
+          Text(fingerprint?.formatted ?? "N/A")
+            .font(.inconsolata(ofSize: 16, weight: .semibold))
             .foregroundStyle(Color.passboltPrimaryText)
             .multilineTextAlignment(.center)
+            .lineSpacing(10)
             .padding(.horizontal, 40)
             .padding(.top, 64)
         }
@@ -96,11 +98,37 @@ public struct ServerFingerprintInvalidView: ControlledView {
       }
     }
     .navigationBarBackButtonHidden()
+    .toolbar(.hidden, for: .tabBar)
     .toolbar {
       ToolbarItem(placement: .topBarLeading) {
         BackButton(action: self.controller.back)
       }
     }
+  }
+}
+
+extension Fingerprint {
+
+  fileprivate var formatted: String {
+    let parts: Array<String> = stride(from: 0, to: self.rawValue.count, by: 4)
+      .map {
+        let startIndex = self.rawValue.index(
+          self.rawValue.startIndex,
+          offsetBy: $0
+        )
+        let endIndex =
+          self.rawValue.index(
+            startIndex,
+            offsetBy: 4,
+            limitedBy: self.rawValue.endIndex
+          ) ?? self.rawValue.endIndex
+        return String(self.rawValue[startIndex ..< endIndex])
+      }
+    // divide into two groups
+    let middleIndex = parts.count / 2
+    let firstLine: String = Array(parts[..<middleIndex]).joined(separator: " ")
+    let secondLine: String = Array(parts[middleIndex...]).joined(separator: " ")
+    return firstLine + "\n" + secondLine
   }
 }
 

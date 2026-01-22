@@ -24,12 +24,12 @@
 import Display
 import FeatureScopes
 
-internal enum NavigationToNewUnsupportedMFADestination: NavigationDestination {
+internal enum NavigationToUnsupportedMFADestination: NavigationDestination {
 
   internal typealias TransitionContext = UnsupportedMFAViewController.Context
 }
 
-internal typealias NavigationToUnsupportedMFA = NavigationTo<NavigationToNewUnsupportedMFADestination>
+internal typealias NavigationToUnsupportedMFA = NavigationTo<NavigationToUnsupportedMFADestination>
 
 extension NavigationToUnsupportedMFA {
 
@@ -43,7 +43,7 @@ extension NavigationToUnsupportedMFA {
 
 extension FeaturesRegistry {
 
-  internal mutating func useLiveNavigationToNewUnsupportedMFA() {
+  internal mutating func useLiveNavigationToUnsupportedMFA() {
     self.use(
       NavigationToUnsupportedMFA.live,
       in: RootFeaturesScope.self

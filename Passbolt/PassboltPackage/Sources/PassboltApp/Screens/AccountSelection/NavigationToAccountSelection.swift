@@ -43,7 +43,7 @@ extension NavigationToAccountSelection {
 
 extension FeaturesRegistry {
 
-  internal mutating func useLiveNavigationToNewAccountSelection() {
+  internal mutating func useLiveNavigationToAccountSelection() {
     self.use(
       NavigationToAccountSelection.live,
       in: RootFeaturesScope.self
