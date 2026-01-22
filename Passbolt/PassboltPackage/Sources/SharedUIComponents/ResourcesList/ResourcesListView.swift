@@ -49,16 +49,13 @@ public struct ResourcesListView: ControlledView {
         self.searchView(with: state)
       },
       titleLeadingItem: EmptyView.init,
-      titleTrailingItem: {
-        Button(
-          action: self.controller.closeExtension,
-          label: { Image(named: .close) }
-        )
-      },
+      titleTrailingItem: EmptyView.init,
       contentView: {
         self.contentView(with: state)
       }
     )
+    .environment(\.hideTrailingItem, state.showCloseButton == false)
+    .environment(\.hideLeadingItem, state.showBackButton == false)
   }
 
   @MainActor @ViewBuilder private func searchView(

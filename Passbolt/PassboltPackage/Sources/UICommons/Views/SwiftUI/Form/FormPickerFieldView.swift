@@ -29,6 +29,7 @@ public protocol FormPickerFieldValue: Identifiable {
   var fromPickerFieldLabel: String { get }
 }
 
+extension String: @retroactive Identifiable {}
 extension String: FormPickerFieldValue {
 
   public var id: Self { self }

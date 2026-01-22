@@ -56,8 +56,12 @@ public struct Cancellables {
         }
         return state
       }
-    state.cancellations.forEach { $0() }
-    state.cleanups.forEach { $0() }
+    for cancellation in state.cancellations {
+      cancellation()
+    }
+    for cleanup in state.cleanups {
+      cleanup()
+    }
   }
 
   public func addCleanup(

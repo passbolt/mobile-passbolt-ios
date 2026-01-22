@@ -26,7 +26,7 @@ import FeatureScopes
 import OSFeatures
 import Resources
 
-public final class OTPEditAdvancedFormViewController: ViewController {
+public final class OTPEditAdvancedFormViewController: @MainActor ViewController {
 
   public struct Context {
 

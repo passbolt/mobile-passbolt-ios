@@ -68,7 +68,13 @@ extension NavigationResolver {
   @MainActor internal func replaceRoot(
     _ newRoot: NavigationAnchor
   ) async throws {
-    guard let connectedScene: UIWindowScene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first
+    guard
+      let connectedScene: UIWindowScene = UIApplication.shared.connectedScenes
+        .compactMap(
+          {
+            $0 as? UIWindowScene
+          })
+        .first
     else {
       return try await legacyReplaceRoot(newRoot)
     }
@@ -257,6 +263,15 @@ extension NavigationResolver {
 
     tabs.selectedIndex = idx
   }
+
+  /// Pop current top-most navigation stack to root view controller.
+  internal func popToRoot(animated: Bool = false) {
+    guard let root: UINavigationController = rootAnchorProvider?.rootAnchor()?.findTopMostNavigationStack
+    else {
+      return
+    }
+    root.popToRootViewController(animated: animated)
+  }
 }
 
 extension NavigationResolver {
@@ -345,7 +360,7 @@ extension RootAnchorProvider: LoadableFeature {
         // This is temorary solution for autofill extension. Has to be refactored once navigation is moved entirely to SwiftUI.
         let root: UIViewController? = UIApplication.shared.keyWindow?.rootViewController?.children.first
 
-        return root?.findFirstNavigationStack ?? root
+        return root?.findTopMostNavigationStack ?? root
       }
     )
   }
@@ -374,12 +389,19 @@ extension FeaturesRegistry {
 
 extension UIViewController {
 
-  internal var findFirstNavigationStack: UINavigationController? {
+  /// Attempt to find top-most navigation stack in view controller hierarchy.
+  internal var findTopMostNavigationStack: UINavigationController? {
     if let stack: UINavigationController = self.navigationStack {
       return stack
     }
+    if let tabBarController = self.children.first?.children.first?.tabBarController,
+      let navigationController = tabBarController.selectedViewController?.children.first as? UINavigationController
+    {
+      // if we are in tab bar, we need to find navigation stack in selected tab
+      return navigationController
+    }
     for child in self.children {
-      if let stack: UINavigationController = child.findFirstNavigationStack {
+      if let stack: UINavigationController = child.findTopMostNavigationStack {
         return stack
       }
     }

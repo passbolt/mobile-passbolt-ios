@@ -71,6 +71,7 @@ internal struct AccountSelectionView: ControlledView {
         .padding(.horizontal, 16)
       }
     }
+    .tabbarHidden()
   }
 
   @ViewBuilder

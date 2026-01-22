@@ -21,193 +21,153 @@
 // @since         v1.0
 //
 
-import CommonModels
-import UIComponents
+import DatabaseOperations
+import Display
+import FeatureScopes
+import SessionData
 
-internal final class MainTabsViewController: TabsViewController, UIComponent {
+internal final class MainTabsViewController: ViewController {
 
-  internal typealias Controller = MainTabsController
+  typealias Context = SessionScope.Context
 
-  internal static func instance(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self(
-      using: controller,
-      with: components,
-      cancellables: cancellables
+  internal struct ViewState: Equatable {
+
+    internal var isOTPTabAvailable: Bool = false
+  }
+
+  internal nonisolated let viewState: ViewStateSource<ViewState>
+
+  private let features: Features
+
+  internal let homeController: HomeViewController
+  internal let settingsController: MainSettingsViewController
+  internal let otpController: OTPResourcesListViewController
+
+  internal init(context: Context, features: Features) throws {
+    self.features =
+      try features
+      .branch(
+        scope: AccountScope.self,
+        context: context.account
+      )
+      .branch(scope: SessionScope.self, context: context)
+
+    self.viewState = .init(
+      initial: .init()
     )
+
+    self.homeController = try self.features.instance()
+    self.settingsController = try self.features.instance()
+    let otpFeatures: Features = try self.features.branch(scope: OTPResourcesTabScope.self)
+    self.otpController = try otpFeatures.instance()
+    self.configureAppearance()
   }
 
-  internal var components: UIComponentFactory
-  private let controller: Controller
-  private var setupSubscriptionCancellables: Cancellables = .init()
+  private func configureAppearance() {
+    let appearance = UITabBarAppearance()
+    appearance.configureWithOpaqueBackground()
+    appearance.backgroundColor = .passboltBackground
 
-  internal init(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) {
-    self.controller = controller
-    self.components = components
-    super
-      .init(
-        cancellables: cancellables
-      )
+    appearance.shadowImage = UIImage()
+    let fontAttributes: [NSAttributedString.Key: Any] = [
+      .font: UIFont.inter(ofSize: 12, weight: .semibold)
+    ]
+    appearance.stackedLayoutAppearance.normal.titleTextAttributes = fontAttributes
+    appearance.stackedLayoutAppearance.selected.titleTextAttributes = fontAttributes
+
+    UITabBar.appearance().standardAppearance = appearance
+    UITabBar.appearance().scrollEdgeAppearance = appearance
   }
 
-  internal func setup() {
-    self.initializeTabs()
-    self.delegate = self
-  }
-
-  internal func setupView() {
-    // Can't set tab bar font without appearance proxy
-    UITabBarItem
-      .appearance()
-      .setTitleTextAttributes(
-        [.font: UIFont.inter(ofSize: 12, weight: .semibold)],
-        for: .normal
-      )
-    UITabBarItem
-      .appearance()
-      .setTitleTextAttributes(
-        [.font: UIFont.inter(ofSize: 12, weight: .semibold)],
-        for: .selected
-      )
-    mut(self) {
-      .combined(
-        .set(\.tabBarDynamicTintColor, to: .primaryBlue),
-        .set(\.tabBarDynamicBackgroundColor, to: .background),
-        .set(\.tabBarDynamicBarTintColor, to: .background),
-        .set(\.tabBarDynamicUnselectedItemTintColor, to: .icon)
-      )
+  @Sendable internal func activate() async {
+    if await otpTabAvailable() == true {
+      viewState.update(\.isOTPTabAvailable, to: true)
     }
-    mut(self.view) {
-      .backgroundColor(.none)
+    await consumingErrors {
+      guard let destination = await self.initialModal() else { return }
+      switch destination {
+      case .biometrics:
+        let navigationToBiometricsSetup: NavigationToBiometricsSetup? = try self.features.instance()
+        await navigationToBiometricsSetup?
+          .performCatching()
+
+      case .autofillSetup:
+        let navigationToExtensionSetup: NavigationToExtensionSetup? = try self.features.instance()
+        await navigationToExtensionSetup?
+          .performCatching(
+            context: .init(allowSkipping: true)
+          )
+      }
     }
-    Mutation<UITabBar>
-      .combined(
-        .set(\.isTranslucent, to: false),
-        .set(\.backgroundImage, to: UIImage()),
-        .set(\.shadowImage, to: UIImage()),
-        .shadow(color: .black, opacity: 0.2, offset: .init(width: 0, height: 10), radius: 12)
-      )
-      .apply(on: self.tabBar)
-    setupSubscriptions()
   }
 
-  internal func activate() {
-    self.setupSubscriptionCancellables = .init()
-    self.subscribeToInitialModalPresentation()
-  }
-}
-
-extension MainTabsViewController: UITabBarControllerDelegate {
-
-  internal func tabBarController(
-    _ tabBarController: UITabBarController,
-    didSelect viewController: UIViewController
-  ) {
-    let indexOffset: Int  // OTP tab is optional, changing index to match correct one
-    if tabBarController.viewControllers?.count == 2, selectedIndex > 1 {
-      indexOffset = -1
-    }
-    else {
-      indexOffset = 0
-    }
-    guard let tab = MainTab(rawValue: selectedIndex + indexOffset)
-    else { unreachable("Internal inconsistency - Invalid state") }
-    controller.setActiveTab(tab)
-  }
-}
-
-extension MainTabsViewController {
-
-  fileprivate func initializeTabs() {
-    self.cancellables.executeOnMainActor { [weak self] in
-      guard let self, self.viewControllers?.count == 2 else { return }
-      guard await self.controller.otpTabAvailable() else { return }
-      try self.viewControllers?
-        .insert(
-          OTPResourcesTabViewController(
-            controller: self.components.features.instance()
-          ),
-          at: 1
-        )
-    }
+  func otpTabAvailable() async -> Bool {
     do {
-      self.viewControllers = [
-        try UIComponentFactory(features: self.components.features).instance(of: HomeTabNavigationViewController.self),
-        try UIComponentFactory(features: self.components.features).instance(of: SettingsTabViewController.self),
-      ]
+      let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
+
+      let sessionData: SessionData = try features.instance()
+      let resourcesCountFetchDatabaseOperation: ResourcesCountFetchDatabaseOperation = try features.instance()
+      let resourceTypesFetchDatabaseOperation: ResourceTypesFetchDatabaseOperation = try features.instance()
+      try await sessionData.refreshIfNeeded()
+      // If a user has access to otp resources just show
+      // them regardless of feature flag
+      let count: Int = try await resourcesCountFetchDatabaseOperation(ResourceSpecification.Slug.allTOTPTypes)
+      guard count == 0
+      else { return true }
+      // if there is no otp resource yet, check the flag
+      guard sessionConfiguration.resources.totpEnabled
+      else { return false }
+      // finally check if resource type is available
+      let availableResourceTypes: Array<ResourceType> = try await resourceTypesFetchDatabaseOperation()
+      return
+        availableResourceTypes
+        .contains { $0.specification.slug == .totp }
+    }
+    catch {
+      error.logged()
+      return false
+    }
+  }
+
+  func initialModal() async -> ModalPresentation? {
+    do {
+      let accountDetails: AccountDetails = try features.instance()
+
+      Diagnostics.logger.info("Updating account profile data...")
+      try await accountDetails.updateProfile()
+      Diagnostics.logger.info("...account profile data updated!")
     }
     catch {
       error
-        .asTheError()
-        .pushing(
-          .message("Preparing main tabs failed!")
+        .logged(
+          info: .message("...account profile data update failed!")
         )
-        .asFatalError()
+    }
+    do {
+      let accountInitialSetup: AccountInitialSetup = try features.instance()
+      let unfinishedSetupElements: Set<AccountInitialSetup.SetupElement> =
+      await accountInitialSetup.unfinishedSetupElements()
+
+      if unfinishedSetupElements.contains(.biometrics) {
+        return .biometrics
+      }
+      else if unfinishedSetupElements.contains(.autofill) {
+        return .autofillSetup
+      }
+      else {
+        return .none
+      }
+    }
+    catch {
+      // Can fail only when dependency resolution fails
+      error.logged()
+      return .none
     }
   }
 
-  fileprivate func setupSubscriptions() {
-    subscribeToTabsSelection()
-  }
+  internal enum ModalPresentation {
 
-  fileprivate func subscribeToTabsSelection() {
-    controller
-      .activeTabPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] state in
-        guard let self = self else { return }
-        let indexOffset: Int  // OTP tab is optional, changing index to match correct one
-        if self.viewControllers?.count == 2, state.rawValue > 1 {
-          indexOffset = -1
-        }
-        else {
-          indexOffset = 0
-        }
-        guard self.selectedIndex != state.rawValue + indexOffset
-        else { return }
-        self.selectedIndex = state.rawValue + indexOffset
-      }
-      .store(in: cancellables)
-  }
-
-  fileprivate func subscribeToInitialModalPresentation() {
-    controller
-      .initialModalPresentation()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] destination in
-        MainActor.execute {
-          switch destination {
-          case .biometricsInfo:
-            await self?
-              .present(
-                PlainNavigationViewController<BiometricsInfoViewController>.self
-              )
-
-          case .biometricsSetup:
-            await self?
-              .present(
-                PlainNavigationViewController<BiometricsSetupViewController>.self
-              )
-
-          case .autofillSetup:
-            let navigationToExtensionSetup: NavigationToExtensionSetup? = try self?.components.features.instance()
-            await navigationToExtensionSetup?
-              .performCatching(
-                context: .init(allowSkipping: true)
-              )
-
-          case .none:
-            break
-          }
-        }
-      }
-      .store(in: setupSubscriptionCancellables)
+    case biometrics
+    case autofillSetup
   }
 }

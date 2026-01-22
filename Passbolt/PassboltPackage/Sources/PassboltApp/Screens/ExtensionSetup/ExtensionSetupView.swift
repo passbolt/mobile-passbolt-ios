@@ -129,6 +129,15 @@ internal struct ExtensionSetupView: ControlledView {
     .frame(maxHeight: .infinity)
     .background(Color.passboltBackground)
     .interactiveDismissDisabled()
+    .onAppear(perform: self.controller.dismissIfNeeded)
+    .useCustomBackButton()
+    .toolbar {
+      ToolbarItem(placement: .principal) {
+        Rectangle()
+          .foregroundColor(.clear)
+          .frame(maxWidth: .infinity)
+      }
+    }
   }
 
   private var divider: some View {

@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-@MainActor
 public struct BackButton: View {
 
   private let action: @MainActor () async -> Void
@@ -86,3 +85,33 @@ internal struct BackButton_Previews: PreviewProvider {
   }
 }
 #endif
+
+extension View {
+
+  public func useCustomBackButton() -> some View {
+    modifier(CustomBackButtonModifier())
+  }
+
+  public func tabbarHidden() -> some View {
+    self.toolbar(.hidden, for: .tabBar)
+  }
+}
+
+private struct CustomBackButtonModifier: ViewModifier {
+
+  @Environment(\.dismiss) private var dismiss
+
+  fileprivate func body(content: Content) -> some View {
+    content
+      .navigationBarBackButtonHidden()
+      .toolbar {
+        ToolbarItem(placement: .topBarLeading) {
+          BackButton(
+            action: {
+              self.dismiss()
+            }
+          )
+        }
+      }
+  }
+}

@@ -23,7 +23,6 @@
 
 import Display
 import UICommons
-import UIComponents
 
 internal struct ResourcePermissionEditListView: ControlledView {
 
@@ -45,6 +44,7 @@ internal struct ResourcePermissionEditListView: ControlledView {
       ) {
         self.contentView(with: state)
       }
+      .tabbarHidden()
     }
   }
 

@@ -53,6 +53,8 @@ internal struct AccountKeyInspectorView: ControlledView {
         )
       }
     }
+    .useCustomBackButton()
+    .tabbarHidden()
   }
 
   @MainActor @ViewBuilder private var headerView: some View {

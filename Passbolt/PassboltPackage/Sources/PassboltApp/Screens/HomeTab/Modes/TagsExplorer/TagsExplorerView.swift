@@ -53,6 +53,7 @@ internal struct TagsExplorerView: ControlledView {
         self.contentView(with: state)
       }
     )
+    .environment(\.hideLeadingItem, state.resourceTagID == .none)
   }
 
   @MainActor @ViewBuilder private func searchView(

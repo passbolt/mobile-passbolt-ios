@@ -34,7 +34,7 @@ where RegularView: View, LoadingView: View {
 
   public init(
     role: ButtonRole? = .none,
-    @_inheritActorContext action: @escaping () async throws -> Void,
+    action: @MainActor @escaping () async throws -> Void,
     @ViewBuilder regularLabel: @escaping () -> RegularView,
     @ViewBuilder loadingLabel: @escaping () -> LoadingView
   ) {
@@ -46,7 +46,7 @@ where RegularView: View, LoadingView: View {
 
   public init(
     role: ButtonRole? = .none,
-    @_inheritActorContext action: @escaping () async throws -> Void,
+    action: @MainActor @escaping () async throws -> Void,
     @ViewBuilder label: @escaping () -> RegularView
   ) where LoadingView == EmptyView {
     self.role = role

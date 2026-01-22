@@ -27,7 +27,6 @@ import UIKit
 public struct ApplicationLifecycle: Sendable {
 
   public var lifecycle: AnyAsyncSequence<Transition>
-  public var lifecyclePublisher: @Sendable () -> AnyPublisher<Transition, Never>
 }
 
 extension ApplicationLifecycle {
@@ -47,8 +46,7 @@ extension ApplicationLifecycle: StaticFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      lifecycle: Empty<Transition, Never>().asAsyncSequence(),
-      lifecyclePublisher: unimplemented0()
+      lifecycle: Empty<Transition, Never>().asAsyncSequence()
     )
   }
   #endif
@@ -59,6 +57,7 @@ extension ApplicationLifecycle {
   fileprivate static var live: Self {
 
     let lifecyclePublisher: AnyPublisher<Transition, Never>
+
     if isInExtensionContext {
       lifecyclePublisher = Empty<Transition, Never>().eraseToAnyPublisher()
     }
@@ -92,8 +91,7 @@ extension ApplicationLifecycle {
     }
 
     return Self(
-      lifecycle: lifecyclePublisher.asAsyncSequence(),
-      lifecyclePublisher: { lifecyclePublisher }
+      lifecycle: lifecyclePublisher.asAsyncSequence()
     )
   }
 }

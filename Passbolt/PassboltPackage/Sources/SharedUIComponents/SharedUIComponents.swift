@@ -23,4 +23,3 @@
 
 @_exported import FeatureScopes
 @_exported import UICommons
-@_exported import UIComponents

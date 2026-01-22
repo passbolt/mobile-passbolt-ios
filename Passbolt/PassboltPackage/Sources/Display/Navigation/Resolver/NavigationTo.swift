@@ -284,6 +284,10 @@ extension NavigationTo {
             rootView: prepareTransitionView(features, context)
           )
           anchor.destinationIdentifier = Destination.identifier
+          // Hide UIKit-backed navigation items to avoid conflicts with SwiftUI navigation bars
+          anchor.navigationItem.leftBarButtonItem = .none
+          anchor.navigationItem.backBarButtonItem = .none
+          anchor.navigationItem.hidesBackButton = true
           try await navigationResolver
             .push(
               anchor,
@@ -336,6 +340,43 @@ extension NavigationTo {
         try DestinationView(controller: features.instance(context: context))
       }
     )
+  }
+
+  /// Navigation that attempts to find top-most navigation stack and pops it to initial view controller.
+  public static func popToRoot() -> FeatureLoader {
+    .disposable(Self.self) { features in
+      let navigationResolver: NavigationResolver = try features.instance()
+
+      @MainActor @Sendable func perform(
+        animated: Bool,
+        context: Destination.TransitionContext,
+        file: StaticString,
+        line: UInt
+      ) async throws {
+        navigationResolver.popToRoot()
+      }
+
+      @MainActor @Sendable func revert(
+        animated: Bool,
+        file: StaticString,
+        line: UInt
+      ) async throws {
+        assertionFailure("Can't revert pop to root!")
+      }
+
+      @MainActor func canPerform(
+        file: StaticString,
+        line: UInt
+      ) -> Bool {
+        true
+      }
+
+      return .init(
+        performAnimated: perform(animated:context:file:line:),
+        revertAnimated: revert(animated:file:line:),
+        canPerformCheck: canPerform(file:line:)
+      )
+    }
   }
 
   public static func legacyPushTransition<DestinationView>(
@@ -593,18 +634,17 @@ extension NavigationTo {
               message: alert.message?.string(),
               preferredStyle: .alert
             )
-            alert.actions
-              .forEach { action in
-                alertController.addAction(
-                  .init(
-                    title: action.title.string(),
-                    style: action.role.style,
-                    handler: { _ in
-                      action.action()
-                    }
-                  )
+            for action in alert.actions {
+              alertController.addAction(
+                .init(
+                  title: action.title.string(),
+                  style: action.role.style,
+                  handler: { _ in
+                    action.action()
+                  }
                 )
-              }
+              )
+            }
             return alertController
           }()
           anchor.destinationIdentifier = Destination.identifier

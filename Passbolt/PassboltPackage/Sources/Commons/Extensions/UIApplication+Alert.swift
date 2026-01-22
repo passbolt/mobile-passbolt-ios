@@ -30,9 +30,8 @@ extension UIApplication {
     title: DisplayableString,
     message: DisplayableString,
     buttonTitle: DisplayableString,
-    presentationAnchor: UIViewController? = nil,
-    completion: @escaping () -> Void
-  ) {
+    completion: @escaping () async -> Void
+  ) async {
     dispatchPrecondition(condition: .onQueue(.main))
 
     let windows: Array<UIWindow>? = UIApplication
@@ -43,9 +42,7 @@ extension UIApplication {
       .first?
       .windows
 
-    let anchor: UIViewController? =
-      presentationAnchor
-      ?? windows?
+    let anchor: UIViewController? = windows?
       .first(where: \.isKeyWindow)?
       .rootViewController
       ?? windows?
@@ -53,7 +50,7 @@ extension UIApplication {
       .rootViewController
 
     guard let anchor: UIViewController = anchor
-    else { return completion() }
+    else { return await completion() }
 
     let alert: UIAlertController = .init(
       title: title.string(),
@@ -64,7 +61,11 @@ extension UIApplication {
       .init(
         title: buttonTitle.string(),
         style: .default,
-        handler: { _ in completion() }
+        handler: { _ in
+          Task {
+            await completion()
+          }
+        }
       )
     )
 

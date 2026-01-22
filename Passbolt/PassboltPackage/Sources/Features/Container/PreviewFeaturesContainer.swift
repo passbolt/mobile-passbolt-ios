@@ -25,7 +25,7 @@
 import class Foundation.NSRecursiveLock
 
 // A FeaturesContainer implementation for Preview and SwiftUI previews,
-public final class PreviewFeaturesContainer {
+public final class PreviewFeaturesContainer: @unchecked Sendable {
 
   private var mocks: Dictionary<AnyHashable, Any>
   private let lock: NSRecursiveLock

@@ -41,6 +41,7 @@ where ViewState: Equatable {
       self._value = modified
     }
   }
+  // swift-format-ignore: NoLeadingUnderscores
   private var _value: ViewState
   internal let updatesPublisher:
     Publishers.Share<Publishers.RemoveDuplicates<Publishers.Autoconnect<ViewUpdatesPublisher<ViewState>>>>

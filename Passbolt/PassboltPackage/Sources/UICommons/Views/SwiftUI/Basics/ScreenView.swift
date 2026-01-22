@@ -27,8 +27,10 @@ import SwiftUI
 
 public struct ScreenView<TitleCenterView, TitleBottomView, TitleLeadingItem, TitleTrailingItem, ContentView>: View
 where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, TitleTrailingItem: View, ContentView: View {
+  @Environment(\.hideLeadingItem) private var hideLeadingItem: Bool
+  @Environment(\.hideTrailingItem) private var hideTrailingItem: Bool
+  @Environment(\.dismiss) private var dismiss
 
-  @Environment(\.isInNavigationTreeContext) var isInNavigationTreeContext: Bool
   private let title: DisplayableString
   private let loading: Bool
   private let titleCenterView: () -> TitleCenterView
@@ -63,10 +65,11 @@ where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, Titl
     @ViewBuilder titleLeadingItem: @escaping () -> TitleLeadingItem,
     @ViewBuilder titleTrailingItem: @escaping () -> TitleTrailingItem,
     @ViewBuilder contentView: @escaping () -> ContentView
-  ) where TitleCenterView == HStack<TupleView<(Image, Text)>> {
+  ) where TitleCenterView == HStack<TupleView<(Spacer, Image, Text, Spacer)>> {
     self.title = title
     self.titleCenterView = {
-      HStack<TupleView<(Image, Text)>>(spacing: 12) {
+      HStack<TupleView<(Spacer, Image, Text, Spacer)>>(spacing: 12) {
+        Spacer()
         Image(named: titleIcon)
 
         Text(
@@ -79,6 +82,7 @@ where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, Titl
           )
         )
         .foregroundColor(.passboltPrimaryText)
+        Spacer()
       }
     }
     self.titleBottomView = titleExtensionView
@@ -230,50 +234,9 @@ where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, Titl
   }
 
   public var body: some View {
-    if self.isInNavigationTreeContext {
-      VStack(spacing: 0) {
-        self.titleBottomView()
-          .padding(leading: 16, trailing: 16)
-
-        self.contentView()
-          .frame(
-            maxWidth: .infinity,
-            maxHeight: .infinity,
-            alignment: .top
-          )
-      }
-      .loader(visible: self.loading)
-      .navigationBarTitleDisplayMode(.inline)
-      .navigationTitle(Text(displayable: self.title))
-      .navigationBarBackButtonHidden(TitleLeadingItem.self != EmptyView.self)
-      .toolbar {
-        ToolbarItem(placement: .navigationBarLeading) {
-          self.titleLeadingItem()
-            .frame(maxWidth: 60, alignment: .leading)
-        }
-        ToolbarItem(placement: .principal) {
-          self.titleCenterView()
-            .frame(maxWidth: .infinity, alignment: .center)
-        }
-        ToolbarItem(placement: .navigationBarTrailing) {
-          self.titleTrailingItem()
-            .frame(maxWidth: 60, alignment: .trailing)
-        }
-      }
-      .backgroundColor(.passboltBackground)
-      .foregroundColor(.passboltPrimaryText)
-    }
-    else {
-      self.legacyBody
-    }
-  }
-
-  @ViewBuilder private var legacyBody: some View {
     VStack(spacing: 0) {
-      NavigationBar(
-        centerView: self.titleCenterView,
-        bottomView: self.titleBottomView
-      )
+      self.titleBottomView()
+        .padding(leading: 16, trailing: 16)
 
       self.contentView()
         .frame(
@@ -282,7 +245,37 @@ where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, Titl
           alignment: .top
         )
     }
-    .backgroundColor(.passboltBackground)
     .loader(visible: self.loading)
+    .navigationBarTitleDisplayMode(.inline)
+    .navigationTitle(Text(displayable: self.title))
+    .navigationBarBackButtonHidden(true)
+    .toolbar {
+      if !self.hideLeadingItem {
+        ToolbarItem(placement: .topBarLeading) {
+          BackButton(action: {
+            dismiss()
+          })
+        }
+      }
+      ToolbarItem(placement: .principal) {
+        self.titleCenterView()
+      }
+      if !self.hideTrailingItem, TitleTrailingItem.self != EmptyView.self {
+        ToolbarItem(placement: .topBarTrailing) {
+          self.titleTrailingItem()
+        }
+      }
+      else if !self.hideLeadingItem {
+        ToolbarItem(placement: .topBarTrailing) {
+          // Placeholder to keep title centered when only leading item is shown
+          Rectangle()
+            .foregroundStyle(Color.clear)
+            .frame(width: 48, height: 48)
+        }
+      }
+    }
+
+    .backgroundColor(.passboltBackground)
+    .foregroundColor(.passboltPrimaryText)
   }
 }

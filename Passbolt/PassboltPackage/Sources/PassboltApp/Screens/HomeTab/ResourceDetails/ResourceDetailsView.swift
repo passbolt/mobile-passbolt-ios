@@ -54,6 +54,8 @@ internal struct ResourceDetailsView: ControlledView {
       .backgroundColor(.passboltBackground)
       .foregroundColor(.passboltPrimaryText)
       .onDisappear(perform: self.controller.coverAllFields)
+      .useCustomBackButton()
+      .tabbarHidden()
   }
 
   @MainActor @ViewBuilder private var contentView: some View {

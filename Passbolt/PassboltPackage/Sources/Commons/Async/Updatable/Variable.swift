@@ -61,6 +61,7 @@ extension Variable: Updatable {
     @_transparent _read {
       self.lock.unsafe_lock()
       // Variable can't produce errors
+      // swift-format-ignore: NeverUseForceTry
       let value: Value = try! self.currentUpdate.value
       yield value
       self.lock.unsafe_unlock()
@@ -68,6 +69,7 @@ extension Variable: Updatable {
     @_transparent _modify {
       self.lock.unsafe_lock()
       // Variable can't produce errors
+      // swift-format-ignore: NeverUseForceTry
       var newValue: Value = try! self.currentUpdate.value
       yield &newValue
       let update: Update<Value> = .init(
@@ -132,6 +134,7 @@ extension Variable: Updatable {
     // check if the update is latest after acquiring the lock
     if updateGeneration > self.currentUpdate.generation {
       // Variable can't produce errors
+      // swift-format-ignore: NeverUseForceTry
       var currentValue: Value = try! self.currentUpdate.value
       currentValue[keyPath: keyPath] = updated
       let update: Update<Value> = .init(
@@ -161,6 +164,7 @@ extension Variable: Updatable {
   ) rethrows -> Returned {
     self.lock.unsafe_lock()
     // Variable can't produce errors, get the current
+    // swift-format-ignore: NeverUseForceTry
     var updatedValue: Value = try! self.currentUpdate.value
     // mutate value and prepare result
     let returned: Returned

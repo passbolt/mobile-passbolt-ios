@@ -48,6 +48,7 @@ internal struct OTPResourcesListView: ControlledView {
     .backgroundColor(.passboltBackground)
     .foregroundColor(.passboltPrimaryText)
     .onDisappear(perform: self.controller.hideOTPCodes)
+    .environment(\.hideLeadingItem, true)
   }
 
   @ViewBuilder @MainActor private var search: some View {

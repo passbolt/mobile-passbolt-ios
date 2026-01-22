@@ -25,7 +25,6 @@ import Crypto
 import Display
 import Features
 import PassboltExtension
-import UIComponents
 
 import class AuthenticationServices.ASCredentialProviderViewController
 import class AuthenticationServices.ASCredentialServiceIdentifier

@@ -26,8 +26,6 @@
 	<true/>
 	<key>NFCReaderUsageDescription</key>
 	<string>NFC can be used to communicate with YubiKey token.</string>
-	<key>NSFileProviderDomainUsageDescription</key>
-	<string></string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

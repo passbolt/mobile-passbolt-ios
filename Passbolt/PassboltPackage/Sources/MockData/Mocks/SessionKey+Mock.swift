@@ -25,5 +25,6 @@ import CommonModels
 
 extension SessionKey {
 
+  // swift-format-ignore: AlwaysUseLowerCamelCase
   public static let mock_1: Self = .init(rawValue: "9:251883EAA9C3B28B72DD7F4C27621C25C38AD9E97EF03370A9C21BE948B920BE")
 }

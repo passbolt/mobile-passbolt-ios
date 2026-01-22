@@ -28,7 +28,7 @@ import SessionData
 import TestExtensions
 import XCTest
 
-@testable import PassboltApp
+@testable import SharedUIComponents
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class HomePresentationTests: LoadableFeatureTestCase<HomePresentation> {
@@ -38,7 +38,7 @@ final class HomePresentationTests: LoadableFeatureTestCase<HomePresentation> {
   override class func testedImplementationRegister(
     _ registry: inout FeaturesRegistry
   ) {
-    registry.usePassboltHomePresentation()
+    registry.useLiveHomePresentation()
   }
 
   override func prepare() throws {

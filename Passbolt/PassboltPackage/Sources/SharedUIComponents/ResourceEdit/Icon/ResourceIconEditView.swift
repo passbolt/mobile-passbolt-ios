@@ -65,9 +65,7 @@ internal struct ResourceIconEditView: ControlledView {
       .toolbar {  // replace back button
         ToolbarItemGroup(placement: .navigationBarLeading) {
           BackButton(
-            action: {
-              await self.controller.discardForm()
-            }
+            action: self.controller.discardForm
           )
         }
       }

@@ -52,20 +52,27 @@ internal final class HomeViewController: @MainActor ViewController {
         context: context
       )
     self.features = features
-
+    let resetNavigation: NavigationToRoot = try features.instance()
     self.homePresentation = try features.instance()
-
+    var lastMode: HomePresentationMode? = .none
     self.viewState = .init(
       initial: .init(
         contentController: Self.contentRoot(
-          for: homePresentation.currentMode.value,
+          for: .plainResourcesList,
           using: features
         )
       ),
-      updateFrom: self.homePresentation.currentMode.asAnyUpdatable(),
-      update: { [homePresentation, features] (updateState, _) in
+      updateFrom: self.homePresentation.currentPresentationModeUpdatable(),
+      update: { [features] (updateState, homePresentation) in
+        guard lastMode != (try homePresentation.value)
+        else {
+          lastMode = try homePresentation.value
+          return
+        }
+
+        await resetNavigation.performCatching()
         let contentController = Self.contentRoot(
-          for: homePresentation.currentMode.value,
+          for: try homePresentation.value,
           using: features
         )
         updateState { (state: inout ViewState) in
@@ -118,7 +125,7 @@ extension HomeViewController {
               title: mode.title,
               titleIconName: mode.iconName,
               baseFilter: mode.baseFilter,
-              appModeContext: .createExtensionContext(using: features)
+              appModeContext: .createExtensionContext(using: features, allowBack: false)
             )
           )
 

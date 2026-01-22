@@ -56,6 +56,7 @@ internal struct OTPEditAdvancedFormView: ControlledView {
       displayable: "otp.edit.form.edit.advanced.title"
     )
     .backgroundColor(.passboltBackground)
+    .useCustomBackButton()
   }
 
   @MainActor @ViewBuilder internal var periodField: some View {

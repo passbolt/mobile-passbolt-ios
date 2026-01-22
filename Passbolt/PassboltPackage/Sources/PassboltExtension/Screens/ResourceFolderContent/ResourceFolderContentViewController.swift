@@ -34,7 +34,9 @@ import Users
 internal final class ResourceFolderContentViewController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
+  // swift-format-ignore: NeverUseImplicitlyUnwrappedOptionals
   internal var searchController: ResourceSearchDisplayController!  // lazy?
+  // swift-format-ignore: NeverUseImplicitlyUnwrappedOptionals
   internal var contentController: ResourceFolderContentDisplayController!  // lazy?
 
   private let autofillContext: AutofillExtensionContext
@@ -68,7 +70,8 @@ internal final class ResourceFolderContentViewController: ViewController {
     let viewState: ViewStateSource<ViewState> = .init(
       initial: .init(
         folderName: folderName,
-        folderShared: context.folderDetails?.shared ?? false
+        folderShared: context.folderDetails?.shared ?? false,
+        isRoot: context.folderDetails == .none
       )
     )
     self.viewState = viewState
@@ -131,6 +134,7 @@ extension ResourceFolderContentViewController {
 
     internal var folderName: DisplayableString
     internal var folderShared: Bool
+    internal var isRoot: Bool
   }
 }
 

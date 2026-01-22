@@ -24,10 +24,6 @@ let package = Package(
       name: "SharedUIComponents",
       targets: ["SharedUIComponents"]
     ),
-    .library(
-      name: "UIComponents",
-      targets: ["UIComponents"]
-    ),
     // MARK: - Entrypoints
     .library(
       name: "PassboltApp",
@@ -193,7 +189,6 @@ let package = Package(
         "AccountSetup",
         "CommonModels",
         "Resources",
-        "UIComponents",
         "Display",
         "Session",
         "SessionData",
@@ -201,23 +196,10 @@ let package = Package(
         "Metadata",
       ]
     ),
-    .target(
-      name: "UIComponents",
-      dependencies: [
-        .product(name: "AegithalosCocoa", package: "Aegithalos"),
-        "Commons",
-        "CommonModels",
-        "Features",
-        "FeatureScopes",
-        "UICommons",
-      ]
-    ),
     // MARK: - Entrypoints
     .target(
       name: "PassboltApp",
       dependencies: [
-        // Legacy
-        "UIComponents",
         "SharedUIComponents",
         "NFC",
         "Crypto",
@@ -245,8 +227,6 @@ let package = Package(
     .target(
       name: "PassboltExtension",
       dependencies: [
-        // Legacy
-        "UIComponents",
         "SharedUIComponents",
         "Crypto",
         // Base
@@ -328,12 +308,11 @@ let package = Package(
     .target(
       name: "Display",
       dependencies: [
-        // Legacy
-        "UIComponents",
         // Base
         "Commons",
         "Features",
         "FeatureScopes",
+        "UICommons",
       ]
     ),
     .target(
@@ -793,8 +772,6 @@ let package = Package(
     .target(
       name: "TestExtensions",
       dependencies: [
-        // Legacy
-        "UIComponents",
         // Base
         "Commons",
         "CommonModels",

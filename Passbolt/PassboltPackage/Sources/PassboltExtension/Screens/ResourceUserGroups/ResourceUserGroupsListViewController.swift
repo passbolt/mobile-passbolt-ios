@@ -132,7 +132,7 @@ extension ResourceUserGroupsListViewController {
           sorting: .nameAlphabetically,
           userGroups: [userGroupID]
         ),
-        appModeContext: .createExtensionContext(using: features)
+        appModeContext: .createExtensionContext(using: features, allowBack: true)
       )
     )
   }

@@ -28,7 +28,6 @@ import Features
 import Resources
 import SessionData
 import TestExtensions
-import UIComponents
 import XCTest
 
 @testable import PassboltApp

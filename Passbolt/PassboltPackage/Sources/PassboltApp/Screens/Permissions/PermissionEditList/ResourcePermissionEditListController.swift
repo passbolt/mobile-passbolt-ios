@@ -28,7 +28,6 @@ import Metadata
 import OSFeatures
 import Resources
 import SharedUIComponents
-import UIComponents
 import Users
 
 internal final class ResourcePermissionEditListController: @MainActor ViewController {

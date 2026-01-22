@@ -26,6 +26,7 @@ import class Foundation.NSLock
 public final class SendableCounter: @unchecked Sendable {
 
   private let lock: NSLock = .init()
+  // swift-format-ignore: NoLeadingUnderscores
   private var _value: Int
 
   public init(
