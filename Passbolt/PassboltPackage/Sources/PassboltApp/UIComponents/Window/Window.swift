@@ -78,6 +78,11 @@ internal final class Window {
 
           case .cached, .none:
             self.screenStateCache = .none
+            if self.isMFAPromptDisplayed {
+              let navigationToMFA: NavigationToMFA = try self.features
+                .instance()
+              try await navigationToMFA.revert()
+            }
             let navigationToSplashScreen: NavigationToSplashScreen =
               try self.features.instance()
             try await navigationToSplashScreen.perform(context: account)

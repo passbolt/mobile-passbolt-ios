@@ -70,6 +70,7 @@ internal struct AccountSelectionView: ControlledView {
         }
         .background(Color.passboltBackground)
         .padding(.horizontal, 16)
+        .padding(.bottom, 24)
       }
     }
     .tabbarHidden()
