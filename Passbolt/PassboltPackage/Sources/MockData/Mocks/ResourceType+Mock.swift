@@ -101,4 +101,9 @@ extension ResourceType {
     id: .mock_4,
     slug: .totp
   )
+
+  public static let mock_v5_default: Self = .init(
+    id: .mock_3,
+    slug: .v5Default
+  )
 }

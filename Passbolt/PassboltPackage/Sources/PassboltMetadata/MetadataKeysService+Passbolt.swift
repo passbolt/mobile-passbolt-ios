@@ -45,6 +45,7 @@ extension MetadataKeysService {
     features: Features
   ) throws -> Self {
     let context: SessionScope.Context = try features.context(of: SessionScope.self)
+    let configuration: SessionConfiguration = try features.sessionConfiguration()
     let sessionCryptography: SessionCryptography = try features.instance()
     let fetchOperation: MetadataKeysFetchNetworkOperation = try features.instance()
     let userPGP: UsersPGPMessages = try features.instance()
@@ -523,6 +524,48 @@ extension MetadataKeysService {
       return keys.privateKeys.isEmpty == false
     }
 
+    /// Ensures that the appropriate encryption key is available for the given resource.
+    /// - Parameters:
+    /// - resource: The resource to check encryption availability for
+    /// - forceSharing: A flag indicating whether to force sharing considerations
+    /// - Throws: `MetadataEncryptionKeyUnavailableError` if the required encryption key is not available
+    ///
+    /// The function determines if encryption is possible based on:
+    /// - Whether any folder in the resource's path is shared
+    /// - Whether the resource itself is shared (non-owner or multiple permissions)
+    @Sendable nonisolated func ensureCanEncrypt(
+      resource: Resource,
+      forSharing forceSharing: Bool = false
+    ) async throws {
+      guard
+        configuration.metadata.enabled,  // only if metadata plugin is enabled
+        resource.type.isV4ResourceType == false  // prior v5 resources do not use metadata encryption
+      else { return }
+      let isFolderShared: Bool = resource.path.contains(where: { $0.shared })
+      let isResourceShared: Bool =
+        resource.permission != .owner || resource.permissions.count > 1  // User is owner or has at least one more
+
+      guard
+        let _: MetadataKeysService.EncryptionType = determineKeyType(
+          isFolderShared || isResourceShared || forceSharing
+        )
+      else {
+        throw MetadataEncryptionKeyUnavailableError.error(
+          context: .context(
+            .message(
+              "Cannot edit or create resource because the required encryption key is unavailable",
+              details: [
+                "resourceId": resource.id?.rawValue ?? "(none)",
+                "isFolderShared": String(isFolderShared),
+                "isResourceShared": String(isResourceShared),
+              ]
+            )
+          )
+        )
+      }
+      // all checks passed - encryption key is available
+    }
+
     return .init(
       initialize: initialize,
       decrypt: batchDecrypt,
@@ -534,7 +577,8 @@ extension MetadataKeysService {
       trustCurrentKey: trustCurrentKey,
       removePinnedKey: removePinnedKey,
       cleanupDecryptionCache: cleanupDecryptionCache,
-      hasAccessToSharedKey: hasAccessToSharedKey
+      hasAccessToSharedKey: hasAccessToSharedKey,
+      ensureCanEncrypt: ensureCanEncrypt(resource:forSharing:)
     )
   }
 }

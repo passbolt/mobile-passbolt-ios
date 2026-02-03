@@ -38,6 +38,7 @@ public struct MetadataKeysService: Sendable {
   public var removePinnedKey: @Sendable () async throws -> Void
   public var cleanupDecryptionCache: @Sendable () async throws -> Void
   public var hasAccessToSharedKey: @Sendable (MetadataKeyDTO.ID) async throws -> Bool
+  public var ensureCanEncrypt: @Sendable (Resource, Bool) async throws -> Void
 
   public init(
     initialize: @escaping @Sendable () async throws -> Void,
@@ -50,7 +51,8 @@ public struct MetadataKeysService: Sendable {
     trustCurrentKey: @escaping @Sendable () async throws -> Void,
     removePinnedKey: @escaping @Sendable () async throws -> Void,
     cleanupDecryptionCache: @escaping @Sendable () async throws -> Void,
-    hasAccessToSharedKey: @escaping @Sendable (MetadataKeyDTO.ID) async throws -> Bool
+    hasAccessToSharedKey: @escaping @Sendable (MetadataKeyDTO.ID) async throws -> Bool,
+    ensureCanEncrypt: @escaping @Sendable (Resource, Bool) async throws -> Void
   ) {
     self.initialize = initialize
     self.decrypt = decrypt
@@ -63,6 +65,7 @@ public struct MetadataKeysService: Sendable {
     self.removePinnedKey = removePinnedKey
     self.cleanupDecryptionCache = cleanupDecryptionCache
     self.hasAccessToSharedKey = hasAccessToSharedKey
+    self.ensureCanEncrypt = ensureCanEncrypt
   }
 
   public func decrypt(
@@ -94,7 +97,8 @@ extension MetadataKeysService: LoadableFeature {
       trustCurrentKey: unimplemented0(),
       removePinnedKey: unimplemented0(),
       cleanupDecryptionCache: unimplemented0(),
-      hasAccessToSharedKey: unimplemented1()
+      hasAccessToSharedKey: unimplemented1(),
+      ensureCanEncrypt: unimplemented2()
     )
   }
   #endif
@@ -157,28 +161,6 @@ extension MetadataKeysService {
     resource: Resource,
     forSharing forceSharing: Bool = false
   ) async throws {
-    let isFolderShared: Bool = resource.path.contains(where: { $0.shared })
-    let isResourceShared: Bool =
-      resource.permission != .owner || resource.permissions.count > 1  // User is owner or has at least one more
-
-    guard
-      let _: MetadataKeysService.EncryptionType = determineKeyType(
-        isFolderShared || isResourceShared || forceSharing
-      )
-    else {
-      throw MetadataEncryptionKeyUnavailableError.error(
-        context: .context(
-          .message(
-            "Cannot edit or create resource because the required encryption key is unavailable",
-            details: [
-              "resourceId": resource.id?.rawValue ?? "(none)",
-              "isFolderShared": String(isFolderShared),
-              "isResourceShared": String(isResourceShared),
-            ]
-          )
-        )
-      )
-    }
-    // all checks passed - encryption key is available
+    try await ensureCanEncrypt(resource, forceSharing)
   }
 }
