@@ -85,22 +85,29 @@ extension MetadataKeyDTO {
 extension MetadataKeyDTO {
 
   public struct MetadataPrivateKey: Decodable, Sendable {
-    public let id: MetadataKeyDTO.ID
-    public let userId: Tagged<PassboltID, Self>
+
+    public typealias ID = Tagged<PassboltID, Self>
+
+    public let id: ID
+    public let metadataKeyId: MetadataKeyDTO.ID
+    public let userId: User.ID
     public let encryptedData: String
 
     public init(
-      id: MetadataKeyDTO.ID,
-      userId: Tagged<PassboltID, Self>,
+      id: ID,
+      metadataKeyId: MetadataKeyDTO.ID,
+      userId: User.ID,
       encryptedData: String
     ) {
       self.id = id
+      self.metadataKeyId = metadataKeyId
       self.userId = userId
       self.encryptedData = encryptedData
     }
 
     enum CodingKeys: String, CodingKey {
-      case id = "metadata_key_id"
+      case id = "id"
+      case metadataKeyId = "metadata_key_id"
       case userId = "user_id"
       case encryptedData = "data"
     }

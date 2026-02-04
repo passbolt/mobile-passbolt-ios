@@ -30,11 +30,11 @@ public enum MetadataUpdatePrivateKeyNetworkOperationDescription: NetworkOperatio
 
   public struct Input: Encodable, Sendable {
 
-    public let privateKeyId: MetadataKeyDTO.ID
+    public let privateKeyId: MetadataKeyDTO.MetadataPrivateKey.ID
     public let data: String
 
     public init(
-      privateKeyId: MetadataKeyDTO.ID,
+      privateKeyId: MetadataKeyDTO.MetadataPrivateKey.ID,
       data: String
     ) {
       self.privateKeyId = privateKeyId
@@ -64,6 +64,13 @@ public enum MetadataUpdatePrivateKeyNetworkOperationDescription: NetworkOperatio
       self.data = data
       self.createdBy = createdBy
       self.modifiedBy = modifiedBy
+    }
+
+    private enum CodingKeys: String, CodingKey {
+      case userId = "user_id"
+      case data
+      case createdBy = "created_by"
+      case modifiedBy = "modified_by"
     }
   }
 }
