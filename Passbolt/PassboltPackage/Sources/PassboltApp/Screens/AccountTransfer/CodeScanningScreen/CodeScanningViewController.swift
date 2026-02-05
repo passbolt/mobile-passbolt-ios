@@ -34,7 +34,7 @@ internal final class CodeScanningViewController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState> = .init(initial: .init())
 
-  private var cancellables: Set<AnyCancellable> = .init()
+  private var updatesTask: Task<Void, Never>?
   private let accountTransfer: AccountImport
   private let navigationToSelf: NavigationToCodeScanning
   private let navigationToHelp: NavigationToHelpMenu
@@ -54,45 +54,38 @@ internal final class CodeScanningViewController: ViewController {
     self.navigationToSignIn = try features.instance()
     accountTransfer = try features.instance()
     self.features = features
-    accountTransfer
-      .progressPublisher()
-      .compactMap { progress -> Double? in
+
+    // Start listening for updates
+    self.updatesTask = Task { [weak self, accountTransfer] in
+      guard let self else { return }
+      for await _ in accountTransfer.updates {
+        let progress = accountTransfer.progress()
+        let progressValue: Double
         switch progress {
         case .configuration:
-          return 0  // initial value
-
+          progressValue = 0
         case .scanningProgress(let value):
-          return value
-
+          progressValue = value
         case .scanningFinished:
-          return 1  // finished aka 100%
+          progressValue = 1
+        }
+        await MainActor.run {
+          self.viewState.update(\.progress, to: progressValue)
+        }
+
+        // Handle completion
+        if case .scanningFinished = progress {
+          await MainActor.run {
+            self.handle(result: .success(()))
+          }
+          break
         }
       }
-      .replaceError(with: 1)  // we break the process on error so it is kind of 100%
-      .removeDuplicates()
-      .receive(on: DispatchQueue.main)
-      .sink(
-        receiveValue: { [weak self] progress in
-          self?.viewState.update(\.progress, to: progress)
-        }
-      )
-      .store(in: &self.cancellables)
+    }
+  }
 
-    accountTransfer
-      .progressPublisher()
-      .sink(
-        receiveCompletion: { [weak self] completetion in
-          guard case .failure(let error) = completetion
-          else { return }
-          self?.handle(result: .failure(error))
-        },
-        receiveValue: { [weak self] progress in
-          guard case .scanningFinished = progress
-          else { return }
-          self?.handle(result: .success(()))
-        }
-      )
-      .store(in: &self.cancellables)
+  deinit {
+    updatesTask?.cancel()
   }
 
   private func handle(result: Result<Void, Error>) {
@@ -216,7 +209,7 @@ internal final class CodeScanningViewController: ViewController {
     self.viewState.update(\.alert, to: alert)
   }
 
-  internal func processPayload(_ string: String) -> AnyPublisher<Never, Error> {
-    self.accountTransfer.processPayload(string)
+  internal func processPayload(_ string: String) async throws {
+    try await self.accountTransfer.processPayload(string)
   }
 }

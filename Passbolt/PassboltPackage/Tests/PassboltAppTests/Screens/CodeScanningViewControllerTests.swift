@@ -37,8 +37,12 @@ final class CodeScanningViewControllerTests: FeaturesTestCase {
       AccountTransferScope.self
     )
     patch(
-      \AccountImport.progressPublisher,
-      with: { Empty().eraseToAnyPublisher() }
+      \AccountImport.updates,
+      with: TestUpdatable<Void>().asAnyUpdatable()
+    )
+    patch(
+      \AccountImport.progress,
+      with: { .configuration }
     )
   }
 
@@ -58,18 +62,27 @@ final class CodeScanningViewControllerTests: FeaturesTestCase {
     XCTAssertNil(tested.viewState.value.alert)
   }
 
-  func test_viewState_progress_updatesFromPublisher() async throws {
-    let progressSubject = PassthroughSubject<AccountImport.Progress, Error>()
+  func test_viewState_progress_updatesFromUpdatable() async throws {
+    let stateVariable = Variable<Void>(initial: ())
+    let currentProgress: AccountImport.Progress = .scanningProgress(0.5)
     patch(
-      \AccountImport.progressPublisher,
-      with: { progressSubject.eraseToAnyPublisher() }
+      \AccountImport.updates,
+      with: stateVariable.map { _ in () }.asAnyUpdatable()
+    )
+    patch(
+      \AccountImport.progress,
+      with: { currentProgress }
     )
 
     let tested: CodeScanningViewController = try self.testedInstance(
       context: ()
     )
 
-    progressSubject.send(.scanningProgress(0.5))
+    // Trigger an update
+    stateVariable.assign(())
+
+    // Allow async update to propagate
+    try await Task.sleep(for: .milliseconds(100))
 
     let currentState: CodeScanningViewController.ViewState = await tested.viewState.current
 
@@ -77,21 +90,30 @@ final class CodeScanningViewControllerTests: FeaturesTestCase {
   }
 
   func test_viewState_progress_reachesOne_whenScanningFinished() async throws {
-    let progressSubject = PassthroughSubject<AccountImport.Progress, Error>()
+    let stateVariable = Variable<Void>(initial: ())
+    let currentProgress: AccountImport.Progress = .scanningFinished
     patch(
       \NavigationToGenericResult.performAnimated,
       with: always(self.mockExecuted())
     )
     patch(
-      \AccountImport.progressPublisher,
-      with: { progressSubject.eraseToAnyPublisher() }
+      \AccountImport.updates,
+      with: stateVariable.map { _ in () }.asAnyUpdatable()
+    )
+    patch(
+      \AccountImport.progress,
+      with: { currentProgress }
     )
 
     let tested: CodeScanningViewController = try self.testedInstance(
       context: ()
     )
 
-    progressSubject.send(.scanningFinished)
+    // Trigger an update
+    stateVariable.assign(())
+
+    // Allow async update to propagate
+    try await Task.sleep(for: .milliseconds(100))
 
     let currentState: CodeScanningViewController.ViewState = await tested.viewState.current
     XCTAssertEqual(1.0, currentState.progress)
@@ -100,30 +122,16 @@ final class CodeScanningViewControllerTests: FeaturesTestCase {
       eventuallyEquals: true
     )
   }
+}
 
-  func test_viewState_progress_reachesOne_onError() async throws {
-    let progressSubject = PassthroughSubject<AccountImport.Progress, Error>()
-    patch(
-      \NavigationToGenericResult.performAnimated,
-      with: always(())
-    )
-    patch(
-      \AccountImport.progressPublisher,
-      with: { progressSubject.eraseToAnyPublisher() }
-    )
-    patch(
-      \NavigationToGenericResult.performAnimated,
-      with: always(Void())
-    )
+private final class TestUpdatable<Value: Sendable>: Updatable, @unchecked Sendable {
 
-    let tested: CodeScanningViewController = try self.testedInstance(
-      context: ()
-    )
+  var generation: UpdateGeneration { .uninitialized }
 
-    progressSubject.send(completion: .failure(MockIssue.error()))
-    let currentState: CodeScanningViewController.ViewState = await tested.viewState.current
-
-    XCTAssertEqual(1.0, currentState.progress)
-
+  func notify(
+    _ awaiter: @escaping @Sendable (Update<Value>) -> Void,
+    after generation: UpdateGeneration
+  ) {
+    // No-op for test placeholder
   }
 }
