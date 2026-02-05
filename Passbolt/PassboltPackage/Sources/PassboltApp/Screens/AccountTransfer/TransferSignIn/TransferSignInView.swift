@@ -100,29 +100,26 @@ internal struct TransferSignInView: ControlledView {
 extension TransferSignInViewController {
   static func previewDependencies(_ features: inout PreviewFeaturesContainer) {
     features.patch(
-      \AccountImport.avatarPublisher,
-      with: {
-        Just<Data>(Data())
-          .eraseErrorType()
-          .eraseToAnyPublisher()
-      }
+      \AccountImport.updates,
+      with: PlaceholderUpdatable().asAnyUpdatable()
     )
     features.patch(
-      \AccountImport.accountDetailsPublisher,
+      \AccountImport.avatar,
+      with: { Data() }
+    )
+    features.patch(
+      \AccountImport.accountDetails,
       with: {
-        Just(
-          AccountImport.AccountDetails(
-            domain: "https://passbolt.local",
-            label: "Ada Lovelace",
-            username: "ada@passbolt.com"
-          )
+        AccountImport.AccountDetails(
+          domain: "https://passbolt.local",
+          label: "Ada Lovelace",
+          username: "ada@passbolt.com"
         )
-        .eraseErrorType()
-        .eraseToAnyPublisher()
       }
     )
   }
 }
+
 #Preview {
   createPreview(
     TransferSignInView.self

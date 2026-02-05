@@ -86,12 +86,13 @@ extension CodeScanningViewController {
   static func previewDependencies(_ features: inout PreviewFeaturesContainer) {
     features
       .patch(
-        \AccountImport.progressPublisher,
-        with: {
-          Just(.scanningProgress(0.3))
-            .eraseErrorType()
-            .eraseToAnyPublisher()
-        }
+        \AccountImport.progress,
+        with: { .scanningProgress(0.3) }
+      )
+    features
+      .patch(
+        \AccountImport.updates,
+        with: PlaceholderUpdatable().asAnyUpdatable()
       )
   }
 }
@@ -107,12 +108,12 @@ extension CodeScanningViewController {
 
 private struct CodeScannerView: UIViewRepresentable {
 
-  private let processPayload: (String) -> AnyPublisher<Never, Error>
+  private let processPayload: (String) async throws -> Void
   private let alertHandler: (AlertViewModel) -> Void
   private let cancelScanning: () async -> Void
 
   fileprivate init(
-    processPayload: @escaping (String) -> AnyPublisher<Never, Error>,
+    processPayload: @escaping (String) async throws -> Void,
     alertHandler: @escaping (AlertViewModel) -> Void,
     cancelScanning: @escaping () async -> Void
   ) {
@@ -175,14 +176,14 @@ private struct CodeScannerView: UIViewRepresentable {
       return session
     }()
 
-    private var payloadProcessingCancellable: AnyCancellable?
+    private var processingTask: Task<Void, Never>?
 
-    private let processPayload: (String) -> AnyPublisher<Never, Error>
+    private let processPayload: (String) async throws -> Void
     private let alertHandler: (AlertViewModel) -> Void
     private let cancelScanning: () async -> Void
 
     fileprivate init(
-      processPayload: @escaping (String) -> AnyPublisher<Never, Error>,
+      processPayload: @escaping (String) async throws -> Void,
       alertHandler: @escaping (AlertViewModel) -> Void,
       cancelScanning: @escaping () async -> Void
     ) {
@@ -228,51 +229,42 @@ extension CodeScannerView.Coordinator: AVCaptureMetadataOutputObjectsDelegate {
   ) {
     dispatchPrecondition(condition: .onQueue(captureMetadataQueue))
     guard
-      payloadProcessingCancellable == nil,  // prevent multiple processing at the same time
+      processingTask == nil,  // prevent multiple processing at the same time
       let metadata: AVMetadataMachineReadableCodeObject = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
       let payload: String = metadata.stringValue
     else { return }
     // we are ignoring QRCodes which payload is not representable by String (utf8)
     // due to public api limitations, CIQRCodeDescriptor contains raw data but with
     // error correction bytes applied which can't be easily removed (Reed-Solomon encoding)
-    payloadProcessingCancellable =
-      processPayload(payload)
-      .subscribe(on: RunLoop.main)
-      .handleEvents(receiveSubscription: { _ in
-        SnackBarMessageEvent.send("code.scanning.processing.in.progress")
-      })
-      .receive(on: RunLoop.main)
-      .handleErrors { [weak self] error in
+
+    SnackBarMessageEvent.send("code.scanning.processing.in.progress")
+
+    processingTask = Task { @MainActor [weak self] in
+      guard let self else { return }
+      do {
+        try await self.processPayload(payload)
+      }
+      catch {
         switch error {
         case is Cancelled:
-          return /* NOP */
+          break  // NOP
 
         case let serverError as ServerConnectionIssue:
-          self?.alertHandler(.serverErrorAlert(with: serverError.serverURL))
+          self.alertHandler(.serverErrorAlert(with: serverError.serverURL))
 
         case let serverError as ServerResponseTimeout:
-          self?.alertHandler(.serverErrorAlert(with: serverError.serverURL))
+          self.alertHandler(.serverErrorAlert(with: serverError.serverURL))
 
         case _:
           SnackBarMessageEvent.send(.error(error))
         }
       }
-      .handleEnd { [weak self] ending in
-        if case .failed(let error) = ending, !(error is Cancelled) {
-          // Delay unlocking QRCode processing until error message becomes visible for some time.
-          // It will blink rapidly otherwise if camera is still pointing into invalid QRCode.
-          self?.captureMetadataQueue
-            .asyncAfter(deadline: .now() + 1.5) { [weak self] in
-              self?.payloadProcessingCancellable = nil
-            }
-        }
-        else {
-          self?.captureMetadataQueue
-            .async { [weak self] in
-              self?.payloadProcessingCancellable = nil
-            }
-        }
-      }
-      .sinkDrop()
+
+      // Delay unlocking QRCode processing until error message becomes visible for some time.
+      // It will blink rapidly otherwise if camera is still pointing into invalid QRCode.
+      try? await Task.sleep(for: .seconds(1.5))
+
+      self.processingTask = nil
+    }
   }
 }

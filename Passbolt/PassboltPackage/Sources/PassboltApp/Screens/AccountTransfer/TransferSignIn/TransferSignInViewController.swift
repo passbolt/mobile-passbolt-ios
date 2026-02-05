@@ -36,7 +36,7 @@ internal final class TransferSignInViewController: ViewController {
   }
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
-  private var cancellables: Set<AnyCancellable> = .init()
+  private var updatesTask: Task<Void, Never>?
 
   private let navigationToHelpMenu: NavigationToHelpMenu
   private let navigationToSelf: NavigationToTransferSignIn
@@ -53,55 +53,32 @@ internal final class TransferSignInViewController: ViewController {
       initial: .init()
     )
 
-    accountTransfer.accountDetailsPublisher()
-      .map { details -> AccountImport.AccountDetails? in details }
-      .collectErrorLog()
-      .replaceError(with: nil)
-      .filterMapOptional()
-      .receive(on: DispatchQueue.main)
-      .sink { [weak self] details in
-        self?.viewState.update(\.account, to: details)
-      }
-      .store(in: &cancellables)
+    // Set initial state from current values
+    let initialDetails = accountTransfer.accountDetails()
+    let initialAvatar = accountTransfer.avatar()
+    if let details = initialDetails {
+      viewState.update(\.account, to: details)
+    }
+    if let avatar = initialAvatar {
+      viewState.update(\.avatarData, to: avatar)
+    }
 
-    accountTransfer
-      .avatarPublisher()
-      .map { data -> Data? in data }
-      .collectErrorLog()
-      .replaceError(with: nil)
-      .receive(on: DispatchQueue.main)
-      .sink { [weak self] avatarData in
-        self?.viewState.update(\.avatarData, to: avatarData)
-      }
-      .store(in: &cancellables)
-
-    accountTransfer
-      .progressPublisher()
-      .ignoreOutput()
-      .eraseToAnyPublisher()
-      .sink(receiveCompletion: { completion in
-        switch completion {
-        case .finished:
-          break
-        case .failure(_ as Cancelled):
-          Task { [weak self] in
-            await self?.cancelTransfer()
-          }
-        case .failure(let error):
-          Task { [weak self] in
-            try await self?.navigationToResult
-              .perform(
-                context: .for(
-                  error: error,
-                  confirmation: { [weak self] in
-                    await self?.cancelTransfer()
-                  }
-                )
-              )
-          }
+    // Start listening for updates
+    self.updatesTask = Task { [weak self, accountTransfer] in
+      guard let self else { return }
+      for await _ in accountTransfer.updates {
+        let details = accountTransfer.accountDetails()
+        let avatar = accountTransfer.avatar()
+        await MainActor.run {
+          self.viewState.update(\.account, to: details)
+          self.viewState.update(\.avatarData, to: avatar)
         }
-      })
-      .store(in: &cancellables)
+      }
+    }
+  }
+
+  deinit {
+    updatesTask?.cancel()
   }
 
   internal func backTapped() {
@@ -132,37 +109,30 @@ internal final class TransferSignInViewController: ViewController {
     withAnimation {
       viewState.update(\.isLoading, to: true)
     }
-    let passphrase: Passphrase = .init(rawValue: validatedPassphrase.value)
-    accountTransfer
-      .completeTransfer(passphrase)
-      .ignoreOutput()
-      .eraseToAnyPublisher()
-      .receive(on: DispatchQueue.main)
-      .handleErrors { [weak self] error in
-        switch error {
-        case is Cancelled:
-          return /* NOP */
-
-        case let serverError as ServerConnectionIssue:
-          self?.viewState.update(\.alert, to: .serverErrorAlert(with: serverError.serverURL))
-
-        case let serverError as ServerResponseTimeout:
-          self?.viewState.update(\.alert, to: .serverErrorAlert(with: serverError.serverURL))
-
-        case is SessionMFAAuthorizationRequired:
-          return  // ignore, handled by window controller
-
-        case _:
-          SnackBarMessageEvent.send(.error(error))
-        }
+    defer {
+      withAnimation {
+        viewState.update(\.isLoading, to: false)
       }
-      .sink(receiveCompletion: { _ in
-        withAnimation {
-          self.viewState.update(\.isLoading, to: false)
-        }
-
-      })
-      .store(in: &self.cancellables)
+    }
+    let passphrase: Passphrase = .init(rawValue: validatedPassphrase.value)
+    do {
+      try await accountTransfer.completeTransfer(passphrase)
+    }
+    catch is Cancelled {
+      return
+    }
+    catch let serverError as ServerConnectionIssue {
+      viewState.update(\.alert, to: .serverErrorAlert(with: serverError.serverURL))
+    }
+    catch let serverError as ServerResponseTimeout {
+      viewState.update(\.alert, to: .serverErrorAlert(with: serverError.serverURL))
+    }
+    catch is SessionMFAAuthorizationRequired {
+      return  // ignore, handled by window controller
+    }
+    catch {
+      SnackBarMessageEvent.send(.error(error))
+    }
   }
 
   internal func cancelTransfer() async {

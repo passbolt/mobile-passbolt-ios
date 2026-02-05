@@ -25,14 +25,14 @@ import CommonModels
 
 import struct Foundation.Data
 
-public struct AccountKitImport {
+public struct AccountKitImport: Sendable {
 
-  public var isImportAccountKitAvailable: () -> Bool
-  public var importAccountKit: (String) throws -> AccountTransferData
+  public var isImportAccountKitAvailable: @Sendable () -> Bool
+  public var importAccountKit: @Sendable (String) throws -> AccountTransferData
 
   public init(
-    isImportAccountKitAvailable: @escaping () -> Bool,
-    importAccountKit: @escaping (String) throws -> AccountTransferData
+    isImportAccountKitAvailable: @escaping @Sendable () -> Bool,
+    importAccountKit: @escaping @Sendable (String) throws -> AccountTransferData
   ) {
     self.isImportAccountKitAvailable = isImportAccountKitAvailable
     self.importAccountKit = importAccountKit

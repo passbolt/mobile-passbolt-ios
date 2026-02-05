@@ -47,10 +47,14 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
       with: always([])
     )
     use(PGP.placeholder)
-    use(MediaDownloadNetworkOperation.placeholder)
+    patch(
+      \MediaDownloadNetworkOperation.execute,
+      with: always(Data())
+    )
     use(AccountTransferUpdateNetworkOperation.placeholder)
     use(Accounts.placeholder)
     use(Session.placeholder)
+    use(AccountKitImport.placeholder)
   }
 
   private var sleepDuration: UInt64 {
@@ -58,7 +62,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     UInt64(AccountTransferTests.defaultTimeout * 100) * NSEC_PER_MSEC
   }
 
-  func test_scanningProgressPublisher_publishesConfigurationValue_initially() async throws {
+  func test_progress_returnsConfigurationValue_initially() async throws {
     patch(
       \Accounts.storedAccounts,
       with: always([])
@@ -66,16 +70,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
 
     let accountTransfer: AccountImport = try testedInstance()
 
-    var result: AccountImport.Progress?
-    accountTransfer
-      .progressPublisher()
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { progress in
-          result = progress
-        }
-      )
-      .store(in: cancellables)
+    let result = accountTransfer.progress()
 
     if case .configuration = result {
       /* expected */
@@ -85,7 +80,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     }
   }
 
-  func test_scanningProgressPublisher_publishesProgressValue_afterProcessingFirstPart() async throws {
+  func test_progress_returnsProgressValue_afterProcessingFirstPart() async throws {
     patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: always(accountTransferUpdateResponse)
@@ -97,18 +92,9 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
 
     let accountTransfer: AccountImport = try testedInstance()
 
-    var result: AccountImport.Progress?
-    accountTransfer
-      .progressPublisher()
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { progress in
-          result = progress
-        }
-      )
-      .store(in: cancellables)
-
     try? await processPart(qrCodePart0, using: accountTransfer)
+
+    let result = accountTransfer.progress()
 
     if case .scanningProgress(let progressValue) = result {
       XCTAssertEqual(progressValue, 1 / 7)
@@ -118,7 +104,7 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     }
   }
 
-  func test_scanningProgressPublisher_publishesFinishedValue_afterProcessingAllParts() async throws {
+  func test_progress_returnsFinishedValue_afterProcessingAllParts() async throws {
     patch(
       \AccountTransferUpdateNetworkOperation.execute,
       with: always(accountTransferUpdateResponse)
@@ -129,17 +115,6 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     )
 
     let accountTransfer: AccountImport = try testedInstance()
-
-    var result: AccountImport.Progress?
-    accountTransfer
-      .progressPublisher()
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { progress in
-          result = progress
-        }
-      )
-      .store(in: cancellables)
 
     try? await processPart(qrCodePart0, using: accountTransfer)
     try? await processPart(qrCodePart1, using: accountTransfer)
@@ -149,84 +124,13 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     try? await processPart(qrCodePart5, using: accountTransfer)
     try? await processPart(qrCodePart6, using: accountTransfer)
 
-    result =
-      try await accountTransfer
-      .progressPublisher().asAsyncValue()
+    let result = accountTransfer.progress()
     if case .scanningFinished = result {
       /* expected */
     }
     else {
       XCTFail("Invalid account transfer result")
     }
-  }
-
-  func test_scanningProgressPublisher_completes_afterCancelation() async throws {
-    patch(
-      \AccountTransferUpdateNetworkOperation.execute,
-      with: always(accountTransferUpdateResponse)
-    )
-    patch(
-      \Accounts.storedAccounts,
-      with: always([])
-    )
-
-    let accountTransfer: AccountImport = try testedInstance()
-
-    var result: Error?
-    accountTransfer
-      .progressPublisher()
-      .sink(
-        receiveCompletion: { completion in
-          guard case .failure(let error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    accountTransfer.cancelTransfer()
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: sleepDuration)
-
-    XCTAssertError(result, matches: Cancelled.self)
-  }
-
-  func test_scanningProgressPublisher_ignoresInvalidPart() async throws {
-    patch(
-      \AccountTransferUpdateNetworkOperation.execute,
-      with: always(accountTransferUpdateResponse)
-    )
-    patch(
-      \Accounts.storedAccounts,
-      with: always([])
-    )
-
-    let accountTransfer: AccountImport = try testedInstance()
-
-    try? await processPart(qrCodePartInvalidPageBytes, using: accountTransfer)
-
-    var result: Error?
-    accountTransfer
-      .progressPublisher()
-      .handleErrors({ error in
-        result = error
-      })
-      .sink(
-        receiveCompletion: { completion in
-          guard case .failure(let error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: sleepDuration)
-
-    XCTAssertNil(result)
   }
 
   func test_processPayload_fails_withInvalidContent() async throws {
@@ -241,23 +145,13 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
 
     let accountTransfer: AccountImport = try testedInstance()
 
-    var result: Error?
-    accountTransfer
-      .processPayload(qrCodePartInvalidPageBytes)
-      .sink(
-        receiveCompletion: { completion in
-          guard case .failure(let error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    XCTAssertError(
-      result,
-      matches: AccountTransferScanningContentIssue.self
-    )
+    do {
+      try await accountTransfer.processPayload(qrCodePartInvalidPageBytes)
+      XCTFail("Expected error to be thrown")
+    }
+    catch {
+      XCTAssertError(error, matches: AccountTransferScanningContentIssue.self)
+    }
   }
 
   func test_processPayload_fails_withValidContentAndNetworkResponseFailure() async throws {
@@ -272,10 +166,13 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
 
     let accountTransfer: AccountImport = try testedInstance()
 
-    try await verify(
-      accountTransfer.processPayload(qrCodePart0),
-      throws: MockIssue.self
-    )
+    do {
+      try await accountTransfer.processPayload(qrCodePart0)
+      XCTFail("Expected error to be thrown")
+    }
+    catch {
+      XCTAssertError(error, matches: MockIssue.self)
+    }
   }
 
   func test_processPayload_succeeds_withValidContent() async throws {
@@ -288,25 +185,14 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
       with: always([])
     )
 
-    var result: Void?
     let accountTransfer: AccountImport = try testedInstance()
 
-    accountTransfer
-      .processPayload(qrCodePart0)
-      .sink(
-        receiveCompletion: { completion in
-          guard case .finished = completion
-          else { return }
-          result = Void()
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: sleepDuration)
-
-    XCTAssertNotNil(result)
+    do {
+      try await accountTransfer.processPayload(qrCodePart0)
+    }
+    catch {
+      XCTFail("Unexpected error: \(error)")
+    }
   }
 
   func test_processPayload_sendsNextPageRequest_withValidContent() async throws {
@@ -368,24 +254,14 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     )
 
     let accountTransfer: AccountImport = try testedInstance()
-    var result: Error?
 
-    accountTransfer
-      .processPayload(qrCodePartInvalidVersionByte)
-      .sink(
-        receiveCompletion: { completion in
-          guard case .failure(let error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    XCTAssertError(
-      result,
-      matches: AccountTransferScanningContentIssue.self
-    )
+    do {
+      try await accountTransfer.processPayload(qrCodePartInvalidVersionByte)
+      XCTFail("Expected error to be thrown")
+    }
+    catch {
+      XCTAssertError(error, matches: AccountTransferScanningContentIssue.self)
+    }
   }
 
   func test_processPayload_fails_withInvalidPageBytes() async throws {
@@ -395,24 +271,14 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     )
 
     let accountTransfer: AccountImport = try testedInstance()
-    var result: Error?
 
-    accountTransfer
-      .processPayload(qrCodePartInvalidPageBytes)
-      .sink(
-        receiveCompletion: { completion in
-          guard case .failure(let error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    XCTAssertError(
-      result,
-      matches: AccountTransferScanningContentIssue.self
-    )
+    do {
+      try await accountTransfer.processPayload(qrCodePartInvalidPageBytes)
+      XCTFail("Expected error to be thrown")
+    }
+    catch {
+      XCTAssertError(error, matches: AccountTransferScanningContentIssue.self)
+    }
   }
 
   func test_processPayload_fails_withInvalidPageNumber() async throws {
@@ -422,24 +288,14 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     )
 
     let accountTransfer: AccountImport = try testedInstance()
-    var result: Error?
 
-    accountTransfer
-      .processPayload(qrCodePartInvalidPageNumber)
-      .sink(
-        receiveCompletion: { completion in
-          guard case .failure(let error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    XCTAssertError(
-      result,
-      matches: AccountTransferScanningFailure.self
-    )
+    do {
+      try await accountTransfer.processPayload(qrCodePartInvalidPageNumber)
+      XCTFail("Expected error to be thrown")
+    }
+    catch {
+      XCTAssertError(error, matches: AccountTransferScanningFailure.self)
+    }
   }
 
   func test_processPayload_fails_withInvalidConfigurationPart() async throws {
@@ -449,24 +305,14 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     )
 
     let accountTransfer: AccountImport = try testedInstance()
-    var result: Error?
 
-    accountTransfer
-      .processPayload(qrCodePart0InvalidConfiguration)
-      .sink(
-        receiveCompletion: { completion in
-          guard case .failure(let error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    XCTAssertError(
-      result,
-      matches: AccountTransferScanningContentIssue.self
-    )
+    do {
+      try await accountTransfer.processPayload(qrCodePart0InvalidConfiguration)
+      XCTFail("Expected error to be thrown")
+    }
+    catch {
+      XCTAssertError(error, matches: AccountTransferScanningContentIssue.self)
+    }
   }
 
   func test_processPayload_fails_withInvalidJSONInConfigurationPart() async throws {
@@ -476,24 +322,14 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     )
 
     let accountTransfer: AccountImport = try testedInstance()
-    var result: Error?
 
-    accountTransfer
-      .processPayload(qrCodePart0InvalidJSON)
-      .sink(
-        receiveCompletion: { completion in
-          guard case .failure(let error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    XCTAssertError(
-      result,
-      matches: AccountTransferScanningContentIssue.self
-    )
+    do {
+      try await accountTransfer.processPayload(qrCodePart0InvalidJSON)
+      XCTFail("Expected error to be thrown")
+    }
+    catch {
+      XCTAssertError(error, matches: AccountTransferScanningContentIssue.self)
+    }
   }
 
   func test_processPayload_fails_withInvalidConfigurationDomain() async throws {
@@ -507,24 +343,14 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     )
 
     let accountTransfer: AccountImport = try testedInstance()
-    var result: Error?
 
-    accountTransfer
-      .processPayload(qrCodePart0InvalidDomain)
-      .sink(
-        receiveCompletion: { completion in
-          guard case .failure(let error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    XCTAssertError(
-      result,
-      matches: AccountTransferScanningDomainIssue.self
-    )
+    do {
+      try await accountTransfer.processPayload(qrCodePart0InvalidDomain)
+      XCTFail("Expected error to be thrown")
+    }
+    catch {
+      XCTAssertError(error, matches: AccountTransferScanningDomainIssue.self)
+    }
   }
 
   func test_processPayload_fails_withInvalidConfigurationHash() async throws {
@@ -546,10 +372,13 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     try? await processPart(qrCodePart4, using: accountTransfer)
     try? await processPart(qrCodePart5, using: accountTransfer)
 
-    try await verify(
-      accountTransfer.processPayload(qrCodePart6),
-      throws: AccountTransferScanningFailure.self
-    )
+    do {
+      try await accountTransfer.processPayload(qrCodePart6)
+      XCTFail("Expected error to be thrown")
+    }
+    catch {
+      XCTAssertError(error, matches: AccountTransferScanningFailure.self)
+    }
   }
 
   func test_processPayload_fails_withInvalidMiddlePart() async throws {
@@ -571,10 +400,13 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     try? await processPart(qrCodePart4, using: accountTransfer)
     try? await processPart(qrCodePart5, using: accountTransfer)
 
-    try await verify(
-      accountTransfer.processPayload(qrCodePart6),
-      throws: AccountTransferScanningFailure.self
-    )
+    do {
+      try await accountTransfer.processPayload(qrCodePart6)
+      XCTFail("Expected error to be thrown")
+    }
+    catch {
+      XCTAssertError(error, matches: AccountTransferScanningFailure.self)
+    }
   }
 
   func test_processPayload_fails_withInvalidJSONInMiddlePart() async throws {
@@ -596,10 +428,13 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     try? await processPart(qrCodePart4, using: accountTransfer)
     try? await processPart(qrCodePart5, using: accountTransfer)
 
-    try await verify(
-      accountTransfer.processPayload(qrCodePart6InvalidJSON),
-      throws: AccountTransferScanningFailure.self
-    )
+    do {
+      try await accountTransfer.processPayload(qrCodePart6InvalidJSON)
+      XCTFail("Expected error to be thrown")
+    }
+    catch {
+      XCTAssertError(error, matches: AccountTransferScanningFailure.self)
+    }
   }
 
   func test_processPayload_fails_withNoHashInConfig() async throws {
@@ -621,10 +456,13 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     try? await processPart(qrCodePart4, using: accountTransfer)
     try? await processPart(qrCodePart5, using: accountTransfer)
 
-    try await verify(
-      accountTransfer.processPayload(qrCodePart6),
-      throws: AccountTransferScanningFailure.self
-    )
+    do {
+      try await accountTransfer.processPayload(qrCodePart6)
+      XCTFail("Expected error to be thrown")
+    }
+    catch {
+      XCTAssertError(error, matches: AccountTransferScanningFailure.self)
+    }
   }
 
   func test_processPayload_fails_withInvalidContentHash() async throws {
@@ -646,10 +484,13 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     try? await processPart(qrCodePart4, using: accountTransfer)
     try? await processPart(qrCodePart5, using: accountTransfer)
 
-    try await verify(
-      accountTransfer.processPayload(qrCodePart6),
-      throws: AccountTransferScanningFailure.self
-    )
+    do {
+      try await accountTransfer.processPayload(qrCodePart6)
+      XCTFail("Expected error to be thrown")
+    }
+    catch {
+      XCTAssertError(error, matches: AccountTransferScanningFailure.self)
+    }
   }
 
   func test_cancelTransfer_sendsCancelationRequest_withConfigurationAvailable() async throws {
@@ -699,10 +540,13 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     try? await processPart(qrCodePart5, using: accountTransfer)
     try? await processPart(qrCodePart6, using: accountTransfer)
 
-    try await verify(
-      accountTransfer.processPayload(qrCodePart7Unexpected),
-      throws: Cancelled.self
-    )
+    do {
+      try await accountTransfer.processPayload(qrCodePart7Unexpected)
+      XCTFail("Expected error to be thrown")
+    }
+    catch {
+      XCTAssertError(error, matches: Cancelled.self)
+    }
   }
 
   func test_processPayload_fails_withRepeatedPage() async throws {
@@ -718,23 +562,14 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     let accountTransfer: AccountImport = try testedInstance()
 
     try? await processPart(qrCodePart0, using: accountTransfer)
-    var result: Error?
-    accountTransfer
-      .processPayload(qrCodePart0)
-      .sink(
-        receiveCompletion: { completion in
-          guard case .failure(let error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
 
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: sleepDuration)
-
-    XCTAssertError(result, matches: Cancelled.self)
+    do {
+      try await accountTransfer.processPayload(qrCodePart0)
+      XCTFail("Expected error to be thrown")
+    }
+    catch {
+      XCTAssertError(error, matches: Cancelled.self)
+    }
   }
 
   func test_processPayload_fails_withDuplicateAccount() async throws {
@@ -747,24 +582,14 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
       with: always([transferedAccountWithProfile])
     )
     let accountTransfer: AccountImport = try testedInstance()
-    var result: Error?
 
-    accountTransfer
-      .processPayload(qrCodePart0)
-      .sink(
-        receiveCompletion: { completion in
-          guard case .failure(let error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: sleepDuration)
-
-    XCTAssertError(result, matches: AccountDuplicate.self)
+    do {
+      try await accountTransfer.processPayload(qrCodePart0)
+      XCTFail("Expected error to be thrown")
+    }
+    catch {
+      XCTAssertError(error, matches: AccountDuplicate.self)
+    }
   }
 
   func test_processPayload_sendsCancelationRequest_withDuplicateAccount() async throws {
@@ -791,39 +616,6 @@ final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
     XCTAssertEqual(result.value?.currentPage, 0)
     XCTAssertEqual(result.value?.status, .cancel)
   }
-
-  func test_processPayload_finishesTransferWithDuplicateError_withDuplicateAccount() async throws {
-    patch(
-      \AccountTransferUpdateNetworkOperation.execute,
-      with: always(accountTransferUpdateResponse)
-    )
-    patch(
-      \Accounts.storedAccounts,
-      with: always([transferedAccountWithProfile])
-    )
-
-    let accountTransfer: AccountImport = try testedInstance()
-
-    var result: Error?
-    accountTransfer
-      .progressPublisher()
-      .sink(
-        receiveCompletion: { completion in
-          guard case .failure(let error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    try? await processPart(qrCodePart0, using: accountTransfer)
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: sleepDuration)
-
-    XCTAssertError(result, matches: AccountDuplicate.self)
-  }
 }
 
 extension AccountTransferTests {
@@ -832,32 +624,7 @@ extension AccountTransferTests {
     _ part: String,
     using accountTransfer: AccountImport
   ) async throws {
-    let publisher =
-      accountTransfer
-      .processPayload(part)
-    _ = try await publisher.asAsyncSequence().first()
-  }
-
-  fileprivate func verify<E>(
-    _ operation: @autoclosure () -> AnyPublisher<Never, Error>,
-    throws: E.Type,
-    file: StaticString = #file,
-    line: UInt = #line
-  ) async throws where E: Error {
-    var caughtError: Error?
-    operation()
-      .sink { result in
-        guard case .failure(let error) = result
-        else {
-          XCTFail("Expected error of type \(E.self) but got success", file: file, line: line)
-          return
-        }
-        caughtError = error
-      }
-      .store(in: cancellables)
-    try await Task.sleep(nanoseconds: sleepDuration)  // temporary wait for detached tasks
-    XCTAssertNotNil(caughtError, file: file, line: line)
-    XCTAssertTrue(caughtError is E, file: file, line: line)
+    try await accountTransfer.processPayload(part)
   }
 }
 

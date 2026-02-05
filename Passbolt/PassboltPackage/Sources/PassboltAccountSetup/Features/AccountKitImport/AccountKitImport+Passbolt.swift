@@ -53,7 +53,7 @@ extension AccountKitImport {
     /// - Parameter payload: The account kit payload to be imported (base64 encoded string).
     /// - Returns: The imported `AccountTransferData` on success.
     /// - Throws: `AccountKitImportFailure` if the payload is invalid, `AccountKitImportInvalidSignature` if the signature is invalid, `AccountKitAccountAlreadyExist` if the account already exists, or other errors encountered during import.
-    nonisolated func importAccountKit(
+    @Sendable nonisolated func importAccountKit(
       _ payload: String
     ) throws -> AccountTransferData {
       Diagnostics.logger.info("Processing account kit..")
@@ -74,7 +74,7 @@ extension AccountKitImport {
         //Validate the signature
         _ = try validateAccountKitSignature(pgpMessage, accountkit.publicKeyArmored, pgp).get()
 
-        Diagnostics.logger.info("Signature valided, extract fingerprint from public key...")
+        Diagnostics.logger.info("Signature validated, extract fingerprint from public key...")
         let fingerPrint = try getFingerPrint(accountkit.publicKeyArmored, pgp).get()
 
         //Reuse the account transfer model

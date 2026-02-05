@@ -34,16 +34,20 @@ final class TransferSignInViewControllerTests: FeaturesTestCase {
   override func commonPrepare() {
     super.commonPrepare()
     patch(
-      \AccountImport.accountDetailsPublisher,
-      with: { Empty().eraseToAnyPublisher() }
+      \AccountImport.updates,
+      with: TestUpdatable<Void>().asAnyUpdatable()
     )
     patch(
-      \AccountImport.avatarPublisher,
-      with: { Empty().eraseToAnyPublisher() }
+      \AccountImport.accountDetails,
+      with: { nil }
     )
     patch(
-      \AccountImport.progressPublisher,
-      with: { Empty(completeImmediately: false).eraseToAnyPublisher() }
+      \AccountImport.avatar,
+      with: { nil }
+    )
+    patch(
+      \AccountImport.progress,
+      with: { .configuration }
     )
   }
 
@@ -79,80 +83,74 @@ final class TransferSignInViewControllerTests: FeaturesTestCase {
     XCTAssertFalse(tested.viewState.value.isLoading)
   }
 
-  func test_viewState_account_updatesFromPublisher() async throws {
+  func test_viewState_account_updatesFromUpdatable() async throws {
     let accountDetails = AccountImport.AccountDetails(
       domain: "passbolt.local",
       label: "Ada Lovelace",
       username: "ada@passbolt.com"
     )
-    let accountSubject = PassthroughSubject<AccountImport.AccountDetails, Error>()
+    let stateVariable = Variable<Void>(initial: ())
     patch(
-      \AccountImport.accountDetailsPublisher,
-      with: { accountSubject.eraseToAnyPublisher() }
+      \AccountImport.updates,
+      with: stateVariable.map { _ in () }.asAnyUpdatable()
+    )
+    patch(
+      \AccountImport.accountDetails,
+      with: { accountDetails }
     )
 
     let tested: TransferSignInViewController = try self.testedInstance(
       context: ()
     )
 
-    accountSubject.send(accountDetails)
+    // Trigger an update
+    stateVariable.assign(())
+
+    // Allow async update to propagate
+    try await Task.sleep(for: .milliseconds(100))
 
     let currentState = await tested.viewState.current
     XCTAssertNotNil(currentState.account)
     XCTAssertEqual("ada@passbolt.com", currentState.account?.username)
   }
 
-  func test_viewState_avatarData_updatesFromPublisher() async throws {
+  func test_viewState_avatarData_updatesFromUpdatable() async throws {
     // swift-format-ignore: NeverForceUnwrap
     let testAvatarData = "test_avatar".data(using: .utf8)!
-    let avatarSubject = PassthroughSubject<Data, Error>()
+    let stateVariable = Variable<Void>(initial: ())
     patch(
-      \AccountImport.avatarPublisher,
-      with: { avatarSubject.eraseToAnyPublisher() }
+      \AccountImport.updates,
+      with: stateVariable.map { _ in () }.asAnyUpdatable()
+    )
+    patch(
+      \AccountImport.avatar,
+      with: { testAvatarData }
     )
 
     let tested: TransferSignInViewController = try self.testedInstance(
       context: ()
     )
 
-    avatarSubject.send(testAvatarData)
+    // Trigger an update
+    stateVariable.assign(())
+
+    // Allow async update to propagate
+    try await Task.sleep(for: .milliseconds(100))
 
     let currentState = await tested.viewState.current
 
     XCTAssertEqual(testAvatarData, currentState.avatarData)
   }
+}
 
-  func test_viewState_handlesAccountDetailsPublisherError() async throws {
-    let accountSubject = PassthroughSubject<AccountImport.AccountDetails, Error>()
-    patch(
-      \AccountImport.accountDetailsPublisher,
-      with: { accountSubject.eraseToAnyPublisher() }
-    )
+private final class TestUpdatable<Value: Sendable>: Updatable, @unchecked Sendable {
 
-    let tested: TransferSignInViewController = try self.testedInstance(
-      context: ()
-    )
+  var generation: UpdateGeneration { .uninitialized }
 
-    accountSubject.send(completion: .failure(MockIssue.error()))
-
-    // Should not crash and account should remain nil
-    XCTAssertNil(tested.viewState.value.account)
-  }
-
-  func test_viewState_handlesAvatarPublisherError() async throws {
-    let avatarSubject = PassthroughSubject<Data, Error>()
-    patch(
-      \AccountImport.avatarPublisher,
-      with: { avatarSubject.eraseToAnyPublisher() }
-    )
-
-    let tested: TransferSignInViewController = try self.testedInstance(
-      context: ()
-    )
-
-    avatarSubject.send(completion: .failure(MockIssue.error()))
-
-    // Should not crash and avatar should remain nil
-    XCTAssertNil(tested.viewState.value.avatarData)
+  func notify(
+    _ awaiter: @escaping @Sendable (Update<Value>) -> Void,
+    after generation: UpdateGeneration
+  ) {
+    // No-op for test placeholder
   }
 }

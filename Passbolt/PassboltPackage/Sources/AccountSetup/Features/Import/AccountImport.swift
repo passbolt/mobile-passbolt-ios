@@ -22,37 +22,38 @@
 //
 
 import Accounts
-import CommonModels
-import Features
 
 import struct Foundation.Data
 
-public struct AccountImport {
-  // Publishes progess, finishes when process is completed or fails if it becomes interrupted.
-  public var progressPublisher: () -> AnyPublisher<Progress, Error>
-  public var accountDetailsPublisher: () -> AnyPublisher<AccountDetails, Error>
-  public var processPayload: (String) -> AnyPublisher<Never, Error>
-  public var completeTransfer: (Passphrase) -> AnyPublisher<Never, Error>
-  public var avatarPublisher: () -> AnyPublisher<Data, Error>
-  public var checkIfAccountExist: (AccountTransferData) -> Bool
-  public var importAccountByPayload: (AccountTransferData) -> Void
-  public var cancelTransfer: () -> Void
+public struct AccountImport: Sendable {
+
+  public var updates: AnyUpdatable<Void>
+  public var progress: @Sendable () -> Progress
+  public var accountDetails: @Sendable () -> AccountDetails?
+  public var avatar: @Sendable () -> Data?
+  public var processPayload: @Sendable (String) async throws -> Void
+  public var completeTransfer: @Sendable (Passphrase) async throws -> Void
+  public var checkIfAccountExist: @Sendable (AccountTransferData) -> Bool
+  public var importAccountByPayload: @Sendable (AccountTransferData) -> Void
+  public var cancelTransfer: @Sendable () -> Void
 
   public init(
-    progressPublisher: @escaping () -> AnyPublisher<Progress, Error>,
-    accountDetailsPublisher: @escaping () -> AnyPublisher<AccountDetails, Error>,
-    processPayload: @escaping (String) -> AnyPublisher<Never, Error>,
-    completeTransfer: @escaping (Passphrase) -> AnyPublisher<Never, Error>,
-    avatarPublisher: @escaping () -> AnyPublisher<Data, Error>,
-    checkIfAccountExist: @escaping (AccountTransferData) -> Bool,
-    importAccountByPayload: @escaping (AccountTransferData) -> Void,
-    cancelTransfer: @escaping () -> Void
+    updates: AnyUpdatable<Void>,
+    progress: @escaping @Sendable () -> Progress,
+    accountDetails: @escaping @Sendable () -> AccountDetails?,
+    avatar: @escaping @Sendable () -> Data?,
+    processPayload: @escaping @Sendable (String) async throws -> Void,
+    completeTransfer: @escaping @Sendable (Passphrase) async throws -> Void,
+    checkIfAccountExist: @escaping @Sendable (AccountTransferData) -> Bool,
+    importAccountByPayload: @escaping @Sendable (AccountTransferData) -> Void,
+    cancelTransfer: @escaping @Sendable () -> Void
   ) {
-    self.progressPublisher = progressPublisher
-    self.accountDetailsPublisher = accountDetailsPublisher
+    self.updates = updates
+    self.progress = progress
+    self.accountDetails = accountDetails
+    self.avatar = avatar
     self.processPayload = processPayload
     self.completeTransfer = completeTransfer
-    self.avatarPublisher = avatarPublisher
     self.checkIfAccountExist = checkIfAccountExist
     self.importAccountByPayload = importAccountByPayload
     self.cancelTransfer = cancelTransfer
@@ -61,7 +62,7 @@ public struct AccountImport {
 
 extension AccountImport {
 
-  public struct AccountDetails: Equatable {
+  public struct AccountDetails: Equatable, Sendable {
 
     public let domain: URLString
     public let label: String
@@ -81,7 +82,7 @@ extension AccountImport {
 
 extension AccountImport {
 
-  public enum Progress {
+  public enum Progress: Sendable {
 
     case configuration
     case scanningProgress(Double)
@@ -92,13 +93,14 @@ extension AccountImport {
 extension AccountImport: LoadableFeature {
 
   #if DEBUG
-  public static var placeholder: Self {
+  nonisolated public static var placeholder: Self {
     Self(
-      progressPublisher: unimplemented0(),
-      accountDetailsPublisher: unimplemented0(),
+      updates: PlaceholderUpdatable().asAnyUpdatable(),
+      progress: unimplemented0(),
+      accountDetails: unimplemented0(),
+      avatar: unimplemented0(),
       processPayload: unimplemented1(),
       completeTransfer: unimplemented1(),
-      avatarPublisher: unimplemented0(),
       checkIfAccountExist: unimplemented1(),
       importAccountByPayload: unimplemented1(),
       cancelTransfer: unimplemented0()
